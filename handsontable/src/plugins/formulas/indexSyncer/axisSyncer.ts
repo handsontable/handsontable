@@ -263,10 +263,18 @@ class AxisSyncer {
     this.#adoptedWhileHeld = false;
     this.#translationCache = null;
 
-    const engine = this.#indexSyncer.getEngine();
+    if (!held && syncOnRelease) {
+      this.#syncOrderWithGrid();
+    }
+  }
+
+  /**
+   * Sends the grid's current order to the engine, when there is a sheet to send it to.
+   */
+  #syncOrderWithGrid() {
     const sequence = this.#indexMapper.getIndexesSequence();
 
-    if (!held && syncOnRelease && engine !== null && this.#indexSyncer.getSheetId() !== null
+    if (this.#indexSyncer.getEngine() !== null && this.#indexSyncer.getSheetId() !== null
       && sequence.length > 0 && !this.#isSheetRemoved()) {
       this.#syncOrderWithEngine(sequence);
     }
@@ -325,8 +333,10 @@ class AxisSyncer {
   }
 
   /**
-   * Takes over an engine order `getEngineOrder()` returned, without sending anything to the engine:
-   * the caller has just loaded a sheet that already holds its content in that order.
+   * Takes over an engine order `getEngineOrder()` returned: the caller has just loaded a sheet that already
+   * holds its content in that order. The order was recorded earlier, so the grid can have left it since (a
+   * reorder made after the recorded step). Unless the order is held, the engine then follows the grid's
+   * current order, as it would have had the reorder come after the load.
    *
    * @param {object} order The order to take over.
    */
@@ -339,6 +349,10 @@ class AxisSyncer {
 
     this.#paddedElements = new Set<number>(order.paddedElements.filter(physicalIndex => held.has(physicalIndex)));
     this.#translationCache = null;
+
+    if (!this.#orderHeld) {
+      this.#syncOrderWithGrid();
+    }
   }
 
   /**
