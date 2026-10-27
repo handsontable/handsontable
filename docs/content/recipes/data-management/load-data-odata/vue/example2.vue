@@ -43,6 +43,7 @@ const hotSettings: GridSettings = {
       type: 'autocomplete',
       width: 240,
       strict: false,
+      // Show no suggestions when the request fails.
       source(query, process) {
         fetchProductNames(query).then(process, () => process([]));
       },

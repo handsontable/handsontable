@@ -45,7 +45,7 @@ async function fetchRows(
     $count: 'true',
     $top: `${pageSize}`,
     $skip: `${(page - 1) * pageSize}`,
-    ...(sort && { $orderby: `${sort.prop} ${sort.order}` }),
+    ...(sort ? { $orderby: `${sort.prop} ${sort.order}` } : {}),
     ...(filter ? { $filter: filter } : {}),
   });
   const response = await fetch(`${SERVICE_URL}?${query}`, { signal });

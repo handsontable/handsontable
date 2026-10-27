@@ -48,6 +48,7 @@ export class AppComponent {
         type: 'autocomplete',
         width: 240,
         strict: false,
+        // Show no suggestions when the request fails.
         source(query: string, process: (names: string[]) => void) {
           fetchProductNames(query).then(process, () => process([]));
         },
