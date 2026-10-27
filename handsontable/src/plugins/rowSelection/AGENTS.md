@@ -266,7 +266,12 @@ a projection of it for the loaded page:
   grid, the ids checked on one sheet showed as checked on the next and `removeSelectedRows()` sent them to its
   `onRowsRemove`. `_importViewState()` runs no selection hook and announces nothing, unlike
   `setServerSelection()`. It also restores the checked physical rows of a grid that holds its own rows, which
-  `loadData()` clears, and leaves a bound checkbox column alone: the data holds that selection.
+  `loadData()` clears, and leaves a bound checkbox column alone: the data holds that selection. **An import in
+  the `'singleRow'` mode keeps at most one row** (`#reduceImportedToSingleRow()`), by the same choice
+  `updatePlugin()` makes (`#getSingleRowToKeep()`, `#getSingleRowIdSelection()`), but written silently. The
+  sheets bar's `updateSheetSettings()` can switch a hidden sheet to that mode, and its stored checks come back
+  after the plugin already applied the mode, so without it the sheet returned with several rows selected in
+  the single-row mode.
 
 ## Known gaps
 

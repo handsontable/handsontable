@@ -1040,6 +1040,8 @@ export class RowSelection extends BasePlugin {
    * the user checked those rows on that sheet before. The selection by row id and the server row count
    * are replaced too, so the rows a server-backed sheet checked never show, or get removed, on another
    * sheet. A physical row past the end of the data is dropped. A bound checkbox column is left alone.
+   * In the `'singleRow'` mode at most one row stays selected, by the rule a switch to that mode follows,
+   * because the mode may have changed while the sheet was hidden.
    *
    * @private
    * @param {object|null} state The checked rows.
@@ -1060,19 +1062,21 @@ export class RowSelection extends BasePlugin {
 
     if (this.#isServerMode()) {
       this.#hydrateFromRowIds();
+    } else {
+      const values = new Array<boolean>(this.hot.rowIndexMapper.getNumberOfIndexes()).fill(false);
 
-      return;
+      (state?.rows ?? []).forEach((physicalRow) => {
+        if (physicalRow < values.length) {
+          values[physicalRow] = true;
+        }
+      });
+
+      this.#writeSilently(() => map.setValues(values));
     }
 
-    const values = new Array<boolean>(this.hot.rowIndexMapper.getNumberOfIndexes()).fill(false);
-
-    (state?.rows ?? []).forEach((physicalRow) => {
-      if (physicalRow < values.length) {
-        values[physicalRow] = true;
-      }
-    });
-
-    this.#writeSilently(() => map.setValues(values));
+    if (this.#getSettings().mode === 'singleRow') {
+      this.#reduceImportedToSingleRow();
+    }
   }
 
   /**
@@ -1172,41 +1176,95 @@ export class RowSelection extends BasePlugin {
       return;
     }
 
+    const keep = this.#getSingleRowToKeep();
+
+    if (keep !== null) {
+      this.#selectOnly(keep, 'api');
+    } else {
+      this.#replaceServerSelection(this.#getSingleRowIdSelection(), 'api');
+    }
+  }
+
+  /**
+   * Keeps at most one row selected after an import in the `'singleRow'` mode, by the rule
+   * `#reduceToSingleRow()` follows, but silently: the sheets bar imports the checked rows
+   * a sheet left with, and a sheet whose mode changed while it was hidden must not come back with
+   * several rows selected. It writes the map and the selection by row id directly, so no selection hook
+   * runs on the switch.
+   */
+  #reduceImportedToSingleRow() {
+    if (this.getBoundColumn() !== null || this.getSelectedCount() <= 1) {
+      return;
+    }
+
+    const keep = this.#getSingleRowToKeep();
+    const rowId = keep !== null && this.#isServerMode() ? this.#getRowId(keep) : undefined;
+
+    if (keep !== null && rowId === undefined) {
+      const values = new Array<boolean>(this.hot.rowIndexMapper.getNumberOfIndexes()).fill(false);
+
+      values[keep] = true;
+      this.#writeSilently(() => this.#selectedRowsMap!.setValues(values));
+
+      return;
+    }
+
+    const next = rowId === undefined ? this.#getSingleRowIdSelection() : new RowIdSelection();
+
+    if (rowId !== undefined) {
+      next.set(rowId, true);
+    }
+
+    this.#rowIdSelection = next;
+    this.#hydrateFromRowIds();
+  }
+
+  /**
+   * Returns the physical row the `'singleRow'` mode keeps from a larger selection: the anchor when it is
+   * selected, else the last selected row in visual order, else, when every selected row is filtered out,
+   * the last selected physical row. `null` for a server-backed grid with no selected row loaded, which
+   * keeps a row id instead (`#getSingleRowIdSelection()`).
+   *
+   * @returns {number|null}
+   */
+  #getSingleRowToKeep(): number | null {
     const { isSelected } = this.#createRowChecks();
     const anchor = this.#anchorPhysicalRow;
     const selectedVisualRows = this.getSelectedRows();
     const lastVisualRow = selectedVisualRows[selectedVisualRows.length - 1];
-    let keep: number | null = null;
 
     if (anchor !== null && this.hot.toVisualRow(anchor) !== null && isSelected(anchor)) {
-      keep = anchor;
-    } else if (lastVisualRow !== undefined) {
-      keep = this.hot.toPhysicalRow(lastVisualRow);
+      return anchor;
     }
 
-    if (keep !== null) {
-      this.#selectOnly(keep, 'api');
-
-      return;
+    if (lastVisualRow !== undefined) {
+      return this.hot.toPhysicalRow(lastVisualRow);
     }
 
     if (this.#isServerMode()) {
-      const { selectAll, toggledRowIds } = this.#rowIdSelection.export();
-      const next = new RowIdSelection();
-
-      if (!selectAll && toggledRowIds.length > 0) {
-        next.set(toggledRowIds[toggledRowIds.length - 1], true);
-      }
-
-      this.#replaceServerSelection(next, 'api');
-
-      return;
+      return null;
     }
 
-    // Every selected row is filtered out, so none has a visual index: keep the last physical one.
     const selectedPhysicalRows = this.getSelectedPhysicalRows();
 
-    this.#selectOnly(selectedPhysicalRows[selectedPhysicalRows.length - 1], 'api');
+    return selectedPhysicalRows[selectedPhysicalRows.length - 1];
+  }
+
+  /**
+   * Returns the selection by row id the `'singleRow'` mode keeps when no selected row is loaded: the row
+   * id toggled last, or nothing for a "select all", which names no single row.
+   *
+   * @returns {RowIdSelection}
+   */
+  #getSingleRowIdSelection(): RowIdSelection {
+    const { selectAll, toggledRowIds } = this.#rowIdSelection.export();
+    const next = new RowIdSelection();
+
+    if (!selectAll && toggledRowIds.length > 0) {
+      next.set(toggledRowIds[toggledRowIds.length - 1], true);
+    }
+
+    return next;
   }
 
   /**

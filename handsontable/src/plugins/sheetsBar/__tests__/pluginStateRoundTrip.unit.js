@@ -156,6 +156,22 @@ describe('SheetsBar plugin state across sheet switches', () => {
       expect(hot.getPlugin('rowSelection').getSelectedRows()).toEqual([2]);
       expect(hot.getDataAtCol(0)).toEqual([false, false, true]);
     });
+
+    it('keeps one checked row on a hidden sheet switched to the single-row mode', () => {
+      const bar = build({ rowSelection: true, rowHeaders: true },
+        [{ name: 'A', data: rows() }, { name: 'B', data: rows() }]);
+      const hooks = jest.fn();
+
+      hot.getPlugin('rowSelection').selectRows([1, 3]);
+      bar.setActiveSheet('B');
+      bar.updateSheetSettings(idOf(bar, 'A'), { rowSelection: { mode: 'singleRow' } });
+      hot.addHook('beforeRowSelectionChange', () => hooks('before'));
+      hot.addHook('afterRowSelectionChange', () => hooks('after'));
+      bar.setActiveSheet('A');
+
+      expect(hot.getPlugin('rowSelection').getSelectedRows()).toEqual([3]);
+      expect(hooks.mock.calls).toEqual([]);
+    });
   });
 
   describe('RowSelection with server-backed sheets', () => {
@@ -290,6 +306,27 @@ describe('SheetsBar plugin state across sheet switches', () => {
       await fetched;
       bar.setActiveSheet('Orders');
 
+      expect(hooks.mock.calls).toEqual([]);
+    });
+
+    it('keeps one row id on a hidden server sheet switched to the single-row mode', async() => {
+      const { bar, nextFetch } = await buildServerWorkbook();
+      const plugin = hot.getPlugin('rowSelection');
+      const hooks = jest.fn();
+
+      plugin.selectRows([0, 1]);
+
+      const fetched = nextFetch();
+
+      bar.setActiveSheet('Customers');
+      await fetched;
+      bar.updateSheetSettings(idOf(bar, 'Orders'), { rowSelection: { mode: 'singleRow' } });
+      hot.addHook('beforeRowSelectionChange', () => hooks('before'));
+      hot.addHook('afterRowSelectionChange', () => hooks('after'));
+      bar.setActiveSheet('Orders');
+
+      expect(plugin.getServerSelection()).toEqual({ selectAll: false, toggledRowIds: [2] });
+      expect(plugin.getSelectedRows()).toEqual([1]);
       expect(hooks.mock.calls).toEqual([]);
     });
   });
