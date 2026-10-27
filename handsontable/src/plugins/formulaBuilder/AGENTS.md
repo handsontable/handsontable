@@ -74,7 +74,10 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   nothing then, so no data hook fires. `#followSheetBinding()` therefore runs from the same check in
   `afterSelection` and `handleInlineEditStart()` too (outside an edit), and `#isConfigUnchanged()` compares
   the sheet id, so a later `updatePlugin()` rebuilds as well. Without it the builder suggested the previous
-  sheet's scoped named expressions.
+  sheet's scoped named expressions. The two cases differ under an open edit: a data load rebuilds at once
+  (the load replaced the data the edit was made against, and the rebuild cancels the edit), while a
+  switch with no load leaves the edit on its sheet and `handleInlineEditClose()` defers the rebuild
+  through `#rebuildAfterEdit`. Skipping both under an edit left the builder on the old sheet for good.
 - **`enablePlugin()` emits the bar selection once the setup succeeds.** The teardown of an `updatePlugin()`
   rebuild clears `#barSelected` and the dedupe key, and no selection hook runs until the selection moves,
   so a bar turned on with `updateSettings()` stayed empty over a selected formula cell.

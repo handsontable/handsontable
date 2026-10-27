@@ -687,6 +687,12 @@ export class FormulaBuilder extends BasePlugin {
     // showing the old cell. Re-read the selection now that the edit is over.
     this.#emitBarSelection();
 
+    // The grid was bound to another sheet without a data load while the edit was open
+    // (`Formulas#switchSheet()` to an empty sheet), which `#followSheetBinding()` leaves to this close.
+    if (this.#builder !== null && this.#sheetId !== this.#builtSheetId) {
+      this.#rebuildAfterEdit = true;
+    }
+
     if (this.#rebuildAfterEdit) {
       // A task later: the close runs inside the builder's own commit handler, which is still on the
       // stack, and destroying the builder under it would leave that handler working on a torn-down
@@ -1095,7 +1101,11 @@ export class FormulaBuilder extends BasePlugin {
    * the Formulas plugin has no sheet id yet, and `Formulas#switchSheet()` reloads the data too.
    */
   #onAfterDataLoad = (): void => {
-    this.#followSheetBinding();
+    // Even under an open edit: the load replaced the data the edit was made against, and the rebuild
+    // cancels that edit.
+    if (this.#builder !== null && this.#sheetId !== this.#builtSheetId) {
+      this.#rebuildBuilder();
+    }
   };
 
   /**
@@ -1103,7 +1113,7 @@ export class FormulaBuilder extends BasePlugin {
    * for, outside an edit. A data load reports most rebindings, but `Formulas#switchSheet()` loads
    * nothing when the target sheet is empty, so the selection and edit-start paths ask too: without
    * that, references, own-sheet checks and sheet-scoped named expressions kept resolving against the
-   * previous sheet.
+   * previous sheet. An open edit is left alone here; `handleInlineEditClose()` rebuilds once it closes.
    */
   #followSheetBinding(): void {
     if (this.#builder !== null && !this.#isEditing() && this.#sheetId !== this.#builtSheetId) {

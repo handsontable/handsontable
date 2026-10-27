@@ -75,6 +75,77 @@ describe('FormulaBuilder after a switch to an empty sheet', () => {
     engine.destroy();
   });
 
+  /**
+   * Resolves once the condition holds, checking once per task (the deferred rebuild runs a task later).
+   *
+   * @param {Function} condition The condition to wait for.
+   * @returns {Promise<void>}
+   */
+  async function waitFor(condition: () => boolean): Promise<void> {
+    for (let task = 0; task < 50 && !condition(); task++) {
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise(resolve => setTimeout(resolve));
+    }
+  }
+
+  /**
+   * Opens the formula editor on a cell.
+   *
+   * @param {Handsontable} hot The grid.
+   */
+  function openEditor(hot: Handsontable): void {
+    hot.selectCell(0, 0);
+    hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+  }
+
+  it('rebuilds once an edit that was open during the switch closes', async() => {
+    const engine = HyperFormula.buildFromSheets({ Main: [[1, 2]], Empty: [] }, { licenseKey: 'gpl-v3' });
+    const builtFor: number[] = [];
+    const hot = new Handsontable(container, {
+      data: [[1, 2]],
+      editor: 'formula',
+      formulas: { engine, sheetName: 'Main' },
+      formulaBuilder: { builder: recordingCore(builtFor) },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    openEditor(hot);
+    hot.getPlugin('formulas').switchSheet('Empty');
+
+    // The edit stays open on the sheet it was started on.
+    expect(hot.getActiveEditor()?.isOpened()).toBe(true);
+    expect(builtFor.at(-1)).toBe(engine.getSheetId('Main'));
+
+    hot.getActiveEditor()?.finishEditing(true);
+    await waitFor(() => builtFor.at(-1) === engine.getSheetId('Empty'));
+
+    expect(builtFor.at(-1)).toBe(engine.getSheetId('Empty'));
+
+    hot.destroy();
+    engine.destroy();
+  });
+
+  it('rebuilds at once when a switch loads data while an edit is open', () => {
+    const engine = HyperFormula.buildFromSheets({ Main: [[1, 2]], Other: [[3, 4]] }, { licenseKey: 'gpl-v3' });
+    const builtFor: number[] = [];
+    const hot = new Handsontable(container, {
+      data: [[1, 2]],
+      editor: 'formula',
+      formulas: { engine, sheetName: 'Main' },
+      formulaBuilder: { builder: recordingCore(builtFor) },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    openEditor(hot);
+    hot.getPlugin('formulas').switchSheet('Other');
+
+    expect(builtFor.at(-1)).toBe(engine.getSheetId('Other'));
+    expect(hot.getPlugin('formulaBuilder').getActiveEditor()).toBeNull();
+
+    hot.destroy();
+    engine.destroy();
+  });
+
   it('rebuilds on a settings update that changes nothing else', () => {
     const engine = HyperFormula.buildFromSheets({ Main: [[1, 2]], Empty: [] }, { licenseKey: 'gpl-v3' });
     const builtFor: number[] = [];
