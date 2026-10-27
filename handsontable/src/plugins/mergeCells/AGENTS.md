@@ -414,8 +414,9 @@ several columns is drawn from (`../autoColumnSize/mergedCellsWidths.ts`), and it
 `afterMergeCells`/`afterUnmergeCells` to re-measure the columns a merge covers. A change to what the method
 returns (leaving out hidden rows, for example), or a new path that adds or removes merges without those
 hooks, changes the column widths too. Two paths already do without them: `clearCollections()` (a
-`mergeCells` settings update, a disable) and `restoreState()` (undo and redo of a merge); AutoColumnSize
-reaches a fit there through the re-measure that follows. See "Merged cells" in `../autoColumnSize/AGENTS.md`.
+`mergeCells` settings update, a disable) and `restoreState()` (undo and redo of a merge). AutoColumnSize
+compares the merges at every fit and rescans the columns of any that changed, so a new hook-less path is
+caught there too, as long as something asks for a fit. See "Merged cells" in `../autoColumnSize/AGENTS.md`.
 
 ## `disablePlugin()` clears the field, so copy first
 

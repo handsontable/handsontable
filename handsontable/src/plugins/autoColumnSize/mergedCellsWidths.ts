@@ -33,6 +33,10 @@ export interface MergedCellsWidthsHost {
    */
   toPhysicalColumn(column: number): number | null;
   /**
+   * Translates a physical column index to a visual one.
+   */
+  toVisualColumn(column: number): number | null;
+  /**
    * Returns the width a column renders with before any stretch, including the demand this class
    * reports for it.
    */
@@ -46,6 +50,23 @@ export interface MergedCellsWidthsHost {
    */
   measureTexts(groups: Array<{ column: number, texts: Array<{ row: number, value: unknown }> }>): Map<number, number>;
 }
+
+/**
+ * The result of a fit.
+ */
+export interface MergedCellsFitResult {
+  /**
+   * `true` when any column's demand changed.
+   */
+  changed: boolean;
+  /**
+   * The visual columns spanned by a merge that appeared or went away since the last fit. Their samples
+   * were taken under the previous merges, so they need a rescan.
+   */
+  mergesChangedIn: number[];
+}
+
+const NO_CHANGE: MergedCellsFitResult = { changed: false, mergesChangedIn: [] };
 
 /**
  * The merges that start in one column with one span, as `MergedCellsWidths` measures them together.
@@ -121,6 +142,21 @@ export class MergedCellsWidths {
    * @type {Map<string, { width: number, signature: string }>}
    */
   #groupWidths: Map<string, { width: number, signature: string }> = new Map();
+  /**
+   * Every merge seen at the last fit, keyed by its physical first row and column and its span. The
+   * next fit compares the merges with it, so a merge that appeared or went away with no merge hook
+   * (MergeCells' undo and redo, a settings rebuild) is reported. `null` until the first fit.
+   *
+   * @type {Map<string, { physicalColumn: number, colspan: number }> | null}
+   */
+  #areaKeys: Map<string, { physicalColumn: number, colspan: number }> | null = null;
+  /**
+   * `true` when the physical numbering may have changed, so the next fit takes the merges as the new
+   * baseline instead of comparing them with keys that no longer mean the same cells.
+   *
+   * @type {boolean}
+   */
+  #rebaseline = false;
   /**
    * `true` when an input of the demands changed since the last fit.
    *
@@ -213,21 +249,42 @@ export class MergedCellsWidths {
   }
 
   /**
-   * Records that merges were added or removed in a column.
+   * Records that merges were added or removed in a column through a merge hook. The hook's caller
+   * queues the rescans that change needs, so the next fit takes the merges as a new baseline rather
+   * than reporting them again (merges declared in the settings arrive after the init sweep's fit).
    *
    * @param {number} visualColumn The visual column index.
    */
   markMergesChanged(visualColumn: number): void {
     this.invalidateColumn(visualColumn);
     this.#hasMultiColumnMerges = true;
+    this.#rebaseline = true;
   }
 
   /**
-   * Records that anything may have changed, the row and column numbering included. The next fit reads
-   * and measures every merge's text again.
+   * Records that the texts may have changed anywhere. The next fit reads and measures every merge's
+   * text again.
    */
   markStale(): void {
     this.#stale = true;
+  }
+
+  /**
+   * Records that the physical row or column numbering may have changed. Like `markStale()`, and the
+   * next fit also takes the merges as a new baseline instead of reporting them as changed.
+   */
+  markRenumbered(): void {
+    this.#stale = true;
+    this.#rebaseline = true;
+  }
+
+  /**
+   * Records that the styles may have changed: every group of merges is measured again from the kept
+   * texts, without reading a cell.
+   */
+  markStylesChanged(): void {
+    this.#groupWidths.clear();
+    this.#pending = true;
   }
 
   /**
@@ -239,6 +296,8 @@ export class MergedCellsWidths {
     this.#pending = false;
     this.#stale = false;
     this.#hasMultiColumnMerges = false;
+    this.#areaKeys = null;
+    this.#rebaseline = false;
   }
 
   /**
@@ -255,11 +314,11 @@ export class MergedCellsWidths {
   /**
    * Fits the demands again when an input changed since the last fit.
    *
-   * @returns {boolean} `true` when any column's demand changed.
+   * @returns {MergedCellsFitResult}
    */
-  fit(): boolean {
+  fit(): MergedCellsFitResult {
     if (!this.#pending && !this.#stale) {
-      return false;
+      return NO_CHANGE;
     }
 
     if (this.#stale) {
@@ -269,7 +328,9 @@ export class MergedCellsWidths {
     this.#pending = false;
     this.#stale = false;
 
-    const multiColumnAreas = this.#host.getMergedAreas().filter(({ colspan }) => isMultiColumnMerge(colspan));
+    const allAreas = this.#host.getMergedAreas();
+    const mergesChangedIn = this.#diffAreas(allAreas);
+    const multiColumnAreas = allAreas.filter(({ colspan }) => isMultiColumnMerge(colspan));
     // Counted before the hidden rows are left out, so a merge that a hidden row keeps off screen still
     // counts: showing the row must reach a fit.
     const areas = multiColumnAreas.filter(area => this.#isDrawnArea(area));
@@ -277,7 +338,7 @@ export class MergedCellsWidths {
     this.#hasMultiColumnMerges = multiColumnAreas.length > 0;
 
     if (areas.length === 0 && this.#demands.size === 0) {
-      return false;
+      return { changed: false, mergesChangedIn };
     }
 
     const previous = this.#demands;
@@ -285,7 +346,51 @@ export class MergedCellsWidths {
     this.#demands = new Map();
     this.#resolveDemands(areas);
 
-    return !haveSameEntries(previous, this.#demands);
+    return { changed: !haveSameEntries(previous, this.#demands), mergesChangedIn };
+  }
+
+  /**
+   * Compares the merges with the ones the last fit saw and returns the visual columns spanned by a
+   * merge that appeared or went away. The first fit, and the first after a renumbering, only record.
+   *
+   * @param {MergedCellArea[]} areas Every merge the grid draws.
+   * @returns {number[]}
+   */
+  #diffAreas(areas: MergedCellArea[]) {
+    const keys = new Map<string, { physicalColumn: number, colspan: number }>();
+
+    areas.forEach(({ row, col, rowspan, colspan }) => {
+      const physicalRow = this.#host.toPhysicalRow(row);
+      const physicalColumn = this.#host.toPhysicalColumn(col);
+
+      if (physicalRow !== null && physicalColumn !== null) {
+        keys.set(`${physicalRow}:${physicalColumn}:${rowspan}:${colspan}`, { physicalColumn, colspan });
+      }
+    });
+
+    const previous = this.#areaKeys;
+    const columns = new Set<number>();
+
+    this.#areaKeys = keys;
+
+    if (previous === null || this.#rebaseline) {
+      this.#rebaseline = false;
+
+      return [];
+    }
+
+    const addSpan = ({ physicalColumn, colspan }: { physicalColumn: number, colspan: number }) => {
+      const visualColumn = this.#host.toVisualColumn(physicalColumn);
+
+      for (let offset = 0; visualColumn !== null && offset < colspan; offset++) {
+        columns.add(visualColumn + offset);
+      }
+    };
+
+    keys.forEach((area, key) => (previous.has(key) ? undefined : addSpan(area)));
+    previous.forEach((area, key) => (keys.has(key) ? undefined : addSpan(area)));
+
+    return Array.from(columns);
   }
 
   /**

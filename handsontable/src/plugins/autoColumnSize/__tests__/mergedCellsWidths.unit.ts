@@ -47,6 +47,7 @@ function createTracker(grid: Partial<FakeGrid>) {
     isColumnHidden: column => state.hiddenColumns.has(column),
     toPhysicalRow: row => row,
     toPhysicalColumn: column => column,
+    toVisualColumn: column => column,
     getColumnWidth: column => Math.max(state.baseWidths[column] ?? 50, tracker?.getWidth(column) ?? 0),
     // A text is its width here, so the measurement is the largest value.
     formatCellText: (row, column) => {
@@ -86,7 +87,7 @@ describe('MergedCellsWidths', () => {
 
     tracker.markWidthsChanged();
 
-    expect(tracker.fit()).toBe(true);
+    expect(tracker.fit().changed).toBe(true);
     expect(tracker.getWidth(0)).toBe(300);
     expect(tracker.getWidth(1)).toBeUndefined();
   });
@@ -110,7 +111,7 @@ describe('MergedCellsWidths', () => {
       content: new Map([['0:0', 400]]),
     });
 
-    expect(tracker.fit()).toBe(false);
+    expect(tracker.fit().changed).toBe(false);
     expect(state.areaReads).toBe(0);
     expect(state.measured).toHaveLength(0);
 
@@ -118,7 +119,7 @@ describe('MergedCellsWidths', () => {
     tracker.fit();
     tracker.markWidthsChanged();
 
-    expect(tracker.fit()).toBe(false);
+    expect(tracker.fit().changed).toBe(false);
     // The text of an unchanged merge is measured once.
     expect(state.measured).toHaveLength(1);
   });
@@ -134,7 +135,7 @@ describe('MergedCellsWidths', () => {
     state.content.set('0:0', 200);
     tracker.invalidateColumn(0);
 
-    expect(tracker.fit()).toBe(true);
+    expect(tracker.fit().changed).toBe(true);
     expect(tracker.getWidth(0)).toBe(150);
     expect(state.measured).toHaveLength(2);
   });
@@ -299,7 +300,7 @@ describe('MergedCellsWidths', () => {
     state.areas = [];
     tracker.markWidthsChanged();
 
-    expect(tracker.fit()).toBe(true);
+    expect(tracker.fit().changed).toBe(true);
     expect(tracker.getWidth(0)).toBeUndefined();
   });
 
@@ -315,7 +316,7 @@ describe('MergedCellsWidths', () => {
     state.baseWidths[1] = 500;
     tracker.markWidthsChanged();
 
-    expect(tracker.fit()).toBe(true);
+    expect(tracker.fit().changed).toBe(true);
     expect(tracker.getWidth(0)).toBeUndefined();
   });
 
@@ -332,6 +333,62 @@ describe('MergedCellsWidths', () => {
     tracker.fit();
 
     expect(tracker.mayHaveMultiColumnMerges()).toBe(false);
+  });
+
+  it('should report the columns of a merge that appeared or went away since the last fit', () => {
+    const merge = { row: 0, col: 1, rowspan: 1, colspan: 2 };
+    const { tracker, state } = createTracker({ content: new Map([['0:1', 400]]) });
+
+    tracker.markWidthsChanged();
+
+    expect(tracker.fit().mergesChangedIn).toEqual([]);
+
+    state.areas = [merge];
+    tracker.markWidthsChanged();
+
+    expect(tracker.fit().mergesChangedIn).toEqual([1, 2]);
+
+    state.areas = [];
+    tracker.markWidthsChanged();
+
+    expect(tracker.fit().mergesChangedIn).toEqual([1, 2]);
+  });
+
+  it('should not report a merge that a merge hook already reported', () => {
+    const { tracker, state } = createTracker({ content: new Map([['0:0', 400]]) });
+
+    tracker.markWidthsChanged();
+    tracker.fit();
+    state.areas = [{ row: 0, col: 0, rowspan: 1, colspan: 2 }];
+    tracker.markMergesChanged(0);
+
+    expect(tracker.fit().mergesChangedIn).toEqual([]);
+  });
+
+  it('should take the merges as a new baseline after a renumbering', () => {
+    const { tracker, state } = createTracker({ content: new Map([['0:0', 400]]) });
+
+    tracker.markWidthsChanged();
+    tracker.fit();
+    state.areas = [{ row: 0, col: 0, rowspan: 1, colspan: 2 }];
+    tracker.markRenumbered();
+
+    expect(tracker.fit().mergesChangedIn).toEqual([]);
+  });
+
+  it('should measure every group again from the kept texts after a style change', () => {
+    const { tracker, state } = createTracker({
+      areas: [{ row: 0, col: 0, rowspan: 1, colspan: 2 }],
+      content: new Map([['0:0', 400]]),
+    });
+
+    tracker.markWidthsChanged();
+    tracker.fit();
+    tracker.markStylesChanged();
+    tracker.fit();
+
+    expect(state.measured).toHaveLength(2);
+    expect(state.textReads).toBe(1);
   });
 
   it('should forget every demand on clear', () => {

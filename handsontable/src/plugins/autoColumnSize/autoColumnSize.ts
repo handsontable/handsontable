@@ -386,6 +386,7 @@ export class AutoColumnSize extends BasePlugin {
     isColumnHidden: column => this.hot.columnIndexMapper.isHidden(this.hot.toPhysicalColumn(column)),
     toPhysicalRow: row => this.hot.toPhysicalRow(row),
     toPhysicalColumn: column => this.hot.toPhysicalColumn(column),
+    toVisualColumn: column => this.hot.toVisualColumn(column),
     // The width before the stretch, which StretchColumns computes from these widths afterwards. Read with
     // the stretch, a fit that follows a stretched render left the merge short of its text.
     getColumnWidth: column => this.hot.getColWidth(column, 'StretchColumns'),
@@ -420,6 +421,13 @@ export class AutoColumnSize extends BasePlugin {
    * @type {boolean}
    */
   #deferMergedCellsFit = false;
+  /**
+   * The visual columns the current ghost table re-renders from their cached samples. A width change
+   * for one of them can only come from a style change, which the merges' kept widths need to follow.
+   *
+   * @type {Set<number>}
+   */
+  #replayedColumns: Set<number> = new Set();
   /**
    * The `useHeaders` option value as this plugin last applied it.
    *
@@ -496,6 +504,8 @@ export class AutoColumnSize extends BasePlugin {
     this.addHook('afterMergeCells', this.#onAfterMergeCells);
     this.addHook('afterUnmergeCells', this.#onAfterUnmergeCells);
     this.addHook('afterUpdateData', this.#onAfterUpdateData);
+    this.addHook('afterUndo', this.#onAfterUndoRedo);
+    this.addHook('afterRedo', this.#onAfterUndoRedo);
     this.addHook('beforeRender', this.#onBeforeRender);
     this.addHook('modifyColWidth', (width: number, col: number) => this.getColumnWidth(col, width), -10);
     this.addHook('init', this.#onInit);
@@ -665,6 +675,7 @@ export class AutoColumnSize extends BasePlugin {
         // sampled values — picking up CSS or renderer changes — without re-walking the row range.
         // Data changes refresh or drop the cached samples, so a full scan runs only when needed.
         if (cachedSamples !== undefined) {
+          this.#replayedColumns.add(visualColumn);
           this.#addGhostTableColumn(visualColumn, cachedSamples);
         } else {
           this.#fillGhostTableWithSamples(visualColumn, rowsRange);
@@ -1110,18 +1121,28 @@ export class AutoColumnSize extends BasePlugin {
    * ghost table too, so it has to run after the clean.
    */
   #updateColumnWidthsMapBasedOnGhostTable() {
+    let stylesChanged = false;
+
     this.hot.batchExecution(() => {
       this.ghostTable.getWidths((visualColumn: number, width: number) => {
         const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
         if (this.columnWidthsMap.getValueAtIndex(physicalColumn) !== width) {
           this.#mergedCellsWidths.markWidthsChanged();
+          stylesChanged ||= this.#replayedColumns.has(visualColumn);
         }
 
         this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
       });
     }, true);
     this.ghostTable.clean();
+    this.#replayedColumns.clear();
+
+    // The same samples rendered to another width: the styles changed, so the merges' widths, kept from
+    // the same texts, are measured again too.
+    if (stylesChanged) {
+      this.#mergedCellsWidths.markStylesChanged();
+    }
 
     if (!this.#deferMergedCellsFit) {
       this.#fitMergedCells();
@@ -1130,18 +1151,26 @@ export class AutoColumnSize extends BasePlugin {
 
   /**
    * Fits the widths that merged cells spanning several columns need, when anything they depend on
-   * changed since the last fit.
-   *
-   * @returns {boolean} `true` when a demand changed.
+   * changed since the last fit. A column that a merge appeared in or left without a merge hook (an
+   * undo of an unmerge restores the merge through MergeCells' state, silently) is queued for a full
+   * rescan, since its samples were taken under the previous merges.
    */
   #fitMergedCells() {
-    const changed = this.#mergedCellsWidths.fit();
+    const { changed, mergesChangedIn } = this.#mergedCellsWidths.fit();
+
+    mergesChangedIn.forEach((visualColumn) => {
+      const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+
+      if (physicalColumn !== null) {
+        this.#columnSamplesCache.delete(physicalColumn);
+      }
+
+      this.#columnWidthsToRefresh.set(visualColumn, null);
+    });
 
     if (changed) {
       this.hot.view?.invalidateColumnWidthCache();
     }
-
-    return changed;
   }
 
   /**
@@ -1369,6 +1398,12 @@ export class AutoColumnSize extends BasePlugin {
 
     // A merge's text that changed without a width change (an edit of its first cell) is fitted here.
     this.#fitMergedCells();
+
+    // The fit can queue the columns of a merge that changed with no hook; they are rescanned in the
+    // same render, which fits again with the settled samples.
+    if (!this.inProgress && this.#columnWidthsToRefresh.size > 0) {
+      this.#refreshQueuedColumnsWidth();
+    }
   };
 
   /**
@@ -1458,7 +1493,7 @@ export class AutoColumnSize extends BasePlugin {
     // can never feed the width-determiner probe with stale coordinates.
     this.#columnWidthsToRefresh.clear();
     this.#mergeRescanQueuedAt.clear();
-    this.#mergedCellsWidths.markStale();
+    this.#mergedCellsWidths.markRenumbered();
 
     if (!isFirstLoad) {
       this.recalculateAllColumnsWidth();
@@ -1583,7 +1618,7 @@ export class AutoColumnSize extends BasePlugin {
       // and MergeCells fires no merge hook for either. A changed sequence can renumber the physical
       // rows the kept texts are keyed by, so it forgets them; hiding and trimming only change which
       // merges are drawn, and the fit re-measures the groups that changed from the kept texts.
-      this.#markMergedCellsChanged(indexesSequenceChanged);
+      this.#markMergedCellsChanged(indexesSequenceChanged ? 'numbering' : 'refit');
     }
   };
 
@@ -1605,23 +1640,26 @@ export class AutoColumnSize extends BasePlugin {
     // on the first visible column of the span, so a moved, inserted, removed, hidden, or trimmed column
     // invalidates them. They are fitted again on the next render, after MergeCells has moved its merges.
     if (indexesSequenceChanged || trimmedIndexesChanged || hiddenIndexesChanged) {
-      this.#markMergedCellsChanged(indexesSequenceChanged);
+      this.#markMergedCellsChanged(indexesSequenceChanged ? 'numbering' : 'refit');
     }
   };
 
   /**
-   * Asks for a fit of the merged cells while MergeCells is enabled, forgetting the kept texts when
-   * `forgetTexts` is set. It does not ask whether merges exist, because a change that brings rows or
-   * columns back can bring back merges the last fit did not see.
+   * Asks for a fit of the merged cells while MergeCells is enabled. It does not ask whether merges
+   * exist, because a change that brings rows or columns back can bring back merges the last fit did
+   * not see.
    *
-   * @param {boolean} [forgetTexts=true] `true` to read and measure every merge's text again.
+   * @param {'refit' | 'texts' | 'numbering'} [scope='texts'] What may have changed: only which merges
+   * are drawn (`refit`), the texts as well (`texts`), or the physical numbering too (`numbering`).
    */
-  #markMergedCellsChanged(forgetTexts: boolean = true) {
+  #markMergedCellsChanged(scope: 'refit' | 'texts' | 'numbering' = 'texts') {
     if (!this.hot.getPlugin('mergeCells')?.enabled) {
       return;
     }
 
-    if (forgetTexts) {
+    if (scope === 'numbering') {
+      this.#mergedCellsWidths.markRenumbered();
+    } else if (scope === 'texts') {
       this.#mergedCellsWidths.markStale();
     } else {
       this.#mergedCellsWidths.markWidthsChanged();
@@ -1644,7 +1682,15 @@ export class AutoColumnSize extends BasePlugin {
    * but may change their text.
    */
   #onAfterUpdateData = () => {
-    this.#markMergedCellsChanged();
+    this.#markMergedCellsChanged('numbering');
+  };
+
+  /**
+   * Asks for a fit after an undo or a redo, which can restore merges through MergeCells' state with no
+   * merge hook. The fit compares the merges with the ones it saw last and rescans what changed.
+   */
+  #onAfterUndoRedo = () => {
+    this.#markMergedCellsChanged('refit');
   };
 
   /**

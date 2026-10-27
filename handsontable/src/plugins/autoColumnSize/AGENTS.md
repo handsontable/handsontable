@@ -68,7 +68,7 @@ text in a merge wrapped into a 50px column. Two rules replace that skip, split b
   draws the merge from (`mergeCells/renderer.ts`, `getNearestNotHiddenIndex`). `getColumnWidth()` returns the
   larger of that demand and the measured width.
 
-Seven rules hold this together.
+Eight rules hold this together.
 
 1. **The demand lives apart from `columnWidthsMap`.** The probe compares new widths against the cached
    width, and a demand written into it would never shrink back when a spanned column grows or the merge goes
@@ -94,8 +94,11 @@ Seven rules hold this together.
      `#onBeforeChange` (before its "already queued" early return), an undo through `afterSetSourceDataAtCell`
      (control), and `afterSetCellMeta` (control). The Formulas value updates reach the same method, and no
      case pins them;
-   - a merge added or removed (`afterMergeCells`/`afterUnmergeCells`), an undo of a merge (MergeCells'
-     `restoreState` fires no merge hook; the re-sample that follows changes a width);
+   - a merge added or removed (`afterMergeCells`/`afterUnmergeCells`), and an undo or redo
+     (`afterUndo`/`afterRedo`), which can restore merges with no merge hook (rule 8, control);
+   - a style change: a column re-measured from its cached samples to another width
+     (`#replayedColumns`) makes every group measure again from its kept texts (control). A style change
+     that moves no visible plain column goes unseen until another input arrives;
    - a settings update (`updatePlugin()`), which can restyle a merge's text (control);
    - rows hidden, shown, or trimmed (control for shown), the rows sorted, a column inserted, moved, removed,
      or hidden (control for hidden), `loadData()` and `updateData()` (control), and `enablePlugin()`
@@ -104,10 +107,11 @@ Seven rules hold this together.
    formatted text of every merge's first cell by physical row and column, and the width of each group of
    merges (same lead column and span) by a signature of its physical rows and the column's text version. An
    edit forgets one text. Hiding, showing, or trimming rows only changes which merges a group holds, so the
-   group is measured again from the kept texts without reading a cell. `markStale()` forgets every text, and
-   is used where the physical numbering or the text itself can change everywhere: a changed row or column
-   sequence (a sort included, since the cacheUpdated state cannot tell a sort from a remove and insert),
-   `loadData()`, `updateData()`, a settings update, an overwrite sweep, and `enablePlugin()`.
+   group is measured again from the kept texts without reading a cell, and a style change does the same
+   (`markStylesChanged()`). `markStale()` forgets every text: a settings update, an overwrite sweep, and
+   `enablePlugin()`. `markRenumbered()` also takes the merges as a new diff baseline (rule 8), for anything
+   that can renumber the physical rows or columns: a changed row or column sequence (a sort included, since
+   the cacheUpdated state cannot tell a sort from a remove and insert), `loadData()`, and `updateData()`.
 6. **The "may have merges" flag gates the per-change reads, never the structural marks.**
    `mayHaveMultiColumnMerges()` counts every multi-column merge MergeCells reports, hidden rows included, and
    gates the meta reads of `#onBeforeChange`, `afterSetSourceDataAtCell`, `afterSetCellMeta`, and the column
@@ -122,6 +126,16 @@ Seven rules hold this together.
    before the merge existed, since the grid never drew its covered values. A queued rescan is skipped for a
    column already scanned in the same `beforeRender` (`#scannedColumns`) or by an asynchronous chunk that
    started after the merge (`#mergeRescanQueuedAt`).
+
+8. **Each fit compares the merges with the ones it saw last.** MergeCells changes merges with no hook in
+   `restoreState()` (undo and redo) and `clearCollections()` (a settings rebuild, a disable), and the plugin
+   would otherwise keep samples taken under the old merges: an undone unmerge left the first column at the
+   whole text's width. A merge that appeared or went away, keyed by its physical first cell and span, has
+   every column it spans dropped from the samples cache and queued for a full rescan, which `#onBeforeRender`
+   runs in the same render. Two cases take the merges as a new baseline instead of reporting them: a
+   renumbering (the keys no longer name the same cells), and a merge hook (`markMergesChanged()`), whose
+   caller has queued the rescans already. Without the second, merges declared in the settings, which arrive
+   after the init sweep's fit, rescanned every column they span.
 
 Known limit: a merge removed with no unmerge hook (`updateSettings({ mergeCells: false })`) keeps its demand
 until the next fit; the unmerged first cell is sampled again then, and its own text is never narrower than

@@ -408,4 +408,45 @@ test.describe('autoColumnSize and merged cells', { tag: THEMES_TAG }, () => {
     await grid.callPlugin('trimRows', 'untrimRows', [0]);
     await expect.poll(async() => fitOf(await grid.widths(), 0, 2, control)).toEqual(FITS);
   });
+
+  test('fits a merge again when an unmerge is undone and redone', async() => {
+    const data = [[LONG, '', ''], ['a', 'b', 'c']];
+    const [control] = await grid.build({ data });
+
+    await grid.build({ data, mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 3 }] });
+    await expect.poll(async() => fitOf(await grid.widths(), 0, 3, control)).toEqual(FITS);
+
+    await grid.unmerge(0, 0, 0, 2);
+    await expect.poll(async() => (await grid.widths())[0]).toBe(control);
+
+    // The undo brings the merge back through MergeCells' state, with no merge hook.
+    await grid.callPlugin('undoRedo', 'undo');
+    await expect.poll(async() => fitOf(await grid.widths(), 0, 3, control)).toEqual(FITS);
+
+    await grid.callPlugin('undoRedo', 'redo');
+    await expect.poll(async() => (await grid.widths())[0]).toBe(control);
+  });
+
+  test('fits a merge again when the styles change before a render', async() => {
+    // The plain column 3 holds the same text, so it gives the expected width under any style.
+    const data = [[LONG, '', '', ''], ['a', 'b', 'c', LONG]];
+
+    await grid.build({ data, mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 2 }] });
+    await expect.poll(async() => {
+      const widths = await grid.widths();
+
+      return fitOf(widths, 0, 2, widths[3]);
+    }).toEqual(FITS);
+
+    const before = (await grid.widths())[3];
+
+    await grid.addStyle('.handsontable td { font-size: 22px; }');
+    await grid.render();
+
+    await expect.poll(async() => {
+      const widths = await grid.widths();
+
+      return { grown: widths[3] > before, ...fitOf(widths, 0, 2, widths[3]) };
+    }).toEqual({ grown: true, ...FITS });
+  });
 });

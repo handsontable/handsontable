@@ -29,7 +29,7 @@ export interface GridSettings {
 export type PluginCall =
   | ['hiddenRows', 'showRows' | 'hideRows', number[]]
   | ['hiddenColumns', 'showColumns' | 'hideColumns', number[]]
-  | ['undoRedo', 'undo']
+  | ['undoRedo', 'undo' | 'redo']
   | ['manualColumnResize', 'setManualSize', number, number]
   | ['manualColumnMove', 'moveColumn', number, number]
   | ['columnSorting', 'sort', { column: number, sortOrder: 'asc' | 'desc' }]
@@ -171,6 +171,18 @@ export class AutoColumnSizeMergedCellsPage {
       hot.setCellMeta(r as number, c as number, k as string, v);
       hot.render();
     }, [row, column, key, value]);
+  }
+
+  /**
+   * Adds a stylesheet rule to the page, the way an application changes its CSS at runtime.
+   */
+  async addStyle(css: string): Promise<void> {
+    await this.page.evaluate((rule) => {
+      const style = document.createElement('style');
+
+      style.textContent = rule;
+      document.head.appendChild(style);
+    }, css);
   }
 
   /**
