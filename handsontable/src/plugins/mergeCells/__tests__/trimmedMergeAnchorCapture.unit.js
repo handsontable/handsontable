@@ -34,7 +34,11 @@ describe('MergeCells anchor captured while rows are trimmed', () => {
   }
 
   function mergeGeometry() {
-    return hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells
+    const collection = hot.getPlugin('mergeCells').mergedCellsCollection;
+
+    // The lookup matrix decides what is drawn, so a merge the matrix does not hold is not reported.
+    return collection.mergedCells
+      .filter(merge => collection.get(merge.row, merge.col) === merge)
       .map(({ row, col, rowspan, colspan }) => [row, col, rowspan, colspan]);
   }
 
@@ -140,6 +144,7 @@ describe('MergeCells anchor captured while rows are trimmed', () => {
     hot.getPlugin('trimRows').untrimAll();
 
     // The settings describe the rows on screen, so the area does not take the row that was trimmed.
+    // The block then draws over that row and leaves the area's own last row outside it, as it did before.
     expect(mergeGeometry()).toEqual([[1, 0, 3, 2]]);
   });
 
@@ -150,5 +155,56 @@ describe('MergeCells anchor captured while rows are trimmed', () => {
     hot.getPlugin('trimRows').untrimAll();
 
     expect(mergeGeometry()).toEqual([[1, 0, 3, 2]]);
+  });
+
+  it('should keep the trimmed row in the merge when the sheets bar captures and restores it', () => {
+    createGrid({ trimRows: [2] });
+
+    const mergeCells = hot.getPlugin('mergeCells');
+
+    mergeCells.merge(1, 0, 3, 1);
+
+    // What a sheet switch does around its data load.
+    const areas = mergeCells.getVisibleMergedAreas();
+
+    mergeCells.clearCollections();
+    mergeCells.restoreMergedAreas(areas);
+    hot.getPlugin('trimRows').untrimAll();
+
+    expect(mergeGeometry()).toEqual([[1, 0, 4, 2]]);
+  });
+
+  it('should not take a trimmed row another merge owns', () => {
+    createGrid({ trimRows: [] });
+
+    const mergeCells = hot.getPlugin('mergeCells');
+
+    mergeCells.merge(2, 0, 3, 0);
+    // Every row of the first merge is trimmed, so it is no longer in the lookup matrix.
+    hot.getPlugin('trimRows').trimRows([2, 3]);
+
+    // Visual rows 1 and 2 are the physical rows 1 and 4.
+    mergeCells.merge(1, 1, 2, 1);
+    hot.getPlugin('trimRows').untrimAll();
+
+    // The second merge keeps the rows it covered and does not claim physical rows 2 and 3.
+    expect(mergeCells.mergedCellsCollection.mergedCells.map(({ row, col, rowspan }) => [row, col, rowspan]))
+      .toEqual([[2, 0, 2], [1, 1, 2]]);
+  });
+
+  it('should not take a stretch that holds a visible row the merge does not cover', () => {
+    createGrid({ trimRows: [2] });
+
+    const mergeCells = hot.getPlugin('mergeCells');
+
+    // A move inside a batch leaves the row index cache behind the index sequence until the batch ends.
+    hot.batch(() => {
+      hot.getPlugin('manualRowMove').moveRow(5, 3);
+      mergeCells.merge(1, 0, 3, 1);
+    });
+    hot.getPlugin('trimRows').untrimAll();
+
+    // The merge keeps the three rows it covered and takes no visible row it did not cover.
+    expect(mergeGeometry().map(([, , rowspan]) => rowspan)).toEqual([3]);
   });
 });

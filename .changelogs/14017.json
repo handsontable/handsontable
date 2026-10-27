@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a merged cell made while rows were trimmed or filtered out, which covered a row it does not own and left its own last row empty once the rows came back.",
+  "title": "Fixed a merged cell made while rows were trimmed or filtered out, which covered a row it does not own and left its own last row empty once the rows came back. Such a merged cell now spans the removed rows between its rows, so it grows when they return. A merged cell declared in the `mergeCells` option is unchanged.",
   "type": "fixed",
   "issueOrPR": 14017,
   "breaking": false,

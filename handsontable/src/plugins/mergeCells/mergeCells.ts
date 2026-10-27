@@ -356,6 +356,15 @@ export class MergeCells extends BasePlugin {
   #mergeAnchors: WeakMap<MergedCellCoords, MergeAnchor> = new WeakMap();
 
   /**
+   * `true` while {@link MergeCells#restoreMergedAreas} merges the areas it was given. They are the merges
+   * that were on screen, so a restored merge takes the trimmed rows between its rows like a merge the
+   * user made.
+   *
+   * @type {boolean}
+   */
+  #isRestoringAreas = false;
+
+  /**
    * Merges whose entire row span is currently trimmed, so they have been removed from the lookup
    * matrix to avoid colliding with whatever physical row later surfaces at their stale visual slot.
    * Tracked so that when such a merge becomes visible again it is force-added back to the matrix even
@@ -903,15 +912,21 @@ export class MergeCells extends BasePlugin {
     const rowCount = this.hot.countRows();
     const colCount = this.hot.countCols();
 
-    areas
-      .filter(({ row, col, rowspan, colspan }) => row + rowspan <= rowCount && col + colspan <= colCount)
-      .forEach((area) => {
-        const range = toMergeAreaRange(this.hot, area);
+    this.#isRestoringAreas = true;
 
-        if (this.mergedCellsCollection.getWithinRange(range, true).length === 0) {
-          this.mergeRange(range, true, true);
-        }
-      });
+    try {
+      areas
+        .filter(({ row, col, rowspan, colspan }) => row + rowspan <= rowCount && col + colspan <= colCount)
+        .forEach((area) => {
+          const range = toMergeAreaRange(this.hot, area);
+
+          if (this.mergedCellsCollection.getWithinRange(range, true).length === 0) {
+            this.mergeRange(range, true, true);
+          }
+        });
+    } finally {
+      this.#isRestoringAreas = false;
+    }
   }
 
   /**
@@ -1692,7 +1707,8 @@ export class MergeCells extends BasePlugin {
    * @param {CellRange} _cellRange The merged range (unused).
    * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergeParent The merged cell.
    * @param {boolean} [auto] `true` when the plugin made the merge itself, from the `mergeCells` settings
-   * or to restore one, which describe the rows on screen.
+   * or to restore one. The settings describe the rows on screen, so they do not take the trimmed rows between
+   * them. A restore does, because it rebuilds a merge that was made on screen.
    */
   #onAfterMergeCellsCapture = (
     _cellRange: CellRange,
@@ -1702,7 +1718,7 @@ export class MergeCells extends BasePlugin {
     const merge = this.mergedCellsCollection.get(mergeParent.row, mergeParent.col);
 
     if (merge) {
-      this.#captureAnchorOf(merge, this.#isRowTrimmingActive(), auto !== true);
+      this.#captureAnchorOf(merge, this.#isRowTrimmingActive(), auto !== true || this.#isRestoringAreas);
     }
   };
 
@@ -1827,14 +1843,39 @@ export class MergeCells extends BasePlugin {
 
     const sequence = this.hot.rowIndexMapper.getIndexesSequence();
     const first = sequence.indexOf(drawnRows[0]);
-    const last = sequence.indexOf(drawnRows[drawnRows.length - 1]);
+    const last = sequence.indexOf(drawnRows[drawnRows.length - 1], first);
 
     // Nothing sits between the covered rows, or the sequence does not hold them (not expected).
     if (first === -1 || last <= first || last - first + 1 === drawnRows.length) {
       return drawnRows;
     }
 
-    return sequence.slice(first, last + 1);
+    const stretch = sequence.slice(first, last + 1);
+    const drawn = new Set(drawnRows);
+    const owned = this.#getAnchoredRows();
+
+    // Take the stretch only when every row in it is covered or trimmed and none belongs to another
+    // merge. A visible row that is not covered means the index cache and the sequence disagree (inside
+    // a batch), and a row another merge owns would end up in two anchors.
+    const isFillable = stretch.every(row => drawn.has(row) ||
+      (this.hot.rowIndexMapper.isTrimmed(row) && !owned.has(row)));
+
+    return isFillable ? stretch : drawnRows;
+  }
+
+  /**
+   * Returns the physical rows that the anchors of the merges list already own.
+   *
+   * @returns {Set<number>}
+   */
+  #getAnchoredRows(): Set<number> {
+    const rows = new Set<number>();
+
+    this.mergedCellsCollection.mergedCells.forEach((merge) => {
+      this.#mergeAnchors.get(merge)?.physicalRows.forEach(row => rows.add(row));
+    });
+
+    return rows;
   }
 
   /**
