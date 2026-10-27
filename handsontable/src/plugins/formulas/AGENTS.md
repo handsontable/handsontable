@@ -98,10 +98,13 @@ const isRestoreSource = source => source === 'UndoRedo.undo' || source === 'Undo
   while the order is not physical shifts the engine's formulas but not the formula text in the source
   data (the write-back is skipped there). When the order later returns to physical, the next forward
   step writes the engine's text into the source and journals the stale text as its "before" value, and
-  that step's `before` state has no engine sheet, so its undo reloads the stale source (`=A2*2` where
-  the engine held `=A3*2`, value 0). No cell edit and no stale order are involved, so
-  `adoptEngineOrder()` does not reach it. Found with the `seqfuzz2` probe (seeds 184 and 13 of its
-  per-scenario-seeded variant); not fixed.
+  that step's `before` state has no engine sheet, so its undo reloads the stale source. No cell edit and
+  no stale order are involved, so `adoptEngineOrder()` does not reach it. Repro (`undoRedo: true`, data
+  `[[10, '=A1*2'], [20, '=A2*2'], [null, null], [null, null]]`): `setIndexesSequence([3, 0, 1, 2])`,
+  `alter('insert_row_above', 1)`, `setIndexesSequence([0, 1, 2, 3, 4])`, `alter('remove_row', 4)`, one
+  undo. `getData()` reads `[[null, null], [10, 0], [20, 20], [null, null], [null, null]]` where it read
+  `[[null, null], [10, 20], [20, 40], [null, null]]` before the removal. No committed test: the repo
+  rejects a skipped test, and a failing one cannot land.
 - **Draw every new version from `#versionSeed`, never reuse one.** `restoreState()` sets the
   current versions to the restored state's; a later change that reused a number would make a
   different structure compare equal to a recorded one.
