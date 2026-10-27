@@ -966,12 +966,7 @@ user left, and `removeSelectedRows()` sent its ids to the arriving sheet's `onRo
 The per-sheet view state captures and restores `fixedColumnsStart`, `fixedColumnsEnd`, `fixedRowsTop` and
 `fixedRowsBottom`. `#getNeutralFrozenCounts()` is the value a sheet with no captured state opens with (read once, when
 the workbook starts), `resetViewState(hot, neutral)` takes all four, and `#restoreBaselineToGrid()` puts a runtime
-freeze back on teardown. It clears the four shadows first and compares the grid-level value with the neutral one,
-so a count goes into its `updateSettings()` payload only when the grid-level value itself differs. Compared against
-the shadow, a runtime freeze always read as a difference from the neutral count, so the teardown wrote a count
-the grid-level value already held (on a grid built with `fixedColumnsLeft` that write named `fixedColumnsStart`,
-and core threw). The teardown writes only `fixedColumnsStart`; which name the host used is core's concern, not
-the bar's. A freeze set at runtime on one sheet therefore does not follow the user onto a sheet they
+freeze back on teardown. A freeze set at runtime on one sheet therefore does not follow the user onto a sheet they
 never visited. The rows were not tracked at first, so a frozen row carried over to every sheet.
 
 **Every switch takes the departing sheet's freeze shadows off the grid before the arriving settings land**

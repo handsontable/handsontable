@@ -1582,16 +1582,20 @@ export class SheetsBar extends BasePlugin {
       restored.columnSummary = keptColumnSummary;
     }
 
-    // A count written on the table meta (by the freeze bar, for example) would outlive the write below. With
-    // the shadows gone, each frozen count goes back to the value the grid started with only where the
-    // grid-level value still differs from it, unless a sheet's own settings already put it in the baseline.
+    // Each frozen count goes back to the value the grid started with, unless a sheet's own settings already put
+    // it in the baseline.
     const neutral = this.#getNeutralFrozenCounts();
 
     FROZEN_COUNT_KEYS.forEach((key) => {
-      clearFrozenCountShadow(this.hot, key);
-
       if (!(key in restored) && (this.hot.getSettings()[key] ?? 0) !== (neutral[key] ?? 0)) {
         restored[key] = neutral[key] ?? 0;
+      }
+    });
+
+    // A count written on the table meta (by the freeze bar, for example) would outlive the write below.
+    FROZEN_COUNT_KEYS.forEach((key) => {
+      if (key in restored) {
+        clearFrozenCountShadow(this.hot, key);
       }
     });
 

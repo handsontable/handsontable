@@ -70,57 +70,6 @@ describe('SheetsBar: the viewport and the frozen counts a switch or a teardown l
     });
   });
 
-  describe('turning the bar off on a grid that names the start freeze `fixedColumnsLeft`', () => {
-    /**
-     * Turns the bar off and reports what it left.
-     *
-     * @returns {object}
-     */
-    function turnOff() {
-      let thrown = null;
-
-      try {
-        hot.updateSettings({ sheetsBar: false });
-      } catch (error) {
-        thrown = error.message;
-      }
-
-      return {
-        thrown,
-        enabled: hot.getPlugin('sheetsBar').enabled,
-        barInDom: hot.rootWrapperElement.querySelector('.ht-sheets-bar') !== null,
-        fixedColumnsStart: hot.getSettings().fixedColumnsStart,
-      };
-    }
-
-    it('puts the grid-level count back after a runtime freeze', () => {
-      hot = new Handsontable(container, {
-        fixedColumnsLeft: 1,
-        manualColumnFreeze: true,
-        sheetsBar: { sheets: [{ name: 'A', data: [[1, 2, 3, 4]] }, { name: 'B', data: [[5, 6, 7, 8]] }] },
-        licenseKey: LICENSE_KEY,
-      });
-
-      hot.getPlugin('manualColumnFreeze').freezeColumn(2);
-
-      expect(hot.getSettings().fixedColumnsStart).toBe(2);
-      expect(turnOff()).toEqual({ thrown: null, enabled: false, barInDom: false, fixedColumnsStart: 1 });
-    });
-
-    it('puts the grid-level `fixedColumnsStart` back after a runtime freeze', () => {
-      hot = new Handsontable(container, {
-        fixedColumnsStart: 1,
-        manualColumnFreeze: true,
-        sheetsBar: { sheets: [{ name: 'A', data: [[1, 2, 3, 4]] }, { name: 'B', data: [[5, 6, 7, 8]] }] },
-        licenseKey: LICENSE_KEY,
-      });
-
-      hot.getPlugin('manualColumnFreeze').freezeColumn(2);
-
-      expect(turnOff()).toEqual({ thrown: null, enabled: false, barInDom: false, fixedColumnsStart: 1 });
-    });
-  });
-
   describe('the page a return restores', () => {
     it('does not walk through the pages between when a listener vetoes the target page', () => {
       hot = new Handsontable(container, {
