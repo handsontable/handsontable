@@ -78,6 +78,9 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   (the load replaced the data the edit was made against, and the rebuild cancels the edit), while a
   switch with no load leaves the edit on its sheet and `handleInlineEditClose()` defers the rebuild
   through `#rebuildAfterEdit`. Skipping both under an edit left the builder on the old sheet for good.
+  `#rebuildBuilder()` clears `#rebuildAfterEdit` AFTER it built the new builder: its destroy cancels
+  the open edit, and that close runs before the new builder exists, so it still sees the old sheet id
+  and asks for a rebuild. Cleared before, that request queued a second rebuild a task later.
 - **`enablePlugin()` emits the bar selection once the setup succeeds.** The teardown of an `updatePlugin()`
   rebuild clears `#barSelected` and the dedupe key, and no selection hook runs until the selection moves,
   so a bar turned on with `updateSettings()` stayed empty over a selected formula cell.

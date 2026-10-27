@@ -1847,10 +1847,13 @@ export class FormulaBuilder extends BasePlugin {
    * is cancelled first, while the old builder still exists - see `#teardownPluginState()`.
    */
   #rebuildBuilder(): void {
-    // Any rebuild takes the current theme and language, so one held back for an edit is done too.
-    this.#rebuildAfterEdit = false;
     this.#destroyBuilder();
     this.#createBuilder();
+    // Any rebuild takes the current theme, language and sheet, so one held back for an edit is
+    // done too. Cleared after the build, not before: the destroy above cancels an open edit, and
+    // that edit's close asks for a rebuild when it finds the sheet id still differs from the one
+    // the old builder was built for. This rebuild is that rebuild.
+    this.#rebuildAfterEdit = false;
   }
 
   /**

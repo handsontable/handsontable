@@ -125,7 +125,7 @@ describe('FormulaBuilder after a switch to an empty sheet', () => {
     engine.destroy();
   });
 
-  it('rebuilds at once when a switch loads data while an edit is open', () => {
+  it('rebuilds at once when a switch loads data while an edit is open', async() => {
     const engine = HyperFormula.buildFromSheets({ Main: [[1, 2]], Other: [[3, 4]] }, { licenseKey: 'gpl-v3' });
     const builtFor: number[] = [];
     const hot = new Handsontable(container, {
@@ -137,10 +137,19 @@ describe('FormulaBuilder after a switch to an empty sheet', () => {
     });
 
     openEditor(hot);
+
+    const buildsBefore = builtFor.length;
+
     hot.getPlugin('formulas').switchSheet('Other');
 
     expect(builtFor.at(-1)).toBe(engine.getSheetId('Other'));
     expect(hot.getPlugin('formulaBuilder').getActiveEditor()).toBeNull();
+
+    // The rebuild cancelled the edit, and that close must not queue a second rebuild: the wait
+    // ends early on a second build, and runs its whole budget of tasks when there is none.
+    await waitFor(() => builtFor.length > buildsBefore + 1);
+
+    expect(builtFor.length).toBe(buildsBefore + 1);
 
     hot.destroy();
     engine.destroy();
