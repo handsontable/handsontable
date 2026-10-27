@@ -156,6 +156,35 @@ export class CommentsMergedEditorSizePage {
   }
 
   /**
+   * The height the grid gives a row.
+   *
+   * @param {number} row The visual row index.
+   * @returns {Promise<number>}
+   */
+  async rowHeight(row: number): Promise<number> {
+    return this.page.evaluate(r => (window as any).hot.getRowHeight(r) ?? 0, row);
+  }
+
+  /**
+   * Drags the native resizer in the textarea's bottom-end corner, the way a user resizes the box.
+   *
+   * @param {number} dy How far to drag down, in px.
+   */
+  async dragResizerDown(dy: number): Promise<void> {
+    const box = await this.textarea.boundingBox();
+
+    expect(box, 'the textarea must have a box before it can be resized').not.toBeNull();
+
+    // The grip's hit area is about 16px square, so a point 4px inside the corner lands on it.
+    const grip = { x: box!.x + box!.width - 4, y: box!.y + box!.height - 4 };
+
+    await this.page.mouse.move(grip.x, grip.y);
+    await this.page.mouse.down();
+    await this.page.mouse.move(grip.x, grip.y + dy);
+    await this.page.mouse.up();
+  }
+
+  /**
    * The size the comment persisted in its cell meta, `undefined` while the user has not resized it.
    *
    * @param {number} row The visual row index.

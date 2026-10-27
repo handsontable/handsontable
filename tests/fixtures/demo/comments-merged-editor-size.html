@@ -40,6 +40,8 @@
         data: Handsontable.helper.createSpreadsheetData(20, 7),
         colHeaders: true,
         rowHeaders: true,
+        // One row inside the five-row merge is taller than the others, so a range is not a multiple of one row.
+        rowHeights: (row) => (row === 3 ? 60 : undefined),
         comments: true,
         hiddenRows: { rows: [2] },
         hiddenColumns: { columns: [6] },

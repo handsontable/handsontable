@@ -15,14 +15,16 @@ test.describe('Comment editor size - merged ranges', { tag: THEMES_TAG }, () => 
     await grid.goto();
   });
 
-  test('matches the height of a range five rows tall', async() => {
+  test('matches the height of a range five rows tall, one of its rows taller than the rest', async() => {
+    expect(await grid.rowHeight(3)).toBeGreaterThan(await grid.rowHeight(1));
+
     await grid.showEditorAt(1, 1);
 
     await expect.poll(async() => {
       const { editor, cell } = await grid.heights(1, 1);
 
       return Math.abs(editor - cell);
-    }).toBeLessThanOrEqual(1);
+    }).toBeLessThan(0.5);
   });
 
   test('matches the height of a range two rows tall', async() => {
@@ -32,7 +34,7 @@ test.describe('Comment editor size - merged ranges', { tag: THEMES_TAG }, () => 
       const { editor, cell } = await grid.heights(6, 1);
 
       return Math.abs(editor - cell);
-    }).toBeLessThanOrEqual(1);
+    }).toBeLessThan(0.5);
   });
 
   test('does not write the derived height to the cell meta', async() => {
@@ -42,7 +44,7 @@ test.describe('Comment editor size - merged ranges', { tag: THEMES_TAG }, () => 
       const { editor, cell } = await grid.heights(6, 1);
 
       return Math.abs(editor - cell);
-    }).toBeLessThanOrEqual(1);
+    }).toBeLessThan(0.5);
     await grid.settleResizeObserver();
     expect(await grid.savedStyle(6, 1)).toBeUndefined();
   });
@@ -76,7 +78,7 @@ test.describe('Comment editor size - merged ranges', { tag: THEMES_TAG }, () => 
       const { editor, cell } = await grid.heights(1, 1);
 
       return Math.abs(editor - cell);
-    }).toBeLessThanOrEqual(1);
+    }).toBeLessThan(0.5);
   });
 
   test('keeps the default height for a range that starts on a hidden row', async() => {
@@ -117,7 +119,7 @@ test.describe('Comment editor size - merged ranges', { tag: THEMES_TAG }, () => 
       const { editor, cell } = await grid.heights(0, 3);
 
       return Math.abs(editor - cell);
-    }).toBeLessThanOrEqual(1);
+    }).toBeLessThan(0.5);
   });
 
   test('keeps the default height when only a cut overlay copy of the range is drawn', async() => {
@@ -140,7 +142,7 @@ test.describe('Comment editor size - merged ranges', { tag: THEMES_TAG }, () => 
       const { editor, cell } = await grid.heights(3, 0);
 
       return Math.abs(editor - cell);
-    }).toBeLessThanOrEqual(1);
+    }).toBeLessThan(0.5);
   });
 
   test('does not carry the height of a merged range to a comment saved with a width only', async() => {
@@ -172,7 +174,24 @@ test.describe('Comment editor size - merged ranges', { tag: THEMES_TAG }, () => 
       .toBeGreaterThan(after.cell.top - 30);
   });
 
-  test('keeps a size the user saved', async() => {
+  test('keeps the size a user dragged on a merged range when the box is opened again', async() => {
+    await grid.showEditorAt(6, 1);
+
+    const derived = (await grid.heights(6, 1)).editor;
+
+    await grid.dragResizerDown(40);
+
+    await expect.poll(async() => (await grid.savedStyle(6, 1))?.height).toBeGreaterThan(derived + 20);
+
+    const saved = (await grid.savedStyle(6, 1))!.height;
+
+    await grid.showEditorAt(4, 4);
+    await grid.showEditorAt(6, 1);
+
+    await expect.poll(async() => (await grid.heights(6, 1)).editor).toBe(saved);
+  });
+
+  test('keeps a size the comment saves in its style', async() => {
     await grid.showEditorAt(6, 4);
 
     await expect.poll(async() => (await grid.heights(6, 4)).editor).toBe(140);
