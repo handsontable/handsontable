@@ -21,4 +21,8 @@ export const DISCOVERY_PAGES = [
     surface: 'a sheet tab being renamed' },
   { id: 'dialog-focused', fixture: 'dialog-states.html', query: 'template=confirm', state: 'dialog-focused',
     surface: 'a modal dialog holding the keyboard focus on its first button' },
+  { id: 'column-move-guide', fixture: 'shared-demo-grid.html', state: 'column-move-guide',
+    surface: 'the guide line and backlight a column move draws while the pointer drags a header' },
+  { id: 'column-resize-guide', fixture: 'manual-resize-contextmenu.html', state: 'column-resize-guide',
+    surface: 'the guide a column resize draws while the pointer drags the handle' },
 ];
