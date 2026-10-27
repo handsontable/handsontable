@@ -327,6 +327,74 @@ describe('external engine changes repaint formula cells', () => {
     });
   });
 
+  describe('a padded sheet, with a second grid that reads it', () => {
+    const ROWS = 30;
+    const CONTENT_ROWS = 5;
+    let containers;
+    let grids;
+    let engine;
+    let renders;
+
+    const lastRowFirst = [ROWS - 1, ...Array.from({ length: ROWS - 1 }, (_, index) => index)];
+    const sheetHeight = () => engine.getSheetDimensions(engine.getSheetId('Sheet1')).height;
+
+    beforeEach(() => {
+      containers = [createContainer(), createContainer()];
+      grids = [];
+      engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+      renders = [0, 0];
+
+      const data = Array.from({ length: ROWS }, (_, row) => (
+        row < CONTENT_ROWS ? [row + 1, `=A${row + 1}*2`] : [null, null]
+      ));
+
+      grids.push(mountGrid(containers[0], data, engine, 'Sheet1', () => {
+        renders[0] += 1;
+      }, { columnSorting: { sortEmptyCells: true }, manualRowMove: true }));
+      grids.push(mountGrid(containers[1], [['=SUM(Sheet1!A1:A3)']], engine, 'Sheet2', () => {
+        renders[1] += 1;
+      }));
+      renders.fill(0);
+    });
+
+    afterEach(() => {
+      grids.forEach(grid => grid.destroy());
+      containers.forEach(container => container.remove());
+    });
+
+    it('paints only the dependent grid, once, when a sequence puts a blank row first and the sheet is extended', () => {
+      expect(sheetHeight()).toBe(CONTENT_ROWS);
+      expect(grids[1].getCell(0, 0).textContent).toBe('6');
+
+      grids[0].rowIndexMapper.setIndexesSequence(lastRowFirst);
+
+      expect(sheetHeight()).toBe(CONTENT_ROWS + 1);
+      expect(grids[0].getDataAtCol(0).slice(0, CONTENT_ROWS + 1)).toEqual([null, 1, 2, 3, 4, 5]);
+      expect(grids[1].getCell(0, 0).textContent).toBe('3');
+      expect(renders).toEqual([0, 1]);
+    });
+
+    it('paints each grid once when a sort puts the blank rows first and the sheet is extended', () => {
+      grids[0].getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      expect(sheetHeight()).toBe(ROWS);
+      expect(grids[0].getDataAtCol(0).slice(-CONTENT_ROWS)).toEqual([1, 2, 3, 4, 5]);
+      expect(grids[1].getCell(0, 0).textContent).toBe('0');
+      expect(renders).toEqual([1, 1]);
+    });
+
+    it('paints the dependent grid once when a row is moved on the padded sheet', () => {
+      grids[0].rowIndexMapper.setIndexesSequence(lastRowFirst);
+      renders.fill(0);
+
+      expect(grids[0].getPlugin('manualRowMove').moveRows([1], 4)).toBe(true);
+
+      expect(grids[0].getDataAtCol(0).slice(0, CONTENT_ROWS + 1)).toEqual([null, 2, 3, 4, 1, 5]);
+      expect(grids[1].getCell(0, 0).textContent).toBe('2');
+      expect(renders[1]).toBe(1);
+    });
+  });
+
   describe('a second grid that reads a sheet the first grid changes through its own plugins', () => {
     let containers;
     let grids;

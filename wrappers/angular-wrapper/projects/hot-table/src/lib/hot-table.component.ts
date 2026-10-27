@@ -8,6 +8,7 @@ import {
   NgZone,
   OnChanges,
   OnDestroy,
+  PLATFORM_ID,
   SimpleChanges,
   ViewChild,
   ViewEncapsulation,
@@ -100,6 +101,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   private __hotInstance: Handsontable | null = null;
   private readonly _destroyRef = inject(DestroyRef);
   private readonly _host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly isBrowser = inject(PLATFORM_ID) === 'browser';
 
   constructor(
     private _hotSettingsResolver: HotSettingsResolver,
@@ -111,7 +113,8 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   /**
    * Gets the Handsontable instance.
-   * @returns The Handsontable instance or `null` if it's not yet been created or has been destroyed.
+   * @returns The Handsontable instance, or `null` when it is not created yet, it has been
+   * destroyed, or this component is rendering on the server.
    */
   public get hotInstance(): Handsontable | null {
     if (!this.__hotInstance || !this.__hotInstance.isDestroyed) {
@@ -136,6 +139,13 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
    * The initial settings of the table are also prepared here
    */
   ngAfterViewInit(): void {
+    // The server DOM has no `getRootNode`, and constructing the grid there throws on every
+    // request. `afterNextRender` skips the server too, but it shipped in Angular 16.2 and this
+    // wrapper still supports 16.0.
+    if (!this.isBrowser) {
+      return;
+    }
+
     let options: Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(this.settings);
 
     const negotiatedSettings = this.getNegotiatedSettings(options);

@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { CUSTOM_ELEMENTS_SCHEMA, NgZone, SimpleChange, SimpleChanges } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, NgZone, PLATFORM_ID, SimpleChange, SimpleChanges } from '@angular/core';
 import Handsontable from 'handsontable';
 import { registerPlugin, CopyPaste } from 'handsontable/plugins';
 import { NumericEditor, TextEditor } from 'handsontable/editors';
@@ -836,6 +836,41 @@ describe('HotTableComponent', () => {
       expect(beforeHeightChange).toHaveBeenCalledWith('100%');
       expect(fixture.componentInstance.hotInstance.rootElement.style.height).toBe('50%');
       expect(getContainer().classList.contains(FILL_HEIGHT)).toBe(true);
+    });
+  });
+
+  describe('server rendering', () => {
+    const originalGetRootNode = Node.prototype.getRootNode;
+
+    beforeEach(() => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [HotTableModule],
+        schemas: [CUSTOM_ELEMENTS_SCHEMA],
+        providers: [{ provide: PLATFORM_ID, useValue: 'server' }],
+      }).compileComponents();
+
+      Object.defineProperty(Node.prototype, 'getRootNode', {
+        configurable: true,
+        value: undefined,
+      });
+    });
+
+    afterEach(() => {
+      Object.defineProperty(Node.prototype, 'getRootNode', {
+        configurable: true,
+        writable: true,
+        value: originalGetRootNode,
+      });
+    });
+
+    it('should not create a grid or throw while rendering on the server', () => {
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = { ...settings };
+
+      expect(() => fixture.detectChanges()).not.toThrow();
+      expect(fixture.componentInstance.hotInstance).toBeNull();
+      expect(fixture.nativeElement.querySelector('.handsontable')).toBeNull();
     });
   });
 });

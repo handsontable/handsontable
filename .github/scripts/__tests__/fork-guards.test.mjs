@@ -88,6 +88,9 @@ const GUARDED_SITES = [
   // The accessibility report's check run (DEV-3474): a check write a fork's token cannot make.
   ['.github/workflows/a11y.yml', 'name: Post the report check run'],
   ['.github/workflows/a11y.yml', 'name: Post the report comment'],
+  // The screen reader lane's check run: the same check write. The guard is kept so every check-write
+  // site carries both halves, per .ai/CI.md; a dispatch is never a pull_request event.
+  ['.github/workflows/screenreader.yml', 'name: Post the report check run'],
 ];
 
 test('every fork-hostile site carries both halves of the canonical guard', () => {

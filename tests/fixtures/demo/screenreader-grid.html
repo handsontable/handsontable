@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable screen reader fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // The fail-loud param block of demo/grid.html: `?theme=`/`?bundle=` map through fixed allowlists
+    // to literals, an absent param keeps the default, an unknown value throws.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    The grid the screen reader scenarios read (tests/screenreader/scenarios/grid-core.scenario.json).
+    Named column headers and short, distinct cell values, so every announcement carries a word the
+    scenario can look for; row headers, so a step can enter one; navigable headers and sorting, so the
+    keyboard reaches the header and sorts from it; the context menu, so Shift+F10 opens a menu. The grid
+    is small enough that nothing scrolls, so every step's focus target is rendered.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    try {
+      window.hot = new Handsontable(container, {
+        data: [
+          ['Alice', 34, 'Oslo'],
+          ['Bruno', 28, 'Lima'],
+          ['Carla', 41, 'Rome'],
+          ['Dawid', 23, 'Riga'],
+          ['Emily', 37, 'Nice'],
+        ],
+        colHeaders: ['Name', 'Age', 'City'],
+        rowHeaders: true,
+        contextMenu: true,
+        columnSorting: true,
+        navigableHeaders: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      // The runner turns a constructor throw into a red test before any step runs.
+      window.htBuildError = error;
+      container.setAttribute('data-init-error', String(error && error.message ? error.message : error));
+      throw error;
+    }
+  </script>
+</body>
+</html>

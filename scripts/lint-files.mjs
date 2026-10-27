@@ -10,7 +10,9 @@
  *   handsontable  tasks.json lint:eslint  → src/ test/ .config/plugin scripts/
  *   vue3          package.json lint       → src test
  *   react-wrapper package.json lint       → src test
- *   tests         package.json lint       → e2e fixtures
+ *   tests         package.json lint       → a11y e2e fixtures reporters lib scripts screenreader; the
+ *                 hook takes e2e/ fixtures/ screenreader/ lib/ (the specs, their page objects, and
+ *                 the screen reader lane's runner and libraries)
  *   visual-tests  package.json lint       → whole package; the hook takes src/ tests/ only
  *                 (lib/ and scripts/ drive no page and carry no determinism ban)
  *   root          package.json eslint     → .github/scripts/ bin/changelog scripts/
@@ -33,7 +35,7 @@ const SCOPES = [
   /^handsontable\/(src|test|scripts)\//,
   /^wrappers\/vue3\/(src|test)\//,
   /^wrappers\/react-wrapper\/(src|test)\//,
-  /^tests\/(e2e|fixtures)\//,
+  /^tests\/(e2e|fixtures|screenreader|lib)\//,
   // The visual tier's specs and fixtures share the functional tier's determinism bans
   // (visual-tests/.eslintrc.js), so a fixed sleep before a capture is caught at commit time too.
   /^visual-tests\/(src|tests)\//,

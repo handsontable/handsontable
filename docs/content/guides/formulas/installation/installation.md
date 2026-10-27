@@ -20,7 +20,7 @@ searchCategory: Guides
 category: Formulas
 ---
 
-The [`Formulas`](@/api/formulas.md) plugin runs on [HyperFormula](https://hyperformula.handsontable.com/),
+The [`Formulas`](@/api/formulas.md) plugin runs on [HyperFormula](https://handsontable.com/hyperformula/),
 a calculation engine that you install separately. This guide shows how to install, license, and
 import HyperFormula so you can enable the plugin.
 
@@ -80,7 +80,7 @@ import { HyperFormula } from 'hyperformula';
 ## License HyperFormula
 
 HyperFormula is licensed separately from Handsontable. For details, see the
-[HyperFormula license key](https://hyperformula.handsontable.com/guide/license-key.html) guide or
+[HyperFormula license key](https://handsontable.com/docs/hyperformula/guide/license-key.html) guide or
 [contact our Sales Team](https://handsontable.com/get-a-quote).
 
 Handsontable sets a license key on a HyperFormula engine that has none. To use your own key, set
