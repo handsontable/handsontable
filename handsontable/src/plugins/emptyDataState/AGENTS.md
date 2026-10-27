@@ -167,6 +167,22 @@ Only when nothing was captured — no ranges — does it fall back to selecting 
 is suppressed**. That is deliberate: a scroll-into-view on an arriving dataset would jump the viewport.
 Either way, `afterEmptyDataStateHide` fires last.
 
+**A `loadData()` drops the captured selection** (`#onBeforeLoadData`), so the hide after it takes the
+`(0, 0)` fallback. The coordinates addressed the replaced rows, and restoring them put a selection on
+unrelated cells of the new data; under the sheets bar a sheet the user never visited opened with the
+departing sheet's selection. Two loads keep it, on purpose. One made while `hasExternalDataSource`
+answers `true`: a server-backed grid replaces its rows with `loadData()` on every page, sort and filter,
+and restoring the selection is how the user keeps it there. Ask the core hook, never the plugin behind it
+(`releasedPluginsViewAgnostic.unit.js`). And `updateData()`, which keeps the dataset's state by design
+(the wrappers send it on re-render), is not listened to at all.
+
+**`disablePlugin()` forgets the overlay**: `#isVisible` goes to `false` and the captured selection to
+`null`, like `destroy()`, and no hide hook fires. Left as they were, `isVisible()` answered `true` for a
+disabled plugin, and the next enable over rows ran `#hide()`: a phantom `afterEmptyDataStateHide` and a
+forced `selectCell(0, 0)`. `updatePlugin()` saves both before its own disable and puts them back before
+the enable, so an update of the options keeps a visible overlay visible without a hide or show hook.
+Pinned by `__tests__/emptyDataStateLifecycle.unit.js`.
+
 ## Where to look next
 
 - Sibling overlay surfaces and the shared button-type rule: `../dialog/AGENTS.md`,

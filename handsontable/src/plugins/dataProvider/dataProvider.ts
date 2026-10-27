@@ -445,7 +445,7 @@ export class DataProvider extends BasePlugin {
       return;
     }
 
-    this.disablePlugin();
+    this.#disable(false);
     this.enablePlugin();
 
     if (!this.#isPassive && this.hot.view) {
@@ -480,8 +480,25 @@ export class DataProvider extends BasePlugin {
    * `enablePlugin()` registers it again so it survives each `updatePlugin()` cycle.
    */
   disablePlugin(): void {
+    this.#disable(true);
+  }
+
+  /**
+   * Disables the plugin. A real disable syncs EmptyDataState's loading overlay after the abort, because an
+   * aborted fetch fires no hook that would hide it. The disable and enable cycle of `updatePlugin()` skips the
+   * sync: its refetch takes the overlay over, and hiding it in between would restore the selection and show it
+   * again for the same fetch. A passive disable aborts nothing, and the owner's context change syncs the overlay
+   * itself.
+   *
+   * @param {boolean} syncsLoadingOverlay Whether to sync the loading overlay after the abort.
+   */
+  #disable(syncsLoadingOverlay: boolean): void {
     if (!this.#isPassive) {
-      this.#abortFetchesFor(this.#currentContext());
+      if (syncsLoadingOverlay) {
+        this.#abortFetchesAndSyncLoading(this.#currentContext());
+      } else {
+        this.#abortFetchesFor(this.#currentContext());
+      }
     }
 
     this.#queryParameters = { ...INITIAL_QUERY_PARAMETERS };
@@ -712,14 +729,12 @@ export class DataProvider extends BasePlugin {
    * @param {object|null} context The context to drop.
    */
   _releaseContext(context: object | null): void {
-    this.#abortFetchesFor(context);
-
     if (context !== null) {
       this.#releasedContexts.add(context);
       this.#hideErrorToastsFor(context);
     }
 
-    this.hot.getPlugin('emptyDataState')?._syncDataProviderLoading(this.isFetching());
+    this.#abortFetchesAndSyncLoading(context);
   }
 
   /**
@@ -1273,6 +1288,17 @@ export class DataProvider extends BasePlugin {
       this.#inFlight.delete(context);
       entry.controller.abort(reason);
     }
+  }
+
+  /**
+   * Aborts the fetch in flight for one context, without a reason, and syncs EmptyDataState's loading overlay
+   * with what is still loading: an aborted fetch fires no hook that would hide the overlay.
+   *
+   * @param {object|null} context The context.
+   */
+  #abortFetchesAndSyncLoading(context: object | null): void {
+    this.#abortFetchesFor(context);
+    this.hot.getPlugin('emptyDataState')?._syncDataProviderLoading(this.isFetching());
   }
 
   /**

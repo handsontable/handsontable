@@ -8,19 +8,29 @@ plugin.
 ## It force-enables the Dialog plugin
 
 `enablePlugin()` resolves `getPlugin('dialog')` and, if that plugin is not enabled, sets
-`getSettings().dialog = true` directly. Two things follow:
+`getSettings().dialog = true` directly. Four things follow:
 
 - **This is the exception to "no direct cross-plugin coupling"**, and it is deliberate. Everything visible —
   `isVisible()`, `show()`, `hide()`, `update()` — delegates to the dialog. Every one of those methods
-  re-checks `this.#dialogPlugin?.isEnabled()` before acting, because a user can switch `dialog: false` back
-  off at any time.
+  re-checks `this.#dialogPlugin?.isEnabled()` before acting; keep those checks as guards, but do not read
+  them as "the user can turn Dialog off".
+- **Dialog stays on, by design.** The direct settings write is never undone: after `loading: false` the
+  Dialog plugin is still enabled and `getSettings().dialog` is still `true`. And while `loading` is on,
+  `updateSettings({ dialog: false })` does not turn Dialog off either (measured: the plugin stays enabled
+  and `show()` still shows the overlay). Loading is built on Dialog, so this is the intended state; the
+  class JSDoc says so for users. Do not "fix" it by restoring the previous `dialog` value on disable: an
+  application may have opened its own dialog in the meantime.
 - **The dialog reference is resolved once**, guarded on `#dialogPlugin === null`, and it outlives a
   disable. **The `afterDialogFocus` hook is not**: it is registered with the tracked `this.addHook(...)` on
   every `enablePlugin()`, outside that guard, so `disablePlugin()` drops it and the next enable puts it
-  back. `updatePlugin()` runs the usual `disablePlugin(); enablePlugin();` cycle, and the tracked
-  registration is what keeps that from doubling the hook. Registering it inside the guard is the older
-  shape and it silently loses the hook on the first `updateSettings()` (fixed in #13410, covered by
-  `src/plugins/__tests__/hooksReleasedOnDisable.unit.js`).
+  back. Registering it inside the guard is the older shape and it silently loses the hook after one
+  disable and enable (fixed in #13410, covered by `src/plugins/__tests__/hooksReleasedOnDisable.unit.js`).
+- **`updatePlugin()` does NOT run the disable and enable cycle.** `disablePlugin()` hides the overlay, so
+  the cycle hid a visible loading screen on every `updateSettings()` that carried `loading`, including a
+  wrapper re-sending the same value. It keeps the plugin enabled and, when the overlay is visible, applies
+  the new options through `update({})` (an empty object: `update(undefined)` would wipe the plugin's
+  settings through `updatePluginSettings`). So no `afterLoadingHide` fires on such an update, and the
+  `afterDialogFocus` hook stays registered once. Pinned by `__tests__/loadingUpdate.unit.js`.
 
 ### `afterDialogFocus` fires for EVERY dialog, so the listener must check whose it is
 

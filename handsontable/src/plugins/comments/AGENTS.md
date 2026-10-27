@@ -61,8 +61,16 @@ Keep them that way.
 ## `DisplaySwitch` owns the show/hide delays
 
 Show is a `debounce`d call whose reference is **immutable** (re-creating it per hover would never fire);
-hide is a plain `setTimeout`. The API is `show(range)` / `hide()` / `cancelHiding()` / `updateDelay()` —
+hide is a plain `setTimeout`. The API is `show(range)` / `hide()` / `cancelHiding()` / `keepVisible()` /
+`cancel()` / `updateDelay()` —
 `updateDelay()` is what builds the debounced show, so it is also the constructor path.
+
+**`disablePlugin()` calls `cancel()` first**, and `destroy()` does too. `cancel()` drops the debounced
+show, the tracked hide timer and the carried-over range, and sets the flag back to its initial `true`.
+Without it a hover that armed a show just before `updateSettings({ comments: false })`, or a switch to a
+sheet that turns the plugin off, opened the editor a moment later over a grid with the plugin off, and
+neither Escape nor a click outside closed it: those handlers went with the plugin. Pinned by
+`__tests__/commentsDisableHover.unit.js` and `tests/e2e/comments-plugin-off-hover.spec.ts`.
 
 Its internal flag records whether the last action was a show or a hide. Anything that hides the tooltip
 clears that flag — which is exactly the shadow-DOM double-binding failure above.

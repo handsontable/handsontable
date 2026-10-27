@@ -55,6 +55,13 @@ export { LOADING_CLASS_NAME };
  *
  * In order to enable the loading mechanism, {@link Options#loading} option must be set to `true`.
  *
+ * The loading overlay is a dialog, so enabling this plugin also enables the Dialog plugin
+ * ({@link Options#dialog}). The Dialog plugin stays enabled after you turn `loading` off, and while
+ * `loading` is on, setting `dialog: false` does not turn the Dialog plugin off.
+ *
+ * Calling `updateSettings()` with new `loading` options updates a visible loading overlay in place,
+ * without hiding it.
+ *
  * The plugin provides several configuration options to customize the loading behavior and appearance:
  * - `icon`: Loading icon to display HTML (as string) in svg format (default: `<svg ... />`).
  * - `title`: Loading title to display, rendered as text (default: 'Loading...').
@@ -222,11 +229,15 @@ export class Loading extends BasePlugin {
   }
 
   /**
-   * Update plugin state after Handsontable settings update.
+   * Update plugin state after Handsontable settings update. The plugin stays enabled, so a loading
+   * screen on screen stays there and shows the new options, and no `beforeLoadingHide` or
+   * `afterLoadingHide` fires for it. Turning the option off goes through `disablePlugin()` instead,
+   * which hides the screen.
    */
   updatePlugin() {
-    this.disablePlugin();
-    this.enablePlugin();
+    if (this.isVisible()) {
+      this.update({});
+    }
 
     super.updatePlugin();
   }

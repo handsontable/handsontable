@@ -330,6 +330,7 @@ export class EmptyDataState extends BasePlugin {
     this.addHook('afterRowSequenceCacheUpdate', this.#onSequenceCacheUpdate);
     this.addHook('afterColumnSequenceCacheUpdate', this.#onSequenceCacheUpdate);
     this.addHook('beforeFilter', this.#onBeforeFilter);
+    this.addHook('beforeLoadData', this.#onBeforeLoadData);
     this.addHook('beforeDataProviderFetch', (queryParameters: Record<string, unknown>) => {
       if (!queryParameters.skipLoading) {
         this.#setLoadingActive();
@@ -384,8 +385,12 @@ export class EmptyDataState extends BasePlugin {
     // scope on the way.
     const hadActiveScope = isRootInstance(this.hot) &&
       this.hot.getFocusScopeManager().getActiveScopeId() === PLUGIN_KEY;
+    const wasVisible = this.#isVisible;
+    const selectionState = this.#selectionState;
 
     this.disablePlugin();
+    this.#isVisible = wasVisible;
+    this.#selectionState = selectionState;
     this.enablePlugin();
     this.#update();
 
@@ -401,10 +406,15 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disable plugin for this Handsontable instance. The overlay goes away with the plugin's UI, so the
+   * plugin stops reporting it as visible and forgets the selection it kept for the hide. A later enable
+   * then starts from a hidden overlay, and a grid with rows fires no `afterEmptyDataStateHide` and gets
+   * no selection it did not ask for. `updatePlugin()` keeps both across its own disable and enable.
    */
   disablePlugin() {
     this.#loadingActive = false;
+    this.#isVisible = false;
+    this.#selectionState = null;
 
     this.#unregisterShortcuts();
     this.#unregisterFocusScope();
@@ -791,6 +801,20 @@ export class EmptyDataState extends BasePlugin {
 
     if (this.isVisible()) {
       this.#update();
+    }
+  };
+
+  /**
+   * Forgets the selection kept for the hide when `loadData()` replaces the data. The kept coordinates
+   * address the replaced rows, so restoring them put a selection on unrelated cells of the new data; the
+   * hide then falls back to the first cell, as it does when nothing was kept. A grid with an external
+   * data source keeps it: its loads bring another page or order of the same records, and restoring the
+   * selection is how the user keeps it across them. `updateData()` keeps the dataset's state by design,
+   * so it keeps the selection too.
+   */
+  #onBeforeLoadData = () => {
+    if (this.hot.runHooks('hasExternalDataSource') !== true) {
+      this.#selectionState = null;
     }
   };
 
