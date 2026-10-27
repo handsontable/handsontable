@@ -147,6 +147,17 @@ export function validateAccessibilityData(data) {
           errors.push(`matrix[${i}].howTested cannot combine not-tested with another value`);
         }
       }
+
+      // Optional: the browsers this entry was tested in, when they are not the audit's (`browsers`),
+      // as an automated run's are. A not-tested entry is never rendered, so it names none.
+      if (entry.browsers !== undefined) {
+        if (!Array.isArray(entry.browsers) || entry.browsers.length === 0
+          || entry.browsers.some(browser => typeof browser !== 'string' || browser === '')) {
+          errors.push(`matrix[${i}].browsers must be a non-empty array of non-empty strings when present`);
+        } else if (notTested) {
+          errors.push(`matrix[${i}].browsers names browsers for an entry that was not tested`);
+        }
+      }
     });
   }
 
@@ -318,7 +329,7 @@ export function matrixTable(data) {
   const rows = testedScreenReaders(data).map(entry => [
     entry.name,
     entry.version,
-    entry.platform,
+    entry.browsers ? `${entry.platform} (${joinList(entry.browsers)})` : entry.platform,
     entry.howTested.map(how => howTestedLabel(data, how)).join('; '),
   ]);
 
@@ -344,8 +355,10 @@ export function matrixList(data) {
       // "VoiceOver macOS 15.3.2 on macOS"; NVDA keeps "NVDA 2025.3 on Windows 11".
       const where = entry.version.startsWith(entry.platform) ? entry.version : `${entry.version} on ${entry.platform}`;
       const subject = entry.version.startsWith(entry.platform) ? `${entry.name} on ${where}` : `${entry.name} ${where}`;
+      // An entry tested in its own browsers says so, so it never reads as tested in the audit's.
+      const browsers = entry.browsers ? `, in ${joinList(entry.browsers)}` : '';
 
-      return `- ${subject}: ${entry.howTested.map(how => lowerFirst(howTestedLabel(data, how))).join('; ')}.`;
+      return `- ${subject}${browsers}: ${entry.howTested.map(how => lowerFirst(howTestedLabel(data, how))).join('; ')}.`;
     })
     .join('\n');
 }

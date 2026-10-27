@@ -9,6 +9,7 @@ import {
 import {
   loadAccessibilityData, validateAccessibilityData, accessibilityTemplateValues, allowedScreenReaderNames,
   untestedScreenReaderNames, screenReadersSentence, browsersSentence, joinList, websiteStringsJson,
+  matrixList, matrixTable,
 } from '../../docs/src/plugins/accessibility-data.mjs';
 import { compareWebsiteStrings } from '../../docs/scripts/export-accessibility-strings.mjs';
 import { DOCS_PREFIX, READMES } from '../readme-check.mjs';
@@ -81,6 +82,39 @@ test('the validator requires a version for a tested screen reader and rejects in
 
   assert.ok(validateAccessibilityData(arrayNotes).some(e => e.startsWith('notes must be')),
     'an array is not an object');
+});
+
+test('a matrix entry tested in its own browsers names them, and only a tested entry may', () => {
+  const nightly = data.matrix
+    .find(entry => entry.name === 'VoiceOver' && entry.howTested.includes('automated-nightly'));
+
+  assert.ok(nightly, 'the VoiceOver nightly (tests/AGENTS.md, "Screen readers") is in the matrix');
+  assert.deepEqual(nightly.browsers, ['WebKit (Playwright)', 'Chromium'],
+    'the VoiceOver nightly runs in Playwright\'s WebKit and Chromium, not in the audit\'s browsers');
+  assert.match(matrixList(data),
+    /^- VoiceOver on macOS 26, in WebKit \(Playwright\) and Chromium: automated nightly run\.$/m,
+    'the list says which browsers the nightly ran in, so it never reads as the audit\'s Chrome and Firefox');
+  assert.match(matrixTable(data),
+    /^\| VoiceOver \| macOS 26 \| macOS \(WebKit \(Playwright\) and Chromium\) \| Automated nightly run \|$/m);
+  assert.match(matrixList(data), /^- NVDA 2025\.3 on Windows 11: external audit/m,
+    'an entry without browsers renders as before');
+
+  [[], [''], 'Chromium', [3]].forEach((browsers) => {
+    const broken = structuredClone(data);
+
+    broken.matrix[0].browsers = browsers;
+
+    assert.ok(validateAccessibilityData(broken).some(e => e.includes('matrix[0].browsers')),
+      `browsers ${JSON.stringify(browsers)} is rejected: a non-empty array of names, or nothing`);
+  });
+
+  const untested = structuredClone(data);
+  const jaws = untested.matrix.findIndex(entry => entry.howTested.includes('not-tested'));
+
+  untested.matrix[jaws].browsers = ['Chrome'];
+
+  assert.ok(validateAccessibilityData(untested).some(e => e.includes(`matrix[${jaws}].browsers names browsers`)),
+    'a not-tested entry is never rendered, so it names no browsers');
 });
 
 test('report.next.sentence is empty when no next version is planned, and limitations cite the report ref', () => {
