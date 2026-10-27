@@ -508,3 +508,15 @@ While core's `_applySettingsAndData()` applies settings ahead of their data (`is
 Run before, they sorted the departing rows and the load reset the order, so a sheet's own `initialConfig`
 was ignored on its first visit. Known, separate defect: `#onAfterLoadData` reads the hook's first argument
 (the data array) as `initialLoad`, so its `initialLoad === true` branch never runs.
+
+## `true` after an object resets the column properties; `true` after `true` does not
+
+The column properties a configuration object sets (`indicator`, `headerAction`, `sortEmptyCells`,
+`compareFunctionFactory`) live on the `ColumnStatesManager`, which is created only on enable.
+`getMergedPluginSettings()` merges the settings value over them, and a boolean adds nothing there, so an object's
+values used to outlive a later `true` (and a sheets bar sheet declaring `true` inherited the previous sheet's
+object). `onUpdateSettings()` reads the plugin's previous value (`getSetting()`, before `super`) and calls
+`ColumnStatesManager#resetAllColumnsProperties()` when a non-object value replaces an object, before the column
+meta cache is rebuilt. `true` sent again (every React or Angular render) changes nothing and keeps the sort; an
+object after an object still merges. MultiColumnSorting inherits it unchanged. Pinned by
+`__tests__/settingsReset.unit.js` and `../sheetsBar/__tests__/pluginOptionReset.unit.js`.

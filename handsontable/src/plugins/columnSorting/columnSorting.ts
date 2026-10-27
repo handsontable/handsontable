@@ -1196,6 +1196,11 @@ export class ColumnSorting extends BasePlugin {
    * Overwriting base plugin's `onUpdateSettings` method. Please keep in mind that `onAfterUpdateSettings` isn't called
    * for `updateSettings` in specific situations.
    *
+   * A value that is not an object (`true`) replacing a configuration object puts the column properties
+   * that object set (`indicator`, `headerAction`, `sortEmptyCells`, `compareFunctionFactory`) back to their
+   * defaults, the way a grid built with that value starts. The same value sent again changes nothing, and
+   * an object replacing an object still merges into the previous one.
+   *
    * @private
    * @param {object} newSettings New settings object.
    */
@@ -1204,15 +1209,23 @@ export class ColumnSorting extends BasePlugin {
     // already runs `#loadOrSortBySettings()` (the #6806 `this.hot.view` workaround), so re-running the
     // settings sort below on that same pass would run the comparator twice for no reason (DEV-187).
     const wasEnabled = this.enabled;
+    const previousPluginSettings = this.getSetting();
 
     super.onUpdateSettings(newSettings);
+
+    const pluginSettings = newSettings[this.pluginKey];
+
+    if (
+      wasEnabled && this.enabled && isDefined(pluginSettings) &&
+      isPlainObject(previousPluginSettings) && !isPlainObject(pluginSettings)
+    ) {
+      this.columnStatesManager?.resetAllColumnsProperties();
+    }
 
     if (this.columnMetaCache !== null) {
       // Column meta cache base on settings, thus we should re-init the map.
       this.columnMetaCache.init(this.hot.columnIndexMapper.getNumberOfIndexes());
     }
-
-    const pluginSettings = newSettings[this.pluginKey];
 
     if (wasEnabled && this.enabled && isDefined(pluginSettings)) {
       if (this.isDataWorkDeferred()) {
