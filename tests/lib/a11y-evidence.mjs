@@ -180,7 +180,8 @@ export const EVIDENCE_CHECKS = Object.freeze({
     title: 'Forced colors and reduced motion',
     spec: 'forced-colors-motion.spec.ts',
     criteria: ['1.4.1', '2.2.2', '2.3.3'],
-    pullRequest: false,
+    // Planted-defect run only (reverted in the next commit): shows the check run on the pull request once.
+    pullRequest: true,
   },
   // Triage, not evidence: its records list what axe's wider rules found and could not decide, for a
   // person or the agent grader to sort, and the conformance report cites none of them as they stand.
