@@ -171,4 +171,25 @@ describe('SheetsBar -> view state round trip', () => {
       expect(moveHooks).not.toHaveBeenCalled();
     });
   });
+
+  describe('nested headers', () => {
+    it('labels a moved column with its own header after a round trip', () => {
+      const bar = build({
+        manualColumnMove: true,
+        nestedHeaders: [
+          [{ label: 'G1', colspan: 2 }, { label: 'G2', colspan: 2 }],
+          ['ID', 'Name', 'Qty', 'Done'],
+        ],
+      }, [[1, 'alpha', 5, true], [2, 'beta', 6, false]]);
+
+      hot.getPlugin('manualColumnMove').moveColumn(2, 0);
+      hot.render();
+
+      roundTrip(bar);
+
+      expect(hot.getDataAtRow(0)).toEqual([5, 1, 'alpha', true]);
+      expect([0, 1, 2, 3].map(column => hot.getColHeader(column, 1))).toEqual(['Qty', 'ID', 'Name', 'Done']);
+      expect([0, 1, 2, 3].map(column => hot.getColHeader(column, 0))).toEqual(['G2', 'G1', 'G1', 'G2']);
+    });
+  });
 });
