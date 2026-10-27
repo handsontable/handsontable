@@ -1,8 +1,8 @@
 # View state engine
 
 Capture and restore of the grid's runtime view: row and column order, sort, filters, hidden and
-trimmed indexes, collapsed NestedRows parents, manual sizes, frozen counts, pagination, selection,
-and scroll. Read this before touching `viewState.ts`. Two callers share it, and core does not
+trimmed indexes, collapsed NestedRows parents, collapsed CollapsibleColumns groups, RowSelection checks,
+manual sizes, frozen counts, pagination, selection, and scroll. Read this before touching `viewState.ts`. Two callers share it, and core does not
 import it, so it stays out of a `handsontable/base` build:
 
 - SheetsBar (`plugins/sheetsBar/`) uses it on every sheet switch, with no part filter, so every step
@@ -119,6 +119,16 @@ pay for. A new consumer lives in a plugin.
   reaches it through `getPlugin()`, not `getEnabledPlugin()`. A new caller that does not load data after
   the reset needs the filter pass back. With `parts` given, `resetViewState()` and `resetViewport()` touch
   only those parts, the way the restore does.
+
+- **`collapsedColumns` and `checkedRows` are the sheets bar's own parts.** The `ViewState` plugin never passes
+  them, so a public restore leaves the CollapsibleColumns groups and the RowSelection checks alone, and a public
+  capture leaves both `null`. Both go through the plugins' `@private` `_exportViewState()`/`_importViewState()`,
+  which run no hook: a switch replays a state the user chose on that sheet. Both run after the restore batch
+  (`restorePluginStates()`), because importing the collapsed groups re-derives the header tree through the
+  column index cache, which the batch holds at the order from before the restore. `resetViewState()` clears
+  both, before the arriving sheet's load. RowSelection's state carries the selection by row id and the server
+  row count of a DataProvider grid, which belong to that sheet's server: the plugin kept one of each for the
+  whole grid, so a load re-projected the departing sheet's ids onto the arriving one.
 
 Tests: `__tests__/viewState.unit.js` (the engine), plus SheetsBar's own suites and
 `plugins/viewState/__tests__/viewState.unit.js` (the public layer through the engine).

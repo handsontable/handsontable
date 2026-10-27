@@ -172,6 +172,10 @@ any of them.
   `previous` carries the sort only when there was one.
 - **`getViewState()` reads only the parts the grid can give.** Passing the available parts to
   `captureViewState()` keeps a grid with merges and borders from paying for scans whose result is dropped.
+- **The engine's `collapsedColumns` and `checkedRows` parts are not public.** They exist for the sheets bar,
+  which keeps CollapsibleColumns groups and RowSelection checks per sheet. This layer never puts them in the
+  set it passes, so `getViewState()` does not read them and `setViewState()` does not touch them. Exposing
+  them needs a `GridViewState` key, a validator in `writePart()`, and a JSON form of the server selection.
 - **The NestedRows collapse is replaced, not merged.** `restoreCollapsedParents()` expands every
   parent collapsed now before it collapses the stored ones. On a sheet switch nothing is collapsed
   by then (`loadData()` drops it), so that step is a no-op there.

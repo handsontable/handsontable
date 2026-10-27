@@ -109,6 +109,12 @@ export interface ViewState {
    * Absent from a view state the `ViewState` plugin built, which does not restore it.
    */
   collapsedColumns?: CollapsedColumnsState | null;
+
+  /**
+   * The rows checked through RowSelection, or `null` when the plugin is off or a bound checkbox column
+   * holds them. Absent from a view state the `ViewState` plugin built, which does not restore it.
+   */
+  checkedRows?: CheckedRowsState | null;
 }
 
 /**
@@ -118,6 +124,16 @@ export interface ViewState {
 export interface CollapsedColumnsState {
   groups: Array<{ headerLevel: number, authoredColumnIndex: number }>;
   columns: number[];
+}
+
+/**
+ * The rows one sheet checked through RowSelection: the physical rows of its selection map and, for a
+ * server-backed sheet, its selection by row id and the row count of its server query.
+ */
+export interface CheckedRowsState {
+  rows: number[];
+  server: { selectAll: boolean, toggledRowIds: unknown[] } | null;
+  serverTotalRows: number;
 }
 
 /**
@@ -131,8 +147,8 @@ export interface PaginationState {
 
 /**
  * One independently restorable part of a view state. A restore given a set of parts runs only
- * their steps, in the usual order; a restore given none runs every step. `collapsedColumns` is the
- * sheets bar's own: the `ViewState` plugin never passes it.
+ * their steps, in the usual order; a restore given none runs every step. `collapsedColumns` and
+ * `checkedRows` are the sheets bar's own: the `ViewState` plugin never passes them.
  */
 export type ViewStatePart =
   'columnOrder' |
@@ -144,6 +160,7 @@ export type ViewStatePart =
   'hiddenColumns' |
   'collapsedRows' |
   'collapsedColumns' |
+  'checkedRows' |
   'columnWidths' |
   'rowHeights' |
   'mergedCells' |
@@ -166,6 +183,7 @@ export const VIEW_STATE_PARTS: readonly ViewStatePart[] = [
   'hiddenColumns',
   'collapsedRows',
   'collapsedColumns',
+  'checkedRows',
   'columnWidths',
   'rowHeights',
   'mergedCells',
@@ -374,6 +392,14 @@ interface CollapsibleColumnsPlugin {
 }
 
 /**
+ * The part of the RowSelection plugin the view state talks to.
+ */
+interface RowSelectionPlugin {
+  _exportViewState: () => CheckedRowsState | null;
+  _importViewState: (state: CheckedRowsState | null) => void;
+}
+
+/**
  * Captures the collapsed CollapsibleColumns groups. A data load rebuilds the header state with every
  * group expanded, so a sheet switch would otherwise expand them all.
  */
@@ -388,6 +414,22 @@ function captureCollapsedColumns(hot: HotInstance): CollapsedColumnsState | null
 function restoreCollapsedColumns(hot: HotInstance, state: ViewState) {
   (getEnabledPlugin(hot, 'collapsibleColumns') as CollapsibleColumnsPlugin | undefined)
     ?._importViewState(state.collapsedColumns ?? null);
+}
+
+/**
+ * Captures the rows checked through RowSelection. `loadData` re-creates its selection map empty, and a
+ * server-backed grid's selection by row id belongs to the server of the sheet it was made on.
+ */
+function captureCheckedRows(hot: HotInstance): CheckedRowsState | null {
+  return (getEnabledPlugin(hot, 'rowSelection') as RowSelectionPlugin | undefined)?._exportViewState() ?? null;
+}
+
+/**
+ * Puts the stored checked rows back, with the selection hooks off, replacing whatever is checked now.
+ */
+function restoreCheckedRows(hot: HotInstance, state: ViewState) {
+  (getEnabledPlugin(hot, 'rowSelection') as RowSelectionPlugin | undefined)
+    ?._importViewState(state.checkedRows ?? null);
 }
 
 /**
@@ -718,6 +760,7 @@ export function captureViewState(
     ...captureAxisState(hot, covers),
     collapsedParents: covers('collapsedRows') ? captureCollapsedParents(hot) : neutral.collapsedParents,
     collapsedColumns: covers('collapsedColumns') ? captureCollapsedColumns(hot) : neutral.collapsedColumns,
+    checkedRows: covers('checkedRows') ? captureCheckedRows(hot) : neutral.checkedRows,
     colWidths,
     rowHeights,
     sortConfig: covers('sort') ? captureSortConfig(hot) : neutral.sortConfig,
@@ -1109,7 +1152,7 @@ export function clearCustomBorders(hot: HotInstance): void {
  * of that visual space and a hidden child would no longer be found by its visual index; then
  * sizes, freeze, and borders, none of which depend on each other. After the batch come the merges,
  * which are placed through the index cache and need the restored order in it (see {@link restoreMergedCells}),
- * and the collapsed column groups, whose header tree is derived through the same cache.
+ * then the collapsed column groups, whose header tree is derived through the same cache, and the checked rows.
  *
  * The kept cell meta (`state.cellMeta`) is not replayed here: the sheets bar hands it to core's
  * `_applySettingsAndData()` together with the sheet's rows, which writes it back before the cell
@@ -1172,12 +1215,16 @@ export function restoreViewState(
 }
 
 /**
- * Puts back the collapsed column groups, the state CollapsibleColumns keeps for the data it shows and
- * drops on every `loadData()`. Runs outside the restore batch (see {@link restoreViewState}).
+ * Puts back the collapsed column groups and the checked rows, the state two plugins keep for the data
+ * they show and drop on every `loadData()`. Runs outside the restore batch (see {@link restoreViewState}).
  */
 function restorePluginStates(hot: HotInstance, state: ViewState, covers: PartFilter) {
   if (covers('collapsedColumns')) {
     restoreCollapsedColumns(hot, state);
+  }
+
+  if (covers('checkedRows')) {
+    restoreCheckedRows(hot, state);
   }
 }
 
@@ -1323,7 +1370,7 @@ export function keepSelectionOnPage(hot: HotInstance, follow: boolean): void {
 
 /**
  * Returns the view state a never-visited sheet opens with: nothing hidden, trimmed,
- * sorted, filtered, merged, bordered, collapsed, or manually sized. The row/column sequences are
+ * sorted, filtered, merged, bordered, collapsed, checked, or manually sized. The row/column sequences are
  * left empty because `loadData` has already reset both mappers by the time this runs.
  */
 export function createNeutralViewState(): ViewState {
@@ -1352,6 +1399,7 @@ export function createNeutralViewState(): ViewState {
     selectionState: null,
     scroll: { row: 0, col: 0 },
     collapsedColumns: null,
+    checkedRows: null,
   };
 }
 

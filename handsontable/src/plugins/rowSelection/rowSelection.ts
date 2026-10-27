@@ -79,6 +79,24 @@ const BOUND_WRITE_SOURCE = 'RowSelection.change';
 export type RowSelectionSource = 'checkbox' | 'headerCheckbox' | 'click' | 'keyboard' | 'api' | 'dataChange';
 
 /**
+ * The checked rows of one dataset, as {@link RowSelection#_exportViewState} returns them.
+ */
+export interface RowSelectionViewState {
+  /**
+   * The physical rows checked in the selection map.
+   */
+  rows: number[];
+  /**
+   * The selection by row id of a server-backed grid, or `null` for a grid that holds its own rows.
+   */
+  server: ServerRowSelection | null;
+  /**
+   * The number of rows matching the server query.
+   */
+  serverTotalRows: number;
+}
+
+/**
  * A checkbox column whose values are the row selection: its `data` property, or its physical index.
  */
 export interface RowSelectionBoundColumn {
@@ -983,6 +1001,78 @@ export class RowSelection extends BasePlugin {
     next.import(selection);
 
     return this.#replaceServerSelection(next, 'api');
+  }
+
+  /**
+   * Returns the checked rows of the loaded dataset, for the sheets bar to keep with a sheet the user
+   * leaves: the physical rows checked in the selection map, and with a server-backed grid the selection
+   * by row id and the row count of the server query, which belong to that sheet's server. `null` when
+   * the plugin is off or the selection lives in a bound checkbox column, whose values travel with the
+   * data.
+   *
+   * @private
+   * @returns {object|null}
+   */
+  _exportViewState(): RowSelectionViewState | null {
+    if (!this.enabled || this.getBoundColumn() !== null) {
+      return null;
+    }
+
+    const values = this.#selectedRowsMap?.getValues() ?? [];
+    const rows: number[] = [];
+
+    for (let physicalRow = 0; physicalRow < values.length; physicalRow++) {
+      if (values[physicalRow] === true) {
+        rows.push(physicalRow);
+      }
+    }
+
+    return {
+      rows,
+      server: this.#isServerMode() ? this.#rowIdSelection.export() : null,
+      serverTotalRows: this.#serverTotalRows,
+    };
+  }
+
+  /**
+   * Puts back the checked rows {@link RowSelection#_exportViewState} returned, or clears them for
+   * `null`. The sheets bar calls it on a switch, so it runs no selection hook and announces nothing:
+   * the user checked those rows on that sheet before. The selection by row id and the server row count
+   * are replaced too, so the rows a server-backed sheet checked never show, or get removed, on another
+   * sheet. A physical row past the end of the data is dropped. A bound checkbox column is left alone.
+   *
+   * @private
+   * @param {object|null} state The checked rows.
+   */
+  _importViewState(state: RowSelectionViewState | null) {
+    const map = this.#selectedRowsMap;
+
+    if (!this.enabled || !map || this.getBoundColumn() !== null) {
+      return;
+    }
+
+    const rowIdSelection = new RowIdSelection();
+
+    rowIdSelection.import(state?.server ?? { selectAll: false, toggledRowIds: [] });
+    this.#rowIdSelection = rowIdSelection;
+    this.#serverTotalRows = state?.serverTotalRows ?? 0;
+    this.#anchorPhysicalRow = null;
+
+    if (this.#isServerMode()) {
+      this.#hydrateFromRowIds();
+
+      return;
+    }
+
+    const values = new Array<boolean>(this.hot.rowIndexMapper.getNumberOfIndexes()).fill(false);
+
+    (state?.rows ?? []).forEach((physicalRow) => {
+      if (physicalRow < values.length) {
+        values[physicalRow] = true;
+      }
+    });
+
+    this.#writeSilently(() => map.setValues(values));
   }
 
   /**
