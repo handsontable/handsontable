@@ -140,6 +140,14 @@ export class FormulasMoveCellsPage {
     return this.page.evaluate(([r, c]) => window.hot.getSourceDataAtCell(r, c), [row, col]);
   }
 
+  /**
+   * Click a column header's label, which sorts the column. The label is matched by its own text:
+   * a sorted header's accessible name carries the order badge, so a role locator stops finding it.
+   */
+  async sortByHeader(label: string): Promise<void> {
+    await this.page.locator('.ht_clone_top').locator('span.colHeader').getByText(label, { exact: true }).click();
+  }
+
   /** Undo the last operation through the UndoRedo plugin. */
   async undo(): Promise<void> {
     await this.page.evaluate(() => window.hot.getPlugin('undoRedo').undo());
