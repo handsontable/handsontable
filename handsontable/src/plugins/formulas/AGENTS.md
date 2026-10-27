@@ -105,6 +105,20 @@ const isRestoreSource = source => source === 'UndoRedo.undo' || source === 'Undo
   that also resets or adopts the stored order. A flag set in `beforeUndo` would leak whenever a later
   `beforeUndo` listener vetoes - the defect the old implementation had.
 
+**A restore trims the lines the reload left behind (DEV-3617).** `setSheetContent()` never shrinks a sheet, so
+the row or column an insert added stayed in the engine when the undo reloaded the sheet without it: one
+extra engine line per insert and undo (7 rows, the last one moved to the top, 40 cycles: height 3 to 45;
+without a reorder it was 2 to 42 for an insert ahead of content). The first wrong place is that reload, not
+the insert: `addRows` grows the sheet for a real reason and the grid's undo never tells the engine. So
+`restoreState()` ends a structural restore with `AxisSyncer#trimUnusedTail()` on both axes, after the peer
+rewrites are put back. A line is dropped only when it holds nothing **and** no formula reads a cell of it
+(`getCellDependents()`): an empty cell that a formula reads counts towards the sheet's size, and removing
+its line turns the reference into `#REF!` (`=A5*2` becomes `=#REF!*2`, and `SUM(A1:A9)` shrinks). Check the
+dependents, not only `isCellEmpty()`; the peer-sheet case is why the trim runs after `#restorePeerRewrites()`
+(a peer's formula still names the shifted line before that). The scan starts at the last line and stops at
+the first one that is used, so a sheet without a leak pays one line's check. Pinned by
+`__tests__/insertUndoEngineSize.unit.js`, which also pins formulas that read cells past the content.
+
 A move is covered the same way: the cells a move writes, and the formulas elsewhere the engine
 rewrote, are all journaled inside the move's own step, so an undo writes them back and `restoreState()`
 feeds them to the engine. `commitPendingMoveCells()` runs for a user's move only. **A move made while
@@ -814,6 +828,8 @@ Known limits of the pad:
 - **The pad keeps the sheet's height or width.** The engine never shrinks a sheet, so once content has
   sat at the end of a long axis the sheet stays that long, and every later order is sent at that length.
   Moving only blank lines does not grow it, also after an undo, a sheet switch, an insert, or a removal.
+  The one exception is the restore of an undo or a redo that changed the rows or columns: it trims the
+  unused tail (see "A restore trims the lines the reload left behind").
 - **A reference to a padded blank line follows the engine line, not the label.** Padded blanks are
   relabeled, so a formula that refers to one reads `#REF!` once the blank is freed or moved across
   content. That is the engine's own rewrite in `setRowOrder`/`setColumnOrder`, the same as for any

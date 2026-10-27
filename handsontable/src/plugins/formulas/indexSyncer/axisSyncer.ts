@@ -565,6 +565,57 @@ class AxisSyncer {
   }
 
   /**
+   * Tells whether nothing needs a row or column of the engine's sheet: it holds no content, and no formula
+   * reads a cell of it (an empty cell a formula reads still counts towards the sheet's size).
+   *
+   * @param {HyperFormulaEngine} engine The engine.
+   * @param {number} sheetId The sheet the axis is synced with.
+   * @param {number} engineIndex Index of the row or column in the engine.
+   * @param {number} sizeForOtherAxis Size of the sheet along the other axis.
+   * @returns {boolean}
+   */
+  #isEngineLineUnused(engine: HyperFormulaEngine, sheetId: number, engineIndex: number, sizeForOtherAxis: number) {
+    for (let other = 0; other < sizeForOtherAxis; other += 1) {
+      const address = this.#axis === 'row'
+        ? { sheet: sheetId, row: engineIndex, col: other }
+        : { sheet: sheetId, row: other, col: engineIndex };
+
+      if (!engine.isCellEmpty(address) || engine.getCellDependents(address).length > 0) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Removes the rows or columns at the end of the engine's sheet that nothing needs. Replacing a sheet's
+   * content never shrinks it, so the line an insert added stays behind when an undo restores the sheet
+   * without it, and every insert and undo would add one more.
+   */
+  trimUnusedTail() {
+    const engine = this.#indexSyncer.getEngine();
+    const sheetId = this.#indexSyncer.getSheetId();
+
+    if (engine === null || sheetId === null || this.#isSheetRemoved()) {
+      return;
+    }
+
+    const { width, height } = engine.getSheetDimensions(sheetId);
+    const isRowAxis = this.#axis === 'row';
+    const size = isRowAxis ? height : width;
+    let usedSize = size;
+
+    while (usedSize > 0 && this.#isEngineLineUnused(engine, sheetId, usedSize - 1, isRowAxis ? width : height)) {
+      usedSize -= 1;
+    }
+
+    if (usedSize < size) {
+      engine[`remove${toUpperCaseFirst(this.#axis)}s`](sheetId, [usedSize, size - usedSize]);
+    }
+  }
+
+  /**
    * Plans the order that puts every element the engine holds where the grid's sequence puts it.
    *
    * Translation reads HF index `i` as sequence position `i`, so an element with content goes to the engine

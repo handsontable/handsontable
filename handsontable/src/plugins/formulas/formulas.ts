@@ -2146,7 +2146,9 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    if (state.structureVersion !== this.#structureVersion) {
+    const isStructureChanged = state.structureVersion !== this.#structureVersion;
+
+    if (isStructureChanged) {
       this.#restoredWrites = [];
       this.#structureVersion = state.structureVersion;
       this.#dataVersion = state.dataVersion;
@@ -2163,6 +2165,11 @@ export class Formulas extends BasePlugin {
     }
 
     this.#restorePeerRewrites(state, context);
+
+    if (isStructureChanged) {
+      this.rowAxisSyncer!.trimUnusedTail();
+      this.columnAxisSyncer!.trimUnusedTail();
+    }
   }
 
   /**
