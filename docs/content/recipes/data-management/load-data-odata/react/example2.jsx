@@ -25,16 +25,19 @@ async function fetchProductNames(query) {
   return json.value.map((product) => product.ProductName);
 }
 
+// Keep the data outside the component, so a re-render does not reload it.
+const data = [
+  { order: 'SO-10248', product: 'Queso Cabrales', quantity: 12 },
+  { order: 'SO-10249', product: 'Tofu', quantity: 9 },
+  { order: 'SO-10250', product: 'Manjimup Dried Apples', quantity: 35 },
+  { order: 'SO-10251', product: 'Ravioli Angelo', quantity: 6 },
+  { order: 'SO-10252', product: 'Chang', quantity: 25 },
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        { order: 'SO-10248', product: 'Queso Cabrales', quantity: 12 },
-        { order: 'SO-10249', product: 'Tofu', quantity: 9 },
-        { order: 'SO-10250', product: 'Manjimup Dried Apples', quantity: 35 },
-        { order: 'SO-10251', product: 'Ravioli Angelo', quantity: 6 },
-        { order: 'SO-10252', product: 'Chang', quantity: 25 },
-      ]}
+      data={data}
       colHeaders={['Order', 'Product', 'Quantity']}
       columns={[
         { data: 'order', readOnly: true },
