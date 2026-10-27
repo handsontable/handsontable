@@ -466,8 +466,9 @@ export default function Core(
    */
   let initPassSettings: Record<string, unknown> | null = null;
   /**
-   * The functions that read every `updateSettings()` payload before it is applied, in the order they were
-   * added (see `_addSettingsFilter()`).
+   * The functions that read every `updateSettings()` and `_applySettingsAndData()` payload, and the values
+   * `_replaceInitPassSettings()` hands the init pass, before they are applied, in the order they were added
+   * (see `_addSettingsFilter()`).
    */
   const settingsFilters: Array<(settings: SettingsUpdate) => SettingsUpdate> = [];
   /**

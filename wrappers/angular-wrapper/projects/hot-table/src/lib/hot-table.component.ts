@@ -168,7 +168,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
 
       (this.hotInstance as HotInstanceWithAngularInjector)._angularEnvironmentInjector = this.environmentInjector;
 
-      this.hotInstance._addSettingsFilter(settings => this._hotSettingsResolver.resolveAppliedSettings(settings));
+      this.hotInstance._addSettingsFilter?.(settings => this._hotSettingsResolver.resolveAppliedSettings(settings));
 
       // Registered before `init()`, so the hook also sees the initial `height`, before the first render.
       this.hotInstance.addHook('beforeHeightChange', (height) => {

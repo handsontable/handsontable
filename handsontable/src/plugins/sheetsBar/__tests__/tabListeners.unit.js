@@ -1,4 +1,5 @@
 import Handsontable from '../../../index';
+import { SheetsBarMenus } from '../ui/menus';
 
 const LICENSE_KEY = 'non-commercial-and-evaluation';
 
@@ -85,16 +86,35 @@ describe('SheetsBar: tab listeners', () => {
     expect(plugin.getSheets().find(sheet => sheet.isActive)?.name).toBe('Second');
   });
 
-  it('stops answering tab events once the bar is turned off', () => {
-    const plugin = buildWorkbook();
+  it('answers a tab event once after the bar was turned off and on again', () => {
+    buildWorkbook();
+
+    const sheetsBar = hot.getSettings().sheetsBar;
+
+    hot.updateSettings({ sheetsBar: false });
+    hot.updateSettings({ sheetsBar });
+
+    const opened = jest.spyOn(SheetsBarMenus.prototype, 'openTabMenu').mockImplementation(() => {});
+
+    tabOf('First').dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
+
+    expect(opened).toHaveBeenCalledTimes(1);
+  });
+
+  it('removes the strip listeners it added when the bar is turned off', () => {
+    buildWorkbook();
+
     const strip = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tabs');
-    const removeEventListener = jest.spyOn(strip, 'removeEventListener');
+    const added = jest.spyOn(strip, 'addEventListener');
+    const removed = jest.spyOn(strip, 'removeEventListener');
 
     hot.updateSettings({ sheetsBar: false });
 
-    expect(plugin.isEnabled()).toBe(false);
-    const tabEvents = ['click', 'contextmenu', 'dblclick', 'pointercancel', 'pointerdown', 'pointerup'];
+    const removedTabListeners = removed.mock.calls.filter(([type]) => type !== 'scroll');
 
-    expect(removeEventListener.mock.calls.map(([type]) => type)).toEqual(expect.arrayContaining(tabEvents));
+    expect(added).not.toHaveBeenCalled();
+    expect(removedTabListeners.map(([type]) => type).sort())
+      .toEqual(['click', 'contextmenu', 'dblclick', 'pointercancel', 'pointerdown', 'pointerup']);
+    expect(new Set(removedTabListeners.map(([, listener]) => listener)).size).toBe(5);
   });
 });

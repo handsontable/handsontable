@@ -46,6 +46,25 @@ class GridEditorComponent extends HotCellEditorComponent<string> {
 }
 
 /**
+ * An editor component that counts how many times it was created.
+ */
+@Component({
+  selector: 'hot-test-counted-editor',
+  template: '<input />',
+  standalone: true,
+})
+class CountedEditorComponent extends HotCellEditorComponent<string> {
+  static created = 0;
+
+  constructor() {
+    super();
+    CountedEditorComponent.created += 1;
+  }
+
+  onFocus(): void {}
+}
+
+/**
  * Returns the grid's SheetsBar plugin, narrowed to its class.
  *
  * @param hot The grid.
@@ -190,8 +209,17 @@ describe('HotTableComponent with a sheets bar', () => {
         throw new Error('No editor was prepared for the selected cell.');
       }
 
-      expect(() => editor.beginEditing()).not.toThrow();
-      expect(firstColumnEditorRef(hot)?.instance).toBeInstanceOf(SheetEditorComponent);
+      editor.beginEditing();
+
+      const editorRef = firstColumnEditorRef(hot);
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editorRef?.instance).toBeInstanceOf(SheetEditorComponent);
+
+      editor.setValue('typed');
+      editor.finishEditing();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('typed');
     });
 
     it('should answer a validator that returns a boolean', async () => {
@@ -200,18 +228,25 @@ describe('HotTableComponent with a sheets bar', () => {
           activeSheet: 1,
           sheets: [
             { name: 'Plain', data: [[1]] },
-            { name: 'Own', data: [[1]], settings: { columns: [{ validator: (value: number) => value > 0 }] } },
+            { name: 'Own', data: [[1], [1]], settings: { columns: [{ validator: (value: number) => value > 0 }] } },
           ],
         },
       });
 
       const hot = fixture.componentInstance.hotInstance;
-      const validate = (value: number) => new Promise<boolean>((resolve) => {
-        hot.validateCell(value, hot.getCellMeta(0, 0), resolve, 'validateCells');
+      const written = (row: number, value: number) => new Promise<void>((resolve) => {
+        hot.addHookOnce('afterValidate', () => {
+          setTimeout(resolve);
+        });
+        hot.setDataAtCell(row, 0, value);
       });
 
-      expect(await validate(-1)).toBe(false);
-      expect(await validate(5)).toBe(true);
+      await written(0, -1);
+      await written(1, 5);
+
+      expect(hot.getDataAtCol(0)).toEqual([-1, 5]);
+      expect(hot.getCellMeta(0, 0).valid).toBe(false);
+      expect(hot.getCellMeta(1, 0).valid).toBe(true);
     });
 
     it('should run a hook the sheet declares inside the Angular zone', () => {
@@ -304,6 +339,68 @@ describe('HotTableComponent with a sheets bar', () => {
       expect(hot.getCell(0, 0)?.textContent).toContain('Sheet renderer: b');
     });
 
+    it('should keep the renderer and the editor component of a sheet the user returns to', () => {
+      fixture = createGrid({
+        sheetsBar: {
+          sheets: [
+            { name: 'Plain', data: [['a']] },
+            {
+              name: 'Own',
+              data: [['b', 'c']],
+              settings: { columns: [{ renderer: SheetRendererComponent }, { editor: SheetEditorComponent }] },
+            },
+          ],
+        },
+      });
+
+      const hot = fixture.componentInstance.hotInstance;
+      const plugin = sheetsBarOf(hot);
+      const editorRefOfColumn = (column: number) => {
+        const columns = hot.getSettings().columns;
+
+        return Array.isArray(columns) ? columns[column]?._editorComponentReference : undefined;
+      };
+
+      plugin.setActiveSheet('Own');
+
+      const editorRef = editorRefOfColumn(1);
+
+      plugin.setActiveSheet('Plain');
+      plugin.setActiveSheet('Own');
+
+      expect(editorRef).toBeDefined();
+      expect(editorRefOfColumn(1)).toBe(editorRef);
+      expect(hot.getCell(0, 0)?.textContent).toContain('Sheet renderer: b');
+    });
+
+    it('should create no new editor component when the same sheet columns are declared again', () => {
+      fixture = createGrid({
+        sheetsBar: {
+          activeSheet: 1,
+          sheets: [
+            { name: 'Plain', data: [['a']] },
+            { name: 'Own', data: [['b']], settings: { columns: [{ editor: CountedEditorComponent }] } },
+          ],
+        },
+      });
+
+      const plugin = sheetsBarOf(fixture.componentInstance.hotInstance);
+      const own = plugin.getSheets().find(sheet => sheet.name === 'Own');
+
+      plugin.updateSheetSettings('Own', { columns: [{ editor: CountedEditorComponent }] });
+      plugin.updateSheetSettings('Own', { columns: [{ editor: CountedEditorComponent }] });
+
+      const copy = own ? plugin.duplicateSheet(own.id) : null;
+
+      if (!copy) {
+        throw new Error('The sheet was not duplicated.');
+      }
+
+      plugin.setActiveSheet(copy.id);
+
+      expect(CountedEditorComponent.created).toBe(1);
+    });
+
     it('should leave the host\'s `sheets` entries as declared', () => {
       const column = { renderer: SheetRendererComponent, editor: SheetEditorComponent };
       const ownSettings = { columns: [column] };
@@ -365,13 +462,17 @@ describe('HotTableComponent with a sheets bar', () => {
       const component = fixture.componentInstance;
       const hot = component.hotInstance;
 
+      const gridEditor = firstColumnEditorRef(hot);
+
       sheetsBarOf(hot).setActiveSheet('Own');
 
       const sheetEditor = firstColumnEditorRef(hot);
 
-      if (!sheetEditor) {
-        throw new Error('The sheet\'s editor component was not created.');
+      if (!gridEditor || !sheetEditor) {
+        throw new Error('The editor components were not created.');
       }
+
+      const gridEditorDestroy = jest.spyOn(gridEditor, 'destroy');
 
       const sheetDestroy = jest.spyOn(sheetEditor, 'destroy');
       const next = {
@@ -384,7 +485,51 @@ describe('HotTableComponent with a sheets bar', () => {
       component.ngOnChanges({ settings: new SimpleChange(null, next, false) });
 
       expect(sheetDestroy).not.toHaveBeenCalled();
+      expect(gridEditorDestroy).toHaveBeenCalledTimes(1);
       expect(firstColumnEditorRef(hot)).toBe(sheetEditor);
+    });
+  });
+
+  describe('hooks passed to the instance', () => {
+    it('should register a hook passed to `hotInstance.updateSettings()` as given', () => {
+      const callback = jest.fn();
+
+      fixture = createGrid({ data: [['a']] });
+
+      const hot = fixture.componentInstance.hotInstance;
+
+      hot.updateSettings({ afterSelection: callback });
+
+      expect(hot.getSettings().afterSelection).toBe(callback);
+
+      hot.removeHook('afterSelection', callback);
+      hot.selectCell(0, 0);
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('should run a hook passed to `updateSheetSettings()` as given', () => {
+      const zones: boolean[] = [];
+      const callback = () => zones.push(NgZone.isInAngularZone());
+
+      fixture = createGrid({
+        sheetsBar: {
+          activeSheet: 1,
+          sheets: [
+            { name: 'Plain', data: [['a']] },
+            { name: 'Own', data: [['b']] },
+          ],
+        },
+      });
+
+      const component = fixture.componentInstance;
+      const hot = component.hotInstance;
+
+      sheetsBarOf(hot).updateSheetSettings('Own', { afterSelection: callback });
+      component.ngZone.runOutsideAngular(() => hot.selectCell(0, 0));
+
+      expect(hot.getSettings().afterSelection).toBe(callback);
+      expect(zones).toEqual([false]);
     });
   });
 

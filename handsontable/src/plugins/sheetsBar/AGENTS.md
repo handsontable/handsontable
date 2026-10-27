@@ -488,8 +488,13 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   them again, inside the context of whatever code caused the repaint. Under Angular an `addSheet()` or a
   rename from a component's click handler bound every tab's listeners to the zone, so each pointer move and
   click on a tab ran change detection. The rename input's listeners are still per input, because the input
-  lives only for one rename. `destroy()` removes the host listeners: a rebuilt strip reuses the host.
-  Pinned by `__tests__/tabListeners.unit.js` and the Angular wrapper's `hot-table-sheets-bar.spec.ts`.
+  lives only for one rename. `destroy()` removes the host listeners as cleanup: the host goes with the bar
+  UI, and a rebuilt strip gets a new one. Two limits ride along. The listeners take the context of the code
+  that builds the strip, so a bar enabled or rebuilt from in-zone Angular code (a `sheetsBar` change of
+  `position` or `controls` from a click handler) still binds them to the zone; the wrapper builds it outside.
+  And an event on a tab element held from before a repaint, or one that does not bubble, no longer reaches
+  any listener, where the per-tab listeners still answered it. Pinned by `__tests__/tabListeners.unit.js`
+  and the Angular wrapper's `hot-table-sheets-bar.spec.ts`.
 - **`render()` cancels an in-flight rename silently.** The cancel-hook handler repaints the
   strip, and dispatching it from inside `render()` re-enters the render pass — the outer pass
   then restores focus and scroll against tabs the inner pass replaced.

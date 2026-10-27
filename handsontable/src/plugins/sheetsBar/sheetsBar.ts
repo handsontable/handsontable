@@ -1795,7 +1795,8 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Reads every `updateSettings()` payload before core applies it (`Core#_addSettingsFilter()`), and takes
+   * Reads every payload before core applies it (`Core#_addSettingsFilter()`: `updateSettings()`, and the bar's
+   * own `_applySettingsAndData()` and `_replaceInitPassSettings()` calls, where it stands aside), and takes
    * out each key the visible sheet declares in its own settings: a sheet's own settings win over grid-level
    * ones, as they do on a switch. The value taken out becomes the grid-level value instead
    * (`#takeGridLevelValues`), so the sheets that do not declare the key, a `sheetsBar: false` teardown and a

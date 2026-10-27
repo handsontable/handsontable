@@ -24,13 +24,22 @@ export class HotSettingsResolver {
    */
   private readonly appliedColumns = new WeakMap<ColumnSettings, ColumnSettings>();
   /**
-   * The editor components `resolveAppliedSettings()` created.
+   * The editor components `resolveAppliedSettings()` created, by editor component type and then by the
+   * column they serve: its `data` binding, or its position when it has none. Every column object that
+   * names the same editor for the same column shares one component, so a sheet whose columns the host
+   * declares again with new objects, a duplicated sheet, and `updateSheetSettings()` create no new one.
    */
-  private readonly appliedEditorRefs = new Set<ComponentRef<HotCellEditorComponent<any>>>();
+  private readonly appliedEditorRefs = new Map<Type<unknown>, Map<unknown, ComponentRef<HotCellEditorComponent<any>>>>();
   /**
    * The zone wrapper of each hook callback.
    */
   private readonly zoneWrappers = new WeakMap<Function, Function>();
+  /**
+   * The hook callbacks the `settings` input declared, at grid level and in each sheet's own `settings`.
+   * `resolveAppliedSettings()` wraps only these: a callback the app hands to the instance itself
+   * (`hotInstance.updateSettings()`, `updateSheetSettings()`) is the app's own call, and runs as given.
+   */
+  private readonly declaredHooks = new WeakSet<Function>();
 
   constructor(
     private readonly dynamicComponentService: DynamicComponentService,
@@ -54,6 +63,8 @@ export class HotSettingsResolver {
     // leaking them and cross-wiring a single editor component between tables.
     const mergedSettings: GridSettings = { ...settings };
 
+    this.rememberDeclaredHooks(settings);
+
     if (Array.isArray(mergedSettings.columns)) {
       mergedSettings.columns = mergedSettings.columns.map((column, index) => {
         const resolved = { ...column };
@@ -72,17 +83,22 @@ export class HotSettingsResolver {
   }
 
   /**
-   * Resolves the settings core is about to apply through `updateSettings()`, which reaches the grid
-   * without passing `applyCustomSettings()`: a sheet's own `settings` that the sheets bar applies on a
-   * switch, through `updateSheetSettings()`, or for a duplicated sheet. Registered on the grid with
-   * `_addSettingsFilter()`. A value already resolved is left as it is, so the settings of the `settings`
-   * input pass unchanged.
+   * Resolves the settings core is about to apply without them passing `applyCustomSettings()`: a sheet's
+   * own `settings`, which the sheets bar applies through `_applySettingsAndData()` on a switch, through
+   * `_replaceInitPassSettings()` for the opening sheet, and through `updateSettings()` for
+   * `updateSheetSettings()`. Registered on the grid with `_addSettingsFilter()`, so it reads every
+   * `updateSettings()` payload too. A value already resolved is left as it is, so the settings of the
+   * `settings` input pass unchanged.
+   *
+   * Component renderers, editors and boolean validators are resolved in any payload: core cannot use them
+   * as they are. A hook callback is wrapped in Angular's zone only when the `settings` input declared it,
+   * which keeps the rule of the input: a callback the app passes to the instance itself runs as given.
    *
    * The result for a column object, and the zone wrapper of a hook, is created once and reused on every
    * later payload holding the same object or function. The sheets bar compares a sheet's settings
    * function by function, and a sheet that shows again keeps the editor component it had.
    *
-   * @param settings The payload of `updateSettings()`.
+   * @param settings The payload core is about to apply.
    * @returns The payload to apply: `settings` itself when nothing needed resolving, a new object
    *   otherwise. The caller's object is never changed.
    */
@@ -108,8 +124,40 @@ export class HotSettingsResolver {
    * Destroys every editor component `resolveAppliedSettings()` created.
    */
   destroyAppliedEditors(): void {
-    this.appliedEditorRefs.forEach(ref => ref.destroy());
+    this.appliedEditorRefs.forEach(byColumn => byColumn.forEach(ref => ref.destroy()));
     this.appliedEditorRefs.clear();
+  }
+
+  /**
+   * Records the hook callbacks the `settings` input declares, at grid level and in each sheet's own
+   * `settings`. Nothing is copied or changed: the sheets bar writes into the app's `sheets` array.
+   *
+   * @param settings The `settings` input.
+   */
+  private rememberDeclaredHooks(settings: GridSettings): void {
+    const remember = (declared: unknown) => {
+      if (typeof declared !== 'object' || declared === null) {
+        return;
+      }
+
+      Object.keys(declared).forEach((key) => {
+        const option: unknown = (declared as Record<string, unknown>)[key];
+
+        if (AVAILABLE_HOOKS_SET.has(key) && typeof option === 'function') {
+          this.declaredHooks.add(option);
+        }
+      });
+    };
+    const sheetsBar: unknown = settings.sheetsBar;
+    const sheets: unknown = typeof sheetsBar === 'object' && sheetsBar !== null
+      ? (sheetsBar as { sheets?: unknown }).sheets
+      : undefined;
+
+    remember(settings);
+
+    if (Array.isArray(sheets)) {
+      sheets.forEach(sheet => remember(sheet?.settings));
+    }
   }
 
   /**
@@ -119,7 +167,7 @@ export class HotSettingsResolver {
    * @returns `columns` itself when no column needed resolving, a new array otherwise.
    */
   private resolveAppliedColumns(columns: ColumnSettings[]): ColumnSettings[] {
-    const resolved = columns.map(column => this.resolveAppliedColumn(column));
+    const resolved = columns.map((column, index) => this.resolveAppliedColumn(column, index));
 
     return resolved.every((column, index) => column === columns[index]) ? columns : resolved;
   }
@@ -128,9 +176,10 @@ export class HotSettingsResolver {
    * Resolves one column of an applied payload, once per column object.
    *
    * @param column The column.
+   * @param index The column's position in the payload.
    * @returns The resolved column, or `column` itself when it holds nothing to resolve.
    */
-  private resolveAppliedColumn(column: ColumnSettings): ColumnSettings {
+  private resolveAppliedColumn(column: ColumnSettings, index: number): ColumnSettings {
     if (!this.needsResolution(column)) {
       return column;
     }
@@ -142,19 +191,38 @@ export class HotSettingsResolver {
     }
 
     const resolved = { ...column };
+    const columnKey = (column as Handsontable.ColumnSettings).data ?? index;
 
     this.resolveColumnRenderer(resolved);
-
-    const editorRef = this.resolveColumnEditor(resolved);
-
-    if (editorRef) {
-      this.appliedEditorRefs.add(editorRef);
-    }
-
+    this.resolveColumnEditor(resolved, undefined, editorType => this.appliedEditorRef(editorType, columnKey));
     this.resolveColumnValidator(resolved);
     this.appliedColumns.set(column, resolved);
 
     return resolved;
+  }
+
+  /**
+   * Returns the editor component `resolveAppliedSettings()` keeps for an editor type and a column,
+   * creating it the first time.
+   *
+   * @param editorType The editor component type.
+   * @param columnKey The column's `data` binding, or its position when it has none.
+   * @returns The editor component.
+   */
+  private appliedEditorRef(editorType: Type<unknown>, columnKey: unknown): ComponentRef<HotCellEditorComponent<any>> {
+    const byColumn = this.appliedEditorRefs.get(editorType) ?? new Map<unknown, ComponentRef<HotCellEditorComponent<any>>>();
+    const known = byColumn.get(columnKey);
+
+    if (known) {
+      return known;
+    }
+
+    const created = createComponent(editorType, { environmentInjector: this.environmentInjector });
+
+    byColumn.set(columnKey, created as ComponentRef<HotCellEditorComponent<any>>);
+    this.appliedEditorRefs.set(editorType, byColumn);
+
+    return created as ComponentRef<HotCellEditorComponent<any>>;
   }
 
   /**
@@ -173,10 +241,11 @@ export class HotSettingsResolver {
   }
 
   /**
-   * Returns the zone wrappers of the hook callbacks a payload holds that are not wrapped yet.
+   * Returns the zone wrappers of the hook callbacks a payload holds that the `settings` input declared and
+   * that are not wrapped yet.
    *
    * @param settings The payload.
-   * @returns The wrappers by hook name, or `null` when every hook callback is wrapped already.
+   * @returns The wrappers by hook name, or `null` when there is nothing to wrap.
    */
   private zoneWrappedHooksOf(settings: SettingsUpdate): Record<string, Function> | null {
     let wrapped: Record<string, Function> | null = null;
@@ -184,7 +253,7 @@ export class HotSettingsResolver {
     Object.keys(settings).forEach((key) => {
       const option: unknown = settings[key as keyof SettingsUpdate];
 
-      if (AVAILABLE_HOOKS_SET.has(key) && typeof option === 'function' && !(option as any)[HOT_ZONE_WRAPPED]) {
+      if (AVAILABLE_HOOKS_SET.has(key) && typeof option === 'function' && this.declaredHooks.has(option)) {
         wrapped = { ...wrapped, [key]: this.zoneWrapped(option) };
       }
     });
@@ -263,11 +332,14 @@ export class HotSettingsResolver {
    * @param cellSettings The column, a copy the caller owns.
    * @param previousColumn The column at the same index in the previous settings cycle, used to
    *   recycle its editor component.
+   * @param sharedEditorRef Returns the editor component to use for an editor type when the previous
+   *   column has none to recycle, instead of creating a new one.
    * @returns The editor component the column holds now, or `undefined` when it declares none.
    */
   private resolveColumnEditor(
     cellSettings: ColumnSettings,
-    previousColumn?: ColumnSettings
+    previousColumn?: ColumnSettings,
+    sharedEditorRef?: (editorType: Type<unknown>) => ComponentRef<HotCellEditorComponent<any>>
   ): ComponentRef<HotCellEditorComponent<any>> | undefined {
     const isAdvanced = this.isAdvancedEditorComponentRefType(cellSettings.editor);
     const isBasic = this.isEditorComponentRefType(cellSettings.editor);
@@ -285,7 +357,7 @@ export class HotSettingsResolver {
     // Recreating it on every settings change would tear down and rebuild an Angular component
     // (and its DOM/internal state) for no reason. The reused ref is carried into the new column;
     // HotTableComponent.ngOnChanges detects it by identity and skips destroying it.
-    const component = reusableRef ?? createComponent(editorType as Type<any>, {
+    const component = reusableRef ?? sharedEditorRef?.(editorType) ?? createComponent(editorType as Type<any>, {
       environmentInjector: this.environmentInjector,
     });
 
