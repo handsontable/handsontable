@@ -45,6 +45,17 @@ describe('SheetsBar plugin state across sheet switches', () => {
     return hot.getPlugin('sheetsBar');
   }
 
+  /**
+   * Returns the id of the sheet with the name.
+   *
+   * @param {object} bar The SheetsBar plugin.
+   * @param {string} name The sheet name.
+   * @returns {number}
+   */
+  function idOf(bar, name) {
+    return bar.getSheets().find(sheet => sheet.name === name).id;
+  }
+
   describe('CollapsibleColumns', () => {
     const collapsibleSettings = {
       nestedHeaders: [[{ label: 'G', colspan: 2 }, 'c'], ['a', 'b', 'c']],
@@ -283,4 +294,132 @@ describe('SheetsBar plugin state across sheet switches', () => {
     });
   });
 
+  describe('duplicateSheet', () => {
+    it('gives a copy of the shown sheet its runtime merges and hidden rows', () => {
+      const bar = build({ mergeCells: true, hiddenRows: true, colHeaders: true },
+        [{ name: 'A', data: rows() }, { name: 'B', data: rows() }]);
+
+      hot.getPlugin('mergeCells').merge(0, 1, 1, 2);
+      hot.getPlugin('hiddenRows').hideRows([3]);
+
+      const copy = bar.duplicateSheet(idOf(bar, 'A'));
+
+      bar.setActiveSheet(copy.id);
+
+      expect(hot.getPlugin('mergeCells').getVisibleMergedAreas())
+        .toEqual([{ row: 0, col: 1, rowspan: 2, colspan: 2 }]);
+      expect(hot.getPlugin('hiddenRows').getHiddenRows()).toEqual([3]);
+    });
+
+    it('gives a copy of the shown sheet its runtime sort', () => {
+      const bar = build({ columnSorting: true, colHeaders: true },
+        [{ name: 'A', data: rows() }, { name: 'B', data: rows() }]);
+
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+      const copy = bar.duplicateSheet(idOf(bar, 'A'));
+
+      bar.setActiveSheet(copy.id);
+
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 0, sortOrder: 'desc' }]);
+      expect(hot.getDataAtCol(0)).toEqual([10, 7, 4, 1]);
+    });
+
+    it('gives a copy of a hidden sheet the view state that sheet left with', () => {
+      const bar = build({ hiddenColumns: true, colHeaders: true },
+        [{ name: 'A', data: rows() }, { name: 'B', data: rows() }]);
+
+      hot.getPlugin('hiddenColumns').hideColumns([2]);
+      bar.setActiveSheet('B');
+
+      const copy = bar.duplicateSheet(idOf(bar, 'A'));
+
+      bar.setActiveSheet(copy.id);
+
+      expect(hot.getPlugin('hiddenColumns').getHiddenColumns()).toEqual([2]);
+    });
+
+    it('gives a copy neither the selection nor the scroll position of its original', () => {
+      const bar = build({ colHeaders: true }, [{ name: 'A', data: rows() }, { name: 'B', data: rows() }]);
+      const restored = jest.fn();
+
+      hot.selectCell(2, 1);
+      hot.addHook('afterSheetTabStateRestore', (id, state) => restored(state));
+
+      const copy = bar.duplicateSheet(idOf(bar, 'A'));
+
+      bar.setActiveSheet(copy.id);
+
+      expect(hot.getSelected()).toBeUndefined();
+      expect(restored).toHaveBeenCalledTimes(1);
+      expect(restored.mock.calls[0][0]).toEqual(expect.objectContaining({
+        selection: undefined,
+        selectionState: null,
+        scroll: { row: 0, col: 0 },
+      }));
+    });
+
+    it('carries the collapsed column groups and the checked rows to the copy', () => {
+      const bar = build({
+        nestedHeaders: [[{ label: 'G', colspan: 2 }, 'c'], ['a', 'b', 'c']],
+        collapsibleColumns: true,
+        rowSelection: true,
+        rowHeaders: true,
+      }, [{ name: 'A', data: rows() }, { name: 'B', data: rows() }]);
+
+      hot.getPlugin('collapsibleColumns').collapseSection({ row: -2, col: 0 });
+      hot.getPlugin('rowSelection').selectRows([2]);
+
+      const copy = bar.duplicateSheet(idOf(bar, 'A'));
+
+      bar.setActiveSheet(copy.id);
+
+      expect(hot.columnIndexMapper.isHidden(1)).toBe(true);
+      expect(hot.getPlugin('rowSelection').getSelectedRows()).toEqual([2]);
+    });
+
+    it('fires afterSheetTabStateRestore on the copy\'s first visit', () => {
+      const bar = build({ colHeaders: true }, [{ name: 'A', data: rows() }, { name: 'B', data: rows() }]);
+      const restored = jest.fn();
+
+      hot.addHook('afterSheetTabStateRestore', restored);
+
+      const copy = bar.duplicateSheet(idOf(bar, 'A'));
+
+      bar.setActiveSheet(copy.id);
+
+      expect(restored).toHaveBeenCalledTimes(1);
+      expect(restored.mock.calls[0][0]).toBe(copy.id);
+    });
+
+    it('does not share a stored value between the copy and its original', () => {
+      const bar = build({ hiddenColumns: true, colHeaders: true },
+        [{ name: 'A', data: rows() }, { name: 'B', data: rows() }]);
+
+      hot.getPlugin('hiddenColumns').hideColumns([2]);
+      bar.setActiveSheet('B');
+
+      const copy = bar.duplicateSheet(idOf(bar, 'A'));
+
+      bar.setActiveSheet(copy.id);
+      hot.getPlugin('hiddenColumns').showColumns([2]);
+      bar.setActiveSheet('A');
+
+      expect(hot.getPlugin('hiddenColumns').getHiddenColumns()).toEqual([2]);
+    });
+
+    it('gives a copy of a never-visited copy the cell meta of its original', () => {
+      const bar = build({ colHeaders: true }, [{ name: 'A', data: rows() }, { name: 'B', data: rows() }]);
+
+      hot.setCellMeta(1, 1, 'className', 'kept');
+      bar.setActiveSheet('B');
+
+      const copy = bar.duplicateSheet(idOf(bar, 'A'));
+      const copyOfCopy = bar.duplicateSheet(copy.id);
+
+      bar.setActiveSheet(copyOfCopy.id);
+
+      expect(hot.getCellMeta(1, 1).className).toBe('kept');
+    });
+  });
 });

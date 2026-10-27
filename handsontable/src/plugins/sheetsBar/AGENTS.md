@@ -327,12 +327,17 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   - **Known limit:** a mark is put back as it was. A cell that becomes invalid while its sheet is hidden is
     not marked until it is validated again, because validating the whole sheet on every switch costs too
     much; the sheets bar guide says so.
-  - **A duplicate takes its original's meta** (`#copyCellMeta`): the grid's when the original is shown,
-    what it left with otherwise, with each entry copied and a plain object or array value deep-cloned (a
-    class instance at the top level is shared, because a clone would lose its prototype; one nested inside an
-    object value comes out as a plain object). A copy has no view state until the user leaves it, so the
-    entries wait in `#copiedCellMeta` for its first visit, stored even when empty so the copy does not take
-    declared borders its original no longer has, and dropped once that visit has loaded the copy.
+  - **A duplicate takes its original's whole view state** (`#copyViewState`), meta included: the grid's when
+    the original is shown, what it left with otherwise. The selection and the scroll position are reset to the
+    neutral values, because the copy is a tab the user has not been on; everything else (order, sort, filters,
+    hidden, trimmed and collapsed indexes, sizes, merges, freeze, page, checked rows) comes along, so the copy's
+    first visit is a restore and fires `afterSheetTabStateRestore`. The state is deep-cloned, the meta entry by
+    entry (`#cloneCellMeta`: a plain object or array value is deep-cloned, a class instance at the top level is
+    shared, because a clone would lose its prototype, and one nested inside an object value comes out as a
+    plain object). The meta is copied even when empty, so the copy does not take declared borders its original
+    no longer has. An original that was never shown has no view state, and its copy opens the way the
+    original would. The copy's engine order (`#engineOrders`) is not copied: the copy has an engine sheet of
+    its own, seeded with the duplicated data.
   - **A server response that replaces a hidden sheet's rows removes `cellMeta` from its view state**
     (`#keepDetachedOutcome`), because the meta described the old rows. The field is absent rather than empty
     on purpose: an empty list means "the user left no meta", which on a return keeps a declared
@@ -672,9 +677,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `clearCustomBorders()` before the load, as it clears merges: CustomBorders' `onDataReady()` writes its model
   into the cell meta when its setting is `true`, and the departing model would land on the arriving rows. (2)
   `#applySheet` turns a declared `customBorders` array into `true` whenever the sheet comes back with kept meta
-  (a return, or a duplicate's first visit), because the declared pass would replace the borders the user left
-  with. (3) Once the row and column order is restored (`restoreViewState`, or right after the load for a
-  duplicate's first visit), `rebuildCustomBordersFromCellMeta()` calls CustomBorders' `@private`
+  (a return, or a duplicate's first visit, which restores the view state it took from its original), because
+  the declared pass would replace the borders the user left with. (3) Once the row and column order is restored
+  (`restoreViewState`), `rebuildCustomBordersFromCellMeta()` calls CustomBorders' `@private`
   `_rebuildFromCellMeta()`, through the typed `hot.getPlugin('customBorders')`, which marks the model for a
   rebuild from the meta. The rebuild must stay deferred: the restore runs with the index cache suspended, and
   a rebuild run there put a border on a sorted sheet or a moved column onto another record. A border on a
@@ -922,6 +927,39 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 Tests: `__tests__/*.unit.js` (Jest), `tests/e2e/sheets-bar*.spec.ts` (Playwright),
 `visual-tests/tests/js-only/sheetsBar/`. The unit suite drives the strip through DOM events and
 a captured `TabStrip` instance — the plugin exposes no test-only methods.
+
+## What each plugin keeps per sheet
+
+`loadData()` drops most runtime state a plugin keeps for the rows it shows, so every piece of it that a user
+can change has to be captured when the user leaves a sheet and put back on the return. A plugin that keeps
+such state and is missing from this list loses it on every switch.
+
+| Plugin or feature | What it keeps for the loaded rows | How the bar keeps it per sheet |
+|---|---|---|
+| Row and column order (`manualRowMove`, `manualColumnMove`) | index sequences | `rowSequence`, `columnSequence` |
+| ColumnSorting, MultiColumnSorting | sort states, pre-sort row order | `sortConfig` (physical), `unsortedRowSequence` |
+| Filters | conditions | `filterConditions` |
+| TrimRows, HiddenRows, HiddenColumns | trimming and hiding maps | `trimmedRows`, `hiddenRows`, `hiddenColumns` (physical) |
+| NestedRows | collapsed parents | `collapsedParents` (tree paths) |
+| CollapsibleColumns | collapsed header groups and the columns they hide | `collapsedColumns`, through `_exportViewState()`/`_importViewState()` |
+| RowSelection | checked rows; with DataProvider the selection by row id and the server row count | `checkedRows`, through `_exportViewState()`/`_importViewState()`; a bound checkbox column needs nothing, the data holds it |
+| ManualColumnResize, ManualRowResize | manual sizes | `colWidths`, `rowHeights` (physical pairs) |
+| MergeCells | merges | `mergedCells` |
+| CustomBorders | borders | the kept `borders` cell meta |
+| Frozen rows and columns | counts on the table meta | the four `fixed*` fields |
+| Pagination | page and page size | `pagination` |
+| Selection, scroll | cell selection and viewport | `selection`, `selectionState`, `scroll` |
+| Cell meta | keys set through `setCellMeta()`, invalid marks | `cellMeta` |
+| ColumnSummary | endpoints | `#columnSummaryStates` |
+| The `cell` option | its meta by physical index | `#cellOptionStates` |
+| DataProvider | last response, failures | `#serverViews` |
+| Formulas | engine order, formula text | `#engineOrders`, the formula text capture |
+
+`collapsedColumns` and `checkedRows` are restored after the restore batch: the header tree a collapse is laid on
+is derived through the column index cache, which the batch holds at the order from before the restore. A sheet
+that was never shown gets both cleared by `resetViewState()` before its load, which matters for a
+server-backed sheet: without it the arriving sheet's load re-projected the selection by row id of the sheet the
+user left, and `removeSelectedRows()` sent its ids to the arriving sheet's `onRowsRemove`.
 
 ## The four frozen counts follow the same rules
 

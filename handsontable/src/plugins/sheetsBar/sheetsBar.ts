@@ -20,9 +20,9 @@ import {
   clearFrozenCountShadow,
   clearCustomBorders,
   clearMergedCells,
+  createNeutralViewState,
   FROZEN_COUNT_KEYS,
   keepSelectionOnPage,
-  rebuildCustomBordersFromCellMeta,
   resetViewState,
   resetViewport,
   restoreViewState,
@@ -818,14 +818,6 @@ export class SheetsBar extends BasePlugin {
    * @type {string|null}
    */
   #tabSlideMotion: SheetsBarMotion | null = null;
-  /**
-   * The cell meta a duplicate takes from its original, put back on the copy's first visit. A sheet the
-   * user has left keeps its meta in its view state (`#captureCellMeta`); a copy has no view state until
-   * the user leaves it once, so this is read only while it has none.
-   *
-   * @type {WeakMap<Sheet, object[]>}
-   */
-  #copiedCellMeta = new WeakMap<Sheet, TrackedCellMeta[]>();
   /**
    * The declared `sheets` entry each built sheet came from, so removing a sheet can prune its
    * entry out of the configured arrays — the settings object would otherwise keep the removed
@@ -2801,18 +2793,13 @@ export class SheetsBar extends BasePlugin {
         }
       }
 
-      const copiedCellMeta = viewState ? undefined : this.#copiedCellMeta.get(newSheet);
-
       this.#applySheet(newSheet, source, {
         restoresState: viewState !== undefined,
-        cellMeta: viewState ? viewState.cellMeta : copiedCellMeta,
+        cellMeta: viewState?.cellMeta,
       });
 
       if (viewState) {
         restoreViewState(this.hot, viewState, keptParts);
-      } else if (copiedCellMeta) {
-        this.#copiedCellMeta.delete(newSheet);
-        rebuildCustomBordersFromCellMeta(this.hot);
       }
 
       this.#restoreFormulaText(newSheet);
@@ -3183,29 +3170,54 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Gives a duplicated sheet the cell meta its original carries now: the grid's when the original is shown,
-   * or what it left with otherwise. The copy's data is a copy of the original's rows in the same physical
-   * order, so its first visit puts the meta back by physical index like a return does, borders included, and
-   * it is stored even when empty, so the copy does not take the declared borders its original no longer has.
-   * It is dropped once the copy has been shown. Each entry is copied, and so is a plain object or array value,
-   * so a change made in place on one sheet does not reach the other. A class instance at the top level is
-   * shared, and one nested inside an object value comes out as a plain object.
+   * Gives a duplicated sheet the whole view state of its original, so the copy opens the way its original
+   * looks: the grid's state when the original is shown, or the state it left with otherwise. The selection
+   * and the scroll position are the neutral ones: the copy is a tab the user has not been on. The copy's
+   * data is a copy of the original's rows in the same physical order, so its first visit restores the state
+   * like a return does, and `afterSheetTabStateRestore` fires for it. Every value is copied, so a change on
+   * one sheet does not reach the other, the kept cell meta by the rule `#cloneCellMeta` gives. An original
+   * that was never shown has no view state, and neither has its copy.
    *
    * @param {object} original The sheet that was duplicated.
    * @param {object} copy The duplicate.
    */
-  #copyCellMeta(original: Sheet, copy: Sheet) {
+  #copyViewState(original: Sheet, copy: Sheet) {
     const isOriginalShown = this.#model?.getActiveSheet()?.id === original.id;
-    const entries = isOriginalShown
-      ? this.#captureCellMeta()
-      : ((original.viewState?.cellMeta as TrackedCellMeta[] | undefined) ?? this.#copiedCellMeta.get(original));
+    const source = isOriginalShown
+      ? captureViewState(this.hot, this.#captureCellMeta())
+      : original.viewState as unknown as ViewState | undefined;
 
-    if (entries) {
-      this.#copiedCellMeta.set(copy, entries.map(entry => ({
-        ...entry,
-        value: isPlainObject(entry.value) || Array.isArray(entry.value) ? deepClone(entry.value) : entry.value,
-      })));
+    if (!source) {
+      return;
     }
+
+    const neutral = createNeutralViewState();
+    const { cellMeta, ...parts } = {
+      ...source,
+      selection: neutral.selection,
+      selectionState: neutral.selectionState,
+      scroll: neutral.scroll,
+    };
+
+    copy.viewState = {
+      ...deepClone(parts),
+      ...(cellMeta ? { cellMeta: SheetsBar.#cloneCellMeta(cellMeta) } : {}),
+    } as unknown as Record<string, unknown>;
+  }
+
+  /**
+   * Copies kept cell meta entries for another sheet. Each entry is copied, and so is a plain object or
+   * array value, so a change made in place on one sheet does not reach the other. A class instance at the
+   * top level is shared, and one nested inside an object value comes out as a plain object.
+   *
+   * @param {object[]} entries The entries.
+   * @returns {object[]}
+   */
+  static #cloneCellMeta(entries: TrackedCellMeta[]): TrackedCellMeta[] {
+    return entries.map(entry => ({
+      ...entry,
+      value: isPlainObject(entry.value) || Array.isArray(entry.value) ? deepClone(entry.value) : entry.value,
+    }));
   }
 
   /**
@@ -3554,25 +3566,19 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Takes the custom borders out of the cell meta a hidden sheet kept (its view state, or a duplicate's
-   * copy of its original's meta), where the borders live, and marks the sheet so its next visit applies
-   * the declared borders.
+   * Takes the custom borders out of the cell meta a hidden sheet kept in its view state, where the borders
+   * live, and marks the sheet so its next visit applies the declared borders.
    *
    * @param {object} sheet The hidden sheet.
    */
   #dropKeptBorders(sheet: Sheet) {
     const kept = sheet.viewState?.cellMeta;
-    const copied = this.#copiedCellMeta.get(sheet);
 
     if (Array.isArray(kept)) {
       sheet.viewState = {
         ...sheet.viewState,
         cellMeta: kept.filter(entry => isPlainObject(entry) && entry.key !== 'borders'),
       };
-    }
-
-    if (copied) {
-      this.#copiedCellMeta.set(sheet, copied.filter(entry => entry.key !== 'borders'));
     }
 
     this.#redeclaredBorders.add(sheet);
@@ -4044,7 +4050,7 @@ export class SheetsBar extends BasePlugin {
         this.#copyServerView(original, sheet);
         this.#copyColumnSummaryEndpoints(original, sheet);
         this.#copyCellOption(original, sheet);
-        this.#copyCellMeta(original, sheet);
+        this.#copyViewState(original, sheet);
 
         // The copy cannot share the original's engine sheet — two tabs writing into one set of
         // cells — so it gets an engine sheet of its own, named like the copy, seeded with the
