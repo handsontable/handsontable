@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-26T18:27:52.754Z",
+  "updatedAt": "2026-10-27T10:38:17.019Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "jasmine",
+      "leg": "UMD (theme: main)",
+      "file": "handsontable/src/plugins/formulas/__tests__/initialization.spec.js",
+      "line": null,
+      "title": "Formulas general Multiple Handsontable setup with separate HF instances should render only related sheets when the dependent cells are updated",
+      "status": "failed",
+      "attempts": 1,
+      "error": "Expected spy afterViewRender1 to have been called 2 times. It was called 3 times.",
+      "isolation": "fails alone (1 failed)",
+      "quarantine": null,
+      "source": "ci",
+      "runId": "40485981148",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40485981148",
+      "workflow": "Tests",
+      "branch": "feature/dev-333_render-on-external-engine-changes",
+      "headSha": "d0a37a9872ecdb1431217d02038a398c7b6f1c99",
+      "event": "pull_request",
+      "seenAt": "2026-10-27T10:37:27Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-horizon",

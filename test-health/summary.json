@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-27T02:27:42.334Z",
+  "generatedAt": "2026-10-27T10:38:17.019Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 417,
+    "tests": 418,
     "needsTicket": 24,
     "quarantined": 0,
-    "entries": 2147
+    "entries": 2148
   },
   "rows": [
     {
@@ -3194,6 +3194,41 @@
         "leg": "UMD.min (theme: classic)",
         "status": "failed",
         "error": "Expected '' to equal 'cyan'.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/plugins/formulas/__tests__/initialization.spec.js|Formulas general Multiple Handsontable setup with separate HF instances should render only related sheets when the dependent cells are updated",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/formulas/__tests__/initialization.spec.js",
+      "line": null,
+      "title": "Formulas general Multiple Handsontable setup with separate HF instances should render only related sheets when the dependent cells are updated",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (1 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-27T10:37:27Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40485981148",
+        "branch": "feature/dev-333_render-on-external-engine-changes",
+        "leg": "UMD (theme: main)",
+        "status": "failed",
+        "error": "Expected spy afterViewRender1 to have been called 2 times. It was called 3 times.",
         "source": "ci"
       },
       "needsTicket": false
