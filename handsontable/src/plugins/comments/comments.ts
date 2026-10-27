@@ -8,6 +8,7 @@ import {
   hasHorizontalScrollbar,
   isShadowRoot,
   outerHeight,
+  isHTMLElement,
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { deepClone, deepExtend } from '../../helpers/object';
@@ -16,7 +17,7 @@ import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
-import { getEditorAnchorWidth } from './utils';
+import { getEditorAnchorHeight, getEditorAnchorWidth } from './utils';
 import { shrinkSizeToViewport, clampPositionToViewport } from './viewport';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import type { PredefinedMenuItemKey, MenuItemConfig } from '../contextMenu/contextMenu';
@@ -812,27 +813,42 @@ export class Comments extends BasePlugin {
     // TODO: Probably using `hot.getCell` would be the best. However, case for showing comment editor for hidden cell
     // potentially should be removed with that change (currently a test for it is passing).
     const TD = wt.getCell({ row: renderableRow, col: renderableColumn }, true) as HTMLTableCellElement;
-    const cellMeta = this.hot.getCellMeta<{ colspan?: number; [META_COMMENT]?: CommentMeta }>(visualRow, visualColumn);
+    const cellMeta = this.hot.getCellMeta<{
+      colspan?: number;
+      rowspan?: number;
+      [META_COMMENT]?: CommentMeta;
+    }>(visualRow, visualColumn);
     const metaColspan = cellMeta.colspan ?? 1;
+    const metaRowspan = cellMeta.rowspan ?? 1;
     const commentStyle = this.getCommentMeta(visualRow, visualColumn, META_STYLE);
-
-    if (commentStyle) {
-      this.#editor.setSize(commentStyle.width, commentStyle.height);
-
-    } else {
-      this.#editor.resetSize();
-    }
-
-    const lastColWidth = isBeforeRenderedColumns ? 0 :
-      getEditorAnchorWidth(metaColspan, TD, wtTable.getColumnWidth(renderableColumn));
-    const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD) : 0;
-
     const {
       left,
       top,
       width: cellWidth,
       height: cellHeight,
     } = TD.getBoundingClientRect();
+
+    if (commentStyle) {
+      this.#editor.setSize(commentStyle.width, commentStyle.height);
+
+    } else {
+      this.#editor.resetSize();
+
+      // A hidden row is anchored to the previous row's cell, which is not the range the comment belongs to.
+      // The master table's cell spans the whole block. The topmost one can be an overlay's, cut at a frozen row.
+      const masterTD = targetingPreviousRow ? null : wt.getCell({ row: renderableRow, col: renderableColumn });
+      const anchorHeight = isHTMLElement(masterTD) ?
+        getEditorAnchorHeight(metaRowspan, masterTD.getBoundingClientRect().height) : undefined;
+
+      if (anchorHeight !== undefined) {
+        this.#editor.setHeight(anchorHeight);
+      }
+    }
+
+    const lastColWidth = isBeforeRenderedColumns ? 0 :
+      getEditorAnchorWidth(metaColspan, TD, wtTable.getColumnWidth(renderableColumn));
+    const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD) : 0;
+
     const {
       width: editorWidth,
       height: editorHeight,

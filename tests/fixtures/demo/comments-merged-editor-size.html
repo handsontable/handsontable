@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — comment editor of a merged cell</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 8px; }
+    #grid { width: 420px; height: 260px; overflow: hidden; }
+  </style>
+</head>
+<body>
+  <div data-testid="grid" id="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    let hot;
+
+    try {
+      hot = new Handsontable(container, {
+        data: Handsontable.helper.createSpreadsheetData(20, 6),
+        colHeaders: true,
+        rowHeaders: true,
+        comments: true,
+        hiddenRows: { rows: [2] },
+        mergeCells: [
+          { row: 1, col: 1, rowspan: 5, colspan: 2 },
+          { row: 6, col: 1, rowspan: 2, colspan: 1 },
+          // A merge one row tall: it is wide, not tall, so its box keeps the default height.
+          { row: 5, col: 3, rowspan: 1, colspan: 2 },
+          { row: 6, col: 4, rowspan: 2, colspan: 1 },
+          // Its first row is hidden, so the editor is anchored to the row above it.
+          { row: 2, col: 5, rowspan: 2, colspan: 1 },
+        ],
+        afterRenderer: (td, row, col) => {
+          td.setAttribute('data-testid', `cell-${row}-${col}`);
+        },
+        cell: [
+          { row: 1, col: 1, comment: { value: 'Comment on a 5x2 merged range.' } },
+          { row: 6, col: 1, comment: { value: 'Comment on a 2x1 merged range.' } },
+          { row: 4, col: 4, comment: { value: 'Comment on a plain cell.' } },
+          { row: 5, col: 3, comment: { value: 'Comment on a merge one row tall.' } },
+          { row: 2, col: 5, comment: { value: 'A merged range that starts on a hidden row.' } },
+          {
+            row: 6, col: 4, comment: { value: 'A merged range with a saved size.', style: { width: 200, height: 140 } },
+          },
+        ],
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+
+    window.hot = hot;
+  </script>
+</body>
+</html>
