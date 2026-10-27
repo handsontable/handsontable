@@ -43,7 +43,11 @@ import { getValueGetterValue } from '../../utils/valueAccessors';
 import { quoteUnreadableSheetNames } from '../../utils/formulaReferences';
 import { Hooks } from '../../core/hooks';
 import IndexSyncer from './indexSyncer';
-import { deferPaintToPluginEngineWrite, withPluginEngineWrite } from './indexSyncer/pluginEngineWrite';
+import {
+  deferPaintToPluginEngineWrite,
+  holdPluginEngineWritePaints,
+  withPluginEngineWrite,
+} from './indexSyncer/pluginEngineWrite';
 import type AxisSyncer from './indexSyncer/axisSyncer';
 import type { EngineOrder } from './indexSyncer/axisSyncer';
 import type { HyperFormulaEngine, FormulasCellAddress, FormulasCellRange } from './engine/types';
@@ -3573,15 +3577,17 @@ export class Formulas extends BasePlugin {
   #resyncSheet() {
     this.#sheetResyncPending = false;
 
-    const sourceDataArray = this.#getProcessedSourceDataArray();
+    this.#writeOwnSheet(this.engine!, () => {
+      const sourceDataArray = this.#getProcessedSourceDataArray();
 
-    if (!this.engine!.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
-      this.#clearRejectedSheet();
+      if (!this.engine!.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
+        this.#clearRejectedSheet();
 
-      return;
-    }
+        return;
+      }
 
-    this.#writeSheet(sourceDataArray);
+      this.#writeSheet(sourceDataArray);
+    });
   }
 
   /**
@@ -3781,7 +3787,10 @@ export class Formulas extends BasePlugin {
       this.#followSheetNameSettingWhenBound();
 
       if (source === 'updateSettings') {
-        // For performance reasons, the initialization will be done in afterCellMetaReset hook
+        // For performance reasons, the initialization will be done in afterCellMetaReset hook. The grids
+        // that read the new sheet paint when that fill ends.
+        holdPluginEngineWritePaints(engine);
+
         return;
       }
 

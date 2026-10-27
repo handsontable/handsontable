@@ -8,14 +8,16 @@
 interface EngineWrite {
   depth: number;
   grids: Set<() => void>;
+  held: boolean;
 }
 
 const writesByEngine = new WeakMap<object, EngineWrite>();
+const heldPaintsByEngine = new WeakMap<object, Set<() => void>>();
 
 /**
  * Runs an engine mutation this plugin owns. The grids the engine's events name while it runs are
  * painted once, when the outermost mutation on that engine ends, whether it returns or throws. A
- * write to one engine does not count as a write to another.
+ * write to one engine does not count as a write to another. Paints a previous write held back join them.
  *
  * @param {object} engine The engine being written.
  * @param {Function} fn The mutation.
@@ -25,7 +27,7 @@ export function withPluginEngineWrite<T>(engine: object, fn: () => T): T {
   let write = writesByEngine.get(engine);
 
   if (write === undefined) {
-    write = { depth: 0, grids: new Set() };
+    write = { depth: 0, grids: new Set(), held: false };
     writesByEngine.set(engine, write);
   }
 
@@ -39,7 +41,14 @@ export function withPluginEngineWrite<T>(engine: object, fn: () => T): T {
     if (write.depth === 0) {
       // Gone before the paints run, so an engine write a paint's `afterRender` makes is an external one.
       writesByEngine.delete(engine);
-      write.grids.forEach(paint => paint());
+      heldPaintsByEngine.get(engine)?.forEach(paint => write.grids.add(paint));
+
+      if (write.held) {
+        heldPaintsByEngine.set(engine, write.grids);
+      } else {
+        heldPaintsByEngine.delete(engine);
+        write.grids.forEach(paint => paint());
+      }
     }
   }
 }
@@ -61,4 +70,19 @@ export function deferPaintToPluginEngineWrite(engine: object | null | undefined,
   write.grids.add(paint);
 
   return true;
+}
+
+/**
+ * Keeps the grids the outermost plugin write on the stack names from painting when it ends. They paint
+ * when the next outermost write on that engine ends, so a write that continues in a later turn (a sheet
+ * filled at the next render) paints them once, after the data is in. Does nothing inside a nested write.
+ *
+ * @param {object} engine The engine being written.
+ */
+export function holdPluginEngineWritePaints(engine: object): void {
+  const write = writesByEngine.get(engine);
+
+  if (write !== undefined && write.depth === 1) {
+    write.held = true;
+  }
 }

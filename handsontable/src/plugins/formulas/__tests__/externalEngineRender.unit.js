@@ -424,7 +424,7 @@ describe('external engine changes repaint formula cells', () => {
       containers.forEach(container => container.remove());
     });
 
-    it('shows the value of the cell the other grid fills, in at most the registration and the fill paint', () => {
+    it('paints the grid that names the sheet once while the other grid registers it', () => {
       const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
       grids.push(mountGrid(containers[0], [['Ford', 'Tesla'], ['Opel', '=Sheet2!A2']], engine, 'Sheet1', () => {
@@ -433,7 +433,7 @@ describe('external engine changes repaint formula cells', () => {
       renders1 = 0;
       grids.push(mountGrid(containers[1], [['Ford', 'Tesla'], ['Opel', '=Sheet1!B1']], engine, 'Sheet2', () => {}));
 
-      expect(renders1).toBeLessThanOrEqual(2);
+      expect(renders1).toBe(1);
       expect(grids[0].getCell(1, 1).textContent).toBe('Opel');
     });
 
@@ -479,14 +479,14 @@ describe('external engine changes repaint formula cells', () => {
         renders1 = 0;
       });
 
-      it('shows the value of the filled cell in at most the registration and the fill paint', () => {
+      it('paints the other grid once with the value of the filled cell', () => {
         grids[1].updateSettings({
           data: [['p', 'q'], ['r', 'moved']],
           formulas: { engine, sheetName: 'Sheet3' },
         });
 
         expect(grids[0].getCell(0, 1).textContent).toBe('moved');
-        expect(renders1).toBeLessThanOrEqual(2);
+        expect(renders1).toBe(1);
       });
 
       it('paints the other grid once when the referenced cell is empty', () => {
