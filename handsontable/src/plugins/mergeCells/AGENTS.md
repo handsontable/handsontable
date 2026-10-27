@@ -151,9 +151,12 @@ order, which is the sequence without its trimmed rows, so everything in that str
 trimmed, and the anchor is what create-then-trim produces. Four things to keep:
 
 - **A merge declared in the settings (`auto: true`) takes the gap too (DEV-3610).**
-  The area's `row` and `rowspan` describe the rows on screen when it is applied, and the trimmed rows
-  between them come back under the merge, so `{ row: 2, rowspan: 3 }` over a trimmed row reads
-  `rowspan: 4` after the untrim. Taking the gap is not enough on its own: a re-send of the same areas
+  The area's `row` and `rowspan` describe the rows on screen when it is applied for the first time, and
+  the trimmed rows between them come back under the merge, so `{ row: 2, rowspan: 3 }` over a trimmed row
+  reads `rowspan: 4` after the untrim. An area that was applied before (`#isReapplyingArea`, set around
+  its `mergeRange()` in `generateFromSettings()`) does NOT take the gap: filling it grew a merge made
+  while nothing was trimmed over every row a filter hid between its visible rows (a 2-row area became 51
+  rows, and every later re-send kept that). Taking the gap is not enough on its own: a re-send of the same areas
   (every React and Angular commit) would rebuild the merge from the declared `rowspan` and flip it back,
   clearing the cells of the row it just lost. `#takeKeptMerges` therefore also keeps, trimming active or
   not, the merge of an area that was applied before, is still declared, still sits on its anchor
@@ -247,22 +250,31 @@ column move replaced is a new object with no recorded area, so it goes back thro
 
 **A settings merge that took a trimmed row (DEV-3610) is kept too, trimming active or not.** Its anchor
 holds more rows than the area's `rowspan` (`#hasGrownPastArea`; `#mergeAreas` stores the declared
-`rowspan`), so rebuilding it from the area would flip the span back and clear the returning row. While any
-such merge is kept, **every** applied, still declared merge whose footprint is unchanged is kept with it:
-rebuilt at its declared visual position, a sibling area below the grown merge lands on rows the grown block
-now covers, `filterOverlappingMergeCells` rejects it, and the merge is lost for good. Limits, all measured
-and not fixed:
+`rowspan`), so rebuilding it from the area would flip the span back and clear the returning row. The
+merge of every applied, still declared area whose declared position overlaps a kept merge is kept with it
+(`#keepAreasReachingKeptMerges`, repeated until nothing more is reached): rebuilt at its declared visual
+position, a sibling area below the grown merge lands on rows the grown block now covers,
+`filterOverlappingMergeCells` rejects it, and the merge is lost for good. An area that no kept merge
+reaches, in other columns for example, is applied to the rows on screen as before. The check returns early
+when no area is grown and no row is trimmed, so a re-send costs nothing there. Limits, all measured and
+not fixed:
 
 - A kept merge is not re-applied, so a re-send does not clear values that arrived under it since (the
   guide's "the next re-apply clears them" holds for the other areas only).
 - It keeps its physical rows when the filter changes and the same area numbers are sent again, instead of
   being rebuilt on the rows on screen. A different area (any of row, col, rowspan or colspan) is rebuilt.
 - The state lives in `#mergeAreas`, keyed by merge object. A merge that `restoreMergedAreas()` (a sheet
-  switch) or an undo of an unmerge creates anew is a new object with no entry. `#grownAreas` (area key,
-  declared `rowspan`, footprint of the grown anchor, set in `generateFromSettings()`) lets
-  `#adoptRecreatedMerges()` give it its entry back by footprint, so the re-send keeps it. Only an area
-  that took trimmed rows is tracked, and the footprint must match exactly: a row insert or remove changes
-  it, and the next re-send then rebuilds the merge from the declared `rowspan`, clearing the returning row.
+  switch) or an undo of an unmerge creates anew is a new object with no entry. `#appliedAreas` (area key,
+  declared `rowspan` and `colspan`, footprint of the anchor and whether it grew, set for every area in
+  `generateFromSettings()`) lets `#adoptRecreatedMerges()` give it its entry back, so the re-send keeps it;
+  it runs only while some area is grown. The footprint and the `colspan` must both match, so a merge the
+  user made over the same rows with another width is not taken for the area. A row insert or remove changes
+  the footprint, and the next re-send then rebuilds the merge from the declared `rowspan`, clearing the
+  returning row. A column move that splits the merge hands no piece the area's identity (the `colspan`
+  differs).
+- An area applied before the filter, and sent again while a row between its rows is trimmed, lands on the
+  rows on screen without the gap, so once the row returns the merge draws over it without owning the last
+  row. That is the behavior before DEV-3610, kept so that a re-send never grows a merge.
 
 The row insert/remove hooks mirror the physical renumbering onto the anchors themselves rather than
 re-deriving them from the merges. They have to: the index mapper emits its cache update **before**

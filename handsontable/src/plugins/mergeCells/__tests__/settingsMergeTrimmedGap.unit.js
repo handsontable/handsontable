@@ -218,4 +218,79 @@ describe('MergeCells declared in the settings while a row inside its span is tri
     expect(mergeGeometry()).toEqual([[2, 2, 4, 3]]);
     expect(hot.getSourceDataAtCell(3, 2)).toBe('C4');
   });
+
+  it('should keep an area in other columns following the rows on screen while another area is kept', () => {
+    const areas = [
+      { row: 2, col: 0, rowspan: 3, colspan: 2 },
+      { row: 6, col: 8, rowspan: 2, colspan: 2 },
+    ];
+
+    createGrid({ data: Handsontable.helper.createSpreadsheetData(10, 10), trimRows: [3], mergeCells: areas });
+
+    hot.getPlugin('trimRows').untrimAll();
+    hot.getPlugin('trimRows').trimRow(7);
+    hot.updateSettings({ mergeCells: areas.map(area => ({ ...area })) });
+
+    // The first area keeps its four rows; the second is placed on the rows on screen, 6 and 8.
+    expect(mergeGeometry()).toEqual([[2, 0, 4, 2], [6, 8, 2, 2]]);
+  });
+
+  it('should keep the area below a merge that took a trimmed row after a sheet switch restored both', () => {
+    const areas = [
+      { row: 2, col: 0, rowspan: 3, colspan: 2 },
+      { row: 5, col: 0, rowspan: 2, colspan: 2 },
+    ];
+
+    createGrid({ trimRows: [3], mergeCells: areas });
+
+    hot.getPlugin('trimRows').untrimAll();
+
+    const plugin = hot.getPlugin('mergeCells');
+    const restored = plugin.getVisibleMergedAreas();
+
+    plugin.clearCollections();
+    plugin.restoreMergedAreas(restored);
+    hot.updateSettings({ mergeCells: areas.map(area => ({ ...area })) });
+
+    expect(mergeGeometry()).toEqual([[2, 0, 4, 2], [6, 0, 2, 2]]);
+  });
+
+  it('should not adopt a merge with another colspan than the area it shares its rows with', () => {
+    const areas = [{ row: 2, col: 0, rowspan: 3, colspan: 2 }];
+
+    createGrid({ trimRows: [3], mergeCells: areas });
+
+    hot.getPlugin('trimRows').untrimAll();
+
+    const plugin = hot.getPlugin('mergeCells');
+
+    plugin.unmerge(2, 0, 5, 1);
+    plugin.merge(2, 0, 5, 0);
+
+    expect(mergeGeometry()).toEqual([[2, 0, 4, 1]]);
+
+    hot.updateSettings({ mergeCells: areas.map(area => ({ ...area })) });
+
+    // The declared two-column area is applied again, on the rows on screen.
+    expect(mergeGeometry()).toEqual([[2, 0, 3, 2]]);
+  });
+
+  it('should not grow an area that was applied before when it is sent again while rows are trimmed', () => {
+    const areas = [{ row: 0, col: 0, rowspan: 2, colspan: 2 }];
+
+    createGrid({
+      data: Handsontable.helper.createSpreadsheetData(60, 5),
+      trimRows: true,
+      mergeCells: areas,
+    });
+
+    const trimmed = Array.from({ length: 60 }, (_, index) => index).filter(index => index !== 0 && index !== 50);
+
+    hot.getPlugin('trimRows').trimRows(trimmed);
+    hot.updateSettings({ mergeCells: areas.map(area => ({ ...area })) });
+    hot.getPlugin('trimRows').untrimAll();
+    hot.updateSettings({ mergeCells: areas.map(area => ({ ...area })) });
+
+    expect(mergeGeometry()).toEqual([[0, 0, 2, 2]]);
+  });
 });
