@@ -21,6 +21,7 @@ const contextMenuItems = [
 const dataManagementItems = [
   { path: 'data-management/load-data-rest-api/load-data-rest-api', title: 'Load data from a REST API', onlyFor: ['javascript', 'react', 'angular'] },
   { path: 'data-management/load-data-graphql/load-data-graphql', title: 'Load data from a GraphQL API', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
+  { path: 'data-management/load-data-odata/load-data-odata', title: 'Load data from an OData service', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
   { path: 'data-management/sync-two-grids/sync-two-grids', title: 'Sync two grids', onlyFor: ['javascript', 'angular', 'react'] },
   { path: 'data-management/undo-redo-custom-ui/undo-redo-custom-ui', title: 'Undo / redo with a custom UI', onlyFor: ['javascript', 'angular', 'react', 'vue'] },
   { path: 'data-management/auto-save-backend/auto-save-backend', title: 'Auto-save changes to a backend', onlyFor: ['javascript', 'angular', 'react', 'vue'] },
