@@ -2,6 +2,23 @@ import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { AutoColumnSizeMergedCellsPage } from '../fixtures/pages/AutoColumnSizeMergedCellsPage';
 
 const LONG = 'A very long string that will not fit into the cell so it needs more space';
+const FITS = { fits: true, tight: true };
+
+/**
+ * Reads whether the columns a merge spans fit its text (`control`, the width of the same text in an
+ * unmerged column) and no more than that, with one pixel of rounding.
+ *
+ * @param {number[]} widths The column widths.
+ * @param {number} from The first spanned column.
+ * @param {number} span The number of spanned columns.
+ * @param {number} control The width of the text measured unmerged.
+ * @returns {object}
+ */
+function fitOf(widths: number[], from: number, span: number, control: number) {
+  const sum = widths.slice(from, from + span).reduce((total, width) => total + width, 0);
+
+  return { fits: sum >= control, tight: sum <= control + 1 };
+}
 
 /**
  * AutoColumnSize must size columns from the content of a merged cell, which it used to skip
@@ -102,11 +119,7 @@ test.describe('autoColumnSize and merged cells', { tag: THEMES_TAG }, () => {
     expect(short).toBeLessThan(control / 2);
 
     await grid.setDataAtCell(0, 0, LONG);
-    await expect.poll(async() => {
-      const [first, second] = await grid.widths();
-
-      return first + second >= control;
-    }).toBe(true);
+    await expect.poll(async() => fitOf(await grid.widths(), 0, 2, control)).toEqual(FITS);
 
     await grid.setDataAtCell(0, 0, 'ab');
     await expect.poll(async() => (await grid.widths())[0]).toBe(short);
@@ -133,8 +146,8 @@ test.describe('autoColumnSize and merged cells', { tag: THEMES_TAG }, () => {
     await expect.poll(async() => {
       const [inserted, first, second] = await grid.widths();
 
-      return { insertedNarrow: inserted < control / 2, fits: first + second >= control };
-    }).toEqual({ insertedNarrow: true, fits: true });
+      return { insertedNarrow: inserted < control / 2, ...fitOf([first, second], 0, 2, control) };
+    }).toEqual({ insertedNarrow: true, ...FITS });
   });
 
   test('fits a merge again after the data is replaced', async() => {
@@ -143,11 +156,7 @@ test.describe('autoColumnSize and merged cells', { tag: THEMES_TAG }, () => {
     await grid.build({ data: [['ab', ''], ['a', 'b']], mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 2 }] });
     await grid.loadData([[LONG, ''], ['a', 'b']]);
 
-    await expect.poll(async() => {
-      const [first, second] = await grid.widths();
-
-      return first + second >= control;
-    }).toBe(true);
+    await expect.poll(async() => fitOf(await grid.widths(), 0, 2, control)).toEqual(FITS);
     expect(await grid.fitsOnOneLine(0, 0, 1)).toBe(true);
   });
 
@@ -157,11 +166,7 @@ test.describe('autoColumnSize and merged cells', { tag: THEMES_TAG }, () => {
     await grid.build({ data: [['ab', ''], ['a', 'b']], mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 2 }] });
     await grid.updateData([[LONG, ''], ['a', 'b']]);
 
-    await expect.poll(async() => {
-      const [first, second] = await grid.widths();
-
-      return first + second >= control;
-    }).toBe(true);
+    await expect.poll(async() => fitOf(await grid.widths(), 0, 2, control)).toEqual(FITS);
   });
 
   test('widens the first visible column when the merge\'s first column is hidden', async() => {
@@ -211,11 +216,7 @@ test.describe('autoColumnSize and merged cells', { tag: THEMES_TAG }, () => {
       mergeCells: [{ row: 0, col: 20, rowspan: 1, colspan: 2 }],
     });
 
-    await expect.poll(async() => {
-      const widths = await grid.widths();
-
-      return widths[20] + widths[21] >= control;
-    }).toBe(true);
+    await expect.poll(async() => fitOf(await grid.widths(), 20, 2, control)).toEqual(FITS);
   });
 
   test('sizes a merge on a stretched grid from the widths before the stretch', async() => {
@@ -227,11 +228,8 @@ test.describe('autoColumnSize and merged cells', { tag: THEMES_TAG }, () => {
     await grid.build({ data, width: 600, stretchH: 'all', mergeCells: merge });
     await grid.setDataAtCell(0, 0, LONG);
 
-    await expect.poll(async() => {
-      const [first, second] = await grid.widths();
-
-      return first + second >= control;
-    }).toBe(true);
+    // The stretch adds room on top, so only the lower bound holds here.
+    await expect.poll(async() => fitOf(await grid.widths(), 0, 2, control).fits).toBe(true);
     expect(await grid.fitsOnOneLine(0, 0, 1)).toBe(true);
   });
 
@@ -260,11 +258,7 @@ test.describe('autoColumnSize and merged cells', { tag: THEMES_TAG }, () => {
     await grid.build({ data, hiddenRows: { rows: [0] }, mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 2 }] });
     await grid.callPlugin('hiddenRows', 'showRows', [0]);
 
-    await expect.poll(async() => {
-      const [first, second] = await grid.widths();
-
-      return first + second >= control;
-    }).toBe(true);
+    await expect.poll(async() => fitOf(await grid.widths(), 0, 2, control)).toEqual(FITS);
   });
 
   test('moves the room to the first visible column when the first column is hidden at runtime', async() => {
@@ -274,11 +268,7 @@ test.describe('autoColumnSize and merged cells', { tag: THEMES_TAG }, () => {
     await grid.build({ data, hiddenColumns: { columns: [] }, mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 3 }] });
     await grid.callPlugin('hiddenColumns', 'hideColumns', [0]);
 
-    await expect.poll(async() => {
-      const [, second, third] = await grid.widths();
-
-      return second + third >= control;
-    }).toBe(true);
+    await expect.poll(async() => fitOf(await grid.widths(), 1, 2, control)).toEqual(FITS);
   });
 
   test('fits a merge again when an edit of its text is undone', async() => {
@@ -291,11 +281,7 @@ test.describe('autoColumnSize and merged cells', { tag: THEMES_TAG }, () => {
 
     await grid.callPlugin('undoRedo', 'undo');
 
-    await expect.poll(async() => {
-      const [first, second] = await grid.widths();
-
-      return first + second >= control;
-    }).toBe(true);
+    await expect.poll(async() => fitOf(await grid.widths(), 0, 2, control)).toEqual(FITS);
   });
 
   test('fits the merges again when autoColumnSize is turned off and on', async() => {
@@ -325,5 +311,101 @@ test.describe('autoColumnSize and merged cells', { tag: THEMES_TAG }, () => {
 
       return { grown: second > before + 100, fits: first + second >= control, tight: first + second <= control + 1 };
     }).toEqual({ grown: true, fits: true, tight: true });
+  });
+
+  test('fits a merge made at runtime on a grid without row headers', async() => {
+    const data = [[LONG, ''], ['a', 'b']];
+    const [control] = await grid.build({ data, rowHeaders: false });
+
+    await grid.build({ data, rowHeaders: false, mergeCells: true });
+    await grid.merge(0, 0, 0, 1);
+
+    await expect.poll(async() => fitOf(await grid.widths(), 0, 2, control)).toEqual(FITS);
+    expect(await grid.fitsOnOneLine(0, 0, 1)).toBe(true);
+  });
+
+  test('restores the column when a merge is undone', async() => {
+    const data = [[LONG, ''], ['a', 'b']];
+    const [control] = await grid.build({ data, mergeCells: true });
+
+    await grid.merge(0, 0, 0, 1);
+    await expect.poll(async() => (await grid.widths())[0]).toBeLessThan(control);
+
+    await grid.callPlugin('undoRedo', 'undo');
+
+    await expect.poll(async() => (await grid.widths())[0]).toBe(control);
+  });
+
+  test('fits a merge again when the cell meta of its first cell changes', async() => {
+    const [bigControl] = await grid.build({ data: [[LONG]], cell: [{ row: 0, col: 0, className: 'big-text' }] });
+
+    await grid.build({ data: [[LONG, ''], ['a', 'b']], mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 2 }] });
+    await grid.setCellMeta(0, 0, 'className', 'big-text');
+
+    await expect.poll(async() => fitOf(await grid.widths(), 0, 2, bigControl)).toEqual(FITS);
+  });
+
+  test('fits a merge again when the settings restyle its first cell', async() => {
+    const [bigControl] = await grid.build({ data: [[LONG]], cell: [{ row: 0, col: 0, className: 'big-text' }] });
+    const merge = [{ row: 0, col: 0, rowspan: 1, colspan: 2 }];
+
+    await grid.build({ data: [[LONG, ''], ['a', 'b']], mergeCells: merge });
+    await grid.updateSettings({ cell: [{ row: 0, col: 0, className: 'big-text' }] });
+
+    await expect.poll(async() => fitOf(await grid.widths(), 0, 2, bigControl)).toEqual(FITS);
+  });
+
+  test('fits a merge again when a column it spans is sized through the API', async() => {
+    const data = [[LONG, '', ''], ['a', 'b', 'c']];
+    const [control] = await grid.build({ data });
+
+    await grid.build({ data, manualColumnResize: true, mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 3 }] });
+    await grid.callPlugin('manualColumnResize', 'setManualSize', 1, 300);
+    await expect.poll(async() => fitOf(await grid.widths(), 0, 3, control)).toEqual(FITS);
+
+    await grid.callPlugin('manualColumnResize', 'setManualSize', 1, 40);
+    await expect.poll(async() => fitOf(await grid.widths(), 0, 3, control)).toEqual(FITS);
+  });
+
+  test('keeps a merge fitted when the rows are sorted', async() => {
+    const data = [[LONG, '', 'b'], ['a', 'b', 'c'], ['c', 'd', 'a']];
+    const [control] = await grid.build({ data });
+
+    await grid.build({ data, columnSorting: true, mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 2 }] });
+    await grid.callPlugin('columnSorting', 'sort', { column: 2, sortOrder: 'asc' });
+
+    await expect.poll(async() => fitOf(await grid.widths(), 0, 2, control)).toEqual(FITS);
+  });
+
+  test('follows a merge whose columns move', async() => {
+    const data = [[LONG, '', 'x'], ['a', 'b', 'c']];
+    const [control] = await grid.build({ data });
+
+    await grid.build({ data, manualColumnMove: true, mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 2 }] });
+    await grid.callPlugin('manualColumnMove', 'moveColumn', 2, 0);
+
+    await expect.poll(async() => fitOf(await grid.widths(), 1, 2, control)).toEqual(FITS);
+  });
+
+  test('follows a merge when a column before it is removed', async() => {
+    const data = [['x', LONG, ''], ['a', 'b', 'c']];
+    const [, control] = await grid.build({ data });
+
+    await grid.build({ data, mergeCells: [{ row: 0, col: 1, rowspan: 1, colspan: 2 }] });
+    await grid.removeColumn(0);
+
+    await expect.poll(async() => fitOf(await grid.widths(), 0, 2, control)).toEqual(FITS);
+  });
+
+  test('drops and restores the room of a merge whose row is trimmed and untrimmed', async() => {
+    const data = [[LONG, ''], ['a', 'b']];
+    const [control] = await grid.build({ data });
+
+    await grid.build({ data, trimRows: true, mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 2 }] });
+    await grid.callPlugin('trimRows', 'trimRows', [0]);
+    await expect.poll(async() => (await grid.widths())[0]).toBeLessThan(control / 2);
+
+    await grid.callPlugin('trimRows', 'untrimRows', [0]);
+    await expect.poll(async() => fitOf(await grid.widths(), 0, 2, control)).toEqual(FITS);
   });
 });

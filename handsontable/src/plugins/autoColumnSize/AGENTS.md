@@ -63,75 +63,69 @@ text in a merge wrapped into a 50px column. Two rules replace that skip, split b
   column alone, so the sample cache and the width-determiner probe need nothing extra.
 - **A merge that spans several columns stays out of the samples** and is fitted by `MergedCellsWidths`
   (`mergedCellsWidths.ts`). Sampled as an ordinary value it made its first column as wide as the whole text
-  on its own (the 2015 symptom of GitHub issue #2667). The demand is `content - Σ getColWidth(other spanned
-  columns)`, and it lands on the first column of the span that is not hidden, the one MergeCells draws the
-  merge from (`mergeCells/renderer.ts`, `getNearestNotHiddenIndex`). `getColumnWidth()` returns the larger of
-  that demand and the measured width. A hidden spanned column counts as 0, and a spanned column with a
-  settings `width` or a manual resize counts as that.
+  on its own (the 2015 symptom of GitHub issue #2667). The demand is the text width minus the widths of the
+  other spanned columns, and it lands on the first column of the span that is not hidden, the one MergeCells
+  draws the merge from (`mergeCells/renderer.ts`, `getNearestNotHiddenIndex`). `getColumnWidth()` returns the
+  larger of that demand and the measured width.
 
-Six rules hold this together.
+Seven rules hold this together.
 
-- **The demand lives apart from `columnWidthsMap`.** The probe compares new widths against the cached width,
-  and a demand written into it would never shrink back when a spanned column grows or the merge goes away.
-  `MergedCellsWidths` keeps a plain `Map` keyed by physical column, not a registered index map, so UndoRedo
-  needs no `DERIVED_INDEX_MAP_NAMES` entry for it.
-- **A fit runs only when an input changed, never on every render.** `forceFullRender` re-measures every
-  visible column on every `render()`, and a fit there read every merge, and their text, on every edit. The
-  inputs, each pinned by a runtime case in the spec (and each case went red with its trigger removed):
-  - a stored width that actually changed (`#updateColumnWidthsMapBasedOnGhostTable` compares before it
-    writes, and the probe's in-place growth);
-  - a column resized by hand (`afterColumnResize`). The gesture renders BEFORE it fires that hook, so the
-    hook fits and renders again itself when a demand moved;
-  - the text or meta of a merge's first cell (`#invalidateMergedCellText`): from `#onBeforeChange` (before
-    its "already queued" early return, or a queued column skipped it), `afterSetSourceDataAtCell` (UndoRedo
-    writes its values back through that path, so an undone edit arrives there), `afterSetCellMeta`, and the
-    Formulas value updates;
-  - a merge added or removed (`markMergesChanged` from `afterMergeCells`/`afterUnmergeCells`);
-  - `markStale()` for anything no column-level signal describes: a column or row moved, inserted, removed,
-    trimmed, or hidden (both index mappers), `loadData()` and `updateData()`, an overwrite sweep
-    (`recalculateAllColumnsWidth()`, which a theme or style change goes through), and `enablePlugin()`
-    (nothing reached the tracker while the plugin was off, and the widths that survive a disable would not
-    change on the next render).
+1. **The demand lives apart from `columnWidthsMap`.** The probe compares new widths against the cached
+   width, and a demand written into it would never shrink back when a spanned column grows or the merge goes
+   away. It is a plain `Map` keyed by physical column, not a registered index map, so UndoRedo needs no
+   `DERIVED_INDEX_MAP_NAMES` entry for it.
+2. **The other spanned columns count at their width before the stretch, and a hidden one counts as 0.** The
+   host reads `getColWidth(column, 'StretchColumns')`, the source the StretchColumns calculator reads its base
+   widths with. Read with the stretch, a fit that followed a stretched render subtracted the stretched widths,
+   and once the wider first column turned the stretch off, the merge ended short of its text. A column is
+   skipped when `columnIndexMapper.isHidden()` says so, not when its width is 0: CollapsibleColumns hides
+   through its own hiding map and its columns keep their width. A settings `width` and a manual size count.
+3. **Demands are resolved from the rightmost drawing column leftwards, each written before the next is
+   read.** A demand reads only the columns to the right of its drawing column, so a merge that starts inside
+   another one's span is sized first. Merges with the same lead column and span are resolved once.
+4. **A fit runs only when an input changed, never on every render.** `forceFullRender` re-measures every
+   visible column on every `render()`, and a fit there read every merge on every edit. Each input below is
+   pinned by a case in `tests/e2e/auto-column-size-merged-cells.spec.ts`, and the ones marked (control) also
+   went red with the trigger removed:
+   - a stored width that changed (`#updateColumnWidthsMapBasedOnGhostTable` compares before it writes);
+   - any width map of the column axis changing (the column mapper's `change` local hook): a drag, the
+     ManualColumnResize API, the stretch, this plugin's own map (control: the API case);
+   - the text or meta of a merge's first cell (`#invalidateMergedCellText`): an edit through
+     `#onBeforeChange` (before its "already queued" early return), an undo through `afterSetSourceDataAtCell`
+     (control), and `afterSetCellMeta` (control). The Formulas value updates reach the same method, and no
+     case pins them;
+   - a merge added or removed (`afterMergeCells`/`afterUnmergeCells`), an undo of a merge (MergeCells'
+     `restoreState` fires no merge hook; the re-sample that follows changes a width);
+   - a settings update (`updatePlugin()`), which can restyle a merge's text (control);
+   - rows hidden, shown, or trimmed (control for shown), the rows sorted, a column inserted, moved, removed,
+     or hidden (control for hidden), `loadData()` and `updateData()` (control), and `enablePlugin()`
+     (control).
+5. **Each merge's text is kept, and only what changed is read again.** `MergedCellsWidths` keeps the
+   formatted text of every merge's first cell by physical row and column, and the width of each group of
+   merges (same lead column and span) by a signature of its physical rows and the column's text version. An
+   edit forgets one text. Hiding, showing, or trimming rows only changes which merges a group holds, so the
+   group is measured again from the kept texts without reading a cell. `markStale()` forgets every text, and
+   is used where the physical numbering or the text itself can change everywhere: a changed row or column
+   sequence (a sort included, since the cacheUpdated state cannot tell a sort from a remove and insert),
+   `loadData()`, `updateData()`, a settings update, an overwrite sweep, and `enablePlugin()`.
+6. **The "may have merges" flag gates the per-change reads, never the structural marks.**
+   `mayHaveMultiColumnMerges()` counts every multi-column merge MergeCells reports, hidden rows included, and
+   gates the meta reads of `#onBeforeChange`, `afterSetSourceDataAtCell`, `afterSetCellMeta`, and the column
+   `change` hook, so a paste into a grid without such merges reads no meta. The index-mapper handlers ask
+   whether MergeCells is enabled instead: `getVisibleMergedAreas()` leaves out a merge whose rows are all
+   trimmed, so after a filter the flag reads `false`, and clearing the filter must still refit.
+7. **The fit runs after the ghost table is cleaned, once per sweep, and merges queue as little as they
+   need.** The fit measures through the ghost table too, so `#updateColumnWidthsMapBasedOnGhostTable()`
+   cleans it first. An idle chunk of the asynchronous sweep leaves the fit pending (`#deferMergedCellsFit`),
+   and the sweep fits once when it ends. A merge made by the user rescans every column it spans; a merge
+   applied from the settings (`auto`) rescans only its first column, whose text the init sweep measured
+   before the merge existed, since the grid never drew its covered values. A queued rescan is skipped for a
+   column already scanned in the same `beforeRender` (`#scannedColumns`) or by an asynchronous chunk that
+   started after the merge (`#mergeRescanQueuedAt`).
 
-  A stale fit re-measures every merge's text; any other fit reuses the measured text, cached per lead column
-  and span. A sort re-measures too: a row removal can take away the widest merge of a cached group, and the
-  index mapper does not tell the two apart.
-- **The "may have merges" flag gates the per-change reads, never the stale marks.** `mayHaveMultiColumnMerges()`
-  counts every multi-column merge MergeCells reports, hidden rows included, so a merge a hidden row keeps off
-  screen still reaches a fit when the row is shown. The index-mapper handlers mark stale whenever MergeCells
-  is enabled (`#markMergedCellsStale()`), not on the flag: `getVisibleMergedAreas()` leaves out a merge whose
-  rows are all trimmed, so after a filter the flag reads `false` and clearing the filter must still refit.
-- **Demands are resolved from the rightmost drawing column leftwards, each written before the next is read.**
-  A demand reads only the columns to the right of its drawing column, so a merge that starts inside another
-  one's span is sized first, and the outer one reads the width it left (`mergedCellsWidths.unit.ts`, the
-  chain case). Merges with the same lead column and span are resolved once, so a long list of group rows
-  merged alike costs one entry.
-- **The fit runs after the ghost table is cleaned**, because it measures through the ghost table too.
-  `#updateColumnWidthsMapBasedOnGhostTable()` cleans the ghost table itself, and `#onBeforeRender` fits last,
-  for the inputs that changed no width.
-- **`afterMergeCells` and `afterUnmergeCells` queue a full rescan of every column in the range**, because the
-  merge changes which cells contribute a sample. An unmerged column otherwise kept its former merge's empty
-  sample and stayed narrow. Merges declared in the settings arrive through the same hook (`auto: true`), and
-  a full render has usually sampled those columns already in the same `beforeRender`, so the queue skips a
-  column `#fillGhostTableWithSamples()` scanned since the render began (`#scannedColumns`).
-- **The per-change meta read is gated on `mayHaveMultiColumnMerges()`.** A paste into a grid without such
-  merges reads no meta. An edit of a multi-column merge's first cell asks for a fit, not a rescan: the cell
-  contributes no sample, so a rescan could not see its text.
-
-**The demand reads the widths before the stretch** (`getColWidth(column, 'StretchColumns')`, the source the
-StretchColumns calculator itself reads its base widths with). Read with the stretch, a fit that followed a
-stretched render subtracted the stretched widths, and once the wider first column turned the stretch off, the
-merge ended short of its text, on every theme of the spec's 600px grid. The stretch then only adds room on top. Pinned by the
-"widths before the stretch" case.
-
-Known limits. A merge removed
-with no unmerge hook (`updateSettings({ mergeCells: false })`) keeps its demand until the next fit; the
-unmerged first cell is sampled again then, and its own text is never narrower than the demand. A width set
-through the ManualColumnResize API (`setManualSize()`, a `manualColumnResize` array) fires no resize hook, so
-the merges it spans are fitted at the next fit, not at once; the user's drag fires one. MergeCells' undo and
-redo of a merge (`restoreState`) fire no merge hook either; the re-sample that follows changes a width and
-reaches a fit that way.
-Pinned by `tests/e2e/auto-column-size-merged-cells.spec.ts` and `__tests__/mergedCellsWidths.unit.ts`.
+Known limit: a merge removed with no unmerge hook (`updateSettings({ mergeCells: false })`) keeps its demand
+until the next fit; the unmerged first cell is sampled again then, and its own text is never narrower than
+the demand. Unit cases for the class: `__tests__/mergedCellsWidths.unit.ts`.
 
 ## `syncLimit`, and what "sync" guarantees
 

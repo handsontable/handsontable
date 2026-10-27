@@ -15,6 +15,11 @@ export interface GridSettings {
   stretchH?: 'all' | 'last' | 'none';
   width?: number;
   manualColumnResize?: boolean;
+  manualColumnMove?: boolean;
+  columnSorting?: boolean;
+  trimRows?: boolean;
+  rowHeaders?: boolean;
+  cell?: Array<{ row: number; col: number; className: string }>;
 }
 
 /**
@@ -24,12 +29,17 @@ export interface GridSettings {
 export type PluginCall =
   | ['hiddenRows', 'showRows' | 'hideRows', number[]]
   | ['hiddenColumns', 'showColumns' | 'hideColumns', number[]]
-  | ['undoRedo', 'undo'];
+  | ['undoRedo', 'undo']
+  | ['manualColumnResize', 'setManualSize', number, number]
+  | ['manualColumnMove', 'moveColumn', number, number]
+  | ['columnSorting', 'sort', { column: number, sortOrder: 'asc' | 'desc' }]
+  | ['trimRows', 'trimRows' | 'untrimRows', number[]];
 
 interface FixtureHot {
   countCols(): number;
   getColWidth(column: number): number;
   setDataAtCell(row: number, column: number, value: unknown): void;
+  setCellMeta(row: number, column: number, key: string, value: unknown): void;
   getCell(row: number, column: number): HTMLElement | null;
   alter(action: string, index: number): void;
   loadData(data: unknown[][]): void;
@@ -149,6 +159,25 @@ export class AutoColumnSizeMergedCellsPage {
    */
   async loadData(data: unknown[][]): Promise<void> {
     await this.page.evaluate(rows => (window as unknown as FixtureWindow).hot.loadData(rows), data);
+  }
+
+  /**
+   * Sets a cell meta key, then renders, the way an application's call followed by `render()` does.
+   */
+  async setCellMeta(row: number, column: number, key: string, value: unknown): Promise<void> {
+    await this.page.evaluate(([r, c, k, v]) => {
+      const { hot } = window as unknown as FixtureWindow;
+
+      hot.setCellMeta(r as number, c as number, k as string, v);
+      hot.render();
+    }, [row, column, key, value]);
+  }
+
+  /**
+   * Removes one column through `alter()`.
+   */
+  async removeColumn(column: number): Promise<void> {
+    await this.page.evaluate(index => (window as unknown as FixtureWindow).hot.alter('remove_col', index), column);
   }
 
   /**

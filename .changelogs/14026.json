@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed AutoColumnSize ignoring the content of merged cells, which wrapped long merged text into a narrow column.",
+  "title": "Fixed AutoColumnSize ignoring the content of merged cells. A merge that spans only rows now widens its column to fit its text, and a merge that spans several columns widens the first column it spans, so columns under long merged text get wider.",
   "type": "fixed",
   "issueOrPR": 14026,
   "breaking": false,

@@ -11,14 +11,15 @@ interface FakeGrid {
   content: Map<string, number>;
   hiddenRows: Set<number>;
   hiddenColumns: Set<number>;
-  measured: Array<Array<{ column: number, rows: number[] }>>;
+  measured: Array<Array<{ column: number, texts: Array<{ row: number, value: unknown }> }>>;
   areaReads: number;
+  textReads: number;
 }
 
 /**
  * Builds a tracker over a fake grid whose visual and physical indexes are the same. A column renders
- * with its base width or the tracker's demand, whichever is larger, and a hidden one with `0`, which
- * is what AutoColumnSize and HiddenColumns do through `modifyColWidth`.
+ * with its base width or the tracker's demand, whichever is larger. A hidden column keeps its width,
+ * the way a column CollapsibleColumns hides does, so the tracker has to skip it on its own.
  *
  * @param {Partial<FakeGrid>} grid The grid's state.
  * @returns {object}
@@ -32,6 +33,7 @@ function createTracker(grid: Partial<FakeGrid>) {
     hiddenColumns: new Set(),
     measured: [],
     areaReads: 0,
+    textReads: 0,
     ...grid,
   };
   let tracker: MergedCellsWidths | null = null;
@@ -43,15 +45,21 @@ function createTracker(grid: Partial<FakeGrid>) {
     },
     isRowHidden: row => state.hiddenRows.has(row),
     isColumnHidden: column => state.hiddenColumns.has(column),
+    toPhysicalRow: row => row,
     toPhysicalColumn: column => column,
-    getColumnWidth: column => (state.hiddenColumns.has(column) ? 0 :
-      Math.max(state.baseWidths[column] ?? 50, tracker?.getWidth(column) ?? 0)),
-    measureContentWidths: (groups) => {
+    getColumnWidth: column => Math.max(state.baseWidths[column] ?? 50, tracker?.getWidth(column) ?? 0),
+    // A text is its width here, so the measurement is the largest value.
+    formatCellText: (row, column) => {
+      state.textReads += 1;
+
+      return state.content.get(`${row}:${column}`) ?? 0;
+    },
+    measureTexts: (groups) => {
       state.measured.push(groups);
 
-      return new Map(groups.map(({ column, rows }) => [
+      return new Map(groups.map(({ column, texts }) => [
         column,
-        Math.max(...rows.map(row => state.content.get(`${row}:${column}`) ?? 0)),
+        Math.max(...texts.map(({ value }) => Number(value))),
       ]));
     },
   };
@@ -129,6 +137,83 @@ describe('MergedCellsWidths', () => {
     expect(tracker.fit()).toBe(true);
     expect(tracker.getWidth(0)).toBe(150);
     expect(state.measured).toHaveLength(2);
+  });
+
+  it('should read again only the text of the merge whose cell was invalidated', () => {
+    const { tracker, state } = createTracker({
+      areas: [
+        { row: 0, col: 0, rowspan: 1, colspan: 2 },
+        { row: 1, col: 0, rowspan: 1, colspan: 2 },
+        { row: 2, col: 0, rowspan: 1, colspan: 2 },
+      ],
+      content: new Map([['0:0', 400], ['1:0', 200], ['2:0', 100]]),
+    });
+
+    tracker.markWidthsChanged();
+    tracker.fit();
+
+    expect(state.textReads).toBe(3);
+
+    state.content.set('0:0', 150);
+    tracker.invalidateCell(0, 0);
+    tracker.fit();
+
+    expect(state.textReads).toBe(4);
+    expect(tracker.getWidth(0)).toBe(150);
+  });
+
+  it('should re-measure a group from its kept texts when a row of it is hidden or shown', () => {
+    const { tracker, state } = createTracker({
+      areas: [
+        { row: 0, col: 0, rowspan: 1, colspan: 2 },
+        { row: 1, col: 0, rowspan: 1, colspan: 2 },
+      ],
+      content: new Map([['0:0', 400], ['1:0', 200]]),
+    });
+
+    tracker.markWidthsChanged();
+    tracker.fit();
+    state.hiddenRows.add(0);
+    tracker.markWidthsChanged();
+    tracker.fit();
+
+    expect(tracker.getWidth(0)).toBe(150);
+
+    state.hiddenRows.delete(0);
+    tracker.markWidthsChanged();
+    tracker.fit();
+
+    expect(tracker.getWidth(0)).toBe(350);
+    expect(state.textReads).toBe(2);
+    expect(state.measured).toHaveLength(3);
+  });
+
+  it('should read every text again after it was marked stale', () => {
+    const { tracker, state } = createTracker({
+      areas: [{ row: 0, col: 0, rowspan: 1, colspan: 2 }],
+      content: new Map([['0:0', 400]]),
+    });
+
+    tracker.markWidthsChanged();
+    tracker.fit();
+    tracker.markStale();
+    tracker.fit();
+
+    expect(state.textReads).toBe(2);
+  });
+
+  it('should not subtract a spanned column that is hidden, whatever hides it', () => {
+    const { tracker } = createTracker({
+      areas: [{ row: 0, col: 0, rowspan: 1, colspan: 4 }],
+      baseWidths: [50, 50, 50, 50],
+      content: new Map([['0:0', 400]]),
+      hiddenColumns: new Set([2, 3]),
+    });
+
+    tracker.markWidthsChanged();
+    tracker.fit();
+
+    expect(tracker.getWidth(0)).toBe(350);
   });
 
   it('should resolve a merge that starts inside another one\'s span first', () => {

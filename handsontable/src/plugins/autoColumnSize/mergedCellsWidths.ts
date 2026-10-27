@@ -25,6 +25,10 @@ export interface MergedCellsWidthsHost {
    */
   isColumnHidden(column: number): boolean;
   /**
+   * Translates a visual row index to a physical one.
+   */
+  toPhysicalRow(row: number): number | null;
+  /**
    * Translates a visual column index to a physical one.
    */
   toPhysicalColumn(column: number): number | null;
@@ -34,9 +38,27 @@ export interface MergedCellsWidthsHost {
    */
   getColumnWidth(column: number): number;
   /**
-   * Measures the content of the given cells and returns the widest one per visual column.
+   * Returns a cell's value formatted the way the renderer draws it.
    */
-  measureContentWidths(groups: Array<{ column: number, rows: number[] }>): Map<number, number>;
+  formatCellText(row: number, column: number): unknown;
+  /**
+   * Measures the given texts as cells of their column and returns the widest one per visual column.
+   */
+  measureTexts(groups: Array<{ column: number, texts: Array<{ row: number, value: unknown }> }>): Map<number, number>;
+}
+
+/**
+ * The merges that start in one column with one span, as `MergedCellsWidths` measures them together.
+ */
+interface MergeGroup {
+  key: string;
+  cacheKey: string;
+  col: number;
+  colspan: number;
+  physicalColumn: number;
+  rows: number[];
+  physicalRows: number[];
+  signature: string;
 }
 
 /**
@@ -60,6 +82,11 @@ export function isMultiColumnMerge(colspan: unknown): boolean {
  *
  * A fit is not free (it reads every merge and may measure text), so it runs only when something it
  * depends on changed: a column width, a merge's text, the set of merges, or the hidden rows.
+ *
+ * The formatted text of each merge is kept by physical row and column, and the measured width of each
+ * group of merges (same lead column, same span) by a signature of its rows and texts. Hiding or showing
+ * rows changes which merges a group holds and re-measures only the groups that changed, from texts
+ * already read; an edit re-reads one text.
  */
 export class MergedCellsWidths {
   /**
@@ -75,13 +102,25 @@ export class MergedCellsWidths {
    */
   #demands: Map<number, number> = new Map();
   /**
-   * The widest measured text of the merges that start in a column, keyed by the physical index of that
-   * column and then by the merges' `colspan`. Merges that start in the same column with the same span
-   * need the same room, so only the widest of them matters.
+   * The formatted text of each merge's first cell, keyed by physical column and then physical row.
    *
-   * @type {Map<number, Map<number, number>>}
+   * @type {Map<number, Map<number, unknown>>}
    */
-  #contentWidths: Map<number, Map<number, number>> = new Map();
+  #texts: Map<number, Map<number, unknown>> = new Map();
+  /**
+   * A counter per physical column, raised whenever a text in the column is forgotten. It is part of
+   * every group signature, so a group whose texts changed is measured again.
+   *
+   * @type {Map<number, number>}
+   */
+  #textVersions: Map<number, number> = new Map();
+  /**
+   * The measured width of each group of merges with the same lead column and span, keyed by
+   * `<physical column>:<colspan>`, with the signature of the rows and texts it was measured from.
+   *
+   * @type {Map<string, { width: number, signature: string }>}
+   */
+  #groupWidths: Map<string, { width: number, signature: string }> = new Map();
   /**
    * `true` when an input of the demands changed since the last fit.
    *
@@ -139,6 +178,24 @@ export class MergedCellsWidths {
   }
 
   /**
+   * Records that the text of one merge's first cell may have changed.
+   *
+   * @param {number} visualRow The visual row index.
+   * @param {number} visualColumn The visual column index.
+   */
+  invalidateCell(visualRow: number, visualColumn: number): void {
+    const physicalRow = this.#host.toPhysicalRow(visualRow);
+    const physicalColumn = this.#host.toPhysicalColumn(visualColumn);
+
+    if (physicalRow !== null && physicalColumn !== null) {
+      this.#texts.get(physicalColumn)?.delete(physicalRow);
+      this.#bumpTextVersion(physicalColumn);
+    }
+
+    this.#pending = true;
+  }
+
+  /**
    * Records that the text of the merges starting in a column may have changed, or that the set of
    * merges covering it did.
    *
@@ -148,7 +205,8 @@ export class MergedCellsWidths {
     const physicalColumn = this.#host.toPhysicalColumn(visualColumn);
 
     if (physicalColumn !== null) {
-      this.#contentWidths.delete(physicalColumn);
+      this.#texts.delete(physicalColumn);
+      this.#bumpTextVersion(physicalColumn);
     }
 
     this.#pending = true;
@@ -165,7 +223,8 @@ export class MergedCellsWidths {
   }
 
   /**
-   * Records that anything may have changed. The next fit re-measures every merge.
+   * Records that anything may have changed, the row and column numbering included. The next fit reads
+   * and measures every merge's text again.
    */
   markStale(): void {
     this.#stale = true;
@@ -176,7 +235,7 @@ export class MergedCellsWidths {
    */
   clear(): void {
     this.#demands.clear();
-    this.#contentWidths.clear();
+    this.#forgetTexts();
     this.#pending = false;
     this.#stale = false;
     this.#hasMultiColumnMerges = false;
@@ -189,7 +248,8 @@ export class MergedCellsWidths {
    */
   clearColumn(physicalColumn: number): void {
     this.#demands.delete(physicalColumn);
-    this.#contentWidths.delete(physicalColumn);
+    this.#texts.delete(physicalColumn);
+    this.#bumpTextVersion(physicalColumn);
   }
 
   /**
@@ -203,7 +263,7 @@ export class MergedCellsWidths {
     }
 
     if (this.#stale) {
-      this.#contentWidths.clear();
+      this.#forgetTexts();
     }
 
     this.#pending = false;
@@ -279,7 +339,9 @@ export class MergedCellsWidths {
     let demand = contentWidths.get(`${area.col}:${area.colspan}`) ?? 0;
 
     for (let column = area.col; column < area.col + area.colspan; column++) {
-      if (column !== target) {
+      // A hidden column draws no part of the merge, whatever hides it (HiddenColumns or the
+      // CollapsibleColumns hiding map, whose columns keep their width).
+      if (column !== target && !this.#host.isColumnHidden(column)) {
         demand -= this.#host.getColumnWidth(column);
       }
     }
@@ -288,59 +350,151 @@ export class MergedCellsWidths {
   }
 
   /**
-   * Returns the widest text of the merges per lead column and span, measuring only what is not cached.
+   * Returns the widest text of the merges per lead column and span. A group whose rows and texts did
+   * not change since it was measured reuses its width; the others are measured from the kept texts,
+   * reading only the texts that are not kept yet.
    *
    * @param {MergedCellArea[]} areas The merges.
    * @returns {Map<string, number>} The widths keyed by `<visual lead column>:<colspan>`.
    */
   #measureContent(areas: MergedCellArea[]) {
     const widths = new Map<string, number>();
-    const missing = new Map<number, Map<number, number[]>>();
+    const toMeasure = new Map<number, MergeGroup[]>();
 
-    areas.forEach(({ row, col, colspan }) => {
-      const physicalColumn = this.#host.toPhysicalColumn(col);
-      const cached = physicalColumn === null ? undefined : this.#contentWidths.get(physicalColumn)?.get(colspan);
+    this.#groupAreas(areas).forEach((group) => {
+      const cached = this.#groupWidths.get(group.cacheKey);
 
-      if (cached !== undefined) {
-        widths.set(`${col}:${colspan}`, cached);
+      if (cached !== undefined && cached.signature === group.signature) {
+        widths.set(group.key, cached.width);
 
         return;
       }
 
-      const rowsByColumn = missing.get(colspan) ?? new Map<number, number[]>();
-      const rows = rowsByColumn.get(col);
+      const list = toMeasure.get(group.colspan) ?? [];
 
-      if (rows === undefined) {
-        rowsByColumn.set(col, [row]);
-      } else {
-        rows.push(row);
-      }
-
-      missing.set(colspan, rowsByColumn);
+      list.push(group);
+      toMeasure.set(group.colspan, list);
     });
 
     // The measurement holds one column per visual index, so each span is measured on its own.
-    missing.forEach((rowsByColumn, colspan) => {
-      const measured = this.#host.measureContentWidths(
-        Array.from(rowsByColumn, ([column, rows]) => ({ column, rows }))
-      );
+    toMeasure.forEach((groups) => {
+      const measured = this.#host.measureTexts(groups.map(group => ({
+        column: group.col,
+        texts: group.rows.map((row, index) => ({
+          row,
+          value: this.#getText(row, group.col, group.physicalRows[index], group.physicalColumn),
+        })),
+      })));
 
-      rowsByColumn.forEach((_rows, column) => {
-        const width = measured.get(column) ?? 0;
-        const physicalColumn = this.#host.toPhysicalColumn(column);
+      groups.forEach((group) => {
+        const width = measured.get(group.col) ?? 0;
 
-        widths.set(`${column}:${colspan}`, width);
-
-        if (physicalColumn !== null) {
-          const cache = this.#contentWidths.get(physicalColumn) ?? new Map<number, number>();
-
-          cache.set(colspan, width);
-          this.#contentWidths.set(physicalColumn, cache);
-        }
+        widths.set(group.key, width);
+        this.#groupWidths.set(group.cacheKey, { width, signature: group.signature });
       });
     });
 
     return widths;
+  }
+
+  /**
+   * Groups the merges by lead column and span, with the physical rows and the signature of each group.
+   *
+   * @param {MergedCellArea[]} areas The merges.
+   * @returns {MergeGroup[]}
+   */
+  #groupAreas(areas: MergedCellArea[]) {
+    const groups = new Map<string, MergeGroup>();
+
+    areas.forEach(({ row, col, colspan }) => {
+      const physicalRow = this.#host.toPhysicalRow(row);
+      const physicalColumn = this.#host.toPhysicalColumn(col);
+
+      if (physicalRow === null || physicalColumn === null) {
+        return;
+      }
+
+      const key = `${col}:${colspan}`;
+      const group = groups.get(key) ?? {
+        key,
+        cacheKey: `${physicalColumn}:${colspan}`,
+        col,
+        colspan,
+        physicalColumn,
+        rows: [],
+        physicalRows: [],
+        signature: '',
+      };
+
+      group.rows.push(row);
+      group.physicalRows.push(physicalRow);
+      groups.set(key, group);
+    });
+
+    groups.forEach((group) => {
+      group.signature = this.#getSignature(group.physicalColumn, group.physicalRows);
+    });
+
+    return Array.from(groups.values());
+  }
+
+  /**
+   * Returns a signature of the rows a group holds and of the texts kept for its column. Two equal
+   * signatures mean the group would measure the same.
+   *
+   * @param {number} physicalColumn The physical lead column.
+   * @param {number[]} physicalRows The physical rows of the group's merges.
+   * @returns {string}
+   */
+  #getSignature(physicalColumn: number, physicalRows: number[]) {
+    let sum = 0;
+    let hash = 0;
+
+    physicalRows.forEach((physicalRow) => {
+      sum += physicalRow;
+      // eslint-disable-next-line no-bitwise
+      hash = (hash ^ Math.imul(physicalRow + 1, 2654435761)) | 0;
+    });
+
+    return `${this.#textVersions.get(physicalColumn) ?? 0}:${physicalRows.length}:${sum}:${hash}`;
+  }
+
+  /**
+   * Returns the kept text of a merge's first cell, reading and keeping it when it is not kept yet.
+   *
+   * @param {number} row The visual row.
+   * @param {number} column The visual column.
+   * @param {number} physicalRow The physical row.
+   * @param {number} physicalColumn The physical column.
+   * @returns {*}
+   */
+  #getText(row: number, column: number, physicalRow: number, physicalColumn: number) {
+    const texts = this.#texts.get(physicalColumn) ?? new Map<number, unknown>();
+
+    if (!texts.has(physicalRow)) {
+      texts.set(physicalRow, this.#host.formatCellText(row, column));
+      this.#texts.set(physicalColumn, texts);
+    }
+
+    return texts.get(physicalRow);
+  }
+
+  /**
+   * Raises the text version of a column, so every group that starts in it is measured again.
+   *
+   * @param {number} physicalColumn The physical column.
+   */
+  #bumpTextVersion(physicalColumn: number) {
+    this.#textVersions.set(physicalColumn, (this.#textVersions.get(physicalColumn) ?? 0) + 1);
+  }
+
+  /**
+   * Forgets every kept text and measured group width.
+   */
+  #forgetTexts() {
+    this.#texts.clear();
+    this.#groupWidths.clear();
+    this.#textVersions.clear();
   }
 
   /**
