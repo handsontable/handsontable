@@ -1,0 +1,33 @@
+# grid
+- treegrid:
+  - rowgroup:
+    - row "A1 A2":
+      - gridcell "A1"
+      - gridcell "A2"
+    - row "A3 A4":
+      - gridcell "A3"
+      - gridcell "A4"
+  - rowgroup:
+    - row "Select whole grid A B":
+      - gridcell "Select whole grid"
+      - columnheader "A"
+      - columnheader "B"
+  - rowgroup
+  - rowgroup:
+    - row "1":
+      - rowheader "1"
+    - row "2":
+      - rowheader "2"
+  - rowgroup:
+    - row "Select whole grid":
+      - gridcell "Select whole grid"
+  - rowgroup
+- button "Add sheet"
+- button "All sheets"
+- group "Sheets":
+  - button "Alpha"
+  - button "Beta"
+  - button "Gamma"
+# portal
+- status
+- status

@@ -1,0 +1,88 @@
+# grid
+- treegrid:
+  - rowgroup:
+    - row "A1 B1 C1":
+      - gridcell "A1"
+      - gridcell "B1"
+      - gridcell "C1"
+    - row "A2 B2 C2":
+      - gridcell "A2"
+      - gridcell "B2" [selected]
+      - gridcell "C2"
+    - row "A3 B3 C3":
+      - gridcell "A3"
+      - gridcell "B3"
+      - gridcell "C3"
+    - row "A4 B4 C4":
+      - gridcell "A4"
+      - gridcell "B4"
+      - gridcell "C4"
+    - row "A5 B5 C5":
+      - gridcell "A5"
+      - gridcell "B5"
+      - gridcell "C5"
+  - rowgroup:
+    - row "Select whole grid A B C":
+      - gridcell "Select whole grid"
+      - columnheader "A"
+      - columnheader "B"
+      - columnheader "C"
+  - rowgroup
+  - rowgroup:
+    - row "1":
+      - rowheader "1"
+    - row "2":
+      - rowheader "2"
+    - row "3":
+      - rowheader "3"
+    - row "4":
+      - rowheader "4"
+    - row "5":
+      - rowheader "5"
+  - rowgroup:
+    - row "Select whole grid":
+      - gridcell "Select whole grid"
+  - rowgroup
+  - textbox
+# portal
+- menu:
+  - table:
+    - rowgroup:
+      - row "Insert row above":
+        - menuitem "Insert row above"
+      - row "Insert row below":
+        - menuitem "Insert row below"
+      - row "---------":
+        - menuitem "---------"
+      - row "Insert column left":
+        - menuitem "Insert column left"
+      - row "Insert column right":
+        - menuitem "Insert column right"
+      - row "---------":
+        - menuitem "---------"
+      - row "Remove row":
+        - menuitem "Remove row"
+      - row "Remove column":
+        - menuitem "Remove column"
+      - row "---------":
+        - menuitem "---------"
+      - row "Undo":
+        - menuitem "Undo" [disabled]
+      - row "Redo":
+        - menuitem "Redo" [disabled]
+      - row "---------":
+        - menuitem "---------"
+      - row "Read only":
+        - menuitemcheckbox "Read only"
+      - row "---------":
+        - menuitem "---------"
+      - row "Alignment":
+        - menuitem "Alignment"
+      - row "---------":
+        - menuitem "---------"
+      - row "Copy":
+        - menuitem "Copy"
+      - row "Cut":
+        - menuitem "Cut"
+- status
+- status

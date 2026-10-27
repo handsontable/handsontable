@@ -1,0 +1,118 @@
+# grid
+- treegrid:
+  - rowgroup:
+    - row "Racing Socks Apparel 30 120":
+      - gridcell "Racing Socks"
+      - gridcell "Apparel"
+      - gridcell "30" [selected]
+      - gridcell "120"
+    - row "Mountain Frame Frames 1890 4":
+      - gridcell "Mountain Frame"
+      - gridcell "Frames"
+      - gridcell "1890" [selected]
+      - gridcell "4"
+    - row "Cycling Cap Apparel 130 55":
+      - gridcell "Cycling Cap"
+      - gridcell "Apparel"
+      - gridcell "130" [selected]
+      - gridcell "55"
+    - row "Road Tire Tube Components 59 310":
+      - gridcell "Road Tire Tube"
+      - gridcell "Components"
+      - gridcell "59" [selected]
+      - gridcell "310"
+    - row "Water Bottle Accessories 9 900":
+      - gridcell "Water Bottle"
+      - gridcell "Accessories"
+      - gridcell "9" [selected]
+      - gridcell "900"
+  - rowgroup:
+    - row "Select whole grid Product Category Price Qty":
+      - gridcell "Select whole grid"
+      - columnheader "Product"
+      - columnheader "Category"
+      - columnheader "Price"
+      - columnheader "Qty"
+  - rowgroup
+  - rowgroup:
+    - row "1":
+      - rowheader "1"
+    - row "2":
+      - rowheader "2"
+    - row "3":
+      - rowheader "3"
+    - row "4":
+      - rowheader "4"
+    - row "5":
+      - rowheader "5"
+  - rowgroup:
+    - row "Select whole grid":
+      - gridcell "Select whole grid"
+  - rowgroup
+  - textbox
+# portal
+- menu:
+  - table:
+    - rowgroup:
+      - row "Insert column left":
+        - menuitem "Insert column left" [disabled]
+      - row "Insert column right":
+        - menuitem "Insert column right" [disabled]
+      - row "---------":
+        - menuitem "---------"
+      - row "Remove column":
+        - menuitem "Remove column" [disabled]
+      - row "---------":
+        - menuitem "---------"
+      - row "Clear column":
+        - menuitem "Clear column"
+      - row "---------":
+        - menuitem "---------"
+      - row "Read only":
+        - menuitemcheckbox "Read only"
+      - row "---------":
+        - menuitem "---------"
+      - row "Alignment":
+        - menuitem "Alignment"
+      - row "---------":
+        - menuitem "---------"
+      - row "Filter by condition:":
+        - menuitem "Filter by condition:":
+          - text: "Filter by condition:"
+          - listbox: None
+      - row "Filter by value:":
+        - menuitem "Filter by value:":
+          - text: "Filter by value:"
+          - textbox "Search"
+          - button "Select all":
+            - button "Select all"
+          - button "Clear":
+            - button "Clear"
+          - treegrid:
+            - rowgroup:
+              - row "Checked 9":
+                - gridcell "Checked 9":
+                  - checkbox "Checked" [checked]
+                  - text: "9"
+              - row "Checked 30":
+                - gridcell "Checked 30":
+                  - checkbox "Checked" [checked]
+                  - text: "30"
+              - row "Checked 59":
+                - gridcell "Checked 59":
+                  - checkbox "Checked" [checked]
+                  - text: "59"
+              - row "Checked 130":
+                - gridcell "Checked 130":
+                  - checkbox "Checked" [checked]
+                  - text: "130"
+              - row "Checked 1890":
+                - gridcell "Checked 1890":
+                  - checkbox "Checked" [checked]
+                  - text: "1890"
+      - row "Action bar":
+        - menuitem "Action bar":
+          - button "OK"
+          - button "Cancel"
+- status
+- status

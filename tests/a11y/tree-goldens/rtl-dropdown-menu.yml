@@ -1,0 +1,76 @@
+# grid
+- treegrid:
+  - rowgroup:
+    - row "A1 B1 C1 D1":
+      - gridcell "A1"
+      - gridcell "B1" [selected]
+      - gridcell "C1"
+      - gridcell "D1"
+    - row "A2 B2 C2 D2":
+      - gridcell "A2"
+      - gridcell "B2" [selected]
+      - gridcell "C2"
+      - gridcell "D2"
+    - row "A3 B3 C3 D3":
+      - gridcell "A3"
+      - gridcell "B3" [selected]
+      - gridcell "C3"
+      - gridcell "D3"
+    - row "A4 B4 C4 D4":
+      - gridcell "A4"
+      - gridcell "B4" [selected]
+      - gridcell "C4"
+      - gridcell "D4"
+    - row "A5 B5 C5 D5":
+      - gridcell "A5"
+      - gridcell "B5" [selected]
+      - gridcell "C5"
+      - gridcell "D5"
+  - rowgroup:
+    - row "Select whole grid Name Longer header text City Country":
+      - gridcell "Select whole grid"
+      - columnheader "Name"
+      - columnheader "Longer header text"
+      - columnheader "City"
+      - columnheader "Country"
+  - rowgroup
+  - rowgroup:
+    - row "1":
+      - rowheader "1"
+    - row "2":
+      - rowheader "2"
+    - row "3":
+      - rowheader "3"
+    - row "4":
+      - rowheader "4"
+    - row "5":
+      - rowheader "5"
+  - rowgroup:
+    - row "Select whole grid":
+      - gridcell "Select whole grid"
+  - rowgroup
+  - textbox
+# portal
+- menu:
+  - table:
+    - rowgroup:
+      - row "Insert column left":
+        - menuitem "Insert column left"
+      - row "Insert column right":
+        - menuitem "Insert column right"
+      - row "---------":
+        - menuitem "---------"
+      - row "Remove column":
+        - menuitem "Remove column"
+      - row "---------":
+        - menuitem "---------"
+      - row "Clear column":
+        - menuitem "Clear column"
+      - row "---------":
+        - menuitem "---------"
+      - row "Read only":
+        - menuitemcheckbox "Read only"
+      - row "---------":
+        - menuitem "---------"
+      - row "Alignment":
+        - menuitem "Alignment"

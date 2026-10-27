@@ -1444,6 +1444,37 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   a page without one `tab-order-golden-missing`. Record them with `HOT_A11Y_UPDATE_GOLDENS=1` and read
   the diff before committing: a golden pins what the grid does, findings included.
 
+### The accessibility-tree snapshots
+
+`a11y/checks/tree-snapshots.spec.ts`, the `tree-snapshots` check: 1.3.1, 1.3.2 and 4.1.2, read from
+Chromium's accessibility tree of the grid's root container and its portal, on every page of the catalog
+in its state and on every theme. The browser half flattens the tree (`a11y/checks/ax-tree.ts`), the pure
+half judges it (`lib/aria-tree.mjs`, tested in `lib/__tests__/aria-tree.test.mjs`).
+
+- **The tree as a screen reader gets it, in reading order.** `Accessibility.getFullAXTree` gives the roles,
+  names and order; one `DOMSnapshot.captureSnapshot` gives each node's tag and attributes
+  (`aria-rowindex`, `aria-colindex`, `tabindex`, the class), joined by backend node id. An ignored node is
+  dropped and its children are read in its place. The axe scan reads the same tree against axe's rules;
+  this check reads its order and structure, which no axe rule does.
+- **Structure** (`structureFindings()`): the column headers read after the data rows
+  (`headers-after-data`, 1.3.2), data rows without their row header while the row headers sit in rows of
+  their own (`row-headers-apart`, 1.3.1), one row index exposed by several rows (`row-exposed-twice`,
+  1.3.1), cells or rows read out of their index order (1.3.2), a grid role with no row (1.3.1). Today the
+  first three show on every grid with headers: the overlay clones put the header row after the master
+  table and repeat each row in the row-header clone. They are one root cause, reported per page and
+  theme, because the evidence is per page.
+- **Names and roles** (`nameFindings()`): a widget role with no name (`unnamed-control`), a column or row
+  header with no name (`unnamed-header`), and a tab stop (a non-negative `tabindex`, or a native control)
+  the tree gives no role (`focusable-without-role`). An empty grid cell needs no name; an element
+  focusable by script only (`tabindex="-1"`, every cell) is not a tab stop. One finding per kind and
+  element shape, with its node count. A closed cell editor stays in the DOM and in the tree, so its input
+  is judged on every page.
+- **Goldens, advisory, on the main theme.** `a11y/tree-goldens/<page>.yml` holds Playwright's
+  `ariaSnapshot()` of the grid and the portal. The theme changes which rows are drawn, not the roles or
+  names, so one theme keeps the goldens and every theme is judged. A difference is
+  `tree-snapshot-changed`, with the first line that differs. Record with `HOT_A11Y_UPDATE_GOLDENS=1`
+  (the same switch as the tab-order goldens) and read the diff before committing.
+
 ### Adding a check
 
 Add its entry to `EVIDENCE_CHECKS` in `lib/a11y-evidence.mjs` (a title and the criteria it

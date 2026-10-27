@@ -1,0 +1,98 @@
+# grid
+- treegrid:
+  - rowgroup:
+    - row "Alice Red":
+      - gridcell "Alice"
+      - gridcell "Red" [selected]
+    - row "Bob Green":
+      - gridcell "Bob"
+      - gridcell "Green" [selected]
+    - row "Charlie Blue":
+      - gridcell "Charlie"
+      - gridcell "Blue" [selected]
+    - row "Dave Green":
+      - gridcell "Dave"
+      - gridcell "Green" [selected]
+    - row "Eve Red":
+      - gridcell "Eve"
+      - gridcell "Red" [selected]
+  - rowgroup:
+    - row "Select whole grid Name Color":
+      - gridcell "Select whole grid"
+      - columnheader "Name"
+      - columnheader "Color"
+  - rowgroup
+  - rowgroup:
+    - row "1":
+      - rowheader "1"
+    - row "2":
+      - rowheader "2"
+    - row "3":
+      - rowheader "3"
+    - row "4":
+      - rowheader "4"
+    - row "5":
+      - rowheader "5"
+  - rowgroup:
+    - row "Select whole grid":
+      - gridcell "Select whole grid"
+  - rowgroup
+  - textbox
+# portal
+- menu:
+  - table:
+    - rowgroup:
+      - row "Insert column left":
+        - menuitem "Insert column left"
+      - row "Insert column right":
+        - menuitem "Insert column right"
+      - row "---------":
+        - menuitem "---------"
+      - row "Remove column":
+        - menuitem "Remove column"
+      - row "---------":
+        - menuitem "---------"
+      - row "Clear column":
+        - menuitem "Clear column"
+      - row "---------":
+        - menuitem "---------"
+      - row "Read only":
+        - menuitemcheckbox "Read only"
+      - row "---------":
+        - menuitem "---------"
+      - row "Alignment":
+        - menuitem "Alignment"
+      - row "---------":
+        - menuitem "---------"
+      - row "Filter by condition:":
+        - menuitem "Filter by condition:":
+          - text: "Filter by condition:"
+          - listbox: None
+      - row "Filter by value:":
+        - menuitem "Filter by value:":
+          - text: "Filter by value:"
+          - textbox "Search"
+          - button "Select all":
+            - button "Select all"
+          - button "Clear":
+            - button "Clear"
+          - treegrid:
+            - rowgroup:
+              - row "Checked Blue":
+                - gridcell "Checked Blue":
+                  - checkbox "Checked" [checked]
+                  - text: Blue
+              - row "Checked Green":
+                - gridcell "Checked Green":
+                  - checkbox "Checked" [checked]
+                  - text: Green
+              - row "Checked Red":
+                - gridcell "Checked Red":
+                  - checkbox "Checked" [checked]
+                  - text: Red
+      - row "Action bar":
+        - menuitem "Action bar":
+          - button "OK"
+          - button "Cancel"
+- status
+- status

@@ -1,0 +1,55 @@
+# grid
+- treegrid:
+  - rowgroup:
+    - row "Task 0 Unchecked":
+      - gridcell "Task 0"
+      - gridcell "Unchecked":
+        - checkbox "Unchecked"
+    - row "Task 1 Checked":
+      - gridcell "Task 1"
+      - gridcell "Checked":
+        - checkbox "Checked" [checked]
+    - row "Task 2 Unchecked":
+      - gridcell "Task 2"
+      - gridcell "Unchecked":
+        - checkbox "Unchecked"
+    - row "Task 3 Unchecked":
+      - gridcell "Task 3"
+      - gridcell "Unchecked":
+        - checkbox "Unchecked"
+    - row "Task 4 Unchecked":
+      - gridcell "Task 4"
+      - gridcell "Unchecked":
+        - checkbox "Unchecked"
+    - row "Task 5 Unchecked":
+      - gridcell "Task 5"
+      - gridcell "Unchecked":
+        - checkbox "Unchecked"
+  - rowgroup:
+    - row "Select whole grid Task Select all rows (1 of 5 selected) Done":
+      - gridcell "Select whole grid"
+      - columnheader "Task"
+      - columnheader "Select all rows (1 of 5 selected) Done":
+        - checkbox "Select all rows (1 of 5 selected)" [checked=mixed]
+        - text: Done
+  - rowgroup
+  - rowgroup:
+    - row "1":
+      - rowheader "1"
+    - row "2":
+      - rowheader "2"
+    - row "3":
+      - rowheader "3"
+    - row "4":
+      - rowheader "4"
+    - row "5":
+      - rowheader "5"
+    - row "6":
+      - rowheader "6"
+  - rowgroup:
+    - row "Select whole grid":
+      - gridcell "Select whole grid"
+  - rowgroup
+# portal
+- status
+- status
