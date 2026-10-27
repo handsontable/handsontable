@@ -98,6 +98,7 @@ The `toODataFilter()` function builds the `$filter` expression:
 - Text values are wrapped in single quotes, and any single quote inside a value is doubled. Without that, a value like `Sir Rodney's` breaks the query.
 - Text comparisons go through `tolower()`, so they ignore case the same way the Filters plugin does.
 - Numeric columns, listed in `NUMERIC_FIELDS`, send unquoted numbers.
+- The table maps the conditions of text and numeric columns. A condition it does not map, such as a date condition, is left out of the query, and so is a numeric condition whose input is not a number. Add entries to `CONDITIONS` for the column types you use.
 
 OData compares `null` differently from the Filters plugin. **Is empty** matches `null` values only, not empty strings. **Is not equal to** and **Does not contain** leave out rows whose value is `null`. Adjust the matching `CONDITIONS` entries if your data has empty values.
 
@@ -110,31 +111,28 @@ The `dataProvider` plugin needs all five keys: `rowId`, `fetchRows`, `onRowsCrea
 For a writable OData service, map each callback to one HTTP request per row:
 
 ```javascript
-// `fetch()` resolves on HTTP errors, so throw to let the grid roll the change back.
+// `fetch()` resolves on HTTP errors, so throw to let the grid report the error.
+// A failed update is also rolled back in the grid.
 async function send(url, init) {
   const response = await fetch(url, init);
 
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`);
   }
-
-  return response;
 }
 
 const json = { 'Content-Type': 'application/json' };
 
 // In the `dataProvider` option:
 onRowsCreate: async ({ rowsAmount }) => {
-  const created = [];
+  const body = JSON.stringify({ ProductName: 'New product' });
 
   for (let i = 0; i < rowsAmount; i++) {
-    const body = JSON.stringify({ ProductName: 'New product' });
-    const response = await send(SERVICE_URL, { method: 'POST', headers: json, body });
-
-    created.push(await response.json());
+    await send(SERVICE_URL, { method: 'POST', headers: json, body });
   }
 
-  return created;
+  // The grid fetches the current page again after a create.
+  return [];
 },
 onRowsUpdate: async (rows) => {
   await Promise.all(rows.map(({ id, changes }) => send(`${SERVICE_URL}(${id})`, {
