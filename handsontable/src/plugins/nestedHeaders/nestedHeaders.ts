@@ -214,7 +214,9 @@ export class NestedHeaders extends BasePlugin {
    * leaves the sequence a different permutation of the same columns re-derives the tree, whatever wrote
    * the order: `setIndexesSequence()` (UndoRedo, a ViewState or SheetsBar restore) reports the `'update'`
    * source, not `'move'`. A sequence of another length is an insert or a removal, which
-   * `afterCreateCol`/`afterRemoveCol` derive on their own. Null until the first derive.
+   * `afterCreateCol`/`afterRemoveCol` derive on their own. Null until the first derive, and from
+   * `beforeLoadData` until the `afterLoadData` derive: a data load re-initializes the column order, which
+   * is not a reorder, and the derive that follows the load covers it.
    */
   #derivedColumnSequence: number[] | null = null;
   /**
@@ -477,6 +479,7 @@ export class NestedHeaders extends BasePlugin {
     }
 
     this.addHook('init', this.#onInit);
+    this.addHook('beforeLoadData', this.#onBeforeLoadData);
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('afterCreateCol', this.#onAfterCreateCol);
     this.addHook('afterRemoveCol', this.#onAfterRemoveCol);
@@ -1982,6 +1985,15 @@ export class NestedHeaders extends BasePlugin {
   // @TODO: Workaround for broken plugin initialization abstraction.
   #onInit = () => {
     this.updatePlugin();
+  };
+
+  /**
+   * Forgets the column order the header tree was derived against before a data load re-initializes the
+   * column index mapper. The re-initialization is not a reorder: the `afterLoadData` derive covers it, so
+   * the cache update it fires must not re-derive the tree first.
+   */
+  #onBeforeLoadData = () => {
+    this.#derivedColumnSequence = null;
   };
 
   /**

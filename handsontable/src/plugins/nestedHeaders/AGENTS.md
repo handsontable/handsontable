@@ -160,6 +160,12 @@ outside, do not assume each call rebuilds the matrix.
   write is caught on the resume's cache update, because the comparison reads the sequence, not the source
   (the source is cleared by then). Plain-grid consequence: `columnIndexMapper.setIndexesSequence()` now relabels
   the headers. Pinned by `__tests__/columnOrderUpdate.unit.js` and `tests/e2e/sheets-bar-nested-headers-order.spec.ts`.
+- **A data load is not a reorder.** `loadData()` re-initializes the column index mapper to the identity order,
+  and its cache update leaves a sequence that differs from a moved one. `beforeLoadData` drops
+  `#derivedColumnSequence`, so that update does not re-derive the tree; the `afterLoadData` `setState()` derives
+  it and marks the new order. Without that, every load after a column move derived the tree twice (one
+  `rebuildState()` thrown away by the `setState()` right after it), which is every sheet switch. A sequence
+  written after the load (a sheets bar return, `setIndexesSequence()`) still re-derives.
 - `manualColumnFreeze.freezeColumn`/`unfreezeColumn` call `columnIndexMapper.moveIndexes` **directly**,
   bypassing `beforeColumnMove`/`afterColumnMove`. So a captured move can still be "open" when an
   unrelated reorder (freeze) fires `cacheUpdated`.
