@@ -2087,11 +2087,11 @@ export class Formulas extends BasePlugin {
    * Runs `fn` as a write to this grid's own sheet. Like `runEngineWrite()`, but this grid is left out
    * of the paint: the Core paints it after the operation that made the write.
    *
-   * @param {object} engine The engine `fn` writes.
+   * @param {object|null|undefined} engine The engine `fn` writes.
    * @param {Function} fn The mutation.
    * @returns {*} What `fn` returns.
    */
-  #writeOwnSheet<T>(engine: object, fn: () => T): T {
+  #writeOwnSheet<T>(engine: object | null | undefined, fn: () => T): T {
     this.#ownWriteDepth += 1;
 
     try {
@@ -5379,7 +5379,7 @@ export class Formulas extends BasePlugin {
       // trimming map, under which the visual and physical row spaces genuinely differ.
       this.#escapeSourceDataArray(rowsData, finalElementRowIndex, 0);
 
-      this.#writeOwnSheet(this.engine!, () => {
+      this.#writeOwnSheet(this.engine, () => {
         rowsData.forEach((row: unknown[], relativeRowIndex: number) => {
           row.forEach((value: unknown, colIndex: number) => {
             this.engine?.setCellContents({

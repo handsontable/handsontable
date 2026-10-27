@@ -21,11 +21,17 @@ const heldPaintsByEngine = new WeakMap<object, Set<() => void>>();
  * unless the mutation threw itself. A write to one engine does not count as a write to another. Paints
  * a previous write held back join them.
  *
- * @param {object} engine The engine being written.
+ * A missing engine has nothing to scope, so `fn` just runs.
+ *
+ * @param {object|null|undefined} engine The engine being written.
  * @param {Function} fn The mutation.
  * @returns {*} What `fn` returns.
  */
-export function withPluginEngineWrite<T>(engine: object, fn: () => T): T {
+export function withPluginEngineWrite<T>(engine: object | null | undefined, fn: () => T): T {
+  if (engine === null || engine === undefined) {
+    return fn();
+  }
+
   let write = writesByEngine.get(engine);
 
   if (write === undefined) {

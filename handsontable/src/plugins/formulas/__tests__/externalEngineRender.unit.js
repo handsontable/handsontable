@@ -457,6 +457,41 @@ describe('external engine changes repaint formula cells', () => {
     });
   });
 
+  describe('a listener that turns Formulas off while a NestedRows detach is synced', () => {
+    let container;
+    let hot;
+
+    afterEach(() => {
+      hot?.destroy();
+      container.remove();
+    });
+
+    it('detaches the row without throwing', () => {
+      container = createContainer();
+      hot = mountGrid(container, [
+        { name: 'a', __children: [{ name: 'b' }, { name: 'c' }] }, { name: 'd' },
+      ], HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' }), 'Sheet1', () => {}, {
+        nestedRows: true,
+        columns: [{ data: 'name' }],
+      });
+
+      let turnedOff = false;
+
+      hot.addHook('modifySourceData', () => {
+        if (!turnedOff && hot.getPlugin('formulas').isEnabled()) {
+          turnedOff = true;
+          hot.getPlugin('formulas').disablePlugin();
+        }
+      });
+
+      const nestedRows = hot.getPlugin('nestedRows');
+
+      expect(() => nestedRows.dataManager.detachFromParent(nestedRows.dataManager.getDataObject(1))).not.toThrow();
+      expect(turnedOff).toBe(true);
+      expect(hot.countRows()).toBe(4);
+    });
+  });
+
   describe('a grid whose afterRender throws while other grids repaint', () => {
     let containers;
     let grids;
