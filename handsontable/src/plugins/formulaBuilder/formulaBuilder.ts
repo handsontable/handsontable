@@ -9,7 +9,7 @@ import { isObject } from '../../helpers/object';
 import * as C from '../../i18n/constants';
 import { isRootInstance } from '../../utils/rootInstance';
 import { A11Y_DESCRIPTION, A11Y_INVALID } from '../../helpers/a11y';
-import { removeAttribute, setAttribute } from '../../helpers/dom/element';
+import { isShadowRoot, removeAttribute, setAttribute } from '../../helpers/dom/element';
 import type { HotInstance } from '../../core/types';
 import type { PluginTypeMap } from '../types';
 import type { CellProperties } from '../../settings';
@@ -1682,7 +1682,7 @@ export class FormulaBuilder extends BasePlugin {
   #gridShadowRoot(): ShadowRoot | null {
     const rootNode = this.hot.rootElement.getRootNode();
 
-    return rootNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE && 'host' in rootNode ? rootNode as ShadowRoot : null;
+    return isShadowRoot(rootNode) ? rootNode : null;
   }
 
   /**
