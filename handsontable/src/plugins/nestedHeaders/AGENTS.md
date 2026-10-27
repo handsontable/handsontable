@@ -143,6 +143,13 @@ outside, do not assume each call rebuilds the matrix.
 - On a move that would split a *collapsed* group, CollapsibleColumns **preemptively expands it** in
   `beforeColumnMove`, so reading `getCollapsedGroups()` inside/after that hook can show fewer groups than
   before.
+- **`setState()` drops every `collapsible` flag CollapsibleColumns wrote, so the plugin runs the
+  `afterHeaderStateRebuild` local hook (the `localHooks` mixin) at the end of `updatePlugin()`**, the path
+  that calls it: enable, a `nestedHeaders` update, and every `afterLoadData`. CollapsibleColumns writes its
+  flags again from that hook. Its own `afterLoadData` listener ran first, by plugin order, and lost them, so
+  a `loadData()` or a sheets bar switch onto a sheet declaring `nestedHeaders` showed no collapse buttons. A
+  new path that rebuilds the state from the setting must run the hook too. `rebuildState()`, `insertColumns()`
+  and `removeColumns()` keep the flags and do not.
 
 ## Hook timing & move gotchas (hard-won)
 

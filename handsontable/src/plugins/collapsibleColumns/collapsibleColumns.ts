@@ -278,9 +278,9 @@ export class CollapsibleColumns extends BasePlugin {
       .createAndRegisterIndexMap(VISIBLE_WHEN_MAP_NAME, 'hiding');
     this.nestedHeadersPlugin = this.hot.getPlugin('nestedHeaders');
     this.headerStateManager = this.nestedHeadersPlugin.getStateManager();
+    this.nestedHeadersPlugin.addLocalHook('afterHeaderStateRebuild', this.#onAfterHeaderStateRebuild);
 
     this.addHook('init', this.#onInit);
-    this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('afterGetColHeader', this.#onAfterGetColHeader);
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
     // NestedHeaders (priority 280) rebuilds the header tree on column insert/remove/move before this
@@ -312,6 +312,19 @@ export class CollapsibleColumns extends BasePlugin {
       return;
     }
 
+    this.#applyCollapsibleFlags();
+
+    super.updatePlugin();
+  }
+
+  /**
+   * Writes the `collapsible` flags of the plugin's settings into the NestedHeaders state, then applies
+   * the per-child `visibleWhen` rules. NestedHeaders resets those flags whenever it builds its state
+   * from its own setting (after a data load, or a `nestedHeaders` update), so this runs again from its
+   * `afterHeaderStateRebuild` local hook. Relying on this plugin's own `afterLoadData` listener lost them:
+   * that listener runs before the NestedHeaders one, which then reset the flags.
+   */
+  #applyCollapsibleFlags(): void {
     if (!this.nestedHeadersPlugin?.detectedOverlappedHeaders) {
       const { collapsibleColumns } = this.hot.getSettings();
 
@@ -333,8 +346,6 @@ export class CollapsibleColumns extends BasePlugin {
     // Apply the per-child `visibleWhen` rules once the `collapsible` flags are in place - on the
     // initial render this hides every `visibleWhen: 'collapsed'` column (all groups start expanded).
     this.#refreshVisibleWhenColumns();
-
-    super.updatePlugin();
   }
 
   /**
@@ -347,6 +358,7 @@ export class CollapsibleColumns extends BasePlugin {
     this.hot.columnIndexMapper.unregisterMap(VISIBLE_WHEN_MAP_NAME);
     this.#collapsedColumnsMap = null;
     this.#visibleWhenMap = null;
+    this.nestedHeadersPlugin?.removeLocalHook('afterHeaderStateRebuild', this.#onAfterHeaderStateRebuild);
     this.nestedHeadersPlugin = null;
 
     this.unregisterShortcuts();
@@ -1114,15 +1126,12 @@ export class CollapsibleColumns extends BasePlugin {
   };
 
   /**
-   * Updates the plugin state after new dataset load.
-   *
-   * @param {Array[]} sourceData Array of arrays or array of objects containing data.
-   * @param {boolean} initialLoad Flag that determines whether the data has been loaded
-   *                              during the initialization.
+   * NestedHeaders' `afterHeaderStateRebuild` local hook callback. Its state was just built from the
+   * `nestedHeaders` setting, without the `collapsible` flags, so they are written again.
    */
-  #onAfterLoadData = (_sourceData: unknown[], initialLoad: boolean) => {
-    if (!initialLoad) {
-      this.updatePlugin();
+  #onAfterHeaderStateRebuild = () => {
+    if (this.enabled && this.hot.view) {
+      this.#applyCollapsibleFlags();
     }
   };
 
