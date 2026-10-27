@@ -630,16 +630,51 @@ export function getInnerEditorListBox() {
 }
 
 /**
- * The active editor's inline-start offset, corrected onto the edited cell's own boundary so it can
- * be compared against `$(getCell(row, col)).offset()`.
+ * The pixel the active editor is shifted by towards its inline start: 1, or 0 when the edited cell
+ * needs no shift.
  *
- * `BaseEditor#getEditedCellRect` moves the editor 1px towards the inline start whenever the edited
- * cell draws no inline-start border of its own, so that the editor covers the gridline its
- * inline-start neighbour draws. `htFirstDatasetColumnNotRendered` takes the border off the first
- * rendered column, so that column draws none. With row headers on, the row header owns the gridline
- * in front of column 0 (#6673), but that gridline is painted over the editor, so the editor takes no
- * shift there. The rule is read off the edited cell's computed border and its previous sibling,
- * exactly as the editor reads them, so no spec has to restate which columns it applies to.
+ * `BaseEditor#getEditedCellRect` moves the editor 1px towards the inline start so that it covers the
+ * gridline the cell's inline-start neighbour draws. There is no such gridline to cover when the cell
+ * draws its own inline-start border, and the shift is no use when the inline-start overlay is painted
+ * over that pixel: the row header in front of column 0 (#6673), or, for a cell of the master table
+ * (whose editor holder sits under the overlay), the overlay's last pixel in front of the first
+ * column after it. The rule is read off the DOM, as the editor reads it, so no spec has to restate
+ * which columns it applies to.
+ *
+ * @param {HTMLTableCellElement} TD The edited cell.
+ * @returns {number}
+ */
+export function editorInlineStartShift(TD) {
+  const isRtl = getComputedStyle(TD).direction === 'rtl';
+  const style = getComputedStyle(TD);
+
+  if (Number.parseFloat(isRtl ? style.borderRightWidth : style.borderLeftWidth) > 0) {
+    return 0;
+  }
+
+  if (TD.previousElementSibling?.nodeName === 'TH') {
+    return 0;
+  }
+
+  const overlay = hot().view._wt.wtOverlays.inlineStartOverlay;
+
+  if (TD.closest('.ht_master') && overlay?.needFullRender && overlay.clone) {
+    const cellRect = TD.getBoundingClientRect();
+    const overlayRect = overlay.clone.wtTable.TABLE.getBoundingClientRect();
+    const gap = isRtl ? overlayRect.left - cellRect.right : cellRect.left - overlayRect.right;
+
+    if (gap < 0.5) {
+      return 0;
+    }
+  }
+
+  return 1;
+}
+
+/**
+ * The active editor's inline-start offset, corrected onto the edited cell's own boundary so it can
+ * be compared against `$(getCell(row, col)).offset()`. See `editorInlineStartShift()` for which
+ * cells the editor is shifted for.
  *
  * The top axis is deliberately left to the caller: `getEditedCellRect` decides that one from the
  * row's position in the overlays, not from a border, so there is no single value to fold in here.
@@ -649,16 +684,13 @@ export function getInnerEditorListBox() {
  */
 export function editorInlineStartOffset($editor) {
   const { TD } = getActiveEditor();
-  const style = getComputedStyle(TD);
 
-  if (style.direction === 'rtl') {
+  if (getComputedStyle(TD).direction === 'rtl') {
     throw new Error('editorInlineStartOffset() corrects the physical left edge, which is the ' +
       'inline start only in LTR. The RTL specs mirror the offset themselves.');
   }
 
-  const standsBehindRowHeader = TD.previousElementSibling?.nodeName === 'TH';
-
-  return $editor.offset().left + (Number.parseInt(style.borderLeftWidth, 10) > 0 || standsBehindRowHeader ? 0 : 1);
+  return $editor.offset().left + editorInlineStartShift(TD);
 }
 
 /**

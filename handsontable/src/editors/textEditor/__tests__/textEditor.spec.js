@@ -1685,7 +1685,9 @@ describe('TextEditor', () => {
 
     await keyDownUp('enter');
 
-    expect(left).toEqual($inputHolder.offset().left + 1);
+    // The cell was scrolled flush against the frozen columns, so the gridline in front of it is under
+    // their overlay and the editor starts on the cell's own edge.
+    expect(left).toEqual(editorInlineStartOffset($inputHolder));
     expect(top).toEqual($inputHolder.offset().top + 1);
   });
 

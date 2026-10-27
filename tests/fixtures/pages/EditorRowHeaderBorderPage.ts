@@ -23,10 +23,13 @@ export class EditorRowHeaderBorderPage {
   readonly theme: string;
   readonly bundle: string;
 
-  constructor(page: Page, theme = 'main', bundle = 'umd') {
+  readonly zoom: string;
+
+  constructor(page: Page, theme = 'main', bundle = 'umd', zoom = '1') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
+    this.zoom = zoom;
   }
 
   /**
@@ -34,7 +37,7 @@ export class EditorRowHeaderBorderPage {
    * condition, never a readiness flag.
    */
   async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/editor-row-header-border.html?theme=${this.theme}&bundle=${this.bundle}`);
+    await this.page.goto(`/tests/fixtures/demo/editor-row-header-border.html?theme=${this.theme}&bundle=${this.bundle}&zoom=${this.zoom}`);
     await awaitBundle(this.page);
     await expect(this.page.getByTestId('no-row-headers').locator('.ht_master tbody td').first()).toBeVisible();
   }
@@ -62,18 +65,18 @@ export class EditorRowHeaderBorderPage {
         `hot_${name.replace(/-/g, '_')}`].selectCell(r, c);
     }, [grid, row, col] as const);
     await this.page.keyboard.press('Enter');
-    await expect(this.editor(grid)).toBeVisible();
+    // A closed editor stays in the DOM with its holder placed, and Playwright counts its opacity 0
+    // as visible, so wait for the class the open editor drops.
+    await expect(this.editor(grid)).not.toHaveClass(/ht_editor_hidden/);
   }
 
   /**
-   * Scroll a grid horizontally until its first rendered column is one past the frozen start, and
-   * return that column. The grid has no column overscan, so that column is visible, and the cell
-   * behind the row header in the master table is not column 0.
+   * Scroll a grid horizontally and return the first column it shows fully, which is not column 0.
    *
    * @param {GridName} grid The grid.
    * @returns {Promise<number>}
    */
-  async scrollToFirstRenderedColumn(grid: GridName): Promise<number> {
+  async scrollToFirstVisibleColumn(grid: GridName): Promise<number> {
     const hotKey = `hot_${grid.replace(/-/g, '_')}`;
 
     await this.page.evaluate((key) => {
@@ -125,9 +128,11 @@ export class EditorRowHeaderBorderPage {
       const cell = TD.getBoundingClientRect();
       const editor = TEXTAREA_PARENT.getBoundingClientRect();
 
+      const round = (value: number) => Math.round(value * 100) / 100;
+
       return {
-        start: hot.isRtl() ? editor.right - cell.right : cell.left - editor.left,
-        width: editor.width - cell.width,
+        start: round(hot.isRtl() ? editor.right - cell.right : cell.left - editor.left),
+        width: round(editor.width - cell.width),
       };
     }, grid);
   }

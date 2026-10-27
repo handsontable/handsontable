@@ -9,6 +9,7 @@ import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
 import {
   getScrollbarWidth,
   offset,
+  standsBehindRowHeader,
   hasVerticalScrollbar,
   hasHorizontalScrollbar,
   outerWidth,
@@ -757,21 +758,16 @@ export class BaseEditor {
 
     const cellComputedStyle = rootWindow.getComputedStyle(TD);
     const borderPhysicalWidthProp = this.hot.isRtl() ? 'borderRightWidth' : 'borderLeftWidth';
-    const ownsInlineStartBorder = Number.parseInt(cellComputedStyle[borderPhysicalWidthProp], 10) > 0;
-    // The row header owns the gridline in front of its cell. That gridline is the last pixel of the
-    // inline-start overlay, which paints above the editor holder, so an editor that reached into it
-    // would show 1px of its own start border.
-    const standsBehindRowHeader = TD.previousElementSibling?.nodeName === 'TH';
-    const inlineStartBorderCompensation = ownsInlineStartBorder || standsBehindRowHeader ? 0 : 1;
+    const ownsInlineStartBorder = Number.parseFloat(cellComputedStyle[borderPhysicalWidthProp]) > 0;
+    const inlineStartBorderCompensation = ownsInlineStartBorder || this.#isStartPixelCovered(TD, overlayName) ? 0 : 1;
 
     // The position above shifted the editor 1px towards the inline start so that it covers the
     // gridline the previous cell draws on its inline-end side. A cell that draws its OWN
-    // inline-start border keeps that gridline inside its box, so there is nothing to cover and the
-    // shift is canceled here. So does a cell behind a row header: its gridline belongs to the
-    // header and is painted over the editor. Which cells those are is not a fixed index:
-    // `htFirstDatasetColumnNotRendered` takes the border off the first rendered column too - so read
-    // the DOM rather than the index, and key it off the same value that sizes the editor below, or
-    // the two disagree by a pixel.
+    // inline-start border keeps that gridline inside its box, and one whose gridline is covered by
+    // the inline-start overlay shows nothing of the shifted pixel, so the shift is canceled for both.
+    // Which cells those are is not a fixed index: `htFirstDatasetColumnNotRendered` takes the border
+    // off the first rendered column - so read the DOM rather than the index, and key it off the same
+    // value that sizes the editor below, or the two disagree by a pixel.
     if (inlineStartBorderCompensation === 0) {
       inlineStartPos += 1;
     }
@@ -793,7 +789,7 @@ export class BaseEditor {
         horizontalScrollPosition : 0) :
       this.#calcCellStartOffset(TD, overlayName, overlayTable, cellWidth, firstColumnOffset, horizontalScrollPosition);
 
-    const topBorderCompensation = Number.parseInt(cellComputedStyle.borderTopWidth, 10) > 0 ? 0 : 1;
+    const topBorderCompensation = Number.parseFloat(cellComputedStyle.borderTopWidth) > 0 ? 0 : 1;
     const width = outerWidth(TD) + inlineStartBorderCompensation;
     const height = outerHeight(TD) + topBorderCompensation;
     const actualVerticalScrollbarWidth = scrollableContainerTop &&
@@ -814,6 +810,46 @@ export class BaseEditor {
       width,
       maxWidth,
     };
+  }
+
+  /**
+   * Whether the pixel in front of the edited cell lies under an inline-start overlay, so the editor
+   * would show nothing of it. That is the gridline the row header owns in front of column 0 and, in the
+   * master table, the one in front of the first column after the overlay: the first visible column of
+   * a scrolled grid, the first one past `fixedColumnsStart`.
+   *
+   * It matters only for a cell the master table draws, whose editor holder (z-index 100) sits under
+   * the overlay (120). A frozen cell's holder is part of its own clone and paints over the row header
+   * by DOM order, so it never loses the pixel. It is canceled there too, by the row header test alone,
+   * so that column A is the same width with and without `fixedColumnsStart`.
+   *
+   * @param {HTMLTableCellElement} TD The edited cell.
+   * @param {string} overlayName The name of the overlay containing the edited cell.
+   * @returns {boolean}
+   */
+  #isStartPixelCovered(TD: HTMLTableCellElement, overlayName: string): boolean {
+    if (standsBehindRowHeader(TD)) {
+      return true;
+    }
+
+    if (overlayName !== 'master') {
+      return false;
+    }
+
+    const overlay = this.hot.view._wt.wtOverlays.inlineStartOverlay;
+
+    // A grid with no row headers and no frozen columns has no overlay on that side to paint over anything.
+    if (!overlay?.needFullRender || !overlay.clone) {
+      return false;
+    }
+
+    const cellRect = TD.getBoundingClientRect();
+    const overlayRect = overlay.clone.wtTable.TABLE.getBoundingClientRect();
+    const gap = this.hot.isRtl() ? overlayRect.left - cellRect.right : cellRect.left - overlayRect.right;
+
+    // The gridline is the pixel just before the cell, so it is covered when the overlay reaches
+    // the cell or past it. Half a pixel absorbs the fractional sizes of a zoomed page.
+    return gap < 0.5;
   }
 
   /**

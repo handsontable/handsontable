@@ -19,6 +19,12 @@
       throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
     }
     document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // Page zoom, through the same kind of allowlist. Above 100% a 1px border computes as 0.8px.
+    window.htZoom = ({ 1: '1', '1.25': '1.25' })[htParams.get('zoom') ?? '1'];
+    if (!window.htZoom) {
+      throw new Error('Unknown ?zoom= value: ' + JSON.stringify(htParams.get('zoom')));
+    }
+    document.documentElement.style.zoom = window.htZoom;
     window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
     if (!window.htBundle) {
       throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));

@@ -28,6 +28,7 @@ import {
   isHTMLTableCellElement,
   isShadowRoot,
   getComposedEventTargetEl,
+  standsBehindRowHeader,
   getDeepActiveElement,
   getShadowHostChain,
   outerHeight,
@@ -2440,5 +2441,33 @@ describe('DomElement helper', () => {
         input.remove();
       }
     );
+  });
+
+  describe('standsBehindRowHeader', () => {
+    const buildRow = (...tags: string[]) => {
+      const row = document.createElement('tr');
+
+      tags.forEach(tag => row.appendChild(document.createElement(tag)));
+
+      return row;
+    };
+
+    it('should be true for a cell whose previous sibling is a row header', () => {
+      const row = buildRow('th', 'td', 'td');
+
+      expect(standsBehindRowHeader(row.children[1] as HTMLElement)).toBe(true);
+    });
+
+    it('should be false for a cell whose previous sibling is another cell', () => {
+      const row = buildRow('th', 'td', 'td');
+
+      expect(standsBehindRowHeader(row.children[2] as HTMLElement)).toBe(false);
+    });
+
+    it('should be false for the first cell of a row without row headers', () => {
+      const row = buildRow('td', 'td');
+
+      expect(standsBehindRowHeader(row.children[0] as HTMLElement)).toBe(false);
+    });
   });
 });

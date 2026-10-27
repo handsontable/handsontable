@@ -1021,10 +1021,17 @@ Consequences worth knowing:
   inline-start border **or** has a row-header `th` as its previous sibling. That second test is what
   keeps a selection on column 0 visible; without it the edge lands at `rowHeaderWidth - 1` and
   disappears behind the row header. The `customBorders` specs cannot catch it — they count visible
-  elements, and the element is there, just covered. The editor holder is the second such affordance
-  (z-index 100 against 120): `BaseEditor#getEditedCellRect` applies the same row-header test, so the
-  editor of a cell behind a row header starts on the cell's own edge and is exactly as wide as the cell,
-  where an editor reaching into the shared pixel shows 1px of its 2px start border.
+  elements, and the element is there, just covered. The editor is the second such affordance, with a
+  split rule. The editor of a cell the MASTER table draws has its holder at z-index 100, under the
+  inline-start overlay at 120, so an editor that reaches 1px into the pixel in front of its cell shows
+  1px of its 2px start border when that pixel is the overlay's last. `BaseEditor#getEditedCellRect`
+  therefore drops its 1px shift (start on the cell's edge, exactly as wide as the cell) when the
+  overlay's table ends where the cell starts: column 0 behind the row headers, the first visible column
+  of a scrolled grid, the first column past `fixedColumnsStart`. A cell of a frozen clone has its
+  holder in the clone's own layer (the same 120, painted after the row header by DOM order), so the
+  overlap was never hidden there; it takes the row-header test only, to stay the same width as the
+  master column A (and `Border#appear`). Both the editor and `Border#appear` read the borders with
+  `parseFloat`: above 100% zoom a 1px border computes as 0.8px, and `parseInt` reads it as none.
 
   The row axis has the same branch and a wider z-gap: `.ht_clone_top` is 160 (the corner 180) against
   the same border layer's 10. `standsBelowColumnHeader(cellElement)` in `selection/border/utils.ts` is
