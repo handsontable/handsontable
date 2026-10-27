@@ -139,8 +139,35 @@ rows a sort interleaves collide in the lookup matrix — measured on the merged-
 overlap guard (unlike `add`, which runs `isOverlapping`), so the second footprint silently wins.
 
 The span is one continuous block downwards from that top-left, so a merge whose visible rows are
-non-contiguous in the visual order (sorting or a row move, never trimming alone) can still cover foreign
-rows. That is pre-existing and unchanged.
+non-contiguous in the visual order (sorting or a row move) can still cover foreign rows. That is
+pre-existing and unchanged. Trimming alone must never produce it, and a merge made while a row is trimmed
+did (DEV-507): the anchor was captured from the rows the merge covered on screen, so it left out a trimmed
+row sitting between them. Once the rows came back the merge drew its block over that row, hiding its
+values, and stopped one row short, which exposed its own last row empty (the merge cleared it when it was
+made). `#captureAnchorOf` therefore takes, for a merge with no anchor yet that a user or the API made
+(`afterMergeCells` with `auto` not `true`), the whole stretch of the row index sequence between the first
+and the last row the merge covers (`#fillTrimmedGaps`). The covered rows are consecutive in the visual
+order, which is the sequence without its trimmed rows, so everything in that stretch is covered or
+trimmed, and the anchor is what create-then-trim produces. Four things to keep:
+
+- **A merge declared in the settings (`auto: true`) does not take the gap.**
+  The settings describe rows on screen, and a re-send rebuilds the area from them
+  (`generateFromSettings`), so a fill there would flip the span on the next wrapper commit. Such a merge
+  keeps the old geometry after an untrim. The bulk captures (`#captureMergeAnchors`,
+  `#captureMissingMergeAnchors`) never fill either, which keeps a row move's fragments as they were.
+  `restoreMergedAreas()` is the one `auto: true` path that does fill (`#isRestoringAreas`): a sheet
+  switch rebuilds the merges that were on screen, and without the fill a merge made under a filter
+  would lose its trimmed row on the round trip and bring the DEV-507 symptom back.
+- **The trimmed row's values stay in the source and sit hidden under the merge.** A normal merge empties
+  the cells it covers, and `mergeRange` clears only the cells that are on screen, so the row that was
+  trimmed keeps its values. `getData()` and an export still return them.
+- **The merge does not grow over a trimmed row above its first covered row or below its last one.** Only
+  the stretch between them counts. `trimmedMergeAnchorCapture.unit.js` pins both edges.
+- **The stretch is taken only when every row in it is covered, or trimmed and owned by no other merge in the same columns.**
+  A merge whose rows are all trimmed is purged from the lookup matrix, so `isOverlapping` lets a new merge
+  be made over its rows, and filling them would put one row in two anchors that no later trim can pull
+  apart. A merge in other columns owns the same rows without conflict, so ownership is read per column span. A visible row that is not covered means the index cache and the sequence disagree (a row move
+  or sort inside `hot.batch()`, where the cache refreshes at the end), so the old anchor is kept.
 
 The clipping is not cosmetic. A trimmed row has no visual index at all, so the visual row space is
 compressed; a merge that kept its declared span would reach past its own rows and onto whatever sits
