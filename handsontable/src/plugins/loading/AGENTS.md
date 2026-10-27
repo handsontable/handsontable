@@ -11,7 +11,8 @@ plugin.
 `getSettings().dialog = true` directly. Four things follow:
 
 - **This is the exception to "no direct cross-plugin coupling"**, and it is deliberate. Everything visible —
-  `isVisible()`, `show()`, `hide()`, `update()` — delegates to the dialog. Every one of those methods
+  `isVisible()`, `show()`, `hide()`, `update()` — delegates to the dialog, while the dialog is this plugin's
+  (see "Loading owns the dialog" below). Every one of those methods
   re-checks `this.#dialogPlugin?.isEnabled()` before acting; keep those checks as guards, but do not read
   them as "the user can turn Dialog off".
 - **Dialog stays on, by design.** The direct settings write is never undone: after `loading: false` the
@@ -32,21 +33,39 @@ plugin.
   settings through `updatePluginSettings`). So no `afterLoadingHide` fires on such an update, and the
   `afterDialogFocus` hook stays registered once. Pinned by `__tests__/loadingUpdate.unit.js`.
 
+### Loading owns the dialog only while it shows its own screen
+
+The dialog is a surface the application uses too, so its visibility says nothing about the loading screen.
+`#ownsDialog` is set by `show()` and cleared by `hide()` or by `afterDialogHide` for any other hide
+(`dialog.hide()`, Escape on a configured `closable` dialog, the Dialog plugin turned off). `isVisible()`,
+`hide()` and `update()` act on the dialog only while the flag is set: before it, `loading.isVisible()` answered
+`true` for the application's own dialog and `loading.hide()` closed it. Three rules ride along.
+
+- **A hide from outside fires `afterLoadingHide`, never `beforeLoadingHide`**: the screen is gone, and that hide
+  cannot be vetoed. `hide()` clears the flag *before* it hides the dialog, so its own hide fires the hook once,
+  after `afterDialogHide` as before.
+- **`show()` replaces a dialog the application shows**: it hides it first, then shows the loading screen with a
+  complete description (`#describeDialog()`) through `dialog.show(options)`. It never merges into the other
+  dialog's options, which is how a confirm's `template` met the loading `content` and threw.
+- **`update()` while the screen is not on screen only stores the options** for the next `show()`. It used to
+  write the loading content into the hidden dialog, which is where the cross-show leaks in `../dialog/AGENTS.md`
+  started.
+
+The flag is set **before** `dialog.show()`, because `afterDialogFocus` fires from inside it.
+
 ### `afterDialogFocus` fires for EVERY dialog, so the listener must check whose it is
 
 `#onAfterDialogFocus()` re-focuses the dialog container, which is what lets a screen reader announce the
 loading overlay — a loading screen always renders through `content`, so it reports no focusable elements
 and nothing inside it can hold the focus. But the hook is the **dialog's**, not this plugin's, so it also
-fires for a dialog the application opened for its own reasons. It is therefore gated on
-`getSetting('template') !== null`: a `template` dialog reports its own focusable elements and the dialog
-plugin has just focused one of them, so re-focusing the container would undo that and leave the buttons
-unannounced.
+fires for a dialog the application opened for its own reasons. It is therefore gated on `#ownsDialog`: a
+`template` dialog reports its own focusable elements and the dialog plugin has just focused one of them, so
+re-focusing the container would undo that and leave the buttons unannounced.
 
 Without the gate, enabling `loading` silently broke the confirm-dialog focus fix from DEV-47 — the dialog
 focused the first button and this listener pulled it straight back onto the container. It stayed invisible
 because `focus()` was a no-op on the `confirm` template until that same ticket fixed it, so the two
-defects hid each other. `isVisible()` is **not** a usable guard here: it delegates to
-`dialogPlugin.isVisible()`, which is true for any dialog at all.
+defects hid each other. Pinned by `__tests__/loadingOwnership.unit.js`.
 
 ## `show()` is idempotent, and vetoable only on a real open
 

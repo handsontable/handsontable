@@ -11,25 +11,26 @@ import { LOADING_CLASS_NAME } from '../../helpers/constants';
 interface DialogPlugin {
   isEnabled(): boolean;
   isVisible(): boolean;
-  show(): void;
+  show(options: LoadingDialogOptions): void;
   hide(): void;
-  getSetting<T = unknown>(settingName?: string): T;
-  update(options: {
-    // `HTMLElement` since `loadingContent()` builds nodes rather than a string. The dialog UI has
-    // always accepted both (`dialog/ui.ts` branches on the type); only this local structural type
-    // was narrower than the thing it describes. An element rather than a fragment because the
-    // dialog re-reads this setting on every render, and a fragment is empty after one append.
-    content: string | HTMLElement;
-    customClassName: string;
-    background: string;
-    a11y: {
-      role: string;
-      ariaLabelledby: string;
-      ariaDescribedby?: string;
-    };
-  }): void;
+  update(options: LoadingDialogOptions): void;
   focus(): void;
 }
+
+/**
+ * The options that describe the loading screen to the Dialog plugin. `content` is an element rather than a
+ * fragment because the dialog re-reads it on every render, and a fragment is empty after one append.
+ */
+type LoadingDialogOptions = {
+  content: HTMLElement;
+  customClassName: string;
+  background: string;
+  a11y: {
+    role: string;
+    ariaLabelledby: string;
+    ariaDescribedby?: string;
+  };
+};
 
 /**
  * The built-in spinner, as markup.
@@ -61,6 +62,10 @@ export { LOADING_CLASS_NAME };
  *
  * Calling `updateSettings()` with new `loading` options updates a visible loading overlay in place,
  * without hiding it.
+ *
+ * `isVisible()`, `hide()`, and `update()` act on the loading overlay only. A dialog your application shows
+ * through the Dialog plugin is left alone, and `show()` replaces it with the loading overlay. When the
+ * loading overlay is hidden through the Dialog plugin, the `afterLoadingHide` hook still fires.
  *
  * The plugin provides several configuration options to customize the loading behavior and appearance:
  * - `icon`: Loading icon to display HTML (as string) in svg format (default: `<svg ... />`).
@@ -191,6 +196,14 @@ export class Loading extends BasePlugin {
   #dialogPlugin: DialogPlugin | null = null;
 
   /**
+   * Whether the dialog on screen is the loading screen this plugin showed. The dialog is a surface an
+   * application uses too, so its visibility alone says nothing about the loading screen.
+   *
+   * @type {boolean}
+   */
+  #ownsDialog = false;
+
+  /**
    * Check if the plugin is enabled in the handsontable settings.
    *
    * The loading indicator renders through the Dialog plugin, which is available on the main
@@ -223,7 +236,8 @@ export class Loading extends BasePlugin {
     // Registered on every enable, not only on the first: disabling the plugin removes its hooks
     // while the dialog reference above survives, so a hook inside that branch would be gone
     // after the first updateSettings.
-    this.addHook('afterDialogFocus', () => this.#onAfterDialogFocus());
+    this.addHook('afterDialogFocus', this.#onAfterDialogFocus);
+    this.addHook('afterDialogHide', this.#onAfterDialogHide);
 
     super.enablePlugin();
   }
@@ -252,16 +266,18 @@ export class Loading extends BasePlugin {
   }
 
   /**
-   * Check if loading dialog is currently visible.
+   * Check if loading dialog is currently visible. A dialog the application shows with its own content does
+   * not count.
    *
    * @returns {boolean}
    */
   isVisible(): boolean {
-    return this.#dialogPlugin?.isVisible() ?? false;
+    return this.#ownsDialog && (this.#dialogPlugin?.isVisible() ?? false);
   }
 
   /**
-   * Show loading dialog with optional custom options.
+   * Show loading dialog with optional custom options. A dialog the application shows at that moment is
+   * hidden first, and the loading screen takes its place.
    *
    * @param {object} options Custom loading options.
    * @param {string} options.icon Custom loading icon.
@@ -285,14 +301,17 @@ export class Loading extends BasePlugin {
       return;
     }
 
-    this.update(options);
-    this.#dialogPlugin.show();
+    this.updatePluginSettings(options);
+    this.#dialogPlugin.hide();
+
+    this.#ownsDialog = true;
+    this.#dialogPlugin.show(this.#describeDialog());
 
     this.hot.runHooks('afterLoadingShow');
   }
 
   /**
-   * Hide loading dialog.
+   * Hide loading dialog. A dialog the application shows with its own content stays on screen.
    */
   hide(): void {
     if (!this.#dialogPlugin || !this.#dialogPlugin?.isEnabled() || !this.isVisible()) {
@@ -305,13 +324,15 @@ export class Loading extends BasePlugin {
       return;
     }
 
+    this.#ownsDialog = false;
     this.#dialogPlugin.hide();
 
     this.hot.runHooks('afterLoadingHide');
   }
 
   /**
-   * Update loading description without hiding/showing the dialog.
+   * Update loading description without hiding/showing the dialog. The new options are kept for the next
+   * `show()` when the loading screen is not on screen, and a dialog the application shows is left alone.
    *
    * @param {object} options Custom loading options.
    * @param {string} options.icon Custom loading icon.
@@ -325,6 +346,18 @@ export class Loading extends BasePlugin {
 
     this.updatePluginSettings(options);
 
+    if (this.isVisible()) {
+      this.#dialogPlugin.update(this.#describeDialog());
+    }
+  }
+
+  /**
+   * Builds the complete description of the loading screen the Dialog plugin shows: its content, class
+   * name, background and accessibility options.
+   *
+   * @returns {LoadingDialogOptions}
+   */
+  #describeDialog(): LoadingDialogOptions {
     const id = this.hot.guid;
     const icon = this.getSetting<string>('icon');
     const title = this.getSetting<string | undefined>('title') ?? this.hot.getTranslatedPhrase(C.LOADING_TITLE);
@@ -339,7 +372,7 @@ export class Loading extends BasePlugin {
       warnScope: this.hot.rootElement,
     }, this.hot.rootDocument);
 
-    this.#dialogPlugin.update({
+    return {
       content,
       customClassName: LOADING_CLASS_NAME,
       background: this.hot.countSourceRows() === 0 ? 'solid' : 'semi-transparent',
@@ -348,32 +381,49 @@ export class Loading extends BasePlugin {
         ariaLabelledby: `${id}-${PLUGIN_KEY}-title`,
         ariaDescribedby: description ? `${id}-${PLUGIN_KEY}-description` : undefined,
       },
-    });
+    };
   }
 
   /**
    * Handle dialog focus event.
    *
-   * The hook fires for every dialog on the grid, not only for the one this plugin opened. A loading
-   * screen always renders through the `content` option, so it reports no focusable elements and
-   * nothing inside it can take the focus - putting it on the container is what lets a screen reader
-   * announce the dialog. A dialog built from a `template` is the opposite case: it reports its own
-   * focusable elements and the dialog plugin has just focused one of them, so pulling the focus back
-   * onto the container would undo that and leave the buttons unannounced.
+   * The hook fires for every dialog on the grid, so it acts only while the dialog is the loading screen
+   * this plugin showed. A loading screen always renders through the `content` option, so it reports no
+   * focusable elements and nothing inside it can take the focus - putting it on the container is what
+   * lets a screen reader announce the dialog. Any other dialog keeps the focus the Dialog plugin gave it:
+   * a `template` dialog has just focused its first button, and pulling the focus back onto the container
+   * would leave the buttons unannounced. The ownership flag is set before the dialog shows, because the
+   * hook fires from inside `show()`.
    */
-  #onAfterDialogFocus() {
-    if (this.#dialogPlugin!.getSetting('template') !== null) {
+  #onAfterDialogFocus = () => {
+    if (!this.#ownsDialog) {
       return;
     }
 
     this.#dialogPlugin!.focus();
-  }
+  };
+
+  /**
+   * Handle dialog hide event. A loading screen that something other than this plugin hid (`dialog.hide()`,
+   * Escape on a closable dialog, the Dialog plugin turned off) is over, so the plugin gives the dialog up
+   * and fires `afterLoadingHide` for it. `beforeLoadingHide` does not fire there, because such a hide cannot
+   * be vetoed. `hide()` gives the dialog up before it hides it, so its own hide fires the hook once.
+   */
+  #onAfterDialogHide = () => {
+    if (!this.#ownsDialog) {
+      return;
+    }
+
+    this.#ownsDialog = false;
+    this.hot.runHooks('afterLoadingHide');
+  };
 
   /**
    * Destroy plugin instance.
    */
   destroy() {
     this.#dialogPlugin = null;
+    this.#ownsDialog = false;
 
     super.destroy();
   }

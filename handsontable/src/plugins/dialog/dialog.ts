@@ -1,5 +1,6 @@
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
+import { warn } from '../../helpers/console';
 import { DialogUI } from './ui';
 import { isObject, isPlainObject } from '../../helpers/object';
 import { isHTMLElement, isDocumentFragment } from '../../helpers/dom/element';
@@ -45,6 +46,10 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *   - `ariaLabel`: The label of the dialog (default: 'Dialog')
  *   - `ariaLabelledby`: The ID of the element that labels the dialog (default: '')
  *   - `ariaDescribedby`: The ID of the element that describes the dialog (default: ''),
+ *
+ * The options above, set through the `dialog` option, apply to every dialog. The options you pass to `show()`
+ * and `update()` apply on top of them to one dialog only, until it hides. Calling `updateSettings()` with new
+ * `dialog` options updates a visible dialog in place, without hiding it.
  *
  * @example
  *
@@ -255,6 +260,23 @@ export class Dialog extends BasePlugin {
   #selectionState: SelectionState | null = null;
 
   /**
+   * The valid options the `dialog` setting configured, merged across settings updates. Every dialog
+   * starts from them.
+   *
+   * @type {object}
+   */
+  #configuredOptions: Record<string, unknown> = {};
+
+  /**
+   * The valid options of the dialog being described now: the options of `show()` merged with every
+   * `update()` made before the dialog hides. Hiding the dialog clears them, so no option of one dialog
+   * reaches the next one.
+   *
+   * @type {object}
+   */
+  #dialogOptions: Record<string, unknown> = {};
+
+  /**
    * Check if the plugin is enabled in the handsontable settings.
    *
    * The dialog renders into the `ht-overlay` element and registers a modal focus scope, and both
@@ -293,18 +315,40 @@ export class Dialog extends BasePlugin {
     // so there is nothing to register with the layout manager.
 
     this.addHook('afterViewRender', () => this.#onAfterViewRender());
+    this.addHook('beforeLoadData', this.#onBeforeLoadData);
 
     super.enablePlugin();
   }
 
   /**
-   * Update plugin state after Handsontable settings update.
+   * Update plugin state after Handsontable settings update. The plugin stays enabled, so a dialog on
+   * screen stays there and shows the new `dialog` options under the options it was shown with, and no
+   * `beforeDialogHide` or `afterDialogHide` fires for it. Turning the option off goes through
+   * `disablePlugin()` instead, which hides the dialog.
    */
   updatePlugin() {
-    this.disablePlugin();
-    this.enablePlugin();
+    if (this.isVisible()) {
+      this.update({});
+    }
 
     super.updatePlugin();
+  }
+
+  /**
+   * Updates the options the `dialog` setting configured. A plain object merges into the options
+   * configured before, any other value resets them to the defaults. The options of a dialog on screen
+   * stay applied on top of them.
+   *
+   * @private
+   * @param {*} newSettings The value of the `dialog` setting.
+   * @returns {*} The plugin settings now in force.
+   */
+  updatePluginSettings(newSettings: unknown) {
+    this.#configuredOptions = isPlainObject(newSettings)
+      ? { ...this.#configuredOptions, ...this.#pickValidOptions(newSettings) }
+      : {};
+
+    return this.#composeSettings();
   }
 
   /**
@@ -417,6 +461,9 @@ export class Dialog extends BasePlugin {
 
     this.hot.getFocusScopeManager().deactivateScope(PLUGIN_KEY);
 
+    this.#dialogOptions = {};
+    this.#composeSettings();
+
     if (this.#selectionState && this.#selectionState.ranges.length > 0 && this.#selectionState.activeRange) {
       const state = this.#selectionState;
 
@@ -467,19 +514,18 @@ export class Dialog extends BasePlugin {
       return;
     }
 
-    this.updatePluginSettings(options);
-
-    const templateValue = this.getSetting('template');
+    const dialogOptions = { ...this.#dialogOptions, ...this.#pickValidOptions(options) };
+    const described = { ...Dialog.DEFAULT_SETTINGS, ...this.#describeDialog(dialogOptions) };
 
     if (
-      templateValue !== Dialog.DEFAULT_SETTINGS.template &&
-      this.getSetting('content') !== Dialog.DEFAULT_SETTINGS.content
+      described.template !== Dialog.DEFAULT_SETTINGS.template &&
+      described.content !== Dialog.DEFAULT_SETTINGS.content
     ) {
       throwWithCause('The `template` option cannot be used together with the `content` option.');
     }
 
-    if (templateValue) {
-      const template = templateValue as { type: string; [key: string]: unknown };
+    if (described.template) {
+      const template = described.template as { type: string; [key: string]: unknown };
 
       // `id` is assigned AFTER the spread on purpose. The template interpolates it into the `id`
       // attribute of its title and description elements, so a caller-supplied `template.id`
@@ -493,6 +539,9 @@ export class Dialog extends BasePlugin {
     } else {
       this.#ui!.useDefaultTemplate();
     }
+
+    this.#dialogOptions = dialogOptions;
+    this.#composeSettings();
 
     this.#ui!.updateDialog({
       isVisible: this.isVisible(),
@@ -695,6 +744,90 @@ export class Dialog extends BasePlugin {
   }
 
   /**
+   * Returns the keys of `options` that pass `SETTINGS_VALIDATORS`, and warns about each key that does not.
+   *
+   * @param {*} options The options to read.
+   * @returns {object}
+   */
+  #pickValidOptions(options: unknown): Record<string, unknown> {
+    const validOptions: Record<string, unknown> = {};
+
+    if (!isPlainObject(options)) {
+      return validOptions;
+    }
+
+    const validators: Record<string, (value: unknown) => boolean> = Dialog.SETTINGS_VALIDATORS;
+
+    Object.keys(validators).forEach((key) => {
+      if (!(key in options)) {
+        return;
+      }
+
+      if (validators[key](options[key]) === false) {
+        warn(`${this.pluginName} Plugin: "${key}" option is not valid and it will be ignored.`);
+
+        return;
+      }
+
+      validOptions[key] = options[key];
+    });
+
+    return validOptions;
+  }
+
+  /**
+   * Stores the options of the dialog being described now over the configured ones as the plugin settings,
+   * starting from the defaults, so an option neither of them names reads its default value.
+   *
+   * @returns {*} The plugin settings now in force.
+   */
+  #composeSettings() {
+    super.updatePluginSettings(null);
+
+    return super.updatePluginSettings(this.#describeDialog(this.#dialogOptions));
+  }
+
+  /**
+   * Returns the options of one dialog: its own options over the configured ones. A dialog that names
+   * `content` and no `template` is a content dialog, so a configured `template` does not reach it, and a
+   * dialog that names `template` and no `content` does not get a configured `content`. A dialog that names
+   * both, or a setting that configures both, keeps both, and `update()` throws for it.
+   *
+   * @param {object} dialogOptions The dialog's own options.
+   * @returns {object}
+   */
+  #describeDialog(dialogOptions: Record<string, unknown>): Record<string, unknown> {
+    const configuredOptions = { ...this.#configuredOptions };
+    const namesContent = 'content' in dialogOptions;
+    const namesTemplate = 'template' in dialogOptions;
+
+    if (namesContent && !namesTemplate) {
+      delete configuredOptions.template;
+    }
+
+    if (namesTemplate && !namesContent) {
+      delete configuredOptions.content;
+    }
+
+    return { ...configuredOptions, ...dialogOptions };
+  }
+
+  /**
+   * Forgets the selection stashed for the hide when `loadData()` replaces the data. The stashed coordinates
+   * address the replaced rows, so restoring them put a selection on unrelated cells of the new data, or past
+   * its end. The hide then leaves the selection alone. A grid with an external data source keeps the stash:
+   * its loads bring another page or order of the same records. `updateData()` keeps the dataset's state by
+   * design, so it keeps the stash too.
+   */
+  #onBeforeLoadData = () => {
+    if (this.hot.runHooks('hasExternalDataSource') === true) {
+      return;
+    }
+
+    this.#selectionState = null;
+  };
+
+  /**
    * Called after the rendering of the table is completed. It updates the width and
    * height of the dialog container to the same size as the table.
    */
@@ -714,6 +847,8 @@ export class Dialog extends BasePlugin {
     this.#ui = null;
     this.#isVisible = false;
     this.#selectionState = null;
+    this.#configuredOptions = {};
+    this.#dialogOptions = {};
 
     super.destroy();
   }

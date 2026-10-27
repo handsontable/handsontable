@@ -106,6 +106,7 @@ describe('Loading settings update', () => {
     hot.updateSettings({ loading: true });
     hot.updateSettings({ loading: { title: 'Wait' } });
     hot.updateSettings({ loading: true });
+    hot.getPlugin('loading').show();
     focus.mockClear();
 
     hot.runHooks('afterDialogFocus');

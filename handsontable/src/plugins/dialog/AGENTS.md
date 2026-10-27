@@ -59,10 +59,48 @@ value containing a space.
 `emptyDataState` and `notification` share this helper; `notification` has no button-type validator and
 normalizes action types in `#normalizeOptions` instead.
 
+## Each show describes one complete dialog
+
+The plugin keeps two option sets apart, and the base plugin's settings are only ever the composition of the two
+(`#composeSettings()`, defaults first):
+
+- `#configuredOptions`: what the `dialog` setting configured, merged across `updateSettings()` calls. Dialog
+  overrides `updatePluginSettings()`, which the base plugin calls for the settings path only.
+- `#dialogOptions`: what `show()` and every `update()` gave the dialog being described now. `hide()` clears them.
+
+So `getSetting()` still reads the dialog on screen, and every option reads its configured value again once the
+dialog hides. The older shape merged every `show()`/`update()` into the plugin settings, so options outlived the
+dialog that set them: after `showConfirm()` the `template` stayed and every `loading.show()` threw (template plus
+content), after a loading screen the `content` stayed and every `showAlert()`/`showConfirm()` threw, and a
+`closable: true` from one dialog let Escape close the next loading screen. An `update()` made while the dialog is
+hidden is kept for the next `show()` (until a hide clears it), because that is how a caller prepares a dialog. The
+template plus content check and the template type check run **before** the options are committed, so a
+throwing `show()` leaves nothing behind. Options are validated against `SETTINGS_VALIDATORS` once, when they arrive
+(`#pickValidOptions()`, which warns the way the base plugin does); never feed the composed object back through
+validation, because the default `template: null` fails its own validator and would warn on every show.
+
+## `updatePlugin()` does NOT run the disable and enable cycle
+
+`disablePlugin()` hides the dialog, so the cycle hid a shown dialog (the loading screen included, without
+`afterLoadingHide`) on every `updateSettings()` that carried `dialog`, which a wrapper re-render does. The plugin
+stays enabled and re-renders a shown dialog through `update({})`, so the shortcuts and the focus scope stay
+registered once. Turning the option off still goes through `disablePlugin()`. Pinned by
+`__tests__/sharedSurface.unit.js`.
+
 ## `template` and `content` are mutually exclusive
 
 Passing both throws (`throwWithCause`). The check compares each against `DEFAULT_SETTINGS`, so "not the
-default" is what counts as "supplied".
+default" is what counts as "supplied". It throws only when one layer sets both: one call (with the `update()`
+calls of the same dialog), or the `dialog` setting. Across the layers the dialog's own options win
+(`#describeDialog()`): a show that names `content` and no `template` drops a configured `template` for that
+dialog, and the reverse. Without that, a `template` in the `dialog` setting made every `loading.show()` throw,
+since Loading always passes `content`, so the loading screen could never appear.
+
+The UI's own template check (`Invalid template: …`) runs before the options are committed too: `update()` hands
+the composed template to `useTemplate()` first, which throws before it changes anything. Committed first, a
+rejected template type stayed in the dialog's options of a dialog that never became visible, so `hide()`
+(which returns early on a hidden dialog) could not clear it, and every later `show({ content })` and
+`loading.show()` threw.
 
 ## Titles are DOM text now, via `htmlToPlainText()`
 
@@ -158,9 +196,13 @@ its container was not.)
 `show()` stashes the selection and `hide()` imports it back, as coordinates. When the view changes under an open
 dialog (a sheets bar switch), those coordinates name the departing sheet's cells, so the sheets bar calls
 `_adoptViewSelection()` (`@private`) after the switch: the dialog takes the selection the grid shows then as the one
-to restore, and clears it while it stays open. A plain `loadData()` under an open dialog keeps the old behavior on
-purpose (show loading, reload, hide, and the cursor is back where it was). EmptyDataState's `isViewChange` is the
-same rule. Pinned by `tests/e2e/sheets-bar-in-flight-work.spec.ts`.
+to restore, and clears it while it stays open. A `loadData()` under an open dialog drops the stash
+(`#onBeforeLoadData`), and the hide then leaves the selection alone: the stashed coordinates addressed the replaced
+data, and restoring them put the selection on unrelated cells or past the new data's end (`[[8, 8]]` on a 2×2 grid).
+Two loads keep it, the same as EmptyDataState: a grid with an external data source (`hasExternalDataSource`), whose
+loads bring another page or order of the same records, and `updateData()`, which fires `beforeUpdateData` and keeps
+the dataset's state by design. Pinned by `__tests__/sharedSurface.unit.js` and
+`tests/e2e/sheets-bar-in-flight-work.spec.ts`.
 
 ## Where to look next
 
