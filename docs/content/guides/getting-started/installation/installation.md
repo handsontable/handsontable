@@ -15,6 +15,7 @@ vue:
   metaTitle: Installation | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Getting started
+menuTag: updated
 ---
 ::: only-for angular
 
@@ -188,6 +189,8 @@ If you're using Angular 21 or newer, please note that older versions of `@handso
 ## Server-side rendering (SSR)
 
 You can include `<hot-table>` in a template that Angular renders on the server, and the server render doesn't throw. On the server, `HotTableComponent` doesn't create a grid, so `hotInstance` stays `null` and the server HTML contains no Handsontable grid. In the browser, the component creates the grid in `ngAfterViewInit`.
+
+While Angular's event dispatch (hydration event replay) contract is active, `event.stopImmediatePropagation()` called in a Handsontable hook does not stop Handsontable listeners attached above `body`; to block a key in that window, return `false` from [`beforeKeyDown`](@/api/hooks.md#beforekeydown).
 
 ## Result
 
