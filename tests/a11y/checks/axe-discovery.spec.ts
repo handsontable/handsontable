@@ -84,6 +84,29 @@ const DISCOVERY_STATES: Record<string, (page: Page, entry: DiscoveryPage, root: 
     await page.locator(`${root} .ht-sheets-bar__tab-label`).first().dblclick();
     await expect(page.locator(`${root} .ht-sheets-bar__tab-rename`)).toBeFocused();
   },
+  // The guides a drag draws exist only while the pointer is held, so the scan runs mid-drag.
+  'column-move-guide': async(page, _entry, root) => {
+    const from = await headerCenter(page, root, 1);
+    const to = await headerCenter(page, root, 3);
+
+    await page.mouse.click(from.x, from.y);
+    await page.mouse.down();
+    await page.mouse.move(to.x, to.y, { steps: 6 });
+    await expect(page.locator(`${root} .ht__manualColumnMove--guideline`)).toBeVisible();
+  },
+  'column-resize-guide': async(page, _entry, root) => {
+    const header = await headerCenter(page, root, 1);
+
+    await page.mouse.move(header.x, header.y);
+
+    const handle = await page.locator(`${root} .manualColumnResizer`).first().boundingBox();
+
+    expect(handle, 'the resize handle shows on the hovered header').not.toBeNull();
+    await page.mouse.move(handle!.x + (handle!.width / 2), handle!.y + (handle!.height / 2));
+    await page.mouse.down();
+    await page.mouse.move(handle!.x + (handle!.width / 2) + 40, handle!.y + (handle!.height / 2), { steps: 6 });
+    await expect(page.locator(`${root} .manualColumnResizerGuide`)).toBeVisible();
+  },
   'dialog-focused': async(page, _entry, root) => {
     await page.evaluate(`(() => { const hot = ${hotOf(root)}; hot.listen(); hot.getPlugin('dialog').focus(); })()`);
     await page.keyboard.press('Tab');
@@ -91,6 +114,28 @@ const DISCOVERY_STATES: Record<string, (page: Page, entry: DiscoveryPage, root: 
       { message: 'the focus is inside the dialog' }).toBe(true);
   },
 };
+
+/**
+ * The center of a column header's topmost copy, in viewport pixels.
+ *
+ * @param page The page.
+ * @param root The root container selector.
+ * @param col The column.
+ * @returns The point.
+ */
+async function headerCenter(page: Page, root: string, col: number): Promise<{ x: number; y: number }> {
+  const point = await page.evaluate(([selector, column]) => {
+    const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as RootWrapper | null)?.__hotInstance as unknown as
+      { getCell(row: number, col: number, topmost?: boolean): HTMLElement | null } | undefined;
+    const box = hot?.getCell(-1, column, true)?.getBoundingClientRect();
+
+    return box ? { x: box.x + (box.width / 2), y: box.y + (box.height / 2) } : null;
+  }, [root, col] as const);
+
+  expect(point, `column header ${col} is drawn`).not.toBeNull();
+
+  return point!;
+}
 
 /**
  * Builds every theme class the page writes as its dark form, before the fixture runs.
