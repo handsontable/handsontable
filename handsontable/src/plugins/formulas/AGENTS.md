@@ -105,36 +105,44 @@ const isRestoreSource = source => source === 'UndoRedo.undo' || source === 'Undo
   that also resets or adopts the stored order. A flag set in `beforeUndo` would leak whenever a later
   `beforeUndo` listener vetoes - the defect the old implementation had.
 
-**A restore trims the lines the reload left behind (DEV-3617).** `setSheetContent()` never shrinks a sheet, so
+**A restore trims the lines the reload left behind.** `setSheetContent()` never shrinks a sheet, so
 the row or column an insert added stayed in the engine when an undo reloaded the sheet without it: one extra
 engine line per insert and undo (7 rows, the last one moved to the top, 40 cycles of an insert at row 2: height
 3 to 45; without a reorder, an insert at row 0 or 1 gave 2 to 42). `addRows` grows the sheet for a real reason
 and the grid's undo never tells the engine, so the undo's reload is where the line is not given back. **Only
-the undo and redo restore trims** (`restoreState()` of a structural step, after the peer rewrites are put
-back). `loadData()`, `updateSettings({ data })` and every other `setSheetContent()` path still keep the
-sheet's size, as before. A host that inserts and then reloads the data in a loop still leaks.
+the undo and redo restore trims** (`#restoreStructure()`, for a structural step, after the peer rewrites are put
+back). A data-only step restores through the other branch of `restoreState()` and never trims, so a sheet the
+host grew keeps its size. `loadData()`, `updateSettings({ data })` and every other `setSheetContent()` path
+still keep the sheet's size, as before. A host that inserts and then reloads the data in a loop still leaks.
 
 The trim takes away only what the step added:
 
-- **It never goes below the size the restored state had.** The state records `sheetSize` (the engine's
-  width and height at capture), and `AxisSyncer#trimUnusedTail(minSize)` stops there, per axis. A row insert
-  and its undo therefore cannot shorten the width, and a sheet the engine had grown on its own (a
-  write-and-clear extension, another sheet's reference) keeps that size. `captureState()` hands back the
-  previous state only when the size is unchanged too, so the floor is never older than the capture.
+- **It never goes below the size the restored state had.** `#sheetSizeFloors` maps each recorded state to
+  the engine's width and height at its last capture, and `AxisSyncer#trimUnusedTail(minSize)` stops there,
+  per axis. A row insert and its undo therefore cannot shorten the width, and a sheet the engine had grown on
+  its own (a write-and-clear extension, another sheet's reference) keeps that size. **The size is not part of
+  the state.** `captureState()` hands back the previous state while the versions are unchanged, and a sheet
+  that another grid grows (`=Sheet1!A50` typed in a second grid) changes no version: a state that carried the
+  size was replaced by a new object, UndoRedo compares states by identity, so it recorded an empty step and
+  dropped the redo stack. A reused state gets its floor raised to the current size instead.
 - **A line goes only when it holds nothing and no formula reads a cell of it** (`getCellDependents()`). An
   empty cell that a formula reads counts towards the sheet's size, and removing its line turns the reference
   into `#REF!` (`=A5*2` becomes `=#REF!*2`, and `SUM(A1:A9)` shrinks). Check the dependents, not only
   `isCellEmpty()`. The trim runs after `#restorePeerRewrites()` because a peer's formula still names the
   shifted line before that. The scan starts at the last line and stops at the first used one, so a sheet
   without a leak pays one line's check.
-- **The trim runs outside `#writeOwnSheet()` on purpose.** Removing lines nothing reads changes no value, so
-  the engine emits no `valuesUpdated` for it and nothing is repainted (measured: the same render count on the
-  grid and on a second grid, with and without the trim). It is not in a `finally`: a half-applied restore
-  leaves lines still to be filled that look unused, and a throw there would mask the original error. If a
-  future engine version makes the removal emit, wrap it in the axis syncer's `getOwnEngineWrite()`.
+- **The reload, the peer rewrites and both trims are one engine batch, so a restore emits once.** Every
+  engine call recalculates a volatile formula (`=RAND()`), and each recalculation emits `valuesUpdated` and
+  `afterFormulasValuesUpdate` and repaints a second grid on the engine again. Trimming in a call of its own
+  made that two emits for one undo. The batch is why `#restoreStructure()` reads the source data before it
+  and holds `#internalOperationPending` for its length: a suspended engine refuses value reads, and those
+  come from `modifyData` and `modifySourceData`. `#restorePeerRewrites()` runs inside it without a batch of
+  its own (a nested `batch()` would end the suspension), and `#syncPeerSources()` runs after it, because it
+  reads values. The trim is not in a `finally`: after a half-applied restore, lines still to be filled look
+  unused, and the batch skips it when something above throws.
 - **Known limit: a whole-column or whole-row reference (`SUM(A:A)`, `SUM(1:1)`) is never trimmed.** It
   depends on every cell of its column or row, so no line is unused and the sheet grows by one line per
-  insert and undo, exactly as on develop. Pinned as such in `__tests__/insertUndoEngineSize.unit.js`;
+  insert and undo, as it does without the trim. Pinned as such in `__tests__/insertUndoEngineSize.unit.js`;
   fixing it means asking whether the only readers of a line are ranges that span the whole axis.
 
 Pinned by `__tests__/insertUndoEngineSize.unit.js`, which also pins formulas that read cells past the content.
