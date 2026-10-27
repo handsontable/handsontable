@@ -1,3 +1,4 @@
+import { toRaw } from 'vue';
 import Handsontable from 'handsontable/base';
 import { HotTableProps, VueProps } from './types';
 
@@ -122,7 +123,7 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
       hasOwnProperty(hotSettingsInProps, key) &&
       hotSettingsInProps[key] !== undefined &&
       !initOnlySettingKeys.includes(key) &&
-      ((currentSettings && key !== 'data') ? !simpleEqual(currentSettings[key], hotSettingsInProps[key]) : true)
+      ((currentSettings && key !== 'data') ? !isEqualSetting(key, currentSettings[key], hotSettingsInProps[key]) : true)
     ) {
       newSettings[key] = hotSettingsInProps[key];
     }
@@ -137,13 +138,72 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
       additionalHotSettingsInProps[key] !== undefined &&
       !initOnlySettingKeys.includes(key) &&
       ((currentSettings && key !== 'data')
-        ? !simpleEqual(currentSettings[key], additionalHotSettingsInProps[key]) : true)
+        ? !isEqualSetting(key, currentSettings[key], additionalHotSettingsInProps[key]) : true)
     ) {
       newSettings[key] = additionalHotSettingsInProps[key];
     }
   }
 
   return newSettings;
+}
+
+/**
+ * Compare the grid's current value of a setting with the value passed through the props.
+ *
+ * `sheetsBar` is compared key by key, by reference: a template writes it as an object literal
+ * (`:sheetsBar="{ sheets }"`), which is a new object on every render, while the sheets it holds keep
+ * every sheet's data, which must not be serialized on each change. A new `sheets` array or a changed
+ * option is therefore sent, even when it differs only by a function, and the plugin's own writes into
+ * the `sheets` array are not. Every other setting is compared with `simpleEqual()`.
+ *
+ * @param {string} key The setting name.
+ * @param {unknown} currentValue The grid's current value.
+ * @param {unknown} newValue The value passed through the props.
+ * @returns {boolean} `true` if the value does not need to be sent.
+ */
+function isEqualSetting(key: string, currentValue: unknown, newValue: unknown): boolean {
+  if (key === 'sheetsBar') {
+    return isShallowEqualByReference(currentValue, newValue);
+  }
+
+  return simpleEqual(currentValue, newValue);
+}
+
+/**
+ * Compare two values by reference, and two plain objects by the references of their own keys.
+ * Reactive proxies are compared by their raw objects.
+ *
+ * @param {unknown} valueA First value to compare.
+ * @param {unknown} valueB Second value to compare.
+ * @returns {boolean} `true` if they're the same, `false` otherwise.
+ */
+function isShallowEqualByReference(valueA: unknown, valueB: unknown): boolean {
+  const rawA = toRaw(valueA);
+  const rawB = toRaw(valueB);
+
+  if (rawA === rawB) {
+    return true;
+  }
+
+  if (!isPlainObject(rawA) || !isPlainObject(rawB)) {
+    return false;
+  }
+
+  const keysA = Object.keys(rawA);
+  const keysB = Object.keys(rawB);
+
+  return keysA.length === keysB.length &&
+    keysA.every(propName => hasOwnProperty(rawB, propName) && toRaw(rawA[propName]) === toRaw(rawB[propName]));
+}
+
+/**
+ * Check if a value is a plain object.
+ *
+ * @param {unknown} value The value to check.
+ * @returns {boolean}
+ */
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return Object.prototype.toString.call(value) === '[object Object]';
 }
 
 /**
