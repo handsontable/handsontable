@@ -1,7 +1,7 @@
 ---
 type: tutorial
 title: Agent-driven grid with CopilotKit
-metaTitle: Agent-driven grid with CopilotKit | Handsontable DataGrid for React
+metaTitle: Agent-driven grid with CopilotKit | Handsontable DataGrid for JavaScript
 description: Let an AI agent edit a Handsontable DataGrid through CopilotKit tools. The agent writes columns, data, and formulas; HyperFormula computes them in the browser; and one undo stack covers both agent and user edits.
 permalink: /recipes/real-time/copilotkit-agent-grid
 canonicalUrl: /recipes/real-time/copilotkit-agent-grid

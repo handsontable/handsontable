@@ -10,7 +10,7 @@ registerAllModules();
 export type GridProps = {
   // Lifted to the parent so the agent tools and the snapshot bridge can reach the live instance
   // (setDataAtCell, alter, getPlugin('undoRedo'), getSourceData, and so on).
-  hotRef: RefObject<HotTableRef | null>;
+  hotRef: RefObject<HotTableRef>;
   // Passed once, at mount, and never fed back. After this the grid owns its data: every later
   // change goes through the instance, not through this prop. See the memo note below.
   initialColumns: string[];
