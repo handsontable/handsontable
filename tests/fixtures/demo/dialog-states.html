@@ -35,6 +35,8 @@
     window.htFocus = htPick('focus', { 0: false, 1: true }, '0');
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } input { margin: 10px; } </style>
+  <!-- PLANTED DEFECT (reverted in the next commit): the dialog title is cut off in a 30 px box. -->
+  <style> .ht-dialog__title { width: 30px; white-space: nowrap; overflow: hidden; } </style>
 </head>
 <body>
   <!--
