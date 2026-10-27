@@ -277,6 +277,82 @@ describe('external engine changes repaint formula cells', () => {
       expect(renders1).toBe(1);
       expect(grids[0].getCell(1, 1).textContent).toBe('Opel');
     });
+
+    describe('when the referenced cell has no value in the new sheet', () => {
+      let engine;
+
+      beforeEach(() => {
+        engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+      });
+
+      it('clears #REF! in the grid that names an empty cell of the new sheet, once', () => {
+        grids.push(mountGrid(containers[0], [['a', '=Sheet2!A2']], engine, 'Sheet1', () => {
+          renders1 += 1;
+        }));
+        renders1 = 0;
+        grids.push(mountGrid(containers[1], [['x', 'y']], engine, 'Sheet2', () => {}));
+
+        expect(grids[0].getCell(0, 1).textContent).toBe('');
+        expect(renders1).toBe(1);
+      });
+
+      it('clears #REF! in the grid that names a cell outside the new sheet, once', () => {
+        grids.push(mountGrid(containers[0], [['a', '=Sheet2!C9']], engine, 'Sheet1', () => {
+          renders1 += 1;
+        }));
+        renders1 = 0;
+        grids.push(mountGrid(containers[1], [['x']], engine, 'Sheet2', () => {}));
+
+        expect(grids[0].getCell(0, 1).textContent).toBe('');
+        expect(renders1).toBe(1);
+      });
+    });
+
+    describe('when the grid is renamed to a sheet the other grid names', () => {
+      let engine;
+
+      beforeEach(() => {
+        engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+        grids.push(mountGrid(containers[0], [['a', '=Sheet3!B2']], engine, 'Sheet1', () => {
+          renders1 += 1;
+        }));
+        grids.push(mountGrid(containers[1], [['x', 'y']], engine, 'Sheet2', () => {}));
+        renders1 = 0;
+      });
+
+      it('paints the other grid once with the value of the filled cell', () => {
+        grids[1].updateSettings({
+          data: [['p', 'q'], ['r', 'moved']],
+          formulas: { engine, sheetName: 'Sheet3' },
+        });
+
+        expect(grids[0].getCell(0, 1).textContent).toBe('moved');
+        expect(renders1).toBe(1);
+      });
+
+      it('paints the other grid once when the referenced cell is empty', () => {
+        grids[1].updateSettings({
+          data: [['p', 'q']],
+          formulas: { engine, sheetName: 'Sheet3' },
+        });
+
+        expect(grids[0].getCell(0, 1).textContent).toBe('');
+        expect(renders1).toBe(1);
+      });
+    });
+
+    it('paints the grid that names the sheet once when a grid built without data registers it', () => {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+      grids.push(mountGrid(containers[0], [['a', '=Sheet2!A1']], engine, 'Sheet1', () => {
+        renders1 += 1;
+      }));
+      renders1 = 0;
+      grids.push(mountGrid(containers[1], undefined, engine, 'Sheet2', () => {}));
+
+      expect(grids[0].getCell(0, 1).textContent).toBe('');
+      expect(renders1).toBe(1);
+    });
   });
 
   describe('addSheet and engine settings', () => {

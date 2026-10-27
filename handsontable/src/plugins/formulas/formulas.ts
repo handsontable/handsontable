@@ -670,6 +670,12 @@ export class Formulas extends BasePlugin {
   #sheetsNotNamingOwnSheet = new Set<number>();
 
   /**
+   * What the engine reported while this grid registered its sheet, owed to the paint of the write that
+   * fills it – see `#registerSheet()`. `renderDependentSheets()` takes it.
+   */
+  #registrationChanges: unknown[] = [];
+
+  /**
    * The cells an undo or a redo recalculated when it reloaded the sheet, validated once the restore is
    * done – see `#validateRestoredDependents`.
    */
@@ -1194,6 +1200,7 @@ export class Formulas extends BasePlugin {
     this.#sourceRowCountAtLastSync = null;
     this.#sheetIdAtLastSync = null;
     this.#sheetResyncPending = false;
+    this.#registrationChanges = [];
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
 
     if (this.engine) {
@@ -2054,8 +2061,12 @@ export class Formulas extends BasePlugin {
    */
   renderDependentSheets(dependentCells: unknown[], renderSelf = false) {
     const affectedSheetIds = new Set();
+    const changes = this.#registrationChanges.length > 0 ?
+      dependentCells.concat(this.#registrationChanges) : dependentCells;
 
-    dependentCells.forEach((change: unknown) => {
+    this.#registrationChanges = [];
+
+    changes.forEach((change: unknown) => {
       // For the Named expression the address is empty, hence the `sheetId` is undefined.
       const sheetId = isHFCellChange(change) ? change.address?.sheet : undefined;
 
@@ -3754,19 +3765,15 @@ export class Formulas extends BasePlugin {
 
     this.#closeLeakedGuards();
 
+    const engine = this.engine;
+
     // Fall back to the sheet this instance already owns. Without it every `loadData`/`updateData`
     // call adds a sheet and abandons the previous one - with its whole dependency graph - inside
     // the engine, which the engine then recalculates on every subsequent call.
     const bindSheet = () => setupSheet(
-      this.engine!, this.#requestedSheetName() ?? this.sheetName ?? this.#readSheetNameSetting(),
+      engine, this.#requestedSheetName() ?? this.sheetName ?? this.#readSheetNameSetting(),
     );
-    // Adding the sheet makes the engine re-resolve a formula in another grid that named it before it
-    // existed. The write that fills the sheet paints that grid through `renderDependentSheets`, so the
-    // listener must not paint it as well. A grid built from the sheet writes nothing, so it keeps the
-    // listener's paint.
-    const sheetName = this.#hotWasInitializedWithEmptyData
-      ? bindSheet()
-      : withPluginEngineWrite(this.engine, bindSheet);
+    const sheetName = this.#hotWasInitializedWithEmptyData ? bindSheet() : this.#registerSheet(engine, bindSheet);
 
     this.#updateSheetNameAndSheetId(sheetName);
     this.#followSheetNameSettingWhenBound();
@@ -3793,6 +3800,36 @@ export class Formulas extends BasePlugin {
       this.#loadSheet(this.sheetName);
     }
   };
+
+  /**
+   * Binds the grid's sheet, adding it to the engine when it is not there, for a grid whose data is
+   * written into that sheet right after (`#loadSourceDataIntoSheet()`, or `#resyncSheet()` when the
+   * load came from `updateSettings()`).
+   *
+   * Registering the sheet and filling it are one logical write that reaches the engine in two change
+   * lists. Adding the sheet makes the engine re-resolve a formula in another grid that named it first
+   * (`#REF!` becomes the cell's value, or empty), and that cell is in the first list alone when the
+   * fill leaves it empty. So the first list is not painted here: it is kept and handed to
+   * `renderDependentSheets()` with the fill's, and every grid that read the sheet paints once, after
+   * the data is in.
+   *
+   * @param {object} engine The engine the grid is bound to.
+   * @param {Function} bindSheet Adds the sheet when needed and returns its name.
+   * @returns {string} The sheet name.
+   */
+  #registerSheet(engine: HyperFormulaEngine, bindSheet: () => string): string {
+    const keepChanges = (changes: unknown[]) => {
+      this.#registrationChanges = this.#registrationChanges.concat(changes);
+    };
+
+    engine.on('valuesUpdated', keepChanges);
+
+    try {
+      return withPluginEngineWrite(engine, bindSheet);
+    } finally {
+      engine.off('valuesUpdated', keepChanges);
+    }
+  }
 
   /**
    * Binds the sheet a load brought back without writing the loaded data into it: the engine already holds
