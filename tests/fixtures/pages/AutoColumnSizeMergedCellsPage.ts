@@ -59,7 +59,9 @@ export class AutoColumnSizeMergedCellsPage {
     this.bundle = bundle;
   }
 
-  /** Opens the fixture and waits for the placeholder grid to be built and rendered. */
+  /**
+   * Opens the fixture and waits for the placeholder grid to be built and rendered.
+   */
   async goto(): Promise<void> {
     await this.page.goto(`/tests/fixtures/demo/auto-column-size-merged-cells.html?theme=${this.theme}&bundle=${this.bundle}`);
     await awaitBundle(this.page);
@@ -67,7 +69,9 @@ export class AutoColumnSizeMergedCellsPage {
     await expect(this.page.getByTestId('grid').locator('.ht_master td').first()).toBeVisible();
   }
 
-  /** Rebuilds the grid with the given settings and returns the column widths it renders with. */
+  /**
+   * Rebuilds the grid with the given settings and returns the column widths it renders with.
+   */
   async build(settings: GridSettings): Promise<number[]> {
     await this.page.evaluate(gridSettings => (window as unknown as FixtureWindow).buildGrid(gridSettings), settings);
     await expect(this.page.getByTestId('grid').locator('.ht_master td').first()).toBeVisible();
@@ -75,7 +79,9 @@ export class AutoColumnSizeMergedCellsPage {
     return this.widths();
   }
 
-  /** The width of every column, as the grid renders it. */
+  /**
+   * The width of every column, as the grid renders it.
+   */
   async widths(): Promise<number[]> {
     return this.page.evaluate(() => {
       const { hot } = window as unknown as FixtureWindow;
@@ -84,14 +90,18 @@ export class AutoColumnSizeMergedCellsPage {
     });
   }
 
-  /** Merges a range through the MergeCells API, the way the context menu does. */
+  /**
+   * Merges a range through the MergeCells API, the way the context menu does.
+   */
   async merge(startRow: number, startColumn: number, endRow: number, endColumn: number): Promise<void> {
     await this.page.evaluate(([r1, c1, r2, c2]) => {
       (window as unknown as FixtureWindow).hot.getPlugin('mergeCells').merge!(r1, c1, r2, c2);
     }, [startRow, startColumn, endRow, endColumn]);
   }
 
-  /** Unmerges a range through the MergeCells API, the way the context menu does. */
+  /**
+   * Unmerges a range through the MergeCells API, the way the context menu does.
+   */
   async unmerge(startRow: number, startColumn: number, endRow: number, endColumn: number): Promise<void> {
     await this.page.evaluate(([r1, c1, r2, c2]) => {
       (window as unknown as FixtureWindow).hot.getPlugin('mergeCells').unmerge!(r1, c1, r2, c2);
@@ -126,22 +136,30 @@ export class AutoColumnSizeMergedCellsPage {
     await dragResizeHandle(this.page, handle, { x: deltaX });
   }
 
-  /** Inserts one column before the given one. */
+  /**
+   * Inserts one column before the given one.
+   */
   async insertColumnBefore(column: number): Promise<void> {
     await this.page.evaluate(index => (window as unknown as FixtureWindow).hot.alter('insert_col_start', index), column);
   }
 
-  /** Replaces the data through `loadData()`. */
+  /**
+   * Replaces the data through `loadData()`.
+   */
   async loadData(data: unknown[][]): Promise<void> {
     await this.page.evaluate(rows => (window as unknown as FixtureWindow).hot.loadData(rows), data);
   }
 
-  /** Applies settings through `updateSettings()`. */
+  /**
+   * Applies settings through `updateSettings()`.
+   */
   async updateSettings(settings: Record<string, unknown>): Promise<void> {
     await this.page.evaluate(next => (window as unknown as FixtureWindow).hot.updateSettings(next), settings);
   }
 
-  /** Renders the grid, the way an application's `render()` call does. */
+  /**
+   * Renders the grid, the way an application's `render()` call does.
+   */
   async render(): Promise<void> {
     await this.page.evaluate(() => (window as unknown as FixtureWindow).hot.render());
   }
@@ -184,7 +202,9 @@ export class AutoColumnSizeMergedCellsPage {
     }, [row, column, referenceRow]);
   }
 
-  /** Writes a value through `setDataAtCell()`, the path an edit takes. */
+  /**
+   * Writes a value through `setDataAtCell()`, the path an edit takes.
+   */
   async setDataAtCell(row: number, column: number, value: unknown): Promise<void> {
     await this.page.evaluate(([r, c, v]) => {
       (window as unknown as FixtureWindow).hot.setDataAtCell(r as number, c as number, v);
