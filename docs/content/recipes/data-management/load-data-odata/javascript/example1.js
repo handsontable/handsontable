@@ -30,11 +30,21 @@ function toODataFilter(filters) {
       const isNumeric = NUMERIC_FIELDS.includes(prop);
       // Compare text in lower case, because the Filters plugin ignores case.
       const field = isNumeric ? prop : `tolower(${prop})`;
-      const toLiteral = (value) => (isNumeric ? Number(value) : `'${String(value).toLowerCase().replace(/'/g, "''")}'`);
-      const parts = conditions.map(({ name = '', args }) => `(${CONDITIONS[name](field, ...args.map(toLiteral))})`);
+      const toLiteral = (value) =>
+        isNumeric ? parseFloat(String(value)) : `'${String(value).toLowerCase().replace(/'/g, "''")}'`;
+      const parts = conditions.flatMap(({ name = '', args }) => {
+        // Like the Filters plugin, accept the two bounds of `between` in either order.
+        const values = isNumeric ? args.map(toLiteral).sort((x, y) => Number(x) - Number(y)) : args.map(toLiteral);
+        // Skip a condition the table does not map, or a numeric input that is not a number.
+        const isMapped =
+          Object.hasOwn(CONDITIONS, name) && values.every((v) => typeof v === 'string' || Number.isFinite(v));
 
-      return `(${parts.join(operation === 'conjunction' ? ' and ' : ' or ')})`;
+        return isMapped ? [`(${CONDITIONS[name](field, ...values)})`] : [];
+      });
+
+      return parts.length ? `(${parts.join(operation === 'conjunction' ? ' and ' : ' or ')})` : '';
     })
+    .filter(Boolean)
     .join(' and ');
 }
 
