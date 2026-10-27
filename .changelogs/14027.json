@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `Formulas` plugin showing wrong values and formula text after `setIndexesSequence()`, a row or column move, or a sort put an empty or just-appended row or column ahead of rows or columns that hold content.",
+  "type": "fixed",
+  "issueOrPR": 14027,
+  "breaking": false,
+  "framework": "none"
+}
