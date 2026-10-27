@@ -167,6 +167,43 @@ describe('SheetsBar: the `sheets` array works like `data`', () => {
       expect(removed).not.toHaveBeenCalled();
     });
 
+    it('refuses an inline rename of a frozen entry with a warning, and gives the tab its label back', () => {
+      const sheets = [Object.freeze({ name: 'A', data: [[1]] }), { name: 'B', data: [[2]] }];
+      const plugin = buildWorkbook(sheets);
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const tab = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab--active');
+
+      tab.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+
+      const input = tab.querySelector('.ht-sheets-bar__tab-rename');
+
+      input.value = 'A2';
+
+      expect(() => {
+        input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      }).not.toThrow();
+
+      const activeTab = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab--active');
+
+      expect(plugin.getSheets().map(sheet => sheet.name)).toEqual(['A', 'B']);
+      expect(activeTab.querySelector('.ht-sheets-bar__tab-rename')).toBe(null);
+      expect(activeTab.getAttribute('role')).toBe('button');
+      expect(activeTab.textContent).toContain('A');
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('frozen'));
+    });
+
+    it('refuses the add button on a frozen array with a warning', () => {
+      const sheets = Object.freeze([{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }]);
+      const plugin = buildWorkbook(sheets);
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      expect(() => {
+        hot.rootWrapperElement.querySelector('.ht-sheets-bar__add').click();
+      }).not.toThrow();
+      expect(plugin.getSheets().map(sheet => sheet.name)).toEqual(['A', 'B']);
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('frozen'));
+    });
+
     it('stores a sheet the bar created through the array it was pushed into', () => {
       const pushed = [];
       const sheets = [{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }];
@@ -404,6 +441,19 @@ describe('SheetsBar: the `sheets` array works like `data`', () => {
       expect(hot.getColHeader(0)).toBe('X');
     });
 
+    it('does not carry a key set on the visible sheet over to the other sheets', () => {
+      const plugin = buildWorkbook([{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }]);
+
+      plugin.updateSheetSettings('A', { readOnly: true });
+      plugin.setActiveSheet('B');
+
+      expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
+
+      plugin.setActiveSheet('A');
+
+      expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
+    });
+
     it('applies the settings to another sheet on its next visit, and keeps them there', () => {
       const plugin = buildWorkbook([{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }]);
 
@@ -525,6 +575,87 @@ describe('SheetsBar: the `sheets` array works like `data`', () => {
       const borders = hot.getPlugin('customBorders').getBorders();
 
       expect(borders.map(entry => [entry.row, entry.col])).toEqual([[1, 1]]);
+    });
+
+    it('applies a new frozen count to a hidden sheet the user already visited, and keeps the rest of its view', () => {
+      const plugin = buildWorkbook([
+        { name: 'A', data: [[1, 2, 3], [4, 5, 6]] },
+        { name: 'B', data: [[1, 2, 3], [4, 5, 6]] },
+      ]);
+
+      plugin.setActiveSheet('B');
+      hot.selectCell(1, 1);
+      plugin.setActiveSheet('A');
+      plugin.updateSheetSettings('B', { fixedColumnsStart: 2 });
+      plugin.setActiveSheet('B');
+
+      expect(hot.getSettings().fixedColumnsStart).toBe(2);
+      expect(hot.getSelectedLast()).toEqual([1, 1, 1, 1]);
+
+      plugin.setActiveSheet('A');
+
+      expect(hot.getSettings().fixedColumnsStart).toBe(0);
+    });
+
+    it('applies new `hiddenColumns` to a hidden sheet the user already visited', () => {
+      const plugin = buildWorkbook([
+        { name: 'A', data: [[1, 2, 3]] },
+        { name: 'B', data: [[1, 2, 3]], settings: { hiddenColumns: { columns: [0] } } },
+      ]);
+
+      plugin.setActiveSheet('B');
+      hot.getPlugin('hiddenColumns').hideColumn(1);
+      plugin.setActiveSheet('A');
+      plugin.updateSheetSettings('B', { hiddenColumns: { columns: [2] } });
+      plugin.setActiveSheet('B');
+
+      expect(hot.getPlugin('hiddenColumns').getHiddenColumns()).toEqual([2]);
+    });
+
+    it('applies new `colWidths` over the widths a hidden sheet the user already visited was resized to', () => {
+      const plugin = buildWorkbook([
+        { name: 'A', data: [[1, 2]] },
+        { name: 'B', data: [[1, 2]], settings: { manualColumnResize: true } },
+      ]);
+
+      plugin.setActiveSheet('B');
+      hot.getPlugin('manualColumnResize').setManualSize(0, 200);
+      plugin.setActiveSheet('A');
+      plugin.updateSheetSettings('B', { colWidths: 80 });
+      plugin.setActiveSheet('B');
+
+      expect(hot.getColWidth(0)).toBe(80);
+    });
+
+    it('applies a new sort to a hidden sheet the user already visited', () => {
+      const plugin = buildWorkbook([
+        { name: 'A', data: [[1]] },
+        { name: 'B', data: [[2], [3], [1]], settings: { columnSorting: true } },
+      ]);
+
+      plugin.setActiveSheet('B');
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+      plugin.setActiveSheet('A');
+      plugin.updateSheetSettings('B', { columnSorting: { initialConfig: { column: 0, sortOrder: 'asc' } } });
+      plugin.setActiveSheet('B');
+
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 0, sortOrder: 'asc' }]);
+      expect(hot.getDataAtCol(0)).toEqual([1, 2, 3]);
+    });
+
+    it('applies a new page setup to a hidden sheet the user already visited', () => {
+      const plugin = buildWorkbook([
+        { name: 'A', data: [[1]] },
+        { name: 'B', data: [[1], [2], [3]], settings: { pagination: { pageSize: 1 } } },
+      ]);
+
+      plugin.setActiveSheet('B');
+      hot.getPlugin('pagination').setPage(3);
+      plugin.setActiveSheet('A');
+      plugin.updateSheetSettings('B', { pagination: { pageSize: 1, initialPage: 2 } });
+      plugin.setActiveSheet('B');
+
+      expect(hot.getPlugin('pagination').getPaginationData().currentPage).toBe(2);
     });
 
     it('refuses a sheet\'s `data`, which the sheets bar keeps itself', () => {

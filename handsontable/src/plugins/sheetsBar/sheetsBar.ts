@@ -29,6 +29,9 @@ import {
   restoreViewport,
   type TrackedCellMeta,
   type ViewState,
+  type FrozenCountKey,
+  type ViewStatePart,
+  VIEW_STATE_PARTS,
 } from '../../utils/viewState/viewState';
 import { withoutUndoEntry } from '../../utils/viewState/withoutUndoEntry';
 import * as C from '../../i18n/constants';
@@ -182,6 +185,39 @@ const UNFILTERED_SETTING_KEYS = new Set([PLUGIN_KEY, 'data', 'dataProvider']);
  * Keys `updateSheetSettings()` does not take: the bar itself, which a sheet cannot reconfigure, and `data`,
  * which is the sheet's `data` in the host's `sheets` array, not one of its settings.
  */
+/**
+ * The view-state parts each setting declares. A hidden sheet that `updateSheetSettings()` gives one of these
+ * settings resets the parts on its next visit, so the new value applies, instead of restoring what the sheet
+ * kept for them. A sort also takes the row order: the kept order is the sorted one, and a row order restored
+ * without its sort clears the sort.
+ */
+const VIEW_STATE_PARTS_BY_SETTING: Partial<Record<string, ViewStatePart[]>> = {
+  manualColumnMove: ['columnOrder'],
+  manualRowMove: ['rowOrder'],
+  columnSorting: ['sort', 'rowOrder'],
+  multiColumnSorting: ['sort', 'rowOrder'],
+  filters: ['filters'],
+  trimRows: ['trimmedRows'],
+  hiddenRows: ['hiddenRows'],
+  hiddenColumns: ['hiddenColumns'],
+  nestedRows: ['collapsedRows'],
+  colWidths: ['columnWidths'],
+  manualColumnResize: ['columnWidths'],
+  rowHeights: ['rowHeights'],
+  manualRowResize: ['rowHeights'],
+  pagination: ['pagination'],
+};
+
+/**
+ * Whether a setting name is one of the four frozen counts.
+ *
+ * @param {string} key The setting name.
+ * @returns {boolean}
+ */
+function isFrozenCountKey(key: string): key is FrozenCountKey {
+  return FROZEN_COUNT_KEYS.some(frozenKey => frozenKey === key);
+}
+
 const UNSETTABLE_SHEET_KEYS = new Set([PLUGIN_KEY, 'data']);
 
 /**
@@ -662,6 +698,11 @@ export class SheetsBar extends BasePlugin {
    * @type {WeakSet<object>}
    */
   #redeclaredBorders = new WeakSet<Sheet>();
+  /**
+   * The view-state parts of a hidden sheet that `updateSheetSettings()` declared anew. The sheet's next visit
+   * resets those parts and lets the declared settings apply, as on a first visit, and restores the rest.
+   */
+  #redeclaredParts = new WeakMap<Sheet, Set<ViewStatePart>>();
   /**
    * The grid-level `cell` option, taken when the workbook starts and refreshed by a grid-level update
    * (`#refreshGridCellOption`). A sheet that declares no `cell` of its own restates it on a switch.
@@ -1296,28 +1337,34 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Throws, before anything changes, when the host's `sheets` arrays cannot take an added or a removed entry.
-   * The write into the array comes after the model has changed, so a frozen array (Immer, Redux Toolkit,
-   * `Object.freeze`) used to throw halfway: the tab was in the model, the strip, the formula engine and the
-   * after-hook were not. A workbook that declares no array has nothing to write.
+   * Answers, before anything changes, whether the host's `sheets` arrays can take an added or a removed
+   * entry. The write into the array comes after the model has changed, so a frozen array (Immer, Redux
+   * Toolkit, `Object.freeze`) used to throw halfway: the tab was in the model, the strip, the formula engine
+   * and the after-hook were not. A workbook that declares no array has nothing to write.
+   *
+   * @param {string} source The source of the change.
+   * @returns {boolean} `true` when the arrays can be written.
    */
-  #assertSheetArraysWritable() {
-    if (this.#configuredSheetArrays().some(sheets => !Object.isExtensible(sheets))) {
-      throwWithCause(SHEETS_NOT_WRITABLE_ERROR);
-    }
+  #canWriteSheetArrays(source: string): boolean {
+    return this.#refuseUnwritable(
+      this.#configuredSheetArrays().every(sheets => Object.isExtensible(sheets)),
+      source,
+    );
   }
 
   /**
-   * Throws, before anything changes, when a sheet's entry in the host's `sheets` array cannot take a new
-   * `name`, for the same reason as `#assertSheetArraysWritable`.
+   * Answers, before anything changes, whether a sheet's entry in the host's `sheets` array can take a new
+   * `name`, for the same reason as `#canWriteSheetArrays`.
    *
    * @param {number} id The sheet about to be renamed.
+   * @param {string} source The source of the change.
+   * @returns {boolean} `true` when the entry can be written.
    */
-  #assertDeclaredNameWritable(id: number) {
+  #canWriteDeclaredName(id: number, source: string): boolean {
     const entry = this.#declaredEntries.get(id);
 
     if (!entry) {
-      return;
+      return true;
     }
 
     const descriptor = Object.getOwnPropertyDescriptor(entry, 'name');
@@ -1325,9 +1372,29 @@ export class SheetsBar extends BasePlugin {
       ? descriptor.writable === true || typeof descriptor.set === 'function'
       : Object.isExtensible(entry);
 
+    return this.#refuseUnwritable(isWritable, source);
+  }
+
+  /**
+   * Turns a `sheets` array the bar cannot write into the answer its caller expects. An API call throws, as a
+   * frozen `data` array does on an edit, so the host learns about it where it can catch it. A gesture in the
+   * bar is refused with a warning instead: thrown from an event listener, the error reached no host code, and
+   * a rename left its tab with the input in place of the label.
+   *
+   * @param {boolean} isWritable Whether the arrays or the entry can be written.
+   * @param {string} source The source of the change.
+   * @returns {boolean} `isWritable`, when the call does not throw.
+   */
+  #refuseUnwritable(isWritable: boolean, source: string): boolean {
     if (!isWritable) {
-      throwWithCause(SHEETS_NOT_WRITABLE_ERROR);
+      if (source !== SOURCE_UI) {
+        throwWithCause(SHEETS_NOT_WRITABLE_ERROR);
+      }
+
+      warn(SHEETS_NOT_WRITABLE_ERROR);
     }
+
+    return isWritable;
   }
 
   /**
@@ -1974,8 +2041,10 @@ export class SheetsBar extends BasePlugin {
    * pass are merged into the settings the sheet already has. A key passed as `undefined` is left out, as
    * {@link Core#updateSettings} leaves it out, so a key a sheet declares cannot be removed from it, only
    * given another value. On the visible sheet the change applies at once; on any other sheet it applies
-   * when the sheet is shown next, in place of what the sheet kept from your last visit for that key (its
-   * merged cells, custom borders, `cell` meta and column summary positions). The settings stay with the
+   * when the sheet is shown next, in place of what the sheet kept from your last visit for that key: its
+   * frozen rows and columns, hidden rows and columns, sort, filters, row and column order, sizes, page,
+   * merged cells, custom borders, `cell` meta, or column summary positions. The rest of what it kept, such
+   * as the selection and the scroll position, comes back as usual. The settings stay with the
    * sheet: the entry in your `sheets` array keeps the `settings` you declared, the way
    * {@link Core#updateSettings} never writes into the object you passed it.
    *
@@ -2014,7 +2083,7 @@ export class SheetsBar extends BasePlugin {
     if (model?.getActiveSheet()?.id === id) {
       this.#applyToVisibleSheet(changes, sheet.settings);
     } else {
-      this.#dropKeptStateFor(sheet, Object.keys(changes));
+      this.#dropKeptStateFor(sheet, changes);
     }
 
     return true;
@@ -2337,11 +2406,9 @@ export class SheetsBar extends BasePlugin {
   ): SheetDescriptor | null {
     const model = this.#model;
 
-    if (model === null) {
+    if (model === null || !this.#canWriteSheetArrays(source)) {
       return null;
     }
-
-    this.#assertSheetArraysWritable();
 
     const sheet = this.#commit(
       'beforeSheetTabAdd',
@@ -2717,6 +2784,11 @@ export class SheetsBar extends BasePlugin {
     // re-measures the column widths of the sheet that has just arrived — on a large sheet that
     // was four sweeps over the same data before a single frame reached the screen.
     const viewState = newSheet.viewState as unknown as ViewState | undefined;
+    const redeclaredParts = viewState ? this.#redeclaredParts.get(newSheet) : undefined;
+    const keptParts = redeclaredParts
+      ? new Set(VIEW_STATE_PARTS.filter(part => !redeclaredParts.has(part)))
+      : undefined;
+
     const switchSheet = () => {
       if (this.hot.view) {
         this.hot.deselectCell();
@@ -2736,6 +2808,10 @@ export class SheetsBar extends BasePlugin {
       } else {
         clearMergedCells(this.hot);
         clearCustomBorders(this.hot);
+
+        if (redeclaredParts) {
+          resetViewState(this.hot, {}, redeclaredParts);
+        }
       }
 
       const copiedCellMeta = viewState ? undefined : this.#copiedCellMeta.get(newSheet);
@@ -2746,7 +2822,7 @@ export class SheetsBar extends BasePlugin {
       });
 
       if (viewState) {
-        restoreViewState(this.hot, viewState);
+        restoreViewState(this.hot, viewState, keptParts);
       } else if (copiedCellMeta) {
         this.#copiedCellMeta.delete(newSheet);
         rebuildCustomBordersFromCellMeta(this.hot);
@@ -2767,6 +2843,8 @@ export class SheetsBar extends BasePlugin {
       }, engineOrder);
     });
 
+    this.#redeclaredParts.delete(newSheet);
+
     // The selection, the scroll position, and the hook wait for the batch to end: the first two
     // need the arriving sheet painted at its own sizes, and a listener reading the DOM from the
     // hook has to see the sheet it is being told about.
@@ -2775,7 +2853,11 @@ export class SheetsBar extends BasePlugin {
 
       this.#batchRender(() => {
         if (viewState) {
-          selectionRestored = restoreViewport(this.hot, viewState);
+          if (redeclaredParts) {
+            resetViewport(this.hot, redeclaredParts);
+          }
+
+          selectionRestored = restoreViewport(this.hot, viewState, keptParts);
 
           if (!selectionRestored) {
             this.hot.deselectCell();
@@ -3383,14 +3465,17 @@ export class SheetsBar extends BasePlugin {
   /**
    * Drops what a hidden sheet kept from the user's last visit for the keys `updateSheetSettings()` changed,
    * so its next visit applies the new values. A return otherwise restores the kept state in place of the
-   * declared one: the `cell` meta by physical index (`#cellOptionStates`), the column summary positions
-   * (`#columnSummaryStates`), the merges and the borders, and a change made while the sheet was hidden was
-   * lost.
+   * declared one, and a change made while the sheet was hidden was lost: the `cell` meta by physical index
+   * (`#cellOptionStates`), the column summary positions (`#columnSummaryStates`), the merges, the borders,
+   * and every view-state part (`#redeclaredParts`, reset on the next visit and left to the settings). A
+   * frozen count is written into the kept state instead, because one part holds all four counts.
    *
-   * @param {object} sheet The hidden sheet.
-   * @param {string[]} keys The keys that changed.
+   * @param {Sheet} sheet The hidden sheet.
+   * @param {object} changes The settings that changed.
    */
-  #dropKeptStateFor(sheet: Sheet, keys: string[]) {
+  #dropKeptStateFor(sheet: Sheet, changes: Record<string, unknown>) {
+    const keys = Object.keys(changes);
+
     if (keys.includes('cell')) {
       this.#cellOptionStates.delete(sheet);
     }
@@ -3407,6 +3492,27 @@ export class SheetsBar extends BasePlugin {
     if (keys.includes('customBorders')) {
       this.#dropKeptBorders(sheet);
     }
+
+    if (!sheet.viewState) {
+      return;
+    }
+
+    keys.forEach((key) => {
+      const frozenKey = key === 'fixedColumnsLeft' ? 'fixedColumnsStart' : key;
+
+      if (isFrozenCountKey(frozenKey)) {
+        const value = changes[key];
+
+        sheet.viewState = { ...sheet.viewState, [frozenKey]: typeof value === 'number' ? value : undefined };
+      }
+
+      VIEW_STATE_PARTS_BY_SETTING[key]?.forEach((part) => {
+        const parts = this.#redeclaredParts.get(sheet) ?? new Set<ViewStatePart>();
+
+        parts.add(part);
+        this.#redeclaredParts.set(sheet, parts);
+      });
+    });
   }
 
   /**
@@ -3610,11 +3716,8 @@ export class SheetsBar extends BasePlugin {
     const oldName = sheet.name;
     const trimmed = clampSheetName(newName);
     const canAttempt = trimmed !== '' && trimmed !== oldName
-      && !this.#renameCollidesInEngine(sheet, oldName, trimmed);
-
-    if (canAttempt) {
-      this.#assertDeclaredNameWritable(id);
-    }
+      && !this.#renameCollidesInEngine(sheet, oldName, trimmed)
+      && this.#canWriteDeclaredName(id, source);
 
     const committed = canAttempt && this.#commit(
       'beforeSheetTabRename',
@@ -3720,11 +3823,9 @@ export class SheetsBar extends BasePlugin {
     const model = this.#model as SheetModel;
     const sheets = model.getSheets();
 
-    if (sheets.length <= 1 || !sheets.some(sheet => sheet.id === id)) {
+    if (sheets.length <= 1 || !sheets.some(sheet => sheet.id === id) || !this.#canWriteSheetArrays(source)) {
       return false;
     }
-
-    this.#assertSheetArraysWritable();
 
     const removed = this.#commit(
       'beforeSheetTabRemove',
@@ -3887,7 +3988,10 @@ export class SheetsBar extends BasePlugin {
     }
 
     this.#syncActiveSheetData();
-    this.#assertSheetArraysWritable();
+
+    if (!this.#canWriteSheetArrays(source)) {
+      return null;
+    }
 
     const duplicated = this.#commit(
       'beforeSheetTabAdd',
