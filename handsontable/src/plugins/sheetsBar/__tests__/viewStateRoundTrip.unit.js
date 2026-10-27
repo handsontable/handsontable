@@ -359,5 +359,123 @@ describe('SheetsBar -> view state round trip', () => {
       expect([0, 1, 2, 3].map(column => hot.getColHeader(column, 1))).toEqual(['Qty', 'ID', 'Name', 'Done']);
       expect([0, 1, 2, 3].map(column => hot.getColHeader(column, 0))).toEqual(['G2', 'G1', 'G1', 'G2']);
     });
+
+    /**
+     * Reads the label and the colspan of every column on one header level.
+     *
+     * @param {number} level The header level.
+     * @returns {Array<{label: string, colspan: number}>}
+     */
+    function headerLevel(level) {
+      const stateManager = hot.getPlugin('nestedHeaders').getStateManager();
+
+      return [0, 1, 2, 3, 4].map(column => ({
+        label: hot.getColHeader(column, level),
+        colspan: stateManager.getHeaderSettings(level, column).colspan,
+      }));
+    }
+
+    /**
+     * Builds two sheets of five columns under a group of three and a group of two.
+     *
+     * @param {object} [settings] Extra grid settings.
+     * @returns {object} The SheetsBar plugin.
+     */
+    function buildGroups(settings = {}) {
+      return build({
+        manualColumnMove: true,
+        nestedHeaders: [
+          [{ label: 'G1', colspan: 3 }, { label: 'G2', colspan: 2 }],
+          ['a', 'b', 'c', 'd', 'e'],
+        ],
+        ...settings,
+      }, [[1, 2, 3, 4, 5]], [[0, 0, 0, 0, 0]]);
+    }
+
+    it('keeps a column moved into another group in that group after a round trip', () => {
+      const bar = buildGroups();
+
+      hot.getPlugin('manualColumnMove').moveColumn(4, 1);
+      hot.render();
+
+      const topLevel = headerLevel(0);
+
+      expect(topLevel.map(({ label }) => label)).toEqual(['G1', 'G1', 'G1', 'G1', 'G2']);
+
+      roundTrip(bar);
+
+      expect(hot.getDataAtRow(0)).toEqual([1, 5, 2, 3, 4]);
+      expect(headerLevel(0)).toEqual(topLevel);
+      expect([0, 1, 2, 3, 4].map(column => hot.getColHeader(column, 1))).toEqual(['a', 'e', 'b', 'c', 'd']);
+    });
+
+    it('collapses a group that adopted a moved column as one group after a round trip', () => {
+      const bar = buildGroups({
+        collapsibleColumns: true,
+        nestedHeaders: [
+          [{ label: 'G1', colspan: 3, collapsible: true }, { label: 'G2', colspan: 2 }],
+          ['a', 'b', 'c', 'd', 'e'],
+        ],
+      });
+
+      hot.getPlugin('manualColumnMove').moveColumn(4, 1);
+      hot.render();
+      hot.getPlugin('collapsibleColumns').collapseSection({ row: -2, col: 0 });
+
+      const hiddenBefore = hot.getPlugin('collapsibleColumns').getCollapsedColumns();
+      const topLevel = headerLevel(0);
+
+      roundTrip(bar);
+
+      expect(hot.getPlugin('collapsibleColumns').getCollapsedColumns()).toEqual(hiddenBefore);
+      expect(headerLevel(0)).toEqual(topLevel);
+    });
+
+    it('starts a never-visited sheet without the group membership of a column moved on another sheet', () => {
+      const bar = buildGroups();
+
+      hot.getPlugin('manualColumnMove').moveColumn(4, 1);
+      hot.render();
+      bar.setActiveSheet('Beta');
+
+      expect(headerLevel(0).map(({ label }) => label)).toEqual(['G1', 'G1', 'G1', 'G2', 'G2']);
+      expect([0, 1, 2, 3, 4].map(column => hot.getColHeader(column, 1))).toEqual(['a', 'b', 'c', 'd', 'e']);
+    });
+
+    it('keeps the authored groups of a sheet whose column order was reset by a declared column move', () => {
+      const bar = buildGroups();
+
+      hot.getPlugin('manualColumnMove').moveColumn(4, 1);
+      hot.render();
+      bar.setActiveSheet('Beta');
+      bar.updateSheetSettings('Alpha', { manualColumnMove: [0, 1, 2, 3, 4] });
+      bar.setActiveSheet('Alpha');
+
+      expect(hot.getDataAtRow(0)).toEqual([1, 2, 3, 4, 5]);
+      expect(headerLevel(0)).toEqual([
+        { label: 'G1', colspan: 3 },
+        { label: 'G1', colspan: undefined },
+        { label: 'G1', colspan: undefined },
+        { label: 'G2', colspan: 2 },
+        { label: 'G2', colspan: undefined },
+      ]);
+    });
+
+    it('drops the group membership of a sheet whose nested headers were declared again', () => {
+      const bar = buildGroups();
+      const redeclared = [
+        [{ label: 'H1', colspan: 2 }, { label: 'H2', colspan: 3 }],
+        ['a', 'b', 'c', 'd', 'e'],
+      ];
+
+      hot.getPlugin('manualColumnMove').moveColumn(4, 1);
+      hot.render();
+      bar.setActiveSheet('Beta');
+      bar.updateSheetSettings('Alpha', { nestedHeaders: redeclared });
+      bar.setActiveSheet('Alpha');
+
+      expect(hot.getDataAtRow(0)).toEqual([1, 5, 2, 3, 4]);
+      expect(hot.getPlugin('nestedHeaders').getStateManager().exportMembershipOverrides()).toEqual([]);
+    });
   });
 });

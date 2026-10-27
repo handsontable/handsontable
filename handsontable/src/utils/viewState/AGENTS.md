@@ -136,6 +136,15 @@ pay for. A new consumer lives in a plugin.
   both, before the arriving sheet's load. RowSelection's state carries the selection by row id and the server
   row count of a DataProvider grid, which belong to that sheet's server: the plugin kept one of each for the
   whole grid, so a load re-projected the departing sheet's ids onto the arriving one.
+- **`columnMembership` rides on the `collapsedColumns` part.** It is the NestedHeaders membership overrides
+  (the group a moved column joined), through the same `@private` `_exportViewState()`/`_importViewState()`
+  pair on NestedHeaders. A load re-derives the headers from the authored groups, so without it a column
+  moved into another group came back splitting that group. `restorePluginStates()` imports it before the
+  collapsed groups, which collapse by authored identity on the tree it derives, and only when the
+  `columnOrder` part was restored too: the overrides name the group a column sits inside in that order,
+  and against another one (a `manualColumnMove` redeclared through `updateSheetSettings()`, or a stored
+  sequence of another length) the column would join a group it is not next to. The import re-derives only
+  when the overrides differ from the current ones, so a sheet without an adoption pays nothing.
 
 Tests: `__tests__/viewState.unit.js` (the engine), plus SheetsBar's own suites and
 `plugins/viewState/__tests__/viewState.unit.js` (the public layer through the engine).

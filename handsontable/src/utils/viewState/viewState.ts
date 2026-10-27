@@ -120,6 +120,13 @@ export interface ViewState {
   collapsedColumns?: CollapsedColumnsState | null;
 
   /**
+   * The header group a moved column joined, per NestedHeaders level, or `null` when the plugin is off.
+   * Captured and restored with `collapsedColumns`, and put back only together with the column order it
+   * was recorded for. Absent from a view state the `ViewState` plugin built, which does not restore it.
+   */
+  columnMembership?: ColumnMembershipState | null;
+
+  /**
    * The rows checked through RowSelection, or `null` when the plugin is off or a bound checkbox column
    * holds them. Absent from a view state the `ViewState` plugin built, which does not restore it. Internal to
    * the sheets bar, and its shape may change.
@@ -135,6 +142,12 @@ export interface CollapsedColumnsState {
   groups: Array<{ headerLevel: number, authoredColumnIndex: number }>;
   columns: number[];
 }
+
+/**
+ * The header group membership column moves left behind on one sheet, as
+ * `[physicalColumn, [[headerLevel, ownerIdentity], ...]]` entries.
+ */
+export type ColumnMembershipState = Array<[number, Array<[number, number]>]>;
 
 /**
  * The rows one sheet checked through RowSelection: the physical rows of its selection map and, for a
@@ -402,6 +415,14 @@ interface CollapsibleColumnsPlugin {
 }
 
 /**
+ * The part of the NestedHeaders plugin the view state talks to.
+ */
+interface NestedHeadersPlugin {
+  _exportViewState: () => ColumnMembershipState | null;
+  _importViewState: (state: ColumnMembershipState | null) => void;
+}
+
+/**
  * The part of the RowSelection plugin the view state talks to.
  */
 interface RowSelectionPlugin {
@@ -416,6 +437,22 @@ interface RowSelectionPlugin {
 function captureCollapsedColumns(hot: HotInstance): CollapsedColumnsState | null {
   return (getEnabledPlugin(hot, 'collapsibleColumns') as CollapsibleColumnsPlugin | undefined)
     ?._exportViewState() ?? null;
+}
+
+/**
+ * Captures the header group a moved column joined. A data load rebuilds the header state from the
+ * authored groups, so a sheet switch would otherwise split a group that adopted a column.
+ */
+function captureColumnMembership(hot: HotInstance): ColumnMembershipState | null {
+  return (getEnabledPlugin(hot, 'nestedHeaders') as NestedHeadersPlugin | undefined)?._exportViewState() ?? null;
+}
+
+/**
+ * Puts the stored group membership back and derives the headers from it, with no hooks.
+ */
+function restoreColumnMembership(hot: HotInstance, state: ViewState) {
+  (getEnabledPlugin(hot, 'nestedHeaders') as NestedHeadersPlugin | undefined)
+    ?._importViewState(state.columnMembership ?? null);
 }
 
 /**
@@ -770,6 +807,7 @@ export function captureViewState(
     ...captureAxisState(hot, covers),
     collapsedParents: covers('collapsedRows') ? captureCollapsedParents(hot) : neutral.collapsedParents,
     collapsedColumns: covers('collapsedColumns') ? captureCollapsedColumns(hot) : neutral.collapsedColumns,
+    columnMembership: covers('collapsedColumns') ? captureColumnMembership(hot) : neutral.columnMembership,
     checkedRows: covers('checkedRows') ? captureCheckedRows(hot) : neutral.checkedRows,
     colWidths,
     rowHeights,
@@ -1219,17 +1257,24 @@ export function restoreViewState(
     safeBatch(hot, () => restoreMergedCells(hot, state));
   }
 
-  restorePluginStates(hot, state, covers);
+  restorePluginStates(hot, state, part => covers(part) && !notApplied.includes(part));
   hot.render();
 
   return notApplied;
 }
 
 /**
- * Puts back the collapsed column groups and the checked rows, the state two plugins keep for the data
- * they show and drop on every `loadData()`. Runs outside the restore batch (see {@link restoreViewState}).
+ * Puts back the header group membership, the collapsed column groups, and the checked rows, the state
+ * three plugins keep for the data they show and drop on every `loadData()`. Runs outside the restore batch
+ * (see {@link restoreViewState}). The membership goes first, so the groups collapse on the headers it
+ * derives, and only with the column order it was recorded for: against another order, a column would
+ * join a group it no longer sits next to.
  */
 function restorePluginStates(hot: HotInstance, state: ViewState, covers: PartFilter) {
+  if (covers('collapsedColumns') && covers('columnOrder')) {
+    restoreColumnMembership(hot, state);
+  }
+
   if (covers('collapsedColumns')) {
     restoreCollapsedColumns(hot, state);
   }
@@ -1422,6 +1467,7 @@ export function createNeutralViewState(): ViewState {
     selectionState: null,
     scroll: { row: 0, col: 0 },
     collapsedColumns: null,
+    columnMembership: null,
     checkedRows: null,
   };
 }

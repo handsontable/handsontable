@@ -953,6 +953,7 @@ such state and is missing from this list loses it on every switch.
 | TrimRows, HiddenRows, HiddenColumns | trimming and hiding maps | `trimmedRows`, `hiddenRows`, `hiddenColumns` (physical) |
 | NestedRows | collapsed parents | `collapsedParents` (tree paths) |
 | CollapsibleColumns | collapsed header groups and the columns they hide | `collapsedColumns`, through `_exportViewState()`/`_importViewState()` |
+| NestedHeaders | the group a moved column joined (membership overrides) | `columnMembership`, through `_exportViewState()`/`_importViewState()`, restored only with `columnOrder` |
 | RowSelection | checked rows; with DataProvider the selection by row id and the server row count | `checkedRows`, through `_exportViewState()`/`_importViewState()`; a bound checkbox column needs nothing, the data holds it |
 | ManualColumnResize, ManualRowResize | manual sizes | `colWidths`, `rowHeights` (physical pairs) |
 | MergeCells | merges | `mergedCells` |
@@ -966,8 +967,11 @@ such state and is missing from this list loses it on every switch.
 | DataProvider | last response, failures | `#serverViews` |
 | Formulas | engine order, formula text | `#engineOrders`, the formula text capture |
 
-`collapsedColumns` and `checkedRows` are restored after the restore batch: the header tree a collapse is laid on
-is derived through the column index cache, which the batch holds at the order from before the restore. A sheet
+`collapsedColumns`, `columnMembership`, and `checkedRows` are restored after the restore batch: the header tree
+a collapse is laid on is derived through the column index cache, which the batch holds at the order from before
+the restore. `columnMembership` goes first, so the groups collapse on the headers it derives; it is part of the
+`collapsedColumns` part, so a `nestedHeaders` redeclared through `updateSheetSettings()` drops it with the
+collapses. A sheet
 that was never shown gets both cleared by `resetViewState()` before its load, which matters for a
 server-backed sheet: without it the arriving sheet's load re-projected the selection by row id of the sheet the
 user left, and `removeSelectedRows()` sent its ids to the arriving sheet's `onRowsRemove`.

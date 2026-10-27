@@ -166,6 +166,10 @@ outside, do not assume each call rebuilds the matrix.
   it and marks the new order. Without that, every load after a column move derived the tree twice (one
   `rebuildState()` thrown away by the `setState()` right after it), which is every sheet switch. A sequence
   written after the load (a sheets bar return, `setIndexesSequence()`) still re-derives.
+- **The sheets bar keeps the membership overrides per sheet** through the `@private`
+  `_exportViewState()`/`_importViewState()` pair (silent, no hooks). The import re-derives only when the
+  overrides changed, and the sheets bar calls it after the column order is written back and before
+  CollapsibleColumns re-collapses its groups. See `utils/viewState/AGENTS.md`.
 - `manualColumnFreeze.freezeColumn`/`unfreezeColumn` call `columnIndexMapper.moveIndexes` **directly**,
   bypassing `beforeColumnMove`/`afterColumnMove`. So a captured move can still be "open" when an
   unrelated reorder (freeze) fires `cacheUpdated`.

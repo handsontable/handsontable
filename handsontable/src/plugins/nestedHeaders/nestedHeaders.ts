@@ -84,6 +84,12 @@ interface MembershipState {
 }
 
 /**
+ * The header group membership a column move left behind, as `NestedHeaders#_exportViewState()` returns
+ * it: `[physicalColumn, [[headerLevel, ownerIdentity], ...]]` entries.
+ */
+export type ColumnMembershipViewState = Array<[number, Array<[number, number]>]>;
+
+/**
  * Tells whether a value is a membership state `NestedHeaders#captureState()` recorded.
  *
  * @param {*} value The value to test.
@@ -639,6 +645,47 @@ export class NestedHeaders extends BasePlugin {
       this.#stateManager.importMembershipOverrides(state.overrides);
     }
 
+    this.#rebuildState();
+    this.#stateManager.syncVisibility(createColumnVisibilityAdapter(this.hot));
+  }
+
+  /**
+   * Returns the header group membership column moves recorded, for the sheets bar to keep with a sheet's
+   * column order. `null` when the plugin is off.
+   *
+   * @private
+   * @returns {Array|null} The overrides, as `[physicalColumn, [[headerLevel, ownerIdentity], ...]]` entries.
+   */
+  _exportViewState(): ColumnMembershipViewState | null {
+    if (!this.enabled) {
+      return null;
+    }
+
+    return this.#stateManager.exportMembershipOverrides();
+  }
+
+  /**
+   * Puts back the header group membership {@link NestedHeaders#_exportViewState} returned, or clears it
+   * for `null`, and derives the headers from it when it changed. Hook-silent: the sheets bar calls it on a
+   * switch, after the sheet's column order is written back, so the derive sees both. A column past the
+   * end of the data is dropped.
+   *
+   * @private
+   * @param {Array|null} state The overrides, as `[physicalColumn, [[headerLevel, ownerIdentity], ...]]` entries.
+   */
+  _importViewState(state: ColumnMembershipViewState | null): void {
+    if (!this.enabled) {
+      return;
+    }
+
+    const columnsCount = this.hot.columnIndexMapper.getNumberOfIndexes();
+    const overrides = (state ?? []).filter(([physicalColumn]) => physicalColumn < columnsCount);
+
+    if (JSON.stringify(overrides) === JSON.stringify(this.#stateManager.exportMembershipOverrides())) {
+      return;
+    }
+
+    this.#stateManager.importMembershipOverrides(overrides);
     this.#rebuildState();
     this.#stateManager.syncVisibility(createColumnVisibilityAdapter(this.hot));
   }
