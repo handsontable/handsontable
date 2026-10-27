@@ -185,9 +185,9 @@ describe('AxisSyncer sequence change sync', () => {
       const axisSyncer = new AxisSyncer('column', indexMapper, createMockIndexSyncer(engine));
 
       axisSyncer.init();
-      // Column 3 is the empty tail the engine left out of its sheet. The engine addresses its columns
-      // positionally and has no column to shift the others past, so the order cannot be reproduced —
-      // and an approximation would put the grid's index translation and the engine on different columns.
+      // Column 3 is the empty tail the engine left out of its sheet. The engine has no column for it,
+      // so the order is not a permutation of the sheet and nothing is sent. Translation keeps the
+      // slots the engine already holds instead of reading this sequence as those slots.
       indexMapper.state.indexesSequence = [3, 0, 1, 2];
       axisSyncer.getIndexesChangeSyncMethod()('update');
 

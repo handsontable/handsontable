@@ -754,18 +754,20 @@ Four rules ride along.
   moment it was filled**. That sequence is captured when the empty sheet is found and used to extend the
   stored list, because the grid can have been reordered since — reading the current sequence there would
   conclude the engine already holds the new order and skip the sync that carries it.
-- **An order that cannot be reproduced is not sent.** The compression keeps the engine's own elements in
-  their relative order, which reproduces the grid exactly while they still occupy the sequence's leading
-  positions — a sheet shorter than the grid means the grid's extra rows are the empty tail the engine left
-  out. A reorder that moves one of those in FRONT of an element the engine holds is inexpressible: the engine
-  addresses its rows positionally and has no row to shift the others past. Approximating it would leave the
-  index translation (which reads HF index `i` as sequence position `i`) and the engine on different rows, so
-  nothing is sent. An order that would change nothing is skipped too, because the engine records an undo
-  entry and clears its redo stack for every order it is handed.
+- **An order that puts an empty index in front of one the engine holds is not sent.** The compression
+  keeps the engine's own elements in their relative order, which reproduces the grid exactly while they
+  still occupy the sequence's leading positions. A sheet shorter than the grid means the extra rows or
+  columns are the empty tail the engine left out. Moving one of those in front of a held element is not a permutation
+  of the sheet: the engine addresses its rows positionally and has no row for the empty index. Nothing is
+  sent. The stored slot list stays the physical indexes the engine already holds, in that order (recorded
+  on this path when the list was still empty). Translation reads that list, not the visual sequence, so
+  the empty index gets no slot and a held row keeps the value already in its slot. Reading the visual
+  sequence as the slot list is what showed another row's value on the blank and projected that row's
+  formula into it (DEV-845). An order that would change nothing is skipped too, because the engine records
+  an undo entry and clears its redo stack for every order it is handed.
 
 Still open: a move applied while the engine's sheet is empty reaches the engine through `syncMoves` but is
-not reflected in the stored order, and a sequence change that cannot be expressed leaves the engine behind
-the grid with no warning.
+not reflected in the stored order.
 
 ### A reload reads a jagged array, and the first row sets the column count (DEV-1143)
 
