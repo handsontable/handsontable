@@ -111,7 +111,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   changing it does nothing until an unrelated rebuild. A sheet's own `settings` cannot carry a
   `sheetsBar` key.
 - **A sheet's own settings win over every grid-level `updateSettings()`** (`#filterGridSettings`,
-  registered through core's `@private` `_setSettingsFilter()` on enable and removed on disable). The filter
+  added through core's `@private` `_addSettingsFilter()` on enable and removed with `_removeSettingsFilter()` on disable). The filter
   reads every payload before core applies it and takes out each key the visible sheet declares; the value
   taken out becomes the grid-level one (`#takeGridLevelValues`: the baseline, or `#takeGridColumnSummary` /
   `#takeGridCellOption`). Without it React and Angular, which send every prop on each render, and Vue, which
@@ -482,6 +482,14 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   as a guard. The grid focus scope drops its remembered Tab re-entry cell on `afterLoadData` on
   every grid, not only on a switch: a cell remembered from the previous data does not name a
   record of the new data.
+- **The tab listeners live on the strip host, added once when the strip is built** (`#listenToTabs` in
+  `ui/tabStrip.ts`), and each handler finds its tab from the event target and its sheet from the descriptors
+  of the last `render()`. Do not add listeners to the tabs `#buildTab()` creates: every repaint would add
+  them again, inside the context of whatever code caused the repaint. Under Angular an `addSheet()` or a
+  rename from a component's click handler bound every tab's listeners to the zone, so each pointer move and
+  click on a tab ran change detection. The rename input's listeners are still per input, because the input
+  lives only for one rename. `destroy()` removes the host listeners: a rebuilt strip reuses the host.
+  Pinned by `__tests__/tabListeners.unit.js` and the Angular wrapper's `hot-table-sheets-bar.spec.ts`.
 - **`render()` cancels an in-flight rename silently.** The cancel-hook handler repaints the
   strip, and dispatching it from inside `render()` re-enters the render pass — the outer pass
   then restores focus and scroll against tabs the inner pass replaced.

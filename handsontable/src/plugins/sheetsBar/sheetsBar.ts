@@ -1156,7 +1156,7 @@ export class SheetsBar extends BasePlugin {
     this.addHook('afterDocumentKeyDown', this.#onKeyDownWithinBar, -1);
     this.addHook('beforeCompositionStart', this.#onKeyDownWithinBar, -1);
     this.addHook('afterRender', this.#onAfterRenderArmMotionGate);
-    this.hot._setSettingsFilter(this.#filterGridSettings);
+    this.hot._addSettingsFilter(this.#filterGridSettings);
 
     this.#refreshUI();
 
@@ -1544,7 +1544,7 @@ export class SheetsBar extends BasePlugin {
     }
 
     super.disablePlugin();
-    this.hot._setSettingsFilter(null);
+    this.hot._removeSettingsFilter(this.#filterGridSettings);
     this.#getDataProvider()?._setContextOwner(null);
     this.#releaseState();
   }
@@ -1795,7 +1795,7 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Reads every `updateSettings()` payload before core applies it (`Core#_setSettingsFilter()`), and takes
+   * Reads every `updateSettings()` payload before core applies it (`Core#_addSettingsFilter()`), and takes
    * out each key the visible sheet declares in its own settings: a sheet's own settings win over grid-level
    * ones, as they do on a switch. The value taken out becomes the grid-level value instead
    * (`#takeGridLevelValues`), so the sheets that do not declare the key, a `sheetsBar: false` teardown and a

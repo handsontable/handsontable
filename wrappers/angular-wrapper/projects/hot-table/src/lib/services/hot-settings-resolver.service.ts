@@ -6,6 +6,7 @@ import { CustomValidatorFn, ColumnSettings, ColumnSettingsInternal } from '../mo
 import { HotCellRendererComponent } from '../renderer/hot-cell-renderer.component';
 import { HotCellEditorComponent } from '../editor/hot-cell-editor.component';
 import Handsontable from 'handsontable/base';
+import { SettingsUpdate } from 'handsontable/settings';
 import { FactoryEditorAdapter } from '../editor/editor-factory-adapter';
 import { HotCellRendererAdvancedComponent } from '../renderer/hot-cell-renderer-advanced.component';
 import { HotCellEditorAdvancedComponent } from '../editor/hot-cell-editor-advanced.component';
@@ -18,6 +19,19 @@ const HOT_ZONE_WRAPPED = Symbol('hotZoneWrapped');
  */
 @Injectable()
 export class HotSettingsResolver {
+  /**
+   * The resolved copy of each column object `resolveAppliedSettings()` resolved.
+   */
+  private readonly appliedColumns = new WeakMap<ColumnSettings, ColumnSettings>();
+  /**
+   * The editor components `resolveAppliedSettings()` created.
+   */
+  private readonly appliedEditorRefs = new Set<ComponentRef<HotCellEditorComponent<any>>>();
+  /**
+   * The zone wrapper of each hook callback.
+   */
+  private readonly zoneWrappers = new WeakMap<Function, Function>();
+
   constructor(
     private readonly dynamicComponentService: DynamicComponentService,
     private readonly environmentInjector: EnvironmentInjector,
@@ -41,16 +55,141 @@ export class HotSettingsResolver {
     const mergedSettings: GridSettings = { ...settings };
 
     if (Array.isArray(mergedSettings.columns)) {
-      mergedSettings.columns = mergedSettings.columns.map((column) => ({ ...column }));
-    }
+      mergedSettings.columns = mergedSettings.columns.map((column, index) => {
+        const resolved = { ...column };
 
-    this.updateColumnRendererForGivenCustomRenderer(mergedSettings);
-    this.updateColumnEditorForGivenCustomEditor(mergedSettings, previousColumns);
-    this.updateColumnValidatorForGivenCustomValidator(mergedSettings);
+        this.resolveColumnRenderer(resolved);
+        this.resolveColumnEditor(resolved, previousColumns?.[index]);
+        this.resolveColumnValidator(resolved);
+
+        return resolved;
+      });
+    }
 
     this.wrapHooksInNgZone(mergedSettings);
 
     return mergedSettings as GridSettingsInternal;
+  }
+
+  /**
+   * Resolves the settings core is about to apply through `updateSettings()`, which reaches the grid
+   * without passing `applyCustomSettings()`: a sheet's own `settings` that the sheets bar applies on a
+   * switch, through `updateSheetSettings()`, or for a duplicated sheet. Registered on the grid with
+   * `_addSettingsFilter()`. A value already resolved is left as it is, so the settings of the `settings`
+   * input pass unchanged.
+   *
+   * The result for a column object, and the zone wrapper of a hook, is created once and reused on every
+   * later payload holding the same object or function. The sheets bar compares a sheet's settings
+   * function by function, and a sheet that shows again keeps the editor component it had.
+   *
+   * @param settings The payload of `updateSettings()`.
+   * @returns The payload to apply: `settings` itself when nothing needed resolving, a new object
+   *   otherwise. The caller's object is never changed.
+   */
+  resolveAppliedSettings(settings: SettingsUpdate): SettingsUpdate {
+    const columns = settings.columns;
+    const resolvedColumns = Array.isArray(columns) ? this.resolveAppliedColumns(columns) : columns;
+    const hooks = this.zoneWrappedHooksOf(settings);
+
+    if (resolvedColumns === columns && hooks === null) {
+      return settings;
+    }
+
+    const resolved: SettingsUpdate = { ...settings, ...hooks };
+
+    if (resolvedColumns !== columns) {
+      resolved.columns = resolvedColumns as ColumnSettingsInternal[];
+    }
+
+    return resolved;
+  }
+
+  /**
+   * Destroys every editor component `resolveAppliedSettings()` created.
+   */
+  destroyAppliedEditors(): void {
+    this.appliedEditorRefs.forEach(ref => ref.destroy());
+    this.appliedEditorRefs.clear();
+  }
+
+  /**
+   * Resolves each column of an applied payload.
+   *
+   * @param columns The columns of the payload.
+   * @returns `columns` itself when no column needed resolving, a new array otherwise.
+   */
+  private resolveAppliedColumns(columns: ColumnSettings[]): ColumnSettings[] {
+    const resolved = columns.map(column => this.resolveAppliedColumn(column));
+
+    return resolved.every((column, index) => column === columns[index]) ? columns : resolved;
+  }
+
+  /**
+   * Resolves one column of an applied payload, once per column object.
+   *
+   * @param column The column.
+   * @returns The resolved column, or `column` itself when it holds nothing to resolve.
+   */
+  private resolveAppliedColumn(column: ColumnSettings): ColumnSettings {
+    if (!this.needsResolution(column)) {
+      return column;
+    }
+
+    const cached = this.appliedColumns.get(column);
+
+    if (cached) {
+      return cached;
+    }
+
+    const resolved = { ...column };
+
+    this.resolveColumnRenderer(resolved);
+
+    const editorRef = this.resolveColumnEditor(resolved);
+
+    if (editorRef) {
+      this.appliedEditorRefs.add(editorRef);
+    }
+
+    this.resolveColumnValidator(resolved);
+    this.appliedColumns.set(column, resolved);
+
+    return resolved;
+  }
+
+  /**
+   * Tells whether a column holds a renderer, an editor or a validator Handsontable cannot read as it is.
+   *
+   * @param column The column.
+   * @returns `true` when the column needs resolving.
+   */
+  private needsResolution(column: ColumnSettings): boolean {
+    return typeof column === 'object' && column !== null && (
+      this.isCustomRenderer(column.renderer) ||
+      this.isEditorComponentRefType(column.editor) ||
+      this.isAdvancedEditorComponentRefType(column.editor) ||
+      this.isCustomValidatorFn(column.validator)
+    );
+  }
+
+  /**
+   * Returns the zone wrappers of the hook callbacks a payload holds that are not wrapped yet.
+   *
+   * @param settings The payload.
+   * @returns The wrappers by hook name, or `null` when every hook callback is wrapped already.
+   */
+  private zoneWrappedHooksOf(settings: SettingsUpdate): Record<string, Function> | null {
+    let wrapped: Record<string, Function> | null = null;
+
+    Object.keys(settings).forEach((key) => {
+      const option: unknown = settings[key as keyof SettingsUpdate];
+
+      if (AVAILABLE_HOOKS_SET.has(key) && typeof option === 'function' && !(option as any)[HOT_ZONE_WRAPPED]) {
+        wrapped = { ...wrapped, [key]: this.zoneWrapped(option) };
+      }
+    });
+
+    return wrapped;
   }
 
   /**
@@ -59,8 +198,6 @@ export class HotSettingsResolver {
    * @param settings The original grid settings.
    */
   private wrapHooksInNgZone(settings: GridSettings): void {
-    const ngZone = this.ngZone;
-
     // Iterate only the keys actually present in settings instead of all ~100 registered HOT hooks.
     Object.keys(settings).forEach((key) => {
       if (!AVAILABLE_HOOKS_SET.has(key)) {
@@ -69,82 +206,99 @@ export class HotSettingsResolver {
       const option = settings[key];
 
       if (typeof option === 'function' && !(option as any)[HOT_ZONE_WRAPPED]) {
-        const wrapped = function (...args: any) {
-          return ngZone.run(() => option.apply(this, args));
-        };
-        (wrapped as any)[HOT_ZONE_WRAPPED] = true;
-        settings[key] = wrapped;
+        settings[key] = this.zoneWrapped(option);
       }
     });
   }
 
   /**
-   * Updates the column renderer for columns with a custom renderer.
-   * @param mergedSettings The merged grid settings.
+   * Returns the function that runs a hook callback inside Angular's zone, the same one for every call
+   * with the same callback.
+   *
+   * @param callback The hook callback.
+   * @returns The wrapper.
    */
-  private updateColumnRendererForGivenCustomRenderer(mergedSettings: GridSettings): void {
-    if (!Array.isArray(mergedSettings?.columns)) {
-      return;
+  private zoneWrapped(callback: Function): Function {
+    const known = this.zoneWrappers.get(callback);
+
+    if (known) {
+      return known;
     }
 
-    (mergedSettings?.columns as ColumnSettings[])
-      ?.filter((settings) => this.isCustomRenderer(settings.renderer))
-      ?.forEach((cellSettings) => {
-        const renderer = cellSettings.renderer;
-        const props: any = cellSettings.rendererProps ?? {};
+    const ngZone = this.ngZone;
+    const wrapped = function (...args: any) {
+      return ngZone.run(() => callback.apply(this, args));
+    };
 
-        if (this.isAdvancedRendererComponentRefType(renderer)) {
-          cellSettings.renderer = this.dynamicComponentService.createRendererWithFactory(renderer, props);
-        } else if (this.isRendererComponentRefType(renderer) || this.isTemplateRef(renderer)) {
-          cellSettings.renderer = this.dynamicComponentService.createRendererFromComponent(renderer, props);
-        }
-      });
+    (wrapped as any)[HOT_ZONE_WRAPPED] = true;
+    this.zoneWrappers.set(callback, wrapped);
+
+    return wrapped;
   }
 
   /**
-   * Updates the column editor for columns with a custom editor.
+   * Replaces a custom renderer of a column with a renderer function.
    *
-   * Iterates by original column index (not a filtered subset) so each column can be matched against
-   * the column at the same index in `previousColumns` for editor-component recycling.
-   *
-   * @param mergedSettings The merged grid settings.
-   * @param previousColumns The previously resolved columns, used to recycle editor components.
+   * @param cellSettings The column, a copy the caller owns.
    */
-  private updateColumnEditorForGivenCustomEditor(mergedSettings: GridSettings, previousColumns?: ColumnSettings[]): void {
-    if (!Array.isArray(mergedSettings?.columns)) {
+  private resolveColumnRenderer(cellSettings: ColumnSettings): void {
+    const renderer = cellSettings.renderer;
+
+    if (!this.isCustomRenderer(renderer)) {
       return;
     }
 
-    (mergedSettings.columns as ColumnSettings[]).forEach((cellSettings, index) => {
-      const isAdvanced = this.isAdvancedEditorComponentRefType(cellSettings.editor);
-      const isBasic = this.isEditorComponentRefType(cellSettings.editor);
+    const props: any = cellSettings.rendererProps ?? {};
 
-      if (!isAdvanced && !isBasic) {
-        return;
-      }
+    if (this.isAdvancedRendererComponentRefType(renderer)) {
+      cellSettings.renderer = this.dynamicComponentService.createRendererWithFactory(renderer, props);
+    } else {
+      cellSettings.renderer = this.dynamicComponentService.createRendererFromComponent(renderer, props);
+    }
+  }
 
-      const editorType = cellSettings.editor as Type<HotCellEditorComponent<any>> | Type<HotCellEditorAdvancedComponent<any>>;
-      const reusableRef = this.reusableEditorRef(previousColumns?.[index], cellSettings, editorType);
-      const internalSettings = cellSettings as ColumnSettingsInternal;
+  /**
+   * Replaces an editor component of a column with an editor class, and creates the component.
+   *
+   * @param cellSettings The column, a copy the caller owns.
+   * @param previousColumn The column at the same index in the previous settings cycle, used to
+   *   recycle its editor component.
+   * @returns The editor component the column holds now, or `undefined` when it declares none.
+   */
+  private resolveColumnEditor(
+    cellSettings: ColumnSettings,
+    previousColumn?: ColumnSettings
+  ): ComponentRef<HotCellEditorComponent<any>> | undefined {
+    const isAdvanced = this.isAdvancedEditorComponentRefType(cellSettings.editor);
+    const isBasic = this.isEditorComponentRefType(cellSettings.editor);
 
-      // Recycle the editor component from the previous settings cycle when the same editor type
-      // sits at the same column index AND the same logical column (by `data`) still occupies it.
-      // Recreating it on every settings change would tear down and rebuild an Angular component
-      // (and its DOM/internal state) for no reason. The reused ref is carried into the new column;
-      // HotTableComponent.ngOnChanges detects it by identity and skips destroying it.
-      const component = reusableRef ?? createComponent(editorType as Type<any>, {
-        environmentInjector: this.environmentInjector,
-      });
+    if (!isAdvanced && !isBasic) {
+      return undefined;
+    }
 
-      internalSettings._editorComponentReference = component as ComponentRef<HotCellEditorComponent<any>>;
+    const editorType = cellSettings.editor as Type<HotCellEditorComponent<any>> | Type<HotCellEditorAdvancedComponent<any>>;
+    const reusableRef = this.reusableEditorRef(previousColumn, cellSettings, editorType);
+    const internalSettings = cellSettings as ColumnSettingsInternal;
 
-      if (isAdvanced) {
-        cellSettings.editor = FactoryEditorAdapter(component as ComponentRef<HotCellEditorAdvancedComponent<any>>);
-      } else {
-        internalSettings._environmentInjector = this.environmentInjector;
-        cellSettings.editor = BaseEditorAdapter;
-      }
+    // Recycle the editor component from the previous settings cycle when the same editor type
+    // sits at the same column index AND the same logical column (by `data`) still occupies it.
+    // Recreating it on every settings change would tear down and rebuild an Angular component
+    // (and its DOM/internal state) for no reason. The reused ref is carried into the new column;
+    // HotTableComponent.ngOnChanges detects it by identity and skips destroying it.
+    const component = reusableRef ?? createComponent(editorType as Type<any>, {
+      environmentInjector: this.environmentInjector,
     });
+
+    internalSettings._editorComponentReference = component as ComponentRef<HotCellEditorComponent<any>>;
+
+    if (isAdvanced) {
+      cellSettings.editor = FactoryEditorAdapter(component as ComponentRef<HotCellEditorAdvancedComponent<any>>);
+    } else {
+      internalSettings._environmentInjector = this.environmentInjector;
+      cellSettings.editor = BaseEditorAdapter;
+    }
+
+    return internalSettings._editorComponentReference;
   }
 
   /**
@@ -186,23 +340,20 @@ export class HotSettingsResolver {
   }
 
   /**
-   * Updates the column validator for columns with a custom validator.
-   * @param mergedSettings The merged grid settings.
+   * Replaces a validator that returns a boolean with one that answers through the callback.
+   *
+   * @param cellSettings The column, a copy the caller owns.
    */
-  private updateColumnValidatorForGivenCustomValidator(mergedSettings: GridSettings): void {
-    if (!Array.isArray(mergedSettings?.columns)) {
+  private resolveColumnValidator(cellSettings: ColumnSettings): void {
+    const customValidatorFn = cellSettings.validator;
+
+    if (!this.isCustomValidatorFn(customValidatorFn)) {
       return;
     }
 
-    (mergedSettings?.columns as ColumnSettings[])
-      ?.filter((settings) => this.isCustomValidatorFn(settings.validator))
-      ?.forEach((cellSettings) => {
-        const customValidatorFn = cellSettings.validator as CustomValidatorFn<any>;
-
-        cellSettings.validator = (value: any, callback: (result: boolean) => void) => {
-          callback(customValidatorFn(value));
-        };
-      });
+    cellSettings.validator = (value: any, callback: (result: boolean) => void) => {
+      callback(customValidatorFn(value));
+    };
   }
 
   private isCustomValidatorFn(validator: unknown): validator is CustomValidatorFn<any> {
