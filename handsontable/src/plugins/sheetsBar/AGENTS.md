@@ -557,7 +557,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   MergeCells uses for merges declared in its settings: no out-of-bounds warning,
   `beforeMergeCells`/`afterMergeCells` report `auto: true` (UndoRedo records nothing for that),
   and no cell is written, where the public `merge()` rewrote every covered cell with `null`.
-  **Every MergeCells member the switch uses is one MergeCells owns** — `getVisibleMergedAreas()`
+  The capture carries each merge's physical anchor and the restore runs once the restored row and
+  column order is in the index cache (`../../utils/viewState/AGENTS.md`), so a merge on a sheet with a row
+  or column move or a sort comes back over its own cells, and one whose rows a sort scattered keeps the
+  rows it owns. **Every MergeCells member the switch uses is one MergeCells owns** — `_exportMergedAreas()`
   (capture), `clearCollections()` (clear), `restoreMergedAreas()` (restore) and
   `runDeferredSettingsPass()` — read through the typed
   `hot.getPlugin('mergeCells')`, never a structural cast, so a rename or re-signature there fails

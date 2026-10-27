@@ -101,6 +101,15 @@ pay for. A new consumer lives in a plugin.
   `restoreAxisState()` writes them back right after the row order, only when that order was written (a sheet
   whose data changed size keeps the physical numbers). The loose strategy needs nothing: its numbers are the
   physical indexes. The public layer does not serialize the field, so its `rowOrder` leaves the numbers alone.
+- **Merges are captured with their physical anchors and restored AFTER the batch.** `mergedCells` keeps each
+  area's visual geometry, for a listener, plus the `physicalRows` and `physicalColumn` MergeCells owns
+  (`_exportMergedAreas()`). `restoreViewState()` restores them in a second `safeBatch()` once the first one has
+  resumed the index cache with the restored row and column order, and MergeCells places each area from its anchor
+  against that cache. Inside the first batch the cache still held the order from before the restore (the loaded
+  sheet's identity order), so a merge on a sheet with a row move, a column move or a sort came back over other
+  cells: the same stale-cache trap as the sort above. Translating ahead of the batch would not help, because the
+  merge has to be made, and its anchor captured, through the cache MergeCells reads. An area a listener built
+  without the anchor fields is placed by its visual geometry.
 - **`resetViewState()` runs no filter pass, and it clears the sizes of a DISABLED resize plugin too.** Its
   only caller is the sheets bar, which loads the arriving sheet's data right after it, and that load empties
   the condition collection and the Filters trimming map; the reset only drops the Filters fallback

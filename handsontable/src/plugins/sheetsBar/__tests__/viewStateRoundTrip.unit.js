@@ -172,6 +172,52 @@ describe('SheetsBar -> view state round trip', () => {
     });
   });
 
+  describe('merged cells', () => {
+    [
+      ['a row move', () => hot.getPlugin('manualRowMove').moveRow(3, 0)],
+      ['a column move', () => hot.getPlugin('manualColumnMove').moveColumn(3, 0)],
+      ['a sort', () => hot.getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' })],
+    ].forEach(([name, reorder]) => {
+      it(`keeps a merged area on its cells after a round trip with ${name}`, () => {
+        const bar = build({
+          manualRowMove: true, manualColumnMove: true, columnSorting: true, mergeCells: true,
+        }, createData());
+
+        reorder();
+        hot.render();
+        hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+
+        const topLeft = { row: hot.toPhysicalRow(1), col: hot.toPhysicalColumn(1) };
+        const dataBefore = hot.getData();
+
+        roundTrip(bar);
+
+        expect(hot.getPlugin('mergeCells').getVisibleMergedAreas())
+          .toEqual([{ row: 1, col: 1, rowspan: 2, colspan: 2 }]);
+        expect({ row: hot.toPhysicalRow(1), col: hot.toPhysicalColumn(1) }).toEqual(topLeft);
+        expect(hot.getData()).toEqual(dataBefore);
+      });
+    });
+
+    it('keeps the rows a merge owns when a sort made after it scattered them', () => {
+      const bar = build({ columnSorting: true, mergeCells: true }, createData());
+      const mergeCells = hot.getPlugin('mergeCells');
+
+      mergeCells.merge(0, 1, 1, 2);
+      hot.getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      const areasBefore = mergeCells._exportMergedAreas();
+
+      roundTrip(bar);
+
+      expect(mergeCells._exportMergedAreas()).toEqual(areasBefore);
+
+      hot.getPlugin('columnSorting').clearSort();
+
+      expect(mergeCells.getVisibleMergedAreas()).toEqual([{ row: 0, col: 1, rowspan: 2, colspan: 2 }]);
+    });
+  });
+
   describe('row headers', () => {
     it('keeps the strict numbers of a moved and an inserted row after a round trip', () => {
       const bar = build({ rowHeaders: true, manualRowMove: true, bindRowsWithHeaders: 'strict' }, createData());

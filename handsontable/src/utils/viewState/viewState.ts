@@ -18,6 +18,16 @@ export interface TrackedCellMeta {
 }
 
 /**
+ * One merged area of a {@link ViewState}: where it is drawn, by visual indexes, and, when MergeCells knows
+ * them, the physical rows it owns and its physical left column. The restore places an area that carries
+ * them from those, so it covers the same cells whatever row and column order the sheet returns with.
+ */
+export interface MergedAreaState extends MergeAreaGeometry {
+  physicalRows?: number[];
+  physicalColumn?: number;
+}
+
+/**
  * One sorted column of a {@link ViewState}, by its physical index.
  */
 export interface SortedColumn {
@@ -54,7 +64,13 @@ export interface ViewState {
    */
   sortConfig: SortedColumn[];
   filterConditions: unknown[] | null;
-  mergedCells: MergeAreaGeometry[];
+
+  /**
+   * The merged areas on screen. Each carries its visual geometry, for a listener to read, and the physical
+   * rows and left column it owns when MergeCells has captured them; the restore places an area by those
+   * when they are present, and by its visual geometry otherwise.
+   */
+  mergedCells: MergedAreaState[];
   fixedColumnsStart: number | undefined;
   fixedColumnsEnd: number | undefined;
   fixedRowsTop?: number | undefined;
@@ -413,12 +429,14 @@ function getEnabledMergeCells(hot: HotInstance) {
 }
 
 /**
- * Captures the merged cell ranges on screen as plain `{row, col, rowspan, colspan}` records.
- * A merge whose rows are all trimmed is left out: restored at its stale position it would come
- * back as a visible merge over unrelated rows.
+ * Captures the merged cell ranges on screen as `{row, col, rowspan, colspan}` records, each with the
+ * physical rows it owns and its physical left column. Visual coordinates name cells only under the order
+ * they were read with, and the restore runs under another one (see {@link restoreMergedCells}). A merge
+ * whose rows are all trimmed is left out: restored at its stale position it would come back as a visible
+ * merge over unrelated rows.
  */
-function captureMergedCells(hot: HotInstance): MergeAreaGeometry[] {
-  return getEnabledMergeCells(hot)?.getVisibleMergedAreas() ?? [];
+function captureMergedCells(hot: HotInstance): MergedAreaState[] {
+  return getEnabledMergeCells(hot)?._exportMergedAreas() ?? [];
 }
 
 /**
@@ -999,6 +1017,11 @@ export function clearMergedCells(hot: HotInstance): void {
  * which a host listener can add during the load. The rest go through the automatic merge path,
  * like merges declared in the settings: the hooks report `auto`, so a listener can tell a restore
  * from a user's merge, and no cell is written, so the covered cells keep the values they hold.
+ *
+ * It runs after the restore's batch, once the index cache holds the restored row and column order: an area is
+ * placed from its physical anchor through that cache, and a merge made inside the batch was placed through the
+ * order from before the restore, so a sheet with a sort or a row or column move got its merges back over
+ * other cells.
  */
 function restoreMergedCells(hot: HotInstance, state: ViewState) {
   getEnabledMergeCells(hot)?.restoreMergedAreas(state.mergedCells);
@@ -1040,7 +1063,8 @@ export function clearCustomBorders(hot: HotInstance): void {
  * which decide the visual space; then the hidden sets, which are addressed in it; then the
  * collapsed NestedRows parents, after the hidden sets because collapsing trims the children out
  * of that visual space and a hidden child would no longer be found by its visual index; then
- * sizes, merges, freeze, and borders, none of which depend on each other.
+ * sizes, freeze, and borders, none of which depend on each other; and last, after the batch, the merges,
+ * which are placed through the index cache and need the restored order in it (see {@link restoreMergedCells}).
  *
  * The kept cell meta (`state.cellMeta`) is not replayed here: the sheets bar hands it to core's
  * `_applySettingsAndData()` together with the sheet's rows, which writes it back before the cell
@@ -1080,10 +1104,6 @@ export function restoreViewState(
 
     restoreSizes(hot, state, covers);
 
-    if (covers('mergedCells')) {
-      restoreMergedCells(hot, state);
-    }
-
     // A captured `undefined` means no freeze was configured when the sheet was captured, so a
     // freeze another sheet set at runtime is cleared back to none rather than left in force. The
     // frozen end columns and the frozen rows follow the same rule as the start ones.
@@ -1095,6 +1115,10 @@ export function restoreViewState(
       rebuildCustomBordersFromCellMeta(hot);
     }
   });
+
+  if (covers('mergedCells')) {
+    safeBatch(hot, () => restoreMergedCells(hot, state));
+  }
 
   hot.render();
 

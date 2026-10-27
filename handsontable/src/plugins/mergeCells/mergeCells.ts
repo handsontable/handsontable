@@ -56,8 +56,26 @@ interface MergeAnchor {
   physicalColumn: number;
 }
 
+/**
+ * A merged cell as `MergeCells#_exportMergedAreas()` reports it: the geometry it draws with, plus the anchor that
+ * is its authoritative description (see `MergeAnchor`). `MergeCells#restoreMergedAreas()` places such an entry
+ * from the anchor, against the row and column order in force when it runs.
+ */
 export interface PhysicalRowMergeSnapshot extends MergeAreaGeometry {
   physicalRows: number[];
+  physicalColumn: number;
+}
+
+/**
+ * Tells whether a merged area carries the physical anchor `MergeCells#_exportMergedAreas()` adds.
+ *
+ * @param {object} area The area.
+ * @returns {boolean}
+ */
+function hasPhysicalAnchor(area: MergeAreaGeometry | PhysicalRowMergeSnapshot): area is PhysicalRowMergeSnapshot {
+  const { physicalRows, physicalColumn } = area as Partial<PhysicalRowMergeSnapshot>;
+
+  return Array.isArray(physicalRows) && physicalRows.length > 0 && typeof physicalColumn === 'number';
 }
 
 /**
@@ -1042,28 +1060,103 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Merges the given areas through the automatic path, the one the settings use: no cell is
-   * written, and `beforeMergeCells`/`afterMergeCells` report `auto: true`. An area that does not
-   * fit the grid is skipped without the settings validation's warning, and so is one that
-   * overlaps a merge already in the lookup matrix, since the automatic path skips the overlap
-   * check.
+   * Returns every merged cell the lookup matrix holds, like {@link MergeCells#getVisibleMergedAreas}, each with
+   * the physical rows it owns and its physical left column when the plugin has captured them. Its visual
+   * coordinates only describe it under the row and column order they were read with; the anchor still
+   * names the same cells after a sort, a move, or a data load that renumbered the visual rows.
    *
    * @private
-   * @param {MergeAreaGeometry[]} areas The areas to merge, in visual indexes.
+   * @returns {Array<MergeAreaGeometry|PhysicalRowMergeSnapshot>}
    */
-  restoreMergedAreas(areas: MergeAreaGeometry[]): void {
+  _exportMergedAreas(): Array<MergeAreaGeometry | PhysicalRowMergeSnapshot> {
+    const collection = this.mergedCellsCollection;
+
+    return collection.mergedCells
+      .filter(mergedCell => collection.get(mergedCell.row, mergedCell.col) === mergedCell)
+      .map((mergedCell) => {
+        const { row, col, rowspan, colspan } = mergedCell;
+        const anchor = this.#mergeAnchors.get(mergedCell);
+
+        if (!anchor) {
+          return { row, col, rowspan, colspan };
+        }
+
+        return {
+          row, col, rowspan, colspan, physicalRows: anchor.physicalRows.slice(), physicalColumn: anchor.physicalColumn,
+        };
+      });
+  }
+
+  /**
+   * Merges the given areas through the automatic path, the one the settings use: no cell is
+   * written, and `beforeMergeCells`/`afterMergeCells` report `auto: true`. An area that carries a
+   * physical anchor ({@link MergeCells#_exportMergedAreas}) is placed where that anchor draws under the
+   * index cache in force now, the way {@link MergeCells#reanchorMergesToVisibleRows} places it, and keeps
+   * that anchor, so a merge whose rows a sort scattered still owns the same rows. Call it with the row and
+   * column order the merges belong to already in the cache: inside a batch the cache still holds the
+   * order from before it. An anchor that names a row or column past the data, or that has no visible
+   * top-left, is skipped. An area that does not fit the grid is skipped without the settings validation's
+   * warning, and so is one that overlaps a merge already in the lookup matrix, since the automatic path
+   * skips the overlap check.
+   *
+   * @private
+   * @param {Array<MergeAreaGeometry|PhysicalRowMergeSnapshot>} areas The areas to merge, by visual indexes or
+   * by their physical anchors.
+   */
+  restoreMergedAreas(areas: Array<MergeAreaGeometry | PhysicalRowMergeSnapshot>): void {
     const rowCount = this.hot.countRows();
     const colCount = this.hot.countCols();
 
-    areas
-      .filter(({ row, col, rowspan, colspan }) => row + rowspan <= rowCount && col + colspan <= colCount)
-      .forEach((area) => {
-        const range = toMergeAreaRange(this.hot, area);
+    areas.forEach((area) => {
+      const geometry = hasPhysicalAnchor(area) ? this.#placeAnchoredArea(area) : area;
 
-        if (this.mergedCellsCollection.getWithinRange(range, true).length === 0) {
-          this.mergeRange(range, true, true);
-        }
-      });
+      if (geometry === null ||
+          geometry.row + geometry.rowspan > rowCount || geometry.col + geometry.colspan > colCount) {
+        return;
+      }
+
+      const range = toMergeAreaRange(this.hot, geometry);
+
+      if (this.mergedCellsCollection.getWithinRange(range, true).length > 0) {
+        return;
+      }
+
+      this.mergeRange(range, true, true);
+
+      const merge = this.mergedCellsCollection.get(geometry.row, geometry.col);
+
+      if (merge && hasPhysicalAnchor(area)) {
+        this.#mergeAnchors.set(merge, { physicalRows: area.physicalRows.slice(), physicalColumn: area.physicalColumn });
+      }
+    });
+  }
+
+  /**
+   * Returns where a merge with the given anchor draws under the current index cache: from the first of its rows
+   * that is visible, as many rows as it has visible, and as many columns as it spans. Returns `null` for an
+   * anchor the data no longer covers (the data shrank while it was stored) or one with no visible top-left.
+   *
+   * @param {PhysicalRowMergeSnapshot} area The merge, with its anchor.
+   * @returns {MergeAreaGeometry|null}
+   */
+  #placeAnchoredArea({ physicalRows, physicalColumn, colspan }: PhysicalRowMergeSnapshot): MergeAreaGeometry | null {
+    const { rowIndexMapper, columnIndexMapper } = this.hot;
+
+    if (physicalColumn >= columnIndexMapper.getNumberOfIndexes() ||
+        physicalRows.some(physicalRow => physicalRow >= rowIndexMapper.getNumberOfIndexes())) {
+      return null;
+    }
+
+    const col = this.hot.toVisualColumn(physicalColumn);
+    const visualRows = physicalRows
+      .map(physicalRow => this.hot.toVisualRow(physicalRow))
+      .filter((visualRow): visualRow is number => visualRow !== null);
+
+    if (col === null || visualRows.length === 0) {
+      return null;
+    }
+
+    return { row: visualRows[0], col, rowspan: visualRows.length, colspan };
   }
 
   /**
