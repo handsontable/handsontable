@@ -5288,6 +5288,75 @@ describe('SheetsBar plugin', () => {
       expect(hot.getSettings().dataProvider).toBe(own);
     });
 
+    it('replaces the visible server sheet\'s dataProvider through updateSheetSettings()', () => {
+      const declared = makeProvider();
+      const next = makeProvider();
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'Orders', data: [], settings: { dataProvider: declared } },
+            { name: 'Notes', data: [[1]] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      expect(plugin.updateSheetSettings('Orders', { dataProvider: next })).toBe(true);
+      expect(hot.getSettings().dataProvider).toBe(next);
+      plugin.setActiveSheet('Notes');
+      expect(hot.getSettings().dataProvider).toBeNull();
+      plugin.setActiveSheet('Orders');
+      expect(hot.getSettings().dataProvider).toBe(next);
+    });
+
+    it('turns the visible server sheet local with updateSheetSettings({ dataProvider: null })', () => {
+      const declared = makeProvider();
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'Orders', data: [], settings: { dataProvider: declared } },
+            { name: 'Notes', data: [[1]] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      expect(plugin.updateSheetSettings('Orders', { dataProvider: null })).toBe(true);
+      expect(hot.getSettings().dataProvider).toBeNull();
+      plugin.setActiveSheet('Notes');
+      plugin.setActiveSheet('Orders');
+      expect(hot.getSettings().dataProvider).toBeNull();
+    });
+
+    it('gives a hidden local sheet a dataProvider through updateSheetSettings()', () => {
+      const own = makeProvider();
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'Notes', data: [[1]] },
+            { name: 'Orders', data: [] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      expect(plugin.updateSheetSettings('Orders', { dataProvider: own })).toBe(true);
+      expect(hot.getSettings().dataProvider ?? null).toBeNull();
+      plugin.setActiveSheet('Orders');
+      expect(hot.getSettings().dataProvider).toBe(own);
+      plugin.setActiveSheet('Notes');
+      expect(hot.getSettings().dataProvider).toBeNull();
+    });
+
     it('does not adopt the first-visited sheet\'s own dataProvider as the grid-level baseline', () => {
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
       const own = makeProvider();

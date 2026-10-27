@@ -536,11 +536,8 @@ interface PreservedState {
  * and lets the user switch between the sheets of a workbook. Each sheet has its own data,
  * settings overrides, and view state.
  *
- * A sheet's own settings win over the grid-level ones. While a sheet that declares a setting is
- * shown, {@link Core#updateSettings} changes only the grid-level value of that setting, which the
- * sheets without their own value use. A framework wrapper that sends every prop again on each
- * render therefore leaves the visible sheet as it is. To change a sheet's own settings, call
- * {@link SheetsBar#updateSheetSettings}.
+ * While the plugin is enabled, change a sheet's settings with {@link SheetsBar#updateSheetSettings},
+ * not with {@link Core#updateSettings}.
  */
 export class SheetsBar extends BasePlugin {
   /**
@@ -2008,6 +2005,9 @@ export class SheetsBar extends BasePlugin {
    * cancels the copy, your `sheets` array is frozen (with a console warning), or it is called from a
    * listener of a workbook change's before-hook.
    *
+   * A copy of a server sheet (one with its own `dataProvider`) starts with a copy of the original's rows.
+   * When the original has already loaded rows, the copy doesn't fetch on its first visit.
+   *
    * @param {number} id The sheet to copy.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
    * @returns {object|null} A descriptor for the copy, or `null`.
@@ -2038,16 +2038,11 @@ export class SheetsBar extends BasePlugin {
    * pass are merged into the settings the sheet already has. A key passed as `undefined` is left out, as
    * {@link Core#updateSettings} leaves it out, so a key a sheet declares cannot be removed from it, only
    * given another value. On the visible sheet the change applies at once; on any other sheet it applies
-   * when the sheet is shown next, in place of what the sheet kept from your last visit for that key: its
-   * frozen rows and columns, hidden rows and columns, sort, filters, row and column order, sizes, page,
-   * merged cells, custom borders, `cell` meta, or column summary positions. The rest of what it kept, such
-   * as the selection and the scroll position, comes back as usual. The settings stay with the
-   * sheet: the entry in your `sheets` array keeps the `settings` you declared, the way
-   * {@link Core#updateSettings} never writes into the object you passed it.
+   * when the sheet is shown next, in place of what the sheet kept from your last visit for that key, such
+   * as its sort, filters, or hidden columns. The rest of what it kept, such as the selection and the scroll
+   * position, comes back as usual. The entry in your `sheets` array keeps the `settings` you declared.
    *
-   * A sheet's own settings win over the grid-level ones, so this is how you change a setting the sheet
-   * declares: {@link Core#updateSettings} changes only the grid-level value of a key the visible sheet
-   * declares.
+   * While the plugin is enabled, use this method, not {@link Core#updateSettings}, to change a sheet's settings.
    *
    * Returns `false` when the bar is off, the sheet does not exist, `settings` is not an object or changes
    * nothing, a sheet switch is in progress, or it is called from a listener of a workbook change's
@@ -2092,16 +2087,12 @@ export class SheetsBar extends BasePlugin {
    * cancels the switch.
    *
    * The switch first saves the cell editor and the comment editor on the sheet you leave. It
-   * returns `false`, and switches nothing, while a cell value waits for an asynchronous
-   * validator, or while the editor holds a value its validator rejected (`allowInvalid: false`):
-   * the value would otherwise be written into the arriving sheet. Validators always answer after
-   * the edit, so a call made while the editor of a cell with a validator is open returns `false`
-   * even for a valid value: close the editor first and switch once `afterValidate` has fired. A
-   * change that a `beforeSheetTabChange` or `afterSheetTabStateCapture` listener makes to a cell
-   * with a validator refuses the switch the same way. A validator that never calls its callback
-   * blocks switching until {@link Core#loadData} loads other data. It also returns `false` when
-   * it is called from a listener of a workbook change's before-hook, such as
-   * `beforeSheetTabChange`, or of `afterSheetTabStateCapture`.
+   * returns `false`, and switches nothing, while a cell value waits for its validator, or while
+   * the editor holds a value its validator rejected (`allowInvalid: false`). Validators answer
+   * after the edit, so a call made while the editor of a cell with a validator is open returns
+   * `false` even for a valid value: close the editor first and switch once `afterValidate` has
+   * fired. It also returns `false` when it is called from a listener of a workbook change's
+   * before-hook, such as `beforeSheetTabChange`, or of `afterSheetTabStateCapture`.
    *
    * @param {number|string} idOrName The sheet's id, or its name.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
