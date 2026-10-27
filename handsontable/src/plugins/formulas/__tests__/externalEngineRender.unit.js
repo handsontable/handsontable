@@ -373,6 +373,99 @@ describe('external engine changes repaint formula cells', () => {
     });
   });
 
+  describe('a grid whose afterRender throws while other grids repaint', () => {
+    let containers;
+    let grids;
+    let engine;
+    let warn;
+    let listenerRuns;
+    let failNextRender;
+
+    beforeEach(() => {
+      containers = [createContainer(), createContainer(), createContainer()];
+      grids = [];
+      engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+      warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      listenerRuns = 0;
+      failNextRender = false;
+    });
+
+    afterEach(() => {
+      warn.mockRestore();
+      grids.forEach(grid => grid.destroy());
+      containers.forEach(container => container.remove());
+    });
+
+    /**
+     * Mounts the grid that owns Sheet1 and two grids that read it. The second one throws from its
+     * `afterRender` once `failNextRender` is set.
+     *
+     * @param {Function} [onSourceRender] Called from `afterRender` of the grid that owns Sheet1.
+     */
+    function mountReaders(onSourceRender = () => {}) {
+      grids.push(mountGrid(containers[0], [[1]], engine, 'Sheet1', onSourceRender));
+      grids.push(mountGrid(containers[1], [['=Sheet1!A1*2']], engine, 'Sheet2', () => {
+        if (failNextRender) {
+          failNextRender = false;
+          throw new Error('afterRender failed');
+        }
+      }));
+      grids.push(mountGrid(containers[2], [['=Sheet1!A1*2']], engine, 'Sheet3', () => {}));
+      engine.on('valuesUpdated', () => {
+        listenerRuns += 1;
+      });
+    }
+
+    it('returns the engine call, paints the other grids and runs later listeners after an external write', () => {
+      mountReaders();
+      failNextRender = true;
+
+      let changes;
+
+      expect(() => {
+        changes = engine.setCellContents({ sheet: engine.getSheetId('Sheet1'), row: 0, col: 0 }, 3);
+      }).not.toThrow();
+
+      expect(changes.length).toBeGreaterThan(0);
+      expect(grids[2].getCell(0, 0).textContent).toBe('6');
+      expect(listenerRuns).toBe(1);
+      expect(warn).toHaveBeenCalledTimes(1);
+    });
+
+    it('paints the other grids and runs the listeners before the caller sees the failed paint of a plugin write', () => {
+      mountReaders();
+      failNextRender = true;
+
+      expect(() => grids[0].setDataAtCell(0, 0, 3)).toThrow('afterRender failed');
+
+      expect(grids[2].getCell(0, 0).textContent).toBe('6');
+      expect(listenerRuns).toBe(1);
+      expect(warn).not.toHaveBeenCalled();
+
+      grids[0].setDataAtCell(0, 0, 4);
+
+      expect(grids[0].getCell(0, 0).textContent).toBe('4');
+      expect(grids[2].getCell(0, 0).textContent).toBe('8');
+    });
+
+    it('still throws a failure of the caller\'s own render after a plugin write, as without the plugin', () => {
+      let failOwnRender = false;
+
+      mountReaders(() => {
+        if (failOwnRender) {
+          failOwnRender = false;
+          throw new Error('own afterRender failed');
+        }
+      });
+      failOwnRender = true;
+
+      expect(() => grids[0].setDataAtCell(0, 0, 3)).toThrow('own afterRender failed');
+
+      expect(grids[2].getCell(0, 0).textContent).toBe('6');
+      expect(listenerRuns).toBe(1);
+    });
+  });
+
   describe('a plugin write that fails midway', () => {
     let containers;
     let grids;

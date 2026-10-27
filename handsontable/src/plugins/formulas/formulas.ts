@@ -794,8 +794,15 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    if (!deferPaintToPluginEngineWrite(this.engine, this.#paintGrid)) {
+    if (deferPaintToPluginEngineWrite(this.engine, this.#paintGrid)) {
+      return;
+    }
+
+    // The paint runs inside the engine's emit. A throwing user hook must not fail the host's engine call.
+    try {
       this.#paintGrid();
+    } catch (e) {
+      warn(`Formulas: the grid failed to repaint after an engine change: ${e instanceof Error ? e.message : e}`);
     }
   }
 

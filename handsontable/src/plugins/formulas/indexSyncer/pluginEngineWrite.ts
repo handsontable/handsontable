@@ -16,8 +16,10 @@ const heldPaintsByEngine = new WeakMap<object, Set<() => void>>();
 
 /**
  * Runs an engine mutation this plugin owns. The grids the engine's events name while it runs are
- * painted once, when the outermost mutation on that engine ends, whether it returns or throws. A
- * write to one engine does not count as a write to another. Paints a previous write held back join them.
+ * painted once, when the outermost mutation on that engine ends, whether it returns or throws. A paint
+ * that throws does not stop the others. The first such error reaches the caller once all have run,
+ * unless the mutation threw itself. A write to one engine does not count as a write to another. Paints
+ * a previous write held back join them.
  *
  * @param {object} engine The engine being written.
  * @param {Function} fn The mutation.
@@ -33,24 +35,61 @@ export function withPluginEngineWrite<T>(engine: object, fn: () => T): T {
 
   write.depth += 1;
 
+  let result: T;
+
   try {
-    return fn();
-  } finally {
-    write.depth -= 1;
+    result = fn();
+  } catch (e) {
+    endPluginEngineWrite(engine, write);
 
-    if (write.depth === 0) {
-      // Gone before the paints run, so an engine write a paint's `afterRender` makes is an external one.
-      writesByEngine.delete(engine);
-      heldPaintsByEngine.get(engine)?.forEach(paint => write.grids.add(paint));
-
-      if (write.held) {
-        heldPaintsByEngine.set(engine, write.grids);
-      } else {
-        heldPaintsByEngine.delete(engine);
-        write.grids.forEach(paint => paint());
-      }
-    }
+    throw e;
   }
+
+  const paintErrors = endPluginEngineWrite(engine, write);
+
+  if (paintErrors.length > 0) {
+    throw paintErrors[0];
+  }
+
+  return result;
+}
+
+/**
+ * Closes one level of a write. The outermost level paints the grids the write collected.
+ *
+ * @param {object} engine The engine being written.
+ * @param {EngineWrite} write The scope of that engine.
+ * @returns {unknown[]} What the paints threw, in order.
+ */
+function endPluginEngineWrite(engine: object, write: EngineWrite): unknown[] {
+  const paintErrors: unknown[] = [];
+
+  write.depth -= 1;
+
+  if (write.depth > 0) {
+    return paintErrors;
+  }
+
+  // Gone before the paints run, so an engine write a paint's `afterRender` makes is an external one.
+  writesByEngine.delete(engine);
+  heldPaintsByEngine.get(engine)?.forEach(paint => write.grids.add(paint));
+
+  if (write.held) {
+    heldPaintsByEngine.set(engine, write.grids);
+
+    return paintErrors;
+  }
+
+  heldPaintsByEngine.delete(engine);
+  write.grids.forEach((paint) => {
+    try {
+      paint();
+    } catch (e) {
+      paintErrors.push(e);
+    }
+  });
+
+  return paintErrors;
 }
 
 /**
