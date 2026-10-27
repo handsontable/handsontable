@@ -71,6 +71,32 @@ test.describe('a merge made while a row between its rows is out of view', () => 
     await expect(grid.cell(5, 0)).toHaveText('A6');
   });
 
+  test('does the same for an area declared in the settings, and keeps it when the settings are sent again', async() => {
+    const area = { row: 1, col: 0, rowspan: 3, colspan: 2 };
+
+    await grid.initGrid({ mergeCells: [area], trimRows: [2] });
+
+    await expect.poll(() => grid.merges()).toEqual([[1, 0, 3, 2]]);
+
+    await grid.untrimAll();
+
+    await expect.poll(() => grid.merges()).toEqual([[1, 0, 4, 2]]);
+    await expectOneBlockOverRows(1, 4);
+    await expect(grid.cell(5, 0)).toHaveText('A6');
+
+    await grid.page.evaluate(
+      settings => window.hot.updateSettings({ mergeCells: [{ ...settings }] }),
+      area
+    );
+
+    await expect.poll(() => grid.merges()).toEqual([[1, 0, 4, 2]]);
+    await expectOneBlockOverRows(1, 4);
+
+    const returningRow = await grid.page.evaluate(() => window.hot.getSourceDataAtRow(2));
+
+    expect(returningRow).toEqual(['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3']);
+  });
+
   test('shrinks to the visible rows again when a row is trimmed again', async() => {
     await grid.initGrid({ mergeCells: true, trimRows: [2] });
     await grid.mergeWithShortcut([1, 0, 3, 1]);

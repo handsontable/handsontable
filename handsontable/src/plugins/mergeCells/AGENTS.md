@@ -144,20 +144,24 @@ pre-existing and unchanged. Trimming alone must never produce it, and a merge ma
 did (DEV-507): the anchor was captured from the rows the merge covered on screen, so it left out a trimmed
 row sitting between them. Once the rows came back the merge drew its block over that row, hiding its
 values, and stopped one row short, which exposed its own last row empty (the merge cleared it when it was
-made). `#captureAnchorOf` therefore takes, for a merge with no anchor yet that a user or the API made
-(`afterMergeCells` with `auto` not `true`), the whole stretch of the row index sequence between the first
+made). `#captureAnchorOf` therefore takes, for a merge with no anchor yet that comes through
+`afterMergeCells`, the whole stretch of the row index sequence between the first
 and the last row the merge covers (`#fillTrimmedGaps`). The covered rows are consecutive in the visual
 order, which is the sequence without its trimmed rows, so everything in that stretch is covered or
 trimmed, and the anchor is what create-then-trim produces. Four things to keep:
 
-- **A merge declared in the settings (`auto: true`) does not take the gap.**
-  The settings describe rows on screen, and a re-send rebuilds the area from them
-  (`generateFromSettings`), so a fill there would flip the span on the next wrapper commit. Such a merge
-  keeps the old geometry after an untrim. The bulk captures (`#captureMergeAnchors`,
-  `#captureMissingMergeAnchors`) never fill either, which keeps a row move's fragments as they were.
-  `restoreMergedAreas()` is the one `auto: true` path that does fill (`#isRestoringAreas`): a sheet
-  switch rebuilds the merges that were on screen, and without the fill a merge made under a filter
-  would lose its trimmed row on the round trip and bring the DEV-507 symptom back.
+- **A merge declared in the settings (`auto: true`) takes the gap too (DEV-3610).**
+  The area's `row` and `rowspan` describe the rows on screen when it is applied, and the trimmed rows
+  between them come back under the merge, so `{ row: 2, rowspan: 3 }` over a trimmed row reads
+  `rowspan: 4` after the untrim. Taking the gap is not enough on its own: a re-send of the same areas
+  (every React and Angular commit) would rebuild the merge from the declared `rowspan` and flip it back,
+  clearing the cells of the row it just lost. `#takeKeptMerges` therefore also keeps, trimming active or
+  not, the merge of an area that was applied before, is still declared, still sits on its anchor
+  (`footprint`) and whose anchor holds more rows than the area's `rowspan` (`#hasGrownPastArea`, the
+  `rowspan` is stored in `#mergeAreas`). The bulk captures (`#captureMergeAnchors`,
+  `#captureMissingMergeAnchors`) never fill, which keeps a row move's fragments as they were. A sheet
+  switch (`restoreMergedAreas()`) fills for the same reason as before: it rebuilds merges that were on
+  screen. Changing the settings to a different area still rebuilds it from the rows on screen.
 - **The trimmed row's values stay in the source and sit hidden under the merge.** A normal merge empties
   the cells it covers, and `mergeRange` clears only the cells that are on screen, so the row that was
   trimmed keeps its values. `getData()` and an export still return them.
@@ -240,6 +244,22 @@ merge whose rows are all trimmed (purged, stale coordinates) does not reject a n
 partly visible one does. So one re-sent array can mix two readings — an area that fits is placed on the
 rows on screen, one that does not keeps its records — and the guide spells that out. A merge a row or
 column move replaced is a new object with no recorded area, so it goes back through the settings.
+
+**A settings merge that took a trimmed row (DEV-3610) is kept too, trimming active or not.** Its anchor
+holds more rows than the area's `rowspan` (`#hasGrownPastArea`; `#mergeAreas` stores the declared
+`rowspan`), so rebuilding it from the area would flip the span back and clear the returning row. While any
+such merge is kept, **every** applied, still declared merge whose footprint is unchanged is kept with it:
+rebuilt at its declared visual position, a sibling area below the grown merge lands on rows the grown block
+now covers, `filterOverlappingMergeCells` rejects it, and the merge is lost for good. Limits, all measured
+and not fixed:
+
+- A kept merge is not re-applied, so a re-send does not clear values that arrived under it since (the
+  guide's "the next re-apply clears them" holds for the other areas only).
+- It keeps its physical rows when the filter changes and the same area numbers are sent again, instead of
+  being rebuilt on the rows on screen. A different area (any of row, col, rowspan or colspan) is rebuilt.
+- The state lives in `#mergeAreas`, keyed by merge object. A merge that `restoreMergedAreas()` (a sheet
+  switch) or an undo of an unmerge creates anew has no entry, so the next re-send rebuilds it from the
+  declared `rowspan`. A row insert or remove changes the footprint and does the same.
 
 The row insert/remove hooks mirror the physical renumbering onto the anchors themselves rather than
 re-deriving them from the merges. They have to: the index mapper emits its cache update **before**

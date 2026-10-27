@@ -136,16 +136,14 @@ describe('MergeCells anchor captured while rows are trimmed', () => {
     expect(mergeGeometry()).toEqual([[1, 0, 5, 2]]);
   });
 
-  it('should keep an area declared in the settings on the rows that were on screen', () => {
+  it('should span the trimmed row between the rows of an area declared in the settings', () => {
     createGrid({ trimRows: [2], mergeCells: [{ row: 1, col: 0, rowspan: 3, colspan: 2 }] });
 
     expect(mergeGeometry()).toEqual([[1, 0, 3, 2]]);
 
     hot.getPlugin('trimRows').untrimAll();
 
-    // The settings describe the rows on screen, so the area does not take the row that was trimmed.
-    // The block then draws over that row and leaves the area's own last row outside it, as it did before.
-    expect(mergeGeometry()).toEqual([[1, 0, 3, 2]]);
+    expect(mergeGeometry()).toEqual([[1, 0, 4, 2]]);
   });
 
   it('should not grow a merge whose rows are all visible when rows elsewhere are trimmed', () => {
