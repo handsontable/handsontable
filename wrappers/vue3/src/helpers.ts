@@ -150,11 +150,14 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
 /**
  * Compare the grid's current value of a setting with the value passed through the props.
  *
- * `sheetsBar` is compared key by key, by reference: a template writes it as an object literal
+ * `sheetsBar` is compared key by key: a template writes it as an object literal
  * (`:sheetsBar="{ sheets }"`), which is a new object on every render, while the sheets it holds keep
- * every sheet's data, which must not be serialized on each change. A new `sheets` array or a changed
- * option is therefore sent, even when it differs only by a function, and the plugin's own writes into
- * the `sheets` array are not. Every other setting is compared with `simpleEqual()`.
+ * every sheet's data, which must not be serialized on each change. The `sheets` array is compared by
+ * reference, and an option given as an object literal (`animation: { switch: false }`) by the
+ * references of its own keys. A new `sheets` array or a changed option in a new `sheetsBar` object is
+ * therefore sent, even when it differs only by a function. A change made inside the same `sheetsBar`
+ * object or the same `sheets` array is not sent, and neither are the plugin's own writes into that
+ * array. Every other setting is compared with `simpleEqual()`.
  *
  * @param {string} key The setting name.
  * @param {unknown} currentValue The grid's current value.
@@ -163,7 +166,9 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
  */
 function isEqualSetting(key: string, currentValue: unknown, newValue: unknown): boolean {
   if (key === 'sheetsBar') {
-    return isShallowEqualByReference(currentValue, newValue);
+    return haveEqualOwnKeys(currentValue, newValue, (propName, valueA, valueB) => (
+      propName === 'sheets' ? isSameReference(valueA, valueB) : isShallowEqualByReference(valueA, valueB)
+    ));
   }
 
   return simpleEqual(currentValue, newValue);
@@ -171,13 +176,29 @@ function isEqualSetting(key: string, currentValue: unknown, newValue: unknown): 
 
 /**
  * Compare two values by reference, and two plain objects by the references of their own keys.
- * Reactive proxies are compared by their raw objects.
  *
  * @param {unknown} valueA First value to compare.
  * @param {unknown} valueB Second value to compare.
  * @returns {boolean} `true` if they're the same, `false` otherwise.
  */
 function isShallowEqualByReference(valueA: unknown, valueB: unknown): boolean {
+  return haveEqualOwnKeys(valueA, valueB, (propName, keyValueA, keyValueB) => isSameReference(keyValueA, keyValueB));
+}
+
+/**
+ * Compare two values by reference, or, when both are plain objects, compare their own keys with the
+ * given function. Reactive proxies are compared by their raw objects.
+ *
+ * @param {unknown} valueA First value to compare.
+ * @param {unknown} valueB Second value to compare.
+ * @param {Function} isEqualValue Compares the values both objects hold under one key.
+ * @returns {boolean} `true` if they're the same, `false` otherwise.
+ */
+function haveEqualOwnKeys(
+  valueA: unknown,
+  valueB: unknown,
+  isEqualValue: (propName: string, keyValueA: unknown, keyValueB: unknown) => boolean,
+): boolean {
   const rawA = toRaw(valueA);
   const rawB = toRaw(valueB);
 
@@ -193,7 +214,18 @@ function isShallowEqualByReference(valueA: unknown, valueB: unknown): boolean {
   const keysB = Object.keys(rawB);
 
   return keysA.length === keysB.length &&
-    keysA.every(propName => hasOwnProperty(rawB, propName) && toRaw(rawA[propName]) === toRaw(rawB[propName]));
+    keysA.every(propName => hasOwnProperty(rawB, propName) && isEqualValue(propName, rawA[propName], rawB[propName]));
+}
+
+/**
+ * Compare two values by reference, with reactive proxies compared by their raw objects.
+ *
+ * @param {unknown} valueA First value to compare.
+ * @param {unknown} valueB Second value to compare.
+ * @returns {boolean} `true` if they're the same, `false` otherwise.
+ */
+function isSameReference(valueA: unknown, valueB: unknown): boolean {
+  return toRaw(valueA) === toRaw(valueB);
 }
 
 /**

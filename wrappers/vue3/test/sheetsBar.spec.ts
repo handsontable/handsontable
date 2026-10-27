@@ -2,6 +2,7 @@ import { nextTick, ref } from 'vue';
 import { mount, config } from '@vue/test-utils';
 import { registerPlugin } from 'handsontable/plugins/registry';
 import { SheetsBar } from 'handsontable/plugins/sheetsBar';
+import { ColumnSorting } from 'handsontable/plugins/columnSorting';
 import HotTable from '../src/HotTable.vue';
 import HotColumn from '../src/HotColumn.vue';
 import './_helpers';
@@ -9,6 +10,7 @@ import './_helpers';
 config.renderStubDefaultSlot = true;
 
 registerPlugin(SheetsBar);
+registerPlugin(ColumnSorting);
 
 describe('cooperation with the SheetsBar plugin', () => {
   it('keeps the visible sheet\'s own headers when a reactive prop changes', async() => {
@@ -296,6 +298,108 @@ describe('cooperation with the SheetsBar plugin', () => {
     await nextTick();
 
     expect(hotInstance.getPlugin('sheetsBar').getSheets().find(sheet => sheet.isActive).name).toBe('B');
+
+    testWrapper.unmount();
+  });
+
+  it('does not send an inline `sheetsBar` object again when an option written as an object has the same values', async() => {
+    const App = {
+      components: { HotTable },
+      template: `
+        <HotTable
+          licenseKey="non-commercial-and-evaluation"
+          :height="height"
+          :sheetsBar="{ sheets, animation: { switch: false } }"
+          ></HotTable>`,
+      data() {
+        return {
+          height: 200,
+          sheets: [{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }],
+        };
+      },
+    };
+
+    const testWrapper = mount(App, {
+      attachTo: document.getElementById('app')
+    });
+    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
+    const updateSettingsSpy = jest.spyOn(hotInstance, 'updateSettings');
+
+    testWrapper.vm.height = 300;
+    await nextTick();
+
+    expect(updateSettingsSpy).toHaveBeenCalledTimes(1);
+    expect(updateSettingsSpy.mock.calls[0][0]).not.toHaveProperty('sheetsBar');
+
+    testWrapper.unmount();
+  });
+
+  it('keeps the workbook on a re-render when an inline `sheets` literal reuses each sheet\'s `data`', async() => {
+    const alphaRows = [[2], [1]];
+    const betaRows = [[3]];
+    const App = {
+      components: { HotTable },
+      template: `
+        <HotTable
+          licenseKey="non-commercial-and-evaluation"
+          :height="height"
+          :columnSorting="true"
+          :sheetsBar="{ sheets: [{ name: 'A', data: alphaRows }, { name: 'B', data: betaRows }] }"
+          ></HotTable>`,
+      data() {
+        return {
+          height: 200,
+        };
+      },
+      created() {
+        Object.assign(this, { alphaRows, betaRows });
+      },
+    };
+
+    const testWrapper = mount(App, {
+      attachTo: document.getElementById('app')
+    });
+    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
+
+    hotInstance.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+    testWrapper.vm.height = 300;
+    await nextTick();
+
+    expect(hotInstance.getDataAtCol(0)).toEqual([1, 2]);
+
+    testWrapper.unmount();
+  });
+
+  it('rebuilds the workbook on a re-render when a sheet\'s `data` is written inline in the template', async() => {
+    const App = {
+      components: { HotTable },
+      template: `
+        <HotTable
+          licenseKey="non-commercial-and-evaluation"
+          :height="height"
+          :columnSorting="true"
+          :sheetsBar="{ sheets: [{ name: 'A', data: [[2], [1]] }, { name: 'B', data: [[3]] }] }"
+          ></HotTable>`,
+      data() {
+        return {
+          height: 200,
+        };
+      },
+    };
+
+    const testWrapper = mount(App, {
+      attachTo: document.getElementById('app')
+    });
+    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
+
+    hotInstance.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+    expect(hotInstance.getDataAtCol(0)).toEqual([1, 2]);
+
+    testWrapper.vm.height = 300;
+    await nextTick();
+
+    expect(hotInstance.getDataAtCol(0)).toEqual([2, 1]);
 
     testWrapper.unmount();
   });
