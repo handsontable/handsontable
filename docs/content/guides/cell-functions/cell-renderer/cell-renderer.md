@@ -373,7 +373,7 @@ Use `htmlRenderer` when your output is trusted HTML and you intentionally render
 
 Skip the built-in renderer when your renderer fully controls cell output from scratch, for example the image-based `coverRenderer` in [Render custom HTML in cells](#render-custom-html-in-cells).
 
-The simplest way to write such a renderer is [`rendererFactory()`](@/guides/cell-functions/custom-cells/custom-cells.md#rendererfactory). It passes all the cell arguments to your callback as a single object, so you don't need `this` or `arguments`. It works with both regular and arrow functions:
+The simplest way to write such a renderer is [`rendererFactory()`](@/guides/cell-functions/custom-cells/custom-cells.md#rendererfactory). It passes all the cell arguments to your callback as a single object, so the callback receives everything by name. Write the callback as a regular function or an arrow function:
 
 ```js
 import { rendererFactory, textRenderer } from "handsontable/renderers";
@@ -395,13 +395,13 @@ If you write a plain renderer function instead, you can call the built-in render
 textRenderer(instance, td, row, column, prop, value, cellProperties);
 
 // Legacy style, common in classic JavaScript examples.
-// Works only in a `function` declaration or a `function` expression.
+// Use it inside a `function` declaration or a `function` expression.
 textRenderer.apply(this, arguments);
 ```
 
 ::: warning
 
-Don't use `textRenderer.apply(this, arguments)` in an arrow function. An arrow function has no `this` or `arguments` of its own. Depending on where you define it, your renderer either throws a `ReferenceError` or passes the wrong values to the built-in renderer, and the grid doesn't render correctly. Use a `function` declaration, call the built-in renderer directly, or use [`rendererFactory()`](@/guides/cell-functions/custom-cells/custom-cells.md#rendererfactory).
+Use `textRenderer.apply(this, arguments)` only inside a `function` declaration or a `function` expression. An arrow function takes `this` and `arguments` from the code around it, so the call can throw a `ReferenceError` or pass the wrong values to the built-in renderer. In an arrow function, call the built-in renderer directly or use [`rendererFactory()`](@/guides/cell-functions/custom-cells/custom-cells.md#rendererfactory).
 
 :::
 
