@@ -170,6 +170,13 @@ describe('Positioner', () => {
       expect(topAfterOpeningAt(new Positioner(true), 100)).toBe(101);
     });
 
+    it('should open a menu below the point when it fits both below and above', () => {
+      layOutVertically(50);
+
+      // 290px below the point and 100px above it, so only the order of the two checks puts the menu below.
+      expect(topAfterOpeningAt(new Positioner(true), 100)).toBe(101);
+    });
+
     it('should leave a menu that fits above the point where the above placement put it', () => {
       layOutVertically(200);
 
