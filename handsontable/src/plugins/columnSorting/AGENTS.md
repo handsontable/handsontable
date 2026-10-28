@@ -28,8 +28,9 @@ yet.
 ## The pre-sort order is taken whenever a sort starts from unsorted rows
 
 `indexesSequenceCache` (the `columnSorting` row map) is the order the sort starts from and a cleared sort goes
-back to. `#capturePresortOrder()` writes it from the live sequence every time a `sort()` starts from empty
-states on rows that show no sort result, and `setSortConfig()` does the same when it writes states onto such a
+back to. `#capturePresortOrder()` writes it from the live sequence whenever the cache is missing (the first
+sort, including one after `setSortConfig()` on a never-sorted grid) and every time a `sort()` starts from empty
+states on rows that show no sort result. `setSortConfig()` does the same when it writes states onto such a
 grid and the cache exists.
 
 **Empty sort states do not mean unsorted rows.** `setSortConfig([])` and removing the sorted column empty the
