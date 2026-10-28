@@ -483,7 +483,7 @@ export class ColumnSorting extends BasePlugin {
       return;
     }
 
-    if (currentSortConfig.length === 0 && !this.#rowsShowSortResult()) {
+    if (this.indexesSequenceCache === null || (currentSortConfig.length === 0 && !this.#rowsShowSortResult())) {
       this.#capturePresortOrder();
     }
 
