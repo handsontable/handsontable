@@ -4146,7 +4146,9 @@ export class SheetsBar extends BasePlugin {
           const copyName = freeEngineName(formulas.engine!, sheet.name);
 
           sheet.settings = { ...sheet.settings, formulas: { ...formulas, sheetName: copyName } };
-          this.#registerFormulaCopy(sheet, formulas.engine!, formulas.sheetName, copyName);
+          this.#registerFormulaCopy(
+            sheet, formulas.engine!, formulas.sheetName, copyName, this.#engineOrderOf(original, formulas),
+          );
         }
 
         this.#appendDeclaredSheet(sheet);
@@ -4408,13 +4410,22 @@ export class SheetsBar extends BasePlugin {
    * named expressions are copied too, with the same change, before the copy's content is fed: without
    * them its formulas read `#NAME?`.
    *
+   * An original the engine holds sorted or with moved rows or columns (`engineOrder`) has formulas the
+   * engine alone knows (see `#captureEngineOrder`), and the duplicated data keeps the old text in the
+   * physical order. Seeded with that data, the copy's first visit loaded it and moved it into the copied
+   * order, which turned the references of moved cells into `#REF!` and other sums. So the copy's engine
+   * sheet takes the original's engine content, in the original's engine order, and the copy stores that
+   * order as one left by the user: its first visit takes the engine sheet over, as a return does.
+   *
    * @param {object} sheet The copy.
    * @param {object} engine The engine.
    * @param {string} originalName The original's engine sheet name.
    * @param {string} copyName The copy's engine sheet name.
+   * @param {object|null} [engineOrder] The order the engine holds the original in, when it is not physical.
    */
   #registerFormulaCopy(
     sheet: Sheet, engine: NonNullable<SheetFormulas['engine']>, originalName: string, copyName: string,
+    engineOrder: FormulasEngineSheetOrder | null = null,
   ) {
     const copyText = this.#sheetNameText(engine, copyName);
     const repoint = (formula: string) => rewriteSheetReferences(formula, reference => (
@@ -4424,6 +4435,7 @@ export class SheetsBar extends BasePlugin {
 
     this.#replaceSheetData(sheet, writeFormulaTextChanges(sheet.data, collectFormulaTextChanges(sheet.data, repoint)));
     this.#registerFormulaSheet(sheet, {
+      feed: engineOrder === null,
       beforeFeed: (copyId) => {
         if (typeof originalId !== 'number') {
           return;
@@ -4437,8 +4449,70 @@ export class SheetsBar extends BasePlugin {
 
           engine.addNamedExpression?.(name, expression, copyId, engine.getNamedExpression?.(name, originalId)?.options);
         });
+
+        if (engineOrder) {
+          this.#seedCopyInEngineOrder(sheet, engine, originalId, copyId, engineOrder, repoint);
+        }
       },
     });
+  }
+
+  /**
+   * Writes the original's engine content into the copy's engine sheet, with the references the original
+   * makes to itself pointed at the copy, and stores the original's engine order for the copy, bound to the
+   * copy's engine sheet and its own data, so its first visit takes the engine sheet over
+   * (`#engineOrderToAdopt`).
+   *
+   * @param {object} sheet The copy.
+   * @param {object} engine The engine.
+   * @param {number} originalId The original's engine sheet id.
+   * @param {number} copyId The copy's engine sheet id.
+   * @param {object} engineOrder The order the engine holds the original in.
+   * @param {Function} repoint Points the original's references to itself at the copy.
+   */
+  #seedCopyInEngineOrder(
+    sheet: Sheet,
+    engine: NonNullable<SheetFormulas['engine']>,
+    originalId: number,
+    copyId: number,
+    engineOrder: FormulasEngineSheetOrder,
+    repoint: (formula: string) => string,
+  ) {
+    const content = (engine.getSheetSerialized?.(originalId) ?? []).map(row => row.map(cell => (
+      typeof cell === 'string' && cell.startsWith('=') ? repoint(cell) : cell
+    )));
+
+    engine.setSheetContent!(copyId, this.#readableEngineContent(engine, content));
+    this.#engineOrders.set(sheet, {
+      order: { ...engineOrder, sheetId: copyId },
+      data: sheet.data,
+      length: sheet.data.length,
+    });
+  }
+
+  /**
+   * Returns the order the engine holds `original` in, when a sort or a move reached the engine, or `null`
+   * when the engine holds it in the physical order its data has: the active sheet's order is read from
+   * the Formulas plugin, and a hidden sheet's is the one it left with, while its data and its engine sheet
+   * are still the ones that order describes.
+   *
+   * @param {object} original The original sheet.
+   * @param {object} formulas The original's formulas setting.
+   * @returns {object|null}
+   */
+  #engineOrderOf(original: Sheet, formulas: SheetFormulas): FormulasEngineSheetOrder | null {
+    if (original.id !== this.#model?.getActiveSheet()?.id) {
+      return this.#engineOrderToAdopt(original);
+    }
+
+    const order = this.hot.getPlugin('formulas')?.exportEngineOrder() ?? null;
+    const engine = formulas.engine!;
+
+    if (!order || (order.engine as unknown) !== engine || order.sheetId !== engine.getSheetId!(formulas.sheetName!)) {
+      return null;
+    }
+
+    return order;
   }
 
   /**

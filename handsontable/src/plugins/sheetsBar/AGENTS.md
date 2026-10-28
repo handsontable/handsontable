@@ -278,6 +278,16 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   A sorted inactive sheet's data keeps its old text: the bar does not copy engine text into it
   (`#syncInactiveSheetsFromEngine` skips it), and a rename rewrites only the name in it. Pinned by
   `tests/e2e/sheets-bar-formulas-order.spec.ts`.
+  **A duplicate of such a sheet takes the engine order over too.** It copies the original's sort and
+  row and column order (see the duplicate bullet below), but its data is the original's stale physical
+  text, so seeding the copy's engine sheet with that data and letting the first visit move it into the
+  copied order gave `#REF!` for a moved row or column and other values after a moved row plus an insert.
+  `#registerFormulaCopy` therefore writes the original's engine content (self-references repointed, as
+  for the data) into the copy's own engine sheet and stores the original's order for the copy under the
+  copy's sheet id and data (`#seedCopyInEngineOrder`), so the copy's first visit adopts it like a return.
+  The original's order is read live from the Formulas plugin when it is the active sheet, else from its
+  stored entry (`#engineOrderOf`). The copy never shares the original's engine sheet. Pinned by the
+  `duplicate` tests in `__tests__/formulaSheets.unit.js`.
 - **Show-formulas mode is per sheet** (`#captureFormulaText`, `#restoreFormulaText`), like a sort:
   it lives on the Formulas plugin, so it carried over to the next formulas sheet and was dropped by a
   sheet without formulas, which turns the plugin off.
@@ -331,7 +341,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     the original is shown, what it left with otherwise. The selection and the scroll position are reset to the
     neutral values, because the copy is a tab the user has not been on; everything else (order, sort, filters,
     hidden, trimmed and collapsed indexes, sizes, merges, freeze, page, checked rows) comes along, so the copy's
-    first visit is a restore and fires `afterSheetTabStateRestore`. Every value is copied, but not all through
+    first visit is a restore and fires `afterSheetTabStateRestore`. On a formulas sheet the copied order needs
+    the original's engine order with it, or the copy's formulas break (see "The engine keeps a sheet in the
+    order the user left it" above). Every value is copied, but not all through
     `deepClone()` (`#cloneViewStateParts`): the flat index arrays (`FLAT_VIEW_STATE_KEYS`) are `slice()`d and
     the size pairs (`SIZE_PAIR_VIEW_STATE_KEYS`) copied pair by pair, because the recursive `deepClone()` over
     arrays the length of the row count made a 100k-row duplicate about 70% slower in jsdom. A new flat number
