@@ -203,6 +203,7 @@ interface HandsontableFactory {
     EmptyDataState: typeof import('./plugins/emptyDataState').EmptyDataState;
     ExportFile: typeof import('./plugins/exportFile').ExportFile;
     Filters: typeof import('./plugins/filters').Filters;
+    FormulaBuilder: typeof import('./plugins/formulaBuilder').FormulaBuilder;
     Formulas: typeof import('./plugins/formulas').Formulas;
     HiddenColumns: typeof import('./plugins/hiddenColumns').HiddenColumns;
     HiddenRows: typeof import('./plugins/hiddenRows').HiddenRows;
@@ -475,6 +476,7 @@ declare namespace Handsontable {
       export type AvailableConditionsDataType = import('./plugins/filters').AvailableConditionsDataType;
       export type AvailableCondition = import('./plugins/filters').AvailableCondition;
     }
+    export type FormulaBuilder = import('./plugins/formulaBuilder').FormulaBuilder;
     export type Formulas = import('./plugins/formulas').Formulas;
     export type HiddenColumns = import('./plugins/hiddenColumns').HiddenColumns;
     export type HiddenRows = import('./plugins/hiddenRows').HiddenRows;

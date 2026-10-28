@@ -1,4 +1,5 @@
-import { type Page, type Locator, type ConsoleMessage, expect } from '@playwright/test';
+import { type Page, type Locator, expect } from '@playwright/test';
+import { ConsoleWarnings } from '../consoleWarnings';
 
 /**
  * Page Object for the "freeze_column / unfreeze_column as dropdown menu keys" fixture
@@ -177,17 +178,7 @@ export class DropdownMenuFreezeColumnPage {
    * cannot outlive the spec that asked for it.
    */
   collectUnresolvedKeyWarnings(): string[] {
-    const warnings: string[] = [];
-    const onConsole = (message: ConsoleMessage) => {
-      if (message.type() === 'warning' && message.text().includes('does not match any available')) {
-        warnings.push(message.text());
-      }
-    };
-
-    this.page.on('console', onConsole);
-    this.page.once('close', () => this.page.off('console', onConsole));
-
-    return warnings;
+    return new ConsoleWarnings(this.page, 'does not match any available').matching;
   }
 
   /** Pick one entry from the open column header menu. */

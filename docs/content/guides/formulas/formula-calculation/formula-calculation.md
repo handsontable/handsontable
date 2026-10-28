@@ -2,7 +2,7 @@
 type: how-to
 title: Formula calculation
 metaTitle: Formula calculation | Handsontable DataGrid for JavaScript
-description: Perform calculations on cells' values, using a powerful calculation engine that handles nearly 400 functions, custom functions, named expressions, and more.
+description: Perform calculations on cells' values, using a powerful calculation engine that handles about 400 functions, custom functions, named expressions, and more.
 permalink: /formula-calculation
 canonicalUrl: /formula-calculation
 tags:
@@ -25,9 +25,13 @@ searchCategory: Guides
 category: Formulas
 menuTag: updated
 ---
-The `Formulas` plugin adds spreadsheet-style calculation to Handsontable DataGrid, powered by [HyperFormula](https://hyperformula.handsontable.com/). It supports ~400 built-in functions, cross-sheet references, named expressions, and custom function implementations.
+The `Formulas` plugin adds spreadsheet-style calculation to Handsontable DataGrid, powered by [HyperFormula](https://handsontable.com/hyperformula/). It supports about 400 built-in functions, cross-sheet references, named expressions, and custom function implementations.
+
+HyperFormula is a separate package that you install and license on its own. For steps, see [Formulas: Installation](@/guides/formulas/installation/installation.md).
 
 Filling formula cells with [autofill](@/guides/cell-features/autofill-values/autofill-values.md) adjusts relative references per target cell, the same way a spreadsheet application does. See [Autofill and formulas](@/guides/cell-features/autofill-values/autofill-values.md#autofill-and-formulas).
+
+For a spreadsheet-style formula editing UI - a formula bar, colored references, reference picking, and autocomplete - see the [Formula builder](@/guides/formulas/formula-builder/formula-builder.md) guide.
 
 [[toc]]
 
@@ -224,7 +228,7 @@ const hotSettings = ref({
 
 :::
 
-Pass a configuration object to customize the engine. For all available options, see the [HyperFormula `ConfigParams` reference](https://hyperformula.handsontable.com/api/interfaces/configparams.html).
+Pass a configuration object to customize the engine. For all available options, see the [HyperFormula `ConfigParams` reference](https://handsontable.com/docs/hyperformula/api/interfaces/configparams.html).
 
 ::: only-for javascript
 
@@ -633,6 +637,24 @@ const hotSettings2 = ref({
 
 :::
 
+### Write to an external HyperFormula instance
+
+When you write to an external engine directly, for example with `setCellContents()`, the grids
+that read the changed cells repaint right away. A grid repaints once for each write, and the write
+is not copied into the grid's source data.
+
+To repaint once after several writes, wrap them in `engine.batch()`:
+
+```js
+hyperformulaInstance.batch(() => {
+  hyperformulaInstance.setCellContents({ sheet: 0, row: 0, col: 0 }, 10);
+  hyperformulaInstance.setCellContents({ sheet: 0, row: 1, col: 0 }, 20);
+});
+```
+
+Don't write to the engine unconditionally from an `afterRender` hook. Each write repaints the grid,
+which runs the hook again. Check that the value differs first.
+
 ## Available options and methods
 
 For the full list of configuration options and plugin methods, see the
@@ -677,7 +699,7 @@ exist, or is a range whose `start` and `end` are on different sheets. Always set
 ## Available functions
 
 The plugin inherits all calculation capabilities from HyperFormula. The complete function reference
-(386 functions across Math, Engineering, Statistical, Financial, Logical, and other categories) is
+(about 400 functions across Math, Engineering, Statistical, Financial, Logical, and other categories) is
 in the
 [HyperFormula built-in functions docs](https://handsontable.github.io/hyperformula/guide/built-in-functions.html).
 
@@ -965,7 +987,7 @@ new Handsontable(container, {
 References inside named expressions must use **absolute notation** (`$A$1`). The sheet name (e.g.
 `Sheet1!`) must match the `sheetName` passed to both `addSheet` and the Handsontable `formulas`
 config. See the
-[HyperFormula named expressions guide](https://hyperformula.handsontable.com/guide/named-expressions.html)
+[HyperFormula named expressions guide](https://handsontable.com/docs/hyperformula/guide/named-expressions.html)
 for the full naming rules and supported expression types.
 
 :::
@@ -1074,7 +1096,7 @@ HyperFormula instance. The "Totals" row references those names directly as `=Q1_
 :::
 
 For more information about named expressions, refer to the
-[HyperFormula named expressions docs](https://hyperformula.handsontable.com/guide/named-expressions.html).
+[HyperFormula named expressions docs](https://handsontable.com/docs/hyperformula/guide/named-expressions.html).
 
 ## Custom functions
 
@@ -1171,7 +1193,7 @@ each sales representative's commission amount.
 
 For the full argument type reference, error handling patterns, and advanced options such as
 function aliases and async functions, see the
-[HyperFormula custom functions guide](https://hyperformula.handsontable.com/guide/custom-functions.html).
+[HyperFormula custom functions guide](https://handsontable.com/docs/hyperformula/guide/custom-functions.html).
 
 ## Change the formula language
 
@@ -1211,7 +1233,7 @@ hot.updateSettings({
 ```
 
 For the full list of available language packs, see the
-[HyperFormula localizing functions guide](https://hyperformula.handsontable.com/guide/localizing-functions.html).
+[HyperFormula localizing functions guide](https://handsontable.com/docs/hyperformula/guide/localizing-functions.html).
 
 ## Preserve text values
 

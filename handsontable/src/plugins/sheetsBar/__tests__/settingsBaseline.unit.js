@@ -151,14 +151,17 @@ describe('SheetsBar settings baseline and lifecycle', () => {
       expect(hot.getSettings().readOnly).toBe(true);
     });
 
-    it('does not replace the baseline when it is set on a sheet that declares the key', () => {
+    it('is taken as the grid-level value when it is set on a sheet that declares the key', () => {
       const bar = buildWorkbook(sheets());
 
       bar.setActiveSheet('Locked');
       hot.updateSettings({ readOnly: true });
-      bar.setActiveSheet('Plain');
 
       expect(hot.getSettings().readOnly).toBe(false);
+
+      bar.setActiveSheet('Plain');
+
+      expect(hot.getSettings().readOnly).toBe(true);
     });
   });
 
@@ -267,11 +270,12 @@ describe('SheetsBar settings baseline and lifecycle', () => {
   describe('comparing a `sheets` value sent again', () => {
     it('reads an equal fresh `Date` in a sheet\'s settings as unchanged', () => {
       const data = [['a']];
-      const bar = buildWorkbook([{ name: 'Alpha', data, settings: { reviewedOn: new Date(2026, 0, 1) } }]);
+      const sheets = [{ name: 'Alpha', data, settings: { reviewedOn: new Date(2026, 0, 1) } }];
+      const bar = buildWorkbook(sheets);
 
       bar.addSheet('Runtime');
       hot.updateSettings({
-        sheetsBar: { sheets: [{ name: 'Alpha', data, settings: { reviewedOn: new Date(2026, 0, 1) } }] },
+        sheetsBar: { sheets: [{ name: 'Alpha', data, settings: { reviewedOn: new Date(2026, 0, 1) } }, sheets[1]] },
       });
 
       expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Alpha', 'Runtime']);
@@ -279,27 +283,34 @@ describe('SheetsBar settings baseline and lifecycle', () => {
 
     it('reads two invalid dates as unchanged', () => {
       const data = [['a']];
-      const bar = buildWorkbook([{ name: 'Alpha', data, settings: { reviewedOn: new Date('x') } }]);
+      const sheets = [{ name: 'Alpha', data, settings: { reviewedOn: new Date('x') } }];
+      const bar = buildWorkbook(sheets);
 
       bar.addSheet('Runtime');
-      hot.updateSettings({ sheetsBar: { sheets: [{ name: 'Alpha', data, settings: { reviewedOn: new Date('y') } }] } });
+      hot.updateSettings({
+        sheetsBar: { sheets: [{ name: 'Alpha', data, settings: { reviewedOn: new Date('y') } }, sheets[1]] },
+      });
 
       expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Alpha', 'Runtime']);
     });
 
     it('reads another `Date` as a new workbook', () => {
       const data = [['a']];
-      const bar = buildWorkbook([{ name: 'Alpha', data, settings: { reviewedOn: new Date(2026, 0, 1) } }]);
+      const sheets = [{ name: 'Alpha', data, settings: { reviewedOn: new Date(2026, 0, 1) } }];
+      const bar = buildWorkbook(sheets);
+
+      const loads = jest.fn();
 
       bar.addSheet('Runtime');
+      hot.addHook('afterLoadData', loads);
       hot.updateSettings({
-        sheetsBar: { sheets: [{ name: 'Alpha', data, settings: { reviewedOn: new Date(2026, 0, 2) } }] },
+        sheetsBar: { sheets: [{ name: 'Alpha', data, settings: { reviewedOn: new Date(2026, 0, 2) } }, sheets[1]] },
       });
 
-      expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Alpha']);
+      expect(loads).toHaveBeenCalledTimes(1);
     });
 
-    it('reads a `Date` edited in place as a new workbook', () => {
+    it('does not watch a `Date` edited in place in the array the bar keeps', () => {
       const reviewedOn = new Date(2026, 0, 1);
       const sheets = [{ name: 'Alpha', data: [['a']], settings: { reviewedOn } }];
       const bar = buildWorkbook(sheets);
@@ -308,7 +319,7 @@ describe('SheetsBar settings baseline and lifecycle', () => {
       reviewedOn.setFullYear(2027);
       hot.updateSettings({ sheetsBar: { sheets } });
 
-      expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Alpha']);
+      expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Alpha', 'Runtime']);
     });
 
     it('reads a new class instance with the same fields as a new workbook', () => {
@@ -318,12 +329,18 @@ describe('SheetsBar settings baseline and lifecycle', () => {
         }
       }
       const data = [['a']];
-      const bar = buildWorkbook([{ name: 'Alpha', data, settings: { engine: new Engine(1) } }]);
+      const sheets = [{ name: 'Alpha', data, settings: { engine: new Engine(1) } }];
+      const bar = buildWorkbook(sheets);
+
+      const loads = jest.fn();
 
       bar.addSheet('Runtime');
-      hot.updateSettings({ sheetsBar: { sheets: [{ name: 'Alpha', data, settings: { engine: new Engine(1) } }] } });
+      hot.addHook('afterLoadData', loads);
+      hot.updateSettings({
+        sheetsBar: { sheets: [{ name: 'Alpha', data, settings: { engine: new Engine(1) } }, sheets[1]] },
+      });
 
-      expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Alpha']);
+      expect(loads).toHaveBeenCalledTimes(1);
     });
 
     it('keeps the workbook when the same class instance is sent again', () => {
@@ -334,42 +351,49 @@ describe('SheetsBar settings baseline and lifecycle', () => {
       }
       const engine = new Engine(1);
       const data = [['a']];
-      const bar = buildWorkbook([{ name: 'Alpha', data, settings: { engine } }]);
+      const sheets = [{ name: 'Alpha', data, settings: { engine } }];
+      const bar = buildWorkbook(sheets);
 
       bar.addSheet('Runtime');
-      hot.updateSettings({ sheetsBar: { sheets: [{ name: 'Alpha', data, settings: { engine } }] } });
+      hot.updateSettings({ sheetsBar: { sheets: [{ name: 'Alpha', data, settings: { engine } }, sheets[1]] } });
 
       expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Alpha', 'Runtime']);
     });
 
-    it('applies the host\'s `sheets` array edited in place', () => {
+    it('does not watch the host\'s `sheets` array edited in place', () => {
       const sheets = [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }];
 
       buildWorkbook(sheets);
       sheets[0].settings = { readOnly: true };
       hot.updateSettings({ sheetsBar: { sheets } });
 
-      expect(hot.getSettings().readOnly).toBe(true);
+      expect(hot.getSettings().readOnly).toBe(false);
     });
 
-    it('applies a sheet\'s settings object edited in place', () => {
+    it('does not watch a sheet\'s settings object edited in place', () => {
       const sheets = [{ name: 'Alpha', data: [['a']], settings: { readOnly: false } }, { name: 'Beta', data: [['b']] }];
 
       buildWorkbook(sheets);
       sheets[0].settings.readOnly = true;
       hot.updateSettings({ sheetsBar: { sheets } });
 
-      expect(hot.getSettings().readOnly).toBe(true);
+      expect(hot.getSettings().readOnly).toBe(false);
     });
 
     it('reads a fresh inline function in a sheet\'s settings as a new workbook', () => {
       const data = [['a']];
-      const bar = buildWorkbook([{ name: 'Alpha', data, settings: { cells: () => ({}) } }]);
+      const sheets = [{ name: 'Alpha', data, settings: { cells: () => ({}) } }];
+      const bar = buildWorkbook(sheets);
+
+      const loads = jest.fn();
 
       bar.addSheet('Runtime');
-      hot.updateSettings({ sheetsBar: { sheets: [{ name: 'Alpha', data, settings: { cells: () => ({}) } }] } });
+      hot.addHook('afterLoadData', loads);
+      hot.updateSettings({
+        sheetsBar: { sheets: [{ name: 'Alpha', data, settings: { cells: () => ({}) } }, sheets[1]] },
+      });
 
-      expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Alpha']);
+      expect(loads).toHaveBeenCalledTimes(1);
     });
 
     it('keeps the workbook when the host sends its array again after `removeSheet()` pruned it', () => {
@@ -384,25 +408,26 @@ describe('SheetsBar settings baseline and lifecycle', () => {
       bar.removeSheet(bar.getSheets()[2].id);
       hot.updateSettings({ sheetsBar: { sheets } });
 
-      expect(sheets.map(sheet => sheet.name)).toEqual(['Alpha', 'Beta']);
+      expect(sheets.map(sheet => sheet.name)).toEqual(['Alpha', 'Beta', 'Runtime']);
       expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Alpha', 'Beta', 'Runtime']);
     });
 
-    it('keeps the workbook when a host that rebuilds its entries on every render removes a sheet', () => {
-      const dataA = [['a']];
-      const dataB = [['b']];
-      const dataC = [['c']];
-      const entries = () => [
-        { name: 'Alpha', data: dataA },
-        { name: 'Beta', data: dataB },
-        { name: 'Gamma', data: dataC },
+    it('keeps the workbook when a host that copies its entries on every render removes a sheet', () => {
+      let sheets = [
+        { name: 'Alpha', data: [['a']] },
+        { name: 'Beta', data: [['b']] },
+        { name: 'Gamma', data: [['c']] },
       ];
-      const bar = buildWorkbook(entries());
+      const render = () => {
+        sheets = sheets.map(entry => ({ ...entry }));
+        hot.updateSettings({ sheetsBar: { sheets } });
+      };
+      const bar = buildWorkbook(sheets);
 
       bar.addSheet('Runtime');
-      hot.updateSettings({ sheetsBar: { sheets: entries() } });
+      render();
       bar.removeSheet(bar.getSheets()[2].id);
-      hot.updateSettings({ sheetsBar: { sheets: entries().slice(0, 2) } });
+      render();
 
       expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Alpha', 'Beta', 'Runtime']);
     });

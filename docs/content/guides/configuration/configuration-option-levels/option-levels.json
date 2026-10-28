@@ -6,9 +6,9 @@
     "cells",
     "cell"
   ],
-  "total": 185,
+  "total": 186,
   "counts": {
-    "grid": 112,
+    "grid": 113,
     "grid columns cells cell": 65,
     "grid columns": 7,
     "columns": 1
@@ -694,6 +694,15 @@
         "grid"
       ],
       "since": null,
+      "note": null
+    },
+    {
+      "name": "formulaBuilder",
+      "category": "FormulaBuilder",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
       "note": null
     },
     {

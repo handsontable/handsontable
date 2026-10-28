@@ -18,6 +18,7 @@ function createMockIndexSyncer(engine, sheetId = 0) {
     getEngine: () => engine,
     getSheetId: () => sheetId,
     getPostponeAction: () => () => {},
+    getOwnEngineWrite: () => (_, fn) => fn(),
   };
 }
 
@@ -144,6 +145,7 @@ describe('AxisSyncer initial order sync', () => {
         getEngine: () => engine,
         getSheetId: () => null,
         getPostponeAction: () => callback => postponedCallbacks.push(callback),
+        getOwnEngineWrite: () => (_, fn) => fn(),
       };
       const axisSyncer = new AxisSyncer('column', indexMapper, indexSyncer);
 

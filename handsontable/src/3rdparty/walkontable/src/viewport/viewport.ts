@@ -148,6 +148,15 @@ class Viewport {
    */
   declare columnHeaderHeightFraction: number;
   /**
+   * `true` when the current column-header height is AutoRowSize's ghost measurement.
+   *
+   * That measurement drops the bottom gridline. The band adds the pixel back. The height
+   * written on the header cell stays the ghost number, so a nested level does not grow.
+   *
+   * @type {boolean}
+   */
+  declare columnHeaderHeightOmitsBottomBorder: boolean;
+  /**
    * @type {number}
    */
   declare rowHeaderWidth: number;
@@ -251,6 +260,7 @@ class Viewport {
     // `skipRender` rollback captures/restores them and the overlays' `applyToDOM` null-checks them.
     this.rowsRenderCalculator = null;
     this.columnsRenderCalculator = null;
+    this.columnHeaderHeightOmitsBottomBorder = false;
     type CalcTypeFactory = () => CalculationTypeLike;
 
     this.rowsCalculatorTypes = new Map<string, CalcTypeFactory>([

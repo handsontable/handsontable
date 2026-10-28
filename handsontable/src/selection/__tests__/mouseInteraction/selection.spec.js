@@ -943,7 +943,6 @@ describe('Selection using mouse interaction', () => {
       | - ║   : 0 |
       | - ║   : 0 |
       | - ║   : 0 |
-      | - ║   : 0 |
     `).toBeMatchToSelectionPattern();
   });
 
@@ -988,7 +987,6 @@ describe('Selection using mouse interaction', () => {
       | - ║   :   :   :   :   :   :   :   :   :   :   : 0 :   |
       | - ║   :   :   :   :   :   :   :   :   :   :   : 0 :   |
       | - ║   :   :   :   :   :   :   :   :   :   :   : A :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   :   :   |
       |   ║   :   :   :   :   :   :   :   :   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
   });

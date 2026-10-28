@@ -49,6 +49,8 @@ const jestConfig = createRequire(import.meta.url)(path.join(root, CORE, 'jest.co
 const KNOWN_JEST_KEYS = [
   'coverageDirectory', 'coverageReporters', 'moduleNameMapper', 'roots', 'setupFiles',
   'setupFilesAfterEnv', 'testEnvironment', 'testPathIgnorePatterns', 'testRegex', 'testRunner',
+  // Chooses which node_modules packages Babel transforms; it loads nothing by itself.
+  'transformIgnorePatterns',
 ];
 
 // What introduces a module path the walk follows: `import ... from`, `export ... from`, a bare or

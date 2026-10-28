@@ -8,7 +8,9 @@ export type A11yState =
   | 'data-provider'
   | 'selection'
   | 'selection-hover'
-  | 'async-pending';
+  | 'async-pending'
+  | 'formula-suggestions'
+  | 'formula-function-help';
 
 
 export interface A11yPage {

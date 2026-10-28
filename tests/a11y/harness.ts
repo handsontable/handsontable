@@ -180,6 +180,40 @@ export async function expectEditorOpen(page: Page, root: string): Promise<void> 
 }
 
 /**
+ * Opens the formula editor on a cell from the keyboard and replaces its text with typed text.
+ *
+ * @param page The page.
+ * @param entry The scanned page entry.
+ * @param root The grid container selector.
+ * @param cell The cell to edit.
+ * @param text The text to type.
+ */
+async function typeIntoFormulaEditor(
+  page: Page, entry: A11yPage, root: string, cell: [number, number], text: string,
+): Promise<void> {
+  await STATES.editor(page, entry, root, cell);
+  await page.keyboard.press('ControlOrMeta+a');
+  await page.keyboard.type(text);
+}
+
+/**
+ * Marks the popup portal hyperformula-ui mounts in the document body, so the scan includes it.
+ *
+ * @param page The page.
+ */
+async function markFormulaPopups(page: Page): Promise<void> {
+  const marked = await page.evaluate((attribute) => {
+    const portals = document.querySelectorAll('.hfe-popup-portal');
+
+    portals.forEach(portal => portal.setAttribute(attribute, ''));
+
+    return portals.length;
+  }, PORTAL_MARK);
+
+  expect(marked, 'the formula editor mounted its popup portal').toBeGreaterThan(0);
+}
+
+/**
  * The state each page is measured in. Every opener drives the real keyboard where the surface has a
  * shortcut, so the measured DOM is the one a keyboard user reaches.
  */
@@ -238,6 +272,18 @@ export const STATES: Record<A11yState, (page: Page, entry: A11yPage, root: strin
     expect(selected, `selectCells from (${row}, ${col}) on ${root}`).toBe(true);
     await page.locator(`${root} .ht_master`).getByTestId(`cell-${row + 1}-${col + 1}`).hover();
     await expect(page.locator(`${root} .ht_master .wtSelectionHandle:visible`)).toHaveCount(4);
+  },
+  // hyperformula-ui mounts its popups in a portal of its own in the document body, outside the grid's
+  // root and its `rootPortalElement`, so the state marks that portal for the scan too.
+  'formula-suggestions': async(page, entry, root, cell) => {
+    await typeIntoFormulaEditor(page, entry, root, cell, '=SU');
+    await expect(page.locator('.hfe-suggestions [role="option"]').first()).toBeVisible();
+    await markFormulaPopups(page);
+  },
+  'formula-function-help': async(page, entry, root, cell) => {
+    await typeIntoFormulaEditor(page, entry, root, cell, '=SUM(');
+    await expect(page.locator('.hfe-fn-help')).toBeVisible();
+    await markFormulaPopups(page);
   },
   // The fixture fills the cell from a promise it never settles, so the cell stays pending: the
   // indicator, the pending message and `aria-busy` are what the scan sees.

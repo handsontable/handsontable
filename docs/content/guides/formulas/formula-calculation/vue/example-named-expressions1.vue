@@ -56,7 +56,6 @@ function buttonClickCallback() {
   }
 
   errorMessage.value = '';
-  hotInstance?.render();
 }
 </script>
 

@@ -32,6 +32,8 @@ function fakeRoot(shape = 'clone') {
   mkdirSync(path.join(root, 'tests/node_modules/hyperformula/dist'), { recursive: true });
   writeFileSync(path.join(root, 'tests/package.json'), 'pkg-v1');
   writeFileSync(path.join(root, 'tests/node_modules/hyperformula/dist/hyperformula.full.min.js'), 'hf-v1');
+  mkdirSync(path.join(root, 'tests/node_modules/hyperformula-ui/dist'), { recursive: true });
+  writeFileSync(path.join(root, 'tests/node_modules/hyperformula-ui/dist/index.js'), 'hfui-v1');
   writeFileSync(path.join(root, 'tests/fixtures/pages/GridPage.ts'), 'pom-v1');
   writeFileSync(path.join(root, 'tests/playwright.config.ts'), 'cfg-v1');
   writeFileSync(path.join(root, 'tests/e2e/a.spec.ts'), 'spec-v1');
@@ -96,6 +98,21 @@ test('rebuilding the dist or touching a fixture invalidates the cache', () => {
   recordGreen(root, ['e2e/a.spec.ts']);
   writeFileSync(path.join(root, 'tests/fixtures/pages/GridPage.ts'), 'pom-v2');
   assert.deepEqual(filterCached(root, ['e2e/a.spec.ts']).toRun, ['e2e/a.spec.ts']);
+});
+
+test('reinstalling hyperformula-ui invalidates the cache (the formula-builder fixture imports it)', () => {
+  const root = fakeRoot();
+
+  recordGreen(root, ['e2e/a.spec.ts']);
+  writeFileSync(path.join(root, 'tests/node_modules/hyperformula-ui/dist/index.js'), 'hfui-v2');
+  assert.deepEqual(filterCached(root, ['e2e/a.spec.ts']).toRun, ['e2e/a.spec.ts']);
+});
+
+test('a missing hyperformula-ui never reads as an unchanged environment', () => {
+  const root = fakeRoot();
+
+  rmSync(path.join(root, 'tests/node_modules/hyperformula-ui/dist/index.js'));
+  assert.equal(envHash(root), '');
 });
 
 test('rebuilding ONLY the base UMD bundle invalidates the cache (the e2e-main leg loads it)', () => {
