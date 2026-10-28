@@ -235,6 +235,9 @@ function resetOmittedLayout(
  * An empty (or fully rejected) rule set REMOVES the element rather than leaving an empty one, which
  * is also what clears the previous import's rules when the next workbook carries no styles at all.
  *
+ * Returns the rules it installed, by class name, without the rejected ones, so installing what it
+ * returned again warns about nothing.
+ *
  * Rules use the `.handsontable tbody > tr > td.<class>` selector, not the shorter
  * `.handsontable td.<class>`, so the generated rule beats the theme's own row-banding CSS
  * (`.handsontable :where(table.htCore > tbody, …) > tr.ht__row_even/odd > td`, main/horizon/classic
@@ -248,11 +251,14 @@ function resetOmittedLayout(
  * selector shape is what a real grid and the probe both share; raising priority through
  * `!important` would also outrank a user's own CSS with no way back.
  */
-export function installImportedStyles(hot: HotInstance, styles: Record<string, string>): void {
+export function installImportedStyles(
+  hot: HotInstance, styles: Record<string, string>
+): Record<string, string> {
   const doc = hot.rootDocument;
   const mount = hot.rootWrapperElement;
   const rules: string[] = [];
   const rejected: string[] = [];
+  const installed: Record<string, string> = {};
 
   Object.entries(styles).forEach(([className, declarations]) => {
     if (!IMPORTED_CLASS_PATTERN.test(className) || !isAllowedDeclarationBlock(declarations)) {
@@ -262,6 +268,7 @@ export function installImportedStyles(hot: HotInstance, styles: Record<string, s
     }
 
     rules.push(`.handsontable tbody > tr > td.${className}{${declarations}}`);
+    installed[className] = declarations;
   });
 
   if (rejected.length > 0) {
@@ -271,7 +278,7 @@ export function installImportedStyles(hot: HotInstance, styles: Record<string, s
   if (rules.length === 0) {
     removeImportedStyles(hot);
 
-    return;
+    return installed;
   }
 
   // Mounted inside the instance's own wrapper, where the theme engine keeps its per-instance
@@ -286,6 +293,8 @@ export function installImportedStyles(hot: HotInstance, styles: Record<string, s
   }
 
   styleEl.textContent = rules.join('\n');
+
+  return installed;
 }
 
 /**
@@ -309,10 +318,14 @@ export function removeImportedStyles(hot: HotInstance): void {
  * stylesheet is installed right after `loadData` so the generated classes already resolve on the
  * first render `updateSettings` triggers. The surrounding `batch` suspends rendering, so all the calls
  * still paint once.
+ *
+ * Returns the style rules it installed (see `installImportedStyles()`).
  */
 export function applyImportResult(
   hot: HotInstance, result: ImportResult, options: ApplyOptions = { importLayout: true }
-): void {
+): Record<string, string> {
+  let installed: Record<string, string> = {};
+
   hot.batch(() => {
     const settings = toSettings(hot, result, options);
 
@@ -331,7 +344,7 @@ export function applyImportResult(
 
     hot.loadData(result.data);
 
-    installImportedStyles(hot, result.styles ?? {});
+    installed = installImportedStyles(hot, result.styles ?? {});
 
     if (Object.keys(settings).length > 0) {
       hot.updateSettings(settings);
@@ -370,4 +383,6 @@ export function applyImportResult(
       });
     }
   });
+
+  return installed;
 }

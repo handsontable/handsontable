@@ -334,7 +334,12 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `result.customBorders`. `applier.ts#installImportedStyles` installs `result.styles` as one
   `<style data-hot-imported-styles="<hot.guid>">` element in `hot.rootWrapperElement` (see the bullet above) — one per instance,
   `textContent` replaced (never appended) on every import — and `ImportFile#destroy()` removes it via
-  `removeImportedStyles(this.hot)` before `super.destroy()`. `toSettings` passes `result.customBorders`
+  `removeImportedStyles(this.hot)` before `super.destroy()`. `installImportedStyles` returns the rules it
+  installed (the rejected ones left out), and the plugin keeps them (`#installedStyles`) for the sheets bar, which
+  stores them per sheet through the `@private` `_exportImportedStyles()` and puts a sheet's rules back with
+  `_restoreImportedStyles()` (an empty map removes the element). Installing the returned rules again warns about
+  nothing, so a sheet switch never repeats the rejection warning. `disablePlugin()` empties `#installedStyles` with the
+  element. `toSettings` passes `result.customBorders`
   straight through `updateSettings`. The exact selector `.handsontable tbody > tr > td.<class>` is
   load-bearing, and load-bearing in two directions at once. It has to keep matching the export's own
   class probe (`div.handsontable > table > tbody > tr > td.<class>`, no class on the `<table>` -

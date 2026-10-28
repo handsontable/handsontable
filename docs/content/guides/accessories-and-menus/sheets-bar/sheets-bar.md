@@ -369,6 +369,24 @@ A sheet added with the **Add sheet** button, or with `addSheet()` without `setti
 
 Use each sheet's tab name as its `sheetName`. A tab rename then renames the engine sheet and rewrites the references to it, also in your `data` arrays. Inserting, removing, or moving rows or columns rewrites formula text in your `data` arrays too.
 
+## Import and export
+
+A file you import with the [`ImportFile`](@/api/importFile.md) plugin lands on the active sheet. The settings the import writes, such as column types, locked cells, column widths, row heights, hidden rows and columns, frozen rows and columns, merged cells, and headers, become that sheet's own settings, the way [`updateSheetSettings()`](@/api/sheetsBar.md#updatesheetsettings) sets them. The other sheets keep theirs, and the imported sheet gets the imported layout back on every return, even for a setting its entry in `sheets` declares. Your `sheets` array keeps the `settings` you declared.
+
+Each sheet also keeps its own imported cell styles, so a file you import into another sheet doesn't remove them.
+
+The [`ExportFile`](@/api/exportFile.md) plugin exports what the grid holds, which is the active sheet, in a worksheet named `Sheet1`. To name the worksheet after the tab, pass the grid in the `sheets` option:
+
+```js
+const activeSheet = hot.getPlugin('sheetsBar').getSheets().find(sheet => sheet.isActive);
+
+await hot.getPlugin('exportFile').downloadFileAsync('xlsx', {
+  sheets: [{ instance: hot, name: activeSheet.name }],
+});
+```
+
+With `exportFormulas: true`, a formula that references another sheet is written as it is, so in the file it points at a sheet the file doesn't contain.
+
 ## Known limitations
 
 - The grid holds one sheet at a time, so methods such as [`getData()`](@/api/core.md#getdata) and [`getDataAtCell()`](@/api/core.md#getdataatcell) read only the active sheet.

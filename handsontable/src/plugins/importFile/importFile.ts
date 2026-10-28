@@ -11,7 +11,7 @@ import {
   type XlsxEngineKind,
 } from '../../utils/xlsxEngine/capabilities';
 import { mapWorkbook, resolveImportOptions, type MappedResult, type ResolvedImportOptions } from './mapper';
-import { applyImportResult, removeImportedStyles } from './applier';
+import { applyImportResult, installImportedStyles, removeImportedStyles } from './applier';
 import { hasCellType } from '../../cellTypes/registry';
 import {
   convertToInferredTypes,
@@ -570,6 +570,12 @@ export class ImportFile extends BasePlugin {
   #isApplyingResult = false;
 
   /**
+   * The style rules the stylesheet holds now, by class name: the ones the last import installed, or the
+   * ones `_restoreImportedStyles()` put back.
+   */
+  #installedStyles: Record<string, string> = {};
+
+  /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.
    */
   static get PLUGIN_KEY() {
@@ -593,14 +599,38 @@ export class ImportFile extends BasePlugin {
   /**
    * Tells whether the plugin is loading an import's result into the grid. The `updateSettings()` calls an
    * import makes then carry the imported file's layout for the grid it lands on, not a grid-level
-   * configuration, so the sheets bar does not take them as one. It answers `false` while the `beforeImport`
-   * listeners run: a setting a listener changes is the host's own.
+   * configuration, so the sheets bar takes them as the visible sheet's own settings. It answers `false`
+   * while the `beforeImport` listeners run: a setting a listener changes is the host's own.
    *
    * @private
    * @returns {boolean}
    */
   _isApplyingImport(): boolean {
     return this.#isApplyingResult;
+  }
+
+  /**
+   * Returns a copy of the style rules the imported stylesheet holds, by class name. The sheets bar keeps
+   * them per sheet: the cells of each sheet carry the classes of the file imported into that sheet, while
+   * the grid has one stylesheet.
+   *
+   * @private
+   * @returns {object}
+   */
+  _exportImportedStyles(): Record<string, string> {
+    return { ...this.#installedStyles };
+  }
+
+  /**
+   * Replaces the imported stylesheet with the given rules, by class name, the way an import installs
+   * them. Empty rules remove the stylesheet. The sheets bar calls it when a sheet arrives, with the rules
+   * that sheet kept (`_exportImportedStyles()`).
+   *
+   * @private
+   * @param {object} styles The rules, by class name.
+   */
+  _restoreImportedStyles(styles: Record<string, string>) {
+    this.#installedStyles = installImportedStyles(this.hot, styles);
   }
 
   /**
@@ -633,6 +663,7 @@ export class ImportFile extends BasePlugin {
   disablePlugin() {
     super.disablePlugin();
     removeImportedStyles(this.hot);
+    this.#installedStyles = {};
     this.#latestApplyTicket += 1;
     this.#disabledAtTicket = this.#latestApplyTicket;
   }
@@ -844,7 +875,7 @@ export class ImportFile extends BasePlugin {
     this.#isApplyingResult = true;
 
     try {
-      applyImportResult(this.hot, result, { importLayout: resolved.importLayout });
+      this.#installedStyles = applyImportResult(this.hot, result, { importLayout: resolved.importLayout });
     } finally {
       this.#isApplying = false;
       this.#isApplyingResult = false;

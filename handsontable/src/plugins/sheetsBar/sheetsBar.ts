@@ -639,6 +639,12 @@ export class SheetsBar extends BasePlugin {
    */
   #cellOptionStates = new WeakMap<Sheet, CellOptionMetaEntry[]>();
   /**
+   * The imported cell style rules of each sheet the user left, by class name (`#captureImportedStyles`).
+   *
+   * @type {WeakMap<object, object>}
+   */
+  #importedStyles = new WeakMap<Sheet, Record<string, string>>();
+  /**
    * The sheets whose `mergeCells` `updateSheetSettings()` changed while they were hidden: their next visit
    * builds the declared merges instead of restoring the ones the user left with.
    *
@@ -1769,6 +1775,12 @@ export class SheetsBar extends BasePlugin {
   #filterGridSettings = (settings: Record<string, unknown>): Record<string, unknown> => {
     this.#runPendingHookSync(settings);
 
+    if (this.#model !== null && this.hot.getPlugin('importFile')?._isApplyingImport()) {
+      this.#keepImportedSettings(settings);
+
+      return settings;
+    }
+
     const own = this.#activeSheetRecord()?.settings;
 
     if (!isPlainObject(own) || !this.#filtersGridSettings(settings)) {
@@ -2089,6 +2101,7 @@ export class SheetsBar extends BasePlugin {
             unknown as Record<string, unknown>;
           this.#captureColumnSummary(oldSheet);
           this.#captureCellOption(oldSheet);
+          this.#captureImportedStyles(oldSheet);
           this.#runBeforeChangeHook(() => {
             this.hot.runHooks('afterSheetTabStateCapture', oldId, oldSheet.viewState, source);
           });
@@ -2764,6 +2777,7 @@ export class SheetsBar extends BasePlugin {
         restoresState: viewState !== undefined,
         cellMeta: viewState?.cellMeta,
       });
+      this.#restoreImportedStyles(newSheet);
 
       if (viewState) {
         restoreViewState(this.hot, viewState, keptParts);
@@ -3117,6 +3131,68 @@ export class SheetsBar extends BasePlugin {
     }
 
     return this.hot._getMetaManager().getCellOptionCellMetas().map(entry => ({ ...entry }));
+  }
+
+  /**
+   * Stores the imported cell style rules of the departing sheet. Its cells carry the classes of the file
+   * imported into it, in their cell meta, while the grid has one imported stylesheet, so a later import into
+   * another sheet replaced the rules those classes needed, and a sheet that turns ImportFile off removed them.
+   * The arriving sheet gets its own rules back (`#restoreImportedStyles`). Nothing is stored while ImportFile
+   * is off or holds no rules.
+   *
+   * @param {object} sheet The departing sheet.
+   */
+  #captureImportedStyles(sheet: Sheet) {
+    const styles = this.#exportImportedStyles();
+
+    if (styles) {
+      this.#importedStyles.set(sheet, styles);
+    } else {
+      this.#importedStyles.delete(sheet);
+    }
+  }
+
+  /**
+   * Returns the imported cell style rules the grid holds, or `null` while ImportFile is off or holds none.
+   *
+   * @returns {object|null}
+   */
+  #exportImportedStyles(): Record<string, string> | null {
+    const importFile = this.hot.getPlugin('importFile');
+    const styles = importFile?.enabled ? importFile._exportImportedStyles() : null;
+
+    return styles && Object.keys(styles).length > 0 ? styles : null;
+  }
+
+  /**
+   * Puts the arriving sheet's imported cell style rules in the grid's stylesheet, or removes the stylesheet
+   * when the sheet kept none. Runs once the sheet's settings are applied, so ImportFile is on or off as the
+   * sheet declares; while it is off there is no stylesheet to fill.
+   *
+   * @param {object} sheet The arriving sheet.
+   */
+  #restoreImportedStyles(sheet: Sheet) {
+    const importFile = this.hot.getPlugin('importFile');
+
+    if (importFile?.enabled) {
+      importFile._restoreImportedStyles(this.#importedStyles.get(sheet) ?? {});
+    }
+  }
+
+  /**
+   * Gives a duplicated sheet the imported cell style rules of its original, as the original holds them now:
+   * the copy's data carries the same classes.
+   *
+   * @param {object} original The sheet that was duplicated.
+   * @param {object} copy The duplicate.
+   */
+  #copyImportedStyles(original: Sheet, copy: Sheet) {
+    const isOriginalShown = this.#model?.getActiveSheet()?.id === original.id;
+    const styles = isOriginalShown ? this.#exportImportedStyles() : (this.#importedStyles.get(original) ?? null);
+
+    if (styles) {
+      this.#importedStyles.set(copy, { ...styles });
+    }
   }
 
   /**
@@ -3487,14 +3563,7 @@ export class SheetsBar extends BasePlugin {
    * @param {object} ownSettings The visible sheet's own settings, the changes included.
    */
   #applyToVisibleSheet(changes: Record<string, unknown>, ownSettings: Record<string, unknown>) {
-    Object.keys(changes).forEach((key) => {
-      if (!this.#settingsBaseline.has(key)) {
-        this.#settingsBaseline.set(
-          key,
-          key === 'dataProvider' ? undefined : (this.hot.getSettings() as Record<string, unknown>)[key]
-        );
-      }
-    });
+    this.#recordBaselineFor(Object.keys(changes));
 
     try {
       this.#isApplyingOwnSettings = true;
@@ -3504,6 +3573,50 @@ export class SheetsBar extends BasePlugin {
       this.#isApplyingOwnSettings = false;
       this.#pendingHookSync = null;
     }
+  }
+
+  /**
+   * Records the grid-level value of each key no sheet set before, as `#withBaselineFor` does on a switch, so
+   * the sheets that do not declare the key get that value back.
+   *
+   * @param {string[]} keys The keys about to become the visible sheet's own.
+   */
+  #recordBaselineFor(keys: string[]) {
+    keys.forEach((key) => {
+      if (!this.#settingsBaseline.has(key)) {
+        this.#settingsBaseline.set(
+          key,
+          key === 'dataProvider' ? undefined : (this.hot.getSettings() as Record<string, unknown>)[key]
+        );
+      }
+    });
+  }
+
+  /**
+   * Makes the settings an import applies the visible sheet's own, the way `updateSheetSettings()` does: an
+   * import lays the file out on the sheet shown. Before, they stayed grid-level values, so the imported
+   * columns, locks, sizes, hidden indexes and headers reached every sheet that does not declare the key,
+   * and a sheet that declares it got its declared value back on its next return. The grid-level value of a
+   * key no sheet set before goes into the baseline first, while core has not applied the payload yet. A
+   * value the import resets with `undefined` is kept as `null`, the value that clears on a switch. The
+   * sheet's record gets a new `settings` object, so the entry in the host's `sheets` array keeps the one
+   * it declared.
+   *
+   * @param {object} settings The payload ImportFile passed to `updateSettings()`.
+   */
+  #keepImportedSettings(settings: Record<string, unknown>) {
+    const sheet = this.#activeSheetRecord();
+    const keys = Object.keys(settings).filter(key => !UNSETTABLE_SHEET_KEYS.has(key));
+
+    if (!sheet || keys.length === 0) {
+      return;
+    }
+
+    this.#recordBaselineFor(keys);
+    sheet.settings = {
+      ...(sheet.settings ?? {}),
+      ...Object.fromEntries(keys.map(key => [key, settings[key] === undefined ? null : settings[key]])),
+    };
   }
 
   /**
@@ -4112,6 +4225,7 @@ export class SheetsBar extends BasePlugin {
         this.#copyColumnSummaryEndpoints(original, sheet);
         this.#copyCellOption(original, sheet);
         this.#copyViewState(original, sheet);
+        this.#copyImportedStyles(original, sheet);
 
         // The copy cannot share the original's engine sheet — two tabs writing into one set of
         // cells — so it gets an engine sheet of its own, named like the copy, seeded with the

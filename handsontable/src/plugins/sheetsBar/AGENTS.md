@@ -121,7 +121,8 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   sends the keys that differ from the grid's live settings, wrote the grid-level `colHeaders`, renderer,
   editor and `columns` over the visible sheet's own until the user left the sheet. It stands aside for the
   bar's own writes (`#isSwitching`, `#isRestoringBaseline`, `#isInitializing`, `#isApplyingOwnSettings`), for
-  ImportFile's (`_isApplyingImport()`: an import lays the file out on the sheet shown), and for a payload that
+  ImportFile's (`_isApplyingImport()`: an import lays the file out on the sheet shown, see "An import lays out
+  the visible sheet only" below), and for a payload that
   turns the bar off or declares another workbook (`#filtersGridSettings`). A `sheets` value the plugin's
   validator rejects declares no workbook: the bar keeps the current one, so the filter keeps filtering. It
   never takes `sheetsBar`, `data` (`#keepDeclaredSheetRows` owns it) or `dataProvider` (the gate below owns
@@ -166,12 +167,32 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   describe the grid as the workbook started. The `updateSettings()` calls ImportFile makes while it
   applies an import's result (`_isApplyingImport()`, which answers `false` while the `beforeImport` listeners run,
   so a setting a listener changes is the host's own) are skipped: they carry the imported file's layout for the sheet
-  shown, and as the baseline they spread its columns and widths to every sheet without its own. The neutral `fixedColumnsStart` is captured only
+  shown, and as the baseline they spread its columns and widths to every sheet without its own. They become the
+  visible sheet's own settings instead (next bullet). The neutral `fixedColumnsStart` is captured only
   on a non-preserved enable, and a genuine teardown first restores the settings baseline to
   the grid (`#restoreBaselineToGrid`, which empties the baseline before its `updateSettings`
   call — the write re-enters `disablePlugin` on a `sheetsBar: false` teardown, and the empty
   map is the recursion stop), so the next enable never reads the departing sheet's settings as
   the grid's own.
+- **An import lays out the visible sheet only.** ImportFile applies a result with `loadData()` plus
+  `updateSettings()` calls (`columns`, `colWidths`, `rowHeights`, `hiddenRows`, `hiddenColumns`, headers, merges,
+  borders, frozen counts), all grid-level as far as core knows. `#filterGridSettings` therefore reads every payload
+  made while `_isApplyingImport()` answers `true` before core applies it, and `#keepImportedSettings` merges its keys
+  into the visible sheet's own `settings` (a new object, as `updateSheetSettings()` makes), after
+  `#recordBaselineFor` stored the grid-level value of each key no sheet set before. A value the import resets with
+  `undefined` is kept as `null`. The payload itself goes through unchanged. Left as grid-level values, the imported
+  columns, locks, sizes, hidden indexes and headers reached every sheet that does not declare the key, and a sheet
+  that declares it got its declared value back on the next return. The check comes first in the filter, before
+  `#filtersGridSettings`, because the import's own writes are not grid-level values to take off.
+- **The imported stylesheet is kept per sheet** (`#importedStyles`, a `WeakMap<Sheet, …>`). ImportFile installs one
+  `<style>` per grid, while the classes it names live in each sheet's cell meta, so a later import into another
+  sheet replaced the rules the first sheet's cells needed, and a sheet that declares `importFile: false` removed
+  them on its visit (`disablePlugin()` removes the stylesheet). `#captureImportedStyles` stores
+  `ImportFile#_exportImportedStyles()` when the user leaves a sheet, and `#restoreImportedStyles` calls
+  `_restoreImportedStyles()` with the arriving sheet's rules (or `{}`, which removes the stylesheet) right after
+  `#applySheet`, once ImportFile is on or off as that sheet declares; the rollback path goes through the same
+  `#showSheet`. A duplicate copies its original's rules (`#copyImportedStyles`). Both members are ImportFile's own,
+  read through the typed `hot.getPlugin('importFile')`; ImportFile never reads the bar.
 - **Formulas cooperation is by engine instance + `sheetName`.** Every bound sheet is registered
   in the engine up front and re-fed on every registration (a rebuilt workbook reusing names
   must not leave stale engine content), except the opening sheet, which its own load feeds
