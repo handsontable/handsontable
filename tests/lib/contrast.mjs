@@ -351,6 +351,26 @@ export function obscuredFindings({ selector, step, visible, points }) {
 }
 
 /**
+ * The name of a measured element that no element measured before it in the same target has: its label,
+ * or its label with an ordinal (`button.ht-button "Action" (2)`). A finding's id keys on its element, so
+ * two controls with one label (a notification's two "Action" buttons) would give two findings one id,
+ * and they would read as one finding in a diff between runs.
+ *
+ * @param {string} label The element's label.
+ * @param {string[]} taken The names of the elements measured before it.
+ * @returns {string} The name.
+ */
+export function distinctName(label, taken) {
+  let name = label;
+
+  for (let ordinal = 2; taken.includes(name); ordinal++) {
+    name = `${label} (${ordinal})`;
+  }
+
+  return name;
+}
+
+/**
  * A ratio to two decimals, rounded down, as a finding shows it: WCAG compares the ratio unrounded, so
  * 2.996:1 fails 3:1 and must never read as 3. The epsilon keeps a ratio such as 2.3, which floats as
  * 229.99999999999997 hundredths, at 2.3.

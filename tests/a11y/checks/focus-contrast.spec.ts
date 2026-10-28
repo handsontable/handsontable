@@ -6,6 +6,7 @@ import { A11Y_THEMES } from '../../lib/a11y-baseline.mjs';
 import {
   FOCUS_CRITERIA,
   componentFindings,
+  distinctName,
   dominantColor,
   floorRatio,
   focusFindings,
@@ -418,6 +419,8 @@ async function measureControlFocus(page: Page, selector: string): Promise<Result
 
     const label = await control.evaluate(node => `${node.tagName.toLowerCase()}.${[...node.classList].find(name => !/--|focus/.test(name)) ?? ''}`
       + `${node.getAttribute('aria-label') ? ` "${node.getAttribute('aria-label')}"` : (node.textContent?.trim() ? ` "${node.textContent.trim().slice(0, 20)}"` : '')}`);
+    // Two controls can share a label (a notification's two "Action" buttons): each finding keeps its own id.
+    const name = distinctName(label, measured.map(item => item.control));
 
     await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
     await settle(page);
@@ -430,8 +433,8 @@ async function measureControlFocus(page: Page, selector: string): Promise<Result
 
     const change = indicatorChange(before, await capture(page, grow(box, CONTROL_MARGIN)), CONTROL_MARGIN);
 
-    measured.push({ control: label, ratio: change.adjacentRatio, againstReplaced: change.ratio, changed: change.changed });
-    findings.push(...focusFindings({ selector: label, step: 'a keyboard event, then the focus', change }));
+    measured.push({ control: name, ratio: change.adjacentRatio, againstReplaced: change.ratio, changed: change.changed });
+    findings.push(...focusFindings({ selector: name, step: 'a keyboard event, then the focus', change }));
   }
 
   return measured.length > 0 ? { findings, measured } : { findings, measured, skipped: `no visible control matches ${selector}` };

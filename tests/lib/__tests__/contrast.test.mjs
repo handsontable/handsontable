@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   composite,
   contrastRatio,
+  distinctName,
   dominantColor,
   floorRatio,
   focusFindings,
@@ -14,7 +15,7 @@ import {
   strongestPixel,
   componentFindings,
 } from '../contrast.mjs';
-import { EVIDENCE_SCHEMA, validatePart } from '../a11y-evidence.mjs';
+import { EVIDENCE_SCHEMA, mergeEvidence, validatePart } from '../a11y-evidence.mjs';
 
 // tests/AGENTS.md ("A11y: the checks beyond axe", focus appearance and non-text contrast): the
 // measurer behind 2.4.7, 2.4.11 and 1.4.11. The spec captures pixels and colors; the arithmetic and
@@ -242,6 +243,34 @@ test('a focused element covered at every sampled point is obscured (2.4.11); a p
 test('a focused element with no sampled point inside the window is off screen, not obscured', () => {
   assert.deepEqual(obscuredFindings({ selector: 'td', step: 'PageDown', visible: 0, points: 0 })
     .map(item => [item.kind, item.criteria, item.severity]), [['focus-off-screen', ['2.4.7'], 'serious']]);
+});
+
+test('two elements with one label are named apart with an ordinal, so their findings keep their own ids', () => {
+  const action = 'button.ht-button "Action"';
+
+  assert.equal(distinctName(action, []), action);
+  assert.equal(distinctName(action, ['button.ht-button "Close"']), action, 'a label no other element has stays as it is');
+  assert.equal(distinctName(action, [action]), `${action} (2)`);
+  assert.equal(distinctName(action, [action, `${action} (2)`]), `${action} (3)`);
+
+  // A notification's two "Action" buttons, both without a focus indicator: one finding each, two ids.
+  const names = [];
+
+  for (const label of [action, 'button.ht-button "Close"', action]) {
+    names.push(distinctName(label, names));
+  }
+
+  const findings = names.flatMap(name => focusFindings({
+    selector: name, step: 'a keyboard event, then the focus', change: { changed: 0, ratio: 1, color: null, area: 0 },
+  }));
+  const doc = mergeEvidence({
+    check: 'focus-contrast',
+    parts: [{ schema: EVIDENCE_SCHEMA, target: { page: 'notification', theme: 'horizon' }, durationMs: 1, findings }],
+  });
+
+  assert.deepEqual(names, [action, 'button.ht-button "Close"', `${action} (2)`]);
+  assert.equal(new Set(doc.findings.map(finding => finding.id)).size, 3);
+  assert.deepEqual(doc.problems, [], 'no two findings share an id');
 });
 
 test('the check\'s findings are valid evidence', () => {

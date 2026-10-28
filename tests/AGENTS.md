@@ -1575,7 +1575,10 @@ captures pixels; the arithmetic and the verdicts are `lib/contrast.mjs` (tested 
   1.4.11 asks for the second; the margin, not the whole capture, because a filled button fills most of
   its capture and a ring around it would read against the fill. A highlight that repaints the element
   itself (a menu item) is judged against what it replaced. Under 3:1 is `focus-indicator-contrast`, and
-  it names the two colors its ratio is between.
+  it names the two colors its ratio is between. A control is named by its tag, its class and its label,
+  and a second control with the same name in one target gets an ordinal (`distinctName()`,
+  `button.ht-button "Action" (2)`): a finding's id keys on its element, and two findings that share an id
+  are a problem of the document.
 - **Parts that identify a component or its state**: the selection outline and the grid lines are the
   strongest pixel against the area's dominant color (`strongestPixel()`). Checkboxes and icons are read
   from the pixels inside their own box (`partContrast()`), because header text beside an icon reaches

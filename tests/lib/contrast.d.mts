@@ -38,4 +38,5 @@ export function componentFindings(input: {
   severity?: Finding['severity']; step?: string; reason?: string;
 }): Finding[];
 export function obscuredFindings(input: { selector: string; step: string; visible: number; points: number }): Finding[];
+export function distinctName(label: string, taken: string[]): string;
 export function floorRatio(ratio: number): number;
