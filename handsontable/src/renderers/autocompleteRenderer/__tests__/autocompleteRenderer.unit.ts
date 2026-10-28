@@ -57,5 +57,53 @@ describe('autocompleteRenderer', () => {
         toMatchHTMLConfig
       );
     });
+
+    describe('a press on the arrow', () => {
+      /**
+       * Renders a cell into a grid whose `onCellDblClick` setting is recorded.
+       *
+       * @returns {{ arrow: HTMLElement, getSetting: jest.Mock, instance: Core }}
+       */
+      function renderIntoGrid() {
+        const instance = getInstance();
+        const getSetting = jest.fn();
+        const TD = document.createElement('td');
+
+        // A grid that was never initialized has no view; the listener reads only these two members.
+        Object.assign(instance, {
+          view: { _wt: { getSetting } },
+          _createCellCoords: (row: number, col: number) => ({ row, col }),
+        });
+        instance.rootElement.appendChild(TD);
+        document.body.appendChild(instance.rootElement);
+        const cellMeta = {};
+
+        autocompleteRenderer(instance, TD, 1, 2, 2, 'x', cellMeta);
+
+        return { arrow: TD.querySelector('.htAutocompleteArrow') as HTMLElement, getSetting, instance };
+      }
+
+      it('should open the editor', () => {
+        const { arrow, getSetting, instance } = renderIntoGrid();
+
+        arrow.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+
+        expect(getSetting).toHaveBeenCalledWith('onCellDblClick', null, { row: 1, col: 2 }, expect.anything());
+        instance.rootElement.remove();
+      });
+
+      it('should not open the editor when an earlier listener claimed the press', () => {
+        // The FormulaBuilder plugin picks the cell as a formula reference and sets only the grid's
+        // flag, so the press still bubbles to this listener.
+        const { arrow, getSetting, instance } = renderIntoGrid();
+        const event = new MouseEvent('mousedown', { bubbles: true, button: 0 });
+
+        (event as MouseEvent & { isImmediatePropagationEnabled: boolean }).isImmediatePropagationEnabled = false;
+        arrow.dispatchEvent(event);
+
+        expect(getSetting).not.toHaveBeenCalled();
+        instance.rootElement.remove();
+      });
+    });
   });
 });

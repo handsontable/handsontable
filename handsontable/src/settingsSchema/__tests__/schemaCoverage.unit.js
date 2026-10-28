@@ -52,7 +52,7 @@ describe('settingsSchema coverage', () => {
 
     // The count is pinned, so an option that loses its `plugin` annotation fails here instead of dropping out of
     // the list silently. Update it when a plugin option is added or removed.
-    expect(pluginOptions.length).toBe(50);
+    expect(pluginOptions.length).toBe(51);
     expect(rejecting).toEqual([]);
   });
 
@@ -81,7 +81,7 @@ describe('settingsSchema coverage', () => {
       // The docs guide names the same options under "Known limitations"; keep the two in step.
       expect(Object.keys(closed).filter(path => !path.includes('.') && !path.includes('[')).sort()).toEqual([
         'asyncValues', 'autoLink', 'dataProvider', 'dragToScroll', 'dropdownMenu', 'fillHandle', 'filters',
-        'manualColumnFreeze', 'pagination', 'rowSelection', 'sheetsBar',
+        'formulaBuilder', 'manualColumnFreeze', 'pagination', 'rowSelection', 'sheetsBar',
       ]);
     });
 
@@ -94,8 +94,12 @@ describe('settingsSchema coverage', () => {
 
     it('should list the keys the plugin itself declares', () => {
       const topLevel = Object.entries(closed).filter(([path]) => !path.includes('.') && !path.includes('['));
-      // DropdownMenu declares no defaults: its keys are the ones the plugin reads from the object.
-      const declared = { dropdownMenu: ['callback', 'items', 'uiContainer'] };
+      // DropdownMenu and FormulaBuilder declare no defaults: their keys are the ones the plugin reads
+      // from the object.
+      const declared = {
+        dropdownMenu: ['callback', 'items', 'uiContainer'],
+        formulaBuilder: ['builder', 'direction', 'popups', 'showFormulaBar'],
+      };
 
       topLevel.forEach(([path, branch]) => {
         const pluginName = settingsSchema.properties[path]['x-handsontable'].plugin;

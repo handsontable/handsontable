@@ -2,6 +2,8 @@ import AxisSyncer from './axisSyncer';
 import type { IndexMapper } from '../../../translations';
 import type { HyperFormulaEngine } from '../engine/types';
 
+type OwnEngineWrite = <T>(engine: HyperFormulaEngine, fn: () => T) => T;
+
 /**
  * @private
  * @class IndexSyncer
@@ -34,6 +36,13 @@ class IndexSyncer {
    */
   readonly #postponeAction: Function;
   /**
+   * Runs a write to the engine as the grid's own (see `#writeOwnSheet()` in `Formulas`).
+   *
+   * @private
+   * @type {Function}
+   */
+  readonly #ownEngineWrite: OwnEngineWrite;
+  /**
    * The HF's engine instance which will be synced.
    *
    * @private
@@ -51,10 +60,16 @@ class IndexSyncer {
   /**
    * Initializes the index syncer by creating row and column axis syncers and storing the deferred action callback.
    */
-  constructor(rowIndexMapper: IndexMapper, columnIndexMapper: IndexMapper, postponeAction: Function) {
+  constructor(
+    rowIndexMapper: IndexMapper,
+    columnIndexMapper: IndexMapper,
+    postponeAction: Function,
+    ownEngineWrite: OwnEngineWrite
+  ) {
     this.#rowIndexSyncer = new AxisSyncer('row', rowIndexMapper, this);
     this.#columnIndexSyncer = new AxisSyncer('column', columnIndexMapper, this);
     this.#postponeAction = postponeAction;
+    this.#ownEngineWrite = ownEngineWrite;
   }
 
   /**
@@ -96,6 +111,16 @@ class IndexSyncer {
    */
   getPostponeAction() {
     return this.#postponeAction;
+  }
+
+  /**
+   * Gets the function that runs a write to the engine as the grid's own: the other grids on the engine
+   * paint once when it ends, this one is left to the caller.
+   *
+   * @returns {Function}
+   */
+  getOwnEngineWrite(): OwnEngineWrite {
+    return this.#ownEngineWrite;
   }
 
   /**

@@ -367,15 +367,36 @@ export class MergeCells extends BasePlugin {
   #purgedMerges: WeakSet<MergedCellCoords> = new WeakSet();
 
   /**
-   * The settings area each merge was created from, in the {@link toMergeAreaKey} form, and the
-   * footprint of its anchor at that moment. It lets `updatePlugin()` keep the merge of an area it
-   * cannot place while rows are trimmed (see {@link MergeCells#takeKeptMerges}). A merge a row or column
-   * move replaced is a new object with no entry here, and one whose anchor a structural edit moved no
-   * longer matches its footprint; both go back through the settings like any other area.
+   * The settings area each merge was created from, in the {@link toMergeAreaKey} form, the area's
+   * `rowspan`, and the footprint of its anchor at that moment. It lets `updatePlugin()` keep the merge of
+   * an area it cannot place while rows are trimmed, and one whose anchor took trimmed rows the area does
+   * not span (see {@link MergeCells#takeKeptMerges}). A merge a row or column move replaced is a new
+   * object with no entry here, and one whose anchor a structural edit moved no longer matches its
+   * footprint; both go back through the settings like any other area.
    *
-   * @type {WeakMap<MergedCellCoords, { key: string, footprint: string }>}
+   * @type {WeakMap<MergedCellCoords, { key: string, rowspan: number, footprint: string }>}
    */
-  #mergeAreas: WeakMap<MergedCellCoords, { key: string, footprint: string }> = new WeakMap();
+  #mergeAreas: WeakMap<MergedCellCoords, { key: string, rowspan: number, footprint: string }> = new WeakMap();
+
+  /**
+   * For each settings area that was applied, its `rowspan` and `colspan`, the footprint of the merge
+   * made from it, and whether that merge took trimmed rows the area does not span. A merge that
+   * `restoreMergedAreas()` or an undo creates again is a new object with no entry in `#mergeAreas`;
+   * `updatePlugin()` matches it to its area by footprint and `colspan`, so a settings re-send keeps it
+   * instead of rebuilding it over the declared rows.
+   *
+   * @type {Map<string, { rowspan: number, colspan: number, footprint: string, isGrown: boolean }>}
+   */
+  #appliedAreas: Map<string, { rowspan: number, colspan: number, footprint: string, isGrown: boolean }> = new Map();
+
+  /**
+   * Whether the area being applied by `generateFromSettings()` was applied before. Such an area is
+   * placed on the rows on screen and does not take the trimmed rows between them: it is not newly
+   * declared, and filling it would grow a merge that was made while no row was trimmed.
+   *
+   * @type {boolean}
+   */
+  #isReapplyingArea: boolean = false;
 
   /**
    * The rows of other records each merge drew over, and its physical columns, recorded right before
@@ -503,6 +524,7 @@ export class MergeCells extends BasePlugin {
     this.#foreignRowsBeforeCacheUpdate = null;
     this.clearCollections();
     this.#appliedMergeKeys.clear();
+    this.#appliedAreas.clear();
     this.#resetPasteState();
     this.unregisterShortcuts();
     this.hot.render();
@@ -535,6 +557,7 @@ export class MergeCells extends BasePlugin {
     // Copy before `disablePlugin()` clears the field, so `generateFromSettings()` can tell a
     // re-applied area from a newly declared one.
     const alreadyAppliedMerges = new Set(this.#appliedMergeKeys);
+    const appliedAreas = new Map(this.#appliedAreas);
 
     this.dropDeferredDataWork();
 
@@ -543,6 +566,7 @@ export class MergeCells extends BasePlugin {
       this.enablePlugin();
 
       alreadyAppliedMerges.forEach(key => this.#appliedMergeKeys.add(key));
+      appliedAreas.forEach((area, key) => this.#appliedAreas.set(key, area));
       this.deferDataWork();
 
       super.updatePlugin();
@@ -557,7 +581,17 @@ export class MergeCells extends BasePlugin {
     this.disablePlugin();
     this.enablePlugin();
 
-    this.generateFromSettings(alreadyAppliedMerges, this.#restoreKeptMerges(keptMerges));
+    const keptMergeKeys = this.#restoreKeptMerges(keptMerges);
+
+    // `disablePlugin()` cleared the records, and a kept merge is not generated again, so nothing else
+    // writes its record back.
+    keptMergeKeys.forEach((key) => {
+      if (appliedAreas.has(key)) {
+        this.#appliedAreas.set(key, appliedAreas.get(key)!);
+      }
+    });
+
+    this.generateFromSettings(alreadyAppliedMerges, keptMergeKeys);
     this.#initialized = true;
     this.#captureMergeAnchors();
 
@@ -714,10 +748,17 @@ export class MergeCells extends BasePlugin {
 
       const mergeCountBefore = this.mergedCellsCollection.mergedCells.length;
       const mergeAreaKey = toMergeAreaKey(mergeCellInfo);
+      const isReapplied = alreadyAppliedMerges.has(mergeAreaKey);
 
       // Merging without data population. Runs for every area, re-applied or not — `updatePlugin()`
       // clears the collection first, so skipping this would drop the merge entirely.
-      this.mergeRange(mergeRange, true, true);
+      this.#isReapplyingArea = isReapplied;
+
+      try {
+        this.mergeRange(mergeRange, true, true);
+      } finally {
+        this.#isReapplyingArea = false;
+      }
 
       // `MergedCellsCollection#add` appends, so the merge created here is the first one past the old
       // length; an `afterMergeCells` listener may have appended more after it.
@@ -725,14 +766,19 @@ export class MergeCells extends BasePlugin {
       const footprint = createdMerge && this.#getAnchorFootprint(createdMerge);
 
       if (footprint) {
-        this.#mergeAreas.set(createdMerge, { key: mergeAreaKey, footprint });
+        this.#mergeAreas.set(createdMerge, { key: mergeAreaKey, rowspan, footprint });
+
+        this.#appliedAreas.set(mergeAreaKey, {
+          rowspan,
+          colspan,
+          footprint,
+          isGrown: this.#hasGrownPastArea(createdMerge, rowspan),
+        });
       }
       // A first application clears the whole area, exactly as before. A re-applied one clears only
       // the cells that still hold a value: writing `null` over a cell that is already empty changes
       // no data, but still emits `beforeChange`/`afterChange`, and that is what loops an integration
       // resending its settings in response to those hooks (#7555).
-      const isReapplied = alreadyAppliedMerges.has(mergeAreaKey);
-
       this.#appliedMergeKeys.add(mergeAreaKey);
 
       for (let r = row; r < row + rowspan; r++) {
@@ -766,38 +812,144 @@ export class MergeCells extends BasePlugin {
    * is kept when the area was applied before and the merge still sits on the rows it was created on.
    * An area that fits the visible rows is applied to them as before, since an application that
    * computes its merges from the rows on screen sends the same areas after filtering.
+   *
+   * The merge of an area that was applied under a trim is kept too, once its anchor took a trimmed row
+   * the area does not span, trimming active or not. Applying the area again would draw it over the rows
+   * the settings name, which is the span the anchor grew past, and so flip the merge back. The areas
+   * whose declared position reaches a kept merge are kept with it: rebuilt there, they would overlap
+   * the kept merge and be dropped. Any other area is applied to the rows on screen as before.
    */
   #takeKeptMerges(alreadyAppliedMerges: Set<string>): MergedCellCoords[] {
-    if (alreadyAppliedMerges.size === 0 || !this.#isRowTrimmingActive()) {
+    const isTrimmed = this.#isRowTrimmingActive();
+
+    if (alreadyAppliedMerges.size === 0 || (!isTrimmed && !this.#hasGrownArea())) {
       return [];
     }
 
+    const declaredAreas = new Map<string, MergeAreaGeometry>();
+    const unplaceableKeys = new Set<string>();
     const visibleRows = this.hot.countRows();
     const allRows = this.hot.rowIndexMapper.getNumberOfIndexes();
-    const unplaceableKeys = new Set<string>();
 
     this.getSetting<MergeAreaGeometry[]>('cells').forEach((area) => {
       const rowAfterArea = area.row + area.rowspan;
+      const key = toMergeAreaKey(area);
 
-      if (rowAfterArea > visibleRows && rowAfterArea <= allRows) {
-        unplaceableKeys.add(toMergeAreaKey(area));
+      declaredAreas.set(key, area);
+
+      if (isTrimmed && rowAfterArea > visibleRows && rowAfterArea <= allRows) {
+        unplaceableKeys.add(key);
       }
     });
 
-    if (unplaceableKeys.size === 0) {
-      return [];
-    }
+    this.#adoptRecreatedMerges(declaredAreas, alreadyAppliedMerges);
 
-    const keptMerges = this.mergedCellsCollection.mergedCells.filter((merge) => {
+    const candidates = this.mergedCellsCollection.mergedCells.filter((merge) => {
       const area = this.#mergeAreas.get(merge);
 
-      return area !== undefined && alreadyAppliedMerges.has(area.key) && unplaceableKeys.has(area.key) &&
+      return area !== undefined && alreadyAppliedMerges.has(area.key) && declaredAreas.has(area.key) &&
         area.footprint === this.#getAnchorFootprint(merge);
     });
+    const keptMerges = new Set(candidates.filter((merge) => {
+      const area = this.#mergeAreas.get(merge)!;
 
-    this.mergedCellsCollection.dropMerges(keptMerges);
+      return unplaceableKeys.has(area.key) || this.#hasGrownPastArea(merge, area.rowspan);
+    }));
 
-    return keptMerges;
+    this.#keepAreasReachingKeptMerges(keptMerges, candidates, declaredAreas);
+
+    const keptList = candidates.filter(merge => keptMerges.has(merge));
+
+    this.mergedCellsCollection.dropMerges(keptList);
+
+    return keptList;
+  }
+
+  /**
+   * Tells whether any applied area has a merge that took trimmed rows the area does not span.
+   */
+  #hasGrownArea(): boolean {
+    for (const area of this.#appliedAreas.values()) {
+      if (area.isGrown) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Adds to the kept merges every candidate whose declared area reaches a kept merge, repeating until
+   * none is left, because a merge kept this way can be reached in turn. Only a merge the lookup matrix
+   * holds counts: one purged because all of its rows are trimmed leaves its cells free.
+   *
+   * @param {Set<MergedCellCoords>} keptMerges The merges kept so far, extended in place.
+   * @param {MergedCellCoords[]} candidates The merges that may be kept.
+   * @param {Map<string, MergeAreaGeometry>} declaredAreas The declared areas by key.
+   */
+  #keepAreasReachingKeptMerges(
+    keptMerges: Set<MergedCellCoords>,
+    candidates: MergedCellCoords[],
+    declaredAreas: Map<string, MergeAreaGeometry>
+  ): void {
+    const reaches = (area: MergeAreaGeometry, merge: MergedCellCoords) => {
+      return this.mergedCellsCollection.get(merge.row, merge.col) === merge && areMergesOverlapping(area, merge);
+    };
+    let hasAdded = keptMerges.size > 0;
+
+    while (hasAdded) {
+      hasAdded = false;
+
+      for (const merge of candidates) {
+        const area = declaredAreas.get(this.#mergeAreas.get(merge)!.key)!;
+
+        if (!keptMerges.has(merge) && Array.from(keptMerges).some(kept => reaches(area, kept))) {
+          keptMerges.add(merge);
+          hasAdded = true;
+        }
+      }
+    }
+  }
+
+  /**
+   * Gives a merge that `restoreMergedAreas()` or an undo created again the area entry its predecessor
+   * had. Such a merge is a new object, so `#mergeAreas` knows nothing about it, and the next re-send
+   * of the settings would rebuild it from the declared `rowspan`, drawing it over the row it took and
+   * clearing that row. It is matched to its area by the footprint of its anchor and its `colspan`, and
+   * only for an area that is still declared and was applied before.
+   *
+   * @param {Map<string, MergeAreaGeometry>} declaredAreas The declared areas by key.
+   * @param {Set<string>} alreadyAppliedMerges Keys of the areas that were applied before.
+   */
+  #adoptRecreatedMerges(declaredAreas: Map<string, MergeAreaGeometry>, alreadyAppliedMerges: Set<string>): void {
+    if (!this.#hasGrownArea()) {
+      return;
+    }
+
+    const areasByFootprint = new Map<string, { key: string, rowspan: number, colspan: number }>();
+
+    this.#appliedAreas.forEach(({ rowspan, colspan, footprint }, key) => {
+      if (declaredAreas.has(key) && alreadyAppliedMerges.has(key)) {
+        areasByFootprint.set(footprint, { key, rowspan, colspan });
+      }
+    });
+
+    this.mergedCellsCollection.mergedCells.forEach((merge) => {
+      const footprint = this.#mergeAreas.has(merge) ? undefined : this.#getAnchorFootprint(merge);
+      const area = footprint === undefined ? undefined : areasByFootprint.get(footprint);
+
+      if (footprint !== undefined && area !== undefined && area.colspan === merge.colspan) {
+        this.#mergeAreas.set(merge, { key: area.key, rowspan: area.rowspan, footprint });
+      }
+    });
+  }
+
+  /**
+   * Tells whether a merge's anchor holds more rows than the settings area it was created from spans,
+   * which is the case when it took the trimmed rows between the rows the area covered on screen.
+   */
+  #hasGrownPastArea(merge: MergedCellCoords, declaredRowspan: number): boolean {
+    return (this.#mergeAnchors.get(merge)?.physicalRows.length ?? 0) > declaredRowspan;
   }
 
   /**
@@ -1699,7 +1851,7 @@ export class MergeCells extends BasePlugin {
     const merge = this.mergedCellsCollection.get(mergeParent.row, mergeParent.col);
 
     if (merge) {
-      this.#captureAnchorOf(merge);
+      this.#captureAnchorOf(merge, this.#isRowTrimmingActive(), !this.#isReapplyingArea);
     }
   };
 
@@ -1771,13 +1923,21 @@ export class MergeCells extends BasePlugin {
    * re-deriving the physical rows from it would shrink the authoritative anchor captured earlier — the
    * previously stored `physicalRows` are kept instead. The column is never distorted by row trimming,
    * so it is always refreshed (covering column insert/remove performed while a filter is active). A
-   * merge with no anchor yet (e.g. created during an active filter) is captured from its current,
-   * visible position, which is exactly the set of rows it covers.
+   * merge with no anchor yet (e.g. created during an active filter) is captured from the rows it
+   * covers on screen. A merge made under a trim also owns the trimmed rows between them (see
+   * {@link MergeCells#fillTrimmedGaps}): it draws one continuous block, so an anchor that left such a row
+   * out would draw over it once the rows come back, and stop short of its own last row.
    *
    * @param {MergedCellCoords} merge The merge to capture.
    * @param {boolean} [trimmingActive] Whether row trimming is currently active (computed if omitted).
+   * @param {boolean} [takeTrimmedGaps] Whether a new anchor takes the trimmed rows between the rows the
+   * merge covers. The bulk captures leave it off, which keeps a row move's fragments as they were.
    */
-  #captureAnchorOf(merge: MergedCellCoords, trimmingActive: boolean = this.#isRowTrimmingActive()) {
+  #captureAnchorOf(
+    merge: MergedCellCoords,
+    trimmingActive: boolean = this.#isRowTrimmingActive(),
+    takeTrimmedGaps: boolean = false
+  ) {
     const physicalColumn = this.hot.toPhysicalColumn(merge.col);
 
     if (physicalColumn === null) {
@@ -1792,11 +1952,69 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    const physicalRows = this.#getDrawnPhysicalRows(merge);
+    const drawnRows = this.#getDrawnPhysicalRows(merge);
+    const physicalRows = trimmingActive && takeTrimmedGaps ? this.#fillTrimmedGaps(merge, drawnRows) : drawnRows;
 
     if (physicalRows.length > 0) {
       this.#mergeAnchors.set(merge, { physicalRows, physicalColumn });
     }
+  }
+
+  /**
+   * Adds to the rows a merge covers on screen the trimmed rows between them. The covered rows are
+   * consecutive in the visual order, which is the row index sequence without its trimmed rows, so every
+   * row of the sequence between the first covered row and the last one is either covered or trimmed.
+   * The anchor is that stretch of the sequence, which is the order the rows take once trimming is lifted.
+   *
+   * @param {number[]} drawnRows The physical rows the merge covers on screen, in visual order.
+   * @returns {number[]} The anchor's physical rows, in visual order.
+   */
+  #fillTrimmedGaps(merge: MergedCellCoords, drawnRows: number[]): number[] {
+    if (drawnRows.length < 2) {
+      return drawnRows;
+    }
+
+    const sequence = this.hot.rowIndexMapper.getIndexesSequence();
+    const first = sequence.indexOf(drawnRows[0]);
+    const last = sequence.indexOf(drawnRows[drawnRows.length - 1], first);
+
+    // Nothing sits between the covered rows, or the sequence does not hold them (not expected).
+    if (first === -1 || last <= first || last - first + 1 === drawnRows.length) {
+      return drawnRows;
+    }
+
+    const stretch = sequence.slice(first, last + 1);
+    const drawn = new Set(drawnRows);
+    const owned = this.#getRowsOwnedBesides(merge);
+
+    // Take the stretch only when every row in it is covered or trimmed and none belongs to another
+    // merge. A visible row that is not covered means the index cache and the sequence disagree (inside
+    // a batch), and a row another merge owns would end up in two anchors.
+    const isFillable = stretch.every(row => drawn.has(row) ||
+      (this.hot.rowIndexMapper.isTrimmed(row) && !owned.has(row)));
+
+    return isFillable ? stretch : drawnRows;
+  }
+
+  /**
+   * Returns the physical rows that the anchors of the other merges own in the columns the given merge
+   * spans. A merge in another column owns the same rows without any conflict.
+   *
+   * @param {MergedCellCoords} merge The merge that asks.
+   * @returns {Set<number>}
+   */
+  #getRowsOwnedBesides(merge: MergedCellCoords): Set<number> {
+    const rows = new Set<number>();
+
+    this.mergedCellsCollection.mergedCells.forEach((other) => {
+      const sharesColumns = other.col < merge.col + merge.colspan && merge.col < other.col + other.colspan;
+
+      if (other !== merge && sharesColumns) {
+        this.#mergeAnchors.get(other)?.physicalRows.forEach(row => rows.add(row));
+      }
+    });
+
+    return rows;
   }
 
   /**
@@ -2433,7 +2651,8 @@ export class MergeCells extends BasePlugin {
    * merge up to its highest visible row lets two of them collide in the lookup matrix.
    *
    * A merge whose visible physical rows are not consecutive in the visual order (only reachable by
-   * sorting or moving rows, never by trimming alone) still spans one continuous visual block from its
+   * sorting or moving rows: the anchor of a merge made under a trim already holds the trimmed rows
+   * between its own, see {@link MergeCells#fillTrimmedGaps}) still spans one continuous visual block from its
    * first visible row, as it did before this derivation was introduced.
    */
   #reanchorMergesToVisibleRows() {

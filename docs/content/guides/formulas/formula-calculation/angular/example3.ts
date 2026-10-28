@@ -67,7 +67,6 @@ export class AppComponent {
     }
 
     this.errorMessage = '';
-    this.hotTable.hotInstance!.render();
   }
 }
 /* end-file */

@@ -191,7 +191,7 @@ export class SheetModel {
    */
   addSheet(
     name?: string | null,
-    data: unknown[][] = createEmptySheetData(),
+    data: unknown[] = createEmptySheetData(),
     settings?: Record<string, unknown>,
   ): Sheet {
     const id = this.#nextId;
