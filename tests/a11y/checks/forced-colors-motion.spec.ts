@@ -4,7 +4,7 @@ import { emulate, openTarget, reachState, releaseParkedFetches, selectCell, type
 import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } from '../evidence';
 import { A11Y_THEMES } from '../../lib/a11y-baseline.mjs';
 import { dominantColor, indicatorChange, isDrawn, strongestPixel } from '../../lib/contrast.mjs';
-import { controlProblems, forcedColorsFindings, isMotion, longRunningFindings, motionFindings } from '../../lib/motion.mjs';
+import { FORCED_COLORS_CRITERIA, controlProblems, forcedColorsFindings, isMotion, longRunningFindings, motionFindings } from '../../lib/motion.mjs';
 import { capture, cellBox, grow, settle, type Image } from './pixels';
 
 /**
@@ -385,7 +385,9 @@ async function forcedColors(page: Page, testInfo: TestInfo, theme: string) {
     const part = strongestPixel(image, dominantColor(image));
 
     await keep(testInfo, `icon-${index}`, image);
-    findings.push(...forcedColorsFindings({ part: 'icon', selector: '.changeType', step: 'at rest', changed: isDrawn(part) ? 1 : 0 }));
+    // The index keeps the two icons' finding ids apart (an id is built from the selector and the step, and
+    // both are 'at rest'), and matches the capture's name.
+    findings.push(...forcedColorsFindings({ part: 'icon', selector: `.changeType (header icon ${index})`, step: 'at rest', changed: isDrawn(part) ? 1 : 0 }));
   }
   detail.icons = icons.length;
 
@@ -396,7 +398,10 @@ async function forcedColors(page: Page, testInfo: TestInfo, theme: string) {
 
   const itemBox = await page.evaluate(() => {
     const menu = [...document.querySelectorAll('.htContextMenu')].find(node => node.getBoundingClientRect().width > 0);
-    const cells = [...(menu?.querySelectorAll('.ht_master .htCore tbody td') ?? [])].filter(td => !td.classList.contains('htSeparator'));
+    // As `measureMenuHighlight()` in focus-contrast.spec.ts: ArrowDown skips a disabled or hidden item, so
+    // the box must be one it can land on.
+    const cells = [...(menu?.querySelectorAll('.ht_master .htCore tbody td') ?? [])].filter(td => !td.classList.contains('htSeparator')
+      && !td.classList.contains('htDisabled') && td.getBoundingClientRect().height > 0);
     const current = cells.findIndex(td => td.classList.contains('current'));
     const rect = (cells[current + 1] ?? cells[1])?.getBoundingClientRect();
 
@@ -417,7 +422,7 @@ async function forcedColors(page: Page, testInfo: TestInfo, theme: string) {
     findings.push(...forcedColorsFindings({ part: 'menu', selector: 'td (a menu item)', step: 'ArrowDown in the context menu', changed: change.changed }));
   }
 
-  await attachEvidence(testInfo, { target, startedAt, environment, findings, criteria: ['1.4.1'], detail, pageErrors: opened.pageErrors });
+  await attachEvidence(testInfo, { target, startedAt, environment, findings, criteria: FORCED_COLORS_CRITERIA, detail, pageErrors: opened.pageErrors });
 }
 
 for (const theme of A11Y_THEMES) {

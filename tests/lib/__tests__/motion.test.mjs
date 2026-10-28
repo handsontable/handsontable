@@ -1,10 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { controlProblems, forcedColorsFindings, isMotion, longRunningFindings, motionFindings } from '../motion.mjs';
-import { EVIDENCE_SCHEMA, validatePart } from '../a11y-evidence.mjs';
+import {
+  FORCED_COLORS_CRITERIA, MOTION_CHECK, MOTION_CRITERIA, controlProblems, forcedColorsFindings, isMotion, longRunningFindings, motionFindings,
+} from '../motion.mjs';
+import { EVIDENCE_CHECKS, EVIDENCE_SCHEMA, validatePart } from '../a11y-evidence.mjs';
 
 // tests/AGENTS.md ("A11y: the checks beyond axe", forced colors and reduced motion): the verdicts
-// behind 2.2.2, 2.3.3 and the forced-colors part of 1.4.1. The spec records every animation
+// behind 2.2.2, 2.3.3 and the forced-colors part of 1.4.1, 1.4.11 and 2.4.7. The spec records every animation
 // `document.getAnimations()` returns while it watches, and the forced-colors captures; the verdicts are here.
 
 /**
@@ -103,6 +105,17 @@ test('in forced colors, a state or a focus that leaves no visible change is lost
   assert.deepEqual(forcedColorsFindings({ part: 'icon', selector: '.changeType', step: 'at rest', changed: 0 })
     .map(item => [item.kind, item.criteria]), [['icon-lost-in-forced-colors', ['1.4.11']]]);
   assert.deepEqual(forcedColorsFindings({ part: 'focus', selector: 'td', step: 'ArrowRight', changed: 40 }), []);
+});
+
+test('the forced-colors target evaluates every criterion its findings name, and the registry lists them', () => {
+  // A finding under a criterion its target does not evaluate is counted with 0 targets evaluated, and a
+  // lost icon would leave 1.4.11 looking unmeasured.
+  const named = ['focus', 'selection', 'menu', 'icon', 'gridlines']
+    .flatMap(part => forcedColorsFindings({ part, selector: 's', step: 's', changed: 0 }).flatMap(finding => finding.criteria));
+
+  assert.deepEqual([...new Set(named)].filter(id => !FORCED_COLORS_CRITERIA.includes(id)), []);
+  assert.deepEqual(FORCED_COLORS_CRITERIA.filter(id => !MOTION_CRITERIA.includes(id)), []);
+  assert.deepEqual(EVIDENCE_CHECKS[MOTION_CHECK].criteria, MOTION_CRITERIA);
 });
 
 test('the check\'s findings are valid evidence', () => {

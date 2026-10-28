@@ -181,7 +181,7 @@ export const EVIDENCE_CHECKS = Object.freeze({
   'forced-colors-motion': {
     title: 'Forced colors and reduced motion',
     spec: 'forced-colors-motion.spec.ts',
-    criteria: ['1.4.1', '2.2.2', '2.3.3'],
+    criteria: ['1.4.1', '1.4.11', '2.2.2', '2.3.3', '2.4.7'],
     pullRequest: false,
   },
   // Triage, not evidence: its records list what axe's wider rules found and could not decide, for a

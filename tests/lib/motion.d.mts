@@ -1,5 +1,6 @@
 export const MOTION_CHECK: string;
 export const MOTION_CRITERIA: string[];
+export const FORCED_COLORS_CRITERIA: string[];
 
 type Finding = {
   kind: string;

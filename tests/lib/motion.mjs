@@ -11,7 +11,9 @@
  */
 
 export const MOTION_CHECK = 'forced-colors-motion';
-export const MOTION_CRITERIA = ['1.4.1', '2.2.2', '2.3.3'];
+export const MOTION_CRITERIA = ['1.4.1', '1.4.11', '2.2.2', '2.3.3', '2.4.7'];
+// What the forced-colors capture evaluates: every criterion its findings name.
+export const FORCED_COLORS_CRITERIA = ['1.4.1', '1.4.11', '2.4.7'];
 // What moves: position, size and transform. Opacity and color change what is shown, not where. Chromium
 // reports a transition per longhand, and a shorthand's keyframes as its longhands (`background-position`
 // as `background-position-x` and `-y`), so the longhands are listed with the shorthands.

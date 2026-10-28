@@ -1613,8 +1613,9 @@ counts as lost content.
 ### Forced colors and reduced motion
 
 `a11y/checks/forced-colors-motion.spec.ts`, the `forced-colors-motion` check, nightly only (every page is
-watched for five seconds): 2.2.2, 2.3.3 and the forced-colors support of 1.4.1, on every theme. The spec
-watches and captures; the verdicts are `lib/motion.mjs` (tested in `lib/__tests__/motion.test.mjs`).
+watched for five seconds): 2.2.2, 2.3.3 and the forced-colors support of 1.4.1, 1.4.11 and 2.4.7, on
+every theme. The spec watches and captures; the verdicts are `lib/motion.mjs` (tested in
+`lib/__tests__/motion.test.mjs`).
 
 - **Motion is read from `document.getAnimations()`, frame by frame.** One `requestAnimationFrame` loop in
   the page records every animation it sees running: CSS transitions, CSS animations and script
@@ -1653,9 +1654,11 @@ watches and captures; the verdicts are `lib/motion.mjs` (tested in `lib/__tests_
   cell focus, a selected range and a menu item's highlight are captured before and after the keyboard
   reaches them, and the grid lines and the header menu icons at rest. A state that changes no pixel, or a
   part that draws nothing (`isDrawn()`, from `lib/contrast.mjs`), is a finding (`focus-`, `selection-`,
-  `menu-highlight-`, `icon-` or `gridlines-lost-in-forced-colors`). Every capture is attached as a PNG to
-  the test, for the person who reads the report. Chromium's emulation applies the system colors the way
-  Windows High Contrast does; the colors themselves are the emulation's, not a Windows theme's.
+  `menu-highlight-`, `icon-` or `gridlines-lost-in-forced-colors`), and the target evaluates every
+  criterion those findings name (`FORCED_COLORS_CRITERIA`: 1.4.1, 1.4.11 and 2.4.7), so a criterion never
+  shows a finding with no target evaluating it. Every capture is attached as a PNG to the test, for the
+  person who reads the report. Chromium's emulation applies the system colors the way Windows High
+  Contrast does; the colors themselves are the emulation's, not a Windows theme's.
 
 ### Adding a check
 
