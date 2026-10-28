@@ -420,7 +420,7 @@ export function effectsBetween(before, after) {
 
   const fields = [['dataHash', 'value-changes'], ['scroll', 'scrolls'], ['sorting', 'sorts'], ['merged', 'merges'], ['frozen', 'freezes'],
     ['clipboard', 'clipboard'], ['links', 'link-opens'], ['collapsed', 'collapses'], ['filtered', 'filters'], ['listSelection', 'list-moves'],
-    ['rowSelection', 'row-selection-changes'], ['focusedText', 'text-changes']];
+    ['rowSelection', 'row-selection-changes']];
 
   for (const [field, effect] of fields) {
     if (differs(field)) {
@@ -429,6 +429,9 @@ export function effectsBetween(before, after) {
   }
   if (JSON.stringify(before.active?.key ?? null) !== JSON.stringify(after.active?.key ?? null)) {
     effects.add('focus-moves');
+  } else if (differs('focusedText')) {
+    // The focused field's own text changed; a focus that moved into a field with text in it is a move.
+    effects.add('text-changes');
   }
   if (PRODUCT.has(before.active?.region) && !PRODUCT.has(after.active?.region)) {
     effects.add('focus-leaves');
