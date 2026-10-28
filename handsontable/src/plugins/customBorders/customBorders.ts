@@ -409,6 +409,7 @@ export class CustomBorders extends BasePlugin {
    */
   disablePlugin() {
     this.#cancelProgressiveApply();
+    this.#visibleRowsBeforeUpdate = null;
     this.hideBorders();
 
     super.disablePlugin();

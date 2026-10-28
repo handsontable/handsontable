@@ -179,8 +179,9 @@ Three more entry points, all from review round 12:
   completes after the map changed. The React, Vue and Angular wrappers re-send an unchanged `trimRows` on
   every render, and the rebuild walks every bordered cell, so the handler compares
   `rowIndexMapper.getNotTrimmedIndexes()` with the array `#onUpdateSettingsStart` held before the update and
-  skips the rebuild when the two match (DEV-3553; 50,000 borders: about 635 ms down to about 155 ms in
-  jsdom, the rest being the `updateSettings()` render itself). **`#onUpdateSettingsStart` is an
+  skips the rebuild when the two match (DEV-3553; about 4x faster for an unchanged `trimRows` at 50,000
+  borders, measured in jsdom with a stubbed layout, median of 5 runs; the rest is the `updateSettings()`
+  render itself). **`#onUpdateSettingsStart` is an
   `afterUpdateSettings` listener at `orderIndex` -1**, not an `after*` hook that reads state late: every
   plugin's own `updatePlugin()` runs from an `orderIndex` 0 listener registered in its constructor, so only a
   negative index reads the rows before `TrimRows#updatePlugin()` writes the map. The mapper replaces its

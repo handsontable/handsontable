@@ -42,11 +42,12 @@ describe('CustomBorders and updateSettings({ trimRows })', () => {
   }
 
   /**
-   * Creates a grid with a border on the record that holds `8` in column 0.
+   * Creates a grid with a border on the record that holds `physicalRow` in column 0.
    *
    * @param {boolean|number[]} trimRows The initial `trimRows` option.
+   * @param {number} [physicalRow=8] The physical row of the bordered record.
    */
-  function createGridWithBorder(trimRows) {
+  function createGridWithBorder(trimRows, physicalRow = 8) {
     hot = new Handsontable(container, {
       data: rows(),
       trimRows,
@@ -56,7 +57,7 @@ describe('CustomBorders and updateSettings({ trimRows })', () => {
       licenseKey: 'non-commercial-and-evaluation',
     });
 
-    const visualRow = hot.toVisualRow(8);
+    const visualRow = hot.toVisualRow(physicalRow);
 
     hot.getPlugin('customBorders')
       .setBorders([[visualRow, 0, visualRow, 0]], { top: { width: 2, color: '#FF0000' } });
@@ -107,6 +108,58 @@ describe('CustomBorders and updateSettings({ trimRows })', () => {
       createGridWithBorder(false);
 
       const borders = hot.getPlugin('customBorders');
+
+      hot.updateSettings({ trimRows: [0] });
+      await flushMicrotasks();
+
+      expect(borders.getBorders().map(({ row }) => row)).toEqual([7]);
+      expect(renderedBorderRows()).toEqual([7]);
+    });
+
+    it('should move the border when the trim changes to as many other rows', async() => {
+      createGridWithBorder([2], 3);
+
+      const borders = hot.getPlugin('customBorders');
+
+      expect(renderedBorderRows()).toEqual([2]);
+
+      hot.updateSettings({ trimRows: [5] });
+      await flushMicrotasks();
+
+      expect(borders.getBorders().map(({ row }) => row)).toEqual([3]);
+      expect(renderedBorderRows()).toEqual([3]);
+    });
+
+    it('should bring back a border on a row that was trimmed and is visible again at the end', async() => {
+      createGridWithBorder(true, 9);
+
+      const borders = hot.getPlugin('customBorders');
+
+      expect(renderedBorderRows()).toEqual([9]);
+
+      hot.updateSettings({ trimRows: [9] });
+      await flushMicrotasks();
+
+      expect(borders.getBorders()).toEqual([]);
+      expect(renderedBorderRows()).toEqual([]);
+
+      hot.updateSettings({ trimRows: false });
+      await flushMicrotasks();
+
+      expect(borders.getBorders().map(({ row }) => row)).toEqual([9]);
+      expect(renderedBorderRows()).toEqual([9]);
+    });
+
+    it('should move the border when another updateSettings runs inside the trim update', async() => {
+      createGridWithBorder(true);
+
+      const borders = hot.getPlugin('customBorders');
+
+      hot.addHook('afterUpdateSettings', (settings) => {
+        if (settings.trimRows) {
+          hot.updateSettings({ colHeaders: true });
+        }
+      }, -1);
 
       hot.updateSettings({ trimRows: [0] });
       await flushMicrotasks();
