@@ -10,10 +10,11 @@ const unassignedPropSymbol = Symbol('unassigned');
  * neither validates nor casts a prop.
  *
  * The `as` clause drops the index signature of `Settings`. Left in, it becomes an index signature of the
- * props, and Vue types every prop as `any` again.
+ * props, and Vue types every prop as `any` again. It also drops `afterChangesObserved`: the settings types
+ * list that hook, but core neither registers nor fires it, so a prop for it could never work.
  */
 type PropSchema<Settings> = {
-  [P in keyof Settings as string extends P ? never : P]-?: {
+  [P in keyof Settings as string extends P ? never : P extends 'afterChangesObserved' ? never : P]-?: {
     type: PropType<Settings[P]>,
     default: unknown,
   };
@@ -90,6 +91,14 @@ export function propFactory(source: 'HotTable' | 'HotColumn'): HotTablePropSchem
     };
   }
 
+  // Documented options that have no entry in `DefaultSettings`, so the loops above never reach them.
+  propSchema.handsontable = {
+    default: unassignedPropSymbol
+  };
+  propSchema.getValue = {
+    default: unassignedPropSymbol
+  };
+
   propSchema.settings = {
     default: unassignedPropSymbol
   };
@@ -100,8 +109,8 @@ export function propFactory(source: 'HotTable' | 'HotColumn'): HotTablePropSchem
     };
   }
 
-  // The schema is filled at runtime from `DefaultSettings` and the registered hooks, which is why it is
-  // built loosely and typed here, from `GridSettings`, for the template type checker.
+  // The schema is filled at runtime from `DefaultSettings`, the registered hooks, and the options named
+  // above, which is why it is built loosely and typed here, from `GridSettings`, for the template type checker.
   return propSchema as unknown as HotTablePropSchema | HotColumnPropSchema;
 }
 

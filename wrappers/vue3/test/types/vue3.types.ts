@@ -115,6 +115,10 @@ const badVNode = h(HotTable, { sheetsBar: 42 });
 const badNullData: HotTableProps$ = { data: null };
 // @ts-expect-error -- the grid's `data` is an array of rows, not a property name.
 const badGridData: HotTableProps$ = { data: 'firstName' };
+// @ts-expect-error -- core neither registers nor fires `afterChangesObserved`, so no prop exists for it.
+const badDeadHook: HotTableProps$ = { afterChangesObserved: () => undefined };
+// The `handsontable` and `getValue` options are props, on `HotColumn` as well.
+const nestedGridColumn: HotColumnProps$ = { handsontable: { colHeaders: true }, getValue: () => 'value' };
 // `id` names the container of `HotTable`; `HotColumn` has no such prop, so the schema rejects it as an
 // excess property. A template that writes it still compiles unless `strictTemplates` is on.
 // @ts-expect-error -- `id` is not a `HotColumn` prop.
@@ -161,6 +165,8 @@ export {
   validColumnSettingsProp,
   badNullData,
   badGridData,
+  badDeadHook,
+  nestedGridColumn,
   validVNode,
   badSheetsBar,
   badSheetTabHook,
