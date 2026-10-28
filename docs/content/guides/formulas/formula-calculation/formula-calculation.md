@@ -2,7 +2,7 @@
 type: how-to
 title: Formula calculation
 metaTitle: Formula calculation | Handsontable DataGrid for JavaScript
-description: Perform calculations on cells' values, using a powerful calculation engine that handles more than 400 functions, custom functions, named expressions, and more.
+description: Perform calculations on cells' values, using a powerful calculation engine that handles about 400 functions, custom functions, named expressions, and more.
 permalink: /formula-calculation
 canonicalUrl: /formula-calculation
 tags:
@@ -25,7 +25,7 @@ searchCategory: Guides
 category: Formulas
 menuTag: updated
 ---
-The `Formulas` plugin adds spreadsheet-style calculation to Handsontable DataGrid, powered by [HyperFormula](https://handsontable.com/hyperformula/). It supports more than 400 built-in functions, cross-sheet references, named expressions, and custom function implementations.
+The `Formulas` plugin adds spreadsheet-style calculation to Handsontable DataGrid, powered by [HyperFormula](https://handsontable.com/hyperformula/). It supports about 400 built-in functions, cross-sheet references, named expressions, and custom function implementations.
 
 HyperFormula is a separate package that you install and license on its own. For steps, see [Formulas: Installation](@/guides/formulas/installation/installation.md).
 
@@ -697,7 +697,7 @@ exist, or is a range whose `start` and `end` are on different sheets. Always set
 ## Available functions
 
 The plugin inherits all calculation capabilities from HyperFormula. The complete function reference
-(more than 400 functions across Math, Engineering, Statistical, Financial, Logical, and other categories) is
+(about 400 functions across Math, Engineering, Statistical, Financial, Logical, and other categories) is
 in the
 [HyperFormula built-in functions docs](https://handsontable.github.io/hyperformula/guide/built-in-functions.html).
 
