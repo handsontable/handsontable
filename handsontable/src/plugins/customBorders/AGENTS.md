@@ -172,10 +172,22 @@ its queued VISUAL rows landed on the records the trim had shifted into those pos
 
 Three more entry points, all from review round 12:
 
-- **`updateSettings({ trimRows })` defers the rebuild too** (`#onAfterUpdateSettings`). `TrimRows#updatePlugin`
-  writes the trimming map inside `batchExecution` and fires no `afterTrimRow`, so the model kept the
-  visual row a border was drawn at while its record moved. There is no `beforeUpdateSettings` hook, so
-  on this path only a progressive load still in flight completes after the map changed.
+- **`updateSettings({ trimRows })` defers the rebuild too, but only when the visible rows changed**
+  (`#onAfterUpdateSettings`). `TrimRows#updatePlugin` writes the trimming map inside `batchExecution` and
+  fires no `afterTrimRow`, so the model kept the visual row a border was drawn at while its record moved.
+  There is no `beforeUpdateSettings` hook, so on this path only a progressive load still in flight
+  completes after the map changed. The React, Vue and Angular wrappers re-send an unchanged `trimRows` on
+  every render, and the rebuild walks every bordered cell, so the handler compares
+  `rowIndexMapper.getNotTrimmedIndexes()` with the array `#onUpdateSettingsStart` held before the update and
+  skips the rebuild when the two match (DEV-3553; 50,000 borders: about 635 ms down to about 155 ms in
+  jsdom, the rest being the `updateSettings()` render itself). **`#onUpdateSettingsStart` is an
+  `afterUpdateSettings` listener at `orderIndex` -1**, not an `after*` hook that reads state late: every
+  plugin's own `updatePlugin()` runs from an `orderIndex` 0 listener registered in its constructor, so only a
+  negative index reads the rows before `TrimRows#updatePlugin()` writes the map. The mapper replaces its
+  not-trimmed array on every cache update and never mutates it, so holding the reference is the snapshot.
+  Do **not** key this on the mapper's cache update instead: an insert or a remove raises the same flags, and
+  the plugin already shifts its model for them in its `before*` hooks, so a rebuild there moves the borders
+  twice. Pinned by `__tests__/unchangedTrimRowsSettings.unit.js`.
 - **A pending rebuild runs in `beforeLoadData`/`beforeUpdateData`** (`#onBeforeDataReplacement`).
   `loadData` drops the cell meta and keeps the model (the section above), so a rebuild left for the next
   read found no meta and emptied the model: `trimRow(0); loadData(same)` lost the border that

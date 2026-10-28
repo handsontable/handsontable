@@ -198,6 +198,12 @@ export class CustomBorders extends BasePlugin {
    * structural change), instead of once per `trimRow()` call.
    */
   #isModelRebuildPending: boolean = false;
+  /**
+   * The visible rows (physical indexes in visual order) as they were when the running
+   * `updateSettings()` call started. The index mapper replaces the array on every cache update and
+   * never mutates it, so holding the reference is a free snapshot. `null` outside an update.
+   */
+  #visibleRowsBeforeUpdate: number[] | null = null;
 
   /**
    * Positions of the saved borders in the `savedBorders` array, keyed by the border id.
@@ -388,6 +394,9 @@ export class CustomBorders extends BasePlugin {
     this.addHook('beforeUntrimRow', this.#onBeforeTrimmingChange);
     this.addHook('afterTrimRow', this.#onAfterTrimmingChange);
     this.addHook('afterUntrimRow', this.#onAfterTrimmingChange);
+    // Ahead of the `afterUpdateSettings` listener that runs `TrimRows#updatePlugin()`, so it reads the
+    // visible rows from before the update.
+    this.addHook('afterUpdateSettings', this.#onUpdateSettingsStart, -1);
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
     this.addHook('beforeLoadData', this.#onBeforeDataReplacement);
     this.addHook('beforeUpdateData', this.#onBeforeDataReplacement);
@@ -2108,19 +2117,48 @@ The border style will be ignored.`);
   };
 
   /**
+   * `afterUpdateSettings` hook callback, registered ahead of every plugin's own update. It stands in
+   * for a `beforeUpdateSettings` hook, which the core does not have, and records the visible rows
+   * before `TrimRows#updatePlugin()` writes the trimming map.
+   */
+  #onUpdateSettingsStart = () => {
+    this.#visibleRowsBeforeUpdate = this.hot.rowIndexMapper.getNotTrimmedIndexes();
+  };
+
+  /**
    * `afterUpdateSettings` hook callback. `updateSettings({ trimRows })` writes the trimming map in
    * `TrimRows#updatePlugin` without firing `afterTrimRow`, so the model kept the visual rows the
-   * borders were drawn at while their records moved (review round 12). There is no
-   * `beforeUpdateSettings` hook, so a progressive load still in flight completes after the map
-   * changed on this path only.
+   * borders were drawn at while their records moved (review round 12). The rebuild is skipped when
+   * the visible rows did not change: wrappers re-send an unchanged `trimRows` on every render, and
+   * the rebuild walks every bordered cell (DEV-3553). A progressive load still in flight completes
+   * after the map changed on this path only.
    *
    * @param {object} settings The settings passed to `updateSettings()`.
    */
   #onAfterUpdateSettings = (settings: Record<string, unknown>) => {
-    if (settings && hasOwnProperty(settings, 'trimRows')) {
-      this.#deferRebuildAfterIndexChange();
-      this.#scheduleMetaSyncRender();
+    const visibleRowsBefore = this.#visibleRowsBeforeUpdate;
+
+    this.#visibleRowsBeforeUpdate = null;
+
+    if (!settings || !hasOwnProperty(settings, 'trimRows')) {
+      return;
     }
+
+    const visibleRows = this.hot.rowIndexMapper.getNotTrimmedIndexes();
+
+    if (
+      visibleRowsBefore === visibleRows ||
+      (
+        visibleRowsBefore !== null &&
+        visibleRowsBefore.length === visibleRows.length &&
+        visibleRowsBefore.every((physicalRow, visualRow) => physicalRow === visibleRows[visualRow])
+      )
+    ) {
+      return;
+    }
+
+    this.#deferRebuildAfterIndexChange();
+    this.#scheduleMetaSyncRender();
   };
 
   /**

@@ -1,0 +1,182 @@
+import Handsontable from '../../../index';
+
+describe('CustomBorders and updateSettings({ trimRows })', () => {
+  let container;
+  let hot;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    hot?.destroy();
+    hot = null;
+    container.remove();
+  });
+
+  /**
+   * Rows holding their own index in column 0.
+   *
+   * @returns {Array[]}
+   */
+  function rows() {
+    return Array.from({ length: 10 }, (_, row) => [row, `r${row}c1`]);
+  }
+
+  /**
+   * Waits for the microtasks the plugin registers to run.
+   */
+  async function flushMicrotasks() {
+    await Promise.resolve();
+    await Promise.resolve();
+  }
+
+  /**
+   * @returns {number[]} The rows of the rendered custom border selections.
+   */
+  function renderedBorderRows() {
+    return hot.selection.highlight.customSelections
+      .map(selection => selection.cellRange?.from.row)
+      .filter(row => row !== undefined);
+  }
+
+  /**
+   * Creates a grid with a border on the record that holds `8` in column 0.
+   *
+   * @param {boolean|number[]} trimRows The initial `trimRows` option.
+   */
+  function createGridWithBorder(trimRows) {
+    hot = new Handsontable(container, {
+      data: rows(),
+      trimRows,
+      customBorders: true,
+      width: 400,
+      height: 400,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const visualRow = hot.toVisualRow(8);
+
+    hot.getPlugin('customBorders')
+      .setBorders([[visualRow, 0, visualRow, 0]], { top: { width: 2, color: '#FF0000' } });
+  }
+
+  describe('when the trimmed rows change', () => {
+    it('should move the border with its record while the trimmed rows change', async() => {
+      createGridWithBorder(true);
+
+      const borders = hot.getPlugin('customBorders');
+
+      expect(renderedBorderRows()).toEqual([8]);
+
+      hot.updateSettings({ trimRows: [0] });
+      await flushMicrotasks();
+
+      expect(borders.getBorders().map(({ row }) => row)).toEqual([7]);
+      expect(renderedBorderRows()).toEqual([7]);
+
+      hot.updateSettings({ trimRows: [0, 1] });
+      await flushMicrotasks();
+
+      expect(borders.getBorders().map(({ row }) => row)).toEqual([6]);
+      expect(renderedBorderRows()).toEqual([6]);
+
+      hot.updateSettings({ trimRows: [1] });
+      await flushMicrotasks();
+
+      expect(borders.getBorders().map(({ row }) => row)).toEqual([7]);
+      expect(renderedBorderRows()).toEqual([7]);
+    });
+
+    it('should move the border back when trimRows is switched off', async() => {
+      createGridWithBorder([0]);
+
+      const borders = hot.getPlugin('customBorders');
+
+      expect(renderedBorderRows()).toEqual([7]);
+
+      hot.updateSettings({ trimRows: false });
+      await flushMicrotasks();
+
+      expect(borders.getBorders().map(({ row }) => row)).toEqual([8]);
+      expect(renderedBorderRows()).toEqual([8]);
+    });
+
+    it('should move the border when trimRows is switched on', async() => {
+      createGridWithBorder(false);
+
+      const borders = hot.getPlugin('customBorders');
+
+      hot.updateSettings({ trimRows: [0] });
+      await flushMicrotasks();
+
+      expect(borders.getBorders().map(({ row }) => row)).toEqual([7]);
+      expect(renderedBorderRows()).toEqual([7]);
+    });
+
+    it('should rebuild the border model once for the update', async() => {
+      createGridWithBorder(true);
+
+      const walkSpy = jest.spyOn(hot._getMetaManager(), 'getUserDefinedCellMetas');
+
+      hot.updateSettings({ trimRows: [0] });
+      await flushMicrotasks();
+
+      expect(walkSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('when the trimmed rows stay the same', () => {
+    it.each([
+      ['an untouched trimRows: true', true, true],
+      ['a trimRows: false that stays off', false, false],
+      ['the same list in a new array', [0, 3], [0, 3]],
+      ['the same list in another order', [0, 3], [3, 0]],
+    ])('should not rebuild the borders for %s', async(_, initialTrimRows, nextTrimRows) => {
+      createGridWithBorder(initialTrimRows);
+
+      const borders = hot.getPlugin('customBorders');
+      const walkSpy = jest.spyOn(hot._getMetaManager(), 'getUserDefinedCellMetas');
+      const selectionsBefore = [...hot.selection.highlight.customSelections];
+      const rowsBefore = renderedBorderRows();
+
+      expect(selectionsBefore.length).toBe(1);
+
+      hot.updateSettings({ trimRows: nextTrimRows });
+      await flushMicrotasks();
+
+      expect(walkSpy).not.toHaveBeenCalled();
+      expect(hot.selection.highlight.customSelections.length).toBe(selectionsBefore.length);
+      hot.selection.highlight.customSelections.forEach((selection, index) => {
+        expect(selection).toBe(selectionsBefore[index]);
+      });
+      expect(renderedBorderRows()).toEqual(rowsBefore);
+      expect(borders.getBorders().map(({ row }) => row)).toEqual(rowsBefore);
+    });
+
+    it('should not rebuild the borders for a settings update without trimRows', async() => {
+      createGridWithBorder([0]);
+
+      const walkSpy = jest.spyOn(hot._getMetaManager(), 'getUserDefinedCellMetas');
+
+      hot.updateSettings({ colHeaders: true });
+      await flushMicrotasks();
+
+      expect(walkSpy).not.toHaveBeenCalled();
+    });
+
+    it('should still rebuild once a later update changes the trimmed rows', async() => {
+      createGridWithBorder([0]);
+
+      const borders = hot.getPlugin('customBorders');
+
+      hot.updateSettings({ trimRows: [0] });
+      hot.updateSettings({ trimRows: [0, 1] });
+      await flushMicrotasks();
+
+      expect(borders.getBorders().map(({ row }) => row)).toEqual([6]);
+      expect(renderedBorderRows()).toEqual([6]);
+    });
+  });
+});
