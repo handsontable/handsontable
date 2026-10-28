@@ -183,6 +183,129 @@ describe('ColumnSummary destinations of a replaced data array', () => {
     });
   });
 
+  describe('writing the values back', () => {
+    it('leaves a frozen row alone and keeps the grid usable after `loadData()` and `updateData()`', () => {
+      const first = [[1], [2], [3], [null]];
+
+      createGrid(first);
+      first.forEach(row => Object.freeze(row));
+      Object.freeze(first);
+
+      expect(() => hot.loadData([[5], [6], [7], [null]])).not.toThrow();
+      expect(hot.getDataAtCell(3, 0)).toBe(18);
+      expect(first[3][0]).toBe(6);
+      expect(() => hot.getData()).not.toThrow();
+      expect(() => hot.render()).not.toThrow();
+
+      const second = hot.getSourceData();
+      const live = hot.getSettings().data;
+
+      live.forEach(row => Object.freeze(row));
+
+      expect(second.length).toBe(4);
+      expect(() => hot.updateData([[1], [1], [1], [null]])).not.toThrow();
+      expect(hot.getDataAtCell(3, 0)).toBe(3);
+    });
+
+    it('writes back through a `columns[].data` function', () => {
+      const rows = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: null }];
+      const accessor = function(row, value) {
+        if (arguments.length > 1) {
+          row.v = value;
+
+          return undefined;
+        }
+
+        return row.v;
+      };
+
+      createGrid(rows, { columns: [{ data: accessor }] });
+
+      expect(hot.getDataAtCell(3, 0)).toBe(6);
+
+      hot.loadData([{ v: 9 }, { v: 9 }, { v: 9 }, { v: null }]);
+
+      expect(rows[3].v).toBe(null);
+    });
+
+    it('keeps the same total when one array with a `columns[].data` function is loaded again', () => {
+      const rows = [{ v: 1 }, { v: 2 }, { v: 3 }, { v: null }];
+      const accessor = function(row, value) {
+        if (arguments.length > 1) {
+          row.v = value;
+
+          return undefined;
+        }
+
+        return row.v;
+      };
+
+      createGrid(rows, { columns: [{ data: accessor }] });
+      hot.loadData(rows);
+
+      expect(hot.getDataAtCell(3, 0)).toBe(6);
+    });
+
+    it('writes back the value a cell held when two summaries write it in one pass', () => {
+      const rows = [[1, 10], [2, 20], [3, 30], [null, null]];
+
+      createGrid(rows, {
+        columnSummary: [
+          { sourceColumn: 0, destinationRow: 3, destinationColumn: 0, type: 'sum', forceNumeric: true },
+          { sourceColumn: 1, destinationRow: 3, destinationColumn: 0, type: 'sum', forceNumeric: true },
+        ],
+      });
+
+      const written = rows[3][0];
+
+      expect(written).not.toBe(null);
+
+      hot.loadData([[0, 0]]);
+
+      expect(rows[3]).toEqual([null, null]);
+    });
+
+    it('removes the keys a nested destination created instead of leaving them undefined', () => {
+      const rows = [{ a: 1, n: { x: 1 } }, { a: 2, n: { x: 2 } }, { a: 3, n: { x: 3 } }, {}];
+
+      createGrid(rows, {
+        columns: [{ data: 'a' }, { data: 'n.x' }],
+        columnSummary: [
+          { sourceColumn: 0, destinationRow: 3, destinationColumn: 0, type: 'sum', forceNumeric: true },
+          { sourceColumn: 1, destinationRow: 3, destinationColumn: 1, type: 'sum', forceNumeric: true },
+        ],
+      });
+
+      expect(rows[3]).toEqual({ a: 6, n: { x: 6 } });
+
+      hot.loadData([{ a: 0 }]);
+
+      expect(Object.keys(rows[3])).toEqual([]);
+    });
+
+    it('keeps an own key that held `undefined` before the total', () => {
+      const rows = [{ a: 1 }, { a: 2 }, { a: 3 }, { a: undefined }];
+
+      createGrid(rows, { columns: [{ data: 'a' }] });
+      hot.loadData([{ a: 0 }]);
+
+      expect(Object.keys(rows[3])).toEqual(['a']);
+      expect(rows[3].a).toBe(undefined);
+    });
+
+    it('takes back an array element the total appended, keeping the row\'s length', () => {
+      const rows = [[1], [2], [3], []];
+
+      createGrid(rows);
+
+      expect(rows[3].length).toBe(1);
+
+      hot.loadData([[0]]);
+
+      expect(rows[3].length).toBe(0);
+    });
+  });
+
   describe('under the sheets bar, with a grid-level summary', () => {
     /**
      * Builds a two-sheet workbook.
@@ -227,6 +350,22 @@ describe('ColumnSummary destinations of a replaced data array', () => {
       plugin.setActiveSheet('B');
 
       expect(dataA[3][0]).toBe(null);
+    });
+
+    it('gives a copy of the active sheet the original destination values, so it sums its own rows', () => {
+      const plugin = createWorkbook([[1], [2], [3], [null]], [[9], [9], [9], [null]]);
+
+      expect(hot.getDataAtCell(3, 0)).toBe(6);
+
+      const copy = plugin.duplicateSheet(plugin.getSheets().find(sheet => sheet.isActive).id);
+
+      plugin.setActiveSheet(copy.name);
+
+      expect(hot.getDataAtCell(3, 0)).toBe(6);
+
+      plugin.setActiveSheet('A');
+
+      expect(hot.getDataAtCell(3, 0)).toBe(6);
     });
   });
 });

@@ -1,5 +1,6 @@
 import { BasePlugin } from '../base';
-import { getProperty, hasOwnProperty, objectEach, setProperty } from '../../helpers/object';
+import { objectEach } from '../../helpers/object';
+import { DestinationWrites, isDataRow, type CellProp, type DataRow } from './destinationWrites';
 import Endpoints, { type EndpointConfig } from './endpoints';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { holdsNoNumber, isBlank } from './utils';
@@ -13,67 +14,6 @@ export const PLUGIN_PRIORITY = 220;
  * Result shown when a range holds no value to calculate from.
  */
 const NOT_ENOUGH_DATA = 'Not enough data';
-
-/**
- * A row of the data array: an array, or an object of an array of objects.
- */
-type DataRow = Record<string | number, unknown>;
-
-/**
- * What a destination cell held before the plugin's first result there, and the result written last.
- */
-interface DestinationWrite {
-  original: unknown;
-  written: unknown;
-}
-
-/**
- * Tells whether a value is a row of the data array (an array, or an object of an array of objects).
- *
- * @param {*} row The value.
- * @returns {boolean}
- */
-function isDataRow(row: unknown): row is DataRow {
-  return typeof row === 'object' && row !== null;
-}
-
-/**
- * Tells whether a property names a nested value (`'a.b'`) rather than a key of the row itself, the way
- * `DataMap` reads it: a key the row owns wins over the path.
- *
- * @param {object} row The data row.
- * @param {string|number} prop The cell's property.
- * @returns {boolean}
- */
-function isNestedPath(row: DataRow, prop: string | number): prop is string {
-  return typeof prop === 'string' && prop.includes('.') && !hasOwnProperty(row, prop);
-}
-
-/**
- * Reads a cell straight from its data row.
- *
- * @param {object} row The data row.
- * @param {string|number} prop The cell's property.
- * @returns {*}
- */
-function readCell(row: DataRow, prop: string | number): unknown {
-  return isNestedPath(row, prop) ? getProperty(row, prop) : row[prop];
-}
-
-/**
- * Writes a cell straight into its data row.
- *
- * @param {object} row The data row.
- * @param {string|number} prop The cell's property.
- * @param {*} value The value.
- */
-function writeCell(row: DataRow, prop: string | number, value: unknown): void {
-  if (isNestedPath(row, prop)) {
-    setProperty(row, prop, value);
-  } else {
-    row[prop] = value;
-  }
-}
 
 export interface SummaryEndpoint {
   ranges?: number[][];
@@ -248,16 +188,16 @@ export class ColumnSummary extends BasePlugin {
 
   /**
    * What each destination cell held before the plugin first wrote a summary result there, and the
-   * value the plugin wrote last, keyed by the source row object and the cell's property. The results
-   * are written into the data array itself, so when the grid replaces that array (`loadData()`,
-   * `updateData()`, a sheets bar switch) the array the grid leaves gets its own values back
-   * (`#restoreDestinationOriginals`). Loaded again, it then sums what the first load summed, instead
-   * of counting the previous result as input. It lives as long as the plugin instance, because a
-   * settings update re-enables the plugin (`updatePlugin()`) before the data it describes is loaded.
+   * value it holds since, keyed by the source row object and the cell's property. The results are
+   * written into the data array itself, so when the grid replaces that array (`loadData()`,
+   * `updateData()`, a sheets bar switch) the array the grid leaves gets its own values back. Loaded
+   * again, it then sums what the first load summed, instead of counting the previous result as input.
+   * It lives as long as the plugin instance, because a settings update re-enables the plugin
+   * (`updatePlugin()`) before the data it describes is loaded.
    *
-   * @type {Map<object, Map<string|number, {original: *, written: *}>>}
+   * @type {DestinationWrites}
    */
-  #destinationWrites = new Map<DataRow, Map<string | number, DestinationWrite>>();
+  #destinationWrites = new DestinationWrites();
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -287,6 +227,7 @@ export class ColumnSummary extends BasePlugin {
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('afterUpdateData', this.#onAfterUpdateData);
+    this.addHook('beforeChange', this.#onBeforeChangeTrackWrites);
     this.addHook('afterChange', this.#onAfterChangeTrackWrites);
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
     this.addHook('beforeUpdateData', this.#onBeforeUpdateData);
@@ -373,6 +314,24 @@ export class ColumnSummary extends BasePlugin {
       this.endpoints!.initEndpoints();
     } else {
       this.endpoints?.refreshAllEndpoints();
+    }
+  }
+
+  /**
+   * Puts into a copy of the grid's data the values its destination cells held before the summary
+   * results, row for row, so the copy sums its own rows when it is loaded rather than the copied
+   * results. The sheets bar calls it on a duplicate of the sheet the grid shows. A copy of other data
+   * is left as it is.
+   *
+   * @private
+   * @param {Array} source The data the copy was made from.
+   * @param {Array} copy The copy, with the same row order.
+   */
+  restoreDestinationValuesInCopy(source: unknown[], copy: unknown[]): void {
+    const { data, dataDotNotation } = this.hot.getSettings();
+
+    if (source === data) {
+      this.#destinationWrites.restoreInCopy(source, copy, !!dataDotNotation);
     }
   }
 
@@ -807,44 +766,70 @@ export class ColumnSummary extends BasePlugin {
   };
 
   /**
-   * Records the summary results the plugin wrote into the data (`#destinationWrites`): the value a
-   * cell held before the first write, and the value written last. A grid with a `modifyRowData`
-   * listener (NestedRows) does not keep its rows at their physical indexes in the data array, so its
-   * writes are not recorded.
+   * Resolves the data row object and the cell property a change of the plugin's own writes into. A grid
+   * with a `modifyRowData` listener (NestedRows) does not keep its rows at their physical indexes in the
+   * data array, so its writes are not followed.
    *
-   * @param {Array} changes The changes the plugin made.
+   * @param {Array[]|null} changes The changes.
    * @param {string} source The source of the changes.
+   * @returns {Array} The row and the property of each change the plugin writes.
    */
-  #onAfterChangeTrackWrites = (changes: unknown[][] | null, source: string) => {
+  #resolveDestinationCells(changes: unknown[][] | null, source: string): [DataRow, CellProp][] {
     if (!changes || (source !== 'ColumnSummary.set' && source !== 'ColumnSummary.reset')
       || this.hot.hasHook('modifyRowData')) {
-      return;
+      return [];
     }
 
     const data = this.hot.getSettings().data as unknown[] | undefined;
+    const cells: [DataRow, CellProp][] = [];
 
     if (!Array.isArray(data)) {
-      return;
+      return cells;
     }
 
-    changes.forEach(([visualRow, prop, oldValue, newValue]) => {
-      const physicalRow = this.hot.toPhysicalRow(visualRow as number);
-      const row = physicalRow === null ? undefined : data[physicalRow];
-
-      if (!isDataRow(row) || (typeof prop !== 'string' && typeof prop !== 'number')) {
+    changes.forEach((change) => {
+      if (!change) {
         return;
       }
 
-      let cells = this.#destinationWrites.get(row);
+      const [visualRow, prop] = change;
+      const physicalRow = this.hot.toPhysicalRow(visualRow as number);
+      const row = physicalRow === null ? undefined : data[physicalRow];
 
-      if (!cells) {
-        cells = new Map();
-        this.#destinationWrites.set(row, cells);
+      if (isDataRow(row) && (typeof prop === 'string' || typeof prop === 'number' || typeof prop === 'function')) {
+        cells.push([row, prop as CellProp]);
       }
+    });
 
-      const recorded = cells.get(prop);
+    return cells;
+  }
 
-      cells.set(prop, { original: recorded ? recorded.original : oldValue, written: newValue });
+  /**
+   * Records what each destination cell holds right before the plugin's first result is written there.
+   *
+   * @param {Array[]} changes The changes the plugin is about to make.
+   * @param {string} source The source of the changes.
+   */
+  #onBeforeChangeTrackWrites = (changes: unknown[][] | null, source: string) => {
+    const dataDotNotation = !!this.hot.getSettings().dataDotNotation;
+
+    this.#resolveDestinationCells(changes, source).forEach(([row, prop]) => {
+      this.#destinationWrites.recordBefore(row, prop, dataDotNotation);
+    });
+  };
+
+  /**
+   * Records the value each destination cell holds once the plugin's result is written, read back from the
+   * cell.
+   *
+   * @param {Array[]} changes The changes the plugin made.
+   * @param {string} source The source of the changes.
+   */
+  #onAfterChangeTrackWrites = (changes: unknown[][] | null, source: string) => {
+    const dataDotNotation = !!this.hot.getSettings().dataDotNotation;
+
+    this.#resolveDestinationCells(changes, source).forEach(([row, prop]) => {
+      this.#destinationWrites.recordAfter(row, prop, dataDotNotation);
     });
   };
 
@@ -873,31 +858,17 @@ export class ColumnSummary extends BasePlugin {
    * Writes back into the data the grid is about to replace the values its destination cells held
    * before the first summary result, straight into the row objects: no hooks, no undo step, no
    * render. A cell whose value is no longer the result the plugin wrote last (the user or the host
-   * replaced it) keeps that value, and a row that is no longer in the data is skipped.
+   * replaced it), a row that is no longer in the data, and a cell the row does not let be written (a
+   * frozen row) keep their values.
    */
   #restoreDestinationOriginals() {
-    const data = this.hot.getSettings().data as unknown[] | undefined;
-    const writes = this.#destinationWrites;
+    const { data, dataDotNotation } = this.hot.getSettings();
 
-    this.#destinationWrites = new Map();
-
-    if (!Array.isArray(data) || writes.size === 0) {
-      return;
+    if (Array.isArray(data)) {
+      this.#destinationWrites.restore(data, !!dataDotNotation);
+    } else {
+      this.#destinationWrites.clear();
     }
-
-    const rows = new Set(data);
-
-    writes.forEach((cells, row) => {
-      if (!rows.has(row)) {
-        return;
-      }
-
-      cells.forEach(({ original, written }, prop) => {
-        if (readCell(row, prop) === written) {
-          writeCell(row, prop, original);
-        }
-      });
-    });
   }
 
   /**

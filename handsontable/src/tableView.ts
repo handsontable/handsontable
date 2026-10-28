@@ -492,11 +492,26 @@ class TableView {
    * default height keep their stored heights and pay nothing.
    */
   #dropRaisedColumnHeaderHeights(): void {
-    const defaultRowHeight = this.hot.stylesHandler.getDefaultRowHeight() ?? 0;
-
-    if (this.renderSizeProbe.hasColumnHeaderTallerThan(defaultRowHeight)) {
+    if (this.#hasRaisedColumnHeader()) {
       this.renderSizeProbe.columnHeaderHeights.clear();
     }
+  }
+
+  /**
+   * Tells whether the render-size probe measured a column header taller than one line. The probe reads a
+   * header as a border-box height, so a one-line header measures the default row height PLUS its own
+   * bottom gridline, and comparing against the default row height alone read every one-line header as
+   * raised: each full render then dropped and re-measured the heights and re-synced the overlays.
+   *
+   * @returns {boolean}
+   */
+  #hasRaisedColumnHeader(): boolean {
+    const defaultRowHeight = this.hot.stylesHandler.getDefaultRowHeight() ?? 0;
+    const borderBottomWidth = Number.parseFloat(String(this.hot.stylesHandler.getStyleForTD('border-bottom-width')));
+
+    return this.renderSizeProbe.hasColumnHeaderTallerThan(
+      defaultRowHeight + (Number.isFinite(borderBottomWidth) ? borderBottomWidth : 0)
+    );
   }
 
   /**
@@ -3033,12 +3048,10 @@ class TableView {
       this.renderSizeProbe.measure(this._wt);
 
       // Single-pass header reconcile: the probe has just measured content-driven column-header
-      // heights (which the engine no longer measures mid-draw). If a header is taller than the
-      // default, re-apply the heights so the overlays match the master. This is a synchronous,
+      // heights (which the engine no longer measures mid-draw). If a header is taller than one
+      // line, re-apply the heights so the overlays match the master. This is a synchronous,
       // hook-free reconcile - it never calls `hot.render()`, so the render-hook counts are unchanged.
-      const defaultRowHeight = this.hot.stylesHandler.getDefaultRowHeight() ?? 0;
-
-      if (this.renderSizeProbe.hasColumnHeaderTallerThan(defaultRowHeight)) {
+      if (this.#hasRaisedColumnHeader()) {
         this._wt.wtOverlays.refreshColumnHeaderHeights();
       }
 

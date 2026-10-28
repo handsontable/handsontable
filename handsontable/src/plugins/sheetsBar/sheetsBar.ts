@@ -3260,6 +3260,21 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
+   * Gives a duplicate of the sheet the grid shows the values its ColumnSummary destination cells held
+   * before the summary results. The grid's data holds the results, and a deep copy of it would sum them
+   * again on its first visit (a total of 6 came back as 12). A hidden sheet's data already holds the
+   * original values: the switch away gave them back.
+   *
+   * @param {object} original The sheet that was duplicated.
+   * @param {object} copy The duplicate.
+   */
+  #restoreSummaryValuesInCopy(original: Sheet, copy: Sheet) {
+    if (this.#model?.getActiveSheet()?.id === original.id) {
+      this.hot.getPlugin('columnSummary')?.restoreDestinationValuesInCopy(original.data, copy.data);
+    }
+  }
+
+  /**
    * Gives a duplicated sheet the ColumnSummary endpoints its original holds now, written into the copy's
    * own settings. The copy's data is a copy of the original's, with every summary at the position a row
    * or column alteration moved it to, and the copy opens as a first visit, so the declared positions
@@ -4043,6 +4058,7 @@ export class SheetsBar extends BasePlugin {
         }
 
         this.#copyServerView(original, sheet);
+        this.#restoreSummaryValuesInCopy(original, sheet);
         this.#copyColumnSummaryEndpoints(original, sheet);
         this.#copyCellOption(original, sheet);
         this.#copyCellMeta(original, sheet);
@@ -5009,7 +5025,7 @@ export class SheetsBar extends BasePlugin {
    * @param {object} newSettings The settings passed to `updateSettings()`.
    */
   #onAfterUpdateSettings = (newSettings: Record<string, unknown>) => {
-    this.#refreshSettingsBaseline(newSettings);
+    this.#refreshSettingsBaseline(renameFixedColumnsLeft(newSettings));
     this.#refreshGridColumnSummary(newSettings);
     this.#refreshGridCellOption(newSettings);
 

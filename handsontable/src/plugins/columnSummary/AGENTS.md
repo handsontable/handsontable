@@ -368,16 +368,32 @@ not widen the skip back to every `auto` action. `reversedRowCoordsAlter.unit.js`
 
 The plugin writes its results into the data array, so an array loaded again used to sum the previous result
 as input: a sheets bar round trip grew a total 3, 6, 9, and stored the grown total in the sheet's data.
-`#destinationWrites` records, per source row object and property, what a destination cell held before the
-first result and the result written last (from `afterChange` with the plugin's own sources). Right before the
-array is replaced (`beforeLoadData`, and `beforeUpdateData` with another array) the outgoing array gets the
-original values back, written straight into its rows: no hooks, no undo step, no render. A cell that no longer
-holds the last result (the user or the host replaced it) and a row no longer in the array are left alone.
-Three rules: the map outlives `updatePlugin()`, because a switch re-enables the plugin before its data loads;
-`updateData()` with the array the grid holds restores nothing, because the kept cell meta still keeps the
-result out of its range (a wrapper re-render must not churn the cell); and a grid with a `modifyRowData`
-listener (NestedRows) records nothing, because its physical rows are not array indexes. Pinned by
-`__tests__/replacedDataDestination.unit.js` and `tests/e2e/sheets-bar-column-summary-round-trip.spec.ts`.
+`DestinationWrites` (`destinationWrites.ts`) records, per source row object and cell property, what a
+destination cell held before the first result (`beforeChange` with the plugin's own sources) and what it holds
+after the last one, read back from the cell (`afterChange`), so two summaries writing one cell in one batch
+leave the value that landed. Right before the array is replaced (`beforeLoadData`, and `beforeUpdateData` with
+another array) the outgoing array gets the original values back, written straight into its rows: no hooks, no
+undo step, no render. Five rules:
+
+- **Never throw from the restore.** `replaceData()` destroys the `DataMap` before those hooks run, so a throw
+  there leaves a grid that cannot read, render or destroy. A row frozen after the result was written
+  (`Object.freeze`, Immer) is skipped through a writability test (`canAssign`, `removeKey`), never a try/catch.
+- **A key the write created is removed, not set to `undefined`.** The record keeps the first segment of the
+  path that held no object (a dot path whose parent was missing) and whether it was an own key, so the row
+  gets its shape back; an array element the write appended is taken off by shortening the array.
+- **A `columns[].data` function is followed through the function**, read with `fn(row)` and restored with
+  `fn(row, value)`, skipped on a frozen row.
+- **A cell that no longer holds the last result** (the user or the host replaced it) and a row no longer in
+  the array are left alone. `updateData()` with the array the grid holds restores nothing, because the kept
+  cell meta still keeps the result out of its range (a wrapper re-render must not churn the cell).
+- **The records outlive `updatePlugin()`**, because a switch re-enables the plugin before its data loads. A
+  grid with a `modifyRowData` listener (NestedRows) records nothing, because its physical rows are not array
+  indexes.
+
+A duplicate of the sheet the grid shows is a deep copy of rows that hold the results, so the sheets bar asks
+`restoreDestinationValuesInCopy()` (`@private`) to put the original values into the copy, row for row, or the
+copy sums the copied result again on its first visit. Pinned by `__tests__/replacedDataDestination.unit.js`
+and `tests/e2e/sheets-bar-column-summary-round-trip.spec.ts`.
 
 ## Where to look next
 

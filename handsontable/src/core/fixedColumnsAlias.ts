@@ -60,3 +60,23 @@ export function renameFixedColumnsLeft<T extends object>(settings: T): T {
     fixedColumnsStart: hasOwnProperty(rest, 'fixedColumnsStart') ? rest.fixedColumnsStart : fixedColumnsLeft,
   } as T;
 }
+
+/**
+ * Returns the settings an `afterUpdateSettings` listener receives: the payload core applied, with
+ * `fixedColumnsStart` named `fixedColumnsLeft` again when the caller passed the legacy name. Core applies the
+ * normalized payload, while a listener reads the keys the caller wrote. A payload the caller did not pass
+ * `fixedColumnsLeft` in is returned as is.
+ *
+ * @param {object} applied The settings core applied.
+ * @param {object} passed The settings the caller passed.
+ * @returns {object}
+ */
+export function withCallerFixedColumnsName<T extends object>(applied: T, passed: object): T {
+  if (!hasOwnProperty(passed, 'fixedColumnsLeft') || !hasOwnProperty(applied, 'fixedColumnsStart')) {
+    return applied;
+  }
+
+  const { fixedColumnsStart, ...rest } = applied as Record<string, unknown>;
+
+  return { ...rest, fixedColumnsLeft: fixedColumnsStart } as T;
+}

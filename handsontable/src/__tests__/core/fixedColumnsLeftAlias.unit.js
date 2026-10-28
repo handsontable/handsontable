@@ -87,6 +87,33 @@ describe('Core: the `fixedColumnsLeft` alias of `fixedColumnsStart`', () => {
       expect(hot.getSettings().fixedColumnsStart).toBe(2);
     });
 
+    it('hands `afterUpdateSettings` the name the caller passed, while the grid applies `fixedColumnsStart`', () => {
+      createGrid({});
+
+      const payloads = [];
+
+      hot.addHook('afterUpdateSettings', settings => payloads.push(settings));
+      hot.updateSettings({ fixedColumnsLeft: 2, colHeaders: false });
+      hot.updateSettings({ fixedColumnsStart: 3 });
+
+      expect(payloads).toEqual([{ fixedColumnsLeft: 2, colHeaders: false }, { fixedColumnsStart: 3 }]);
+      expect(hot.getSettings().fixedColumnsStart).toBe(3);
+    });
+
+    it('hands `afterUpdateSettings` the caller\'s own payload object when it names no legacy key', () => {
+      createGrid({});
+
+      const payload = { fixedColumnsStart: 1 };
+      let received = null;
+
+      hot.addHook('afterUpdateSettings', (settings) => {
+        received = settings;
+      });
+      hot.updateSettings(payload);
+
+      expect(received).toBe(payload);
+    });
+
     it('still throws when one update carries both names', () => {
       createGrid({});
 

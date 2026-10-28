@@ -74,8 +74,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   spec turns pointer events back on for one `elementFromPoint` read.
 - **The frozen start count has one name inside the bar.** `#withBaselineFor` runs each sheet's settings
   through core's `normalizeFixedColumnsAlias()`, so a sheet declaring the legacy `fixedColumnsLeft` is
-  baselined and applied as `fixedColumnsStart`, and the filter and `updateSheetSettings()` read it the same
-  way (`renameFixedColumnsLeft()`). Before, the baseline kept the legacy key and a switch sent both names in
+  baselined and applied as `fixedColumnsStart`, and the filter, `updateSheetSettings()` and the baseline
+  refresh in `#onAfterUpdateSettings` read it the same way (`renameFixedColumnsLeft()`; core hands
+  `afterUpdateSettings` the caller's own names). Before, the baseline kept the legacy key and a switch sent both names in
   one payload, which throws.
 - **Per-sheet `settings` go through `updateSettings()` with a baseline.** The grid-level value
   of every key any sheet overrides is captured the first time that key is applied
