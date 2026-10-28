@@ -46,7 +46,7 @@ export function DocsAssistantWidget() {
   const [pendingDraft, setPendingDraft] = useState<string | null>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const resizingRef = useRef(false);
-  const { state, send, stop, retry, clear, clearAndSend, setFeedback } = useAssistant();
+  const { state, send, stop, retry, clear, clearAndSend, setFeedback } = useAssistant({ active: open });
   const { visible: bubbleVisible, dismiss: dismissBubble, hideForFocus } = useProactiveBubble(open);
 
   useEffect(() => {

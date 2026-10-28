@@ -4,6 +4,11 @@ export const STORAGE_KEYS = {
   width: 'hot-docs-chat-width',
   threadId: 'hot-docs-chat-thread-id',
   /**
+   * localStorage: what the panel needs to poll for a Support reply in the current conversation
+   * (thread id, its token, the last reply shown). Cleared with the thread.
+   */
+  agentReplies: 'hot-docs-chat-agent-replies',
+  /**
    * localStorage: set once the reader closes the proactive bubble, which then never shows again.
    */
   bubbleDismissed: 'hot-docs-chat-bubble-dismissed',
@@ -82,6 +87,10 @@ export const API_URL = resolveApiBase();
 
 export const CHAT_ENDPOINT = `${API_URL.replace(/\/$/, '')}/api/chat`;
 export const FEEDBACK_ENDPOINT = `${API_URL.replace(/\/$/, '')}/api/feedback`;
+export const AGENT_REPLIES_ENDPOINT = `${API_URL.replace(/\/$/, '')}/api/agent-replies`;
+
+/** The label above a reply a teammate wrote from Slack, so a reader can tell it from the bot. */
+export const AGENT_LABEL = 'Handsontable Support';
 
 export const SHIKI_LANGS = ['js', 'ts', 'html', 'css', 'json', 'bash'] as const;
 export const SHIKI_THEMES = { light: 'github-light', dark: 'github-dark' } as const;
