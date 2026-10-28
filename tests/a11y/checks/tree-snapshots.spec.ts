@@ -104,6 +104,7 @@ async function readTree(page: Page, testInfo: TestInfo, entry: A11yPage, theme: 
 
   await attachEvidence(testInfo, {
     target, startedAt, environment, findings, criteria: TREE_CRITERIA, detail: { nodes: nodes.length, roles, snapshot },
+    pageErrors: opened.pageErrors,
   });
 }
 
