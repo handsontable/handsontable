@@ -18,7 +18,7 @@ describe('StretchColumns with `beforeStretchingColumnWidth` hook', () => {
       colHeaders: true,
       rowHeaders: true,
       width: 320,
-      height: 200,
+      height: 250,
       stretchH: 'all',
       beforeStretchingColumnWidth,
     });
@@ -37,7 +37,7 @@ describe('StretchColumns with `beforeStretchingColumnWidth` hook', () => {
       colHeaders: true,
       rowHeaders: true,
       width: 320,
-      height: 200,
+      height: 250,
       stretchH: 'all',
       beforeStretchingColumnWidth(width, index) {
         return index === 1 ? 100 : width;
@@ -58,7 +58,7 @@ describe('StretchColumns with `beforeStretchingColumnWidth` hook', () => {
       colHeaders: true,
       rowHeaders: true,
       width: 320,
-      height: 200,
+      height: 250,
       stretchH: 'last',
       beforeStretchingColumnWidth,
     });
