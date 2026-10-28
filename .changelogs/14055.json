@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the selection's start edge showing only 1px of its 2px next to an inline-start overlay, on the first visible column of a scrolled grid and on the first column after the frozen columns.",
+  "type": "fixed",
+  "issueOrPR": 14055,
+  "breaking": false,
+  "framework": "none"
+}
