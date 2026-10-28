@@ -12,10 +12,18 @@
 
 export const MOTION_CHECK = 'forced-colors-motion';
 export const MOTION_CRITERIA = ['1.4.1', '2.2.2', '2.3.3'];
-// What moves: position, size and transform. Opacity and color change what is shown, not where.
-const MOTION_PROPERTIES = new Set(['transform', 'translate', 'rotate', 'scale', 'left', 'right', 'top', 'bottom', 'inset', 'inset-inline-start',
-  'inset-inline-end', 'inset-block-start', 'inset-block-end', 'width', 'height', 'margin', 'margin-left', 'margin-right', 'margin-top',
-  'margin-bottom', 'margin-inline-start', 'margin-inline-end', 'offset-distance', 'scroll-position', 'background-position']);
+// What moves: position, size and transform. Opacity and color change what is shown, not where. Chromium
+// reports a transition per longhand, and a shorthand's keyframes as its longhands (`background-position`
+// as `background-position-x` and `-y`), so the longhands are listed with the shorthands.
+const MOTION_PROPERTIES = new Set(['transform', 'translate', 'rotate', 'scale', 'offset-distance', 'scroll-position',
+  'left', 'right', 'top', 'bottom', 'inset', 'inset-inline-start', 'inset-inline-end', 'inset-block-start', 'inset-block-end',
+  'width', 'height', 'min-width', 'min-height', 'max-width', 'max-height',
+  'inline-size', 'block-size', 'min-inline-size', 'min-block-size', 'max-inline-size', 'max-block-size',
+  'margin', 'margin-left', 'margin-right', 'margin-top', 'margin-bottom',
+  'margin-inline-start', 'margin-inline-end', 'margin-block-start', 'margin-block-end',
+  'padding', 'padding-left', 'padding-right', 'padding-top', 'padding-bottom',
+  'padding-inline-start', 'padding-inline-end', 'padding-block-start', 'padding-block-end',
+  'background-position', 'background-position-x', 'background-position-y']);
 // A duration a reduced-motion rule shrinks to (0.01ms is the common one) moves nothing a user can see.
 const INSTANT_MS = 1;
 // 2.2.2's limit.

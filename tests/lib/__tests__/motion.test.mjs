@@ -26,6 +26,10 @@ test('motion is a change of position, size or transform; opacity and color are n
   assert.equal(isMotion(animation({ properties: ['opacity'] })), false);
   assert.equal(isMotion(animation({ properties: ['background-color', 'color'] })), false);
   assert.equal(isMotion(animation({ properties: ['translate'] })), true);
+  assert.equal(isMotion(animation({ properties: ['max-height'] })), true, 'an expand or collapse driven by max-height');
+  assert.equal(isMotion(animation({ properties: ['block-size'] })), true);
+  assert.equal(isMotion(animation({ properties: ['padding-top'] })), true, 'a `transition: all` that moves the padding');
+  assert.equal(isMotion(animation({ properties: ['background-position-x'] })), true, 'Chromium reports background-position as its longhands');
   assert.equal(isMotion(animation({ duration: 0.01 })), false, 'a duration a reduced-motion rule shrinks to nothing moves nothing');
 });
 
