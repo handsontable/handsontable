@@ -461,6 +461,25 @@ describe('confirmVerdict', () => {
     assert.deepEqual(verdict.rerun.unconfirmed, ['sorting']);
   });
 
+  test('a re-run scenario whose trace lost its marks stays failed, as unconfirmed', () => {
+    const first = gate({ current: { sorting: entry(130) } });
+    // The re-run fell back to the auto-zoomed window: back at the baseline's level, but the teardown
+    // lists it as a window mismatch, so neither its timing nor its heap may be read.
+    const unmarked = { ...entry(100), windowSource: 'auto-zoom' };
+    const baseline = median();
+    const current = scenarios({ sorting: unmarked });
+    const second = decideGate({
+      assessment: assessReport(current, baseline, { crossWindowScenarios: ['sorting'] }),
+      baseline,
+    });
+    const verdict = confirmVerdict(first, second);
+
+    assert.equal(verdict.status, 'fail');
+    assert.deepEqual(verdict.failing.map(s => s.name), ['sorting']);
+    assert.deepEqual(verdict.rerun.cleared, []);
+    assert.deepEqual(verdict.rerun.unconfirmed, ['sorting']);
+  });
+
   test('a re-run scenario that left no traces stays failed, as unconfirmed', () => {
     const first = gate({ current: { sorting: entry(130) } });
     const verdict = confirmVerdict(first, gateWithout('sorting'));
