@@ -203,7 +203,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   declares. Restoring there, not after `#applySheet` returns, covers a load listener that throws (the arriving sheet
   stays, and must not keep the departing rules), the rollback, and a workbook built on a live grid (the previous
   workbook's rules go). `updateSheetSettings()` that turns ImportFile on for the visible sheet restores too. A
-  duplicate copies its original's rules (`#copyImportedStyles`). Every member is ImportFile's own, read through the
+  duplicate copies its original's rules and imported keys (`#copyImportedState`), so a teardown on the copy keeps its
+  imported layout too. `updateSheetSettings()` that changes `importFile` on the visible sheet stores that sheet's rules
+  first: they are otherwise stored only on leaving, and turning the plugin off removes them. Every member is ImportFile's own, read through the
   typed `hot.getPlugin('importFile')`; ImportFile never reads the bar.
 - **Formulas cooperation is by engine instance + `sheetName`.** Every bound sheet is registered
   in the engine up front and re-fed on every registration (a rebuilt workbook reusing names

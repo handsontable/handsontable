@@ -320,6 +320,24 @@ describe('SheetsBar with an imported file', () => {
       expect(hot.getPlugin('hiddenRows').isHidden(3)).toBe(true);
     });
 
+    it('leaves the imported layout on the grid when the bar is turned off on a copy of the imported sheet', async() => {
+      const bar = buildWorkbook([
+        { name: 'Alpha', data: fiveRows() },
+        { name: 'Beta', data: fiveRows() },
+      ]);
+
+      await importFixture('layout');
+
+      const importedWidths = hot.getSettings().colWidths;
+      const copy = bar.duplicateSheet(bar.getSheets()[0].id);
+
+      bar.setActiveSheet(copy.id);
+      hot.updateSettings({ sheetsBar: false });
+
+      expect(hot.getSettings().colWidths).toEqual(importedWidths);
+      expect(hot.getSettings().fixedRowsTop).toBe(1);
+    });
+
     it('gives the grid back its own settings when the bar is turned off on a sheet without an import', async() => {
       const bar = buildWorkbook([
         { name: 'Alpha', data: fiveRows() },
@@ -463,6 +481,25 @@ describe('SheetsBar with an imported file', () => {
 
       bar.setActiveSheet('Beta');
       bar.setActiveSheet('Alpha');
+
+      expect(importedStyles()).toContain(alphaClass);
+    });
+
+    it('brings the visible sheet\'s imported styles back when ImportFile is turned off and on for it', async() => {
+      const bar = buildWorkbook([
+        { name: 'Alpha', data: threeColumns() },
+        { name: 'Beta', data: threeColumns() },
+      ]);
+
+      await importFixture('styles', { importStyles: true });
+
+      const [alphaClass] = importedClassesAtFirstCell();
+
+      bar.updateSheetSettings('Alpha', { importFile: false });
+
+      expect(importedStyles()).toBe('');
+
+      bar.updateSheetSettings('Alpha', { importFile: true });
 
       expect(importedStyles()).toContain(alphaClass);
     });

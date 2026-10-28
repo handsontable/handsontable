@@ -2052,6 +2052,10 @@ export class SheetsBar extends BasePlugin {
     sheet.settings = { ...(sheet.settings ?? {}), ...changes };
 
     if (model?.getActiveSheet()?.id === id) {
+      if ('importFile' in changes) {
+        this.#captureImportedStyles(sheet);
+      }
+
       this.#applyToVisibleSheet(changes, sheet.settings);
 
       if ('importFile' in changes) {
@@ -3151,14 +3155,15 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Stores the imported cell style rules of the departing sheet. Its cells carry the classes of the file
+   * Stores the imported cell style rules of a sheet, when the user leaves it or before `updateSheetSettings()`
+   * changes `importFile` on the visible one. Its cells carry the classes of the file
    * imported into it, in their cell meta, while the grid has one imported stylesheet, so a later import into
    * another sheet replaced the rules those classes needed, and a sheet that turns ImportFile off removed them.
    * The arriving sheet gets its own rules back (`#restoreImportedStyles`). A sheet that leaves with no rules
    * has its entry removed. While ImportFile is off on the sheet (`importFile: false`), the entry is kept as it
    * is: the plugin holds nothing then, and the rules come back once the sheet turns it on again.
    *
-   * @param {object} sheet The departing sheet.
+   * @param {object} sheet The departing or visible sheet.
    */
   #captureImportedStyles(sheet: Sheet) {
     if (!this.hot.getPlugin('importFile')?.enabled) {
@@ -3202,18 +3207,25 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Gives a duplicated sheet the imported cell style rules of its original, as the original holds them now:
-   * the copy's data carries the same classes.
+   * Gives a duplicated sheet what an import left on its original: the imported cell style rules, as the
+   * original holds them now (the copy's data carries the same classes), and the keys the import wrote, which
+   * the copy's settings carry too, so a `sheetsBar: false` teardown on the copy keeps that layout on the grid
+   * as it does on the original.
    *
    * @param {object} original The sheet that was duplicated.
    * @param {object} copy The duplicate.
    */
-  #copyImportedStyles(original: Sheet, copy: Sheet) {
+  #copyImportedState(original: Sheet, copy: Sheet) {
     const isOriginalShown = this.#model?.getActiveSheet()?.id === original.id;
     const styles = isOriginalShown ? this.#exportImportedStyles() : (this.#importedStyles.get(original) ?? null);
+    const keys = this.#importedKeys.get(original);
 
     if (styles) {
       this.#importedStyles.set(copy, { ...styles });
+    }
+
+    if (keys) {
+      this.#importedKeys.set(copy, new Set(keys));
     }
   }
 
@@ -4248,7 +4260,7 @@ export class SheetsBar extends BasePlugin {
         this.#copyColumnSummaryEndpoints(original, sheet);
         this.#copyCellOption(original, sheet);
         this.#copyViewState(original, sheet);
-        this.#copyImportedStyles(original, sheet);
+        this.#copyImportedState(original, sheet);
 
         // The copy cannot share the original's engine sheet — two tabs writing into one set of
         // cells — so it gets an engine sheet of its own, named like the copy, seeded with the
