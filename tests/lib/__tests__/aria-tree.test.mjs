@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { diffSnapshot, gridRows, nameFindings, structureFindings } from '../aria-tree.mjs';
+import { diffSnapshot, gridRows, maskSnapshot, nameFindings, structureFindings } from '../aria-tree.mjs';
 import { findingId, validatePart, EVIDENCE_SCHEMA } from '../a11y-evidence.mjs';
 
 // tests/AGENTS.md ("A11y: the checks beyond axe", the accessibility-tree snapshots): the verdicts the
@@ -248,6 +248,20 @@ test('a header\'s state classes do not split its finding', () => {
 
 test('a node with no DOM element is located as unknown, never by an empty selector', () => {
   assert.deepEqual(nameFindings([node('button', { tag: '', attrs: {} })]).map(item => item.selector), ['unknown']);
+});
+
+test('the run\'s origin and the installed version are masked, so a golden moves for a tree change only', () => {
+  const snapshot = (origin, version) => [
+    `- link "${origin}/tests/fixtures/demo/grid.html":`,
+    `  - /url: ${origin}/tests/fixtures/demo/grid.html`,
+    `- text: The license key is not valid for the installed version ${version}.`,
+  ].join('\n');
+  const masked = maskSnapshot(snapshot('http://localhost:8123', '18.1.0'), { origin: 'http://localhost:8123', version: '18.1.0' });
+
+  assert.equal(masked, snapshot('<origin>', '<version>'));
+  assert.equal(maskSnapshot(snapshot('http://localhost:8131', '18.2.0'), { origin: 'http://localhost:8131', version: '18.2.0' }), masked,
+    'another port and another version read the same');
+  assert.equal(maskSnapshot('- text: 18.1.0', {}), '- text: 18.1.0', 'nothing to mask, nothing masked');
 });
 
 test('a snapshot that differs from its golden names its first differing line', () => {

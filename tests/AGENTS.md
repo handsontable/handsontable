@@ -1516,8 +1516,11 @@ half judges it (`lib/aria-tree.mjs`, tested in `lib/__tests__/aria-tree.test.mjs
 - **Goldens, advisory, on the main theme.** `a11y/tree-goldens/<page>.yml` holds Playwright's
   `ariaSnapshot()` of the grid and the portal. The theme changes which rows are drawn, not the roles or
   names, so one theme keeps the goldens and every theme is judged. A difference is
-  `tree-snapshot-changed`, with the first line that differs. Record with `HOT_A11Y_UPDATE_GOLDENS=1`
-  (the same switch as the tab-order goldens) and read the diff before committing.
+  `tree-snapshot-changed`, with the first line that differs. What the run decides, not the page, is
+  masked before the comparison (`maskSnapshot()`): the server's origin reads `<origin>` and the installed
+  version `<version>`, so a golden moves for a tree change only, on any port and after a version bump.
+  Record with `HOT_A11Y_UPDATE_GOLDENS=1` (the same switch as the tab-order goldens) and read the diff
+  before committing.
 
 ### Adding a check
 

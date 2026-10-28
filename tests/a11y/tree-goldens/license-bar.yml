@@ -27,7 +27,7 @@
     - row "Select whole grid":
       - gridcell "Select whole grid"
   - rowgroup
-- text: The license key for Handsontable expired on May 24, 2011, and is not valid for the installed version 18.1.0.
+- text: The license key for Handsontable expired on May 24, 2011, and is not valid for the installed version <version>.
 - link "Renew":
   - /url: https://handsontable.com/pricing
 - text: your license key or downgrade to a version released prior to May 24, 2011. If you need any help, contact us at

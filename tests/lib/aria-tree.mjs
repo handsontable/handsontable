@@ -231,6 +231,28 @@ export function diffSnapshot(expected, actual) {
 }
 
 /**
+ * The snapshot with what the run decides, not the page, replaced by a token: the fixture server's origin
+ * (`<origin>`, in a link a fixture builds from `location.origin`) and the installed Handsontable version
+ * (`<version>`, in the license bar's message). A golden then moves for a change to the tree only.
+ *
+ * @param {string} snapshot The snapshot.
+ * @param {{origin?: string|null, version?: string|null}} [run] The run's origin and version.
+ * @returns {string} The masked snapshot.
+ */
+export function maskSnapshot(snapshot, { origin = null, version = null } = {}) {
+  let masked = snapshot;
+
+  if (origin) {
+    masked = masked.replaceAll(origin, '<origin>');
+  }
+  if (version) {
+    masked = masked.replaceAll(version, '<version>');
+  }
+
+  return masked;
+}
+
+/**
  * Whether a node is a tab stop: the tree marks it focusable (a `tabindex`, a native control, a link, an
  * editable region) and its `tabindex` is not negative (an element focusable by script only).
  *
