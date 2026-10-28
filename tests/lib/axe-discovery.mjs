@@ -67,6 +67,28 @@ export function nodeCause(node) {
 }
 
 /**
+ * The query a fixture takes to build its grid right to left, read from its source: most fixtures pick
+ * `?dir=`, the sheets bar and freeze bar fixtures read `?rtl=1`, the phone fixture `?direction=`. A
+ * fixture that reads none of them inherits the direction from the `dir` the variant writes on `<html>`.
+ *
+ * @param {string} source The fixture's source.
+ * @returns {string} The query to append (`&dir=rtl`), or an empty string.
+ */
+export function rightToLeftQuery(source) {
+  if (/htPick\(\s*['"]dir['"]|get\(\s*['"]dir['"]\s*\)/.test(source)) {
+    return '&dir=rtl';
+  }
+  if (/get\(\s*['"]direction['"]\s*\)/.test(source)) {
+    return '&direction=rtl';
+  }
+  if (/flag\(\s*['"]rtl['"]|get\(\s*['"]rtl['"]\s*\)/.test(source)) {
+    return '&rtl=1';
+  }
+
+  return '';
+}
+
+/**
  * The first of a node's `any`, `all` and `none` checks that gave a message.
  *
  * @param {object} node The axe result node.
@@ -81,12 +103,14 @@ function firstCheck(node) {
  * baseline keys a finding), and a "needs review" result per rule, element shape and cause
  * (`nodeCause()`), each with the number of nodes, an example selector and the rule's family. A
  * violation carries axe's impact as its severity; a needs-review result is advisory, and its reason is
- * the first node's message. A best-practice rule maps to no WCAG criterion.
+ * the first node's message. A best-practice rule maps to no WCAG criterion. For a page that is not in
+ * the catalog the spec passes its entry's place (`file`, `line`), so the check run annotates it there.
  *
  * @param {{violations: object[], incomplete: object[]}} results The axe results.
+ * @param {{file?: string, line?: number}} [location] Where the page's entry is, when it is not in `a11y/pages.mjs`.
  * @returns {object[]} The records.
  */
-export function discoveryFindings({ violations = [], incomplete = [] }) {
+export function discoveryFindings({ violations = [], incomplete = [] }, location = {}) {
   const records = new Map();
   const add = (kind, rule, node) => {
     const selector = targetFingerprint(node.target ?? [], node.html ?? '');
@@ -111,6 +135,7 @@ export function discoveryFindings({ violations = [], incomplete = [] }) {
       measured: { rule: rule.id, family: ruleFamily(rule.tags), nodes: 1, example },
       reason: kind === 'axe-violation' ? rule.help : `${rule.help}: ${nodeReason(node)}`,
       ...(cause ? { cause } : {}),
+      ...(location.file && location.line ? { file: location.file, line: location.line } : {}),
     });
   };
 

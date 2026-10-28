@@ -1,11 +1,19 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DISCOVERY_TAGS, discoveryFindings, nodeCause, nodeReason, ruleFamily } from '../axe-discovery.mjs';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { DISCOVERY_TAGS, discoveryFindings, nodeCause, nodeReason, rightToLeftQuery, ruleFamily } from '../axe-discovery.mjs';
 import { EVIDENCE_SCHEMA, findingId, validatePart } from '../a11y-evidence.mjs';
+import { pageLines } from '../a11y-check-run.mjs';
+import { A11Y_PAGES } from '../../a11y/pages.mjs';
+import { DISCOVERY_PAGES } from '../../a11y/checks/discovery-pages.mjs';
 
 // tests/AGENTS.md ("A11y: the checks beyond axe", the axe discovery run): how one discovery scan's axe
 // results become triage records. The spec (`a11y/checks/axe-discovery.spec.ts`) runs axe with the
 // wider tags; everything that shapes its records is here.
+
+const TESTS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
 const CONTRAST = {
   id: 'color-contrast-enhanced', impact: 'serious', help: 'Elements must meet enhanced color contrast ratio thresholds',
@@ -93,6 +101,36 @@ test('a needs-review record keeps one key and one id across runs when axe writes
   assert.deepEqual(first.map(item => item.measured.nodes), [1, 2], 'two sizes on one element shape are one record');
   assert.deepEqual(second.map(item => findingId('axe-discovery', item)), first.map(item => findingId('axe-discovery', item)));
   assert.match(first[0].reason, /aria-controls="ht_00b705-listbox-0-0"/, 'the reason keeps axe\'s own words');
+});
+
+test('a record names the file and line it is annotated on when the page is not in the catalog', () => {
+  const located = discoveryFindings({ violations: [REGION] }, { file: 'tests/a11y/checks/discovery-pages.mjs', line: 12 });
+
+  assert.deepEqual(located.map(item => [item.file, item.line]), [['tests/a11y/checks/discovery-pages.mjs', 12]]);
+  assert.deepEqual(discoveryFindings({ violations: [REGION] }).map(item => [item.file, item.line]), [[undefined, undefined]],
+    'a catalog page\'s records keep its line in a11y/pages.mjs');
+});
+
+test('every discovery page has an id of its own and a line its records are annotated on', () => {
+  const lines = pageLines(readFileSync(path.join(TESTS_ROOT, 'a11y/checks/discovery-pages.mjs'), 'utf8'));
+  const catalog = new Set(A11Y_PAGES.map(page => page.id));
+
+  assert.deepEqual(DISCOVERY_PAGES.filter(page => !lines.has(page.id)).map(page => page.id), [],
+    'every entry opens with `{ id: \'…\'` on its own line, where the check run annotates its records');
+  assert.deepEqual(DISCOVERY_PAGES.filter(page => catalog.has(page.id)).map(page => page.id), [],
+    'a discovery page never takes a catalog page\'s id');
+});
+
+test('the right-to-left query is read from the fixture\'s source, in either quote style', () => {
+  assert.equal(rightToLeftQuery("window.htDirection = htPick('dir', { ltr: 'ltr', rtl: 'rtl' }, 'ltr');"), '&dir=rtl');
+  assert.equal(rightToLeftQuery("window.htDir = ({ ltr: 'ltr', rtl: 'rtl' })[htParams.get('dir') ?? 'ltr'];"), '&dir=rtl');
+  assert.equal(rightToLeftQuery('const dir = params.get("dir") === "rtl" ? "rtl" : "ltr";'), '&dir=rtl');
+  assert.equal(rightToLeftQuery("({ ltr: 'ltr', rtl: 'rtl' })[params.get('direction') ?? 'ltr']"), '&direction=rtl');
+  assert.equal(rightToLeftQuery("({ ltr: 'ltr', rtl: 'rtl' })[params.get( \"direction\" ) ?? 'ltr']"), '&direction=rtl', 'spaces inside the call');
+  assert.equal(rightToLeftQuery("layoutDirection: flag('rtl', false) ? 'rtl' : 'ltr',"), '&rtl=1');
+  assert.equal(rightToLeftQuery("layoutDirection: htParams.get('rtl') ? 'rtl' : 'ltr',"), '&rtl=1');
+  assert.equal(rightToLeftQuery('if (htParams.get("rtl") === "1") {'), '&rtl=1');
+  assert.equal(rightToLeftQuery('new Handsontable(container, { data });'), '', 'a fixture that reads no query inherits the direction from <html>');
 });
 
 test('two records on one element differ by rule and cause, so their ids never collide', () => {

@@ -1,11 +1,12 @@
 import { readFileSync } from 'node:fs';
-import { test, expect, devices, type Page, type TestInfo } from '@playwright/test';
+import { test, expect, type Page, type TestInfo } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { A11Y_PAGES, fixtureUrl, type A11yPage, type A11yState } from '../pages.mjs';
 import { PORTAL, STATES, emulate, highlightMenuItem, markPortal, openTarget, selectCell, type RootWrapper } from '../harness';
 import { attachEvidence, declareTarget, readEnvironment } from '../evidence';
 import { A11Y_THEMES } from '../../lib/a11y-baseline.mjs';
-import { DISCOVERY_TAGS, discoveryFindings } from '../../lib/axe-discovery.mjs';
+import { pageLines } from '../../lib/a11y-check-run.mjs';
+import { DISCOVERY_TAGS, discoveryFindings, rightToLeftQuery } from '../../lib/axe-discovery.mjs';
 import { DISCOVERY_PAGES } from './discovery-pages.mjs';
 
 /**
@@ -18,10 +19,12 @@ import { DISCOVERY_PAGES } from './discovery-pages.mjs';
  *
  * - **Dark** (every theme): a script installed before the fixture loads turns every `ht-theme-<name>`
  *   class the page or the grid writes into `ht-theme-<name>-dark`, the way `?scheme=dark` does on the
- *   three fixtures that take it, so the grid and its portal are built dark from the start.
- * - **Right to left** (the main theme): the fixture is served with `dir="rtl"` on its `<html>`, so a grid
- *   that inherits its layout direction is built right to left. A fixture that pins its direction stays
- *   left to right, and the record says the variant did not apply.
+ *   fixtures that read it, so the grid and its portal are built dark from the start.
+ * - **Right to left** (the main theme): the fixture is served with `dir="rtl"` on its `<html>` and with
+ *   the direction query it reads (`rightToLeftQuery()`), so the grid is built right to left.
+ *
+ * A variant that did not apply (no dark class on the grid, or a grid still left to right) fails its test
+ * as a tooling error: the document lists the target as not measured, never as a clean pass.
  *
  * Report-only: a test fails for tooling only. Policy: `tests/AGENTS.md`, "A11y: the checks beyond axe".
  */
@@ -30,7 +33,10 @@ type DiscoveryState = A11yState | 'focused-cell' | 'header-button-hover' | 'filt
   | 'context-menu-submenu-2' | 'sheets-bar-rename' | 'dialog-focused';
 type DiscoveryPage = Omit<A11yPage, 'state'> & { state: DiscoveryState };
 
-const hotOf = (selector: string) => `(document.querySelector(${JSON.stringify(selector)})?.querySelector('.ht-root-wrapper'))?.__hotInstance`;
+// A discovery page is not in `a11y/pages.mjs`, the file the check run annotates a page's findings on, so
+// its records name their entry in `discovery-pages.mjs` instead.
+const DISCOVERY_FILE = 'tests/a11y/checks/discovery-pages.mjs';
+const DISCOVERY_LINES = pageLines(readFileSync(new URL('./discovery-pages.mjs', import.meta.url), 'utf8'));
 
 /**
  * The states only the discovery run scans; the catalog's are the harness's `STATES`.
@@ -63,7 +69,11 @@ const DISCOVERY_STATES: Record<string, (page: Page, entry: DiscoveryPage, root: 
       { message: 'ArrowDown from the search field moved the focus into the filter value list' }).toBe(true);
   },
   'multi-range': async(page, _entry, root) => {
-    const selected = await page.evaluate(`${hotOf(root)}.selectCells([[1, 1, 2, 2], [4, 3, 6, 4]])`);
+    const selected = await page.evaluate((selector) => {
+      const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as RootWrapper | null)?.__hotInstance;
+
+      return hot ? hot.selectCells([[1, 1, 2, 2], [4, 3, 6, 4]]) : null;
+    }, root);
 
     expect(selected, 'two ranges selected').toBe(true);
   },
@@ -72,7 +82,13 @@ const DISCOVERY_STATES: Record<string, (page: Page, entry: DiscoveryPage, root: 
     await highlightMenuItem(page, '.htContextMenu', 'Level one');
 
     // A submenu opens toward the inline end: ArrowLeft in a right-to-left grid.
-    const inward = await page.evaluate(`${hotOf(root)}.isRtl()`) ? 'ArrowLeft' : 'ArrowRight';
+    const rtl = await page.evaluate((selector) => {
+      const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as RootWrapper | null)?.__hotInstance as unknown as
+        { isRtl(): boolean } | undefined;
+
+      return !!hot?.isRtl();
+    }, root);
+    const inward = rtl ? 'ArrowLeft' : 'ArrowRight';
 
     await page.keyboard.press(inward);
     await expect(page.locator('.htContextMenu:visible')).toHaveCount(2);
@@ -108,7 +124,17 @@ const DISCOVERY_STATES: Record<string, (page: Page, entry: DiscoveryPage, root: 
     await expect(page.locator(`${root} .manualColumnResizerGuide`)).toBeVisible();
   },
   'dialog-focused': async(page, _entry, root) => {
-    await page.evaluate(`(() => { const hot = ${hotOf(root)}; hot.listen(); hot.getPlugin('dialog').focus(); })()`);
+    const found = await page.evaluate((selector) => {
+      const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as RootWrapper | null)?.__hotInstance as unknown as
+        { listen(): void; getPlugin(name: 'dialog'): { focus(): void } } | undefined;
+
+      hot?.listen();
+      hot?.getPlugin('dialog').focus();
+
+      return !!hot;
+    }, root);
+
+    expect(found, `the grid under ${root} has a Handsontable instance`).toBe(true);
     await page.keyboard.press('Tab');
     await expect.poll(() => page.evaluate(() => document.activeElement?.closest('.ht-dialog') !== null),
       { message: 'the focus is inside the dialog' }).toBe(true);
@@ -182,27 +208,13 @@ async function installRightToLeft(page: Page, fixture: string): Promise<void> {
 }
 
 /**
- * The query a fixture takes to build its grid right to left, read from its source: most fixtures pick
- * `?dir=`, the sheets bar and freeze bar fixtures read `?rtl=1`, the phone fixture `?direction=`. A
- * fixture that reads none of them inherits the direction from the `dir` the variant writes on `<html>`.
+ * The query a fixture takes to build its grid right to left (`rightToLeftQuery()` reads its source).
  *
  * @param fixture The fixture's file name.
  * @returns The query to append, or an empty string.
  */
 function rtlQuery(fixture: string): string {
-  const source = readFileSync(new URL(`../../fixtures/demo/${fixture}`, import.meta.url), 'utf8');
-
-  if (/htPick\('dir'|get\('dir'\)/.test(source)) {
-    return '&dir=rtl';
-  }
-  if (/get\('direction'\)/.test(source)) {
-    return '&direction=rtl';
-  }
-  if (/flag\('rtl'|get\('rtl'\)/.test(source)) {
-    return '&rtl=1';
-  }
-
-  return '';
+  return rightToLeftQuery(readFileSync(new URL(`../../fixtures/demo/${fixture}`, import.meta.url), 'utf8'));
 }
 
 /**
@@ -245,9 +257,18 @@ async function discover(page: Page, testInfo: TestInfo, entry: DiscoveryPage, th
 
     return true;
   }, [root, variant] as const);
+
+  // A variant that did not build is a tooling failure, so it never reads as a clean pass and axe never
+  // runs on the page it did not build.
+  expect(applied, `the ${variant} variant applied to ${entry.fixture}`).toBe(true);
+
   const environment = await readEnvironment(page);
-  const results = await new AxeBuilder({ page }).withTags(DISCOVERY_TAGS).include(root).include(PORTAL).analyze();
-  const findings = applied ? discoveryFindings({ violations: results.violations, incomplete: results.incomplete }) : [];
+  // Passing rules keep one node each: only their count is read. `options()` replaces every option, so it
+  // comes before `withTags()`.
+  const results = await new AxeBuilder({ page }).options({ resultTypes: ['violations', 'incomplete'] })
+    .withTags(DISCOVERY_TAGS).include(root).include(PORTAL).analyze();
+  const line = DISCOVERY_LINES.get(entry.id);
+  const findings = discoveryFindings({ violations: results.violations, incomplete: results.incomplete }, line ? { file: DISCOVERY_FILE, line } : {});
 
   await attachEvidence(testInfo, {
     target,
@@ -257,7 +278,6 @@ async function discover(page: Page, testInfo: TestInfo, entry: DiscoveryPage, th
     criteria: [],
     pageErrors: opened.pageErrors,
     detail: {
-      variantApplied: applied,
       axeCoreVersion: results.testEngine.version,
       counts: { violations: results.violations.length, incomplete: results.incomplete.length, passes: results.passes.length },
       rules: {
@@ -268,37 +288,37 @@ async function discover(page: Page, testInfo: TestInfo, entry: DiscoveryPage, th
   });
 }
 
-/**
- * Declares one scan, in a describe block that emulates a device when one is named.
- *
- * @param title The title.
- * @param device The device, or none.
- * @param body The test.
- */
-function declare(title: string, device: string | undefined, body: (args: { page: Page }, testInfo: TestInfo) => Promise<void>): void {
-  if (device) {
+const PAGES: DiscoveryPage[] = [...A11Y_PAGES, ...DISCOVERY_PAGES] as DiscoveryPage[];
+// Every scan: each page on each theme, light and dark (a `dark-*` page is dark already), each phone page
+// again on a Pixel 7, and each page right to left on the main theme (an `rtl-*` page is already).
+const SCANS: Array<{ title: string; entry: DiscoveryPage; theme: string; variant: string | null }> = [];
+
+for (const theme of A11Y_THEMES) {
+  for (const entry of PAGES) {
+    SCANS.push({ title: `discover ${entry.id} on ${theme}`, entry, theme, variant: null });
+    if (!entry.id.startsWith('dark-')) {
+      SCANS.push({ title: `discover ${entry.id} on ${theme} (dark)`, entry, theme, variant: 'dark' });
+    }
+  }
+  for (const entry of PAGES.filter(item => item.device)) {
+    SCANS.push({ title: `discover ${entry.id} on ${theme} (Pixel 7)`, entry: { ...entry, device: 'Pixel 7' }, theme, variant: 'pixel-7' });
+  }
+}
+for (const entry of PAGES.filter(item => !item.id.startsWith('rtl-'))) {
+  SCANS.push({ title: `discover ${entry.id} on main (right to left)`, entry, theme: 'main', variant: 'rtl' });
+}
+
+for (const { title, entry, theme, variant } of SCANS) {
+  const body = async({ page }: { page: Page }, testInfo: TestInfo) => discover(page, testInfo, entry, theme, variant);
+
+  if (entry.device) {
+    const device = entry.device;
+
     test.describe(() => {
-      test.use(device === 'Pixel 7' ? (({ defaultBrowserType: _browser, ...options }) => options)(devices[device]) : emulate(device));
+      test.use(emulate(device));
       test(title, body);
     });
   } else {
     test(title, body);
   }
-}
-
-const PAGES: DiscoveryPage[] = [...A11Y_PAGES, ...DISCOVERY_PAGES] as DiscoveryPage[];
-
-for (const theme of A11Y_THEMES) {
-  for (const entry of PAGES) {
-    declare(`discover ${entry.id} on ${theme}`, entry.device, ({ page }, testInfo) => discover(page, testInfo, entry, theme, null));
-    if (!entry.id.startsWith('dark-')) {
-      declare(`discover ${entry.id} on ${theme} (dark)`, entry.device, ({ page }, testInfo) => discover(page, testInfo, entry, theme, 'dark'));
-    }
-  }
-  for (const entry of PAGES.filter(item => item.device)) {
-    declare(`discover ${entry.id} on ${theme} (Pixel 7)`, 'Pixel 7', ({ page }, testInfo) => discover(page, testInfo, { ...entry, device: 'Pixel 7' }, theme, 'pixel-7'));
-  }
-}
-for (const entry of PAGES.filter(item => !item.id.startsWith('rtl-'))) {
-  declare(`discover ${entry.id} on main (right to left)`, entry.device, ({ page }, testInfo) => discover(page, testInfo, entry, 'main', 'rtl'));
 }

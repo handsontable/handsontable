@@ -1357,11 +1357,13 @@ criterion.
   stylesheet or a constructor throw into a red test, and `reachState()` reaches the catalog state with
   the keyboard (`STATES`) and marks the grid's own portal (`PORTAL`). A check therefore measures the DOM
   a keyboard user reaches, the one the axe scan reads. A state a check needs and the catalog lacks gets
-  an opener in `STATES`, keyboard first. A state whose popups mount in a portal of their own marks that
-  one too (see the scan's own rule above), and it comes after the grid's in `body`, so a check reads the
-  marked portals with `querySelectorAll()`: a `querySelector()` sees the grid's portal only and measures
-  the page without the popup the state opened. The `test()` calls stay in the spec, never in a helper: a test
-  declared from a helper reports the helper as its location.
+  an opener in `STATES`, keyboard first. The axe discovery run's extra states are the one exception: no
+  other check scans their pages, so their openers sit beside them in its spec (`DISCOVERY_STATES`), and
+  one moves to `STATES` when a catalog page needs it. A state whose popups mount in a portal of their own
+  marks that one too (see the scan's own rule above), and it comes after the grid's in `body`, so a check
+  reads the marked portals with `querySelectorAll()`: a `querySelector()` sees the grid's portal only and
+  measures the page without the popup the state opened. The `test()` calls stay in the spec, never in a
+  helper: a test declared from a helper reports the helper as its location.
 - **A test declares its target first and attaches its part last.** `declareTarget()` (`a11y/evidence.ts`)
   writes the target as a test annotation before anything can fail, so the reporter can name a test that
   failed before it measured; `attachEvidence()` attaches the part, with `readEnvironment()`'s browser
@@ -1543,15 +1545,20 @@ best-practice, AAA and experimental rules beside the WCAG 2.2 A and AA ones (`DI
   grid, a focused option of the filter value list, two selected ranges, a submenu inside a submenu
   (`keyboard-shortcuts.html?menu=nested`), a sheet tab being renamed, a modal dialog holding the focus,
   and a column move and a column resize mid-drag, scanned with the pointer still held because their
-  guides exist only then. A page added there never reaches the gating scan's baseline. The openers are
-  `DISCOVERY_STATES` in the spec; the catalog's come from the harness.
+  guides exist only then. A page added there never reaches the gating scan's baseline, and its records
+  name its entry there (`file`, `line`), so the check run annotates them on it rather than on
+  `a11y/pages.mjs`. The openers are `DISCOVERY_STATES` in the spec; the catalog's come from the harness.
+  They press keys where a key reaches the state, and use the API or the pointer where the surface, not
+  the path to it, is what the scan needs: a hover, a drag, a second range, a renamed sheet tab, a dialog
+  holding the focus.
 - **Every page in the dark scheme, right to left, and on a second phone.** Dark runs on every theme: a
   script installed before the fixture loads turns each `ht-theme-<name>` class the page or the grid writes
-  into its dark form, so the grid and its portal are built dark (`?scheme=dark` reaches three fixtures
-  only). Right to left runs on the main theme: the fixture is served with `dir="rtl"` on `<html>` and with
-  the query it reads (`?dir=rtl`, `?rtl=1`, `?direction=rtl`, found in its source). The phone page runs on a
-  Pixel 7 beside the iPhone 13. A record of a variant that did not apply says so (`variantApplied` in its
-  detail) and carries no findings.
+  into its dark form, so the grid and its portal are built dark (`?scheme=dark` reaches only the fixtures
+  that read it). Right to left runs on the main theme: the fixture is served with `dir="rtl"` on `<html>`
+  and with the query it reads (`?dir=rtl`, `?rtl=1`, `?direction=rtl`, found in its source by
+  `rightToLeftQuery()`). The phone page runs on a Pixel 7 beside the iPhone 13. A variant that did not
+  apply (no dark class on the grid, or a grid still left to right) fails its test before axe runs, a
+  tooling error the document lists as a target not measured, so it never reads as a clean pass.
 
 ### Adding a check
 
