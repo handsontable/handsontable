@@ -17,8 +17,9 @@ import { PORTAL, emulate, openTarget, reachState } from './harness';
 /**
  * The axe scan: every page of `pages.mjs` on every theme, through `@axe-core/playwright`,
  * against the WCAG 2.2 A and AA rule set (the level the published Accessibility Conformance
- * Report claims). The scan includes the grid's root container and that grid's own portal (its
- * `rootPortalElement`, where menus and the comment editor render) and nothing else on the fixture
+ * Report claims). The scan includes the grid's root container, that grid's own portal (its
+ * `rootPortalElement`, where menus and the comment editor render), and a popup portal the page's state
+ * marks (the formula states mark hyperformula-ui's `.hfe-popup-portal`), and nothing else on the fixture
  * page: the fixture's own buttons and text, and any other grid on it, are not under test. A page
  * that throws, or whose theme stylesheet did not load, is a red test before anything is scanned
  * (`openTarget()` and `reachState()` in `harness.ts`, which the checks beyond axe share).
