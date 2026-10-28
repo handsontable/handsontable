@@ -896,7 +896,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     otherwise every wrapper re-render sent the value again, saved the cell the user was typing in, and
     ran the listener (an unsaved-changes confirm) again. A switch `#finishEditing` refuses is not
     recorded and warns, so the same value sent again retries it. Vue sends a key only when it differs
-    from the grid's settings, so a Vue app has to send another value first.
+    from the grid's settings, so a Vue app has to send another value first, unless its template writes
+    the `sheets` array inline: that array is new on every re-render, so the whole `sheetsBar` object is
+    sent again each time, `activeSheet` included, as React does.
   - **A dialog that was open before the switch takes the arriving sheet's selection** (Dialog's
     `@private` `_adoptViewSelection()`). The dialog stashes the selection it hides when it opens,
     and on hide it put the departing sheet's coordinates on the arriving sheet. A dialog opened

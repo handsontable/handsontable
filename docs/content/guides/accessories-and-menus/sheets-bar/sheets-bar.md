@@ -143,6 +143,32 @@ The same applies to a function or a class instance in a sheet's `settings`, such
 
 :::
 
+::: only-for vue
+
+### Keep the `sheets` array stable
+
+Declare `sheets` once, in a `ref()`, in `data()`, or as a constant, the same way you pass `data` to a grid, and pass it as `:sheetsBar="{ sheets }"`. The plugin writes the user's renames, added sheets, and removed sheets into that array. A `sheets` array written inline in the template is a new one each time the component re-renders, without those changes, and a sheet's `data` written inline is a new array each time, so the plugin reads it as another workbook and rebuilds it: the user's renames, added sheets, sort, filters, and edits are gone.
+
+```vue
+<script setup>
+import { ref } from 'vue';
+
+const sheets = ref([{ name: 'Budget', data: [['Rent', 1200]] }]);
+</script>
+
+<template>
+  <!-- Loses the user's changes on the next re-render -->
+  <HotTable :sheetsBar="{ sheets: [{ name: 'Budget', data: [['Rent', 1200]] }] }" />
+
+  <!-- Keeps the workbook -->
+  <HotTable :sheetsBar="{ sheets }" />
+</template>
+```
+
+The same applies to a function or a class instance in a sheet's `settings`, such as a `renderer` or a `cells` function: define it in the script, not in the template. Don't copy the plugin's changes into your own state: your array already holds them. For the exact rule, see [Known limitations](#known-limitations).
+
+:::
+
 ## Managing sheets programmatically
 
 Get the plugin instance with [`getPlugin()`](@/api/core.md#getplugin) and call its API methods. For more information, see the [`SheetsBar`](@/api/sheetsBar.md) API reference.
