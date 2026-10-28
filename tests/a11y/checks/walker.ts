@@ -29,6 +29,7 @@ export interface GridSnapshot {
   editorOpen: boolean;
   editorText: string | null;
   caret: [number, number] | null;
+  focusedText: string | null;
   menus: number;
   menuItem: string | null;
   comment: boolean;
@@ -160,7 +161,9 @@ export async function readStop(page: Page, cdp: CDPSession, root: string): Promi
     }
 
     const container = document.querySelector(selector);
-    const portal = document.querySelector(`[${portalMark}]`);
+    // Every marked portal counts: a state whose popups mount in a portal of their own marks that one too.
+    const portals = [...document.querySelectorAll(`[${portalMark}]`)];
+    const portal = { contains: (node: Node | null) => portals.some(item => item.contains(node)) };
     const hot = (container?.querySelector('.ht-root-wrapper') as (HTMLElement & { __hotInstance?: any }) | null)?.__hotInstance;
     const win = window as unknown as { __a11yWalkRefs: number };
     let region = 'outside';
@@ -197,7 +200,7 @@ export async function readStop(page: Page, cdp: CDPSession, root: string): Promi
 
       return box.width > 0 && box.height > 0 && getComputedStyle(node).visibility !== 'hidden';
     };
-    const popups = [container, portal].filter(Boolean).flatMap(scope => [...(scope as Element)
+    const popups = [container, ...portals].filter(Boolean).flatMap(scope => [...(scope as Element)
       .querySelectorAll('[role="menu"], [role="dialog"], [role="alertdialog"], [role="listbox"], .htContextMenu, .htDropdownMenu, .htComments')])
       .filter(visible).length;
 
@@ -325,7 +328,9 @@ export async function snapshot(page: Page, root: string): Promise<GridSnapshot> 
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
     const container = document.querySelector(selector);
-    const portal = document.querySelector(`[${portalMark}]`);
+    // Every marked portal counts: a state whose popups mount in a portal of their own marks that one too.
+    const portals = [...document.querySelectorAll(`[${portalMark}]`)];
+    const portal = { contains: (node: Node | null) => portals.some(item => item.contains(node)) };
     const hot = (container?.querySelector('.ht-root-wrapper') as (HTMLElement & { __hotInstance?: any }) | null)?.__hotInstance;
     const plugin = (name: string) => {
       try {
@@ -392,15 +397,26 @@ export async function snapshot(page: Page, root: string): Promise<GridSnapshot> 
     } else if (el && region !== 'body') {
       // Every element gets an identity of its own, so two list items that look alike are still two stops;
       // a list that keeps the focus on its input moves `aria-activedescendant` instead, which is a move too.
+      // So does the part of the root wrapper the element is in (the top slot, the grid, the bottom slot):
+      // the formula editor is one element, which F6 moves between the cell and the formula bar.
       const store = window as unknown as { __a11yIds?: WeakMap<Element, number>; __a11yIdCount?: number };
+      const area = region === 'grid'
+        ? [...(container?.querySelector('.ht-root-wrapper')?.children ?? [])].find(child => child.contains(el))?.classList[0] ?? ''
+        : '';
 
       store.__a11yIds ??= new WeakMap<Element, number>();
       if (!store.__a11yIds.has(el)) {
         store.__a11yIdCount = (store.__a11yIdCount ?? 0) + 1;
         store.__a11yIds.set(el, store.__a11yIdCount);
       }
-      key = `${region}|${el.tagName}#${store.__a11yIds.get(el)}|${el.getAttribute('aria-activedescendant') ?? ''}`;
+      key = `${region}|${area}|${el.tagName}#${store.__a11yIds.get(el)}|${el.getAttribute('aria-activedescendant') ?? ''}`;
     }
+
+    // The text of the focused text field (the formula bar's address box, a menu's search field, an editor's
+    // own field), so a key that only rewrites a field the cell editor does not own is seen too.
+    const field = el && (region === 'grid' || region === 'portal') && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')
+      ? el as HTMLInputElement
+      : null;
 
     const data = JSON.stringify(hot?.getSourceData?.() ?? hot?.getData?.() ?? null);
     let hash = 0;
@@ -427,6 +443,7 @@ export async function snapshot(page: Page, root: string): Promise<GridSnapshot> 
       editorOpen,
       editorText,
       caret,
+      focusedText: field ? field.value : null,
       menus: menus.length,
       menuItem: highlighted ? (highlighted.textContent ?? '').trim() : null,
       comment: !!comments?.getEditorInputElement?.() && visible(comments.getEditorInputElement().closest('.htComments') ?? comments.getEditorInputElement()),
