@@ -9,9 +9,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 ## What it owns
 
 - `sheetModel.ts` — the sheet collection (ids, unique clamped names, order). Pure, no
-  Handsontable access. Names are compared NFC-normalized; length is counted in grapheme
+  Handsontable access. Names are compared NFC-normalized and case-insensitively, with plain
+  `toLowerCase()` (`isSameName`), the way HyperFormula canonicalizes sheet names: a tab name the
+  model accepts is then never a name the engine calls taken. Length is counted in grapheme
   clusters (`Intl.Segmenter`), not UTF-16 units — the rename input enforces the same limit in
-  its `input` handler, never through `maxlength`. Four more name and id rules, each pinned in
+  its `input` handler, never through `maxlength`. Five more name, id and copy rules, each pinned in
   `__tests__/sheetModel.unit.js` and `__tests__/apiContract.unit.js`:
   - **`clampSheetName()` is the one gate for a name**, and it answers `''` for a name with no
     visible character (white space and `\p{Cf}`: zero-width spaces and joiners, bidi marks), so
@@ -23,6 +25,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   - **Ids come from the plugin, not the model** (`#allocateSheetId`, passed to `new SheetModel()`),
     so a rebuilt workbook never reuses an id a host may hold. The model keeps its own count for the
     `Sheet{n}` default names, so a rebuild still starts at `Sheet1`.
+  - **A duplicate's data goes through `copyCellData()`, never `deepClone()`.** `deepClone()` walks
+    every object as an object literal, so a `RegExp`, `Map` or `Set` in a cell came out as `{}`.
+    `copyCellData()` copies a `Date`, `RegExp`, `Map` and `Set` as a new value of the same kind and
+    keeps a class instance by reference, the rule `copySettingsValue()` follows. Do not reuse
+    `copySettingsValue()` for data: the settings snapshot compares class instances by reference
+    (`isStructurallyEqual`), so a copied `RegExp` there would read as a new workbook on every re-render.
   - **A value that is neither a number nor a string resolves to no sheet** (`resolveId()`), and a
     `sheets` entry whose `name`, `data` or `settings` has the wrong type makes the whole `sheets`
     value invalid (`isValidSheetEntry`): BasePlugin warns and keeps the current workbook, instead of

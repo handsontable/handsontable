@@ -205,7 +205,7 @@ The [`beforeSheetTabAdd`](@/api/hooks.md#beforesheettabadd) and [`afterSheetTabA
 
 - A name is trimmed and cut to 50 characters. An emoji or a flag counts as one character.
 - A name with no visible character, such as an empty name or one made only of spaces or zero-width characters, can't be set. An added sheet gets the next free `Sheet{n}` name instead, and a rename to it is refused.
-- Names are unique. A rename to a name another sheet uses is refused before [`beforeSheetTabRename`](@/api/hooks.md#beforesheettabrename) fires. A rename that only changes the case of the letters is allowed.
+- Names are unique and compared without regard to case, the way [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md) compares sheet names: `Budget` and `BUDGET` are the same name. A rename to a name another sheet uses is refused before [`beforeSheetTabRename`](@/api/hooks.md#beforesheettabrename) fires. A rename that only changes the case of a sheet's own name is allowed.
 - An added sheet whose name is taken gets a number after the whole name: a second `Budget (2024)` becomes `Budget (2024) (2)`. A duplicate of `Budget` is named `Budget (2)`, then `Budget (3)`.
 
 ## Work with tabs

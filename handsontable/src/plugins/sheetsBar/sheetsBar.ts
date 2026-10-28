@@ -523,8 +523,9 @@ interface PreservedState {
  *  - A name with no visible character, such as an empty name or one made only of spaces or zero-width
  *    characters, is replaced with the next free default name (`Sheet1`, `Sheet2`, ...) when a sheet is
  *    added, and is refused by {@link SheetsBar#renameSheet}.
- *  - Names are unique. Two names are the same when they read the same, whatever Unicode form they arrive
- *    in. A rename that only changes the case of the letters is allowed.
+ *  - Names are unique, and they are compared without regard to case, the way HyperFormula compares sheet
+ *    names: "Budget" and "BUDGET" are the same name, and so are two names that read the same in different
+ *    Unicode forms. A rename that only changes the case of a sheet's own name is allowed.
  *  - An added sheet whose name is taken gets a number after the whole name: a second "Budget (2024)"
  *    becomes "Budget (2024) (2)". A duplicate is named the same way: "Budget (2)", then "Budget (3)".
  *
@@ -2069,7 +2070,8 @@ export class SheetsBar extends BasePlugin {
    * Duplicates a sheet, placing the copy directly after the original.
    *
    * The copy gets a deep clone of the sheet's data and settings, and a name based on the
-   * original's. The `formulas` setting is not cloned: the copy shares the original's engine,
+   * original's. A `Date`, `RegExp`, `Map`, or `Set` in a cell is copied as a new value of the same
+   * kind, and an instance of your own class is shared with the original. The `formulas` setting is not cloned: the copy shares the original's engine,
    * under a sheet name of its own. Returns `null` when the bar is off, the id is unknown, a
    * `beforeSheetTabAdd` listener cancels the copy, your `sheets` array is frozen (with a console warning),
    * or it is called from a listener of a workbook change's before-hook.

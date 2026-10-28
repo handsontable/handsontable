@@ -307,6 +307,49 @@ describe('SheetsBar: the public methods keep their documented contract', () => {
     });
   });
 
+  describe('names that differ only in case', () => {
+    it('name the same sheet in `setActiveSheet()` and `updateSheetSettings()`', () => {
+      const plugin = buildWorkbook([{ name: 'Alpha', data: [[1]] }, { name: 'Beta', data: [[2]] }]);
+
+      expect(plugin.setActiveSheet('BETA')).toBe(true);
+      expect(plugin.getSheets().find(sheet => sheet.isActive).name).toBe('Beta');
+      expect(plugin.updateSheetSettings('alpha', { readOnly: true })).toBe(true);
+    });
+
+    it('refuse a rename onto another sheet before `beforeSheetTabRename` fires', () => {
+      const plugin = buildWorkbook([{ name: 'Alpha', data: [[1]] }, { name: 'Beta', data: [[2]] }]);
+      const beforeRename = jest.fn();
+
+      hot.addHook('beforeSheetTabRename', beforeRename);
+
+      expect(plugin.renameSheet(idOf(plugin, 'Beta'), 'alpha')).toBe(false);
+      expect(beforeRename).not.toHaveBeenCalled();
+      expect(namesOf(plugin)).toEqual(['Alpha', 'Beta']);
+    });
+
+    it('number a declared sheet that repeats another one\'s name in another case', () => {
+      const plugin = buildWorkbook([{ name: 'Budget', data: [[1]] }, { name: 'BUDGET', data: [[2]] }]);
+
+      expect(namesOf(plugin)).toEqual(['Budget', 'BUDGET (2)']);
+    });
+  });
+
+  describe('a duplicate of a sheet whose cells hold a RegExp or a Map', () => {
+    it('keeps them as a RegExp and a Map', () => {
+      const plugin = buildWorkbook([{ name: 'Rules', data: [[/^SKU-\d+$/i, new Map([['Seattle', 142]])]] }]);
+      const copy = plugin.duplicateSheet(idOf(plugin, 'Rules'));
+
+      plugin.setActiveSheet(copy.id);
+
+      const [pattern, stock] = hot.getSourceDataAtRow(0);
+
+      expect(pattern).toBeInstanceOf(RegExp);
+      expect(pattern.test('SKU-4821')).toBe(true);
+      expect(stock).toBeInstanceOf(Map);
+      expect(stock.get('Seattle')).toBe(142);
+    });
+  });
+
   describe('a name with no visible character', () => {
     it('is refused by `renameSheet()` before `beforeSheetTabRename` fires', () => {
       const plugin = buildWorkbook([{ name: 'A', data: [[1]] }]);

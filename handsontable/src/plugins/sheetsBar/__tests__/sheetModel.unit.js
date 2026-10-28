@@ -347,6 +347,94 @@ describe('SheetModel', () => {
     });
   });
 
+  describe('names that differ only in case', () => {
+    it('resolve to the same sheet, as HyperFormula reads sheet names', () => {
+      const model = new SheetModel();
+      const budget = model.addSheet('Budget', [[]]);
+
+      expect(model.resolveId('budget')).toBe(budget.id);
+      expect(model.resolveId('BUDGET')).toBe(budget.id);
+    });
+
+    it('count as taken when another sheet is added', () => {
+      const model = new SheetModel();
+
+      model.addSheet('Budget', [[]]);
+
+      expect(model.addSheet('budget', [[]]).name).toBe('budget (2)');
+    });
+
+    it('refuse a rename onto another sheet, and allow a case-only rename of the same sheet', () => {
+      const model = new SheetModel();
+      const a = model.addSheet('Alpha', [[]]);
+      const b = model.addSheet('Beta', [[]]);
+
+      expect(model.renameSheet(b.id, 'ALPHA')).toBe(false);
+      expect(model.renameSheet(a.id, 'ALPHA')).toBe(true);
+      expect(model.getSheetById(a.id).name).toBe('ALPHA');
+    });
+
+    it('fold case without the host locale, as the engine does', () => {
+      const model = new SheetModel();
+      const items = model.addSheet('ITEMS', [[]]);
+
+      expect(model.resolveId('items')).toBe(items.id);
+    });
+  });
+
+  describe('a duplicate of cells holding objects other than arrays and object literals', () => {
+    it('keeps a RegExp, a Map, a Set and a Date as the same kind of value, copied', () => {
+      const regExp = /^SKU-\d+$/gi;
+      const map = new Map([['currency', 'USD']]);
+      const set = new Set(['Q1', 'Q2']);
+      const date = new Date(2025, 2, 14);
+      const model = new SheetModel();
+      const source = model.addSheet('Data', [[regExp, map, set, date]]);
+      const [copiedRegExp, copiedMap, copiedSet, copiedDate] = model.duplicateSheet(source.id).data[0];
+
+      expect(copiedRegExp).toBeInstanceOf(RegExp);
+      expect(copiedRegExp).not.toBe(regExp);
+      expect(copiedRegExp.source).toBe(regExp.source);
+      expect(copiedRegExp.flags).toBe(regExp.flags);
+      expect(copiedMap).toBeInstanceOf(Map);
+      expect(copiedMap).not.toBe(map);
+      expect([...copiedMap]).toEqual([['currency', 'USD']]);
+      expect(copiedSet).toBeInstanceOf(Set);
+      expect(copiedSet).not.toBe(set);
+      expect([...copiedSet]).toEqual(['Q1', 'Q2']);
+      expect(copiedDate).toBeInstanceOf(Date);
+      expect(copiedDate).not.toBe(date);
+      expect(copiedDate.getTime()).toBe(date.getTime());
+    });
+
+    it('copies a Map in an object row so a change to the copy leaves the original alone', () => {
+      const model = new SheetModel();
+      const source = model.addSheet('Data', [{ sku: 'SKU-4821', stock: new Map([['Seattle', 142]]) }]);
+      const copy = model.duplicateSheet(source.id);
+
+      copy.data[0].stock.set('Seattle', 0);
+
+      expect(source.data[0].stock.get('Seattle')).toBe(142);
+      expect(copy.data[0].sku).toBe('SKU-4821');
+    });
+
+    it('keeps a class instance by reference, with its prototype', () => {
+      class Money {
+        constructor(amount) {
+          this.amount = amount;
+        }
+      }
+
+      const price = new Money(4200000);
+      const model = new SheetModel();
+      const source = model.addSheet('Data', [[price]]);
+      const copied = model.duplicateSheet(source.id).data[0][0];
+
+      expect(copied).toBe(price);
+      expect(copied).toBeInstanceOf(Money);
+    });
+  });
+
   describe('isNameTaken', () => {
     it('answers whether another sheet already uses a name', () => {
       const model = new SheetModel();

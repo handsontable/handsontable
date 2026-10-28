@@ -1,5 +1,5 @@
 import { splitIntoCharacters } from '../../helpers/string';
-import { deepClone, isPlainObject } from '../../helpers/object';
+import { isPlainObject } from '../../helpers/object';
 
 /**
  * A single sheet held by the SheetsBar plugin.
@@ -71,15 +71,17 @@ export function clampSheetName(name: string, limit: number = MAX_SHEET_NAME_LENG
 }
 
 /**
- * Compares two names the way a reader does: the same letters spell the same name whether a
- * composed or a decomposed form arrived.
+ * Compares two names the way HyperFormula compares sheet names: without regard to case, so a tab name
+ * and the formula engine agree on which names are taken. The same letters spell the same name whether a
+ * composed or a decomposed form arrived. Plain `toLowerCase()`, as the engine uses: a locale-aware lower
+ * case would turn `ITEMS` into `ıtems` on a Turkish host.
  *
  * @param {string} a One name.
  * @param {string} b The other.
  * @returns {boolean} `true` when the two read the same.
  */
 function isSameName(a: string, b: string): boolean {
-  return a.normalize('NFC') === b.normalize('NFC');
+  return a.normalize('NFC').toLowerCase() === b.normalize('NFC').toLowerCase();
 }
 
 /**
@@ -325,7 +327,7 @@ export class SheetModel {
 
     const duplicate = this.addSheet(
       this.#freeNumberedName(source.name),
-      deepClone(source.data) as unknown[][],
+      copyCellData(source.data) as unknown[],
       settings,
     );
 
@@ -444,6 +446,86 @@ export function isObjectLiteral(value: unknown): boolean {
  * The keys `copySettingsValue()` leaves out of a copy.
  */
 const UNCOPIED_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
+/**
+ * Copies a sheet's data for a duplicate: arrays and object literals level by level, and a `Date`, a
+ * `RegExp`, a `Map` and a `Set` as a new value of the same kind, so the copy's cells can change without
+ * changing the original's. A class instance is kept by reference, with its prototype, the way
+ * `copySettingsValue()` keeps one. `deepClone()` walked every object as an object literal, so a `RegExp`,
+ * a `Map` or a `Set` in a cell came out as `{}`, and a class instance lost its prototype.
+ *
+ * `copies` maps every array, object literal, `Map` and `Set` already copied to its copy, so a value that
+ * refers to itself is copied with the same shape instead of recursing until the stack overflows.
+ *
+ * @param {*} value The value to copy.
+ * @param {WeakMap} [copies] The copies made so far in this call.
+ * @returns {*} The copy, or `value` itself when it is kept by reference.
+ */
+export function copyCellData(value: unknown, copies = new WeakMap<object, unknown>()): unknown {
+  if (value instanceof Date) {
+    return new Date(value.getTime());
+  }
+
+  if (value instanceof RegExp) {
+    return new RegExp(value.source, value.flags);
+  }
+
+  const isCollection = value instanceof Map || value instanceof Set;
+
+  if (!isCollection && !Array.isArray(value) && !isObjectLiteral(value)) {
+    return value;
+  }
+
+  const source = value as object;
+
+  if (copies.has(source)) {
+    return copies.get(source);
+  }
+
+  if (source instanceof Map) {
+    const copy = new Map<unknown, unknown>();
+
+    copies.set(source, copy);
+    source.forEach((entry: unknown, key: unknown) => {
+      copy.set(key, copyCellData(entry, copies));
+    });
+
+    return copy;
+  }
+
+  if (source instanceof Set) {
+    const copy = new Set<unknown>();
+
+    copies.set(source, copy);
+    source.forEach((entry: unknown) => {
+      copy.add(copyCellData(entry, copies));
+    });
+
+    return copy;
+  }
+
+  if (Array.isArray(source)) {
+    const copy: unknown[] = [];
+
+    copies.set(source, copy);
+    source.forEach((entry: unknown) => {
+      copy.push(copyCellData(entry, copies));
+    });
+
+    return copy;
+  }
+
+  const copy: Record<string, unknown> = {};
+
+  copies.set(source, copy);
+  Object.entries(source).forEach(([key, entry]) => {
+    if (!UNCOPIED_KEYS.has(key)) {
+      copy[key] = copyCellData(entry, copies);
+    }
+  });
+
+  return copy;
+}
 
 /**
  * Copies a settings value for a snapshot: arrays and object literals are copied level by level, a date is
