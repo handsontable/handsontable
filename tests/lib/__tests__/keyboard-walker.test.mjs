@@ -273,6 +273,9 @@ test('every probe is well formed: a setup, the keys pressed, an expected effect;
     if ((Array.isArray(expect) ? expect : [expect]).some(effect => !EFFECTS.has(effect))) {
       problems.push(`${label}: unknown effect ${JSON.stringify(expect)}`);
     }
+    if (entry.probe.then !== undefined && (!Array.isArray(entry.probe.then) || entry.probe.then.length === 0)) {
+      problems.push(`${label}: then is a non-empty list of steps`);
+    }
   }
 
   assert.deepEqual(problems, []);
@@ -292,12 +295,14 @@ function snapshot(fields = {}) {
   return {
     highlight: [1, 1], ranges: [[1, 1, 1, 1]], editorOpen: false, editorText: null, caret: null, menus: 0, menuItem: null,
     comment: false, dataHash: 'h1', scroll: [0, 0], sorting: '[]', merged: 0, frozen: '0,0', clipboard: 0, links: 0,
-    collapsed: '', filtered: '', listSelection: null, rowSelection: null, active: { region: 'grid', key: 'cell|1,1' }, ...fields,
+    collapsed: '', filtered: '', listSelection: null, rowSelection: null, focusedText: null, active: { region: 'grid', key: 'cell|1,1' }, ...fields,
   };
 }
 
 test('the effects between two snapshots name what a key changed', () => {
   assert.deepEqual(effectsBetween(snapshot(), snapshot()), []);
+  // A field the cell editor does not own (the formula bar's address box) rewrites its text with no editor open.
+  assert.deepEqual(effectsBetween(snapshot({ focusedText: 'C3' }), snapshot({ focusedText: 'A1' })), ['text-changes']);
   assert.deepEqual(effectsBetween(snapshot(), snapshot({ highlight: [2, 1], ranges: [[2, 1, 2, 1]], active: { region: 'grid', key: 'cell|2,1' } })),
     ['focus-moves', 'selection-changes', 'selection-moves']);
   assert.deepEqual(effectsBetween(snapshot(), snapshot({ editorOpen: true, editorText: 'x', active: { region: 'grid', key: 'textarea' } })),
