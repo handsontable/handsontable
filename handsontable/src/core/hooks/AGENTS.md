@@ -18,15 +18,19 @@ This directory holds the `Hooks` singleton, the per-instance `HooksBucket`, and 
   `remove()`, and both branches of `replaceFromSettings()`) compares it, so no test reads the key off a
   function per node. The Angular wrapper runs a hook its `settings` input declares inside Angular's zone by
   registering a wrapper function, and without the key the bucket saw two listeners: a callback the app also
-  passed to `addHook()` ran twice, and `removeHook()` with the callback removed nothing. Two rules ride along.
+  passed to `addHook()` ran twice, and `removeHook()` with the callback removed nothing. Three rules ride along.
   (1) When the second add is the forwarding function, it takes the entry's place (`#claimDuplicate()`): the
   app may have called `addHook(fn)` before the wrapper arrived through the settings, and keeping the plain
   callback ran the hook outside the zone. (2) A settings function that claims an entry first added through
   `addHook()` removes the other settings entries of that hook, the way a new settings function replaces the
   old one: otherwise settings `g`, then `addHook(f)`, then settings `f` left `g` running. That holds for every
-  grid, with or without a wrapper. The key is a `Symbol.for()` so the wrapper, bundled apart from core, needs
-  no import. Pinned by the "a function that forwards to a callback" and "a settings function already added
-  through `addHook()`" blocks of `__tests__/bucket.unit.ts`.
+  grid, with or without a wrapper. (3) A lasting registration (`addHook()`, the settings) that meets an
+  `addHookOnce()` entry turns it into a lasting entry with its own flags, deciding rule (2) from the entry's
+  flags before it overwrites them: keeping `runOnce` made a declared hook run once and vanish, and with rule (2)
+  nothing ran after the first call. A second `addHookOnce()` still leaves the entry once. The key is a
+  `Symbol.for()` so the wrapper, bundled apart from core, needs no import. Pinned by the "a function that
+  forwards to a callback", "a settings function already added through `addHook()`" and "a lasting
+  registration of a callback first added with `addHookOnce()`" blocks of `__tests__/bucket.unit.ts`.
 
 Pointers:
 - Deep reference: `handsontable/.ai/HOOKS.md`

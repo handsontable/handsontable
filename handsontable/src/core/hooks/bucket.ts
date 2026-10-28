@@ -204,6 +204,14 @@ export class HooksBucket {
       node.callback = callback;
     }
 
+    const replacesFixedEntry = !!options.initialHook && !!options.fromSettings && !node.initialHook;
+
+    if (node.runOnce && !options.runOnce) {
+      node.runOnce = false;
+      node.fromSettings = !!options.fromSettings;
+      node.initialHook = !!options.initialHook;
+    }
+
     if (!options.fromSettings && !options.runOnce) {
       node.fromSettings = false;
       node.initialHook = false;
@@ -211,7 +219,7 @@ export class HooksBucket {
       return;
     }
 
-    if (options.initialHook && options.fromSettings && !node.initialHook) {
+    if (replacesFixedEntry) {
       this.#removeSettingsEntries(hookName, other => other === node || !other.initialHook);
     }
   }
