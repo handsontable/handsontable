@@ -518,5 +518,8 @@ values used to outlive a later `true` (and a sheets bar sheet declaring `true` i
 object). `onUpdateSettings()` reads the plugin's previous value (`getSetting()`, before `super`) and calls
 `ColumnStatesManager#resetAllColumnsProperties()` when a non-object value replaces an object, before the column
 meta cache is rebuilt. `true` sent again (every React or Angular render) changes nothing and keeps the sort; an
-object after an object still merges. MultiColumnSorting inherits it unchanged. Pinned by
+object after an object still merges. Object → `false` → `true` also starts from the defaults, as it always did:
+`disablePlugin()` destroys the manager and the next enable builds a fresh one, so the reset never runs on that path
+(Search keeps the object's options there instead, because its options live on the plugin itself). MultiColumnSorting
+inherits all of it unchanged. Pinned by
 `__tests__/settingsReset.unit.js` and `../sheetsBar/__tests__/pluginOptionReset.unit.js`.

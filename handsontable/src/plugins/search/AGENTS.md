@@ -90,7 +90,10 @@ The result class is applied inside `beforeRenderer`, from the plugin's own state
 `updatePluginSettings()` remembers the last enabling value it applied (`#appliedSettings`). An object sets the
 options it names and keeps the rest. `true` replacing an object puts all three options back to their defaults,
 as a grid built with `true` starts: without it, the object's `queryMethod`, `callback` and `searchResultClass`
-outlived it, and a sheets bar sheet declaring `search: true` inherited the previous sheet's object. `true` sent
-again changes nothing, because React and Angular re-send every prop on each render and the values set through
-`setQueryMethod()`, `setCallback()` and `setSearchResultClass()` must survive that. Do not reset on every
-non-object value. Pinned by `__tests__/settingsReset.unit.js` and `../sheetsBar/__tests__/pluginOptionReset.unit.js`.
+outlived it, and a sheets bar sheet declaring `search: true` inherited the previous sheet's object. That reset
+includes values set at runtime through `setQueryMethod()`, `setCallback()` and `setSearchResultClass()` on a grid
+built with an object. `true` sent again changes nothing, because React and Angular re-send every prop on each
+render and the setters' values must survive that. Do not reset on every non-object value. `search: false` forgets
+the object (`disablePlugin()` clears `#appliedSettings` when the setting is off, never on the disable half of
+`updatePlugin()`), so object → `false` → `true` keeps the object's options, as releases before the reset did.
+ColumnSorting differs there by construction: its options live on a manager that `disablePlugin()` destroys. Pinned by `__tests__/settingsReset.unit.js` and `../sheetsBar/__tests__/pluginOptionReset.unit.js`.

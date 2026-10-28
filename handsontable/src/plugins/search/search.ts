@@ -137,7 +137,7 @@ export class Search extends BasePlugin {
   searchResultClass = DEFAULT_SEARCH_RESULT_CLASS;
   /**
    * The last enabling value applied from the `search` setting, so that `true` replacing an object can
-   * be told apart from `true` sent again.
+   * be told apart from `true` sent again. Cleared when the `search` setting turns the plugin off.
    */
   #appliedSettings: unknown = null;
 
@@ -179,6 +179,10 @@ export class Search extends BasePlugin {
     // always did. Every cell then repaints from the stripped meta, under any `renderMode`.
     this.#removeResultClassFromStoredMeta();
     this.hot.markAllCellsChanged();
+
+    if (!this.isEnabled()) {
+      this.#appliedSettings = null;
+    }
 
     super.disablePlugin();
   }
@@ -302,8 +306,10 @@ export class Search extends BasePlugin {
    *
    * An object sets the options it names and keeps the others. A value that is not an object (`true`)
    * replacing an object puts the three options back to their defaults, the way a grid built with that
-   * value starts. The same value sent again changes nothing, so the values set through
-   * `setQueryMethod()`, `setCallback()` and `setSearchResultClass()` survive it.
+   * value starts, including the values set at runtime through `setQueryMethod()`, `setCallback()` and
+   * `setSearchResultClass()`. The same value sent again changes nothing, so the values set through those
+   * setters survive it. A `search: false` forgets the object, so the `true` that turns the plugin back on
+   * keeps the options as they were.
    *
    * @param {object} searchSettings The plugin settings, taken from Handsontable configuration.
    * @private

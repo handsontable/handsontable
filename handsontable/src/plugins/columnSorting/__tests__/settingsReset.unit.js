@@ -91,6 +91,26 @@ describe.each([
     expect(hot.getDataAtCol(0)).toEqual([1, 2, null]);
   });
 
+  it('starts from the default options when `false` comes between the object and `true`', () => {
+    const compareFunctionFactory = jest.fn(() => () => 0);
+    const plugin = buildGrid({ ...OBJECT_SETTINGS, compareFunctionFactory });
+
+    hot.updateSettings({ [pluginKey]: false });
+    hot.updateSettings({ [pluginKey]: true });
+
+    const merged = plugin.getMergedPluginSettings(0);
+
+    expect(plugin.enabled).toBe(true);
+    expect(merged.indicator).toBe(true);
+    expect(merged.headerAction).toBe(true);
+    expect(merged.sortEmptyCells).toBe(false);
+
+    plugin.sort({ column: 0, sortOrder: 'asc' });
+
+    expect(compareFunctionFactory).not.toHaveBeenCalled();
+    expect(hot.getDataAtCol(0)).toEqual([1, 2, null]);
+  });
+
   it('applies the object options it replaced `true` with', () => {
     const plugin = buildGrid(true);
 

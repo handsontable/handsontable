@@ -65,6 +65,34 @@ describe('Search: options after a new `search` value', () => {
     expect(plugin.getSearchResultClass()).toBe('htSearchResult');
   });
 
+  it('keeps the object options when `search: false` comes between the object and `search: true`', () => {
+    const queryMethod = jest.fn(() => true);
+    const callback = jest.fn();
+    const plugin = buildGrid({ queryMethod, callback, searchResultClass: 'my-hit' });
+
+    hot.updateSettings({ search: false });
+    hot.updateSettings({ search: true });
+
+    expect(plugin.isEnabled()).toBe(true);
+    expect(plugin.getQueryMethod()).toBe(queryMethod);
+    expect(plugin.getCallback()).toBe(callback);
+    expect(plugin.getSearchResultClass()).toBe('my-hit');
+  });
+
+  it('resets the values set through the plugin API on a grid built with an object once `search: true` replaces it', () => {
+    const queryMethod = jest.fn(() => true);
+    const runtimeQueryMethod = jest.fn(() => true);
+    const plugin = buildGrid({ queryMethod });
+
+    plugin.setQueryMethod(runtimeQueryMethod);
+    plugin.setSearchResultClass('runtime-hit');
+    hot.updateSettings({ search: true });
+
+    expect(plugin.getQueryMethod()).not.toBe(runtimeQueryMethod);
+    expect(plugin.getQueryMethod()).not.toBe(queryMethod);
+    expect(plugin.getSearchResultClass()).toBe('htSearchResult');
+  });
+
   it('keeps the values set through the plugin API when `search: true` is sent again', () => {
     const queryMethod = jest.fn(() => false);
     const callback = jest.fn();
