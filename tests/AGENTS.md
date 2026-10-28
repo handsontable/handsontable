@@ -1573,17 +1573,25 @@ captures pixels; the arithmetic and the verdicts are `lib/contrast.mjs` (tested 
   drawn by an overlay clone above the master, and sampling the master's copy read every frozen cell as
   hidden. A cell covered at every point is `focus-obscured`.
 
-### Zoom, reflow, text spacing and hover content
+### Zoom, reflow, text spacing, and hover content
 
-`a11y/checks/reflow.spec.ts`, the `reflow` check: 1.3.4, 1.4.4, 1.4.10, 1.4.12 and 1.4.13 on every
+`a11y/checks/reflow.spec.ts`, the `reflow` check: 1.3.4, 1.4.4, 1.4.10, 1.4.12, and 1.4.13 on every
 theme. The spec measures boxes; `lib/reflow.mjs` (tested in `lib/__tests__/reflow.test.mjs`) decides what
 counts as lost content.
 
 - **Three conditions, each a viewport** (`CONDITIONS`): 320 by 256 CSS px for 1.4.10 (a 1280 by 1024
   window at 400%), 640 by 512 for 1.4.4 (200%), and the WCAG text-spacing override (`TEXT_SPACING_CSS`) for
   1.4.12, injected as a stylesheet as soon as the document has a head, so the grid measures its rows with
-  it the way it would under a user's stylesheet. Each runs over every popup and bar of the catalog and the
-  plain grid.
+  it the way it would under a user's stylesheet. Each runs over the plain grid and the pages with a
+  surface of their own around it (`PAGES` in the spec). Left out: the pages whose surfaces lie inside the
+  grid's own box (the freeze bars on the freeze lines and header corners, the selection handles, the
+  links, checkboxes, and pending indicator in cells, and the grid shapes, the right-to-left grid among
+  them), which move with the grid when it scrolls in two dimensions; the editors whose control is a
+  native one in the cell (text, password, select, and the date and time editors); the dropdown and
+  handsontable editors, which open the same one-column `.handsontableEditor` list as the autocomplete
+  editor on that fixture; the dark pages, because a color scheme changes no box; and the right-to-left
+  menu, whose fixture lays several wide grids on one page, so the page would scroll sideways for the
+  fixture's sake.
 - **A grid its fixture pins wider than the viewport is measured at the page's width.** A fixture that
   sets a pixel `width` wider than the viewport gets `width: '100%'` before the state is reached (`fitted`
   in the detail). With a pixel width the bars and the overlays follow the grid's own box, so they would

@@ -4,7 +4,7 @@ import { CONDITIONS, clippingFindings, hoverFindings, nameApart, orientationFind
 import { EVIDENCE_SCHEMA, findingId, mergeEvidence, validatePart } from '../a11y-evidence.mjs';
 
 // tests/AGENTS.md ("A11y: the checks beyond axe", zoom, reflow, text spacing, hover content): the
-// verdicts behind 1.3.4, 1.4.4, 1.4.10, 1.4.12 and 1.4.13. The spec measures boxes under each condition;
+// verdicts behind 1.3.4, 1.4.4, 1.4.10, 1.4.12, and 1.4.13. The spec measures boxes under each condition;
 // what counts as lost content is decided here.
 
 test('each condition names its criterion and its viewport', () => {

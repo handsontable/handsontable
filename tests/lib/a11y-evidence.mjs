@@ -172,7 +172,7 @@ export const EVIDENCE_CHECKS = Object.freeze({
     pullRequest: true,
   },
   reflow: {
-    title: 'Zoom, reflow, text spacing and hover content',
+    title: 'Zoom, reflow, text spacing, and hover content',
     spec: 'reflow.spec.ts',
     criteria: ['1.3.4', '1.4.4', '1.4.10', '1.4.12', '1.4.13'],
     pullRequest: true,

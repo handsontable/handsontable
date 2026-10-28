@@ -15,7 +15,7 @@ import {
 } from '../../lib/reflow.mjs';
 
 /**
- * Zoom, reflow, text spacing and hover content: WCAG 1.3.4, 1.4.4, 1.4.10, 1.4.12 and 1.4.13 on every
+ * Zoom, reflow, text spacing, and hover content: WCAG 1.3.4, 1.4.4, 1.4.10, 1.4.12, and 1.4.13 on every
  * theme.
  *
  * - **The conditions** (`CONDITIONS` in `lib/reflow.mjs`): 320 CSS px wide (1.4.10), 200% zoom as a
@@ -31,7 +31,10 @@ import {
  * Report-only: a test fails for tooling only. Policy: `tests/AGENTS.md`, "A11y: the checks beyond axe".
  */
 
-// The pages whose surfaces reflow: every popup and bar of the catalog, and the plain grid.
+// The plain grid and the pages with a surface of their own around it. Left out: the pages whose surfaces lie
+// inside the grid's box (the freeze bars, the selection handles), the editors with a native control in the cell
+// or the autocomplete's list, the dark pages, and the right-to-left menu, whose fixture lays several wide grids
+// on one page: tests/AGENTS.md, "Zoom, reflow, text spacing, and hover content".
 const PAGES = ['grid', 'context-menu', 'context-menu-submenu', 'dropdown-menu', 'filters-conditions', 'autocomplete-editor', 'multiselect-editor',
   'comments', 'dialog', 'notification', 'pagination', 'sheets-bar', 'data-provider-sheets-bar', 'license-bar', 'empty-data', 'loading',
   'formula-builder', 'formula-builder-suggestions', 'formula-builder-function-help'];
@@ -120,7 +123,7 @@ async function fitToViewport(page: Page, root: string): Promise<boolean> {
  * Measures the surfaces around the grid in one evaluation: the clipping containers holding text, the
  * surfaces' boxes, the controls' boxes, and the viewport with the page's scroll offset and scroll size.
  * Two items of one list that share a name are told apart by an ordinal (`nameApart()`): the context menu
- * and its submenu are both `div.htMenu`, and one finding each needs an id each.
+ * and its submenu are both `div.htMenu`, and each needs a finding id of its own.
  *
  * @param page The page.
  * @param root The root container selector.

@@ -1,5 +1,5 @@
 /**
- * Zoom, reflow, text spacing and hover content: the pure half.
+ * Zoom, reflow, text spacing, and hover content: the pure half.
  *
  * `a11y/checks/reflow.spec.ts` loads each page under three conditions (`CONDITIONS`) and measures the
  * boxes of the surfaces around the grid: menus, the editors' lists, dialogs, notifications, the bars, the
@@ -39,7 +39,7 @@ const SCREEN_READER_ONLY = 1;
  * Tells apart the items of one measurement that share a name: the second and later item with a name
  * get an ordinal (`div.htMenu (2)`), in the order the page lists them. A finding's id keys on its
  * selector (`findingId()` in `lib/a11y-evidence.mjs`), and the spec names an element by its tag, its
- * first class and its label, so the context menu and its submenu, or two pager buttons with one label,
+ * first class, and its label, so the context menu and its submenu, or two pager buttons with one label,
  * would otherwise give two findings one id.
  *
  * @param {Array<{selector: string}>} items The surfaces, the controls, or the clipping containers of one measurement.
