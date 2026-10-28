@@ -125,7 +125,8 @@ function pluginsFollowingThePointer() {
 test('the drag inventory accounts for every plugin that follows the pointer, and every entry can run', () => {
   const tracking = pluginsFollowingThePointer();
 
-  assert.ok(tracking.includes('autofill') && tracking.includes('freezeBar'), 'the scan finds the plugins it is meant to find');
+  assert.ok(tracking.includes('autofill') && tracking.includes('freezeBar') && tracking.includes('formulaBuilder'),
+    'the scan finds the plugins it is meant to find');
   assert.deepEqual(undeclaredPointerPlugins({ tracking, inventory: DRAG_OPERATIONS, notDrag: NOT_DRAG }), { missing: [], stale: [] },
     'add the new drag to a11y/checks/drag-operations.mjs, or its reason to NOT_DRAG');
   assert.deepEqual(inventoryProblems(DRAG_OPERATIONS), []);

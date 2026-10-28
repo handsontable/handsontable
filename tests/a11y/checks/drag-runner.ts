@@ -3,7 +3,8 @@ import { PORTAL_MARK } from '../harness';
 
 /**
  * Runs the steps of `drag-operations.mjs` with a real pointer and keyboard, and reads what a drag
- * changes: sizes, order, data, frozen counts, the selection, the sheets, the comment editor's size.
+ * changes: sizes, order, data, frozen counts, the selection, the sheets, the comment editor's size, and
+ * the open editor's text.
  */
 
 export type Point =
@@ -38,6 +39,7 @@ export interface DragState {
   selected: number[][];
   sheets: string[];
   comment: number[];
+  editorText: string | null;
 }
 
 const STEPS_PER_DRAG = 10;
@@ -68,7 +70,7 @@ export async function resolvePoint(page: Page, root: string, point: Point): Prom
     } else if ('rowHeader' in spec) {
       el = hot?.getCell(spec.rowHeader, -1, true);
     } else if ('selector' in spec) {
-      const regions = [document.querySelector(selector), document.querySelector(`[${portalMark}]`), document];
+      const regions = [document.querySelector(selector), ...document.querySelectorAll(`[${portalMark}]`), document];
 
       el = regions.flatMap(region => [...(region?.querySelectorAll(spec.selector) ?? [])]).find(shown);
     } else {
@@ -269,6 +271,21 @@ export async function dragState(page: Page, root: string): Promise<DragState> {
     })();
     const textarea = [...document.querySelectorAll('.htCommentTextArea')].find(node => node.getBoundingClientRect().width > 0);
     const box = textarea?.getBoundingClientRect();
+    // The open editor's text, read the way the keyboard walker reads it (`snapshot()` in `walker.ts`): a
+    // reference picked into a formula changes nothing else here until the edit is committed.
+    const editor = hot.getActiveEditor();
+    const editorText = (() => {
+      if (!editor?.isOpened?.()) {
+        return null;
+      }
+      try {
+        const value = editor.getValue();
+
+        return typeof value === 'string' ? value : JSON.stringify(value);
+      } catch {
+        return null;
+      }
+    })();
 
     return {
       widths: count(hot.countCols()).map(col => Math.round(hot.getColWidth(col))),
@@ -280,6 +297,7 @@ export async function dragState(page: Page, root: string): Promise<DragState> {
       selected: hot.getSelected() ?? [],
       sheets,
       comment: box ? [Math.round(box.width), Math.round(box.height)] : [],
+      editorText,
     };
   }, root);
 }
@@ -312,6 +330,9 @@ export function dragEffects(before: DragState, after: DragState): string[] {
   }
   if (differs('sheets')) {
     effects.add('sheet-order-changes');
+  }
+  if (differs('editorText')) {
+    effects.add('text-changes');
   }
 
   return [...effects].sort();

@@ -11,7 +11,7 @@
  * - `id`, `plugin` (the folder under `handsontable/src/plugins/`, or `core`), `operation` (one sentence);
  * - `gesture`: `drag`, `path` (a gesture that must follow a path) or `multipoint` (two fingers or more);
  * - `page` (a catalog id of `../pages.mjs`, reached in its state) or `fixture` and `query`;
- * - `drag`: the steps that perform it; `expect`: its effect (`dragEffects()` in `pointer-state.ts`);
+ * - `drag`: the steps that perform it; `expect`: its effect (`dragEffects()` in `drag-runner.ts`);
  *   `compare`: a field of the drag state a `full` alternative must leave exactly as the drag left it;
  * - `alternatives`: each with `input` (`single-pointer`, `keyboard`, `pointer-modifier`), `covers`
  *   (`full`, or `partial` with the part it leaves out in `how`), `how` (one sentence), and `steps`;
@@ -23,12 +23,13 @@
  * shows (two seconds at most, for an autofit's timer or a tab's transition).
  *
  * Steps: `{ select: [row, col, row2?, col2?] }`, `{ api: 'colWidth' | 'rowHeight', index, size }` and
- * `{ api: 'empty', range: [row, col, row2, col2] }` go through the API; `hover`, `click` (with `button`, `modifiers`), `dblclick`, `drag` (`from`, then `to`, `by: [dx, dy]`
- * or both) and `touchDrag` drive a real pointer; `press` a key or a list of keys,
- * `pressUntilFocused` a key until the selector has the focus, `pressUntilHighlighted` a key until the
- * open menu highlights the text; `visible` waits for a selector. A point is `{ cell: [row, col] }`,
- * `{ colHeader }`, `{ rowHeader }` (the topmost copy), `{ selector, at? }` (`at: 'corner-end'` is four
- * pixels inside the bottom-end corner) or `{ text, within }` (a menu item).
+ * `{ api: 'empty', range: [row, col, row2, col2] }` go through the API; `hover`, `click` (with `button`,
+ * `modifiers`), `dblclick`, `drag` (`from`, then `to`, `by: [dx, dy]` or both) and `touchDrag` drive a
+ * real pointer; `press` a key or a list of keys, `pressUntilFocused` a key until the selector has the
+ * focus, `pressUntilHighlighted` a key until the open menu highlights the text; `focus` focuses a
+ * selector; `visible` waits for one. A point is `{ cell: [row, col] }`, `{ colHeader }`, `{ rowHeader }`
+ * (the topmost copy), `{ selector, at? }` (`at: 'corner-end'` is four pixels inside the bottom-end
+ * corner) or `{ text, within }` (a menu item).
  *
  * `lib/__tests__/pointer.test.mjs` fails on a plugin that follows the pointer (listens to `mousemove`,
  * `pointermove` or `touchmove`) and is neither here nor in `NOT_DRAG`, so a new drag is accounted for in
@@ -156,6 +157,33 @@ export const DRAG_OPERATIONS = [
     page: 'comments', expect: 'resizes',
     drag: [{ drag: { from: { selector: '.htCommentTextArea', at: 'corner-end' }, by: [60, 40] } }],
     alternatives: [],
+  },
+  // Picking a reference into a formula: the catalog page opens C1 (=A1+B1) with Enter, and every path
+  // types `+` first, so the caret sits after an operator and the pick is inserted there; without it a
+  // pick replaces B1 and the arrows only move the caret.
+  {
+    id: 'formula-range-reference', plugin: 'formulaBuilder', gesture: 'drag', operation: 'Insert a range reference into the edited formula by dragging across cells',
+    page: 'formula-builder', expect: 'text-changes', compare: 'editorText',
+    drag: [{ press: '+' }, { drag: { from: { cell: [3, 0] }, to: { cell: [4, 1] } } }],
+    alternatives: [
+      { input: 'single-pointer', covers: 'partial', how: 'A click on a cell inserts that one cell\'s reference, never a range',
+        steps: [{ press: '+' }, { click: { cell: [3, 0] } }] },
+      { input: 'keyboard', covers: 'full', how: 'In point mode the arrow keys walk the reference cursor to the first cell, and Shift+arrows extend it into the range',
+        steps: [{ press: '+' }, { press: ['ArrowDown', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowLeft', 'Shift+ArrowDown', 'Shift+ArrowRight'] }] },
+      { input: 'keyboard', covers: 'full', how: 'Typing the range reference at the caret inserts the same text',
+        steps: [{ press: '+' }, { press: ['A', '4', ':', 'B', '5'] }] },
+    ],
+  },
+  {
+    id: 'formula-header-reference', plugin: 'formulaBuilder', gesture: 'drag', operation: 'Insert a whole-column range reference into the edited formula by dragging across column headers',
+    page: 'formula-builder', expect: 'text-changes', compare: 'editorText',
+    drag: [{ press: '+' }, { drag: { from: { colHeader: 1 }, to: { colHeader: 2 } } }],
+    alternatives: [
+      { input: 'single-pointer', covers: 'partial', how: 'A click on a column header inserts that one column\'s reference, never a span of columns',
+        steps: [{ press: '+' }, { click: { colHeader: 1 } }] },
+      { input: 'keyboard', covers: 'full', how: 'Typing the column range at the caret inserts the same text; no point-mode key picks whole columns',
+        steps: [{ press: '+' }, { press: ['B', ':', 'C'] }] },
+    ],
   },
 ];
 

@@ -17,7 +17,7 @@ export interface DragOperation {
   fixture?: string;
   query?: string;
   expect: string;
-  compare?: 'widths' | 'heights' | 'columnOrder' | 'rowOrder' | 'data' | 'frozen' | 'selected' | 'sheets' | 'comment';
+  compare?: 'widths' | 'heights' | 'columnOrder' | 'rowOrder' | 'data' | 'frozen' | 'selected' | 'sheets' | 'comment' | 'editorText';
   drag: Step[];
   alternatives: DragAlternative[];
 }

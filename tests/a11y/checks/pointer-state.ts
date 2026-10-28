@@ -47,7 +47,8 @@ export type PointerState = GridSnapshot & {
 export async function markTargets(page: Page, root: string): Promise<PointerTarget[]> {
   return page.evaluate(([selector, portalMark, controls, mark, max]) => {
     const container = document.querySelector(selector);
-    const portal = document.querySelector(`[${portalMark}]`);
+    // Every marked portal: the grid's own, and on the formula states hyperformula-ui's popup portal.
+    const portals = [...document.querySelectorAll(`[${portalMark}]`)];
     const shown = (el: Element) => {
       const box = el.getBoundingClientRect();
 
@@ -57,13 +58,16 @@ export async function markTargets(page: Page, root: string): Promise<PointerTarg
     // editor), so only the controls inside what is open are measured there; the rest are measured on the
     // pages where nothing is open.
     const editor = (container?.querySelector('.ht-root-wrapper') as (HTMLElement & { __hotInstance?: any }) | null)?.__hotInstance?.getActiveEditor?.();
-    const open = (query: string) => [portal, container].flatMap(region => [...(region?.querySelectorAll(query) ?? [])]).filter(shown);
+    const open = (query: string) => [...portals, container].flatMap(region => [...(region?.querySelectorAll(query) ?? [])]).filter(shown);
     const surfaces = [
-      ...open('.htContextMenu, .htDropdownMenu, .htFiltersConditionsMenu, .htComments, .ht-dialog'),
-      ...(editor?.isOpened?.() ? [editor.TEXTAREA_PARENT, editor.htContainer, editor.selectWrapper, editor.dropdownContainerElement].filter(Boolean) : []),
+      ...open('.htContextMenu, .htDropdownMenu, .htFiltersConditionsMenu, .htComments, .ht-dialog, .hfe-suggestions, .hfe-fn-help'),
+      // `container` is the element an editor built by the editor factory draws in (the formula editor).
+      ...(editor?.isOpened?.()
+        ? [editor.TEXTAREA_PARENT, editor.htContainer, editor.selectWrapper, editor.dropdownContainerElement, editor.container].filter(Boolean)
+        : []),
     ] as Element[];
     // An open editor whose elements are none of those still makes a press elsewhere commit it.
-    const regions = surfaces.length > 0 || editor?.isOpened?.() ? surfaces : [container, portal].filter(Boolean) as Element[];
+    const regions = surfaces.length > 0 || editor?.isOpened?.() ? surfaces : [container, ...portals].filter(Boolean) as Element[];
     const volatile = /^(current|area|highlight|htDisabled|htFocus|htSeparator$|ht_[0-9a-f]{6,}$)/;
     const fingerprint = (el: Element) => {
       const name = [...el.classList].find(item => !volatile.test(item));
@@ -115,7 +119,7 @@ export async function targetPoints(page: Page, root: string, id: number) {
     }
 
     const box = el.getBoundingClientRect();
-    const regions = [document.querySelector(selector), document.querySelector(`[${portalMark}]`)].filter(Boolean) as Element[];
+    const regions = [document.querySelector(selector), ...document.querySelectorAll(`[${portalMark}]`)].filter(Boolean) as Element[];
     const corners = [[4, innerHeight - 4], [innerWidth - 4, innerHeight - 4], [4, 4], [innerWidth - 4, 4]];
     const away = corners.find(([x, y]) => {
       const hit = document.elementFromPoint(x, y);
@@ -140,7 +144,7 @@ export async function pointerState(page: Page, root: string): Promise<PointerSta
   const grid = await snapshot(page, root);
   const extra = await page.evaluate(([selector, portalMark]) => {
     const container = document.querySelector(selector);
-    const regions = [container, document.querySelector(`[${portalMark}]`)].filter(Boolean) as Element[];
+    const regions = [container, ...document.querySelectorAll(`[${portalMark}]`)].filter(Boolean) as Element[];
     const all = (query: string) => regions.flatMap(region => [...region.querySelectorAll(query)]);
     const shown = (el: Element) => {
       const box = el.getBoundingClientRect();

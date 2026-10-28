@@ -1651,7 +1651,7 @@ drags (`pointer-state.ts`, `drag-runner.ts`); the verdicts are `lib/pointer.mjs`
   part, and the steps that perform it. The spec performs the drag first, and a drag that does not have
   the effect the entry names is a red test: the inventory is wrong. Each alternative then runs on a page
   as it loads and is proven when it has the same effect and, for one that covers the whole drag, leaves
-  the compared field (the data, the selection, the sheet order) exactly as the drag left it. 2.5.7 needs
+  the compared field (the data, the selection, the sheet order, the open editor's text) exactly as the drag left it. 2.5.7 needs
   a proven single-pointer alternative that covers the whole drag; 2.1.1 a proven keyboard one; a listed
   alternative that did not work is `alternative-does-not-work`. An operation with no alternative lists
   none, and that absence is the finding.
