@@ -134,6 +134,8 @@ export class Positioner {
     } else {
       this.setPositionOnLeftOfCursor();
     }
+
+    this.#clampHorizontally();
   }
 
   /**
@@ -209,5 +211,30 @@ export class Positioner {
     }
 
     this.#container!.style.left = `${left}px`;
+  }
+
+  /**
+   * Moves the menu back inside the viewport when the side it was placed on leaves it. The side is
+   * chosen from the room on one side of the cursor, so a menu that fits on neither side of it ends
+   * up past the viewport's edge. The check runs on the position written to `style.left`, which is in
+   * page coordinates, so the viewport's edges are the window's scroll offset and that offset plus the
+   * viewport's width. A menu wider than the viewport keeps its inline-start edge visible.
+   */
+  #clampHorizontally() {
+    const container = this.#container!;
+    const { scrollLeft, rootWindow } = this.#cursor!;
+    const viewportWidth = rootWindow.document.documentElement.clientWidth;
+    const minLeft = scrollLeft;
+    const maxLeft = scrollLeft + viewportWidth - container.offsetWidth;
+    const left = Number.parseFloat(container.style.left);
+    // The two orders differ only for a menu wider than the viewport, where `maxLeft` is below `minLeft`
+    // and the later bound wins: the inline-start edge stays visible, so each direction needs its own.
+    const clampedLeft = container.dir === 'rtl' ?
+      Math.min(maxLeft, Math.max(left, minLeft)) :
+      Math.max(minLeft, Math.min(left, maxLeft));
+
+    if (clampedLeft !== left) {
+      container.style.left = `${clampedLeft}px`;
+    }
   }
 }
