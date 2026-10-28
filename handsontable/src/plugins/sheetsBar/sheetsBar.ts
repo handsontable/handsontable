@@ -3207,6 +3207,24 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
+   * Returns a sheet's imported cell style rules as they stand now: ImportFile's live rules while the sheet is
+   * shown with the plugin on, otherwise the rules the bar stored for it (`#captureImportedStyles`), which a
+   * visible sheet that turned the plugin off still has.
+   *
+   * @param {object} sheet The sheet.
+   * @returns {object|null}
+   */
+  #importedStylesOf(sheet: Sheet): Record<string, string> | null {
+    const isShown = this.#model?.getActiveSheet()?.id === sheet.id;
+
+    if (isShown && this.hot.getPlugin('importFile')?.enabled) {
+      return this.#exportImportedStyles();
+    }
+
+    return this.#importedStyles.get(sheet) ?? null;
+  }
+
+  /**
    * Gives a duplicated sheet what an import left on its original: the imported cell style rules, as the
    * original holds them now (the copy's data carries the same classes), and the keys the import wrote, which
    * the copy's settings carry too, so a `sheetsBar: false` teardown on the copy keeps that layout on the grid
@@ -3216,8 +3234,7 @@ export class SheetsBar extends BasePlugin {
    * @param {object} copy The duplicate.
    */
   #copyImportedState(original: Sheet, copy: Sheet) {
-    const isOriginalShown = this.#model?.getActiveSheet()?.id === original.id;
-    const styles = isOriginalShown ? this.#exportImportedStyles() : (this.#importedStyles.get(original) ?? null);
+    const styles = this.#importedStylesOf(original);
     const keys = this.#importedKeys.get(original);
 
     if (styles) {

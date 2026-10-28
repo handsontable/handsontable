@@ -504,6 +504,26 @@ describe('SheetsBar with an imported file', () => {
       expect(importedStyles()).toContain(alphaClass);
     });
 
+    it('gives a duplicate the stored styles of a visible original that turned ImportFile off', async() => {
+      const bar = buildWorkbook([
+        { name: 'Alpha', data: threeColumns() },
+        { name: 'Beta', data: threeColumns() },
+      ]);
+
+      await importFixture('styles', { importStyles: true });
+
+      const [alphaClass] = importedClassesAtFirstCell();
+
+      bar.updateSheetSettings('Alpha', { importFile: false });
+
+      const copy = bar.duplicateSheet(bar.getSheets()[0].id);
+
+      bar.setActiveSheet(copy.id);
+      bar.updateSheetSettings(copy.id, { importFile: true });
+
+      expect(importedStyles()).toContain(alphaClass);
+    });
+
     it('removes the previous workbook\'s styles when a new workbook is built', async() => {
       const bar = buildWorkbook([
         { name: 'Alpha', data: threeColumns() },
