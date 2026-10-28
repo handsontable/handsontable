@@ -1,5 +1,5 @@
 import { writeFileSync } from 'node:fs';
-import { type Page, type TestInfo } from '@playwright/test';
+import { expect, type Page, type TestInfo } from '@playwright/test';
 import { EVIDENCE_ATTACHMENT, EVIDENCE_SCHEMA, TARGET_ANNOTATION } from '../lib/a11y-evidence.mjs';
 
 /**
@@ -83,7 +83,11 @@ export async function readEnvironment(page: Page): Promise<EvidenceEnvironment> 
 }
 
 /**
- * Attaches the part of the running test: its target, its findings, and what it measured.
+ * Attaches the part of the running test: its target, its findings, and what it measured. A page that
+ * threw while it was measured (a plugin's focus handler under a key the check pressed) gets no part: the
+ * test fails, and the reporter records the target as not measured, with the error, the same way
+ * `reachState()` treats an error before the state is reached. An empty `findings` list from a page
+ * that crashed halfway would read as a clean target.
  *
  * @param testInfo The running test.
  * @param part The part.
@@ -93,9 +97,11 @@ export async function readEnvironment(page: Page): Promise<EvidenceEnvironment> 
  * @param part.findings The findings; an empty list is evidence that nothing was found.
  * @param part.criteria The criteria this target evaluated, when it is fewer than the check's.
  * @param part.detail Everything measured, written to the target's detail file beside the document.
+ * @param part.pageErrors The errors the page threw (`opened.pageErrors` of `openTarget()`; every page the
+ *   test opened, when it opened more than one).
  */
 export async function attachEvidence(testInfo: TestInfo, {
-  target, startedAt, environment, findings, criteria, detail,
+  target, startedAt, environment, findings, criteria, detail, pageErrors,
 }: {
   target: EvidenceTarget;
   startedAt: number;
@@ -103,7 +109,10 @@ export async function attachEvidence(testInfo: TestInfo, {
   findings: EvidenceFinding[];
   criteria?: string[];
   detail?: unknown;
+  pageErrors: string[];
 }): Promise<void> {
+  expect(pageErrors, 'the page threw no error while it was measured').toEqual([]);
+
   const part = {
     schema: EVIDENCE_SCHEMA,
     target,
