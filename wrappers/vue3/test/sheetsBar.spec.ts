@@ -403,6 +403,74 @@ describe('cooperation with the SheetsBar plugin', () => {
 
     testWrapper.unmount();
   });
+
+  it('sends an option written as an object when a value inside it changes', async() => {
+    const App = {
+      components: { HotTable },
+      template: `
+        <HotTable
+          licenseKey="non-commercial-and-evaluation"
+          :sheetsBar="{ sheets, animation: { switch: animate } }"
+          ></HotTable>`,
+      data() {
+        return {
+          animate: true,
+          sheets: [{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }],
+        };
+      },
+    };
+
+    const testWrapper = mount(App, {
+      attachTo: document.getElementById('app')
+    });
+    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
+    const updateSettingsSpy = jest.spyOn(hotInstance, 'updateSettings');
+
+    testWrapper.vm.animate = false;
+    await nextTick();
+
+    expect(updateSettingsSpy).toHaveBeenCalledTimes(1);
+    expect(updateSettingsSpy.mock.calls[0][0]).toHaveProperty('sheetsBar.animation.switch', false);
+    expect(hotInstance.getPlugin('sheetsBar').getSetting('animation')).toEqual({ switch: false });
+
+    testWrapper.unmount();
+  });
+
+  it('turns the sheets bar off and on again when the prop switches between `false` and an object', async() => {
+    const App = {
+      components: { HotTable },
+      template: `
+        <HotTable
+          licenseKey="non-commercial-and-evaluation"
+          :sheetsBar="enabled ? { sheets } : false"
+          ></HotTable>`,
+      data() {
+        return {
+          enabled: true,
+          sheets: [{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }],
+        };
+      },
+    };
+
+    const testWrapper = mount(App, {
+      attachTo: document.getElementById('app')
+    });
+    const plugin = testWrapper.getComponent(HotTable).vm.hotInstance.getPlugin('sheetsBar');
+
+    expect(plugin.isEnabled()).toBe(true);
+
+    testWrapper.vm.enabled = false;
+    await nextTick();
+
+    expect(plugin.isEnabled()).toBe(false);
+
+    testWrapper.vm.enabled = true;
+    await nextTick();
+
+    expect(plugin.isEnabled()).toBe(true);
+
+    testWrapper.unmount();
+  });
 });
 
 /**

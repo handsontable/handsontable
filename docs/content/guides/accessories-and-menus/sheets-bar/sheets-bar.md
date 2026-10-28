@@ -147,7 +147,7 @@ The same applies to a function or a class instance in a sheet's `settings`, such
 
 ### Keep the `sheets` array stable
 
-Declare `sheets` once, in a `ref()`, in `data()`, or as a constant, the same way you pass `data` to a grid, and pass it as `:sheetsBar="{ sheets }"`. The plugin writes the user's renames, added sheets, and removed sheets into that array. A `sheets` array or a sheet's `data` written inline in the template is a new one each time the component re-renders, so the plugin reads it as another workbook and rebuilds it: the user's renames, added sheets, sort, filters, and edits are gone.
+Declare `sheets` once, in a `ref()`, in `data()`, or as a constant, the same way you pass `data` to a grid, and pass it as `:sheetsBar="{ sheets }"`. The plugin writes the user's renames, added sheets, and removed sheets into that array. A `sheets` array written inline in the template is a new one each time the component re-renders, without those changes, and a sheet's `data` written inline is a new array each time, so the plugin reads it as another workbook and rebuilds it: the user's renames, added sheets, sort, filters, and edits are gone.
 
 ```vue
 <script setup>
