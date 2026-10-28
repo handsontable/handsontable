@@ -377,6 +377,8 @@ The `row` and `rowspan` of a range describe the rows on screen. While a filter h
 
 A range that reaches past the rows on screen can't be applied. If the range was applied before, and its merged cell still covers the rows it was merged on, Handsontable keeps that merged cell instead of dropping it. The merged cell comes back when you clear the filter, and its values stay as they were. This covers a filter that hides every row, too.
 
+Handsontable keeps a merged cell the same way once it has taken a removed row that the range doesn't span. Sending the same range again, with the row removed or back in the grid, doesn't shrink the merged cell to the range's `rowspan`. A range that would overlap a kept merged cell keeps its merged cell as well. Other ranges are applied to the rows on screen, as before. A kept merged cell isn't applied again, so it doesn't clear values that arrived under it since. Send a different range to rebuild it from the rows on screen.
+
 So one re-applied array can hold both kinds of range. For example, with only 3 rows on screen:
 
 ```js
@@ -445,6 +447,15 @@ new Handsontable(container, {
 });
 ```
 
+## Column widths
+
+When the [`autoColumnSize`](@/api/options.md#autocolumnsize) option sizes the columns to their content, it measures the content of merged cells too:
+
+- A merged cell that spans one column sizes that column, like any other cell.
+- A merged cell that spans several columns widens the first visible column it spans, until the spanned columns fit the content together. When the other spanned columns are wide enough already, no column changes.
+
+A spanned column with a fixed [`width`](@/api/options.md#width) or a width you dragged keeps it, and a hidden spanned column counts as zero.
+
 ## Effect on viewport getter methods
 
 With merged cells, the rendered range extends to fit any merged cell that crosses the viewport edge. This is the same expansion that the `virtualized` option turns off. As a result, the rendered-range getters can return indexes beyond what you see on the screen:
@@ -478,7 +489,7 @@ Some features remove rows from the grid entirely: [`filters`](@/api/options.md#f
 
 - The merged cell moves to the first of its rows that is still shown, and spans only the rows of its own that remain. It never grows over the rows below it.
 - When none of its rows is shown, the merged cell is not displayed.
-- When the rows come back, the merged cell spans them again. Nothing about the merge is lost while its rows are away. A merged cell you create while rows are already removed from view, with the context menu, the keyboard shortcut, or the `merge()` method, covers the rows you could see and the removed rows between them. It spans those removed rows when they come back, but it does not grow over the removed rows above its first row or below its last row. Like any merged cell, it empties the cells it covers when you create it, but a removed row keeps its values in the source data. They stay under the merged cell, so `getData()`, exports, and search still return them, and they show again if you unmerge. A merged cell you declare in the [`mergeCells`](@/api/options.md#mergecells) option describes the rows on screen, so it does not take the removed rows between them.
+- When the rows come back, the merged cell spans them again. Nothing about the merge is lost while its rows are away. A merged cell you create while rows are already removed from view, with the context menu, the keyboard shortcut, or the `merge()` method, covers the rows you could see and the removed rows between them. It spans those removed rows when they come back, but it does not grow over the removed rows above its first row or below its last row. Like any merged cell, it empties the cells it covers when you create it, but a removed row keeps its values in the source data. They stay under the merged cell, so `getData()`, exports, and search still return them, and they show again if you unmerge. A merged cell you declare in the [`mergeCells`](@/api/options.md#mergecells) option works the same way: its `row` and `rowspan` describe the rows on screen when it is applied for the first time, and the removed rows between them come back under it. Sending the same range again while rows are removed applies it to the rows on screen and does not add the removed rows between them. A merged cell declared with `rowspan: 3` over a removed row between its rows spans 4 rows once the removed row returns.
 - When a row move splits a merged cell while some of its rows are removed from view, each removed row stays with the fragment holding the merged cell's own rows next to it in the grid's row order, which is the order the rows take when they come back. A removed row never crosses a row the merged cell does not cover: when the move places such a row between the merged cell's own rows, the removed rows on each side of it stay on that side, and a removed row with no fragment reachable that way is lost.
 - A merged cell whose rows a sort has separated is the exception. It still spans one block, so that block reaches over rows the merged cell does not cover, and a row move that breaks the block cannot tell which fragment owns which row. Each fragment then covers only the rows it shows, and the rows removed from view are not restored. A single-column merged cell disappears altogether in this case, because every fragment it leaves behind is a single cell. Sort the column back, or clear the filter, before you move the rows.
 

@@ -48,6 +48,7 @@ export interface HyperFormulaEngine {
   validateFormula(formula: string): boolean;
   getSheetDimensions(sheetId: number): { width: number; height: number };
   getCellType(address: { sheet: number | null; row: number; col: number }): unknown;
+  isCellEmpty(address: { sheet: number | null; row: number; col: number }): boolean;
   doesCellHaveFormula(address: { sheet: number | null; row: number; col: number }): boolean;
   getCellValue(address: { sheet: number | null; row: number; col: number }): unknown;
   getCellHyperlink(address: { sheet: number | null; row: number; col: number }): string | undefined;

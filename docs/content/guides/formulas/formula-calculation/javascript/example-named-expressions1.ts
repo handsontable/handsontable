@@ -52,5 +52,4 @@ button!.addEventListener('click', () => {
 
   statusOutput.textContent = '';
   statusOutput.classList.remove('is-error');
-  hot.render();
 });

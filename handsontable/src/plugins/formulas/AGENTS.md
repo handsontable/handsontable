@@ -83,12 +83,28 @@ const isRestoreSource = source => source === 'UndoRedo.undo' || source === 'Undo
     or a restored sequence - turns some of them into `#REF!` (measured: `setRowOrder([2, 3, 4, 0, 1])`
     on a fresh sheet writes `=#REF!+1000` where the equivalent `moveRows` writes `=A5+1000`). So the
     state carries `engine.getSheetSerialized()` plus both syncers' `getEngineOrder()`, and the restore
-    loads it with `setSheetContent()` and `adoptEngineOrder()` - nothing is sent to reorder it. Never
-    "simplify" this into reload-then-reorder; that reproduces the `#REF!`.
+    loads it with `setSheetContent()` and `adoptEngineOrder()`. Never "simplify" this into
+    reload-then-reorder; that reproduces the `#REF!`. The snapshot's order is the grid's order at capture
+    time, and the grid can have been reordered since (a `setIndexesSequence()` call is no undo step). So
+    `adoptEngineOrder()` takes the recorded order over and then sends the grid's current order, unless the
+    order is held: the engine ends in the grid's order, as if the reorder had come after the load. Taking
+    the recorded order as final left the engine and the translation tables on different orders, and the
+    undo of an edit then showed another row's values (`undoStaleOrder.unit.js`).
 
   With the same structure version, the held writes are written into the engine in one
   `engine.batch()`. The sheet snapshot is re-serialized on every step that writes data while the
   grid is sorted or moved - an O(cells) cost per step on those grids only.
+- **Open: an undo can restore formula text the engine never held in physical order.** A row inserted
+  while the order is not physical shifts the engine's formulas but not the formula text in the source
+  data (the write-back is skipped there). When the order later returns to physical, the next forward
+  step writes the engine's text into the source and journals the stale text as its "before" value, and
+  that step's `before` state has no engine sheet, so its undo reloads the stale source. No cell edit and
+  no stale order are involved, so `adoptEngineOrder()` does not reach it. Repro (`undoRedo: true`, data
+  `[[10, '=A1*2'], [20, '=A2*2'], [null, null], [null, null]]`): `setIndexesSequence([3, 0, 1, 2])`,
+  `alter('insert_row_above', 1)`, `setIndexesSequence([0, 1, 2, 3, 4])`, `alter('remove_row', 4)`, one
+  undo. `getData()` reads `[[null, null], [10, 0], [20, 20], [null, null], [null, null]]` where it read
+  `[[null, null], [10, 20], [20, 40], [null, null]]` before the removal. No committed test: the repo
+  rejects a skipped test, and a failing one cannot land.
 - **Draw every new version from `#versionSeed`, never reuse one.** `restoreState()` sets the
   current versions to the restored state's; a later change that reused a number would make a
   different structure compare equal to a recorded one.
@@ -104,6 +120,48 @@ const isRestoreSource = source => source === 'UndoRedo.undo' || source === 'Undo
   a restore that changes the order changes `structureVersion`, so it ends in a full sheet replacement
   that also resets or adopts the stored order. A flag set in `beforeUndo` would leak whenever a later
   `beforeUndo` listener vetoes - the defect the old implementation had.
+
+**A restore trims the lines the reload left behind.** `setSheetContent()` never shrinks a sheet, so
+the row or column an insert added stayed in the engine when an undo reloaded the sheet without it: one extra
+engine line per insert and undo (7 rows, the last one moved to the top, 40 cycles of an insert at row 2: height
+3 to 45; without a reorder, an insert at row 0 or 1 gave 2 to 42). `addRows` grows the sheet for a real reason
+and the grid's undo never tells the engine, so the undo's reload is where the line is not given back. **Only
+the undo and redo restore trims** (`#restoreStructure()`, for a structural step, after the peer rewrites are put
+back). A data-only step restores through the other branch of `restoreState()` and never trims, so a sheet the
+host grew keeps its size. `loadData()`, `updateSettings({ data })` and every other `setSheetContent()` path
+still keep the sheet's size, as before. A host that inserts and then reloads the data in a loop still leaks.
+
+The trim takes away only what the step added:
+
+- **It never goes below the size the restored state had.** `#sheetSizeFloors` maps each recorded state to
+  the engine's width and height at its last capture, and `AxisSyncer#trimUnusedTail(minSize)` stops there,
+  per axis. A row insert and its undo therefore cannot shorten the width, and a sheet the engine had grown on
+  its own (a write-and-clear extension, another sheet's reference) keeps that size. **The size is not part of
+  the state.** `captureState()` hands back the previous state while the versions are unchanged, and a sheet
+  that another grid grows (`=Sheet1!A50` typed in a second grid) changes no version: a state that carried the
+  size was replaced by a new object, UndoRedo compares states by identity, so it recorded an empty step and
+  dropped the redo stack. A reused state gets its floor raised to the current size instead.
+- **A line goes only when it holds nothing and no formula reads a cell of it** (`getCellDependents()`). An
+  empty cell that a formula reads counts towards the sheet's size, and removing its line turns the reference
+  into `#REF!` (`=A5*2` becomes `=#REF!*2`, and `SUM(A1:A9)` shrinks). Check the dependents, not only
+  `isCellEmpty()`. The trim runs after `#restorePeerRewrites()` because a peer's formula still names the
+  shifted line before that. The scan starts at the last line and stops at the first used one, so a sheet
+  without a leak pays one line's check.
+- **The reload, the peer rewrites and both trims are one engine batch, so a restore emits once.** Every
+  engine call recalculates a volatile formula (`=RAND()`), and each recalculation emits `valuesUpdated` and
+  `afterFormulasValuesUpdate` and repaints a second grid on the engine again. Trimming in a call of its own
+  made that two emits for one undo. The batch is why `#restoreStructure()` reads the source data before it
+  and holds `#internalOperationPending` for its length: a suspended engine refuses value reads, and those
+  come from `modifyData` and `modifySourceData`. `#restorePeerRewrites()` runs inside it without a batch of
+  its own (a nested `batch()` would end the suspension), and `#syncPeerSources()` runs after it, because it
+  reads values. The trim is not in a `finally`: after a half-applied restore, lines still to be filled look
+  unused, and the batch skips it when something above throws.
+- **Known limit: a whole-column or whole-row reference (`SUM(A:A)`, `SUM(1:1)`) is never trimmed.** It
+  depends on every cell of its column or row, so no line is unused and the sheet grows by one line per
+  insert and undo, as it does without the trim. Pinned as such in `__tests__/insertUndoEngineSize.unit.js`;
+  fixing it means asking whether the only readers of a line are ranges that span the whole axis.
+
+Pinned by `__tests__/insertUndoEngineSize.unit.js`, which also pins formulas that read cells past the content.
 
 A move is covered the same way: the cells a move writes, and the formulas elsewhere the engine
 rewrote, are all journaled inside the move's own step, so an undo writes them back and `restoreState()`
@@ -498,7 +556,7 @@ again. Five rules:
   out-of-bounds rows of a paste into the engine once, not again from afterChange`. Its neighbor, `undoes a
   paste past the last row in the grid and the engine`, checks the undo only and does not pin the single
   write.
-- **The write-back repaints the other sheets' grids that read the cell** (`renderDependentSheets`), like
+- **The write-back repaints the other sheets' grids that read the cell** (the write scope, see `valuesUpdated` below), like
   the `afterSetDataAtCell` path: a grid on another sheet kept painting the old value while its data was
   already right. Pinned by `repaints another sheet's grid that reads the written-back cell`.
 - **The write-back validates the dependents it recalculated**, like the `afterSetDataAtCell` path. The
@@ -736,7 +794,7 @@ site, `AxisSyncer#syncOrderWithEngine`:
   onto the elements the engine holds, keeping their relative order, rather than sent whole — sending it whole
   is what made sorting such a grid throw `InvalidArgumentsError` (DEV-2904).
 
-Four rules ride along.
+These rules ride along.
 
 - **The order must be a permutation of `0..size - 1`.** The engine validates entries as well as length, so an
   index the sequence no longer covers (the mid-batch state that used to produce `-1`) is ranked last rather
@@ -754,18 +812,72 @@ Four rules ride along.
   moment it was filled**. That sequence is captured when the empty sheet is found and used to extend the
   stored list, because the grid can have been reordered since — reading the current sequence there would
   conclude the engine already holds the new order and skip the sync that carries it.
-- **An order that cannot be reproduced is not sent.** The compression keeps the engine's own elements in
-  their relative order, which reproduces the grid exactly while they still occupy the sequence's leading
-  positions — a sheet shorter than the grid means the grid's extra rows are the empty tail the engine left
-  out. A reorder that moves one of those in FRONT of an element the engine holds is inexpressible: the engine
-  addresses its rows positionally and has no row to shift the others past. Approximating it would leave the
-  index translation (which reads HF index `i` as sequence position `i`) and the engine on different rows, so
-  nothing is sent. An order that would change nothing is skipped too, because the engine records an undo
-  entry and clears its redo stack for every order it is handed.
+- **The engine holds the grid's order up to the last element with content.** Translation reads HF index `i`
+  as sequence position `i`, so every index the engine holds sits where the grid shows it. The compression
+  keeps the engine's own elements in their relative order. The extra rows or columns of a sheet shorter
+  than the grid are an empty tail the engine left out, and one behind the last element with content needs
+  no row. One in front of it does, so the sheet is extended to the last index with content and the order
+  covers the empty ones. The engine ends a sheet at its content and `addRows`/`addColumns` past it do not
+  extend it, so the extension writes the last needed cell and clears it. That write and the order go in one
+  `engine.batch()`: one change list, which shows the cleared cell as a `null` change, and one undo step.
+  An order that would change nothing is skipped, because the engine records an undo entry and clears its
+  redo stack for every order it is handed.
+- **A padded blank is not content, and its label does not matter.** The sync remembers the elements it
+  added only to carry an order (`#paddedElements`). While such a line is still empty in the engine, the
+  next sync relabels it for what that order needs: `#planOrder()` walks back from the end of the target
+  sequence, frees the padded blanks it meets there, and stops at the first element with content. Counting
+  them as content made a blank moved to the top and back grow the sheet to the grid's full length (20,000
+  rows measured: height 20,000 and 691 ms for the second `setIndexesSequence()`, against height 10 and
+  5 ms before the pad existed), and every later sort then sent a full-length order. The set travels with
+  the order: `EngineOrder.paddedElements` carries it through an undo, a redo and a sheet switch
+  (`adoptEngineOrder()` drops entries the restored sequence does not hold), and an insert or a removal
+  re-keys it by the physical indexes the mapper reports (`indexesInserted`/`indexesRemoved` local hooks,
+  renumbered with the mapper's own `getIncreasedIndexes`/`getDecreasedIndexes`). An inserted line joins
+  the set (it is an empty engine line; an insert at visual 0 above the padded blank grew the sheet to the
+  grid's length otherwise), and a removed index is **not** dropped: an undo removes the grid's row but
+  leaves the engine line, so the line carrying that label is still there, still empty, and dropping it made
+  the next order count it as content and pad the sheet by one line per insert-and-undo. A stale entry
+  only ever sits on an empty line, which the plan frees anyway. Any other change that is not a move clears
+  it. Pinned in `paddedElementsTravel.unit.js` (2,000 rows: height 11 after each).
+- **An order that moves a line an array formula spans is refused before anything is written.** The engine
+  throws `SourceLocationHasArrayError` for it, and the padding write precedes the order, so a throw left the
+  sheet one line taller. `#isOrderAllowed()` asks the engine first (`isItPossibleToSetRowOrder` /
+  `isItPossibleToSetColumnOrder`) and `#syncOrderWithEngine()` warns and returns `false`, as for `maxRows`.
+  The engine checks the lines the order moves and ignores where they go, and the lines added to carry the
+  order hold nothing, so the check asks about a rotation of the moved lines the sheet already has. A single
+  moved line has nothing to rotate with and is read cell by cell with `isCellPartOfArray()`.
+- **Rows or columns the engine gains later are labelled by the sequence the grid had at the last sync.**
+  A sync stores that sequence in `#fillSequence` unless the engine's own lines already sit where physical
+  order puts them. The grid writes a new row at its sequence position, so labelling it by physical order
+  put a value typed into it on a different row after the next order. An insert, a removal and a move store
+  the grid's whole new sequence as the engine's order, which already names every line the engine can gain,
+  so they reset `#fillSequence`; left set, `isEngineOrderPhysical()` stayed `false` after the order came
+  back to identity.
+- **A sync leaves the host's own engine batch alone.** `engine.batch()` resumes the evaluation
+  unconditionally, so inside a batch of the host's, or after its `suspendEvaluation()`, it throws "Batch
+  mode wasn't started" or ends the suspension early. The extension calls the three engine methods
+  directly when `engine.isEvaluationSuspended()` is true. Pinned in `shortSheetOrderSync.unit.js`.
+- **A reorder that moves a formula across the cell it refers to can turn the reference into `#REF!`.**
+  That is the engine's own `setRowOrder`/`setColumnOrder`, measured on a plain engine with no extension
+  involved. A full reverse of a sheet whose formula refers to a cell in another column is an example.
 
 Still open: a move applied while the engine's sheet is empty reaches the engine through `syncMoves` but is
-not reflected in the stored order, and a sequence change that cannot be expressed leaves the engine behind
-the grid with no warning.
+not reflected in the stored order. A sheet that the order would extend past the engine's `maxRows` or
+`maxColumns` is not extended: the sync warns, the engine keeps its order, and the stored order stays what
+the engine holds. The grid has already taken its order, so formulas read the wrong cells until the grid
+takes an order the engine can hold.
+
+Known limits of the pad:
+
+- **The pad keeps the sheet's height or width.** The engine never shrinks a sheet, so once content has
+  sat at the end of a long axis the sheet stays that long, and every later order is sent at that length.
+  Moving only blank lines does not grow it, also after an undo, a sheet switch, an insert, or a removal.
+  The one exception is the restore of an undo or a redo that changed the rows or columns: it trims the
+  unused tail (see "A restore trims the lines the reload left behind").
+- **A reference to a padded blank line follows the engine line, not the label.** Padded blanks are
+  relabeled, so a formula that refers to one reads `#REF!` once the blank is freed or moved across
+  content. That is the engine's own rewrite in `setRowOrder`/`setColumnOrder`, the same as for any
+  reference moved across content.
 
 ### A reload reads a jagged array, and the first row sets the column count (DEV-1143)
 
@@ -921,6 +1033,14 @@ text.** Both size through `GhostTable`, which calls a cell's renderer directly a
 can clip for as long as the mode is on. No render or settings change recalculates it. Accepted
 trade-off for keeping the toggle purely display-only rather than feeding the sampler a second, mode-
 dependent measurement path.
+
+## External engine changes
+
+`valuesUpdated` is engine-wide. `#onEngineValuesUpdated` paints this grid once when the change list names this instance's sheet. It does not copy the engine value into source data, and it does not validate. An engine write the host makes paints at once, once per write: `engine.batch()` emits after its callback, so several writes in one `batch()` paint once. A paint never runs later than the write that caused it. A throw from `hot.render()` there (a user hook inside the engine's emit) is caught and reported with `warn`, so the engine call, the other grids and the listeners after this one run.
+
+A plugin write runs inside `withPluginEngineWrite` (`indexSyncer/pluginEngineWrite.ts`), a per-engine scope. While one is open, the listener only hands its grid's paint to the scope. When the outermost scope on that engine ends, in a `finally`, each such grid paints once. A paint that throws does not stop the others, and the first error is rethrown to the caller after all have run (unless the write itself threw), as a dependent grid's render error reached the caller on develop. The scope is dropped before the paints run, so an engine write a paint's `afterRender` makes is an external write. HyperFormula emits inside `batch()` before `batch()` returns, so the scope wraps the `batch()` call, not a `setCellContents` nested in it. The grid that made the write is left out through `#writeOwnSheet()`, because the Core or the caller paints it. Plain `withPluginEngineWrite` is used where this grid must paint too (the out-of-bounds `afterChange` write, the `restored` undo write, the public `addSheet`). The axis syncer reaches `#writeOwnSheet()` through `IndexSyncer#getOwnEngineWrite()` for the two writes that emit: `batch` in `syncMoves`, and the order write in `#syncOrderWithEngine()`. The latter is one scope around the whole write, so the pad (`setCellContents` twice, then `setRowOrder` / `setColumnOrder`, see "The engine's sheet size" below) paints a dependent grid once, not once per engine call. `#isOrderAllowed()` only reads, and stays outside it. Pinned by the `a padded sheet, with a second grid that reads it` cases of `__tests__/externalEngineRender.unit.js`: a sequence or a sort that pads the sheet paints the dependent grid once and the editing grid not at all or once (its own sort render), where an unscoped write painted the editing grid one extra time. The SheetsBar plugin calls `Formulas#runEngineWrite` for its own engine calls, so a standalone grid on the engine paints whether or not the bar's grid has Formulas bound to it. A missing engine (a listener disabled the plugin mid-flow) runs `fn` with no scope, as develop did: `withPluginEngineWrite()` takes `null`, so a call site passes `this.engine` without `!`. A repaint that throws at the end of `addSheet` does not undo the registration: `#addSheet()` returns the name the engine took and the paint errors apart, `enablePlugin()` and `updatePlugin()` bind the sheet first and throw the first paint error at the end of the call, and the public `addSheet()` throws it after the sheet is in. Reading the error as "no sheet" left the grid unbound, and the next sync added a second sheet. A new plugin write needs a scope, or the listener paints it once per emit.
+
+A grid whose data is written into its sheet registers it inside one `#writeOwnSheet()`: `addSheet` re-resolves a formula in another grid that named the sheet first (`#REF!` becomes the cell's value, or empty), and the fill follows. On the `updateSettings` path the fill comes later, from `#resyncSheet()` at the first render, so the registration scope calls `holdPluginEngineWritePaints()` and the grids it named paint when the resync scope ends, once, after the data is in. A grid whose fill never comes (a throw before the resync) keeps its stale paint until the next plugin write on that engine. A grid built from the sheet (`#hotWasInitializedWithEmptyData`) writes nothing and registers unscoped. `updateConfig` is not wrapped: it does not emit `valuesUpdated`.
 
 ## Testing
 
