@@ -25,6 +25,9 @@ interface FontLoadGrid {
   updateSettings(settings: Record<string, unknown>): void;
   render(): void;
   destroy(): void;
+  getSourceData(): unknown[][];
+  updateData(data: unknown[][]): void;
+  loadData(data: unknown[][]): void;
 }
 
 interface GridGeometry {
@@ -418,14 +421,15 @@ export class WebFontLoadPage {
   }
 
   /**
-   * Starts a stream of source writes once the next font re-measure starts: after every draw while
-   * AutoColumnSize's sweep runs, the next idle task writes a new value into D11 through
-   * `setSourceDataAtCell()` and draws, the way an application that streams updates does. The idle task is
+   * Starts a stream of writes once the next font re-measure starts: after every draw while AutoColumnSize's
+   * sweep runs, the next idle task writes a new value into D11 through `setSourceDataAtCell()` (`source`), or
+   * calls `updateSettings({})` (`settings`, the way a wrapper re-renders), and draws, the way an application
+   * that streams updates does. The idle task is
    * queued after the sweep's own, so one chunk of the sweep runs between two writes. The stream ends when a
    * draw finds the sweep over, or after `maxWrites` writes. Read how it ended with `writeStreamEnd()`.
    */
-  async streamSourceWritesDuringFontsLoad(maxWrites: number): Promise<void> {
-    await this.page.evaluate((cap) => {
+  async streamWritesDuringFontsLoad(maxWrites: number, write: 'source' | 'settings' = 'source'): Promise<void> {
+    await this.page.evaluate(([cap, kind]) => {
       const win = window as unknown as {
         hot: FontLoadGrid,
         htWriteStreamEnd: { reason: 'sweepEnded' | 'cap', writes: number } | null,
@@ -451,7 +455,13 @@ export class WebFontLoadPage {
           queueTask(() => {
             writeQueued = false;
             writes += 1;
-            win.hot.setSourceDataAtCell(10, 3, String(writes));
+
+            if (kind === 'settings') {
+              win.hot.updateSettings({});
+            } else {
+              win.hot.setSourceDataAtCell(10, 3, String(writes));
+            }
+
             win.hot.render();
           });
         }
@@ -460,7 +470,7 @@ export class WebFontLoadPage {
       win.hot.addHook('afterFontsLoad', () => {
         win.hot.addHook('afterRender', onRender);
       }, 100);
-    }, maxWrites);
+    }, [maxWrites, write] as const);
   }
 
   /**
@@ -578,6 +588,76 @@ export class WebFontLoadPage {
         }
       }, 100);
     }, interruption);
+  }
+
+  /**
+   * Caches the samples of a column off screen: a forced render measures the columns on screen from their
+   * samples and keeps them. The grid is scrolled back to its first column afterwards.
+   *
+   * @param {number} column The visual column index.
+   */
+  async cacheSamplesOfColumn(column: number): Promise<void> {
+    await this.scrollToColumn(column);
+    await this.render();
+    await this.page.evaluate(() => {
+      (window as unknown as { hot: FontLoadGrid }).hot.scrollViewportTo({ col: 0, horizontalSnap: 'start' });
+    });
+    await expect.poll(() => this.page.evaluate(() => (window as unknown as { hot: FontLoadGrid }).hot
+      .getCell(0, 2) !== null)).toBe(true);
+  }
+
+  /**
+   * Replaces the data through `updateData()` with a copy whose cell holds `value`, right after the next font
+   * re-measure starts (the `afterFontsLoad` hook, after AutoColumnSize's own listener). The copy has the
+   * same rows and columns, so no index map changes.
+   */
+  async updateDataDuringFontsLoad(row: number, column: number, value: string): Promise<void> {
+    await this.page.evaluate(([visualRow, visualColumn, newValue]) => {
+      const win = window as unknown as { hot: FontLoadGrid };
+
+      win.hot.addHookOnce('afterFontsLoad', () => {
+        const data = win.hot.getSourceData().map(sourceRow => [...sourceRow]);
+
+        data[visualRow as number][visualColumn as number] = newValue;
+        win.hot.updateData(data);
+      }, 100);
+    }, [row, column, value]);
+  }
+
+  /**
+   * Sets AutoColumnSize's `syncLimit`, so a sweep over every column runs past the first columns in idle tasks.
+   */
+  async setAutoColumnSizeSyncLimit(syncLimit: number): Promise<void> {
+    await this.page.evaluate((limit) => {
+      (window as unknown as { hot: FontLoadGrid }).hot.updateSettings({ autoColumnSize: { syncLimit: limit } });
+    }, syncLimit);
+  }
+
+  /**
+   * Loads a copy of the data whose cell holds `value` through `loadData()`, and hides the grid's container in
+   * the same task, so the idle part of the sweep that follows the load finds the grid hidden.
+   */
+  async loadDataAndHide(row: number, column: number, value: string): Promise<void> {
+    await this.page.evaluate(([visualRow, visualColumn, newValue]) => {
+      const win = window as unknown as { hot: FontLoadGrid };
+      const data = win.hot.getSourceData().map(sourceRow => [...sourceRow]);
+
+      data[visualRow as number][visualColumn as number] = newValue;
+      win.hot.loadData(data);
+      (document.querySelector('[data-testid="grid"]') as HTMLElement).style.display = 'none';
+    }, [row, column, value]);
+  }
+
+  /**
+   * Turns AutoColumnSize off and on again, which registers its hook listeners after the other plugins'.
+   */
+  async toggleAutoColumnSize(): Promise<void> {
+    await this.page.evaluate(() => {
+      const win = window as unknown as { hot: FontLoadGrid };
+
+      win.hot.updateSettings({ autoColumnSize: false });
+      win.hot.updateSettings({ autoColumnSize: true });
+    });
   }
 
   /**

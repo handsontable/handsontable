@@ -9,7 +9,7 @@ import { isPercentValue } from '../../helpers/string';
 import { formatCellValue } from '../../renderers/renderCell';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { addClass, removeClass } from '../../helpers/dom/element';
-import { FONT_REMEASURE_ORDER_INDEX } from '../../core/fontLoad';
+import { FONT_REMEASURE_ROWS_ORDER_INDEX } from '../../core/fontLoad';
 
 export const PLUGIN_KEY = 'autoRowSize';
 export const PLUGIN_PRIORITY = 40;
@@ -428,7 +428,7 @@ export class AutoRowSize extends BasePlugin {
     this.#samplingApplied = true;
 
     this.addHook('afterLoadData', this.#onAfterLoadData);
-    this.addHook('afterFontsLoad', this.#onAfterFontsLoad, FONT_REMEASURE_ORDER_INDEX);
+    this.addHook('afterFontsLoad', this.#onAfterFontsLoad, FONT_REMEASURE_ROWS_ORDER_INDEX);
     this.addHook('beforeChangeRender', this.#onBeforeChange);
     this.addHook('beforeColumnResize', this.#onBeforeColumnResize);
     this.addHook('afterFormulasValuesUpdate', this.#onAfterFormulasValuesUpdate);
@@ -1017,8 +1017,8 @@ export class AutoRowSize extends BasePlugin {
     this.calculateVisibleRowsHeight();
     this.#drainRowRefreshQueue();
 
-    // AutoColumnSize enables first, so its listener has run: a sweep restarted in this render reads as
-    // still running, and its last chunk renders once it ends.
+    // A column re-measure owed to this render counts as running, whichever of the two listeners runs
+    // first, and the last chunk of the sweep renders once it ends.
     if (this.#rowsOwedToColumnSweep && this.hot.view.isVisible() && !this.#isColumnSweepRunning()) {
       this.#rowsOwedToColumnSweep = false;
       this.#fullRecalculationScheduled = true;
@@ -1112,14 +1112,15 @@ export class AutoRowSize extends BasePlugin {
   };
 
   /**
-   * Checks whether AutoColumnSize is still measuring columns in idle tasks.
+   * Checks whether AutoColumnSize is still measuring columns in idle tasks, or owes a re-measure of every
+   * column to the next render.
    *
    * @returns {boolean}
    */
   #isColumnSweepRunning(): boolean {
     const autoColumnSize = this.hot.getPlugin('autoColumnSize');
 
-    return autoColumnSize?.enabled === true && autoColumnSize.inProgress;
+    return autoColumnSize?.enabled === true && autoColumnSize.isReMeasurePending();
   }
 
   /**

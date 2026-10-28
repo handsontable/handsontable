@@ -2,10 +2,15 @@
  * The order index the sizing plugins register their `afterFontsLoad` listeners with. It puts them after
  * the listeners of the application (order index 0, the default, which also applies to a listener declared
  * in the settings), so a listener that drops a custom renderer's cached sizes runs before they measure.
- * The plugins share one index and keep the order they were enabled in: AutoColumnSize measures the
- * widths before AutoRowSize measures the rows that wrap in them.
  */
 export const FONT_REMEASURE_ORDER_INDEX = 10;
+
+/**
+ * The order index AutoRowSize registers its `afterFontsLoad` listener with. It runs after the other sizing
+ * plugins, so AutoColumnSize has started widening the columns that the rows wrap in. The enable order is
+ * not enough: a plugin turned off and on again registers its listeners last.
+ */
+export const FONT_REMEASURE_ROWS_ORDER_INDEX = FONT_REMEASURE_ORDER_INDEX + 1;
 
 /**
  * The part of `FontFaceSet` the watcher uses. Typed structurally so a document without the CSS Font

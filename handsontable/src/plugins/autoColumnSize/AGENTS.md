@@ -190,10 +190,12 @@ measures. The rules that sweep follows, each one a review finding:
   follows with a render, and a draw from inside the hook ran before AutoRowSize, NestedHeaders and the user's
   listeners had re-measured, so the grid drew twice (three times on a small grid, where that chunk ends the
   sweep). `loop(fromIdleTask)` draws only from an idle task.
-- **A change that makes the sweep's samples or widths stale ends it and owes a new one to the next render
-  (`#invalidateReMeasureSweep()`, `#reMeasureOwed`).** `#onAfterSetCellMeta`, `updatePlugin()`,
-  `#queueMergeRescan()` and the two index-mapper listeners call it: a changed row or column set leaves the sweep's
-  queue of visual columns describing other columns, and settings or meta can restyle what it measured.
+- **A change that makes the sweep's samples or queue stale ends it and owes a new one to the next render
+  (`#invalidateReMeasureSweep()`, `#reMeasureOwed`).** `#onAfterSetCellMeta`, `#queueMergeRescan()` and the two
+  index-mapper listeners call it: a changed row or column set leaves the sweep's queue of visual columns
+  describing other columns, meta can restyle a column it measured, and a merge's rescans wait for the sweep to end.
+  A meta write drops one column's samples, so the restart replays every other column and a stream of them still
+  lets the sweep finish.
   `#onBeforeRender` starts the owed sweep before `calculateVisibleColumnsWidth()`, so the same render draws the
   on-screen columns from it, and holds the debt while the grid has no rows or no columns. `#onAfterLoadData` drops
   the debt, since an owed sweep would take the new data's columns from the previous data's samples. Only a sweep
@@ -202,11 +204,19 @@ measures. The rules that sweep follows, each one a review finding:
   `#sweepPendingColumns` is set): a `calculateAllColumnsWidth()` call or a disable and enable that cut the sweep
   short left the columns it had not reached at the fallback-font width. A font load on a grid with no rows owes it
   too, instead of measuring the headers alone: the widths can come from rows the grid had before (pro #6).
-- **A source write does not end the sweep.** `#onAfterSetSourceDataAtCell` drops every cached sample, the forced
-  render after it measures the on-screen columns, and the sweep samples the others itself. Ending the sweep on every write restarted it from its first column on each draw, so on a 100k-row grid
-  that took a write every 200 ms the on-screen columns past the first chunk were never measured. A write to the
-  column the sweep is sampling marks it in `#sweepStaleColumns`, and the sweep samples that column again from its
-  first row.
+- **A source write and an `updateSettings()` call do not end the sweep.** Each drops the cached samples of what it
+  changed (the written columns, every column), the forced render after it measures the on-screen columns, and the
+  sweep samples the others afresh when it reaches them. Ending the sweep on each restarted it from its first column
+  on the next draw with no samples left to replay, so on a 100k-row grid that took a write every 200 ms, or a
+  wrapper that calls `updateSettings()` on every re-render, the on-screen columns past the first chunk were never
+  measured. A change to a column the sweep has not finished marks it in `#sweepStaleColumns`
+  (`#markSweepColumnStale()`, `#markPendingSweepColumnsStale()` for settings), and the sweep samples it again
+  from its first row. A source write drops only the written columns' samples, so the rest of the sweep still
+  replays its cache; a write the plugin cannot map to a column (a `data` function) drops them all.
+- **An `updateData()` while a re-measure runs or is owed drops the samples cache.** An update that keeps the row
+  and column count changes no index map, so the cache survives it and the sweep replayed the previous data's
+  samples. The sweep goes on (a wrapper sends `data` on every re-render). Outside a re-measure the cache still
+  survives `updateData()`, which is a gap in the refresh queue (DEV-2097), not in this sweep.
 - **A column the grid lost costs no budget.** `processChunk()` skips a queued column past `countCols()` without
   counting it, so a shrink from 250 columns to 1 ends the sweep in its next idle task, not three tasks later
   (`inProgress` holds back `#refreshQueuedColumnsWidth()` meanwhile).
@@ -218,14 +228,22 @@ measures. The rules that sweep follows, each one a review finding:
   styles changed (a web font is one), so the merges' kept widths are measured again at the end of the sweep.
 - **An idle chunk on a hidden grid cancels the sweep.** The ghost table measures inside the root element, so a
   grid hidden after the sweep started (a tab switch) read a width of 0 for every remaining column and drew them at
-  the minimum width once shown again. A re-measure is owed to the first render of the visible grid; a sweep that
-  fills in missing widths leaves them missing, and a draw measures the on-screen ones like any width it lacks.
+  the minimum width once shown again. A re-measure is owed to the first render of the visible grid, and so is one
+  for a cancelled sweep that overwrites every width (`recalculateAllColumnsWidth()` after `loadData()`), whose
+  unreached columns would keep the previous data's widths; their cached samples are dropped first, since they can
+  describe that data. A sweep that fills in missing widths leaves them missing, and a draw measures the on-screen
+  ones like any width it lacks.
 - **"On screen" is `#onScreenColumns()`: the frozen columns at both edges plus the master table's rendered range.**
   Once the grid is scrolled sideways, `getFirstRenderedVisibleColumn()` starts past the frozen band, so the
   rendered range alone would queue the frozen columns behind it.
 - **A column with an entry in `#columnWidthsToRefresh` is sampled again, never measured from its cache.** An edit
-  during the sweep is queued, but the queue is consumed only after the sweep, so the cached samples predate the
-  edit.
+  during the sweep is queued, and the queue holds the columns the sweep has not measured until it ends, so their
+  cached samples predate the edit. The queued columns the sweep already measured are consumed on the next draw
+  (`#refreshQueuedColumnsWidth()`): waiting for the end kept an edited on-screen column at its pre-edit width for
+  as long as the sweep ran, since each draw replays the samples cached before the edit.
+- **The sweep's own draw measures in one ghost table.** `calculateVisibleColumnsWidth()` hands the on-screen
+  columns to `#calculateColumnsWidth()` with a predicate (overwrite the measured ones, fill in the pending ones),
+  so the draw lays out one table and fits the merges once, not once per column.
 - **`measuredColumns` is left alone.** It counts a prefix of the visual columns for `isNeedRecalculate()`, which a
   sweep in viewport-first order does not extend.
 
@@ -233,7 +251,7 @@ measures. The rules that sweep follows, each one a review finding:
 Pinned by `tests/e2e/web-font-load.spec.ts` ("measures the first columns on screen at once...", "measures a frozen
 column...", "samples a column edited while...", "draws nothing inside the afterFontsLoad hook", "re-measures a
 column whose cell meta changed...", "draws after an idle chunk only when...", "stops measuring while the grid is
-hidden...", "keeps a re-measure owed...", "finishes a re-measure that...", "re-measures once shown when a listener hides...", "re-measures the columns a sweep already measured...", "finishes the
+hidden...", "keeps a re-measure owed...", "finishes a re-measure that...", "finishes the sweep while updateSettings() calls...", "refreshes an edit of a column the sweep already measured...", "samples the new data of an updateData() call...", "re-measures the columns a hidden grid kept from the data before loadData()...", "re-measures once shown when a listener hides...", "re-measures the columns a sweep already measured...", "finishes the
 sweep while source writes keep coming", "runs a listener added with the default order...", "re-measures a merge
 whose text...", "re-measures the headers of a grid that had no rows...", "measures every column on screen on an
 application render...") and `tests/e2e/sheets-bar-in-flight-work.spec.ts`
