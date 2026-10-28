@@ -1,0 +1,582 @@
+{
+  "timestamp": "2026-10-28T14:01:26.961Z",
+  "commit": "02b76c62246db647a495e12c113491061e78ec42",
+  "runId": "40697042196",
+  "runNumber": "826",
+  "harnessVersion": 2,
+  "environment": {
+    "chromium": "151.0.7922.34",
+    "cpuModel": "Apple M1",
+    "cpuCount": 8,
+    "memoryGiB": 8,
+    "platform": "darwin arm64",
+    "runnerImage": null
+  },
+  "scenarios": {
+    "cell-editing": {
+      "rangeStart": 0,
+      "rangeEnd": 2409,
+      "total": 2409,
+      "categories": {
+        "other": 48.07932086435954,
+        "scripting": 173.47900410842897,
+        "rendering": 160.85700432459512,
+        "painting": 29.434332529703777,
+        "idle": 1996.604338169098
+      },
+      "updateCounters": {
+        "sampleCount": 2708,
+        "jsHeapMinBytes": 15038138.666666666,
+        "jsHeapMaxBytes": 16767505.333333334,
+        "jsHeapMinLabel": "15038 kB",
+        "jsHeapMaxLabel": "16.8 MB",
+        "documentsMin": 1,
+        "documentsMax": 1,
+        "nodesMin": 862,
+        "nodesMax": 1153,
+        "listenersMin": 225,
+        "listenersMax": 394,
+        "jsHeapAfterGcBytes": 15183333.333333334,
+        "jsHeapAfterGcLabel": "15.2 MB",
+        "jsHeapAfterGcSamples": 3
+      },
+      "runs": 3,
+      "windowSource": "marks",
+      "measurementVersion": 1
+    },
+    "checkbox-column-set-data": {
+      "rangeStart": 0,
+      "rangeEnd": 127,
+      "total": 127,
+      "categories": {
+        "other": 21.410999640655515,
+        "scripting": 77.74120048599244,
+        "rendering": 1.3054001808166504,
+        "painting": 0.5588003158569336,
+        "idle": 26.22239923477173
+      },
+      "updateCounters": {
+        "sampleCount": 14,
+        "jsHeapMinBytes": 94066828.8,
+        "jsHeapMaxBytes": 105665688.8,
+        "jsHeapMinLabel": "94067 kB",
+        "jsHeapMaxLabel": "105.7 MB",
+        "documentsMin": 2,
+        "documentsMax": 2,
+        "nodesMin": 989,
+        "nodesMax": 1094,
+        "listenersMin": 194,
+        "listenersMax": 194,
+        "jsHeapAfterGcBytes": 99019111.2,
+        "jsHeapAfterGcLabel": "99.0 MB",
+        "jsHeapAfterGcSamples": 5
+      },
+      "runs": 5,
+      "windowSource": "marks",
+      "measurementVersion": 1
+    },
+    "checkbox-header-toggle": {
+      "rangeStart": 0,
+      "rangeEnd": 241,
+      "total": 241,
+      "categories": {
+        "other": 41.30080013275146,
+        "scripting": 171.3224000930786,
+        "rendering": 1.675600242614746,
+        "painting": 0.7211997985839844,
+        "idle": 25.811999797821045
+      },
+      "updateCounters": {
+        "sampleCount": 20,
+        "jsHeapMinBytes": 56791784,
+        "jsHeapMaxBytes": 76509899.2,
+        "jsHeapMinLabel": "56792 kB",
+        "jsHeapMaxLabel": "76.5 MB",
+        "documentsMin": 2,
+        "documentsMax": 2,
+        "nodesMin": 997,
+        "nodesMax": 1102,
+        "listenersMin": 194,
+        "listenersMax": 194,
+        "jsHeapAfterGcBytes": 59894530.4,
+        "jsHeapAfterGcLabel": "59.9 MB",
+        "jsHeapAfterGcSamples": 5
+      },
+      "runs": 5,
+      "windowSource": "marks",
+      "measurementVersion": 1
+    },
+    "column-autosize-refill": {
+      "rangeStart": 0,
+      "rangeEnd": 35,
+      "total": 35,
+      "categories": {
+        "other": 0,
+        "scripting": 16.371333801269532,
+        "rendering": 12.169999758402506,
+        "painting": 1.516334056854248,
+        "idle": 10.350667158762619
+      },
+      "updateCounters": {
+        "sampleCount": 6,
+        "jsHeapMinBytes": 20321857.333333332,
+        "jsHeapMaxBytes": 21174446.666666668,
+        "jsHeapMinLabel": "20322 kB",
+        "jsHeapMaxLabel": "21.2 MB",
+        "documentsMin": 1,
+        "documentsMax": 1,
+        "nodesMin": 2510,
+        "nodesMax": 3171,
+        "listenersMin": 196,
+        "listenersMax": 196,
+        "jsHeapAfterGcBytes": 20152978.666666668,
+        "jsHeapAfterGcLabel": "20.2 MB",
+        "jsHeapAfterGcSamples": 3
+      },
+      "runs": 3,
+      "windowSource": "marks",
+      "measurementVersion": 1
+    },
+    "filtering": {
+      "rangeStart": 0,
+      "rangeEnd": 78,
+      "total": 78,
+      "categories": {
+        "other": 8.19379997177124,
+        "scripting": 45.81099987106323,
+        "rendering": 6.444599628448486,
+        "painting": 0.7318001747131347,
+        "idle": 17.052400302886962
+      },
+      "updateCounters": {
+        "sampleCount": 15,
+        "jsHeapMinBytes": 272136275.2,
+        "jsHeapMaxBytes": 280036332.8,
+        "jsHeapMinLabel": "272136 kB",
+        "jsHeapMaxLabel": "280.0 MB",
+        "documentsMin": 2,
+        "documentsMax": 2,
+        "nodesMin": 1926,
+        "nodesMax": 1927,
+        "listenersMin": 248,
+        "listenersMax": 248,
+        "jsHeapAfterGcBytes": 271473688,
+        "jsHeapAfterGcLabel": "271.5 MB",
+        "jsHeapAfterGcSamples": 5
+      },
+      "runs": 5,
+      "windowSource": "marks",
+      "measurementVersion": 1,
+      "hookTiming": 46.259999942779544
+    },
+    "initial-load": {
+      "rangeStart": 0,
+      "rangeEnd": 51,
+      "total": 51,
+      "categories": {
+        "other": 3.994400227355958,
+        "scripting": 25.809400260162352,
+        "rendering": 10.928399467468262,
+        "painting": 1.1955999374389648,
+        "idle": 8.587400150299072
+      },
+      "updateCounters": {
+        "sampleCount": 15,
+        "jsHeapMinBytes": 268643635.2,
+        "jsHeapMaxBytes": 274888360,
+        "jsHeapMinLabel": "268644 kB",
+        "jsHeapMaxLabel": "274.9 MB",
+        "documentsMin": 1,
+        "documentsMax": 1,
+        "nodesMin": 47,
+        "nodesMax": 1923,
+        "listenersMin": 23,
+        "listenersMax": 191,
+        "jsHeapAfterGcBytes": 270632147.2,
+        "jsHeapAfterGcLabel": "270.6 MB",
+        "jsHeapAfterGcSamples": 5
+      },
+      "runs": 5,
+      "windowSource": "marks",
+      "measurementVersion": 1
+    },
+    "row-selection-deselect-all": {
+      "rangeStart": 0,
+      "rangeEnd": 33,
+      "total": 33,
+      "categories": {
+        "other": 4.547799276733398,
+        "scripting": 9.8035998588562,
+        "rendering": 5.680400657653808,
+        "painting": 1.4801997184753417,
+        "idle": 11.608400535583495
+      },
+      "updateCounters": {
+        "sampleCount": 7,
+        "jsHeapMinBytes": 72774094.4,
+        "jsHeapMaxBytes": 75108077.6,
+        "jsHeapMinLabel": "72774 kB",
+        "jsHeapMaxLabel": "75.1 MB",
+        "documentsMin": 2,
+        "documentsMax": 2,
+        "nodesMin": 1731,
+        "nodesMax": 1731,
+        "listenersMin": 193,
+        "listenersMax": 193,
+        "jsHeapAfterGcBytes": 72440870.4,
+        "jsHeapAfterGcLabel": "72.4 MB",
+        "jsHeapAfterGcSamples": 5
+      },
+      "runs": 5,
+      "windowSource": "marks",
+      "measurementVersion": 1,
+      "hookTiming": 1.0199999809265137
+    },
+    "row-selection-scroll": {
+      "rangeStart": 0,
+      "rangeEnd": 18239,
+      "total": 18239,
+      "categories": {
+        "other": 309.75432120005286,
+        "scripting": 2708.202355124156,
+        "rendering": 2801.094649473826,
+        "painting": 1080.6176659266155,
+        "idle": 11338.838341554007
+      },
+      "updateCounters": {
+        "sampleCount": 4200,
+        "jsHeapMinBytes": 150281229.33333334,
+        "jsHeapMaxBytes": 169490249.33333334,
+        "jsHeapMinLabel": "150281 kB",
+        "jsHeapMaxLabel": "169.5 MB",
+        "documentsMin": 3,
+        "documentsMax": 3,
+        "nodesMin": 2368,
+        "nodesMax": 9300,
+        "listenersMin": 206,
+        "listenersMax": 206,
+        "jsHeapAfterGcBytes": 150432052,
+        "jsHeapAfterGcLabel": "150.4 MB",
+        "jsHeapAfterGcSamples": 3
+      },
+      "runs": 3,
+      "windowSource": "marks",
+      "measurementVersion": 1
+    },
+    "row-selection-select-all": {
+      "rangeStart": 0,
+      "rangeEnd": 38,
+      "total": 38,
+      "categories": {
+        "other": 4.517999587249756,
+        "scripting": 11.189000382232667,
+        "rendering": 5.580199909210205,
+        "painting": 2.2540000915527343,
+        "idle": 14.920200157165528
+      },
+      "updateCounters": {
+        "sampleCount": 7,
+        "jsHeapMinBytes": 72734861.6,
+        "jsHeapMaxBytes": 75076810.4,
+        "jsHeapMinLabel": "72735 kB",
+        "jsHeapMaxLabel": "75.1 MB",
+        "documentsMin": 2,
+        "documentsMax": 2,
+        "nodesMin": 1731,
+        "nodesMax": 1731,
+        "listenersMin": 193,
+        "listenersMax": 193,
+        "jsHeapAfterGcBytes": 72382049.6,
+        "jsHeapAfterGcLabel": "72.4 MB",
+        "jsHeapAfterGcSamples": 5
+      },
+      "runs": 5,
+      "windowSource": "marks",
+      "measurementVersion": 1,
+      "hookTiming": 0.9200000762939453
+    },
+    "scroll-down": {
+      "rangeStart": 0,
+      "rangeEnd": 16716,
+      "total": 16716,
+      "categories": {
+        "other": 306.2200041631063,
+        "scripting": 1819.709656157176,
+        "rendering": 1951.0073347091675,
+        "painting": 693.041333993276,
+        "idle": 11945.667004426321
+      },
+      "updateCounters": {
+        "sampleCount": 3664,
+        "jsHeapMinBytes": 25667134.666666668,
+        "jsHeapMaxBytes": 40701237.333333336,
+        "jsHeapMinLabel": "25667 kB",
+        "jsHeapMaxLabel": "40.7 MB",
+        "documentsMin": 1,
+        "documentsMax": 1,
+        "nodesMin": 2130,
+        "nodesMax": 2276,
+        "listenersMin": 204,
+        "listenersMax": 204,
+        "jsHeapAfterGcBytes": 25824774.666666668,
+        "jsHeapAfterGcLabel": "25.8 MB",
+        "jsHeapAfterGcSamples": 3
+      },
+      "runs": 3,
+      "windowSource": "marks",
+      "measurementVersion": 1
+    },
+    "scroll-left": {
+      "rangeStart": 0,
+      "rangeEnd": 16680,
+      "total": 16680,
+      "categories": {
+        "other": 194.75530915959678,
+        "scripting": 1719.1003406295777,
+        "rendering": 719.9803450902303,
+        "painting": 202.2646656036377,
+        "idle": 13843.688672860464
+      },
+      "updateCounters": {
+        "sampleCount": 4194,
+        "jsHeapMinBytes": 18693492,
+        "jsHeapMaxBytes": 26779437.333333332,
+        "jsHeapMinLabel": "18693 kB",
+        "jsHeapMaxLabel": "26.8 MB",
+        "documentsMin": 1,
+        "documentsMax": 1,
+        "nodesMin": 1076,
+        "nodesMax": 1346,
+        "listenersMin": 204,
+        "listenersMax": 204,
+        "jsHeapAfterGcBytes": 18801876,
+        "jsHeapAfterGcLabel": "18.8 MB",
+        "jsHeapAfterGcSamples": 3
+      },
+      "runs": 3,
+      "windowSource": "marks",
+      "measurementVersion": 1
+    },
+    "scroll-right": {
+      "rangeStart": 0,
+      "rangeEnd": 16681,
+      "total": 16681,
+      "categories": {
+        "other": 172.9793514391581,
+        "scripting": 1743.3700009206134,
+        "rendering": 704.9419859250387,
+        "painting": 187.91432603200278,
+        "idle": 13871.980002244314
+      },
+      "updateCounters": {
+        "sampleCount": 4201,
+        "jsHeapMinBytes": 18690241.333333332,
+        "jsHeapMaxBytes": 27004765.333333332,
+        "jsHeapMinLabel": "18690 kB",
+        "jsHeapMaxLabel": "27.0 MB",
+        "documentsMin": 1,
+        "documentsMax": 1,
+        "nodesMin": 1346,
+        "nodesMax": 1346,
+        "listenersMin": 204,
+        "listenersMax": 204,
+        "jsHeapAfterGcBytes": 18793532,
+        "jsHeapAfterGcLabel": "18.8 MB",
+        "jsHeapAfterGcSamples": 3
+      },
+      "runs": 3,
+      "windowSource": "marks",
+      "measurementVersion": 1
+    },
+    "scroll-up": {
+      "rangeStart": 0,
+      "rangeEnd": 16706,
+      "total": 16706,
+      "categories": {
+        "other": 310.16265015920004,
+        "scripting": 1837.8270034281413,
+        "rendering": 1950.5570009549458,
+        "painting": 700.7009992599487,
+        "idle": 11907.012012799581
+      },
+      "updateCounters": {
+        "sampleCount": 3662,
+        "jsHeapMinBytes": 25664537.333333332,
+        "jsHeapMaxBytes": 40746974.666666664,
+        "jsHeapMinLabel": "25665 kB",
+        "jsHeapMaxLabel": "40.7 MB",
+        "documentsMin": 1,
+        "documentsMax": 1,
+        "nodesMin": 1758,
+        "nodesMax": 2275,
+        "listenersMin": 204,
+        "listenersMax": 204,
+        "jsHeapAfterGcBytes": 25851189.333333332,
+        "jsHeapAfterGcLabel": "25.9 MB",
+        "jsHeapAfterGcSamples": 3
+      },
+      "runs": 3,
+      "windowSource": "marks",
+      "measurementVersion": 1
+    },
+    "sorting": {
+      "rangeStart": 0,
+      "rangeEnd": 73,
+      "total": 73,
+      "categories": {
+        "other": 6.48500019607544,
+        "scripting": 38.46159985961914,
+        "rendering": 3.6855998039245605,
+        "painting": 0.7779998779296875,
+        "idle": 23.106800270080566
+      },
+      "updateCounters": {
+        "sampleCount": 10,
+        "jsHeapMinBytes": 271974837.6,
+        "jsHeapMaxBytes": 280587628.8,
+        "jsHeapMinLabel": "271975 kB",
+        "jsHeapMaxLabel": "280.6 MB",
+        "documentsMin": 2,
+        "documentsMax": 2,
+        "nodesMin": 1807,
+        "nodesMax": 1809,
+        "listenersMin": 192,
+        "listenersMax": 192,
+        "jsHeapAfterGcBytes": 271421162.4,
+        "jsHeapAfterGcLabel": "271.4 MB",
+        "jsHeapAfterGcSamples": 5
+      },
+      "runs": 5,
+      "windowSource": "marks",
+      "measurementVersion": 1,
+      "hookTiming": 37.78000011444092
+    },
+    "source-data-validator-load": {
+      "rangeStart": 0,
+      "rangeEnd": 1117,
+      "total": 1117,
+      "categories": {
+        "other": 21.74859971466062,
+        "scripting": 1071.1928006225585,
+        "rendering": 11.212999725341797,
+        "painting": 1.234800148010254,
+        "idle": 11.908399772644042
+      },
+      "updateCounters": {
+        "sampleCount": 92,
+        "jsHeapMinBytes": 268655921.6,
+        "jsHeapMaxBytes": 274605637.6,
+        "jsHeapMinLabel": "268656 kB",
+        "jsHeapMaxLabel": "274.6 MB",
+        "documentsMin": 1,
+        "documentsMax": 1,
+        "nodesMin": 47,
+        "nodesMax": 1923,
+        "listenersMin": 23,
+        "listenersMax": 191,
+        "jsHeapAfterGcBytes": 270655664,
+        "jsHeapAfterGcLabel": "270.7 MB",
+        "jsHeapAfterGcSamples": 5
+      },
+      "runs": 5,
+      "windowSource": "marks",
+      "measurementVersion": 1
+    },
+    "undo-edit": {
+      "rangeStart": 0,
+      "rangeEnd": 39,
+      "total": 39,
+      "categories": {
+        "other": 2.1087991088867186,
+        "scripting": 10.625599934387207,
+        "rendering": 5.070801448822022,
+        "painting": 0.7637998580932617,
+        "idle": 20.563399887084962
+      },
+      "updateCounters": {
+        "sampleCount": 8,
+        "jsHeapMinBytes": 271532481.6,
+        "jsHeapMaxBytes": 272795152.8,
+        "jsHeapMinLabel": "271532 kB",
+        "jsHeapMaxLabel": "272.8 MB",
+        "documentsMin": 1,
+        "documentsMax": 1,
+        "nodesMin": 1930,
+        "nodesMax": 2125,
+        "listenersMin": 224,
+        "listenersMax": 227,
+        "jsHeapAfterGcBytes": 271562270.4,
+        "jsHeapAfterGcLabel": "271.6 MB",
+        "jsHeapAfterGcSamples": 5
+      },
+      "runs": 5,
+      "windowSource": "marks",
+      "measurementVersion": 1,
+      "hookTiming": 14.239999866485595
+    },
+    "undo-remove-rows": {
+      "rangeStart": 0,
+      "rangeEnd": 69,
+      "total": 69,
+      "categories": {
+        "other": 4.814601136779785,
+        "scripting": 26.825199793243407,
+        "rendering": 7.889799880981445,
+        "painting": 0.1957998275756836,
+        "idle": 28.80599946975708
+      },
+      "updateCounters": {
+        "sampleCount": 10,
+        "jsHeapMinBytes": 271842958.4,
+        "jsHeapMaxBytes": 287026283.2,
+        "jsHeapMinLabel": "271843 kB",
+        "jsHeapMaxLabel": "287.0 MB",
+        "documentsMin": 1,
+        "documentsMax": 1,
+        "nodesMin": 1752,
+        "nodesMax": 1754,
+        "listenersMin": 191,
+        "listenersMax": 191,
+        "jsHeapAfterGcBytes": 271420831.2,
+        "jsHeapAfterGcLabel": "271.4 MB",
+        "jsHeapAfterGcSamples": 5
+      },
+      "runs": 5,
+      "windowSource": "marks",
+      "measurementVersion": 1,
+      "hookTiming": 37.61999988555908
+    },
+    "undo-sort": {
+      "rangeStart": 0,
+      "rangeEnd": 32,
+      "total": 32,
+      "categories": {
+        "other": 1.5455996528625486,
+        "scripting": 9.222000273895263,
+        "rendering": 3.4586000442504883,
+        "painting": 0.6708000183105469,
+        "idle": 17.149800395965578
+      },
+      "updateCounters": {
+        "sampleCount": 6,
+        "jsHeapMinBytes": 272048531.2,
+        "jsHeapMaxBytes": 275835204,
+        "jsHeapMinLabel": "272049 kB",
+        "jsHeapMaxLabel": "275.8 MB",
+        "documentsMin": 2,
+        "documentsMax": 2,
+        "nodesMin": 1809,
+        "nodesMax": 1809,
+        "listenersMin": 192,
+        "listenersMax": 192,
+        "jsHeapAfterGcBytes": 271069469.6,
+        "jsHeapAfterGcLabel": "271.1 MB",
+        "jsHeapAfterGcSamples": 5
+      },
+      "runs": 5,
+      "windowSource": "marks",
+      "measurementVersion": 1,
+      "hookTiming": 11.399999904632569
+    }
+  }
+}
