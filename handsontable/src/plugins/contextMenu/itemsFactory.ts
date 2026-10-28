@@ -109,15 +109,21 @@ export class ItemsFactory {
    *
    * @param {Array|object|boolean} pattern Pattern which you can define by displaying menu items order. If `true` default
    *                                       pattern will be used.
+   * @param {boolean} [reportUnresolvedKeys=true] Whether a key that names nothing is reported. A caller that builds
+   *                                              the list before every plugin has enabled passes `false`: the key
+   *                                              is still skipped, but a later build decides if it is a mistake.
    * @returns {Array}
    */
-  getItems(pattern: unknown = null) {
-    return getItems(
-      pattern,
-      this.defaultOrderPattern,
-      this.predefinedItems,
-      this.#predefinedItemsSet ? (name: string) => this.#warnUnresolvedKey(name) : null
-    );
+  getItems(pattern: unknown = null, reportUnresolvedKeys = true) {
+    let reportUnresolvedKey: ((name: string) => void) | null = null;
+
+    if (this.#predefinedItemsSet) {
+      // A no-op rather than `null` for the quiet pass: `null` marks the first pass, which emits a
+      // placeholder for an unknown key instead of skipping it.
+      reportUnresolvedKey = reportUnresolvedKeys ? (name: string) => this.#warnUnresolvedKey(name) : () => {};
+    }
+
+    return getItems(pattern, this.defaultOrderPattern, this.predefinedItems, reportUnresolvedKey);
   }
 
   /**
