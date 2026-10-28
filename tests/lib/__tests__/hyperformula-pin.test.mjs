@@ -2,6 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
+import { importerResolutions } from '../lockfile-importers.mjs';
+
 // Every formulas leg runs exactly one HyperFormula. The `umd` legs load it from THIS package's
 // node_modules (`/tests/node_modules/hyperformula/…`) beside `dist/handsontable.js`; the `full-min`
 // legs run the engine `handsontable.full.min.js` bakes in, which is whatever the `handsontable`
@@ -16,56 +18,6 @@ const ENGINE_OWNER = 'handsontable';
 const PIN_OWNER = 'tests';
 
 const read = relativePath => readFileSync(new URL(`../../../${relativePath}`, import.meta.url), 'utf8');
-
-/**
- * Reads what each workspace importer of a pnpm v9 lockfile resolves one dependency to.
- *
- * @param {string} lockfile The `pnpm-lock.yaml` text.
- * @param {string} dependency The package name.
- * @returns {Map<string, {specifier: string, version: string}>} The specifier and the resolved version,
- * peer suffix dropped, per importer that depends on it.
- */
-function importerResolutions(lockfile, dependency) {
-  const resolutions = new Map();
-  const dependencyKey = new RegExp(`^ {6}'?${dependency.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}'?:$`);
-  let inImporters = false;
-  let importer = null;
-  let current = null;
-
-  for (const line of lockfile.split('\n')) {
-    if (/^\S/.test(line)) {
-      inImporters = line === 'importers:';
-      current = null;
-      continue;
-    }
-
-    if (!inImporters) {
-      continue;
-    }
-
-    const importerMatch = line.match(/^ {2}'?([^\s']+)'?:$/);
-
-    if (importerMatch) {
-      importer = importerMatch[1];
-      current = null;
-
-    } else if (dependencyKey.test(line)) {
-      current = { specifier: '', version: '' };
-      resolutions.set(importer, current);
-
-    } else if (current) {
-      const field = line.match(/^ {8}(specifier|version): '?([^'\s]+)'?$/);
-
-      if (field) {
-        current[field[1]] = field[1] === 'version' ? field[2].replace(/\(.*$/, '') : field[2];
-      } else if (!/^ {8}/.test(line)) {
-        current = null;
-      }
-    }
-  }
-
-  return resolutions;
-}
 
 /**
  * Lists every way the fixture-served engine can drift from the one baked into `full.min`.

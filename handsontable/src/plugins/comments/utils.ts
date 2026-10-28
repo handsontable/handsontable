@@ -20,3 +20,21 @@ export function getEditorAnchorWidth(
 
   return renderableColumnWidth;
 }
+
+/**
+ * Get the height the comments editor takes when the comment has no saved size.
+ *
+ * A range that spans more than one row gets the height of its rendered cell, so the editor does not
+ * stick out below the range or end short of it. Any other cell keeps the default height.
+ *
+ * @param {number} rowspan The number of rows the rendered cell spans (1 for non-merged cells).
+ * @param {number} cellHeight Height of the rendered table cell.
+ * @returns {number | undefined} The height in pixels, or `undefined` when the default applies.
+ */
+export function getEditorAnchorHeight(rowspan: number, cellHeight: number): number | undefined {
+  if (rowspan > 1 && cellHeight > 0) {
+    return cellHeight;
+  }
+
+  return undefined;
+}

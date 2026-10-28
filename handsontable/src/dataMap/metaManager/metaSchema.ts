@@ -3083,6 +3083,7 @@ export default (): Record<string, unknown> => {
      * | `'date'`            | `DateEditor`                                                               |
      * | `'intl-date'`       | `IntlDateEditor`                                                           |
      * | `'dropdown'`        | `DropdownEditor`                                                           |
+     * | `'formula'`         | The [`FormulaBuilder`](@/api/formulaBuilder.md) formula editor (a plain text editor while that plugin is off) |
      * | `'handsontable'`    | `HandsontableEditor`                                                       |
      * | `'numeric'`         | `NumericEditor`                                                            |
      * | `'password'`        | `PasswordEditor`                                                           |
@@ -4090,6 +4091,59 @@ export default (): Record<string, unknown> => {
      * ```
      */
     fixedRowsTop: 0,
+
+    /**
+     * The `formulaBuilder` option configures the [`FormulaBuilder`](@/api/formulaBuilder.md) plugin.
+     *
+     * The [`FormulaBuilder`](@/api/formulaBuilder.md) plugin adds spreadsheet-style formula
+     * editing (a formula bar, an inline formula editor with colored references, reference
+     * picking, and formula error indicators) on top of the [`Formulas`](@/api/formulas.md) plugin,
+     * which must be enabled with a configured engine.
+     *
+     * You can set the `formulaBuilder` option to `false` (the plugin is off) or to an object with the
+     * following properties. There is no `true`: the plugin needs the `builder` module to run.
+     *
+     * | Property         | Possible values                                                 |
+     * | ---------------- | --------------------------------------------------------------- |
+     * | `builder`        | The `hyperformula-ui` module namespace (`import * as FormulaBuilderModule from 'hyperformula-ui'`). Required. |
+     * | `showFormulaBar` | A boolean. Renders the formula bar above the grid when `true`. Default: `false`. |
+     * | `popups`         | An object with the popup options: `showClose`, `suggestions`, `fnHelp`, and `error`. |
+     * | `direction`      | `'ltr'` or `'rtl'`. The layout direction of the editor and its popups. Default: the grid's layout direction. |
+     *
+     * Formula editing is opt-in per cell: set [`editor`](#editor) to `'formula'` on the cells,
+     * columns, or grid that use the formula editor.
+     *
+     * Read more:
+     * - [Formula builder](@/guides/formulas/formula-builder/formula-builder.md)
+     * - [Plugins: `Formulas`](@/api/formulas.md)
+     *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @since 19.0.0
+     * @memberof Options#
+     * @type {object|boolean}
+     * @default undefined
+     * @category FormulaBuilder
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * import * as FormulaBuilderModule from 'hyperformula-ui';
+     * import { HyperFormula } from 'hyperformula';
+     *
+     * // the formula editor on every cell
+     * editor: 'formula',
+     * formulas: {
+     *   engine: HyperFormula,
+     * },
+     * formulaBuilder: {
+     *   builder: FormulaBuilderModule,
+     *   showFormulaBar: true,
+     * },
+     * ```
+     */
+    formulaBuilder: undefined,
 
     /**
      * The `formulas` option configures the [`Formulas`](@/api/formulas.md) plugin.
@@ -7585,8 +7639,8 @@ export default (): Record<string, unknown> => {
      *
      * | Option        | Possible settings                                  | Description                                                                                 |
      * | ------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-     * | `sheets`      | An array of `{ name, data, settings }` objects, or `null` | Defines the initial workbook. When omitted, the grid's own data becomes a single `Sheet1`     |
-     * | `activeSheet` | A number (default: `0`)                              | The index (within `sheets`) of the sheet to activate on initialization. Passed later through [`updateSettings()`](@/api/core.md#updatesettings) with a changed value, it switches the active sheet without rebuilding the workbook; a re-passed identical value is ignored |
+     * | `sheets`      | An array of `{ name, data, settings }` objects, or `null` | Defines the workbook. When omitted, the grid's own data becomes a single `Sheet1`. The array works like the [`data`](#data) option: the plugin writes into it, so a rename changes the entry's `name`, a sheet the user adds or duplicates is appended with its own `data`, and a removed sheet's entry is spliced out. Keep the array, its entries, and their `data` mutable and stable: the same array passed again keeps the workbook, while an array that describes other sheets rebuilds it. On a frozen array or entry, a rename, an add, a duplicate, or a removal is refused with a console warning before it changes anything, from the bar or from the API. A sheet's `settings` you change with [`updateSheetSettings()`](@/api/sheetsBar.md#updatesheetsettings) are not written back into the entry |
+     * | `activeSheet` | A number (default: `0`)                              | The position, within `sheets`, of the sheet to activate on initialization. The position counts in the order of your `sheets` array, not in the order of the tabs, which the user can rearrange. Passed later through [`updateSettings()`](@/api/core.md#updatesettings) with a changed value, it switches the active sheet without rebuilding the workbook; a value equal to the one you passed last is ignored, also after a removal. When a sheet is removed in front of it, the plugin lowers its own copy of the value so it keeps naming the same sheet. With `sheetsBar: true`, which declares no `sheets`, it counts in the tab order |
      * | `controls`    | Boolean (default: `true`)                            | Controls visibility of the add-sheet and sheet-menu controls                                  |
      * | `paging`      | Boolean (default: `true`)                            | Controls visibility of the tab-scrolling controls, shown when tabs overflow the bar's width    |
      * | `position`    | `'top'` \| `'bottom'` (default: `'bottom'`)          | The edge of the grid the bar renders on                                                        |

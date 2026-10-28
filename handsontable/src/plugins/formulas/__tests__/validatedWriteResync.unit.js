@@ -461,7 +461,7 @@ describe('Formulas write validated in flight across a sheet resync', () => {
       await waitForValidation();
 
       expect(reader.getDataAtCell(0, 0)).toBe(10);
-      // `renderDependentSheets` repaints the reading grid; without it the cell kept painting 0.
+      // The plugin write scope repaints the reading grid; without it the cell kept painting 0.
       expect(reader.getCell(0, 0).textContent).toBe('10');
     } finally {
       reader.destroy();

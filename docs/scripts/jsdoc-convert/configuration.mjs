@@ -267,6 +267,19 @@ export default {
         metaTitle: 'Filters | Handsontable DataGrid for Angular',
       },
     },
+    'FormulaBuilder.md': {
+      id: 'fb2c4d6e',
+      metaTitle: 'FormulaBuilder | Handsontable DataGrid for JavaScript',
+      description: 'Use the FormulaBuilder plugin with its API options, members, and methods to edit formulas with a formula bar, colored cell references, autocomplete, and reference picking.',
+      react: {
+        id: '9fb31a7c',
+        metaTitle: 'FormulaBuilder | Handsontable DataGrid for React',
+      },
+      angular: {
+        id: 'c3fb81d2',
+        metaTitle: 'FormulaBuilder | Handsontable DataGrid for Angular',
+      },
+    },
     'Formulas.md': {
       id: 'y47bww7n',
       metaTitle: 'Formulas | Handsontable DataGrid for JavaScript',

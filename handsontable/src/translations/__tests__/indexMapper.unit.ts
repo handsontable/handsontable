@@ -752,6 +752,36 @@ describe('IndexMapper', () => {
       expect(indexesSequenceChangeCallback).toHaveBeenCalledWith('remove');
     });
 
+    it('should trigger `indexesInserted` hook with the inserted physical indexes', () => {
+      const indexMapper = new IndexMapper();
+      const indexesInsertedCallback = jasmine.createSpy('indexesInserted');
+
+      indexMapper.initToLength(4);
+      indexMapper.setIndexesSequence([3, 2, 1, 0]);
+      indexMapper.addLocalHook('indexesInserted', indexesInsertedCallback);
+
+      indexMapper.insertIndexes(1, 2);
+
+      expect(indexesInsertedCallback.calls.count()).toEqual(1);
+      expect(indexesInsertedCallback).toHaveBeenCalledWith([2, 3]);
+      expect(indexMapper.getIndexesSequence()).toEqual([5, 2, 3, 4, 1, 0]);
+    });
+
+    it('should trigger `indexesRemoved` hook with the removed physical indexes', () => {
+      const indexMapper = new IndexMapper();
+      const indexesRemovedCallback = jasmine.createSpy('indexesRemoved');
+
+      indexMapper.initToLength(4);
+      indexMapper.setIndexesSequence([3, 2, 1, 0]);
+      indexMapper.addLocalHook('indexesRemoved', indexesRemovedCallback);
+
+      indexMapper.removeIndexes([2, 0]);
+
+      expect(indexesRemovedCallback.calls.count()).toEqual(1);
+      expect(indexesRemovedCallback).toHaveBeenCalledWith([2, 0]);
+      expect(indexMapper.getIndexesSequence()).toEqual([1, 0]);
+    });
+
     it('should trigger `indexesSequenceChange` hook after moving elements', () => {
       const indexMapper = new IndexMapper();
       const indexesSequenceChangeCallback = jasmine.createSpy('indexesSequenceChange');
