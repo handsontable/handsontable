@@ -710,6 +710,12 @@ export class Formulas extends BasePlugin {
   #restoredChangedCells: unknown[] = [];
 
   /**
+   * The listeners told that the engine is about to be detached from this grid – see
+   * `addEngineDetachListener()`. Kept across enable cycles: the plugin instance is the grid's.
+   */
+  readonly #engineDetachListeners = new Set<() => void>();
+
+  /**
    * Maps a HyperFormula `ExportedCellChange` to the same change with `newValue` translated to a
    * Handsontable-formatted string when the target cell is of type `date` or `time`. For other cells
    * (or non-numeric values, or named expressions, or trimmed cells, or cells on other sheets), the
@@ -1233,6 +1239,10 @@ export class Formulas extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    // First, while the plugin is still whole: a listener may close an open edit (the FormulaBuilder
+    // plugin does), and that edit's render runs this plugin's `afterRenderer`, which would wrap the
+    // `HYPERLINK` anchors again after the cleanup below. The engine is still set here too.
+    this.#notifyEngineDetach();
     this.#unregisterToggleFormulasShortcut();
     this.#showFormulasFlag = false;
     this.#unwrapRenderedHyperlinks();
@@ -1531,6 +1541,8 @@ export class Formulas extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.#notifyEngineDetach();
+    this.#engineDetachListeners.clear();
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
     this.#engineListeners = null;
 
@@ -2202,6 +2214,36 @@ export class Formulas extends BasePlugin {
         );
       }
     });
+  }
+
+  /**
+   * Registers a listener called right before the engine is detached from this grid: when the plugin is
+   * disabled (a settings update that turns it off or replaces the engine) and when the grid is
+   * destroyed. The engine is still usable inside the listener. When this grid was the last user of an
+   * engine the plugin built itself, the engine is destroyed right after, so anything subscribed to its
+   * events must unsubscribe here. The FormulaBuilder plugin tears its builder down this way.
+   *
+   * @private
+   * @param {Function} listener The listener.
+   * @returns {Function} Removes the listener.
+   */
+  addEngineDetachListener(listener: () => void): () => void {
+    this.#engineDetachListeners.add(listener);
+
+    return () => {
+      this.#engineDetachListeners.delete(listener);
+    };
+  }
+
+  /**
+   * Tells the engine-detach listeners that the engine is about to be detached, while it is still usable.
+   */
+  #notifyEngineDetach(): void {
+    if (!this.engine) {
+      return;
+    }
+
+    [...this.#engineDetachListeners].forEach(listener => listener());
   }
 
   /**

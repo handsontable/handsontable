@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable FormulaBuilder e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    // The grid variant, through the same kind of allowlist: the name maps to a literal key of
+    // the VARIANTS table below, and an unknown value throws. An absent param is the default grid.
+    window.htVariant = ({
+      default: 'default',
+      sorting: 'sorting',
+      nested: 'nested',
+      'popups-host': 'popups-host',
+      'no-aria': 'no-aria',
+      rtl: 'rtl',
+      frozen: 'frozen',
+      'hidden-row': 'hidden-row',
+      'read-only': 'read-only',
+      'split-scroll': 'split-scroll',
+      shadow: 'shadow',
+      menus: 'menus',
+      dropdown: 'dropdown',
+      checkboxes: 'checkboxes',
+    })[htParams.get('variant') ?? 'default'];
+    if (!window.htVariant) {
+      throw new Error('Unknown ?variant= value: ' + JSON.stringify(htParams.get('variant')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+    /* A fixed container height keeps the page layout the same on every leg. The
+       reference highlights are custom selections, and the plugin leaves the grid
+       root's styles alone, so nothing here is required by the plugin. */
+    #grid { height: 320px; }
+  </style>
+</head>
+<body>
+  <!--
+    FormulaBuilder plugin e2e fixture. Cells are stamped with data-testid via a
+    renderer (data-testid="cell-<row>-<col>"). The hyperformula-ui module is loaded as
+    a native ES module from this package's own node_modules (`tests/package.json`
+    pins `hyperformula-ui`, so CI installs it with the `handsontable-tests`
+    workspace) and injected into the plugin via the `builder` setting.
+
+    `?variant=` picks one of the grid configurations in VARIANTS; an absent param is
+    the default grid (formula bar on, formulas in column C), which the a11y scan uses too.
+    The text field before the grid is where a keyboard user starts: Tab from it enters
+    the formula bar, and Shift+Tab out of the bar lands back on it. It is a text field,
+    not a link or a button, because WebKit leaves those out of the Tab order by default.
+  -->
+  <input type="text" aria-label="Before the grid" data-testid="before-grid">
+  <div id="grid" data-testid="grid"></div>
+  <div id="suggestions-host" data-testid="suggestions-host"></div>
+
+  <script>
+    // The full bundle bakes HyperFormula in; the base bundle needs it as an external script.
+    if (window.htBundle === 'handsontable.js') {
+      document.write('<scr' + 'ipt src="/tests/node_modules/hyperformula/dist/hyperformula.full.min.js"></scr' + 'ipt>');
+    }
+  </script>
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script type="module">
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+    const testIdDropdownRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.DropdownRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+    const testIdCheckboxRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.CheckboxRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    // Settings each variant adds over the default grid. `formulaBuilder` extras are merged
+    // into the plugin settings, so the `builder` module stays the one imported below.
+    const VARIANTS = {
+      default: {},
+      sorting: { settings: { columnSorting: true } },
+      nested: {
+        settings: {
+          colHeaders: false,
+          columnSorting: true,
+          nestedHeaders: [
+            [{ label: 'Inputs', colspan: 2 }, 'Sum'],
+            ['A', 'B', 'C'],
+          ],
+        },
+      },
+      'popups-host': { formulaBuilder: { popups: { suggestions: { container: '#suggestions-host' } } } },
+      'no-aria': { settings: { ariaTags: false } },
+      rtl: { settings: { layoutDirection: 'rtl' } },
+      frozen: { settings: { fixedRowsTop: 1, fixedColumnsStart: 1 } },
+      'hidden-row': { settings: { hiddenRows: { rows: [1] } } },
+      'read-only': { settings: { cell: [{ row: 0, col: 2, readOnly: true }] } },
+      // A pixel width and no height: the window scrolls the rows, the grid's holder the columns.
+      'split-scroll': { settings: { width: 300, colWidths: 200 } },
+      // The grid inside an open shadow root, with its stylesheets linked inside it: document
+      // stylesheets do not reach the shadow tree, so every style the plugin generates must too.
+      shadow: { shadow: true },
+      // A menu that is open when a pick starts must close, as on any other press in the grid.
+      menus: { settings: { dropdownMenu: true } },
+      // Column B as a dropdown: a pick on its arrow must not open the cell's own editor.
+      dropdown: {
+        settings: {
+          columns: [{}, { type: 'dropdown', source: [2, 4, 6], renderer: testIdDropdownRenderer }, {}],
+        },
+      },
+      // Controls other plugins act on from a press: a "check all" header checkbox on column D, checkbox
+      // cells, and RowSelection's row header checkboxes with click selection. A pick must leave each
+      // control to its plugin or keep the control from acting, never both act.
+      checkboxes: {
+        settings: {
+          data: [
+            [1, 2, '=A1+B1', true],
+            [3, 4, '=A2+B2', false],
+            [5, 6, '=SUM(C1:C2)', true],
+            ['', '', '', false],
+            ['', '', '', false],
+          ],
+          columns: [{}, {}, {}, { type: 'checkbox', headerCheckbox: true, renderer: testIdCheckboxRenderer }],
+          rowSelection: { enableClickSelection: true },
+        },
+      },
+    };
+
+    /**
+     * Moves the grid container into an open shadow root and links the grid's stylesheets there.
+     *
+     * @returns {Promise<void>} Resolves when both stylesheets have loaded.
+     */
+    async function mountInShadowRoot() {
+      const host = document.createElement('div');
+
+      host.setAttribute('data-testid', 'shadow-host');
+      container.replaceWith(host);
+
+      const shadowRoot = host.attachShadow({ mode: 'open' });
+      const loads = ['/handsontable/styles/handsontable.min.css', `/handsontable/styles/ht-theme-${window.htTheme}.min.css`]
+        .map((href) => {
+          const link = document.createElement('link');
+
+          link.rel = 'stylesheet';
+          link.href = href;
+          shadowRoot.appendChild(link);
+
+          return new Promise((resolve, reject) => {
+            link.addEventListener('load', resolve);
+            link.addEventListener('error', () => reject(new Error(`Failed to load ${href}`)));
+          });
+        });
+
+      shadowRoot.appendChild(container);
+      await Promise.all(loads);
+    }
+
+    // The shared fixture contract: a failed module import or a constructor throw lands in
+    // `window.htBuildError`, which `awaitFixtureBuilt()` rethrows with its stack.
+    try {
+      const FormulaBuilderModule = await import('/tests/node_modules/hyperformula-ui/dist/index.js');
+      const variant = VARIANTS[window.htVariant];
+
+      if (variant.shadow) {
+        await mountInShadowRoot();
+      }
+
+      window.FormulaBuilderModule = FormulaBuilderModule;
+      window.hot = new Handsontable(container, Object.assign({
+        data: [
+          [1, 2, '=A1+B1'],
+          [3, 4, '=A2+B2'],
+          [5, 6, '=SUM(C1:C2)'],
+          ['', '', ''],
+          ['', '', '=IF(\n  A1>0,\n  "yes",\n  "no"\n)'],
+        ],
+        colHeaders: true,
+        rowHeaders: true,
+        renderer: testIdRenderer,
+        editor: 'formula',
+        formulas: {
+          engine: HyperFormula,
+        },
+        formulaBuilder: Object.assign({
+          builder: FormulaBuilderModule,
+          showFormulaBar: true,
+        }, variant.formulaBuilder || {}),
+        licenseKey: 'non-commercial-and-evaluation',
+      }, variant.settings || {}));
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+  </script>
+</body>
+</html>
