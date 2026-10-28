@@ -65,10 +65,16 @@ async function cancellation(page: Page, testInfo: TestInfo, entry: A11yPage) {
   const environment = await readEnvironment(page);
   const findings: EvidenceFinding[] = [];
   const controls: Record<string, unknown>[] = [];
+  // The harness feeds a page's errors to the list of its latest load only, so each load's list is
+  // checked once its measurement is done, and the last load's goes to `attachEvidence()`.
+  let latest = first.opened;
 
   for (const control of first.targets) {
     // The positive control: what a click does, on a page as it loads.
     const clickPage = control.id === 0 ? first : await fresh(page, entry);
+
+    latest = clickPage.opened;
+
     const clickPoints = await targetPoints(page, clickPage.opened.root, control.id);
 
     if (!clickPoints) {
@@ -84,8 +90,13 @@ async function cancellation(page: Page, testInfo: TestInfo, entry: A11yPage) {
 
     const onClick = pointerEffects(beforeClick, await pointerState(page, clickPage.opened.root));
 
+    expect(clickPage.opened.pageErrors, 'the page threw no error while it was clicked').toEqual([]);
+
     // The press, held, moved away from the grid and released, on a page as it loads.
     const pressPage = await fresh(page, entry);
+
+    latest = pressPage.opened;
+
     const points = await targetPoints(page, pressPage.opened.root, control.id);
 
     if (!points) {
@@ -106,15 +117,17 @@ async function cancellation(page: Page, testInfo: TestInfo, entry: A11yPage) {
     await page.mouse.up();
 
     const afterAway = pointerEffects(hovered, await pointerState(page, pressPage.opened.root));
+
+    expect(pressPage.opened.pageErrors, 'the page threw no error while it was pressed and released').toEqual([]);
+
     const result = cancellationFindings({ target: control, onPress, afterAway, onClick });
 
     controls.push({ ...control, onClick, onPress, afterAway, measured: result.measured });
     findings.push(...result.findings);
-    expect(pressPage.opened.pageErrors, 'the page threw no error while it was measured').toEqual([]);
   }
 
   await attachEvidence(testInfo, {
-    target, startedAt, environment, findings, criteria: ['2.5.2'],
+    target, startedAt, environment, findings, criteria: ['2.5.2'], pageErrors: latest.pageErrors,
     detail: { controls, measured: controls.filter(item => item.measured).length },
   });
 }
@@ -133,13 +146,15 @@ function pageOf(operation: DragOperation): A11yPage {
 
 /**
  * Runs steps on a page as it loads: every step but the last sets up, and the state is read before and
- * after the last.
+ * after the last. The load's page errors are checked here, because the harness stops feeding its list
+ * once the next load starts.
  *
  * @param page The page.
  * @param entry The page to load.
+ * @param effect The effect the state is read until.
  * @param steps The steps.
  * @param prepare Steps that run before any of them.
- * @returns The effects of the last step and the state it left.
+ * @returns The effects of the last step, the state it left, and the load's page errors.
  */
 async function perform(page: Page, entry: A11yPage, effect: string, steps: Step[], prepare: Step[] = []) {
   const opened = await openTarget(page, entry, THEME);
@@ -156,7 +171,7 @@ async function perform(page: Page, entry: A11yPage, effect: string, steps: Step[
 
   expect(opened.pageErrors, 'the page threw no error while it was measured').toEqual([]);
 
-  return { effects, before, after };
+  return { effects, before, after, pageErrors: opened.pageErrors };
 }
 
 /**
@@ -180,6 +195,7 @@ async function dragOperation(page: Page, testInfo: TestInfo, operation: DragOper
 
   const alternatives: Record<string, unknown>[] = [];
   const proven: boolean[] = [];
+  let pageErrors = drag.pageErrors;
 
   for (const alternative of operation.alternatives) {
     const result = await perform(page, entry, operation.expect, alternative.steps, alternative.prepare);
@@ -187,6 +203,7 @@ async function dragOperation(page: Page, testInfo: TestInfo, operation: DragOper
       || JSON.stringify(result.after[operation.compare]) === JSON.stringify(drag.after[operation.compare]);
     const works = result.effects.includes(operation.expect) && same;
 
+    pageErrors = result.pageErrors;
     proven.push(works);
     alternatives.push({ input: alternative.input, covers: alternative.covers, how: alternative.how, effects: result.effects, same, proven: works });
   }
@@ -194,7 +211,7 @@ async function dragOperation(page: Page, testInfo: TestInfo, operation: DragOper
   const findings: EvidenceFinding[] = [...dragFindings({ operation, proven }), ...gestureFindings({ operation, proven })];
 
   await attachEvidence(testInfo, {
-    target, startedAt, environment, findings, criteria: ['2.5.1', '2.5.7'],
+    target, startedAt, environment, findings, pageErrors, criteria: ['2.5.1', '2.5.7'],
     detail: { operation: operation.id, plugin: operation.plugin, gesture: operation.gesture, what: operation.operation, drag: drag.effects, alternatives },
   });
 }
