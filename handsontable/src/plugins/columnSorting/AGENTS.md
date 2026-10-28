@@ -34,12 +34,24 @@ grid and the cache exists.
 
 **Empty sort states do not mean unsorted rows.** `setSortConfig([])` and removing the sorted column empty the
 states and leave the rows in sorted order. Retaking the cache there makes the sorted order the one a later
-`clearSort()` returns to, and a later sort on another column breaks its ties by it. So `#sortedRowOrder` keeps
-a copy of the order the last applied sort produced (`null` after a clear), and `#rowsShowSortResult()` compares
-the live sequence with it: equal means the rows are still the sort result and the cache stays. Compare the
-order, do not keep a flag: UndoRedo and `loadData()` rewrite the sequence without going through `sort()`, and a
-flag would miss a row moved after an undone sort. Every path (both plugins, both ways of emptying the states,
-the tie-break, the undo) is pinned in `__tests__/presortOrderCapture.unit.js`.
+`clearSort()` returns to, and a later sort on another column breaks its ties by it. So `#sortedRowOrder` holds
+the order the last applied sort or clear left the rows in, and `#rowsShowSortResult()` compares the live
+sequence with it: equal means the rows are still the sort result and the cache stays. Compare the order, do
+not keep a flag: UndoRedo, `loadData()` and row moves rewrite the sequence without going through `sort()`, and a
+flag would miss a row moved after an undone sort.
+
+**`#sortedRowOrder` is a registered `indexesSequence` map (`<pluginKey>.sortedRowOrder`), not a plain copy.**
+A plain array is not touched by a row insert or removal, so after either it no longer matched the live order
+while the rows still showed the sort, and the next sort from emptied states retook the sorted order as the
+pre-sort one. As a registered map it gets the same `insert()`/`remove()` the live sequence and the cache get,
+so equal stays equal and different stays different. A row move rewrites only the live order (the rows no longer
+show the sort, so the next sort retakes the cache, as for any move). UndoRedo captures and restores it with the
+cache and the live order, so an undone sort or clear brings back a matching triple, and `loadData()` resets all
+three to the identity order. A clear writes it too (it equals the cache then), which stands in for "no sort
+result": a `true` while the rows show the cache only skips a capture that would write the same values. It is
+registered and unregistered together with the cache, never alone, so it never changes the set of map names
+UndoRedo watches at a moment the cache does not. Every path (both plugins, both ways of emptying the states,
+the tie-break, the undo, inserts and removals while sorted) is pinned in `__tests__/presortOrderCapture.unit.js`.
 Taking it only on the first sort was wrong twice: a row moved while nothing was sorted was lost on the next
 sort-and-clear, and `loadData()` re-initializes the registered map to the identity order (with the states
 emptied), so after a load the next clear put back the identity order instead of the one the rows had.

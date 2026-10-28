@@ -242,13 +242,15 @@ export class ColumnSorting extends BasePlugin {
    */
   indexesSequenceCache: IndexesSequence | null = null;
   /**
-   * The row order the last applied sort produced, or `null` when the rows were put back in their pre-sort
-   * order since. Sort states can be emptied while the rows stay sorted (`setSortConfig([])`, removing the
-   * sorted column), so empty states do not tell whether the rows show a sort result. This order does.
+   * The row order the last applied sort or clear left the rows in, registered next to
+   * `indexesSequenceCache` so that row inserts and removals update it the way they update the live
+   * order, and UndoRedo restores it with the rest of the row maps. Sort states can be emptied while the
+   * rows stay sorted (`setSortConfig([])`, removing the sorted column), so empty states do not tell
+   * whether the rows show a sort result. Comparing this order with the live one does.
    *
-   * @type {number[]|null}
+   * @type {null|IndexesSequence}
    */
-  #sortedRowOrder: number[] | null = null;
+  #sortedRowOrder: IndexesSequence | null = null;
 
   /**
    * Checks if the plugin is enabled in the Handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -362,12 +364,12 @@ export class ColumnSorting extends BasePlugin {
       if (this.indexesSequenceCache !== null) {
         this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache!.getValues());
         this.hot.rowIndexMapper.unregisterMap(this.pluginKey);
+        this.hot.rowIndexMapper.unregisterMap(`${this.pluginKey}.sortedRowOrder`);
 
         this.indexesSequenceCache = null;
+        this.#sortedRowOrder = null;
       }
     }, true);
-
-    this.#sortedRowOrder = null;
 
     this.hot.columnIndexMapper.unregisterMap(`${this.pluginKey}.columnMeta`);
     this.columnStatesManager?.destroy();
@@ -488,8 +490,7 @@ export class ColumnSorting extends BasePlugin {
     if (sortPossible) {
       this.columnStatesManager?.setSortStates(destinationSortConfigs);
       this.sortByPresetSortStates(destinationSortConfigs);
-      this.#sortedRowOrder = destinationSortConfigs.length > 0 ?
-        this.hot.rowIndexMapper.getIndexesSequence().slice() : null;
+      this.#sortedRowOrder?.setValues(this.hot.rowIndexMapper.getIndexesSequence());
     }
 
     this.hot.runHooks('afterColumnSort',
@@ -501,20 +502,21 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Tells whether the rows still show the order the last applied sort produced. The sort states alone do
-   * not: `setSortConfig([])` and removing the sorted column empty them and leave the rows sorted, and the
-   * pre-sort order stored for that sort is still the one a clear goes back to. The live order is compared,
-   * not a flag, because UndoRedo and `loadData()` rewrite the row order without passing through the sort.
+   * Tells whether the rows still show the order the last applied sort or clear left them in. The sort
+   * states alone do not: `setSortConfig([])` and removing the sorted column empty them and leave the rows
+   * sorted, and the pre-sort order stored for that sort is still the one a clear goes back to. The live
+   * order is compared, not a flag, because UndoRedo, `loadData()` and row moves rewrite the row order
+   * without passing through the sort. After a clear both orders equal the stored pre-sort order, so a
+   * `true` there only skips a capture that would write the same values.
    *
    * @returns {boolean}
    */
   #rowsShowSortResult(): boolean {
-    const sortedRowOrder = this.#sortedRowOrder;
-
-    if (sortedRowOrder === null) {
+    if (this.#sortedRowOrder === null) {
       return false;
     }
 
+    const sortedRowOrder = this.#sortedRowOrder.getValues();
     const rowOrder = this.hot.rowIndexMapper.getIndexesSequence();
 
     return rowOrder.length === sortedRowOrder.length &&
@@ -526,17 +528,23 @@ export class ColumnSorting extends BasePlugin {
    * whenever a sort starts from rows that show no sort result, never only the first time: while nothing is
    * sorted the rows can move, and a data load re-initializes the stored order to the identity one, so an
    * order kept from an earlier sort would bring back rows in a place they no longer hold. Rows left sorted
-   * under emptied states keep the stored order, see `#rowsShowSortResult()`. The map stays registered
-   * after a clear, because UndoRedo restores it with the rest of the row maps and drops its history when
-   * the set of map names changes.
+   * under emptied states keep the stored order, see `#rowsShowSortResult()`. Both maps are registered
+   * together and stay registered after a clear, because UndoRedo restores them with the rest of the row
+   * maps and drops its history when the set of map names changes.
    */
   #capturePresortOrder(): void {
+    const rowIndexMapper = this.hot.rowIndexMapper;
+
     if (this.indexesSequenceCache === null) {
-      this.indexesSequenceCache =
-        this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginKey, 'indexesSequence');
+      this.indexesSequenceCache = rowIndexMapper.createAndRegisterIndexMap(this.pluginKey, 'indexesSequence');
+      this.#sortedRowOrder =
+        rowIndexMapper.createAndRegisterIndexMap(`${this.pluginKey}.sortedRowOrder`, 'indexesSequence');
     }
 
-    this.indexesSequenceCache.setValues(this.hot.rowIndexMapper.getIndexesSequence());
+    const rowOrder = rowIndexMapper.getIndexesSequence();
+
+    this.indexesSequenceCache.setValues(rowOrder);
+    this.#sortedRowOrder?.setValues(rowOrder);
   }
 
   /**

@@ -163,6 +163,77 @@ describe('ColumnSorting -> the pre-sort row order', () => {
         });
       });
 
+      [
+        {
+          name: 'a row insert',
+          changeRows: () => hot.alter('insert_row_below', 0),
+        },
+        {
+          name: 'a row removal',
+          changeRows: () => hot.alter('remove_row', 0),
+        },
+      ].forEach(({ name, changeRows }) => {
+        /**
+         * Sorts the grid, changes its rows while sorted, runs the given steps and clears the sort.
+         *
+         * @param {Function} [steps] Called with the sorting plugin before the clear.
+         * @returns {Array} The first column after the clear.
+         */
+        function clearAfter(steps = () => {}) {
+          const sorting = buildGrid(pluginKey);
+
+          sorting.sort({ column: 2, sortOrder: 'asc' });
+          changeRows();
+          steps(sorting);
+          sorting.clearSort();
+
+          const order = hot.getDataAtCol(0);
+
+          hot.destroy();
+          hot = null;
+
+          return order;
+        }
+
+        [
+          {
+            stateDrop: 'setSortConfig([])',
+            dropSortStates: sorting => sorting.setSortConfig([]),
+          },
+          {
+            stateDrop: 'the removal of the sorted column',
+            dropSortStates: () => hot.alter('remove_col', 2),
+          },
+        ].forEach(({ stateDrop, dropSortStates }) => {
+          it(`clears to the pre-sort order after ${name} on sorted rows, ${stateDrop} and another sort`, () => {
+            const directClear = clearAfter();
+            const clearAfterAnotherSort = clearAfter((sorting) => {
+              dropSortStates(sorting);
+              sorting.sort({ column: 1, sortOrder: 'asc' });
+            });
+
+            expect(directClear.filter(value => value !== null)).not.toEqual([2, 4, 1, 3]);
+            expect(clearAfterAnotherSort).toEqual(directClear);
+          });
+        });
+      });
+
+      it('puts the pre-sort order back after an undone clear, emptied states and another sort', () => {
+        const sorting = buildGrid(pluginKey, { undo: true });
+
+        sorting.sort({ column: 2, sortOrder: 'asc' });
+        sorting.clearSort();
+        hot.getPlugin('undoRedo').undo();
+
+        expect(hot.getDataAtCol(0)).toEqual([2, 4, 1, 3]);
+
+        sorting.setSortConfig([]);
+        sorting.sort({ column: 1, sortOrder: 'asc' });
+        sorting.clearSort();
+
+        expect(hot.getDataAtCol(0)).toEqual([1, 2, 3, 4]);
+      });
+
       it('keeps a row moved after a clear when the unsorted grid is cleared again', () => {
         const sorting = buildGrid(pluginKey);
 
