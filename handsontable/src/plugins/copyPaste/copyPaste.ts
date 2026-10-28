@@ -17,7 +17,9 @@ import {
 import { sanitizeHTML } from '../../utils/sanitizer';
 import { warnOnce } from '../../helpers/console';
 import { extractText, getTextExtractor } from '../../utils/textExtractor';
-import { isSafari } from '../../helpers/browser';
+import { isSafari, isMacOS } from '../../helpers/browser';
+import { GRID_SCOPE, GRID_CLIPBOARD_KEYS } from '../../shortcuts/contexts/constants';
+import { normalizeKeys, getEventKeyCombinations } from '../../shortcuts/utils';
 import copyItem from './contextMenuItem/copy';
 import copyColumnHeadersOnlyItem from './contextMenuItem/copyColumnHeadersOnly';
 import copyWithColumnGroupHeadersItem from './contextMenuItem/copyWithColumnGroupHeaders';
@@ -30,6 +32,8 @@ import {
   normalizeRanges,
 } from './copyableRanges';
 import { _dataToHTML, htmlToGridSettings } from '../../utils/parseTable';
+
+const CLIPBOARD_KEYS = new Set(GRID_CLIPBOARD_KEYS.map(keys => normalizeKeys(keys)));
 
 /**
  * The rows of the copied data, and a fingerprint of each of their cells, recorded before a hook may edit them.
@@ -396,6 +400,7 @@ export class CopyPaste extends BasePlugin {
     this.addHook('afterSelection', this.#onAfterSelection);
     this.addHook('afterSelectionEnd', this.#onAfterSelectionEnd);
     this.addHook('afterChange', this.#onAfterChange);
+    this.addHook('beforeKeyDown', this.#onBeforeKeyDown);
 
     // The same three listeners go on up to three targets, because a clipboard event reaches
     // the grid by a different route depending on where the grid is embedded. More than one
@@ -1474,6 +1479,29 @@ export class CopyPaste extends BasePlugin {
     }
 
     options.items.push(cutItem(this));
+  };
+
+  /**
+   * Cancels the browser's copy, cut, or paste when the application removed the shortcut of that key from
+   * the grid context. Only a key press the grid itself would handle counts, so an open editor and the
+   * other contexts keep the native behavior, and so do `copy()`, `cut()`, `paste()`, and the context menu,
+   * which never press a key.
+   *
+   * @param {KeyboardEvent} event The `keydown` event.
+   */
+  #onBeforeKeyDown = (event: KeyboardEvent) => {
+    const shortcutManager = this.hot.getShortcutManager();
+
+    if (shortcutManager.getActiveContextName() !== GRID_SCOPE) {
+      return;
+    }
+
+    const isClipboardKey = getEventKeyCombinations(event, isMacOS)
+      .some(keys => CLIPBOARD_KEYS.has(normalizeKeys(keys)));
+
+    if (isClipboardKey && !shortcutManager.hasEventShortcut(GRID_SCOPE, event)) {
+      event.preventDefault();
+    }
   };
 
   /**

@@ -42,6 +42,24 @@ corrupt data, by inserting the rows twice.
 Under LWS only one listener fires anyway, so dedupe is not what carries that case — but the membrane's
 event identity is unverified, so do not lean on it there.
 
+### The keyboard shortcuts are markers, and the plugin cancels the key when one is gone (DEV-763)
+
+Copy, cut and paste run from the native events above, never from a keydown. So the grid context registers
+Ctrl/Cmd+C, X and V in `shortcuts/contexts/grid.ts` as no-op, `preventDefault: false` entries in the
+`gridClipboard` group (`GRID_CLIPBOARD_GROUP`, `GRID_CLIPBOARD_KEYS` in `shortcuts/contexts/constants.ts`).
+Their presence means "the browser runs this key". `#onBeforeKeyDown` cancels the key's default when the
+active context is `grid`, the event is exactly one of those three chords, and the grid context no longer has
+a shortcut for it. That is what makes `removeShortcutsByKeys([['control/meta', 'c']])` stop keyboard copy.
+
+- **The registration lives in core, not in `enablePlugin()`.** `updatePlugin()` re-enables the plugin and would
+  put back a shortcut the application removed.
+- **The group is not `gridDefault`**, so `removeShortcutsByGroup('gridDefault')` keeps its old meaning.
+- **Only the keydown is cancelled.** The context menu items, `copy()`, `cut()` and `paste()` never touch a
+  keydown, so they keep working. In an open editor the active context is `editor`, so native copy, cut and
+  paste there are untouched.
+- **The chord match is exact.** Ctrl+Shift+V and the like are not cancelled.
+- Specs: `tests/e2e/clipboard-shortcuts-removal.spec.ts` (Playwright, real clipboard, includes a Mac emulation).
+
 ### Testing the LWS shape
 
 `tests/e2e/shadow-dom.spec.ts` drives it through the `?delivery=lws-shape` mode of
