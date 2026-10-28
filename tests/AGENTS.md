@@ -1301,10 +1301,11 @@ reader and browser (`playwright.screenreader.config.ts`: `nvda-chromium`, `nvda-
 transcripts into the job summary and the `Screen reader / <project> report` check run. CI runs it on its
 own nightly (`.github/workflows/screenreader-nightly.yml` calling `screenreader.yml`: NVDA on
 `windows-2025` and VoiceOver on `macos-26`, one job per screen reader and browser), never in the
-pull-request Tests pipeline. This is the evidence the Accessibility
-Conformance Report cites for what a cell, a header, a state and a status message announce (WCAG 1.3.1,
+pull-request Tests pipeline. It is the evidence a future version of the Accessibility
+Conformance Report can cite for what a cell, a header, a state and a status message announce (WCAG 1.3.1,
 4.1.2, 4.1.3): the axe scan reads the accessibility tree, this lane reads what a screen reader makes of
-it.
+it. No verdict of the current report comes from it, which is why the report page lists only the audited
+screen readers (`docs/AGENTS.md` 2.20).
 
 - **Report-only, and the rule is one constant.** `SCREENREADER_MODE` in `lib/screenreader-transcript.mjs`
   is `report`: a missing token group or a golden difference is a row in the summary, a line in the
@@ -1467,7 +1468,17 @@ it.
   lacks the fact is a defect to fix in the core (the lane's purpose) and stays listed until it is, with
   a `Finding: …` sentence in the step's `note`. A group a step cannot satisfy today records the gap:
   `extend-range` in `grid-core` asks for the new end cell and its selected state, a range extension
-  moves no focus, and a miss there is the finding. Never delete a group to turn a row green.
+  moves no focus, and a miss there is the finding. Never delete a group to turn a row green. **Before
+  calling a miss the grid's, run the same keys over a well-formed ARIA grid**: a throwaway fixture in
+  the APG data grid shape (one `role="grid"` table, the same data and `aria-*index` values, a roving
+  focus, `window.hot.selectCell()` and a `window.Handsontable` marker for the runner) with a scenario of
+  the same steps, dispatched from an experiment branch. A miss there too is the screen reader's own
+  behavior, and the step's note says so without a `Finding (the grid's)`; a miss on the grid alone is
+  the grid's. The first such control showed that VoiceOver names no header role and no row number on a
+  focus move even on a correct grid, and with WebKit no column number either, while every position and
+  header Chromium derives from the tree is the grid's: the overlay clones hold the header row and the
+  row headers in rows of their own in Chromium's accessibility tree. Read that tree with CDP's
+  `Accessibility.getFullAXTree` on the fixture, which needs no screen reader.
 - **Adding a scenario**: a fixture under `fixtures/demo/` that keeps the fixture contract (the
   `?theme=`/`?bundle=` block, `window.hot`, a constructor throw captured as `htBuildError`), small
   enough that every step's target is rendered; the file `screenreader/scenarios/<surface>.scenario.json`

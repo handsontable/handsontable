@@ -31,7 +31,7 @@
           "column 3"
         ]
       ],
-      "note": "The cell to the right: its value, the column header the cell is described by, and its position. Finding: VoiceOver names no row or column position on a cell move, here and on every arrow step: WebKit says the header and the value (`age 34`); Chromium adds `column 2`, one lower than the cell's aria-colindex 3 (the row-header column is not counted), and names the row by its cells (`row alice 34 oslo`) (the committed vo-* goldens)."
+      "note": "The cell to the right: its value, the column header the cell is described by, and its position. VoiceOver names no row number on a cell move, and WebKit no column number either, on a well-formed ARIA grid too: VoiceOver's behavior, not the grid's. Finding (the grid's): VoiceOver with Chromium says `column 2` here, one lower than the cell's aria-colindex 3, where it says `column 3` on a well-formed grid. Chromium's accessibility tree has no row header in the data rows, because the overlay clones hold the headers in rows of their own (the committed vo-chromium golden)."
     },
     {
       "id": "arrow-down",
@@ -112,7 +112,7 @@
           "column 2"
         ]
       ],
-      "note": "navigableHeaders: ArrowUp from the first row enters the column header. Finding: NVDA with Chromium announces the header row as `row 7` (its committed golden), so `row 1` misses there. Finding: VoiceOver says the header's name without its role or row on both browsers (WebKit `name`; Chromium `name column 2` and the row named by its cells)."
+      "note": "navigableHeaders: ArrowUp from the first row enters the column header. Finding (the grid's): NVDA with Chromium announces the header row as `row 7` (its committed golden), so `row 1` misses there: in Chromium's accessibility tree the overlay clones put the header row after the data rows. VoiceOver says no header role on a well-formed ARIA grid either: VoiceOver's behavior."
     },
     {
       "id": "back-to-cell",
@@ -144,7 +144,7 @@
           "column 1"
         ]
       ],
-      "note": "navigableHeaders: ArrowLeft from the first column enters the row header. Finding: NVDA with Chromium announces the row header's row as `row 8` (its committed golden), so `row 2` misses there. Finding: VoiceOver says no role on both browsers (WebKit `1`; Chromium `1 column 1 row 1`, where `row 1` names the row by its header's text: the row is row 2)."
+      "note": "navigableHeaders: ArrowLeft from the first column enters the row header. Finding (the grid's): NVDA with Chromium announces the row header's row as `row 8` (its committed golden), so `row 2` misses there: the overlay clones hold the row headers in rows of their own in Chromium's accessibility tree. VoiceOver says no header role on a well-formed ARIA grid either, and with Chromium it names a row by its cells there too: VoiceOver's behavior."
     },
     {
       "id": "back-from-row-header",
@@ -267,7 +267,7 @@
           "column 2"
         ]
       ],
-      "note": "The API selection a host makes after the menu: the focus is back on the cell whatever the previous step left, so the range steps start from a known state. Finding: VoiceOver with Chromium counts 13 rows in this grid of six (`tree grid 4 columns 13 rows`)."
+      "note": "The API selection a host makes after the menu: the focus is back on the cell whatever the previous step left, so the range steps start from a known state. Finding (the grid's): VoiceOver with Chromium counts 13 rows in this grid of six (`tree grid 4 columns 13 rows`), because the overlay clones add rows of their own to Chromium's accessibility tree."
     },
     {
       "id": "extend-range",
@@ -318,7 +318,7 @@
           "column 2"
         ]
       ],
-      "note": "ArrowUp from the range's anchor cell enters its column header, to sort it. Finding: NVDA with Chromium announces the header row as `row 7` (its committed golden), so `row 1` misses there. Finding: VoiceOver says the header's name without its role or row, as in into-column-header."
+      "note": "ArrowUp from the range's anchor cell enters its column header, to sort it. Finding (the grid's): NVDA with Chromium announces the header row as `row 7` (its committed golden), so `row 1` misses there, as in into-column-header. VoiceOver says no header role, as in into-column-header: VoiceOver's behavior."
     },
     {
       "id": "sort-ascending",
