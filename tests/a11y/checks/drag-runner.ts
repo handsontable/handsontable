@@ -331,8 +331,16 @@ export function dragEffects(before: DragState, after: DragState): string[] {
   if (differs('sheets')) {
     effects.add('sheet-order-changes');
   }
-  if (differs('editorText')) {
+  // The text of an editor that stayed open; an editor that opened or closed is its own effect, so a commit
+  // never reads as text the drag inserted.
+  if (before.editorText !== null && after.editorText !== null && differs('editorText')) {
     effects.add('text-changes');
+  }
+  if (before.editorText === null && after.editorText !== null) {
+    effects.add('editor-opens');
+  }
+  if (before.editorText !== null && after.editorText === null) {
+    effects.add('editor-closes');
   }
 
   return [...effects].sort();

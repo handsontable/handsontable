@@ -185,6 +185,17 @@ export const DRAG_OPERATIONS = [
         steps: [{ press: '+' }, { press: ['B', ':', 'C'] }] },
     ],
   },
+  {
+    id: 'formula-row-header-reference', plugin: 'formulaBuilder', gesture: 'drag', operation: 'Insert a whole-row range reference into the edited formula by dragging across row headers',
+    page: 'formula-builder', expect: 'text-changes', compare: 'editorText',
+    drag: [{ press: '+' }, { drag: { from: { rowHeader: 3 }, to: { rowHeader: 4 } } }],
+    alternatives: [
+      { input: 'single-pointer', covers: 'partial', how: 'A click on a row header inserts that one row\'s reference, never a span of rows',
+        steps: [{ press: '+' }, { click: { rowHeader: 3 } }] },
+      { input: 'keyboard', covers: 'full', how: 'Typing the row range at the caret inserts the same text; no point-mode key picks whole rows',
+        steps: [{ press: '+' }, { press: ['4', ':', '5'] }] },
+    ],
+  },
 ];
 
 /**
