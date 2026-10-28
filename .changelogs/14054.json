@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed removing the Ctrl/Cmd+C, Ctrl/Cmd+X, and Ctrl/Cmd+V shortcuts through the ShortcutManager, which now turns off the keyboard copy, cut, and paste.",
+  "type": "fixed",
+  "issueOrPR": 14054,
+  "breaking": false,
+  "framework": "none"
+}
