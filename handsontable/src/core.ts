@@ -2765,7 +2765,7 @@ export default function Core(
    * The handler fires `afterFontsLoad`, on which the sizing plugins re-measure, then drops the engine's
    * size caches and renders. `refreshDimensions()` is not enough: it skips the render when the container
    * keeps its size, which is the case for a grid with a fixed `height`. On a hidden grid the re-measure
-   * waits until the grid is shown.
+   * waits until the grid is shown, and so does the render after a listener that hid the grid.
    */
   function refreshAfterFontsLoad() {
     if (!instance || instance.isDestroyed || !instance.view) {
@@ -2775,16 +2775,7 @@ export default function Core(
     // The auto-size plugins skip measuring a hidden grid, and a scroll draw after the grid is shown
     // measures only the columns that have no width yet. So the re-measure waits until the grid is shown.
     if (!instance.view.isVisible()) {
-      if (fontRefreshVisibilityObserver === null) {
-        // The observer watches the table `isVisible()` reads, not the root element. The two can disagree:
-        // a root element with `content-visibility: hidden` has a box and intersects the viewport, while
-        // the table inside it has no box. An observer on the root would then fire at once, see the grid
-        // still hidden, and arm again on every frame for as long as the grid stays hidden.
-        fontRefreshVisibilityObserver = observeVisibilityChangeOnce(instance.view._wt.wtTable.TABLE, () => {
-          fontRefreshVisibilityObserver = null;
-          refreshAfterFontsLoad();
-        });
-      }
+      refreshAfterFontsLoadOnceShown();
 
       return;
     }
@@ -2802,6 +2793,15 @@ export default function Core(
       return;
     }
 
+    // A listener can hide the grid too (a tab switch). The forced render would then measure the columns on
+    // screen inside the hidden root and write the minimum width for each, and a draw after the grid is shown
+    // measures only the columns that have no width. The whole re-measure runs again once it is shown.
+    if (!instance.view.isVisible()) {
+      refreshAfterFontsLoadOnceShown();
+
+      return;
+    }
+
     // Walkontable's records of rows taller than the default stay: without AutoRowSize nothing else knows
     // the height of a row outside the rendered band, and dropping them would draw every such row above the
     // viewport at the default height, which moves a grid scrolled far down to other rows. The band is
@@ -2811,6 +2811,24 @@ export default function Core(
     // size (a merged block's height) would keep the stale one.
     instance.renderChangeTracker.markAllChanged();
     instance.render();
+  }
+
+  /**
+   * Runs `refreshAfterFontsLoad()` again once the hidden grid is shown.
+   */
+  function refreshAfterFontsLoadOnceShown() {
+    if (fontRefreshVisibilityObserver !== null) {
+      return;
+    }
+
+    // The observer watches the table `isVisible()` reads, not the root element. The two can disagree:
+    // a root element with `content-visibility: hidden` has a box and intersects the viewport, while
+    // the table inside it has no box. An observer on the root would then fire at once, see the grid
+    // still hidden, and arm again on every frame for as long as the grid stays hidden.
+    fontRefreshVisibilityObserver = observeVisibilityChangeOnce(instance.view._wt.wtTable.TABLE, () => {
+      fontRefreshVisibilityObserver = null;
+      refreshAfterFontsLoad();
+    });
   }
 
   /**

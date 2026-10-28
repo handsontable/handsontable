@@ -337,6 +337,31 @@ test.describe('Web font loaded after the first draw', { tag: [THEMES_TAG, CROSS_
     expect(await grid.cellTextFits(3, offScreen)).toBe(true);
   });
 
+  test('re-measures once shown when a listener hides the grid after the sweep measured it', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+    // C4 does not wrap and its column is sized from its content. The grid has four columns, so the sweep
+    // ends in the chunk run inside the hook, before the listener hides the grid.
+    const column = 2;
+
+    await grid.goto();
+    await expectAligned(grid);
+
+    const before = await grid.columnWidth(column);
+
+    // The listener runs after the plugins' own. The render that follows the hook used to measure the
+    // columns on screen inside the hidden root, wrote the minimum width for each, and nothing measured
+    // them again once the grid was shown.
+    await grid.hideGridDuringFontsLoad();
+    await grid.trackFontsLoadHook();
+    await grid.loadFont();
+    await expect.poll(() => grid.fontsLoadHookRan()).toBe(true);
+
+    await grid.setGridDisplayed(true);
+
+    await expect.poll(() => grid.cellTextFits(3, column)).toBe(true);
+    expect(await grid.columnWidth(column)).toBeGreaterThan(before);
+  });
+
   test('keeps a re-measure owed by a hidden grid through a calculateAllColumnsWidth() call', async({ page, theme, bundle }) => {
     const grid = new WebFontLoadPage(page, theme, bundle);
     const offScreen = 39;

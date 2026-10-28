@@ -14,6 +14,7 @@ interface FontLoadGrid {
   setDataAtCell(row: number, column: number, value: string): void;
   setSourceDataAtCell(row: number, column: number, value: string): void;
   addHook(name: 'afterRender' | 'afterFontsLoad' | 'beforeRender', callback: () => void, orderIndex?: number): void;
+  addHookOnce(name: 'afterFontsLoad', callback: () => void, orderIndex?: number): void;
   runHooks(name: 'afterFontsLoad'): void;
   getPlugin(name: 'autoRowSize' | 'autoColumnSize'): { inProgress: boolean, calculateAllColumnsWidth(): void };
   alter(action: 'remove_row' | 'insert_row_above', index: number, amount: number): void;
@@ -313,10 +314,11 @@ export class WebFontLoadPage {
   /**
    * Hides the grid's container (`display: none`) right after the next font re-measure starts (the
    * `afterFontsLoad` hook, after AutoColumnSize's own listener), so the sweep's idle chunks find the grid hidden.
+   * It hides the grid once: the re-measure runs again, hook included, when the grid is shown.
    */
   async hideGridDuringFontsLoad(): Promise<void> {
     await this.page.evaluate(() => {
-      (window as unknown as { hot: FontLoadGrid }).hot.addHook('afterFontsLoad', () => {
+      (window as unknown as { hot: FontLoadGrid }).hot.addHookOnce('afterFontsLoad', () => {
         (document.querySelector('[data-testid="grid"]') as HTMLElement).style.display = 'none';
       }, 100);
     });
