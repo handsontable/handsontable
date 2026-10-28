@@ -695,6 +695,15 @@ export class Formulas extends BasePlugin {
   #restoredDependentCells: unknown[] = [];
 
   /**
+   * The size the engine's sheet had when each recorded state was last captured: the floor of the trim an
+   * undo or a redo of a row or column change makes (`AxisSyncer#trimUnusedTail()`). It lives beside the
+   * state, not in it, because the sheet grows without any change to the grid (a formula in another grid
+   * reading a far cell), and a state that carried the size would then stop being reused, which makes
+   * UndoRedo record an empty step and drop the redo stack.
+   */
+  #sheetSizeFloors = new WeakMap<FormulasUndoState, { width: number; height: number }>();
+
+  /**
    * The engine addresses of the cells an undo or a redo wrote, as its `afterChange` reported them. The
    * UndoRedo plugin validates those itself, so they are left out of `#restoredDependentCells`.
    */
@@ -2208,12 +2217,18 @@ export class Formulas extends BasePlugin {
       return undefined;
     }
 
+    const sheetSize = this.#hasOwnSheet() ? this.engine.getSheetDimensions(this.sheetId!) : null;
+
     if (
       isFormulasUndoState(previous) &&
       previous.structureVersion === this.#structureVersion &&
       previous.dataVersion === this.#dataVersion &&
       this.#pendingPeerRewrites.size === 0
     ) {
+      if (sheetSize !== null) {
+        this.#sheetSizeFloors.set(previous, sheetSize);
+      }
+
       return previous;
     }
 
@@ -2222,12 +2237,18 @@ export class Formulas extends BasePlugin {
 
     this.#pendingPeerRewrites.clear();
 
-    return {
+    const state: FormulasUndoState = {
       structureVersion: this.#structureVersion,
       dataVersion: this.#dataVersion,
       engineSheet: this.#captureEngineSheet(isFormulasUndoState(previous) ? previous.engineSheet : null),
       peerRewrites,
     };
+
+    if (sheetSize !== null) {
+      this.#sheetSizeFloors.set(state, sheetSize);
+    }
+
+    return state;
   }
 
   /**
@@ -2261,19 +2282,60 @@ export class Formulas extends BasePlugin {
       this.#restoredWrites = [];
       this.#structureVersion = state.structureVersion;
       this.#dataVersion = state.dataVersion;
+      this.#restoreStructure(state, context);
 
-      const dependentCells = state.engineSheet === null ?
-        this.#loadSourceDataIntoSheet() : this.#loadEngineSheet(state.engineSheet);
-
-      dependentCells.forEach((cell) => {
-        this.#restoredDependentCells.push(cell);
-      });
-    } else {
-      this.#dataVersion = state.dataVersion;
-      this.#flushRestoredWrites();
+      return;
     }
 
-    this.#restorePeerRewrites(state, context);
+    this.#dataVersion = state.dataVersion;
+    this.#flushRestoredWrites();
+    this.#syncPeerSources(this.#restorePeerRewrites(state, context));
+  }
+
+  /**
+   * Reloads the sheet for a restored state whose rows or columns differ from the engine's, puts back the
+   * peers' formulas, and gives back the rows and columns the step added (`AxisSyncer#trimUnusedTail()`).
+   * It is one engine batch: a volatile formula recalculates on every engine call, and each call would
+   * emit `valuesUpdated` and repaint the other grids on the engine once more.
+   *
+   * @param {object} state The recorded state.
+   * @param {object} [context] The step being restored.
+   */
+  #restoreStructure(state: FormulasUndoState, context?: PluginRestoreContext) {
+    const engine = this.engine!;
+    const floor = this.#sheetSizeFloors.get(state);
+    // Reading the source data reads engine values, which a suspended engine refuses.
+    const sourceDataArray = state.engineSheet === null ? this.#getProcessedSourceDataArray() : undefined;
+    let dependentCells: unknown[];
+    let peerRewrites: readonly PeerRewrite[] = [];
+
+    // Passive for the hooks that read the engine: a suspended engine refuses those reads.
+    this.#internalOperationPending = true;
+
+    try {
+      dependentCells = this.#writeOwnSheet(engine, () => engine.batch(() => {
+        if (sourceDataArray !== undefined) {
+          this.#loadSourceDataIntoSheet(sourceDataArray);
+        } else {
+          this.#loadEngineSheet(state.engineSheet!);
+        }
+
+        peerRewrites = this.#restorePeerRewrites(state, context);
+
+        if (floor !== undefined) {
+          this.rowAxisSyncer!.trimUnusedTail(floor.height);
+          this.columnAxisSyncer!.trimUnusedTail(floor.width);
+        }
+      }));
+    } finally {
+      this.#internalOperationPending = false;
+    }
+
+    this.#syncPeerSources(peerRewrites);
+
+    dependentCells.forEach((cell) => {
+      this.#restoredDependentCells.push(cell);
+    });
   }
 
   /**
@@ -2430,19 +2492,21 @@ export class Formulas extends BasePlugin {
    *
    * @param {object} state The state being restored.
    * @param {object} [context] The step being restored.
+   * @returns {PeerRewrite[]} The rewrites the other grids' source data still has to follow
+   *   (`#syncPeerSources()`), which reads values and so cannot run while the engine is suspended.
    */
-  #restorePeerRewrites(state: FormulasUndoState, context?: PluginRestoreContext) {
+  #restorePeerRewrites(state: FormulasUndoState, context?: PluginRestoreContext): readonly PeerRewrite[] {
     // The step's rewrites are recorded in the state it ended in.
     const stepEnd = context?.direction === 'undo' ? context.other : state;
 
     if (context?.direction === undefined || !isFormulasUndoState(stepEnd) || stepEnd.peerRewrites.length === 0) {
-      return;
+      return [];
     }
 
     const engine = this.engine!;
     const isUndo = context.direction === 'undo';
     let keptEdited = false;
-    const changes = this.#writeOwnSheet(engine, () => engine.batch(() => {
+    const rewritePeers = () => {
       stepEnd.peerRewrites.forEach((rewrite) => {
         const expected = isUndo ? rewrite.after : rewrite.before;
         const text = isUndo ? rewrite.before : rewrite.after;
@@ -2476,7 +2540,17 @@ export class Formulas extends BasePlugin {
             engine.getNamedExpression(rewrite.name, rewrite.scope)?.options);
         }
       });
-    }));
+    };
+    // A restore of a structural step runs this inside its own batch, which a nested `batch()` would end.
+    const changes = this.#writeOwnSheet(engine, () => {
+      if (engine.isEvaluationSuspended()) {
+        rewritePeers();
+
+        return [];
+      }
+
+      return engine.batch(rewritePeers);
+    });
 
     if (keptEdited) {
       warnOnce(this.hot, 'formulas.undoKeptEditedPeerFormula', toSingleLine`Formulas: an undo or a redo left\x20
@@ -2486,7 +2560,8 @@ export class Formulas extends BasePlugin {
     changes.forEach((cell) => {
       this.#restoredDependentCells.push(cell);
     });
-    this.#syncPeerSources(stepEnd.peerRewrites);
+
+    return stepEnd.peerRewrites;
   }
 
   /**
@@ -3897,13 +3972,15 @@ export class Formulas extends BasePlugin {
    * Fills the sheet with the source data, renders the grids that read it, and returns the cells
    * whose values changed. When the data does not fit the engine, the sheet is emptied instead.
    *
+   * @param {Array<Array<*>>} [readSourceData] The source data read ahead, when the engine is about to be
+   *   suspended and cannot answer the read.
    * @returns {Array} The engine's changes.
    */
-  #loadSourceDataIntoSheet(): unknown[] {
+  #loadSourceDataIntoSheet(readSourceData?: unknown[][]): unknown[] {
     // Whatever this writes supersedes a resync still owed from a settings update it interrupted.
     this.#sheetResyncPending = false;
 
-    const sourceDataArray = this.#getProcessedSourceDataArray();
+    const sourceDataArray = readSourceData ?? this.#getProcessedSourceDataArray();
 
     // The guard only range-checks the sheet against the array dimensions, so escaping can run
     // after it – and then it is skipped altogether when the content is not replaced. Observable
