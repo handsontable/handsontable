@@ -6,6 +6,25 @@ import config from './scenario.config.mjs';
 
 const fixturePath = path.resolve(import.meta.dirname, 'fixture.html');
 
+/**
+ * DO NOT MERGE: sorts after a fixed 15 ms slowdown inside the measured window, to prove the
+ * regression gate. A named declaration on purpose: the parser drops CPU samples of anonymous frames
+ * as idle, and an inlined inner helper is billed to the frame it was inlined into.
+ *
+ * @param {'asc' | 'desc'} order The sort order.
+ */
+function sortWithSlowdown(order: 'asc' | 'desc') {
+  const hot = (window as any).__hot;
+  const sortPlugin = hot.getPlugin('columnSorting');
+  const until = performance.now() + 15;
+
+  while (performance.now() < until) {
+    // spin
+  }
+
+  sortPlugin.sort({ column: 0, sortOrder: order });
+}
+
 test(config.name, async({ page }) => {
   await page.goto(`file://${fixturePath}`);
   await page.waitForFunction(() => (window as any).__hot, undefined, { polling: 100 });
@@ -26,18 +45,7 @@ test(config.name, async({ page }) => {
       const sortOrder = sortAscending ? 'asc' : 'desc';
 
       // Alternate sort direction across iterations
-      await page.evaluate((order) => {
-        const hot = (window as any).__hot;
-        const sortPlugin = hot.getPlugin('columnSorting');
-        // DO NOT MERGE: a fixed 15 ms slowdown inside the measured window, to prove the regression gate.
-        const until = performance.now() + 15;
-
-        while (performance.now() < until) {
-          // spin
-        }
-
-        sortPlugin.sort({ column: 0, sortOrder: order });
-      }, sortOrder);
+      await page.evaluate(sortWithSlowdown, sortOrder);
 
       sortAscending = !sortAscending;
 
