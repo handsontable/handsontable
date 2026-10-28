@@ -1091,7 +1091,7 @@ as tested.
 |---|---|---|
 | `target` | `standard`, `version`, `level`, `url`, and `wording.long` / `wording.short` | each wording starts with "targets" (the validator rejects anything else) |
 | `report` | `title`, `version`, `date`, `slug`, `url`, `docsPath` (an `@/...md` link), `template`, `evaluatedProductVersion` (a string, or `null` while the report does not state it), `audit` (`auditor`, `period`, `coverage`), `next` (`version`, `status`, `scope`, or `null`) | `url` is the JavaScript docs URL; the READMEs derive their framework-prefixed form from `slug` |
-| `matrix[]` | one entry per screen reader and platform: `name`, `version` (`null` only when `howTested` is `not-tested`), `platform`, `howTested[]`, and optionally `browsers[]` | `howTested` values: `audit` (the external audit in `report.audit`), `automated-nightly`, `manual-per-major`, `not-tested`; `not-tested` stands alone. An entry whose only value is `not-tested` records a decision and is never rendered - its name is what public text must not use. `browsers[]` names the browsers an entry was tested in when they are not the audit's (`browsers`), as an automated run's are (`["WebKit (Playwright)", "Chromium"]` for the VoiceOver nightly); the list and the table render them beside the platform, so the entry never reads as tested in the audit's browsers. A not-tested entry names none |
+| `matrix[]` | one entry per screen reader, version and platform: `name`, `version` (`null` only when `howTested` is `not-tested`), `platform`, `howTested[]`, and optionally `browsers[]` | `howTested` values: `audit` (the external audit in `report.audit`), `automated-nightly`, `manual-per-major`, `not-tested`; `not-tested` stands alone. An entry whose only value is `not-tested` records a decision and is never rendered - its name is what public text must not use. `browsers[]` names the browsers an entry was tested in when they are not the audit's (`browsers`), as an automated run's are (`["WebKit (Playwright)", "Chromium"]` for the VoiceOver nightly); the list and the table render them beside the platform, so the entry never reads as tested in the audit's browsers. A not-tested entry names none |
 | `browsers[]` | `name`, `version` (full) | sentences use the major version |
 | `knownLimitations[]` | `id`, `text` (Markdown), `criteria[]` (WCAG numbers), `reportRef` (the report's own "Ref." column, such as `#2375`, or `null`) | ids are unique; the order is the rendered order. `reportRef` is not a GitHub issue number (`#2375` on GitHub is an unrelated issue), so it renders as "ref. #2375 in the report" |
 | `notes` | `mobile`, `automation` | one sentence or two each; rendered verbatim |
@@ -1108,7 +1108,7 @@ docs build and the root tooling suite instead of rendering `undefined`.
   `report.title`, `report.version`, `report.date`, `report.url`, `report.docsPath`, `report.link`,
   `report.template`, `report.evaluatedProductVersion`, `report.auditor`, `report.auditPeriod`,
   `report.auditCoverage`, `report.next.version`, `report.next.status`, `report.next.scope`,
-  `report.next.sentence`, `matrix.table`, `matrix.list`, `matrix.sentence`, `matrix.names`,
+  `report.next.sentence`, `matrix.table`, `matrix.list`, `matrix.auditList`, `matrix.sentence`, `matrix.names`,
   `browsers.sentence`, `browsers.list`, `knownLimitations.list`, `notes.mobile`,
   `notes.automation`. An unknown key throws at build time. `report.next` may be `null` (no next
   version planned); the three `report.next.*` parts then render empty, and so does
@@ -1122,7 +1122,11 @@ docs build and the root tooling suite instead of rendering `undefined`.
   the next page render, with no restart. The accessibility
   guide, the conformance report page, the ARIA recipe, and the Pikaday recipe use them; the
   tooling test requires the guide and the report page to render the target, the version, the date,
-  and the matrix from them rather than from literals.
+  and the matrix from them rather than from literals. The two pages render different matrices: the
+  guide lists every tested entry (`matrix.list`), and the report lists only the entries the audit
+  covered (`matrix.auditList`), because its evaluation methods name the sources of its verdicts and
+  an automated run is not one until a report version cites it. The tooling test refuses
+  `matrix.list` on the report page.
 - **The READMEs** (root and the three wrappers) carry
   `[targets WCAG 2.2 AA](https://handsontable.com/docs/<prefix>/accessibility-conformance-report/)`
   next to their Accessibility feature link; the test derives the sentence and each README's prefix

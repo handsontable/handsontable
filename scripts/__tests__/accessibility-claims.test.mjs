@@ -106,6 +106,13 @@ test('a matrix entry tested in its own browsers names them, and only a tested en
   assert.equal(screenReadersSentence(data), 'VoiceOver (macOS and iOS) and NVDA (Windows)',
     'a nightly on a platform family the audit already covers adds nothing to the sentence the website reads');
 
+  const auditList = accessibilityTemplateValues(data)['matrix.auditList'];
+
+  assert.doesNotMatch(auditList, /automated nightly/,
+    'the report\'s list keeps the audited entries only, so a nightly never reads as a source of its verdicts');
+  assert.equal(auditList.split('\n').length,
+    data.matrix.filter(entry => entry.howTested.includes('audit')).length, 'every audited entry, one line each');
+
   [[], [''], 'Chromium', [3]].forEach((browsers) => {
     const broken = structuredClone(data);
 
@@ -346,7 +353,7 @@ test('the guide and the report page read the target, the report version and the 
     'report.next.sentence',
   ];
   const reportKeys = [
-    'report.version', 'report.date', 'matrix.list', 'browsers.list', 'notes.mobile', 'report.next.sentence',
+    'report.version', 'report.date', 'matrix.auditList', 'browsers.list', 'notes.mobile', 'report.next.sentence',
   ];
 
   for (const key of guideKeys) {
@@ -355,6 +362,10 @@ test('the guide and the report page read the target, the report version and the 
   for (const key of reportKeys) {
     assert.ok(report.includes(`{{$a11y.${key}}}`), `${REPORT} must render {{$a11y.${key}}}`);
   }
+  // The report's evaluation methods name the sources of its verdicts, the audit; an automated run is
+  // not one until a report version cites it, so the report lists the audited entries only.
+  assert.ok(!report.includes('{{$a11y.matrix.list}}'),
+    `${REPORT}: the evaluation methods list {{$a11y.matrix.auditList}}, never the full matrix`);
 
   // A literal copy of a value the variable carries is the drift this file exists to stop.
   for (const [file, text] of [[GUIDE, guide], [REPORT, report]]) {

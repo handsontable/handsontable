@@ -344,12 +344,13 @@ export function matrixTable(data) {
  * The tested screen readers as a Markdown list, one line per entry.
  *
  * @param {object} data The validated data.
+ * @param {object[]} [entries] The entries to list; every tested entry by default.
  * @returns {string} The list.
  */
-export function matrixList(data) {
+export function matrixList(data, entries = testedScreenReaders(data)) {
   const lowerFirst = text => text.charAt(0).toLowerCase() + text.slice(1);
 
-  return testedScreenReaders(data)
+  return entries
     .map((entry) => {
       // VoiceOver's version is the OS version, so "VoiceOver on macOS 15.3.2" reads better than
       // "VoiceOver macOS 15.3.2 on macOS"; NVDA keeps "NVDA 2025.3 on Windows 11".
@@ -361,6 +362,18 @@ export function matrixList(data) {
       return `- ${subject}${browsers}: ${entry.howTested.map(how => lowerFirst(howTestedLabel(data, how))).join('; ')}.`;
     })
     .join('\n');
+}
+
+/**
+ * The screen readers the external audit covered, as `matrixList()` renders them. The conformance
+ * report lists these under its evaluation methods: its verdicts come from the audit, so an entry
+ * tested only by an automated run is not one of its sources until a report version cites that run.
+ *
+ * @param {object} data The validated data.
+ * @returns {string} The list.
+ */
+export function matrixAuditList(data) {
+  return matrixList(data, testedScreenReaders(data).filter(entry => entry.howTested.includes('audit')));
 }
 
 /**
@@ -443,6 +456,7 @@ export function accessibilityTemplateValues(data) {
     'report.next.sentence': next ? `Version ${next.version} of this report is ${next.status}: ${next.scope}.` : '',
     'matrix.table': matrixTable(data),
     'matrix.list': matrixList(data),
+    'matrix.auditList': matrixAuditList(data),
     'matrix.sentence': screenReadersSentence(data),
     'matrix.names': joinList(allowedScreenReaderNames(data)),
     'browsers.sentence': browsersSentence(data),
