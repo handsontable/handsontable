@@ -283,20 +283,22 @@ export function targetKey(target) {
 }
 
 /**
- * A finding's stable id within a run: what it is (the kind) and where (the target, and the element, the
- * step or both). Two runs that find the same thing give it the same id, so a later run can be compared
- * with an earlier one. A finding that names both keys on both: one element can show the same kind at
- * two steps (a focus indicator after `Tab 2` and after `ArrowDown from (1, 1)`), and those are two findings. The
- * state is not in it: a target has one state (`mergeEvidence()` keeps one part per target).
+ * A finding's stable id within a run: what it is (the kind, and the axe rule and cause when it names
+ * them) and where (the target, and the element, the step or both). Two runs that find the same thing
+ * give it the same id, so a later run can be compared with an earlier one. A finding that names both
+ * keys on both: one element can show the same kind at two steps (a focus indicator after `Tab 2` and
+ * after `ArrowDown from (1, 1)`), and those are two findings. The state is not in it: a target has one
+ * state (`mergeEvidence()` keeps one part per target).
  *
  * @param {string} check The check.
  * @param {object} finding The finding, with its target fields.
  * @returns {string} The id.
  */
 export function findingId(check, finding) {
-  // A finding that names the rule it came from (the axe discovery run) keeps two rules on one element apart, and so
-  // does the reason of a needs-review result.
-  const rule = finding.rule ? [finding.rule, ...(finding.kind === 'axe-needs-review' ? [finding.reason] : [])] : [];
+  // A finding that names the rule it came from (the axe discovery run) keeps two rules on one element apart, and
+  // the cause of a needs-review result keeps two causes apart. Never the reason: axe writes per-node values
+  // (a size in px, an id holding the instance's random guid) into it.
+  const rule = finding.rule ? [finding.rule, ...(finding.cause ? [finding.cause] : [])] : [];
   const place = finding.selector && finding.step ? [finding.selector, finding.step] : [finding.selector ?? finding.step ?? ''];
 
   return [check, finding.kind, ...rule, finding.page, finding.theme, finding.variant ?? '', ...place].join('|');

@@ -1329,18 +1329,19 @@ criterion.
   file), `findings`, `problems` and `summary`. A target is its page, theme and variant: a check that
   measures one page two ways (a scheme, a state, an interaction) gives each its own variant, because a
   second part for the same target is dropped as a problem (it would count the target twice and
-  overwrite its detail file). A finding has a stable `id` (check, kind, page, theme, variant, and the
-  element, the step or both, so two runs give the same finding the same id; two findings that share one
-  are a problem), `kind`, `criteria`,
-  `severity`, its target (`page`, `theme`, `state`, `variant`, `url`), a `selector` or a `step` or
-  both, `measured` (flat values), optionally `expected`, and a one-sentence `reason`. What a target
-  measured in full (every focus stop, every ratio) goes to `<check>/<page>--<theme>[--<variant>].json`
-  beside the document, so the document stays small enough to read. `summary.byCriterion` counts, per
-  criterion, the targets that evaluated it and the findings against it: a criterion evaluated on many
-  targets with no finding is the evidence of a pass, and that count is what the generator cites.
-  `schema` (`EVIDENCE_SCHEMA`) changes when a field is removed or renamed; `validateEvidence()` is what
-  a reader can rely on, and it checks every field the summary and the check run read, so a document
-  that validates never crashes the report script before it posts.
+  overwrite its detail file). A finding has a stable `id` (check, kind, the axe `rule` and the
+  needs-review `cause` when it names them, page, theme, variant, and the element, the step or both, so
+  two runs give the same finding the same id; never the `reason`, whose text can carry per-node values;
+  two findings that share one are a problem), `kind`, `criteria`, `severity`, its target (`page`,
+  `theme`, `state`, `variant`, `url`), a `selector` or a `step` or both, `measured` (flat values),
+  optionally `expected`, and a one-sentence `reason`. What a target measured in full (every focus stop,
+  every ratio) goes to `<check>/<page>--<theme>[--<variant>].json` beside the document, so the document
+  stays small enough to read. `summary.byCriterion` counts, per criterion, the targets that evaluated it
+  and the findings against it: a criterion evaluated on many targets with no finding is the evidence of
+  a pass, and that count is what the generator cites. `schema` (`EVIDENCE_SCHEMA`) changes when a field
+  is removed or renamed; `validateEvidence()` is what a reader can rely on, and it checks every field
+  the summary and the check run read, so a document that validates never crashes the report script
+  before it posts.
 - **Criteria are WCAG 2.2 ids from one table.** `WCAG_CRITERIA` lists every 2.2 success criterion with
   its name and level, without the obsolete 4.1.1, and a finding naming any other id is refused. A
   finding may name a criterion outside its check's list when the measurement shows it (a focus stop
@@ -1524,10 +1525,13 @@ best-practice, AAA and experimental rules beside the WCAG 2.2 A and AA ones (`DI
   `best-practice`, `experimental`).
 - **Every "needs review" result is listed with axe's reason.** `incomplete` is what axe could not decide;
   the gating scan only counts it. Here each one is an advisory `axe-needs-review` record per rule,
-  element shape and reason (`nodeReason()`: the first message of its checks), with the node count and an
-  example selector. A violation is an `axe-violation` record per rule and element shape, at axe's impact.
-  A best-practice rule maps to no WCAG criterion, so its record carries an empty `criteria` list, which the
-  evidence shape allows for that reason and counts as `summary.withoutCriterion`.
+  element shape and cause (`nodeCause()`: the axe check behind its first message, and that check's
+  message key), with the node count, an example selector and the first node's message in its `reason`.
+  The message is never part of the key: axe writes per-node values into some (a size in px, an
+  `aria-controls` id that carries the instance's random guid), which would split one finding per node and
+  change its id every run. A violation is an `axe-violation` record per rule and element shape, at axe's
+  impact. A best-practice rule maps to no WCAG criterion, so its record carries an empty `criteria` list,
+  which the evidence shape allows for that reason and counts as `summary.withoutCriterion`.
 - **More states, in a list of its own.** `a11y/checks/discovery-pages.mjs` adds what no catalog page
   holds still: a cell focused from the keyboard, a hovered header button, the column menu of a sortable
   grid, a focused option of the filter value list, two selected ranges, a submenu inside a submenu

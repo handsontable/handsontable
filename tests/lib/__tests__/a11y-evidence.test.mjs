@@ -111,6 +111,9 @@ test('the names a check writes under: the check run, the detail file, the findin
   assert.equal(findingId('demo-check', { ...ORDER, page: 'grid', theme: 'main', variant: 'rtl' }), 'demo-check|tab-order-changed|grid|main|rtl|Tab 3');
   assert.equal(findingId('demo-check', { ...TRAP, step: 'Shift+Tab 2', page: 'grid', theme: 'main' }), 'demo-check|keyboard-trap|grid|main||td.current|Shift+Tab 2',
     'a finding that names an element and a step keys on both');
+  assert.equal(findingId('demo-triage', { kind: 'axe-needs-review', rule: 'color-contrast', cause: 'color-contrast:bgImage', reason: 'a background image (12px)',
+    selector: 'th', page: 'grid', theme: 'main' }), 'demo-triage|axe-needs-review|color-contrast|color-contrast:bgImage|grid|main||th',
+    'a record that names its rule and cause adds them, never its reason, whose text can carry per-node values');
 });
 
 test('run.commit is the pull request\'s head, never the merge commit', () => {

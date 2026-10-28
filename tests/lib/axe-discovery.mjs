@@ -46,25 +46,52 @@ export function ruleFamily(tags = []) {
  * @returns {string} The reason.
  */
 export function nodeReason(node) {
-  const message = [...(node.any ?? []), ...(node.all ?? []), ...(node.none ?? [])].map(check => check?.message).find(Boolean);
+  return firstCheck(node)?.message ?? node.failureSummary ?? 'axe gave no reason';
+}
 
-  return message ?? node.failureSummary ?? 'axe gave no reason';
+/**
+ * What a "needs review" result turned on, stable from run to run: the id of the axe check behind its
+ * first message, and that check's message key when it has one (`color-contrast:bgImage`). A record is
+ * keyed on this, never on the message: axe writes per-node values into some messages (a size in px, an
+ * `aria-controls` id that carries the instance's random guid), so a key on the text would split one
+ * finding per node and give it a new id on every run.
+ *
+ * @param {object} node The axe result node.
+ * @returns {string} The cause, or `unknown` when no check gave a message.
+ */
+export function nodeCause(node) {
+  const check = firstCheck(node);
+  const messageKey = check?.data?.messageKey;
+
+  return [check?.id ?? 'unknown', ...(typeof messageKey === 'string' ? [messageKey] : [])].join(':');
+}
+
+/**
+ * The first of a node's `any`, `all` and `none` checks that gave a message.
+ *
+ * @param {object} node The axe result node.
+ * @returns {object|undefined} The check.
+ */
+function firstCheck(node) {
+  return [...(node.any ?? []), ...(node.all ?? []), ...(node.none ?? [])].find(check => check?.message);
 }
 
 /**
  * The triage records of one scan: a violation per rule and element shape (its fingerprint, the way the
- * baseline keys a finding), and a "needs review" result per rule, element shape and reason, each with
- * the number of nodes, an example selector and the rule's family. A violation carries axe's impact as
- * its severity; a needs-review result is advisory. A best-practice rule maps to no WCAG criterion.
+ * baseline keys a finding), and a "needs review" result per rule, element shape and cause
+ * (`nodeCause()`), each with the number of nodes, an example selector and the rule's family. A
+ * violation carries axe's impact as its severity; a needs-review result is advisory, and its reason is
+ * the first node's message. A best-practice rule maps to no WCAG criterion.
  *
  * @param {{violations: object[], incomplete: object[]}} results The axe results.
  * @returns {object[]} The records.
  */
 export function discoveryFindings({ violations = [], incomplete = [] }) {
   const records = new Map();
-  const add = (kind, rule, node, reason) => {
+  const add = (kind, rule, node) => {
     const selector = targetFingerprint(node.target ?? [], node.html ?? '');
-    const key = [kind, rule.id, selector, kind === 'axe-needs-review' ? reason : ''].join('|');
+    const cause = kind === 'axe-needs-review' ? nodeCause(node) : undefined;
+    const key = [kind, rule.id, selector, cause ?? ''].join('|');
     const existing = records.get(key);
 
     if (existing) {
@@ -82,18 +109,19 @@ export function discoveryFindings({ violations = [], incomplete = [] }) {
       severity: kind === 'axe-violation' ? (IMPACTS.has(rule.impact) ? rule.impact : 'minor') : 'advisory',
       selector,
       measured: { rule: rule.id, family: ruleFamily(rule.tags), nodes: 1, example },
-      reason: kind === 'axe-violation' ? rule.help : `${rule.help}: ${reason}`,
+      reason: kind === 'axe-violation' ? rule.help : `${rule.help}: ${nodeReason(node)}`,
+      ...(cause ? { cause } : {}),
     });
   };
 
   for (const rule of violations) {
     for (const node of rule.nodes ?? []) {
-      add('axe-violation', rule, node, '');
+      add('axe-violation', rule, node);
     }
   }
   for (const rule of incomplete) {
     for (const node of rule.nodes ?? []) {
-      add('axe-needs-review', rule, node, nodeReason(node));
+      add('axe-needs-review', rule, node);
     }
   }
 

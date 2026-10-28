@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DISCOVERY_TAGS, discoveryFindings, nodeReason, ruleFamily } from '../axe-discovery.mjs';
+import { DISCOVERY_TAGS, discoveryFindings, nodeCause, nodeReason, ruleFamily } from '../axe-discovery.mjs';
 import { EVIDENCE_SCHEMA, findingId, validatePart } from '../a11y-evidence.mjs';
 
 // tests/AGENTS.md ("A11y: the checks beyond axe", the axe discovery run): how one discovery scan's axe
@@ -22,9 +22,12 @@ const REGION = {
 const INCOMPLETE = {
   id: 'color-contrast', impact: 'serious', help: 'Elements must meet minimum color contrast ratio thresholds', tags: ['cat.color', 'wcag2aa', 'wcag143'],
   nodes: [
-    { target: ['th:nth-child(2)'], html: '<th class="ht__highlight">A</th>', any: [{ message: 'Element\'s background color could not be determined due to a background image' }] },
-    { target: ['th:nth-child(3)'], html: '<th class="ht__highlight">B</th>', any: [{ message: 'Element\'s background color could not be determined due to a background image' }] },
-    { target: ['th:nth-child(4)'], html: '<th class="ht__highlight">C</th>', any: [], none: [{ message: 'Element content is too short to determine if it is actual text content' }] },
+    { target: ['th:nth-child(2)'], html: '<th class="ht__highlight">A</th>',
+      any: [{ id: 'color-contrast', data: { messageKey: 'bgImage' }, message: 'Element\'s background color could not be determined due to a background image' }] },
+    { target: ['th:nth-child(3)'], html: '<th class="ht__highlight">B</th>',
+      any: [{ id: 'color-contrast', data: { messageKey: 'bgImage' }, message: 'Element\'s background color could not be determined due to a background image' }] },
+    { target: ['th:nth-child(4)'], html: '<th class="ht__highlight">C</th>', any: [],
+      none: [{ id: 'color-contrast', data: { messageKey: 'shortTextContent' }, message: 'Element content is too short to determine if it is actual text content' }] },
   ],
 };
 
@@ -46,7 +49,14 @@ test('a node\'s reason is the first message axe gives, or its failure summary', 
   assert.equal(nodeReason({}), 'axe gave no reason');
 });
 
-test('violations group by rule and element; needs-review results by rule, element and reason', () => {
+test('a node\'s cause is the axe check behind its first message and the message key, never the message text', () => {
+  assert.equal(nodeCause(INCOMPLETE.nodes[0]), 'color-contrast:bgImage');
+  assert.equal(nodeCause(INCOMPLETE.nodes[2]), 'color-contrast:shortTextContent');
+  assert.equal(nodeCause({ all: [{ id: 'aria-hidden-body', data: null, message: 'x' }] }), 'aria-hidden-body', 'a check without a message key is its id');
+  assert.equal(nodeCause({ failureSummary: 'Fix any: x' }), 'unknown');
+});
+
+test('violations group by rule and element; needs-review results by rule, element and cause', () => {
   const findings = discoveryFindings({ violations: [CONTRAST, REGION], incomplete: [INCOMPLETE] });
 
   assert.deepEqual(findings.map(item => [item.kind, item.rule, item.criteria, item.severity, item.selector, item.measured.nodes, item.measured.family]), [
@@ -57,9 +67,35 @@ test('violations group by rule and element; needs-review results by rule, elemen
   ]);
   assert.equal(findings[2].reason, 'Elements must meet minimum color contrast ratio thresholds: Element\'s background color could not be determined due to a background image');
   assert.equal(findings[2].measured.example, 'th:nth-child(2)');
+  assert.equal(findings[2].cause, 'color-contrast:bgImage');
+  assert.equal(findings[0].cause, undefined, 'a violation is keyed by its rule alone');
 });
 
-test('two records on one element differ by rule and reason, so their ids never collide', () => {
+test('a needs-review record keeps one key and one id across runs when axe writes per-node values into its message', () => {
+  // The autocomplete editor's `aria-controls` holds the instance's random guid (`ht_<hex>`), and a target-size
+  // message holds the element's size in px: neither may split a record or change its id.
+  const scan = (guid, width) => discoveryFindings({ incomplete: [
+    { id: 'aria-valid-attr-value', impact: 'critical', help: 'ARIA attributes must conform to valid values', tags: ['wcag2a', 'wcag412'], nodes: [
+      { target: ['textarea.handsontableInput'], html: '<textarea class="handsontableInput">',
+        any: [], all: [{ id: 'aria-valid-attr-value', data: { messageKey: 'controlsWithinPopup' },
+          message: `Unable to determine if aria-controls referenced ID exists on the page: aria-controls="${guid}-listbox-0-0"` }] },
+    ] },
+    { id: 'target-size', impact: 'serious', help: 'All touch targets must be 24px large, or leave sufficient space', tags: ['wcag22aa', 'wcag258'], nodes: [
+      { target: ['th:nth-child(2) > .changeType'], html: '<button class="changeType">',
+        any: [{ id: 'target-offset', data: { messageKey: 'nonTabbableNeighbor' }, message: `Target has insufficient offset (${width}px, at least 24px)` }] },
+      { target: ['th:nth-child(3) > .changeType'], html: '<button class="changeType">',
+        any: [{ id: 'target-offset', data: { messageKey: 'nonTabbableNeighbor' }, message: `Target has insufficient offset (${width + 3}px, at least 24px)` }] },
+    ] },
+  ] }).map(item => ({ ...item, page: 'editor', theme: 'main' }));
+  const first = scan('ht_00b705', 18);
+  const second = scan('ht_9c41e2', 21);
+
+  assert.deepEqual(first.map(item => item.measured.nodes), [1, 2], 'two sizes on one element shape are one record');
+  assert.deepEqual(second.map(item => findingId('axe-discovery', item)), first.map(item => findingId('axe-discovery', item)));
+  assert.match(first[0].reason, /aria-controls="ht_00b705-listbox-0-0"/, 'the reason keeps axe\'s own words');
+});
+
+test('two records on one element differ by rule and cause, so their ids never collide', () => {
   const findings = discoveryFindings({ violations: [CONTRAST, REGION], incomplete: [INCOMPLETE] })
     .map(item => ({ ...item, page: 'grid', theme: 'main' }));
   const ids = findings.map(item => findingId('axe-discovery', item));
