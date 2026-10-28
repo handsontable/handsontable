@@ -139,6 +139,12 @@ const snapshot = useCallback(() => {
   });
 }, [getHot]);
 
+// Take the first snapshot after mount. The initial load fires afterChange with source
+// 'loadData', which Grid skips, so nothing else fills the mirror until the first change.
+useEffect(() => {
+  snapshot();
+}, [snapshot]);
+
 const context = useMemo(
   () => ({
     description:
@@ -154,6 +160,8 @@ useAgentContext(context);
 ```
 
 **What's happening:** the snapshot reads `getSourceData`, so the agent sees the formulas the cells hold, not only the computed values. Pass `useAgentContext` a memoized value object. A fresh object literal on every render would make its effect run in a loop. Because `snapshot` runs on every change, the agent's view stays current after a user edit as well as an agent edit.
+
+The `useEffect` matters: without it, the agent sees an empty sheet until the first change. The initial load is not a "change" -- the only `afterChange` it fires has source `'loadData'`, which `Grid` skips on purpose, and `afterUpdateData` does not fire on first load. The parent's effect runs after `HotTable` has created its instance, so `getHot()` returns the live grid there.
 
 ## Step 4: Give the agent tools
 
