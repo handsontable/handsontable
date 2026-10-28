@@ -160,6 +160,10 @@ outside, do not assume each call rebuilds the matrix.
   write is caught on the resume's cache update, because the comparison reads the sequence, not the source
   (the source is cleared by then). Plain-grid consequence: `columnIndexMapper.setIndexesSequence()` now relabels
   the headers. Pinned by `__tests__/columnOrderUpdate.unit.js` and `tests/e2e/sheets-bar-nested-headers-order.spec.ts`.
+  Such a write can split a collapsed group, and the re-derive drops its collapse without a `beforeColumnMove`
+  to expand it first. CollapsibleColumns notices the collapsed-groups version moving across the cache update
+  and rebuilds its hiding map from the groups (see `../collapsibleColumns/AGENTS.md`); pinned by
+  `../collapsibleColumns/__tests__/columnOrderUpdate.unit.js`.
 - **A data load is not a reorder.** `loadData()` re-initializes the column index mapper to the identity order,
   and its cache update leaves a sequence that differs from a moved one. `beforeLoadData` drops
   `#derivedColumnSequence`, so that update does not re-derive the tree; the `afterLoadData` `setState()` derives

@@ -31,6 +31,19 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
   rollbacks — including for declarative groups that flipped `isCollapsed` but reported no affected columns.
 - On a move that would split a *collapsed* group, this plugin **preemptively expands it** in
   `beforeColumnMove`, so `getCollapsedGroups()` read in/after that hook can return fewer groups.
+- **A column order written without a move (`setIndexesSequence()`, source `'update'`) never reaches
+  `beforeColumnMove`, so nothing expands a group it splits first.** NestedHeaders re-derives the tree in its
+  `cacheUpdated` handler and drops the split group's collapse, and the collapse hiding map kept its columns
+  hidden with no button left to show them. This plugin records the state manager's
+  `getCollapsedGroupsVersion()` in the mapper's `beforeCacheUpdate` local hook (a stack, since cache updates
+  nest) and, when the version moved by `afterCacheUpdate`, rebuilds the map from the collapsed groups
+  (`#collapseGroups()`). It runs in `afterCacheUpdate`, not `cacheUpdated`, so it does not depend on the
+  order the two plugins registered their local hooks and its own map write is a separate cache update.
+- **`#collapseGroups()` makes the groups the record and the map a derivative.** It re-collapses the given
+  groups through `importCollapsedGroups(groups, visibility)`, which returns the visual columns the collapses
+  hide, and writes the map only when that set differs. The visibility passed in leaves this plugin's own
+  map out: a column the map hid before would otherwise count as hidden by another source and move a group's
+  first visible column.
 - Hook-payload coordinate spaces are mixed under active moves/trim: `currentCollapsedColumns` is PHYSICAL,
   `destinationCollapsedColumns` mixes physical + visual with no conversion. Re-read `getCollapsedColumns()`
   after structural changes rather than caching a hook payload.

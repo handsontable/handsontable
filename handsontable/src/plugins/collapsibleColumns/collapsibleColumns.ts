@@ -21,6 +21,7 @@ import {
 } from '../../helpers/a11y';
 import type { NestedHeaders } from '../nestedHeaders/nestedHeaders';
 import type StateManager from '../nestedHeaders/stateManager';
+import type { ColumnVisibility } from '../nestedHeaders/stateManager/columnVisibility';
 import { getEndOverlayHeaders } from '../../utils/endOverlayHeaders';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
@@ -257,6 +258,12 @@ export class CollapsibleColumns extends BasePlugin {
    * after a version change must still be the same object.
    */
   #capturedVersions = new WeakMap<object, number>();
+  /**
+   * The collapsed-groups version of the header state manager at the start of each column cache update
+   * in progress, innermost last. A version that moved by the end of the update means NestedHeaders
+   * re-derived the header tree for a new column order there.
+   */
+  #versionsBeforeCacheUpdate: number[] = [];
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -304,6 +311,8 @@ export class CollapsibleColumns extends BasePlugin {
     this.addHook('afterRemoveCol', this.#onAfterColumnStructureChange);
     this.addHook('beforeColumnMove', this.#onBeforeColumnMove);
     this.addHook('afterColumnMove', this.#onAfterColumnStructureChange);
+    this.hot.columnIndexMapper.addLocalHook('beforeCacheUpdate', this.#onBeforeColumnCacheUpdate);
+    this.hot.columnIndexMapper.addLocalHook('afterCacheUpdate', this.#onAfterColumnCacheUpdate);
 
     this.registerShortcuts();
     super.enablePlugin();
@@ -353,6 +362,10 @@ export class CollapsibleColumns extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin(): void {
+    this.hot.columnIndexMapper.removeLocalHook('beforeCacheUpdate', this.#onBeforeColumnCacheUpdate);
+    this.hot.columnIndexMapper.removeLocalHook('afterCacheUpdate', this.#onAfterColumnCacheUpdate);
+    this.#versionsBeforeCacheUpdate = [];
+
     if (this.pluginName) {
       this.hot.columnIndexMapper.unregisterMap(this.pluginName);
     }
@@ -680,6 +693,64 @@ export class CollapsibleColumns extends BasePlugin {
       });
     }, true);
     this.#refreshVisibleWhenColumns();
+  }
+
+  /**
+   * Collapses exactly the given groups on a freshly derived header tree and makes this plugin's hiding
+   * map hold the columns those collapses hide, and only them. The groups are the record of what is
+   * collapsed, not the map: columns the map kept from an earlier order or membership could hide a column
+   * no collapsed group owns, with no header left to show it again. The collapses are derived against
+   * the columns hidden by every other source, so a column this map hid before does not move a group's
+   * first visible column. Hook-silent.
+   *
+   * @param {Array<{headerLevel: number, authoredColumnIndex: number}>} groups The groups to collapse.
+   */
+  #collapseGroups(groups: ReadonlyArray<{ headerLevel: number, authoredColumnIndex: number }>): void {
+    const map = this.#collapsedColumnsMap;
+    const stateManager = this.headerStateManager;
+
+    if (stateManager === null || !map) {
+      return;
+    }
+
+    const currentColumns = map.getHiddenIndexes();
+    const nextColumns = groups.length === 0 && currentColumns.length === 0 ? [] : arrayMap(
+      stateManager.importCollapsedGroups(groups, this.#createVisibilityWithout(map)),
+      visualColumn => this.hot.toPhysicalColumn(visualColumn),
+    );
+    const isUnchanged = nextColumns.length === currentColumns.length &&
+      getDifferenceOfArrays(nextColumns, currentColumns).length === 0;
+
+    if (!isUnchanged) {
+      this.hot.batchExecution(() => {
+        map.clear();
+        arrayEach(nextColumns, (physicalColumn) => {
+          map.setValueAtIndex(physicalColumn, true);
+        });
+      }, true);
+    }
+
+    this.#refreshVisibleWhenColumns();
+  }
+
+  /**
+   * Returns a column visibility that reports the columns hidden by every hiding map except the given
+   * one.
+   *
+   * @param {HidingMap} excludedMap The hiding map to leave out.
+   * @returns {ColumnVisibility}
+   */
+  #createVisibilityWithout(excludedMap: HidingMap): ColumnVisibility {
+    const mapper = this.hot.columnIndexMapper;
+    const otherMaps = mapper.hidingMapsCollection.get().filter(map => map !== excludedMap);
+
+    return {
+      isVisible(visualColumn: number) {
+        const physicalColumn = mapper.getPhysicalFromVisualIndex(visualColumn);
+
+        return physicalColumn !== null && !otherMaps.some(map => map.getValueAtIndex(physicalColumn) === true);
+      },
+    };
   }
 
   /**
@@ -1162,6 +1233,31 @@ export class CollapsibleColumns extends BasePlugin {
       // `document` and a dropdown menu or context menu open at that moment would not close (DEV-214).
       (event as MouseEvent & { isImmediatePropagationEnabled: boolean }).isImmediatePropagationEnabled = false;
     }
+  };
+
+  /**
+   * Records the collapsed-groups version at the start of a column cache update.
+   */
+  #onBeforeColumnCacheUpdate = () => {
+    this.#versionsBeforeCacheUpdate.push(this.headerStateManager?.getCollapsedGroupsVersion() ?? 0);
+  };
+
+  /**
+   * Collapses the current groups again when NestedHeaders re-derived the header tree during the column
+   * cache update that just ended, which it does for a new column order. A write that is not a column move
+   * (`setIndexesSequence()`) never reaches `#onBeforeColumnMove`, so a collapsed group the new order split
+   * lost its collapse in the re-derive while this plugin's map still hid its columns. Runs after the
+   * update, so the map write starts a cache update of its own.
+   */
+  #onAfterColumnCacheUpdate = () => {
+    const versionBefore = this.#versionsBeforeCacheUpdate.pop();
+    const stateManager = this.headerStateManager;
+
+    if (!this.enabled || stateManager === null || versionBefore === stateManager.getCollapsedGroupsVersion()) {
+      return;
+    }
+
+    this.#collapseGroups(stateManager.exportCollapsedGroups());
   };
 
   /**
