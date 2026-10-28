@@ -153,6 +153,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   fixedColumnsStart: 123,
   fixedRowsBottom: 123,
   fixedRowsTop: 123,
+  formulaBuilder: oneOf(false, {
+    builder: class {},
+    showFormulaBar: true,
+  }),
   formulas: {
     engine: HyperFormula,
   },
@@ -1186,6 +1190,11 @@ hot.updateSettings({
   beforeSheetTabChange: (oldSheetId, newSheetId, source) => false,
   afterSheetTabChange: (oldSheetId, newSheetId, source) => {},
   afterSheetTabAdd: (sheetId, name, source) => {},
+});
+hot.updateSettings({
+  sheetsBar: {
+    sheets: [{ name: 'Employees', data: [{ name: 'Ana García', department: 'Engineering' }] }],
+  },
 });
 
 // DEV-2723: `modifyData` receives `null` as its column for a numeric property that names no column,

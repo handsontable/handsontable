@@ -114,6 +114,28 @@ export type ViewStatePart =
   'scroll';
 
 /**
+ * Every part, in the order a restore applies them.
+ */
+export const VIEW_STATE_PARTS: readonly ViewStatePart[] = [
+  'columnOrder',
+  'rowOrder',
+  'sort',
+  'filters',
+  'trimmedRows',
+  'hiddenRows',
+  'hiddenColumns',
+  'collapsedRows',
+  'columnWidths',
+  'rowHeights',
+  'mergedCells',
+  'frozen',
+  'customBorders',
+  'pagination',
+  'selection',
+  'scroll',
+];
+
+/**
  * Answers whether a restore covers a part. No set means every part.
  */
 type PartFilter = (part: ViewStatePart) => boolean;
@@ -812,14 +834,19 @@ function restoreCanceledSortStates(sorting: SortingPlugin, sortConfig: SortedCol
  * turned off and puts them back when it is turned on again, so a sheet with the plugin off between
  * a resized sheet and a never-visited one carried the resized sheet's sizes over to the new one.
  */
-function clearManualSizes(hot: HotInstance) {
+function clearManualSizes(hot: HotInstance, covers: PartFilter = () => true) {
   const manualColumnResize = hot.getPlugin('manualColumnResize') as
     { clearManualSizes: () => void } | undefined;
   const manualRowResize = hot.getPlugin('manualRowResize') as
     { clearManualSizes: () => void } | undefined;
 
-  manualColumnResize?.clearManualSizes();
-  manualRowResize?.clearManualSizes();
+  if (covers('columnWidths')) {
+    manualColumnResize?.clearManualSizes();
+  }
+
+  if (covers('rowHeights')) {
+    manualRowResize?.clearManualSizes();
+  }
 }
 
 /**
@@ -1070,12 +1097,13 @@ export function restoreViewport(hot: HotInstance, state: ViewState, parts?: Read
 /**
  * Opens a never-visited sheet on the configured initial page and page size, instead of the page
  * and page size the previous sheet left behind. Runs after the render batch, like
- * {@link restoreViewport}, so the page count is the arriving sheet's.
+ * {@link restoreViewport}, so the page count is the arriving sheet's. With `parts` given, the page
+ * is reset only when they include `pagination`.
  */
-export function resetViewport(hot: HotInstance): void {
+export function resetViewport(hot: HotInstance, parts?: ReadonlySet<ViewStatePart>): void {
   const pagination = getLocalPagination(hot);
 
-  if (pagination) {
+  if (pagination && toPartFilter(parts)('pagination')) {
     applyPagination(hot, {
       page: pagination.getSetting('initialPage') as number,
       pageSize: pagination.getSetting('pageSize') as number | 'auto',
@@ -1287,22 +1315,46 @@ function setFrozenCount(hot: HotInstance, key: FrozenCountKey, value: number): v
  * the index maps still match the drawn rows: cleared after the trimmed and hidden rows came back,
  * the attributes were taken off another cell and the merged one kept its `rowspan`. With
  * MergeCells disabled for the arriving sheet, no render repaired it.
+ *
+ * With `parts` given, only those parts are reset, and every other part of the grid is left as it is.
  */
-export function resetViewState(hot: HotInstance, neutral: NeutralFrozenCounts = {}): void {
+export function resetViewState(
+  hot: HotInstance,
+  neutral: NeutralFrozenCounts = {},
+  parts?: ReadonlySet<ViewStatePart>,
+): void {
+  const covers = toPartFilter(parts);
   const state = createNeutralViewState();
 
   safeBatch(hot, () => {
     // An `undefined` neutral value means the grid never configured that freeze, so a freeze set at
     // runtime on another sheet is cleared back to none rather than left in force.
-    FROZEN_COUNT_KEYS.forEach(key => setFrozenCount(hot, key, neutral[key] ?? 0));
+    if (covers('frozen')) {
+      FROZEN_COUNT_KEYS.forEach(key => setFrozenCount(hot, key, neutral[key] ?? 0));
+    }
 
-    clearMergedCells(hot);
-    getSortingPlugin(hot)?.sort([]);
-    clearFilterBaseline(hot);
-    restoreTrimmedState(hot, state);
-    restoreHiddenState(hot, state);
-    clearManualSizes(hot);
-    clearCustomBorders(hot);
+    if (covers('mergedCells')) {
+      clearMergedCells(hot);
+    }
+
+    if (covers('sort')) {
+      getSortingPlugin(hot)?.sort([]);
+    }
+
+    if (covers('filters')) {
+      clearFilterBaseline(hot);
+    }
+
+    if (covers('trimmedRows')) {
+      restoreTrimmedState(hot, state);
+    }
+
+    restoreHiddenState(hot, state, covers);
+    clearManualSizes(hot, covers);
+
+    if (covers('customBorders')) {
+      clearCustomBorders(hot);
+    }
   });
 
   hot.render();

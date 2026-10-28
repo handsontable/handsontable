@@ -34,7 +34,7 @@ test.describe('walkontable overlay self-resize', { tag: '@walkontable' }, () => 
     // The premise the rest of the file rests on. If this ever stops holding — someone gives the
     // spreader a width, or stops virtualizing — the other tests would still pass while measuring
     // something much easier, so pin it explicitly rather than leaving it as folklore.
-    await grid.renderWithoutChanges(); // settle the header measurement, which moves both readings
+    await grid.renderWithoutChanges(); // the header is already in the first draw; this only settles the readings
 
     const before = await grid.geometry();
 
@@ -97,29 +97,31 @@ test.describe('walkontable overlay self-resize', { tag: '@walkontable' }, () => 
     expect((await grid.counters()).externalRequests).toBe(0);
   });
 
-  test('resizes once when the column header height becomes known', async () => {
-    // The first draw runs before the column header is measured, so the engine works with a header
-    // height of 0 and a hider 29px short of the truth. The measurement lands on the next draw, the
-    // geometry it would write changes, and it corrects itself — exactly once. This is why the
-    // settling render in the two tests below is a real step, not a way to hide a flaky count.
+  test('knows the column header height on the first draw and does not resize again', async () => {
+    // The first layout used to treat the header as 0 and the next draw corrected the hider, once.
+    // The header is measured before that layout now, so the first draw already has the final height
+    // and a draw that changes nothing must not resize. A real geometry change still resizes once;
+    // the container test below is that case.
     await grid.resetCounters();
 
     const before = await grid.layoutInputs();
+    const beforeGeometry = await grid.geometry();
 
     await grid.renderWithoutChanges();
 
     const after = await grid.layoutInputs();
+    const afterGeometry = await grid.geometry();
 
-    expect(before.columnHeaderHeight).toBe(0);
-    expect(after.columnHeaderHeight).toBeGreaterThan(0);
-    expect(after.hiderHeight).toBeGreaterThan(before.hiderHeight);
-    expect((await grid.counters()).engineResizes).toBe(1);
+    expect(before.columnHeaderHeight).toBeGreaterThan(0);
+    expect(after.columnHeaderHeight).toBe(before.columnHeaderHeight);
+    expect(afterGeometry.hiderHeight).toBe(beforeGeometry.hiderHeight);
+    expect((await grid.counters()).engineResizes).toBe(0);
   });
 
   test('does not resize on a draw that changes no geometry', async () => {
     // The performance half of the contract. `adjustElementsSize` walks every column and re-syncs the
     // scrollbar bands, so a gate that fired on every draw would trade one bug for a slower grid.
-    await grid.renderWithoutChanges(); // settle the header measurement above
+    await grid.renderWithoutChanges(); // one draw, so the counter below measures only the draws after it
     await grid.resetCounters();
 
     await grid.renderWithoutChanges();
@@ -130,17 +132,26 @@ test.describe('walkontable overlay self-resize', { tag: '@walkontable' }, () => 
   });
 
   test('resizes when the container changes size, with no row or column change', async () => {
-    // Replaces what `refreshDimensions.spec.js` used to assert through the old two-step. Nothing
-    // about the data moved here — only the box the scrollbar bands are measured against, which is
-    // why the signature carries the workspace dimensions and not just the hider size. This is the
-    // test that goes red if those terms are dropped as "redundant".
+    // The signature carries the workspace dimensions, not just the hider size. A grid with no
+    // `height` option scrolls the window, so a stylesheet height never moves that workspace. The
+    // height option does: 300 and 600 are both element scrollports, the hider and the header stay
+    // put, and the workspace is the only term that changes. This goes red if that term is dropped.
+    await grid.resizeContainerTo(300);
+    await grid.renderWithoutChanges();
     await grid.resetCounters();
+
+    const before = await grid.layoutInputs();
+
     await grid.resizeContainerTo(600);
 
+    const after = await grid.layoutInputs();
     const counters = await grid.counters();
 
     // Exactly one: the box moved once, so the engine judges once. A second would mean the write
     // changed a term of its own signature and re-fired on the next draw.
+    expect(after.workspaceHeight).not.toBe(before.workspaceHeight);
+    expect(after.columnHeaderHeight).toBe(before.columnHeaderHeight);
+    expect(after.hiderHeight).toBe(before.hiderHeight);
     expect(counters.engineResizes).toBe(1);
     expect(counters.externalRequests).toBe(0);
   });
@@ -187,7 +198,7 @@ test.describe('walkontable overlay self-resize', { tag: '@walkontable' }, () => 
     // gridline at every offset. So the contract is a flat zero, including the very first scroll off
     // row 0, which is where the old 1px change happened. Scrolling is the hottest path in the grid,
     // so a resize here would be the most expensive place to get this wrong.
-    await grid.renderWithoutChanges(); // settle the header measurement
+    await grid.renderWithoutChanges(); // one draw before the counter starts, so init is not what it measures
     await grid.resetCounters();
 
     await grid.scrollVerticallyTo(120);

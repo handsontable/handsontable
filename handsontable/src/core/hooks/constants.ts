@@ -3780,7 +3780,7 @@ export const REGISTERED_HOOKS = [
    *
    * Read more:
    * - [Guides: Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
-   * - [HyperFormula documentation: `valuesUpdated`](https://hyperformula.handsontable.com/api/interfaces/listeners.html#valuesupdated)
+   * - [HyperFormula documentation: `valuesUpdated`](https://handsontable.com/docs/hyperformula/api/interfaces/listeners.html#valuesupdated)
    *
    * @since 9.0.0
    * @event Hooks#afterFormulasValuesUpdate
@@ -3795,7 +3795,7 @@ export const REGISTERED_HOOKS = [
    * because you called it directly or because you defined the `namedExpressions` configuration option.
    *
    * Read more:
-   * - [HyperFormula documentation: `addNamedExpression`](https://hyperformula.handsontable.com/api/classes/hyperformula.html#addnamedexpression)
+   * - [HyperFormula documentation: `addNamedExpression`](https://handsontable.com/docs/hyperformula/api/classes/hyperformula.html#addnamedexpression)
    *
    * @since 9.0.0
    * @event Hooks#afterNamedExpressionAdded
@@ -3810,7 +3810,7 @@ export const REGISTERED_HOOKS = [
    * This hook fires after the HyperFormula engine's `removeNamedExpression()` method runs.
    *
    * Read more:
-   * - [HyperFormula documentation: `removeNamedExpression`](https://hyperformula.handsontable.com/api/classes/hyperformula.html#removenamedexpression)
+   * - [HyperFormula documentation: `removeNamedExpression`](https://handsontable.com/docs/hyperformula/api/classes/hyperformula.html#removenamedexpression)
    *
    * @since 9.0.0
    * @event Hooks#afterNamedExpressionRemoved
@@ -3828,7 +3828,7 @@ export const REGISTERED_HOOKS = [
    *
    * Read more:
    * - [Guides: Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
-   * - [HyperFormula documentation: `sheetAdded`](https://hyperformula.handsontable.com/api/interfaces/listeners.html#sheetadded)
+   * - [HyperFormula documentation: `sheetAdded`](https://handsontable.com/docs/hyperformula/api/interfaces/listeners.html#sheetadded)
    *
    * @since 9.0.0
    * @event Hooks#afterSheetAdded
@@ -3841,7 +3841,7 @@ export const REGISTERED_HOOKS = [
    *
    * Read more:
    * - [Guides: Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
-   * - [HyperFormula documentation: `sheetRenamed`](https://hyperformula.handsontable.com/api/interfaces/listeners.html#sheetrenamed)
+   * - [HyperFormula documentation: `sheetRenamed`](https://handsontable.com/docs/hyperformula/api/interfaces/listeners.html#sheetrenamed)
    *
    * @since 9.0.0
    * @event Hooks#afterSheetRenamed
@@ -3855,7 +3855,7 @@ export const REGISTERED_HOOKS = [
    *
    * Read more:
    * - [Guides: Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
-   * - [HyperFormula documentation: `sheetRemoved`](https://hyperformula.handsontable.com/api/interfaces/listeners.html#sheetremoved)
+   * - [HyperFormula documentation: `sheetRemoved`](https://handsontable.com/docs/hyperformula/api/interfaces/listeners.html#sheetremoved)
    *
    * @since 9.0.0
    * @event Hooks#afterSheetRemoved

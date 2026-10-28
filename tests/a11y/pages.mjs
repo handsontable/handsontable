@@ -75,6 +75,12 @@ export const A11Y_PAGES = [
     surface: 'the filters menu on a numeric column: the condition components and their inputs' },
   // Editors, opened with Enter on the selected cell.
   { id: 'text-editor', fixture: 'grid.html', state: 'editor', surface: 'the open text editor' },
+  { id: 'formula-builder', fixture: 'formula-builder.html', cell: [0, 2], state: 'editor',
+    surface: 'the formula bar (address box and formula input) and the open formula editor with a colored reference' },
+  { id: 'formula-builder-suggestions', fixture: 'formula-builder.html', cell: [0, 2], state: 'formula-suggestions',
+    surface: 'the formula editor\'s function suggestions list, which hyperformula-ui mounts in the document body' },
+  { id: 'formula-builder-function-help', fixture: 'formula-builder.html', cell: [0, 2], state: 'formula-function-help',
+    surface: 'the formula editor\'s function help popup, which hyperformula-ui mounts in the document body' },
   { id: 'autocomplete-editor', fixture: 'cell-dropdown-arrow.html', query: 'cellType=autocomplete', cell: [0, 0], state: 'editor',
     surface: 'the open autocomplete editor and its choices list' },
   { id: 'dropdown-editor', fixture: 'cell-dropdown-arrow.html', query: 'cellType=dropdown', cell: [0, 0], state: 'editor',
@@ -163,6 +169,8 @@ export function stateSteps(page) {
     selection: select,
     'selection-hover': `select cells (${row}, ${col}) to (${row + 2}, ${col + 2}) (hot.selectCells([[${row}, ${col}, ${row + 2}, ${col + 2}]])), then move the pointer over cell (${row + 1}, ${col + 1})`,
     'async-pending': `start a request that never settles for cell (${row}, ${col}) (window.startRequest(${row}, ${col}))`,
+    'formula-suggestions': `${select}, press Enter, select the editor's text (Ctrl/Cmd+A), then type "=SU"`,
+    'formula-function-help': `${select}, press Enter, select the editor's text (Ctrl/Cmd+A), then type "=SUM("`,
   }[page.state];
 
   return before && steps ? `${before}, then ${steps}` : steps;

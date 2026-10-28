@@ -132,6 +132,7 @@
     "html-parse-stringify": "^3.0.1",
     "http-server": "^14.1.1",
     "hyperformula": "^3.0.0",
+    "hyperformula-ui": "0.3.6",
     "jasmine-co": "^1.2.2",
     "jasmine-console-reporter": "^3.1.0",
     "jasmine-core": "^3.4.0",

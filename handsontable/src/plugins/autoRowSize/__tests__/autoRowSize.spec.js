@@ -606,6 +606,33 @@ describe('AutoRowSize', () => {
     const L = getThemeLayout();
 
     expect(rowHeight(spec().$container, -1)).toBeAroundValue(L.cellContentHeight + (3 * L.lineHeight));
+    expect(getPlugin('autoRowSize').getColumnHeaderHeight()).toBe(L.defaultDataRowHeight + (3 * L.lineHeight));
+  });
+
+  it('should report a column header height that leaves out the bottom gridline', async() => {
+    const theme = getThemeLayout();
+    const labels = [
+      { text: 'A', extraLines: 0 },
+      { text: 'A<br>B', extraLines: 1 },
+      { text: 'A<br>B<br>C<br>D', extraLines: 3 },
+    ];
+
+    for (let index = 0; index < labels.length; index++) {
+      handsontable({
+        data: createSpreadsheetData(5, 2),
+        width: 300,
+        height: 200,
+        colWidths: 80,
+        colHeaders: [labels[index].text, labels[index].text],
+        autoRowSize: true,
+      });
+
+      expect(getPlugin('autoRowSize').getColumnHeaderHeight()).toBe(
+        theme.defaultDataRowHeight + (labels[index].extraLines * theme.lineHeight)
+      );
+
+      destroy();
+    }
   });
 
   it('should properly count height', async() => {

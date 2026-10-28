@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the comment box on a merged cell spanning several rows so it takes the height of the merged range instead of a fixed 88px.",
+  "type": "fixed",
+  "issueOrPR": 14016,
+  "breaking": false,
+  "framework": "none"
+}
