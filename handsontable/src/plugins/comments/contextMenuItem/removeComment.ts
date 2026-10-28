@@ -1,6 +1,8 @@
 import * as C from '../../../i18n/constants';
 import type { Comments } from '../comments';
 import type { HotInstance } from '../../../core/types';
+import { checkSelectionConsistency } from '../../contextMenu/utils';
+import { hasCommentAtCell } from '../utils';
 
 /**
  * @param {Comments} plugin The Comments plugin instance.
@@ -40,7 +42,9 @@ export default function removeCommentItem(plugin: Comments) {
         return true;
       }
 
-      return false;
+      // The callback removes every comment in the range, so the item stays available while any cell
+      // in it has one, and is disabled when there is nothing to remove (DEV-263).
+      return !checkSelectionConsistency([range], (row: number, col: number) => hasCommentAtCell(this, row, col));
     }
   };
 }

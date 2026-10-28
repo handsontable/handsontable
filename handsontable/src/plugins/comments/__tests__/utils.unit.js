@@ -1,4 +1,8 @@
-import { getEditorAnchorHeight, getEditorAnchorWidth } from 'handsontable/plugins/comments/utils';
+import {
+  getEditorAnchorHeight,
+  getEditorAnchorWidth,
+  hasCommentAtCell,
+} from 'handsontable/plugins/comments/utils';
 
 describe('Comments', () => {
   describe('getEditorAnchorWidth', () => {
@@ -31,6 +35,26 @@ describe('Comments', () => {
 
     it('should leave the default height when the cell has no measurable height', () => {
       expect(getEditorAnchorHeight(3, 0)).toBeUndefined();
+    });
+  });
+
+  describe('hasCommentAtCell', () => {
+    const hotWith = meta => ({ getCellMetaTransient: () => meta });
+
+    it('should be true for a comment with a value', () => {
+      expect(hasCommentAtCell(hotWith({ comment: { value: 'note' } }), 0, 0)).toBe(true);
+    });
+
+    it('should be false when the cell has no comment meta', () => {
+      expect(hasCommentAtCell(hotWith({}), 0, 0)).toBe(false);
+    });
+
+    it('should be false for comment meta without a value', () => {
+      expect(hasCommentAtCell(hotWith({ comment: { readOnly: true } }), 0, 0)).toBe(false);
+    });
+
+    it('should be false for a hidden cell under a merged block', () => {
+      expect(hasCommentAtCell(hotWith({ hidden: true, comment: { value: 'note' } }), 0, 0)).toBe(false);
     });
   });
 });
