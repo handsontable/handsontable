@@ -824,6 +824,29 @@ export function standsBehindRowHeader(cell: HTMLElement): boolean {
 }
 
 /**
+ * Whether the gridline in front of a cell lies under an inline-start overlay, which paints over the
+ * layer the cell's editor and selection edge live in. The gridline is the pixel just before the cell,
+ * so it is covered when the overlay's table reaches the cell or goes past it. Half a pixel absorbs the
+ * fractional sizes of a zoomed page.
+ *
+ * Works on rectangles, so each caller reads them through its own sanctioned path.
+ *
+ * @param {{ left: number, right: number }} cellRect The cell's bounding rectangle.
+ * @param {{ left: number, right: number }} overlayRect The bounding rectangle of the overlay's table.
+ * @param {boolean} isRtl `true` when the grid is laid out right to left.
+ * @returns {boolean}
+ */
+export function isStartGapCovered(
+  cellRect: { left: number, right: number },
+  overlayRect: { left: number, right: number },
+  isRtl: boolean
+): boolean {
+  const gap = isRtl ? overlayRect.left - cellRect.right : cellRect.left - overlayRect.right;
+
+  return gap < 0.5;
+}
+
+/**
  * Returns true if element is attached to the DOM and visible, false otherwise.
  *
  * @param {HTMLElement} element An element to check.

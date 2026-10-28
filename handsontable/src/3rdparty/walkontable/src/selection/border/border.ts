@@ -9,6 +9,7 @@ import {
   getTrimmingContainer,
   isHTMLElement,
   standsBehindRowHeader,
+  isStartGapCovered,
 } from '../../../../../helpers/dom/element';
 import { stopImmediatePropagation, isRightClick } from '../../../../../helpers/dom/event';
 import { isMobileBrowser, isMobileOrIpadOS } from '../../../../../helpers/browser';
@@ -2107,7 +2108,13 @@ class Border {
     // too.
     const ownsInlineStartBorder = parseFloat(style[isRtl ? 'borderRightWidth' : 'borderLeftWidth']) > 0;
 
-    if (ownsInlineStartBorder || standsBehindRowHeader(fromTDEl)) {
+    // The row header test is not enough for the master table's own cells. With the default overscan
+    // the cell after the row header is a hidden column, so the first visible column of a scrolled grid
+    // has a data cell as its previous sibling, and the first column past `fixedColumnsStart` has
+    // another one, and the same holds for the top and bottom clones under the start corners. The overlay
+    // that ends where such a cell starts covers its gridline all the same, so the rectangles are asked.
+    if (ownsInlineStartBorder || standsBehindRowHeader(fromTDEl) ||
+        this.isStartGridlineCoveredByOverlay(fromTDEl, isRtl)) {
       inlineStartPos += 1;
       width = width > 0 ? width - 1 : 0;
     }
@@ -2155,6 +2162,39 @@ class Border {
         corners, mergedBlockEdges.checkRow, mergedBlockEdges.checkCol,
       ),
     };
+  }
+
+  /**
+   * Whether an inline-start overlay is painted over the gridline in front of a cell of this table,
+   * because its table ends where the cell starts. The master table's cells sit under the inline-start
+   * clone, those of the top and bottom clones under the start corners. A cell of the inline-start
+   * clone and of the corners is in the overlay's own layer, which draws the edge itself.
+   *
+   * @param {HTMLElement} cell The cell the border starts on.
+   * @param {boolean} isRtl `true` when the grid is laid out right to left.
+   * @returns {boolean}
+   */
+  isStartGridlineCoveredByOverlay(cell: HTMLElement, isRtl: boolean): boolean {
+    const { wtTable } = this.wot;
+    const { wtOverlays } = this.wot.cloneSource ?? this.wot;
+    const coveringOverlay = {
+      master: wtOverlays.inlineStartOverlay,
+      top: wtOverlays.topInlineStartCornerOverlay,
+      bottom: wtOverlays.bottomInlineStartCornerOverlay,
+    }[wtTable.isMaster ? 'master' : wtTable.name];
+
+    // A grid with nothing frozen on that side has no overlay there to paint over anything.
+    if (!coveringOverlay?.needFullRender || !coveringOverlay.clone) {
+      return false;
+    }
+
+    const { geometryReader } = this.wot.domBindings;
+
+    return isStartGapCovered(
+      geometryReader.getBoundingClientRect(cell),
+      geometryReader.getBoundingClientRect(coveringOverlay.clone.wtTable.TABLE),
+      isRtl
+    );
   }
 
   /**

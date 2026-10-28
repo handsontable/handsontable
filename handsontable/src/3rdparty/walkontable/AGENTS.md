@@ -1017,10 +1017,24 @@ Consequences worth knowing:
 - **Reading the border is not enough for anything the overlays paint over.** The shared pixel in front
   of column 0 belongs to the inline-start overlay, which is z-index 120 against the selection border
   layer's 10, so an affordance centred on that gridline is *geometrically* right and *invisible*.
-  `Border#appear` therefore shifts the edge onto the cell's own boundary when the cell either owns an
-  inline-start border **or** has a row-header `th` as its previous sibling. That second test is what
-  keeps a selection on column 0 visible; without it the edge lands at `rowHeaderWidth - 1` and
-  disappears behind the row header. The `customBorders` specs cannot catch it — they count visible
+  `Border#appear` therefore shifts the edge onto the cell's own boundary when the cell owns an
+  inline-start border, has a row-header `th` as its previous sibling, **or** stands where an inline-start
+  overlay ends (`Border#isStartGridlineCoveredByOverlay`). The row-header test is what keeps a selection
+  on column 0 visible; without it the edge lands at `rowHeaderWidth - 1` and disappears behind the row
+  header. It is not enough on its own: with the default overscan the cell after the row header is a
+  hidden column, so the first fully visible column of a scrolled grid has a data cell as its previous
+  sibling, and so has the first column past `fixedColumnsStart`. Both showed 1px of their 2px edge.
+  The rectangle test (`isStartGapCovered` in `helpers/dom/element.ts`, the rule
+  `BaseEditor#isStartPixelCovered` shares) asks the overlay that is painted over the layer the border
+  lives in: the inline-start clone for the master table, the top start corner for the `top` clone, the
+  bottom start corner for the `bottom` clone. A cell of the inline-start clone and of the corners is in
+  the overlay's own layer and draws its edge itself. The decision is made on each draw, so a scroll that
+  brings a column next to the overlay moves its edge too. Pinned by
+  `tests/e2e/selection-start-edge-row-header.spec.ts`, which measures how much of the edge lies inside
+  the overlay's table. Hit-testing cannot do it: the clone's `.wtHolder` is wider than its table and
+  answers `elementFromPoint` over the cell.
+
+  The `customBorders` specs cannot catch the covered edge either. They count visible
   elements, and the element is there, just covered. The editor is the second such affordance, with a
   split rule by the layer its holder is in. The holder of a cell the MASTER table draws is at z-index 100,
   under the inline-start overlay (120); that of a frozen top row is at 160, under the top start corner

@@ -29,6 +29,7 @@ import {
   isShadowRoot,
   getComposedEventTargetEl,
   standsBehindRowHeader,
+  isStartGapCovered,
   getDeepActiveElement,
   getShadowHostChain,
   outerHeight,
@@ -2468,6 +2469,30 @@ describe('DomElement helper', () => {
       const row = buildRow('td', 'td');
 
       expect(standsBehindRowHeader(row.children[0] as HTMLElement)).toBe(false);
+    });
+  });
+
+  describe('isStartGapCovered', () => {
+    const cell = (left: number) => ({ left, right: left + 50 });
+
+    it.each([
+      ['an overlay that reaches into the cell', 70, 66, true],
+      ['an overlay that ends exactly where the cell starts', 66, 66, true],
+      ['an overlay that ends within the half pixel of tolerance', 65.6, 66, true],
+      ['an overlay that ends a pixel before the cell', 65, 66, false],
+      ['an overlay that ends half a pixel before the cell', 65.5, 66, false],
+    ])('should answer for %s in a left to right grid', (_, overlayRight, cellLeft, expected) => {
+      expect(isStartGapCovered(cell(cellLeft), { left: 0, right: overlayRight }, false)).toBe(expected);
+    });
+
+    it.each([
+      ['an overlay that reaches into the cell', 96, 100, true],
+      ['an overlay that starts exactly where the cell ends', 150, 100, true],
+      ['an overlay that starts within the half pixel of tolerance', 150.4, 100, true],
+      ['an overlay that starts half a pixel after the cell', 150.5, 100, false],
+      ['an overlay that starts a pixel after the cell', 151, 100, false],
+    ])('should answer for %s in a right to left grid', (_, overlayLeft, cellLeft, expected) => {
+      expect(isStartGapCovered(cell(cellLeft), { left: overlayLeft, right: 400 }, true)).toBe(expected);
     });
   });
 });
