@@ -371,15 +371,13 @@ Use each sheet's tab name as its `sheetName`. A tab rename then renames the engi
 
 ## Import and export
 
-A file you import with the [`ImportFile`](@/api/importFile.md) plugin lands on the active sheet. The import writes settings such as column types and locks, sizes, hidden rows and columns, frozen rows and columns, merged cells, and headers. They become that sheet's own settings, the way [`updateSheetSettings()`](@/api/sheetsBar.md#updatesheetsettings) sets them. The other sheets keep theirs.
+An import with the [`ImportFile`](@/api/importFile.md) plugin changes the active sheet only: its data, cell styles, and layout, such as column types, sizes, hidden and frozen rows and columns, merged cells, and headers. The imported layout wins over the matching `settings` the sheet declares, and your `sheets` array doesn't change.
 
-The imported sheet gets the imported layout back on every return, even for a setting its entry in `sheets` declares. Your entry keeps the `settings` you declared, but a copy you make with `duplicateSheet()` gets an entry with the imported settings. To change an imported setting later, call `updateSheetSettings()`: a value you pass to [`updateSettings()`](@/api/core.md#updatesettings), or that a framework wrapper sends again on a re-render, becomes the grid-level value of the other sheets.
+To change the imported layout later, call [`updateSheetSettings()`](@/api/sheetsBar.md#updatesheetsettings). [`updateSettings()`](@/api/core.md#updatesettings) changes only the other sheets for those settings, and so do the props a framework wrapper sends on a re-render.
 
-Each sheet also keeps its own imported cell styles, so a file you import into another sheet doesn't remove them.
+A copy you make with `duplicateSheet()` keeps the imported layout, and its new entry in `sheets` holds the imported settings. When you turn the bar off, the grid keeps the active sheet's data and imported layout.
 
-When you turn the bar off, the grid keeps the active sheet's rows, so it also keeps the layout an import gave them.
-
-The [`ExportFile`](@/api/exportFile.md) plugin exports what the grid holds, which is the active sheet, in a worksheet named `Sheet1`. To name the worksheet after the tab, pass the grid in the `sheets` option:
+The [`ExportFile`](@/api/exportFile.md) plugin exports the active sheet only, in a worksheet named `Sheet1`. To name the worksheet after the tab, pass the grid in the `sheets` option:
 
 ```js
 const activeSheet = hot.getPlugin('sheetsBar').getSheets().find(sheet => sheet.isActive);

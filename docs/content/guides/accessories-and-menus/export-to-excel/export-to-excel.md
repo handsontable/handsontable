@@ -247,7 +247,7 @@ Pass these options as the second argument of `downloadFileAsync('xlsx', options)
 
 Pass the `sheets` option to write several grids into one workbook, one per entry, each with its `instance` and the `name` of its tab. A sheet name is cut to 31 characters and stripped of the characters Excel forbids. With `exportFormulas`, a same-sheet reference is shifted by the header rows and the row-header column, but not by the start of `range`: with a `range` that does not start at row 0 and column 0, references point at the wrong cells. A formula that names another sheet in the same export is written as typed, so it points as many rows up as that sheet has header rows, and one column left when that sheet has row headers.
 
-A grid with the [sheets bar](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md#import-and-export) holds one sheet at a time, so an export writes the active sheet only. List that grid in `sheets` to give its worksheet the tab's name.
+With the [sheets bar](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md#import-and-export), an export writes the active sheet only. To name its worksheet after the tab, list the grid in `sheets` with the tab's name.
 
 ::: only-for javascript
 ::: example #example2 :hot-excel --html 1 --js 2 --ts 3

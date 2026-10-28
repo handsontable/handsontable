@@ -246,9 +246,7 @@ The `HotTable` component watches the settings you pass to it. A later change sen
 
 ### Import into a sheets bar workbook
 
-With the [sheets bar](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md#import-and-export), an import lands on the active sheet: the settings it writes become that sheet's own, and the other sheets keep theirs. Each sheet keeps its own imported cell styles.
-
-On such a grid, the framework sections above do not apply to the imported sheet. A re-render, or a later `updateSettings()` call, no longer replaces its imported headers, column types, or layout: the values you send become the other sheets' settings. To change the imported sheet, call [`updateSheetSettings()`](@/api/sheetsBar.md#updatesheetsettings).
+With the [sheets bar](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md#import-and-export), an import changes the active sheet only. The framework sections above don't apply to that sheet: a re-render or an `updateSettings()` call doesn't replace its imported layout. To change it, call [`updateSheetSettings()`](@/api/sheetsBar.md#updatesheetsettings).
 
 ## Options
 
