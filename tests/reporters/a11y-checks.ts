@@ -2,14 +2,16 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { FullConfig, FullResult, Reporter, Suite, TestCase } from '@playwright/test/reporter';
+import type { FullConfig, FullResult, Reporter, Suite, TestCase, TestResult } from '@playwright/test/reporter';
 import {
   EVIDENCE_ATTACHMENT,
   EVIDENCE_CHECKS,
   TARGET_ANNOTATION,
   mergeEvidence,
   renderEvidenceSummary,
+  runCommit,
   targetFileName,
+  validatePart,
 } from '../lib/a11y-evidence.mjs';
 
 /**
@@ -25,8 +27,11 @@ import {
  * - `<check>/<page>--<theme>[--<variant>].json`: what each target measured in full (its `detail`);
  * - `summary.md`: every check's summary, for a local run.
  *
- * A test that did not pass is a target that was not measured, with its error; a test that passed only
- * on a retry is flagged. Both are tooling problems in the document, never a finding. The reporter does
+ * A test that did not pass is a target that was not measured, with its error, and so is a test the run
+ * never started (`maxFailures`, the global timeout, an interrupt), one skipped after a failure before it
+ * (a `beforeAll` hook, an earlier test of a serial group, or the worker; both are Playwright's "did not
+ * run"), and one whose part is not readable JSON or is malformed. Only a test that asked to be skipped is left out. A test that passed only on a retry is
+ * flagged. All of them are tooling problems in the document, never a finding. The reporter does
  * not change the run's status: these checks are report-only, a red run is a tooling failure, and the
  * workflow step that runs them carries `continue-on-error`.
  */
@@ -61,22 +66,22 @@ export default class A11yChecksReporter implements Reporter {
 
     for (const project of this.#suite?.suites ?? []) {
       const check = project.project()?.name ?? project.title;
-      const tests = project.allTests().filter(test => test.results.length > 0 && test.results.at(-1)?.status !== 'skipped');
+      // A test that asked to be skipped (`test.skip()`, `test.fixme()`) is not a target of this run.
+      const tests = project.allTests().filter(test => test.expectedStatus !== 'skipped');
 
       if (tests.length === 0) {
         continue;
       }
 
-      const parts: object[] = [];
+      const parts: Array<{ target: { page: string; theme: string; variant?: string | null }; detail?: unknown }> = [];
       const failures: Array<{ title: string; target: object | null; error: string; flaky?: boolean }> = [];
-      const problems: string[] = [];
 
       for (const test of tests) {
-        const last = test.results.at(-1)!;
+        const last = test.results.at(-1);
         const target = declaredTarget(test);
 
-        if (last.status !== 'passed') {
-          failures.push({ title: test.title, target, error: last.error?.message ?? last.status });
+        if (!last || last.status !== 'passed') {
+          failures.push({ title: test.title, target, error: notMeasured(last) });
           continue;
         }
 
@@ -86,23 +91,40 @@ export default class A11yChecksReporter implements Reporter {
           failures.push({ title: test.title, target, error: 'the test passed without attaching its evidence part' });
           continue;
         }
+
+        let part: unknown;
+
         try {
-          parts.push(JSON.parse(readFileSync(attachment.path, 'utf8')));
+          part = JSON.parse(readFileSync(attachment.path, 'utf8'));
         } catch (error) {
-          problems.push(`${test.title}: the evidence part is not readable JSON: ${error instanceof Error ? error.message : String(error)}`);
+          failures.push({ title: test.title, target, error: `the evidence part is not readable JSON: ${error instanceof Error ? error.message : String(error)}` });
+          continue;
         }
+
+        const partProblems = validatePart(part);
+
+        if (partProblems.length > 0) {
+          failures.push({ title: test.title, target, error: `the evidence part is malformed: ${partProblems.join('; ')}` });
+          continue;
+        }
+        parts.push(part as (typeof parts)[number]);
         if (test.results.length > 1) {
           failures.push({ title: test.title, target, error: test.results[0].error?.message ?? test.results[0].status, flaky: true });
         }
       }
 
-      // The document carries each target's detail as a path; the detail itself goes to its own file.
-      const doc = mergeEvidence({ check, parts, failures, run, problems, checks: this.#checks });
+      // The document carries each target's detail as a path; the detail itself goes to its own file. Of
+      // two parts for one target, the document keeps the first (`mergeEvidence()`), and so does the file.
+      const doc = mergeEvidence({ check, parts, failures, run, checks: this.#checks });
+      const written = new Set<string>();
 
-      for (const part of parts as Array<{ target?: { page: string; theme: string; variant?: string | null }; detail?: unknown }>) {
-        if (part.target && part.detail !== undefined) {
+      for (const part of parts) {
+        const file = targetFileName(part.target);
+
+        if (part.detail !== undefined && !written.has(file)) {
+          written.add(file);
           mkdirSync(path.join(this.#outputDir, check), { recursive: true });
-          writeFileSync(path.join(this.#outputDir, check, targetFileName(part.target)), `${JSON.stringify(part.detail, null, 2)}\n`);
+          writeFileSync(path.join(this.#outputDir, check, file), `${JSON.stringify(part.detail, null, 2)}\n`);
         }
       }
       writeFileSync(path.join(this.#outputDir, `${check}.json`), `${JSON.stringify(doc, null, 2)}\n`);
@@ -119,6 +141,23 @@ export default class A11yChecksReporter implements Reporter {
   printsToStdio(): boolean {
     return false;
   }
+}
+
+/**
+ * Why a test measured nothing: its error, or why it has none.
+ *
+ * @param last The test's last attempt, or `undefined` when the run never started it.
+ * @returns The reason.
+ */
+function notMeasured(last: TestResult | undefined): string {
+  if (!last) {
+    return 'the test did not run: the run stopped before it started (maxFailures, the global timeout or an interrupt)';
+  }
+  if (last.error?.message) {
+    return last.error.message;
+  }
+
+  return last.status === 'skipped' ? 'the test was skipped after a failure before it (a beforeAll hook, an earlier test of a serial group, or the worker)' : `the test ended ${last.status}`;
 }
 
 /**
@@ -143,8 +182,8 @@ function declaredTarget(test: TestCase): object | null {
 }
 
 /**
- * The run's metadata: the commit the run tested (the pull request's head on CI, not the merge commit),
- * the ref, the run's URL and when it started.
+ * The run's metadata: the commit the run tested (`runCommit()`: the pull request's head, never the merge
+ * commit), the ref, the run's URL and when it started.
  *
  * @param startedAt When the run started.
  * @returns The metadata.
@@ -160,7 +199,7 @@ function runMetadata(startedAt: Date) {
   };
 
   return {
-    commit: env.A11Y_HEAD_SHA || env.GITHUB_SHA || git(['rev-parse', 'HEAD']),
+    commit: runCommit(env, () => git(['rev-parse', 'HEAD'])),
     ref: env.GITHUB_HEAD_REF || env.GITHUB_REF_NAME || git(['rev-parse', '--abbrev-ref', 'HEAD']),
     runUrl: env.GITHUB_SERVER_URL && env.GITHUB_REPOSITORY && env.GITHUB_RUN_ID
       ? `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}`

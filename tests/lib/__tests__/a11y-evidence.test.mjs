@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { escapeMarkdownText } from '../a11y-baseline.mjs';
 import {
   EVIDENCE_CHECKS,
   EVIDENCE_MODE,
@@ -19,6 +20,7 @@ import {
   measuredText,
   mergeEvidence,
   renderEvidenceSummary,
+  runCommit,
   targetFileName,
   validateEvidence,
   validatePart,
@@ -107,6 +109,19 @@ test('the names a check writes under: the check run, the detail file, the findin
   assert.equal(targetFileName({ page: 'grid', theme: 'main', variant: 'dark' }), 'grid--main--dark.json');
   assert.equal(findingId('demo-check', { ...TRAP, page: 'grid', theme: 'main' }), 'demo-check|keyboard-trap|grid|main||td.current');
   assert.equal(findingId('demo-check', { ...ORDER, page: 'grid', theme: 'main', variant: 'rtl' }), 'demo-check|tab-order-changed|grid|main|rtl|Tab 3');
+  assert.equal(findingId('demo-check', { ...TRAP, step: 'Shift+Tab 2', page: 'grid', theme: 'main' }), 'demo-check|keyboard-trap|grid|main||td.current|Shift+Tab 2',
+    'a finding that names an element and a step keys on both');
+});
+
+test('run.commit is the pull request\'s head, never the merge commit', () => {
+  const readHead = () => 'checkout-head';
+
+  assert.equal(runCommit({ A11Y_HEAD_SHA: 'head', GITHUB_SHA: 'merge', GITHUB_EVENT_NAME: 'pull_request' }, readHead), 'head');
+  assert.equal(runCommit({ GITHUB_SHA: 'merge', GITHUB_EVENT_NAME: 'pull_request' }, readHead), null,
+    'on a pull request GITHUB_SHA and the checkout are the merge commit');
+  assert.equal(runCommit({ GITHUB_SHA: 'base', GITHUB_EVENT_NAME: 'pull_request_target' }, readHead), null);
+  assert.equal(runCommit({ GITHUB_SHA: 'tip', GITHUB_EVENT_NAME: 'schedule' }, readHead), 'tip');
+  assert.equal(runCommit({}, readHead), 'checkout-head');
 });
 
 test('a well-formed part has no problems, and every malformed field is named', () => {
@@ -237,6 +252,51 @@ test('a part that measured can report a step it could not take as a problem, and
   assert.deepEqual(validatePart(part({ problems: [3] })), ['problems is not an array of strings']);
 });
 
+test('a finding cannot move itself to another target or take another id', () => {
+  const stray = { ...TRAP, id: 'focus-visible', page: 'dialog', theme: 'horizon', variant: 'rtl', url: '/elsewhere.html' };
+  const doc = mergeEvidence({ check: 'demo-check', checks: CHECKS, parts: [part({ findings: [stray] })] });
+
+  assert.deepEqual([doc.findings[0].id, doc.findings[0].page, doc.findings[0].theme, doc.findings[0].variant, doc.findings[0].url],
+    ['demo-check|keyboard-trap|grid|main||td.current', 'grid', 'main', null, '/tests/fixtures/demo/grid.html?theme=main']);
+  assert.deepEqual(doc.summary.byCriterion['2.1.2'].pages, ['grid']);
+});
+
+test('two findings that share an id are a problem; one element at two steps is two findings', () => {
+  const doc = mergeEvidence({
+    check: 'demo-check',
+    checks: CHECKS,
+    parts: [part({ findings: [{ ...TRAP, step: 'Tab 2' }, { ...TRAP, step: 'ArrowDown from (1, 1)' }, ORDER, ORDER] })],
+  });
+
+  assert.deepEqual(doc.findings.map(finding => finding.id), [
+    'demo-check|keyboard-trap|grid|main||td.current|ArrowDown from (1, 1)',
+    'demo-check|keyboard-trap|grid|main||td.current|Tab 2',
+    'demo-check|tab-order-changed|grid|main||Tab 3',
+    'demo-check|tab-order-changed|grid|main||Tab 3',
+  ]);
+  assert.deepEqual(doc.problems, ['2 findings share the id demo-check|tab-order-changed|grid|main||Tab 3: give each its own selector or step']);
+});
+
+test('two parts for one target: the first is kept, the second is a problem, and the target counts once', () => {
+  const doc = mergeEvidence({
+    check: 'demo-check',
+    checks: CHECKS,
+    parts: [
+      part({ findings: [TRAP], detail: { first: true } }),
+      part({ target: { page: 'grid', theme: 'main', state: 'context-menu' }, findings: [ORDER] }),
+      part({ target: { page: 'grid', theme: 'main', variant: 'rtl' } }),
+    ],
+  });
+
+  assert.deepEqual(doc.targets.map(target => [target.page, target.variant, target.state, target.findings]), [
+    ['grid', null, 'none', 1],
+    ['grid', 'rtl', null, 0],
+  ]);
+  assert.deepEqual(doc.findings.map(finding => finding.kind), ['keyboard-trap']);
+  assert.deepEqual(doc.problems, ['two evidence parts name grid on main: the second is dropped; give each target its own variant']);
+  assert.equal(doc.summary.byCriterion['2.1.2'].evaluated, 2);
+});
+
 test('a malformed part and an unknown check are problems, never a crash', () => {
   const doc = mergeEvidence({ check: 'not-registered', checks: CHECKS, parts: [part({ findings: [{ ...TRAP, severity: 'blocker' }] }), part()] });
 
@@ -263,6 +323,23 @@ test('validateEvidence names what a generator could not read', () => {
   assert.deepEqual(validateEvidence({ ...doc, targets: [{ status: 'skipped' }] }, { checks: CHECKS }),
     ['targets[0].status is "skipped", not one of measured, error']);
   assert.deepEqual(validateEvidence([], { checks: CHECKS }), ['the document is not an object']);
+});
+
+test('validateEvidence refuses a summary the headline and the summary table cannot read', () => {
+  const doc = mergeEvidence({ check: 'demo-check', checks: CHECKS, parts: [part({ findings: [TRAP] })] });
+  const withoutSeverity = { ...doc.summary };
+
+  delete withoutSeverity.bySeverity;
+
+  assert.deepEqual(validateEvidence({ ...doc, summary: withoutSeverity }, { checks: CHECKS }),
+    ['summary.bySeverity does not count every severity (critical, serious, moderate, minor, advisory)']);
+  assert.deepEqual(validateEvidence({ ...doc, title: undefined, summary: { ...doc.summary, measured: '1', byCriterion: { '2.1.2': null } } }, { checks: CHECKS }), [
+    'title is not a non-empty string',
+    'summary.measured is not a non-negative integer',
+    'summary.byCriterion["2.1.2"] does not count its evaluated targets and findings',
+  ]);
+  assert.deepEqual(validateEvidence({ ...doc, summary: null }, { checks: CHECKS }), ['summary is not an object']);
+  assert.throws(() => evidenceHeadline({ ...doc, summary: withoutSeverity }), TypeError, 'what validation lets through, the headline reads');
 });
 
 test('the headline counts findings by severity and the targets measured', () => {
@@ -294,6 +371,7 @@ test('the check run is neutral on any finding or problem, success when clean, an
   assert.match(errored.title, /· 1 tooling problem$/);
   assert.deepEqual([missing.name, missing.conclusion, missing.title], ['A11y / demo-check report', 'neutral', '⚠ Tooling: the check left no evidence document']);
   assert.deepEqual([unreadable.conclusion, unreadable.title], ['neutral', '⚠ Tooling: demo-check.json is not valid JSON']);
+  assert.match(unreadable.summary, /- demo-check\.json is not valid JSON/);
   for (const payload of [clean, advisory, errored, missing, unreadable]) {
     assert.notEqual(payload.conclusion, 'failure', 'report-only: a check run of this tier never turns a pull request red');
   }
@@ -325,18 +403,33 @@ test('a check run carries at most a hundred annotations; the summary lists sixty
   assert.match(payload.summary, /… and 70 more in `test-results\/a11y-checks\/demo-check\.json`\./);
 });
 
-test('every value the summary renders is escaped, and only a plain https link is linked', () => {
-  const hostile = { ...TRAP, selector: 'td|<img src=x onerror=alert(1)>', reason: 'a `code` **bold** [link](javascript:alert(1)) reason' };
+test('every value the summary renders is escaped the scan\'s way, and only a plain https link is linked', () => {
+  const hostile = { ...TRAP, selector: 'td|<img src=x onerror=alert(1)>', reason: 'a `code` **bold** [link](javascript:alert(1)) {#+!} reason' };
   const summary = renderEvidenceSummary(mergeEvidence({ check: 'demo-check', checks: CHECKS, parts: [part({ findings: [hostile] })] }), {
     runUrl: 'javascript:alert(1)',
     artifactUrl: 'https://github.com/o/r/actions/runs/1/artifacts/2',
   });
 
-  assert.match(summary, /<code>td\\\|\\<img src=x onerror=alert\\\(1\\\)\\><\/code>/);
-  assert.match(summary, /a \\`code\\` \\\*\\\*bold\\\*\\\* \\\[link\\\]\\\(javascript:alert\\\(1\\\)\\\) reason/);
-  assert.doesNotMatch(summary, /\(javascript:alert\(1\)\)/, 'an unsafe URL is never a link');
+  assert.ok(summary.includes(`<code>${escapeMarkdownText(hostile.selector)}</code>`), 'the selector is escaped by escapeMarkdownText()');
+  assert.ok(summary.includes(escapeMarkdownText(hostile.reason)), 'the reason is escaped by escapeMarkdownText()');
+  assert.match(summary, /<code>td\\\|\\<img src=x onerror=alert\(1\)\\><\/code>/);
+  assert.doesNotMatch(summary, /\[The workflow run\]/, 'an unsafe URL is never a link');
   assert.match(summary, /\[The evidence JSON\]\(https:\/\/github\.com\/o\/r\/actions\/runs\/1\/artifacts\/2\)/);
   assert.match(summary, /\| 2\.1\.2 No Keyboard Trap \| A \| 1 \| 1 \|/);
+  assert.doesNotMatch(renderEvidenceSummary(mergeEvidence({ check: 'demo-check', checks: CHECKS, parts: [part()] }), {
+    artifactUrl: 'https://github.com/o/r/a|b',
+  }), /\[The evidence JSON\]/, 'a URL with a pipe would end the table cell, so it is not linked');
+});
+
+test('a tooling check run lists twenty problems and stays under the Checks API limit', () => {
+  const problems = Array.from({ length: 5000 }, (_, index) => `targets[${index}].status is "skipped", not one of measured, error`);
+  const many = buildEvidenceCheckRun({ doc: null, check: 'demo-check', problems });
+  const huge = buildEvidenceCheckRun({ doc: null, check: 'demo-check', problems: [`targets[0].status is "${'x'.repeat(70000)}"`] });
+
+  assert.equal(many.summary.match(/^- targets/gm).length, 20);
+  assert.match(many.summary, /^- … and 4980 more\.$/m);
+  assert.ok(huge.summary.length <= 65535, `${huge.summary.length} characters`);
+  assert.match(huge.summary, /… cut at 65000 characters/);
 });
 
 test('a check whose records name a rule summarizes them by rule, so one rule among thousands of records is found', () => {
