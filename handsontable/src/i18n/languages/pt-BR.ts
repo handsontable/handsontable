@@ -132,6 +132,8 @@ const dictionary = {
   [C.SHEETS_BAR_PAGE_NEXT]: 'Rolar planilhas para frente',
   [C.SHEETS_BAR_SHEET_CHANGED]: 'Planilha [name] ativada',
   [C.SHEETS_BAR_RENAME_REJECTED]: 'Nome da planilha não alterado: [name] já está em uso',
+  [C.SHEETS_BAR_SHEET_DUPLICATED]: 'Planilha [name] duplicada como [copy]',
+  [C.SHEETS_BAR_SHEET_MOVED]: 'Planilha [name] movida para a posição [position] de [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Planilha',
 
   [C.LOADING_TITLE]: 'Carregando...',

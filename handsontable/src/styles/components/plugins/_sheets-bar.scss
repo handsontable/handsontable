@@ -305,7 +305,15 @@ $all-sheets-visible-items: 8;
         &--active:hover {
           color: var(--ht-sheets-bar-tab-active-foreground-color);
           background: var(--ht-sheets-bar-tab-active-background-color);
-          box-shadow: $active-marker;
+        }
+
+        &--active::after {
+          content: "";
+          position: absolute;
+          inset-inline: 0;
+          bottom: 0;
+          border-block-end: var(--ht-sheets-bar-tab-active-border-width) solid var(--ht-sheets-bar-tab-active-border-color);
+          pointer-events: none;
         }
 
         // Lifted while dragging so it reads as detached from the strip and travels with the
@@ -331,14 +339,10 @@ $all-sheets-visible-items: 8;
           @include mixins.box-shadow;
         }
 
-        // The active tab keeps both of the things that mark it out while it travels: its own
-        // opaque surface, and its bottom-edge line — which has to ride along with the drop
-        // shadow, because a `box-shadow` is a single list and the drag rule's shadow would
-        // otherwise replace the marker outright.
+        // The active tab keeps its own opaque surface while it travels.
         &--active.ht-sheets-bar__tab--dragging {
           color: var(--ht-sheets-bar-tab-active-foreground-color);
           background-color: var(--ht-sheets-bar-tab-active-background-color);
-          box-shadow: $active-marker, mixins.box-shadow-value();
         }
       }
 
@@ -409,8 +413,8 @@ $all-sheets-visible-items: 8;
         background: transparent;
       }
 
-      .ht-sheets-bar__tabs--indicator-moving .ht-sheets-bar__tab--active {
-        box-shadow: none;
+      .ht-sheets-bar__tabs--indicator-moving .ht-sheets-bar__tab--active::after {
+        content: none;
       }
 
       .ht-sheets-bar__tab-label,
@@ -420,6 +424,9 @@ $all-sheets-visible-items: 8;
         color: inherit;
         font-size: inherit;
         line-height: inherit;
+        font-weight: inherit;
+        letter-spacing: inherit;
+        font-family: inherit;
         cursor: pointer;
         padding: 0;
       }
@@ -456,6 +463,12 @@ $all-sheets-visible-items: 8;
           inset: var(--ht-gap-size);
           border-radius: var(--ht-icon-button-border-radius);
         }
+
+        &::after {
+          content: "";
+          position: absolute;
+          inset: min(0px, calc((100% - var(--ht-icon-button-hit-area-size)) / 2));
+        }
       }
 
       // The glyph paints above the `::before` hover surface. As a static child it would sit
@@ -486,14 +499,19 @@ $all-sheets-visible-items: 8;
 
       // The design system draws the edit state as the whole tab becoming the field: the tab
       // itself wears the editor surface and a full accent border, at its normal size and
-      // padding. The border is an inset shadow, which takes no layout space — the bar must not
-      // grow when a rename starts — and it replaces the active tab's bottom marker outright,
-      // which is why the renaming rules sit after the active ones.
+      // padding. The border is an outline drawn inside the tab, which takes no layout space —
+      // the bar must not grow when a rename starts — and it replaces the active tab's bottom
+      // marker outright, which is why the renaming rules sit after the active ones.
       .ht-sheets-bar__tab--renaming,
       .ht-sheets-bar__tab--renaming:hover {
         color: var(--ht-cell-editor-foreground-color);
         background: var(--ht-cell-editor-background-color);
-        box-shadow: inset 0 0 0 2px var(--ht-cell-editor-border-color);
+        outline: 2px solid var(--ht-cell-editor-border-color);
+        outline-offset: -2px;
+      }
+
+      .ht-sheets-bar__tab--renaming::after {
+        content: none;
       }
 
       // The input is a transparent window into the tab's own surface — every visual belongs to
@@ -501,6 +519,9 @@ $all-sheets-visible-items: 8;
       .ht-sheets-bar__tab-rename {
         font-size: inherit;
         line-height: inherit;
+        font-weight: inherit;
+        letter-spacing: inherit;
+        font-family: inherit;
         color: inherit;
         background: transparent;
         user-select: text;
@@ -529,6 +550,9 @@ $all-sheets-visible-items: 8;
         white-space: pre;
         font-size: inherit;
         line-height: inherit;
+        font-weight: inherit;
+        letter-spacing: inherit;
+        font-family: inherit;
         padding: 0;
         border: none;
       }

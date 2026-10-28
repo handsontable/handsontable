@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Handsontable e2e fixture - sheets bar UI and accessibility</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+    #host { width: 600px; }
+    #host.hidden { display: none; }
+    #outside-bar { margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <div id="host" data-testid="host">
+    <div id="grid" data-testid="grid"></div>
+  </div>
+  <div id="outside-bar" data-testid="outside-bar"></div>
+
+  <script>
+    const loadBundle = () => {
+      const bundleScript = document.createElement('script');
+
+      bundleScript.src = `/handsontable/dist/${window.htBundle}`;
+      bundleScript.addEventListener('load', () => {
+        window.htFixtureReady = true;
+      });
+      bundleScript.addEventListener('error', () => {
+        throw new Error(`Failed to load the bundle: ${bundleScript.src}`);
+      });
+      document.head.appendChild(bundleScript);
+    };
+
+    const sheetData = index => Array.from({ length: 6 }, (_, row) => (
+      Array.from({ length: 4 }, (__, col) => `S${index}-${row}-${col}`)
+    ));
+
+    /**
+     * Builds the grid.
+     *
+     * @param {object} config The layout under test.
+     * @param {number} [config.sheets=3] How many sheets the workbook declares.
+     * @param {number} [config.activeSheet=0] The `activeSheet` option.
+     * @param {boolean} [config.rtl=false] An RTL grid in an RTL document.
+     * @param {boolean} [config.uiContainer=false] Puts the bar outside the grid.
+     * @param {boolean} [config.hidden=false] Builds the grid inside a `display: none` container.
+     * @param {string} [config.colorScheme] The `colorScheme` option, with the theme engine.
+     * @param {string} [config.density] The `density` option, with the theme engine.
+     * @param {boolean} [config.ariaTags=true] The `ariaTags` option.
+     * @param {string} [config.hostLabel] An `aria-label` the host puts on the grid's root.
+     */
+    window.buildGrid = (config = {}) => {
+      const {
+        sheets = 3, activeSheet = 0, rtl = false, uiContainer = false, hidden = false,
+        colorScheme, density, ariaTags = true, hostLabel,
+      } = config;
+      const container = document.querySelector('[data-testid="grid"]');
+      const host = document.querySelector('[data-testid="host"]');
+      const useThemeEngine = colorScheme !== undefined || density !== undefined;
+
+      document.documentElement.dir = rtl ? 'rtl' : 'ltr';
+      host.classList.toggle('hidden', hidden);
+
+      if (!useThemeEngine) {
+        container.className = `ht-theme-${window.htTheme}`;
+      }
+
+      try {
+        const hot = new Handsontable(container, {
+          colHeaders: true,
+          rowHeaders: true,
+          height: 260,
+          ariaTags,
+          layoutDirection: rtl ? 'rtl' : 'ltr',
+          ...(colorScheme !== undefined ? { colorScheme } : {}),
+          ...(density !== undefined ? { density } : {}),
+          sheetsBar: {
+            sheets: Array.from({ length: sheets }, (_, index) => ({
+              name: `Sheet ${index + 1}`,
+              data: sheetData(index),
+            })),
+            activeSheet,
+            ...(uiContainer ? { uiContainer: document.querySelector('[data-testid="outside-bar"]') } : {}),
+          },
+          licenseKey: 'non-commercial-and-evaluation',
+        });
+
+        if (hostLabel !== undefined) {
+          hot.rootElement.setAttribute('aria-label', hostLabel);
+        }
+
+        window.hot = hot;
+      } catch (error) {
+        window.htBuildError = String(error && error.message ? error.message : error);
+        throw error;
+      }
+    };
+
+    /**
+     * Shows a container `buildGrid({ hidden: true })` built the grid in.
+     */
+    window.showHost = () => {
+      document.querySelector('[data-testid="host"]').classList.remove('hidden');
+    };
+
+    loadBundle();
+  </script>
+</body>
+</html>

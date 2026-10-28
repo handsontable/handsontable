@@ -229,6 +229,11 @@ export interface TabStripOptions {
    * the grid, where a cleared handle would stay listed for the grid's whole life.
    */
   rootWindow: Window;
+  /**
+   * Starts the `id` of each tab label, so the grid can be named after the label of the sheet it
+   * shows (`aria-labelledby`). Unique per grid.
+   */
+  labelIdPrefix: string;
 }
 
 /**
@@ -302,6 +307,16 @@ export class TabStrip {
    */
   #cancelRename: ((silent?: boolean) => void) | null = null;
   /**
+   * The sheet whose tab holds the strip's one Tab stop while the focus moves along the strip, or
+   * `null` when the active tab holds it. The arrow keys move the stop with the focus; once the
+   * focus leaves the strip, the stop goes back to the active tab.
+   */
+  #rovingId: number | null = null;
+  /**
+   * Starts the `id` of each tab label (`TabStripOptions.labelIdPrefix`).
+   */
+  readonly #labelIdPrefix: string;
+  /**
    * Whether a pointer went down on a tab and has not been lifted, so a `contextmenu` raised by
    * a touch long-press or a macOS Ctrl+click — both reporting `button: 0`, like the keyboard —
    * is not read as a keyboard opening.
@@ -367,6 +382,7 @@ export class TabStrip {
     this.#isRtl = options.isRtl;
     this.#syncIcon = options.syncIcon;
     this.#rootWindow = options.rootWindow;
+    this.#labelIdPrefix = options.labelIdPrefix;
     this.#drag = new TabDrag(
       {
         host: options.host,
@@ -403,9 +419,8 @@ export class TabStrip {
 
     this.#host.textContent = '';
     this.#sheets.clear();
-
+    sheets.forEach(sheet => this.#sheets.set(sheet.id, sheet));
     sheets.forEach((sheet) => {
-      this.#sheets.set(sheet.id, sheet);
       this.#host.appendChild(this.#buildTab(sheet));
     });
 
@@ -944,12 +959,64 @@ export class TabStrip {
   }
 
   /**
+   * Returns the `id` of the active tab's label, which names the grid while the sheet is shown.
+   *
+   * @returns {string|null} The id, or `null` when no tab is active.
+   */
+  getActiveLabelId(): string | null {
+    const active = [...this.#sheets.values()].find(sheet => sheet.isActive);
+
+    return active === undefined ? null : this.#labelId(active.id);
+  }
+
+  /**
+   * Builds the `id` of a tab's label.
+   *
+   * @param {number} sheetId The sheet the tab represents.
+   * @returns {string} The id.
+   */
+  #labelId(sheetId: number): string {
+    return `${this.#labelIdPrefix}-${sheetId}`;
+  }
+
+  /**
+   * Whether a tab holds the strip's one Tab stop: the tab the arrow keys last moved the focus
+   * to, while the focus is in the strip, and the active tab otherwise.
+   *
+   * @param {object} sheet The sheet the tab represents.
+   * @returns {boolean} `true` for the tab that takes the focus on Tab.
+   */
+  #holdsTabStop(sheet: SheetDescriptor): boolean {
+    if (this.#rovingId !== null && this.#sheets.has(this.#rovingId)) {
+      return sheet.id === this.#rovingId;
+    }
+
+    return sheet.isActive;
+  }
+
+  /**
+   * Gives the strip's Tab stop to one tab and takes it from the others.
+   *
+   * @param {number|null} id The sheet whose tab takes the stop, or `null` for the active tab.
+   */
+  #moveTabStop(id: number | null): void {
+    this.#rovingId = id;
+
+    this.#tabs().forEach((tab) => {
+      const sheet = this.#sheets.get(Number(tab.dataset.sheetId));
+
+      tab.tabIndex = sheet !== undefined && this.#holdsTabStop(sheet) ? 0 : -1;
+    });
+  }
+
+  /**
    * Builds one tab: the control, its label, and its menu trigger.
    *
-   * The tab is one stop in the tab order, and the whole of it is the control: its label and
-   * its menu trigger are decoration inside it rather than controls of their own. That is
-   * what lets the two activations mean different things, and it keeps a strip of twenty
-   * sheets from costing forty stops on the way past.
+   * The whole tab is the control: its label and its menu trigger are decoration inside it
+   * rather than controls of their own, which is what lets the two activations mean different
+   * things. The strip is one stop in the tab order (a roving tab stop, `#holdsTabStop()`), and
+   * the arrow, Home and End keys move along it, so a strip of thirty sheets does not cost thirty
+   * presses on the way past.
    *
    * @param {object} sheet The sheet the tab represents.
    * @returns {HTMLElement} The tab element.
@@ -961,7 +1028,7 @@ export class TabStrip {
 
     tab.className = `ht-sheets-bar__tab${sheet.isActive ? ' ht-sheets-bar__tab--active' : ''}`;
     tab.dataset.sheetId = String(sheet.id);
-    tab.tabIndex = 0;
+    tab.tabIndex = this.#holdsTabStop(sheet) ? 0 : -1;
 
     // Only the active tab advertises the popup: on any other tab an activation moves to that
     // sheet, and a "menu button" that navigates instead would promise the wrong thing.
@@ -971,6 +1038,7 @@ export class TabStrip {
     ]);
 
     label.className = 'ht-sheets-bar__tab-label';
+    label.id = this.#labelId(sheet.id);
     label.textContent = sheet.name;
     // The menus ellipsize long names and the strip can scroll a tab half out of view, so the
     // full name stays reachable on hover.
@@ -1513,7 +1581,36 @@ export class TabStrip {
     toggle('pointerup', this.#onTabPointerRelease);
     toggle('pointercancel', this.#onTabPointerRelease);
     toggle('contextmenu', this.#onTabContextMenu);
+    toggle('focusin', this.#onTabFocusIn);
+    toggle('focusout', this.#onTabFocusOut);
   }
+
+  /**
+   * Gives the Tab stop to the tab that took the focus, so <kbd>Shift</kbd>+<kbd>Tab</kbd> back into
+   * the strip returns to it.
+   *
+   * @param {FocusEvent} event The `focusin` event.
+   */
+  #onTabFocusIn = (event: FocusEvent): void => {
+    const target = this.#tabOfEvent(event);
+
+    if (target !== null && target.sheet.id !== this.#rovingId) {
+      this.#moveTabStop(target.sheet.id);
+    }
+  };
+
+  /**
+   * Gives the Tab stop back to the active tab once the focus leaves the strip.
+   *
+   * @param {FocusEvent} event The `focusout` event.
+   */
+  #onTabFocusOut = (event: FocusEvent): void => {
+    const next = event.relatedTarget;
+
+    if (this.#rovingId !== null && !(next instanceof Node && this.#host.contains(next))) {
+      this.#moveTabStop(null);
+    }
+  };
 
   /**
    * Returns the tab an event landed in, and the sheet it shows.

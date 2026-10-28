@@ -1420,7 +1420,7 @@ describe('SheetsBar plugin', () => {
     hot.getFocusScopeManager().deactivateScope('sheetsBar');
     hot.getFocusScopeManager().activateScope('sheetsBar', 'tab_from_below');
 
-    expect(document.activeElement).toBe(bar.querySelectorAll('.ht-sheets-bar__tab')[1]);
+    expect(document.activeElement).toBe(bar.querySelector('.ht-sheets-bar__tab--active'));
     expect(hot.getShortcutManager().getActiveContextName()).toBe('plugin:sheetsBar');
 
     hot.updateSettings({ sheetsBar: false });
@@ -1621,7 +1621,7 @@ describe('SheetsBar plugin', () => {
     expect(input.value).toBe(family.repeat(50));
   });
 
-  it('lists the sheets as checkable menu items with the active one checked', () => {
+  it('lists the sheets as radio menu items with the active one checked', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
       licenseKey: 'non-commercial-and-evaluation',
@@ -1632,7 +1632,8 @@ describe('SheetsBar plugin', () => {
     const rows = document.querySelectorAll('.htSheetsBarMenu td');
 
     expect(rows.length).toBe(2);
-    expect(rows[0].getAttribute('role')).toBe('menuitemcheckbox');
+    expect(rows[0].getAttribute('role')).toBe('menuitemradio');
+    expect(rows[1].getAttribute('role')).toBe('menuitemradio');
     expect(rows[0].getAttribute('aria-checked')).toBe('true');
     expect(rows[0].getAttribute('aria-label')).toBe('A');
     expect(rows[1].getAttribute('aria-checked')).toBe('false');

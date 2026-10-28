@@ -42,7 +42,7 @@ import {
 } from '../../utils/viewState/viewState';
 import { withoutUndoEntry } from '../../utils/viewState/withoutUndoEntry';
 import * as C from '../../i18n/constants';
-import { announce } from '../../utils/a11yAnnouncer';
+import { announce, type AnnouncementPoliteness } from '../../utils/a11yAnnouncer';
 import { isRootInstance } from '../../utils/rootInstance';
 import { deepClone, isPlainObject } from '../../helpers/object';
 import {
@@ -54,7 +54,8 @@ import {
 } from './formulaSheetData';
 import type { FormulaTextChange, SheetLayoutSettings } from './formulaSheetData';
 import { error as logError, warn, warnOnce } from '../../helpers/console';
-import { isHTMLElement } from '../../helpers/dom/element';
+import { isHTMLElement, removeAttribute, setAttribute } from '../../helpers/dom/element';
+import { A11Y_LABELED_BY } from '../../helpers/a11y';
 import { syncIcon } from '../../themes/engine/icons';
 import type { CellOptionMetaEntry, HotInstance, KeptCellMetas } from '../../core/types';
 import type { GridSettings } from '../../core/settings';
@@ -883,6 +884,11 @@ export class SheetsBar extends BasePlugin {
    */
   #hasFocusScope = false;
   /**
+   * The label id the bar wrote into the grid root's `aria-labelledby`, or `null` when the bar
+   * named nothing (`#syncGridName()`).
+   */
+  #gridNameId: string | null = null;
+  /**
    * The layout side the bar was registered on, so teardown unregisters the same slot the
    * setup filled — the `position` setting may already read differently by then.
    *
@@ -993,7 +999,9 @@ export class SheetsBar extends BasePlugin {
         isRtl: this.hot.isRtl(),
         themeName: this.hot.getCurrentThemeName(),
         phraseTranslator: (key: string, args?: unknown) => this.hot.getTranslatedPhrase(key, args),
-        a11yAnnouncer: (message: unknown) => announce(String(message ?? '')),
+        a11yAnnouncer: (message: unknown, politeness?: AnnouncementPoliteness) => (
+          announce(String(message ?? ''), politeness)
+        ),
         ariaTags: this.hot.getSettings().ariaTags,
         syncIcon: syncIconForHot,
       });
@@ -1026,6 +1034,7 @@ export class SheetsBar extends BasePlugin {
         isRtl: this.hot.isRtl(),
         syncIcon: syncIconForHot,
         rootWindow: this.hot.rootWindow,
+        labelIdPrefix: `${this.hot.guid}-sheet-tab-label`,
       });
       this.#tabStrip.setDragSlide(this.#animation().move);
       this.#tabStrip
@@ -1907,6 +1916,10 @@ export class SheetsBar extends BasePlugin {
     if (this.#preservedState === null) {
       this.#loadedSheetId = null;
       this.#motionGate.close();
+    }
+
+    if (this.#preservedState === null) {
+      this.#clearGridName();
     }
 
     this.#tabStrip?.destroy();
@@ -3687,6 +3700,53 @@ export class SheetsBar extends BasePlugin {
   #refreshUI() {
     this.#tabStrip?.render(this.getSheets());
     this.#overflow?.refresh();
+    this.#syncGridName();
+  }
+
+  /**
+   * Names the grid after the sheet it shows: the grid's root (the `treegrid`) points at the
+   * active tab's label through `aria-labelledby`, so a screen reader entering the grid hears
+   * which sheet it is in, and a rename or a switch updates the name with no write of its own.
+   * A name the host gave the grid (an `aria-label` or an `aria-labelledby` the bar did not
+   * write) is left alone, and nothing is written while `ariaTags` is off.
+   */
+  #syncGridName() {
+    const root = this.hot.rootElement;
+    const labelId = this.#tabStrip?.getActiveLabelId() ?? null;
+
+    if (!this.hot.getSettings().ariaTags || labelId === null || this.#hostNamesGrid(root)) {
+      this.#clearGridName();
+
+      return;
+    }
+
+    setAttribute(root, [A11Y_LABELED_BY(labelId)]);
+    this.#gridNameId = labelId;
+  }
+
+  /**
+   * Whether the host named the grid itself.
+   *
+   * @param {HTMLElement} root The grid's root element.
+   * @returns {boolean} `true` when the root carries a name the bar did not write.
+   */
+  #hostNamesGrid(root: HTMLElement): boolean {
+    const labelledBy = root.getAttribute('aria-labelledby');
+
+    return root.hasAttribute('aria-label') || (labelledBy !== null && labelledBy !== this.#gridNameId);
+  }
+
+  /**
+   * Takes the name the bar gave the grid off again, when the bar is turned off.
+   */
+  #clearGridName() {
+    const root = this.hot.rootElement;
+
+    if (this.#gridNameId !== null && root?.getAttribute('aria-labelledby') === this.#gridNameId) {
+      removeAttribute(root, 'aria-labelledby');
+    }
+
+    this.#gridNameId = null;
   }
 
   /**
@@ -4076,6 +4136,14 @@ export class SheetsBar extends BasePlugin {
       source,
     );
 
+    if (moved !== false && source === SOURCE_UI) {
+      this.#ui?.announce(this.#ui.translate(C.SHEETS_BAR_SHEET_MOVED, {
+        name: model.getSheetById(id)?.name ?? '',
+        position: to + 1,
+        count: order.length,
+      }), 'polite');
+    }
+
     return moved !== false;
   }
 
@@ -4138,7 +4206,18 @@ export class SheetsBar extends BasePlugin {
       source,
     );
 
-    return duplicated === false ? null : { id: duplicated.id, name: duplicated.name, isActive: false };
+    if (duplicated === false) {
+      return null;
+    }
+
+    if (source === SOURCE_UI) {
+      this.#ui?.announce(this.#ui.translate(C.SHEETS_BAR_SHEET_DUPLICATED, {
+        name: original.name,
+        copy: duplicated.name,
+      }), 'polite');
+    }
+
+    return { id: duplicated.id, name: duplicated.name, isActive: false };
   }
 
   /**
