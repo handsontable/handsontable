@@ -387,7 +387,7 @@ await hot.getPlugin('exportFile').downloadFileAsync('xlsx', {
 });
 ```
 
-With `exportFormulas: true`, a formula that references another sheet is written as it is, so in the file it points at a sheet the file doesn't contain.
+With `exportFormulas: true`, a formula that references another sheet keeps that reference. The file doesn't contain the other sheet, so the reference breaks.
 
 ## Known limitations
 
