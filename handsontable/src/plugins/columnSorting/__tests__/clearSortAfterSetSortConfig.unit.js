@@ -2,9 +2,11 @@ import Handsontable from 'handsontable/base';
 import { registerPlugin } from 'handsontable/plugins';
 import { ColumnSorting } from 'handsontable/plugins/columnSorting';
 import { MultiColumnSorting } from 'handsontable/plugins/multiColumnSorting';
+import { ManualRowMove } from 'handsontable/plugins/manualRowMove';
 
 registerPlugin(ColumnSorting);
 registerPlugin(MultiColumnSorting);
+registerPlugin(ManualRowMove);
 
 describe.each([
   ['columnSorting', { columnSorting: true }],
@@ -19,6 +21,7 @@ describe.each([
     hot = new Handsontable(container, {
       data: [[3, 'c'], [1, 'a'], [2, 'b']],
       ...pluginSettings,
+      manualRowMove: true,
       licenseKey: 'non-commercial-and-evaluation',
     });
   });
@@ -49,6 +52,46 @@ describe.each([
     plugin.clearSort();
 
     expect(plugin.getSortConfig()).toEqual([]);
+    expect(hot.getData()).toEqual([[3, 'c'], [1, 'a'], [2, 'b']]);
+  });
+
+  it('should return to the order the rows had when the sort started, after a row move', () => {
+    const plugin = hot.getPlugin(pluginKey);
+
+    plugin.setSortConfig([{ column: 0, sortOrder: 'asc' }]);
+    hot.getPlugin('manualRowMove').moveRow(2, 0);
+
+    expect(hot.getData()).toEqual([[2, 'b'], [3, 'c'], [1, 'a']]);
+
+    plugin.sort({ column: 0, sortOrder: 'desc' });
+    plugin.clearSort();
+
+    expect(hot.getData()).toEqual([[2, 'b'], [3, 'c'], [1, 'a']]);
+  });
+
+  it('should return to the order the rows had when the sort started, after a row insert', () => {
+    const plugin = hot.getPlugin(pluginKey);
+
+    plugin.setSortConfig([{ column: 0, sortOrder: 'asc' }]);
+    hot.alter('insert_row_above', 1);
+
+    expect(hot.getData()).toEqual([[3, 'c'], [null, null], [1, 'a'], [2, 'b']]);
+
+    plugin.sort({ column: 0, sortOrder: 'desc' });
+    plugin.clearSort();
+
+    expect(hot.getData()).toEqual([[3, 'c'], [null, null], [1, 'a'], [2, 'b']]);
+  });
+
+  it('should return to the original order after states were emptied and the rows sorted again', () => {
+    const plugin = hot.getPlugin(pluginKey);
+
+    plugin.setSortConfig([{ column: 0, sortOrder: 'asc' }]);
+    plugin.sort({ column: 0, sortOrder: 'desc' });
+    plugin.setSortConfig([]);
+    plugin.sort({ column: 0, sortOrder: 'asc' });
+    plugin.clearSort();
+
     expect(hot.getData()).toEqual([[3, 'c'], [1, 'a'], [2, 'b']]);
   });
 });
