@@ -1342,7 +1342,10 @@ criterion.
   stylesheet or a constructor throw into a red test, and `reachState()` reaches the catalog state with
   the keyboard (`STATES`) and marks the grid's own portal (`PORTAL`). A check therefore measures the DOM
   a keyboard user reaches, the one the axe scan reads. A state a check needs and the catalog lacks gets
-  an opener in `STATES`, keyboard first. The `test()` calls stay in the spec, never in a helper: a test
+  an opener in `STATES`, keyboard first. A state whose popups mount in a portal of their own marks that
+  one too (the formula states mark hyperformula-ui's `.hfe-popup-portal`), and it comes after the grid's
+  in `body`, so a check reads the marked portals with `querySelectorAll()`: a `querySelector()` sees the
+  grid's portal only and measures the page without the popup the state opened. The `test()` calls stay in the spec, never in a helper: a test
   declared from a helper reports the helper as its location.
 - **A test declares its target first and attaches its part last.** `declareTarget()` (`a11y/evidence.ts`)
   writes the target as a test annotation before anything can fail, so the reporter can name a test that

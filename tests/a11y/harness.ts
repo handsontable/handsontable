@@ -14,7 +14,10 @@ export const DEFAULT_ROOT = '[data-testid="grid"]';
 export const DEFAULT_CELL: [number, number] = [1, 1];
 // The scanned grid's own portal, marked before a measurement (`markPortal()`). Every instance appends a
 // `.ht-portal` to `body`, so on a page with several grids the class alone would include the portals of
-// the grids that are not under test too, and their findings would be keyed to this page.
+// the grids that are not under test too, and their findings would be keyed to this page. A state whose
+// popups mount in a portal of their own marks that one too (the formula states mark hyperformula-ui's
+// `.hfe-popup-portal`, which comes after the grid's in `body`), so read the marked portals with
+// `querySelectorAll()`: `querySelector()` finds the grid's only.
 export const PORTAL_MARK = 'data-a11y-scan-portal';
 export const PORTAL = `[${PORTAL_MARK}]`;
 // A token every theme stylesheet defines (`--ht-line-height`, which the core also probes): an empty
@@ -106,7 +109,7 @@ export async function openTarget(page: Page, entry: A11yPage, theme: string, { u
 
 /**
  * Reaches the state a catalog entry names, then checks that the page threw nothing on the way, and
- * marks the grid's portal.
+ * marks the grid's portal (a formula state has marked hyperformula-ui's popup portal already).
  *
  * @param page The page.
  * @param entry The catalog entry.
