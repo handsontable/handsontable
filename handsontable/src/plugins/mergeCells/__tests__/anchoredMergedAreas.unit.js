@@ -198,6 +198,44 @@ describe('MergeCells anchored merged areas', () => {
       expect(mergedAreas()).toEqual([[1, 1, 2, 2]]);
     });
 
+    it('restores two anchored areas of one call that the current order draws over each other', () => {
+      const mergeCells = createGrid();
+
+      hot.rowIndexMapper.setIndexesSequence([0, 2, 1, 3, 4, 5]);
+      mergeCells.restoreMergedAreas([
+        { row: 0, col: 0, rowspan: 2, colspan: 2, physicalRows: [0, 1], physicalColumn: 0 },
+        { row: 2, col: 0, rowspan: 2, colspan: 2, physicalRows: [2, 3], physicalColumn: 0 },
+      ]);
+
+      expect(mergedAreas()).toEqual([[0, 0, 2, 2], [1, 0, 2, 2]]);
+
+      hot.rowIndexMapper.setIndexesSequence([0, 1, 2, 3, 4, 5]);
+
+      expect(mergeCells.getVisibleMergedAreas()).toEqual([
+        { row: 0, col: 0, rowspan: 2, colspan: 2 },
+        { row: 2, col: 0, rowspan: 2, colspan: 2 },
+      ]);
+    });
+
+    it('skips an anchored area that overlaps a merge a listener made during the same restore', () => {
+      const mergeCells = createGrid();
+      let hasMerged = false;
+
+      hot.rowIndexMapper.setIndexesSequence([0, 2, 1, 3, 4, 5]);
+      hot.addHook('afterMergeCells', () => {
+        if (!hasMerged) {
+          hasMerged = true;
+          mergeCells.merge(2, 0, 3, 1);
+        }
+      });
+      mergeCells.restoreMergedAreas([
+        { row: 0, col: 0, rowspan: 2, colspan: 2, physicalRows: [0, 1], physicalColumn: 0 },
+        { row: 2, col: 0, rowspan: 2, colspan: 2, physicalRows: [2, 3], physicalColumn: 0 },
+      ]);
+
+      expect(mergedAreas()).toEqual([[0, 0, 2, 2], [2, 0, 2, 2]]);
+    });
+
     it('places an area without an anchor by its visual geometry', () => {
       const mergeCells = createGrid({ manualRowMove: true });
 

@@ -485,7 +485,16 @@ matters for a merge whose rows a sort scattered too: its drawn block covers othe
 captured from that block would hand it those rows for good. A drawn entry still fires
 `beforeMergeCells`/`afterMergeCells` with `auto: true` and writes no cell; one kept outside the matrix fires none.
 An anchor that names a row or column past the data, or a merge whose columns now run past the last one (the host
-shrank a sheet's data while it was away), is skipped, and so is a drawn entry that overlaps a merge in the matrix.
+shrank a sheet's data while it was away), is skipped, and so is a drawn entry that overlaps a merge that was in the
+matrix before the call or that a listener made during it. **Entries of the same call never block each other.** A
+sort draws each anchored merge from its first visible row, so two merges whose rows it interleaves are drawn over
+each other on the live grid (`relocateInMatrix` has no overlap guard) and both are exported; checked against each
+other, the second was refused and gone for good, even after the sort was cleared. An entry whose top-left a merge
+of the same call holds goes in with `addOutsideMatrix()` and a `#purgedMerges` flag (`add()` refuses a taken
+top-left even with `auto`), and the trailing re-anchor writes it over the shared cells as the live relocation did,
+so the lookup matrix matches the grid that never switched. Pinned by `brings back two merges a sort drew over each
+other after a round trip, as the grid without one does` (sheetsBar) and the overlap cases in
+`__tests__/anchoredMergedAreas.unit.js`.
 **The caller must run it with the restored order in the cache**, not inside a batch that wrote that order: the
 cache keeps the order from before the batch, and an area placed there, by visual coordinates or by anchor, lands
 on other cells (`../../utils/viewState/AGENTS.md`). An entry without an anchor (one a listener built) is merged by

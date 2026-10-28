@@ -568,7 +568,8 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   back after clearing the sort or the filter without a switch, and was gone after a round trip.
   The restore drops a stored merge whose rows or columns no longer exist (the data is the host's
   and can shrink while the sheet is away), and one drawn over a merge already on screen, which
-  only a host listener adding merges during the load can produce. A drawn merge fires
+  only a host listener adding merges during the load can produce. Stored merges never block each
+  other: two a sort drew over each other come back together, as the grid held them. A drawn merge fires
   `beforeMergeCells`/`afterMergeCells` with `auto: true` (UndoRedo records nothing for that), and
   no cell is written, where the public `merge()` rewrote every covered cell with `null`. An area
   without an anchor goes through `mergeRange(range, true, true)`, the path MergeCells uses for

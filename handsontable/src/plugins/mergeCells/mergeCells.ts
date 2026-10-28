@@ -1099,7 +1099,9 @@ export class MergeCells extends BasePlugin {
    * is visible, so it is drawn again once they return. A merge whose rows a sort drew past the last row, one a
    * filter left with a single visible cell, and one whose rows a filter hid all come back whole. An area whose
    * anchor names a row or column past the data, or whose columns run past the last one (the data shrank while it
-   * was stored), is skipped, and so is one drawn over a merge already in the lookup matrix. A restored merge that is drawn fires
+   * was stored), is skipped, and so is one drawn over a merge that was in the lookup matrix before this call or
+   * that a listener made during it. Anchored areas of this call never turn each other away: two that the current
+   * order draws over each other both come back, as the live grid holds them. A restored merge that is drawn fires
    * `beforeMergeCells`/`afterMergeCells` with `auto: true`, and no cell is written.
    *
    * An area without an anchor is merged by its visual geometry through the automatic path, the one the
@@ -1116,11 +1118,11 @@ export class MergeCells extends BasePlugin {
   restoreMergedAreas(areas: Array<MergeAreaGeometry | PhysicalRowMergeSnapshot>): void {
     const rowCount = this.hot.countRows();
     const colCount = this.hot.countCols();
-    let hasRestoredAnchoredArea = false;
+    const restoredMerges = new Set<MergedCellCoords>();
 
     areas.forEach((area) => {
       if (hasPhysicalAnchor(area)) {
-        hasRestoredAnchoredArea = this.#restoreAnchoredArea(area) || hasRestoredAnchoredArea;
+        this.#restoreAnchoredArea(area, restoredMerges);
 
         return;
       }
@@ -1138,7 +1140,7 @@ export class MergeCells extends BasePlugin {
       this.mergeRange(range, true, true);
     });
 
-    if (hasRestoredAnchoredArea) {
+    if (restoredMerges.size > 0) {
       this.#reanchorMergesToVisibleRows();
     }
   }
@@ -1148,10 +1150,21 @@ export class MergeCells extends BasePlugin {
    * describes. The collection clips a span that runs past the grid; the re-anchor that follows gives every
    * restored merge the span its anchor draws, as it does for a live merge.
    *
+   * A drawn area is checked for overlap against every merge in the lookup matrix except the ones this
+   * restore already put back: the live grid can hold two anchored merges over each other (a sort draws
+   * each from its first visible row, and the matrix relocation has no overlap guard), and both are
+   * exported. They come back together, in the order the list holds them, so a later merge takes the shared
+   * cells in the matrix as it does on the live grid. `add()` refuses a merge whose top-left another merge
+   * holds, so an area whose top-left a merge of this restore holds is added outside the matrix and flagged
+   * purged, and the trailing re-anchor writes it over the shared cells, as the live relocation did. A merge
+   * that was there before the restore, or that a listener made during it, still turns the area away.
+   *
    * @param {PhysicalRowMergeSnapshot} area The area, with its anchor.
+   * @param {Set<MergedCellCoords>} restoredMerges The merges this restore has put back so far. The area's
+   * merge is added to it.
    * @returns {boolean} `true` if the area was added.
    */
-  #restoreAnchoredArea(area: PhysicalRowMergeSnapshot): boolean {
+  #restoreAnchoredArea(area: PhysicalRowMergeSnapshot, restoredMerges: Set<MergedCellCoords>): boolean {
     const { rowIndexMapper, columnIndexMapper } = this.hot;
     const { physicalRows, physicalColumn, colspan } = area;
 
@@ -1177,6 +1190,7 @@ export class MergeCells extends BasePlugin {
 
     } else {
       const isOverlapping = collection.mergedCells.some(mergedCell => (
+        !restoredMerges.has(mergedCell) &&
         collection.get(mergedCell.row, mergedCell.col) === mergedCell && areMergesOverlapping(geometry, mergedCell)
       ));
 
@@ -1187,7 +1201,16 @@ export class MergeCells extends BasePlugin {
       const range = toMergeAreaRange(this.hot, geometry);
 
       this.hot.runHooks('beforeMergeCells', range, true);
-      merge = collection.add(geometry, true);
+
+      const atTopLeft = collection.get(geometry.row, geometry.col);
+
+      if (atTopLeft && restoredMerges.has(atTopLeft)) {
+        merge = collection.addOutsideMatrix(geometry);
+        this.#purgedMerges.add(merge);
+
+      } else {
+        merge = collection.add(geometry, true);
+      }
 
       if (merge) {
         this.hot.runHooks('afterMergeCells', range, geometry, true);
@@ -1199,6 +1222,7 @@ export class MergeCells extends BasePlugin {
     }
 
     this.#mergeAnchors.set(merge, { physicalRows: physicalRows.slice(), physicalColumn });
+    restoredMerges.add(merge);
 
     return true;
   }

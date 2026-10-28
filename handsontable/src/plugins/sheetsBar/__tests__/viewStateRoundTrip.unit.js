@@ -311,6 +311,83 @@ describe('SheetsBar -> view state round trip', () => {
         expect(runScenario(scenario, true)).toEqual(control);
       });
     });
+
+    /**
+     * Reads what the grid shows for its merges: the merges it holds, the merge the lookup finds on every cell,
+     * and every cell's span.
+     *
+     * @returns {object}
+     */
+    function readMergeState() {
+      const mergeCells = hot.getPlugin('mergeCells');
+      const collection = mergeCells.mergedCellsCollection;
+      const describe = merge => (merge ? [merge.row, merge.col, merge.rowspan, merge.colspan] : null);
+      const cells = Array.from({ length: hot.countRows() }, (_, row) => (
+        Array.from({ length: hot.countCols() }, (__, col) => {
+          const { rowspan, colspan } = hot.getCellMeta(row, col);
+
+          return { merge: describe(collection.get(row, col)), rowspan, colspan };
+        })
+      ));
+
+      return {
+        visible: mergeCells.getVisibleMergedAreas(),
+        held: collection.mergedCells.map(describe),
+        cells,
+      };
+    }
+
+    /**
+     * Merges two stacked areas in one column, sorts so their rows interleave, optionally leaves the sheet and
+     * comes back, and clears the sort. Returns what the grid shows while sorted and after the sort is cleared.
+     *
+     * @param {boolean} withRoundTrip Whether to switch sheets between the sort and its clearing.
+     * @returns {object}
+     */
+    function runInterleavedScenario(withRoundTrip) {
+      const bar = build({ columnSorting: true, mergeCells: true }, [
+        [0, 'b0', 1, 'd0'],
+        [1, 'b1', 3, 'd1'],
+        [2, 'b2', 2, 'd2'],
+        [3, 'b3', 4, 'd3'],
+        [4, 'b4', 5, 'd4'],
+        [5, 'b5', 6, 'd5'],
+      ]);
+      const mergeCells = hot.getPlugin('mergeCells');
+
+      mergeCells.merge(0, 1, 1, 1);
+      mergeCells.merge(2, 1, 3, 1);
+      hot.getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      if (withRoundTrip) {
+        roundTrip(bar);
+      }
+
+      const sorted = readMergeState();
+
+      hot.getPlugin('columnSorting').clearSort();
+
+      const cleared = readMergeState();
+
+      hot.destroy();
+      hot = null;
+
+      return { sorted, cleared };
+    }
+
+    it('brings back two merges a sort drew over each other after a round trip, as the grid without one does', () => {
+      const control = runInterleavedScenario(false);
+
+      expect(control.cleared.visible).toEqual([
+        { row: 0, col: 1, rowspan: 2, colspan: 1 },
+        { row: 2, col: 1, rowspan: 2, colspan: 1 },
+      ]);
+
+      const roundTripped = runInterleavedScenario(true);
+
+      expect(roundTripped.sorted).toEqual(control.sorted);
+      expect(roundTripped.cleared).toEqual(control.cleared);
+    });
   });
 
   describe('row headers', () => {

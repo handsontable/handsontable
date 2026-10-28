@@ -116,7 +116,9 @@ pay for. A new consumer lives in a plugin.
   merge has to be made, and its anchor captured, through the cache MergeCells reads. An area a listener built
   without the anchor fields is placed by its visual geometry. A merge whose rows a filter hides, all of them
   or all but one, or that a sort draws past the last row, is captured and comes back as the grid held it,
-  so clearing the filter or the sort after a switch draws it whole, as it does without one.
+  so clearing the filter or the sort after a switch draws it whole, as it does without one. The stored merges
+  never block each other: two that a sort drew over each other (their rows interleaved) both come back, and only
+  a merge that was on screen before the restore, or that a listener made during it, turns a stored one away.
 - **`resetViewState()` runs no filter pass, and it clears the sizes of a DISABLED resize plugin too.** Its
   only caller is the sheets bar, which loads the arriving sheet's data right after it, and that load empties
   the condition collection and the Filters trimming map; the reset only drops the Filters fallback
