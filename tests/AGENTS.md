@@ -1311,17 +1311,26 @@ criterion.
   an annotation and a `neutral` `A11y / <check> report` check run; `buildEvidenceCheckRun()` never
   returns `failure`, so no check turns a pull request red. A test fails for tooling only (a fixture that
   does not load, a state the keyboard did not reach), and the document records that test as a target
-  with `status: 'error'` and its error as a problem. A test that measured only on a retry is flagged
+  with `status: 'error'` and its error as a problem. So does a test that did not run (the run stopped
+  before it, or a failure before it skipped it: a `beforeAll` hook, an earlier test of a serial group, the
+  worker) and one whose part is not readable
+  JSON or does not validate: only a test that asked to be skipped is left out, so `summary.byCriterion`
+  never reads a partial run as a full one. A test that measured only on a retry is flagged
   (`flaky`) and listed as a problem too. Flakiness is a finding against the check, not the product: fix
   the measurement, never quarantine it. A check that starts gating changes the constant, its test and
   this section together, after its findings have proven precise.
 - **One document per check, in one shape.** `test-results/a11y-checks/<check>.json`
   (`mergeEvidence()`): `check`, `title`, `mode`, `criteria` (what the check evidences, from
   `EVIDENCE_CHECKS`), `run` (the commit the run tested, the head on a pull request and never the merge
-  commit; the ref, the run URL, the browser and its version, the Handsontable version and build date),
+  commit, so `null` on a pull request run without `A11Y_HEAD_SHA`; the ref, the run URL, the browser
+  and its version, the Handsontable version and build date),
   `targets` (every target, measured or not, with the criteria it evaluated and the path of its detail
-  file), `findings`, `problems` and `summary`. A finding has a stable `id` (check, kind, page, theme,
-  variant and element or step, so two runs give the same finding the same id), `kind`, `criteria`,
+  file), `findings`, `problems` and `summary`. A target is its page, theme and variant: a check that
+  measures one page two ways (a scheme, a state, an interaction) gives each its own variant, because a
+  second part for the same target is dropped as a problem (it would count the target twice and
+  overwrite its detail file). A finding has a stable `id` (check, kind, page, theme, variant, and the
+  element, the step or both, so two runs give the same finding the same id; two findings that share one
+  are a problem), `kind`, `criteria`,
   `severity`, its target (`page`, `theme`, `state`, `variant`, `url`), a `selector` or a `step` or
   both, `measured` (flat values), optionally `expected`, and a one-sentence `reason`. What a target
   measured in full (every focus stop, every ratio) goes to `<check>/<page>--<theme>[--<variant>].json`
@@ -1329,7 +1338,8 @@ criterion.
   criterion, the targets that evaluated it and the findings against it: a criterion evaluated on many
   targets with no finding is the evidence of a pass, and that count is what the generator cites.
   `schema` (`EVIDENCE_SCHEMA`) changes when a field is removed or renamed; `validateEvidence()` is what
-  a reader can rely on.
+  a reader can rely on, and it checks every field the summary and the check run read, so a document
+  that validates never crashes the report script before it posts.
 - **Criteria are WCAG 2.2 ids from one table.** `WCAG_CRITERIA` lists every 2.2 success criterion with
   its name and level, without the obsolete 4.1.1, and a finding naming any other id is refused. A
   finding may name a criterion outside its check's list when the measurement shows it (a focus stop
@@ -1352,14 +1362,20 @@ criterion.
 - **A test declares its target first and attaches its part last.** `declareTarget()` (`a11y/evidence.ts`)
   writes the target as a test annotation before anything can fail, so the reporter can name a test that
   failed before it measured; `attachEvidence()` attaches the part, with `readEnvironment()`'s browser
-  and build. An empty `findings` list is evidence too: the target was measured and nothing was found.
+  and build. It takes the page errors `openTarget()` collected (`opened.pageErrors`) and fails the test
+  when the page threw while it was measured, so a page that crashed halfway is a target not measured,
+  never a clean one. An empty `findings` list is evidence too: the target was measured and nothing was
+  found.
 - **Findings on the product are recorded, never fixed in the check's change.** A check lands with what
   it finds listed in its pull request; the product tasks are filed apart, and a fix later clears the
   finding. A finding the check gets wrong is fixed in the check.
 - **Every report value is escaped.** The summary and the check run render values from the fixture DOM
-  (selectors, accessible names), so `renderEvidenceSummary()` escapes them the way
-  `escapeMarkdownText()` does for the scan, puts a selector in a `<code>` element, and links a URL only
-  when it is plain https.
+  (selectors, accessible names), so `renderEvidenceSummary()` escapes them with the scan's own
+  `escapeMarkdownText()` and links a URL only when the scan's `isSafeLink()` passes it (both from
+  `lib/a11y-baseline.mjs`: one copy to fix), and puts a selector in a `<code>` element.
+- **Every check gets its check run.** A summary lists twenty tooling problems at most and is cut to the
+  Checks API's limit (a longer one is refused with a 422), and the report script posts each check run
+  on its own: one the API refuses does not cost the checks after it theirs; the step still ends red.
 
 The merge, the validation, the summary and the check run are pure (`lib/a11y-evidence.mjs`, tested
 in `lib/__tests__/a11y-evidence.test.mjs` through the root `test:tooling`). The reporter

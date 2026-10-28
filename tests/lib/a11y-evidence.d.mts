@@ -33,6 +33,7 @@ export interface EvidenceDocument {
   };
 }
 
+export function runCommit(env: Record<string, string | undefined>, readHead: () => string | null): string | null;
 export function criterionInfo(id: string): { id: string; name: string; level: string } | null;
 export function compareCriteria(a: string, b: string): number;
 export function checkRunName(check: string): string;
