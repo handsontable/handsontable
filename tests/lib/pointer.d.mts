@@ -29,6 +29,7 @@ export function cancellationFindings(input: {
 export function dragFindings(input: { operation: Operation; proven: boolean[]; line?: number }): Finding[];
 export function gestureFindings(input: { operation: Operation; proven: boolean[]; line?: number }): Finding[];
 export function operationCriteria(operation: { gesture: string }): string[];
+export function gestureInventory(inventory: Array<{ id: string; gesture: string }>): { gestures: Record<string, number>; judged: string[] };
 export function dragInventoryLines(source: string): Map<string, number>;
 export function inventoryProblems(inventory: Operation[]): string[];
 export function undeclaredPointerPlugins(input: {

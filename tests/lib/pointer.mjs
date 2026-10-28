@@ -228,6 +228,22 @@ export function operationCriteria(operation) {
 }
 
 /**
+ * The inventory as a target of its own, for 2.5.1 over the whole product: how many gestures of each kind
+ * it lists, and which are path-based or multipoint, each judged on its own target (`gestureFindings()`).
+ * The tooling test keeps the inventory complete (every plugin that follows the pointer is in it or in
+ * `NOT_DRAG`), so an inventory with no such gesture is the evidence that no function needs one.
+ *
+ * @param {Array<{id: string, gesture: string}>} inventory The inventory.
+ * @returns {{gestures: Record<string, number>, judged: string[]}} The count of each kind, and the ids of
+ * the path-based and multipoint gestures.
+ */
+export function gestureInventory(inventory) {
+  const gestures = Object.fromEntries(GESTURES.map(kind => [kind, inventory.filter(item => item.gesture === kind).length]));
+
+  return { gestures, judged: inventory.filter(item => item.gesture !== 'drag').map(item => item.id) };
+}
+
+/**
  * The line of each entry of the drag inventory, by its id: where a finding's annotation goes.
  *
  * @param {string} source The text of `a11y/checks/drag-operations.mjs`.

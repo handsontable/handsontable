@@ -1702,7 +1702,9 @@ half presses and drags (`pointer-state.ts`, `drag-runner.ts`); the verdicts are 
   the alternative alike, and every full alternative would pass on its effect alone. A new drag
   is accounted for in the change that adds it. A path-based or multipoint gesture goes in with its
   `gesture`, and 2.5.1 judges it like 2.5.7 judges a drag; the product has none today (a long press and
-  a double tap are time-based, single-point gestures).
+  a double tap are time-based, single-point gestures). The inventory is a target of its own for 2.5.1
+  (`gestureInventory()`): since the tooling test keeps it complete, its count of path-based and
+  multipoint gestures is the evidence for the product as a whole.
 - **A step that acts on a timer is read until it lands.** The double-click autofit runs from a 500 ms
   timer and a sheet tab settles after its transition, so the state after the last step is read until the
   effect shows, for two seconds at most; a read that throws is a tooling error with its cause, never a

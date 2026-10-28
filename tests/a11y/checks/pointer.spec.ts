@@ -4,7 +4,7 @@ import { A11Y_PAGES, fixtureUrl, type A11yPage } from '../pages.mjs';
 import { emulate, openTarget, reachState, releaseParkedFetches, type OpenedTarget } from '../harness';
 import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } from '../evidence';
 import {
-  cancellationFindings, DRAG_FIELDS, dragFindings, dragInventoryLines, gestureFindings, operationCriteria,
+  cancellationFindings, DRAG_FIELDS, DRAG_INVENTORY_FILE, dragFindings, dragInventoryLines, gestureFindings, gestureInventory, operationCriteria,
 } from '../../lib/pointer.mjs';
 import { DRAG_OPERATIONS, type DragOperation } from './drag-operations.mjs';
 import { dragState, runSteps, settledState, type Step } from './drag-runner';
@@ -28,6 +28,8 @@ import { installSentinels } from './walker';
  *   is read before and after the last. An alternative whose steps cannot run is not proven, and its cause
  *   is a tooling problem. A path-based or multipoint gesture is judged for 2.5.1 the same way; the
  *   inventory has none today.
+ * - **The inventory** (2.5.1 over the whole product) is a target of its own: the tooling test keeps it
+ *   complete, so its count of path-based and multipoint gestures is the evidence (`gestureInventory()`).
  *
  * Report-only: a test fails for tooling only. Policy: `tests/AGENTS.md`, "A11y: the checks beyond axe".
  */
@@ -306,6 +308,23 @@ for (const operation of DRAG_OPERATIONS) {
     test(title, body);
   }
 }
+
+// The inventory is the 2.5.1 evidence for the product as a whole; each path-based or multipoint gesture
+// it lists is judged on its own target above.
+test('the gesture inventory', async({ page }, testInfo) => {
+  const startedAt = Date.now();
+  const target = { page: 'drag-operations', theme: THEME, variant: 'gesture-inventory' };
+
+  declareTarget(testInfo, target);
+
+  // A page as it loads gives the run's browser and build.
+  const opened = await openTarget(page, A11Y_PAGES[0], THEME);
+
+  await attachEvidence(testInfo, {
+    target, startedAt, environment: await readEnvironment(page), findings: [], criteria: ['2.5.1'], pageErrors: opened.pageErrors,
+    detail: { file: DRAG_INVENTORY_FILE, ...gestureInventory(DRAG_OPERATIONS) },
+  });
+});
 
 for (const entry of A11Y_PAGES) {
   const title = `pointer cancellation on ${entry.id}`;

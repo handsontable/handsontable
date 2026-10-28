@@ -6,8 +6,8 @@ import { fileURLToPath } from 'node:url';
 import { DRAG_OPERATIONS, NOT_DRAG } from '../../a11y/checks/drag-operations.mjs';
 import { A11Y_PAGES } from '../../a11y/pages.mjs';
 import {
-  actionEffects, cancellationFindings, DRAG_FIELDS, DRAG_INVENTORY_FILE, dragFindings, dragInventoryLines, gestureFindings, inventoryProblems,
-  operationCriteria, undeclaredPointerPlugins,
+  actionEffects, cancellationFindings, DRAG_FIELDS, DRAG_INVENTORY_FILE, dragFindings, dragInventoryLines, gestureFindings, gestureInventory,
+  inventoryProblems, operationCriteria, undeclaredPointerPlugins,
 } from '../pointer.mjs';
 import { EVIDENCE_CHECKS, EVIDENCE_SCHEMA, findingId, validatePart } from '../a11y-evidence.mjs';
 
@@ -139,6 +139,14 @@ test('a path-based or multipoint gesture without a single-pointer alternative is
   assert.deepEqual(gestureFindings({ operation: swipe, proven: [] }).map(item => [item.kind, item.criteria]),
     [['gesture-without-single-pointer-alternative', ['2.5.1']]]);
   assert.deepEqual(gestureFindings({ operation: OPERATION, proven: [true, false] }), [], 'a drag is 2.5.7, not 2.5.1');
+});
+
+test('the inventory is a 2.5.1 target of its own: every gesture by kind, and the path and multipoint ones judged apart', () => {
+  const inventory = [OPERATION, { ...OPERATION, id: 'swipe', gesture: 'path' }, { ...OPERATION, id: 'pinch', gesture: 'multipoint' }];
+
+  assert.deepEqual(gestureInventory(inventory), { gestures: { drag: 1, path: 1, multipoint: 1 }, judged: ['swipe', 'pinch'] });
+  assert.deepEqual(gestureInventory([OPERATION]), { gestures: { drag: 1, path: 0, multipoint: 0 }, judged: [] },
+    'a kind the inventory does not list is counted as none, so the detail says so');
 });
 
 test('the inventory refuses an entry it cannot run', () => {
