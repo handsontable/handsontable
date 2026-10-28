@@ -86,6 +86,10 @@ const isRestoreSource = source => source === 'UndoRedo.undo' || source === 'Undo
     order writes the engine's text into the source and journals the stale text as its "before" value, so
     a state captured before that step must carry the engine's sheet: its undo reloaded the stale source
     otherwise, and the formulas ended up pointing at the wrong rows (DEV-3624). Rules for the flag:
+    the skipped write-back sets it only when the engine holds a formula (`getSheetFormulas()`), because
+    only a formula can have been rewritten; a sheet of plain values would otherwise serialize on every
+    step until the next structural one (50x2 grid, reverse, insert, restore, 5 edits: 6 `getSheetSerialized`
+    calls, 0 now);
     the state records it as its own field (`sourceHasStaleFormulas`, true only for a state that carries an
     engine sheet), and a restore sets the flag from that field, so a state captured while merely sorted
     reads false; a full sheet write from the source (`#writeSheet()`) clears it; a full write-back in

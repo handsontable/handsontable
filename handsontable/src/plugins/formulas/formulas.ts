@@ -4893,16 +4893,20 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    const engine = this.engine;
+    const sheetId = engine.getSheetId(this.sheetName)!;
+
     // Once rows or columns have been moved or sorted, the engine and the source data no longer
     // share a reference frame, and the engine's formulas would be wrong in the source data's terms.
+    // Only a formula can have been rewritten, so a sheet without one leaves nothing stale and must not
+    // make every later step serialize the sheet.
     if (!this.rowAxisSyncer!.isHfOrderPhysical() || !this.columnAxisSyncer!.isHfOrderPhysical()) {
-      this.#sourceHasStaleFormulas = true;
+      this.#sourceHasStaleFormulas ||= engine.getSheetFormulas(sheetId)
+        .some(formulasRow => formulasRow?.some(formula => formula !== undefined));
 
       return;
     }
 
-    const engine = this.engine;
-    const sheetId = engine.getSheetId(this.sheetName)!;
     const dimensions = engine.getSheetDimensions(sheetId);
 
     if (dimensions.width === 0 && dimensions.height === 0) {
@@ -5015,7 +5019,8 @@ export class Formulas extends BasePlugin {
    * Tells whether the source data holds another formula than the engine for a cell no write can reach:
    * its column has no visual counterpart, a column trimmed after the sheet was built. In the physical
    * order the engine's column is the physical one, which `columns` maps to the property the source reads
-   * it by (the engine holds that column's data, not the source column of the same index).
+   * it by (the engine holds that column's data, not the source column of the same index). A `data`
+   * accessor function names no property, so its cell counts as stale.
    *
    * @private
    * @param {number} physicalRow The engine row – the physical row, in the physical order.
@@ -5027,9 +5032,10 @@ export class Formulas extends BasePlugin {
     const { columns } = this.hot.getSettings();
     const column = typeof columns === 'function' ? columns(physicalColumn) : columns?.[physicalColumn];
     const prop = column?.data ?? physicalColumn;
-    const row = this.hot.getSourceDataAtRow(physicalRow) as Record<string | number, unknown>;
+    // A host can write a formula into the engine past the source rows, where there is no row to read.
+    const row = this.hot.getSourceDataAtRow(physicalRow) as Record<string | number, unknown> | null;
 
-    return typeof prop === 'function' || !this.#isSameFormula(row[prop], formula);
+    return !this.#isSameFormula(row?.[prop as string | number], formula);
   }
 
   /**

@@ -34,6 +34,12 @@ describe('Formulas: an undo of a remove after an insert in a reordered grid', ()
     });
   };
 
+  const engineValues = () => {
+    const { engine, sheetId } = hot.getPlugin('formulas');
+
+    return engine.getSheetValues(sheetId);
+  };
+
   const restoreRows = () => {
     hot.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
     hot.alter('insert_row_above', 1);
@@ -199,6 +205,101 @@ describe('Formulas: an undo of a remove after an insert in a reordered grid', ()
     expect(String(hot.getDataAtCell(0, 1))).toBe('#REF!');
   });
 
+  describe('the stale flag', () => {
+    const serializedSheetReads = () => jest.spyOn(hot.getPlugin('formulas').engine, 'getSheetSerialized');
+    const numbers = Array.from({ length: 50 }, (_, index) => [index, index * 2]);
+
+    it('should not serialize the sheet for an edit after a reorder of a sheet without formulas', () => {
+      build({ data: numbers });
+      hot.rowIndexMapper.setIndexesSequence(Array.from({ length: 50 }, (_, index) => 49 - index));
+      hot.alter('insert_row_above', 1);
+      hot.rowIndexMapper.setIndexesSequence(Array.from({ length: 51 }, (_, index) => index));
+
+      const reads = serializedSheetReads();
+
+      for (let edit = 0; edit < 5; edit += 1) {
+        hot.setDataAtCell(edit, 0, 1000 + edit);
+      }
+
+      expect(reads).not.toHaveBeenCalled();
+
+      for (let edit = 0; edit < 5; edit += 1) {
+        undo();
+      }
+
+      expect(hot.getDataAtCol(0).slice(0, 6)).toEqual([0, 1, 2, 3, 4, 5]);
+    });
+
+    it('should serialize the sheet for an edit after a reorder of a sheet with a formula', () => {
+      build({ data: [[10, '=A1*2'], [20, '=A2*2'], [null, null], [null, null]] });
+      hot.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
+      hot.alter('insert_row_above', 1);
+      hot.rowIndexMapper.setIndexesSequence([0, 1, 2, 3, 4]);
+
+      const reads = serializedSheetReads();
+
+      hot.setDataAtCell(0, 0, 99);
+
+      expect(reads).toHaveBeenCalled();
+    });
+
+    it('should keep the flag of a grid when another grid rewrites one of its formulas', () => {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+      const otherContainer = document.createElement('div');
+      let other;
+
+      document.body.appendChild(otherContainer);
+
+      try {
+        build({
+          data: [[10, '=A1*2'], [20, '=A2*2'], [null, null], [null, null]],
+          formulas: { engine, sheetName: 'Sheet1' },
+        });
+        other = new Handsontable(otherContainer, {
+          data: [['=Sheet1!B2', 5], [1, 2], [3, 4], [null, null]],
+          undoRedo: true,
+          formulas: { engine, sheetName: 'Sheet2' },
+          licenseKey: LICENSE_KEY,
+        });
+        other.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
+        other.alter('insert_row_above', 1);
+        other.rowIndexMapper.setIndexesSequence([0, 1, 2, 3, 4]);
+        hot.alter('insert_row_above', 0);
+
+        const reads = jest.spyOn(engine, 'getSheetSerialized');
+
+        other.setDataAtCell(2, 1, 50);
+
+        expect(reads).toHaveBeenCalled();
+      } finally {
+        other?.destroy();
+        hot?.destroy();
+        hot = null;
+        otherContainer.remove();
+        engine.destroy();
+      }
+    });
+
+    it('should not throw for a formula the host wrote into the engine past the rows of the grid', () => {
+      build({ data: [[10, '=A1*2'], [20, '=A2*2'], [null, null], [null, null]] });
+
+      const { engine, sheetId } = hot.getPlugin('formulas');
+
+      engine.setCellContents({ sheet: sheetId, row: 10, col: 5 }, '=1+1');
+
+      expect(() => hot.alter('insert_row_above', 1)).not.toThrow();
+      expect(hot.getData().slice(0, 3)).toEqual([[10, 20], [null, null], [20, 40]]);
+    });
+
+    it('should drop a step that reloads the sheet when a columns update changes the fields', () => {
+      build({ data: [[10, '=A1*2', 7], [20, '=A2*2', 8], [null, null, null], [null, null, null]] });
+      hot.alter('insert_row_above', 1);
+      hot.updateSettings({ columns: [{ data: 2 }, { data: 1 }, { data: 0 }] });
+
+      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+    });
+  });
+
   describe('the steps that follow', () => {
     const serializedSheetReads = () => jest.spyOn(hot.getPlugin('formulas').engine, 'getSheetSerialized');
 
@@ -210,13 +311,18 @@ describe('Formulas: an undo of a remove after an insert in a reordered grid', ()
       hot.setDataAtCell(0, 0, 99);
       hot.updateSettings({ columns: [{ data: 0 }, { data: 1 }] });
 
-      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(true);
       expect(hot.getData().slice(0, 2)).toEqual([[99, 198], [20, 40]]);
+      expect(engineValues()).toEqual([[99, 198], [20, 40]]);
 
       undo();
 
-      expect(hot.getPlugin('undoRedo').isRedoAvailable()).toBe(true);
       expect(hot.getData().slice(0, 2)).toEqual([[10, 20], [20, 40]]);
+      expect(engineValues()).toEqual([[10, 20], [20, 40]]);
+
+      redo();
+
+      expect(hot.getData().slice(0, 2)).toEqual([[99, 198], [20, 40]]);
+      expect(engineValues()).toEqual([[99, 198], [20, 40]]);
     });
 
     it('should undo a step recorded while stale against the columns a later update installed', () => {
@@ -252,13 +358,43 @@ describe('Formulas: an undo of a remove after an insert in a reordered grid', ()
       redo();
       sorting.clearSort();
       hot.setDataAtCell(0, 0, 99);
+      hot.updateSettings({ columns: [{ data: 0 }, { data: 1 }] });
+
+      expect(hot.getData()).toEqual([[99, 198], [1, 2], [2, 4]]);
+      expect(engineValues()).toEqual([[99, 198], [1, 2], [2, 4]]);
+
+      undo();
+
+      expect(hot.getData()).toEqual([[3, 6], [1, 2], [2, 4]]);
+      expect(engineValues()).toEqual([[3, 6], [1, 2], [2, 4]]);
+
+      redo();
+
+      expect(hot.getData()).toEqual([[99, 198], [1, 2], [2, 4]]);
+      expect(engineValues()).toEqual([[99, 198], [1, 2], [2, 4]]);
+    });
+
+    it('should restore the edited cell after a sort that was undone and redone and a columns update that swaps the data', () => {
+      build({ data: [[3, '=A1*2'], [1, '=A2*2'], [2, '=A3*2']], columnSorting: true });
+
+      const sorting = hot.getPlugin('columnSorting');
+
+      sorting.sort({ column: 0, sortOrder: 'asc' });
+      undo();
+      redo();
+      sorting.clearSort();
+      hot.setDataAtCell(0, 0, 99);
       hot.updateSettings({ columns: [{ data: 1 }, { data: 0 }] });
 
       expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(true);
 
       undo();
 
-      expect(hot.getPlugin('undoRedo').isRedoAvailable()).toBe(true);
+      expect(hot.getDataAtCell(0, 1)).toBe(3);
+
+      redo();
+
+      expect(hot.getDataAtCell(0, 1)).toBe(99);
     });
 
     it('should not serialize the sheet for an edit after a sort that was undone and redone', () => {
