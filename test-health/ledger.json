@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-28T11:04:38.248Z",
+  "updatedAt": "2026-10-28T12:48:11.050Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-webkit",
+      "file": "e2e/web-font-load.spec.ts",
+      "line": 365,
+      "title": "Web font loaded after the first draw › keeps a re-measure owed by a hidden grid through a calculateAllColumnsWidth() call",
+      "status": "failed",
+      "attempts": 2,
+      "error": "Error: expect(received).toBeGreaterThan(expected)",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "40685578231",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40685578231",
+      "workflow": "Tests",
+      "branch": "feature/DEV-199_Refresh-dimensions-on-font-load",
+      "headSha": "d0849fbf326fb16d85e8bf1514f6a5c0fb6eae2d",
+      "event": "pull_request",
+      "seenAt": "2026-10-28T12:47:19Z"
+    },
     {
       "tier": "jasmine",
       "leg": "UMD.min (theme: classic)",

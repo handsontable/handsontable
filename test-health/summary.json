@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-28T11:04:38.248Z",
+  "generatedAt": "2026-10-28T12:48:11.050Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 423,
+    "tests": 424,
     "needsTicket": 28,
     "quarantined": 0,
-    "entries": 2174
+    "entries": 2175
   },
   "rows": [
     {
@@ -3373,6 +3373,39 @@
         "leg": "UMD.min (theme: classic)",
         "status": "failed",
         "error": "Expected '' to equal 'cyan'.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/web-font-load.spec.ts|Web font loaded after the first draw › keeps a re-measure owed by a hidden grid through a calculateAllColumnsWidth() call",
+      "tier": "playwright",
+      "file": "e2e/web-font-load.spec.ts",
+      "line": 365,
+      "title": "Web font loaded after the first draw › keeps a re-measure owed by a hidden grid through a calculateAllColumnsWidth() call",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-28T12:47:19Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40685578231",
+        "branch": "feature/DEV-199_Refresh-dimensions-on-font-load",
+        "leg": "e2e-webkit",
+        "status": "failed",
+        "error": "Error: expect(received).toBeGreaterThan(expected)",
         "source": "ci"
       },
       "needsTicket": false
