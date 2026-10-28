@@ -162,6 +162,89 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
     expect(tokens.bar).toEqual(tokens.grid);
   });
 
+  test.describe('the tab strip', () => {
+    test('reveals the active tab on first paint', async({ page, theme, bundle }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+      await fixture.goto({ sheets: 30, activeSheet: 25 });
+      await expect.poll(() => fixture.tabInStrip(25)).toBe(true);
+    });
+
+    test('reveals a tab activated while the grid was hidden once it is shown', async({ page, theme, bundle }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+      await fixture.goto({ sheets: 30, hidden: true });
+      await fixture.setActiveSheet(25);
+      await fixture.showHost();
+      await expect.poll(() => fixture.tabInStrip(25)).toBe(true);
+    });
+
+    test('reveals the tab the arrow keys move the focus to', async({ page, theme, bundle }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+      await fixture.goto({ sheets: 30 });
+      await fixture.activeTab.focus();
+
+      for (let step = 0; step < 20; step += 1) {
+        await page.keyboard.press('ArrowRight');
+      }
+
+      await expect(fixture.tab(20)).toBeFocused();
+      await expect.poll(() => fixture.tabInStrip(20)).toBe(true);
+
+      await page.keyboard.press('End');
+      await expect(fixture.tab(29)).toBeFocused();
+      await expect.poll(() => fixture.tabInStrip(29)).toBe(true);
+    });
+
+    test('a press on another tab during a rename commits the name and switches', async({ page, theme, bundle }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+      await fixture.goto();
+      await fixture.tab(0).locator('.ht-sheets-bar__tab-label').dblclick();
+      await fixture.renameInput.fill('Draft');
+      await fixture.tab(1).click();
+
+      await expect(fixture.tab(0)).toHaveText('Draft');
+      await expect(fixture.tab(1)).toHaveClass(/ht-sheets-bar__tab--active/);
+    });
+
+    test('a repaint the rename did not cause keeps the name being typed', async({ page, theme, bundle }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+      await fixture.goto();
+      await fixture.tab(0).locator('.ht-sheets-bar__tab-label').dblclick();
+      await fixture.renameInput.fill('Draft');
+      await page.evaluate(() => (window as any).hot.getPlugin('sheetsBar').addSheet('Added'));
+
+      await expect(fixture.renameInput).toHaveValue('Draft');
+      await expect(fixture.renameInput).toBeFocused();
+    });
+
+    test('a cell selected before Tab moved the focus into the bar comes back with its sheet', async({
+      page, theme, bundle,
+    }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+      await fixture.goto();
+      await page.evaluate(() => (window as any).hot.selectCell(5, 3));
+      await page.keyboard.press('Tab');
+      await expect(fixture.addButton).toBeFocused();
+
+      await page.keyboard.press('Tab');
+      await page.keyboard.press('Tab');
+      await expect(fixture.activeTab).toBeFocused();
+      await page.keyboard.press('ArrowRight');
+      await page.keyboard.press('Enter');
+      await expect(fixture.tab(1)).toHaveClass(/ht-sheets-bar__tab--active/);
+
+      await page.keyboard.press('ArrowLeft');
+      await page.keyboard.press('Enter');
+      await expect(fixture.tab(0)).toHaveClass(/ht-sheets-bar__tab--active/);
+      await expect.poll(() => page.evaluate(() => (window as any).hot.getSelected())).toEqual([[5, 3, 5, 3]]);
+    });
+  });
+
   test.describe('forced colors', () => {
     test.beforeEach(async({ page }) => {
       await page.emulateMedia({ forcedColors: 'active' });

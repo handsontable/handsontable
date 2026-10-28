@@ -1085,6 +1085,10 @@ export class SheetsBar extends BasePlugin {
         pagingEnabled: this.getSetting<boolean>('paging') !== false,
         isRtl: this.hot.isRtl(),
         ariaTags: this.hot.getSettings().ariaTags !== false,
+        onResize: () => {
+          this.#tabStrip?.revealPendingActiveTab();
+          this.#tabStrip?.settleReveal();
+        },
       });
       this.#overflow.attach();
     }
@@ -2098,7 +2102,7 @@ export class SheetsBar extends BasePlugin {
 
         if (oldSheet) {
           this.#syncActiveSheetData();
-          oldSheet.viewState = captureViewState(this.hot, this.#captureCellMeta()) as
+          oldSheet.viewState = this.#withTabReentryCell(captureViewState(this.hot, this.#captureCellMeta())) as
             unknown as Record<string, unknown>;
           this.#captureColumnSummary(oldSheet);
           this.#captureCellOption(oldSheet);
@@ -3700,7 +3704,36 @@ export class SheetsBar extends BasePlugin {
   #refreshUI() {
     this.#tabStrip?.render(this.getSheets());
     this.#overflow?.refresh();
+    this.#tabStrip?.settleReveal();
     this.#syncGridName();
+  }
+
+  /**
+   * Keeps the cell a keyboard user left the grid on as the sheet's selection. A <kbd>Tab</kbd>
+   * out of the grid into the bar deselects the cell and leaves it only as the grid's re-entry
+   * cell, which the arriving sheet's load drops, while a press on the bar keeps the selection
+   * (the bar is exempt from the outside-click deselect). Without this, a keyboard user came back
+   * to a sheet with no selection where a pointer user found their cell.
+   *
+   * @param {object} viewState The view state captured from the departing sheet.
+   * @returns {object} The same view state, with the re-entry cell as its selection when it had none.
+   */
+  #withTabReentryCell(viewState: ViewState): ViewState {
+    const coords = this.hot.getFocusManager()._getTabReentryCoords();
+    const hasSelection = Array.isArray(viewState.selection) && viewState.selection.length > 0;
+
+    if (
+      hasSelection || coords === undefined ||
+      !(coords.row >= 0 && coords.row < this.hot.countRows() && coords.col >= 0 && coords.col < this.hot.countCols())
+    ) {
+      return viewState;
+    }
+
+    return {
+      ...viewState,
+      selection: [[coords.row, coords.col, coords.row, coords.col]],
+      selectionState: null,
+    };
   }
 
   /**

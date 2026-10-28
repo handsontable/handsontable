@@ -211,6 +211,16 @@ export class TabDrag {
   }
 
   /**
+   * Whether a primary-button press on a tab is held: from `start()` until the pointer is lifted
+   * or the press is canceled, wherever that happens on the page.
+   *
+   * @returns {boolean} `true` while a press is tracked.
+   */
+  isPressing(): boolean {
+    return this.#tab !== null;
+  }
+
+  /**
    * Whether a gesture has passed the threshold and is reordering the strip.
    *
    * @returns {boolean} `true` mid-drag.

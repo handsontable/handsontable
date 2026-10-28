@@ -114,9 +114,7 @@ describe('SheetsBar: tab listeners', () => {
 
     expect(added).not.toHaveBeenCalled();
     expect(removedTabListeners.map(([type]) => type).sort())
-      .toEqual([
-        'click', 'contextmenu', 'dblclick', 'focusin', 'focusout', 'pointercancel', 'pointerdown', 'pointerup',
-      ]);
-    expect(new Set(removedTabListeners.map(([, listener]) => listener)).size).toBe(7);
+      .toEqual(['click', 'contextmenu', 'dblclick', 'focusin', 'focusout', 'pointerdown']);
+    expect(new Set(removedTabListeners.map(([, listener]) => listener)).size).toBe(6);
   });
 });

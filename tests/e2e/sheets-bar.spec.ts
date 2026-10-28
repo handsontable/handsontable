@@ -335,9 +335,9 @@ test.describe('sheets bar', { tag: THEMES_TAG }, () => {
 
     await bar.goto();
 
-    // One stop per tab: the tab is the control, and Tab walks the strip a sheet at a time.
+    // The strip is one Tab stop, and the arrow keys walk it a sheet at a time.
     await bar.tab(0).focus();
-    await page.keyboard.press('Tab');
+    await page.keyboard.press('ArrowRight');
     await page.keyboard.press('Enter');
 
     await bar.expectActiveTab(1);
@@ -1339,7 +1339,8 @@ test.describe('sheets bar', { tag: THEMES_TAG }, () => {
     expect(surfaces[2]).not.toEqual(surfaces[0]);
 
     // The active tab's bottom-edge marker must survive the drag, alongside the drop shadow.
-    await expect(bar.tab(2)).toHaveCSS('box-shadow', /inset/);
+    expect(await bar.tab(2).evaluate(tab => getComputedStyle(tab, '::after').borderBottomStyle)).toBe('solid');
+    expect(await bar.tab(2).evaluate(tab => getComputedStyle(tab, '::after').borderBottomWidth)).not.toBe('0px');
 
     await page.mouse.up();
 

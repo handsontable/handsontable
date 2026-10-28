@@ -143,15 +143,19 @@ test.describe('sheets bar tab motion – move', { tag: [THEMES_TAG, MOTION_TAG] 
       const style = getComputedStyle(tab);
       const inactive = getComputedStyle(document.querySelector('.ht-sheets-bar__tab:not(.ht-sheets-bar__tab--active)')!);
 
+      const marker = getComputedStyle(tab, '::after');
+
       return {
-        shadow: style.boxShadow,
+        markerStyle: marker.borderBottomStyle,
+        markerWidth: marker.borderBottomWidth,
         background: style.backgroundColor,
         inactiveBackground: inactive.backgroundColor,
         zIndex: style.zIndex,
       };
     });
 
-    expect(marker.shadow).not.toBe('none');
+    expect(marker.markerStyle).toBe('solid');
+    expect(marker.markerWidth).not.toBe('0px');
     expect(marker.background).not.toBe(marker.inactiveBackground);
     expect(marker.zIndex).toBe('1');
   });

@@ -95,6 +95,7 @@ function buildTabStrip(sheets) {
     isRtl: false,
     syncIcon: stubSyncIcon,
     rootWindow: window,
+    labelIdPrefix: 'test-sheet-tab-label',
   });
 
   strip.render(sheets);
@@ -1364,6 +1365,21 @@ describe('SheetsBar plugin', () => {
     tab.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, button: 0 }));
 
     expect(opened.mock.calls[0][1].selectFirstItem).toBe(false);
+  });
+
+  it('preselects an item when a keyboard context menu follows a press released off the strip', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const opened = jest.spyOn(SheetsBarMenus.prototype, 'openTabMenu').mockImplementation(() => {});
+    const tab = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab--active');
+
+    tab.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, cancelable: true, button: 0 }));
+    document.body.dispatchEvent(new MouseEvent('pointerup', { bubbles: true, cancelable: true, button: 0 }));
+    tab.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, button: 0 }));
+
+    expect(opened.mock.calls[0][1].selectFirstItem).toBe(true);
   });
 
   it('writes no ARIA state from the bar when ariaTags is off', () => {
@@ -4522,8 +4538,9 @@ describe('SheetsBar plugin', () => {
       host.ownerDocument.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 90 }));
     }).not.toThrow();
 
-    expect(host.children.length).toBe(3);
-    expect(Array.from(host.children)).not.toContain(originalTab);
+    expect(Array.from(host.children).map(tab => tab.dataset.sheetId)).toEqual(['1', '2', '3']);
+    expect(originalTab.classList.contains('ht-sheets-bar__tab--dragging')).toBe(false);
+    expect(originalTab.style.transform).toBe('');
 
     strip.destroy();
     host.remove();
@@ -4554,8 +4571,9 @@ describe('SheetsBar plugin', () => {
       host.ownerDocument.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     }).not.toThrow();
 
-    expect(host.children.length).toBe(3);
-    expect(Array.from(host.children)).not.toContain(originalTab);
+    expect(Array.from(host.children).map(tab => tab.dataset.sheetId)).toEqual(['1', '2', '3']);
+    expect(originalTab.classList.contains('ht-sheets-bar__tab--dragging')).toBe(false);
+    expect(originalTab.style.transform).toBe('');
 
     strip.destroy();
     host.remove();

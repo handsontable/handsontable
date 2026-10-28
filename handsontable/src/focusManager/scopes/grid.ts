@@ -17,18 +17,19 @@ export function focusGridScope(hot: HotInstance) {
     wrapped: false,
     flipped: false,
   };
-  let recentlyAddedFocusCoords: Record<string, number> | undefined;
+  const focusManager = hot.getFocusManager();
   let isSavingCoordsEnabled = true;
   let isEmptyDataStateActive = false;
 
   hot.addHook('afterSelection', () => {
     if (isSavingCoordsEnabled) {
-      recentlyAddedFocusCoords =
-        hot.getSelectedRangeActive()?.highlight as unknown as Record<string, number> | undefined;
+      focusManager._setTabReentryCoords(
+        hot.getSelectedRangeActive()?.highlight as unknown as Record<string, number> | undefined
+      );
     }
   });
   hot.addHook('afterLoadData', () => {
-    recentlyAddedFocusCoords = undefined;
+    focusManager._setTabReentryCoords(undefined);
   });
   hot.addHook('beforeRowWrap', (
     interruptedByAutoInsertMode: boolean, newCoords: Record<string, number>, isFlipped: boolean) => {
@@ -79,7 +80,7 @@ export function focusGridScope(hot: HotInstance) {
           const newCoords = event.shiftKey
             ? getMostTopStartPosition(hot) : getMostBottomEndPosition(hot);
 
-          recentlyAddedFocusCoords = newCoords as unknown as Record<string, number> | undefined;
+          focusManager._setTabReentryCoords(newCoords as unknown as Record<string, number> | undefined);
         }
 
         rowWrapState.wrapped = false;
@@ -127,7 +128,8 @@ export function focusGridScope(hot: HotInstance) {
     },
     onActivate: (focusSource: string) => {
       if (focusSource === 'tab_from_above') {
-        const mostTopStartCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostTopStartPosition(hot);
+        const mostTopStartCoords = clampCoordsIfNeeded(focusManager._getTabReentryCoords())
+          ?? getMostTopStartPosition(hot);
 
         if (mostTopStartCoords) {
           const result = hot.runHooks('modifyFocusOnTabNavigation', 'from_above', mostTopStartCoords);
@@ -139,7 +141,8 @@ export function focusGridScope(hot: HotInstance) {
           }
         }
       } else if (focusSource === 'tab_from_below') {
-        const mostBottomEndCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostBottomEndPosition(hot);
+        const mostBottomEndCoords = clampCoordsIfNeeded(focusManager._getTabReentryCoords())
+          ?? getMostBottomEndPosition(hot);
 
         if (mostBottomEndCoords) {
           const result = hot.runHooks('modifyFocusOnTabNavigation', 'from_below', mostBottomEndCoords);

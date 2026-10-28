@@ -388,8 +388,8 @@ test.describe('sheets bar switch animation – new tab entrance', { tag: [THEMES
     const name = await bar.lastSheetName();
     const added = await bar.tabsAdded(name);
 
-    expect(added.length).toBeGreaterThanOrEqual(2);
-    expect(added.every(entry => entry.entering)).toBe(true);
+    expect(added).toHaveLength(1);
+    expect(added[0].entering).toBe(true);
     expect(await bar.tabEntrance(name)).toEqual({ entering: true, delay: '0ms' });
     expect((await bar.tabsAdded()).filter(entry => entry.name !== name).every(entry => !entry.entering)).toBe(true);
 
@@ -437,9 +437,8 @@ test.describe('sheets bar switch animation – new tab entrance', { tag: [THEMES
 
     const added = await bar.tabsAdded('Delta');
 
-    expect(added).toHaveLength(2);
-    expect(added[1]).toEqual({ name: 'Delta', entering: true, delay: '-40ms' });
-    expect(await bar.tabEntrance('Delta')).toEqual({ entering: true, delay: '-40ms' });
+    expect(added).toHaveLength(1);
+    expect(await bar.tabEntrance('Delta')).toEqual({ entering: true, delay: '0ms' });
   });
 
   test('a wrapper re-sending the same sheets leaves a new tab sliding in on its own element', async ({
