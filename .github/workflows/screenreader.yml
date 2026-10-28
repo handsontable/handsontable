@@ -2,9 +2,10 @@ name: Screen reader
 
 # The screen reader lanes: a real screen reader driven through Guidepup over the scenarios of
 # tests/screenreader/scenarios/ (the policy is tests/AGENTS.md, "Screen readers: the NVDA and VoiceOver lanes"). The
-# Accessibility Conformance Report's evidence for what a cell, a header, a state and a status message
-# announce (WCAG 1.3.1, 4.1.2, 4.1.3) comes from here, not from the accessibility tree alone, which the
-# axe scan (a11y.yml) already covers.
+# transcripts are the evidence a future report version can cite for what a cell, a header, a state and
+# a status message announce (WCAG 1.3.1, 4.1.2, 4.1.3): what a screen reader makes of the accessibility
+# tree, which the axe scan (a11y.yml) reads on its own. No verdict of the current Accessibility
+# Conformance Report comes from here.
 #
 # Report-only, by design, and nothing here gates a pull request: the job has `continue-on-error`, the
 # test never fails on a token group in report mode, and the verdict is the `Screen reader / <project>

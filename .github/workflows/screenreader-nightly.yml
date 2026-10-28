@@ -5,10 +5,10 @@ name: Screen reader nightly
 # NVDA and VoiceOver lanes").
 # Report-only: nothing here gates a pull request, the called jobs carry `continue-on-error`, and the
 # verdict is each job's `Screen reader / <project> report` check run and summary. The transcripts
-# this run leaves are the evidence the Accessibility Conformance Report cites for what a screen reader
-# announces, which is why it runs on its own schedule rather than inside the pull-request pipeline:
-# a real screen reader on a headed Windows or macOS runner is minutes per browser, and the answer
-# changes with the core, the browser and the screen reader, not with one pull request.
+# this run leaves are the evidence a future version of the Accessibility Conformance Report can cite
+# for what a screen reader announces. It runs on its own schedule rather than inside the pull-request
+# pipeline because a real screen reader on a headed Windows or macOS runner is minutes per browser,
+# and the answer changes with the core, the browser and the screen reader, not with one pull request.
 #
 # Triage. A missing token group is a finding about the grid (the announcement lacks the cell text, a
 # position or a role) or a token list that is too strict: read the transcript, then fix the core or
