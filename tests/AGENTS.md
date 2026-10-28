@@ -1343,7 +1343,10 @@ criterion.
   stylesheet or a constructor throw into a red test, and `reachState()` reaches the catalog state with
   the keyboard (`STATES`) and marks the grid's own portal (`PORTAL`). A check therefore measures the DOM
   a keyboard user reaches, the one the axe scan reads. A state a check needs and the catalog lacks gets
-  an opener in `STATES`, keyboard first. The `test()` calls stay in the spec, never in a helper: a test
+  an opener in `STATES`, keyboard first. A state whose popups mount in a portal of their own marks that
+  one too (the formula states mark hyperformula-ui's `.hfe-popup-portal`), and it comes after the grid's
+  in `body`, so a check reads the marked portals with `querySelectorAll()`: a `querySelector()` sees the
+  grid's portal only and measures the page without the popup the state opened. The `test()` calls stay in the spec, never in a helper: a test
   declared from a helper reports the helper as its location.
 - **A test declares its target first and attaches its part last.** `declareTarget()` (`a11y/evidence.ts`)
   writes the target as a test annotation before anything can fail, so the reporter can name a test that
@@ -1393,8 +1396,8 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
 - **A walk covers the grid and nothing else.** A focusable sentinel goes right before and right after the
   grid's root container, and a walk presses Tab from the first until the focus reaches the second
   (Shift+Tab back). The fixture page's own buttons are not the product and are never walked. Each stop
-  records its region (`grid`, `portal`, a sentinel, `outside`, or `body` when the focus left the
-  document), the role and name Chromium's accessibility tree gives the focused element (read over CDP
+  records its region (`grid`, `portal` for any element the harness marked as a portal, the grid's own or
+  a popup library's, a sentinel, `outside`, or `body` when the focus left the document), the role and name Chromium's accessibility tree gives the focused element (read over CDP
   with `Accessibility.getPartialAXTree`, because the DOM cannot say what a screen reader gets), and its
   cell. **A stop is keyed by its cell, never by its element**: Walkontable reuses a `<td>` for another
   cell after a scroll, so keying by element would read a scroll as a cycle.
@@ -1407,8 +1410,11 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   focus by design: a cycle inside one is a trap only when neither Escape nor a button in it lets the
   keyboard out, and a Tab that walks out of an open modal to the content behind it is a
   `focus-leaves-modal` finding.
-- **A popup is judged by Escape.** On a menu, an editor or the comment editor, Escape (pressed up to three
-  times: a submenu takes two) must close it and give the focus back to the cell it opened on. Then the
+- **A popup is judged by Escape.** On a menu, an editor, the comment editor or the formula editor's popups
+  (`POPUP_STATES`), Escape (pressed up to three times: a submenu takes two, and so does a formula popup,
+  which closes before the edit does) must close it and give the focus back to the cell it opened on. A
+  popup state walked like a grid at rest reads a Tab the editor keeps (the formula editor accepts a
+  suggestion with it) as a trap, so a state that opens a popup belongs on that list. Then the
   popup opens again and Tab walks inside it, judged per stop. A focus that lands on `body` after the
   popup closed is `focus-not-returned`: the grid often still listens, so the next arrow key brings the
   focus back, but a screen reader has nothing focused until then.
@@ -1439,7 +1445,10 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   collapsed row made the next probe report a shortcut as dead. Write a probe from a cell the key can
   move from (the start cell of an arrow is not on the edge it moves toward), and read the fixture first:
   a read-only cell, a list that keeps the focus on its input (`aria-activedescendant`, which the
-  snapshot counts as a move), a freeze bar that takes one arrow axis only.
+  snapshot counts as a move), a freeze bar that takes one arrow axis only, an editor the grid moves
+  between the cell and the formula bar (the focus key carries the part of the root wrapper, so F6 is a
+  move), a field the cell editor does not own (its text is `focusedText`), and a key that only switches a
+  mode (`then` presses the key that shows the mode).
 - **2.1.4 is measured, not assumed.** With the focus on the sentinel outside the grid, printable keys must
   change nothing; and a documented shortcut that is a single character with no modifier
   (`singleCharacterShortcuts()`; none today) is listed as advisory, because it must work only while the
@@ -1453,7 +1462,9 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
 
 `a11y/checks/tree-snapshots.spec.ts`, the `tree-snapshots` check: 1.3.1, 1.3.2 and 4.1.2, read from
 Chromium's accessibility tree of the grid's root container and its portal, on every page of the catalog
-in its state and on every theme. The browser half flattens the tree (`a11y/checks/ax-tree.ts`), the pure
+in its state and on every theme. A state whose popups mount in a portal of their own marks that portal
+too (hyperformula-ui's `.hfe-popup-portal`), so the check reads every marked portal, in document order,
+never only the first. The browser half flattens the tree (`a11y/checks/ax-tree.ts`), the pure
 half judges it (`lib/aria-tree.mjs`, tested in `lib/__tests__/aria-tree.test.mjs`).
 
 - **The tree as a screen reader gets it, in reading order.** `Accessibility.getFullAXTree` gives the roles,

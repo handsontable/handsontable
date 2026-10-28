@@ -1,0 +1,55 @@
+# grid
+- textbox "Cell address": C1
+- textbox "Formula input"
+- treegrid:
+  - rowgroup:
+    - row "1 2 3":
+      - gridcell "1"
+      - gridcell "2"
+      - gridcell "3" [selected]
+    - row "3 4 7":
+      - gridcell "3"
+      - gridcell "4"
+      - gridcell "7"
+    - row "5 6 10":
+      - gridcell "5"
+      - gridcell "6"
+      - gridcell "10"
+    - row:
+      - gridcell
+      - gridcell
+      - gridcell
+    - row "yes":
+      - gridcell
+      - gridcell
+      - gridcell "yes"
+  - rowgroup:
+    - row "Select whole grid A B C":
+      - gridcell "Select whole grid"
+      - columnheader "A"
+      - columnheader "B"
+      - columnheader "C"
+  - rowgroup
+  - rowgroup:
+    - row "1":
+      - rowheader "1"
+    - row "2":
+      - rowheader "2"
+    - row "3":
+      - rowheader "3"
+    - row "4":
+      - rowheader "4"
+    - row "5":
+      - rowheader "5"
+  - rowgroup:
+    - row "Select whole grid":
+      - gridcell "Select whole grid"
+  - rowgroup
+  - combobox "Formula editor": =SUM()
+# portal
+- status
+- status
+- dialog "SUM function help":
+  - text: SUM ( any, ... )
+  - separator
+  - text: any... - repeatable
