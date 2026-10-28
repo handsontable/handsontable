@@ -21,6 +21,9 @@
  *   (`Arrow keys` is four probes); a key of the list can be `{ key, prepare }` when it needs steps of its
  *   own after the shared ones. `ControlOrMeta` is the guide's Ctrl that is ⌘ on macOS; `Control` is
  *   the Ctrl that stays ⌃;
+ * - `then`: steps run after the key and before the snapshot that judges it (the `prepare` vocabulary), for a
+ *   key whose effect shows only on the key after it, like a mode switch; the probe's comment says what those
+ *   steps do without the key, so the effect is the key's;
  * - `expect`: the effect the guide describes (`effectsBetween()`), or a list of effects any of which
  *   satisfies it.
  *
@@ -191,6 +194,45 @@ export const SHORTCUT_PROBES = [
     probe: { page: 'checkbox', setup: 'column-header', at: [-1, 1], press: 'Space', expect: 'value-changes' } },
   { section: 'Formulas keyboard shortcuts', keys: 'Ctrl+`',
     notProbed: 'Needs HyperFormula, which the plain UMD bundle the walker runs loads only on a formulas fixture; e2e/formulas-show-formulas.spec.ts presses it' },
+  // Formula builder: the formula editor on the formula-builder page (A1:C5, formulas in column C, the
+  // formula bar on). The probes that edit open the editor with Enter (full edit mode), so a key the formula
+  // editor misses only moves the caret, which the snapshot does not read; its caret is not read either (the
+  // editor has no TEXTAREA of the grid's own), so its keys show as text, a focus move, or a commit's
+  // selection move. F2 or Ctrl+E only switches point mode, so its `then` presses the arrow that shows it: in
+  // C2 the caret sits after a reference, where an arrow without point mode only moves the caret.
+  { section: 'Formula builder keyboard shortcuts', keys: 'Enter', ordinal: 1,
+    probe: { page: 'formula-builder', setup: 'editor', at: [0, 2], press: 'Enter', expect: 'selection-moves' } },
+  { section: 'Formula builder keyboard shortcuts', keys: 'Shift+Enter',
+    probe: { page: 'formula-builder', setup: 'editor', at: [1, 2], press: 'Shift+Enter', expect: 'selection-moves' } },
+  { section: 'Formula builder keyboard shortcuts', keys: 'Tab', probe: { page: 'formula-builder', setup: 'editor', at: [0, 1], press: 'Tab', expect: 'selection-moves' } },
+  { section: 'Formula builder keyboard shortcuts', keys: 'Shift+Tab', ordinal: 1,
+    probe: { page: 'formula-builder', setup: 'editor', at: [0, 2], press: 'Shift+Tab', expect: 'selection-moves' } },
+  { section: 'Formula builder keyboard shortcuts', keys: 'Ctrl+Enter',
+    probe: { page: 'formula-builder', setup: 'range', at: [3, 0], to: [4, 1], prepare: [{ type: '7' }], press: 'ControlOrMeta+Enter', expect: 'value-changes' } },
+  { section: 'Formula builder keyboard shortcuts', keys: 'Alt+Enter', probe: { page: 'formula-builder', setup: 'editor', at: [0, 2], press: 'Alt+Enter', expect: 'text-changes' } },
+  { section: 'Formula builder keyboard shortcuts', keys: 'Escape', ordinal: 1,
+    probe: { page: 'formula-builder', setup: 'editor', at: [0, 2], prepare: [{ type: '*10' }], press: 'Escape', expect: 'editor-closes' } },
+  { section: 'Formula builder keyboard shortcuts', keys: '↑ / ↓',
+    probe: { page: 'formula-builder', setup: 'editor', at: [3, 1], prepare: [{ type: '=SU' }, 'ArrowDown'], press: ['ArrowDown', 'ArrowUp'], expect: 'focus-moves' } },
+  { section: 'Formula builder keyboard shortcuts', keys: 'Arrow keys',
+    probe: { page: 'formula-builder', setup: 'editor', at: [3, 1], prepare: [{ type: '=' }], press: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'], expect: 'text-changes' } },
+  { section: 'Formula builder keyboard shortcuts', keys: 'Shift+Arrow keys',
+    probe: { page: 'formula-builder', setup: 'editor', at: [3, 1], prepare: [{ type: '=' }, 'ArrowUp'], press: ['Shift+ArrowUp', 'Shift+ArrowDown', 'Shift+ArrowLeft', 'Shift+ArrowRight'], expect: 'text-changes' } },
+  { section: 'Formula builder keyboard shortcuts', keys: 'Ctrl+Arrow keys',
+    probe: { page: 'formula-builder', setup: 'editor', at: [3, 0], prepare: [{ type: '=' }, 'ArrowUp'], press: 'ControlOrMeta+ArrowUp', expect: 'text-changes' } },
+  { section: 'Formula builder keyboard shortcuts', keys: 'Ctrl+Shift+Arrow keys',
+    probe: { page: 'formula-builder', setup: 'editor', at: [3, 1], prepare: [{ type: '=' }, 'ArrowUp'], press: 'ControlOrMeta+Shift+ArrowUp', expect: 'text-changes' } },
+  { section: 'Formula builder keyboard shortcuts', keys: 'F2 or Ctrl+E',
+    probe: { page: 'formula-builder', setup: 'editor', at: [1, 2], press: ['F2', 'ControlOrMeta+e'], then: ['ArrowUp'], expect: 'text-changes' } },
+  { section: 'Formula builder keyboard shortcuts', keys: 'F4', probe: { page: 'formula-builder', setup: 'editor', at: [0, 2], press: 'F4', expect: 'text-changes' } },
+  { section: 'Formula builder keyboard shortcuts', keys: 'F6 / Shift+F6',
+    probe: { page: 'formula-builder', setup: 'editor', at: [0, 2], press: ['F6', 'Shift+F6', { key: 'F6', prepare: ['F6'] }], expect: 'focus-moves' } },
+  { section: 'Formula builder keyboard shortcuts', keys: 'Shift+Tab', ordinal: 2,
+    probe: { page: 'formula-builder', setup: 'cell', at: [0, 0], press: ['Shift+Tab', { key: 'Shift+Tab', prepare: ['Shift+Tab'] }], expect: 'focus-moves' } },
+  { section: 'Formula builder keyboard shortcuts', keys: 'Enter', ordinal: 2,
+    probe: { page: 'formula-builder', setup: 'cell', at: [0, 0], prepare: ['Shift+Tab', 'Shift+Tab', 'ControlOrMeta+a', { type: 'C3' }], press: 'Enter', expect: 'selection-moves' } },
+  { section: 'Formula builder keyboard shortcuts', keys: 'Escape', ordinal: 2,
+    probe: { page: 'formula-builder', setup: 'cell', at: [0, 0], prepare: ['Shift+Tab', 'Shift+Tab', 'ControlOrMeta+a', { type: 'C3' }], press: 'Escape', expect: 'text-changes' } },
   { section: 'Freeze bar keyboard shortcuts', keys: 'F6', probe: { page: 'freeze-bar', setup: 'cell', at: [5, 5], press: 'F6', expect: 'focus-moves' } },
   { section: 'Freeze bar keyboard shortcuts', keys: 'Shift+F6', probe: { page: 'freeze-bar', setup: 'cell', at: [5, 5], press: 'Shift+F6', expect: 'focus-moves' } },
   // F6 focuses the start (column) bar first, which takes the horizontal arrows; one more F6 reaches the top (row) bar.

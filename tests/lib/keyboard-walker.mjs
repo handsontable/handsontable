@@ -373,7 +373,8 @@ export function shortcutKey(row) {
  * an editor opened or closed, a menu opened, closed or moved its highlight, the comment editor opened
  * or closed, the data, the scroll, the sort, the merges, the frozen counts, the clipboard, the
  * collapsed groups, the filters, the highlight of an editor's list or the rows a row selection holds
- * changed, a link opened, the caret moved, the focus moved, the focus left the product.
+ * changed, a link opened, the text of the editor or of the focused field changed, the caret moved, the
+ * focus moved, the focus left the product.
  *
  * @param {object} before The snapshot before the key.
  * @param {object} after The snapshot after it.
@@ -419,7 +420,7 @@ export function effectsBetween(before, after) {
 
   const fields = [['dataHash', 'value-changes'], ['scroll', 'scrolls'], ['sorting', 'sorts'], ['merged', 'merges'], ['frozen', 'freezes'],
     ['clipboard', 'clipboard'], ['links', 'link-opens'], ['collapsed', 'collapses'], ['filtered', 'filters'], ['listSelection', 'list-moves'],
-    ['rowSelection', 'row-selection-changes']];
+    ['rowSelection', 'row-selection-changes'], ['focusedText', 'text-changes']];
 
   for (const [field, effect] of fields) {
     if (differs(field)) {
