@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-28T10:53:07.831Z",
+  "generatedAt": "2026-10-28T11:04:38.248Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 423,
     "needsTicket": 28,
     "quarantined": 0,
-    "entries": 2165
+    "entries": 2174
   },
   "rows": [
     {
@@ -423,6 +423,150 @@
       "needsTicket": true
     },
     {
+      "key": "jasmine|handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js|StretchColumns with `beforeStretchingColumnWidth` hook should be possible to change the stretched column width for stretching all strategy",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js",
+      "line": null,
+      "title": "StretchColumns with `beforeStretchingColumnWidth` hook should be possible to change the stretched column width for stretching all strategy",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "UMD (theme: horizon)",
+        "UMD.min (theme: horizon)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (3 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-28T11:03:52Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40673405879/attempts/2",
+        "branch": "feature/dependabot-qs-undici-body-parser-zod",
+        "leg": "UMD (theme: horizon)",
+        "status": "failed",
+        "error": "Expected 78 to be 85.",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "jasmine|handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js|StretchColumns with `beforeStretchingColumnWidth` hook should be triggered once per column",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js",
+      "line": null,
+      "title": "StretchColumns with `beforeStretchingColumnWidth` hook should be triggered once per column",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "UMD (theme: horizon)",
+        "UMD.min (theme: horizon)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (3 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-28T11:03:52Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40673405879/attempts/2",
+        "branch": "feature/dependabot-qs-undici-body-parser-zod",
+        "leg": "UMD (theme: horizon)",
+        "status": "failed",
+        "error": "Expected $[0][0] = 85 to equal 90.",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "jasmine|handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js|StretchColumns with `beforeStretchingColumnWidth` hook should not be possible to change the stretched column width for stretching last strategy",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js",
+      "line": null,
+      "title": "StretchColumns with `beforeStretchingColumnWidth` hook should not be possible to change the stretched column width for stretching last strategy",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "UMD (theme: horizon)",
+        "UMD.min (theme: horizon)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (3 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-28T11:03:52Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40673405879/attempts/2",
+        "branch": "feature/dependabot-qs-undici-body-parser-zod",
+        "leg": "UMD (theme: horizon)",
+        "status": "failed",
+        "error": "Expected 155 to be 170.",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "jasmine|handsontable/src/plugins/stretchColumns/__tests__/plugins/manualColumnResize.spec.js|StretchColumns cooperation with ManualColumnResize should skip columns stretching for columns that have defined size",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/stretchColumns/__tests__/plugins/manualColumnResize.spec.js",
+      "line": null,
+      "title": "StretchColumns cooperation with ManualColumnResize should skip columns stretching for columns that have defined size",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "UMD (theme: horizon)",
+        "UMD.min (theme: horizon)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (1 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-28T11:03:52Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40673405879/attempts/2",
+        "branch": "feature/dependabot-qs-undici-body-parser-zod",
+        "leg": "UMD (theme: horizon)",
+        "status": "failed",
+        "error": "Expected 94 to be 97.",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "playwright|e2e/collapsible-indicator-dropdown-menu.spec.ts|collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
       "tier": "playwright",
       "file": "e2e/collapsible-indicator-dropdown-menu.spec.ts",
@@ -523,150 +667,6 @@
         "leg": "e2e-horizon",
         "status": "flaky",
         "error": "Error: inline_end 5,29: top edge",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "jasmine|handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js|StretchColumns with `beforeStretchingColumnWidth` hook should be possible to change the stretched column width for stretching all strategy",
-      "tier": "jasmine",
-      "file": "handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js",
-      "line": null,
-      "title": "StretchColumns with `beforeStretchingColumnWidth` hook should be possible to change the stretched column width for stretching all strategy",
-      "count7": 4,
-      "count30": 4,
-      "countAll": 4,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "UMD (theme: horizon)",
-        "UMD.min (theme: horizon)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "fails alone (3 failed)"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-28T10:52:20Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40673405879",
-        "branch": "feature/dependabot-qs-undici-body-parser-zod",
-        "leg": "UMD (theme: horizon)",
-        "status": "failed",
-        "error": "Expected 78 to be 85.",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "jasmine|handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js|StretchColumns with `beforeStretchingColumnWidth` hook should be triggered once per column",
-      "tier": "jasmine",
-      "file": "handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js",
-      "line": null,
-      "title": "StretchColumns with `beforeStretchingColumnWidth` hook should be triggered once per column",
-      "count7": 4,
-      "count30": 4,
-      "countAll": 4,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "UMD (theme: horizon)",
-        "UMD.min (theme: horizon)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "fails alone (3 failed)"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-28T10:52:20Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40673405879",
-        "branch": "feature/dependabot-qs-undici-body-parser-zod",
-        "leg": "UMD (theme: horizon)",
-        "status": "failed",
-        "error": "Expected $[0][0] = 85 to equal 90.",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "jasmine|handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js|StretchColumns with `beforeStretchingColumnWidth` hook should not be possible to change the stretched column width for stretching last strategy",
-      "tier": "jasmine",
-      "file": "handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js",
-      "line": null,
-      "title": "StretchColumns with `beforeStretchingColumnWidth` hook should not be possible to change the stretched column width for stretching last strategy",
-      "count7": 4,
-      "count30": 4,
-      "countAll": 4,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "UMD (theme: horizon)",
-        "UMD.min (theme: horizon)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "fails alone (3 failed)"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-28T10:52:20Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40673405879",
-        "branch": "feature/dependabot-qs-undici-body-parser-zod",
-        "leg": "UMD (theme: horizon)",
-        "status": "failed",
-        "error": "Expected 155 to be 170.",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "jasmine|handsontable/src/plugins/stretchColumns/__tests__/plugins/manualColumnResize.spec.js|StretchColumns cooperation with ManualColumnResize should skip columns stretching for columns that have defined size",
-      "tier": "jasmine",
-      "file": "handsontable/src/plugins/stretchColumns/__tests__/plugins/manualColumnResize.spec.js",
-      "line": null,
-      "title": "StretchColumns cooperation with ManualColumnResize should skip columns stretching for columns that have defined size",
-      "count7": 4,
-      "count30": 4,
-      "countAll": 4,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "UMD (theme: horizon)",
-        "UMD.min (theme: horizon)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "fails alone (1 failed)"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-28T10:52:20Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40673405879",
-        "branch": "feature/dependabot-qs-undici-body-parser-zod",
-        "leg": "UMD (theme: horizon)",
-        "status": "failed",
-        "error": "Expected 94 to be 97.",
         "source": "ci"
       },
       "needsTicket": true
@@ -2928,6 +2928,41 @@
       "needsTicket": false
     },
     {
+      "key": "jasmine|handsontable/src/__tests__/focusManager.spec.js|Focus Manager `getFocusMode` method should update value in editor textarea when `imeFastEdit` is enabled",
+      "tier": "jasmine",
+      "file": "handsontable/src/__tests__/focusManager.spec.js",
+      "line": null,
+      "title": "Focus Manager `getFocusMode` method should update value in editor textarea when `imeFastEdit` is enabled",
+      "count7": 2,
+      "count30": 2,
+      "countAll": 2,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD.min (theme: classic)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-28T11:03:52Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40673405879/attempts/2",
+        "branch": "feature/dependabot-qs-undici-body-parser-zod",
+        "leg": "UMD.min (theme: classic)",
+        "status": "failed",
+        "error": "Expected <td class=\"current\" role=\"gridcell\" tabindex=\"-1\" aria-colindex=\"1\" aria-selected=\"true\">...</td> to equal <textarea data-hot-input tabindex=\"-1\" class=\"handsontableInput\" style=\"width: 50px; height: 27px; overflow-y: visible; font-size: 13px; font-family: sans-serif; resize: none; min-w...",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
       "key": "playwright|e2e/async-image-frozen-columns.spec.ts|Async image in a scrolling column beside frozen columns › aligns the overlays when the renderer keeps a failing image",
       "tier": "playwright",
       "file": "e2e/async-image-frozen-columns.spec.ts",
@@ -3338,41 +3373,6 @@
         "leg": "UMD.min (theme: classic)",
         "status": "failed",
         "error": "Expected '' to equal 'cyan'.",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "jasmine|handsontable/src/__tests__/focusManager.spec.js|Focus Manager `getFocusMode` method should update value in editor textarea when `imeFastEdit` is enabled",
-      "tier": "jasmine",
-      "file": "handsontable/src/__tests__/focusManager.spec.js",
-      "line": null,
-      "title": "Focus Manager `getFocusMode` method should update value in editor textarea when `imeFastEdit` is enabled",
-      "count7": 1,
-      "count30": 1,
-      "countAll": 1,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "UMD.min (theme: classic)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "passes alone"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-28T10:52:20Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40673405879",
-        "branch": "feature/dependabot-qs-undici-body-parser-zod",
-        "leg": "UMD.min (theme: classic)",
-        "status": "failed",
-        "error": "Expected <td class=\"current\" role=\"gridcell\" tabindex=\"-1\" aria-colindex=\"1\" aria-selected=\"true\">...</td> to equal <textarea data-hot-input tabindex=\"-1\" class=\"handsontableInput\" style=\"width: 50px; height: 27px; overflow-y: visible; font-size: 13px; font-family: sans-serif; resize: none; min-w...",
         "source": "ci"
       },
       "needsTicket": false
