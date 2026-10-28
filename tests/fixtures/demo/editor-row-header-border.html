@@ -48,6 +48,7 @@
       no-row-headers  colHeaders only - column 0 draws its own start border
       rows            the same as row-headers, with 100 rows, for the vertical scroll cases
       rows-frozen     the same as rows, with fixedRowsTop: 2
+      rows-end        the same as rows, with fixedColumnsEnd: 1
   -->
   <h2>Row headers</h2>
   <div id="row-headers" data-testid="row-headers"></div>
@@ -75,6 +76,9 @@
 
   <h2>Row headers, 100 rows, two frozen top rows</h2>
   <div id="rows-frozen" data-testid="rows-frozen"></div>
+
+  <h2>Row headers, 100 rows, a frozen end column</h2>
+  <div id="rows-end" data-testid="rows-end"></div>
 
   <script>
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
@@ -107,6 +111,11 @@
     build('rows-frozen', {
       rowHeaders: true,
       fixedRowsTop: 2,
+      data: Handsontable.helper.createSpreadsheetData(100, 10),
+    });
+    build('rows-end', {
+      rowHeaders: true,
+      fixedColumnsEnd: 1,
       data: Handsontable.helper.createSpreadsheetData(100, 10),
     });
   </script>

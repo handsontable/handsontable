@@ -4,7 +4,7 @@ import { awaitBundle } from '../bundle';
 /** Which grid of the fixture a locator or probe addresses. */
 export type GridName =
   'row-headers' | 'frozen' | 'frozen-rows' | 'scrolled' | 'scrolled-top' | 'rtl' | 'no-row-headers' |
-  'rows' | 'rows-frozen';
+  'rows' | 'rows-frozen' | 'rows-end';
 
 /** How far the open editor reaches past the edited cell, in CSS pixels. */
 export interface EditorOverhang {
@@ -295,16 +295,18 @@ export class EditorRowHeaderBorderPage {
    * @param {number} row The visual row.
    * @param {number} col The visual column.
    * @param {object} [options] The measure options.
+   * @param {'master'|'inline_end'} [options.layer] The layer whose copy of the edge is measured. A cell of
+   *   the end column is drawn by the end clone, not by the master table under it.
    * @param {boolean} [options.select] Select the cell first. Off, the selection a scroll left is measured.
-   * @returns {Promise<TopEdgeMeasure|null>} `null` while the master draws no top edge of the cell.
+   * @returns {Promise<TopEdgeMeasure|null>} `null` while the layer draws no top edge of the cell.
    */
   async topEdge(
     grid: GridName,
     row: number,
     col: number,
-    { select = true }: { select?: boolean } = {},
+    { layer = 'master', select = true }: { layer?: 'master' | 'inline_end', select?: boolean } = {},
   ): Promise<TopEdgeMeasure | null> {
-    return this.page.evaluate(([name, r, c, shouldSelect]) => {
+    return this.page.evaluate(([name, r, c, edgeLayer, shouldSelect]) => {
       const hot = (window as unknown as Record<string, {
         selectCell: (row: number, col: number) => void,
         getCell: (row: number, col: number, topmost?: boolean) => HTMLElement,
@@ -325,12 +327,13 @@ export class EditorRowHeaderBorderPage {
       const cell = cellElement.getBoundingClientRect();
       const round = (value: number) => Math.round(value * 100) / 100;
       const overlays = [...root.querySelectorAll<HTMLElement>(
-        '.ht_clone_top table, .ht_clone_top_inline_start_corner table'
+        '.ht_clone_top table, .ht_clone_top_inline_start_corner table, .ht_clone_top_inline_end_corner table'
       )].map(table => table.getBoundingClientRect()).filter(rect => rect.height > 0);
 
-      // The master draws four edges of the current selection. The top one is the 2px tall box that
+      // The layer draws four edges of the current selection. The top one is the 2px tall box that
       // stands on the top half of the cell, as opposed to the bottom one next to the cell's bottom.
-      const edge = [...root.querySelectorAll<HTMLElement>('.ht_master .wtBorder.current')]
+      const layerClass = edgeLayer === 'master' ? '.ht_master' : `.ht_clone_${edgeLayer}`;
+      const edge = [...root.querySelectorAll<HTMLElement>(`${layerClass} .wtBorder.current`)]
         .map(element => element.getBoundingClientRect())
         .find(rect => Math.abs(rect.height - 2) < 0.5 && rect.top < cell.top + cell.height / 2);
 
@@ -344,6 +347,6 @@ export class EditorRowHeaderBorderPage {
           overlay => Math.min(edge.bottom, overlay.bottom) - Math.max(edge.top, overlay.top)
         ))),
       };
-    }, [grid, row, col, select] as const);
+    }, [grid, row, col, layer, select] as const);
   }
 }

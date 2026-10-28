@@ -2197,8 +2197,8 @@ class Border {
   /**
    * Whether the top overlay is painted over the gridline above a cell of this table, because its table
    * ends where the cell starts. The master table's cells sit under the top clone, those of the
-   * inline-start clone under the top start corner. A cell of the top clone and of the corner is in the
-   * overlay's own layer, which draws the edge itself.
+   * inline-start and inline-end clones under the top corners. A cell of the top clone and of the corners
+   * is in the overlay's own layer, which draws the edge itself.
    *
    * @param {HTMLElement} cell The cell the border starts on.
    * @returns {boolean}
@@ -2208,6 +2208,7 @@ class Border {
     const overlayRect = this.getCoveringOverlayRect({
       master: wtOverlays.topOverlay,
       inline_start: wtOverlays.topInlineStartCornerOverlay,
+      inline_end: wtOverlays.topInlineEndCornerOverlay,
     });
 
     return overlayRect !== null &&
