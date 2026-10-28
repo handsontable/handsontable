@@ -375,7 +375,7 @@ Use each sheet's tab name as its `sheetName`. A tab rename then renames the engi
 - The plugin doesn't watch your own edits of the `sheets` array or its entries. To change the workbook, call the plugin's methods.
 - When the plugin loads new rows for a sheet that isn't shown (for example, a server response), your entry's `data` keeps the old array.
 - Switching sheets clears the [`UndoRedo`](@/api/undoRedo.md) history.
-- Some plugin options, for example `autoLink`, merge: when two sheets set such an option as an object, the second sheet's object is merged into the first one's, the way two [`updateSettings()`](@/api/core.md#updatesettings) calls merge it. Keys the second sheet leaves out keep the first sheet's values. To give each sheet its own options, list every key you rely on in each sheet's object. A sheet that sets the option to `true` gets the defaults.
+- When two sheets set an option such as `autoLink` as an object, keys the second sheet leaves out keep the first sheet's values. List every key you rely on in each sheet's object.
 - With formulas, a sheet that is sorted or has moved rows or columns doesn't see changes you make in place to its `data` while it's hidden. Pass a new `sheets` value instead, which rebuilds the workbook.
 - After a rename, `getSettings().formulas.sheetName` keeps the old name. Read the current name from `hot.getPlugin('formulas').sheetName`.
 - With formulas, a rename that rewrites references inside a frozen `data` array (for example, from Immer) writes them into a copy, not into your array, so update your store yourself. On the active sheet, this also clears the undo history.
