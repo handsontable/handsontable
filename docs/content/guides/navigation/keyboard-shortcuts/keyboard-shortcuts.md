@@ -201,6 +201,8 @@ These keyboard shortcuts work when the [`CopyPaste`](@/api/copyPaste.md) plugin 
 | <kbd>**Ctrl**</kbd>+<kbd>**C**</kbd> | <kbd>⌘</kbd>+<kbd>**C**</kbd> | Copy the contents of the selected cells to the system clipboard | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**V**</kbd> | <kbd>⌘</kbd>+<kbd>**V**</kbd> | Paste from the system clipboard                                 | &check; | &check; |
 
+To turn off these keyboard shortcuts, see [Remove the copy, cut, and paste shortcuts](@/guides/navigation/custom-shortcuts/custom-shortcuts.md#remove-the-copy-cut-and-paste-shortcuts).
+
 ### Cell merging keyboard shortcuts
 
 These keyboard shortcuts work when the [`MergeCells`](@/api/mergeCells.md) plugin is enabled.
