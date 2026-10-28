@@ -938,10 +938,10 @@ export class CopyPaste extends BasePlugin {
    * within the grid's shadow tree - in both cases the retargeted `target` is the deepest
    * reliable reference to the source element.
    *
-   * @param {ClipboardEvent | PasteEvent} event The clipboard event to resolve.
+   * @param {ClipboardEvent | PasteEvent | KeyboardEvent} event The clipboard or `keydown` event to resolve.
    * @returns {unknown} The deepest known event source element.
    */
-  #resolveClipboardEventTarget(event: ClipboardEvent | PasteEvent): unknown {
+  #resolveClipboardEventTarget(event: ClipboardEvent | PasteEvent | KeyboardEvent): unknown {
     const eventPath = event.composedPath();
 
     if (eventPath.some(entry => isShadowRoot(entry))) {
@@ -954,6 +954,26 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
+   * Tells whether the grid answers a clipboard action that comes from the given element. The grid's own
+   * focus input only counts while it is the element the grid refocuses. Any other element has to be the
+   * document body or sit inside the grid, because a field of the application keeps its own clipboard.
+   *
+   * @param {unknown} eventTarget The element the event originated from.
+   * @returns {boolean}
+   */
+  #isGridClipboardTarget(eventTarget: unknown): boolean {
+    if (!isHTMLElement(eventTarget)) {
+      return true;
+    }
+
+    if ('hotInput' in eventTarget.dataset) {
+      return eventTarget === this.hot.getFocusManager().getRefocusElement();
+    }
+
+    return eventTarget === this.hot.rootDocument.body || isInternalElement(eventTarget, this.hot.rootElement);
+  }
+
+  /**
    * `copy` event callback on textarea element.
    *
    * @param {Event} event ClipboardEvent.
@@ -961,19 +981,11 @@ export class CopyPaste extends BasePlugin {
    */
   onCopy(event: ClipboardEvent) {
     const eventTarget = this.#resolveClipboardEventTarget(event);
-    const focusedElement = this.hot.getFocusManager().getRefocusElement();
-    const isHotInput = isHTMLElement(eventTarget) && 'hotInput' in eventTarget.dataset;
 
     if (
       !this.hot.isListening() && !this.#isTriggeredByCopy ||
       this.isEditorOpened() ||
-      isHTMLElement(eventTarget) && (
-        (isHotInput && eventTarget !== focusedElement) ||
-        (
-          !isHotInput && eventTarget !== this.hot.rootDocument.body &&
-          !isInternalElement(eventTarget, this.hot.rootElement)
-        )
-      )
+      !this.#isGridClipboardTarget(eventTarget)
     ) {
       return;
     }
@@ -1013,19 +1025,11 @@ export class CopyPaste extends BasePlugin {
    */
   onCut(event: ClipboardEvent) {
     const eventTarget = this.#resolveClipboardEventTarget(event);
-    const focusedElement = this.hot.getFocusManager().getRefocusElement();
-    const isHotInput = isHTMLElement(eventTarget) && 'hotInput' in eventTarget.dataset;
 
     if (
       !this.hot.isListening() && !this.#isTriggeredByCut ||
       this.isEditorOpened() ||
-      isHTMLElement(eventTarget) && (
-        (isHotInput && eventTarget !== focusedElement) ||
-        (
-          !isHotInput && eventTarget !== this.hot.rootDocument.body &&
-          !isInternalElement(eventTarget, this.hot.rootElement)
-        )
-      )
+      !this.#isGridClipboardTarget(eventTarget)
     ) {
       return;
     }
@@ -1059,20 +1063,12 @@ export class CopyPaste extends BasePlugin {
    */
   onPaste(event: ClipboardEvent | PasteEvent) {
     const eventTarget = this.#resolveClipboardEventTarget(event);
-    const focusedElement = this.hot.getFocusManager().getRefocusElement();
-    const isHotInput = isHTMLElement(eventTarget) && 'hotInput' in eventTarget.dataset;
 
     if (
       !this.hot.isListening() ||
       this.isEditorOpened() ||
       !this.hot.getSelected() ||
-      isHTMLElement(eventTarget) && (
-        (isHotInput && eventTarget !== focusedElement) ||
-        (
-          !isHotInput && eventTarget !== this.hot.rootDocument.body &&
-          !isInternalElement(eventTarget, this.hot.rootElement)
-        )
-      )
+      !this.#isGridClipboardTarget(eventTarget)
     ) {
       return;
     }
@@ -1482,24 +1478,51 @@ export class CopyPaste extends BasePlugin {
   };
 
   /**
+   * Tells whether the shortcuts of the grid context run for the active context, which is the case when the
+   * active context is the grid context itself or falls back to it, the way the empty data state overlay does.
+   *
+   * @returns {boolean}
+   */
+  #isGridShortcutContextActive(): boolean {
+    const shortcutManager = this.hot.getShortcutManager();
+    const gridContext = shortcutManager.getContext(GRID_SCOPE);
+    const visitedContexts = new Set<unknown>();
+    let context = shortcutManager.getContext(shortcutManager.getActiveContextName());
+
+    while (context && !visitedContexts.has(context)) {
+      if (context === gridContext) {
+        return true;
+      }
+
+      visitedContexts.add(context);
+      context = context.getFallbackContext() ?? undefined;
+    }
+
+    return false;
+  }
+
+  /**
    * Cancels the browser's copy, cut, or paste when the application removed the shortcut of that key from
-   * the grid context. Only a key press the grid itself would handle counts, so an open editor and the
-   * other contexts keep the native behavior, and so do `copy()`, `cut()`, `paste()`, and the context menu,
-   * which never press a key.
+   * the grid context. Only a key press the grid itself would handle counts, so an open editor, a field of
+   * the application, and the contexts that do not fall back to the grid keep the native behavior, and so do
+   * `copy()`, `cut()`, `paste()`, and the context menu, which never press a key.
    *
    * @param {KeyboardEvent} event The `keydown` event.
    */
   #onBeforeKeyDown = (event: KeyboardEvent) => {
-    const shortcutManager = this.hot.getShortcutManager();
-
-    if (shortcutManager.getActiveContextName() !== GRID_SCOPE) {
+    if (
+      !event.ctrlKey && !event.metaKey ||
+      this.isEditorOpened() ||
+      !this.#isGridClipboardTarget(this.#resolveClipboardEventTarget(event)) ||
+      !this.#isGridShortcutContextActive()
+    ) {
       return;
     }
 
     const isClipboardKey = getEventKeyCombinations(event, isMacOS)
       .some(keys => CLIPBOARD_KEYS.has(normalizeKeys(keys)));
 
-    if (isClipboardKey && !shortcutManager.hasEventShortcut(GRID_SCOPE, event)) {
+    if (isClipboardKey && !this.hot.getShortcutManager().hasEventShortcut(GRID_SCOPE, event)) {
       event.preventDefault();
     }
   };
