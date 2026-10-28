@@ -1550,28 +1550,51 @@ theme, light and dark (the dark variant is the discovery run's, `a11y/checks/var
 captures pixels; the arithmetic and the verdicts are `lib/contrast.mjs` (tested in
 `lib/__tests__/contrast.test.mjs`). `PLAN` in the spec says which page is measured for what.
 
+- **Each measure starts from the catalog's state, and a record cites only what it measured.** A page
+  whose state is `none` is put back as it loaded before each measure after the first (no selection, no
+  focus, scrolled to the top-left: `resetState()`), because a cell left selected highlights the header the
+  next measure reads, and a control left focused draws its ring over the icon measured next. A menu or
+  editor page keeps its state. A measure that could not be set up (no cell to the right of the start
+  cell, no part matching a selector of the plan) adds its criteria to nothing and its reason to the
+  record's `problems`: a criterion counted as evaluated with nothing measured reads as a pass. A dark
+  record whose `ht-theme-<name>-dark` class never reached the grid measures nothing and says so
+  (`variantApplied: false`, and a problem), as in the discovery run.
 - **Pixels, not computed styles.** The themes paint with translucent colors and `color-mix()`, so the
   color a user sees is the composited pixel. A capture is a `page.screenshot()` clip decoded by the page's
   own canvas; the device scale factor is 1, so a clip pixel is a CSS pixel. WCAG 2.2's relative luminance
-  (the 0.04045 threshold) and a strict `< 3`: 2.996:1 fails although it rounds to 3.00.
+  (the 0.04045 threshold) and a strict `< 3`: 2.996:1 fails, and a finding shows its ratio rounded down
+  (`floorRatio()`, 2.99), so a failing ratio never reads as 3:1.
 - **A focus indicator is what changed.** The same area is captured before the focus arrives and after it
   arrives by the keyboard (an arrow key for a cell; a key press, then the focus, for a control, which is
   what makes `:focus-visible` match), and the changed pixels are the indicator (`indicatorChange()`).
-  Nothing changed is `focus-not-visible` (2.4.7). A ring or an outline is judged against the colors next
-  to it (`adjacentRatio`, the most common unchanged pixel), because a ring drawn over a grid line would
-  read 1.92:1 against the line and 3.08:1 against the cell beside it, and 1.4.11 asks for the second. A
-  highlight that repaints the element itself (a menu item) is judged against what it replaced. Under 3:1
-  is `focus-indicator-contrast`.
-- **Parts that identify a component or its state**: checkboxes, icons, the selection outline and the grid
-  lines, each the strongest pixel against the area's dominant color (`strongestPixel()`). A part another
-  element covers at its center, a disabled control (1.4.11 exempts it) and a part that draws nothing
-  (`isDrawn()`: an arrow under the open editor, a grid line a theme leaves out) are skipped. A grid line is
-  `moderate`: it identifies a cell only where nothing else does.
+  A cell's area is captured before with nothing selected, because the starting cell's ring reaches into
+  the margin and the pixels it gives back would count as a change. Nothing changed is
+  `focus-not-visible` (2.4.7). A ring or an outline is judged against the colors next to it
+  (`adjacentRatio`, the most common unchanged pixel of the margin around the element), because a ring
+  drawn over a grid line would read 1.92:1 against the line and 3.08:1 against the cell beside it, and
+  1.4.11 asks for the second; the margin, not the whole capture, because a filled button fills most of
+  its capture and a ring around it would read against the fill. A highlight that repaints the element
+  itself (a menu item) is judged against what it replaced. Under 3:1 is `focus-indicator-contrast`, and
+  it names the two colors its ratio is between.
+- **Parts that identify a component or its state**: the selection outline and the grid lines are the
+  strongest pixel against the area's dominant color (`strongestPixel()`). Checkboxes and icons are read
+  from the pixels inside their own box (`partContrast()`), because header text beside an icon reaches
+  into the margin and would pass it: an icon against what it sits on, a checkbox's edge against the cell
+  around it, and a checked box's mark against its fill, the weaker of the two. A part another element
+  covers at its center, a disabled control (1.4.11 exempts it) and a part the browser does not paint
+  (`checkVisibility()`: `visibility: hidden`, opacity 0) are skipped; a painted part is measured however
+  faint, because under 1.05:1 is the worst failure, not nothing. A grid line that draws nothing
+  (`isDrawn()`, a theme that leaves it out) is skipped. A grid line is `moderate`: it identifies a cell
+  only where nothing else does. Measure the element that draws the glyph: the sort arrow is
+  `.ht-sort-indicator`, drawn only while its column is sorted, so the plan sorts a column first (`sort`).
 - **2.4.11 walks the focus.** On the pages with frozen panes and bars, the keyboard moves the focus across
   the grid and into its far corner and back; after each key 25 points of the focused cell are sampled with
   `elementFromPoint()`. The cell sampled is the topmost copy (`getCell(row, col, true)`): a frozen row is
   drawn by an overlay clone above the master, and sampling the master's copy read every frozen cell as
-  hidden. A cell covered at every point is `focus-obscured`.
+  hidden. Only the points inside the window are sampled: a point outside it is covered by nothing. A cell
+  covered at every sampled point is `focus-obscured`; a cell with no sampled point inside the window (off
+  screen, or at most a sixth of it at the window's edge) is `focus-off-screen` (2.4.7). Two keys of the
+  walk can land on one cell, so its findings are one per cell.
 
 ### Adding a check
 
