@@ -10,9 +10,9 @@ type Finding = {
   step?: string;
   measured?: Record<string, unknown>;
 };
-type SeenAnimation = { name: string; properties: string[]; duration: number; iterations: number; target: string; firstSeen: number; lastSeen: number; running: boolean };
+type SeenAnimation = { name: string; properties: string[]; duration: number; iterations: number | 'Infinity'; target: string; firstSeen: number; lastSeen: number; running: boolean };
 
 export function isMotion(animation: { properties: string[]; duration: number }): boolean;
 export function motionFindings(input: { reducedMotion: boolean; step: string; animations: SeenAnimation[] }): Finding[];
-export function longRunningFindings(input: { windowMs: number; animations: SeenAnimation[] }): Finding[];
+export function longRunningFindings(input: { frames: { first: number; last: number }; animations: SeenAnimation[] }): Finding[];
 export function forcedColorsFindings(input: { part: 'focus' | 'selection' | 'menu' | 'icon' | 'gridlines'; selector: string; step: string; changed: number }): Finding[];

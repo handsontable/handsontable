@@ -1619,24 +1619,29 @@ watches and captures; the verdicts are `lib/motion.mjs` (tested in `lib/__tests_
 - **Motion is read from `document.getAnimations()`, frame by frame.** One `requestAnimationFrame` loop in
   the page records every animation it sees running: CSS transitions, CSS animations and script
   animations alike, with the properties they animate, their duration, iterations and target, and when
-  they were first and last seen. `page.clock` drives none of them (the trap in "The matrix" above), so the
-  watch runs on real time. Motion is a change of position, size or transform for longer than 1 ms
+  they were first and last seen, and when the watch's own first and last frames ran. An endless
+  animation's `iterations` is recorded as the string `'Infinity'`: the record goes to the detail as JSON,
+  which writes the number as `null`. `page.clock` drives none of them (the trap in "The matrix" above), so
+  the watch runs on real time. Motion is a change of position, size or transform for longer than 1 ms
   (`isMotion()`); an opacity or color fade is not, and a duration a reduced-motion rule shrinks to
   (0.01 ms) moves nothing.
-- **Every catalog state is watched at rest for five seconds** with `prefers-reduced-motion: reduce`
-  (`emulateMedia()`): motion still running is `motion-despite-reduced-motion` (2.3.3), and an animation
-  seen running for the whole window that repeats without end or lasts five seconds or more is
-  `moves-over-five-seconds` (2.2.2), moving or blinking alike. 2.3.3 is AAA, so its findings are
-  `moderate`.
+- **Every catalog state is watched at rest for five seconds, without the reduced-motion preference**
+  (`emulateMedia({ reducedMotion: 'no-preference' })`, the variant `at-rest`). 2.2.2 asks for a way to
+  pause what moves on its own, and a theme's `prefers-reduced-motion` rule is not one: a user who never
+  set the preference sees the spinner it stops. An animation seen running from the watch's first frame
+  to its last, longer than 1 ms, that repeats without end or lasts five seconds or more is
+  `moves-over-five-seconds` (2.2.2), moving or blinking alike. The bounds are the watch's frames, never
+  its nominal length, so a late first frame hides nothing. The watch at rest evaluates no 2.3.3: that
+  criterion is motion an interaction starts, and the interaction runs below own it.
 - **An interaction is watched with the preference and without it.** A sheet switch, a dialog shown, a
   notification shown and a context menu opened, each watched for 1.5 seconds under the variants
-  `interaction-reduced-motion` and `interaction-motion-allowed` (never `reduced-motion`, which the watch at
-  rest owns, and a target is keyed by its variant). Without the preference is the positive control: an
-  interaction that moves there and not under the preference proves both that the watch sees motion and
-  that the product honors the preference. Read it before trusting a clean result: the dialog and
-  notification fixtures turn animation off so their states are reached at once, so the check turns it
-  back on (the dialog's `animation` setting, the notification's `?animation=1`), and a fixture that
-  animates nothing makes the reduced-motion half pass on nothing.
+  `interaction-reduced-motion` and `interaction-motion-allowed` (never `at-rest`, which the watch at rest
+  owns, and a target is keyed by its variant). 2.3.3 is AAA, so its findings are `moderate`. Without the
+  preference is the positive control: an interaction that moves there and not under the preference
+  proves both that the watch sees motion and that the product honors the preference. Read it before
+  trusting a clean result: the dialog and notification fixtures turn animation off so their states are
+  reached at once, so the check turns it back on (the dialog's `animation` setting, the notification's
+  `?animation=1`), and a fixture that animates nothing makes the reduced-motion half pass on nothing.
 - **Forced colors is a capture, before and after.** With `forcedColors: 'active'` on the shared demo, the
   cell focus, a selected range and a menu item's highlight are captured before and after the keyboard
   reaches them, and the grid lines and the header menu icons at rest. A state that changes no pixel, or a

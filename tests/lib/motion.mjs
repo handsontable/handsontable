@@ -68,19 +68,23 @@ export function motionFindings({ reducedMotion, step, animations }) {
 }
 
 /**
- * The 2.2.2 findings of a state at rest: an animation still running at the end of the watch that ran from
- * its start, and repeats without end or lasts five seconds or more. Moving and blinking content both
- * count, so an opacity pulse is reported like a spinner. The record says how long it was seen.
+ * The 2.2.2 findings of a state at rest: an animation seen running on the watch's first frame and still
+ * running on its last, longer than an instant, that repeats without end or lasts five seconds or more.
+ * The watch's own frames are the bounds, not its nominal length, so a late first frame hides nothing.
+ * Moving and blinking content both count, so an opacity pulse is reported like a spinner. The record
+ * says how long it was seen.
  *
  * @param {object} input What the spec saw.
- * @param {number} input.windowMs How long the spec watched.
- * @param {object[]} input.animations The animations seen.
+ * @param {{first: number, last: number}} input.frames When the watch's first and last frames ran.
+ * @param {object[]} input.animations The animations seen. An endless one's `iterations` is `'Infinity'`,
+ *   the string the spec records because JSON has no Infinity.
  * @returns {object[]} The findings.
  */
-export function longRunningFindings({ windowMs, animations }) {
+export function longRunningFindings({ frames, animations }) {
   return dedupe(animations.filter(animation => animation.running
-    && animation.lastSeen - animation.firstSeen >= Math.min(windowMs, FIVE_SECONDS) - 100
-    && (animation.iterations === Infinity || animation.duration * animation.iterations >= FIVE_SECONDS)))
+    && animation.firstSeen <= frames.first && animation.lastSeen >= frames.last
+    && animation.duration > INSTANT_MS
+    && animation.duration * Number(animation.iterations) >= FIVE_SECONDS))
     .map(animation => ({
       kind: 'moves-over-five-seconds',
       criteria: ['2.2.2'],

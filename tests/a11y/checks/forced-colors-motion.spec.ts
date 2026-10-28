@@ -11,10 +11,10 @@ import { capture, cellBox, grow, settle, type Image } from './pixels';
  * Forced colors and reduced motion: WCAG 2.2.2, 2.3.3, and the forced-colors support of 1.4.1, 1.4.11
  * and 2.4.7, on every theme. Nightly only: watching every state for five seconds is minutes of work.
  *
- * - **Reduced motion, at rest** (2.2.2, 2.3.3): every page of the catalog in its state, with
- *   `prefers-reduced-motion: reduce`, watched for five seconds frame by frame through
- *   `document.getAnimations()`. A motion animation still running is `motion-despite-reduced-motion`; an
- *   animation that moves or blinks for the whole window is `moves-over-five-seconds`.
+ * - **At rest** (2.2.2): every page of the catalog in its state, without the reduced-motion preference,
+ *   watched for five seconds frame by frame through `document.getAnimations()`. An animation that moves or
+ *   blinks from the watch's first frame to its last, and repeats without end or lasts five seconds or more,
+ *   is `moves-over-five-seconds`.
  * - **Reduced motion, on interaction** (2.3.3): a sheet switch, a dialog shown, a notification shown and a
  *   menu opened, watched for 1.5 seconds each, with the preference and without it. Without it is the
  *   positive control: an interaction that animates there, and not under the preference, proves the watch
@@ -33,25 +33,34 @@ interface SeenAnimation {
   name: string;
   properties: string[];
   duration: number;
-  iterations: number;
+  // 'Infinity' for an endless animation: the record is attached as JSON, which writes the number as null.
+  iterations: number | 'Infinity';
   target: string;
   firstSeen: number;
   lastSeen: number;
   running: boolean;
 }
 
+interface Watch {
+  animations: SeenAnimation[];
+  // When the watch's first and last frames ran, on the clock of `firstSeen` and `lastSeen`.
+  frames: { first: number; last: number };
+}
+
 /**
  * Watches `document.getAnimations()` on every frame for a time and records each animation seen running:
  * its kind, its name (the animation name or the transitioned property), the properties it animates, its
- * duration and iterations, its target, and when it was first and last seen running.
+ * duration and iterations, its target, and when it was first and last seen running. It also records when
+ * its own first and last frames ran, which bound what "seen for the whole watch" means.
  *
  * @param page The page.
  * @param ms How long to watch.
- * @returns The animations.
+ * @returns The animations and the watch's frames.
  */
-async function watchAnimations(page: Page, ms: number): Promise<SeenAnimation[]> {
-  const seen = await page.evaluate(async(duration) => {
+async function watchAnimations(page: Page, ms: number): Promise<Watch> {
+  return page.evaluate(async(duration) => {
     const start = performance.now();
+    const frames = { first: -1, last: -1 };
     const records = new Map<Animation, Record<string, unknown>>();
     const kebab = (name: string) => name.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
     const describe = (animation: Animation) => {
@@ -67,7 +76,8 @@ async function watchAnimations(page: Page, ms: number): Promise<SeenAnimation[]>
 
       return {
         kind: animation.constructor.name,
-        name: css.animationName ?? css.transitionProperty ?? animation.id ?? 'animation',
+        // A script animation's `id` is '' unless the script set one.
+        name: css.animationName ?? css.transitionProperty ?? (animation.id || 'animation'),
         properties,
         duration: Number(timing.duration) || 0,
         iterations: timing.iterations === Infinity ? 'Infinity' : Number(timing.iterations ?? 1),
@@ -79,6 +89,10 @@ async function watchAnimations(page: Page, ms: number): Promise<SeenAnimation[]>
       const tick = () => {
         const now = performance.now() - start;
 
+        if (frames.first < 0) {
+          frames.first = now;
+        }
+        frames.last = now;
         for (const animation of document.getAnimations()) {
           if (animation.playState === 'running') {
             const record = records.get(animation) ?? { ...describe(animation), firstSeen: now };
@@ -97,14 +111,16 @@ async function watchAnimations(page: Page, ms: number): Promise<SeenAnimation[]>
       requestAnimationFrame(tick);
     });
 
-    return [...records].map(([animation, record]) => ({ ...record, running: animation.playState === 'running' }));
+    return {
+      animations: [...records].map(([animation, record]) => ({ ...record, running: animation.playState === 'running' }) as SeenAnimation),
+      frames,
+    };
   }, ms);
-
-  return seen.map(item => ({ ...item, iterations: item.iterations === 'Infinity' ? Infinity : Number(item.iterations) }) as SeenAnimation);
 }
 
 /**
- * Watches every catalog state at rest for five seconds with the reduced-motion preference.
+ * Watches every catalog state at rest for five seconds, without the reduced-motion preference: 2.2.2 asks
+ * for a way to pause what moves on its own, and a user who never set the preference is the one who sees it.
  *
  * @param page The page.
  * @param testInfo The running test.
@@ -113,10 +129,10 @@ async function watchAnimations(page: Page, ms: number): Promise<SeenAnimation[]>
  */
 async function watchState(page: Page, testInfo: TestInfo, entry: A11yPage, theme: string) {
   const startedAt = Date.now();
-  const target = { page: entry.id, theme, state: entry.state, variant: 'reduced-motion', url: fixtureUrl(entry, theme) };
+  const target = { page: entry.id, theme, state: entry.state, variant: 'at-rest', url: fixtureUrl(entry, theme) };
 
   declareTarget(testInfo, target);
-  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
 
   const opened = await openTarget(page, entry, theme);
 
@@ -124,14 +140,12 @@ async function watchState(page: Page, testInfo: TestInfo, entry: A11yPage, theme
   await releaseParkedFetches(page);
 
   const environment = await readEnvironment(page);
-  const animations = await watchAnimations(page, WATCH_MS);
-  const findings = [
-    ...motionFindings({ reducedMotion: true, step: `the ${entry.state} state, watched for five seconds`, animations: animations.filter(item => item.running) }),
-    ...longRunningFindings({ windowMs: WATCH_MS, animations }),
-  ];
+  const { animations, frames } = await watchAnimations(page, WATCH_MS);
+  // Not 2.3.3: that is motion an interaction starts, and nothing is touched here. The interaction runs own it.
+  const findings = longRunningFindings({ frames, animations });
 
   await attachEvidence(testInfo, {
-    target, startedAt, environment, findings, criteria: ['2.2.2', '2.3.3'], detail: { animations }, pageErrors: opened.pageErrors,
+    target, startedAt, environment, findings, criteria: ['2.2.2'], detail: { animations, frames }, pageErrors: opened.pageErrors,
   });
 }
 
@@ -194,7 +208,7 @@ const INTERACTIONS: Interaction[] = [
 async function interact(page: Page, testInfo: TestInfo, interaction: Interaction, theme: string, reducedMotion: boolean) {
   const startedAt = Date.now();
   const entry = A11Y_PAGES.find(item => item.id === interaction.page)!;
-  // Not `reduced-motion`: the same page is watched at rest under that variant, and a target is keyed by it.
+  // Not `at-rest`: the same page is watched at rest under that variant, and a target is keyed by it.
   const variant = reducedMotion ? 'interaction-reduced-motion' : 'interaction-motion-allowed';
   const url = `${fixtureUrl(entry, theme)}${interaction.query ? `&${interaction.query}` : ''}`;
   const target = { page: entry.id, theme, state: entry.state, variant, url };
@@ -214,7 +228,7 @@ async function interact(page: Page, testInfo: TestInfo, interaction: Interaction
 
   await interaction.act(page, opened);
 
-  const animations = await watching;
+  const { animations } = await watching;
   const motion = animations.filter(isMotion);
 
   await attachEvidence(testInfo, {

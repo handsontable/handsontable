@@ -48,18 +48,36 @@ test('under prefers-reduced-motion, a motion animation an interaction starts is 
 });
 
 test('content that moves for more than five seconds on its own is a 2.2.2 finding', () => {
-  const spinner = animation({ kind: 'CSSAnimation', name: 'ht-loading-spin', properties: ['transform'], duration: 800, iterations: Infinity,
+  // The spec records an endless animation's iterations as 'Infinity', which its JSON detail keeps.
+  const frames = { first: 0, last: 5000 };
+  const spinner = animation({ kind: 'CSSAnimation', name: 'ht-loading-spin', properties: ['transform'], duration: 800, iterations: 'Infinity',
     target: 'div.ht-loading__icon', firstSeen: 0, lastSeen: 5000, running: true });
-  const pulse = animation({ kind: 'CSSAnimation', name: 'pulse', properties: ['opacity'], duration: 1000, iterations: Infinity,
+  const pulse = animation({ kind: 'CSSAnimation', name: 'pulse', properties: ['opacity'], duration: 1000, iterations: 'Infinity',
     target: 'span.htAsyncIndicator', firstSeen: 0, lastSeen: 5000, running: true });
 
-  assert.deepEqual(longRunningFindings({ windowMs: 5000, animations: [spinner, pulse, animation()] })
+  assert.deepEqual(longRunningFindings({ frames, animations: [spinner, pulse, animation()] })
     .map(item => [item.kind, item.criteria, item.severity, item.selector, item.measured.seen]), [
     ['moves-over-five-seconds', ['2.2.2'], 'moderate', 'div.ht-loading__icon', 5000],
     ['moves-over-five-seconds', ['2.2.2'], 'moderate', 'span.htAsyncIndicator', 5000],
   ], 'a pulse that blinks is covered too: 2.2.2 is about moving, blinking and scrolling content');
-  assert.deepEqual(longRunningFindings({ windowMs: 5000, animations: [{ ...spinner, lastSeen: 3000, running: false }] }), [],
+  assert.deepEqual(longRunningFindings({ frames, animations: [{ ...spinner, lastSeen: 3000, running: false }] }), [],
     'an animation that stopped within the window is not');
+  assert.equal(longRunningFindings({ frames, animations: [{ ...spinner, iterations: Infinity }] }).length, 1,
+    'the number Infinity is endless too');
+  assert.deepEqual(longRunningFindings({ frames, animations: [{ ...spinner, iterations: 3 }] }), [],
+    'three turns of 800 ms end within five seconds');
+});
+
+test('the watch\'s own frames bound "the whole window", and an instant is not long-running', () => {
+  const spinner = animation({ kind: 'CSSAnimation', name: 'ht-loading-spin', duration: 800, iterations: 'Infinity',
+    target: 'div.ht-loading__icon', firstSeen: 120, lastSeen: 5004, running: true });
+
+  assert.equal(longRunningFindings({ frames: { first: 120, last: 5004 }, animations: [spinner] }).length, 1,
+    'seen on every frame of a watch whose first frame came 120 ms late');
+  assert.deepEqual(longRunningFindings({ frames: { first: 16, last: 5004 }, animations: [{ ...spinner, firstSeen: 300 }] }), [],
+    'one that started after the watch\'s first frame was not seen for the whole watch');
+  assert.deepEqual(longRunningFindings({ frames: { first: 120, last: 5004 }, animations: [{ ...spinner, duration: 0.01 }] }), [],
+    'a duration a reduced-motion rule shrinks to (0.01 ms) moves nothing, endless or not, as in isMotion()');
 });
 
 test('in forced colors, a state or a focus that leaves no visible change is lost', () => {
@@ -75,7 +93,7 @@ test('in forced colors, a state or a focus that leaves no visible change is lost
 test('the check\'s findings are valid evidence', () => {
   const findings = [
     ...motionFindings({ reducedMotion: true, step: 's', animations: [animation()] }),
-    ...longRunningFindings({ windowMs: 5000, animations: [animation({ iterations: Infinity, lastSeen: 5000, running: true })] }),
+    ...longRunningFindings({ frames: { first: 0, last: 5000 }, animations: [animation({ iterations: 'Infinity', lastSeen: 5000, running: true })] }),
     ...forcedColorsFindings({ part: 'menu', selector: 'td', step: 's', changed: 0 }),
   ];
 
