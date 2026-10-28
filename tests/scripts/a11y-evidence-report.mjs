@@ -90,15 +90,27 @@ for (const name of ['GITHUB_TOKEN', 'GITHUB_REPOSITORY', 'A11Y_HEAD_SHA']) {
   }
 }
 
-for (const payload of payloads) {
-  const created = await postCheckRun({
-    token: env.GITHUB_TOKEN,
-    repository: env.GITHUB_REPOSITORY,
-    headSha: env.A11Y_HEAD_SHA,
-    payload,
-    detailsUrl: artifactUrl || runUrl,
-    apiUrl: env.GITHUB_API_URL,
-  });
+// One check run the API refuses does not cost the checks after it theirs; the step still ends red.
+let refused = 0;
 
-  process.stdout.write(`a11y-evidence-report: posted "${payload.name}" (${payload.conclusion})\n${created.html_url}\n`);
+for (const payload of payloads) {
+  try {
+    const created = await postCheckRun({
+      token: env.GITHUB_TOKEN,
+      repository: env.GITHUB_REPOSITORY,
+      headSha: env.A11Y_HEAD_SHA,
+      payload,
+      detailsUrl: artifactUrl || runUrl,
+      apiUrl: env.GITHUB_API_URL,
+    });
+
+    process.stdout.write(`a11y-evidence-report: posted "${payload.name}" (${payload.conclusion})\n${created.html_url}\n`);
+  } catch (error) {
+    refused += 1;
+    process.stderr.write(`a11y-evidence-report: "${payload.name}" was not posted: ${error instanceof Error ? error.message : String(error)}\n`);
+  }
+}
+
+if (refused > 0) {
+  process.exit(1);
 }

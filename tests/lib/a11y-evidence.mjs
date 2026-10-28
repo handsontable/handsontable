@@ -18,6 +18,7 @@
  * target with `status: 'error'` and as a problem: flakiness is a finding against the check, not the
  * product. The policy is `tests/AGENTS.md`, "A11y: the checks beyond axe". No I/O in here.
  */
+import { escapeMarkdownText as escape, isSafeLink } from './a11y-baseline.mjs';
 
 export const EVIDENCE_SCHEMA = 1;
 /**
@@ -40,11 +41,12 @@ export const PAGES_FILE = 'tests/a11y/pages.mjs';
 // many more the JSON holds.
 const SUMMARY_FINDINGS = 60;
 const ANNOTATIONS = 100;
+// How many tooling problems a summary lists; it says how many more the JSON holds.
+const SUMMARY_PROBLEMS = 20;
 // The Checks API refuses an output summary over 65,535 characters.
 const SUMMARY_LIMIT = 65000;
 const CHECK_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const KIND_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const MARKDOWN_SPECIAL = /[\\`*_{}[\]()<>#+!|~&$]/g;
 
 /**
  * Every WCAG 2.2 success criterion, with its name and level. 4.1.1 Parsing is obsolete in 2.2 and is
@@ -179,6 +181,27 @@ export function checksForSuite(suite, checks = EVIDENCE_CHECKS) {
 }
 
 /**
+ * The commit a run tested, for the document's `run.commit`: `A11Y_HEAD_SHA` (the pull request's head,
+ * which the workflow passes), otherwise `GITHUB_SHA` or the checkout's `HEAD`. On a pull request both
+ * of those are the merge commit, which sits on no branch, so there the commit is unknown (`null`)
+ * rather than wrong.
+ *
+ * @param {Record<string, string|undefined>} env The environment.
+ * @param {() => string|null} readHead Reads the checkout's `HEAD`.
+ * @returns {string|null} The commit.
+ */
+export function runCommit(env, readHead) {
+  if (env.A11Y_HEAD_SHA) {
+    return env.A11Y_HEAD_SHA;
+  }
+  if (env.GITHUB_EVENT_NAME?.startsWith('pull_request')) {
+    return null;
+  }
+
+  return env.GITHUB_SHA || readHead();
+}
+
+/**
  * A criterion's name and level, or `null` for an id WCAG 2.2 does not have.
  *
  * @param {string} id The criterion (`2.4.3`).
@@ -244,16 +267,20 @@ export function targetKey(target) {
 }
 
 /**
- * A finding's stable id within a run: what it is (the kind) and where (the target and the element or
- * the step). Two runs that find the same thing give it the same id, so a later run can be compared
- * with an earlier one.
+ * A finding's stable id within a run: what it is (the kind) and where (the target, and the element, the
+ * step or both). Two runs that find the same thing give it the same id, so a later run can be compared
+ * with an earlier one. A finding that names both keys on both: one element can show the same kind at
+ * two steps (a focus indicator after `Tab 2` and after `ArrowDown from (1, 1)`), and those are two findings. The
+ * state is not in it: a target has one state (`mergeEvidence()` keeps one part per target).
  *
  * @param {string} check The check.
  * @param {object} finding The finding, with its target fields.
  * @returns {string} The id.
  */
 export function findingId(check, finding) {
-  return [check, finding.kind, finding.page, finding.theme, finding.variant ?? '', finding.selector ?? finding.step ?? ''].join('|');
+  const place = finding.selector && finding.step ? [finding.selector, finding.step] : [finding.selector ?? finding.step ?? ''];
+
+  return [check, finding.kind, finding.page, finding.theme, finding.variant ?? '', ...place].join('|');
 }
 
 /**
@@ -314,13 +341,19 @@ export function mergeEvidence({ check, parts, failures = [], run = {}, problems 
 
   const criteria = definition ? [...definition.criteria] : [];
   const valid = [];
+  const seen = new Set();
 
   for (const part of parts) {
     const partProblems = validatePart(part);
 
     if (partProblems.length > 0) {
       all.push(`an evidence part of ${describeTarget(part?.target)} is malformed: ${partProblems.join('; ')}`);
+    } else if (seen.has(targetKey(part.target))) {
+      // A target is its page, theme and variant, and its detail file is named by them: a second part for
+      // one target would count it twice and overwrite its detail. The first is kept.
+      all.push(`two evidence parts name ${describeTarget(part.target)}: the second is dropped; give each target its own variant`);
     } else {
+      seen.add(targetKey(part.target));
       valid.push(part);
     }
   }
@@ -374,18 +407,26 @@ export function mergeEvidence({ check, parts, failures = [], run = {}, problems 
     || String(a.variant ?? '').localeCompare(String(b.variant ?? '')));
 
   const findings = valid.flatMap(part => part.findings.map((finding) => {
+    // The target's fields and the id come last, so a finding that carries its own cannot move itself.
     const located = {
+      ...finding,
       page: part.target.page,
       theme: part.target.theme,
       state: part.target.state ?? null,
       variant: part.target.variant ?? null,
       url: part.target.url ?? null,
-      ...finding,
       criteria: [...finding.criteria].sort(compareCriteria),
     };
 
-    return { id: findingId(check, located), ...located };
+    return { ...located, id: findingId(check, located) };
   }));
+
+  // An id names one finding: two that share one read as one in a diff between runs.
+  for (const [id, count] of Object.entries(countBy(findings, finding => finding.id))) {
+    if (count > 1) {
+      all.push(`${count} findings share the id ${id}: give each its own selector or step`);
+    }
+  }
 
   findings.sort((a, b) => SEVERITIES.indexOf(a.severity) - SEVERITIES.indexOf(b.severity)
     || a.id.localeCompare(b.id));
@@ -476,6 +517,9 @@ export function validateEvidence(doc, { checks = EVIDENCE_CHECKS } = {}) {
   } else if (!Object.hasOwn(checks, doc.check)) {
     problems.push(`check "${doc.check}" is not in EVIDENCE_CHECKS`);
   }
+  if (typeof doc.title !== 'string' || doc.title === '') {
+    problems.push('title is not a non-empty string');
+  }
   if (doc.mode !== EVIDENCE_MODE) {
     problems.push(`mode is ${JSON.stringify(doc.mode)}, not ${JSON.stringify(EVIDENCE_MODE)}`);
   }
@@ -510,9 +554,7 @@ export function validateEvidence(doc, { checks = EVIDENCE_CHECKS } = {}) {
   if (!Array.isArray(doc.problems)) {
     problems.push('problems is not an array');
   }
-  if (!isObject(doc.summary) || !isObject(doc.summary.byCriterion)) {
-    problems.push('summary.byCriterion is missing');
-  }
+  problems.push(...summaryProblems(doc.summary));
 
   return problems;
 }
@@ -548,8 +590,8 @@ export function evidenceHeadline(doc) {
 export function renderEvidenceSummary(doc, { runUrl, artifactUrl } = {}) {
   const lines = [`### ${escape(doc.title)} (\`${escape(doc.check)}\`)`, '', `**${escape(evidenceHeadline(doc))}.** Report-only: a finding never fails the job.`, ''];
   const links = [
-    isSafeUrl(artifactUrl) ? `[The evidence JSON](${artifactUrl})` : '',
-    isSafeUrl(runUrl) ? `[The workflow run](${runUrl})` : '',
+    isSafeLink(artifactUrl) ? `[The evidence JSON](${artifactUrl})` : '',
+    isSafeLink(runUrl) ? `[The workflow run](${runUrl})` : '',
   ].filter(Boolean);
 
   if (links.length > 0) {
@@ -576,14 +618,7 @@ export function renderEvidenceSummary(doc, { runUrl, artifactUrl } = {}) {
   }
 
   if (doc.problems.length > 0) {
-    lines.push('**Tooling problems** (a finding against the check, not the product):', '');
-    for (const problem of doc.problems.slice(0, 20)) {
-      lines.push(`- ${escape(problem)}`);
-    }
-    if (doc.problems.length > 20) {
-      lines.push(`- … and ${doc.problems.length - 20} more in the JSON.`);
-    }
-    lines.push('');
+    lines.push('**Tooling problems** (a finding against the check, not the product):', '', ...problemLines(doc.problems, ' in the JSON'), '');
   }
 
   return lines.join('\n');
@@ -615,23 +650,19 @@ export function buildEvidenceCheckRun({ doc, check, problems = [], pages = new M
       name,
       conclusion: 'neutral',
       title: `⚠ Tooling: ${reason}`.slice(0, 250),
-      summary: [
+      summary: capSummary([
         'Report-only: this check run is never a failure. The check did not leave a document the report generator can read, which is a problem with the check, not a finding on the product.',
         '',
-        ...problems.map(problem => `- ${escape(problem)}`),
-        isSafeUrl(runUrl) ? `\n[The workflow run](${runUrl})` : '',
-      ].join('\n'),
+        ...problemLines(problems, ''),
+        isSafeLink(runUrl) ? `\n[The workflow run](${runUrl})` : '',
+      ].join('\n'), 'the evidence artifact holds the document'),
       annotations: [],
     };
   }
 
   const attention = doc.findings.length > 0 || doc.problems.length > 0 || doc.summary.errors > 0;
   const headline = evidenceHeadline(doc);
-  let summary = renderEvidenceSummary(doc, { runUrl, artifactUrl });
-
-  if (summary.length > SUMMARY_LIMIT) {
-    summary = `${summary.slice(0, SUMMARY_LIMIT)}\n\n… cut at ${SUMMARY_LIMIT} characters; the job summary and the JSON hold the rest.`;
-  }
+  const summary = capSummary(renderEvidenceSummary(doc, { runUrl, artifactUrl }), 'the job summary and the JSON hold the rest');
 
   const annotations = doc.findings.slice(0, ANNOTATIONS).map((finding) => {
     const path = finding.file ?? PAGES_FILE;
@@ -654,6 +685,31 @@ export function buildEvidenceCheckRun({ doc, check, problems = [], pages = new M
     summary,
     annotations,
   };
+}
+
+/**
+ * Tooling problems as list items: the first twenty, then how many more there are.
+ *
+ * @param {string[]} problems The problems.
+ * @param {string} rest Where the rest are, as a phrase that follows "more" (` in the JSON`), or empty.
+ * @returns {string[]} The lines.
+ */
+function problemLines(problems, rest) {
+  const lines = problems.slice(0, SUMMARY_PROBLEMS).map(problem => `- ${escape(problem)}`);
+
+  return problems.length > SUMMARY_PROBLEMS ? [...lines, `- … and ${problems.length - SUMMARY_PROBLEMS} more${rest}.`] : lines;
+}
+
+/**
+ * A check run's summary cut to what the Checks API takes: a longer one is refused (422), and the
+ * script would then post no check run for the checks after it.
+ *
+ * @param {string} summary The summary.
+ * @param {string} rest Where the rest can be read.
+ * @returns {string} The summary, at most `SUMMARY_LIMIT` characters and the note that it was cut.
+ */
+function capSummary(summary, rest) {
+  return summary.length > SUMMARY_LIMIT ? `${summary.slice(0, SUMMARY_LIMIT)}\n\n… cut at ${SUMMARY_LIMIT} characters; ${rest}.` : summary;
 }
 
 /**
@@ -734,6 +790,41 @@ function targetProblems(target, label) {
   for (const field of ['state', 'variant', 'url']) {
     if (target[field] !== undefined && target[field] !== null && typeof target[field] !== 'string') {
       problems.push(`${label}.${field} is not a string`);
+    }
+  }
+
+  return problems;
+}
+
+/**
+ * The problems of a document's summary: every count `evidenceHeadline()`, `renderEvidenceSummary()` and
+ * `buildEvidenceCheckRun()` read, so a document that validates renders without a throw.
+ *
+ * @param {unknown} summary The summary.
+ * @returns {string[]} The problems.
+ */
+function summaryProblems(summary) {
+  if (!isObject(summary)) {
+    return ['summary is not an object'];
+  }
+
+  const problems = [];
+
+  for (const field of ['targets', 'measured', 'errors', 'flaky', 'findings']) {
+    if (!Number.isInteger(summary[field]) || summary[field] < 0) {
+      problems.push(`summary.${field} is not a non-negative integer`);
+    }
+  }
+  if (!isObject(summary.bySeverity) || SEVERITIES.some(severity => !Number.isInteger(summary.bySeverity[severity]))) {
+    problems.push(`summary.bySeverity does not count every severity (${SEVERITIES.join(', ')})`);
+  }
+  if (!isObject(summary.byCriterion)) {
+    problems.push('summary.byCriterion is missing');
+  } else {
+    for (const [id, entry] of Object.entries(summary.byCriterion)) {
+      if (!isObject(entry) || !Number.isInteger(entry.evaluated) || !Number.isInteger(entry.findings)) {
+        problems.push(`summary.byCriterion[${JSON.stringify(id)}] does not count its evaluated targets and findings`);
+      }
     }
   }
 
@@ -835,27 +926,6 @@ function countBy(items, keyOf) {
 function firstLine(error) {
   // eslint-disable-next-line no-control-regex
   return String(error ?? 'unknown error').replace(/\u001b\[[0-9;]*m/g, '').split('\n').find(line => line.trim())?.trim() ?? 'unknown error';
-}
-
-/**
- * Escapes a value for a markdown table cell or line: the same characters `escapeMarkdownText()` of
- * `lib/a11y-baseline.mjs` escapes, kept here so this module imports nothing.
- *
- * @param {unknown} value The value.
- * @returns {string} The text.
- */
-function escape(value) {
-  return String(value).replace(/\r?\n/g, ' ').replace(MARKDOWN_SPECIAL, '\\$&');
-}
-
-/**
- * Whether a URL may be linked: plain https, nothing that ends a link.
- *
- * @param {unknown} url The URL.
- * @returns {boolean} Whether it is safe.
- */
-function isSafeUrl(url) {
-  return typeof url === 'string' && /^https:\/\/[^\s()<>]+$/.test(url);
 }
 
 /**
