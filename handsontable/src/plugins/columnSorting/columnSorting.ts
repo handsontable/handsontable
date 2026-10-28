@@ -845,7 +845,20 @@ export class ColumnSorting extends BasePlugin {
    * @private
    */
   sortByPresetSortStates(sortConfigs: SortConfig[]) {
-    this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache!.getValues());
+    if (this.indexesSequenceCache === null) {
+      // `sort()` takes the cache only from empty states, so states written by `setSortConfig()` get here
+      // without one. No sort has reordered the rows yet: with nothing to sort there is nothing to restore,
+      // and otherwise the live order is the pre-sort one a later `clearSort()` has to return to.
+      if (sortConfigs.length === 0) {
+        return;
+      }
+
+      this.indexesSequenceCache =
+        this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginKey, 'indexesSequence');
+      this.indexesSequenceCache.setValues(this.hot.rowIndexMapper.getIndexesSequence());
+    } else {
+      this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
+    }
 
     if (sortConfigs.length === 0) {
       return;
