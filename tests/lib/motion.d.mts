@@ -14,5 +14,6 @@ type SeenAnimation = { name: string; properties: string[]; duration: number; ite
 
 export function isMotion(animation: { properties: string[]; duration: number }): boolean;
 export function motionFindings(input: { reducedMotion: boolean; step: string; animations: SeenAnimation[] }): Finding[];
+export function controlProblems(input: { reducedMotion: boolean; expectsMotion: boolean; step: string; animations: SeenAnimation[] }): string[];
 export function longRunningFindings(input: { frames: { first: number; last: number }; animations: SeenAnimation[] }): Finding[];
 export function forcedColorsFindings(input: { part: 'focus' | 'selection' | 'menu' | 'icon' | 'gridlines'; selector: string; step: string; changed: number }): Finding[];

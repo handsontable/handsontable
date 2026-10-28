@@ -68,6 +68,26 @@ export function motionFindings({ reducedMotion, step, animations }) {
 }
 
 /**
+ * The problem of a positive control that saw no motion: an interaction expected to move on this theme,
+ * run without the reduced-motion preference, that moved nothing. Its reduced-motion run then proves
+ * nothing (the watch may have missed what moves), so the run says so instead of reading as clean.
+ *
+ * @param {object} input What the spec saw.
+ * @param {boolean} input.reducedMotion Whether the page was told the user prefers reduced motion.
+ * @param {boolean} input.expectsMotion Whether the interaction moves on this theme without the preference.
+ * @param {string} input.step The interaction.
+ * @param {object[]} input.animations The animations seen.
+ * @returns {string[]} The problems.
+ */
+export function controlProblems({ reducedMotion, expectsMotion, step, animations }) {
+  if (reducedMotion || !expectsMotion || animations.some(isMotion)) {
+    return [];
+  }
+
+  return [`the positive control saw no motion: "${step}" moved nothing without the reduced-motion preference, so its reduced-motion run proves nothing`];
+}
+
+/**
  * The 2.2.2 findings of a state at rest: an animation seen running on the watch's first frame and still
  * running on its last, longer than an instant, that repeats without end or lasts five seconds or more.
  * The watch's own frames are the bounds, not its nominal length, so a late first frame hides nothing.

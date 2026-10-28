@@ -1636,12 +1636,19 @@ watches and captures; the verdicts are `lib/motion.mjs` (tested in `lib/__tests_
 - **An interaction is watched with the preference and without it.** A sheet switch, a dialog shown, a
   notification shown and a context menu opened, each watched for 1.5 seconds under the variants
   `interaction-reduced-motion` and `interaction-motion-allowed` (never `at-rest`, which the watch at rest
-  owns, and a target is keyed by its variant). 2.3.3 is AAA, so its findings are `moderate`. Without the
+  owns, and a target is keyed by its variant). 2.3.3 is AAA, so its findings are `moderate`. The watch
+  starts once every animation the load started that ends has ended (`expect.poll` on
+  `document.getAnimations()`), so a finite animation the page started on its own, such as a toast a
+  fixture shows on load, is never counted as the interaction's. An animation that repeats without end
+  never ends and the watch would count it, so an interaction's page must have none. Without the
   preference is the positive control: an interaction that moves there and not under the preference
-  proves both that the watch sees motion and that the product honors the preference. Read it before
-  trusting a clean result: the dialog and notification fixtures turn animation off so their states are
-  reached at once, so the check turns it back on (the dialog's `animation` setting, the notification's
-  `?animation=1`), and a fixture that animates nothing makes the reduced-motion half pass on nothing.
+  proves both that the watch sees motion and that the product honors the preference. The control
+  evaluates no criterion, and a control that should move and saw none is a problem of its target
+  (`controlProblems()`), never a clean result. An interaction marked `moves` (the sheet switch, the
+  notification) should move on a theme whose `--ht-table-transition` is not `0s`; the dialog only fades
+  and the context menu appears at once, so neither is expected to. The dialog and notification fixtures
+  turn animation off so their states are reached at once, so the check turns it back on (the dialog's
+  `animation` setting, the notification's `?animation=1`).
 - **Forced colors is a capture, before and after.** With `forcedColors: 'active'` on the shared demo, the
   cell focus, a selected range and a menu item's highlight are captured before and after the keyboard
   reaches them, and the grid lines and the header menu icons at rest. A state that changes no pixel, or a

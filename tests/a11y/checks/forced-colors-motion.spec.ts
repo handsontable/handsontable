@@ -4,7 +4,7 @@ import { emulate, openTarget, reachState, releaseParkedFetches, selectCell, type
 import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } from '../evidence';
 import { A11Y_THEMES } from '../../lib/a11y-baseline.mjs';
 import { dominantColor, indicatorChange, isDrawn, strongestPixel } from '../../lib/contrast.mjs';
-import { forcedColorsFindings, isMotion, longRunningFindings, motionFindings } from '../../lib/motion.mjs';
+import { controlProblems, forcedColorsFindings, isMotion, longRunningFindings, motionFindings } from '../../lib/motion.mjs';
 import { capture, cellBox, grow, settle, type Image } from './pixels';
 
 /**
@@ -16,9 +16,10 @@ import { capture, cellBox, grow, settle, type Image } from './pixels';
  *   blinks from the watch's first frame to its last, and repeats without end or lasts five seconds or more,
  *   is `moves-over-five-seconds`.
  * - **Reduced motion, on interaction** (2.3.3): a sheet switch, a dialog shown, a notification shown and a
- *   menu opened, watched for 1.5 seconds each, with the preference and without it. Without it is the
- *   positive control: an interaction that animates there, and not under the preference, proves the watch
- *   sees motion and the grid honors the preference.
+ *   menu opened, watched for 1.5 seconds each, with the preference and without it, once the finite
+ *   animations the load started have ended. Without it is the positive control: an interaction that
+ *   animates there, and not under the preference, proves the watch sees motion and the grid honors the
+ *   preference. A control that should move and saw nothing is a problem of its run, not a clean result.
  * - **Forced colors** (`forcedColors: 'active'`): the cell focus, a selected range, a menu's highlight,
  *   the grid lines and the icons, each captured (attached as a PNG) and required to stay visible.
  *
@@ -149,7 +150,21 @@ async function watchState(page: Page, testInfo: TestInfo, entry: A11yPage, theme
   });
 }
 
-type Interaction = { page: string; label: string; query?: string; act: (page: Page, opened: OpenedTarget) => Promise<void> };
+/**
+ * Waits until every running animation that ends has ended, so a watch that starts next records no finite
+ * animation the load started. One that repeats without end never ends: the watch at rest reports it, and
+ * a watch that starts next would still record it, so an interaction's page must have none.
+ *
+ * @param page The page.
+ */
+async function animationsEnded(page: Page): Promise<void> {
+  await expect.poll(() => page.evaluate(() => document.getAnimations().filter(animation => animation.playState === 'running'
+    && animation.effect?.getComputedTiming().iterations !== Infinity).length), { message: 'the animations the load started ended' }).toBe(0);
+}
+
+// `moves`: whether the interaction moves something when the theme has a transition and the user has not
+// asked for reduced motion. Its run without the preference must then see that motion.
+type Interaction = { page: string; label: string; query?: string; moves: boolean; act: (page: Page, opened: OpenedTarget) => Promise<void> };
 
 const hotOf = (selector: string) => `(document.querySelector(${JSON.stringify(selector)})?.querySelector('.ht-root-wrapper'))?.__hotInstance`;
 
@@ -160,6 +175,8 @@ const INTERACTIONS: Interaction[] = [
   {
     page: 'sheets-bar',
     label: 'switch to the second sheet',
+    // The active tab's indicator slides to the new tab.
+    moves: true,
     act: async(page, opened) => {
       await page.locator(`${opened.root} .ht-sheets-bar__tab`).nth(1).click();
     },
@@ -167,6 +184,8 @@ const INTERACTIONS: Interaction[] = [
   {
     page: 'dialog',
     label: 'show the dialog again',
+    // It fades in: opacity, not motion.
+    moves: false,
     act: async(page, opened) => {
       await page.evaluate(`(() => {
         const hot = ${hotOf(opened.root)};
@@ -182,6 +201,8 @@ const INTERACTIONS: Interaction[] = [
     page: 'notification',
     label: 'show a notification',
     query: 'animation=1',
+    // The toast slides in from its edge.
+    moves: true,
     act: async(page, opened) => {
       await page.evaluate(`${hotOf(opened.root)}.getPlugin('notification').showMessage({ title: 'Saved', message: 'The change was saved.' })`);
     },
@@ -189,6 +210,8 @@ const INTERACTIONS: Interaction[] = [
   {
     page: 'grid',
     label: 'open the context menu',
+    // The menu appears at once.
+    moves: false,
     act: async(page, opened) => {
       await selectCell(page, opened.root, [1, 1]);
       await page.keyboard.press('Shift+F10');
@@ -197,7 +220,8 @@ const INTERACTIONS: Interaction[] = [
 ];
 
 /**
- * Runs one interaction with the preference and without it, and watches what it animates.
+ * Runs one interaction with the preference or without it, and watches what it animates. The run without
+ * it is the positive control.
  *
  * @param page The page.
  * @param testInfo The running test.
@@ -222,19 +246,33 @@ async function interact(page: Page, testInfo: TestInfo, interaction: Interaction
   await releaseParkedFetches(page);
   // Let what the load started finish, so the watch sees what the interaction starts.
   await settle(page);
+  await animationsEnded(page);
 
   const environment = await readEnvironment(page);
+  // A theme whose transition token is 0s (classic) animates nothing, so its control is not expected to move.
+  const transition = await page.evaluate((selector) => {
+    const wrapper = document.querySelector(selector)?.querySelector('.ht-root-wrapper');
+
+    return wrapper ? getComputedStyle(wrapper).getPropertyValue('--ht-table-transition').trim() : '';
+  }, opened.root);
+  const expectsMotion = interaction.moves && parseFloat(transition) > 0;
   const watching = watchAnimations(page, INTERACTION_MS);
 
+  // When the interaction throws, the watch is never awaited and rejects as the page closes; handled here,
+  // that rejection is not reported on top of the real error.
+  watching.catch(() => undefined);
   await interaction.act(page, opened);
 
   const { animations } = await watching;
   const motion = animations.filter(isMotion);
 
+  // The run without the preference is the control: it evaluates no criterion, and a control that should
+  // move and saw nothing is a problem of the run.
   await attachEvidence(testInfo, {
-    target, startedAt, environment, criteria: ['2.3.3'],
+    target, startedAt, environment, criteria: reducedMotion ? ['2.3.3'] : [],
     findings: motionFindings({ reducedMotion, step: interaction.label, animations }),
-    detail: { interaction: interaction.label, reducedMotion, animations, motion: motion.length },
+    problems: controlProblems({ reducedMotion, expectsMotion, step: interaction.label, animations }),
+    detail: { interaction: interaction.label, reducedMotion, expectsMotion, transition, animations, motion: motion.length },
     pageErrors: opened.pageErrors,
   });
 }

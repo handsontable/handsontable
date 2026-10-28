@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { forcedColorsFindings, isMotion, longRunningFindings, motionFindings } from '../motion.mjs';
+import { controlProblems, forcedColorsFindings, isMotion, longRunningFindings, motionFindings } from '../motion.mjs';
 import { EVIDENCE_SCHEMA, validatePart } from '../a11y-evidence.mjs';
 
 // tests/AGENTS.md ("A11y: the checks beyond axe", forced colors and reduced motion): the verdicts
@@ -45,6 +45,21 @@ test('under prefers-reduced-motion, a motion animation an interaction starts is 
   ]);
   assert.deepEqual(motionFindings({ reducedMotion: false, step: 's', animations: [animation()] }), [],
     'without the preference, motion is allowed');
+});
+
+test('a positive control that saw no motion is a problem of its run, not a clean result', () => {
+  const step = 'switch to the second sheet';
+  const fade = animation({ properties: ['opacity'], target: 'div.ht-dialog' });
+
+  assert.deepEqual(controlProblems({ reducedMotion: false, expectsMotion: true, step, animations: [fade] }), [
+    'the positive control saw no motion: "switch to the second sheet" moved nothing without the reduced-motion preference, so its reduced-motion run proves nothing',
+  ], 'a fade is not the motion the control has to see');
+  assert.deepEqual(controlProblems({ reducedMotion: false, expectsMotion: true, step, animations: [animation()] }), [],
+    'the control saw the indicator slide');
+  assert.deepEqual(controlProblems({ reducedMotion: false, expectsMotion: false, step, animations: [] }), [],
+    'an interaction that does not move on this theme (a fade, or a theme with no transition) has no control to fail');
+  assert.deepEqual(controlProblems({ reducedMotion: true, expectsMotion: true, step, animations: [] }), [],
+    'the run under the preference is the measured one, not the control');
 });
 
 test('content that moves for more than five seconds on its own is a 2.2.2 finding', () => {
