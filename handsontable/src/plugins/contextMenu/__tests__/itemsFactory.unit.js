@@ -112,6 +112,31 @@ describe('contextMenu/ItemsFactory', () => {
       expect(namesOf(factory.getItems(['borders']))).toEqual(['Borders']);
     });
 
+    it('skips an unresolved key without reporting it when the caller asks for a quiet pass', () => {
+      const factory = new ItemsFactory(hotMock());
+
+      factory.setPredefinedItems(factory.getItems(['row_above', 'borders']));
+
+      const items = factory.getItems(['row_above', 'borders'], false);
+
+      // Still skipped: a placeholder here would register a dead command under the raw key and
+      // make `executeCommand()` believe the key is known.
+      expect(namesOf(items)).toEqual(['<row_above>']);
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not use up the warning on a quiet pass', () => {
+      const factory = new ItemsFactory(hotMock());
+
+      factory.setPredefinedItems(factory.getItems(['row_abvoe']));
+      factory.getItems(['row_abvoe'], false);
+      factory.getItems(['row_abvoe']);
+
+      // The quiet pass was not the key's one report: the reporting pass after it still warns.
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy.mock.calls[0][0]).toContain('row_abvoe');
+    });
+
     it('never skips an array entry that is a full item definition object', () => {
       const factory = new ItemsFactory(hotMock());
       const custom = { name: 'My own item', callback() {} };

@@ -15,6 +15,7 @@
 @use "./plugins/hidden-rows";
 @use "./plugins/dropdown-menu";
 @use "./plugins/filters";
+@use "./plugins/formula-builder";
 @use "./plugins/comments";
 @use "./plugins/custom-borders";
 @use "./plugins/column-sorting";
@@ -89,6 +90,7 @@
   @include hidden-rows.output();
   @include dropdown-menu.output();
   @include filters.output();
+  @include formula-builder.output();
   @include comments.output();
   @include custom-borders.output();
   @include column-sorting.output();

@@ -129,6 +129,15 @@ class CommentEditor {
   }
 
   /**
+   * Set the editor height and leave its width as it is.
+   *
+   * @param {number} height Height in pixels.
+   */
+  setHeight(height: number) {
+    this.getInputElement()!.style.height = `${height}px`;
+  }
+
+  /**
    * Returns the size of the comments editor.
    *
    * @returns {{ width: number, height: number }}

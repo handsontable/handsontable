@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the first render computing the visible rows and the scrollbar without the column header.",
+  "type": "fixed",
+  "issueOrPR": 14013,
+  "breaking": false,
+  "framework": "none"
+}

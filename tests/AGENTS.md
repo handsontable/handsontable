@@ -463,9 +463,13 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   `test:tooling` gate on every pull request. Moving the version into the pnpm
   catalog is the durable upgrade when the core package can take that change.
 - The green-run cache (`scripts/e2e-run-cache.mjs`) hashes BOTH bundles, the
-  fixture-served HyperFormula artifact + `tests/package.json`, and every file
-  under `fixtures/`; rebuilding a bundle or reinstalling the engine re-runs
-  affected specs. Do not narrow that hash.
+  fixture-served HyperFormula artifact + `tests/package.json`, the
+  `hyperformula-ui` module the formula-builder fixture imports
+  (`tests/node_modules/hyperformula-ui/dist/index.js`), and every file under
+  `fixtures/`; rebuilding a bundle or reinstalling either package re-runs
+  affected specs. Do not narrow that hash. `hyperformula-ui` is pinned to one
+  exact version in every workspace package that loads it, which
+  `lib/__tests__/hyperformula-ui-pin.test.mjs` asserts.
 - **A cross-realm fixture builds the grid INSIDE an iframe from the PARENT's
   `Handsontable`** (`demo/iframe-width-window-scroll.html`). It is the only
   fixture that crosses a realm, and it exists because nothing else does: every
