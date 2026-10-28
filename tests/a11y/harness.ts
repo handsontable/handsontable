@@ -27,6 +27,8 @@ export const THEME_TOKEN = '--ht-line-height';
 // How many ArrowDown presses may be needed to reach a menu item; the default context menu has
 // fewer than twenty rows, separators included.
 const MENU_WALK_LIMIT = 30;
+// The error list of each page's latest `openTarget()`.
+const PAGE_ERRORS = new WeakMap<Page, string[]>();
 
 export type GridWindow = Window & {
   htBuildError?: string;
@@ -55,7 +57,7 @@ export type RootWrapper = HTMLElement & { __hotInstance?: HotInstance };
 
 /**
  * What `openTarget()` leaves: where the grid is, the cell a state opens on, the fixture's URL, and the
- * page errors collected so far (the list keeps growing until the test ends).
+ * page errors collected so far (the list keeps growing until the next `openTarget()` on the same page).
  */
 export interface OpenedTarget {
   root: string;
@@ -86,7 +88,12 @@ export async function openTarget(page: Page, entry: A11yPage, theme: string, { u
   const target = url ?? fixtureUrl(entry, theme);
   const pageErrors: string[] = [];
 
-  page.on('pageerror', error => pageErrors.push(String(error.stack ?? error)));
+  // One listener per page, feeding the list of its latest load: a check that reloads for every
+  // measurement would otherwise add a listener per load, past the emitter's limit of ten.
+  if (!PAGE_ERRORS.has(page)) {
+    page.on('pageerror', error => PAGE_ERRORS.get(page)?.push(String(error.stack ?? error)));
+  }
+  PAGE_ERRORS.set(page, pageErrors);
   await page.goto(target);
   await awaitBundle(page);
   await expect(page.locator(root).locator('.ht-root-wrapper')).toBeVisible();
