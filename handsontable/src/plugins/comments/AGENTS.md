@@ -19,6 +19,16 @@ Removing a comment is `setCellMeta(row, col, META_COMMENT, undefined)`, not `del
 Because the value lives in cell meta, a comment travels with the record through sorts and moves, and a
 sparse object data source needs no special handling (that was DEV-1718).
 
+## A comment menu item's `disabled()` judges the range its `callback()` acts on
+
+"Delete comment" and "Read-only comment" act on every cell of the active selection range
+(`range.forAll`), so each is disabled only when no cell in that range holds a comment:
+`checkSelectionConsistency([range], hasCommentAtCell)`. A highlight-only check greys out an item that
+would still have acted on the rest of the range, and no check at all left "Delete comment" enabled on a
+cell without a comment, where its click wrote `comment: undefined` meta (DEV-263). `hasCommentAtCell()`
+in `utils.ts` is the one definition of "has a comment" for the menu: a value is required, a hidden cell
+under a merged block is skipped, and the read is transient, because the walk runs on every menu draw.
+
 ## Shadow DOM: the handlers are bound twice, and the dedupe is required
 
 A shadow-hosted grid binds the pointer handlers **twice** — once inside the shadow tree, once on the
