@@ -128,7 +128,8 @@ export async function flattenAxTree(page: Page, cdp: CDPSession, root: string): 
 
 /**
  * The accessibility snapshot of the grid and of every marked portal, as Playwright writes it
- * (`ariaSnapshot()`), in one text: what the goldens keep. A page with one portal reads as before.
+ * (`ariaSnapshot()`), in one text: what the goldens keep. Each portal has a header of its own, so a page
+ * with one portal reads as before.
  *
  * @param page The page.
  * @param root The root container selector.
@@ -138,5 +139,5 @@ export async function treeSnapshot(page: Page, root: string): Promise<string> {
   const grid = await page.locator(root).first().ariaSnapshot();
   const portals = await Promise.all((await page.locator(PORTAL).all()).map(portal => portal.ariaSnapshot()));
 
-  return `# grid\n${grid.trim()}\n# portal\n${portals.map(portal => portal.trim()).join('\n')}\n`;
+  return `# grid\n${grid.trim()}\n${portals.map(portal => `# portal\n${portal.trim()}`).join('\n')}\n`;
 }

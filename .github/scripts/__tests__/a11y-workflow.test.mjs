@@ -136,7 +136,7 @@ test('the a11y spec scans the grid root and the portal with the WCAG 2.2 A and A
 
   assert.match(spec, /const WCAG_TAGS = \['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'\];/,
     `the rule set is the level the conformance report claims. ${DOC}`);
-  assert.match(spec, /\.include\(root\)\s*\.include\(PORTAL\)/, `the scan includes the root container and the portal, nothing else. ${DOC}`);
+  assert.match(spec, /\.include\(root\)\s*\.include\(PORTAL\)/, `the scan includes the root container and the marked portals, nothing else. ${DOC}`);
   assert.doesNotMatch(spec, /expect\([^)]*violations/, `a test never fails on a violation: the reporter applies the mode. ${DOC}`);
 });
 

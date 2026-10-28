@@ -49,6 +49,7 @@
 # portal
 - status
 - status
+# portal
 - listbox "Formula suggestions":
   - option "SUBSTITUTE" [selected]
   - option "SUBTOTAL"

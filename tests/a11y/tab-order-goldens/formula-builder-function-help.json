@@ -5,21 +5,14 @@
   "walks": {
     "popup": [
       {
-        "region": "grid",
-        "role": "combobox",
-        "name": "Formula editor"
+        "region": "portal",
+        "role": "generic",
+        "name": "any... - repeatable"
       },
       {
-        "region": "grid",
-        "role": "gridcell",
-        "name": "#N/A",
-        "cell": [
-          0,
-          2
-        ]
-      },
-      {
-        "region": "end"
+        "region": "portal",
+        "role": "generic",
+        "name": "any... - repeatable"
       }
     ]
   }

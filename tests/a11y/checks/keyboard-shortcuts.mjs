@@ -200,6 +200,11 @@ export const SHORTCUT_PROBES = [
   // editor has no TEXTAREA of the grid's own), so its keys show as text, a focus move, or a commit's
   // selection move. F2 or Ctrl+E only switches point mode, so its `then` presses the arrow that shows it: in
   // C2 the caret sits after a reference, where an arrow without point mode only moves the caret.
+  // Ctrl+Enter opens an empty A4 with F2 inside the range A3:B4, so only the fill to every selected cell
+  // changes data (a commit of A4 alone writes '' over ''). F6 is pressed once more with the function help
+  // open (`+SUM(`), where it moves the focus into the help. The point-mode rows (Shift, Ctrl and
+  // Ctrl+Shift with the arrows) and the commit-and-move rows prove that the key acts, as a text change or a
+  // selection move; the exact reference each writes is pinned by tests/e2e/formula-builder-keyboard.spec.ts.
   { section: 'Formula builder keyboard shortcuts', keys: 'Enter', ordinal: 1,
     probe: { page: 'formula-builder', setup: 'editor', at: [0, 2], press: 'Enter', expect: 'selection-moves' } },
   { section: 'Formula builder keyboard shortcuts', keys: 'Shift+Enter',
@@ -208,7 +213,7 @@ export const SHORTCUT_PROBES = [
   { section: 'Formula builder keyboard shortcuts', keys: 'Shift+Tab', ordinal: 1,
     probe: { page: 'formula-builder', setup: 'editor', at: [0, 2], press: 'Shift+Tab', expect: 'selection-moves' } },
   { section: 'Formula builder keyboard shortcuts', keys: 'Ctrl+Enter',
-    probe: { page: 'formula-builder', setup: 'range', at: [3, 0], to: [4, 1], prepare: [{ type: '7' }], press: 'ControlOrMeta+Enter', expect: 'value-changes' } },
+    probe: { page: 'formula-builder', setup: 'range', at: [3, 0], to: [2, 1], prepare: ['F2'], press: 'ControlOrMeta+Enter', expect: 'value-changes' } },
   { section: 'Formula builder keyboard shortcuts', keys: 'Alt+Enter', probe: { page: 'formula-builder', setup: 'editor', at: [0, 2], press: 'Alt+Enter', expect: 'text-changes' } },
   { section: 'Formula builder keyboard shortcuts', keys: 'Escape', ordinal: 1,
     probe: { page: 'formula-builder', setup: 'editor', at: [0, 2], prepare: [{ type: '*10' }], press: 'Escape', expect: 'editor-closes' } },
@@ -226,7 +231,8 @@ export const SHORTCUT_PROBES = [
     probe: { page: 'formula-builder', setup: 'editor', at: [1, 2], press: ['F2', 'ControlOrMeta+e'], then: ['ArrowUp'], expect: 'text-changes' } },
   { section: 'Formula builder keyboard shortcuts', keys: 'F4', probe: { page: 'formula-builder', setup: 'editor', at: [0, 2], press: 'F4', expect: 'text-changes' } },
   { section: 'Formula builder keyboard shortcuts', keys: 'F6 / Shift+F6',
-    probe: { page: 'formula-builder', setup: 'editor', at: [0, 2], press: ['F6', 'Shift+F6', { key: 'F6', prepare: ['F6'] }], expect: 'focus-moves' } },
+    probe: { page: 'formula-builder', setup: 'editor', at: [0, 2],
+      press: ['F6', 'Shift+F6', { key: 'F6', prepare: ['F6'] }, { key: 'F6', prepare: [{ type: '+SUM(' }] }], expect: 'focus-moves' } },
   { section: 'Formula builder keyboard shortcuts', keys: 'Shift+Tab', ordinal: 2,
     probe: { page: 'formula-builder', setup: 'cell', at: [0, 0], press: ['Shift+Tab', { key: 'Shift+Tab', prepare: ['Shift+Tab'] }], expect: 'focus-moves' } },
   { section: 'Formula builder keyboard shortcuts', keys: 'Enter', ordinal: 2,
