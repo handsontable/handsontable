@@ -199,12 +199,12 @@ sheetsBar.updateSheetSettings('Budget', { readOnly: true });
 
 ## Work with tabs
 
-Right-click a tab, or click the chevron on the active tab, to open its menu: **Rename**, **Duplicate**, **Move left**, **Move right**, and **Delete**. On an inactive tab, the first click on the chevron switches sheets.
+Right-click a tab, or click the chevron on the active tab, to open its menu: **Rename**, **Duplicate**, **Delete**, **Move left**, and **Move right**. On an inactive tab, the first click on the chevron switches sheets.
 
 - Double-click a tab to rename it.
 - Drag a tab to reorder sheets.
-- Click **Add sheet** to append a sheet.
-- Click **All sheets** to pick a sheet from a list.
+- Click the **+** button (Add sheet) to append a sheet.
+- Click the list button (All sheets) to pick a sheet from a list.
 
 ## Per-sheet view state
 
@@ -223,8 +223,6 @@ Each sheet keeps its own:
 A sheet you haven't opened yet opens with only what its own `settings` declare, on the configured [`initialPage`](@/api/options.md#pagination) and page size.
 
 To capture and restore a view without the sheets bar, see [Save and restore the view state](@/guides/getting-started/view-state/view-state.md).
-
-Switching sheets fires [`afterDeselect`](@/api/hooks.md#afterdeselect), then the selection hooks when a saved selection comes back.
 
 To run your code when a sheet's state is saved or restored, use the [`afterSheetTabStateCapture`](@/api/hooks.md#aftersheettabstatecapture) and [`afterSheetTabStateRestore`](@/api/hooks.md#aftersheettabstaterestore) hooks.
 
@@ -363,7 +361,7 @@ To reference other sheets in a formula, give each sheet the same [HyperFormula](
 
 :::
 
-Pass a built engine (`HyperFormula.buildEmpty()`), not the `HyperFormula` class. With the class, each sheet gets its own engine, can't read the other sheets' data, and the plugin logs a console warning.
+Pass a built engine (`HyperFormula.buildEmpty()`), not the `HyperFormula` class. With the class, each sheet gets its own engine and can't read the other sheets' data.
 
 A sheet added with the **Add sheet** button, or with `addSheet()` without `settings`, joins the shared engine, so other sheets can reference it right away.
 
