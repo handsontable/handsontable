@@ -63,10 +63,18 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
   clear that map (older behavior), so right after it the collapsed columns stay hidden with no group
   collapsed. The same config sent again (a wrapper re-render) is not another configuration: the version
   stays, so an undo and a redo across it put the group back with its hidden columns.
+- **`restoreState()` rebuilds the hiding map from the groups it imports (`#collapseGroups()`), not only the
+  tree.** UndoRedo restores the column index maps before the plugin states, and the order restore is a
+  cache update: NestedHeaders re-derives the tree, which still has the group the undone move split
+  expanded, so `#onAfterColumnCacheUpdate` rebuilds the map from no groups and clears the columns the
+  snapshot had just hidden. A tree-only import then left the group collapsed with every column showing.
+  For the same reason `#collapseGroups([])` skips its early return while the tree still has a collapsed
+  group: an undone collapse must expand the tree even when the map is already empty. Pinned in
+  `../undoRedo/__tests__/pluginState.unit.js` ("undo of a move that split its group").
 - **The sheets bar keeps the collapsed groups per sheet through `_exportViewState()` and
-  `_importViewState()`**, because a data load rebuilds the header state with every group expanded. Unlike
-  `restoreState()`, which leaves the hidden columns to UndoRedo's index maps, `_importViewState()` writes this
-  plugin's hiding map too, since a load re-creates it empty. The state holds the groups only, and the import
+  `_importViewState()`**, because a data load rebuilds the header state with every group expanded. Like
+  `restoreState()`, `_importViewState()` writes this plugin's hiding map too, since a load re-creates it
+  empty. The state holds the groups only, and the import
   derives the hidden columns through `#collapseGroups()`: columns captured under the old column order and
   membership could name a column that, after a return with the order reset (a `manualColumnMove` redeclared
   through `updateSheetSettings()`, or an order of another length), sits in a group that is not collapsed, and

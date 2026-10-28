@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed clearSort() losing a row moved between two sorts, and nested headers labeling the wrong columns after an undone column move or a setIndexesSequence() call.",
+  "title": "Fixed clearSort() restoring the wrong row order after a row was moved between two sorts or rows were inserted or removed while sorted, a collapsed column group keeping its columns hidden after a new column order split it, and nested headers labeling the wrong columns after an undone column move or a setIndexesSequence() call.",
   "type": "fixed",
   "issueOrPR": 14049,
   "breaking": false,

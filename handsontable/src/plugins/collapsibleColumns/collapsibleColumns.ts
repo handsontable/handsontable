@@ -628,9 +628,10 @@ export class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Collapses exactly the header groups a `captureState()` call recorded. Hook-silent: the collapse
-   * hooks fired when the user acted. Groups recorded under another `nestedHeaders` configuration are
-   * not put back: they would collapse whatever group of the new one sits at the same position.
+   * Collapses exactly the header groups a `captureState()` call recorded, and makes this plugin's
+   * hiding map hold the columns those collapses hide. Hook-silent: the collapse hooks fired when the
+   * user acted. Groups recorded under another `nestedHeaders` configuration are not put back: they
+   * would collapse whatever group of the new one sits at the same position.
    *
    * @private
    * @param {*} state The recorded state.
@@ -640,7 +641,7 @@ export class CollapsibleColumns extends BasePlugin {
       this.headerStateManager !== null && isCollapsedGroupsState(state) &&
       state.configVersion === this.headerStateManager.getConfigVersion()
     ) {
-      this.headerStateManager.importCollapsedGroups(state.groups);
+      this.#collapseGroups(state.groups);
     }
   }
 
@@ -661,10 +662,10 @@ export class CollapsibleColumns extends BasePlugin {
 
   /**
    * Collapses exactly the groups {@link CollapsibleColumns#_exportViewState} returned, or expands every
-   * group for `null`. Unlike {@link CollapsibleColumns#restoreState}, which leaves the hidden columns to
-   * UndoRedo's index maps, it writes this plugin's hiding map too, with the columns those collapses hide
-   * in the column order and group membership the grid has now, which can differ from the ones the groups
-   * were captured under. Hook-silent: the sheets bar calls it on a switch, and the user collapsed those
+   * group for `null`. Like {@link CollapsibleColumns#restoreState}, it writes this plugin's hiding map
+   * too, with the columns those collapses hide in the column order and group membership the grid has now,
+   * which can differ from the ones the groups were captured under. Unlike it, it does not check the
+   * header config version. Hook-silent: the sheets bar calls it on a switch, and the user collapsed those
    * groups on that sheet before.
    *
    * @private
@@ -697,7 +698,9 @@ export class CollapsibleColumns extends BasePlugin {
     }
 
     const currentColumns = map.getHiddenIndexes();
-    const nextColumns = groups.length === 0 && currentColumns.length === 0 ? [] : arrayMap(
+    const isAlreadyExpanded = groups.length === 0 && currentColumns.length === 0 &&
+      stateManager.exportCollapsedGroups().length === 0;
+    const nextColumns = isAlreadyExpanded ? [] : arrayMap(
       stateManager.importCollapsedGroups(groups, this.#createVisibilityWithout(map)),
       visualColumn => this.hot.toPhysicalColumn(visualColumn),
     );
