@@ -1320,8 +1320,9 @@ criterion.
   (`flaky`) and listed as a problem too. Flakiness is a finding against the check, not the product: fix
   the measurement, never quarantine it. A check that starts gating changes the constant, its test and
   this section together, after its findings have proven precise.
-- **One document per check, in one shape.** `test-results/a11y-checks/<check>.json`
-  (`mergeEvidence()`): `check`, `title`, `mode`, `criteria` (what the check evidences, from
+- **One document per check, in one shape.** `test-results/a11y-checks/<check>.json` (`mergeEvidence()`):
+  `check`, `title`, `mode`, `triage` (whether the check's records are for sorting rather than evidence; a
+  triage document's `summary.byCriterion` is empty), `criteria` (what the check evidences, from
   `EVIDENCE_CHECKS`), `run` (the commit the run tested, the head on a pull request and never the merge
   commit, so `null` on a pull request run without `A11Y_HEAD_SHA`; the ref, the run URL, the browser
   and its version, the Handsontable version and build date),
@@ -1382,10 +1383,12 @@ criterion.
 The merge, the validation, the summary and the check run are pure (`lib/a11y-evidence.mjs`, tested
 in `lib/__tests__/a11y-evidence.test.mjs` through the root `test:tooling`). The reporter
 (`reporters/a11y-checks.ts`) reads the last attempt of every test of each project that ran and writes
-the documents, the detail files and a `summary.md`; it never changes the run's status.
-`e2e/a11y-checks-reporter.spec.ts` (no browser, a few seconds) proves it on synthetic projects: the
-last attempt read, a failed test recorded as an error target, a retried one flagged, a detail written
-to its own file. `scripts/a11y-evidence-report.mjs` reads the documents and writes the job summary,
+the documents, the detail files and a `summary.md`; it never changes the run's status. It validates
+each part the way `mergeEvidence()` does, with the check's `triage` flag from `isTriageCheck()`, so a
+part the merge would keep is never dropped before it. `e2e/a11y-checks-reporter.spec.ts` (no browser,
+a few seconds) proves it on synthetic projects: the last attempt read, a failed test recorded as an
+error target, a retried one flagged, a triage check's part read as triage, a detail written to its own
+file. `scripts/a11y-evidence-report.mjs` reads the documents and writes the job summary,
 or posts one check run per check with `--check-run` (`--dry-run` prints the payloads); a check the job
 ran that left no document (`A11Y_CHECKS`) gets a neutral tooling check run instead of none.
 
@@ -1519,10 +1522,11 @@ best-practice, AAA and experimental rules beside the WCAG 2.2 A and AA ones (`DI
 
 - **Triage, never the gate.** It reads and writes nothing of `a11y/axe-baseline.json` and never posts to
   `A11y / axe report`; its verdict is `A11y / axe-discovery report`. Its registry entry is `triage: true`
-  with no criteria, because what it lists is for a person or the agent grader to sort, not for the
-  conformance report to cite as it stands. A rule the gating scan already runs shows here too (on states
-  and variants the scan does not reach), and each record names its family (`wcag-a-aa`, `wcag-aaa`,
-  `best-practice`, `experimental`).
+  with no criteria, and its document says `triage: true` with an empty `summary.byCriterion`, because what
+  it lists is for a person or the agent grader to sort, not for the conformance report to cite as it
+  stands. Its records keep the criteria axe tags them with, for sorting. A rule the gating scan already
+  runs shows here too (on states and variants the scan does not reach), and each record names its family
+  (`wcag-a-aa`, `wcag-aaa`, `best-practice`, `experimental`).
 - **Every "needs review" result is listed with axe's reason.** `incomplete` is what axe could not decide;
   the gating scan only counts it. Here each one is an advisory `axe-needs-review` record per rule,
   element shape and cause (`nodeCause()`: the axe check behind its first message, and that check's
@@ -1530,8 +1534,10 @@ best-practice, AAA and experimental rules beside the WCAG 2.2 A and AA ones (`DI
   The message is never part of the key: axe writes per-node values into some (a size in px, an
   `aria-controls` id that carries the instance's random guid), which would split one finding per node and
   change its id every run. A violation is an `axe-violation` record per rule and element shape, at axe's
-  impact. A best-practice rule maps to no WCAG criterion, so its record carries an empty `criteria` list,
-  which the evidence shape allows for that reason and counts as `summary.withoutCriterion`.
+  impact. The summary counts the records by rule and kind, so what axe decided stays apart from what it
+  could not. A best-practice rule maps to no WCAG criterion, so its record carries an empty `criteria`
+  list, which the evidence shape allows on a triage check's record only and counts as
+  `summary.withoutCriterion`; on any other check such a finding is malformed.
 - **More states, in a list of its own.** `a11y/checks/discovery-pages.mjs` adds what no catalog page
   holds still: a cell focused from the keyboard, a hovered header button, the column menu of a sortable
   grid, a focused option of the filter value list, two selected ranges, a submenu inside a submenu

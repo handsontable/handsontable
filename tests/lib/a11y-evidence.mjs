@@ -150,7 +150,8 @@ export const WCAG_CRITERIA = Object.freeze({
  * unless it says otherwise. `pullRequest` says whether the check also runs on pull requests next to
  * the axe scan, which a check earns by finishing in under two minutes; every check runs in the A11y
  * nightly. A `triage` check evidences no criterion: its records are for sorting, not for the report to
- * cite. Each pull request that adds a check adds its entry.
+ * cite, so its document says `triage: true` with an empty `summary.byCriterion`, and only its records may
+ * name no criterion. Each pull request that adds a check adds its entry.
  */
 export const EVIDENCE_CHECKS = Object.freeze({
   'keyboard-walker': {
@@ -252,6 +253,19 @@ export function compareCriteria(a, b) {
 }
 
 /**
+ * Whether a check is triage: its registry entry says `triage: true`. Its records are for sorting, so they
+ * may name no criterion, and its document counts none. `mergeEvidence()` and the reporter, which
+ * validates each part before it merges, read it from here, so the two never disagree on a part.
+ *
+ * @param {string} check The check id.
+ * @param {Record<string, {triage?: boolean}>} [checks] The registry; defaults to `EVIDENCE_CHECKS`.
+ * @returns {boolean} Whether it is triage.
+ */
+export function isTriageCheck(check, checks = EVIDENCE_CHECKS) {
+  return Object.hasOwn(checks, check) && checks[check]?.triage === true;
+}
+
+/**
  * The name of a check's check run.
  *
  * @param {string} check The check id (`keyboard-walker`).
@@ -309,9 +323,10 @@ export function findingId(check, finding) {
  * list means it is well formed.
  *
  * @param {unknown} part The part.
+ * @param {{triage?: boolean}} [options] Whether the part is a triage check's, whose records may name no criterion.
  * @returns {string[]} The problems.
  */
-export function validatePart(part) {
+export function validatePart(part, { triage = false } = {}) {
   const problems = [];
 
   if (!isObject(part)) {
@@ -333,7 +348,7 @@ export function validatePart(part) {
   if (!Array.isArray(part.findings)) {
     problems.push('findings is not an array');
   } else {
-    part.findings.forEach((finding, index) => problems.push(...findingProblems(finding, `findings[${index}]`)));
+    part.findings.forEach((finding, index) => problems.push(...findingProblems(finding, `findings[${index}]`, triage)));
   }
 
   return problems;
@@ -349,11 +364,12 @@ export function validatePart(part) {
  *   The tests that did not measure (`error`), and the ones that measured only on a retry (`flaky`).
  * @param {object} [input.run] The run's metadata: commit, ref, runUrl, startedAt, durationMs.
  * @param {string[]} [input.problems] Tooling problems found while reading.
- * @param {Record<string, {title: string, criteria: string[]}>} [input.checks] The registry; defaults to `EVIDENCE_CHECKS`.
+ * @param {Record<string, {title: string, criteria: string[], triage?: boolean}>} [input.checks] The registry; defaults to `EVIDENCE_CHECKS`.
  * @returns {object} The evidence document.
  */
 export function mergeEvidence({ check, parts, failures = [], run = {}, problems = [], checks = EVIDENCE_CHECKS }) {
   const definition = Object.hasOwn(checks, check) ? checks[check] : null;
+  const triage = isTriageCheck(check, checks);
   const all = [...problems];
 
   if (!definition) {
@@ -365,7 +381,7 @@ export function mergeEvidence({ check, parts, failures = [], run = {}, problems 
   const seen = new Set();
 
   for (const part of parts) {
-    const partProblems = validatePart(part);
+    const partProblems = validatePart(part, { triage });
 
     if (partProblems.length > 0) {
       all.push(`an evidence part of ${describeTarget(part?.target)} is malformed: ${partProblems.join('; ')}`);
@@ -459,6 +475,7 @@ export function mergeEvidence({ check, parts, failures = [], run = {}, problems 
     check,
     title: definition?.title ?? check,
     mode: EVIDENCE_MODE,
+    triage,
     criteria,
     run: {
       commit: run.commit ?? null,
@@ -475,21 +492,22 @@ export function mergeEvidence({ check, parts, failures = [], run = {}, problems 
     targets,
     findings,
     problems: all,
-    summary: summarize({ criteria, targets, findings }),
+    summary: summarize({ criteria, targets, findings, triage }),
   };
 }
 
 /**
  * The counts of a document: targets measured and errored, findings by severity, by kind and by
  * criterion. A criterion's `evaluated` is the number of measured targets that evaluated it: what the
- * conformance report cites as evidence that the criterion was checked, findings or none.
+ * conformance report cites as evidence that the criterion was checked, findings or none. A triage
+ * check counts no criterion: its records keep theirs for sorting, and the report cites none of them.
  *
- * @param {{criteria: string[], targets: object[], findings: object[]}} input The document's lists.
+ * @param {{criteria: string[], targets: object[], findings: object[], triage: boolean}} input The document's lists.
  * @returns {object} The summary.
  */
-function summarize({ criteria, targets, findings }) {
+function summarize({ criteria, targets, findings, triage }) {
   const measured = targets.filter(target => target.status === 'measured');
-  const ids = new Set([...criteria, ...findings.flatMap(finding => finding.criteria)]);
+  const ids = new Set(triage ? [] : [...criteria, ...findings.flatMap(finding => finding.criteria)]);
   const byCriterion = {};
 
   for (const id of [...ids].sort(compareCriteria)) {
@@ -545,6 +563,9 @@ export function validateEvidence(doc, { checks = EVIDENCE_CHECKS } = {}) {
   if (doc.mode !== EVIDENCE_MODE) {
     problems.push(`mode is ${JSON.stringify(doc.mode)}, not ${JSON.stringify(EVIDENCE_MODE)}`);
   }
+  if (typeof doc.triage !== 'boolean') {
+    problems.push('triage is not a boolean');
+  }
   problems.push(...criteriaProblems(doc.criteria, 'criteria'));
   if (!isObject(doc.run)) {
     problems.push('run is not an object');
@@ -566,7 +587,7 @@ export function validateEvidence(doc, { checks = EVIDENCE_CHECKS } = {}) {
     problems.push('findings is not an array');
   } else {
     doc.findings.forEach((finding, index) => {
-      problems.push(...findingProblems(finding, `findings[${index}]`));
+      problems.push(...findingProblems(finding, `findings[${index}]`, doc.triage === true));
       problems.push(...targetProblems(finding, `findings[${index}]`));
       if (typeof finding?.id !== 'string' || finding.id === '') {
         problems.push(`findings[${index}].id is missing`);
@@ -620,27 +641,33 @@ export function renderEvidenceSummary(doc, { runUrl, artifactUrl } = {}) {
     lines.push(links.join(' · '), '');
   }
 
-  lines.push('| Criterion | Level | Targets evaluated | Findings |', '| --- | :-: | --: | --: |');
-  for (const [id, entry] of Object.entries(doc.summary.byCriterion)) {
-    lines.push(`| ${escape(id)} ${escape(entry.name ?? '')} | ${escape(entry.level ?? '')} | ${entry.evaluated} | ${entry.findings} |`);
+  if (doc.triage) {
+    lines.push('Triage, not evidence: the conformance report cites none of these records, so no criterion is counted.', '');
+  } else {
+    lines.push('| Criterion | Level | Targets evaluated | Findings |', '| --- | :-: | --: | --: |');
+    for (const [id, entry] of Object.entries(doc.summary.byCriterion)) {
+      lines.push(`| ${escape(id)} ${escape(entry.name ?? '')} | ${escape(entry.level ?? '')} | ${entry.evaluated} | ${entry.findings} |`);
+    }
+    lines.push('');
   }
-  lines.push('');
 
-  // A check whose records name a rule (the axe discovery run) gets a table by rule first: among
-  // thousands of records sorted by severity, a rule with a few records would not reach the first sixty.
+  // A check whose records name a rule (the axe discovery run) gets a table by rule and kind first: among
+  // thousands of records sorted by severity, a rule with a few records would not reach the first sixty,
+  // and what axe decided (a violation) is counted apart from what it could not (a needs-review result).
   const rules = new Map();
 
   for (const finding of doc.findings.filter(item => typeof item.rule === 'string')) {
-    const entry = rules.get(finding.rule) ?? { count: 0, worst: finding.severity };
+    const key = `${finding.rule}|${finding.kind}`;
+    const entry = rules.get(key) ?? { rule: finding.rule, kind: finding.kind, count: 0, worst: finding.severity };
 
     entry.count += 1;
     entry.worst = SEVERITIES.indexOf(finding.severity) < SEVERITIES.indexOf(entry.worst) ? finding.severity : entry.worst;
-    rules.set(finding.rule, entry);
+    rules.set(key, entry);
   }
   if (rules.size > 0) {
-    lines.push('| Rule | Records | Worst |', '| --- | --: | --- |');
-    for (const [rule, entry] of [...rules].sort((a, b) => b[1].count - a[1].count || a[0].localeCompare(b[0]))) {
-      lines.push(`| ${escape(rule)} | ${entry.count} | ${escape(entry.worst)} |`);
+    lines.push('| Rule | Kind | Records | Worst |', '| --- | --- | --: | --- |');
+    for (const entry of [...rules.values()].sort((a, b) => b.count - a.count || a.rule.localeCompare(b.rule) || a.kind.localeCompare(b.kind))) {
+      lines.push(`| ${escape(entry.rule)} | ${escape(entry.kind)} | ${entry.count} | ${escape(entry.worst)} |`);
     }
     lines.push('');
   }
@@ -892,9 +919,10 @@ function criteriaProblems(criteria, label) {
  *
  * @param {unknown} finding The finding.
  * @param {string} label Where it sits.
+ * @param {boolean} [triage] Whether it is a triage check's record, which may name no criterion.
  * @returns {string[]} The problems.
  */
-function findingProblems(finding, label) {
+function findingProblems(finding, label, triage = false) {
   if (!isObject(finding)) {
     return [`${label} is not an object`];
   }
@@ -904,9 +932,10 @@ function findingProblems(finding, label) {
   if (typeof finding.kind !== 'string' || !KIND_ID.test(finding.kind)) {
     problems.push(`${label}.kind is not a kebab-case id`);
   }
-  // An empty list is a finding no WCAG criterion covers (an axe best practice), counted apart.
-  if (!Array.isArray(finding.criteria)) {
-    problems.push(`${label}.criteria is not an array`);
+  // Only a triage check's record may name no criterion (an axe best practice), counted apart: on a check
+  // that evidences criteria, a finding with none would be cited against nothing.
+  if (!Array.isArray(finding.criteria) || (finding.criteria.length === 0 && !triage)) {
+    problems.push(`${label}.criteria is not ${triage ? 'an array' : 'a non-empty array'}`);
   } else {
     problems.push(...criteriaProblems(finding.criteria, `${label}.criteria`));
   }

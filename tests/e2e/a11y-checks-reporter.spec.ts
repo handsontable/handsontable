@@ -12,7 +12,7 @@ import { expect, test } from '@playwright/test';
  * is unit-tested in `lib/__tests__/a11y-evidence.test.mjs`; this is the step around it that only a real
  * run shows: which attempt is read, a failed test recorded as a target that was not measured, a test
  * that passed on a retry flagged, a test that never ran or left an unreadable part recorded the same
- * way, a target's detail written to its own file.
+ * way, a triage check's part read as triage, a target's detail written to its own file.
  *
  * Each case writes a tiny Playwright project under `test-results/` whose tests attach hand-written
  * evidence parts the way `a11y/evidence.ts` attaches them. No browser runs.
@@ -60,9 +60,10 @@ function checkTest(title: string, page: string, body: string[], findings: object
  * @param name The case name, also the directory name under `test-results/`.
  * @param specSource The synthetic spec's tests; `test`, `expect` and `writeFileSync` are imported.
  * @param options.maxFailures Stops the run after that many failures, so the tests after it never run.
+ * @param options.checks The registry the reporter reads `demo-check` from, when it is not `CHECKS`.
  * @returns The child's exit status and output, and where the reporter wrote.
  */
-function runSyntheticCheck(name: string, specSource: string, { maxFailures }: { maxFailures?: number } = {}) {
+function runSyntheticCheck(name: string, specSource: string, { maxFailures, checks = CHECKS }: { maxFailures?: number; checks?: object } = {}) {
   // The directory carries the project and worker of the running test, so two workers never share it.
   const info = test.info();
   const dir = path.join(testsRoot, 'test-results', `a11y-checks-reporter-proof-${name}-${info.project.name}-w${info.workerIndex}`);
@@ -77,7 +78,7 @@ function runSyntheticCheck(name: string, specSource: string, { maxFailures }: { 
     '  retries: 1,',
     '  workers: 1,',
     ...(maxFailures === undefined ? [] : [`  maxFailures: ${maxFailures},`]),
-    `  reporter: [['dot'], [${JSON.stringify(reporterPath)}, ${JSON.stringify({ checks: CHECKS, outputDir: evidenceDir })}]],`,
+    `  reporter: [['dot'], [${JSON.stringify(reporterPath)}, ${JSON.stringify({ checks, outputDir: evidenceDir })}]],`,
     '  projects: [{ name: \'demo-check\' }],',
     '};',
     '',
@@ -185,6 +186,21 @@ test.describe('the reporter of the checks beyond axe', () => {
     expect(doc.targets.map((target: { page: string | null; status: string }) => [target.page, target.status])).toEqual([['menu', 'error'], [null, 'error']]);
     expect(doc.problems).toContain('grid on main did not measure: the test did not run: the run stopped before it started (maxFailures, the global timeout or an interrupt)');
     expect(doc.summary.errors).toBe(2);
+  });
+
+  test('a triage check\'s part may hold a record that names no criterion, and its document counts no criterion', async() => {
+    const practice = { kind: 'axe-violation', criteria: [], severity: 'moderate', selector: 'div.region', reason: 'All page content should be contained by landmarks' };
+    const contrast = { kind: 'axe-violation', criteria: ['1.4.3'], severity: 'serious', selector: 'td.low', reason: 'Elements must meet minimum color contrast ratio thresholds' };
+    const { evidenceDir } = runSyntheticCheck('triage', checkTest('grid on main', 'grid', [], [practice, contrast]),
+      { checks: { 'demo-check': { title: 'Demo triage', criteria: [], triage: true } } });
+    const doc = JSON.parse(readFileSync(path.join(evidenceDir, 'demo-check.json'), 'utf8'));
+
+    expect(doc.targets.map((target: { page: string; status: string }) => [target.page, target.status]), 'the part is valid on a triage check')
+      .toEqual([['grid', 'measured']]);
+    expect(doc.problems).toEqual([]);
+    expect(doc.triage).toBe(true);
+    expect(doc.summary.findings).toBe(2);
+    expect(doc.summary.byCriterion, 'a triage record is not evidence the conformance report cites').toEqual({});
   });
 
   test('a part is never attached for a page that threw while it was measured', async() => {

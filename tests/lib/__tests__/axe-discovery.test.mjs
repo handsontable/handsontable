@@ -106,5 +106,5 @@ test('two records on one element differ by rule and cause, so their ids never co
 test('the records are valid evidence', () => {
   const findings = discoveryFindings({ violations: [CONTRAST, REGION], incomplete: [INCOMPLETE] });
 
-  assert.deepEqual(validatePart({ schema: EVIDENCE_SCHEMA, target: { page: 'grid', theme: 'main' }, durationMs: 1, findings }), []);
+  assert.deepEqual(validatePart({ schema: EVIDENCE_SCHEMA, target: { page: 'grid', theme: 'main' }, durationMs: 1, findings }, { triage: true }), []);
 });
