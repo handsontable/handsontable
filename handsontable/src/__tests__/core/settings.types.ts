@@ -674,7 +674,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterSheetAdded: (addedSheetDisplayName) => {},
   afterSheetRemoved: (removedSheetDisplayName, changes) => {},
   afterSheetRenamed: (oldDisplayName, newDisplayName) => {},
-  afterSheetTabAdd: (sheetId, name, source) => {},
+  afterSheetTabAdd: (sheetId, name, duplicateOfId, source) => {},
   afterSheetTabChange: (oldSheetId, newSheetId, source) => {},
   afterSheetTabMove: (sheetId, finalIndex, source) => {},
   afterSheetTabRemove: (sheetId, source) => {},
@@ -881,7 +881,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeSetRangeEnd: (coords) => {},
   beforeSetRangeStart: (coords) => {},
   beforeSetRangeStartOnly: (coords) => {},
-  beforeSheetTabAdd: (name, source) => {},
+  beforeSheetTabAdd: (name, duplicateOfId, source) => {},
   beforeSheetTabChange: (oldSheetId, newSheetId, source) => {},
   beforeSheetTabMove: (sheetId, finalIndex, source) => {},
   beforeSheetTabRemove: (sheetId, source) => {},
@@ -1189,7 +1189,7 @@ hot.updateSettings({
   },
   beforeSheetTabChange: (oldSheetId, newSheetId, source) => false,
   afterSheetTabChange: (oldSheetId, newSheetId, source) => {},
-  afterSheetTabAdd: (sheetId, name, source) => {},
+  afterSheetTabAdd: (sheetId, name, duplicateOfId, source) => {},
 });
 hot.updateSettings({
   sheetsBar: {

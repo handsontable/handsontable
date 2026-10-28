@@ -224,4 +224,154 @@ describe('SheetModel', () => {
     expect(copy.settings.polluted).toBeUndefined();
     expect(copy.settings.colHeaders).toBe(true);
   });
+
+  describe('resolveId', () => {
+    it.each([
+      ['undefined', undefined],
+      ['null', null],
+      ['an object', { id: 1 }],
+      ['an array', [1]],
+      ['a boolean', true],
+    ])('answers `null` for %s instead of throwing', (_label, value) => {
+      const model = new SheetModel();
+
+      model.addSheet('A', [[]]);
+
+      expect(model.resolveId(value)).toBe(null);
+    });
+  });
+
+  describe('moveSheet', () => {
+    it.each([
+      ['NaN', NaN],
+      ['a fraction', 0.5],
+      ['a numeric string', '1'],
+      ['Infinity', Infinity],
+    ])('refuses %s as the target index and keeps the order', (_label, index) => {
+      const model = new SheetModel();
+      const a = model.addSheet('A', [[]]);
+
+      model.addSheet('B', [[]]);
+      model.addSheet('C', [[]]);
+
+      expect(model.moveSheet(a.id, index)).toBe(false);
+      expect(model.getSheets().map(sheet => sheet.name)).toEqual(['A', 'B', 'C']);
+    });
+  });
+
+  describe('names with no visible character', () => {
+    const invisibleNames = [
+      ['a zero-width space', '​'],
+      ['zero-width joiners and non-joiners', '‍‌‍'],
+      ['bidi marks and isolates', '‎‏⁦⁩'],
+      ['a word joiner beside spaces', ' ⁠ '],
+      ['a byte order mark', '﻿'],
+    ];
+
+    it.each(invisibleNames)('gives %s the default name, like a blank one', (_label, name) => {
+      const model = new SheetModel();
+      const sheet = model.addSheet(name, [[]]);
+
+      expect(sheet.name).toBe('Sheet1');
+    });
+
+    it.each(invisibleNames)('refuses a rename to %s', (_label, name) => {
+      const model = new SheetModel();
+      const sheet = model.addSheet('A', [[]]);
+
+      expect(model.renameSheet(sheet.id, name)).toBe(false);
+      expect(model.getSheetById(sheet.id).name).toBe('A');
+    });
+
+    it('keeps an invisible character inside a name that has visible ones', () => {
+      const model = new SheetModel();
+      const sheet = model.addSheet('Bud​get', [[]]);
+
+      expect(sheet.name).toBe('Bud​get');
+      expect(model.renameSheet(sheet.id, 'Q‎1')).toBe(true);
+      expect(model.getSheetById(sheet.id).name).toBe('Q‎1');
+    });
+
+    it('keeps a look-alike of a taken name as a separate name', () => {
+      const model = new SheetModel();
+
+      model.addSheet('Budget', [[]]);
+
+      expect(model.addSheet('Budget​', [[]]).name).toBe('Budget​');
+    });
+  });
+
+  describe('collision numbering', () => {
+    it('keeps a trailing number in parentheses that the requested name carries', () => {
+      const model = new SheetModel();
+
+      model.addSheet('Budget (2024)', [[]]);
+
+      expect(model.addSheet('Budget (2024)', [[]]).name).toBe('Budget (2024) (2)');
+    });
+
+    it('numbers a taken name that ends in a counter after the whole name', () => {
+      const model = new SheetModel();
+
+      model.addSheet('A', [[]]);
+      model.addSheet('A (2)', [[]]);
+
+      expect(model.addSheet('A (2)', [[]]).name).toBe('A (2) (2)');
+    });
+
+    it('counts duplicates of one sheet up from 2', () => {
+      const model = new SheetModel();
+      const budget = model.addSheet('Budget (2024)', [[]]);
+
+      expect(model.duplicateSheet(budget.id).name).toBe('Budget (2024) (2)');
+      expect(model.duplicateSheet(budget.id).name).toBe('Budget (2024) (3)');
+    });
+
+    it('names a duplicate of a numbered copy after the copy', () => {
+      const model = new SheetModel();
+      const data = model.addSheet('Data', [[]]);
+      const copy = model.duplicateSheet(data.id);
+
+      expect(model.duplicateSheet(copy.id).name).toBe('Data (2) (2)');
+    });
+
+    it('tells the name a duplicate will get before it is made', () => {
+      const model = new SheetModel();
+      const data = model.addSheet('Data', [[]]);
+
+      model.addSheet('Data (2)', [[]]);
+
+      expect(model.getDuplicateName(data.id)).toBe('Data (3)');
+      expect(model.duplicateSheet(data.id).name).toBe('Data (3)');
+      expect(model.getDuplicateName(999)).toBe(null);
+    });
+  });
+
+  describe('isNameTaken', () => {
+    it('answers whether another sheet already uses a name', () => {
+      const model = new SheetModel();
+      const a = model.addSheet('A', [[]]);
+      const b = model.addSheet('B', [[]]);
+
+      expect(model.isNameTaken('B', a.id)).toBe(true);
+      expect(model.isNameTaken('B', b.id)).toBe(false);
+      expect(model.isNameTaken('C', a.id)).toBe(false);
+    });
+  });
+
+  describe('sheet ids', () => {
+    it('takes its ids from the allocator it is given, and keeps its own default numbering', () => {
+      let lastId = 41;
+      const model = new SheetModel(undefined, () => {
+        lastId += 1;
+
+        return lastId;
+      });
+      const first = model.addSheet(null, [[]]);
+      const second = model.addSheet(null, [[]]);
+
+      expect([first.id, second.id]).toEqual([42, 43]);
+      expect([first.name, second.name]).toEqual(['Sheet1', 'Sheet2']);
+    });
+  });
 });

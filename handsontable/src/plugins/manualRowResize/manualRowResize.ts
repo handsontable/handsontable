@@ -6,6 +6,8 @@ import { ROW_RESIZE_AXIS } from '../../utils/manualResize/axis';
 import { ResizeGesture } from '../../utils/manualResize/resizeGesture';
 import {
   ROW_SIZE_OPTIONS,
+  isStorableSize,
+  pickStorableSizes,
   redeclaresManualSizes,
 } from '../../utils/manualResize/utils';
 
@@ -219,6 +221,9 @@ export class ManualRowResize extends BasePlugin {
    * This method updates the plugin's internal height map. Call `render()` after `setManualSize()` to repaint the grid.
    * Values lower than the theme's default row height are saved as the default row height.
    *
+   * Nothing is stored while the plugin is disabled, for a row that does not exist, or for a height that
+   * is not a finite number.
+   *
    * @example
    * ```js
    * const resizePlugin = hot.getPlugin('manualRowResize');
@@ -246,7 +251,8 @@ export class ManualRowResize extends BasePlugin {
     const physicalRow = this.hot.toPhysicalRow(row);
     const newHeight = this.#clampSize(height);
 
-    if (physicalRow !== null) {
+    // The map only exists while the plugin is enabled, and an out-of-range visual index resolves to `null`.
+    if (this.enabled && physicalRow !== null && isStorableSize(height)) {
       this.#rowHeightsMap.setValueAtIndex(physicalRow, newHeight);
     }
 
@@ -309,8 +315,9 @@ export class ManualRowResize extends BasePlugin {
    * Writes a set of manual heights at once, addressed by physical row index — the counterpart
    * of {@link ManualRowResize#getManualSizes}, so a stored set round-trips onto the same
    * records regardless of trimming or row order. Values lower than the theme's default row
-   * height are saved as that height, and an index outside the current row count is skipped.
-   * Call `render()` afterwards to repaint the grid.
+   * height are saved as that height. A pair whose index is not an integer within the current row
+   * count, or whose height is not a finite number, is skipped, and so is a value that is not an
+   * array. Call `render()` afterwards to repaint the grid.
    *
    * @param {Array<Array<number>>} sizes The `[physicalRow, height]` pairs to write.
    */
@@ -328,14 +335,12 @@ export class ManualRowResize extends BasePlugin {
       return;
     }
 
-    const rowCount = this.hot.rowIndexMapper.getNumberOfIndexes();
+    const storable = pickStorableSizes(sizes, this.hot.rowIndexMapper.getNumberOfIndexes());
     const minHeight = this.hot.stylesHandler.getDefaultRowHeight() || 0;
 
     this.hot.batchExecution(() => {
-      sizes.forEach(([physicalRow, height]) => {
-        if (physicalRow >= 0 && physicalRow < rowCount) {
-          this.#rowHeightsMap.setValueAtIndex(physicalRow, Math.max(height, minHeight));
-        }
+      storable.forEach(([physicalRow, height]) => {
+        this.#rowHeightsMap.setValueAtIndex(physicalRow, Math.max(height, minHeight));
       });
     }, true);
   }

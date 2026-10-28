@@ -97,7 +97,7 @@ You can combine `fixedRowsTop` and `fixedRowsBottom` to keep both a header and a
 
 To let users change the number of frozen rows by dragging, enable the [`freezeBar`](@/api/options.md#freezebar) option. The [`FreezeBar`](@/api/freezeBar.md) plugin draws a bar on the edge of the frozen rows, and users drag it to the row boundary where they want the freeze line. The bar also works with the keyboard. Drags are limited to the number of rows that leave room to scroll.
 
-The plugin changes the counts on the grid and doesn't write them back to the settings you passed in. To keep the counts in your own state, copy them in the [`afterFreezeChange`](@/api/hooks.md#afterfreezechange) hook.
+The plugin changes the counts on the grid and doesn't write them back to the settings you passed in. To keep the counts in your own state, copy them in the [`afterFreezeChange`](@/api/hooks.md#afterfreezechange) hook. Undo, redo, and a [sheets bar](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md) switch change the counts without that hook (each sheet keeps its own frozen rows), so read them again in [`afterUndo`](@/api/hooks.md#afterundo), [`afterRedo`](@/api/hooks.md#afterredo), and [`afterSheetTabChange`](@/api/hooks.md#aftersheettabchange).
 
 The plugin hides the bars for rows when the [`Pagination`](@/api/pagination.md) plugin is on, because Pagination doesn't support frozen rows. For the full guide, see [Column freezing: Freeze columns by dragging](@/guides/columns/column-freezing/column-freezing.md#freeze-columns-by-dragging).
 

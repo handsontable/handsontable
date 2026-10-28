@@ -49,14 +49,25 @@ export function truncateSheetName(name: string, limit: number = MAX_SHEET_NAME_L
 }
 
 /**
- * Trims a name and cuts it to the length limit.
+ * Matches a character a reader can see: anything but white space and the invisible format characters
+ * (zero-width spaces and joiners, bidi marks and isolates, the word joiner).
+ *
+ * @type {RegExp}
+ */
+const VISIBLE_CHARACTER = /[^\s\p{Cf}]/u;
+
+/**
+ * Trims a name and cuts it to the length limit. A name with no visible character comes back empty, the
+ * way a blank one does, so it cannot label a tab that looks blank.
  *
  * @param {string} name The requested name.
  * @param {number} [limit] The longest the result may be.
- * @returns {string} The name as it may be stored.
+ * @returns {string} The name as it may be stored, or `''`.
  */
 export function clampSheetName(name: string, limit: number = MAX_SHEET_NAME_LENGTH): string {
-  return truncateSheetName(name.trim(), limit).trim();
+  const clamped = truncateSheetName(name.trim(), limit).trim();
+
+  return VISIBLE_CHARACTER.test(clamped) ? clamped : '';
 }
 
 /**
@@ -116,9 +127,13 @@ export class SheetModel {
   #activeSheetId: number | null = null;
 
   /**
-   * Monotonic id counter.
+   * Hands out the id of each new sheet.
    */
-  #nextId = 1;
+  readonly #allocateId: () => number;
+  /**
+   * The number of sheets added to this model, which numbers the generated `{word}{n}` names.
+   */
+  #addedCount = 0;
   /**
    * Supplies the word a generated `{word}{n}` name starts from, in the grid's language.
    */
@@ -128,9 +143,19 @@ export class SheetModel {
    * Creates an empty model.
    *
    * @param {Function} [defaultName] Supplies the word generated sheet names start from.
+   * @param {Function} [allocateId] Hands out the id of each new sheet. The plugin passes one that
+   * outlives the model, so a rebuilt workbook never reuses an id a host may still hold. Omitted, the
+   * ids count up from 1.
    */
-  constructor(defaultName: () => string = () => 'Sheet') {
+  constructor(defaultName: () => string = () => 'Sheet', allocateId?: () => number) {
+    let lastId = 0;
+
     this.#defaultName = defaultName;
+    this.#allocateId = allocateId ?? (() => {
+      lastId += 1;
+
+      return lastId;
+    });
   }
 
   /**
@@ -157,11 +182,16 @@ export class SheetModel {
   }
 
   /**
-   * Resolves a sheet id from an id or a unique name. Returns `null` when not found.
+   * Resolves a sheet id from an id or a unique name. Returns `null` when not found, and for a value that
+   * is neither a number nor a string.
    */
-  resolveId(idOrName: number | string): number | null {
+  resolveId(idOrName: unknown): number | null {
     if (typeof idOrName === 'number') {
       return this.#sheets.has(idOrName) ? idOrName : null;
+    }
+
+    if (typeof idOrName !== 'string') {
+      return null;
     }
 
     for (const sheet of this.#sheets.values()) {
@@ -171,6 +201,19 @@ export class SheetModel {
     }
 
     return null;
+  }
+
+  /**
+   * Tells whether a sheet other than `exceptId` already uses a name.
+   *
+   * @param {string} name The name, as it would be stored.
+   * @param {number} exceptId The sheet the name is meant for.
+   * @returns {boolean}
+   */
+  isNameTaken(name: string, exceptId: number): boolean {
+    const id = this.resolveId(name);
+
+    return id !== null && id !== exceptId;
   }
 
   /**
@@ -194,9 +237,9 @@ export class SheetModel {
     data: unknown[] = createEmptySheetData(),
     settings?: Record<string, unknown>,
   ): Sheet {
-    const id = this.#nextId;
+    const id = this.#allocateId();
 
-    this.#nextId += 1;
+    this.#addedCount += 1;
 
     const sheet: Sheet = {
       id,
@@ -222,7 +265,7 @@ export class SheetModel {
     const sheet = this.#sheets.get(id);
     const trimmed = clampSheetName(name);
 
-    if (!sheet || trimmed === '' || (this.resolveId(trimmed) !== null && this.resolveId(trimmed) !== id)) {
+    if (!sheet || trimmed === '' || this.isNameTaken(trimmed, id)) {
       return false;
     }
     sheet.name = trimmed;
@@ -252,13 +295,13 @@ export class SheetModel {
   }
 
   /**
-   * Moves a sheet to the given tab index. Returns `false` for unknown ids or
-   * out-of-range indexes.
+   * Moves a sheet to the given tab index. Returns `false` for unknown ids, and for an index that is
+   * not an integer or is out of range.
    */
   moveSheet(id: number, index: number): boolean {
     const from = this.#order.indexOf(id);
 
-    if (from === -1 || index < 0 || index >= this.#order.length) {
+    if (from === -1 || !Number.isInteger(index) || index < 0 || index >= this.#order.length) {
       return false;
     }
 
@@ -281,7 +324,7 @@ export class SheetModel {
     const settings = source.settings ? copySettingsValue(source.settings) as Record<string, unknown> : undefined;
 
     const duplicate = this.addSheet(
-      this.#uniqueName(`${source.name} (2)`),
+      this.#freeNumberedName(source.name),
       deepClone(source.data) as unknown[][],
       settings,
     );
@@ -296,6 +339,18 @@ export class SheetModel {
   }
 
   /**
+   * Returns the name `duplicateSheet()` would give a copy of a sheet now, or `null` for an unknown id.
+   *
+   * @param {number} id The sheet to copy.
+   * @returns {string|null}
+   */
+  getDuplicateName(id: number): string | null {
+    const source = this.#sheets.get(id);
+
+    return source ? this.#freeNumberedName(source.name) : null;
+  }
+
+  /**
    * Builds a public descriptor for a sheet.
    */
   #toDescriptor(sheet: Sheet): SheetDescriptor {
@@ -303,28 +358,49 @@ export class SheetModel {
   }
 
   /**
-   * Returns the requested name when free, otherwise the next free variant:
-   * defaults count up as `Sheet{n}`, explicit collisions count up as `name (n)`.
+   * Returns the requested name when free, otherwise the next free variant: defaults count up as
+   * `Sheet{n}`, explicit collisions count up as `name (n)` after the whole requested name, the way
+   * the formula engine's sheet names are numbered (`freeEngineName()`). A counter the requested name
+   * already ends with is kept, so "Budget (2024)" becomes "Budget (2024) (2)", not "Budget (2)".
    */
   #uniqueName(requested: string | null): string {
     const trimmed = requested === null ? null : clampSheetName(requested);
-    // A blank or whitespace-only request has no visible label, so it takes the default
-    // numbering instead — the same blank that `renameSheet` rejects must not be creatable
-    // through `addSheet`.
+    // A request with no visible character takes the default numbering instead — the same
+    // blank that `renameSheet` rejects must not be creatable through `addSheet`.
     const clamped = trimmed === '' ? null : trimmed;
 
     if (clamped !== null && this.resolveId(clamped) === null) {
       return clamped;
     }
 
-    const isDefault = clamped === null;
-    const base = isDefault ? this.#defaultName() : clamped.replace(/ \(\d+\)$/, '');
-    let counter = isDefault ? this.#nextId - 1 : 2;
-    let candidate = this.#numberedName(base, counter, isDefault);
+    if (clamped !== null) {
+      return this.#freeNumberedName(clamped);
+    }
+
+    let counter = this.#addedCount;
+    let candidate = this.#numberedName(this.#defaultName(), counter, true);
 
     while (this.resolveId(candidate) !== null) {
       counter += 1;
-      candidate = this.#numberedName(base, counter, isDefault);
+      candidate = this.#numberedName(this.#defaultName(), counter, true);
+    }
+
+    return candidate;
+  }
+
+  /**
+   * Returns the first free `name (n)`, counting from 2.
+   *
+   * @param {string} base The name being numbered.
+   * @returns {string}
+   */
+  #freeNumberedName(base: string): string {
+    let counter = 2;
+    let candidate = this.#numberedName(base, counter, false);
+
+    while (this.resolveId(candidate) !== null) {
+      counter += 1;
+      candidate = this.#numberedName(base, counter, false);
     }
 
     return candidate;
