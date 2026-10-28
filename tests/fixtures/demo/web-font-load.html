@@ -31,6 +31,8 @@
     body.ht-late-headers th { font-family: 'HtLateFont', sans-serif !important; font-size: 15px !important; }
     /* A class a test sets on a cell while the font re-measure runs: it widens the cell without touching the font. */
     .ht-wide-cell { padding-left: 100px !important; }
+    /* A class a test sets on the body while the font re-measure runs: it widens every cell, ghost tables included. */
+    body.ht-wide-cells td { padding-left: 100px !important; }
   </style>
 </head>
 <body>
@@ -53,7 +55,8 @@
 
     // ?variant flags: height=1 (a fixed grid height, so the container never resizes), auto=1 (autoRowSize),
     // preload=1 (a font load is already in progress when the grid is created, see below), many=1 (3000 more
-    // rows whose column B wraps in the late font, to scroll far down), headers=1 (see below), wide=1 (see below).
+    // rows whose column B wraps in the late font, to scroll far down), headers=1 (see below), wide=1 (see below),
+    // merge=1 (see below), longheader=1 (see below).
     const data = [
       ['', '', '', ''],
       ['', 'The long text should be wrapped', '', ''],
@@ -91,6 +94,24 @@
       data[3][0] = 'Frozen column, no wrap';
       data[3][5] = 'Auto-sized column, no wrap';
       data[3][39] = 'Auto-sized column, no wrap';
+      // The same text in a wrapping cell of row 300, below the rendered rows and within AutoRowSize's
+      // synchronous 500 rows: it fits on one line once column AN is wide enough for the no-wrap copy.
+      data[300][39] = 'Auto-sized column, no wrap';
+    }
+
+    // merge=1: a merge over C5:D5 whose late-font text is wider than both columns, fitted by AutoColumnSize.
+    const withMerge = variant.get('merge') === '1';
+
+    if (withMerge) {
+      data[4][2] = 'A merged text in the late font, far wider than column C and column D together, no wrap';
+    }
+
+    // longheader=1 (with wide=1): the header label of the last column uses the late font and is the widest
+    // text of its column, so only a measure of the header sizes the column for it.
+    const longHeader = variant.get('longheader') === '1';
+
+    if (longHeader) {
+      document.body.classList.add('ht-late-headers');
     }
 
     // headers=1: row header labels sized by AutoRowHeaderSize, and a nested header label over two columns.
@@ -115,7 +136,7 @@
         } : {}),
         height: variant.get('height') === '1' ? 400 : undefined,
         width: wide ? 1200 : undefined,
-        colHeaders: true,
+        colHeaders: longHeader ? column => (column === 39 ? 'A long header label in the late font' : String(column)) : true,
         ...(withHeaders ? {} : { rowHeaders: true }),
         autoRowSize: variant.get('auto') === '1',
         fixedColumnsStart: 1,
@@ -128,8 +149,11 @@
             { row: 3, col: 0, className: 'ht-late-font', wordWrap: false },
             { row: 3, col: 5, className: 'ht-late-font', wordWrap: false },
             { row: 3, col: 39, className: 'ht-late-font', wordWrap: false },
+            { row: 300, col: 39, className: 'ht-late-font' },
           ] : []),
+          ...(withMerge ? [{ row: 4, col: 2, className: 'ht-late-font', wordWrap: false }] : []),
         ],
+        ...(withMerge ? { mergeCells: [{ row: 4, col: 2, rowspan: 1, colspan: 2 }] } : {}),
         licenseKey: 'non-commercial-and-evaluation',
       });
     };

@@ -15,7 +15,9 @@ interface FontLoadGrid {
   setSourceDataAtCell(row: number, column: number, value: string): void;
   addHook(name: 'afterRender' | 'afterFontsLoad' | 'beforeRender', callback: () => void, orderIndex?: number): void;
   runHooks(name: 'afterFontsLoad'): void;
-  getPlugin(name: 'autoRowSize' | 'autoColumnSize'): { inProgress: boolean };
+  getPlugin(name: 'autoRowSize' | 'autoColumnSize'): { inProgress: boolean, calculateAllColumnsWidth(): void };
+  alter(action: 'remove_row' | 'insert_row_above', index: number, amount: number): void;
+  countRows(): number;
   view: { isVisible(): boolean };
   setCellMeta(row: number, column: number, key: string, value: unknown): void;
   getSettings(): { columns?: unknown };
@@ -38,6 +40,10 @@ interface GridGeometry {
  * Page Object for the fixture whose cells use a web font that loads only after the grid has drawn
  * (DEV-199). `loadFont()` adds the font face at the moment the test chooses, so the first draw always
  * measures the fallback font.
+ *
+ * The sizing plugins register their `afterFontsLoad` listeners with the hook order index 10, after the
+ * listeners an application adds with the default order. A helper whose listener has to run after the
+ * plugins started re-measuring registers it with the order index 100.
  */
 export class WebFontLoadPage {
   readonly page: Page;
@@ -261,7 +267,7 @@ export class WebFontLoadPage {
 
   /**
    * Writes `value` into a cell right after the next font re-measure starts (the `afterFontsLoad` hook, after
-   * AutoColumnSize's own listener), so the edit lands while the plugin's sweep is in progress.
+   * AutoColumnSize's own listener, order index 100), so the edit lands while the plugin's sweep is in progress.
    */
   async editDuringFontsLoad(row: number, column: number, value: string): Promise<void> {
     await this.page.evaluate(([visualRow, visualColumn, newValue]) => {
@@ -271,13 +277,13 @@ export class WebFontLoadPage {
       win.hot.addHook('afterFontsLoad', () => {
         win.hot.setDataAtCell(visualRow as number, visualColumn as number, newValue as string);
         win.htEditedDuringFontsLoad = true;
-      });
+      }, 100);
     }, [row, column, value]);
   }
 
   /**
    * Sets a cell meta key right after the next font re-measure starts (the `afterFontsLoad` hook, after
-   * AutoColumnSize's own listener), so the change lands while the plugin's sweep is in progress.
+   * AutoColumnSize's own listener, order index 100), so the change lands while the plugin's sweep is in progress.
    */
   async setCellMetaDuringFontsLoad(row: number, column: number, key: string, value: string): Promise<void> {
     await this.page.evaluate(([visualRow, visualColumn, metaKey, metaValue]) => {
@@ -285,7 +291,7 @@ export class WebFontLoadPage {
 
       win.hot.addHook('afterFontsLoad', () => {
         win.hot.setCellMeta(visualRow as number, visualColumn as number, metaKey as string, metaValue);
-      });
+      }, 100);
     }, [row, column, key, value]);
   }
 
@@ -300,7 +306,7 @@ export class WebFontLoadPage {
 
       win.hot.addHook('afterFontsLoad', () => {
         win.hot.setSourceDataAtCell(visualRow as number, visualColumn as number, newValue as string);
-      });
+      }, 100);
     }, [row, column, value]);
   }
 
@@ -312,7 +318,7 @@ export class WebFontLoadPage {
     await this.page.evaluate(() => {
       (window as unknown as { hot: FontLoadGrid }).hot.addHook('afterFontsLoad', () => {
         (document.querySelector('[data-testid="grid"]') as HTMLElement).style.display = 'none';
-      });
+      }, 100);
     });
   }
 
@@ -328,7 +334,7 @@ export class WebFontLoadPage {
       win.htFontsLoadHookRan = false;
       win.hot.addHook('afterFontsLoad', () => {
         win.htFontsLoadHookRan = true;
-      });
+      }, 100);
     });
   }
 
@@ -353,6 +359,204 @@ export class WebFontLoadPage {
   }
 
   /**
+   * Adds a class to the body right after the next font re-measure starts (the `afterFontsLoad` hook, after
+   * the plugins' own listeners), the way a theme switch or a class toggle lands while the sweep runs. The
+   * grid draws right after the hook.
+   */
+  async addBodyClassDuringFontsLoad(className: string): Promise<void> {
+    await this.page.evaluate((name) => {
+      (window as unknown as { hot: FontLoadGrid }).hot.addHook('afterFontsLoad', () => {
+        document.body.classList.add(name);
+      }, 100);
+    }, className);
+  }
+
+  /**
+   * Records, from a listener of the next `afterFontsLoad` hook added with the default order (the order a
+   * listener in the settings object gets), the width the grid holds for `column` and whether AutoColumnSize
+   * has a sweep in progress at that moment. Read it with `defaultOrderListenerState()`.
+   */
+  async recordStateInDefaultOrderFontsListener(column: number): Promise<void> {
+    await this.page.evaluate((visualColumn) => {
+      const win = window as unknown as {
+        hot: FontLoadGrid,
+        htDefaultOrderState: { width: number, sweepInProgress: boolean } | null,
+      };
+
+      win.htDefaultOrderState = null;
+      win.hot.addHook('afterFontsLoad', () => {
+        win.htDefaultOrderState = {
+          width: win.hot.getColWidth(visualColumn),
+          sweepInProgress: win.hot.getPlugin('autoColumnSize').inProgress,
+        };
+      });
+    }, column);
+  }
+
+  /**
+   * Reads what `recordStateInDefaultOrderFontsListener()` recorded, or `null` while the hook has not fired.
+   */
+  async defaultOrderListenerState(): Promise<{ width: number, sweepInProgress: boolean } | null> {
+    return this.page.evaluate(() => (window as unknown as {
+      htDefaultOrderState: { width: number, sweepInProgress: boolean } | null,
+    }).htDefaultOrderState);
+  }
+
+  /**
+   * Makes AutoColumnSize's sweep measure one column per chunk: the budget of cells a chunk samples drops to
+   * the 25000 rows of the `&wide=1` variant. Call it after `goto()`.
+   */
+  async measureOneColumnPerChunk(): Promise<void> {
+    await this.page.evaluate(() => {
+      const { AutoColumnSize } = (window as unknown as { Handsontable: { plugins: { AutoColumnSize: object } } })
+        .Handsontable.plugins;
+
+      Object.defineProperty(AutoColumnSize, 'CALCULATION_CELLS_BUDGET', { get: () => 25000, configurable: true });
+    });
+  }
+
+  /**
+   * Starts a stream of source writes once the next font re-measure starts: after every draw while
+   * AutoColumnSize's sweep runs, the next idle task writes a new value into D11 through
+   * `setSourceDataAtCell()` and draws, the way an application that streams updates does. The idle task is
+   * queued after the sweep's own, so one chunk of the sweep runs between two writes. The stream ends when a
+   * draw finds the sweep over, or after `maxWrites` writes. Read how it ended with `writeStreamEnd()`.
+   */
+  async streamSourceWritesDuringFontsLoad(maxWrites: number): Promise<void> {
+    await this.page.evaluate((cap) => {
+      const win = window as unknown as {
+        hot: FontLoadGrid,
+        htWriteStreamEnd: { reason: 'sweepEnded' | 'cap', writes: number } | null,
+      };
+      const queueTask = (callback: () => void) => (typeof window.requestIdleCallback === 'function' ?
+        window.requestIdleCallback(callback) : window.requestAnimationFrame(callback));
+      let writes = 0;
+      let writeQueued = false;
+
+      win.htWriteStreamEnd = null;
+
+      const onRender = () => {
+        if (win.htWriteStreamEnd !== null || writeQueued) {
+          return;
+        }
+
+        if (!win.hot.getPlugin('autoColumnSize').inProgress) {
+          win.htWriteStreamEnd = { reason: 'sweepEnded', writes };
+        } else if (writes >= cap) {
+          win.htWriteStreamEnd = { reason: 'cap', writes };
+        } else {
+          writeQueued = true;
+          queueTask(() => {
+            writeQueued = false;
+            writes += 1;
+            win.hot.setSourceDataAtCell(10, 3, String(writes));
+            win.hot.render();
+          });
+        }
+      };
+
+      win.hot.addHook('afterFontsLoad', () => {
+        win.hot.addHook('afterRender', onRender);
+      }, 100);
+    }, maxWrites);
+  }
+
+  /**
+   * Calls `render()` once right after the draw that follows the next `afterFontsLoad` hook, in a microtask,
+   * before any idle task of AutoColumnSize's sweep runs, the way an application renders after a change. Records
+   * whether the text of the cell at `row`, `column` fits once that render is done, and whether the sweep was
+   * still running. Read it with `renderAfterFontsLoadDrawResult()`.
+   */
+  async renderAfterFontsLoadDraw(row: number, column: number): Promise<void> {
+    await this.page.evaluate(([visualRow, visualColumn]) => {
+      const win = window as unknown as {
+        hot: FontLoadGrid,
+        htRenderAfterDraw: { fitsBefore: boolean, fitsAfter: boolean, sweepInProgress: boolean } | null,
+      };
+      const fits = () => {
+        const cell = win.hot.getCell(visualRow, visualColumn, true);
+
+        return cell !== null && cell.scrollWidth <= cell.clientWidth;
+      };
+
+      win.htRenderAfterDraw = null;
+      win.hot.addHook('afterFontsLoad', () => {
+        // Core draws right after the hook, in the same task, so the microtask runs after that draw.
+        queueMicrotask(() => {
+          const fitsBefore = fits();
+
+          win.hot.render();
+          win.htRenderAfterDraw = {
+            fitsBefore,
+            fitsAfter: fits(),
+            sweepInProgress: win.hot.getPlugin('autoColumnSize').inProgress,
+          };
+        });
+      }, 100);
+    }, [row, column]);
+  }
+
+  /**
+   * Reads what `renderAfterFontsLoadDraw()` recorded, or `null` while it has not run.
+   */
+  async renderAfterFontsLoadDrawResult(): Promise<{ fitsBefore: boolean, fitsAfter: boolean, sweepInProgress: boolean } | null> {
+    return this.page.evaluate(() => (window as unknown as {
+      htRenderAfterDraw: { fitsBefore: boolean, fitsAfter: boolean, sweepInProgress: boolean } | null,
+    }).htRenderAfterDraw);
+  }
+
+  /**
+   * Reads how the stream of `streamSourceWritesDuringFontsLoad()` ended, or `null` while it runs.
+   */
+  async writeStreamEnd(): Promise<{ reason: 'sweepEnded' | 'cap', writes: number } | null> {
+    return this.page.evaluate(() => (window as unknown as {
+      htWriteStreamEnd: { reason: 'sweepEnded' | 'cap', writes: number } | null,
+    }).htWriteStreamEnd);
+  }
+
+  /**
+   * Removes every row of the grid.
+   */
+  async removeAllRows(): Promise<void> {
+    await this.page.evaluate(() => {
+      const { hot } = window as unknown as { hot: FontLoadGrid };
+
+      hot.alter('remove_row', 0, hot.countRows());
+    });
+  }
+
+  /**
+   * Adds `amount` empty rows at the top of the grid.
+   */
+  async addRows(amount: number): Promise<void> {
+    await this.page.evaluate((count) => {
+      (window as unknown as { hot: FontLoadGrid }).hot.alter('insert_row_above', 0, count);
+    }, amount);
+  }
+
+  /**
+   * Tells whether the label of a rendered column header fits its cell.
+   */
+  async columnHeaderFits(column: number): Promise<boolean> {
+    return this.page.evaluate((visualColumn) => {
+      const header = (window as unknown as { hot: FontLoadGrid }).hot.getCell(-1, visualColumn, true);
+      const label = header?.querySelector('.colHeader') as HTMLElement | null;
+
+      return header !== null && label !== null && label.scrollWidth <= header.clientWidth;
+    }, column);
+  }
+
+  /**
+   * Calls AutoColumnSize's public `calculateAllColumnsWidth()`, which measures only the columns that have no
+   * width yet.
+   */
+  async calculateAllColumnsWidth(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as unknown as { hot: FontLoadGrid }).hot.getPlugin('autoColumnSize').calculateAllColumnsWidth();
+    });
+  }
+
+  /**
    * Destroys the grid from inside the next `afterFontsLoad` hook, the way a framework teardown can.
    */
   async destroyGridDuringFontsLoad(): Promise<void> {
@@ -361,7 +565,7 @@ export class WebFontLoadPage {
 
       win.hot.addHook('afterFontsLoad', () => {
         win.hot.destroy();
-      });
+      }, 100);
     });
   }
 
@@ -385,7 +589,7 @@ export class WebFontLoadPage {
       }, -100);
       win.hot.addHook('afterFontsLoad', () => {
         win.htRendersInsideFontsLoadHook = renders - rendersAtHookStart;
-      });
+      }, 100);
     });
   }
 

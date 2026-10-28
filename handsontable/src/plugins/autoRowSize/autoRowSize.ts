@@ -9,6 +9,7 @@ import { isPercentValue } from '../../helpers/string';
 import { formatCellValue } from '../../renderers/renderCell';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { addClass, removeClass } from '../../helpers/dom/element';
+import { FONT_REMEASURE_ORDER_INDEX } from '../../core/fontLoad';
 
 export const PLUGIN_KEY = 'autoRowSize';
 export const PLUGIN_PRIORITY = 40;
@@ -356,6 +357,15 @@ export class AutoRowSize extends BasePlugin {
    */
   #fullRecalculationScheduled = false;
   /**
+   * `true` when a font re-measure measured the rows while AutoColumnSize was still re-measuring the columns
+   * in idle tasks. The columns it had not reached kept their fallback-font widths, so the text wrapped more
+   * in them, and the rows outside the rendered band kept the extra height. The first render of a visible
+   * grid after that sweep ends schedules a full recalculation.
+   *
+   * @type {boolean}
+   */
+  #rowsOwedToColumnSweep = false;
+  /**
    * Handle of the idle task driving the in-flight full sweep, or `0` when none is running.
    *
    * Held on the instance rather than in `calculateAllRowsHeight()`'s closure so a new sweep can
@@ -418,7 +428,7 @@ export class AutoRowSize extends BasePlugin {
     this.#samplingApplied = true;
 
     this.addHook('afterLoadData', this.#onAfterLoadData);
-    this.addHook('afterFontsLoad', this.#onAfterFontsLoad);
+    this.addHook('afterFontsLoad', this.#onAfterFontsLoad, FONT_REMEASURE_ORDER_INDEX);
     this.addHook('beforeChangeRender', this.#onBeforeChange);
     this.addHook('beforeColumnResize', this.#onBeforeColumnResize);
     this.addHook('afterFormulasValuesUpdate', this.#onAfterFormulasValuesUpdate);
@@ -493,6 +503,7 @@ export class AutoRowSize extends BasePlugin {
     }
 
     this.headerHeight = null;
+    this.#rowsOwedToColumnSweep = false;
 
     removeClass(this.hot.rootElement, AUTO_ROW_SIZE_CLASS_NAME);
 
@@ -1006,6 +1017,13 @@ export class AutoRowSize extends BasePlugin {
     this.calculateVisibleRowsHeight();
     this.#drainRowRefreshQueue();
 
+    // AutoColumnSize enables first, so its listener has run: a sweep restarted in this render reads as
+    // still running, and its last chunk renders once it ends.
+    if (this.#rowsOwedToColumnSweep && this.hot.view.isVisible() && !this.#isColumnSweepRunning()) {
+      this.#rowsOwedToColumnSweep = false;
+      this.#fullRecalculationScheduled = true;
+    }
+
     // A wiped cache is restored in full, so the rows below the fold are measured too and not just
     // the visible band - see `#fullRecalculationScheduled`. It runs AFTER the visible band above,
     // never instead of it: `calculateAllRowsHeight()` only measures up to `syncLimit` rows
@@ -1079,7 +1097,8 @@ export class AutoRowSize extends BasePlugin {
    * sweep reaches it, which moves a grid scrolled far down to other rows. Core fires the hook only on a
    * visible grid. With no columns (a wrapper between two renders) the work is owed to a later render
    * instead, as `#onBeforeRender` does: measured from no cells, every row would get a near-empty height
-   * that nothing corrects once the columns are back.
+   * that nothing corrects once the columns are back. When AutoColumnSize is still widening columns in idle
+   * tasks, the rows are measured again once it ends (`#rowsOwedToColumnSweep`).
    */
   #onAfterFontsLoad = () => {
     if (this.hot.countCols() === 0) {
@@ -1089,7 +1108,19 @@ export class AutoRowSize extends BasePlugin {
     }
 
     this.recalculateAllRowsHeight();
+    this.#rowsOwedToColumnSweep = this.#isColumnSweepRunning();
   };
+
+  /**
+   * Checks whether AutoColumnSize is still measuring columns in idle tasks.
+   *
+   * @returns {boolean}
+   */
+  #isColumnSweepRunning(): boolean {
+    const autoColumnSize = this.hot.getPlugin('autoColumnSize');
+
+    return autoColumnSize?.enabled === true && autoColumnSize.inProgress;
+  }
 
   /**
    * Triggers a full row height recalculation after new data is loaded, skipping the initial

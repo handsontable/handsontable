@@ -337,6 +337,187 @@ test.describe('Web font loaded after the first draw', { tag: [THEMES_TAG, CROSS_
     expect(await grid.cellTextFits(3, offScreen)).toBe(true);
   });
 
+  test('keeps a re-measure owed by a hidden grid through a calculateAllColumnsWidth() call', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+    const offScreen = 39;
+
+    await grid.goto('&wide=1&height=1');
+    await expectAligned(grid);
+
+    const before = await grid.columnWidth(offScreen);
+
+    await grid.hideGridDuringFontsLoad();
+    await grid.trackFontsLoadHook();
+    await grid.loadFont();
+    await expect.poll(() => grid.fontsLoadHookRan()).toBe(true);
+    await expect.poll(() => grid.sweepInProgress('autoColumnSize')).toBe(false);
+
+    // The call measures only the columns that have no width, so it cannot pay the re-measure the hidden
+    // grid owes. It used to clear the debt, and the off-screen columns kept the fallback-font widths.
+    await grid.setGridDisplayed(true);
+    await grid.calculateAllColumnsWidth();
+    await grid.render();
+
+    await expect.poll(() => grid.columnWidth(offScreen)).toBeGreaterThan(before);
+  });
+
+  test('re-measures the columns a sweep already measured on a draw after a style change', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+    // A column on screen whose cells hold plain numbers, so the font alone does not widen it, and which the
+    // sweep's first chunk measures (the columns on screen come first).
+    const column = 3;
+
+    await grid.goto('&wide=1&height=1');
+    await expectAligned(grid);
+
+    const before = await grid.columnWidth(column);
+
+    // The class widens every cell and lands after the first chunk measured the column, before the draw that
+    // follows the hook. That draw used to leave every on-screen column to the sweep, and so did the sweep's
+    // last one, so the column kept the width it had before the class until some later draw.
+    await grid.addBodyClassDuringFontsLoad('ht-wide-cells');
+    await grid.trackFontsLoadHook();
+    await grid.loadFont();
+    await expect.poll(() => grid.fontsLoadHookRan()).toBe(true);
+    await expect.poll(() => grid.sweepInProgress('autoColumnSize')).toBe(false);
+
+    // The class adds 100px of padding, more than the column had before.
+    expect(before).toBeLessThan(100);
+    expect(await grid.columnWidth(column)).toBeGreaterThan(100);
+  });
+
+  test('finishes the sweep while source writes keep coming', async({ page, theme, bundle }) => {
+    test.setTimeout(60000);
+
+    const grid = new WebFontLoadPage(page, theme, bundle);
+    // On screen, past the first chunk, with the no-wrap late-font text.
+    const onScreen = 5;
+    const maxWrites = 200;
+
+    await grid.goto('&wide=1&height=1');
+    await expectAligned(grid);
+    await grid.measureOneColumnPerChunk();
+
+    // A write lands after every chunk. Each one used to end the sweep and start it over from the first
+    // column on the next draw, so the sweep never got past its second column for as long as writes came.
+    await grid.streamSourceWritesDuringFontsLoad(maxWrites);
+    await grid.loadFont();
+    await expect.poll(() => grid.writeStreamEnd(), { timeout: 45000 }).not.toBeNull();
+
+    const end = await grid.writeStreamEnd();
+
+    expect(end?.reason).toBe('sweepEnded');
+    // The writes are the positive control: the sweep ran under the stream, not after it.
+    expect(end?.writes).toBeGreaterThan(5);
+    expect(await grid.cellTextFits(3, onScreen)).toBe(true);
+  });
+
+  test('measures every column on screen on an application render while the sweep runs', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+    // On screen, past the first chunk, with the no-wrap late-font text.
+    const onScreen = 5;
+
+    await grid.goto('&wide=1&height=1');
+    await expectAligned(grid);
+    await grid.measureOneColumnPerChunk();
+
+    // Only the sweep's own draws leave the columns it has not reached to it. A render the application asks
+    // for measures them as it would with no sweep, so the screen does not depend on idle tasks, which a busy
+    // page (a stream of writes on a large grid) never gets to.
+    await grid.renderAfterFontsLoadDraw(3, onScreen);
+    await grid.loadFont();
+    await expect.poll(() => grid.renderAfterFontsLoadDrawResult()).not.toBeNull();
+
+    // The draw after the hook left the column to the sweep, which is the positive control.
+    expect(await grid.renderAfterFontsLoadDrawResult()).toEqual({ fitsBefore: false, fitsAfter: true, sweepInProgress: true });
+  });
+
+  test('runs a listener added with the default order before the sizing plugins re-measure', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+    // The column whose late-font text the re-measure widens.
+    const column = 2;
+
+    await grid.goto('&height=1');
+    await expectAligned(grid);
+
+    const before = await grid.columnWidth(column);
+
+    // A listener in the settings object, or one added later with the default order, is where an application
+    // drops a custom renderer's cached sizes. It used to run after the plugins had measured.
+    await grid.recordStateInDefaultOrderFontsListener(column);
+    await grid.loadFont();
+    await expect.poll(() => grid.defaultOrderListenerState()).not.toBeNull();
+
+    expect(await grid.defaultOrderListenerState()).toEqual({ width: before, sweepInProgress: false });
+    // The positive control: the plugins still re-measured after the listener.
+    await expect.poll(() => grid.columnWidth(column)).toBeGreaterThan(before);
+  });
+
+  test('re-measures a merge whose text the font widened', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+
+    await grid.goto('&merge=1&height=1');
+    await expectAligned(grid);
+    expect(await grid.cellTextFits(4, 2)).toBe(true);
+
+    // On a large grid the first load after init samples every column afresh: the init sweep drops its
+    // samples. A column measured from cached samples to another width reports a style change, so dropping
+    // every column's samples sets up that case on a small grid.
+    await grid.dropSamplesOfColumns([0, 1, 2, 3]);
+    await grid.loadFont();
+    await expectAligned(grid);
+
+    // No column reported a style change, and the merge used to keep the width measured in the fallback font,
+    // which clipped its text.
+    await expect.poll(() => grid.cellTextFits(4, 2)).toBe(true);
+  });
+
+  test('measures the rows again once the column re-measure ends', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+    // Row 300 wraps the late-font text of column AN, which the column sweep widens in its last chunk.
+    const row = 300;
+    const oneLineRow = 3;
+
+    await grid.goto('&wide=1&height=1&auto=1');
+    await expectAligned(grid);
+
+    const columnBefore = await grid.columnWidth(39);
+
+    await grid.trackFontsLoadHook();
+    await grid.loadFont();
+    await expect.poll(() => grid.fontsLoadHookRan()).toBe(true);
+
+    // AutoRowSize measured row 300 while column AN still had its fallback-font width, so the text wrapped
+    // onto a second line, and the draws that followed measured only the rows on screen. AutoRowSize's own
+    // idle sweep over the rows past 500 can take long (Firefox), and row 300 is not part of it.
+    await expect.poll(async() => {
+      const [rowHeight, oneLineHeight] = await Promise.all([grid.rowHeight(row), grid.rowHeight(oneLineRow)]);
+
+      return rowHeight === oneLineHeight;
+    }).toBe(true);
+    // The positive control: the column the row wraps in did widen.
+    expect(await grid.columnWidth(39)).toBeGreaterThan(columnBefore);
+  });
+
+  test('re-measures the headers of a grid that had no rows when the font loaded once rows come back', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+    const offScreen = 39;
+
+    await grid.goto('&wide=1&height=1&longheader=1');
+    await grid.removeAllRows();
+    await grid.trackFontsLoadHook();
+    await grid.loadFont();
+    await expect.poll(() => grid.fontsLoadHookRan()).toBe(true);
+
+    // With no rows the widths stay, since they can come from rows the grid had before. The re-measure is
+    // owed to the first draw with rows, and the column off screen used to keep the fallback-font width.
+    await grid.addRows(5);
+    await expect.poll(() => grid.sweepInProgress('autoColumnSize')).toBe(false);
+    await grid.scrollToColumn(offScreen);
+
+    expect(await grid.columnHeaderFits(offScreen)).toBe(true);
+  });
+
   test('holds the row re-measure while the grid has no columns', async({ page, theme, bundle }) => {
     const grid = new WebFontLoadPage(page, theme, bundle);
     // A wrapped row far below the screen, which only a full sweep measures.
