@@ -1637,7 +1637,10 @@ drags (`pointer-state.ts`, `drag-runner.ts`); the verdicts are `lib/pointer.mjs`
   to a corner away from the grid and is released. What the press alone did is `activates-on-press`
   (advisory when all it did is show a popup, which Escape takes back); doing what the click does after
   the pointer left is `completes-after-pointer-left`. A selection, a focus move or a hover highlight is
-  never an action: a press on a cell selects it by design. The controls in the grid's own cells and
+  never an action: a press on a cell selects it by design. The state before the press, and before the
+  click, is read once the hover has held still (`settledPointerState()`): a hovered menu item opens its
+  submenu on a 300 ms timer, and a state read the moment the pointer arrives blamed the press for it
+  whenever the run was slow. The controls in the grid's own cells and
   headers are judged through the data, the sort and the collapsed groups, never through their drawn
   `checked` or `aria-*` states: a press dragged off a cell scrolls the grid, and the scroll redraws
   other rows into the same nodes.

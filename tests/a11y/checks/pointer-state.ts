@@ -1,4 +1,4 @@
-import { type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { PORTAL_MARK } from '../harness';
 import { effectsBetween } from '../../lib/keyboard-walker.mjs';
 import { snapshot, type GridSnapshot } from './walker';
@@ -179,6 +179,32 @@ export async function pointerState(page: Page, root: string): Promise<PointerSta
   }, [root, PORTAL_MARK] as const);
 
   return { ...grid, ...extra };
+}
+
+/**
+ * The pointer state once a hover has done all it does: read until it has held still for four reads in a
+ * row (each read waits two animation frames, and the polls are 100 ms apart, so about half a second).
+ * A hovered menu item opens its submenu on a 300 ms timer, so a state read right after the pointer
+ * arrives can change on its own before the press, and the press would be blamed for it.
+ *
+ * @param page The page.
+ * @param root The root container selector.
+ * @returns The state.
+ */
+export async function settledPointerState(page: Page, root: string): Promise<PointerState> {
+  let last = await pointerState(page, root);
+  let still = 0;
+
+  await expect.poll(async() => {
+    const next = await pointerState(page, root);
+
+    still = JSON.stringify(next) === JSON.stringify(last) ? still + 1 : 0;
+    last = next;
+
+    return still;
+  }, { timeout: 5000, intervals: [100] }).toBeGreaterThanOrEqual(4);
+
+  return last;
 }
 
 /**

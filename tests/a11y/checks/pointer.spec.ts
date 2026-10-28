@@ -5,7 +5,7 @@ import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } 
 import { cancellationFindings, dragFindings, gestureFindings } from '../../lib/pointer.mjs';
 import { DRAG_OPERATIONS, type DragOperation } from './drag-operations.mjs';
 import { dragState, runSteps, settledState, type Step } from './drag-runner';
-import { markTargets, pointerEffects, pointerState, targetPoints, type PointerTarget } from './pointer-state';
+import { markTargets, pointerEffects, pointerState, settledPointerState, targetPoints, type PointerTarget } from './pointer-state';
 import { installSentinels } from './walker';
 
 /**
@@ -76,7 +76,9 @@ async function cancellation(page: Page, testInfo: TestInfo, entry: A11yPage) {
       continue;
     }
 
-    const beforeClick = await pointerState(page, clickPage.opened.root);
+    await page.mouse.move(clickPoints.at.x, clickPoints.at.y);
+
+    const beforeClick = await settledPointerState(page, clickPage.opened.root);
 
     await page.mouse.click(clickPoints.at.x, clickPoints.at.y);
 
@@ -93,7 +95,8 @@ async function cancellation(page: Page, testInfo: TestInfo, entry: A11yPage) {
 
     await page.mouse.move(points.at.x, points.at.y);
 
-    const hovered = await pointerState(page, pressPage.opened.root);
+    // What the hover alone does (a submenu opening on its timer) settles before the press is judged.
+    const hovered = await settledPointerState(page, pressPage.opened.root);
 
     await page.mouse.down();
 
