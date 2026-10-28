@@ -1031,7 +1031,9 @@ Consequences worth knowing:
   (`isTopGapCovered`, `Border#isTopGridlineCoveredByOverlay`): `standsBelowColumnHeader` keys on the
   first row of the body, so the first visible row of a scrolled grid and the first row after
   `fixedRowsTop` kept 1px of their 2px edge. The covering overlay is the top clone for the master
-  table and the top corner on the clone's own side for the inline-start and inline-end clones. A cell of the inline-start clone and of the corners is in
+  table and the top corner on the clone's own side for the inline-start and inline-end clones. Neither test applies to an
+  edge that lands exactly on a freeze line (`isFrozenBoundaryEdge`): the master and the frozen overlay
+  draw its two halves around the line, and `frozenBoundaryEdge.spec.js` pins that a shift would break it. A cell of the inline-start clone and of the corners is in
   the overlay's own layer and draws its edge itself. The decision is made on each draw, so a scroll that
   brings a column next to the overlay moves its edge too. Pinned by
   `tests/e2e/selection-start-edge-row-header.spec.ts`, which measures how much of the edge lies inside

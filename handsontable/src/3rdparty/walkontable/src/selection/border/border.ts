@@ -2100,9 +2100,11 @@ class Border {
     // The column header test is not enough for the master table's own cells either. With the default
     // overscan the first visible row is not the first row of the body, and the first row after
     // `fixedRowsTop` is not either, yet the top overlay ends where such a cell starts. The rectangles
-    // are asked, as they are for the inline-start edge below.
+    // are asked, as they are for the inline-start edge below. An edge that lands exactly on a freeze line
+    // is left alone: the master and the frozen overlay draw its two halves around the line (see
+    // `drawFrozenBoundaryEdge`), and a shift would take the master's half off it.
     if (parseFloat(style.borderTopWidth) > 0 || standsBelowColumnHeader(fromTDEl) ||
-        this.isTopGridlineCoveredByOverlay(fromTDEl)) {
+        (!this.isFrozenBoundaryEdge('row', originalFromRow) && this.isTopGridlineCoveredByOverlay(fromTDEl))) {
       top += 1;
       height = height > 0 ? height - 1 : 0;
     }
@@ -2120,9 +2122,11 @@ class Border {
     // the cell after the row header is a hidden column, so the first visible column of a scrolled grid
     // has a data cell as its previous sibling, and the first column past `fixedColumnsStart` has
     // another one, and the same holds for the top and bottom clones under the start corners. The overlay
-    // that ends where such a cell starts covers its gridline all the same, so the rectangles are asked.
+    // that ends where such a cell starts covers its gridline all the same, so the rectangles are asked,
+    // except for an edge on the freeze line itself, which the frozen overlay draws.
     if (ownsInlineStartBorder || standsBehindRowHeader(fromTDEl) ||
-        this.isStartGridlineCoveredByOverlay(fromTDEl, isRtl)) {
+        (!this.isFrozenBoundaryEdge('column', originalFromColumn) &&
+          this.isStartGridlineCoveredByOverlay(fromTDEl, isRtl))) {
       inlineStartPos += 1;
       width = width > 0 ? width - 1 : 0;
     }
