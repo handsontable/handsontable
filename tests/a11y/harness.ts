@@ -50,6 +50,8 @@ export type HotInstance = {
   isListening(): boolean;
   countRows(): number;
   countCols(): number;
+  getSettings(): { width?: unknown };
+  updateSettings(settings: Record<string, unknown>): void;
   rootElement: HTMLElement;
   rootPortalElement: HTMLElement;
 };

@@ -31,11 +31,15 @@ const CLIPPING = new Set(['hidden', 'clip']);
 const TOLERANCE = 1;
 // Two controls overlapping by less than this many square pixels share an antialiased edge, not a box.
 const OVERLAP = 4;
+// A box this many pixels square or smaller is screen-reader-only (the announcer's live regions,
+// `utils/a11yAnnouncer.ts`, are 1 by 1 px with overflow hidden): its text is read out, never drawn.
+const SCREEN_READER_ONLY = 1;
 
 /**
  * The text a clipping container cuts off: a container whose overflow is `hidden` or `clip` on an axis
  * and whose content is larger than its box on that axis. Cut off with an ellipsis it is truncated
- * (`moderate`: the text is shortened, not gone); cut off without one it is clipped (`serious`).
+ * (`moderate`: the text is shortened, not gone); cut off without one it is clipped (`serious`). A
+ * screen-reader-only box (`SCREEN_READER_ONLY`) shows no text, so it cuts none off.
  *
  * @param {object} input The measurement.
  * @param {string} input.condition The condition (`CONDITIONS`).
@@ -48,6 +52,10 @@ export function clippingFindings({ condition, boxes }) {
   const findings = [];
 
   for (const box of boxes) {
+    if (box.clientWidth <= SCREEN_READER_ONLY && box.clientHeight <= SCREEN_READER_ONLY) {
+      continue;
+    }
+
     const hiddenX = CLIPPING.has(box.overflowX) ? box.scrollWidth - box.clientWidth : 0;
     const hiddenY = CLIPPING.has(box.overflowY) ? box.scrollHeight - box.clientHeight : 0;
     const axis = hiddenX >= hiddenY ? 'x' : 'y';

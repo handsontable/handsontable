@@ -1,6 +1,6 @@
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
 import { A11Y_PAGES, fixtureUrl, type A11yPage } from '../pages.mjs';
-import { PORTAL_MARK, openTarget, reachState, releaseParkedFetches, selectCell } from '../harness';
+import { PORTAL_MARK, openTarget, reachState, releaseParkedFetches, selectCell, type RootWrapper } from '../harness';
 import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } from '../evidence';
 import { A11Y_THEMES } from '../../lib/a11y-baseline.mjs';
 import {
@@ -37,17 +37,19 @@ const PAGES = ['grid', 'context-menu', 'context-menu-submenu', 'dropdown-menu', 
 const ORIENTATION_PAGES = ['grid', 'pagination', 'sheets-bar'];
 // The surfaces around the grid, by the class that marks each, and whether it is a popup (a menu, a list,
 // a dialog) or a part of the page's flow (a bar). Whether a surface is positioned against the viewport is
-// read from its computed style, because that decides whether the page can scroll to it.
-const SURFACES: Array<[string, string, boolean]> = [
+// read from its computed style, because that decides whether the page can scroll to it. A layer that
+// covers the whole grid (the dialog's, the notification's) has the grid's box, so its box is taken from
+// the part a user reads, the fourth entry: the dialog's card, each toast.
+const SURFACES: Array<[string, string, boolean, string?]> = [
   ['.htMenu', 'menu', true],
   ['.handsontableEditor, .autocompleteEditor, .ht-multi-select-editor', 'editor list', true],
   ['.htComments', 'comment editor', true],
-  ['.ht-dialog', 'dialog', true],
-  ['.ht-notification', 'notification', true],
+  ['.ht-dialog', 'dialog', true, '.ht-dialog__content-wrapper-inner, .ht-dialog__content'],
+  ['.ht-notification', 'notification', true, '.ht-notification__toast'],
   ['.ht-pagination', 'pagination', false],
   ['.ht-sheets-bar', 'sheets bar', false],
   ['.ht-empty-data-state', 'empty-data message', false],
-  ['[class*="ht-license"]', 'license bar', false],
+  ['.hot-display-license-info', 'license bar', false],
   ['.hfe-suggestions, .hfe-fn-help', 'formula popup', true],
   ['.ht-formula-builder__formula-bar', 'formula bar', false],
 ];
@@ -79,6 +81,38 @@ async function installTextSpacing(page: Page): Promise<void> {
       }).observe(document, { childList: true, subtree: true });
     }
   }, TEXT_SPACING_CSS);
+}
+
+/**
+ * Gives a grid the page's width (`width: '100%'`) when its fixture pins a pixel `width` wider than the
+ * viewport, before its state is reached. With a pixel width the bars and the overlays follow the grid's
+ * own box, so they would reach past a 320 or 640 px viewport for the fixture's sake: that is the page's
+ * layout, not the grid's reflow. A grid without a pixel width is left as its fixture built it.
+ *
+ * @param page The page.
+ * @param root The root container selector.
+ * @returns Whether the grid was given the page's width.
+ */
+async function fitToViewport(page: Page, root: string): Promise<boolean> {
+  const fitted = await page.evaluate((selector) => {
+    const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as RootWrapper | null)?.__hotInstance;
+
+    if (!hot) {
+      return null;
+    }
+
+    const pinned = typeof hot.getSettings().width === 'number' && hot.rootElement.getBoundingClientRect().right > innerWidth;
+
+    if (pinned) {
+      hot.updateSettings({ width: '100%' });
+    }
+
+    return pinned;
+  }, root);
+
+  expect(fitted, `the grid under ${root} has a Handsontable instance`).not.toBeNull();
+
+  return fitted!;
 }
 
 /**
@@ -125,8 +159,8 @@ async function collect(page: Page, root: string) {
         scrollWidth: node.scrollWidth, clientWidth: node.clientWidth, scrollHeight: node.scrollHeight, clientHeight: node.clientHeight,
       };
     });
-    const surfaceBoxes = surfaces.flatMap(([css, label, popup]) => scopes.flatMap(scope => [...scope.querySelectorAll(css)])
-      .filter(node => visible(node) && !node.parentElement?.closest(css))
+    const surfaceBoxes = surfaces.flatMap(([css, label, popup, part = css]) => scopes.flatMap(scope => [...scope.querySelectorAll(part)])
+      .filter(node => visible(node) && !node.parentElement?.closest(part))
       .map((node) => {
         const rect = node.getBoundingClientRect();
         let fixed = false;
@@ -195,6 +229,7 @@ async function measure(page: Page, testInfo: TestInfo, entry: A11yPage, theme: s
   }
 
   const opened = await openTarget(page, entry, theme);
+  const fitted = await fitToViewport(page, opened.root);
 
   await reachState(page, entry, opened);
   await releaseParkedFetches(page);
@@ -209,7 +244,7 @@ async function measure(page: Page, testInfo: TestInfo, entry: A11yPage, theme: s
 
   await attachEvidence(testInfo, {
     target, startedAt, environment, findings, criteria: CONDITIONS[condition].criteria, pageErrors: opened.pageErrors,
-    detail: { settled, viewport: measured.viewport, surfaces: measured.surfaces, clippingContainers: measured.boxes, controls: measured.controls.length },
+    detail: { settled, fitted, viewport: measured.viewport, surfaces: measured.surfaces, clippingContainers: measured.boxes, controls: measured.controls.length },
   });
 }
 

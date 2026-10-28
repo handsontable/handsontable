@@ -40,6 +40,16 @@ test('text a clipping container cuts off is lost; text it ellipsizes is truncate
   assert.equal(findings[0].measured.text, 'Delete the selected rows?');
 });
 
+test('a screen-reader-only box cuts nothing off: its text is read out, never drawn', () => {
+  const liveRegion = box({
+    selector: 'div "Page 1 of 5"', surface: 'grid UI', text: 'Page 1 of 5', overflowY: 'hidden',
+    scrollWidth: 82, clientWidth: 1, scrollHeight: 18, clientHeight: 1,
+  });
+
+  assert.deepEqual(clippingFindings({ condition: 'reflow-320', boxes: [liveRegion] }), [],
+    'the announcer\'s live regions (utils/a11yAnnouncer.ts) are 1 by 1 px with overflow hidden');
+});
+
 test('a fixed surface the viewport cuts off is out of reach; an absolute one below the fold is a vertical scroll away', () => {
   const findings = viewportFindings({
     condition: 'reflow-320',

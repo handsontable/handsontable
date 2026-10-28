@@ -1584,6 +1584,10 @@ counts as lost content.
   1.4.12, injected as a stylesheet as soon as the document has a head, so the grid measures its rows with
   it the way it would under a user's stylesheet. Each runs over every popup and bar of the catalog and the
   plain grid.
+- **A grid its fixture pins wider than the viewport is measured at the page's width.** A fixture that
+  sets a pixel `width` wider than the viewport gets `width: '100%'` before the state is reached (`fitted`
+  in the detail). With a pixel width the bars and the overlays follow the grid's own box, so they would
+  reach past the viewport because of the test page: the page's layout, not the grid's reflow.
 - **The grid body is exempt; everything around it is measured.** A data grid may scroll in two
   dimensions, so the main grid's tables are left out. The menus, the editors' lists, the comment editor,
   dialogs, notifications, the bars and the overlays are measured for text a clipping container cuts off
@@ -1592,7 +1596,9 @@ counts as lost content.
   box its clipping ancestors leave on screen, never between a control and one inside it, and never between
   a popup's control and one outside a popup: a popup lies over what is under it by design and Escape closes
   it). The formula builder's suggestion list and function help count as popups and its formula bar as a
-  bar.
+  bar. A layer that covers the whole grid (the dialog's, the notification's) has the grid's box, so it is
+  measured by the part a user reads: the dialog's card and each toast. A screen-reader-only box (one pixel
+  square, like the announcer's live regions) is never text cut off: its text is read out, not drawn.
 - **Where a surface is decides what reaching past the viewport means.** A surface positioned against the
   viewport (`position: fixed`, read from the computed style) that reaches past it cannot be scrolled to
   (`outside-viewport`). Any other surface past the right edge makes the page scroll sideways
