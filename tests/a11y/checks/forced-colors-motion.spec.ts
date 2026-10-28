@@ -130,7 +130,9 @@ async function watchState(page: Page, testInfo: TestInfo, entry: A11yPage, theme
     ...longRunningFindings({ windowMs: WATCH_MS, animations }),
   ];
 
-  await attachEvidence(testInfo, { target, startedAt, environment, findings, criteria: ['2.2.2', '2.3.3'], detail: { animations } });
+  await attachEvidence(testInfo, {
+    target, startedAt, environment, findings, criteria: ['2.2.2', '2.3.3'], detail: { animations }, pageErrors: opened.pageErrors,
+  });
 }
 
 type Interaction = { page: string; label: string; query?: string; act: (page: Page, opened: OpenedTarget) => Promise<void> };
@@ -219,6 +221,7 @@ async function interact(page: Page, testInfo: TestInfo, interaction: Interaction
     target, startedAt, environment, criteria: ['2.3.3'],
     findings: motionFindings({ reducedMotion, step: interaction.label, animations }),
     detail: { interaction: interaction.label, reducedMotion, animations, motion: motion.length },
+    pageErrors: opened.pageErrors,
   });
 }
 
@@ -362,8 +365,7 @@ async function forcedColors(page: Page, testInfo: TestInfo, theme: string) {
     findings.push(...forcedColorsFindings({ part: 'menu', selector: 'td (a menu item)', step: 'ArrowDown in the context menu', changed: change.changed }));
   }
 
-  expect(opened.pageErrors, 'the page threw no error while it was measured').toEqual([]);
-  await attachEvidence(testInfo, { target, startedAt, environment, findings, criteria: ['1.4.1'], detail });
+  await attachEvidence(testInfo, { target, startedAt, environment, findings, criteria: ['1.4.1'], detail, pageErrors: opened.pageErrors });
 }
 
 for (const theme of A11Y_THEMES) {
