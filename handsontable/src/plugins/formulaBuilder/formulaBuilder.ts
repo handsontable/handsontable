@@ -1846,14 +1846,19 @@ export class FormulaBuilder extends BasePlugin {
    * Whether a popup `container` value (an element or a CSS selector, looked up in the grid's shadow root
    * and in its document) can be mounted into. An omitted container is available: the popup floats.
    *
-   * @param {HTMLElement | string | undefined} container The container value.
+   * @param {HTMLElement | string | null | undefined} container The container value.
    * @returns {boolean}
    */
-  #isContainerAvailable(container: HTMLElement | string | undefined): boolean {
+  #isContainerAvailable(container: HTMLElement | string | null | undefined): boolean {
+    if (container === undefined) {
+      return true;
+    }
+
     if (typeof container !== 'string') {
       // An element counts while it is in a document: a framework can unmount the one passed in
-      // the settings, and a popup mounted into it would never show.
-      return container === undefined || container.isConnected;
+      // the settings, and a popup mounted into it would never show. `null` (a framework ref read
+      // before mount, though the type does not allow it) is a missing element too.
+      return container !== null && container.isConnected;
     }
 
     try {

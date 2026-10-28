@@ -134,7 +134,9 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   calls `finishInit()` first.
 - **A popup container element counts only while it is connected.** A framework can unmount the element
   passed in `popups.*.container` while the settings still hold it, and a popup mounted there never shows,
-  so a detached element is dropped with the same warning as a selector that finds nothing.
+  so a detached element is dropped with the same warning as a selector that finds nothing. So is `null`
+  (a React `ref.current` read before mount): read `isConnected` only after ruling it out, or the plugin
+  setup throws where hyperformula-ui 0.3.6 used to warn and float the popup.
 - **A rebuild never throws from a hook.** A `popups.*.container` selector that matches nothing is dropped
   with a warning before the package constructor sees it (hyperformula-ui 0.3.5 threw for one; 0.3.6 warns), and any other constructor
   throw is caught and warned. Hosts set through `attach*Host()` are kept on the plugin and re-applied to

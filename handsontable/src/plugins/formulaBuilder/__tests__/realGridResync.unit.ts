@@ -225,6 +225,17 @@ describe('FormulaBuilder state that has to follow the grid', () => {
       expect(warn).toHaveBeenCalledWith(expect.stringContaining('popups.suggestions.container'));
     });
 
+    it('drops a `null` container (a framework ref before mount) with a warning, and builds', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const grid = createGrid({
+        formulaBuilder: { builder: core, showFormulaBar: true, popups: { suggestions: { container: null } } },
+      });
+
+      expect(grid.getPlugin('formulaBuilder').enabled).toBe(true);
+      expect(container.querySelector('.hfe-formula-bar')).not.toBeNull();
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('popups.suggestions.container'));
+    });
+
     it('keeps an element container that is in the document', () => {
       const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
       const host = document.createElement('div');
