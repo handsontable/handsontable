@@ -303,6 +303,8 @@ test('the effects between two snapshots name what a key changed', () => {
   assert.deepEqual(effectsBetween(snapshot(), snapshot()), []);
   // A field the cell editor does not own (the formula bar's address box) rewrites its text with no editor open.
   assert.deepEqual(effectsBetween(snapshot({ focusedText: 'C3' }), snapshot({ focusedText: 'A1' })), ['text-changes']);
+  assert.deepEqual(effectsBetween(snapshot(), snapshot({ focusedText: 'A1', active: { region: 'grid', key: 'grid|ht-slot-top|INPUT#1|' } })),
+    ['focus-moves'], 'a focus that moved into a field with text in it changed no text');
   assert.deepEqual(effectsBetween(snapshot(), snapshot({ highlight: [2, 1], ranges: [[2, 1, 2, 1]], active: { region: 'grid', key: 'cell|2,1' } })),
     ['focus-moves', 'selection-changes', 'selection-moves']);
   assert.deepEqual(effectsBetween(snapshot(), snapshot({ editorOpen: true, editorText: 'x', active: { region: 'grid', key: 'textarea' } })),
