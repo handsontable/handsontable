@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "page": "formula-builder-function-help",
+  "theme": "main",
+  "walks": {
+    "popup": [
+      {
+        "region": "grid",
+        "role": "combobox",
+        "name": "Formula editor"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "#N/A",
+        "cell": [
+          0,
+          2
+        ]
+      },
+      {
+        "region": "end"
+      }
+    ]
+  }
+}

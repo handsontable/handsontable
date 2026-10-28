@@ -65,7 +65,7 @@ const INVENTORY_FILE = 'tests/a11y/checks/keyboard-shortcuts.mjs';
 const INVENTORY_LINES = inventoryLines(readFileSync(new URL('./keyboard-shortcuts.mjs', import.meta.url), 'utf8'));
 const DOCS_ROWS = parseShortcutTables(readFileSync(new URL('../../../docs/content/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md', import.meta.url), 'utf8'));
 const WALK_CRITERIA = ['2.1.1', '2.1.2', '2.4.3', '3.2.1', '3.2.2'];
-const POPUP_STATES = new Set(['context-menu', 'context-menu-submenu', 'dropdown-menu', 'editor', 'comment']);
+const POPUP_STATES = new Set(['context-menu', 'context-menu-submenu', 'dropdown-menu', 'editor', 'comment', 'formula-suggestions', 'formula-function-help']);
 const REST_STATES = new Set(['none', 'selection', 'data-provider']);
 // The probe page of the documented shortcuts: one grid with the plugins most rows need.
 const SHORTCUTS_PAGE: A11yPage = {
@@ -548,6 +548,7 @@ interface ProbeDefinition {
   to?: [number, number];
   prepare?: PrepareStep[];
   press: string | Array<string | { key: string; prepare: PrepareStep[] }>;
+  then?: PrepareStep[];
   expect: string | string[];
 }
 
@@ -611,9 +612,10 @@ async function probePage(page: Page, testInfo: TestInfo, entry: A11yPage, probes
     const presses = (Array.isArray(probe.press) ? probe.press : [probe.press])
       .map(press => (typeof press === 'string' ? { key: press, prepare: [] as PrepareStep[] } : press));
     const line = INVENTORY_LINES.get(shortcutKey(item));
+    const then = (probe.then ?? []).map(next => (typeof next === 'string' ? next : JSON.stringify(next))).join(', ');
 
     for (const { key, prepare: steps } of presses) {
-      const step = `${item.keys} (${key}) on ${probe.setup}${probe.at ? ` at (${probe.at.join(', ')})` : ''}`;
+      const step = `${item.keys} (${key}${then ? `, then ${then}` : ''}) on ${probe.setup}${probe.at ? ` at (${probe.at.join(', ')})` : ''}`;
       let before: GridSnapshot;
       let after: GridSnapshot;
 
@@ -630,6 +632,8 @@ async function probePage(page: Page, testInfo: TestInfo, entry: A11yPage, probes
         await prepare(page, root, [...(probe.prepare ?? []), ...steps]);
         before = await snapshot(page, root);
         await page.keyboard.press(key);
+        // A key that only switches a mode shows its effect on the key after it.
+        await prepare(page, root, probe.then);
         after = await snapshot(page, root);
       } catch (error) {
         problems.push(`the probe "${step}" (${item.section}) could not be set up: ${String(error instanceof Error ? error.message : error).split('\n')[0]}`);
