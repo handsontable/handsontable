@@ -386,6 +386,32 @@ test.describe('Web font loaded after the first draw', { tag: [THEMES_TAG, CROSS_
     await expect.poll(() => grid.columnWidth(offScreen)).toBeGreaterThan(before);
   });
 
+  for (const interruption of ['calculateAllColumnsWidth', 'toggle'] as const) {
+    test(`finishes a re-measure that ${interruption === 'toggle' ? 'turning AutoColumnSize off and on' : 'a calculateAllColumnsWidth() call'} interrupted`, async({ page, theme, bundle }) => {
+      const grid = new WebFontLoadPage(page, theme, bundle);
+      const offScreen = 39;
+
+      await grid.goto('&wide=1&height=1');
+      await expectAligned(grid);
+
+      const before = await grid.columnWidth(offScreen);
+
+      // Both cancel the sweep while it is still in its first chunk's idle tasks. They used to drop the
+      // re-measure with it: the call measures only the columns that have no width, and turning the plugin
+      // on again keeps the widths it measured, so the off-screen columns kept the fallback-font widths.
+      await grid.interruptColumnSweepDuringFontsLoad(interruption);
+      await grid.trackFontsLoadHook();
+      await grid.loadFont();
+      await expect.poll(() => grid.fontsLoadHookRan()).toBe(true);
+      await grid.render();
+
+      await expect.poll(() => grid.columnWidth(offScreen)).toBeGreaterThan(before);
+      await expect.poll(() => grid.sweepInProgress('autoColumnSize')).toBe(false);
+      await grid.scrollToColumn(offScreen);
+      expect(await grid.cellTextFits(3, offScreen)).toBe(true);
+    });
+  }
+
   test('re-measures the columns a sweep already measured on a draw after a style change', async({ page, theme, bundle }) => {
     const grid = new WebFontLoadPage(page, theme, bundle);
     // A column on screen whose cells hold plain numbers, so the font alone does not widen it, and which the

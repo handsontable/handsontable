@@ -351,9 +351,10 @@ export class AutoColumnSize extends BasePlugin {
    */
   #sweepStaleColumns = new Set<number>();
   /**
-   * `true` when a re-measure sweep was ended by a change that made its samples or widths stale (a cell
-   * meta change, new settings, a changed row or column set) or by the grid being hidden, so the next render
-   * of a visible grid starts it over. Held, not consumed, while the grid cannot be measured.
+   * `true` when a re-measure sweep was cancelled before its end: by a change that made its samples or widths
+   * stale (a cell meta change, new settings, a changed row or column set), by the grid being hidden, by a
+   * sweep that fills in missing widths, or by the plugin being turned off. The next render of a visible grid
+   * starts it over. Held, not consumed, while the grid cannot be measured (see `#cancelSweep()`).
    *
    * @type {boolean}
    */
@@ -949,12 +950,10 @@ export class AutoColumnSize extends BasePlugin {
 
       // The ghost table measures inside the root element, so a grid hidden since the sweep started reads a
       // width of 0 for every column, which draws them at the minimum width once the grid is shown again.
-      // A re-measure is owed to the first render of the visible grid; a sweep that fills in missing widths
-      // leaves them missing, and a draw measures the on-screen ones as it would any width it lacks.
+      // The cancel owes a re-measure to the first render of the visible grid; a sweep that fills in missing
+      // widths leaves them missing, and a draw measures the on-screen ones as it would any width it lacks.
       if (!this.hot.view.isVisible()) {
         this.#cancelSweep();
-        // `||=`: a sweep that fills in missing widths keeps a re-measure owed from before.
-        this.#reMeasureOwed ||= reuseSamples;
 
         return;
       }
@@ -1762,7 +1761,6 @@ export class AutoColumnSize extends BasePlugin {
     }
 
     this.#cancelSweep();
-    this.#reMeasureOwed = true;
   }
 
   /**
@@ -1788,12 +1786,19 @@ export class AutoColumnSize extends BasePlugin {
 
   /**
    * Cancels the idle task of a sweep in progress. Called when a new sweep starts, when the data is replaced,
-   * and when the plugin is turned off or destroyed.
+   * and when the plugin is turned off or destroyed. A re-measure sweep cancelled before its end owes a new
+   * one to the next render: a sweep that fills in missing widths (`calculateAllColumnsWidth()`) skips the
+   * columns it had not reached, and so does a plugin turned on again, which keeps its widths. A sweep that
+   * overwrites every width pays the debt when it starts, and a data load drops it.
    */
   #cancelSweep() {
     if (this.#sweepTask !== null) {
       cancelIdleTask(this.#sweepTask);
       this.#sweepTask = null;
+    }
+
+    if (this.#sweepPendingColumns !== null) {
+      this.#reMeasureOwed = true;
     }
 
     this.#finishSweep();

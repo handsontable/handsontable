@@ -198,7 +198,9 @@ measures. The rules that sweep follows, each one a review finding:
   on-screen columns from it, and holds the debt while the grid has no rows or no columns. `#onAfterLoadData` drops
   the debt, since an owed sweep would take the new data's columns from the previous data's samples. Only a sweep
   that overwrites every width pays it: `calculateAllColumnsWidth()` skips the columns that have one, so it keeps
-  the debt, and so does the hidden-grid cancel of such a sweep (`||=`). A font load on a grid with no rows owes it
+  the debt. **Any cancel of a re-measure sweep owes one** (`#cancelSweep()` sets the debt while
+  `#sweepPendingColumns` is set): a `calculateAllColumnsWidth()` call or a disable and enable that cut the sweep
+  short left the columns it had not reached at the fallback-font width. A font load on a grid with no rows owes it
   too, instead of measuring the headers alone: the widths can come from rows the grid had before (pro #6).
 - **A source write does not end the sweep.** `#onAfterSetSourceDataAtCell` drops every cached sample, the forced
   render after it measures the on-screen columns, and the sweep samples the others itself. Ending the sweep on every write restarted it from its first column on each draw, so on a 100k-row grid
@@ -231,7 +233,7 @@ measures. The rules that sweep follows, each one a review finding:
 Pinned by `tests/e2e/web-font-load.spec.ts` ("measures the first columns on screen at once...", "measures a frozen
 column...", "samples a column edited while...", "draws nothing inside the afterFontsLoad hook", "re-measures a
 column whose cell meta changed...", "draws after an idle chunk only when...", "stops measuring while the grid is
-hidden...", "keeps a re-measure owed...", "re-measures the columns a sweep already measured...", "finishes the
+hidden...", "keeps a re-measure owed...", "finishes a re-measure that...", "re-measures once shown when a listener hides...", "re-measures the columns a sweep already measured...", "finishes the
 sweep while source writes keep coming", "runs a listener added with the default order...", "re-measures a merge
 whose text...", "re-measures the headers of a grid that had no rows...", "measures every column on screen on an
 application render...") and `tests/e2e/sheets-bar-in-flight-work.spec.ts`

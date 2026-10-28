@@ -559,6 +559,28 @@ export class WebFontLoadPage {
   }
 
   /**
+   * Interrupts the column re-measure from inside the next `afterFontsLoad` hook, after AutoColumnSize's
+   * own listener started it: `calculateAllColumnsWidth` starts a sweep that measures only the columns that
+   * have no width, and `toggle` turns AutoColumnSize off and on again.
+   *
+   * @param {string} interruption What interrupts the re-measure.
+   */
+  async interruptColumnSweepDuringFontsLoad(interruption: 'calculateAllColumnsWidth' | 'toggle'): Promise<void> {
+    await this.page.evaluate((kind) => {
+      const win = window as unknown as { hot: FontLoadGrid };
+
+      win.hot.addHookOnce('afterFontsLoad', () => {
+        if (kind === 'toggle') {
+          win.hot.updateSettings({ autoColumnSize: false });
+          win.hot.updateSettings({ autoColumnSize: true });
+        } else {
+          win.hot.getPlugin('autoColumnSize').calculateAllColumnsWidth();
+        }
+      }, 100);
+    }, interruption);
+  }
+
+  /**
    * Destroys the grid from inside the next `afterFontsLoad` hook, the way a framework teardown can.
    */
   async destroyGridDuringFontsLoad(): Promise<void> {
