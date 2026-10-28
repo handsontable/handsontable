@@ -32,8 +32,9 @@
  * corner) or `{ text, within }` (a menu item).
  *
  * `lib/__tests__/pointer.test.mjs` fails on a plugin that follows the pointer (listens to `mousemove`,
- * `pointermove` or `touchmove`) and is neither here nor in `NOT_DRAG`, so a new drag is accounted for in
- * the change that adds it.
+ * `pointermove` or `touchmove`, registers a cell mouse-over hook, or imports a module under `src/utils/`
+ * that listens) and is neither here nor in `NOT_DRAG`, so a new drag is accounted for in the change that
+ * adds it.
  */
 export const DRAG_OPERATIONS = [
   {
@@ -130,6 +131,20 @@ export const DRAG_OPERATIONS = [
         steps: [{ click: { cell: [1, 1] } }, { click: { cell: [3, 3] }, modifiers: ['Shift'] }] },
       { input: 'single-pointer', covers: 'partial', how: 'A click on a header selects its whole column or row, never a range of cells',
         steps: [{ click: { colHeader: 1 } }] },
+    ],
+  },
+  {
+    id: 'column-header-selection', plugin: 'nestedHeaders', gesture: 'drag',
+    operation: 'Select a span of columns by dragging across their headers; nested headers widen it to the groups they span',
+    page: 'nested-headers', expect: 'selection-changes', compare: 'selected',
+    drag: [{ drag: { from: { colHeader: 1 }, to: { colHeader: 5 } } }],
+    alternatives: [
+      { input: 'keyboard', covers: 'full', how: 'With a column selected, Shift+arrows extend the selection to the columns beside it',
+        steps: [{ click: { colHeader: 1 } }, { press: ['Shift+ArrowRight', 'Shift+ArrowRight', 'Shift+ArrowRight', 'Shift+ArrowRight'] }] },
+      { input: 'pointer-modifier', covers: 'full', how: 'A click on a header, then a Shift+click on another, selects the columns between them',
+        steps: [{ click: { colHeader: 1 } }, { click: { colHeader: 5 }, modifiers: ['Shift'] }] },
+      { input: 'single-pointer', covers: 'partial', how: 'A click on a group header selects the columns the group spans, never another span',
+        steps: [{ click: { text: 'D/E', within: '[data-testid="menus-grid"] .ht_clone_top' } }] },
     ],
   },
   {

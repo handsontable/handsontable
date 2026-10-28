@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { DRAG_OPERATIONS, NOT_DRAG } from '../../a11y/checks/drag-operations.mjs';
 import { A11Y_PAGES } from '../../a11y/pages.mjs';
 import { actionEffects, cancellationFindings, dragFindings, gestureFindings, inventoryProblems, undeclaredPointerPlugins } from '../pointer.mjs';
@@ -106,27 +107,45 @@ test('every plugin that follows the pointer is in the inventory or says why it i
     { missing: [], stale: ['contextMenu'] }, 'a reason for a plugin that no longer follows the pointer is stale');
 });
 
-const PLUGINS = new URL('../../../handsontable/src/plugins/', import.meta.url).pathname;
+const SRC = fileURLToPath(new URL('../../../handsontable/src/', import.meta.url));
+// A source follows the pointer when it listens to its moves, or follows a drag across cells or headers
+// through the core's cell mouse-over hooks.
+const FOLLOWS = /['"](mousemove|pointermove|touchmove)['"]|addHook\(\s*['"](before|after)OnCellMouseOver['"]/;
 
 /**
- * The plugin folders whose source listens to pointer or touch moves: the plugins that can drag.
+ * The source files under a folder, tests left out.
+ *
+ * @param {string} folder The folder.
+ * @returns {Array<{file: string, text: string}>} Each file, relative to the folder, and its text.
+ */
+function sources(folder) {
+  return readdirSync(folder, { recursive: true }).map(String)
+    .filter(file => /\.(ts|js)$/.test(file) && !file.includes('__tests__'))
+    .map(file => ({ file, text: readFileSync(join(folder, file), 'utf8') }));
+}
+
+/**
+ * The plugin folders that follow the pointer: their own source does, or it imports a module under
+ * `src/utils/` that does (the column and row resize drags live in `utils/manualResize/resizeGesture.ts`).
  *
  * @returns {string[]} The folder names.
  */
 function pluginsFollowingThePointer() {
-  const listens = /['"](mousemove|pointermove|touchmove)['"]/;
+  const plugins = join(SRC, 'plugins');
+  const shared = sources(join(SRC, 'utils')).filter(({ text }) => FOLLOWS.test(text))
+    .map(({ file }) => `/utils/${file.replace(/\.(ts|js)$/, '').split(sep).join('/')}'`);
 
-  return readdirSync(PLUGINS, { withFileTypes: true }).filter(entry => entry.isDirectory() && entry.name !== '__tests__')
-    .filter(({ name }) => readdirSync(join(PLUGINS, name), { recursive: true })
-      .some(file => /\.(ts|js)$/.test(file) && !String(file).includes('__tests__') && listens.test(readFileSync(join(PLUGINS, name, String(file)), 'utf8'))))
+  return readdirSync(plugins, { withFileTypes: true }).filter(entry => entry.isDirectory() && entry.name !== '__tests__')
+    .filter(({ name }) => sources(join(plugins, name)).some(({ text }) => FOLLOWS.test(text) || shared.some(module => text.includes(module))))
     .map(entry => entry.name);
 }
 
 test('the drag inventory accounts for every plugin that follows the pointer, and every entry can run', () => {
   const tracking = pluginsFollowingThePointer();
+  const known = ['autofill', 'formulaBuilder', 'freezeBar', 'manualColumnResize', 'manualRowResize', 'nestedHeaders'];
 
-  assert.ok(tracking.includes('autofill') && tracking.includes('freezeBar') && tracking.includes('formulaBuilder'),
-    'the scan finds the plugins it is meant to find');
+  assert.deepEqual(known.filter(name => !tracking.includes(name)), [],
+    'the scan finds a move listener of the plugin\'s own, one in shared code under src/utils/, and a cell mouse-over hook');
   assert.deepEqual(undeclaredPointerPlugins({ tracking, inventory: DRAG_OPERATIONS, notDrag: NOT_DRAG }), { missing: [], stale: [] },
     'add the new drag to a11y/checks/drag-operations.mjs, or its reason to NOT_DRAG');
   assert.deepEqual(inventoryProblems(DRAG_OPERATIONS), []);

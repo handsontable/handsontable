@@ -1681,8 +1681,11 @@ drags (`pointer-state.ts`, `drag-runner.ts`); the verdicts are `lib/pointer.mjs`
   alternative that did not work is `alternative-does-not-work`. An operation with no alternative lists
   none, and that absence is the finding.
 - **The tooling test keeps the inventory complete.** It reads `handsontable/src/plugins/`, and a plugin
-  that listens to `mousemove`, `pointermove` or `touchmove` must be in the inventory or in `NOT_DRAG`
-  with its reason; a reason for a plugin that no longer follows the pointer fails as stale. A new drag
+  that follows the pointer must be in the inventory or in `NOT_DRAG` with its reason: one that listens
+  to `mousemove`, `pointermove` or `touchmove`, registers a cell mouse-over hook (a drag across cells or
+  headers, like the nested-header column selection), or imports a module under `src/utils/` that
+  listens (the resize drags live in `utils/manualResize/resizeGesture.ts`). A reason for a plugin that
+  no longer follows the pointer fails as stale. A new drag
   is accounted for in the change that adds it. A path-based or multipoint gesture goes in with its
   `gesture`, and 2.5.1 judges it like 2.5.7 judges a drag; the product has none today (a long press and
   a double tap are time-based, single-point gestures).
