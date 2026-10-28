@@ -1573,7 +1573,10 @@ counts as lost content.
   dialogs, notifications, the bars and the overlays are measured for text a clipping container cuts off
   (`text-clipped`; `text-truncated`, moderate, when the container ends it with an ellipsis), surfaces the
   viewport cuts off, and controls drawn over each other (`controls-overlap`, judged on the part of each
-  box its clipping ancestors leave on screen, and never between a control and one inside it).
+  box its clipping ancestors leave on screen, never between a control and one inside it, and never between
+  a popup's control and one outside a popup: a popup lies over what is under it by design and Escape closes
+  it). The formula builder's suggestion list and function help count as popups and its formula bar as a
+  bar.
 - **Where a surface is decides what reaching past the viewport means.** A surface positioned against the
   viewport (`position: fixed`, read from the computed style) that reaches past it cannot be scrolled to
   (`outside-viewport`). Any other surface past the right edge makes the page scroll sideways

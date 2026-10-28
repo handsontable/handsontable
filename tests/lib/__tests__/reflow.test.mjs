@@ -93,6 +93,20 @@ test('controls drawn over each other are a finding; nested and touching ones are
   ]);
 });
 
+test('a popup lies over what is under it by design: its controls overlap only the controls of a popup', () => {
+  const findings = overlapFindings({
+    condition: 'reflow-320',
+    controls: [
+      { id: 0, selector: 'input.address', left: 0, top: 0, right: 80, bottom: 30, within: [], popup: false },
+      { id: 1, selector: 'div.option', left: 10, top: 10, right: 90, bottom: 40, within: [], popup: true },
+      { id: 2, selector: 'div.close', left: 60, top: 10, right: 100, bottom: 40, within: [], popup: true },
+    ],
+  });
+
+  assert.deepEqual(findings.map(item => [item.selector, item.measured.with]), [['div.option', 'div.close']],
+    'a list drawn over the formula bar hides it until it closes; two of its own controls over each other are lost');
+});
+
 test('hover content must be dismissible, hoverable and persistent', () => {
   assert.deepEqual(hoverFindings({ selector: '.htComments', appeared: true, dismissible: true, hoverable: true, persistent: true }), []);
   assert.deepEqual(hoverFindings({ selector: '.htComments', appeared: true, dismissible: false, hoverable: false, persistent: false })

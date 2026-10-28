@@ -32,7 +32,8 @@ import {
 
 // The pages whose surfaces reflow: every popup and bar of the catalog, and the plain grid.
 const PAGES = ['grid', 'context-menu', 'context-menu-submenu', 'dropdown-menu', 'filters-conditions', 'autocomplete-editor', 'multiselect-editor',
-  'comments', 'dialog', 'notification', 'pagination', 'sheets-bar', 'data-provider-sheets-bar', 'license-bar', 'empty-data', 'loading'];
+  'comments', 'dialog', 'notification', 'pagination', 'sheets-bar', 'data-provider-sheets-bar', 'license-bar', 'empty-data', 'loading',
+  'formula-builder', 'formula-builder-suggestions', 'formula-builder-function-help'];
 const ORIENTATION_PAGES = ['grid', 'pagination', 'sheets-bar'];
 // The surfaces around the grid, by the class that marks each, and whether it is a popup (a menu, a list,
 // a dialog) or a part of the page's flow (a bar). Whether a surface is positioned against the viewport is
@@ -47,6 +48,8 @@ const SURFACES: Array<[string, string, boolean]> = [
   ['.ht-sheets-bar', 'sheets bar', false],
   ['.ht-empty-data-state', 'empty-data message', false],
   ['[class*="ht-license"]', 'license bar', false],
+  ['.hfe-suggestions, .hfe-fn-help', 'formula popup', true],
+  ['.ht-formula-builder__formula-bar', 'formula bar', false],
 ];
 
 /**
@@ -159,7 +162,9 @@ async function collect(page: Page, root: string) {
       const rect = shown(node);
       const within = interactiveElements.map((other, index) => (other !== node && other.contains(node) ? index : -1)).filter(index => index > -1);
 
-      return { id, selector: name(node), left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, within };
+      const popup = surfaces.some(([css, , isPopup]) => isPopup && !!node.closest(css));
+
+      return { id, selector: name(node), left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, within, popup };
     });
 
     return {
