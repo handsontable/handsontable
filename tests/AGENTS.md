@@ -1601,9 +1601,19 @@ counts as lost content.
   square, like the announcer's live regions) is never text cut off: its text is read out, not drawn.
 - **Where a surface is decides what reaching past the viewport means.** A surface positioned against the
   viewport (`position: fixed`, read from the computed style) that reaches past it cannot be scrolled to
-  (`outside-viewport`). Any other surface past the right edge makes the page scroll sideways
-  (`needs-horizontal-scroll`, the second scroll direction 1.4.10 does not allow outside a data table);
-  past the bottom edge it is a vertical scroll away, which is allowed.
+  (`outside-viewport`). Any other surface is placed in the page's own coordinates (its box plus the scroll
+  offset), and scrolling reaches from the page's origin to its scroll size and no further: a part before
+  the origin (a menu flipped left of or above the page) or past the scroll size is `outside-viewport`
+  too. Within reach, a surface past the right edge needs a sideways scroll (`needs-horizontal-scroll`),
+  the second scroll direction 1.4.10 does not allow outside a data table. That is a finding at 320 px
+  only: 1.4.4 and 1.4.12 ask for no loss of content, and a sideways scroll loses none. Past the bottom
+  edge a surface is a vertical scroll away, which is allowed.
+- **Every finding names its element apart from the others.** A finding's id keys on its selector, and
+  two findings with one id read as one in a compare between runs. The spec names an element by its tag,
+  its first class, and its label, so two items of one measurement can share a name (the context menu and
+  its submenu are both `div.htMenu`): the second and later get an ordinal (`div.htMenu (2)`,
+  `nameApart()`), among the surfaces, the controls, and the clipping containers alike. A
+  `controls-overlap` names both controls (`a × b`), so one control over two neighbors is two findings.
 - **A measurement is taken on a settled page.** The spec measures until two measurements three frames
   apart agree (`settled` in the detail), and every check releases the data-provider fixture's parked
   fetches until none is left (`releaseParkedFetches()` in the harness): the catalog's opener releases the

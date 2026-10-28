@@ -8,6 +8,7 @@ import {
   TEXT_SPACING_CSS,
   clippingFindings,
   hoverFindings,
+  nameApart,
   orientationFindings,
   overlapFindings,
   viewportFindings,
@@ -117,14 +118,16 @@ async function fitToViewport(page: Page, root: string): Promise<boolean> {
 
 /**
  * Measures the surfaces around the grid in one evaluation: the clipping containers holding text, the
- * surfaces' boxes, the controls' boxes, and the viewport with the page's scroll size.
+ * surfaces' boxes, the controls' boxes, and the viewport with the page's scroll offset and scroll size.
+ * Two items of one list that share a name are told apart by an ordinal (`nameApart()`): the context menu
+ * and its submenu are both `div.htMenu`, and one finding each needs an id each.
  *
  * @param page The page.
  * @param root The root container selector.
  * @returns What was measured.
  */
 async function collect(page: Page, root: string) {
-  return page.evaluate(([selector, portalMark, surfaces]) => {
+  const measured = await page.evaluate(([selector, portalMark, surfaces]) => {
     const container = document.querySelector(selector)!;
     // Every marked portal: a state whose popups mount in a portal of their own marks that one too.
     const scopes = [container, ...document.querySelectorAll(`[${portalMark}]`)].filter((node): node is Element => !!node);
@@ -205,9 +208,14 @@ async function collect(page: Page, root: string) {
       boxes,
       surfaces: surfaceBoxes,
       controls,
-      viewport: { width: innerWidth, height: innerHeight, scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight },
+      viewport: {
+        width: innerWidth, height: innerHeight, scrollX, scrollY,
+        scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight,
+      },
     };
   }, [root, PORTAL_MARK, SURFACES] as const);
+
+  return { ...measured, boxes: nameApart(measured.boxes), surfaces: nameApart(measured.surfaces), controls: nameApart(measured.controls) };
 }
 
 /**
