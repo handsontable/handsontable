@@ -5,19 +5,29 @@ import { MenuViewportClampPage, type MenuGeometry } from '../fixtures/pages/Menu
  * A menu that fits on neither side of the point it opens at stays inside the viewport. The positioner
  * tried the inline-end side, fell back to the other side when the menu did not fit, and never asked
  * whether that side fit either, so on a narrow viewport the menu's inline-start edge went past the
- * edge of the screen and its first controls were clipped (the column dropdown of a 390px phone).
+ * edge of the screen and its first controls were clipped (the column dropdown of a 390px phone). The
+ * vertical axis had the same gap: a menu that fit neither below nor above its point opened below it
+ * and ran off the bottom of a short viewport.
  *
  * The viewport is 320px, the width WCAG 1.4.10 (Reflow) is measured at, and the point is in the
  * middle of it: a menu about 200px wide then misses both sides by a wide margin on every theme, so
  * the outcome does not depend on a theme's paddings. The menu's width is asserted as the
  * precondition, or a menu that happened to fit on one side would pass on unfixed code.
  *
- * The positioner places `style.left` in page coordinates, so the window-scrolled cases, one per
- * document direction, are what tell a clamp against the viewport from a clamp against the page's left
+ * The positioner places `style.left` and `style.top` in page coordinates, so the window-scrolled cases,
+ * one per document direction, are what tell a clamp against the viewport from a clamp against the page's
  * edge. A menu wider than the viewport, and the arithmetic of both directions, are pinned in
- * `positioner.unit.ts`, where the widths can be chosen.
+ * `positioner.unit.ts`, where the sizes can be chosen.
  */
 const VIEWPORT = { width: 320, height: 720 };
+
+// Taller than the context menu on every theme (the least room is horizon's, about 474px), and short
+// enough that a point in the middle of it has less room than the menu needs both above and below.
+const SHORT_VIEWPORT = { width: 844, height: 520 };
+
+// The point the context menu is opened at in the short viewport. The menu is 340 to 474px tall on the
+// themes, so it misses the 270px below this point and the 250px above it on every one.
+const SHORT_VIEWPORT_POINT_Y = 250;
 
 // Wider than any point in the middle of the viewport leaves room for on either side (160px), with a
 // margin for the point being a few pixels off the middle.
@@ -35,6 +45,20 @@ function expectInsideViewport({ left, right, width, viewportWidth }: MenuGeometr
   expect(width, 'the menu is too narrow to miss both sides of the point').toBeGreaterThan(WIDE_MENU_PX);
   expect(left).toBeGreaterThanOrEqual(-EDGE_TOLERANCE_PX);
   expect(right).toBeLessThanOrEqual(viewportWidth + EDGE_TOLERANCE_PX);
+}
+
+/**
+ * Asserts the menu is too tall for the room above and below the point it opened at, so it could be
+ * placed on neither side, and that its top and bottom edges lie inside the viewport.
+ *
+ * @param {MenuGeometry} geometry The menu's box and the viewport height.
+ * @param {number} pointY The point the menu was opened at, in viewport coordinates.
+ */
+function expectInsideViewportVertically({ top, bottom, height, viewportHeight }: MenuGeometry, pointY: number): void {
+  expect(height, 'the menu fits below the point').toBeGreaterThan(viewportHeight - pointY);
+  expect(height, 'the menu fits above the point').toBeGreaterThan(pointY);
+  expect(top).toBeGreaterThanOrEqual(-EDGE_TOLERANCE_PX);
+  expect(bottom).toBeLessThanOrEqual(viewportHeight + EDGE_TOLERANCE_PX);
 }
 
 test.use({ viewport: VIEWPORT });
@@ -83,6 +107,30 @@ for (const { dir, scrollX } of [{ dir: 'ltr', scrollX: 1000 }, { dir: 'rtl', scr
       await grid.openContextMenuAt(VIEWPORT.width / 2, 120);
 
       expectInsideViewport(await grid.geometry('context'));
+    });
+  });
+}
+
+// The window is scrolled on both axes on the wide page, so the top edge is measured from `scrollY` too.
+for (const pageWidth of ['fit', 'wide'] as const) {
+  test.describe(`menu in a short viewport (${pageWidth} page)`, { tag: THEMES_TAG }, () => {
+    test.use({ viewport: SHORT_VIEWPORT });
+
+    let grid: MenuViewportClampPage;
+
+    test.beforeEach(async({ page, theme, bundle }) => {
+      grid = new MenuViewportClampPage(page, theme, bundle, 'ltr', pageWidth);
+      await grid.goto();
+
+      if (pageWidth === 'wide') {
+        await grid.scrollWindowTo(1000);
+      }
+    });
+
+    test('the context menu stays inside the viewport when it fits neither below nor above the point', async() => {
+      await grid.openContextMenuAt(VIEWPORT.width / 2, SHORT_VIEWPORT_POINT_Y);
+
+      expectInsideViewportVertically(await grid.geometry('context'), SHORT_VIEWPORT_POINT_Y);
     });
   });
 }

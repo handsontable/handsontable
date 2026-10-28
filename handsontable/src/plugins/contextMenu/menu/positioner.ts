@@ -110,6 +110,7 @@ export class Positioner {
         this.setPositionBelowCursor();
       }
 
+      this.#clampVertically();
       this.updateHorizontalPosition();
     } else {
       this.setPositionBelowCursor();
@@ -227,14 +228,47 @@ export class Positioner {
     const minLeft = scrollLeft;
     const maxLeft = scrollLeft + viewportWidth - container.offsetWidth;
     const left = Number.parseFloat(container.style.left);
-    // The two orders differ only for a menu wider than the viewport, where `maxLeft` is below `minLeft`
-    // and the later bound wins: the inline-start edge stays visible, so each direction needs its own.
-    const clampedLeft = container.dir === 'rtl' ?
-      Math.min(maxLeft, Math.max(left, minLeft)) :
-      Math.max(minLeft, Math.min(left, maxLeft));
+    const clampedLeft = clampIntoRange(left, minLeft, maxLeft, container.dir !== 'rtl');
 
     if (clampedLeft !== left) {
       container.style.left = `${clampedLeft}px`;
     }
   }
+
+  /**
+   * Moves the menu back inside the viewport when neither the room below the cursor nor the room above
+   * it fits the menu, which `updatePosition()` answers by placing it below anyway. The check runs on
+   * the position written to `style.top`, which is in page coordinates, so the viewport's edges are the
+   * window's scroll offset and that offset plus the viewport's height, the height `Cursor#fitsBelow()`
+   * uses. A menu taller than the viewport keeps its top edge visible.
+   */
+  #clampVertically() {
+    const container = this.#container!;
+    const { scrollTop, rootWindow } = this.#cursor!;
+    const minTop = scrollTop;
+    const maxTop = scrollTop + rootWindow.innerHeight - container.offsetHeight;
+    const top = Number.parseFloat(container.style.top);
+    const clampedTop = clampIntoRange(top, minTop, maxTop, true);
+
+    if (clampedTop !== top) {
+      container.style.top = `${clampedTop}px`;
+    }
+  }
+}
+
+/**
+ * Limits a position to the range a menu may start in. A range whose maximum is below its minimum is
+ * a menu larger than the viewport: the bound listed last wins, so `preferMin` keeps the menu's
+ * start edge at the minimum, and its absence keeps the menu's end edge at the maximum.
+ *
+ * @param {number} value The position to limit.
+ * @param {number} min The lowest position that keeps the menu's start edge in the viewport.
+ * @param {number} max The highest position that keeps the menu's end edge in the viewport.
+ * @param {boolean} preferMin Whether the minimum wins when the range is empty.
+ * @returns {number} The position inside the range, or the preferred bound when there is none.
+ */
+function clampIntoRange(value: number, min: number, max: number, preferMin: boolean) {
+  return preferMin ?
+    Math.max(min, Math.min(value, max)) :
+    Math.min(max, Math.max(value, min));
 }

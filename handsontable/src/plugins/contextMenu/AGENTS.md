@@ -311,40 +311,44 @@ once it has. Pinned by `contextMenu/__tests__/utils.unit.js`.
 
 ## The positioner clamps to the viewport AFTER it picks a side (DEV-3623)
 
-`Positioner#updateHorizontalPosition()` chooses a side from `Cursor#fitsOnRight()` or `fitsOnLeft()`
-(mirrored in RTL). When the first side does not fit, it falls back to the other side. It never asked
-whether that side fits, so a menu that fits on neither side of its point went past the viewport's edge.
-A 218px column dropdown on a 390px phone started 26px left of the screen, and its first controls were
-clipped (issue #14048, reported on 16.2.0 and still present in 18.1.2). `#clampHorizontally()` now runs
-last and holds `style.left` inside the viewport.
+`Positioner` chooses a side from the room around the cursor: below or above it (`Cursor#fitsBelow()`,
+`fitsAbove()`), then to the right or left (`fitsOnRight()`, `fitsOnLeft()`, mirrored in RTL). When the
+first side does not fit, it falls back to the other. It never asked whether the fallback fits, so a menu
+that fits on neither side of its point went past the viewport's edge. A 218px column dropdown on a 390px
+phone started 26px left of the screen, and its first controls were clipped (issue #14048, reported on
+16.2.0 and still present in 18.1.2). A 372px context menu on a 390px-tall window opened below its point
+and ran 105px past the bottom. `#clampHorizontally()` and `#clampVertically()` now run last and hold
+`style.left` and `style.top` inside the viewport.
 
 - **Clamp, never add a predicate.** The `fits*` checks do not describe the placement they gate.
   `fitsOnLeft()` ignores `#offset.left`, which the dropdown sets to the button width. `fitsOnRight()`
   always adds `cellWidth`, while `setPositionOnRightOfCursor()` adds it for submenus only. Another
-  predicate inherits the same drift. The clamp reads what the two `setPositionOn*OfCursor()` methods
-  wrote, so it holds whatever they did.
-- **The edges are in the frame `style.left` is written in: the window's page coordinates.** They are
-  the window's `scrollX`, and that offset plus `documentElement.clientWidth` (the width `fitsOnRight()`
-  uses). A clamp against `0` passes at rest and breaks on a window scrolled sideways. In an RTL document
-  `scrollX` is `0` at rest and goes negative as the window scrolls toward the inline end. A custom
-  `uiContainer` with its own containing block is the exception (`Menu#captureScrollFollowBaseline` explains why a
-  measured rect is used there): `style.left` is then not a page coordinate. The positioner was already
-  off in that case, and the clamp inherits it.
-- **A menu wider than the viewport keeps its inline-start edge visible.** That is the left edge in LTR
-  and the right edge in RTL, and the menu overflows the other way. The two directions use opposite
-  orders of `Math.min` and `Math.max`, so do not merge them.
+  predicate inherits the same drift. The clamps read what the `setPositionOn*()` methods wrote, so they
+  hold whatever those did.
+- **The edges are in the frame `style.left` and `style.top` are written in: the window's page
+  coordinates.** Horizontally they are the window's `scrollX`, and that offset plus
+  `documentElement.clientWidth` (the width `fitsOnRight()` uses). Vertically they are `scrollY`, and
+  that offset plus `innerHeight` (the height `fitsBelow()` uses). A clamp against `0` passes at rest and
+  breaks on a scrolled window. In an RTL document `scrollX` is `0` at rest and goes negative as the
+  window scrolls toward the inline end. A custom `uiContainer` with its own containing block is the
+  exception (`Menu#captureScrollFollowBaseline` explains why a measured rect is used there): the position
+  is then not a page coordinate. The positioner was already off in that case, and the clamps inherit it.
+- **A menu larger than the viewport keeps its start edge visible.** That is the top edge, and the left
+  edge in LTR or the right edge in RTL, so the menu overflows the other way. `clampIntoRange()` takes
+  the edge to keep as `preferMin`, and RTL passes it `false`, so do not merge the two directions.
 - **Only `keepInViewport: true` reaches it.** The Filters value-list select passes `false` and takes the
   other branch of `updatePosition()`. The menus that do reach it are the context menu, the dropdown
-  menu, their submenus, and the sheets bar menus.
+  menu, their submenus, and the sheets bar menus. The sheets bar already lifts its upward menu by hand
+  and pins it to the top in a squeeze, which the clamp agrees with.
 - **It moves a menu only when the menu would leave the viewport**, so every placement that was inside
-  it stays where it was. A submenu that fits on neither side of its parent now overlaps the parent menu
-  instead of leaving the screen. The legacy RTL dropdown specs that pinned a menu left of an LTR page
-  (the last column's button at x = -27) now expect the viewport's left edge.
-- **Pinned by** `menu/__tests__/positioner.unit.ts` (both directions, a menu wider than the viewport,
-  and a positive and a negative scroll offset) and `tests/e2e/menu-viewport-clamp.spec.ts` (the issue's
-  menus on a 320px viewport, a scrolled window in both document directions, and a submenu).
-- **Still open: the vertical axis.** `updatePosition()` falls back to below the cursor when the menu
-  fits neither below nor above, with no clamp, so a tall menu on a short viewport runs off the bottom.
+  it stays where it was. A menu that fits neither below nor above its point now covers the point
+  instead of leaving the screen, and a submenu that fits on neither side of its parent overlaps the
+  parent menu. The legacy specs that pinned such a menu outside the viewport changed with it: the RTL
+  dropdown specs (the last column's button at x = -27) now expect the viewport's left edge, and the
+  iframe context menu spec gives its outer frame room for the whole menu.
+- **Pinned by** `menu/__tests__/positioner.unit.ts` (both axes and directions, a menu larger than the
+  viewport, and scroll offsets) and `tests/e2e/menu-viewport-clamp.spec.ts` (the issue's menus on a 320px
+  viewport, a short viewport, a window scrolled on both axes in both document directions, and a submenu).
 
 ## Where to look next
 

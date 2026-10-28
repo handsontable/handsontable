@@ -15,7 +15,11 @@ export interface MenuGeometry {
   left: number;
   right: number;
   width: number;
+  top: number;
+  bottom: number;
+  height: number;
   viewportWidth: number;
+  viewportHeight: number;
 }
 
 // A submenu container carries its parent menu's class as well, and the grid keeps a ghost table of
@@ -46,8 +50,8 @@ export class MenuViewportClampPage {
    * @param {string} theme The active theme.
    * @param {Bundle} bundle The active bundle.
    * @param {'ltr' | 'rtl'} dir The document's direction, which the grid follows.
-   * @param {'fit' | 'wide'} pageWidth `wide` puts the grid 1000px in from the inline start of a 3000px
-   * page, so the window can scroll sideways to it.
+   * @param {'fit' | 'wide'} pageWidth `wide` puts the grid 1000px in from the inline start and the top of a
+   * 3000px page, so the window can scroll to it on both axes.
    */
   constructor(page: Page, theme = 'main', bundle: Bundle = 'umd', dir: 'ltr' | 'rtl' = 'ltr',
     pageWidth: 'fit' | 'wide' = 'fit') {
@@ -90,15 +94,16 @@ export class MenuViewportClampPage {
   }
 
   /**
-   * Scrolls the window sideways to the grid of the wide page and waits until it got there. The grid
-   * is 1000px from the page's inline start, so the offset is 1000 in an LTR document and -1000 in an
-   * RTL one, where the window scrolls toward negative offsets.
+   * Scrolls the window to the grid of the wide page and waits until it got there. The grid is 1000px
+   * from the page's inline start, so `x` is 1000 in an LTR document and -1000 in an RTL one, where the
+   * window scrolls toward negative offsets, and 1000px from its top.
    *
    * @param {number} x The window's `scrollX` to scroll to.
+   * @param {number} y The window's `scrollY` to scroll to.
    */
-  async scrollWindowTo(x: number): Promise<void> {
-    await this.page.evaluate((left) => window.scrollTo(left, 0), x);
-    await expect.poll(() => this.page.evaluate(() => window.scrollX)).toBe(x);
+  async scrollWindowTo(x: number, y = 1000): Promise<void> {
+    await this.page.evaluate(([left, top]) => window.scrollTo(left, top), [x, y]);
+    await expect.poll(() => this.page.evaluate(() => [window.scrollX, window.scrollY])).toEqual([x, y]);
   }
 
   /**
@@ -141,10 +146,10 @@ export class MenuViewportClampPage {
   }
 
   /**
-   * Reads where the menu is, in viewport coordinates, together with the viewport's width.
+   * Reads where the menu is, in viewport coordinates, together with the viewport's size.
    *
    * @param {MenuKind} kind The menu.
-   * @returns {Promise<MenuGeometry>} The menu's box and the viewport width.
+   * @returns {Promise<MenuGeometry>} The menu's box and the viewport size.
    */
   async geometry(kind: MenuKind): Promise<MenuGeometry> {
     return this.page.evaluate((selector) => {
@@ -154,9 +159,18 @@ export class MenuViewportClampPage {
         throw new Error(`No menu matches ${selector}`);
       }
 
-      const { left, right, width } = menu.getBoundingClientRect();
+      const { left, right, width, top, bottom, height } = menu.getBoundingClientRect();
 
-      return { left, right, width, viewportWidth: document.documentElement.clientWidth };
+      return {
+        left,
+        right,
+        width,
+        top,
+        bottom,
+        height,
+        viewportWidth: document.documentElement.clientWidth,
+        viewportHeight: window.innerHeight,
+      };
     }, MENU_SELECTOR[kind]);
   }
 }

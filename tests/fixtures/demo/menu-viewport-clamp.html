@@ -38,8 +38,8 @@
       throw new Error('Unknown ?dir= value: ' + JSON.stringify(htParams.get('dir')));
     }
     document.documentElement.setAttribute('dir', window.htDirection);
-    // `wide` makes the page 3000px wide with the grid in the middle of it, so the WINDOW can scroll
-    // sideways to the grid and a menu's position is measured in a scrolled page.
+    // `wide` makes the page 3000px wide and tall with the grid 1000px in from its inline start and top, so
+    // the WINDOW can scroll to the grid on both axes and a menu's position is measured in a scrolled page.
     window.htPage = htPages[htParams.get('page') ?? 'fit'];
     if (!window.htPage) {
       throw new Error('Unknown ?page= value: ' + JSON.stringify(htParams.get('page')));
@@ -48,10 +48,10 @@
   <style>
     body { font-family: sans-serif; margin: 0; }
     /* The grid is exactly as wide as the 320px viewport the spec runs at (the WCAG 1.4.10 reflow
-       width). On the wide page it sits 1000px in from the inline start, where the spec scrolls to. */
+       width). On the wide page it sits 1000px in from the inline start and the top, where the spec scrolls to. */
     [data-testid="grid"] { width: 320px; }
-    body.wide { width: 3000px; }
-    body.wide [data-testid="grid"] { margin-inline-start: 1000px; }
+    body.wide { width: 3000px; height: 3000px; }
+    body.wide [data-testid="grid"] { margin-inline-start: 1000px; margin-block-start: 1000px; }
   </style>
 </head>
 <body>
@@ -60,7 +60,8 @@
     the first column's dropdown button sits near the middle of the 320px viewport, and the menus are about
     200px wide: they miss the room on both sides of a point that far in, on every theme. The dropdown
     menu is the one in the report (a filter by condition and an action bar), the context menu is the
-    default one. The window scrolls sideways only with `?page=wide`.
+    default one. On a short viewport the same menus are taller than the room above and below a point
+    near the top. The window scrolls only with `?page=wide`.
   -->
   <div id="grid" data-testid="grid"></div>
   <script>

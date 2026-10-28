@@ -6,6 +6,7 @@ import { Positioner } from '../positioner';
  */
 describe('Positioner', () => {
   const VIEWPORT_WIDTH = 320;
+  const VIEWPORT_HEIGHT = 390;
   let container: HTMLElement;
 
   /**
@@ -36,6 +37,33 @@ describe('Positioner', () => {
     return Number.parseFloat(container.style.left);
   }
 
+  /**
+   * Declares the height of the menu container and the viewport, and the window's vertical scroll. The
+   * menu is as wide as it is tall in none of these cases, so the width stays at 0 and the horizontal
+   * clamp has nothing to move.
+   *
+   * @param {number} menuHeight The menu's `offsetHeight`.
+   * @param {number} scrollY The window's vertical scroll offset.
+   */
+  function layOutVertically(menuHeight: number, scrollY = 0) {
+    Object.defineProperty(container, 'offsetHeight', { value: menuHeight, configurable: true });
+    Object.defineProperty(window, 'scrollY', { value: scrollY, configurable: true, writable: true });
+    Object.defineProperty(window, 'innerHeight', { value: VIEWPORT_HEIGHT, configurable: true, writable: true });
+  }
+
+  /**
+   * Opens a menu at a point of the viewport and reads where the positioner put its top edge.
+   *
+   * @param {Positioner} positioner The positioner under test.
+   * @param {number} top The point's y in viewport coordinates.
+   * @returns {number} The menu's `style.top`, in page coordinates.
+   */
+  function topAfterOpeningAt(positioner: Positioner, top: number) {
+    positioner.setElement(container).updatePosition({ top, left: 10 });
+
+    return Number.parseFloat(container.style.top);
+  }
+
   beforeEach(() => {
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -45,6 +73,8 @@ describe('Positioner', () => {
     container.remove();
     delete (document.documentElement as { clientWidth?: number }).clientWidth;
     Object.defineProperty(window, 'scrollX', { value: 0, configurable: true, writable: true });
+    Object.defineProperty(window, 'scrollY', { value: 0, configurable: true, writable: true });
+    Object.defineProperty(window, 'innerHeight', { value: 768, configurable: true, writable: true });
   });
 
   describe('keeping a menu inside the viewport', () => {
@@ -101,6 +131,48 @@ describe('Positioner', () => {
       layOut(200);
 
       expect(leftAfterOpeningAt(new Positioner(false), 150)).toBe(150);
+    });
+  });
+
+  describe('keeping a menu inside the viewport vertically', () => {
+    it('should leave a menu that fits below the point where the below placement put it', () => {
+      layOutVertically(200);
+
+      // One pixel under the point, which is the below placement's own offset.
+      expect(topAfterOpeningAt(new Positioner(true), 100)).toBe(101);
+    });
+
+    it('should leave a menu that fits above the point where the above placement put it', () => {
+      layOutVertically(200);
+
+      // 350 + 200 passes the viewport at the bottom, and the menu's bottom edge goes on the point.
+      expect(topAfterOpeningAt(new Positioner(true), 350)).toBe(150);
+    });
+
+    it('should pull a menu that fits neither below nor above up to the bottom edge', () => {
+      layOutVertically(372);
+
+      // 123 + 372 passes the viewport at the bottom, and 123 is less than the menu's height.
+      expect(topAfterOpeningAt(new Positioner(true), 123)).toBe(VIEWPORT_HEIGHT - 372);
+    });
+
+    it('should keep the top edge of a menu taller than the viewport', () => {
+      layOutVertically(542);
+
+      expect(topAfterOpeningAt(new Positioner(true), 27)).toBe(0);
+    });
+
+    it('should measure the viewport from the window\'s scroll offset', () => {
+      layOutVertically(372, 1000);
+
+      // The point is 123px into the viewport, which is 1123 in the page, and the viewport starts at 1000.
+      expect(topAfterOpeningAt(new Positioner(true), 123)).toBe(1000 + VIEWPORT_HEIGHT - 372);
+    });
+
+    it('should not move a menu when the viewport is not kept', () => {
+      layOutVertically(372);
+
+      expect(topAfterOpeningAt(new Positioner(false), 123)).toBe(124);
     });
   });
 });

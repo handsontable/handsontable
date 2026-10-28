@@ -30,7 +30,9 @@ describe('ContextMenu', () => {
     describe('menu opening', () => {
       it('should open context menu in proper position in iframe', async() => {
         const themeLinkHtml = getE2eThemeStylesheetLinkTagHtml(getLoadedTheme());
-        const iframeOutside = $('<iframe/>').css({ width: '500px', height: '500px' }).appendTo(spec().$container);
+        // Tall enough for the whole menu below the cell: a menu that fits neither below nor above its point is
+        // pulled back inside the frame, and this spec is about where the menu opens, not about that.
+        const iframeOutside = $('<iframe/>').css({ width: '500px', height: '600px' }).appendTo(spec().$container);
         const docOutside = iframeOutside[0].contentDocument;
 
         docOutside.open('text/html', 'replace');
