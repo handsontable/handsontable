@@ -33,7 +33,7 @@ describe('Formulas undo and redo of an edit followed by a reorder', () => {
     container.remove();
   });
 
-  it('should keep the grid order when an edit made in physical order is undone after a row reorder', () => {
+  it('should keep the grid order when an edit made in physical order is restored from the source data after a row reorder', () => {
     create({ data: rowData() });
     hot.setDataAtCell(0, 0, 7);
     hot.rowIndexMapper.setIndexesSequence([1, 2, 0]);
@@ -49,6 +49,41 @@ describe('Formulas undo and redo of an edit followed by a reorder', () => {
 
     expect(hot.getData()).toEqual([[20, 40], [30, 60], [7, 14]]);
     expect(engineValues()).toEqual([[20, 40], [30, 60], [7, 14]]);
+  });
+
+  it('should keep a second sheet reading this one in step with the grid order after an undo and a redo', () => {
+    create({ data: [[10], [20], [30]] });
+    engine.addSheet('Sheet2');
+
+    const container2 = document.createElement('div');
+
+    document.body.appendChild(container2);
+
+    const hot2 = new Handsontable(container2, {
+      formulas: { engine, sheetName: 'Sheet2' },
+      data: [['=Sheet1!A1'], ['=Sheet1!A2'], ['=SUM(Sheet1!A1:A2)']],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.rowIndexMapper.setIndexesSequence([2, 0, 1]);
+    hot.setDataAtCell(0, 0, 7);
+    hot.rowIndexMapper.setIndexesSequence([1, 2, 0]);
+
+    expect(hot.getData()).toEqual([[20], [7], [10]]);
+    expect(hot2.getData()).toEqual([[20], [7], [27]]);
+
+    undo();
+
+    expect(hot.getData()).toEqual([[20], [30], [10]]);
+    expect(hot2.getData()).toEqual([[20], [30], [50]]);
+
+    redo();
+
+    expect(hot.getData()).toEqual([[20], [7], [10]]);
+    expect(hot2.getData()).toEqual([[20], [7], [27]]);
+
+    hot2.destroy();
+    container2.remove();
   });
 
   it('should keep the grid order when an edit made in a reordered grid is undone after another row reorder', () => {
