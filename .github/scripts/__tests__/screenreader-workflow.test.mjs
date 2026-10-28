@@ -56,7 +56,6 @@ test('the NVDA job: Windows, one browser per job, report-only, running the scree
 
   assert.match(nvda, /^ {4}runs-on: windows-2025$/m, `${LANE}: NVDA runs on the pinned Windows image Guidepup's own suite is green on. ${DOC}`);
   assert.match(nvda, /^ {4}continue-on-error: true$/m, `${LANE}: the lane is report-only; a red job must never fail the nightly. ${DOC}`);
-  assert.match(nvda, /^ {4}timeout-minutes: 30$/m, `${LANE}: a hung screen reader is bounded.`);
   assert.match(nvda, /^ {8}browser: \[ chromium, firefox \]$/m, `${LANE}: one browser per job, the two NVDA browsers. ${DOC}`);
   assert.match(nvda, /^ {6}fail-fast: false$/m, `${LANE}: one browser's failure never cancels the other's transcript.`);
   assert.deepEqual(permissions(nvda), ['contents: read', 'checks: write'],
@@ -125,8 +124,6 @@ test('the VoiceOver job: macOS, two browsers at most two at a time, report-only,
     `${LANE}: the lane consumes the UMD build artifact the Build module uploads. ${DOC}`);
   assert.match(step('Prepare the environment for screen reader automation'), /^ {8}run: cd tests && npx -y @guidepup\/setup@0\.29\.3 setup --ci --macos-record$/m,
     `${LANE}: on macOS the setup grants the automation permissions and records the screen while it does, through the pinned CLI and npx, never installed (its recorder depends on a GPL-licensed ffmpeg build). ${DOC}`);
-  assert.match(step('Prepare the environment for screen reader automation'), /^ {8}timeout-minutes: 10$/m,
-    `${LANE}: a hung setup fails its own step, so the recording of it still uploads.`);
   assert.match(step('Install the browser'), /^ {8}run: cd tests && npx playwright install \$\{\{ matrix\.browser \}\}$/m);
   assert.match(step('Install VoiceOver'), /^ {8}run: cd tests && npx -y @guidepup\/setup@0\.29\.3 install voiceover$/m,
     `${LANE}: VoiceOver's preferences bundle is installed from inside tests/, where @guidepup/guidepup resolves its manifest. ${DOC}`);
@@ -136,12 +133,6 @@ test('the VoiceOver job: macOS, two browsers at most two at a time, report-only,
     `${LANE}: the update-goldens input reaches the spec as HOT_SR_UPDATE_GOLDENS, '1' or empty. ${DOC}`);
   assert.match(step('Run the scenarios'), /^ {8}timeout-minutes: 25$/m,
     `${LANE}: the run step times out on its own: a step timeout is a step failure, so the transcripts, the recording, the summary and the check run still come. ${DOC}`);
-
-  const jobTimeout = Number(voiceover.match(/^ {4}timeout-minutes: (\d+)$/m)?.[1]);
-  const stepTimeouts = [...voiceover.matchAll(/^ {8}timeout-minutes: (\d+)$/gm)].reduce((sum, [, minutes]) => sum + Number(minutes), 0);
-
-  assert.ok(jobTimeout > stepTimeouts,
-    `${LANE}: the job's timeout (${jobTimeout}) is a backstop above its steps' own (${stepTimeouts} in all), so a step times out first and the evidence still uploads. ${DOC}`);
 
   [
     ['Upload the transcripts', 'screenreader-transcripts-vo-', 'tests\\/test-results\\/screenreader'],
@@ -176,6 +167,33 @@ test('the VoiceOver job: macOS, two browsers at most two at a time, report-only,
     `${LANE}: the check run goes on the head commit, never the merge commit.`);
   assert.match(voiceover, /^ {6}SCREENREADER_PROJECT: vo-\$\{\{ matrix\.browser \}\}$/m,
     `${LANE}: a run that left no transcript is still reported under its project.`);
+});
+
+test('every lane job bounds each step that downloads, under a job timeout above the sum of its steps', () => {
+  const workflow = stripYamlComments(read(LANE));
+  const DOWNLOADING = ['Prepare the environment for screen reader automation', 'Install the browser', /^Install (?:NVDA|VoiceOver)$/];
+
+  ['nvda', 'voiceover'].forEach((id) => {
+    const body = job(workflow, id);
+    const named = steps(body).map(entry => ({ entry, name: entry.match(/^- name: (.+)$/m)?.[1] ?? '' }));
+    const minutes = entry => Number(entry.match(/^ {8}timeout-minutes: (\d+)$/m)?.[1] ?? NaN);
+
+    [...DOWNLOADING, 'Run the scenarios'].forEach((wanted) => {
+      const found = named.find(({ name }) => (typeof wanted === 'string' ? name === wanted : wanted.test(name)));
+
+      assert.ok(found, `${LANE} ${id}: a step named ${wanted}`);
+      assert.ok(minutes(found.entry) > 0,
+        `${LANE} ${id}: "${found.name}" carries its own timeout-minutes. A stalled download or a hung screen reader then fails its step, and the !cancelled() summary, uploads and check run still come; a job timeout would cancel them. ${DOC}`);
+    });
+
+    const jobTimeout = Number(body.match(/^ {4}timeout-minutes: (\d+)$/m)?.[1]);
+    const stepTimeouts = named.reduce((sum, { entry }) => sum + (minutes(entry) || 0), 0);
+
+    assert.equal(minutes(named.find(({ name }) => name === 'Run the scenarios').entry), 25,
+      `${LANE} ${id}: the run step's 25 minutes bound a hung screen reader. ${DOC}`);
+    assert.ok(jobTimeout > stepTimeouts,
+      `${LANE} ${id}: the job's timeout (${jobTimeout}) is a backstop above its steps' own (${stepTimeouts} in all), so a step times out first and the evidence still uploads. ${DOC}`);
+  });
 });
 
 test('screenreader-nightly.yml calls the lane after the UMD build, on its own cron and from any ref, and the Tests pipeline never calls it', () => {

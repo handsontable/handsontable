@@ -18,7 +18,10 @@ name: Screen reader
 # The mitigations that suite uses are here too: Playwright `retries: 2` and a five-minute test timeout
 # (the config), a fresh screen reader per test with a stop in a `finally` (Guidepup's fixture), and
 # Guidepup 0.36.1+ for the NVDA quit fix. The run step's `timeout-minutes: 25` bounds a hung screen
-# reader, and the job's timeout is the backstop above every step's own.
+# reader, and every step that downloads (the setup CLI, the browser, the screen reader) carries its own
+# timeout too: a step timeout is a step failure, so the `!cancelled()` summary, uploads and check run
+# still come, where a job timeout cancels them. Each job's timeout is a backstop above the sum of its
+# steps' timeouts, for a runner that hangs outside them.
 #
 # Build-dependent like a11y.yml: it downloads the UMD build artifact the caller's Build module uploads.
 # The caller is screenreader-nightly.yml (a cron, and a dispatch from any ref); the pull-request Tests
@@ -38,7 +41,8 @@ jobs:
   nvda:
     name: NVDA (${{ matrix.browser }})
     runs-on: windows-2025
-    timeout-minutes: 30
+    # The backstop above the step timeouts below (5 + 5 + 5 + 25 minutes).
+    timeout-minutes: 45
     # Report-only: a red job here would show as a failure on the run, and the run is a report.
     continue-on-error: true
     strategy:
@@ -86,14 +90,17 @@ jobs:
       # the dependency rule (root AGENTS.md) keeps out of the lockfile. The version is pinned here and in
       # tests/AGENTS.md ("Screen readers: the NVDA and VoiceOver lanes").
       - name: Prepare the environment for screen reader automation
+        timeout-minutes: 5
         run: cd tests && npx -y @guidepup/setup@0.29.3 setup --ci
       - name: Install the browser
+        timeout-minutes: 5
         run: cd tests && npx playwright install ${{ matrix.browser }}
       - name: Install NVDA
+        timeout-minutes: 5
         run: cd tests && npx -y @guidepup/setup@0.29.3 install nvda
-      # 25 minutes, under the job's 30: a step timeout is a step failure, so the summary, the uploads
-      # and the check run below still run, where a job timeout cancels them and leaves no evidence. The
-      # worst case is 2 scenarios x 3 attempts x the config's 300 s test timeout, 30 minutes.
+      # 25 minutes: a step timeout is a step failure, so the summary, the uploads and the check run
+      # below still run, where a job timeout cancels them and leaves no evidence. The worst case is 2
+      # scenarios x 3 attempts x the config's 300 s test timeout, 30 minutes.
       - name: Run the scenarios
         id: scenarios
         timeout-minutes: 25
@@ -147,10 +154,9 @@ jobs:
   voiceover:
     name: VoiceOver (${{ matrix.browser }})
     runs-on: macos-26
-    # The backstop above the step timeouts below: the run step's 25 minutes, the setup's 10, and a few
-    # minutes of installs and uploads. A hung step fails on its own timeout first, so the evidence still
-    # uploads; this only stops a runner that hangs outside them.
-    timeout-minutes: 45
+    # The backstop above the step timeouts below (10 + 5 + 5 + 25 minutes). A hung step fails on its own
+    # timeout first, so the evidence still uploads; this only stops a runner that hangs outside them.
+    timeout-minutes: 55
     # Report-only: a red job here would show as a failure on the run, and the run is a report.
     continue-on-error: true
     strategy:
@@ -204,8 +210,10 @@ jobs:
       # Playwright's own browser builds: `webkit` is Playwright's WebKit (Playwright.app), not
       # Safari.app, and `chromium` is Chrome for Testing; Guidepup activates each by its bundle id.
       - name: Install the browser
+        timeout-minutes: 5
         run: cd tests && npx playwright install ${{ matrix.browser }}
       - name: Install VoiceOver
+        timeout-minutes: 5
         run: cd tests && npx -y @guidepup/setup@0.29.3 install voiceover
       # 25 minutes, like the NVDA job's: a step timeout is a step failure, so the summary, the uploads
       # and the check run below still run, where a job timeout cancels them and leaves no evidence.

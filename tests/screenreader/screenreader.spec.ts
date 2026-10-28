@@ -78,7 +78,8 @@ interface Reader {
   capture(action: () => Promise<void>): Promise<string>;
   /**
    * Leaves the grid the way a user does, after the last step of a complete run, when the reader has a
-   * way out (VoiceOver stops interacting). The transcript is written by then.
+   * way out (VoiceOver stops interacting). The transcript is written by then, and a failure here is a
+   * warning, never a red test.
    */
   leave?(): Promise<void>;
 }
@@ -600,10 +601,16 @@ async function runScenario(page: Page, reader: Reader, scenario: Scenario, testI
     await writeTranscript(page, reader, scenario, testInfo, { startedAt, started, steps, entering, incomplete });
   }
 
-  // After the transcript, on a complete run only: a failure here is tooling (the test goes red), and
-  // it changes nothing the transcript records. A run that threw leaves the screen reader to the
-  // fixture, which stops it.
-  await reader.leave?.();
+  // After the transcript, on a complete run only. Leaving changes nothing the transcript records, so a
+  // failure is a warning in the report and the log, never a red test that `retries: 2` would rerun
+  // (minutes on VoiceOver) and whose rerun would overwrite the complete transcript. A run that threw
+  // leaves the screen reader to the fixture, which stops it either way.
+  try {
+    await reader.leave?.();
+  } catch (error) {
+    testInfo.annotations.push({ type: 'warning', description: `Leaving the grid after a complete run failed: ${errorText(error)}` });
+    console.warn(`${testInfo.project.name} ${scenario.id}: leaving the grid after a complete run failed:`, error);
+  }
 
   if (SCREENREADER_MODE === 'gate') {
     const failed = steps.filter(step => !step.tokens.passed).map(step => step.id);

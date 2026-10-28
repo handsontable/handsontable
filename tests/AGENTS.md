@@ -1398,9 +1398,11 @@ it.
   Guidepup discards speech that arrives while it stops the previous utterance, so the second listen
   reduces late phrases in the next step, it does not remove them. A step therefore costs a second and
   more, and a scenario is minutes: the config's test timeout is five minutes with two retries,
-  Guidepup's own mitigations. The run step's `timeout-minutes` is 25 and the job's 30: a step timeout
-  is a step failure, so the transcripts, the summary and the check run still come, where a job timeout
-  cancels them.
+  Guidepup's own mitigations. The run step's `timeout-minutes` is 25, every step that downloads (the
+  setup CLI, the browser, the screen reader) has its own, and each job's timeout sits above the sum of
+  its steps' (45 for NVDA, 55 for VoiceOver): a step timeout is a step failure, so the transcripts, the
+  summary and the check run still come, where a job timeout cancels them. The workflow test pins that
+  rule for both jobs.
 - **The VoiceOver reader enters the grid before the focus does.** `enter()` calls Guidepup's
   `navigateToWebContent()` (the browser activated by its bundle id, "web content" picked in VoiceOver's
   item chooser and interacted with, the cursor on the page's first item, the grid) and then
@@ -1412,7 +1414,9 @@ it.
   reselection, 2 of 20 steps). A run with
   no `interact()` read the same as the run with it, step for step, on both browsers, because the
   announcements come from the focus. After the last step of a complete run, `leave()` stops interacting
-  (VO-Shift-Up). VoiceOver starts with two preferences off, merged into the bundle
+  (VO-Shift-Up). The transcript is written by then, so a failure there is a `warning` annotation in the
+  Playwright report and a line in the log, never a red test: a retry would rerun the scenario for minutes
+  and overwrite the complete transcript. VoiceOver starts with two preferences off, merged into the bundle
   `install voiceover` installs: usage hints ("You are currently on a cell, inside of a table…" a
   second after every move, about VoiceOver and not the grid, which doubled each step's time), and the
   mouse pointer following VoiceOver's cursor. With the pointer following, an opened context menu put
@@ -1435,8 +1439,8 @@ it.
   `install voiceover` fetches Guidepup's VoiceOver preferences bundle for the runner's macOS. `vo-webkit`
   is Playwright's own WebKit build (Playwright.app) with the Desktop Safari descriptor, not Safari.app;
   `vo-chromium` is Chrome for Testing. The job carries `max-parallel: 2`, because the organization runs
-  at most five macOS jobs at once, a 10-minute step timeout on the setup as well as the run step's 25,
-  and a 45-minute job backstop above their sum. A job is about 5 to 6 minutes, 4 to 5 of them the run.
+  at most five macOS jobs at once, step timeouts of 10 minutes on the setup, 5 on each install and 25
+  on the run, and a 55-minute job backstop above their sum. A job is about 5 to 6 minutes, 4 to 5 of them the run.
   **The re-run rule:** about one VoiceOver job in a hundred fails in the setup step on Guidepup's own
   CI and passes when the whole job runs again. A red setup step is the runner, not the lane: re-run that
   job from its page. Slack never hears of it (the job carries `continue-on-error`); Slack hears only of a
