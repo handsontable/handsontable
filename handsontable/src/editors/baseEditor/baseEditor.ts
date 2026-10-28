@@ -814,14 +814,16 @@ export class BaseEditor {
 
   /**
    * Whether the pixel in front of the edited cell lies under an inline-start overlay, so the editor
-   * would show nothing of it. That is the gridline the row header owns in front of column 0 and, in the
-   * master table, the one in front of the first column after the overlay: the first visible column of
-   * a scrolled grid, the first one past `fixedColumnsStart`.
+   * would show nothing of it. That is the gridline the row header owns in front of column 0 and, for a
+   * cell of the master table or of a frozen top or bottom row, the one in front of the first column
+   * after the overlay: the first visible column of a scrolled grid, the first one past `fixedColumnsStart`.
    *
-   * It matters only for a cell the master table draws, whose editor holder (z-index 100) sits under
-   * the overlay (120). A frozen cell's holder is part of its own clone and paints over the row header
-   * by DOM order, so it never loses the pixel. It is canceled there too, by the row header test alone,
-   * so that column A is the same width with and without `fixedColumnsStart`.
+   * The overlay that can cover it is the one whose layer is above the editor's own holder: the
+   * inline-start clone (120) over the master's (100), the top start corner (180) over the top clone's
+   * (160), and the bottom start corner (150) over the bottom clone's (130). A frozen column's holder is
+   * part of its own clone and paints over the row header by DOM order, so it never loses the pixel. It
+   * is canceled there too, by the row header test alone, so that column A is the same width with and
+   * without `fixedColumnsStart`.
    *
    * @param {HTMLTableCellElement} TD The edited cell.
    * @param {string} overlayName The name of the overlay containing the edited cell.
@@ -832,19 +834,20 @@ export class BaseEditor {
       return true;
     }
 
-    if (overlayName !== 'master') {
-      return false;
-    }
+    const { wtOverlays } = this.hot.view._wt;
+    const coveringOverlay = {
+      master: wtOverlays.inlineStartOverlay,
+      top: wtOverlays.topInlineStartCornerOverlay,
+      bottom: wtOverlays.bottomInlineStartCornerOverlay,
+    }[overlayName];
 
-    const overlay = this.hot.view._wt.wtOverlays.inlineStartOverlay;
-
-    // A grid with no row headers and no frozen columns has no overlay on that side to paint over anything.
-    if (!overlay?.needFullRender || !overlay.clone) {
+    // A grid with nothing frozen on that side has no overlay there to paint over anything.
+    if (!coveringOverlay?.needFullRender || !coveringOverlay.clone) {
       return false;
     }
 
     const cellRect = TD.getBoundingClientRect();
-    const overlayRect = overlay.clone.wtTable.TABLE.getBoundingClientRect();
+    const overlayRect = coveringOverlay.clone.wtTable.TABLE.getBoundingClientRect();
     const gap = this.hot.isRtl() ? overlayRect.left - cellRect.right : cellRect.left - overlayRect.right;
 
     // The gridline is the pixel just before the cell, so it is covered when the overlay reaches

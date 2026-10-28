@@ -41,7 +41,9 @@
 
       row-headers     rowHeaders + colHeaders
       frozen          the same, with fixedColumnsStart: 2
+      frozen-rows     the same, with fixedColumnsStart: 2, fixedRowsTop: 1 and fixedRowsBottom: 1
       scrolled        the same, with no column overscan, so the first rendered column is a visible one
+      scrolled-top    the same, with fixedRowsTop: 1 and the default overscan
       rtl             the same, layoutDirection: 'rtl'
       no-row-headers  colHeaders only - column 0 draws its own start border
   -->
@@ -50,6 +52,12 @@
 
   <h2>Row headers, two frozen columns</h2>
   <div id="frozen" data-testid="frozen"></div>
+
+  <h2>Row headers, two frozen columns, a frozen top row and a frozen bottom row</h2>
+  <div id="frozen-rows" data-testid="frozen-rows"></div>
+
+  <h2>Row headers, scrolled with a frozen top row</h2>
+  <div id="scrolled-top" data-testid="scrolled-top"></div>
 
   <h2>Row headers, scrolled with no column overscan</h2>
   <div id="scrolled" data-testid="scrolled"></div>
@@ -82,6 +90,8 @@
 
     build('row-headers', { rowHeaders: true });
     build('frozen', { rowHeaders: true, fixedColumnsStart: 2 });
+    build('frozen-rows', { rowHeaders: true, fixedColumnsStart: 2, fixedRowsTop: 1, fixedRowsBottom: 1 });
+    build('scrolled-top', { rowHeaders: true, fixedRowsTop: 1 });
     build('scrolled', { rowHeaders: true, viewportColumnRenderingOffset: 0 });
     build('rtl', { rowHeaders: true, layoutDirection: 'rtl' });
     build('no-row-headers', {});

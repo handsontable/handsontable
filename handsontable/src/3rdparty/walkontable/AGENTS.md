@@ -1022,16 +1022,18 @@ Consequences worth knowing:
   keeps a selection on column 0 visible; without it the edge lands at `rowHeaderWidth - 1` and
   disappears behind the row header. The `customBorders` specs cannot catch it — they count visible
   elements, and the element is there, just covered. The editor is the second such affordance, with a
-  split rule. The editor of a cell the MASTER table draws has its holder at z-index 100, under the
-  inline-start overlay at 120, so an editor that reaches 1px into the pixel in front of its cell shows
-  1px of its 2px start border when that pixel is the overlay's last. `BaseEditor#getEditedCellRect`
-  therefore drops its 1px shift (start on the cell's edge, exactly as wide as the cell) when the
-  overlay's table ends where the cell starts: column 0 behind the row headers, the first visible column
-  of a scrolled grid, the first column past `fixedColumnsStart`. A cell of a frozen clone has its
-  holder in the clone's own layer (the same 120, painted after the row header by DOM order), so the
-  overlap was never hidden there; it takes the row-header test only, to stay the same width as the
-  master column A (and `Border#appear`). Both the editor and `Border#appear` read the borders with
-  `parseFloat`: above 100% zoom a 1px border computes as 0.8px, and `parseInt` reads it as none.
+  split rule by the layer its holder is in. The holder of a cell the MASTER table draws is at z-index 100,
+  under the inline-start overlay (120); that of a frozen top row is at 160, under the top start corner
+  (180); that of a frozen bottom row is at 130, under the bottom start corner (150). An editor that
+  reaches 1px into the pixel in front of its cell shows 1px of its 2px start border when that pixel is
+  the last of the covering overlay. `BaseEditor#getEditedCellRect` therefore drops its 1px shift (start
+  on the cell's edge, exactly as wide as the cell) when the covering overlay's table ends where the cell
+  starts: column 0 behind the row headers, the first visible column of a scrolled grid, the first column
+  past `fixedColumnsStart`, in all three layers. A cell of a frozen COLUMN clone has its holder in the
+  clone's own layer (120, painted after the row header by DOM order), so the overlap was never hidden
+  there; it takes the row-header test only, to stay the same width as the master column A (and
+  `Border#appear`). Both the editor and `Border#appear` read the borders with `parseFloat`: above 100%
+  zoom a 1px border computes as 0.8px, and `parseInt` reads it as none.
 
   The row axis has the same branch and a wider z-gap: `.ht_clone_top` is 160 (the corner 180) against
   the same border layer's 10. `standsBelowColumnHeader(cellElement)` in `selection/border/utils.ts` is

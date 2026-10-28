@@ -13,7 +13,8 @@ const COVERS_THE_GRIDLINE = { start: 1, width: 1 };
  *
  *  - column A behind the row headers, with or without a frozen column;
  *  - the first column the master table draws after an overlay: the first visible column of a scrolled
- *    grid, and the first one past `fixedColumnsStart`.
+ *    grid, and the first one past `fixedColumnsStart`;
+ *  - the same column in a frozen top or bottom row, whose holder sits under the start corner clone.
  *
  * Every other cell keeps the overlap.
  */
@@ -62,6 +63,37 @@ test.describe('Editor start edge behind the row headers', { tag: THEMES_TAG }, (
     await grid.openEditor('frozen', 0, 3);
 
     await expect.poll(() => grid.overhang('frozen')).toEqual(COVERS_THE_GRIDLINE);
+  });
+
+  test('the first column past the frozen columns sits on the cell edge in a frozen top row', async() => {
+    await grid.openEditor('frozen-rows', 0, 2);
+
+    await expect.poll(() => grid.overhang('frozen-rows')).toEqual(ON_THE_CELL_EDGE);
+  });
+
+  test('the first column past the frozen columns sits on the cell edge in a frozen bottom row', async() => {
+    await grid.openEditor('frozen-rows', 7, 2);
+
+    await expect.poll(() => grid.overhang('frozen-rows')).toEqual(ON_THE_CELL_EDGE);
+  });
+
+  test('the next column keeps the overlap in the frozen top and bottom rows', async() => {
+    await grid.openEditor('frozen-rows', 0, 3);
+    await expect.poll(() => grid.overhang('frozen-rows')).toEqual(COVERS_THE_GRIDLINE);
+
+    await grid.openEditor('frozen-rows', 7, 3);
+    await expect.poll(() => grid.overhang('frozen-rows')).toEqual(COVERS_THE_GRIDLINE);
+  });
+
+  test('the first visible column of a scrolled grid sits on the cell edge in a frozen top row', async() => {
+    const column = await grid.scrollToFirstVisibleColumn('scrolled-top');
+
+    await grid.openEditor('scrolled-top', 0, column);
+    await expect.poll(() => grid.overhang('scrolled-top')).toEqual(ON_THE_CELL_EDGE);
+
+    // The same column in the master table, below the frozen row.
+    await grid.openEditor('scrolled-top', 3, column);
+    await expect.poll(() => grid.overhang('scrolled-top')).toEqual(ON_THE_CELL_EDGE);
   });
 
   test('the first visible column of a scrolled grid sits on the cell edge', async() => {

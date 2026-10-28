@@ -2,7 +2,8 @@ import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle } from '../bundle';
 
 /** Which grid of the fixture a locator or probe addresses. */
-export type GridName = 'row-headers' | 'frozen' | 'scrolled' | 'rtl' | 'no-row-headers';
+export type GridName =
+  'row-headers' | 'frozen' | 'frozen-rows' | 'scrolled' | 'scrolled-top' | 'rtl' | 'no-row-headers';
 
 /** How far the open editor reaches past the edited cell, in CSS pixels. */
 export interface EditorOverhang {

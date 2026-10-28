@@ -436,25 +436,35 @@ export class HandsontableEditorListPositionPage {
       };
       const { hot } = window as unknown as {
         hot: { getCell(row: number, col: number): HTMLElement | null; rootElement: HTMLElement; isRtl(): boolean;
-          getActiveEditor(): { htContainer?: HTMLElement,
+          getActiveEditor(): { htContainer?: HTMLElement, TEXTAREA_PARENT?: HTMLElement,
             getEditedCellRect(): { start: number, width: number } | undefined } | undefined; };
       };
       // The nested grid's container is read off the active editor, so a list left over from another
       // cell can never be the one measured; the multiselect exposes no such field.
       const list = nestedGrid ? hot.getActiveEditor()?.htContainer : document.querySelector(listSelector);
 
-      // The editor's box, as the list is anchored to it: the root's box plus the offset and width
-      // `getEditedCellRect()` returns, measured from the root's inline-start edge. The multiselect
-      // editor has no holder element, and the `handsontable` and `dropdown` holders sit at the same place.
-      const editorRect = hot.getActiveEditor()?.getEditedCellRect();
+      // The editor's box, as the list is anchored to it. Read from the editor's holder in the DOM, so the
+      // expectation does not move with the code under test. The multiselect editor has no holder element
+      // and positions its list from `getEditedCellRect()`, so its box is derived from that rect: the root's
+      // box plus the offset and width it returns, measured from the root's inline-start edge.
+      const editor = hot.getActiveEditor();
+      let holder;
 
-      if (!editorRect) {
-        throw new Error('An element the list geometry needs is not in the DOM');
+      if (editor?.TEXTAREA_PARENT) {
+        holder = box(editor.TEXTAREA_PARENT);
+      } else {
+        const editorRect = editor?.getEditedCellRect();
+
+        if (!editorRect) {
+          throw new Error('An element the list geometry needs is not in the DOM');
+        }
+
+        const rootBox = box(hot.rootElement);
+        const holderLeft = hot.isRtl() ?
+          rootBox.right - editorRect.start - editorRect.width : rootBox.left + editorRect.start;
+
+        holder = { ...box(hot.getCell(row, col)), left: holderLeft, right: holderLeft + editorRect.width };
       }
-
-      const rootBox = box(hot.rootElement);
-      const holderLeft = hot.isRtl() ? rootBox.right - editorRect.start - editorRect.width : rootBox.left + editorRect.start;
-      const holder = { ...box(hot.getCell(row, col)), left: holderLeft, right: holderLeft + editorRect.width };
 
       return {
         cell: box(hot.getCell(row, col)),

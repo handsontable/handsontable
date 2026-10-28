@@ -636,10 +636,10 @@ export function getInnerEditorListBox() {
  * `BaseEditor#getEditedCellRect` moves the editor 1px towards the inline start so that it covers the
  * gridline the cell's inline-start neighbour draws. There is no such gridline to cover when the cell
  * draws its own inline-start border, and the shift is no use when the inline-start overlay is painted
- * over that pixel: the row header in front of column 0 (#6673), or, for a cell of the master table
- * (whose editor holder sits under the overlay), the overlay's last pixel in front of the first
- * column after it. The rule is read off the DOM, as the editor reads it, so no spec has to restate
- * which columns it applies to.
+ * over that pixel: the row header in front of column 0 (#6673), or, for a cell of the master table or of
+ * a frozen top or bottom row (whose editor holder sits under the overlay or its corner), the last pixel
+ * of that overlay in front of the first column after it. The rule is read off the DOM, as the editor
+ * reads it, so no spec has to restate which columns it applies to.
  *
  * @param {HTMLTableCellElement} TD The edited cell.
  * @returns {number}
@@ -656,9 +656,15 @@ export function editorInlineStartShift(TD) {
     return 0;
   }
 
-  const overlay = hot().view._wt.wtOverlays.inlineStartOverlay;
+  const { wtOverlays } = hot().view._wt;
+  const coveringOverlays = [
+    ['.ht_master', wtOverlays.inlineStartOverlay],
+    ['.ht_clone_top', wtOverlays.topInlineStartCornerOverlay],
+    ['.ht_clone_bottom', wtOverlays.bottomInlineStartCornerOverlay],
+  ];
+  const overlay = coveringOverlays.find(([selector]) => TD.closest(selector))?.[1];
 
-  if (TD.closest('.ht_master') && overlay?.needFullRender && overlay.clone) {
+  if (overlay?.needFullRender && overlay.clone) {
     const cellRect = TD.getBoundingClientRect();
     const overlayRect = overlay.clone.wtTable.TABLE.getBoundingClientRect();
     const gap = isRtl ? overlayRect.left - cellRect.right : cellRect.left - overlayRect.right;
