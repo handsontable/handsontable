@@ -92,6 +92,9 @@ const validProps: HotTableProps$ = {
   afterSheetTabRename: () => undefined,
 };
 // A column's `data` names the property it shows, where the grid's `data` holds the rows.
+// `null` removes the callback an earlier render passed for a hook, so a hook prop takes it.
+const nullHook: HotTableProps$ = { afterChange: null };
+const classAndCustomKey = h(HotTable, { class: 'grid', customMeta: 1 });
 const validColumnProps: HotColumnProps$ = { readOnly: true, title: 'A', data: 'firstName', filters: false };
 const validColumnSettingsProp: HotColumnProps$ = { settings: { data: 'firstName' } };
 const validVNode = h(HotTable, { rowHeaders: true, sheetsBar: { sheets: [] } });
@@ -108,9 +111,12 @@ const badSettingsProp: HotTableProps$ = { settings: 42 };
 const badColumnReadOnly: HotColumnProps$ = { readOnly: 'yes' };
 // @ts-expect-error -- `h()` resolves the props the way a template does.
 const badVNode = h(HotTable, { sheetsBar: 42 });
+// @ts-expect-error -- `data` takes rows, not `null`.
+const badNullData: HotTableProps$ = { data: null };
 // @ts-expect-error -- the grid's `data` is an array of rows, not a property name.
 const badGridData: HotTableProps$ = { data: 'firstName' };
-// `id` names the container of `HotTable`; `HotColumn` has no such prop.
+// `id` names the container of `HotTable`; `HotColumn` has no such prop, so the schema rejects it as an
+// excess property. A template that writes it still compiles unless `strictTemplates` is on.
 // @ts-expect-error -- `id` is not a `HotColumn` prop.
 const badColumnId: HotColumnProps$ = { id: 'column' };
 
@@ -149,8 +155,11 @@ export {
   noProps,
   noColumnProps,
   validProps,
+  nullHook,
+  classAndCustomKey,
   validColumnProps,
   validColumnSettingsProp,
+  badNullData,
   badGridData,
   validVNode,
   badSheetsBar,

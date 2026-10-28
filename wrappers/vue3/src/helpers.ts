@@ -30,7 +30,11 @@ type PropSchema<Settings> = {
  */
 type HotColumnPropSchema = PropSchema<Handsontable.ColumnSettings>;
 
-type HotTablePropSchema = PropSchema<Handsontable.GridSettings> & {
+/**
+ * `HotTable` takes the settings `updateSettings()` takes: a hook prop may be `null`, which removes the
+ * callback the earlier props passed for it.
+ */
+type HotTablePropSchema = PropSchema<Handsontable.SettingsUpdate> & {
   id: {
     type: PropType<string>,
   },
