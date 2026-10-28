@@ -146,7 +146,10 @@ pay for. A new consumer lives in a plugin.
   `columnOrder` part was restored too: the overrides name the group a column sits inside in that order,
   and against another one (a `manualColumnMove` redeclared through `updateSheetSettings()`, or a stored
   sequence of another length) the column would join a group it is not next to. The import re-derives only
-  when the overrides differ from the current ones, so a sheet without an adoption pays nothing.
+  when the overrides differ from the current ones, so a sheet without an adoption pays nothing. The
+  collapsed groups are restored either way, and carry no hidden columns: CollapsibleColumns derives them
+  from the groups on the headers the sheet came back with, so a collapse captured under another order or
+  membership never hides a column of a group that is not collapsed.
 
 Tests: `__tests__/viewState.unit.js` (the engine), plus SheetsBar's own suites and
 `plugins/viewState/__tests__/viewState.unit.js` (the public layer through the engine).

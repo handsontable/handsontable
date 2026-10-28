@@ -56,15 +56,11 @@ interface CollapsedGroupsState {
 }
 
 /**
- * The collapsed header groups of one dataset and the columns they hide, as
- * `CollapsibleColumns#_exportViewState()` returns them.
+ * The collapsed header groups of one dataset, as `CollapsibleColumns#_exportViewState()` returns them.
+ * The columns they hide are not part of it: the import derives them from the groups.
  */
 export interface CollapsedColumnsViewState {
   groups: Array<{ headerLevel: number, authoredColumnIndex: number }>;
-  /**
-   * The physical columns the collapses hide.
-   */
-  columns: number[];
 }
 
 /**
@@ -649,9 +645,8 @@ export class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Returns the collapsed header groups and the physical columns they hide, for the sheets bar to keep
-   * with a sheet the user leaves: a data load rebuilds the header state with every group expanded.
-   * `null` while the plugin is off.
+   * Returns the collapsed header groups, for the sheets bar to keep with a sheet the user leaves: a data
+   * load rebuilds the header state with every group expanded. `null` while the plugin is off.
    *
    * @private
    * @returns {object|null}
@@ -661,38 +656,26 @@ export class CollapsibleColumns extends BasePlugin {
       return null;
     }
 
-    return { groups: this.headerStateManager.exportCollapsedGroups(), columns: this.getCollapsedColumns() };
+    return { groups: this.headerStateManager.exportCollapsedGroups() };
   }
 
   /**
    * Collapses exactly the groups {@link CollapsibleColumns#_exportViewState} returned, or expands every
    * group for `null`. Unlike {@link CollapsibleColumns#restoreState}, which leaves the hidden columns to
-   * UndoRedo's index maps, it writes this plugin's hiding map too. Hook-silent: the sheets bar calls it
-   * on a switch, and the user collapsed those groups on that sheet before. A column past the end of the
-   * data is dropped.
+   * UndoRedo's index maps, it writes this plugin's hiding map too, with the columns those collapses hide
+   * in the column order and group membership the grid has now, which can differ from the ones the groups
+   * were captured under. Hook-silent: the sheets bar calls it on a switch, and the user collapsed those
+   * groups on that sheet before.
    *
    * @private
-   * @param {object|null} state The collapsed groups and the columns they hide.
+   * @param {object|null} state The collapsed groups.
    */
   _importViewState(state: CollapsedColumnsViewState | null): void {
-    const map = this.#collapsedColumnsMap;
-
-    if (!this.enabled || this.headerStateManager === null || !map) {
+    if (!this.enabled) {
       return;
     }
 
-    const columnsCount = this.hot.columnIndexMapper.getNumberOfIndexes();
-
-    this.headerStateManager.importCollapsedGroups(state?.groups ?? []);
-    this.hot.batchExecution(() => {
-      map.clear();
-      (state?.columns ?? []).forEach((physicalColumn) => {
-        if (physicalColumn < columnsCount) {
-          map.setValueAtIndex(physicalColumn, true);
-        }
-      });
-    }, true);
-    this.#refreshVisibleWhenColumns();
+    this.#collapseGroups(state?.groups ?? []);
   }
 
   /**

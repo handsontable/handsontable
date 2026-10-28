@@ -538,6 +538,35 @@ describe('SheetsBar -> view state round trip', () => {
       ]);
     });
 
+    it('hides only the columns of the collapsed group after a declared column move resets the order', () => {
+      const bar = buildGroups({
+        collapsibleColumns: true,
+        nestedHeaders: [
+          [{ label: 'G1', colspan: 3, collapsible: true }, { label: 'G2', colspan: 2 }],
+          ['a', 'b', 'c', 'd', 'e'],
+        ],
+      });
+      const collapsibleColumns = hot.getPlugin('collapsibleColumns');
+
+      hot.getPlugin('manualColumnMove').moveColumn(4, 1);
+      hot.render();
+      collapsibleColumns.collapseSection({ row: -2, col: 0 });
+
+      expect(collapsibleColumns.getCollapsedColumns()).toEqual([1, 2, 4]);
+
+      bar.setActiveSheet('Beta');
+      bar.updateSheetSettings('Alpha', { manualColumnMove: true });
+      bar.setActiveSheet('Alpha');
+
+      expect(hot.getDataAtRow(0)).toEqual([1, 2, 3, 4, 5]);
+      expect(collapsibleColumns.getCollapsedColumns()).toEqual([1, 2]);
+
+      collapsibleColumns.expandSection({ row: -2, col: 0 });
+
+      expect(collapsibleColumns.getCollapsedColumns()).toEqual([]);
+      expect([0, 1, 2, 3, 4].filter(column => hot.columnIndexMapper.isHidden(column))).toEqual([]);
+    });
+
     it('drops the group membership of a sheet whose nested headers were declared again', () => {
       const bar = buildGroups();
       const redeclared = [

@@ -113,7 +113,7 @@ export interface ViewState {
   scroll: { row: number, col: number };
 
   /**
-   * The collapsed CollapsibleColumns groups and the columns they hide, or `null` when the plugin is off.
+   * The collapsed CollapsibleColumns groups, or `null` when the plugin is off.
    * Absent from a view state the `ViewState` plugin built, which does not restore it. Internal to the sheets
    * bar, and its shape may change.
    */
@@ -135,12 +135,12 @@ export interface ViewState {
 }
 
 /**
- * The collapsed CollapsibleColumns groups of one sheet, by header level and authored group identity,
- * and the physical columns those collapses hide.
+ * The collapsed CollapsibleColumns groups of one sheet, by header level and authored group identity.
+ * The columns they hide are derived on the restore, against the column order and the group membership
+ * the sheet comes back with.
  */
 export interface CollapsedColumnsState {
   groups: Array<{ headerLevel: number, authoredColumnIndex: number }>;
-  columns: number[];
 }
 
 /**
