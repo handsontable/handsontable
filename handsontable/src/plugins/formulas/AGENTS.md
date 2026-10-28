@@ -83,12 +83,28 @@ const isRestoreSource = source => source === 'UndoRedo.undo' || source === 'Undo
     or a restored sequence - turns some of them into `#REF!` (measured: `setRowOrder([2, 3, 4, 0, 1])`
     on a fresh sheet writes `=#REF!+1000` where the equivalent `moveRows` writes `=A5+1000`). So the
     state carries `engine.getSheetSerialized()` plus both syncers' `getEngineOrder()`, and the restore
-    loads it with `setSheetContent()` and `adoptEngineOrder()` - nothing is sent to reorder it. Never
-    "simplify" this into reload-then-reorder; that reproduces the `#REF!`.
+    loads it with `setSheetContent()` and `adoptEngineOrder()`. Never "simplify" this into
+    reload-then-reorder; that reproduces the `#REF!`. The snapshot's order is the grid's order at capture
+    time, and the grid can have been reordered since (a `setIndexesSequence()` call is no undo step). So
+    `adoptEngineOrder()` takes the recorded order over and then sends the grid's current order, unless the
+    order is held: the engine ends in the grid's order, as if the reorder had come after the load. Taking
+    the recorded order as final left the engine and the translation tables on different orders, and the
+    undo of an edit then showed another row's values (`undoStaleOrder.unit.js`).
 
   With the same structure version, the held writes are written into the engine in one
   `engine.batch()`. The sheet snapshot is re-serialized on every step that writes data while the
   grid is sorted or moved - an O(cells) cost per step on those grids only.
+- **Open: an undo can restore formula text the engine never held in physical order.** A row inserted
+  while the order is not physical shifts the engine's formulas but not the formula text in the source
+  data (the write-back is skipped there). When the order later returns to physical, the next forward
+  step writes the engine's text into the source and journals the stale text as its "before" value, and
+  that step's `before` state has no engine sheet, so its undo reloads the stale source. No cell edit and
+  no stale order are involved, so `adoptEngineOrder()` does not reach it. Repro (`undoRedo: true`, data
+  `[[10, '=A1*2'], [20, '=A2*2'], [null, null], [null, null]]`): `setIndexesSequence([3, 0, 1, 2])`,
+  `alter('insert_row_above', 1)`, `setIndexesSequence([0, 1, 2, 3, 4])`, `alter('remove_row', 4)`, one
+  undo. `getData()` reads `[[null, null], [10, 0], [20, 20], [null, null], [null, null]]` where it read
+  `[[null, null], [10, 20], [20, 40], [null, null]]` before the removal. No committed test: the repo
+  rejects a skipped test, and a failing one cannot land.
 - **Draw every new version from `#versionSeed`, never reuse one.** `restoreState()` sets the
   current versions to the restored state's; a later change that reused a number would make a
   different structure compare equal to a recorded one.

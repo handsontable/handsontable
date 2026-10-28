@@ -2644,7 +2644,7 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Loads a recorded engine sheet back, in the order it was recorded in, and returns the cells whose
+   * Loads a recorded engine sheet back, ending in the grid's current order, and returns the cells whose
    * values changed.
    *
    * @param {object} snapshot The recorded sheet.
