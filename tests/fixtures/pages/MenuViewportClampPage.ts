@@ -41,6 +41,7 @@ export class MenuViewportClampPage {
   readonly bundle: Bundle;
   readonly dir: 'ltr' | 'rtl';
   readonly pageWidth: 'fit' | 'wide';
+  readonly inset: 'none' | 'start';
   readonly grid: Locator;
 
   /**
@@ -52,24 +53,27 @@ export class MenuViewportClampPage {
    * @param {'ltr' | 'rtl'} dir The document's direction, which the grid follows.
    * @param {'fit' | 'wide'} pageWidth `wide` puts the grid 1000px in from the inline start and the top of a
    * 3000px page, so the window can scroll to it on both axes.
+   * @param {'none' | 'start'} inset `start` shifts the grid 16px in from the inline start, so its edges are
+   * not the viewport's.
    */
   constructor(page: Page, theme = 'main', bundle: Bundle = 'umd', dir: 'ltr' | 'rtl' = 'ltr',
-    pageWidth: 'fit' | 'wide' = 'fit') {
+    pageWidth: 'fit' | 'wide' = 'fit', inset: 'none' | 'start' = 'none') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
     this.dir = dir;
     this.pageWidth = pageWidth;
+    this.inset = inset;
     this.grid = page.getByTestId('grid');
   }
 
   /**
-   * Navigates to the fixture and waits for the grid. Theme, bundle, direction, and page width travel
+   * Navigates to the fixture and waits for the grid. Theme, bundle, direction, page width, and inset travel
    * as query params, so the fixture loads the matching stylesheet and build.
    */
   async goto(): Promise<void> {
     await this.page.goto(`/tests/fixtures/demo/menu-viewport-clamp.html?theme=${this.theme}`
-      + `&bundle=${this.bundle}&dir=${this.dir}&page=${this.pageWidth}`);
+      + `&bundle=${this.bundle}&dir=${this.dir}&page=${this.pageWidth}&inset=${this.inset}`);
     // The bundle first, or a slow leg fails pointing at a missing cell instead of the real cause.
     await awaitBundle(this.page);
 
@@ -169,7 +173,7 @@ export class MenuViewportClampPage {
         bottom,
         height,
         viewportWidth: document.documentElement.clientWidth,
-        viewportHeight: window.innerHeight,
+        viewportHeight: document.documentElement.clientHeight,
       };
     }, MENU_SELECTOR[kind]);
   }

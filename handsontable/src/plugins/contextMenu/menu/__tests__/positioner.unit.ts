@@ -10,12 +10,15 @@ describe('Positioner', () => {
   let container: HTMLElement;
 
   /**
-   * Declares the width of the menu container and the viewport, and the window's horizontal scroll.
+   * Declares the width of the menu container and the viewport, and the window's horizontal scroll. The
+   * menu's own direction is set on the container, the document's on the root element.
    *
    * @param {number} menuWidth The menu's `offsetWidth`.
    * @param {number} scrollX The window's horizontal scroll offset.
+   * @param {'ltr' | 'rtl'} documentDir The direction of the document, which decides the way it scrolls.
    */
-  function layOut(menuWidth: number, scrollX = 0) {
+  function layOut(menuWidth: number, scrollX = 0, documentDir: 'ltr' | 'rtl' = 'ltr') {
+    document.documentElement.style.direction = documentDir;
     Object.defineProperty(container, 'offsetWidth', { value: menuWidth, configurable: true });
     Object.defineProperty(window, 'scrollX', { value: scrollX, configurable: true, writable: true });
     Object.defineProperty(document.documentElement, 'clientWidth', {
@@ -39,8 +42,8 @@ describe('Positioner', () => {
 
   /**
    * Declares the height of the menu container and the viewport, and the window's vertical scroll. The
-   * menu is as wide as it is tall in none of these cases, so the width stays at 0 and the horizontal
-   * clamp has nothing to move.
+   * viewport is `VIEWPORT_WIDTH` wide and the menu has no width, so the horizontal clamp has nothing to
+   * move and only `style.top` is under test.
    *
    * @param {number} menuHeight The menu's `offsetHeight`.
    * @param {number} scrollY The window's vertical scroll offset.
@@ -48,7 +51,16 @@ describe('Positioner', () => {
   function layOutVertically(menuHeight: number, scrollY = 0) {
     Object.defineProperty(container, 'offsetHeight', { value: menuHeight, configurable: true });
     Object.defineProperty(window, 'scrollY', { value: scrollY, configurable: true, writable: true });
+    // `fitsBelow()` picks the side from `innerHeight`, and the clamp holds the menu to `clientHeight`.
     Object.defineProperty(window, 'innerHeight', { value: VIEWPORT_HEIGHT, configurable: true, writable: true });
+    Object.defineProperty(document.documentElement, 'clientHeight', {
+      value: VIEWPORT_HEIGHT,
+      configurable: true,
+    });
+    Object.defineProperty(document.documentElement, 'clientWidth', {
+      value: VIEWPORT_WIDTH,
+      configurable: true,
+    });
   }
 
   /**
@@ -72,6 +84,8 @@ describe('Positioner', () => {
   afterEach(() => {
     container.remove();
     delete (document.documentElement as { clientWidth?: number }).clientWidth;
+    delete (document.documentElement as { clientHeight?: number }).clientHeight;
+    document.documentElement.style.removeProperty('direction');
     Object.defineProperty(window, 'scrollX', { value: 0, configurable: true, writable: true });
     Object.defineProperty(window, 'scrollY', { value: 0, configurable: true, writable: true });
     Object.defineProperty(window, 'innerHeight', { value: 768, configurable: true, writable: true });
@@ -93,7 +107,7 @@ describe('Positioner', () => {
 
     it('should pull a menu that fits on neither side back to the right edge in RTL', () => {
       container.dir = 'rtl';
-      layOut(200);
+      layOut(200, 0, 'rtl');
 
       // 150 is less than the menu's width, so there is no room on the left, and 150 + 200 passes the right edge.
       expect(leftAfterOpeningAt(new Positioner(true), 150)).toBe(VIEWPORT_WIDTH - 200);
@@ -107,7 +121,21 @@ describe('Positioner', () => {
 
     it('should keep the right edge of a menu wider than the viewport in RTL', () => {
       container.dir = 'rtl';
+      layOut(400, 0, 'rtl');
+
+      expect(leftAfterOpeningAt(new Positioner(true), 150)).toBe(VIEWPORT_WIDTH - 400);
+    });
+
+    it('should keep the left edge of a menu wider than the viewport in an RTL grid on an LTR page', () => {
+      container.dir = 'rtl';
       layOut(400);
+
+      // An LTR page can not scroll to a negative x, so the strip left of 0 would be out of reach for good.
+      expect(leftAfterOpeningAt(new Positioner(true), 150)).toBe(0);
+    });
+
+    it('should keep the right edge of a menu wider than the viewport in an LTR grid on an RTL page', () => {
+      layOut(400, 0, 'rtl');
 
       expect(leftAfterOpeningAt(new Positioner(true), 150)).toBe(VIEWPORT_WIDTH - 400);
     });
@@ -121,7 +149,7 @@ describe('Positioner', () => {
 
     it('should measure the viewport from a negative scroll offset in an RTL document', () => {
       container.dir = 'rtl';
-      layOut(200, -1000);
+      layOut(200, -1000, 'rtl');
 
       // The viewport spans -1000 to -680, so the menu's right edge may not pass -680.
       expect(leftAfterOpeningAt(new Positioner(true), 150)).toBe(-1000 + VIEWPORT_WIDTH - 200);
@@ -160,6 +188,19 @@ describe('Positioner', () => {
       layOutVertically(542);
 
       expect(topAfterOpeningAt(new Positioner(true), 27)).toBe(0);
+    });
+
+    it('should keep the bottom edge of the menu above a horizontal scrollbar', () => {
+      const SCROLLBAR_HEIGHT = 17;
+
+      layOutVertically(372);
+      // `innerHeight` still counts the scrollbar, `clientHeight` does not.
+      Object.defineProperty(document.documentElement, 'clientHeight', {
+        value: VIEWPORT_HEIGHT - SCROLLBAR_HEIGHT,
+        configurable: true,
+      });
+
+      expect(topAfterOpeningAt(new Positioner(true), 123)).toBe(VIEWPORT_HEIGHT - SCROLLBAR_HEIGHT - 372);
     });
 
     it('should measure the viewport from the window\'s scroll offset', () => {

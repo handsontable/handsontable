@@ -327,15 +327,21 @@ and ran 105px past the bottom. `#clampHorizontally()` and `#clampVertically()` n
   hold whatever those did.
 - **The edges are in the frame `style.left` and `style.top` are written in: the window's page
   coordinates.** Horizontally they are the window's `scrollX`, and that offset plus
-  `documentElement.clientWidth` (the width `fitsOnRight()` uses). Vertically they are `scrollY`, and
-  that offset plus `innerHeight` (the height `fitsBelow()` uses). A clamp against `0` passes at rest and
+  `documentElement.clientWidth`. Vertically they are `scrollY`, and that offset plus
+  `documentElement.clientHeight`. Both client sizes leave the scrollbar out. `innerHeight`, which
+  `fitsBelow()` uses to pick the side, counts a horizontal scrollbar, so a menu pinned to the bottom with
+  it would end under the bar on a classic-scrollbar platform (headless Chromium hides scrollbars, so no
+  spec shows it). A clamp against `0` passes at rest and
   breaks on a scrolled window. In an RTL document `scrollX` is `0` at rest and goes negative as the
   window scrolls toward the inline end. A custom `uiContainer` with its own containing block is the
   exception (`Menu#captureScrollFollowBaseline` explains why a measured rect is used there): the position
   is then not a page coordinate. The positioner was already off in that case, and the clamps inherit it.
-- **A menu larger than the viewport keeps its start edge visible.** That is the top edge, and the left
-  edge in LTR or the right edge in RTL, so the menu overflows the other way. `clampIntoRange()` takes
-  the edge to keep as `preferMin`, and RTL passes it `false`, so do not merge the two directions.
+- **A menu larger than the viewport keeps the edge the window cannot scroll to.** That is the top edge,
+  and the left edge in an LTR document or the right edge in an RTL one, so the menu overflows the way the
+  page can still scroll. The edge comes from the DOCUMENT's computed `direction`, not from the menu's
+  `dir`, which follows the grid: an RTL grid in an LTR page keeps its left edge, because an LTR page has
+  no negative `scrollX` to reach a strip cut off on the left. `clampIntoRange()` takes the edge to keep
+  as `preferMin`, and an RTL document passes it `false`, so do not merge the two directions.
 - **Only `keepInViewport: true` reaches it.** The Filters value-list select passes `false` and takes the
   other branch of `updatePosition()`. The menus that do reach it are the context menu, the dropdown
   menu, their submenus, and the sheets bar menus. The sheets bar already lifts its upward menu by hand
@@ -344,11 +350,15 @@ and ran 105px past the bottom. `#clampHorizontally()` and `#clampVertically()` n
   it stays where it was. A menu that fits neither below nor above its point now covers the point
   instead of leaving the screen, and a submenu that fits on neither side of its parent overlaps the
   parent menu. The legacy specs that pinned such a menu outside the viewport changed with it: the RTL
-  dropdown specs (the last column's button at x = -27) now expect the viewport's left edge, and the
-  iframe context menu spec gives its outer frame room for the whole menu.
+  dropdown keyboard specs (the last column's button at x = -27) and the RTL `open()` specs of both menus
+  expect the viewport's left edge, and the iframe context menu spec gives its outer frame room for the
+  whole menu. Several of these pass on `main` and fail on `horizon`, whose menus are wider and taller
+  and whose grid overflows the page by more, so run a spec of this kind on all three themes
+  (`npm run test:e2e -- --theme=horizon`).
 - **Pinned by** `menu/__tests__/positioner.unit.ts` (both axes and directions, a menu larger than the
   viewport, and scroll offsets) and `tests/e2e/menu-viewport-clamp.spec.ts` (the issue's menus on a 320px
-  viewport, a short viewport, a window scrolled on both axes in both document directions, and a submenu).
+  viewport, a short viewport, a window scrolled on both axes in both document directions with the grid inset
+  from the viewport's edge, and a submenu).
 
 ## Where to look next
 

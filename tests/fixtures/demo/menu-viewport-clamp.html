@@ -19,6 +19,7 @@
     const htBundles = Object.assign(Object.create(null), { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' });
     const htDirections = Object.assign(Object.create(null), { ltr: 'ltr', rtl: 'rtl' });
     const htPages = Object.assign(Object.create(null), { fit: 'fit', wide: 'wide' });
+    const htInsets = Object.assign(Object.create(null), { none: '0px', start: '16px' });
 
     window.htTheme = htThemes[htParams.get('theme') ?? 'main'];
     if (!window.htTheme) {
@@ -43,6 +44,12 @@
     window.htPage = htPages[htParams.get('page') ?? 'fit'];
     if (!window.htPage) {
       throw new Error('Unknown ?page= value: ' + JSON.stringify(htParams.get('page')));
+    }
+    // `?inset=start` moves the grid 16px in from the inline start of the page, so the grid's own edges are
+    // not the window's: a menu held to the grid root's box instead of the viewport lands 16px off the edge.
+    window.htInset = htInsets[htParams.get('inset') ?? 'none'];
+    if (!window.htInset) {
+      throw new Error('Unknown ?inset= value: ' + JSON.stringify(htParams.get('inset')));
     }
   </script>
   <style>
@@ -77,6 +84,9 @@
     const container = document.querySelector('[data-testid="grid"]');
 
     container.className = `ht-theme-${window.htTheme}`;
+    // A relative offset, so the page keeps its size and the scroll offsets of the spec stay as they are.
+    container.style.position = 'relative';
+    container.style.insetInlineStart = window.htInset;
 
     // Fail loud: a constructor that throws must not leave the page looking like a grid that simply
     // has not rendered yet. The message is stamped on the container and the page object rethrows it,

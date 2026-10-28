@@ -48,6 +48,22 @@ function expectInsideViewport({ left, right, width, viewportWidth }: MenuGeometr
 }
 
 /**
+ * Asserts the menu was pulled back to the viewport's edge, the one it overflowed: the left edge in an LTR
+ * document, the right edge in an RTL one. With the grid inset from the viewport's edge, a menu held to the
+ * grid's box instead of the window would stop short of it.
+ *
+ * @param {MenuGeometry} geometry The menu's box and the viewport width.
+ * @param {'ltr' | 'rtl'} dir The document's direction.
+ */
+function expectFlushWithViewportEdge({ left, right, viewportWidth }: MenuGeometry, dir: 'ltr' | 'rtl'): void {
+  if (dir === 'ltr') {
+    expect(left).toBeCloseTo(0, 0);
+  } else {
+    expect(right).toBeCloseTo(viewportWidth, 0);
+  }
+}
+
+/**
  * Asserts the menu is too tall for the room above and below the point it opened at, so it could be
  * placed on neither side, and that its top and bottom edges lie inside the viewport.
  *
@@ -86,13 +102,14 @@ for (const dir of ['ltr', 'rtl'] as const) {
   });
 }
 
-// The window scrolls toward the inline end, which is a negative offset in an RTL document.
+// The window scrolls toward the inline end, which is a negative offset in an RTL document. The grid is inset
+// from the viewport's inline start, so its edges are not the window's.
 for (const { dir, scrollX } of [{ dir: 'ltr', scrollX: 1000 }, { dir: 'rtl', scrollX: -1000 }] as const) {
   test.describe(`menu in a narrow viewport (${dir}, scrolled window)`, { tag: THEMES_TAG }, () => {
     let grid: MenuViewportClampPage;
 
     test.beforeEach(async({ page, theme, bundle }) => {
-      grid = new MenuViewportClampPage(page, theme, bundle, dir, 'wide');
+      grid = new MenuViewportClampPage(page, theme, bundle, dir, 'wide', 'start');
       await grid.goto();
       await grid.scrollWindowTo(scrollX);
     });
@@ -100,13 +117,19 @@ for (const { dir, scrollX } of [{ dir: 'ltr', scrollX: 1000 }, { dir: 'rtl', scr
     test('the dropdown menu stays inside the viewport of a window scrolled sideways', async() => {
       await grid.openDropdownMenu(0);
 
-      expectInsideViewport(await grid.geometry('dropdown'));
+      const geometry = await grid.geometry('dropdown');
+
+      expectInsideViewport(geometry);
+      expectFlushWithViewportEdge(geometry, dir);
     });
 
     test('the context menu stays inside the viewport of a window scrolled sideways', async() => {
       await grid.openContextMenuAt(VIEWPORT.width / 2, 120);
 
-      expectInsideViewport(await grid.geometry('context'));
+      const geometry = await grid.geometry('context');
+
+      expectInsideViewport(geometry);
+      expectFlushWithViewportEdge(geometry, dir);
     });
   });
 }
