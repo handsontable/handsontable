@@ -67,7 +67,7 @@ overrides:
   vue: ^3.5.42
   webpack-dev-middleware@7: ^7.4.6
   webpack-dev-server: ^5.2.6
-  zod@>=4.0.0 <4.6.6: ^4.6.6
+  '@angular/cli>zod': ^4.6.6
 
 packageExtensionsChecksum: sha256-CyS9i9ZZWxGo5KGr0a4Eu4a+8UGwdF6/pTm5n2+MCkk=
 
