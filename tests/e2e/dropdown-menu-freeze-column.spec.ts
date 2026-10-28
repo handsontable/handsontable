@@ -301,16 +301,17 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
     // both item hooks — the noise the check exists to avoid. Never open the menu in here: opening
     // rebuilds the list by design and would mask the difference.
     test('is executed without rebuilding the item list', async () => {
-      // The count at the start includes the first build, which runs once the grid is built. Only
-      // the difference measures the rebuilds `executeCommand` triggers.
-      const initialCalls = await grid.dropdownDefaultOptionsCalls();
+      // Zero to start with. The enable-time build runs before a hook supplied through the
+      // settings is attached, so it is not counted here — which leaves the counter measuring
+      // exactly the rebuilds `executeCommand` triggers, and nothing else.
+      expect(await grid.dropdownDefaultOptionsCalls()).toBe(0);
 
       await grid.executeDropdownCommand(COLON_KEY, 'alignment:left', 0);
       await grid.executeDropdownCommand(COLON_KEY, 'alignment:left', 0);
 
-      // Unchanged. Asking only about the parent name reports this command as unknown every
-      // time, and each call then rebuilds the list — making this two more.
-      expect(await grid.dropdownDefaultOptionsCalls()).toBe(initialCalls);
+      // Still zero. Asking only about the parent name reports this command as unknown every
+      // time, and each call then rebuilds the list — making this 2.
+      expect(await grid.dropdownDefaultOptionsCalls()).toBe(0);
     });
 
     test('runs without throwing', async () => {
@@ -358,12 +359,12 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
       // Dropping the row silently would trade a visible defect for an invisible one. The warning
       // is the replacement signal, and it names the key that could not be resolved.
       //
-      // The first `prepareMenuItems()` runs on `afterInit`, so the warning is emitted while the
-      // grid is being built — the developer sees it without opening the menu at all. That is
-      // before the `beforeEach` navigation returns, hence the listener plus a second visit.
+      // The item list is built when the menu opens, so the warning is emitted by the open. Building
+      // it while the grid is built is too early for a plugin that enables after the dropdown menu
+      // (`menu-unresolved-key-warning.spec.ts`).
       const warnings = grid.collectUnresolvedKeyWarnings();
 
-      await grid.goto();
+      await grid.openColumnMenu(PLUGIN_OFF, 'Charlie');
 
       // Console events arrive over CDP independently of `goto()` resolving, so the wait has to be
       // a contract rather than luck — a late message would otherwise fail the run, and a spec

@@ -7,7 +7,8 @@ import { MenuUnresolvedKeyPage } from '../fixtures/pages/MenuUnresolvedKeyPage';
  *
  * `DropdownMenu` (priority 230) enables before `Filters` (250). Its enable-time build resolved the
  * item keys before Filters had registered its items, so an explicit `dropdownMenu` list naming the
- * Filters items warned once per key although Filters was on and the menu rendered every item.
+ * Filters items warned once per key although Filters was on and the menu rendered every item. The
+ * enable-time build is now quiet, so the warning, true or false, comes from an open.
  *
  * A negative assertion cannot prove itself, so each test that expects silence also builds a grid
  * that must warn, and waits for that warning: the console delivers messages in order, so once the
@@ -23,16 +24,10 @@ test.describe('unresolved menu item key warning', () => {
 
   test('does not warn for Filters items listed in dropdownMenu while Filters is on', async () => {
     await grid.build('filters');
-    // The positive control: a misspelled key on a second grid, which must still warn.
-    await grid.build('typo-only');
+    await grid.flushWarnings();
 
-    await expect.poll(() => grid.warnings.join('\n')).toContain('col_lfet');
-
-    expect(grid.warnings.filter(warning => !warning.includes('col_lfet'))).toEqual([]);
-  });
-
-  test('still renders every listed Filters item', async () => {
-    await grid.build('filters');
+    // The build made while the grid is built reports nothing.
+    expect(grid.warnings).toEqual([]);
 
     const items = await grid.openDropdownMenuItems();
 
@@ -40,14 +35,11 @@ test.describe('unresolved menu item key warning', () => {
     // Filters rows are composite: the "Filter by value" cell carries its whole nested list.
     expect(items.some(item => item.startsWith('Filter by condition'))).toBe(true);
     expect(items.some(item => item.startsWith('Filter by value'))).toBe(true);
-  });
 
-  test('does not warn when the menu is opened with Filters on', async () => {
-    await grid.build('filters');
-    await grid.openDropdownMenuItems();
-    // The positive control, built after the open so its warning arrives after anything the open
-    // could have logged.
+    // The positive control, opened after the grid under test so its warning arrives after anything
+    // that open could have logged.
     await grid.build('typo-only');
+    await grid.openDropdownMenuItems();
 
     await expect.poll(() => grid.warnings.join('\n')).toContain('col_lfet');
 
@@ -56,12 +48,7 @@ test.describe('unresolved menu item key warning', () => {
 
   test('warns once for a key that is misspelled', async () => {
     await grid.build('filters-typo');
-
-    await expect.poll(() => grid.warnings.join('\n')).toContain('filter_by_valeu');
-
-    // Opening the menu rebuilds the list, which must not repeat the warning.
     await grid.openDropdownMenuItems();
-
     await grid.flushWarnings();
 
     // Exactly one: the typo. `filter_by_condition` sits in the same list and resolves.
@@ -71,6 +58,7 @@ test.describe('unresolved menu item key warning', () => {
 
   test('warns for the keys of a plugin that is off', async () => {
     await grid.build('filters-off');
+    await grid.openDropdownMenuItems();
 
     await expect.poll(() => grid.warnings.join('\n')).toContain('filter_by_condition');
   });
@@ -79,8 +67,9 @@ test.describe('unresolved menu item key warning', () => {
     await grid.build('context-menu');
 
     const items = await grid.openContextMenuItems();
-    // The positive control, built after the open.
+    // The positive control, opened after the grid under test.
     await grid.build('typo-only');
+    await grid.openDropdownMenuItems();
 
     await expect.poll(() => grid.warnings.join('\n')).toContain('col_lfet');
 
@@ -94,8 +83,7 @@ test.describe('unresolved menu item key warning', () => {
 
   test.describe('when the settings change after the grid is built', () => {
     // Plugins enable in priority order inside one `updateSettings()` pass too, so the dropdown menu
-    // (230) can still enable before Filters (250) there. The build made while it enables skips an
-    // unresolved key without reporting it, and the first open reports.
+    // (230) can still enable before Filters (250) there.
     test('does not warn when one update turns Filters on and lists its items', async () => {
       await grid.build('bare');
       await grid.update('filters');

@@ -257,15 +257,10 @@ export class DropdownMenu extends BasePlugin {
         (commandName: string, ...params: unknown[]) => this.executeCommand(commandName, ...params));
 
       // A plugin that enables after this one (Filters, priority 250 against 230) has not registered
-      // its items yet, so a key naming one of them cannot resolve here. While the grid is being
-      // built the first list waits for `afterInit`, when every plugin has enabled. After that, a
-      // plugin enabling in the same `updateSettings()` pass can still come later, so this build
-      // skips an unresolved key without reporting it and the next `open()` reports.
-      if (this.hot.view) {
-        this.prepareMenuItems(false);
-      } else {
-        this.addHook('afterInit', this.#onAfterInit);
-      }
+      // its items yet, so a key naming one of them cannot resolve here. The build still runs, so the
+      // commands exist for `executeCommand()` before the first open, but an unresolved key is
+      // skipped without a report: the build made by `open()` or `executeCommand()` reports it.
+      this.prepareMenuItems(false);
     });
   }
 
@@ -853,13 +848,6 @@ export class DropdownMenu extends BasePlugin {
    */
   #onBeforeViewportScrollHorizontally = (visualColumn: number) => {
     return this.#isButtonClicked ? null : visualColumn;
-  };
-
-  /**
-   * Builds the first item list once the grid is built and every plugin has enabled.
-   */
-  #onAfterInit = () => {
-    this.prepareMenuItems();
   };
 
   /**
