@@ -1,8 +1,40 @@
-import { toRaw } from 'vue';
+import { toRaw, PropType } from 'vue';
 import Handsontable from 'handsontable/base';
 import { HotTableProps, VueProps } from './types';
 
 const unassignedPropSymbol = Symbol('unassigned');
+
+/**
+ * The shape `defineComponent()` reads the prop types from, with one entry per option of `Settings`. `type`
+ * exists only for the type checker: the runtime schema built by `propFactory()` carries none, so Vue
+ * neither validates nor casts a prop.
+ *
+ * The `as` clause drops the index signature of `Settings`. Left in, it becomes an index signature of the
+ * props, and Vue types every prop as `any` again.
+ */
+type PropSchema<Settings> = {
+  [P in keyof Settings as string extends P ? never : P]-?: {
+    type: PropType<Settings[P]>,
+    default: unknown,
+  };
+} & {
+  settings: {
+    type: PropType<Settings>,
+    default: unknown,
+  },
+};
+
+/**
+ * `HotColumn` takes column settings, not grid settings: its `data` is a property name or a getter, where the
+ * grid's `data` is an array of rows.
+ */
+type HotColumnPropSchema = PropSchema<Handsontable.ColumnSettings>;
+
+type HotTablePropSchema = PropSchema<Handsontable.GridSettings> & {
+  id: {
+    type: PropType<string>,
+  },
+};
 
 /**
  * Message for the warning thrown if the Handsontable instance has been destroyed.
@@ -27,7 +59,15 @@ export function hasOwnProperty(object: unknown, key: string): boolean {
  * @param {string} source Source for the factory (either 'HotTable' or 'HotColumn').
  * @returns {object}
  */
-export function propFactory(source: 'HotTable' | 'HotColumn'): VueProps<HotTableProps> {
+export function propFactory(source: 'HotTable'): HotTablePropSchema;
+export function propFactory(source: 'HotColumn'): HotColumnPropSchema;
+/**
+ * Implementation of the overloads above.
+ *
+ * @param {string} source Source for the factory (either 'HotTable' or 'HotColumn').
+ * @returns {object}
+ */
+export function propFactory(source: 'HotTable' | 'HotColumn'): HotTablePropSchema | HotColumnPropSchema {
   const registeredHooks = Handsontable.hooks.getRegistered();
   const propSchema: VueProps<HotTableProps> = {};
 
@@ -56,7 +96,9 @@ export function propFactory(source: 'HotTable' | 'HotColumn'): VueProps<HotTable
     };
   }
 
-  return propSchema;
+  // The schema is filled at runtime from `DefaultSettings` and the registered hooks, which is why it is
+  // built loosely and typed here, from `GridSettings`, for the template type checker.
+  return propSchema as unknown as HotTablePropSchema | HotColumnPropSchema;
 }
 
 /**
