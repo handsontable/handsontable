@@ -308,6 +308,10 @@ export class TabStrip {
    */
   #pointerHeldOnTab = false;
   /**
+   * The sheets the tabs show, by id, as the last `render()` received them.
+   */
+  readonly #sheets = new Map<number, SheetDescriptor>();
+  /**
    * The grid's window, which runs the timeouts that end the strip's motion.
    */
   readonly #rootWindow: Window;
@@ -377,6 +381,8 @@ export class TabStrip {
       },
       (id, toIndex) => this.runLocalHooks('tabDragCommit', id, toIndex),
     );
+
+    this.#listenToTabs(true);
   }
 
   /**
@@ -396,8 +402,10 @@ export class TabStrip {
     const slide = this.#takeSlide();
 
     this.#host.textContent = '';
+    this.#sheets.clear();
 
     sheets.forEach((sheet) => {
+      this.#sheets.set(sheet.id, sheet);
       this.#host.appendChild(this.#buildTab(sheet));
     });
 
@@ -977,68 +985,6 @@ export class TabStrip {
     // The tab around it is what advertises the popup and takes the focus back.
     this.#setAria(chevron, [['aria-hidden', 'true']]);
 
-    tab.addEventListener('click', (event) => {
-      if (this.#isWithinRenameInput(event)) {
-        return;
-      }
-
-      // The trigger is on every tab, but it only opens a menu for the sheet you are already
-      // on. On any other tab the first click means "come here", and the second — now on the
-      // active tab — opens the menu. A menu acts on a sheet, so it waits until that sheet is
-      // the one in front of you.
-      if (sheet.isActive && this.#isWithinChevron(event)) {
-        this.#openMenuFor(sheet, false);
-
-        return;
-      }
-
-      this.runLocalHooks('tabClick', sheet.id);
-    });
-    tab.addEventListener('dblclick', (event) => {
-      if (!this.#isWithinRenameInput(event) && !this.#isWithinChevron(event)) {
-        this.startRename(sheet.id);
-      }
-    });
-    tab.addEventListener('pointerdown', (event) => {
-      this.#pointerHeldOnTab = true;
-
-      if (event.button === 0 && !this.#isWithinRenameInput(event)) {
-        if (this.#cancelRename) {
-          tab.focus({ preventScroll: true });
-        }
-
-        this.#drag.start(event, tab, sheet.id);
-      }
-    });
-    tab.addEventListener('pointerup', () => {
-      this.#pointerHeldOnTab = false;
-    });
-    tab.addEventListener('pointercancel', () => {
-      this.#pointerHeldOnTab = false;
-    });
-
-    // Right-clicking a tab opens the same menu, which is what a spreadsheet user expects.
-    // On another sheet it moves there first — the menu acts on a sheet, so it has to be the
-    // sheet in front of you. The rename input keeps the browser's own menu; that one is for
-    // editing text, not for the sheet. The keyboard raises the same event — Shift+F10, the
-    // Menu key — and only then does the menu open with an item preselected. `button` alone
-    // cannot tell those apart: a touch long-press and a macOS Ctrl+click both report
-    // `button: 0`, so the keyboard is recognized by no button being held and no pointer
-    // having gone down on the tab. The long-press half is pinned by a Playwright touch test;
-    // a genuine macOS Ctrl+click cannot be synthesized from Playwright, so that half rides on
-    // the same flag untested.
-    tab.addEventListener('contextmenu', (event) => {
-      if (this.#isWithinRenameInput(event)) {
-        return;
-      }
-
-      const fromKeyboard = event.button === 0 && event.buttons === 0 && !this.#pointerHeldOnTab;
-
-      event.preventDefault();
-      event.stopPropagation();
-      this.#openMenuFor(sheet, fromKeyboard);
-    });
-
     tab.appendChild(label);
     tab.appendChild(chevron);
     this.#applyEntrance(tab, sheet.id);
@@ -1535,8 +1481,156 @@ export class TabStrip {
     this.finishLeaving();
     this.#drag.destroy();
     this.clearLocalHooks();
+    this.#listenToTabs(false);
     this.#host.textContent = '';
+    this.#sheets.clear();
   }
+
+  /**
+   * Adds or removes the listeners the strip host carries for every tab inside it. They are added once, when
+   * the strip is built, and not to each tab on every repaint: a listener is bound to the context of the call
+   * that adds it (Angular's zone, for one), and a repaint the host's own code triggers would otherwise bind
+   * the tabs' listeners to that code's context.
+   *
+   * @param {boolean} listen `true` to add the listeners, `false` to remove them.
+   */
+  #listenToTabs(listen: boolean): void {
+    const host = this.#host;
+    const toggle = <K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (event: HTMLElementEventMap[K]) => void,
+    ) => {
+      if (listen) {
+        host.addEventListener(type, listener);
+      } else {
+        host.removeEventListener(type, listener);
+      }
+    };
+
+    toggle('click', this.#onTabClick);
+    toggle('dblclick', this.#onTabDoubleClick);
+    toggle('pointerdown', this.#onTabPointerDown);
+    toggle('pointerup', this.#onTabPointerRelease);
+    toggle('pointercancel', this.#onTabPointerRelease);
+    toggle('contextmenu', this.#onTabContextMenu);
+  }
+
+  /**
+   * Returns the tab an event landed in, and the sheet it shows.
+   *
+   * @param {Event} event The event.
+   * @returns {object|null} The tab and its sheet, or `null` outside a tab.
+   */
+  #tabOfEvent(event: Event): { tab: HTMLElement, sheet: SheetDescriptor } | null {
+    const target = event.target;
+    const tab = isHTMLElement(target) ? target.closest('.ht-sheets-bar__tab') : null;
+
+    if (!isHTMLElement(tab) || tab.parentElement !== this.#host) {
+      return null;
+    }
+
+    const sheet = this.#sheets.get(Number(tab.dataset.sheetId));
+
+    return sheet ? { tab, sheet } : null;
+  }
+
+  /**
+   * Switches to the clicked tab's sheet, or opens the active sheet's menu from its chevron.
+   *
+   * @param {Event} event The `click` event.
+   */
+  #onTabClick = (event: MouseEvent) => {
+    const target = this.#tabOfEvent(event);
+
+    if (target === null || this.#isWithinRenameInput(event)) {
+      return;
+    }
+
+    // The trigger is on every tab, but it only opens a menu for the sheet you are already
+    // on. On any other tab the first click means "come here", and the second — now on the
+    // active tab — opens the menu. A menu acts on a sheet, so it waits until that sheet is
+    // the one in front of you.
+    if (target.sheet.isActive && this.#isWithinChevron(event)) {
+      this.#openMenuFor(target.sheet, false);
+
+      return;
+    }
+
+    this.runLocalHooks('tabClick', target.sheet.id);
+  };
+
+  /**
+   * Starts renaming the double-clicked tab's sheet.
+   *
+   * @param {Event} event The `dblclick` event.
+   */
+  #onTabDoubleClick = (event: MouseEvent) => {
+    const target = this.#tabOfEvent(event);
+
+    if (target !== null && !this.#isWithinRenameInput(event) && !this.#isWithinChevron(event)) {
+      this.startRename(target.sheet.id);
+    }
+  };
+
+  /**
+   * Starts a drag of the pressed tab.
+   *
+   * @param {Event} event The `pointerdown` event.
+   */
+  #onTabPointerDown = (event: PointerEvent) => {
+    const target = this.#tabOfEvent(event);
+
+    if (target === null) {
+      return;
+    }
+
+    this.#pointerHeldOnTab = true;
+
+    if (event.button === 0 && !this.#isWithinRenameInput(event)) {
+      if (this.#cancelRename) {
+        target.tab.focus({ preventScroll: true });
+      }
+
+      this.#drag.start(event, target.tab, target.sheet.id);
+    }
+  };
+
+  /**
+   * Forgets the press on a tab once the pointer is lifted or the press is canceled.
+   */
+  #onTabPointerRelease = () => {
+    this.#pointerHeldOnTab = false;
+  };
+
+  /**
+   * Opens the sheet menu of the tab the context menu was raised on.
+   *
+   * Right-clicking a tab opens the same menu, which is what a spreadsheet user expects.
+   * On another sheet it moves there first — the menu acts on a sheet, so it has to be the
+   * sheet in front of you. The rename input keeps the browser's own menu; that one is for
+   * editing text, not for the sheet. The keyboard raises the same event — Shift+F10, the
+   * Menu key — and only then does the menu open with an item preselected. `button` alone
+   * cannot tell those apart: a touch long-press and a macOS Ctrl+click both report
+   * `button: 0`, so the keyboard is recognized by no button being held and no pointer
+   * having gone down on the tab. The long-press half is pinned by a Playwright touch test;
+   * a genuine macOS Ctrl+click cannot be synthesized from Playwright, so that half rides on
+   * the same flag untested.
+   *
+   * @param {Event} event The `contextmenu` event.
+   */
+  #onTabContextMenu = (event: MouseEvent) => {
+    const target = this.#tabOfEvent(event);
+
+    if (target === null || this.#isWithinRenameInput(event)) {
+      return;
+    }
+
+    const fromKeyboard = event.button === 0 && event.buttons === 0 && !this.#pointerHeldOnTab;
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.#openMenuFor(target.sheet, fromKeyboard);
+  };
 }
 
 mixin(TabStrip, localHooks);

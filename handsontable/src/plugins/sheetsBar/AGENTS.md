@@ -111,7 +111,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   changing it does nothing until an unrelated rebuild. A sheet's own `settings` cannot carry a
   `sheetsBar` key.
 - **A sheet's own settings win over every grid-level `updateSettings()`** (`#filterGridSettings`,
-  registered through core's `@private` `_setSettingsFilter()` on enable and removed on disable). The filter
+  added through core's `@private` `_addSettingsFilter()` at the start of `enablePlugin()`, so it runs after a
+  filter added before it, the Angular wrapper's included, and removed with `_removeSettingsFilter()` on disable, on
+  `destroy()`, and when building the workbook throws during the enable; it filters nothing while the plugin is
+  not enabled, so a failed enable cannot keep a half-built sheet's settings over later updates). The filter
   reads every payload before core applies it and takes out each key the visible sheet declares; the value
   taken out becomes the grid-level one (`#takeGridLevelValues`: the baseline, or `#takeGridColumnSummary` /
   `#takeGridCellOption`). Without it React and Angular, which send every prop on each render, and Vue, which
@@ -252,9 +255,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   rejected up front (`#renameCollidesInEngine`), the way a tab-name collision is — committing
   the tab first would leave it showing a name its formulas do not resolve against. The binding
   follows the name `engine.addSheet()` reports back — the engine can normalize a name the
-  model told apart. `sheetModel.duplicateSheet` keeps
-  `settings.formulas` out of the deep clone — a cloned engine instance is a broken object and
-  the clone recurses forever.
+  model told apart. `sheetModel.duplicateSheet` copies a sheet's `settings` with
+  `copySettingsValue()` (arrays and object literals level by level, with a cycle guard; every class
+  instance by reference; own `__proto__`, `constructor` and `prototype` keys left out, since a settings
+  object parsed from JSON can carry them), never `deepClone()`, which walks any object: a HyperFormula engine in
+  `formulas` or an Angular `TemplateRef` renderer has a cyclic object graph, and the clone recursed
+  until the stack overflowed (a cloned engine would be a broken object anyway).
 - **The engine keeps a sheet in the order the user left it, and a return takes it over.** The
   Formulas plugin mirrors a sort or a row and column move into the engine, and every order it hands
   the engine moves the formula cells with their references (`#REF!` past the first row), while the
@@ -482,6 +488,19 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   as a guard. The grid focus scope drops its remembered Tab re-entry cell on `afterLoadData` on
   every grid, not only on a switch: a cell remembered from the previous data does not name a
   record of the new data.
+- **The tab listeners live on the strip host, added once when the strip is built** (`#listenToTabs` in
+  `ui/tabStrip.ts`), and each handler finds its tab from the event target and its sheet from the descriptors
+  of the last `render()`. Do not add listeners to the tabs `#buildTab()` creates: every repaint would add
+  them again, inside the context of whatever code caused the repaint. Under Angular an `addSheet()` or a
+  rename from a component's click handler bound every tab's listeners to the zone, so each pointer move and
+  click on a tab ran change detection. The rename input's listeners are still per input, because the input
+  lives only for one rename. `destroy()` removes the host listeners as cleanup: the host goes with the bar
+  UI, and a rebuilt strip gets a new one. Two limits ride along. The listeners take the context of the code
+  that builds the strip, so a bar enabled or rebuilt from in-zone Angular code (a `sheetsBar` change of
+  `position` or `controls` from a click handler) still binds them to the zone; the wrapper builds it outside.
+  And an event on a tab element held from before a repaint, or one that does not bubble, no longer reaches
+  any listener, where the per-tab listeners still answered it. Pinned by `__tests__/tabListeners.unit.js`
+  and the Angular wrapper's `hot-table-sheets-bar.spec.ts`.
 - **`render()` cancels an in-flight rename silently.** The cancel-hook handler repaints the
   strip, and dispatching it from inside `render()` re-enters the render pass — the outer pass
   then restores focus and scroll against tabs the inner pass replaced.
@@ -648,8 +667,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     of callbacks is added through `Hooks#add` instead and keeps running beside a sheet's callback on every
     sheet. No write the `cell` option makes is kept as cell meta the user set: core files it in the `cell`-option
     bucket, which `getUserDefinedCellMetas()` does not read, at init or on a switch. Every hook value the bar applies, a sheet's own or a restored grid-level one, first replaces the
-    settings callbacks of that hook (`#syncSettingsHooks`, through `Hooks#_replaceFromSettings()`, on a switch
-    and on a teardown): core adds an array beside the earlier callbacks and swaps only the fixed entry for a
+    settings callbacks of that hook (`#syncSettingsHooks`, through `Hooks#_replaceFromSettings()`, on a switch,
+    on a teardown and in `updateSheetSettings()`; armed as `#pendingHookSync` and run from `#filterGridSettings`
+    on the payload the earlier settings filters returned, because the Angular wrapper's filter swaps a declared
+    callback for its zone wrapper and a sync of the raw callback kept it outside the zone; so the bar's filter
+    is added before the workbook is built): core adds an array beside the earlier callbacks and swaps only the fixed entry for a
     function, so the departing sheet's callbacks kept running on the next sheet whenever either value was an
     array. A function takes the fixed entry's place, so a switch keeps the order of the settings callback and
     the `addHook()` listeners; removing and adding it again moved it behind them. A grid-level array is

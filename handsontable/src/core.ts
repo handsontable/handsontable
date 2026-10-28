@@ -466,10 +466,19 @@ export default function Core(
    */
   let initPassSettings: Record<string, unknown> | null = null;
   /**
-   * The function that reads every `updateSettings()` payload before it is applied, or `null` when no
-   * caller registered one (see `_setSettingsFilter()`).
+   * The functions that read every `updateSettings()` and `_applySettingsAndData()` payload, and the values
+   * `_replaceInitPassSettings()` hands the init pass, before they are applied, in the order they were added
+   * (see `_addSettingsFilter()`).
    */
-  let settingsFilter: ((settings: SettingsUpdate) => SettingsUpdate) | null = null;
+  const settingsFilters: Array<(settings: SettingsUpdate) => SettingsUpdate> = [];
+  /**
+   * Runs a settings payload through every filter `_addSettingsFilter()` added, in order.
+   *
+   * @param {object} settings The payload.
+   * @returns {object} The payload to apply.
+   */
+  const filterSettings = (settings: SettingsUpdate) => settingsFilters
+    .reduce((payload, filter) => filter(payload), settings);
   // Guards `init()` so it runs once per instance. Set at the very top of `init()`, before any work, so
   // that a second call is a no-op regardless of how the first one ended (see the `init` method).
   let initialized = false;
@@ -5266,7 +5275,7 @@ export default function Core(
    * @fires Hooks#afterUpdateSettings
    */
   this.updateSettings = function(settings: SettingsUpdate, init = false) {
-    const applied = !init && settingsFilter !== null ? settingsFilter(settings) : settings;
+    const applied = init ? settings : filterSettings(settings);
 
     if (applied !== settings && Object.keys(applied).length === 0) {
       return;
@@ -5387,7 +5396,7 @@ export default function Core(
 
         try {
           try {
-            const metaPhase = applySettings(settings, false, true, cellOptionMetas, keptCellMetas);
+            const metaPhase = applySettings(filterSettings(settings), false, true, cellOptionMetas, keptCellMetas);
             const nestedMetaPhases = heldMetaPhases;
 
             dataWorkPhase = 'data';
@@ -5448,7 +5457,9 @@ export default function Core(
    * hook callback of the settings and applies their `cell` option after the first load, so a plugin that
    * applied settings of its own in `beforeInit` (the SheetsBar plugin, its opening sheet) would see the pass
    * replace its hook callbacks and its `cell` entries with the grid-level ones. Replaced here, they are
-   * applied once, by the pass itself, with no settings update of their own.
+   * applied once, by the pass itself, with no settings update of their own. The values go through the
+   * settings filters (`_addSettingsFilter()`) first: unlike the rest of the pass, they are not the settings
+   * the grid was created with.
    *
    * @private
    * @param {object} settings The values to apply in the init settings pass instead.
@@ -5460,32 +5471,52 @@ export default function Core(
     }
 
     const passSettings = initPassSettings;
+    const filtered: Record<string, unknown> = filterSettings(settings);
     const replaced: Record<string, unknown> = {};
 
-    Object.keys(settings).forEach((key) => {
+    Object.keys(filtered).forEach((key) => {
       replaced[key] = passSettings[key];
-      passSettings[key] = settings[key];
+      passSettings[key] = filtered[key];
     });
 
     return replaced;
   };
 
   /**
-   * Registers the function that reads every later `updateSettings()` payload before core applies it, and
-   * returns the payload to apply instead. Passing `null` removes it. One filter at a time: the SheetsBar
-   * plugin is the only caller, and it uses it to keep the visible sheet's own settings when a grid-level
-   * value for the same key arrives (a framework wrapper sends every prop again on each render). The filter
-   * must return a new object rather than change the one it was given, which belongs to the caller of
-   * `updateSettings()`. A payload the filter empties is not applied at all: no settings cycle runs and
-   * `afterUpdateSettings` does not fire, so the Vue wrapper, which sends a key again whenever it differs
-   * from the grid's live value, does not pay one empty cycle per edit. `afterUpdateSettings` listeners
-   * receive the filtered payload. The init settings pass is never filtered.
+   * Adds a function that reads every later `updateSettings()` and `_applySettingsAndData()` payload, and
+   * the values `_replaceInitPassSettings()` hands the init settings pass, before core applies them, and
+   * returns the payload to apply instead. The filters run in the order they were added, each one reading
+   * what the one before returned. The SheetsBar plugin uses one to keep the visible sheet's own settings
+   * when a grid-level value for the same key arrives (a framework wrapper sends every prop again on each
+   * render), and the Angular wrapper one to turn the components a sheet's settings declare into what core
+   * reads and to run in Angular's zone the hook functions its `settings` input declares. A filter returns the payload it was given when it has nothing to change, or a new object; it never
+   * changes the one it was given, which belongs to the caller. A payload a filter empties is not applied at
+   * all by `updateSettings()`: no settings cycle runs and `afterUpdateSettings` does not fire, so the Vue
+   * wrapper, which sends a key again whenever it differs from the grid's live value, does not pay one empty
+   * cycle per edit. `afterUpdateSettings` listeners receive the filtered payload. The settings the grid is
+   * created with are never filtered. Adding a filter that is already there changes nothing.
    *
    * @private
-   * @param {Function|null} filter The function to register, or `null`.
+   * @param {Function} filter The function to add.
    */
-  this._setSettingsFilter = function(filter: ((settings: SettingsUpdate) => SettingsUpdate) | null) {
-    settingsFilter = filter;
+  this._addSettingsFilter = function(filter: (settings: SettingsUpdate) => SettingsUpdate) {
+    if (!settingsFilters.includes(filter)) {
+      settingsFilters.push(filter);
+    }
+  };
+
+  /**
+   * Removes a function `_addSettingsFilter()` added. Removing one that is not there changes nothing.
+   *
+   * @private
+   * @param {Function} filter The function to remove.
+   */
+  this._removeSettingsFilter = function(filter: (settings: SettingsUpdate) => SettingsUpdate) {
+    const index = settingsFilters.indexOf(filter);
+
+    if (index !== -1) {
+      settingsFilters.splice(index, 1);
+    }
   };
 
   /**

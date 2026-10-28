@@ -278,15 +278,7 @@ export class SheetModel {
       return null;
     }
 
-    // The `formulas` setting stays out of the deep clone: it can carry a live engine instance,
-    // which the clone would walk without end and whose copy would be a broken object anyway.
-    // The copy shares the original's `formulas` values through a shallow copy instead.
-    const { formulas, ...cloneable } = source.settings ?? {};
-    let settings = source.settings ? deepClone(cloneable) as Record<string, unknown> : undefined;
-
-    if (settings && formulas !== undefined) {
-      settings = { ...settings, formulas: isPlainObject(formulas) ? { ...formulas } : formulas };
-    }
+    const settings = source.settings ? copySettingsValue(source.settings) as Record<string, unknown> : undefined;
 
     const duplicate = this.addSheet(
       this.#uniqueName(`${source.name} (2)`),
@@ -353,4 +345,80 @@ export class SheetModel {
 
     return `${clampSheetName(base, MAX_SHEET_NAME_LENGTH - suffix.length)}${suffix}`;
   }
+}
+
+/**
+ * Tells whether a value is an object literal: an object whose prototype is `Object.prototype` or `null`.
+ * `isPlainObject` also answers `true` for a class instance such as a HyperFormula engine.
+ *
+ * @param {*} value The value to check.
+ * @returns {boolean}
+ */
+export function isObjectLiteral(value: unknown): boolean {
+  if (!isPlainObject(value)) {
+    return false;
+  }
+
+  const prototype: unknown = Object.getPrototypeOf(value);
+
+  return prototype === Object.prototype || prototype === null;
+}
+
+/**
+ * The keys `copySettingsValue()` leaves out of a copy.
+ */
+const UNCOPIED_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
+/**
+ * Copies a settings value for a snapshot: arrays and object literals are copied level by level, a date is
+ * copied by its time value, and everything else is kept by reference. A class instance such as a
+ * HyperFormula engine is not copied: its object graph has cycles, and copying it never ended. A kept
+ * reference still compares equal to itself. A date is copied because the host can edit it in place
+ * (`setFullYear()`) and send it again, and a kept reference would compare the edited date with itself.
+ *
+ * `copies` maps every array and object literal already copied to its copy, so a value that refers to itself
+ * is copied with the same shape instead of recursing until the stack overflows, and a sub-object two keys
+ * share is copied once. The keys `__proto__`, `constructor` and `prototype` are left out, as `deepClone()`
+ * leaves them out: an own `__proto__` key (a literal parsed from JSON) would set the copy's prototype.
+ *
+ * @param {*} value The value to copy.
+ * @param {WeakMap} [copies] The copies made so far in this call.
+ * @returns {*} The copy, or `value` itself when it is kept by reference.
+ */
+export function copySettingsValue(value: unknown, copies = new WeakMap<object, unknown>()): unknown {
+  if (value instanceof Date) {
+    return new Date(value.getTime());
+  }
+
+  if (!Array.isArray(value) && !isObjectLiteral(value)) {
+    return value;
+  }
+
+  const source = value as object;
+
+  if (copies.has(source)) {
+    return copies.get(source);
+  }
+
+  if (Array.isArray(source)) {
+    const copy: unknown[] = [];
+
+    copies.set(source, copy);
+    source.forEach((entry: unknown) => {
+      copy.push(copySettingsValue(entry, copies));
+    });
+
+    return copy;
+  }
+
+  const copy: Record<string, unknown> = {};
+
+  copies.set(source, copy);
+  Object.entries(source).forEach(([key, entry]) => {
+    if (!UNCOPIED_KEYS.has(key)) {
+      copy[key] = copySettingsValue(entry, copies);
+    }
+  });
+
+  return copy;
 }

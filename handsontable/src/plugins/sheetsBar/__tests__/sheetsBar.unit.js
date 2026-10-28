@@ -3918,8 +3918,9 @@ describe('SheetsBar plugin', () => {
     const opened = jest.spyOn(SheetsBarMenus.prototype, 'openTabMenu').mockImplementation(() => {});
 
     // Right-click: the one gesture that opens the menu of a tab you are not currently on.
-    hot.rootWrapperElement.querySelectorAll('.ht-sheets-bar__tab').forEach((tab) => {
-      tab.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
+    [0, 1, 2].forEach((index) => {
+      hot.rootWrapperElement.querySelectorAll('.ht-sheets-bar__tab')[index]
+        .dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
     });
 
     expect(opened.mock.calls.map(call => [call[1].canMoveLeft, call[1].canMoveRight])).toEqual([
@@ -3939,10 +3940,10 @@ describe('SheetsBar plugin', () => {
     });
 
     const opened = jest.spyOn(SheetsBarMenus.prototype, 'openTabMenu').mockImplementation(() => {});
-    const tabs = hot.rootWrapperElement.querySelectorAll('.ht-sheets-bar__tab');
 
-    tabs.forEach((tab) => {
-      tab.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
+    [0, 1, 2].forEach((index) => {
+      hot.rootWrapperElement.querySelectorAll('.ht-sheets-bar__tab')[index]
+        .dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
     });
 
     // Under RTL the sheet at index 0 is the rightmost tab, so "move right" is the one with
