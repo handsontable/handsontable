@@ -1615,10 +1615,12 @@ counts as lost content.
   `nameApart()`), among the surfaces, the controls, and the clipping containers alike. A
   `controls-overlap` names both controls (`a × b`), so one control over two neighbors is two findings.
 - **A measurement is taken on a settled page.** The spec measures until two measurements three frames
-  apart agree (`settled` in the detail), and every check releases the data-provider fixture's parked
-  fetches until none is left (`releaseParkedFetches()` in the harness): the catalog's opener releases the
-  first fetch only, and whether the next one had landed changed what the bars showed between runs. The
-  gating axe scan does not call it, so the state its baseline was taken in is unchanged.
+  apart agree (`settled` in the detail). Every check calls `releaseParkedFetches()` (the harness) after
+  every `reachState()`, on every page, so a data-provider page added to a check's plan later is measured
+  in the same state: it releases the data-provider fixture's parked fetches until none is left, because
+  the catalog's opener releases the first fetch only, and whether the next one had landed changed what
+  the bars showed between runs. The gating axe scan does not call it, so the state its baseline was taken
+  in is unchanged.
 - **Hover content** (1.4.13) is the comment of a commented cell: it must appear on hover, stay while the
   pointer moves onto it and while it rests there, and hide on Escape with the pointer still on it. "Stays"
   is measured on a fake clock (`page.clock`, installed once the comment shows), so the comment's own hide

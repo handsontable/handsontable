@@ -305,6 +305,7 @@ async function hover(page: Page, testInfo: TestInfo, theme: string) {
   const opened = await openTarget(page, entry, theme);
 
   await reachState(page, entry, opened);
+  await releaseParkedFetches(page);
   // The grid listens, as it would for a user who has worked in it, so Escape reaches it.
   await selectCell(page, opened.root, [5, 3]);
 
@@ -400,6 +401,7 @@ async function orientation(page: Page, testInfo: TestInfo, entry: A11yPage, them
 
     pageErrors.push(opened.pageErrors);
     await reachState(page, entry, opened);
+    await releaseParkedFetches(page);
     environment ??= await readEnvironment(page);
     sizes[name] = await page.evaluate((selector) => {
       const rect = document.querySelector(selector)!.querySelector('.ht-root-wrapper')!.getBoundingClientRect();

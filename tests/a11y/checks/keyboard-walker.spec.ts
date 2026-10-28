@@ -602,6 +602,7 @@ async function probePage(page: Page, testInfo: TestInfo, entry: A11yPage, probes
     const opened = await openTarget(page, { ...entry, state: 'none' }, THEME);
 
     await reachState(page, { ...entry, state: 'none' }, opened);
+    await releaseParkedFetches(page);
     await installSentinels(page, opened.root);
     // A popup library's own portal (hyperformula-ui's on the formula builder page) is marked too, so a key
     // that moves the focus into one of its popups reads as a move inside the product.
