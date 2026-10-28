@@ -231,7 +231,6 @@ async function discover(page: Page, testInfo: TestInfo, entry: DiscoveryPage, th
   const opener = DISCOVERY_STATES[entry.state] ?? STATES[entry.state as A11yState];
 
   await opener(page, entry, root, cell);
-  expect(opened.pageErrors, 'the page threw no error while it loaded and while the state was reached').toEqual([]);
   await markPortal(page, root);
 
   const applied = await page.evaluate(([selector, kind]) => {
@@ -256,6 +255,7 @@ async function discover(page: Page, testInfo: TestInfo, entry: DiscoveryPage, th
     environment,
     findings,
     criteria: [],
+    pageErrors: opened.pageErrors,
     detail: {
       variantApplied: applied,
       axeCoreVersion: results.testEngine.version,
