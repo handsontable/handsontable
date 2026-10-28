@@ -95,7 +95,7 @@ describe('Formulas: an undo of a remove after an insert in a reordered grid', ()
     expect(hot.getData()).toEqual([[null, 10, 20, null, null], [null, 20, 40, null, null]]);
   });
 
-  it('should restore the values of the formulas when the insert itself is undone after the order returned', () => {
+  it('should keep the values when the insert itself is undone after the order returned (guard, passes without the fix)', () => {
     build({ data: [[10, '=A1*2'], [20, '=A2*2'], [null, null], [null, null]] });
     hot.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
     hot.alter('insert_row_above', 1);
@@ -108,40 +108,87 @@ describe('Formulas: an undo of a remove after an insert in a reordered grid', ()
   it('should keep the values a second sheet on the same engine reads', () => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
     const otherContainer = document.createElement('div');
+    let other;
 
     document.body.appendChild(otherContainer);
-    build({
-      data: [[10, '=A1*2'], [20, '=A2*2'], [null, null], [null, null]],
-      formulas: { engine, sheetName: 'Sheet1' },
-    });
 
-    const other = new Handsontable(otherContainer, {
-      data: [['=Sheet1!B2', '=Sheet1!B3']],
-      formulas: { engine, sheetName: 'Sheet2' },
-      licenseKey: LICENSE_KEY,
-    });
+    try {
+      build({
+        data: [[10, '=A1*2'], [20, '=A2*2'], [null, null], [null, null]],
+        formulas: { engine, sheetName: 'Sheet1' },
+      });
 
-    hot.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
-    hot.alter('insert_row_above', 1);
-    hot.rowIndexMapper.setIndexesSequence([0, 1, 2, 3, 4]);
+      other = new Handsontable(otherContainer, {
+        data: [['=Sheet1!B2', '=Sheet1!B3']],
+        formulas: { engine, sheetName: 'Sheet2' },
+        licenseKey: LICENSE_KEY,
+      });
 
-    const beforeRemove = other.getDataAtRow(0);
+      hot.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
+      hot.alter('insert_row_above', 1);
+      hot.rowIndexMapper.setIndexesSequence([0, 1, 2, 3, 4]);
 
-    hot.alter('remove_row', 4);
+      const beforeRemove = other.getDataAtRow(0);
 
-    const afterRemove = other.getDataAtRow(0);
+      hot.alter('remove_row', 4);
+
+      const afterRemove = other.getDataAtRow(0);
+
+      undo();
+
+      expect(hot.getData()).toEqual(rowDataRestored);
+      expect(other.getDataAtRow(0)).toEqual(beforeRemove);
+
+      redo();
+
+      expect(hot.getData()).toEqual(rowData);
+      expect(other.getDataAtRow(0)).toEqual(afterRemove);
+    } finally {
+      other?.destroy();
+      otherContainer.remove();
+    }
+  });
+
+  it('should keep the values when a later step is undone after the restored state was edited', () => {
+    build({ data: [[10, '=A1*2'], [20, '=A2*2'], [null, null], [null, null]] });
+    restoreRows();
+    undo();
+    hot.setDataAtCell(4, 0, 5);
+    hot.alter('remove_row', 3);
+
+    expect(hot.getData()).toEqual([[null, null], [10, 20], [20, 40], [5, null]]);
 
     undo();
 
-    expect(hot.getData()).toEqual(rowDataRestored);
-    expect(other.getDataAtRow(0)).toEqual(beforeRemove);
+    expect(hot.getData()).toEqual([[null, null], [10, 20], [20, 40], [null, null], [5, null]]);
+  });
+
+  it('should restore a #REF! the engine holds when the insert that follows skipped writing it back', () => {
+    build({ data: [[10, '=A2*2'], [20, null], [null, null], [null, null]] });
+    hot.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
+    hot.alter('remove_row', 2);
+    hot.rowIndexMapper.setIndexesSequence([0, 1, 2]);
+    hot.alter('insert_row_above', 0);
+
+    const beforeRemove = hot.getData();
+
+    hot.alter('remove_row', 3);
+
+    const afterRemove = hot.getData();
+
+    expect(String(beforeRemove[1][1])).toBe('#REF!');
+
+    undo();
+
+    expect(hot.getData()).toEqual(beforeRemove);
 
     redo();
 
-    expect(hot.getData()).toEqual(rowData);
-    expect(other.getDataAtRow(0)).toEqual(afterRemove);
+    expect(hot.getData()).toEqual(afterRemove);
 
-    other.destroy();
-    otherContainer.remove();
+    undo();
+    undo();
+
+    expect(String(hot.getDataAtCell(0, 1))).toBe('#REF!');
   });
 });

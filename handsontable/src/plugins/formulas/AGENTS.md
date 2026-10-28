@@ -69,23 +69,30 @@ const isRestoreSource = source => source === 'UndoRedo.undo' || source === 'Undo
   engine that is about to be reloaded anyway.
 - **The cell writes of a restore are held, not applied** (`#restoredWrites`), in the
   `afterSetSourceDataAtCell` format (physical rows). They reach the engine in `restoreState()`.
-- **`captureState()` returns two versions and, while the order is not physical or the source data is stale, the engine's sheet.**
+- **`captureState()` returns two versions and, while the order is not physical or the source data is
+  stale, the engine's sheet.**
   `structureVersion` changes on every row or column insert, removal, move, **and every sequence
   change** (a sort included) and on a NestedRows detach; `dataVersion` on every cell write. UndoRedo
   calls `restoreState(state)` whenever a step changed either of them. When the structure version
   differs from the one the engine holds, the sheet is replaced and the held writes are dropped:
   - **In physical order, with the source data in step with the engine,** the source data is
-    authoritative: `#loadSourceDataIntoSheet()`, the same path a data load takes. The write-back of engine-rewritten formulas (`#syncFormulasToSourceData`)
-    runs inside the forward operation, so the journal holds it and the undo reverses it.
-  - **After a structural change made out of physical order, the source data stays stale when the order
-    returns.** The write-back is skipped there, so the source keeps the text the engine has since rewritten
-    (an insert at visual 1 shifts every formula below it), and `#sourceHasStaleFormulas` records it. The next
-    structural step in physical order writes the engine's text into the source and journals the stale text as
-    its "before" value, so a state captured before that step must carry the engine's sheet: its undo reloaded
-    the stale source otherwise, and the formulas ended up pointing at the wrong rows (DEV-3624). A full
-    write-back in physical order, or a full sheet write from the source (`#writeSheet()`), clears the flag; a
-    restore sets it from whether the restored state carries an engine sheet. Pinned by
-    `__tests__/reorderedInsertUndo.unit.js`.
+    authoritative: `#loadSourceDataIntoSheet()`, the same path a data load takes. The write-back of
+    engine-rewritten formulas (`#syncFormulasToSourceData`) runs inside the forward operation, so the
+    journal holds it and the undo reverses it.
+  - **A structural change made out of physical order leaves the source data stale, and the order
+    returning to physical does not fix it.** The write-back is skipped while the order is not physical,
+    so the source keeps the text the engine has since rewritten (an insert at visual 1 shifts every
+    formula below it), and `#sourceHasStaleFormulas` records it. The next structural step in physical
+    order writes the engine's text into the source and journals the stale text as its "before" value, so
+    a state captured before that step must carry the engine's sheet: its undo reloaded the stale source
+    otherwise, and the formulas ended up pointing at the wrong rows (DEV-3624). Rules for the flag:
+    a restore sets it from whether the restored state carries an engine sheet (a state captured out of
+    order carries one, so it reads true there, which can cost a snapshot and never a wrong value); a full
+    sheet write from the source (`#writeSheet()`) clears it; a full write-back in physical order clears it
+    only when it skipped no cell. A skipped cell is a `#REF!` the engine holds that an insert must not persist
+    (`#readSourceChange()` returns `'skipped'`), or a column with no property;
+    clearing over it left the stale text with no engine sheet to restore. A cell edit and a partial
+    (`cells`) write-back never clear it. Pinned by `__tests__/reorderedInsertUndo.unit.js`.
   - **Out of physical order** the source data cannot rebuild the engine: the write-back is skipped
     there, and the engine's references depend on HOW the order was reached. `engine.moveRows` keeps
     every reference on its data, while `engine.setRowOrder` - what the axis syncer sends for a sort
@@ -102,18 +109,10 @@ const isRestoreSource = source => source === 'UndoRedo.undo' || source === 'Undo
 
   With the same structure version, the held writes are written into the engine in one
   `engine.batch()`. The sheet snapshot is re-serialized on every step that writes data while the
-  grid is sorted or moved - an O(cells) cost per step on those grids only.
-- **Open: an undo can restore formula text the engine never held in physical order.** A row inserted
-  while the order is not physical shifts the engine's formulas but not the formula text in the source
-  data (the write-back is skipped there). When the order later returns to physical, the next forward
-  step writes the engine's text into the source and journals the stale text as its "before" value, and
-  that step's `before` state has no engine sheet, so its undo reloads the stale source. No cell edit and
-  no stale order are involved, so `adoptEngineOrder()` does not reach it. Repro (`undoRedo: true`, data
-  `[[10, '=A1*2'], [20, '=A2*2'], [null, null], [null, null]]`): `setIndexesSequence([3, 0, 1, 2])`,
-  `alter('insert_row_above', 1)`, `setIndexesSequence([0, 1, 2, 3, 4])`, `alter('remove_row', 4)`, one
-  undo. `getData()` reads `[[null, null], [10, 0], [20, 20], [null, null], [null, null]]` where it read
-  `[[null, null], [10, 20], [20, 40], [null, null]]` before the removal. No committed test: the repo
-  rejects a skipped test, and a failing one cannot land.
+  grid is sorted or moved, or while `#sourceHasStaleFormulas` is set - an O(cells) cost per step on
+  those grids only, not measured. The flag stays set in physical order until the next full write-back
+  that skips no cell or the next full sheet write, so a grid reordered once and then restructured can
+  pay the snapshot on every step after that.
 - **Draw every new version from `#versionSeed`, never reuse one.** `restoreState()` sets the
   current versions to the restored state's; a later change that reused a number would make a
   different structure compare equal to a recorded one.

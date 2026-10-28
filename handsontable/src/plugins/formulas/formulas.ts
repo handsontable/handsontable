@@ -663,11 +663,11 @@ export class Formulas extends BasePlugin {
   #dataVersion = 0;
 
   /**
-   * Tells that the source data may hold formula text the engine has rewritten since: a structural change
-   * made while the order was not physical wrote nothing back (`#syncFormulasToSourceData()`), and the
-   * order has returned to physical since. The source data is then not what rebuilds the engine, so a state
-   * captured while it holds is recorded with the engine's sheet (`#captureEngineSheet()`). A full
-   * write-back in physical order clears it.
+   * The source data may hold formula text the engine has rewritten: a structural change made out of
+   * physical order writes nothing back, and the order returning to physical does not. A state captured
+   * while it is set carries the engine's sheet, because the source data cannot rebuild it. Set in
+   * `#syncFormulasToSourceData()`, cleared there and in `#writeSheet()`, set from the state in
+   * `restoreState()`.
    */
   #sourceHasStaleFormulas = false;
 
@@ -4894,11 +4894,14 @@ export class Formulas extends BasePlugin {
 
       return engineHoldsPhysicalColumns;
     };
+    let leftStale = false;
     const collect = (hfRow: number, hfColumn: number, formula: string | undefined) => {
       const change = formula === undefined ? null :
         this.#readSourceChange(hfRow, hfColumn, formula, allowBrokenReferences, holdsPhysicalColumns);
 
-      if (change !== null) {
+      if (change === 'skipped') {
+        leftStale = true;
+      } else if (change !== null) {
         changes.push(change);
       }
     };
@@ -4920,7 +4923,7 @@ export class Formulas extends BasePlugin {
       this.#internalOperationPending = false;
     }
 
-    if (cells === undefined) {
+    if (cells === undefined && !leftStale) {
       this.#sourceHasStaleFormulas = false;
     }
 
@@ -4940,15 +4943,16 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Returns the source data write that brings one engine formula into the source data, or `null`
-   * when the source already holds it or must not get it. The engine order must be the physical one.
+   * Returns the source data write that brings one engine formula into the source data, `null` when the
+   * source already holds it, or `'skipped'` when it must not get it. The engine order must be the
+   * physical one.
    *
    * @param {number} hfRow The engine row – the physical row, in the physical order.
    * @param {number} hfColumn The engine column.
    * @param {string} formula The engine's formula.
    * @param {boolean} allowBrokenReferences `true` to write a `#REF!` the source does not hold yet.
    * @param {Function} holdsPhysicalColumns Tells whether the engine holds the columns in physical order.
-   * @returns {Array|null} The write, as `[physicalRow, prop, formula]`.
+   * @returns {Array|string|null} The write, as `[physicalRow, prop, formula]`.
    */
   #readSourceChange(
     hfRow: number,
@@ -4956,14 +4960,14 @@ export class Formulas extends BasePlugin {
     formula: string,
     allowBrokenReferences: boolean,
     holdsPhysicalColumns: () => boolean,
-  ): [number, string | number, unknown] | null {
+  ): [number, string | number, unknown] | 'skipped' | null {
     // The engine's index IS the physical index in the physical order, so trimmed rows (Filters,
     // `trimRows`) are reached too – they hold formulas that need the same catch-up.
     const physicalRow = hfRow;
     const column = this.#resolveEngineColumn(hfColumn, holdsPhysicalColumns());
 
     if (column === null) {
-      return null;
+      return 'skipped';
     }
 
     // `getSourceDataAtCell` takes a physical row and a visual column, `setSourceDataAtCell` a physical
@@ -4978,7 +4982,7 @@ export class Formulas extends BasePlugin {
     // overwrite a still-good formula in the developer's array with an unrecoverable one, so it is only
     // written for the operations that can legitimately break a reference.
     if (!allowBrokenReferences && REF_ERROR_PATTERN.test(formula) && !REF_ERROR_PATTERN.test(String(stored))) {
-      return null;
+      return 'skipped';
     }
 
     return [physicalRow, column.prop, formula];
