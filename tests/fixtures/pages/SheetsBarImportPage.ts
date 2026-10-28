@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, type Locator, type Page } from '@playwright/test';
-import { awaitBundle } from '../bundle';
+import { assertKnownBundle, awaitBundle, awaitFixtureBuilt, type Bundle } from '../bundle';
 import { SheetsBarPage } from './SheetsBarPage';
 
 /**
@@ -17,12 +17,12 @@ const XLSX_FIXTURES = new URL('../../../handsontable/src/utils/xlsxEngine/__test
 export class SheetsBarImportPage {
   readonly page: Page;
   readonly theme: string;
-  readonly bundle: string;
+  readonly bundle: Bundle;
   readonly sheetsBar: SheetsBarPage;
   readonly pageErrors: string[] = [];
   #imports = 0;
 
-  constructor(page: Page, theme = 'main', bundle = 'umd') {
+  constructor(page: Page, theme = 'main', bundle: Bundle = 'umd') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
@@ -30,15 +30,13 @@ export class SheetsBarImportPage {
   }
 
   async goto(): Promise<void> {
+    assertKnownBundle(this.bundle, '(page, theme, bundle)');
     this.page.on('pageerror', error => this.pageErrors.push(error.message));
 
     await this.page.goto(`/tests/fixtures/demo/sheets-bar-import.html?theme=${this.theme}&bundle=${this.bundle}`);
     await awaitBundle(this.page);
-
-    await expect(
-      this.cell(0, 0),
-      this.pageErrors.length > 0 ? `the fixture page threw: ${this.pageErrors.join(' | ')}` : undefined,
-    ).toBeVisible();
+    await awaitFixtureBuilt(this.page);
+    await expect(this.cell(0, 0)).toBeVisible();
   }
 
   /**

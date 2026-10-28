@@ -176,23 +176,35 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   the grid's own.
 - **An import lays out the visible sheet only.** ImportFile applies a result with `loadData()` plus
   `updateSettings()` calls (`columns`, `colWidths`, `rowHeights`, `hiddenRows`, `hiddenColumns`, headers, merges,
-  borders, frozen counts), all grid-level as far as core knows. `#filterGridSettings` therefore reads every payload
-  made while `_isApplyingImport()` answers `true` before core applies it, and `#keepImportedSettings` merges its keys
-  into the visible sheet's own `settings` (a new object, as `updateSheetSettings()` makes), after
+  borders, frozen counts), all grid-level as far as core knows. `#filterGridSettings` therefore recognizes those
+  payloads before core applies them, by identity (`ImportFile#_isImportSettings()`: the plugin passes them through
+  its own `#applyImportSettings`, which marks the one object for the length of the call), and `#keepImportedSettings`
+  merges their keys into the visible sheet's own `settings` (a new object, as `updateSheetSettings()` makes), after
   `#recordBaselineFor` stored the grid-level value of each key no sheet set before. A value the import resets with
-  `undefined` is kept as `null`. The payload itself goes through unchanged. Left as grid-level values, the imported
-  columns, locks, sizes, hidden indexes and headers reached every sheet that does not declare the key, and a sheet
-  that declares it got its declared value back on the next return. The check comes first in the filter, before
-  `#filtersGridSettings`, because the import's own writes are not grid-level values to take off.
+  `undefined` is kept as `null`; `dataProvider` is never taken. The payload itself goes through unchanged. Left as
+  grid-level values, the imported columns, locks, sizes, hidden indexes and headers reached every sheet that does
+  not declare the key, and a sheet that declares it got its declared value back on the next return. **Do not key
+  this on `_isApplyingImport()`**: that window also covers the host listeners the import fires (`afterLoadData`,
+  `afterUpdateSettings`, `afterSetCellMeta`), and a `readOnly` such a listener set became the imported sheet's own
+  instead of a grid-level value. The check comes first in the filter, before `#filtersGridSettings`, because the
+  import's own writes are not grid-level values to take off. The keys each import wrote are kept per sheet
+  (`#importedKeys`), and a `sheetsBar: false` teardown leaves the active sheet's on the grid
+  (`#restoreBaselineToGrid`'s `keptImportedKeys`): the grid keeps that sheet's rows, so it keeps the layout the file
+  gave them, as a grid without the bar does. A rebuild restores them like any other key, because it loads other
+  rows.
 - **The imported stylesheet is kept per sheet** (`#importedStyles`, a `WeakMap<Sheet, …>`). ImportFile installs one
   `<style>` per grid, while the classes it names live in each sheet's cell meta, so a later import into another
   sheet replaced the rules the first sheet's cells needed, and a sheet that declares `importFile: false` removed
   them on its visit (`disablePlugin()` removes the stylesheet). `#captureImportedStyles` stores
-  `ImportFile#_exportImportedStyles()` when the user leaves a sheet, and `#restoreImportedStyles` calls
-  `_restoreImportedStyles()` with the arriving sheet's rules (or `{}`, which removes the stylesheet) right after
-  `#applySheet`, once ImportFile is on or off as that sheet declares; the rollback path goes through the same
-  `#showSheet`. A duplicate copies its original's rules (`#copyImportedStyles`). Both members are ImportFile's own,
-  read through the typed `hot.getPlugin('importFile')`; ImportFile never reads the bar.
+  `ImportFile#_exportImportedStyles()` when the user leaves a sheet; while ImportFile is off on that sheet it keeps
+  the stored entry instead, so the rules come back once the sheet turns the plugin on again. `#restoreImportedStyles`
+  calls `_restoreImportedStyles()` with the arriving sheet's rules (or `{}`, which removes the stylesheet) from
+  `#onAfterSheetLoad`, when the rows that carry the classes have loaded and ImportFile is on or off as the sheet
+  declares. Restoring there, not after `#applySheet` returns, covers a load listener that throws (the arriving sheet
+  stays, and must not keep the departing rules), the rollback, and a workbook built on a live grid (the previous
+  workbook's rules go). `updateSheetSettings()` that turns ImportFile on for the visible sheet restores too. A
+  duplicate copies its original's rules (`#copyImportedStyles`). Every member is ImportFile's own, read through the
+  typed `hot.getPlugin('importFile')`; ImportFile never reads the bar.
 - **Formulas cooperation is by engine instance + `sheetName`.** Every bound sheet is registered
   in the engine up front and re-fed on every registration (a rebuilt workbook reusing names
   must not leave stale engine content), except the opening sheet, which its own load feeds

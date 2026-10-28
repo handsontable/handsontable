@@ -371,9 +371,13 @@ Use each sheet's tab name as its `sheetName`. A tab rename then renames the engi
 
 ## Import and export
 
-A file you import with the [`ImportFile`](@/api/importFile.md) plugin lands on the active sheet. The settings the import writes, such as column types, locked cells, column widths, row heights, hidden rows and columns, frozen rows and columns, merged cells, and headers, become that sheet's own settings, the way [`updateSheetSettings()`](@/api/sheetsBar.md#updatesheetsettings) sets them. The other sheets keep theirs, and the imported sheet gets the imported layout back on every return, even for a setting its entry in `sheets` declares. Your `sheets` array keeps the `settings` you declared.
+A file you import with the [`ImportFile`](@/api/importFile.md) plugin lands on the active sheet. The import writes settings such as column types and locks, sizes, hidden rows and columns, frozen rows and columns, merged cells, and headers. They become that sheet's own settings, the way [`updateSheetSettings()`](@/api/sheetsBar.md#updatesheetsettings) sets them. The other sheets keep theirs.
+
+The imported sheet gets the imported layout back on every return, even for a setting its entry in `sheets` declares. Your entry keeps the `settings` you declared, but a copy you make with `duplicateSheet()` gets an entry with the imported settings. To change an imported setting later, call `updateSheetSettings()`: a value you pass to [`updateSettings()`](@/api/core.md#updatesettings), or that a framework wrapper sends again on a re-render, becomes the grid-level value of the other sheets.
 
 Each sheet also keeps its own imported cell styles, so a file you import into another sheet doesn't remove them.
+
+When you turn the bar off, the grid keeps the active sheet's rows, so it also keeps the layout an import gave them.
 
 The [`ExportFile`](@/api/exportFile.md) plugin exports what the grid holds, which is the active sheet, in a worksheet named `Sheet1`. To name the worksheet after the tab, pass the grid in the `sheets` option:
 

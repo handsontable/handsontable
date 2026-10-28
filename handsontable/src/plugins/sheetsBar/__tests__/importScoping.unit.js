@@ -13,6 +13,15 @@ function threeColumns() {
   return [['a1', 'b1', 'c1'], ['a2', 'b2', 'c2'], ['a3', 'b3', 'c3']];
 }
 
+/**
+ * Returns five rows of three columns, enough for every row index `layout.xlsx` hides or freezes.
+ *
+ * @returns {Array[]}
+ */
+function fiveRows() {
+  return Array.from({ length: 5 }, (_, row) => [`a${row}`, `b${row}`, `c${row}`]);
+}
+
 describe('SheetsBar with an imported file', () => {
   let container;
   let hot;
@@ -87,7 +96,7 @@ describe('SheetsBar with an imported file', () => {
   }
 
   describe('the settings the import writes', () => {
-    it('keeps the imported column types and locks on the sheet the file was imported into', async() => {
+    it('keeps the imported locks and column count on the sheet the file was imported into', async() => {
       const bar = buildWorkbook([
         { name: 'Alpha', data: threeColumns() },
         { name: 'Beta', data: threeColumns() },
@@ -113,8 +122,8 @@ describe('SheetsBar with an imported file', () => {
 
     it('keeps the imported sizes and hidden rows and columns on the sheet the file was imported into', async() => {
       const bar = buildWorkbook([
-        { name: 'Alpha', data: threeColumns() },
-        { name: 'Beta', data: threeColumns() },
+        { name: 'Alpha', data: fiveRows() },
+        { name: 'Beta', data: fiveRows() },
       ]);
       const alphaWidth = hot.getColWidth(0);
       const alphaHeight = hot.getRowHeight(1);
@@ -126,6 +135,7 @@ describe('SheetsBar with an imported file', () => {
       const betaHeight = hot.getRowHeight(1);
 
       expect(betaWidth).not.toBe(alphaWidth);
+      expect(betaHeight).not.toBe(alphaHeight);
       expect(hot.getPlugin('hiddenRows').isHidden(3)).toBe(true);
       expect(hot.getPlugin('hiddenColumns').isHidden(2)).toBe(true);
 
@@ -133,7 +143,7 @@ describe('SheetsBar with an imported file', () => {
 
       expect(hot.getColWidth(0)).toBe(alphaWidth);
       expect(hot.getRowHeight(1)).toBe(alphaHeight);
-      expect(hot.getPlugin('hiddenRows').isHidden(2)).toBe(false);
+      expect(hot.getPlugin('hiddenRows').isHidden(3)).toBe(false);
       expect(hot.getPlugin('hiddenColumns').isHidden(2)).toBe(false);
 
       bar.setActiveSheet('Beta');
@@ -203,6 +213,127 @@ describe('SheetsBar with an imported file', () => {
       expect(hot.getColWidth(0)).toBe(importedWidth);
     });
 
+    it('brings the imported column settings back over the columns the sheet declares', async() => {
+      const bar = buildWorkbook([
+        { name: 'Alpha', data: threeColumns(), settings: { columns: [{ type: 'numeric' }, {}, {}] } },
+        { name: 'Beta', data: threeColumns() },
+      ]);
+
+      await importFixture('styles', { importStyles: true });
+
+      expect(hot.getCellMeta(0, 0).type).toBe('text');
+      expect(hot.countCols()).toBe(5);
+
+      bar.setActiveSheet('Beta');
+      bar.setActiveSheet('Alpha');
+
+      expect(hot.getCellMeta(0, 0).type).toBe('text');
+      expect(hot.countCols()).toBe(5);
+    });
+
+    it('keeps the imported frozen rows and columns and merged cells on the sheet the file was imported into', async() => {
+      const bar = buildWorkbook([
+        { name: 'Alpha', data: fiveRows() },
+        { name: 'Beta', data: fiveRows() },
+      ]);
+      const merges = () => hot.getPlugin('mergeCells').mergedCellsCollection?.mergedCells.length ?? 0;
+
+      bar.setActiveSheet('Beta');
+      await importFixture('layout');
+
+      expect(hot.getSettings().fixedRowsTop).toBe(1);
+      expect(hot.getSettings().fixedColumnsStart).toBe(1);
+      expect(merges()).toBe(2);
+
+      bar.setActiveSheet('Alpha');
+
+      expect(hot.getSettings().fixedRowsTop).toBe(0);
+      expect(hot.getSettings().fixedColumnsStart).toBe(0);
+      expect(merges()).toBe(0);
+
+      bar.setActiveSheet('Beta');
+
+      expect(hot.getSettings().fixedRowsTop).toBe(1);
+      expect(hot.getSettings().fixedColumnsStart).toBe(1);
+      expect(merges()).toBe(2);
+    });
+
+    it('keeps the default widths a later import without widths leaves on the sheet', async() => {
+      const bar = buildWorkbook([
+        { name: 'Alpha', data: threeColumns() },
+        { name: 'Beta', data: threeColumns() },
+      ]);
+      const defaultWidth = hot.getColWidth(0);
+
+      await importFixture('layout');
+
+      expect(hot.getColWidth(0)).not.toBe(defaultWidth);
+
+      await importFixture('values');
+
+      expect(hot.getColWidth(0)).toBe(defaultWidth);
+
+      bar.setActiveSheet('Beta');
+      bar.setActiveSheet('Alpha');
+
+      expect(hot.getColWidth(0)).toBe(defaultWidth);
+    });
+
+    it('keeps a setting a listener changes during the import as a grid-level value', async() => {
+      const bar = buildWorkbook([
+        { name: 'Alpha', data: threeColumns() },
+        { name: 'Beta', data: threeColumns() },
+      ]);
+      let listenerRan = false;
+
+      hot.addHook('afterLoadData', (sourceData, initialLoad) => {
+        if (!initialLoad && !listenerRan) {
+          listenerRan = true;
+          hot.updateSettings({ readOnly: true });
+        }
+      });
+      await importFixture('values');
+
+      expect(listenerRan).toBe(true);
+      expect(hot.getSettings().readOnly).toBe(true);
+
+      bar.setActiveSheet('Beta');
+
+      expect(hot.getSettings().readOnly).toBe(true);
+    });
+
+    it('leaves the imported layout on the grid when the bar is turned off', async() => {
+      buildWorkbook([
+        { name: 'Alpha', data: fiveRows() },
+        { name: 'Beta', data: fiveRows() },
+      ]);
+
+      await importFixture('layout');
+
+      const importedWidths = hot.getSettings().colWidths;
+
+      hot.updateSettings({ sheetsBar: false });
+
+      expect(hot.getDataAtCell(0, 0)).toBe('R1C1');
+      expect(hot.getSettings().colWidths).toEqual(importedWidths);
+      expect(hot.getSettings().fixedRowsTop).toBe(1);
+      expect(hot.getPlugin('hiddenRows').isHidden(3)).toBe(true);
+    });
+
+    it('gives the grid back its own settings when the bar is turned off on a sheet without an import', async() => {
+      const bar = buildWorkbook([
+        { name: 'Alpha', data: fiveRows() },
+        { name: 'Beta', data: fiveRows() },
+      ]);
+
+      await importFixture('layout');
+      bar.setActiveSheet('Beta');
+      hot.updateSettings({ sheetsBar: false });
+
+      expect(hot.getSettings().colWidths).toBeNull();
+      expect(hot.getSettings().fixedRowsTop).toBe(0);
+    });
+
     it('leaves the settings the host declared for the sheet as they were', async() => {
       const declared = { colWidths: 50 };
       const sheets = [
@@ -259,6 +390,101 @@ describe('SheetsBar with an imported file', () => {
       bar.setActiveSheet('Alpha');
 
       expect(importedStyles()).toContain(alphaClass);
+    });
+
+    it('keeps the tracked styles in step with the stylesheet when a listener throws during the import', async() => {
+      const bar = buildWorkbook([
+        { name: 'Alpha', data: threeColumns() },
+        { name: 'Beta', data: threeColumns() },
+      ]);
+      let throwOnce = true;
+
+      hot.addHook('afterSetCellMeta', () => {
+        if (throwOnce) {
+          throwOnce = false;
+          throw new Error('listener failed');
+        }
+      });
+
+      await expect(importFixture('styles', { importStyles: true })).rejects.toThrow('listener failed');
+
+      const installed = importedStyles();
+
+      expect(installed).not.toBe('');
+      expect(Object.keys(hot.getPlugin('importFile')._exportImportedStyles()).length).toBe(2);
+
+      bar.setActiveSheet('Beta');
+      bar.setActiveSheet('Alpha');
+
+      expect(importedStyles()).toBe(installed);
+    });
+
+    it('does not leave the departing sheet\'s styles on the arriving one when a load listener throws', async() => {
+      const bar = buildWorkbook([
+        { name: 'Alpha', data: threeColumns() },
+        { name: 'Beta', data: threeColumns() },
+      ]);
+      let throwOnce = true;
+
+      await importFixture('styles', { importStyles: true });
+      hot.addHook('afterLoadData', (sourceData, initialLoad, source) => {
+        if (throwOnce && `${source}`.endsWith('.switch')) {
+          throwOnce = false;
+          throw new Error('listener failed');
+        }
+      });
+
+      expect(() => bar.setActiveSheet('Beta')).toThrow('listener failed');
+      expect(bar.getSheets().find(sheet => sheet.isActive).name).toBe('Beta');
+      expect(importedStyles()).toBe('');
+    });
+
+    it('brings a sheet\'s imported styles back when ImportFile is turned on again for the visible sheet', async() => {
+      const bar = buildWorkbook([
+        { name: 'Alpha', data: threeColumns() },
+        { name: 'Beta', data: threeColumns() },
+      ]);
+
+      await importFixture('styles', { importStyles: true });
+
+      const [alphaClass] = importedClassesAtFirstCell();
+
+      bar.setActiveSheet('Beta');
+      bar.updateSheetSettings('Alpha', { importFile: false });
+      bar.setActiveSheet('Alpha');
+
+      expect(importedStyles()).toBe('');
+
+      bar.setActiveSheet('Beta');
+      bar.setActiveSheet('Alpha');
+      bar.updateSheetSettings('Alpha', { importFile: true });
+
+      expect(importedStyles()).toContain(alphaClass);
+
+      bar.setActiveSheet('Beta');
+      bar.setActiveSheet('Alpha');
+
+      expect(importedStyles()).toContain(alphaClass);
+    });
+
+    it('removes the previous workbook\'s styles when a new workbook is built', async() => {
+      const bar = buildWorkbook([
+        { name: 'Alpha', data: threeColumns() },
+        { name: 'Beta', data: threeColumns() },
+      ]);
+
+      await importFixture('styles', { importStyles: true });
+
+      expect(importedStyles()).not.toBe('');
+
+      hot.updateSettings({ sheetsBar: { sheets: [{ name: 'X', data: [[1]] }, { name: 'Y', data: [[2]] }] } });
+
+      expect(importedStyles()).toBe('');
+
+      bar.setActiveSheet('Y');
+      bar.setActiveSheet('X');
+
+      expect(hot.getPlugin('importFile')._exportImportedStyles()).toEqual({});
     });
 
     it('gives a duplicate the imported styles of its original', async() => {

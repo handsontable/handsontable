@@ -248,6 +248,8 @@ The `HotTable` component watches the settings you pass to it. A later change sen
 
 With the [sheets bar](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md#import-and-export), an import lands on the active sheet: the settings it writes become that sheet's own, and the other sheets keep theirs. Each sheet keeps its own imported cell styles.
 
+On such a grid, the framework sections above do not apply to the imported sheet. A re-render, or a later `updateSettings()` call, no longer replaces its imported headers, column types, or layout: the values you send become the other sheets' settings. To change the imported sheet, call [`updateSheetSettings()`](@/api/sheetsBar.md#updatesheetsettings).
+
 ## Options
 
 Pass these options as the third argument of `importFromArrayBuffer(format, buffer, options)` or `importFromBlob(format, blob, options)`. `importFromArrayBuffer()` also accepts a view over a buffer, such as a `Uint8Array`.

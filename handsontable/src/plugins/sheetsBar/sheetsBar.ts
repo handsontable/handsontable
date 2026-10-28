@@ -645,6 +645,13 @@ export class SheetsBar extends BasePlugin {
    */
   #importedStyles = new WeakMap<Sheet, Record<string, string>>();
   /**
+   * The settings keys an import wrote on each sheet (`#keepImportedSettings`). A `sheetsBar: false` teardown
+   * leaves the active sheet's on the grid, which keeps that sheet's rows.
+   *
+   * @type {WeakMap<object, Set<string>>}
+   */
+  #importedKeys = new WeakMap<Sheet, Set<string>>();
+  /**
    * The sheets whose `mergeCells` `updateSheetSettings()` changed while they were hidden: their next visit
    * builds the declared merges instead of restoring the ones the user left with.
    *
@@ -1496,13 +1503,14 @@ export class SheetsBar extends BasePlugin {
   disablePlugin() {
     if (this.#preservedState === null && this.#model !== null) {
       const discardedSheets = this.#sheetRecords();
-      const keptColumnSummary = this.#rebuildGridDataProvider === null
-        ? this.#getActiveSheetGridColumnSummary()
-        : undefined;
+      const isTeardown = this.#rebuildGridDataProvider === null;
+      const keptColumnSummary = isTeardown ? this.#getActiveSheetGridColumnSummary() : undefined;
+      const activeSheet = this.#activeSheetRecord();
+      const keptImportedKeys = isTeardown && activeSheet ? this.#importedKeys.get(activeSheet) : undefined;
 
       this.#model = null;
       this.#releaseDataProviderContexts(discardedSheets);
-      this.#restoreBaselineToGrid(keptColumnSummary);
+      this.#restoreBaselineToGrid(keptColumnSummary, keptImportedKeys);
     }
 
     super.disablePlugin();
@@ -1530,10 +1538,15 @@ export class SheetsBar extends BasePlugin {
    * endpoints hold on that sheet now (`keptColumnSummary`), because the grid keeps that sheet's rows:
    * the declared positions would write the summary over a data cell a row insert moved into them.
    *
+   * A `sheetsBar: false` teardown also leaves out the keys an import wrote on the active sheet
+   * (`keptImportedKeys`): the grid keeps that sheet's rows, so it keeps the layout the file gave them, as a
+   * grid without the bar does after an import.
+   *
    * @param {Array} [keptColumnSummary] The active sheet's current endpoints, when they replace the
    * captured grid-level value.
+   * @param {Set<string>} [keptImportedKeys] The keys an import wrote on the active sheet, kept on the grid.
    */
-  #restoreBaselineToGrid(keptColumnSummary?: unknown[]) {
+  #restoreBaselineToGrid(keptColumnSummary?: unknown[], keptImportedKeys?: Set<string>) {
     if (this.hot.isDestroyed) {
       return;
     }
@@ -1541,7 +1554,7 @@ export class SheetsBar extends BasePlugin {
     const restored: Record<string, unknown> = {};
 
     this.#settingsBaseline.forEach((value, key) => {
-      if (key !== 'dataProvider' || this.#rebuildGridDataProvider === null) {
+      if ((key !== 'dataProvider' || this.#rebuildGridDataProvider === null) && !keptImportedKeys?.has(key)) {
         restored[key] = value === undefined ? null : value;
       }
     });
@@ -1555,7 +1568,8 @@ export class SheetsBar extends BasePlugin {
     const neutral = this.#getNeutralFrozenCounts();
 
     FROZEN_COUNT_KEYS.forEach((key) => {
-      if (!(key in restored) && (this.hot.getSettings()[key] ?? 0) !== (neutral[key] ?? 0)) {
+      if (!(key in restored) && !keptImportedKeys?.has(key)
+        && (this.hot.getSettings()[key] ?? 0) !== (neutral[key] ?? 0)) {
         restored[key] = neutral[key] ?? 0;
       }
     });
@@ -1775,7 +1789,7 @@ export class SheetsBar extends BasePlugin {
   #filterGridSettings = (settings: Record<string, unknown>): Record<string, unknown> => {
     this.#runPendingHookSync(settings);
 
-    if (this.#model !== null && this.hot.getPlugin('importFile')?._isApplyingImport()) {
+    if (this.#model !== null && this.hot.getPlugin('importFile')?._isImportSettings(settings)) {
       this.#keepImportedSettings(settings);
 
       return settings;
@@ -2039,6 +2053,10 @@ export class SheetsBar extends BasePlugin {
 
     if (model?.getActiveSheet()?.id === id) {
       this.#applyToVisibleSheet(changes, sheet.settings);
+
+      if ('importFile' in changes) {
+        this.#restoreImportedStyles(sheet);
+      }
     } else {
       this.#dropKeptStateFor(sheet, changes);
     }
@@ -2777,7 +2795,6 @@ export class SheetsBar extends BasePlugin {
         restoresState: viewState !== undefined,
         cellMeta: viewState?.cellMeta,
       });
-      this.#restoreImportedStyles(newSheet);
 
       if (viewState) {
         restoreViewState(this.hot, viewState, keptParts);
@@ -3137,12 +3154,17 @@ export class SheetsBar extends BasePlugin {
    * Stores the imported cell style rules of the departing sheet. Its cells carry the classes of the file
    * imported into it, in their cell meta, while the grid has one imported stylesheet, so a later import into
    * another sheet replaced the rules those classes needed, and a sheet that turns ImportFile off removed them.
-   * The arriving sheet gets its own rules back (`#restoreImportedStyles`). Nothing is stored while ImportFile
-   * is off or holds no rules.
+   * The arriving sheet gets its own rules back (`#restoreImportedStyles`). A sheet that leaves with no rules
+   * has its entry removed. While ImportFile is off on the sheet (`importFile: false`), the entry is kept as it
+   * is: the plugin holds nothing then, and the rules come back once the sheet turns it on again.
    *
    * @param {object} sheet The departing sheet.
    */
   #captureImportedStyles(sheet: Sheet) {
+    if (!this.hot.getPlugin('importFile')?.enabled) {
+      return;
+    }
+
     const styles = this.#exportImportedStyles();
 
     if (styles) {
@@ -3165,9 +3187,9 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Puts the arriving sheet's imported cell style rules in the grid's stylesheet, or removes the stylesheet
-   * when the sheet kept none. Runs once the sheet's settings are applied, so ImportFile is on or off as the
-   * sheet declares; while it is off there is no stylesheet to fill.
+   * Puts a sheet's imported cell style rules in the grid's stylesheet, or removes the stylesheet when the
+   * sheet kept none. Runs when the sheet's rows load (`#onAfterSheetLoad`), and when `updateSheetSettings()`
+   * turns ImportFile on for the visible sheet; while ImportFile is off there is no stylesheet to fill.
    *
    * @param {object} sheet The arriving sheet.
    */
@@ -3606,13 +3628,14 @@ export class SheetsBar extends BasePlugin {
    */
   #keepImportedSettings(settings: Record<string, unknown>) {
     const sheet = this.#activeSheetRecord();
-    const keys = Object.keys(settings).filter(key => !UNSETTABLE_SHEET_KEYS.has(key));
+    const keys = Object.keys(settings).filter(key => !UNSETTABLE_SHEET_KEYS.has(key) && key !== 'dataProvider');
 
     if (!sheet || keys.length === 0) {
       return;
     }
 
     this.#recordBaselineFor(keys);
+    this.#importedKeys.set(sheet, new Set([...(this.#importedKeys.get(sheet) ?? []), ...keys]));
     sheet.settings = {
       ...(sheet.settings ?? {}),
       ...Object.fromEntries(keys.map(key => [key, settings[key] === undefined ? null : settings[key]])),
@@ -4899,13 +4922,17 @@ export class SheetsBar extends BasePlugin {
   };
 
   /**
-   * Records which sheet's rows the grid holds once `#applySheet` has loaded them. Registered first
-   * (`orderIndex` -1), so a later `afterLoadData` listener that throws cannot hide a load that
-   * happened.
+   * Records which sheet's rows the grid holds once `#applySheet` has loaded them, and installs that sheet's
+   * imported cell style rules (`#restoreImportedStyles`): the rows that carry the classes arrive here, and
+   * ImportFile is on or off as the sheet declares by now. Registered first (`orderIndex` -1), so a later
+   * `afterLoadData` listener that throws cannot hide a load that happened, or leave the departing sheet's
+   * rules on the arriving one. A workbook built on a live grid loads its opening sheet here too, so the
+   * previous workbook's rules go with it.
    */
   #onAfterSheetLoad = () => {
     if (this.#loadingSheet !== null) {
       this.#loadedSheetId = this.#loadingSheet.id;
+      this.#restoreImportedStyles(this.#loadingSheet);
     }
   };
 

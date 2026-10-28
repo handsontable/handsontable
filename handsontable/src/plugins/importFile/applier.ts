@@ -12,6 +12,15 @@ export interface ApplyOptions {
    * left on the grid and this result does not carry is cleared.
    */
   importLayout: boolean;
+  /**
+   * Applies one settings payload of the result. Defaults to the grid's `updateSettings()`; the plugin
+   * passes its own, so it can tell its payloads from a listener's.
+   */
+  updateSettings?: (settings: Record<string, unknown>) => void;
+  /**
+   * Called with the style rules right after they are installed, before any later step can throw.
+   */
+  onStylesInstalled?: (styles: Record<string, string>) => void;
 }
 
 /**
@@ -318,13 +327,11 @@ export function removeImportedStyles(hot: HotInstance): void {
  * stylesheet is installed right after `loadData` so the generated classes already resolve on the
  * first render `updateSettings` triggers. The surrounding `batch` suspends rendering, so all the calls
  * still paint once.
- *
- * Returns the style rules it installed (see `installImportedStyles()`).
  */
 export function applyImportResult(
   hot: HotInstance, result: ImportResult, options: ApplyOptions = { importLayout: true }
-): Record<string, string> {
-  let installed: Record<string, string> = {};
+): void {
+  const update = options.updateSettings ?? ((settings: Record<string, unknown>) => hot.updateSettings(settings));
 
   hot.batch(() => {
     const settings = toSettings(hot, result, options);
@@ -336,7 +343,7 @@ export function applyImportResult(
     if (settings.columns !== undefined) {
       const columnTypes: Record<string, unknown> = { columns: settings.columns };
 
-      hot.updateSettings(columnTypes);
+      update(columnTypes);
       // Applied once: `loadData` keeps the `columns` option, so passing it again below rebuilt every
       // column's meta a second time on each import (review round 12).
       delete settings.columns;
@@ -344,10 +351,12 @@ export function applyImportResult(
 
     hot.loadData(result.data);
 
-    installed = installImportedStyles(hot, result.styles ?? {});
+    const installed = installImportedStyles(hot, result.styles ?? {});
+
+    options.onStylesInstalled?.(installed);
 
     if (Object.keys(settings).length > 0) {
-      hot.updateSettings(settings);
+      update(settings);
     }
 
     // The result is in sheet (physical) coordinates; `setCellMetaObject` and `setCommentAtCell`
@@ -383,6 +392,4 @@ export function applyImportResult(
       });
     }
   });
-
-  return installed;
 }

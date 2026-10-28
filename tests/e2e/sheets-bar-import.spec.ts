@@ -23,6 +23,7 @@ test.describe('SheetsBar keeps an imported file on its own sheet', { tag: THEMES
     await grid.showSheet(1);
     await grid.importFixture('styles');
 
+    expect(await grid.opensEditor(1, 1)).toBe(true);
     expect(await grid.opensEditor(0, 0)).toBe(false);
 
     await grid.showSheet(0);
