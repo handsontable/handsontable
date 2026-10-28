@@ -197,6 +197,243 @@ describe('DataProvider loading overlay when a fetch ends without data', () => {
   });
 });
 
+describe('DataProvider loading overlay when a silent fetch replaces a loading one', () => {
+  let container;
+  let hot;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    hot?.destroy();
+    hot = null;
+    container.remove();
+  });
+
+  /**
+   * Builds a server-backed grid with the empty data state and sorting on.
+   *
+   * @param {object} config The `dataProvider` configuration.
+   */
+  function build(config) {
+    hot = new Handsontable(container, {
+      emptyDataState: true,
+      columnSorting: true,
+      dataProvider: config,
+      columns: [{ data: 'id' }, { data: 'name' }],
+      licenseKey: LICENSE_KEY,
+    });
+  }
+
+  it('keeps the loading overlay over an empty grid while a sort refetch replaces the first fetch', async() => {
+    const { config, calls } = createControlledProvider();
+
+    build(config);
+    await flush();
+
+    expect(overlayState(container, hot)).toEqual({ visible: true, loading: true });
+
+    hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+    await flush();
+
+    expect(calls).toHaveLength(2);
+    expect(calls[0].signal.aborted).toBe(true);
+    expect(hot.getPlugin('dataProvider').isFetching()).toBe(true);
+    expect(overlayState(container, hot)).toEqual({ visible: true, loading: true });
+
+    calls[1].resolve({ rows: rows(3), totalRows: 3 });
+    await flush();
+
+    expect(overlayState(container, hot)).toEqual({ visible: false, loading: false });
+  });
+
+  it('keeps the loading overlay over the rows while a sort refetch replaces a reload', async() => {
+    const { config, calls } = createControlledProvider();
+
+    build(config);
+    await flush();
+    calls[0].resolve({ rows: rows(3), totalRows: 3 });
+    await flush();
+
+    hot.getPlugin('dataProvider').fetchData({ page: 1 }).catch(() => {});
+    await flush();
+    hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+    await flush();
+
+    expect(calls).toHaveLength(3);
+    expect(calls[1].signal.aborted).toBe(true);
+    expect(overlayState(container, hot)).toEqual({ visible: true, loading: true });
+
+    calls[2].resolve({ rows: rows(3), totalRows: 3 });
+    await flush();
+
+    expect(overlayState(container, hot)).toEqual({ visible: false, loading: false });
+  });
+
+  it('keeps the loading overlay while the refetch of a create replaces a page fetch', async() => {
+    const { config, calls } = createControlledProvider();
+
+    build(config);
+    await flush();
+    calls[0].resolve({ rows: rows(3), totalRows: 3 });
+    await flush();
+
+    hot.getPlugin('dataProvider').fetchData({ page: 1 }).catch(() => {});
+    await flush();
+    hot.getPlugin('dataProvider').createRows();
+    await flush();
+    await flush();
+
+    expect(config.onRowsCreate).toHaveBeenCalledTimes(1);
+    expect(calls).toHaveLength(3);
+    expect(calls[1].signal.aborted).toBe(true);
+    expect(overlayState(container, hot)).toEqual({ visible: true, loading: true });
+
+    calls[2].resolve({ rows: rows(4), totalRows: 4 });
+    await flush();
+
+    expect(overlayState(container, hot)).toEqual({ visible: false, loading: false });
+  });
+
+  it('does not raise the loading overlay for a silent fetch that replaces another silent one', async() => {
+    const { config, calls } = createControlledProvider();
+
+    build(config);
+    await flush();
+    calls[0].resolve({ rows: rows(3), totalRows: 3 });
+    await flush();
+
+    hot.getPlugin('dataProvider').fetchData({ skipLoading: true }).catch(() => {});
+    await flush();
+    hot.getPlugin('dataProvider').fetchData({ skipLoading: true }).catch(() => {});
+    await flush();
+
+    expect(calls).toHaveLength(3);
+    expect(hot.getPlugin('dataProvider').isFetching()).toBe(false);
+    expect(overlayState(container, hot)).toEqual({ visible: false, loading: false });
+  });
+});
+
+describe('DataProvider page-clamp refetch canceled by a listener', () => {
+  let container;
+  let hot;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    hot?.destroy();
+    hot = null;
+    container.remove();
+  });
+
+  it('takes the loading overlay down', async() => {
+    const { config, calls } = createControlledProvider();
+
+    hot = new Handsontable(container, {
+      emptyDataState: true,
+      pagination: { pageSize: 2 },
+      dataProvider: config,
+      columns: [{ data: 'id' }, { data: 'name' }],
+      licenseKey: LICENSE_KEY,
+    });
+    await flush();
+    calls[0].resolve({ rows: rows(2), totalRows: 6 });
+    await flush();
+
+    hot.addHook('beforeDataProviderFetch', query => (query.page === 1 ? false : undefined));
+    hot.getPlugin('dataProvider').fetchData({ page: 3 }).catch(() => {});
+    await flush();
+
+    expect(overlayState(container, hot)).toEqual({ visible: true, loading: true });
+
+    calls[1].resolve({ rows: [], totalRows: 2 });
+    await flush();
+
+    expect(calls).toHaveLength(2);
+    expect(hot.getPlugin('dataProvider').isFetching()).toBe(false);
+    expect(overlayState(container, hot).loading).toBe(false);
+  });
+});
+
+describe('EmptyDataState turned on while a fetch runs', () => {
+  let container;
+  let hot;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    hot?.destroy();
+    hot = null;
+    container.remove();
+  });
+
+  it('shows the loading overlay for the fetch already running', async() => {
+    const { config, calls } = createControlledProvider();
+
+    hot = new Handsontable(container, {
+      emptyDataState: true,
+      dataProvider: config,
+      columns: [{ data: 'id' }, { data: 'name' }],
+      licenseKey: LICENSE_KEY,
+    });
+    await flush();
+
+    hot.updateSettings({ emptyDataState: false });
+    hot.updateSettings({ emptyDataState: true });
+
+    expect(overlayState(container, hot)).toEqual({ visible: true, loading: true });
+
+    calls[0].resolve({ rows: rows(3), totalRows: 3 });
+    await flush();
+
+    expect(overlayState(container, hot)).toEqual({ visible: false, loading: false });
+  });
+
+  it('shows the loading overlay over the rows a running reload replaces', async() => {
+    const { config, calls } = createControlledProvider();
+
+    hot = new Handsontable(container, {
+      dataProvider: config,
+      columns: [{ data: 'id' }, { data: 'name' }],
+      licenseKey: LICENSE_KEY,
+    });
+    await flush();
+    calls[0].resolve({ rows: rows(3), totalRows: 3 });
+    await flush();
+
+    hot.getPlugin('dataProvider').fetchData({ page: 1 }).catch(() => {});
+    await flush();
+    hot.updateSettings({ emptyDataState: true });
+
+    expect(overlayState(container, hot)).toEqual({ visible: true, loading: true });
+  });
+
+  it('shows no loading overlay when no fetch runs', async() => {
+    const { config, calls } = createControlledProvider();
+
+    hot = new Handsontable(container, {
+      dataProvider: config,
+      columns: [{ data: 'id' }, { data: 'name' }],
+      licenseKey: LICENSE_KEY,
+    });
+    await flush();
+    calls[0].resolve({ rows: rows(3), totalRows: 3 });
+    await flush();
+
+    hot.updateSettings({ emptyDataState: true });
+
+    expect(overlayState(container, hot)).toEqual({ visible: false, loading: false });
+  });
+});
+
 describe('DataProvider loading overlay on a server sheet when a fetch ends without data', () => {
   let container;
   let hot;

@@ -59,6 +59,34 @@ describe('DataProvider turned off while its first fetch runs', () => {
     expect(emptyDataState.isVisible()).toBe(false);
   });
 
+  it('takes the loading overlay down once the plugin is off, even when the fetch never settles', async() => {
+    const provider = {
+      ...createHangingProvider(),
+      fetchRows: jest.fn(() => new Promise(() => {})),
+    };
+
+    hot = new Handsontable(container, {
+      emptyDataState: true,
+      dataProvider: provider,
+      columns: [{ data: 'id' }],
+      licenseKey: LICENSE_KEY,
+    });
+    await flush();
+
+    const emptyDataState = hot.getPlugin('emptyDataState');
+
+    expect(hot.getPlugin('dataProvider').isFetching()).toBe(true);
+    expect(emptyDataState.isVisible()).toBe(true);
+
+    hot.updateSettings({ dataProvider: null });
+    hot.loadData([{ id: 5 }, { id: 6 }]);
+    await flush();
+
+    expect(hot.getPlugin('dataProvider').enabled).toBe(false);
+    expect(hot.countRows()).toBe(2);
+    expect(emptyDataState.isVisible()).toBe(false);
+  });
+
   it('keeps the loading overlay up while an update of the provider refetches', async() => {
     const provider = createHangingProvider();
 
