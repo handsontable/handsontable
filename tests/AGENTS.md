@@ -1452,7 +1452,9 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
 
 `a11y/checks/tree-snapshots.spec.ts`, the `tree-snapshots` check: 1.3.1, 1.3.2 and 4.1.2, read from
 Chromium's accessibility tree of the grid's root container and its portal, on every page of the catalog
-in its state and on every theme. The browser half flattens the tree (`a11y/checks/ax-tree.ts`), the pure
+in its state and on every theme. A state whose popups mount in a portal of their own marks that portal
+too (hyperformula-ui's `.hfe-popup-portal`), so the check reads every marked portal, in document order,
+never only the first. The browser half flattens the tree (`a11y/checks/ax-tree.ts`), the pure
 half judges it (`lib/aria-tree.mjs`, tested in `lib/__tests__/aria-tree.test.mjs`).
 
 - **The tree as a screen reader gets it, in reading order.** `Accessibility.getFullAXTree` gives the roles,

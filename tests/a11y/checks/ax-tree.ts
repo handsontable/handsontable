@@ -18,22 +18,30 @@ export interface FlatAxNode {
 }
 
 /**
- * The backend DOM node id of the first element a selector matches, or `null`.
+ * The backend DOM node ids of every element a selector matches, in document order. The portal mark can
+ * sit on more than one element: a page whose popups mount in a portal of their own (hyperformula-ui's
+ * `.hfe-popup-portal`) marks that one next to the grid's `rootPortalElement`.
  *
  * @param cdp The session.
  * @param selector The selector.
- * @returns The id.
+ * @returns The ids.
  */
-async function backendIdOf(cdp: CDPSession, selector: string): Promise<number | null> {
-  const { result } = await cdp.send('Runtime.evaluate', { expression: `document.querySelector(${JSON.stringify(selector)})`, objectGroup: 'a11y-tree' });
+async function backendIdsOf(cdp: CDPSession, selector: string): Promise<number[]> {
+  const ids: number[] = [];
 
-  if (!result.objectId) {
-    return null;
+  for (let index = 0; ; index++) {
+    const { result } = await cdp.send('Runtime.evaluate', {
+      expression: `document.querySelectorAll(${JSON.stringify(selector)})[${index}]`, objectGroup: 'a11y-tree',
+    });
+
+    if (!result.objectId) {
+      return ids;
+    }
+
+    const { node } = await cdp.send('DOM.describeNode', { objectId: result.objectId });
+
+    ids.push(node.backendNodeId);
   }
-
-  const { node } = await cdp.send('DOM.describeNode', { objectId: result.objectId });
-
-  return node.backendNodeId;
 }
 
 /**
@@ -101,12 +109,16 @@ export async function flattenAxTree(page: Page, cdp: CDPSession, root: string): 
     }
   };
 
+  // The grid is the first element its selector matches; every marked portal is read, in document order.
   for (const [selector, region] of [[root, 'grid'], [PORTAL, 'portal']] as const) {
-    const backend = await backendIdOf(cdp, selector);
-    const start = backend === null ? undefined : byBackend.get(backend);
+    const backends = await backendIdsOf(cdp, selector);
 
-    if (start) {
-      visit(start.nodeId, null, region);
+    for (const backend of region === 'grid' ? backends.slice(0, 1) : backends) {
+      const start = byBackend.get(backend);
+
+      if (start) {
+        visit(start.nodeId, null, region);
+      }
     }
   }
   await cdp.send('Runtime.releaseObjectGroup', { objectGroup: 'a11y-tree' });
@@ -115,16 +127,16 @@ export async function flattenAxTree(page: Page, cdp: CDPSession, root: string): 
 }
 
 /**
- * The accessibility snapshot of the grid and of its portal, as Playwright writes it (`ariaSnapshot()`),
- * in one text: what the goldens keep.
+ * The accessibility snapshot of the grid and of every marked portal, as Playwright writes it
+ * (`ariaSnapshot()`), in one text: what the goldens keep. A page with one portal reads as before.
  *
  * @param page The page.
  * @param root The root container selector.
  * @returns The snapshot.
  */
 export async function treeSnapshot(page: Page, root: string): Promise<string> {
-  const grid = await page.locator(root).ariaSnapshot();
-  const portal = await page.locator(PORTAL).ariaSnapshot();
+  const grid = await page.locator(root).first().ariaSnapshot();
+  const portals = await Promise.all((await page.locator(PORTAL).all()).map(portal => portal.ariaSnapshot()));
 
-  return `# grid\n${grid.trim()}\n# portal\n${portal.trim()}\n`;
+  return `# grid\n${grid.trim()}\n# portal\n${portals.map(portal => portal.trim()).join('\n')}\n`;
 }
