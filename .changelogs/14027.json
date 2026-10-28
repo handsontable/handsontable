@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `Formulas` plugin showing wrong values and formula text after `setIndexesSequence()` (or a sort with `sortEmptyCells: true`) put an empty or just-appended row or column ahead of rows or columns that hold content. A reorder the engine cannot take, because it needs more rows or columns than `maxRows` or `maxColumns` allow or because it moves a row or column an array formula spans, is now skipped and logs a warning.",
+  "type": "fixed",
+  "issueOrPR": 14027,
+  "breaking": false,
+  "framework": "none"
+}

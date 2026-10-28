@@ -188,5 +188,50 @@ describe('multiSelectRenderer', () => {
 
       expect(TD.querySelector(ARROW_SELECTOR).hasAttribute('aria-hidden')).toBe(false);
     });
+
+    describe('a press on the indicator', () => {
+      /**
+       * Renders a cell into a grid stub that records the `onCellDblClick` calls.
+       *
+       * @returns {{ arrow: HTMLElement, getSetting: jest.Mock }}
+       */
+      function renderIntoGrid() {
+        const getSetting = jest.fn();
+        const hot = {
+          ...createHotStub({ values: ['Red'] }),
+          view: { _wt: { getSetting } },
+          _createCellCoords: (row, col) => ({ row, col }),
+        };
+        const TD = document.createElement('td');
+
+        hot.rootElement.appendChild(TD);
+        document.body.appendChild(hot.rootElement);
+        multiSelectRenderer(hot, TD, 1, 2, 2, ['Red'], {});
+
+        return { arrow: TD.querySelector(ARROW_SELECTOR), getSetting, root: hot.rootElement };
+      }
+
+      it('should open the editor', () => {
+        const { arrow, getSetting, root } = renderIntoGrid();
+
+        arrow.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+
+        expect(getSetting).toHaveBeenCalledWith('onCellDblClick', null, { row: 1, col: 2 }, expect.anything());
+        root.remove();
+      });
+
+      it('should not open the editor when an earlier listener claimed the press', () => {
+        // The FormulaBuilder plugin picks the cell as a formula reference and sets only the grid's
+        // flag, so the press still bubbles to this listener.
+        const { arrow, getSetting, root } = renderIntoGrid();
+        const event = new MouseEvent('mousedown', { bubbles: true, button: 0 });
+
+        event.isImmediatePropagationEnabled = false;
+        arrow.dispatchEvent(event);
+
+        expect(getSetting).not.toHaveBeenCalled();
+        root.remove();
+      });
+    });
   });
 });

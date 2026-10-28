@@ -2877,7 +2877,7 @@ describe('MergeCells', () => {
       expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 3, colspan: 3 }]);
     });
 
-    it('should keep a merge whole (not clipped) when trimRows hides an interior row from the config', async() => {
+    it('should keep a merge whole (not clipped) and own the trimmed row when trimRows hides an interior row from the config', async() => {
       handsontable({
         data: createSpreadsheetData(10, 5),
         trimRows: [3], // physical row 3 trimmed from the start — inside the merge span
@@ -2891,7 +2891,8 @@ describe('MergeCells', () => {
 
       await render();
 
-      expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 3, colspan: 3 }]);
+      // the merge owns the row that was trimmed between its rows, so it spans physical rows 2 to 5
+      expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 4, colspan: 3 }]);
     });
 
     it('should capture correct anchors at bootstrap when trimRows hides rows above the merge from the config', async() => {

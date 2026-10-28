@@ -410,7 +410,7 @@ describe('Formulas deferred resync', () => {
 
     document.body.appendChild(otherContainer);
 
-    // A second grid on the same engine, reading this grid's sheet. `renderDependentSheets` redraws
+    // A second grid on the same engine, reading this grid's sheet. The plugin write scope redraws
     // it from inside the span `#internalOperationPending` is open across.
     const otherHot = new Handsontable(otherContainer, {
       data: [['=Sheet1!A1']],

@@ -89,8 +89,8 @@ async function installTextSpacing(page: Page): Promise<void> {
 async function collect(page: Page, root: string) {
   return page.evaluate(([selector, portalMark, surfaces]) => {
     const container = document.querySelector(selector)!;
-    const portal = document.querySelector(`[${portalMark}]`);
-    const scopes = [container, portal].filter((node): node is Element => !!node);
+    // Every marked portal: a state whose popups mount in a portal of their own marks that one too.
+    const scopes = [container, ...document.querySelectorAll(`[${portalMark}]`)].filter((node): node is Element => !!node);
     const inGridBody = (node: Element) => container.contains(node) && !!node.closest('.ht_master, [class*="ht_clone_"]')
       && !node.closest(surfaces.map(([css]) => css).join(', '));
     const surfaceOf = (node: Element) => surfaces.find(([css]) => node.closest(css))?.[1] ?? 'grid UI';

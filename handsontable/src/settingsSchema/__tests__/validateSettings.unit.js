@@ -534,6 +534,60 @@ describe('validateSettings', () => {
       .toEqual([]);
   });
 
+  it('should accept an editor a registered plugin lists in `EDITORS` before any grid registers it', () => {
+    // A module registry of its own: the registry has no way to unregister a plugin, and a registration
+    // made here would reach every later test of the file.
+    jest.isolateModules(() => {
+      /* eslint-disable global-require */
+      const { validateSettings: isolatedValidateSettings } = require('handsontable/settingsSchema');
+      const { BasePlugin: IsolatedBasePlugin } = require('handsontable/plugins/base');
+      const { registerPlugin: isolatedRegisterPlugin } = require('handsontable/plugins/registry');
+      /* eslint-enable global-require */
+
+      class EditorProvidingPlugin extends IsolatedBasePlugin {
+        static get PLUGIN_KEY() {
+          return 'editorProvidingPlugin';
+        }
+
+        static get EDITORS() {
+          return ['providedByPlugin'];
+        }
+      }
+
+      isolatedRegisterPlugin(EditorProvidingPlugin);
+
+      expect(isolatedValidateSettings({ editor: 'providedByPlugin' }).problems).toEqual([]);
+      expect(isolatedValidateSettings({ columns: [{ editor: 'notProvidedByAnyPlugin' }] }).problems).toEqual([{
+        path: 'columns[0].editor',
+        code: 'unknownEditor',
+        severity: 'error',
+        message: '\'notProvidedByAnyPlugin\' is not a registered editor.',
+      }]);
+    });
+  });
+
+  it('should accept the formula builder editor with the built-in plugins registered and no grid built', () => {
+    // A module registry of its own, so no grid built by another test has registered the alias.
+    jest.isolateModules(() => {
+      /* eslint-disable global-require */
+      require('handsontable');
+
+      const { validateSettings: isolatedValidateSettings } = require('handsontable/settingsSchema');
+      const { hasEditor } = require('handsontable/editors/registry');
+      /* eslint-enable global-require */
+
+      expect(hasEditor('formula')).toBe(false);
+      expect(isolatedValidateSettings({ editor: 'formula' }).problems).toEqual([]);
+    });
+  });
+
+  it('should report an unknown key of the formula builder settings', () => {
+    expect(brief(validateSettings({ formulaBuilder: { builder: {}, showFormulaBarr: true } }))).toEqual([
+      { path: 'formulaBuilder.showFormulaBarr', code: 'unknownOption' },
+    ]);
+    expect(validateSettings({ formulaBuilder: { builder: {}, showFormulaBar: true } }).problems).toEqual([]);
+  });
+
   it('should read the data rows and the plugin state of `hot` for a partial update', () => {
     const container = document.createElement('div');
 

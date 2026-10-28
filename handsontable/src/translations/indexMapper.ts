@@ -789,6 +789,7 @@ export class IndexMapper {
 
     this.indexesSequence.insert(visualInsertionIndex, insertedIndexes);
     this.indexesChangeSource = undefined;
+    this.runLocalHooks('indexesInserted', insertedIndexes);
 
     const modInsertedIndexes = mode === 'end' ? insertedIndexes.map(index => index + 1) : insertedIndexes;
 
@@ -809,6 +810,7 @@ export class IndexMapper {
     this.indexesChangeSource = 'remove';
     this.indexesSequence.remove(removedIndexes);
     this.indexesChangeSource = undefined;
+    this.runLocalHooks('indexesRemoved', removedIndexes);
     this.trimmingMapsCollection.removeFromEvery(removedIndexes);
     this.hidingMapsCollection.removeFromEvery(removedIndexes);
     this.variousMapsCollection.removeFromEvery(removedIndexes);
