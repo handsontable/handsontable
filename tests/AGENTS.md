@@ -1448,8 +1448,9 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   a read-only cell, a list that keeps the focus on its input (`aria-activedescendant`, which the
   snapshot counts as a move), a freeze bar that takes one arrow axis only, an editor the grid moves
   between the cell and the formula bar (the focus key carries the part of the root wrapper, so F6 is a
-  move), a field the cell editor does not own (its text is `focusedText`), and a key that only switches a
-  mode (`then` presses the key that shows the mode).
+  move), the text of the focused text field (`focusedText`, counted as a text change only while the focus
+  stays on the same element: a key that also moves the focus reads as a focus move), and a key that only
+  switches a mode (`then` presses the key that shows the mode).
 - **2.1.4 is measured, not assumed.** With the focus on the sentinel outside the grid, printable keys must
   change nothing; and a documented shortcut that is a single character with no modifier
   (`singleCharacterShortcuts()`; none today) is listed as advisory, because it must work only while the
