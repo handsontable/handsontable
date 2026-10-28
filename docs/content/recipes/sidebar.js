@@ -4,6 +4,7 @@ const realTimeItems = [
   { path: 'real-time/liveblocks-multiplayer/liveblocks-multiplayer', title: 'Multiplayer editing with Liveblocks', onlyFor: ['javascript', 'react'] },
   { path: 'real-time/liveblocks-comments/liveblocks-comments', title: 'Cell comments with Liveblocks', onlyFor: ['javascript', 'react'] },
   { path: 'real-time/a2ui-agent-grid/a2ui-agent-grid', title: 'Agent-driven grid with A2UI', onlyFor: ['javascript', 'react'] },
+  { path: 'real-time/copilotkit-agent-grid/copilotkit-agent-grid', title: 'Agent-driven grid with CopilotKit', onlyFor: ['react'] },
   { path: 'real-time/ai-columns-jev/ai-columns-jev', title: 'AI-classified columns with Jev', onlyFor: ['javascript'] },
 ];
 
@@ -21,6 +22,7 @@ const contextMenuItems = [
 const dataManagementItems = [
   { path: 'data-management/load-data-rest-api/load-data-rest-api', title: 'Load data from a REST API', onlyFor: ['javascript', 'react', 'angular'] },
   { path: 'data-management/load-data-graphql/load-data-graphql', title: 'Load data from a GraphQL API', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
+  { path: 'data-management/load-data-odata/load-data-odata', title: 'Load data from an OData service', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
   { path: 'data-management/sync-two-grids/sync-two-grids', title: 'Sync two grids', onlyFor: ['javascript', 'angular', 'react'] },
   { path: 'data-management/undo-redo-custom-ui/undo-redo-custom-ui', title: 'Undo / redo with a custom UI', onlyFor: ['javascript', 'angular', 'react', 'vue'] },
   { path: 'data-management/auto-save-backend/auto-save-backend', title: 'Auto-save changes to a backend', onlyFor: ['javascript', 'angular', 'react', 'vue'] },

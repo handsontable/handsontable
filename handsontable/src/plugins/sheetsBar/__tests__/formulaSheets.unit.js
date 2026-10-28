@@ -434,7 +434,7 @@ describe('SheetsBar formula sheets', () => {
       other.destroy();
       otherContainer.remove();
     });
-    it('repaints each cell once in the build after a build that threw', () => {
+    it('repaints another grid once in the build after a build that threw', () => {
       const engine = buildEngine();
 
       hot = build([boundSheet(engine, 'A', [[0]])]);
@@ -457,18 +457,29 @@ describe('SheetsBar formula sheets', () => {
 
       feed.mockRestore();
 
-      const repaint = jest.spyOn(hot.getPlugin('formulas'), 'renderDependentSheets');
+      const otherContainer = document.createElement('div');
 
+      document.body.appendChild(otherContainer);
+
+      const other = new Handsontable(otherContainer, {
+        data: [['=Y!A1']],
+        formulas: { engine, sheetName: 'Other' },
+        licenseKey: LICENSE_KEY,
+        renderAllRows: true,
+        renderAllColumns: true,
+      });
+      let renders = 0;
+
+      other.addHook('afterRender', () => {
+        renders += 1;
+      });
       hot.updateSettings({ sheetsBar: { sheets: [boundSheet(engine, 'A', [[2]]), boundSheet(engine, 'Y', [[8]])] } });
 
-      const repaintedTwice = repaint.mock.calls.filter(([changes]) => {
-        const addresses = changes.map(({ address }) => `${address.sheet}:${address.row}:${address.col}`);
+      expect(other.getCell(0, 0).textContent).toBe('8');
+      expect(renders).toBe(1);
 
-        return new Set(addresses).size !== addresses.length;
-      });
-
-      expect(repaint).toHaveBeenCalled();
-      expect(repaintedTwice).toEqual([]);
+      other.destroy();
+      otherContainer.remove();
     });
   });
 
@@ -743,6 +754,32 @@ describe('SheetsBar formula sheets', () => {
 
       document.body.appendChild(otherContainer);
       hot = build([boundSheet(engine, 'Summary', [[1]]), boundSheet(engine, 'Prices', [[99]])]);
+
+      const other = new Handsontable(otherContainer, {
+        data: [['=Prices!A1']],
+        formulas: { engine, sheetName: 'Report' },
+        licenseKey: LICENSE_KEY,
+      });
+
+      expect(other.getCell(0, 0).textContent).toBe('99');
+
+      sheetsBar().removeSheet(idOf('Prices'));
+
+      expect(other.getCell(0, 0).textContent).toBe('#REF!');
+
+      other.destroy();
+      otherContainer.remove();
+    });
+
+    it.each([
+      ['has formulas off', () => ({ name: 'Notes', data: [['text']], settings: { formulas: false } })],
+      ['is bound to another engine', () => boundSheet(buildEngine(), 'Notes', [['text']])],
+    ])('repaints a standalone grid that reads the removed sheet when the active tab %s', (_, activeTab) => {
+      const engine = buildEngine();
+      const otherContainer = document.createElement('div');
+
+      document.body.appendChild(otherContainer);
+      hot = build([activeTab(engine), boundSheet(engine, 'Prices', [[99]])]);
 
       const other = new Handsontable(otherContainer, {
         data: [['=Prices!A1']],

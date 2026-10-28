@@ -8,6 +8,7 @@ import {
   hasHorizontalScrollbar,
   isShadowRoot,
   outerHeight,
+  isHTMLElement,
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { deepClone, deepExtend } from '../../helpers/object';
@@ -16,7 +17,7 @@ import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
-import { getEditorAnchorWidth } from './utils';
+import { getEditorAnchorHeight, getEditorAnchorWidth } from './utils';
 import { shrinkSizeToViewport, clampPositionToViewport } from './viewport';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import type { PredefinedMenuItemKey, MenuItemConfig } from '../contextMenu/contextMenu';
@@ -780,6 +781,8 @@ export class Comments extends BasePlugin {
     let renderableColumn = columnIndexMapper.getRenderableFromVisualIndex(visualColumn);
     // Used when the requested row is hidden, and the editor needs to be positioned on the previous row's coords.
     const targetingPreviousRow = renderableRow === null;
+    // Same for a hidden column: its anchor cell belongs to a column next to it.
+    const targetingOtherColumn = renderableColumn === null;
 
     // Reset the editor position to (0, 0) so the opening direction calculation wouldn't be influenced by its
     // previous position
@@ -812,27 +815,43 @@ export class Comments extends BasePlugin {
     // TODO: Probably using `hot.getCell` would be the best. However, case for showing comment editor for hidden cell
     // potentially should be removed with that change (currently a test for it is passing).
     const TD = wt.getCell({ row: renderableRow, col: renderableColumn }, true) as HTMLTableCellElement;
-    const cellMeta = this.hot.getCellMeta<{ colspan?: number; [META_COMMENT]?: CommentMeta }>(visualRow, visualColumn);
+    const cellMeta = this.hot.getCellMeta<{
+      colspan?: number;
+      rowspan?: number;
+      [META_COMMENT]?: CommentMeta;
+    }>(visualRow, visualColumn);
     const metaColspan = cellMeta.colspan ?? 1;
+    const metaRowspan = cellMeta.rowspan ?? 1;
     const commentStyle = this.getCommentMeta(visualRow, visualColumn, META_STYLE);
-
-    if (commentStyle) {
-      this.#editor.setSize(commentStyle.width, commentStyle.height);
-
-    } else {
-      this.#editor.resetSize();
-    }
-
-    const lastColWidth = isBeforeRenderedColumns ? 0 :
-      getEditorAnchorWidth(metaColspan, TD, wtTable.getColumnWidth(renderableColumn));
-    const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD) : 0;
-
     const {
       left,
       top,
       width: cellWidth,
       height: cellHeight,
     } = TD.getBoundingClientRect();
+
+    // Always reset first: a saved style that holds only one of the sizes sets nothing, and would leave the
+    // size of the previous comment's box on this one.
+    this.#editor.resetSize();
+
+    let blockHeight: number | undefined;
+
+    if (commentStyle) {
+      this.#editor.setSize(commentStyle.width, commentStyle.height);
+
+    // A hidden row or column is anchored to a neighbor's cell, which is not the range the comment belongs to.
+    } else if (!targetingPreviousRow && !targetingOtherColumn) {
+      blockHeight = this.#getMergedBlockHeight(TD, visualRow, renderableRow, renderableColumn, metaRowspan);
+
+      if (blockHeight !== undefined) {
+        this.#editor.setHeight(blockHeight);
+      }
+    }
+
+    const lastColWidth = isBeforeRenderedColumns ? 0 :
+      getEditorAnchorWidth(metaColspan, TD, wtTable.getColumnWidth(renderableColumn));
+    const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD) : 0;
+
     const {
       width: editorWidth,
       height: editorHeight,
@@ -859,7 +878,7 @@ export class Comments extends BasePlugin {
     }
 
     if (top + editorHeight > innerHeight - horizontalScrollbarWidth) {
-      y -= (editorHeight - cellHeight + 1);
+      y -= (editorHeight - (blockHeight ?? cellHeight) + 1);
     }
 
     // Cap the display size to the viewport. This setSize MUST happen before
@@ -890,6 +909,57 @@ export class Comments extends BasePlugin {
     this.#editor.setPosition(clamped.x, clamped.y);
     this.#editor.setReadOnlyState(this.getCommentMeta(visualRow, visualColumn, META_READONLY) ?? false);
     this.#editor.observeSize();
+  }
+
+  /**
+   * Gets the height of the merged block a comment belongs to, when its box takes that height.
+   *
+   * The master table's cell holds the whole block. The topmost one can be an overlay's copy, which keeps the
+   * block's `rowSpan` but is drawn only as tall as the overlay, so a block that crosses a freeze line is cut in
+   * it. The copy is used only when no master cell exists and no freeze line crosses the block: one in a frozen
+   * start column that the grid has scrolled away from, or one that sits wholly in the frozen rows. The count of
+   * rows is the visible ones, because hidden rows of the block are not drawn.
+   *
+   * @param {HTMLTableCellElement} anchorTD The topmost rendered cell of the comment.
+   * @param {number} visualRow Visual row index of the cell.
+   * @param {number} renderableRow Renderable row index of the cell.
+   * @param {number} renderableColumn Renderable column index of the cell.
+   * @param {number} metaRowspan The rowspan value from the cell meta (1 for non-merged cells).
+   * @returns {number | undefined} The height in pixels, or `undefined` when the default box height applies.
+   */
+  #getMergedBlockHeight(
+    anchorTD: HTMLTableCellElement,
+    visualRow: number,
+    renderableRow: number,
+    renderableColumn: number,
+    metaRowspan: number
+  ): number | undefined {
+    if (metaRowspan === 1) {
+      return undefined;
+    }
+
+    const masterTD = this.hot.view._wt.getCell({ row: renderableRow, col: renderableColumn });
+
+    if (isHTMLElement(masterTD)) {
+      return getEditorAnchorHeight(masterTD.rowSpan, masterTD.getBoundingClientRect().height);
+    }
+
+    const { rowIndexMapper, view } = this.hot;
+    let visibleRows = 0;
+
+    for (let row = visualRow; row < visualRow + metaRowspan; row++) {
+      if (rowIndexMapper.getRenderableFromVisualIndex(row) !== null) {
+        visibleRows += 1;
+      }
+    }
+
+    const lastRow = renderableRow + visibleRows - 1;
+    const bottomBandStart = rowIndexMapper.getRenderableIndexesLength() - view.countNotHiddenFixedRowsBottom();
+    const freezeLines = [view.countNotHiddenFixedRowsTop(), bottomBandStart];
+    const crossesFreezeLine = freezeLines.some(line => renderableRow < line && lastRow >= line);
+
+    return crossesFreezeLine ?
+      undefined : getEditorAnchorHeight(visibleRows, anchorTD.getBoundingClientRect().height);
   }
 
   /**

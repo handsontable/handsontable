@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `Formulas` plugin showing another row's values, or applying a redo in an outdated order, when an undo or redo restored a step after the rows or columns had been reordered with `setIndexesSequence()`, which is not an undo step.",
+  "type": "fixed",
+  "issueOrPR": 14038,
+  "breaking": false,
+  "framework": "none"
+}

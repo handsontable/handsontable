@@ -49,6 +49,7 @@ export const apiGuideLinks = {
     'guides/accessories-and-menus/export-to-excel/export-to-excel.md',
   ],
   'filters.md': 'guides/columns/column-filter/column-filter.md',
+  'formulaBuilder.md': 'guides/formulas/formula-builder/formula-builder.md',
   'formulas.md': 'guides/formulas/formula-calculation/formula-calculation.md',
   'freezeBar.md': 'guides/columns/column-freezing/column-freezing.md',
   'hiddenColumns.md': 'guides/columns/column-hiding/column-hiding.md',

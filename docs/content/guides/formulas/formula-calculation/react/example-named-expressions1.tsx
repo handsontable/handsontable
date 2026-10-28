@@ -36,7 +36,6 @@ const ExampleComponent = () => {
     }
 
     setErrorMessage('');
-    hotNamedExpressions?.render();
   };
 
   return (

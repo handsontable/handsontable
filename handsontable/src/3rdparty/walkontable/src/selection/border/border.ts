@@ -8,6 +8,7 @@ import {
   removeClass,
   getTrimmingContainer,
   isHTMLElement,
+  standsBehindRowHeader,
 } from '../../../../../helpers/dom/element';
 import { stopImmediatePropagation, isRightClick } from '../../../../../helpers/dom/event';
 import { isMobileBrowser, isMobileOrIpadOS } from '../../../../../helpers/browser';
@@ -2092,7 +2093,7 @@ class Border {
     // left centered on it loses half its thickness behind the column header, so both cases put the
     // visible edge at the cell's own top boundary. The row axis's twin of the inline-start case
     // below; `standsBelowColumnHeader` explains why it is read from the DOM.
-    if (parseInt(style.borderTopWidth, 10) > 0 || standsBelowColumnHeader(fromTDEl)) {
+    if (parseFloat(style.borderTopWidth) > 0 || standsBelowColumnHeader(fromTDEl)) {
       top += 1;
       height = height > 0 ? height - 1 : 0;
     }
@@ -2104,10 +2105,9 @@ class Border {
     // own inline-start boundary. Read from the DOM, not from a column index: with row headers no cell
     // owns that border, and `htFirstDatasetColumnNotRendered` takes it off the first rendered column
     // too.
-    const ownsInlineStartBorder = parseInt(style[isRtl ? 'borderRightWidth' : 'borderLeftWidth'], 10) > 0;
-    const standsBehindRowHeader = fromTDEl.previousElementSibling?.nodeName === 'TH';
+    const ownsInlineStartBorder = parseFloat(style[isRtl ? 'borderRightWidth' : 'borderLeftWidth']) > 0;
 
-    if (ownsInlineStartBorder || standsBehindRowHeader) {
+    if (ownsInlineStartBorder || standsBehindRowHeader(fromTDEl)) {
       inlineStartPos += 1;
       width = width > 0 ? width - 1 : 0;
     }

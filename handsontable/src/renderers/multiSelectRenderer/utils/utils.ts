@@ -2,7 +2,7 @@ import type { HotInstance } from '../../../core/types';
 import { isKeyValueObject } from '../../../helpers/object';
 import { A11Y_HIDDEN } from '../../../helpers/a11y';
 import { addClass, eventTargetEl, hasClass, isHTMLElement } from '../../../helpers/dom/element';
-import { isLeftClick, stopImmediatePropagation } from '../../../helpers/dom/event';
+import { isImmediatePropagationStopped, isLeftClick, stopImmediatePropagation } from '../../../helpers/dom/event';
 import EventManager from '../../../eventManager';
 import { createIcon } from '../../../themes/engine/icons';
 
@@ -182,6 +182,12 @@ export function registerDropdownIndicatorEvents(hotInstance: HotInstance): void 
     // Only the left button opens the list. Without the check, a right-click on the indicator would
     // open the editor alongside the context menu.
     if (!isHTMLElement(target) || !hasClass(target, ARROW_CLASS) || !isLeftClick(event)) {
+      return;
+    }
+
+    // A press an earlier listener claimed (the FormulaBuilder plugin picks the cell as a formula
+    // reference) must not open the cell's own editor; see `autocompleteRenderer`.
+    if (isImmediatePropagationStopped(event)) {
       return;
     }
 

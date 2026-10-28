@@ -246,6 +246,8 @@ By default, all comments are editable. To change this, set the [`readOnly`](@/ap
 
 To set the width and height of a comment box, use the [`style`](@/api/options.md#comments) parameter.
 
+Without `style`, a comment box is 240 pixels wide and 88 pixels tall. The box of a comment on a merged cell that spans more than one row takes the height of the merged range instead. A size you set, or one the user drags, takes precedence.
+
 ::: only-for javascript
 
 ::: example #example3 --js 1 --ts 2

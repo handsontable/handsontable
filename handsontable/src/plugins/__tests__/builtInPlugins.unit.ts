@@ -34,6 +34,7 @@ describe('built-in plugins', () => {
       'ImportFile',
       'Filters',
       'Formulas',
+      'FormulaBuilder',
       'AutoLink',
       'NestedHeaders',
       'CollapsibleColumns',
