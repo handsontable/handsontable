@@ -551,8 +551,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   unsorted order written: a sheet whose data changed size keeps
   the `loadData` order, and an indicator over it would claim a sort it does not have. It writes nothing when
   the states are no longer empty (the listener set its own config) or while the plugin has no
-  `indexesSequenceCache`. The sort only builds that cache from empty states, so states written
-  without it made the next `sort()` throw. The cache is missing after the plugin was disabled and
+  `indexesSequenceCache`. The sorting plugin takes that cache whenever it is missing, and from empty
+  states when the rows show no sort result. `setSortConfig()` retakes it only when one exists, so a cache
+  built later by `sort()` would hold the restored order. The cache is missing after the plugin was disabled and
   enabled again, which a sheet declaring `columnSorting: false` does on every switch.
 - **The switch runs under `#withoutUndoEntry`, and so does the live-grid reset in
   `#buildInitialWorkbook` (DEV-3037).** `loadData()` clears the UndoRedo stacks, but the view-state
