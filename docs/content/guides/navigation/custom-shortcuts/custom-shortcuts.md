@@ -263,7 +263,7 @@ gridContext.removeShortcutsByGroup('group_ID');
 
 ### Remove the copy, cut, and paste shortcuts
 
-The `grid` context registers <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>, <kbd>**X**</kbd>, and <kbd>**V**</kbd>. These shortcuts do nothing on their own, because the browser runs the action. When you remove one, the [`CopyPaste`](@/api/copyPaste.md) plugin cancels that key combination, so the keyboard no longer copies, cuts, or pastes.
+The `grid` context registers <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>, <kbd>**X**</kbd>, and <kbd>**V**</kbd>. These shortcuts do nothing on their own, because the browser runs the action. When you remove one, the [`CopyPaste`](@/api/copyPaste.md) plugin cancels that exact key combination, so <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>, <kbd>**X**</kbd>, or <kbd>**V**</kbd> no longer copies, cuts, or pastes.
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
@@ -271,11 +271,19 @@ const gridContext = hot.getShortcutManager().getContext('grid');
 gridContext.removeShortcutsByKeys(['control/meta', 'c']);
 ```
 
-The context menu items and the [`copy()`](@/api/copyPaste.md#copy), [`cut()`](@/api/copyPaste.md#cut), and [`paste()`](@/api/copyPaste.md#paste) methods keep working. Copy, cut, and paste inside an open cell editor keep working too.
+Only these three key combinations stop working. Handsontable treats <kbd>**Ctrl**</kbd> and <kbd>**Cmd**</kbd> as the same key, so <kbd>**Ctrl**</kbd> + <kbd>**Cmd**</kbd> + <kbd>**C**</kbd> on macOS and <kbd>**Ctrl**</kbd> + <kbd>**Win**</kbd> + <kbd>**C**</kbd> on Windows are cancelled too. Other native clipboard keys are not blocked, for example <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**V**</kbd>, <kbd>**Shift**</kbd> + <kbd>**Insert**</kbd>, <kbd>**Ctrl**</kbd> + <kbd>**Insert**</kbd>, and <kbd>**Shift**</kbd> + <kbd>**Delete**</kbd>.
+
+The context menu items and the [`copy()`](@/api/copyPaste.md#copy), [`cut()`](@/api/copyPaste.md#cut), and [`paste()`](@/api/copyPaste.md#paste) methods keep working. The keyboard also keeps working inside an open cell editor, including the editor's text area when you use `imeFastEdit`, and inside your application's own fields.
+
+:::: tip
+
+Moving a clipboard shortcut to other keys, as in [Replace a keyboard shortcut](#replace-a-keyboard-shortcut), leaves the original key combination without a shortcut. The plugin then cancels it. To keep the original key working, add the shortcut again with the same keys, a callback that does nothing, and `preventDefault: false`. To turn the key off, remove the shortcut and don't add it back.
+
+::::
 
 ### Remove the select-all shortcut
 
-<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**A**</kbd> is a grid shortcut that selects all cells. When you remove it, Handsontable no longer handles the key combination. The browser's native select-all runs instead and selects the text on the page.
+<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**A**</kbd> is a grid shortcut that selects all cells. When you remove it, Handsontable no longer handles the key combination. The browser's native select-all runs instead. It selects the text on the page, or the text of the focused field. With `imeFastEdit`, the focused field is the editor's hidden text area, so the page text stays unselected.
 
 To block select-all completely, replace the shortcut with one whose callback does nothing. Leave the `preventDefault` option at its default value (`true`), so the browser does not select the page text either:
 
