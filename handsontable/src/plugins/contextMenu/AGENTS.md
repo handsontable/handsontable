@@ -27,7 +27,7 @@ Register one handler on both hooks, as `manualColumnFreeze.ts` does. Eight plugi
 
 ### The skip runs only AFTER the default-options hook — never move it into `getItems()`
 
-`prepareMenuItems()` calls `ItemsFactory#getItems()` **twice**: once to build the list handed to the hook, then `setPredefinedItems()`, then again. On the first pass every plugin key is unknown *by design*, and the placeholder emitted there is load-bearing — `nestedRows/ui/contextMenu.ts` runs `rangeEach(0, items.length - 1, …)` and inserts its entries only when the list is **non-empty**. Filtering inside `getItems()` unconditionally makes `contextMenu: ['add_child']` yield an empty first-pass list, nestedRows never inserts, and `add_child` vanishes — re-breaking issue #9894. The `#predefinedItemsSet` flag is what confines the skip to the second pass; `__tests__/itemsFactory.unit.js` pins both halves.
+`prepareMenuItems()` calls `ItemsFactory#getItems()` **twice**: once to build the list handed to the hook, then `setPredefinedItems()`, then again. On the first pass every plugin key is unknown *by design*, and the placeholder emitted there is load-bearing — `nestedRows/ui/contextMenu.ts` runs `rangeEach(0, items.length - 1, …)` and inserts its entries only when the list is **non-empty**. Filtering inside `getItems()` unconditionally makes `contextMenu: ['add_child']` yield an empty first-pass list, nestedRows never inserts, and `add_child` vanishes — re-breaking issue #9894. The `#predefinedItemsSet` flag is what confines the skip to the second pass; `__tests__/itemsFactory.unit.js` pins both halves. `getItems(pattern, false)` is a quiet second pass: it still skips the key but reports nothing.
 
 An array entry can also be a full item definition **object** rather than a key string. Those are merged in further down and must never reach the unresolved-key path, which is why the skip is guarded by `!isObject(name)`.
 
@@ -51,7 +51,7 @@ A subcommand name that matches no submenu entry is a `warnOnce()` and a no-op. I
 
 Note what none of this does: it does not attach a predefined subcommand's callback to a caller's item. `{ 'alignment:left': { name: 'Left' } }` renders and no longer throws, but it does nothing when clicked, because no `callback` was supplied. Resolving predefined subcommand keys at any menu level is the open request in issue #5027 and was deliberately not built — it would mean changing the shallow `extend` merge that #9894 depends on.
 
-Both menus now rebuild their item list on every `open()` (`prepareMenuItems()`), so the list tracks the current settings. Before that, `DropdownMenu` built its list once in `enablePlugin`, which left it frozen: a plugin enabled later through `updateSettings` never reached the menu, and one disabled later kept entries that still ran. Do not move item building back into `enablePlugin` — and note that the `Menu` instance and its local hooks are still created there, deliberately, so `prepareMenuItems()` stays safe to call repeatedly.
+Both menus now rebuild their item list on every `open()` (`prepareMenuItems()`), so the list tracks the current settings. Before that, `DropdownMenu` built its list once in `enablePlugin`, which left it frozen: a plugin enabled later through `updateSettings` never reached the menu, and one disabled later kept entries that still ran. Do not move item building back into `enablePlugin` — and note that the `Menu` instance and its local hooks are still created there, deliberately, so `prepareMenuItems()` stays safe to call repeatedly. `DropdownMenu` still builds once there, quietly, so that a key of a plugin that enables later (Filters) is not reported as unresolved – see `dropdownMenu/AGENTS.md`, "The enable-time build is quiet".
 
 One thing a rebuild does **not** cover: `CommandExecutor` never evicts a command it registered, and `execute()` gates on `disabled`, not `hidden`. So an item contributed by a plugin that is now off is still reachable through `plugin.executeCommand(key)`. An item whose availability depends on its plugin being enabled needs that check on **both** `hidden()` and `disabled()`.
 
@@ -308,6 +308,57 @@ DEV-136, corrupted the read-only toggle's undo snapshot too (its "no match found
 this helper's `false` to mean every visited cell was proven writable, which a truncated search cannot
 guarantee). Fixed by returning `!result` instead: continue while no match has been found yet, stop
 once it has. Pinned by `contextMenu/__tests__/utils.unit.js`.
+
+## The positioner clamps to the viewport AFTER it picks a side (DEV-3623)
+
+`Positioner` chooses a side from the room around the cursor: below or above it (`Cursor#fitsBelow()`,
+`fitsAbove()`), then to the right or left (`fitsOnRight()`, `fitsOnLeft()`, mirrored in RTL). When the
+first side does not fit, it falls back to the other. It never asked whether the fallback fits, so a menu
+that fits on neither side of its point went past the viewport's edge. A 218px column dropdown on a 390px
+phone started 26px left of the screen, and its first controls were clipped (issue #14048, reported on
+16.2.0 and still present in 18.1.2). A 372px context menu on a 390px-tall window opened below its point
+and ran 105px past the bottom. `#clampHorizontally()` and `#clampVertically()` now run last and hold
+`style.left` and `style.top` inside the viewport.
+
+- **Clamp, never add a predicate.** The `fits*` checks do not describe the placement they gate.
+  `fitsOnLeft()` ignores `#offset.left`, which the dropdown sets to the button width. `fitsOnRight()`
+  always adds `cellWidth`, while `setPositionOnRightOfCursor()` adds it for submenus only. Another
+  predicate inherits the same drift. The clamps read what the `setPositionOn*()` methods wrote, so they
+  hold whatever those did.
+- **The edges are in the frame `style.left` and `style.top` are written in: the window's page
+  coordinates.** Horizontally they are the window's `scrollX`, and that offset plus
+  `documentElement.clientWidth`. Vertically they are `scrollY`, and that offset plus
+  `documentElement.clientHeight`. Both client sizes leave the scrollbar out. `innerHeight`, which
+  `fitsBelow()` uses to pick the side, counts a horizontal scrollbar, so a menu pinned to the bottom with
+  it would end under the bar on a classic-scrollbar platform (headless Chromium hides scrollbars, so no
+  spec shows it). A clamp against `0` passes at rest and
+  breaks on a scrolled window. In an RTL document `scrollX` is `0` at rest and goes negative as the
+  window scrolls toward the inline end. A custom `uiContainer` with its own containing block is the
+  exception (`Menu#captureScrollFollowBaseline` explains why a measured rect is used there): the position
+  is then not a page coordinate. The positioner was already off in that case, and the clamps inherit it.
+- **A menu larger than the viewport keeps the edge the window cannot scroll to.** That is the top edge,
+  and the left edge in an LTR document or the right edge in an RTL one, so the menu overflows the way the
+  page can still scroll. The edge comes from the DOCUMENT's computed `direction`, not from the menu's
+  `dir`, which follows the grid: an RTL grid in an LTR page keeps its left edge, because an LTR page has
+  no negative `scrollX` to reach a strip cut off on the left. `clampIntoRange()` takes the edge to keep
+  as `preferMin`, and an RTL document passes it `false`, so do not merge the two directions.
+- **Only `keepInViewport: true` reaches it.** The Filters value-list select passes `false` and takes the
+  other branch of `updatePosition()`. The menus that do reach it are the context menu, the dropdown
+  menu, their submenus, and the sheets bar menus. The sheets bar already lifts its upward menu by hand
+  and pins it to the top in a squeeze, which the clamp agrees with.
+- **It moves a menu only when the menu would leave the viewport**, so every placement that was inside
+  it stays where it was. A menu that fits neither below nor above its point now covers the point
+  instead of leaving the screen, and a submenu that fits on neither side of its parent overlaps the
+  parent menu. The legacy specs that pinned such a menu outside the viewport changed with it: the RTL
+  dropdown keyboard specs (the last column's button at x = -27) and the RTL `open()` specs of both menus
+  expect the viewport's left edge, and the iframe context menu spec gives its outer frame room for the
+  whole menu. Several of these pass on `main` and fail on `horizon`, whose menus are wider and taller
+  and whose grid overflows the page by more, so run a spec of this kind on all three themes
+  (`npm run test:e2e -- --theme=horizon`).
+- **Pinned by** `menu/__tests__/positioner.unit.ts` (both axes and directions, a menu larger than the
+  viewport, and scroll offsets) and `tests/e2e/menu-viewport-clamp.spec.ts` (the issue's menus on a 320px
+  viewport, a short viewport, a window scrolled on both axes in both document directions with the grid inset
+  from the viewport's edge, and a submenu).
 
 ## Where to look next
 

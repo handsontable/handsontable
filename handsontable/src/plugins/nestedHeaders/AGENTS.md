@@ -91,9 +91,9 @@ future `'reject'`/`'displace'` can be added without a breaking change.)
 moved on every re-send made CollapsibleColumns skip the groups of every older step, so an undo and a
 redo brought the hidden columns back without their collapsed group. `captureState()` records it next to the overrides, and
 `restoreState()` imports the overrides only when it still matches: overrides recorded under an earlier
-`nestedHeaders` config name that config's groups. It still runs `rebuildState()` either way, because a
-restored column order arrives through `setIndexesSequence()` (source `'update'`, not `'move'`), so
-`#onColumnIndexMapperCacheUpdated` does not re-derive the tree for it. `getCollapsedGroupsVersion()`
+`nestedHeaders` config name that config's groups. It still runs `rebuildState()` either way, so the tree is
+derived with the imported overrides; the restored column order itself (`setIndexesSequence()`, source
+`'update'`) has already re-derived it once through `#onColumnIndexMapperCacheUpdated` (see the next section). `getCollapsedGroupsVersion()`
 advances on every `#applyNodeModification()` that finds a node, every `#deriveTree()` and `clear()`;
 CollapsibleColumns reads it to skip walking the tree on a step that changed no header group. A re-sent
 config still runs the whole `setState()` - it resets the overrides and expands every group, as it always
@@ -156,6 +156,31 @@ outside, do not assume each call rebuilds the matrix.
 - `columnIndexMapper.moveIndexes` is **not batched**: it sets `indexesChangeSource = 'move'` and fires a
   synchronous `cacheUpdated`. NestedHeaders rebuilds in its `cacheUpdated` local hook when the change
   source is a move (or a pending rebuild flag is set).
+- **Any write that reorders the same columns re-derives the tree, whatever its source.** `setIndexesSequence()`
+  reports `'update'`, not `'move'`, and UndoRedo, ViewState and a SheetsBar return all write the column order
+  that way; gated on `'move'` only, the tree kept the order it was last derived for, so after a sheet round trip
+  a moved column showed another column's header. The plugin keeps a copy of the sequence each derive used
+  (`#derivedColumnSequence`, refreshed by `#markDerived()` after `setState`, `rebuildState`, `insertColumns` and
+  `removeColumns`) and re-derives on a cache update that leaves a different permutation of the same length
+  (`#isReorderedSinceDerive()`). A sequence of another length is an insert or a removal, which
+  `afterCreateCol`/`afterRemoveCol` derive with their own overrides reset, so it is left to them. A batched
+  write is caught on the resume's cache update, because the comparison reads the sequence, not the source
+  (the source is cleared by then). Plain-grid consequence: `columnIndexMapper.setIndexesSequence()` now relabels
+  the headers. Pinned by `__tests__/columnOrderUpdate.unit.js` and `tests/e2e/sheets-bar-nested-headers-order.spec.ts`.
+  Such a write can split a collapsed group, and the re-derive drops its collapse without a `beforeColumnMove`
+  to expand it first. CollapsibleColumns notices the collapsed-groups version moving across the cache update
+  and rebuilds its hiding map from the groups (see `../collapsibleColumns/AGENTS.md`); pinned by
+  `../collapsibleColumns/__tests__/columnOrderUpdate.unit.js`.
+- **A data load is not a reorder.** `loadData()` re-initializes the column index mapper to the identity order,
+  and its cache update leaves a sequence that differs from a moved one. `beforeLoadData` drops
+  `#derivedColumnSequence`, so that update does not re-derive the tree; the `afterLoadData` `setState()` derives
+  it and marks the new order. Without that, every load after a column move derived the tree twice (one
+  `rebuildState()` thrown away by the `setState()` right after it), which is every sheet switch. A sequence
+  written after the load (a sheets bar return, `setIndexesSequence()`) still re-derives.
+- **The sheets bar keeps the membership overrides per sheet** through the `@private`
+  `_exportViewState()`/`_importViewState()` pair (silent, no hooks). The import re-derives only when the
+  overrides changed, and the sheets bar calls it after the column order is written back and before
+  CollapsibleColumns re-collapses its groups. See `utils/viewState/AGENTS.md`.
 - `manualColumnFreeze.freezeColumn`/`unfreezeColumn` call `columnIndexMapper.moveIndexes` **directly**,
   bypassing `beforeColumnMove`/`afterColumnMove`. So a captured move can still be "open" when an
   unrelated reorder (freeze) fires `cacheUpdated`.

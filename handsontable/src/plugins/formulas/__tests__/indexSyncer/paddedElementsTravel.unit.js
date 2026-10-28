@@ -183,7 +183,7 @@ describe('AxisSyncer: the padded blanks of the engine order', () => {
       const heightAfterReorder = height();
 
       for (let cycle = 0; cycle < 10; cycle += 1) {
-        hot.alter('insert_row_above', 3);
+        hot.alter('insert_row_above', 2);
         hot.getPlugin('undoRedo').undo();
       }
 

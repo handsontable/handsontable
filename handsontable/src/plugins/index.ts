@@ -19,6 +19,7 @@ import { DropdownMenu } from './dropdownMenu';
 import { ExportFile } from './exportFile';
 import { ImportFile } from './importFile';
 import { Filters } from './filters';
+import { FormulaBuilder } from './formulaBuilder';
 import { Formulas } from './formulas';
 import { FreezeBar } from './freezeBar';
 import { HiddenColumns } from './hiddenColumns';
@@ -80,6 +81,7 @@ declare module './registry' {
     exportFile: typeof ExportFile;
     importFile: typeof ImportFile;
     filters: typeof Filters;
+    formulaBuilder: typeof FormulaBuilder;
     formulas: typeof Formulas;
     freezeBar: typeof FreezeBar;
     hiddenColumns: typeof HiddenColumns;
@@ -138,6 +140,7 @@ export function registerAllPlugins() {
   registerPlugin(ImportFile);
   registerPlugin(Filters);
   registerPlugin(Formulas);
+  registerPlugin(FormulaBuilder);
   registerPlugin(FreezeBar);
   registerPlugin(HiddenColumns);
   registerPlugin(HiddenRows);
@@ -190,6 +193,7 @@ export {
   ExportFile,
   ImportFile,
   Filters,
+  FormulaBuilder,
   Formulas,
   FreezeBar,
   HiddenColumns,

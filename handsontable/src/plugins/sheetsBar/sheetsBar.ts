@@ -1,7 +1,14 @@
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import type { HookCallback } from '../../core/hooks/bucket';
-import { SheetModel, clampSheetName, type Sheet, type SheetDescriptor } from './sheetModel';
+import {
+  SheetModel,
+  clampSheetName,
+  copySettingsValue,
+  isObjectLiteral,
+  type Sheet,
+  type SheetDescriptor,
+} from './sheetModel';
 import { SheetsBarUI } from './ui/bar';
 import { TabStrip, type TabBox, type TabStripMotion } from './ui/tabStrip';
 import { resolveSwitchTransition, pillDurationMs, tabSlideDurationMs } from './ui/switchTiming';
@@ -20,9 +27,9 @@ import {
   clearFrozenCountShadow,
   clearCustomBorders,
   clearMergedCells,
+  createNeutralViewState,
   FROZEN_COUNT_KEYS,
   keepSelectionOnPage,
-  rebuildCustomBordersFromCellMeta,
   resetViewState,
   resetViewport,
   restoreViewState,
@@ -182,6 +189,19 @@ const SELF_BASELINED_KEYS = new Set(['dataProvider', 'columnSummary', 'cell']);
 const UNFILTERED_SETTING_KEYS = new Set([PLUGIN_KEY, 'data', 'dataProvider']);
 
 /**
+ * The view-state keys that hold flat arrays of numbers, which a duplicate copies with `slice()`.
+ */
+const FLAT_VIEW_STATE_KEYS = new Set([
+  'rowSequence', 'rowHeaders', 'unsortedRowSequence', 'columnSequence', 'hiddenRows', 'hiddenColumns',
+  'trimmedRows',
+]);
+
+/**
+ * The view-state keys that hold `[physicalIndex, size]` pairs, which a duplicate copies pair by pair.
+ */
+const SIZE_PAIR_VIEW_STATE_KEYS = new Set(['colWidths', 'rowHeights']);
+
+/**
  * Keys `updateSheetSettings()` does not take: the bar itself, which a sheet cannot reconfigure, and `data`,
  * which is the sheet's `data` in the host's `sheets` array, not one of its settings.
  */
@@ -202,6 +222,8 @@ const VIEW_STATE_PARTS_BY_SETTING: Partial<Record<string, ViewStatePart[]>> = {
   hiddenRows: ['hiddenRows'],
   hiddenColumns: ['hiddenColumns'],
   nestedRows: ['collapsedRows'],
+  nestedHeaders: ['collapsedColumns'],
+  collapsibleColumns: ['collapsedColumns'],
   colWidths: ['columnWidths'],
   manualColumnResize: ['columnWidths'],
   rowHeights: ['rowHeights'],
@@ -343,70 +365,6 @@ function isSameSheetsList(a: unknown, b: unknown): boolean {
 }
 
 /**
- * Tells whether a value is an object literal: an object whose prototype is `Object.prototype` or `null`.
- * `isPlainObject` also answers `true` for a class instance such as a HyperFormula engine.
- *
- * @param {*} value The value to check.
- * @returns {boolean}
- */
-function isObjectLiteral(value: unknown): boolean {
-  if (!isPlainObject(value)) {
-    return false;
-  }
-
-  const prototype: unknown = Object.getPrototypeOf(value);
-
-  return prototype === Object.prototype || prototype === null;
-}
-
-/**
- * Copies a settings value for a snapshot: arrays and object literals are copied level by level, a date is
- * copied by its time value, and everything else is kept by reference. A class instance such as a
- * HyperFormula engine is not copied: its object graph has cycles, and copying it never ended. A kept
- * reference still compares equal to itself. A date is copied because the host can edit it in place
- * (`setFullYear()`) and send it again, and a kept reference would compare the edited date with itself.
- *
- * `copies` maps every array and object literal already copied to its copy, so a value that refers to itself
- * is copied with the same shape instead of recursing until the stack overflows, and a sub-object two keys
- * share is copied once.
- */
-function copySettingsValue(value: unknown, copies = new WeakMap<object, unknown>()): unknown {
-  if (value instanceof Date) {
-    return new Date(value.getTime());
-  }
-
-  if (!Array.isArray(value) && !isObjectLiteral(value)) {
-    return value;
-  }
-
-  const source = value as object;
-
-  if (copies.has(source)) {
-    return copies.get(source);
-  }
-
-  if (Array.isArray(source)) {
-    const copy: unknown[] = [];
-
-    copies.set(source, copy);
-    source.forEach((entry: unknown) => {
-      copy.push(copySettingsValue(entry, copies));
-    });
-
-    return copy;
-  }
-
-  const copy: Record<string, unknown> = {};
-
-  copies.set(source, copy);
-  Object.entries(source).forEach(([key, entry]) => {
-    copy[key] = copySettingsValue(entry, copies);
-  });
-
-  return copy;
-}
-
-/**
  * Takes a snapshot of a `sheets` value for {@link isSameSheetsList}: the array and each entry are copied,
  * each entry's `settings` level by level, and its `data` is kept by reference. A host that edits its own
  * array or a sheet's settings object in place and sends it again otherwise compares it with itself, and
@@ -537,11 +495,8 @@ interface PreservedState {
  * and lets the user switch between the sheets of a workbook. Each sheet has its own data,
  * settings overrides, and view state.
  *
- * A sheet's own settings win over the grid-level ones. While a sheet that declares a setting is
- * shown, {@link Core#updateSettings} changes only the grid-level value of that setting, which the
- * sheets without their own value use. A framework wrapper that sends every prop again on each
- * render therefore leaves the visible sheet as it is. To change a sheet's own settings, call
- * {@link SheetsBar#updateSheetSettings}.
+ * While the plugin is enabled, change a sheet's settings with {@link SheetsBar#updateSheetSettings},
+ * not with {@link Core#updateSettings}.
  */
 export class SheetsBar extends BasePlugin {
   /**
@@ -615,6 +570,13 @@ export class SheetsBar extends BasePlugin {
    * @type {Sheet|null}
    */
   #loadingSheet: Sheet | null = null;
+  /**
+   * The hook sync the bar's next write owes, with the arriving sheet's own settings, or `null` when none is
+   * owed. `#filterGridSettings` runs it on the payload core is about to apply (`#runPendingHookSync`).
+   *
+   * @type {object|null}
+   */
+  #pendingHookSync: { ownSettings?: Record<string, unknown> } | null = null;
   /**
    * Whether a workbook change's before-hook is running. A listener of that hook cannot change the
    * workbook: the change it was told about would then run on another workbook state.
@@ -818,14 +780,6 @@ export class SheetsBar extends BasePlugin {
    */
   #tabSlideMotion: SheetsBarMotion | null = null;
   /**
-   * The cell meta a duplicate takes from its original, put back on the copy's first visit. A sheet the
-   * user has left keeps its meta in its view state (`#captureCellMeta`); a copy has no view state until
-   * the user leaves it once, so this is read only while it has none.
-   *
-   * @type {WeakMap<Sheet, object[]>}
-   */
-  #copiedCellMeta = new WeakMap<Sheet, TrackedCellMeta[]>();
-  /**
    * The declared `sheets` entry each built sheet came from, so removing a sheet can prune its
    * entry out of the configured arrays — the settings object would otherwise keep the removed
    * sheet's rows resident for the grid's life.
@@ -994,6 +948,7 @@ export class SheetsBar extends BasePlugin {
     }
 
     this.#getDataProvider()?._setContextOwner(this.#contextOwner);
+    this.hot._addSettingsFilter(this.#filterGridSettings);
     this.addHook('afterLoadData', this.#onAfterSheetLoad, -1);
 
     if (this.#preservedState) {
@@ -1010,6 +965,9 @@ export class SheetsBar extends BasePlugin {
         this.#captureGridColumnSummary();
         this.#gridCellOption = this.hot.getSettings().cell;
         this.#buildInitialWorkbook();
+      } catch (error) {
+        this.hot._removeSettingsFilter(this.#filterGridSettings);
+        throw error;
       } finally {
         this.#isInitializing = false;
       }
@@ -1157,8 +1115,6 @@ export class SheetsBar extends BasePlugin {
     this.addHook('afterDocumentKeyDown', this.#onKeyDownWithinBar, -1);
     this.addHook('beforeCompositionStart', this.#onKeyDownWithinBar, -1);
     this.addHook('afterRender', this.#onAfterRenderArmMotionGate);
-    this.hot._setSettingsFilter(this.#filterGridSettings);
-
     this.#refreshUI();
 
     if (this.#tabStripMotion !== null) {
@@ -1545,7 +1501,7 @@ export class SheetsBar extends BasePlugin {
     }
 
     super.disablePlugin();
-    this.hot._setSettingsFilter(null);
+    this.hot._removeSettingsFilter(this.#filterGridSettings);
     this.#getDataProvider()?._setContextOwner(null);
     this.#releaseState();
   }
@@ -1618,10 +1574,11 @@ export class SheetsBar extends BasePlugin {
 
     try {
       this.#isRestoringBaseline = true;
-      this.#syncSettingsHooks(restored);
+      this.#pendingHookSync = {};
       this.hot.updateSettings(restored);
     } finally {
       this.#isRestoringBaseline = false;
+      this.#pendingHookSync = null;
     }
   }
 
@@ -1797,7 +1754,8 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Reads every `updateSettings()` payload before core applies it (`Core#_setSettingsFilter()`), and takes
+   * Reads every payload before core applies it (`Core#_addSettingsFilter()`: `updateSettings()`, and the bar's
+   * own `_applySettingsAndData()` and `_replaceInitPassSettings()` calls, where it stands aside), and takes
    * out each key the visible sheet declares in its own settings: a sheet's own settings win over grid-level
    * ones, as they do on a switch. The value taken out becomes the grid-level value instead
    * (`#takeGridLevelValues`), so the sheets that do not declare the key, a `sheetsBar: false` teardown and a
@@ -1806,10 +1764,13 @@ export class SheetsBar extends BasePlugin {
    * the sheet. `data` and `dataProvider` keep their own rules (`#keepDeclaredSheetRows`, the `dataProvider`
    * gate), and the payload object the caller passed is never changed.
    *
-   * @param {object} settings The payload passed to `updateSettings()`.
+   * @param {object} settings The payload core is about to apply: from `updateSettings()`, or from the bar's
+   * own `_applySettingsAndData()` and `_replaceInitPassSettings()` calls.
    * @returns {object} The payload core applies.
    */
   #filterGridSettings = (settings: Record<string, unknown>): Record<string, unknown> => {
+    this.#runPendingHookSync(settings);
+
     const declared = this.#activeSheetRecord()?.settings;
     const own = isPlainObject(declared) ? renameFixedColumnsLeft(declared) : declared;
 
@@ -1841,13 +1802,14 @@ export class SheetsBar extends BasePlugin {
    * Tells whether `#filterGridSettings` acts on a payload. It stands aside for the bar's own writes (a switch,
    * the teardown's restore, the initial build, `updateSheetSettings()`), for the settings ImportFile applies
    * from an imported file to the sheet shown, and for a payload that turns the bar off or declares another
-   * workbook: those leave the visible sheet, so its settings no longer win.
+   * workbook: those leave the visible sheet, so its settings no longer win. A plugin that is not enabled, a
+   * build that threw for instance, filters nothing.
    *
-   * @param {object} settings The payload passed to `updateSettings()`.
+   * @param {object} settings The payload core is about to apply.
    * @returns {boolean}
    */
   #filtersGridSettings(settings: Record<string, unknown>): boolean {
-    if (this.#model === null || this.#isSwitching || this.#isRestoringBaseline || this.#isInitializing
+    if (!this.enabled || this.#model === null || this.#isSwitching || this.#isRestoringBaseline || this.#isInitializing
       || this.#isApplyingOwnSettings || this.hot.getPlugin('importFile')?._isApplyingImport()) {
       return false;
     }
@@ -1902,6 +1864,7 @@ export class SheetsBar extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.hot._removeSettingsFilter(this.#filterGridSettings);
     this.#releaseState();
     super.destroy();
   }
@@ -1998,6 +1961,9 @@ export class SheetsBar extends BasePlugin {
    * cancels the copy, your `sheets` array is frozen (with a console warning), or it is called from a
    * listener of a workbook change's before-hook.
    *
+   * A copy of a server sheet (one with its own `dataProvider`) starts with a copy of the original's rows.
+   * When the original has already loaded rows, the copy doesn't fetch on its first visit.
+   *
    * @param {number} id The sheet to copy.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
    * @returns {object|null} A descriptor for the copy, or `null`.
@@ -2028,16 +1994,11 @@ export class SheetsBar extends BasePlugin {
    * pass are merged into the settings the sheet already has. A key passed as `undefined` is left out, as
    * {@link Core#updateSettings} leaves it out, so a key a sheet declares cannot be removed from it, only
    * given another value. On the visible sheet the change applies at once; on any other sheet it applies
-   * when the sheet is shown next, in place of what the sheet kept from your last visit for that key: its
-   * frozen rows and columns, hidden rows and columns, sort, filters, row and column order, sizes, page,
-   * merged cells, custom borders, `cell` meta, or column summary positions. The rest of what it kept, such
-   * as the selection and the scroll position, comes back as usual. The settings stay with the
-   * sheet: the entry in your `sheets` array keeps the `settings` you declared, the way
-   * {@link Core#updateSettings} never writes into the object you passed it.
+   * when the sheet is shown next, in place of what the sheet kept from your last visit for that key, such
+   * as its sort, filters, or hidden columns. The rest of what it kept, such as the selection and the scroll
+   * position, comes back as usual. The entry in your `sheets` array keeps the `settings` you declared.
    *
-   * A sheet's own settings win over the grid-level ones, so this is how you change a setting the sheet
-   * declares: {@link Core#updateSettings} changes only the grid-level value of a key the visible sheet
-   * declares.
+   * While the plugin is enabled, use this method, not {@link Core#updateSettings}, to change a sheet's settings.
    *
    * Returns `false` when the bar is off, the sheet does not exist, `settings` is not an object or changes
    * nothing, a sheet switch is in progress, or it is called from a listener of a workbook change's
@@ -2082,16 +2043,12 @@ export class SheetsBar extends BasePlugin {
    * cancels the switch.
    *
    * The switch first saves the cell editor and the comment editor on the sheet you leave. It
-   * returns `false`, and switches nothing, while a cell value waits for an asynchronous
-   * validator, or while the editor holds a value its validator rejected (`allowInvalid: false`):
-   * the value would otherwise be written into the arriving sheet. Validators always answer after
-   * the edit, so a call made while the editor of a cell with a validator is open returns `false`
-   * even for a valid value: close the editor first and switch once `afterValidate` has fired. A
-   * change that a `beforeSheetTabChange` or `afterSheetTabStateCapture` listener makes to a cell
-   * with a validator refuses the switch the same way. A validator that never calls its callback
-   * blocks switching until {@link Core#loadData} loads other data. It also returns `false` when
-   * it is called from a listener of a workbook change's before-hook, such as
-   * `beforeSheetTabChange`, or of `afterSheetTabStateCapture`.
+   * returns `false`, and switches nothing, while a cell value waits for its validator, or while
+   * the editor holds a value its validator rejected (`allowInvalid: false`). Validators answer
+   * after the edit, so a call made while the editor of a cell with a validator is open returns
+   * `false` even for a valid value: close the editor first and switch once `afterValidate` has
+   * fired. It also returns `false` when it is called from a listener of a workbook change's
+   * before-hook, such as `beforeSheetTabChange`, or of `afterSheetTabStateCapture`.
    *
    * @param {number|string} idOrName The sheet's id, or its name.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
@@ -2633,8 +2590,12 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Decides what a server sheet shows once a switch has brought it in: the error notifications
-   * its requests left while it was not shown, then its own fetch still running, its last response
-   * (with the fetch error that came after it, when there is one), or a first fetch.
+   * its requests left while it was not shown, then its last response, which the rows the grid
+   * holds already answer (so its sort, filters, pager, and row numbers come back even while a
+   * fetch still runs, and a failure of that fetch leaves them in place). After that, its own
+   * fetch still running is waited for, the fetch error that came after the response is shown,
+   * or a sheet without a response fetches for the first time, on the page and page size the
+   * DataProvider plugin put the pager back to.
    */
   #showServerSheet() {
     const dataProvider = this.#getDataProvider();
@@ -2653,6 +2614,10 @@ export class SheetsBar extends BasePlugin {
       failures.forEach(({ kind, error }) => dataProvider._showRequestError(kind, error));
     }
 
+    if (view?.lastResult) {
+      dataProvider._restoreFetchResult(view.lastResult);
+    }
+
     if (dataProvider.isFetching()) {
       return;
     }
@@ -2664,20 +2629,18 @@ export class SheetsBar extends BasePlugin {
     }
 
     if (view?.lastResult) {
-      dataProvider._restoreFetchResult(view.lastResult);
-
       return;
     }
 
-    dataProvider.fetchData({ page: 1 }).catch((error) => {
+    dataProvider.fetchData().catch((error) => {
       logError('Data fetch failed:', error);
     });
   }
 
   /**
-   * Shows the fetch failure a server sheet kept while it was not shown: its last response comes
-   * back (so its sort, filters, and pager do), and the error notification appears, its Refetch
-   * action fetching the sheet. Nothing is fetched automatically.
+   * Shows the fetch failure a server sheet kept while it was not shown: the error notification
+   * appears over the sheet's last response, which the caller has already brought back, its
+   * Refetch action fetching the sheet. Nothing is fetched automatically.
    */
   #showStoredFetchFailure(dataProvider: DataProvider, view: ServerSheetView) {
     const { failure, lastResult } = view;
@@ -2685,9 +2648,7 @@ export class SheetsBar extends BasePlugin {
     view.failure = undefined;
     view.hasFailure = false;
 
-    if (lastResult) {
-      dataProvider._restoreFetchResult(lastResult);
-    } else {
+    if (!lastResult) {
       this.hot.render();
     }
 
@@ -2802,18 +2763,13 @@ export class SheetsBar extends BasePlugin {
         }
       }
 
-      const copiedCellMeta = viewState ? undefined : this.#copiedCellMeta.get(newSheet);
-
       this.#applySheet(newSheet, source, {
         restoresState: viewState !== undefined,
-        cellMeta: viewState ? viewState.cellMeta : copiedCellMeta,
+        cellMeta: viewState?.cellMeta,
       });
 
       if (viewState) {
         restoreViewState(this.hot, viewState, keptParts);
-      } else if (copiedCellMeta) {
-        this.#copiedCellMeta.delete(newSheet);
-        rebuildCustomBordersFromCellMeta(this.hot);
       }
 
       this.#restoreFormulaText(newSheet);
@@ -2987,13 +2943,14 @@ export class SheetsBar extends BasePlugin {
       this.#loadingSheet = sheet;
 
       try {
-        this.#syncSettingsHooks(payload, sheet.settings);
+        this.#pendingHookSync = { ownSettings: sheet.settings };
         this.hot._applySettingsAndData(
           payload as Partial<GridSettings>, sheet.data as unknown[], `${source}.switch`, cellOptionMetas,
           keptCellMetas,
         );
       } finally {
         this.#loadingSheet = null;
+        this.#pendingHookSync = null;
       }
 
       if (this.hot.view) {
@@ -3184,29 +3141,122 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Gives a duplicated sheet the cell meta its original carries now: the grid's when the original is shown,
-   * or what it left with otherwise. The copy's data is a copy of the original's rows in the same physical
-   * order, so its first visit puts the meta back by physical index like a return does, borders included, and
-   * it is stored even when empty, so the copy does not take the declared borders its original no longer has.
-   * It is dropped once the copy has been shown. Each entry is copied, and so is a plain object or array value,
-   * so a change made in place on one sheet does not reach the other. A class instance at the top level is
-   * shared, and one nested inside an object value comes out as a plain object.
+   * Gives a duplicated sheet the whole view state of its original, so the copy opens the way its original
+   * looks: the grid's state when the original is shown, or the state it left with otherwise. The selection
+   * and the scroll position are the neutral ones: the copy is a tab the user has not been on. The copy's
+   * data is a copy of the original's rows in the same physical order, so its first visit restores the state
+   * like a return does, and `afterSheetTabStateRestore` fires for it. Every value is copied, so a change on
+   * one sheet does not reach the other, the kept cell meta by the rule `#cloneCellMeta` gives. An original
+   * that was never shown has no view state, and neither has its copy.
    *
    * @param {object} original The sheet that was duplicated.
    * @param {object} copy The duplicate.
    */
-  #copyCellMeta(original: Sheet, copy: Sheet) {
+  #copyViewState(original: Sheet, copy: Sheet) {
     const isOriginalShown = this.#model?.getActiveSheet()?.id === original.id;
-    const entries = isOriginalShown
-      ? this.#captureCellMeta()
-      : ((original.viewState?.cellMeta as TrackedCellMeta[] | undefined) ?? this.#copiedCellMeta.get(original));
+    const source = isOriginalShown
+      ? captureViewState(this.hot, this.#captureCellMeta())
+      : original.viewState as unknown as ViewState | undefined;
 
-    if (entries) {
-      this.#copiedCellMeta.set(copy, entries.map(entry => ({
-        ...entry,
-        value: isPlainObject(entry.value) || Array.isArray(entry.value) ? deepClone(entry.value) : entry.value,
-      })));
+    if (!source) {
+      return;
     }
+
+    const neutral = createNeutralViewState();
+    const { cellMeta, ...parts } = {
+      ...source,
+      selection: neutral.selection,
+      selectionState: neutral.selectionState,
+      scroll: neutral.scroll,
+    };
+
+    copy.viewState = {
+      ...SheetsBar.#cloneViewStateParts(parts),
+      ...(cellMeta ? { cellMeta: SheetsBar.#cloneCellMeta(cellMeta) } : {}),
+    } as unknown as Record<string, unknown>;
+
+    if (!isOriginalShown) {
+      this.#copyRedeclaredState(original, copy);
+    }
+  }
+
+  /**
+   * Gives a duplicate of a hidden sheet the marks `updateSheetSettings()` left on its original
+   * (`#dropKeptStateFor`): the view-state parts, the merges, the borders, and the page size declared anew
+   * while the original was hidden. The copy takes the original's settings and its kept view state, so
+   * without the marks its first visit restored the kept parts over the new settings, and the copy showed
+   * what the original showed before the update.
+   *
+   * @param {object} original The hidden sheet that was duplicated.
+   * @param {object} copy The duplicate.
+   */
+  #copyRedeclaredState(original: Sheet, copy: Sheet) {
+    const parts = this.#redeclaredParts.get(original);
+
+    if (parts) {
+      this.#redeclaredParts.set(copy, new Set(parts));
+    }
+
+    if (this.#redeclaredMerges.has(original)) {
+      this.#redeclaredMerges.add(copy);
+    }
+
+    if (this.#redeclaredBorders.has(original)) {
+      this.#redeclaredBorders.add(copy);
+    }
+
+    if (this.#redeclaredPageSize.has(original)) {
+      this.#redeclaredPageSize.add(copy);
+    }
+  }
+
+  /**
+   * Copies the view-state parts for a duplicate. The index arrays hold numbers, so `slice()` copies them, and
+   * each size pair is copied on its own; only the nested parts go through `deepClone()`, which walks every
+   * item and is several times slower over arrays the length of the row count.
+   *
+   * @param {object} parts The view-state parts, without the cell meta.
+   * @returns {object}
+   */
+  static #cloneViewStateParts(parts: Record<string, unknown>): Record<string, unknown> {
+    const copy: Record<string, unknown> = {};
+
+    Object.keys(parts).forEach((key) => {
+      const value = parts[key];
+
+      if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+        return;
+      }
+
+      if (Array.isArray(value) && FLAT_VIEW_STATE_KEYS.has(key)) {
+        copy[key] = value.slice();
+
+      } else if (Array.isArray(value) && SIZE_PAIR_VIEW_STATE_KEYS.has(key)) {
+        copy[key] = (value as unknown[]).map(
+          (pair): unknown => (Array.isArray(pair) ? (pair as unknown[]).slice() : deepClone(pair)),
+        );
+
+      } else {
+        copy[key] = deepClone(value);
+      }
+    });
+
+    return copy;
+  }
+
+  /**
+   * Copies kept cell meta entries for another sheet. Each entry is copied, and so is a plain object or
+   * array value, so a change made in place on one sheet does not reach the other. A class instance at the
+   * top level is shared, and one nested inside an object value comes out as a plain object.
+   *
+   * @param {object[]} entries The entries.
+   * @returns {object[]}
+   */
+  static #cloneCellMeta(entries: TrackedCellMeta[]): TrackedCellMeta[] {
+    return entries.map(entry => ({
+      ...entry,
+      value: isPlainObject(entry.value) || Array.isArray(entry.value) ? deepClone(entry.value) : entry.value,
+    }));
   }
 
   /**
@@ -3465,13 +3515,13 @@ export class SheetsBar extends BasePlugin {
       }
     });
 
-    this.#syncSettingsHooks(changes, ownSettings);
-
     try {
       this.#isApplyingOwnSettings = true;
+      this.#pendingHookSync = { ownSettings };
       this.hot.updateSettings(changes);
     } finally {
       this.#isApplyingOwnSettings = false;
+      this.#pendingHookSync = null;
     }
   }
 
@@ -3570,25 +3620,19 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Takes the custom borders out of the cell meta a hidden sheet kept (its view state, or a duplicate's
-   * copy of its original's meta), where the borders live, and marks the sheet so its next visit applies
-   * the declared borders.
+   * Takes the custom borders out of the cell meta a hidden sheet kept in its view state, where the borders
+   * live, and marks the sheet so its next visit applies the declared borders.
    *
    * @param {object} sheet The hidden sheet.
    */
   #dropKeptBorders(sheet: Sheet) {
     const kept = sheet.viewState?.cellMeta;
-    const copied = this.#copiedCellMeta.get(sheet);
 
     if (Array.isArray(kept)) {
       sheet.viewState = {
         ...sheet.viewState,
         cellMeta: kept.filter(entry => isPlainObject(entry) && entry.key !== 'borders'),
       };
-    }
-
-    if (copied) {
-      this.#copiedCellMeta.set(sheet, copied.filter(entry => entry.key !== 'borders'));
     }
 
     this.#redeclaredBorders.add(sheet);
@@ -3603,6 +3647,31 @@ export class SheetsBar extends BasePlugin {
    * leaves the order of the settings callback and the `addHook()` listeners alone. A grid-level array keeps
    * running beside a sheet's own callback, as it always did: it is registered again after the sheet's. A
    * `null` value needs nothing here, because core removes the settings callbacks for it.
+   *
+   * A switch, the baseline restore and `updateSheetSettings()` arm `#pendingHookSync` right before their
+   * write, and the sync runs from `#filterGridSettings`, which core calls with the payload the earlier
+   * filters returned. It must read that payload, not the one the bar built: the Angular wrapper's filter
+   * swaps a declared hook for the function that runs it in Angular's zone, and core then registers that
+   * function, so a sync of the raw callback left it in place and the hook ran outside the zone, or twice
+   * beside an `addHook()` registration of the same callback. The bar's filter is therefore added before the
+   * workbook is built, and it runs after every filter added before it.
+   *
+   * @param {object} payload The payload core is about to apply.
+   */
+  #runPendingHookSync(payload: Record<string, unknown>) {
+    const pending = this.#pendingHookSync;
+
+    if (pending === null) {
+      return;
+    }
+
+    this.#pendingHookSync = null;
+    this.#syncSettingsHooks(payload, pending.ownSettings);
+  }
+
+  /**
+   * Makes the settings callbacks of each hook the payload sets exactly the callbacks the arriving sheet runs
+   * with (see `#runPendingHookSync`).
    *
    * @param {object} payload The settings about to be applied.
    * @param {object} [ownSettings] The arriving sheet's own settings.
@@ -4061,7 +4130,7 @@ export class SheetsBar extends BasePlugin {
         this.#restoreSummaryValuesInCopy(original, sheet);
         this.#copyColumnSummaryEndpoints(original, sheet);
         this.#copyCellOption(original, sheet);
-        this.#copyCellMeta(original, sheet);
+        this.#copyViewState(original, sheet);
 
         // The copy cannot share the original's engine sheet — two tabs writing into one set of
         // cells — so it gets an engine sheet of its own, named like the copy, seeded with the
@@ -4072,7 +4141,9 @@ export class SheetsBar extends BasePlugin {
           const copyName = freeEngineName(formulas.engine!, sheet.name);
 
           sheet.settings = { ...sheet.settings, formulas: { ...formulas, sheetName: copyName } };
-          this.#registerFormulaCopy(sheet, formulas.engine!, formulas.sheetName, copyName);
+          this.#registerFormulaCopy(
+            sheet, formulas.engine!, formulas.sheetName, copyName, this.#engineOrderOf(original, formulas),
+          );
         }
 
         this.#appendDeclaredSheet(sheet);
@@ -4334,13 +4405,22 @@ export class SheetsBar extends BasePlugin {
    * named expressions are copied too, with the same change, before the copy's content is fed: without
    * them its formulas read `#NAME?`.
    *
+   * An original the engine holds sorted or with moved rows or columns (`engineOrder`) has formulas the
+   * engine alone knows (see `#captureEngineOrder`), and the duplicated data keeps the old text in the
+   * physical order. Seeded with that data, the copy's first visit loaded it and moved it into the copied
+   * order, which turned the references of moved cells into `#REF!` and other sums. So the copy's engine
+   * sheet takes the original's engine content, in the original's engine order, and the copy stores that
+   * order as one left by the user: its first visit takes the engine sheet over, as a return does.
+   *
    * @param {object} sheet The copy.
    * @param {object} engine The engine.
    * @param {string} originalName The original's engine sheet name.
    * @param {string} copyName The copy's engine sheet name.
+   * @param {object|null} [engineOrder] The order the engine holds the original in, when it is not physical.
    */
   #registerFormulaCopy(
     sheet: Sheet, engine: NonNullable<SheetFormulas['engine']>, originalName: string, copyName: string,
+    engineOrder: FormulasEngineSheetOrder | null = null,
   ) {
     const copyText = this.#sheetNameText(engine, copyName);
     const repoint = (formula: string) => rewriteSheetReferences(formula, reference => (
@@ -4350,6 +4430,7 @@ export class SheetsBar extends BasePlugin {
 
     this.#replaceSheetData(sheet, writeFormulaTextChanges(sheet.data, collectFormulaTextChanges(sheet.data, repoint)));
     this.#registerFormulaSheet(sheet, {
+      feed: engineOrder === null,
       beforeFeed: (copyId) => {
         if (typeof originalId !== 'number') {
           return;
@@ -4363,8 +4444,70 @@ export class SheetsBar extends BasePlugin {
 
           engine.addNamedExpression?.(name, expression, copyId, engine.getNamedExpression?.(name, originalId)?.options);
         });
+
+        if (engineOrder) {
+          this.#seedCopyInEngineOrder(sheet, engine, originalId, copyId, engineOrder, repoint);
+        }
       },
     });
+  }
+
+  /**
+   * Writes the original's engine content into the copy's engine sheet, with the references the original
+   * makes to itself pointed at the copy, and stores the original's engine order for the copy, bound to the
+   * copy's engine sheet and its own data, so its first visit takes the engine sheet over
+   * (`#engineOrderToAdopt`).
+   *
+   * @param {object} sheet The copy.
+   * @param {object} engine The engine.
+   * @param {number} originalId The original's engine sheet id.
+   * @param {number} copyId The copy's engine sheet id.
+   * @param {object} engineOrder The order the engine holds the original in.
+   * @param {Function} repoint Points the original's references to itself at the copy.
+   */
+  #seedCopyInEngineOrder(
+    sheet: Sheet,
+    engine: NonNullable<SheetFormulas['engine']>,
+    originalId: number,
+    copyId: number,
+    engineOrder: FormulasEngineSheetOrder,
+    repoint: (formula: string) => string,
+  ) {
+    const content = (engine.getSheetSerialized?.(originalId) ?? []).map(row => row.map(cell => (
+      typeof cell === 'string' && cell.startsWith('=') ? repoint(cell) : cell
+    )));
+
+    engine.setSheetContent!(copyId, this.#readableEngineContent(engine, content));
+    this.#engineOrders.set(sheet, {
+      order: { ...engineOrder, sheetId: copyId },
+      data: sheet.data,
+      length: sheet.data.length,
+    });
+  }
+
+  /**
+   * Returns the order the engine holds `original` in, when a sort or a move reached the engine, or `null`
+   * when the engine holds it in the physical order its data has: the active sheet's order is read from
+   * the Formulas plugin, and a hidden sheet's is the one it left with, while its data and its engine sheet
+   * are still the ones that order describes.
+   *
+   * @param {object} original The original sheet.
+   * @param {object} formulas The original's formulas setting.
+   * @returns {object|null}
+   */
+  #engineOrderOf(original: Sheet, formulas: SheetFormulas): FormulasEngineSheetOrder | null {
+    if (original.id !== this.#model?.getActiveSheet()?.id) {
+      return this.#engineOrderToAdopt(original);
+    }
+
+    const order = this.hot.getPlugin('formulas')?.exportEngineOrder() ?? null;
+    const engine = formulas.engine!;
+
+    if (!order || (order.engine as unknown) !== engine || order.sheetId !== engine.getSheetId!(formulas.sheetName!)) {
+      return null;
+    }
+
+    return order;
   }
 
   /**

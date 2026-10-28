@@ -179,6 +179,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="fixedColumnsStart" data-levels="grid"></span>[`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart) | Yes | No | No | No | Core |  |
 | <span data-option="fixedRowsBottom" data-levels="grid"></span>[`fixedRowsBottom`](@/api/options.md#fixedrowsbottom) | Yes | No | No | No | Core |  |
 | <span data-option="fixedRowsTop" data-levels="grid"></span>[`fixedRowsTop`](@/api/options.md#fixedrowstop) | Yes | No | No | No | Core |  |
+| <span data-option="formulaBuilder" data-levels="grid"></span>[`formulaBuilder`](@/api/options.md#formulabuilder) | Yes | No | No | No | FormulaBuilder |  |
 | <span data-option="formulas" data-levels="grid"></span>[`formulas`](@/api/options.md#formulas) | Yes | No | No | No | Formulas |  |
 | <span data-option="fragmentSelection" data-levels="grid"></span>[`fragmentSelection`](@/api/options.md#fragmentselection) | Yes | No | No | No | Core |  |
 | <span data-option="freezeBar" data-levels="grid"></span>[`freezeBar`](@/api/options.md#freezebar) | Yes | No | No | No | FreezeBar |  |

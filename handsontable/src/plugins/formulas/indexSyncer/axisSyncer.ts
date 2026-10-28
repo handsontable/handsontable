@@ -264,10 +264,18 @@ class AxisSyncer {
     this.#adoptedWhileHeld = false;
     this.#translationCache = null;
 
-    const engine = this.#indexSyncer.getEngine();
+    if (!held && syncOnRelease) {
+      this.#syncOrderWithGrid();
+    }
+  }
+
+  /**
+   * Sends the grid's current order to the engine, when there is a sheet to send it to.
+   */
+  #syncOrderWithGrid() {
     const sequence = this.#indexMapper.getIndexesSequence();
 
-    if (!held && syncOnRelease && engine !== null && this.#indexSyncer.getSheetId() !== null
+    if (this.#indexSyncer.getEngine() !== null && this.#indexSyncer.getSheetId() !== null
       && sequence.length > 0 && !this.#isSheetRemoved()) {
       this.#syncOrderWithEngine(sequence);
     }
@@ -326,8 +334,10 @@ class AxisSyncer {
   }
 
   /**
-   * Takes over an engine order `getEngineOrder()` returned, without sending anything to the engine:
-   * the caller has just loaded a sheet that already holds its content in that order.
+   * Takes over an engine order `getEngineOrder()` returned: the caller has just loaded a sheet that already
+   * holds its content in that order. The order was recorded earlier, so the grid can have left it since (a
+   * reorder made after the recorded step). Unless the order is held, the engine then follows the grid's
+   * current order, as it would have had the reorder come after the load.
    *
    * @param {object} order The order to take over.
    */
@@ -340,6 +350,10 @@ class AxisSyncer {
 
     this.#paddedElements = new Set<number>(order.paddedElements.filter(physicalIndex => held.has(physicalIndex)));
     this.#translationCache = null;
+
+    if (!this.#orderHeld) {
+      this.#syncOrderWithGrid();
+    }
   }
 
   /**
@@ -565,6 +579,55 @@ class AxisSyncer {
     }
 
     return true;
+  }
+
+  /**
+   * Tells whether nothing needs a row or column of the engine's sheet: it holds no content, and no formula
+   * reads a cell of it (an empty cell a formula reads still counts towards the sheet's size).
+   *
+   * @param {HyperFormulaEngine} engine The engine.
+   * @param {number} sheetId The sheet the axis is synced with.
+   * @param {number} engineIndex Index of the row or column in the engine.
+   * @param {number} sizeForOtherAxis Size of the sheet along the other axis.
+   * @returns {boolean}
+   */
+  #isEngineLineUnused(engine: HyperFormulaEngine, sheetId: number, engineIndex: number, sizeForOtherAxis: number) {
+    for (let other = 0; other < sizeForOtherAxis; other += 1) {
+      const address = this.#axis === 'row'
+        ? { sheet: sheetId, row: engineIndex, col: other }
+        : { sheet: sheetId, row: other, col: engineIndex };
+
+      if (!engine.isCellEmpty(address) || engine.getCellDependents(address).length > 0) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Removes the rows or columns at the end of the engine's sheet that nothing needs, down to `minSize`.
+   * Replacing a sheet's content never shrinks it, so the line an insert added stays behind when an undo
+   * restores the sheet without it, and every insert and undo would add one more. The floor is the size the
+   * sheet had in the state that is restored, so only what the step added is taken away.
+   *
+   * @param {number} minSize The size along this axis the sheet keeps at least.
+   */
+  trimUnusedTail(minSize: number) {
+    const engine = this.#indexSyncer.getEngine()!;
+    const sheetId = this.#indexSyncer.getSheetId()!;
+    const { width, height } = engine.getSheetDimensions(sheetId);
+    const isRowAxis = this.#axis === 'row';
+    const size = isRowAxis ? height : width;
+    let usedSize = size;
+
+    while (usedSize > minSize && this.#isEngineLineUnused(engine, sheetId, usedSize - 1, isRowAxis ? width : height)) {
+      usedSize -= 1;
+    }
+
+    if (usedSize < size) {
+      engine[`remove${toUpperCaseFirst(this.#axis)}s`](sheetId, [usedSize, size - usedSize]);
+    }
   }
 
   /**

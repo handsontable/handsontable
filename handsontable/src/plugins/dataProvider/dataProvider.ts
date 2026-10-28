@@ -1639,18 +1639,31 @@ export class DataProvider extends BasePlugin {
 
   /**
    * Derives the query parameters again after the owner changed the view, from the Pagination, ColumnSorting, and
-   * Filters states the change left behind (the new view's own, since restoring its sort and filters runs passively),
-   * starting on page 1. A fetch still running for the new context keeps its own query. A replayed response sets
-   * its own query afterwards.
+   * Filters states the change left behind (the new view's own, since restoring its sort and filters runs passively).
+   * A view the owner keeps no response for puts Pagination back on the configured `initialPage` and `pageSize`
+   * first, and its query takes that `initialPage` even while the pager, which counts the rows the grid holds until
+   * a response gives a total, shows a lower page, so its first fetch asks for them, as the grid's own first fetch
+   * does. A fetch still running for the new
+   * context keeps its own query. A replayed response sets its own query afterwards.
    */
   #rederiveQuery(): void {
-    if (!this.enabled) {
+    const binding = this.#currentBinding();
+
+    if (!this.enabled || !binding) {
       return;
     }
 
+    const initialPage = this.#latestResultFor(binding) === null
+      ? this.hot.getPlugin('pagination')?._resetDataProviderPage()
+      : undefined;
+
     this.#queryParameters = { ...INITIAL_QUERY_PARAMETERS };
     this.#applyQueryParametersFromPlugins();
-    this.#queryParameters = { ...this.#queryParameters, page: 1 };
+
+    if (initialPage !== undefined) {
+      this.#queryParameters = { ...this.#queryParameters, page: initialPage };
+    }
+
     this.#adoptPendingQuery();
   }
 

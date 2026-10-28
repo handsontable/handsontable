@@ -341,7 +341,7 @@ export class EmptyDataState extends BasePlugin {
         this.#setLoadingActive();
       }
     });
-    this.addHook('afterDataProviderFetch', () => this.#clearLoadingActive());
+    this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch);
     this.addHook('afterDataProviderFetchError', this.#onAfterDataProviderFetchError);
 
     super.enablePlugin();
@@ -839,6 +839,20 @@ export class EmptyDataState extends BasePlugin {
     }
 
     this.#selectionState = null;
+  };
+
+  /**
+   * Hides the loading overlay when the fetch it waits for loads. A replayed response (`isRestored`) is not the end
+   * of a fetch: it brings back rows the grid already shows, and a fetch replayed over may still be running, so the
+   * overlay stays as it is. When no fetch runs, the overlay is already hidden by then.
+   *
+   * @param {object} [result] The {@link Hooks#afterDataProviderFetch} payload.
+   * @returns {void}
+   */
+  readonly #onAfterDataProviderFetch = (result?: { isRestored?: true }) => {
+    if (result?.isRestored !== true) {
+      this.#clearLoadingActive();
+    }
   };
 
   /**

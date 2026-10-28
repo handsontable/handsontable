@@ -62,6 +62,7 @@ const jsPaths = [
   { path: 'guides/cell-types/password-cell-type/password-cell-type' },
   { path: 'guides/cell-types/handsontable-cell-type/handsontable-cell-type' },
   { path: 'guides/formulas/formula-calculation/formula-calculation' },
+  { path: 'guides/formulas/formula-builder/formula-builder' },
   { path: 'guides/navigation/keyboard-shortcuts/keyboard-shortcuts' },
   { path: 'guides/navigation/custom-shortcuts/custom-shortcuts' },
   { path: 'guides/navigation/searching-values/searching-values' },
@@ -184,6 +185,7 @@ const reactPaths = [
   { path: 'guides/cell-types/password-cell-type/password-cell-type' },
   { path: 'guides/cell-types/handsontable-cell-type/handsontable-cell-type' },
   { path: 'guides/formulas/formula-calculation/formula-calculation' },
+  { path: 'guides/formulas/formula-builder/formula-builder' },
   { path: 'guides/navigation/keyboard-shortcuts/keyboard-shortcuts' },
   { path: 'guides/navigation/custom-shortcuts/custom-shortcuts' },
   { path: 'guides/navigation/searching-values/searching-values' },
@@ -301,6 +303,7 @@ const angularPaths = [
   { path: 'guides/cell-types/password-cell-type/password-cell-type' },
   { path: 'guides/cell-types/handsontable-cell-type/handsontable-cell-type' },
   { path: 'guides/formulas/formula-calculation/formula-calculation' },
+  { path: 'guides/formulas/formula-builder/formula-builder' },
   { path: 'guides/navigation/keyboard-shortcuts/keyboard-shortcuts' },
   { path: 'guides/navigation/custom-shortcuts/custom-shortcuts' },
   { path: 'guides/navigation/searching-values/searching-values' },
@@ -426,6 +429,7 @@ const vuePaths = [
   { path: 'guides/cell-types/handsontable-cell-type/handsontable-cell-type' },
   // Formulas
   { path: 'guides/formulas/formula-calculation/formula-calculation' },
+  { path: 'guides/formulas/formula-builder/formula-builder' },
   // Server-side data
   { path: 'guides/getting-started/server-side-data/server-side-data' },
   { path: 'guides/getting-started/server-side-data/server-side-data-migration' },

@@ -2292,11 +2292,10 @@ export default (): Record<string, unknown> => {
      *
      * While the [`sheetsBar`](#sheetsbar) option is enabled, a grid-level `dataProvider` is ignored (with one console
      * warning), and the grid gets it back when you turn the sheets bar off. Declare `dataProvider` in the `settings` of
-     * each sheet that loads from a server instead. While a sheet that declares its own `dataProvider` is shown, a
-     * `dataProvider` passed through [`updateSettings()`](@/api/core.md#updatesettings) replaces that sheet's own one.
-     * The only exception is the same object as the ignored grid-level value, which the sheet ignores too. So if you
-     * keep a grid-level `dataProvider` anyway, pass the same object every time: a framework wrapper that builds a new
-     * object on every render re-configures the sheet you see.
+     * each sheet that loads from a server instead, and change it with
+     * [`updateSheetSettings()`](@/api/sheetsBar.md#updatesheetsettings). If you keep a grid-level `dataProvider`
+     * anyway, pass the same object every time: a framework wrapper that builds a new object on every render
+     * re-configures the sheet you see.
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -3083,6 +3082,7 @@ export default (): Record<string, unknown> => {
      * | `'date'`            | `DateEditor`                                                               |
      * | `'intl-date'`       | `IntlDateEditor`                                                           |
      * | `'dropdown'`        | `DropdownEditor`                                                           |
+     * | `'formula'`         | The [`FormulaBuilder`](@/api/formulaBuilder.md) formula editor (a plain text editor while that plugin is off) |
      * | `'handsontable'`    | `HandsontableEditor`                                                       |
      * | `'numeric'`         | `NumericEditor`                                                            |
      * | `'password'`        | `PasswordEditor`                                                           |
@@ -4092,6 +4092,59 @@ export default (): Record<string, unknown> => {
      * ```
      */
     fixedRowsTop: 0,
+
+    /**
+     * The `formulaBuilder` option configures the [`FormulaBuilder`](@/api/formulaBuilder.md) plugin.
+     *
+     * The [`FormulaBuilder`](@/api/formulaBuilder.md) plugin adds spreadsheet-style formula
+     * editing (a formula bar, an inline formula editor with colored references, reference
+     * picking, and formula error indicators) on top of the [`Formulas`](@/api/formulas.md) plugin,
+     * which must be enabled with a configured engine.
+     *
+     * You can set the `formulaBuilder` option to `false` (the plugin is off) or to an object with the
+     * following properties. There is no `true`: the plugin needs the `builder` module to run.
+     *
+     * | Property         | Possible values                                                 |
+     * | ---------------- | --------------------------------------------------------------- |
+     * | `builder`        | The `hyperformula-ui` module namespace (`import * as FormulaBuilderModule from 'hyperformula-ui'`). Required. |
+     * | `showFormulaBar` | A boolean. Renders the formula bar above the grid when `true`. Default: `false`. |
+     * | `popups`         | An object with the popup options: `showClose`, `suggestions`, `fnHelp`, and `error`. |
+     * | `direction`      | `'ltr'` or `'rtl'`. The layout direction of the editor and its popups. Default: the grid's layout direction. |
+     *
+     * Formula editing is opt-in per cell: set [`editor`](#editor) to `'formula'` on the cells,
+     * columns, or grid that use the formula editor.
+     *
+     * Read more:
+     * - [Formula builder](@/guides/formulas/formula-builder/formula-builder.md)
+     * - [Plugins: `Formulas`](@/api/formulas.md)
+     *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @since 19.0.0
+     * @memberof Options#
+     * @type {object|boolean}
+     * @default undefined
+     * @category FormulaBuilder
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * import * as FormulaBuilderModule from 'hyperformula-ui';
+     * import { HyperFormula } from 'hyperformula';
+     *
+     * // the formula editor on every cell
+     * editor: 'formula',
+     * formulas: {
+     *   engine: HyperFormula,
+     * },
+     * formulaBuilder: {
+     *   builder: FormulaBuilderModule,
+     *   showFormulaBar: true,
+     * },
+     * ```
+     */
+    formulaBuilder: undefined,
 
     /**
      * The `formulas` option configures the [`Formulas`](@/api/formulas.md) plugin.
@@ -7587,12 +7640,12 @@ export default (): Record<string, unknown> => {
      *
      * | Option        | Possible settings                                  | Description                                                                                 |
      * | ------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-     * | `sheets`      | An array of `{ name, data, settings }` objects, or `null` | Defines the workbook. When omitted, the grid's own data becomes a single `Sheet1`. The array works like the [`data`](#data) option: the plugin writes into it, so a rename changes the entry's `name`, a sheet the user adds or duplicates is appended with its own `data`, and a removed sheet's entry is spliced out. Keep the array, its entries, and their `data` mutable and stable: the same array passed again keeps the workbook, while an array that describes other sheets rebuilds it. On a frozen array or entry, a rename, an add, a duplicate, or a removal is refused with a console warning before it changes anything, from the bar or from the API. A sheet's `settings` you change with [`updateSheetSettings()`](@/api/sheetsBar.md#updatesheetsettings) are not written back into the entry |
-     * | `activeSheet` | A number (default: `0`)                              | The position, within `sheets`, of the sheet to activate on initialization. The position counts in the order of your `sheets` array, not in the order of the tabs, which the user can rearrange. Passed later through [`updateSettings()`](@/api/core.md#updatesettings) with a changed value, it switches the active sheet without rebuilding the workbook; a value equal to the one you passed last is ignored, also after a removal. When a sheet is removed in front of it, the plugin lowers its own copy of the value so it keeps naming the same sheet. With `sheetsBar: true`, which declares no `sheets`, it counts in the tab order |
-     * | `controls`    | Boolean (default: `true`)                            | Controls visibility of the add-sheet and sheet-menu controls                                  |
+     * | `sheets`      | An array of `{ name, data, settings }` objects, or `null` | Defines the workbook. When omitted, the grid's own data becomes a single `Sheet1`. Like the [`data`](#data) option, the plugin writes into the array: renames, added and duplicated sheets, and removals. Tab order and [`updateSheetSettings()`](@/api/sheetsBar.md#updatesheetsettings) changes aren't written. Keep the array, its entries, and their `data` mutable and stable: the same array passed again keeps the workbook, while an array that describes other sheets rebuilds it. On a frozen array or entry, those changes are refused with a console warning |
+     * | `activeSheet` | A number (default: `0`)                              | The position, within `sheets` (not in the tab order), of the sheet to activate on initialization. To switch sheets later, call [`setActiveSheet()`](@/api/sheetsBar.md#setactivesheet). With `sheetsBar: true`, which declares no `sheets`, it counts in the tab order |
+     * | `controls`    | Boolean (default: `true`)                            | Controls visibility of the add-sheet and all-sheets menu controls                             |
      * | `paging`      | Boolean (default: `true`)                            | Controls visibility of the tab-scrolling controls, shown when tabs overflow the bar's width    |
      * | `position`    | `'top'` \| `'bottom'` (default: `'bottom'`)          | The edge of the grid the bar renders on                                                        |
-     * | `uiContainer` | An HTML element (default: `null`)                    | The container element where the sheets bar UI will be installed. If not provided, the bar is injected below the root table element |
+     * | `uiContainer` | An HTML element (default: `null`)                    | The container element where the sheets bar UI will be installed. If not provided, the bar renders on the edge of the grid that `position` names |
      * | `animation`   | Boolean, or an object of booleans (default: `true`) | Turns the tab animations on or off. `false` makes every tab change instant. An object turns single animations off: `switch` (the active tab marker's slide), `add` (a new or duplicated tab's entrance), `remove` (a removed tab's exit and the tabs closing the gap), and `move` (the tabs sliding to new places after a move, and the tabs a drag pushes aside). A key you leave out stays on. Reduced motion and a theme with `--ht-table-transition: 0s` make every tab change instant whatever this option says. The hover color fade is CSS only and is not affected. An invalid value is ignored with a console warning, and the previous value stays in force |
      *
      * Read more:

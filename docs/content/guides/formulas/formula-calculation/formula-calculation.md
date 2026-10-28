@@ -2,7 +2,7 @@
 type: how-to
 title: Formula calculation
 metaTitle: Formula calculation | Handsontable DataGrid for JavaScript
-description: Perform calculations on cells' values, using a powerful calculation engine that handles nearly 400 functions, custom functions, named expressions, and more.
+description: Perform calculations on cells' values, using a powerful calculation engine that handles about 400 functions, custom functions, named expressions, and more.
 permalink: /formula-calculation
 canonicalUrl: /formula-calculation
 tags:
@@ -25,9 +25,13 @@ searchCategory: Guides
 category: Formulas
 menuTag: updated
 ---
-The `Formulas` plugin adds spreadsheet-style calculation to Handsontable DataGrid, powered by [HyperFormula](https://handsontable.com/hyperformula/). It supports ~400 built-in functions, cross-sheet references, named expressions, and custom function implementations.
+The `Formulas` plugin adds spreadsheet-style calculation to Handsontable DataGrid, powered by [HyperFormula](https://handsontable.com/hyperformula/). It supports about 400 built-in functions, cross-sheet references, named expressions, and custom function implementations.
+
+HyperFormula is a separate package that you install and license on its own. For steps, see [Formulas: Installation](@/guides/formulas/installation/installation.md).
 
 Filling formula cells with [autofill](@/guides/cell-features/autofill-values/autofill-values.md) adjusts relative references per target cell, the same way a spreadsheet application does. See [Autofill and formulas](@/guides/cell-features/autofill-values/autofill-values.md#autofill-and-formulas).
+
+For a spreadsheet-style formula editing UI - a formula bar, colored references, reference picking, and autocomplete - see the [Formula builder](@/guides/formulas/formula-builder/formula-builder.md) guide.
 
 [[toc]]
 
@@ -695,7 +699,7 @@ exist, or is a range whose `start` and `end` are on different sheets. Always set
 ## Available functions
 
 The plugin inherits all calculation capabilities from HyperFormula. The complete function reference
-(386 functions across Math, Engineering, Statistical, Financial, Logical, and other categories) is
+(about 400 functions across Math, Engineering, Statistical, Financial, Logical, and other categories) is
 in the
 [HyperFormula built-in functions docs](https://handsontable.github.io/hyperformula/guide/built-in-functions.html).
 

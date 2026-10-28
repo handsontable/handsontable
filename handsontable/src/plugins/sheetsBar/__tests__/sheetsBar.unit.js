@@ -3918,8 +3918,9 @@ describe('SheetsBar plugin', () => {
     const opened = jest.spyOn(SheetsBarMenus.prototype, 'openTabMenu').mockImplementation(() => {});
 
     // Right-click: the one gesture that opens the menu of a tab you are not currently on.
-    hot.rootWrapperElement.querySelectorAll('.ht-sheets-bar__tab').forEach((tab) => {
-      tab.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
+    [0, 1, 2].forEach((index) => {
+      hot.rootWrapperElement.querySelectorAll('.ht-sheets-bar__tab')[index]
+        .dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
     });
 
     expect(opened.mock.calls.map(call => [call[1].canMoveLeft, call[1].canMoveRight])).toEqual([
@@ -3939,10 +3940,10 @@ describe('SheetsBar plugin', () => {
     });
 
     const opened = jest.spyOn(SheetsBarMenus.prototype, 'openTabMenu').mockImplementation(() => {});
-    const tabs = hot.rootWrapperElement.querySelectorAll('.ht-sheets-bar__tab');
 
-    tabs.forEach((tab) => {
-      tab.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
+    [0, 1, 2].forEach((index) => {
+      hot.rootWrapperElement.querySelectorAll('.ht-sheets-bar__tab')[index]
+        .dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
     });
 
     // Under RTL the sheet at index 0 is the rightmost tab, so "move right" is the one with
@@ -5286,6 +5287,75 @@ describe('SheetsBar plugin', () => {
       expect(hot.getSettings().dataProvider).toBeNull();
       plugin.setActiveSheet('Orders');
       expect(hot.getSettings().dataProvider).toBe(own);
+    });
+
+    it('replaces the visible server sheet\'s dataProvider through updateSheetSettings()', () => {
+      const declared = makeProvider();
+      const next = makeProvider();
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'Orders', data: [], settings: { dataProvider: declared } },
+            { name: 'Notes', data: [[1]] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      expect(plugin.updateSheetSettings('Orders', { dataProvider: next })).toBe(true);
+      expect(hot.getSettings().dataProvider).toBe(next);
+      plugin.setActiveSheet('Notes');
+      expect(hot.getSettings().dataProvider).toBeNull();
+      plugin.setActiveSheet('Orders');
+      expect(hot.getSettings().dataProvider).toBe(next);
+    });
+
+    it('turns the visible server sheet local with updateSheetSettings({ dataProvider: null })', () => {
+      const declared = makeProvider();
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'Orders', data: [], settings: { dataProvider: declared } },
+            { name: 'Notes', data: [[1]] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      expect(plugin.updateSheetSettings('Orders', { dataProvider: null })).toBe(true);
+      expect(hot.getSettings().dataProvider).toBeNull();
+      plugin.setActiveSheet('Notes');
+      plugin.setActiveSheet('Orders');
+      expect(hot.getSettings().dataProvider).toBeNull();
+    });
+
+    it('gives a hidden local sheet a dataProvider through updateSheetSettings()', () => {
+      const own = makeProvider();
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'Notes', data: [[1]] },
+            { name: 'Orders', data: [] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      expect(plugin.updateSheetSettings('Orders', { dataProvider: own })).toBe(true);
+      expect(hot.getSettings().dataProvider ?? null).toBeNull();
+      plugin.setActiveSheet('Orders');
+      expect(hot.getSettings().dataProvider).toBe(own);
+      plugin.setActiveSheet('Notes');
+      expect(hot.getSettings().dataProvider).toBeNull();
     });
 
     it('does not adopt the first-visited sheet\'s own dataProvider as the grid-level baseline', () => {
