@@ -154,7 +154,7 @@ The rules, the numbers behind them, and the approval flow are in `performance-te
 - **An unset `verdict` must only ever come with a red job.** `approve` keys on the output, so a green run with no output would skip the approval and merge a regression unreviewed. The enforce step stays last, has no `continue-on-error`, and writes `GITHUB_OUTPUT` before it sets the exit code; `approve` carries `!failure()`. `.github/scripts/__tests__/perf-gate-step.test.mjs` pins all of it, including that `approve`'s `if:` keys on `OUTCOMES.REGRESSED`.
 - **The confirm re-run is part of the job's time budget.** `perf-artifact-download.test.mjs` derives the PR job's `timeout-minutes` from the scenario count, the Playwright timeout and `CONFIRM_MAX_SCENARIOS`; raise one and the test asks for the matching timeout.
 - **A line moves only through the replay.** Change `GATE_*` or a heap threshold after `node scripts/replay-goldens.mjs --since <date>` says where the knee is, and quote its gate section in the pull request. The reports' red band follows `GATE_TIMING_THRESHOLD`.
-- **Warn first.** `GATE_MODE` in `lib/gate.mjs` is `'warn'` until the warn period's `::notice title=perf-gate::` lines show no false would-fail; `'block'` also needs the `performance-approval` environment to exist with required reviewers.
+- **Warn first.** `GATE_MODE` in `lib/gate.mjs` is `'warn'` until the warn period's `perf-gate` notices show no false would-fail (count them from the check run's annotations: the job log prints them as `##[notice]status=…` and drops the title); `'block'` also needs the `performance-approval` environment to exist with required reviewers.
 
 ## The trace pipeline
 

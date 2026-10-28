@@ -311,9 +311,11 @@ in the teardown (`lib/gate.mjs`), from the same assessment the comment renders, 
   comment to say who approved.
 - **Warn mode first.** `GATE_MODE` is `'warn'`: a regression exports `warned`, prints a warning, and
   nothing waits. It moves to `'block'` once the warn period has measured the false-fail rate on real
-  pull request runs. Count it from the job logs: every pull request run prints one
-  `::notice title=perf-gate::status=… failing=… cleared=…` line. `PERF_GATE_MODE=block` forces block
-  mode for one run.
+  pull request runs. Every pull request run leaves one `perf-gate` notice, `status=… failing=…
+  cleared=…`. Count it from the check run's annotations, which keep the title
+  (`gh api repos/handsontable/handsontable/check-runs/<job id>/annotations`). The job log shows the
+  same line as `##[notice]status=…`, without the title. `PERF_GATE_MODE=block` forces block mode for
+  one run.
 - **Before block mode** (repo admin): create the `performance-approval` environment with required
   reviewers and "Prevent self-review" off, like the other approval environments (`.ai/CI.md`). A job
   that references a missing environment auto-creates it unprotected.
