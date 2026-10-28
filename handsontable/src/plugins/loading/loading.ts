@@ -11,10 +11,12 @@ import { LOADING_CLASS_NAME } from '../../helpers/constants';
 interface DialogPlugin {
   isEnabled(): boolean;
   isVisible(): boolean;
-  show(options: LoadingDialogOptions): void;
   hide(): void;
   update(options: LoadingDialogOptions): void;
   focus(): void;
+  _showDialog(options: LoadingDialogOptions): void;
+  _addReplacedListener(listener: () => void): void;
+  _removeReplacedListener(listener: () => void): void;
 }
 
 /**
@@ -238,6 +240,7 @@ export class Loading extends BasePlugin {
     // after the first updateSettings.
     this.addHook('afterDialogFocus', this.#onAfterDialogFocus);
     this.addHook('afterDialogHide', this.#onAfterDialogHide);
+    this.#dialogPlugin?._addReplacedListener(this.#onDialogReplaced);
 
     super.enablePlugin();
   }
@@ -261,6 +264,7 @@ export class Loading extends BasePlugin {
    */
   disablePlugin() {
     this.hide();
+    this.#dialogPlugin?._removeReplacedListener(this.#onDialogReplaced);
 
     super.disablePlugin();
   }
@@ -305,7 +309,14 @@ export class Loading extends BasePlugin {
     this.#dialogPlugin.hide();
 
     this.#ownsDialog = true;
-    this.#dialogPlugin.show(this.#describeDialog());
+
+    try {
+      this.#dialogPlugin._showDialog(this.#describeDialog());
+    } catch (error) {
+      this.#ownsDialog = false;
+
+      throw error;
+    }
 
     this.hot.runHooks('afterLoadingShow');
   }
@@ -401,6 +412,21 @@ export class Loading extends BasePlugin {
     }
 
     this.#dialogPlugin!.focus();
+  };
+
+  /**
+   * Handle a dialog that replaced the loading screen while it was on screen: the application showed its own
+   * dialog (`dialog.show()` with `content` or `template`, `showAlert()`, `showConfirm()`, the ExportFile
+   * progress dialog). The loading screen is gone, so the plugin gives the dialog up and fires
+   * `afterLoadingHide`, and its `hide()` and `update()` then leave the new dialog alone.
+   */
+  #onDialogReplaced = () => {
+    if (!this.#ownsDialog) {
+      return;
+    }
+
+    this.#ownsDialog = false;
+    this.hot.runHooks('afterLoadingHide');
   };
 
   /**

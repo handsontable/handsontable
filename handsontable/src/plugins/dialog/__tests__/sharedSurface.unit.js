@@ -145,7 +145,7 @@ describe('Dialog as a surface shared by several callers', () => {
       expect(dialog.getSetting('closable')).toBe(true);
     });
 
-    it('keeps the options an update gave a visible dialog until it hides', () => {
+    it('shows the last dialog again on a `show()` without options', () => {
       hot = new Handsontable(container, {
         data: createData(3, 3),
         dialog: true,
@@ -155,14 +155,50 @@ describe('Dialog as a surface shared by several callers', () => {
 
       dialog.show({ content: 'Shown', closable: true });
       dialog.update({ content: 'Updated' });
+      dialog.hide();
 
       expect(dialog.getSetting('content')).toBe('Updated');
       expect(dialog.getSetting('closable')).toBe(true);
 
-      dialog.hide();
       dialog.show();
 
-      expect(dialog.getSetting('content')).toBe('');
+      expect(dialog.getSetting('content')).toBe('Updated');
+      expect(dialog.getSetting('closable')).toBe(true);
+      expect(hot.rootOverlaysElement.querySelector('.ht-dialog__content').textContent).toBe('Updated');
+    });
+
+    it('does not carry the last dialog\'s options into a show that brings its own content', () => {
+      hot = new Handsontable(container, {
+        data: createData(3, 3),
+        dialog: true,
+        licenseKey: LICENSE_KEY,
+      });
+      const dialog = hot.getPlugin('dialog');
+
+      dialog.show({ content: 'First', closable: true, customClassName: 'first', background: 'semi-transparent' });
+      dialog.hide();
+      dialog.show({ content: 'Second' });
+
+      expect(dialog.getSetting('closable')).toBe(false);
+      expect(dialog.getSetting('customClassName')).toBe('');
+      expect(dialog.getSetting('background')).toBe('solid');
+    });
+
+    it('does not let options prepared for another dialog reach the loading screen', () => {
+      hot = new Handsontable(container, {
+        data: createData(3, 3),
+        loading: true,
+        licenseKey: LICENSE_KEY,
+      });
+      const dialog = hot.getPlugin('dialog');
+      const loading = hot.getPlugin('loading');
+
+      hot.selectCell(0, 0);
+      dialog.update({ closable: true, content: 'Prepared' });
+      loading.show();
+      pressEscape(hot);
+
+      expect(loading.isVisible()).toBe(true);
       expect(dialog.getSetting('closable')).toBe(false);
     });
 
@@ -198,7 +234,7 @@ describe('Dialog as a surface shared by several callers', () => {
       expect(hot.rootWrapperElement.querySelector('.ht-loading__title')).not.toBeNull();
     });
 
-    it('shows the call\'s `content` over a configured `template`, and the template again on the next plain show', () => {
+    it('shows the call\'s `content` over a configured `template`, also when shown again without options', () => {
       hot = new Handsontable(container, {
         data: createData(3, 3),
         dialog: { template: CONFIGURED_TEMPLATE },
@@ -211,10 +247,10 @@ describe('Dialog as a surface shared by several callers', () => {
       expect(dialog.getSetting('content')).toBe('Mine');
 
       dialog.hide();
-      dialog.show();
 
-      expect(dialog.getSetting('template')).toEqual(CONFIGURED_TEMPLATE);
-      expect(dialog.getSetting('content')).toBe('');
+      expect(() => dialog.show()).not.toThrow();
+      expect(dialog.getSetting('template')).toBeNull();
+      expect(dialog.getSetting('content')).toBe('Mine');
     });
 
     it('shows the call\'s `template` over a configured `content`', () => {
@@ -276,6 +312,59 @@ describe('Dialog as a surface shared by several callers', () => {
   });
 
   describe('a settings update while the dialog is shown', () => {
+    it('keeps the buttons of a shown dialog when the options it shows did not change', () => {
+      hot = new Handsontable(container, {
+        data: createData(3, 3),
+        dialog: true,
+        licenseKey: LICENSE_KEY,
+      });
+      const dialog = hot.getPlugin('dialog');
+
+      hot.selectCell(0, 0);
+      dialog.showConfirm('Delete?');
+
+      const buttons = Array.from(hot.rootOverlaysElement.querySelectorAll('.ht-dialog button'));
+
+      expect(hot.rootDocument.activeElement).toBe(buttons[0]);
+
+      hot.updateSettings({ dialog: { closable: true } });
+
+      expect(Array.from(hot.rootOverlaysElement.querySelectorAll('.ht-dialog button'))).toEqual(buttons);
+      expect(hot.rootDocument.activeElement).toBe(buttons[0]);
+    });
+
+    it('keeps the focus on the same button when new `dialog` options re-render a shown dialog', () => {
+      hot = new Handsontable(container, {
+        data: createData(3, 3),
+        dialog: true,
+        licenseKey: LICENSE_KEY,
+      });
+      const dialog = hot.getPlugin('dialog');
+
+      hot.selectCell(0, 0);
+      dialog.show({
+        template: {
+          type: 'confirm',
+          title: 'Choose',
+          buttons: [
+            { text: 'First', type: 'secondary' },
+            { text: 'Second', type: 'primary' },
+          ],
+        },
+        closable: true,
+      });
+      hot.rootOverlaysElement.querySelectorAll('.ht-dialog button')[1].focus();
+
+      hot.updateSettings({ dialog: { customClassName: 'updated' } });
+
+      expect(hot.rootOverlaysElement.querySelector('.ht-dialog').classList.contains('updated')).toBe(true);
+      expect(hot.rootDocument.activeElement.textContent).toBe('Second');
+
+      pressEscape(hot);
+
+      expect(dialog.isVisible()).toBe(false);
+    });
+
     it('keeps a shown dialog shown and applies the new `dialog` options to it', () => {
       const hidden = jest.fn();
 
@@ -353,6 +442,91 @@ describe('Dialog as a surface shared by several callers', () => {
   });
 
   describe('the selection restored on hide', () => {
+    it('restores a selection the data loaded under the loading screen still holds', () => {
+      hot = new Handsontable(container, {
+        data: createData(10, 10),
+        loading: true,
+        licenseKey: LICENSE_KEY,
+      });
+      const loading = hot.getPlugin('loading');
+
+      hot.selectCell(1, 1);
+      loading.show();
+      hot.loadData(createData(5, 5));
+      loading.hide();
+
+      expect(hot.getSelected()).toEqual([[1, 1, 1, 1]]);
+    });
+
+    it('leaves the selection alone when `updateData()` left it past the end of the data', () => {
+      hot = new Handsontable(container, {
+        data: createData(10, 10),
+        dialog: true,
+        licenseKey: LICENSE_KEY,
+      });
+      const dialog = hot.getPlugin('dialog');
+
+      hot.selectCell(2, 2);
+      dialog.show({ content: 'Shown' });
+      hot.updateData(createData(2, 2));
+      dialog.hide();
+
+      expect(hot.getSelected()).toBeUndefined();
+    });
+
+    it('leaves the selection alone when `updateSettings({ data })` left it past the end of the data', () => {
+      hot = new Handsontable(container, {
+        data: createData(10, 10),
+        dialog: true,
+        licenseKey: LICENSE_KEY,
+      });
+      const dialog = hot.getPlugin('dialog');
+
+      hot.selectCell(2, 2);
+      dialog.show({ content: 'Shown' });
+      hot.updateSettings({ data: createData(2, 2) });
+      dialog.hide();
+
+      expect(hot.getSelected()).toBeUndefined();
+    });
+
+    it('restores only the selection layers the new data still holds', () => {
+      hot = new Handsontable(container, {
+        data: createData(10, 10),
+        dialog: true,
+        licenseKey: LICENSE_KEY,
+      });
+      const dialog = hot.getPlugin('dialog');
+
+      hot.selectCells([[0, 0], [8, 8], [1, 1]]);
+      dialog.show({ content: 'Shown' });
+      hot.loadData(createData(2, 2));
+      dialog.hide();
+
+      expect(hot.getSelected()).toEqual([[0, 0, 0, 0], [1, 1, 1, 1]]);
+      expect(hot.getSelectedRangeActive().highlight.row).toBe(1);
+    });
+
+    it('restores a whole column as the whole column of the new data', () => {
+      hot = new Handsontable(container, {
+        data: createData(10, 10),
+        dialog: true,
+        licenseKey: LICENSE_KEY,
+      });
+      const dialog = hot.getPlugin('dialog');
+
+      hot.selectColumns(1);
+      dialog.show({ content: 'Shown' });
+      hot.loadData(createData(3, 3));
+      dialog.hide();
+
+      const restored = hot.getSelected();
+
+      hot.selectColumns(1);
+
+      expect(restored).toEqual(hot.getSelected());
+    });
+
     it('restores the selection the dialog stashed when the data did not change', () => {
       hot = new Handsontable(container, {
         data: createData(10, 10),

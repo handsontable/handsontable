@@ -36,22 +36,29 @@ plugin.
 ### Loading owns the dialog only while it shows its own screen
 
 The dialog is a surface the application uses too, so its visibility says nothing about the loading screen.
-`#ownsDialog` is set by `show()` and cleared by `hide()` or by `afterDialogHide` for any other hide
-(`dialog.hide()`, Escape on a configured `closable` dialog, the Dialog plugin turned off). `isVisible()`,
-`hide()` and `update()` act on the dialog only while the flag is set: before it, `loading.isVisible()` answered
-`true` for the application's own dialog and `loading.hide()` closed it. Three rules ride along.
+`#ownsDialog` is set by a successful `show()` and cleared by `hide()`, by `afterDialogHide` for any other hide
+(`dialog.hide()`, Escape on a configured `closable` dialog, the Dialog plugin turned off), and by the Dialog
+plugin's replaced listener (`_addReplacedListener()`) when another dialog is shown over the screen (an app
+`dialog.show({ content })`, `showAlert()`/`showConfirm()`, the ExportFile progress dialog). `isVisible()`, `hide()`
+and `update()` act on the dialog only while the flag is set: before it, `loading.isVisible()` answered `true` for
+the application's own dialog, and `loading.hide()`/`update()` closed or rewrote it. Rules that ride along:
 
-- **A hide from outside fires `afterLoadingHide`, never `beforeLoadingHide`**: the screen is gone, and that hide
-  cannot be vetoed. `hide()` clears the flag *before* it hides the dialog, so its own hide fires the hook once,
-  after `afterDialogHide` as before.
-- **`show()` replaces a dialog the application shows**: it hides it first, then shows the loading screen with a
-  complete description (`#describeDialog()`) through `dialog.show(options)`. It never merges into the other
-  dialog's options, which is how a confirm's `template` met the loading `content` and threw.
+- **Every way the screen goes away fires `afterLoadingHide` once, and only `hide()` fires `beforeLoadingHide`**: a
+  hide or a replacement through the Dialog plugin cannot be vetoed. `hide()` clears the flag *before* it hides the
+  dialog, so its own hide fires the hook once, after `afterDialogHide` as before.
+- **The flag is set before the dialog shows and reset when that show throws** (the error is rethrown). It has to be
+  set first, because `afterDialogFocus` fires from inside the show; without the reset a throwing
+  `beforeDialogShow` listener or a template conflict left the flag set, and the application's next dialog read as
+  the loading screen and fired a spurious `afterLoadingHide` when it hid.
+- **`show()` shows a complete description through `dialog._showDialog()`** (`#describeDialog()`), after hiding a
+  dialog the application shows. `_showDialog()` starts from the configured `dialog` options alone, so options an
+  application prepared with `dialog.update()` for another dialog (`closable: true`, say) never reach the screen.
 - **`update()` while the screen is not on screen only stores the options** for the next `show()`. It used to
   write the loading content into the hidden dialog, which is where the cross-show leaks in `../dialog/AGENTS.md`
   started.
 
-The flag is set **before** `dialog.show()`, because `afterDialogFocus` fires from inside it.
+The replaced listener is added in `enablePlugin()` and removed in `disablePlugin()`, so it is registered once per
+enable, like the tracked hooks.
 
 ### `afterDialogFocus` fires for EVERY dialog, so the listener must check whose it is
 
