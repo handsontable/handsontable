@@ -467,6 +467,43 @@ describe('HandsontableAdapter custom-selection highlights', () => {
     adapter.destroy();
   });
 
+  it('reads the border width again after `resetBorderWidth()`', () => {
+    let cssValue = '1px';
+    const hot = makeHotStub({
+      rootWindow: {
+        ...window,
+        getComputedStyle: () => ({ getPropertyValue: () => cssValue }),
+      } as unknown as Window & typeof globalThis,
+    } as Parameters<typeof makeHotStub>[0]);
+    const overlayHost = document.createElement('div');
+
+    document.body.appendChild(overlayHost);
+
+    const adapter = new HandsontableAdapter(
+      makeAdapterOptions(hot, overlayHost),
+      makePluginStub(),
+    );
+    const width = () => (customSelectionsOf(hot)[0].settings.border as { width: number }).width;
+
+    adapter.setHighlights([{ range: range(0, 0, 0, 0), color: 'red' }]);
+
+    expect(width()).toBe(1);
+
+    // A theme switched to one that declares another width: the cache keeps the old one...
+    cssValue = '2px';
+    adapter.setHighlights([{ range: range(1, 1, 1, 1), color: 'blue' }]);
+
+    expect(width()).toBe(1);
+
+    // ...until the plugin resets it on `afterSetTheme`.
+    adapter.resetBorderWidth();
+    adapter.setHighlights([{ range: range(0, 0, 0, 0), color: 'red' }]);
+
+    expect(width()).toBe(2);
+
+    adapter.destroy();
+  });
+
   it.each([
     ['color', { color: 'blue' }],
     ['fill', { fill: true }],

@@ -204,9 +204,27 @@ describe('HandsontableAdapter address-box navigation on trimmed indexes', () => 
       rowIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => 5 },
     }, { hfToVisualRow: trimmedRowTwo }, { selectFormulaCells });
 
-    adapter.setSelection(range(2, 0, 2, 0));
-
+    // `false`, not `undefined`: the address box reads it as "unavailable" and announces it.
+    expect(adapter.setSelection(range(2, 0, 2, 0))).toBe(false);
     expect(selectFormulaCells).not.toHaveBeenCalled();
+  });
+
+  it('reports an address past the last index as unavailable', () => {
+    const selectFormulaCell = jest.fn();
+    const { adapter } = makeAdapter({
+      rowIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => 5 },
+    }, { hfToVisualRow: trimmedRowTwo }, { selectFormulaCell });
+
+    expect(adapter.setActiveCell({ sheet: '', row: 9, col: 0 })).toBe(false);
+    expect(selectFormulaCell).not.toHaveBeenCalled();
+  });
+
+  it('reports nothing for an address it selects', () => {
+    const { adapter } = makeAdapter({
+      rowIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => 5 },
+    }, { hfToVisualRow: trimmedRowTwo }, { selectFormulaCell: jest.fn() });
+
+    expect(adapter.setActiveCell({ sheet: '', row: 2, col: 0 })).not.toBe(false);
   });
 });
 

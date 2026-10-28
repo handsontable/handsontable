@@ -957,8 +957,10 @@ export class HandsontableAdapter {
    * Moves the grid selection to a single cell.
    *
    * @param {CellAddress} address The target address in HyperFormula coordinates.
+   * @returns {boolean | void} `false` when the grid shows no row or column to move to, which the
+   * address box announces as unavailable.
    */
-  setActiveCell(address: CellAddress): void {
+  setActiveCell(address: CellAddress): boolean | void {
     // A trimmed row (Filters, TrimRows) has no visual index. The address box already accepted the
     // address, so the selection moves to the nearest row or column the grid shows instead of staying
     // put while the box names a cell that is not selected.
@@ -966,7 +968,7 @@ export class HandsontableAdapter {
     const visualCol = this.#nearestVisual(address.col, 'col');
 
     if (visualRow < 0 || visualCol < 0) {
-      return;
+      return false;
     }
 
     this.#plugin.selectFormulaCell(visualRow, visualCol);
@@ -976,8 +978,10 @@ export class HandsontableAdapter {
    * Moves the grid selection to a range.
    *
    * @param {CellRange} range The target range in HyperFormula coordinates.
+   * @returns {boolean | void} `false` when the range holds no index the grid shows, which the
+   * address box announces as unavailable.
    */
-  setSelection(range: CellRange): void {
+  setSelection(range: CellRange): boolean | void {
     // A corner on a trimmed index moves inward to the nearest index the grid shows, so `A2:A5` with
     // row 2 trimmed selects `A3:A5`. A range that holds no shown index selects nothing.
     const rowToVisual = (index: number) => this.#mapping.hfToVisualRow(index);
@@ -988,7 +992,7 @@ export class HandsontableAdapter {
     const endCol = this.#firstVisualIn(range.end.col, range.start.col, colToVisual);
 
     if (startRow < 0 || startCol < 0 || endRow < 0 || endCol < 0) {
-      return;
+      return false;
     }
 
     this.#plugin.selectFormulaCells(startRow, startCol, endRow, endCol);
@@ -1639,6 +1643,14 @@ export class HandsontableAdapter {
     }
 
     return true;
+  }
+
+  /**
+   * Drops the cached reference-highlight border width, so the next highlight reads it from the
+   * theme again. Called on a theme change, which keeps this adapter.
+   */
+  resetBorderWidth(): void {
+    this.#borderWidth = null;
   }
 
   /**

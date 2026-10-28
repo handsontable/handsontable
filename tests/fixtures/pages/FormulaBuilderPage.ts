@@ -17,7 +17,8 @@ export type FormulaBuilderVariant =
   | 'split-scroll'
   | 'shadow'
   | 'menus'
-  | 'dropdown';
+  | 'dropdown'
+  | 'checkboxes';
 
 /**
  * The overlay a frozen cell is drawn in, by the class of its clone.
@@ -58,6 +59,7 @@ interface FixtureWindow {
     getActiveEditor(): { isOpened?: () => boolean } | undefined;
     getPlugin(name: string): {
       getSortConfig?: () => unknown[];
+      getSelectedRows?: () => number[];
       sort?: (config: { column: number; sortOrder: 'asc' | 'desc' }) => void;
       open?: (position: { left: number; top: number }) => void;
     } | undefined;
@@ -196,6 +198,66 @@ export class FormulaBuilderPage {
    */
   dropdownArrow(row: number, col: number): Locator {
     return this.cell(row, col).locator('.htAutocompleteArrow');
+  }
+
+  /**
+   * The checkbox a checkbox cell draws (the `checkboxes` variant).
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @returns {Locator}
+   */
+  cellCheckbox(row: number, col: number): Locator {
+    return this.cell(row, col).locator('input[type="checkbox"]');
+  }
+
+  /**
+   * The "check all" checkbox CheckboxHeader draws in a column header (the `checkboxes` variant).
+   *
+   * @returns {Locator}
+   */
+  headerCheckbox(): Locator {
+    return this.grid.locator('.ht_clone_top input.htCheckboxHeaderInput');
+  }
+
+  /**
+   * A column header's label, which a press picks the column from.
+   *
+   * @param {string} label The header label.
+   * @returns {Locator}
+   */
+  columnHeaderLabel(label: string): Locator {
+    return this.grid.locator('.ht_clone_top span.colHeader').getByText(label, { exact: true });
+  }
+
+  /**
+   * The row header cell RowSelection adds for a row, holding the row's checkbox.
+   *
+   * @param {number} row The visual row index.
+   * @returns {Locator}
+   */
+  rowSelectionHeader(row: number): Locator {
+    return this.grid.locator('.ht_clone_inline_start tbody tr').nth(row).locator('th.htRowSelectionCell');
+  }
+
+  /**
+   * The row header cell that shows a row's number.
+   *
+   * @param {number} row The visual row index.
+   * @returns {Locator}
+   */
+  rowNumberHeader(row: number): Locator {
+    return this.grid.locator('.ht_clone_inline_start tbody tr').nth(row).locator('th:not(.htRowSelectionCell)');
+  }
+
+  /**
+   * The rows RowSelection has selected (the `checkboxes` variant).
+   *
+   * @returns {Promise<number[]>}
+   */
+  async selectedRows(): Promise<number[]> {
+    return this.page.evaluate(
+      () => (window as unknown as FixtureWindow).hot.getPlugin('rowSelection')?.getSelectedRows?.() ?? []);
   }
 
   /**

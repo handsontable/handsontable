@@ -232,6 +232,15 @@ describe('CellPickController.onBeforeMouseDown', () => {
     expect(adapterStub.highlightRange).not.toHaveBeenCalled();
   });
 
+  it('claims the press that switches the bar-selected cell to inline editing', () => {
+    // RowSelection's click selection runs from `afterOnCellMouseDown`, and DragToScroll reads the flag:
+    // only a claimed press keeps both out.
+    const { controller } = makeHarness({ barSelected: { row: 1, col: 2 } });
+    const { event } = pressCell(controller, { row: 1, col: 2 });
+
+    expect(isImmediatePropagationStopped(event)).toBe(true);
+  });
+
   it('leaves the grid event untouched when the caret cannot take a reference', () => {
     const { controller, adapterStub } = makeHarness({ refSelectionActive: false });
     const { event, flags } = pressCell(controller, { row: 1, col: 2 });
@@ -1239,5 +1248,155 @@ describe('CellPickController nested-header group picks', () => {
       end: 6,
       append: false,
     });
+  });
+});
+
+/**
+ * Simulates a grid mousedown whose target is the given element.
+ *
+ * @param {CellPickController} controller The controller under test.
+ * @param {GridCoords} coords The pressed cell coordinates.
+ * @param {Element} target The pressed element.
+ * @returns {object} The mousedown event and the flags object.
+ */
+function pressElement(controller: CellPickController, coords: GridCoords, target: Element) {
+  const event = new MouseEvent('mousedown', { bubbles: true, cancelable: true, buttons: 1 });
+  const flags = makeFlags();
+
+  Object.defineProperty(event, 'target', { value: target });
+  controller.onBeforeMouseDown(event, coords, undefined, flags);
+
+  return { event, flags };
+}
+
+/**
+ * Dispatches a click on the element and returns it.
+ *
+ * @param {Element} target The clicked element.
+ * @returns {MouseEvent} The dispatched click event.
+ */
+function clickOn(target: Element): MouseEvent {
+  const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+  target.dispatchEvent(event);
+
+  return event;
+}
+
+describe('CellPickController presses on other plugins\' controls', () => {
+  it.each([
+    ['a CheckboxHeader checkbox', 'input', 'htCheckboxRendererInput htCheckboxHeaderInput', { row: -1, col: 3 }],
+    ['a NestedRows button', 'div', 'ht_nestingButton ht_nestingCollapse', { row: 4, col: -1 }],
+    ['a RowSelection header cell', 'th', 'htRowSelectionCell', { row: 1, col: -1 }],
+    ['a RowSelection header checkbox', 'input', 'htCheckboxRendererInput htRowSelectionCheckbox', { row: -1, col: 0 }],
+  ])('leaves a header press on %s to its plugin', (_name, tagName, className, coords) => {
+    const { controller, adapterStub } = makeHarness();
+    const control = document.createElement(tagName);
+
+    control.className = className;
+    document.body.append(control);
+
+    const { event, flags } = pressElement(controller, coords, control);
+
+    expect(flags).toEqual({ row: false, column: false, cell: false });
+    expect(isImmediatePropagationStopped(event)).toBe(false);
+    expect(controller.isHeaderPickActive()).toBe(false);
+    controller.onDocMouseUp();
+    expect(adapterStub.emitHeaderPick).not.toHaveBeenCalled();
+  });
+
+  it('starts a header pick on the header text next to a control', () => {
+    const { controller } = makeHarness();
+    const headerCell = document.createElement('th');
+    const label = document.createElement('span');
+
+    headerCell.append(label);
+    document.body.append(headerCell);
+
+    const { flags } = pressElement(controller, { row: -1, col: 3 }, label);
+
+    expect(flags).toEqual({ row: true, column: true, cell: true });
+    expect(controller.isHeaderPickActive()).toBe(true);
+  });
+
+  it('leaves a cell press on a RowSelection checkbox to its plugin', () => {
+    const { controller, adapterStub } = makeHarness();
+    const checkbox = document.createElement('input');
+
+    checkbox.type = 'checkbox';
+    checkbox.className = 'htCheckboxRendererInput htRowSelectionCheckbox';
+    document.body.append(checkbox);
+
+    const { event, flags } = pressElement(controller, { row: 2, col: 0 }, checkbox);
+
+    controller.onDocMouseUp();
+
+    expect(flags).toEqual({ row: false, column: false, cell: false });
+    expect(isImmediatePropagationStopped(event)).toBe(false);
+    expect(adapterStub.emitCellPick).not.toHaveBeenCalled();
+  });
+});
+
+describe('CellPickController picks on a checkbox cell', () => {
+  it('picks the cell and keeps the checkbox from toggling on the trailing click', () => {
+    const { controller, adapterStub } = makeHarness();
+    const checkbox = document.createElement('input');
+
+    checkbox.type = 'checkbox';
+    checkbox.className = 'htCheckboxRendererInput';
+    document.body.append(checkbox);
+
+    pressElement(controller, { row: 1, col: 3 }, checkbox);
+    controller.onDocMouseUp();
+
+    const click = clickOn(checkbox);
+
+    expect(adapterStub.emitCellPick).toHaveBeenCalledTimes(1);
+    expect(click.defaultPrevented).toBe(true);
+    expect(checkbox.checked).toBe(false);
+  });
+
+  it('keeps a label that holds the checkbox from toggling it', () => {
+    const { controller } = makeHarness();
+    const label = document.createElement('label');
+    const checkbox = document.createElement('input');
+    const text = document.createElement('span');
+
+    checkbox.type = 'checkbox';
+    label.append(checkbox, text);
+    document.body.append(label);
+
+    pressElement(controller, { row: 1, col: 3 }, text);
+    controller.onDocMouseUp();
+
+    expect(clickOn(text).defaultPrevented).toBe(true);
+    expect(checkbox.checked).toBe(false);
+  });
+
+  it('swallows only the first trailing click', () => {
+    const { controller } = makeHarness();
+    const checkbox = document.createElement('input');
+
+    checkbox.type = 'checkbox';
+    document.body.append(checkbox);
+
+    pressElement(controller, { row: 1, col: 3 }, checkbox);
+    controller.onDocMouseUp();
+    clickOn(checkbox);
+
+    expect(clickOn(checkbox).defaultPrevented).toBe(false);
+    expect(checkbox.checked).toBe(true);
+  });
+
+  it('leaves the clicks of a cell without a checkbox alone', () => {
+    const { controller } = makeHarness();
+    const label = document.createElement('label');
+
+    document.body.append(label);
+
+    pressElement(controller, { row: 1, col: 3 }, label);
+    controller.onDocMouseUp();
+
+    expect(clickOn(label).defaultPrevented).toBe(false);
   });
 });

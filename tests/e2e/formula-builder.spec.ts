@@ -23,6 +23,15 @@ test.describe('formulaBuilder plugin', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BR
     await expect(grid.addressInput).toHaveValue('B1');
   });
 
+  test('the formula bar shows the new content of the selected cell after an application write', async () => {
+    await grid.selectCell(0, 2);
+    await expect(grid.barFormulaArea).toContainText('=A1+B1');
+
+    // No selection hook runs for a write to the selected cell: the bar has to hear about it anyway.
+    await grid.setDataAt(0, 2, '=A1*3');
+    await expect(grid.barFormulaArea).toContainText('=A1*3');
+  });
+
   test('a page stylesheet loaded before the grid overrides the theme\'s formula builder tokens', async({ page }) => {
     // The core stylesheet reaches the page after the application's own CSS, so its token block must
     // not out-rank a plain class selector: the guide tells applications to declare on these classes.

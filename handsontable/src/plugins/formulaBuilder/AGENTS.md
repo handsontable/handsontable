@@ -54,6 +54,16 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   on every Ctrl+click of a sortable header, so a Ctrl+click on a sortable group header stopped selecting
   the span), and disabling DragToScroll for the length of a pick (each re-enable re-registered its hooks at
   the tail of every list).
+  The later `beforeOnCellMouseDown` listeners still run too: the hook runner does not stop on the flag.
+  A plugin that acts on a press from that hook (CheckboxHeader's "check all", RowSelection's header and
+  checkbox cells, NestedRows' collapse button, CollapsibleColumns' indicator) would act AND the pick would
+  insert a reference, so a press on such a control is left to its plugin (`HEADER_CONTROL_SELECTOR` and
+  `CELL_CONTROL_SELECTOR` in `cellPickController.ts`): no pick starts. Add a new control there; teaching
+  the hook runner to skip later callbacks once the flag is set would change every event hook. A checkbox
+  cell is different: its renderer toggles the box on the native `click`, after the claimed `mousedown`,
+  so a pick that starts on the box or its label arms a one-shot click swallow and the pick wins.
+  The handoff press (a click on the bar-selected cell, which moves the edit into the cell) is claimed
+  as well, not only suppressed: RowSelection's click selection runs from `afterOnCellMouseDown`.
 - **The `formula` alias is registered in the constructor, not in `enablePlugin()`.** A cell configured with
   `editor: 'formula'` must resolve whether or not the plugin enabled (no `builder`, no Formulas yet).
   Otherwise selecting the cell throws `No registered editor found under "formula" name`. With the plugin
@@ -81,9 +91,16 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   `#rebuildBuilder()` clears `#rebuildAfterEdit` AFTER it built the new builder: its destroy cancels
   the open edit, and that close runs before the new builder exists, so it still sees the old sheet id
   and asks for a rebuild. Cleared before, that request queued a second rebuild a task later.
+  `#teardownPluginState()` has the same order for the same reason.
 - **`enablePlugin()` emits the bar selection once the setup succeeds.** The teardown of an `updatePlugin()`
   rebuild clears `#barSelected` and the dedupe key, and no selection hook runs until the selection moves,
-  so a bar turned on with `updateSettings()` stayed empty over a selected formula cell.
+  so a bar turned on with `updateSettings()` stayed empty over a selected formula cell. It resets the
+  dedupe key first: `resolvePlugin()` in the editor shim does not check `enabled`, so an edit closed in
+  the fallback textarea while the plugin was off still ran `handleInlineEditClose()` and wrote the key.
+- **The bar re-reads the selected cell on `afterChange`.** It hears about a cell through the selection
+  hooks only, deduped on the coordinates, so a write to the selected cell that moves no selection (Delete,
+  paste, undo, `setDataAtCell()`) left the old formula in the bar. A change on the active cell (or a change
+  list of `null`) resets the key and re-emits; an open edit is left alone, its close re-reads.
 - **`updatePlugin()` keeps the built plugin when nothing it was built from changed.** `SETTING_KEYS` lists
   `formulas`, and the React and Angular wrappers re-send every object prop with a new identity on each
   render, so a full rebuild per render discarded the bar's focus and an open edit. `#isConfigUnchanged()`
@@ -115,6 +132,9 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   after the init it warns at once. Pinned by `__tests__/sheetsBar.unit.ts`, which also pins the builder
   rebuild on each sheet switch. A stub grid never runs `afterInit`, so a stub test of a post-init enable
   calls `finishInit()` first.
+- **A popup container element counts only while it is connected.** A framework can unmount the element
+  passed in `popups.*.container` while the settings still hold it, and a popup mounted there never shows,
+  so a detached element is dropped with the same warning as a selector that finds nothing.
 - **A rebuild never throws from a hook.** A `popups.*.container` selector that matches nothing is dropped
   with a warning before the package constructor sees it (hyperformula-ui 0.3.5 threw for one; 0.3.6 warns), and any other constructor
   throw is caught and warned. Hosts set through `attach*Host()` are kept on the plugin and re-applied to
@@ -173,7 +193,14 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   rejected cell kept `htInvalid` while a screen reader heard it as valid. The teardown takes every mark
   and the plugin's descriptions off the rendered cells (`#clearCellErrorMarks()`): the grid's render resets
   classes and ARIA attributes but not `data-*`, so after `formulaBuilder: false` a mark moved with the
-  recycled elements.
+  recycled elements. With no builder (the engine detached, or a rebuild failed) `#markCell()` removes the
+  attribute itself, because `#builder?.markCell()` would do nothing and the stale mark would be described
+  on the cell the element shows next; `#onEngineDetach` clears every mark at once.
+- **The adapter answers `false` for an address it cannot select.** `setActiveCell()` and `setSelection()`
+  return `false` when the grid shows no row or column to move to; the package reads that as
+  "unavailable" and announces it, while `undefined` left the address in the box with nothing selected.
+- **The reference border width is cached on the adapter, which outlives a theme rebuild.** `afterSetTheme`
+  calls `resetBorderWidth()` before the theme class check (a stylesheet swapped in place keeps the class).
 - **Every engine read goes through `#readableSheetId()`.** An application on a shared engine can remove
   the grid's sheet; the Formulas plugin keeps the old id, and the engine throws `NoSheetWithIdError` for
   the package's `readCellText()` (the formula bar's selection sync threw on every select) and for

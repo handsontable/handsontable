@@ -468,6 +468,9 @@ export class FormulaBuilder extends BasePlugin {
       super.enablePlugin();
       // The teardown of an `updatePlugin()` cleared the bar selection, and no selection hook runs
       // until the selection moves, so a formula cell selected now would leave the new bar empty.
+      // The dedupe key goes first: while the plugin was off, the editor shim's close still reached
+      // `handleInlineEditClose()` and wrote it, and a matching key would skip this emit.
+      this.#lastEmittedSelectionCoords = null;
       this.#emitBarSelection();
     }
   }
@@ -908,7 +911,7 @@ export class FormulaBuilder extends BasePlugin {
       // The grid recycles cell elements, so one that showed an error for another cell keeps the
       // mark until something clears it.
       if (cellEl.hasAttribute(CELL_ERROR_ATTRIBUTE)) {
-        this.#builder?.markCell(cellEl, null);
+        this.#markCell(cellEl, null);
         this.#keepValidatorInvalid(cellEl, cellProperties);
       }
 
@@ -919,7 +922,7 @@ export class FormulaBuilder extends BasePlugin {
 
     const cellValue = this.#engine?.getCellValue({ sheet: sheetId, row: hfRow, col: hfCol });
 
-    this.#builder?.markCell(cellEl, cellValue);
+    this.#markCell(cellEl, cellValue);
 
     // The grid writes its ARIA attributes only under `ariaTags`, and so does the plugin.
     if (!this.hot.getSettings().ariaTags) {
@@ -929,6 +932,22 @@ export class FormulaBuilder extends BasePlugin {
     this.#keepValidatorInvalid(cellEl, cellProperties);
     this.#describeCellError(cellEl);
   };
+
+  /**
+   * Marks a cell element with the error state of its value. With no builder (the Formulas engine
+   * detached, or a rebuild failed) the mark is only taken off: the grid recycles cell elements, and a
+   * mark left on one would be described on whatever cell it shows next.
+   *
+   * @param {HTMLTableCellElement} cellEl The cell element.
+   * @param {unknown} cellValue The engine value of the cell, or `null` to clear the mark.
+   */
+  #markCell(cellEl: HTMLTableCellElement, cellValue: unknown): void {
+    if (this.#builder) {
+      this.#builder.markCell(cellEl, cellValue);
+    } else {
+      cellEl.removeAttribute(CELL_ERROR_ATTRIBUTE);
+    }
+  }
 
   /**
    * Puts back the `aria-invalid` the base renderer wrote for a cell a validator rejected. Clearing an
@@ -1035,10 +1054,43 @@ export class FormulaBuilder extends BasePlugin {
   };
 
   /**
+   * `afterChange` hook listener - re-syncs the bar when the selected cell's content changed without
+   * a selection move (Delete, paste, undo, or `setDataAtCell()`). The bar learns about a cell through
+   * the selection hooks only, and their emit is deduped on the coordinates. An open edit is left
+   * alone: its close re-reads the selection.
+   *
+   * @param {Array | null} changes The changes, `[visualRow, prop, oldValue, newValue]` each.
+   */
+  #onAfterChange = (changes: Array<[number, string | number, ...unknown[]]> | null): void => {
+    if (this.#builder === null || this.#isEditing()) {
+      return;
+    }
+
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
+
+    if (!highlight || highlight.row === null || highlight.col === null || highlight.row < 0 || highlight.col < 0) {
+      return;
+    }
+
+    const activeProp = this.hot.colToProp(highlight.col);
+    const touchesActiveCell = changes === null ||
+      changes.some(([row, prop]) => row === highlight.row && prop === activeProp);
+
+    if (touchesActiveCell) {
+      this.#lastEmittedSelectionCoords = null;
+      this.#emitBarSelection();
+    }
+  };
+
+  /**
    * `afterSetTheme` hook listener - rebuilds the builder when the theme class actually
    * changed, because the builder applies its theming class once, at construction.
    */
   #onAfterSetTheme = (): void => {
+    // Before the class check: a theme can change `--hfe-reference-border-width` under the same class
+    // (a stylesheet swapped in place), and the adapter outlives the builder rebuild below.
+    this.#adapter?.resetBorderWidth();
+
     if (this.#builder === null || this.#themeClassName() === this.#currentThemeClassName) {
       return;
     }
@@ -1093,6 +1145,9 @@ export class FormulaBuilder extends BasePlugin {
    */
   #onEngineDetach = (): void => {
     this.#destroyBuilder();
+    // No builder renders the marks from now on, so the ones on screen would stay until each element
+    // is reused for a formula cell again.
+    this.#clearCellErrorMarks();
   };
 
   /**
@@ -1614,6 +1669,7 @@ export class FormulaBuilder extends BasePlugin {
     });
 
     this.addHook('afterRenderer', this.#onAfterRenderer);
+    this.addHook('afterChange', this.#onAfterChange);
     this.addHook('afterSelectionEnd', this.#onAfterSelectionEnd);
     this.addHook('afterDeselect', this.#onAfterDeselect);
     this.addHook('afterSetTheme', this.#onAfterSetTheme);
@@ -1795,7 +1851,9 @@ export class FormulaBuilder extends BasePlugin {
    */
   #isContainerAvailable(container: HTMLElement | string | undefined): boolean {
     if (typeof container !== 'string') {
-      return true;
+      // An element counts while it is in a document: a framework can unmount the one passed in
+      // the settings, and a popup mounted into it would never show.
+      return container === undefined || container.isConnected;
     }
 
     try {
@@ -1881,11 +1939,13 @@ export class FormulaBuilder extends BasePlugin {
    * Releases every enable-time resource.
    */
   #teardownPluginState(): void {
-    this.#rebuildAfterEdit = false;
     this.#clearCellErrorMarks();
     this.#removeEngineDetachListener?.();
     this.#removeEngineDetachListener = null;
     this.#destroyBuilder();
+    // After the destroy, not before: the edit cancel inside it runs `handleInlineEditClose()`, which can
+    // ask for a deferred rebuild again (same order as `#rebuildBuilder()`).
+    this.#rebuildAfterEdit = false;
     this.#removeInlineScrollListener?.();
     this.#removeInlineScrollListener = null;
 

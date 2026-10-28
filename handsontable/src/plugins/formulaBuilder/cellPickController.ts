@@ -17,6 +17,28 @@ import type { CellRange, HeaderAxis, HeaderPick, PickingEditor } from './gridCon
 type CoreModule = typeof import('hyperformula-ui');
 
 /**
+ * Header controls that other plugins act on from their own `beforeOnCellMouseDown` listener. Those
+ * listeners run after the pick and do not read the claim, so a pick started on one would insert a
+ * reference and also run the control (collapse a group, check a column, select a row). A press on
+ * one is left to its plugin instead.
+ */
+const HEADER_CONTROL_SELECTOR = [
+  '.collapsibleIndicator',
+  '.ht_nestingButton',
+  '.htCheckboxHeaderInput',
+  '.htRowSelectionCell',
+  '.htRowSelectionCheckbox',
+].join(', ');
+/**
+ * Cell controls that another plugin toggles on `mousedown` (see `HEADER_CONTROL_SELECTOR`).
+ */
+const CELL_CONTROL_SELECTOR = '.htRowSelectionCheckbox';
+/**
+ * The part of a checkbox cell whose native `click` toggles the box: the input, or a label around it.
+ */
+const CHECKBOX_TOGGLE_SELECTOR = 'input[type="checkbox"], label';
+
+/**
  * Row/column coordinates in visual space.
  */
 interface GridCoords {
@@ -146,6 +168,19 @@ function readPressPoint(event: MouseEvent | undefined): { x: number; y: number }
 }
 
 /**
+ * Returns the nearest element matching the selector from the event's target up, or `null`.
+ *
+ * @param {MouseEvent | undefined} event The mouse event.
+ * @param {string} selector The CSS selector.
+ * @returns {Element | null}
+ */
+function closestTarget(event: MouseEvent | undefined, selector: string): Element | null {
+  const target = event?.target as Element | null | undefined;
+
+  return typeof target?.closest === 'function' ? target.closest(selector) : null;
+}
+
+/**
  * Owns click/drag reference picking on the grid, cells and headers alike.
  *
  * A pick claims the whole mouse gesture: its listeners run first (order index `-1`, see the
@@ -188,9 +223,9 @@ export class CellPickController {
    */
   #headerAxis: HeaderAxis | null = null;
   /**
-   * Disarms the pending trailing click swallow, when armed.
+   * Disarms the pending trailing click swallow (header or checkbox), when armed.
    */
-  #headerClickSwallowCleanup: (() => void) | null = null;
+  #clickSwallowCleanup: (() => void) | null = null;
   /**
    * Removes the document and window listeners of the active drag, when one is active. They are
    * bound for the length of a drag only, so an idle grid adds no document `mousemove` listener.
@@ -316,7 +351,7 @@ export class CellPickController {
     this.#unlistenDrag();
     this.#tracker.cancel();
     this.#headerTracker.cancel();
-    this.#disarmHeaderClickSwallow();
+    this.#disarmClickSwallow();
     this.#focusBeforePick = null;
   }
 
@@ -398,7 +433,9 @@ export class CellPickController {
 
     if (barSelected && coords.row === barSelected.row && coords.col === barSelected.col) {
       this.#suppress(eventController);
-      event?.preventDefault();
+      // Claimed, not only suppressed: the `afterOnCell*` listeners would otherwise treat the press as
+      // a plain click (RowSelection's click selection), and DragToScroll would follow its drag.
+      this.#claim(event);
       this.#deps.emitSwitchToInline();
 
       return;
@@ -410,6 +447,10 @@ export class CellPickController {
       return;
     }
 
+    if (closestTarget(event, CELL_CONTROL_SELECTOR)) {
+      return;
+    }
+
     const anchor = this.#deps.toHfCoords(coords);
 
     if (anchor.row < 0 || anchor.col < 0) {
@@ -418,6 +459,7 @@ export class CellPickController {
 
     this.#suppress(eventController);
     this.#claim(event);
+    this.#armCheckboxClickSwallow(event);
     this.#focusBeforePick = this.#activeElement();
 
     this.#listenDrag(event);
@@ -449,7 +491,7 @@ export class CellPickController {
     adapter: HandsontableAdapter | null,
     editor: PickingEditor | null,
   ): void {
-    if ((event?.target as HTMLElement | null)?.closest?.('.collapsibleIndicator')) {
+    if (closestTarget(event, HEADER_CONTROL_SELECTOR)) {
       return;
     }
 
@@ -556,23 +598,45 @@ export class CellPickController {
    * Arms a one-shot document-capture click swallow for header clicks.
    */
   #armHeaderClickSwallow(): void {
-    this.#disarmHeaderClickSwallow();
+    this.#armClickSwallow(clickTarget => Boolean(clickTarget.closest('th')));
+  }
+
+  /**
+   * Arms a one-shot click swallow when a cell pick starts on a checkbox or its label. The claim
+   * prevents the `mousedown` default only; the checkbox toggles on the `click` that follows, and the
+   * renderer then writes the flipped value through its `change` listener.
+   *
+   * @param {MouseEvent | undefined} event The press that started the pick.
+   */
+  #armCheckboxClickSwallow(event: MouseEvent | undefined): void {
+    const toggle = closestTarget(event, CHECKBOX_TOGGLE_SELECTOR);
+
+    // A label toggles a box only when it holds one (the renderer's `label` option).
+    if (toggle && (toggle.tagName !== 'LABEL' || toggle.querySelector('input[type="checkbox"]'))) {
+      this.#armClickSwallow(clickTarget => toggle.contains(clickTarget));
+    }
+  }
+
+  /**
+   * Arms a one-shot document-capture click swallow, replacing a pending one.
+   *
+   * @param {Function} shouldSwallow Whether the trailing click on the given element is swallowed.
+   */
+  #armClickSwallow(shouldSwallow: (clickTarget: Element) => boolean): void {
+    this.#disarmClickSwallow();
 
     const swallowDocument = this.#deps.getScrollHolder()?.ownerDocument ??
       this.#deps.getRootDocument();
 
-    this.#headerClickSwallowCleanup = this.#core.armTrailingClickSwallow(
-      swallowDocument,
-      clickTarget => Boolean(clickTarget.closest('th')),
-    );
+    this.#clickSwallowCleanup = this.#core.armTrailingClickSwallow(swallowDocument, shouldSwallow);
   }
 
   /**
    * Disarms the pending click swallow, if any.
    */
-  #disarmHeaderClickSwallow(): void {
-    this.#headerClickSwallowCleanup?.();
-    this.#headerClickSwallowCleanup = null;
+  #disarmClickSwallow(): void {
+    this.#clickSwallowCleanup?.();
+    this.#clickSwallowCleanup = null;
   }
 
   /**

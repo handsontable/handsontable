@@ -42,6 +42,7 @@
       shadow: 'shadow',
       menus: 'menus',
       dropdown: 'dropdown',
+      checkboxes: 'checkboxes',
     })[htParams.get('variant') ?? 'default'];
     if (!window.htVariant) {
       throw new Error('Unknown ?variant= value: ' + JSON.stringify(htParams.get('variant')));
@@ -95,6 +96,10 @@
       Handsontable.renderers.DropdownRenderer.apply(this, arguments);
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
+    const testIdCheckboxRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.CheckboxRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
 
     // Settings each variant adds over the default grid. `formulaBuilder` extras are merged
     // into the plugin settings, so the `builder` module stays the one imported below.
@@ -128,6 +133,22 @@
       dropdown: {
         settings: {
           columns: [{}, { type: 'dropdown', source: [2, 4, 6], renderer: testIdDropdownRenderer }, {}],
+        },
+      },
+      // Controls other plugins act on from a press: a "check all" header checkbox on column D, checkbox
+      // cells, and RowSelection's row header checkboxes with click selection. A pick must leave each
+      // control to its plugin or keep the control from acting, never both act.
+      checkboxes: {
+        settings: {
+          data: [
+            [1, 2, '=A1+B1', true],
+            [3, 4, '=A2+B2', false],
+            [5, 6, '=SUM(C1:C2)', true],
+            ['', '', '', false],
+            ['', '', '', false],
+          ],
+          columns: [{}, {}, {}, { type: 'checkbox', headerCheckbox: true, renderer: testIdCheckboxRenderer }],
+          rowSelection: { enableClickSelection: true },
         },
       },
     };

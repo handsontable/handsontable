@@ -292,3 +292,65 @@ test.describe('formulaBuilder picking on a dropdown arrow', { tag: [THEMES_TAG, 
     await expect.poll(() => grid.sourceAt(3, 0)).toBe('=B1');
   });
 });
+
+// Other plugins act on a press from their own `beforeOnCellMouseDown` listeners, which run after the
+// pick and do not read its claim. A press on one of their controls is left to the plugin; a press next
+// to one picks, and the control does not act.
+test.describe('formulaBuilder picking next to other plugins\' controls', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  let grid: FormulaBuilderPage;
+
+  test.beforeEach(async({ page, theme, bundle }) => {
+    grid = new FormulaBuilderPage(page, theme, bundle, 'checkboxes');
+    await grid.goto();
+    await grid.selectCellByApi(3, 0);
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+  });
+
+  test('a press on the "check all" header checkbox checks the column and inserts nothing', async() => {
+    await grid.headerCheckbox().click();
+    await expect.poll(() => Promise.all([0, 1, 2, 3, 4].map(row => grid.dataAt(row, 3))))
+      .toEqual([true, true, true, true, true]);
+    await expect(grid.editorInput).toHaveValue('=');
+  });
+
+  test('a press on the header label picks the column and leaves its checkboxes', async() => {
+    await grid.columnHeaderLabel('D').click();
+    await expect(grid.editorInput).toHaveValue('=D:D');
+    expect(await Promise.all([0, 1, 2, 3, 4].map(row => grid.dataAt(row, 3))))
+      .toEqual([true, false, true, false, false]);
+  });
+
+  test('a press on a checkbox cell picks the cell and leaves the checkbox unchecked', async({ page }) => {
+    await grid.cellCheckbox(1, 3).click();
+    await expect(grid.editorInput).toHaveValue('=D2');
+    await expect(grid.cellCheckbox(1, 3)).not.toBeChecked();
+
+    await page.keyboard.press('Enter');
+    await expect.poll(() => grid.sourceAt(3, 0)).toBe('=D2');
+    expect(await grid.dataAt(1, 3)).toBe(false);
+  });
+
+  test('a press on a row\'s selection checkbox selects the row and inserts nothing', async() => {
+    await grid.rowSelectionHeader(1).click();
+    await expect.poll(() => grid.selectedRows()).toEqual([1]);
+    await expect(grid.editorInput).toHaveValue('=');
+  });
+
+  test('a press on the row number picks the row and selects no row', async() => {
+    await grid.rowNumberHeader(1).click();
+    await expect(grid.editorInput).toHaveValue('=2:2');
+    expect(await grid.selectedRows()).toEqual([]);
+  });
+
+  test('a click that moves the edit from the formula bar into the cell selects no row', async({ page }) => {
+    await page.keyboard.press('Escape');
+    await grid.selectCellByApi(0, 2);
+    await grid.barFormulaArea.click();
+    await expect(grid.editorInput).toBeFocused();
+
+    await grid.cell(0, 2).click();
+    await expect(grid.inlineEditor).toBeVisible();
+    expect(await grid.selectedRows()).toEqual([]);
+  });
+});

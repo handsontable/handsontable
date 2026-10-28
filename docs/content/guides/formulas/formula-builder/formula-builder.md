@@ -211,7 +211,7 @@ While the caret sits at a position where a reference is valid - after `=`, an op
 
 - **Click a cell** to insert its reference.
 - **Drag across cells** to insert a range reference, with a live preview highlight.
-- **Click or drag row or column headers** to insert whole-row or whole-column references, such as `B:D` or `3:5`. Header picking suppresses column sorting and menu actions for that click.
+- **Click or drag row or column headers** to insert whole-row or whole-column references, such as `B:D` or `3:5`. Header picking suppresses column sorting and menu actions for that click. A click on a control inside a header, such as a collapse button or a row selection checkbox, runs that control and inserts nothing.
 - With the caret inside an existing reference, a pick replaces that reference.
 - Hold <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> to append another reference instead of replacing the pending one or the one under the caret.
 
@@ -392,7 +392,7 @@ The default reference colors clear a 4.5:1 contrast ratio on the editor's light 
 }
 ```
 
-Keep the contrast of each color at 4.5:1 or more against the editor background, because the colors are used for text. The plugin reads the border width when it draws the first highlight and keeps that value until it is enabled again - an [`updateSettings()`](@/api/core.md#updatesettings) call that changes a `formulaBuilder` or `formulas` value. A theme change does not re-read it. So declare it in a stylesheet rather than changing it while the grid is open.
+Keep the contrast of each color at 4.5:1 or more against the editor background, because the colors are used for text. The plugin reads the border width when it draws the first highlight and keeps that value until the theme changes or the plugin is enabled again - an [`updateSettings()`](@/api/core.md#updatesettings) call that changes a `formulaBuilder` or `formulas` value. Highlights drawn before the change keep their width until they are drawn again. So declare it in a stylesheet rather than changing it while the grid is open.
 
 ## Language
 
