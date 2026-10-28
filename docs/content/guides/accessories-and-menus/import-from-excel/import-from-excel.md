@@ -246,7 +246,7 @@ The `HotTable` component watches the settings you pass to it. A later change sen
 
 ### Import into a sheets bar workbook
 
-With the [sheets bar](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md#import-and-export), an import changes the active sheet only. The framework sections above don't apply to that sheet: a re-render or an `updateSettings()` call doesn't replace its imported layout. To change it, call [`updateSheetSettings()`](@/api/sheetsBar.md#updatesheetsettings).
+With the [sheets bar](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md#import-and-export), an import changes the active sheet only, and the framework sections above don't apply: a re-render doesn't replace the imported layout.
 
 ## Options
 

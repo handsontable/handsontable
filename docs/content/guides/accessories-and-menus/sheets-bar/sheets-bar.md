@@ -371,13 +371,9 @@ Use each sheet's tab name as its `sheetName`. A tab rename then renames the engi
 
 ## Import and export
 
-An import with the [`ImportFile`](@/api/importFile.md) plugin changes the active sheet only. It brings the sheet's data, cell styles, and layout: column types, sizes, hidden and frozen rows and columns, merged cells, and headers. The imported layout wins over the matching `settings` the sheet declares, and your `sheets` array doesn't change.
+An import with the [`ImportFile`](@/api/importFile.md) plugin changes the active sheet only: its data, layout, and cell styles. The imported layout becomes part of that sheet's settings, so change it with [`updateSheetSettings()`](@/api/sheetsBar.md#updatesheetsettings).
 
-To change the imported layout later, call [`updateSheetSettings()`](@/api/sheetsBar.md#updatesheetsettings). [`updateSettings()`](@/api/core.md#updatesettings) changes only the other sheets for those settings, and so do the props a framework wrapper sends on a re-render.
-
-A copy you make with `duplicateSheet()` keeps the imported layout, and its new entry in `sheets` holds the imported settings. When you turn the bar off, the grid keeps the active sheet's data and imported layout.
-
-The [`ExportFile`](@/api/exportFile.md) plugin exports the active sheet only, in a worksheet named `Sheet1`. To name the worksheet after the tab, pass the grid in the `sheets` option:
+The [`ExportFile`](@/api/exportFile.md) plugin exports the active sheet only, as a worksheet named `Sheet1`. To use the tab's name instead, pass the grid in the `sheets` option:
 
 ```js
 const activeSheet = hot.getPlugin('sheetsBar').getSheets().find(sheet => sheet.isActive);
