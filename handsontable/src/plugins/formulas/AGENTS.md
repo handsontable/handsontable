@@ -69,8 +69,8 @@ const isRestoreSource = source => source === 'UndoRedo.undo' || source === 'Undo
   engine that is about to be reloaded anyway.
 - **The cell writes of a restore are held, not applied** (`#restoredWrites`), in the
   `afterSetSourceDataAtCell` format (physical rows). They reach the engine in `restoreState()`.
-- **`captureState()` returns two versions and, while the order is not physical or the source data is
-  stale, the engine's sheet.**
+- **`captureState()` returns two versions, the stale bit and, while the order is not physical or the
+  source data is stale, the engine's sheet.**
   `structureVersion` changes on every row or column insert, removal, move, **and every sequence
   change** (a sort included) and on a NestedRows detach; `dataVersion` on every cell write. UndoRedo
   calls `restoreState(state)` whenever a step changed either of them. When the structure version
@@ -86,13 +86,23 @@ const isRestoreSource = source => source === 'UndoRedo.undo' || source === 'Undo
     order writes the engine's text into the source and journals the stale text as its "before" value, so
     a state captured before that step must carry the engine's sheet: its undo reloaded the stale source
     otherwise, and the formulas ended up pointing at the wrong rows (DEV-3624). Rules for the flag:
-    a restore sets it from whether the restored state carries an engine sheet (a state captured out of
-    order carries one, so it reads true there, which can cost a snapshot and never a wrong value); a full
-    sheet write from the source (`#writeSheet()`) clears it; a full write-back in physical order clears it
-    only when it skipped no cell. A skipped cell is a `#REF!` the engine holds that an insert must not persist
-    (`#readSourceChange()` returns `'skipped'`), or a column with no property;
-    clearing over it left the stale text with no engine sheet to restore. A cell edit and a partial
-    (`cells`) write-back never clear it. Pinned by `__tests__/reorderedInsertUndo.unit.js`.
+    the state records it as its own field (`sourceHasStaleFormulas`, true only for a state that carries an
+    engine sheet), and a restore sets the flag from that field, so a state captured while merely sorted
+    reads false; a full sheet write from the source (`#writeSheet()`) clears it; a full write-back in
+    physical order clears it only when it skipped no cell. A skipped cell is a `#REF!` the engine holds
+    that an insert must not persist (`#readSourceChange()` returns `'skipped'`), or a formula in a column
+    trimmed after the sheet was built (no visual column, so no prop to write to) whose text differs from
+    the source's; the same text there is not stale and does not count. Clearing over a skipped cell left
+    stale text with no engine sheet to restore. A cell edit and a partial (`cells`) write-back never
+    clear it. **A skipped cell does not set the flag**: only a write-back out of physical order does, so a
+    stale cell in a trimmed column of a grid that never left physical order is not recorded (open).
+    Pinned by `__tests__/reorderedInsertUndo.unit.js`.
+  - **A step that clears the flag is undone by loading the recorded sheet, not by writing cells.** A
+    full write-back inside a data-only step (a `moveCells` move after the order returned) writes the
+    engine's text into the source and journals the stale text as its "before" value. The same-structure
+    restore would write that text into the engine, so `restoreState()` takes the structural branch when
+    the restored state is stale and the grid's flag is not. That branch also trims the sheet's unused
+    tail, which a plain data-only restore never does.
   - **Out of physical order** the source data cannot rebuild the engine: the write-back is skipped
     there, and the engine's references depend on HOW the order was reached. `engine.moveRows` keeps
     every reference on its data, while `engine.setRowOrder` - what the axis syncer sends for a sort
@@ -111,8 +121,8 @@ const isRestoreSource = source => source === 'UndoRedo.undo' || source === 'Undo
   `engine.batch()`. The sheet snapshot is re-serialized on every step that writes data while the
   grid is sorted or moved, or while `#sourceHasStaleFormulas` is set - an O(cells) cost per step on
   those grids only, not measured. The flag stays set in physical order until the next full write-back
-  that skips no cell or the next full sheet write, so a grid reordered once and then restructured can
-  pay the snapshot on every step after that.
+  that skips no cell, the next full sheet write, or the restore of a state that is not stale, so a grid
+  reordered once and then restructured can pay the snapshot on every step after that.
 - **Draw every new version from `#versionSeed`, never reuse one.** `restoreState()` sets the
   current versions to the restored state's; a later change that reused a number would make a
   different structure compare equal to a recorded one.
@@ -240,10 +250,13 @@ an insert after `removeSheet()` threw before.
 `#getValueGetterValue()`), the same way a load does, so an object value keyed by `value` reaches the
 engine as the value and not as `[object Object]`.
 
-**`getStateColumns()` answers `[]` only for a data-only step in physical order** (both states without
-an `engineSheet` and with the same `structureVersion`): its cells are restored by prop. Any step that
-reloads the sheet or loads a serialized one restores a column layout, so it is dropped by a `columns`
-update that changes a column's field (`../undoRedo/AGENTS.md`, "The epoch").
+**`getStateColumns()` answers `[]` when the two sides share the `structureVersion` and the
+`sourceHasStaleFormulas` bit**, whatever order the grid is in: that restore writes the cells by prop and
+never reads a recorded sheet, so the step names no column. Any step that reloads the sheet or loads a
+serialized one restores a column layout, so it is dropped by a `columns` update that changes a column's
+field (`../undoRedo/AGENTS.md`, "The epoch"). Do not key it on `engineSheet === null`: a state captured
+while sorted or stale carries one, and the restore ignores it unless the structure or the stale bit
+differs, so the step was dropped for nothing.
 
 `IndexSyncer` has no undo/redo flags anymore. Restoring the row or column order fires the sequence
 change like any other, and the axis syncer sends the new order to the engine; a reload afterwards

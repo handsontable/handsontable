@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed the `Formulas` plugin bringing back formula values that pointed at the wrong rows or columns when an undo restored a step that followed a row or column insert made while the grid was not in physical order.",
+  "title": "Fixed the `Formulas` plugin bringing back formulas that pointed at the wrong rows or columns when an undo reversed a row or column removal, a row or column insert, or a cell move that came after a row or column insert or removal made while the grid was sorted or had moved rows or columns.",
   "type": "fixed",
   "issueOrPR": 14052,
   "breaking": false,

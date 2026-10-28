@@ -302,12 +302,19 @@ interface EngineSheetSnapshot {
 /**
  * What UndoRedo records for this plugin: a version that changes whenever the engine's rows or columns
  * are added, removed or reordered, a version that changes whenever a cell write reaches it, and – while
- * the engine's order is not the physical one – the engine's sheet itself.
+ * the engine's order is not the physical one or the source data holds stale formulas – the engine's
+ * sheet itself.
  */
 interface FormulasUndoState {
   readonly structureVersion: number;
   readonly dataVersion: number;
   readonly engineSheet: EngineSheetSnapshot | null;
+  /**
+   * `true` when the source data held formula text the engine had rewritten (`#sourceHasStaleFormulas`)
+   * at capture. Only a state that carries `engineSheet` can be stale, because the source data cannot
+   * rebuild its sheet.
+   */
+  readonly sourceHasStaleFormulas: boolean;
   /**
    * The formulas outside this grid's sheet that the step's engine calls rewrote.
    */
@@ -2246,10 +2253,12 @@ export class Formulas extends BasePlugin {
 
     this.#pendingPeerRewrites.clear();
 
+    const engineSheet = this.#captureEngineSheet(isFormulasUndoState(previous) ? previous.engineSheet : null);
     const state: FormulasUndoState = {
       structureVersion: this.#structureVersion,
       dataVersion: this.#dataVersion,
-      engineSheet: this.#captureEngineSheet(isFormulasUndoState(previous) ? previous.engineSheet : null),
+      engineSheet,
+      sourceHasStaleFormulas: engineSheet !== null && this.#sourceHasStaleFormulas,
       peerRewrites,
     };
 
@@ -2287,11 +2296,17 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    if (state.structureVersion !== this.#structureVersion) {
+    // A step that cleared the stale flag wrote the engine's formula text into the source data. Its undo
+    // puts the stale text back with the held writes, and only the recorded sheet holds the right one.
+    const reloadsSheet = state.structureVersion !== this.#structureVersion ||
+      (state.sourceHasStaleFormulas && !this.#sourceHasStaleFormulas);
+
+    this.#sourceHasStaleFormulas = state.sourceHasStaleFormulas;
+
+    if (reloadsSheet) {
       this.#restoredWrites = [];
       this.#structureVersion = state.structureVersion;
       this.#dataVersion = state.dataVersion;
-      this.#sourceHasStaleFormulas = state.engineSheet !== null;
       this.#restoreStructure(state, context);
 
       return;
@@ -2349,9 +2364,10 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * A step that changed only data, on a grid in physical order, restores the cells it wrote by prop,
-   * so it names no column. A step that reloads the sheet, or restores a serialized one, restores a
-   * column layout, so it cannot be kept across a `columns` settings update.
+   * A step whose two sides share the structure version and the stale flag restores the cells it wrote
+   * by prop and never reads a recorded sheet, so it names no column, whatever order the grid is in.
+   * A step that reloads the sheet, or restores a serialized one, restores a column layout, so it cannot
+   * be kept across a `columns` settings update.
    *
    * @private
    * @param {*} state The state on one side of a step.
@@ -2361,8 +2377,8 @@ export class Formulas extends BasePlugin {
   getStateColumns(state: unknown, other: unknown): readonly number[] | null {
     if (
       isFormulasUndoState(state) && isFormulasUndoState(other) &&
-      state.engineSheet === null && other.engineSheet === null &&
-      state.structureVersion === other.structureVersion
+      state.structureVersion === other.structureVersion &&
+      state.sourceHasStaleFormulas === other.sourceHasStaleFormulas
     ) {
       return [];
     }
@@ -4967,7 +4983,7 @@ export class Formulas extends BasePlugin {
     const column = this.#resolveEngineColumn(hfColumn, holdsPhysicalColumns());
 
     if (column === null) {
-      return 'skipped';
+      return this.#isUnreachableCellStale(physicalRow, hfColumn, formula) ? 'skipped' : null;
     }
 
     // `getSourceDataAtCell` takes a physical row and a visual column, `setSourceDataAtCell` a physical
@@ -4986,6 +5002,24 @@ export class Formulas extends BasePlugin {
     }
 
     return [physicalRow, column.prop, formula];
+  }
+
+  /**
+   * Tells whether the source data holds another formula than the engine for a cell no write can reach:
+   * its column has no visual counterpart, a column trimmed after the sheet was built. In physical order
+   * the engine's column is the physical one, so array rows are read by it; rows of objects are not, and
+   * count as stale.
+   *
+   * @private
+   * @param {number} physicalRow The engine row – the physical row, in the physical order.
+   * @param {number} hfColumn The engine column.
+   * @param {string} formula The engine's formula.
+   * @returns {boolean}
+   */
+  #isUnreachableCellStale(physicalRow: number, hfColumn: number, formula: string): boolean {
+    const row = this.hot.getSourceDataAtRow(physicalRow);
+
+    return !Array.isArray(row) || !this.#isSameFormula(row[hfColumn], formula);
   }
 
   /**

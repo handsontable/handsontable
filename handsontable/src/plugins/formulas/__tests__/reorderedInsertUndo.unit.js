@@ -1,7 +1,11 @@
 import HyperFormula from 'hyperformula';
 import Handsontable from '../../../index';
+import { registerPlugin } from '../../registry';
+import { MoveCells } from '../../moveCells';
 
 const LICENSE_KEY = 'non-commercial-and-evaluation';
+
+registerPlugin(MoveCells);
 
 describe('Formulas: an undo of a remove after an insert in a reordered grid', () => {
   let container;
@@ -95,7 +99,7 @@ describe('Formulas: an undo of a remove after an insert in a reordered grid', ()
     expect(hot.getData()).toEqual([[null, 10, 20, null, null], [null, 20, 40, null, null]]);
   });
 
-  it('should keep the values when the insert itself is undone after the order returned (guard, passes without the fix)', () => {
+  it('should keep the values when the insert itself is undone after the order returned', () => {
     build({ data: [[10, '=A1*2'], [20, '=A2*2'], [null, null], [null, null]] });
     hot.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
     hot.alter('insert_row_above', 1);
@@ -145,7 +149,10 @@ describe('Formulas: an undo of a remove after an insert in a reordered grid', ()
       expect(other.getDataAtRow(0)).toEqual(afterRemove);
     } finally {
       other?.destroy();
+      hot?.destroy();
+      hot = null;
       otherContainer.remove();
+      engine.destroy();
     }
   });
 
@@ -190,5 +197,155 @@ describe('Formulas: an undo of a remove after an insert in a reordered grid', ()
     undo();
 
     expect(String(hot.getDataAtCell(0, 1))).toBe('#REF!');
+  });
+
+  describe('the steps that follow', () => {
+    const serializedSheetReads = () => jest.spyOn(hot.getPlugin('formulas').engine, 'getSheetSerialized');
+
+    it('should keep an edit step across a columns update after the order returned', () => {
+      build({ data: [[10, '=A1*2'], [20, '=A2*2'], [null, null], [null, null]] });
+      hot.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
+      hot.alter('insert_row_above', 1);
+      hot.rowIndexMapper.setIndexesSequence([0, 1, 2, 3, 4]);
+      hot.setDataAtCell(0, 0, 99);
+      hot.updateSettings({ columns: [{ data: 1 }, { data: 0 }] });
+
+      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(true);
+
+      undo();
+
+      expect(hot.getPlugin('undoRedo').isRedoAvailable()).toBe(true);
+    });
+
+    it('should keep an edit step across a columns update after a sort that was undone and redone', () => {
+      build({ data: [[3, '=A1*2'], [1, '=A2*2'], [2, '=A3*2']], columnSorting: true });
+
+      const sorting = hot.getPlugin('columnSorting');
+
+      sorting.sort({ column: 0, sortOrder: 'asc' });
+      undo();
+      redo();
+      sorting.clearSort();
+      hot.setDataAtCell(0, 0, 99);
+      hot.updateSettings({ columns: [{ data: 1 }, { data: 0 }] });
+
+      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(true);
+
+      undo();
+
+      expect(hot.getPlugin('undoRedo').isRedoAvailable()).toBe(true);
+    });
+
+    it('should not serialize the sheet for an edit after a sort that was undone and redone', () => {
+      build({ data: [[3, '=A1*2'], [1, '=A2*2'], [2, '=A3*2']], columnSorting: true });
+
+      const sorting = hot.getPlugin('columnSorting');
+
+      sorting.sort({ column: 0, sortOrder: 'asc' });
+      undo();
+      redo();
+      sorting.clearSort();
+
+      const reads = serializedSheetReads();
+
+      hot.setDataAtCell(0, 0, 99);
+
+      expect(reads).not.toHaveBeenCalled();
+    });
+
+    it('should undo a cell move made after the order returned', () => {
+      build({
+        data: [[10, '=A1*2', 7], [20, '=A2*2', null], [null, null, null], [null, null, null]],
+        moveCells: true,
+      });
+      hot.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
+      hot.alter('insert_row_above', 1);
+      hot.rowIndexMapper.setIndexesSequence([0, 1, 2, 3, 4]);
+
+      const start = hot.getData();
+      const seven = hot._createCellCoords(1, 2);
+
+      hot.getPlugin('moveCells').moveCellRange(
+        hot._createCellRange(seven, seven, seven),
+        hot._createCellCoords(4, 2)
+      );
+
+      const moved = hot.getData();
+
+      expect(moved[4][2]).toBe(7);
+
+      undo();
+
+      expect(hot.getData()).toEqual(start);
+
+      redo();
+
+      expect(hot.getData()).toEqual(moved);
+
+      undo();
+
+      expect(hot.getData()).toEqual(start);
+    });
+
+    it('should drop a cell move step that reloads the sheet when a columns update changes the fields', () => {
+      build({
+        data: [[10, '=A1*2', 7], [20, '=A2*2', null], [null, null, null], [null, null, null]],
+        moveCells: true,
+      });
+      hot.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
+      hot.alter('insert_row_above', 1);
+      hot.rowIndexMapper.setIndexesSequence([0, 1, 2, 3, 4]);
+
+      const seven = hot._createCellCoords(1, 2);
+
+      hot.getPlugin('moveCells').moveCellRange(
+        hot._createCellRange(seven, seven, seven),
+        hot._createCellCoords(4, 2)
+      );
+      hot.updateSettings({ columns: [{ data: 1 }, { data: 0 }, { data: 2 }] });
+
+      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+    });
+
+    describe('with a trimmed column that holds a formula', () => {
+      const trimColumn = (column) => {
+        hot.columnIndexMapper.createAndRegisterIndexMap('trimmedColumn', 'trimming')
+          .setValueAtIndex(column, true);
+        hot.render();
+      };
+
+      it('should not serialize the sheet once a formula there matches the source data', () => {
+        build({ data: [[10, '=A1*2', '=2+3'], [20, '=A2*2', null], [null, null, null], [null, null, null]] });
+        trimColumn(2);
+        hot.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
+        hot.alter('insert_row_above', 1);
+        hot.rowIndexMapper.setIndexesSequence([0, 1, 2, 3, 4]);
+        hot.alter('insert_row_above', 2);
+
+        const reads = serializedSheetReads();
+
+        hot.setDataAtCell(0, 0, 99);
+
+        expect(reads).not.toHaveBeenCalled();
+      });
+
+      it('should restore a formula there that the engine rewrote and the source data could not take', () => {
+        build({ data: [[10, '=A1*2', '=A1+1'], [20, '=A2*2', '=A2+1'], [null, null, null], [null, null, null]] });
+        trimColumn(2);
+        hot.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
+        hot.alter('insert_row_above', 1);
+        hot.rowIndexMapper.setIndexesSequence([0, 1, 2, 3, 4]);
+        hot.alter('insert_row_above', 0);
+
+        const { engine, sheetId } = hot.getPlugin('formulas');
+        const readColumn = () => engine.getSheetValues(sheetId).map(row => row[2]);
+        const beforeRemove = readColumn();
+
+        hot.alter('remove_row', 5);
+        undo();
+
+        expect(readColumn()).toEqual(beforeRemove);
+      });
+    });
   });
 });
