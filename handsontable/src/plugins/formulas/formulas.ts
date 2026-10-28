@@ -663,6 +663,15 @@ export class Formulas extends BasePlugin {
   #dataVersion = 0;
 
   /**
+   * Tells that the source data may hold formula text the engine has rewritten since: a structural change
+   * made while the order was not physical wrote nothing back (`#syncFormulasToSourceData()`), and the
+   * order has returned to physical since. The source data is then not what rebuilds the engine, so a state
+   * captured while it holds is recorded with the engine's sheet (`#captureEngineSheet()`). A full
+   * write-back in physical order clears it.
+   */
+  #sourceHasStaleFormulas = false;
+
+  /**
    * The cell writes an undo or a redo made, in the `afterSetSourceDataAtCell` format (physical rows),
    * held until the restore is done – see `restoreState()`.
    */
@@ -2282,6 +2291,7 @@ export class Formulas extends BasePlugin {
       this.#restoredWrites = [];
       this.#structureVersion = state.structureVersion;
       this.#dataVersion = state.dataVersion;
+      this.#sourceHasStaleFormulas = state.engineSheet !== null;
       this.#restoreStructure(state, context);
 
       return;
@@ -2605,8 +2615,9 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Returns the engine's sheet while its order is not the physical one, and `null` otherwise – the
-   * source data rebuilds a sheet in physical order. A row that reads the same as in the previous
+   * Returns the engine's sheet while its order is not the physical one or the source data holds stale
+   * formulas (`#sourceHasStaleFormulas`), and `null` otherwise – the source data rebuilds a sheet in
+   * physical order. A row that reads the same as in the previous
    * capture is that capture's row array, so consecutive steps share what they did not change: each
    * step keeps the rows it changed, not a copy of the whole sheet.
    *
@@ -2616,7 +2627,8 @@ export class Formulas extends BasePlugin {
   #captureEngineSheet(previous: EngineSheetSnapshot | null): EngineSheetSnapshot | null {
     if (
       !this.engine || this.sheetId === null ||
-      (this.rowAxisSyncer!.isHfOrderPhysical() && this.columnAxisSyncer!.isHfOrderPhysical())
+      (!this.#sourceHasStaleFormulas && this.rowAxisSyncer!.isHfOrderPhysical() &&
+        this.columnAxisSyncer!.isHfOrderPhysical())
     ) {
       return null;
     }
@@ -3738,6 +3750,7 @@ export class Formulas extends BasePlugin {
 
     try {
       this.#sheetWriteCount += 1;
+      this.#sourceHasStaleFormulas = false;
 
       dependentCells = this.#writeOwnSheet(this.engine!, () => {
         const changes = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
@@ -4860,6 +4873,8 @@ export class Formulas extends BasePlugin {
     // Once rows or columns have been moved or sorted, the engine and the source data no longer
     // share a reference frame, and the engine's formulas would be wrong in the source data's terms.
     if (!this.rowAxisSyncer!.isHfOrderPhysical() || !this.columnAxisSyncer!.isHfOrderPhysical()) {
+      this.#sourceHasStaleFormulas = true;
+
       return;
     }
 
@@ -4903,6 +4918,10 @@ export class Formulas extends BasePlugin {
       }
     } finally {
       this.#internalOperationPending = false;
+    }
+
+    if (cells === undefined) {
+      this.#sourceHasStaleFormulas = false;
     }
 
     if (changes.length === 0) {

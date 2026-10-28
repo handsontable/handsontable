@@ -69,14 +69,23 @@ const isRestoreSource = source => source === 'UndoRedo.undo' || source === 'Undo
   engine that is about to be reloaded anyway.
 - **The cell writes of a restore are held, not applied** (`#restoredWrites`), in the
   `afterSetSourceDataAtCell` format (physical rows). They reach the engine in `restoreState()`.
-- **`captureState()` returns two versions and, while the order is not physical, the engine's sheet.**
+- **`captureState()` returns two versions and, while the order is not physical or the source data is stale, the engine's sheet.**
   `structureVersion` changes on every row or column insert, removal, move, **and every sequence
   change** (a sort included) and on a NestedRows detach; `dataVersion` on every cell write. UndoRedo
   calls `restoreState(state)` whenever a step changed either of them. When the structure version
   differs from the one the engine holds, the sheet is replaced and the held writes are dropped:
-  - **In physical order** the source data is authoritative: `#loadSourceDataIntoSheet()`, the same
-    path a data load takes. The write-back of engine-rewritten formulas (`#syncFormulasToSourceData`)
+  - **In physical order, with the source data in step with the engine,** the source data is
+    authoritative: `#loadSourceDataIntoSheet()`, the same path a data load takes. The write-back of engine-rewritten formulas (`#syncFormulasToSourceData`)
     runs inside the forward operation, so the journal holds it and the undo reverses it.
+  - **After a structural change made out of physical order, the source data stays stale when the order
+    returns.** The write-back is skipped there, so the source keeps the text the engine has since rewritten
+    (an insert at visual 1 shifts every formula below it), and `#sourceHasStaleFormulas` records it. The next
+    structural step in physical order writes the engine's text into the source and journals the stale text as
+    its "before" value, so a state captured before that step must carry the engine's sheet: its undo reloaded
+    the stale source otherwise, and the formulas ended up pointing at the wrong rows (DEV-3624). A full
+    write-back in physical order, or a full sheet write from the source (`#writeSheet()`), clears the flag; a
+    restore sets it from whether the restored state carries an engine sheet. Pinned by
+    `__tests__/reorderedInsertUndo.unit.js`.
   - **Out of physical order** the source data cannot rebuild the engine: the write-back is skipped
     there, and the engine's references depend on HOW the order was reached. `engine.moveRows` keeps
     every reference on its data, while `engine.setRowOrder` - what the axis syncer sends for a sort
