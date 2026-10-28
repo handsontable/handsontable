@@ -170,6 +170,34 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
       await expect.poll(() => fixture.tabInStrip(25)).toBe(true);
     });
 
+    test('reveals the active tab on first paint when the grid applies its theme itself', async({
+      page, theme, bundle,
+    }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+      await fixture.goto({ sheets: 30, activeSheet: 25, colorScheme: 'light' });
+      await expect.poll(() => fixture.tabInStrip(25)).toBe(true);
+    });
+
+    test('keeps a strip the user paged when the theme changes the size of the tabs', async({
+      page, theme, bundle,
+    }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+      await fixture.goto({ sheets: 30, activeSheet: 25, colorScheme: 'light' });
+      await expect.poll(() => fixture.tabInStrip(25)).toBe(true);
+      await fixture.strip.evaluate((strip) => { strip.scrollLeft = 0; });
+
+      const tabWidth = () => fixture.tab(0).evaluate(tab => (tab as HTMLElement).offsetWidth);
+      const comfortableWidth = await tabWidth();
+
+      await page.evaluate(() => (window as any).hot.updateSettings({ density: 'compact' }));
+
+      await expect.poll(tabWidth).not.toBe(comfortableWidth);
+      expect(await fixture.strip.evaluate(strip => strip.scrollLeft)).toBe(0);
+      expect(await fixture.tabInStrip(25)).toBe(false);
+    });
+
     test('reveals a tab activated while the grid was hidden once it is shown', async({ page, theme, bundle }) => {
       const fixture = new SheetsBarUiPage(page, theme, bundle);
 

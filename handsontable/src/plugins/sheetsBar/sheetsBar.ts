@@ -4886,6 +4886,8 @@ export class SheetsBar extends BasePlugin {
     // class-list or renderer mapping only when the theme's icons revision moved.
     this.#ui?.refreshIcons();
     this.#tabStrip?.refreshIcons();
+    this.#overflow?.refresh();
+    this.#tabStrip?.settleReveal();
   };
 
   /**

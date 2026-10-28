@@ -312,10 +312,11 @@ export class TabStrip {
    */
   #renamingId: number | null = null;
   /**
-   * Whether the last repaint revealed the active tab and the reveal has not been repeated after
-   * the paging arrows settled (`settleReveal()`).
+   * The strip's `scrollLeft` right after the last reveal of the active tab, or `null` before the
+   * first one. While the strip still sits there, the user has not paged it since, so a layout
+   * change may repeat the reveal (`settleReveal()`).
    */
-  #isRevealUnsettled = false;
+  #revealedScrollLeft: number | null = null;
   /**
    * The sheet whose tab holds the strip's one Tab stop while the focus moves along the strip, or
    * `null` when the active tab holds it. The arrow keys move the stop with the focus; once the
@@ -1372,27 +1373,27 @@ export class TabStrip {
 
     if (isHTMLElement(tab)) {
       this.#scrollIntoStrip(tab);
-      this.#isRevealUnsettled = true;
+      this.#revealedScrollLeft = this.#host.scrollLeft;
     }
   }
 
   /**
-   * Repeats the reveal the last repaint made, once the paging arrows have taken their room. The
-   * repaint reveals the active tab against the strip as it is then; the plugin shows or hides the
-   * arrows right after, which narrows or widens the strip and could leave the tab cut at the
-   * strip's end. Only that one reveal is repeated, so a strip the user paged by hand stays put.
+   * Repeats the last reveal of the active tab after the strip's layout changed under it: the
+   * paging arrows took or gave back their room, the strip was resized, or the theme changed the
+   * size of the tabs (the bar is built before the grid's theme is applied, so the first reveal
+   * measures unthemed tabs). The reveal is repeated only while the strip still sits where that
+   * reveal left it, so a strip the user paged by hand stays put.
    */
   settleReveal(): void {
-    if (!this.#isRevealUnsettled) {
+    if (this.#revealedScrollLeft === null || this.#host.scrollLeft !== this.#revealedScrollLeft) {
       return;
     }
-
-    this.#isRevealUnsettled = false;
 
     const tab = this.#host.querySelector('.ht-sheets-bar__tab--active');
 
     if (isHTMLElement(tab)) {
       this.#scrollIntoStrip(tab);
+      this.#revealedScrollLeft = this.#host.scrollLeft;
     }
   }
 

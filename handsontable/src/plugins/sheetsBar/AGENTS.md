@@ -565,11 +565,16 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 - **The theme class goes on the bar only in a `uiContainer`.** In a layout slot the bar sits under
   the grid's own themed wrapper; a class of its own there broke the theme engine's scope (the
   `colorScheme` and `density` tokens of the grid stopped reaching the bar).
-- **The active tab is revealed after the paging arrows have taken their room** (`settleReveal()`
-  after the overflow refresh in `#refreshUI`, and from the overflow controller's `onResize`).
-  Revealed before, a first paint scrolled it to a strip still as wide as the bar and left it
-  under the end arrow. The reveal latches only once the strip is measured (`clientWidth > 0`), so
-  a bar built in a hidden container reveals the tab when it is shown.
+- **The active tab's reveal is repeated whenever the strip's layout changes under it**
+  (`settleReveal()`: after the overflow refresh in `#refreshUI`, from the overflow controller's
+  `onResize`, and from `#onAfterSetTheme`). Two layouts changed under a first reveal: the paging
+  arrows narrowing the strip, and the grid's theme, which a `themeName`, `colorScheme` or
+  `density` grid applies after the bar is built in `beforeInit`, so the first reveal measured
+  unthemed tabs a third of their width. The strip remembers the `scrollLeft` its reveal left
+  (`#revealedScrollLeft`) and repeats the reveal only while it still sits there, so a strip the
+  user paged by hand stays put through a theme or density switch. The reveal latches only once
+  the strip is measured (`clientWidth > 0`), so a bar built in a hidden container reveals the tab
+  when it is shown.
 - **A listener can cancel the restore's `filter()` and `sort()`, and the restore must survive it.**
   `beforeFilter` and `beforeColumnSort` are cancelable, and DataProvider cancels both on purpose
   (server-side mode), so the restore never forces them through. A canceled `filter()` puts back the
