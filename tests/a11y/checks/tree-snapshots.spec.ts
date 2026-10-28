@@ -12,7 +12,7 @@ import { flattenAxTree, treeSnapshot } from './ax-tree';
  * tree of the grid's root container and its portal, on every page of the catalog (`../pages.mjs`) in its
  * state and on every theme.
  *
- * - **Structure** (`structureFindings()` in `lib/aria-tree.mjs`): the grid's rows in reading order, with
+ * - **Structure** (`structureFindings()` in `lib/aria-tree.mjs`): each grid's rows in reading order, with
  *   their row and column headers, their row and column indexes, and whether one row is exposed twice.
  * - **Names and roles** (`nameFindings()`): every control has a name, every header has one, every tab
  *   stop has a role.

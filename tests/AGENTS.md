@@ -1489,14 +1489,21 @@ half judges it (`lib/aria-tree.mjs`, tested in `lib/__tests__/aria-tree.test.mjs
   names and order; one `DOMSnapshot.captureSnapshot` gives each node's tag and attributes
   (`aria-rowindex`, `aria-colindex`, `tabindex`, the class), joined by backend node id. An ignored node is
   dropped and its children are read in its place. The axe scan reads the same tree against axe's rules;
-  this check reads its order and structure, which no axe rule does.
+  this check reads its order and structure, which no axe rule does. A grid root the tree does not hold
+  throws in `flattenAxTree()`: with no node read, the page would pass 1.3.1, 1.3.2 and 4.1.2 with no
+  finding, so it is a tooling failure, never a clean target. A portal stays optional.
 - **Structure** (`structureFindings()`): the column headers read after the data rows
   (`headers-after-data`, 1.3.2), data rows without their row header while the row headers sit in rows of
   their own (`row-headers-apart`, 1.3.1), one row index exposed by several rows (`row-exposed-twice`,
   1.3.1), cells or rows read out of their index order (1.3.2), a grid role with no row (1.3.1). Today the
   first three show on every grid with headers: the overlay clones put the header row after the master
   table and repeat each row in the row-header clone. They are one root cause, reported per page and
-  theme, because the evidence is per page.
+  theme, because the evidence is per page. Each grid is judged on its own rows (a row belongs to its
+  nearest grid, treegrid or table ancestor). A list inside the page (the handsontable editor's list, the
+  filters' value list) therefore neither adds rows without a header to the grid nor shares its row
+  indexes. A grid after the first is named by its place among the grids with rows (`grid 2 in reading
+  order`). A row whose own rowgroup is a table head (`thead`) is never a data row: the corner clone
+  repeats the head row with its corner cell alone.
 - **Names and roles** (`nameFindings()`): a widget role with no name (`unnamed-control`), a column or row
   header with no name (`unnamed-header`), and a tab stop (a non-negative `tabindex`, or a native control)
   the tree gives no role (`focusable-without-role`). An empty grid cell needs no name; an element

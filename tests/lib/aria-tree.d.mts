@@ -22,7 +22,7 @@ type TreeFinding = {
   measured?: Record<string, unknown>;
 };
 
-export function gridRows(nodes: TreeNode[]): Array<{ id: string; rowindex: number | null; group: string | null; cells: TreeNode[] }>;
+export function gridRows(nodes: TreeNode[]): Array<{ id: string; rowindex: number | null; group: string | null; head: boolean; grid: string | null; cells: TreeNode[] }>;
 export function structureFindings(nodes: TreeNode[]): TreeFinding[];
 export function nameFindings(nodes: TreeNode[]): TreeFinding[];
 export function diffSnapshot(expected: string, actual: string): { line: number; expected: string | null; actual: string | null; expectedLines: number; actualLines: number } | null;
