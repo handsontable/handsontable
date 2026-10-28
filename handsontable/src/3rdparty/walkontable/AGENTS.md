@@ -1027,7 +1027,11 @@ Consequences worth knowing:
   The rectangle test (`isStartGapCovered` in `helpers/dom/element.ts`, the rule
   `BaseEditor#isStartPixelCovered` shares) asks the overlay that is painted over the layer the border
   lives in: the inline-start clone for the master table, the top start corner for the `top` clone, the
-  bottom start corner for the `bottom` clone. A cell of the inline-start clone and of the corners is in
+  bottom start corner for the `bottom` clone. The top edge has the same blind spot and the same answer
+  (`isTopGapCovered`, `Border#isTopGridlineCoveredByOverlay`): `standsBelowColumnHeader` keys on the
+  first row of the body, so the first visible row of a scrolled grid and the first row after
+  `fixedRowsTop` kept 1px of their 2px edge. The covering overlay is the top clone for the master
+  table and the top start corner for the inline-start clone. A cell of the inline-start clone and of the corners is in
   the overlay's own layer and draws its edge itself. The decision is made on each draw, so a scroll that
   brings a column next to the overlay moves its edge too. Pinned by
   `tests/e2e/selection-start-edge-row-header.spec.ts`, which measures how much of the edge lies inside

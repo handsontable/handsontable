@@ -5,6 +5,8 @@ import { EditorRowHeaderBorderPage, type GridName } from '../fixtures/pages/Edit
 const FIRST_VISIBLE_COLUMN = 8;
 const ON_THE_CELL_EDGE = { offset: 0, hiddenUnderOverlay: 0 };
 const ON_THE_GRIDLINE = { offset: -1, hiddenUnderOverlay: 0 };
+// The row that comes first once a grid is scrolled by fifty 23px rows.
+const FIRST_VISIBLE_ROW = 50;
 
 /**
  * The selection's start edge is 2px wide and is centered on the gridline it shares with the previous
@@ -101,5 +103,34 @@ test.describe('Selection start edge next to an inline-start overlay', { tag: THE
 
   test('column A behind the row headers keeps the whole start edge in view', async() => {
     await expect.poll(() => grid.startEdge('row-headers', 0, 0)).toEqual(ON_THE_CELL_EDGE);
+  });
+
+  const VERTICAL: GridName[] = ['rows', 'rows-frozen'];
+
+  for (const name of VERTICAL) {
+    test(`the first visible row of a scrolled grid keeps the whole top edge in view (${name})`, async() => {
+      await grid.scrollToRow(name, FIRST_VISIBLE_ROW);
+
+      await expect.poll(() => grid.topEdge(name, FIRST_VISIBLE_ROW, 1)).toEqual(ON_THE_CELL_EDGE);
+    });
+
+    test(`the row after the first visible one keeps the top edge on the gridline (${name})`, async() => {
+      await grid.scrollToRow(name, FIRST_VISIBLE_ROW);
+
+      await expect.poll(() => grid.topEdge(name, FIRST_VISIBLE_ROW + 1, 1)).toEqual(ON_THE_GRIDLINE);
+    });
+  }
+
+  test('the top edge follows a scroll that brings its row next to the overlay', async() => {
+    await grid.scrollToRow('rows', FIRST_VISIBLE_ROW);
+    await expect.poll(() => grid.topEdge('rows', FIRST_VISIBLE_ROW + 1, 1)).toEqual(ON_THE_GRIDLINE);
+
+    await grid.scrollToRow('rows', FIRST_VISIBLE_ROW + 1);
+    await expect.poll(() => grid.topEdge('rows', FIRST_VISIBLE_ROW + 1, 1, { select: false }))
+      .toEqual(ON_THE_CELL_EDGE);
+  });
+
+  test('the first row of an unscrolled grid keeps the whole top edge in view', async() => {
+    await expect.poll(() => grid.topEdge('rows', 0, 1)).toEqual(ON_THE_CELL_EDGE);
   });
 });

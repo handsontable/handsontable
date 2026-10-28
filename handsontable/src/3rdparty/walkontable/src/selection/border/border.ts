@@ -10,6 +10,7 @@ import {
   isHTMLElement,
   standsBehindRowHeader,
   isStartGapCovered,
+  isTopGapCovered,
 } from '../../../../../helpers/dom/element';
 import { stopImmediatePropagation, isRightClick } from '../../../../../helpers/dom/event';
 import { isMobileBrowser, isMobileOrIpadOS } from '../../../../../helpers/browser';
@@ -24,6 +25,7 @@ import {
   standsBelowColumnHeader,
 } from './utils';
 import type { InteriorEdges, RenderedBand } from './utils';
+import type { Overlay } from '../../overlay/regions/_base';
 import { CUSTOM_SELECTION_TYPE } from '../constants';
 import { INLINE_END_CLONE_TYPES } from '../../overlay/constants';
 import { getSpreaderOffset } from '../../overlay/spreaderOffset';
@@ -2094,7 +2096,13 @@ class Border {
     // left centered on it loses half its thickness behind the column header, so both cases put the
     // visible edge at the cell's own top boundary. The row axis's twin of the inline-start case
     // below; `standsBelowColumnHeader` explains why it is read from the DOM.
-    if (parseFloat(style.borderTopWidth) > 0 || standsBelowColumnHeader(fromTDEl)) {
+    //
+    // The column header test is not enough for the master table's own cells either. With the default
+    // overscan the first visible row is not the first row of the body, and the first row after
+    // `fixedRowsTop` is not either, yet the top overlay ends where such a cell starts. The rectangles
+    // are asked, as they are for the inline-start edge below.
+    if (parseFloat(style.borderTopWidth) > 0 || standsBelowColumnHeader(fromTDEl) ||
+        this.isTopGridlineCoveredByOverlay(fromTDEl)) {
       top += 1;
       height = height > 0 ? height - 1 : 0;
     }
@@ -2175,26 +2183,53 @@ class Border {
    * @returns {boolean}
    */
   isStartGridlineCoveredByOverlay(cell: HTMLElement, isRtl: boolean): boolean {
-    const { wtTable } = this.wot;
     const { wtOverlays } = this.wot.cloneSource ?? this.wot;
-    const coveringOverlay = {
+    const overlayRect = this.getCoveringOverlayRect({
       master: wtOverlays.inlineStartOverlay,
       top: wtOverlays.topInlineStartCornerOverlay,
       bottom: wtOverlays.bottomInlineStartCornerOverlay,
-    }[wtTable.isMaster ? 'master' : wtTable.name];
+    });
 
-    // A grid with nothing frozen on that side has no overlay there to paint over anything.
+    return overlayRect !== null &&
+      isStartGapCovered(this.wot.domBindings.geometryReader.getBoundingClientRect(cell), overlayRect, isRtl);
+  }
+
+  /**
+   * Whether the top overlay is painted over the gridline above a cell of this table, because its table
+   * ends where the cell starts. The master table's cells sit under the top clone, those of the
+   * inline-start clone under the top start corner. A cell of the top clone and of the corner is in the
+   * overlay's own layer, which draws the edge itself.
+   *
+   * @param {HTMLElement} cell The cell the border starts on.
+   * @returns {boolean}
+   */
+  isTopGridlineCoveredByOverlay(cell: HTMLElement): boolean {
+    const { wtOverlays } = this.wot.cloneSource ?? this.wot;
+    const overlayRect = this.getCoveringOverlayRect({
+      master: wtOverlays.topOverlay,
+      inline_start: wtOverlays.topInlineStartCornerOverlay,
+    });
+
+    return overlayRect !== null &&
+      isTopGapCovered(this.wot.domBindings.geometryReader.getBoundingClientRect(cell), overlayRect);
+  }
+
+  /**
+   * Reads the rectangle of the table of the overlay that covers this table, when that overlay renders.
+   * A grid with nothing frozen on that side has no overlay there to paint over anything.
+   *
+   * @param {object} overlaysByTable The covering overlay by the name of the table it covers.
+   * @returns {DOMRect|null}
+   */
+  getCoveringOverlayRect(overlaysByTable: Record<string, Overlay | undefined>): DOMRect | null {
+    const { wtTable } = this.wot;
+    const coveringOverlay = overlaysByTable[wtTable.isMaster ? 'master' : wtTable.name];
+
     if (!coveringOverlay?.needFullRender || !coveringOverlay.clone) {
-      return false;
+      return null;
     }
 
-    const { geometryReader } = this.wot.domBindings;
-
-    return isStartGapCovered(
-      geometryReader.getBoundingClientRect(cell),
-      geometryReader.getBoundingClientRect(coveringOverlay.clone.wtTable.TABLE),
-      isRtl
-    );
+    return this.wot.domBindings.geometryReader.getBoundingClientRect(coveringOverlay.clone.wtTable.TABLE);
   }
 
   /**

@@ -30,6 +30,7 @@ import {
   getComposedEventTargetEl,
   standsBehindRowHeader,
   isStartGapCovered,
+  isTopGapCovered,
   getDeepActiveElement,
   getShadowHostChain,
   outerHeight,
@@ -2493,6 +2494,20 @@ describe('DomElement helper', () => {
       ['an overlay that starts a pixel after the cell', 151, 100, false],
     ])('should answer for %s in a right to left grid', (_, overlayLeft, cellLeft, expected) => {
       expect(isStartGapCovered(cell(cellLeft), { left: overlayLeft, right: 400 }, true)).toBe(expected);
+    });
+  });
+
+  describe('isTopGapCovered', () => {
+    const cell = (top: number) => ({ top, bottom: top + 23 });
+
+    it.each([
+      ['an overlay that reaches into the cell', 73, 70, true],
+      ['an overlay that ends exactly where the cell starts', 70, 70, true],
+      ['an overlay that ends within the half pixel of tolerance', 69.6, 70, true],
+      ['an overlay that ends half a pixel above the cell', 69.5, 70, false],
+      ['an overlay that ends a pixel above the cell', 69, 70, false],
+    ])('should answer for %s', (_, overlayBottom, cellTop, expected) => {
+      expect(isTopGapCovered(cell(cellTop), { top: 0, bottom: overlayBottom })).toBe(expected);
     });
   });
 });

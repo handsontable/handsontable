@@ -3,7 +3,8 @@ import { awaitBundle } from '../bundle';
 
 /** Which grid of the fixture a locator or probe addresses. */
 export type GridName =
-  'row-headers' | 'frozen' | 'frozen-rows' | 'scrolled' | 'scrolled-top' | 'rtl' | 'no-row-headers';
+  'row-headers' | 'frozen' | 'frozen-rows' | 'scrolled' | 'scrolled-top' | 'rtl' | 'no-row-headers' |
+  'rows' | 'rows-frozen';
 
 /** How far the open editor reaches past the edited cell, in CSS pixels. */
 export interface EditorOverhang {
@@ -23,6 +24,20 @@ export interface StartEdgeMeasure {
   offset: number;
   /**
    * How much of the edge lies inside an inline-start overlay's table, which paints over it.
+   */
+  hiddenUnderOverlay: number;
+}
+
+/**
+ * Where a selection's top edge stands.
+ */
+export interface TopEdgeMeasure {
+  /**
+   * Past the cell's top edge. Negative: the edge is centered on the gridline before the cell.
+   */
+  offset: number;
+  /**
+   * How much of the edge lies inside a top overlay's table, which paints over it.
    */
   hiddenUnderOverlay: number;
 }
@@ -247,5 +262,88 @@ export class EditorRowHeaderBorderPage {
         ))),
       };
     }, [grid, row, col, layer, select] as const);
+  }
+
+  /**
+   * Scroll a grid so that a row is the first scrollable one it shows, and wait until the scroll has
+   * settled. Reading the first visible row while the viewport is still moving can return an interim one.
+   *
+   * @param {GridName} grid The grid.
+   * @param {number} row The visual row.
+   */
+  async scrollToRow(grid: GridName, row: number): Promise<void> {
+    const hotKey = `hot_${grid.replace(/-/g, '_')}`;
+
+    await this.page.evaluate(([key, r]) => {
+      (window as unknown as Record<string, { scrollViewportTo: (o: object) => void }>)[key]
+        .scrollViewportTo({ row: r, col: 0, verticalSnap: 'top' });
+    }, [hotKey, row] as const);
+
+    await expect.poll(() => this.page.evaluate((key) => {
+      return (window as unknown as Record<string, { getFirstFullyVisibleRow: () => number }>)[key]
+        .getFirstFullyVisibleRow();
+    }, hotKey)).toBe(row);
+  }
+
+  /**
+   * Measure the master table's selection top edge of a cell against the top overlays, which are painted
+   * over the layer the edge lives in. The row axis twin of {@link EditorRowHeaderBorderPage#startEdge}:
+   * the edge is 2px tall and loses its first pixel under an overlay whenever the overlay's table ends
+   * where the cell starts.
+   *
+   * @param {GridName} grid The grid.
+   * @param {number} row The visual row.
+   * @param {number} col The visual column.
+   * @param {object} [options] The measure options.
+   * @param {boolean} [options.select] Select the cell first. Off, the selection a scroll left is measured.
+   * @returns {Promise<TopEdgeMeasure|null>} `null` while the master draws no top edge of the cell.
+   */
+  async topEdge(
+    grid: GridName,
+    row: number,
+    col: number,
+    { select = true }: { select?: boolean } = {},
+  ): Promise<TopEdgeMeasure | null> {
+    return this.page.evaluate(([name, r, c, shouldSelect]) => {
+      const hot = (window as unknown as Record<string, {
+        selectCell: (row: number, col: number) => void,
+        getCell: (row: number, col: number, topmost?: boolean) => HTMLElement,
+      }>)[`hot_${name.replace(/-/g, '_')}`];
+
+      if (shouldSelect) {
+        hot.selectCell(r, c);
+      }
+
+      const root = document.querySelector(`[data-testid="${name}"]`)!;
+      const cellElement = hot.getCell(r, c, true);
+
+      // Not drawn yet: the caller polls until the grid has caught up with a scroll.
+      if (!cellElement) {
+        return null;
+      }
+
+      const cell = cellElement.getBoundingClientRect();
+      const round = (value: number) => Math.round(value * 100) / 100;
+      const overlays = [...root.querySelectorAll<HTMLElement>(
+        '.ht_clone_top table, .ht_clone_top_inline_start_corner table'
+      )].map(table => table.getBoundingClientRect()).filter(rect => rect.height > 0);
+
+      // The master draws four edges of the current selection. The top one is the 2px tall box that
+      // stands on the top half of the cell, as opposed to the bottom one next to the cell's bottom.
+      const edge = [...root.querySelectorAll<HTMLElement>('.ht_master .wtBorder.current')]
+        .map(element => element.getBoundingClientRect())
+        .find(rect => Math.abs(rect.height - 2) < 0.5 && rect.top < cell.top + cell.height / 2);
+
+      if (!edge) {
+        return null;
+      }
+
+      return {
+        offset: round(edge.top - cell.top),
+        hiddenUnderOverlay: round(Math.max(0, ...overlays.map(
+          overlay => Math.min(edge.bottom, overlay.bottom) - Math.max(edge.top, overlay.top)
+        ))),
+      };
+    }, [grid, row, col, select] as const);
   }
 }
