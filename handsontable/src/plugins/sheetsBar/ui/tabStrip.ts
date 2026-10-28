@@ -12,6 +12,7 @@ import {
 import { A11Y_LABEL } from '../../../helpers/a11y';
 import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import type EventManager from '../../../eventManager';
+import type { LongPressTimers } from '../../../helpers/dom/longPress';
 import { TabDrag, translationOf } from './tabDrag';
 import { truncateSheetName } from '../sheetModel';
 import type { SheetDescriptor } from '../sheetModel';
@@ -396,6 +397,14 @@ export class TabStrip {
           this.finishEntrances();
           this.finishSlide();
           this.finishLeaving();
+        },
+        timers: options.rootWindow as unknown as LongPressTimers,
+        onHoldRelease: (id: number) => {
+          const sheet = this.#sheets.get(id);
+
+          if (sheet !== undefined) {
+            this.#openMenuFor(sheet, false);
+          }
         },
       },
       (id, toIndex) => this.runLocalHooks('tabDragCommit', id, toIndex),
@@ -1820,6 +1829,12 @@ export class TabStrip {
     const target = this.#tabOfEvent(event);
 
     if (target === null || this.#isWithinRenameInput(event)) {
+      return;
+    }
+
+    if (this.#drag.isTouchPressing()) {
+      event.preventDefault();
+
       return;
     }
 

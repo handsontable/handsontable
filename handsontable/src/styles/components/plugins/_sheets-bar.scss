@@ -268,12 +268,10 @@ $all-sheets-visible-items: 8;
         // back for itself, since editing a name needs it.
         user-select: none;
 
-        // The drag is pointer-events-based so it works with touch as well as a mouse, but on
-        // touch the default `touch-action: auto` lets the browser claim a horizontal gesture for
-        // panning and cancel the pointer stream mid-drag. `pan-y` hands horizontal gestures to
-        // us — which is what a tab drag is — while still leaving vertical page scrolling to the
-        // browser.
-        touch-action: pan-y;
+        // The drag is pointer-events-based so it works with touch as well as a mouse. On touch a
+        // swipe scrolls the strip, so the browser keeps both pans; a tab held still for the long
+        // press lifts, and the drag then cancels the `touchmove` that would pan the strip under it.
+        touch-action: pan-x pan-y;
 
         // Carries the tabs the drag displaces back from where they were, so the strip makes room
         // in a slide rather than a jump. The controller drives it; there is nothing to animate
@@ -336,6 +334,10 @@ $all-sheets-visible-items: 8;
           transition: none;
           animation: none;
 
+          @include mixins.box-shadow;
+        }
+
+        &--lifted {
           @include mixins.box-shadow;
         }
 

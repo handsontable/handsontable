@@ -257,4 +257,12 @@ export class TouchTapToEditPage {
   async tapContextMenuItem(label: string): Promise<void> {
     await this.contextMenu.getByText(label, { exact: true }).tap();
   }
+
+  /**
+   * A tap on the page margin, outside the grid. The browser answers it with one `click`, so a test
+   * can count that click to know every earlier tap's sequence has landed.
+   */
+  async tapOutsideGrid(): Promise<void> {
+    await this.page.touchscreen.tap(4, 4);
+  }
 }

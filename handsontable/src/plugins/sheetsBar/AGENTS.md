@@ -450,10 +450,23 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   disabled state is the `ht-sheets-bar__button--disabled` class (`DISABLED_CLASS` in
   `overflow.ts`); `aria-disabled` and the anchors' `aria-expanded` are mirrors written only
   while ARIA is on, and `isArrowEnabled()`/`getFocusableElements()` read the class.
-- **A `button: 0` `contextmenu` is not necessarily the keyboard.** A touch long-press and a
-  macOS Ctrl+click report it too; the strip tells them apart by `buttons === 0` plus no
-  pointer being down on the tab (`#pointerHeldOnTab`). Focus restores in `menus.ts` go through
-  `getDeepActiveElement()` — the raw `activeElement` collapses to the host in a shadow root.
+- **A `button: 0` `contextmenu` is not necessarily the keyboard.** A macOS Ctrl+click reports it
+  too; the strip tells them apart by `buttons === 0` plus no press held by the drag
+  (`TabDrag#isPressing()`), never by a flag of the strip's own, which a release off the strip left
+  set, so the next Shift+F10 opened the menu with no item preselected. Focus restores in
+  `menus.ts` go through `getDeepActiveElement()` — the raw `activeElement` collapses to the host
+  in a shadow root.
+- **A touch press on a tab is timed by the shared `LongPressDetector`** (`helpers/dom/longPress.ts`,
+  the same 500ms hold and 10px drift Walkontable's cells use to open the context menu). A swipe that
+  starts before the hold runs out scrolls the strip (`touch-action: pan-x pan-y`; the drag ends as
+  soon as the detector reports the drift). A hold lifts the tab (`ht-sheets-bar__tab--lifted`), and
+  only then does a move drag it: the lifted press calls `preventDefault()` on a non-passive
+  `touchmove`, which is what keeps the browser from panning once the drag owns the finger. Lifting
+  the finger without moving opens the tab menu with no item preselected (`onHoldRelease`). The
+  browser's own long-press `contextmenu` is ignored while a touch press is held
+  (`TabDrag#isTouchPressing()`), or the menu opened twice. A pen press is timed the same way; a
+  mouse press drags at once, as before. The detector's timers are the grid's window, so `page.clock` drives the hold in the
+  specs (`tests/e2e/sheets-bar-touch-drag.spec.ts`, `sheets-bar-touch-menus.spec.ts`).
 - **The menus' upward flip needs a negative `above` offset.** The positioner aligns a flipped
   menu's bottom to the cursor point — the anchor's *bottom* edge — so `#openMenu` sets
   `setOffset('above', -(anchorHeight + 4))` per opening; a flat offset covered the chevron.
@@ -526,9 +539,37 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   And an event on a tab element held from before a repaint, or one that does not bubble, no longer reaches
   any listener, where the per-tab listeners still answered it. Pinned by `__tests__/tabListeners.unit.js`
   and the Angular wrapper's `hot-table-sheets-bar.spec.ts`.
-- **`render()` cancels an in-flight rename silently.** The cancel-hook handler repaints the
-  strip, and dispatching it from inside `render()` re-enters the render pass — the outer pass
-  then restores focus and scroll against tabs the inner pass replaced.
+- **`render()` keeps the tabs by sheet id and updates them in place** (`#canReuseTab`,
+  `#updateTab`). A repaint used to rebuild every tab, which dropped the focus of a tab the user
+  had just moved to, jumped a running entrance, and canceled an open rename whenever any
+  repaint landed (a host `setActiveSheet()`, an add on another tab). `#updateTab` toggles the
+  active and renaming classes, the `tabIndex`, the ARIA and the label only; it keeps the motion
+  and the inline style, and never re-applies the entrance. A rename is canceled, silently, only
+  when its sheet left the model (`#renamingId`): the cancel-hook handler repaints the strip, and
+  dispatching it from inside `render()` re-enters the render pass. `#restoreFocus` skips when the
+  focus is still inside the strip, because the kept tab never lost it.
+- **The strip is one Tab stop** (a roving `tabIndex`, `#rovingId`): the active tab holds it until
+  the user arrows to another tab, and the stop returns to the active tab when the focus leaves the
+  strip (`focusin`/`focusout` on the host). `#sheets` is filled before the tabs are built, or a tab
+  built early reads a partial map and two tabs take the stop.
+- **The grid takes its accessible name from the active tab's label** (`aria-labelledby` on
+  `hot.rootElement`, `#syncGridName`), and follows a rename and a switch. A name the host set
+  (`aria-label` or its own `aria-labelledby`) wins: the bar then removes only its own id, and
+  restores nothing it did not write on teardown.
+- **A move and a duplicate made in the bar are announced politely** (`SHEETS_BAR_SHEET_MOVED`,
+  `SHEETS_BAR_SHEET_DUPLICATED`, `SOURCE_UI` only); the switch announcement keeps its assertive
+  politeness.
+- **The active-tab marker is a `::after` border, not a `box-shadow`**, and the rename edge is an
+  `outline`: forced-colors mode drops box shadows and backgrounds, so neither cue showed there.
+  Hide the `::after` while the indicator slides and while a tab is renamed, or two markers show.
+- **The theme class goes on the bar only in a `uiContainer`.** In a layout slot the bar sits under
+  the grid's own themed wrapper; a class of its own there broke the theme engine's scope (the
+  `colorScheme` and `density` tokens of the grid stopped reaching the bar).
+- **The active tab is revealed after the paging arrows have taken their room** (`settleReveal()`
+  after the overflow refresh in `#refreshUI`, and from the overflow controller's `onResize`).
+  Revealed before, a first paint scrolled it to a strip still as wide as the bar and left it
+  under the end arrow. The reveal latches only once the strip is measured (`clientWidth > 0`), so
+  a bar built in a hidden container reveals the tab when it is shown.
 - **A listener can cancel the restore's `filter()` and `sort()`, and the restore must survive it.**
   `beforeFilter` and `beforeColumnSort` are cancelable, and DataProvider cancels both on purpose
   (server-side mode), so the restore never forces them through. A canceled `filter()` puts back the

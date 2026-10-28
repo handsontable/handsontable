@@ -1,5 +1,6 @@
 import { addClass, isHTMLElement, removeClass } from '../../../helpers/dom/element';
 import type EventManager from '../../../eventManager';
+import { LongPressDetector, type LongPressTimers } from '../../../helpers/dom/longPress';
 import { computeDropIndex } from './dropIndex';
 
 /**
@@ -18,6 +19,13 @@ export const DRAGGING_CLASS = 'ht-sheets-bar-dragging';
  * @type {string}
  */
 export const PRESSING_CLASS = 'ht-sheets-bar-pressing';
+
+/**
+ * The class a tab wears once a touch press has held it long enough to drag it.
+ *
+ * @type {string}
+ */
+export const LIFTED_CLASS = 'ht-sheets-bar__tab--lifted';
 
 /**
  * Pointer travel, in pixels, before a press on a tab becomes a drag. Below it the gesture stays
@@ -104,6 +112,25 @@ export class TabDrag {
    */
   readonly #onDragStart: () => void;
   /**
+   * Called with the sheet id when a touch press was held long enough to lift the tab and then let
+   * go without moving: the strip opens the tab's menu.
+   */
+  readonly #onHoldRelease: (id: number) => void;
+  /**
+   * Times a touch press, the way the grid's cells time theirs: a swipe before the hold runs out
+   * is a scroll of the strip, a hold lifts the tab for a drag.
+   */
+  readonly #longPress: LongPressDetector;
+  /**
+   * Whether the press in progress comes from a finger or a pen, which must hold the tab before it
+   * drags, rather than from a mouse, which drags at once.
+   */
+  #isTouchPress = false;
+  /**
+   * Whether the touch press in progress was held long enough to lift the tab.
+   */
+  #isLifted = false;
+  /**
    * The tab being dragged, or `null` when no gesture is in progress.
    */
   #tab: HTMLElement | null = null;
@@ -163,6 +190,8 @@ export class TabDrag {
       dragRoot: HTMLElement,
       eventManager: EventManager,
       onDragStart?: () => void,
+      timers?: LongPressTimers,
+      onHoldRelease?: (id: number) => void,
     },
     onCommit: (id: number, toIndex: number) => void,
   ) {
@@ -170,7 +199,12 @@ export class TabDrag {
     this.#dragRoot = options.dragRoot;
     this.#eventManager = options.eventManager;
     this.#onDragStart = options.onDragStart ?? (() => {});
+    this.#onHoldRelease = options.onHoldRelease ?? (() => {});
     this.#onCommit = onCommit;
+    this.#longPress = new LongPressDetector({
+      timers: options.timers ?? (options.host.ownerDocument.defaultView as unknown as LongPressTimers),
+      onLongPress: () => this.#lift(),
+    });
   }
 
   /**
@@ -208,6 +242,15 @@ export class TabDrag {
     if (view) {
       this.#eventManager.addEventListener(view, 'blur', this.#onWindowBlur);
     }
+
+    this.#detachTouch();
+    this.#isTouchPress = event.pointerType === 'touch' || event.pointerType === 'pen';
+
+    if (this.#isTouchPress) {
+      this.#eventManager.addEventListener(this.#host, 'touchmove', this.#onTouchMove, { passive: false });
+      this.#eventManager.addEventListener(this.#host, 'touchend', this.#onTouchEnd, { passive: false });
+      this.#longPress.start(event.clientX, event.clientY);
+    }
   }
 
   /**
@@ -218,6 +261,16 @@ export class TabDrag {
    */
   isPressing(): boolean {
     return this.#tab !== null;
+  }
+
+  /**
+   * Whether the press in progress is a finger or a pen on a tab. Such a press decides what it is by
+   * how long it is held: a `contextmenu` the browser raises during it is not the menu's opener.
+   *
+   * @returns {boolean} `true` while a touch press is tracked.
+   */
+  isTouchPressing(): boolean {
+    return this.#tab !== null && this.#isTouchPress;
   }
 
   /**
@@ -244,6 +297,7 @@ export class TabDrag {
   destroy(): void {
     this.abort();
     this.#detach();
+    this.#detachTouch();
   }
 
   /**
@@ -261,6 +315,14 @@ export class TabDrag {
 
     if (tab.parentNode !== this.#host) {
       this.#finish();
+
+      return;
+    }
+
+    if (this.#isTouchPress && !this.#isLifted) {
+      if (this.#longPress.move(event.clientX, event.clientY)) {
+        this.#finish();
+      }
 
       return;
     }
@@ -472,6 +534,7 @@ export class TabDrag {
 
     const tab = this.#tab;
     const wasDragging = this.#isDragging;
+    const wasHeld = this.#isLifted && !wasDragging;
     const landed = tab ? this.#indexOf(tab) : this.#originIndex;
     const id = this.#id;
 
@@ -479,7 +542,48 @@ export class TabDrag {
 
     if (wasDragging && landed !== this.#originIndex) {
       this.#onCommit(id, landed);
+    } else if (wasHeld) {
+      this.#onHoldRelease(id);
     }
+  };
+
+  /**
+   * Lifts the tab a touch press has held long enough: from now on the finger drags it.
+   */
+  #lift(): void {
+    if (this.#tab === null) {
+      return;
+    }
+
+    this.#isLifted = true;
+    addClass(this.#tab, LIFTED_CLASS);
+  }
+
+  /**
+   * Keeps the browser from panning the strip under a lifted tab. The strip lets the browser pan it
+   * before the hold runs out, which is how a swipe scrolls the tabs; once the tab is lifted, the
+   * finger's moves are the drag's.
+   *
+   * @param {TouchEvent} event The `touchmove` event.
+   */
+  #onTouchMove = (event: TouchEvent): void => {
+    if (this.#isLifted && event.cancelable) {
+      event.preventDefault();
+    }
+  };
+
+  /**
+   * Ends a held touch press without the mouse events the browser would send for it, so a `click`
+   * does not land on the tab after its menu opened or its drag ended.
+   *
+   * @param {TouchEvent} event The `touchend` event.
+   */
+  #onTouchEnd = (event: TouchEvent): void => {
+    if (this.#isLifted && event.cancelable) {
+      event.preventDefault();
+    }
+
+    this.#detachTouch();
   };
 
   /**
@@ -555,8 +659,10 @@ export class TabDrag {
   #finish(): void {
     this.#stopAutoScroll();
 
+    this.#longPress.reset();
+
     if (this.#tab) {
-      removeClass(this.#tab, 'ht-sheets-bar__tab--dragging');
+      removeClass(this.#tab, ['ht-sheets-bar__tab--dragging', LIFTED_CLASS]);
       this.#tab.style.transform = '';
       this.#eventManager.removeEventListener(this.#tab, 'lostpointercapture', this.#onLostCapture as EventListener);
     }
@@ -568,6 +674,18 @@ export class TabDrag {
     this.#pointerId = -1;
     this.#isDragging = false;
     this.#detach();
+  }
+
+  /**
+   * Detaches the listeners a touch press installed on the strip, once the browser has dispatched
+   * the `touchend` that ends it (a `pointerup` comes first, and the `touchend` still has to be
+   * canceled after a held press).
+   */
+  #detachTouch(): void {
+    this.#isTouchPress = false;
+    this.#isLifted = false;
+    this.#eventManager.removeEventListener(this.#host, 'touchmove', this.#onTouchMove as EventListener);
+    this.#eventManager.removeEventListener(this.#host, 'touchend', this.#onTouchEnd as EventListener);
   }
 
   /**

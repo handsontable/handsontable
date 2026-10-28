@@ -360,6 +360,19 @@ and ran 105px past the bottom. `#clampHorizontally()` and `#clampVertically()` n
   viewport, a short viewport, a window scrolled on both axes in both document directions with the grid inset
   from the viewport's edge, and a submenu).
 
+## A tapped menu item runs on `touchend`, and the menu cancels that `touchend`
+
+On a touch screen `beforeOnCellMouseUp` is Walkontable's `touchend`, so the command runs before the
+browser synthesizes the tap's compatibility `mousedown`, `mouseup` and `click`. Those events used to
+land after the command, on whatever the command had shown: the sheets bar's Rename opens an input,
+the compat `mousedown` focused the menu's `td.current`, the input blurred, the blur committed an
+empty rename and the repaint removed the input. `Menu#endTapBeforeCommand()` therefore calls
+`preventDefault()` on a cancelable touch `touchend` before `executeCommand()`, which tells the
+browser to send none of them. A command never needs them: it ran already. Keep it before the
+command, because a command that throws must not leave the compat events armed. A test that counts
+`click`s after a menu tap reads 0 for the tap (`tests/e2e/touch-tap-to-edit.spec.ts`, #12803);
+pinned by `tests/e2e/sheets-bar-touch-menus.spec.ts`.
+
 ## Where to look next
 
 - DropdownMenu specifics: `handsontable/src/plugins/dropdownMenu/AGENTS.md`.

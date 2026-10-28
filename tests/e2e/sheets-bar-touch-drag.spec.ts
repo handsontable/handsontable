@@ -20,6 +20,7 @@ test.describe('sheets bar touch drag', { tag: THEMES_TAG }, () => {
   test('dragging a tab past its neighbour by touch reorders the strip', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 
+    await page.clock.install();
     await bar.goto();
 
     const names = () => page.evaluate(() => Array.from(
@@ -44,6 +45,7 @@ test.describe('sheets bar touch drag', { tag: THEMES_TAG }, () => {
       type: 'touchStart',
       touchPoints: [{ x: startX, y: startY }],
     });
+    await page.clock.runFor(600);
     // Two moves: the first passes the drag threshold, the second carries the tab across --
     // matching the mouse-drag spec this touch spec mirrors.
     await cdp.send('Input.dispatchTouchEvent', {
@@ -103,6 +105,7 @@ test.describe('sheets bar touch drag', { tag: THEMES_TAG }, () => {
     const errors: string[] = [];
 
     page.on('pageerror', error => errors.push(error.message));
+    await page.clock.install();
     await bar.goto();
     await bar.tab(1).locator('.ht-sheets-bar__tab-label').dblclick();
 
@@ -120,6 +123,7 @@ test.describe('sheets bar touch drag', { tag: THEMES_TAG }, () => {
       type: 'touchStart',
       touchPoints: [{ x: first.x + (first.width / 2), y }],
     });
+    await page.clock.runFor(600);
     await cdp.send('Input.dispatchTouchEvent', {
       type: 'touchMove',
       touchPoints: [{ x: first.x + first.width, y }],
