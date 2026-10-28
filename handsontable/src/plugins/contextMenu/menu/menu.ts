@@ -29,7 +29,7 @@ import {
   outerHeight,
   removeClass,
 } from '../../../helpers/dom/element';
-import { isRightClick } from '../../../helpers/dom/event';
+import { hasTouchList, isRightClick } from '../../../helpers/dom/event';
 import { debounce } from '../../../helpers/function';
 import { isDefined } from '../../../helpers/mixed';
 import { mixin } from '../../../helpers/object';
@@ -649,6 +649,7 @@ export class Menu {
       beforeOnCellMouseUp: (event: MouseEvent) => {
         if (this.hasSelectedItem()) {
           shouldAutoCloseMenu = !this.isCommandPassive(this.getSelectedItem()!);
+          this.#endTapBeforeCommand(event);
           this.executeCommand(event);
         }
       },
@@ -1115,6 +1116,23 @@ export class Menu {
    */
   isClosed() {
     return this.#lifecycle === 'closed';
+  }
+
+  /**
+   * Ends a tap that runs a command before the browser sends the tap's compatibility mouse events.
+   *
+   * On a touch screen the menu's grid answers `touchend` with its mouse-up handling, so a tap runs
+   * the command from inside `touchend`. The browser then sends the same tap's `mousedown`, `mouseup`
+   * and `click` to the menu, which is still open, and that `mousedown` moves the focus onto the menu's
+   * cell. A command that put the focus somewhere (the sheets bar's Rename opens an input and focuses
+   * it) lost it at once. Canceling the `touchend` is what tells the browser not to send them.
+   *
+   * @param {Event} event The event that ended the press on the item.
+   */
+  #endTapBeforeCommand(event: Event): void {
+    if (event.type === 'touchend' && hasTouchList(event) && event.cancelable) {
+      event.preventDefault();
+    }
   }
 
   /**

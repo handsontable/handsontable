@@ -14,6 +14,7 @@ export interface SheetsBarUiConfig {
   density?: 'compact' | 'default' | 'comfortable';
   ariaTags?: boolean;
   hostLabel?: string;
+  menus?: boolean;
 }
 
 /**

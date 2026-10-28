@@ -63,11 +63,12 @@
      * @param {string} [config.density] The `density` option, with the theme engine.
      * @param {boolean} [config.ariaTags=true] The `ariaTags` option.
      * @param {string} [config.hostLabel] An `aria-label` the host puts on the grid's root.
+     * @param {boolean} [config.menus=false] Turns on the context menu and the dropdown menu.
      */
     window.buildGrid = (config = {}) => {
       const {
         sheets = 3, activeSheet = 0, rtl = false, uiContainer = false, hidden = false,
-        colorScheme, density, ariaTags = true, hostLabel,
+        colorScheme, density, ariaTags = true, hostLabel, menus = false,
       } = config;
       const container = document.querySelector('[data-testid="grid"]');
       const host = document.querySelector('[data-testid="host"]');
@@ -86,6 +87,8 @@
           rowHeaders: true,
           height: 260,
           ariaTags,
+          contextMenu: menus,
+          dropdownMenu: menus,
           layoutDirection: rtl ? 'rtl' : 'ltr',
           ...(colorScheme !== undefined ? { colorScheme } : {}),
           ...(density !== undefined ? { density } : {}),
