@@ -1,4 +1,4 @@
-// Unit tests for the replay that calibrates the callout and gate thresholds.
+// Unit tests for the replay that calibrates the gate's lines.
 //
 // The replay's numbers are only worth quoting if it decides exactly what the gate decides. These
 // pin the rules it replays: the fail line needs both its relative and its absolute part, a level
@@ -10,6 +10,7 @@ import assert from 'node:assert/strict';
 import {
   parseArgs,
   percentile,
+  printReplay,
   replay,
   replayGate,
   scenarioNoise,
@@ -282,6 +283,39 @@ describe('replay', () => {
     assert.deepEqual(second.absorbed.map(d => d.scenario), ['sorting']);
   });
 
+  test('takes the newest golden as CI does: the newest marks-valid one, not the window\'s last', () => {
+    const quiet = [1, 2, 3, 4, 5].map(day => golden(day));
+    // Run 6 is at a new Sorting level, but one of its scenarios lost its marks, so CI never uses it
+    // as the newest golden (newestMedianSource) and cannot absorb run 7's level against it.
+    const unmarked = golden(6, { sorting: 130 });
+
+    unmarked.snapshot.scenarios.filtering.windowSource = 'auto-zoom';
+
+    const runs = replayGate(replay([...quiet, unmarked, golden(7, { sorting: 130 })], 5).deltas);
+    const run7 = runs.find(r => r.run === '2026-10-07T00-00-00Z');
+
+    assert.equal(run7.fails, true);
+    assert.deepEqual(run7.failing.map(d => d.scenario), ['sorting']);
+  });
+
+  test('takes the newest golden\'s shift over all of its scenarios, not only the run\'s rows', () => {
+    const quiet = [1, 2, 3, 4, 5].map(day => golden(day));
+    // Run 6: three of five scenarios +10% active (112 -> 123.2 ms), so its shift is +10%.
+    const slower = golden(6, { sorting: 111.2, filtering: 111.2, 'cell-editing': 111.2 });
+    const partial = golden(7);
+
+    // Run 7 measured only three scenarios, too few rows for a shift of its own newest rows.
+    delete partial.snapshot.scenarios.sorting;
+    delete partial.snapshot.scenarios.filtering;
+
+    const { deltas } = replay([...quiet, slower, partial], 5);
+    const run7 = deltas.filter(d => d.run === '2026-10-07T00-00-00Z');
+
+    assert.equal(run7.length, 3);
+    assert.ok(Math.abs(run7[0].newestShift - 10) < 0.01, `newestShift ${run7[0].newestShift}`);
+    assert.ok(Math.abs(replayGate(run7)[0].newestShift - 10) < 0.01);
+  });
+
   test('skips a comparison the reports would refuse to publish', () => {
     const goldens = [1, 2, 3, 4, 5].map(day => golden(day));
     const broken = golden(6);
@@ -308,6 +342,48 @@ describe('parseArgs', () => {
   test('rejects a negative or non-numeric floor', () => {
     assert.throws(() => parseArgs(['--floor-ms', '-1']), /--floor-ms/);
     assert.throws(() => parseArgs(['--floor-ms', 'abc']), /--floor-ms/);
+  });
+
+  test('rejects a flag left without its value instead of falling back to the default', () => {
+    assert.throws(() => parseArgs(['--floor-ms']), /--floor-ms needs a value/);
+    assert.throws(() => parseArgs(['--since', '--floor-ms', '3']), /--since needs a value/);
+    assert.throws(() => parseArgs(['--window']), /--window needs a value/);
+  });
+});
+
+describe('printReplay', () => {
+  /**
+   * @param {() => void} fn
+   * @returns {string} what fn printed with console.log
+   */
+  function printed(fn) {
+    const lines = [];
+    const original = console.log;
+
+    console.log = (...args) => lines.push(args.join(' '));
+
+    try {
+      fn();
+    } finally {
+      console.log = original;
+    }
+
+    return lines.join('\n');
+  }
+
+  test('replays the gate at the floor it was given, and says so', () => {
+    // Undo Sort: 13 ms active, then 14.5 ms: +11.5% and +1.5 ms, between a 1 ms and a 2 ms floor.
+    const goldens = [
+      ...[1, 2, 3, 4, 5].map(day => golden(day, { 'undo-sort': 1 })),
+      golden(6, { 'undo-sort': 2.5 }),
+    ];
+    const atOne = printed(() => printReplay(goldens, { windowSize: 5, floorMs: 1 }));
+    const atTwo = printed(() => printReplay(goldens, { windowSize: 5, floorMs: 2 }));
+
+    assert.match(atOne, /rules: fail above \+10% and \+1 ms timing/);
+    assert.match(atOne, /runs that would fail: +1 of 1 /);
+    assert.match(atTwo, /rules: fail above \+10% and \+2 ms timing/);
+    assert.match(atTwo, /runs that would fail: +0 of 1 /);
   });
 });
 

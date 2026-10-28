@@ -131,6 +131,14 @@ describe('the enforce step exports the verdict the approval keys on', () => {
     assert.equal(stepEnv(run.body, 'PERF_BASE_SHA'), "${{ github.event.pull_request.base.sha || '' }}");
   });
 
+  test('only the composite marks a run as gated, on the condition the enforce step runs on', () => {
+    assert.equal(stepEnv(run.body, 'PERF_GATED'), "${{ github.event_name == 'pull_request' && '1' || '' }}");
+    assert.match(stepKey(gate.body, 'if'), /github\.event_name == 'pull_request'/);
+    // performance-tests.yml compares on one pull_request path too, with no enforce step, no approve
+    // job and no budget for the re-run.
+    assert.doesNotMatch(code(read(GOLDEN)), /PERF_GATED/);
+  });
+
   test('the retired description token is gone: an approval is the one way through', () => {
     for (const file of [COMPOSITE, CALLER, GATE_SCRIPT, 'performance-tests/lib/gate-enforce.mjs']) {
       assert.doesNotMatch(code(read(file)), /accept perf regression|PERF_PR_BODY/, file);

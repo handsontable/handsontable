@@ -143,6 +143,9 @@ runs:
         # can be checked for a baseline that lags develop.
         PERF_BASE_REF: ${{ github.base_ref || '' }}
         PERF_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+        # A run the gate acts on: the confirm re-run and the comment's gate text (isGatedRun in
+        # lib/gate.mjs). Same condition as the enforce step's `if:` below; only this path sets it.
+        PERF_GATED: ${{ github.event_name == 'pull_request' && '1' || '' }}
       run: PERF_MODE=$PERF_MODE node scripts/run.mjs
 
     - name: Upload performance-tests output

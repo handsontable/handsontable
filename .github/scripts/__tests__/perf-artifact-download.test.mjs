@@ -27,8 +27,10 @@ import { CONFIRM_MAX_SCENARIOS } from '../../../performance-tests/lib/gate.mjs';
 const root = repoRoot();
 const read = rel => readFileSync(path.join(root, rel), 'utf8');
 
-// `confirms`: the job runs the regression gate's confirm re-run (pull request runs only, through the
-// composite), which can add up to CONFIRM_MAX_SCENARIOS more scenarios at the Playwright timeout.
+// `confirms`: the job runs the regression gate's confirm re-run, which can add up to
+// CONFIRM_MAX_SCENARIOS more scenarios at the Playwright timeout. The re-run is on only where the run
+// sets PERF_GATED (isGatedRun in performance-tests/lib/gate.mjs); a test below holds the two equal,
+// so a site that starts setting it must budget the re-run too.
 const SITES = [
   {
     file: '.github/workflows/performance.yml',
@@ -185,6 +187,14 @@ for (const { file, jobId, consumer, confirms } of SITES) {
         'an ungated extract fails every run that builds its own dist');
       assert.ok(extract > all.indexOf(retry), 'the extract step must follow the retry');
       assert.ok(tests !== -1 && extract < tests, 'the extract step must come before the tests run');
+    });
+
+    test('`confirms` is whether the job\'s run sets PERF_GATED, the switch that turns the re-run on', () => {
+      // performance.yml sets it in the composite it calls; performance-tests.yml inlines its steps.
+      const run = /uses: \.\/\.github\/actions\/performance-run$/m.test(body) ? `${body}\n${read(COMPOSITE)}` : body;
+      const setsGated = run.split('\n').some(line => /^\s+PERF_GATED: /.test(line));
+
+      assert.equal(setsGated, confirms);
     });
 
     test('the job timeout outlasts the slowest run the suite allows, and not by much', () => {

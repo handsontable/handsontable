@@ -18,6 +18,7 @@ import {
   decideGate,
   formatGateNotice,
   gateMode,
+  isGatedRun,
   isShiftFail,
   overLine,
 } from '../gate.mjs';
@@ -81,6 +82,21 @@ function gate({ current = {}, newest = {}, baseline = median(), extra = {} } = {
   });
 }
 
+/**
+ * The gate over a run whose traces for one scenario are missing, as when a re-run wrote none.
+ *
+ * @param {string} name -- the scenario left out
+ * @returns {object} the verdict
+ */
+function gateWithout(name) {
+  const baseline = median();
+  const current = scenarios();
+
+  delete current[name];
+
+  return decideGate({ assessment: assessReport(current, baseline, {}), baseline });
+}
+
 describe('gateMode', () => {
   test('ships in warn mode', () => {
     assert.equal(GATE_MODE, 'warn');
@@ -90,6 +106,16 @@ describe('gateMode', () => {
   test('takes a named mode from PERF_GATE_MODE and ignores anything else', () => {
     assert.equal(gateMode({ PERF_GATE_MODE: 'block' }), 'block');
     assert.equal(gateMode({ PERF_GATE_MODE: 'fail' }), GATE_MODE);
+  });
+});
+
+describe('isGatedRun', () => {
+  test('is a compare run the composite marked for a pull request, and nothing else', () => {
+    assert.equal(isGatedRun({ PERF_MODE: 'compare', PERF_GATED: '1' }), true);
+    assert.equal(isGatedRun({ PERF_MODE: 'compare' }), false, 'performance-tests.yml on a pull_request');
+    assert.equal(isGatedRun({ PERF_MODE: 'compare', PERF_GATED: '' }), false, 'the composite off a pull request');
+    assert.equal(isGatedRun({ PERF_MODE: 'golden', PERF_GATED: '1' }), false);
+    assert.equal(isGatedRun({}), false);
   });
 });
 
@@ -298,6 +324,18 @@ describe('decideGate', () => {
     assert.deepEqual(verdict.notAssessed, [{ name: 'filtering', title: 'Filtering', reason: 'no baseline yet' }]);
   });
 
+  test('a heap failure is not blamed on a timing level develop already shows', () => {
+    // Timing +26.8% and heap +10%; develop's newest golden shares the timing level, not the heap.
+    const verdict = gate({
+      current: { sorting: entry(130, 110_000_000) },
+      newest: { sorting: entry(130) },
+    });
+
+    assert.equal(verdict.status, 'fail');
+    assert.equal(verdict.failing[0].overTiming, false);
+    assert.equal(verdict.failing[0].overHeap, true);
+  });
+
   test('lists an incomplete capture as not assessed, and still judges its heap', () => {
     const broken = entry(100, 110_000_000);
 
@@ -319,7 +357,7 @@ describe('formatGateNotice', () => {
     assert.equal(
       formatGateNotice(verdict),
       '::notice title=perf-gate::status=fail mode=warn failing=sorting absorbed=- watching=filtering '
-        + `shift=${verdict.shift.toFixed(1)} rerun=- cleared=-`
+        + `shift=${verdict.shift.toFixed(1)} rerun=- cleared=- unconfirmed=-`
     );
   });
 
@@ -340,7 +378,16 @@ describe('formatGateNotice', () => {
     const second = gate({ current: { sorting: entry(130) } });
 
     // In the assessment's order, which is alphabetical.
-    assert.match(formatGateNotice(confirmVerdict(first, second)), / rerun=filtering,sorting cleared=filtering$/);
+    assert.match(
+      formatGateNotice(confirmVerdict(first, second)), / rerun=filtering,sorting cleared=filtering unconfirmed=-$/
+    );
+  });
+
+  test('names a re-run scenario the second pass could not measure', () => {
+    const first = gate({ current: { sorting: entry(130) } });
+
+    assert.match(formatGateNotice(confirmVerdict(first, gateWithout('sorting'))),
+      /^::notice title=perf-gate::status=fail .*failing=sorting .* cleared=- unconfirmed=sorting$/);
   });
 });
 
@@ -374,7 +421,9 @@ describe('confirmVerdict', () => {
     const verdict = confirmVerdict(first, gate({ current: { sorting: entry(131) } }));
 
     assert.equal(verdict.status, 'fail');
-    assert.deepEqual(verdict.rerun, { scenarios: ['sorting'], confirmed: ['sorting'], cleared: [] });
+    assert.deepEqual(verdict.rerun, {
+      scenarios: ['sorting'], confirmed: ['sorting'], cleared: [], unconfirmed: [],
+    });
   });
 
   test('a slowdown the re-run does not repeat passes, and is listed with its first numbers', () => {
@@ -395,6 +444,51 @@ describe('confirmVerdict', () => {
     assert.deepEqual(verdict.failing.map(s => s.name), ['sorting']);
     assert.deepEqual(verdict.rerun.confirmed, ['sorting']);
     assert.deepEqual(verdict.rerun.cleared.map(s => s.name), ['filtering']);
+  });
+
+  test('a re-run scenario whose second capture is incomplete stays failed, as unconfirmed', () => {
+    const first = gate({ current: { sorting: entry(130) } });
+    // Back at the baseline's level, but a category was missed, so the re-run judged nothing.
+    const incomplete = entry(100);
+
+    incomplete.categories.painting = 0;
+
+    const verdict = confirmVerdict(first, gate({ current: { sorting: incomplete } }));
+
+    assert.equal(verdict.status, 'fail');
+    assert.deepEqual(verdict.failing.map(s => [s.name, s.deltaMs]), [['sorting', 30]]);
+    assert.deepEqual(verdict.rerun.cleared, []);
+    assert.deepEqual(verdict.rerun.unconfirmed, ['sorting']);
+  });
+
+  test('a re-run scenario that left no traces stays failed, as unconfirmed', () => {
+    const first = gate({ current: { sorting: entry(130) } });
+    const verdict = confirmVerdict(first, gateWithout('sorting'));
+
+    assert.equal(verdict.status, 'fail');
+    assert.deepEqual(verdict.failing.map(s => s.name), ['sorting']);
+    assert.deepEqual(verdict.rerun.cleared, []);
+    assert.deepEqual(verdict.rerun.unconfirmed, ['sorting']);
+  });
+
+  test('an unconfirmed failure blocks in block mode, and is listed once', () => {
+    const first = gate({ current: { sorting: entry(130) }, extra: { mode: 'block' } });
+    // The incomplete re-run still judges heap: +10%, which develop shares, so it is absorbed there.
+    const incomplete = entry(100, 110_000_000);
+
+    incomplete.categories.painting = 0;
+
+    const second = gate({
+      current: { sorting: incomplete }, newest: { sorting: entry(100, 110_000_000) }, extra: { mode: 'block' },
+    });
+
+    assert.deepEqual(second.absorbed.map(s => s.name), ['sorting']);
+
+    const verdict = confirmVerdict(first, second);
+
+    assert.equal(verdict.blocking, true);
+    assert.deepEqual(verdict.failing.map(s => s.name), ['sorting']);
+    assert.deepEqual(verdict.absorbed, []);
   });
 
   test('a run without a re-run says so', () => {

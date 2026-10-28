@@ -8,6 +8,7 @@
 // slowdown there; rejecting it fails the job and `CI Gate` with it.
 
 import { gateMode } from './gate.mjs';
+import { fmtMsDelta, fmtPct } from './thresholds.mjs';
 
 // What the step exports as its `verdict` output. `approve` runs on REGRESSED only.
 export const OUTCOMES = Object.freeze({
@@ -36,15 +37,6 @@ function command(level, title, message) {
 }
 
 /**
- * @param {number | null | undefined} value
- * @param {string} unit
- * @returns {string} e.g. "+26.8%", or "" when unknown
- */
-function signed(value, unit) {
-  return value == null || !Number.isFinite(value) ? '' : `${value >= 0 ? '+' : ''}${value.toFixed(1)}${unit}`;
-}
-
-/**
  * @param {object} verdict -- from decideGate
  * @returns {string} what failed, in one line
  */
@@ -53,11 +45,11 @@ export function describeFailure(verdict) {
     const metrics = [];
 
     if (scenario.overTiming) {
-      metrics.push(`${signed(scenario.timingPct, '%')} (${signed(scenario.deltaMs, ' ms')})`);
+      metrics.push(`${fmtPct(scenario.timingPct)} (${fmtMsDelta(scenario.deltaMs)})`);
     }
 
     if (scenario.overHeap) {
-      metrics.push(`heap ${signed(scenario.heapPct, '%')}`);
+      metrics.push(`heap ${fmtPct(scenario.heapPct)}`);
     }
 
     return `${scenario.title} ${metrics.join(', ')}`;

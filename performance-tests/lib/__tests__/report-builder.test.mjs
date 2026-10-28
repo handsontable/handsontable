@@ -255,6 +255,19 @@ describe('buildReport -- reliability columns', () => {
     assert.ok(!hookRow.includes('⚠'));
   });
 
+  test('puts no marker on a hook-timing change, which the gate never judges', () => {
+    const report = buildReport(
+      { filtering: currentScenario({ hookTiming: 44 }) },
+      golden({ filtering: goldenScenario({ hookTiming: 36 }) }),
+      {}
+    );
+    const hookRow = report.slice(report.indexOf('### Hook timing')).split('\n')
+      .find(line => line.startsWith('| Filtering'));
+
+    assert.match(hookRow, /\| \+22\.2% +\|$/);
+    assert.ok(!/[\u{1F534}\u{1F7E1}\u{1F7E2}\u{1F535}]/u.test(hookRow), hookRow);
+  });
+
   test('omits the hook-timing section entirely when no scenario measures a hook', () => {
     const report = buildReport(
       { sorting: currentScenario() },
@@ -423,7 +436,7 @@ describe('buildReport -- cross-window heap', () => {
       { crossWindowScenarios: ['sorting'] }
     );
 
-    // A heap delta, not the words: the gate's rules line names JS heap on every comment.
+    // A heap delta, not the words: the gate's rules line names JS heap on a gated comment.
     assert.doesNotMatch(report, /JS heap [+-]\d/);
     assert.ok(!report.includes('❌'), 'no scenario is listed as regressed');
     assert.ok(report.includes('Total delta not assessed'));
@@ -576,6 +589,17 @@ describe('buildReport -- no baseline', () => {
     assert.ok(!report.includes('Δ Total'));
     assert.ok(report.includes('CV run'));
   });
+
+  test('does not flag the run\'s own spread there either', () => {
+    const wide = currentScenario({
+      _iterationValues: { categories: { scripting: [5, 20, 35], rendering: [3, 3, 3], painting: [1, 1, 1] } },
+    });
+    const row = buildReport({ sorting: wide }, null, {}).split('\n').find(line => line.startsWith('| Sorting '));
+    const cv = row.split('|').map(cell => cell.trim()).find(cell => /^[\d.]+%/.test(cell));
+
+    assert.ok(Number.parseFloat(cv) > CV_WARNING_THRESHOLD, `the run spread is above the line: ${cv}`);
+    assert.ok(!row.includes('⚠'), `the run spread is not flagged: ${row}`);
+  });
 });
 
 describe('buildReport -- the gate\'s verdict leads', () => {
@@ -635,7 +659,7 @@ describe('buildReport -- the gate\'s verdict leads', () => {
     const verdict = verdictOf(results, base, { newestAssessment: assessReport(results, base, {}) });
     const report = buildReport(results, base, {}, undefined, verdict);
 
-    assert.match(report, /^## ⚡ Performance: ✅ all 6 scenarios within tolerance · 1 already on develop$/m);
+    assert.match(report, /^## ⚡ Performance: ✅ 5 of 6 scenarios within tolerance · 1 already on develop$/m);
     assert.match(visible(report), /^\| Sorting +\| ➖ already on develop /m);
   });
 
@@ -687,6 +711,44 @@ describe('buildReport -- the gate\'s verdict leads', () => {
     assert.match(visible(report), /^\| Filtering +\| ✔️ cleared on re-run +\| \+30\.0% .*\| first run only +\|$/m);
   });
 
+  test('a scenario the re-run cleared but still watches is counted once, as cleared', () => {
+    const first = { ...quiet(), sorting: slower(1.2) };
+    const second = { ...quiet(), sorting: slower(1.06) };
+    const verdict = confirmVerdict(verdictOf(first, baseline()), verdictOf(second, baseline()));
+
+    assert.deepEqual(verdict.watching.map(s => s.name), ['sorting'], 'the second run is above the watch line');
+
+    const report = buildReport(second, baseline(), {}, undefined, verdict);
+
+    assert.match(report, /^## ⚡ Performance: ✅ all 6 scenarios within tolerance · 1 cleared on re-run$/m);
+    assert.equal(visible(report).split('\n').filter(line => line.startsWith('| Sorting ')).length, 1);
+  });
+
+  test('a regression the re-run could not measure stays failed, and says so', () => {
+    const first = { ...quiet(), sorting: slower(1.2) };
+    const { sorting, ...second } = quiet();
+    const verdict = confirmVerdict(verdictOf(first, baseline()), verdictOf(second, baseline()));
+    const report = buildReport(second, baseline(), {}, undefined, verdict);
+
+    assert.ok(sorting);
+    assert.match(report, /^## ⚡ Performance: ❌ 1 of 5 scenarios regressed$/m);
+    assert.match(visible(report), /^\| Sorting +\| ❌ regressed, re-run could not measure it +\| \+20\.0% /m);
+  });
+
+  test('a heap failure whose time barely moved reads +0.0 ms, never -0.0 ms', () => {
+    // Active 24 ms -> 23.99 ms (-0.01 ms, -0.04%) while the heap grows 7.5%.
+    const results = {
+      ...quiet(),
+      sorting: currentScenario({
+        categories: { scripting: 19.99, rendering: 3, painting: 1 },
+        updateCounters: { jsHeapMaxBytes: 107_500_000, jsHeapMaxLabel: '107.5 MB' },
+      }),
+    };
+    const report = buildReport(results, baseline(), {}, undefined, verdictOf(results, baseline()));
+
+    assert.match(visible(report), /^\| Sorting +\| ❌ regressed +\| \+0\.0% +\| \+0\.0 ms +\| \+7\.5% /m);
+  });
+
   test('a small scenario over the line in percent but under the ms floor is watched, not failed', () => {
     // 13 ms -> 14.56 ms: +12%, but only +1.56 ms, under the gate's 2 ms floor.
     const small = { categories: { scripting: 9, rendering: 3, painting: 1 } };
@@ -713,10 +775,16 @@ describe('buildReport -- the gate\'s verdict leads', () => {
     assert.ok(!row.includes('Scripting'));
   });
 
-  test('the gate\'s rules are stated, and only where something was compared', () => {
-    assert.ok(buildReport(quiet(), baseline(), {}).includes('<sub>Gate: a scenario fails above +10% and +2 ms'));
-    assert.ok(!buildReport(quiet(), null, {}).includes('<sub>Gate:'));
-    assert.ok(!buildReport(quiet(), { ...baseline(), isSelfCompare: true }, {}).includes('<sub>Gate:'));
+  test('the gate\'s rules are stated on a gated run, and only where something was compared', () => {
+    const gated = { gated: true };
+
+    assert.ok(buildReport(quiet(), baseline(), gated).includes('<sub>Gate: a scenario fails above +10% and +2 ms'));
+    assert.ok(!buildReport(quiet(), null, gated).includes('<sub>Gate:'));
+    assert.ok(!buildReport(quiet(), { ...baseline(), isSelfCompare: true }, gated).includes('<sub>Gate:'));
+  });
+
+  test('a run the gate does not act on states no rules: no re-run or approval happens there', () => {
+    assert.ok(!buildReport(quiet(), baseline(), {}).includes('<sub>Gate:'));
   });
 });
 

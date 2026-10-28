@@ -237,8 +237,8 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
       }
       : null,
     runShift: shift,
-    // Serialized rather than restated in the client script, so the colour bands and the callout
-    // thresholds cannot drift apart. No heap entry: the heap band is per scenario (`heapThreshold`
+    // Serialized rather than restated in the client script, so the colour bands and the gate's
+    // lines cannot drift apart. No heap entry: the heap band is per scenario (`heapThreshold`
     // on each scenario below), and a shared number here would be reached for and get the wrong
     // band on the two scroll scenarios that carry a wider one.
     thresholds: {
@@ -314,7 +314,7 @@ function buildDetailedMetrics(current, golden, verdict) {
     // would put the exact number the badge refuses to show one click away, painted red.
     change: baselineIncomplete ? null : pctChange(gTotal, cTotal),
     incomplete: baselineIncomplete,
-    // Recombined per iteration rather than left null: the summed total is what the callout acts on,
+    // Recombined per iteration rather than left null: the summed total is what the gate acts on,
     // so its spread is the one a reader most needs beside it.
     cv: calcCv(activeTotalsPerIteration(current._iterationValues?.categories)),
     isBold: true,
@@ -855,7 +855,7 @@ function buildScript() {
     }
 
     // How far the whole run sits from the baseline. Named so a reader can tell a row that moved
-    // with the runner from one that moved on its own; the callouts still fire on the raw delta.
+    // with the runner from one that moved on its own; the gate still judges the raw delta.
     if (data.runShift != null) {
       header.appendChild(elText(
         'div',
@@ -1250,7 +1250,7 @@ function buildScript() {
       }
     }
     if (hookTiming.cv != null) {
-      text += ' \\u00B7 CV ' + fmtCvValue(hookTiming.cv);
+      text += ' \\u00B7 CV ' + fmtCvValue(hookTiming.cv, false);
     }
     div.textContent = text;
     return div;
@@ -1295,9 +1295,8 @@ function buildScript() {
         tr.appendChild(elText('td', Math.round(row.current) + ' ms', 'num'));
       }
 
-      const cvTd = elText('td', fmtCvValue(row.cv), 'num');
-      if (row.cv != null && row.cv > data.thresholds.cvWarning) cvTd.classList.add('cv-warn');
-      tr.appendChild(cvTd);
+      // The run's own spread: shown, never flagged.
+      tr.appendChild(elText('td', fmtCvValue(row.cv, false), 'num'));
 
       tbody.appendChild(tr);
     }
@@ -1464,11 +1463,11 @@ function buildScript() {
     return 'neutral';
   }
 
-  // Mirrors fmtCvValue() in thresholds.mjs, warning glyph included, so the markdown comment and
-  // this report flag an unreliable spread the same way.
-  function fmtCvValue(cv) {
+  // Mirrors fmtCvValue() in thresholds.mjs, warning glyph and \`flag\` included, so the markdown comment
+  // and this report flag the same spreads: a wide baseline, never the run's own.
+  function fmtCvValue(cv, flag) {
     if (cv == null) return 'n/a';
-    return cv.toFixed(1) + '%' + (cv > data.thresholds.cvWarning ? ' \\u26A0\\uFE0F' : '');
+    return cv.toFixed(1) + '%' + (flag !== false && cv > data.thresholds.cvWarning ? ' \\u26A0\\uFE0F' : '');
   }
 
   function statusColor(cls) {

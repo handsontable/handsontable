@@ -33,8 +33,8 @@ export const REGRESSION_CALLOUT_THRESHOLD_HEAP = 5;
 // Per-scenario heap overrides. `jsHeapMaxBytes` is the highest heap sample inside the window, and
 // on the two horizontal-scroll scenarios that peak depends on where V8 happened to schedule a GC
 // during 500 wheel-driven renders: replaying 42 develop goldens, their run-to-run heap CV is
-// 4.4-6.3% against 1.1-1.8% on the vertical ones and 0.9-3.7% everywhere else, and they fired 9 of
-// the 20 no-change heap callouts. The wider band is derived from that replay
+// 4.4-6.3% against 1.1-1.8% on the vertical ones and 0.9-3.7% everywhere else, and they were 9 of
+// the 20 no-change rows over the heap line. The wider band is derived from that replay
 // (scripts/replay-goldens.mjs prints the per-scenario heap curve), not chosen by eye.
 export const HEAP_THRESHOLDS_BY_SCENARIO = Object.freeze({
   'scroll-left': 10,
@@ -43,7 +43,7 @@ export const HEAP_THRESHOLDS_BY_SCENARIO = Object.freeze({
 
 /**
  * @param {string} scenarioName
- * @returns {number} the heap callout threshold for that scenario
+ * @returns {number} the heap line for that scenario, in percent
  */
 export function heapThresholdFor(scenarioName) {
   return HEAP_THRESHOLDS_BY_SCENARIO[scenarioName] ?? REGRESSION_CALLOUT_THRESHOLD_HEAP;
@@ -112,11 +112,11 @@ export const ACTIVE_CATEGORIES = ['scripting', 'rendering', 'painting'];
 /**
  * Classifies a percentage change into a status, emoji and CSS class.
  *
- * The band is the callout threshold, so the colour a row is painted and the callout the comment
- * makes can never disagree.
+ * The band is the gate's line, so the colour a row is painted and the gate's verdict can never
+ * disagree.
  *
  * @param {number | null} pctChange -- percentage change (positive = regression)
- * @param {number} [threshold] -- band edge; defaults to the timing callout threshold
+ * @param {number} [threshold] -- band edge; defaults to the gate's timing line
  * @returns {{ status: string, emoji: string, cssClass: string }}
  */
 export function classifyChange(pctChange, threshold = REGRESSION_CALLOUT_THRESHOLD_TIMING) {
@@ -257,7 +257,7 @@ function joinList(items) {
  *
  * Every site that renders a percentage must consult this and no other rule. Deciding it per site
  * is how one comment came to print a red heap regression in its table, clear the same run in its
- * callouts, and count it as a regression in the linked report.
+ * summary, and count it as a regression in the linked report.
  *
  * @param {object | null | undefined} baselineCategories
  * @param {object | null | undefined} currentCategories
@@ -325,7 +325,7 @@ export function comparability(baselineCategories, currentCategories, mismatch = 
  * ~3%. That factor is the CI runner, not the code, and a reader needs it named to tell "+18% raw,
  * +2% relative" from "+45% raw, +40% relative". It is the median of the comparable total deltas,
  * so a pull request that regresses one or two scenarios does not move it -- and it is reported
- * beside the raw delta, never used to gate a callout, because a change that slows every scenario
+ * beside the raw delta, never used by the gate, because a change that slows every scenario
  * by the same amount is exactly what a median-based normalization cannot see.
  *
  * @param {Array<number | null | undefined>} deltas -- per-scenario total deltas, in percent
@@ -418,6 +418,22 @@ export function fmtPct(pct) {
   const sign = rounded >= 0 ? '+' : '';
 
   return `${sign}${rounded.toFixed(1)}%`;
+}
+
+/**
+ * A signed change in ms, rounded like fmtPct, so a tiny negative reads "+0.0 ms", never "-0.0 ms".
+ *
+ * @param {number | null} ms
+ * @returns {string}
+ */
+export function fmtMsDelta(ms) {
+  if (ms == null || !Number.isFinite(ms)) {
+    return '--';
+  }
+
+  const rounded = Number(ms.toFixed(1)) + 0;
+
+  return `${rounded >= 0 ? '+' : ''}${rounded.toFixed(1)} ms`;
 }
 
 /**

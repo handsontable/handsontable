@@ -18,6 +18,7 @@ import {
   confirmVerdict,
   decideGate,
   gateMode,
+  isGatedRun,
 } from './gate.mjs';
 import { buildHtmlReport } from './html-report-builder.mjs';
 import { HARNESS_VERSION } from './trace-runner.mjs';
@@ -257,7 +258,7 @@ function annotateRegressions(regressions, golden) {
     if (r.timingRegressed) {
       parts.push(`total ${fmtPct(r.totalPct)}`);
 
-      // Same context the markdown callout gives: a slow runner fires on every row at once, and the
+      // Same context the comment's footer gives: a slow runner fires on every row at once, and the
       // annotation must not read identically to a row that moved on its own.
       if (r.relativePct != null) {
         parts.push(`${fmtPct(r.relativePct)} relative to this run's shift of ${fmtPct(r.shift)}`);
@@ -431,8 +432,9 @@ export default async function teardown() {
     runUrl: process.env.GITHUB_SERVER_URL && process.env.GITHUB_REPOSITORY && process.env.GITHUB_RUN_ID
       ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`
       : null,
-    // The gate acts on pull request runs only; the develop run's report states the verdict alone.
-    gated: mode === 'compare',
+    // The gate acts on the composite's pull request runs only; any other report states the verdict
+    // alone, without the rules or what happens next.
+    gated: isGatedRun(process.env),
     environment,
     baselineUnavailable,
   };

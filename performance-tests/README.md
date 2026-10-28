@@ -51,15 +51,12 @@ Playwright bump or platform change the first PR run reports "no comparable basel
 resume with the next develop push (against that single run, and the footer says
 so), and as a median once two have run on the new engine. The comment's `Δ vs
 shift` column and `Run shift` footer name how much faster or slower the CI runner
-was than the baseline's, which every scenario shares; callouts still fire on the
-raw delta. A golden (develop-push) run is compared against the trailing median
-too, and annotates its own run with a `::warning` per regressed scenario. Expect
-noise there: replaying 42 develop goldens, 8% of no-change rows crossed the 15%
-threshold, and with nine rows per push roughly two develop pushes in five carried
-a warning that measured the runner rather than the code. There are twelve rows since the three undo
-scenarios landed, so expect such warnings more often. Read a warning against
-the `Run shift` in the job summary, and re-derive the threshold with
-`scripts/replay-goldens.mjs` before trusting a single one.
+was than the baseline's, which every scenario shares; the gate judges the raw
+delta. A golden (develop-push) run is compared against the trailing median too,
+and annotates its own run with a `::warning` per scenario over the gate's line.
+On the self-hosted runner that is rare: the replay in "Thresholds" puts no
+develop run over the line. Read a warning against the `Run shift` in the job
+summary, and re-run `scripts/replay-goldens.mjs` before trusting a single one.
 
 ### Linting and type checking
 
@@ -143,7 +140,7 @@ performance-tests/
 4. Results are **averaged** across iterations with per-iteration values retained for CV% (coefficient of variation) calculation.
 
 5. Two **report builders** produce output:
-   - **Markdown** (`report-builder.mjs`): compact summary table with regression callouts, posted as a sticky PR comment.
+   - **Markdown** (`report-builder.mjs`): the gate's verdict, the scenarios that need attention, and the full table folded away, posted as a sticky PR comment.
    - **HTML** (`html-report-builder.mjs`): self-contained interactive page with inline SVG bar charts, sortable tables, and scenario detail views. Deployed to GitHub Pages per branch.
 
 ### The measured window
@@ -296,12 +293,13 @@ in the teardown (`lib/gate.mjs`), from the same assessment the comment renders, 
   always develop's), a run with no compatible baseline, and, per scenario, a scenario with no baseline
   yet or a comparison the report withholds.
 - **Confirm re-run.** On a pull request run, every failing scenario (up to `CONFIRM_MAX_SCENARIOS`, 4)
-  runs once more on its own, and fails only if it is slow both times. The self-hosted runner has
+  runs once more on its own. It passes only when the re-run measures it under the line: one the
+  re-run could not judge (an incomplete capture, or no traces) stays failed. The self-hosted runner has
   short slow spells that move one scenario and nothing else (PR #13917: Scroll Down +21.4% at a 0.6%
   run spread), and no replay of the goldens can see them. `scripts/run.mjs` moves the first traces
   to `output/first-pass/` and re-runs the spec files; Playwright then runs the global teardown again,
-  which merges the two verdicts (`rerun.confirmed`, `rerun.cleared`). More failing scenarios than the
-  cap, or a run that failed only on its shift, is not re-run.
+  which merges the two verdicts (`rerun.confirmed`, `rerun.cleared`, `rerun.unconfirmed`). More
+  failing scenarios than the cap, or a run that failed only on its shift, is not re-run.
 - **Approval, not a red job.** In block mode a regression does not fail `Performance / run`: the last
   step (`scripts/enforce-gate.mjs`) exports `verdict=regressed`, and `performance.yml`'s `approve` job
   waits on the `performance-approval` environment, the same mechanism as the visual and manual QA
@@ -314,8 +312,11 @@ in the teardown (`lib/gate.mjs`), from the same assessment the comment renders, 
   pull request runs. Every pull request run leaves one `perf-gate` notice, `status=… failing=…
   cleared=…`. Count it from the check run's annotations, which keep the title
   (`gh api repos/handsontable/handsontable/check-runs/<job id>/annotations`). The job log shows the
-  same line as `##[notice]status=…`, without the title. `PERF_GATE_MODE=block` forces block mode for
-  one run.
+  same line as `##[notice]status=…`, without the title. A name under `unconfirmed=` counts as a
+  would-fail: it failed the first pass and the re-run could not measure it. `PERF_GATE_MODE: block` forces block mode for
+  one run: set it in the `run` job's `env:` in `performance.yml`, never on one step. The teardown and
+  the enforce step read it separately, and on a run that dies before its teardown only the enforce
+  step decides; set on one step, that run would warn instead of failing.
 - **Before block mode** (repo admin): create the `performance-approval` environment with required
   reviewers and "Prevent self-review" off, like the other approval environments (`.ai/CI.md`). A job
   that references a missing environment auto-creates it unprotected.
@@ -489,8 +490,9 @@ Waiting for approval: if the slowdown is intended, a reviewer approves the pendi
 | Sorting  | ❌ regressed | +32.5%  | +10.6 ms | +0.0%  | Scripting +32.5% slower, Rendering +32.5% slower, … |
 ```
 
-The other statuses are `❌ regressed, confirmed on re-run`, `➖ already on develop`, `✔️ cleared on
-re-run` (with the first run's numbers), and `🟡 to watch`. A pull request into another branch reads
+The other statuses are `❌ regressed, confirmed on re-run`, `❌ regressed, re-run could not measure
+it`, `➖ already on develop`, `✔️ cleared on re-run` (with the first run's numbers), and
+`🟡 to watch`. A pull request into another branch reads
 `⏸ not assessed` with the reason.
 
 The **HTML report** (linked from the PR comment) includes inline SVG bar charts, sortable detail tables, CV% stability indicators, and per-category breakdowns.

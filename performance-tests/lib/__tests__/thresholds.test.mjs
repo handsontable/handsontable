@@ -35,6 +35,7 @@ import {
   classifyChange,
   fmtCv,
   fmtCvValue,
+  fmtMsDelta,
   fmtPct,
   fmtPctWithEmoji,
   pctChange,
@@ -418,6 +419,16 @@ describe('fmtPct and fmtPctWithEmoji', () => {
 
   test('has no watch tier for a metric that passes none (heap)', () => {
     assert.equal(fmtPctWithEmoji(4, REGRESSION_CALLOUT_THRESHOLD_HEAP, null), '+4.0%');
+  });
+});
+
+describe('fmtMsDelta', () => {
+  test('is signed, one decimal, and never -0.0', () => {
+    assert.equal(fmtMsDelta(14.84), '+14.8 ms');
+    assert.equal(fmtMsDelta(-2.26), '-2.3 ms');
+    assert.equal(fmtMsDelta(-0.04), '+0.0 ms');
+    assert.equal(fmtMsDelta(null), '--');
+    assert.equal(fmtMsDelta(Number.NaN), '--');
   });
 });
 

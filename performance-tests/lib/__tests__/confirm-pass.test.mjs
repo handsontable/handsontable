@@ -10,7 +10,7 @@ import { existsSync } from 'node:fs';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { prepareConfirmPass, scenarioSpecPath } from '../confirm-pass.mjs';
+import { prepareConfirmPass, runWithConfirmPass, scenarioSpecPath } from '../confirm-pass.mjs';
 import { GATE_FIRST_PASS_DIR, GATE_FIRST_PASS_FILE, GATE_VERDICT_FILE } from '../gate.mjs';
 
 const PERF_ROOT = join(import.meta.dirname, '..', '..');
@@ -103,6 +103,14 @@ describe('prepareConfirmPass', () => {
     assert.equal(existsSync(join(output, GATE_FIRST_PASS_FILE)), false);
   });
 
+  test('refuses a bad name before it moves anything', async() => {
+    await seed(['sorting', 'Bad Name'], ['sorting']);
+
+    await assert.rejects(prepareConfirmPass(output), /Not a scenario name/);
+    assert.ok(existsSync(join(output, 'sorting', 'iteration-1.json')), 'sorting\'s first traces stay in output/');
+    assert.equal(existsSync(join(output, GATE_FIRST_PASS_DIR, 'sorting')), false);
+  });
+
   test('replaces a first pass a previous local run left behind', async() => {
     await mkdir(join(output, GATE_FIRST_PASS_DIR, 'sorting'), { recursive: true });
     await writeFile(join(output, GATE_FIRST_PASS_DIR, 'sorting', 'iteration-9.json'), '{}');
@@ -112,5 +120,76 @@ describe('prepareConfirmPass', () => {
 
     assert.equal(existsSync(join(output, GATE_FIRST_PASS_DIR, 'sorting', 'iteration-9.json')), false);
     assert.ok(existsSync(join(output, GATE_FIRST_PASS_DIR, 'sorting', 'iteration-1.json')));
+  });
+});
+
+describe('runWithConfirmPass', () => {
+  const GATED = { PERF_MODE: 'compare', PERF_GATED: '1' };
+
+  /**
+   * A stand-in for run.mjs's runPlaywright: the first call is the full run, which "writes" the
+   * verdict through `firstRun`; every call is recorded.
+   *
+   * @param {{ firstRun?: () => Promise<void>, fail?: boolean }} [options]
+   * @returns {{ calls: Array<{ files: string[], env: object }>, run: Function }}
+   */
+  function playwright({ firstRun = async() => {}, fail = false } = {}) {
+    const calls = [];
+
+    return {
+      calls,
+      run: async(files = [], env = {}) => {
+        calls.push({ files, env });
+
+        if (calls.length === 1) {
+          await firstRun();
+
+          if (fail) {
+            throw new Error('Playwright exited with code 1');
+          }
+        }
+      },
+    };
+  }
+
+  test('re-runs what the gate failed on a gated run', async() => {
+    const pw = playwright({ firstRun: () => seed(['sorting']) });
+
+    await runWithConfirmPass({ outputDir: output, env: GATED, runPlaywright: pw.run, log: () => {} });
+
+    assert.deepEqual(pw.calls, [
+      { files: [], env: {} },
+      { files: ['scenarios/sorting/sorting.spec.ts'], env: { PERF_CONFIRM_PASS: '1' } },
+    ]);
+  });
+
+  test('still re-runs after the first run exited non-zero, then throws its error', async() => {
+    const pw = playwright({ firstRun: () => seed(['sorting']), fail: true });
+
+    await assert.rejects(
+      runWithConfirmPass({ outputDir: output, env: GATED, runPlaywright: pw.run, log: () => {} }),
+      /Playwright exited with code 1/
+    );
+    assert.equal(pw.calls.length, 2, 'the failing scenario was re-run before the error was raised');
+  });
+
+  test('never re-runs a run the gate does not act on, compare or not', async() => {
+    for (const env of [{ PERF_MODE: 'compare' }, { PERF_MODE: 'golden', PERF_GATED: '1' }, {}]) {
+      const pw = playwright({ firstRun: () => seed(['sorting']) });
+
+      await runWithConfirmPass({ outputDir: output, env, runPlaywright: pw.run, log: () => {} });
+
+      assert.equal(pw.calls.length, 1, JSON.stringify(env));
+    }
+  });
+
+  test('a verdict an earlier run left behind does not pick what to re-run', async() => {
+    await seed(['sorting']);
+    // This run dies before its teardown writes a verdict of its own.
+    const pw = playwright({ fail: true });
+
+    await assert.rejects(runWithConfirmPass({ outputDir: output, env: GATED, runPlaywright: pw.run, log: () => {} }));
+    assert.equal(pw.calls.length, 1);
+    assert.ok(existsSync(join(output, 'sorting', 'iteration-1.json')), 'nothing was moved for a re-run');
   });
 });

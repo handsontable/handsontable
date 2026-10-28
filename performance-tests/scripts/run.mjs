@@ -3,7 +3,8 @@
 // Usage:
 //   node scripts/run.mjs                    # run scenarios, generate report
 //   PERF_MODE=golden  node scripts/run.mjs  # run scenarios, save golden snapshots
-//   PERF_MODE=compare node scripts/run.mjs  # run scenarios, compare to golden, re-run the failing ones
+//   PERF_MODE=compare node scripts/run.mjs  # run scenarios, compare to golden
+//   PERF_MODE=compare PERF_GATED=1 node scripts/run.mjs  # ...and re-run the failing ones, as CI does
 
 import { exec, spawn } from 'node:child_process';
 import { readdir, mkdir, copyFile } from 'node:fs/promises';
@@ -11,7 +12,7 @@ import { join } from 'node:path';
 import { promisify } from 'node:util';
 
 import { exists } from '../lib/fs-utils.mjs';
-import { prepareConfirmPass } from '../lib/confirm-pass.mjs';
+import { runWithConfirmPass } from '../lib/confirm-pass.mjs';
 
 const execAsync = promisify(exec);
 
@@ -111,23 +112,13 @@ function runPlaywright(files = [], env = {}) {
   });
 }
 
-// 6. Run Playwright tests
+// 6. Run Playwright tests. 7. On a pull request run the gate acts on, re-run the scenarios it failed,
+// and let the verdict stand only for those that fail again (lib/gate.mjs, CONFIRM_MAX_SCENARIOS). The
+// re-run's own global teardown writes the final reports and verdict.
 console.log('\n=== Running performance scenarios ===\n');
-await runPlaywright();
+await runWithConfirmPass({ outputDir: join(ROOT, 'output'), env: process.env, runPlaywright });
 
 const mode = process.env.PERF_MODE;
-
-// 7. Pull request runs: re-run the scenarios the regression gate failed, and let the verdict stand
-// only for those that fail again (lib/gate.mjs, CONFIRM_MAX_SCENARIOS). The re-run's own global
-// teardown writes the final reports and verdict.
-if (mode === 'compare') {
-  const confirmFiles = await prepareConfirmPass(join(ROOT, 'output'));
-
-  if (confirmFiles.length > 0) {
-    console.log(`\n=== Re-running ${confirmFiles.length} failing scenario(s) to confirm them ===\n`);
-    await runPlaywright(confirmFiles, { PERF_CONFIRM_PASS: '1' });
-  }
-}
 
 // 8. If golden mode, copy snapshots
 if (mode === 'golden') {

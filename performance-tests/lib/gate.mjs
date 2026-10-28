@@ -59,6 +59,19 @@ export function gateMode(env = process.env) {
 }
 
 /**
+ * Whether this run is one the gate acts on: a compare run the performance-run composite started for
+ * a pull request, the only path with the enforce step and the `approve` job behind it. It turns on
+ * the confirm re-run and the comment's gate text. performance-tests.yml also compares on one
+ * pull_request path, but it has neither, nor the re-run's time budget, so it never sets PERF_GATED.
+ *
+ * @param {Record<string, string | undefined>} [env]
+ * @returns {boolean}
+ */
+export function isGatedRun(env = process.env) {
+  return env.PERF_MODE === 'compare' && env.PERF_GATED === '1';
+}
+
+/**
  * Whether one comparison crosses the fail line, on timing and on heap separately.
  *
  * @param {{ scenario: string, baselineMs: number | null, currentMs: number | null,
@@ -146,10 +159,14 @@ function comparisonOf(row) {
 /**
  * @param {object} row
  * @param {object} rules
+ * @param {object | null} [failedAgainst] -- a failing scenario's newest develop comparison: a metric
+ *   develop is over the line on too did not fail it, so it is not flagged. Omitted for the other
+ *   lists, where `overTiming`/`overHeap` say which metric is over the line.
  * @returns {object} what the verdict file and the comment say about one listed scenario
  */
-function describeScenario(row, rules) {
+function describeScenario(row, rules, failedAgainst = null) {
   const over = overLine(comparisonOf(row), rules);
+  const shared = overLine(failedAgainst, rules);
 
   return {
     name: row.name,
@@ -157,8 +174,8 @@ function describeScenario(row, rules) {
     timingPct: row.totalPct ?? null,
     deltaMs: row.baselineMs != null && row.currentMs != null ? row.currentMs - row.baselineMs : null,
     heapPct: row.heapPct ?? null,
-    overTiming: over.timing,
-    overHeap: over.heap,
+    overTiming: over.timing && !shared.timing,
+    overHeap: over.heap && !shared.heap,
   };
 }
 
@@ -207,6 +224,9 @@ export function decideGate({
     absorbed: [],
     watching: [],
     notAssessed: [],
+    // Every scenario judged on complete data. The confirm re-run clears a scenario only from here:
+    // one its second pass could not judge, or never saw, is not cleared (confirmVerdict).
+    judged: [],
     shift: null,
     newestShift: null,
     shiftFailed: false,
@@ -252,15 +272,16 @@ export function decideGate({
 
     if (row.incomplete) {
       verdict.notAssessed.push({ name: row.name, title: row.title, reason: row.shortLabel });
+    } else {
+      verdict.judged.push(row.name);
     }
 
     const newestRow = newestRows.get(row.name);
-    const status = classifyScenario(
-      comparisonOf(row), newestRow ? comparisonOf(newestRow) : null, rules
-    );
+    const newestComparison = newestRow ? comparisonOf(newestRow) : null;
+    const status = classifyScenario(comparisonOf(row), newestComparison, rules);
 
     if (status === 'fail') {
-      verdict.failing.push(describeScenario(row, rules));
+      verdict.failing.push(describeScenario(row, rules, newestComparison));
     } else if (status === 'absorbed') {
       verdict.absorbed.push(describeScenario(row, rules));
     } else if (status === 'watch') {
@@ -306,8 +327,12 @@ export function confirmCandidates(verdict, max = CONFIRM_MAX_SCENARIOS) {
 /**
  * The verdict after the re-run. The second pass judges every scenario on the data it holds -- the
  * re-run traces for the scenarios that were re-run, the first pass's for the rest -- so a scenario
- * fails only when it failed both times. A scenario the re-run cleared is listed with the first
- * pass's numbers, which is what a reader of the warn period needs to tell a slow spell from noise.
+ * fails when it failed both times. A scenario the re-run cleared is listed with the first pass's
+ * numbers, which is what a reader of the warn period needs to tell a slow spell from noise.
+ *
+ * Cleared means measured again and found under the line. A re-run scenario the second pass could
+ * not judge -- an incomplete capture, or no traces at all -- keeps its first-pass failure as
+ * `unconfirmed`: the gate never passes what it could not see.
  *
  * @param {object} firstPass -- the verdict that chose the scenarios to re-run
  * @param {object} secondPass -- the verdict decided over the re-run data
@@ -316,14 +341,26 @@ export function confirmCandidates(verdict, max = CONFIRM_MAX_SCENARIOS) {
 export function confirmVerdict(firstPass, secondPass) {
   const scenarios = confirmCandidates(firstPass);
   const stillFailing = new Set(secondPass.failing.map(scenario => scenario.name));
+  const judged = new Set(secondPass.judged ?? []);
+  const rerunFailures = firstPass.failing.filter(scenario => scenarios.includes(scenario.name)
+    && !stillFailing.has(scenario.name));
+  const unconfirmed = rerunFailures.filter(scenario => !judged.has(scenario.name));
+  const kept = new Set(unconfirmed.map(scenario => scenario.name));
+  const status = unconfirmed.length > 0 ? 'fail' : secondPass.status;
 
   return {
     ...secondPass,
+    status,
+    blocking: status === 'fail' && secondPass.mode === 'block',
+    failing: [...secondPass.failing, ...unconfirmed],
+    // Listed once, as failing: a heap the incomplete re-run still judged can have put it here too.
+    absorbed: secondPass.absorbed.filter(scenario => !kept.has(scenario.name)),
+    watching: secondPass.watching.filter(scenario => !kept.has(scenario.name)),
     rerun: {
       scenarios,
       confirmed: scenarios.filter(name => stillFailing.has(name)),
-      cleared: firstPass.failing.filter(scenario => scenarios.includes(scenario.name)
-        && !stillFailing.has(scenario.name)),
+      cleared: rerunFailures.filter(scenario => judged.has(scenario.name)),
+      unconfirmed: unconfirmed.map(scenario => scenario.name),
     },
   };
 }
@@ -347,6 +384,7 @@ export function formatGateNotice(verdict) {
     `shift=${verdict.shift == null ? '-' : shift(verdict.shift)}`,
     `rerun=${verdict.rerun?.scenarios.length ? verdict.rerun.scenarios.join(',') : '-'}`,
     `cleared=${names(verdict.rerun?.cleared ?? [])}`,
+    `unconfirmed=${verdict.rerun?.unconfirmed?.length ? verdict.rerun.unconfirmed.join(',') : '-'}`,
   ];
 
   return `::notice title=perf-gate::${parts.join(' ')}`;

@@ -8,6 +8,7 @@
 
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
+import { runInNewContext } from 'node:vm';
 import { buildHtmlReport } from '../html-report-builder.mjs';
 
 const ITERATIONS = {
@@ -502,6 +503,27 @@ describe('buildHtmlReport -- baseline provenance', () => {
     // and hand the two scroll scenarios the wrong band.
     assert.equal('heap' in thresholds, false);
     assert.equal(typeof scenarios[0].heapThreshold, 'number');
+  });
+});
+
+describe('buildHtmlReport -- spread flags', () => {
+  test('flag a wide baseline spread, never the run\'s own, as the markdown comment does', () => {
+    const html = buildHtmlReport(
+      { sorting: currentScenario() },
+      { timestamp: 't', scenarios: { sorting: goldenScenario() } },
+      {}
+    );
+    // The page's own formatter, run as the page runs it.
+    const source = html.match(/function fmtCvValue\(cv, flag\) \{[\s\S]*?\n {2}\}/)[0];
+    const fmtCvValue = runInNewContext(`${source}; fmtCvValue`, { data: payloadOf(html) });
+    const wide = payloadOf(html).thresholds.cvWarning + 5;
+
+    assert.match(fmtCvValue(wide), /\u26A0/, 'a wide spread is flagged by default');
+    assert.doesNotMatch(fmtCvValue(wide, false), /\u26A0/, 'and not when the caller says it is the run\'s own');
+    // The run's own spreads: the per-category detail rows and the hook timing.
+    assert.ok(html.includes('fmtCvValue(row.cv, false)'));
+    assert.ok(html.includes('fmtCvValue(hookTiming.cv, false)'));
+    assert.ok(!html.includes('cvTd.classList.add(\'cv-warn\')'));
   });
 });
 

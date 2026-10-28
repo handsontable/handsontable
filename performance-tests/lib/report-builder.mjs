@@ -27,6 +27,7 @@ import {
   fmtPct,
   fmtPctWithEmoji,
   formatTitle,
+  fmtMsDelta,
 } from './thresholds.mjs';
 import { formatEnvironment } from './environment.mjs';
 import { decideGate } from './gate.mjs';
@@ -34,7 +35,7 @@ import { decideGate } from './gate.mjs';
 /**
  * Decides every verdict the comment makes, once. `buildReport` renders from it and
  * `collectRegressions` lists from it, and the teardown passes the same object to both -- deciding it
- * per render site is how the table and the callouts once disagreed on one run.
+ * per render site is how two parts of one comment once disagreed on one run.
  *
  * @param {Record<string, object>} allScenarioResults -- keyed by scenario name
  * @param {object | null} goldenSnapshots
@@ -59,7 +60,8 @@ export function assessReport(allScenarioResults, goldenSnapshots, meta = {}) {
  * @param {object | null} goldenSnapshots -- golden baseline (or null to self-compare)
  * @param {object} [meta] -- { pagesUrl, crossWindowScenarios, versionMismatchScenarios, commit,
  *   runId, runUrl, environment, baselineUnavailable, gated }. `gated` is true on a pull request
- *   run, the only one the gate acts on; it adds what happens next to a failing headline.
+ *   run, the only one the gate acts on (isGatedRun); it adds the gate's rules and what happens next
+ *   to a failing headline.
  * @param {{ assessments: Array<object>, shift: number | null, hasGolden: boolean }} [assessment]
  *   -- from assessReport; computed here when the caller has no other use for it
  * @param {object} [verdict] -- from lib/gate.mjs decideGate, the one the job acts on. Decided here
@@ -92,7 +94,10 @@ export function buildReport(
       sections.push(notes);
     }
 
-    sections.push(buildRulesLine());
+    // The re-run and the approval it describes happen only where the gate acts.
+    if (meta.gated) {
+      sections.push(buildRulesLine());
+    }
   }
 
   // Where the baseline came from, so a reader can tell one run from five
@@ -129,8 +134,8 @@ export function buildReport(
  * The scenarios a run regressed on, for a caller that needs the list rather than the prose -- the
  * golden (develop-push) teardown turns each into a `::warning` annotation on the develop run.
  *
- * Same assessment as the callouts, so the two cannot disagree -- and the same run shift, so a
- * consumer can say how far a row sits from the rest of the run the way the callout prose does.
+ * Same assessment as the comment, so the two cannot disagree -- and the same run shift, so a
+ * consumer can say how far a row sits from the rest of the run the way the footer does.
  *
  * @param {Record<string, object>} allScenarioResults
  * @param {object | null} goldenSnapshots
@@ -234,9 +239,9 @@ function totalDelta(current, golden, mismatch) {
 }
 
 /**
- * Everything the table, the callouts and the annotations need to know about one scenario, decided
+ * Everything the table, the gate and the annotations need to know about one scenario, decided
  * once. Deciding it per render site is how one comment came to print a red heap cell in its table
- * and clear the same run in its callouts.
+ * and clear the same run elsewhere.
  *
  * @param {Record<string, object>} results
  * @param {Record<string, object>} goldenScenarios
@@ -334,11 +339,11 @@ function buildSummaryTable(assessments, hasGolden, shift) {
       if (!a.incomplete && a.totalPct > GATE_TIMING_THRESHOLD && !a.timingRegressed) {
         totalChange = `${fmtPct(a.totalPct)} \u{1F7E1}`;
       }
-      // Informational, no emoji: the callout gate runs on the raw delta and a second set of colours
-      // here would let the two columns reach opposite verdicts on one row.
+      // Informational, no emoji: the gate runs on the raw delta and a second set of colours here would
+      // let the two columns reach opposite verdicts on one row.
       const vsShift = hasShift ? [fmtPct(relativeToShift(a.totalPct, shift))] : [];
-      // Gated here as well as in the callouts, so the table and the callout below it cannot reach
-      // opposite verdicts on the same run.
+      // Withheld here as the gate withholds it, so the table and the verdict cannot reach opposite
+      // verdicts on the same run.
       const heapChange = a.traceMismatch
         // The mismatch's own label, not the baseline-side one: the heap cell is only ever withheld
         // for a trace mismatch, where the baseline captured everything and it is the windows or
@@ -356,7 +361,8 @@ function buildSummaryTable(assessments, hasGolden, shift) {
       rows.push([
         a.title, fmtMs(cats.scripting), fmtMs(cats.rendering),
         fmtMs(cats.painting), fmtMs(total),
-        fmtCvValue(calcCv(activeTotalsPerIteration(current._iterationValues?.categories))), heap,
+        // The run's own spread, unflagged for the same reason as in reliabilityCell.
+        fmtCvValue(calcCv(activeTotalsPerIteration(current._iterationValues?.categories)), { flag: false }), heap,
       ]);
     }
   }
@@ -404,7 +410,8 @@ function buildHookTimingSection(results, goldenScenarios, hasGolden) {
     ];
 
     if (hasGolden) {
-      row.push(fmtPctWithEmoji(pctChange(golden?.hookTiming, current.hookTiming)));
+      // No marker: the gate never judges hook timing, and markers appear only where it acts.
+      row.push(fmtPct(pctChange(golden?.hookTiming, current.hookTiming)));
     }
 
     rows.push(row);
@@ -494,8 +501,12 @@ function buildHeadline(verdict, assessments, meta, compared) {
 
   const total = assessments.length;
   const cleared = verdict.rerun?.cleared ?? [];
+  const clearedNames = new Set(cleared.map(scenario => scenario.name));
+  // A scenario the re-run cleared can also be watched on its second run; the table lists it once, as
+  // cleared, and so does the headline.
+  const watching = verdict.watching.filter(scenario => !clearedNames.has(scenario.name));
   const extras = [
-    verdict.watching.length > 0 ? `${verdict.watching.length} to watch` : '',
+    watching.length > 0 ? `${watching.length} to watch` : '',
     verdict.absorbed.length > 0 ? `${verdict.absorbed.length} already on develop` : '',
     cleared.length > 0 ? `${cleared.length} cleared on re-run` : '',
   ].filter(Boolean).map(text => ` · ${text}`).join('');
@@ -511,9 +522,14 @@ function buildHeadline(verdict, assessments, meta, compared) {
     return `${title}: ${what}${extras}${shift}${nextStep(verdict, meta)}`;
   }
 
-  const unassessed = assessments.filter(a => !a.golden || a.incomplete).length;
-  const within = unassessed > 0
-    ? `${total - unassessed} of ${plural(total, 'scenario')} within tolerance`
+  // Over the line on a level develop already shows is not within tolerance: it is counted out here
+  // and named in the extras, like a scenario that could not be judged.
+  const outside = new Set([
+    ...assessments.filter(a => !a.golden || a.incomplete).map(a => a.name),
+    ...verdict.absorbed.map(scenario => scenario.name),
+  ]);
+  const within = outside.size > 0
+    ? `${total - outside.size} of ${plural(total, 'scenario')} within tolerance`
     : `all ${plural(total, 'scenario')} within tolerance`;
 
   return `${title}: ✅ ${within}${extras}`;
@@ -530,9 +546,9 @@ function buildHeadline(verdict, assessments, meta, compared) {
 function buildAttentionTable(verdict, assessments) {
   const byName = new Map(assessments.map(a => [a.name, a]));
   const confirmed = new Set(verdict.rerun?.confirmed ?? []);
+  const unconfirmed = new Set(verdict.rerun?.unconfirmed ?? []);
   const listed = new Set();
   const rows = [];
-  const fmtMsDelta = v => (v == null || !Number.isFinite(v) ? '--' : `${v >= 0 ? '+' : ''}${v.toFixed(1)} ms`);
   const add = (scenario, status, moved) => {
     // A scenario the re-run cleared can also be watched on its second run; it is listed once.
     if (listed.has(scenario.name)) {
@@ -563,8 +579,15 @@ function buildAttentionTable(verdict, assessments) {
   };
 
   for (const scenario of verdict.failing) {
-    add(scenario, confirmed.has(scenario.name) ? '❌ regressed, confirmed on re-run' : '❌ regressed',
-      whatMoved(scenario));
+    let status = '❌ regressed';
+
+    if (confirmed.has(scenario.name)) {
+      status = '❌ regressed, confirmed on re-run';
+    } else if (unconfirmed.has(scenario.name)) {
+      status = '❌ regressed, re-run could not measure it';
+    }
+
+    add(scenario, status, whatMoved(scenario));
   }
 
   for (const scenario of verdict.absorbed) {
@@ -642,8 +665,8 @@ function buildRulesLine() {
   return `<sub>Gate: a scenario fails above +${GATE_TIMING_THRESHOLD}% and +${GATE_TIMING_FLOOR_MS} ms of `
     + `active time, or +${REGRESSION_CALLOUT_THRESHOLD_HEAP}% of JS heap (${heapOverrides}), and is `
     + `watched above +${WATCH_TIMING_THRESHOLD}%. Every scenario slower by more than `
-    + `+${GATE_RUN_SHIFT_THRESHOLD}% fails the run. A failing scenario is re-run once and fails only `
-    + 'when it is slow both times.</sub>';
+    + `+${GATE_RUN_SHIFT_THRESHOLD}% fails the run. A failing scenario is re-run once and passes only `
+    + 'when the re-run measures it under the line.</sub>';
 }
 
 // --- provenance ---

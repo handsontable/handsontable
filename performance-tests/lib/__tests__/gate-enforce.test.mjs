@@ -63,6 +63,28 @@ describe('describeFailure', () => {
   });
 });
 
+describe('describeFailure -- what develop shares', () => {
+  test('a heap failure names the heap only when develop already shows the timing', async() => {
+    const { decideGate } = await import('../gate.mjs');
+    const { assessReport } = await import('../report-builder.mjs');
+    const at = (scripting, heap = 100_000_000) => ({
+      sorting: {
+        categories: { scripting, rendering: 10, painting: 2 },
+        windowSource: 'marks',
+        updateCounters: { jsHeapMaxBytes: heap },
+      },
+    });
+    const baseline = { timestamp: '2026-10-20T00:00:00.000Z', scenarios: at(100) };
+    const v = decideGate({
+      assessment: assessReport(at(130, 110_000_000), baseline, {}),
+      newestAssessment: assessReport(at(130), baseline, {}),
+      baseline,
+    });
+
+    assert.equal(describeFailure(v), 'Sorting heap +10.0%');
+  });
+});
+
 describe('enforcement', () => {
   test('block mode hands a regression to the approval, and keeps the job green for it', () => {
     const { outcome, exitCode, lines } = enforcement({ verdict: failing('block') });

@@ -14,6 +14,7 @@ import {
   GATE_FIRST_PASS_FILE,
   GATE_VERDICT_FILE,
   confirmCandidates,
+  isGatedRun,
 } from './gate.mjs';
 
 /**
@@ -53,6 +54,9 @@ export async function prepareConfirmPass(outputDir) {
     return [];
   }
 
+  // Before anything moves: a name that is refused must leave output/ as the first pass wrote it.
+  const files = names.map(scenarioSpecPath);
+
   await copyFile(verdictPath, join(outputDir, GATE_FIRST_PASS_FILE));
 
   const firstPassDir = join(outputDir, GATE_FIRST_PASS_DIR);
@@ -67,5 +71,40 @@ export async function prepareConfirmPass(outputDir) {
     await rename(join(outputDir, name), target);
   }
 
-  return names.map(scenarioSpecPath);
+  return files;
+}
+
+/**
+ * Runs the scenarios, then, on a run the gate acts on, re-runs the ones the gate failed.
+ *
+ * The re-run happens even when the first `playwright test` exited non-zero: its teardown still wrote
+ * a verdict, and a would-fail left unconfirmed would read as a false fail in the warn-period count.
+ * The first run's error is thrown after the re-run, so the job stays red for it.
+ *
+ * @param {object} options
+ * @param {string} options.outputDir -- performance-tests/output
+ * @param {Record<string, string | undefined>} options.env -- read for isGatedRun
+ * @param {(files?: string[], env?: Record<string, string>) => Promise<void>} options.runPlaywright
+ * @param {(message: string) => void} [options.log]
+ * @returns {Promise<void>}
+ */
+export async function runWithConfirmPass({ outputDir, env, runPlaywright, log = console.log }) {
+  // A verdict an earlier local run left must not choose what this run re-runs.
+  await rm(join(outputDir, GATE_VERDICT_FILE), { force: true });
+  await rm(join(outputDir, GATE_FIRST_PASS_FILE), { force: true });
+
+  const firstError = await runPlaywright().then(() => null, error => error);
+
+  if (isGatedRun(env)) {
+    const files = await prepareConfirmPass(outputDir);
+
+    if (files.length > 0) {
+      log(`\n=== Re-running ${files.length} failing scenario(s) to confirm them ===\n`);
+      await runPlaywright(files, { PERF_CONFIRM_PASS: '1' });
+    }
+  }
+
+  if (firstError) {
+    throw firstError;
+  }
 }

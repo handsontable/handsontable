@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 //
 // Replays the develop goldens published on gh-pages through the same median-baseline selection CI
-// uses, and reports how often a no-change comparison would have fired a regression callout.
+// uses, and reports how often a no-change comparison would have crossed the gate's line.
 //
 // Every develop golden measures develop, so any delta this produces is noise by construction. That
 // makes the output a direct read of the false-positive rate at a given threshold, which is the only
@@ -26,6 +26,7 @@ import { dirname, resolve } from 'node:path';
 import {
   MEDIAN_WINDOW_SIZE,
   computeMedianSnapshot,
+  newestMedianSource,
 } from '../lib/median-snapshot.mjs';
 import {
   GATE_RUN_SHIFT_THRESHOLD,
@@ -35,6 +36,8 @@ import {
   WATCH_TIMING_THRESHOLD,
   calcCv,
   comparability,
+  fmtMsDelta,
+  fmtPct,
   heapThresholdFor,
   isOverTimingLine,
   runShift,
@@ -206,7 +209,9 @@ function compareEntry(baselineEntry, currentEntry) {
  * Replays each golden as if it were a PR run, against a median of only the goldens before it.
  *
  * Every delta also carries how the newest golden in the window compares against the same median
- * (`newest`), because the gate does not blame a run for a level develop already shows.
+ * (`newest`), because the gate does not blame a run for a level develop already shows, and that
+ * golden's run shift over every scenario it shares with the median (`newestShift`). The newest
+ * golden is picked as CI picks it (`newestMedianSource`): marks-valid, at the run's versions.
  *
  * @param {Array<{ timestamp: string, snapshot: object }>} goldens -- oldest first
  * @param {number} windowSize
@@ -240,7 +245,10 @@ function replay(goldens, windowSize) {
 
     const current = goldens[i].snapshot.scenarios || {};
     // The newest golden the median was drawn from -- what a PR's develop HEAD looked like.
-    const newestScenarios = window[window.length - 1].scenarios || {};
+    const newestScenarios = newestMedianSource(window, { windowSize, compatibleWith })?.scenarios || {};
+    // Over every scenario, as the teardown assesses the newest golden, not only this run's rows.
+    const newestShift = runShift(Object.entries(baseline.scenarios || {})
+      .map(([scenario, entry]) => compareEntry(entry, newestScenarios[scenario])?.timing));
 
     for (const [scenario, currentEntry] of Object.entries(current)) {
       const baselineEntry = baseline.scenarios?.[scenario];
@@ -261,6 +269,7 @@ function replay(goldens, windowSize) {
         scenario,
         ...delta,
         newest: compareEntry(baselineEntry, newestScenarios[scenario]),
+        newestShift,
       });
     }
   }
@@ -301,7 +310,7 @@ function thresholdCurve(deltas, key, thresholds, { floorMs = 0 } = {}) {
   const runs = new Set(values.map(d => d.run)).size;
 
   return thresholds.map((threshold) => {
-    // One-sided, matching the callout and the gate: only a slowdown counts.
+    // One-sided, matching the gate: only a slowdown counts.
     const fired = values.filter(d => (key === 'timing'
       ? isOverTimingLine(d.baseMs, d.baseMs + d.timingMs, threshold, floorMs)
       : d[key] > threshold));
@@ -391,7 +400,10 @@ function replayGate(deltas, options = {}) {
     }
 
     const shift = runShift(rows.map(d => d.timing));
-    const newestShift = runShift(rows.map(d => d.newest?.timing));
+    // replay() records it over all of the newest golden's scenarios; a hand-built delta may not.
+    const newestShift = rows[0].newestShift !== undefined
+      ? rows[0].newestShift
+      : runShift(rows.map(d => d.newest?.timing));
     const shiftFailed = isShiftFail(shift, newestShift, rules);
 
     return {
@@ -459,7 +471,7 @@ function printKeyGroups(goldens) {
 }
 
 /**
- * Heap callouts per scenario, at the shared constant and at the scenario's own threshold, so a
+ * Heap crossings per scenario, at the shared constant and at the scenario's own threshold, so a
  * per-scenario override in HEAP_THRESHOLDS_BY_SCENARIO can be read against the noise it answers.
  *
  * @param {Array<object>} deltas
@@ -467,7 +479,7 @@ function printKeyGroups(goldens) {
 function printHeapByScenario(deltas) {
   const scenarios = [...new Set(deltas.map(d => d.scenario))].sort();
 
-  console.log('\n  heap callouts per scenario on no-change comparisons:\n');
+  console.log('\n  heap crossings per scenario on no-change comparisons:\n');
   console.log(
     `  ${'scenario'.padEnd(30)}${'n'.padStart(5)}${`>${REGRESSION_CALLOUT_THRESHOLD_HEAP}%`.padStart(9)}`
     + `${'threshold'.padStart(12)}${'fired'.padStart(8)}`
@@ -551,17 +563,17 @@ function printCurve(deltas, key, thresholds, live, { floorMs = 0 } = {}) {
 
 /**
  * @param {Array<object>} gateRuns -- from replayGate()
+ * @param {{ floorMs?: number }} [options] -- the floor the runs were replayed at
  */
-function printGate(gateRuns) {
+function printGate(gateRuns, { floorMs = GATE_TIMING_FLOOR_MS } = {}) {
   const failed = gateRuns.filter(r => r.fails);
   const absorbed = gateRuns.filter(r => r.absorbed.length > 0);
   const watched = gateRuns.filter(r => r.watching.length > 0);
   const shifts = gateRuns.map(r => r.shift).filter(v => v != null);
-  const fmt = v => `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`;
 
   console.log(
-    `  rules: fail above +${GATE_TIMING_THRESHOLD}% and +${GATE_TIMING_FLOOR_MS} ms timing, above the heap `
-    + `callout line, or a run shift above +${GATE_RUN_SHIFT_THRESHOLD}%; watch above +${WATCH_TIMING_THRESHOLD}%; `
+    `  rules: fail above +${GATE_TIMING_THRESHOLD}% and +${floorMs} ms timing, above the heap `
+    + `line, or a run shift above +${GATE_RUN_SHIFT_THRESHOLD}%; watch above +${WATCH_TIMING_THRESHOLD}%; `
     + 'a level the newest golden already shows is not a fail'
   );
   const count = runs => `${runs.length} of ${gateRuns.length} (${share(runs.length, gateRuns.length)})`;
@@ -572,21 +584,20 @@ function printGate(gateRuns) {
 
   if (shifts.length > 0) {
     console.log(
-      `  run shift: p50 ${fmt(percentile(shifts, 50))}, min ${fmt(Math.min(...shifts))}, `
-      + `max ${fmt(Math.max(...shifts))}`
+      `  run shift: p50 ${fmtPct(percentile(shifts, 50))}, min ${fmtPct(Math.min(...shifts))}, `
+      + `max ${fmtPct(Math.max(...shifts))}`
     );
   }
 
-  const fmtMs = v => `${v >= 0 ? '+' : ''}${v.toFixed(1)} ms`;
-  const describe = d => `${d.scenario} ${fmt(d.timing ?? 0)}`
-    + `${d.timingMs != null ? ` (${fmtMs(d.timingMs)})` : ''}`
-    + `${d.heap != null ? `, heap ${fmt(d.heap)}` : ''}`;
+  const describe = d => `${d.scenario} ${fmtPct(d.timing ?? 0)}`
+    + `${d.timingMs != null ? ` (${fmtMsDelta(d.timingMs)})` : ''}`
+    + `${d.heap != null ? `, heap ${fmtPct(d.heap)}` : ''}`;
 
   for (const run of failed) {
     const reasons = run.failing.map(describe);
 
     if (run.shiftFailed) {
-      reasons.push(`run shift ${fmt(run.shift)}`);
+      reasons.push(`run shift ${fmtPct(run.shift)}`);
     }
 
     console.log(`    FAIL ${run.run}: ${reasons.join('; ')}`);
@@ -635,13 +646,35 @@ function printScenarioNoise(deltas, goldens) {
 
 /**
  * @param {string[]} argv
+ * @param {string} flag
+ * @returns {string | null} the value after the flag, or null without the flag
+ */
+function flagValue(argv, flag) {
+  const at = argv.indexOf(flag);
+
+  if (at === -1) {
+    return null;
+  }
+
+  const value = argv[at + 1];
+
+  // A flag left without its value would otherwise fall back to the default without a word.
+  if (value === undefined || value.startsWith('--')) {
+    throw new Error(`${flag} needs a value`);
+  }
+
+  return value;
+}
+
+/**
+ * @param {string[]} argv
  * @returns {{ since: string | null, windowSize: number, floorMs: number }}
  */
 function parseArgs(argv) {
-  const since = argv.includes('--since') ? argv[argv.indexOf('--since') + 1] : null;
-  const windowRaw = argv.includes('--window') ? argv[argv.indexOf('--window') + 1] : null;
+  const since = flagValue(argv, '--since');
+  const windowRaw = flagValue(argv, '--window');
   const windowSize = windowRaw ? Number.parseInt(windowRaw, 10) : MEDIAN_WINDOW_SIZE;
-  const floorRaw = argv.includes('--floor-ms') ? argv[argv.indexOf('--floor-ms') + 1] : null;
+  const floorRaw = flagValue(argv, '--floor-ms');
   const floorMs = floorRaw == null ? GATE_TIMING_FLOOR_MS : Number(floorRaw);
 
   if (!Number.isFinite(windowSize) || windowSize < 2) {
@@ -674,6 +707,16 @@ async function main(argv) {
     );
   }
 
+  printReplay(goldens, { windowSize, floorMs });
+}
+
+/**
+ * Prints the replay of the loaded goldens: the curves, the gate, and the per-scenario noise.
+ *
+ * @param {Array<{ timestamp: string, snapshot: object }>} goldens -- oldest first
+ * @param {{ windowSize: number, floorMs: number }} options
+ */
+function printReplay(goldens, { windowSize, floorMs }) {
   printKeyGroups(goldens);
 
   const { deltas, skippedIncomparable, skippedThinWindow } = replay(goldens, windowSize);
@@ -703,10 +746,10 @@ async function main(argv) {
   }, { floorMs });
 
   console.log('\nHEAP');
-  printCurve(deltas, 'heap', HEAP_THRESHOLDS, { [REGRESSION_CALLOUT_THRESHOLD_HEAP]: 'callout and gate' });
+  printCurve(deltas, 'heap', HEAP_THRESHOLDS, { [REGRESSION_CALLOUT_THRESHOLD_HEAP]: 'gate' });
 
   console.log('\nGATE (replayed rule for rule; the confirm re-run is not, so this is an upper bound)');
-  printGate(replayGate(deltas));
+  printGate(replayGate(deltas, { floorMs }), { floorMs });
 
   printScenarioNoise(deltas, goldens);
   printHeapByScenario(deltas);
@@ -725,6 +768,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 export {
   loadGoldens,
   replay,
+  printReplay,
   parseArgs,
   compatibleWindow,
   percentile,
