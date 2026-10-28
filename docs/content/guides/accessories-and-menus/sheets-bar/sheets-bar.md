@@ -213,6 +213,8 @@ Each sheet keeps its own:
 - Scroll position and selection.
 - Sort, filters, and row and column order.
 - Hidden rows and columns, and trimmed rows.
+- Collapsed column groups ([`CollapsibleColumns`](@/api/collapsibleColumns.md)).
+- Rows checked with [`RowSelection`](@/api/rowSelection.md).
 - Frozen rows and columns.
 - Merged cells and custom borders.
 - Manual column widths and row heights.

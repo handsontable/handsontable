@@ -27,9 +27,9 @@ import {
   clearFrozenCountShadow,
   clearCustomBorders,
   clearMergedCells,
+  createNeutralViewState,
   FROZEN_COUNT_KEYS,
   keepSelectionOnPage,
-  rebuildCustomBordersFromCellMeta,
   resetViewState,
   resetViewport,
   restoreViewState,
@@ -188,6 +188,19 @@ const SELF_BASELINED_KEYS = new Set(['dataProvider', 'columnSummary', 'cell']);
 const UNFILTERED_SETTING_KEYS = new Set([PLUGIN_KEY, 'data', 'dataProvider']);
 
 /**
+ * The view-state keys that hold flat arrays of numbers, which a duplicate copies with `slice()`.
+ */
+const FLAT_VIEW_STATE_KEYS = new Set([
+  'rowSequence', 'rowHeaders', 'unsortedRowSequence', 'columnSequence', 'hiddenRows', 'hiddenColumns',
+  'trimmedRows',
+]);
+
+/**
+ * The view-state keys that hold `[physicalIndex, size]` pairs, which a duplicate copies pair by pair.
+ */
+const SIZE_PAIR_VIEW_STATE_KEYS = new Set(['colWidths', 'rowHeights']);
+
+/**
  * Keys `updateSheetSettings()` does not take: the bar itself, which a sheet cannot reconfigure, and `data`,
  * which is the sheet's `data` in the host's `sheets` array, not one of its settings.
  */
@@ -208,6 +221,8 @@ const VIEW_STATE_PARTS_BY_SETTING: Partial<Record<string, ViewStatePart[]>> = {
   hiddenRows: ['hiddenRows'],
   hiddenColumns: ['hiddenColumns'],
   nestedRows: ['collapsedRows'],
+  nestedHeaders: ['collapsedColumns'],
+  collapsibleColumns: ['collapsedColumns'],
   colWidths: ['columnWidths'],
   manualColumnResize: ['columnWidths'],
   rowHeights: ['rowHeights'],
@@ -763,14 +778,6 @@ export class SheetsBar extends BasePlugin {
    * @type {string|null}
    */
   #tabSlideMotion: SheetsBarMotion | null = null;
-  /**
-   * The cell meta a duplicate takes from its original, put back on the copy's first visit. A sheet the
-   * user has left keeps its meta in its view state (`#captureCellMeta`); a copy has no view state until
-   * the user leaves it once, so this is read only while it has none.
-   *
-   * @type {WeakMap<Sheet, object[]>}
-   */
-  #copiedCellMeta = new WeakMap<Sheet, TrackedCellMeta[]>();
   /**
    * The declared `sheets` entry each built sheet came from, so removing a sheet can prune its
    * entry out of the configured arrays — the settings object would otherwise keep the removed
@@ -2580,8 +2587,12 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Decides what a server sheet shows once a switch has brought it in: the error notifications
-   * its requests left while it was not shown, then its own fetch still running, its last response
-   * (with the fetch error that came after it, when there is one), or a first fetch.
+   * its requests left while it was not shown, then its last response, which the rows the grid
+   * holds already answer (so its sort, filters, pager, and row numbers come back even while a
+   * fetch still runs, and a failure of that fetch leaves them in place). After that, its own
+   * fetch still running is waited for, the fetch error that came after the response is shown,
+   * or a sheet without a response fetches for the first time, on the page and page size the
+   * DataProvider plugin put the pager back to.
    */
   #showServerSheet() {
     const dataProvider = this.#getDataProvider();
@@ -2600,6 +2611,10 @@ export class SheetsBar extends BasePlugin {
       failures.forEach(({ kind, error }) => dataProvider._showRequestError(kind, error));
     }
 
+    if (view?.lastResult) {
+      dataProvider._restoreFetchResult(view.lastResult);
+    }
+
     if (dataProvider.isFetching()) {
       return;
     }
@@ -2611,20 +2626,18 @@ export class SheetsBar extends BasePlugin {
     }
 
     if (view?.lastResult) {
-      dataProvider._restoreFetchResult(view.lastResult);
-
       return;
     }
 
-    dataProvider.fetchData({ page: 1 }).catch((error) => {
+    dataProvider.fetchData().catch((error) => {
       logError('Data fetch failed:', error);
     });
   }
 
   /**
-   * Shows the fetch failure a server sheet kept while it was not shown: its last response comes
-   * back (so its sort, filters, and pager do), and the error notification appears, its Refetch
-   * action fetching the sheet. Nothing is fetched automatically.
+   * Shows the fetch failure a server sheet kept while it was not shown: the error notification
+   * appears over the sheet's last response, which the caller has already brought back, its
+   * Refetch action fetching the sheet. Nothing is fetched automatically.
    */
   #showStoredFetchFailure(dataProvider: DataProvider, view: ServerSheetView) {
     const { failure, lastResult } = view;
@@ -2632,9 +2645,7 @@ export class SheetsBar extends BasePlugin {
     view.failure = undefined;
     view.hasFailure = false;
 
-    if (lastResult) {
-      dataProvider._restoreFetchResult(lastResult);
-    } else {
+    if (!lastResult) {
       this.hot.render();
     }
 
@@ -2749,18 +2760,13 @@ export class SheetsBar extends BasePlugin {
         }
       }
 
-      const copiedCellMeta = viewState ? undefined : this.#copiedCellMeta.get(newSheet);
-
       this.#applySheet(newSheet, source, {
         restoresState: viewState !== undefined,
-        cellMeta: viewState ? viewState.cellMeta : copiedCellMeta,
+        cellMeta: viewState?.cellMeta,
       });
 
       if (viewState) {
         restoreViewState(this.hot, viewState, keptParts);
-      } else if (copiedCellMeta) {
-        this.#copiedCellMeta.delete(newSheet);
-        rebuildCustomBordersFromCellMeta(this.hot);
       }
 
       this.#restoreFormulaText(newSheet);
@@ -3132,29 +3138,122 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Gives a duplicated sheet the cell meta its original carries now: the grid's when the original is shown,
-   * or what it left with otherwise. The copy's data is a copy of the original's rows in the same physical
-   * order, so its first visit puts the meta back by physical index like a return does, borders included, and
-   * it is stored even when empty, so the copy does not take the declared borders its original no longer has.
-   * It is dropped once the copy has been shown. Each entry is copied, and so is a plain object or array value,
-   * so a change made in place on one sheet does not reach the other. A class instance at the top level is
-   * shared, and one nested inside an object value comes out as a plain object.
+   * Gives a duplicated sheet the whole view state of its original, so the copy opens the way its original
+   * looks: the grid's state when the original is shown, or the state it left with otherwise. The selection
+   * and the scroll position are the neutral ones: the copy is a tab the user has not been on. The copy's
+   * data is a copy of the original's rows in the same physical order, so its first visit restores the state
+   * like a return does, and `afterSheetTabStateRestore` fires for it. Every value is copied, so a change on
+   * one sheet does not reach the other, the kept cell meta by the rule `#cloneCellMeta` gives. An original
+   * that was never shown has no view state, and neither has its copy.
    *
    * @param {object} original The sheet that was duplicated.
    * @param {object} copy The duplicate.
    */
-  #copyCellMeta(original: Sheet, copy: Sheet) {
+  #copyViewState(original: Sheet, copy: Sheet) {
     const isOriginalShown = this.#model?.getActiveSheet()?.id === original.id;
-    const entries = isOriginalShown
-      ? this.#captureCellMeta()
-      : ((original.viewState?.cellMeta as TrackedCellMeta[] | undefined) ?? this.#copiedCellMeta.get(original));
+    const source = isOriginalShown
+      ? captureViewState(this.hot, this.#captureCellMeta())
+      : original.viewState as unknown as ViewState | undefined;
 
-    if (entries) {
-      this.#copiedCellMeta.set(copy, entries.map(entry => ({
-        ...entry,
-        value: isPlainObject(entry.value) || Array.isArray(entry.value) ? deepClone(entry.value) : entry.value,
-      })));
+    if (!source) {
+      return;
     }
+
+    const neutral = createNeutralViewState();
+    const { cellMeta, ...parts } = {
+      ...source,
+      selection: neutral.selection,
+      selectionState: neutral.selectionState,
+      scroll: neutral.scroll,
+    };
+
+    copy.viewState = {
+      ...SheetsBar.#cloneViewStateParts(parts),
+      ...(cellMeta ? { cellMeta: SheetsBar.#cloneCellMeta(cellMeta) } : {}),
+    } as unknown as Record<string, unknown>;
+
+    if (!isOriginalShown) {
+      this.#copyRedeclaredState(original, copy);
+    }
+  }
+
+  /**
+   * Gives a duplicate of a hidden sheet the marks `updateSheetSettings()` left on its original
+   * (`#dropKeptStateFor`): the view-state parts, the merges, the borders, and the page size declared anew
+   * while the original was hidden. The copy takes the original's settings and its kept view state, so
+   * without the marks its first visit restored the kept parts over the new settings, and the copy showed
+   * what the original showed before the update.
+   *
+   * @param {object} original The hidden sheet that was duplicated.
+   * @param {object} copy The duplicate.
+   */
+  #copyRedeclaredState(original: Sheet, copy: Sheet) {
+    const parts = this.#redeclaredParts.get(original);
+
+    if (parts) {
+      this.#redeclaredParts.set(copy, new Set(parts));
+    }
+
+    if (this.#redeclaredMerges.has(original)) {
+      this.#redeclaredMerges.add(copy);
+    }
+
+    if (this.#redeclaredBorders.has(original)) {
+      this.#redeclaredBorders.add(copy);
+    }
+
+    if (this.#redeclaredPageSize.has(original)) {
+      this.#redeclaredPageSize.add(copy);
+    }
+  }
+
+  /**
+   * Copies the view-state parts for a duplicate. The index arrays hold numbers, so `slice()` copies them, and
+   * each size pair is copied on its own; only the nested parts go through `deepClone()`, which walks every
+   * item and is several times slower over arrays the length of the row count.
+   *
+   * @param {object} parts The view-state parts, without the cell meta.
+   * @returns {object}
+   */
+  static #cloneViewStateParts(parts: Record<string, unknown>): Record<string, unknown> {
+    const copy: Record<string, unknown> = {};
+
+    Object.keys(parts).forEach((key) => {
+      const value = parts[key];
+
+      if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+        return;
+      }
+
+      if (Array.isArray(value) && FLAT_VIEW_STATE_KEYS.has(key)) {
+        copy[key] = value.slice();
+
+      } else if (Array.isArray(value) && SIZE_PAIR_VIEW_STATE_KEYS.has(key)) {
+        copy[key] = (value as unknown[]).map(
+          (pair): unknown => (Array.isArray(pair) ? (pair as unknown[]).slice() : deepClone(pair)),
+        );
+
+      } else {
+        copy[key] = deepClone(value);
+      }
+    });
+
+    return copy;
+  }
+
+  /**
+   * Copies kept cell meta entries for another sheet. Each entry is copied, and so is a plain object or
+   * array value, so a change made in place on one sheet does not reach the other. A class instance at the
+   * top level is shared, and one nested inside an object value comes out as a plain object.
+   *
+   * @param {object[]} entries The entries.
+   * @returns {object[]}
+   */
+  static #cloneCellMeta(entries: TrackedCellMeta[]): TrackedCellMeta[] {
+    return entries.map(entry => ({
+      ...entry,
+      value: isPlainObject(entry.value) || Array.isArray(entry.value) ? deepClone(entry.value) : entry.value,
+    }));
   }
 
   /**
@@ -3503,25 +3602,19 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Takes the custom borders out of the cell meta a hidden sheet kept (its view state, or a duplicate's
-   * copy of its original's meta), where the borders live, and marks the sheet so its next visit applies
-   * the declared borders.
+   * Takes the custom borders out of the cell meta a hidden sheet kept in its view state, where the borders
+   * live, and marks the sheet so its next visit applies the declared borders.
    *
    * @param {object} sheet The hidden sheet.
    */
   #dropKeptBorders(sheet: Sheet) {
     const kept = sheet.viewState?.cellMeta;
-    const copied = this.#copiedCellMeta.get(sheet);
 
     if (Array.isArray(kept)) {
       sheet.viewState = {
         ...sheet.viewState,
         cellMeta: kept.filter(entry => isPlainObject(entry) && entry.key !== 'borders'),
       };
-    }
-
-    if (copied) {
-      this.#copiedCellMeta.set(sheet, copied.filter(entry => entry.key !== 'borders'));
     }
 
     this.#redeclaredBorders.add(sheet);
@@ -4018,7 +4111,7 @@ export class SheetsBar extends BasePlugin {
         this.#copyServerView(original, sheet);
         this.#copyColumnSummaryEndpoints(original, sheet);
         this.#copyCellOption(original, sheet);
-        this.#copyCellMeta(original, sheet);
+        this.#copyViewState(original, sheet);
 
         // The copy cannot share the original's engine sheet — two tabs writing into one set of
         // cells — so it gets an engine sheet of its own, named like the copy, seeded with the
@@ -4029,7 +4122,9 @@ export class SheetsBar extends BasePlugin {
           const copyName = freeEngineName(formulas.engine!, sheet.name);
 
           sheet.settings = { ...sheet.settings, formulas: { ...formulas, sheetName: copyName } };
-          this.#registerFormulaCopy(sheet, formulas.engine!, formulas.sheetName, copyName);
+          this.#registerFormulaCopy(
+            sheet, formulas.engine!, formulas.sheetName, copyName, this.#engineOrderOf(original, formulas),
+          );
         }
 
         this.#appendDeclaredSheet(sheet);
@@ -4291,13 +4386,22 @@ export class SheetsBar extends BasePlugin {
    * named expressions are copied too, with the same change, before the copy's content is fed: without
    * them its formulas read `#NAME?`.
    *
+   * An original the engine holds sorted or with moved rows or columns (`engineOrder`) has formulas the
+   * engine alone knows (see `#captureEngineOrder`), and the duplicated data keeps the old text in the
+   * physical order. Seeded with that data, the copy's first visit loaded it and moved it into the copied
+   * order, which turned the references of moved cells into `#REF!` and other sums. So the copy's engine
+   * sheet takes the original's engine content, in the original's engine order, and the copy stores that
+   * order as one left by the user: its first visit takes the engine sheet over, as a return does.
+   *
    * @param {object} sheet The copy.
    * @param {object} engine The engine.
    * @param {string} originalName The original's engine sheet name.
    * @param {string} copyName The copy's engine sheet name.
+   * @param {object|null} [engineOrder] The order the engine holds the original in, when it is not physical.
    */
   #registerFormulaCopy(
     sheet: Sheet, engine: NonNullable<SheetFormulas['engine']>, originalName: string, copyName: string,
+    engineOrder: FormulasEngineSheetOrder | null = null,
   ) {
     const copyText = this.#sheetNameText(engine, copyName);
     const repoint = (formula: string) => rewriteSheetReferences(formula, reference => (
@@ -4307,6 +4411,7 @@ export class SheetsBar extends BasePlugin {
 
     this.#replaceSheetData(sheet, writeFormulaTextChanges(sheet.data, collectFormulaTextChanges(sheet.data, repoint)));
     this.#registerFormulaSheet(sheet, {
+      feed: engineOrder === null,
       beforeFeed: (copyId) => {
         if (typeof originalId !== 'number') {
           return;
@@ -4320,8 +4425,70 @@ export class SheetsBar extends BasePlugin {
 
           engine.addNamedExpression?.(name, expression, copyId, engine.getNamedExpression?.(name, originalId)?.options);
         });
+
+        if (engineOrder) {
+          this.#seedCopyInEngineOrder(sheet, engine, originalId, copyId, engineOrder, repoint);
+        }
       },
     });
+  }
+
+  /**
+   * Writes the original's engine content into the copy's engine sheet, with the references the original
+   * makes to itself pointed at the copy, and stores the original's engine order for the copy, bound to the
+   * copy's engine sheet and its own data, so its first visit takes the engine sheet over
+   * (`#engineOrderToAdopt`).
+   *
+   * @param {object} sheet The copy.
+   * @param {object} engine The engine.
+   * @param {number} originalId The original's engine sheet id.
+   * @param {number} copyId The copy's engine sheet id.
+   * @param {object} engineOrder The order the engine holds the original in.
+   * @param {Function} repoint Points the original's references to itself at the copy.
+   */
+  #seedCopyInEngineOrder(
+    sheet: Sheet,
+    engine: NonNullable<SheetFormulas['engine']>,
+    originalId: number,
+    copyId: number,
+    engineOrder: FormulasEngineSheetOrder,
+    repoint: (formula: string) => string,
+  ) {
+    const content = (engine.getSheetSerialized?.(originalId) ?? []).map(row => row.map(cell => (
+      typeof cell === 'string' && cell.startsWith('=') ? repoint(cell) : cell
+    )));
+
+    engine.setSheetContent!(copyId, this.#readableEngineContent(engine, content));
+    this.#engineOrders.set(sheet, {
+      order: { ...engineOrder, sheetId: copyId },
+      data: sheet.data,
+      length: sheet.data.length,
+    });
+  }
+
+  /**
+   * Returns the order the engine holds `original` in, when a sort or a move reached the engine, or `null`
+   * when the engine holds it in the physical order its data has: the active sheet's order is read from
+   * the Formulas plugin, and a hidden sheet's is the one it left with, while its data and its engine sheet
+   * are still the ones that order describes.
+   *
+   * @param {object} original The original sheet.
+   * @param {object} formulas The original's formulas setting.
+   * @returns {object|null}
+   */
+  #engineOrderOf(original: Sheet, formulas: SheetFormulas): FormulasEngineSheetOrder | null {
+    if (original.id !== this.#model?.getActiveSheet()?.id) {
+      return this.#engineOrderToAdopt(original);
+    }
+
+    const order = this.hot.getPlugin('formulas')?.exportEngineOrder() ?? null;
+    const engine = formulas.engine!;
+
+    if (!order || (order.engine as unknown) !== engine || order.sheetId !== engine.getSheetId!(formulas.sheetName!)) {
+      return null;
+    }
+
+    return order;
   }
 
   /**

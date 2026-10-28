@@ -284,6 +284,16 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   A sorted inactive sheet's data keeps its old text: the bar does not copy engine text into it
   (`#syncInactiveSheetsFromEngine` skips it), and a rename rewrites only the name in it. Pinned by
   `tests/e2e/sheets-bar-formulas-order.spec.ts`.
+  **A duplicate of such a sheet takes the engine order over too.** It copies the original's sort and
+  row and column order (see the duplicate bullet below), but its data is the original's stale physical
+  text, so seeding the copy's engine sheet with that data and letting the first visit move it into the
+  copied order gave `#REF!` for a moved row or column and other values after a moved row plus an insert.
+  `#registerFormulaCopy` therefore writes the original's engine content (self-references repointed, as
+  for the data) into the copy's own engine sheet and stores the original's order for the copy under the
+  copy's sheet id and data (`#seedCopyInEngineOrder`), so the copy's first visit adopts it like a return.
+  The original's order is read live from the Formulas plugin when it is the active sheet, else from its
+  stored entry (`#engineOrderOf`). The copy never shares the original's engine sheet. Pinned by the
+  `duplicate` tests in `__tests__/formulaSheets.unit.js`.
 - **Show-formulas mode is per sheet** (`#captureFormulaText`, `#restoreFormulaText`), like a sort:
   it lives on the Formulas plugin, so it carried over to the next formulas sheet and was dropped by a
   sheet without formulas, which turns the plugin off.
@@ -333,12 +343,27 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   - **Known limit:** a mark is put back as it was. A cell that becomes invalid while its sheet is hidden is
     not marked until it is validated again, because validating the whole sheet on every switch costs too
     much; the sheets bar guide says so.
-  - **A duplicate takes its original's meta** (`#copyCellMeta`): the grid's when the original is shown,
-    what it left with otherwise, with each entry copied and a plain object or array value deep-cloned (a
-    class instance at the top level is shared, because a clone would lose its prototype; one nested inside an
-    object value comes out as a plain object). A copy has no view state until the user leaves it, so the
-    entries wait in `#copiedCellMeta` for its first visit, stored even when empty so the copy does not take
-    declared borders its original no longer has, and dropped once that visit has loaded the copy.
+  - **A duplicate takes its original's whole view state** (`#copyViewState`), meta included: the grid's when
+    the original is shown, what it left with otherwise. The selection and the scroll position are reset to the
+    neutral values, because the copy is a tab the user has not been on; everything else (order, sort, filters,
+    hidden, trimmed and collapsed indexes, sizes, merges, freeze, page, checked rows) comes along, so the copy's
+    first visit is a restore and fires `afterSheetTabStateRestore`. On a formulas sheet the copied order needs
+    the original's engine order with it, or the copy's formulas break (see "The engine keeps a sheet in the
+    order the user left it" above). Every value is copied, but not all through
+    `deepClone()` (`#cloneViewStateParts`): the flat index arrays (`FLAT_VIEW_STATE_KEYS`) are `slice()`d and
+    the size pairs (`SIZE_PAIR_VIEW_STATE_KEYS`) copied pair by pair, because the recursive `deepClone()` over
+    arrays the length of the row count made a 100k-row duplicate about 70% slower in jsdom. A new flat number
+    array in `ViewState` belongs in that set; anything nested stays on `deepClone()`. The meta is copied entry
+    by entry (`#cloneCellMeta`: a plain object or array value is deep-cloned, a class instance at the top level
+    is shared, because a clone would lose its prototype, and one nested inside an object value comes out as a
+    plain object). A duplicate of a hidden original also takes its `updateSheetSettings()` marks
+    (`#copyRedeclaredState`: `#redeclaredParts`, `#redeclaredMerges`, `#redeclaredBorders`,
+    `#redeclaredPageSize`). Its settings are the new ones but its view state is the kept one, so without the
+    marks its first visit restored the old hidden columns, merges, borders, or page size over the new
+    settings. A new per-sheet mark set by `#dropKeptStateFor` belongs in that method too. The meta is copied even when empty, so the copy does not take declared borders its original
+    no longer has. An original that was never shown has no view state, and its copy opens the way the
+    original would. The copy's engine order (`#engineOrders`) is not copied: the copy has an engine sheet of
+    its own, seeded with the duplicated data.
   - **A server response that replaces a hidden sheet's rows removes `cellMeta` from its view state**
     (`#keepDetachedOutcome`), because the meta described the old rows. The field is absent rather than empty
     on purpose: an empty list means "the user left no meta", which on a return keeps a declared
@@ -361,7 +386,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 - **The bar is the DataProvider context owner; everything sheet-shaped about server data lives here.** The contract is internal (`../dataProvider/AGENTS.md`, "Owner contract: contexts (internal)"): `#contextOwner` is registered with `_setContextOwner()` at the top of `enablePlugin()` and removed at the end of `disablePlugin()`, and all calls go through the `_`-prefixed DataProvider methods. Never replace it with hooks — a user listener could rewrite what the bar receives. The pieces:
   - **Context.** `getContext()` answers a **frozen empty token** per sheet (`#contextOf()`, `#contextTokens` + the reverse `#sheetsByContext`, both `WeakMap`s), never the `Sheet` record, so no outside code can reach a sheet's data or settings through DataProvider. Identity is per record, so a removed sheet or a sheet of a replaced workbook (whose ids restart at 1) can never be mistaken for a current one. It is registered before the workbook is built: a rebuild on a live grid applies the opening server sheet, and starts its first fetch, inside `enablePlugin()`. Without a model it answers `null`, so the settings a teardown restores fetch as a plain grid.
   - **Server view per sheet** (`#serverViews`, a `WeakMap<Sheet, …>`): the last response, a pending fetch failure, and deferred mutation failures. A visible landing arrives through the owner's `onShownResponse`, which DataProvider calls with the normalized response before `afterDataProviderFetch` fires — never read it from that hook: `Hooks.run` hands a listener's non-`undefined` return to the next listener, so a user listener could rewrite the stored `totalRows` or `queryParameters` and the replay would show a wrong pager, sort, or filters (pinned by the `?userFetchListener=1` spec). Everything that settles for a sheet the grid does not show arrives through `onDetachedRequest` (`#keepDetachedOutcome()`), and an outcome reported for the sheet the grid shows (DataProvider reports one only while it is disabled there) is dropped rather than written over the visible sheet's record: a response's rows **replace** `sheet.data` — and the sheet's kept cell meta (`viewState.cellMeta`) is dropped with the old rows, the way a `loadData()` drops core's cell meta when the grid shown reloads, or a `readOnly` from the old rows came back on the new ones — never written into it: a host-declared `sheets[i].data` may be frozen (an Immer store threw, and the throw was reported as a fetch failure) or reactive (a Vue array ran an extra `updateSettings`); a failure is stored by the `kind` DataProvider reports (`fetch` → the sheet's fetch failure, shown with Refetch and no automatic refetch; `create`/`update`/`remove` → appended mutation failures). An outcome for a sheet of no current workbook is dropped. The owner also answers `getContextResult(context)` with the sheet's last response, so an off-screen save's refetch asks for the page the user left the sheet on, not the one the save was queued on, and a remove's follow-up counts that page's rows. The frozen case and the fetch-vs-mutation filing are pinned in `tests/e2e/data-provider-sheets-bar.spec.ts`, including a user `afterDataProviderFetchError`/`afterRowsMutationError` listener that returns values.
-  - **Switch.** `#switchTo` runs inside `#withoutFetching`, i.e. `dataProvider._runContextChange()`: DataProvider stays passive (its state in a `try/finally`), resets the pager's server total before the switch, and syncs the loading overlay and the server-filter rollback after it — Pagination, EmptyDataState, and Filters are released plugins and must not listen to this plugin's hooks, so this plugin never relies on them doing so, and `#isSwitching` is `try/finally` too, so a listener that throws mid-switch leaves nothing stuck (pinned by a unit test). **The passive window covers `#switchTo` only**, and `afterSheetTabStateRestore` fires inside it: a sort or filter applied from that listener on a server sheet is canceled (`#answerPassiveSort` / `#answerPassiveFilter`), not sent to the server. A sort or filter made from an `afterSheetTabStateCapture` or `afterSheetTabChange` listener is an ordinary user action on the sheet shown at that moment and goes to the server. `#showServerSheet()` runs after the switch, before `afterSheetTabChange` fires, so the EmptyDataState and Filters listeners of that hook see the final state: deferred mutation toasts (`_showRequestError`), then `isFetching()` → wait, a stored fetch failure → `_restoreFetchResult(lastResult)` when there is one plus the fetch toast (no refetch), a stored response → `_restoreFetchResult()`, else the first fetch (`fetchData({ page: 1 })`, failure logged like DataProvider's own internal refetches). `isFetching()` ignores a silent (`skipLoading`) refetch, so arriving while a save's refetch of the sheet still runs replays the stored response first and the refetch lands after it (`afterDataProviderFetch` fires twice, the first with `isRestored: true`); pinned by a spec. The replay keeps the sort indicator, filters, and pager total correct while the refetch runs.
+  - **Switch.** `#switchTo` runs inside `#withoutFetching`, i.e. `dataProvider._runContextChange()`: DataProvider stays passive (its state in a `try/finally`), resets the pager's server total before the switch, and syncs the loading overlay and the server-filter rollback after it — Pagination, EmptyDataState, and Filters are released plugins and must not listen to this plugin's hooks, so this plugin never relies on them doing so, and `#isSwitching` is `try/finally` too, so a listener that throws mid-switch leaves nothing stuck (pinned by a unit test). **The passive window covers `#switchTo` only**, and `afterSheetTabStateRestore` fires inside it: a sort or filter applied from that listener on a server sheet is canceled (`#answerPassiveSort` / `#answerPassiveFilter`), not sent to the server. A sort or filter made from an `afterSheetTabStateCapture` or `afterSheetTabChange` listener is an ordinary user action on the sheet shown at that moment and goes to the server. `#showServerSheet()` runs after the switch, before `afterSheetTabChange` fires, so the EmptyDataState and Filters listeners of that hook see the final state: deferred mutation toasts (`_showRequestError`), then the stored response replayed (`_restoreFetchResult(lastResult)`) whenever there is one, and only then `isFetching()` → wait, a stored fetch failure → the fetch toast over the replayed response (no refetch), a stored response → nothing more, else the first fetch (`fetchData()` with no override, failure logged like DataProvider's own internal refetches). **The replay comes before the wait on purpose.** The grid already holds the stored response's rows (`sheet.data`), while the query is the running fetch's (`#adoptPendingQuery`) and the pager's server total was reset by the switch, so waiting without the replay showed those rows under the running fetch's row numbers, with no sort indicator and a one-page pager; and when that fetch then failed, `revertPageTo()` had no total to page by, so the sheet stayed on "page 1 of 1". With the replay, the rows, the sort, the pager, and the row numbers all describe the stored response while the fetch runs, a failure leaves them there with its Refetch toast, and a success loads the requested page. EmptyDataState ignores a replay (`isRestored: true`), so the loading overlay of the running fetch stays up. A sheet without a stored response fetches on the page and page size DataProvider put the pager back to in the switch (the configured `initialPage` and `pageSize`, see `../dataProvider/AGENTS.md`), not on the previous sheet's. `isFetching()` ignores a silent (`skipLoading`) refetch, so arriving while a save's refetch of the sheet still runs replays the stored response first and the refetch lands after it (`afterDataProviderFetch` fires twice, the first with `isRestored: true`); pinned by a spec. The replay keeps the sort indicator, filters, and pager total correct while the refetch runs.
   - **Remove / duplicate / workbook replaced.** A removed sheet's context is released (`_releaseContext`). A genuine teardown releases every sheet of the discarded workbook (captured before the model is dropped) plus `null`; a non-preserved enable releases `null`, which aborts a plain grid's fetch still running when the bar is enabled on a live grid. A plain grid's save still pending then is dropped by DataProvider (no refetch, no revert into the new sheet, no toast; pinned by a spec). A preserved `updatePlugin` round trip releases nothing. A duplicate gets the original's last response (`#copyServerView`), not its pending failures or its running fetch.
 - **A declared workbook wins the initial data load.** `#onBeforeLoadData` redirects the init
   load at the active sheet's array (warning once about a clashing top-level `data`): the grid's
@@ -519,8 +544,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   sheet's filter. A canceled filter leaves the rows unfiltered while the menu shows the sheet's own
   conditions: that is the listener's decision, not the restore's. A canceled `sort()` returns
   before the sort states are written, while `restoreSequence()` still writes the sorted rows, so
-  `restoreCanceledSortStates()` writes them back through `setSortConfig()`, and only once
-  `restoreSequence()` reports the captured row order written: a sheet whose data changed size keeps
+  `restoreCanceledSortStates()` writes them back through `setSortConfig()`. It runs right after the
+  canceled call, while the rows are still in the captured unsorted order: writing states onto an
+  unsorted grid is when the sorting plugin takes its pre-sort cache, so run after the sorted order is
+  written, a later clear kept the rows sorted. It runs only when `restoreSequence()` reports the
+  unsorted order written: a sheet whose data changed size keeps
   the `loadData` order, and an indicator over it would claim a sort it does not have. It writes nothing when
   the states are no longer empty (the listener set its own config) or while the plugin has no
   `indexesSequenceCache`. The sort only builds that cache from empty states, so states written
@@ -561,19 +589,26 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   init build) the bar runs nothing, and MergeCells' own `afterInit` builds the merges against the
   loaded sheet and clears the pending pass. The pass must run before the view-state restore: it sets MergeCells'
   `#initialized`, and the restored merges' anchors are captured only once that is set. Capture
-  keeps only merges the lookup matrix holds (`get(row, col) === merge`): a merge whose rows
-  are all trimmed stays in the collection's list at its last visual position, and restored
-  there it came back as a visible merge over unrelated rows, or won over a live merge,
-  depending on list order. Such a merge is therefore gone after a round trip, even once its
-  rows are untrimmed. The restore then drops a stored merge that no longer fits (the data is
-  the host's and can shrink while the sheet is away), and one that would overlap a merge
-  already on screen, which only a host listener adding merges during the load can produce,
-  since the automatic path skips the overlap check.
-  The rest go through `mergeRange(range, true, true)` inside `restoreMergedAreas()`, the path
-  MergeCells uses for merges declared in its settings: no out-of-bounds warning,
-  `beforeMergeCells`/`afterMergeCells` report `auto: true` (UndoRedo records nothing for that),
-  and no cell is written, where the public `merge()` rewrote every covered cell with `null`.
-  **Every MergeCells member the switch uses is one MergeCells owns** — `getVisibleMergedAreas()`
+  keeps every merge with a physical anchor, including one whose rows are all trimmed, and a
+  merge without an anchor only while the lookup matrix holds it (its stale position would name
+  unrelated rows). `restoreMergedAreas()` puts an anchored merge back the way the grid held it,
+  as an undo does: added to the collection with its anchor, outside the lookup matrix while none
+  of its rows is visible, then re-anchored. It never goes through `mergeRange()`, whose row
+  bounds and single-cell rule dropped a merge a sort drew past the last row, one a filter left
+  with one visible cell, and (with the old capture) one whose rows a filter hid all; each came
+  back after clearing the sort or the filter without a switch, and was gone after a round trip.
+  The restore drops a stored merge whose rows or columns no longer exist (the data is the host's
+  and can shrink while the sheet is away), and one drawn over a merge already on screen, which
+  only a host listener adding merges during the load can produce. Stored merges never block each
+  other: two a sort drew over each other come back together, as the grid held them. A drawn merge fires
+  `beforeMergeCells`/`afterMergeCells` with `auto: true` (UndoRedo records nothing for that), and
+  no cell is written, where the public `merge()` rewrote every covered cell with `null`. An area
+  without an anchor goes through `mergeRange(range, true, true)`, the path MergeCells uses for
+  merges declared in its settings.
+  The capture carries each merge's physical anchor and the restore runs once the restored row and
+  column order is in the index cache (`../../utils/viewState/AGENTS.md`), so a merge on a sheet with a row
+  or column move or a sort comes back over its own cells, and one whose rows a sort scattered keeps the
+  rows it owns. **Every MergeCells member the switch uses is one MergeCells owns** — `_exportMergedAreas()`
   (capture), `clearCollections()` (clear), `restoreMergedAreas()` (restore) and
   `runDeferredSettingsPass()` — read through the typed
   `hot.getPlugin('mergeCells')`, never a structural cast, so a rename or re-signature there fails
@@ -688,9 +723,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `clearCustomBorders()` before the load, as it clears merges: CustomBorders' `onDataReady()` writes its model
   into the cell meta when its setting is `true`, and the departing model would land on the arriving rows. (2)
   `#applySheet` turns a declared `customBorders` array into `true` whenever the sheet comes back with kept meta
-  (a return, or a duplicate's first visit), because the declared pass would replace the borders the user left
-  with. (3) Once the row and column order is restored (`restoreViewState`, or right after the load for a
-  duplicate's first visit), `rebuildCustomBordersFromCellMeta()` calls CustomBorders' `@private`
+  (a return, or a duplicate's first visit, which restores the view state it took from its original), because
+  the declared pass would replace the borders the user left with. (3) Once the row and column order is restored
+  (`restoreViewState`), `rebuildCustomBordersFromCellMeta()` calls CustomBorders' `@private`
   `_rebuildFromCellMeta()`, through the typed `hot.getPlugin('customBorders')`, which marks the model for a
   rebuild from the meta. The rebuild must stay deferred: the restore runs with the index cache suspended, and
   a rebuild run there put a border on a sorted sheet or a moved column onto another record. A border on a
@@ -940,6 +975,43 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 Tests: `__tests__/*.unit.js` (Jest), `tests/e2e/sheets-bar*.spec.ts` (Playwright),
 `visual-tests/tests/js-only/sheetsBar/`. The unit suite drives the strip through DOM events and
 a captured `TabStrip` instance — the plugin exposes no test-only methods.
+
+## What each plugin keeps per sheet
+
+`loadData()` drops most runtime state a plugin keeps for the rows it shows, so every piece of it that a user
+can change has to be captured when the user leaves a sheet and put back on the return. A plugin that keeps
+such state and is missing from this list loses it on every switch.
+
+| Plugin or feature | What it keeps for the loaded rows | How the bar keeps it per sheet |
+|---|---|---|
+| Row and column order (`manualRowMove`, `manualColumnMove`) | index sequences | `rowSequence`, `columnSequence` |
+| ColumnSorting, MultiColumnSorting | sort states, pre-sort row order | `sortConfig` (physical), `unsortedRowSequence` |
+| Filters | conditions | `filterConditions` |
+| TrimRows, HiddenRows, HiddenColumns | trimming and hiding maps | `trimmedRows`, `hiddenRows`, `hiddenColumns` (physical) |
+| NestedRows | collapsed parents | `collapsedParents` (tree paths) |
+| CollapsibleColumns | collapsed header groups and the columns they hide | `collapsedColumns` (the groups only; the import derives the hidden columns), through `_exportViewState()`/`_importViewState()` |
+| NestedHeaders | the group a moved column joined (membership overrides) | `columnMembership`, through `_exportViewState()`/`_importViewState()`, restored only with `columnOrder` |
+| RowSelection | checked rows; with DataProvider the selection by row id and the server row count | `checkedRows`, through `_exportViewState()`/`_importViewState()`; a bound checkbox column needs nothing, the data holds it |
+| ManualColumnResize, ManualRowResize | manual sizes | `colWidths`, `rowHeights` (physical pairs) |
+| MergeCells | merges | `mergedCells` |
+| CustomBorders | borders | the kept `borders` cell meta |
+| Frozen rows and columns | counts on the table meta | the four `fixed*` fields |
+| Pagination | page and page size | `pagination` |
+| Selection, scroll | cell selection and viewport | `selection`, `selectionState`, `scroll` |
+| Cell meta | keys set through `setCellMeta()`, invalid marks | `cellMeta` |
+| ColumnSummary | endpoints | `#columnSummaryStates` |
+| The `cell` option | its meta by physical index | `#cellOptionStates` |
+| DataProvider | last response, failures | `#serverViews` |
+| Formulas | engine order, formula text | `#engineOrders`, the formula text capture |
+
+`collapsedColumns`, `columnMembership`, and `checkedRows` are restored after the restore batch: the header tree
+a collapse is laid on is derived through the column index cache, which the batch holds at the order from before
+the restore. `columnMembership` goes first, so the groups collapse on the headers it derives; it is part of the
+`collapsedColumns` part, so a `nestedHeaders` redeclared through `updateSheetSettings()` drops it with the
+collapses. A sheet
+that was never shown gets both cleared by `resetViewState()` before its load, which matters for a
+server-backed sheet: without it the arriving sheet's load re-projected the selection by row id of the sheet the
+user left, and `removeSelectedRows()` sent its ids to the arriving sheet's `onRowsRemove`.
 
 ## The four frozen counts follow the same rules
 
