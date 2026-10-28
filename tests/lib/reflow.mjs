@@ -205,28 +205,24 @@ export function overlapFindings({ condition, controls }) {
 /**
  * The findings of content that appears on hover (1.4.13): it must be dismissible without moving the
  * pointer or the focus, hoverable (the pointer can move onto it), and persistent (it stays until the
- * hover ends, it is dismissed, or it no longer applies). Content that never appeared is advisory: the
- * setup did not reach the state, which is a problem with the check.
+ * hover ends, it is dismissed, or it no longer applies). The spec measures each property on its own,
+ * from the content on screen; a property it could not measure (the content did not show for it, or never
+ * appeared) is `undefined`, gives no finding, and is a problem of the spec's target instead.
  *
  * @param {object} input What the spec saw.
  * @param {string} input.selector The content.
- * @param {boolean} input.appeared Whether it appeared.
  * @param {boolean} [input.dismissible] Whether Escape hid it.
  * @param {boolean} [input.hoverable] Whether it stayed while the pointer moved onto it.
  * @param {boolean} [input.persistent] Whether it stayed while the pointer rested on it for ten seconds.
  * @returns {object[]} The findings.
  */
-export function hoverFindings({ selector, appeared, dismissible, hoverable, persistent }) {
+export function hoverFindings({ selector, dismissible, hoverable, persistent }) {
   const finding = (kind, reason) => ({ kind, criteria: ['1.4.13'], severity: 'serious', selector, step: 'hover a commented cell', reason });
 
-  if (!appeared) {
-    return [{ ...finding('hover-content-did-not-appear', 'The comment did not appear on hover, so 1.4.13 was not measured'), severity: 'advisory' }];
-  }
-
   return [
-    ...(dismissible ? [] : [finding('hover-content-not-dismissible', 'Escape does not hide the content that appeared on hover')]),
-    ...(hoverable ? [] : [finding('hover-content-not-hoverable', 'The content disappears when the pointer moves onto it')]),
-    ...(persistent ? [] : [finding('hover-content-not-persistent', 'The content disappears on its own while the pointer rests on it')]),
+    ...(dismissible === false ? [finding('hover-content-not-dismissible', 'Escape does not hide the content that appeared on hover')] : []),
+    ...(hoverable === false ? [finding('hover-content-not-hoverable', 'The content disappears when the pointer moves onto it')] : []),
+    ...(persistent === false ? [finding('hover-content-not-persistent', 'The content disappears on its own while the pointer rests on it')] : []),
   ];
 }
 

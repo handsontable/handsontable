@@ -205,16 +205,20 @@ test('a popup lies over what is under it by design: its controls overlap only th
     'a list drawn over the formula bar hides it until it closes; two of its own controls over each other are lost');
 });
 
-test('hover content must be dismissible, hoverable and persistent', () => {
-  assert.deepEqual(hoverFindings({ selector: '.htComments', appeared: true, dismissible: true, hoverable: true, persistent: true }), []);
-  assert.deepEqual(hoverFindings({ selector: '.htComments', appeared: true, dismissible: false, hoverable: false, persistent: false })
+test('hover content must be dismissible, hoverable, and persistent', () => {
+  assert.deepEqual(hoverFindings({ selector: '.htComments', dismissible: true, hoverable: true, persistent: true }), []);
+  assert.deepEqual(hoverFindings({ selector: '.htComments', dismissible: false, hoverable: false, persistent: false })
     .map(item => [item.kind, item.criteria, item.severity]), [
     ['hover-content-not-dismissible', ['1.4.13'], 'serious'],
     ['hover-content-not-hoverable', ['1.4.13'], 'serious'],
     ['hover-content-not-persistent', ['1.4.13'], 'serious'],
   ]);
-  assert.deepEqual(hoverFindings({ selector: '.htComments', appeared: false }).map(item => item.kind), ['hover-content-did-not-appear'],
-    'content that never appeared is a problem with the setup, reported as advisory');
+});
+
+test('a hover property the spec could not measure is no finding: the spec lists it as a problem', () => {
+  assert.deepEqual(hoverFindings({ selector: '.htComments', hoverable: false, dismissible: true }).map(item => item.kind),
+    ['hover-content-not-hoverable'], 'the comment did not show again for the persistence step, so it was not measured');
+  assert.deepEqual(hoverFindings({ selector: '.htComments' }), [], 'a comment that never appeared measured nothing');
 });
 
 test('a grid shown in one orientation and not the other is locked to an orientation (1.3.4)', () => {
@@ -226,7 +230,7 @@ test('a grid shown in one orientation and not the other is locked to an orientat
 test('the check\'s findings are valid evidence', () => {
   const findings = [
     ...clippingFindings({ condition: 'zoom-200', boxes: [box({ scrollWidth: 160 })] }),
-    ...hoverFindings({ selector: '.htComments', appeared: true, dismissible: false, hoverable: true, persistent: true }),
+    ...hoverFindings({ selector: '.htComments', dismissible: false, hoverable: true, persistent: true }),
     ...orientationFindings({ portrait: { width: 0, height: 0 }, landscape: { width: 1, height: 1 } }),
   ];
 

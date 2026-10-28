@@ -285,7 +285,11 @@ async function collectSettled(page: Page, root: string) {
 
 /**
  * Hovers a commented cell and checks its comment for 1.4.13: it appears, stays while the pointer moves
- * onto it, stays while the pointer rests on it (a fake clock runs ten seconds), and Escape hides it.
+ * onto it, stays while the pointer rests on it (a fake clock runs ten seconds), and Escape hides it. Each
+ * property is measured from the comment on screen, so one that fails does not decide the next: a comment
+ * an earlier step hid is shown again from its cell first. A property that still finds no comment, or a
+ * comment that never appeared, is a problem of the target and no finding; with no comment, no criterion
+ * was evaluated.
  *
  * @param page The page.
  * @param testInfo The running test.
@@ -318,28 +322,53 @@ async function hover(page: Page, testInfo: TestInfo, theme: string) {
     appeared = false;
   }
 
-  const result = { appeared, hoverable: false, persistent: false, dismissible: false };
+  const result: { appeared: boolean; hoverable?: boolean; persistent?: boolean; dismissible?: boolean } = { appeared };
+  const problems: string[] = [];
 
   if (appeared) {
     // The comment's own timers run on a fake clock from here, so "stays" means after the time its hide
-    // timers take, not after an arbitrary wait.
+    // timers take, not after an arbitrary wait. The boxes are read first: the mouse moves to them directly.
+    const box = (await comment.boundingBox())!;
+    const cellBox = (await cell.boundingBox())!;
+
     await page.clock.install();
 
-    const box = (await comment.boundingBox())!;
+    // A comment an earlier step hid is shown again: the pointer leaves the grid and comes back onto the
+    // cell, and the clock runs past the show delay. Whether it is on screen afterwards is the answer.
+    const shownAgain = async() => {
+      if (!(await comment.isVisible())) {
+        await page.mouse.move(0, 0);
+        await page.mouse.move(cellBox.x + cellBox.width / 2, cellBox.y + cellBox.height / 2, { steps: 5 });
+        await page.clock.runFor(1000);
+      }
+
+      return comment.isVisible();
+    };
 
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 5 });
     await page.clock.runFor(1000);
     result.hoverable = await comment.isVisible();
-    await page.clock.runFor(10_000);
-    result.persistent = await comment.isVisible();
-    await page.keyboard.press('Escape');
-    await page.clock.runFor(1000);
-    result.dismissible = !(await comment.isVisible());
+    if (await shownAgain()) {
+      await page.clock.runFor(10_000);
+      result.persistent = await comment.isVisible();
+    }
+    if (await shownAgain()) {
+      await page.keyboard.press('Escape');
+      await page.clock.runFor(1000);
+      result.dismissible = !(await comment.isVisible());
+    }
+    for (const property of ['persistent', 'dismissible'] as const) {
+      if (result[property] === undefined) {
+        problems.push(`the comment did not show again on hover, so whether it is ${property} was not measured`);
+      }
+    }
+  } else {
+    problems.push('the comment of cell (1, 1) did not appear on hover, so 1.4.13 was not measured');
   }
 
   await attachEvidence(testInfo, {
-    target, startedAt, environment, criteria: ['1.4.13'], pageErrors: opened.pageErrors,
-    findings: hoverFindings({ selector: '.htComments', ...result }),
+    target, startedAt, environment, criteria: appeared ? ['1.4.13'] : [], problems, pageErrors: opened.pageErrors,
+    findings: hoverFindings({ selector: '.htComments', hoverable: result.hoverable, persistent: result.persistent, dismissible: result.dismissible }),
     detail: result,
   });
 }

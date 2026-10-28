@@ -1622,7 +1622,10 @@ counts as lost content.
 - **Hover content** (1.4.13) is the comment of a commented cell: it must appear on hover, stay while the
   pointer moves onto it and while it rests there, and hide on Escape with the pointer still on it. "Stays"
   is measured on a fake clock (`page.clock`, installed once the comment shows), so the comment's own hide
-  timers run, and ten seconds pass without a wait.
+  timers run, and ten seconds pass without a wait. Each property is measured from the comment on screen,
+  so one that fails does not decide the next: a comment an earlier step hid is shown again from its cell
+  first. A property that still finds no comment is a problem of the target, never a finding, and a
+  comment that never appeared is a problem that evaluates no criterion (`criteria: []`).
 - **Orientation** (1.3.4): the grid's root must have an area on screen in a 390 by 844 and an 844 by 390
   viewport.
 
