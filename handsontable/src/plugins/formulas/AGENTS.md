@@ -92,7 +92,10 @@ const isRestoreSource = source => source === 'UndoRedo.undo' || source === 'Undo
     physical order clears it only when it skipped no cell. A skipped cell is a `#REF!` the engine holds
     that an insert must not persist (`#readSourceChange()` returns `'skipped'`), or a formula in a column
     trimmed after the sheet was built (no visual column, so no prop to write to) whose text differs from
-    the source's; the same text there is not stale and does not count. Clearing over a skipped cell left
+    the source's; the same text there is not stale and does not count. That column is read from the
+    source by the property `columns` gives its physical index (`#isUnreachableCellStale()`), not by the
+    engine's index: with a `columns` setting that skips a source column the two differ, and a match
+    against the skipped column's cell cleared the flag over text the engine had rewritten. Clearing over a skipped cell left
     stale text with no engine sheet to restore. A cell edit and a partial (`cells`) write-back never
     clear it. **A skipped cell does not set the flag**: only a write-back out of physical order does, so a
     stale cell in a trimmed column of a grid that never left physical order is not recorded (open).
@@ -257,6 +260,16 @@ serialized one restores a column layout, so it is dropped by a `columns` update 
 field (`../undoRedo/AGENTS.md`, "The epoch"). Do not key it on `engineSheet === null`: a state captured
 while sorted or stale carries one, and the restore ignores it unless the structure or the stale bit
 differs, so the step was dropped for nothing.
+
+**That only holds because `restoreState()` compares the state with the OTHER side of the step**
+(`context.other`), never with the grid's current `structureVersion` and flag. A `columns` update rewrites
+the whole sheet outside any step, bumps the version and clears the flag, so a comparison against the grid
+sent a step recorded while stale (both sides stale) down the reload branch, which loads the recorded sheet
+with the previous column layout: column B kept reading the old `c` values after column C showed `d`. Without
+a `context.other` the restore falls back to the grid's current values. Pinned by `should undo a step
+recorded while stale against the columns a later update installed` in `__tests__/reorderedInsertUndo.unit.js`
+(it uses an insert that leaves the source formulas right, so the values it asserts are not the open
+stale-source defect above).
 
 `IndexSyncer` has no undo/redo flags anymore. Restoring the row or column order fires the sequence
 change like any other, and the axis syncer sends the new order to the engine; a reload afterwards

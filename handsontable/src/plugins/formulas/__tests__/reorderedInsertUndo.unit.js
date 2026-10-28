@@ -203,18 +203,43 @@ describe('Formulas: an undo of a remove after an insert in a reordered grid', ()
     const serializedSheetReads = () => jest.spyOn(hot.getPlugin('formulas').engine, 'getSheetSerialized');
 
     it('should keep an edit step across a columns update after the order returned', () => {
-      build({ data: [[10, '=A1*2'], [20, '=A2*2'], [null, null], [null, null]] });
+      build({ data: [[10, '=A1*2', 7], [20, '=A2*2', 8], [null, null, null], [null, null, null]] });
       hot.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
-      hot.alter('insert_row_above', 1);
+      hot.alter('insert_row_above', 3);
       hot.rowIndexMapper.setIndexesSequence([0, 1, 2, 3, 4]);
       hot.setDataAtCell(0, 0, 99);
-      hot.updateSettings({ columns: [{ data: 1 }, { data: 0 }] });
+      hot.updateSettings({ columns: [{ data: 0 }, { data: 1 }] });
+
+      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(true);
+      expect(hot.getData().slice(0, 2)).toEqual([[99, 198], [20, 40]]);
+
+      undo();
+
+      expect(hot.getPlugin('undoRedo').isRedoAvailable()).toBe(true);
+      expect(hot.getData().slice(0, 2)).toEqual([[10, 20], [20, 40]]);
+    });
+
+    it('should undo a step recorded while stale against the columns a later update installed', () => {
+      build({
+        data: [
+          { a: 10, b: '=A1*2+C1', c: 1, d: 100 },
+          { a: 20, b: '=A2*2+C2', c: 2, d: 200 },
+          { a: null, b: null, c: null, d: null },
+          { a: null, b: null, c: null, d: null },
+        ],
+        columns: [{ data: 'a' }, { data: 'b' }, { data: 'c' }],
+      });
+      hot.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
+      hot.alter('insert_row_above', 3);
+      hot.rowIndexMapper.setIndexesSequence([0, 1, 2, 3, 4]);
+      hot.setDataAtCell(1, 0, 99);
+      hot.updateSettings({ columns: [{ data: 'a' }, { data: 'b' }, { data: 'd' }] });
 
       expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(true);
 
       undo();
 
-      expect(hot.getPlugin('undoRedo').isRedoAvailable()).toBe(true);
+      expect(hot.getData().slice(0, 2)).toEqual([[10, 120, 100], [20, 240, 200]]);
     });
 
     it('should keep an edit step across a columns update after a sort that was undone and redone', () => {
@@ -327,6 +352,53 @@ describe('Formulas: an undo of a remove after an insert in a reordered grid', ()
         hot.setDataAtCell(0, 0, 99);
 
         expect(reads).not.toHaveBeenCalled();
+      });
+
+      it('should keep recording the sheet when the rows are objects and a trimmed column holds a formula', () => {
+        build({
+          data: [
+            { a: 10, b: '=A1*2', c: '=2+3' },
+            { a: 20, b: '=A2*2', c: null },
+            { a: null, b: null, c: null },
+            { a: null, b: null, c: null },
+          ],
+        });
+        trimColumn(2);
+        hot.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
+        hot.alter('insert_row_above', 1);
+        hot.rowIndexMapper.setIndexesSequence([0, 1, 2, 3, 4]);
+        hot.alter('insert_row_above', 2);
+
+        const reads = serializedSheetReads();
+
+        hot.setDataAtCell(0, 0, 99);
+
+        expect(reads).toHaveBeenCalled();
+      });
+
+      it('should restore the values a trimmed column feeds when a columns setting skips a source column', () => {
+        build({
+          data: [
+            [10, '=A1*2+C1', '=A2+1', '=A1+1'],
+            [20, '=A2*2+C2', '=A3+1', '=A2+1'],
+            [null, null, null, null],
+            [null, null, null, null],
+          ],
+          columns: [{ data: 0 }, { data: 1 }, { data: 3 }],
+        });
+        trimColumn(2);
+        hot.rowIndexMapper.setIndexesSequence([3, 0, 1, 2]);
+        hot.alter('insert_row_above', 1);
+        hot.rowIndexMapper.setIndexesSequence([0, 1, 2, 3, 4]);
+        hot.alter('remove_row', 4);
+
+        const beforeInsert = hot.getData();
+
+        hot.alter('insert_row_above', 0);
+        undo();
+
+        expect(beforeInsert).toEqual([[null, null], [10, 31], [20, 61], [null, null]]);
+        expect(hot.getData()).toEqual(beforeInsert);
       });
 
       it('should restore a formula there that the engine rewrote and the source data could not take', () => {

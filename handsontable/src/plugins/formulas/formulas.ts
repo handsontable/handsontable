@@ -2298,8 +2298,15 @@ export class Formulas extends BasePlugin {
 
     // A step that cleared the stale flag wrote the engine's formula text into the source data. Its undo
     // puts the stale text back with the held writes, and only the recorded sheet holds the right one.
-    const reloadsSheet = state.structureVersion !== this.#structureVersion ||
-      (state.sourceHasStaleFormulas && !this.#sourceHasStaleFormulas);
+    // The step's own two sides decide it, not the grid's current versions: a `columns` update rewrites
+    // the whole sheet outside any step, and a recorded sheet would bring back the previous column layout.
+    const otherSide = context?.other;
+    const { structureVersion, sourceHasStaleFormulas } = isFormulasUndoState(otherSide) ? otherSide : {
+      structureVersion: this.#structureVersion,
+      sourceHasStaleFormulas: this.#sourceHasStaleFormulas,
+    };
+    const reloadsSheet = state.structureVersion !== structureVersion ||
+      (state.sourceHasStaleFormulas && !sourceHasStaleFormulas);
 
     this.#sourceHasStaleFormulas = state.sourceHasStaleFormulas;
 
@@ -5006,20 +5013,23 @@ export class Formulas extends BasePlugin {
 
   /**
    * Tells whether the source data holds another formula than the engine for a cell no write can reach:
-   * its column has no visual counterpart, a column trimmed after the sheet was built. In physical order
-   * the engine's column is the physical one, so array rows are read by it; rows of objects are not, and
-   * count as stale.
+   * its column has no visual counterpart, a column trimmed after the sheet was built. In the physical
+   * order the engine's column is the physical one, which `columns` maps to the property the source reads
+   * it by (the engine holds that column's data, not the source column of the same index).
    *
    * @private
    * @param {number} physicalRow The engine row – the physical row, in the physical order.
-   * @param {number} hfColumn The engine column.
+   * @param {number} physicalColumn The engine column – the physical column, in the physical order.
    * @param {string} formula The engine's formula.
    * @returns {boolean}
    */
-  #isUnreachableCellStale(physicalRow: number, hfColumn: number, formula: string): boolean {
-    const row = this.hot.getSourceDataAtRow(physicalRow);
+  #isUnreachableCellStale(physicalRow: number, physicalColumn: number, formula: string): boolean {
+    const { columns } = this.hot.getSettings();
+    const column = typeof columns === 'function' ? columns(physicalColumn) : columns?.[physicalColumn];
+    const prop = column?.data ?? physicalColumn;
+    const row = this.hot.getSourceDataAtRow(physicalRow) as Record<string | number, unknown>;
 
-    return !Array.isArray(row) || !this.#isSameFormula(row[hfColumn], formula);
+    return typeof prop === 'function' || !this.#isSameFormula(row[prop], formula);
   }
 
   /**
