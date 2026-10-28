@@ -1001,8 +1001,8 @@ function restoreAxisState(hot: HotInstance, state: ViewState, covers: PartFilter
  *
  * Nothing is written when the states are no longer empty: the sort ran, or the listener that
  * canceled it set a config of its own, which stays. Nothing is written either while the plugin
- * holds no pre-sort row cache. It builds that cache only inside a `sort()` that starts from empty
- * states, so states written without one make the next `sort()` throw. The cache is missing after
+ * holds no pre-sort row cache. `setSortConfig()` retakes the cache from the unsorted rows only
+ * when one exists, so a cache built later by `sort()` would hold the restored order. The cache is missing after
  * the plugin was disabled and enabled again, which a sheet declaring `columnSorting: false` does
  * on every switch.
  */
