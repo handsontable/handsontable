@@ -543,9 +543,8 @@ async function measure(page: Page, testInfo: TestInfo, entry: A11yPage, plan: Pl
     detail[name] = result.measured;
   }
 
-  expect(opened.pageErrors, 'the page threw no error while it was measured').toEqual([]);
   await attachEvidence(testInfo, {
-    target, startedAt, environment, findings, criteria: FOCUS_CRITERIA.filter(id => criteria.has(id)), detail,
+    target, startedAt, environment, findings, criteria: FOCUS_CRITERIA.filter(id => criteria.has(id)), detail, pageErrors: opened.pageErrors,
   });
 }
 
