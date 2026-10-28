@@ -414,7 +414,10 @@ export async function snapshot(page: Page, root: string): Promise<GridSnapshot> 
 
     // The text of the focused text field (the formula bar's address box, a menu's search field, an editor's
     // own field), so a key that only rewrites a field the cell editor does not own is seen too.
-    const field = el && (region === 'grid' || region === 'portal') && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')
+    // A checkbox or a button input holds no text a user types: its `value` is not a field's text.
+    const field = el && (region === 'grid' || region === 'portal')
+      && (el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && !/^(checkbox|radio|button|submit|reset|image|file|range|color)$/
+        .test((el as HTMLInputElement).type)))
       ? el as HTMLInputElement
       : null;
 
