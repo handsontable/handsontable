@@ -1,5 +1,6 @@
 import AxisSyncer from '../../indexSyncer/axisSyncer';
 import IndexSyncer from '../../indexSyncer';
+import { createMockEngine } from './helpers/mockEngine';
 
 /**
  * Builds an index mapper stub whose sequence a test can replace.
@@ -30,6 +31,7 @@ function createMockIndexSyncer(engine) {
     getEngine: () => engine,
     getSheetId: () => 0,
     getPostponeAction: () => () => {},
+    getOwnEngineWrite: () => (_, fn) => fn(),
   };
 }
 
@@ -46,6 +48,7 @@ function createRecordingEngine() {
     batch: callback => callback(),
     moveRows: (...args) => calls.push(['moveRows', ...args]),
     setRowOrder: (...args) => calls.push(['setRowOrder', ...args]),
+    isItPossibleToSetRowOrder: () => true,
     getSheetDimensions: () => ({ width: 1, height: 3 }),
     getSheetName: () => 'Sheet1',
   };
@@ -55,7 +58,7 @@ describe('AxisSyncer while the order is held', () => {
   it('translates through the order an empty sheet was filled in', () => {
     const axisSyncer = new AxisSyncer('row', createMockIndexMapper([0, 1, 2]), createMockIndexSyncer(null));
 
-    axisSyncer.adoptEngineOrder({ sequence: [], fillSequence: [2, 0, 1] });
+    axisSyncer.adoptEngineOrder({ sequence: [], fillSequence: [2, 0, 1], paddedElements: [] });
     axisSyncer.setOrderHeld(true);
 
     expect([0, 1, 2].map(physicalRow => axisSyncer.getHfIndexFromPhysicalIndex(physicalRow))).toEqual([1, 2, 0]);
@@ -84,14 +87,16 @@ describe('AxisSyncer while the order is held', () => {
     const engine = {
       getSheetDimensions: () => ({ width: 2, height: 2 }),
       getSheetName: () => 'Sheet1',
+      isItPossibleToSetRowOrder: () => true,
       setRowOrder: () => {
         throw new Error('row order');
       },
+      isItPossibleToSetColumnOrder: () => true,
       setColumnOrder: (...args) => calls.push(args),
     };
     const rows = createMockIndexMapper([0, 1]);
     const columns = createMockIndexMapper([0, 1]);
-    const indexSyncer = new IndexSyncer(rows, columns, () => {});
+    const indexSyncer = new IndexSyncer(rows, columns, () => {}, (_, fn) => fn());
 
     indexSyncer.setupSyncEndpoint(engine, 0);
     indexSyncer.setOrderHeld(true);
@@ -108,7 +113,7 @@ describe('AxisSyncer while the order is held', () => {
     const axisSyncer = new AxisSyncer('row', indexMapper, createMockIndexSyncer(engine));
 
     axisSyncer.setOrderHeld(true);
-    axisSyncer.adoptEngineOrder({ sequence: [2, 0, 1], fillSequence: null });
+    axisSyncer.adoptEngineOrder({ sequence: [2, 0, 1], fillSequence: null, paddedElements: [] });
     axisSyncer.storeMovesInformation([0, 1, 2], 0, true);
     indexMapper.state.indexesSequence = [2, 0, 1];
     axisSyncer.getIndexesChangeSyncMethod()('move');
@@ -147,7 +152,7 @@ describe('AxisSyncer while the order is held', () => {
     const axisSyncer = new AxisSyncer('row', indexMapper, createMockIndexSyncer(engine));
 
     axisSyncer.setOrderHeld(true);
-    axisSyncer.adoptEngineOrder({ sequence: [2, 0, 1], fillSequence: null });
+    axisSyncer.adoptEngineOrder({ sequence: [2, 0, 1], fillSequence: null, paddedElements: [] });
     axisSyncer.setOrderHeld(false);
     axisSyncer.setOrderHeld(true);
     axisSyncer.storeMovesInformation([0], 2, true);
@@ -156,5 +161,25 @@ describe('AxisSyncer while the order is held', () => {
     axisSyncer.calculateAndSyncMoves(true, true);
 
     expect(engine.calls.map(([method]) => method)).toEqual(['moveRows']);
+  });
+
+  it('extends the sheet and sends the full order on release when the grid ended on a blank row in front', () => {
+    const engine = createMockEngine({ width: 1, height: 2 });
+    const indexMapper = createMockIndexMapper([0, 1, 2]);
+    const axisSyncer = new AxisSyncer('row', indexMapper, createMockIndexSyncer(engine));
+
+    engine.occupied.add('0:0');
+    engine.occupied.add('1:0');
+    axisSyncer.setOrderHeld(true);
+    indexMapper.state.indexesSequence = [2, 0, 1];
+    axisSyncer.getIndexesChangeSyncMethod()('update');
+
+    expect(engine.calls.setRowOrder).toEqual([]);
+
+    axisSyncer.setOrderHeld(false);
+
+    expect(engine.dimensions.height).toBe(3);
+    expect(engine.calls.setRowOrder).toEqual([{ sheetId: 0, transformation: [1, 2, 0] }]);
+    expect([0, 1, 2].map(physicalRow => axisSyncer.getHfIndexFromPhysicalIndex(physicalRow))).toEqual([1, 2, 0]);
   });
 });

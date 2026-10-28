@@ -70,11 +70,32 @@ const SETTINGS_REFS: Record<string, SettingsSchemaLevel> = {
 };
 
 /**
+ * Tells whether a registered plugin provides an editor under the name. A plugin that ships an
+ * editor of its own lists the aliases in a static `EDITORS` array (FormulaBuilder's `formula`) and
+ * registers them when its first instance is built, so before any grid exists the editor registry
+ * does not know them yet, while the plugin is already registered.
+ *
+ * @param {string} name The editor name.
+ * @returns {boolean}
+ */
+function isEditorProvidedByPlugin(name: string): boolean {
+  return getPluginsNames().some((pluginName) => {
+    const editors = (getPlugin(pluginName) as { EDITORS?: unknown } | undefined)?.EDITORS;
+
+    return Array.isArray(editors) && editors.includes(name);
+  });
+}
+
+/**
  * The problem code and the noun of each registry an option's name comes from.
  */
 const REGISTRIES = {
   cellType: { code: 'unknownCellType', noun: 'cell type', has: hasCellType },
-  editor: { code: 'unknownEditor', noun: 'editor', has: hasEditor },
+  editor: {
+    code: 'unknownEditor',
+    noun: 'editor',
+    has: (name: string) => hasEditor(name) || isEditorProvidedByPlugin(name),
+  },
   renderer: { code: 'unknownRenderer', noun: 'renderer', has: hasRenderer },
   validator: { code: 'unknownValidator', noun: 'validator', has: hasValidator },
 } as const;

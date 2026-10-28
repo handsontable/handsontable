@@ -36,9 +36,20 @@ export function createMockEngine(initialDimensions = { width: 4, height: 4 }) {
     }
   };
 
+  const canTakeOrder = (order, size, axisLabel) => {
+    try {
+      validate(order, size, axisLabel, axisLabel === 'rows' ? 'height' : 'width');
+
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
   // What the sheet holds, as labels the tests choose — so a test can assert where the engine's own rows
   // and columns ended up, not only which array was handed over.
   const held = { rows: [], columns: [] };
+  const occupied = new Set();
 
   const apply = (axis, transformation) => {
     const current = held[axis];
@@ -60,6 +71,7 @@ export function createMockEngine(initialDimensions = { width: 4, height: 4 }) {
     calls,
     dimensions,
     held,
+    occupied,
     setRowOrder: (sheetId, transformation) => {
       validate(transformation, dimensions.height, 'rows', 'height');
       apply('rows', transformation);
@@ -72,6 +84,22 @@ export function createMockEngine(initialDimensions = { width: 4, height: 4 }) {
 
       calls.setColumnOrder.push({ sheetId, transformation });
     },
+    // Like the engine, a write past the sheet's content widens the sheet, and an empty write does not.
+    setCellContents: ({ row, col }, value) => {
+      if (value !== null) {
+        dimensions.height = Math.max(dimensions.height, row + 1);
+        dimensions.width = Math.max(dimensions.width, col + 1);
+      }
+    },
+    isItPossibleToSetRowOrder: (sheetId, transformation) => canTakeOrder(transformation, dimensions.height, 'rows'),
+    isItPossibleToSetColumnOrder: (sheetId, transformation) => {
+      return canTakeOrder(transformation, dimensions.width, 'columns');
+    },
+    isCellPartOfArray: () => false,
+    isItPossibleToSetCellContents: () => true,
+    // The stub holds no cells, so a line is empty unless a test lists it in `occupied` as `row:col`.
+    isCellEmpty: ({ row, col }) => !occupied.has(`${row}:${col}`),
+    isEvaluationSuspended: () => false,
     getSheetDimensions: () => ({ ...dimensions }),
     // The syncer asks for the name to tell a sheet the host removed from the engine; this one exists.
     getSheetName: () => 'Sheet1',

@@ -12,26 +12,28 @@ const budgetData = [
 
 const notesData = [['Reviewed by Ana García on 2026-03-14'], ['Pending sign-off from Finance']];
 
+const sheets = [
+  {
+    name: 'Budget',
+    data: budgetData,
+    settings: {
+      colHeaders: ['Category • A', 'Q1 2026 • B', 'Q2 2026 • C'],
+    },
+  },
+  {
+    name: 'Notes',
+    data: notesData,
+    settings: {
+      colHeaders: ['Note • A'],
+    },
+  },
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
       sheetsBar={{
-        sheets: [
-          {
-            name: 'Budget',
-            data: budgetData,
-            settings: {
-              colHeaders: ['Category • A', 'Q1 2026 • B', 'Q2 2026 • C'],
-            },
-          },
-          {
-            name: 'Notes',
-            data: notesData,
-            settings: {
-              colHeaders: ['Note • A'],
-            },
-          },
-        ],
+        sheets,
         activeSheet: 0,
       }}
       rowHeaders={true}

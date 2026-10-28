@@ -217,6 +217,9 @@ for (const direction of ['ltr', 'rtl'] as const) {
         await wt.cellIn(wt.endOverlay, 5, 29).click();
         expect(await wt.selectedRange()).toEqual([5, 29, 5, 29]);
 
+        // Row 8 is inside a 300px main grid and past the horizon one: the first layout counts the
+        // column header, and horizon's rows are taller. Scroll it into the band, then click it.
+        await wt.scrollCellIntoView(8, 28);
         await wt.cellIn(wt.endOverlay, 8, 28).click();
         expect(await wt.selectedRange()).toEqual([8, 28, 8, 28]);
       });

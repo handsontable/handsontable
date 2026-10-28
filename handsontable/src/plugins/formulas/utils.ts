@@ -23,7 +23,7 @@ export function unescapeFormulaExpression(expression: unknown) {
 }
 
 /**
- * Checks whether string looks like formula or not. Corresponds to {@link https://hyperformula.handsontable.com/api/globals.html#isformula|HyperFormula's implementation}.
+ * Checks whether string looks like formula or not. Corresponds to {@link https://handsontable.com/docs/hyperformula/api/globals.html#isformula|HyperFormula's implementation}.
  *
  * @param {string} value Checked value.
  * @returns {boolean}

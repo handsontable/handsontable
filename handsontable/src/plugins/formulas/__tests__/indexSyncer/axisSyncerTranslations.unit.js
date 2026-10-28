@@ -33,6 +33,7 @@ function createMockIndexSyncer() {
     getEngine: () => null,
     getSheetId: () => 0,
     getPostponeAction: () => () => {},
+    getOwnEngineWrite: () => (_, fn) => fn(),
   };
 }
 
