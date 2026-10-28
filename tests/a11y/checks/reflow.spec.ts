@@ -208,7 +208,7 @@ async function measure(page: Page, testInfo: TestInfo, entry: A11yPage, theme: s
   ];
 
   await attachEvidence(testInfo, {
-    target, startedAt, environment, findings, criteria: CONDITIONS[condition].criteria,
+    target, startedAt, environment, findings, criteria: CONDITIONS[condition].criteria, pageErrors: opened.pageErrors,
     detail: { settled, viewport: measured.viewport, surfaces: measured.surfaces, clippingContainers: measured.boxes, controls: measured.controls.length },
   });
 }
@@ -295,7 +295,7 @@ async function hover(page: Page, testInfo: TestInfo, theme: string) {
   }
 
   await attachEvidence(testInfo, {
-    target, startedAt, environment, criteria: ['1.4.13'],
+    target, startedAt, environment, criteria: ['1.4.13'], pageErrors: opened.pageErrors,
     findings: hoverFindings({ selector: '.htComments', ...result }),
     detail: result,
   });
@@ -316,6 +316,9 @@ async function orientation(page: Page, testInfo: TestInfo, entry: A11yPage, them
   declareTarget(testInfo, target);
 
   const sizes: Record<string, { width: number; height: number }> = {};
+  // The page loads once per viewport, and each load's error list stops growing at the next load: the part
+  // carries both.
+  const pageErrors: string[][] = [];
   let environment = null;
 
   for (const [name, viewport] of [['portrait', { width: 390, height: 844 }], ['landscape', { width: 844, height: 390 }]] as const) {
@@ -323,6 +326,7 @@ async function orientation(page: Page, testInfo: TestInfo, entry: A11yPage, them
 
     const opened = await openTarget(page, entry, theme);
 
+    pageErrors.push(opened.pageErrors);
     await reachState(page, entry, opened);
     environment ??= await readEnvironment(page);
     sizes[name] = await page.evaluate((selector) => {
@@ -335,7 +339,7 @@ async function orientation(page: Page, testInfo: TestInfo, entry: A11yPage, them
   }
 
   await attachEvidence(testInfo, {
-    target, startedAt, environment: environment!, criteria: ['1.3.4'],
+    target, startedAt, environment: environment!, criteria: ['1.3.4'], pageErrors: pageErrors.flat(),
     findings: orientationFindings(sizes as { portrait: { width: number; height: number }; landscape: { width: number; height: number } }),
     detail: sizes,
   });
