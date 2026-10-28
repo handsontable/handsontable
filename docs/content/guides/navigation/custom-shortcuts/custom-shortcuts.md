@@ -261,6 +261,36 @@ gridContext.removeShortcutsByGroup('group_ID');
 </li>
 </ol>
 
+### Remove the copy, cut, and paste shortcuts
+
+The `grid` context registers <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>, <kbd>**X**</kbd>, and <kbd>**V**</kbd>. These shortcuts do nothing on their own, because the browser runs the action. When you remove one, the [`CopyPaste`](@/api/copyPaste.md) plugin cancels that key combination, so the keyboard no longer copies, cuts, or pastes.
+
+```js
+const gridContext = hot.getShortcutManager().getContext('grid');
+
+gridContext.removeShortcutsByKeys(['control/meta', 'c']);
+```
+
+The context menu items and the [`copy()`](@/api/copyPaste.md#copy), [`cut()`](@/api/copyPaste.md#cut), and [`paste()`](@/api/copyPaste.md#paste) methods keep working. Copy, cut, and paste inside an open cell editor keep working too.
+
+### Remove the select-all shortcut
+
+<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**A**</kbd> is a grid shortcut that selects all cells. When you remove it, Handsontable no longer handles the key combination. The browser's native select-all runs instead and selects the text on the page.
+
+To block select-all completely, replace the shortcut with one whose callback does nothing. Leave the `preventDefault` option at its default value (`true`), so the browser does not select the page text either:
+
+```js
+const gridContext = hot.getShortcutManager().getContext('grid');
+
+gridContext.removeShortcutsByKeys(['control/meta', 'a']);
+
+gridContext.addShortcuts([{
+  keys: [['control/meta', 'a']],
+  callback: () => {},
+  group: 'myShortcuts',
+}]);
+```
+
 ## Replace a keyboard shortcut
 
 To replace a keyboard shortcut:
