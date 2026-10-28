@@ -20,8 +20,12 @@ const HEADERS = new Set(['columnheader', 'rowheader']);
 const CELLS = new Set(['gridcell', 'cell', 'columnheader', 'rowheader']);
 const GRIDS = new Set(['grid', 'treegrid', 'table']);
 const NO_ROLE = new Set(['', 'generic', 'none', 'presentation']);
-const NATIVE_CONTROLS = new Set(['button', 'input', 'select', 'textarea']);
 const READING_ORDER = 'the grid in reading order';
+// The harness's portal mark (`PORTAL` in `a11y/harness.ts`): a node read in the portal is located under it.
+const PORTAL_SELECTOR = '[data-a11y-scan-portal]';
+// A cell's or a header's classes are rendering state (the selection's highlight, the last visible
+// header, the class names a column sets), so a node on one is located by its tag and role alone.
+const STATE_CLASSED = new Set(['td', 'th']);
 
 /**
  * The rows of the page's grids in reading order, each with its cells (the nodes whose parent is the
@@ -172,7 +176,8 @@ function gridFindings(rows, step) {
 /**
  * The name and role findings: a widget with no accessible name (4.1.2), a column or row header with no
  * name (1.3.1, 4.1.2), and a tab stop the tree gives no role (4.1.2). An empty grid cell needs no name:
- * its empty name is its value. One finding per kind and element shape, with the number of nodes.
+ * its empty name is its value. One finding per kind, role and element (`selectorOf()`), with the number
+ * of nodes.
  *
  * @param {object[]} nodes The flattened tree.
  * @returns {object[]} The findings.
@@ -181,7 +186,7 @@ export function nameFindings(nodes) {
   const found = new Map();
   const add = (kind, criteria, severity, item, reason) => {
     const selector = selectorOf(item);
-    const key = `${kind}|${item.region}|${selector}`;
+    const key = `${kind}|${item.role}|${selector}`;
 
     if (found.has(key)) {
       found.get(key).measured.nodes += 1;
@@ -226,31 +231,30 @@ export function diffSnapshot(expected, actual) {
 }
 
 /**
- * Whether a node is a tab stop: an element with a non-negative `tabindex`, or a native control.
+ * Whether a node is a tab stop: the tree marks it focusable (a `tabindex`, a native control, a link, an
+ * editable region) and its `tabindex` is not negative (an element focusable by script only).
  *
  * @param {object} item The node.
  * @returns {boolean} Whether it is.
  */
 function isTabStop(item) {
-  const tabindex = item.attrs?.tabindex;
-
-  if (tabindex !== undefined && tabindex !== null && tabindex !== '') {
-    return Number(tabindex) >= 0;
-  }
-
-  return NATIVE_CONTROLS.has(item.tag) || (item.tag === 'a' && item.attrs?.href !== undefined);
+  return item.focusable === true && !(Number(item.attrs?.tabindex) < 0);
 }
 
 /**
- * A short selector for a node: its tag and first class.
+ * A short selector for a node: the portal mark when it is read in the portal, its tag (`unknown` when it
+ * has no DOM element), its first class unless it is a cell or a header (`STATE_CLASSED`), and its `role`
+ * attribute.
  *
  * @param {object} item The node.
  * @returns {string} The selector.
  */
 function selectorOf(item) {
-  const [first] = String(item.attrs?.class ?? '').split(/\s+/).filter(Boolean);
+  const tag = item.tag || 'unknown';
+  const [first] = STATE_CLASSED.has(tag) ? [] : String(item.attrs?.class ?? '').split(/\s+/).filter(Boolean);
+  const role = item.attrs?.role ? `[role="${item.attrs.role}"]` : '';
 
-  return `${item.tag ?? 'unknown'}${first ? `.${first}` : ''}`;
+  return `${item.region === 'portal' ? `${PORTAL_SELECTOR} ` : ''}${tag}${first ? `.${first}` : ''}${role}`;
 }
 
 /**

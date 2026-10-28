@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { diffSnapshot, gridRows, nameFindings, structureFindings } from '../aria-tree.mjs';
-import { validatePart, EVIDENCE_SCHEMA } from '../a11y-evidence.mjs';
+import { findingId, validatePart, EVIDENCE_SCHEMA } from '../a11y-evidence.mjs';
 
 // tests/AGENTS.md ("A11y: the checks beyond axe", the accessibility-tree snapshots): the verdicts the
 // tree check derives from Chromium's accessibility tree of the grid and its portal. The spec
@@ -181,7 +181,7 @@ test('a grid role with no row is reported, and a page with no grid role is not j
 test('a widget or a header with no name, and a focusable element with no role, are 4.1.2 findings', () => {
   const nodes = [
     node('button', { name: '', tag: 'button', attrs: { class: 'ht-page-next' } }),
-    node('columnheader', { name: '', tag: 'th', attrs: { class: 'htLastVisibleHeader' } }),
+    node('columnheader', { name: '', tag: 'th', attrs: { class: 'htLastVisibleHeader', role: 'columnheader' } }),
     node('gridcell', { name: '', tag: 'td' }),
     node('generic', { focusable: true, tag: 'div', attrs: { class: 'ht-empty-data-state__content-wrapper-inner', tabindex: '0' } }),
     node('generic', { focusable: true, tag: 'td', attrs: { tabindex: '-1' } }),
@@ -191,9 +191,9 @@ test('a widget or a header with no name, and a focusable element with no role, a
 
   assert.deepEqual(nameFindings(nodes).map(item => [item.kind, item.criteria, item.severity, item.selector]), [
     ['unnamed-control', ['4.1.2'], 'serious', 'button.ht-page-next'],
-    ['unnamed-header', ['1.3.1', '4.1.2'], 'moderate', 'th.htLastVisibleHeader'],
+    ['unnamed-header', ['1.3.1', '4.1.2'], 'moderate', 'th[role="columnheader"]'],
     ['focusable-without-role', ['4.1.2'], 'serious', 'div.ht-empty-data-state__content-wrapper-inner'],
-    ['unnamed-control', ['4.1.2'], 'serious', 'textarea.handsontableInput'],
+    ['unnamed-control', ['4.1.2'], 'serious', '[data-a11y-scan-portal] textarea.handsontableInput'],
   ], 'an empty grid cell needs no name; an element focusable by script only (tabindex -1) is not a tab stop');
 });
 
@@ -206,6 +206,48 @@ test('one finding per kind and element, however many nodes carry it', () => {
 
   assert.equal(findings.length, 1);
   assert.equal(findings[0].measured.nodes, 2);
+});
+
+test('a tab stop the tree marks focusable without a tabindex, like an editable region, is judged', () => {
+  const nodes = [
+    node('generic', { focusable: true, tag: 'div', attrs: { class: 'editable', contenteditable: 'true' } }),
+    node('generic', { focusable: false, tag: 'div', attrs: { class: 'plain' } }),
+  ];
+
+  assert.deepEqual(nameFindings(nodes).map(item => [item.kind, item.selector]), [['focusable-without-role', 'div.editable']]);
+});
+
+test('a finding keeps its region and its role, so each one has an id of its own', () => {
+  const nodes = [
+    node('button', { tag: 'button', attrs: { class: 'x' } }),
+    node('button', { tag: 'button', attrs: { class: 'x' }, region: 'portal' }),
+    node('menuitem', { tag: 'td', attrs: { class: 'htItem', role: 'menuitem' }, region: 'portal' }),
+    node('option', { tag: 'td', attrs: { class: 'htItem', role: 'option' }, region: 'portal' }),
+  ];
+  const findings = nameFindings(nodes);
+
+  assert.deepEqual(findings.map(item => [item.selector, item.measured.role]), [
+    ['button.x', 'button'],
+    ['[data-a11y-scan-portal] button.x', 'button'],
+    ['[data-a11y-scan-portal] td[role="menuitem"]', 'menuitem'],
+    ['[data-a11y-scan-portal] td[role="option"]', 'option'],
+  ]);
+  assert.equal(new Set(findings.map(item => findingId('tree-snapshots', { ...item, page: 'grid', theme: 'main' }))).size, 4);
+});
+
+test('a header\'s state classes do not split its finding', () => {
+  // The last visible header moves with the theme's column widths; the highlight moves with the selection.
+  const nodes = [
+    node('columnheader', { tag: 'th', attrs: { role: 'columnheader' } }),
+    node('columnheader', { tag: 'th', attrs: { class: 'htLastVisibleHeader', role: 'columnheader' } }),
+    node('columnheader', { tag: 'th', attrs: { class: 'ht__highlight', role: 'columnheader' } }),
+  ];
+
+  assert.deepEqual(nameFindings(nodes).map(item => [item.selector, item.measured.nodes]), [['th[role="columnheader"]', 3]]);
+});
+
+test('a node with no DOM element is located as unknown, never by an empty selector', () => {
+  assert.deepEqual(nameFindings([node('button', { tag: '', attrs: {} })]).map(item => item.selector), ['unknown']);
 });
 
 test('a snapshot that differs from its golden names its first differing line', () => {

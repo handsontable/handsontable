@@ -1505,11 +1505,14 @@ half judges it (`lib/aria-tree.mjs`, tested in `lib/__tests__/aria-tree.test.mjs
   order`). A row whose own rowgroup is a table head (`thead`) is never a data row: the corner clone
   repeats the head row with its corner cell alone.
 - **Names and roles** (`nameFindings()`): a widget role with no name (`unnamed-control`), a column or row
-  header with no name (`unnamed-header`), and a tab stop (a non-negative `tabindex`, or a native control)
-  the tree gives no role (`focusable-without-role`). An empty grid cell needs no name; an element
-  focusable by script only (`tabindex="-1"`, every cell) is not a tab stop. One finding per kind and
-  element shape, with its node count. A closed cell editor stays in the DOM and in the tree, so its input
-  is judged on every page.
+  header with no name (`unnamed-header`), and a tab stop (any node the tree marks focusable, an editable
+  region too) the tree gives no role (`focusable-without-role`). An empty grid cell needs no name; an
+  element focusable by script only (`tabindex="-1"`, every cell) is not a tab stop. One finding per kind,
+  role and element, with its node count. The element is the portal mark for a node in the portal, the tag
+  (`unknown` without a DOM element), the first class and the `role` attribute; a cell or a header carries
+  no class there, because its classes are rendering state (the selection, the last visible header) and
+  would split one finding across themes and runs. A closed cell editor stays in the DOM and in the tree,
+  so its input is judged on every page.
 - **Goldens, advisory, on the main theme.** `a11y/tree-goldens/<page>.yml` holds Playwright's
   `ariaSnapshot()` of the grid and the portal. The theme changes which rows are drawn, not the roles or
   names, so one theme keeps the goldens and every theme is judged. A difference is
