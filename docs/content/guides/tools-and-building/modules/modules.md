@@ -847,7 +847,7 @@ Measurements were made with esbuild using minification, against **Handsontable 1
 
 ::: tip
 
-The `Formulas` module requires the external [`hyperformula`](https://hyperformula.handsontable.com/) package. Its size is not included in the measurements above.
+The `Formulas` module requires the external [`hyperformula`](https://handsontable.com/hyperformula/) package. Its size is not included in the measurements above.
 
 :::
 <!-- module-sizes:end -->

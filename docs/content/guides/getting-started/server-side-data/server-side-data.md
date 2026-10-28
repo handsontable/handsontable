@@ -302,3 +302,4 @@ Each folder includes the same Express servers (`server-rest.mjs`, `server-graphq
 
 - [Migrate to server-side data](@/guides/getting-started/server-side-data/server-side-data-migration.md) -- follow the step-by-step checklist to move from a client-side array to `dataProvider`.
 - [Rows pagination](@/guides/rows/rows-pagination/rows-pagination.md) -- configure page size and navigation for server-backed grids.
+- [Load data from an OData service](@/recipes/data-management/load-data-odata/load-data-odata.md) -- connect `dataProvider` to an OData V4 service.

@@ -156,6 +156,41 @@ export class UndoGridPage {
   }
 
   /**
+   * Bring every trimmed row back through the TrimRows plugin API.
+   */
+  async untrimAll(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.getPlugin('trimRows').untrimAll();
+      window.hot.render();
+    });
+  }
+
+  /**
+   * Filter out the rows whose value in the column equals the given one, through the Filters plugin API.
+   * The grid has to be built with `filters: true`.
+   */
+  async filterOutValue(visualColumn: number, value: string): Promise<void> {
+    await this.page.evaluate(([column, filtered]) => {
+      const filters = window.hot.getPlugin('filters');
+
+      filters.addCondition(column as number, 'neq', [filtered]);
+      filters.filter();
+    }, [visualColumn, value]);
+  }
+
+  /**
+   * Remove every filter condition through the Filters plugin API.
+   */
+  async clearFilters(): Promise<void> {
+    await this.page.evaluate(() => {
+      const filters = window.hot.getPlugin('filters');
+
+      filters.clearConditions();
+      filters.filter();
+    });
+  }
+
+  /**
    * Freeze a column through the ManualColumnFreeze plugin API.
    */
   async freezeColumn(visualColumn: number): Promise<void> {
