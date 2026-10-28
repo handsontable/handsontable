@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the Vue 3 wrapper to type-check every `HotTable` and `HotColumn` prop in a template, so `vue-tsc` rejects a wrong value, a non-function hook prop, or `data: null` on `HotTable`. See the migration guide for what to change.",
+  "type": "changed",
+  "issueOrPR": 14059,
+  "breaking": true,
+  "framework": "vue"
+}
