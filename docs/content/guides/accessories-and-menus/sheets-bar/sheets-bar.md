@@ -371,7 +371,7 @@ Use each sheet's tab name as its `sheetName`. A tab rename then renames the engi
 
 ## Import and export
 
-An import with the [`ImportFile`](@/api/importFile.md) plugin changes the active sheet only: its data, cell styles, and layout, such as column types, sizes, hidden and frozen rows and columns, merged cells, and headers. The imported layout wins over the matching `settings` the sheet declares, and your `sheets` array doesn't change.
+An import with the [`ImportFile`](@/api/importFile.md) plugin changes the active sheet only. It brings the sheet's data, cell styles, and layout: column types, sizes, hidden and frozen rows and columns, merged cells, and headers. The imported layout wins over the matching `settings` the sheet declares, and your `sheets` array doesn't change.
 
 To change the imported layout later, call [`updateSheetSettings()`](@/api/sheetsBar.md#updatesheetsettings). [`updateSettings()`](@/api/core.md#updatesettings) changes only the other sheets for those settings, and so do the props a framework wrapper sends on a re-render.
 
