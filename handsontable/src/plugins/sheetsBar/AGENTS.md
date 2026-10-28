@@ -1036,6 +1036,7 @@ such state and is missing from this list loses it on every switch.
 | The `cell` option | its meta by physical index | `#cellOptionStates` |
 | DataProvider | last response, failures | `#serverViews` |
 | Formulas | engine order, formula text | `#engineOrders`, the formula text capture |
+| ImportFile | the imported stylesheet's rules (the classes live in the cell meta) | `#importedStyles`, restored from `#onAfterSheetLoad` |
 
 `collapsedColumns`, `columnMembership`, and `checkedRows` are restored after the restore batch: the header tree
 a collapse is laid on is derived through the column index cache, which the batch holds at the order from before
