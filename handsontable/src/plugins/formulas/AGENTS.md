@@ -83,12 +83,28 @@ const isRestoreSource = source => source === 'UndoRedo.undo' || source === 'Undo
     or a restored sequence - turns some of them into `#REF!` (measured: `setRowOrder([2, 3, 4, 0, 1])`
     on a fresh sheet writes `=#REF!+1000` where the equivalent `moveRows` writes `=A5+1000`). So the
     state carries `engine.getSheetSerialized()` plus both syncers' `getEngineOrder()`, and the restore
-    loads it with `setSheetContent()` and `adoptEngineOrder()` - nothing is sent to reorder it. Never
-    "simplify" this into reload-then-reorder; that reproduces the `#REF!`.
+    loads it with `setSheetContent()` and `adoptEngineOrder()`. Never "simplify" this into
+    reload-then-reorder; that reproduces the `#REF!`. The snapshot's order is the grid's order at capture
+    time, and the grid can have been reordered since (a `setIndexesSequence()` call is no undo step). So
+    `adoptEngineOrder()` takes the recorded order over and then sends the grid's current order, unless the
+    order is held: the engine ends in the grid's order, as if the reorder had come after the load. Taking
+    the recorded order as final left the engine and the translation tables on different orders, and the
+    undo of an edit then showed another row's values (`undoStaleOrder.unit.js`).
 
   With the same structure version, the held writes are written into the engine in one
   `engine.batch()`. The sheet snapshot is re-serialized on every step that writes data while the
   grid is sorted or moved - an O(cells) cost per step on those grids only.
+- **Open: an undo can restore formula text the engine never held in physical order.** A row inserted
+  while the order is not physical shifts the engine's formulas but not the formula text in the source
+  data (the write-back is skipped there). When the order later returns to physical, the next forward
+  step writes the engine's text into the source and journals the stale text as its "before" value, and
+  that step's `before` state has no engine sheet, so its undo reloads the stale source. No cell edit and
+  no stale order are involved, so `adoptEngineOrder()` does not reach it. Repro (`undoRedo: true`, data
+  `[[10, '=A1*2'], [20, '=A2*2'], [null, null], [null, null]]`): `setIndexesSequence([3, 0, 1, 2])`,
+  `alter('insert_row_above', 1)`, `setIndexesSequence([0, 1, 2, 3, 4])`, `alter('remove_row', 4)`, one
+  undo. `getData()` reads `[[null, null], [10, 0], [20, 20], [null, null], [null, null]]` where it read
+  `[[null, null], [10, 20], [20, 40], [null, null]]` before the removal. No committed test: the repo
+  rejects a skipped test, and a failing one cannot land.
 - **Draw every new version from `#versionSeed`, never reuse one.** `restoreState()` sets the
   current versions to the restored state's; a later change that reused a number would make a
   different structure compare equal to a recorded one.
@@ -104,6 +120,48 @@ const isRestoreSource = source => source === 'UndoRedo.undo' || source === 'Undo
   a restore that changes the order changes `structureVersion`, so it ends in a full sheet replacement
   that also resets or adopts the stored order. A flag set in `beforeUndo` would leak whenever a later
   `beforeUndo` listener vetoes - the defect the old implementation had.
+
+**A restore trims the lines the reload left behind.** `setSheetContent()` never shrinks a sheet, so
+the row or column an insert added stayed in the engine when an undo reloaded the sheet without it: one extra
+engine line per insert and undo (7 rows, the last one moved to the top, 40 cycles of an insert at row 2: height
+3 to 45; without a reorder, an insert at row 0 or 1 gave 2 to 42). `addRows` grows the sheet for a real reason
+and the grid's undo never tells the engine, so the undo's reload is where the line is not given back. **Only
+the undo and redo restore trims** (`#restoreStructure()`, for a structural step, after the peer rewrites are put
+back). A data-only step restores through the other branch of `restoreState()` and never trims, so a sheet the
+host grew keeps its size. `loadData()`, `updateSettings({ data })` and every other `setSheetContent()` path
+still keep the sheet's size, as before. A host that inserts and then reloads the data in a loop still leaks.
+
+The trim takes away only what the step added:
+
+- **It never goes below the size the restored state had.** `#sheetSizeFloors` maps each recorded state to
+  the engine's width and height at its last capture, and `AxisSyncer#trimUnusedTail(minSize)` stops there,
+  per axis. A row insert and its undo therefore cannot shorten the width, and a sheet the engine had grown on
+  its own (a write-and-clear extension, another sheet's reference) keeps that size. **The size is not part of
+  the state.** `captureState()` hands back the previous state while the versions are unchanged, and a sheet
+  that another grid grows (`=Sheet1!A50` typed in a second grid) changes no version: a state that carried the
+  size was replaced by a new object, UndoRedo compares states by identity, so it recorded an empty step and
+  dropped the redo stack. A reused state gets its floor raised to the current size instead.
+- **A line goes only when it holds nothing and no formula reads a cell of it** (`getCellDependents()`). An
+  empty cell that a formula reads counts towards the sheet's size, and removing its line turns the reference
+  into `#REF!` (`=A5*2` becomes `=#REF!*2`, and `SUM(A1:A9)` shrinks). Check the dependents, not only
+  `isCellEmpty()`. The trim runs after `#restorePeerRewrites()` because a peer's formula still names the
+  shifted line before that. The scan starts at the last line and stops at the first used one, so a sheet
+  without a leak pays one line's check.
+- **The reload, the peer rewrites and both trims are one engine batch, so a restore emits once.** Every
+  engine call recalculates a volatile formula (`=RAND()`), and each recalculation emits `valuesUpdated` and
+  `afterFormulasValuesUpdate` and repaints a second grid on the engine again. Trimming in a call of its own
+  made that two emits for one undo. The batch is why `#restoreStructure()` reads the source data before it
+  and holds `#internalOperationPending` for its length: a suspended engine refuses value reads, and those
+  come from `modifyData` and `modifySourceData`. `#restorePeerRewrites()` runs inside it without a batch of
+  its own (a nested `batch()` would end the suspension), and `#syncPeerSources()` runs after it, because it
+  reads values. The trim is not in a `finally`: after a half-applied restore, lines still to be filled look
+  unused, and the batch skips it when something above throws.
+- **Known limit: a whole-column or whole-row reference (`SUM(A:A)`, `SUM(1:1)`) is never trimmed.** It
+  depends on every cell of its column or row, so no line is unused and the sheet grows by one line per
+  insert and undo, as it does without the trim. Pinned as such in `__tests__/insertUndoEngineSize.unit.js`;
+  fixing it means asking whether the only readers of a line are ranges that span the whole axis.
+
+Pinned by `__tests__/insertUndoEngineSize.unit.js`, which also pins formulas that read cells past the content.
 
 A move is covered the same way: the cells a move writes, and the formulas elsewhere the engine
 rewrote, are all journaled inside the move's own step, so an undo writes them back and `restoreState()`
@@ -814,6 +872,8 @@ Known limits of the pad:
 - **The pad keeps the sheet's height or width.** The engine never shrinks a sheet, so once content has
   sat at the end of a long axis the sheet stays that long, and every later order is sent at that length.
   Moving only blank lines does not grow it, also after an undo, a sheet switch, an insert, or a removal.
+  The one exception is the restore of an undo or a redo that changed the rows or columns: it trims the
+  unused tail (see "A restore trims the lines the reload left behind").
 - **A reference to a padded blank line follows the engine line, not the label.** Padded blanks are
   relabeled, so a formula that refers to one reads `#REF!` once the blank is freed or moved across
   content. That is the engine's own rewrite in `setRowOrder`/`setColumnOrder`, the same as for any
@@ -890,6 +950,16 @@ the hook where it is, but `disablePlugin()` plus `enablePlugin()` re-adds it at 
 group and flips the winner. Only `addHook('beforeAutofill', cb, 1)` is independent of timing. Pinned by
 `tests/e2e/formulas-before-autofill-precedence.spec.ts`. Do not change the plugin's `orderIndex` or its
 registration point without treating it as a behavior change.
+
+## Engine-detach listeners
+
+`addEngineDetachListener()` (`@private`) lets another plugin release what it subscribed on the engine
+before the engine goes away. In `disablePlugin()` they run FIRST, before any cleanup, and in `destroy()`
+right before `unregisterEngine()`; the engine still works in both: an engine the plugin built itself is
+destroyed right after, when this grid was its last user. The FormulaBuilder plugin destroys its builder
+there, and that cancels an open formula edit, whose render runs this plugin's `afterRenderer`. Run after
+the `HYPERLINK` cleanup, that render wrapped the anchors again and refilled `#hyperlinkCells`. The
+listener set lives on the plugin instance across enable cycles and is cleared in `destroy()`.
 
 ## Where to look next
 

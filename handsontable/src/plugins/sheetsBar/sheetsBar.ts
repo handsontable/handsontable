@@ -1,7 +1,14 @@
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import type { HookCallback } from '../../core/hooks/bucket';
-import { SheetModel, clampSheetName, type Sheet, type SheetDescriptor } from './sheetModel';
+import {
+  SheetModel,
+  clampSheetName,
+  copySettingsValue,
+  isObjectLiteral,
+  type Sheet,
+  type SheetDescriptor,
+} from './sheetModel';
 import { SheetsBarUI } from './ui/bar';
 import { TabStrip, type TabBox, type TabStripMotion } from './ui/tabStrip';
 import { resolveSwitchTransition, pillDurationMs, tabSlideDurationMs } from './ui/switchTiming';
@@ -357,70 +364,6 @@ function isSameSheetsList(a: unknown, b: unknown): boolean {
 }
 
 /**
- * Tells whether a value is an object literal: an object whose prototype is `Object.prototype` or `null`.
- * `isPlainObject` also answers `true` for a class instance such as a HyperFormula engine.
- *
- * @param {*} value The value to check.
- * @returns {boolean}
- */
-function isObjectLiteral(value: unknown): boolean {
-  if (!isPlainObject(value)) {
-    return false;
-  }
-
-  const prototype: unknown = Object.getPrototypeOf(value);
-
-  return prototype === Object.prototype || prototype === null;
-}
-
-/**
- * Copies a settings value for a snapshot: arrays and object literals are copied level by level, a date is
- * copied by its time value, and everything else is kept by reference. A class instance such as a
- * HyperFormula engine is not copied: its object graph has cycles, and copying it never ended. A kept
- * reference still compares equal to itself. A date is copied because the host can edit it in place
- * (`setFullYear()`) and send it again, and a kept reference would compare the edited date with itself.
- *
- * `copies` maps every array and object literal already copied to its copy, so a value that refers to itself
- * is copied with the same shape instead of recursing until the stack overflows, and a sub-object two keys
- * share is copied once.
- */
-function copySettingsValue(value: unknown, copies = new WeakMap<object, unknown>()): unknown {
-  if (value instanceof Date) {
-    return new Date(value.getTime());
-  }
-
-  if (!Array.isArray(value) && !isObjectLiteral(value)) {
-    return value;
-  }
-
-  const source = value as object;
-
-  if (copies.has(source)) {
-    return copies.get(source);
-  }
-
-  if (Array.isArray(source)) {
-    const copy: unknown[] = [];
-
-    copies.set(source, copy);
-    source.forEach((entry: unknown) => {
-      copy.push(copySettingsValue(entry, copies));
-    });
-
-    return copy;
-  }
-
-  const copy: Record<string, unknown> = {};
-
-  copies.set(source, copy);
-  Object.entries(source).forEach(([key, entry]) => {
-    copy[key] = copySettingsValue(entry, copies);
-  });
-
-  return copy;
-}
-
-/**
  * Takes a snapshot of a `sheets` value for {@link isSameSheetsList}: the array and each entry are copied,
  * each entry's `settings` level by level, and its `data` is kept by reference. A host that edits its own
  * array or a sheet's settings object in place and sends it again otherwise compares it with itself, and
@@ -551,11 +494,8 @@ interface PreservedState {
  * and lets the user switch between the sheets of a workbook. Each sheet has its own data,
  * settings overrides, and view state.
  *
- * A sheet's own settings win over the grid-level ones. While a sheet that declares a setting is
- * shown, {@link Core#updateSettings} changes only the grid-level value of that setting, which the
- * sheets without their own value use. A framework wrapper that sends every prop again on each
- * render therefore leaves the visible sheet as it is. To change a sheet's own settings, call
- * {@link SheetsBar#updateSheetSettings}.
+ * While the plugin is enabled, change a sheet's settings with {@link SheetsBar#updateSheetSettings},
+ * not with {@link Core#updateSettings}.
  */
 export class SheetsBar extends BasePlugin {
   /**
@@ -629,6 +569,13 @@ export class SheetsBar extends BasePlugin {
    * @type {Sheet|null}
    */
   #loadingSheet: Sheet | null = null;
+  /**
+   * The hook sync the bar's next write owes, with the arriving sheet's own settings, or `null` when none is
+   * owed. `#filterGridSettings` runs it on the payload core is about to apply (`#runPendingHookSync`).
+   *
+   * @type {object|null}
+   */
+  #pendingHookSync: { ownSettings?: Record<string, unknown> } | null = null;
   /**
    * Whether a workbook change's before-hook is running. A listener of that hook cannot change the
    * workbook: the change it was told about would then run on another workbook state.
@@ -1000,6 +947,7 @@ export class SheetsBar extends BasePlugin {
     }
 
     this.#getDataProvider()?._setContextOwner(this.#contextOwner);
+    this.hot._addSettingsFilter(this.#filterGridSettings);
     this.addHook('afterLoadData', this.#onAfterSheetLoad, -1);
 
     if (this.#preservedState) {
@@ -1016,6 +964,9 @@ export class SheetsBar extends BasePlugin {
         this.#captureGridColumnSummary();
         this.#gridCellOption = this.hot.getSettings().cell;
         this.#buildInitialWorkbook();
+      } catch (error) {
+        this.hot._removeSettingsFilter(this.#filterGridSettings);
+        throw error;
       } finally {
         this.#isInitializing = false;
       }
@@ -1163,8 +1114,6 @@ export class SheetsBar extends BasePlugin {
     this.addHook('afterDocumentKeyDown', this.#onKeyDownWithinBar, -1);
     this.addHook('beforeCompositionStart', this.#onKeyDownWithinBar, -1);
     this.addHook('afterRender', this.#onAfterRenderArmMotionGate);
-    this.hot._setSettingsFilter(this.#filterGridSettings);
-
     this.#refreshUI();
 
     if (this.#tabStripMotion !== null) {
@@ -1551,7 +1500,7 @@ export class SheetsBar extends BasePlugin {
     }
 
     super.disablePlugin();
-    this.hot._setSettingsFilter(null);
+    this.hot._removeSettingsFilter(this.#filterGridSettings);
     this.#getDataProvider()?._setContextOwner(null);
     this.#releaseState();
   }
@@ -1624,10 +1573,11 @@ export class SheetsBar extends BasePlugin {
 
     try {
       this.#isRestoringBaseline = true;
-      this.#syncSettingsHooks(restored);
+      this.#pendingHookSync = {};
       this.hot.updateSettings(restored);
     } finally {
       this.#isRestoringBaseline = false;
+      this.#pendingHookSync = null;
     }
   }
 
@@ -1802,7 +1752,8 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Reads every `updateSettings()` payload before core applies it (`Core#_setSettingsFilter()`), and takes
+   * Reads every payload before core applies it (`Core#_addSettingsFilter()`: `updateSettings()`, and the bar's
+   * own `_applySettingsAndData()` and `_replaceInitPassSettings()` calls, where it stands aside), and takes
    * out each key the visible sheet declares in its own settings: a sheet's own settings win over grid-level
    * ones, as they do on a switch. The value taken out becomes the grid-level value instead
    * (`#takeGridLevelValues`), so the sheets that do not declare the key, a `sheetsBar: false` teardown and a
@@ -1811,10 +1762,13 @@ export class SheetsBar extends BasePlugin {
    * the sheet. `data` and `dataProvider` keep their own rules (`#keepDeclaredSheetRows`, the `dataProvider`
    * gate), and the payload object the caller passed is never changed.
    *
-   * @param {object} settings The payload passed to `updateSettings()`.
+   * @param {object} settings The payload core is about to apply: from `updateSettings()`, or from the bar's
+   * own `_applySettingsAndData()` and `_replaceInitPassSettings()` calls.
    * @returns {object} The payload core applies.
    */
   #filterGridSettings = (settings: Record<string, unknown>): Record<string, unknown> => {
+    this.#runPendingHookSync(settings);
+
     const own = this.#activeSheetRecord()?.settings;
 
     if (!isPlainObject(own) || !this.#filtersGridSettings(settings)) {
@@ -1845,13 +1799,14 @@ export class SheetsBar extends BasePlugin {
    * Tells whether `#filterGridSettings` acts on a payload. It stands aside for the bar's own writes (a switch,
    * the teardown's restore, the initial build, `updateSheetSettings()`), for the settings ImportFile applies
    * from an imported file to the sheet shown, and for a payload that turns the bar off or declares another
-   * workbook: those leave the visible sheet, so its settings no longer win.
+   * workbook: those leave the visible sheet, so its settings no longer win. A plugin that is not enabled, a
+   * build that threw for instance, filters nothing.
    *
-   * @param {object} settings The payload passed to `updateSettings()`.
+   * @param {object} settings The payload core is about to apply.
    * @returns {boolean}
    */
   #filtersGridSettings(settings: Record<string, unknown>): boolean {
-    if (this.#model === null || this.#isSwitching || this.#isRestoringBaseline || this.#isInitializing
+    if (!this.enabled || this.#model === null || this.#isSwitching || this.#isRestoringBaseline || this.#isInitializing
       || this.#isApplyingOwnSettings || this.hot.getPlugin('importFile')?._isApplyingImport()) {
       return false;
     }
@@ -1906,6 +1861,7 @@ export class SheetsBar extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.hot._removeSettingsFilter(this.#filterGridSettings);
     this.#releaseState();
     super.destroy();
   }
@@ -2002,6 +1958,9 @@ export class SheetsBar extends BasePlugin {
    * cancels the copy, your `sheets` array is frozen (with a console warning), or it is called from a
    * listener of a workbook change's before-hook.
    *
+   * A copy of a server sheet (one with its own `dataProvider`) starts with a copy of the original's rows.
+   * When the original has already loaded rows, the copy doesn't fetch on its first visit.
+   *
    * @param {number} id The sheet to copy.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
    * @returns {object|null} A descriptor for the copy, or `null`.
@@ -2032,16 +1991,11 @@ export class SheetsBar extends BasePlugin {
    * pass are merged into the settings the sheet already has. A key passed as `undefined` is left out, as
    * {@link Core#updateSettings} leaves it out, so a key a sheet declares cannot be removed from it, only
    * given another value. On the visible sheet the change applies at once; on any other sheet it applies
-   * when the sheet is shown next, in place of what the sheet kept from your last visit for that key: its
-   * frozen rows and columns, hidden rows and columns, sort, filters, row and column order, sizes, page,
-   * merged cells, custom borders, `cell` meta, or column summary positions. The rest of what it kept, such
-   * as the selection and the scroll position, comes back as usual. The settings stay with the
-   * sheet: the entry in your `sheets` array keeps the `settings` you declared, the way
-   * {@link Core#updateSettings} never writes into the object you passed it.
+   * when the sheet is shown next, in place of what the sheet kept from your last visit for that key, such
+   * as its sort, filters, or hidden columns. The rest of what it kept, such as the selection and the scroll
+   * position, comes back as usual. The entry in your `sheets` array keeps the `settings` you declared.
    *
-   * A sheet's own settings win over the grid-level ones, so this is how you change a setting the sheet
-   * declares: {@link Core#updateSettings} changes only the grid-level value of a key the visible sheet
-   * declares.
+   * While the plugin is enabled, use this method, not {@link Core#updateSettings}, to change a sheet's settings.
    *
    * Returns `false` when the bar is off, the sheet does not exist, `settings` is not an object or changes
    * nothing, a sheet switch is in progress, or it is called from a listener of a workbook change's
@@ -2086,16 +2040,12 @@ export class SheetsBar extends BasePlugin {
    * cancels the switch.
    *
    * The switch first saves the cell editor and the comment editor on the sheet you leave. It
-   * returns `false`, and switches nothing, while a cell value waits for an asynchronous
-   * validator, or while the editor holds a value its validator rejected (`allowInvalid: false`):
-   * the value would otherwise be written into the arriving sheet. Validators always answer after
-   * the edit, so a call made while the editor of a cell with a validator is open returns `false`
-   * even for a valid value: close the editor first and switch once `afterValidate` has fired. A
-   * change that a `beforeSheetTabChange` or `afterSheetTabStateCapture` listener makes to a cell
-   * with a validator refuses the switch the same way. A validator that never calls its callback
-   * blocks switching until {@link Core#loadData} loads other data. It also returns `false` when
-   * it is called from a listener of a workbook change's before-hook, such as
-   * `beforeSheetTabChange`, or of `afterSheetTabStateCapture`.
+   * returns `false`, and switches nothing, while a cell value waits for its validator, or while
+   * the editor holds a value its validator rejected (`allowInvalid: false`). Validators answer
+   * after the edit, so a call made while the editor of a cell with a validator is open returns
+   * `false` even for a valid value: close the editor first and switch once `afterValidate` has
+   * fired. It also returns `false` when it is called from a listener of a workbook change's
+   * before-hook, such as `beforeSheetTabChange`, or of `afterSheetTabStateCapture`.
    *
    * @param {number|string} idOrName The sheet's id, or its name.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
@@ -2990,13 +2940,14 @@ export class SheetsBar extends BasePlugin {
       this.#loadingSheet = sheet;
 
       try {
-        this.#syncSettingsHooks(payload, sheet.settings);
+        this.#pendingHookSync = { ownSettings: sheet.settings };
         this.hot._applySettingsAndData(
           payload as Partial<GridSettings>, sheet.data as unknown[], `${source}.switch`, cellOptionMetas,
           keptCellMetas,
         );
       } finally {
         this.#loadingSheet = null;
+        this.#pendingHookSync = null;
       }
 
       if (this.hot.view) {
@@ -3545,13 +3496,13 @@ export class SheetsBar extends BasePlugin {
       }
     });
 
-    this.#syncSettingsHooks(changes, ownSettings);
-
     try {
       this.#isApplyingOwnSettings = true;
+      this.#pendingHookSync = { ownSettings };
       this.hot.updateSettings(changes);
     } finally {
       this.#isApplyingOwnSettings = false;
+      this.#pendingHookSync = null;
     }
   }
 
@@ -3678,6 +3629,31 @@ export class SheetsBar extends BasePlugin {
    * leaves the order of the settings callback and the `addHook()` listeners alone. A grid-level array keeps
    * running beside a sheet's own callback, as it always did: it is registered again after the sheet's. A
    * `null` value needs nothing here, because core removes the settings callbacks for it.
+   *
+   * A switch, the baseline restore and `updateSheetSettings()` arm `#pendingHookSync` right before their
+   * write, and the sync runs from `#filterGridSettings`, which core calls with the payload the earlier
+   * filters returned. It must read that payload, not the one the bar built: the Angular wrapper's filter
+   * swaps a declared hook for the function that runs it in Angular's zone, and core then registers that
+   * function, so a sync of the raw callback left it in place and the hook ran outside the zone, or twice
+   * beside an `addHook()` registration of the same callback. The bar's filter is therefore added before the
+   * workbook is built, and it runs after every filter added before it.
+   *
+   * @param {object} payload The payload core is about to apply.
+   */
+  #runPendingHookSync(payload: Record<string, unknown>) {
+    const pending = this.#pendingHookSync;
+
+    if (pending === null) {
+      return;
+    }
+
+    this.#pendingHookSync = null;
+    this.#syncSettingsHooks(payload, pending.ownSettings);
+  }
+
+  /**
+   * Makes the settings callbacks of each hook the payload sets exactly the callbacks the arriving sheet runs
+   * with (see `#runPendingHookSync`).
    *
    * @param {object} payload The settings about to be applied.
    * @param {object} [ownSettings] The arriving sheet's own settings.

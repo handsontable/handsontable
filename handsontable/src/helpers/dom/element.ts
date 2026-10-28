@@ -810,6 +810,20 @@ export function getCellContentRoot(element: HTMLElement): HTMLElement {
 }
 
 /**
+ * Whether a body cell has a row header as its previous sibling, so the row header owns the gridline
+ * in front of it and the inline-start overlay paints over that pixel.
+ *
+ * Read from the DOM because which cells stand behind a row header is not a fixed index: the first
+ * rendered column of a scrolled grid does too. The mirror of `standsBelowColumnHeader` on the row axis.
+ *
+ * @param {HTMLElement} cell The `td` to check.
+ * @returns {boolean}
+ */
+export function standsBehindRowHeader(cell: HTMLElement): boolean {
+  return cell.previousElementSibling?.nodeName === 'TH';
+}
+
+/**
  * Returns true if element is attached to the DOM and visible, false otherwise.
  *
  * @param {HTMLElement} element An element to check.

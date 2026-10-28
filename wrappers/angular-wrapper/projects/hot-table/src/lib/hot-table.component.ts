@@ -21,6 +21,7 @@ import { HotGlobalConfigService } from './services/hot-global-config.service';
 import { GridSettings } from './models/grid-settings';
 import { DynamicComponentService } from './renderer/hot-dynamic-renderer-component.service';
 import { HotInstanceWithAngularInjector } from './editor/models/factory-editor-properties';
+import { ColumnSettingsInternal } from './models/column-settings';
 import { skip } from 'rxjs/operators';
 
 export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this component was destroyed and cannot be' + ' used properly.';
@@ -102,6 +103,13 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   private readonly _destroyRef = inject(DestroyRef);
   private readonly _host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly isBrowser = inject(PLATFORM_ID) === 'browser';
+  /**
+   * The grid-level `columns` resolved from the `settings` input on the last change that carried them.
+   * They hold the editor components this component created for them. The grid's own `columns` is not
+   * where to find them: while the sheets bar shows a sheet that declares its own `columns`, it holds that
+   * sheet's.
+   */
+  private _gridColumns: ColumnSettingsInternal[] | undefined;
 
   constructor(
     private _hotSettingsResolver: HotSettingsResolver,
@@ -148,6 +156,10 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
 
     let options: Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(this.settings);
 
+    if (Array.isArray(options.columns)) {
+      this._gridColumns = options.columns;
+    }
+
     const negotiatedSettings = this.getNegotiatedSettings(options);
     options = { ...options, ...negotiatedSettings, ...(this.data != null ? { data: this.data } : {}) };
 
@@ -155,6 +167,8 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
       this.hotInstance = new Handsontable.Core(this.container.nativeElement, options);
 
       (this.hotInstance as HotInstanceWithAngularInjector)._angularEnvironmentInjector = this.environmentInjector;
+
+      this.hotInstance._addSettingsFilter?.(settings => this._hotSettingsResolver.resolveAppliedSettings(settings));
 
       // Registered before `init()`, so the hook also sees the initial `height`, before the first render.
       this.hotInstance.addHook('beforeHeightChange', (height) => {
@@ -181,8 +195,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
 
     if (changes.settings && !changes.settings.firstChange) {
       // Capture old editor refs before applying new settings so HOT can close any active editor first.
-      const prevColumns = this.__hotInstance?.getSettings().columns;
-      const prevColumnsArray = Array.isArray(prevColumns) ? prevColumns : undefined;
+      const prevColumnsArray = this._gridColumns;
 
       // Pass the previous columns so unchanged editor types recycle their existing component
       // instead of creating a fresh one on every settings change.
@@ -211,6 +224,10 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
           }
         });
       }
+
+      if (Array.isArray(newOptions.columns)) {
+        this._gridColumns = newOptions.columns;
+      }
     }
 
     if (changes.data && !changes.data.firstChange) {
@@ -223,26 +240,28 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
    */
   ngOnDestroy(): void {
     this.ngZone.runOutsideAngular(() => {
-      if (!this.__hotInstance || this.__hotInstance.isDestroyed) {
+      if (!this.__hotInstance) {
         return;
       }
 
+      const isLive = !this.__hotInstance.isDestroyed;
+
       // Destroy renderer Angular components attached to table cells before HOT removes the DOM.
-      if (this.container) {
+      if (isLive && this.container) {
         this._dynamicComponentService.cleanupContainer(this.container.nativeElement, this.__hotInstance);
       }
 
-      const columns = this.__hotInstance.getSettings().columns;
+      this._gridColumns?.forEach((column) => {
+        if (column._editorComponentReference) {
+          column._editorComponentReference.destroy();
+        }
+      });
+      this._gridColumns = undefined;
+      this._hotSettingsResolver.destroyAppliedEditors();
 
-      if (columns && Array.isArray(columns)) {
-        columns.forEach((column) => {
-          if (column._editorComponentReference) {
-            column._editorComponentReference.destroy();
-          }
-        });
+      if (isLive) {
+        this.__hotInstance.destroy();
       }
-
-      this.__hotInstance.destroy();
     });
   }
 

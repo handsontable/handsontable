@@ -249,6 +249,7 @@ export class SelectionManager {
     const selections: Selection[] = Array.from(this.#selections);
     const classNamesMap = new Map<HTMLElement, Map<string, number>>();
     const headerAttributesMap = new Map<HTMLElement, SelectionAttribute[]>();
+    const selectedCells = new Set<HTMLElement>();
     const toDraw: Array<[Border, number[]]> = [];
 
     for (let i = 0; i < selections.length; i++) {
@@ -285,7 +286,7 @@ export class SelectionManager {
       }
 
       if (className) {
-        this.#collectSelection(selection, bandKey, classNamesMap, headerAttributesMap);
+        this.#collectSelection(selection, bandKey, classNamesMap, headerAttributesMap, selectedCells);
       }
 
       const corners = selection.getCorners();
@@ -311,7 +312,7 @@ export class SelectionManager {
 
     toDraw.forEach(([border, corners], index) => border.paint(corners, measurements[index]));
 
-    this.#applyCollected(classNamesMap, headerAttributesMap);
+    this.#applyCollected(classNamesMap, headerAttributesMap, selectedCells);
   }
 
   /**
@@ -324,17 +325,23 @@ export class SelectionManager {
    * @param {string} bandKey The active overlay's band key (see {@link buildBandKey}).
    * @param {Map} classNamesMap The pass's element → class name layers map.
    * @param {Map} headerAttributesMap The pass's header element → attributes map.
+   * @param {Set} selectedCells The pass's set of cells a selection layer (not a custom selection) covers.
    */
   #collectSelection(
     selection: Selection,
     bandKey: string,
     classNamesMap: Map<HTMLElement, Map<string, number>>,
     headerAttributesMap: Map<HTMLElement, SelectionAttribute[]>,
+    selectedCells: Set<HTMLElement>,
   ) {
     const wot = this.#activeOverlaysWot!;
     const { className, headerAttributes, createLayers, selectionType } = selection.settings;
     const layered = createLayers === true;
     const isActiveHeader = selectionType === ACTIVE_HEADER_TYPE;
+    // A custom selection (a highlight a plugin draws, such as the formula builder's reference ranges)
+    // marks cells with its class only. The selection's cell attributes (`aria-selected`) belong to the
+    // cells the user selected, or a screen reader would report every highlighted cell as selected.
+    const marksSelectedCells = selectionType !== CUSTOM_SELECTION_TYPE;
 
     this.#scanner.setActiveSelection(selection);
 
@@ -348,6 +355,10 @@ export class SelectionManager {
 
     const collect = (element: HTMLElement) => {
       this.#addClassLayer(classNamesMap, element, className as string, layered);
+
+      if (marksSelectedCells && element.nodeName === 'TD') {
+        selectedCells.add(element);
+      }
 
       if (headerAttributes && element.nodeName === 'TH') {
         const attributes = headerAttributesMap.get(element) ?? [];
@@ -419,10 +430,12 @@ export class SelectionManager {
    *
    * @param {Map} classNamesMap The pass's element → class name layers map.
    * @param {Map} headerAttributesMap The pass's header element → attributes map.
+   * @param {Set} selectedCells The cells that get the selection's cell attributes.
    */
   #applyCollected(
     classNamesMap: Map<HTMLElement, Map<string, number>>,
     headerAttributesMap: Map<HTMLElement, SelectionAttribute[]>,
+    selectedCells: Set<HTMLElement>,
   ) {
     const wot = this.#activeOverlaysWot!;
     const previous = this.#appliedElements.get(wot) ?? new Set<HTMLElement>();
@@ -431,7 +444,14 @@ export class SelectionManager {
 
     classNamesMap.forEach((classNamesLayers, element) => {
       const classNames = expandLayeredClassNames(classNamesLayers);
-      const attributes = element.nodeName === 'TD' ? cellAttributes : (headerAttributesMap.get(element) ?? []);
+      let attributes: SelectionAttribute[];
+
+      if (element.nodeName === 'TD') {
+        attributes = selectedCells.has(element) ? cellAttributes : [];
+      } else {
+        attributes = headerAttributesMap.get(element) ?? [];
+      }
+
       const signature = buildSelectionSignature(classNames, attributes);
 
       next.add(element);

@@ -25,6 +25,7 @@ import type { DropdownMenu } from './dropdownMenu';
 import type { EmptyDataState } from './emptyDataState';
 import type { ExportFile } from './exportFile';
 import type { Filters } from './filters';
+import type { FormulaBuilder } from './formulaBuilder';
 import type { Formulas } from './formulas';
 import type { FreezeBar } from './freezeBar';
 import type { HiddenColumns } from './hiddenColumns';
@@ -79,6 +80,7 @@ export interface PluginTypeMap {
   emptyDataState: EmptyDataState;
   exportFile: ExportFile;
   filters: Filters;
+  formulaBuilder: FormulaBuilder;
   formulas: Formulas;
   freezeBar: FreezeBar;
   hiddenColumns: HiddenColumns;

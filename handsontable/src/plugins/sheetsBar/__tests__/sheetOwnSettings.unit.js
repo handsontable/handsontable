@@ -154,4 +154,40 @@ describe('SheetsBar: a sheet\'s own settings win over grid-level updates', () =>
 
     expect(hot.getColHeader(0)).toBe('c');
   });
+
+  it('applies later updates in full when enabling the bar threw while it built the workbook', () => {
+    hot = new Handsontable(container, { data: [[1, 2]], licenseKey: LICENSE_KEY });
+
+    const broken = {
+      get name() {
+        throw new Error('unreadable sheet');
+      },
+    };
+
+    expect(() => hot.updateSettings({
+      sheetsBar: { sheets: [{ name: 'Own', data: [[3, 4]], settings: { colHeaders: ['X', 'Y'] } }, broken] },
+    })).toThrow('unreadable sheet');
+
+    hot.updateSettings({ sheetsBar: false });
+    hot.updateSettings({ colHeaders: ['P', 'Q'] });
+
+    expect(hot.getColHeader()).toEqual(['P', 'Q']);
+  });
+
+  it('runs the filters added before the bar on the opening sheet of a bar enabled on a live grid', () => {
+    const declared = jest.fn();
+    const replacement = jest.fn();
+
+    hot = new Handsontable(container, { data: [[1, 2]], licenseKey: LICENSE_KEY });
+    hot._addSettingsFilter(settings => (settings.afterSelection === declared
+      ? { ...settings, afterSelection: replacement }
+      : settings));
+    hot.updateSettings({
+      sheetsBar: { sheets: [{ name: 'Own', data: [[3, 4]], settings: { afterSelection: declared } }] },
+    });
+    hot.selectCell(0, 0);
+
+    expect(replacement).toHaveBeenCalled();
+    expect(declared).not.toHaveBeenCalled();
+  });
 });
