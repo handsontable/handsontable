@@ -8,12 +8,14 @@ import { snapshot, type GridSnapshot } from './walker';
  * can go that is not on the grid, and what a press changed. The verdicts are `lib/pointer.mjs`.
  */
 
-// What a pointer can operate: native controls, the roles a widget is drawn with, and the header and cell
-// buttons that have no role. A cell is not here: a press on a cell selects it, by design.
+// What a pointer can operate: native controls, the roles a widget is drawn with, and the header, cell and
+// tab buttons that have no role. A cell is not here: a press on a cell selects it, by design. The active
+// sheet tab is skipped as the current one, but the chevron inside it opens the tab's menu on a click.
 export const CONTROLS = [
   'button', 'a[href]', 'input[type="checkbox"]', 'input[type="radio"]', '[role="button"]', '[role="menuitem"]', '[role="menuitemcheckbox"]',
   '[role="menuitemradio"]', '[role="option"]', '[role="tab"]', '[role="checkbox"]', '[role="switch"]', '[role="link"]', '.changeType',
   '.columnSorting', '.collapsibleIndicator', '.ht_nestingButton', '.htAutocompleteArrow', '.ht-multi-select-arrow',
+  '.ht-sheets-bar__tab--active .ht-sheets-bar__tab-chevron',
 ].join(', ');
 export const TARGET_MARK = 'data-a11y-pointer-target';
 const MAX_TARGETS = 12;
@@ -108,7 +110,8 @@ export async function markTargets(page: Page, root: string): Promise<PointerTarg
  * @param page The page.
  * @param root The root container selector.
  * @param id The control's mark.
- * @returns Both points, or `null` when the control is gone.
+ * @returns Both points, or `null` when the control is gone. `away` is `null` when the grid or its
+ *   portal covers every corner: a release there would land on the grid, not away from it.
  */
 export async function targetPoints(page: Page, root: string, id: number) {
   return page.evaluate(([selector, portalMark, mark, target]) => {
@@ -125,9 +128,9 @@ export async function targetPoints(page: Page, root: string, id: number) {
       const hit = document.elementFromPoint(x, y);
 
       return !hit || !regions.some(region => region.contains(hit));
-    }) ?? corners[0];
+    });
 
-    return { at: { x: box.x + (box.width / 2), y: box.y + (box.height / 2) }, away: { x: away[0], y: away[1] } };
+    return { at: { x: box.x + (box.width / 2), y: box.y + (box.height / 2) }, away: away ? { x: away[0], y: away[1] } : null };
   }, [root, PORTAL_MARK, TARGET_MARK, id] as const);
 }
 
@@ -167,7 +170,8 @@ export async function pointerState(page: Page, root: string): Promise<PointerSta
       dialog: !!plugin('dialog')?.isVisible?.(),
       toasts: all('.ht-notification__toast').filter(shown).length,
       popups: all('[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]').filter(shown).length,
-      sheet: all('[role="tab"][aria-selected="true"]').map(tab => (tab.textContent ?? '').trim()).join('|') || null,
+      // The sheets bar draws its tabs as buttons and marks the active one with a class and `aria-current`.
+      sheet: all('.ht-sheets-bar__tab--active, [role="tab"][aria-selected="true"]').map(tab => (tab.textContent ?? '').trim()).join('|') || null,
       pageNumber: plugin('pagination')?.getPaginationData?.()?.currentPage ?? null,
       // The controls drawn in the grid's own cells and headers are left out: their states follow the data,
       // the sort and the collapsed groups (read above), and a scroll redraws other rows into the same nodes.

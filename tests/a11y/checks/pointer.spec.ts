@@ -43,6 +43,10 @@ const THEME = 'main';
  * @returns The opened target and its controls.
  */
 async function fresh(page: Page, entry: A11yPage): Promise<{ opened: OpenedTarget; targets: PointerTarget[] }> {
+  // Left on the last control, the pointer would hover the reloaded page (open a submenu or a comment)
+  // before its controls are marked.
+  await page.mouse.move(0, 0);
+
   const opened = await openTarget(page, entry, THEME);
 
   await reachState(page, entry, opened);
@@ -50,6 +54,27 @@ async function fresh(page: Page, entry: A11yPage): Promise<{ opened: OpenedTarge
   await installSentinels(page, opened.root);
 
   return { opened, targets: await markTargets(page, opened.root) };
+}
+
+/**
+ * Where a control of the first load is on a reloaded page, or why it is not measured there. A mark is
+ * the control's place in the order the page marked its controls, so a reload that marks one control
+ * less, or one more, hands the id to another control: the click and the press would then land on a
+ * control other than the one the finding names.
+ *
+ * @param page The page.
+ * @param loaded The reloaded page and its controls.
+ * @param control The control, as the first load marked it.
+ * @returns Its points, or the reason it is not measured.
+ */
+async function locate(page: Page, loaded: { opened: OpenedTarget; targets: PointerTarget[] }, control: PointerTarget) {
+  if (loaded.targets[control.id]?.selector !== control.selector) {
+    return 'another control holds its mark after a reload';
+  }
+
+  const points = await targetPoints(page, loaded.opened.root, control.id);
+
+  return points ?? 'not drawn after a reload';
 }
 
 /**
@@ -79,10 +104,10 @@ async function cancellation(page: Page, testInfo: TestInfo, entry: A11yPage) {
 
     latest = clickPage.opened;
 
-    const clickPoints = await targetPoints(page, clickPage.opened.root, control.id);
+    const clickPoints = await locate(page, clickPage, control);
 
-    if (!clickPoints) {
-      controls.push({ ...control, measured: false, why: 'not drawn after a reload' });
+    if (typeof clickPoints === 'string') {
+      controls.push({ ...control, measured: false, why: clickPoints });
       continue;
     }
 
@@ -101,10 +126,13 @@ async function cancellation(page: Page, testInfo: TestInfo, entry: A11yPage) {
 
     latest = pressPage.opened;
 
-    const points = await targetPoints(page, pressPage.opened.root, control.id);
+    const points = await locate(page, pressPage, control);
 
-    if (!points) {
-      controls.push({ ...control, onClick, measured: false, why: 'not drawn after a reload' });
+    if (typeof points === 'string' || !points.away) {
+      controls.push({
+        ...control, onClick, measured: false,
+        why: typeof points === 'string' ? points : 'every corner of the viewport is on the grid or its portal, so no release is away from it',
+      });
       continue;
     }
 
