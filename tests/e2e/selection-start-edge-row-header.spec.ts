@@ -139,6 +139,16 @@ test.describe('Selection start edge next to an inline-start overlay', { tag: THE
       .toEqual(ON_THE_GRIDLINE);
   });
 
+  test('the first visible row of a scrolled grid keeps the whole top edge in view in the start column', async() => {
+    await grid.scrollToRow('rows-start', FIRST_VISIBLE_ROW);
+
+    // The cell is in the frozen column's clone, under the top start corner.
+    await expect.poll(() => grid.topEdge('rows-start', FIRST_VISIBLE_ROW, 0, { layer: 'inline_start' }))
+      .toEqual(ON_THE_CELL_EDGE);
+    await expect.poll(() => grid.topEdge('rows-start', FIRST_VISIBLE_ROW + 1, 0, { layer: 'inline_start' }))
+      .toEqual(ON_THE_GRIDLINE);
+  });
+
   test('the first row of an unscrolled grid keeps the whole top edge in view', async() => {
     await expect.poll(() => grid.topEdge('rows', 0, 1)).toEqual(ON_THE_CELL_EDGE);
   });

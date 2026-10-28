@@ -4,7 +4,7 @@ import { awaitBundle } from '../bundle';
 /** Which grid of the fixture a locator or probe addresses. */
 export type GridName =
   'row-headers' | 'frozen' | 'frozen-rows' | 'scrolled' | 'scrolled-top' | 'rtl' | 'no-row-headers' |
-  'rows' | 'rows-frozen' | 'rows-end';
+  'rows' | 'rows-frozen' | 'rows-end' | 'rows-start';
 
 /** How far the open editor reaches past the edited cell, in CSS pixels. */
 export interface EditorOverhang {
@@ -295,8 +295,8 @@ export class EditorRowHeaderBorderPage {
    * @param {number} row The visual row.
    * @param {number} col The visual column.
    * @param {object} [options] The measure options.
-   * @param {'master'|'inline_end'} [options.layer] The layer whose copy of the edge is measured. A cell of
-   *   the end column is drawn by the end clone, not by the master table under it.
+   * @param {'master'|'inline_start'|'inline_end'} [options.layer] The layer whose copy of the edge is
+   *   measured. A cell of a frozen column is drawn by that column's clone, not by the master table under it.
    * @param {boolean} [options.select] Select the cell first. Off, the selection a scroll left is measured.
    * @returns {Promise<TopEdgeMeasure|null>} `null` while the layer draws no top edge of the cell.
    */
@@ -304,7 +304,7 @@ export class EditorRowHeaderBorderPage {
     grid: GridName,
     row: number,
     col: number,
-    { layer = 'master', select = true }: { layer?: 'master' | 'inline_end', select?: boolean } = {},
+    { layer = 'master', select = true }: { layer?: 'master' | 'inline_start' | 'inline_end', select?: boolean } = {},
   ): Promise<TopEdgeMeasure | null> {
     return this.page.evaluate(([name, r, c, edgeLayer, shouldSelect]) => {
       const hot = (window as unknown as Record<string, {
