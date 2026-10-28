@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { test, expect, type CDPSession, type Page, type TestInfo } from '@playwright/test';
 import { A11Y_PAGES, fixtureUrl, type A11yPage } from '../pages.mjs';
-import { STATES, emulate, openTarget, reachState, releaseParkedFetches, type OpenedTarget } from '../harness';
+import { PORTAL_MARK, STATES, emulate, openTarget, reachState, releaseParkedFetches, type OpenedTarget } from '../harness';
 import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } from '../evidence';
 import {
   diffTabOrder,
@@ -67,6 +67,9 @@ const DOCS_ROWS = parseShortcutTables(readFileSync(new URL('../../../docs/conten
 const WALK_CRITERIA = ['2.1.1', '2.1.2', '2.4.3', '3.2.1', '3.2.2'];
 const POPUP_STATES = new Set(['context-menu', 'context-menu-submenu', 'dropdown-menu', 'editor', 'comment', 'formula-suggestions', 'formula-function-help']);
 const REST_STATES = new Set(['none', 'selection', 'data-provider']);
+// A popup the keyboard enters with a key of its own once the state has opened it: the formula function help
+// takes the focus on F6, while Tab commits the edit instead of entering it.
+const POPUP_ENTRY: Record<string, string> = { 'formula-function-help': 'F6' };
 // The probe page of the documented shortcuts: one grid with the plugins most rows need.
 const SHORTCUTS_PAGE: A11yPage = {
   id: 'keyboard-shortcuts', fixture: 'keyboard-shortcuts.html', state: 'none',
@@ -443,6 +446,9 @@ async function walkPage(page: Page, testInfo: TestInfo, entry: A11yPage): Promis
     // Open the popup again for the Tab walk inside it.
     await resetGrid(page, root);
     await STATES[entry.state](page, entry, root, cell);
+    if (POPUP_ENTRY[entry.state]) {
+      await page.keyboard.press(POPUP_ENTRY[entry.state]);
+    }
 
     const stops = await popupWalk(page, cdp, root);
     const walk = walkVerdict({ direction: 'forward', stops: [{ ...stops[0], region: 'start' }, ...stops] });
@@ -597,6 +603,10 @@ async function probePage(page: Page, testInfo: TestInfo, entry: A11yPage, probes
 
     await reachState(page, { ...entry, state: 'none' }, opened);
     await installSentinels(page, opened.root);
+    // A popup library's own portal (hyperformula-ui's on the formula builder page) is marked too, so a key
+    // that moves the focus into one of its popups reads as a move inside the product.
+    await page.evaluate(attribute => document.querySelectorAll('.hfe-popup-portal')
+      .forEach(portal => portal.setAttribute(attribute, '')), PORTAL_MARK);
 
     return opened;
   };
