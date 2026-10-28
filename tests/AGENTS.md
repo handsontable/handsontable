@@ -1015,12 +1015,14 @@ deletes its entry. Locally: `npm --prefix tests run test:a11y`, after `build:umd
 `build:styles.min` and `build:themes-css.min` (an unstyled grid gives wrong contrast results;
 `README.md`).
 
-- **The scan includes the grid's root container and that grid's own portal, nothing else.**
-  `.include(root)` plus the instance's `rootPortalElement`, the `body`-level element the core
-  appends for menus and the comment editor. The spec marks that element with a data attribute
-  before the scan (`markPortal()` in `a11y/harness.ts`) and includes the attribute, never the `.ht-portal` class:
-  every instance appends a portal, so on a page with several grids the class would scan the other
-  grids' menus too and key their findings to this page. The fixture page's own buttons, inputs
+- **The scan includes the grid's root container, that grid's own portal, and a popup portal its state
+  marks, nothing else.** `.include(root)` plus the instance's `rootPortalElement`, the `body`-level
+  element the core appends for menus and the comment editor. The spec marks that element with a data
+  attribute before the scan (`markPortal()` in `a11y/harness.ts`) and includes the attribute, never the
+  `.ht-portal` class: every instance appends a portal, so on a page with several grids the class would
+  scan the other grids' menus too and key their findings to this page. A state whose popups mount in a
+  portal of their own marks it with the same attribute: the formula states mark hyperformula-ui's
+  `.hfe-popup-portal` (`markFormulaPopups()` in the harness). The fixture page's own buttons, inputs
   and headings are not the product, and a finding on them would be baselined forever. A page
   whose fixture holds several grids names its `root` (`nested-headers`, `read-only`); the default
   is `[data-testid="grid"]`.
@@ -1343,9 +1345,9 @@ criterion.
   the keyboard (`STATES`) and marks the grid's own portal (`PORTAL`). A check therefore measures the DOM
   a keyboard user reaches, the one the axe scan reads. A state a check needs and the catalog lacks gets
   an opener in `STATES`, keyboard first. A state whose popups mount in a portal of their own marks that
-  one too (the formula states mark hyperformula-ui's `.hfe-popup-portal`), and it comes after the grid's
-  in `body`, so a check reads the marked portals with `querySelectorAll()`: a `querySelector()` sees the
-  grid's portal only and measures the page without the popup the state opened. The `test()` calls stay in the spec, never in a helper: a test
+  one too (see the scan's own rule above), and it comes after the grid's in `body`, so a check reads the
+  marked portals with `querySelectorAll()`: a `querySelector()` sees the grid's portal only and measures
+  the page without the popup the state opened. The `test()` calls stay in the spec, never in a helper: a test
   declared from a helper reports the helper as its location.
 - **A test declares its target first and attaches its part last.** `declareTarget()` (`a11y/evidence.ts`)
   writes the target as a test annotation before anything can fail, so the reporter can name a test that
