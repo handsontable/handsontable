@@ -6,14 +6,19 @@
  * with each alternative the inventory lists. The verdicts are here: 2.5.2 Pointer Cancellation (a
  * control that acts on the press, or completes after the pointer left it), 2.5.7 Dragging Movements (a
  * drag with no single-pointer alternative that does what it does), 2.1.1 Keyboard (a drag with no
- * keyboard alternative), and 2.5.1 Pointer Gestures (a path-based or multipoint gesture with no
- * single-pointer alternative). Policy: `tests/AGENTS.md`, "A11y: the checks beyond axe".
+ * keyboard alternative that does all it does), and 2.5.1 Pointer Gestures (a path-based or multipoint
+ * gesture with no single-pointer alternative). Policy: `tests/AGENTS.md`, "A11y: the checks beyond axe".
  */
 
 export const POINTER_CHECK = 'pointer';
-export const POINTER_CRITERIA = ['2.5.1', '2.5.2', '2.5.7'];
+export const POINTER_CRITERIA = ['2.1.1', '2.5.1', '2.5.2', '2.5.7'];
 export const GESTURES = ['drag', 'path', 'multipoint'];
 export const INPUTS = ['single-pointer', 'keyboard', 'pointer-modifier'];
+// The fields of `dragState()` in `a11y/checks/drag-runner.ts`, which an entry's `compare` names. A name
+// that is not one reads `undefined` after the drag and after the alternative alike, and passes.
+export const DRAG_FIELDS = ['widths', 'heights', 'columnOrder', 'rowOrder', 'data', 'frozen', 'selected', 'sheets', 'comment', 'editorText'];
+// A drag finding points at its entry in the inventory: that entry, or the product, is what a person fixes.
+export const DRAG_INVENTORY_FILE = 'tests/a11y/checks/drag-operations.mjs';
 
 // What a press does to the grid, from `effectsBetween()` of `lib/keyboard-walker.mjs` and the extra
 // effects the pointer spec reads. A selection, a focus move, a hover highlight, a caret or a scroll is
@@ -50,7 +55,7 @@ function label(target) {
  * releasing it after moving away did (`afterAway`), and what a plain click does (`onClick`, the positive
  * control). A control that acts on the press is `activates-on-press` (advisory when all it does is show
  * a popup); one that does what its click does after the pointer left it is `completes-after-pointer-left`.
- * A control whose click does nothing the snapshot sees is not measured.
+ * A control whose click does nothing the snapshot sees is not measured, unless its press acts.
  *
  * @param {object} input The measurement.
  * @param {{selector: string, name?: string}} input.target The control.
@@ -108,15 +113,18 @@ export function cancellationFindings({ target, onPress, afterAway, onClick }) {
 /**
  * The findings of one drag operation, from which of its alternatives the spec proved (`proven[i]` for
  * `operation.alternatives[i]`). 2.5.7 needs a single-pointer alternative that does all the drag does
- * (`covers: 'full'`); 2.1.1 needs a keyboard one. A pointer press with a key held is neither. An
- * alternative the inventory lists and the spec could not prove is `alternative-does-not-work`.
+ * (`covers: 'full'`); 2.1.1 needs a keyboard one that does all of it too. A pointer press with a key held
+ * is neither. An alternative the inventory lists and the spec could not prove is
+ * `alternative-does-not-work`, advisory for a press with a key held, which could not meet 2.5.7 anyway.
+ * Each finding points at the operation's entry in the inventory (`line`).
  *
  * @param {object} input The operation and the proof.
  * @param {object} input.operation The inventory entry.
  * @param {boolean[]} input.proven Whether each alternative did what the drag does.
+ * @param {number} [input.line] The entry's line in the inventory (`dragInventoryLines()`).
  * @returns {object[]} The findings.
  */
-export function dragFindings({ operation, proven }) {
+export function dragFindings({ operation, proven, line }) {
   if (operation.gesture !== 'drag') {
     return [];
   }
@@ -124,7 +132,7 @@ export function dragFindings({ operation, proven }) {
   const findings = [];
   const works = (input, covers) => operation.alternatives.some((alternative, index) => alternative.input === input && proven[index]
     && (!covers || alternative.covers === covers));
-  const base = { selector: operation.id, step: operation.operation };
+  const base = { selector: operation.id, step: operation.operation, file: DRAG_INVENTORY_FILE, ...(line ? { line } : {}) };
 
   if (!works('single-pointer', 'full')) {
     const partial = works('single-pointer');
@@ -140,26 +148,37 @@ export function dragFindings({ operation, proven }) {
         : 'Nothing but a drag does this with a pointer',
     });
   }
-  if (!works('keyboard')) {
+  if (!works('keyboard', 'full')) {
+    const partial = works('keyboard');
+
     findings.push({
       ...base,
       kind: 'drag-without-keyboard-alternative',
       criteria: ['2.1.1'],
       severity: 'serious',
       measured: { plugin: operation.plugin },
-      reason: 'Nothing on the keyboard does what this drag does',
+      reason: partial
+        ? 'The keyboard does only part of what the drag does'
+        : 'Nothing on the keyboard does what this drag does',
     });
   }
   operation.alternatives.forEach((alternative, index) => {
     if (!proven[index]) {
+      const modifier = alternative.input === 'pointer-modifier';
+
       findings.push({
         ...base,
+        // The alternative's place in the entry keeps two broken alternatives of one drag apart in
+        // `findingId()`, even two whose `how` reads alike.
+        selector: `${operation.id}#alternative-${index + 1}`,
         kind: 'alternative-does-not-work',
         criteria: [alternative.input === 'keyboard' ? '2.1.1' : '2.5.7'],
-        severity: 'serious',
+        severity: modifier ? 'advisory' : 'serious',
         step: alternative.how,
         measured: { input: alternative.input },
-        reason: 'The alternative the inventory lists did not do what the drag does',
+        reason: modifier
+          ? 'The press with a key held that the inventory lists did not do what the drag does; it could not meet 2.5.7 on its own'
+          : 'The alternative the inventory lists did not do what the drag does',
       });
     }
   });
@@ -174,9 +193,10 @@ export function dragFindings({ operation, proven }) {
  * @param {object} input The operation and the proof.
  * @param {object} input.operation The inventory entry.
  * @param {boolean[]} input.proven Whether each alternative did what the gesture does.
+ * @param {number} [input.line] The entry's line in the inventory (`dragInventoryLines()`).
  * @returns {object[]} The findings.
  */
-export function gestureFindings({ operation, proven }) {
+export function gestureFindings({ operation, proven, line }) {
   if (operation.gesture === 'drag') {
     return [];
   }
@@ -189,14 +209,48 @@ export function gestureFindings({ operation, proven }) {
     severity: 'serious',
     selector: operation.id,
     step: operation.operation,
+    file: DRAG_INVENTORY_FILE,
+    ...(line ? { line } : {}),
     measured: { gesture: operation.gesture, plugin: operation.plugin },
     reason: `A ${operation.gesture === 'path' ? 'path-based' : 'multipoint'} gesture has no single-pointer alternative`,
   }];
 }
 
 /**
- * What is wrong with the inventory, one line each: an unknown gesture or input, an id used twice, an
- * alternative without its `how` or `covers`.
+ * The criteria a target of one operation evaluates: the ones its findings can name. A drag is judged by
+ * 2.5.7 and 2.1.1 (`dragFindings()`), a path-based or multipoint gesture by 2.5.1 (`gestureFindings()`).
+ *
+ * @param {{gesture: string}} operation The inventory entry.
+ * @returns {string[]} The criteria, sorted.
+ */
+export function operationCriteria(operation) {
+  return operation.gesture === 'drag' ? ['2.1.1', '2.5.7'] : ['2.5.1'];
+}
+
+/**
+ * The line of each entry of the drag inventory, by its id: where a finding's annotation goes.
+ *
+ * @param {string} source The text of `a11y/checks/drag-operations.mjs`.
+ * @returns {Map<string, number>} The 1-based line of each entry's `id: '…'`.
+ */
+export function dragInventoryLines(source) {
+  const lines = new Map();
+
+  source.split('\n').forEach((text, index) => {
+    const id = /^\s*id: '([^']+)'/.exec(text);
+
+    if (id && !lines.has(id[1])) {
+      lines.set(id[1], index + 1);
+    }
+  });
+
+  return lines;
+}
+
+/**
+ * What is wrong with the inventory, one line each: an unknown gesture or input, an id used twice, a
+ * `compare` that is not a field of the drag state, no list of alternatives (an operation with none lists
+ * `[]`), an alternative without its `how` or `covers`.
  *
  * @param {object[]} inventory The inventory.
  * @returns {string[]} The problems.
@@ -221,7 +275,13 @@ export function inventoryProblems(inventory) {
     if (!entry.page === !entry.fixture) {
       problems.push(`${entry.id}: names a catalog page or a fixture, not both`);
     }
-    (entry.alternatives ?? []).forEach((alternative, index) => {
+    if (entry.compare !== undefined && !DRAG_FIELDS.includes(entry.compare)) {
+      problems.push(`${entry.id}: compare "${entry.compare}" is not one of ${DRAG_FIELDS.join(', ')}`);
+    }
+    if (!Array.isArray(entry.alternatives)) {
+      problems.push(`${entry.id}: alternatives is not a list (an operation with none lists [])`);
+    }
+    (Array.isArray(entry.alternatives) ? entry.alternatives : []).forEach((alternative, index) => {
       if (!INPUTS.includes(alternative.input)) {
         problems.push(`${entry.id}: alternative ${index + 1} has input "${alternative.input}", not one of ${INPUTS.join(', ')}`);
       }

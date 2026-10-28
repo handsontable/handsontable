@@ -5,8 +5,11 @@ import { join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DRAG_OPERATIONS, NOT_DRAG } from '../../a11y/checks/drag-operations.mjs';
 import { A11Y_PAGES } from '../../a11y/pages.mjs';
-import { actionEffects, cancellationFindings, dragFindings, gestureFindings, inventoryProblems, undeclaredPointerPlugins } from '../pointer.mjs';
-import { EVIDENCE_SCHEMA, validatePart } from '../a11y-evidence.mjs';
+import {
+  actionEffects, cancellationFindings, DRAG_FIELDS, DRAG_INVENTORY_FILE, dragFindings, dragInventoryLines, gestureFindings, inventoryProblems,
+  operationCriteria, undeclaredPointerPlugins,
+} from '../pointer.mjs';
+import { EVIDENCE_CHECKS, EVIDENCE_SCHEMA, findingId, validatePart } from '../a11y-evidence.mjs';
 
 // tests/AGENTS.md ("A11y: the checks beyond axe", pointer and drag alternatives): the verdicts behind
 // 2.5.1, 2.5.2 and 2.5.7. The spec presses, drags and clicks; the inventory of drag operations is
@@ -42,12 +45,14 @@ test('a control that completes after the pointer moved away is a 2.5.2 finding',
     'a menu that closes when the pointer is released outside it was cancelled, which is the pass');
 });
 
-test('a control whose click does nothing the snapshot sees is not measured, and has no finding', () => {
+test('a control whose click does nothing the snapshot sees is not measured, unless its press acts', () => {
   const quiet = cancellationFindings({ target: { selector: 'span' }, onPress: [], afterAway: [], onClick: ['focus-moves'] });
 
   assert.deepEqual(quiet, { findings: [], measured: false });
   assert.deepEqual(cancellationFindings({ target: { selector: 'button' }, onPress: [], afterAway: [], onClick: ['sorts'] }),
     { findings: [], measured: true }, 'acting on the click alone is the pass');
+  assert.equal(cancellationFindings({ target: { selector: 'td' }, onPress: ['editor-closes', 'value-changes'], afterAway: [], onClick: [] }).measured, true,
+    'a control whose press acts is measured, though its click changes nothing');
 });
 
 const OPERATION = {
@@ -79,6 +84,53 @@ test('a pointer press with a key held is neither a single-pointer nor a keyboard
 
   assert.deepEqual(dragFindings({ operation, proven: [true] }).map(item => item.kind),
     ['drag-without-single-pointer-alternative', 'drag-without-keyboard-alternative']);
+  assert.deepEqual(dragFindings({ operation, proven: [false] }).filter(item => item.kind === 'alternative-does-not-work')
+    .map(item => [item.criteria, item.severity]), [[['2.5.7'], 'advisory']], 'a broken one could not have met 2.5.7 anyway');
+});
+
+test('a keyboard alternative that does only part of what the drag does does not meet 2.1.1', () => {
+  const operation = {
+    ...OPERATION,
+    alternatives: [{ input: 'single-pointer', covers: 'full', how: 'a' }, { input: 'keyboard', covers: 'partial', how: 'Ctrl+X, Ctrl+V, without the cell meta' }],
+  };
+  const findings = dragFindings({ operation, proven: [true, true] });
+
+  assert.deepEqual(findings.map(item => [item.kind, item.criteria]), [['drag-without-keyboard-alternative', ['2.1.1']]]);
+  assert.match(findings[0].reason, /only part/);
+});
+
+test('every alternative that does not work has a finding id of its own, even two worded alike', () => {
+  const how = 'Ctrl+C, then Ctrl+V';
+  const operation = { ...OPERATION, alternatives: [{ input: 'keyboard', covers: 'full', how }, { input: 'keyboard', covers: 'partial', how }] };
+  const ids = dragFindings({ operation, proven: [false, false] })
+    .map(item => findingId('pointer', { ...item, page: 'resize-move', theme: 'main', variant: 'drag-column-resize' }));
+
+  assert.equal(new Set(ids).size, ids.length, 'a run compared with an earlier one tells the two apart');
+});
+
+test('a drag finding points at its entry in the inventory', () => {
+  const findings = [
+    ...dragFindings({ operation: OPERATION, proven: [false, false], line: 65 }),
+    ...gestureFindings({ operation: { ...OPERATION, gesture: 'path' }, proven: [], line: 65 }),
+  ];
+
+  assert.deepEqual([...new Set(findings.map(item => `${item.file}:${item.line}`))], [`${DRAG_INVENTORY_FILE}:65`]);
+  assert.equal(dragInventoryLines('export const DRAG_OPERATIONS = [\n  {\n    id: \'fill-handle\', plugin: \'autofill\',\n').get('fill-handle'), 3);
+
+  const lines = dragInventoryLines(readFileSync(new URL('../../a11y/checks/drag-operations.mjs', import.meta.url), 'utf8'));
+
+  assert.deepEqual(DRAG_OPERATIONS.filter(entry => !lines.has(entry.id)).map(entry => entry.id), [], 'every entry has a line to point at');
+});
+
+test('a drag target evaluates 2.1.1 and 2.5.7, a path or multipoint one 2.5.1: the criteria its findings can name', () => {
+  for (const operation of [OPERATION, { ...OPERATION, gesture: 'path', alternatives: [] }]) {
+    const named = [...dragFindings({ operation, proven: [false, false] }), ...gestureFindings({ operation, proven: [false, false] })]
+      .flatMap(item => item.criteria);
+
+    assert.deepEqual([...new Set(named)].sort(), operationCriteria(operation), operation.gesture);
+  }
+  assert.deepEqual(['2.1.1', '2.5.1', '2.5.7'].filter(id => !EVIDENCE_CHECKS.pointer.criteria.includes(id)), [],
+    'the check evidences every criterion its targets evaluate, so the summary counts them when nothing is found');
 });
 
 test('a path-based or multipoint gesture without a single-pointer alternative is a 2.5.1 finding', () => {
@@ -96,6 +148,14 @@ test('the inventory refuses an entry it cannot run', () => {
     'column-resize: an id is used twice',
     'column-resize: alternative 1 has input "voice", not one of single-pointer, keyboard, pointer-modifier',
   ]);
+});
+
+test('the inventory refuses a compared field the drag state does not have, and an entry with no list of alternatives', () => {
+  assert.deepEqual(inventoryProblems([{ ...OPERATION, compare: 'selection' }]),
+    [`column-resize: compare "selection" is not one of ${DRAG_FIELDS.join(', ')}`],
+    'a misspelled field reads undefined after the drag and after the alternative, so every full alternative would pass on its effect alone');
+  assert.deepEqual(inventoryProblems([{ ...OPERATION, alternatives: undefined }]), ['column-resize: alternatives is not a list (an operation with none lists [])']);
+  assert.deepEqual(inventoryProblems([{ ...OPERATION, compare: 'widths', alternatives: [] }]), [], 'no alternative is the finding, not a problem');
 });
 
 test('every plugin that follows the pointer is in the inventory or says why it is not', () => {

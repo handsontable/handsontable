@@ -215,7 +215,8 @@ export async function runSteps(page: Page, root: string, steps: Step[]): Promise
 /**
  * Reads the state after the last step until it has the expected effect, for up to two seconds: a
  * double-click autofit runs from a timer and a sheet tab settles after its transition. An alternative
- * that never has the effect returns its last read.
+ * that never has the effect returns its last read. A read that throws (the page crashed, or a step left
+ * no grid to read) is thrown with its cause: only the poll running out means the effect never came.
  *
  * @param page The page.
  * @param root The root container selector.
@@ -226,15 +227,25 @@ export async function runSteps(page: Page, root: string, steps: Step[]): Promise
 export async function settledState(page: Page, root: string, before: DragState, effect: string) {
   let after = await dragState(page, root);
   let effects = dragEffects(before, after);
+  let readError: unknown = null;
 
   try {
     await expect.poll(async() => {
-      after = await dragState(page, root);
+      try {
+        after = await dragState(page, root);
+        readError = null;
+      } catch (error) {
+        readError = error;
+        throw error;
+      }
       effects = dragEffects(before, after);
 
       return effects.includes(effect);
     }, { timeout: 2000, intervals: [100] }).toBe(true);
   } catch {
+    if (readError) {
+      throw readError;
+    }
     // The effect never came: the alternative does not have it.
   }
 

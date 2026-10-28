@@ -1,16 +1,19 @@
+import { readFileSync } from 'node:fs';
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
 import { A11Y_PAGES, fixtureUrl, type A11yPage } from '../pages.mjs';
 import { emulate, openTarget, reachState, releaseParkedFetches, type OpenedTarget } from '../harness';
 import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } from '../evidence';
-import { cancellationFindings, dragFindings, gestureFindings } from '../../lib/pointer.mjs';
+import {
+  cancellationFindings, DRAG_FIELDS, dragFindings, dragInventoryLines, gestureFindings, operationCriteria,
+} from '../../lib/pointer.mjs';
 import { DRAG_OPERATIONS, type DragOperation } from './drag-operations.mjs';
 import { dragState, runSteps, settledState, type Step } from './drag-runner';
 import { markTargets, pointerEffects, pointerState, settledPointerState, targetPoints, type PointerTarget } from './pointer-state';
 import { installSentinels } from './walker';
 
 /**
- * Pointer and drag alternatives: WCAG 2.5.1, 2.5.2 and 2.5.7. A pointer works the same on every theme, so
- * the check runs on the main theme.
+ * Pointer and drag alternatives: WCAG 2.5.1, 2.5.2 and 2.5.7, and 2.1.1 for every drag. A pointer works
+ * the same on every theme, so the check runs on the main theme.
  *
  * - **Pointer cancellation** (2.5.2): on every page of the catalog in its state, every kind of control
  *   the grid and its portal draw is clicked once on a fresh page (the positive control: what the click
@@ -22,8 +25,9 @@ import { installSentinels } from './walker';
  *   control; a drag that does not is a red test, because the inventory is wrong). Then each alternative
  *   runs on a page as it loads, and it is proven when it has the same effect and, for one that covers the
  *   whole drag, leaves the compared field as the drag left it. Every step but the last sets up; the state
- *   is read before and after the last. A path-based or multipoint gesture is judged for 2.5.1 the same
- *   way; the inventory has none today.
+ *   is read before and after the last. An alternative whose steps cannot run is not proven, and its cause
+ *   is a tooling problem. A path-based or multipoint gesture is judged for 2.5.1 the same way; the
+ *   inventory has none today.
  *
  * Report-only: a test fails for tooling only. Policy: `tests/AGENTS.md`, "A11y: the checks beyond axe".
  */
@@ -145,22 +149,33 @@ function pageOf(operation: DragOperation): A11yPage {
 }
 
 /**
- * Runs steps on a page as it loads: every step but the last sets up, and the state is read before and
- * after the last. The load's page errors are checked here, because the harness stops feeding its list
- * once the next load starts.
+ * Loads the page an operation runs on, in its state, with the parked fetches released.
  *
  * @param page The page.
  * @param entry The page to load.
- * @param effect The effect the state is read until.
- * @param steps The steps.
- * @param prepare Steps that run before any of them.
- * @returns The effects of the last step, the state it left, and the load's page errors.
+ * @returns The opened target.
  */
-async function perform(page: Page, entry: A11yPage, effect: string, steps: Step[], prepare: Step[] = []) {
+async function load(page: Page, entry: A11yPage): Promise<OpenedTarget> {
   const opened = await openTarget(page, entry, THEME);
 
   await reachState(page, entry, opened);
   await releaseParkedFetches(page);
+
+  return opened;
+}
+
+/**
+ * Runs steps on a page as it loaded: every step but the last sets up, and the state is read before and
+ * after the last.
+ *
+ * @param page The page.
+ * @param opened The loaded page (`load()`).
+ * @param effect The effect the state is read until.
+ * @param steps The steps.
+ * @param prepare Steps that run before any of them.
+ * @returns The effects of the last step and the state it left.
+ */
+async function perform(page: Page, opened: OpenedTarget, effect: string, steps: Step[], prepare: Step[] = []) {
   await runSteps(page, opened.root, [...prepare, ...steps.slice(0, -1)]);
 
   const before = await dragState(page, opened.root);
@@ -169,10 +184,11 @@ async function perform(page: Page, entry: A11yPage, effect: string, steps: Step[
 
   const { after, effects } = await settledState(page, opened.root, before, effect);
 
-  expect(opened.pageErrors, 'the page threw no error while it was measured').toEqual([]);
-
-  return { effects, before, after, pageErrors: opened.pageErrors };
+  return { effects, before, after };
 }
+
+// Where each entry of the inventory starts, so a drag finding's annotation lands on it.
+const DRAG_LINES = dragInventoryLines(readFileSync(new URL('./drag-operations.mjs', import.meta.url), 'utf8'));
 
 /**
  * Performs one drag operation and each of its alternatives.
@@ -188,30 +204,62 @@ async function dragOperation(page: Page, testInfo: TestInfo, operation: DragOper
 
   declareTarget(testInfo, target);
 
-  const drag = await perform(page, entry, operation.expect, operation.drag);
+  const dragPage = await load(page, entry);
+  const drag = await perform(page, dragPage, operation.expect, operation.drag);
   const environment = await readEnvironment(page);
 
+  // The harness feeds a page's errors to the list of its latest load only, so each load's list is
+  // checked once its steps are done, and the last load's goes to `attachEvidence()`.
+  expect(dragPage.pageErrors, 'the page threw no error while it was dragged').toEqual([]);
   expect(drag.effects, `the drag (${operation.operation}) has the effect the inventory names`).toContain(operation.expect);
+  expect(Object.keys(drag.after).sort(), 'DRAG_FIELDS of lib/pointer.mjs names every field of the drag state').toEqual([...DRAG_FIELDS].sort());
 
   const alternatives: Record<string, unknown>[] = [];
   const proven: boolean[] = [];
-  let pageErrors = drag.pageErrors;
+  const problems: string[] = [];
+  let latest = dragPage;
 
-  for (const alternative of operation.alternatives) {
-    const result = await perform(page, entry, operation.expect, alternative.steps, alternative.prepare);
+  for (const [index, alternative] of operation.alternatives.entries()) {
+    const described = { input: alternative.input, covers: alternative.covers, how: alternative.how };
+    const opened = await load(page, entry);
+    let result: Awaited<ReturnType<typeof perform>> | null = null;
+    let cause = '';
+
+    latest = opened;
+
+    try {
+      result = await perform(page, opened, operation.expect, alternative.steps, alternative.prepare);
+    } catch (error) {
+      // A step that cannot run (a menu item renamed, an F6 that no longer reaches the bar) or a read that
+      // throws is the alternative not working, and the drag's own findings still stand.
+      cause = String(error instanceof Error ? error.message : error).replace(/\u001b\[[0-9;]*m/g, '').split('\n')[0];
+    }
+
+    // A page that threw is a target not measured (`attachEvidence()`), whichever step it threw in.
+    expect(opened.pageErrors, `the page threw no error while alternative ${index + 1} ran`).toEqual([]);
+
+    if (!result) {
+      // The cause goes in the detail and in the problems, so a person tells a stale inventory from a
+      // broken product.
+      proven.push(false);
+      alternatives.push({ ...described, proven: false, error: cause });
+      problems.push(`${operation.id}: alternative ${index + 1} (${alternative.how}) did not run: ${cause}`);
+      continue;
+    }
+
     const same = alternative.covers !== 'full' || !operation.compare
       || JSON.stringify(result.after[operation.compare]) === JSON.stringify(drag.after[operation.compare]);
     const works = result.effects.includes(operation.expect) && same;
 
-    pageErrors = result.pageErrors;
     proven.push(works);
-    alternatives.push({ input: alternative.input, covers: alternative.covers, how: alternative.how, effects: result.effects, same, proven: works });
+    alternatives.push({ ...described, effects: result.effects, same, proven: works });
   }
 
-  const findings: EvidenceFinding[] = [...dragFindings({ operation, proven }), ...gestureFindings({ operation, proven })];
+  const line = DRAG_LINES.get(operation.id);
+  const findings: EvidenceFinding[] = [...dragFindings({ operation, proven, line }), ...gestureFindings({ operation, proven, line })];
 
   await attachEvidence(testInfo, {
-    target, startedAt, environment, findings, pageErrors, criteria: ['2.5.1', '2.5.7'],
+    target, startedAt, environment, findings, problems, pageErrors: latest.pageErrors, criteria: operationCriteria(operation),
     detail: { operation: operation.id, plugin: operation.plugin, gesture: operation.gesture, what: operation.operation, drag: drag.effects, alternatives },
   });
 }

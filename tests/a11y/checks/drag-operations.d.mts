@@ -1,4 +1,4 @@
-import type { Step } from './drag-runner';
+import type { DragState, Step } from './drag-runner';
 
 export interface DragAlternative {
   input: 'single-pointer' | 'keyboard' | 'pointer-modifier';
@@ -17,7 +17,7 @@ export interface DragOperation {
   fixture?: string;
   query?: string;
   expect: string;
-  compare?: 'widths' | 'heights' | 'columnOrder' | 'rowOrder' | 'data' | 'frozen' | 'selected' | 'sheets' | 'comment' | 'editorText';
+  compare?: keyof DragState;
   drag: Step[];
   alternatives: DragAlternative[];
 }

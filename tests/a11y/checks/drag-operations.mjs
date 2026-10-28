@@ -3,8 +3,8 @@
  * today. The pointer check (`pointer.spec.ts`) performs each drag (the positive control: it must have
  * the effect named here, or the test is red) and each alternative on a page as it loads, and judges
  * them with `dragFindings()` and `gestureFindings()` in `lib/pointer.mjs`: 2.5.7 needs a single-pointer
- * alternative that covers the whole drag, 2.1.1 a keyboard one. The evidence document cites this list,
- * so a reader sees every drag, its alternatives and whether each was proven.
+ * alternative that covers the whole drag, 2.1.1 a keyboard one that covers it too. The evidence
+ * document cites this list, so a reader sees every drag, its alternatives and whether each was proven.
  *
  * An entry:
  *

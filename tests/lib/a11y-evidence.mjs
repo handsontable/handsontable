@@ -187,7 +187,7 @@ export const EVIDENCE_CHECKS = Object.freeze({
   pointer: {
     title: 'Pointer and drag alternatives',
     spec: 'pointer.spec.ts',
-    criteria: ['2.5.1', '2.5.2', '2.5.7'],
+    criteria: ['2.1.1', '2.5.1', '2.5.2', '2.5.7'],
     pullRequest: true,
   },
   // Triage, not evidence: its records list what axe's wider rules found and could not decide, for a
