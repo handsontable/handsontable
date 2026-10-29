@@ -1177,3 +1177,20 @@ repository; a dated post keeps its text and gets an editor's note with `updatedD
    `report.evaluatedProductVersion`, and moves `report.next` on).
 2. Run `npm run docs:export-accessibility-strings` and commit the export.
 3. Run `npm run test:tooling` at the root; copy the export into the website repository.
+
+## 2.21 The keyboard shortcuts guide has an inventory in `tests/`
+
+`guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md` is read by the accessibility keyboard
+walker. `tests/a11y/checks/keyboard-shortcuts.mjs` holds one entry per row of the guide's tables, named
+by the section heading, the Windows keys, and the row's place among the rows of the same keys in that
+section, and `tests/lib/__tests__/keyboard-walker.test.mjs` fails the required `tooling tests` check
+when a row has no entry or an entry has no row. The gate is there so that no documented shortcut goes
+unchecked.
+
+- **A pull request that adds or removes a row, changes its Windows keys, or renames its section changes
+  the inventory too:** a `probe` that presses the key (the format is in the file's header comment), or
+  `notProbed` with the reason. Editing the action text or the macOS column needs nothing.
+- **The docs sync carries content-only commits,** so a row change that ships with its inventory entry
+  reaches `prod-docs/*` at the next cut or through a hand cherry-pick, like any tooling change.
+- **The walker itself is report-only:** it presses every probe and reports what each key did, and a
+  finding never fails a pull request. The rules are `tests/AGENTS.md`, "A11y: the checks beyond axe".

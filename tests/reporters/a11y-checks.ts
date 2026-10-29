@@ -34,7 +34,7 @@ import {
  * run"), and one whose part is not readable JSON or is malformed. Only a test that asked to be skipped is left out. A test that passed only on a retry is
  * flagged. All of them are tooling problems in the document, never a finding. The reporter does
  * not change the run's status: these checks are report-only, a red run is a tooling failure, and the
- * workflow step that runs them carries `continue-on-error`.
+ * workflow job that runs them carries `continue-on-error`.
  */
 export default class A11yChecksReporter implements Reporter {
   #suite: Suite | undefined;

@@ -15,15 +15,18 @@ export const WALKER_CRITERIA = ['2.1.1', '2.1.2', '2.1.4', '2.4.3', '3.2.1', '3.
 /**
  * Where a focus stop is: the sentinels the walker puts right before (`start`) and right after (`end`)
  * the grid's root container, the root itself (`grid`), the grid's own portal (`portal`), anything else
- * on the fixture page (`outside`), or no element at all (`body`: the focus left the document).
+ * on the fixture page (`outside`), or no element at all (`body`: the focus left the page, or the focused
+ * element went away). Playwright emulates page focus, so `document.hasFocus()` cannot tell the two apart;
+ * `walkFindings()` tells them by the stop before.
  */
 export const REGIONS = ['start', 'end', 'grid', 'portal', 'outside', 'body'];
 const PRODUCT = new Set(['grid', 'portal']);
 // The roles a focused element must carry a name for. A grid cell is not one: an empty cell has an
-// empty name, and that is its value, not a missing label.
+// empty name, and that is its value, not a missing label. `Date`, `DateTime` and `InputTime` are the
+// roles Chromium's accessibility tree gives a native date, datetime-local and time input.
 const NAMED_ROLES = new Set(['button', 'link', 'checkbox', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'option', 'tab', 'textbox',
   'combobox', 'searchbox', 'spinbutton', 'switch', 'radio', 'slider', 'columnheader', 'rowheader', 'treeitem', 'listbox', 'menu', 'dialog',
-  'alertdialog']);
+  'alertdialog', 'Date', 'DateTime', 'InputTime']);
 const NO_ROLE = new Set(['', 'generic', 'none', 'presentation']);
 
 /**
@@ -99,7 +102,7 @@ export function walkVerdict({ direction, stops, budgetExhausted = false, exitRou
 /**
  * The findings of one Tab walk: a stop in the product with no role or no name it needs (4.1.2), a
  * press that changed the context instead of only moving the focus (3.2.1), a press that moved the focus
- * out of an open modal dialog to the content behind it (2.4.3), and a trap (2.1.2). A
+ * out of an open modal dialog to the content behind it or left no element focused (2.4.3), and a trap (2.1.2). A
  * modal dialog that holds the focus is not a trap when it has an exit (`modalExit` says which); the
  * fixture's own stops are never judged.
  *
@@ -109,12 +112,15 @@ export function walkVerdict({ direction, stops, budgetExhausted = false, exitRou
  * @param {'forward'|'backward'} input.direction The direction.
  * @param {string|null} [input.modalExit] How the modal dialog that holds the focus can be left, or `null`.
  * @param {boolean} [input.opened] Whether the first stop after the sentinel is where a popup put the focus (no key pressed
- *   yet), so the steps count one press fewer.
+ *   yet), so the steps count one press fewer, and a Tab that left the focus on that element is an advisory
+ *   `tab-keeps-focus`.
+ * @param {Set<string>} [input.reported] The findings already reported on this page: the forward and the backward walk
+ *   share one, because a stop's role and name do not depend on the walk that reached it, so a stop both walks pass is
+ *   one finding, not one per direction, which would double the summary counts.
  * @returns {object[]} The findings.
  */
-export function walkFindings({ walk, stops, direction, modalExit = null, opened = false }) {
+export function walkFindings({ walk, stops, direction, modalExit = null, opened = false, reported = new Set() }) {
   const findings = [];
-  const reported = new Set();
   const key = direction === 'forward' ? 'Tab' : 'Shift+Tab';
   const label = (index) => {
     const press = opened ? index - 1 : index;
@@ -139,6 +145,16 @@ export function walkFindings({ walk, stops, direction, modalExit = null, opened 
         severity: 'serious',
         measured: { to: item.region },
         reason: 'The focus walked out of an open modal dialog to the content behind it, which the dialog hides from assistive technology',
+      });
+    } else if (index > 0 && item.region === 'body' && previous.region === 'grid') {
+      // The sentinels sit right before and right after the grid's container, so a key pressed inside it reaches
+      // one of them or another stop: no element focused means the focused element went away. A portal can be
+      // the last focusable element of the page, where Tab leaves the page, so a portal stop is not judged.
+      add('focus-lost', previous, index, {
+        criteria: ['2.4.3'],
+        severity: 'serious',
+        measured: { to: 'body' },
+        reason: `${key} from inside the grid left no element focused: the focused element went away instead of passing the focus on, so a screen reader has nothing to announce`,
       });
     }
     if (index === 0 || !isProductStop(item)) {
@@ -172,6 +188,21 @@ export function walkFindings({ walk, stops, direction, modalExit = null, opened 
     }
   });
 
+  const last = stops.at(-1);
+
+  // A popup walk stops on the first stop it reached twice; one that stopped on its first Tab never left the element.
+  if (opened && stops.length > 2 && isProductStop(last) && stopKey(last) === stopKey(stops.at(-2))) {
+    findings.push({
+      kind: 'tab-keeps-focus',
+      criteria: ['2.1.1'],
+      severity: 'advisory',
+      selector: last.locator ?? last.tag ?? last.region,
+      step: label(stops.length - 1),
+      measured: { editorOpen: last.signals?.editorOpen === true },
+      reason: `${key} left the focus on the element the popup put it on, so the walk inside the popup stopped: review whether it moved within the control `
+        + '(a date input\'s fields), took the key as input (a suggestion accepted) or did nothing, where the guide says Tab completes the entry and moves on',
+    });
+  }
   if (walk.exitRoute?.left && !walk.trapped) {
     findings.push({
       kind: 'tab-walk-needs-shortcut',
@@ -181,6 +212,19 @@ export function walkFindings({ walk, stops, direction, modalExit = null, opened 
       measured: { presses: walk.presses, routePresses: walk.exitRoute.presses },
       reason: `${key} moves from cell to cell and wraps rows, so leaving the grid took more than ${walk.presses} presses; `
         + `${walk.exitRoute.keys} left it, as the shortcut guide documents`,
+    });
+  }
+  // A walk that came back to a stop outside the product (the sentinel it started on, the fixture page) neither
+  // left nor held the focus in the product, but the keyboard never got past the grid either. A popup walk ends
+  // on a repeat by design, so it is not judged here.
+  if (!opened && !walk.reachedEnd && !walk.leftDocument && !walk.trapped && !walk.exitRoute?.left && walk.productStops > 0) {
+    findings.push({
+      kind: 'tab-walk-incomplete',
+      criteria: ['2.1.2'],
+      severity: 'advisory',
+      step: label(walk.presses),
+      measured: { presses: walk.presses, productStops: walk.productStops },
+      reason: `${key} never reached the other side of the grid: the walk came back to a stop outside it, so the keyboard cannot get past the grid this way`,
     });
   }
   if (walk.trapped && !(walk.modal && modalExit)) {
@@ -369,12 +413,62 @@ export function shortcutKey(row) {
 }
 
 /**
+ * The presses of a probe, each with the steps of its own: `press` is one key, a list of keys, or a list
+ * that mixes keys and `{ key, prepare }`.
+ *
+ * @param {{press: string|Array<string|{key: string, prepare: Array<string|object>}>}} probe The probe.
+ * @returns {Array<{key: string, prepare: Array<string|object>}>} The presses.
+ */
+export function probePresses(probe) {
+  return (Array.isArray(probe.press) ? probe.press : [probe.press])
+    .map(press => (typeof press === 'string' ? { key: press, prepare: [] } : { key: press.key, prepare: press.prepare ?? [] }));
+}
+
+/**
+ * The step that names one press of a probe in its findings and problems: the documented keys, the key
+ * pressed with the steps of its own (`after`), the steps after it (`then`), and where the focus starts.
+ * A probe finding has a step and no selector, so the step is what tells two findings of a page apart: a
+ * probe that presses one key twice from different steps of its own names them, or the two would share
+ * an id.
+ *
+ * @param {{keys: string, probe: object}} entry The inventory entry.
+ * @param {{key: string, prepare?: Array<string|object>}} press One press of `probePresses()`.
+ * @returns {string} The step.
+ */
+export function probeStep({ keys, probe }, { key, prepare = [] }) {
+  const own = prepare.map(stepText).join(', ');
+  const then = (probe.then ?? []).map(stepText).join(', ');
+
+  return `${keys} (${key}${own ? ` after ${own}` : ''}${then ? `, then ${then}` : ''}) on ${probe.setup}${probe.at ? ` at (${probe.at.join(', ')})` : ''}`;
+}
+
+/**
+ * One prepare or `then` step of a probe, as words.
+ *
+ * @param {string|{api?: string, focus?: string, type?: string}} step The step.
+ * @returns {string} The words.
+ */
+function stepText(step) {
+  if (typeof step === 'string') {
+    return step;
+  }
+  if (step.type !== undefined) {
+    return `typing "${step.type}"`;
+  }
+  if (step.focus !== undefined) {
+    return `focus on ${step.focus}`;
+  }
+
+  return step.api ?? JSON.stringify(step);
+}
+
+/**
  * What changed between two snapshots of the grid, as effect names: the selection moved or changed,
  * an editor opened or closed, a menu opened, closed or moved its highlight, the comment editor opened
- * or closed, the data, the scroll, the sort, the merges, the frozen counts, the clipboard, the
- * collapsed groups, the filters, the highlight of an editor's list or the rows a row selection holds
- * changed, a link opened, the text of the editor or of the focused field changed, the caret moved, the
- * focus moved, the focus left the product.
+ * or closed, the highlighted cell's comment changed, the data, the scroll, the sort, the merges, the frozen counts, the clipboard, the
+ * collapsed groups, the filters, the highlight of an open editor's list or the rows a row selection holds
+ * changed, a link opened, the text of the open editor or of the focused field changed, the open editor's
+ * caret moved, the focus moved, the focus left the product.
  *
  * @param {object} before The snapshot before the key.
  * @param {object} after The snapshot after it.
@@ -396,11 +490,19 @@ export function effectsBetween(before, after) {
   if (before.editorOpen && !after.editorOpen) {
     effects.add('editor-closes');
   }
-  if (differs('editorText')) {
+
+  // The editor's text, caret and list read null while it is closed, so they change only while it stays open:
+  // a key that opens or closes the editor did that, it did not edit the text.
+  const editing = before.editorOpen === true && after.editorOpen === true;
+
+  if (editing && differs('editorText')) {
     effects.add('text-changes');
   }
-  if (differs('caret')) {
+  if (editing && differs('caret')) {
     effects.add('caret-moves');
+  }
+  if (editing && differs('listSelection')) {
+    effects.add('list-moves');
   }
   if ((after.menus ?? 0) > (before.menus ?? 0)) {
     effects.add('menu-opens');
@@ -417,10 +519,13 @@ export function effectsBetween(before, after) {
   if (before.comment && !after.comment) {
     effects.add('comment-closes');
   }
+  // The comment of the highlighted cell: one that changed while the selection stayed is a comment saved.
+  if (!differs('highlight') && differs('commentText')) {
+    effects.add('comment-changes');
+  }
 
   const fields = [['dataHash', 'value-changes'], ['scroll', 'scrolls'], ['sorting', 'sorts'], ['merged', 'merges'], ['frozen', 'freezes'],
-    ['clipboard', 'clipboard'], ['links', 'link-opens'], ['collapsed', 'collapses'], ['filtered', 'filters'], ['listSelection', 'list-moves'],
-    ['rowSelection', 'row-selection-changes']];
+    ['clipboard', 'clipboard'], ['links', 'link-opens'], ['collapsed', 'collapses'], ['filtered', 'filters'], ['rowSelection', 'row-selection-changes']];
 
   for (const [field, effect] of fields) {
     if (differs(field)) {
@@ -443,15 +548,17 @@ export function effectsBetween(before, after) {
 /**
  * The verdict of one documented shortcut: `ok` when it did what the guide says (or anything, for an
  * `any` probe), `nothing` when it changed nothing at all, `focus-left` when it moved the focus out of
- * the grid and the guide does not say it leaves, `unexpected` when it did something else.
+ * the grid and the guide does not say it leaves, `unexpected` when it did something else or something
+ * the guide rules out.
  *
  * @param {object} input The probe.
  * @param {string|string[]} input.expect The effect the guide describes, or several that each satisfy it.
+ * @param {string[]} [input.forbid] Effects the key must not have (Escape on the comment editor must not save it).
  * @param {object} input.before The snapshot before the key.
  * @param {object} input.after The snapshot after it.
  * @returns {{status: 'ok'|'nothing'|'unexpected'|'focus-left', effects: string[]}} The verdict.
  */
-export function probeVerdict({ expect, before, after }) {
+export function probeVerdict({ expect, forbid = [], before, after }) {
   const effects = effectsBetween(before, after);
   const expected = Array.isArray(expect) ? expect : [expect];
 
@@ -460,6 +567,9 @@ export function probeVerdict({ expect, before, after }) {
   }
   if (effects.includes('focus-leaves') && !expected.includes('focus-leaves')) {
     return { status: 'focus-left', effects };
+  }
+  if (forbid.some(effect => effects.includes(effect))) {
+    return { status: 'unexpected', effects };
   }
   if (expected.includes('any') || expected.some(effect => effects.includes(effect))) {
     return { status: 'ok', effects };

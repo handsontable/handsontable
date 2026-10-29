@@ -2,9 +2,9 @@ name: A11y
 
 # The accessibility scan: axe-core over the curated Playwright fixture pages, on the
 # three themes, compared with the committed baseline (tests/a11y/axe-baseline.json;
-# the policy is tests/AGENTS.md, "A11y: the axe scan and its baseline"). One job, on
-# purpose: the run has about fifty jobs already, and the scan takes a minute, so it
-# does not fan out by theme. It runs in warn mode: a finding that needs action (new,
+# the policy is tests/AGENTS.md, "A11y: the axe scan and its baseline"). The `axe` job is
+# one job on purpose: the run has about fifty jobs already, and the scan takes a minute,
+# so it does not fan out by theme. It runs in warn mode: a finding that needs action (new,
 # grown, improved or fixed) is a ::warning annotation, a row in the job summary, and a
 # `neutral` result on the `A11y / axe report` check run, and the job stays green. The
 # only reds are tooling failures: a fixture that does not load, an invalid baseline, a
@@ -33,8 +33,9 @@ name: A11y
 # tests/playwright.a11y-checks.config.ts (the keyboard walker first), each writing an evidence
 # document the Accessibility Conformance Report generator cites per criterion
 # (tests/test-results/a11y-checks/<check>.json, the `a11y-checks-evidence` artifact). Report-only on
-# every level: the job and its run step carry `continue-on-error`, a finding is a row in the job
-# summary and a `neutral` `A11y / <check> report` check run, and a check run is never `failure`.
+# every level: a finding is a row in the job summary and a `neutral` `A11y / <check> report` check
+# run, a check run is never `failure`, and the job carries `continue-on-error`, so a tooling failure
+# turns the job red, as it does the axe job, and never the Tests pipeline.
 # A pull request runs the checks that finish in under two minutes (`pullRequest` in EVIDENCE_CHECKS,
 # tests/lib/a11y-evidence.mjs); the A11y nightly (a11y-nightly.yml, `nightly: true`) runs them all.
 # The policy is tests/AGENTS.md, "A11y: the checks beyond axe".
@@ -169,11 +170,14 @@ jobs:
       - name: Install the Playwright test package
         run: pnpm install --filter handsontable-tests
       # The reporter (tests/reporters/a11y-checks.ts) writes one evidence document per check. A red
-      # step is a tooling failure the document already records, so the step never decides the job.
+      # step is a tooling failure the document already records: it turns the job red, the steps below
+      # still run (`!cancelled()`), and the job's `continue-on-error` keeps the Tests pipeline green.
+      # The step times out before the job (a step timeout is a step failure, so the evidence, the summary
+      # and the check runs below still come), sized per suite: a pull request runs only the checks that
+      # finish in under two minutes, and a hung one holds the Tests pipeline until the timeout.
       - name: Run the checks beyond axe
         id: run
-        continue-on-error: true
-        timeout-minutes: 20
+        timeout-minutes: ${{ inputs.nightly && 20 || 10 }}
         run: cd tests && npx playwright test --config playwright.a11y-checks.config.ts
       # The evidence: the documents, every target's detail and the Playwright traces of a red test. A
       # nightly's is what the conformance report cites, so it is kept for 30 days.

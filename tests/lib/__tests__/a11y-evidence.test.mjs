@@ -286,6 +286,23 @@ test('a part that measured can report a step it could not take as a problem, and
   assert.deepEqual(validatePart(part({ problems: [3] })), ['problems is not an array of strings']);
 });
 
+test('a target with a step it could not take is measured, but is not counted as evaluating its criteria', () => {
+  // Every probe of a target can fail to set up and leave no finding: that is no evidence of a pass.
+  const doc = mergeEvidence({
+    check: 'demo-check',
+    checks: CHECKS,
+    parts: [
+      part({ problems: ['probe Ctrl+M: the range was not selected', 'probe Ctrl+Z: the editor did not open'] }),
+      part({ target: { page: 'dialog', theme: 'main', state: 'none' } }),
+    ],
+  });
+
+  assert.deepEqual(doc.targets.map(target => [target.page, target.status, target.problems]), [['dialog', 'measured', 0], ['grid', 'measured', 2]]);
+  assert.deepEqual(doc.summary.byCriterion['2.1.2'], { name: 'No Keyboard Trap', level: 'A', evaluated: 1, findings: 0, pages: [] });
+  assert.equal(doc.summary.measured, 2, 'the target still measured what it could');
+  assert.deepEqual(validateEvidence(doc, { checks: CHECKS }), []);
+});
+
 test('a finding cannot move itself to another target or take another id', () => {
   const stray = { ...TRAP, id: 'focus-visible', page: 'dialog', theme: 'horizon', variant: 'rtl', url: '/elsewhere.html' };
   const doc = mergeEvidence({ check: 'demo-check', checks: CHECKS, parts: [part({ findings: [stray] })] });
