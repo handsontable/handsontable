@@ -183,6 +183,43 @@ describe('ColumnSummary destinations of a replaced data array', () => {
     });
   });
 
+  describe('when the plugin is turned off', () => {
+    it('writes the original destination value back into the data it leaves', () => {
+      const first = [[1], [1], [1], [null]];
+
+      createGrid(first);
+      hot.updateSettings({ columnSummary: false });
+
+      expect(first[3][0]).toBe(null);
+      expect(hot.getDataAtCell(3, 0)).toBe(null);
+    });
+
+    it('sums the same input when the plugin comes back and the array is loaded again', () => {
+      const first = [[1], [1], [1], [null]];
+
+      createGrid(first);
+      hot.updateSettings({ columnSummary: false });
+      hot.loadData([[5], [5], [5], [null]]);
+      hot.updateSettings({ columnSummary: SUMMARY });
+      hot.loadData(first);
+
+      expect(hot.getDataAtCell(3, 0)).toBe(3);
+    });
+
+    it('keeps the total and its record when an options update re-enables the plugin', () => {
+      const first = [[1], [1], [1], [null]];
+
+      createGrid(first);
+      hot.updateSettings({ columnSummary: [{ ...SUMMARY[0] }] });
+
+      expect(hot.getDataAtCell(3, 0)).toBe(3);
+
+      hot.loadData([[5], [5], [5], [null]]);
+
+      expect(first[3][0]).toBe(null);
+    });
+  });
+
   describe('writing the values back', () => {
     it('leaves a frozen row alone and keeps the grid usable after `loadData()` and `updateData()`', () => {
       const first = [[1], [2], [3], [null]];
@@ -366,6 +403,36 @@ describe('ColumnSummary destinations of a replaced data array', () => {
       plugin.setActiveSheet('A');
 
       expect(hot.getDataAtCell(3, 0)).toBe(6);
+    });
+  });
+
+  describe('under the sheets bar, with a summary in one sheet\'s own settings', () => {
+    it('keeps the sheet\'s total over round trips through a sheet without it', () => {
+      const dataA = [[1], [1], [1], [null]];
+
+      hot = new Handsontable(container, {
+        licenseKey: LICENSE_KEY,
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: dataA, settings: { columnSummary: SUMMARY } },
+            { name: 'B', data: [[5], [5], [5], [null]] },
+          ],
+        },
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+      const totals = [hot.getDataAtCell(3, 0)];
+
+      for (let round = 0; round < 3; round++) {
+        plugin.setActiveSheet('B');
+
+        expect(dataA[3][0]).toBe(null);
+
+        plugin.setActiveSheet('A');
+        totals.push(hot.getDataAtCell(3, 0));
+      }
+
+      expect(totals).toEqual([3, 3, 3, 3]);
     });
   });
 });

@@ -265,8 +265,15 @@ export class ColumnSummary extends BasePlugin {
 
   /**
    * Disables the plugin functionality for this Handsontable instance.
+   *
+   * When the settings turn the plugin off (not the disable step of `updatePlugin()`), the data the grid
+   * holds gets its destination values back, so it sums the same input when the plugin comes back.
    */
   disablePlugin(): void {
+    if (!this.isEnabled()) {
+      this.#restoreDestinationOriginals();
+    }
+
     this.endpoints = null;
     this.settings = null;
     this.currentEndpoint = null;

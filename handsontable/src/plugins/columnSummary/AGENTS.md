@@ -373,7 +373,7 @@ destination cell held before the first result (`beforeChange` with the plugin's 
 after the last one, read back from the cell (`afterChange`), so two summaries writing one cell in one batch
 leave the value that landed. Right before the array is replaced (`beforeLoadData`, and `beforeUpdateData` with
 another array) the outgoing array gets the original values back, written straight into its rows: no hooks, no
-undo step, no render. Five rules:
+undo step, no render. Six rules:
 
 - **Never throw from the restore.** `replaceData()` destroys the `DataMap` before those hooks run, so a throw
   there leaves a grid that cannot read, render or destroy. A row frozen after the result was written
@@ -389,6 +389,11 @@ undo step, no render. Five rules:
 - **The records outlive `updatePlugin()`**, because a switch re-enables the plugin before its data loads. A
   grid with a `modifyRowData` listener (NestedRows) records nothing, because its physical rows are not array
   indexes.
+- **A real disable restores too.** When the settings turn the plugin off (`!this.isEnabled()` in
+  `disablePlugin()`, the way `search.ts` tells it apart from the `updatePlugin()` cycle), the data the grid
+  holds gets its original values back and the records are dropped. Otherwise the disabled plugin's later
+  loads never restore, and the array sums its old total again when the plugin returns (a summary in one
+  sheet's own settings, switched away from and back).
 
 A duplicate of the sheet the grid shows is a deep copy of rows that hold the results, so the sheets bar asks
 `restoreDestinationValuesInCopy()` (`@private`) to put the original values into the copy, row for row, or the
