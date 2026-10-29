@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-29T11:17:01.554Z",
+  "generatedAt": "2026-10-29T11:19:24.839Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -876,39 +876,6 @@
       "needsTicket": true
     },
     {
-      "key": "visual|visual-tests/tests/js-only/editors/handsontable/rtl/position-scrolled-viewport.spec.ts|js-only/editors/handsontable/rtl/position-scrolled-viewport-2",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/editors/handsontable/rtl/position-scrolled-viewport.spec.ts",
-      "line": null,
-      "title": "js-only/editors/handsontable/rtl/position-scrolled-viewport-2",
-      "count7": 0,
-      "count30": 3,
-      "countAll": 3,
-      "runs30": 3,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "js/chromium-theme-main"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-09-30T10:53:44Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36700182805/attempts/2",
-        "branch": "docs/SheetJS-CDN-xlsx",
-        "leg": "js/chromium-theme-main",
-        "status": "failed",
-        "error": "differs from base/develop (pr tier); render sha256 78539c431a55",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
       "key": "visual|visual-tests/tests/js-only/notification/rtl/notification-top-end.spec.ts|js-only/notification/rtl/notification-top-end-1",
       "tier": "visual",
       "file": "visual-tests/tests/js-only/notification/rtl/notification-top-end.spec.ts",
@@ -1006,6 +973,39 @@
         "leg": "e2e-horizon-min",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/editors/handsontable/rtl/position-scrolled-viewport.spec.ts|js-only/editors/handsontable/rtl/position-scrolled-viewport-2",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/editors/handsontable/rtl/position-scrolled-viewport.spec.ts",
+      "line": null,
+      "title": "js-only/editors/handsontable/rtl/position-scrolled-viewport-2",
+      "count7": 0,
+      "count30": 2,
+      "countAll": 3,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "js/chromium-theme-main"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-30T10:53:44Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36700182805/attempts/2",
+        "branch": "docs/SheetJS-CDN-xlsx",
+        "leg": "js/chromium-theme-main",
+        "status": "failed",
+        "error": "differs from base/develop (pr tier); render sha256 78539c431a55",
         "source": "ci"
       },
       "needsTicket": true
