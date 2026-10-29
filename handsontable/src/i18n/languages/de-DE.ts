@@ -132,6 +132,8 @@ const dictionary = {
   [C.SHEETS_BAR_PAGE_NEXT]: 'Blätter vorwärts scrollen',
   [C.SHEETS_BAR_SHEET_CHANGED]: 'Blatt [name] aktiviert',
   [C.SHEETS_BAR_RENAME_REJECTED]: 'Blattname nicht geändert: [name] wird bereits verwendet',
+  [C.SHEETS_BAR_SHEET_DUPLICATED]: 'Blatt [name] als [copy] dupliziert',
+  [C.SHEETS_BAR_SHEET_MOVED]: 'Blatt [name] an Position [position] von [count] verschoben',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Blatt',
 
   [C.LOADING_TITLE]: 'Lädt...',

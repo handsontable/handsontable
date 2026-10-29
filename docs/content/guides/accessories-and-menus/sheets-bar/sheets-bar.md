@@ -203,6 +203,7 @@ Right-click a tab, or click the chevron on the active tab, to open its menu: **R
 
 - Double-click a tab to rename it.
 - Drag a tab to reorder sheets.
+- On a touch screen, swipe the tab strip to scroll it. To reorder sheets, press and hold a tab until it lifts, then drag it. To open a tab's menu, press and hold the tab, then lift your finger without moving it.
 - Click the **+** button (Add sheet) to append a sheet.
 - Click the list button (All sheets) to pick a sheet from a list.
 
@@ -400,7 +401,9 @@ With `exportFormulas: true`, a formula that references another sheet keeps that 
 
 ## Related keyboard shortcuts
 
-Each tab is one stop in the tab order.
+The tab strip is one stop in the tab order: <kbd>**Tab**</kbd> moves the focus to the active tab, and the arrow keys move it along the strip.
+
+Screen readers name the grid after the active sheet. To give the grid a name of your own, set `aria-label` or `aria-labelledby` on `hot.rootElement`, and the sheets bar keeps your name.
 
 | Windows | macOS | Action |
 | --- | --- | --- |
