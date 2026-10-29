@@ -36,6 +36,7 @@ import {
   type CellBlock,
   type CellBlockProvider,
 } from './cellBlocks';
+import { FocusOrder, type FocusNodeData } from './focusOrder';
 
 /**
  * Checks if the value is a focus-position object with integer `row` and `col` fields.
@@ -385,6 +386,22 @@ class Selection {
    * highlight settles, used once by the next arrow-key move, and cleared by a new selection.
    */
   #blockEntryFocus: CellCoords | null = null;
+  /**
+   * The order Enter and Tab move the focus in inside a range that holds blocks. Rebuilt from the
+   * selection on every such move, so it never has to follow other selection changes.
+   *
+   * @type {FocusOrder}
+   */
+  readonly #blockFocusOrder: FocusOrder;
+  /**
+   * The step of the focus move in progress, as the public `modifyTransformFocus` hook left it.
+   */
+  #focusDelta: { row: number, col: number } | null = null;
+  /**
+   * `true` while Enter or Tab sets a focus the focus order has already placed on a block's first
+   * visible cell, so `#applyCellBlocks()` leaves the highlight where it is.
+   */
+  #isFocusOrderMove = false;
 
   /**
    * Initializes the Selection manager with grid settings and table API references, and sets up transformation modules and highlight layers.
@@ -458,10 +475,19 @@ class Selection {
     this.#extenderTransformation.addLocalHook('beforeColumnWrap',
       (...args: unknown[]) => this.runLocalHooks('beforeColumnWrap', ...args));
 
-    this.#focusTransformation.addLocalHook('beforeTransformStart',
-      (...args: unknown[]) => this.runLocalHooks('beforeModifyTransformFocus', ...args));
+    this.#focusTransformation.addLocalHook('beforeTransformStart', (delta: CellCoords) => {
+      this.runLocalHooks('beforeModifyTransformFocus', delta);
+      // After the public hook, so a listener that changes the step changes where the focus goes.
+      this.#focusDelta = { row: delta.row ?? 0, col: delta.col ?? 0 };
+    });
     this.#focusTransformation.addLocalHook('afterTransformStart',
       (...args: unknown[]) => this.runLocalHooks('afterModifyTransformFocus', ...args));
+
+    this.#blockFocusOrder = new FocusOrder({
+      blockGetter: (row: number, column: number) => this.#cellBlockProvider?.getBlockAt(row, column) ?? null,
+      rowIndexMapper: this.tableProps.rowIndexMapper,
+      columnIndexMapper: this.tableProps.columnIndexMapper,
+    });
   }
 
   /**
@@ -1053,10 +1079,10 @@ class Selection {
       this.runLocalHooks('afterSetFocus', cellRange.highlight);
     }
 
-    // Last, because two things move the highlight after it is written above: `syncWith()` snaps it
-    // onto the nearest visible cell, and a consumer of `afterSetFocus` can reassign it outright -
-    // `mergeCells` does, to pull the focus onto a merged parent. Capturing any earlier records the
-    // cell the focus was on BEFORE the merge, so the next trim judges the wrong record.
+    // Last, because two things can move the highlight after it is written above: `syncWith()` snaps
+    // it onto the nearest visible cell, and a consumer of `afterSetFocus` can reassign it outright.
+    // Capturing any earlier records a cell the focus is no longer on, so the next trim judges the
+    // wrong record.
     this.#captureHighlightRecord();
   }
 
@@ -1110,12 +1136,29 @@ class Selection {
       return;
     }
 
+    this.#focusDelta = null;
+
     const {
       selectionLayer,
       visualCoords,
     } = this.#focusTransformation.transformStart(rowDelta, colDelta);
+    const blockFocus = this.#findBlockFocus(visualCoords, selectionLayer);
 
-    this.setRangeFocus(visualCoords.normalize(), selectionLayer);
+    if (blockFocus) {
+      this.#isFocusOrderMove = true;
+
+      try {
+        this.setRangeFocus(blockFocus.coords, blockFocus.layerIndex);
+      } finally {
+        this.#isFocusOrderMove = false;
+      }
+
+      // `setRangeFocus()` remembered the cell it placed the focus on. An arrow key leaves from the
+      // cell the move came in on instead, as it does after a click.
+      this.#blockEntryFocus = blockFocus.entry;
+    } else {
+      this.setRangeFocus(visualCoords.normalize(), selectionLayer);
+    }
   }
 
   /**
@@ -1697,7 +1740,9 @@ class Selection {
 
     this.#blockEntryFocus = highlight.clone();
 
-    if (block !== null) {
+    // Enter and Tab put the highlight on the block's first visible cell themselves. Snapping it to the
+    // corner would let `syncWith()` move a hidden corner to the range's first visible cell instead.
+    if (block !== null && !this.#isFocusOrderMove) {
       // The top-left can be hidden. `VisualSelection#syncWith()` then moves the visual highlight on.
       highlight.assign({ row: block.row, col: block.col });
     }
@@ -1842,6 +1887,111 @@ class Selection {
     delta[axis] = scanDirection < 0 ?
       -Math.max(countInRange(nearest, toIndex) - 1, 1) :
       Math.max(countInRange(toIndex, nearest) - 1, 1);
+  }
+
+  /**
+   * Finds where Enter or Tab moves the focus inside a range that holds blocks (DEV-161). The focus
+   * walks the focus order instead of the cells: it stops once on each block the layer covers whole,
+   * never on a cell a block covers, and wraps to the next layer when the rest of this one is blocks.
+   * Returns `null` with no provider or no step, and the cell-by-cell move stands.
+   *
+   * @param {CellCoords} transformedCoords Where the cell-by-cell move put the focus.
+   * @param {number} transformedLayer The layer the cell-by-cell move put the focus on.
+   * @returns {{coords: CellCoords, entry: CellCoords, layerIndex: number} | null}
+   */
+  #findBlockFocus(transformedCoords: CellCoords, transformedLayer: number) {
+    const delta = this.#focusDelta;
+    const range = this.getActiveSelectedRange();
+
+    this.#focusDelta = null;
+
+    if (this.#cellBlockProvider === null || delta === null || !range || (delta.row === 0 && delta.col === 0)) {
+      return null;
+    }
+
+    const node = this.#stepBlockFocusOrder(range, delta);
+
+    // With no node to start from the order answers `undefined` (see `FocusOrder#getNextVerticalNode`).
+    if (!node) {
+      return null;
+    }
+
+    const { selectionLayer, rowStart, rowEnd, colStart, colEnd } = node;
+    const { row, col } = this.#getFirstVisibleCell(rowStart, rowEnd, colStart, colEnd);
+    const coords = this.tableProps.createCellCoords(row, col);
+    const isEnteredInNode = selectionLayer === transformedLayer &&
+      transformedCoords.row !== null && transformedCoords.col !== null &&
+      transformedCoords.row >= rowStart && transformedCoords.row <= rowEnd &&
+      transformedCoords.col >= colStart && transformedCoords.col <= colEnd;
+
+    // The focus lands on the node's first visible cell, in a header selection too. The cell the
+    // cell-by-cell move reached is the entry when it is in the node, so an arrow key leaves the
+    // block from the side the focus came from. Otherwise the move skipped it, and the entry is the
+    // cell the focus is on.
+    return {
+      coords,
+      entry: isEnteredInNode ? transformedCoords.clone() : coords.clone(),
+      layerIndex: selectionLayer,
+    };
+  }
+
+  /**
+   * Builds the focus order from the selection, puts it on the node the focus is on, and steps it
+   * once in the direction of the move.
+   *
+   * @param {CellRange} range The active range, before the move.
+   * @param {{row: number, col: number}} delta The step of the move.
+   * @returns {FocusNodeData}
+   */
+  #stepBlockFocusOrder(range: CellRange, delta: { row: number, col: number }): FocusNodeData {
+    const focusOrder = this.#blockFocusOrder;
+    const focus = range.highlight.clone().normalize();
+
+    focusOrder.buildFocusOrder(Array.from(this.selectedRange));
+
+    if (focus.row !== null && focus.col !== null) {
+      focusOrder.setActiveNode(focus.row, focus.col, this.getActiveSelectionLayerIndex());
+    }
+
+    if (!range.highlight.isCell()) {
+      // From a header, the first step lands on the cell the header points at, not on the one after it.
+      if (delta.row > 0 || delta.col > 0) {
+        focusOrder.setPrevNodeAsActive();
+
+      } else if (
+        range.getHorizontalDirection() === 'E-W' && delta.col < 0 ||
+        range.getVerticalDirection() === 'S-N' && delta.row < 0
+      ) {
+        focusOrder.setNextNodeAsActive();
+      }
+    }
+
+    if (delta.col !== 0) {
+      return delta.col < 0 ? focusOrder.getPrevHorizontalNode() : focusOrder.getNextHorizontalNode();
+    }
+
+    return delta.row < 0 ? focusOrder.getPrevVerticalNode() : focusOrder.getNextVerticalNode();
+  }
+
+  /**
+   * Finds the top-left visible cell of a rectangle. An axis with no visible line in the rectangle
+   * keeps its first index.
+   *
+   * @param {number} rowStart The first row.
+   * @param {number} rowEnd The last row.
+   * @param {number} colStart The first column.
+   * @param {number} colEnd The last column.
+   * @returns {{row: number, col: number}}
+   */
+  #getFirstVisibleCell(rowStart: number, rowEnd: number, colStart: number, colEnd: number) {
+    const { rowIndexMapper, columnIndexMapper } = this.tableProps;
+    const row = rowIndexMapper.getNearestNotHiddenIndex(rowStart, 1);
+    const col = columnIndexMapper.getNearestNotHiddenIndex(colStart, 1);
+
+    return {
+      row: row !== null && row <= rowEnd ? row : rowStart,
+      col: col !== null && col <= colEnd ? col : colStart,
+    };
   }
 
   /**
@@ -3287,9 +3437,9 @@ class Selection {
   /**
    * Commits a grid-tracking fit the way the shrink side commits its clamp: through `refresh()`, under
    * the `shift` source unless a caller named one, so the selection hooks fire for the grow as they do
-   * for the shrink. `afterSelectionEnd` is what MergeCells rebuilds its Enter/Tab focus order from, so
-   * without it Enter kept wrapping at the pre-grow last row. `shift` keeps the viewport still and the
-   * editor closed, which is what `alter()`'s own re-lay of the selection does.
+   * for the shrink, and a listener that keeps state per selection (`afterSelectionEnd`) sees the grown
+   * range. `shift` keeps the viewport still and the editor closed, which is what `alter()`'s own re-lay
+   * of the selection does.
    *
    * With an editor open the editor owns the selection and the hooks would re-prepare it, so the
    * highlights are re-committed directly instead, as the editor-open restore does.

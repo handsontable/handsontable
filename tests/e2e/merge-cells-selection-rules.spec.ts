@@ -60,6 +60,22 @@ test.describe('MergeCells: a selection covers every merge it touches whole (DEV-
     expect(await grid.selectedLayers()).toEqual([[0, 0, 1, 1], [5, 5, 5, 5]]);
   });
 
+  test('an arrow key after Tab moves on from the focus, not from the merge Tab passed', async({ page, theme, bundle }) => {
+    const grid = new MergeCellsSelectionRulesPage(page, theme, bundle);
+
+    await grid.goto('two-layers'); // the merge B1:B2
+    await grid.drag([0, 0], [2, 2]); // A1:C3
+    // Enter takes the focus to A2. Tab then skips B2, which the merge B1:B2 covers, and lands on C2.
+    await grid.pressKeys('Enter', 'Tab');
+
+    expect(await grid.focus()).toEqual([1, 2]);
+
+    await grid.pressKeys('ArrowDown');
+
+    // C3, below the focus. B3, below the merge cell Tab passed, was the bug.
+    expect(await grid.selected()).toEqual([2, 2, 2, 2]);
+  });
+
   test('a drag the other way keeps its direction: the start corner moves out to cover the merges', async({ page, theme, bundle }) => {
     const grid = new MergeCellsSelectionRulesPage(page, theme, bundle);
 

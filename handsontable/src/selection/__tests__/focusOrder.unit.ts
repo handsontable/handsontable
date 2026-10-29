@@ -1,6 +1,6 @@
 import { FocusOrder } from '../focusOrder';
 
-describe('MergeCells', () => {
+describe('Selection', () => {
   describe('FocusOrder', () => {
     const GRID_SIZE = 30;
 
@@ -57,7 +57,7 @@ describe('MergeCells', () => {
         }
       });
 
-      return (row, column) => matrix.get(row)?.get(column) ?? false;
+      return (row, column) => matrix.get(row)?.get(column) ?? null;
     }
 
     /**
@@ -180,7 +180,7 @@ describe('MergeCells', () => {
       const rowMapper = createMapperMock([]);
       const colMapper = createMapperMock([]);
       const focusOrder = new FocusOrder({
-        mergedCellsGetter: createMergedCellsGetter([]),
+        blockGetter: createMergedCellsGetter([]),
         rowIndexMapper: rowMapper,
         columnIndexMapper: colMapper,
       });
@@ -202,7 +202,7 @@ describe('MergeCells', () => {
     it('should merge a fully-contained merged cell into a single focus stop', () => {
       const merge = { row: 1, col: 1, rowspan: 2, colspan: 2 };
       const focusOrder = new FocusOrder({
-        mergedCellsGetter: createMergedCellsGetter([merge]),
+        blockGetter: createMergedCellsGetter([merge]),
         rowIndexMapper: createMapperMock([]),
         columnIndexMapper: createMapperMock([]),
       });
@@ -227,7 +227,7 @@ describe('MergeCells', () => {
     it('should produce no focus stop for a merged cell that sticks out of the selection', () => {
       const merge = { row: 0, col: 0, rowspan: 3, colspan: 3 };
       const focusOrder = new FocusOrder({
-        mergedCellsGetter: createMergedCellsGetter([merge]),
+        blockGetter: createMergedCellsGetter([merge]),
         rowIndexMapper: createMapperMock([]),
         columnIndexMapper: createMapperMock([]),
       });
@@ -305,7 +305,7 @@ describe('MergeCells', () => {
         const colMapper = createMapperMock(hiddenColumns);
         const mergedCellsGetter = createMergedCellsGetter(merges);
         const focusOrder = new FocusOrder({
-          mergedCellsGetter,
+          blockGetter: mergedCellsGetter,
           rowIndexMapper: rowMapper,
           columnIndexMapper: colMapper,
         });

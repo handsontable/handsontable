@@ -117,6 +117,17 @@ export class MergeCellsSelectionRulesPage {
   }
 
   /**
+   * The cell the focus is on, as `[row, col]`.
+   */
+  async focus(): Promise<Array<number | null> | undefined> {
+    return this.page.evaluate(() => {
+      const range = window.hot.getSelectedRangeActive();
+
+      return range ? [range.highlight.row, range.highlight.col] : undefined;
+    });
+  }
+
+  /**
    * Every selection layer as `[fromRow, fromCol, toRow, toCol]`, oldest first.
    */
   async selectedLayers(): Promise<number[][] | undefined> {

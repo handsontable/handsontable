@@ -420,5 +420,114 @@ describe('Selection', () => {
 
       expect(selection.isMultiple()).toBe(true);
     });
+
+    /**
+     * Presses Enter (or Tab) `count` times and reads the highlight after each press.
+     */
+    function focusSteps(selection: Selection, rowDelta: number, colDelta: number, count: number) {
+      const steps = [];
+
+      for (let i = 0; i < count; i++) {
+        selection.transformFocus(rowDelta, colDelta);
+        steps.push(highlightOf(selection));
+      }
+
+      return steps;
+    }
+
+    it('should move the Enter focus inside a range cell by cell when no provider is registered', () => {
+      const selection = new Selection(createSettings(), createTableProps());
+
+      selection.selectCells([[0, 0, 2, 2]]);
+      selection.setRangeFocus(new CellCoords(2, 0));
+
+      expect(focusSteps(selection, 1, 0, 2)).toEqual([[0, 1], [1, 1]]);
+    });
+
+    it('should stop the Enter focus once on a block and skip the cells it covers', () => {
+      const selection = new Selection(createSettings(), createTableProps());
+
+      selection.setCellBlockProvider(createProvider([createBlock(0, 1, 2, 1)]));
+      selection.selectCells([[0, 0, 2, 2]]); // A1:C3 with the block B1:B2
+      selection.setRangeFocus(new CellCoords(2, 0));
+
+      // B1 is the block, then B3: B2 is part of the block, not a stop of its own.
+      expect(focusSteps(selection, 1, 0, 3)).toEqual([[0, 1], [2, 1], [0, 2]]);
+    });
+
+    it('should wrap the Tab focus to the next layer when the rest of the layer is blocks', () => {
+      const selection = new Selection(createSettings({ selectionMode: 'multiple' }), createTableProps());
+
+      selection.setCellBlockProvider(createProvider([createBlock(0, 1, 2, 1)]));
+      selection.selectCells([[0, 0, 1, 1], [5, 5, 5, 5]]);
+      selection.setRangeFocus(new CellCoords(1, 0), 0);
+      selection.transformFocus(0, 1);
+
+      // B2 is covered by the block B1:B2, so the layer has no stop left after A2.
+      expect(selection.getActiveSelectionLayerIndex()).toBe(1);
+      expect(highlightOf(selection)).toEqual([5, 5]);
+      expect(selection.selectedRange.peekByIndex(0)!.highlight.col).toBe(0);
+    });
+
+    it('should move the focus in the direction a modifyTransformFocus listener leaves', () => {
+      const selection = new Selection(createSettings(), createTableProps());
+
+      selection.addLocalHook('beforeModifyTransformFocus', (delta: CellCoords) => {
+        delta.row = 0;
+        delta.col = 1;
+      });
+      selection.setCellBlockProvider(createProvider([createBlock(0, 1, 2, 1)]));
+      selection.selectCells([[0, 0, 2, 2]]);
+      selection.setRangeFocus(new CellCoords(1, 0));
+      selection.transformFocus(1, 0); // Enter, turned into Tab by the listener
+
+      // C2: a horizontal step past the block B1:B2, not A3 below and not B2 inside the block.
+      expect(highlightOf(selection)).toEqual([1, 2]);
+    });
+
+    it('should start an arrow-key move from the focus after Tab skipped a block', () => {
+      const selection = new Selection(createSettings(), createTableProps());
+
+      selection.setCellBlockProvider(createProvider([createBlock(0, 1, 2, 1)]));
+      selection.selectCells([[0, 0, 2, 2]]);
+      selection.setRangeFocus(new CellCoords(1, 0));
+      selection.transformFocus(0, 1); // Tab from A2 to C2, past B2, which the block B1:B2 covers
+      selection.transformStart(1, 0); // ArrowDown
+
+      // C3, below the focus, not B3 below the block cell Tab skipped.
+      expect(layers(selection)).toEqual([[2, 2, 2, 2]]);
+    });
+
+    it('should leave a block Shift+Tab moved onto from the column the focus came in on', () => {
+      const selection = new Selection(createSettings(), createTableProps());
+
+      selection.setCellBlockProvider(createProvider([createBlock(1, 1, 1, 2)]));
+      selection.selectCells([[0, 0, 2, 3]]); // A1:D3 with the block B2:C2
+      selection.setRangeFocus(new CellCoords(1, 3));
+      selection.transformFocus(0, -1); // Shift+Tab from D2 onto the block, entered at C2
+
+      expect(highlightOf(selection)).toEqual([1, 1]);
+
+      selection.transformStart(-1, 0); // ArrowUp
+
+      // C1, above the cell the focus came in on, not B1 above the block's corner.
+      expect(layers(selection)).toEqual([[0, 2, 0, 2]]);
+    });
+
+    it('should put the focus on the first visible cell of a block whose corner is hidden', () => {
+      const tableProps = createTableProps();
+
+      tableProps.columnIndexMapper.createAndRegisterIndexMap('hidden', 'hiding').setValueAtIndex(1, true);
+
+      const selection = new Selection(createSettings(), tableProps);
+
+      selection.setCellBlockProvider(createProvider([createBlock(0, 1, 2, 2)]));
+      selection.selectCells([[0, 0, 2, 2]]); // A1:C3 with the block B1:C2, column B hidden
+      selection.setRangeFocus(new CellCoords(0, 0));
+      selection.transformFocus(0, 1); // Tab
+
+      // C1, the block's first visible cell, not its hidden corner B1.
+      expect(highlightOf(selection)).toEqual([0, 2]);
+    });
   });
 });

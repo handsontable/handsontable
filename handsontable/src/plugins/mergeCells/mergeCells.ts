@@ -1,4 +1,3 @@
-import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 import type { Overlay } from '../../3rdparty/walkontable/src/overlay/regions/_base';
 import type { default as Table } from '../../3rdparty/walkontable/src/table/baseTable';
@@ -15,7 +14,6 @@ import { warn } from '../../helpers/console';
 import { rangeEach, clamp } from '../../helpers/number';
 import { getStyle } from '../../helpers/dom/element';
 import { isChrome } from '../../helpers/browser';
-import { FocusOrder, type FocusNodeData } from './focusOrder';
 import type { CellBlockProvider } from '../../selection/cellBlocks';
 import { createMergeCellRenderer } from './renderer';
 import {
@@ -280,38 +278,14 @@ export class MergeCells extends BasePlugin {
    */
   declare selectionCalculations: SelectionCalculations;
   /**
-   * Where the focus last settled, recorded after Selection snapped it to a merge's top-left. Only
-   * `#onBeforeSelectionFocusSet` reads it, and only to tell a focus that came from a header. The cell
-   * a merge was entered on is Selection's own (`Selection#blockEntryFocus`), not this.
-   *
-   * @type {CellCoords}
-   */
-  #lastSelectedFocus: CellCoords | null = null;
-  /**
-   * The last used transformation delta.
-   *
-   * @type {{ row: number, col: number }}
-   */
-  #lastFocusDelta = { row: 0, col: 0 };
-  /**
-   * Tells Selection which merges a cell range must cover whole: the ones on screen.
+   * Tells Selection which merges a cell range must cover whole: the ones on screen. Selection also
+   * walks them for Enter and Tab inside a range.
    */
   #cellBlockProvider: CellBlockProvider = {
     getBlocks: () => this.mergedCellsCollection.getVisibleMergedCells(),
     // The lookup matrix holds the merges on screen only.
     getBlockAt: (row: number, column: number) => this.mergedCellsCollection.get(row, column) || null,
   };
-  /**
-   * The module responsible for providing the correct focus order (vertical and horizontal) within a selection that
-   * contains merged cells.
-   *
-   * @type {FocusOrder}
-   */
-  #focusOrder = new FocusOrder({
-    mergedCellsGetter: (row: number, column: number) => this.mergedCellsCollection.get(row, column),
-    rowIndexMapper: this.hot.rowIndexMapper,
-    columnIndexMapper: this.hot.columnIndexMapper,
-  });
   /**
    * The cell renderer responsible for rendering the merged cells.
    *
@@ -465,13 +439,6 @@ export class MergeCells extends BasePlugin {
     this.selectionCalculations = new SelectionCalculations(this);
 
     this.addHook('afterInit', this.#onAfterInit);
-    this.addHook('modifyTransformFocus', this.#onModifyTransformFocus);
-    this.addHook('beforeSelectionHighlightSet', this.#onBeforeSelectionHighlightSet);
-    this.addHook('beforeSetRangeStart', this.#onBeforeSetRangeStart);
-    this.addHook('beforeSetRangeStartOnly', this.#onBeforeSetRangeStart);
-    this.addHook('beforeSelectionFocusSet', this.#onBeforeSelectionFocusSet);
-    this.addHook('afterSelectionFocusSet', this.#onAfterSelectionFocusSet);
-    this.addHook('afterSelectionEnd', this.#onAfterSelectionEnd);
     this.addHook('modifyGetCellCoords', this.#onModifyGetCellCoords);
     this.addHook('modifyGetCoordsElement', this.#onModifyGetCellCoords);
     this.addHook('beforeRenderer', this.#onBeforeRenderer);
@@ -2798,51 +2765,6 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * `modifyTransformFocus` hook callback.
-   *
-   * @param {object} delta The transformation delta.
-   */
-  #onModifyTransformFocus = (delta: { row: number, col: number }) => {
-    this.#lastFocusDelta.row = delta.row;
-    this.#lastFocusDelta.col = delta.col;
-  };
-
-  /**
-   * Tells whether a selection layer was made from a column or a row header. A header range is not snapped to
-   * merged cells. Without the argument it answers for the last layer. Both selection hooks pass the active
-   * layer, the one the selection is changing.
-   *
-   * @param {number} [layerLevel] The selection layer to ask about.
-   * @returns {boolean}
-   */
-  #isSelectedByHeader(layerLevel?: number) {
-    const { selection } = this.hot;
-
-    return selection.isSelectedByColumnHeader(layerLevel) || selection.isSelectedByRowHeader(layerLevel);
-  }
-
-  /**
-   * Remembers where the focus settles, so the focus order (Enter, Tab) can tell a focus that came
-   * from a header. Selection itself lays the range out over the merges (`#cellBlockProvider`).
-   */
-  #onBeforeSelectionHighlightSet = () => {
-    const selectedRange = this.hot.getSelectedRangeActive();
-
-    if (!selectedRange) {
-      return;
-    }
-
-    const { highlight } = selectedRange;
-
-    if (
-      this.#isSelectedByHeader(this.hot.selection.getActiveSelectionLayerIndex()) ||
-      (highlight.row !== null && highlight.col !== null)
-    ) {
-      this.#lastSelectedFocus = highlight.clone();
-    }
-  };
-
-  /**
    * The `modifyGetCellCoords` hook callback.
    *
    * @param {number} row Row index.
@@ -2913,134 +2835,6 @@ export class MergeCells extends BasePlugin {
       toggleMergeItem(this)
     );
   }
-
-  /**
-   * Clears the last selected coordinates before setting a new selection range.
-   */
-  #onBeforeSetRangeStart = () => {
-    this.#lastSelectedFocus = null;
-  };
-
-  /**
-   * Detects if the last selected cell was a header cell.
-   */
-  #onBeforeSelectionFocusSet = () => {
-    if (!this.#lastSelectedFocus || this.#lastSelectedFocus.isCell()) {
-      return;
-    }
-
-    const selectedRange = this.hot.getSelectedRangeActive();
-
-    if (!selectedRange) {
-      return;
-    }
-
-    const verticalDir = selectedRange.getVerticalDirection();
-    const horizontalDir = selectedRange.getHorizontalDirection();
-    const focusCoords = this.#lastSelectedFocus.clone().normalize();
-
-    if (focusCoords.row === null || focusCoords.col === null) {
-      return;
-    }
-
-    this.#focusOrder.setActiveNode(focusCoords.row, focusCoords.col);
-
-    if (this.#lastFocusDelta.row > 0 || this.#lastFocusDelta.col > 0) {
-      this.#focusOrder.setPrevNodeAsActive();
-
-    } else if (
-      horizontalDir === 'E-W' && this.#lastFocusDelta.col < 0 ||
-      verticalDir === 'S-N' && this.#lastFocusDelta.row < 0
-    ) {
-      this.#focusOrder.setNextNodeAsActive();
-    }
-  };
-
-  /**
-   * Changes the focus selection to the next or previous cell or merged cell position.
-   *
-   * @param {number} row The visual row index.
-   * @param {number} column The visual column index.
-   */
-  #onAfterSelectionFocusSet = (row: number, column: number) => {
-    const { columnIndexMapper, rowIndexMapper } = this.hot;
-    let activeSelectionLayerIndex = this.hot.getActiveSelectionLayerIndex();
-    let notHiddenRowIndex = null;
-    let notHiddenColumnIndex = null;
-
-    if (this.#lastFocusDelta.col < 0) {
-      const { rowEnd, colEnd, selectionLayer } = this.#focusOrder.getPrevHorizontalNode();
-
-      notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colEnd, -1);
-      notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowEnd, -1);
-      activeSelectionLayerIndex = selectionLayer;
-
-    } else if (this.#lastFocusDelta.col > 0) {
-      const { rowStart, colStart, selectionLayer } = this.#focusOrder.getNextHorizontalNode();
-
-      notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colStart, 1);
-      notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowStart, 1);
-      activeSelectionLayerIndex = selectionLayer;
-
-    } else if (this.#lastFocusDelta.row < 0) {
-      const { rowEnd, colEnd, selectionLayer } = this.#focusOrder.getPrevVerticalNode();
-
-      notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colEnd, -1);
-      notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowEnd, -1);
-      activeSelectionLayerIndex = selectionLayer;
-
-    } else if (this.#lastFocusDelta.row > 0) {
-      const { rowStart, colStart, selectionLayer } = this.#focusOrder.getNextVerticalNode();
-
-      notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colStart, 1);
-      notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowStart, 1);
-      activeSelectionLayerIndex = selectionLayer;
-    }
-
-    if (notHiddenRowIndex !== null || notHiddenColumnIndex !== null) {
-      this.hot.selection.setActiveSelectionLayerIndex(activeSelectionLayerIndex);
-
-      const selectedRange = this.hot.getSelectedRangeActive();
-      const resolvedRow = notHiddenRowIndex ?? 0;
-      const resolvedCol = notHiddenColumnIndex ?? 0;
-      const coords = this.hot._createCellCoords(resolvedRow, resolvedCol);
-      const mergeParent = this.mergedCellsCollection.get(resolvedRow, resolvedCol);
-      const focusHighlight = this.hot.selection.highlight.getFocus();
-
-      row = resolvedRow;
-      column = resolvedCol;
-
-      if (selectedRange) {
-        if (mergeParent) {
-          selectedRange.highlight.assign({
-            row: this.hot.rowIndexMapper.getNearestNotHiddenIndex(mergeParent.row, 1) ?? undefined,
-            col: this.hot.columnIndexMapper.getNearestNotHiddenIndex(mergeParent.col, 1) ?? undefined,
-          });
-        } else {
-          selectedRange.highlight.assign(coords);
-        }
-      }
-
-      focusHighlight.clear();
-      focusHighlight
-        .add(coords)
-        .commit();
-    }
-
-    this.#focusOrder.setActiveNode(row, column, activeSelectionLayerIndex);
-    this.#lastFocusDelta = { row: 0, col: 0 };
-  };
-
-  /**
-   * Creates the horizontal and vertical cells order matrix (linked lists) for focused cell.
-   */
-  #onAfterSelectionEnd = () => {
-    const selectedRanges = this.hot.getSelectedRange();
-
-    if (selectedRanges) {
-      this.#focusOrder.buildFocusOrder(selectedRanges);
-    }
-  };
 
   /**
    * The `afterGetCellMeta` hook callback.
