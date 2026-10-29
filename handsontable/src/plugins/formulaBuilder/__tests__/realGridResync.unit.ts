@@ -6,6 +6,7 @@ import { registerPlugin } from '../../registry';
 import { Formulas } from '../../formulas';
 import { UndoRedo } from '../../undoRedo';
 import { ColumnSorting } from '../../columnSorting';
+import { ManualRowMove } from '../../manualRowMove';
 import { FormulaBuilder } from '../formulaBuilder';
 import { getFormulaBuilderAdapter } from '../handsontableAdapter';
 
@@ -37,6 +38,7 @@ describe('FormulaBuilder state that has to follow the grid', () => {
     registerPlugin(FormulaBuilder);
     registerPlugin(UndoRedo);
     registerPlugin(ColumnSorting);
+    registerPlugin(ManualRowMove);
     registerLanguageDictionary(deDE);
   });
 
@@ -152,6 +154,37 @@ describe('FormulaBuilder state that has to follow the grid', () => {
 
       expect(grid.getDataAtCell(0, 1)).toBe(3);
       expect(barText()).toBe('=3+3');
+    });
+
+    it('shows the cell under the highlight after a row move', () => {
+      const grid = createGrid({ data: [['=1+1', 1], ['=2+2', 2], ['=3+3', 3]], manualRowMove: true });
+
+      grid.selectCell(0, 0);
+      expect(barText()).toBe('=1+1');
+
+      (grid.getPlugin('manualRowMove') as unknown as { moveRow(from: number, to: number): void }).moveRow(0, 2);
+      grid.render();
+
+      expect(grid.getSourceDataAtCell(grid.toPhysicalRow(0), 0)).toBe('=2+2');
+      expect(barText()).toBe('=2+2');
+    });
+
+    it('keeps the text typed in the address box through a settings or same-data update', () => {
+      const data = [[1, 2, '=A1+B1'], [4, 5, 6]];
+      const grid = createGrid({ data });
+
+      grid.selectCell(0, 2);
+
+      const input = container.querySelector('.hfe-formula-bar__address-input') as HTMLInputElement;
+
+      input.value = 'B2';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+
+      grid.updateSettings({});
+      expect(input.value).toBe('B2');
+
+      grid.updateSettings({ data: data.map(row => row.slice()) });
+      expect(input.value).toBe('B2');
     });
 
     it('shows the restored content after an undo', () => {

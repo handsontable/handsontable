@@ -345,6 +345,10 @@ export class FormulaBuilder extends BasePlugin {
    */
   #barSelected: { row: number; col: number } | null = null;
   /**
+   * The active cell and its raw text as the bar last showed them, for `#resyncBarCell()`.
+   */
+  #lastBarCell: { row: number; col: number; text: string } | null = null;
+  /**
    * Dedupe key for bar selection emits (anchor + focus + active together).
    */
   #lastEmittedSelectionCoords: {
@@ -1085,9 +1089,33 @@ export class FormulaBuilder extends BasePlugin {
       return;
     }
 
+    const current = this.#readActiveCell();
+    const last = this.#lastBarCell;
+
+    // Nothing the bar shows changed (a re-render re-sending the settings or the same data): an emit
+    // would make the package rewrite the address box and drop the text typed there.
+    if (current?.row === last?.row && current?.col === last?.col && current?.text === last?.text) {
+      return;
+    }
+
     this.#lastEmittedSelectionCoords = null;
     this.#emitBarSelection();
   };
+
+  /**
+   * Reads the active cell and its raw text.
+   *
+   * @returns {{ row: number, col: number, text: string } | null} `null` without an active cell.
+   */
+  #readActiveCell(): { row: number; col: number; text: string } | null {
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
+
+    if (!highlight || highlight.row === null || highlight.col === null || highlight.row < 0 || highlight.col < 0) {
+      return null;
+    }
+
+    return { row: highlight.row, col: highlight.col, text: this.getRawCellText(highlight.row, highlight.col) };
+  }
 
   /**
    * `afterChange` hook listener - re-syncs the bar when the selected cell's content changed without
@@ -1191,8 +1219,9 @@ export class FormulaBuilder extends BasePlugin {
 
   /**
    * `afterLoadData`/`afterUpdateData` hook listener - rebuilds the builder when the data load
-   * bound the grid to another engine sheet, then re-reads the active cell into the bar. The plugin enables before the first data load, while
-   * the Formulas plugin has no sheet id yet, and `Formulas#switchSheet()` reloads the data too.
+   * bound the grid to another engine sheet, then re-reads the active cell into the bar when its text
+   * changed. The plugin enables before the first data load, while the Formulas plugin has no sheet id
+   * yet, and `Formulas#switchSheet()` reloads the data too.
    */
   #onAfterDataLoad = (): void => {
     // Even under an open edit: the load replaced the data the edit was made against, and the rebuild
@@ -1292,6 +1321,7 @@ export class FormulaBuilder extends BasePlugin {
     }
 
     this.#lastEmittedSelectionCoords = null;
+    this.#lastBarCell = null;
     this.#barSelected = null;
     this.#barSelectionListeners.emit(null);
   }
@@ -1339,6 +1369,7 @@ export class FormulaBuilder extends BasePlugin {
     }
 
     this.#lastEmittedSelectionCoords = { anchorRow, anchorCol, focusRow, focusCol, activeRow, activeCol };
+    this.#lastBarCell = this.#readActiveCell();
     this.#barSelected = formulaCell ? { row: activeRow, col: activeCol } : null;
 
     const barSelectedRange = formulaCell ?
@@ -2081,6 +2112,7 @@ export class FormulaBuilder extends BasePlugin {
     this.#cellPick = null;
     this.#barSelected = null;
     this.#lastEmittedSelectionCoords = null;
+    this.#lastBarCell = null;
   }
 
   /**
