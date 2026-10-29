@@ -1641,13 +1641,16 @@ An axis gets a proxy only when the holder owns it (`mainTableScrollableElement =
 reserves a CLASSIC gutter for it, and a header or a frozen band is rendered along it. An overlay
 scrollbar takes no space and keeps the clearance band (`scrollbarClearance.ts`), so a browser with
 overlay scrollbars gets no element at all, and neither does a grid the window scrolls.
-`#scrollbarProxyCandidates` answers from flags, so such a grid pays no DOM read either.
-`ScrollbarProxies#update()` runs after a full draw (`Overlays#afterDraw`, not on scroll draws) and at
-the end of `adjustElementsSize` (the postponed resize changes the scroll range outside a full draw).
-The insets are the clone TABLES' outer sizes, not their holders': the top clone's holder grows by half
-a fill handle when a frozen cell is selected.
+`#scrollbarProxyCandidates` answers from flags, so such a grid pays no DOM read either, and a holder
+with no gutter stops after four size reads. `ScrollbarProxies#update()` runs once per draw, in
+`Overlays#afterDraw`: after every full draw, and after a scroll draw that resized the overlays (the
+postponed resize changes the scroll range). `adjustElementsSize` is reached several times inside one
+draw, before the clones have their final sizes, so there it only marks the proxies stale; called
+outside a draw (`hot.view.adjustElementsSize()`), it places them at once. The insets are the clone
+TABLES' outer sizes, not their holders': the top clone's holder grows by half a fill handle when a
+frozen cell is selected.
 
-Six rules, each from a measured defect:
+Eight rules, each from a measured defect:
 
 - **Compare an offset with the ledger, never with the other element.** The two offsets are copied both
   ways. A proxy scroll is the user's only when it differs from the last value copied INTO the proxy
@@ -1655,13 +1658,22 @@ Six rules, each from a measured defect:
   before the next layout): the browser clamps the copy, the clamped value reads as a user scroll, and
   the grid is pulled back. A holder scroll is the copy's own echo when it equals the last value copied
   FROM the proxy (`#written`). That echo can arrive after the proxy has moved on, and copying it back
-  jumps the thumb backwards.
+  jumps the thumb backwards. `#written` is spent on the first holder scroll after it, echo or not: kept,
+  it swallowed a later real scroll back to the same offset, and the thumb stayed a wheel notch off the
+  grid until the next full draw.
 - **Never write to a proxy while the pointer is down on it.** The browser moves a dragged thumb ahead of
   the page's script, so any write, even of a value the proxy held a frame ago, pulls the thumb back
   under the pointer; the next pointer move pushes it forward again (measured in Firefox: a 528px jump
-  mid-drag). `#dragging` is set on the proxy's `pointerdown` and cleared on the document's `pointerup`,
-  `pointercancel` and `mouseup` (a drag can end anywhere). The release copies the holder's offset in
-  once, in case the grid moved during the drag.
+  mid-drag). `#dragging` is set on the proxy's `pointerdown` for the primary button only (a right-click's
+  release can be taken by a native menu, which left the flag set) and cleared on the document's
+  `pointerup`, `pointercancel` and `mouseup` (a drag can end anywhere). The release first sends the
+  holder a thumb move whose scroll event is still pending, then copies the holder's offset in once, in
+  case the grid moved during the drag; the other order snapped the thumb back by its last move.
+- **Measure the vertical bar's side, never take it from the layout direction.** The holder's
+  `clientLeft` is the bar's width when the browser draws it on the left, so the layout and the frame
+  clip read it (`viewX`). Chromium and Firefox put the bar on the left of an RTL scroll container, but
+  Safari follows the system's direction and can keep it on the right. `rtlMode` still decides which end
+  of the horizontal edge is the start.
 - **The proxies' holder `scroll` listener must run before the engine's.** `Overlays` builds
   `ScrollbarProxies` before `ScrollSync` and `NativeScrollInput`, so the copy into the proxy runs while
   the layout is still clean, before the draw that the engine's listener starts writes to the DOM.
@@ -1676,7 +1688,10 @@ Six rules, each from a measured defect:
   L-shaped `clip-path`), so a selection outline on the grid's edge is never covered; it takes no
   pointer events. Its shadow is declared next to BOTH holder-frame rules in `_base.scss` (the
   `ht-slot-*-filled` one and the `htHasScrollX`/`htHasScrollY` one): core sets those root classes only
-  after the draw this runs in, so a copy of the computed shadow read `none`.
+  after the draw this runs in, so a copy of the computed shadow read `none`. A surface that drops the
+  holder's frame on purpose must drop this one in the same rule: the Filters "Filter by value" list
+  (`_dropdown-menu.scss`) and the sheets bar menu (`_sheets-bar.scss`) do, and without it the list drew
+  a 1px line that doubles the menu separator below it.
 - **Copy the holder's computed `scrollbar-width` and `scrollbar-color` onto each proxy**, so a host rule
   on `.wtHolder` (a thinner bar, other colors) shapes the proxy too and its bar keeps filling the gutter.
   A host `::-webkit-scrollbar` rule scoped to `.wtHolder` cannot be copied (a pseudo-element's style is
@@ -1684,7 +1699,12 @@ Six rules, each from a measured defect:
   theme's width. The proxy therefore carries the track color as its background, which its own bar
   normally covers whole; without it the holder's thumb showed through beside the proxy's (two thumbs,
   378–504 thumb-colored pixels in a 30px gutter). A page-wide `::-webkit-scrollbar` rule styles both
-  bars alike, because the two carry the same rules at the same specificity.
+  bars alike, because the two carry the same rules at the same specificity. The proxy and the fillers
+  paint the track color over `--ht-background-color`, as the holder's own track sits on its
+  background, so a see-through track color in a custom theme still covers the holder's bar.
+- **Destroy with `destroyWithOwnEventsOnly()`.** The engine's modules share one listener context, and
+  `EventManager#destroy()` clears all of it, the scroll, wheel and mouse listeners of the other modules
+  included.
 
 The proxies carry `tabindex="-1"` (an empty scroll container is a tab stop in Chrome 127+) and every
 added element `aria-hidden="true"`: the holder's own scroll range and the keyboard already cover what
@@ -1709,8 +1729,10 @@ Pinned by `test/unit/overlay/scrollbarProxies.unit.ts` (the layout, the frame cl
 stub elements: both ledgers, the drag guard, no DOM read for a window-scrolled grid, destroy) and
 `tests/e2e/scrollbar-proxies.spec.ts` (headers, frozen bands on all four sides, RTL, no gutter, window
 scroll, the scroll range after rows are added, sync both ways, the wheel over a bar, a real thumb drag
-that keeps the selection, the frame, a host rule that widens the holder's bar alone (pixels sampled
-through a canvas, since the suite has no PNG decoder), hit tests, and the ARIA attributes).
+that keeps the selection, the frame, the Filters list without it, a host rule that widens the holder's
+bar alone (pixels sampled through a canvas, since the suite has no PNG decoder), hit tests, and the ARIA
+attributes). The unit file's stub event manager shares one listener list, as the engine's context does,
+so a `destroy()` that clears the neighbors' listeners fails there.
 
 ## Row recycling: a scroll keeps a row's TR
 

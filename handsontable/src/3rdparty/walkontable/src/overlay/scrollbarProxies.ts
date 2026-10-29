@@ -35,19 +35,26 @@ export interface ScrollbarProxyLayout {
 export interface ScrollbarProxyInput {
   /**
    * The master holder, measured: its offset in its offset parent (`x`, `y`), its border box (`boxWidth`,
-   * `boxHeight`), its client box (`viewWidth`, `viewHeight`), and its scroll size (`contentWidth`,
-   * `contentHeight`).
+   * `boxHeight`), its client box (`viewX`, `viewWidth`, `viewHeight`), and its scroll size
+   * (`contentWidth`, `contentHeight`). `viewX` is where the client box starts in the border box
+   * (`clientLeft`; the holder has no border): the vertical scrollbar's width when the browser draws it
+   * on the left, else 0. The side is measured, not taken from the layout direction, because a browser
+   * may keep the bar on the right in a right-to-left grid (Safari follows the system's direction).
    */
   holder: {
     x: number;
     y: number;
     boxWidth: number;
     boxHeight: number;
+    viewX: number;
     viewWidth: number;
     viewHeight: number;
     contentWidth: number;
     contentHeight: number;
   };
+  /**
+   * Whether the grid runs right to left, so its start insets are on the right.
+   */
   rtl: boolean;
   /**
    * The non-scrolling bands along each edge of the holder's client box: the column headers plus the
@@ -74,8 +81,8 @@ export function resolveScrollbarProxyLayout(input: ScrollbarProxyInput): Scrollb
   const { holder, rtl, insets } = input;
   const verticalGutter = holder.boxWidth - holder.viewWidth;
   const horizontalGutter = holder.boxHeight - holder.viewHeight;
-  // An RTL holder draws its vertical scrollbar on the left, so its client box starts after it.
-  const viewLeft = holder.x + (rtl ? verticalGutter : 0);
+  // A vertical scrollbar drawn on the left pushes the client box right by its width.
+  const viewLeft = holder.x + holder.viewX;
   const viewTop = holder.y;
   let vertical: AxisProxyLayout | null = null;
   let horizontal: AxisProxyLayout | null = null;
@@ -83,7 +90,7 @@ export function resolveScrollbarProxyLayout(input: ScrollbarProxyInput): Scrollb
   if (input.ownsVertical && verticalGutter > 0 && (insets.top > 0 || insets.bottom > 0)) {
     const start = Math.min(insets.top, holder.viewHeight);
     const end = Math.max(start, holder.viewHeight - insets.bottom);
-    const left = rtl ? holder.x : viewLeft + holder.viewWidth;
+    const left = holder.viewX > 0 ? holder.x : viewLeft + holder.viewWidth;
 
     if (end > start) {
       vertical = {
@@ -137,14 +144,13 @@ export interface ScrollbarProxyCandidates {
  * The area the grid's frame is redrawn over: the gutters of the holder's classic scrollbars, as a
  * `clip-path` polygon in the holder's own box. The browser paints a scroll container's scrollbars above
  * its own `box-shadow`, so the frame the theme draws as an inset shadow on the holder is hidden along
- * the right and bottom edges (the left in RTL) wherever a classic scrollbar runs. `null` when the holder
- * reserves no gutter.
+ * the bottom edge and the vertical scrollbar's side wherever a classic scrollbar runs. `null` when the
+ * holder reserves no gutter.
  *
  * @param {ScrollbarProxyInput['holder']} holder The measured holder.
- * @param {boolean} rtl Whether the grid runs right to left.
  * @returns {string | null}
  */
-export function resolveScrollbarFrameClip(holder: ScrollbarProxyInput['holder'], rtl: boolean): string | null {
+export function resolveScrollbarFrameClip(holder: ScrollbarProxyInput['holder']): string | null {
   const { boxWidth: w, boxHeight: h, viewHeight: vb } = holder;
   const verticalGutter = w - holder.viewWidth;
 
@@ -153,7 +159,7 @@ export function resolveScrollbarFrameClip(holder: ScrollbarProxyInput['holder'],
   }
 
   // The vertical gutter, the full height, joined with the horizontal gutter, the full width.
-  const points = rtl
+  const points = holder.viewX > 0
     ? [[0, 0], [verticalGutter, 0], [verticalGutter, vb], [w, vb], [w, h], [0, h]]
     : [[w - verticalGutter, 0], [w, 0], [w, h], [0, h], [0, vb], [w - verticalGutter, vb]];
 
@@ -277,26 +283,38 @@ export class ScrollbarProxies {
   update() {
     const { geometryReader, wtSettings } = this.#deps;
     const holder = this.#deps.getWtTable().holder;
+    const parent = holder.parentNode;
     const candidates = this.#deps.getCandidates();
 
     // A grid the window scrolls on both axes costs no DOM read.
-    if (!holder.parentNode || (!candidates.framed && !this.#hasElements())) {
+    if (!parent || (!candidates.framed && !this.#hasElements())) {
+      return;
+    }
+
+    const boxWidth = geometryReader.offsetWidth(holder);
+    const boxHeight = geometryReader.offsetHeight(holder);
+    const viewWidth = geometryReader.clientWidth(holder);
+    const viewHeight = geometryReader.clientHeight(holder);
+    const hasGutter = boxWidth > viewWidth || boxHeight > viewHeight;
+
+    // Overlay scrollbars reserve no gutter: with nothing shown yet, there is nothing to place or hide.
+    if (!hasGutter && !this.#hasElements()) {
       return;
     }
 
     const measured: ScrollbarProxyInput['holder'] = {
       x: geometryReader.offsetLeft(holder),
       y: geometryReader.offsetTop(holder),
-      boxWidth: geometryReader.offsetWidth(holder),
-      boxHeight: geometryReader.offsetHeight(holder),
-      viewWidth: geometryReader.clientWidth(holder),
-      viewHeight: geometryReader.clientHeight(holder),
+      boxWidth,
+      boxHeight,
+      viewX: geometryReader.clientLeft(holder),
+      viewWidth,
+      viewHeight,
       contentWidth: geometryReader.scrollWidth(holder),
       contentHeight: geometryReader.scrollHeight(holder),
     };
     const rtl = wtSettings.getSetting<boolean>('rtlMode');
     // No gutter, no proxy: the insets are read only when a classic scrollbar could move.
-    const hasGutter = measured.boxWidth > measured.viewWidth || measured.boxHeight > measured.viewHeight;
     const layout = resolveScrollbarProxyLayout({
       holder: measured,
       rtl,
@@ -309,7 +327,9 @@ export class ScrollbarProxies {
 
     this.#apply('vertical', layout.vertical, holder, holderStyle);
     this.#apply('horizontal', layout.horizontal, holder, holderStyle);
-    this.#applyFrame(candidates.framed ? resolveScrollbarFrameClip(measured, rtl) : null, measured, holderStyle);
+    const frameClip = candidates.framed ? resolveScrollbarFrameClip(measured) : null;
+
+    this.#applyFrame(frameClip, measured, holderStyle, parent);
   }
 
   /**
@@ -328,7 +348,8 @@ export class ScrollbarProxies {
    * Removes the elements and the listeners.
    */
   destroy() {
-    this.#deps.eventManager.destroy();
+    // The engine's modules share one listener context: remove this module's listeners only.
+    this.#deps.eventManager.destroyWithOwnEventsOnly();
     (['vertical', 'horizontal'] as Axis[]).forEach((axis) => {
       const elements = this.#elements[axis];
 
@@ -361,8 +382,14 @@ export class ScrollbarProxies {
    * @param {string | null} clip The gutter area, from `resolveScrollbarFrameClip`.
    * @param {ScrollbarProxyInput['holder']} measured The measured holder.
    * @param {CSSStyleDeclaration} holderStyle The holder's computed style.
+   * @param {ParentNode} parent The holder's parent, the master overlay.
    */
-  #applyFrame(clip: string | null, measured: ScrollbarProxyInput['holder'], holderStyle: CSSStyleDeclaration) {
+  #applyFrame(
+    clip: string | null,
+    measured: ScrollbarProxyInput['holder'],
+    holderStyle: CSSStyleDeclaration,
+    parent: ParentNode,
+  ) {
     if (clip === null) {
       if (this.#frame) {
         setDisplay(this.#frame, false);
@@ -376,7 +403,7 @@ export class ScrollbarProxies {
       this.#frame.className = SCROLLBAR_FRAME_CLASS;
       this.#frame.setAttribute('aria-hidden', 'true');
       // Last in the master overlay, so it paints above the proxies and the fillers.
-      this.#deps.getWtTable().holder.parentElement?.appendChild(this.#frame);
+      parent.appendChild(this.#frame);
     }
 
     placeBox(this.#frame, { left: measured.x, top: measured.y, width: measured.boxWidth, height: measured.boxHeight });
@@ -462,8 +489,12 @@ export class ScrollbarProxies {
     holder.after(proxy, ...fillers);
 
     eventManager.addEventListener(proxy, 'scroll', () => this.#copyToHolder(axis), { passive: true });
-    eventManager.addEventListener(proxy, 'pointerdown', () => {
-      this.#dragging[axis] = true;
+    eventManager.addEventListener(proxy, 'pointerdown', (event: Event) => {
+      // Only the primary button drags a thumb. Another button's release can be taken by a native
+      // menu, and a drag flag left set would stop the proxy from following the grid.
+      if ((event as MouseEvent).button === 0) {
+        this.#dragging[axis] = true;
+      }
     }, { passive: true });
 
     const elements = { proxy, spacer, fillers };
@@ -495,8 +526,13 @@ export class ScrollbarProxies {
     }
 
     const property = OFFSET_PROPERTY[axis];
+    const isEcho = !resync && Math.abs(holder[property] - this.#written[axis]) < 1;
 
-    if (!resync && Math.abs(holder[property] - this.#written[axis]) < 1) {
+    // A write has one echo. Once it arrived, or the holder moved on, a later scroll back to the same
+    // offset is a real one and must reach the proxy.
+    this.#written[axis] = NaN;
+
+    if (isEcho) {
       return;
     }
 
@@ -509,7 +545,8 @@ export class ScrollbarProxies {
 
   /**
    * Ends a drag of either proxy's thumb, and brings the proxy in line with the holder once, in case the
-   * grid moved it during the drag (a resize, a scroll the engine made).
+   * grid moved it during the drag (a resize, a scroll the engine made). A last thumb move whose scroll
+   * event has not been dispatched yet is the user's, so it goes to the holder first.
    *
    * @param {HTMLElement} holder The master holder.
    */
@@ -517,6 +554,7 @@ export class ScrollbarProxies {
     (['vertical', 'horizontal'] as Axis[]).forEach((axis) => {
       if (this.#dragging[axis]) {
         this.#dragging[axis] = false;
+        this.#copyToHolder(axis);
         this.#copyToProxy(axis, holder, true);
       }
     });

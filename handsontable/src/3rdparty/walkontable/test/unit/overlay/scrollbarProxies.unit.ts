@@ -8,7 +8,8 @@ import {
 } from '../../../src/overlay/scrollbarProxies';
 
 /**
- * A holder with 15px classic gutters on both axes: a 615x355 border box around a 600x340 client box.
+ * A holder with 15px classic gutters on both axes: a 615x355 border box around a 600x340 client box,
+ * with the vertical scrollbar on the right (`viewX: 0`).
  *
  * @param {Partial<ScrollbarProxyInput['holder']>} overrides The measurements to change.
  * @returns {ScrollbarProxyInput['holder']}
@@ -19,6 +20,7 @@ function holderBox(overrides: Partial<ScrollbarProxyInput['holder']> = {}): Scro
     y: 0,
     boxWidth: 615,
     boxHeight: 355,
+    viewX: 0,
     viewWidth: 600,
     viewHeight: 340,
     contentWidth: 2000,
@@ -154,7 +156,8 @@ describe('scrollbar proxies', () => {
 
     it('should put the vertical scrollbar on the left and swap the inline insets in RTL', () => {
       const { vertical, horizontal } = resolveScrollbarProxyLayout(layoutInput({
-        holder: holderBox({ x: 10, y: 5 }),
+        // Chromium and Firefox draw the bar on the left of an RTL scroll container.
+        holder: holderBox({ x: 10, y: 5, viewX: 15 }),
         rtl: true,
         insets: { top: 30, bottom: 0, start: 50, end: 80 },
       }));
@@ -166,6 +169,23 @@ describe('scrollbar proxies', () => {
       expect(horizontal?.fillers).toEqual([
         { left: 25, top: 345, width: 80, height: 15 },
         { left: 575, top: 345, width: 50, height: 15 },
+      ]);
+    });
+
+    it('should follow the measured side of the vertical scrollbar, not the layout direction', () => {
+      // An RTL grid whose browser keeps the bar on the right (Safari with a left-to-right system).
+      const { vertical, horizontal } = resolveScrollbarProxyLayout(layoutInput({
+        holder: holderBox({ x: 10, y: 5, viewX: 0 }),
+        rtl: true,
+        insets: { top: 30, bottom: 0, start: 50, end: 80 },
+      }));
+
+      expect(vertical?.proxy).toEqual({ left: 610, top: 35, width: 15, height: 310 });
+      // The start insets are still on the right: the frozen end columns sit on the left.
+      expect(horizontal?.proxy).toEqual({ left: 90, top: 345, width: 470, height: 15 });
+      expect(horizontal?.fillers).toEqual([
+        { left: 10, top: 345, width: 80, height: 15 },
+        { left: 560, top: 345, width: 50, height: 15 },
       ]);
     });
 
@@ -198,37 +218,36 @@ describe('scrollbar proxies', () => {
 
   describe('resolveScrollbarFrameClip', () => {
     it('should return nothing when the holder reserves no gutter', () => {
-      expect(resolveScrollbarFrameClip(holderBox({ boxWidth: 600, boxHeight: 340 }), false)).toBeNull();
-      expect(resolveScrollbarFrameClip(holderBox({ boxWidth: 600, boxHeight: 340 }), true)).toBeNull();
+      expect(resolveScrollbarFrameClip(holderBox({ boxWidth: 600, boxHeight: 340 }))).toBeNull();
     });
 
-    it('should clip to the right and bottom gutters in LTR', () => {
-      expect(resolveScrollbarFrameClip(holderBox(), false)).toBe(
+    it('should clip to the right and bottom gutters when the vertical bar is on the right', () => {
+      expect(resolveScrollbarFrameClip(holderBox())).toBe(
         'polygon(600px 0px, 615px 0px, 615px 355px, 0px 355px, 0px 340px, 600px 340px)'
       );
     });
 
-    it('should clip to the left and bottom gutters in RTL', () => {
-      expect(resolveScrollbarFrameClip(holderBox(), true)).toBe(
+    it('should clip to the left and bottom gutters when the vertical bar is on the left', () => {
+      expect(resolveScrollbarFrameClip(holderBox({ viewX: 15 }))).toBe(
         'polygon(0px 0px, 15px 0px, 15px 340px, 615px 340px, 615px 355px, 0px 355px)'
       );
     });
 
     it('should clip to the vertical gutter alone when there is no horizontal one', () => {
-      expect(resolveScrollbarFrameClip(holderBox({ boxHeight: 340 }), false)).toBe(
+      expect(resolveScrollbarFrameClip(holderBox({ boxHeight: 340 }))).toBe(
         'polygon(600px 0px, 615px 0px, 615px 340px, 0px 340px, 0px 340px, 600px 340px)'
       );
     });
 
     it('should clip to the horizontal gutter alone when there is no vertical one', () => {
-      expect(resolveScrollbarFrameClip(holderBox({ boxWidth: 600 }), false)).toBe(
+      expect(resolveScrollbarFrameClip(holderBox({ boxWidth: 600 }))).toBe(
         'polygon(600px 0px, 600px 0px, 600px 355px, 0px 355px, 0px 340px, 600px 340px)'
       );
     });
 
     it('should not depend on where the holder sits in its offset parent', () => {
-      expect(resolveScrollbarFrameClip(holderBox({ x: 10, y: 5 }), false))
-        .toBe(resolveScrollbarFrameClip(holderBox(), false));
+      expect(resolveScrollbarFrameClip(holderBox({ x: 10, y: 5 })))
+        .toBe(resolveScrollbarFrameClip(holderBox()));
     });
   });
 });
@@ -284,11 +303,21 @@ describe('ScrollbarProxies', () => {
    * first update, which creates the elements.
    *
    * @param {Partial<ScrollbarProxyCandidates>} candidates The axes the holder owns.
+   * @param {object} direction The layout direction and where the browser draws the vertical bar.
+   * @param {boolean} [direction.rtl] Whether the grid runs right to left.
+   * @param {number} [direction.viewX] The holder's `clientLeft`: 15 when the bar is on the left.
    * @returns {object} The module, the holder, the elements it created, and the geometry read count.
    */
-  function createProxies(candidates: Partial<ScrollbarProxyCandidates> = {}) {
+  function createProxies(
+    candidates: Partial<ScrollbarProxyCandidates> = {},
+    { rtl = false, viewX = 0 }: { rtl?: boolean, viewX?: number } = {},
+  ) {
     const holder = document.createElement('div');
     const geometryReads = { count: 0 };
+    const own: Array<[EventTarget, string, EventListener]> = [];
+    const remove = (entries: Array<[EventTarget, string, EventListener]>) => {
+      entries.forEach(([target, type, listener]) => target.removeEventListener(type, listener));
+    };
     const measure = (value: number) => () => {
       geometryReads.count += 1;
 
@@ -305,6 +334,7 @@ describe('ScrollbarProxies', () => {
         offsetWidth: measure(615),
         offsetHeight: measure(355),
         clientWidth: measure(600),
+        clientLeft: measure(viewX),
         clientHeight: measure(340),
         scrollWidth: measure(2000),
         scrollHeight: measure(10000),
@@ -314,14 +344,19 @@ describe('ScrollbarProxies', () => {
           return { scrollbarWidth: 'auto', scrollbarColor: 'auto', borderRadius: '0px' };
         },
       },
-      wtSettings: { getSetting: () => false },
+      wtSettings: { getSetting: () => rtl },
+      // The engine's modules share one listener context (`listeners`), as `EventManager` does.
       eventManager: {
         addEventListener: (target: EventTarget, type: string, listener: EventListener) => {
           target.addEventListener(type, listener);
           listeners.push([target, type, listener]);
+          own.push([target, type, listener]);
         },
         destroy: () => {
-          listeners.splice(0).forEach(([target, type, listener]) => target.removeEventListener(type, listener));
+          remove(listeners.splice(0));
+        },
+        destroyWithOwnEventsOnly: () => {
+          remove(own.splice(0));
         },
       },
       getWtTable: () => ({ holder }),
@@ -390,6 +425,19 @@ describe('ScrollbarProxies', () => {
     expect((vertical?.firstElementChild as HTMLElement).style.height).toBe(`${310 + 10000 - 340}px`);
   });
 
+  it('should place the proxies and the frame on the left gutter of an RTL holder', () => {
+    createProxies({}, { rtl: true, viewX: 15 });
+
+    const horizontal = parent.querySelector<HTMLElement>('.htScrollbarProxy-horizontal');
+    const frame = parent.querySelector<HTMLElement>('.htScrollbarFrame');
+
+    expect(parent.querySelector<HTMLElement>('.htScrollbarProxy-vertical')?.style.left).toBe('0px');
+    // The row headers (the start inset) are on the right in RTL, so the bar starts at the client box.
+    expect(horizontal?.style.left).toBe('15px');
+    expect(horizontal?.style.width).toBe('550px');
+    expect(frame?.style.clipPath).toBe('polygon(0px 0px, 15px 0px, 15px 340px, 615px 340px, 615px 355px, 0px 355px)');
+  });
+
   it('should copy a scroll of the holder into the proxy', () => {
     const { holder, vertical } = createProxies();
 
@@ -428,6 +476,25 @@ describe('ScrollbarProxies', () => {
     expect(holder.scrollTop).toBe(200);
   });
 
+  it('should copy the holder back into the proxy when it returns to an offset the proxy once wrote', () => {
+    const { holder, vertical } = createProxies();
+
+    // The user drags the thumb to 300; the holder's scroll event for that copy is its echo.
+    vertical!.scrollTop = 300;
+    scrolled(vertical!);
+    scrolled(holder);
+    // Then the grid scrolls away (a wheel notch) and back to the same offset.
+    holder.scrollTop = 400;
+    scrolled(holder);
+
+    expect(vertical?.scrollTop).toBe(400);
+
+    holder.scrollTop = 300;
+    scrolled(holder);
+
+    expect(vertical?.scrollTop).toBe(300);
+  });
+
   it('should not read a copy the proxy clamped as a user scroll that pulls the grid back', () => {
     const { holder, vertical, verticalState } = createProxies();
 
@@ -446,7 +513,7 @@ describe('ScrollbarProxies', () => {
   it('should write nothing into a held proxy, and bring it in line with the holder on release', () => {
     const { holder, vertical, verticalState } = createProxies();
 
-    vertical!.dispatchEvent(new Event('pointerdown'));
+    vertical!.dispatchEvent(new MouseEvent('pointerdown', { button: 0 }));
 
     const writes = verticalState!.writes;
 
@@ -459,6 +526,31 @@ describe('ScrollbarProxies', () => {
     document.dispatchEvent(new Event('pointerup'));
 
     expect(vertical?.scrollTop).toBe(800);
+  });
+
+  it('should keep the last thumb move of a drag whose scroll event has not arrived at release', () => {
+    const { holder, vertical } = createProxies();
+
+    vertical!.dispatchEvent(new MouseEvent('pointerdown', { button: 0 }));
+    vertical!.scrollTop = 200;
+    scrolled(vertical!);
+    // The thumb moves once more and the pointer is released before that scroll event is dispatched.
+    vertical!.scrollTop = 500;
+    document.dispatchEvent(new Event('pointerup'));
+
+    expect(holder.scrollTop).toBe(500);
+    expect(vertical?.scrollTop).toBe(500);
+  });
+
+  it('should not treat a press of another mouse button on a proxy as a drag', () => {
+    const { holder, vertical } = createProxies();
+
+    // A right-click whose release a native context menu takes: no pointerup reaches the document.
+    vertical!.dispatchEvent(new MouseEvent('pointerdown', { button: 2 }));
+    holder.scrollTop = 700;
+    scrolled(holder);
+
+    expect(vertical?.scrollTop).toBe(700);
   });
 
   it('should hide an axis that no longer needs a proxy, and stop copying into it', () => {
@@ -492,6 +584,19 @@ describe('ScrollbarProxies', () => {
 
     expect(geometryReads.count).toBe(0);
     expect(parent.children).toHaveLength(1);
+  });
+
+  it('should leave the other engine modules\' listeners in place when destroyed', () => {
+    const { proxies } = createProxies();
+    const neighbor = jest.fn();
+
+    // Another module's listener, registered in the same context.
+    document.addEventListener('click', neighbor);
+    listeners.push([document, 'click', neighbor]);
+    proxies.destroy();
+    document.dispatchEvent(new Event('click'));
+
+    expect(neighbor).toHaveBeenCalledTimes(1);
   });
 
   it('should remove every element it added, and its listeners, when destroyed', () => {

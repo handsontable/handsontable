@@ -393,6 +393,17 @@ class Overlays {
   #scrollbarProxies!: ScrollbarProxies;
 
   /**
+   * Whether a master draw is between `beforeDraw` and `afterDraw`. A resize inside a draw only marks
+   * the scrollbar proxies stale, so they are measured once, after the clones have their final sizes.
+   */
+  #drawing = false;
+
+  /**
+   * Whether a resize inside the current draw changed what the scrollbar proxies are placed from.
+   */
+  #scrollbarProxiesStale = false;
+
+  /**
    * The band sizes currently drawn, so a press landing in one can be swallowed (#10370).
    */
   #bandSizes = { bottom: 0, inlineEnd: 0 };
@@ -516,6 +527,8 @@ class Overlays {
    * Runs logic for the overlays before the table is drawn.
    */
   beforeDraw() {
+    this.#drawing = true;
+
     // Before anything measures: drops the sizes a previous draw took while the table had no settled
     // layout, so this draw re-measures them and resizes from the results. Not on a fast draw – it
     // re-renders nothing, so it cannot re-measure the row heights this drops, and taking the reset
@@ -610,7 +623,14 @@ class Overlays {
       // After the provisional pass, so a table that just settled is not rebound twice and keeps the
       // size drop that pass schedules.
       this.#scrollSync.resyncScrollableElementsWithOwners();
-      // The clones have their final sizes now. A scroll draw changes none of the sizes the proxies read.
+    }
+
+    this.#drawing = false;
+
+    // The clones have their final sizes now. A scroll draw changes none of the sizes the proxies read,
+    // unless it resized the overlays (the postponed resize after a scroll), which marks them stale.
+    if (!this.isScrollDrivenDraw || this.#scrollbarProxiesStale) {
+      this.#scrollbarProxiesStale = false;
       this.#scrollbarProxies.update();
     }
   }
@@ -653,23 +673,15 @@ class Overlays {
    */
   #scrollbarProxyInsets(): ScrollbarProxyInput['insets'] {
     const { geometryReader } = this.#deps;
-    const table = (overlay: Overlay) => (overlay.clone && overlay.needFullRender ? overlay.clone.wtTable.TABLE : null);
-    const height = (overlay: Overlay) => {
-      const element = table(overlay);
-
-      return element ? geometryReader.outerHeight(element) : 0;
-    };
-    const width = (overlay: Overlay) => {
-      const element = table(overlay);
-
-      return element ? geometryReader.outerWidth(element) : 0;
-    };
+    const measure = (overlay: Overlay, size: 'outerHeight' | 'outerWidth') => (
+      overlay.clone && overlay.needFullRender ? geometryReader[size](overlay.clone.wtTable.TABLE) : 0
+    );
 
     return {
-      top: height(this.topOverlay),
-      bottom: height(this.bottomOverlay),
-      start: width(this.inlineStartOverlay),
-      end: width(this.inlineEndOverlay),
+      top: measure(this.topOverlay, 'outerHeight'),
+      bottom: measure(this.bottomOverlay, 'outerHeight'),
+      start: measure(this.inlineStartOverlay, 'outerWidth'),
+      end: measure(this.inlineEndOverlay, 'outerWidth'),
     };
   }
 
@@ -1108,9 +1120,15 @@ class Overlays {
     // is deliberate: refreshing it here would force a measurement inside every resize, and the terms
     // it would correct are re-resolved by `beginDrawLayout` on the next draw anyway.
     this.#lastAppliedSignature = this.#currentLayoutSignature(written);
+
     // A resize can change the holder's scroll range outside a full draw (the postponed resize after a
-    // scroll), and the proxies' spacers must follow it.
-    this.#scrollbarProxies.update();
+    // scroll), and the proxies' spacers must follow it. Several paths resize in the middle of a draw,
+    // before the clones have their final sizes, so there the proxies are placed once, in `afterDraw`.
+    if (this.#drawing) {
+      this.#scrollbarProxiesStale = true;
+    } else {
+      this.#scrollbarProxies.update();
+    }
   }
 
   /**

@@ -41,6 +41,9 @@
       mode: htPick('mode', { element: 'element', window: 'window' }, 'element'),
       gutter: htPick('gutter', { classic: 'classic', none: 'none' }, 'classic'),
       host: htPick('host', { none: 'none', holder: 'holder' }, 'none'),
+      // `menu=filters` adds the column menu with Filters: its "Filter by value" list is a nested grid
+      // whose holder has a classic gutter.
+      menu: htPick('menu', { none: 'none', filters: 'filters' }, 'none'),
     };
 
     if (window.htShape.gutter === 'none') {
@@ -95,6 +98,8 @@
         fixedColumnsStart: shape.fixedColumnsStart,
         fixedColumnsEnd: shape.fixedColumnsEnd,
         layoutDirection: shape.direction,
+        dropdownMenu: shape.menu === 'filters',
+        filters: shape.menu === 'filters',
         ...sized,
         licenseKey: 'non-commercial-and-evaluation',
       });

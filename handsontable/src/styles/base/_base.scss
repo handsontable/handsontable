@@ -205,7 +205,11 @@
       z-index: 1;
       // Its own bar fills the box, so this shows only where a host rule widened the holder's bar alone
       // (`.wtHolder::-webkit-scrollbar`, which cannot be copied), and keeps that bar from showing through.
-      background: var(--ht-scrollbar-track-color);
+      // The track color sits on the grid's background, as the holder's own track does, so a see-through
+      // track color in a custom theme still covers the holder's bar.
+      background:
+        linear-gradient(var(--ht-scrollbar-track-color), var(--ht-scrollbar-track-color)),
+        var(--ht-background-color);
 
       > div {
         width: 1px;
@@ -239,11 +243,13 @@
     }
 
     // An empty rectangle in the track color over the gutter beside the headers and the frozen bands,
-    // where no scrollbar is shown.
+    // where no scrollbar is shown. Painted on the grid's background, like the proxy above.
     .htScrollbarProxyFiller {
       position: absolute;
       z-index: 1;
-      background: var(--ht-scrollbar-track-color);
+      background:
+        linear-gradient(var(--ht-scrollbar-track-color), var(--ht-scrollbar-track-color)),
+        var(--ht-background-color);
     }
 
     // The grid's frame, redrawn over the gutters of its classic scrollbars. A browser paints a scroll

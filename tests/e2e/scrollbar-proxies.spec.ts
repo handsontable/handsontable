@@ -341,6 +341,23 @@ test.describe('scrollbars beside the scrolling area', { tag: THEMES_TAG }, () =>
     expect(pixels.matching).toBe(0);
   });
 
+  test('keep the frame off a nested grid that drops it on purpose', async({ page, theme, bundle }) => {
+    const grid = new ScrollbarProxiesPage(page, theme, bundle);
+
+    await grid.goto({ headers: 'both', menu: 'filters' });
+    await grid.openFirstColumnMenu();
+
+    const shadows = await grid.frameShadows();
+
+    // The "Filter by value" list scrolls with a classic bar, so the frame is drawn over its gutter...
+    expect(shadows.listGutter).toBeGreaterThan(0);
+    expect(shadows.listFrameShadow).not.toBeNull();
+    // ...but the list is chrome-less: the menu item below it draws the separator line.
+    expect(shadows.listFrameShadow).toBe('none');
+    // The positive control: the grid itself keeps its frame.
+    expect(shadows.gridFrameShadow).toContain('inset');
+  });
+
   test('let the pointer reach the bars, the covered strips and the gutter corner', async({ page, theme, bundle }) => {
     const grid = new ScrollbarProxiesPage(page, theme, bundle);
 

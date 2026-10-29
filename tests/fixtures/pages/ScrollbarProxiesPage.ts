@@ -14,6 +14,7 @@ export interface GridShape {
   mode?: 'element' | 'window';
   gutter?: 'classic' | 'none';
   host?: 'none' | 'holder';
+  menu?: 'none' | 'filters';
 }
 
 /**
@@ -612,6 +613,40 @@ export class ScrollbarProxiesPage {
 
       return { matching, total: pixels.length / 4 };
     }, { data: png.toString('base64'), color: [...rgb] });
+  }
+
+  /**
+   * Opens the column menu of the first column through its header button and waits for the Filters
+   * "Filter by value" list, a nested grid.
+   */
+  async openFirstColumnMenu(): Promise<void> {
+    await this.grid.locator('.ht_clone_top .changeType').first().click();
+    await expect(this.page.locator('.htDropdownMenu .htUIMultipleSelect .ht_master .wtHolder').first())
+      .toBeVisible();
+  }
+
+  /**
+   * The frame shadow of the "Filter by value" list, next to the main grid's, with the list holder's
+   * vertical gutter. `null` for a frame that is not there.
+   *
+   * @returns {Promise<{ listGutter: number, listFrameShadow: string | null, gridFrameShadow: string | null }>}
+   */
+  async frameShadows(): Promise<{ listGutter: number, listFrameShadow: string | null, gridFrameShadow: string | null }> {
+    return this.page.evaluate((selector) => {
+      const shadowOf = (root: Element | null) => {
+        const frame = root?.querySelector<HTMLElement>(`:scope > .ht_master > ${selector}`);
+
+        return frame && getComputedStyle(frame).display !== 'none' ? getComputedStyle(frame).boxShadow : null;
+      };
+      const list = document.querySelector('.htDropdownMenu .htUIMultipleSelect .handsontable');
+      const listHolder = list?.querySelector<HTMLElement>('.ht_master .wtHolder');
+
+      return {
+        listGutter: listHolder ? listHolder.offsetWidth - listHolder.clientWidth : 0,
+        listFrameShadow: shadowOf(list),
+        gridFrameShadow: shadowOf(document.querySelector('[data-testid="grid"] .handsontable')),
+      };
+    }, FRAME);
   }
 
   /**
