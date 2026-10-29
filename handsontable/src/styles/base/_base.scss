@@ -196,8 +196,9 @@
     // along the scrolling part of each edge only, and the fillers cover the gutter beside the headers and
     // the frozen bands. Both sit in the holder's gutter, above its own scrollbar. The proxy takes the
     // holder's scrollbar styles, so its bar fills the gutter it sits in; the engine also copies the
-    // holder's computed `scrollbar-width` and `scrollbar-color` onto it inline. Mirrored in
-    // `src/3rdparty/walkontable/css/walkontable.scss`.
+    // holder's computed `scrollbar-width` and thumb color onto it inline, with a transparent track, so
+    // the background below shows the track. Firefox draws a line along a track it colors itself, which
+    // the fillers do not have. Mirrored in `src/3rdparty/walkontable/css/walkontable.scss`.
     .htScrollbarProxy {
       @include mixins.scrollbar-styles;
 
@@ -243,8 +244,10 @@
     }
 
     // An empty rectangle in the track color over the gutter beside the headers and the frozen bands,
-    // where no scrollbar is shown. Painted on the grid's background, like the proxy above.
-    .htScrollbarProxyFiller {
+    // where no scrollbar is shown, and over the square where the two gutters meet (Safari paints that
+    // corner white once `scrollbar-color` applies). Painted on the grid's background, like the proxy.
+    .htScrollbarProxyFiller,
+    .htScrollbarCorner {
       position: absolute;
       z-index: 1;
       background:

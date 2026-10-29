@@ -138,6 +138,17 @@ interface ProxiesWindow {
 const PROXY = '.htScrollbarProxy';
 const FILLER = '.htScrollbarProxyFiller';
 const FRAME = '.htScrollbarFrame';
+const CORNER = '.htScrollbarCorner';
+
+/**
+ * A corner radius per corner, as computed.
+ */
+export interface Radii {
+  topLeft: string;
+  topRight: string;
+  bottomRight: string;
+  bottomLeft: string;
+}
 
 /**
  * Page Object for the fixture whose classic scrollbars run beside the scrolling part of each edge
@@ -568,6 +579,20 @@ export class ScrollbarProxiesPage {
   }
 
   /**
+   * The holder's computed `scrollbar-color`, and each proxy's.
+   *
+   * @returns {Promise<{ holder: string, proxies: string[] }>}
+   */
+  async scrollbarColors(): Promise<{ holder: string, proxies: string[] }> {
+    return this.grid.evaluate((root, proxy) => ({
+      holder: getComputedStyle(root.querySelector<HTMLElement>('.ht_master .wtHolder')!)
+        .getPropertyValue('scrollbar-color'),
+      proxies: Array.from(root.querySelectorAll<HTMLElement>(proxy))
+        .map(element => getComputedStyle(element).getPropertyValue('scrollbar-color')),
+    }), PROXY);
+  }
+
+  /**
    * How many pixels of one color the screen shows inside the vertical proxy's box. The screenshot is
    * decoded in the page, through a canvas.
    *
@@ -650,6 +675,63 @@ export class ScrollbarProxiesPage {
   }
 
   /**
+   * The square that covers the gutter corner, next to the corner the holder's gutters leave, and the
+   * corner radii of that square, of the strip beside the column headers, and of the holder.
+   *
+   * @returns {Promise<{ corner: Box | null, gutterCorner: Box, cornerRadii: Radii | null, topStripRadii: Radii | null, holderRadii: Radii }>}
+   */
+  async cornerFacts(): Promise<{
+    corner: Box | null,
+    gutterCorner: Box,
+    cornerRadii: Radii | null,
+    topStripRadii: Radii | null,
+    holderRadii: Radii,
+  }> {
+    return this.grid.evaluate((root, selectors) => {
+      const toBox = (rect: { left: number, top: number, width: number, height: number }) => ({
+        left: rect.left,
+        top: rect.top,
+        right: rect.left + rect.width,
+        bottom: rect.top + rect.height,
+        width: rect.width,
+        height: rect.height,
+      });
+      const radiiOf = (element: Element) => {
+        const style = getComputedStyle(element);
+
+        return {
+          topLeft: style.borderTopLeftRadius,
+          topRight: style.borderTopRightRadius,
+          bottomRight: style.borderBottomRightRadius,
+          bottomLeft: style.borderBottomLeftRadius,
+        };
+      };
+      const shown = (element: Element | null | undefined): element is HTMLElement =>
+        !!element && getComputedStyle(element).display !== 'none';
+      const holder = root.querySelector<HTMLElement>('.ht_master .wtHolder')!;
+      const h = holder.getBoundingClientRect();
+      const verticalGutter = holder.offsetWidth - holder.clientWidth;
+      const corner = root.querySelector(selectors.corner);
+      // The strip beside the column headers starts at the holder's top edge.
+      const topStrip = Array.from(root.querySelectorAll(selectors.filler))
+        .find(filler => shown(filler) && Math.abs(filler.getBoundingClientRect().top - h.top) < 1);
+
+      return {
+        corner: shown(corner) ? toBox(corner.getBoundingClientRect()) : null,
+        gutterCorner: toBox({
+          left: holder.clientLeft > 0 ? h.left : h.left + holder.clientWidth,
+          top: h.top + holder.clientHeight,
+          width: verticalGutter,
+          height: holder.offsetHeight - holder.clientHeight,
+        }),
+        cornerRadii: shown(corner) ? radiiOf(corner) : null,
+        topStripRadii: topStrip ? radiiOf(topStrip) : null,
+        holderRadii: radiiOf(holder),
+      };
+    }, { corner: CORNER, filler: FILLER });
+  }
+
+  /**
    * The class name of the topmost element at each point.
    *
    * @param {Array<{ x: number, y: number }>} points Viewport points.
@@ -674,7 +756,7 @@ export class ScrollbarProxiesPage {
         className: element.className,
         ariaHidden: element.getAttribute('aria-hidden'),
         tabindex: element.getAttribute('tabindex'),
-      })), [PROXY, FILLER, FRAME].join(', '));
+      })), [PROXY, FILLER, CORNER, FRAME].join(', '));
   }
 
   /**

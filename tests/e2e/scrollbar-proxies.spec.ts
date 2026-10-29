@@ -135,8 +135,8 @@ test.describe('scrollbars beside the scrolling area', { tag: THEMES_TAG }, () =>
 
     expect(owners.gutters.vertical).toBeGreaterThan(0);
     expect(owners.holderScrolls).toBe(true);
-    // The holder's own bars run the whole edge, and only the frame is drawn over them.
-    expect(classes).toEqual(['htScrollbarFrame']);
+    // The holder's own bars run the whole edge; only the gutter corner and the frame are drawn over them.
+    expect(classes).toEqual(['htScrollbarCorner', 'htScrollbarFrame']);
   });
 
   test('add nothing when the holder reserves no gutter', async({ page, theme, bundle }) => {
@@ -358,6 +358,47 @@ test.describe('scrollbars beside the scrolling area', { tag: THEMES_TAG }, () =>
     expect(shadows.gridFrameShadow).toContain('inset');
   });
 
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`cover the gutter corner and keep the grid's rounded corners (${dir})`, async({ page, theme, bundle }) => {
+      const grid = new ScrollbarProxiesPage(page, theme, bundle);
+
+      await grid.goto({ headers: 'both', fb: 1, dir });
+
+      const facts = await grid.cornerFacts();
+      const outer = dir === 'ltr' ? 'bottomRight' : 'bottomLeft';
+      const top = dir === 'ltr' ? 'topRight' : 'topLeft';
+
+      // Safari paints the holder's own gutter corner white, so the corner is covered in the track color.
+      expect(facts.corner).not.toBeNull();
+      expectEdge(facts.corner!.left, facts.gutterCorner.left, 'corner left');
+      expectEdge(facts.corner!.top, facts.gutterCorner.top, 'corner top');
+      expectEdge(facts.corner!.width, facts.gutterCorner.width, 'corner width');
+      expectEdge(facts.corner!.height, facts.gutterCorner.height, 'corner height');
+      // Each piece takes the holder's rounding on the outer corner it shares, and only there, so no
+      // square corner sticks out past the rounded frame.
+      expect(facts.cornerRadii![outer]).toBe(facts.holderRadii[outer]);
+      expect(facts.topStripRadii![top]).toBe(facts.holderRadii[top]);
+      expect(Object.entries(facts.cornerRadii!).filter(([key]) => key !== outer).map(([, value]) => value))
+        .toEqual(['0px', '0px', '0px']);
+    });
+  }
+
+  test('give each bar the grid\'s thumb on a transparent track', async({ page, theme, bundle }) => {
+    const grid = new ScrollbarProxiesPage(page, theme, bundle);
+
+    await grid.goto({ headers: 'both', ft: 1, fs: 1 });
+
+    const colors = await grid.scrollbarColors();
+    const thumb = colors.holder.slice(0, colors.holder.indexOf(') ') + 1);
+
+    // The theme gives the grid's own bar a thumb and an opaque track.
+    expect(thumb).toMatch(/^rgb\(/);
+    expect(colors.holder).not.toMatch(/rgba\(0, 0, 0, 0\)$/);
+    // Firefox draws a line and a shadow along a classic track it colors itself, which the strips beside
+    // the bar do not have, so the bar leaves its track to the background it shares with them.
+    expect(colors.proxies).toEqual([`${thumb} rgba(0, 0, 0, 0)`, `${thumb} rgba(0, 0, 0, 0)`]);
+  });
+
   test('let the pointer reach the bars, the covered strips and the gutter corner', async({ page, theme, bundle }) => {
     const grid = new ScrollbarProxiesPage(page, theme, bundle);
 
@@ -379,7 +420,7 @@ test.describe('scrollbars beside the scrolling area', { tag: THEMES_TAG }, () =>
       'htScrollbarProxy htScrollbarProxy-horizontal',
       'htScrollbarProxyFiller',
       'htScrollbarProxyFiller',
-      'wtHolder',
+      'htScrollbarCorner',
     ]);
   });
 
@@ -391,6 +432,7 @@ test.describe('scrollbars beside the scrolling area', { tag: THEMES_TAG }, () =>
     const added = await grid.addedElements();
 
     expect(added.map(element => element.className).sort()).toEqual([
+      'htScrollbarCorner',
       'htScrollbarFrame',
       'htScrollbarProxy htScrollbarProxy-horizontal',
       'htScrollbarProxy htScrollbarProxy-vertical',

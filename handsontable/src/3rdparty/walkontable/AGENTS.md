@@ -1628,9 +1628,16 @@ gutter it adds:
 - **a proxy**: an empty `overflow: scroll` div beside the scrolling part only. Its spacer gives it the
   holder's scroll range (`proxy length + content - view`), and its native scrollbar is the one the user
   sees and drags.
-- **two fillers** in `--ht-scrollbar-track-color`, over the rest of the gutter. The gutter corner stays
-  the holder's.
+- **two fillers** in `--ht-scrollbar-track-color`, over the rest of the gutter.
+- **a corner square** (`.htScrollbarCorner`) in the same color where the two gutters meet, whenever the
+  holder reserves both. The holder paints that corner itself, and Safari paints it white once
+  `scrollbar-color` applies, because it then ignores `::-webkit-scrollbar-corner`. Playwright's WebKit
+  uses overlay scrollbars on macOS, so only a real Safari shows it.
 - **the frame** (`.htScrollbarFrame`), described below.
+
+A piece that shares an outer corner of the holder takes the holder's radius on that corner
+(`resolveOuterCorners`): the holder's own scrollbar is clipped to its rounded box, and a square piece
+there stuck a few track-colored pixels out past the rounded frame.
 
 Everything is a sibling after the holder in `.ht_master`: the proxies and the fillers at z-index 1, the
 frame last at z-index 2. `.ht_master` is `overflow: hidden` and the stacking context the clones sit
@@ -1692,8 +1699,16 @@ Eight rules, each from a measured defect:
   holder's frame on purpose must drop this one in the same rule: the Filters "Filter by value" list
   (`_dropdown-menu.scss`) and the sheets bar menu (`_sheets-bar.scss`) do, and without it the list drew
   a 1px line that doubles the menu separator below it.
-- **Copy the holder's computed `scrollbar-width` and `scrollbar-color` onto each proxy**, so a host rule
-  on `.wtHolder` (a thinner bar, other colors) shapes the proxy too and its bar keeps filling the gutter.
+- **Copy the holder's computed `scrollbar-width` and thumb color onto each proxy, with a transparent
+  track** (`resolveProxyScrollbarColor`), so a host rule on `.wtHolder` (a thinner bar, another thumb)
+  shapes the proxy too and its bar keeps filling the gutter. The track is left to the proxy's
+  background, which the fillers share. Firefox draws a classic track it colors itself with a 1px darker
+  line and a 1px shadow along its content side (it derives them from the track color, alpha included),
+  so with the track copied the line ran beside the bar only, stopped where the fillers began, and read
+  as a border over the bar under the last row. Chromium draws nothing there either way (0 pixels
+  differ). The split point is the first space outside parentheses, since each color can hold spaces;
+  `auto` is kept as it is. A host track color on `.wtHolder` therefore reaches neither the proxy nor the
+  fillers; `--ht-scrollbar-track-color` is the way to change it.
   A host `::-webkit-scrollbar` rule scoped to `.wtHolder` cannot be copied (a pseudo-element's style is
   not readable onto another element): the holder's gutter widens and the proxy's own bar keeps the
   theme's width. The proxy therefore carries the track color as its background, which its own bar
@@ -1715,7 +1730,9 @@ Testing traps:
 - **Playwright launches Chromium with `--hide-scrollbars`**, which makes every gutter 0, so no proxy is
   ever created. The spec drops that flag (`ignoreDefaultArgs`). It simulates an overlay scrollbar with
   `.wtHolder, .htScrollbarTest { scrollbar-width: none !important; }` before the grid loads. Headless
-  Firefox reads every gutter as 0 too, so the spec has no engine tag; check Firefox headed.
+  Firefox reads every gutter as 0 too, so the spec has no engine tag; check Firefox headed, with
+  `firefoxUserPrefs: { 'ui.useOverlayScrollbars': 0 }` on macOS. The spec pins the transparent track
+  through the computed `scrollbar-color`, because Chromium draws no track line to see.
 - **A thumb drag alone cannot catch a broken drag guard.** While the user drags, the holder only echoes
   the proxy, and the echo check already skips that. The guard matters when the GRID scrolls during the
   drag (an API call, a resize), so the drag test scrolls the holder mid-drag. It counts the script's

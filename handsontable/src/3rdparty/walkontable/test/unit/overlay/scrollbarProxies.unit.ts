@@ -1,4 +1,7 @@
 import {
+  resolveOuterCorners,
+  resolveProxyScrollbarColor,
+  resolveScrollbarCorner,
   resolveScrollbarFrameClip,
   resolveScrollbarProxyLayout,
   ScrollbarProxies,
@@ -250,6 +253,65 @@ describe('scrollbar proxies', () => {
         .toBe(resolveScrollbarFrameClip(holderBox()));
     });
   });
+
+  describe('resolveScrollbarCorner', () => {
+    it('should place the corner where the two gutters meet', () => {
+      expect(resolveScrollbarCorner(holderBox({ x: 10, y: 5 })))
+        .toEqual({ left: 610, top: 345, width: 15, height: 15 });
+    });
+
+    it('should place the corner on the left when the vertical bar is on the left', () => {
+      expect(resolveScrollbarCorner(holderBox({ x: 10, y: 5, viewX: 15 })))
+        .toEqual({ left: 10, top: 345, width: 15, height: 15 });
+    });
+
+    it('should return nothing unless the holder reserves both gutters', () => {
+      expect(resolveScrollbarCorner(holderBox({ boxHeight: 340 }))).toBeNull();
+      expect(resolveScrollbarCorner(holderBox({ boxWidth: 600 }))).toBeNull();
+      expect(resolveScrollbarCorner(holderBox({ boxWidth: 600, boxHeight: 340 }))).toBeNull();
+    });
+  });
+
+  describe('resolveOuterCorners', () => {
+    const none = { topLeft: false, topRight: false, bottomRight: false, bottomLeft: false };
+
+    it('should name the holder corners a box shares', () => {
+      const holder = holderBox({ x: 10, y: 5 });
+
+      // The strip beside the column headers, at the top of the right gutter.
+      expect(resolveOuterCorners({ left: 610, top: 5, width: 15, height: 30 }, holder))
+        .toEqual({ ...none, topRight: true });
+      // The gutter corner.
+      expect(resolveOuterCorners({ left: 610, top: 345, width: 15, height: 15 }, holder))
+        .toEqual({ ...none, bottomRight: true });
+      // The strip under the row headers, at the start of the bottom gutter.
+      expect(resolveOuterCorners({ left: 10, top: 345, width: 50, height: 15 }, holder))
+        .toEqual({ ...none, bottomLeft: true });
+    });
+
+    it('should name no corner for a box inside an edge', () => {
+      expect(resolveOuterCorners({ left: 610, top: 35, width: 15, height: 310 }, holderBox({ x: 10, y: 5 })))
+        .toEqual(none);
+    });
+  });
+
+  describe('resolveProxyScrollbarColor', () => {
+    it('should keep the holder\'s thumb and make the track transparent', () => {
+      expect(resolveProxyScrollbarColor('rgb(163, 163, 163) rgb(247, 247, 249)'))
+        .toBe('rgb(163, 163, 163) transparent');
+      expect(resolveProxyScrollbarColor('red blue')).toBe('red transparent');
+    });
+
+    it('should split at the space between the two colors, not at one inside a color', () => {
+      expect(resolveProxyScrollbarColor('color(srgb 0.5 0.5 0.5 / 0.4) rgba(0, 0, 0, 0.1)'))
+        .toBe('color(srgb 0.5 0.5 0.5 / 0.4) transparent');
+    });
+
+    it('should keep a value that is not two colors', () => {
+      expect(resolveProxyScrollbarColor('auto')).toBe('auto');
+      expect(resolveProxyScrollbarColor('')).toBe('');
+    });
+  });
 });
 
 describe('ScrollbarProxies', () => {
@@ -341,7 +403,15 @@ describe('ScrollbarProxies', () => {
         getComputedStyle: () => {
           geometryReads.count += 1;
 
-          return { scrollbarWidth: 'auto', scrollbarColor: 'auto', borderRadius: '0px' };
+          return {
+            scrollbarWidth: 'auto',
+            scrollbarColor: 'rgb(163, 163, 163) rgb(247, 247, 249)',
+            borderRadius: '4px',
+            borderTopLeftRadius: '4px',
+            borderTopRightRadius: '4px',
+            borderBottomRightRadius: '4px',
+            borderBottomLeftRadius: '4px',
+          };
         },
       },
       wtSettings: { getSetting: () => rtl },
@@ -423,6 +493,32 @@ describe('ScrollbarProxies', () => {
     expect(vertical?.style.top).toBe('30px');
     expect(vertical?.style.height).toBe('310px');
     expect((vertical?.firstElementChild as HTMLElement).style.height).toBe(`${310 + 10000 - 340}px`);
+  });
+
+  it('should cover the gutter corner and round each piece where it meets the holder\'s outer corner', () => {
+    createProxies();
+
+    const corner = parent.querySelector<HTMLElement>('.htScrollbarCorner');
+    const topFiller = Array.from(parent.querySelectorAll<HTMLElement>('.htScrollbarProxyFiller'))
+      .find(filler => filler.style.top === '0px' && filler.style.left === '600px');
+
+    expect(corner?.getAttribute('aria-hidden')).toBe('true');
+    expect([corner?.style.left, corner?.style.top, corner?.style.width, corner?.style.height])
+      .toEqual(['600px', '340px', '15px', '15px']);
+    expect(corner?.style.borderBottomRightRadius).toBe('4px');
+    expect(corner?.style.borderTopLeftRadius).toBe('');
+    // The strip beside the column headers takes the holder's top-right rounding, and only that one.
+    expect(topFiller?.style.borderTopRightRadius).toBe('4px');
+    expect(topFiller?.style.borderBottomRightRadius).toBe('');
+  });
+
+  it('should give each proxy the holder\'s thumb on a transparent track', () => {
+    createProxies();
+
+    const colors = Array.from(parent.querySelectorAll<HTMLElement>('.htScrollbarProxy'))
+      .map(proxy => proxy.style.scrollbarColor);
+
+    expect(colors).toEqual(['rgb(163, 163, 163) transparent', 'rgb(163, 163, 163) transparent']);
   });
 
   it('should place the proxies and the frame on the left gutter of an RTL holder', () => {

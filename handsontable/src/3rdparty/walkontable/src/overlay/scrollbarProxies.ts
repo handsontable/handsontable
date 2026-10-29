@@ -1,5 +1,10 @@
 import type { EngineContext } from '../wire';
-import { SCROLLBAR_FRAME_CLASS, SCROLLBAR_PROXY_CLASS, SCROLLBAR_PROXY_FILLER_CLASS } from './constants';
+import {
+  SCROLLBAR_CORNER_CLASS,
+  SCROLLBAR_FRAME_CLASS,
+  SCROLLBAR_PROXY_CLASS,
+  SCROLLBAR_PROXY_FILLER_CLASS,
+} from './constants';
 
 /**
  * A box in the master overlay's coordinates (the holder's offset parent), in pixels.
@@ -72,7 +77,8 @@ export interface ScrollbarProxyInput {
  * An axis gets a proxy only when the holder owns it, reserves a classic gutter for it (an overlay
  * scrollbar takes no space and keeps the clearance band of `scrollbarClearance.ts`), and a header or a
  * frozen band takes part of the edge. The proxy fills that part of the gutter, the fillers fill the rest,
- * so the holder's own scrollbar is covered along the whole edge. The gutter corner stays the holder's.
+ * so the holder's own scrollbar is covered along the whole edge. The gutter corner is covered apart, by
+ * `resolveScrollbarCorner`.
  *
  * @param {ScrollbarProxyInput} input The measurements.
  * @returns {ScrollbarProxyLayout}
@@ -167,6 +173,80 @@ export function resolveScrollbarFrameClip(holder: ScrollbarProxyInput['holder'])
 }
 
 /**
+ * The square where the two gutters meet, or `null` unless the holder reserves both. The holder paints
+ * that corner itself, and Safari paints it white once `scrollbar-color` applies (it then ignores
+ * `::-webkit-scrollbar-corner`), so it is covered in the track color like the rest of the gutters.
+ *
+ * @param {ScrollbarProxyInput['holder']} holder The measured holder.
+ * @returns {ProxyBox | null}
+ */
+export function resolveScrollbarCorner(holder: ScrollbarProxyInput['holder']): ProxyBox | null {
+  const verticalGutter = holder.boxWidth - holder.viewWidth;
+  const horizontalGutter = holder.boxHeight - holder.viewHeight;
+
+  if (verticalGutter <= 0 || horizontalGutter <= 0) {
+    return null;
+  }
+
+  return {
+    left: holder.viewX > 0 ? holder.x : holder.x + holder.viewX + holder.viewWidth,
+    top: holder.y + holder.viewHeight,
+    width: verticalGutter,
+    height: horizontalGutter,
+  };
+}
+
+/**
+ * Which corners of the holder's border box a box shares. A piece placed there takes the holder's
+ * rounding on that corner, as the holder's own scrollbar is clipped to it, so no square corner sticks
+ * out past the rounded frame.
+ *
+ * @param {ProxyBox} box The box.
+ * @param {ScrollbarProxyInput['holder']} holder The measured holder.
+ * @returns {{ topLeft: boolean, topRight: boolean, bottomRight: boolean, bottomLeft: boolean }}
+ */
+export function resolveOuterCorners(box: ProxyBox, holder: ScrollbarProxyInput['holder']) {
+  const left = Math.abs(box.left - holder.x) < 1;
+  const right = Math.abs((box.left + box.width) - (holder.x + holder.boxWidth)) < 1;
+  const top = Math.abs(box.top - holder.y) < 1;
+  const bottom = Math.abs((box.top + box.height) - (holder.y + holder.boxHeight)) < 1;
+
+  return {
+    topLeft: top && left,
+    topRight: top && right,
+    bottomRight: bottom && right,
+    bottomLeft: bottom && left,
+  };
+}
+
+/**
+ * The proxy's `scrollbar-color`: the holder's thumb on a transparent track, so the proxy's own
+ * background shows the track. Firefox draws a classic track it colors itself with a line and a shadow
+ * along its content side, which the fillers beside the proxy do not have. A value that is not two
+ * colors (`auto`) is kept as it is.
+ *
+ * @param {string} holderScrollbarColor The holder's computed `scrollbar-color`.
+ * @returns {string}
+ */
+export function resolveProxyScrollbarColor(holderScrollbarColor: string): string {
+  let depth = 0;
+
+  for (let index = 0; index < holderScrollbarColor.length; index++) {
+    const char = holderScrollbarColor[index];
+
+    if (char === '(') {
+      depth += 1;
+    } else if (char === ')') {
+      depth -= 1;
+    } else if (char === ' ' && depth === 0) {
+      return `${holderScrollbarColor.slice(0, index)} transparent`;
+    }
+  }
+
+  return holderScrollbarColor;
+}
+
+/**
  * Assembles the ScrollbarProxies dependencies from the engine composition context. The candidates and
  * the insets come from the owning Overlays instance, which knows its overlays.
  *
@@ -256,6 +336,11 @@ export class ScrollbarProxies {
   #frame: HTMLElement | null = null;
 
   /**
+   * The square where the two gutters meet, created the first time both gutters exist.
+   */
+  #corner: HTMLElement | null = null;
+
+  /**
    * @param {ScrollbarProxiesDeps} deps The dependency set.
    */
   constructor(deps: ScrollbarProxiesDeps) {
@@ -325,8 +410,9 @@ export class ScrollbarProxies {
     });
     const holderStyle = geometryReader.getComputedStyle(holder);
 
-    this.#apply('vertical', layout.vertical, holder, holderStyle);
-    this.#apply('horizontal', layout.horizontal, holder, holderStyle);
+    this.#apply('vertical', layout.vertical, holder, measured, holderStyle);
+    this.#apply('horizontal', layout.horizontal, holder, measured, holderStyle);
+    this.#applyCorner(candidates.framed ? resolveScrollbarCorner(measured) : null, holder, measured, holderStyle);
     const frameClip = candidates.framed ? resolveScrollbarFrameClip(measured) : null;
 
     this.#applyFrame(frameClip, measured, holderStyle, parent);
@@ -359,6 +445,8 @@ export class ScrollbarProxies {
         this.#elements[axis] = null;
       }
     });
+    this.#corner?.remove();
+    this.#corner = null;
     this.#frame?.remove();
     this.#frame = null;
   }
@@ -369,7 +457,42 @@ export class ScrollbarProxies {
    * @returns {boolean}
    */
   #hasElements(): boolean {
-    return this.#elements.vertical !== null || this.#elements.horizontal !== null || this.#frame !== null;
+    return this.#elements.vertical !== null || this.#elements.horizontal !== null
+      || this.#corner !== null || this.#frame !== null;
+  }
+
+  /**
+   * Covers the square where the two gutters meet, or hides the cover.
+   *
+   * @param {ProxyBox | null} box The corner, from `resolveScrollbarCorner`.
+   * @param {HTMLElement} holder The master holder.
+   * @param {ScrollbarProxyInput['holder']} measured The measured holder.
+   * @param {CSSStyleDeclaration} holderStyle The holder's computed style.
+   */
+  #applyCorner(
+    box: ProxyBox | null,
+    holder: HTMLElement,
+    measured: ScrollbarProxyInput['holder'],
+    holderStyle: CSSStyleDeclaration,
+  ) {
+    if (box === null) {
+      if (this.#corner) {
+        setDisplay(this.#corner, false);
+      }
+
+      return;
+    }
+
+    if (!this.#corner) {
+      this.#corner = this.#deps.rootDocument.createElement('div');
+      this.#corner.className = SCROLLBAR_CORNER_CLASS;
+      this.#corner.setAttribute('aria-hidden', 'true');
+      holder.after(this.#corner);
+    }
+
+    placeBox(this.#corner, box);
+    roundOuterCorners(this.#corner, box, measured, holderStyle);
+    setDisplay(this.#corner, true);
   }
 
   /**
@@ -418,9 +541,16 @@ export class ScrollbarProxies {
    * @param {Axis} axis The axis.
    * @param {AxisProxyLayout | null} layout The axis layout.
    * @param {HTMLElement} holder The master holder.
+   * @param {ScrollbarProxyInput['holder']} measured The measured holder.
    * @param {CSSStyleDeclaration} holderStyle The holder's computed style.
    */
-  #apply(axis: Axis, layout: AxisProxyLayout | null, holder: HTMLElement, holderStyle: CSSStyleDeclaration) {
+  #apply(
+    axis: Axis,
+    layout: AxisProxyLayout | null,
+    holder: HTMLElement,
+    measured: ScrollbarProxyInput['holder'],
+    holderStyle: CSSStyleDeclaration,
+  ) {
     if (layout === null) {
       const elements = this.#elements[axis];
 
@@ -435,6 +565,7 @@ export class ScrollbarProxies {
     const elements = this.#elements[axis] ?? this.#create(axis, holder);
 
     placeBox(elements.proxy, layout.proxy);
+    roundOuterCorners(elements.proxy, layout.proxy, measured, holderStyle);
     setDisplay(elements.proxy, true);
 
     if (axis === 'vertical') {
@@ -443,16 +574,18 @@ export class ScrollbarProxies {
       setStyle(elements.spacer, 'width', `${layout.spacer}px`);
     }
 
-    // The holder's computed scrollbar style, so a host rule on `.wtHolder` (a thinner bar, other colors)
-    // shapes the proxy too and its bar keeps filling the gutter it sits in.
+    // The holder's computed scrollbar style, so a host rule on `.wtHolder` (a thinner bar, another thumb
+    // color) shapes the proxy too and its bar keeps filling the gutter it sits in. The track is left to
+    // the proxy's background, like the fillers'.
     setStyle(elements.proxy, 'scrollbarWidth', holderStyle.scrollbarWidth);
-    setStyle(elements.proxy, 'scrollbarColor', holderStyle.scrollbarColor);
+    setStyle(elements.proxy, 'scrollbarColor', resolveProxyScrollbarColor(holderStyle.scrollbarColor));
 
     elements.fillers.forEach((filler, index) => {
       const box = layout.fillers[index];
 
       if (box) {
         placeBox(filler, box);
+        roundOuterCorners(filler, box, measured, holderStyle);
       }
 
       setDisplay(filler, box !== undefined);
@@ -597,7 +730,8 @@ export class ScrollbarProxies {
  */
 function setStyle(
   element: HTMLElement,
-  property: 'height' | 'width' | 'scrollbarWidth' | 'scrollbarColor' | 'borderRadius' | 'clipPath',
+  property: 'height' | 'width' | 'scrollbarWidth' | 'scrollbarColor' | 'borderRadius' | 'clipPath'
+    | 'borderTopLeftRadius' | 'borderTopRightRadius' | 'borderBottomRightRadius' | 'borderBottomLeftRadius',
   value: string,
 ) {
   if (element.style[property] !== value) {
@@ -625,6 +759,29 @@ function placeBox(element: HTMLElement, box: ProxyBox) {
       style[key] = values[key];
     }
   });
+}
+
+/**
+ * Gives an element the holder's rounding on each outer corner of the holder its box shares, and none
+ * elsewhere.
+ *
+ * @param {HTMLElement} element The element.
+ * @param {ProxyBox} box The element's box.
+ * @param {ScrollbarProxyInput['holder']} holder The measured holder.
+ * @param {CSSStyleDeclaration} holderStyle The holder's computed style.
+ */
+function roundOuterCorners(
+  element: HTMLElement,
+  box: ProxyBox,
+  holder: ScrollbarProxyInput['holder'],
+  holderStyle: CSSStyleDeclaration,
+) {
+  const corners = resolveOuterCorners(box, holder);
+
+  setStyle(element, 'borderTopLeftRadius', corners.topLeft ? holderStyle.borderTopLeftRadius : '');
+  setStyle(element, 'borderTopRightRadius', corners.topRight ? holderStyle.borderTopRightRadius : '');
+  setStyle(element, 'borderBottomRightRadius', corners.bottomRight ? holderStyle.borderBottomRightRadius : '');
+  setStyle(element, 'borderBottomLeftRadius', corners.bottomLeft ? holderStyle.borderBottomLeftRadius : '');
 }
 
 /**

@@ -303,7 +303,8 @@
   overflow-y: hidden;
 }
 
-.htScrollbarProxyFiller {
+.htScrollbarProxyFiller,
+.htScrollbarCorner {
   position: absolute;
   z-index: 1;
   background: #f7f7f9;

@@ -105,6 +105,12 @@ export const SCROLLBAR_PROXY_FILLER_CLASS = 'htScrollbarProxyFiller';
 export const SCROLLBAR_FRAME_CLASS = 'htScrollbarFrame';
 
 /**
+ * The square where the two classic gutters meet, in the track color. Safari paints that corner itself,
+ * in white, once `scrollbar-color` applies (it then ignores `::-webkit-scrollbar-corner`).
+ */
+export const SCROLLBAR_CORNER_CLASS = 'htScrollbarCorner';
+
+/**
  * How many `ResizeObserver` deliveries in direct succession make the callback a self-sustaining loop
  * rather than a burst of real resizes. A parent sized in dynamic units (`dvh`) can be re-sized by the
  * very refresh the previous delivery triggered, and that cycle never ends on its own (#11021).
