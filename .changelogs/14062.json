@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed CustomBorders rebuilding every border on an `updateSettings()` call whose `trimRows` value left the trimmed rows unchanged.",
+  "type": "fixed",
+  "issueOrPR": 14062,
+  "breaking": false,
+  "framework": "none"
+}

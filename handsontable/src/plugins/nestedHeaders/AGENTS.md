@@ -311,6 +311,17 @@ COUNT, so a width-only change is invisible to it. Left stale, the cache kept the
 while the scroll range used the grown widths, and a grid scrolled to the right edge showed a blank area
 instead of its last columns. A second writer of the widths map must call it too.
 
+## A web font load rebuilds the widths map (DEV-199)
+
+The ghost table measures the multi-column labels with whatever font has loaded, so a web font that arrives
+later leaves them clipped, and no resize observer sees it. `#onAfterFontsLoad` sets `#updateWidthsMap`, so
+the render core makes after the `afterFontsLoad` hook rebuilds the map; it listens with
+`FONT_REMEASURE_ORDER_INDEX` (`core/fontLoad.ts`), after the application's listeners. **A test of it must
+put the label over columns whose cells do not widen with the font**: AutoColumnSize measures the nested
+labels too, so a label over an auto-sized column grows without this handler and the test passes on a
+build without it (`tests/e2e/web-font-load.spec.ts`, "re-measures row header and nested header labels",
+puts it over an empty column and a fixed-width one).
+
 ## Testing
 
 - E2E: `npm run test:e2e --prefix handsontable -- --testPathPattern='nestedHeaders'`

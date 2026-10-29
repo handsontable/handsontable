@@ -320,6 +320,41 @@ describe('IndexMapper', () => {
     indexMapper.unregisterMap('uniqueName');
   });
 
+  it('should return a new array from `getNotTrimmedIndexes` after the trimmed indexes change', () => {
+    const indexMapper = new IndexMapper();
+    const trimmingMap = indexMapper.createAndRegisterIndexMap('uniqueName', 'trimming') as TrimmingMap;
+
+    indexMapper.initToLength(10);
+
+    const untrimmed = indexMapper.getNotTrimmedIndexes();
+
+    trimmingMap.setValueAtIndex(0, true);
+
+    const trimmedFirstRow = indexMapper.getNotTrimmedIndexes();
+
+    expect(trimmedFirstRow).not.toBe(untrimmed);
+    expect(trimmedFirstRow).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+    // The same number of trimmed indexes, other indexes: the array keeps its length.
+    indexMapper.suspendOperations();
+    trimmingMap.setValueAtIndex(0, false);
+    trimmingMap.setValueAtIndex(3, true);
+    indexMapper.resumeOperations();
+
+    const trimmedFourthRow = indexMapper.getNotTrimmedIndexes();
+
+    expect(trimmedFourthRow).not.toBe(trimmedFirstRow);
+    expect(trimmedFourthRow.length).toBe(trimmedFirstRow.length);
+    expect(trimmedFourthRow).toEqual([0, 1, 2, 4, 5, 6, 7, 8, 9]);
+    // The array handed out earlier is not rewritten in place.
+    expect(trimmedFirstRow).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+    indexMapper.unregisterMap('uniqueName');
+
+    expect(indexMapper.getNotTrimmedIndexes()).not.toBe(trimmedFourthRow);
+    expect(indexMapper.getNotTrimmedIndexes()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  });
+
   it('should handle `Hiding` map properly', () => {
     const indexMapper = new IndexMapper();
     const hidingMap = new HidingMap();

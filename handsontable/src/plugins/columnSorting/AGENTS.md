@@ -28,9 +28,18 @@ yet.
 ## The pre-sort order is taken whenever a sort starts from unsorted rows
 
 `indexesSequenceCache` (the `columnSorting` row map) is the order the sort starts from and a cleared sort goes
-back to. `#capturePresortOrder()` writes it from the live sequence every time a `sort()` starts from empty
-states on rows that show no sort result, and `setSortConfig()` does the same when it writes states onto such a
+back to. `#capturePresortOrder()` writes it from the live sequence whenever the cache is missing (the first
+sort, including one after `setSortConfig()` on a never-sorted grid) and every time a `sort()` starts from empty
+states on rows that show no sort result. `setSortConfig()` does the same when it writes states onto such a
 grid and the cache exists.
+
+**Open: a row moved after `setSortConfig()` is kept or reverted depending on the cache.** On a grid with no
+cache the clear takes the rows as they are then, so the move stays. On a grid that sorted before, the cache
+exists and `setSortConfig()` leaves it, so the clear puts the pre-move order back. Making both keep the move
+breaks the sheets bar restore, which writes the sort states, then writes the sorted order straight into the
+row sequence, and expects a later clear to return to the unsorted order
+(`sheetsBar/__tests__/viewStateRoundTrip.unit.js`, "brings back the unsorted order after a switch whose sort a
+listener canceled"). It needs a decision, not a patch.
 
 **Empty sort states do not mean unsorted rows.** `setSortConfig([])` and removing the sorted column empty the
 states and leave the rows in sorted order. Retaking the cache there makes the sorted order the one a later

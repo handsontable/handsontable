@@ -591,10 +591,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   written, a later clear kept the rows sorted. It runs only when `restoreSequence()` reports the
   unsorted order written: a sheet whose data changed size keeps
   the `loadData` order, and an indicator over it would claim a sort it does not have. It writes nothing when
-  the states are no longer empty (the listener set its own config) or while the plugin has no
-  `indexesSequenceCache`. The sort only builds that cache from empty states, so states written
-  without it made the next `sort()` throw. The cache is missing after the plugin was disabled and
-  enabled again, which a sheet declaring `columnSorting: false` does on every switch.
+  the states are no longer empty (the listener set its own config). It writes them when the sorting plugin
+  has no `indexesSequenceCache` too, which is the case after the plugin was disabled and enabled again (a
+  sheet declaring `columnSorting: false` does that on every switch): `setSortConfig()` builds no cache then,
+  and the plugin takes it from the rows of the next sort or clear. A guard that skipped the write there left
+  `getSortConfig()` empty and the indicator off over sorted rows, and protected nothing, because a later
+  clear takes the restored rows as its order either way.
 - **The switch runs under `#withoutUndoEntry`, and so does the live-grid reset in
   `#buildInitialWorkbook` (DEV-3037).** `loadData()` clears the UndoRedo stacks, but the view-state
   restore runs after it and goes through the public `sort()` and `filter()`, whose UndoRedo

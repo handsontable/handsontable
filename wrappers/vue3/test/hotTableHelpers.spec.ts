@@ -17,7 +17,7 @@ describe('propFactory', () => {
     expect(typeof props.afterCreateRow).toBe('object');
     expect(typeof props.afterGetCellMeta).toBe('object');
     expect(typeof props.beforeInit).toBe('object');
-    expect(typeof props.randomProp).toBe('undefined');
+    expect(typeof (props as Record<string, unknown>).randomProp).toBe('undefined');
   });
 
   it('should expose the NestedRows collapse and expand hooks as props', () => {
