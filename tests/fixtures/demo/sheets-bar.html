@@ -26,6 +26,10 @@
     if (!window.htBundle) {
       throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
     }
+    // `?productionStrip` drops the strip pin below, so a spec can see the layout the bar ships with.
+    if (htParams.has('productionStrip')) {
+      document.documentElement.setAttribute('data-production-strip', '');
+    }
   </script>
   <style>
     body { font-family: sans-serif; margin: 1rem; }
@@ -41,7 +45,9 @@
       lands after this block in source order and matches with the same
       selector specificity.
     */
-    .handsontable.ht-sheets-bar .ht-sheets-bar__tabs { flex: 0 0 600px !important; }
+    html:not([data-production-strip]) .handsontable.ht-sheets-bar .ht-sheets-bar__tabs {
+      flex: 0 0 600px !important;
+    }
   </style>
 </head>
 <body>
