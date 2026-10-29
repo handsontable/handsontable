@@ -18,6 +18,8 @@ describe('ContextMenu', () => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           comments: true,
+          // A comment inside the selection, so the guard alone has to disable the item.
+          cell: [{ row: 1, col: 1, comment: { value: 'Note' } }],
           colHeaders: true,
           contextMenu: true,
         });
@@ -37,6 +39,8 @@ describe('ContextMenu', () => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           comments: true,
+          // A comment inside the selection, so the guard alone has to disable the item.
+          cell: [{ row: 1, col: 1, comment: { value: 'Note' } }],
           colHeaders: true,
           contextMenu: true,
         });
@@ -56,6 +60,8 @@ describe('ContextMenu', () => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           comments: true,
+          // A comment inside the selection, so the guard alone has to disable the item.
+          cell: [{ row: 1, col: 1, comment: { value: 'Note' } }],
           colHeaders: true,
           contextMenu: true,
           hiddenRows: { // The HidingMap should be used instead of the plugin.
@@ -76,6 +82,8 @@ describe('ContextMenu', () => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           comments: true,
+          // A comment inside the selection, so the guard alone has to disable the item.
+          cell: [{ row: 1, col: 1, comment: { value: 'Note' } }],
           rowHeaders: true,
           contextMenu: true,
           hiddenColumns: { // The HidingMap should be used instead of the plugin.
@@ -96,6 +104,8 @@ describe('ContextMenu', () => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           comments: true,
+          // A comment inside the selection, so the guard alone has to disable the item.
+          cell: [{ row: 1, col: 1, comment: { value: 'Note' } }],
           colHeaders: true,
           contextMenu: true,
           trimRows: [0, 1, 2, 3, 4], // The TrimmingMap should be used instead of the plugin.
@@ -114,6 +124,8 @@ describe('ContextMenu', () => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           comments: true,
+          // A comment inside the selection, so the guard alone has to disable the item.
+          cell: [{ row: 1, col: 1, comment: { value: 'Note' } }],
           rowHeaders: true,
           contextMenu: true,
           columns: [], // The TrimmingMap should be used instead of the `columns` option.
@@ -135,6 +147,8 @@ describe('ContextMenu', () => {
           colHeaders: true,
           contextMenu: true,
           comments: true,
+          // A comment inside the selection, so the guard alone has to disable the item.
+          cell: [{ row: 1, col: 1, comment: { value: 'Note' } }],
           navigableHeaders: true,
         });
 
@@ -155,6 +169,8 @@ describe('ContextMenu', () => {
           colHeaders: true,
           contextMenu: true,
           comments: true,
+          // A comment inside the selection, so the guard alone has to disable the item.
+          cell: [{ row: 1, col: 1, comment: { value: 'Note' } }],
           navigableHeaders: true,
         });
 
@@ -175,6 +191,8 @@ describe('ContextMenu', () => {
           colHeaders: true,
           contextMenu: true,
           comments: true,
+          // A comment inside the selection, so the guard alone has to disable the item.
+          cell: [{ row: 1, col: 1, comment: { value: 'Note' } }],
           navigableHeaders: true,
         });
 

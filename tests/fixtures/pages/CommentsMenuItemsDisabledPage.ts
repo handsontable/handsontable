@@ -13,6 +13,8 @@ type FixtureWindow = {
   selectRange: (row: number, col: number, row2: number, col2: number) => void;
   selectTwoLayers: () => void;
   mergeHiddenComment: () => void;
+  commentOnMergeAnchor: () => void;
+  commentAt: (row: number, col: number) => string | null;
   commentMetaWrites: unknown[];
 };
 
@@ -149,6 +151,26 @@ export class CommentsMenuItemsDisabledPage {
   }
 
   /**
+   * Click one item. A disabled item carries `aria-disabled`, which Playwright reads as a disabled
+   * control and would wait on, so the click is forced: the menu itself must ignore it.
+   *
+   * @param {string} label The item's visible text.
+   */
+  async clickItem(label: string): Promise<void> {
+    await this.#item(label).click({ force: true });
+  }
+
+  /**
+   * The comment text on a cell, or `null` when it has none.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   */
+  async commentAt(row: number, col: number): Promise<string | null> {
+    return this.page.evaluate(([r, c]) => (window as unknown as FixtureWindow).commentAt(r, c), [row, col]);
+  }
+
+  /**
    * Every `comment` meta write since the page loaded, as `[row, col, value]`.
    */
   async commentMetaWrites(): Promise<unknown[]> {
@@ -180,6 +202,13 @@ export class CommentsMenuItemsDisabledPage {
    */
   async mergeHiddenComment(): Promise<void> {
     await this.page.evaluate(() => (window as unknown as FixtureWindow).mergeHiddenComment());
+  }
+
+  /**
+   * Put a comment on (3, 0), the anchor of the block `mergeHiddenComment()` merges.
+   */
+  async commentOnMergeAnchor(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as FixtureWindow).commentOnMergeAnchor());
   }
 
   /**

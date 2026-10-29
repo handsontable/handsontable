@@ -46,7 +46,7 @@ test.describe('the comment context menu items are offered only where there is a 
   });
 
   test('disables both items on a range without any comment', async() => {
-    await grid.selectRange(1, 0, 1, 5);
+    await grid.selectRange(5, 0, 5, 5);
     await grid.openMenuWithKeyboard();
 
     expect(await grid.itemState('Delete comment')).toEqual(DISABLED);
@@ -54,8 +54,8 @@ test.describe('the comment context menu items are offered only where there is a 
   });
 
   test('judges a column selected from its header by its cells', async() => {
-    // Column 2 holds the comment on (2, 2).
-    await grid.openMenuOnColumnHeader(2);
+    // Column 3 holds the comment on (1, 3); column 1 has none, and would read it under a row/column swap.
+    await grid.openMenuOnColumnHeader(3);
 
     expect(await grid.itemState('Delete comment')).toEqual(ENABLED);
 
@@ -82,9 +82,7 @@ test.describe('the comment context menu items are offered only where there is a 
     expect(await grid.itemState('Delete comment')).toEqual(DISABLED);
   });
 
-  test('skips the disabled item on the keyboard, so nothing is written to a cell without a comment', async() => {
-    const writesBefore = await grid.commentMetaWrites();
-
+  test('skips the disabled item on the keyboard', async() => {
     await grid.openMenuOnCell(0, 1);
 
     expect(await grid.keyboardReaches('Delete comment')).toBe(false);
@@ -95,9 +93,42 @@ test.describe('the comment context menu items are offered only where there is a 
     await grid.openMenuOnCell(0, 0);
 
     expect(await grid.keyboardReaches('Delete comment')).toBe(true);
+  });
 
-    await grid.closeMenu();
+  test('ignores a click on the disabled item, so nothing is written to a cell without a comment', async() => {
+    const writesBefore = await grid.commentMetaWrites();
+
+    await grid.openMenuOnCell(0, 1);
+    // The menu treats a click on a disabled item as passive: it stays open and runs no callback.
+    await grid.clickItem('Delete comment');
 
     expect(await grid.commentMetaWrites()).toEqual(writesBefore);
+
+    await grid.closeMenu();
+  });
+
+  test('writes only to the cells that hold a comment when the click deletes a range', async() => {
+    // Rows 0 and 1, every column: 12 cells, of which (0, 0) and (1, 3) hold a comment.
+    const writesBefore = await grid.commentMetaWrites();
+
+    await grid.selectRange(0, 0, 1, 5);
+    await grid.openMenuWithKeyboard();
+    await grid.clickItem('Delete comment');
+
+    expect((await grid.commentMetaWrites()).slice(writesBefore.length)).toEqual([[0, 0, null], [1, 3, null]]);
+    expect(await grid.commentAt(0, 0)).toBeNull();
+    expect(await grid.commentAt(1, 3)).toBeNull();
+  });
+
+  test('leaves the comment on a cell a merged block hides, as the item does not count it', async() => {
+    await grid.mergeHiddenComment();
+    await grid.commentOnMergeAnchor();
+    await grid.selectRange(3, 0, 3, 0);
+    await grid.openMenuWithKeyboard();
+    await grid.clickItem('Delete comment');
+
+    expect(await grid.commentMetaWrites()).toEqual([[3, 0, null]]);
+    expect(await grid.commentAt(3, 0)).toBeNull();
+    expect(await grid.commentAt(4, 1)).toBe('Hidden note');
   });
 });

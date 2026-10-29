@@ -36,7 +36,8 @@
     "Delete comment" used to stay enabled on a cell without a comment, and clicking it wrote
     `comment: undefined` meta to that cell.
 
-    Comments sit on (0, 0) and (2, 2). Every other cell starts without one.
+    Comments sit on (0, 0) and (1, 3), one of them off the diagonal so a row/column swap shows. Every
+    other cell starts without one.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -75,7 +76,7 @@
         mergeCells: true,
         cell: [
           { row: 0, col: 0, comment: { value: 'Note on A1' } },
-          { row: 2, col: 2, comment: { value: 'Note on C3' } },
+          { row: 1, col: 3, comment: { value: 'Note on D2' } },
         ],
         afterSetCellMeta(row, col, key, value) {
           if (key === 'comment') {
@@ -112,6 +113,20 @@
       window.commentMetaWrites.length = 0;
       window.hot.render();
     };
+
+    /**
+     * Put a comment on (3, 0), the anchor of the merged block `mergeHiddenComment()` builds.
+     */
+    window.commentOnMergeAnchor = () => {
+      window.hot.getPlugin('comments').setCommentAtCell(3, 0, 'Anchor note');
+      window.commentMetaWrites.length = 0;
+      window.hot.render();
+    };
+
+    /**
+     * The comment text on a cell, or `null` when it has none.
+     */
+    window.commentAt = (row, col) => window.hot.getPlugin('comments').getCommentAtCell(row, col) ?? null;
   </script>
 </body>
 </html>

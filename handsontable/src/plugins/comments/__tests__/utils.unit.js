@@ -2,6 +2,7 @@ import {
   getEditorAnchorHeight,
   getEditorAnchorWidth,
   hasCommentAtCell,
+  hasCommentInMeta,
 } from 'handsontable/plugins/comments/utils';
 
 describe('Comments', () => {
@@ -38,23 +39,37 @@ describe('Comments', () => {
     });
   });
 
-  describe('hasCommentAtCell', () => {
-    const hotWith = meta => ({ getCellMetaTransient: () => meta });
-
+  describe('hasCommentInMeta', () => {
     it('should be true for a comment with a value', () => {
-      expect(hasCommentAtCell(hotWith({ comment: { value: 'note' } }), 0, 0)).toBe(true);
+      expect(hasCommentInMeta({ comment: { value: 'note' } })).toBe(true);
     });
 
     it('should be false when the cell has no comment meta', () => {
-      expect(hasCommentAtCell(hotWith({}), 0, 0)).toBe(false);
+      expect(hasCommentInMeta({})).toBe(false);
     });
 
     it('should be false for comment meta without a value', () => {
-      expect(hasCommentAtCell(hotWith({ comment: { readOnly: true } }), 0, 0)).toBe(false);
+      expect(hasCommentInMeta({ comment: { readOnly: true } })).toBe(false);
     });
 
     it('should be false for a hidden cell under a merged block', () => {
-      expect(hasCommentAtCell(hotWith({ hidden: true, comment: { value: 'note' } }), 0, 0)).toBe(false);
+      expect(hasCommentInMeta({ hidden: true, comment: { value: 'note' } })).toBe(false);
+    });
+  });
+
+  describe('hasCommentAtCell', () => {
+    // Only (1, 3) holds a comment, off the diagonal, so a row/column swap reads (3, 1) and misses it.
+    const hot = {
+      getCellMetaTransient: jest.fn((row, col) => (row === 1 && col === 3 ? { comment: { value: 'note' } } : {})),
+    };
+
+    it('should read the meta of the cell it is asked about', () => {
+      expect(hasCommentAtCell(hot, 1, 3)).toBe(true);
+      expect(hot.getCellMetaTransient).toHaveBeenLastCalledWith(1, 3);
+    });
+
+    it('should be false for the transposed cell', () => {
+      expect(hasCommentAtCell(hot, 3, 1)).toBe(false);
     });
   });
 });

@@ -21,9 +21,11 @@ export default function removeCommentItem(plugin: Comments) {
         return;
       }
 
-      // Every cell's removal is one undo step together.
+      // Every cell's removal is one undo step together. A cell without a comment, or hidden under a
+      // merged block, is skipped – the same cells `disabled()` ignores – so the click writes no
+      // `comment: undefined` meta and no undo entry for it (DEV-263).
       plugin.runOperation('comment', () => range.forAll((row: number, column: number) => {
-        if (row >= 0 && column >= 0) {
+        if (row >= 0 && column >= 0 && hasCommentAtCell(this, row, column)) {
           plugin.removeCommentAtCell(row, column, false);
         }
       }));
