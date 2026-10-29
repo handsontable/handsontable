@@ -2593,7 +2593,12 @@ sets. `HotTable` takes the types of [`updateSettings()`](@/api/core.md#updateset
 may be `null`, which removes its callback. `HotColumn` takes the types of the column settings, where
 `data` is a property name or a getter instead of an array of rows.
 
-Nothing changes at runtime. This section applies only if you type-check your templates with `vue-tsc`,
+One thing changes at runtime. `HotTable` and `HotColumn` now declare `handsontable` and `getValue` as
+props. In 18.1, `<HotColumn :getValue="fn" />` never reached the column settings, and
+`<HotTable :handsontable="...">` fell through as an attribute on the root `div`. Both now reach the grid
+settings, so a template that passed either one and relied on it being ignored behaves differently.
+
+Apart from those two props, this section applies only if you type-check your templates with `vue-tsc`,
 or your `h()` calls with `tsc`.
 
 ### Who is affected

@@ -110,7 +110,7 @@ export function propFactory(source: 'HotTable' | 'HotColumn'): HotTablePropSchem
   }
 
   // The schema is filled at runtime from `DefaultSettings`, the registered hooks, and the options named
-  // above, which is why it is built loosely and typed here, from `GridSettings`, for the template type checker.
+  // above, which is why it is built loosely and typed here, from `SettingsUpdate` and `ColumnSettings`, for the template type checker.
   return propSchema as unknown as HotTablePropSchema | HotColumnPropSchema;
 }
 
