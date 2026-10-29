@@ -102,6 +102,13 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   hooks only, deduped on the coordinates, so a write to the selected cell that moves no selection (Delete,
   paste, undo, `setDataAtCell()`) left the old formula in the bar. A change on the active cell (or a change
   list of `null`) resets the key and re-emits; an open edit is left alone, its close re-reads.
+  The same one helper (`#resyncBarCell`, no coordinate filter) is the listener of `afterSetSourceDataAtCell`,
+  `afterCreateRow`/`Col`, `afterRemoveRow`/`Col`, `afterColumnSort`, `afterRowMove`/`ColumnMove`, `afterUpdateSettings` (order 2), and runs at
+  the end of `#onAfterDataLoad` (`afterLoadData`/`afterUpdateData`): a sort, a data replace or a source write
+  keeps the coordinates, so the selection dedupe hid the new cell. The Formulas plugin enables first (priority
+  260 < 265) and its load listeners carry order -1, so the engine has resynced when the bar re-reads. The
+  exception is `updateSettings({ data })`: Formulas fills the engine from `afterUpdateSettings` (order 1),
+  after `afterUpdateData`, so the bar listens there with order 2.
 - **`updatePlugin()` keeps the built plugin when nothing it was built from changed.** `SETTING_KEYS` lists
   `formulas`, and the React and Angular wrappers re-send every object prop with a new identity on each
   render, so a full rebuild per render discarded the bar's focus and an open edit. `#isConfigUnchanged()`

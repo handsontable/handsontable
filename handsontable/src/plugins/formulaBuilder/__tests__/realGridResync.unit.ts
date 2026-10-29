@@ -5,6 +5,7 @@ import { registerLanguageDictionary } from '../../../i18n/registry';
 import { registerPlugin } from '../../registry';
 import { Formulas } from '../../formulas';
 import { UndoRedo } from '../../undoRedo';
+import { ColumnSorting } from '../../columnSorting';
 import { FormulaBuilder } from '../formulaBuilder';
 import { getFormulaBuilderAdapter } from '../handsontableAdapter';
 
@@ -35,6 +36,7 @@ describe('FormulaBuilder state that has to follow the grid', () => {
     registerPlugin(Formulas);
     registerPlugin(FormulaBuilder);
     registerPlugin(UndoRedo);
+    registerPlugin(ColumnSorting);
     registerLanguageDictionary(deDE);
   });
 
@@ -103,6 +105,53 @@ describe('FormulaBuilder state that has to follow the grid', () => {
       grid.setDataAtCell(0, 0, '');
 
       expect(barText()).toBe('');
+    });
+
+    it('shows the new content after a source data write to the selected cell', () => {
+      const grid = createGrid({ data: [[1, 2, '=A1+B1'], [4, 5, 6]] });
+
+      grid.selectCell(0, 2);
+
+      expect(barText()).toBe('=A1+B1');
+
+      grid.setSourceDataAtCell(0, 2, '=A1*B1');
+
+      expect(barText()).toBe('=A1*B1');
+    });
+
+    it('shows the new cell after the data was replaced with the selection kept', () => {
+      const grid = createGrid({ data: [[1, 2, '=A1+B1'], [4, 5, 6]] });
+
+      grid.selectCell(0, 2);
+      grid.updateSettings({ data: [[1, 2, '=A1-B1'], [4, 5, 6]] });
+
+      expect(barText()).toBe('=A1-B1');
+    });
+
+    it('shows the rewritten formula after a row was inserted above the selected cell', () => {
+      const grid = createGrid({ data: [[1, 2], ['=A1+B1', 5]] });
+
+      grid.selectCell(1, 0);
+      expect(barText()).toBe('=A1+B1');
+
+      grid.alter('insert_row_above', 0);
+
+      expect(grid.getSelectedRangeLast()?.highlight.row).toBe(2);
+      expect(barText()).toBe('=A2+B2');
+    });
+
+    it('shows the cell under the highlight after a sort', () => {
+      const grid = createGrid({ data: [['=1+1', 1], ['=2+2', 2], ['=3+3', 3]], columnSorting: true });
+
+      grid.selectCell(0, 0);
+      expect(barText()).toBe('=1+1');
+
+      const sorting = grid.getPlugin('columnSorting') as unknown as { sort(config: object): void };
+
+      sorting.sort({ column: 1, sortOrder: 'desc' });
+
+      expect(grid.getDataAtCell(0, 1)).toBe(3);
+      expect(barText()).toBe('=3+3');
     });
 
     it('shows the restored content after an undo', () => {

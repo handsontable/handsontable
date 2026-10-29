@@ -1074,6 +1074,22 @@ export class FormulaBuilder extends BasePlugin {
   };
 
   /**
+   * Re-reads the active cell into the bar. The structural, source-data, load, sort and move hooks
+   * register it directly and ignore their arguments: none of them has to move the selection, and a
+   * move that keeps the coordinates (a sort, a data replace) left the previous cell's formula in the
+   * bar. It runs after the Formulas plugin resynced the engine (it enables first, at a lower priority
+   * value, and its load listeners carry order -1). An open edit is left alone: its close re-reads.
+   */
+  #resyncBarCell = (): void => {
+    if (this.#builder === null || this.#isEditing()) {
+      return;
+    }
+
+    this.#lastEmittedSelectionCoords = null;
+    this.#emitBarSelection();
+  };
+
+  /**
    * `afterChange` hook listener - re-syncs the bar when the selected cell's content changed without
    * a selection move (Delete, paste, undo, or `setDataAtCell()`). The bar learns about a cell through
    * the selection hooks only, and their emit is deduped on the coordinates. An open edit is left
@@ -1097,8 +1113,7 @@ export class FormulaBuilder extends BasePlugin {
       changes.some(([row, prop]) => row === highlight.row && prop === activeProp);
 
     if (touchesActiveCell) {
-      this.#lastEmittedSelectionCoords = null;
-      this.#emitBarSelection();
+      this.#resyncBarCell();
     }
   };
 
@@ -1176,7 +1191,7 @@ export class FormulaBuilder extends BasePlugin {
 
   /**
    * `afterLoadData`/`afterUpdateData` hook listener - rebuilds the builder when the data load
-   * bound the grid to another engine sheet. The plugin enables before the first data load, while
+   * bound the grid to another engine sheet, then re-reads the active cell into the bar. The plugin enables before the first data load, while
    * the Formulas plugin has no sheet id yet, and `Formulas#switchSheet()` reloads the data too.
    */
   #onAfterDataLoad = (): void => {
@@ -1185,6 +1200,8 @@ export class FormulaBuilder extends BasePlugin {
     if (this.#builder !== null && this.#sheetId !== this.#builtSheetId) {
       this.#rebuildBuilder();
     }
+
+    this.#resyncBarCell();
   };
 
   /**
@@ -1731,6 +1748,17 @@ export class FormulaBuilder extends BasePlugin {
 
     this.addHook('afterRenderer', this.#onAfterRenderer);
     this.addHook('afterChange', this.#onAfterChange);
+    this.addHook('afterSetSourceDataAtCell', this.#resyncBarCell);
+    this.addHook('afterCreateRow', this.#resyncBarCell);
+    this.addHook('afterCreateCol', this.#resyncBarCell);
+    this.addHook('afterRemoveRow', this.#resyncBarCell);
+    this.addHook('afterRemoveCol', this.#resyncBarCell);
+    this.addHook('afterColumnSort', this.#resyncBarCell);
+    this.addHook('afterRowMove', this.#resyncBarCell);
+    this.addHook('afterColumnMove', this.#resyncBarCell);
+    // Order 2: the Formulas plugin loads a settings-update's data into the engine from its own
+    // `afterUpdateSettings` listener (order 1), after `afterUpdateData` already fired.
+    this.addHook('afterUpdateSettings', this.#resyncBarCell, 2);
     this.addHook('afterSelectionEnd', this.#onAfterSelectionEnd);
     this.addHook('afterDeselect', this.#onAfterDeselect);
     this.addHook('afterSetTheme', this.#onAfterSetTheme);
