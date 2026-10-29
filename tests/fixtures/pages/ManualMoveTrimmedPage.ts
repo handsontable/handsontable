@@ -64,8 +64,8 @@ export class ManualMoveTrimmedPage {
   }
 
   /**
-   * Select a row through its header, then press and release the pointer on that same header without
-   * moving it: the grab-and-release gesture that drops the row back where it was.
+   * Select a row through its header, then press the pointer on that same header, move it a few pixels
+   * inside the header, and release it: the grab-and-release gesture that drops the row back where it was.
    */
   async grabRowHeaderAndRelease(row: number): Promise<void> {
     // The API selects the row: a header click followed by a press on the same point would read as a double click.
@@ -79,8 +79,13 @@ export class ManualMoveTrimmedPage {
       throw new Error(`Row header ${row} is not rendered`);
     }
 
-    await this.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    const centerX = box.x + box.width / 2;
+    const centerY = box.y + box.height / 2;
+
+    // The pointer travels past the drag tolerance, as the column helper's does: a press that never moves is a click.
+    await this.page.mouse.move(centerX, centerY);
     await this.page.mouse.down();
+    await this.page.mouse.move(centerX, centerY + 8, { steps: 4 });
     await this.page.mouse.up();
   }
 

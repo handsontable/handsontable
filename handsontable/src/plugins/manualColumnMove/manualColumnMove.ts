@@ -2,7 +2,7 @@ import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, outerWidth } from '../../helpers/dom/element';
-import { offsetRelativeTo } from '../../helpers/dom/event';
+import { offsetRelativeTo, hasPointerTraveled } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
 import { clampFixedColumnsEnd } from '../../3rdparty/walkontable/src/settings/fixedColumnsEnd';
 import BacklightUI from './ui/backlight';
@@ -17,9 +17,6 @@ const CSS_PLUGIN = 'ht__manualColumnMove';
 const CSS_SHOW_UI = 'show-ui';
 const CSS_ON_MOVING = 'on-moving--columns';
 const CSS_AFTER_SELECTION = 'after-selection--columns';
-// Matches ColumnSorting's tolerance. Kept as a local constant rather than imported - plugins do not
-// import each other.
-const POINTER_DRAG_TOLERANCE = 3;
 
 /**
  * @plugin ManualColumnMove
@@ -877,8 +874,7 @@ export class ManualColumnMove extends BasePlugin {
 
     // Same tolerance ColumnSorting uses to tell a click from a drag, so a pointer that jitters a
     // pixel or two does not both sort and fire the move hooks.
-    if (Math.abs(event.clientX - this.#pressOrigin.x) > POINTER_DRAG_TOLERANCE ||
-        Math.abs(event.clientY - this.#pressOrigin.y) > POINTER_DRAG_TOLERANCE) {
+    if (hasPointerTraveled(this.#pressOrigin, event)) {
       this.#dragged = true;
     }
 

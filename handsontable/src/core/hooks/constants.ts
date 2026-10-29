@@ -3233,7 +3233,8 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link ManualRowMove} plugin before changing the order of the visual indexes. This hook is fired when
-   * {@link Options#manualRowMove} option is enabled.
+   * {@link Options#manualRowMove} option is enabled. It doesn't fire when the user presses a row header and releases it
+   * without moving the pointer more than a few pixels.
    *
    * The hook also fires when the move leaves the order unchanged, for example when you drop a row back where it
    * was. To tell such a move apart, use the `afterRowMove` hook and check its `orderChanged` parameter.
@@ -3256,7 +3257,8 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link ManualRowMove} plugin after changing the order of the visual indexes.
-   * This hook is fired when {@link Options#manualRowMove} option is enabled.
+   * This hook is fired when {@link Options#manualRowMove} option is enabled. It doesn't fire when the user presses
+   * a row header and releases it without moving the pointer more than a few pixels.
    *
    * The hook also fires when the move leaves the order unchanged, for example when you drop a row back where it
    * was. In that case, `orderChanged` is `false`.
