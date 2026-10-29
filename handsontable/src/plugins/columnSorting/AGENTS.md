@@ -33,6 +33,14 @@ sort, including one after `setSortConfig()` on a never-sorted grid) and every ti
 states on rows that show no sort result. `setSortConfig()` does the same when it writes states onto such a
 grid and the cache exists.
 
+**Open: a row moved after `setSortConfig()` is kept or reverted depending on the cache.** On a grid with no
+cache the clear takes the rows as they are then, so the move stays. On a grid that sorted before, the cache
+exists and `setSortConfig()` leaves it, so the clear puts the pre-move order back. Making both keep the move
+breaks the sheets bar restore, which writes the sort states, then writes the sorted order straight into the
+row sequence, and expects a later clear to return to the unsorted order
+(`sheetsBar/__tests__/viewStateRoundTrip.unit.js`, "brings back the unsorted order after a switch whose sort a
+listener canceled"). It needs a decision, not a patch.
+
 **Empty sort states do not mean unsorted rows.** `setSortConfig([])` and removing the sorted column empty the
 states and leave the rows in sorted order. Retaking the cache there makes the sorted order the one a later
 `clearSort()` returns to, and a later sort on another column breaks its ties by it. So `#sortedRowOrder` holds

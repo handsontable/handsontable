@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed `clearSort()` and `sort()` throwing after `setSortConfig()` on a grid that was never sorted.",
+  "title": "Fixed `clearSort()` and `sort()` throwing after `setSortConfig()` on a grid that was never sorted or whose sorting plugin was disabled and enabled again.",
   "type": "fixed",
   "issueOrPR": 14057,
   "breaking": false,
