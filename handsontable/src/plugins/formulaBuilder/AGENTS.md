@@ -155,6 +155,11 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   `handleInlineEditClose()` itself, which runs inside the old builder's commit handler. A language change rebuilds
   only when the normalized code differs from `#builtLanguageCode`: `updateSettings({ language })` fires
   `afterLanguageChange` even for the code in use, and never for an unregistered one.
+  A rebuild replaces the whole bar, so a theme or language change (`#rebuildBuilder()`) and a full
+  `updatePlugin()` cycle (a `direction` change) with the focus in the address box dropped the focus on
+  `body` and the address being typed. Both read the focused address box first
+  (`#captureFocusedAddressBox()`, through `getDeepActiveElement()`) and give the new one the focus, the
+  text and the caret back (`#restoreAddressBox()`).
 - **The theme class must never be written on `rootElement`.** The builder hands its theme class to the
   adapter's `setOverlayClassName()`, so the overlay host is `rootWrapperElement` (`rootElement` only on a
   nested grid, which has no wrapper), where core already keeps that class: the adapter adds a class only

@@ -9,7 +9,7 @@ import { isObject } from '../../helpers/object';
 import * as C from '../../i18n/constants';
 import { isRootInstance } from '../../utils/rootInstance';
 import { A11Y_DESCRIPTION, A11Y_INVALID } from '../../helpers/a11y';
-import { isShadowRoot, removeAttribute, setAttribute } from '../../helpers/dom/element';
+import { getDeepActiveElement, isShadowRoot, removeAttribute, setAttribute } from '../../helpers/dom/element';
 import type { HotInstance } from '../../core/types';
 import type { PluginTypeMap } from '../types';
 import type { CellProperties } from '../../settings';
@@ -76,6 +76,10 @@ const ERROR_CODE_SEPARATOR = ' — ';
  * The class of the text field `hyperformula-ui` edits a formula in.
  */
 const EDITOR_INPUT_SELECTOR = '.hfe-editor__input';
+/**
+ * The class of the formula bar's address box input `hyperformula-ui` renders.
+ */
+const ADDRESS_INPUT_SELECTOR = '.hfe-formula-bar__address-input';
 /**
  * The attribute that carries a cell's error message to assistive technology.
  */
@@ -559,8 +563,11 @@ export class FormulaBuilder extends BasePlugin {
       return;
     }
 
+    const addressBox = this.#captureFocusedAddressBox();
+
     this.disablePlugin();
     this.enablePlugin();
+    this.#restoreAddressBox(addressBox);
 
     super.updatePlugin();
   }
@@ -2243,13 +2250,51 @@ export class FormulaBuilder extends BasePlugin {
    * is cancelled first, while the old builder still exists - see `#teardownPluginState()`.
    */
   #rebuildBuilder(): void {
+    const addressBox = this.#captureFocusedAddressBox();
+
     this.#destroyBuilder();
     this.#createBuilder();
+    this.#restoreAddressBox(addressBox);
     // Any rebuild takes the current theme, language and sheet, so one held back for an edit is
     // done too. Cleared after the build, not before: the destroy above cancels an open edit, and
     // that edit's close asks for a rebuild when it finds the sheet id still differs from the one
     // the old builder was built for. This rebuild is that rebuild.
     this.#rebuildAfterEdit = false;
+  }
+
+  /**
+   * Reads the formula bar's address box while it has the focus: a rebuild replaces the whole bar, and
+   * the focus would fall to the document body with the address the user was typing.
+   *
+   * @returns {{ value: string, start: number | null, end: number | null } | null} `null` when the
+   * address box does not have the focus.
+   */
+  #captureFocusedAddressBox(): { value: string; start: number | null; end: number | null } | null {
+    const input = this.#formulaBarHost?.querySelector<HTMLInputElement>(ADDRESS_INPUT_SELECTOR);
+
+    if (!input || getDeepActiveElement(this.hot.rootDocument) !== input) {
+      return null;
+    }
+
+    return { value: input.value, start: input.selectionStart, end: input.selectionEnd };
+  }
+
+  /**
+   * Gives the rebuilt formula bar's address box the focus, the text and the caret it had before.
+   *
+   * @param {{ value: string, start: number | null, end: number | null } | null} state What
+   * `#captureFocusedAddressBox()` read, or `null` to do nothing.
+   */
+  #restoreAddressBox(state: { value: string; start: number | null; end: number | null } | null): void {
+    const input = state && this.#formulaBarHost?.querySelector<HTMLInputElement>(ADDRESS_INPUT_SELECTOR);
+
+    if (!state || !input) {
+      return;
+    }
+
+    input.value = state.value;
+    input.focus();
+    input.setSelectionRange(state.start ?? state.value.length, state.end ?? state.value.length);
   }
 
   /**

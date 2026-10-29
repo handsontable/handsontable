@@ -396,4 +396,57 @@ describe('FormulaBuilder state that has to follow the grid', () => {
       expect(reset).toHaveBeenCalled();
     });
   });
+
+  describe('a rebuild while the address box has the focus', () => {
+    /**
+     * Returns the formula bar's address input.
+     *
+     * @returns {HTMLInputElement}
+     */
+    function addressInput(): HTMLInputElement {
+      const input = document.querySelector<HTMLInputElement>('.hfe-formula-bar__address-input');
+
+      if (!input) {
+        throw new Error('no address input');
+      }
+
+      return input;
+    }
+
+    it.each([
+      ['a theme change', { theme: 'ht-theme-main' }, (grid: Handsontable) => grid.useTheme('ht-theme-horizon')],
+      ['a language change', {}, (grid: Handsontable) => grid.updateSettings({ language: 'de-DE' })],
+      ['a direction change', {}, (grid: Handsontable) => grid.updateSettings({
+        formulaBuilder: { builder: core, showFormulaBar: true, direction: 'rtl' },
+      } as Handsontable.GridSettings)],
+    ])('keeps the focus and the typed text after %s', (_, settings, change) => {
+      const grid = createGrid(settings);
+
+      grid.selectCell(0, 0);
+
+      const before = addressInput();
+
+      before.focus();
+      before.value = 'B3';
+      before.setSelectionRange(1, 1);
+      change(grid);
+
+      const after = addressInput();
+
+      expect(after).not.toBe(before);
+      expect(document.activeElement).toBe(after);
+      expect(after.value).toBe('B3');
+      expect(after.selectionStart).toBe(1);
+    });
+
+    it('leaves the focus alone when the address box did not have it', () => {
+      const grid = createGrid({ theme: 'ht-theme-main' });
+
+      grid.selectCell(0, 0);
+      grid.useTheme('ht-theme-horizon');
+
+      expect(document.activeElement).not.toBe(addressInput());
+      expect(addressInput().value).toBe('A1');
+    });
+  });
 });
