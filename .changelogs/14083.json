@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed column moving, which moved the wrong columns when `loadData()` replaced the data during a drag.",
+  "type": "fixed",
+  "issueOrPR": 14083,
+  "breaking": false,
+  "framework": "none"
+}
