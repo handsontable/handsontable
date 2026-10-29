@@ -5069,14 +5069,20 @@ describe('SheetsBar plugin', () => {
     expect(tab.getAttribute('aria-expanded')).toBe('false');
   });
 
-  it('swaps the bar\'s theme class on a runtime theme change and keeps an open rename', () => {
+  it('swaps the theme class of a bar in a uiContainer on a runtime theme change and keeps an open rename', () => {
+    const uiHost = document.createElement('div');
+
+    document.body.appendChild(uiHost);
     hot = new Handsontable(container, {
       themeName: 'ht-theme-main',
-      sheetsBar: { sheets: [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }] },
+      sheetsBar: {
+        sheets: [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }],
+        uiContainer: uiHost,
+      },
       licenseKey: 'non-commercial-and-evaluation',
     });
 
-    const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
+    const bar = uiHost.querySelector('.ht-sheets-bar');
 
     expect(bar.classList.contains('ht-theme-main')).toBe(true);
 
@@ -5098,6 +5104,7 @@ describe('SheetsBar plugin', () => {
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
 
     expect(hot.getPlugin('sheetsBar').getSheets()[0].name).toBe('Alpha renamed');
+    uiHost.remove();
   });
 
   it('labels the rename input and restores focus to the tab on Enter and Escape', () => {
