@@ -11,6 +11,7 @@ tags:
   - pagination
 searchCategory: Guides
 category: Accessories and menus
+menuTag: updated
 addedIn: "18.0.0"
 ---
 
