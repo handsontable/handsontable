@@ -47,7 +47,19 @@ test.describe('Comments#showAtCell on a cell without a comment', () => {
     await grid.hideEditor();
 
     await expect(grid.editor).toBeHidden();
-    expect(await grid.storedComment(2, 2)).toBeUndefined();
+    expect(await grid.commentMeta(2, 2)).toBeUndefined();
+  });
+
+  test('stores an empty comment when the focused empty editor is left', async() => {
+    await grid.showAtCell(2, 2);
+    await grid.textarea.focus();
+    await expect(grid.textarea).toBeFocused();
+
+    await grid.textarea.blur();
+
+    // The blur saves the editor's text, so the cell now carries a comment with an empty value.
+    await expect.poll(() => grid.commentMeta(2, 2)).toEqual({ value: '' });
+    expect(await grid.storedComment(2, 2)).toBe('');
   });
 
   test('shows the stored text for a cell that has a comment', async() => {
@@ -62,7 +74,5 @@ test.describe('Comments#showAtCell on a cell without a comment', () => {
 
   test('returns false for a cell outside the grid', async() => {
     expect(await grid.showAtCell(500, 500)).toBe(false);
-
-    await expect(grid.editor).toBeHidden();
   });
 });

@@ -17,6 +17,7 @@ const GRAB_INSET = 4;
  */
 type CommentsFixtureWindow = Window & {
   hot: {
+    getCellMetaTransient: (row: number, col: number) => { comment?: { value?: string } },
     getPlugin: (name: 'comments') => {
       showAtCell: (row: number, col: number) => boolean,
       hide: () => void,
@@ -297,6 +298,19 @@ export class CommentsEditorResizePage {
   async storedComment(row: number, col: number): Promise<string | undefined> {
     return this.page.evaluate(([r, c]) => (window as unknown as CommentsFixtureWindow)
       .hot.getPlugin('comments').getCommentAtCell(r, c), [row, col]);
+  }
+
+  /**
+   * The comment meta stored on a cell, or undefined when the cell carries none. Unlike
+   * `storedComment()`, it tells a missing comment from an empty one (`{ value: '' }`).
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @returns {Promise<{value?: string} | undefined>}
+   */
+  async commentMeta(row: number, col: number): Promise<{ value?: string } | undefined> {
+    return this.page.evaluate(([r, c]) => (window as unknown as CommentsFixtureWindow)
+      .hot.getCellMetaTransient(r, c).comment, [row, col]);
   }
 
   /**
