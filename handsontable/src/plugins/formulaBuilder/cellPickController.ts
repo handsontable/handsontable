@@ -768,12 +768,12 @@ export class CellPickController {
    * nothing. The browser then fires the compatibility `mousedown`, `mouseup`, and `click` for the tap,
    * and that `mousedown` moves the focus from the formula editor onto the cell, so the next typed
    * characters are lost and a phone closes its soft keyboard. Cancelling the `touchend` that is being
-   * dispatched now stops the browser from firing them. Once that `touchend` is cancelled, the click
-   * swallows the pick armed have no `click` left to swallow, so they are disarmed too. A `touchend`
-   * the browser does not let a listener cancel (after a scroll gesture) keeps them armed: the
-   * compatibility `click` still comes and must not activate the header, link, or checkbox.
+   * dispatched now stops the browser from firing them. The click swallows the pick armed have no
+   * `click` left to swallow (and the compatibility `mousedown` used to disarm them before its own
+   * `click` anyway), so they are disarmed too.
    */
   #finishTouchPick(): void {
+    this.#disarmClickSwallow();
     this.#armTouchEndCancel();
     this.#handleDocMouseUp(false);
   }
@@ -793,7 +793,6 @@ export class CellPickController {
 
       if (event.cancelable) {
         event.preventDefault();
-        this.#disarmClickSwallow();
       }
     };
 

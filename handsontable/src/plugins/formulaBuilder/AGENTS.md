@@ -78,9 +78,7 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   compatibility `mousedown` after the tap focused the cell (typed text lost, soft keyboard closed). A tap
   pick therefore cancels the `touchend` that is still being dispatched (`#finishTouchPick`: a one-shot
   document listener, removed a task later through `deferTask`), so the browser fires no compatibility
-  `mousedown`/`click` at all, and it disarms the click swallows, which have no click left to eat - but only
-  when that `touchend` was really cancelled: one that is not `cancelable` (after a scroll gesture) still
-  gets its compatibility `click`, so the swallows stay armed for it. Do not
+  `mousedown`/`click` at all, and it disarms the click swallows, which have no click left to eat. Do not
   cancel the compatibility `mousedown` instead: the click swallows disarm on any `mousedown`, so the
   `click` after it still reached the header, link, or checkbox.
 - **Shift+press extends the last pick only while the editor holds exactly what that pick left.** The package

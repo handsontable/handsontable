@@ -1436,30 +1436,15 @@ describe('CellPickController press filter', () => {
     expect(dispatchTouchEnd().defaultPrevented).toBe(false);
   });
 
-  it('leaves no header click swallow armed after a header tap pick whose touchend it cancelled', () => {
+  it('leaves no header click swallow armed after a header tap pick, which fires no click', () => {
     const { controller } = makeHarness();
     const th = document.createElement('th');
 
     document.body.appendChild(th);
     controller.onBeforeMouseDown(makeTapPress(), { row: -1, col: 1 }, undefined, makeFlags());
-    expect(dispatchTouchEnd().defaultPrevented).toBe(true);
 
-    // The cancelled touchend fires no click, so a later click without a mousedown before it (a
-    // keyboard activation) must reach the header.
+    // A click without a mousedown before it (a keyboard activation) must reach the header.
     expect(clickOn(th).defaultPrevented).toBe(false);
-  });
-
-  it('keeps the header click swallow armed when the touchend of a header tap pick cannot be cancelled', () => {
-    const { controller } = makeHarness();
-    const th = document.createElement('th');
-
-    document.body.appendChild(th);
-    controller.onBeforeMouseDown(makeTapPress(), { row: -1, col: 1 }, undefined, makeFlags());
-    // A touchend after a scroll gesture is not cancelable, so the browser still fires the
-    // compatibility click, which must not activate the header (sort it).
-    expect(dispatchTouchEnd(false).defaultPrevented).toBe(false);
-
-    expect(clickOn(th).defaultPrevented).toBe(true);
   });
 });
 
@@ -1512,13 +1497,12 @@ function makeTapPress(): MouseEvent {
 }
 
 /**
- * Dispatches a `touchend` on the document and returns it.
+ * Dispatches a cancelable `touchend` on the document and returns it.
  *
- * @param {boolean} [cancelable=true] Whether the event can be cancelled.
  * @returns {Event} The dispatched event.
  */
-function dispatchTouchEnd(cancelable = true): Event {
-  const event = new Event('touchend', { bubbles: true, cancelable });
+function dispatchTouchEnd(): Event {
+  const event = new Event('touchend', { bubbles: true, cancelable: true });
 
   document.dispatchEvent(event);
 
