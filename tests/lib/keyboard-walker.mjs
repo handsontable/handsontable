@@ -413,12 +413,62 @@ export function shortcutKey(row) {
 }
 
 /**
+ * The presses of a probe, each with the steps of its own: `press` is one key, a list of keys, or a list
+ * that mixes keys and `{ key, prepare }`.
+ *
+ * @param {{press: string|Array<string|{key: string, prepare: Array<string|object>}>}} probe The probe.
+ * @returns {Array<{key: string, prepare: Array<string|object>}>} The presses.
+ */
+export function probePresses(probe) {
+  return (Array.isArray(probe.press) ? probe.press : [probe.press])
+    .map(press => (typeof press === 'string' ? { key: press, prepare: [] } : { key: press.key, prepare: press.prepare ?? [] }));
+}
+
+/**
+ * The step that names one press of a probe in its findings and problems: the documented keys, the key
+ * pressed with the steps of its own (`after`), the steps after it (`then`), and where the focus starts.
+ * A probe finding has a step and no selector, so the step is what tells two findings of a page apart: a
+ * probe that presses one key twice from different steps of its own names them, or the two would share
+ * an id.
+ *
+ * @param {{keys: string, probe: object}} entry The inventory entry.
+ * @param {{key: string, prepare?: Array<string|object>}} press One press of `probePresses()`.
+ * @returns {string} The step.
+ */
+export function probeStep({ keys, probe }, { key, prepare = [] }) {
+  const own = prepare.map(stepText).join(', ');
+  const then = (probe.then ?? []).map(stepText).join(', ');
+
+  return `${keys} (${key}${own ? ` after ${own}` : ''}${then ? `, then ${then}` : ''}) on ${probe.setup}${probe.at ? ` at (${probe.at.join(', ')})` : ''}`;
+}
+
+/**
+ * One prepare or `then` step of a probe, as words.
+ *
+ * @param {string|{api?: string, focus?: string, type?: string}} step The step.
+ * @returns {string} The words.
+ */
+function stepText(step) {
+  if (typeof step === 'string') {
+    return step;
+  }
+  if (step.type !== undefined) {
+    return `typing "${step.type}"`;
+  }
+  if (step.focus !== undefined) {
+    return `focus on ${step.focus}`;
+  }
+
+  return step.api ?? JSON.stringify(step);
+}
+
+/**
  * What changed between two snapshots of the grid, as effect names: the selection moved or changed,
  * an editor opened or closed, a menu opened, closed or moved its highlight, the comment editor opened
- * or closed, the data, the scroll, the sort, the merges, the frozen counts, the clipboard, the
- * collapsed groups, the filters, the highlight of an editor's list or the rows a row selection holds
- * changed, a link opened, the text of the editor or of the focused field changed, the caret moved, the
- * focus moved, the focus left the product.
+ * or closed, the highlighted cell's comment changed, the data, the scroll, the sort, the merges, the frozen counts, the clipboard, the
+ * collapsed groups, the filters, the highlight of an open editor's list or the rows a row selection holds
+ * changed, a link opened, the text of the open editor or of the focused field changed, the open editor's
+ * caret moved, the focus moved, the focus left the product.
  *
  * @param {object} before The snapshot before the key.
  * @param {object} after The snapshot after it.
@@ -440,11 +490,19 @@ export function effectsBetween(before, after) {
   if (before.editorOpen && !after.editorOpen) {
     effects.add('editor-closes');
   }
-  if (differs('editorText')) {
+
+  // The editor's text, caret and list read null while it is closed, so they change only while it stays open:
+  // a key that opens or closes the editor did that, it did not edit the text.
+  const editing = before.editorOpen === true && after.editorOpen === true;
+
+  if (editing && differs('editorText')) {
     effects.add('text-changes');
   }
-  if (differs('caret')) {
+  if (editing && differs('caret')) {
     effects.add('caret-moves');
+  }
+  if (editing && differs('listSelection')) {
+    effects.add('list-moves');
   }
   if ((after.menus ?? 0) > (before.menus ?? 0)) {
     effects.add('menu-opens');
@@ -461,10 +519,13 @@ export function effectsBetween(before, after) {
   if (before.comment && !after.comment) {
     effects.add('comment-closes');
   }
+  // The comment of the highlighted cell: one that changed while the selection stayed is a comment saved.
+  if (!differs('highlight') && differs('commentText')) {
+    effects.add('comment-changes');
+  }
 
   const fields = [['dataHash', 'value-changes'], ['scroll', 'scrolls'], ['sorting', 'sorts'], ['merged', 'merges'], ['frozen', 'freezes'],
-    ['clipboard', 'clipboard'], ['links', 'link-opens'], ['collapsed', 'collapses'], ['filtered', 'filters'], ['listSelection', 'list-moves'],
-    ['rowSelection', 'row-selection-changes']];
+    ['clipboard', 'clipboard'], ['links', 'link-opens'], ['collapsed', 'collapses'], ['filtered', 'filters'], ['rowSelection', 'row-selection-changes']];
 
   for (const [field, effect] of fields) {
     if (differs(field)) {
@@ -487,15 +548,17 @@ export function effectsBetween(before, after) {
 /**
  * The verdict of one documented shortcut: `ok` when it did what the guide says (or anything, for an
  * `any` probe), `nothing` when it changed nothing at all, `focus-left` when it moved the focus out of
- * the grid and the guide does not say it leaves, `unexpected` when it did something else.
+ * the grid and the guide does not say it leaves, `unexpected` when it did something else or something
+ * the guide rules out.
  *
  * @param {object} input The probe.
  * @param {string|string[]} input.expect The effect the guide describes, or several that each satisfy it.
+ * @param {string[]} [input.forbid] Effects the key must not have (Escape on the comment editor must not save it).
  * @param {object} input.before The snapshot before the key.
  * @param {object} input.after The snapshot after it.
  * @returns {{status: 'ok'|'nothing'|'unexpected'|'focus-left', effects: string[]}} The verdict.
  */
-export function probeVerdict({ expect, before, after }) {
+export function probeVerdict({ expect, forbid = [], before, after }) {
   const effects = effectsBetween(before, after);
   const expected = Array.isArray(expect) ? expect : [expect];
 
@@ -504,6 +567,9 @@ export function probeVerdict({ expect, before, after }) {
   }
   if (effects.includes('focus-leaves') && !expected.includes('focus-leaves')) {
     return { status: 'focus-left', effects };
+  }
+  if (forbid.some(effect => effects.includes(effect))) {
+    return { status: 'unexpected', effects };
   }
   if (expected.includes('any') || expected.some(effect => effects.includes(effect))) {
     return { status: 'ok', effects };

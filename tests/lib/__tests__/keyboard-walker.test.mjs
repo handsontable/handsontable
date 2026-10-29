@@ -11,6 +11,8 @@ import {
   inventoryLines,
   normalizeKeys,
   parseShortcutTables,
+  probePresses,
+  probeStep,
   probeVerdict,
   shortcutKey,
   singleCharacterShortcuts,
@@ -307,6 +309,37 @@ test('every inventory entry is found on its own line, so its finding is annotate
   assert.equal(new Set(lines.values()).size, SHORTCUT_PROBES.length, 'one line per entry');
 });
 
+test('no two presses of one page share a step, so no two of their findings share an id', () => {
+  // A probe finding has a step and no selector, so its id is its step: a key pressed twice from different steps
+  // of its own (F6, then F6 after F6) must name them.
+  const seen = new Set();
+  const shared = [];
+
+  for (const entry of SHORTCUT_PROBES.filter(item => item.probe)) {
+    for (const press of probePresses(entry.probe)) {
+      const key = `${entry.probe.page ?? 'keyboard-shortcuts'}: ${probeStep(entry, press)}`;
+
+      if (seen.has(key)) {
+        shared.push(key);
+      }
+      seen.add(key);
+    }
+  }
+
+  assert.deepEqual(shared, []);
+
+  const f6 = SHORTCUT_PROBES.find(entry => entry.section === 'Formula builder keyboard shortcuts' && entry.keys === 'F6 / Shift+F6');
+
+  assert.deepEqual(probePresses(f6.probe).map(press => probeStep(f6, press)), [
+    'F6 / Shift+F6 (F6) on editor at (0, 2)',
+    'F6 / Shift+F6 (Shift+F6) on editor at (0, 2)',
+    'F6 / Shift+F6 (F6 after F6) on editor at (0, 2)',
+    'F6 / Shift+F6 (F6 after typing "+SUM(") on editor at (0, 2)',
+  ]);
+  assert.equal(probeStep({ keys: 'F2 or Ctrl+E', probe: { setup: 'editor', at: [1, 2], then: ['ArrowUp'] } }, { key: 'F2', prepare: [] }),
+    'F2 or Ctrl+E (F2, then ArrowUp) on editor at (1, 2)');
+});
+
 test('a single character key with no modifier is a 2.1.4 shortcut; an arrow glyph, Space and typing are not', () => {
   const rows = [
     { section: 'A', keys: 'x' }, { section: 'B', keys: '↑ / ↓' }, { section: 'C', keys: 'Space' }, { section: 'D', keys: 'Alphanumeric keys' },
@@ -353,6 +386,9 @@ test('every probe is well formed: a setup, the keys pressed, an expected effect;
     if (entry.probe.then !== undefined && (!Array.isArray(entry.probe.then) || entry.probe.then.length === 0)) {
       problems.push(`${label}: then is a non-empty list of steps`);
     }
+    if (entry.probe.forbid !== undefined && (!Array.isArray(entry.probe.forbid) || entry.probe.forbid.some(effect => !EFFECTS.has(effect) || effect === 'any'))) {
+      problems.push(`${label}: forbid is a list of effects`);
+    }
   }
 
   assert.deepEqual(problems, []);
@@ -360,7 +396,8 @@ test('every probe is well formed: a setup, the keys pressed, an expected effect;
 
 const EFFECTS = new Set(['selection-moves', 'selection-changes', 'editor-opens', 'editor-closes', 'value-changes', 'menu-opens',
   'menu-closes', 'menu-moves', 'comment-opens', 'comment-closes', 'scrolls', 'sorts', 'merges', 'freezes', 'clipboard',
-  'caret-moves', 'text-changes', 'focus-moves', 'focus-leaves', 'link-opens', 'collapses', 'filters', 'list-moves', 'row-selection-changes', 'any']);
+  'caret-moves', 'text-changes', 'focus-moves', 'focus-leaves', 'link-opens', 'collapses', 'filters', 'list-moves', 'row-selection-changes',
+  'comment-changes', 'any']);
 
 /**
  * The snapshot the walker takes around a key press.
@@ -372,7 +409,7 @@ function snapshot(fields = {}) {
   return {
     highlight: [1, 1], ranges: [[1, 1, 1, 1]], editorOpen: false, editorText: null, caret: null, menus: 0, menuItem: null,
     comment: false, dataHash: 'h1', scroll: [0, 0], sorting: '[]', merged: 0, frozen: '0,0', clipboard: 0, links: 0,
-    collapsed: '', filtered: '', listSelection: null, rowSelection: null, focusedText: null, active: { region: 'grid', key: 'cell|1,1' }, ...fields,
+    collapsed: '', filtered: '', listSelection: null, rowSelection: null, focusedText: null, commentText: null, active: { region: 'grid', key: 'cell|1,1' }, ...fields,
   };
 }
 
@@ -385,11 +422,15 @@ test('the effects between two snapshots name what a key changed', () => {
   assert.deepEqual(effectsBetween(snapshot(), snapshot({ highlight: [2, 1], ranges: [[2, 1, 2, 1]], active: { region: 'grid', key: 'cell|2,1' } })),
     ['focus-moves', 'selection-changes', 'selection-moves']);
   assert.deepEqual(effectsBetween(snapshot(), snapshot({ editorOpen: true, editorText: 'x', active: { region: 'grid', key: 'textarea' } })),
-    ['editor-opens', 'focus-moves', 'text-changes']);
+    ['editor-opens', 'focus-moves'], 'the editor that opens with text in it changed no text');
   assert.deepEqual(effectsBetween(snapshot({ menus: 2 }), snapshot({ menus: 1 })), ['menu-closes']);
-  assert.deepEqual(effectsBetween(snapshot({ listSelection: '[[0,0,0,0]]' }), snapshot({ listSelection: '[[1,0,1,0]]', rowSelection: '[2]' })),
-    ['list-moves', 'row-selection-changes']);
+  assert.deepEqual(effectsBetween(snapshot({ editorOpen: true, listSelection: '[[0,0,0,0]]' }),
+    snapshot({ editorOpen: true, listSelection: '[[1,0,1,0]]', rowSelection: '[2]' })), ['list-moves', 'row-selection-changes']);
   assert.deepEqual(effectsBetween(snapshot(), snapshot({ active: { region: 'body', key: 'body' } })), ['focus-leaves', 'focus-moves']);
+  assert.deepEqual(effectsBetween(snapshot({ comment: true }), snapshot({ commentText: 'Checked' })), ['comment-changes', 'comment-closes'],
+    'the comment saved on the cell the editor was open on');
+  assert.deepEqual(effectsBetween(snapshot({ commentText: 'Note' }), snapshot({ highlight: [2, 1], commentText: null })), ['selection-moves'],
+    'another cell\'s comment is not a change');
 });
 
 test('a probe is ok, did nothing, did something else, or moved the focus out of the grid', () => {
@@ -402,6 +443,24 @@ test('a probe is ok, did nothing, did something else, or moved the focus out of 
     'focus-left', 'leaving the grid wins over everything a key also did');
   assert.equal(probeVerdict({ expect: 'focus-leaves', before: snapshot(), after: snapshot({ active: { region: 'end', key: 'end' } }) }).status, 'ok');
   assert.equal(probeVerdict({ expect: 'any', before: snapshot(), after: snapshot({ clipboard: 1 }) }).status, 'ok');
+  // Escape on the comment editor closes it and must not save what was typed.
+  assert.deepEqual(probeVerdict({ expect: 'comment-closes', forbid: ['comment-changes'], before: snapshot({ comment: true }), after: snapshot({ commentText: 'Discarded' }) }),
+    { status: 'unexpected', effects: ['comment-changes', 'comment-closes'] });
+  assert.equal(probeVerdict({ expect: 'comment-closes', forbid: ['comment-changes'], before: snapshot({ comment: true }), after: snapshot() }).status, 'ok');
+});
+
+test('a key that closes the editor closed it: it did not edit the text, move the caret or move the list', () => {
+  // A closed editor's text, caret and list read null, so every close would otherwise read as an edit too.
+  const editing = snapshot({ editorOpen: true, editorText: 'F6', caret: [2, 2], listSelection: '[[0,0,0,0]]', active: { region: 'grid', key: 'textarea' } });
+  const closed = snapshot({ highlight: [2, 1], ranges: [[2, 1, 2, 1]], active: { region: 'grid', key: 'cell|2,1' } });
+
+  for (const expect of ['text-changes', 'caret-moves', 'list-moves']) {
+    assert.deepEqual(probeVerdict({ expect, before: editing, after: closed }),
+      { status: 'unexpected', effects: ['editor-closes', 'focus-moves', 'selection-changes', 'selection-moves'] }, expect);
+  }
+  assert.equal(probeVerdict({ expect: 'caret-moves', before: editing, after: { ...editing, caret: [1, 1] } }).status, 'ok');
+  assert.equal(probeVerdict({ expect: 'text-changes', before: editing, after: { ...editing, editorText: 'F' } }).status, 'ok');
+  assert.equal(probeVerdict({ expect: 'list-moves', before: editing, after: { ...editing, listSelection: '[[1,0,1,0]]' } }).status, 'ok');
 });
 
 test('the walker\'s findings are valid evidence', () => {

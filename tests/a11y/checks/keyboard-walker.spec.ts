@@ -10,6 +10,8 @@ import {
   inventoryLines,
   isProductStop,
   parseShortcutTables,
+  probePresses,
+  probeStep,
   probeVerdict,
   shortcutKey,
   singleCharacterShortcuts,
@@ -636,6 +638,7 @@ interface ProbeDefinition {
   press: string | Array<string | { key: string; prepare: PrepareStep[] }>;
   then?: PrepareStep[];
   expect: string | string[];
+  forbid?: string[];
 }
 
 // The parts of a snapshot a probe can leave changed for the next one: when any differs from the page as
@@ -708,13 +711,12 @@ async function probePage(page: Page, testInfo: TestInfo, entry: A11yPage, probes
 
   for (const item of probes) {
     const probe = item.probe as ProbeDefinition;
-    const presses = (Array.isArray(probe.press) ? probe.press : [probe.press])
-      .map(press => (typeof press === 'string' ? { key: press, prepare: [] as PrepareStep[] } : press));
     const line = INVENTORY_LINES.get(shortcutKey(item));
-    const then = (probe.then ?? []).map(next => (typeof next === 'string' ? next : JSON.stringify(next))).join(', ');
 
-    for (const { key, prepare: steps } of presses) {
-      const step = `${item.keys} (${key}${then ? `, then ${then}` : ''}) on ${probe.setup}${probe.at ? ` at (${probe.at.join(', ')})` : ''}`;
+    for (const press of probePresses(probe)) {
+      const { key, prepare: steps } = press;
+      // The press's own steps are in its name, so two presses of one key on one page are two steps.
+      const step = probeStep({ keys: item.keys, probe }, press);
       let before: GridSnapshot;
       let after: GridSnapshot;
 
@@ -748,7 +750,7 @@ async function probePage(page: Page, testInfo: TestInfo, entry: A11yPage, probes
         }
       }
 
-      const verdict = probeVerdict({ expect: probe.expect, before, after });
+      const verdict = probeVerdict({ expect: probe.expect, forbid: probe.forbid, before, after });
       const located = { step, file: INVENTORY_FILE, ...(line ? { line } : {}) };
 
       results.push({ section: item.section, keys: item.keys, press: key, setup: probe.setup, status: verdict.status, effects: verdict.effects });
@@ -767,7 +769,7 @@ async function probePage(page: Page, testInfo: TestInfo, entry: A11yPage, probes
       } else if (verdict.status === 'unexpected') {
         findings.push({
           kind: 'shortcut-unexpected-effect', criteria: ['2.1.1'], severity: 'advisory', ...located,
-          measured: { effects: verdict.effects.join(','), expected: [probe.expect].flat().join(',') },
+          measured: { effects: verdict.effects.join(','), expected: [probe.expect].flat().join(','), ...(probe.forbid ? { forbidden: probe.forbid.join(',') } : {}) },
           reason: `${item.section.replace(/ keyboard shortcuts$/, '')}: ${key} did something other than what the guide documents`,
         });
       }

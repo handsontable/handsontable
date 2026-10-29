@@ -1473,7 +1473,9 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   menus, filters, comments, merging, undo, clipboard, multi-column sorting and navigable headers) or on
   the catalog page that draws the feature. The verdict compares two snapshots of the grid
   (`effectsBetween()`): nothing changed is `shortcut-does-nothing` (2.1.1), the focus leaving the grid is
-  `shortcut-moves-focus-out` (2.4.3), another effect is advisory. **Every probe starts from the page as it
+  `shortcut-moves-focus-out` (2.4.3), another effect is advisory, and so is an effect the guide rules out,
+  which the probe lists in `forbid` (Escape on the comment editor must close it without saving what was
+  typed). **Every probe starts from the page as it
   loaded**: a probe that changed the data, the merges, the sort, the filters, the collapsed groups, the
   frozen counts or the row selection makes the walker load the page again, because a cleared cell or a
   collapsed row made the next probe report a shortcut as dead. Write a probe from a cell the key can
@@ -1483,7 +1485,13 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   between the cell and the formula bar (the focus key carries the part of the root wrapper, so F6 is a
   move), the text of the focused text field (`focusedText`, counted as a text change only while the focus
   stays on the same element: a key that also moves the focus reads as a focus move), and a key that only
-  switches a mode (`then` presses the key that shows the mode).
+  switches a mode (`then` presses the key that shows the mode). The editor's text, caret and list read
+  `null` while it is closed, so they count as changed only while the editor stays open: a key that
+  closes the editor closed it, and a probe that expects an edit reads that as another effect.
+- **A probe's step is its id.** A probe finding has a step and no selector (`probeStep()`): the
+  documented keys, the key with the steps of its own (`F6 after F6`), the steps after it, and where the
+  focus starts. No two presses of one page share a step (a tooling test checks it), because two findings
+  that share an id read as one in a diff between runs.
 - **A probe that could not run is a problem, never a pass.** A probe whose setup fails, one the page threw
   on (the error explains what the probe saw), and one skipped because the test is close to its timeout
   are tooling problems of that probe, and the others keep their findings; the target then evaluates no

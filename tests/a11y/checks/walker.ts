@@ -34,6 +34,7 @@ export interface GridSnapshot {
   menus: number;
   menuItem: string | null;
   comment: boolean;
+  commentText: string | null;
   dataHash: string;
   scroll: [number, number];
   sorting: string;
@@ -311,7 +312,7 @@ export async function tabWalk(page: Page, cdp: CDPSession, root: string, directi
 
 /**
  * A snapshot of what a key can change: the selection, the editor and its text and caret, the menus
- * and their highlighted item, the comment editor, the data, the scroll, the sort, the merges, the
+ * and their highlighted item, the comment editor and the highlighted cell's comment, the data, the scroll, the sort, the merges, the
  * frozen counts, the clipboard and link counters, the collapsed groups, the filters, and where the
  * focus is. One evaluation, after two animation frames.
  *
@@ -374,7 +375,8 @@ export async function snapshot(page: Page, root: string): Promise<GridSnapshot> 
 
     let region = 'outside';
 
-    if (!el || el === document.body || !document.hasFocus()) {
+    // The same regions as `readStop()`, so the Escape test and the probes read a focus the way the Tab walk does.
+    if (!el || el === document.body || el === document.documentElement || !document.hasFocus()) {
       region = 'body';
     } else if (el.dataset.a11yWalkSentinel) {
       region = el.dataset.a11yWalkSentinel;
@@ -446,6 +448,11 @@ export async function snapshot(page: Page, root: string): Promise<GridSnapshot> 
       menus: menus.length,
       menuItem: highlighted ? (highlighted.textContent ?? '').trim() : null,
       comment: !!comments?.getEditorInputElement?.() && visible(comments.getEditorInputElement().closest('.htComments') ?? comments.getEditorInputElement()),
+      // The comment stored on the highlighted cell, which a save changes and a discard does not. A header holds
+      // no comment (and `getCellMeta()` refuses its negative index).
+      commentText: comments && range && range.highlight.row >= 0 && range.highlight.col >= 0
+        ? comments.getCommentAtCell?.(range.highlight.row, range.highlight.col) ?? null
+        : null,
       dataHash: `${data.length}:${hash}`,
       scroll: [Math.round(holder?.scrollTop ?? 0), Math.round(holder?.scrollLeft ?? 0)] as [number, number],
       sorting: JSON.stringify(sorting?.getSortConfig?.() ?? []),
@@ -453,11 +460,13 @@ export async function snapshot(page: Page, root: string): Promise<GridSnapshot> 
       frozen: `${settings.fixedRowsTop ?? 0},${settings.fixedColumnsStart ?? 0},${settings.fixedRowsBottom ?? 0},${settings.fixedColumnsEnd ?? 0}`,
       clipboard: win.__a11yClipboard ?? 0,
       links: win.__a11yLinks ?? 0,
+      // The collapsed groups and what they hide: the rows a collapse trims and the columns it hides. Never the
+      // rendered columns, which change with every horizontal scroll.
       collapsed: JSON.stringify([
         nestedRows?.collapsingUI?.collapsedRows ?? null,
         collapsible?.getCollapsedColumns?.() ?? null,
         hot?.countRows?.() ?? null,
-        hot?.countRenderedCols?.() ?? null,
+        hot?.columnIndexMapper?.getNotHiddenIndexesLength?.() ?? null,
       ]),
       filtered: JSON.stringify(filters?.exportConditions?.() ?? null),
       listSelection: editorOpen && editor.htEditor ? JSON.stringify(editor.htEditor.getSelected() ?? null) : null,
