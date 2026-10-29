@@ -135,6 +135,8 @@ const dictionary = {
   [C.SHEETS_BAR_PAGE_NEXT]: 'Scorri i fogli avanti',
   [C.SHEETS_BAR_SHEET_CHANGED]: 'Foglio [name] attivato',
   [C.SHEETS_BAR_RENAME_REJECTED]: 'Nome del foglio non modificato: [name] è già in uso',
+  [C.SHEETS_BAR_SHEET_DUPLICATED]: 'Foglio [name] duplicato come [copy]',
+  [C.SHEETS_BAR_SHEET_MOVED]: 'Foglio [name] spostato in posizione [position] di [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Foglio',
 
   [C.LOADING_TITLE]: 'Caricamento...',

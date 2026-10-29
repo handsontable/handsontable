@@ -134,6 +134,8 @@ const dictionary = {
   [C.SHEETS_BAR_PAGE_NEXT]: 'تمرير الأوراق للأمام',
   [C.SHEETS_BAR_SHEET_CHANGED]: 'تم تنشيط الورقة [name]',
   [C.SHEETS_BAR_RENAME_REJECTED]: 'لم يتم تغيير اسم الورقة: [name] مستخدم بالفعل',
+  [C.SHEETS_BAR_SHEET_DUPLICATED]: 'تم تكرار الورقة [name] باسم [copy]',
+  [C.SHEETS_BAR_SHEET_MOVED]: 'تم نقل الورقة [name] إلى الموضع [position] من [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'ورقة',
 
   [C.LOADING_TITLE]: 'جاري التحميل...',

@@ -227,11 +227,13 @@ export class ManualColumnMove extends BasePlugin {
         return false;
       }
 
-      if (movePossible) {
+      const movePerformed = movePossible && this.isColumnOrderChanged(columns, finalIndex);
+
+      // A move that leaves the order as it is must not reach the mapper: `moveIndexes()` ignores
+      // trimmed indexes, so it would put the columns on the far side of any trimmed one next to them.
+      if (movePerformed) {
         this.hot.columnIndexMapper.moveIndexes(columns, finalIndex);
       }
-
-      const movePerformed = movePossible && this.isColumnOrderChanged(columns, finalIndex);
 
       this.hot.runHooks('afterColumnMove', columns, finalIndex, dropIndex, movePossible, movePerformed);
 
