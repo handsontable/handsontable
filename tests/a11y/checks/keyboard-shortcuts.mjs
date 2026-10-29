@@ -25,7 +25,9 @@
  *   key whose effect shows only on the key after it, like a mode switch; the probe's comment says what those
  *   steps do without the key, so the effect is the key's;
  * - `expect`: the effect the guide describes (`effectsBetween()`), or a list of effects any of which
- *   satisfies it.
+ *   satisfies it;
+ * - `forbid`: effects the guide rules out, which make the probe `unexpected` even with the expected one
+ *   (Escape on the comment editor closes it and must not save what was typed).
  *
  * The walker loads the page again before a probe when the one before changed the data, the merges, the
  * sort, the filters, the collapsed groups, the frozen counts or the row selection, so every probe starts
@@ -100,7 +102,8 @@ export const SHORTCUT_PROBES = [
   { section: 'Edition keyboard shortcuts', keys: 'Page Up', probe: { setup: 'editor', at: [30, 5], press: 'PageUp', expect: 'editor-closes' } },
   { section: 'Edition keyboard shortcuts', keys: 'Page Down', probe: { setup: 'editor', at: [5, 5], press: 'PageDown', expect: 'editor-closes' } },
   { section: 'Edition keyboard shortcuts', keys: 'Alt+Enter', probe: { setup: 'editor', at: [5, 5], press: 'Alt+Enter', expect: 'text-changes' } },
-  { section: 'Edition keyboard shortcuts', keys: 'Ctrl+Enter', probe: { setup: 'editor', at: [5, 5], press: 'ControlOrMeta+Enter', expect: ['text-changes', 'editor-closes'] } },
+  // A single selected cell gives Ctrl+Enter no other cell to write to, so the guide's line break is the only right effect.
+  { section: 'Edition keyboard shortcuts', keys: 'Ctrl+Enter', probe: { setup: 'editor', at: [5, 5], press: 'ControlOrMeta+Enter', expect: 'text-changes' } },
   { section: 'Edition keyboard shortcuts', keys: 'Escape', probe: { setup: 'editor', at: [5, 5], prepare: [{ type: 'x' }], press: 'Escape', expect: 'editor-closes' } },
 
   // The cell editors, on the catalog pages that draw them.
@@ -178,9 +181,11 @@ export const SHORTCUT_PROBES = [
   { section: 'Column filter keyboard shortcuts', keys: 'Enter / Space',
     probe: { setup: 'dropdown-menu', at: [5, 5], prepare: [{ focus: '.htUISelectionControls .htUIClearAll a' }], press: ['Enter', 'Space'], expect: 'any' } },
   { section: 'Comments keyboard shortcuts', keys: 'Ctrl+Alt+M', probe: { setup: 'cell', at: [5, 5], press: 'Control+Alt+m', expect: 'comment-opens' } },
+  // Ctrl+Enter saves what was typed; Escape closes the editor and puts the comment back as it was.
   { section: 'Comments keyboard shortcuts', keys: 'Ctrl+Enter',
-    probe: { setup: 'comment', at: [5, 5], prepare: [{ type: 'Checked' }], press: 'ControlOrMeta+Enter', expect: 'comment-closes' } },
-  { section: 'Comments keyboard shortcuts', keys: 'Escape', probe: { setup: 'comment', at: [5, 5], press: 'Escape', expect: 'comment-closes' } },
+    probe: { setup: 'comment', at: [5, 5], prepare: [{ type: 'Checked' }], press: 'ControlOrMeta+Enter', expect: 'comment-changes' } },
+  { section: 'Comments keyboard shortcuts', keys: 'Escape',
+    probe: { setup: 'comment', at: [5, 5], prepare: [{ type: 'Discarded' }], press: 'Escape', expect: 'comment-closes', forbid: ['comment-changes'] } },
   { section: 'Comments keyboard shortcuts', keys: 'Tab', probe: { setup: 'comment', at: [5, 5], press: 'Tab', expect: 'comment-closes' } },
   { section: 'Comments keyboard shortcuts', keys: 'Shift+Tab', probe: { setup: 'comment', at: [5, 5], press: 'Shift+Tab', expect: 'comment-closes' } },
   // Row 2 of the row-selection fixture holds a read-only checkbox on purpose, so the probes use rows 3 and 4.
