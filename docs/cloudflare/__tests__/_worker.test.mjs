@@ -319,6 +319,89 @@ test('keeps versioned demo redirects on historical disabled cells slugs', async(
   );
 });
 
+test('a flat legacy HTML page redirects to its current framework page (rule 15)', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(worker, '/docs/Hooks.html', '/docs/javascript-data-grid/api/hooks/', 302);
+  await assertRedirect(worker, '/docs/tutorial-introduction.html', '/docs/javascript-data-grid/', 302);
+  await assertRedirect(worker, '/docs/tutorial-known-limitations.html', '/docs/javascript-data-grid/third-party-licenses/', 302);
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/demo-date.html', 'react'),
+    'https://handsontable.com/docs/react-data-grid/date-cell-type/',
+  );
+});
+
+test('a page of a docs version older than 9.0 redirects to its current page (PRO-1371)', async() => {
+  const worker = loadWorker();
+
+  // Versions below 9.0 are not deployed, so rules 13 and 14 sent these
+  // URLs to a /docs/7.4/... path that answered 404.
+  await assertRedirect(worker, '/docs/7.4/Hooks.html', '/docs/javascript-data-grid/api/hooks/', 302);
+  await assertRedirect(worker, '/docs/7.4.2/Hooks.html', '/docs/javascript-data-grid/api/hooks/', 302);
+  await assertRedirect(worker, '/docs/7.2.2/tutorial-performance-tips.html', '/docs/javascript-data-grid/performance/', 302);
+  await assertRedirect(worker, '/docs/0.15.0-beta5/demo-date.html', '/docs/javascript-data-grid/date-cell-type/', 302);
+  await assertRedirect(worker, '/docs/8.0.0/tutorial-known-limitations.html', '/docs/javascript-data-grid/third-party-licenses/', 302);
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/7.4.2/demo-numeric.html', 'react'),
+    'https://handsontable.com/docs/react-data-grid/numeric-cell-type/',
+  );
+  // A framework wrapper page keeps its own framework whatever the cookie says.
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/7.2.1/frameworks-wrapper-for-react-installation.html', 'angular'),
+    'https://handsontable.com/docs/react-data-grid/installation/',
+  );
+});
+
+test('the root, or an unknown page, of a docs version older than 9.0 lands on the framework home', async() => {
+  const worker = loadWorker();
+
+  // A deliberate soft landing: the version no longer exists, and the
+  // framework home serves the reader better than a 404.
+  await assertRedirect(worker, '/docs/6.2.2/', '/docs/javascript-data-grid/', 302);
+  await assertRedirect(worker, '/docs/8.4', '/docs/javascript-data-grid/', 302);
+  await assertRedirect(worker, '/docs/7.0.0/CellRange.html', '/docs/javascript-data-grid/', 302);
+  await assertRedirect(worker, '/docs/7.4/api/hooks', '/docs/javascript-data-grid/', 302);
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/8.4.0/', 'react'),
+    'https://handsontable.com/docs/react-data-grid/',
+  );
+});
+
+test('a three-part version from 9.0 up redirects to its MAJOR.MINOR docs', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(worker, '/docs/9.0.1/tutorial-introduction.html', '/docs/9.0/tutorial-introduction.html');
+  await assertRedirect(worker, '/docs/12.4.0/', '/docs/12.4/');
+  await assertRedirect(worker, '/docs/16.1.0', '/docs/16.1');
+});
+
+test('deployed versions and look-alike paths are not caught by the old-version rule', async() => {
+  const worker = loadWorker();
+
+  // 9.0 to 12.0 are served from the assets as they are.
+  const response = await worker.fetch(request('/docs/9.0/'), env);
+
+  assert.equal(response.status, 200);
+  await assertRedirect(worker, '/docs/9.0/tutorial-introduction.html', '/docs/9.0/', 302);
+
+  const lookAlike = await worker.fetch(request('/docs/16.1javascript-data-grid/batch-operations/'), env);
+
+  assert.equal(lookAlike.status, 200);
+  assert.equal(await lookAlike.text(), 'static-asset-passthrough');
+});
+
+test('a flat page link with a sentence\'s punctuation glued to it still redirects (PRO-1371)', async() => {
+  const worker = loadWorker();
+  const language = '/docs/javascript-data-grid/language/#load-the-prepared-language-files';
+
+  // Older Handsontable versions print this link at the end of a console
+  // sentence, so a click carries the period into the URL.
+  await assertRedirect(worker, '/docs/i18n/missing-language-code', language, 302);
+  await assertRedirect(worker, '/docs/i18n/missing-language-code.', language, 302);
+  await assertRedirect(worker, '/docs/i18n/missing-language-code.\'', language, 302);
+  await assertRedirect(worker, '/docs/api/core.', '/docs/javascript-data-grid/api/core/', 302);
+});
+
 test('answers POST to the saving-data demo\'s save.json mock instead of 405ing (regression for DEV-2034)', async() => {
   const worker = loadWorker();
 
@@ -495,8 +578,10 @@ test('the external HyperFormula redirect survives the legacy host untouched', as
   );
 });
 
-test('the cookie-reading rules 13-17 answer the legacy host with a 301, not their usual 302', async() => {
+test('the cookie-reading rules 12b-17 answer the legacy host with a 301, not their usual 302', async() => {
   const worker = loadWorker();
+
+  await assertLegacyCollapse(worker, '/docs/7.4.2/Hooks.html', 'https://handsontable.com/docs/7.4.2/Hooks.html');
 
   // Regression for the review finding on this PR's first commit: rules 13-17
   // deliberately use 302 (their destination depends on the docs_fw cookie),
