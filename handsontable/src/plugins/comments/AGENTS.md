@@ -16,6 +16,22 @@ instead of a flat `getCellMeta().comment`.
 
 Removing a comment is `setCellMeta(row, col, META_COMMENT, undefined)`, not `delete`.
 
+`getCommentMeta()` answers `undefined` for a negative row or column (a header), and reads through
+`getCellMetaTransient()` because it only probes. `getComment()` and `getCommentAtCell()` go through it, so
+they soft-fail for a header. Keep that guard in this plugin: `Core#getCellMeta()` still asserts an unsigned
+index on purpose. What else a header does:
+
+- `show()` and `showAtCell()` return `false` before they read any meta.
+- The editor's focus handler and `#onAfterUndoRedo` return early (or hide) for a range on a header. Without
+  that, a focus switches the shortcut context to `plugin:comments` and the blur's save throws before the
+  context goes back to `grid`, leaving the grid shortcuts dead.
+- The write side throws on purpose, a write to a header being a caller bug: `setCommentAtCell()`,
+  `setComment()`, `updateCommentMeta()`, `removeCommentAtCell()`. So does `refreshEditor()`, which reads the raw
+  `getCellMeta()` and is only reached for a cell.
+
+A row or column past the last one is not guarded: it still reaches `getCellMeta()` and is read as a physical
+index, as it was before.
+
 Because the value lives in cell meta, a comment travels with the record through sorts and moves, and a
 sparse object data source needs no special handling (that was DEV-1718).
 

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `Comments#getCommentAtCell()`, `Comments#getComment()`, and `Comments#getCommentMeta()` throwing `Expecting an unsigned number` for header coordinates. They now return `undefined`.",
+  "type": "fixed",
+  "issueOrPR": 14071,
+  "breaking": false,
+  "framework": "none"
+}
