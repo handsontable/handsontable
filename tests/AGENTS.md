@@ -1388,11 +1388,13 @@ the documents, the detail files and a `summary.md`; it never changes the run's s
 `e2e/a11y-checks-reporter.spec.ts` (no browser, a few seconds) proves it on synthetic projects: the
 last attempt read, a failed test recorded as an error target, a retried one flagged, a detail written
 to its own file. `scripts/a11y-evidence-report.mjs` reads the documents and writes the job summary,
-or posts one check run per check with `--check-run` (`--dry-run` prints the payloads); a check the job
-ran that left no document (`A11Y_CHECKS`) gets a neutral tooling check run instead of none.
+or posts one check run per check with `--check-run` (`--dry-run` prints the payloads); a check of the
+suite the job ran (`HOT_A11Y_CHECKS_SUITE`, or the comma-separated `A11Y_CHECKS` when it is set) that
+left no document gets a neutral tooling check run instead of none.
 
 - **Where they run.** `a11y.yml` has a second job, `checks`, beside `axe`: the same Playwright
-  container and UMD artifact, `continue-on-error` on the job and on its run step, and one
+  container and UMD artifact, `continue-on-error` on the job only (a tooling failure turns the job red,
+  as it does the axe job, and never the Tests pipeline), and one
   `A11y / <check> report` check run per check on the pull request's head commit (behind the canonical
   fork guard). `HOT_A11Y_CHECKS_SUITE` picks the checks: a pull request runs the ones with
   `pullRequest: true` in `EVIDENCE_CHECKS` (a check earns it by finishing in under two minutes), and the
@@ -1512,9 +1514,11 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
 
 ### Adding a check
 
-Add its entry to `EVIDENCE_CHECKS` in `lib/a11y-evidence.mjs` (a title and the criteria it
-evidences), a project named by the entry's key to `playwright.a11y-checks.config.ts`, and its spec to
-`a11y/checks/`. Write the measurer or matcher as a pure function with a tooling test that is red
+Add its entry to `EVIDENCE_CHECKS` in `lib/a11y-evidence.mjs`, keyed by the check's id: its `title`,
+its `spec` (the file name under `a11y/checks/`), the `criteria` it evidences, and `pullRequest` (whether
+pull requests run it, which it earns by finishing in under two minutes). The config builds one project
+per entry from that list (`checksForSuite()`), so never add a project by hand: it would run the check
+twice. Then add its spec to `a11y/checks/`. Write the measurer or matcher as a pure function with a tooling test that is red
 before the function exists. Prove the check on the product with a planted defect (a fixture hook that
 removes a focus ring or a name), shown in the check run of its pull request, then reverted. Document
 its rules here, its line in `handsontable/.ai/TESTING.md` and its job in `.ai/CI.md`.

@@ -144,7 +144,22 @@ const CHECKS_DOC = 'See tests/AGENTS.md, "A11y: the checks beyond axe".';
 const CHECKS_CONFIG = 'tests/playwright.a11y-checks.config.ts';
 const NIGHTLY = '.github/workflows/a11y-nightly.yml';
 
-test('the checks job is report-only: continue-on-error on the job and the run step, a check run per check, never a red pipeline', () => {
+/**
+ * The grants of a job's `permissions` block, one `key: value` per line, in order (as
+ * `screenreader-workflow.test.mjs` reads them), so a grant added after the pinned ones is seen.
+ *
+ * @param {string} jobBody One job's text, from `job()`, with the comments stripped.
+ * @returns {string[]} The grants, empty when the job has no block.
+ */
+function permissions(jobBody) {
+  const [, after = ''] = jobBody.split(/^ {4}permissions:\n/m);
+  const block = after.split('\n');
+  const end = block.findIndex(line => line.trim() !== '' && !/^ {6}\S/.test(line));
+
+  return block.slice(0, end === -1 ? block.length : end).map(line => line.trim()).filter(Boolean);
+}
+
+test('the checks job is report-only: continue-on-error on the job, a red job on a tooling failure, a check run per check, never a red pipeline', () => {
   const workflow = stripYamlComments(read(A11Y));
   const checks = job(workflow, 'checks');
   const stepsOf = steps(checks);
@@ -152,7 +167,8 @@ test('the checks job is report-only: continue-on-error on the job and the run st
 
   assert.match(checks, /^ {4}name: checks$/m, `${A11Y}: the job is named checks, so the check reads "A11y / checks". ${CHECKS_DOC}`);
   assert.match(checks, /^ {4}continue-on-error: true$/m, `${A11Y}: the checks are report-only; a red one never turns the Tests pipeline red. ${CHECKS_DOC}`);
-  assert.match(checks, /^ {4}permissions:\n {6}contents: read\n {6}checks: write$/m,
+  assert.match(checks, /^ {4}timeout-minutes: 30$/m, `${A11Y}: a hung run is bounded, after the run step's own timeout. ${CHECKS_DOC}`);
+  assert.deepEqual(permissions(checks), ['contents: read', 'checks: write'],
     `${A11Y}: the checks job reads the checkout and writes its check runs, nothing else. ${CHECKS_DOC}`);
   assert.match(checks, /^ {6}A11Y_HEAD_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}$/m,
     `${A11Y}: the evidence and its check runs name the pull request's head, never the merge commit. ${CHECKS_DOC}`);
@@ -166,7 +182,10 @@ test('the checks job is report-only: continue-on-error on the job and the run st
 
   const run = step('Run the checks beyond axe');
 
-  assert.match(run, /^ {8}continue-on-error: true$/m, `${A11Y}: a tooling red is recorded in the evidence; the step never decides the job. ${CHECKS_DOC}`);
+  assert.doesNotMatch(run, /continue-on-error/,
+    `${A11Y}: a tooling failure turns the checks job red, as it does the axe job; the job's continue-on-error keeps the pipeline green. ${CHECKS_DOC}`);
+  assert.match(run, /^ {8}timeout-minutes: \$\{\{ inputs\.nightly && 20 \|\| 10 \}\}$/m,
+    `${A11Y}: the run step times out before the job does, sized per suite: a hung pull-request run holds the Tests pipeline. ${CHECKS_DOC}`);
   assert.match(run, /^ {8}run: cd tests && npx playwright test --config playwright\.a11y-checks\.config\.ts$/m, `${A11Y}: the run step runs the checks config. ${CHECKS_DOC}`);
 
   const upload = step('Upload the evidence');
@@ -175,13 +194,20 @@ test('the checks job is report-only: continue-on-error on the job and the run st
   assert.match(upload, /^ {10}name: a11y-checks-evidence$/m,
     `${A11Y}: the evidence artifact stays outside the playwright-report-* glob test-health.yml reads. ${CHECKS_DOC}`);
   assert.match(upload, /^ {10}path: tests\/test-results\/a11y-checks$/m, `${A11Y}: the upload is the checks config's outputDir. ${CHECKS_DOC}`);
-  assert.match(step('Write the job summary'), /^ {8}run: node tests\/scripts\/a11y-evidence-report\.mjs$/m);
+  assert.match(upload, /^ {10}retention-days: \$\{\{ inputs\.nightly && 30 \|\| 7 \}\}$/m,
+    `${A11Y}: the nightly's evidence is what the conformance report cites, so it is kept 30 days; a pull request's 7. ${CHECKS_DOC}`);
+
+  const summary = step('Write the job summary');
+
+  assert.match(summary, /^ {8}run: node tests\/scripts\/a11y-evidence-report\.mjs$/m);
+  assert.match(summary, /^ {8}if: \$\{\{ !cancelled\(\) \}\}$/m, `${A11Y}: the summary is written after a red run step too. ${CHECKS_DOC}`);
 
   const post = step('Post the evidence check runs');
 
   assert.match(post, /^ {8}run: node tests\/scripts\/a11y-evidence-report\.mjs --check-run$/m, `${A11Y}: the check runs are posted by the report script. ${CHECKS_DOC}`);
   assert.match(post, /^ {8}continue-on-error: true$/m, `${A11Y}: the check runs report and never decide the job. ${CHECKS_DOC}`);
   assert.match(post, /A11Y_EVIDENCE_URL: \$\{\{ steps\.evidence\.outputs\.artifact-url \}\}/);
+  assert.match(post, /^ {8}if: \$\{\{ !cancelled\(\) && /m, `${A11Y}: the check runs are posted after a red run step too. ${CHECKS_DOC}`);
 });
 
 test('the checks config builds on the e2e config, takes its projects from the registry, and never fails on a flake', () => {
@@ -204,7 +230,7 @@ test('the A11y nightly builds the UMD bundle and calls the module with every che
   const workflow = stripYamlComments(read(NIGHTLY));
 
   assert.deepEqual(jobIds(workflow), ['build', 'a11y', 'notify']);
-  assert.match(workflow, /^ {4}- cron: '0 5 \* \* 2-6'$/m, `${NIGHTLY}: weeknights at 05:00 UTC, after the screen reader nightly. ${CHECKS_DOC}`);
+  assert.match(workflow, /^ {4}- cron: '30 5 \* \* 2-6'$/m, `${NIGHTLY}: weeknights at 05:30 UTC, after the screen reader nightly and clear of the docs sync. ${CHECKS_DOC}`);
 
   const a11y = job(workflow, 'a11y');
 
@@ -217,5 +243,8 @@ test('the A11y nightly builds the UMD bundle and calls the module with every che
     assert.match(job(workflow, id), /^ {4}if: github\.event_name != 'pull_request'$/m,
       `${NIGHTLY}: a pull request that touches the file gets a validated run whose jobs skip themselves.`);
   }
+  assert.match(job(workflow, 'notify'), /^ {4}needs: \[ a11y \]$/m);
+  assert.match(job(workflow, 'notify'), /^ {4}if: \$\{\{ failure\(\) && github\.event_name != 'pull_request' && github\.ref_name == 'develop' \}\}$/m,
+    `${NIGHTLY}: Slack hears of a run that never reached the checks (failure()), on develop only. ${CHECKS_DOC}`);
 });
 
