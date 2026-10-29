@@ -25,6 +25,16 @@ four cases: destination too high (`moved.length + finalIndex > length`), destina
 index negative, and any moved index at or past the length. "You can't move more than one element to the
 last position" is a consequence of the first.
 
+## A move that changes nothing never reaches the index mapper
+
+`moveColumns()` computes `movePerformed` (`isMovePossible()` and `isColumnOrderChanged()`) before it calls
+`columnIndexMapper.moveIndexes()`, and calls it only when that is true. `moveIndexes()` places the moved
+columns before the next NOT-trimmed column and does not see a trimmed one in between, so a drop onto the
+column's own position used to push it past the trimmed column. The hooks still fire, with `orderChanged:
+false`. The sequence change hooks (`afterColumnSequenceChange` and its cache update twin) no longer fire for
+such a drop either. The row mirror documents the same rule in `../manualRowMove/AGENTS.md`; keep both in step.
+Pinned by `__tests__/noopMoveTrimmedColumns.unit.js` and `tests/e2e/manual-move-trimmed.spec.ts`.
+
 ## `isDragging()` is the shared click-versus-drag verdict
 
 ```js

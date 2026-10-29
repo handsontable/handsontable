@@ -3085,6 +3085,9 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link ManualColumnMove} plugin before change order of the visual indexes. This hook is fired when
    * {@link Options#manualColumnMove} option is enabled.
    *
+   * The hook also fires when the move leaves the order unchanged, for example when you drop a column back where it
+   * was. To tell such a move apart, use the `afterColumnMove` hook and check its `orderChanged` parameter.
+   *
    * @event Hooks#beforeColumnMove
    * @param {Array} movedColumns Array of visual column indexes to be moved.
    * @param {number} finalIndex Visual column index, being a start index for the moved columns.
@@ -3104,6 +3107,9 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by {@link ManualColumnMove} plugin after changing order of the visual indexes.
    * This hook is fired when {@link Options#manualColumnMove} option is enabled.
+   *
+   * The hook also fires when the move leaves the order unchanged, for example when you drop a column back where it
+   * was. In that case, `orderChanged` is `false`.
    *
    * @event Hooks#afterColumnMove
    * @param {Array} movedColumns Array of visual column indexes to be moved.
@@ -3216,6 +3222,9 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link ManualRowMove} plugin before changing the order of the visual indexes. This hook is fired when
    * {@link Options#manualRowMove} option is enabled.
    *
+   * The hook also fires when the move leaves the order unchanged, for example when you drop a row back where it
+   * was. To tell such a move apart, use the `afterRowMove` hook and check its `orderChanged` parameter.
+   *
    * @event Hooks#beforeRowMove
    * @param {Array} movedRows Array of visual row indexes to be moved.
    * @param {number} finalIndex Visual row index, being a start index for the moved rows.
@@ -3235,6 +3244,9 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by {@link ManualRowMove} plugin after changing the order of the visual indexes.
    * This hook is fired when {@link Options#manualRowMove} option is enabled.
+   *
+   * The hook also fires when the move leaves the order unchanged, for example when you drop a row back where it
+   * was. In that case, `orderChanged` is `false`.
    *
    * @event Hooks#afterRowMove
    * @param {Array} movedRows Array of visual row indexes to be moved.

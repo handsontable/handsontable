@@ -200,11 +200,13 @@ export class ManualRowMove extends BasePlugin {
         return false;
       }
 
-      if (movePossible) {
+      const movePerformed = movePossible && this.isRowOrderChanged(rows, finalIndex);
+
+      // A move that leaves the order as it is must not reach the mapper: `moveIndexes()` ignores
+      // trimmed indexes, so it would put the rows on the far side of any trimmed one next to them.
+      if (movePerformed) {
         this.hot.rowIndexMapper.moveIndexes(rows, finalIndex);
       }
-
-      const movePerformed = movePossible && this.isRowOrderChanged(rows, finalIndex);
 
       this.hot.runHooks('afterRowMove', rows, finalIndex, dropIndex, movePossible, movePerformed);
 
