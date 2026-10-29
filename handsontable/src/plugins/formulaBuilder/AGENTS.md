@@ -192,6 +192,9 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   with a warning before the package constructor sees it (hyperformula-ui 0.3.5 threw for one; 0.3.6 warns), and any other constructor
   throw is caught and warned. Hosts set through `attach*Host()` are kept on the plugin and re-applied to
   every rebuilt builder. `popups` is stored as a copy, so an object changed in place reads as a change.
+  A `null` popup entry (`popups.suggestions: null`, a framework clearing an option) is dropped as not
+  configured in `#resolvePopupContainers()`: reading its `container` threw a `TypeError` from the
+  constructor and from every `updateSettings()`.
 - **Commit, cancel and open go through the grid's own code, not a copy of it.** A commit with a
   direction moves with `EditorManager#moveSelectionAfterEnter()` (`up`/`down`) or the grid's Tab
   commands (`right`/`left`), so `enterMoves`, `tabMoves`, ranges and layers behave as in every other

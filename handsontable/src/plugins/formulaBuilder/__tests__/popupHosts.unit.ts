@@ -295,6 +295,26 @@ describe('FormulaBuilder popup hosts', () => {
   });
 });
 
+describe('FormulaBuilder popup hosts given no host', () => {
+  afterEach(() => {
+    document.body.replaceChildren();
+  });
+
+  it.each(['suggestions', 'fnHelp'])('treats `popups.%s: null` as not configured on enable and on update', (name) => {
+    const stub = makePluginHotStub({ popups: { [name]: null } });
+    const plugin = new FormulaBuilder(stub.instance);
+
+    expect(() => plugin.enablePlugin()).not.toThrow();
+    expect(plugin.enabled).toBe(true);
+    expect(popupIn(latestPortal(), 'hfe-suggestions')).toBeDefined();
+    expect(popupIn(latestPortal(), 'hfe-fn-help')).toBeDefined();
+    expect(() => plugin.updatePlugin()).not.toThrow();
+    expect(plugin.enabled).toBe(true);
+
+    plugin.disablePlugin();
+  });
+});
+
 describe('FormulaBuilder popup hosts in a shadow root', () => {
   it('docks a popup into a host its selector finds in the grid\'s shadow root', () => {
     const shadowHost = document.createElement('div');

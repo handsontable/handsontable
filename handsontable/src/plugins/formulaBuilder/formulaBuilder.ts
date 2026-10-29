@@ -2056,7 +2056,15 @@ export class FormulaBuilder extends BasePlugin {
     (['suggestions', 'fnHelp'] as const).forEach((popupName) => {
       const popup = resolved[popupName];
 
-      if (popup !== undefined && !this.#isContainerAvailable(popup.container)) {
+      // `null` (a framework that clears an option rather than omitting it) means "not configured",
+      // the same as an omitted key. The package reads the entry's members and would throw.
+      if (popup === null || popup === undefined) {
+        delete resolved[popupName];
+
+        return;
+      }
+
+      if (!this.#isContainerAvailable(popup.container)) {
         warnOnce(this.hot, `formulaBuilder.popups.${popupName}.container`, `The \`popups.${popupName}` +
           '.container` option of the FormulaBuilder plugin names no element in the grid\'s document or' +
           ' shadow root, so the popup floats next to the editor instead.');
