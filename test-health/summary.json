@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-29T09:28:26.073Z",
+  "generatedAt": "2026-10-29T10:01:48.648Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 425,
+    "tests": 427,
     "needsTicket": 28,
     "quarantined": 0,
-    "entries": 2184
+    "entries": 2193
   },
   "rows": [
     {
@@ -1009,6 +1009,44 @@
         "source": "ci"
       },
       "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/icon-elements.spec.ts|Icon elements › sheets bar › the retired glyph pseudo-elements no longer paint on the buttons or the chevron",
+      "tier": "playwright",
+      "file": "e2e/icon-elements.spec.ts",
+      "line": 887,
+      "title": "Icon elements › sheets bar › the retired glyph pseudo-elements no longer paint on the buttons or the chevron",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-29T10:00:45Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40848392983",
+        "branch": "fix/DEV-3516_Sheets-bar-UI-a11y-fixes",
+        "leg": "e2e-classic-min",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
     },
     {
       "key": "jasmine|handsontable/src/__tests__/core/valueSetter.spec.js|valueSetter should call valueSetter only when necessary when using the data-setting/getting API methods",
@@ -2651,6 +2689,42 @@
         "leg": "e2e-classic",
         "status": "failed",
         "error": "Error: expect(received).toEqual(expected) // deep equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/sheets-bar-touch-menus.spec.ts|menus and the sheets bar on a touch screen › a submenu parent in the context menu opens its submenu on a tap",
+      "tier": "playwright",
+      "file": "e2e/sheets-bar-touch-menus.spec.ts",
+      "line": 195,
+      "title": "menus and the sheets bar on a touch screen › a submenu parent in the context menu opens its submenu on a tap",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-horizon",
+        "e2e-main"
+      ],
+      "statuses": [
+        "failed",
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-29T10:00:45Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40848392983",
+        "branch": "fix/DEV-3516_Sheets-bar-UI-a11y-fixes",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(locator).toHaveCount(expected) failed",
         "source": "ci"
       },
       "needsTicket": false
