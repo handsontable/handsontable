@@ -138,6 +138,24 @@ test.describe('formulaBuilder keyboard flow', { tag: [THEMES_TAG, BUNDLES_TAG, C
     expect(await grid.sourceAt(4, 2)).toBe('8');
     await expect.poll(() => grid.selectedAll()).toBeNull();
   });
+
+  test('the keyboard works after a commit from the formula bar', async({ page }) => {
+    await grid.selectCellByApi(3, 0);
+    await grid.openBarEditor();
+    await page.keyboard.type('=A1');
+    await page.keyboard.press('Enter');
+    await expect.poll(() => grid.isListening()).toBe(true);
+    await page.keyboard.press('ArrowDown');
+    expect(await grid.selectedLast()).toEqual([4, 0, 4, 0]);
+  });
+
+  test('the keyboard works after a Ctrl/Cmd+Enter commit from the formula bar', async({ page }) => {
+    await grid.selectCellByApi(3, 0);
+    await grid.openBarEditor();
+    await page.keyboard.type('7');
+    await page.keyboard.press(process.platform === 'darwin' ? 'Meta+Enter' : 'Control+Enter');
+    await expect.poll(() => grid.isListening()).toBe(true);
+  });
 });
 
 // Point mode: with a reference valid at the caret, the arrow keys pick references (the guide's

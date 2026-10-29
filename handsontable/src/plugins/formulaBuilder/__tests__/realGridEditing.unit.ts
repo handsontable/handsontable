@@ -338,6 +338,37 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(hot.getSelectedLast()).toEqual([1, 1, 1, 1]);
       expect(isEditorOpened()).toBe(true);
     });
+
+    it('listens again when the validator rejected the value and the editor stays open', async() => {
+      createGrid({
+        cell: [{
+          row: 1,
+          col: 1,
+          validator: (value: unknown, callback: (valid: boolean) => void) => callback(value !== 'bad'),
+          allowInvalid: false,
+        }],
+      });
+      hot.selectCell(1, 1);
+      adapter().beginEdit({ sheet: '', row: 1, col: 1 });
+      // Focusing the bar unlistens the grid.
+      hot.unlisten();
+      adapter().commit('bad', 'down');
+      await settle();
+
+      expect(isEditorOpened()).toBe(true);
+      expect(hot.isListening()).toBe(true);
+    });
+
+    it('listens again after a commit with a direction', async() => {
+      createGrid();
+      hot.selectCell(1, 1);
+      adapter().beginEdit({ sheet: '', row: 1, col: 1 });
+      hot.unlisten();
+      adapter().commit('7', 'down');
+      await settle();
+
+      expect(hot.isListening()).toBe(true);
+    });
   });
 
   describe('committing to the whole selection', () => {

@@ -81,6 +81,7 @@ export interface PluginHotStubShape {
   getCellMetaTransient: jest.Mock<Record<string, unknown>, [number, number]>;
   selectCell: jest.Mock;
   selectCells: jest.Mock;
+  listen: jest.Mock;
   getLayoutManager: () => { register: jest.Mock; unregister: jest.Mock };
   getCurrentThemeName: () => string | null;
   isRtl: () => boolean;
@@ -208,6 +209,7 @@ export function makePluginHotStub(
     getCellMetaTransient: jest.fn(() => ({})),
     selectCell: jest.fn(),
     selectCells: jest.fn(),
+    listen: jest.fn(),
     ...makeGridSelectionApiStub(),
     getLayoutManager: () => layoutManager,
     getCurrentThemeName: () => null,

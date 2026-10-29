@@ -22,6 +22,7 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
 
 ## The traps
 
+- **Every path that hands the keyboard back from the bar must `listen()` again.** Focusing the bar makes the focus scope manager `unlisten()` the grid, so commit, cancel, and teardown under an open bar edit all go through `#relistenAfterBarExit()`, or the keyboard is dead until a click. A pick drag released outside the grid does not need it (verified: the grid listens and the editor input is refocused).
 - **No emitted declaration may name `hyperformula-ui`, internal ones included.** It is a devDependency,
   and the `Emitted Types` check compiles EVERY `tmp/**/*.d.ts` with TypeScript 5.1 and no dependencies
   installed, so one `import type ... from 'hyperformula-ui'` in any emitted file fails with TS2307 (it did,

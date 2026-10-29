@@ -607,11 +607,14 @@ export class FormulaBuilder extends BasePlugin {
 
     if (!direction) {
       editor.finishEditing?.();
+      this.#relistenAfterBarExit();
 
       return;
     }
 
     editor.finishEditing?.(false, false, (dataSaved?: boolean) => {
+      this.#relistenAfterBarExit();
+
       if (dataSaved === false || this.hot.isDestroyed) {
         return;
       }
@@ -637,6 +640,8 @@ export class FormulaBuilder extends BasePlugin {
 
     editor.setValue?.(value);
     editor.finishEditing?.(false, true, (dataSaved?: boolean) => {
+      this.#relistenAfterBarExit();
+
       if (dataSaved === false || this.hot.isDestroyed) {
         return;
       }
@@ -667,7 +672,7 @@ export class FormulaBuilder extends BasePlugin {
 
     const focusManager = this.hot.getFocusManager();
 
-    this.hot.listen();
+    this.#relistenAfterBarExit();
     focusManager.focusOnHighlightedCell();
     focusManager.refocusToEditorTextarea();
   }
@@ -1937,6 +1942,17 @@ export class FormulaBuilder extends BasePlugin {
       // EDITING state over a torn-down mount, and its eventual close would commit the stale
       // original.
       this.#hostEditor()?.finishEditing?.(true);
+      this.#relistenAfterBarExit();
+    }
+  }
+
+  /**
+   * Focusing the bar makes the focus scope manager `unlisten()` the grid, so every path that hands
+   * the keyboard back (commit, cancel, teardown under an open edit) listens again.
+   */
+  #relistenAfterBarExit(): void {
+    if (!this.hot.isDestroyed) {
+      this.hot.listen();
     }
   }
 
