@@ -553,8 +553,9 @@ While core's `_applySettingsAndData()` applies settings ahead of their data (`is
 `../base/AGENTS.md`), both settings sorts (the live-grid branch of `enablePlugin()` and the one in
 `onUpdateSettings()`) are held, and `onDataReady()` runs `#loadOrSortBySettings()` against the loaded rows.
 Run before, they sorted the departing rows and the load reset the order, so a sheet's own `initialConfig`
-was ignored on its first visit. Known, separate defect: `#onAfterLoadData` reads the hook's first argument
-(the data array) as `initialLoad`, so its `initialLoad === true` branch never runs.
+was ignored on its first visit. The plugin has no `afterLoadData` listener: core sends `initialLoad: true`
+only for the load made before the view exists, so the `initialConfig` sort of a grid being built comes from
+`afterInit` alone, including rows an `init` listener loads (`tests/e2e/column-sorting-init-load.spec.ts`).
 
 ## `true` after an object resets the column properties; `true` after `true` does not
 

@@ -317,7 +317,6 @@ export class ColumnSorting extends BasePlugin {
     this.addHook('afterColumnMove', this.#onAfterColumnMove);
 
     this.addHook('afterInit', this.#loadOrSortBySettings);
-    this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch, -1);
 
     // TODO: Workaround? It should be refactored / described.
@@ -1326,20 +1325,6 @@ export class ColumnSorting extends BasePlugin {
       this.#loadOrSortBySettings();
     }
   }
-
-  /**
-   * Callback for the `afterLoadData` hook.
-   *
-   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
-   */
-  #onAfterLoadData = (initialLoad: boolean) => {
-    if (initialLoad === true) {
-      // TODO: Workaround? It should be refactored / described.
-      if (this.hot.view) {
-        this.#loadOrSortBySettings();
-      }
-    }
-  };
 
   /**
    * Callback for the `afterDataProviderFetch` hook.
