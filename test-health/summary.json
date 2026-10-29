@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-29T06:59:45.468Z",
+  "generatedAt": "2026-10-29T07:56:15.023Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -348,44 +348,6 @@
       "needsTicket": true
     },
     {
-      "key": "playwright|e2e/unlaid-out-init-scroll-sync.spec.ts|grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "tier": "playwright",
-      "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
-      "line": 65,
-      "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "count7": 0,
-      "count30": 10,
-      "countAll": 28,
-      "runs30": 6,
-      "flakyRuns30": 6,
-      "branches30": 5,
-      "nightlyRuns30": 0,
-      "openBranches30": 5,
-      "legs": [
-        "e2e-classic",
-        "e2e-classic-min",
-        "e2e-horizon",
-        "e2e-horizon-min",
-        "e2e-main",
-        "e2e-main-min"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-07T11:49:14Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37613189147",
-        "branch": "feature/DEV-2700_Fit-frozen-area-to-viewport",
-        "leg": "e2e-main-min",
-        "status": "flaky",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
       "key": "jasmine|handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js|StretchColumns with `beforeStretchingColumnWidth` hook should be possible to change the stretched column width for stretching all strategy",
       "tier": "jasmine",
       "file": "handsontable/src/plugins/stretchColumns/__tests__/hooks/beforeStretchingColumnWidth.spec.js",
@@ -560,6 +522,44 @@
         "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37910350952/attempts/2",
         "branch": "feature/DEV-3345_Test-arrow-key-burst-beside-end-columns",
         "leg": "e2e-classic",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/unlaid-out-init-scroll-sync.spec.ts|grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
+      "tier": "playwright",
+      "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
+      "line": 65,
+      "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
+      "count7": 0,
+      "count30": 8,
+      "countAll": 28,
+      "runs30": 5,
+      "flakyRuns30": 5,
+      "branches30": 5,
+      "nightlyRuns30": 0,
+      "openBranches30": 5,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T11:49:14Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37613189147",
+        "branch": "feature/DEV-2700_Fit-frozen-area-to-viewport",
+        "leg": "e2e-main-min",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
