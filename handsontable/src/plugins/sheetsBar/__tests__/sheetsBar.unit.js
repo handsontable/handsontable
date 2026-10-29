@@ -2,6 +2,8 @@ import HyperFormula from 'hyperformula';
 import Handsontable from '../../../base';
 import { registerLanguageDictionary } from '../../../i18n/registry';
 import plPL from '../../../i18n/languages/pl-PL';
+import enUS from '../../../i18n/languages/en-US';
+import * as C from '../../../i18n/constants';
 import { registerPlugin } from '../../registry';
 import { SheetsBar } from '../sheetsBar';
 import { syncIcon } from '../../../themes/engine/icons';
@@ -217,7 +219,8 @@ describe('SheetsBar plugin', () => {
     hot.getPlugin('sheetsBar').addSheet();
 
     expect(after).toHaveBeenCalledTimes(1);
-    expect(after.calls.mostRecent().args[2]).toBe('SheetsBar.api');
+    expect(after.calls.mostRecent().args[2]).toBe(null);
+    expect(after.calls.mostRecent().args[3]).toBe('SheetsBar.api');
   });
 
   it('applies per-sheet settings on switch with fallback to grid settings', () => {
@@ -3178,14 +3181,35 @@ describe('SheetsBar plugin', () => {
       sheetsBar: true,
       licenseKey: 'non-commercial-and-evaluation',
     });
-    const addButton = hot.rootWrapperElement.querySelector('.ht-sheets-bar__add');
+    const labels = () => {
+      const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
 
-    expect(addButton.getAttribute('aria-label')).toBe('Add sheet');
+      return {
+        add: bar.querySelector('.ht-sheets-bar__add').getAttribute('aria-label'),
+        all: bar.querySelector('.ht-sheets-bar__all').getAttribute('aria-label'),
+        pagePrev: bar.querySelector('.ht-sheets-bar__page-prev').getAttribute('aria-label'),
+        pageNext: bar.querySelector('.ht-sheets-bar__page-next').getAttribute('aria-label'),
+        section: bar.querySelector('.ht-sheets-bar__tabs').getAttribute('aria-label'),
+      };
+    };
+    const labelsIn = dictionary => ({
+      add: dictionary[C.SHEETS_BAR_ADD_SHEET],
+      all: dictionary[C.SHEETS_BAR_ALL_SHEETS],
+      pagePrev: dictionary[C.SHEETS_BAR_PAGE_PREV],
+      pageNext: dictionary[C.SHEETS_BAR_PAGE_NEXT],
+      section: dictionary[C.SHEETS_BAR_SECTION],
+    });
+
+    expect(labels()).toEqual(labelsIn(enUS));
+    expect(labels().add).toBe('Add sheet');
 
     hot.updateSettings({ language: 'pl-PL' });
 
-    expect(hot.rootWrapperElement.querySelector('.ht-sheets-bar__add').getAttribute('aria-label'))
-      .toBe('Dodaj arkusz');
+    expect(labels()).toEqual(labelsIn(plPL));
+    expect(labels().add).toBe('Dodaj arkusz');
+    Object.keys(labels()).forEach((key) => {
+      expect(labelsIn(plPL)[key]).not.toBe(labelsIn(enUS)[key]);
+    });
   });
 
   it('does not carry a runtime freeze onto a sheet that was never visited', () => {
@@ -4973,13 +4997,18 @@ describe('SheetsBar plugin', () => {
     });
 
     const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
-    const iconButtons = ['add', 'all', 'page-prev', 'page-next'];
+    const iconButtons = {
+      add: enUS[C.SHEETS_BAR_ADD_SHEET],
+      all: enUS[C.SHEETS_BAR_ALL_SHEETS],
+      'page-prev': enUS[C.SHEETS_BAR_PAGE_PREV],
+      'page-next': enUS[C.SHEETS_BAR_PAGE_NEXT],
+    };
 
-    iconButtons.forEach((name) => {
+    Object.entries(iconButtons).forEach(([name, label]) => {
       const button = bar.querySelector(`.ht-sheets-bar__${name}`);
 
       expect(button.textContent).toBe('');
-      expect(button.getAttribute('aria-label')).not.toBe('');
+      expect(button.getAttribute('aria-label')).toBe(label);
     });
   });
 
@@ -5011,6 +5040,72 @@ describe('SheetsBar plugin', () => {
     expect(allButton.getAttribute('aria-expanded')).toBe('true');
 
     hot.getPlugin('sheetsBar').disablePlugin();
+  });
+
+  it('sets `aria-expanded` back to `false` on the anchor when its menu closes', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }] },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const openSpy = jest.spyOn(Menu.prototype, 'open');
+    const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
+    const allButton = bar.querySelector('.ht-sheets-bar__all');
+    const tab = bar.querySelector('.ht-sheets-bar__tab[aria-haspopup]');
+
+    allButton.click();
+
+    expect(allButton.getAttribute('aria-expanded')).toBe('true');
+
+    openSpy.mock.instances.at(-1).close();
+
+    expect(allButton.getAttribute('aria-expanded')).toBe('false');
+
+    tab.querySelector('.ht-sheets-bar__tab-chevron').click();
+
+    expect(tab.getAttribute('aria-expanded')).toBe('true');
+
+    openSpy.mock.instances.at(-1).close();
+
+    expect(tab.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('swaps the theme class of a bar in a uiContainer on a runtime theme change and keeps an open rename', () => {
+    const uiHost = document.createElement('div');
+
+    document.body.appendChild(uiHost);
+    hot = new Handsontable(container, {
+      themeName: 'ht-theme-main',
+      sheetsBar: {
+        sheets: [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }],
+        uiContainer: uiHost,
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const bar = uiHost.querySelector('.ht-sheets-bar');
+
+    expect(bar.classList.contains('ht-theme-main')).toBe(true);
+
+    bar.querySelector('.ht-sheets-bar__tab-label')
+      .dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+
+    const input = bar.querySelector('.ht-sheets-bar__tab-rename');
+
+    input.focus();
+    input.value = 'Alpha renamed';
+    hot.useTheme('ht-theme-horizon');
+
+    expect(bar.classList.contains('ht-theme-horizon')).toBe(true);
+    expect(bar.classList.contains('ht-theme-main')).toBe(false);
+    expect(bar.querySelector('.ht-sheets-bar__tab-rename')).toBe(input);
+    expect(input.value).toBe('Alpha renamed');
+    expect(hot.rootDocument.activeElement).toBe(input);
+
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+
+    expect(hot.getPlugin('sheetsBar').getSheets()[0].name).toBe('Alpha renamed');
+    uiHost.remove();
   });
 
   it('labels the rename input and restores focus to the tab on Enter and Escape', () => {

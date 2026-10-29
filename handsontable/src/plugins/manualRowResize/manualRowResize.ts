@@ -6,6 +6,8 @@ import { ROW_RESIZE_AXIS } from '../../utils/manualResize/axis';
 import { ResizeGesture } from '../../utils/manualResize/resizeGesture';
 import {
   ROW_SIZE_OPTIONS,
+  isStorableSize,
+  pickStorableSizes,
   redeclaresManualSizes,
 } from '../../utils/manualResize/utils';
 
@@ -219,6 +221,9 @@ export class ManualRowResize extends BasePlugin {
    * This method updates the plugin's internal height map. Call `render()` after `setManualSize()` to repaint the grid.
    * Values lower than the theme's default row height are saved as the default row height.
    *
+   * Nothing is stored while the plugin is disabled, for a row that does not exist, or for a height that
+   * is not a finite number.
+   *
    * @example
    * ```js
    * const resizePlugin = hot.getPlugin('manualRowResize');
@@ -229,24 +234,27 @@ export class ManualRowResize extends BasePlugin {
    *
    * @param {number} row Visual row index.
    * @param {number} height Row height (no less than the theme's default row height).
-   * @returns {number} Returns new height.
+   * @returns {number} The height after the minimum is applied, also when nothing was stored.
    */
   setManualSize(row: number, height: number): number {
     return this.runOperation('resize_row', () => this.#setManualSize(row, height));
   }
 
   /**
-   * The body of `setManualSize()`, run inside its operation.
+   * The body of `setManualSize()`, run inside its operation. The map exists only while the plugin is
+   * enabled, and an out-of-range visual index resolves to `null`, so both store nothing. The height is
+   * clamped first, which converts a numeric string and `null` the way released versions did, and a
+   * result that is not finite stores nothing.
    *
    * @param {number} row Visual row index.
    * @param {number} height Row height.
-   * @returns {number} Returns new height.
+   * @returns {number} The clamped height: the height stored, or the height it would store.
    */
   #setManualSize(row: number, height: number): number {
     const physicalRow = this.hot.toPhysicalRow(row);
     const newHeight = this.#clampSize(height);
 
-    if (physicalRow !== null) {
+    if (this.enabled && physicalRow !== null && isStorableSize(newHeight)) {
       this.#rowHeightsMap.setValueAtIndex(physicalRow, newHeight);
     }
 
@@ -309,8 +317,9 @@ export class ManualRowResize extends BasePlugin {
    * Writes a set of manual heights at once, addressed by physical row index — the counterpart
    * of {@link ManualRowResize#getManualSizes}, so a stored set round-trips onto the same
    * records regardless of trimming or row order. Values lower than the theme's default row
-   * height are saved as that height, and an index outside the current row count is skipped.
-   * Call `render()` afterwards to repaint the grid.
+   * height are saved as that height. A pair whose index is not an integer within the current row
+   * count, or whose height is not a finite number, is skipped. Unlike `setManualSize()`, a numeric
+   * string or `null` height is skipped, not converted. Call `render()` afterwards to repaint the grid.
    *
    * @param {Array<Array<number>>} sizes The `[physicalRow, height]` pairs to write.
    */
@@ -328,14 +337,12 @@ export class ManualRowResize extends BasePlugin {
       return;
     }
 
-    const rowCount = this.hot.rowIndexMapper.getNumberOfIndexes();
+    const storable = pickStorableSizes(sizes, this.hot.rowIndexMapper.getNumberOfIndexes());
     const minHeight = this.hot.stylesHandler.getDefaultRowHeight() || 0;
 
     this.hot.batchExecution(() => {
-      sizes.forEach(([physicalRow, height]) => {
-        if (physicalRow >= 0 && physicalRow < rowCount) {
-          this.#rowHeightsMap.setValueAtIndex(physicalRow, Math.max(height, minHeight));
-        }
+      storable.forEach(([physicalRow, height]) => {
+        this.#rowHeightsMap.setValueAtIndex(physicalRow, Math.max(height, minHeight));
       });
     }, true);
   }
