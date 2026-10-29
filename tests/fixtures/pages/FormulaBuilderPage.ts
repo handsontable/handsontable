@@ -13,6 +13,7 @@ export type FormulaBuilderVariant =
   | 'rtl'
   | 'frozen'
   | 'hidden-row'
+  | 'filtered'
   | 'pagination'
   | 'read-only'
   | 'split-scroll'

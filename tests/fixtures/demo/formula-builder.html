@@ -37,6 +37,7 @@
       rtl: 'rtl',
       frozen: 'frozen',
       'hidden-row': 'hidden-row',
+      filtered: 'filtered',
       pagination: 'pagination',
       'read-only': 'read-only',
       'split-scroll': 'split-scroll',
@@ -125,6 +126,8 @@
       rtl: { settings: { layoutDirection: 'rtl' } },
       frozen: { settings: { fixedRowsTop: 1, fixedColumnsStart: 1 } },
       'hidden-row': { settings: { hiddenRows: { rows: [1] } } },
+      // Physical row 0 is trimmed: the visual row of a cell is one less than its HyperFormula row.
+      filtered: { settings: { trimRows: [0] } },
       // Pages of three rows: the rows of the other pages are hidden through a hiding map.
       pagination: { settings: { pagination: { pageSize: 3 } } },
       'read-only': { settings: { cell: [{ row: 0, col: 2, readOnly: true }] } },

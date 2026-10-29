@@ -255,6 +255,31 @@ test.describe('formulaBuilder picking on a sorted grid', { tag: [THEMES_TAG, BUN
   });
 });
 
+// A pick on a grid that trims a row: the visual row of a cell and its HyperFormula row differ, and
+// the plugin must translate both ways. A sort keeps them equal, so only a trimming map shows it.
+test.describe('formulaBuilder picking on a grid with a trimmed row', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
+  test('a click inserts the reference of the clicked data, highlights the clicked cell, and commits its value', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle, 'filtered');
+
+    await grid.goto();
+    // Visual row 0 is physical row 1, which HyperFormula calls row 2 (A2).
+    await grid.expectCell(0, 0, '3');
+
+    await grid.selectCellByApi(2, 0);
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+
+    await grid.cell(0, 1).click();
+    await expect(grid.editorInput).toHaveValue('=B2');
+    await expect(grid.cell(0, 1)).toHaveClass(/ht-formula-ref-/);
+    await expect(grid.cell(1, 1)).not.toHaveClass(/ht-formula-ref-/);
+
+    await page.keyboard.press('Enter');
+    await expect.poll(() => grid.dataAt(2, 0)).toBe(4);
+    expect(await grid.sourceAt(2, 0)).toBe('=B2');
+  });
+});
+
 // A pick claims the press from the grid's own handlers, but not from the document: a menu that
 // closes on an outside press has to close on a pick too. The legs are the spec's own (one set per
 // spec): themes size the menu and the cells it may cover, and engines dispatch the press to the document.
