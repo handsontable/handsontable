@@ -247,8 +247,9 @@ export interface FormulaBuilderPluginLike {
    *
    * @param {number} row The visual row index.
    * @param {number} col The visual column index.
+   * @returns {boolean} `false` when the grid did not select the cell.
    */
-  selectFormulaCell(row: number, col: number): void;
+  selectFormulaCell(row: number, col: number): boolean;
   /**
    * Selects a cell range in visual coordinates.
    *
@@ -256,8 +257,9 @@ export interface FormulaBuilderPluginLike {
    * @param {number} startCol The visual start column index.
    * @param {number} endRow The visual end row index.
    * @param {number} endCol The visual end column index.
+   * @returns {boolean} `false` when the grid did not select the range.
    */
-  selectFormulaCells(startRow: number, startCol: number, endRow: number, endCol: number): void;
+  selectFormulaCells(startRow: number, startCol: number, endRow: number, endCol: number): boolean;
 }
 
 /**
@@ -981,8 +983,9 @@ export class HandsontableAdapter {
    * Moves the grid selection to a single cell.
    *
    * @param {CellAddress} address The target address in HyperFormula coordinates.
-   * @returns {boolean | void} `false` when the grid shows no row or column to move to, which the
-   * address box announces as unavailable.
+   * @returns {boolean | void} `false` when the grid shows no row or column to move to, hides it
+   * (HiddenRows, HiddenColumns, another Pagination page), caps it away (`maxRows`), or does not select
+   * it, which the address box announces as unavailable.
    */
   setActiveCell(address: CellAddress): boolean | void {
     // A trimmed row (Filters, TrimRows) has no visual index. The address box already accepted the
@@ -991,11 +994,11 @@ export class HandsontableAdapter {
     const visualRow = this.#nearestVisual(address.row, 'row');
     const visualCol = this.#nearestVisual(address.col, 'col');
 
-    if (visualRow < 0 || visualCol < 0) {
+    if (!this.#isShownIndex(visualRow, 'row') || !this.#isShownIndex(visualCol, 'col')) {
       return false;
     }
 
-    this.#plugin.selectFormulaCell(visualRow, visualCol);
+    return this.#plugin.selectFormulaCell(visualRow, visualCol);
   }
 
   /**
@@ -1015,11 +1018,15 @@ export class HandsontableAdapter {
     const endRow = this.#firstVisualIn(range.end.row, range.start.row, rowToVisual);
     const endCol = this.#firstVisualIn(range.end.col, range.start.col, colToVisual);
 
-    if (startRow < 0 || startCol < 0 || endRow < 0 || endCol < 0) {
+    const corners: Array<[number, 'row' | 'col']> = [
+      [startRow, 'row'], [endRow, 'row'], [startCol, 'col'], [endCol, 'col'],
+    ];
+
+    if (!corners.every(([index, axis]) => this.#isShownIndex(index, axis))) {
       return false;
     }
 
-    this.#plugin.selectFormulaCells(startRow, startCol, endRow, endCol);
+    return this.#plugin.selectFormulaCells(startRow, startCol, endRow, endCol);
   }
 
   /**
@@ -1166,6 +1173,28 @@ export class HandsontableAdapter {
     }
 
     return { ...cell, row, col };
+  }
+
+  /**
+   * Tells whether a visual index is one the grid draws and can select: it exists (`maxRows` and
+   * `maxCols` cap the count), and no HiddenRows, HiddenColumns, or Pagination hiding map hides it.
+   *
+   * @param {number} visualIndex The visual index, `-1` for none.
+   * @param {'row' | 'col'} axis The axis.
+   * @returns {boolean}
+   */
+  #isShownIndex(visualIndex: number, axis: 'row' | 'col'): boolean {
+    if (visualIndex < 0) {
+      return false;
+    }
+
+    if (axis === 'row') {
+      return visualIndex < this.#hot.countRows() &&
+        !this.#hot.rowIndexMapper.isHidden(this.#hot.toPhysicalRow(visualIndex));
+    }
+
+    return visualIndex < this.#hot.countCols() &&
+      !this.#hot.columnIndexMapper.isHidden(this.#hot.toPhysicalColumn(visualIndex));
   }
 
   /**

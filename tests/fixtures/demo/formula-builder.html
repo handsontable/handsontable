@@ -37,6 +37,7 @@
       rtl: 'rtl',
       frozen: 'frozen',
       'hidden-row': 'hidden-row',
+      pagination: 'pagination',
       'read-only': 'read-only',
       'split-scroll': 'split-scroll',
       shadow: 'shadow',
@@ -121,6 +122,8 @@
       rtl: { settings: { layoutDirection: 'rtl' } },
       frozen: { settings: { fixedRowsTop: 1, fixedColumnsStart: 1 } },
       'hidden-row': { settings: { hiddenRows: { rows: [1] } } },
+      // Pages of three rows: the rows of the other pages are hidden through a hiding map.
+      pagination: { settings: { pagination: { pageSize: 3 } } },
       'read-only': { settings: { cell: [{ row: 0, col: 2, readOnly: true }] } },
       // A pixel width and no height: the window scrolls the rows, the grid's holder the columns.
       'split-scroll': { settings: { width: 300, colWidths: 200 } },

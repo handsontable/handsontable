@@ -305,7 +305,7 @@ describe('FormulaBuilder adapter end of the formula bar contract', () => {
   });
 
   it('adapter.setActiveCell and adapter.setSelection reach the grid in visual coordinates', () => {
-    const stub = makePluginHotStub();
+    const stub = makePluginHotStub({}, { countRows: () => 5, countCols: () => 5 });
     const plugin = enabledPlugin(stub);
 
     adapterOf(plugin).setActiveCell({ sheet: '', row: 2, col: 3 });

@@ -734,4 +734,39 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(beforeKeyDown).not.toHaveBeenCalled();
     });
   });
+
+  describe('an address the grid does not show or cannot select', () => {
+    it('is refused when its row is hidden, and the selection stays', () => {
+      createGrid({ hiddenRows: { rows: [2] } });
+      hot.selectCell(0, 0);
+
+      expect(adapter().setActiveCell({ sheet: '', row: 2, col: 0 })).toBe(false);
+      expect(hot.getSelectedLast()).toEqual([0, 0, 0, 0]);
+    });
+
+    it('is refused when it sits at or past maxRows, and the selection stays', () => {
+      createGrid({ maxRows: 3 });
+      hot.selectCell(0, 0);
+
+      expect(adapter().setActiveCell({ sheet: '', row: 4, col: 0 })).toBe(false);
+      expect(hot.getSelectedLast()).toEqual([0, 0, 0, 0]);
+    });
+
+    it('is refused as a range the grid collapses under selectionMode single', () => {
+      createGrid({ selectionMode: 'single' });
+      hot.selectCell(4, 4);
+
+      const range = { start: { sheet: '', row: 0, col: 0 }, end: { sheet: '', row: 1, col: 1 } };
+
+      expect(adapter().setSelection(range)).toBe(false);
+    });
+
+    it('is selected when the grid shows it', () => {
+      createGrid({ hiddenRows: { rows: [2] } });
+      hot.selectCell(0, 0);
+
+      expect(adapter().setActiveCell({ sheet: '', row: 1, col: 1 })).not.toBe(false);
+      expect(hot.getSelectedLast()).toEqual([1, 1, 1, 1]);
+    });
+  });
 });

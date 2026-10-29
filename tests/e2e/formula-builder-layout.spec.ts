@@ -74,6 +74,34 @@ test.describe('formulaBuilder with a hidden row', { tag: [THEMES_TAG, BUNDLES_TA
   });
 });
 
+test.describe('formulaBuilder with pagination', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  test('an address on another page is refused, and a later bar commit still writes the selected cell', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle, 'pagination');
+
+    await grid.goto();
+    await grid.selectCellByApi(0, 0);
+    await expect(grid.addressInput).toHaveValue('A1');
+
+    await grid.addressInput.click();
+    await grid.addressInput.fill('A5');
+    await page.keyboard.press('Enter');
+
+    await expect(page.locator('.hfe-live-region')).toContainText('Cannot select A5');
+    await expect(grid.addressInput).toHaveValue('A1');
+    expect(await grid.selectedLast()).toEqual([0, 0, 0, 0]);
+    expect(await page.evaluate(() => (window as unknown as { hot: { getPlugin(n: string): { getPaginationData(): { currentPage: number } } } })
+      .hot.getPlugin('pagination').getPaginationData().currentPage)).toBe(1);
+
+    await grid.barFormulaArea.click();
+    await page.keyboard.press('ControlOrMeta+A');
+    await page.keyboard.type('=999');
+    await page.keyboard.press('Enter');
+
+    expect(await grid.sourceAt(0, 0)).toBe('=999');
+    expect(await grid.sourceAt(4, 0)).toBe('');
+  });
+});
+
 test.describe('formulaBuilder with frozen panes', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
   let grid: FormulaBuilderPage;
 

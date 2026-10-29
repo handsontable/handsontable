@@ -832,9 +832,10 @@ export class FormulaBuilder extends BasePlugin {
    * @private
    * @param {number} row The visual row index.
    * @param {number} col The visual column index.
+   * @returns {boolean} `false` when the grid did not select the cell.
    */
-  selectFormulaCell(row: number, col: number): void {
-    this.hot.selectCell(row, col);
+  selectFormulaCell(row: number, col: number): boolean {
+    return this.hot.selectCell(row, col) && this.#selectionCovers(row, col, row, col);
   }
 
   /**
@@ -845,9 +846,36 @@ export class FormulaBuilder extends BasePlugin {
    * @param {number} startCol The visual start column index.
    * @param {number} endRow The visual end row index.
    * @param {number} endCol The visual end column index.
+   * @returns {boolean} `false` when the grid did not select the range.
    */
-  selectFormulaCells(startRow: number, startCol: number, endRow: number, endCol: number): void {
-    this.hot.selectCells([[startRow, startCol, endRow, endCol]]);
+  selectFormulaCells(startRow: number, startCol: number, endRow: number, endCol: number): boolean {
+    return this.hot.selectCells([[startRow, startCol, endRow, endCol]]) &&
+      this.#selectionCovers(startRow, startCol, endRow, endCol);
+  }
+
+  /**
+   * Tells whether the grid's last selection holds the whole requested range. A merged cell widens
+   * the selection, so it holds more; `selectionMode: 'single'` collapses a range, so it holds less.
+   *
+   * @param {number} startRow The visual start row index.
+   * @param {number} startCol The visual start column index.
+   * @param {number} endRow The visual end row index.
+   * @param {number} endCol The visual end column index.
+   * @returns {boolean}
+   */
+  #selectionCovers(startRow: number, startCol: number, endRow: number, endCol: number): boolean {
+    const selected = this.hot.getSelectedLast();
+
+    if (!selected) {
+      return false;
+    }
+
+    const [row1, col1, row2, col2] = selected;
+
+    return Math.min(row1, row2) <= Math.min(startRow, endRow) &&
+      Math.max(row1, row2) >= Math.max(startRow, endRow) &&
+      Math.min(col1, col2) <= Math.min(startCol, endCol) &&
+      Math.max(col1, col2) >= Math.max(startCol, endCol);
   }
 
   /**

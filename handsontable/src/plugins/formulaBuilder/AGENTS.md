@@ -212,6 +212,12 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
 - **The adapter answers `false` for an address it cannot select.** `setActiveCell()` and `setSelection()`
   return `false` when the grid shows no row or column to move to; the package reads that as
   "unavailable" and announces it, while `undefined` left the address in the box with nothing selected.
+  That covers four more cases besides a missing index: a row or column a hiding map hides (HiddenRows,
+  HiddenColumns, and Pagination, which hides the rows of the other pages), an index at or past
+  `maxRows`/`maxCols`, a grid that selected something else (`selectionMode: 'single'` collapses a range),
+  and a select the grid refused. `selectFormulaCell(s)` returns `boolean` for that last two: the grid's
+  last selection must hold the requested range (a merged cell may widen it). A trimmed index is the
+  exception and is not refused: it still moves to the nearest shown index.
 - **The reference border width is cached on the adapter, which outlives a theme rebuild.** `afterSetTheme`
   calls `resetBorderWidth()` before the theme class check (a stylesheet swapped in place keeps the class).
 - **Every engine read goes through `#readableSheetId()`.** An application on a shared engine can remove
