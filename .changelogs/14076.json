@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed `customBorders` storing borders on the wrong records when one `updateSettings()` call also changed `trimRows` or `manualRowMove`. The borders are now applied after all plugins have updated.",
+  "title": "Fixed `customBorders` storing borders on the wrong records or columns when one `updateSettings()` call also changed the trimmed rows or the row or column order. The plugin now enables after the plugins that reorder rows and columns.",
   "type": "fixed",
   "issueOrPR": 14076,
   "breaking": false,

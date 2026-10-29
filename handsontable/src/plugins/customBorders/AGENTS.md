@@ -206,41 +206,6 @@ Three more entry points, all from review round 12:
 - Pinned by `__tests__/indexChangeTiming.unit.js`. The trim plugin does not render after
 its hooks, so the trim path schedules a render; `filter()` renders right after `afterFilter`.
 
-## A border config in the same call as `trimRows` or `manualRowMove` is applied last
-
-`updatePlugin()` runs at priority 90, before `TrimRows#updatePlugin()` (330) and
-`ManualRowMove#updatePlugin()` (140) rewrite their index maps, and `changeBorderSettings()` -> `setCellMeta()`
-converts the configured visual rows to physical ones through whichever maps are active. Applied early, the
-border was drawn on the right row but its `borders` meta sat on the record the old maps put there, and the next
-rebuild from meta (`trimRow`, untrim, a filter, `loadData`) moved it. So when the payload carries `trimRows` or
-`manualRowMove` (`LATER_ROW_INDEX_SETTINGS`), `updatePlugin()` records the payload in `#configApplyPayload` and
-`#onLastAfterUpdateSettings` applies the config after every other plugin has updated (DEV-3640). A new setting
-that a plugin after priority 90 applies by rewriting a row index map belongs in that list.
-
-- **The listener is registered on the instance in the constructor, with `orderIndex: Number.MAX_SAFE_INTEGER`**,
-  never from `enablePlugin()` or `updatePlugin()`. The hook loop stops at the entry that was last when the hook
-  began, so a listener added mid-pass would not run in it, and the disable/enable cycle in `updatePlugin()` does
-  exactly that. It is removed in `destroy()` (guarded by `this.hot`), which `clearHooks()` does not do for it.
-- **It is matched by payload identity, not by a flag.** A listener that throws before the last one aborts the
-  pass; a flag would then fire in an unrelated later call and wipe the `borders` meta set in between. A nested
-  `updateSettings()` made by a listener carries another payload, so it neither consumes nor loses the outer
-  call's work.
-- **Because it is the tail, a listener another plugin registers at `orderIndex` 0 mid-pass now runs in that
-  pass.** Before, the boundary skipped it, except on a grid whose last listener was Formulas' order-1 one. That is
-  the behavior those listeners were written for, but a change to the shared hook list belongs to nobody here: do
-  not register a second listener above this one.
-- **User `afterUpdateSettings` listeners at the default order see the borders from before the call** when
-  `customBorders` and one of those settings share a payload, and `afterCustomBordersUpdate` fires after them. Only those
-  combinations moved; every other call applies in `updatePlugin()` as before.
-- **Not covered:** a progressive replace (its batches already run after the trim, and `#carriedBorders` is gone
-  by then) and the data-deferred path (`onDataReady()` runs after the trim). A call inside `hot.batch()` or
-  between `suspendOperations()` and `resumeOperations()` needs no special case: the trim is written before the
-  last listener runs, and the visual-to-physical translation already reads it. `columnSorting` (50) runs before
-  this plugin. `multiColumnSorting` (170) and `nestedRows` (300) rewrite their maps after it and were not fixed:
-  a sort config in the same call as a border config has not been shown to misplace borders, and `nestedRows` has
-  no settings that change the collapse state in an update.
-- Pinned by `__tests__/configWithTrimRows.unit.js`, including a control without `trimRows` in the call.
-
 **The rebuild is deferred and coalesced, never run from the hook.** It walks every user-defined meta
 key, and running it from each `afterTrimRow` made a loop of 100 `trimRow()` calls at 50,000 border
 entries take 6.3 s against about 50 ms before. The hooks only set `#isModelRebuildPending` (and advance
@@ -261,6 +226,39 @@ explicit render - kills a deleted `#scheduleMetaSyncRender()`; a 100-call `trimR
 meta once; an insert right after a trim shifts once), and by the filter, untrim and sort-plus-filter
 cases in `__tests__/clearBordersTrimmedRows.unit.js`. That file's only trim case ends with `untrimAll()`,
 so it pins `afterUntrimRow`, not `afterTrimRow`.
+
+## The priority is 335: enable after every plugin that rewrites an index map
+
+`updatePlugin()` runs from the plugin's own `afterUpdateSettings` listener, in `PLUGIN_PRIORITY` order, and
+`changeBorderSettings()` -> `setCellMeta()` converts the configured visual coordinates to physical ones through
+whichever row and column maps are active at that moment. At the old priority 90 it ran before `ManualColumnMove`
+(120), `ManualRowMove` (140), `MultiColumnSorting` (170), `Filters` (250), `NestedRows` (300) and `TrimRows` (330)
+rewrote their maps in the same `updateSettings()` call. The border was drawn on the right cell, but its `borders`
+meta sat on the record the previous maps put there, and the next rebuild from meta (`trimRow`, untrim, a filter,
+`loadData`) moved it. 335 is the free slot after the last such plugin and before the overlay plugins (DEV-3640).
+
+- **Do not lower it, and do not fix a new case with a hook.** A first attempt applied the config from a listener
+  registered at `Number.MAX_SAFE_INTEGER` and failed in four ways, all measured: an application listener that
+  returns a value hands the next listener that value instead of the settings payload, so a payload check dropped
+  the config; a throwing listener skipped it; a `setBorders()` call in an application `afterUpdateSettings`
+  listener was wiped by the late reset; and a last-in-list listener lets a listener added mid-pass run in that
+  pass for every plugin on the grid. A priority has none of those effects, because it changes only the order of
+  the plugin's own update.
+- **The order of the plugin's other hooks moves with it.** `enablePlugin()` registers them, so they now land after
+  the hooks of the plugins between 90 and 335 at the same `orderIndex`. Nothing depended on the old position (the
+  broad E2E run over every plugin that shares a hook with this one was clean), but a hook added here that must run
+  before another plugin's listener should say so with an explicit `orderIndex`, as `#onUpdateSettingsStart` does.
+- **A new plugin that rewrites a row or column map from `updatePlugin()` must take a priority below 335**, or sit
+  above it with the same check against this plugin. The unit test lists the plugins that must stay below.
+- **Not covered:** a plugin that rewrites a map outside `updateSettings()` (sorting, moving and trimming through
+  their own APIs) is handled by the rebuild from meta in the section above, not by the priority. And a call
+  made inside `hot.batch()` (or between `suspendOperations()` and `resumeOperations()`) that turns `trimRows` off
+  or sends `manualRowMove`: the index mapper does not rebuild its cache until the batch ends, so `setCellMeta()`
+  still reads the maps from before the call. A `trimRows` array is fine, because `TrimRows#updatePlugin()` forces
+  the flush. The same limit applies to any caller that translates coordinates inside a batch.
+- Pinned by `__tests__/configWithIndexMapUpdates.unit.js` (an init-time oracle for each plugin, the priority
+  order, and the application-listener cases) and by the registration order lists in
+  `../__tests__/builtInPlugins.unit.ts` and `../../__tests__/registry/registerAllPlugins.unit.js`.
 
 ## A progressive load is never an undo step
 
