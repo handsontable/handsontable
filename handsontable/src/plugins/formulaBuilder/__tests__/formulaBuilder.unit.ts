@@ -1335,6 +1335,50 @@ describe('FormulaBuilder.updatePlugin', () => {
     expect(bundle.plugin.enabled).toBe(true);
   });
 
+  it('rebuilds, with the new element, when the host a selector named was unmounted and re-created', () => {
+    const host = document.createElement('div');
+
+    host.id = 'popup-host';
+    document.body.appendChild(host);
+
+    const popups = () => ({ suggestions: { container: '#popup-host' } });
+    const bundle = makeEditingPlugin({ popups: popups() });
+
+    expect(bundle.spied.created[0].options.popups).toEqual(popups());
+
+    host.remove();
+
+    const replacement = document.createElement('div');
+
+    replacement.id = 'popup-host';
+    document.body.appendChild(replacement);
+    update(bundle, { popups: popups() });
+
+    expect(bundle.spied.created).toHaveLength(2);
+    expect(bundle.spied.destroyed).toContain(bundle.spied.created[0].instance);
+
+    // The new builder was docked into the replacement, so equal settings keep it from now on.
+    update(bundle, { popups: popups() });
+
+    expect(bundle.spied.created).toHaveLength(2);
+
+    replacement.remove();
+  });
+
+  it('rebuilds when a host that was connected at build time was removed', () => {
+    const host = document.createElement('div');
+
+    document.body.appendChild(host);
+
+    const bundle = makeEditingPlugin({ popups: { fnHelp: { container: host } } });
+
+    host.remove();
+    update(bundle, { popups: { fnHelp: { container: host } } });
+
+    expect(bundle.spied.created).toHaveLength(2);
+    expect(bundle.spied.created[1].options.popups).toEqual({ fnHelp: {} });
+  });
+
   it('rebuilds when the Formulas plugin hands over another engine', () => {
     const bundle = makeEditingPlugin();
     const nextEngine = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });

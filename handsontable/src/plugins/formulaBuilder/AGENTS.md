@@ -106,14 +106,17 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   `formulas`, and the React and Angular wrappers re-send every object prop with a new identity on each
   render, so a full rebuild per render discarded the bar's focus and an open edit. `#isConfigUnchanged()`
   compares the module and engine by identity, `showFormulaBar` and `direction` by value, and `popups` by
-  content (an element in `container` by identity).
+  content (an element in `container` by identity). It also checks the popup hosts the builder was docked into (`#dockedPopupHosts`): a host that
+  left the document, or a selector that now finds another element, forces a rebuild under equal settings.
 - **A theme change rebuilds the builder, not the plugin.** The builder applies its theming class once, at
   construction, and the body-mounted popup portal needs it to resolve `light-dark()` against the grid's
   scheme rather than the OS one. String themes leave `themeManager` `null`, so the class comes from
   `getCurrentThemeName()`. A theme or language change that arrives during an edit is held back
   (`#rebuildAfterEdit`) and rebuilt a task after the edit closes: a rebuild cancels the edit, and an
   application that follows `prefers-color-scheme` swaps the theme while the user types. Not inside
-  `handleInlineEditClose()` itself, which runs inside the old builder's commit handler.
+  `handleInlineEditClose()` itself, which runs inside the old builder's commit handler. A language change rebuilds
+  only when the normalized code differs from `#builtLanguageCode`: `updateSettings({ language })` fires
+  `afterLanguageChange` even for the code in use, and never for an unregistered one.
 - **Rebuilding or tearing down under an open edit cancels the edit first.** Destroying the builder while
   Handsontable's editor is EDITING leaves it over a torn-down mount, and its later close commits the stale
   original. `#cancelOpenEdit()` runs before every `destroy()` (`#destroyBuilder()`).

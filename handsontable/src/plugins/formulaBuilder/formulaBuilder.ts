@@ -392,6 +392,12 @@ export class FormulaBuilder extends BasePlugin {
    * The language code the current builder took its phrases from, or `null` before the first build.
    */
   #builtLanguageCode: string | null = null;
+
+  /**
+   * The popup host elements the current builder was docked into, with the selector each was found by
+   * (`undefined` for an element passed in the settings). A rebuild is due once one is gone or replaced.
+   */
+  #dockedPopupHosts: Array<{ element: Element; selector: string | undefined }> = [];
   /**
    * The suggestions host set through `attachSuggestionsHost()`, re-applied to every rebuilt builder.
    */
@@ -1615,7 +1621,41 @@ export class FormulaBuilder extends BasePlugin {
       this.#builtSheetId === this.#sheetId &&
       applied.showFormulaBar === current.showFormulaBar &&
       applied.direction === current.direction &&
-      isSameSettingValue(applied.popups, current.popups);
+      isSameSettingValue(applied.popups, current.popups) &&
+      this.#dockedPopupHostsStillValid();
+  }
+
+  /**
+   * Whether every popup host the builder was docked into is still in a document and, for one named by
+   * a selector, is still the element that selector finds. A framework can unmount a host and mount
+   * another one under the same selector, which equal settings do not show.
+   *
+   * @returns {boolean}
+   */
+  #dockedPopupHostsStillValid(): boolean {
+    return this.#dockedPopupHosts.every(({ element, selector }) => element.isConnected &&
+      (selector === undefined || this.#findContainerBySelector(selector) === element));
+  }
+
+  /**
+   * Records the hosts the `popups` options dock the builder into.
+   *
+   * @param {FormulaBuilderPopupsOptions | undefined} popups The resolved `popups` options.
+   */
+  #recordDockedPopupHosts(popups: FormulaBuilderPopupsOptions | undefined): void {
+    this.#dockedPopupHosts = [];
+
+    (['suggestions', 'fnHelp'] as const).forEach((popupName) => {
+      const container = popups?.[popupName]?.container;
+      const element = typeof container === 'string' ? this.#findContainerBySelector(container) : container;
+
+      if (element) {
+        this.#dockedPopupHosts.push({
+          element,
+          selector: typeof container === 'string' ? container : undefined,
+        });
+      }
+    });
   }
 
   /**
@@ -1755,6 +1795,7 @@ export class FormulaBuilder extends BasePlugin {
     const popups = this.#resolvePopupContainers(config.popups);
     const shadowRoot = this.#gridShadowRoot();
 
+    this.#recordDockedPopupHosts(popups);
     this.#currentThemeClassName = themeClassName;
     this.#builtLanguageCode = this.hot.getSettings().language ?? null;
     this.#builtSheetId = this.#sheetId;
@@ -1883,13 +1924,22 @@ export class FormulaBuilder extends BasePlugin {
       return container !== null && container.isConnected;
     }
 
+    return this.#findContainerBySelector(container) !== null;
+  }
+
+  /**
+   * Looks a popup `container` selector up the way the package does: in the grid's shadow root first, then
+   * in the document.
+   *
+   * @param {string} selector The CSS selector.
+   * @returns {Element | null} The element, or `null` for no match or an invalid selector.
+   */
+  #findContainerBySelector(selector: string): Element | null {
     try {
-      // The package looks a selector up in the grid's shadow root first, then in the document.
-      return (this.#gridShadowRoot() ?? this.hot.rootDocument).querySelector(container) !== null ||
-        this.hot.rootDocument.querySelector(container) !== null;
+      return this.#gridShadowRoot()?.querySelector(selector) ?? this.hot.rootDocument.querySelector(selector);
     } catch {
       // An invalid selector.
-      return false;
+      return null;
     }
   }
 
