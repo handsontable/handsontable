@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-29T09:17:06.398Z",
+  "generatedAt": "2026-10-29T09:28:26.073Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 424,
+    "tests": 425,
     "needsTicket": 28,
     "quarantined": 0,
-    "entries": 2183
+    "entries": 2184
   },
   "rows": [
     {
@@ -3336,6 +3336,39 @@
         "leg": "e2e-firefox",
         "status": "failed",
         "error": "Error: browserType.launch: Failed to launch the browser process.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/fixed-columns-end-review4.spec.ts|fixedColumnsEnd header cell lookup (LTR) › answers like the full walk of every overlay and costs less, with the end option at 0",
+      "tier": "playwright",
+      "file": "e2e/fixed-columns-end-review4.spec.ts",
+      "line": 122,
+      "title": "fixedColumnsEnd header cell lookup (LTR) › answers like the full walk of every overlay and costs less, with the end option at 0",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-main"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-29T09:27:29Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40846340296",
+        "branch": "develop",
+        "leg": "e2e-main",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThan(expected)",
         "source": "ci"
       },
       "needsTicket": false
