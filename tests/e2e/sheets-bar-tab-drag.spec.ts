@@ -140,14 +140,7 @@ test.describe('sheets bar tab drag', { tag: [THEMES_TAG, CROSS_BROWSER_TAG] }, (
       });
     });
 
-    const second = (await bar.tab(1).boundingBox())!;
-    const third = (await bar.tab(2).boundingBox())!;
-    const y = second.y + (second.height / 2);
-
-    await page.mouse.move(second.x + (second.width / 2), y);
-    await page.mouse.down();
-    await page.mouse.move(second.x + (second.width / 2) + 10, y);
-    await page.mouse.move(third.x + (third.width / 2) + 5, y);
+    await bar.dragTabPast('Beta', 'Gamma');
 
     await expect(page.locator('.ht-sheets-bar')).toHaveClass(/ht-sheets-bar-dragging/);
 

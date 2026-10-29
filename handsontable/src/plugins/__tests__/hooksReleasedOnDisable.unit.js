@@ -81,13 +81,21 @@ describe('Plugin hooks released on disable', () => {
     }, 0);
   }
 
+  /**
+   * Opens both sheets bar menus, which register their own hooks when they are first built.
+   */
+  function openSheetsBarMenus() {
+    hot.rootWrapperElement.querySelector('.ht-sheets-bar__all').click();
+    hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab-chevron').click();
+  }
+
   it.each([
-    ['formulas', { formulas: { engine: HyperFormula } }, {}],
-    ['comments', { comments: true }, {}],
-    ['loading', { loading: true }, { dialog: true }],
-    ['dialog', { dialog: true }, {}],
-    ['sheetsBar', { sheetsBar: true }, {}],
-  ])('releases every hook the %s plugin registered on disable', (pluginKey, settings, initialSettings) => {
+    ['formulas', { formulas: { engine: HyperFormula } }, {}, () => {}],
+    ['comments', { comments: true }, {}, () => {}],
+    ['loading', { loading: true }, { dialog: true }, () => {}],
+    ['dialog', { dialog: true }, {}, () => {}],
+    ['sheetsBar', { sheetsBar: true }, {}, openSheetsBarMenus],
+  ])('releases every hook the %s plugin registered on disable', (pluginKey, settings, initialSettings, use) => {
     hot = new Handsontable(container, {
       ...initialSettings,
       data: [['1', '2']],
@@ -102,6 +110,7 @@ describe('Plugin hooks released on disable', () => {
 
     expect(enabled).toBeGreaterThan(before);
 
+    use();
     hot.updateSettings({ [pluginKey]: false });
 
     expect(totalHookCount()).toBe(before);
