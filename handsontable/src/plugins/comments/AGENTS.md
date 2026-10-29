@@ -234,6 +234,12 @@ The shortcut context is a third case: `ShortcutManager` can create a context but
 `contextMenuItem/` holds `addEditComment`, `readOnlyComment` and `removeComment`, wired through
 `afterContextMenuDefaultOptions`. A new item goes there, not inline in `comments.ts`.
 
+`show()` and `showAtCell()` open the editor on a cell with no comment, empty, and that is a contract: `addEditComment`
+(Add comment) and the Ctrl+Alt+M shortcut call `show()` on such cells to author a comment, and applications call
+`showAtCell()` for the same reason. Do not gate either on an existing comment; it is a breaking change, and the hover path
+already only reaches commented cells. The `showAtCell()` form is pinned by `tests/e2e/comments-show-at-cell.spec.ts`; the
+Add comment path by `comments.spec.js`.
+
 `readOnlyComment`'s mark and click must agree on which cells count (DEV-124). Both go through
 `getCommentReadOnlyState()`, which leaves out a hidden cell under a merged block and a cell with no
 comment `value`. The mark can be `'mixed'`, so the click sets **one** state for every comment in the

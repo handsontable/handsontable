@@ -713,7 +713,10 @@ export class Comments extends BasePlugin {
   /**
    * Shows the comment editor accordingly to the previously set range (see {@link Comments#setRange}).
    *
-   * @returns {boolean} Returns `true` if comment editor was shown.
+   * The editor opens even if the cell has no comment. In that case, it is empty, so you can add a comment.
+   * To check first, use {@link Comments#getCommentAtCell}.
+   *
+   * @returns {boolean} Returns `true` if comment editor was shown. Returns `false` if the cell is outside the grid.
    */
   show(): boolean {
     if (!this.range.from) {
@@ -741,9 +744,12 @@ export class Comments extends BasePlugin {
   /**
    * Shows comment editor according to cell coordinates.
    *
+   * The editor opens even if the cell has no comment. In that case, it is empty, so you can add a comment.
+   * To check first, use {@link Comments#getCommentAtCell}.
+   *
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
-   * @returns {boolean} Returns `true` if comment editor was shown.
+   * @returns {boolean} Returns `true` if comment editor was shown. Returns `false` if the cell is outside the grid.
    */
   showAtCell(row: number, column: number): boolean {
     this.setRange({

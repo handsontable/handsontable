@@ -13,12 +13,26 @@ import { awaitBundle } from '../bundle';
 const GRAB_INSET = 4;
 
 /**
+ * The part of the Comments plugin the plugin-API helpers below call through the fixture's `hot`.
+ */
+type CommentsFixtureWindow = Window & {
+  hot: {
+    getPlugin: (name: 'comments') => {
+      showAtCell: (row: number, col: number) => boolean,
+      hide: () => void,
+      getCommentAtCell: (row: number, col: number) => string | undefined,
+    },
+  },
+};
+
+/**
  * Page Object for the comment editor resize fixture (DEV-2871).
  *
  * The editor is a portal element on the document, not a descendant of the grid, so its locators
- * are rooted at the page. Everything here drives a REAL pointer: the plugin decides what to show
+ * are rooted at the page. The pointer helpers drive a REAL pointer: the plugin decides what to show
  * and hide from "mouseover"/"mousedown" targets, so a dispatched event or a `locator.click()` on
- * the wrong element tests nothing.
+ * the wrong element tests nothing. The plugin-API helpers (`showAtCell()`, `hideEditor()`,
+ * `storedComment()`) serve specs that exercise the API itself, on the same fixture.
  */
 export class CommentsEditorResizePage {
   readonly page: Page;
@@ -251,6 +265,38 @@ export class CommentsEditorResizePage {
     const box = await this.textarea.boundingBox();
 
     return box ? box.width : 0;
+  }
+
+  /**
+   * Calls `Comments#showAtCell()` through the plugin API, as an application would.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @returns {Promise<boolean>} What the method returned.
+   */
+  async showAtCell(row: number, col: number): Promise<boolean> {
+    return this.page.evaluate(([r, c]) => (window as unknown as CommentsFixtureWindow)
+      .hot.getPlugin('comments').showAtCell(r, c), [row, col]);
+  }
+
+  /**
+   * Calls `Comments#hide()` through the plugin API.
+   */
+  async hideEditor(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as CommentsFixtureWindow)
+      .hot.getPlugin('comments').hide());
+  }
+
+  /**
+   * The comment text stored for a cell, or undefined when the cell has no comment.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @returns {Promise<string | undefined>}
+   */
+  async storedComment(row: number, col: number): Promise<string | undefined> {
+    return this.page.evaluate(([r, c]) => (window as unknown as CommentsFixtureWindow)
+      .hot.getPlugin('comments').getCommentAtCell(r, c), [row, col]);
   }
 
   /**
