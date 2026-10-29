@@ -417,15 +417,20 @@ export class FormulaBuilderPage {
   }
 
   /**
-   * The source value of a cell (the formula text of a formula cell).
+   * The source value of a cell (the formula text of a formula cell). The row is a visual index:
+   * `getSourceDataAtCell()` takes a physical one, so it is translated first (under a sort or a
+   * trimmed row the two differ).
    *
    * @param {number} row The visual row index.
    * @param {number} col The visual column index.
    * @returns {Promise<unknown>}
    */
   async sourceAt(row: number, col: number): Promise<unknown> {
-    return this.page.evaluate(
-      ([r, c]) => (window as unknown as FixtureWindow).hot.getSourceDataAtCell(r, c), [row, col]);
+    return this.page.evaluate(([r, c]) => {
+      const { hot } = window as unknown as FixtureWindow;
+
+      return hot.getSourceDataAtCell(hot.toPhysicalRow(r) as number, c);
+    }, [row, col]);
   }
 
   /**
