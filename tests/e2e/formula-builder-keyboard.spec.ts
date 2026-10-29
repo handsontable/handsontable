@@ -193,6 +193,7 @@ test.describe('formulaBuilder keyboard flow', { tag: [THEMES_TAG, BUNDLES_TAG, C
     await grid.selectCellByApi(1, 0);
     await page.keyboard.press('Enter');
     await expect(grid.inlineEditor).toBeVisible();
+    await expect(grid.inlineEditor).toHaveClass(/hfe-editor--focused/);
     expect(await grid.inlineEditor.evaluate(el => getComputedStyle(el).outlineStyle)).toBe('none');
   });
 
