@@ -379,6 +379,11 @@ The `hyperformula-ui` side of each is listed for the package maintainers (the re
   the error popup and the live region are not scanned.
 - The `formula` alias is registered by the first grid built with the plugin registered, so with the full
   bundle every page that builds a grid has it (the constructor trap above explains why).
+- `imeFastEdit: true` has no effect on a formula cell: the selected cell keeps the focus, so an IME
+  composition cannot start there. Core's focus manager moves the focus to `activeEditor.TEXTAREA`, which the
+  editor shim does not have, and giving it a hidden one would not help: the composition would start in that
+  element and could not move into the package's input when the editor opens. It needs a `hyperformula-ui`
+  input that is mounted and focusable before the edit opens.
 - The horizon theme's accent focus ring measures below 3:1; it is the theme token every grid surface uses.
 - `hyperformula-ui` is MIT-licensed since 0.3.6 (0.3.5 and earlier were `GPL-3.0-only`). It is pinned to an
   exact version because the 0.x line may break in a minor.
