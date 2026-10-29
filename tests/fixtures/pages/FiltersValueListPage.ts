@@ -33,6 +33,9 @@ export class FiltersValueListPage {
   readonly conditionsMenu: Locator;
   readonly okButton: Locator;
   readonly cancelButton: Locator;
+  readonly valueActionLinks: Locator;
+  readonly selectAllLink: Locator;
+  readonly clearAllLink: Locator;
 
   /**
    * Builds the page object for one fixture, theme and bundle.
@@ -61,6 +64,11 @@ export class FiltersValueListPage {
     this.conditionsMenu = page.locator('.htFiltersConditionsMenu:visible');
     this.okButton = this.menu.locator('.htUIButtonOK input');
     this.cancelButton = this.menu.locator('.htUIButtonCancel input');
+    // The two links above the list, found by the plugin's class names and not by their text, which
+    // follows the language and the default label.
+    this.valueActionLinks = this.menu.locator('.htUIMultipleSelect a');
+    this.selectAllLink = this.menu.locator('.htUIMultipleSelect .htUISelectAll a');
+    this.clearAllLink = this.menu.locator('.htUIMultipleSelect .htUIClearAll a');
   }
 
 
@@ -293,39 +301,21 @@ export class FiltersValueListPage {
 
   /** Click the "Select all" link, which checks every value the filter holds. */
   async selectAllValues(): Promise<void> {
-    await this.menu.locator('.htUIMultipleSelect a', { hasText: /^Select all$/ }).click();
+    await this.selectAllLink.click();
 
     await expect(this.valueList.first().locator('input[type="checkbox"]')).toBeChecked();
   }
 
   /**
-   * The visible text of the link that checks every value the filter holds.
-   *
-   * @returns {Promise<string>} The link text.
-   */
-  async selectAllLinkText(): Promise<string> {
-    return this.menu.locator('.htUIMultipleSelect .htUISelectAll a').innerText();
-  }
-
-  /**
-   * The visible text of the link that unchecks every value the filter holds.
-   *
-   * @returns {Promise<string>} The link text.
-   */
-  async clearAllLinkText(): Promise<string> {
-    return this.menu.locator('.htUIMultipleSelect .htUIClearAll a').innerText();
-  }
-
-  /**
-   * Click the "Select none" link, which unchecks every value the filter holds. It is found by its
-   * class, so a change of the default label does not break the helper.
+   * Click the "Select none" link, which unchecks every value the filter holds. The link is found by
+   * its class, so a change of the default label or of the language does not break the helper.
    *
    * @param {object} [options] Options.
    * @param {boolean} [options.expectEmptyList] Set when the list holds no values, so there are no
    *   checkboxes to wait for.
    */
   async clearAllValues({ expectEmptyList = false } = {}): Promise<void> {
-    await this.menu.locator('.htUIMultipleSelect .htUIClearAll a').click();
+    await this.clearAllLink.click();
 
     if (expectEmptyList) {
       return;

@@ -232,22 +232,25 @@ test.describe('Filters — "filter by value" list', () => {
       expect(await grid.exportedConditions()).toEqual([]);
     });
 
-  test('the link that unchecks every value reads "Select none", beside "Select all"',
+  test('the links above the list read "Select all" and "Select none", in that order',
     async({ page, theme, bundle }) => {
       const grid = new FiltersValueListPage(page, theme, bundle);
 
       await grid.goto();
       await grid.openMenu('Name');
 
-      expect(await grid.selectAllLinkText()).toBe('Select all');
-      expect(await grid.clearAllLinkText()).toBe('Select none');
+      await expect(grid.valueActionLinks).toHaveText(['Select all', 'Select none']);
     });
 
-  test('a dictionary that overrides the link label still wins over the default',
+  test('a menu that is already built follows a dictionary that overrides the "Select none" key',
     async({ page, theme, bundle }) => {
       const grid = new FiltersValueListPage(page, theme, bundle);
 
       await grid.goto();
+      await grid.openMenu('Name');
+      await expect(grid.clearAllLink).toHaveText('Select none');
+      await grid.escapeMenu();
+
       await page.evaluate(() => {
         const { languages } = (window as unknown as {
           Handsontable: { languages: {
@@ -266,7 +269,8 @@ test.describe('Filters — "filter by value" list', () => {
       });
       await grid.openMenu('Name');
 
-      expect(await grid.clearAllLinkText()).toBe('Deselect all');
+      await expect(grid.clearAllLink).toHaveText('Deselect all');
+      await expect(grid.selectAllLink).toHaveText('Select all');
     });
 
   test('"Select none" also clears the selected values the list cannot show', async({ page, theme, bundle }) => {

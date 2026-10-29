@@ -1205,6 +1205,9 @@ The **Filter by value** list of a column only holds the values present in the ro
 stay selected: confirming the menu keeps them, and they apply again as soon as their rows come back
 into scope. **Select all** and **Select none** both act on them along with everything else.
 
+While a search term narrows the list, **Select all** and **Select none** act on the values the list
+shows. The values the search hides keep their state.
+
 A value that leaves the data entirely is a different case. Once no row holds it, it drops out of the
 filter as well, so a column whose values you edit away stops filtering instead of holding on to a
 value that can never match again.

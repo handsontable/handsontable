@@ -600,7 +600,10 @@ export async function setAdditionalColumnSorting(
  * @param {string} value Filter value.
  */
 export async function filterByValue(value: string) {
-  await getPageInstance().getByText('Select none', { exact: true }).click(); // deselect all checkboxes
+  await getPageInstance()
+    .locator(helpers.selectors.dropdownMenu)
+    .locator('.htUIClearAll a')
+    .click(); // deselect all checkboxes
   await getPageInstance()
     .getByPlaceholder('Search')
     .pressSequentially(value, { delay: 100 });
