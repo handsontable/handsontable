@@ -388,6 +388,32 @@ describe('SheetsBar: the public methods keep their documented contract', () => {
     });
   });
 
+  describe('a duplicate of a sheet whose rows are class instances with private fields', () => {
+    it('renders the copy with the values the getters read', () => {
+      class Product {
+        #stock;
+
+        constructor(sku, stock) {
+          this.sku = sku;
+          this.#stock = stock;
+        }
+
+        get stock() {
+          return this.#stock;
+        }
+      }
+
+      const plugin = buildWorkbook(
+        [{ name: 'Stock', data: [new Product('SKU-4821', 142), new Product('SKU-0093', 67)] }],
+        { columns: [{ data: 'sku' }, { data: 'stock' }] },
+      );
+      const copy = plugin.duplicateSheet(idOf(plugin, 'Stock'));
+
+      expect(() => plugin.setActiveSheet(copy.id)).not.toThrow();
+      expect(hot.getDataAtCol(1)).toEqual([142, 67]);
+    });
+  });
+
   describe('a name with no visible character', () => {
     it('is refused by `renameSheet()` before `beforeSheetTabRename` fires', () => {
       const plugin = buildWorkbook([{ name: 'A', data: [[1]] }]);

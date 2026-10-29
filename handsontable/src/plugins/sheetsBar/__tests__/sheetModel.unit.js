@@ -461,6 +461,34 @@ describe('SheetModel', () => {
       expect(source.data[0].stock).toBe(142);
     });
 
+    it('gives a class-instance row the values its getters read from private fields', () => {
+      class Product {
+        #stock;
+
+        constructor(sku, stock) {
+          this.sku = sku;
+          this.#stock = stock;
+        }
+
+        get stock() {
+          return this.#stock;
+        }
+      }
+
+      const model = new SheetModel();
+      const source = model.addSheet('Data', [new Product('SKU-4821', 142)]);
+      const copiedRow = model.duplicateSheet(source.id).data[0];
+
+      expect(() => copiedRow.stock).not.toThrow();
+      expect(copiedRow.stock).toBe(142);
+      expect(copiedRow.sku).toBe('SKU-4821');
+      expect(copiedRow).toBeInstanceOf(Product);
+
+      copiedRow.stock = 0;
+
+      expect(source.data[0].stock).toBe(142);
+    });
+
     it('keeps a class instance in a cell by reference, with its prototype', () => {
       class Money {
         constructor(amount) {

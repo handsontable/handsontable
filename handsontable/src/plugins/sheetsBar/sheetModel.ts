@@ -1,5 +1,5 @@
 import { splitIntoCharacters } from '../../helpers/string';
-import { isPlainObject } from '../../helpers/object';
+import { hasOwnProperty, isPlainObject } from '../../helpers/object';
 
 /**
  * A single sheet held by the SheetsBar plugin.
@@ -495,8 +495,45 @@ function copyRow(row: unknown, copies: WeakMap<object, unknown>): unknown {
 
   copies.set(row, copy);
   copyOwnProperties(row as Record<string, unknown>, copy, copies);
+  copyGetterValues(row as Record<string, unknown>, copy, copies);
 
   return copy;
+}
+
+/**
+ * Gives the copy of a class-instance row the values its prototype getters return on the original, as
+ * properties of its own. The copy shares the original's prototype but not its private fields, so a getter
+ * that reads a `#private` field threw on the copy. The value is read once, when the copy is made, so a
+ * getter that computes from other fields keeps that value on the copy. Each property is writable and not
+ * enumerable, like the getter it replaces, so the row's keys and the columns built from them stay the same.
+ *
+ * @param {object} source The original row.
+ * @param {object} target The copy.
+ * @param {WeakMap} copies The copies made so far in this call.
+ */
+function copyGetterValues(
+  source: Record<string, unknown>,
+  target: Record<string, unknown>,
+  copies: WeakMap<object, unknown>,
+) {
+  let prototype = Object.getPrototypeOf(source) as object | null;
+
+  while (prototype !== null && prototype !== Object.prototype) {
+    const descriptors = Object.getOwnPropertyDescriptors(prototype);
+
+    Object.keys(descriptors).forEach((key) => {
+      if (descriptors[key].get && !UNCOPIED_KEYS.has(key) && !hasOwnProperty(target, key)) {
+        Object.defineProperty(target, key, {
+          value: copyCellData(source[key], copies),
+          writable: true,
+          enumerable: false,
+          configurable: true,
+        });
+      }
+    });
+
+    prototype = Object.getPrototypeOf(prototype) as object | null;
+  }
 }
 
 /**

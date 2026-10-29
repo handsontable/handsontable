@@ -30,7 +30,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     `copyCellData()` copies a `Date`, `RegExp`, `Map` and `Set` as a new value of the same kind and
     keeps a class instance in a cell by reference, the rule `copySettingsValue()` follows. Three rules
     ride along. Every ROW gets a copy of its own, a class-instance row too (a new object on the same
-    prototype, `copyRow`): shared, an edit in the copy changed the original sheet. A hole stays a hole
+    prototype, `copyRow`): shared, an edit in the copy changed the original sheet. The copy has the
+    prototype but not the original's `#private` fields, so a prototype getter reading one threw on the copy;
+    `copyGetterValues` reads every prototype getter on the original and stores the value as a writable,
+    non-enumerable own property (non-enumerable, or a grid without `columns` gained a column on the copy).
+    A getter computing from other fields keeps the value it had at copy time. A hole stays a hole
     (`new Array(length)` plus an indexed loop, never `forEach` plus `push`, which compacted a sparse row
     and shifted its values into other columns). And primitives return before any `instanceof` or
     `WeakMap` work: a duplicate copies every cell, and the first cut was 1.5 to 2.4 times slower than
