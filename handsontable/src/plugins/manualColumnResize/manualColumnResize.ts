@@ -167,12 +167,6 @@ export class ManualColumnResize extends BasePlugin {
     if (newSettings === undefined || newSettings[PLUGIN_KEY] !== undefined) {
       this.disablePlugin();
       this.enablePlugin();
-
-    } else {
-      // `BasePlugin#onUpdateSettings` feeds `updatePluginSettings()` with `newSettings[PLUGIN_KEY]`,
-      // which a `colWidths`-only update does not carry. Restore the option from the merged settings
-      // so `getSetting()` keeps reporting it.
-      this.updatePluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
     }
 
     // Runs after the re-initialization, so that the widths replayed on the map's `init` hook are

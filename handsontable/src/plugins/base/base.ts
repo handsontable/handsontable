@@ -658,8 +658,11 @@ export class BasePlugin {
    *
    * A call that turns the plugin on refreshes the plugin settings from the merged grid settings before
    * `enablePlugin()`, which reads them, and does not refresh them again before `updatePlugin()`: a second
-   * refresh logged every validation warning twice, and, for a payload carrying only a foreign `SETTING_KEYS`
-   * option, wiped what the first one read.
+   * refresh logged every validation warning twice.
+   *
+   * A call that keeps the plugin on refreshes the plugin settings from the payload's `PLUGIN_KEY` value. When the
+   * payload does not carry that key (a plugin with `SETTING_KEYS: true`, or one listing foreign keys), the refresh
+   * reads the merged grid settings instead, so an unrelated update never wipes the stored setting.
    *
    * @private
    * @param {object} newSettings New set of settings passed to the updateSettings method.
@@ -702,7 +705,11 @@ export class BasePlugin {
       relevantToSettings
     ) {
       if (!settingsRefreshed) {
-        this.updatePluginSettings(newSettings[this.constructor.PLUGIN_KEY]);
+        const pluginKey = this.constructor.PLUGIN_KEY;
+
+        this.updatePluginSettings(
+          newSettings[pluginKey] === undefined ? this.hot.getSettings()[pluginKey] : newSettings[pluginKey]
+        );
       }
 
       this.updatePlugin(newSettings);

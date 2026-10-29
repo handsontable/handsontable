@@ -463,15 +463,6 @@ export class AutoRowSize extends BasePlugin {
    * @param {object} [newSettings] The settings passed to `updateSettings`.
    */
   updatePlugin(newSettings?: Record<string, unknown>): void {
-    // `SETTING_KEYS` is `true`, so an update that never mentions this plugin still arrives here -
-    // and `BasePlugin#onUpdateSettings` has already fed `updatePluginSettings()` the missing key as
-    // `undefined`, wiping the stored settings. Restore them from the merged settings before reading
-    // them, or an unrelated `updateSettings({ colHeaders: true })` would read the defaults, reset
-    // the user's `samplingRatio`, and drop every measured height.
-    if (newSettings !== undefined && newSettings[PLUGIN_KEY] === undefined) {
-      this.updatePluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
-    }
-
     if (this.#applySamplingSettings() || this.#samplingChangedOnEnable) {
       this.clearCache();
     }

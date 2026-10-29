@@ -110,4 +110,22 @@ describe('ManualRowResize manual-size API', () => {
       expect(plugin.getManualSizes()).toEqual([]);
     });
   });
+
+  describe('the stored setting', () => {
+    it('keeps reporting the declared array after a `rowHeights`-only update', () => {
+      const plugin = buildGrid({ manualRowResize: [55, 65, 75] });
+
+      hot.updateSettings({ rowHeights: [30, 40, 50, 60, 70] });
+
+      expect(plugin.getSetting()).toEqual([55, 65, 75]);
+    });
+
+    it('keeps reporting `true` after a `rowHeights`-only update', () => {
+      const plugin = buildGrid({ manualRowResize: true });
+
+      hot.updateSettings({ rowHeights: [30, 40, 50, 60, 70] });
+
+      expect(plugin.getSetting()).toBe(true);
+    });
+  });
 });
