@@ -14,7 +14,7 @@ import { EVIDENCE_CHECKS, checksForSuite } from './lib/a11y-evidence.mjs';
  * `e2e/leg-declarations.spec.ts` and `.github/scripts/__tests__/e2e-legs.test.mjs`, and the
  * leg-declaration sweep reads every spec under `e2e/`. The server, its port (`HOT_TEST_PORT`), the base
  * URL and the trace settings are inherited. Report-only: the reporter never changes the run's status,
- * a red run is a tooling failure, and the CI step carries `continue-on-error`. Locally:
+ * a red run is a tooling failure, and the CI job carries `continue-on-error`. Locally:
  * `npm --prefix tests run test:a11y-checks` after `build:umd`, `build:styles.min` and
  * `build:themes-css.min`; `-- --project=<check>` runs one check.
  */
