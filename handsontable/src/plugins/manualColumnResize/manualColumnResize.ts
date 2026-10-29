@@ -6,6 +6,8 @@ import { COLUMN_RESIZE_AXIS } from '../../utils/manualResize/axis';
 import { ResizeGesture } from '../../utils/manualResize/resizeGesture';
 import {
   COLUMN_SIZE_OPTIONS,
+  isStorableSize,
+  pickStorableSizes,
   redeclaresManualSizes,
 } from '../../utils/manualResize/utils';
 
@@ -238,6 +240,9 @@ export class ManualColumnResize extends BasePlugin {
    * button always fits: `32px` in the Main theme, `40px` in Horizon, and `24px` in Classic. In any other grid, and
    * when the theme doesn't declare those tokens, the minimum is `20px`, which is also the lowest it can be.
    *
+   * Nothing is stored while the plugin is disabled, for a column that does not exist, or for a width
+   * that is not a finite number.
+   *
    * @example
    * ```js
    * const resizePlugin = hot.getPlugin('manualColumnResize');
@@ -248,24 +253,29 @@ export class ManualColumnResize extends BasePlugin {
    *
    * @param {number} column Visual column index.
    * @param {number} width Column width (no less than the minimum column width).
-   * @returns {number} Returns new width.
+   * @returns {number} The width after the minimum is applied, also when nothing was stored.
    */
   setManualSize(column: number, width: number): number {
     return this.runOperation('resize_column', () => this.#setManualSize(column, width));
   }
 
   /**
-   * The body of `setManualSize()`, run inside its operation.
+   * The body of `setManualSize()`, run inside its operation. The map exists only while the plugin is
+   * enabled, and an out-of-range visual index resolves to `null`, which would write an entry under the
+   * string "null", so both store nothing. The width is clamped first, which converts a numeric string
+   * and `null` the way released versions did, and a result that is not finite stores nothing.
    *
    * @param {number} column Visual column index.
    * @param {number} width Column width (no less than the minimum column width).
-   * @returns {number} Returns new width.
+   * @returns {number} The clamped width: the width stored, or the width it would store.
    */
   #setManualSize(column: number, width: number): number {
     const newWidth = this.#clampSize(width);
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
-    this.#columnWidthsMap.setValueAtIndex(physicalColumn, newWidth);
+    if (this.enabled && physicalColumn !== null && isStorableSize(newWidth)) {
+      this.#columnWidthsMap.setValueAtIndex(physicalColumn, newWidth);
+    }
 
     return newWidth;
   }
@@ -379,8 +389,10 @@ export class ManualColumnResize extends BasePlugin {
    * Writes a set of manual widths at once, addressed by physical column index — the
    * counterpart of {@link ManualColumnResize#getManualSizes}, so a stored set round-trips onto
    * the same records regardless of trimming or column order. Values lower than the minimum
-   * column width (see {@link ManualColumnResize#setManualSize}) are saved as that minimum, and an index outside
-   * the current column count is skipped. Call `render()` afterwards to repaint the grid.
+   * column width (see {@link ManualColumnResize#setManualSize}) are saved as that minimum. A pair whose index
+   * is not an integer within the current column count, or whose width is not a finite number, is skipped.
+   * Unlike `setManualSize()`, a numeric string or `null` width is skipped, not converted.
+   * Call `render()` afterwards to repaint the grid.
    *
    * @param {Array<Array<number>>} sizes The `[physicalColumn, width]` pairs to write.
    */
@@ -398,15 +410,13 @@ export class ManualColumnResize extends BasePlugin {
       return;
     }
 
-    const columnCount = this.hot.columnIndexMapper.getNumberOfIndexes();
+    const storable = pickStorableSizes(sizes, this.hot.columnIndexMapper.getNumberOfIndexes());
     // Read once: the floor cannot change inside the loop, and a restore can carry thousands of widths.
     const minWidth = this.#getMinWidth();
 
     this.hot.batchExecution(() => {
-      sizes.forEach(([physicalColumn, width]) => {
-        if (physicalColumn >= 0 && physicalColumn < columnCount) {
-          this.#columnWidthsMap.setValueAtIndex(physicalColumn, Math.max(width, minWidth));
-        }
+      storable.forEach(([physicalColumn, width]) => {
+        this.#columnWidthsMap.setValueAtIndex(physicalColumn, Math.max(width, minWidth));
       });
     }, true);
   }

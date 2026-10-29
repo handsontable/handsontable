@@ -106,7 +106,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: 'もしくは',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: 'すべて選択',
-  [C.FILTERS_BUTTONS_CLEAR]: 'クリア',
+  [C.FILTERS_BUTTONS_CLEAR]: 'すべて選択解除',
   [C.FILTERS_BUTTONS_OK]: 'OK',
   [C.FILTERS_BUTTONS_CANCEL]: 'キャンセル',
 

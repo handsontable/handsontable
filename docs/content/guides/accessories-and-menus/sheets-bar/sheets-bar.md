@@ -197,6 +197,8 @@ sheetsBar.removeSheet(id);
 sheetsBar.updateSheetSettings('Budget', { readOnly: true });
 ```
 
+A sheet's id never changes, and no other sheet gets it later, even after you pass a new `sheets` value.
+
 ## Work with tabs
 
 Right-click a tab, or click the chevron on the active tab, to open its menu: **Rename**, **Duplicate**, **Delete**, **Move left**, and **Move right**. On an inactive tab, the first click on the chevron switches sheets.

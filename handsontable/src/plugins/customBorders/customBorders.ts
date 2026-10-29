@@ -36,7 +36,7 @@ import type { HotInstance } from '../../core/types';
 import type VisualSelection from '../../selection/highlight/visualSelection';
 
 export const PLUGIN_KEY = 'customBorders';
-export const PLUGIN_PRIORITY = 90;
+export const PLUGIN_PRIORITY = 335;
 
 export type { BorderSettings, BorderObject };
 
