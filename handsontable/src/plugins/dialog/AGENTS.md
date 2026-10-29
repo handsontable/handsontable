@@ -87,9 +87,11 @@ validator and would warn on every show.
 
 **A replacement is announced.** `#replaceDialog()` calls the listeners of `_addReplacedListener()` after the new
 dialog rendered. No hide or show hook fires for it: the modal stays open and keeps its stashed selection. Loading
-listens, because its screen is gone at that point (`../loading/AGENTS.md`). A public `update()` that names
-`content` or `template` on a visible dialog calls them too: it merges rather than replaces, but the screen it
-rewrites is no longer the one shown before. Loading rewrites its own screen through `_updateDialog()` (`@private`,
+listens, because its screen is gone at that point (`../loading/AGENTS.md`). A public `update()` on a visible
+dialog calls them too when it changed the rendered `content` or `template` (`#showsOtherContent()`): it merges
+rather than replaces, but the screen it rewrites is no longer the one shown before. Naming the option is not
+enough, because an ignored value (`template: null`) or the same value changes nothing, and Loading would give
+up a screen that is still up. Loading rewrites its own screen through `_updateDialog()` (`@private`,
 the options alone over the configured ones, no listeners), so its own updates are not read as a replacement.
 
 ## `updatePlugin()` does NOT run the disable and enable cycle

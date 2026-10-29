@@ -175,6 +175,29 @@ describe('Loading and a dialog it did not open', () => {
     expect(loadingHidden).toHaveBeenCalledTimes(1);
   });
 
+  it('keeps the dialog when the application\'s update leaves the loading screen\'s content as it was', () => {
+    const loadingHidden = jest.fn();
+
+    hot = new Handsontable(container, {
+      data: [['a']],
+      loading: true,
+      afterLoadingHide: loadingHidden,
+      licenseKey: LICENSE_KEY,
+    });
+    const dialog = hot.getPlugin('dialog');
+    const loading = hot.getPlugin('loading');
+
+    loading.show();
+    dialog.update({ template: null });
+
+    expect(loading.isVisible()).toBe(true);
+    expect(loadingHidden).not.toHaveBeenCalled();
+
+    loading.hide();
+
+    expect(dialog.isVisible()).toBe(false);
+  });
+
   it('keeps the dialog when the loading screen updates its own options', () => {
     const loadingHidden = jest.fn();
 

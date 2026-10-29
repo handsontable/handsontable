@@ -585,12 +585,12 @@ export class Dialog extends BasePlugin {
       return;
     }
 
-    const namesContentOrTemplate = this.#namesContentOrTemplate(options);
-    const startsFromScratch = this.#beginsNewDialog && namesContentOrTemplate;
+    const startsFromScratch = this.#beginsNewDialog && this.#namesContentOrTemplate(options);
+    const shown = this.isVisible() ? this.#renderedDescription : null;
 
     this.#applyOptions(options, startsFromScratch ? {} : this.#dialogOptions);
 
-    if (namesContentOrTemplate && this.isVisible()) {
+    if (shown !== null && this.#showsOtherContent(shown)) {
       this.#replacedListeners.forEach(listener => listener());
     }
   }
@@ -828,6 +828,23 @@ export class Dialog extends BasePlugin {
   #replaceDialog(options: Record<string, unknown>) {
     this.#applyOptions(options, {});
     this.#replacedListeners.forEach(listener => listener());
+  }
+
+  /**
+   * Tells whether the dialog now renders other `content` or another `template` than the description it
+   * rendered before. An option the call named but that changed nothing (an ignored value, or the same one)
+   * does not count.
+   *
+   * @param {object} previous The description rendered before the call.
+   * @returns {boolean}
+   */
+  #showsOtherContent(previous: Record<string, unknown>): boolean {
+    const current = this.#renderedDescription;
+
+    return current !== null && (
+      !isSameDialogDescription(previous.content, current.content) ||
+      !isSameDialogDescription(previous.template, current.template)
+    );
   }
 
   /**
