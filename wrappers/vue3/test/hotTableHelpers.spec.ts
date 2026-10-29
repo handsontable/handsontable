@@ -84,6 +84,36 @@ describe('prepareSettings', () => {
     expect(Object.keys(preparedSettings).length).toBe(0);
   });
 
+  describe('themeName', () => {
+    // Core moves `themeName` into `theme` and keeps `getSettings().themeName` empty.
+    const currentSettings = { theme: 'ht-theme-main', themeName: undefined } as GridSettings;
+
+    it('should not send a `themeName` the grid already uses as its `theme`', () => {
+      expect(prepareSettings({ themeName: 'ht-theme-main' }, currentSettings)).toEqual({});
+      expect(prepareSettings({ settings: { themeName: 'ht-theme-main' } }, currentSettings)).toEqual({});
+      expect(prepareSettings({ settings: { colHeaders: true }, themeName: 'ht-theme-main' }, currentSettings))
+        .toEqual({ colHeaders: true });
+    });
+
+    it('should send a `themeName` that differs from the grid\'s `theme`', () => {
+      expect(prepareSettings({ themeName: 'ht-theme-horizon' }, currentSettings))
+        .toEqual({ themeName: 'ht-theme-horizon' });
+      expect(prepareSettings({ settings: { colHeaders: true }, themeName: 'ht-theme-horizon' }, currentSettings))
+        .toEqual({ colHeaders: true, themeName: 'ht-theme-horizon' });
+    });
+
+    it('should send `themeName` when the grid\'s `theme` is not a name', () => {
+      const themeObjectSettings = { theme: { name: 'custom' }, themeName: undefined } as unknown as GridSettings;
+
+      expect(prepareSettings({ themeName: 'ht-theme-main' }, themeObjectSettings))
+        .toEqual({ themeName: 'ht-theme-main' });
+    });
+
+    it('should send `themeName` when there are no current settings', () => {
+      expect(prepareSettings({ themeName: 'ht-theme-main' })).toEqual({ themeName: 'ht-theme-main' });
+    });
+  });
+
   it('should skip init-only settings when current settings contain _initOnlySettings', () => {
     const currentSettings = {
       renderAllRows: false,

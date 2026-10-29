@@ -178,7 +178,8 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
       hasOwnProperty(hotSettingsInProps, key) &&
       hotSettingsInProps[key] !== undefined &&
       !initOnlySettingKeys.includes(key) &&
-      ((currentSettings && key !== 'data') ? !isEqualSetting(key, currentSettings[key], hotSettingsInProps[key]) : true)
+      ((currentSettings && key !== 'data')
+        ? !isEqualSetting(key, currentSettings[key], hotSettingsInProps[key], currentSettings) : true)
     ) {
       newSettings[key] = hotSettingsInProps[key];
     }
@@ -193,7 +194,7 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
       additionalHotSettingsInProps[key] !== undefined &&
       !initOnlySettingKeys.includes(key) &&
       ((currentSettings && key !== 'data')
-        ? !isEqualSetting(key, currentSettings[key], additionalHotSettingsInProps[key]) : true)
+        ? !isEqualSetting(key, currentSettings[key], additionalHotSettingsInProps[key], currentSettings) : true)
     ) {
       newSettings[key] = additionalHotSettingsInProps[key];
     }
@@ -212,18 +213,29 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
  * references of its own keys. A new `sheets` array or a changed option in a new `sheetsBar` object is
  * therefore sent, even when it differs only by a function. A change made inside the same `sheetsBar`
  * object or the same `sheets` array is not sent, and neither are the plugin's own writes into that
- * array. Every other setting is compared with `simpleEqual()`.
+ * array. `themeName` is compared with the grid's `theme`, because core moves the name there and
+ * `getSettings().themeName` stays `undefined`. Every other setting is compared with `simpleEqual()`.
  *
  * @param {string} key The setting name.
  * @param {unknown} currentValue The grid's current value.
  * @param {unknown} newValue The value passed through the props.
+ * @param {Handsontable.GridSettings} currentSettings The grid's current settings.
  * @returns {boolean} `true` if the value does not need to be sent.
  */
-function isEqualSetting(key: string, currentValue: unknown, newValue: unknown): boolean {
+function isEqualSetting(
+  key: string,
+  currentValue: unknown,
+  newValue: unknown,
+  currentSettings: Handsontable.GridSettings
+): boolean {
   if (key === 'sheetsBar') {
     return haveEqualOwnKeys(currentValue, newValue, (propName, valueA, valueB) => (
       propName === 'sheets' ? isSameReference(valueA, valueB) : isShallowEqualByReference(valueA, valueB)
     ));
+  }
+
+  if (key === 'themeName' && currentValue === undefined) {
+    return typeof newValue === 'string' && currentSettings.theme === newValue;
   }
 
   return simpleEqual(currentValue, newValue);
