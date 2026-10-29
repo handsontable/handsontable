@@ -53,7 +53,8 @@ interface MarkOversizedRowsOptions {
  * A level whose provided height falls back to the default drops the height an earlier draw wrote on
  * its first cell. The header cells are reused across draws, so a height left there kept a header row
  * that once held multi-line labels tall after they went back to one line, and the render-size probe
- * then measured that height back into the funnel on every draw.
+ * then measured that height back into the funnel on every draw. A level with no rendered row is
+ * skipped, never a reason to stop, so the levels after it are still raised or cleared.
  *
  * @param {Table} table The table (master or clone) whose THEAD rows receive the heights.
  */
@@ -68,10 +69,6 @@ export function adjustColumnHeaderHeights(table: Table): void {
     const isRaised = headerHeight > defaultRowHeight;
 
     if (!children[i] || children[i].childNodes.length === 0) {
-      if (isRaised) {
-        return;
-      }
-
       continue;
     }
 

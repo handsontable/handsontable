@@ -87,4 +87,15 @@ describe('adjustColumnHeaderHeights', () => {
 
     expect(THEAD.rows[1].cells[0].style.height).toBe('70px');
   });
+
+  it('drops a later level\'s stale height when a raised level has no rendered row', () => {
+    const { table, THEAD, heights } = createTable([70, 70]);
+
+    adjustColumnHeaderHeights(table);
+    THEAD.rows[0].replaceChildren();
+    heights[1] = DEFAULT_ROW_HEIGHT;
+    adjustColumnHeaderHeights(table);
+
+    expect(THEAD.rows[1].cells[0].style.height).toBe('');
+  });
 });
