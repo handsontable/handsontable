@@ -652,6 +652,10 @@ export class FormulaBuilder extends BasePlugin {
       const isMac = isMacOS();
       const event = new KeyboardEventClass('keydown', { key: 'Enter', ctrlKey: !isMac, metaKey: isMac });
 
+      // The shortcut recorder still holds the chord's modifier, and `setRangeStart()` reads it to add a
+      // layer. The grid's own command runs under `captureCtrl`, which this plugin cannot set. The
+      // recorder re-syncs from the next key event, so releasing the held keys is safe.
+      this.hot.getShortcutManager().releasePressedKeys();
       this.hot._getEditorManager().moveSelectionAfterEnter(event);
     });
   }

@@ -126,6 +126,19 @@ test.describe('formulaBuilder keyboard flow', { tag: [THEMES_TAG, BUNDLES_TAG, C
     await expect(grid.cell(4, 0)).toBeFocused();
   });
 
+  test('Ctrl/Cmd+Enter twice on single cells writes two values and adds no selection layer', async({ page }) => {
+    await grid.selectCellByApi(3, 0);
+    await page.keyboard.type('10');
+    await page.keyboard.press('ControlOrMeta+Enter');
+    await expect.poll(() => grid.editorOpened()).toBe(false);
+    expect(await grid.selectedAll()).toEqual([[4, 0, 4, 0]]);
+
+    await page.keyboard.type('20');
+    await page.keyboard.press('ControlOrMeta+Enter');
+    await expect.poll(() => grid.sourceAt(3, 0)).toBe('10');
+    await expect.poll(() => grid.sourceAt(4, 0)).toBe('20');
+  });
+
   test('Tab on the last cell commits and drops the selection, as in the text editor', async({ page }) => {
     // The grid's Tab pair drops the selection when Tab has nowhere to move it, so the next Tab
     // leaves the grid. The last cell of the last row has no cell after it (`autoWrapRow` is off).

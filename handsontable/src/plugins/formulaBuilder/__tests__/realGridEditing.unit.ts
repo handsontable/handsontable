@@ -411,6 +411,45 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(hot.getDataAtCell(1, 1)).toBe('9');
       expect(hot.getData(0, 0, 2, 2).flat().filter(value => value === '9')).toHaveLength(1);
     });
+
+    it('Ctrl/Cmd+Enter on one selected cell moves the selection without adding a layer', async() => {
+      createGrid();
+      hot.selectCell(0, 0);
+      adapter().beginEdit({ sheet: '', row: 0, col: 0 });
+      // Simulate the chord being held while the package commits.
+      hot.rootDocument.documentElement.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Control', ctrlKey: true, bubbles: true })
+      );
+
+      expect(hot.getShortcutManager().isCtrlPressed()).toBe(true);
+
+      adapter().commitFill('10');
+      await settle();
+
+      expect(hot.getSelected()).toEqual([[1, 0, 1, 0]]);
+
+      adapter().beginEdit({ sheet: '', row: 1, col: 0 });
+      hot.rootDocument.documentElement.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Control', ctrlKey: true, bubbles: true })
+      );
+      adapter().commitFill('20');
+      await settle();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('10');
+      expect(hot.getDataAtCell(1, 0)).toBe('20');
+    });
+
+    it('Ctrl/Cmd+Enter with a single-cell active layer among others keeps every layer', async() => {
+      createGrid();
+      hot.selectCells([[0, 0, 1, 0], [3, 0, 3, 0]]);
+      adapter().beginEdit({ sheet: '', row: 3, col: 0 });
+      adapter().commitFill('5');
+      await settle();
+
+      expect(hot.getSelectedRange()?.length).toBe(2);
+      expect(hot.getDataAtCell(0, 0)).toBe('5');
+      expect(hot.getDataAtCell(3, 0)).toBe('5');
+    });
   });
 
   describe('cancelling', () => {
