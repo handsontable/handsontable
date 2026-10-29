@@ -112,4 +112,47 @@ describe('Comments plugin lifecycle', () => {
 
     expect(hide).toHaveBeenCalledTimes(1);
   });
+
+  describe('reading comments at header coordinates', () => {
+    beforeEach(() => {
+      hot = new Handsontable(container, {
+        data: [['a', 'b'], ['c', 'd']],
+        comments: true,
+        cell: [{ row: 0, col: 0, comment: { value: 'Foo' } }],
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    });
+
+    it('returns undefined from getCommentAtCell() for a negative row or column', () => {
+      const plugin = hot.getPlugin('comments');
+
+      expect(() => plugin.getCommentAtCell(-1, 0)).not.toThrow();
+      expect(plugin.getCommentAtCell(-1, 0)).toBeUndefined();
+      expect(plugin.getCommentAtCell(0, -1)).toBeUndefined();
+      expect(plugin.getCommentAtCell(-1, -1)).toBeUndefined();
+    });
+
+    it('returns undefined from getCommentMeta() for a negative row or column', () => {
+      const plugin = hot.getPlugin('comments');
+
+      expect(plugin.getCommentMeta(-1, 0, 'value')).toBeUndefined();
+      expect(plugin.getCommentMeta(0, -1, 'readOnly')).toBeUndefined();
+    });
+
+    it('returns undefined from getComment() when the range points at a header', () => {
+      const plugin = hot.getPlugin('comments');
+
+      plugin.setRange({ from: hot._createCellCoords(-1, 0) });
+
+      expect(plugin.getComment()).toBeUndefined();
+
+      plugin.setRange({ from: hot._createCellCoords(0, -1) });
+
+      expect(plugin.getComment()).toBeUndefined();
+    });
+
+    it('still returns the comment of a regular cell', () => {
+      expect(hot.getPlugin('comments').getCommentAtCell(0, 0)).toBe('Foo');
+    });
+  });
 });

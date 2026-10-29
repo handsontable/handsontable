@@ -691,7 +691,8 @@ export class Comments extends BasePlugin {
   /**
    * Gets comment from a cell according to previously set range (see {@link Comments#setRange}).
    *
-   * @returns {string|undefined} Returns a content of the comment.
+   * @returns {string|undefined} Returns a content of the comment, or `undefined` if the cell has no comment
+   * or the range points at a header.
    */
   getComment(): string | undefined {
     const { row, col } = this.#getRangeCoords();
@@ -704,7 +705,8 @@ export class Comments extends BasePlugin {
    *
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
-   * @returns {string|undefined} Returns a content of the comment.
+   * @returns {string|undefined} Returns a content of the comment, or `undefined` if the cell has no comment
+   * or the coordinates point at a header (a negative index).
    */
   getCommentAtCell(row: number, column: number): string | undefined {
     return this.getCommentMeta(row, column, META_COMMENT_VALUE);
@@ -1007,7 +1009,7 @@ export class Comments extends BasePlugin {
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    * @param {string} property Cell meta property.
-   * @returns {Mixed}
+   * @returns {Mixed} Returns `undefined` if the cell has no comment or the coordinates point at a header (a negative index).
    */
   /**
    * @overload
@@ -1031,6 +1033,11 @@ export class Comments extends BasePlugin {
    * Returns the value of a specific meta property from the comment attached to the given cell.
    */
   getCommentMeta(row: number, column: number, property: string): unknown {
+    // Header coordinates are negative, and `getCellMeta()` asserts unsigned indexes.
+    if (row < 0 || column < 0) {
+      return undefined;
+    }
+
     const cellMeta = this.hot.getCellMeta<{ [META_COMMENT]?: CommentMeta }>(row, column);
     const comment = cellMeta[META_COMMENT];
 

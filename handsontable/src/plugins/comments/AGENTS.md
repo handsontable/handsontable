@@ -16,6 +16,12 @@ instead of a flat `getCellMeta().comment`.
 
 Removing a comment is `setCellMeta(row, col, META_COMMENT, undefined)`, not `delete`.
 
+`getCommentMeta()` answers `undefined` for a negative row or column (a header), so `getComment()` and
+`getCommentAtCell()` soft-fail there. Keep that guard in this plugin: `Core#getCellMeta()` still asserts an
+unsigned index on purpose, and every other caller of it throws for a header. The write side
+(`setCommentAtCell()`, `updateCommentMeta()`) is left throwing on purpose: a write to a header is a caller bug,
+a read is a probe.
+
 Because the value lives in cell meta, a comment travels with the record through sorts and moves, and a
 sparse object data source needs no special handling (that was DEV-1718).
 
