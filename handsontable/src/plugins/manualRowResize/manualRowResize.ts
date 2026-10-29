@@ -222,7 +222,7 @@ export class ManualRowResize extends BasePlugin {
    * Values lower than the theme's default row height are saved as the default row height.
    *
    * Nothing is stored while the plugin is disabled, for a row that does not exist, or for a height that
-   * is not a finite number.
+   * is not a finite number (`NaN`, `Infinity`). A numeric string is stored as a number.
    *
    * @example
    * ```js
@@ -234,25 +234,27 @@ export class ManualRowResize extends BasePlugin {
    *
    * @param {number} row Visual row index.
    * @param {number} height Row height (no less than the theme's default row height).
-   * @returns {number} Returns new height.
+   * @returns {number} The height after the minimum is applied, also when nothing was stored.
    */
   setManualSize(row: number, height: number): number {
     return this.runOperation('resize_row', () => this.#setManualSize(row, height));
   }
 
   /**
-   * The body of `setManualSize()`, run inside its operation.
+   * The body of `setManualSize()`, run inside its operation. The map exists only while the plugin is
+   * enabled, and an out-of-range visual index resolves to `null`, so both store nothing. The height is
+   * clamped first, which converts a numeric string and `null` the way released versions did, and a
+   * result that is not finite stores nothing.
    *
    * @param {number} row Visual row index.
    * @param {number} height Row height.
-   * @returns {number} Returns new height.
+   * @returns {number} The clamped height: the height stored, or the height it would store.
    */
   #setManualSize(row: number, height: number): number {
     const physicalRow = this.hot.toPhysicalRow(row);
     const newHeight = this.#clampSize(height);
 
-    // The map only exists while the plugin is enabled, and an out-of-range visual index resolves to `null`.
-    if (this.enabled && physicalRow !== null && isStorableSize(height)) {
+    if (this.enabled && physicalRow !== null && isStorableSize(newHeight)) {
       this.#rowHeightsMap.setValueAtIndex(physicalRow, newHeight);
     }
 

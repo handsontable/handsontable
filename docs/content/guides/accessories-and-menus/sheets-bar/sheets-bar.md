@@ -197,7 +197,7 @@ sheetsBar.removeSheet(id);
 sheetsBar.updateSheetSettings('Budget', { readOnly: true });
 ```
 
-Each method returns `false` (`null` for `addSheet()` and `duplicateSheet()`) when it changes nothing: for example, when the bar is off, the sheet doesn't exist, or a listener cancels the change. A sheet's id never changes, and an id is never given to another sheet, even after you pass a new `sheets` value.
+Each method that changes the workbook returns `false` (`null` for `addSheet()` and `duplicateSheet()`) when it changes nothing: for example, when the bar is off, the sheet doesn't exist, or a listener cancels the change. `getSheets()` returns an empty array while the bar is off. A sheet's id never changes, and an id is never given to another sheet, even after you pass a new `sheets` value.
 
 The [`beforeSheetTabAdd`](@/api/hooks.md#beforesheettabadd) and [`afterSheetTabAdd`](@/api/hooks.md#aftersheettabadd) hooks fire for an added sheet and for a duplicate. For a duplicate, their `duplicateOfId` argument holds the id of the sheet being copied. For an added sheet, it's `null`.
 
@@ -205,7 +205,7 @@ The [`beforeSheetTabAdd`](@/api/hooks.md#beforesheettabadd) and [`afterSheetTabA
 
 - A name is trimmed and cut to 50 characters. An emoji or a flag counts as one character.
 - A name with no visible character, such as an empty name or one made only of spaces or zero-width characters, can't be set. An added sheet gets the next free `Sheet{n}` name instead, and a rename to it is refused.
-- Names are unique and compared without regard to case, the way [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md) compares sheet names: `Budget` and `BUDGET` are the same name. A rename to a name another sheet uses is refused before [`beforeSheetTabRename`](@/api/hooks.md#beforesheettabrename) fires. A rename that only changes the case of a sheet's own name is allowed.
+- Names are unique and compared without regard to case, the way [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md) compares sheet names: `Budget` and `BUDGET` are the same name, and `setActiveSheet('budget')` finds `Budget`. A rename to a name another sheet uses is refused before [`beforeSheetTabRename`](@/api/hooks.md#beforesheettabrename) fires. A rename that only changes the case of a sheet's own name is allowed.
 - An added sheet whose name is taken gets a number after the whole name: a second `Budget (2024)` becomes `Budget (2024) (2)`. A duplicate of `Budget` is named `Budget (2)`, then `Budget (3)`.
 
 ## Work with tabs

@@ -241,7 +241,7 @@ export class ManualColumnResize extends BasePlugin {
    * when the theme doesn't declare those tokens, the minimum is `20px`, which is also the lowest it can be.
    *
    * Nothing is stored while the plugin is disabled, for a column that does not exist, or for a width
-   * that is not a finite number.
+   * that is not a finite number (`NaN`, `Infinity`). A numeric string is stored as a number.
    *
    * @example
    * ```js
@@ -253,26 +253,27 @@ export class ManualColumnResize extends BasePlugin {
    *
    * @param {number} column Visual column index.
    * @param {number} width Column width (no less than the minimum column width).
-   * @returns {number} Returns new width.
+   * @returns {number} The width after the minimum is applied, also when nothing was stored.
    */
   setManualSize(column: number, width: number): number {
     return this.runOperation('resize_column', () => this.#setManualSize(column, width));
   }
 
   /**
-   * The body of `setManualSize()`, run inside its operation.
+   * The body of `setManualSize()`, run inside its operation. The map exists only while the plugin is
+   * enabled, and an out-of-range visual index resolves to `null`, which would write an entry under the
+   * string "null", so both store nothing. The width is clamped first, which converts a numeric string
+   * and `null` the way released versions did, and a result that is not finite stores nothing.
    *
    * @param {number} column Visual column index.
    * @param {number} width Column width (no less than the minimum column width).
-   * @returns {number} Returns new width.
+   * @returns {number} The clamped width: the width stored, or the width it would store.
    */
   #setManualSize(column: number, width: number): number {
     const newWidth = this.#clampSize(width);
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
-    // The map only exists while the plugin is enabled, and an out-of-range visual index resolves to
-    // `null`, which would write an entry under the string "null".
-    if (this.enabled && physicalColumn !== null && isStorableSize(width)) {
+    if (this.enabled && physicalColumn !== null && isStorableSize(newWidth)) {
       this.#columnWidthsMap.setValueAtIndex(physicalColumn, newWidth);
     }
 

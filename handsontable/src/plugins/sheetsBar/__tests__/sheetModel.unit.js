@@ -345,6 +345,14 @@ describe('SheetModel', () => {
       expect(model.duplicateSheet(data.id).name).toBe('Data (3)');
       expect(model.getDuplicateName(999)).toBe(null);
     });
+
+    it('tells the name a duplicate will get when shortening leaves only invisible characters', () => {
+      const model = new SheetModel();
+      const source = model.addSheet(`${'​'.repeat(47)}abc`, [[]]);
+      const predicted = model.getDuplicateName(source.id);
+
+      expect(model.duplicateSheet(source.id).name).toBe(predicted);
+    });
   });
 
   describe('names that differ only in case', () => {
@@ -418,7 +426,42 @@ describe('SheetModel', () => {
       expect(copy.data[0].sku).toBe('SKU-4821');
     });
 
-    it('keeps a class instance by reference, with its prototype', () => {
+    it('keeps the holes of a sparse row, so every value stays in its column', () => {
+      const row = ['SKU-4821'];
+
+      row[2] = 142;
+
+      const model = new SheetModel();
+      const source = model.addSheet('Data', [row]);
+      const copiedRow = model.duplicateSheet(source.id).data[0];
+
+      expect(copiedRow).toHaveLength(3);
+      expect(1 in copiedRow).toBe(false);
+      expect(copiedRow[0]).toBe('SKU-4821');
+      expect(copiedRow[2]).toBe(142);
+    });
+
+    it('gives a row that is a class instance a copy of its own, with its prototype', () => {
+      class Product {
+        constructor(sku, stock) {
+          this.sku = sku;
+          this.stock = stock;
+        }
+      }
+
+      const model = new SheetModel();
+      const source = model.addSheet('Data', [new Product('SKU-4821', 142)]);
+      const copiedRow = model.duplicateSheet(source.id).data[0];
+
+      copiedRow.stock = 0;
+
+      expect(copiedRow).not.toBe(source.data[0]);
+      expect(copiedRow).toBeInstanceOf(Product);
+      expect(copiedRow.sku).toBe('SKU-4821');
+      expect(source.data[0].stock).toBe(142);
+    });
+
+    it('keeps a class instance in a cell by reference, with its prototype', () => {
       class Money {
         constructor(amount) {
           this.amount = amount;

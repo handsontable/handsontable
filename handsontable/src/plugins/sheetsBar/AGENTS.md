@@ -25,10 +25,16 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   - **Ids come from the plugin, not the model** (`#allocateSheetId`, passed to `new SheetModel()`),
     so a rebuilt workbook never reuses an id a host may hold. The model keeps its own count for the
     `Sheet{n}` default names, so a rebuild still starts at `Sheet1`.
-  - **A duplicate's data goes through `copyCellData()`, never `deepClone()`.** `deepClone()` walks
+  - **A duplicate's data goes through `copySheetData()`, never `deepClone()`.** `deepClone()` walks
     every object as an object literal, so a `RegExp`, `Map` or `Set` in a cell came out as `{}`.
     `copyCellData()` copies a `Date`, `RegExp`, `Map` and `Set` as a new value of the same kind and
-    keeps a class instance by reference, the rule `copySettingsValue()` follows. Do not reuse
+    keeps a class instance in a cell by reference, the rule `copySettingsValue()` follows. Three rules
+    ride along. Every ROW gets a copy of its own, a class-instance row too (a new object on the same
+    prototype, `copyRow`): shared, an edit in the copy changed the original sheet. A hole stays a hole
+    (`new Array(length)` plus an indexed loop, never `forEach` plus `push`, which compacted a sparse row
+    and shifted its values into other columns). And primitives return before any `instanceof` or
+    `WeakMap` work: a duplicate copies every cell, and the first cut was 1.5 to 2.4 times slower than
+    `deepClone()` in Node; the current one is faster on 100k x 10 and 10k x 50 (measured). Do not reuse
     `copySettingsValue()` for data: the settings snapshot compares class instances by reference
     (`isStructurallyEqual`), so a copied `RegExp` there would read as a new workbook on every re-render.
   - **A value that is neither a number nor a string resolves to no sheet** (`resolveId()`), and a

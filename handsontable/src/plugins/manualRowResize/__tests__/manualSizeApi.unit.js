@@ -55,7 +55,7 @@ describe('ManualRowResize manual-size API', () => {
     it.each([
       ['NaN', NaN],
       ['Infinity', Infinity],
-      ['a string', '100'],
+      ['a string that is not a number', 'tall'],
     ])('stores nothing for a height that is %s', (_label, height) => {
       const plugin = buildGrid({ manualRowResize: true });
 
@@ -63,6 +63,21 @@ describe('ManualRowResize manual-size API', () => {
       plugin.setManualSize(0, height);
 
       expect(plugin.getManualSize(0)).toBe(80);
+    });
+
+    it('stores a numeric string as a number, as released versions do', () => {
+      const plugin = buildGrid({ manualRowResize: true });
+
+      expect(plugin.setManualSize(0, '150')).toBe(150);
+      expect(plugin.getManualSize(0)).toBe(150);
+    });
+
+    it('stores the minimum height for `null`, as released versions do', () => {
+      const plugin = buildGrid({ manualRowResize: true });
+      const minimum = plugin.setManualSize(0, null);
+
+      expect(Number.isFinite(minimum)).toBe(true);
+      expect(plugin.getManualSize(0)).toBe(minimum);
     });
   });
 

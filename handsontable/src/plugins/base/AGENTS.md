@@ -88,11 +88,11 @@ Details that bite:
   exist in 12 plugin files: checkboxHeader, columnSorting (3), columnSummary/endpoints, contextMenu/menu,
   customBorders, dropdownMenu, filters, formulaBuilder, formulaBuilder/handsontableAdapter (4), formulas (2),
   hiddenColumns (2) and hiddenRows (2). Get the current list with
-  `grep -rnE "this\.#?hot\.addHook(Once)?\(" src/plugins --include='*.ts' | grep -v __tests__`. Several
+  `grep -rnE "this\.#?hot\.addHook(Once)?\(" src/plugins --include='*.ts' | grep -v -e __tests__ -e plugins/base/`. Several
   exist *because* the listener must outlive `disablePlugin()`. So do not convert these in a compliance
   pass — an instance-level hook needs a guard that tolerates being disabled, and the reason belongs in a
   comment. A listener can also outlive the disable through the tracked form: AutoColumnSize and
-  AutoRowSize register their `before*Resize` listener again with `this.addHook()` right after
+  AutoRowSize register their `before*Resize` listener again with `this.addHook()` after
   `super.disablePlugin()`, so double-click autofit still works while they are off. `../loading/`'s
   `afterDialogFocus` used to be listed here and no longer is: it was registered once behind a `#dialogPlugin === null` guard only to keep
   `updatePlugin()` from doubling it, which the tracked `addHook` handles by itself, and the guard was

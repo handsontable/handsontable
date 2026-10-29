@@ -3630,8 +3630,9 @@ export const REGISTERED_HOOKS = [
    *
    * @since 19.0.0
    * @event Hooks#beforeSheetTabAdd
-   * @param {string|null} name The requested sheet name, or `null` for a default-generated name. For a
-   * duplicate, the name the copy gets.
+   * @param {string|null} name The requested sheet name as passed, or `null` when it was omitted. A name
+   * with no visible character is passed as it is, and the sheet still gets the next free default name.
+   * For a duplicate, the name the copy gets.
    * @param {number|null} duplicateOfId The id of the sheet being copied, or `null` for an added sheet.
    * @param {string} source String that identifies source of hook call.
    * @returns {*|boolean} If `false` is returned the action is canceled.

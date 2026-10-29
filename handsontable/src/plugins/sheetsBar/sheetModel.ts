@@ -327,7 +327,7 @@ export class SheetModel {
 
     const duplicate = this.addSheet(
       this.#freeNumberedName(source.name),
-      copyCellData(source.data) as unknown[],
+      copySheetData(source.data),
       settings,
     );
 
@@ -364,11 +364,11 @@ export class SheetModel {
    * `Sheet{n}`, explicit collisions count up as `name (n)` after the whole requested name, the way
    * the formula engine's sheet names are numbered (`freeEngineName()`). A counter the requested name
    * already ends with is kept, so "Budget (2024)" becomes "Budget (2024) (2)", not "Budget (2)".
+   * A request with no visible character takes the default numbering instead: the blank that
+   * `renameSheet` rejects must not be creatable through `addSheet`.
    */
   #uniqueName(requested: string | null): string {
     const trimmed = requested === null ? null : clampSheetName(requested);
-    // A request with no visible character takes the default numbering instead — the same
-    // blank that `renameSheet` rejects must not be creatable through `addSheet`.
     const clamped = trimmed === '' ? null : trimmed;
 
     if (clamped !== null && this.resolveId(clamped) === null) {
@@ -410,7 +410,9 @@ export class SheetModel {
 
   /**
    * Builds a numbered variant of a name that still fits the length limit — the counter is what
-   * makes the name unique, so the base gives way to it rather than the other way round.
+   * makes the name unique, so the base gives way to it rather than the other way round. The base is
+   * cut with `truncateSheetName()`, not `clampSheetName()`: a cut that leaves only invisible characters
+   * must keep them, or the name `getDuplicateName()` reports would differ from the one the copy gets.
    *
    * @param {string} base The name being varied.
    * @param {number} counter The variant number.
@@ -420,8 +422,9 @@ export class SheetModel {
    */
   #numberedName(base: string, counter: number, isDefault: boolean): string {
     const suffix = isDefault ? `${counter}` : ` (${counter})`;
+    const head = truncateSheetName(base.trim(), MAX_SHEET_NAME_LENGTH - suffix.length).trim();
 
-    return `${clampSheetName(base, MAX_SHEET_NAME_LENGTH - suffix.length)}${suffix}`;
+    return `${head}${suffix}`;
   }
 }
 
@@ -448,20 +451,111 @@ export function isObjectLiteral(value: unknown): boolean {
 const UNCOPIED_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 
 /**
- * Copies a sheet's data for a duplicate: arrays and object literals level by level, and a `Date`, a
- * `RegExp`, a `Map` and a `Set` as a new value of the same kind, so the copy's cells can change without
- * changing the original's. A class instance is kept by reference, with its prototype, the way
- * `copySettingsValue()` keeps one. `deepClone()` walked every object as an object literal, so a `RegExp`,
- * a `Map` or a `Set` in a cell came out as `{}`, and a class instance lost its prototype.
+ * Copies a sheet's data for a duplicate, so the copy's rows and cells can change without changing the
+ * original's. Every row gets a copy of its own: an array row and an object literal row as `copyCellData()`
+ * copies them, and a row that is an instance of a class as a new object with the same prototype, so an edit
+ * in the copy never reaches the original's row. A hole in the data array or in a row stays a hole, so every
+ * value keeps its column.
  *
- * `copies` maps every array, object literal, `Map` and `Set` already copied to its copy, so a value that
- * refers to itself is copied with the same shape instead of recursing until the stack overflows.
+ * @param {Array} data The sheet's data.
+ * @returns {Array} The copy.
+ */
+export function copySheetData(data: unknown[]): unknown[] {
+  const copies = new WeakMap<object, unknown>();
+  const copy: unknown[] = new Array(data.length);
+
+  copies.set(data, copy);
+
+  for (let index = 0; index < data.length; index += 1) {
+    if (index in data) {
+      copy[index] = copyRow(data[index], copies);
+    }
+  }
+
+  return copy;
+}
+
+/**
+ * Copies one row of a sheet's data (`copySheetData()`).
+ *
+ * @param {*} row The row.
+ * @param {WeakMap} copies The copies made so far in this call.
+ * @returns {*} The copy.
+ */
+function copyRow(row: unknown, copies: WeakMap<object, unknown>): unknown {
+  if (row === null || typeof row !== 'object' || Array.isArray(row) || isObjectLiteral(row) || !isClassRow(row)) {
+    return copyCellData(row, copies);
+  }
+
+  if (copies.has(row)) {
+    return copies.get(row);
+  }
+
+  const copy = Object.create(Object.getPrototypeOf(row) as object) as Record<string, unknown>;
+
+  copies.set(row, copy);
+  copyOwnProperties(row as Record<string, unknown>, copy, copies);
+
+  return copy;
+}
+
+/**
+ * Tells whether a row is an instance of a class: an object that is not a `Date`, a `RegExp`, a `Map` or a
+ * `Set`, which `copyCellData()` copies as values of their own kind.
+ *
+ * @param {object} row The row.
+ * @returns {boolean}
+ */
+function isClassRow(row: object): boolean {
+  return !(row instanceof Date || row instanceof RegExp || row instanceof Map || row instanceof Set);
+}
+
+/**
+ * Copies the own enumerable properties of an object into another one, each value through
+ * `copyCellData()`. The keys `__proto__`, `constructor` and `prototype` are left out.
+ *
+ * @param {object} source The object to copy from.
+ * @param {object} target The object to copy into.
+ * @param {WeakMap} copies The copies made so far in this call.
+ */
+function copyOwnProperties(
+  source: Record<string, unknown>,
+  target: Record<string, unknown>,
+  copies: WeakMap<object, unknown>,
+) {
+  const keys = Object.keys(source);
+
+  for (let index = 0; index < keys.length; index += 1) {
+    const key = keys[index];
+
+    if (!UNCOPIED_KEYS.has(key)) {
+      target[key] = copyCellData(source[key], copies);
+    }
+  }
+}
+
+/**
+ * Copies a cell value for a duplicate: arrays and object literals level by level, and a `Date`, a
+ * `RegExp`, a `Map` and a `Set` as a new value of the same kind, so the copy's cells can change without
+ * changing the original's. A class instance in a cell is kept by reference, with its prototype, the way
+ * `copySettingsValue()` keeps one. `deepClone()` walked every object as an object literal, so a `RegExp`,
+ * a `Map` or a `Set` in a cell came out as `{}`, and a class instance lost its prototype. A hole in an
+ * array stays a hole.
+ *
+ * Primitives return first and arrays are copied with an indexed loop, because a duplicate copies every
+ * cell of the sheet. `copies` maps every array, object literal, `Map` and `Set` already copied to its copy,
+ * so a value that refers to itself is copied with the same shape instead of recursing until the stack
+ * overflows.
  *
  * @param {*} value The value to copy.
  * @param {WeakMap} [copies] The copies made so far in this call.
  * @returns {*} The copy, or `value` itself when it is kept by reference.
  */
 export function copyCellData(value: unknown, copies = new WeakMap<object, unknown>()): unknown {
+  if (value === null || typeof value !== 'object') {
+    return value;
+  }
+
   if (value instanceof Date) {
     return new Date(value.getTime());
   }
@@ -470,18 +564,62 @@ export function copyCellData(value: unknown, copies = new WeakMap<object, unknow
     return new RegExp(value.source, value.flags);
   }
 
-  const isCollection = value instanceof Map || value instanceof Set;
+  if (copies.has(value)) {
+    return copies.get(value);
+  }
 
-  if (!isCollection && !Array.isArray(value) && !isObjectLiteral(value)) {
+  if (Array.isArray(value)) {
+    return copyArray(value, copies);
+  }
+
+  if (value instanceof Map || value instanceof Set) {
+    return copyCollection(value, copies);
+  }
+
+  if (!isObjectLiteral(value)) {
     return value;
   }
 
-  const source = value as object;
+  const copy: Record<string, unknown> = {};
 
-  if (copies.has(source)) {
-    return copies.get(source);
+  copies.set(value, copy);
+  copyOwnProperties(value as Record<string, unknown>, copy, copies);
+
+  return copy;
+}
+
+/**
+ * Copies an array for `copyCellData()`, keeping its length and its holes.
+ *
+ * @param {Array} source The array.
+ * @param {WeakMap} copies The copies made so far in this call.
+ * @returns {Array} The copy.
+ */
+function copyArray(source: unknown[], copies: WeakMap<object, unknown>): unknown[] {
+  const copy: unknown[] = new Array(source.length);
+
+  copies.set(source, copy);
+
+  for (let index = 0; index < source.length; index += 1) {
+    if (index in source) {
+      copy[index] = copyCellData(source[index], copies);
+    }
   }
 
+  return copy;
+}
+
+/**
+ * Copies a `Map` or a `Set` for `copyCellData()`: a `Map` keeps its keys by reference and copies its values.
+ *
+ * @param {Map|Set} source The collection.
+ * @param {WeakMap} copies The copies made so far in this call.
+ * @returns {Map|Set} The copy.
+ */
+function copyCollection(
+  source: Map<unknown, unknown> | Set<unknown>,
+  copies: WeakMap<object, unknown>,
+): Map<unknown, unknown> | Set<unknown> {
   if (source instanceof Map) {
     const copy = new Map<unknown, unknown>();
 
@@ -493,35 +631,11 @@ export function copyCellData(value: unknown, copies = new WeakMap<object, unknow
     return copy;
   }
 
-  if (source instanceof Set) {
-    const copy = new Set<unknown>();
-
-    copies.set(source, copy);
-    source.forEach((entry: unknown) => {
-      copy.add(copyCellData(entry, copies));
-    });
-
-    return copy;
-  }
-
-  if (Array.isArray(source)) {
-    const copy: unknown[] = [];
-
-    copies.set(source, copy);
-    source.forEach((entry: unknown) => {
-      copy.push(copyCellData(entry, copies));
-    });
-
-    return copy;
-  }
-
-  const copy: Record<string, unknown> = {};
+  const copy = new Set<unknown>();
 
   copies.set(source, copy);
-  Object.entries(source).forEach(([key, entry]) => {
-    if (!UNCOPIED_KEYS.has(key)) {
-      copy[key] = copyCellData(entry, copies);
-    }
+  source.forEach((entry: unknown) => {
+    copy.add(copyCellData(entry, copies));
   });
 
   return copy;

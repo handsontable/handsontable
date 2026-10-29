@@ -1,3 +1,4 @@
+import HyperFormula from 'hyperformula';
 import Handsontable from '../../../index';
 
 const LICENSE_KEY = 'non-commercial-and-evaluation';
@@ -179,6 +180,19 @@ describe('SheetsBar: the public methods keep their documented contract', () => {
       expect(namesOf(plugin)).toEqual(['A']);
     });
 
+    it('builds a sheet whose declared `data` is `null` as a blank one, also with a shared formula engine', () => {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+      const bound = (name, data) => ({ name, data, settings: { formulas: { engine, sheetName: name } } });
+      let plugin;
+
+      expect(() => {
+        plugin = buildWorkbook([bound('Revenue', [[4200000]]), bound('Costs', null)]);
+      }).not.toThrow();
+
+      expect(plugin.setActiveSheet('Costs')).toBe(true);
+      expect(hot.countRows()).toBeGreaterThan(0);
+    });
+
     it('accepts an omitted or `null` name in a declared entry and in `addSheet()`', () => {
       const plugin = buildWorkbook([{ data: [[1]] }, { name: null, data: [[2]] }]);
 
@@ -299,6 +313,19 @@ describe('SheetsBar: the public methods keep their documented contract', () => {
       expect(copy).toEqual(plugin.getSheets().find(sheet => sheet.id === copy.id));
     });
 
+    it('is still returned when an `afterSheetTabAdd` listener removed the new sheet', () => {
+      const plugin = buildWorkbook([{ name: 'A', data: [[1]] }]);
+
+      hot.addHook('afterSheetTabAdd', (id) => {
+        plugin.removeSheet(id);
+      });
+
+      expect(plugin.addSheet('New')).toEqual(expect.objectContaining({ name: 'New', isActive: false }));
+      expect(plugin.duplicateSheet(idOf(plugin, 'A')))
+        .toEqual(expect.objectContaining({ name: 'A (2)', isActive: false }));
+      expect(namesOf(plugin)).toEqual(['A']);
+    });
+
     it('reports `isActive: false` when nothing switched', () => {
       const plugin = buildWorkbook([{ name: 'A', data: [[1]] }]);
 
@@ -325,6 +352,17 @@ describe('SheetsBar: the public methods keep their documented contract', () => {
       expect(plugin.renameSheet(idOf(plugin, 'Beta'), 'alpha')).toBe(false);
       expect(beforeRename).not.toHaveBeenCalled();
       expect(namesOf(plugin)).toEqual(['Alpha', 'Beta']);
+    });
+
+    it('keep the active sheet active through a rebuild that changes only its name\'s case', () => {
+      const plugin = buildWorkbook([{ name: 'Alpha', data: [[1]] }, { name: 'Budget', data: [[2]] }]);
+
+      plugin.setActiveSheet('Budget');
+      hot.updateSettings({
+        sheetsBar: { sheets: [{ name: 'Alpha', data: [[1]] }, { name: 'BUDGET', data: [[2]] }], activeSheet: 0 },
+      });
+
+      expect(plugin.getSheets().find(sheet => sheet.isActive).name).toBe('BUDGET');
     });
 
     it('number a declared sheet that repeats another one\'s name in another case', () => {

@@ -65,7 +65,7 @@ describe('ManualColumnResize manual-size API', () => {
     it.each([
       ['NaN', NaN],
       ['Infinity', Infinity],
-      ['a string', '100'],
+      ['a string that is not a number', 'wide'],
     ])('stores nothing for a width that is %s', (_label, width) => {
       const plugin = buildGrid({ manualColumnResize: true });
 
@@ -73,6 +73,21 @@ describe('ManualColumnResize manual-size API', () => {
       plugin.setManualSize(0, width);
 
       expect(plugin.getManualSize(0)).toBe(80);
+    });
+
+    it('stores a numeric string as a number, as released versions do', () => {
+      const plugin = buildGrid({ manualColumnResize: true });
+
+      expect(plugin.setManualSize(0, '150')).toBe(150);
+      expect(plugin.getManualSize(0)).toBe(150);
+    });
+
+    it('stores the minimum width for `null`, as released versions do', () => {
+      const plugin = buildGrid({ manualColumnResize: true });
+
+      plugin.setManualSize(0, null);
+
+      expect(plugin.getManualSize(0)).toBe(20);
     });
   });
 

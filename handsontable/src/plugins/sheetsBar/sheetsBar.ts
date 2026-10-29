@@ -525,7 +525,8 @@ interface PreservedState {
  *    added, and is refused by {@link SheetsBar#renameSheet}.
  *  - Names are unique, and they are compared without regard to case, the way HyperFormula compares sheet
  *    names: "Budget" and "BUDGET" are the same name, and so are two names that read the same in different
- *    Unicode forms. A rename that only changes the case of a sheet's own name is allowed.
+ *    Unicode forms. A rename that only changes the case of a sheet's own name is allowed. A lookup by
+ *    name, in {@link SheetsBar#setActiveSheet} or {@link SheetsBar#updateSheetSettings}, ignores case too.
  *  - An added sheet whose name is taken gets a number after the whole name: a second "Budget (2024)"
  *    becomes "Budget (2024) (2)". A duplicate is named the same way: "Budget (2)", then "Budget (3)".
  *
@@ -2071,7 +2072,9 @@ export class SheetsBar extends BasePlugin {
    *
    * The copy gets a deep clone of the sheet's data and settings, and a name based on the
    * original's. A `Date`, `RegExp`, `Map`, or `Set` in a cell is copied as a new value of the same
-   * kind, and an instance of your own class is shared with the original. The `formulas` setting is not cloned: the copy shares the original's engine,
+   * kind, and an instance of your own class in a cell is shared with the original. Every row is copied,
+   * a row that is an instance of your own class included, and keeps its prototype. The `formulas` setting is
+   * not cloned: the copy shares the original's engine,
    * under a sheet name of its own. Returns `null` when the bar is off, the id is unknown, a
    * `beforeSheetTabAdd` listener cancels the copy, your `sheets` array is frozen (with a console warning),
    * or it is called from a listener of a workbook change's before-hook.
@@ -2474,7 +2477,8 @@ export class SheetsBar extends BasePlugin {
    * @param {object} [settings] The sheet's settings. Omitted, the sheet inherits the
    * workbook's shared formula engine when one is configured.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
-   * @returns {object|null} A descriptor for the new sheet, or `null`.
+   * @returns {object|null} The new sheet's `{ id, name, isActive }` descriptor, read after the
+   * `afterSheetTabAdd` listeners ran, or `null`.
    * @fires Hooks#beforeSheetTabAdd
    * @fires Hooks#afterSheetTabAdd
    */
@@ -2517,18 +2521,20 @@ export class SheetsBar extends BasePlugin {
       source,
     );
 
-    return sheet === false ? null : this.#describe(sheet.id);
+    return sheet === false ? null : this.#describe(sheet);
   }
 
   /**
-   * Returns the current descriptor of a sheet, read from the model after the after-hook ran, so it
-   * reports a switch an `afterSheetTabAdd` listener made. `null` when the sheet is gone or the bar is off.
+   * Returns the current descriptor of an added sheet, read from the model after the after-hook ran, so it
+   * reports a switch an `afterSheetTabAdd` listener made. When a listener already removed the sheet or
+   * turned the bar off, the add still happened, so the descriptor is built from the record, inactive.
    *
-   * @param {number} id The sheet.
-   * @returns {object|null}
+   * @param {object} sheet The added sheet.
+   * @returns {object}
    */
-  #describe(id: number): SheetDescriptor | null {
-    return this.#model?.getSheets().find(sheet => sheet.id === id) ?? null;
+  #describe(sheet: Sheet): SheetDescriptor {
+    return this.#model?.getSheets().find(descriptor => descriptor.id === sheet.id)
+      ?? { id: sheet.id, name: sheet.name, isActive: false };
   }
 
   /**
@@ -2984,7 +2990,7 @@ export class SheetsBar extends BasePlugin {
       this.#physicalOrder = [];
 
       sheetsSetting.forEach((entry) => {
-        const sheet = model.addSheet(entry.name ?? null, entry.data, entry.settings);
+        const sheet = model.addSheet(entry.name ?? null, entry.data ?? undefined, entry.settings);
 
         this.#declaredEntries.set(sheet.id, entry);
         this.#physicalOrder.push(sheet.id);
@@ -2994,7 +3000,7 @@ export class SheetsBar extends BasePlugin {
       const descriptors = model.getSheets();
       const retained = this.#retainActiveName === null
         ? undefined
-        : descriptors.find(descriptor => descriptor.name === this.#retainActiveName);
+        : descriptors.find(descriptor => descriptor.id === model.resolveId(this.#retainActiveName));
       const target = retained
         ?? descriptors.find(descriptor => descriptor.id === this.#physicalOrder[activeIndex])
         ?? descriptors[0];
@@ -4297,7 +4303,7 @@ export class SheetsBar extends BasePlugin {
       source,
     );
 
-    return duplicated === false ? null : this.#describe(duplicated.id);
+    return duplicated === false ? null : this.#describe(duplicated);
   }
 
   /**
