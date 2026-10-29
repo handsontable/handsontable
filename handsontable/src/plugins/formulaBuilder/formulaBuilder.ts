@@ -22,6 +22,7 @@ import {
   isFormulaAliasForeign,
   isFormulaEditor,
   registerFormulaEditor,
+  resolveCommitValue,
   type FormulaHostEditor,
 } from './formulaCellEditor';
 import { HandsontableAdapter, setFormulaBuilderAdapter } from './handsontableAdapter';
@@ -625,7 +626,7 @@ export class FormulaBuilder extends BasePlugin {
       return;
     }
 
-    editor.setValue?.(value);
+    editor.setValue?.(resolveCommitValue(editor, value));
 
     if (!direction) {
       editor.finishEditing?.();

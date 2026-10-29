@@ -340,6 +340,12 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   `hot.getActiveEditor()`, and closing them there changed the buffer under a plain read. The shim's
   `finishEditing()` closes them for an edit that is saved (state `EDITING`, no `restoreOriginalValue`), which
   is what a native commit (an outside click) needs; the formula editor's own commit keys close them too.
+  An untouched edit is the exception on both paths, or opening `=SUM(A1` and pressing Enter wrote
+  `=SUM(A1)` and fired `afterChange`: `finishEditing()` skips the close when the buffer equals `_original`,
+  and the package closes them BEFORE it calls `onCommit`, so `commitInlineEdit()` saves through
+  `resolveCommitValue()`, which compares the text the shim recorded at the commit `keydown`
+  (`_textAtKeyDown`, a document capture listener added in `afterOpen` and removed in `afterClose`) with
+  `_original`. A closing parenthesis the user typed changes that text, so it is still written.
 - **Ctrl/Cmd+Enter fills the selection through the grid's editor.** The adapter's `commitFill()` calls
   `commitInlineEditToSelection()`, which saves through `finishEditing(false, true)`: the `ctrlDown` path of
   `BaseEditor#saveValue()`, shared with the grid's own fill (`selection/fillSelection.ts`). After a

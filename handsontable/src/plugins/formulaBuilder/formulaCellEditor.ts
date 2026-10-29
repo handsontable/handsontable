@@ -74,6 +74,16 @@ export interface FormulaHostEditor {
    */
   _original?: string;
   /**
+   * The formula editor's text when the latest `keydown` of the session started, before the formula
+   * editor handled it. Every commit key of the formula editor is a `keydown`, so on a commit this is
+   * the text before the commit closed its unbalanced parentheses.
+   */
+  _textAtKeyDown?: string;
+  /**
+   * Removes the `keydown` listener that records `_textAtKeyDown`, `null` between sessions.
+   */
+  _removeKeyDownSnapshot?: (() => void) | null;
+  /**
    * Hides the inline editor while the formula bar edits the cell.
    */
   _hiddenByFormulaBar?: boolean;
@@ -145,6 +155,7 @@ export interface FormulaEditorPluginSurface {
 interface EditorHost {
   hot: {
     getPlugin(name: string): unknown;
+    isDestroyed: boolean;
     rootDocument: Document;
   };
 }
@@ -368,6 +379,28 @@ function startKeyboardGuard(editor: FormulaHostEditor): void {
 }
 
 /**
+ * Records the formula editor's text at every `keydown` of an edit session, before the formula editor
+ * handles the key (see `resolveCommitValue()`). The listener captures on the document, so it runs
+ * first wherever the formula editor is mounted (the cell or the formula bar). It is removed in
+ * `afterClose`: unlike the keyboard guard, nothing needs it after the session.
+ *
+ * @param {FormulaHostEditor} editor The editor instance.
+ */
+function startKeyDownSnapshot(editor: FormulaHostEditor): void {
+  const { hot } = editor as unknown as EditorHost;
+  const rootDocument = hot.rootDocument;
+  const snapshot = (): void => {
+    if (!hot.isDestroyed) {
+      editor._textAtKeyDown = resolvePlugin(editor)?.getActiveEditor()?.getValue();
+    }
+  };
+
+  editor._removeKeyDownSnapshot?.();
+  rootDocument.addEventListener('keydown', snapshot, true);
+  editor._removeKeyDownSnapshot = () => rootDocument.removeEventListener('keydown', snapshot, true);
+}
+
+/**
  * Builds the formula cell editor class: a Handsontable editor shim whose content
  * is the formula editor mounted by the plugin. The keyboard guard is created per
  * edit session (in `afterOpen`) and destroyed one task after close, so it still
@@ -397,6 +430,7 @@ export function createFormulaCellEditor(): BaseEditorCtor {
 
       editor._pending = original;
       editor._original = original;
+      editor._textAtKeyDown = undefined;
       editor._hiddenByFormulaBar = false;
     },
     afterOpen(editor) {
@@ -417,6 +451,7 @@ export function createFormulaCellEditor(): BaseEditorCtor {
       }
 
       startKeyboardGuard(editor);
+      startKeyDownSnapshot(editor);
     },
     onFocus(editor) {
       if (editor._fallbackInput) {
@@ -468,6 +503,8 @@ export function createFormulaCellEditor(): BaseEditorCtor {
         editor.hot._registerTimeout(() => guard.destroy());
       }
 
+      editor._removeKeyDownSnapshot?.();
+      editor._removeKeyDownSnapshot = null;
       editor._fallbackInput = undefined;
       removeClass(editor.container, TEXT_EDITOR_HOLDER_CLASS);
       editor.input.replaceChildren();
@@ -501,8 +538,14 @@ export function createFormulaCellEditor(): BaseEditorCtor {
     restoreOriginalValue?: boolean,
     ...rest: unknown[]
   ): void {
-    if (!restoreOriginalValue && this.state === EDITOR_STATE.EDITING && !this._fallbackInput) {
-      resolvePlugin(this)?.getActiveEditor()?.closeUnbalancedParens();
+    const inner = resolvePlugin(this)?.getActiveEditor();
+
+    // An untouched edit is left as it is, so the unchanged-value guard of `BaseEditor` writes nothing.
+    if (
+      !restoreOriginalValue && this.state === EDITOR_STATE.EDITING && !this._fallbackInput &&
+      inner && inner.getValue() !== this._original
+    ) {
+      inner.closeUnbalancedParens();
     }
 
     baseFinishEditing.call(this, restoreOriginalValue, ...rest);
@@ -511,6 +554,27 @@ export function createFormulaCellEditor(): BaseEditorCtor {
   (EditorClass as unknown as Record<symbol, boolean>)[FORMULA_SHIM_MARK] = true;
 
   return EditorClass as unknown as BaseEditorCtor;
+}
+
+/**
+ * Returns the value a commit of the formula editor saves. The formula editor closes unbalanced
+ * parentheses before it commits, so the value of an edit the user never changed differs from the
+ * cell, and `BaseEditor`'s unchanged-value guard would write it (and fire `afterChange`). When the
+ * text before the commit key equals the cell's original value and the commit only appended closing
+ * parentheses to it, the original value is saved instead, which the guard recognizes.
+ *
+ * @param {FormulaHostEditor} editor The editor instance.
+ * @param {string} value The value the formula editor commits.
+ * @returns {string}
+ */
+export function resolveCommitValue(editor: FormulaHostEditor, value: string): string {
+  const original = editor._original;
+
+  if (original === undefined || editor._textAtKeyDown !== original || !value.startsWith(original)) {
+    return value;
+  }
+
+  return /^\)+$/.test(value.slice(original.length)) ? original : value;
 }
 
 let formulaEditorClass: BaseEditorCtor | null = null;

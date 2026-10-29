@@ -804,6 +804,75 @@ describe('FormulaBuilder editing on a real grid', () => {
     });
   });
 
+  describe('committing an unchanged formula with unbalanced parentheses', () => {
+    /**
+     * Returns the formula editor's text input.
+     *
+     * @returns {HTMLTextAreaElement}
+     */
+    function formulaInput(): HTMLTextAreaElement {
+      const input = container.querySelector<HTMLTextAreaElement>('.ht-formula-builder__inline-editor textarea');
+
+      if (!input) {
+        throw new Error('no formula editor input');
+      }
+
+      return input;
+    }
+
+    it('writes nothing on Enter', async() => {
+      createGrid({ data: [['=SUM(B1', 1]] });
+      const afterChange = jest.fn();
+
+      hot.addHook('afterChange', afterChange);
+      hot.selectCell(0, 0);
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+      formulaInput().dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+      await settle();
+
+      expect(isEditorOpened()).toBe(false);
+      expect(hot.getSourceDataAtCell(0, 0)).toBe('=SUM(B1');
+      expect(afterChange).not.toHaveBeenCalled();
+    });
+
+    it('writes nothing on a native commit (an outside click)', async() => {
+      createGrid({ data: [['=SUM(B1', 1]] });
+      const afterChange = jest.fn();
+
+      hot.addHook('afterChange', afterChange);
+      hot.selectCell(0, 0);
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+      hot.getActiveEditor()?.finishEditing();
+      await settle();
+
+      expect(hot.getSourceDataAtCell(0, 0)).toBe('=SUM(B1');
+      expect(afterChange).not.toHaveBeenCalled();
+    });
+
+    it('still closes them when the text changed', async() => {
+      createGrid({ data: [['=SUM(B1', 1]] });
+      hot.selectCell(0, 0);
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+      hot.getPlugin('formulaBuilder').getActiveEditor()?.setValue('=SUM(B1,B1');
+      formulaInput().dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+      await settle();
+
+      expect(hot.getSourceDataAtCell(0, 0)).toBe('=SUM(B1,B1)');
+    });
+
+    it('writes a closing parenthesis the user typed', async() => {
+      createGrid({ data: [['=SUM(B1', 1]] });
+      hot.selectCell(0, 0);
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+      // The same text the commit would produce by closing the parentheses, typed by the user instead.
+      hot.getPlugin('formulaBuilder').getActiveEditor()?.setValue('=SUM(B1)');
+      formulaInput().dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+      await settle();
+
+      expect(hot.getSourceDataAtCell(0, 0)).toBe('=SUM(B1)');
+    });
+  });
+
   describe('the event the formula bar opens the editor with', () => {
     it('is an event a `beforeBeginEditing` listener can read', () => {
       const types: string[] = [];
