@@ -238,8 +238,9 @@ The shortcut context is a third case: `ShortcutManager` can create a context but
 (Add comment) and the Ctrl+Alt+M shortcut call `show()` on such cells to author a comment, and applications call
 `showAtCell()` for the same reason. Do not gate either on an existing comment; it is a breaking change. Leaving the focused
 empty editor stores an empty comment (`{ value: '' }`), as before. The hover path is gated on the `htCommentCell` class
-(`targetIsCellWithComment()`), not on the comment meta, so it is not a guard for this. The `showAtCell()` form is pinned by
-`tests/e2e/comments-show-at-cell.spec.ts`; the Add comment path by `comments.spec.js`.
+(`targetIsCellWithComment()`), not on the comment meta, so it is not a guard for this. The empty editor is pinned for
+`show()` through `showAtCell()` in `tests/e2e/comments-show-at-cell.spec.ts`. For Add comment, `comments.spec.js` pins only
+that the editor opens on a cell without a comment, not that it is empty; `addEditComment` reaches the same `show()`.
 
 `readOnlyComment`'s mark and click must agree on which cells count (DEV-124). Both go through
 `getCommentReadOnlyState()`, which leaves out a hidden cell under a merged block and a cell with no
