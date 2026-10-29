@@ -38,6 +38,10 @@ interface HarnessOptions {
    * The visual column span each column header covers, by its column (a nested-header group).
    */
   headerSpans?: Record<number, { start: number; end: number }>;
+  /**
+   * Whether the formula bar hosts the edit (the in-cell editor is hidden).
+   */
+  barHosted?: boolean;
 }
 
 interface HolderStub {
@@ -77,8 +81,12 @@ function makeHarness(options: HarnessOptions = {}) {
     cellAtPoint = null,
     hostActiveEditor,
     headerSpans = {},
+    barHosted = false,
   } = options;
   const holder = makeHolder();
+  const rootElement = document.createElement('div');
+  const relisten = jest.fn();
+  const unlisten = jest.fn();
   const adapterStub = {
     highlightRange: jest.fn(),
     clearEphemeralHighlight: jest.fn(),
@@ -113,7 +121,10 @@ function makeHarness(options: HarnessOptions = {}) {
     toHfCoords: coords => ({ row: coords.row + rowOffset, col: coords.col }),
     emitSwitchToInline,
     getHostActiveEditor: () => hostActiveEditor,
-    relisten: jest.fn(),
+    relisten,
+    unlisten,
+    isBarHostedEdit: () => barHosted,
+    getRootElement: () => rootElement,
     getScrollHolder: () => holder as unknown as HTMLElement,
     getRootDocument: () => document,
     getColumnHeaderSpan: coords => headerSpans[coords.col] ?? { start: coords.col, end: coords.col },
@@ -130,6 +141,9 @@ function makeHarness(options: HarnessOptions = {}) {
     holder,
     closeUnbalancedParens,
     editorState,
+    relisten,
+    unlisten,
+    rootElement,
   };
 }
 
@@ -614,6 +628,85 @@ describe('CellPickController drag listeners', () => {
 });
 
 describe('CellPickController.onDocMouseUp', () => {
+  describe('handing the keyboard back to the grid', () => {
+    /**
+     * Releases the pressed button over the given element, the way a real `mouseup` reaches the
+     * document listener.
+     *
+     * @param {CellPickController} controller The controller under test.
+     * @param {HTMLElement} target The element under the pointer.
+     */
+    function releaseOver(controller: CellPickController, target: HTMLElement): void {
+      const event = new MouseEvent('mouseup', { bubbles: true, composed: true });
+
+      target.addEventListener('mouseup', controller.onDocMouseUp, { once: true });
+      target.dispatchEvent(event);
+    }
+
+    it('unlistens, and does not relisten, after a bar-hosted pick released inside the grid', () => {
+      const { controller, relisten, unlisten, rootElement } = makeHarness({ barHosted: true });
+      const cell = document.createElement('td');
+
+      rootElement.append(cell);
+      document.body.append(rootElement);
+      pressCell(controller, { row: 2, col: 3 });
+      releaseOver(controller, cell);
+
+      expect(relisten).not.toHaveBeenCalled();
+      expect(unlisten).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not relisten after a bar-hosted pick released inside a grid rendered in a shadow root', () => {
+      const { controller, relisten, unlisten, rootElement } = makeHarness({ barHosted: true });
+      const host = document.createElement('div');
+      const shadowRoot = host.attachShadow({ mode: 'open' });
+      const cell = document.createElement('td');
+
+      rootElement.append(cell);
+      shadowRoot.append(rootElement);
+      document.body.append(host);
+      pressCell(controller, { row: 2, col: 3 });
+      releaseOver(controller, cell);
+
+      expect(relisten).not.toHaveBeenCalled();
+      expect(unlisten).toHaveBeenCalledTimes(1);
+    });
+
+    it('relistens after a bar-hosted pick released outside the grid', () => {
+      const { controller, relisten, unlisten, rootElement } = makeHarness({ barHosted: true });
+      const outside = document.createElement('div');
+
+      document.body.append(rootElement, outside);
+      pressCell(controller, { row: 2, col: 3 });
+      releaseOver(controller, outside);
+
+      expect(relisten).toHaveBeenCalledTimes(1);
+      expect(unlisten).not.toHaveBeenCalled();
+    });
+
+    it('relistens after a bar-hosted pick whose button was released outside the window', () => {
+      const { controller, relisten } = makeHarness({ barHosted: true });
+
+      pressCell(controller, { row: 2, col: 3 });
+      document.dispatchEvent(new MouseEvent('mousemove', { buttons: 0 }));
+
+      expect(relisten).toHaveBeenCalledTimes(1);
+    });
+
+    it('relistens after an in-cell pick released inside the grid', () => {
+      const { controller, relisten, unlisten, rootElement } = makeHarness({ barHosted: false });
+      const cell = document.createElement('td');
+
+      rootElement.append(cell);
+      document.body.append(rootElement);
+      pressCell(controller, { row: 2, col: 3 });
+      releaseOver(controller, cell);
+
+      expect(relisten).toHaveBeenCalledTimes(1);
+      expect(unlisten).not.toHaveBeenCalled();
+    });
+  });
+
   it('emits a cell pick when press and release land on the same cell', () => {
     const { controller, adapterStub } = makeHarness();
 

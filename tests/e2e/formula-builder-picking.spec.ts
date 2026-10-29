@@ -44,6 +44,45 @@ test.describe('formulaBuilder mouse reference picking', { tag: [THEMES_TAG, BUND
     expect(await grid.selectedLast()).toEqual([3, 0, 3, 0]);
   });
 
+  test('a pick during a bar-hosted edit keeps the keys in the bar and the grid not listening', async({ page }) => {
+    await page.keyboard.press('Escape');
+    await expect.poll(() => grid.editorOpened()).toBe(false);
+    await grid.openBarEditor();
+    await page.keyboard.type('=');
+
+    await grid.cell(0, 1).click();
+    await expect(grid.editorInput).toHaveValue('=B1');
+    await expect(grid.editorInput).toBeFocused();
+
+    await page.keyboard.type('+1');
+    await expect(grid.editorInput).toHaveValue('=B1+1');
+    await expect(grid.editorInput).toBeFocused();
+    // The grid listens on its own cell `mousedown`; a pick released inside the grid takes the keyboard
+    // back from it while the bar edits.
+    expect(await grid.isListening()).toBe(false);
+
+    // A listening grid would move the selection on ArrowDown. Delete at the end of the text changes
+    // nothing in the editor and must not reach the grid either.
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Delete');
+    expect(await grid.selectedLast()).toEqual([3, 0, 3, 0]);
+    await expect(grid.editorInput).toHaveValue('=B1+1');
+    expect(await grid.editorOpened()).toBe(true);
+    expect(await grid.isListening()).toBe(false);
+    await expect(grid.editorInput).toBeFocused();
+
+    // The commit hands the keyboard back to the grid.
+    await grid.editorInput.press('End');
+    await page.keyboard.press('Enter');
+    await expect.poll(() => grid.editorOpened()).toBe(false);
+    expect(await grid.sourceAt(3, 0)).toBe('=B1+1');
+    await expect.poll(() => grid.isListening()).toBe(true);
+    expect(await grid.selectedLast()).toEqual([4, 0, 4, 0]);
+    // Row 4 is the fixture's last row, so the listening grid shows itself on ArrowUp.
+    await page.keyboard.press('ArrowUp');
+    expect(await grid.selectedLast()).toEqual([3, 0, 3, 0]);
+  });
+
   test('Escape during a pick drag cancels the edit, and the rest of the drag selects nothing', async({ page }) => {
     await grid.cell(0, 1).hover();
     await page.mouse.down();

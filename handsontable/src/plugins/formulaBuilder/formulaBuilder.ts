@@ -1943,6 +1943,10 @@ export class FormulaBuilder extends BasePlugin {
       // After the `click` that follows a release outside the grid: the focus scope manager's click
       // handler unlistens the grid there, so a synchronous `listen()` would be undone.
       relisten: () => this.hot._registerTimeout(() => this.#relistenAfterBarExit(), 0),
+      // Deferred for the same `click`; the grid listened from its own cell `mousedown` handler.
+      unlisten: () => this.hot._registerTimeout(() => this.#unlistenUnderBarEdit(), 0),
+      isBarHostedEdit: () => this.#isBarHostedEdit(),
+      getRootElement: () => this.hot.rootElement,
       getScrollHolder: () => this.#adapter?.getScrollHolder() ?? null,
       getRootDocument: () => this.hot.rootDocument,
       getColumnHeaderSpan: coords => this.#columnHeaderSpan(coords),
@@ -2333,6 +2337,25 @@ export class FormulaBuilder extends BasePlugin {
   #relistenAfterBarExit(): void {
     if (!this.hot.isDestroyed) {
       this.hot.listen();
+    }
+  }
+
+  /**
+   * Whether the open edit is hosted by the formula bar (the in-cell editor is hidden).
+   *
+   * @returns {boolean}
+   */
+  #isBarHostedEdit(): boolean {
+    return this.#activeEditor !== null && this.#hostEditor()?._hiddenByFormulaBar === true;
+  }
+
+  /**
+   * Takes the keyboard from the grid while a bar-hosted edit is still open, so the keys typed in the
+   * bar never reach the grid's shortcuts.
+   */
+  #unlistenUnderBarEdit(): void {
+    if (!this.hot.isDestroyed && this.#isBarHostedEdit()) {
+      this.hot.unlisten();
     }
   }
 
