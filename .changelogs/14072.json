@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Documented that `showAtCell()` and `show()` open an empty comment editor for a cell without a comment.",
+  "type": "changed",
+  "issueOrPR": 14072,
+  "breaking": false,
+  "framework": "none"
+}
