@@ -465,6 +465,22 @@ export const REGISTERED_HOOKS = [
   'beforeCompositionStart',
 
   /**
+   * Fired after the document finishes loading a web font, before Handsontable renders the grid again. A font
+   * that loads after the grid renders changes the size of the text without changing the size of the
+   * container, so a plugin that caches sizes measured from text drops or re-measures them here. The sizing
+   * plugins that ship with Handsontable re-measure on this hook too, after the listeners you add with the
+   * default order (including a listener in the settings object), so a listener that drops a custom
+   * renderer's cached sizes runs before they measure.
+   *
+   * The hook fires for every font the document loads, whether or not the grid uses it. On a hidden grid
+   * (for example, `display: none`), it fires once the grid is shown and comes into view.
+   *
+   * @event Hooks#afterFontsLoad
+   * @since 19.0.0
+   */
+  'afterFontsLoad',
+
+  /**
    * Fired after getting the cell settings.
    *
    * @event Hooks#afterGetCellMeta
@@ -4613,7 +4629,8 @@ export const REGISTERED_HOOKS = [
   'afterUnlisten',
 
   /**
-   * Fired after the window was resized or the size of the Handsontable root element was changed.
+   * Fired after the window was resized or the size of the Handsontable root element was changed. A
+   * re-measure after a web font loads does not fire it (see [`afterFontsLoad`](#afterfontsload)).
    *
    * @event Hooks#afterRefreshDimensions
    * @param {{ width: number, height: number }} previousDimensions Previous dimensions of the container.
@@ -4624,7 +4641,8 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Cancellable hook, called after resizing a window or after detecting size change of the
-   * Handsontable root element, but before redrawing a table.
+   * Handsontable root element, but before redrawing a table. A re-measure after a web font loads does not
+   * fire it (see [`afterFontsLoad`](#afterfontsload)), so returning `false` does not stop that re-measure.
    *
    * @event Hooks#beforeRefreshDimensions
    * @param {{ width: number, height: number }} previousDimensions Previous dimensions of the container.
