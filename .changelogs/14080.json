@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed column widths under nested headers changing on the first data reload: with `autoColumnSize`, a column sized by its bottom header label now gets its final width on the first render.",
+  "type": "fixed",
+  "issueOrPR": 14080,
+  "breaking": false,
+  "framework": "none"
+}
