@@ -172,10 +172,32 @@ its queued VISUAL rows landed on the records the trim had shifted into those pos
 
 Three more entry points, all from review round 12:
 
-- **`updateSettings({ trimRows })` defers the rebuild too** (`#onAfterUpdateSettings`). `TrimRows#updatePlugin`
-  writes the trimming map inside `batchExecution` and fires no `afterTrimRow`, so the model kept the
-  visual row a border was drawn at while its record moved. There is no `beforeUpdateSettings` hook, so
-  on this path only a progressive load still in flight completes after the map changed.
+- **`updateSettings({ trimRows })` defers the rebuild too, but only when the visible rows changed**
+  (`#onAfterUpdateSettings`). `TrimRows#updatePlugin` writes the trimming map inside `batchExecution` and
+  fires no `afterTrimRow`, so the model kept the visual row a border was drawn at while its record moved.
+  There is no `beforeUpdateSettings` hook, so on this path only a progressive load still in flight
+  completes after the map changed. The React wrapper re-sends `trimRows` on every render (only
+  `columns`, `dataSchema` and the size options are compared, `settingsMapper.ts`), the Angular wrapper on
+  every `settings` change, and the Vue wrapper drops an unchanged value (`prepareSettings()` with
+  `simpleEqual()`). The rebuild walks every bordered cell, so the handler compares
+  `rowIndexMapper.getNotTrimmedIndexes()` with the array `#onUpdateSettingsStart` held before the update and
+  skips the rebuild when the two match (DEV-3553; about 4x faster for an unchanged `trimRows` at 50,000
+  borders, measured in jsdom with a stubbed layout, median of 5 runs; the rest is the `updateSettings()`
+  render itself). **`#onUpdateSettingsStart` is an
+  `afterUpdateSettings` listener at `orderIndex` -1**, not an `after*` hook that reads state late: every
+  plugin's own `updatePlugin()` runs from an `orderIndex` 0 listener registered in its constructor, so only a
+  negative index reads the rows before `TrimRows#updatePlugin()` writes the map. The mapper replaces its
+  not-trimmed array on every cache update and never mutates it, so holding the reference is the snapshot.
+  Do **not** key this on the mapper's cache update instead: an insert or a remove raises the same flags, and
+  the plugin already shifts its model for them in its `before*` hooks, so a rebuild there moves the borders
+  twice. Pinned by `__tests__/unchangedTrimRowsSettings.unit.js`. Two guards ride along. **The comparison is
+  skipped while `hot.rowIndexMapper.isBatched`**: a `trimRows: false` only unregisters the map, and the mapper
+  does not rebuild its cache until the batch ends, so inside `hot.batch()`, or a bare
+  `rowIndexMapper.suspendOperations()`, the array is the very same one and would read as "unchanged"; the
+  rebuild is then deferred as it always was. Key it on the mapper's flag (the one `updateCache()` checks), not
+  on `hot.isExecutionSuspended()`, which a bare mapper suspension does not set. **`updatePlugin()` keeps the
+  snapshot across its disable/enable cycle** (the listener it re-registers can still run in that pass), while
+  `disablePlugin()` nulls it, so a plugin switched off in one update never compares against rows from before.
 - **A pending rebuild runs in `beforeLoadData`/`beforeUpdateData`** (`#onBeforeDataReplacement`).
   `loadData` drops the cell meta and keeps the model (the section above), so a rebuild left for the next
   read found no meta and emptied the model: `trimRow(0); loadData(same)` lost the border that
