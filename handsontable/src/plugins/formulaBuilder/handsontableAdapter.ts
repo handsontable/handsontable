@@ -74,6 +74,70 @@ const BORDER_DASH_MASK = 'repeating-linear-gradient(45deg, #000 0 2px, transpare
 const SAFE_COLOR_PATTERN = /^[\w#%(),./*+\s-]+$/;
 
 /**
+ * A rectangle of visual rows and columns, inclusive on every side.
+ */
+interface VisualBox {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+}
+
+/**
+ * A merged cell, in visual coordinates.
+ */
+interface MergeArea {
+  row: number;
+  col: number;
+  rowspan: number;
+  colspan: number;
+}
+
+/**
+ * Grows the box, in place, over a merge it overlaps without covering it.
+ *
+ * @param {VisualBox} box The box to grow.
+ * @param {MergeArea} merge The merged cell.
+ * @returns {boolean} Whether the box grew.
+ */
+function growBoxOverMerge(box: VisualBox, { row, col, rowspan, colspan }: MergeArea): boolean {
+  const bottom = row + rowspan - 1;
+  const right = col + colspan - 1;
+  const overlaps = row <= box.bottom && bottom >= box.top && col <= box.right && right >= box.left;
+  const covered = row >= box.top && col >= box.left && bottom <= box.bottom && right <= box.right;
+
+  if (!overlaps || covered) {
+    return false;
+  }
+
+  box.top = Math.min(box.top, row);
+  box.left = Math.min(box.left, col);
+  box.bottom = Math.max(box.bottom, bottom);
+  box.right = Math.max(box.right, right);
+
+  return true;
+}
+
+/**
+ * Grows the box, in place, until it covers every merged cell it touches. A merge the box grows over
+ * can reach another one, so it repeats until nothing grows.
+ *
+ * @param {VisualBox} box The box to grow.
+ * @param {MergeArea[]} merges The merged cells.
+ * @returns {boolean} Whether the box grew at all.
+ */
+function growBoxOverMerges(box: VisualBox, merges: readonly MergeArea[]): boolean {
+  let grewAtAll = false;
+
+  for (let grown = true; grown;) {
+    grown = merges.reduce((grew, merge) => growBoxOverMerge(box, merge) || grew, false);
+    grewAtAll ||= grown;
+  }
+
+  return grewAtAll;
+}
+
+/**
  * The visual (grid-space) cell range type produced by the Handsontable coordinate factory.
  */
 type HotCellRange = ReturnType<HotInstance['_createCellRange']>;
@@ -656,29 +720,8 @@ export class HandsontableAdapter {
     const box = {
       top: Math.min(...rows), bottom: Math.max(...rows), left: Math.min(...cols), right: Math.max(...cols),
     };
-    const initial = { ...box };
 
-    // A merge the box grows over can reach another one, so repeat until nothing grows.
-    for (let grown = true; grown;) {
-      grown = false;
-
-      for (const { row, col, rowspan, colspan } of merges) {
-        const overlaps = row <= box.bottom && row + rowspan - 1 >= box.top &&
-          col <= box.right && col + colspan - 1 >= box.left;
-
-        if (overlaps && (row < box.top || col < box.left ||
-            row + rowspan - 1 > box.bottom || col + colspan - 1 > box.right)) {
-          box.top = Math.min(box.top, row);
-          box.left = Math.min(box.left, col);
-          box.bottom = Math.max(box.bottom, row + rowspan - 1);
-          box.right = Math.max(box.right, col + colspan - 1);
-          grown = true;
-        }
-      }
-    }
-
-    if (box.top === initial.top && box.bottom === initial.bottom &&
-        box.left === initial.left && box.right === initial.right) {
+    if (!growBoxOverMerges(box, merges)) {
       return range;
     }
 
