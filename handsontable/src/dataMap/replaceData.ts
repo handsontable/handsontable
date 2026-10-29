@@ -24,6 +24,11 @@ interface ReplaceDataConfig {
   source: string;
   metaManager: MetaManagerInstance;
   firstRun: boolean | [null, string];
+  /**
+   * Runs after the `afterLoadData`/`afterUpdateData` hook and before the `afterChange` hook and the render
+   * a load after init makes. Core runs the plugins' owed ready steps there.
+   */
+  beforeRender?: () => void;
 }
 
 /**
@@ -165,7 +170,8 @@ function replaceData(
     internalSource,
     source,
     metaManager,
-    firstRun
+    firstRun,
+    beforeRender,
   } = config;
   const capitalizedInternalSource = toUpperCaseFirst(internalSource);
   const tableMeta = hotInstance.getSettings();
@@ -236,6 +242,7 @@ function replaceData(
 
   // TODO: rethink the way the `afterChange` hook is being run here in the core `init` method.
   if (!firstRun) {
+    beforeRender?.();
     hotInstance.runHooks('afterChange', null, internalSource);
     hotInstance.render();
   }

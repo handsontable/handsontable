@@ -121,6 +121,36 @@ internal form so a single trailing `#applySyncVisibility` regenerates the matrix
 public one in a loop regenerates per iteration (expensive). If you call `triggerNodeModification` from
 outside, do not assume each call rebuilds the matrix.
 
+## The header state is built in the ready step (DEV-3646)
+
+Both plugins build their state in `onGridReady()` (`../base/AGENTS.md`, "The ready step"), never in
+`enablePlugin()`/`updatePlugin()`. NestedHeaders' step is the old `updatePlugin()` body: column limit, the
+live column arrangement, `setState(nestedHeaders)`, the rowspan class, `syncVisibility()` and the widths-map
+flag. CollapsibleColumns' step marks the `collapsible` flags (`mapState`/`mergeStateWith`) and re-derives the
+`visibleWhen` set. Core runs the steps in priority order, so NestedHeaders' tree is built before
+CollapsibleColumns reads it, at init, on `updateSettings()`, and on `loadData()`. Five rules:
+
+- **`updatePlugin()` only owes the step.** It calls `super.updatePlugin()` and nothing else; the step runs when
+  the call returns. A direct `getPlugin('nestedHeaders').updatePlugin()` still rebuilds the tree before it
+  returns control to the caller's next line, but the caller renders, as before.
+- **No `init` listener and no `updatePlugin()` call from `enablePlugin()`.** Those were the `#6806` replays.
+  `updateSettings()` that turns either plugin on now builds the state once; it used to build it twice (from
+  `enablePlugin()`, then from `updatePlugin()` in the same pass).
+- **`afterLoadData` (not the initial load) still calls `updatePlugin()`.** The step runs before the load's
+  render because core runs owed steps there (`beforeRender` in `dataMap/replaceData.ts`). Without that core
+  hook the step ran after the render, and the grid drew the previous tree until something else rendered.
+- **The `!this.hot.view` guards in `clearColspans()` and `clearButtons()` stay.** They run from
+  `disablePlugin()`, which can run before the view exists (a settings pass inside the init sequence turning a
+  plugin off), and disabling has no ready step.
+- **At init the state now exists before the `init` hook, and that changes the first widths by 1–2 px.**
+  AutoColumnSize (10) measures from its `init` listener, which used to run before NestedHeaders' `init` listener
+  built the tree, so it read every bottom-level header as `''` (`#onModifyColumnHeaderValue` falls back to an
+  empty label) and the ghost table's fractional widths won (`#onModifyColWidth` takes the larger). Now it
+  measures the real labels and its whole-pixel widths win: measured in Chrome over six configurations in all
+  three themes, a column whose bottom label decides its width is 1–2 px wider at init (174.2 → 176 in main).
+  Those are exactly the widths the old code reached after any `loadData()`, when AutoColumnSize re-measured with
+  the tree built (18 of 18 configurations identical), so only the first draw of such a grid changes.
+
 ## CollapsibleColumns relationship (priority ordering is load-bearing)
 
 - `NestedHeaders.PLUGIN_PRIORITY = 280`, `CollapsibleColumns.PLUGIN_PRIORITY = 290`. Lower runs first, so

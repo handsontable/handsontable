@@ -204,6 +204,34 @@ describe('BasePlugin ready step (`onGridReady()`)', () => {
     ]);
   });
 
+  it('should run a step a `loadData()` hook makes the plugin owe before the load\'s render and `afterChange`', () => {
+    hot = createGrid({ [PROBE]: true });
+    hot.addHook('afterLoadData', () => hot.getPlugin(PROBE).updatePlugin());
+    hot.addHook('afterChange', () => log.push(['afterChange']));
+    log.length = 0;
+
+    hot.loadData([[5], [6]]);
+
+    const steps = log.map(([step]) => step);
+
+    expect(steps.indexOf('ready')).toBeGreaterThan(-1);
+    expect(steps.indexOf('ready')).toBeLessThan(steps.indexOf('afterChange'));
+    expect(steps.indexOf('ready')).toBeLessThan(steps.indexOf('render'));
+  });
+
+  it('should run a step an `alter()` hook makes the plugin owe before the alteration\'s render', () => {
+    hot = createGrid({ [PROBE]: true });
+    hot.addHook('afterRemoveRow', () => hot.getPlugin(PROBE).updatePlugin());
+    log.length = 0;
+
+    hot.alter('remove_row', 0);
+
+    const steps = log.map(([step]) => step);
+
+    expect(steps.indexOf('ready')).toBeGreaterThan(-1);
+    expect(steps.indexOf('ready')).toBeLessThan(steps.indexOf('render'));
+  });
+
   it('should run once for each `updateSettings()` that enables or updates the plugin, before its render', () => {
     hot = createGrid();
 

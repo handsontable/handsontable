@@ -188,7 +188,11 @@ The contract:
 - **When everything exists, before the next render.** Core runs the owed steps, in `PLUGIN_PRIORITY`
   order: at init right after the view, the editor manager and the focus manager (before the `init` hook and
   the first render); in `updateSettings()` after the `min*` sizing, before its render; in
-  `_applySettingsAndData()` after the `onDataReady()` pass, against the loaded data.
+  `_applySettingsAndData()` after the `onDataReady()` pass, against the loaded data; in `loadData()` and
+  `updateData()` after the `afterLoadData`/`afterUpdateData` hook, before `afterChange` and the load's render
+  (`beforeRender` in `dataMap/replaceData.ts`); and in `alter()` before its closing render. Without the last
+  two, a plugin that rebuilds from its `afterLoadData` listener (NestedHeaders, CollapsibleColumns) ran its step
+  after the load had already rendered, and nothing rendered the new state.
 - **After the whole pass.** Core counts open lifecycle passes (`lifecyclePassDepth` in `core.ts`):
   `updateSettings()`, `_applySettingsAndData()`, `loadData()`, `updateData()`, `alter()`, every plugin
   lifecycle call, and a ready-step run. Steps run only when the outermost pass closes (or at its pre-render
@@ -228,7 +232,8 @@ refreshes every endpoint when nothing was deferred (`refreshAllEndpoints()`, whi
 `setDataAtCell`). Called at the new points it would write the summaries twice per `updateSettings()` and fire
 an extra `afterChange`. Load hooks are not covered either: an `afterLoadData` listener still fires during
 the init pass with no view, so a plugin that needs the view there skips `initialLoad` and leaves the work to
-the step. No built-in plugin implements `onGridReady()` yet; the migration list is the #6806 section below.
+the step. NestedHeaders and CollapsibleColumns implement `onGridReady()`; the rest of the migration list is the
+#6806 section below.
 
 Pinned by `__tests__/readyStep.unit.js`.
 
@@ -395,11 +400,12 @@ distinction.
 
 Because `enablePlugin()` fires during `beforeInit`, before the data and the view exist, a plugin that
 needs rendering state has to guard on `!this.hot.view` and sometimes force an `updatePlugin()` call from
-inside `enablePlugin()` or an `init`/`afterInit` listener. **Only CollapsibleColumns' three sites are
-actually marked `#6806`** (`collapsibleColumns.ts`); grep for that number and NestedHeaders looks clean. It
-is not — it carries an unnumbered `// @TODO: Workaround for broken plugin initialization abstraction.`
-(`nestedHeaders.ts`) plus its `this.hot.view` guards. About 15 plugins park work on `init`/`afterInit` for
-the same reason. `../../../.ai/CONCERNS.md` has the list; do not trust a grep alone.
+inside `enablePlugin()` or an `init`/`afterInit` listener. The two original sites, CollapsibleColumns (the
+three `#6806` markers) and NestedHeaders (an unnumbered "Workaround for broken plugin initialization
+abstraction"), are migrated: both build their state in `onGridReady()` and neither has an `init` listener. Their
+`clearColspans()`/`clearButtons()` keep a `!this.hot.view` guard on purpose, because they run from
+`disablePlugin()`, which can run before the view exists and has no ready step. About 13 more plugins park work on
+`init`/`afterInit` for the same reason. `../../../.ai/CONCERNS.md` has the list; do not trust a grep alone.
 
 **The fix is the ready step** (above): move the guarded work into `onGridReady()` and drop the guard and the
 `init`/`afterInit` replay. Do not move `enablePlugin()` itself later: plugins add their hooks there, before

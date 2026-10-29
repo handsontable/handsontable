@@ -17,6 +17,11 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
 
 ## The few CollapsibleColumns-specific facts to keep straight
 
+- **The `collapsible` flags and the `visibleWhen` set are built in `onGridReady()`**, after NestedHeaders' own
+  step built the tree (280 before 290). `updatePlugin()` only owes the step, `enablePlugin()` no longer calls
+  it, and the `init` listener is gone. Details and the five rules: `../nestedHeaders/AGENTS.md`, "The header
+  state is built in the ready step".
+
 - `PLUGIN_PRIORITY = 290`, and `static PLUGIN_DEPS = ['plugin:NestedHeaders']`. NestedHeaders is 280, so
   it rebuilds the tree (and applies move/reparent overrides) **before** this plugin re-derives its
   `visibleWhen` hidden set. This ordering is load-bearing — see the NestedHeaders doc.

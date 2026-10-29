@@ -436,7 +436,6 @@ export class NestedHeaders extends BasePlugin {
                         passed as an array of arrays e.q. [['A1', { label: 'A2', colspan: 2 }]]`);
     }
 
-    this.addHook('init', this.#onInit);
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('afterCreateCol', this.#onAfterCreateCol);
     this.addHook('afterRemoveCol', this.#onAfterRemoveCol);
@@ -469,17 +468,23 @@ export class NestedHeaders extends BasePlugin {
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
 
     super.enablePlugin();
-    this.updatePlugin();
   }
 
   /**
    * Updates the plugin state when Handsontable settings change, rebuilding the header tree and refreshing column widths.
+   * The rebuild runs in the plugin's ready step, once the call returns and the data is loaded.
    */
   updatePlugin() {
-    if (!this.hot.view) {
-      return;
-    }
+    super.updatePlugin();
+  }
 
+  /**
+   * Builds the header tree from the `nestedHeaders` setting against the loaded columns, and marks the column widths
+   * for a rebuild. Core runs it once after each enable or update, when the data is loaded.
+   *
+   * @private
+   */
+  onGridReady() {
     const { nestedHeaders } = this.hot.getSettings();
 
     this.#rowspanHeaderNavigationContextRow = null;
@@ -507,16 +512,12 @@ export class NestedHeaders extends BasePlugin {
                         is currently not supported.`);
     }
 
-    if (this.enabled) {
-      // Derive tree colspan / isHidden state from the current hiding map. This covers columns
-      // that were already hidden before the plugin initialized (e.g. HiddenColumns configured
-      // together with nestedHeaders). Future changes are handled by #onColumnIndexMapperCacheUpdated.
-      this.#stateManager.syncVisibility(createColumnVisibilityAdapter(this.hot));
-    }
+    // Derive tree colspan / isHidden state from the current hiding map. This covers columns
+    // that were already hidden before the plugin initialized (e.g. HiddenColumns configured
+    // together with nestedHeaders). Future changes are handled by #onColumnIndexMapperCacheUpdated.
+    this.#stateManager.syncVisibility(createColumnVisibilityAdapter(this.hot));
 
     this.#updateWidthsMap = true;
-
-    super.updatePlugin();
   }
 
   /**
@@ -1935,15 +1936,8 @@ export class NestedHeaders extends BasePlugin {
   };
 
   /**
-   * Updates the plugin state after HoT initialization.
-   */
-  // @TODO: Workaround for broken plugin initialization abstraction.
-  #onInit = () => {
-    this.updatePlugin();
-  };
-
-  /**
-   * Re-initializes the plugin state after new data is loaded, unless this is the initial data load.
+   * Re-initializes the plugin state after new data is loaded, unless this is the initial data load (the ready step of
+   * the enable covers it). The rebuild runs in the ready step, before the load's render.
    */
   #onAfterLoadData = (sourceData: unknown[], initialLoad: boolean) => {
     if (!initialLoad) {

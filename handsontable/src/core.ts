@@ -2026,6 +2026,8 @@ export default function Core(
         instance.view.invalidateColumnWidthCache();
       }
 
+      // The steps a hook of this call made the plugins owe, run before its render. `alter()` holds one pass.
+      runOwedReadySteps(1);
       instance.view.render();
     },
 
@@ -5027,7 +5029,9 @@ export default function Core(
         internalSource: 'updateData',
         source,
         metaManager,
-        firstRun
+        firstRun,
+        // The steps a load hook made the plugins owe, run before the load's render. `updateData()` holds one pass.
+        beforeRender: () => runOwedReadySteps(1),
       }));
   }
 
@@ -5123,7 +5127,9 @@ export default function Core(
         internalSource: 'loadData',
         source,
         metaManager,
-        firstRun
+        firstRun,
+        // The steps a load hook made the plugins owe, run before the load's render. `loadData()` holds one pass.
+        beforeRender: () => runOwedReadySteps(1),
       }));
   }
 

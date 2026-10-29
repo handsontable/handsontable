@@ -279,7 +279,6 @@ export class CollapsibleColumns extends BasePlugin {
     this.nestedHeadersPlugin = this.hot.getPlugin('nestedHeaders');
     this.headerStateManager = this.nestedHeadersPlugin.getStateManager();
 
-    this.addHook('init', this.#onInit);
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('afterGetColHeader', this.#onAfterGetColHeader);
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
@@ -295,8 +294,6 @@ export class CollapsibleColumns extends BasePlugin {
 
     this.registerShortcuts();
     super.enablePlugin();
-    // @TODO: Workaround for broken plugin initialization abstraction (#6806).
-    this.updatePlugin();
   }
 
   /**
@@ -305,13 +302,21 @@ export class CollapsibleColumns extends BasePlugin {
    * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
    *   - [`collapsibleColumns`](@/api/options.md#collapsiblecolumns)
    *   - [`nestedHeaders`](@/api/options.md#nestedheaders)
+   *
+   * The update runs in the plugin's ready step, once the call returns and the data is loaded.
    */
   updatePlugin(): void {
-    // @TODO: Workaround for broken plugin initialization abstraction (#6806).
-    if (!this.hot.view) {
-      return;
-    }
+    super.updatePlugin();
+  }
 
+  /**
+   * Marks the collapsible headers and hides the `visibleWhen` columns, against the header tree NestedHeaders
+   * (priority 280) built in its own ready step just before this one. Core runs it once after each enable or
+   * update, when the data is loaded.
+   *
+   * @private
+   */
+  onGridReady(): void {
     if (!this.nestedHeadersPlugin?.detectedOverlappedHeaders) {
       const { collapsibleColumns } = this.hot.getSettings();
 
@@ -333,8 +338,6 @@ export class CollapsibleColumns extends BasePlugin {
     // Apply the per-child `visibleWhen` rules once the `collapsible` flags are in place - on the
     // initial render this hides every `visibleWhen: 'collapsed'` column (all groups start expanded).
     this.#refreshVisibleWhenColumns();
-
-    super.updatePlugin();
   }
 
   /**
@@ -1106,15 +1109,8 @@ export class CollapsibleColumns extends BasePlugin {
   };
 
   /**
-   * Updates the plugin state after HoT initialization.
-   */
-  #onInit = () => {
-    // @TODO: Workaround for broken plugin initialization abstraction (#6806).
-    this.updatePlugin();
-  };
-
-  /**
-   * Updates the plugin state after new dataset load.
+   * Updates the plugin state after new dataset load. The initial load is left to the ready step of the
+   * enable, and the update runs in the ready step, before the load's render.
    *
    * @param {Array[]} sourceData Array of arrays or array of objects containing data.
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded
