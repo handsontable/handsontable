@@ -369,6 +369,22 @@ A sheet added with the **Add sheet** button, or with `addSheet()` without `setti
 
 Use each sheet's tab name as its `sheetName`. A tab rename then renames the engine sheet and rewrites the references to it, also in your `data` arrays. Inserting, removing, or moving rows or columns rewrites formula text in your `data` arrays too.
 
+## Import and export
+
+An import with the [`ImportFile`](@/api/importFile.md) plugin changes the active sheet only: its data, layout, and cell styles. The imported layout becomes part of that sheet's settings, so change it with [`updateSheetSettings()`](@/api/sheetsBar.md#updatesheetsettings).
+
+The [`ExportFile`](@/api/exportFile.md) plugin exports the active sheet only, as a worksheet named `Sheet1`. To use the tab's name instead, pass the grid in the `sheets` option:
+
+```js
+const activeSheet = hot.getPlugin('sheetsBar').getSheets().find(sheet => sheet.isActive);
+
+await hot.getPlugin('exportFile').downloadFileAsync('xlsx', {
+  sheets: [{ instance: hot, name: activeSheet.name }],
+});
+```
+
+With `exportFormulas: true`, a formula that references another sheet keeps that reference. The file doesn't contain the other sheet, so the reference breaks.
+
 ## Known limitations
 
 - The grid holds one sheet at a time, so methods such as [`getData()`](@/api/core.md#getdata) and [`getDataAtCell()`](@/api/core.md#getdataatcell) read only the active sheet.
