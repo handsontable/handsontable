@@ -69,6 +69,8 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   navigation, so a pick that starts on one arms a click swallow for it (`#armAnchorClickSwallow`).
   A drag held on a header clamps only the header's own axis to the first visible track (`firstVisibleRow()`/
   `firstVisibleCol()`: index 0 when that axis is frozen, else the first fully visible one), not to index 0.
+  "Frozen" is the band the grid draws (`view.countFixedRowsTop()`/`countFixedColumnsStart()`), never the raw
+  option: under `limitFixedToViewport` the drawn band can be 0 while `fixedRowsTop` is set.
   The handoff press (a click on the bar-selected cell, which moves the edit into the cell) is claimed
   as well, not only suppressed: RowSelection's click selection runs from `afterOnCellMouseDown`.
   A tap is the exception to "the claim keeps the focus": Walkontable runs the press from `touchend` and

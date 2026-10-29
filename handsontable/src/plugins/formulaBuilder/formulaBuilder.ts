@@ -1599,7 +1599,8 @@ export class FormulaBuilder extends BasePlugin {
    * (index 0) is the first visible one; otherwise it is the first fully visible index, or the first
    * rendered one when the viewport shows none in full (`-1`).
    *
-   * @param {number | undefined} frozen The number of frozen tracks on the axis.
+   * @param {number | undefined} frozen The number of frozen tracks the grid draws on the axis (the drawn
+   * band, which `limitFixedToViewport` can make smaller than the option).
    * @param {number | null} fullyVisible The first fully visible index.
    * @param {number | null} rendered The first rendered visible index.
    * @returns {number}
@@ -1951,12 +1952,12 @@ export class FormulaBuilder extends BasePlugin {
       getRootDocument: () => this.hot.rootDocument,
       getColumnHeaderSpan: coords => this.#columnHeaderSpan(coords),
       firstVisibleRow: () => this.#firstVisible(
-        this.hot.getSettings().fixedRowsTop,
+        this.hot.view.countFixedRowsTop(),
         this.hot.getFirstFullyVisibleRow(),
         this.hot.getFirstRenderedVisibleRow()
       ),
       firstVisibleCol: () => this.#firstVisible(
-        this.hot.getSettings().fixedColumnsStart,
+        this.hot.view.countFixedColumnsStart(),
         this.hot.getFirstFullyVisibleColumn(),
         this.hot.getFirstRenderedVisibleColumn()
       ),

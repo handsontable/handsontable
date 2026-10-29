@@ -614,6 +614,64 @@ test.describe('formulaBuilder picking onto the headers of a scrolled frozen grid
 
     await expect(grid.editorInput).toHaveValue(`=B1:B${targetRow + 1}`);
   });
+
+  test('a drag onto the column header starts at the first visible row when limitFixedToViewport draws no frozen row', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle, 'frozen');
+
+    await grid.goto();
+    // The first row is taller than the 320px grid (sized here, the fixture's root grows with its rows), so `limitFixedToViewport` draws none of the one row
+    // `fixedRowsTop` asks for: the option still says 1, the drawn band is 0.
+    await page.evaluate(() => {
+      const hot = (window as unknown as { hot: {
+        loadData(data: unknown[][]): void;
+        updateSettings(settings: object): void;
+        scrollViewportTo(o: { row: number }): void;
+      } }).hot;
+
+      hot.loadData(Array.from({ length: 100 }, (_, row) => [row + 1, '', '']));
+      hot.updateSettings({
+        height: 320,
+        limitFixedToViewport: true,
+        rowHeights: (row: number) => (row === 0 ? 400 : undefined),
+      });
+      hot.scrollViewportTo({ row: 50 });
+    });
+
+    const readCounts = () => page.evaluate(() => {
+      const hot = (window as unknown as { hot: {
+        getSettings(): { fixedRowsTop: number };
+        view: { countFixedRowsTop(): number };
+        getFirstFullyVisibleRow(): number;
+      } }).hot;
+
+      return {
+        raw: hot.getSettings().fixedRowsTop,
+        drawn: hot.view.countFixedRowsTop(),
+        scrolled: hot.getFirstFullyVisibleRow() > 20,
+      };
+    });
+
+    await expect.poll(readCounts).toEqual({ raw: 1, drawn: 0, scrolled: true });
+
+    const firstVisible = await page.evaluate(
+      () => (window as unknown as { hot: { getFirstFullyVisibleRow(): number } }).hot.getFirstFullyVisibleRow()
+    );
+
+    await grid.selectCellByApi(firstVisible + 1, 0);
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+
+    const targetRow = firstVisible + 3;
+    const start = await grid.cell(targetRow, 1).boundingBox();
+    const header = await grid.columnHeaderLabel('B').boundingBox();
+
+    await grid.cell(targetRow, 1).hover();
+    await page.mouse.down();
+    await page.mouse.move((start?.x ?? 0) + 10, (header?.y ?? 0) + (header?.height ?? 0) / 2, { steps: 10 });
+    await page.mouse.up();
+
+    await expect(grid.editorInput).toHaveValue(`=B${firstVisible + 1}:B${targetRow + 1}`);
+  });
 });
 
 // A pick on a cell that shows a link inserts the reference and leaves the link alone: the claim
