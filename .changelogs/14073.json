@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed cell selection around merged cells: a selection now always covers every merged cell it touches, and a merged cell whose rows a filter hides no longer extends the selection over other cells.",
+  "type": "fixed",
+  "issueOrPR": 14073,
+  "breaking": false,
+  "framework": "none"
+}
