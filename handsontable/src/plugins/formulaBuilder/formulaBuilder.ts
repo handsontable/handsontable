@@ -1372,6 +1372,13 @@ export class FormulaBuilder extends BasePlugin {
     if (this.#engineDetached && this.#builder === null && this.#engine !== null) {
       // Cleared first: a builder that fails to build is not retried on every selection.
       this.#engineDetached = false;
+
+      // The Formulas plugin built a new engine. Record it, or the next settings update finds the engine
+      // changed and runs the full cycle, which cancels an open edit.
+      if (this.#appliedConfig !== null) {
+        this.#appliedConfig = { ...this.#appliedConfig, engine: this.#engine };
+      }
+
       this.#createBuilder();
       // The bar is new and empty, so the selection is emitted again even for the same cell.
       this.#lastEmittedSelectionCoords = null;
