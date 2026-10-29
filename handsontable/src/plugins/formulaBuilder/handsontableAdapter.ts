@@ -1001,12 +1001,16 @@ export class HandsontableAdapter {
    * @returns {boolean} Whether the editor opened.
    */
   beginEdit(_address: CellAddress, seed?: string): boolean {
-    // `openEditor()` takes the event that opened the editor and passes it to `beforeBeginEditing`.
-    // The formula bar opens it from its own focus or click, which the grid never saw, so there is
-    // no grid event to pass.
+    // `openEditor()` passes the event that opened the editor to `beforeBeginEditing`, whose
+    // listeners read it. The formula bar opens it from its own focus or click, which the grid never
+    // saw, so it gets a synthetic `focus` event from the grid's window. Not a `MouseEvent`:
+    // `openEditor()` refuses a mouse-opened edit over a range or a second layer, and the bar edits
+    // the active cell of any selection.
+    const FocusEventClass = this.#hot.rootWindow.FocusEvent;
+
     this.#hot._getEditorManager().openEditor(
       this.#editorSeed(seed),
-      undefined as unknown as Event,
+      new FocusEventClass('focus'),
       true,
     );
 

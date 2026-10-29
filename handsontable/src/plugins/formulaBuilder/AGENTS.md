@@ -256,6 +256,7 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   its occupied extent, and the formula bar refuses to navigate at or past that size. A span wider than
   `MAX_HF_INDEX_SCAN` maps only its two ends and walks inward past trimmed ends.
 - **A bar edit whose text equals the cell's raw text opens the editor with a `null` seed.** `BaseEditor#beginEditing()` treats a string seed as typed text, so its unchanged-value guard never arms and an untouched commit would write `"5"` for `5`, `""` for `null`, and record an undo step. `HandsontableAdapter#editorSeed()` (private) makes that call; a changed or typed seed stays a string.
+- **The bar opens the editor with a synthetic `focus` event, never `undefined`.** `openEditor()` hands the event to `beforeBeginEditing`, and a listener reading `event.type` threw, so the bar stopped opening edits. `HandsontableAdapter#beginEdit()` builds a `FocusEvent` from `rootWindow`. Not a `MouseEvent`: `openEditor()` then applies its double-click default and refuses a range or a second layer, which the bar edits from the active cell.
 - **A drag past the viewport edge resolves through `getCellCoordsFromMousePosition()`.** The pick's edge
   auto-scroller calls `getCellAddressAt()` with the pointer outside the grid, where `elementFromPoint()`
   finds the scrollbar and the range would stop at the last rendered cell.

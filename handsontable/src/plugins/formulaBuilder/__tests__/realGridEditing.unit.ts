@@ -803,4 +803,29 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(hot.getSelectedLast()).toEqual([0, 0, 0, 0]);
     });
   });
+
+  describe('the event the formula bar opens the editor with', () => {
+    it('is an event a `beforeBeginEditing` listener can read', () => {
+      const types: string[] = [];
+
+      createGrid({
+        beforeBeginEditing: (row: number, col: number, value: unknown, event: Event) => {
+          types.push(event.type);
+        },
+      });
+      hot.selectCell(1, 1);
+
+      expect(adapter().beginEdit({ sheet: '', row: 1, col: 1 }, '=1+1')).toBe(true);
+      expect(isEditorOpened()).toBe(true);
+      expect(types).toEqual(['focus']);
+    });
+
+    it('is not a mouse event, so a bar edit of a selected range still opens', () => {
+      createGrid();
+      hot.selectCell(0, 0, 1, 1);
+
+      expect(adapter().beginEdit({ sheet: '', row: 0, col: 0 }, '=1+1')).toBe(true);
+      expect(isEditorOpened()).toBe(true);
+    });
+  });
 });
