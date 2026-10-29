@@ -57,7 +57,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 - `ui/` — `bar.ts` (DOM via `buildTemplate`, labels re-applied by `refreshLabels()` on language
   change), `tabStrip.ts` (tabs, inline rename, focus capture/restore across repaints),
   `tabDrag.ts` (pointer drag + FLIP), `menus.ts` (two `Menu` instances built once and refilled
-  per opening — the shared `Menu` never removes the `afterSetTheme` hook its constructor adds),
+  per opening; each adds an `afterSetTheme` hook to the grid and removes it in `destroy()`),
   `overflow.ts` (paging arrows, `aria-disabled` so a spent arrow keeps the focus, and the
   `ht-sheets-bar__tabs--scrolled` divider class once the strip leaves its start).
 

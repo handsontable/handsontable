@@ -62,9 +62,8 @@ interface OpenMenuState {
  * component (auto keyboard navigation, viewport-aware positioning).
  *
  * Each menu is one `Menu` instance for the life of the plugin, refilled on every opening. The
- * shared component registers a host hook when it is built and does not remove it when it is
- * destroyed, so building a fresh instance per opening would leave one dead menu behind per
- * click.
+ * shared component adds an `afterSetTheme` hook to the grid when it is built and removes it in
+ * `destroy()`.
  */
 export class SheetsBarMenus {
   /**
