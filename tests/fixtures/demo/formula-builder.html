@@ -45,6 +45,7 @@
       menus: 'menus',
       dropdown: 'dropdown',
       checkboxes: 'checkboxes',
+      hyperlink: 'hyperlink',
       'theme-engine': 'theme-engine',
     })[htParams.get('variant') ?? 'default'];
     if (!window.htVariant) {
@@ -149,6 +150,21 @@
       dropdown: {
         settings: {
           columns: [{}, { type: 'dropdown', source: [2, 4, 6], renderer: testIdDropdownRenderer }, {}],
+        },
+      },
+      // Cells that render a link: a `HYPERLINK` formula (the text renderer draws its anchor) and a URL
+      // AutoLink linkifies. A pick on either must not follow the link.
+      hyperlink: {
+        settings: {
+          autoLink: true,
+          formulas: { engine: HyperFormula, hyperlinks: true },
+          data: [
+            [1, '=HYPERLINK("https://example.com/formula", "formula link")', 'https://example.com/auto'],
+            [3, 4, '=A2+B2'],
+            ['', '', ''],
+            ['', '', ''],
+            ['', '', ''],
+          ],
         },
       },
       // Controls other plugins act on from a press: a "check all" header checkbox on column D, checkbox

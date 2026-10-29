@@ -489,3 +489,33 @@ test.describe('formulaBuilder picking onto the headers of a scrolled frozen grid
     await expect(grid.editorInput).toHaveValue(`=B1:B${targetRow + 1}`);
   });
 });
+
+// A pick on a cell that shows a link inserts the reference and leaves the link alone: the claim
+// prevents the `mousedown` default only, and the browser follows an anchor on the `click` after it.
+test.describe('formulaBuilder picking a cell that shows a link', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  for (const [name, row, col, reference] of [
+    ['a HYPERLINK formula', 0, 1, '=B1'],
+    ['an AutoLink URL', 0, 2, '=C1'],
+  ] as const) {
+    test(`a click on ${name} inserts the reference and follows no link`, async({ page, theme, bundle }) => {
+      const grid = new FormulaBuilderPage(page, theme, bundle, 'hyperlink');
+
+      await grid.goto();
+      await grid.selectCellByApi(3, 0);
+      await page.keyboard.press('=');
+      await expect(grid.editorInput).toBeFocused();
+      await expect(grid.cell(row, col).locator('a[href]')).toHaveCount(1);
+
+      const url = page.url();
+      // A followed link would open a tab (`_blank`) or navigate this page (`_self`).
+      const popupOpened = page.waitForEvent('popup', { timeout: 1000 }).then(() => true, () => false);
+
+      await grid.cell(row, col).locator('a[href]').click();
+      await expect(grid.editorInput).toHaveValue(reference);
+
+      expect(await popupOpened).toBe(false);
+      expect(page.url()).toBe(url);
+      expect(page.context().pages()).toHaveLength(1);
+    });
+  }
+});

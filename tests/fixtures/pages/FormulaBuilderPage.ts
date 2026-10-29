@@ -21,6 +21,7 @@ export type FormulaBuilderVariant =
   | 'menus'
   | 'dropdown'
   | 'checkboxes'
+  | 'hyperlink'
   | 'theme-engine';
 
 /**

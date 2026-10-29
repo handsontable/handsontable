@@ -65,6 +65,8 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   the hook runner to skip later callbacks once the flag is set would change every event hook. A checkbox
   cell is different: its renderer toggles the box on the native `click`, after the claimed `mousedown`,
   so a pick that starts on the box or its label arms a one-shot click swallow and the pick wins.
+  A link (`a[href]`, from a `HYPERLINK` formula or AutoLink) is the same: the claim does not cancel its
+  navigation, so a pick that starts on one arms a click swallow for it (`#armAnchorClickSwallow`).
   A drag held on a header clamps only the header's own axis to the first visible track (`firstVisibleRow()`/
   `firstVisibleCol()`: index 0 when that axis is frozen, else the first fully visible one), not to index 0.
   The handoff press (a click on the bar-selected cell, which moves the edit into the cell) is claimed

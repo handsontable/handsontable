@@ -482,6 +482,7 @@ export class CellPickController {
     this.#suppress(eventController);
     this.#claim(event);
     this.#armCheckboxClickSwallow(event);
+    this.#armAnchorClickSwallow(event);
     this.#focusBeforePick = this.#activeElement();
 
     this.#listenDrag(event);
@@ -636,6 +637,21 @@ export class CellPickController {
     // A label toggles a box only when it holds one (the renderer's `label` option).
     if (toggle && (toggle.tagName !== 'LABEL' || toggle.querySelector('input[type="checkbox"]'))) {
       this.#armClickSwallow(clickTarget => toggle.contains(clickTarget));
+    }
+  }
+
+  /**
+   * Arms a one-shot click swallow when a cell pick starts on a link. The claim prevents the
+   * `mousedown` default only; the browser follows the link on the `click` that follows. A cell that
+   * holds a checkbox and a link keeps the checkbox swallow, which the pick arms first.
+   *
+   * @param {MouseEvent | undefined} event The press that started the pick.
+   */
+  #armAnchorClickSwallow(event: MouseEvent | undefined): void {
+    const anchor = closestTarget(event, 'a[href]');
+
+    if (anchor && !closestTarget(event, CHECKBOX_TOGGLE_SELECTOR)) {
+      this.#armClickSwallow(clickTarget => anchor.contains(clickTarget));
     }
   }
 
