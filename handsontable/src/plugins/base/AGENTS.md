@@ -38,9 +38,8 @@ bugs — the full rules are in `../../utils/manualResize/AGENTS.md`. The one to 
 ## Lifecycle, in the order it actually runs
 
 ```
-constructor      → binds afterPluginsInitialized / afterUpdateSettings / beforeInit
-init()           → resolve pluginName, apply settings, check PLUGIN_DEPS,
-                   queue enablePlugin() on a once-only afterPluginsInitialized
+constructor      → binds afterPluginsInitialized / afterUpdateSettings
+init()           → resolve pluginName, apply settings (core calls it, see below)
 isEnabled()      → return !!this.hot.getSettings()[PLUGIN_KEY]
 enablePlugin()   → init state, create IndexMaps, register hooks. super.enablePlugin() AT END.
 updatePlugin()   → this.disablePlugin(); this.enablePlugin(); super.updatePlugin();
@@ -52,17 +51,39 @@ Gold standard to copy: `../pagination/pagination.ts`.
 
 Details that bite:
 
-- **`init()` runs on `beforeInit` for every registered plugin, enabled or not.** `enablePlugin()` is deferred
-  to `afterPluginsInitialized`, which is why `this.hot.view` may or may not exist inside it — see
-  [#6806](#6806-the-initialization-order-workarounds) below.
-- **Missing dependencies are collected, not thrown per plugin.** `init()` pushes a message into a
-  module-level list and only the *last* plugin to initialize throws the combined error. A single
-  `throwWithCause` per plugin would hide the other missing modules.
+- **Core runs the init sequence, once per grid, from one `beforeInit` listener** (`initializePlugins()` in
+  `base.ts`, registered in the Core constructor right after the plugins are built). In priority order: every
+  plugin's `init()`, enabled or not; one error for all missing `PLUGIN_DEPS`; one `afterPluginsInitialized`;
+  then `onInitEnableTurn()`, which enables each enabled plugin once (hard-conflict check included). So
+  `enablePlugin()` still runs during `beforeInit`, before the data loads and before `this.hot.view`
+  exists — see [#6806](#6806-the-initialization-order-workarounds) below. The state of the sequence lives in
+  that call. It used to live in module-level variables shared by every grid, and two `Handsontable.Core`
+  grids built before either `init()` then fired `afterPluginsInitialized` once per plugin for the second
+  grid, enabling each plugin before the next one was initialized (DEV-147).
+- **A plugin waiting for its turn is not enabled by a settings pass.** SheetsBar (910) builds its first sheet
+  from its own `enablePlugin()`, and that fires `afterUpdateSettings` mid-sequence. `onUpdateSettings`
+  returns early for a plugin that has not had its turn yet, and records whether the pass carried the
+  plugin's own option so `onInitEnableTurn()` reads the settings again. Without it, every plugin after
+  SheetsBar (ViewState, DataProvider, UndoRedo, any plugin without a priority) was enabled early by branch 2
+  and then again by its own turn, with no `disablePlugin()` in between (DEV-147). A plugin turned off by
+  such a pass stays off: its turn re-reads `isEnabled()`. The consequence for SheetsBar: those plugins now
+  enable **after** SheetsBar's `enablePlugin()` returns, so they no longer see the first sheet's
+  `_applySettingsAndData()` load – only core's own init pass.
+- **`init()` is core's to call, once.** It marks the plugin as waiting for its init turn, and only
+  `onInitEnableTurn()` clears that. A direct `plugin.init()` on a live grid therefore parks the plugin: every
+  later `updateSettings()` skips it. Nothing in `src/` does that; do not start.
+- **Missing dependencies are collected, not thrown per plugin.** The sequence gathers every plugin's
+  message and throws the combined error once, after the last `init()`. A single `throwWithCause` per
+  plugin would hide the other missing modules.
+- **A plugin that calls `updateSettings()` from its own `enablePlugin()` must not leave its own option on
+  while it is still `enabled === false`**: the pass reaches its own `onUpdateSettings`, branch 2 enables it
+  again, and that recurses. ColumnSorting only ever switches its *own* option off before returning, which is
+  safe.
 - **`destroy()` nulls every own property except `hot`, and `hot` is `delete`d** (it is non-writable, so
   `Reflect.set` silently fails on it). That is deliberate: an async guard written `if (!this.hot) { return; }`
   then reads `undefined` and returns. Write teardown guards that way, not `if (this.hot.isDestroyed)`.
-- **The three constructor listeners live on the grid, so `destroy()` removes them itself.**
-  `afterPluginsInitialized`, `afterUpdateSettings` and `beforeInit` are bound with `this.hot.addHook`
+- **The two constructor listeners live on the grid, so `destroy()` removes them itself.**
+  `afterPluginsInitialized` and `afterUpdateSettings` are bound with `this.hot.addHook`
   (kept in `#lifecycleHooks`), not the tracked `addHook()`, because they must survive `disablePlugin()`.
   `clearHooks()` therefore never sees them. Before DEV-775 they also survived `destroy()`, so a plugin
   destroyed ahead of the grid (`getPlugin(name).destroy()`) made **every** later `updateSettings()` throw
@@ -78,7 +99,7 @@ Details that bite:
   twice by hand, so an override that reads `hot` should tolerate a missing one.
 - **A listener a subclass constructor binds with `this.hot.addHook()` is the subclass's to remove in
   `destroy()`**, while `hot` still exists, before `super.destroy()`. The base class only knows its own
-  three. Filters does it for `afterGetColHeader` (its callback reads `this.hot` and threw on the next
+  two. Filters does it for `afterGetColHeader` (its callback reads `this.hot` and threw on the next
   header render). DropdownMenu deliberately keeps its own: its callback does not read `hot` on the
   disabled path, and it is what strips the destroyed plugin's buttons out of the reused header cells.
 - **Default to `addHook()` on the plugin, not `this.hot.addHook()`.** The plugin's own `addHook` records the

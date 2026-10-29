@@ -19,7 +19,7 @@ import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray,
 import { instanceToHTML, instanceToTableElement } from './utils/parseTable';
 import { staticRegister } from './utils/staticRegister';
 import { getPlugin, getPluginsNames } from './plugins/registry';
-import type { BasePlugin } from './plugins/base/base';
+import { initializePlugins, type BasePlugin } from './plugins/base/base';
 import { getRenderer } from './renderers/registry';
 import type { BaseRenderer } from './renderers/baseRenderer';
 import { getEditor } from './editors/registry';
@@ -10067,6 +10067,12 @@ export default function Core(
     if (PluginClass) {
       pluginsRegistry.addItem(pluginName, new PluginClass(this));
     }
+  });
+
+  // Registered right after the plugins, where each plugin used to register its own `beforeInit` listener,
+  // so the listeners declared in the settings still run after the plugins are enabled.
+  instance.addHook('beforeInit', () => {
+    initializePlugins(instance, pluginsRegistry.getItems().map(([, plugin]) => plugin as BasePlugin));
   });
 
   registerAllShortcutContexts(instance);

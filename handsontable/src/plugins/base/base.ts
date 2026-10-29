@@ -6,7 +6,7 @@ import {
 } from '../../helpers/object';
 import { throwWithCause } from '../../helpers/errors';
 import { arrayEach } from '../../helpers/array';
-import { getPluginsNames, hasPlugin } from '../registry';
+import { hasPlugin } from '../registry';
 import { hasCellType } from '../../cellTypes/registry';
 import { hasEditor } from '../../editors/registry';
 import { hasRenderer } from '../../renderers/registry';
@@ -46,8 +46,73 @@ export interface PluginRestoreContext {
    */
   reordered?: boolean;
 }
-const missingDepsMsgs: string[] = [];
-let initializedPlugins: string[] | null = null;
+
+/**
+ * Returns the error message line for every module a plugin declares in `PLUGIN_DEPS` that is not registered.
+ *
+ * @param {BasePlugin} plugin The plugin to check.
+ * @returns {string|null} The message, or `null` when every dependency is registered.
+ */
+function getMissingDependenciesMessage(plugin: BasePlugin): string | null {
+  const pluginDeps = plugin.constructor.PLUGIN_DEPS;
+  const deps = Array.isArray(pluginDeps) ? pluginDeps : [];
+  const missingDependencies: string[] = [];
+
+  deps.forEach((dependency) => {
+    const [type, moduleName] = dependency.split(':');
+
+    if (!DEPS_TYPE_CHECKERS.has(type)) {
+      throwWithCause(`Unknown plugin dependency type "${type}" was found.`);
+    }
+
+    if (!DEPS_TYPE_CHECKERS.get(type)!(moduleName)) {
+      missingDependencies.push(` - ${moduleName} (${type})`);
+    }
+  });
+
+  if (missingDependencies.length === 0) {
+    return null;
+  }
+
+  return [
+    `The ${plugin.pluginName} plugin requires the following modules:\n`,
+    `${missingDependencies.join('\n')}\n`,
+  ].join('');
+}
+
+/**
+ * Runs the init sequence of one grid's plugins. Core calls it once, while `beforeInit` is dispatched,
+ * with the plugins in `PLUGIN_PRIORITY` order: every plugin's `init()`, one error for all missing
+ * dependencies, one `afterPluginsInitialized`, then one `enablePlugin()` for each enabled plugin, in the
+ * same order. The state lives in this call, so grids built side by side cannot share it.
+ *
+ * @param {HotInstance} hot The Handsontable instance the plugins belong to.
+ * @param {BasePlugin[]} plugins The grid's plugins, in priority order.
+ */
+export function initializePlugins(hot: HotInstance, plugins: BasePlugin[]): void {
+  const missingDepsMsgs: string[] = [];
+
+  plugins.forEach((plugin) => {
+    plugin.init();
+
+    const missingDepsMsg = getMissingDependenciesMessage(plugin);
+
+    if (missingDepsMsg !== null) {
+      missingDepsMsgs.push(missingDepsMsg);
+    }
+  });
+
+  if (missingDepsMsgs.length > 0) {
+    throwWithCause([
+      `${missingDepsMsgs.join('\n')}\n`,
+      'You have to import and register them manually.',
+    ].join(''));
+  }
+
+  hot.runHooks('afterPluginsInitialized');
+
+  plugins.forEach(plugin => plugin.onInitEnableTurn());
+}
 
 /**
  * @util
@@ -162,13 +227,24 @@ export class BasePlugin {
    */
   #deferredDataWork = false;
   /**
+   * Whether the plugin waits for its turn in the grid's init sequence (see `initializePlugins()`). Set by
+   * `init()`, cleared by `onInitEnableTurn()`. While it is set, a settings pass started by an earlier
+   * plugin does not enable the plugin, so every plugin enables once, in priority order.
+   */
+  #awaitsInitEnableTurn = false;
+  /**
+   * Whether a settings pass that carried the plugin's own option ran while the plugin waited for its
+   * turn, so `onInitEnableTurn()` reads the plugin settings again before it enables the plugin.
+   */
+  #settingsChangedBeforeInitEnable = false;
+  /**
    * The lifecycle listeners the constructor registers directly on the Handsontable instance. They
-   * bypass `addHook()`, so `clearHooks()` never removes them - `destroy()` does.
+   * bypass `addHook()`, so `clearHooks()` never removes them - `destroy()` does. The init sequence
+   * itself is run by core (`initializePlugins()`), not by a listener of each plugin.
    */
   #lifecycleHooks: Record<string, HookCallback> = {
     afterPluginsInitialized: () => this.onAfterPluginsInitialized(),
     afterUpdateSettings: (newSettings: Record<string, unknown>) => this.onUpdateSettings(newSettings),
-    beforeInit: () => this.init(),
   };
 
   /**
@@ -184,85 +260,51 @@ export class BasePlugin {
       writable: false
     });
 
-    initializedPlugins = null;
-
     objectEach(this.#lifecycleHooks, (callback: HookCallback, name: string) => {
       this.hot.addHook(name, callback);
     });
   }
 
   /**
-   * Initializes the plugin by resolving its name, applying settings, and checking required dependencies.
+   * Initializes the plugin by resolving its name and applying its settings. Core calls it once per grid,
+   * from `initializePlugins()`, which also checks the plugin's `PLUGIN_DEPS`.
    */
   init(): void {
     this.pluginName = this.hot.getPluginName(this);
     this.updatePluginSettings(this.hot.getSettings()[this.constructor.PLUGIN_KEY]);
-
-    const pluginDeps = this.constructor.PLUGIN_DEPS;
-    const deps = Array.isArray(pluginDeps) ? pluginDeps : [];
-
-    if (deps.length > 0) {
-      const missingDependencies: string[] = [];
-
-      deps.forEach((dependency) => {
-        const [type, moduleName] = dependency.split(':');
-
-        if (!DEPS_TYPE_CHECKERS.has(type)) {
-          throwWithCause(`Unknown plugin dependency type "${type}" was found.`);
-        }
-
-        if (!DEPS_TYPE_CHECKERS.get(type)!(moduleName)) {
-          missingDependencies.push(` - ${moduleName} (${type})`);
-        }
-      });
-
-      if (missingDependencies.length > 0) {
-        const errorMsg = [
-          `The ${this.pluginName} plugin requires the following modules:\n`,
-          `${missingDependencies.join('\n')}\n`,
-        ].join('');
-
-        missingDepsMsgs.push(errorMsg);
-      }
-    }
-
-    if (!initializedPlugins) {
-      initializedPlugins = getPluginsNames();
-    }
-
-    if (initializedPlugins.indexOf(this.pluginName) >= 0) {
-      initializedPlugins.splice(initializedPlugins.indexOf(this.pluginName), 1);
-    }
-
-    this.hot.addHookOnce('afterPluginsInitialized', () => {
-      if (this.isEnabled && this.isEnabled()) {
-        if (this.isHardConflictBlocked()) {
-          this.hot.getSettings()[this.constructor.PLUGIN_KEY] = false;
-
-          return;
-        }
-        this.enablePlugin();
-      }
-    });
-
-    const isAllPluginsAreInitialized = initializedPlugins.length === 0;
-
-    if (isAllPluginsAreInitialized) {
-      if (missingDepsMsgs.length > 0) {
-        const errorMsg = [
-          `${missingDepsMsgs.join('\n')}\n`,
-          'You have to import and register them manually.',
-        ].join('');
-
-        missingDepsMsgs.length = 0;
-
-        throwWithCause(errorMsg);
-      }
-
-      this.hot.runHooks('afterPluginsInitialized');
-    }
-
+    this.#awaitsInitEnableTurn = true;
     this.initialized = true;
+  }
+
+  /**
+   * Enables the plugin when its turn in the grid's init sequence comes (see `initializePlugins()`), if
+   * its settings ask for it and no hard conflict blocks it. A plugin another plugin enabled directly
+   * before its turn is not enabled again.
+   *
+   * @private
+   */
+  onInitEnableTurn(): void {
+    const awaitedTurn = this.#awaitsInitEnableTurn;
+    const settingsChanged = this.#settingsChangedBeforeInitEnable;
+
+    this.#awaitsInitEnableTurn = false;
+    this.#settingsChangedBeforeInitEnable = false;
+
+    if (!awaitedTurn || this.enabled || !this.isEnabled?.()) {
+      return;
+    }
+
+    if (this.isHardConflictBlocked()) {
+      this.hot.getSettings()[this.constructor.PLUGIN_KEY] = false;
+
+      return;
+    }
+
+    if (settingsChanged) {
+      this.updatePluginSettings(this.hot.getSettings()[this.constructor.PLUGIN_KEY]);
+    }
+
+    this.enablePlugin();
   }
 
   /**
@@ -666,6 +708,17 @@ export class BasePlugin {
    */
   onUpdateSettings(newSettings: Record<string, unknown>) {
     if (!this.isEnabled) {
+      return;
+    }
+
+    // A settings pass that runs inside the grid's init sequence (SheetsBar builds its first sheet from
+    // its `enablePlugin()`) must not enable a plugin that still waits for its turn: core enables it
+    // there, once and in priority order, reading the settings again when this pass carried its option.
+    if (this.#awaitsInitEnableTurn) {
+      if (newSettings?.[this.constructor.PLUGIN_KEY] !== undefined) {
+        this.#settingsChangedBeforeInitEnable = true;
+      }
+
       return;
     }
 
