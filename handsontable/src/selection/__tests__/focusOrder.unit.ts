@@ -224,6 +224,21 @@ describe('Selection', () => {
         .toEqual({ selectionLayer: 0, rowStart: 1, rowEnd: 1, colStart: 3, colEnd: 3 });
     });
 
+    it('should anchor a node at its first visible cell', () => {
+      const merge = { row: 1, col: 1, rowspan: 2, colspan: 3 };
+      const focusOrder = new FocusOrder({
+        blockGetter: createMergedCellsGetter([merge]),
+        rowIndexMapper: createMapperMock([1]),
+        columnIndexMapper: createMapperMock([1]),
+      });
+
+      // The merge's top row and left column are hidden.
+      expect(focusOrder.getNodeAnchor({ selectionLayer: 0, rowStart: 1, rowEnd: 2, colStart: 1, colEnd: 3 }))
+        .toEqual({ row: 2, column: 2 });
+      expect(focusOrder.getNodeAnchor({ selectionLayer: 0, rowStart: 0, rowEnd: 0, colStart: 4, colEnd: 4 }))
+        .toEqual({ row: 0, column: 4 });
+    });
+
     it('should produce no focus stop for a merged cell that sticks out of the selection', () => {
       const merge = { row: 0, col: 0, rowspan: 3, colspan: 3 };
       const focusOrder = new FocusOrder({

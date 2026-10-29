@@ -514,6 +514,30 @@ describe('Selection', () => {
       expect(layers(selection)).toEqual([[0, 2, 0, 2]]);
     });
 
+    it('should lay out a selection a focus listener makes during Tab like any other selection', () => {
+      const selection = new Selection(createSettings(), createTableProps());
+      let isReselected = false;
+
+      selection.setCellBlockProvider(createProvider([createBlock(0, 1, 2, 1), createBlock(4, 1, 2, 1)]));
+      selection.selectCells([[0, 0, 2, 2]]);
+      selection.setRangeFocus(new CellCoords(1, 0));
+      selection.addLocalHook('afterSetFocus', () => {
+        if (!isReselected) {
+          isReselected = true;
+          selection.selectCells([[5, 1, 5, 1]]); // B6, inside the block B5:B6
+        }
+      });
+      selection.transformFocus(0, 1); // Tab from A2 to C2
+
+      // The listener's selection snaps to the block's corner, B5, and ArrowDown leaves from B6 to B7.
+      expect(layers(selection)).toEqual([[4, 1, 5, 1]]);
+      expect(highlightOf(selection)).toEqual([4, 1]);
+
+      selection.transformStart(1, 0);
+
+      expect(layers(selection)).toEqual([[6, 1, 6, 1]]);
+    });
+
     it('should put the focus on the first visible cell of a block whose corner is hidden', () => {
       const tableProps = createTableProps();
 

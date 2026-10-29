@@ -397,11 +397,6 @@ class Selection {
    * The step of the focus move in progress, as the public `modifyTransformFocus` hook left it.
    */
   #focusDelta: { row: number, col: number } | null = null;
-  /**
-   * `true` while Enter or Tab sets a focus the focus order has already placed on a block's first
-   * visible cell, so `#applyCellBlocks()` leaves the highlight where it is.
-   */
-  #isFocusOrderMove = false;
 
   /**
    * Initializes the Selection manager with grid settings and table API references, and sets up transformation modules and highlight layers.
@@ -1039,6 +1034,20 @@ class Selection {
    * @param {number} [layerIndex] The layer index to set the focus on.
    */
   setRangeFocus(coords: CellCoords, layerIndex = this.getLayerLevel()) {
+    this.#setRangeFocus(coords, layerIndex, null);
+  }
+
+  /**
+   * Sets the selection focus, as `setRangeFocus()` does. Enter and Tab pass `placedEntry`: their focus
+   * is already on a block's first visible cell, so the highlight is not snapped, and `placedEntry` is
+   * the cell an arrow key leaves the block from. A selection that a hook starts from inside goes
+   * through `setRangeFocus()` and gets neither.
+   *
+   * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
+   * @param {number} layerIndex The layer index to set the focus on.
+   * @param {CellCoords | null} placedEntry The entry cell of a focus Enter or Tab placed, or `null`.
+   */
+  #setRangeFocus(coords: CellCoords, layerIndex: number, placedEntry: CellCoords | null) {
     if (this.selectedRange.isEmpty()) {
       return;
     }
@@ -1063,7 +1072,7 @@ class Selection {
     cellRange.setHighlight(coords);
 
     if (!this.inProgress) {
-      this.#applyCellBlocks(cellRange);
+      this.#applyCellBlocks(cellRange, placedEntry);
       this.runLocalHooks('beforeHighlightSet');
     }
 
@@ -1145,17 +1154,7 @@ class Selection {
     const blockFocus = this.#findBlockFocus(visualCoords, selectionLayer);
 
     if (blockFocus) {
-      this.#isFocusOrderMove = true;
-
-      try {
-        this.setRangeFocus(blockFocus.coords, blockFocus.layerIndex);
-      } finally {
-        this.#isFocusOrderMove = false;
-      }
-
-      // `setRangeFocus()` remembered the cell it placed the focus on. An arrow key leaves from the
-      // cell the move came in on instead, as it does after a click.
-      this.#blockEntryFocus = blockFocus.entry;
+      this.#setRangeFocus(blockFocus.coords, blockFocus.layerIndex, blockFocus.entry);
     } else {
       this.setRangeFocus(visualCoords.normalize(), selectionLayer);
     }
@@ -1716,8 +1715,10 @@ class Selection {
    * as it is, and its highlight is remembered as it is.
    *
    * @param {CellRange} cellRange The range being changed, in place.
+   * @param {CellCoords | null} [placedEntry=null] For a focus Enter or Tab placed, the cell to remember
+   * instead of the highlight, which is then left where it is.
    */
-  #applyCellBlocks(cellRange: CellRange) {
+  #applyCellBlocks(cellRange: CellRange, placedEntry: CellCoords | null = null) {
     if (this.#cellBlockProvider === null) {
       return;
     }
@@ -1725,7 +1726,7 @@ class Selection {
     const { highlight } = cellRange;
 
     if (this.#isActiveLayerSelectedByHeader()) {
-      this.#blockEntryFocus = highlight.clone();
+      this.#blockEntryFocus = placedEntry ?? highlight.clone();
 
       return;
     }
@@ -1738,11 +1739,11 @@ class Selection {
 
     const block = this.#cellBlockProvider.getBlockAt(highlight.row, highlight.col);
 
-    this.#blockEntryFocus = highlight.clone();
+    this.#blockEntryFocus = placedEntry ?? highlight.clone();
 
     // Enter and Tab put the highlight on the block's first visible cell themselves. Snapping it to the
     // corner would let `syncWith()` move a hidden corner to the range's first visible cell instead.
-    if (block !== null && !this.#isFocusOrderMove) {
+    if (block !== null && placedEntry === null) {
       // The top-left can be hidden. `VisualSelection#syncWith()` then moves the visual highlight on.
       highlight.assign({ row: block.row, col: block.col });
     }
@@ -1850,20 +1851,18 @@ class Selection {
       return;
     }
 
-    const isRow = axis === 'row';
     const scanDirection = step < 0 ? -1 : 1;
-    const toRow = range.to.row ?? 0;
-    const toCol = range.to.col ?? 0;
-    const toIndex = isRow ? toRow : toCol;
+    const toIndex = range.to[axis] ?? 0;
     let next = findNonIntersectingIndex(blocks, range, axis, scanDirection, toIndex) + step;
+    const movedEnd = this.tableProps.createCellCoords(range.to.row ?? 0, range.to.col ?? 0);
 
-    scratchRange.expand(this.tableProps.createCellCoords(isRow ? next : toRow, isRow ? toCol : next));
+    movedEnd[axis] = next;
+    scratchRange.expand(movedEnd);
     expandRangeToBlocks(scratchRange, blocks, true);
 
-    const direction = isRow ? range.getVerticalDirection() : range.getHorizontalDirection();
-    const scratchDirection = isRow ? scratchRange.getVerticalDirection() : scratchRange.getHorizontalDirection();
-    const towardStart = isRow ? 'S-N' : 'E-W';
-    const towardEnd = isRow ? 'N-S' : 'W-E';
+    const [towardStart, towardEnd] = axis === 'row' ? ['S-N', 'N-S'] : ['E-W', 'W-E'];
+    const direction = this.#getAxisDirection(range, axis);
+    const scratchDirection = this.#getAxisDirection(scratchRange, axis);
 
     if (scanDirection < 0 && direction === towardStart && scratchDirection === towardStart) {
       next = scratchRange.getTopStartCorner()[axis] ?? next;
@@ -1872,21 +1871,52 @@ class Selection {
       next = scratchRange.getBottomEndCorner()[axis] ?? next;
     }
 
-    const mapper = isRow ? this.tableProps.rowIndexMapper : this.tableProps.columnIndexMapper;
     // Search back toward the range, so the end lands on a visible line it actually reaches.
-    const nearest = mapper.getNearestNotHiddenIndex(next, scanDirection < 0 ? 1 : -1);
+    const nearest = this.#getAxisIndexMapper(axis).getNearestNotHiddenIndex(next, scanDirection < 0 ? 1 : -1);
 
     if (nearest === null) {
       return;
     }
 
-    const countInRange = (from: number, to: number) => (isRow ?
-      this.tableProps.countRenderableRowsInRange(from, to) :
-      this.tableProps.countRenderableColumnsInRange(from, to));
-
     delta[axis] = scanDirection < 0 ?
-      -Math.max(countInRange(nearest, toIndex) - 1, 1) :
-      Math.max(countInRange(toIndex, nearest) - 1, 1);
+      -Math.max(this.#countRenderableInRange(axis, nearest, toIndex) - 1, 1) :
+      Math.max(this.#countRenderableInRange(axis, toIndex, nearest) - 1, 1);
+  }
+
+  /**
+   * Returns the index mapper of an axis.
+   *
+   * @param {'row'|'col'} axis The axis.
+   * @returns {IndexMapper}
+   */
+  #getAxisIndexMapper(axis: 'row' | 'col') {
+    return axis === 'row' ? this.tableProps.rowIndexMapper : this.tableProps.columnIndexMapper;
+  }
+
+  /**
+   * Counts the rendered rows or columns between two visual indexes, both included.
+   *
+   * @param {'row'|'col'} axis The axis to count on.
+   * @param {number} from The first visual index.
+   * @param {number} to The last visual index.
+   * @returns {number}
+   */
+  #countRenderableInRange(axis: 'row' | 'col', from: number, to: number) {
+    return axis === 'row' ?
+      this.tableProps.countRenderableRowsInRange(from, to) :
+      this.tableProps.countRenderableColumnsInRange(from, to);
+  }
+
+  /**
+   * Returns the direction a range runs in along an axis (`N-S` or `S-N` for rows, `W-E` or `E-W` for
+   * columns).
+   *
+   * @param {CellRange} range The range.
+   * @param {'row'|'col'} axis The axis.
+   * @returns {string}
+   */
+  #getAxisDirection(range: CellRange, axis: 'row' | 'col') {
+    return axis === 'row' ? range.getVerticalDirection() : range.getHorizontalDirection();
   }
 
   /**
@@ -1917,8 +1947,8 @@ class Selection {
     }
 
     const { selectionLayer, rowStart, rowEnd, colStart, colEnd } = node;
-    const { row, col } = this.#getFirstVisibleCell(rowStart, rowEnd, colStart, colEnd);
-    const coords = this.tableProps.createCellCoords(row, col);
+    const { row, column } = this.#blockFocusOrder.getNodeAnchor(node);
+    const coords = this.tableProps.createCellCoords(row, column);
     const isEnteredInNode = selectionLayer === transformedLayer &&
       transformedCoords.row !== null && transformedCoords.col !== null &&
       transformedCoords.row >= rowStart && transformedCoords.row <= rowEnd &&
@@ -1974,27 +2004,6 @@ class Selection {
   }
 
   /**
-   * Finds the top-left visible cell of a rectangle. An axis with no visible line in the rectangle
-   * keeps its first index.
-   *
-   * @param {number} rowStart The first row.
-   * @param {number} rowEnd The last row.
-   * @param {number} colStart The first column.
-   * @param {number} colEnd The last column.
-   * @returns {{row: number, col: number}}
-   */
-  #getFirstVisibleCell(rowStart: number, rowEnd: number, colStart: number, colEnd: number) {
-    const { rowIndexMapper, columnIndexMapper } = this.tableProps;
-    const row = rowIndexMapper.getNearestNotHiddenIndex(rowStart, 1);
-    const col = columnIndexMapper.getNearestNotHiddenIndex(colStart, 1);
-
-    return {
-      row: row !== null && row <= rowEnd ? row : rowStart,
-      col: col !== null && col <= colEnd ? col : colStart,
-    };
-  }
-
-  /**
    * Puts the highlight back on the cell the block was entered on, where that cell is still rendered,
    * and forgets it.
    *
@@ -2039,10 +2048,7 @@ class Selection {
     }
 
     const isRow = axis === 'row';
-    const mapper = isRow ? this.tableProps.rowIndexMapper : this.tableProps.columnIndexMapper;
-    const countInRange = (from: number, to: number) => (isRow ?
-      this.tableProps.countRenderableRowsInRange(from, to) :
-      this.tableProps.countRenderableColumnsInRange(from, to));
+    const mapper = this.#getAxisIndexMapper(axis);
     const start = isRow ? block.row : block.col;
     const end = start + (isRow ? block.rowspan : block.colspan) - 1;
     const isInside = position >= start && position <= end;
@@ -2051,8 +2057,8 @@ class Selection {
       const nearest = mapper.getNearestNotHiddenIndex(isInside ? start - 1 : end, -1);
 
       delta[axis] = nearest === null ?
-        -countInRange(0, position) :
-        -Math.max(countInRange(nearest, position) - 1, 1);
+        -this.#countRenderableInRange(axis, 0, position) :
+        -Math.max(this.#countRenderableInRange(axis, nearest, position) - 1, 1);
 
       return nearest !== null;
     }
@@ -2061,8 +2067,8 @@ class Selection {
     const lastIndex = isRow ? this.tableProps.countRows() : this.tableProps.countCols();
 
     delta[axis] = nearest === null ?
-      countInRange(position, lastIndex) :
-      Math.max(countInRange(position, nearest) - 1, 1);
+      this.#countRenderableInRange(axis, position, lastIndex) :
+      Math.max(this.#countRenderableInRange(axis, position, nearest) - 1, 1);
 
     return nearest !== null;
   }

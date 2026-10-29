@@ -515,6 +515,9 @@ export class MergeCells extends BasePlugin {
    * `objectEach` sweep only sees enumerable own properties, never `#` fields.
    */
   destroy() {
+    // `BasePlugin#destroy()` never calls `disablePlugin()`, and it nulls the collection the provider
+    // reads, so a plugin destroyed ahead of the grid would leave Selection calling into it.
+    this.hot?.selection?.setCellBlockProvider(null);
     this.hot?.rowIndexMapper.removeLocalHook('beforeCacheUpdate', this.#onBeforeRowIndexCacheUpdate);
     this.hot?.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
     this.#foreignRowsBeforeCacheUpdate = null;

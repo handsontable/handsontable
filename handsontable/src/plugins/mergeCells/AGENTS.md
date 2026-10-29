@@ -34,7 +34,8 @@ band once per slave. The reference scans measure against a column or row that no
 
 Reading visibility off `mergedCells` is the bug this split exists to prevent.
 
-Two line-scan helpers encode the rest of that logic: the first merge-touched line (in scan order) whose
+The Shift+Arrow line scan, `findNonIntersectingIndex()` in `../../selection/cellBlocks.ts`, encodes the rest
+of that logic, over the merges on screen only (`getVisibleMergedCells()`): the first merge-touched line (in scan order) whose
 cells all agree on a single index at or past `visualIndex`, and the first merge-**free** line at or past it
 (which always emits its own index — cells covered by no merge contribute their line's own index).
 
@@ -765,7 +766,8 @@ check against a cell-by-cell reference); R7 also by the direction spec in `__tes
 
 **Enter and Tab place the focus themselves.** `VisualSelection#syncWith()` moves a hidden corner to the
 range's first visible cell, which can lie outside the merge. So the walk puts the focus on the merge's
-first visible cell, and `#applyCellBlocks` leaves it there (`#isFocusOrderMove`), in a header selection
+first visible cell, and `#applyCellBlocks` leaves it there (the `placedEntry` that only `transformFocus`
+passes through the private `#setRangeFocus`, so a selection a hook starts from inside is snapped as usual), in a header selection
 too. A click still snaps to the corner, and `syncWith()` picks the visible cell in the range's direction:
 `hiddenRows.spec.js` and `hiddenColumns.spec.js` pin both. The entry cell is the cell the cell-by-cell move
 reached when it lies in the merge, so an arrow key leaves the merge from the side the focus came from.

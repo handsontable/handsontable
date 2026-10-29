@@ -168,6 +168,16 @@ export class FocusOrder {
   }
 
   /**
+   * Gets the cell the focus lands on for the provided node: its first visible cell in scan order.
+   *
+   * @param {FocusNodeData} node The node.
+   * @returns {{row: number, column: number}}
+   */
+  getNodeAnchor(node: FocusNodeData) {
+    return this.#nodeScanPosition(node);
+  }
+
+  /**
    * Sets the previous node in both focus orders as active.
    */
   setPrevNodeAsActive() {
