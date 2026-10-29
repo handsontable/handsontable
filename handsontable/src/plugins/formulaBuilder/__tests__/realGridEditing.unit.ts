@@ -897,4 +897,41 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(isEditorOpened()).toBe(true);
     });
   });
+
+  describe('the address box after an edit closes on a range', () => {
+    /**
+     * Returns the formula bar's address input.
+     *
+     * @returns {HTMLInputElement}
+     */
+    function addressInput(): HTMLInputElement {
+      const input = container.parentElement?.querySelector<HTMLInputElement>('.hfe-formula-bar__address-input');
+
+      if (!input) {
+        throw new Error('no address input');
+      }
+
+      return input;
+    }
+
+    it.each([
+      ['committed', false],
+      ['cancelled', true],
+    ])('keeps showing the selected range when the edit is %s', (_, cancel) => {
+      createGrid({ formulaBuilder: { builder: core, showFormulaBar: true } });
+      hot.selectCell(0, 0, 1, 1);
+
+      expect(addressInput().value).toBe('A1:B2');
+
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }));
+
+      expect(isEditorOpened()).toBe(true);
+
+      hot.getActiveEditor()?.finishEditing(cancel);
+
+      expect(isEditorOpened()).toBe(false);
+      expect(hot.getSelectedRangeActive()?.from.row).toBe(0);
+      expect(addressInput().value).toBe('A1:B2');
+    });
+  });
 });

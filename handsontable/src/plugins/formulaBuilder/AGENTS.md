@@ -218,7 +218,9 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   Tab and Enter wrap the focus between layers. Whether the bar edits a formula is decided by the
   highlighted cell, and a header-anchored range is clamped to cells. The selection hooks are ignored
   while an edit is open, so `handleInlineEditClose()` re-reads the selection (a validated edit closes a
-  microtask after the deselect that ended it). One exception: a selection the grid moves under the `shift`
+  microtask after the deselect that ended it). That re-read clears the dedupe key first: the package's
+  own `handleInlineEditClose()` resets the address box to `singleCellSelection(active)`, so a range
+  selected across the edit was deduped and the box showed only its active cell. One exception: a selection the grid moves under the `shift`
   source (an application `alter()` during the edit) moves `#barSelected` with it, without emitting
   (`#followStructuralShift()`). The pick controller compares every press with it, so a stale one turned a
   pick on the cell that took the old coordinates into a switch to inline editing. Only the active cell

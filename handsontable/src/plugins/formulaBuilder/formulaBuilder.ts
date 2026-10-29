@@ -729,7 +729,10 @@ export class FormulaBuilder extends BasePlugin {
     this.#editorCloseListeners.emit();
     // The selection hooks are ignored while an edit is open, and an edit with a validator closes a
     // microtask after the deselect or the `selectCell()` that ended it, so the bar would keep
-    // showing the old cell. Re-read the selection now that the edit is over.
+    // showing the old cell. Re-read the selection now that the edit is over. Always emitted: the
+    // package's own close resets the address box to the active cell alone, and an unchanged range
+    // would otherwise be deduped, leaving a selected range shown as one cell.
+    this.#lastEmittedSelectionCoords = null;
     this.#emitBarSelection();
 
     // The grid was bound to another sheet without a data load while the edit was open
