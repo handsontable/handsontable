@@ -85,6 +85,7 @@ function makeHarness(options: HarnessOptions = {}) {
     emitCellPick: jest.fn(),
     emitRangePick: jest.fn(),
     emitHeaderPick: jest.fn(),
+    expandRangeOverMerges: jest.fn(range => range),
     getGridSize: jest.fn(() => ({ rows: 10, cols: 8 })),
     getCellAddressAt: jest.fn(() =>
       (cellAtPoint ? { sheet: '', row: cellAtPoint.row, col: cellAtPoint.col } : null),
@@ -637,6 +638,31 @@ describe('CellPickController.onDocMouseUp', () => {
       append: false,
     });
     expect(adapterStub.emitCellPick).not.toHaveBeenCalled();
+  });
+
+  it('emits a range pick grown over the merged cells it touches, and previews the grown range', () => {
+    const { controller, adapterStub } = makeHarness();
+    const grown = { start: { sheet: '', row: 0, col: 0 }, end: { sheet: '', row: 3, col: 4 } };
+
+    adapterStub.expandRangeOverMerges.mockImplementation(() => grown);
+    pressCell(controller, { row: 3, col: 4 });
+    hoverCell(controller, { row: 1, col: 2 });
+
+    expect(adapterStub.highlightRange).toHaveBeenLastCalledWith(grown, EPHEMERAL_COLOR);
+
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitRangePick).toHaveBeenCalledWith({ ref: grown, append: false });
+  });
+
+  it('does not grow a single-cell pick over a merge', () => {
+    const { controller, adapterStub } = makeHarness();
+
+    pressCell(controller, { row: 3, col: 4 });
+    controller.onDocMouseUp();
+
+    expect(adapterStub.expandRangeOverMerges).not.toHaveBeenCalled();
+    expect(adapterStub.emitCellPick).toHaveBeenCalledTimes(1);
   });
 
   it('emits an append=true cell pick when the mousedown held ctrl', () => {

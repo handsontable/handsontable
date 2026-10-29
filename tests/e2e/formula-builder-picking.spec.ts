@@ -122,6 +122,32 @@ test.describe('formulaBuilder mouse reference picking', { tag: [THEMES_TAG, BUND
   });
 });
 
+// MergeCells: a range picked through a merged cell grows over the whole merge, as the grid's own
+// selection does, so the inserted reference never cuts a merge.
+test.describe('formulaBuilder picking over merged cells', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  let grid: FormulaBuilderPage;
+
+  test.beforeEach(async({ page, theme, bundle }) => {
+    grid = new FormulaBuilderPage(page, theme, bundle, 'sorting');
+    await grid.goto();
+    await grid.updateGridSettings({ mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }] });
+    await grid.selectCellByApi(3, 0);
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+  });
+
+  test('a drag onto a merged cell inserts a range that covers the whole merge', async() => {
+    await grid.drag(grid.cell(2, 0), grid.cell(0, 0));
+    await expect(grid.editorInput).toHaveValue('=A1:B3');
+    expect(await grid.selectedAll()).toEqual([[3, 0, 3, 0]]);
+  });
+
+  test('a click on a merged cell inserts its first cell', async() => {
+    await grid.cell(0, 0).click();
+    await expect(grid.editorInput).toHaveValue('=A1');
+  });
+});
+
 // A pick with the caret inside an existing reference replaces that reference, the way Google Sheets
 // does it, instead of inserting into the middle of the token (after the `:` of a range) or
 // committing the edit (inside a cell address). The replace rule lives in hyperformula-ui

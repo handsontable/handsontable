@@ -79,6 +79,12 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   `mousedown`/`click` at all, and it disarms the click swallows, which have no click left to eat. Do not
   cancel the compatibility `mousedown` instead: the click swallows disarm on any `mousedown`, so the
   `click` after it still reached the header, link, or checkbox.
+- **A range pick grows over the merged cells it touches; a cell pick does not.** The grid's own
+  selection grows in MergeCells' `beforeSelectionHighlightSet`, which a claimed pick never reaches, so a drag
+  from A3 onto a merged A1:B2 inserted `A1:A3`. `HandsontableAdapter#expandRangeOverMerges()` grows the
+  range (in visual space, repeated until stable) for both the preview and the drop; it reads
+  `mergedCellsCollection.mergedCells` through `getPlugin('mergeCells')`, the read ExportFile makes, since
+  MergeCells has no public lookup. A one-cell pick on a merge still inserts its first cell, as a spreadsheet does.
 - **A drag `reset()` cancels mid-gesture stays claimed until the button is released.** Escape during a pick
   drag closes the edit, and `handleInlineEditClose()` resets the controller, but the grid saw the press as
   its own (`TableView`'s `#mouseDown` is set before `beforeOnCellMouseDown` runs), so every later

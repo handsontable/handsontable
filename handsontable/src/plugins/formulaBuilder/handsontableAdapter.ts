@@ -629,6 +629,69 @@ export class HandsontableAdapter {
   }
 
   /**
+   * Grows a picked range to cover every merged cell it touches, the way the grid's own selection
+   * grows over a merge (MergeCells expands it in `beforeSelectionHighlightSet`). Without it a drag
+   * from A3 onto a merged A1:B2 inserted `A1:A3`, a range that cuts the merge. The range is read in
+   * HyperFormula space and returned in it; a corner that has no visual index leaves it as it is.
+   *
+   * @param {CellRange} range The picked range, in HyperFormula coordinates.
+   * @returns {CellRange} The range covering every merge it touches.
+   */
+  expandRangeOverMerges(range: CellRange): CellRange {
+    const mergeCells = this.#hot.getPlugin('mergeCells');
+    // The same read ExportFile makes: the plugin keeps its merges, in visual coordinates, there.
+    const merges = mergeCells?.isEnabled() ? mergeCells.mergedCellsCollection?.mergedCells ?? [] : [];
+
+    if (merges.length === 0) {
+      return range;
+    }
+
+    const rows = [range.start.row, range.end.row].map(row => this.#mapping.hfToVisualRow(row));
+    const cols = [range.start.col, range.end.col].map(col => this.#mapping.hfToVisualCol(col));
+
+    if (rows.some(row => row < 0) || cols.some(col => col < 0)) {
+      return range;
+    }
+
+    const box = {
+      top: Math.min(...rows), bottom: Math.max(...rows), left: Math.min(...cols), right: Math.max(...cols),
+    };
+    const initial = { ...box };
+
+    // A merge the box grows over can reach another one, so repeat until nothing grows.
+    for (let grown = true; grown;) {
+      grown = false;
+
+      for (const { row, col, rowspan, colspan } of merges) {
+        const overlaps = row <= box.bottom && row + rowspan - 1 >= box.top &&
+          col <= box.right && col + colspan - 1 >= box.left;
+
+        if (overlaps && (row < box.top || col < box.left ||
+            row + rowspan - 1 > box.bottom || col + colspan - 1 > box.right)) {
+          box.top = Math.min(box.top, row);
+          box.left = Math.min(box.left, col);
+          box.bottom = Math.max(box.bottom, row + rowspan - 1);
+          box.right = Math.max(box.right, col + colspan - 1);
+          grown = true;
+        }
+      }
+    }
+
+    if (box.top === initial.top && box.bottom === initial.bottom &&
+        box.left === initial.left && box.right === initial.right) {
+      return range;
+    }
+
+    const start = this.#toHfAddress(box.top, box.left);
+    const end = this.#toHfAddress(box.bottom, box.right);
+
+    return start && end ? {
+      start: { ...start, sheet: range.start.sheet },
+      end: { ...end, sheet: range.end.sheet },
+    } : range;
+  }
+
+  /**
    * Renders the ephemeral (drag preview) highlight.
    *
    * @param {CellRange} range The range to highlight.

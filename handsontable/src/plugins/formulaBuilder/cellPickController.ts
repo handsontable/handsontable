@@ -361,7 +361,11 @@ export class CellPickController {
       onPreview: (range, append) => this.#previewRange(range, append),
       onDragEnd: () => this.#deps.getAdapter()?.clearEphemeralHighlight(),
       onDropCell: pick => this.#deps.getAdapter()?.emitCellPick(pick),
-      onDropRange: pick => this.#deps.getAdapter()?.emitRangePick(pick),
+      onDropRange: (pick) => {
+        const adapter = this.#deps.getAdapter();
+
+        adapter?.emitRangePick({ ...pick, ref: adapter.expandRangeOverMerges(pick.ref) });
+      },
     });
     this.#headerTracker = new this.#core.HeaderDragTracker({
       sheet: '',
@@ -448,7 +452,12 @@ export class CellPickController {
       return;
     }
 
-    adapter.highlightRange(range, editor.getRefPreviewColor(range, append));
+    // A one-cell preview drops as a cell pick, which a merge does not grow; a range drops grown over
+    // every merge it touches (see `onDropRange`), so its preview grows the same way.
+    const isSingleCell = range.start.row === range.end.row && range.start.col === range.end.col;
+    const shown = isSingleCell ? range : adapter.expandRangeOverMerges(range);
+
+    adapter.highlightRange(shown, editor.getRefPreviewColor(shown, append));
   }
 
   /**
