@@ -298,6 +298,17 @@ test('a page of a docs version older than 9.0 redirects to its current page (PRO
   );
 });
 
+test('every old page that rule 13 knew still has a current target (PRO-1371)', async() => {
+  const worker = loadWorker();
+
+  // These three were in VERSIONED_HTML_MAP_PRE12 only, so rule 12b sent
+  // them to the framework home instead of their page.
+  await assertRedirect(worker, '/docs/7.4/tutorial-changelog.html', '/docs/javascript-data-grid/changelog/', 302);
+  await assertRedirect(worker, '/docs/7.4.2/demo-using-callbacks.html', '/docs/javascript-data-grid/events-and-hooks/', 302);
+  await assertRedirect(worker, '/docs/7.4.2/demo-react-simple-examples.html', '/docs/react-data-grid/binding-to-data/', 302);
+  await assertRedirect(worker, '/docs/tutorial-changelog.html', '/docs/javascript-data-grid/changelog/', 302);
+});
+
 test('the root, or an unknown page, of a docs version older than 9.0 lands on the framework home', async() => {
   const worker = loadWorker();
 
