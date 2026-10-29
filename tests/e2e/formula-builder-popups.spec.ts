@@ -247,7 +247,7 @@ function textContrast(locator: Locator): Promise<number> {
 
 // WCAG 1.4.3: the two text colors the plugin's tokens set that measured below 4.5:1 on the light
 // themes (named expressions on the active suggestion row, error text inside a selected range).
-test.describe('formulaBuilder text contrast', { tag: [THEMES_TAG] }, () => {
+test.describe('formulaBuilder text contrast', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   test('a named expression on the active suggestion row reaches 4.5:1', async({ page, theme, bundle }) => {
     const grid = new FormulaBuilderPage(page, theme, bundle);
 

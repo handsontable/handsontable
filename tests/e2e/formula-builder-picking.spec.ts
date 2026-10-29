@@ -708,10 +708,11 @@ test.describe('formulaBuilder picking a cell that shows a link', { tag: [THEMES_
 // `preventDefault()` lands on a finished event, and the compatibility `mousedown` the browser fires
 // after the tap would move the focus onto the cell: the next typed characters were lost and the soft
 // keyboard closed. Themes: `locator.tap()` aims at the center of a cell or header label, and the
-// theme's padding decides what sits there.
-test.describe('formulaBuilder picking by a touch tap', { tag: [THEMES_TAG] }, () => {
+// theme's padding decides what sits there. Bundles: the file is declared as a whole, and the fixture
+// loads HyperFormula externally on the plain UMD leg.
+test.describe('formulaBuilder picking by a touch tap', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   // The phone's viewport, touch, and mobile flags without its browser type: a describe group cannot
-  // switch the browser, and this file runs on the Chromium legs only (no `CROSS_BROWSER_TAG`).
+  // switch the browser, and this block runs on the Chromium legs only (no `CROSS_BROWSER_TAG`).
   const { defaultBrowserType, ...iPhone } = devices['iPhone 13'];
 
   test.use(iPhone);
