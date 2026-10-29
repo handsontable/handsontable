@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-29T14:43:37.930Z",
+  "updatedAt": "2026-10-29T16:17:06.734Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-firefox",
+      "file": "e2e/formula-builder-picking.spec.ts",
+      "line": 504,
+      "title": "formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page and extends the range",
+      "status": "failed",
+      "attempts": 2,
+      "error": "Error: expect(received).toBeGreaterThan(expected)",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "40885499249",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40885499249",
+      "workflow": "Tests",
+      "branch": "feature/DEV-3633_Formula-builder-final-fixes",
+      "headSha": "c6630ffcfcc5b33dca9ead22a945a381c825d181",
+      "event": "pull_request",
+      "seenAt": "2026-10-29T16:16:11Z"
+    },
     {
       "tier": "visual",
       "leg": "js/chromium-theme-main",

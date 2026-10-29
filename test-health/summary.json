@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-29T14:43:37.930Z",
+  "generatedAt": "2026-10-29T16:17:06.734Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 428,
+    "tests": 429,
     "needsTicket": 34,
     "quarantined": 0,
-    "entries": 2239
+    "entries": 2240
   },
   "rows": [
     {
@@ -2954,6 +2954,39 @@
         "leg": "e2e-firefox",
         "status": "failed",
         "error": "Error: browserType.launch: Failed to launch the browser process.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/formula-builder-picking.spec.ts|formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page and extends the range",
+      "tier": "playwright",
+      "file": "e2e/formula-builder-picking.spec.ts",
+      "line": 504,
+      "title": "formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page and extends the range",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-firefox"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-29T16:16:11Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40885499249",
+        "branch": "feature/DEV-3633_Formula-builder-final-fixes",
+        "leg": "e2e-firefox",
+        "status": "failed",
+        "error": "Error: expect(received).toBeGreaterThan(expected)",
         "source": "ci"
       },
       "needsTicket": false
