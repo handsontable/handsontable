@@ -1,5 +1,7 @@
 import { HyperFormula } from 'hyperformula';
 import Handsontable from '../../../base';
+import deDE from '../../../i18n/languages/de-DE';
+import { registerLanguageDictionary } from '../../../i18n/registry';
 import { registerPlugin } from '../../registry';
 import { Formulas } from '../../formulas';
 import { UndoRedo } from '../../undoRedo';
@@ -33,6 +35,7 @@ describe('FormulaBuilder state that has to follow the grid', () => {
     registerPlugin(Formulas);
     registerPlugin(FormulaBuilder);
     registerPlugin(UndoRedo);
+    registerLanguageDictionary(deDE);
   });
 
   beforeEach(() => {
@@ -247,6 +250,56 @@ describe('FormulaBuilder state that has to follow the grid', () => {
 
       expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('popups.suggestions.container'));
       host.remove();
+    });
+  });
+
+  describe('the language', () => {
+    /**
+     * Builds a grid whose builder constructions are counted.
+     *
+     * @returns {object} The grid and the construction counter.
+     */
+    function createCountingGrid() {
+      const counter = { builds: 0 };
+
+      class CountingFormulaBuilder extends core.FormulaBuilder {
+        constructor(options: ConstructorParameters<typeof core.FormulaBuilder>[0]) {
+          super(options);
+          counter.builds += 1;
+        }
+      }
+
+      const grid = createGrid({ formulaBuilder: { builder: { ...core, FormulaBuilder: CountingFormulaBuilder } } });
+
+      return { grid, counter };
+    }
+
+    it('does not rebuild the builder when `updateSettings` re-sends the language in use', () => {
+      const { grid, counter } = createCountingGrid();
+
+      grid.updateSettings({ language: 'en-US' });
+      grid.updateSettings({ language: 'en-US' });
+
+      expect(counter.builds).toBe(1);
+    });
+
+    it('rebuilds the builder once when the language changes', () => {
+      const { grid, counter } = createCountingGrid();
+
+      grid.updateSettings({ language: 'de-DE' });
+      grid.updateSettings({ language: 'de-DE' });
+
+      expect(counter.builds).toBe(2);
+    });
+
+    it('keeps the builder, and does not throw, for a language code that is not registered', () => {
+      const error = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+      const { grid, counter } = createCountingGrid();
+
+      expect(() => grid.updateSettings({ language: 'xx-XX' })).not.toThrow();
+      expect(error).toHaveBeenCalled();
+      expect(counter.builds).toBe(1);
+      expect(grid.getPlugin('formulaBuilder').enabled).toBe(true);
     });
   });
 

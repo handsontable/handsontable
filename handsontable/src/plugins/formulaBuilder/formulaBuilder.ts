@@ -387,6 +387,11 @@ export class FormulaBuilder extends BasePlugin {
    * The theme class name the builder was constructed with (compared in `afterSetTheme`).
    */
   #currentThemeClassName: string | undefined;
+
+  /**
+   * The language code the current builder took its phrases from, or `null` before the first build.
+   */
+  #builtLanguageCode: string | null = null;
   /**
    * The suggestions host set through `attachSuggestionsHost()`, re-applied to every rebuilt builder.
    */
@@ -1108,11 +1113,15 @@ export class FormulaBuilder extends BasePlugin {
   };
 
   /**
-   * `afterLanguageChange` hook listener - rebuilds the builder, because it takes its phrases once,
-   * at construction.
+   * `afterLanguageChange` hook listener - rebuilds the builder when the language code actually changed,
+   * because it takes its phrases once, at construction.
+   *
+   * @param {string} languageCode The normalized language code the grid now uses.
    */
-  #onAfterLanguageChange = (): void => {
-    if (this.#builder !== null) {
+  #onAfterLanguageChange = (languageCode: string): void => {
+    // `updateSettings({ language })` fires the hook for every payload that carries the key, also for the
+    // code already in use, and the phrases of the same code are the ones the builder already has.
+    if (this.#builder !== null && languageCode !== this.#builtLanguageCode) {
       this.#rebuildOrDefer();
     }
   };
@@ -1747,6 +1756,7 @@ export class FormulaBuilder extends BasePlugin {
     const shadowRoot = this.#gridShadowRoot();
 
     this.#currentThemeClassName = themeClassName;
+    this.#builtLanguageCode = this.hot.getSettings().language ?? null;
     this.#builtSheetId = this.#sheetId;
 
     try {
