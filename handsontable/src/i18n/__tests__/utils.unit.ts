@@ -108,5 +108,18 @@ describe('i18n helpers', () => {
 
       expect(spy).toHaveBeenCalled();
     });
+
+    it('should link the language guide with no punctuation glued to the URL', () => {
+      const spy = spyOn(console, 'error');
+
+      warnUserAboutLanguageRegistration('pl-PL');
+
+      const message = spy.calls.mostRecent().args[0];
+      const url = 'https://handsontable.com/docs/javascript-data-grid/language/#load-the-prepared-language-files';
+
+      expect(message).toContain(url);
+      // A console turns the text up to the next space into the link.
+      expect(message.split(/\s+/)).toContain(url);
+    });
   });
 });
