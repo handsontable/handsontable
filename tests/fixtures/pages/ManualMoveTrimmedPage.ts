@@ -85,15 +85,36 @@ export class ManualMoveTrimmedPage {
   }
 
   /**
-   * Move a column through the plugin API, the way a completed header drag does.
+   * The column header of a visual column, in the bottom header row.
    */
-  async dragColumn(column: number, dropIndex: number): Promise<void> {
-    await this.page.evaluate(([c, d]) => {
-      const hot = (window as any).hot;
+  columnHeader(column: number): Locator {
+    // The first cell of the header row is the corner above the row headers.
+    return this.grid.locator('.ht_clone_top thead tr:last-child th').nth(column + 1);
+  }
 
-      hot.getPlugin('manualColumnMove').dragColumn(c, d);
-      hot.render();
-    }, [column, dropIndex]);
+  /**
+   * Select a column through its header, press the pointer on it, move the pointer a few pixels along the
+   * same header and release it: the drag that drops the column back where it was. A press that never
+   * travels is a click for ManualColumnMove, and fires no move hook.
+   */
+  async grabColumnHeaderAndRelease(column: number): Promise<void> {
+    // The API selects the column: a header click followed by a press on the same point would read as a double click.
+    await this.page.evaluate((c) => (window as any).hot.selectColumns(c), column);
+    await expect(this.cell(0, column)).toBeVisible();
+
+    const box = await this.columnHeader(column).boundingBox();
+
+    if (!box) {
+      throw new Error(`Column header ${column} is not rendered`);
+    }
+
+    const centerX = box.x + box.width / 2;
+    const centerY = box.y + box.height / 2;
+
+    await this.page.mouse.move(centerX, centerY);
+    await this.page.mouse.down();
+    await this.page.mouse.move(centerX + 8, centerY, { steps: 4 });
+    await this.page.mouse.up();
   }
 
   /**

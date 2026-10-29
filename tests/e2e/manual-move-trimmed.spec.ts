@@ -32,8 +32,8 @@ test.describe('a move that changes nothing, next to a trimmed index', { tag: THE
     await expect.poll(() => grid.latestHookCall('beforeRowMove')).toMatchObject({ movePossible: true });
   });
 
-  test('keeps the order of the columns when a column is dropped onto its own position', async () => {
-    await grid.dragColumn(0, 0);
+  test('keeps the order of the columns when a grabbed column header is released in place', async () => {
+    await grid.grabColumnHeaderAndRelease(0);
 
     await expect.poll(() => grid.latestHookCall('afterColumnMove')).toMatchObject({
       movePossible: true,
