@@ -377,6 +377,11 @@ export class HandsontableAdapter {
    */
   #overlayClassName: string | null = null;
   /**
+   * Whether the adapter added `#overlayClassName` to the overlay host itself. A host that already
+   * carried it (core keeps the grid theme class on the root wrapper) keeps it on removal.
+   */
+  #addedOverlayClassName = false;
+  /**
    * The resolved reference-highlight border width, probed lazily from the
    * `--hfe-reference-border-width` theme variable.
    */
@@ -614,9 +619,11 @@ export class HandsontableAdapter {
   }
 
   /**
-   * Applies the consumer's theming class to the grid root element so CSS variables
-   * scoped under it (e.g. reference palette overrides) cascade to the highlighted
-   * cells and their selection borders.
+   * Applies the consumer's theming class to the overlay host (the grid's root wrapper) so CSS
+   * variables scoped under it (e.g. reference palette overrides) cascade to the highlighted cells
+   * and their selection borders. A class the host already carries is left alone, and only a class
+   * the adapter added is removed: the plugin passes the grid theme class, which core owns on the
+   * wrapper and swaps on a theme change.
    *
    * @param {string | null} className The class name, or `null` to remove it.
    */
@@ -625,13 +632,19 @@ export class HandsontableAdapter {
       return;
     }
 
-    if (this.#overlayClassName !== null) {
-      this.#overlayHost.classList.remove(this.#overlayClassName);
+    const { classList } = this.#overlayHost;
+
+    if (this.#overlayClassName !== null && this.#addedOverlayClassName) {
+      classList.remove(this.#overlayClassName);
     }
 
-    if (className !== null) {
-      this.#overlayHost.classList.add(className);
+    const addsClass = className !== null && !classList.contains(className);
+
+    if (addsClass) {
+      classList.add(className);
     }
+
+    this.#addedOverlayClassName = addsClass;
 
     this.#overlayClassName = className;
   }

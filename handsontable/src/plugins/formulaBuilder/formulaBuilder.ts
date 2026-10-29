@@ -1887,7 +1887,11 @@ export class FormulaBuilder extends BasePlugin {
     return new HandsontableAdapter(
       {
         hot: this.hot,
-        overlayHost: this.hot.rootElement,
+        // The root wrapper already carries the theme class (core puts it there). The root element
+        // must not: under the wrapper it matches the theme's own token block, which wins over the
+        // `colorScheme` and `density` overrides the theme engine scopes to the wrapper, and keeps
+        // the old theme's tokens after a theme change. A nested grid has no wrapper.
+        overlayHost: this.hot.rootWrapperElement ?? this.hot.rootElement,
         sheetName: '',
         core,
         indexMapping: {

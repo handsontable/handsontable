@@ -125,6 +125,15 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   `handleInlineEditClose()` itself, which runs inside the old builder's commit handler. A language change rebuilds
   only when the normalized code differs from `#builtLanguageCode`: `updateSettings({ language })` fires
   `afterLanguageChange` even for the code in use, and never for an unregistered one.
+- **The theme class must never be written on `rootElement`.** The builder hands its theme class to the
+  adapter's `setOverlayClassName()`, so the overlay host is `rootWrapperElement` (`rootElement` only on a
+  nested grid, which has no wrapper), where core already keeps that class: the adapter adds a class only
+  when the host lacks it and removes only what it added. `rootElement` sits inside the wrapper, so a theme
+  class there matches the theme's own token block and beats the `colorScheme` and `density` overrides the
+  theme engine scopes to the wrapper (`.<theme>.<scope>`), and during an edit (the rebuild is held back) it
+  keeps the cells in the old theme. Pinned by the `colorScheme and density` and theme-switch specs in
+  `tests/e2e/formula-builder-layout.spec.ts`; the colorScheme ones need the `theme-engine` fixture
+  variant, since a container class skips the engine.
 - **Rebuilding or tearing down under an open edit cancels the edit first.** Destroying the builder while
   Handsontable's editor is EDITING leaves it over a torn-down mount, and its later close commits the stale
   original. `#cancelOpenEdit()` runs before every `destroy()` (`#destroyBuilder()`).

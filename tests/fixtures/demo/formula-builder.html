@@ -44,6 +44,7 @@
       menus: 'menus',
       dropdown: 'dropdown',
       checkboxes: 'checkboxes',
+      'theme-engine': 'theme-engine',
     })[htParams.get('variant') ?? 'default'];
     if (!window.htVariant) {
       throw new Error('Unknown ?variant= value: ' + JSON.stringify(htParams.get('variant')));
@@ -130,6 +131,9 @@
       // The grid inside an open shadow root, with its stylesheets linked inside it: document
       // stylesheets do not reach the shadow tree, so every style the plugin generates must too.
       shadow: { shadow: true },
+      // The theme as the registered config object instead of a container class: the theme engine
+      // drives the grid, which the `colorScheme` and `density` options need.
+      'theme-engine': { themeEngine: true, settings: { theme: Handsontable.themes.getTheme(window.htTheme) } },
       // A menu that is open when a pick starts must close, as on any other press in the grid.
       menus: { settings: { dropdownMenu: true } },
       // Column B as a dropdown: a pick on its arrow must not open the cell's own editor.
@@ -194,6 +198,11 @@
 
       if (variant.shadow) {
         await mountInShadowRoot();
+      }
+
+      if (variant.themeEngine) {
+        // A container class would make core skip the theme engine.
+        container.className = '';
       }
 
       window.FormulaBuilderModule = FormulaBuilderModule;
