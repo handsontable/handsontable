@@ -195,6 +195,9 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   A `null` popup entry (`popups.suggestions: null`, a framework clearing an option) is dropped as not
   configured in `#resolvePopupContainers()`: reading its `container` threw a `TypeError` from the
   constructor and from every `updateSettings()`.
+  `attachSuggestionsHost()` and `attachFnHelpHost()` check their host the same way (`#isPopupHostUsable()`):
+  the package throws for a selector that finds nothing, a detached element, `null` or `undefined`, so the
+  call warns and leaves the popup, and the host kept for rebuilds, where they were.
 - **Commit, cancel and open go through the grid's own code, not a copy of it.** A commit with a
   direction moves with `EditorManager#moveSelectionAfterEnter()` (`up`/`down`) or the grid's Tab
   commands (`right`/`left`), so `enterMoves`, `tabMoves`, ranges and layers behave as in every other

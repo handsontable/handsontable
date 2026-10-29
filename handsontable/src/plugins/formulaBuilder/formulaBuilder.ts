@@ -546,8 +546,10 @@ export class FormulaBuilder extends BasePlugin {
    * @param {HTMLElement | string} container The host element or a CSS selector.
    */
   attachSuggestionsHost(container: HTMLElement | string): void {
-    this.#builder?.attachSuggestionsHost(container);
-    this.#suggestionsHost = container;
+    if (this.#isPopupHostUsable('attachSuggestionsHost', container)) {
+      this.#builder?.attachSuggestionsHost(container);
+      this.#suggestionsHost = container;
+    }
   }
 
   /**
@@ -564,8 +566,10 @@ export class FormulaBuilder extends BasePlugin {
    * @param {HTMLElement | string} container The host element or a CSS selector.
    */
   attachFnHelpHost(container: HTMLElement | string): void {
-    this.#builder?.attachFnHelpHost(container);
-    this.#fnHelpHost = container;
+    if (this.#isPopupHostUsable('attachFnHelpHost', container)) {
+      this.#builder?.attachFnHelpHost(container);
+      this.#fnHelpHost = container;
+    }
   }
 
   /**
@@ -2111,6 +2115,27 @@ export class FormulaBuilder extends BasePlugin {
       // An invalid selector.
       return null;
     }
+  }
+
+  /**
+   * Whether a host passed to `attachSuggestionsHost()` or `attachFnHelpHost()` names an element the popup
+   * can be mounted into. The package throws for one that does not, so the call warns instead, as the
+   * `popups.*.container` option does, and leaves the popup where it is.
+   *
+   * @param {string} methodName The public method the host was passed to.
+   * @param {HTMLElement | string} container The host element or a CSS selector.
+   * @returns {boolean}
+   */
+  #isPopupHostUsable(methodName: string, container: HTMLElement | string): boolean {
+    // `undefined` means "float" for the option, but the method needs a host.
+    if (container !== undefined && this.#isContainerAvailable(container)) {
+      return true;
+    }
+
+    warnOnce(this.hot, `formulaBuilder.${methodName}.missing`, `The host passed to \`${methodName}()\` names` +
+      ' no element in the grid\'s document or shadow root, so the popup stays where it is.');
+
+    return false;
   }
 
   /**
