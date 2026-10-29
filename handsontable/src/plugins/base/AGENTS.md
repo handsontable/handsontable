@@ -258,15 +258,16 @@ without a priority in registration order. Registering two plugins on the same pr
 | | | 265 | formulaBuilder |
 | 70 | contextMenu | 270 | autoLink |
 | 80 | copyPaste | 280 | nestedHeaders |
-| 90 | customBorders | 290 | collapsibleColumns |
+| | | 290 | collapsibleColumns |
 | 100 | dragToScroll | 300 | nestedRows |
 | 110 | manualColumnFreeze | 310 | hiddenColumns |
 | 120 | manualColumnMove | 320 | hiddenRows |
 | 130 | manualColumnResize | 330 | trimRows |
-| 140 | manualRowMove | 340 | asyncValues |
-| 150 | mergeCells | 350 | loading |
-| 155 | stretchColumns | 360 | dialog |
-| 160 | multipleSelectionHandles | 370 | emptyDataState |
+| 140 | manualRowMove | 335 | customBorders |
+| 150 | mergeCells | 340 | asyncValues |
+| 155 | stretchColumns | 350 | loading |
+| 160 | multipleSelectionHandles | 360 | dialog |
+| | | 370 | emptyDataState |
 | | | 375 | notification |
 | | | 380 | freezeBar |
 | | | 385 | rowSelection |
@@ -280,7 +281,7 @@ without a priority in registration order. Registering two plugins on the same pr
 Free slots to pick a new number from: 180 and the 400–890 range (plus the odd numbers between the rows
 above). `asyncValues` took 340, the gap between the trimming plugins (330) and the overlay plugins (350+);
 it relies on neither side, so a plugin that must enable after trimming and before the overlays can take
-335 or 345. `900`+ is reserved for plugins that
+345 (`customBorders` took 335, see below). `900`+ is reserved for plugins that
 must see every other plugin's state already settled (Pagination, DataProvider, UndoRedo).
 
 **Priority orders `enablePlugin()`, and nothing else.** It does *not* order hook callbacks by itself — it
@@ -290,6 +291,11 @@ hook's callback list. Four load-bearing cases, so do not renumber casually:
 - NestedHeaders (280) rebuilds the header tree before CollapsibleColumns (290) re-derives its hidden set.
 - MoveCells (25) and SelectionHandles (24) settle their drag state before DragToScroll (100) reads it in a hook.
 - ColumnSorting (50) before MultiColumnSorting (170).
+- CustomBorders (335) after every plugin that rewrites a row or column index map (ManualColumnMove 120,
+  ManualRowMove 140, MultiColumnSorting 170, Filters 250, NestedRows 300, TrimRows 330). Its `updatePlugin()`
+  converts the configured visual coordinates to physical ones, so run before them it stored the `borders` meta
+  on the records the previous maps put there (see `../customBorders/AGENTS.md`). A plugin that rewrites a map
+  from `updatePlugin()` and sits above 335 needs the same check.
 - UndoRedo (1000) last, so every other plugin's hooks are registered before it starts recording actions.
 - `formulaBuilder` (265) enables after `formulas` (260) because it borrows the engine at enable time. Its
   three cell mouse listeners do NOT rely on priority: they are registered at order index `-1`, because a
