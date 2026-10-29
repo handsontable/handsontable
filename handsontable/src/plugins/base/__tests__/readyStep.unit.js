@@ -130,10 +130,13 @@ registerPlugin(ChildProbe);
 registerPlugin(DisablerProbe);
 registerAllModules();
 
+const roots = [];
+
 const createGrid = (settings) => {
   const root = document.createElement('div');
 
   document.body.appendChild(root);
+  roots.push(root);
 
   return new Handsontable(root, {
     data: [[1, 2], [3, 4]],
@@ -157,9 +160,10 @@ describe('BasePlugin ready step (`onGridReady()`)', () => {
   afterEach(() => {
     hot?.destroy();
     hot = null;
+    roots.splice(0).forEach(root => root.remove());
   });
 
-  it('should run once at init, with the view and the loaded data, before the `init` hook', () => {
+  it('should run once at init, with the view and the loaded data, before the `init` hook and the first render', () => {
     hot = createGrid({
       [PROBE]: true,
       init() {
@@ -167,10 +171,37 @@ describe('BasePlugin ready step (`onGridReady()`)', () => {
       },
     });
 
+    const steps = log.map(([step]) => step);
+
     expect(readySteps()).toEqual([
       ['ready', PROBE, { view: true, rows: 2, firstCell: 1 }],
     ]);
-    expect(log.map(([step]) => step).filter(step => step !== 'render').slice(0, 2)).toEqual(['ready', 'init hook']);
+    expect(steps.indexOf('ready')).toBeLessThan(steps.indexOf('init hook'));
+    expect(steps.indexOf('ready')).toBeLessThan(steps.indexOf('render'));
+  });
+
+  it('should run a step a `loadData()` hook makes the plugin owe after the load, against the loaded rows', () => {
+    hot = createGrid({ [PROBE]: true });
+    hot.addHook('beforeLoadData', () => hot.getPlugin(PROBE).updatePlugin());
+    log.length = 0;
+
+    hot.loadData([[5], [6], [7]]);
+
+    expect(readySteps()).toEqual([
+      ['ready', PROBE, { view: true, rows: 3, firstCell: 5 }],
+    ]);
+  });
+
+  it('should run a step an `alter()` hook makes the plugin owe after the alteration', () => {
+    hot = createGrid({ [PROBE]: true });
+    hot.addHook('beforeRemoveRow', () => hot.getPlugin(PROBE).updatePlugin());
+    log.length = 0;
+
+    hot.alter('remove_row', 0);
+
+    expect(readySteps()).toEqual([
+      ['ready', PROBE, { view: true, rows: 1, firstCell: 3 }],
+    ]);
   });
 
   it('should run once for each `updateSettings()` that enables or updates the plugin, before its render', () => {

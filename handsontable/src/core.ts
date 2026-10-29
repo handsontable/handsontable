@@ -468,6 +468,12 @@ export default function Core(
    */
   let lifecyclePassDepth = 0;
   /**
+   * Whether a plugin may owe a ready step: set by every plugin lifecycle call (the only way a plugin comes
+   * to owe one), cleared once a run of the steps leaves none owed. A pass that ran no plugin call then
+   * skips the steps without looking at any plugin.
+   */
+  let readyStepsMayBeOwed = false;
+  /**
    * Set when `destroy()` starts, so no ready step runs against a grid being torn down.
    */
   let isBeingDestroyed = false;
@@ -1620,7 +1626,8 @@ export default function Core(
       //
       // The action itself is split out so this closes on every exit, the action's own early returns
       // and a throwing hook included. A scope left open stops the selection repairing at all.
-      runInShiftScope(() => grid.runAlter(action, index, amount, source, keepEmptyRows));
+      // It is also a lifecycle pass, so a ready step one of its hooks makes a plugin owe runs after it.
+      runInLifecyclePass(() => runInShiftScope(() => grid.runAlter(action, index, amount, source, keepEmptyRows)));
     },
 
     /**
@@ -2600,7 +2607,10 @@ export default function Core(
    * @param {number} [ownPasses=0] The passes the caller holds itself.
    */
   function runOwedReadySteps(ownPasses = 0): void {
-    if (isBeingDestroyed || lifecyclePassDepth > ownPasses || dataWorkPhase !== null || !instance.view) {
+    if (
+      !readyStepsMayBeOwed || isBeingDestroyed || lifecyclePassDepth > ownPasses || dataWorkPhase !== null ||
+      !instance.view
+    ) {
       return;
     }
 
@@ -2611,17 +2621,22 @@ export default function Core(
 
     try {
       operationScope.suppress(() => {
-        for (let round = 0; round <= plugins.length; round++) {
-          if (!runRound()) {
-            return;
-          }
-        }
+        let round = 0;
 
-        warn('A plugin ready step (`onGridReady()`) kept enabling or updating plugins. The steps still owed ' +
-          'run on the next settings update.');
+        // Each round runs the steps the previous one made the plugins owe.
+        while (round < plugins.length && runRound()) {
+          round += 1;
+        }
       });
     } finally {
       lifecyclePassDepth -= 1;
+    }
+
+    readyStepsMayBeOwed = plugins.some(plugin => plugin.isReadyStepOwed());
+
+    if (readyStepsMayBeOwed) {
+      warn('A plugin ready step (`onGridReady()`) kept enabling or updating plugins. The steps still owed ' +
+        'run when the next settings update, data load, or plugin call ends.');
     }
   }
 
@@ -2635,6 +2650,8 @@ export default function Core(
    * @returns {*} What the callback returns.
    */
   this._runInPluginLifecyclePass = function<T>(callback: () => T): T {
+    readyStepsMayBeOwed = true;
+
     return runInLifecyclePass(callback);
   };
 
@@ -4949,7 +4966,8 @@ export default function Core(
    */
   this.updateData = function(data: unknown[][][] | object[], source: string) {
     // Replacing the data is not a user action: nothing it does may open an operation or be journaled.
-    operationScope.suppress(() => applyUpdateData(data, source));
+    // It is a lifecycle pass, so a ready step a load hook makes a plugin owe reads the new rows.
+    runInLifecyclePass(() => operationScope.suppress(() => applyUpdateData(data, source)));
   };
 
   /**
@@ -5060,7 +5078,8 @@ export default function Core(
    */
   this.loadData = function(data: unknown[][][] | object[], source: string) {
     // Loading data is not a user action: nothing it does may open an operation or be journaled.
-    operationScope.suppress(() => applyLoadData(data, source));
+    // It is a lifecycle pass, so a ready step a load hook makes a plugin owe reads the new rows.
+    runInLifecyclePass(() => operationScope.suppress(() => applyLoadData(data, source)));
   };
 
   /**

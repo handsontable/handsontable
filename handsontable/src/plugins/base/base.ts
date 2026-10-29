@@ -87,9 +87,11 @@ function getMissingDependenciesMessage(plugin: BasePlugin): string | null {
  * same order. The state lives in this call, so grids built side by side cannot share it.
  *
  * @param {HotInstance} hot The Handsontable instance the plugins belong to.
- * @param {BasePlugin[]} plugins The grid's plugins, in priority order.
+ * @param {BasePlugin[]} allPlugins The grid's plugins, in priority order.
  */
-export function initializePlugins(hot: HotInstance, plugins: BasePlugin[]): void {
+export function initializePlugins(hot: HotInstance, allPlugins: BasePlugin[]): void {
+  // A plugin destroyed before `init()` (`getPlugin(name).destroy()`) has no `hot` left and takes no part.
+  const plugins = allPlugins.filter(plugin => plugin.hot);
   const missingDepsMsgs: string[] = [];
 
   plugins.forEach((plugin) => {
@@ -282,25 +284,18 @@ export class BasePlugin {
    * them, and a call on a destroyed plugin still reaches the method's own guard.
    */
   #routeLifecycleCalls(): void {
-    const toProperty = (value: Function): PropertyDescriptor => ({
-      configurable: true,
-      enumerable: false,
-      writable: true,
-      value,
-    });
-
     // `this.constructor.prototype` is the most derived class's prototype, read on every call.
-    Object.defineProperties(this, {
-      enablePlugin: toProperty(() => this.#runLifecycleCall(true, () => {
-        this.constructor.prototype.enablePlugin.call(this);
-      })),
-      updatePlugin: toProperty((...args: Parameters<BasePlugin['updatePlugin']>) => this.#runLifecycleCall(true, () => {
+    defineGetter(this, 'enablePlugin', () => this.#runLifecycleCall(true, () => {
+      this.constructor.prototype.enablePlugin.call(this);
+    }), { enumerable: false });
+    defineGetter(this, 'updatePlugin', (...args: Parameters<BasePlugin['updatePlugin']>) => {
+      this.#runLifecycleCall(true, () => {
         this.constructor.prototype.updatePlugin.apply(this, args);
-      })),
-      disablePlugin: toProperty(() => this.#runLifecycleCall(false, () => {
-        this.constructor.prototype.disablePlugin.call(this);
-      })),
-    });
+      });
+    }, { enumerable: false });
+    defineGetter(this, 'disablePlugin', () => this.#runLifecycleCall(false, () => {
+      this.constructor.prototype.disablePlugin.call(this);
+    }), { enumerable: false });
   }
 
   /**
@@ -681,7 +676,8 @@ export class BasePlugin {
    * view (`hot.view`), the DOM or the editor manager. Core calls it once after every `enablePlugin()` or
    * `updatePlugin()` call that leaves the plugin enabled, as soon as all of these exist, and before the
    * next render: at init after the view is built (before the `init` hook), at the end of
-   * `updateSettings()`, and once a direct call returns. Calls nested in one pass get one step, in
+   * `updateSettings()`, `loadData()`, `updateData()` or `alter()` when a hook of theirs made the call, and
+   * once a direct call returns. Calls nested in one pass get one step, in
    * plugin priority order, after every plugin of the pass is enabled. `enablePlugin()` and
    * `updatePlugin()` then only configure the plugin (hooks, index maps, settings, own state), so none of
    * them needs to check whether `hot.view` exists. Nothing the step does is journaled by UndoRedo.
@@ -692,7 +688,9 @@ export class BasePlugin {
 
   /**
    * Runs the plugin's ready step (`onGridReady()`) if the plugin owes one, and clears the debt. Only an
-   * enabled plugin owes it: `disablePlugin()` clears it. Core calls it, in plugin priority order.
+   * enabled plugin owes it: `disablePlugin()` clears it. Core calls it, in plugin priority order. The debt
+   * is cleared before the call, so a step that throws is not run again: one that keeps failing would
+   * otherwise throw on every later pass.
    *
    * @private
    * @returns {boolean} `true` if the plugin owed the step.
@@ -706,6 +704,16 @@ export class BasePlugin {
     this.onGridReady?.();
 
     return true;
+  }
+
+  /**
+   * Whether the plugin owes its ready step (`onGridReady()`).
+   *
+   * @private
+   * @returns {boolean}
+   */
+  isReadyStepOwed(): boolean {
+    return this.#readyStepOwed;
   }
 
   /**
@@ -810,8 +818,10 @@ export class BasePlugin {
     // A settings pass that runs inside the grid's init sequence (SheetsBar builds its first sheet from
     // its `enablePlugin()`) must not enable a plugin that still waits for its turn: core enables it
     // there, once and in priority order, reading the settings again when this pass carried its option.
-    if (this.#awaitsInitEnableTurn) {
-      if (newSettings?.[this.constructor.PLUGIN_KEY] !== undefined) {
+    // A plugin another plugin already enabled directly takes the pass as usual, so it can be disabled
+    // or updated by it.
+    if (this.#awaitsInitEnableTurn && !this.enabled) {
+      if (newSettings[this.constructor.PLUGIN_KEY] !== undefined) {
         this.#settingsChangedBeforeInitEnable = true;
       }
 

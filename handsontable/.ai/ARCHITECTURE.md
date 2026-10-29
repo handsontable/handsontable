@@ -137,8 +137,8 @@
 2. Core creates: `MetaManager`, `IndexMapper` (row + column), `DataSource`, `Selection`, `EditorManager`, `ShortcutManager`, `FocusGridManager`, `StylesHandler`, `ThemeManager`
 3. Core creates `TableView` which creates `Walkontable` instance
 4. All registered plugins are instantiated (each calls `constructor(hotInstance)`)
-5. `afterPluginsInitialized` hook fires, each plugin's `isEnabled()` is checked, and `enablePlugin()` called if true
-6. `init()` triggers initial data load and render
+5. `init()` fires `beforeInit`, where core's init sequence (`initializePlugins()`) calls every plugin's `init()`, fires `afterPluginsInitialized` once, and calls `enablePlugin()` for each plugin whose `isEnabled()` is true, in `PLUGIN_PRIORITY` order
+6. `init()` loads the data (the init settings pass), builds the view, runs the plugins' ready steps (`onGridReady()`), then fires `init`, renders, and fires `afterInit`
 
 **Render Flow:**
 

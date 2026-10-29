@@ -219,7 +219,8 @@ of them are named public options, so each carries a JSDoc note saying it is glob
   before the plugin loop inverts settings-vs-plugin order for *every* later hook, and after it still
   puts settings hooks ahead of the ones wrappers attach between `new Handsontable.Core()` and `init()`
   (the React wrapper attaches two there).
-- **`afterPluginsInitialized`** is run from `BasePlugin.init()` during the `beforeInit` dispatch.
+- **`afterPluginsInitialized`** is run once per grid by core's init sequence (`initializePlugins()` in
+  `src/plugins/base/base.ts`) during the `beforeInit` dispatch, after every plugin's `init()`.
   Pulling it forward would land the callback before `enablePlugin()`, so the hook would fire before the
   plugins are actually enabled.
 

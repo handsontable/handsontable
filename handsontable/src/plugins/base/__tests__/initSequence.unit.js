@@ -33,6 +33,11 @@ class EarlyProbePlugin extends BasePlugin {
     // Marked enabled before the update it sends, or that update would enable this plugin again.
     super.enablePlugin();
 
+    // Enables the late plugin directly, ahead of its turn, the way Filters enables DropdownMenu.
+    if (this.getSetting('enableLateDirectly')) {
+      this.hot.getPlugin(LATE_KEY).enablePlugin();
+    }
+
     const payload = this.getSetting('updateOnEnable');
 
     if (payload) {
@@ -86,10 +91,13 @@ registerPlugin(EarlyProbePlugin);
 registerPlugin(LateProbePlugin);
 registerAllModules();
 
+const roots = [];
+
 const createRoot = () => {
   const root = document.createElement('div');
 
   document.body.appendChild(root);
+  roots.push(root);
 
   return root;
 };
@@ -105,7 +113,49 @@ describe('BasePlugin init sequence', () => {
 
   afterEach(() => {
     grids.splice(0).forEach(hot => hot.destroy());
+    roots.splice(0).forEach(root => root.remove());
     jest.restoreAllMocks();
+  });
+
+  it('should let a pass inside the init sequence turn off a plugin another plugin enabled before its turn', () => {
+    const hot = new Handsontable(createRoot(), {
+      [EARLY_KEY]: { enableLateDirectly: true, updateOnEnable: { [LATE_KEY]: false } },
+      [LATE_KEY]: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    grids.push(hot);
+
+    expect(hot.getSettings()[LATE_KEY]).toBe(false);
+    expect(hot.getPlugin(LATE_KEY).enabled).toBe(false);
+  });
+
+  it('should let a pass inside the init sequence update a plugin another plugin enabled before its turn', () => {
+    const hot = new Handsontable(createRoot(), {
+      [EARLY_KEY]: { enableLateDirectly: true, updateOnEnable: { [LATE_KEY]: { mode: 'changed' } } },
+      [LATE_KEY]: { mode: 'declared' },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    grids.push(hot);
+
+    expect(hot.getPlugin(LATE_KEY).enabled).toBe(true);
+    expect(hot.getPlugin(LATE_KEY).getSetting('mode')).toBe('changed');
+    expect(entriesOf(hot, 'enable').filter(([, , key]) => key === LATE_KEY).length).toBe(1);
+  });
+
+  it('should initialize a grid whose plugin was destroyed before `init()`', () => {
+    const hot = new Handsontable.Core(createRoot(), {
+      [LATE_KEY]: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.getPlugin(LATE_KEY).destroy();
+
+    expect(() => hot.init()).not.toThrow();
+    expect(entriesOf(hot, 'enable')).toEqual([]);
+
+    grids.push(hot);
   });
 
   it('should run each grid\'s sequence on its own when two grids are built before either `init()` (DEV-147)', () => {

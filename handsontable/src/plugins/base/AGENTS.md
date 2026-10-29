@@ -70,10 +70,15 @@ Details that bite:
   and then again by its own turn, with no `disablePlugin()` in between (DEV-147). A plugin turned off by
   such a pass stays off: its turn re-reads `isEnabled()`. The consequence for SheetsBar: those plugins now
   enable **after** SheetsBar's `enablePlugin()` returns, so they no longer see the first sheet's
-  `_applySettingsAndData()` load – only core's own init pass.
+  `_applySettingsAndData()` load – only core's own init pass. **The skip covers only a plugin that is not
+  enabled yet.** One that another plugin enabled directly before its turn (Filters → DropdownMenu) takes the
+  pass as usual, so branch 1 can turn it off and branch 4 can update it; skipping it too left such a plugin
+  enabled while its setting said `false`, and lost new options.
 - **`init()` is core's to call, once.** It marks the plugin as waiting for its init turn, and only
   `onInitEnableTurn()` clears that. A direct `plugin.init()` on a live grid therefore parks the plugin: every
-  later `updateSettings()` skips it. Nothing in `src/` does that; do not start.
+  later `updateSettings()` skips it. Nothing in `src/` does that; do not start. A plugin destroyed before
+  `init()` (`getPlugin(name).destroy()` on a `Handsontable.Core` built without init) has no `hot` and is left
+  out of the sequence, as core's `destroy()` leaves it out; calling its `init()` threw.
 - **Missing dependencies are collected, not thrown per plugin.** The sequence gathers every plugin's
   message and throws the combined error once, after the last `init()`. A single `throwWithCause` per
   plugin would hide the other missing modules.
@@ -185,10 +190,14 @@ The contract:
   the first render); in `updateSettings()` after the `min*` sizing, before its render; in
   `_applySettingsAndData()` after the `onDataReady()` pass, against the loaded data.
 - **After the whole pass.** Core counts open lifecycle passes (`lifecyclePassDepth` in `core.ts`):
-  `updateSettings()`, `_applySettingsAndData()`, every plugin lifecycle call, and a ready-step run. Steps
-  run only when the outermost pass closes (or at its pre-render point). So `updatePlugin()` →
-  `disablePlugin()` + `enablePlugin()` owes one step, not two, and a plugin that enables another one
-  (Filters → DropdownMenu) runs both steps after its own call returns.
+  `updateSettings()`, `_applySettingsAndData()`, `loadData()`, `updateData()`, `alter()`, every plugin
+  lifecycle call, and a ready-step run. Steps run only when the outermost pass closes (or at its pre-render
+  point). So `updatePlugin()` → `disablePlugin()` + `enablePlugin()` owes one step, not two, a plugin that
+  enables another one (Filters → DropdownMenu) runs both steps after its own call returns, and a lifecycle
+  call made from a `beforeLoadData` or `beforeRemoveRow` listener runs its step against the rows after the
+  change, not the rows before it. A flag (`readyStepsMayBeOwed`) is set by every plugin lifecycle call, the
+  only way to owe a step, so a pass that ran none (most `updateSettings()`, `loadData()` and `alter()` calls)
+  skips the steps without looking at a plugin.
 - **Direct calls count (Option B).** `hot.getPlugin('x').enablePlugin()` and a plugin calling
   `this.updatePlugin()` from a hook run the step as soon as the outermost call returns. The base constructor
   replaces the three lifecycle methods **on the instance** with wrappers (`#routeLifecycleCalls()`) that call
@@ -201,9 +210,17 @@ The contract:
   hand-made `hot` object, which has no `_runInPluginLifecyclePass()`. Before the fallback, 185 of those
   tests threw on the first `enablePlugin()`.
 - **Never journaled.** Steps run inside `operationScope.suppress()`, like `updateSettings()` itself.
-- **A pass that throws keeps the steps owed.** A step reads the grid as it is when it runs, so the next pass
-  runs it; dropping it would leave an enabled plugin without its data work. A step that keeps re-enabling
-  plugins is cut off after one round per plugin, with a warning.
+- **A pass that throws keeps the steps owed; a step that throws is not run again.** A step reads the grid as
+  it is when it runs, so the next pass runs the steps a failed pass left; dropping them would leave an
+  enabled plugin without its data work. The debt of a step is cleared before the step runs, so one that keeps
+  failing does not throw on every later pass; its throw ends the pass like any throwing hook. A step that
+  keeps re-enabling plugins is cut off after one round per plugin, and core warns only when a step is still
+  owed after the last round.
+- **Known limit: the steps run before the end of `updateSettings()`.** They run before its render, which
+  comes before the theme hook and the layout config (`finishSettingsUpdate()`), so a step sees the state
+  that render draws. A step a plugin comes to owe during that render or that finishing work (a lifecycle call
+  from an `afterRender` or `afterSetTheme` listener) runs when the pass closes, after the render, and
+  nothing renders again for it.
 
 **Not `onDataReady()`.** That hook stays the sheet-switch protocol below, called for every enabled plugin on
 every `_applySettingsAndData()`. The ready step got its own name because ColumnSummary's `onDataReady()`
@@ -283,7 +300,7 @@ top-level setting is truthy". It is checked in two places, and **they do not beh
 
 | Site | On a block |
 |---|---|
-| `init()`'s deferred enable | warns **and writes `getSettings()[PLUGIN_KEY] = false`**, then returns |
+| `onInitEnableTurn()` (the init sequence) | warns **and writes `getSettings()[PLUGIN_KEY] = false`**, then returns |
 | `onUpdateSettings` branch 3 | warns and calls `disablePlugin()`; the setting is left alone |
 
 The consequence: a grid blocked at init reports its own option as `false`, so a test asserting
