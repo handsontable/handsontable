@@ -127,19 +127,139 @@ export function parsePollState(raw: string | null): AgentPollState | null {
 /**
  * The poll state after a chat turn returned a thread id and (maybe) a token. The cursor survives only
  * while the thread stays the same, because replies of an old thread must not move the cursor of a new
- * one. No token means the backend has the feature off, so there is nothing to poll.
+ * one. A turn without a token keeps a working state for the same thread (the backend sends the token
+ * with every answer today, but a turn that lacks it must not switch Support replies off); for any other
+ * thread there is no token to poll with, so the state is empty. A backend that has the feature off
+ * answers the poll with a status that stops it.
  */
 export function nextPollState(
   previous: AgentPollState | null,
   threadId: string | null,
   token: string | null
 ): AgentPollState | null {
-  if (!threadId || !token) return null;
-  const after = previous && previous.threadId === threadId ? previous.after : null;
-  return { threadId, token, after };
+  if (!threadId) return null;
+  const sameThread = previous !== null && previous.threadId === threadId;
+  if (!token) return sameThread ? previous : null;
+  return { threadId, token, after: sameThread ? previous.after : null };
 }
 
 /** HTTP statuses after which polling this thread again cannot succeed, so the panel stops. */
 export function isFatalPollStatus(status: number): boolean {
   return status === 400 || status === 403 || status === 404 || status === 503;
+}
+
+export interface PollResponse {
+  ok: boolean;
+  status: number;
+  headers: { get(name: string): string | null };
+  json(): Promise<unknown>;
+}
+
+/** Everything the poller touches in the outside world, so a test can replace each piece. */
+export interface AgentPollerDeps {
+  endpoint: string;
+  getPoll(): AgentPollState | null;
+  getLastActivity(): number;
+  setLastActivity(ms: number): void;
+  isVisible(): boolean;
+  now(): number;
+  fetch(
+    url: string,
+    init: { method: 'POST'; headers: Record<string, string>; body: string; signal: AbortSignal }
+  ): Promise<PollResponse>;
+  setTimer(callback: () => void, ms: number): unknown;
+  clearTimer(id: unknown): void;
+  /** Shows the replies and moves the cursor. Returns false when the poll state changed meanwhile. */
+  onReplies(replies: AgentReply[], poll: AgentPollState): boolean;
+  /** Polling cannot continue for this conversation (rejected token, unknown route, too old). */
+  onStop(): void;
+}
+
+/**
+ * The polling loop for Support replies. One timer runs at a time: scheduling always clears the previous
+ * one, and a poll that is still in flight when the tab becomes visible again is left to finish, so a
+ * tab switch can never start a second loop or a second request.
+ */
+export function createAgentPoller(deps: AgentPollerDeps) {
+  let cancelled = false;
+  let inFlight = false;
+  let timer: unknown;
+  let controller: AbortController | null = null;
+
+  const schedule = (ms: number) => {
+    deps.clearTimer(timer);
+    timer = deps.setTimer(run, ms);
+  };
+
+  async function run() {
+    if (cancelled) return;
+    const poll = deps.getPoll();
+    if (!poll) return;
+    const base = pollDelayMs(deps.now() - deps.getLastActivity());
+    let next = base ?? AGENT_POLL.quietMs;
+    if (base !== null && deps.isVisible()) {
+      inFlight = true;
+      controller = new AbortController();
+      try {
+        const res = await deps.fetch(deps.endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            threadId: poll.threadId,
+            token: poll.token,
+            ...(poll.after ? { after: poll.after } : {}),
+          }),
+          signal: controller.signal,
+        });
+        if (cancelled) return;
+        if (isFatalPollStatus(res.status)) {
+          deps.onStop();
+          return;
+        }
+        if (res.status === 429) {
+          next = retryDelayMs(res.headers.get('Retry-After'));
+        } else if (!res.ok) {
+          next = Math.max(next, AGENT_POLL.quietMs);
+        } else {
+          const body = await res.json();
+          if (cancelled) return;
+          if ((body as { stale?: unknown } | null)?.stale === true) {
+            // The conversation is older than the backend keeps; the next question starts a new one.
+            deps.onStop();
+            return;
+          }
+          const replies = parseReplies(body);
+          if (replies.length && deps.onReplies(replies, poll)) {
+            deps.setLastActivity(deps.now());
+            next = AGENT_POLL.activeMs;
+          }
+        }
+      } catch {
+        if (cancelled) return;
+        next = Math.max(next, AGENT_POLL.quietMs);
+      } finally {
+        inFlight = false;
+      }
+    }
+    if (!cancelled) schedule(next);
+  }
+
+  return {
+    /** Polls at once, then at the pace of `pollDelayMs`. */
+    start() {
+      deps.setLastActivity(deps.now());
+      schedule(0);
+    },
+    /** The reader came back to the tab: counts as activity and polls now, unless a poll is in flight. */
+    wake() {
+      if (cancelled || !deps.isVisible()) return;
+      deps.setLastActivity(deps.now());
+      if (!inFlight) schedule(0);
+    },
+    stop() {
+      cancelled = true;
+      deps.clearTimer(timer);
+      controller?.abort();
+    },
+  };
 }

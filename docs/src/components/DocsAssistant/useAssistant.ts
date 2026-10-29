@@ -1,17 +1,13 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import {
-  AGENT_POLL,
   type AgentPollState,
   type AgentReply,
-  isFatalPollStatus,
+  createAgentPoller,
   mergeReplies,
   messagesForApi,
   newestReplyId,
   nextPollState,
   parsePollState,
-  parseReplies,
-  pollDelayMs,
-  retryDelayMs,
 } from './agentReplies';
 import { AGENT_REPLIES_ENDPOINT, CHAT_ENDPOINT, FEEDBACK_ENDPOINT, STORAGE_KEYS } from './constants';
 
@@ -432,86 +428,37 @@ export function useAssistant({ active = false }: { active?: boolean } = {}) {
 
   // Polls for a reply a teammate wrote in the conversation's Slack thread. Runs only while the panel is
   // open and the tab is visible; opening the panel or coming back to the tab counts as activity and polls
-  // at once. See AGENT_POLL for the pace.
+  // at once. The loop itself is createAgentPoller (see AGENT_POLL for the pace).
   useEffect(() => {
     if (!active || !pollThreadId) return undefined;
-    let cancelled = false;
-    let timer: number | undefined;
-    let controller: AbortController | null = null;
-
-    const schedule = (ms: number) => {
-      timer = window.setTimeout(run, ms);
-    };
-
-    async function run() {
-      if (cancelled) return;
-      const poll = pollRef.current;
-      if (!poll) return;
-      const base = pollDelayMs(Date.now() - lastActivityRef.current);
-      let next = base ?? AGENT_POLL.quietMs;
-      if (base !== null && document.visibilityState === 'visible') {
-        controller = new AbortController();
-        try {
-          const res = await fetch(AGENT_REPLIES_ENDPOINT, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              threadId: poll.threadId,
-              token: poll.token,
-              ...(poll.after ? { after: poll.after } : {}),
-            }),
-            signal: controller.signal,
-          });
-          if (cancelled) return;
-          if (isFatalPollStatus(res.status)) {
-            applyPollState(null);
-            return;
-          }
-          if (res.status === 429) {
-            next = retryDelayMs(res.headers.get('Retry-After'));
-          } else if (!res.ok) {
-            next = Math.max(next, AGENT_POLL.quietMs);
-          } else {
-            const body: unknown = await res.json();
-            if (cancelled) return;
-            if ((body as { stale?: unknown } | null)?.stale === true) {
-              // The conversation is older than the backend keeps; the next question starts a new one.
-              applyPollState(null);
-              return;
-            }
-            const replies = parseReplies(body);
-            if (replies.length && pollRef.current === poll) {
-              const updated = { ...poll, after: newestReplyId(replies) };
-              pollRef.current = updated;
-              writeStoredPoll(updated);
-              lastActivityRef.current = Date.now();
-              next = AGENT_POLL.activeMs;
-              dispatch({ type: 'ADD_AGENT', replies, now: Date.now() });
-            }
-          }
-        } catch {
-          if (cancelled) return;
-          next = Math.max(next, AGENT_POLL.quietMs);
-        }
-      }
-      if (!cancelled) schedule(next);
-    }
-
-    const onVisible = () => {
-      if (document.visibilityState !== 'visible') return;
-      lastActivityRef.current = Date.now();
-      window.clearTimeout(timer);
-      schedule(0);
-    };
+    const poller = createAgentPoller({
+      endpoint: AGENT_REPLIES_ENDPOINT,
+      getPoll: () => pollRef.current,
+      getLastActivity: () => lastActivityRef.current,
+      setLastActivity: (ms) => {
+        lastActivityRef.current = ms;
+      },
+      isVisible: () => document.visibilityState === 'visible',
+      now: () => Date.now(),
+      fetch: (url, init) => window.fetch(url, init),
+      setTimer: (callback, ms) => window.setTimeout(callback, ms),
+      clearTimer: (id) => window.clearTimeout(id as number | undefined),
+      onReplies: (replies, poll) => {
+        if (pollRef.current !== poll) return false;
+        const updated = { ...poll, after: newestReplyId(replies) };
+        pollRef.current = updated;
+        writeStoredPoll(updated);
+        dispatch({ type: 'ADD_AGENT', replies, now: Date.now() });
+        return true;
+      },
+      onStop: () => applyPollState(null),
+    });
+    const onVisible = () => poller.wake();
     document.addEventListener('visibilitychange', onVisible);
-
-    lastActivityRef.current = Date.now();
-    schedule(0);
+    poller.start();
     return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-      controller?.abort();
       document.removeEventListener('visibilitychange', onVisible);
+      poller.stop();
     };
   }, [active, pollThreadId, applyPollState]);
 
