@@ -32,6 +32,10 @@ plugin.
   the new options through `update({})` (an empty object: `update(undefined)` would wipe the plugin's
   settings through `updatePluginSettings`). So no `afterLoadingHide` fires on such an update, and the
   `afterDialogFocus` hook stays registered once. Pinned by `__tests__/loadingUpdate.unit.js`.
+- **The content element is reused while its inputs are the same** (`#content`: the id, icon, title,
+  description and sanitizer it was built from). Dialog skips a render only when the description is the
+  same, and it compares `content` by identity, so a fresh element per `#describeDialog()` re-rendered the
+  shown screen and restarted the spinner on every wrapper re-send.
 
 ### Loading owns the dialog only while it shows its own screen
 

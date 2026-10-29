@@ -64,6 +64,40 @@ describe('Loading settings update', () => {
     expect(hot.rootWrapperElement.querySelector('.ht-loading__title').textContent).toBe('Wait');
   });
 
+  it('keeps the shown loading screen\'s elements when an equal `loading` object is sent again', () => {
+    hot = new Handsontable(container, {
+      data: [['a']],
+      loading: { title: 'Wait' },
+      licenseKey: LICENSE_KEY,
+    });
+
+    hot.getPlugin('loading').show();
+
+    const title = hot.rootWrapperElement.querySelector('.ht-loading__title');
+
+    hot.updateSettings({ loading: { title: 'Wait' } });
+
+    expect(title.isConnected).toBe(true);
+    expect(hot.rootWrapperElement.querySelector('.ht-loading__title')).toBe(title);
+  });
+
+  it('keeps the shown loading screen\'s elements when `show()` is called again with the same options', () => {
+    hot = new Handsontable(container, {
+      data: [['a']],
+      loading: true,
+      licenseKey: LICENSE_KEY,
+    });
+    const plugin = hot.getPlugin('loading');
+
+    plugin.show({ title: 'Wait' });
+
+    const title = hot.rootWrapperElement.querySelector('.ht-loading__title');
+
+    plugin.show({ title: 'Wait' });
+
+    expect(hot.rootWrapperElement.querySelector('.ht-loading__title')).toBe(title);
+  });
+
   it('keeps a hidden loading screen hidden across a settings update', () => {
     hot = new Handsontable(container, {
       data: [['a']],

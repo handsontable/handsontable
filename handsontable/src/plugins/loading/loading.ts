@@ -206,6 +206,15 @@ export class Loading extends BasePlugin {
   #ownsDialog = false;
 
   /**
+   * The content element the last description used, with the values it was built from. The Dialog plugin
+   * compares content elements by identity, so a new element for the same values would re-render the shown
+   * screen (and restart the spinner) on every settings re-send.
+   *
+   * @type {{ element: HTMLElement, inputs: unknown[] } | null}
+   */
+  #content: { element: HTMLElement; inputs: unknown[] } | null = null;
+
+  /**
    * Check if the plugin is enabled in the handsontable settings.
    *
    * The loading indicator renders through the Dialog plugin, which is available on the main
@@ -373,15 +382,24 @@ export class Loading extends BasePlugin {
     const icon = this.getSetting<string>('icon');
     const title = this.getSetting<string | undefined>('title') ?? this.hot.getTranslatedPhrase(C.LOADING_TITLE);
     const description = this.getSetting<string>('description');
+    const sanitizer = getSanitizer(this.hot);
+    const inputs = [id, icon, title, description, sanitizer];
 
-    const content = loadingContent({
-      id,
-      icon,
-      title,
-      description,
-      sanitizer: getSanitizer(this.hot),
-      warnScope: this.hot.rootElement,
-    }, this.hot.rootDocument);
+    if (this.#content === null || inputs.some((value, index) => value !== this.#content!.inputs[index])) {
+      this.#content = {
+        element: loadingContent({
+          id,
+          icon,
+          title,
+          description,
+          sanitizer,
+          warnScope: this.hot.rootElement,
+        }, this.hot.rootDocument),
+        inputs,
+      };
+    }
+
+    const content = this.#content.element;
 
     return {
       content,
