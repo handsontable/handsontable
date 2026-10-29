@@ -3622,17 +3622,15 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin before adding a new sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
-   * It fires for an added sheet and for a duplicate. For a duplicate, `duplicateOfId` holds the id of the
-   * sheet being copied and `name` is the name the copy gets; for an added sheet, `duplicateOfId` is `null`.
+   * It fires for an added sheet and for a duplicate.
    *
    * A listener cannot switch, add, remove, rename, duplicate, or move a sheet: those calls return
    * `false` (`null` for an add or a duplicate).
    *
    * @since 19.0.0
    * @event Hooks#beforeSheetTabAdd
-   * @param {string|null} name The requested sheet name as passed, or `null` when it was omitted. A name
-   * with no visible character is passed as it is, and the sheet still gets the next free default name.
-   * For a duplicate, the name the copy gets.
+   * @param {string|null} name The requested sheet name, or `null` when it was omitted. For a duplicate,
+   * the name the copy gets.
    * @param {number|null} duplicateOfId The id of the sheet being copied, or `null` for an added sheet.
    * @param {string} source String that identifies source of hook call.
    * @returns {*|boolean} If `false` is returned the action is canceled.
@@ -3643,8 +3641,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin after adding a new sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
-   * It fires for an added sheet and for a duplicate. For a duplicate, `duplicateOfId` holds the id of the
-   * sheet that was copied; for an added sheet, it is `null`.
+   * It fires for an added sheet and for a duplicate.
    *
    * @since 19.0.0
    * @event Hooks#afterSheetTabAdd

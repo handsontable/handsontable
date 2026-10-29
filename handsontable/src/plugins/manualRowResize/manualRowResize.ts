@@ -222,7 +222,7 @@ export class ManualRowResize extends BasePlugin {
    * Values lower than the theme's default row height are saved as the default row height.
    *
    * Nothing is stored while the plugin is disabled, for a row that does not exist, or for a height that
-   * is not a finite number (`NaN`, `Infinity`). A numeric string is stored as a number.
+   * is not a finite number.
    *
    * @example
    * ```js
@@ -318,8 +318,8 @@ export class ManualRowResize extends BasePlugin {
    * of {@link ManualRowResize#getManualSizes}, so a stored set round-trips onto the same
    * records regardless of trimming or row order. Values lower than the theme's default row
    * height are saved as that height. A pair whose index is not an integer within the current row
-   * count, or whose height is not a finite number, is skipped, and so is a value that is not an
-   * array. Call `render()` afterwards to repaint the grid.
+   * count, or whose height is not a finite number, is skipped. Call `render()` afterwards to repaint
+   * the grid.
    *
    * @param {Array<Array<number>>} sizes The `[physicalRow, height]` pairs to write.
    */

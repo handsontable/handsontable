@@ -517,25 +517,6 @@ interface PreservedState {
  * While the plugin is enabled, change a sheet's settings with {@link SheetsBar#updateSheetSettings},
  * not with {@link Core#updateSettings}.
  *
- * Sheet names follow these rules:
- *  - A name is trimmed and cut to 50 characters. A character is what a reader sees, so an emoji or a
- *    flag counts as one.
- *  - A name with no visible character, such as an empty name or one made only of spaces or zero-width
- *    characters, is replaced with the next free default name (`Sheet1`, `Sheet2`, ...) when a sheet is
- *    added, and is refused by {@link SheetsBar#renameSheet}.
- *  - Names are unique, and they are compared without regard to case, the way HyperFormula compares sheet
- *    names: "Budget" and "BUDGET" are the same name, and so are two names that read the same in different
- *    Unicode forms. A rename that only changes the case of a sheet's own name is allowed. A lookup by
- *    name, in {@link SheetsBar#setActiveSheet} or {@link SheetsBar#updateSheetSettings}, ignores case too.
- *  - An added sheet whose name is taken gets a number after the whole name: a second "Budget (2024)"
- *    becomes "Budget (2024) (2)". A duplicate is named the same way: "Budget (2)", then "Budget (3)".
- *
- * Each sheet has an id that stays the same while the grid exists, even after you replace the workbook with
- * a new `sheets` value, so an id you keep never points at a sheet of another workbook.
- *
- * With the `uiContainer` option, the bar is appended to your element as its last child, and the `position`
- * option and the grid's layout slots no longer apply to it.
- *
  * @example
  *
  * ::: only-for javascript
@@ -2050,8 +2031,7 @@ export class SheetsBar extends BasePlugin {
    * unchanged, another sheet already uses the name (in the bar or in the sheet's formula engine), a
    * `beforeSheetTabRename` listener cancels the rename, the sheet's entry in your `sheets` array is frozen
    * (with a console warning), or it is called from a listener of a workbook change's before-hook. A name
-   * that changes only the case of the letters is a rename. A name another sheet uses is refused before
-   * `beforeSheetTabRename` fires.
+   * that changes only the case of the letters is a rename.
    *
    * With the `Formulas` plugin, the references to the sheet are rewritten in the data of every sheet
    * that shares its formula engine, and the rename is one undo step.
@@ -2071,24 +2051,18 @@ export class SheetsBar extends BasePlugin {
    * Duplicates a sheet, placing the copy directly after the original.
    *
    * The copy gets a deep clone of the sheet's data and settings, and a name based on the
-   * original's. A `Date`, `RegExp`, `Map`, or `Set` in a cell is copied as a new value of the same
-   * kind, and an instance of your own class in a cell is shared with the original. Every row is copied,
-   * a row that is an instance of your own class included, and keeps its prototype. The `formulas` setting is
-   * not cloned: the copy shares the original's engine,
-   * under a sheet name of its own. Returns `null` when the bar is off, the id is unknown, a
-   * `beforeSheetTabAdd` listener cancels the copy, your `sheets` array is frozen (with a console warning),
-   * or it is called from a listener of a workbook change's before-hook.
-   *
-   * The add hooks receive the original's id as `duplicateOfId`, and `beforeSheetTabAdd` receives the name
-   * the copy gets.
+   * original's. An instance of your own class stored in a cell is shared with the original. The
+   * `formulas` setting is not cloned: the copy shares the original's engine, under a sheet name of its
+   * own. Returns `null` when the bar is off, the id is unknown, a `beforeSheetTabAdd` listener cancels the
+   * copy, your `sheets` array is frozen (with a console warning), or it is called from a listener of a
+   * workbook change's before-hook.
    *
    * A copy of a server sheet (one with its own `dataProvider`) starts with a copy of the original's rows.
    * When the original has already loaded rows, the copy doesn't fetch on its first visit.
    *
    * @param {number} id The sheet to copy.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
-   * @returns {object|null} The copy's `{ id, name, isActive }` descriptor, read after the
-   * `afterSheetTabAdd` listeners ran, or `null`.
+   * @returns {object|null} The copy's `{ id, name, isActive }` descriptor, or `null`.
    * @fires Hooks#beforeSheetTabAdd
    * @fires Hooks#afterSheetTabAdd
    */
@@ -2126,8 +2100,7 @@ export class SheetsBar extends BasePlugin {
    *
    * While the plugin is enabled, use this method, not {@link Core#updateSettings}, to change a sheet's settings.
    *
-   * Returns `false` when the bar is off, the sheet does not exist (or `idOrName` is neither a number nor a
-   * string), `settings` is not an object or changes
+   * Returns `false` when the bar is off, the sheet does not exist, `settings` is not an object or changes
    * nothing, a sheet switch is in progress, or it is called from a listener of a workbook change's
    * before-hook. A `sheetsBar` key is ignored, because a sheet cannot reconfigure the bar, and so is `data`,
    * because a sheet's rows are its `data` in your `sheets` array.
@@ -2165,9 +2138,8 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Activates a sheet by id or name. Returns `false` when the bar is off, the sheet doesn't exist
-   * (or `idOrName` is neither a number nor a string), is already active, another switch is in
-   * progress, or a `beforeSheetTabChange` listener cancels the switch.
+   * Activates a sheet by id or name. Returns `false` when the bar is off, the sheet doesn't exist, is
+   * already active, another switch is in progress, or a `beforeSheetTabChange` listener cancels the switch.
    *
    * The switch first saves the cell editor and the comment editor on the sheet you leave. It
    * returns `false`, and switches nothing, while a cell value waits for its validator, or while
@@ -2462,23 +2434,19 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Appends a sheet and returns its descriptor, or `null` when the bar is off, `name` is neither a
-   * string nor `null`, a `beforeSheetTabAdd` listener cancels it, your `sheets` array is frozen (with a
-   * console warning), or it is called from a listener of a workbook change's before-hook. The
-   * descriptor is read after the `afterSheetTabAdd` listeners ran, so it reports `isActive: true` when
-   * one of them switched to the new sheet.
+   * Appends a sheet and returns its descriptor, or `null` when the bar is off, a `beforeSheetTabAdd`
+   * listener cancels it, your `sheets` array is frozen (with a console warning), or it is called from a
+   * listener of a workbook change's before-hook.
    *
    * Without `settings`, the new sheet joins the workbook's shared formula engine, if there is
    * one, under its own name. Formulas and cross-sheet references then work on it right away.
    *
-   * @param {string} [name] The sheet's name. Omitted, or with no visible character, the next free `Sheet{n}`
-   * is used. A name another sheet uses gets a number after it: `Budget (2)`.
+   * @param {string} [name] The sheet's name. Omitted, the next free `Sheet{n}` is used.
    * @param {Array} [data] The sheet's data: rows as arrays, or as objects. Omitted, the sheet starts blank.
    * @param {object} [settings] The sheet's settings. Omitted, the sheet inherits the
    * workbook's shared formula engine when one is configured.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
-   * @returns {object|null} The new sheet's `{ id, name, isActive }` descriptor, read after the
-   * `afterSheetTabAdd` listeners ran, or `null`.
+   * @returns {object|null} The new sheet's `{ id, name, isActive }` descriptor, or `null`.
    * @fires Hooks#beforeSheetTabAdd
    * @fires Hooks#afterSheetTabAdd
    */

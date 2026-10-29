@@ -197,16 +197,14 @@ sheetsBar.removeSheet(id);
 sheetsBar.updateSheetSettings('Budget', { readOnly: true });
 ```
 
-Each method that changes the workbook returns `false` (`null` for `addSheet()` and `duplicateSheet()`) when it changes nothing: for example, when the bar is off, the sheet doesn't exist, or a listener cancels the change. `getSheets()` returns an empty array while the bar is off. A sheet's id never changes, and an id is never given to another sheet, even after you pass a new `sheets` value.
-
-The [`beforeSheetTabAdd`](@/api/hooks.md#beforesheettabadd) and [`afterSheetTabAdd`](@/api/hooks.md#aftersheettabadd) hooks fire for an added sheet and for a duplicate. For a duplicate, their `duplicateOfId` argument holds the id of the sheet being copied. For an added sheet, it's `null`.
+A sheet's id never changes, and no other sheet gets it later, even after you pass a new `sheets` value.
 
 ### Sheet names
 
 - A name is trimmed and cut to 50 characters. An emoji or a flag counts as one character.
-- A name with no visible character, such as an empty name or one made only of spaces or zero-width characters, can't be set. An added sheet gets the next free `Sheet{n}` name instead, and a rename to it is refused.
-- Names are unique and compared without regard to case, the way [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md) compares sheet names: `Budget` and `BUDGET` are the same name, and `setActiveSheet('budget')` finds `Budget`. A rename to a name another sheet uses is refused before [`beforeSheetTabRename`](@/api/hooks.md#beforesheettabrename) fires. A rename that only changes the case of a sheet's own name is allowed.
-- An added sheet whose name is taken gets a number after the whole name: a second `Budget (2024)` becomes `Budget (2024) (2)`. A duplicate of `Budget` is named `Budget (2)`, then `Budget (3)`.
+- A name with no visible characters isn't accepted. A new sheet gets the next free `Sheet{n}` name instead.
+- Names are unique and compared without regard to case, as in [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md): `Budget` and `BUDGET` are the same name.
+- A new sheet whose name is taken gets a number: a second `Budget (2024)` becomes `Budget (2024) (2)`. Copies of `Budget` are named `Budget (2)`, `Budget (3)`, and so on.
 
 ## Work with tabs
 
@@ -235,7 +233,7 @@ Each sheet keeps its own:
 
 A sheet you haven't opened yet opens with only what its own `settings` declare, on the configured [`initialPage`](@/api/options.md#pagination) and page size.
 
-A sheet switch changes the frozen rows and columns to the arriving sheet's counts without firing [`afterFreezeChange`](@/api/hooks.md#afterfreezechange). If you keep the counts in your own state, read them again in [`afterSheetTabChange`](@/api/hooks.md#aftersheettabchange), from [`getSettings()`](@/api/core.md#getsettings).
+A switch sets the frozen rows and columns without firing [`afterFreezeChange`](@/api/hooks.md#afterfreezechange). If you keep the frozen counts in your own state, update them in [`afterSheetTabChange`](@/api/hooks.md#aftersheettabchange).
 
 To capture and restore a view without the sheets bar, see [Save and restore the view state](@/guides/getting-started/view-state/view-state.md).
 

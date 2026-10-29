@@ -241,7 +241,7 @@ export class ManualColumnResize extends BasePlugin {
    * when the theme doesn't declare those tokens, the minimum is `20px`, which is also the lowest it can be.
    *
    * Nothing is stored while the plugin is disabled, for a column that does not exist, or for a width
-   * that is not a finite number (`NaN`, `Infinity`). A numeric string is stored as a number.
+   * that is not a finite number.
    *
    * @example
    * ```js
@@ -390,8 +390,8 @@ export class ManualColumnResize extends BasePlugin {
    * counterpart of {@link ManualColumnResize#getManualSizes}, so a stored set round-trips onto
    * the same records regardless of trimming or column order. Values lower than the minimum
    * column width (see {@link ManualColumnResize#setManualSize}) are saved as that minimum. A pair whose index
-   * is not an integer within the current column count, or whose width is not a finite number, is skipped,
-   * and so is a value that is not an array. Call `render()` afterwards to repaint the grid.
+   * is not an integer within the current column count, or whose width is not a finite number, is skipped.
+   * Call `render()` afterwards to repaint the grid.
    *
    * @param {Array<Array<number>>} sizes The `[physicalColumn, width]` pairs to write.
    */
