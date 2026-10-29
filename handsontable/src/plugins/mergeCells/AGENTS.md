@@ -702,10 +702,45 @@ is almost always a missing branch rather than wrong arithmetic — check all six
 
 ## Fragile area: selection + merged cells
 
-`../../../.ai/CONCERNS.md` flags this: visual-selection coordinate adjustment and MergeCells coordinate
-adjustment overlap, with TODO comments admitting uncertainty about the responsibility boundary.
-`selection.clear()` has a TODO noting that `selectedByColumnHeader` / `selectedByRowHeader` should be
-cleared and are not. E2E coverage is extensive; the unit-level highlight logic is under-tested.
+`../../../.ai/CONCERNS.md` flags this. Two steps move the highlight, and each owns one case: MergeCells
+moves it onto a merge's top-left (`#onBeforeSelectionHighlightSet`), then `VisualSelection#syncWith()`
+moves a highlight that sits on a hidden cell to the nearest visible one. `selection.clear()` has a TODO
+noting that `selectedByColumnHeader` / `selectedByRowHeader` should be cleared and are not.
+
+### The selection rules (DEV-161)
+
+These are the decided rules. A change that breaks one is a bug, whatever a spec says.
+
+- **R1. A cell range never cuts a merge.** A range that touches a merge grows to cover it whole. Covering
+  one merge can make the range touch another, so it keeps growing until it cuts none. The range is a
+  rectangle, so it may take in plain cells that no merge covers.
+- **R2. Only merges on screen count.** A merge whose rows are all trimmed is purged from the lookup matrix
+  and keeps stale visual coordinates in the list; it takes no part in selection.
+- **R3. The highlight inside a merge sits on its top-left visible cell.**
+- **R4. A header selection is never grown.** A column, row or corner selection keeps its own extent and
+  may cut a merge (see below).
+- **R5. Arrows out of a merge:** a horizontal arrow lands on the merge's top row (DEV-102), a vertical
+  one keeps the entry column, and Tab keeps its row.
+- **R6. A range equal to one merge is one cell:** no area fill, and a double-click opens the editor.
+- **R7. Growing keeps the direction.** The corner the selection started from moves out to the edge of
+  the grown rectangle; it is never swapped to the other side.
+- **R8. Merge to merge:** a selection from one merge into another covers both whole, plus every merge
+  the rectangle between them cuts (R1).
+
+R1 and R2 live in one place: `expandRangeToBlocks()` and `isRangeOneBlock()` in
+`../../selection/cellBlocks.ts`. The two growth sites feed the first with
+`MergedCellsCollection#getVisibleMergedCells()`: the highlight hook, and the clone in
+`#onModifyTransformEnd` (which passes `changeDirection: true` to keep its old direction behavior).
+`#rangeCoversOneMerge` runs on every `isMultiple()` call, so it does not scan: only the merge covering the
+range's top-start cell can match, and one lookup in the matrix finds it. The growth repeats until a whole pass
+adds nothing. It used to be exactly two passes, so three merges in a staircase declared top-down were
+cut in half while the same merges declared bottom-up were not. And it used to read the `mergedCells`
+list, so a merge whose rows a filter hid pulled the selection onto the records that took its place:
+Delete on one plain cell emptied four. Pinned by `tests/e2e/merge-cells-selection-rules.spec.ts`,
+`../../selection/__tests__/cellBlocks.unit.ts` and the `getVisibleMergedCells` / `getByRange` blocks of
+`__tests__/cellsCollection.unit.ts`; R7 also by the direction spec in `__tests__/mergeCells.spec.js`.
+
+E2E coverage is extensive; the unit-level highlight logic is under-tested.
 
 **When changing selection logic, test all combinations of: merged cells, hidden rows/columns, frozen
 rows/columns, and navigable headers.** Run both the `selectAll` and `selectCells` suites.
@@ -718,18 +753,18 @@ farthest merge instead of adding one line, in all four directions. The result mu
 `mergeCells: false` one, and the header flag still skips the hidden columns through the core's own
 delta. Pinned by `tests/e2e/header-range-merge-keyboard.spec.ts`.
 
-Both hooks decide through `#isSelectedByHeader()`, and they ask about **different layers**.
-`#onBeforeSelectionHighlightSet` works on the last range, so it reads the last layer's flags (the
-default). `#onModifyTransformEnd` changes the range `getSelectedRangeActive()` returns, which Enter or Tab
-can move back to an earlier layer, so it passes `getActiveSelectionLayerIndex()`. Reading the last
-layer there made header, Ctrl+click a cell, Enter, Shift+ArrowRight jump to the merge edge again. Known
+**Both hooks work on the active layer, the one the selection is changing.** They take the range from
+`getSelectedRangeActive()` and pass `getActiveSelectionLayerIndex()` to `#isSelectedByHeader()`. The
+active layer is the last one unless Enter or Tab moved the focus back to an earlier layer; Shift+Arrow
+then changes that earlier layer. Reading the last layer in `#onModifyTransformEnd` made header, Ctrl+click
+a cell, Enter, Shift+ArrowRight jump to the merge edge. Reading it in `#onBeforeSelectionHighlightSet`
+grew the wrong layer, so the active one cut a merge: A2, Ctrl+click F6, Enter, Shift+ArrowRight left
+A2:B2 over the merge B1:B2 (DEV-161, pinned by `tests/e2e/merge-cells-selection-rules.spec.ts`). Known
 limits: `isSelectedByCorner()` inside the flag getters still looks at the last layer, and the flags
 follow `selection.clear()` and the `removeLayers` plus `refresh()` path in `mouseEventHandler.ts`, which
 can leave them on a layer index they no longer describe. A flag is set only when a header is rendered,
 so Ctrl+A on a grid with column headers but no row headers sets one flag and is skipped by both hooks,
-while the same grid with no headers snaps. No spec pins the cell-layer side of this: the highlight hook
-snaps a cell range to the same result whether or not the transform hook runs, so only the header side
-can fail.
+while the same grid with no headers snaps.
 
 ### `fullySelectedMergedCell-N` is an overlap count (DEV-542)
 

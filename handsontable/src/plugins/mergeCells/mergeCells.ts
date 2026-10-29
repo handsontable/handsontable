@@ -16,6 +16,7 @@ import { rangeEach, clamp } from '../../helpers/number';
 import { getStyle } from '../../helpers/dom/element';
 import { isChrome } from '../../helpers/browser';
 import { FocusOrder, type FocusNodeData } from './focusOrder';
+import { expandRangeToBlocks, isRangeOneBlock } from '../../selection/cellBlocks';
 import { createMergeCellRenderer } from './renderer';
 import {
   sumCellsHeights,
@@ -2813,27 +2814,17 @@ export class MergeCells extends BasePlugin {
   /**
    * The active range's corners are exactly one merged cell.
    * Header corners normalize to 0, so a full-column selection looks like the merge that fills that column.
+   * Only the merge covering the top-start corner can match, and the lookup matrix holds the merges
+   * on screen only, so one lookup answers it.
    *
    * @param {CellRange} selectionRange The range to test.
    * @returns {boolean}
    */
   #rangeCoversOneMerge(selectionRange: CellRange): boolean {
-    const mergedCells = this.mergedCellsCollection.mergedCells;
-    const topStartCoords = selectionRange.getTopStartCorner();
-    const bottomEndCoords = selectionRange.getBottomEndCorner();
+    const { row, col } = selectionRange.getTopStartCorner();
+    const mergedCell = row === null || col === null ? false : this.mergedCellsCollection.get(row, col);
 
-    for (let group = 0; group < mergedCells.length; group += 1) {
-      if (
-        topStartCoords.row === mergedCells[group].row &&
-        topStartCoords.col === mergedCells[group].col &&
-        bottomEndCoords.row === mergedCells[group].row + mergedCells[group].rowspan - 1 &&
-        bottomEndCoords.col === mergedCells[group].col + mergedCells[group].colspan - 1
-      ) {
-        return true;
-      }
-    }
-
-    return false;
+    return mergedCell !== false && isRangeOneBlock(selectionRange, [mergedCell]);
   }
 
   /**
@@ -2959,7 +2950,8 @@ export class MergeCells extends BasePlugin {
 
   /**
    * Tells whether a selection layer was made from a column or a row header. A header range is not snapped to
-   * merged cells. Without the argument it answers for the last layer, the one the highlight hook lays out.
+   * merged cells. Without the argument it answers for the last layer. Both selection hooks pass the active
+   * layer, the one the selection is changing.
    *
    * @param {number} [layerLevel] The selection layer to ask about.
    * @returns {boolean}
@@ -2994,16 +2986,10 @@ export class MergeCells extends BasePlugin {
     const toRow = to.row ?? 0;
     const toCol = to.col ?? 0;
     const { columnIndexMapper, rowIndexMapper } = this.hot;
+    const visibleMerges = this.mergedCellsCollection.getVisibleMergedCells();
     const expandCloneRange = (row: number, col: number) => {
       cloneRange.expand(this.hot._createCellCoords(row, col));
-
-      for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
-        const range = this.mergedCellsCollection.mergedCells[i].getRange();
-
-        if (range) {
-          cloneRange.expandByRange(range);
-        }
-      }
+      expandRangeToBlocks(cloneRange, visibleMerges, true);
     };
 
     if (delta.col < 0) {
@@ -3073,7 +3059,9 @@ export class MergeCells extends BasePlugin {
    * The hook corrects the range (before drawing it) after the selection was made on the merged cells.
    */
   #onBeforeSelectionHighlightSet = () => {
-    const selectedRange = this.hot.getSelectedRangeLast();
+    // The range the selection is changing. It is the last one unless Enter or Tab moved the focus
+    // back to an earlier layer, and then Shift+Arrow changes that earlier layer.
+    const selectedRange = this.hot.getSelectedRangeActive();
 
     if (!selectedRange) {
       return;
@@ -3081,27 +3069,16 @@ export class MergeCells extends BasePlugin {
 
     const { highlight } = selectedRange;
 
-    if (this.#isSelectedByHeader()) {
+    if (this.#isSelectedByHeader(this.hot.selection.getActiveSelectionLayerIndex())) {
       this.#lastSelectedFocus = highlight.clone();
 
       return;
     }
 
-    for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
-      const range = this.mergedCellsCollection.mergedCells[i].getRange();
-
-      if (range) {
-        selectedRange.expandByRange(range, false);
-      }
-    }
-
-    for (let i = 0; i < this.mergedCellsCollection.mergedCells.length; i += 1) {
-      const range = this.mergedCellsCollection.mergedCells[i].getRange();
-
-      if (range) {
-        selectedRange.expandByRange(range, false);
-      }
-    }
+    // The range grows until it cuts no merge on screen, however many merges a chain links and in
+    // whatever order they are declared. A merge whose rows are all trimmed is left out: its
+    // coordinates are stale and point at other records.
+    expandRangeToBlocks(selectedRange, this.mergedCellsCollection.getVisibleMergedCells(), false);
 
     if (highlight.row === null || highlight.col === null) {
       return;

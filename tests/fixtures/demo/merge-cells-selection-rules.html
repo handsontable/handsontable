@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MergeCells selection rules fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document - no XSS. An
+    // ABSENT param keeps the default (main / plain UMD); an unknown value
+    // THROWS instead of falling back, so a config typo is one red leg.
+    const htParams = new URLSearchParams(location.search);
+
+    // Null-prototype maps, so an inherited key ('constructor', 'toString', ...) cannot pass as a value.
+    const htThemes = Object.assign(Object.create(null), { main: 'main', horizon: 'horizon', classic: 'classic' });
+    const htBundles = Object.assign(Object.create(null), { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' });
+
+    window.htTheme = htThemes[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = htBundles[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    // Built loudly: an unknown case or a constructor throw is captured where the page object can read
+    // and rethrow it.
+    try {
+      // Three single-column merges in a staircase: each one touches the next only after the range
+      // has grown over the previous one. M1 = C1:C2, M2 = B2:B3, M3 = A3:A4.
+      const staircase = [
+        { row: 0, col: 2, rowspan: 2, colspan: 1 },
+        { row: 1, col: 1, rowspan: 2, colspan: 1 },
+        { row: 2, col: 0, rowspan: 2, colspan: 1 },
+      ];
+      // Each case maps to literal settings, so the query string selects a case and is never read
+      // into the document.
+      const htCases = Object.assign(Object.create(null), {
+        // Declared in the order that needs one pass per merge to grow a range from A4:C4.
+        staircase: { rows: 6, cols: 6, mergeCells: staircase },
+        // The same merges declared bottom-up, which one pass already resolves.
+        'staircase-reversed': { rows: 6, cols: 6, mergeCells: staircase.slice().reverse() },
+        // A3:B4 over two rows that a filter on column C hides (the rows holding C3 and C4).
+        filtered: { rows: 8, cols: 4, mergeCells: [{ row: 2, col: 0, rowspan: 2, colspan: 2 }], filters: true },
+        // B1:B2 beside the plain cells of column A.
+        'two-layers': { rows: 8, cols: 8, mergeCells: [{ row: 0, col: 1, rowspan: 2, colspan: 1 }] },
+        // B2:C3 and E5:F6, plus D1:D2, which the rectangle between the other two cuts.
+        'merge-to-merge': {
+          rows: 8,
+          cols: 8,
+          mergeCells: [
+            { row: 1, col: 1, rowspan: 2, colspan: 2 },
+            { row: 4, col: 4, rowspan: 2, colspan: 2 },
+            { row: 0, col: 3, rowspan: 2, colspan: 1 },
+          ],
+        },
+      });
+      const htCase = htCases[htParams.get('case') ?? 'staircase'];
+
+      if (!htCase) {
+        throw new Error('Unknown ?case= value: ' + JSON.stringify(htParams.get('case')));
+      }
+
+      const container = document.querySelector('[data-testid="grid"]');
+
+      container.className = `ht-theme-${window.htTheme}`;
+
+      window.hot = new Handsontable(container, {
+        data: Handsontable.helper.createSpreadsheetData(htCase.rows, htCase.cols),
+        colHeaders: true,
+        rowHeaders: true,
+        mergeCells: htCase.mergeCells,
+        filters: htCase.filters ?? false,
+        width: 600,
+        height: 320,
+        afterRenderer(td, row, col) {
+          td.setAttribute('data-testid', `cell-${row}-${col}`);
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+
+    /**
+     * Hides the rows holding the given values of column C through a Filters condition per value,
+     * the way a user unticks them in the "Filter by value" list.
+     */
+    window.htFilterOutColumnC = (values) => {
+      const filters = window.hot.getPlugin('filters');
+
+      values.forEach((value) => {
+        filters.addCondition(2, 'neq', [value], 'conjunction');
+      });
+      filters.filter();
+    };
+
+    window.htReady = true;
+  </script>
+</body>
+</html>

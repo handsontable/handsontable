@@ -360,6 +360,33 @@ describe('MergeCells', () => {
         expect(wantedCollection.rowspan).toEqual(3);
         expect(wantedCollection.colspan).toEqual(4);
       });
+
+      it('should skip a merge purged from the lookup matrix, whose coordinates are stale', () => {
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+        const purged = mergedCellsCollection.add({ row: 2, col: 0, rowspan: 2, colspan: 2 });
+
+        expect(mergedCellsCollection.getByRange(createCellRange(2, 0, 3, 1))).toBe(purged);
+
+        mergedCellsCollection.removeFromMatrix([purged]);
+
+        expect(mergedCellsCollection.getByRange(createCellRange(2, 0, 3, 1))).toBe(false);
+      });
+    });
+
+    describe('`getVisibleMergedCells` method', () => {
+      it('should return every merge except the ones purged from the lookup matrix, in list order', () => {
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+        const first = mergedCellsCollection.add({ row: 0, col: 0, rowspan: 2, colspan: 1 });
+        const purged = mergedCellsCollection.add({ row: 2, col: 0, rowspan: 2, colspan: 2 });
+        const last = mergedCellsCollection.add({ row: 5, col: 3, rowspan: 1, colspan: 2 });
+
+        expect(mergedCellsCollection.getVisibleMergedCells()).toEqual([first, purged, last]);
+
+        mergedCellsCollection.removeFromMatrix([purged]);
+
+        expect(mergedCellsCollection.getVisibleMergedCells()).toEqual([first, last]);
+        expect(mergedCellsCollection.mergedCells).toEqual([first, purged, last]);
+      });
     });
 
     describe('`getWithinRange` method', () => {

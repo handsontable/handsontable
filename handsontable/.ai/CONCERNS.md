@@ -104,8 +104,8 @@
 ## Fragile Areas
 
 **Selection + MergeCells Interaction:**
-- Files: `handsontable/src/selection/highlight/visualSelection.ts`, `handsontable/src/selection/selection.ts`, `handsontable/src/plugins/mergeCells/mergeCells.ts`
-- Why fragile: Visual selection coordinate adjustments interact with MergeCells coordinate adjustments in overlapping ways. TODO comments indicate uncertainty about the correct responsibility boundary. The `selection.clear()` method has a TODO noting that `selectedByColumnHeader` and `selectedByRowHeader` collections should be cleared but are not.
+- Files: `handsontable/src/selection/highlight/visualSelection.ts`, `handsontable/src/selection/selection.ts`, `handsontable/src/selection/cellBlocks.ts`, `handsontable/src/plugins/mergeCells/mergeCells.ts`
+- Why fragile: MergeCells changes the selection through about 15 hooks, and several of them write the live range instead of returning a value, so the result depends on the order core fires them in. Two steps move the highlight, in this order: MergeCells onto a merge's top-left, then `VisualSelection#syncWith()` off a hidden cell. The rules a selection follows over merged cells are listed in `handsontable/src/plugins/mergeCells/AGENTS.md` ("The selection rules"). The `selection.clear()` method has a TODO noting that `selectedByColumnHeader` and `selectedByRowHeader` collections should be cleared but are not.
 - Safe modification: When modifying selection logic, test all combinations of: merged cells, hidden rows/columns, frozen rows/columns, and navigable headers. Run both `selectAll` and `selectCells` spec suites.
 - Test coverage: Extensive E2E tests exist but the visual selection highlight logic is under-tested at the unit level.
 

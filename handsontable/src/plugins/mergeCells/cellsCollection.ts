@@ -108,7 +108,9 @@ class MergedCellsCollection {
 
       if (
         row >= rowStart && row + rowspan - 1 <= rowEnd &&
-        col >= columnStart && col + colspan - 1 <= columnEnd
+        col >= columnStart && col + colspan - 1 <= columnEnd &&
+        // The lookup matrix is the authority on visibility (see `getWithinRange`).
+        this.get(row, col) === mergedCell
       ) {
         result = mergedCell;
 
@@ -117,6 +119,17 @@ class MergedCellsCollection {
     }
 
     return result;
+  }
+
+  /**
+   * Get the merged cells that are on screen: every merge except the ones purged from the lookup
+   * matrix because all of their rows are trimmed. A purged merge keeps stale visual coordinates in
+   * the `mergedCells` list, which can point at rows that other records have moved into.
+   *
+   * @returns {MergedCellCoords[]} The visible merged cells, in the order of the `mergedCells` list.
+   */
+  getVisibleMergedCells() {
+    return this.mergedCells.filter(mergedCell => this.get(mergedCell.row, mergedCell.col) === mergedCell);
   }
 
   /**
