@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the grid's scrollbars to run beside the scrollable area only, so they start after the headers and frozen rows or columns instead of running along the full edge of the grid, and kept the grid's border visible over them.",
+  "type": "changed",
+  "issueOrPR": 14069,
+  "breaking": false,
+  "framework": "none"
+}
