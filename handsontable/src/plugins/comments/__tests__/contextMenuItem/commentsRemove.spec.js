@@ -140,19 +140,20 @@ describe('ContextMenu', () => {
         expect(menuItem.hasClass('htDisabled')).toBe(true);
       });
 
-      it('should be disabled when the single row header is selected', async() => {
+      it('should be disabled when a row is selected with the focus on its header', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           rowHeaders: true,
           colHeaders: true,
           contextMenu: true,
           comments: true,
-          // A comment inside the selection, so the guard alone has to disable the item.
+          // The range covers the comment on (1, 1) while the highlight stays on the header, so only
+          // the header guard can disable the item.
           cell: [{ row: 1, col: 1, comment: { value: 'Note' } }],
           navigableHeaders: true,
         });
 
-        await selectCell(1, -1);
+        await selectRows(1, 1, -1);
         getPlugin('contextMenu').open($(getCell(1, -1)).offset());
 
         const menuItem = $('.htContextMenu tbody tr td').filter(function() {
@@ -162,19 +163,20 @@ describe('ContextMenu', () => {
         expect(menuItem.hasClass('htDisabled')).toBe(true);
       });
 
-      it('should be disabled when the single column header is selected', async() => {
+      it('should be disabled when a column is selected with the focus on its header', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           rowHeaders: true,
           colHeaders: true,
           contextMenu: true,
           comments: true,
-          // A comment inside the selection, so the guard alone has to disable the item.
+          // The range covers the comment on (1, 1) while the highlight stays on the header, so only
+          // the header guard can disable the item.
           cell: [{ row: 1, col: 1, comment: { value: 'Note' } }],
           navigableHeaders: true,
         });
 
-        await selectCell(-1, 1);
+        await selectColumns(1, 1, -1);
         getPlugin('contextMenu').open($(getCell(-1, 1)).offset());
 
         const menuItem = $('.htContextMenu tbody tr td').filter(function() {
@@ -191,8 +193,8 @@ describe('ContextMenu', () => {
           colHeaders: true,
           contextMenu: true,
           comments: true,
-          // A comment inside the selection, so the guard alone has to disable the item.
-          cell: [{ row: 1, col: 1, comment: { value: 'Note' } }],
+          // Only a select-all puts the highlight on the corner while the range covers cells, and the
+          // select-all guard catches that first, so the corner-only selection holds no cell to seed.
           navigableHeaders: true,
         });
 
