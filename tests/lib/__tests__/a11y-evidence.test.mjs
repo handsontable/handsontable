@@ -17,6 +17,7 @@ import {
   criterionInfo,
   evidenceHeadline,
   findingId,
+  isTriageCheck,
   measuredText,
   mergeEvidence,
   renderEvidenceSummary,
@@ -32,6 +33,7 @@ import {
 
 const CHECKS = {
   'demo-check': { title: 'Demo check', criteria: ['2.4.3', '2.1.2'] },
+  'demo-triage': { title: 'Demo triage', criteria: [], triage: true },
 };
 
 /**
@@ -111,6 +113,9 @@ test('the names a check writes under: the check run, the detail file, the findin
   assert.equal(findingId('demo-check', { ...ORDER, page: 'grid', theme: 'main', variant: 'rtl' }), 'demo-check|tab-order-changed|grid|main|rtl|Tab 3');
   assert.equal(findingId('demo-check', { ...TRAP, step: 'Shift+Tab 2', page: 'grid', theme: 'main' }), 'demo-check|keyboard-trap|grid|main||td.current|Shift+Tab 2',
     'a finding that names an element and a step keys on both');
+  assert.equal(findingId('demo-triage', { kind: 'axe-needs-review', rule: 'color-contrast', cause: 'color-contrast:bgImage', reason: 'a background image (12px)',
+    selector: 'th', page: 'grid', theme: 'main' }), 'demo-triage|axe-needs-review|color-contrast|color-contrast:bgImage|grid|main||th',
+    'a record that names its rule and cause adds them, never its reason, whose text can carry per-node values');
 });
 
 test('run.commit is the pull request\'s head, never the merge commit', () => {
@@ -136,7 +141,7 @@ test('a well-formed part has no problems, and every malformed field is named', (
     findings: [
       { ...TRAP, severity: 'blocker' },
       { ...TRAP, criteria: ['4.1.1'] },
-      { ...TRAP, criteria: undefined },
+      { ...TRAP, criteria: [] },
       { kind: 'Not Kebab', criteria: ['2.1.1'], severity: 'minor', reason: ' ' },
       { ...TRAP, measured: 'forty' },
       { ...TRAP, file: '../outside.json', line: 0 },
@@ -151,7 +156,7 @@ test('a well-formed part has no problems, and every malformed field is named', (
     'criteria names "9.9.9", which is not a WCAG 2.2 criterion',
     'findings[0].severity is "blocker", not one of critical, serious, moderate, minor, advisory',
     'findings[1].criteria names "4.1.1", which is not a WCAG 2.2 criterion',
-    'findings[2].criteria is not an array',
+    'findings[2].criteria is not a non-empty array',
     'findings[3].kind is not a kebab-case id',
     'findings[3].reason is empty',
     'findings[3] names neither a selector nor a step',
@@ -201,14 +206,43 @@ test('merging the parts counts every criterion a measured target evaluated, find
   assert.deepEqual(doc.problems, []);
 });
 
-test('a finding that maps to no WCAG criterion (an axe best practice) is valid and counted apart', () => {
-  const practice = { kind: 'axe-violation', criteria: [], severity: 'moderate', selector: 'div.x', reason: 'region' };
-  const doc = mergeEvidence({ check: 'demo-check', checks: CHECKS, parts: [part({ findings: [practice, TRAP] })] });
+test('a check is triage only when its registry entry says so', () => {
+  assert.equal(isTriageCheck('axe-discovery'), true, 'the registry\'s own triage check');
+  assert.deepEqual(Object.keys(EVIDENCE_CHECKS).filter(check => check !== 'axe-discovery' && isTriageCheck(check)), [],
+    'every other registered check evidences criteria');
+  assert.equal(isTriageCheck('demo-triage', CHECKS), true);
+  assert.equal(isTriageCheck('demo-check', CHECKS), false);
+  assert.equal(isTriageCheck('missing-check', CHECKS), false, 'an unknown check is not triage');
+  assert.equal(isTriageCheck('constructor', CHECKS), false, 'an inherited property is not a check');
+});
 
-  assert.deepEqual(validatePart(part({ findings: [practice] })), []);
+test('only a triage check\'s finding may map to no WCAG criterion (an axe best practice), and it is counted apart', () => {
+  const practice = { kind: 'axe-violation', criteria: [], severity: 'moderate', selector: 'div.x', reason: 'region' };
+  const doc = mergeEvidence({ check: 'demo-triage', checks: CHECKS, parts: [part({ findings: [practice, TRAP] })] });
+
+  assert.deepEqual(validatePart(part({ findings: [practice] }), { triage: true }), []);
   assert.deepEqual(validateEvidence(doc, { checks: CHECKS }), []);
   assert.equal(doc.summary.withoutCriterion, 1);
   assert.match(renderEvidenceSummary(doc), /\| moderate \| — \| grid \|/);
+  assert.deepEqual(validatePart(part({ findings: [practice] })), ['findings[0].criteria is not a non-empty array'],
+    'a check that evidences criteria names one on every finding');
+  assert.deepEqual(mergeEvidence({ check: 'demo-check', checks: CHECKS, parts: [part({ findings: [practice] })] }).targets, [],
+    'on a check that is not triage the part is malformed and dropped');
+  assert.deepEqual(validateEvidence({ ...doc, check: 'demo-check', triage: false }, { checks: CHECKS }), ['findings[1].criteria is not a non-empty array']);
+});
+
+test('a triage check\'s document says so and evidences no criterion, whatever its records name', () => {
+  const record = { kind: 'axe-violation', rule: 'color-contrast', criteria: ['1.4.3'], severity: 'serious', selector: 'td', reason: 'contrast' };
+  const doc = mergeEvidence({ check: 'demo-triage', checks: CHECKS, parts: [part({ findings: [record] })] });
+  const summary = renderEvidenceSummary(doc);
+
+  assert.equal(doc.triage, true);
+  assert.deepEqual(doc.summary.byCriterion, {}, 'the conformance report cites byCriterion, and a triage record is not evidence');
+  assert.deepEqual(doc.findings[0].criteria, ['1.4.3'], 'a record keeps its criteria for sorting');
+  assert.deepEqual(validateEvidence(doc, { checks: CHECKS }), []);
+  assert.doesNotMatch(summary, /\| Criterion \|/);
+  assert.match(summary, /Triage, not evidence/);
+  assert.equal(mergeEvidence({ check: 'demo-check', checks: CHECKS, parts: [part()] }).triage, false);
 });
 
 test('a finding outside the check\'s criteria is counted under its own criterion, evaluated by none', () => {
@@ -250,6 +284,23 @@ test('a part that measured can report a step it could not take as a problem, and
   assert.deepEqual(doc.problems, ['grid on main: probe Ctrl+M: the range was not selected']);
   assert.equal(doc.findings.length, 1);
   assert.deepEqual(validatePart(part({ problems: [3] })), ['problems is not an array of strings']);
+});
+
+test('a target with a step it could not take is measured, but is not counted as evaluating its criteria', () => {
+  // Every probe of a target can fail to set up and leave no finding: that is no evidence of a pass.
+  const doc = mergeEvidence({
+    check: 'demo-check',
+    checks: CHECKS,
+    parts: [
+      part({ problems: ['probe Ctrl+M: the range was not selected', 'probe Ctrl+Z: the editor did not open'] }),
+      part({ target: { page: 'dialog', theme: 'main', state: 'none' } }),
+    ],
+  });
+
+  assert.deepEqual(doc.targets.map(target => [target.page, target.status, target.problems]), [['dialog', 'measured', 0], ['grid', 'measured', 2]]);
+  assert.deepEqual(doc.summary.byCriterion['2.1.2'], { name: 'No Keyboard Trap', level: 'A', evaluated: 1, findings: 0, pages: [] });
+  assert.equal(doc.summary.measured, 2, 'the target still measured what it could');
+  assert.deepEqual(validateEvidence(doc, { checks: CHECKS }), []);
 });
 
 test('a finding cannot move itself to another target or take another id', () => {
@@ -322,6 +373,7 @@ test('validateEvidence names what a generator could not read', () => {
   ]);
   assert.deepEqual(validateEvidence({ ...doc, targets: [{ status: 'skipped' }] }, { checks: CHECKS }),
     ['targets[0].status is "skipped", not one of measured, error']);
+  assert.deepEqual(validateEvidence({ ...doc, triage: undefined }, { checks: CHECKS }), ['triage is not a boolean']);
   assert.deepEqual(validateEvidence([], { checks: CHECKS }), ['the document is not an object']);
 });
 
@@ -432,17 +484,21 @@ test('a tooling check run lists twenty problems and stays under the Checks API l
   assert.match(huge.summary, /… cut at 65000 characters/);
 });
 
-test('a check whose records name a rule summarizes them by rule, so one rule among thousands of records is found', () => {
-  const record = (rule, severity) => ({ kind: 'axe-violation', rule, criteria: [], severity, selector: `td.${rule}`, reason: rule });
+test('a check whose records name a rule summarizes them by rule and kind, so one rule among thousands of records is found', () => {
+  const record = (rule, severity, kind = 'axe-violation') => ({ kind, rule, criteria: [], severity, selector: `td.${rule}`, reason: rule });
   const findings = [
     ...Array.from({ length: 70 }, (_, index) => ({ ...record('aria-required-children', 'critical'), selector: `td.n${index}` })),
-    record('accesskeys', 'serious'),
-    record('accesskeys', 'serious'),
+    ...Array.from({ length: 5 }, (_, index) => ({ ...record('color-contrast', 'advisory', 'axe-needs-review'), selector: `th.n${index}` })),
+    record('color-contrast', 'serious'),
   ];
-  const summary = renderEvidenceSummary(mergeEvidence({ check: 'demo-check', checks: CHECKS, parts: [part({ findings })] }));
+  const doc = mergeEvidence({ check: 'demo-triage', checks: CHECKS, parts: [part({ findings })] });
+  const summary = renderEvidenceSummary(doc);
 
-  assert.match(summary, /\| Rule \| Records \| Worst \|/);
-  assert.match(summary, /\| aria-required-children \| 70 \| critical \|\n\| accesskeys \| 2 \| serious \|/);
+  assert.deepEqual(doc.problems, [], 'every record names its own element, so no two share an id');
+  assert.match(summary, /\| Rule \| Kind \| Records \| Worst \|/);
+  assert.match(summary, /\| aria-required-children \| axe-violation \| 70 \| critical \|\n\| color-contrast \| axe-needs-review \| 5 \| advisory \|\n/);
+  assert.match(summary, /\| color-contrast \| axe-needs-review \| 5 \| advisory \|\n\| color-contrast \| axe-violation \| 1 \| serious \|/,
+    'what axe decided is counted apart from what it could not decide');
   assert.doesNotMatch(renderEvidenceSummary(mergeEvidence({ check: 'demo-check', checks: CHECKS, parts: [part({ findings: [TRAP] })] })), /\| Rule \|/,
     'a check whose findings name no rule has no rule table');
 });

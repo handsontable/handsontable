@@ -4,7 +4,7 @@ import { A11Y_PAGES, fixtureUrl, type A11yPage } from '../pages.mjs';
 import { emulate, openTarget, reachState } from '../harness';
 import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } from '../evidence';
 import { A11Y_THEMES } from '../../lib/a11y-baseline.mjs';
-import { TREE_CRITERIA, diffSnapshot, nameFindings, structureFindings } from '../../lib/aria-tree.mjs';
+import { TREE_CRITERIA, diffSnapshot, maskSnapshot, nameFindings, structureFindings } from '../../lib/aria-tree.mjs';
 import { flattenAxTree, treeSnapshot } from './ax-tree';
 
 /**
@@ -12,13 +12,14 @@ import { flattenAxTree, treeSnapshot } from './ax-tree';
  * tree of the grid's root container and its portal, on every page of the catalog (`../pages.mjs`) in its
  * state and on every theme.
  *
- * - **Structure** (`structureFindings()` in `lib/aria-tree.mjs`): the grid's rows in reading order, with
+ * - **Structure** (`structureFindings()` in `lib/aria-tree.mjs`): each grid's rows in reading order, with
  *   their row and column headers, their row and column indexes, and whether one row is exposed twice.
  * - **Names and roles** (`nameFindings()`): every control has a name, every header has one, every tab
  *   stop has a role.
  * - **Goldens**: Playwright's `ariaSnapshot()` of the grid and the portal, on the main theme, kept under
  *   `../tree-goldens/<page>.yml`. A difference is advisory (`tree-snapshot-changed`): a change to a role,
- *   a name or the structure for a reviewer to read. `HOT_A11Y_UPDATE_GOLDENS=1` records them.
+ *   a name or the structure for a reviewer to read. The server's origin and the installed version are
+ *   masked first (`maskSnapshot()`). `HOT_A11Y_UPDATE_GOLDENS=1` records them.
  *
  * The axe scan checks the tree against axe's rules; this check reads the tree as a screen reader gets it,
  * in order. Report-only: a test fails for tooling only. Policy: `tests/AGENTS.md`, "A11y: the checks
@@ -90,7 +91,10 @@ async function readTree(page: Page, testInfo: TestInfo, entry: A11yPage, theme: 
 
   const nodes = await flattenAxTree(page, cdp, opened.root);
   const findings: EvidenceFinding[] = [...structureFindings(nodes), ...nameFindings(nodes)];
-  const snapshot = await treeSnapshot(page, opened.root);
+  // What the run decides (the server's port, the version) is masked, so a golden moves for the tree only.
+  const snapshot = maskSnapshot(await treeSnapshot(page, opened.root), {
+    origin: new URL(page.url()).origin, version: environment.handsontableVersion,
+  });
 
   if (theme === GOLDEN_THEME) {
     findings.push(...compareGolden(entry.id, snapshot));
@@ -104,6 +108,7 @@ async function readTree(page: Page, testInfo: TestInfo, entry: A11yPage, theme: 
 
   await attachEvidence(testInfo, {
     target, startedAt, environment, findings, criteria: TREE_CRITERIA, detail: { nodes: nodes.length, roles, snapshot },
+    pageErrors: opened.pageErrors,
   });
 }
 

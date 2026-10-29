@@ -1,5 +1,6 @@
 import { expect, type CDPSession, type Page } from '@playwright/test';
 import { PORTAL_MARK } from '../harness';
+import { isProductStop, stopKey } from '../../lib/keyboard-walker.mjs';
 
 /**
  * The browser half of the keyboard walker (`keyboard-walker.spec.ts`): the sentinels a walk starts and
@@ -33,6 +34,7 @@ export interface GridSnapshot {
   menus: number;
   menuItem: string | null;
   comment: boolean;
+  commentText: string | null;
   dataHash: string;
   scroll: [number, number];
   sorting: string;
@@ -148,9 +150,11 @@ export async function focusedAx(cdp: CDPSession): Promise<{ role: string; name: 
  * @param page The page.
  * @param cdp The accessibility session.
  * @param root The root container selector.
+ * @param options.ax Whether to read the role and name from the accessibility tree (four CDP calls); a
+ *   caller that needs only the region passes `false`, and the stop then has an empty role and name.
  * @returns The stop.
  */
-export async function readStop(page: Page, cdp: CDPSession, root: string): Promise<FocusStop> {
+export async function readStop(page: Page, cdp: CDPSession, root: string, { ax = true }: { ax?: boolean } = {}): Promise<FocusStop> {
   const dom = await page.evaluate(async([selector, portalMark]) => {
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
@@ -214,11 +218,11 @@ export async function readStop(page: Page, cdp: CDPSession, root: string): Promi
       signals: { url: location.href, popups, editorOpen: !!hot?.getActiveEditor()?.isOpened() },
     };
   }, [root, PORTAL_MARK] as const);
-  const ax = dom.region === 'body' || dom.region === 'start' || dom.region === 'end'
+  const tree = !ax || dom.region === 'body' || dom.region === 'start' || dom.region === 'end'
     ? { role: '', name: '', ignored: false }
     : await focusedAx(cdp);
 
-  return { ...dom, ...ax };
+  return { ...dom, ...tree };
 }
 
 /**
@@ -265,7 +269,8 @@ export async function tabWalk(page: Page, cdp: CDPSession, root: string, directi
   await page.locator(`[data-a11y-walk-sentinel="${from}"]`).focus();
 
   const stops = [await readStop(page, cdp, root)];
-  const seen = new Set([identity(stops[0])]);
+  // The same key the verdict reads (`walkVerdict()`), so the walk stops where the verdict sees the cycle.
+  const seen = new Set([stopKey(stops[0])]);
 
   for (let press = 1; press <= budget; press++) {
     await page.keyboard.press(key);
@@ -274,23 +279,25 @@ export async function tabWalk(page: Page, cdp: CDPSession, root: string, directi
     const change = contextChange(stops.at(-1)!, next);
 
     stops.push(change ? { ...next, contextChange: change } : next);
-    if (next.region === goal || next.region === 'body' || seen.has(identity(next))) {
+    if (next.region === goal || next.region === 'body' || seen.has(stopKey(next))) {
       return { stops, budgetExhausted: false };
     }
-    seen.add(identity(next));
+    seen.add(stopKey(next));
   }
 
   const route = direction === 'forward' ? 'ControlOrMeta+End' : 'ControlOrMeta+Home';
   let routePresses = 0;
   let left = false;
 
-  if (['grid', 'portal'].includes(stops.at(-1)!.region)) {
+  if (isProductStop(stops.at(-1)!)) {
     await page.keyboard.press(route);
     // A grid with navigable headers on several levels walks back through every header row first.
-    for (routePresses = 1; routePresses <= 150 && !left; routePresses++) {
+    while (routePresses < 150 && !left) {
       await page.keyboard.press(key);
+      routePresses += 1;
 
-      const next = await readStop(page, cdp, root);
+      // Only the region matters here, so the accessibility tree is not read: up to 150 presses a walk.
+      const next = await readStop(page, cdp, root, { ax: false });
 
       left = next.region === goal || next.region === 'body';
     }
@@ -304,18 +311,8 @@ export async function tabWalk(page: Page, cdp: CDPSession, root: string, directi
 }
 
 /**
- * The identity of a stop, as `stopKey()` of `lib/keyboard-walker.mjs` reads it.
- *
- * @param stop The stop.
- * @returns The key.
- */
-function identity(stop: FocusStop): string {
-  return stop.cell ? `${stop.region}|cell|${stop.cell[0]},${stop.cell[1]}` : `${stop.region}|${stop.ref}`;
-}
-
-/**
  * A snapshot of what a key can change: the selection, the editor and its text and caret, the menus
- * and their highlighted item, the comment editor, the data, the scroll, the sort, the merges, the
+ * and their highlighted item, the comment editor and the highlighted cell's comment, the data, the scroll, the sort, the merges, the
  * frozen counts, the clipboard and link counters, the collapsed groups, the filters, and where the
  * focus is. One evaluation, after two animation frames.
  *
@@ -378,7 +375,8 @@ export async function snapshot(page: Page, root: string): Promise<GridSnapshot> 
 
     let region = 'outside';
 
-    if (!el || el === document.body || !document.hasFocus()) {
+    // The same regions as `readStop()`, so the Escape test and the probes read a focus the way the Tab walk does.
+    if (!el || el === document.body || el === document.documentElement || !document.hasFocus()) {
       region = 'body';
     } else if (el.dataset.a11yWalkSentinel) {
       region = el.dataset.a11yWalkSentinel;
@@ -450,6 +448,11 @@ export async function snapshot(page: Page, root: string): Promise<GridSnapshot> 
       menus: menus.length,
       menuItem: highlighted ? (highlighted.textContent ?? '').trim() : null,
       comment: !!comments?.getEditorInputElement?.() && visible(comments.getEditorInputElement().closest('.htComments') ?? comments.getEditorInputElement()),
+      // The comment stored on the highlighted cell, which a save changes and a discard does not. A header holds
+      // no comment (and `getCellMeta()` refuses its negative index).
+      commentText: comments && range && range.highlight.row >= 0 && range.highlight.col >= 0
+        ? comments.getCommentAtCell?.(range.highlight.row, range.highlight.col) ?? null
+        : null,
       dataHash: `${data.length}:${hash}`,
       scroll: [Math.round(holder?.scrollTop ?? 0), Math.round(holder?.scrollLeft ?? 0)] as [number, number],
       sorting: JSON.stringify(sorting?.getSortConfig?.() ?? []),
@@ -457,11 +460,13 @@ export async function snapshot(page: Page, root: string): Promise<GridSnapshot> 
       frozen: `${settings.fixedRowsTop ?? 0},${settings.fixedColumnsStart ?? 0},${settings.fixedRowsBottom ?? 0},${settings.fixedColumnsEnd ?? 0}`,
       clipboard: win.__a11yClipboard ?? 0,
       links: win.__a11yLinks ?? 0,
+      // The collapsed groups and what they hide: the rows a collapse trims and the columns it hides. Never the
+      // rendered columns, which change with every horizontal scroll.
       collapsed: JSON.stringify([
         nestedRows?.collapsingUI?.collapsedRows ?? null,
         collapsible?.getCollapsedColumns?.() ?? null,
         hot?.countRows?.() ?? null,
-        hot?.countRenderedCols?.() ?? null,
+        hot?.columnIndexMapper?.getNotHiddenIndexesLength?.() ?? null,
       ]),
       filtered: JSON.stringify(filters?.exportConditions?.() ?? null),
       listSelection: editorOpen && editor.htEditor ? JSON.stringify(editor.htEditor.getSelected() ?? null) : null,

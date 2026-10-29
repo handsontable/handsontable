@@ -96,10 +96,10 @@
       - gridcell "f6"
       - gridcell "g6"
       - gridcell "node.js"
-    - row "http://localhost:8131/tests/fixtures/demo/grid.html b7 c7 d7 e7 f7 g7 Visit handsontable.com today.":
-      - gridcell "http://localhost:8131/tests/fixtures/demo/grid.html":
-        - link "http://localhost:8131/tests/fixtures/demo/grid.html":
-          - /url: http://localhost:8131/tests/fixtures/demo/grid.html
+    - row "<origin>/tests/fixtures/demo/grid.html b7 c7 d7 e7 f7 g7 Visit handsontable.com today.":
+      - gridcell "<origin>/tests/fixtures/demo/grid.html":
+        - link "<origin>/tests/fixtures/demo/grid.html":
+          - /url: <origin>/tests/fixtures/demo/grid.html
       - gridcell "b7"
       - gridcell "c7"
       - gridcell "d7"
