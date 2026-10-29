@@ -23,6 +23,7 @@ Statics (`PLUGIN_KEY`, `PLUGIN_PRIORITY`, `SETTING_KEYS`, `PLUGIN_DEPS`, `DEFAUL
 
 ## Key patterns (gold standard: `src/plugins/pagination/pagination.ts`)
 
+- **Configure in `enablePlugin()`, touch the grid in `onGridReady()`:** `enablePlugin()`/`updatePlugin()` register hooks and index maps and read settings only. Work that reads the rows, `hot.view`, the DOM or the editor manager goes in the optional `onGridReady()`, which core runs once after every enable or update, when all of them exist. Never write `if (this.hot.view)` in enable/update, and never park that work on an `init`/`afterInit` listener (`src/plugins/base/AGENTS.md`, "The ready step").
 - **Private fields:** `#` prefix for all internal state, no `@private` JSDoc.
 - **Hook callbacks (required for new code):** pass `#on*` handlers to `addHook` as arrow function class fields, directly: `this.addHook('afterLoadData', this.#onAfterLoadData)` (priority stays the 3rd arg). `.bind(this)` builds a new function per call, so the registered reference can never be removed. Existing inline-wrapper sites work; leave them as they are.
 - **Hook registration:** `this.addHook()` auto-cleans on `disablePlugin()`; `this.hot.addHook()` does not. Register new hook names at module level: `Hooks.getSingleton().register('beforeMyAction');` (import `Hooks` from `'../../core/hooks'`).

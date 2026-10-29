@@ -43,6 +43,8 @@ init()           → resolve pluginName, apply settings (core calls it, see belo
 isEnabled()      → return !!this.hot.getSettings()[PLUGIN_KEY]
 enablePlugin()   → init state, create IndexMaps, register hooks. super.enablePlugin() AT END.
 updatePlugin()   → this.disablePlugin(); this.enablePlugin(); super.updatePlugin();
+onGridReady()    → optional: work that reads the rows, hot.view, the DOM or the editor manager.
+                   Core runs it once after every enable/update, when all of them exist.
 disablePlugin()  → super.disablePlugin() FIRST. Then clean up.
 destroy()        → null out fields. super.destroy() AT END.
 ```
@@ -164,6 +166,54 @@ outcomes in this order:
 Branch 3 exists so a plugin already running gets switched off when a conflicting option appears later, even
 when its own `SETTING_KEYS` do not overlap the payload. `relevantToSettings` is computed **before** those
 branches, on purpose: branches 1 and 2 must not depend on it.
+
+## The ready step: `onGridReady()`
+
+`enablePlugin()` runs in three different states: at init (no data, no `hot.view`, no editor manager), on
+`updateSettings()` (the new data and the view), and on a sheet switch (the departing data). The ready step
+is the one place where the answer is always the same. Put **configuration** (hooks, index maps, settings,
+own state) in `enablePlugin()`/`updatePlugin()`, and **everything that reads the rows, the view, the DOM or
+the editor manager** in `onGridReady()`. Then no plugin needs an `if (this.hot.view)` guard.
+
+The contract:
+
+- **Once per enable or update.** An `enablePlugin()` or `updatePlugin()` call that returns with the plugin
+  enabled makes it owe the step (`#readyStepOwed`). `disablePlugin()` clears the debt, so a plugin enabled
+  and disabled in one pass runs nothing.
+- **When everything exists, before the next render.** Core runs the owed steps, in `PLUGIN_PRIORITY`
+  order: at init right after the view, the editor manager and the focus manager (before the `init` hook and
+  the first render); in `updateSettings()` after the `min*` sizing, before its render; in
+  `_applySettingsAndData()` after the `onDataReady()` pass, against the loaded data.
+- **After the whole pass.** Core counts open lifecycle passes (`lifecyclePassDepth` in `core.ts`):
+  `updateSettings()`, `_applySettingsAndData()`, every plugin lifecycle call, and a ready-step run. Steps
+  run only when the outermost pass closes (or at its pre-render point). So `updatePlugin()` →
+  `disablePlugin()` + `enablePlugin()` owes one step, not two, and a plugin that enables another one
+  (Filters → DropdownMenu) runs both steps after its own call returns.
+- **Direct calls count (Option B).** `hot.getPlugin('x').enablePlugin()` and a plugin calling
+  `this.updatePlugin()` from a hook run the step as soon as the outermost call returns. The base constructor
+  replaces the three lifecycle methods **on the instance** with wrappers (`#routeLifecycleCalls()`) that call
+  `this.constructor.prototype.<method>` at call time, so overrides, `super` calls and prototype spies are
+  unaffected. The wrappers are **not enumerable** on purpose: `destroy()` nulls every enumerable own
+  property, and a nulled wrapper would turn Autofill's post-destroy `disablePlugin()` into a
+  "not a function" throw instead of its own `!this.hot` guard. A spy on the instance replaces the wrapper.
+  **A host that is not a Handsontable instance runs the method directly**, with no pass and no step: the
+  FormulaBuilder and ImportFile unit tests (and any customer test of a custom plugin) build the plugin on a
+  hand-made `hot` object, which has no `_runInPluginLifecyclePass()`. Before the fallback, 185 of those
+  tests threw on the first `enablePlugin()`.
+- **Never journaled.** Steps run inside `operationScope.suppress()`, like `updateSettings()` itself.
+- **A pass that throws keeps the steps owed.** A step reads the grid as it is when it runs, so the next pass
+  runs it; dropping it would leave an enabled plugin without its data work. A step that keeps re-enabling
+  plugins is cut off after one round per plugin, with a warning.
+
+**Not `onDataReady()`.** That hook stays the sheet-switch protocol below, called for every enabled plugin on
+every `_applySettingsAndData()`. The ready step got its own name because ColumnSummary's `onDataReady()`
+refreshes every endpoint when nothing was deferred (`refreshAllEndpoints()`, which writes through
+`setDataAtCell`). Called at the new points it would write the summaries twice per `updateSettings()` and fire
+an extra `afterChange`. Load hooks are not covered either: an `afterLoadData` listener still fires during
+the init pass with no view, so a plugin that needs the view there skips `initialLoad` and leaves the work to
+the step. No built-in plugin implements `onGridReady()` yet; the migration list is the #6806 section below.
+
+Pinned by `__tests__/readyStep.unit.js`.
 
 ## Deferred data work: `isDataWorkDeferred()` and `onDataReady()`
 
@@ -326,16 +376,22 @@ distinction.
 
 ## #6806: the initialization-order workarounds
 
-Because `enablePlugin()` fires on `afterPluginsInitialized`, a plugin that needs rendering state has to
-guard on `!this.hot.view` and sometimes force an `updatePlugin()` call from inside `enablePlugin()`.
-**Only CollapsibleColumns' three sites are actually marked `#6806`** (`collapsibleColumns.ts`); grep for
-that number and NestedHeaders looks clean. It is not — it carries an unnumbered
-`// @TODO: Workaround for broken plugin initialization abstraction.` (`nestedHeaders.ts:1593`) plus its
-`this.hot.view` guards. `../../../.ai/CONCERNS.md` counts 4 sites there; do not trust a grep alone.
+Because `enablePlugin()` fires during `beforeInit`, before the data and the view exist, a plugin that
+needs rendering state has to guard on `!this.hot.view` and sometimes force an `updatePlugin()` call from
+inside `enablePlugin()` or an `init`/`afterInit` listener. **Only CollapsibleColumns' three sites are
+actually marked `#6806`** (`collapsibleColumns.ts`); grep for that number and NestedHeaders looks clean. It
+is not — it carries an unnumbered `// @TODO: Workaround for broken plugin initialization abstraction.`
+(`nestedHeaders.ts`) plus its `this.hot.view` guards. About 15 plugins park work on `init`/`afterInit` for
+the same reason. `../../../.ai/CONCERNS.md` has the list; do not trust a grep alone.
 
-Do not copy the workaround into a new plugin without checking whether you actually need `view` during
-enable. The real fix — guaranteeing `hot.view` before `enablePlugin()` — is tracked in
-`../../../.ai/CONCERNS.md`.
+**The fix is the ready step** (above): move the guarded work into `onGridReady()` and drop the guard and the
+`init`/`afterInit` replay. Do not move `enablePlugin()` itself later: plugins add their hooks there, before
+the init settings pass adds the hooks declared in the settings, so a later enable would run every user
+callback ahead of the plugin's on a shared hook (pinned by the `beforeInit` order test in
+`__tests__/initSequence.unit.js`), and index maps and load hooks must be in place before the first load.
+Never copy the old workaround into a new plugin. Migrate one plugin per change, with a test for the order it
+relies on: priority now orders the ready steps too, which puts AutoColumnSize (10) ahead of Pagination (900),
+the opposite of their `init` listeners today.
 
 ## Undo/redo: `runOperation()` and the snapshot contract
 

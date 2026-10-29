@@ -238,6 +238,12 @@ export class BasePlugin {
    */
   #settingsChangedBeforeInitEnable = false;
   /**
+   * Whether the plugin owes its ready step (`onGridReady()`). Set when an `enablePlugin()` or
+   * `updatePlugin()` call returns with the plugin enabled, cleared by `disablePlugin()` and when the step
+   * runs (see `runOwedReadyStep()`).
+   */
+  #readyStepOwed = false;
+  /**
    * The lifecycle listeners the constructor registers directly on the Handsontable instance. They
    * bypass `addHook()`, so `clearHooks()` never removes them - `destroy()` does. The init sequence
    * itself is run by core (`initializePlugins()`), not by a listener of each plugin.
@@ -262,6 +268,63 @@ export class BasePlugin {
 
     objectEach(this.#lifecycleHooks, (callback: HookCallback, name: string) => {
       this.hot.addHook(name, callback);
+    });
+
+    this.#routeLifecycleCalls();
+  }
+
+  /**
+   * Routes every call of the plugin's `enablePlugin()`, `updatePlugin()` and `disablePlugin()` through
+   * core's lifecycle pass, so the ready step an enable or an update owes runs once the outermost call
+   * returns, whoever made it. Each method is replaced on the instance by a wrapper that calls the method
+   * the plugin's class resolves at that moment, so an override and a spy on a prototype still run.
+   * The wrappers are not enumerable, so `destroy()`, which nulls the enumerable own properties, keeps
+   * them, and a call on a destroyed plugin still reaches the method's own guard.
+   */
+  #routeLifecycleCalls(): void {
+    const toProperty = (value: Function): PropertyDescriptor => ({
+      configurable: true,
+      enumerable: false,
+      writable: true,
+      value,
+    });
+
+    // `this.constructor.prototype` is the most derived class's prototype, read on every call.
+    Object.defineProperties(this, {
+      enablePlugin: toProperty(() => this.#runLifecycleCall(true, () => {
+        this.constructor.prototype.enablePlugin.call(this);
+      })),
+      updatePlugin: toProperty((...args: Parameters<BasePlugin['updatePlugin']>) => this.#runLifecycleCall(true, () => {
+        this.constructor.prototype.updatePlugin.apply(this, args);
+      })),
+      disablePlugin: toProperty(() => this.#runLifecycleCall(false, () => {
+        this.constructor.prototype.disablePlugin.call(this);
+      })),
+    });
+  }
+
+  /**
+   * Runs one lifecycle call of the plugin as a core lifecycle pass. An enable or an update that leaves
+   * the plugin enabled makes it owe its ready step.
+   *
+   * @param {boolean} owesReadyStep Whether the call is an enable or an update.
+   * @param {Function} call The lifecycle call.
+   */
+  #runLifecycleCall(owesReadyStep: boolean, call: () => void): void {
+    // A destroyed plugin has no grid to run a pass on, and a host that is not a Handsontable instance
+    // (a test double built around the plugin) runs no passes. The method then runs as it always did.
+    if (!this.hot || typeof this.hot._runInPluginLifecyclePass !== 'function') {
+      call();
+
+      return;
+    }
+
+    this.hot._runInPluginLifecyclePass(() => {
+      call();
+
+      if (owesReadyStep && this.enabled) {
+        this.#readyStepOwed = true;
+      }
     });
   }
 
@@ -341,6 +404,7 @@ export class BasePlugin {
    */
   disablePlugin(): void {
     this.#deferredDataWork = false;
+    this.#readyStepOwed = false;
     this.eventManager?.clear();
     this.clearHooks();
     this.enabled = false;
@@ -613,6 +677,38 @@ export class BasePlugin {
   onDataReady?(): void;
 
   /**
+   * Optional ready step: the part of enabling or updating the plugin that reads the loaded rows, the
+   * view (`hot.view`), the DOM or the editor manager. Core calls it once after every `enablePlugin()` or
+   * `updatePlugin()` call that leaves the plugin enabled, as soon as all of these exist, and before the
+   * next render: at init after the view is built (before the `init` hook), at the end of
+   * `updateSettings()`, and once a direct call returns. Calls nested in one pass get one step, in
+   * plugin priority order, after every plugin of the pass is enabled. `enablePlugin()` and
+   * `updatePlugin()` then only configure the plugin (hooks, index maps, settings, own state), so none of
+   * them needs to check whether `hot.view` exists. Nothing the step does is journaled by UndoRedo.
+   *
+   * @private
+   */
+  onGridReady?(): void;
+
+  /**
+   * Runs the plugin's ready step (`onGridReady()`) if the plugin owes one, and clears the debt. Only an
+   * enabled plugin owes it: `disablePlugin()` clears it. Core calls it, in plugin priority order.
+   *
+   * @private
+   * @returns {boolean} `true` if the plugin owed the step.
+   */
+  runOwedReadyStep(): boolean {
+    if (!this.#readyStepOwed) {
+      return false;
+    }
+
+    this.#readyStepOwed = false;
+    this.onGridReady?.();
+
+    return true;
+  }
+
+  /**
    * Whether the settings this plugin is applying describe data the grid has not loaded yet. Core's
    * `_applySettingsAndData()` applies settings first and loads their data after, the order the grid's
    * own initialization uses, and answers `true` from its settings pass through the load and the
@@ -876,6 +972,7 @@ export class BasePlugin {
     }
 
     this.#pluginSettings = null;
+    this.#readyStepOwed = false;
     this.eventManager?.destroy();
     this.clearHooks();
 

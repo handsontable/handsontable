@@ -29,6 +29,8 @@ This is the core data grid package. **TypeScript** - source files in `src/` are 
 isEnabled()      → return !!this.hot.getSettings()[PLUGIN_KEY]
 enablePlugin()   → init state, create IndexMaps, register hooks. super.enablePlugin() AT END.
 updatePlugin()   → this.disablePlugin(); this.enablePlugin(); super.updatePlugin();
+onGridReady()    → optional: rows, hot.view, DOM, editor work. Core runs it once after every
+                   enable/update, when all of them exist. Never guard on hot.view in enable/update.
 disablePlugin()  → super.disablePlugin() FIRST. Then clean up.
 destroy()        → null out fields. super.destroy() AT END.
 ```
