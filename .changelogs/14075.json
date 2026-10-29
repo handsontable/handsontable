@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the default English label of the \"Filter by value\" clear link from \"Clear\" to \"Select none\".",
+  "type": "changed",
+  "issueOrPR": 14075,
+  "breaking": false,
+  "framework": "none"
+}
