@@ -353,8 +353,13 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   registers no focus scope; the package owns the keys inside it. Pinned by the keyboard spec under
   `tests/e2e/`.
 - **The error colors are mixed for text.** The theme's notification error accent measures 3.4:1 on white,
-  enough for the error triangle but not for 4.5:1 text, so `_formula-builder.scss` mixes 30% of the
-  foreground color into every text-level error token. The reference palette is the package's own: its
+  enough for the error triangle but not for 4.5:1 text, so `_formula-builder.scss` mixes 35% of the
+  foreground color into every text-level error token. Measure against the DARKEST background the text
+  gets, not white: a selected range tints the cell (`td.area::before`), and 30% left main at 4.46:1
+  there. The same holds for `--hfe-token-sheet` (named expressions in the suggestions, sheet names): the
+  package default `#64748b` measured 4.12:1 on classic's active suggestion row, so the plugin sets it to
+  the secondary text color with 20% of the foreground. Both are pinned by "formulaBuilder text
+  contrast" in `tests/e2e/formula-builder-popups.spec.ts`, which composites the `::before` tint. The reference palette is the package's own: its
   defaults clear 4.5:1 on the editor backgrounds and stay apart from each other, so the plugin does not
   restate `--hfe-ref-1` to `--hfe-ref-8` (an application can, on the theme class). Neither does it
   override the error cell's font or `color-scheme`: the package reads `--hfe-font-family`, which the plugin
