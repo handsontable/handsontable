@@ -206,6 +206,36 @@ Three more entry points, all from review round 12:
 - Pinned by `__tests__/indexChangeTiming.unit.js`. The trim plugin does not render after
 its hooks, so the trim path schedules a render; `filter()` renders right after `afterFilter`.
 
+## A border config in the same call as `trimRows` is applied last
+
+`updatePlugin()` runs at priority 90, before `TrimRows#updatePlugin()` (330) rewrites the trimming map, and
+`changeBorderSettings()` -> `setCellMeta()` converts the configured visual rows to physical ones through whichever
+map is active. Applied early, the border was drawn on the right row but its `borders` meta sat on the record the
+old map put there, and the next rebuild from meta (`trimRow`, untrim, a filter, `loadData`) moved it. So when
+the payload carries `trimRows`, `updatePlugin()` records the payload in `#configApplyPayload` and
+`#onLastAfterUpdateSettings` applies the config after every other plugin has updated (DEV-3640).
+
+- **The listener is registered on the instance in the constructor, with `orderIndex: Number.MAX_SAFE_INTEGER`**,
+  never from `enablePlugin()` or `updatePlugin()`. The hook loop stops at the entry that was last when the hook
+  began, so a listener added mid-pass would not run in it, and the disable/enable cycle in `updatePlugin()` does
+  exactly that. It is removed in `destroy()` (guarded by `this.hot`), which `clearHooks()` does not do for it.
+- **It is matched by payload identity, not by a flag.** A listener that throws before the last one aborts the
+  pass; a flag would then fire in an unrelated later call and wipe the `borders` meta set in between. A nested
+  `updateSettings()` made by a listener carries another payload, so it neither consumes nor loses the outer
+  call's work.
+- **Because it is the tail, a listener another plugin registers at `orderIndex` 0 mid-pass now runs in that
+  pass.** Before, the boundary skipped it, except on a grid whose last listener was Formulas' order-1 one. That is
+  the behavior those listeners were written for, but a change to the shared hook list belongs to nobody here: do
+  not register a second listener above this one.
+- **User `afterUpdateSettings` listeners at the default order see the borders from before the call** when
+  `customBorders` and `trimRows` share a payload, and `afterCustomBordersUpdate` fires after them. Only that
+  combination moved; every other call applies in `updatePlugin()` as before.
+- **Not covered:** a progressive replace (its batches already run after the trim, and `#carriedBorders` is gone
+  by then), the data-deferred path (`onDataReady()` runs after the trim), and a mapper that is batched
+  (`hot.batch()`, `suspendOperations()`) when the last listener runs, which has not rebuilt its cache yet. Sorting,
+  `manualRowMove` and `nestedRows` also rewrite an index map after priority 90 and were not examined.
+- Pinned by `__tests__/configWithTrimRows.unit.js`, including a control without `trimRows` in the call.
+
 **The rebuild is deferred and coalesced, never run from the hook.** It walks every user-defined meta
 key, and running it from each `afterTrimRow` made a loop of 100 `trimRow()` calls at 50,000 border
 entries take 6.3 s against about 50 ms before. The hooks only set `#isModelRebuildPending` (and advance

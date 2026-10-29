@@ -38,6 +38,12 @@ import type VisualSelection from '../../selection/highlight/visualSelection';
 export const PLUGIN_KEY = 'customBorders';
 export const PLUGIN_PRIORITY = 90;
 
+/**
+ * The `orderIndex` of the listener that applies a border configuration once every plugin has updated.
+ * Highest possible, so the listener stays the last entry of the `afterUpdateSettings` list.
+ */
+const LAST_ORDER_INDEX = Number.MAX_SAFE_INTEGER;
+
 export type { BorderSettings, BorderObject };
 
 /**
@@ -204,6 +210,14 @@ export class CustomBorders extends BasePlugin {
    * never mutates it, so holding the reference is a free snapshot. `null` outside an update.
    */
   #visibleRowsBeforeUpdate: number[] | null = null;
+  /**
+   * The `updateSettings()` payload whose border configuration `updatePlugin()` left to
+   * `#onLastAfterUpdateSettings`, because the same call carries `trimRows` and `TrimRows#updatePlugin()` applies
+   * it after this plugin's own update. Matched by identity, so a pass that never reached the last listener
+   * (an earlier listener threw) cannot apply a stale configuration in a later call, and a nested
+   * `updateSettings()` does not consume the outer call's work. `null` when nothing is owed.
+   */
+  #configApplyPayload: Record<string, unknown> | null = null;
 
   /**
    * Positions of the saved borders in the `savedBorders` array, keyed by the border id.
@@ -332,6 +346,18 @@ export class CustomBorders extends BasePlugin {
   #columnMoveSnapshot: (number | null)[] | null = null;
 
   /**
+   * @param {object} hotInstance Handsontable instance.
+   */
+  constructor(hotInstance: HotInstance) {
+    super(hotInstance);
+
+    // Registered on the instance, not through `addHook()`: `updatePlugin()` cycles `disablePlugin()` and
+    // `enablePlugin()`, so a listener added from there would land after the entry the running hook
+    // stops at, and a plugin-owned one would be removed with the plugin's other hooks.
+    this.hot.addHook('afterUpdateSettings', this.#onLastAfterUpdateSettings, LAST_ORDER_INDEX);
+  }
+
+  /**
    * Saved borders. Reading them completes a model rebuild a trim or a filter deferred.
    *
    * @private
@@ -410,6 +436,7 @@ export class CustomBorders extends BasePlugin {
   disablePlugin() {
     this.#cancelProgressiveApply();
     this.#visibleRowsBeforeUpdate = null;
+    this.#configApplyPayload = null;
     this.hideBorders();
 
     super.disablePlugin();
@@ -420,8 +447,10 @@ export class CustomBorders extends BasePlugin {
    *
    * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
    *  - [`customBorders`](@/api/options.md#customborders)
+   *
+   * @param {object} [newSettings] The settings passed to `updateSettings()`.
    */
-  updatePlugin() {
+  updatePlugin(newSettings?: Record<string, unknown>) {
     this.#carriedBorders = this.#collectBordersForProgressiveReplace();
 
     try {
@@ -439,6 +468,11 @@ export class CustomBorders extends BasePlugin {
 
       if (this.isDataWorkDeferred()) {
         this.deferDataWork();
+      } else if (this.#carriedBorders === null && !!newSettings && hasOwnProperty(newSettings, 'trimRows')) {
+        // `TrimRows#updatePlugin()` runs after this one and rewrites the trimming map. Applied now,
+        // `setCellMeta()` would map the configured visual rows through the previous map and store each
+        // border on the wrong record.
+        this.#configApplyPayload = newSettings;
       } else {
         this.changeBorderSettings();
       }
@@ -2132,6 +2166,25 @@ The border style will be ignored.`);
   };
 
   /**
+   * `afterUpdateSettings` hook callback, registered with the highest `orderIndex` so it runs after every
+   * plugin's own update. It applies the border configuration that `updatePlugin()` held back because the
+   * same call changes the trimming map, so the configured visual rows resolve against the new map.
+   *
+   * @param {object} settings The settings passed to `updateSettings()`.
+   */
+  #onLastAfterUpdateSettings = (settings: Record<string, unknown>) => {
+    if (this.#configApplyPayload === null || settings !== this.#configApplyPayload) {
+      return;
+    }
+
+    this.#configApplyPayload = null;
+
+    if (this.enabled) {
+      this.changeBorderSettings();
+    }
+  };
+
+  /**
    * `afterUpdateSettings` hook callback. `updateSettings({ trimRows })` writes the trimming map in
    * `TrimRows#updatePlugin` without firing `afterTrimRow`, so the model kept the visual rows the
    * borders were drawn at while their records moved (review round 12). The rebuild is skipped when
@@ -2564,8 +2617,14 @@ The border style will be ignored.`);
   destroy() {
     // Cancel any in-flight progressive load and release the border model / working-set graphs so a
     // destroyed instance does not retain them for the page lifetime.
+    // A plugin destroyed ahead of the grid has no `hot` left to remove the listener from.
+    if (this.hot) {
+      this.hot.removeHook('afterUpdateSettings', this.#onLastAfterUpdateSettings);
+    }
+
     this.#cancelProgressiveApply();
     this.#isModelRebuildPending = false;
+    this.#configApplyPayload = null;
     this.savedBorders = [];
     this.#savedBordersIndex.clear();
     this.#bordersByRow.clear();
