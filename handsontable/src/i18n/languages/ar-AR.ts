@@ -102,7 +102,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: 'أو',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: 'اختيار الكل',
-  [C.FILTERS_BUTTONS_CLEAR]: 'إلغاء',
+  [C.FILTERS_BUTTONS_CLEAR]: 'إلغاء اختيار الكل',
   [C.FILTERS_BUTTONS_OK]: 'موافق',
   [C.FILTERS_BUTTONS_CANCEL]: 'إلغاء',
 

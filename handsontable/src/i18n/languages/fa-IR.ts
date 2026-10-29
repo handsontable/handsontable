@@ -105,7 +105,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: 'یا',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: 'انتخاب همه',
-  [C.FILTERS_BUTTONS_CLEAR]: 'پاک کردن',
+  [C.FILTERS_BUTTONS_CLEAR]: 'لغو انتخاب همه',
   [C.FILTERS_BUTTONS_OK]: 'تایید',
   [C.FILTERS_BUTTONS_CANCEL]: 'لغو',
 
