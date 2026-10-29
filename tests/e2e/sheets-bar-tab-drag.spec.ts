@@ -115,4 +115,49 @@ test.describe('sheets bar tab drag', { tag: [THEMES_TAG, CROSS_BROWSER_TAG] }, (
 
     expect(topmost).toEqual({ order: ['Alpha', 'Beta', 'Gamma'], coversGlyph: true, hitsDraggedTab: true });
   });
+
+  test('Escape abandons a drag from the bar when a host listener on the document stops the key', async ({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+    await bar.clickTab(1);
+    await bar.expectActiveTab(1);
+
+    expect(await page.evaluate(() => (window as unknown as { hot: any }).hot
+      .getShortcutManager().getActiveContextName())).toBe('plugin:sheetsBar');
+
+    await page.evaluate(() => {
+      const state = window as unknown as { hostEscapes: number };
+
+      state.hostEscapes = 0;
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          state.hostEscapes += 1;
+          event.stopImmediatePropagation();
+        }
+      });
+    });
+
+    const second = (await bar.tab(1).boundingBox())!;
+    const third = (await bar.tab(2).boundingBox())!;
+    const y = second.y + (second.height / 2);
+
+    await page.mouse.move(second.x + (second.width / 2), y);
+    await page.mouse.down();
+    await page.mouse.move(second.x + (second.width / 2) + 10, y);
+    await page.mouse.move(third.x + (third.width / 2) + 5, y);
+
+    await expect(page.locator('.ht-sheets-bar')).toHaveClass(/ht-sheets-bar-dragging/);
+
+    await page.keyboard.press('Escape');
+
+    expect(await page.evaluate(() => (window as unknown as { hostEscapes: number }).hostEscapes)).toBe(1);
+    await expect(page.locator('.ht-sheets-bar')).not.toHaveClass(/ht-sheets-bar-dragging/);
+
+    await page.mouse.up();
+
+    expect(await tabNames(page)).toEqual(['Alpha', 'Beta', 'Gamma']);
+  });
 });
