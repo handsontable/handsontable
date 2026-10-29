@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-29T07:56:15.023Z",
+  "generatedAt": "2026-10-29T08:17:26.343Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -492,43 +492,6 @@
       "needsTicket": true
     },
     {
-      "key": "playwright|e2e/iframe-cross-realm-scroll.spec.ts|cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "tier": "playwright",
-      "file": "e2e/iframe-cross-realm-scroll.spec.ts",
-      "line": 100,
-      "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "count7": 0,
-      "count30": 8,
-      "countAll": 14,
-      "runs30": 5,
-      "flakyRuns30": 5,
-      "branches30": 5,
-      "nightlyRuns30": 0,
-      "openBranches30": 5,
-      "legs": [
-        "e2e-classic",
-        "e2e-classic-min",
-        "e2e-horizon",
-        "e2e-horizon-min",
-        "e2e-main-min"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-09T10:09:36Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37910350952/attempts/2",
-        "branch": "feature/DEV-3345_Test-arrow-key-burst-beside-end-columns",
-        "leg": "e2e-classic",
-        "status": "flaky",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
       "key": "playwright|e2e/unlaid-out-init-scroll-sync.spec.ts|grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
       "tier": "playwright",
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
@@ -560,6 +523,43 @@
         "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37613189147",
         "branch": "feature/DEV-2700_Fit-frozen-area-to-viewport",
         "leg": "e2e-main-min",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/iframe-cross-realm-scroll.spec.ts|cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
+      "tier": "playwright",
+      "file": "e2e/iframe-cross-realm-scroll.spec.ts",
+      "line": 100,
+      "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
+      "count7": 0,
+      "count30": 7,
+      "countAll": 14,
+      "runs30": 4,
+      "flakyRuns30": 4,
+      "branches30": 4,
+      "nightlyRuns30": 0,
+      "openBranches30": 4,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-09T10:09:36Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37910350952/attempts/2",
+        "branch": "feature/DEV-3345_Test-arrow-key-burst-beside-end-columns",
+        "leg": "e2e-classic",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
@@ -3341,43 +3341,6 @@
       "needsTicket": false
     },
     {
-      "key": "jasmine|handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js|AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
-      "tier": "jasmine",
-      "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
-      "line": null,
-      "title": "AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
-      "count7": 0,
-      "count30": 2,
-      "countAll": 10,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "UMD.min (theme: classic)",
-        "UMD.min (theme: horizon)",
-        "UMD.min (theme: main)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "passes alone"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-09-29T08:12:47Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36537338815/attempts/2",
-        "branch": "feature/DEV-3056_Filters-available-conditions",
-        "leg": "UMD.min (theme: classic)",
-        "status": "failed",
-        "error": "Expected '' to equal 'cyan'.",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
       "key": "playwright|e2e/web-font-load.spec.ts|Web font loaded after the first draw › keeps a re-measure owed by a hidden grid through a calculateAllColumnsWidth() call",
       "tier": "playwright",
       "file": "e2e/web-font-load.spec.ts",
@@ -4938,6 +4901,43 @@
         "leg": "cross-browser/webkit",
         "status": "failed",
         "error": "differs from base/develop (full tier); render sha256 4fc6d0de5bac",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js|AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
+      "tier": "jasmine",
+      "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
+      "line": null,
+      "title": "AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
+      "count7": 0,
+      "count30": 0,
+      "countAll": 10,
+      "runs30": 0,
+      "flakyRuns30": 0,
+      "branches30": 0,
+      "nightlyRuns30": 0,
+      "openBranches30": 0,
+      "legs": [
+        "UMD.min (theme: classic)",
+        "UMD.min (theme: horizon)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-29T08:12:47Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36537338815/attempts/2",
+        "branch": "feature/DEV-3056_Filters-available-conditions",
+        "leg": "UMD.min (theme: classic)",
+        "status": "failed",
+        "error": "Expected '' to equal 'cyan'.",
         "source": "ci"
       },
       "needsTicket": false
