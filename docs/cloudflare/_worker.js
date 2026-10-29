@@ -27,6 +27,8 @@
  *  10. Flat /docs/react-*                  → /docs/react-data-grid/*
  *  11. Tutorial flat redirects             → /docs/javascript-data-grid/*
  *  12. Framework shorthand redirects       → framework homes
+ * 12b. /docs/:ver older than 9.0 (any form) → current framework page or home (cookie, 302)
+ *      /docs/:major.:minor.:patch from 9.0 → /docs/:major.:minor (301)
  *  13. /docs/:ver/:page.html               → versioned framework pages (cookie, 302)
  *  14. /docs/:ver{/}                       → version root or framework home (cookie, 302)
  *  15. /docs/(page).html                   → flat framework page (cookie, 302)
@@ -123,6 +125,11 @@ function abs(path, base) {
 // unreplaced (for example, on staging previews that have no versioned docs),
 // the `\d+\.\d+` guard in rule 1b makes the latest-version redirect a no-op.
 const LATEST_VERSION = '__LATEST_DOCS_VERSION__';
+
+// The oldest major whose docs are deployed. Keep in step with MIN_DOCS_VERSION
+// in deploy/getListOrPreviousVersions.mjs. Rule 12b sends older versions to
+// the current docs.
+const OLDEST_DEPLOYED_DOCS_MAJOR = 9;
 
 // ---------------------------------------------------------------------------
 // Data: versioned HTML redirect map (used by /docs/{ver}/{page}.html)
@@ -458,6 +465,37 @@ const FLAT_HTML_MAP = {
   'column-sorting': '/rows-sorting/',
 };
 
+/**
+ * Resolves a legacy flat `{page}.html` slug to its current framework page.
+ *
+ * @param {string} page The slug, without `.html`.
+ * @param {string} framework The framework read from the `docs_fw` cookie.
+ * @returns {string|null} The destination path, or `null` for an unknown slug.
+ */
+function flatHtmlDestination(page, framework) {
+  if (!Object.prototype.hasOwnProperty.call(FLAT_HTML_MAP, page)) {
+    return null;
+  }
+
+  const redirectPath = FLAT_HTML_MAP[page];
+
+  // Framework override based on page prefix.
+  if (page.startsWith('frameworks-wrapper-for-react')) {
+    framework = 'react-data-grid';
+  } else if (page.startsWith('frameworks-wrapper-for-vue') || page.startsWith('frameworks-wrapper-for-angular')) {
+    framework = 'javascript-data-grid';
+  }
+
+  // redirectPath may be an absolute path (starts with /) or a relative slug.
+  // An empty redirectPath (e.g. FLAT_HTML_MAP['tutorial-introduction'] === '')
+  // must not produce a double-slash like `/docs/javascript-data-grid//`.
+  if (redirectPath.startsWith('/')) {
+    return `/docs/${framework}${redirectPath}`;
+  }
+
+  return redirectPath ? `/docs/${framework}/${redirectPath}/` : `/docs/${framework}/`;
+}
+
 // ---------------------------------------------------------------------------
 // Data: flat /docs/{page}[/] redirect map (from redirect_cookie_docs_pages.mts)
 // ---------------------------------------------------------------------------
@@ -470,7 +508,7 @@ const FLAT_PAGES_REMAP = {
   examples: '/',
   'hello-world': '/demo/',
   'setting-options': '/configuration-options/',
-  'i18n/missing-language-code': '/language/#loading-the-prepared-language-files',
+  'i18n/missing-language-code': '/language/#load-the-prepared-language-files',
   'angular-simple-example': '/angular-basic-example/',
   'angular-setting-up-a-language': '/angular-setting-up-a-translation/',
   'vue-simple-example': '/vue-basic-example/',
@@ -648,6 +686,16 @@ const SITEMAP_PASSTHROUGH_SLUGS = new Set([
   'migration-from-12.4-to-13.0',
   'migration-from-7.4-to-8.0',
 ]);
+
+/**
+ * Tells whether rule 16 knows a flat `/docs/{page}` slug.
+ *
+ * @param {string} page The slug, without the `/docs/` prefix.
+ * @returns {boolean}
+ */
+function isFlatPageKey(page) {
+  return Object.prototype.hasOwnProperty.call(FLAT_PAGES_REMAP, page) || SITEMAP_PASSTHROUGH_SLUGS.has(page);
+}
 
 // ---------------------------------------------------------------------------
 // Legacy angular-docs version sets
@@ -1095,6 +1143,30 @@ async function route(request, env) {
       }
     }
 
+    // -- 12b. /docs/{ver}[.patch][-tag]/... → a version that is not deployed --
+    // Only versions from OLDEST_DEPLOYED_DOCS_MAJOR up are deployed, and only
+    // as MAJOR.MINOR. An older version goes to the current docs (cookie, 302):
+    // a known flat slug to its page, anything else to the framework home. A
+    // deployed version written with a patch or a tag goes to its MAJOR.MINOR
+    // docs (301), where rules 13 and 14 take over.
+    {
+      const m = path.match(/^\/docs\/(\d+)\.(\d+)(\.\d+)?(-[0-9A-Za-z.]+)?(?:\/(.*))?$/);
+
+      if (m && parseInt(m[1], 10) < OLDEST_DEPLOYED_DOCS_MAJOR) {
+        const framework = getFrameworkFromCookie(getCookie(request, 'docs_fw'));
+        const page = (m[5] ?? '').match(/^([^/]+)\.html$/)?.[1];
+        const dest = (page && flatHtmlDestination(page, framework)) || `/docs/${framework}/`;
+
+        return redirect302(abs(dest, url));
+      }
+
+      if (m && (m[3] || m[4])) {
+        const rest = m[5] === undefined ? '' : `/${m[5]}`;
+
+        return redirect301(abs(`/docs/${m[1]}.${m[2]}${rest}${url.search}`, url));
+      }
+    }
+
     // -- 13. /docs/{ver}/{page}.html → versioned framework page (cookie) -----
     {
       const m = path.match(/^\/docs\/(\d+)\.(\d+)\/([^/]+)\.html$/);
@@ -1173,29 +1245,9 @@ async function route(request, env) {
       const m = path.match(/^\/docs\/([^/]+)\.html$/);
 
       if (m) {
-        const page = m[1];
+        const dest = flatHtmlDestination(m[1], getFrameworkFromCookie(getCookie(request, 'docs_fw')));
 
-        if (Object.prototype.hasOwnProperty.call(FLAT_HTML_MAP, page)) {
-          const cookieValue = getCookie(request, 'docs_fw');
-          let framework = getFrameworkFromCookie(cookieValue);
-          let redirectPath = FLAT_HTML_MAP[page];
-
-          // Framework override based on page prefix.
-          if (page.startsWith('frameworks-wrapper-for-react')) {
-            framework = 'react-data-grid';
-          } else if (page.startsWith('frameworks-wrapper-for-vue') || page.startsWith('frameworks-wrapper-for-angular')) {
-            framework = 'javascript-data-grid';
-          }
-
-          // redirectPath may be an absolute path (starts with /) or a relative slug.
-          // An empty redirectPath (e.g. FLAT_HTML_MAP['tutorial-introduction'] === '')
-          // must not produce a double-slash like `/docs/javascript-data-grid//`.
-          const dest = redirectPath.startsWith('/')
-            ? `/docs/${framework}${redirectPath}`
-            : redirectPath
-              ? `/docs/${framework}/${redirectPath}/`
-              : `/docs/${framework}/`;
-
+        if (dest !== null) {
           return redirect302(abs(dest, url));
         }
       }
@@ -1209,7 +1261,9 @@ async function route(request, env) {
       const m = stripped.match(/^\/docs\/(.+)$/);
 
       if (m) {
-        const page = m[1];
+        // A link at the end of a sentence can carry its punctuation in.
+        const trimmed = m[1].replace(/[.,;:!'")\]]+$/, '');
+        const page = isFlatPageKey(m[1]) || !isFlatPageKey(trimmed) ? m[1] : trimmed;
 
         // Check special remaps first.
         if (Object.prototype.hasOwnProperty.call(FLAT_PAGES_REMAP, page)) {
