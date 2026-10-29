@@ -336,6 +336,21 @@ describe('installImportedStyles / removeImportedStyles', () => {
     expect(warnSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('should return the rules it installed without the rejected ones, so installing them again warns about nothing', () => {
+    const hot = fakeHot();
+    const installed = installImportedStyles(hot, {
+      'htImported-a': 'font-weight:bold',
+      'htImported-b': 'background-image:url("https://attacker.example/x")',
+    });
+
+    expect(installed).toEqual({ 'htImported-a': 'font-weight:bold' });
+
+    warnSpy.mockClear();
+
+    expect(installImportedStyles(hot, installed)).toEqual(installed);
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
 });
 
 describe('applyImportResult – layout across imports', () => {

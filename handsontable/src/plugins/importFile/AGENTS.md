@@ -334,7 +334,17 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `result.customBorders`. `applier.ts#installImportedStyles` installs `result.styles` as one
   `<style data-hot-imported-styles="<hot.guid>">` element in `hot.rootWrapperElement` (see the bullet above) — one per instance,
   `textContent` replaced (never appended) on every import — and `ImportFile#destroy()` removes it via
-  `removeImportedStyles(this.hot)` before `super.destroy()`. `toSettings` passes `result.customBorders`
+  `removeImportedStyles(this.hot)` before `super.destroy()`. `installImportedStyles` returns the rules it
+  installed (the rejected ones left out), and the plugin keeps them (`#installedStyles`) for the sheets bar, which
+  stores them per sheet through the `@private` `_exportImportedStyles()` and puts a sheet's rules back with
+  `_restoreImportedStyles()` (an empty map removes the element). Installing the returned rules again warns about
+  nothing, so a sheet switch never repeats the rejection warning. `#installedStyles` is written from
+  `applyImportResult()`'s `onStylesInstalled` callback, the moment the element is written: a listener that throws
+  later in the apply (a cell meta or settings hook) used to leave the element holding the new rules while the
+  tracked copy kept the old ones, and the next sheet switch dropped the styles. `disablePlugin()` empties
+  `#installedStyles` with the element. The applier's `updateSettings()` calls go through the plugin's
+  `#applyImportSettings` (the `updateSettings` option), which marks the payload object for `_isImportSettings()`:
+  the sheets bar records only the import's own payloads as the visible sheet's settings, never a listener's. `toSettings` passes `result.customBorders`
   straight through `updateSettings`. The exact selector `.handsontable tbody > tr > td.<class>` is
   load-bearing, and load-bearing in two directions at once. It has to keep matching the export's own
   class probe (`div.handsontable > table > tbody > tr > td.<class>`, no class on the `<table>` -
