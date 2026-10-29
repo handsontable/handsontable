@@ -369,12 +369,14 @@ export function mergeEvidence({ check, parts, failures = [], run = {}, problems 
     criteria: [...(part.criteria ?? criteria)].sort(compareCriteria),
     durationMs: Math.round(part.durationMs),
     findings: part.findings.length,
+    problems: (part.problems ?? []).length,
     flaky: flaky.has(targetKey(part.target)),
     detail: part.detail === undefined ? null : `${check}/${targetFileName(part.target)}`,
   }));
 
   // A test can measure its target and still hit a tooling problem on one of its steps (a probe whose
-  // setup never came); it reports the step as a problem and keeps its findings.
+  // setup never came); it reports the step as a problem and keeps its findings, and the target counts
+  // as evaluating no criterion (`summarize()`), because the steps that did not run left no finding.
   for (const part of valid) {
     for (const problem of part.problems ?? []) {
       all.push(`${describeTarget(part.target)}: ${problem}`);
@@ -460,8 +462,9 @@ export function mergeEvidence({ check, parts, failures = [], run = {}, problems 
 
 /**
  * The counts of a document: targets measured and errored, findings by severity, by kind and by
- * criterion. A criterion's `evaluated` is the number of measured targets that evaluated it: what the
- * conformance report cites as evidence that the criterion was checked, findings or none.
+ * criterion. A criterion's `evaluated` is the number of measured targets that evaluated it with every
+ * step taken (no tooling problem): what the conformance report cites as evidence that the criterion was
+ * checked, findings or none. A target with a problem still counts as measured, and its findings count.
  *
  * @param {{criteria: string[], targets: object[], findings: object[]}} input The document's lists.
  * @returns {object} The summary.
@@ -477,7 +480,7 @@ function summarize({ criteria, targets, findings }) {
     byCriterion[id] = {
       name: WCAG_CRITERIA[id]?.name ?? null,
       level: WCAG_CRITERIA[id]?.level ?? null,
-      evaluated: measured.filter(target => target.criteria.includes(id)).length,
+      evaluated: measured.filter(target => target.criteria.includes(id) && !target.problems).length,
       findings: own.length,
       pages: [...new Set(own.map(finding => finding.page))].sort(),
     };

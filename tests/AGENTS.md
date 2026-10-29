@@ -1336,8 +1336,10 @@ criterion.
   measured in full (every focus stop, every ratio) goes to `<check>/<page>--<theme>[--<variant>].json`
   beside the document, so the document stays small enough to read. `summary.byCriterion` counts, per
   criterion, the targets that evaluated it and the findings against it: a criterion evaluated on many
-  targets with no finding is the evidence of a pass, and that count is what the generator cites.
-  `schema` (`EVIDENCE_SCHEMA`) changes when a field is removed or renamed; `validateEvidence()` is what
+  targets with no finding is the evidence of a pass, and that count is what the generator cites. A
+  target whose test could not take a step (the part's `problems`, counted as the target's `problems`)
+  stays measured and keeps its findings, but evaluates no criterion: a step that did not run found
+  nothing, which is not a pass. `schema` (`EVIDENCE_SCHEMA`) changes when a field is removed or renamed; `validateEvidence()` is what
   a reader can rely on, and it checks every field the summary and the check run read, so a document
   that validates never crashes the report script before it posts.
 - **Criteria are WCAG 2.2 ids from one table.** `WCAG_CRITERIA` lists every 2.2 success criterion with
