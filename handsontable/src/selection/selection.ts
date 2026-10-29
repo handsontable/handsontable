@@ -29,6 +29,13 @@ import {
 import { toSingleLine } from './../helpers/templateLiteralTag';
 import { throwWithCause } from '../helpers/errors';
 import { A11Y_SELECTED } from '../helpers/a11y';
+import {
+  expandRangeToBlocks,
+  findNonIntersectingIndex,
+  isRangeOneBlock,
+  type CellBlock,
+  type CellBlockProvider,
+} from './cellBlocks';
 
 /**
  * Checks if the value is a focus-position object with integer `row` and `col` fields.
@@ -369,6 +376,17 @@ class Selection {
   #pendingColumnShifts: Array<{ sequence: number, index: number, amount: number }> = [];
 
   /**
+   * Supplies the blocks (merged cells) a cell range must cover whole, or `null` when nothing groups cells.
+   */
+  #cellBlockProvider: CellBlockProvider | null = null;
+  /**
+   * The cell the highlight was on before it snapped to a block's top-left. An arrow key moves from
+   * that cell, so a vertical move out of a block keeps the column it was entered on. Set where the
+   * highlight settles, used once by the next arrow-key move, and cleared by a new selection.
+   */
+  #blockEntryFocus: CellCoords | null = null;
+
+  /**
    * Initializes the Selection manager with grid settings and table API references, and sets up transformation modules and highlight layers.
    */
   constructor(settings: SelectionSettings, tableProps: SelectionTableProps) {
@@ -417,12 +435,18 @@ class Selection {
       autoWrapCol: () => true,
     });
 
-    this.#extenderTransformation.addLocalHook('beforeTransformStart',
-      (...args: unknown[]) => this.runLocalHooks('beforeModifyTransformStart', ...args));
+    this.#extenderTransformation.addLocalHook('beforeTransformStart', (delta: CellCoords) => {
+      // Before the public hook, so a listener sees the step that already skips the block.
+      this.#stepOverCellBlock(delta);
+      this.runLocalHooks('beforeModifyTransformStart', delta);
+    });
     this.#extenderTransformation.addLocalHook('afterTransformStart',
       (...args: unknown[]) => this.runLocalHooks('afterModifyTransformStart', ...args));
-    this.#extenderTransformation.addLocalHook('beforeTransformEnd',
-      (...args: unknown[]) => this.runLocalHooks('beforeModifyTransformEnd', ...args));
+    this.#extenderTransformation.addLocalHook('beforeTransformEnd', (delta: CellCoords) => {
+      // Before the public hook, so a listener sees the step that already skips the blocks.
+      this.#stepEndOverCellBlocks(delta);
+      this.runLocalHooks('beforeModifyTransformEnd', delta);
+    });
     this.#extenderTransformation.addLocalHook('afterTransformEnd',
       (...args: unknown[]) => this.runLocalHooks('afterModifyTransformEnd', ...args));
     this.#extenderTransformation.addLocalHook('insertRowRequire',
@@ -598,6 +622,7 @@ class Selection {
     this.#discardHeldShifts();
     this.#disableHeadersHighlight = false;
     this.#isFocusSelectionChanged = false;
+    this.#blockEntryFocus = null;
     this.runLocalHooks(`beforeSetRangeStart${fragment ? 'Only' : ''}`, coordsClone);
 
     if (!isMultipleMode || (isMultipleMode && !isMultipleSelection && isUndefined(multipleSelection))) {
@@ -727,6 +752,7 @@ class Selection {
       }
     }
 
+    this.#applyCellBlocks(cellRange);
     this.runLocalHooks('beforeHighlightSet');
     this.setRangeFocus(this.getActiveSelectedRange()?.highlight ?? cellRange.highlight, layerIndex);
     this.applyAndCommit(this.getActiveSelectedRange() ?? cellRange, layerIndex);
@@ -1011,6 +1037,7 @@ class Selection {
     cellRange.setHighlight(coords);
 
     if (!this.inProgress) {
+      this.#applyCellBlocks(cellRange);
       this.runLocalHooks('beforeHighlightSet');
     }
 
@@ -1603,11 +1630,291 @@ class Selection {
       return false;
     }
 
-    const isMultipleListener = createObjectPropListener(!cellRange.isSingle());
+    const isMultipleListener = createObjectPropListener(!cellRange.isSingle() && !this.#isOneCellBlock(cellRange));
 
     this.runLocalHooks('afterIsMultipleSelection', isMultipleListener);
 
     return isMultipleListener.value;
+  }
+
+  /**
+   * Registers the source of the blocks (merged cells) a cell range must cover whole. Pass `null` to
+   * stop growing ranges.
+   *
+   * @param {CellBlockProvider|null} provider The block source.
+   */
+  setCellBlockProvider(provider: CellBlockProvider | null) {
+    this.#cellBlockProvider = provider;
+  }
+
+  /**
+   * Tells whether the range is exactly one block, so the user sees it as one cell. Only the block
+   * covering the range's top-start cell can match, so it costs one lookup. Header coordinates count
+   * as `0`, so a full column whose only cells are one block counts as that block.
+   *
+   * @param {CellRange} cellRange The range to test.
+   * @returns {boolean}
+   */
+  #isOneCellBlock(cellRange: CellRange): boolean {
+    if (this.#cellBlockProvider === null) {
+      return false;
+    }
+
+    const { row, col } = cellRange.getTopStartCorner();
+    const block = row === null || col === null ? null : this.#cellBlockProvider.getBlockAt(row, col);
+
+    return block !== null && isRangeOneBlock(cellRange, [block]);
+  }
+
+  /**
+   * Lays a cell range out over the blocks before its highlight is set: the range grows until it cuts
+   * no block, and the highlight moves onto the top-left of the block it sits in. The cell the
+   * highlight was on is remembered for the next arrow-key move. A range made from a header is left
+   * as it is, and its highlight is remembered as it is.
+   *
+   * @param {CellRange} cellRange The range being changed, in place.
+   */
+  #applyCellBlocks(cellRange: CellRange) {
+    if (this.#cellBlockProvider === null) {
+      return;
+    }
+
+    const { highlight } = cellRange;
+
+    if (this.#isActiveLayerSelectedByHeader()) {
+      this.#blockEntryFocus = highlight.clone();
+
+      return;
+    }
+
+    expandRangeToBlocks(cellRange, this.#cellBlockProvider.getBlocks(), false);
+
+    if (highlight.row === null || highlight.col === null) {
+      return;
+    }
+
+    const block = this.#cellBlockProvider.getBlockAt(highlight.row, highlight.col);
+
+    this.#blockEntryFocus = highlight.clone();
+
+    if (block !== null) {
+      // The top-left can be hidden. `VisualSelection#syncWith()` then moves the visual highlight on.
+      highlight.assign({ row: block.row, col: block.col });
+    }
+  }
+
+  /**
+   * Tells whether the layer the selection is changing was made from a column or a row header. Enter
+   * or Tab can make that an earlier layer than the last one.
+   *
+   * @returns {boolean}
+   */
+  #isActiveLayerSelectedByHeader() {
+    const layerIndex = this.getActiveSelectionLayerIndex();
+
+    return this.isSelectedByColumnHeader(layerIndex) || this.isSelectedByRowHeader(layerIndex);
+  }
+
+  /**
+   * Changes an arrow-key step that starts in a block so it leaves the whole block (DEV-161). First
+   * the highlight goes back to the cell the block was entered on, so a vertical move keeps the entry
+   * column. A horizontal move onto the cell beside the block lands on the block's topmost visible
+   * row, so a block is addressed by its top-left however it was entered (DEV-102). Tab keeps its row.
+   *
+   * @param {CellCoords} delta The step, changed in place.
+   */
+  #stepOverCellBlock(delta: CellCoords) {
+    const provider = this.#cellBlockProvider;
+    const range = this.getActiveSelectedRange();
+
+    if (provider === null || !range) {
+      return;
+    }
+
+    const { highlight } = range;
+
+    this.#restoreBlockEntryFocus(highlight);
+
+    if (highlight.row === null || highlight.col === null) {
+      return;
+    }
+
+    const block = provider.getBlockAt(highlight.row, highlight.col);
+
+    if (block === null) {
+      return;
+    }
+
+    const landsOnAdjacentColumn = this.#stepAxisOverBlock('col', delta, highlight, block);
+
+    if (delta.row === 0 && landsOnAdjacentColumn && !this.isDuringTabNavigation()) {
+      // Assigning a hidden row throws "Renderable coords are not visible" from the transform.
+      const topVisibleRow = this.tableProps.rowIndexMapper.getNearestNotHiddenIndex(block.row, 1);
+
+      if (topVisibleRow !== null && topVisibleRow <= block.row + block.rowspan - 1) {
+        highlight.row = topVisibleRow;
+      }
+    }
+
+    this.#stepAxisOverBlock('row', delta, highlight, block);
+  }
+
+  /**
+   * Changes a Shift+Arrow step so the range's end leaves every block it would stop inside. The step
+   * starts from the edge line that cuts no block, and a scratch copy of the range is grown over the
+   * blocks the moved end touches, so the end lands past them. A range made from a header keeps its
+   * own extent: it crosses every block in its columns or rows.
+   *
+   * @param {CellCoords} delta The step, changed in place.
+   */
+  #stepEndOverCellBlocks(delta: CellCoords) {
+    const provider = this.#cellBlockProvider;
+    const range = this.getActiveSelectedRange();
+
+    if (provider === null || !range || this.#isActiveLayerSelectedByHeader()) {
+      return;
+    }
+
+    const blocks = provider.getBlocks();
+    // One copy for both axes: the row step reads what the column step grew.
+    const scratchRange = range.clone();
+
+    this.#stepEndAxisOverBlocks('col', delta, range, scratchRange, blocks);
+    this.#stepEndAxisOverBlocks('row', delta, range, scratchRange, blocks);
+  }
+
+  /**
+   * Changes the Shift+Arrow step on one axis. See `#stepEndOverCellBlocks()`.
+   *
+   * @param {'row'|'col'} axis The axis to change.
+   * @param {CellCoords} delta The step, changed in place.
+   * @param {CellRange} range The range being extended.
+   * @param {CellRange} scratchRange A copy of the range, grown in place.
+   * @param {CellBlock[]} blocks The blocks on screen.
+   */
+  #stepEndAxisOverBlocks(
+    axis: 'row' | 'col',
+    delta: CellCoords,
+    range: CellRange,
+    scratchRange: CellRange,
+    blocks: readonly CellBlock[],
+  ) {
+    const step = delta[axis] ?? 0;
+
+    if (step === 0) {
+      return;
+    }
+
+    const isRow = axis === 'row';
+    const scanDirection = step < 0 ? -1 : 1;
+    const toRow = range.to.row ?? 0;
+    const toCol = range.to.col ?? 0;
+    const toIndex = isRow ? toRow : toCol;
+    let next = findNonIntersectingIndex(blocks, range, axis, scanDirection, toIndex) + step;
+
+    scratchRange.expand(this.tableProps.createCellCoords(isRow ? next : toRow, isRow ? toCol : next));
+    expandRangeToBlocks(scratchRange, blocks, true);
+
+    const direction = isRow ? range.getVerticalDirection() : range.getHorizontalDirection();
+    const scratchDirection = isRow ? scratchRange.getVerticalDirection() : scratchRange.getHorizontalDirection();
+    const towardStart = isRow ? 'S-N' : 'E-W';
+    const towardEnd = isRow ? 'N-S' : 'W-E';
+
+    if (scanDirection < 0 && direction === towardStart && scratchDirection === towardStart) {
+      next = scratchRange.getTopStartCorner()[axis] ?? next;
+
+    } else if (scanDirection > 0 && direction === towardEnd && scratchDirection === towardEnd) {
+      next = scratchRange.getBottomEndCorner()[axis] ?? next;
+    }
+
+    const mapper = isRow ? this.tableProps.rowIndexMapper : this.tableProps.columnIndexMapper;
+    // Search back toward the range, so the end lands on a visible line it actually reaches.
+    const nearest = mapper.getNearestNotHiddenIndex(next, scanDirection < 0 ? 1 : -1);
+
+    if (nearest === null) {
+      return;
+    }
+
+    const countInRange = (from: number, to: number) => (isRow ?
+      this.tableProps.countRenderableRowsInRange(from, to) :
+      this.tableProps.countRenderableColumnsInRange(from, to));
+
+    delta[axis] = scanDirection < 0 ?
+      -Math.max(countInRange(nearest, toIndex) - 1, 1) :
+      Math.max(countInRange(toIndex, nearest) - 1, 1);
+  }
+
+  /**
+   * Puts the highlight back on the cell the block was entered on, where that cell is still rendered,
+   * and forgets it.
+   *
+   * @param {CellCoords} highlight The highlight of the range being moved, changed in place.
+   */
+  #restoreBlockEntryFocus(highlight: CellCoords) {
+    const entry = this.#blockEntryFocus;
+
+    if (entry === null) {
+      return;
+    }
+
+    const { rowIndexMapper, columnIndexMapper } = this.tableProps;
+
+    if (entry.row !== null && rowIndexMapper.getRenderableFromVisualIndex(entry.row) !== null) {
+      highlight.row = entry.row;
+    }
+
+    if (entry.col !== null && columnIndexMapper.getRenderableFromVisualIndex(entry.col) !== null) {
+      highlight.col = entry.col;
+    }
+
+    this.#blockEntryFocus = null;
+  }
+
+  /**
+   * Changes the step on one axis so it moves from the highlight past the block's far edge, onto the
+   * nearest visible line. With no visible line there, the step runs to the grid's edge.
+   *
+   * @param {'row'|'col'} axis The axis to change.
+   * @param {CellCoords} delta The step, changed in place.
+   * @param {CellCoords} highlight The highlight the step starts from.
+   * @param {CellBlock} block The block the highlight sits in.
+   * @returns {boolean} `true` when the step lands on the visible line next to the block.
+   */
+  #stepAxisOverBlock(axis: 'row' | 'col', delta: CellCoords, highlight: CellCoords, block: CellBlock): boolean {
+    const step = delta[axis] ?? 0;
+    const position = highlight[axis] ?? 0;
+
+    if (step === 0) {
+      return false;
+    }
+
+    const isRow = axis === 'row';
+    const mapper = isRow ? this.tableProps.rowIndexMapper : this.tableProps.columnIndexMapper;
+    const countInRange = (from: number, to: number) => (isRow ?
+      this.tableProps.countRenderableRowsInRange(from, to) :
+      this.tableProps.countRenderableColumnsInRange(from, to));
+    const start = isRow ? block.row : block.col;
+    const end = start + (isRow ? block.rowspan : block.colspan) - 1;
+    const isInside = position >= start && position <= end;
+
+    if (step < 0) {
+      const nearest = mapper.getNearestNotHiddenIndex(isInside ? start - 1 : end, -1);
+
+      delta[axis] = nearest === null ?
+        -countInRange(0, position) :
+        -Math.max(countInRange(nearest, position) - 1, 1);
+
+      return nearest !== null;
+    }
+
+    const nearest = mapper.getNearestNotHiddenIndex(isInside ? end + 1 : start, 1);
+    const lastIndex = isRow ? this.tableProps.countRows() : this.tableProps.countCols();
+
+    delta[axis] = nearest === null ?
+      countInRange(position, lastIndex) :
+      Math.max(countInRange(position, nearest) - 1, 1);
+
+    return nearest !== null;
   }
 
   /**

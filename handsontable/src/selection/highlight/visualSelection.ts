@@ -223,9 +223,9 @@ class VisualSelection extends Selection {
       }
 
       // The highlight sits on a hidden cell, so it moves to the first visible cell of the range. This
-      // step owns hidden cells; MergeCells owns merged blocks. MergeCells moves the highlight onto a
-      // merge's top-left in `beforeSelectionHighlightSet`, before this runs. That top-left can be
-      // hidden, and then this step moves the highlight on to a visible cell.
+      // step owns hidden cells; `Selection#applyCellBlocks` owns merged blocks. That one moves the
+      // highlight onto a block's top-left before this runs. The top-left can be hidden, and then this
+      // step moves the highlight on to a visible cell.
       broaderCellRange.setHighlight(currentHighlight);
     }
 
