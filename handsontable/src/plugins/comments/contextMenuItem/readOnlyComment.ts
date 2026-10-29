@@ -1,17 +1,13 @@
 import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
 import { checkSelectionConsistency, getSelectionCheckState } from '../../contextMenu/utils';
-import { hasCommentAtCell } from '../utils';
-import {
-  META_COMMENT,
-  META_READONLY,
-  type CommentObject,
-  type Comments,
-} from '../comments';
+import { hasCommentAtCell, hasCommentInMeta, type CommentCellMeta } from '../utils';
+import { META_COMMENT, META_READONLY } from '../constants';
+import type { Comments } from '../comments';
 
 /**
  * Reads whether a cell's comment is read-only, or `null` when the cell does not take part: a hidden
- * cell under a merged block, or a cell holding no comment (see `hasCommentAtCell()`).
+ * cell under a merged block, or a cell holding no comment (see `hasCommentInMeta()`).
  *
  * @param {Core} hot The Handsontable instance.
  * @param {number} row The visual row index.
@@ -19,11 +15,14 @@ import {
  * @returns {boolean|null}
  */
 function getCommentReadOnlyState(hot: HotInstance, row: number, col: number): boolean | null {
-  if (!hasCommentAtCell(hot, row, col)) {
+  // One transient read serves both the check and the flag; the click asks twice per cell.
+  const cellMeta = hot.getCellMetaTransient<CommentCellMeta>(row, col);
+
+  if (!hasCommentInMeta(cellMeta)) {
     return null;
   }
 
-  return !!hot.getCellMetaTransient<{ [META_COMMENT]?: CommentObject }>(row, col)[META_COMMENT]?.[META_READONLY];
+  return !!cellMeta[META_COMMENT]![META_READONLY];
 }
 
 /**
