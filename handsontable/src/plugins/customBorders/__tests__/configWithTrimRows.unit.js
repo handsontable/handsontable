@@ -186,6 +186,40 @@ describe('CustomBorders config applied in the same updateSettings() call as trim
     expectToMatchOracle();
   });
 
+  describe('with manualRowMove in the same call', () => {
+    const moved = [5, 6, 7, 0, 1, 2, 3, 4, 8, 9];
+
+    it('should store the borders on the post-move records when the plugin was off', () => {
+      hot = createGrid(container, { trimRows: true });
+      createOracle({ trimRows: true, manualRowMove: moved, customBorders: [border(2)] });
+
+      hot.updateSettings({ customBorders: [border(2)], manualRowMove: moved });
+
+      expect(borderedRecords(hot)).toEqual([7]);
+      expectToMatchOracle();
+    });
+
+    it('should store the borders on the post-move records when the config changes while the plugin is on', () => {
+      hot = createGrid(container, { trimRows: true, customBorders: [border(4)] });
+      createOracle({ trimRows: true, manualRowMove: moved, customBorders: [border(2)] });
+
+      hot.updateSettings({ customBorders: [border(2)], manualRowMove: moved });
+
+      expect(borderedRecords(hot)).toEqual([7]);
+      expectToMatchOracle();
+    });
+
+    it('should apply the config once', () => {
+      hot = createGrid(container, { customBorders: true });
+
+      const spy = jest.spyOn(hot.getPlugin('customBorders'), 'changeBorderSettings');
+
+      hot.updateSettings({ customBorders: [border(2)], manualRowMove: moved });
+
+      expect(spy).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it('should apply the config once when trimRows is part of the call', () => {
     hot = createGrid(container, { trimRows: true, customBorders: true });
 

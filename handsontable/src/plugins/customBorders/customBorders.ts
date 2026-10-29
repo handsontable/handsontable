@@ -44,6 +44,12 @@ export const PLUGIN_PRIORITY = 90;
  */
 const LAST_ORDER_INDEX = Number.MAX_SAFE_INTEGER;
 
+/**
+ * The settings whose plugins rewrite a row index map after this plugin's own update (priority 90). A
+ * border configuration in the same `updateSettings()` call must wait for them.
+ */
+const LATER_ROW_INDEX_SETTINGS = ['trimRows', 'manualRowMove'];
+
 export type { BorderSettings, BorderObject };
 
 /**
@@ -212,8 +218,8 @@ export class CustomBorders extends BasePlugin {
   #visibleRowsBeforeUpdate: number[] | null = null;
   /**
    * The `updateSettings()` payload whose border configuration `updatePlugin()` left to
-   * `#onLastAfterUpdateSettings`, because the same call carries `trimRows` and `TrimRows#updatePlugin()` applies
-   * it after this plugin's own update. Matched by identity, so a pass that never reached the last listener
+   * `#onLastAfterUpdateSettings`, because the same call carries a setting a later plugin applies by rewriting a
+   * row index map (`LATER_ROW_INDEX_SETTINGS`). Matched by identity, so a pass that never reached the last listener
    * (an earlier listener threw) cannot apply a stale configuration in a later call, and a nested
    * `updateSettings()` does not consume the outer call's work. `null` when nothing is owed.
    */
@@ -468,10 +474,10 @@ export class CustomBorders extends BasePlugin {
 
       if (this.isDataWorkDeferred()) {
         this.deferDataWork();
-      } else if (this.#carriedBorders === null && !!newSettings && hasOwnProperty(newSettings, 'trimRows')) {
-        // `TrimRows#updatePlugin()` runs after this one and rewrites the trimming map. Applied now,
-        // `setCellMeta()` would map the configured visual rows through the previous map and store each
-        // border on the wrong record.
+      } else if (this.#carriedBorders === null && this.#carriesLaterRowIndexSetting(newSettings)) {
+        // `TrimRows#updatePlugin()` and `ManualRowMove#updatePlugin()` run after this one and rewrite
+        // their index maps. Applied now, `setCellMeta()` would map the configured visual rows through the
+        // previous maps and store each border on the wrong record.
         this.#configApplyPayload = newSettings;
       } else {
         this.changeBorderSettings();
@@ -2166,9 +2172,19 @@ The border style will be ignored.`);
   };
 
   /**
+   * Tells whether an `updateSettings()` payload changes a row index map after this plugin's own update.
+   *
+   * @param {object} [newSettings] The settings passed to `updateSettings()`.
+   * @returns {boolean}
+   */
+  #carriesLaterRowIndexSetting(newSettings?: Record<string, unknown>): newSettings is Record<string, unknown> {
+    return !!newSettings && LATER_ROW_INDEX_SETTINGS.some(key => hasOwnProperty(newSettings, key));
+  }
+
+  /**
    * `afterUpdateSettings` hook callback, registered with the highest `orderIndex` so it runs after every
    * plugin's own update. It applies the border configuration that `updatePlugin()` held back because the
-   * same call changes the trimming map, so the configured visual rows resolve against the new map.
+   * same call changes a row index map, so the configured visual rows resolve against the new map.
    *
    * @param {object} settings The settings passed to `updateSettings()`.
    */

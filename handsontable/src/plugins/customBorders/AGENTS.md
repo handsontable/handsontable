@@ -206,14 +206,16 @@ Three more entry points, all from review round 12:
 - Pinned by `__tests__/indexChangeTiming.unit.js`. The trim plugin does not render after
 its hooks, so the trim path schedules a render; `filter()` renders right after `afterFilter`.
 
-## A border config in the same call as `trimRows` is applied last
+## A border config in the same call as `trimRows` or `manualRowMove` is applied last
 
-`updatePlugin()` runs at priority 90, before `TrimRows#updatePlugin()` (330) rewrites the trimming map, and
-`changeBorderSettings()` -> `setCellMeta()` converts the configured visual rows to physical ones through whichever
-map is active. Applied early, the border was drawn on the right row but its `borders` meta sat on the record the
-old map put there, and the next rebuild from meta (`trimRow`, untrim, a filter, `loadData`) moved it. So when
-the payload carries `trimRows`, `updatePlugin()` records the payload in `#configApplyPayload` and
-`#onLastAfterUpdateSettings` applies the config after every other plugin has updated (DEV-3640).
+`updatePlugin()` runs at priority 90, before `TrimRows#updatePlugin()` (330) and
+`ManualRowMove#updatePlugin()` (140) rewrite their index maps, and `changeBorderSettings()` -> `setCellMeta()`
+converts the configured visual rows to physical ones through whichever maps are active. Applied early, the
+border was drawn on the right row but its `borders` meta sat on the record the old maps put there, and the next
+rebuild from meta (`trimRow`, untrim, a filter, `loadData`) moved it. So when the payload carries `trimRows` or
+`manualRowMove` (`LATER_ROW_INDEX_SETTINGS`), `updatePlugin()` records the payload in `#configApplyPayload` and
+`#onLastAfterUpdateSettings` applies the config after every other plugin has updated (DEV-3640). A new setting
+that a plugin after priority 90 applies by rewriting a row index map belongs in that list.
 
 - **The listener is registered on the instance in the constructor, with `orderIndex: Number.MAX_SAFE_INTEGER`**,
   never from `enablePlugin()` or `updatePlugin()`. The hook loop stops at the entry that was last when the hook
@@ -228,14 +230,15 @@ the payload carries `trimRows`, `updatePlugin()` records the payload in `#config
   the behavior those listeners were written for, but a change to the shared hook list belongs to nobody here: do
   not register a second listener above this one.
 - **User `afterUpdateSettings` listeners at the default order see the borders from before the call** when
-  `customBorders` and `trimRows` share a payload, and `afterCustomBordersUpdate` fires after them. Only that
-  combination moved; every other call applies in `updatePlugin()` as before.
+  `customBorders` and one of those settings share a payload, and `afterCustomBordersUpdate` fires after them. Only those
+  combinations moved; every other call applies in `updatePlugin()` as before.
 - **Not covered:** a progressive replace (its batches already run after the trim, and `#carriedBorders` is gone
   by then) and the data-deferred path (`onDataReady()` runs after the trim). A call inside `hot.batch()` or
   between `suspendOperations()` and `resumeOperations()` needs no special case: the trim is written before the
-  last listener runs, and the visual-to-physical translation already reads it. `manualRowMove` (140) rewrites
-  its map after this plugin as well, so a border config and a `manualRowMove` array in one call still land on the
-  pre-move records. `columnSorting` (50) runs before this plugin.
+  last listener runs, and the visual-to-physical translation already reads it. `columnSorting` (50) runs before
+  this plugin. `multiColumnSorting` (170) and `nestedRows` (300) rewrite their maps after it and were not fixed:
+  a sort config in the same call as a border config has not been shown to misplace borders, and `nestedRows` has
+  no settings that change the collapse state in an update.
 - Pinned by `__tests__/configWithTrimRows.unit.js`, including a control without `trimRows` in the call.
 
 **The rebuild is deferred and coalesced, never run from the hook.** It walks every user-defined meta
