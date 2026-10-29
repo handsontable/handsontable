@@ -1601,6 +1601,10 @@ export class TabStrip {
     mirror.className = 'ht-sheets-bar__tab-rename-mirror';
     mirror.setAttribute('aria-hidden', 'true');
 
+    if (label.id !== '') {
+      mirror.id = label.id;
+    }
+
     // The renaming class hides the menu chevron for the duration of the edit: the tab is a
     // text field at that point, and the trigger would open a menu acting on a name the user
     // is still typing. The button role goes with it — a button's children are presentational
@@ -1792,7 +1796,7 @@ export class TabStrip {
   #onTabFocusOut = (event: FocusEvent): void => {
     const next = event.relatedTarget;
 
-    if (this.#rovingId !== null && !(next instanceof Node && this.#host.contains(next))) {
+    if (this.#rovingId !== null && !(isHTMLElement(next) && this.#host.contains(next))) {
       this.#moveTabStop(null);
     }
   };

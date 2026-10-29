@@ -4516,6 +4516,48 @@ describe('SheetsBar plugin', () => {
     host.remove();
   });
 
+  it('keeps the Tab stop on a tab when the focus moves to another tab of a strip from another realm', () => {
+    const frame = document.createElement('iframe');
+
+    document.body.appendChild(frame);
+
+    const frameDocument = frame.contentDocument;
+    const frameWindow = frame.contentWindow;
+    const host = frameDocument.createElement('div');
+
+    frameDocument.body.appendChild(host);
+
+    const strip = new TabStrip({
+      host,
+      dragRoot: host,
+      eventManager: new EventManager({}),
+      translate: key => key,
+      ariaTags: true,
+      isRtl: false,
+      syncIcon: stubSyncIcon,
+      rootWindow: frameWindow,
+      labelIdPrefix: 'frame-sheet-tab-label',
+    });
+
+    strip.render([
+      { id: 1, name: 'A', isActive: true },
+      { id: 2, name: 'B', isActive: false },
+      { id: 3, name: 'C', isActive: false },
+    ]);
+
+    const second = host.querySelector('[data-sheet-id="2"]');
+    const third = host.querySelector('[data-sheet-id="3"]');
+
+    second.dispatchEvent(new frameWindow.FocusEvent('focusin', { bubbles: true }));
+    second.dispatchEvent(new frameWindow.FocusEvent('focusout', { bubbles: true, relatedTarget: third }));
+
+    expect(second.tabIndex).toBe(0);
+    expect(host.querySelector('[data-sheet-id="1"]').tabIndex).toBe(-1);
+
+    strip.destroy();
+    frame.remove();
+  });
+
   it('keeps a press across a repaint that leaves its tab in place, so a later move drags it', () => {
     const sheets = [
       { id: 1, name: 'A', isActive: true },

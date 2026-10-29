@@ -115,6 +115,8 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
 
     await fixture.tab(1).locator('.ht-sheets-bar__tab-label').dblclick();
     await fixture.renameInput.fill('Budget');
+    await expect(page.getByRole('treegrid', { name: 'Budget' })).toBeAttached();
+
     await page.keyboard.press('Enter');
     await expect(page.getByRole('treegrid', { name: 'Budget' })).toBeAttached();
   });

@@ -555,7 +555,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 - **The grid takes its accessible name from the active tab's label** (`aria-labelledby` on
   `hot.rootElement`, `#syncGridName`), and follows a rename and a switch. A name the host set
   (`aria-label` or its own `aria-labelledby`) wins: the bar then removes only its own id, and
-  restores nothing it did not write on teardown. A host can only name the grid after it is built, so the bar watches the root's two attributes (`#gridNameObserver`, a `MutationObserver` disconnected with the name); without it the bar's `aria-labelledby`, which wins over an `aria-label`, named the grid after the sheet until the next repaint.
+  restores nothing it did not write on teardown. A host can only name the grid after it is built, so the bar watches the root's two attributes (`#gridNameObserver`, a `MutationObserver` disconnected with the name); without it the bar's `aria-labelledby`, which wins over an `aria-label`, named the grid after the sheet until the next repaint. While a rename is open the label is out of the DOM, so the rename's mirror span (the one that measures the input's width and holds the typed text) takes the label's `id`, and the grid's name follows the draft instead of pointing at a missing node. The strip's `focusout` tells a move within the strip with `isHTMLElement()`, never `instanceof Node`, which is `false` for a grid built in another realm (an iframe) and gave the Tab stop back to the active tab on every arrow.
 - **A move and a duplicate made in the bar are announced politely** (`SHEETS_BAR_SHEET_MOVED`,
   `SHEETS_BAR_SHEET_DUPLICATED`, `SOURCE_UI` only); the switch announcement keeps its assertive
   politeness.
