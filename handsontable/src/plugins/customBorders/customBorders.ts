@@ -46,11 +46,12 @@ export type { BorderSettings, BorderObject };
 type BorderSide = 'top' | 'bottom' | 'start' | 'end';
 
 /**
- * `HotInstance` with the internal `_removeCellMetaByPhysicalIndex` method, which exists on the Core
- * runtime object but is deliberately not part of the public `HotInstance` type.
+ * `HotInstance` with the `_removeCellMetaByPhysicalIndex` and `isExecutionSuspended` methods, which
+ * exist on the Core runtime object but are not part of the `HotInstance` type.
  */
 type HotInstanceInternal = HotInstance & {
   _removeCellMetaByPhysicalIndex(physicalRow: number, physicalColumn: number, key: string): void;
+  isExecutionSuspended(): boolean;
 };
 
 /**
@@ -428,8 +429,13 @@ export class CustomBorders extends BasePlugin {
       // Disabling the plugin destroys every rendered border. A progressive replace keeps them drawn
       // until the new ones land, so it swaps the model in place and leaves the hooks registered.
       if (this.#carriedBorders === null) {
+        // The `afterUpdateSettings` listener the cycle re-registers can still run in this pass, and the
+        // snapshot belongs to it: `disablePlugin()` alone would hand it `null` and force a rebuild.
+        const visibleRowsBefore = this.#visibleRowsBeforeUpdate;
+
         this.disablePlugin();
         this.enablePlugin();
+        this.#visibleRowsBeforeUpdate = visibleRowsBefore;
       }
 
       if (this.isDataWorkDeferred()) {
@@ -2130,8 +2136,9 @@ The border style will be ignored.`);
    * `afterUpdateSettings` hook callback. `updateSettings({ trimRows })` writes the trimming map in
    * `TrimRows#updatePlugin` without firing `afterTrimRow`, so the model kept the visual rows the
    * borders were drawn at while their records moved (review round 12). The rebuild is skipped when
-   * the visible rows did not change: wrappers re-send an unchanged `trimRows` on every render, and
-   * the rebuild walks every bordered cell (DEV-3553). A progressive load still in flight completes
+   * the visible rows did not change: the React and Angular wrappers re-send `trimRows` on every
+   * render or settings change (the Vue wrapper drops an unchanged value), and the rebuild walks every
+   * bordered cell (DEV-3553). A progressive load still in flight completes
    * after the map changed on this path only.
    *
    * @param {object} settings The settings passed to `updateSettings()`.
@@ -2147,12 +2154,17 @@ The border style will be ignored.`);
 
     const visibleRows = this.hot.rowIndexMapper.getNotTrimmedIndexes();
 
+    // While execution is suspended the mapper does not rebuild its cache, so `trimRows: false` (which
+    // only unregisters the map) leaves the very same array behind and the comparison would pass.
     if (
-      visibleRowsBefore === visibleRows ||
+      !(this.hot as HotInstanceInternal).isExecutionSuspended() &&
       (
-        visibleRowsBefore !== null &&
-        visibleRowsBefore.length === visibleRows.length &&
-        visibleRowsBefore.every((physicalRow, visualRow) => physicalRow === visibleRows[visualRow])
+        visibleRowsBefore === visibleRows ||
+        (
+          visibleRowsBefore !== null &&
+          visibleRowsBefore.length === visibleRows.length &&
+          visibleRowsBefore.every((physicalRow, visualRow) => physicalRow === visibleRows[visualRow])
+        )
       )
     ) {
       return;
