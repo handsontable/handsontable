@@ -162,6 +162,30 @@ describe('CustomBorders config applied in the same updateSettings() call as trim
     expectToMatchOracle();
   });
 
+  it('should store the borders on the post-trim records when the call runs inside hot.batch()', () => {
+    hot = createGrid(container, { trimRows: true });
+    createOracle({ trimRows: [0], customBorders: [border(8)] });
+
+    hot.batch(() => {
+      hot.updateSettings({ customBorders: [border(8)], trimRows: [0] });
+    });
+
+    expect(borderedRecords(hot)).toEqual([9]);
+    expectToMatchOracle();
+  });
+
+  it('should store the borders on the post-trim records while the row index mapper is suspended', () => {
+    hot = createGrid(container, { trimRows: true });
+    createOracle({ trimRows: [0], customBorders: [border(8)] });
+
+    hot.rowIndexMapper.suspendOperations();
+    hot.updateSettings({ customBorders: [border(8)], trimRows: [0] });
+    hot.rowIndexMapper.resumeOperations();
+
+    expect(borderedRecords(hot)).toEqual([9]);
+    expectToMatchOracle();
+  });
+
   it('should apply the config once when trimRows is part of the call', () => {
     hot = createGrid(container, { trimRows: true, customBorders: true });
 

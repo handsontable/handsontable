@@ -231,9 +231,11 @@ the payload carries `trimRows`, `updatePlugin()` records the payload in `#config
   `customBorders` and `trimRows` share a payload, and `afterCustomBordersUpdate` fires after them. Only that
   combination moved; every other call applies in `updatePlugin()` as before.
 - **Not covered:** a progressive replace (its batches already run after the trim, and `#carriedBorders` is gone
-  by then), the data-deferred path (`onDataReady()` runs after the trim), and a mapper that is batched
-  (`hot.batch()`, `suspendOperations()`) when the last listener runs, which has not rebuilt its cache yet. Sorting,
-  `manualRowMove` and `nestedRows` also rewrite an index map after priority 90 and were not examined.
+  by then) and the data-deferred path (`onDataReady()` runs after the trim). A call inside `hot.batch()` or
+  between `suspendOperations()` and `resumeOperations()` needs no special case: the trim is written before the
+  last listener runs, and the visual-to-physical translation already reads it. `manualRowMove` (140) rewrites
+  its map after this plugin as well, so a border config and a `manualRowMove` array in one call still land on the
+  pre-move records. `columnSorting` (50) runs before this plugin.
 - Pinned by `__tests__/configWithTrimRows.unit.js`, including a control without `trimRows` in the call.
 
 **The rebuild is deferred and coalesced, never run from the hook.** It walks every user-defined meta
