@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-29T08:17:26.343Z",
+  "generatedAt": "2026-10-29T09:17:06.398Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -492,44 +492,6 @@
       "needsTicket": true
     },
     {
-      "key": "playwright|e2e/unlaid-out-init-scroll-sync.spec.ts|grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "tier": "playwright",
-      "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
-      "line": 65,
-      "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "count7": 0,
-      "count30": 8,
-      "countAll": 28,
-      "runs30": 5,
-      "flakyRuns30": 5,
-      "branches30": 5,
-      "nightlyRuns30": 0,
-      "openBranches30": 5,
-      "legs": [
-        "e2e-classic",
-        "e2e-classic-min",
-        "e2e-horizon",
-        "e2e-horizon-min",
-        "e2e-main",
-        "e2e-main-min"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-07T11:49:14Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37613189147",
-        "branch": "feature/DEV-2700_Fit-frozen-area-to-viewport",
-        "leg": "e2e-main-min",
-        "status": "flaky",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
       "key": "playwright|e2e/iframe-cross-realm-scroll.spec.ts|cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
       "tier": "playwright",
       "file": "e2e/iframe-cross-realm-scroll.spec.ts",
@@ -597,6 +559,44 @@
         "leg": "e2e-horizon-min",
         "status": "flaky",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/unlaid-out-init-scroll-sync.spec.ts|grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
+      "tier": "playwright",
+      "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
+      "line": 65,
+      "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
+      "count7": 0,
+      "count30": 6,
+      "countAll": 28,
+      "runs30": 4,
+      "flakyRuns30": 4,
+      "branches30": 4,
+      "nightlyRuns30": 0,
+      "openBranches30": 4,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T11:49:14Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37613189147",
+        "branch": "feature/DEV-2700_Fit-frozen-area-to-viewport",
+        "leg": "e2e-main-min",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": true
