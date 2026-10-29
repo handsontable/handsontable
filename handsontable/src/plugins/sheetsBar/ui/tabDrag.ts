@@ -202,10 +202,10 @@ export class TabDrag {
     this.#eventManager.addEventListener(ownerDocument, 'pointermove', this.#onPointerMove);
     this.#eventManager.addEventListener(ownerDocument, 'pointerup', this.#onPointerUp);
     this.#eventManager.addEventListener(ownerDocument, 'pointercancel', this.#onCancel);
-    this.#eventManager.addEventListener(ownerDocument, 'keydown', this.#onKeyDown);
     this.#eventManager.addEventListener(tab, 'lostpointercapture', this.#onLostCapture);
 
     if (view) {
+      this.#eventManager.addEventListener(view, 'keydown', this.#onKeyDown, true);
       this.#eventManager.addEventListener(view, 'blur', this.#onWindowBlur);
     }
   }
@@ -475,6 +475,11 @@ export class TabDrag {
   /**
    * Aborts the gesture on Escape, putting the strip back the way it was.
    *
+   * It listens on the window in the capture phase, ahead of every listener on the document, so a
+   * page that stops Escape there cannot keep a drag alive. A drag started with a fresh press leaves
+   * the bar's focus scope inactive, so the bar's own Escape shortcut does not run, and this listener
+   * is the only one that cancels it.
+   *
    * @param {KeyboardEvent} event The keydown event.
    */
   #onKeyDown = (event: KeyboardEvent): void => {
@@ -570,9 +575,9 @@ export class TabDrag {
     this.#eventManager.removeEventListener(ownerDocument, 'pointermove', this.#onPointerMove as EventListener);
     this.#eventManager.removeEventListener(ownerDocument, 'pointerup', this.#onPointerUp as EventListener);
     this.#eventManager.removeEventListener(ownerDocument, 'pointercancel', this.#onCancel as EventListener);
-    this.#eventManager.removeEventListener(ownerDocument, 'keydown', this.#onKeyDown as EventListener);
 
     if (view) {
+      this.#eventManager.removeEventListener(view, 'keydown', this.#onKeyDown as EventListener);
       this.#eventManager.removeEventListener(view, 'blur', this.#onWindowBlur);
     }
   }
