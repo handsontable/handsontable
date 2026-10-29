@@ -353,7 +353,8 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   selection and the focus lands on the editor, where the package asks `selectFirstFormulaCell()` for a cell:
   it tries `#lastFocusedCoords` (the cell the grid focused last, recorded in `#onAfterSelectionEnd`, never
   cleared on deselect) first, guarded by range, visibility and `#isFormulaCell`, and scans only otherwise -
-  so the bar edits the cell you left, not A1. Tab from the content before
+  so the bar edits the cell you left, not A1. A data load or a sheet switch (`afterLoadData`/`afterUpdateData`)
+  clears it, or the bar would open an edit on the same coordinates of a different record. Tab from the content before
   the grid goes address box, formula editor (the same remembered cell), then back into the grid. There is no keyboard trap, so the bar
   registers no focus scope; the package owns the keys inside it. Pinned by the keyboard spec under
   `tests/e2e/`.

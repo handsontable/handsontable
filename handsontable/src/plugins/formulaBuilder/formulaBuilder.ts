@@ -1351,9 +1351,13 @@ export class FormulaBuilder extends BasePlugin {
    * `afterLoadData`/`afterUpdateData` hook listener - rebuilds the builder when the data load
    * bound the grid to another engine sheet, then re-reads the active cell into the bar when its text
    * changed. The plugin enables before the first data load, while the Formulas plugin has no sheet id
-   * yet, and `Formulas#switchSheet()` reloads the data too.
+   * yet, and `Formulas#switchSheet()` reloads the data too. It also forgets the cell the grid focused
+   * last, so the bar never opens an edit on a cell of the data that was replaced.
    */
   #onAfterDataLoad = (): void => {
+    // The remembered coordinates point into the data set the load replaced (or another sheet).
+    this.#lastFocusedCoords = null;
+
     // Even under an open edit: the load replaced the data the edit was made against, and the rebuild
     // cancels that edit.
     if (this.#builder !== null && this.#sheetId !== this.#builtSheetId) {
