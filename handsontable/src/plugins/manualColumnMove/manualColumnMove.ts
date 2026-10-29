@@ -153,6 +153,7 @@ export class ManualColumnMove extends BasePlugin {
         this.#onBeforeOnCellMouseOverOutside(controller));
     this.addHook('afterScrollVertically', this.#onAfterScrollVertically);
     this.addHook('afterLoadData', this.#onAfterLoadData);
+    this.addHook('beforeLoadData', this.#onBeforeDataReplace);
 
     this.buildPluginUI();
     this.registerEvents();
@@ -943,14 +944,8 @@ export class ManualColumnMove extends BasePlugin {
     const columnsLen = this.#columnsToMove.length;
     const wasDragged = this.#dragged;
 
-    this.#hoveredColumn = undefined;
-    this.#pressed = false;
-    this.#dragged = false;
-
-    // The next drag starts with the guideline in the master table, where `onMouseDown` expects it.
-    this.#attachGuideline(this.hot.view._wt.wtTable.hider);
-
-    removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
+    this.#endDrag();
+    removeClass(this.hot.rootElement, CSS_AFTER_SELECTION);
 
     if (this.hot.selection.isSelectedByColumnHeader()) {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
@@ -979,6 +974,34 @@ export class ManualColumnMove extends BasePlugin {
       this.hot.selectColumns(selectionStart, selectionEnd);
     }
   }
+
+  /**
+   * Ends the drag state shared by a release and a cancel. The next drag starts with the guideline in
+   * the master table, where `onMouseDown` expects it.
+   */
+  #endDrag() {
+    this.#hoveredColumn = undefined;
+    this.#pressed = false;
+    this.#dragged = false;
+
+    this.#attachGuideline(this.hot.view._wt.wtTable.hider);
+
+    removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
+  }
+
+  /**
+   * Cancels a column drag held while the grid's data is replaced (`loadData()`, a sheet switch). The
+   * columns it holds are indexes of the data it started on, and the release would move the columns of
+   * the data that replaced it.
+   */
+  #onBeforeDataReplace = () => {
+    if (!this.#pressed) {
+      return;
+    }
+
+    this.#endDrag();
+    this.#columnsToMove.length = 0;
+  };
 
   /**
    * `afterScrollHorizontally` hook callback. Fired the table was scrolled horizontally.

@@ -103,6 +103,15 @@ load-bearing, and the root has no clipping or scroll tracking of its own.
   (`tests/e2e/manual-column-freeze-boundary.spec.ts`, "the drop guideline"); the pointer-events-none backlight
   cannot be probed that way.
 
+## A drag ends when the data is replaced
+
+`beforeLoadData` cancels a held header drag (`#onBeforeDataReplace`), so the release moves nothing. The columns a
+drag holds are visual indexes of the data it started on, and the release moved the columns of the data that
+replaced it (a sheets bar switch). The cancel and `#onMouseUp()` share `#endDrag()`, which also moves the guideline
+back to the master table, so the next drag finds it there. Not on `updateData()`: the React wrapper sends `data` on
+every re-render, so a parent re-render would cancel the gesture. Pinned by
+`tests/e2e/sheets-bar-in-flight-drags.spec.ts`.
+
 ## DataProvider blocks this plugin
 
 `registerConflict('dataProvider', ['manualColumnMove', …])`: with a complete server-backed `dataProvider`
