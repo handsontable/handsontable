@@ -199,13 +199,6 @@ sheetsBar.updateSheetSettings('Budget', { readOnly: true });
 
 A sheet's id never changes, and no other sheet gets it later, even after you pass a new `sheets` value.
 
-### Sheet names
-
-- A name is trimmed and cut to 50 characters. An emoji or a flag counts as one character.
-- A name with no visible characters isn't accepted. A new sheet gets the next free `Sheet{n}` name instead.
-- Names are unique and compared without regard to case, as in [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md): `Budget` and `BUDGET` are the same name.
-- A new sheet whose name is taken gets a number: a second `Budget (2024)` becomes `Budget (2024) (2)`. Copies of `Budget` are named `Budget (2)`, `Budget (3)`, and so on.
-
 ## Work with tabs
 
 Right-click a tab, or click the chevron on the active tab, to open its menu: **Rename**, **Duplicate**, **Delete**, **Move left**, and **Move right**. On an inactive tab, the first click on the chevron switches sheets.
@@ -232,8 +225,6 @@ Each sheet keeps its own:
 - [`Pagination`](@/api/pagination.md) page and page size.
 
 A sheet you haven't opened yet opens with only what its own `settings` declare, on the configured [`initialPage`](@/api/options.md#pagination) and page size.
-
-A switch sets the frozen rows and columns without firing [`afterFreezeChange`](@/api/hooks.md#afterfreezechange). If you keep the frozen counts in your own state, update them in [`afterSheetTabChange`](@/api/hooks.md#aftersheettabchange).
 
 To capture and restore a view without the sheets bar, see [Save and restore the view state](@/guides/getting-started/view-state/view-state.md).
 
