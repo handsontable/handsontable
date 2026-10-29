@@ -281,6 +281,7 @@ An A2UI catalog is meant to reflect the host application's own components, so an
 
 <div class="boxes-list">
 
+- [Agent-driven grid with CopilotKit](@/recipes/real-time/copilotkit-agent-grid/copilotkit-agent-grid.md)
 - [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
 - [Theme customization](@/guides/styling/theme-customization/theme-customization.md)
 - [Real-time updates via WebSocket](@/recipes/real-time/websocket-updates/websocket-updates.md)

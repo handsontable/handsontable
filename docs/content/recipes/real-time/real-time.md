@@ -35,6 +35,16 @@ Current recipes:
 
 </div>
 
+::: only-for react
+
+<div class="boxes-list">
+
+- [Agent-driven grid with CopilotKit](@/recipes/real-time/copilotkit-agent-grid/copilotkit-agent-grid.md)
+
+</div>
+
+:::
+
 ::: only-for javascript
 
 <div class="boxes-list">
