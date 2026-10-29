@@ -1038,7 +1038,7 @@ export class Comments extends BasePlugin {
       return undefined;
     }
 
-    const cellMeta = this.hot.getCellMeta<{ [META_COMMENT]?: CommentMeta }>(row, column);
+    const cellMeta = this.hot.getCellMetaTransient<{ [META_COMMENT]?: CommentMeta }>(row, column);
     const comment = cellMeta[META_COMMENT];
 
     if (!comment) {
@@ -1214,6 +1214,13 @@ export class Comments extends BasePlugin {
    * the keyboard shortcuts by switching the context to plugins one.
    */
   #onEditorFocus() {
+    const { row, col } = this.#getRangeCoords();
+
+    // A range on a header has no comment to edit, and the blur that follows could not save one.
+    if (row < 0 || col < 0) {
+      return;
+    }
+
     this.#commentValueBeforeSave = this.getComment() ?? '';
     this.hot.listen();
     this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
@@ -1294,7 +1301,7 @@ export class Comments extends BasePlugin {
 
     const { row, col } = this.#getRangeCoords();
 
-    if (row >= this.hot.countRows() || col >= this.hot.countCols()) {
+    if (row < 0 || col < 0 || row >= this.hot.countRows() || col >= this.hot.countCols()) {
       this.hide();
 
       return;
