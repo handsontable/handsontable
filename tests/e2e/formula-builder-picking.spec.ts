@@ -370,3 +370,42 @@ test.describe('formulaBuilder picking next to other plugins\' controls', { tag: 
     expect(await grid.selectedRows()).toEqual([]);
   });
 });
+
+// With no `height` the window scrolls the grid, so the pick's edge auto-scroller has to scroll the
+// page: the grid's holder never overflows, and DragToScroll stays out of a claimed press. Themes: the
+// row heights decide how many rows fit the viewport. Engines: a pointer held past the window edge.
+test.describe('formulaBuilder picking in a window-scrolled grid', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  test('a reference drag held below the viewport scrolls the page and extends the range', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle, 'window-scroll');
+
+    await grid.goto();
+    await grid.selectCellByApi(0, 0);
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+
+    const viewport = page.viewportSize();
+    const start = await grid.cell(0, 1).boundingBox();
+    const scrollY = () => page.evaluate(() => window.scrollY);
+
+    const endRow = async() => Number((await grid.editorInput.inputValue()).match(/^=B1:B(\d+)$/)?.[1] ?? 0);
+
+    expect(await scrollY()).toBe(0);
+    // The page scrolls, and the grid's own holder does not.
+    expect(await page.evaluate(() => document.documentElement.scrollHeight > window.innerHeight)).toBe(true);
+    expect(await grid.grid.locator('.ht_master .wtHolder').evaluate(holder => holder.scrollHeight > holder.clientHeight))
+      .toBe(false);
+
+    await grid.cell(0, 1).hover();
+    await page.mouse.down();
+    await page.mouse.move((start?.x ?? 0) + 10, (viewport?.height ?? 0) + 40, { steps: 10 });
+
+    // The pointer stays past the bottom edge: the auto-scroller keeps stepping on its own until the
+    // page has brought row 26 into view. The editor takes the reference on the release.
+    await expect.poll(scrollY).toBeGreaterThan(0);
+    await expect(grid.cell(25, 1)).toBeInViewport();
+
+    await page.mouse.up();
+    await expect(grid.editorInput).toHaveValue(/^=B1:B\d{2}$/);
+    expect(await endRow()).toBeGreaterThan(20);
+  });
+});

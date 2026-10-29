@@ -89,6 +89,7 @@ function makeHarness(options: HarnessOptions = {}) {
     getCellAddressAt: jest.fn(() =>
       (cellAtPoint ? { sheet: '', row: cellAtPoint.row, col: cellAtPoint.col } : null),
     ),
+    getAutoScrollTarget: () => holder,
   };
   const closeUnbalancedParens = jest.fn();
   const editorStub = {

@@ -251,7 +251,15 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   `null` turns it off. With no `height` and a pixel `width` the window scrolls the rows and the master
   holder the columns, so asking only the vertical owner (`topOverlay`) returned `null` there and a drag
   past the end edge stopped scrolling the columns. The vertical owner wins; `inlineStartOverlay` is the
-  fallback (`split-scroll` fixture variant, `formula-builder-layout.spec.ts`).
+  fallback (`split-scroll` fixture variant, `formula-builder-layout.spec.ts`). It still returns `null` when
+  the window owns both axes (no element to follow on scroll), so the pick's auto-scroller does not use it:
+  `RangeDragTracker`'s `getScrollElement` reads `HandsontableAdapter#getAutoScrollTarget()`, which falls
+  back to a stand-in for the window's viewport. Not `document.scrollingElement` itself: the package
+  computes its edge zones from `getBoundingClientRect()`, and the root element's rectangle is the whole
+  page, so a pointer below the window sits inside it and nothing scrolls. The stand-in reports the
+  viewport's box and forwards `scrollTop`/`scrollLeft` to the scrolling element (`window-scroll` fixture
+  variant, `formula-builder-picking.spec.ts`). In `split-scroll` the holder wins and its rectangle spans
+  every row, so a drag below the window still does not scroll the page there.
 - **The tracked column header level comes from `TableView#getColumnHeadersCount()`, not from the levels
   seen.** A deepest-level-seen rule only grows, so `updateSettings({ nestedHeaders: false })` (which does
   not rebuild the adapter) left level 0 untracked and the column headers untinted for good.

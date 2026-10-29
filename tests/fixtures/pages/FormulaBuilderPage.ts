@@ -16,6 +16,7 @@ export type FormulaBuilderVariant =
   | 'pagination'
   | 'read-only'
   | 'split-scroll'
+  | 'window-scroll'
   | 'shadow'
   | 'menus'
   | 'dropdown'

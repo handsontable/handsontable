@@ -323,7 +323,9 @@ export class CellPickController {
     this.#deps = deps;
     this.#core = deps.core as CoreModule;
     this.#tracker = new this.#core.RangeDragTracker({
-      getScrollElement: () => this.#deps.getScrollHolder(),
+      // The package types the container as an `HTMLElement` but reads only the members of
+      // `AutoScrollTarget`, which the window's viewport stand-in also has.
+      getScrollElement: () => (this.#deps.getAdapter()?.getAutoScrollTarget() ?? null) as HTMLElement | null,
       getCellAddressAt: (x, y) => this.#deps.getAdapter()?.getCellAddressAt(x, y) ?? null,
       onPreview: (range, append) => this.#previewRange(range, append),
       onDragEnd: () => this.#deps.getAdapter()?.clearEphemeralHighlight(),

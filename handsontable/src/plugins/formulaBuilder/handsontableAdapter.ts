@@ -6,7 +6,7 @@ import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
 import { isHTMLElement } from '../../helpers/dom/element';
 import type { HotInstance } from '../../core/types';
 import type { default as VisualSelection } from '../../selection/highlight/visualSelection';
-import type { VisualHfIndexMapping } from './internalTypes';
+import type { AutoScrollTarget, VisualHfIndexMapping } from './internalTypes';
 import type {
   CellAddress,
   CellPick,
@@ -498,7 +498,8 @@ export class HandsontableAdapter {
    * Returns the element that scrolls the grid: the master holder, or a scrolling ancestor of the
    * grid. The element that scrolls the rows wins; with the window scrolling the rows, the element
    * that scrolls the columns. Returns `null` when the window owns both axes, because a page scroll
-   * needs no element to follow: the editor moves with the page.
+   * needs no element to follow: the editor moves with the page. The reference drag scrolls the
+   * page through `getAutoScrollTarget()`.
    *
    * @returns {HTMLElement | null}
    */
@@ -514,6 +515,55 @@ export class HandsontableAdapter {
     // `isHTMLElement()` rather than `instanceof HTMLElement`: a grid in an iframe driven from the
     // parent page has elements of the iframe's realm.
     return isHTMLElement(scrollable) ? scrollable : null;
+  }
+
+  /**
+   * Returns what the reference drag's edge auto-scroller scrolls: the scroll holder, or the window's
+   * viewport when the window owns both axes. The viewport cannot be the document's scrolling element
+   * itself: its rectangle is the whole page, so a pointer below the window would still sit inside it
+   * and the page would never scroll. The stand-in reports the viewport's box and steps the page.
+   *
+   * @returns {AutoScrollTarget | null}
+   */
+  getAutoScrollTarget(): AutoScrollTarget | null {
+    const holder = this.getScrollHolder();
+
+    if (holder) {
+      return holder;
+    }
+
+    const rootDocument = this.#hot.rootDocument;
+    const viewport = rootDocument.documentElement;
+    // The root element in standards mode; an environment without `scrollingElement` scrolls it too.
+    const scroller = rootDocument.scrollingElement ?? viewport;
+
+    if (!scroller || !viewport) {
+      return null;
+    }
+
+    return {
+      getBoundingClientRect: () => ({ left: 0, top: 0, right: viewport.clientWidth, bottom: viewport.clientHeight }),
+      get scrollLeft() {
+        return scroller.scrollLeft;
+      },
+      set scrollLeft(value: number) {
+        scroller.scrollLeft = value;
+      },
+      get scrollTop() {
+        return scroller.scrollTop;
+      },
+      set scrollTop(value: number) {
+        scroller.scrollTop = value;
+      },
+      clientLeft: 0,
+      clientTop: 0,
+      get clientWidth() {
+        return viewport.clientWidth;
+      },
+      get clientHeight() {
+        return viewport.clientHeight;
+      },
+    };
   }
 
   /**

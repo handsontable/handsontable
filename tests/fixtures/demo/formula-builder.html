@@ -40,6 +40,7 @@
       pagination: 'pagination',
       'read-only': 'read-only',
       'split-scroll': 'split-scroll',
+      'window-scroll': 'window-scroll',
       shadow: 'shadow',
       menus: 'menus',
       dropdown: 'dropdown',
@@ -128,6 +129,14 @@
       'read-only': { settings: { cell: [{ row: 0, col: 2, readOnly: true }] } },
       // A pixel width and no height: the window scrolls the rows, the grid's holder the columns.
       'split-scroll': { settings: { width: 300, colWidths: 200 } },
+      // No `width` and an `auto` height over 60 rows: the window scrolls both axes, and the page is
+      // taller than the viewport.
+      'window-scroll': {
+        settings: {
+          height: 'auto',
+          data: Array.from({ length: 60 }, (_, row) => [row + 1, (row + 1) * 2, '']),
+        },
+      },
       // The grid inside an open shadow root, with its stylesheets linked inside it: document
       // stylesheets do not reach the shadow tree, so every style the plugin generates must too.
       shadow: { shadow: true },
