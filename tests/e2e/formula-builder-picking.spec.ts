@@ -86,6 +86,25 @@ test.describe('formulaBuilder mouse reference picking', { tag: [THEMES_TAG, BUND
     await expect(grid.editorInput).toHaveValue('=A2+A3,B3');
   });
 
+  test('Shift+click extends the picked reference to a range, as Shift+click extends a selection', async({ page }) => {
+    await grid.cell(0, 1).click();
+    await expect(grid.editorInput).toHaveValue('=B1');
+
+    await grid.cell(1, 2).click({ modifiers: ['Shift'] });
+    await expect(grid.editorInput).toHaveValue('=B1:C2');
+    await expect(grid.editorInput).toBeFocused();
+    expect(await grid.selectedAll()).toEqual([[3, 0, 3, 0]]);
+
+    // The range keeps its first anchor, as the grid's selection does.
+    await grid.cell(2, 0).click({ modifiers: ['Shift'] });
+    await expect(grid.editorInput).toHaveValue('=A1:B3');
+
+    // Once the text changed, a Shift+click picks a single cell again.
+    await page.keyboard.press('+');
+    await grid.cell(0, 2).click({ modifiers: ['Shift'] });
+    await expect(grid.editorInput).toHaveValue('=A1:B3+C1');
+  });
+
   test('a column header click inserts a whole-column reference, and a header drag a column range', async({ page }) => {
     await grid.columnHeader('B').click();
     await expect(grid.editorInput).toHaveValue('=B:B');

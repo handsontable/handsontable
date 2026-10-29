@@ -93,11 +93,15 @@ function makeHarness(options: HarnessOptions = {}) {
     getAutoScrollTarget: () => holder,
   };
   const closeUnbalancedParens = jest.fn();
+  // The text and caret the editor holds; a test changes them to stand for typing or a caret move.
+  const editorState = { text: editorValue, caret: editorValue.length };
   const editorStub = {
     isFormula: () => editorValue.startsWith('='),
     isRefSelectionActive: () => refSelectionActive,
     getRefPreviewColor: () => EPHEMERAL_COLOR,
     closeUnbalancedParens,
+    getValue: () => editorState.text,
+    getCaretOffset: () => editorState.caret,
   };
   const emitSwitchToInline = jest.fn();
   const deferTask = jest.fn<void, [() => void]>();
@@ -125,6 +129,7 @@ function makeHarness(options: HarnessOptions = {}) {
     emitSwitchToInline,
     holder,
     closeUnbalancedParens,
+    editorState,
   };
 }
 
@@ -1558,5 +1563,95 @@ describe('CellPickController picks on a checkbox cell', () => {
     controller.onDocMouseUp();
 
     expect(clickOn(label).defaultPrevented).toBe(false);
+  });
+});
+
+describe('CellPickController Shift+press', () => {
+  it('extends the pending pick to a range anchored where that pick was', () => {
+    const { controller, adapterStub } = makeHarness();
+
+    pressCell(controller, { row: 0, col: 1 });
+    controller.onDocMouseUp();
+    pressCell(controller, { row: 2, col: 3 }, { shiftKey: true });
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitRangePick).toHaveBeenCalledWith({
+      ref: { start: { sheet: '', row: 0, col: 1 }, end: { sheet: '', row: 2, col: 3 } },
+      append: false,
+    });
+  });
+
+  it('keeps the first anchor over repeated Shift+presses, as the grid does', () => {
+    const { controller, adapterStub } = makeHarness();
+
+    pressCell(controller, { row: 2, col: 2 });
+    controller.onDocMouseUp();
+    pressCell(controller, { row: 4, col: 4 }, { shiftKey: true });
+    controller.onDocMouseUp();
+    pressCell(controller, { row: 0, col: 0 }, { shiftKey: true });
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitRangePick).toHaveBeenLastCalledWith({
+      ref: { start: { sheet: '', row: 0, col: 0 }, end: { sheet: '', row: 2, col: 2 } },
+      append: false,
+    });
+  });
+
+  it('picks the pressed cell when the editor changed since the last pick', () => {
+    const { controller, adapterStub, editorState } = makeHarness();
+
+    pressCell(controller, { row: 0, col: 1 });
+    controller.onDocMouseUp();
+    editorState.text += '+';
+    editorState.caret += 1;
+    pressCell(controller, { row: 2, col: 3 }, { shiftKey: true });
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitRangePick).not.toHaveBeenCalled();
+    expect(adapterStub.emitCellPick).toHaveBeenLastCalledWith({ ref: { sheet: '', row: 2, col: 3 }, append: false });
+  });
+
+  it('picks the pressed cell when the caret moved since the last pick', () => {
+    const { controller, adapterStub, editorState } = makeHarness();
+
+    pressCell(controller, { row: 0, col: 1 });
+    controller.onDocMouseUp();
+    editorState.caret -= 1;
+    pressCell(controller, { row: 2, col: 3 }, { shiftKey: true });
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitRangePick).not.toHaveBeenCalled();
+  });
+
+  it('picks the pressed cell when no pick was made in the edit', () => {
+    const { controller, adapterStub } = makeHarness();
+
+    pressCell(controller, { row: 2, col: 3 }, { shiftKey: true });
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitCellPick).toHaveBeenCalledWith({ ref: { sheet: '', row: 2, col: 3 }, append: false });
+  });
+
+  it('forgets the pending pick on reset (the edit closed)', () => {
+    const { controller, adapterStub } = makeHarness();
+
+    pressCell(controller, { row: 0, col: 1 });
+    controller.onDocMouseUp();
+    controller.reset();
+    pressCell(controller, { row: 2, col: 3 }, { shiftKey: true });
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitRangePick).not.toHaveBeenCalled();
+  });
+
+  it('appends, without extending, when Ctrl/Cmd is held too', () => {
+    const { controller, adapterStub } = makeHarness();
+
+    pressCell(controller, { row: 0, col: 1 });
+    controller.onDocMouseUp();
+    pressCell(controller, { row: 2, col: 3 }, { shiftKey: true, ctrlKey: true });
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitCellPick).toHaveBeenLastCalledWith({ ref: { sheet: '', row: 2, col: 3 }, append: true });
   });
 });

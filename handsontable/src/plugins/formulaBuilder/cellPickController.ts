@@ -9,7 +9,7 @@ import {
 } from '../../helpers/dom/event';
 import { getDeepActiveElement, isHTMLElement } from '../../helpers/dom/element';
 import type { HandsontableAdapter } from './handsontableAdapter';
-import type { CellRange, HeaderAxis, HeaderPick, PickingEditor } from './gridContract';
+import type { CellAddress, CellRange, HeaderAxis, HeaderPick, PickingEditor } from './gridContract';
 
 /**
  * The `hyperformula-ui` module namespace (see `internalTypes.ts` for why it is not shared).
@@ -276,6 +276,15 @@ export class CellPickController {
    * While set, the rest of that gesture stays claimed (see `reset()`).
    */
   #releaseCancelledDrag: (() => void) | null = null;
+  /**
+   * The anchor of the active cell drag, in HyperFormula coordinates.
+   */
+  #cellDragAnchor: CellAddress | null = null;
+  /**
+   * The anchor of the last cell or range pick of the edit, with the editor text and caret right after
+   * it. A Shift+press extends that pick while the editor still holds exactly that text and caret.
+   */
+  #lastPick: { anchor: CellAddress; text: string; caret: number } | null = null;
 
   /**
    * `beforeOnCellMouseDown` hook listener.
@@ -403,6 +412,8 @@ export class CellPickController {
     this.#disarmTouchEndCancel();
     this.#focusBeforePick = null;
     this.#headerDrag = null;
+    this.#cellDragAnchor = null;
+    this.#lastPick = null;
 
     if (wasDragging && this.#touchId === null) {
       this.#holdCancelledDrag();
@@ -552,16 +563,59 @@ export class CellPickController {
     this.#focusBeforePick = this.#activeElement();
 
     this.#listenDrag(event);
-    this.#tracker.begin(
-      { sheet: '', col: anchor.col, row: anchor.row },
-      isAppendPress(event),
-      readPressPoint(event),
-    );
+    this.#beginCellDrag(event, anchor, editor);
 
     // A touch press arrives from `touchend`, with the finger already lifted: the tap is the whole pick.
     if (event !== undefined && hasTouchList(event)) {
       this.#finishTouchPick();
     }
+  }
+
+  /**
+   * Begins a cell drag. A Shift+press, like the grid's Shift+click, extends the pending pick: the drag
+   * is anchored where that pick was, so it drops as a range that replaces the pick's reference.
+   *
+   * @param {MouseEvent | undefined} event The press event.
+   * @param {GridCoords} anchor The pressed cell, in HyperFormula coordinates.
+   * @param {PickingEditor} editor The live formula editor.
+   */
+  #beginCellDrag(event: MouseEvent | undefined, anchor: GridCoords, editor: PickingEditor): void {
+    const append = isAppendPress(event);
+    const pressed = { sheet: '', col: anchor.col, row: anchor.row };
+    const extendFrom = !append && event?.shiftKey === true ? this.#pendingPickAnchor(editor) : null;
+
+    this.#cellDragAnchor = extendFrom ?? pressed;
+    this.#tracker.begin(this.#cellDragAnchor, append, readPressPoint(event));
+
+    if (extendFrom) {
+      this.#tracker.extendTo(pressed);
+    }
+  }
+
+  /**
+   * Returns the anchor of the last pick while the editor still holds the text and caret that pick
+   * left, or `null` once anything changed them (typing, a caret move, another edit).
+   *
+   * @param {PickingEditor} editor The live formula editor.
+   * @returns {CellAddress | null}
+   */
+  #pendingPickAnchor(editor: PickingEditor): CellAddress | null {
+    const last = this.#lastPick;
+
+    return last && editor.getValue() === last.text && editor.getCaretOffset() === last.caret ?
+      last.anchor : null;
+  }
+
+  /**
+   * Remembers the anchor of a cell or range pick that just dropped, with the editor state it left.
+   *
+   * @param {CellAddress | null} anchor The anchor of the drag that dropped, `null` for a header pick.
+   */
+  #rememberPick(anchor: CellAddress | null): void {
+    const editor = this.#deps.getActiveEditor();
+
+    this.#lastPick = anchor && editor ?
+      { anchor, text: editor.getValue(), caret: editor.getCaretOffset() } : null;
   }
 
   /**
@@ -835,11 +889,19 @@ export class CellPickController {
    */
   #handleDocMouseUp(): void {
     const wasActive = this.#tracker.isActive() || this.#headerTracker.isActive();
+    const cellAnchor = this.#tracker.isActive() ? this.#cellDragAnchor : null;
 
     this.#unlistenDrag();
 
     this.#tracker.finish();
     this.#headerTracker.finish();
+
+    // The drop inserted the reference synchronously, so the editor now holds the text it left.
+    if (wasActive) {
+      this.#rememberPick(cellAnchor);
+    }
+
+    this.#cellDragAnchor = null;
 
     if (wasActive) {
       this.#deps.relisten();

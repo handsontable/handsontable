@@ -79,6 +79,12 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   `mousedown`/`click` at all, and it disarms the click swallows, which have no click left to eat. Do not
   cancel the compatibility `mousedown` instead: the click swallows disarm on any `mousedown`, so the
   `click` after it still reached the header, link, or checkbox.
+- **Shift+press extends the last pick only while the editor holds exactly what that pick left.** The package
+  exposes no reference-at-caret API, so `CellPickController` remembers its own last cell or range pick
+  (`#lastPick`: anchor, editor text, caret, read right after the drop, which inserts synchronously) and a
+  Shift+press begins the tracker at that anchor and `extendTo()`s the pressed cell; the drop replaces the
+  reference at the caret. Any typing or caret move makes it a plain pick, Ctrl/Cmd wins over Shift
+  (append), and `reset()` forgets it. This needs `getValue()` and `getCaretOffset()` on `PickingEditor`.
 - **A range pick grows over the merged cells it touches; a cell pick does not.** The grid's own
   selection grows in MergeCells' `beforeSelectionHighlightSet`, which a claimed pick never reaches, so a drag
   from A3 onto a merged A1:B2 inserted `A1:A3`. `HandsontableAdapter#expandRangeOverMerges()` grows the
