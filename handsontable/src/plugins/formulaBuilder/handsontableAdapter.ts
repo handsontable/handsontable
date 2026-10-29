@@ -939,11 +939,35 @@ export class HandsontableAdapter {
     // `openEditor()` takes the event that opened the editor and passes it to `beforeBeginEditing`.
     // The formula bar opens it from its own focus or click, which the grid never saw, so there is
     // no grid event to pass.
-    this.#hot._getEditorManager().openEditor(seed ?? null, undefined as unknown as Event, true);
+    this.#hot._getEditorManager().openEditor(
+      this.#editorSeed(seed),
+      undefined as unknown as Event,
+      true,
+    );
 
     const editor = this.#hot.getActiveEditor() as { isOpened?(): boolean } | undefined;
 
     return editor?.isOpened?.() === true;
+  }
+
+  /**
+   * Decides what the editor is opened with. `BaseEditor#beginEditing()` treats a string seed as typed
+   * text, so its unchanged-value guard never arms and an untouched commit would write the string
+   * form of the cell (`5` becomes `"5"`, `null` becomes `""`) and record an undo step. A seed equal
+   * to the active cell's raw text is therefore replaced with `null`, which makes the editor read
+   * the cell itself and arms that guard.
+   *
+   * @param {string} [seed] The text the formula bar holds.
+   * @returns {string | null} The seed to open the editor with, or `null` to seed from the cell.
+   */
+  #editorSeed(seed?: string): string | null {
+    if (seed === undefined) {
+      return null;
+    }
+
+    const active = this.getActiveCell();
+
+    return active && this.getCellFormula(active) === seed ? null : seed;
   }
 
   /**

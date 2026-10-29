@@ -216,6 +216,7 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   `formatRef`. `getGridSize()` is the physical index count, not `getSheetDimensions()`: the engine reports
   its occupied extent, and the formula bar refuses to navigate at or past that size. A span wider than
   `MAX_HF_INDEX_SCAN` maps only its two ends and walks inward past trimmed ends.
+- **A bar edit whose text equals the cell's raw text opens the editor with a `null` seed.** `BaseEditor#beginEditing()` treats a string seed as typed text, so its unchanged-value guard never arms and an untouched commit would write `"5"` for `5`, `""` for `null`, and record an undo step. `HandsontableAdapter#editorSeed()` (private) makes that call; a changed or typed seed stays a string.
 - **A drag past the viewport edge resolves through `getCellCoordsFromMousePosition()`.** The pick's edge
   auto-scroller calls `getCellAddressAt()` with the pointer outside the grid, where `elementFromPoint()`
   finds the scrollbar and the range would stop at the last rendered cell.

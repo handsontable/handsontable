@@ -3,6 +3,7 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { Formulas } from '../../formulas';
 import { HiddenRows } from '../../hiddenRows';
+import { UndoRedo } from '../../undoRedo';
 import { FormulaBuilder } from '../formulaBuilder';
 import { getFormulaBuilderAdapter } from '../handsontableAdapter';
 import type { HandsontableAdapter } from '../handsontableAdapter';
@@ -35,6 +36,7 @@ describe('FormulaBuilder editing on a real grid', () => {
     registerPlugin(Formulas);
     registerPlugin(FormulaBuilder);
     registerPlugin(HiddenRows);
+    registerPlugin(UndoRedo);
   });
 
   beforeEach(() => {
@@ -221,6 +223,54 @@ describe('FormulaBuilder editing on a real grid', () => {
 
       expect(hot.getSelectedRangeActive()?.highlight.row).toBe(0);
       expect(adapter().beginEdit({ sheet: '', row: 0, col: 0 }, '=1')).toBe(false);
+    });
+  });
+
+  describe('committing an unchanged bar edit', () => {
+    it('leaves the cell and its type alone', async() => {
+      createGrid({ data: [[5, true], [null, 2]], undo: true });
+      const afterChange = jest.fn();
+      const plugin = hot.getPlugin('formulaBuilder') as unknown as FormulaBuilder;
+
+      hot.addHook('afterChange', afterChange);
+
+      // Only the first rows and columns are rendered under jsdom, and an unrendered cell gets no editor.
+      for (const [row, col] of [[0, 0], [0, 1], [1, 0]]) {
+        const text = plugin.getRawCellText(row, col);
+
+        hot.selectCell(row, col);
+        adapter().beginEdit({ sheet: '', row, col }, text);
+        adapter().commit(text, 'down');
+        await settle();
+      }
+
+      expect(hot.getSourceData()).toEqual([[5, true], [null, 2]]);
+      expect(afterChange).not.toHaveBeenCalled();
+      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+    });
+
+    it('leaves a formula cell alone', async() => {
+      createGrid({ data: [[1, 2, '=A1+B1']] });
+      const afterChange = jest.fn();
+
+      hot.addHook('afterChange', afterChange);
+      hot.selectCell(0, 2);
+      adapter().beginEdit({ sheet: '', row: 0, col: 2 }, '=A1+B1');
+      adapter().commit('=A1+B1', 'down');
+      await settle();
+
+      expect(hot.getSourceData()[0]).toEqual([1, 2, '=A1+B1']);
+      expect(afterChange).not.toHaveBeenCalled();
+    });
+
+    it('still writes when the text changed', async() => {
+      createGrid();
+      hot.selectCell(0, 0);
+      adapter().beginEdit({ sheet: '', row: 0, col: 0 }, 'A1');
+      adapter().commit('changed', 'down');
+      await settle();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('changed');
     });
   });
 
