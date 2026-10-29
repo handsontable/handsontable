@@ -253,7 +253,7 @@ describe('SheetModel', () => {
 
       model.addSheet(composed, [[]]);
 
-      expect(model.addSheet(decomposed, [[]]).name).not.toBe(decomposed);
+      expect(model.addSheet(decomposed, [[]]).name).toBe(`${decomposed} (2)`);
     });
   });
 });

@@ -68,6 +68,7 @@ describe('Plugin hooks released on disable', () => {
 
   /**
    * Counts every callback registered on the instance and in the global bucket, across all registered hooks.
+   * A callback added under a hook name nobody registered is not counted.
    *
    * @returns {number} The number of callbacks.
    */

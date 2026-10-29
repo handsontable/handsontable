@@ -20,7 +20,7 @@ describe('SheetsBar on a grid that is not a root instance', () => {
     expect(plugin.isEnabled()).toBe(false);
     expect(plugin.enabled).toBe(false);
     expect(container.querySelector('.ht-sheets-bar')).toBeNull();
-    expect(nested.getDataAtCell(0, 0)).not.toBe(2);
+    expect(nested.getDataAtCell(0, 0)).toBeNull();
 
     nested.destroy();
     container.remove();
