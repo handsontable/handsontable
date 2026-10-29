@@ -46,12 +46,11 @@ export type { BorderSettings, BorderObject };
 type BorderSide = 'top' | 'bottom' | 'start' | 'end';
 
 /**
- * `HotInstance` with the `_removeCellMetaByPhysicalIndex` and `isExecutionSuspended` methods, which
- * exist on the Core runtime object but are not part of the `HotInstance` type.
+ * `HotInstance` with the `_removeCellMetaByPhysicalIndex` method, which exists on the Core runtime
+ * object but is not part of the `HotInstance` type.
  */
 type HotInstanceInternal = HotInstance & {
   _removeCellMetaByPhysicalIndex(physicalRow: number, physicalColumn: number, key: string): void;
-  isExecutionSuspended(): boolean;
 };
 
 /**
@@ -2154,10 +2153,11 @@ The border style will be ignored.`);
 
     const visibleRows = this.hot.rowIndexMapper.getNotTrimmedIndexes();
 
-    // While execution is suspended the mapper does not rebuild its cache, so `trimRows: false` (which
-    // only unregisters the map) leaves the very same array behind and the comparison would pass.
+    // While the mapper batches operations (`hot.batch()`, or a bare `suspendOperations()`) it does not
+    // rebuild its cache, so `trimRows: false` (which only unregisters the map) leaves the very same
+    // array behind and the comparison would pass.
     if (
-      !(this.hot as HotInstanceInternal).isExecutionSuspended() &&
+      !this.hot.rowIndexMapper.isBatched &&
       (
         visibleRowsBefore === visibleRows ||
         (

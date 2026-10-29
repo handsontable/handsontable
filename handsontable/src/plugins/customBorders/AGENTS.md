@@ -191,9 +191,11 @@ Three more entry points, all from review round 12:
   Do **not** key this on the mapper's cache update instead: an insert or a remove raises the same flags, and
   the plugin already shifts its model for them in its `before*` hooks, so a rebuild there moves the borders
   twice. Pinned by `__tests__/unchangedTrimRowsSettings.unit.js`. Two guards ride along. **The comparison is
-  skipped while `hot.isExecutionSuspended()`**: a `trimRows: false` only unregisters the map, and the mapper
-  does not rebuild its cache until the suspension ends, so inside `hot.batch()` the array is the very same
-  one and would read as "unchanged"; the rebuild is then deferred as it always was. **`updatePlugin()` keeps the
+  skipped while `hot.rowIndexMapper.isBatched`**: a `trimRows: false` only unregisters the map, and the mapper
+  does not rebuild its cache until the batch ends, so inside `hot.batch()`, or a bare
+  `rowIndexMapper.suspendOperations()`, the array is the very same one and would read as "unchanged"; the
+  rebuild is then deferred as it always was. Key it on the mapper's flag (the one `updateCache()` checks), not
+  on `hot.isExecutionSuspended()`, which a bare mapper suspension does not set. **`updatePlugin()` keeps the
   snapshot across its disable/enable cycle** (the listener it re-registers can still run in that pass), while
   `disablePlugin()` nulls it, so a plugin switched off in one update never compares against rows from before.
 - **A pending rebuild runs in `beforeLoadData`/`beforeUpdateData`** (`#onBeforeDataReplacement`).

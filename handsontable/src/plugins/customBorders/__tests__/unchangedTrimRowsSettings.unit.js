@@ -190,6 +190,11 @@ describe('CustomBorders and updateSettings({ trimRows })', () => {
         callback();
         hot.resumeExecution();
       }],
+      ['rowIndexMapper.suspendOperations() and resumeOperations()', (callback) => {
+        hot.rowIndexMapper.suspendOperations();
+        callback();
+        hot.rowIndexMapper.resumeOperations();
+      }],
     ])('should move the border back when %s wraps the switch-off of trimRows', async(_, run) => {
       createGridWithBorder([0]);
 
