@@ -305,6 +305,8 @@ The [`moveColumns`](@/api/manualColumnMove.md#movecolumns) method has a `finalIn
 
 The [`moveColumns`](@/api/manualColumnMove.md#movecolumns) function cannot perform some actions, e.g., more than one element can't be moved to the last position. In this scenario, the move will be canceled. The Plugin's [`isMovePossible`](@/api/manualColumnMove.md#ismovepossible) API method and the `movePossible` parameters [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) and [`afterColumnMove`](@/api/hooks.md#aftercolumnmove) hooks help in determine such situations.
 
+The [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) and [`afterColumnMove`](@/api/hooks.md#aftercolumnmove) hooks also fire when a move leaves the order unchanged, for example when you grab a column header and drop the column back where it was. In that case, `movePossible` is `true` and the `orderChanged` parameter of `afterColumnMove` is `false`. Check `orderChanged` to ignore such moves. The order of the columns stays as it was, even when some columns are trimmed.
+
 ## Related API reference
 
 **Configuration options**
