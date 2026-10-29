@@ -65,6 +65,8 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   the hook runner to skip later callbacks once the flag is set would change every event hook. A checkbox
   cell is different: its renderer toggles the box on the native `click`, after the claimed `mousedown`,
   so a pick that starts on the box or its label arms a one-shot click swallow and the pick wins.
+  A drag held on a header clamps only the header's own axis to the first visible track (`firstVisibleRow()`/
+  `firstVisibleCol()`: index 0 when that axis is frozen, else the first fully visible one), not to index 0.
   The handoff press (a click on the bar-selected cell, which moves the edit into the cell) is claimed
   as well, not only suppressed: RowSelection's click selection runs from `afterOnCellMouseDown`.
 - **The `formula` alias is registered in the constructor, not in `enablePlugin()`.** A cell configured with

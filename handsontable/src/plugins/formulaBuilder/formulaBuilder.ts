@@ -1511,6 +1511,24 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
+   * Returns the first visible track of an axis. A frozen band is always on screen, so its first track
+   * (index 0) is the first visible one; otherwise it is the first fully visible index, or the first
+   * rendered one when the viewport shows none in full (`-1`).
+   *
+   * @param {number | undefined} frozen The number of frozen tracks on the axis.
+   * @param {number | null} fullyVisible The first fully visible index.
+   * @param {number | null} rendered The first rendered visible index.
+   * @returns {number}
+   */
+  #firstVisible(frozen: number | undefined, fullyVisible: number | null, rendered: number | null): number {
+    if (frozen && frozen > 0) {
+      return 0;
+    }
+
+    return fullyVisible !== null && fullyVisible >= 0 ? fullyVisible : Math.max(rendered ?? 0, 0);
+  }
+
+  /**
    * Returns the visual columns a column header covers: a nested-header group spans several, every
    * other header one. Read through the NestedHeaders plugin, the way its own click selects the span.
    *
@@ -1844,6 +1862,16 @@ export class FormulaBuilder extends BasePlugin {
       getScrollHolder: () => this.#adapter?.getScrollHolder() ?? null,
       getRootDocument: () => this.hot.rootDocument,
       getColumnHeaderSpan: coords => this.#columnHeaderSpan(coords),
+      firstVisibleRow: () => this.#firstVisible(
+        this.hot.getSettings().fixedRowsTop,
+        this.hot.getFirstFullyVisibleRow(),
+        this.hot.getFirstRenderedVisibleRow()
+      ),
+      firstVisibleCol: () => this.#firstVisible(
+        this.hot.getSettings().fixedColumnsStart,
+        this.hot.getFirstFullyVisibleColumn(),
+        this.hot.getFirstRenderedVisibleColumn()
+      ),
     });
 
     this.addHook('afterRenderer', this.#onAfterRenderer);

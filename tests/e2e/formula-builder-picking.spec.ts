@@ -409,3 +409,83 @@ test.describe('formulaBuilder picking in a window-scrolled grid', { tag: [THEMES
     expect(await endRow()).toBeGreaterThan(20);
   });
 });
+
+// A drag held on a header clamps to the first visible track: after the grid scrolled, the first row or
+// column is out of view, and a range that starts there would reach far past anything on screen. The
+// frozen band counts as visible, so a frozen grid clamps to its own first track.
+test.describe('formulaBuilder picking onto the headers of a scrolled grid', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  test('a drag from a cell up onto the column header starts at the first visible row', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle);
+
+    await grid.goto();
+    await page.evaluate(() => {
+      const hot = (window as unknown as { hot: { loadData(data: unknown[][]): void } }).hot;
+
+      hot.loadData(Array.from({ length: 100 }, (_, row) => [row + 1, '', '']));
+    });
+    await page.evaluate(() => {
+      (window as unknown as { hot: { scrollViewportTo(options: { row: number }): void } }).hot
+        .scrollViewportTo({ row: 50 });
+    });
+    await expect.poll(() => page.evaluate(
+      () => (window as unknown as { hot: { getFirstFullyVisibleRow(): number } }).hot.getFirstFullyVisibleRow()
+    )).toBeGreaterThan(20);
+
+    const firstVisible = await page.evaluate(
+      () => (window as unknown as { hot: { getFirstFullyVisibleRow(): number } }).hot.getFirstFullyVisibleRow()
+    );
+    const editedRow = firstVisible + 1;
+
+    await grid.selectCellByApi(editedRow, 0);
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+
+    const targetRow = firstVisible + 3;
+    const start = await grid.cell(targetRow, 1).boundingBox();
+    const header = await grid.columnHeaderLabel('B').boundingBox();
+
+    await grid.cell(targetRow, 1).hover();
+    await page.mouse.down();
+    await page.mouse.move((start?.x ?? 0) + 10, (header?.y ?? 0) + (header?.height ?? 0) / 2, { steps: 10 });
+    await page.mouse.up();
+
+    const startRow = firstVisible + 1;
+
+    await expect(grid.editorInput).toHaveValue(`=B${startRow}:B${targetRow + 1}`);
+  });
+});
+
+// A frozen band is always on screen, so a header hover in a scrolled frozen grid clamps to its first track.
+test.describe('formulaBuilder picking onto the headers of a scrolled frozen grid', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  test('a drag from a cell up onto the column header starts at the frozen first row', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle, 'frozen');
+
+    await grid.goto();
+    await page.evaluate(() => {
+      const hot = (window as unknown as { hot: { loadData(data: unknown[][]): void; scrollViewportTo(o: { row: number }): void } }).hot;
+
+      hot.loadData(Array.from({ length: 100 }, (_, row) => [row + 1, '', '']));
+      hot.scrollViewportTo({ row: 50 });
+    });
+
+    await expect.poll(() => page.evaluate(
+      () => (window as unknown as { hot: { getFirstFullyVisibleRow(): number } }).hot.getFirstFullyVisibleRow()
+    )).toBeGreaterThan(20);
+    await grid.selectCellByApi(0, 0);
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+
+    const targetRow = await page.evaluate(
+      () => (window as unknown as { hot: { getFirstFullyVisibleRow(): number } }).hot.getFirstFullyVisibleRow()
+    ) + 2;
+    const start = await grid.cell(targetRow, 1).boundingBox();
+    const header = await grid.columnHeaderLabel('B').boundingBox();
+
+    await grid.cell(targetRow, 1).hover();
+    await page.mouse.down();
+    await page.mouse.move((start?.x ?? 0) + 10, (header?.y ?? 0) + (header?.height ?? 0) / 2, { steps: 10 });
+    await page.mouse.up();
+
+    await expect(grid.editorInput).toHaveValue(`=B1:B${targetRow + 1}`);
+  });
+});

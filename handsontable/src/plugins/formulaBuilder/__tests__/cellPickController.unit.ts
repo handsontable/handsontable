@@ -111,6 +111,8 @@ function makeHarness(options: HarnessOptions = {}) {
     getScrollHolder: () => holder as unknown as HTMLElement,
     getRootDocument: () => document,
     getColumnHeaderSpan: coords => headerSpans[coords.col] ?? { start: coords.col, end: coords.col },
+    firstVisibleRow: () => 0,
+    firstVisibleCol: () => 0,
   });
 
   return {

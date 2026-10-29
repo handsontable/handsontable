@@ -123,6 +123,20 @@ export interface CellPickControllerDeps {
    * @returns {{ start: number, end: number }}
    */
   getColumnHeaderSpan(coords: GridCoords): { start: number; end: number };
+  /**
+   * Returns the first visual row the viewport shows in full, which a drag held on a column header
+   * clamps to. Frozen rows count as shown, so a grid with frozen rows reports its first row.
+   *
+   * @returns {number}
+   */
+  firstVisibleRow(): number;
+  /**
+   * Returns the first visual column the viewport shows in full, which a drag held on a row header
+   * clamps to. Frozen columns count as shown, so a grid with frozen columns reports its first column.
+   *
+   * @returns {number}
+   */
+  firstVisibleCol(): number;
 }
 
 /**
@@ -838,7 +852,12 @@ export class CellPickController {
       return false;
     }
 
-    const clamped = { row: Math.max(coords.row, 0), col: Math.max(coords.col, 0) };
+    // A header hover has a negative index on one axis only: that axis clamps to the first visible
+    // track, not to the first one, which a scrolled grid has left behind.
+    const clamped = {
+      row: coords.row < 0 ? Math.max(this.#deps.firstVisibleRow(), 0) : coords.row,
+      col: coords.col < 0 ? Math.max(this.#deps.firstVisibleCol(), 0) : coords.col,
+    };
     const mapped = this.#deps.toHfCoords(clamped);
 
     if (mapped.row >= 0 && mapped.col >= 0) {
