@@ -481,7 +481,7 @@ export class Dialog extends BasePlugin {
   }
 
   /**
-   * Registers a listener called after a show replaced the dialog on screen with another one: a `show()`
+   * Registers a listener called after the dialog on screen got other content: a `show()` or an `update()`
    * that names `content` or `template` while a dialog is visible, or `_showDialog()`. Loading uses it to
    * learn that its screen was replaced.
    *
@@ -585,9 +585,30 @@ export class Dialog extends BasePlugin {
       return;
     }
 
-    const startsFromScratch = this.#beginsNewDialog && this.#namesContentOrTemplate(options);
+    const namesContentOrTemplate = this.#namesContentOrTemplate(options);
+    const startsFromScratch = this.#beginsNewDialog && namesContentOrTemplate;
 
     this.#applyOptions(options, startsFromScratch ? {} : this.#dialogOptions);
+
+    if (namesContentOrTemplate && this.isVisible()) {
+      this.#replacedListeners.forEach(listener => listener());
+    }
+  }
+
+  /**
+   * Re-renders the dialog on screen with `options` alone over the configured options, without telling the
+   * replaced listeners. Loading updates its own screen through it, so its updates are not read as another
+   * dialog taking the screen's place.
+   *
+   * @private
+   * @param {object} options The complete description of the dialog.
+   */
+  _updateDialog(options: Record<string, unknown>): void {
+    if (!this.enabled || !this.isVisible()) {
+      return;
+    }
+
+    this.#applyOptions(options, {});
   }
 
   /**

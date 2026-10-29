@@ -12,9 +12,9 @@ interface DialogPlugin {
   isEnabled(): boolean;
   isVisible(): boolean;
   hide(): void;
-  update(options: LoadingDialogOptions): void;
   focus(): void;
   _showDialog(options: LoadingDialogOptions): void;
+  _updateDialog(options: LoadingDialogOptions): void;
   _addReplacedListener(listener: () => void): void;
   _removeReplacedListener(listener: () => void): void;
 }
@@ -367,7 +367,7 @@ export class Loading extends BasePlugin {
     this.updatePluginSettings(options);
 
     if (this.isVisible()) {
-      this.#dialogPlugin.update(this.#describeDialog());
+      this.#dialogPlugin._updateDialog(this.#describeDialog());
     }
   }
 

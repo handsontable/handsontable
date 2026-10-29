@@ -150,6 +150,51 @@ describe('Loading and a dialog it did not open', () => {
     expect(loadingHidden).toHaveBeenCalledTimes(1);
   });
 
+  it('gives the dialog up when the application updates the loading screen with its own content', () => {
+    const loadingHidden = jest.fn();
+
+    hot = new Handsontable(container, {
+      data: [['a']],
+      loading: true,
+      afterLoadingHide: loadingHidden,
+      licenseKey: LICENSE_KEY,
+    });
+    const dialog = hot.getPlugin('dialog');
+    const loading = hot.getPlugin('loading');
+
+    loading.show();
+    dialog.update({ content: 'Mine' });
+
+    expect(loading.isVisible()).toBe(false);
+    expect(loadingHidden).toHaveBeenCalledTimes(1);
+
+    loading.hide();
+
+    expect(dialog.isVisible()).toBe(true);
+    expect(dialog.getSetting('content')).toBe('Mine');
+    expect(loadingHidden).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the dialog when the loading screen updates its own options', () => {
+    const loadingHidden = jest.fn();
+
+    hot = new Handsontable(container, {
+      data: [['a']],
+      loading: true,
+      afterLoadingHide: loadingHidden,
+      licenseKey: LICENSE_KEY,
+    });
+    const loading = hot.getPlugin('loading');
+
+    loading.show();
+    loading.update({ title: 'Wait' });
+    loading.show({ description: 'Still loading' });
+
+    expect(loading.isVisible()).toBe(true);
+    expect(loadingHidden).not.toHaveBeenCalled();
+    expect(hot.rootOverlaysElement.querySelector('.ht-loading__description').textContent).toBe('Still loading');
+  });
+
   it('gives the dialog up when the application shows a confirm dialog over the loading screen', () => {
     const loadingHidden = jest.fn();
 

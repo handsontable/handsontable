@@ -43,7 +43,8 @@ The dialog is a surface the application uses too, so its visibility says nothing
 `#ownsDialog` is set by a successful `show()` and cleared by `hide()`, by `afterDialogHide` for any other hide
 (`dialog.hide()`, Escape on a configured `closable` dialog, the Dialog plugin turned off), and by the Dialog
 plugin's replaced listener (`_addReplacedListener()`) when another dialog is shown over the screen (an app
-`dialog.show({ content })`, `showAlert()`/`showConfirm()`, the ExportFile progress dialog). `isVisible()`, `hide()`
+`dialog.show({ content })` or `dialog.update({ content })`, `showAlert()`/`showConfirm()`, the ExportFile progress
+dialog). Loading's own `update()` goes through `dialog._updateDialog()`, which calls no listener. `isVisible()`, `hide()`
 and `update()` act on the dialog only while the flag is set: before it, `loading.isVisible()` answered `true` for
 the application's own dialog, and `loading.hide()`/`update()` closed or rewrote it. Rules that ride along:
 
