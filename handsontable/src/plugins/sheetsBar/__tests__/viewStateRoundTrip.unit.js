@@ -35,15 +35,16 @@ describe('SheetsBar -> view state round trip', () => {
    * @param {object} settings Grid settings.
    * @param {Array[]} alphaData The first sheet's data.
    * @param {Array[]} [betaData] The second sheet's data.
+   * @param {object} [betaSettings] The second sheet's own settings.
    * @returns {object} The SheetsBar plugin.
    */
-  function build(settings, alphaData, betaData = [[0, 0, 0, 0]]) {
+  function build(settings, alphaData, betaData = [[0, 0, 0, 0]], betaSettings = {}) {
     hot = new Handsontable(container, {
       ...settings,
       sheetsBar: {
         sheets: [
           { name: 'Alpha', data: alphaData },
-          { name: 'Beta', data: betaData },
+          { name: 'Beta', data: betaData, settings: betaSettings },
         ],
       },
       licenseKey: LICENSE_KEY,
@@ -119,6 +120,31 @@ describe('SheetsBar -> view state round trip', () => {
       hot.getPlugin('columnSorting').clearSort();
 
       expect(hot.getDataAtCol(0)).toEqual(unsorted);
+    });
+
+    it('keeps the sort states of a sheet whose sort a listener canceled after the sorting plugin was disabled', () => {
+      const bar = build({ manualRowMove: true, columnSorting: true }, createData(), [[0, 0, 0, 0]],
+        { columnSorting: false });
+
+      hot.getPlugin('manualRowMove').moveRow(3, 0);
+      hot.render();
+      hot.getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      const sorted = hot.getDataAtCol(0);
+      const veto = () => false;
+
+      bar.setActiveSheet('Beta');
+      hot.addHook('beforeColumnSort', veto);
+      bar.setActiveSheet('Alpha');
+      hot.removeHook('beforeColumnSort', veto);
+
+      const sorting = hot.getPlugin('columnSorting');
+
+      expect(hot.getDataAtCol(0)).toEqual(sorted);
+      expect(sorting.getSortConfig()).toEqual([{ column: 2, sortOrder: 'asc' }]);
+      expect(() => sorting.clearSort()).not.toThrow();
+      expect(sorting.getSortConfig()).toEqual([]);
+      expect(hot.getDataAtCol(0)).toEqual(sorted);
     });
 
     it('fires no sort hooks on a switch when no sheet is sorted', () => {

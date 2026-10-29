@@ -1000,16 +1000,16 @@ function restoreAxisState(hot: HotInstance, state: ViewState, covers: PartFilter
  * claim a sort they do not have.
  *
  * Nothing is written when the states are no longer empty: the sort ran, or the listener that
- * canceled it set a config of its own, which stays. Nothing is written either while the plugin
- * holds no pre-sort row cache. `setSortConfig()` retakes the cache from the unsorted rows only
- * when one exists, so a cache built later by `sort()` would hold the restored order. The cache is missing after
- * the plugin was disabled and enabled again, which a sheet declaring `columnSorting: false` does
- * on every switch.
+ * canceled it set a config of its own, which stays. The states are written when the plugin holds
+ * no pre-sort row cache too (it was disabled and enabled again, which a sheet declaring
+ * `columnSorting: false` does on every switch): `setSortConfig()` builds no cache then, and the
+ * sorting plugin takes it from the rows of the next sort or clear, as it does after any
+ * `setSortConfig()` on a grid that never sorted.
  */
 function restoreCanceledSortStates(sorting: SortingPlugin, sortConfig: SortedColumn[]) {
   const currentStates = sorting.getSortConfig() as unknown[];
 
-  if (sorting.indexesSequenceCache === null || currentStates.length > 0) {
+  if (currentStates.length > 0) {
     return;
   }
 
