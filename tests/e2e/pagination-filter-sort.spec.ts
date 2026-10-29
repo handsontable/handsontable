@@ -36,7 +36,7 @@ test.describe('pagination over a filtered and sorted grid', { tag: CROSS_BROWSER
     const byColumn = (column: number) => [...kept].sort((a, b) => String(a[column]).localeCompare(String(b[column])));
     const slice = (rows: unknown[][], column: number, from: number) => rows.slice(from, from + 10).map(row => row[column]);
 
-    // "Clear", search "In", "Select all", OK: five countries contain "in", thirty rows.
+    // "Select none", search "In", "Select all", OK: five countries contain "in", thirty rows.
     await grid.keepSearchedValues('Country', 'In', ['Argentina', 'China', 'India', 'Philippines', 'United Kingdom']);
     await grid.sortBy(0, 'ascending');
 
