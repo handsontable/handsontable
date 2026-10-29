@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-29T10:01:48.648Z",
+  "generatedAt": "2026-10-29T11:17:01.554Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -492,43 +492,6 @@
       "needsTicket": true
     },
     {
-      "key": "playwright|e2e/iframe-cross-realm-scroll.spec.ts|cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "tier": "playwright",
-      "file": "e2e/iframe-cross-realm-scroll.spec.ts",
-      "line": 100,
-      "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "count7": 0,
-      "count30": 7,
-      "countAll": 14,
-      "runs30": 4,
-      "flakyRuns30": 4,
-      "branches30": 4,
-      "nightlyRuns30": 0,
-      "openBranches30": 4,
-      "legs": [
-        "e2e-classic",
-        "e2e-classic-min",
-        "e2e-horizon",
-        "e2e-horizon-min",
-        "e2e-main-min"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-09T10:09:36Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37910350952/attempts/2",
-        "branch": "feature/DEV-3345_Test-arrow-key-burst-beside-end-columns",
-        "leg": "e2e-classic",
-        "status": "flaky",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
       "key": "playwright|e2e/collapsible-indicator-dropdown-menu.spec.ts|collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
       "tier": "playwright",
       "file": "e2e/collapsible-indicator-dropdown-menu.spec.ts",
@@ -559,6 +522,43 @@
         "leg": "e2e-horizon-min",
         "status": "flaky",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/iframe-cross-realm-scroll.spec.ts|cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
+      "tier": "playwright",
+      "file": "e2e/iframe-cross-realm-scroll.spec.ts",
+      "line": 100,
+      "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
+      "count7": 0,
+      "count30": 6,
+      "countAll": 14,
+      "runs30": 4,
+      "flakyRuns30": 4,
+      "branches30": 4,
+      "nightlyRuns30": 0,
+      "openBranches30": 4,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-09T10:09:36Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37910350952/attempts/2",
+        "branch": "feature/DEV-3345_Test-arrow-key-burst-beside-end-columns",
+        "leg": "e2e-classic",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": true
