@@ -1,5 +1,6 @@
 import type { default as MetaManagerInstance } from '..';
 import { throwWithCause } from '../../../helpers/errors';
+import { FIXED_COLUMNS_LEFT_RTL_ERROR } from '../../../core/fixedColumnsAlias';
 
 /**
  * @class ExtendMetaPropertiesMod
@@ -32,12 +33,7 @@ export class ExtendMetaPropertiesMod {
         const isRtl: boolean = this.metaManager.hot.isRtl();
 
         if (isRtl && propName === 'fixedColumnsLeft') {
-          throwWithCause('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
-        }
-
-        if (this.usageTracker.has('fixedColumnsLeft') && this.usageTracker.has('fixedColumnsStart')) {
-          throwWithCause('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together. ' +
-            'Please use only the option `fixedColumnsStart`.');
+          throwWithCause(FIXED_COLUMNS_LEFT_RTL_ERROR);
         }
       }
     }],

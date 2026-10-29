@@ -377,6 +377,7 @@ export class Comments extends BasePlugin {
   disablePlugin(): void {
     const manager = this.hot.getShortcutManager();
 
+    this.#displaySwitch?.cancel();
     this.hide();
 
     // The hold flag outlives a disable, because it is an instance field and `enablePlugin()` never

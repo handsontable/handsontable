@@ -927,6 +927,17 @@ row. The paint value stays the ghost number: putting the pixel into `style.heigh
 every nested level after the first 1px taller. An explicit `columnHeaderHeight` and the
 first-draw content probe already include the gridline, so they do not get another pixel.
 
+`adjustColumnHeaderHeights` writes a raised level's height on its first header cell, and those cells are
+reused across draws, so it clears that inline height once the level is back at the default. Otherwise a
+header row that once held multi-line labels stayed tall: the render-size probe measured the written height
+back into the funnel on every draw. `TableView` drops a stored header height above one line at the start
+of each full render for the same reason (`#dropRaisedColumnHeaderHeights`), so the pre-measure takes the new
+content. "One line" is the default row height PLUS the header's bottom gridline (`#hasRaisedColumnHeader`,
+shared with the post-draw overlay re-sync): the probe measures a border-box height, so against the default
+height alone every one-line header read as raised and each full render re-measured and re-synced for
+nothing. Pinned by `test/unit/axisSizing/columnHeaderHeights.unit.ts`,
+`src/__tests__/columnHeaderHeightReset.unit.js` and `tests/e2e/sheets-bar-header-height.spec.ts`.
+
 ## Border ownership: the header owns its gridline, on both axes
 
 Both axes are settled, and they are now symmetric. On the column axis a row header `th` carries its

@@ -12,6 +12,8 @@ import {
   HEADER_TYPE,
 } from '../../selection';
 import { BasePlugin } from '../base';
+import { mixin } from '../../helpers/object';
+import localHooks from '../../mixins/localHooks';
 import StateManager from './stateManager';
 import { createColumnVisibilityAdapter } from './stateManager/columnVisibility';
 import { createColumnArrangementAdapter } from './stateManager/columnArrangement';
@@ -178,6 +180,26 @@ function isMembershipState(value: unknown): value is MembershipState {
  * :::
  */
 export class NestedHeaders extends BasePlugin {
+  /**
+   * Registers a local hook listener. Provided by the `localHooks` mixin. The plugin runs
+   * `afterHeaderStateRebuild` each time it builds the header state from the `nestedHeaders` setting,
+   * which resets every flag another plugin wrote into that state (CollapsibleColumns' `collapsible`).
+   *
+   * @private
+   */
+  declare addLocalHook: (key: string, callback: Function) => this;
+  /**
+   * Removes a local hook listener. Provided by the `localHooks` mixin.
+   *
+   * @private
+   */
+  declare removeLocalHook: (key: string, callback: Function) => this;
+  /**
+   * Runs the local hook listeners registered under the given name. Provided by the `localHooks` mixin.
+   *
+   * @private
+   */
+  declare runLocalHooks: (key: string, ...args: unknown[]) => void;
   /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.
    */
@@ -583,6 +605,10 @@ export class NestedHeaders extends BasePlugin {
     this.#updateWidthsMap = true;
 
     super.updatePlugin();
+
+    if (this.enabled && Array.isArray(nestedHeaders)) {
+      this.runLocalHooks('afterHeaderStateRebuild');
+    }
   }
 
   /**
@@ -2144,3 +2170,5 @@ export class NestedHeaders extends BasePlugin {
     return this.#stateManager.getHeaderTreeNodeData(coords.row, coords.col);
   }
 }
+
+mixin(NestedHeaders, localHooks);

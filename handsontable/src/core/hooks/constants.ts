@@ -598,6 +598,9 @@ export const REGISTERED_HOOKS = [
    * Fired after a dataProvider `fetchRows` request ends without loading data because it was aborted
    * (superseded by a newer fetch, `AbortSignal`, or plugin disable/destroy).
    *
+   * A newer fetch supersedes the running one only once it starts: when a {@link Hooks#beforeDataProviderFetch}
+   * listener cancels the newer fetch, the running one keeps going and this hook does not fire for it.
+   *
    * @event Hooks#afterDataProviderFetchAbort
    * @since 17.1.0
    * @param {object} queryParameters The query parameters that were used for the aborted request.
@@ -1504,6 +1507,10 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after calling the [`updateSettings`](@/api/core.md#updatesettings) method.
    *
+   * A legacy [`fixedColumnsLeft`](@/api/options.md#fixedcolumnsleft) passed to `updateSettings()` stays
+   * `fixedColumnsLeft` in `newSettings`, though the grid applies it as
+   * [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart).
+   *
    * @event Hooks#afterUpdateSettings
    * @param {object} newSettings New settings object.
    */
@@ -2000,6 +2007,12 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired before the dataProvider fetches data. Return `false` to cancel the fetch.
+   *
+   * A canceled fetch leaves a fetch that is already running alone: that fetch still loads its rows. The
+   * loading state of the [`emptyDataState`](@/api/options.md#emptydatastate) overlay is updated after a
+   * cancel, so the overlay shows loading only while a fetch still runs. The fetch starts only after every
+   * listener returns, so a fetch a listener starts with `fetchData()` from inside this hook starts first, and the
+   * fetch the hook was fired for then replaces it, unless the listener returns `false`.
    *
    * @event Hooks#beforeDataProviderFetch
    * @since 17.1.0
@@ -4476,6 +4489,10 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link Loading} plugin before hiding the loading indicator. This hook is fired when {@link Options#loading}
    * option is enabled.
    *
+   * It fires only for a hide that {@link Loading#hide} makes. A hide made through the {@link Dialog} plugin
+   * ({@link Dialog#hide}, the **Escape** key on a closable dialog, or a dialog shown over the loading indicator) cannot
+   * be skipped, so this hook does not fire for it, while {@link Hooks#afterLoadingHide} does.
+   *
    * @since 16.1.0
    * @event Hooks#beforeLoadingHide
    * @returns {boolean | undefined} If returns `false`, the action will be skipped.
@@ -4485,6 +4502,10 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by {@link Loading} plugin after hiding the loading indicator. This hook is fired when {@link Options#loading}
    * option is enabled.
+   *
+   * It also fires when the loading indicator goes away through the {@link Dialog} plugin: {@link Dialog#hide}, the
+   * **Escape** key on a closable dialog, or a dialog shown over the loading indicator. {@link Hooks#beforeLoadingHide}
+   * does not fire in those cases.
    *
    * @since 16.1.0
    * @event Hooks#afterLoadingHide

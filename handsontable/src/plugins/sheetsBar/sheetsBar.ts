@@ -45,6 +45,7 @@ import * as C from '../../i18n/constants';
 import { announce } from '../../utils/a11yAnnouncer';
 import { isRootInstance } from '../../utils/rootInstance';
 import { deepClone, isPlainObject } from '../../helpers/object';
+import { normalizeFixedColumnsAlias, renameFixedColumnsLeft } from '../../core/fixedColumnsAlias';
 import {
   formatSheetName, isUnquotedSheetName, quoteUnreadableSheetNames, rewriteSheetReferences,
 } from '../../utils/formulaReferences';
@@ -1757,7 +1758,8 @@ export class SheetsBar extends BasePlugin {
       return;
     }
 
-    const ownSettings = this.#activeSheetRecord()?.settings;
+    const declared = this.#activeSheetRecord()?.settings;
+    const ownSettings = isPlainObject(declared) ? renameFixedColumnsLeft(declared) : declared;
     const restatesGrid = PLUGIN_KEY in newSettings;
 
     Object.keys(newSettings).forEach((key) => {
@@ -1795,7 +1797,8 @@ export class SheetsBar extends BasePlugin {
       return settings;
     }
 
-    const own = this.#activeSheetRecord()?.settings;
+    const declared = this.#activeSheetRecord()?.settings;
+    const own = isPlainObject(declared) ? renameFixedColumnsLeft(declared) : declared;
 
     if (!isPlainObject(own) || !this.#filtersGridSettings(settings)) {
       return settings;
@@ -2041,15 +2044,15 @@ export class SheetsBar extends BasePlugin {
       return false;
     }
 
-    const changes = Object.fromEntries(
+    const changes = normalizeFixedColumnsAlias(Object.fromEntries(
       Object.entries(settings).filter(([key, value]) => !UNSETTABLE_SHEET_KEYS.has(key) && value !== undefined)
-    );
+    ), this.hot.isRtl());
 
     if (Object.keys(changes).length === 0) {
       return false;
     }
 
-    sheet.settings = { ...(sheet.settings ?? {}), ...changes };
+    sheet.settings = { ...renameFixedColumnsLeft(sheet.settings ?? {}), ...changes };
 
     if (model?.getActiveSheet()?.id === id) {
       if ('importFile' in changes) {
@@ -3434,6 +3437,21 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
+   * Gives a duplicate of the sheet the grid shows the values its ColumnSummary destination cells held
+   * before the summary results. The grid's data holds the results, and a deep copy of it would sum them
+   * again on its first visit (a total of 6 came back as 12). A hidden sheet's data already holds the
+   * original values: the switch away gave them back.
+   *
+   * @param {object} original The sheet that was duplicated.
+   * @param {object} copy The duplicate.
+   */
+  #restoreSummaryValuesInCopy(original: Sheet, copy: Sheet) {
+    if (this.#model?.getActiveSheet()?.id === original.id) {
+      this.hot.getPlugin('columnSummary')?.restoreDestinationValuesInCopy(original.data, copy.data);
+    }
+  }
+
+  /**
    * Gives a duplicated sheet the ColumnSummary endpoints its original holds now, written into the copy's
    * own settings. The copy's data is a copy of the original's, with every summary at the position a row
    * or column alteration moved it to, and the copy opens as a first visit, so the declared positions
@@ -3569,9 +3587,10 @@ export class SheetsBar extends BasePlugin {
   #withBaselineFor(sheetSettings: Record<string, unknown> | undefined): Record<string, unknown> | null {
     // A sheet cannot reconfigure the bar it is a part of: applying `sheetsBar` from inside a
     // switch would rebuild the workbook that is mid-switch.
-    const settings = sheetSettings && PLUGIN_KEY in sheetSettings
+    const ownSettings = sheetSettings && PLUGIN_KEY in sheetSettings
       ? Object.fromEntries(Object.entries(sheetSettings).filter(([key]) => key !== PLUGIN_KEY))
       : sheetSettings;
+    const settings = ownSettings && normalizeFixedColumnsAlias(ownSettings, this.hot.isRtl());
 
     Object.keys(settings ?? {}).forEach((key) => {
       if (!this.#settingsBaseline.has(key)) {
@@ -3708,10 +3727,9 @@ export class SheetsBar extends BasePlugin {
 
     keys.forEach((key) => {
       const value = changes[key];
-      const frozenKey = key === 'fixedColumnsLeft' ? 'fixedColumnsStart' : key;
 
-      if (isFrozenCountKey(frozenKey)) {
-        sheet.viewState = { ...sheet.viewState, [frozenKey]: typeof value === 'number' ? value : undefined };
+      if (isFrozenCountKey(key)) {
+        sheet.viewState = { ...sheet.viewState, [key]: typeof value === 'number' ? value : undefined };
       }
 
       if (key === 'pagination') {
@@ -4274,6 +4292,7 @@ export class SheetsBar extends BasePlugin {
         }
 
         this.#copyServerView(original, sheet);
+        this.#restoreSummaryValuesInCopy(original, sheet);
         this.#copyColumnSummaryEndpoints(original, sheet);
         this.#copyCellOption(original, sheet);
         this.#copyViewState(original, sheet);
@@ -5319,7 +5338,7 @@ export class SheetsBar extends BasePlugin {
    * @param {object} newSettings The settings passed to `updateSettings()`.
    */
   #onAfterUpdateSettings = (newSettings: Record<string, unknown>) => {
-    this.#refreshSettingsBaseline(newSettings);
+    this.#refreshSettingsBaseline(renameFixedColumnsLeft(newSettings));
     this.#refreshGridColumnSummary(newSettings);
     this.#refreshGridCellOption(newSettings);
 

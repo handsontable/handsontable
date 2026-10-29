@@ -107,6 +107,7 @@ import type { default as EditorManagerInstance } from './editorManager';
 import type { BaseEditor } from './editors/baseEditor';
 import type { default as MetaManagerInstance } from './dataMap/metaManager';
 import { OperationScope } from './core/operationScope';
+import { normalizeFixedColumnsAlias, withCallerFixedColumnsName } from './core/fixedColumnsAlias';
 import { watchFontLoads } from './core/fontLoad';
 import {
   detachValue,
@@ -1946,10 +1947,6 @@ export default function Core(
                 // `calcIndex` is -1 on a grid with no columns left: the removal took nothing, and a
                 // frozen count of 0 must not drop to -1.
                 if (calcIndex >= 0 && fixedColumnsStart >= calcIndex + 1) {
-                  // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
-                  // However, keeping the old name still in effect. When both option names are used together,
-                  // the error is thrown. To prevent that, the engine needs to modify the original option key
-                  // to bypass the validation.
                   (tableMeta as unknown as { _fixedColumnsStart: number })._fixedColumnsStart -=
                     Math.min(groupAmount, fixedColumnsStart - calcIndex);
                 }
@@ -5343,6 +5340,11 @@ export default function Core(
    * callback that settings passed for it and leaves `null` in {@link Core#getSettings}. A hook set to `undefined` is
    * left as it is. Listeners added with {@link Core#addHook} are not affected by either.
    *
+   * The legacy [`fixedColumnsLeft`](@/api/options.md#fixedcolumnsleft) option is applied as
+   * [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart), while the settings object that
+   * [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings) receives keeps the name you passed. Passing both
+   * names in one call throws an error. When you pass them in separate calls, the later value applies.
+   *
    * This method reinitializes the affected plugins and then renders, so it does more work than a plain
    * [render()](@/api/core.md#render). When only cell metadata changed, call [render()](@/api/core.md#render)
    * instead. See the [Understanding rendering](@/guides/optimization/rendering/rendering.md) guide.
@@ -5367,11 +5369,14 @@ export default function Core(
    * @fires Hooks#afterUpdateSettings
    */
   this.updateSettings = function(settings: SettingsUpdate, init = false) {
-    const applied = init ? settings : filterSettings(settings);
+    const normalized = normalizeFixedColumnsAlias(settings, instance.isRtl());
+    const applied = init ? normalized : filterSettings(normalized);
 
-    if (applied !== settings && Object.keys(applied).length === 0) {
+    if (applied !== normalized && Object.keys(applied).length === 0) {
       return;
     }
+
+    const notified = withCallerFixedColumnsName(applied, settings);
 
     // Applying settings is not a user action: a plugin that updates its state from the new
     // settings, or the `cell` option writing meta, must not open an operation or be journaled.
@@ -5384,7 +5389,7 @@ export default function Core(
         }
 
         try {
-          applySettings(applied, init);
+          applySettings(applied, init, false, null, null, notified);
         } finally {
           dataWorkPhase = outerPhase;
         }
@@ -5397,7 +5402,7 @@ export default function Core(
           'applied is ignored: the data that change loads replaces it. Call loadData() once it has finished.');
       }
 
-      const metaPhase = applySettings(applied, init, true);
+      const metaPhase = applySettings(applied, init, true, null, null, notified);
 
       if (metaPhase) {
         heldMetaPhases.push(metaPhase);
@@ -5471,6 +5476,7 @@ export default function Core(
     cellOptionMetas: CellOptionMetaEntry[] | null = null,
     keptCellMetas: KeptCellMetas | null = null,
   ) {
+    const normalized = normalizeFixedColumnsAlias(settings, instance.isRtl());
     const suspendsRender = !!instance.view;
 
     if (suspendsRender) {
@@ -5488,7 +5494,10 @@ export default function Core(
 
         try {
           try {
-            const metaPhase = applySettings(filterSettings(settings), false, true, cellOptionMetas, keptCellMetas);
+            const filtered = filterSettings(normalized);
+            const metaPhase = applySettings(
+              filtered, false, true, cellOptionMetas, keptCellMetas, withCallerFixedColumnsName(filtered, settings)
+            );
             const nestedMetaPhases = heldMetaPhases;
 
             dataWorkPhase = 'data';
@@ -6417,12 +6426,15 @@ export default function Core(
    * the meta phase instead of applying `settings.cell` (see `_applySettingsAndData()`).
    * @param {object|null} [keptCellMetas=null] The user-set meta and invalid marks to put back in the meta phase
    * (see `_applySettingsAndData()`).
+   * @param {object} [notifiedSettings] The settings `afterUpdateSettings` receives, `settings` by default: the
+   * caller's key names where core applies a normalized payload (`withCallerFixedColumnsName()`).
    * @returns {Function|null} The held-back meta phase, or `null` when it ran.
    */
   function applySettings(
     settings: SettingsUpdate, init: boolean, defersDataWork = false,
     restoredCellOptionMetas: CellOptionMetaEntry[] | null = null,
-    keptCellMetas: KeptCellMetas | null = null
+    keptCellMetas: KeptCellMetas | null = null,
+    notifiedSettings: SettingsUpdate = settings,
   ): (() => void) | null {
     const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(instance);
 
@@ -6481,7 +6493,7 @@ export default function Core(
     const rootSize = applyRootSizeSettings(settings, init, previousRootSize);
 
     if (!init) {
-      notifySettingsUpdated(settings);
+      notifySettingsUpdated(notifiedSettings);
     }
 
     if (!defersDataWork) {
