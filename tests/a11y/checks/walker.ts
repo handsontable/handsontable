@@ -1,5 +1,6 @@
 import { expect, type CDPSession, type Page } from '@playwright/test';
 import { PORTAL_MARK } from '../harness';
+import { isProductStop, stopKey } from '../../lib/keyboard-walker.mjs';
 
 /**
  * The browser half of the keyboard walker (`keyboard-walker.spec.ts`): the sentinels a walk starts and
@@ -148,9 +149,11 @@ export async function focusedAx(cdp: CDPSession): Promise<{ role: string; name: 
  * @param page The page.
  * @param cdp The accessibility session.
  * @param root The root container selector.
+ * @param options.ax Whether to read the role and name from the accessibility tree (four CDP calls); a
+ *   caller that needs only the region passes `false`, and the stop then has an empty role and name.
  * @returns The stop.
  */
-export async function readStop(page: Page, cdp: CDPSession, root: string): Promise<FocusStop> {
+export async function readStop(page: Page, cdp: CDPSession, root: string, { ax = true }: { ax?: boolean } = {}): Promise<FocusStop> {
   const dom = await page.evaluate(async([selector, portalMark]) => {
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
@@ -214,11 +217,11 @@ export async function readStop(page: Page, cdp: CDPSession, root: string): Promi
       signals: { url: location.href, popups, editorOpen: !!hot?.getActiveEditor()?.isOpened() },
     };
   }, [root, PORTAL_MARK] as const);
-  const ax = dom.region === 'body' || dom.region === 'start' || dom.region === 'end'
+  const tree = !ax || dom.region === 'body' || dom.region === 'start' || dom.region === 'end'
     ? { role: '', name: '', ignored: false }
     : await focusedAx(cdp);
 
-  return { ...dom, ...ax };
+  return { ...dom, ...tree };
 }
 
 /**
@@ -265,7 +268,8 @@ export async function tabWalk(page: Page, cdp: CDPSession, root: string, directi
   await page.locator(`[data-a11y-walk-sentinel="${from}"]`).focus();
 
   const stops = [await readStop(page, cdp, root)];
-  const seen = new Set([identity(stops[0])]);
+  // The same key the verdict reads (`walkVerdict()`), so the walk stops where the verdict sees the cycle.
+  const seen = new Set([stopKey(stops[0])]);
 
   for (let press = 1; press <= budget; press++) {
     await page.keyboard.press(key);
@@ -274,23 +278,25 @@ export async function tabWalk(page: Page, cdp: CDPSession, root: string, directi
     const change = contextChange(stops.at(-1)!, next);
 
     stops.push(change ? { ...next, contextChange: change } : next);
-    if (next.region === goal || next.region === 'body' || seen.has(identity(next))) {
+    if (next.region === goal || next.region === 'body' || seen.has(stopKey(next))) {
       return { stops, budgetExhausted: false };
     }
-    seen.add(identity(next));
+    seen.add(stopKey(next));
   }
 
   const route = direction === 'forward' ? 'ControlOrMeta+End' : 'ControlOrMeta+Home';
   let routePresses = 0;
   let left = false;
 
-  if (['grid', 'portal'].includes(stops.at(-1)!.region)) {
+  if (isProductStop(stops.at(-1)!)) {
     await page.keyboard.press(route);
     // A grid with navigable headers on several levels walks back through every header row first.
-    for (routePresses = 1; routePresses <= 150 && !left; routePresses++) {
+    while (routePresses < 150 && !left) {
       await page.keyboard.press(key);
+      routePresses += 1;
 
-      const next = await readStop(page, cdp, root);
+      // Only the region matters here, so the accessibility tree is not read: up to 150 presses a walk.
+      const next = await readStop(page, cdp, root, { ax: false });
 
       left = next.region === goal || next.region === 'body';
     }
@@ -301,16 +307,6 @@ export async function tabWalk(page: Page, cdp: CDPSession, root: string, directi
     budgetExhausted: true,
     exitRoute: { keys: `${direction === 'forward' ? 'Ctrl+End' : 'Ctrl+Home'}, then ${key}`, left, presses: routePresses },
   };
-}
-
-/**
- * The identity of a stop, as `stopKey()` of `lib/keyboard-walker.mjs` reads it.
- *
- * @param stop The stop.
- * @returns The key.
- */
-function identity(stop: FocusStop): string {
-  return stop.cell ? `${stop.region}|cell|${stop.cell[0]},${stop.cell[1]}` : `${stop.region}|${stop.ref}`;
 }
 
 /**

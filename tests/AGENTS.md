@@ -1364,8 +1364,10 @@ criterion.
   failed before it measured; `attachEvidence()` attaches the part, with `readEnvironment()`'s browser
   and build. It takes the page errors `openTarget()` collected (`opened.pageErrors`) and fails the test
   when the page threw while it was measured, so a page that crashed halfway is a target not measured,
-  never a clean one. An empty `findings` list is evidence too: the target was measured and nothing was
-  found.
+  never a clean one. The documented-shortcuts test is the one exception: it reloads its page between
+  probes, so it records an error the page threw during a probe as a problem of that probe, and the
+  target, measured with a problem, evaluates no criterion. An empty `findings` list is evidence too: the
+  target was measured and nothing was found.
 - **Findings on the product are recorded, never fixed in the check's change.** A check lands with what
   it finds listed in its pull request; the product tasks are filed apart, and a fix later clears the
   finding. A finding the check gets wrong is fixed in the check.
@@ -1429,7 +1431,10 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   `focus-leaves-modal` finding.
 - **A popup is judged by Escape.** On a menu, an editor, the comment editor or the formula editor's popups
   (`POPUP_STATES`), Escape (pressed up to three times: a submenu takes two, and so does a formula popup,
-  which closes before the edit does) must close it and give the focus back to the cell it opened on. A
+  which closes before the edit does) must close it and give the focus back to the cell it opened on: to
+  that cell's own element, or, on a grid in mixed focus mode (`imeFastEdit`), to the editor input that
+  mode keeps the focus on by design. Another element of the grid (a header, a button, the hidden editor
+  input of a grid in cell focus mode) is not back, though the cell stays highlighted. A
   popup state walked like a grid at rest reads a Tab the editor keeps (the formula editor accepts a
   suggestion with it) as a trap, so a state that opens a popup belongs on that list. Then the
   popup opens again and Tab walks inside it, judged per stop. A focus that lands on `body` after the
@@ -1446,7 +1451,8 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   on every grid at rest, each from the page's cell. A key that moves the focus out of the grid is a
   finding; one that does nothing is advisory, because an edge cell, a frozen band or a hidden column can
   make that right. A key the start cell is already at the edge for is skipped, and so are Enter and F2
-  on a cell that is read-only, has no editor, or is a checkbox (which toggles instead).
+  on a cell that is read-only, has no editor, or is a checkbox (which toggles instead), and Enter alone
+  on a grid with `enterBeginsEditing: false`, which changes Enter and leaves F2 opening the editor.
 - **Every documented shortcut is accounted for.** `a11y/checks/keyboard-shortcuts.mjs` has one entry per
   row of the keyboard shortcuts guide, by section, Windows keys and ordinal (what `parseShortcutTables()`
   reads from the page): a `probe` (the page, where the focus starts, the steps before, the keys, the
@@ -1467,8 +1473,15 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   move), the text of the focused text field (`focusedText`, counted as a text change only while the focus
   stays on the same element: a key that also moves the focus reads as a focus move), and a key that only
   switches a mode (`then` presses the key that shows the mode).
-- **2.1.4 is measured, not assumed.** With the focus on the sentinel outside the grid, printable keys must
-  change nothing; and a documented shortcut that is a single character with no modifier
+- **A probe that could not run is a problem, never a pass.** A probe whose setup fails, one the page threw
+  on (the error explains what the probe saw), and one skipped because the test is close to its timeout
+  are tooling problems of that probe, and the others keep their findings; the target then evaluates no
+  criterion. The probes stop early enough for the evidence to be attached: a setup that waits its full
+  timeout on every probe would otherwise run the test out of time and lose everything.
+- **2.1.4 is measured, not assumed.** With the grid holding a selection and the focus on the sentinel
+  outside it, printable keys must change nothing (a key that changed nothing on a grid with no selection
+  would prove nothing, so a setup that fails is a problem and 2.1.4 is not credited); and a documented
+  shortcut that is a single character with no modifier
   (`singleCharacterShortcuts()`; none today) is listed as advisory, because it must work only while the
   grid has the focus.
 - **The tab order has goldens, advisory.** `a11y/tab-order-goldens/<page>.json` holds every walk's stops as
