@@ -138,6 +138,8 @@ const dictionary = {
   [C.SHEETS_BAR_PAGE_NEXT]: 'Bladen vooruit scrollen',
   [C.SHEETS_BAR_SHEET_CHANGED]: 'Blad [name] geactiveerd',
   [C.SHEETS_BAR_RENAME_REJECTED]: 'Bladnaam niet gewijzigd: [name] is al in gebruik',
+  [C.SHEETS_BAR_SHEET_DUPLICATED]: 'Blad [name] gedupliceerd als [copy]',
+  [C.SHEETS_BAR_SHEET_MOVED]: 'Blad [name] verplaatst naar positie [position] van [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Blad',
 
   [C.LOADING_TITLE]: 'Laden...',

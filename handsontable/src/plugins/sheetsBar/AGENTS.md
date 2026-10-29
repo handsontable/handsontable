@@ -105,6 +105,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   dragged tab's z-index instead: any new positioned child of a tab would bring the bug back. A
   hit test cannot see it during a drag, because every tab is `pointer-events: none` then; the
   spec turns pointer events back on for one `elementFromPoint` read.
+- **The frozen start count has one name inside the bar.** `#withBaselineFor` runs each sheet's settings
+  through core's `normalizeFixedColumnsAlias()`, so a sheet declaring the legacy `fixedColumnsLeft` is
+  baselined and applied as `fixedColumnsStart`, and the filter, `updateSheetSettings()` and the baseline
+  refresh in `#onAfterUpdateSettings` read it the same way (`renameFixedColumnsLeft()`; core hands
+  `afterUpdateSettings` the caller's own names). Before, the baseline kept the legacy key and a switch sent both names in
+  one payload, which throws.
 - **Per-sheet `settings` go through `updateSettings()` with a baseline.** The grid-level value
   of every key any sheet overrides is captured the first time that key is applied
   (`#withBaselineFor`); `undefined` baselines are restored as `null`, because `updateSettings`
@@ -154,7 +160,8 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   sends the keys that differ from the grid's live settings, wrote the grid-level `colHeaders`, renderer,
   editor and `columns` over the visible sheet's own until the user left the sheet. It stands aside for the
   bar's own writes (`#isSwitching`, `#isRestoringBaseline`, `#isInitializing`, `#isApplyingOwnSettings`), for
-  ImportFile's (`_isApplyingImport()`: an import lays the file out on the sheet shown), and for a payload that
+  ImportFile's (`_isApplyingImport()`: an import lays the file out on the sheet shown, see "An import lays out
+  the visible sheet only" below), and for a payload that
   turns the bar off or declares another workbook (`#filtersGridSettings`). A `sheets` value the plugin's
   validator rejects declares no workbook: the bar keeps the current one, so the filter keeps filtering. It
   never takes `sheetsBar`, `data` (`#keepDeclaredSheetRows` owns it) or `dataProvider` (the gate below owns
@@ -199,12 +206,46 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   describe the grid as the workbook started. The `updateSettings()` calls ImportFile makes while it
   applies an import's result (`_isApplyingImport()`, which answers `false` while the `beforeImport` listeners run,
   so a setting a listener changes is the host's own) are skipped: they carry the imported file's layout for the sheet
-  shown, and as the baseline they spread its columns and widths to every sheet without its own. The neutral `fixedColumnsStart` is captured only
+  shown, and as the baseline they spread its columns and widths to every sheet without its own. They become the
+  visible sheet's own settings instead (next bullet). The neutral `fixedColumnsStart` is captured only
   on a non-preserved enable, and a genuine teardown first restores the settings baseline to
   the grid (`#restoreBaselineToGrid`, which empties the baseline before its `updateSettings`
   call — the write re-enters `disablePlugin` on a `sheetsBar: false` teardown, and the empty
   map is the recursion stop), so the next enable never reads the departing sheet's settings as
   the grid's own.
+- **An import lays out the visible sheet only.** ImportFile applies a result with `loadData()` plus
+  `updateSettings()` calls (`columns`, `colWidths`, `rowHeights`, `hiddenRows`, `hiddenColumns`, headers, merges,
+  borders, frozen counts), all grid-level as far as core knows. `#filterGridSettings` therefore recognizes those
+  payloads before core applies them, by identity (`ImportFile#_isImportSettings()`: the plugin passes them through
+  its own `#applyImportSettings`, which marks the one object for the length of the call), and `#keepImportedSettings`
+  merges their keys into the visible sheet's own `settings` (a new object, as `updateSheetSettings()` makes), after
+  `#recordBaselineFor` stored the grid-level value of each key no sheet set before. A value the import resets with
+  `undefined` is kept as `null`; `dataProvider` is never taken. The payload itself goes through unchanged. Left as
+  grid-level values, the imported columns, locks, sizes, hidden indexes and headers reached every sheet that does
+  not declare the key, and a sheet that declares it got its declared value back on the next return. **Do not key
+  this on `_isApplyingImport()`**: that window also covers the host listeners the import fires (`afterLoadData`,
+  `afterUpdateSettings`, `afterSetCellMeta`), and a `readOnly` such a listener set became the imported sheet's own
+  instead of a grid-level value. The check comes first in the filter, before `#filtersGridSettings`, because the
+  import's own writes are not grid-level values to take off. The keys each import wrote are kept per sheet
+  (`#importedKeys`), and a `sheetsBar: false` teardown leaves the active sheet's on the grid
+  (`#restoreBaselineToGrid`'s `keptImportedKeys`): the grid keeps that sheet's rows, so it keeps the layout the file
+  gave them, as a grid without the bar does. A rebuild restores them like any other key, because it loads other
+  rows.
+- **The imported stylesheet is kept per sheet** (`#importedStyles`, a `WeakMap<Sheet, …>`). ImportFile installs one
+  `<style>` per grid, while the classes it names live in each sheet's cell meta, so a later import into another
+  sheet replaced the rules the first sheet's cells needed, and a sheet that declares `importFile: false` removed
+  them on its visit (`disablePlugin()` removes the stylesheet). `#captureImportedStyles` stores
+  `ImportFile#_exportImportedStyles()` when the user leaves a sheet; while ImportFile is off on that sheet it keeps
+  the stored entry instead, so the rules come back once the sheet turns the plugin on again. `#restoreImportedStyles`
+  calls `_restoreImportedStyles()` with the arriving sheet's rules (or `{}`, which removes the stylesheet) from
+  `#onAfterSheetLoad`, when the rows that carry the classes have loaded and ImportFile is on or off as the sheet
+  declares. Restoring there, not after `#applySheet` returns, covers a load listener that throws (the arriving sheet
+  stays, and must not keep the departing rules), the rollback, and a workbook built on a live grid (the previous
+  workbook's rules go). `updateSheetSettings()` that turns ImportFile on for the visible sheet restores too. A
+  duplicate copies its original's rules and imported keys (`#copyImportedState`), so a teardown on the copy keeps its
+  imported layout too. `updateSheetSettings()` that changes `importFile` on the visible sheet stores that sheet's rules
+  first: they are otherwise stored only on leaving, and turning the plugin off removes them. Every member is ImportFile's own, read through the
+  typed `hot.getPlugin('importFile')`; ImportFile never reads the bar.
 - **Formulas cooperation is by engine instance + `sheetName`.** Every bound sheet is registered
   in the engine up front and re-fed on every registration (a rebuilt workbook reusing names
   must not leave stale engine content), except the opening sheet, which its own load feeds
@@ -483,10 +524,23 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   disabled state is the `ht-sheets-bar__button--disabled` class (`DISABLED_CLASS` in
   `overflow.ts`); `aria-disabled` and the anchors' `aria-expanded` are mirrors written only
   while ARIA is on, and `isArrowEnabled()`/`getFocusableElements()` read the class.
-- **A `button: 0` `contextmenu` is not necessarily the keyboard.** A touch long-press and a
-  macOS Ctrl+click report it too; the strip tells them apart by `buttons === 0` plus no
-  pointer being down on the tab (`#pointerHeldOnTab`). Focus restores in `menus.ts` go through
-  `getDeepActiveElement()` — the raw `activeElement` collapses to the host in a shadow root.
+- **A `button: 0` `contextmenu` is not necessarily the keyboard.** A macOS Ctrl+click reports it
+  too; the strip tells them apart by `buttons === 0` plus no press held by the drag
+  (`TabDrag#isPressing()`), never by a flag of the strip's own, which a release off the strip left
+  set, so the next Shift+F10 opened the menu with no item preselected. Focus restores in
+  `menus.ts` go through `getDeepActiveElement()` — the raw `activeElement` collapses to the host
+  in a shadow root.
+- **A touch press on a tab is timed by the shared `LongPressDetector`** (`helpers/dom/longPress.ts`,
+  the same 500ms hold and 10px drift Walkontable's cells use to open the context menu). A swipe that
+  starts before the hold runs out scrolls the strip (`touch-action: pan-x pan-y`; the drag ends as
+  soon as the detector reports the drift). A hold lifts the tab (`ht-sheets-bar__tab--lifted`), and
+  only then does a move drag it: the lifted press calls `preventDefault()` on a non-passive
+  `touchmove`, which is what keeps the browser from panning once the drag owns the finger. It blocks only while the press is held (`#tab` set), so a press that ended in `pointercancel` blocks nothing, and the touch listeners come off only when no finger is left on the screen (`touches.length === 0` on `touchend` or `touchcancel`): a second finger lifting first ended the held finger's drag. The lift re-bases the drag origin on where the finger rests (`#holdX`), because the hold allows 10px of drift and the drag starts at 4px. A lifted tab looks like a dragged one (raised, opaque, the hover text color), and both carry an outline in forced colors, which drop the shadow. Lifting
+  the finger without moving opens the tab menu with no item preselected (`onHoldRelease`). The
+  browser's own long-press `contextmenu` is ignored while a touch press is held
+  (`TabDrag#isTouchPressing()`), or the menu opened twice. A `contextmenu` the browser reports as touch-raised (`getMouseEventTouchOrigin()`) never opens the menu as from the keyboard: a repaint that moves the held tab ends the press before Android raises its long-press menu, and the press flags alone then read it as Shift+F10. A press that never lifted drops its touch listeners as soon as it ends, because nothing needs its `touchend` canceled. A pen press is timed the same way; a
+  mouse press drags at once, as before. The detector's timers are the grid's window, so `page.clock` drives the hold in the
+  specs (`tests/e2e/sheets-bar-touch-drag.spec.ts`, `sheets-bar-touch-menus.spec.ts`).
 - **The menus' upward flip needs a negative `above` offset.** The positioner aligns a flipped
   menu's bottom to the cursor point — the anchor's *bottom* edge — so `#openMenu` sets
   `setOffset('above', -(anchorHeight + 4))` per opening; a flat offset covered the chevron.
@@ -545,7 +599,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   more; the call clears only a selection a plugin or a listener made during the switch, and stays
   as a guard. The grid focus scope drops its remembered Tab re-entry cell on `afterLoadData` on
   every grid, not only on a switch: a cell remembered from the previous data does not name a
-  record of the new data.
+  record of the new data. Before that load, the switch stores the re-entry cell as the departing
+  sheet's selection when the sheet has none (`#withTabReentryCell`), so a keyboard user who
+  tabbed into the bar finds their cell on return. It does so only when a <kbd>Tab</kbd> out of the
+  grid removed the selection (`wasLeftByTab()` in `focusManager/tabReentry.ts`): the re-entry
+  cell also outlives an outside click and `deselectCell()`, and a selection cleared that way must
+  stay cleared.
 - **The tab listeners live on the strip host, added once when the strip is built** (`#listenToTabs` in
   `ui/tabStrip.ts`), and each handler finds its tab from the event target and its sheet from the descriptors
   of the last `render()`. Do not add listeners to the tabs `#buildTab()` creates: every repaint would add
@@ -559,9 +618,42 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   And an event on a tab element held from before a repaint, or one that does not bubble, no longer reaches
   any listener, where the per-tab listeners still answered it. Pinned by `__tests__/tabListeners.unit.js`
   and the Angular wrapper's `hot-table-sheets-bar.spec.ts`.
-- **`render()` cancels an in-flight rename silently.** The cancel-hook handler repaints the
-  strip, and dispatching it from inside `render()` re-enters the render pass — the outer pass
-  then restores focus and scroll against tabs the inner pass replaced.
+- **`render()` keeps the tabs by sheet id and updates them in place** (`#canReuseTab`,
+  `#updateTab`). A repaint used to rebuild every tab, which dropped the focus of a tab the user
+  had just moved to, jumped a running entrance, and canceled an open rename whenever any
+  repaint landed (a host `setActiveSheet()`, an add on another tab). `#updateTab` toggles the
+  active and renaming classes, the `tabIndex`, the ARIA and the label only; it keeps the motion
+  and the inline style, and never re-applies the entrance. A rename is canceled, silently, only
+  when its sheet left the model (`#renamingId`): the cancel-hook handler repaints the strip, and
+  dispatching it from inside `render()` re-enters the render pass. **The tab holding an open rename is never moved** (`#placeTabs`): moving a node takes the focus off the input inside it, so an API move of another sheet left the rename open and unfocused in Firefox and WebKit, and in Chromium the blur committed it from inside the reorder loop, which then threw `NotFoundError`. Its neighbors move around it instead, as the drag does. **A press survives a repaint that keeps its tab where it was** (`TabDrag#heldTab()`): a touch press is held for 500ms, and an unrelated repaint in that window (a host `renameSheet()`, an add) used to abort it, after which the browser's own long-press `contextmenu` opened the menu as if from the keyboard. A drag in progress is still aborted first, because its tabs are out of their places. `#restoreFocus` skips when the
+  focus is still inside the strip, because the kept tab never lost it.
+- **The strip is one Tab stop** (a roving `tabIndex`, `#rovingId`): the active tab holds it until
+  the user arrows to another tab, and the stop returns to the active tab when the focus leaves the
+  strip (`focusin`/`focusout` on the host). `#sheets` is filled before the tabs are built, or a tab
+  built early reads a partial map and two tabs take the stop.
+- **The grid takes its accessible name from the active tab's label** (`aria-labelledby` on
+  `hot.rootElement`, `#syncGridName`), and follows a rename and a switch. A name the host set
+  (`aria-label` or its own `aria-labelledby`) wins: the bar then removes only its own id, and
+  restores nothing it did not write on teardown. A host can only name the grid after it is built, so the bar watches the root's two attributes (`#gridNameObserver`, a `MutationObserver` disconnected with the name); without it the bar's `aria-labelledby`, which wins over an `aria-label`, named the grid after the sheet until the next repaint. While a rename is open the label is out of the DOM, so a hidden span holding the saved name takes the label's `id`, and the grid keeps its saved name instead of pointing at a missing node. It stays until the tab is rebuilt, so an Escape leaves no moment without the node; the mirror that measures the input carries no `id`, or the grid's name would follow the unsaved text. The strip's `focusout` tells a move within the strip with `isHTMLElement()`, never `instanceof Node`, which is `false` for a grid built in another realm (an iframe) and gave the Tab stop back to the active tab on every arrow.
+- **A move and a duplicate made in the bar are announced politely** (`SHEETS_BAR_SHEET_MOVED`,
+  `SHEETS_BAR_SHEET_DUPLICATED`, `SOURCE_UI` only); the switch announcement keeps its assertive
+  politeness.
+- **The active-tab marker is a `::after` border, not a `box-shadow`**, and the rename edge is an
+  `outline`: forced-colors mode drops box shadows and backgrounds, so neither cue showed there. The sliding marker (`.ht-sheets-bar__tab-indicator`) draws its line with a border for the same reason, or no marker showed while it slid.
+  Hide the `::after` while the indicator slides and while a tab is renamed, or two markers show.
+- **The theme class goes on the bar only in a `uiContainer`.** In a layout slot the bar sits under
+  the grid's own themed wrapper; a class of its own there broke the theme engine's scope (the
+  `colorScheme` and `density` tokens of the grid stopped reaching the bar).
+- **The active tab's reveal is repeated whenever the strip's layout changes under it**
+  (`settleReveal()`: after the overflow refresh in `#refreshUI`, from the overflow controller's
+  `onResize`, and from `#onAfterSetTheme`). Two layouts changed under a first reveal: the paging
+  arrows narrowing the strip, and the grid's theme, which a `themeName`, `colorScheme` or
+  `density` grid applies after the bar is built in `beforeInit`, so the first reveal measured
+  unthemed tabs a third of their width. The strip remembers the `scrollLeft` its reveal left
+  (`#revealedScrollLeft`) and repeats the reveal only while it still sits there, so a strip the
+  user paged by hand stays put through a theme or density switch. "Still sits there" is compared after the clamp the browser applies when the tabs shrink (`#sitsWhereRevealLeftIt`): a shorter scroll range pulls `scrollLeft` back by itself, and an exact comparison read that as a page and left the active tab out of view. The reveal latches only once
+  the strip is measured (`clientWidth > 0`), so a bar built in a hidden container reveals the tab
+  when it is shown.
 - **A listener can cancel the restore's `filter()` and `sort()`, and the restore must survive it.**
   `beforeFilter` and `beforeColumnSort` are cancelable, and DataProvider cancels both on purpose
   (server-side mode), so the restore never forces them through. A canceled `filter()` puts back the
@@ -583,10 +675,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   written, a later clear kept the rows sorted. It runs only when `restoreSequence()` reports the
   unsorted order written: a sheet whose data changed size keeps
   the `loadData` order, and an indicator over it would claim a sort it does not have. It writes nothing when
-  the states are no longer empty (the listener set its own config) or while the plugin has no
-  `indexesSequenceCache`. The sort only builds that cache from empty states, so states written
-  without it made the next `sort()` throw. The cache is missing after the plugin was disabled and
-  enabled again, which a sheet declaring `columnSorting: false` does on every switch.
+  the states are no longer empty (the listener set its own config). It writes them when the sorting plugin
+  has no `indexesSequenceCache` too, which is the case after the plugin was disabled and enabled again (a
+  sheet declaring `columnSorting: false` does that on every switch): `setSortConfig()` builds no cache then,
+  and the plugin takes it from the rows of the next sort or clear. A guard that skipped the write there left
+  `getSortConfig()` empty and the indicator off over sorted rows, and protected nothing, because a later
+  clear takes the restored rows as its order either way.
 - **The switch runs under `#withoutUndoEntry`, and so does the live-grid reset in
   `#buildInitialWorkbook` (DEV-3037).** `loadData()` clears the UndoRedo stacks, but the view-state
   restore runs after it and goes through the public `sort()` and `filter()`, whose UndoRedo
@@ -868,14 +962,15 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     `TabStrip.destroy()`, which `#releaseState()` runs on a genuine teardown and on the grid's
     destroy, so no callback outlives the strip. Pinned by `__tests__/motionTimers.unit.js`.
   - Never move the tab marker by transforming a tab element: the drag FLIP owns each tab's inline
-    `transform`. The marker is a separate `aria-hidden` element, and `TabStrip.render()` clears the
-    host, so while a slide runs it puts the element back and restarts the slide from the marker's
+    `transform`. The marker is a separate `aria-hidden` element, and `TabStrip.render()` removes every
+    node of the host it does not keep as a tab, so while a slide runs it puts the element back and restarts the slide from the marker's
     on-screen box to the active tab's new box, over the time left (inline `transition-duration`).
     Removing the active tab switches before the model drops it, so the slide's first target is
     stale until that repaint. A newly created tab does animate its own
-    `transform` (the `ht-sheets-bar-tab-enter` keyframes). Every render rebuilds it, so
-    `#applyEntrance()` re-applies the class with a negative `animation-delay` to resume at the
-    elapsed point. A drag start finishes entrances and the marker, and `TabDrag` measures the grab
+    `transform` (the `ht-sheets-bar-tab-enter` keyframes). A repaint keeps the tab and its running
+    entrance untouched; `#applyEntrance()` runs only for a tab `#buildTab()` creates (a new sheet, or
+    a tab whose rename just ended) and in `resumeMotion()`, and then re-applies the class with a
+    negative `animation-delay` to resume at the elapsed point. A drag start finishes entrances and the marker, and `TabDrag` measures the grab
     offset from the tab's resting edge, without its in-flight translation.
   - A sheet moved from the tab menu or the API slides the tabs (`TabStrip.slideTabs()`): the plugin
     records each tab's `offsetLeft` before the model moves (`captureTabPositions()`, plus the
@@ -894,7 +989,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     `#activeTabBox()`, the focusable list in `bar.ts`, the fixtures' test-id stamping) would count it.
     It fades out toward the inline start over `T` (`ht-sheets-bar-tab-leave`, the entrance offset
     reversed) and is removed by a timeout, while the tabs after it close the gap through
-    the move slide. `render()` clears the strip, so it re-inserts each copy first in the strip, under
+    the move slide. `render()` removes every node it does not keep as a tab, so it re-inserts each copy first in the strip, under
     the tabs and the marker, with a negative `animation-delay`; a drag start, a rename, and
     `destroy()` remove it, and a preserved rebuild hands it over in `releaseMotion()`.
   - A workbook-preserving `updatePlugin()` keeps the motion running. When nothing the bar is built
@@ -1036,6 +1131,7 @@ such state and is missing from this list loses it on every switch.
 | The `cell` option | its meta by physical index | `#cellOptionStates` |
 | DataProvider | last response, failures | `#serverViews` |
 | Formulas | engine order, formula text | `#engineOrders`, the formula text capture |
+| ImportFile | the imported stylesheet's rules (the classes live in the cell meta) | `#importedStyles`, restored from `#onAfterSheetLoad` |
 
 `collapsedColumns`, `columnMembership`, and `checkedRows` are restored after the restore batch: the header tree
 a collapse is laid on is derived through the column index cache, which the batch holds at the order from before

@@ -82,6 +82,13 @@ arises — read it that way, it is easy to take backwards.) A direct `enablePlug
 instance dies earlier, in the UI, which reads `rootGridElement`. The same guard is mirrored later in the
 file with a comment pointing back — keep both, and keep the comments.
 
+## `PaginationUI#destroy()` takes `htPagination` off the root wrapper
+
+Without a custom `uiContainer`, the UI marks the root wrapper with `htPagination` while a section is
+visible (the bar's corner styling). `destroy()`, which `disablePlugin()` runs, removes it, or the class
+stayed after `pagination: false` and on a later sheet without pagination. Pinned by `__tests__/ui.unit.js`
+and `tests/e2e/plugin-ui-teardown.spec.ts`.
+
 ## Two page-size strategies
 
 | `pageSize` | Strategy | Behavior |

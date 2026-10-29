@@ -17,6 +17,7 @@ import {
 } from '../../../helpers/dom/element';
 import {
   A11Y_MENU_ITEM_CHECKBOX,
+  A11Y_MENU_ITEM_RADIO,
   A11Y_DISABLED,
   A11Y_EXPANDED,
   A11Y_LABEL,
@@ -87,7 +88,7 @@ export function createMenuItemRenderer(mainTableHot: HotInstance) {
 
       setAttribute(TD, [
         ...(isItemCheckable(item) ? [
-          A11Y_MENU_ITEM_CHECKBOX(),
+          item.radio === true ? A11Y_MENU_ITEM_RADIO() : A11Y_MENU_ITEM_CHECKBOX(),
           A11Y_LABEL(ariaLabel ?? itemValue),
           A11Y_CHECKED(ariaChecked ?? checkedState)
         ] : [

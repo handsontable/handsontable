@@ -465,6 +465,22 @@ export const REGISTERED_HOOKS = [
   'beforeCompositionStart',
 
   /**
+   * Fired after the document finishes loading a web font, before Handsontable renders the grid again. A font
+   * that loads after the grid renders changes the size of the text without changing the size of the
+   * container, so a plugin that caches sizes measured from text drops or re-measures them here. The sizing
+   * plugins that ship with Handsontable re-measure on this hook too, after the listeners you add with the
+   * default order (including a listener in the settings object), so a listener that drops a custom
+   * renderer's cached sizes runs before they measure.
+   *
+   * The hook fires for every font the document loads, whether or not the grid uses it. On a hidden grid
+   * (for example, `display: none`), it fires once the grid is shown and comes into view.
+   *
+   * @event Hooks#afterFontsLoad
+   * @since 19.0.0
+   */
+  'afterFontsLoad',
+
+  /**
    * Fired after getting the cell settings.
    *
    * @event Hooks#afterGetCellMeta
@@ -581,6 +597,9 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after a dataProvider `fetchRows` request ends without loading data because it was aborted
    * (superseded by a newer fetch, `AbortSignal`, or plugin disable/destroy).
+   *
+   * A newer fetch supersedes the running one only once it starts: when a {@link Hooks#beforeDataProviderFetch}
+   * listener cancels the newer fetch, the running one keeps going and this hook does not fire for it.
    *
    * @event Hooks#afterDataProviderFetchAbort
    * @since 17.1.0
@@ -1488,6 +1507,10 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after calling the [`updateSettings`](@/api/core.md#updatesettings) method.
    *
+   * A legacy [`fixedColumnsLeft`](@/api/options.md#fixedcolumnsleft) passed to `updateSettings()` stays
+   * `fixedColumnsLeft` in `newSettings`, though the grid applies it as
+   * [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart).
+   *
    * @event Hooks#afterUpdateSettings
    * @param {object} newSettings New settings object.
    */
@@ -1984,6 +2007,12 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired before the dataProvider fetches data. Return `false` to cancel the fetch.
+   *
+   * A canceled fetch leaves a fetch that is already running alone: that fetch still loads its rows. The
+   * loading state of the [`emptyDataState`](@/api/options.md#emptydatastate) overlay is updated after a
+   * cancel, so the overlay shows loading only while a fetch still runs. The fetch starts only after every
+   * listener returns, so a fetch a listener starts with `fetchData()` from inside this hook starts first, and the
+   * fetch the hook was fired for then replaces it, unless the listener returns `false`.
    *
    * @event Hooks#beforeDataProviderFetch
    * @since 17.1.0
@@ -3069,6 +3098,9 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link ManualColumnMove} plugin before change order of the visual indexes. This hook is fired when
    * {@link Options#manualColumnMove} option is enabled.
    *
+   * The hook also fires when the move leaves the order unchanged, for example when you drop a column back where it
+   * was. To tell such a move apart, use the `afterColumnMove` hook and check its `orderChanged` parameter.
+   *
    * @event Hooks#beforeColumnMove
    * @param {Array} movedColumns Array of visual column indexes to be moved.
    * @param {number} finalIndex Visual column index, being a start index for the moved columns.
@@ -3088,6 +3120,9 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by {@link ManualColumnMove} plugin after changing order of the visual indexes.
    * This hook is fired when {@link Options#manualColumnMove} option is enabled.
+   *
+   * The hook also fires when the move leaves the order unchanged, for example when you drop a column back where it
+   * was. In that case, `orderChanged` is `false`.
    *
    * @event Hooks#afterColumnMove
    * @param {Array} movedColumns Array of visual column indexes to be moved.
@@ -3200,6 +3235,9 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link ManualRowMove} plugin before changing the order of the visual indexes. This hook is fired when
    * {@link Options#manualRowMove} option is enabled.
    *
+   * The hook also fires when the move leaves the order unchanged, for example when you drop a row back where it
+   * was. To tell such a move apart, use the `afterRowMove` hook and check its `orderChanged` parameter.
+   *
    * @event Hooks#beforeRowMove
    * @param {Array} movedRows Array of visual row indexes to be moved.
    * @param {number} finalIndex Visual row index, being a start index for the moved rows.
@@ -3219,6 +3257,9 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by {@link ManualRowMove} plugin after changing the order of the visual indexes.
    * This hook is fired when {@link Options#manualRowMove} option is enabled.
+   *
+   * The hook also fires when the move leaves the order unchanged, for example when you drop a row back where it
+   * was. In that case, `orderChanged` is `false`.
    *
    * @event Hooks#afterRowMove
    * @param {Array} movedRows Array of visual row indexes to be moved.
@@ -4455,6 +4496,10 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link Loading} plugin before hiding the loading indicator. This hook is fired when {@link Options#loading}
    * option is enabled.
    *
+   * It fires only for a hide that {@link Loading#hide} makes. A hide made through the {@link Dialog} plugin
+   * ({@link Dialog#hide}, the **Escape** key on a closable dialog, or a dialog shown over the loading indicator) cannot
+   * be skipped, so this hook does not fire for it, while {@link Hooks#afterLoadingHide} does.
+   *
    * @since 16.1.0
    * @event Hooks#beforeLoadingHide
    * @returns {boolean | undefined} If returns `false`, the action will be skipped.
@@ -4464,6 +4509,10 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by {@link Loading} plugin after hiding the loading indicator. This hook is fired when {@link Options#loading}
    * option is enabled.
+   *
+   * It also fires when the loading indicator goes away through the {@link Dialog} plugin: {@link Dialog#hide}, the
+   * **Escape** key on a closable dialog, or a dialog shown over the loading indicator. {@link Hooks#beforeLoadingHide}
+   * does not fire in those cases.
    *
    * @since 16.1.0
    * @event Hooks#afterLoadingHide
@@ -4620,7 +4669,8 @@ export const REGISTERED_HOOKS = [
   'afterUnlisten',
 
   /**
-   * Fired after the window was resized or the size of the Handsontable root element was changed.
+   * Fired after the window was resized or the size of the Handsontable root element was changed. A
+   * re-measure after a web font loads does not fire it (see [`afterFontsLoad`](#afterfontsload)).
    *
    * @event Hooks#afterRefreshDimensions
    * @param {{ width: number, height: number }} previousDimensions Previous dimensions of the container.
@@ -4631,7 +4681,8 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Cancellable hook, called after resizing a window or after detecting size change of the
-   * Handsontable root element, but before redrawing a table.
+   * Handsontable root element, but before redrawing a table. A re-measure after a web font loads does not
+   * fire it (see [`afterFontsLoad`](#afterfontsload)), so returning `false` does not stop that re-measure.
    *
    * @event Hooks#beforeRefreshDimensions
    * @param {{ width: number, height: number }} previousDimensions Previous dimensions of the container.

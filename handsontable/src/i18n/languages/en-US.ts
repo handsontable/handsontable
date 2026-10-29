@@ -136,6 +136,8 @@ const dictionary = {
   [C.SHEETS_BAR_PAGE_NEXT]: 'Scroll sheets forward',
   [C.SHEETS_BAR_SHEET_CHANGED]: 'Sheet [name] activated',
   [C.SHEETS_BAR_RENAME_REJECTED]: 'Sheet name not changed: [name] is already in use',
+  [C.SHEETS_BAR_SHEET_DUPLICATED]: 'Sheet [name] duplicated as [copy]',
+  [C.SHEETS_BAR_SHEET_MOVED]: 'Sheet [name] moved to position [position] of [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Sheet',
 
   [C.CHECKBOX_CHECKED]: 'Checked',

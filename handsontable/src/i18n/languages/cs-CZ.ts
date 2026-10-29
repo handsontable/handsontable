@@ -133,6 +133,8 @@ const dictionary = {
   [C.SHEETS_BAR_PAGE_NEXT]: 'Posunout listy vpřed',
   [C.SHEETS_BAR_SHEET_CHANGED]: 'List [name] aktivován',
   [C.SHEETS_BAR_RENAME_REJECTED]: 'Název listu nebyl změněn: [name] se již používá',
+  [C.SHEETS_BAR_SHEET_DUPLICATED]: 'List [name] duplikován jako [copy]',
+  [C.SHEETS_BAR_SHEET_MOVED]: 'List [name] přesunut na pozici [position] z [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'List',
 
   [C.LOADING_TITLE]: 'Načítání...',

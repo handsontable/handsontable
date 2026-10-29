@@ -132,6 +132,8 @@ const dictionary = {
   [C.SHEETS_BAR_PAGE_NEXT]: 'Faire défiler les feuilles vers l’avant',
   [C.SHEETS_BAR_SHEET_CHANGED]: 'Feuille [name] activée',
   [C.SHEETS_BAR_RENAME_REJECTED]: 'Nom de feuille inchangé : [name] est déjà utilisé',
+  [C.SHEETS_BAR_SHEET_DUPLICATED]: 'Feuille [name] dupliquée sous le nom [copy]',
+  [C.SHEETS_BAR_SHEET_MOVED]: 'Feuille [name] déplacée en position [position] sur [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Feuille',
 
   [C.LOADING_TITLE]: 'Chargement...',

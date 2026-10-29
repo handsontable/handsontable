@@ -3946,6 +3946,8 @@ export default (): Record<string, unknown> => {
      *
      * If your grid's [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL, using `fixedColumnsLeft` throws an error.
      *
+     * Don't set `fixedColumnsLeft` and [`fixedColumnsStart`](#fixedColumnsStart) in one settings object: that throws an error. When you set them in separate [`updateSettings()`](@/api/core.md#updatesettings) calls, the later value applies.
+     *
      * Use [`fixedColumnsStart`](#fixedColumnsStart), which works in any layout direction.
      *
      * Read more:

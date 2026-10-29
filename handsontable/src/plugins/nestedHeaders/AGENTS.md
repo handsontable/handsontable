@@ -143,6 +143,13 @@ outside, do not assume each call rebuilds the matrix.
 - On a move that would split a *collapsed* group, CollapsibleColumns **preemptively expands it** in
   `beforeColumnMove`, so reading `getCollapsedGroups()` inside/after that hook can show fewer groups than
   before.
+- **`setState()` drops every `collapsible` flag CollapsibleColumns wrote, so the plugin runs the
+  `afterHeaderStateRebuild` local hook (the `localHooks` mixin) at the end of `updatePlugin()`**, the path
+  that calls it: enable, a `nestedHeaders` update, and every `afterLoadData`. CollapsibleColumns writes its
+  flags again from that hook. Its own `afterLoadData` listener ran first, by plugin order, and lost them, so
+  a `loadData()` or a sheets bar switch onto a sheet declaring `nestedHeaders` showed no collapse buttons. A
+  new path that rebuilds the state from the setting must run the hook too. `rebuildState()`, `insertColumns()`
+  and `removeColumns()` keep the flags and do not.
 
 ## Hook timing & move gotchas (hard-won)
 
@@ -183,7 +190,10 @@ outside, do not assume each call rebuilds the matrix.
 - The captured move state (`#movedPhysicalColumns`, `#preMoveColumnSequence`) is cleared **only after it
   is consumed** in the cacheUpdated handler, not unconditionally — a CollapsibleColumns auto-expand fires
   a synchronous hidden-only `cacheUpdated` *before* `moveIndexes`, and clearing eagerly dropped the
-  pending move.
+  pending move. The one other release is `#onAfterColumnMove` with `orderChanged === false`: a move that
+  changes nothing never reaches `moveIndexes()` (see `../manualColumnMove/AGENTS.md`), so no cache update
+  consumes the capture, and a later reorder that skips `beforeColumnMove` (`freezeColumn`) would meet it
+  stale. Pinned by `__tests__/noopMoveCapture.unit.js`.
 - The header renderer strips `beforeHiddenColumn` / `afterHiddenColumn` from every header that does not
   reach the cells (`reachesCells`). It runs *after* HiddenColumns' `afterGetColHeader` hook, which — since
   icons became elements — also appends a real `<i class="ht-icon …">` caret into `.relative`. Stripping the class does
@@ -303,6 +313,17 @@ The widths map feeds `modifyColWidth`, and the engine's column `PositionCache` t
 COUNT, so a width-only change is invisible to it. Left stale, the cache kept the narrow pre-growth sums
 while the scroll range used the grown widths, and a grid scrolled to the right edge showed a blank area
 instead of its last columns. A second writer of the widths map must call it too.
+
+## A web font load rebuilds the widths map (DEV-199)
+
+The ghost table measures the multi-column labels with whatever font has loaded, so a web font that arrives
+later leaves them clipped, and no resize observer sees it. `#onAfterFontsLoad` sets `#updateWidthsMap`, so
+the render core makes after the `afterFontsLoad` hook rebuilds the map; it listens with
+`FONT_REMEASURE_ORDER_INDEX` (`core/fontLoad.ts`), after the application's listeners. **A test of it must
+put the label over columns whose cells do not widen with the font**: AutoColumnSize measures the nested
+labels too, so a label over an auto-sized column grows without this handler and the test passes on a
+build without it (`tests/e2e/web-font-load.spec.ts`, "re-measures row header and nested header labels",
+puts it over an empty column and a fixed-width one).
 
 ## Testing
 
