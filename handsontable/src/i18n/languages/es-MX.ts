@@ -106,7 +106,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: 'O',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: 'Seleccionar todo',
-  [C.FILTERS_BUTTONS_CLEAR]: 'Borrar',
+  [C.FILTERS_BUTTONS_CLEAR]: 'Deseleccionar todo',
   [C.FILTERS_BUTTONS_OK]: 'OK',
   [C.FILTERS_BUTTONS_CANCEL]: 'Cancelar',
 

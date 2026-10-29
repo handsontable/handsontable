@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Changed the default English label of the \"Filter by value\" clear link from \"Clear\" to \"Select none\". Tests that match the old text need the new one. To keep the old text, override the `Filters:buttons.clear` key in a language dictionary. The Arabic clear link no longer shares its label with the Cancel button.",
+  "title": "Changed the label of the \"Filter by value\" clear link from \"Clear\" to \"Select none\" in English, and to the counterpart of \"Select all\" in 19 other languages. Tests that match the old text need the new one. To keep the old text, override the `Filters:buttons.clear` key in a language dictionary.",
   "type": "changed",
   "issueOrPR": 14075,
   "breaking": false,

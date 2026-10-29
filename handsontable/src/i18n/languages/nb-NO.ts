@@ -100,7 +100,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: 'Eller',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: 'Velg alle',
-  [C.FILTERS_BUTTONS_CLEAR]: 'Tøm',
+  [C.FILTERS_BUTTONS_CLEAR]: 'Velg bort alle',
   [C.FILTERS_BUTTONS_OK]: 'OK',
   [C.FILTERS_BUTTONS_CANCEL]: 'Avbryt',
 

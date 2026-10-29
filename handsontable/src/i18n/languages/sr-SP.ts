@@ -112,7 +112,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: 'Ili',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: 'Selektuj sve',
-  [C.FILTERS_BUTTONS_CLEAR]: 'Očisti',
+  [C.FILTERS_BUTTONS_CLEAR]: 'Poništi izbor',
   [C.FILTERS_BUTTONS_OK]: 'U redu',
   [C.FILTERS_BUTTONS_CANCEL]: 'Otkaži',
 

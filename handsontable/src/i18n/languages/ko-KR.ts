@@ -100,7 +100,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: '또는',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: '전체선택',
-  [C.FILTERS_BUTTONS_CLEAR]: '지우기',
+  [C.FILTERS_BUTTONS_CLEAR]: '전체선택 해제',
   [C.FILTERS_BUTTONS_OK]: '확인',
   [C.FILTERS_BUTTONS_CANCEL]: '취소',
 

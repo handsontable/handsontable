@@ -100,7 +100,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: 'Или',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: 'Выбрать все',
-  [C.FILTERS_BUTTONS_CLEAR]: 'Убрать',
+  [C.FILTERS_BUTTONS_CLEAR]: 'Отменить выбор',
   [C.FILTERS_BUTTONS_OK]: 'OK',
   [C.FILTERS_BUTTONS_CANCEL]: 'Отмена',
 

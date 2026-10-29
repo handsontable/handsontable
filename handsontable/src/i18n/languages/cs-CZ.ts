@@ -101,7 +101,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: 'Nebo',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: 'Vybrat vše',
-  [C.FILTERS_BUTTONS_CLEAR]: 'Smazat',
+  [C.FILTERS_BUTTONS_CLEAR]: 'Odznačit vše',
   [C.FILTERS_BUTTONS_OK]: 'OK',
   [C.FILTERS_BUTTONS_CANCEL]: 'Storno',
 

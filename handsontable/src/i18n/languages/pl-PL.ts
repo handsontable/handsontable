@@ -107,7 +107,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: 'Lub',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: 'Zaznacz wszystko',
-  [C.FILTERS_BUTTONS_CLEAR]: 'Wyczyść',
+  [C.FILTERS_BUTTONS_CLEAR]: 'Odznacz wszystko',
   [C.FILTERS_BUTTONS_OK]: 'OK',
   [C.FILTERS_BUTTONS_CANCEL]: 'Anuluj',
 
