@@ -13,8 +13,9 @@ type Finding = {
   measured?: Record<string, unknown>;
 };
 
+export function nameApart<T extends { selector: string }>(items: T[]): T[];
 export function clippingFindings(input: { condition: string; boxes: object[] }): Finding[];
-export function viewportFindings(input: { condition: string; viewport: { width: number; height: number; scrollWidth: number; scrollHeight: number }; surfaces: object[] }): Finding[];
+export function viewportFindings(input: { condition: string; viewport: { width: number; height: number; scrollX?: number; scrollY?: number; scrollWidth: number; scrollHeight: number }; surfaces: object[] }): Finding[];
 export function overlapFindings(input: { condition: string; controls: object[] }): Finding[];
-export function hoverFindings(input: { selector: string; appeared: boolean; dismissible?: boolean; hoverable?: boolean; persistent?: boolean }): Finding[];
+export function hoverFindings(input: { selector: string; dismissible?: boolean; hoverable?: boolean; persistent?: boolean }): Finding[];
 export function orientationFindings(sizes: { portrait: { width: number; height: number }; landscape: { width: number; height: number } }): Finding[];

@@ -113,6 +113,10 @@ export async function flattenAxTree(page: Page, cdp: CDPSession, root: string): 
   for (const [selector, region] of [[root, 'grid'], [PORTAL, 'portal']] as const) {
     const backends = await backendIdsOf(cdp, selector);
 
+    // A grid root the tree does not hold would read as a clean pass on 1.3.1, 1.3.2 and 4.1.2: a tooling failure.
+    if (region === 'grid' && (backends.length === 0 || !byBackend.has(backends[0]))) {
+      throw new Error(`The grid root ${selector} is not in the accessibility tree`);
+    }
     for (const backend of region === 'grid' ? backends.slice(0, 1) : backends) {
       const start = byBackend.get(backend);
 

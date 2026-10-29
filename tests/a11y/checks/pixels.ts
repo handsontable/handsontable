@@ -8,7 +8,8 @@ import { type RootWrapper } from '../harness';
  * pixel is a CSS pixel.
  */
 
-const MARGIN = 4;
+// The margin `grow()` adds by default: room for a focus ring drawn just outside an element.
+export const MARGIN = 4;
 
 export type Box = { x: number; y: number; width: number; height: number };
 export type Image = { width: number; height: number; data: number[]; png?: Buffer };

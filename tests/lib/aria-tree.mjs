@@ -20,19 +20,33 @@ const HEADERS = new Set(['columnheader', 'rowheader']);
 const CELLS = new Set(['gridcell', 'cell', 'columnheader', 'rowheader']);
 const GRIDS = new Set(['grid', 'treegrid', 'table']);
 const NO_ROLE = new Set(['', 'generic', 'none', 'presentation']);
-const NATIVE_CONTROLS = new Set(['button', 'input', 'select', 'textarea']);
 const READING_ORDER = 'the grid in reading order';
+// The harness's portal mark (`PORTAL` in `a11y/harness.ts`): a node read in the portal is located under it.
+const PORTAL_SELECTOR = '[data-a11y-scan-portal]';
+// A cell's or a header's classes are rendering state (the selection's highlight, the last visible
+// header, the class names a column sets), so a node on one is located by its tag and role alone.
+const STATE_CLASSED = new Set(['td', 'th']);
 
 /**
- * The rows of the grid in reading order, each with its cells (the nodes whose parent is the row) and
- * the rowgroup it sits in: its parent when that is a rowgroup, otherwise the last rowgroup read before
- * it.
+ * The rows of the page's grids in reading order, each with its cells (the nodes whose parent is the
+ * row), the rowgroup it sits in (its parent when that is a rowgroup, otherwise the last rowgroup read
+ * before it), whether its own rowgroup is a table head (`thead`), and the grid it belongs to: its
+ * nearest grid, treegrid or table ancestor.
  *
  * @param {object[]} nodes The flattened tree, in reading order.
- * @returns {Array<{id: string, rowindex: number|null, group: string|null, cells: object[]}>} The rows.
+ * @returns {Array<{id: string, rowindex: number|null, group: string|null, head: boolean, grid: string|null, cells: object[]}>} The rows.
  */
 export function gridRows(nodes) {
   const byId = new Map(nodes.map(item => [item.id, item]));
+  const gridOf = (item) => {
+    let ancestor = byId.get(item.parent);
+
+    while (ancestor && !GRIDS.has(ancestor.role)) {
+      ancestor = byId.get(ancestor.parent);
+    }
+
+    return ancestor?.id ?? null;
+  };
   const rows = [];
   const rowById = new Map();
   let group = null;
@@ -42,7 +56,15 @@ export function gridRows(nodes) {
       group = item.id;
     } else if (item.role === 'row') {
       const parent = byId.get(item.parent);
-      const entry = { id: item.id, rowindex: toIndex(item.attrs?.['aria-rowindex']), group: parent?.role === 'rowgroup' ? parent.id : group, cells: [] };
+      const entry = {
+        id: item.id,
+        rowindex: toIndex(item.attrs?.['aria-rowindex']),
+        group: parent?.role === 'rowgroup' ? parent.id : group,
+        // Only the row's own rowgroup: a row with none would otherwise inherit another table's head.
+        head: parent?.role === 'rowgroup' && parent.tag === 'thead',
+        grid: gridOf(item),
+        cells: [],
+      };
 
       rows.push(entry);
       rowById.set(item.id, entry);
@@ -55,10 +77,12 @@ export function gridRows(nodes) {
 }
 
 /**
- * The structural findings of a grid read in order: the column headers read after the data (1.3.2),
+ * The structural findings of the grids read in order: the column headers read after the data (1.3.2),
  * row headers exposed in rows of their own instead of in the rows they label (1.3.1), a row exposed
  * twice (1.3.1), cells or rows read out of their index order (1.3.2), and a grid with no row (1.3.1).
- * A page without a grid role is not judged.
+ * Each grid is judged on its own rows (a list inside the page, the handsontable editor's or the filters'
+ * value list, is a grid of its own). The first one is read under `READING_ORDER`, every other one under
+ * its place among the grids with rows. A page without a grid role is not judged.
  *
  * @param {object[]} nodes The flattened tree, in reading order.
  * @returns {object[]} The findings.
@@ -74,15 +98,33 @@ export function structureFindings(nodes) {
     return [finding('grid-without-rows', ['1.3.1'], 'serious', {}, 'The grid exposes no row with a cell, so a screen reader finds nothing to read in it')];
   }
 
+  const grids = new Map();
+
+  for (const item of rows) {
+    grids.set(item.grid, [...(grids.get(item.grid) ?? []), item]);
+  }
+
+  return [...grids.values()].flatMap((own, index) => gridFindings(own, index === 0 ? READING_ORDER : `grid ${index + 1} in reading order`));
+}
+
+/**
+ * The structural findings of one grid's rows. A row of a table head is never a data row: the corner
+ * clone repeats the head row with its corner cell alone.
+ *
+ * @param {object[]} rows The grid's rows with a cell, in reading order.
+ * @param {string} step Where the findings are.
+ * @returns {object[]} The findings.
+ */
+function gridFindings(rows, step) {
   const findings = [];
   const isHeaderRow = item => item.cells.some(cell => cell.role === 'columnheader');
-  const isDataRow = item => !isHeaderRow(item) && item.cells.some(cell => cell.role === 'gridcell' || cell.role === 'cell');
+  const isDataRow = item => !item.head && !isHeaderRow(item) && item.cells.some(cell => cell.role === 'gridcell' || cell.role === 'cell');
   const firstHeaderRow = rows.findIndex(isHeaderRow);
   const firstDataRow = rows.findIndex(isDataRow);
 
   if (firstHeaderRow > -1 && firstDataRow > -1 && firstHeaderRow > firstDataRow) {
     findings.push(finding('headers-after-data', ['1.3.2'], 'moderate', { firstHeaderRow: firstHeaderRow + 1, firstDataRow: firstDataRow + 1 },
-      'A screen reader reads the data rows before the column headers that label them'));
+      'A screen reader reads the data rows before the column headers that label them', step));
   }
 
   const hasRowHeaders = rows.some(item => item.cells.some(cell => cell.role === 'rowheader'));
@@ -91,7 +133,7 @@ export function structureFindings(nodes) {
 
   if (hasRowHeaders && rowsWithoutHeader > 0) {
     findings.push(finding('row-headers-apart', ['1.3.1'], 'moderate', { rowsWithoutHeader, headerOnlyRows },
-      'Data rows carry no row header while the row headers sit in rows of their own, so a cell is not related to its row header'));
+      'Data rows carry no row header while the row headers sit in rows of their own, so a cell is not related to its row header', step));
   }
 
   const counts = new Map();
@@ -104,7 +146,7 @@ export function structureFindings(nodes) {
 
   if (duplicated.length > 0) {
     findings.push(finding('row-exposed-twice', ['1.3.1'], 'moderate', { duplicatedRowIndexes: duplicated.length, example: duplicated[0] },
-      'The same row index is exposed by more than one row, so a screen reader meets one grid row twice'));
+      'The same row index is exposed by more than one row, so a screen reader meets one grid row twice', step));
   }
 
   const unordered = rows.filter((item) => {
@@ -115,7 +157,7 @@ export function structureFindings(nodes) {
 
   if (unordered.length > 0) {
     findings.push(finding('cells-out-of-order', ['1.3.2'], 'serious', { rows: unordered.length, example: unordered[0].rowindex },
-      'A row\'s cells are read out of their column order'));
+      'A row\'s cells are read out of their column order', step));
   }
 
   for (let position = 1; position < rows.length; position++) {
@@ -123,7 +165,7 @@ export function structureFindings(nodes) {
 
     if (previous.group === current.group && previous.rowindex !== null && current.rowindex !== null && current.rowindex < previous.rowindex) {
       findings.push(finding('rows-out-of-order', ['1.3.2'], 'serious', { after: previous.rowindex, row: current.rowindex },
-        'Rows of one row group are read out of their row order'));
+        'Rows of one row group are read out of their row order', step));
       break;
     }
   }
@@ -134,7 +176,8 @@ export function structureFindings(nodes) {
 /**
  * The name and role findings: a widget with no accessible name (4.1.2), a column or row header with no
  * name (1.3.1, 4.1.2), and a tab stop the tree gives no role (4.1.2). An empty grid cell needs no name:
- * its empty name is its value. One finding per kind and element shape, with the number of nodes.
+ * its empty name is its value. One finding per kind, role and element (`selectorOf()`), with the number
+ * of nodes.
  *
  * @param {object[]} nodes The flattened tree.
  * @returns {object[]} The findings.
@@ -143,7 +186,7 @@ export function nameFindings(nodes) {
   const found = new Map();
   const add = (kind, criteria, severity, item, reason) => {
     const selector = selectorOf(item);
-    const key = `${kind}|${item.region}|${selector}`;
+    const key = `${kind}|${item.role}|${selector}`;
 
     if (found.has(key)) {
       found.get(key).measured.nodes += 1;
@@ -188,45 +231,67 @@ export function diffSnapshot(expected, actual) {
 }
 
 /**
- * Whether a node is a tab stop: an element with a non-negative `tabindex`, or a native control.
+ * The snapshot with what the run decides, not the page, replaced by a token: the fixture server's origin
+ * (`<origin>`, in a link a fixture builds from `location.origin`) and the installed Handsontable version
+ * (`<version>`, in the license bar's message). A golden then moves for a change to the tree only.
+ *
+ * @param {string} snapshot The snapshot.
+ * @param {{origin?: string|null, version?: string|null}} [run] The run's origin and version.
+ * @returns {string} The masked snapshot.
+ */
+export function maskSnapshot(snapshot, { origin = null, version = null } = {}) {
+  let masked = snapshot;
+
+  if (origin) {
+    masked = masked.replaceAll(origin, '<origin>');
+  }
+  if (version) {
+    masked = masked.replaceAll(version, '<version>');
+  }
+
+  return masked;
+}
+
+/**
+ * Whether a node is a tab stop: the tree marks it focusable (a `tabindex`, a native control, a link, an
+ * editable region) and its `tabindex` is not negative (an element focusable by script only).
  *
  * @param {object} item The node.
  * @returns {boolean} Whether it is.
  */
 function isTabStop(item) {
-  const tabindex = item.attrs?.tabindex;
-
-  if (tabindex !== undefined && tabindex !== null && tabindex !== '') {
-    return Number(tabindex) >= 0;
-  }
-
-  return NATIVE_CONTROLS.has(item.tag) || (item.tag === 'a' && item.attrs?.href !== undefined);
+  return item.focusable === true && !(Number(item.attrs?.tabindex) < 0);
 }
 
 /**
- * A short selector for a node: its tag and first class.
+ * A short selector for a node: the portal mark when it is read in the portal, its tag (`unknown` when it
+ * has no DOM element), its first class unless it is a cell or a header (`STATE_CLASSED`), and its `role`
+ * attribute.
  *
  * @param {object} item The node.
  * @returns {string} The selector.
  */
 function selectorOf(item) {
-  const [first] = String(item.attrs?.class ?? '').split(/\s+/).filter(Boolean);
+  const tag = item.tag || 'unknown';
+  const [first] = STATE_CLASSED.has(tag) ? [] : String(item.attrs?.class ?? '').split(/\s+/).filter(Boolean);
+  const role = item.attrs?.role ? `[role="${item.attrs.role}"]` : '';
 
-  return `${item.tag ?? 'unknown'}${first ? `.${first}` : ''}`;
+  return `${item.region === 'portal' ? `${PORTAL_SELECTOR} ` : ''}${tag}${first ? `.${first}` : ''}${role}`;
 }
 
 /**
- * A structural finding of the grid as a whole.
+ * A structural finding of a grid as a whole.
  *
  * @param {string} kind The kind.
  * @param {string[]} criteria The criteria.
  * @param {string} severity The severity.
  * @param {object} measured The values.
  * @param {string} reason The reason.
+ * @param {string} [step] Where it is: the grid, or which one.
  * @returns {object} The finding.
  */
-function finding(kind, criteria, severity, measured, reason) {
-  return { kind, criteria, severity, step: READING_ORDER, measured, reason };
+function finding(kind, criteria, severity, measured, reason, step = READING_ORDER) {
+  return { kind, criteria, severity, step, measured, reason };
 }
 
 /**

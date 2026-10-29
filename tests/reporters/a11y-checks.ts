@@ -7,6 +7,7 @@ import {
   EVIDENCE_ATTACHMENT,
   EVIDENCE_CHECKS,
   TARGET_ANNOTATION,
+  isTriageCheck,
   mergeEvidence,
   renderEvidenceSummary,
   runCommit,
@@ -33,7 +34,7 @@ import {
  * run"), and one whose part is not readable JSON or is malformed. Only a test that asked to be skipped is left out. A test that passed only on a retry is
  * flagged. All of them are tooling problems in the document, never a finding. The reporter does
  * not change the run's status: these checks are report-only, a red run is a tooling failure, and the
- * workflow step that runs them carries `continue-on-error`.
+ * workflow job that runs them carries `continue-on-error`.
  */
 export default class A11yChecksReporter implements Reporter {
   #suite: Suite | undefined;
@@ -42,11 +43,11 @@ export default class A11yChecksReporter implements Reporter {
 
   // `checks` and `outputDir` exist for `e2e/a11y-checks-reporter.spec.ts`, which proves the reporter on
   // synthetic projects; `playwright.a11y-checks.config.ts` passes neither.
-  #checks: Record<string, { title: string; criteria: string[] }>;
+  #checks: Record<string, { title: string; criteria: string[]; triage?: boolean }>;
 
   #outputDir: string;
 
-  constructor(options: { checks?: Record<string, { title: string; criteria: string[] }>; outputDir?: string } = {}) {
+  constructor(options: { checks?: Record<string, { title: string; criteria: string[]; triage?: boolean }>; outputDir?: string } = {}) {
     const packageDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
     this.#checks = options.checks ?? EVIDENCE_CHECKS;
@@ -101,7 +102,8 @@ export default class A11yChecksReporter implements Reporter {
           continue;
         }
 
-        const partProblems = validatePart(part);
+        // A triage check's record may name no criterion, so the part is read the way `mergeEvidence()` reads it.
+        const partProblems = validatePart(part, { triage: isTriageCheck(check, this.#checks) });
 
         if (partProblems.length > 0) {
           failures.push({ title: test.title, target, error: `the evidence part is malformed: ${partProblems.join('; ')}` });
