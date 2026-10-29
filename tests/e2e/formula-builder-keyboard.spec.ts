@@ -175,6 +175,27 @@ test.describe('formulaBuilder keyboard flow', { tag: [THEMES_TAG, BUNDLES_TAG, C
     expect(await grid.selectedLast()).toEqual([3, 0, 3, 0]);
   });
 
+  test('the bar editor shows a focus ring and the in-cell editor does not get one', async({ page }) => {
+    await grid.selectCellByApi(1, 0);
+    await grid.openBarEditor();
+    await expect(grid.editorInput).toBeFocused();
+    const ring = await grid.barEditor.evaluate((el) => {
+      const style = getComputedStyle(el);
+
+      return { style: style.outlineStyle, width: parseFloat(style.outlineWidth) };
+    });
+
+    expect(ring.style).not.toBe('none');
+    expect(ring.width).toBeGreaterThan(0);
+
+    // The in-cell editor keeps the cell editor border and no outline.
+    await page.keyboard.press('Escape');
+    await grid.selectCellByApi(1, 0);
+    await page.keyboard.press('Enter');
+    await expect(grid.inlineEditor).toBeVisible();
+    expect(await grid.inlineEditor.evaluate(el => getComputedStyle(el).outlineStyle)).toBe('none');
+  });
+
   test('the keyboard works after a Ctrl/Cmd+Enter commit from the formula bar', async({ page }) => {
     await grid.selectCellByApi(3, 0);
     await grid.openBarEditor();

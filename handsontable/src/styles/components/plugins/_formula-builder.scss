@@ -126,6 +126,14 @@ $accent-text-color: color-mix(in srgb, var(--ht-accent-color) 55%, var(--ht-fore
     outline: none;
   }
 
+  /* The bar-hosted editor draws the same ring as the address box (WCAG 2.4.7). The in-cell editor
+     keeps the cell editor border and no outline, so the rule is scoped to the bar's overlay. The bar
+     sits in a root-wrapper slot, outside `.handsontable`, so the selector does not start there. */
+  .ht-formula-builder__formula-bar .hfe-formula-bar__overlay .hfe-editor--focused {
+    outline: var(--hfe-border-width-focus) solid var(--hfe-formula-bar-input-focus-ring);
+    outline-offset: calc(-1 * var(--hfe-border-width-focus));
+  }
+
   .handsontable .ht-formula-builder__inline-editor {
     width: 100%;
     height: 100%;
