@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-29T14:33:00.860Z",
+  "generatedAt": "2026-10-29T14:43:37.930Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 427,
-    "needsTicket": 28,
+    "tests": 428,
+    "needsTicket": 34,
     "quarantined": 0,
-    "entries": 2193
+    "entries": 2239
   },
   "rows": [
     {
@@ -129,6 +129,117 @@
       "needsTicket": true
     },
     {
+      "key": "visual|visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts|js-only/filters/tab-navigation-through-condition-components-2",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts",
+      "line": null,
+      "title": "js-only/filters/tab-navigation-through-condition-components-2",
+      "count7": 5,
+      "count30": 15,
+      "countAll": 15,
+      "runs30": 3,
+      "flakyRuns30": 0,
+      "branches30": 3,
+      "nightlyRuns30": 0,
+      "openBranches30": 3,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-29T14:42:38Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40870088927",
+        "branch": "feature/DEV-978_Select-none-filter-link",
+        "leg": "js/chromium-theme-horizon-dark",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 23c51b961def",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts|js-only/filters/tab-navigation-through-condition-components-3",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts",
+      "line": null,
+      "title": "js-only/filters/tab-navigation-through-condition-components-3",
+      "count7": 5,
+      "count30": 15,
+      "countAll": 15,
+      "runs30": 3,
+      "flakyRuns30": 0,
+      "branches30": 3,
+      "nightlyRuns30": 0,
+      "openBranches30": 3,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-29T14:42:38Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40870088927",
+        "branch": "feature/DEV-978_Select-none-filter-link",
+        "leg": "js/chromium-theme-horizon-dark",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 64f52b85b23b",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts|js-only/filters/tab-navigation-through-condition-components-4",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts",
+      "line": null,
+      "title": "js-only/filters/tab-navigation-through-condition-components-4",
+      "count7": 5,
+      "count30": 15,
+      "countAll": 15,
+      "runs30": 3,
+      "flakyRuns30": 0,
+      "branches30": 3,
+      "nightlyRuns30": 0,
+      "openBranches30": 3,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-29T14:42:38Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40870088927",
+        "branch": "feature/DEV-978_Select-none-filter-link",
+        "leg": "js/chromium-theme-horizon-dark",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 755633110b79",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "playwright|e2e/selection-viewport-scroll.spec.ts|viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
       "tier": "playwright",
       "file": "e2e/selection-viewport-scroll.spec.ts",
@@ -200,6 +311,228 @@
       "needsTicket": true
     },
     {
+      "key": "visual|visual-tests/tests/js-only/filters/tab-navigation-through-action-buttons.spec.ts|js-only/filters/tab-navigation-through-action-buttons-1",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/filters/tab-navigation-through-action-buttons.spec.ts",
+      "line": null,
+      "title": "js-only/filters/tab-navigation-through-action-buttons-1",
+      "count7": 5,
+      "count30": 10,
+      "countAll": 10,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-29T14:42:38Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40870088927",
+        "branch": "feature/DEV-978_Select-none-filter-link",
+        "leg": "js/chromium-theme-horizon-dark",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 73922976c62a",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/filters/tab-navigation-through-action-buttons.spec.ts|js-only/filters/tab-navigation-through-action-buttons-2",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/filters/tab-navigation-through-action-buttons.spec.ts",
+      "line": null,
+      "title": "js-only/filters/tab-navigation-through-action-buttons-2",
+      "count7": 5,
+      "count30": 10,
+      "countAll": 10,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-29T14:42:38Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40870088927",
+        "branch": "feature/DEV-978_Select-none-filter-link",
+        "leg": "js/chromium-theme-horizon-dark",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 79c3e0910715",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/filters/tab-navigation-through-action-buttons.spec.ts|js-only/filters/tab-navigation-through-action-buttons-3",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/filters/tab-navigation-through-action-buttons.spec.ts",
+      "line": null,
+      "title": "js-only/filters/tab-navigation-through-action-buttons-3",
+      "count7": 5,
+      "count30": 10,
+      "countAll": 10,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-29T14:42:38Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40870088927",
+        "branch": "feature/DEV-978_Select-none-filter-link",
+        "leg": "js/chromium-theme-horizon-dark",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 9357d4ff7fda",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/filters/tab-navigation-through-action-buttons.spec.ts|js-only/filters/tab-navigation-through-action-buttons-4",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/filters/tab-navigation-through-action-buttons.spec.ts",
+      "line": null,
+      "title": "js-only/filters/tab-navigation-through-action-buttons-4",
+      "count7": 5,
+      "count30": 10,
+      "countAll": 10,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-29T14:42:38Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40870088927",
+        "branch": "feature/DEV-978_Select-none-filter-link",
+        "leg": "js/chromium-theme-horizon-dark",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 2d8b0cae9c9e",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts|js-only/filters/tab-navigation-through-condition-components-1",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts",
+      "line": null,
+      "title": "js-only/filters/tab-navigation-through-condition-components-1",
+      "count7": 5,
+      "count30": 10,
+      "countAll": 10,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-29T14:42:38Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40870088927",
+        "branch": "feature/DEV-978_Select-none-filter-link",
+        "leg": "js/chromium-theme-horizon-dark",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 a0aaf57dd5e3",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/filters/value-list-focused-cell.spec.ts|js-only/filters/value-list-focused-cell-1",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/filters/value-list-focused-cell.spec.ts",
+      "line": null,
+      "title": "js-only/filters/value-list-focused-cell-1",
+      "count7": 5,
+      "count30": 10,
+      "countAll": 10,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-29T14:42:38Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40870088927",
+        "branch": "feature/DEV-978_Select-none-filter-link",
+        "leg": "js/chromium-theme-horizon-dark",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 2a4da9ce4e7f",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "jasmine|handsontable/src/editors/textEditor/__tests__/textEditor.spec.js|TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
       "tier": "jasmine",
       "file": "handsontable/src/editors/textEditor/__tests__/textEditor.spec.js",
@@ -232,117 +565,6 @@
         "leg": "UMD (theme: classic)",
         "status": "failed",
         "error": "Error: Timeout - Async function did not complete within 15000ms (set by jasmine.DEFAULT_TIMEOUT_INTERVAL)",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "visual|visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts|js-only/filters/tab-navigation-through-condition-components-2",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts",
-      "line": null,
-      "title": "js-only/filters/tab-navigation-through-condition-components-2",
-      "count7": 0,
-      "count30": 10,
-      "countAll": 10,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "js/chromium",
-        "js/chromium-theme-horizon",
-        "js/chromium-theme-horizon-dark",
-        "js/chromium-theme-main",
-        "js/chromium-theme-main-dark"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-12T15:28:37Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38251302094/attempts/2",
-        "branch": "feature/DEV-3373_Row-header-checkbox-off-shared-demo",
-        "leg": "js/chromium-theme-horizon-dark",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 c555102e3c7e",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "visual|visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts|js-only/filters/tab-navigation-through-condition-components-3",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts",
-      "line": null,
-      "title": "js-only/filters/tab-navigation-through-condition-components-3",
-      "count7": 0,
-      "count30": 10,
-      "countAll": 10,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "js/chromium",
-        "js/chromium-theme-horizon",
-        "js/chromium-theme-horizon-dark",
-        "js/chromium-theme-main",
-        "js/chromium-theme-main-dark"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-12T15:28:37Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38251302094/attempts/2",
-        "branch": "feature/DEV-3373_Row-header-checkbox-off-shared-demo",
-        "leg": "js/chromium-theme-horizon-dark",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 6ed11b20f25e",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "visual|visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts|js-only/filters/tab-navigation-through-condition-components-4",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts",
-      "line": null,
-      "title": "js-only/filters/tab-navigation-through-condition-components-4",
-      "count7": 0,
-      "count30": 10,
-      "countAll": 10,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "js/chromium",
-        "js/chromium-theme-horizon",
-        "js/chromium-theme-horizon-dark",
-        "js/chromium-theme-main",
-        "js/chromium-theme-main-dark"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-12T15:28:37Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38251302094/attempts/2",
-        "branch": "feature/DEV-3373_Row-header-checkbox-off-shared-demo",
-        "leg": "js/chromium-theme-horizon-dark",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 933745b7017c",
         "source": "ci"
       },
       "needsTicket": true
@@ -1805,228 +2027,6 @@
       "needsTicket": false
     },
     {
-      "key": "visual|visual-tests/tests/js-only/filters/tab-navigation-through-action-buttons.spec.ts|js-only/filters/tab-navigation-through-action-buttons-1",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/filters/tab-navigation-through-action-buttons.spec.ts",
-      "line": null,
-      "title": "js-only/filters/tab-navigation-through-action-buttons-1",
-      "count7": 0,
-      "count30": 5,
-      "countAll": 5,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "js/chromium",
-        "js/chromium-theme-horizon",
-        "js/chromium-theme-horizon-dark",
-        "js/chromium-theme-main",
-        "js/chromium-theme-main-dark"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-12T15:28:37Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38251302094/attempts/2",
-        "branch": "feature/DEV-3373_Row-header-checkbox-off-shared-demo",
-        "leg": "js/chromium-theme-horizon-dark",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 91e9ce4719fd",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "visual|visual-tests/tests/js-only/filters/tab-navigation-through-action-buttons.spec.ts|js-only/filters/tab-navigation-through-action-buttons-2",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/filters/tab-navigation-through-action-buttons.spec.ts",
-      "line": null,
-      "title": "js-only/filters/tab-navigation-through-action-buttons-2",
-      "count7": 0,
-      "count30": 5,
-      "countAll": 5,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "js/chromium",
-        "js/chromium-theme-horizon",
-        "js/chromium-theme-horizon-dark",
-        "js/chromium-theme-main",
-        "js/chromium-theme-main-dark"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-12T15:28:37Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38251302094/attempts/2",
-        "branch": "feature/DEV-3373_Row-header-checkbox-off-shared-demo",
-        "leg": "js/chromium-theme-horizon-dark",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 37b81f0b1d87",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "visual|visual-tests/tests/js-only/filters/tab-navigation-through-action-buttons.spec.ts|js-only/filters/tab-navigation-through-action-buttons-3",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/filters/tab-navigation-through-action-buttons.spec.ts",
-      "line": null,
-      "title": "js-only/filters/tab-navigation-through-action-buttons-3",
-      "count7": 0,
-      "count30": 5,
-      "countAll": 5,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "js/chromium",
-        "js/chromium-theme-horizon",
-        "js/chromium-theme-horizon-dark",
-        "js/chromium-theme-main",
-        "js/chromium-theme-main-dark"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-12T15:28:37Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38251302094/attempts/2",
-        "branch": "feature/DEV-3373_Row-header-checkbox-off-shared-demo",
-        "leg": "js/chromium-theme-horizon-dark",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 a4fad8e1c718",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "visual|visual-tests/tests/js-only/filters/tab-navigation-through-action-buttons.spec.ts|js-only/filters/tab-navigation-through-action-buttons-4",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/filters/tab-navigation-through-action-buttons.spec.ts",
-      "line": null,
-      "title": "js-only/filters/tab-navigation-through-action-buttons-4",
-      "count7": 0,
-      "count30": 5,
-      "countAll": 5,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "js/chromium",
-        "js/chromium-theme-horizon",
-        "js/chromium-theme-horizon-dark",
-        "js/chromium-theme-main",
-        "js/chromium-theme-main-dark"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-12T15:28:37Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38251302094/attempts/2",
-        "branch": "feature/DEV-3373_Row-header-checkbox-off-shared-demo",
-        "leg": "js/chromium-theme-horizon-dark",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 c4a0765a5549",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "visual|visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts|js-only/filters/tab-navigation-through-condition-components-1",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/filters/tab-navigation-through-condition-components.spec.ts",
-      "line": null,
-      "title": "js-only/filters/tab-navigation-through-condition-components-1",
-      "count7": 0,
-      "count30": 5,
-      "countAll": 5,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "js/chromium",
-        "js/chromium-theme-horizon",
-        "js/chromium-theme-horizon-dark",
-        "js/chromium-theme-main",
-        "js/chromium-theme-main-dark"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-12T15:28:37Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38251302094/attempts/2",
-        "branch": "feature/DEV-3373_Row-header-checkbox-off-shared-demo",
-        "leg": "js/chromium-theme-horizon-dark",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 f7f4bd6c5129",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "visual|visual-tests/tests/js-only/filters/value-list-focused-cell.spec.ts|js-only/filters/value-list-focused-cell-1",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/filters/value-list-focused-cell.spec.ts",
-      "line": null,
-      "title": "js-only/filters/value-list-focused-cell-1",
-      "count7": 0,
-      "count30": 5,
-      "countAll": 5,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "js/chromium",
-        "js/chromium-theme-horizon",
-        "js/chromium-theme-horizon-dark",
-        "js/chromium-theme-main",
-        "js/chromium-theme-main-dark"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-12T15:28:37Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38251302094/attempts/2",
-        "branch": "feature/DEV-3373_Row-header-checkbox-off-shared-demo",
-        "leg": "js/chromium-theme-horizon-dark",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 cd29b07b87e9",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
       "key": "visual|visual-tests/tests/multi-frameworks/change-rows-order.spec.ts|multi-frameworks/change-rows-order-1",
       "tier": "visual",
       "file": "visual-tests/tests/multi-frameworks/change-rows-order.spec.ts",
@@ -2954,6 +2954,39 @@
         "leg": "e2e-firefox",
         "status": "failed",
         "error": "Error: browserType.launch: Failed to launch the browser process.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/complex-demo/rtl/open-dropdown-menu.spec.ts|js-only/complex-demo/rtl/open-dropdown-menu-1",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/complex-demo/rtl/open-dropdown-menu.spec.ts",
+      "line": null,
+      "title": "js-only/complex-demo/rtl/open-dropdown-menu-1",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "js/chromium-theme-main"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-29T14:42:38Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40870088927",
+        "branch": "feature/DEV-978_Select-none-filter-link",
+        "leg": "js/chromium-theme-main",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 2b12a0239a4f",
         "source": "ci"
       },
       "needsTicket": false
