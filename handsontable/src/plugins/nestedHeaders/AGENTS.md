@@ -183,7 +183,10 @@ outside, do not assume each call rebuilds the matrix.
 - The captured move state (`#movedPhysicalColumns`, `#preMoveColumnSequence`) is cleared **only after it
   is consumed** in the cacheUpdated handler, not unconditionally — a CollapsibleColumns auto-expand fires
   a synchronous hidden-only `cacheUpdated` *before* `moveIndexes`, and clearing eagerly dropped the
-  pending move.
+  pending move. The one other release is `#onAfterColumnMove` with `orderChanged === false`: a move that
+  changes nothing never reaches `moveIndexes()` (see `../manualColumnMove/AGENTS.md`), so no cache update
+  consumes the capture, and a later reorder that skips `beforeColumnMove` (`freezeColumn`) would meet it
+  stale. Pinned by `__tests__/noopMoveCapture.unit.js`.
 - The header renderer strips `beforeHiddenColumn` / `afterHiddenColumn` from every header that does not
   reach the cells (`reachesCells`). It runs *after* HiddenColumns' `afterGetColHeader` hook, which — since
   icons became elements — also appends a real `<i class="ht-icon …">` caret into `.relative`. Stripping the class does

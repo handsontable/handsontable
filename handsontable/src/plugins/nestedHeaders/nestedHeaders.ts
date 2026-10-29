@@ -206,14 +206,14 @@ export class NestedHeaders extends BasePlugin {
    * The physical indexes of the columns a move is relocating, captured in `beforeColumnMove` (where
    * the pre-move mapping is fresh). After the move, `#reparentMovedColumns` translates them to their
    * new visual positions and re-parents them into the cohesive group they were dropped inside. Cleared
-   * once consumed. Null when no move is in flight.
+   * once consumed, or by `afterColumnMove` when the move changed nothing. Null when no move is in flight.
    */
   #movedPhysicalColumns: number[] | null = null;
   /**
    * The column index sequence captured in `beforeColumnMove`, before the move is applied. Compared
-   * against the post-move sequence so a no-op move (e.g. clicking a selected group header, which
-   * "moves" the columns to their own position) skips re-parenting - recomputing membership there
-   * would needlessly drop a column's existing adoption. Null when no move is in flight.
+   * against the post-move sequence so a move that leaves the order as it is skips re-parenting -
+   * recomputing membership there would needlessly drop a column's existing adoption. Null when no move
+   * is in flight.
    */
   #preMoveColumnSequence: number[] | null = null;
   /**
@@ -284,8 +284,21 @@ export class NestedHeaders extends BasePlugin {
    * cache update fires on resume with the source already cleared, so flag a pending rebuild here -
    * the resume cache update consumes it once the mapping is fresh.
    */
-  #onAfterColumnMove = () => {
-    if (this.enabled && this.hot.columnIndexMapper.isBatched) {
+  #onAfterColumnMove = (movedColumns: number[], finalIndex: number, dropIndex: number | undefined,
+                        movePossible: boolean, orderChanged: boolean) => {
+    if (!this.enabled) {
+      return;
+    }
+
+    // A move that leaves the order as it is never reaches the index mapper, so no cache update consumes the
+    // capture of `#onBeforeColumnMove`. Release it here, or a later reorder that skips `beforeColumnMove`
+    // (`manualColumnFreeze`) would re-parent the stale columns.
+    if (orderChanged === false) {
+      this.#movedPhysicalColumns = null;
+      this.#preMoveColumnSequence = null;
+    }
+
+    if (this.hot.columnIndexMapper.isBatched) {
       this.#structureRebuildPending = true;
     }
   };
@@ -349,9 +362,10 @@ export class NestedHeaders extends BasePlugin {
       return;
     }
 
-    // A no-op move (the column order is unchanged - e.g. clicking a selected group header) must not
-    // re-parent: recomputing membership for the "moved" columns would drop a prior adoption and split
-    // the group. Only re-parent when the move actually reordered the columns.
+    // A cache update that leaves the column order unchanged must not re-parent: recomputing membership
+    // for the captured columns would drop a prior adoption and split the group. A no-op move (e.g.
+    // clicking a selected group header) no longer reaches this point, since it skips the index mapper.
+    // Only re-parent when the order actually changed.
     const sequence = this.hot.columnIndexMapper.getIndexesSequence();
 
     if (previous.length === sequence.length &&
