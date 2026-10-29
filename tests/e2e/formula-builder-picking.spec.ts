@@ -1,3 +1,4 @@
+import { devices } from '@playwright/test';
 import { test, expect, THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { FormulaBuilderPage } from '../fixtures/pages/FormulaBuilderPage';
 
@@ -518,4 +519,45 @@ test.describe('formulaBuilder picking a cell that shows a link', { tag: [THEMES_
       expect(page.context().pages()).toHaveLength(1);
     });
   }
+});
+
+// A pick by a tap on a phone. Walkontable runs the press from `touchend`, so the claim's
+// `preventDefault()` lands on a finished event, and the compatibility `mousedown` the browser fires
+// after the tap would move the focus onto the cell: the next typed characters were lost and the soft
+// keyboard closed. Themes: `locator.tap()` aims at the center of a cell or header label, and the
+// theme's padding decides what sits there.
+test.describe('formulaBuilder picking by a touch tap', { tag: [THEMES_TAG] }, () => {
+  // The phone's viewport, touch, and mobile flags without its browser type: a describe group cannot
+  // switch the browser, and this file runs on the Chromium legs only (no `CROSS_BROWSER_TAG`).
+  const { defaultBrowserType, ...iPhone } = devices['iPhone 13'];
+
+  test.use(iPhone);
+
+  let grid: FormulaBuilderPage;
+
+  test.beforeEach(async({ page, theme, bundle }) => {
+    grid = new FormulaBuilderPage(page, theme, bundle, 'default');
+    await grid.goto();
+    await grid.cell(3, 0).tap();
+    await page.keyboard.type('=');
+    await expect(grid.editorInput).toBeFocused();
+  });
+
+  test('a tap on a cell inserts its reference and keeps the editor focused for typing', async({ page }) => {
+    await grid.cell(0, 1).tap();
+    await expect(grid.editorInput).toHaveValue('=B1');
+    await expect(grid.editorInput).toBeFocused();
+
+    await page.keyboard.type('+1');
+    await expect(grid.editorInput).toHaveValue('=B1+1');
+  });
+
+  test('a tap on a column header inserts the column reference once and keeps the editor focused', async({ page }) => {
+    await grid.columnHeaderLabel('B').tap();
+    await expect(grid.editorInput).toHaveValue('=B:B');
+    await expect(grid.editorInput).toBeFocused();
+
+    await page.keyboard.type('+1');
+    await expect(grid.editorInput).toHaveValue('=B:B+1');
+  });
 });

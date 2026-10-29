@@ -1872,6 +1872,7 @@ export class FormulaBuilder extends BasePlugin {
         this.hot.getFirstFullyVisibleColumn(),
         this.hot.getFirstRenderedVisibleColumn()
       ),
+      deferTask: callback => this.hot._registerTimeout(callback, 0),
     });
 
     this.addHook('afterRenderer', this.#onAfterRenderer);

@@ -99,6 +99,7 @@ function makeHarness(options: HarnessOptions = {}) {
     closeUnbalancedParens,
   };
   const emitSwitchToInline = jest.fn();
+  const deferTask = jest.fn<void, [() => void]>();
   const controller = new CellPickController({
     core,
     getAdapter: () => (hasAdapter ? (adapterStub as unknown as HandsontableAdapter) : null),
@@ -113,11 +114,13 @@ function makeHarness(options: HarnessOptions = {}) {
     getColumnHeaderSpan: coords => headerSpans[coords.col] ?? { start: coords.col, end: coords.col },
     firstVisibleRow: () => 0,
     firstVisibleCol: () => 0,
+    deferTask,
   });
 
   return {
     controller,
     adapterStub,
+    deferTask,
     emitSwitchToInline,
     holder,
     closeUnbalancedParens,
@@ -1220,6 +1223,55 @@ describe('CellPickController press filter', () => {
     expect(adapterStub.emitCellPick).toHaveBeenCalledTimes(1);
     expect(controller.isHeaderPickActive()).toBe(false);
   });
+
+  it('cancels the touchend of a tap pick, so the browser fires no compatibility mousedown', () => {
+    const { controller } = makeHarness();
+
+    controller.onBeforeMouseDown(makeTapPress(), { row: 1, col: 1 }, undefined, makeFlags());
+
+    expect(dispatchTouchEnd().defaultPrevented).toBe(true);
+    // One-shot: the next tap's touchend is left alone.
+    expect(dispatchTouchEnd().defaultPrevented).toBe(false);
+  });
+
+  it('cancels the touchend of a header tap pick', () => {
+    const { controller, adapterStub } = makeHarness();
+
+    controller.onBeforeMouseDown(makeTapPress(), { row: -1, col: 1 }, undefined, makeFlags());
+
+    expect(adapterStub.emitHeaderPick).toHaveBeenCalledTimes(1);
+    expect(dispatchTouchEnd().defaultPrevented).toBe(true);
+  });
+
+  it('stops cancelling once the task that dispatched the tap is over', () => {
+    const { controller, deferTask } = makeHarness();
+
+    controller.onBeforeMouseDown(makeTapPress(), { row: 1, col: 1 }, undefined, makeFlags());
+    expect(deferTask).toHaveBeenCalledTimes(1);
+    deferTask.mock.calls[0][0]();
+
+    expect(dispatchTouchEnd().defaultPrevented).toBe(false);
+  });
+
+  it('stops cancelling on reset', () => {
+    const { controller } = makeHarness();
+
+    controller.onBeforeMouseDown(makeTapPress(), { row: 1, col: 1 }, undefined, makeFlags());
+    controller.reset();
+
+    expect(dispatchTouchEnd().defaultPrevented).toBe(false);
+  });
+
+  it('leaves no header click swallow armed after a header tap pick, which fires no click', () => {
+    const { controller } = makeHarness();
+    const th = document.createElement('th');
+
+    document.body.appendChild(th);
+    controller.onBeforeMouseDown(makeTapPress(), { row: -1, col: 1 }, undefined, makeFlags());
+
+    // A click without a mousedown before it (a keyboard activation) must reach the header.
+    expect(clickOn(th).defaultPrevented).toBe(false);
+  });
 });
 
 describe('CellPickController nested-header group picks', () => {
@@ -1254,6 +1306,34 @@ describe('CellPickController nested-header group picks', () => {
     });
   });
 });
+
+/**
+ * Builds the press Walkontable hands the hook for a tap: the `touchstart` it deferred to `touchend`.
+ *
+ * @returns {MouseEvent} The touch press, typed the way the hook receives it.
+ */
+function makeTapPress(): MouseEvent {
+  const touch = { identifier: 3, clientX: 10, clientY: 10 } as unknown as Touch;
+  const event = new Event('touchstart', { cancelable: true }) as unknown as MouseEvent;
+
+  Object.defineProperty(event, 'changedTouches', { value: [touch] });
+  Object.defineProperty(event, 'touches', { value: [touch] });
+
+  return event;
+}
+
+/**
+ * Dispatches a cancelable `touchend` on the document and returns it.
+ *
+ * @returns {Event} The dispatched event.
+ */
+function dispatchTouchEnd(): Event {
+  const event = new Event('touchend', { bubbles: true, cancelable: true });
+
+  document.dispatchEvent(event);
+
+  return event;
+}
 
 /**
  * Simulates a grid mousedown whose target is the given element.

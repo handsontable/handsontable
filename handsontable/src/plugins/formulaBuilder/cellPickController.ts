@@ -137,6 +137,13 @@ export interface CellPickControllerDeps {
    * @returns {number}
    */
   firstVisibleCol(): number;
+  /**
+   * Runs the callback in a later task, after the event being dispatched now has reached every
+   * listener.
+   *
+   * @param {Function} callback The callback.
+   */
+  deferTask(callback: () => void): void;
 }
 
 /**
@@ -256,6 +263,10 @@ export class CellPickController {
    */
   #touchId: number | null = null;
   /**
+   * Removes the pending one-shot `touchend` listener a touch pick arms, when armed.
+   */
+  #touchEndCancelCleanup: (() => void) | null = null;
+  /**
    * The HyperFormula span of the header a header drag started on (a nested-header group covers
    * several), whether it appends, and the index the header tracker is anchored at now.
    */
@@ -374,6 +385,7 @@ export class CellPickController {
     this.#tracker.cancel();
     this.#headerTracker.cancel();
     this.#disarmClickSwallow();
+    this.#disarmTouchEndCancel();
     this.#focusBeforePick = null;
   }
 
@@ -494,7 +506,7 @@ export class CellPickController {
 
     // A touch press arrives from `touchend`, with the finger already lifted: the tap is the whole pick.
     if (event !== undefined && hasTouchList(event)) {
-      this.#handleDocMouseUp();
+      this.#finishTouchPick();
     }
   }
 
@@ -562,7 +574,7 @@ export class CellPickController {
     this.#armHeaderClickSwallow();
 
     if (event !== undefined && hasTouchList(event)) {
-      this.#handleDocMouseUp();
+      this.#finishTouchPick();
     }
   }
 
@@ -615,6 +627,53 @@ export class CellPickController {
     return axis === 'row' ?
       this.#deps.toHfCoords({ row: visualIndex, col: 0 }).row :
       this.#deps.toHfCoords({ row: 0, col: visualIndex }).col;
+  }
+
+  /**
+   * Finishes a pick a tap started. Walkontable runs the press from `touchend` and hands it the
+   * `touchstart` event, which has already been dispatched, so the claim's `preventDefault()` cancels
+   * nothing. The browser then fires the compatibility `mousedown`, `mouseup`, and `click` for the tap,
+   * and that `mousedown` moves the focus from the formula editor onto the cell, so the next typed
+   * characters are lost and a phone closes its soft keyboard. Cancelling the `touchend` that is being
+   * dispatched now stops the browser from firing them. The click swallows the pick armed have no
+   * `click` left to swallow (and the compatibility `mousedown` used to disarm them before its own
+   * `click` anyway), so they are disarmed too.
+   */
+  #finishTouchPick(): void {
+    this.#disarmClickSwallow();
+    this.#armTouchEndCancel();
+    this.#handleDocMouseUp();
+  }
+
+  /**
+   * Arms a one-shot document `touchend` listener that cancels the `touchend` being dispatched now:
+   * this method runs from a Walkontable `touchend` listener on the grid's holder, so the event still
+   * bubbles to the document. A task later the listener is removed unused, so it never cancels the
+   * `touchend` of a later tap.
+   */
+  #armTouchEndCancel(): void {
+    this.#disarmTouchEndCancel();
+
+    const rootDocument = this.#deps.getRootDocument();
+    const cancelTouchEnd = (event: TouchEvent): void => {
+      this.#disarmTouchEndCancel();
+
+      if (event.cancelable) {
+        event.preventDefault();
+      }
+    };
+
+    rootDocument.addEventListener('touchend', cancelTouchEnd);
+    this.#touchEndCancelCleanup = () => rootDocument.removeEventListener('touchend', cancelTouchEnd);
+    this.#deps.deferTask(() => this.#disarmTouchEndCancel());
+  }
+
+  /**
+   * Removes the pending one-shot `touchend` listener, if any.
+   */
+  #disarmTouchEndCancel(): void {
+    this.#touchEndCancelCleanup?.();
+    this.#touchEndCancelCleanup = null;
   }
 
   /**

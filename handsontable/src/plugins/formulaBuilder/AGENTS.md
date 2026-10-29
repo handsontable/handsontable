@@ -71,6 +71,14 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   `firstVisibleCol()`: index 0 when that axis is frozen, else the first fully visible one), not to index 0.
   The handoff press (a click on the bar-selected cell, which moves the edit into the cell) is claimed
   as well, not only suppressed: RowSelection's click selection runs from `afterOnCellMouseDown`.
+  A tap is the exception to "the claim keeps the focus": Walkontable runs the press from `touchend` and
+  passes the deferred `touchstart`, already dispatched, so its `preventDefault()` cancels nothing, and the
+  compatibility `mousedown` after the tap focused the cell (typed text lost, soft keyboard closed). A tap
+  pick therefore cancels the `touchend` that is still being dispatched (`#finishTouchPick`: a one-shot
+  document listener, removed a task later through `deferTask`), so the browser fires no compatibility
+  `mousedown`/`click` at all, and it disarms the click swallows, which have no click left to eat. Do not
+  cancel the compatibility `mousedown` instead: the click swallows disarm on any `mousedown`, so the
+  `click` after it still reached the header, link, or checkbox.
 - **The `formula` alias is registered in the constructor, not in `enablePlugin()`.** A cell configured with
   `editor: 'formula'` must resolve whether or not the plugin enabled (no `builder`, no Formulas yet).
   Otherwise selecting the cell throws `No registered editor found under "formula" name`. With the plugin
