@@ -4558,6 +4558,54 @@ describe('SheetsBar plugin', () => {
     frame.remove();
   });
 
+  it('opens the menu with no item preselected for a touch long-press whose press a repaint ended', () => {
+    const sheets = [
+      { id: 1, name: 'A', isActive: true },
+      { id: 2, name: 'B', isActive: false },
+      { id: 3, name: 'C', isActive: false },
+    ];
+    const { host, strip } = buildTabStrip(sheets);
+    const tab = host.querySelector('[data-sheet-id="1"]');
+    const label = tab.querySelector('.ht-sheets-bar__tab-label');
+    const menuClicks = [];
+    const press = new MouseEvent('pointerdown', { bubbles: true, button: 0, clientX: 50 });
+
+    strip.addLocalHook('tabMenuClick', (id, element, fromKeyboard) => menuClicks.push(fromKeyboard));
+    Object.defineProperty(press, 'pointerType', { value: 'touch' });
+    label.dispatchEvent(press);
+    strip.render([sheets[1], sheets[0], sheets[2]]);
+
+    const longPress = new MouseEvent('contextmenu', { bubbles: true, cancelable: true, button: 0, buttons: 0 });
+
+    Object.defineProperty(longPress, 'sourceCapabilities', { value: { firesTouchEvents: true } });
+    label.dispatchEvent(longPress);
+
+    expect(menuClicks).toEqual([false]);
+
+    strip.destroy();
+    host.remove();
+  });
+
+  it('moves no tab when a repaint during a rename keeps the order', () => {
+    const sheets = [
+      { id: 1, name: 'A', isActive: false },
+      { id: 2, name: 'B', isActive: false },
+      { id: 3, name: 'C', isActive: true },
+    ];
+    const { host, strip } = buildTabStrip(sheets);
+
+    strip.startRename(3);
+
+    const insertBefore = jest.spyOn(host, 'insertBefore');
+
+    strip.render(sheets);
+
+    expect(insertBefore).not.toHaveBeenCalled();
+
+    strip.destroy();
+    host.remove();
+  });
+
   it('keeps a press across a repaint that leaves its tab in place, so a later move drags it', () => {
     const sheets = [
       { id: 1, name: 'A', isActive: true },

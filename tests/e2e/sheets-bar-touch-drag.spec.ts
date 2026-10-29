@@ -16,12 +16,15 @@ test.use({
   browserName: 'chromium',
 });
 
+const CLOCK_START = new Date('2026-08-28T10:00:00Z');
+
 test.describe('sheets bar touch drag', { tag: THEMES_TAG }, () => {
   test('dragging a tab past its neighbour by touch reorders the strip', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 
-    await page.clock.install();
+    await page.clock.install({ time: CLOCK_START });
     await bar.goto();
+    await page.clock.pauseAt(CLOCK_START.getTime() + 60_000);
 
     const names = () => page.evaluate(() => Array.from(
       document.querySelectorAll('.ht-sheets-bar__tab-label'),
@@ -105,8 +108,9 @@ test.describe('sheets bar touch drag', { tag: THEMES_TAG }, () => {
     const errors: string[] = [];
 
     page.on('pageerror', error => errors.push(error.message));
-    await page.clock.install();
+    await page.clock.install({ time: CLOCK_START });
     await bar.goto();
+    await page.clock.pauseAt(CLOCK_START.getTime() + 60_000);
     await bar.tab(1).locator('.ht-sheets-bar__tab-label').dblclick();
 
     const input = page.locator('.ht-sheets-bar__tab-rename');

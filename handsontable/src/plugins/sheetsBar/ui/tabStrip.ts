@@ -11,6 +11,7 @@ import {
 } from '../../../helpers/dom/element';
 import { A11Y_LABEL } from '../../../helpers/a11y';
 import { stopImmediatePropagation } from '../../../helpers/dom/event';
+import { getMouseEventTouchOrigin } from '../../../helpers/dom/inputOrigin';
 import type EventManager from '../../../eventManager';
 import type { LongPressTimers } from '../../../helpers/dom/longPress';
 import { TabDrag, translationOf } from './tabDrag';
@@ -503,10 +504,14 @@ export class TabStrip {
 
     const pinned = tabs[pinnedIndex];
 
-    tabs.slice(0, pinnedIndex).forEach((tab) => {
-      if (tab.nextSibling !== pinned) {
-        this.#host.insertBefore(tab, pinned);
+    let following = pinned;
+
+    tabs.slice(0, pinnedIndex).reverse().forEach((tab) => {
+      if (tab.nextSibling !== following) {
+        this.#host.insertBefore(tab, following);
       }
+
+      following = tab;
     });
 
     let previous = pinned;
@@ -1601,8 +1606,13 @@ export class TabStrip {
     mirror.className = 'ht-sheets-bar__tab-rename-mirror';
     mirror.setAttribute('aria-hidden', 'true');
 
+    const savedName = this.#host.ownerDocument.createElement('span');
+
+    savedName.hidden = true;
+    savedName.textContent = label.textContent;
+
     if (label.id !== '') {
-      mirror.id = label.id;
+      savedName.id = label.id;
     }
 
     // The renaming class hides the menu chevron for the duration of the edit: the tab is a
@@ -1613,6 +1623,7 @@ export class TabStrip {
     removeAttribute(tab, ['role', 'aria-haspopup', 'aria-expanded']);
     label.replaceWith(input);
     tab.appendChild(mirror);
+    tab.appendChild(savedName);
     this.#syncRenameWidth(input, mirror, 0);
 
     // Entering the edit removes the label, the gap, and the chevron from the tab, which would
@@ -1888,8 +1899,10 @@ export class TabStrip {
    * editing text, not for the sheet. The keyboard raises the same event — Shift+F10, the
    * Menu key — and only then does the menu open with an item preselected. `button` alone
    * cannot tell those apart: a touch long-press and a macOS Ctrl+click both report
-   * `button: 0`, so the keyboard is recognized by no button being held and no pointer
-   * having gone down on the tab. The long-press half is pinned by a Playwright touch test;
+   * `button: 0`, so the keyboard is recognized by no button being held, no pointer
+   * having gone down on the tab, and no touch origin reported by the browser
+   * (`sourceCapabilities.firesTouchEvents`): a repaint can end the press a long-press began
+   * before the browser raises its `contextmenu`. The long-press half is pinned by a Playwright touch test;
    * a genuine macOS Ctrl+click cannot be synthesized from Playwright, so that half rides on
    * the same flag untested.
    *
@@ -1908,7 +1921,8 @@ export class TabStrip {
       return;
     }
 
-    const fromKeyboard = event.button === 0 && event.buttons === 0 && !this.#drag.isPressing();
+    const fromKeyboard = event.button === 0 && event.buttons === 0 && !this.#drag.isPressing() &&
+      getMouseEventTouchOrigin(event) !== true;
 
     event.preventDefault();
     event.stopPropagation();

@@ -374,7 +374,7 @@ runs a command and closes the menu is ended this way** (`shouldAutoCloseMenu`, t
 `isCommandPassive()`). A passive row needs the tap's mouse events: the Filters controls inside the
 dropdown menu (`isCommand: false` rows) answer the `click` and take the focus from it, and a submenu
 parent opens its submenu from the tap's `mouseover`. Ending every tap broke both on touch screens:
-the filter search took no focus, checkboxes and OK did nothing, and no submenu opened. A test that counts
+the filter search took no focus, checkboxes and OK did nothing, and no submenu opened. A tap on a link or a form control that an item renderer puts in a row (`TAP_ACTIVATED_CONTROLS`: `a[href]`, `button`, `input`, `select`, `textarea`, `label`) is left alone too: the browser follows the link or toggles the control from the tap's `click`. A test that counts
 `click`s after a menu tap reads 0 for the tap (`tests/e2e/touch-tap-to-edit.spec.ts`, #12803);
 pinned by `tests/e2e/sheets-bar-touch-menus.spec.ts`, which also taps the Filters controls and a submenu parent.
 

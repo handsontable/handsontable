@@ -481,7 +481,6 @@ describe('TabDrag', () => {
 
       expect(tab.classList.contains('ht-sheets-bar__tab--lifted')).toBe(true);
 
-      host.ownerDocument.dispatchEvent(finger('pointercancel', 50, tab));
       host.dispatchEvent(touch('touchcancel', 0));
 
       const move = touch('touchmove', 1);
@@ -489,6 +488,23 @@ describe('TabDrag', () => {
       host.dispatchEvent(move);
 
       expect(move.defaultPrevented).toBe(false);
+
+      drag.destroy();
+    });
+
+    it('removes its touch listeners when a press that never lifted ends', () => {
+      host = buildStrip(3);
+
+      const eventManager = new EventManager({});
+      const removeEventListener = jest.spyOn(eventManager, 'removeEventListener');
+      const drag = new TabDrag({ host, dragRoot: host, eventManager, timers }, jest.fn());
+      const tab = host.children[0];
+
+      drag.start(finger('pointerdown', 50, tab), tab, 1);
+      removeEventListener.mockClear();
+      host.ownerDocument.dispatchEvent(finger('pointerup', 50, tab));
+
+      expect(removeEventListener).toHaveBeenCalledWith(host, 'touchend', expect.any(Function));
 
       drag.destroy();
     });

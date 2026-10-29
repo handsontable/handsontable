@@ -464,7 +464,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `touchmove`, which is what keeps the browser from panning once the drag owns the finger. It blocks only while the press is held (`#tab` set), so a press that ended in `pointercancel` blocks nothing, and the touch listeners come off only when no finger is left on the screen (`touches.length === 0` on `touchend` or `touchcancel`): a second finger lifting first ended the held finger's drag. The lift re-bases the drag origin on where the finger rests (`#holdX`), because the hold allows 10px of drift and the drag starts at 4px. A lifted tab looks like a dragged one (raised, opaque, the hover text color), and both carry an outline in forced colors, which drop the shadow. Lifting
   the finger without moving opens the tab menu with no item preselected (`onHoldRelease`). The
   browser's own long-press `contextmenu` is ignored while a touch press is held
-  (`TabDrag#isTouchPressing()`), or the menu opened twice. A pen press is timed the same way; a
+  (`TabDrag#isTouchPressing()`), or the menu opened twice. A `contextmenu` the browser reports as touch-raised (`getMouseEventTouchOrigin()`) never opens the menu as from the keyboard: a repaint that moves the held tab ends the press before Android raises its long-press menu, and the press flags alone then read it as Shift+F10. A press that never lifted drops its touch listeners as soon as it ends, because nothing needs its `touchend` canceled. A pen press is timed the same way; a
   mouse press drags at once, as before. The detector's timers are the grid's window, so `page.clock` drives the hold in the
   specs (`tests/e2e/sheets-bar-touch-drag.spec.ts`, `sheets-bar-touch-menus.spec.ts`).
 - **The menus' upward flip needs a negative `above` offset.** The positioner aligns a flipped
@@ -525,7 +525,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   more; the call clears only a selection a plugin or a listener made during the switch, and stays
   as a guard. The grid focus scope drops its remembered Tab re-entry cell on `afterLoadData` on
   every grid, not only on a switch: a cell remembered from the previous data does not name a
-  record of the new data.
+  record of the new data. Before that load, the switch stores the re-entry cell as the departing
+  sheet's selection when the sheet has none (`#withTabReentryCell`), so a keyboard user who
+  tabbed into the bar finds their cell on return. It does so only when a <kbd>Tab</kbd> out of the
+  grid removed the selection (`wasLeftByTab()` in `focusManager/tabReentry.ts`): the re-entry
+  cell also outlives an outside click and `deselectCell()`, and a selection cleared that way must
+  stay cleared.
 - **The tab listeners live on the strip host, added once when the strip is built** (`#listenToTabs` in
   `ui/tabStrip.ts`), and each handler finds its tab from the event target and its sheet from the descriptors
   of the last `render()`. Do not add listeners to the tabs `#buildTab()` creates: every repaint would add
@@ -555,7 +560,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 - **The grid takes its accessible name from the active tab's label** (`aria-labelledby` on
   `hot.rootElement`, `#syncGridName`), and follows a rename and a switch. A name the host set
   (`aria-label` or its own `aria-labelledby`) wins: the bar then removes only its own id, and
-  restores nothing it did not write on teardown. A host can only name the grid after it is built, so the bar watches the root's two attributes (`#gridNameObserver`, a `MutationObserver` disconnected with the name); without it the bar's `aria-labelledby`, which wins over an `aria-label`, named the grid after the sheet until the next repaint. While a rename is open the label is out of the DOM, so the rename's mirror span (the one that measures the input's width and holds the typed text) takes the label's `id`, and the grid's name follows the draft instead of pointing at a missing node. The strip's `focusout` tells a move within the strip with `isHTMLElement()`, never `instanceof Node`, which is `false` for a grid built in another realm (an iframe) and gave the Tab stop back to the active tab on every arrow.
+  restores nothing it did not write on teardown. A host can only name the grid after it is built, so the bar watches the root's two attributes (`#gridNameObserver`, a `MutationObserver` disconnected with the name); without it the bar's `aria-labelledby`, which wins over an `aria-label`, named the grid after the sheet until the next repaint. While a rename is open the label is out of the DOM, so a hidden span holding the saved name takes the label's `id`, and the grid keeps its saved name instead of pointing at a missing node. It stays until the tab is rebuilt, so an Escape leaves no moment without the node; the mirror that measures the input carries no `id`, or the grid's name would follow the unsaved text. The strip's `focusout` tells a move within the strip with `isHTMLElement()`, never `instanceof Node`, which is `false` for a grid built in another realm (an iframe) and gave the Tab stop back to the active tab on every arrow.
 - **A move and a duplicate made in the bar are announced politely** (`SHEETS_BAR_SHEET_MOVED`,
   `SHEETS_BAR_SHEET_DUPLICATED`, `SOURCE_UI` only); the switch announcement keeps its assertive
   politeness.

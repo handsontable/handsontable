@@ -794,6 +794,7 @@ class Event {
     this.touchApplied = false;
     this.#touchWasMoved = false;
     this.#longPress.reset();
+    this.#longPressStart = null;
   }
 
   /**
@@ -814,6 +815,7 @@ class Event {
    */
   onTouchCancel() {
     this.#longPress.reset();
+    this.#longPressStart = null;
 
     this.touchApplied = false;
     this.#mouseDown = false;
@@ -961,6 +963,7 @@ class Event {
       clearTimeout(this.#dblClickTimeout[1]);
     }
     this.#longPress.reset();
+    this.#longPressStart = null;
 
     if (this.momentumScrolling) {
       clearTimeout(this.momentumScrolling._timeout);

@@ -102,6 +102,13 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
     await expect(fixture.tab(1)).toBeFocused();
     await expect(fixture.tab(1)).toHaveAttribute('tabindex', '0');
     await expect(fixture.tab(0)).toHaveAttribute('tabindex', '-1');
+
+    await page.keyboard.press('Tab');
+    await expect(page.locator('.ht-sheets-bar__tab:focus')).toHaveCount(0);
+    await page.keyboard.press('Shift+Tab');
+    await expect(fixture.activeTab).toBeFocused();
+    await expect(fixture.tab(0)).toHaveAttribute('tabindex', '0');
+    await expect(fixture.tab(1)).toHaveAttribute('tabindex', '-1');
   });
 
   test('the grid is named after the sheet it shows', async({ page, theme, bundle }) => {
@@ -115,9 +122,14 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
 
     await fixture.tab(1).locator('.ht-sheets-bar__tab-label').dblclick();
     await fixture.renameInput.fill('Budget');
-    await expect(page.getByRole('treegrid', { name: 'Budget' })).toBeAttached();
+    await expect(page.getByRole('treegrid', { name: 'Sheet 2' })).toBeAttached();
 
     await page.keyboard.press('Enter');
+    await expect(page.getByRole('treegrid', { name: 'Budget' })).toBeAttached();
+
+    await fixture.tab(1).locator('.ht-sheets-bar__tab-label').dblclick();
+    await fixture.renameInput.fill('Draft');
+    await page.keyboard.press('Escape');
     await expect(page.getByRole('treegrid', { name: 'Budget' })).toBeAttached();
   });
 
@@ -329,6 +341,32 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
 
       await expect(fixture.renameInput).toHaveValue('Draft');
       await expect(fixture.renameInput).toBeFocused();
+    });
+
+    test('a selection cleared by an outside click or the API stays cleared after a round trip', async({
+      page, theme, bundle,
+    }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+      const selected = () => page.evaluate(() => (window as any).hot.getSelected() ?? null);
+
+      await fixture.goto();
+      await page.evaluate(() => (window as any).hot.selectCell(1, 1));
+      await page.mouse.click(2, 2);
+      await expect.poll(selected).toBeNull();
+
+      await fixture.tab(1).click();
+      await fixture.tab(0).click();
+      await expect(fixture.tab(0)).toHaveClass(/ht-sheets-bar__tab--active/);
+      expect(await selected()).toBeNull();
+
+      await page.evaluate(() => {
+        (window as any).hot.selectCell(2, 2);
+        (window as any).hot.deselectCell();
+      });
+      await fixture.tab(1).click();
+      await fixture.tab(0).click();
+      await expect(fixture.tab(0)).toHaveClass(/ht-sheets-bar__tab--active/);
+      expect(await selected()).toBeNull();
     });
 
     test('a cell selected before Tab moved the focus into the bar comes back with its sheet', async({

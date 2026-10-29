@@ -49,6 +49,11 @@ const MIN_WIDTH = 215;
  * would kill the sub-menu mid-move (DEV-66).
  */
 const SUB_MENU_HOVER_DELAY = 300;
+/**
+ * The elements a custom item renderer can put in a row that act on a tap's `click`, so the menu
+ * leaves that tap's mouse events to the browser.
+ */
+const TAP_ACTIVATED_CONTROLS = 'a[href], button, input, select, textarea, label';
 
 /**
  * Type guard that checks whether the provided value has a readable `name` property.
@@ -1131,6 +1136,9 @@ export class Menu {
    * cell. A command that put the focus somewhere (the sheets bar's Rename opens an input and focuses
    * it) lost it at once. Canceling the `touchend` is what tells the browser not to send them.
    *
+   * A tap on a link or a form control that an item renders keeps its mouse events too: the browser
+   * follows the link, or toggles and focuses the control, from the tap's `click`.
+   *
    * Only a tap on an item that runs a command and closes the menu is ended this way. A passive row
    * (a Filters control with `isCommand: false`, a disabled item, a submenu parent, a separator) needs
    * the tap's mouse events: the Filters inputs, checkboxes and buttons react to the `click` and take
@@ -1139,9 +1147,15 @@ export class Menu {
    * @param {Event} event The event that ended the press on the item.
    */
   #endTapBeforeCommand(event: Event): void {
-    if (event.type === 'touchend' && hasTouchList(event) && event.cancelable) {
-      event.preventDefault();
+    if (event.type !== 'touchend' || !hasTouchList(event) || !event.cancelable) {
+      return;
     }
+
+    if (isHTMLElement(event.target) && event.target.closest(TAP_ACTIVATED_CONTROLS) !== null) {
+      return;
+    }
+
+    event.preventDefault();
   }
 
   /**

@@ -116,39 +116,12 @@ export class FocusGridManager {
    * @type {Set<HTMLElement>}
    */
   #outsideClickExemptElements = new Set<HTMLElement>();
-  /**
-   * The cell a <kbd>Tab</kbd> back into the grid lands on: the last focused cell, kept after a
-   * <kbd>Tab</kbd> out of the grid deselected it, and dropped when the grid loads other data.
-   *
-   * @type {object|undefined}
-   */
-  #tabReentryCoords: Record<string, number> | undefined;
 
   /**
    * Initializes the manager with a reference to the Handsontable instance.
    */
   constructor(hotInstance: HotInstance) {
     this.#hot = hotInstance;
-  }
-
-  /**
-   * Returns the cell a <kbd>Tab</kbd> back into the grid lands on, in visual coordinates.
-   *
-   * @private
-   * @returns {object|undefined} The cell's `row` and `col`, or `undefined` when there is none.
-   */
-  _getTabReentryCoords(): Record<string, number> | undefined {
-    return this.#tabReentryCoords;
-  }
-
-  /**
-   * Sets the cell a <kbd>Tab</kbd> back into the grid lands on.
-   *
-   * @private
-   * @param {object|undefined} coords The cell's `row` and `col`, or `undefined` to forget it.
-   */
-  _setTabReentryCoords(coords: Record<string, number> | undefined): void {
-    this.#tabReentryCoords = coords;
   }
 
   /**

@@ -44,6 +44,7 @@ import { withoutUndoEntry } from '../../utils/viewState/withoutUndoEntry';
 import * as C from '../../i18n/constants';
 import { announce, type AnnouncementPoliteness } from '../../utils/a11yAnnouncer';
 import { isRootInstance } from '../../utils/rootInstance';
+import { getTabReentryCoords, wasLeftByTab } from '../../focusManager/tabReentry';
 import { deepClone, isPlainObject } from '../../helpers/object';
 import {
   formatSheetName, isUnquotedSheetName, quoteUnreadableSheetNames, rewriteSheetReferences,
@@ -3719,17 +3720,19 @@ export class SheetsBar extends BasePlugin {
    * out of the grid into the bar deselects the cell and leaves it only as the grid's re-entry
    * cell, which the arriving sheet's load drops, while a press on the bar keeps the selection
    * (the bar is exempt from the outside-click deselect). Without this, a keyboard user came back
-   * to a sheet with no selection where a pointer user found their cell.
+   * to a sheet with no selection where a pointer user found their cell. Only a <kbd>Tab</kbd> out
+   * counts: a selection the user or the host cleared on purpose (an outside click, `deselectCell()`)
+   * stays cleared.
    *
    * @param {object} viewState The view state captured from the departing sheet.
    * @returns {object} The same view state, with the re-entry cell as its selection when it had none.
    */
   #withTabReentryCell(viewState: ViewState): ViewState {
-    const coords = this.hot.getFocusManager()._getTabReentryCoords();
+    const coords = getTabReentryCoords(this.hot);
     const hasSelection = Array.isArray(viewState.selection) && viewState.selection.length > 0;
 
     if (
-      hasSelection || coords === undefined ||
+      hasSelection || coords === undefined || !wasLeftByTab(this.hot) ||
       !(coords.row >= 0 && coords.row < this.hot.countRows() && coords.col >= 0 && coords.col < this.hot.countCols())
     ) {
       return viewState;

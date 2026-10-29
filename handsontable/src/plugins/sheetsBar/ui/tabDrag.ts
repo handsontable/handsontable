@@ -699,6 +699,10 @@ export class TabDrag {
 
     this.#longPress.reset();
 
+    if (!this.#isLifted) {
+      this.#detachTouch();
+    }
+
     if (this.#tab) {
       removeClass(this.#tab, ['ht-sheets-bar__tab--dragging', LIFTED_CLASS]);
       this.#tab.style.transform = '';

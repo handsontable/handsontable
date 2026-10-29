@@ -1339,6 +1339,7 @@ test.describe('sheets bar', { tag: THEMES_TAG }, () => {
     expect(surfaces[2]).not.toEqual(surfaces[0]);
 
     // The active tab's bottom-edge marker must survive the drag, alongside the drop shadow.
+    expect(await bar.tab(2).evaluate(tab => getComputedStyle(tab, '::after').content)).not.toBe('none');
     expect(await bar.tab(2).evaluate(tab => getComputedStyle(tab, '::after').borderBottomStyle)).toBe('solid');
     expect(await bar.tab(2).evaluate(tab => getComputedStyle(tab, '::after').borderBottomWidth)).not.toBe('0px');
 

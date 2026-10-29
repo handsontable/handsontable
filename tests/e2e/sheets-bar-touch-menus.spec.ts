@@ -4,6 +4,8 @@ import { SheetsBarUiPage } from '../fixtures/pages/SheetsBarUiPage';
 
 test.use({ ...devices['iPhone 13'], browserName: 'chromium' });
 
+const CLOCK_START = new Date('2026-08-28T10:00:00Z');
+
 test.describe('menus and the sheets bar on a touch screen', { tag: THEMES_TAG }, () => {
   test('Rename from the tab menu keeps the field open for typing', async({ page, theme, bundle }) => {
     const fixture = new SheetsBarUiPage(page, theme, bundle);
@@ -21,8 +23,9 @@ test.describe('menus and the sheets bar on a touch screen', { tag: THEMES_TAG },
   test('a swipe across an overflowing strip scrolls it and moves no tab', async({ page, theme, bundle }) => {
     const fixture = new SheetsBarUiPage(page, theme, bundle);
 
-    await page.clock.install();
+    await page.clock.install({ time: CLOCK_START });
     await fixture.goto({ sheets: 30 });
+    await page.clock.pauseAt(CLOCK_START.getTime() + 60_000);
 
     const order = () => page.evaluate(() => Array.from(
       document.querySelectorAll('.ht-sheets-bar__tab-label'),
@@ -48,8 +51,9 @@ test.describe('menus and the sheets bar on a touch screen', { tag: THEMES_TAG },
   test('a tab held still lifts, and lifting the finger opens its menu', async({ page, theme, bundle }) => {
     const fixture = new SheetsBarUiPage(page, theme, bundle);
 
-    await page.clock.install();
+    await page.clock.install({ time: CLOCK_START });
     await fixture.goto();
+    await page.clock.pauseAt(CLOCK_START.getTime() + 60_000);
 
     const tab = (await fixture.tab(0).boundingBox())!;
     const cdp = await page.context().newCDPSession(page);
@@ -72,8 +76,9 @@ test.describe('menus and the sheets bar on a touch screen', { tag: THEMES_TAG },
     const fixture = new SheetsBarUiPage(page, theme, bundle);
 
     await page.emulateMedia({ forcedColors: 'active' });
-    await page.clock.install();
+    await page.clock.install({ time: CLOCK_START });
     await fixture.goto();
+    await page.clock.pauseAt(CLOCK_START.getTime() + 60_000);
 
     const tab = (await fixture.tab(0).boundingBox())!;
     const cdp = await page.context().newCDPSession(page);
@@ -98,8 +103,9 @@ test.describe('menus and the sheets bar on a touch screen', { tag: THEMES_TAG },
   test('a finger that drifts during the hold still opens the menu on release', async({ page, theme, bundle }) => {
     const fixture = new SheetsBarUiPage(page, theme, bundle);
 
-    await page.clock.install();
+    await page.clock.install({ time: CLOCK_START });
     await fixture.goto();
+    await page.clock.pauseAt(CLOCK_START.getTime() + 60_000);
 
     const tab = (await fixture.tab(0).boundingBox())!;
     const x = tab.x + (tab.width / 2);
@@ -122,8 +128,9 @@ test.describe('menus and the sheets bar on a touch screen', { tag: THEMES_TAG },
   test('a repaint during the hold keeps the press', async({ page, theme, bundle }) => {
     const fixture = new SheetsBarUiPage(page, theme, bundle);
 
-    await page.clock.install();
+    await page.clock.install({ time: CLOCK_START });
     await fixture.goto();
+    await page.clock.pauseAt(CLOCK_START.getTime() + 60_000);
 
     const tab = (await fixture.tab(0).boundingBox())!;
     const cdp = await page.context().newCDPSession(page);
@@ -210,6 +217,42 @@ test.describe('menus and the sheets bar on a touch screen', { tag: THEMES_TAG },
     await page.locator('.htContextMenu:not([class*="htContextMenuSub_"]) td', { hasText: 'Alignment' }).tap();
 
     await expect.poll(() => page.evaluate(() => (window as any).touchEndsCanceled)).toEqual([false]);
+  });
+
+  test('a tapped menu item that renders a link follows it', async({ page, theme, bundle }) => {
+    const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+    await fixture.goto({ menus: true });
+    await page.evaluate(() => {
+      const hot = (window as any).hot;
+
+      hot.updateSettings({
+        contextMenu: {
+          items: {
+            docs: {
+              name: 'Docs',
+              renderer: () => {
+                const link = document.createElement('a');
+
+                link.href = '#menu-link';
+                link.textContent = 'Docs';
+
+                return link;
+              },
+              callback: () => {},
+            },
+          },
+        },
+      });
+
+      const cell = hot.getCell(1, 1).getBoundingClientRect();
+
+      hot.selectCell(1, 1);
+      hot.getPlugin('contextMenu').open({ top: cell.bottom, left: cell.left });
+    });
+    await page.locator('.htContextMenu a', { hasText: 'Docs' }).tap();
+
+    await expect.poll(() => page.evaluate(() => window.location.hash)).toBe('#menu-link');
   });
 
   test('a dropdown menu item tapped on a column header still runs', async({ page, theme, bundle }) => {

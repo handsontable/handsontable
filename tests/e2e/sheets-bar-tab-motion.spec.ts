@@ -168,6 +168,7 @@ test.describe('sheets bar tab motion – move', { tag: [THEMES_TAG, MOTION_TAG] 
       const marker = getComputedStyle(tab, '::after');
 
       return {
+        markerContent: marker.content,
         markerStyle: marker.borderBottomStyle,
         markerWidth: marker.borderBottomWidth,
         background: style.backgroundColor,
@@ -176,6 +177,7 @@ test.describe('sheets bar tab motion – move', { tag: [THEMES_TAG, MOTION_TAG] 
       };
     });
 
+    expect(marker.markerContent).not.toBe('none');
     expect(marker.markerStyle).toBe('solid');
     expect(marker.markerWidth).not.toBe('0px');
     expect(marker.background).not.toBe(marker.inactiveBackground);
