@@ -4936,6 +4936,37 @@ describe('SheetsBar plugin', () => {
     expect(tab.getAttribute('aria-expanded')).toBe('false');
   });
 
+  it('swaps the bar\'s theme class on a runtime theme change and keeps an open rename', () => {
+    hot = new Handsontable(container, {
+      themeName: 'ht-theme-main',
+      sheetsBar: { sheets: [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }] },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
+
+    expect(bar.classList.contains('ht-theme-main')).toBe(true);
+
+    bar.querySelector('.ht-sheets-bar__tab-label')
+      .dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+
+    const input = bar.querySelector('.ht-sheets-bar__tab-rename');
+
+    input.focus();
+    input.value = 'Alpha renamed';
+    hot.useTheme('ht-theme-horizon');
+
+    expect(bar.classList.contains('ht-theme-horizon')).toBe(true);
+    expect(bar.classList.contains('ht-theme-main')).toBe(false);
+    expect(bar.querySelector('.ht-sheets-bar__tab-rename')).toBe(input);
+    expect(input.value).toBe('Alpha renamed');
+    expect(hot.rootDocument.activeElement).toBe(input);
+
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+
+    expect(hot.getPlugin('sheetsBar').getSheets()[0].name).toBe('Alpha renamed');
+  });
+
   it('labels the rename input and restores focus to the tab on Enter and Escape', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'Alpha', data: [['a']] }] },
