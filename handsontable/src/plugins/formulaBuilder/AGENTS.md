@@ -272,8 +272,12 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   z-indexes or measure `.wtBorder` elements: both are Walkontable internals.
 - **Keyboard path, measured (the foreign-focus fix of #13243 is what makes it work).** From a selected cell,
   Shift+Tab moves to the bar's formula editor (an edit session opens), Shift+Tab again to the address box (the
-  session closes, the cell keeps its value), and Shift+Tab again out of the grid. Tab from the content before
-  the grid goes address box, formula editor, then back into the grid. There is no keyboard trap, so the bar
+  session closes, the cell keeps its value), and Shift+Tab again out of the grid. Shift+Tab from the first column (`autoWrapRow: false`) drops the grid's
+  selection and the focus lands on the editor, where the package asks `selectFirstFormulaCell()` for a cell:
+  it tries `#lastFocusedCoords` (the cell the grid focused last, recorded in `#onAfterSelectionEnd`, never
+  cleared on deselect) first, guarded by range, visibility and `#isFormulaCell`, and scans only otherwise -
+  so the bar edits the cell you left, not A1. Tab from the content before
+  the grid goes address box, formula editor (the same remembered cell), then back into the grid. There is no keyboard trap, so the bar
   registers no focus scope; the package owns the keys inside it. Pinned by the keyboard spec under
   `tests/e2e/`.
 - **The error colors are mixed for text.** The theme's notification error accent measures 3.4:1 on white,

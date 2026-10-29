@@ -769,4 +769,38 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(hot.getSelectedLast()).toEqual([1, 1, 1, 1]);
     });
   });
+
+  describe('selectFirstFormulaCell()', () => {
+    it('prefers the cell the grid focused last over the first formula cell', () => {
+      createGrid();
+      hot.selectCell(2, 1);
+      hot.deselectCell();
+
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([2, 1, 2, 1]);
+    });
+
+    it('scans for the first formula cell when the remembered cell no longer uses the formula editor', () => {
+      createGrid();
+      hot.selectCell(2, 1);
+      hot.deselectCell();
+      hot.setCellMeta(2, 1, 'editor', 'text');
+
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([0, 0, 0, 0]);
+    });
+
+    it('scans when the remembered cell is out of range after the grid shrank', () => {
+      createGrid();
+      hot.selectCell(4, 4);
+      hot.deselectCell();
+      hot.updateSettings({ data: [['A1', 'B1']] });
+
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([0, 0, 0, 0]);
+    });
+  });
 });

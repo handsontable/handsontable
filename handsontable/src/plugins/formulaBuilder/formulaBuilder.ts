@@ -349,6 +349,13 @@ export class FormulaBuilder extends BasePlugin {
    */
   #lastBarCell: { row: number; col: number; text: string } | null = null;
   /**
+   * The visual coordinates of the cell the grid focused last. Not cleared on deselect: Shift+Tab from
+   * the first column drops the selection and moves the focus onto the bar, and the bar then asks
+   * for a cell to edit - the one that was left. Visual coordinates can go stale after a structural
+   * change, so every read checks range, visibility and the editor again.
+   */
+  #lastFocusedCoords: { row: number; col: number } | null = null;
+  /**
    * Dedupe key for bar selection emits (anchor + focus + active together).
    */
   #lastEmittedSelectionCoords: {
@@ -782,7 +789,8 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
-   * Selects the first cell using the formula editor: the rendered viewport is
+   * Selects a cell using the formula editor. The cell the grid focused last comes first, when it
+   * is still in range, shown, and uses the formula editor. Otherwise the rendered viewport is
    * scanned first, then the rest of the grid up to a fixed cell budget - an
    * uncapped scan would resolve cell meta for every cell of a large grid on the
    * UI thread before giving up.
@@ -790,6 +798,10 @@ export class FormulaBuilder extends BasePlugin {
    * @private
    */
   selectFirstFormulaCell(): void {
+    if (this.#selectLastFocusedFormulaCell()) {
+      return;
+    }
+
     const firstRow = Math.max(this.hot.getFirstRenderedVisibleRow(), 0);
     const lastRow = this.hot.getLastRenderedVisibleRow();
     const firstCol = Math.max(this.hot.getFirstRenderedVisibleColumn(), 0);
@@ -824,6 +836,29 @@ export class FormulaBuilder extends BasePlugin {
         }
       }
     }
+  }
+
+  /**
+   * Selects the cell the grid focused last, when it can still be edited by the formula editor.
+   *
+   * @returns {boolean} `true` when the cell was selected.
+   */
+  #selectLastFocusedFormulaCell(): boolean {
+    const last = this.#lastFocusedCoords;
+
+    if (last === null || last.row >= this.hot.countRows() || last.col >= this.hot.countCols()) {
+      return false;
+    }
+
+    if (this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(last.row) ?? -1) ||
+        this.hot.columnIndexMapper.isHidden(this.hot.toPhysicalColumn(last.col) ?? -1) ||
+        !this.#isFormulaCell(last.row, last.col)) {
+      return false;
+    }
+
+    this.hot.selectCell(last.row, last.col);
+
+    return true;
   }
 
   /**
@@ -1056,6 +1091,12 @@ export class FormulaBuilder extends BasePlugin {
    * @param {number} focusCol The focus visual column index.
    */
   #onAfterSelectionEnd = (): void => {
+    const focus = this.hot.getSelectedRangeLast()?.highlight;
+
+    if (focus && typeof focus.row === 'number' && typeof focus.col === 'number' && focus.row >= 0 && focus.col >= 0) {
+      this.#lastFocusedCoords = { row: focus.row, col: focus.col };
+    }
+
     if (this.#isEditing()) {
       return;
     }
@@ -2141,6 +2182,7 @@ export class FormulaBuilder extends BasePlugin {
     this.#barSelected = null;
     this.#lastEmittedSelectionCoords = null;
     this.#lastBarCell = null;
+    this.#lastFocusedCoords = null;
   }
 
   /**

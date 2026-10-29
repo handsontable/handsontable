@@ -13,6 +13,16 @@ test.describe('formulaBuilder keyboard flow', { tag: [THEMES_TAG, BUNDLES_TAG, C
     await grid.goto();
   });
 
+  test('Shift+Tab from the first column opens the bar on the cell that was left, not on A1', async({ page }) => {
+    await grid.selectCellByApi(2, 0);
+    await page.keyboard.press('Shift+Tab');
+    await expect(grid.editorInput).toBeFocused();
+    await expect(grid.addressInput).toHaveValue('A3');
+    await page.keyboard.type('99');
+    await page.keyboard.press('Enter');
+    await expect.poll(() => grid.dataAt(0, 0)).toBe(1);
+  });
+
   test('Shift+Tab walks out of the grid through the formula bar, and Tab walks back in', async({ page }) => {
     await grid.selectCellByApi(0, 0);
 

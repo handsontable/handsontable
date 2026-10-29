@@ -421,7 +421,7 @@ With the formula bar enabled, these keys work outside the formula editor:
 
 | Windows | macOS | Action |
 |---|---|---|
-| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | <kbd>⇧</kbd>+<kbd>**Tab**</kbd> | From the first cell, leave the grid through the formula bar: the focus moves to the formula area, which starts an edit of the cell. Press it again to move to the address box. From any other cell, the key moves the selection to the previous cell. |
+| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | <kbd>⇧</kbd>+<kbd>**Tab**</kbd> | From the first column, the key leaves the grid into the formula bar, which starts an edit of the cell you left. Press it again to move to the address box. From any other column, the key moves the selection to the previous cell. |
 | <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | In the address box, go to the address or range you typed, such as `B3` or `B2:D4`. |
 | <kbd>**Escape**</kbd> | <kbd>**Escape**</kbd> | In the address box, put back the address of the active cell. |
 
