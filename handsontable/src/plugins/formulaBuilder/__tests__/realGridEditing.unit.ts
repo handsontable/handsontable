@@ -983,4 +983,29 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(announced).not.toContain('NumberLiteral');
     });
   });
+
+  describe('a teardown while the formula bar holds the edit', () => {
+    it.each([
+      ['the plugin is turned off', () => hot.updateSettings({ formulaBuilder: false } as Handsontable.GridSettings)],
+      ['the plugin is disabled through its API', () => hot.getPlugin('formulaBuilder').disablePlugin()],
+      ['the Formulas plugin is turned off', () => hot.updateSettings({ formulas: false } as Handsontable.GridSettings)],
+      ['a settings change rebuilds the plugin', () => {
+        hot.updateSettings({
+          formulaBuilder: { builder: core, showFormulaBar: true, direction: 'rtl' },
+        } as Handsontable.GridSettings);
+      }],
+    ])('listens again when %s', async(_, teardown) => {
+      createGrid({ formulaBuilder: { builder: core, showFormulaBar: true } });
+      hot.selectCell(1, 1);
+      adapter().beginEdit({ sheet: '', row: 1, col: 1 }, '=1+1');
+      // Focusing the bar unlistens the grid.
+      hot.unlisten();
+      teardown();
+      await settle();
+
+      expect(isEditorOpened()).toBe(false);
+      expect(hot.getDataAtCell(1, 1)).toBe('B2');
+      expect(hot.isListening()).toBe(true);
+    });
+  });
 });
