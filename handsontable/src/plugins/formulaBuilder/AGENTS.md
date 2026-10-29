@@ -175,6 +175,11 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   engine is unregistered, and destroys the builder there. The plugin can then be enabled with no
   builder until its next `updatePlugin()`, which rebuilds it (`#builder === null` forces the full
   cycle); meanwhile the shim mounts the plain textarea (`handleInlineEditStart()` returns `false`).
+  The Formulas plugin disabled and re-enabled through its own API (`getPlugin('formulas').enablePlugin()`)
+  runs no `updatePlugin()` here and fires no hook, so the bar stayed empty for good. `#onEngineDetach`
+  sets `#engineDetached`, and `#followEngineReattach()` (from `afterSelection` and
+  `handleInlineEditStart()`, beside `#followSheetBinding()`) builds the builder again once an engine is
+  back. It clears the flag before building, so a failing build is not retried per selection.
   Pinned on a real grid by `__tests__/realGridTeardown.unit.ts`.
 - **The "requires the Formulas plugin" warning waits for `afterInit` during the init.** A SheetsBar
   workbook declares `formulas` per sheet, and those settings enable the Formulas plugin after this plugin's

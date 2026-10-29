@@ -137,4 +137,40 @@ describe('FormulaBuilder teardown on a real grid', () => {
 
     expect(countBodyNodes()).toEqual(before);
   });
+
+  it('builds the bar and the formula editor again when the Formulas plugin is re-enabled through its own API', () => {
+    const before = countBodyNodes();
+    const hot = new Handsontable(container, {
+      data: [['=1+1', 2]],
+      editor: 'formula',
+      formulas: { engine: HyperFormula },
+      formulaBuilder: { builder: core, showFormulaBar: true },
+      licenseKey: 'non-commercial-and-evaluation',
+    } as Handsontable.GridSettings);
+    const formulas = hot.getPlugin('formulas');
+    const formulaBuilder = hot.getPlugin('formulaBuilder');
+
+    expect(hot.rootWrapperElement.querySelector('.hfe-formula-bar__address-input')).not.toBeNull();
+
+    formulas.disablePlugin();
+
+    expect(hot.rootWrapperElement.querySelector('.hfe-formula-bar__address-input')).toBeNull();
+
+    formulas.enablePlugin();
+    hot.selectCell(0, 0);
+
+    expect(formulaBuilder.enabled).toBe(true);
+    expect(hot.rootWrapperElement.querySelector('.hfe-formula-bar__address-input'))
+      .not.toBeNull();
+    expect(countBodyNodes()).toEqual({ portals: before.portals + 1, liveRegions: before.liveRegions + 1 });
+
+    hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }));
+
+    expect(container.querySelector('.ht-formula-builder__inline-editor .hfe-editor__input')).not.toBeNull();
+
+    hot.getActiveEditor()?.finishEditing(true);
+    hot.destroy();
+
+    expect(countBodyNodes()).toEqual(before);
+  });
 });

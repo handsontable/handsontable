@@ -440,6 +440,11 @@ export class FormulaBuilder extends BasePlugin {
    * Whether a theme or language change arrived during an edit, so the builder is rebuilt when it closes.
    */
   #rebuildAfterEdit = false;
+  /**
+   * Whether the Formulas plugin detached its engine under the enabled plugin, so the builder is built
+   * again once an engine is back (`Formulas#enablePlugin()` called directly fires no hook).
+   */
+  #engineDetached = false;
 
   /**
    * @param {HotInstance} hotInstance The Handsontable instance.
@@ -590,6 +595,7 @@ export class FormulaBuilder extends BasePlugin {
    * or the Formulas plugin detached the engine) the shim mounts a plain textarea instead.
    */
   handleInlineEditStart(mount: HTMLElement, seed: string): boolean {
+    this.#followEngineReattach();
     this.#followSheetBinding();
 
     if (this.#builder === null) {
@@ -1286,6 +1292,7 @@ export class FormulaBuilder extends BasePlugin {
    */
   #onEngineDetach = (): void => {
     this.#destroyBuilder();
+    this.#engineDetached = true;
     // No builder renders the marks from now on, so the ones on screen would stay until each element
     // is reused for a formula cell again.
     this.#clearCellErrorMarks();
@@ -1306,6 +1313,21 @@ export class FormulaBuilder extends BasePlugin {
 
     this.#resyncBarCell();
   };
+
+  /**
+   * Builds the builder again when the Formulas plugin detached its engine and has one again. The
+   * Formulas plugin re-enabled through its own API (`getPlugin('formulas').enablePlugin()`) runs no
+   * `updatePlugin()` here and fires no hook, so the selection and edit-start paths ask.
+   */
+  #followEngineReattach(): void {
+    if (this.#engineDetached && this.#builder === null && this.#engine !== null) {
+      // Cleared first: a builder that fails to build is not retried on every selection.
+      this.#engineDetached = false;
+      this.#createBuilder();
+      // The bar is new and empty, so the selection is emitted again even for the same cell.
+      this.#lastEmittedSelectionCoords = null;
+    }
+  }
 
   /**
    * Rebuilds the builder when the grid is bound to another engine sheet than the one it was built
@@ -1336,6 +1358,7 @@ export class FormulaBuilder extends BasePlugin {
       return;
     }
 
+    this.#followEngineReattach();
     this.#followSheetBinding();
     this.#emitBarSelection();
   };
@@ -2226,6 +2249,7 @@ export class FormulaBuilder extends BasePlugin {
     this.#removeEngineDetachListener?.();
     this.#removeEngineDetachListener = null;
     this.#destroyBuilder();
+    this.#engineDetached = false;
     // After the destroy, not before: the edit cancel inside it runs `handleInlineEditClose()`, which can
     // ask for a deferred rebuild again (same order as `#rebuildBuilder()`).
     this.#rebuildAfterEdit = false;
