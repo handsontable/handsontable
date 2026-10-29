@@ -331,6 +331,8 @@ columnSummary: [
 
 You can also summarize individual ranges of rows (rather than a whole column). To do this, set the [`ranges`](@/api/columnSummary.md#options) option to an array of arrays, where each array represents a single row range.
 
+An empty array (`ranges: []`) summarizes no rows: `sum` and `count` return `0`, and `min`, `max`, and `average` return `Not enough data`. To summarize the whole column, leave `ranges` out.
+
 ::: only-for javascript
 
 ```js

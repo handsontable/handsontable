@@ -373,8 +373,6 @@ class Endpoints {
       endpoint.rangesFromDefault = true;
 
       return;
-    } else if (name === 'ranges' && (settings[name] as number[][]).length === 0) {
-      return;
     }
 
     if (settings[name] === undefined) {
@@ -593,10 +591,7 @@ class Endpoints {
     if (axis === 'row') {
       endpoint.destinationRow = shiftIndex(endpoint.destinationRow!);
 
-      // `ranges: []` leaves the setting unset, so there can be nothing to shift.
-      if (endpoint.ranges) {
-        endpoint.ranges = this.#shiftRanges(endpoint.ranges, shiftIndex);
-      }
+      endpoint.ranges = this.#shiftRanges(endpoint.ranges!, shiftIndex);
 
     } else {
       endpoint.destinationColumn = shiftIndex(endpoint.destinationColumn!);
