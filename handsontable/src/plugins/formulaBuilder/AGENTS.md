@@ -22,6 +22,7 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
 
 ## The traps
 
+- **The package's point-mode toggle (F2, mod+E) emits no event; the shim watches the handled keydown and enters full edit mode so arrows stop committing.** The keyboard guard in `formulaCellEditor.ts` (`startKeyboardGuard`) calls `editor.enableFullEditMode?.()` for a handled `F2` or ctrl/meta+`e`. Without it the toggled arrows reach the grid and commit the quick edit.
 - **Every path that hands the keyboard back from the bar must `listen()` again.** Focusing the bar makes the focus scope manager `unlisten()` the grid, so commit, cancel, and teardown under an open bar edit all go through `#relistenAfterBarExit()`, or the keyboard is dead until a click. A pick drag released outside the grid needs it too, but deferred: the focus scope manager's `click` handler runs after the `mouseup` and unlistens the grid, so `CellPickController` calls its `relisten` dep, which the plugin wires to a `_registerTimeout(..., 0)` around the helper.
 - **No emitted declaration may name `hyperformula-ui`, internal ones included.** It is a devDependency,
   and the `Emitted Types` check compiles EVERY `tmp/**/*.d.ts` with TypeScript 5.1 and no dependencies

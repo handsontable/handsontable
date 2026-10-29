@@ -327,6 +327,8 @@ function refreshFormulaEditorDimensions(
  * the grid's document-level shortcut recorder never handles it a second time. Every other key goes on
  * to the grid, the way it does from the grid's own editors: `beforeKeyDown` and
  * `afterDocumentKeyDown` fire, and an arrow key commits a quick edit and moves the selection.
+ * The package's point-mode toggle (F2, mod+E) emits no event, so a handled F2 or mod+E keydown
+ * enters full edit mode here: the arrows then move the caret instead of committing the quick edit.
  *
  * @param {FormulaHostEditor} editor The editor instance.
  */
@@ -347,6 +349,10 @@ function startKeyboardGuard(editor: FormulaHostEditor): void {
 
     if (stoppedKey !== null) {
       event.stopPropagation();
+
+      if (event.key === 'F2' || ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'e')) {
+        editor.enableFullEditMode?.();
+      }
     }
   };
   const stopFollowUp = (event: KeyboardEvent) => {

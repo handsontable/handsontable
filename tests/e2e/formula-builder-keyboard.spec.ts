@@ -349,6 +349,27 @@ test.describe('formulaBuilder quick edit', { tag: [THEMES_TAG, BUNDLES_TAG, CROS
     expect(await grid.sourceAt(3, 0)).toBe('abc');
   });
 
+  // The package's point-mode toggle (F2, mod+E) emits no event: the shim watches the handled keydown
+  // and enters full edit mode, so the arrows move the caret instead of committing the quick edit.
+  for (const [title, chord] of [['F2', 'F2'], ['Ctrl/Cmd+E', 'ControlOrMeta+e']]) {
+    test(`${title} in a typed edit switches the arrows to caret movement`, async({ page, theme, bundle }) => {
+      const grid = new FormulaBuilderPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectCellByApi(3, 1);
+      await page.keyboard.type('=');
+      await page.keyboard.press('ArrowUp');
+      await expect(grid.editorInput).toHaveValue('=B3');
+      await page.keyboard.press(chord);
+      await page.keyboard.press('ArrowLeft');
+
+      expect(await grid.editorOpened()).toBe(true);
+      await expect(grid.editorInput).toHaveValue('=B3');
+      expect(await grid.selectedLast()).toEqual([3, 1, 3, 1]);
+      await page.keyboard.press('Escape');
+    });
+  }
+
   test('an arrow key moves the caret in a value opened with Enter', async({ page, theme, bundle }) => {
     const grid = new FormulaBuilderPage(page, theme, bundle);
 
