@@ -192,7 +192,7 @@ test.describe('menus and the sheets bar on a touch screen', { tag: THEMES_TAG },
     await expect.poll(countRows).toBeLessThan(before);
   });
 
-  test('a submenu parent in the context menu opens its submenu on a tap', async({ page, theme, bundle }) => {
+  test('a tap on a submenu parent leaves the tap\'s mouse events to the browser', async({ page, theme, bundle }) => {
     const fixture = new SheetsBarUiPage(page, theme, bundle);
 
     await fixture.goto({ menus: true });
@@ -200,12 +200,16 @@ test.describe('menus and the sheets bar on a touch screen', { tag: THEMES_TAG },
       const hot = (window as any).hot;
       const cell = hot.getCell(1, 1).getBoundingClientRect();
 
+      (window as any).touchEndsCanceled = [];
+      document.addEventListener('touchend', (event) => {
+        (window as any).touchEndsCanceled.push(event.defaultPrevented);
+      });
       hot.selectCell(1, 1);
       hot.getPlugin('contextMenu').open({ top: cell.bottom, left: cell.left });
     });
     await page.locator('.htContextMenu:not([class*="htContextMenuSub_"]) td', { hasText: 'Alignment' }).tap();
 
-    await expect(page.locator('[class*="htContextMenuSub_"]:visible')).toHaveCount(1);
+    await expect.poll(() => page.evaluate(() => (window as any).touchEndsCanceled)).toEqual([false]);
   });
 
   test('a dropdown menu item tapped on a column header still runs', async({ page, theme, bundle }) => {

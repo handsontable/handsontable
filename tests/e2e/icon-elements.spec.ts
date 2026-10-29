@@ -889,17 +889,25 @@ test.describe('Icon elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
 
       await grid.goto({ sheetsBar: true });
 
-      // `mixins.pseudo` (`content: ""`) was removed from the `.ht-sheets-bar__button` rule and
-      // from the chevron's `::after` rule; the generated `iconsMap` rules (width/height/
-      // mask-image/background-color) carry no `content` of their own, so with nothing supplying
-      // it neither pseudo-element paints.
+      // `mixins.pseudo` (`content: ""`) was removed from the `.ht-sheets-bar__button` rule; the
+      // generated `iconsMap` rules (width/height/mask-image/background-color) carry no `content`
+      // of their own, so the button's pseudo-element does not paint. The chevron's `::after` is
+      // its invisible 24px hit area, so it must paint no glyph: no mask and no fill.
       const addBeforeContent = await page.locator('.ht-sheets-bar__add').evaluate(
         el => getComputedStyle(el, '::before').content);
-      const chevronAfterContent = await page.locator('.ht-sheets-bar__tab--active .ht-sheets-bar__tab-chevron')
-        .evaluate(el => getComputedStyle(el, '::after').content);
+      const chevronAfter = await page.locator('.ht-sheets-bar__tab--active .ht-sheets-bar__tab-chevron')
+        .evaluate((el) => {
+          const style = getComputedStyle(el, '::after');
+
+          return {
+            mask: style.maskImage || style.webkitMaskImage,
+            background: style.backgroundImage,
+            fill: style.backgroundColor,
+          };
+        });
 
       expect(addBeforeContent).toBe('none');
-      expect(chevronAfterContent).toBe('none');
+      expect(chevronAfter).toEqual({ mask: 'none', background: 'none', fill: 'rgba(0, 0, 0, 0)' });
     });
 
     test('switching themes at runtime rebuilds the bar icons and keeps exactly one per slot', async({
