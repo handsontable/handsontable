@@ -1028,6 +1028,56 @@ describe('CellPickController.reset', () => {
     expect(adapterStub.emitCellPick).not.toHaveBeenCalled();
     expect(adapterStub.emitRangePick).not.toHaveBeenCalled();
   });
+
+  it('keeps claiming the hovers of a drag it cancelled until the button is released', () => {
+    // Escape closes the edit mid-drag. The grid saw the press as its own, so a hover it is handed
+    // would extend a native range selection from the edited cell.
+    const { controller: dragging, adapterStub } = makeHarness();
+
+    pressCell(dragging, { row: 2, col: 3 });
+    dragging.reset();
+
+    const during = new MouseEvent('mouseover', { cancelable: true });
+    const flags = hoverCell(dragging, { row: 4, col: 4 }, makeFlags(), during);
+
+    expect(flags).toEqual({ row: true, column: true, cell: true });
+    expect(isImmediatePropagationStopped(during)).toBe(true);
+
+    document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+
+    const after = new MouseEvent('mouseover', { cancelable: true });
+
+    hoverCell(dragging, { row: 4, col: 4 }, makeFlags(), after);
+
+    expect(isImmediatePropagationStopped(after)).toBe(false);
+    expect(adapterStub.emitRangePick).not.toHaveBeenCalled();
+  });
+
+  it('releases a cancelled drag on a buttonless mousemove', () => {
+    const { controller } = makeHarness();
+
+    pressCell(controller, { row: 2, col: 3 });
+    controller.reset();
+    document.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, buttons: 0 }));
+
+    const after = new MouseEvent('mouseover', { cancelable: true });
+
+    hoverCell(controller, { row: 4, col: 4 }, makeFlags(), after);
+
+    expect(isImmediatePropagationStopped(after)).toBe(false);
+  });
+
+  it('claims nothing after a reset with no drag in progress', () => {
+    const { controller } = makeHarness({ refSelectionActive: false });
+
+    controller.reset();
+
+    const after = new MouseEvent('mouseover', { cancelable: true });
+    const flags = hoverCell(controller, { row: 4, col: 4 }, makeFlags(), after);
+
+    expect(flags).toEqual({ row: false, column: false, cell: false });
+    expect(isImmediatePropagationStopped(after)).toBe(false);
+  });
 });
 
 /**

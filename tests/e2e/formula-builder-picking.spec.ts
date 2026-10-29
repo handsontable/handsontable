@@ -44,6 +44,22 @@ test.describe('formulaBuilder mouse reference picking', { tag: [THEMES_TAG, BUND
     expect(await grid.selectedLast()).toEqual([3, 0, 3, 0]);
   });
 
+  test('Escape during a pick drag cancels the edit, and the rest of the drag selects nothing', async({ page }) => {
+    await grid.cell(0, 1).hover();
+    await page.mouse.down();
+    await grid.cell(1, 1).hover();
+    await page.keyboard.press('Escape');
+    await expect.poll(() => grid.editorOpened()).toBe(false);
+
+    // The grid saw the press as its own: unclaimed, these hovers extended a range from the edited cell.
+    await grid.cell(1, 2).hover();
+    await grid.cell(2, 2).hover();
+    await page.mouse.up();
+
+    expect(await grid.selectedAll()).toEqual([[3, 0, 3, 0]]);
+    expect(await grid.sourceAt(3, 0)).toBe('');
+  });
+
   test('a drag across cells inserts a range reference', async({ page }) => {
     await grid.drag(grid.cell(0, 0), grid.cell(1, 1));
     await expect(grid.editorInput).toHaveValue('=A1:B2');

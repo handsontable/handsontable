@@ -271,6 +271,11 @@ export class CellPickController {
    * several), whether it appends, and the index the header tracker is anchored at now.
    */
   #headerDrag: { start: number; end: number; append: boolean; trackerAnchor: number } | null = null;
+  /**
+   * Removes the listeners that end a drag `reset()` cancelled mid-gesture, `null` when none is held.
+   * While set, the rest of that gesture stays claimed (see `reset()`).
+   */
+  #releaseCancelledDrag: (() => void) | null = null;
 
   /**
    * `beforeOnCellMouseDown` hook listener.
@@ -301,7 +306,8 @@ export class CellPickController {
     cellEl: HTMLTableCellElement | undefined,
     eventController: SelectionController,
   ): void => {
-    if (this.#handleHover(coords, eventController)) {
+    if (this.#releaseCancelledDrag !== null || this.#handleHover(coords, eventController)) {
+      this.#suppress(eventController);
       this.#claim(event);
     }
   };
@@ -378,15 +384,54 @@ export class CellPickController {
   }
 
   /**
-   * Cancels any active drag and disarms the click swallow.
+   * Cancels any active drag and disarms the click swallow. A drag cancelled while the button is still
+   * held (Escape closed the edit mid-drag) stays claimed until the button is released: the grid saw
+   * the press as its own, so every later `mouseover` would extend a native range selection from the
+   * edited cell.
    */
   reset(): void {
+    const wasDragging = this.#tracker.isActive() || this.#headerTracker.isActive();
+
     this.#unlistenDrag();
     this.#tracker.cancel();
     this.#headerTracker.cancel();
     this.#disarmClickSwallow();
     this.#disarmTouchEndCancel();
     this.#focusBeforePick = null;
+    this.#headerDrag = null;
+
+    if (wasDragging && this.#touchId === null) {
+      this.#holdCancelledDrag();
+    }
+
+    this.#touchId = null;
+  }
+
+  /**
+   * Keeps claiming the hovers of a cancelled drag until its button is released (a `mouseup`, a
+   * buttonless `mousemove` after a release outside the window, or the window losing focus).
+   */
+  #holdCancelledDrag(): void {
+    this.#releaseCancelledDrag?.();
+
+    const rootDocument = this.#deps.getRootDocument();
+    const rootWindow = rootDocument.defaultView;
+    const release = (): void => {
+      rootDocument.removeEventListener('mouseup', release);
+      rootDocument.removeEventListener('mousemove', onMove);
+      rootWindow?.removeEventListener('blur', release);
+      this.#releaseCancelledDrag = null;
+    };
+    const onMove = (event: MouseEvent): void => {
+      if (event.buttons === 0) {
+        release();
+      }
+    };
+
+    rootDocument.addEventListener('mouseup', release);
+    rootDocument.addEventListener('mousemove', onMove);
+    rootWindow?.addEventListener('blur', release);
+    this.#releaseCancelledDrag = release;
   }
 
   /**

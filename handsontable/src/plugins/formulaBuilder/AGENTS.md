@@ -79,6 +79,11 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   `mousedown`/`click` at all, and it disarms the click swallows, which have no click left to eat. Do not
   cancel the compatibility `mousedown` instead: the click swallows disarm on any `mousedown`, so the
   `click` after it still reached the header, link, or checkbox.
+- **A drag `reset()` cancels mid-gesture stays claimed until the button is released.** Escape during a pick
+  drag closes the edit, and `handleInlineEditClose()` resets the controller, but the grid saw the press as
+  its own (`TableView`'s `#mouseDown` is set before `beforeOnCellMouseDown` runs), so every later
+  `mouseover` extended a native range selection from the edited cell. `#holdCancelledDrag()` keeps
+  `onBeforeMouseOver` claiming until a `mouseup`, a buttonless `mousemove`, or a window `blur`.
 - **The `formula` alias is registered in the constructor, not in `enablePlugin()`.** A cell configured with
   `editor: 'formula'` must resolve whether or not the plugin enabled (no `builder`, no Formulas yet).
   Otherwise selecting the cell throws `No registered editor found under "formula" name`. With the plugin
