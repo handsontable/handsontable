@@ -106,6 +106,7 @@ function makeHarness(options: HarnessOptions = {}) {
     toHfCoords: coords => ({ row: coords.row + rowOffset, col: coords.col }),
     emitSwitchToInline,
     getHostActiveEditor: () => hostActiveEditor,
+    relisten: jest.fn(),
     getScrollHolder: () => holder as unknown as HTMLElement,
     getRootDocument: () => document,
     getColumnHeaderSpan: coords => headerSpans[coords.col] ?? { start: coords.col, end: coords.col },

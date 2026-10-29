@@ -1668,6 +1668,9 @@ export class FormulaBuilder extends BasePlugin {
       toHfCoords: coords => ({ row: this.#visualToHfRow(coords.row), col: this.#visualToHfCol(coords.col) }),
       emitSwitchToInline: () => this.#switchToInlineListeners.emit(),
       getHostActiveEditor: () => this.hot.getActiveEditor(),
+      // After the `click` that follows a release outside the grid: the focus scope manager's click
+      // handler unlistens the grid there, so a synchronous `listen()` would be undone.
+      relisten: () => this.hot._registerTimeout(() => this.#relistenAfterBarExit(), 0),
       getScrollHolder: () => this.#adapter?.getScrollHolder() ?? null,
       getRootDocument: () => this.hot.rootDocument,
       getColumnHeaderSpan: coords => this.#columnHeaderSpan(coords),

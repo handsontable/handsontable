@@ -99,6 +99,12 @@ export interface CellPickControllerDeps {
    */
   getHostActiveEditor(): unknown;
   /**
+   * Hands the keyboard back to the grid after a pick drag. A drag released outside the grid leaves
+   * the grid unlistened (the `click` after the release unlistens it), so the implementation must
+   * listen after that click.
+   */
+  relisten(): void;
+  /**
    * Returns the master overlay scroll holder, or `null`.
    *
    * @returns {HTMLElement | null}
@@ -689,6 +695,10 @@ export class CellPickController {
 
     this.#tracker.finish();
     this.#headerTracker.finish();
+
+    if (wasActive) {
+      this.#deps.relisten();
+    }
 
     if (this.#focusBeforePick) {
       // The drag may have auto-scrolled the grid; focusing the editor must not scroll it back.

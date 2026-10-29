@@ -27,6 +27,22 @@ test.describe('formulaBuilder mouse reference picking', { tag: [THEMES_TAG, BUND
     expect(await grid.dataAt(3, 0)).toBe(2);
   });
 
+  test('a pick drag released outside the grid leaves the editor focused and the grid listening', async({ page }) => {
+    await grid.cell(0, 1).hover();
+    await page.mouse.down();
+    await page.mouse.move(5, 5, { steps: 5 });
+    await page.mouse.up();
+
+    await expect(grid.editorInput).toBeFocused();
+    await expect.poll(() => grid.isListening()).toBe(true);
+
+    await page.keyboard.press('Enter');
+    await expect.poll(() => grid.editorOpened()).toBe(false);
+    await expect.poll(() => grid.isListening()).toBe(true);
+    await page.keyboard.press('ArrowUp');
+    expect(await grid.selectedLast()).toEqual([3, 0, 3, 0]);
+  });
+
   test('a drag across cells inserts a range reference', async({ page }) => {
     await grid.drag(grid.cell(0, 0), grid.cell(1, 1));
     await expect(grid.editorInput).toHaveValue('=A1:B2');

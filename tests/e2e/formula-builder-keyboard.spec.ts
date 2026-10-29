@@ -140,13 +140,16 @@ test.describe('formulaBuilder keyboard flow', { tag: [THEMES_TAG, BUNDLES_TAG, C
   });
 
   test('the keyboard works after a commit from the formula bar', async({ page }) => {
-    await grid.selectCellByApi(3, 0);
+    await grid.selectCellByApi(1, 0);
     await grid.openBarEditor();
     await page.keyboard.type('=A1');
     await page.keyboard.press('Enter');
     await expect.poll(() => grid.isListening()).toBe(true);
+    // The bar's Enter moves the selection down one row, as the grid's own editors do.
+    expect(await grid.selectedLast()).toEqual([2, 0, 2, 0]);
+    // Row 2 has a row below it, so only a listening grid can move the selection to row 3.
     await page.keyboard.press('ArrowDown');
-    expect(await grid.selectedLast()).toEqual([4, 0, 4, 0]);
+    expect(await grid.selectedLast()).toEqual([3, 0, 3, 0]);
   });
 
   test('the keyboard works after a Ctrl/Cmd+Enter commit from the formula bar', async({ page }) => {
