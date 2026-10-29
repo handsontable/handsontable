@@ -66,16 +66,16 @@ band misses the bottom one.
 
 ## A press that never traveled is a click and fires no move hook
 
-`#onMouseUp` calls `dragRows()` only when the pointer traveled more than `POINTER_DRAG_TOLERANCE` (3 px) from
-the press, tracked in `#dragged` by `#onMouseMove`, exactly as `ManualColumnMove` does. Before that guard a
-header pressed and released in place fired `beforeRowMove` and `afterRowMove` for a move that changed nothing.
-The guard is about the gesture, not the order: a drag that goes out and returns to its start still fires both
-hooks, with `orderChanged: false`, and that is deliberate, since suppressing it would be a breaking change (see
-"A move that changes nothing never reaches the index mapper" above). `POINTER_DRAG_TOLERANCE` is a second copy
-of the column plugin's constant, because plugins do not import each other: change both together. The tolerance
-is measured in client coordinates, so a row dropped by wheel-scrolling under a motionless pointer reads as a
-click, as it does in the column plugin. A test that simulates a move must send a `mousemove` that travels past
-the tolerance from the `mousedown` position, or the release reads as a click. Pinned by
+`#onMouseUp` calls `dragRows()` only when the pointer traveled farther than `POINTER_DRAG_TOLERANCE` (3 px) from
+the press. `#onMouseMove` tracks it in `#dragged` through `hasPointerTraveled()`, both from `helpers/dom/event.ts`,
+exactly as `ManualColumnMove` does. Before that guard a header pressed and released in place fired
+`beforeRowMove` and `afterRowMove` for a move that changed nothing. The guard is about the gesture, not the
+order: a drag that goes out and returns to its start still fires both hooks, with `orderChanged: false`, and that
+is deliberate, since suppressing it would be a breaking change (see "A move that changes nothing never reaches
+the index mapper" above). The tolerance is measured in client coordinates, so a row dropped by wheel-scrolling
+under a motionless pointer reads as a click, as it does in the column plugin. A test that simulates a move must
+send a `mousemove` that travels past the tolerance from the `mousedown` position, or the release reads as a
+click: `tests/e2e/manual-move-trimmed.spec.ts` moves the pointer inside the header for that reason. Pinned by
 `tests/e2e/manual-row-move-noop-hooks.spec.ts`.
 
 ## NestedRows reimplements this plugin

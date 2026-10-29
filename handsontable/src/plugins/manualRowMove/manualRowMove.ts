@@ -2,6 +2,7 @@ import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, getTrimmingContainer } from '../../helpers/dom/element';
+import { hasPointerTraveled } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
@@ -15,7 +16,6 @@ const CSS_PLUGIN = 'ht__manualRowMove';
 const CSS_SHOW_UI = 'show-ui';
 const CSS_ON_MOVING = 'on-moving--rows';
 const CSS_AFTER_SELECTION = 'after-selection--rows';
-const POINTER_DRAG_TOLERANCE = 3;
 
 /**
  * @plugin ManualRowMove
@@ -83,7 +83,7 @@ export class ManualRowMove extends BasePlugin {
    */
   #pressed: boolean | undefined;
   /**
-   * Whether the pointer has traveled beyond `POINTER_DRAG_TOLERANCE` since the header was pressed.
+   * Whether the pointer has traveled beyond the drag tolerance since the header was pressed.
    *
    * @type {boolean}
    */
@@ -610,10 +610,8 @@ export class ManualRowMove extends BasePlugin {
       return;
     }
 
-    // The same tolerance ManualColumnMove uses, so a pointer that jitters a pixel or two during a click
-    // does not fire the move hooks.
-    if (Math.abs(event.clientX - this.#pressOrigin.x) > POINTER_DRAG_TOLERANCE ||
-        Math.abs(event.clientY - this.#pressOrigin.y) > POINTER_DRAG_TOLERANCE) {
+    // A pointer that jitters a pixel or two during a click does not fire the move hooks.
+    if (hasPointerTraveled(this.#pressOrigin, event)) {
       this.#dragged = true;
     }
 

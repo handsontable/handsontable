@@ -12,7 +12,8 @@ test.describe('pressing a row header without dragging it', { tag: [CROSS_BROWSER
   test.beforeEach(async({ page, theme, bundle }) => {
     grid = new SharedDemoGridPage(page, theme, bundle);
     await grid.goto();
-    await grid.rowHeader(3).click();
+    // The API selects the row: a header click followed by a press on the same point would read as a double click.
+    await grid.selectRow(3);
     await grid.trackRowMoveHooks();
   });
 
@@ -42,6 +43,7 @@ test.describe('pressing a row header without dragging it', { tag: [CROSS_BROWSER
     await grid.dragRowHeaderAwayAndBack(3, 1);
 
     expect(await grid.rowMoveHookCalls()).toEqual({ beforeRowMove: 1, afterRowMove: 1 });
+    expect(await grid.lastAfterRowMove()).toEqual({ movePossible: true, orderChanged: false });
     expect(await grid.physicalRows(5)).toEqual([0, 1, 2, 3, 4]);
   });
 
@@ -50,5 +52,6 @@ test.describe('pressing a row header without dragging it', { tag: [CROSS_BROWSER
 
     expect(await grid.physicalRows(5)).toEqual([0, 3, 1, 2, 4]);
     expect(await grid.rowMoveHookCalls()).toEqual({ beforeRowMove: 1, afterRowMove: 1 });
+    expect(await grid.lastAfterRowMove()).toEqual({ movePossible: true, orderChanged: true });
   });
 });

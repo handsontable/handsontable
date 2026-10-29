@@ -66,7 +66,8 @@ type SharedDemoHot = {
   getCellMeta(row: number, column: number): { rowspan?: number, colspan?: number },
   toPhysicalRow(row: number): number,
   isListening(): boolean,
-  addHook(key: 'beforeRowMove' | 'afterRowMove', callback: () => void): void,
+  selectRows(row: number): boolean,
+  addHook(key: 'beforeRowMove' | 'afterRowMove', callback: (...args: unknown[]) => void): void,
   getActiveEditor(): {
     isOpened(): boolean,
     TEXTAREA: HTMLTextAreaElement | HTMLInputElement,
@@ -80,6 +81,12 @@ type SharedDemoHot = {
 };
 
 type SharedDemoWindow = { hot: SharedDemoHot };
+
+type RowMoveHookRecord = {
+  beforeRowMove: number,
+  afterRowMove: number,
+  lastAfterRowMove: { movePossible: boolean, orderChanged: boolean } | null,
+};
 
 /**
  * Page Object for the shared-demo-grid fixture: the visual suite's `/` grid, rebuilt for the functional
@@ -525,16 +532,37 @@ export class SharedDemoGridPage {
   }
 
   /**
-   * Starts counting the calls of the two row move hooks.
+   * Selects a whole row through the API. A header click followed by a press on the same point would read
+   * as a double click, so a test that presses the header right after uses this.
+   *
+   * @param {number} row The visual row index.
+   */
+  async selectRow(row: number): Promise<void> {
+    await this.page.evaluate((r) => (window as unknown as SharedDemoWindow).hot.selectRows(r), row);
+  }
+
+  /**
+   * Starts recording the two row move hooks: how many times each ran, and the arguments of the latest
+   * `afterRowMove`.
    */
   async trackRowMoveHooks(): Promise<void> {
     await this.page.evaluate(() => {
       const { hot } = window as unknown as SharedDemoWindow;
-      const calls = { beforeRowMove: 0, afterRowMove: 0 };
+      const record: RowMoveHookRecord = {
+        beforeRowMove: 0,
+        afterRowMove: 0,
+        lastAfterRowMove: null,
+      };
 
-      (window as unknown as { rowMoveHookCalls: typeof calls }).rowMoveHookCalls = calls;
-      hot.addHook('beforeRowMove', () => { calls.beforeRowMove += 1; });
-      hot.addHook('afterRowMove', () => { calls.afterRowMove += 1; });
+      (window as unknown as { rowMoveHookRecord: RowMoveHookRecord }).rowMoveHookRecord = record;
+      hot.addHook('beforeRowMove', () => { record.beforeRowMove += 1; });
+      hot.addHook('afterRowMove', (...args) => {
+        record.afterRowMove += 1;
+        record.lastAfterRowMove = {
+          movePossible: args[3] as boolean,
+          orderChanged: args[4] as boolean,
+        };
+      });
     });
   }
 
@@ -544,9 +572,24 @@ export class SharedDemoGridPage {
    * @returns {Promise<{ beforeRowMove: number, afterRowMove: number }>}
    */
   async rowMoveHookCalls(): Promise<{ beforeRowMove: number, afterRowMove: number }> {
+    return this.page.evaluate(() => {
+      const { beforeRowMove, afterRowMove } = (
+        window as unknown as { rowMoveHookRecord: RowMoveHookRecord }
+      ).rowMoveHookRecord;
+
+      return { beforeRowMove, afterRowMove };
+    });
+  }
+
+  /**
+   * The `movePossible` and `orderChanged` arguments of the latest `afterRowMove`, or `null` when it has not run.
+   *
+   * @returns {Promise<{ movePossible: boolean, orderChanged: boolean } | null>}
+   */
+  async lastAfterRowMove(): Promise<{ movePossible: boolean, orderChanged: boolean } | null> {
     return this.page.evaluate(() => (
-      window as unknown as { rowMoveHookCalls: { beforeRowMove: number, afterRowMove: number } }
-    ).rowMoveHookCalls);
+      window as unknown as { rowMoveHookRecord: RowMoveHookRecord }
+    ).rowMoveHookRecord.lastAfterRowMove);
   }
 
   /**

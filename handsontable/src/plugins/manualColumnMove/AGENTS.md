@@ -45,11 +45,10 @@ ColumnSorting asks this **on release** to tell a click apart from a drag, so the
 about where that line is — it has no tolerance logic of its own, it just calls
 `manualColumnMove?.isDragging()`.
 
-**So `POINTER_DRAG_TOLERANCE = 3` in this file is the single source of truth for that threshold.** Do not go
-looking for a second copy in ColumnSorting and do not add one: the comments at `manualColumnMove.ts:19` and
-`:716` claim the value is duplicated there, and they are stale — `columnSorting/` contains no tolerance
-constant, no `Math.abs`, and no press-origin tracking. The one real copy is `manualRowMove.ts`, which uses the
-same constant for its own click-versus-drag guard (plugins do not import each other): change both together.
+**So the threshold lives in one place: `POINTER_DRAG_TOLERANCE` (3 px) and `hasPointerTraveled()` in
+`helpers/dom/event.ts`.** ManualColumnMove and ManualRowMove both call them. Do not add a second copy in
+ColumnSorting or either plugin: `columnSorting/` contains no tolerance constant, no `Math.abs`, and no press-origin
+tracking. The comment at `manualColumnMove.ts:716` that claims the value is duplicated there is stale.
 
 A press that never traveled is a click, not a move, and bailing out on that also keeps
 `beforeColumnMove` / `afterColumnMove` from firing on every header click. The full protocol on the sorting
