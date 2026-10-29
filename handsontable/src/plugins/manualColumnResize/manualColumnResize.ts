@@ -391,6 +391,7 @@ export class ManualColumnResize extends BasePlugin {
    * the same records regardless of trimming or column order. Values lower than the minimum
    * column width (see {@link ManualColumnResize#setManualSize}) are saved as that minimum. A pair whose index
    * is not an integer within the current column count, or whose width is not a finite number, is skipped.
+   * Unlike `setManualSize()`, a numeric string or `null` width is skipped, not converted.
    * Call `render()` afterwards to repaint the grid.
    *
    * @param {Array<Array<number>>} sizes The `[physicalColumn, width]` pairs to write.

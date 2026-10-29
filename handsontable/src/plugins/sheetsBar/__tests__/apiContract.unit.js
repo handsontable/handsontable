@@ -193,6 +193,30 @@ describe('SheetsBar: the public methods keep their documented contract', () => {
       expect(hot.countRows()).toBeGreaterThan(0);
     });
 
+    it('makes `addSheet()` build a blank sheet for `null` data, which a duplicate then copies', () => {
+      const plugin = buildWorkbook([{ name: 'A', data: [[1]] }]);
+      const added = plugin.addSheet('B', null);
+
+      expect(added).toEqual(expect.objectContaining({ name: 'B' }));
+      expect(() => plugin.duplicateSheet(added.id)).not.toThrow();
+      expect(plugin.setActiveSheet(added.id)).toBe(true);
+      expect(hot.countRows()).toBeGreaterThan(0);
+    });
+
+    it.each([
+      ['`data` that is not an array', ['C', 'abc', undefined]],
+      ['`settings` that is not an object', ['C', [[1]], 5]],
+    ])('makes `addSheet()` with %s return `null` before any hook fires', (_label, args) => {
+      const plugin = buildWorkbook([{ name: 'A', data: [[1]] }]);
+      const beforeAdd = jest.fn();
+
+      hot.addHook('beforeSheetTabAdd', beforeAdd);
+
+      expect(plugin.addSheet(...args)).toBe(null);
+      expect(beforeAdd).not.toHaveBeenCalled();
+      expect(namesOf(plugin)).toEqual(['A']);
+    });
+
     it('accepts an omitted or `null` name in a declared entry and in `addSheet()`', () => {
       const plugin = buildWorkbook([{ data: [[1]] }, { name: null, data: [[2]] }]);
 

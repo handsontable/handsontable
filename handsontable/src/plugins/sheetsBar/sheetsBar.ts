@@ -114,6 +114,10 @@ const SHEETS_NOT_WRITABLE_ERROR = 'The sheets bar writes renamed, added and remo
  * A sheet definition accepted by the `sheets` setting.
  */
 export interface SheetsBarSheetConfig {
+  /**
+   * The tab name. A name another sheet already has (compared case-insensitively) or a name that is too
+   * long is changed on the tab, not in this entry, so read the names the tabs show with `getSheets()`.
+   */
   name?: string;
   data?: unknown[];
   settings?: Record<string, unknown>;
@@ -2434,9 +2438,9 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Appends a sheet and returns its descriptor, or `null` when the bar is off, a `beforeSheetTabAdd`
-   * listener cancels it, your `sheets` array is frozen (with a console warning), or it is called from a
-   * listener of a workbook change's before-hook.
+   * Appends a sheet and returns its descriptor, or `null` when the bar is off, `data` is not an array,
+   * `settings` is not an object, a `beforeSheetTabAdd` listener cancels it, your `sheets` array is frozen
+   * (with a console warning), or it is called from a listener of a workbook change's before-hook.
    *
    * Without `settings`, the new sheet joins the workbook's shared formula engine, if there is
    * one, under its own name. Formulas and cross-sheet references then work on it right away.
@@ -2457,9 +2461,8 @@ export class SheetsBar extends BasePlugin {
     source: string = SOURCE_API,
   ): SheetDescriptor | null {
     const model = this.#model;
-    const isNameValid = name === undefined || name === null || typeof name === 'string';
 
-    if (model === null || !isNameValid || !this.#canWriteSheetArrays()) {
+    if (model === null || !isValidSheetEntry({ name, data, settings }) || !this.#canWriteSheetArrays()) {
       return null;
     }
 
@@ -2467,7 +2470,7 @@ export class SheetsBar extends BasePlugin {
       'beforeSheetTabAdd',
       [name ?? null, null],
       () => {
-        const added = model.addSheet(name ?? null, data, settings);
+        const added = model.addSheet(name ?? null, data ?? undefined, settings ?? undefined);
 
         if (!added.settings) {
           const inherited = this.#inheritedFormulaSettings(added.name);
