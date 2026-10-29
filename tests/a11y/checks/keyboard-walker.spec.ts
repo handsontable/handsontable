@@ -8,6 +8,7 @@ import {
   escapeFindings,
   goldenStops,
   inventoryLines,
+  isProductStop,
   parseShortcutTables,
   probeVerdict,
   shortcutKey,
@@ -17,6 +18,7 @@ import {
 } from '../../lib/keyboard-walker.mjs';
 import { SHORTCUT_PROBES } from './keyboard-shortcuts.mjs';
 import {
+  contextChange,
   installSentinels,
   openAxSession,
   readStop,
@@ -268,7 +270,8 @@ async function modalExitOf(page: Page, root: string, held: FocusStop[]): Promise
 }
 
 /**
- * Presses Tab from where the focus is inside an open popup, recording each stop until the focus leaves
+ * Presses Tab from where the focus is inside an open popup, recording each stop, and what the press
+ * changed beyond the focus (`contextChange()`, judged as 3.2.1 like a Tab walk's), until the focus leaves
  * the product, comes back to a stop, or twelve presses have passed.
  *
  * @param page The page.
@@ -284,9 +287,13 @@ async function popupWalk(page: Page, cdp: CDPSession, root: string): Promise<Foc
     await page.keyboard.press('Tab');
 
     const next = await readStop(page, cdp, root);
+    const previous = stops.at(-1)!;
+    // A Tab that keeps the focus on the same element (the formula editor accepting a suggestion) moved no
+    // focus, so what it changed is input, not a change of context on focus.
+    const change = next.ref === previous.ref ? null : contextChange(previous, next);
 
-    stops.push(next);
-    if (!['grid', 'portal'].includes(next.region) || seen.has(next.ref)) {
+    stops.push(change ? { ...next, contextChange: change } : next);
+    if (!isProductStop(next) || seen.has(next.ref)) {
       break;
     }
     seen.add(next.ref);
@@ -543,8 +550,12 @@ async function walkPage(page: Page, testInfo: TestInfo, entry: A11yPage): Promis
     if (forwardVerdict.modal || backwardVerdict.modal) {
       modalExit = await modalExitOf(page, root, [...forward.stops, ...backward.stops].filter(item => item.modal));
     }
-    findings.push(...walkFindings({ walk: forwardVerdict, stops: forward.stops, direction: 'forward', modalExit }));
-    findings.push(...walkFindings({ walk: backwardVerdict, stops: backward.stops, direction: 'backward', modalExit }));
+    // One set for both walks: a stop's role and name do not depend on the walk that reached it, so a stop both
+    // walks pass is one finding.
+    const reported = new Set<string>();
+
+    findings.push(...walkFindings({ walk: forwardVerdict, stops: forward.stops, direction: 'forward', modalExit, reported }));
+    findings.push(...walkFindings({ walk: backwardVerdict, stops: backward.stops, direction: 'backward', modalExit, reported }));
     findings.push(...compareGolden(entry.id, { forward: goldenStops(forward.stops), backward: goldenStops(backward.stops) }));
 
     const inputs = await inputTest(page, cdp, root, [...forward.stops, ...backward.stops]);

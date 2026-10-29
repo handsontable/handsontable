@@ -15,15 +15,18 @@ export const WALKER_CRITERIA = ['2.1.1', '2.1.2', '2.1.4', '2.4.3', '3.2.1', '3.
 /**
  * Where a focus stop is: the sentinels the walker puts right before (`start`) and right after (`end`)
  * the grid's root container, the root itself (`grid`), the grid's own portal (`portal`), anything else
- * on the fixture page (`outside`), or no element at all (`body`: the focus left the document).
+ * on the fixture page (`outside`), or no element at all (`body`: the focus left the page, or the focused
+ * element went away). Playwright emulates page focus, so `document.hasFocus()` cannot tell the two apart;
+ * `walkFindings()` tells them by the stop before.
  */
 export const REGIONS = ['start', 'end', 'grid', 'portal', 'outside', 'body'];
 const PRODUCT = new Set(['grid', 'portal']);
 // The roles a focused element must carry a name for. A grid cell is not one: an empty cell has an
-// empty name, and that is its value, not a missing label.
+// empty name, and that is its value, not a missing label. `Date`, `DateTime` and `InputTime` are the
+// roles Chromium's accessibility tree gives a native date, datetime-local and time input.
 const NAMED_ROLES = new Set(['button', 'link', 'checkbox', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'option', 'tab', 'textbox',
   'combobox', 'searchbox', 'spinbutton', 'switch', 'radio', 'slider', 'columnheader', 'rowheader', 'treeitem', 'listbox', 'menu', 'dialog',
-  'alertdialog']);
+  'alertdialog', 'Date', 'DateTime', 'InputTime']);
 const NO_ROLE = new Set(['', 'generic', 'none', 'presentation']);
 
 /**
@@ -99,7 +102,7 @@ export function walkVerdict({ direction, stops, budgetExhausted = false, exitRou
 /**
  * The findings of one Tab walk: a stop in the product with no role or no name it needs (4.1.2), a
  * press that changed the context instead of only moving the focus (3.2.1), a press that moved the focus
- * out of an open modal dialog to the content behind it (2.4.3), and a trap (2.1.2). A
+ * out of an open modal dialog to the content behind it or left no element focused (2.4.3), and a trap (2.1.2). A
  * modal dialog that holds the focus is not a trap when it has an exit (`modalExit` says which); the
  * fixture's own stops are never judged.
  *
@@ -109,12 +112,15 @@ export function walkVerdict({ direction, stops, budgetExhausted = false, exitRou
  * @param {'forward'|'backward'} input.direction The direction.
  * @param {string|null} [input.modalExit] How the modal dialog that holds the focus can be left, or `null`.
  * @param {boolean} [input.opened] Whether the first stop after the sentinel is where a popup put the focus (no key pressed
- *   yet), so the steps count one press fewer.
+ *   yet), so the steps count one press fewer, and a Tab that left the focus on that element is an advisory
+ *   `tab-keeps-focus`.
+ * @param {Set<string>} [input.reported] The findings already reported on this page: the forward and the backward walk
+ *   share one, because a stop's role and name do not depend on the walk that reached it, so a stop both walks pass is
+ *   one finding, not one per direction, which would double the summary counts.
  * @returns {object[]} The findings.
  */
-export function walkFindings({ walk, stops, direction, modalExit = null, opened = false }) {
+export function walkFindings({ walk, stops, direction, modalExit = null, opened = false, reported = new Set() }) {
   const findings = [];
-  const reported = new Set();
   const key = direction === 'forward' ? 'Tab' : 'Shift+Tab';
   const label = (index) => {
     const press = opened ? index - 1 : index;
@@ -139,6 +145,16 @@ export function walkFindings({ walk, stops, direction, modalExit = null, opened 
         severity: 'serious',
         measured: { to: item.region },
         reason: 'The focus walked out of an open modal dialog to the content behind it, which the dialog hides from assistive technology',
+      });
+    } else if (index > 0 && item.region === 'body' && previous.region === 'grid') {
+      // The sentinels sit right before and right after the grid's container, so a key pressed inside it reaches
+      // one of them or another stop: no element focused means the focused element went away. A portal can be
+      // the last focusable element of the page, where Tab leaves the page, so a portal stop is not judged.
+      add('focus-lost', previous, index, {
+        criteria: ['2.4.3'],
+        severity: 'serious',
+        measured: { to: 'body' },
+        reason: `${key} from inside the grid left no element focused: the focused element went away instead of passing the focus on, so a screen reader has nothing to announce`,
       });
     }
     if (index === 0 || !isProductStop(item)) {
@@ -172,6 +188,21 @@ export function walkFindings({ walk, stops, direction, modalExit = null, opened 
     }
   });
 
+  const last = stops.at(-1);
+
+  // A popup walk stops on the first stop it reached twice; one that stopped on its first Tab never left the element.
+  if (opened && stops.length > 2 && isProductStop(last) && stopKey(last) === stopKey(stops.at(-2))) {
+    findings.push({
+      kind: 'tab-keeps-focus',
+      criteria: ['2.1.1'],
+      severity: 'advisory',
+      selector: last.locator ?? last.tag ?? last.region,
+      step: label(stops.length - 1),
+      measured: { editorOpen: last.signals?.editorOpen === true },
+      reason: `${key} left the focus on the element the popup put it on, so the walk inside the popup stopped: review whether it moved within the control `
+        + '(a date input\'s fields), took the key as input (a suggestion accepted) or did nothing, where the guide says Tab completes the entry and moves on',
+    });
+  }
   if (walk.exitRoute?.left && !walk.trapped) {
     findings.push({
       kind: 'tab-walk-needs-shortcut',
@@ -181,6 +212,19 @@ export function walkFindings({ walk, stops, direction, modalExit = null, opened 
       measured: { presses: walk.presses, routePresses: walk.exitRoute.presses },
       reason: `${key} moves from cell to cell and wraps rows, so leaving the grid took more than ${walk.presses} presses; `
         + `${walk.exitRoute.keys} left it, as the shortcut guide documents`,
+    });
+  }
+  // A walk that came back to a stop outside the product (the sentinel it started on, the fixture page) neither
+  // left nor held the focus in the product, but the keyboard never got past the grid either. A popup walk ends
+  // on a repeat by design, so it is not judged here.
+  if (!opened && !walk.reachedEnd && !walk.leftDocument && !walk.trapped && !walk.exitRoute?.left && walk.productStops > 0) {
+    findings.push({
+      kind: 'tab-walk-incomplete',
+      criteria: ['2.1.2'],
+      severity: 'advisory',
+      step: label(walk.presses),
+      measured: { presses: walk.presses, productStops: walk.productStops },
+      reason: `${key} never reached the other side of the grid: the walk came back to a stop outside it, so the keyboard cannot get past the grid this way`,
     });
   }
   if (walk.trapped && !(walk.modal && modalExit)) {

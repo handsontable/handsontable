@@ -1416,7 +1416,7 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   grid's root container, and a walk presses Tab from the first until the focus reaches the second
   (Shift+Tab back). The fixture page's own buttons are not the product and are never walked. Each stop
   records its region (`grid`, `portal` for any element the harness marked as a portal, the grid's own or
-  a popup library's, a sentinel, `outside`, or `body` when the focus left the document), the role and name Chromium's accessibility tree gives the focused element (read over CDP
+  a popup library's, a sentinel, `outside`, or `body` when no element has the focus), the role and name Chromium's accessibility tree gives the focused element (read over CDP
   with `Accessibility.getPartialAXTree`, because the DOM cannot say what a screen reader gets), and its
   cell. **A stop is keyed by its cell, never by its element**: Walkontable reuses a `<td>` for another
   cell after a scroll, so keying by element would read a scroll as a cycle.
@@ -1425,7 +1425,9 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   Tab wraps rows and leaves from the last cell of the grid, so a walk can run out of presses (the
   column count plus 40) with nothing wrong. The walker then tries the way out the shortcut guide
   documents, Ctrl+End then Tab (Ctrl+Home then Shift+Tab back): a walk that gets out that way is an
-  advisory `tab-walk-needs-shortcut`, one that does not is a `keyboard-trap`. A modal dialog holds the
+  advisory `tab-walk-needs-shortcut`, one that does not is a `keyboard-trap`. A walk that comes back to a
+  stop outside the product (the sentinel it started on) without reaching the other one is neither an exit
+  nor a trap held in the grid, and is an advisory `tab-walk-incomplete`. A modal dialog holds the
   focus by design: a cycle inside one is a trap only when neither Escape nor a button in it lets the
   keyboard out, and a Tab that walks out of an open modal to the content behind it is a
   `focus-leaves-modal` finding.
@@ -1437,14 +1439,23 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   input of a grid in cell focus mode) is not back, though the cell stays highlighted. A
   popup state walked like a grid at rest reads a Tab the editor keeps (the formula editor accepts a
   suggestion with it) as a trap, so a state that opens a popup belongs on that list. Then the
-  popup opens again and Tab walks inside it, judged per stop. A focus that lands on `body` after the
+  popup opens again and Tab walks inside it, judged per stop. A first Tab that leaves the focus on the
+  element the popup put it on is an advisory `tab-keeps-focus`, with whether the editor stayed open: the
+  walk cannot tell a date input moving between its fields, a suggestion accepted and a Tab that did
+  nothing apart, and the guide says Tab completes the entry and moves on. A focus that lands on `body` after the
   popup closed is `focus-not-returned`: the grid often still listens, so the next arrow key brings the
   focus back, but a screen reader has nothing focused until then.
 - **Per stop:** a product stop the accessibility tree gives no role is `focus-stop-without-role`, one whose
-  role needs a name (a button, a menu item, a text field, a header) and has none is
+  role needs a name (a button, a menu item, a text field, a native date or time input, a header) and has none is
   `focus-stop-unnamed` (both 4.1.2: the walker sees them, the tree snapshots own the criterion); a grid
   cell needs no name, because an empty cell's empty name is its value. A press that also opened a menu,
-  a dialog or an editor, or navigated, is `context-change-on-focus` (3.2.1). Every form control a walk
+  a dialog or an editor, or navigated, is `context-change-on-focus` (3.2.1). A press from a stop inside the
+  grid's container that leaves no element focused is `focus-lost` (2.4.3): the sentinels bracket the
+  container, so the focused element went away. A `body` stop after a portal stop is not judged, because the
+  portal can be the last focusable element of the page, and Playwright emulates page focus, so
+  `document.hasFocus()` cannot tell leaving the page from losing the focus. A stop both walks pass is
+  judged once (the walks share one `reported` set): its role and name do not depend on the walk that
+  reached it, so a second finding would count one defect twice. Every form control a walk
   stopped on then gets an input (Space, ArrowDown, a letter), and an input that navigates, opens a popup
   or moves the focus away is `context-change-on-input` (3.2.2).
 - **The APG grid keys** (arrows, Home, End, Page Up, Page Down, Ctrl+Home, Enter, F2, Escape) are pressed

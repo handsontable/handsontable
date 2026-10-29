@@ -78,6 +78,21 @@ test('a walk that reaches the other sentinel left the grid; one that never does 
   assert.equal(outsideOnly.trapped, false, 'a cycle outside the product is not the product\'s trap');
 });
 
+test('a walk that comes back to a stop outside the product without reaching the other sentinel is incomplete', () => {
+  // Tab moved the focus from the grid back to the sentinel the walk started on: neither an exit nor a trap held in the product.
+  const bounced = [stop('start'), cell(0, 0), cell(0, 1), stop('start')];
+  const walk = walkVerdict({ direction: 'forward', stops: bounced });
+
+  assert.deepEqual([walk.reachedEnd, walk.leftDocument, walk.trapped], [false, false, false]);
+  assert.deepEqual(walkFindings({ walk, stops: bounced, direction: 'forward' }).map(item => [item.kind, item.criteria, item.severity, item.step]),
+    [['tab-walk-incomplete', ['2.1.2'], 'advisory', 'Tab 3']]);
+
+  const outsideOnly = [stop('start'), stop('outside', { ref: 1 }), stop('outside', { ref: 1 })];
+
+  assert.deepEqual(walkFindings({ walk: walkVerdict({ direction: 'forward', stops: outsideOnly }), stops: outsideOnly, direction: 'forward' }), [],
+    'a walk that never entered the product is not the product\'s');
+});
+
 test('a cycle inside the same grid cell coordinates is a cycle, and recycled elements with new coordinates are not', () => {
   // Walkontable reuses the same <td> for another cell after a scroll, so a stop is keyed by its
   // coordinates, never by the element.
@@ -110,6 +125,26 @@ test('Tab that walks out of an open modal dialog to the page behind it is a find
   'leaving the document from a modal dialog leaves it too');
 });
 
+test('a key that leaves no element focused from inside the grid lost the focus; leaving the page from the portal did not', () => {
+  // The sentinels sit right before and right after the grid's container, so Tab from inside it reaches one of
+  // them or another stop of the product: no element focused means the focused element went away.
+  const lost = [stop('start'), cell(0, 0, { locator: 'td' }), stop('body')];
+
+  assert.deepEqual(walkFindings({ walk: walkVerdict({ direction: 'forward', stops: lost }), stops: lost, direction: 'forward' })
+    .map(item => [item.kind, item.criteria, item.severity, item.selector, item.step]), [['focus-lost', ['2.4.3'], 'serious', 'td', 'Tab 2']]);
+
+  // The multiselect editor's popup walk: the search field, then nothing.
+  const popup = [stop('start'), stop('grid', { role: 'textbox', name: 'Search options', ref: 1, locator: 'input' }), stop('body')];
+
+  assert.deepEqual(walkFindings({ walk: walkVerdict({ direction: 'forward', stops: popup }), stops: popup, direction: 'forward', opened: true })
+    .map(item => [item.kind, item.step]), [['focus-lost', 'Tab 1']], 'a popup walk counts from where the popup put the focus');
+
+  const out = [stop('start'), stop('portal', { ref: 3, locator: 'button.ok' }), stop('body')];
+
+  assert.deepEqual(walkFindings({ walk: walkVerdict({ direction: 'forward', stops: out }), stops: out, direction: 'forward' }), [],
+    'the portal can be the last focusable element of the page, so Tab from it may leave the page');
+});
+
 test('the findings of a walk: a trap, a stop with no name or role, a context change on focus', () => {
   const stops = [
     stop('start'),
@@ -133,6 +168,33 @@ test('the findings of a walk: a trap, a stop with no name or role, a context cha
   assert.equal(findings[3].measured.change, 'a menu opened');
 });
 
+test('a native date, datetime or time input needs a name like any text field', () => {
+  // Chromium's own roles for <input type="date">, "datetime-local" and "time", as the CDP accessibility tree reports them.
+  const stops = ['Date', 'DateTime', 'InputTime'].map((role, index) => stop('grid', { role, name: '', ref: index, locator: `input.${role}` }));
+  const walk = [stop('start'), ...stops, stop('end')];
+
+  assert.deepEqual(walkFindings({ walk: walkVerdict({ direction: 'forward', stops: walk }), stops: walk, direction: 'forward' })
+    .map(item => [item.kind, item.selector, item.measured.role]), [
+    ['focus-stop-unnamed', 'input.Date', 'Date'],
+    ['focus-stop-unnamed', 'input.DateTime', 'DateTime'],
+    ['focus-stop-unnamed', 'input.InputTime', 'InputTime'],
+  ]);
+});
+
+test('a stop both walks of a page pass is reported once', () => {
+  // One element with one problem is one finding, whichever walk reached it first.
+  const empty = stop('grid', { role: 'generic', name: 'No data available', ref: 9, locator: 'div.ht-empty-data-state' });
+  const forward = [stop('start'), cell(-1, 0), empty, stop('end')];
+  const backward = [stop('end'), empty, cell(-1, 0), stop('start')];
+  const reported = new Set();
+  const findings = [
+    ...walkFindings({ walk: walkVerdict({ direction: 'forward', stops: forward }), stops: forward, direction: 'forward', reported }),
+    ...walkFindings({ walk: walkVerdict({ direction: 'backward', stops: backward }), stops: backward, direction: 'backward', reported }),
+  ];
+
+  assert.deepEqual(findings.map(item => [item.kind, item.selector, item.step]), [['focus-stop-without-role', 'div.ht-empty-data-state', 'Tab 2']]);
+});
+
 test('a backward walk names its steps Shift+Tab; a popup walk counts from where the popup put the focus', () => {
   const stops = [stop('end'), stop('grid', { name: '', ref: 1, locator: 'button.x' }), stop('start')];
   const findings = walkFindings({ walk: walkVerdict({ direction: 'backward', stops }), stops, direction: 'backward' });
@@ -143,6 +205,21 @@ test('a backward walk names its steps Shift+Tab; a popup walk counts from where 
 
   assert.deepEqual(walkFindings({ walk: walkVerdict({ direction: 'forward', stops: popup }), stops: popup, direction: 'forward', opened: true })
     .map(item => item.step), ['where the popup put the focus', 'Tab 1']);
+});
+
+test('a Tab that leaves the focus where the popup put it is an advisory finding, with whether the editor stayed open', () => {
+  // A cell editor whose popup walk is [editor, editor]: Tab moved inside a date input, accepted a suggestion, or did nothing.
+  const editor = stop('grid', { role: 'Date', name: 'Sell date', ref: 1, locator: 'input.htDateInput', signals: { url: 'u', popups: 0, editorOpen: true } });
+  const popup = [{ ...editor, region: 'start' }, editor, editor];
+  const findings = walkFindings({ walk: { ...walkVerdict({ direction: 'forward', stops: popup }), trapped: false }, stops: popup, direction: 'forward', opened: true });
+
+  assert.deepEqual(findings.map(item => [item.kind, item.criteria, item.severity, item.selector, item.step, item.measured.editorOpen]),
+    [['tab-keeps-focus', ['2.1.1'], 'advisory', 'input.htDateInput', 'Tab 1', true]]);
+
+  const moved = [{ ...editor, region: 'start' }, editor, cell(1, 3), stop('end')];
+
+  assert.deepEqual(walkFindings({ walk: walkVerdict({ direction: 'forward', stops: moved }), stops: moved, direction: 'forward', opened: true }), [],
+    'a Tab that committed the edit and moved to the next cell is what the guide documents');
 });
 
 test('Escape must close a popup and give the focus back to its opener', () => {

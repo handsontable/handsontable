@@ -13,6 +13,7 @@ export interface WalkStop {
   locator?: string;
   tag?: string;
   contextChange?: string;
+  signals?: { url?: string; popups?: number; editorOpen?: boolean };
 }
 
 export interface WalkVerdict {
@@ -40,6 +41,7 @@ export function walkFindings(input: {
   direction: 'forward' | 'backward';
   modalExit?: string | null;
   opened?: boolean;
+  reported?: Set<string>;
 }): Array<{ kind: string; criteria: string[]; severity: 'critical' | 'serious' | 'moderate' | 'minor' | 'advisory'; reason: string; selector?: string; step?: string; measured?: Record<string, unknown> }>;
 export function escapeFindings(input: {
   state: string;
