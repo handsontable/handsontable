@@ -1617,6 +1617,101 @@ for field, match, and keep showing row 60. Pinned in `core/incrementalRender/__t
 
 The layout input carries `scrollbarWidth` (vertical bar, consumes width) and `scrollbarHeight` (horizontal bar, consumes height). `scrollbarAxisThickness` in `overlay/scrollbarClearance.ts` uses the holder's gutter (`offset` minus `client`, the same read as `reservedScrollbarSpace`) when it is above zero, and the probe only when there is no holder or that axis has no gutter yet. Window scroll keeps the probe: the document owns those scrollbars and the calculators do not read the snapshot. `gatherLayoutInput` reads one offset/client pair per axis. On the snapshot path a full draw reads that pair again in `syncVisibleCalculatorsToHolderScrollbars`, after `adjustElementsSize`, because the first read runs before the hider exists. The second read rebuilds the visible range only when the gutter disagrees. Neither read is per cell. `.wtHolder` has no border, so the gutter is the scrollbar.
 
+## A classic scrollbar runs beside the scrolling part of its edge only (DEV-3629)
+
+The master holder's native scrollbars run the whole edge: the vertical one beside the column headers
+and the frozen rows too, the horizontal one under the row headers and the frozen columns.
+`overlay/scrollbarProxies.ts` moves each bar onto the part of the edge that scrolls. The holder keeps
+scrolling the grid and keeps its gutters, so no size the viewport is computed from changes. In each
+gutter it adds:
+
+- **a proxy**: an empty `overflow: scroll` div beside the scrolling part only. Its spacer gives it the
+  holder's scroll range (`proxy length + content - view`), and its native scrollbar is the one the user
+  sees and drags.
+- **two fillers** in `--ht-scrollbar-track-color`, over the rest of the gutter. The gutter corner stays
+  the holder's.
+- **the frame** (`.htScrollbarFrame`), described below.
+
+Everything is a sibling after the holder in `.ht_master`: the proxies and the fillers at z-index 1, the
+frame last at z-index 2. `.ht_master` is `overflow: hidden` and the stacking context the clones sit
+above, so nothing reaches past the grid or over a clone. The CSS is duplicated in `_base.scss` and
+`css/walkontable.scss`; keep them in sync.
+
+An axis gets a proxy only when the holder owns it (`mainTableScrollableElement === holder`), the holder
+reserves a CLASSIC gutter for it, and a header or a frozen band is rendered along it. An overlay
+scrollbar takes no space and keeps the clearance band (`scrollbarClearance.ts`), so a browser with
+overlay scrollbars gets no element at all, and neither does a grid the window scrolls.
+`#scrollbarProxyCandidates` answers from flags, so such a grid pays no DOM read either.
+`ScrollbarProxies#update()` runs after a full draw (`Overlays#afterDraw`, not on scroll draws) and at
+the end of `adjustElementsSize` (the postponed resize changes the scroll range outside a full draw).
+The insets are the clone TABLES' outer sizes, not their holders': the top clone's holder grows by half
+a fill handle when a frozen cell is selected.
+
+Six rules, each from a measured defect:
+
+- **Compare an offset with the ledger, never with the other element.** The two offsets are copied both
+  ways. A proxy scroll is the user's only when it differs from the last value copied INTO the proxy
+  (`#copied`). Comparing with the holder fails while the proxy's range lags the holder's (rows added
+  before the next layout): the browser clamps the copy, the clamped value reads as a user scroll, and
+  the grid is pulled back. A holder scroll is the copy's own echo when it equals the last value copied
+  FROM the proxy (`#written`). That echo can arrive after the proxy has moved on, and copying it back
+  jumps the thumb backwards.
+- **Never write to a proxy while the pointer is down on it.** The browser moves a dragged thumb ahead of
+  the page's script, so any write, even of a value the proxy held a frame ago, pulls the thumb back
+  under the pointer; the next pointer move pushes it forward again (measured in Firefox: a 528px jump
+  mid-drag). `#dragging` is set on the proxy's `pointerdown` and cleared on the document's `pointerup`,
+  `pointercancel` and `mouseup` (a drag can end anywhere). The release copies the holder's offset in
+  once, in case the grid moved during the drag.
+- **The proxies' holder `scroll` listener must run before the engine's.** `Overlays` builds
+  `ScrollbarProxies` before `ScrollSync` and `NativeScrollInput`, so the copy into the proxy runs while
+  the layout is still clean, before the draw that the engine's listener starts writes to the DOM.
+- **A press on a proxy is a scrollbar press.** `StickyScrollStrategy#isScrollbarTarget` asks
+  `Overlays#isScrollbarProxy`. Without it a thumb drag never turns on sticky mode, the spreader
+  positioning the engine uses for every native scrollbar drag.
+- **The frame's `box-shadow` comes from the stylesheet, never from the holder's computed style.** The
+  theme frames the grid with an inset `box-shadow` on the holder, and a browser paints a scroll
+  container's scrollbars ABOVE its own `box-shadow`. So wherever a classic bar runs, the inline-end and
+  bottom frame (the inline-start one in RTL) were hidden, on develop too. The frame element takes the
+  holder's box and `border-radius` and is clipped to the gutters (`resolveScrollbarFrameClip`, an
+  L-shaped `clip-path`), so a selection outline on the grid's edge is never covered; it takes no
+  pointer events. Its shadow is declared next to BOTH holder-frame rules in `_base.scss` (the
+  `ht-slot-*-filled` one and the `htHasScrollX`/`htHasScrollY` one): core sets those root classes only
+  after the draw this runs in, so a copy of the computed shadow read `none`.
+- **Copy the holder's computed `scrollbar-width` and `scrollbar-color` onto each proxy**, so a host rule
+  on `.wtHolder` (a thinner bar, other colors) shapes the proxy too and its bar keeps filling the gutter.
+  A host `::-webkit-scrollbar` rule scoped to `.wtHolder` cannot be copied (a pseudo-element's style is
+  not readable onto another element): the holder's gutter widens and the proxy's own bar keeps the
+  theme's width. The proxy therefore carries the track color as its background, which its own bar
+  normally covers whole; without it the holder's thumb showed through beside the proxy's (two thumbs,
+  378–504 thumb-colored pixels in a 30px gutter). A page-wide `::-webkit-scrollbar` rule styles both
+  bars alike, because the two carry the same rules at the same specificity.
+
+The proxies carry `tabindex="-1"` (an empty scroll container is a tab stop in Chrome 127+) and every
+added element `aria-hidden="true"`: the holder's own scroll range and the keyboard already cover what
+they do.
+
+Testing traps:
+
+- **Playwright launches Chromium with `--hide-scrollbars`**, which makes every gutter 0, so no proxy is
+  ever created. The spec drops that flag (`ignoreDefaultArgs`). It simulates an overlay scrollbar with
+  `.wtHolder, .htScrollbarTest { scrollbar-width: none !important; }` before the grid loads. Headless
+  Firefox reads every gutter as 0 too, so the spec has no engine tag; check Firefox headed.
+- **A thumb drag alone cannot catch a broken drag guard.** While the user drags, the holder only echoes
+  the proxy, and the echo check already skips that. The guard matters when the GRID scrolls during the
+  drag (an API call, a resize), so the drag test scrolls the holder mid-drag. It counts the script's
+  writes to the proxy: a property write, which the browser's own thumb scroll is not.
+- **Wait for the offsets to stop moving before scrolling from script mid-drag.** The last pointer move
+  lands a frame later. If the script scrolls first, that move is the user's and correctly scrolls the
+  grid back (2 of 5 runs on horizon). And the thumb returns within about one pointer pixel's worth of
+  scroll of where it was pressed, not exactly there (7–8px measured under load).
+
+Pinned by `test/unit/overlay/scrollbarProxies.unit.ts` (the layout, the frame clip, and the class over
+stub elements: both ledgers, the drag guard, no DOM read for a window-scrolled grid, destroy) and
+`tests/e2e/scrollbar-proxies.spec.ts` (headers, frozen bands on all four sides, RTL, no gutter, window
+scroll, the scroll range after rows are added, sync both ways, the wheel over a bar, a real thumb drag
+that keeps the selection, the frame, a host rule that widens the holder's bar alone (pixels sampled
+through a canvas, since the suite has no PNG decoder), hit tests, and the ARIA attributes).
+
 ## Row recycling: a scroll keeps a row's TR
 
 `render/rows.ts` rotates the TR elements on a scroll-driven draw by the band's offset delta (one
