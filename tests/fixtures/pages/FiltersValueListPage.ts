@@ -299,14 +299,33 @@ export class FiltersValueListPage {
   }
 
   /**
-   * Click the "Clear" link, which unchecks every value the filter holds.
+   * The visible text of the link that checks every value the filter holds.
+   *
+   * @returns {Promise<string>} The link text.
+   */
+  async selectAllLinkText(): Promise<string> {
+    return this.menu.locator('.htUIMultipleSelect .htUISelectAll a').innerText();
+  }
+
+  /**
+   * The visible text of the link that unchecks every value the filter holds.
+   *
+   * @returns {Promise<string>} The link text.
+   */
+  async clearAllLinkText(): Promise<string> {
+    return this.menu.locator('.htUIMultipleSelect .htUIClearAll a').innerText();
+  }
+
+  /**
+   * Click the "Select none" link, which unchecks every value the filter holds. It is found by its
+   * class, so a change of the default label does not break the helper.
    *
    * @param {object} [options] Options.
    * @param {boolean} [options.expectEmptyList] Set when the list holds no values, so there are no
    *   checkboxes to wait for.
    */
   async clearAllValues({ expectEmptyList = false } = {}): Promise<void> {
-    await this.menu.locator('.htUIMultipleSelect a', { hasText: /^Clear$/ }).click();
+    await this.menu.locator('.htUIMultipleSelect .htUIClearAll a').click();
 
     if (expectEmptyList) {
       return;

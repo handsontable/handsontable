@@ -104,7 +104,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: 'Or',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: 'Select all',
-  [C.FILTERS_BUTTONS_CLEAR]: 'Clear',
+  [C.FILTERS_BUTTONS_CLEAR]: 'Select none',
   [C.FILTERS_BUTTONS_OK]: 'OK',
   [C.FILTERS_BUTTONS_CANCEL]: 'Cancel',
 

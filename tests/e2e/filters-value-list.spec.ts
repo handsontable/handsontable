@@ -232,7 +232,44 @@ test.describe('Filters — "filter by value" list', () => {
       expect(await grid.exportedConditions()).toEqual([]);
     });
 
-  test('"Clear" also clears the selected values the list cannot show', async({ page, theme, bundle }) => {
+  test('the link that unchecks every value reads "Select none", beside "Select all"',
+    async({ page, theme, bundle }) => {
+      const grid = new FiltersValueListPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.openMenu('Name');
+
+      expect(await grid.selectAllLinkText()).toBe('Select all');
+      expect(await grid.clearAllLinkText()).toBe('Select none');
+    });
+
+  test('a dictionary that overrides the link label still wins over the default',
+    async({ page, theme, bundle }) => {
+      const grid = new FiltersValueListPage(page, theme, bundle);
+
+      await grid.goto();
+      await page.evaluate(() => {
+        const { languages } = (window as unknown as {
+          Handsontable: { languages: {
+            getLanguageDictionary(code: string): Record<string, unknown>;
+            registerLanguageDictionary(dictionary: Record<string, unknown>): void;
+          } };
+        }).Handsontable;
+
+        languages.registerLanguageDictionary({
+          ...languages.getLanguageDictionary('en-US'),
+          languageCode: 'xx-XX',
+          'Filters:buttons.clear': 'Deselect all',
+        });
+        (window as unknown as { hot: { updateSettings(settings: object): void } })
+          .hot.updateSettings({ language: 'xx-XX' });
+      });
+      await grid.openMenu('Name');
+
+      expect(await grid.clearAllLinkText()).toBe('Deselect all');
+    });
+
+  test('"Select none" also clears the selected values the list cannot show', async({ page, theme, bundle }) => {
     const grid = new FiltersValueListPage(page, theme, bundle);
 
     await grid.goto();
@@ -249,7 +286,7 @@ test.describe('Filters — "filter by value" list', () => {
     await grid.uncheckValue('Alice');
     await grid.confirmMenu();
 
-    // Red is selected but unlisted at this point. "Clear" has to drop it too, or the box would
+    // Red is selected but unlisted at this point. "Select none" has to drop it too, or the box would
     // look empty while the filter still matched rows.
     await grid.openMenu('Color');
     await grid.clearAllValues();
@@ -258,7 +295,7 @@ test.describe('Filters — "filter by value" list', () => {
     expect(await grid.columnValues(0)).toEqual([]);
 
     // None of the three names left in scope is Red, so the assertion above holds either way. Put
-    // Alice back: her row is Red, so it only stays hidden if "Clear" really dropped Red.
+    // Alice back: her row is Red, so it only stays hidden if "Select none" really dropped Red.
     await grid.openMenu('Name');
     await grid.checkValue('Alice');
     await grid.confirmMenu();
@@ -266,7 +303,7 @@ test.describe('Filters — "filter by value" list', () => {
     expect(await grid.columnValues(0)).toEqual([]);
   });
 
-  test('re-ticking everything after "Clear" releases the column again', async({ page, theme, bundle }) => {
+  test('re-ticking everything after "Select none" releases the column again', async({ page, theme, bundle }) => {
     const grid = new FiltersValueListPage(page, theme, bundle);
 
     await grid.goto();
@@ -278,7 +315,7 @@ test.describe('Filters — "filter by value" list', () => {
     expect(await grid.columnValues(0)).toEqual([]);
 
     // Ticking every box back is the same as never having filtered, so the column has to let go of
-    // its condition. "Clear" must not leave a mark that outlives the empty selection it described.
+    // its condition. "Select none" must not leave a mark that outlives the empty selection it described.
     await grid.openMenu('Color');
     await grid.checkValue('Blue');
     await grid.checkValue('Green');
@@ -300,7 +337,7 @@ test.describe('Filters — "filter by value" list', () => {
       await grid.clearAllValues();
       await grid.confirmMenu();
 
-      // "Clear" on that empty list still says "exclude everything in this column".
+      // "Select none" on that empty list still says "exclude everything in this column".
       await grid.openEmptyMenu('Color');
       await grid.clearAllValues({ expectEmptyList: true });
       await grid.confirmMenu();
