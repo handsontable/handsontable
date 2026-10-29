@@ -81,6 +81,7 @@ type HotTableProps$ = HotTableInstance['$props'];
 type HotColumnProps$ = InstanceType<typeof HotColumn>['$props'];
 
 // Each prop is optional: a template names only the ones it sets.
+const gridSettingsObject: HotTableProps = { type: 'numeric' };
 const noProps: HotTableProps$ = {};
 const noColumnProps: HotColumnProps$ = {};
 const validProps: HotTableProps$ = {
@@ -117,8 +118,16 @@ const badNullData: HotTableProps$ = { data: null };
 const badGridData: HotTableProps$ = { data: 'firstName' };
 // @ts-expect-error -- core neither registers nor fires `afterChangesObserved`, so no prop exists for it.
 const badDeadHook: HotTableProps$ = { afterChangesObserved: () => undefined };
-// The `handsontable` and `getValue` options are props, on `HotColumn` as well.
-const nestedGridColumn: HotColumnProps$ = { handsontable: { colHeaders: true }, getValue: () => 'value' };
+// `handsontable` is a prop of both components. `getValue` is a prop of `HotTable` only: core reads it from
+// the table meta, so a column has no use for it.
+const nestedGridColumn: HotColumnProps$ = { handsontable: { colHeaders: true } };
+const nestedGridTable: HotTableProps$ = { handsontable: { colHeaders: true }, getValue: () => 'value' };
+// @ts-expect-error -- core reads `getValue` from the table meta only, so it is not a `HotColumn` prop.
+const badColumnGetValue: HotColumnProps$ = { getValue: () => 'value' };
+// @ts-expect-error -- hooks run from the grid-level settings only, so they are not `HotColumn` props.
+const badColumnHook: HotColumnProps$ = { afterChange: () => undefined };
+// The `settings` prop of a column takes a grid settings object, as it did when every prop was `any`.
+const gridSettingsColumn: HotColumnProps$ = { settings: gridSettingsObject };
 // `id` names the container of `HotTable`; `HotColumn` has no such prop, so the schema rejects it as an
 // excess property. A template that writes it still compiles unless `strictTemplates` is on.
 // @ts-expect-error -- `id` is not a `HotColumn` prop.
@@ -167,6 +176,11 @@ export {
   badGridData,
   badDeadHook,
   nestedGridColumn,
+  nestedGridTable,
+  badColumnGetValue,
+  badColumnHook,
+  gridSettingsObject,
+  gridSettingsColumn,
   validVNode,
   badSheetsBar,
   badSheetTabHook,

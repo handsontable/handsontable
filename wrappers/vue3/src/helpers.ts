@@ -1,5 +1,5 @@
 import { toRaw, PropType } from 'vue';
-import Handsontable from 'handsontable/base';
+import Handsontable, { OmitHooks, RemoveIndexSignature } from 'handsontable/base';
 import { HotTableProps, VueProps } from './types';
 
 const unassignedPropSymbol = Symbol('unassigned');
@@ -9,27 +9,33 @@ const unassignedPropSymbol = Symbol('unassigned');
  * exists only for the type checker: the runtime schema built by `propFactory()` carries none, so Vue
  * neither validates nor casts a prop.
  *
- * The `as` clause drops the index signature of `Settings`. Left in, it becomes an index signature of the
- * props, and Vue types every prop as `any` again. It also drops `afterChangesObserved`: the settings types
- * list that hook, but core neither registers nor fires it, so a prop for it could never work.
+ * `RemoveIndexSignature` drops the index signature of `Settings`. Left in, it becomes an index signature of
+ * the props, and Vue types every prop as `any` again. The mapping also drops `afterChangesObserved`: the
+ * settings types list that hook, but core neither registers nor fires it, so a prop for it could never work.
+ * `SettingsProp` is what the `settings` prop takes.
  */
-type PropSchema<Settings> = {
-  [P in keyof Settings as string extends P ? never : P extends 'afterChangesObserved' ? never : P]-?: {
-    type: PropType<Settings[P]>,
+type PropSchema<Settings, SettingsProp = Settings> = {
+  [P in keyof RemoveIndexSignature<Settings> as P extends 'afterChangesObserved' ? never : P]-?: {
+    type: PropType<RemoveIndexSignature<Settings>[P]>,
     default: unknown,
   };
 } & {
   settings: {
-    type: PropType<Settings>,
+    type: PropType<SettingsProp>,
     default: unknown,
   },
 };
 
 /**
  * `HotColumn` takes column settings, not grid settings: its `data` is a property name or a getter, where the
- * grid's `data` is an array of rows.
+ * grid's `data` is an array of rows. Hooks run from the grid-level settings only, and core reads `getValue`
+ * from the table meta only, so neither is a prop of a column. The `settings` prop also takes a grid settings
+ * object, as it did when every prop was `any`: such an object has no `data` that would clash.
  */
-type HotColumnPropSchema = PropSchema<Handsontable.ColumnSettings>;
+type HotColumnPropSchema = PropSchema<
+  Omit<OmitHooks<RemoveIndexSignature<Handsontable.ColumnSettings>>, 'getValue'>,
+  Handsontable.ColumnSettings | Handsontable.GridSettings
+>;
 
 /**
  * `HotTable` takes the settings `updateSettings()` takes: a hook prop may be `null`, which removes the
@@ -95,15 +101,17 @@ export function propFactory(source: 'HotTable' | 'HotColumn'): HotTablePropSchem
   propSchema.handsontable = {
     default: unassignedPropSymbol
   };
-  propSchema.getValue = {
-    default: unassignedPropSymbol
-  };
 
   propSchema.settings = {
     default: unassignedPropSymbol
   };
 
   if (source === 'HotTable') {
+    // Core reads `getValue` from the table meta only, so a column has no use for it.
+    propSchema.getValue = {
+      default: unassignedPropSymbol
+    };
+
     propSchema.id = {
       type: String,
     };
