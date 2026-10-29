@@ -119,10 +119,45 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
     await expect(page.getByRole('treegrid', { name: 'Budget' })).toBeAttached();
   });
 
+  test('turning the bar off takes its name off the grid', async({ page, theme, bundle }) => {
+    const fixture = new SheetsBarUiPage(page, theme, bundle);
+    const labelledBy = () => page.evaluate(() => (window as any).hot.rootElement.getAttribute('aria-labelledby'));
+
+    await fixture.goto();
+    await expect.poll(labelledBy).not.toBeNull();
+
+    await page.evaluate(() => (window as any).hot.updateSettings({ sheetsBar: false }));
+
+    await expect.poll(labelledBy).toBeNull();
+  });
+
+  test('with ariaTags off the bar writes no names or roles', async({ page, theme, bundle }) => {
+    const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+    await fixture.goto({ ariaTags: false });
+
+    expect(await page.evaluate(() => (window as any).hot.rootElement.hasAttribute('aria-labelledby'))).toBe(false);
+
+    await fixture.allButton.click();
+    await expect(fixture.openMenu).toBeVisible();
+    await expect(fixture.openMenu).not.toHaveAttribute('aria-label', /./);
+    await expect(fixture.openMenu.locator('[role="menuitemradio"]')).toHaveCount(0);
+  });
+
+  test('a bar in a custom container carries the grid theme class', async({ page, theme, bundle }) => {
+    const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+    await fixture.goto({ uiContainer: true });
+
+    await expect(fixture.bar).toHaveClass(new RegExp(`\\bht-theme-${theme}\\b`));
+  });
+
   test('a name the host gave the grid is kept', async({ page, theme, bundle }) => {
     const fixture = new SheetsBarUiPage(page, theme, bundle);
 
     await fixture.goto({ hostLabel: 'Quarterly report' });
+    await expect(page.getByRole('treegrid', { name: 'Quarterly report' })).toBeAttached();
+
     await fixture.tab(1).click();
     await expect(page.getByRole('treegrid', { name: 'Quarterly report' })).toBeAttached();
   });
@@ -179,6 +214,24 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
       await expect.poll(() => fixture.tabInStrip(25)).toBe(true);
     });
 
+    test('keeps the active tab in view when a theme change shrinks the tabs', async({ page, theme, bundle }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+      await fixture.goto({ sheets: 30, activeSheet: 22, colorScheme: 'light' });
+      await expect.poll(() => fixture.tabInStrip(22)).toBe(true);
+
+      const tabWidth = () => fixture.tab(0).evaluate(tab => (tab as HTMLElement).offsetWidth);
+      const wideWidth = await tabWidth();
+
+      await page.addStyleTag({
+        content: '.handsontable.ht-sheets-bar .ht-sheets-bar__tabs .ht-sheets-bar__tab-label { font-size: 6px; }',
+      });
+      await expect.poll(tabWidth).toBeLessThan(wideWidth * 0.8);
+      await page.evaluate(() => (window as any).hot.updateSettings({ density: 'compact' }));
+
+      await expect.poll(() => fixture.tabInStrip(22)).toBe(true);
+    });
+
     test('keeps a strip the user paged when the theme changes the size of the tabs', async({
       page, theme, bundle,
     }) => {
@@ -194,6 +247,9 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
       await page.evaluate(() => (window as any).hot.updateSettings({ density: 'compact' }));
 
       await expect.poll(tabWidth).not.toBe(comfortableWidth);
+      await page.evaluate(() => new Promise<void>((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      }));
       expect(await fixture.strip.evaluate(strip => strip.scrollLeft)).toBe(0);
       expect(await fixture.tabInStrip(25)).toBe(false);
     });
@@ -223,6 +279,30 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
       await page.keyboard.press('End');
       await expect(fixture.tab(29)).toBeFocused();
       await expect.poll(() => fixture.tabInStrip(29)).toBe(true);
+    });
+
+    test('a rename stays open and focused while another sheet moves past it', async({ page, theme, bundle }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+      const errors: string[] = [];
+
+      page.on('pageerror', error => errors.push(error.message));
+      await fixture.goto({ sheets: 4 });
+      await fixture.tab(1).locator('.ht-sheets-bar__tab-label').dblclick();
+      await fixture.renameInput.fill('XY');
+      await page.evaluate(() => {
+        const plugin = (window as any).hot.getPlugin('sheetsBar');
+
+        plugin.moveSheetToIndex(plugin.getSheets()[0].id, 3);
+      });
+
+      await expect(fixture.renameInput).toBeFocused();
+      await page.keyboard.type('Z');
+      await page.keyboard.press('Enter');
+
+      await expect(fixture.tab(0)).toHaveText('XYZ');
+      expect(await page.evaluate(() => (window as any).hot.getPlugin('sheetsBar').getSheets().map((sheet: any) => sheet.name)))
+        .toEqual(['XYZ', 'Sheet 3', 'Sheet 4', 'Sheet 1']);
+      expect(errors).toEqual([]);
     });
 
     test('a press on another tab during a rename commits the name and switches', async({ page, theme, bundle }) => {

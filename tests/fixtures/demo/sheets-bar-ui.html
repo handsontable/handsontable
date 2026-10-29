@@ -63,7 +63,7 @@
      * @param {string} [config.density] The `density` option, with the theme engine.
      * @param {boolean} [config.ariaTags=true] The `ariaTags` option.
      * @param {string} [config.hostLabel] An `aria-label` the host puts on the grid's root.
-     * @param {boolean} [config.menus=false] Turns on the context menu and the dropdown menu.
+     * @param {boolean} [config.menus=false] Turns on the context menu, the dropdown menu and the filters.
      */
     window.buildGrid = (config = {}) => {
       const {
@@ -89,7 +89,9 @@
           ariaTags,
           contextMenu: menus,
           dropdownMenu: menus,
+          filters: menus,
           layoutDirection: rtl ? 'rtl' : 'ltr',
+          ...(useThemeEngine ? { theme: Handsontable.themes.getTheme(window.htTheme) } : {}),
           ...(colorScheme !== undefined ? { colorScheme } : {}),
           ...(density !== undefined ? { density } : {}),
           sheetsBar: {

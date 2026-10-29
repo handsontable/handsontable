@@ -120,6 +120,28 @@ test.describe('sheets bar tab motion – move', { tag: [THEMES_TAG, MOTION_TAG] 
     expectSameLeft((await bar.tabBox(1)).left, movedStart.restLeft);
   });
 
+  test('a repaint at the end of a slide leaves no tab raised above its neighbors', async ({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await openPaused(bar);
+    await runTabMenuCommand(bar, 'Alpha', 'Move right');
+    await expect(bar.tabByName('Alpha')).toHaveClass(/ht-sheets-bar__tab--slide-lead/);
+
+    await bar.stripMotionAt('Alpha', 0.999);
+    await bar.stripMotionAt('Beta', 0.999);
+    await page.evaluate(() => {
+      const plugin = (window as any).hot.getPlugin('sheetsBar');
+      const gamma = plugin.getSheets().find((sheet: { name: string }) => sheet.name === 'Gamma');
+
+      plugin.renameSheet(gamma.id, 'Delta');
+    });
+
+    await expect(bar.tabByName('Delta')).toBeVisible();
+    await expect(bar.tabByName('Alpha')).not.toHaveClass(/ht-sheets-bar__tab--slide-lead/);
+  });
+
   test('the moved active tab carries its own marker the whole way', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 

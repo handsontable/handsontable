@@ -889,6 +889,12 @@ export class SheetsBar extends BasePlugin {
    */
   #gridNameId: string | null = null;
   /**
+   * Watches the grid root's `aria-label` and `aria-labelledby`, so a name the host gives the grid
+   * after it was built takes over from the bar's at once (`#syncGridName()`), or `null` while the
+   * bar names nothing.
+   */
+  #gridNameObserver: MutationObserver | null = null;
+  /**
    * The layout side the bar was registered on, so teardown unregisters the same slot the
    * setup filled — the `position` setting may already read differently by then.
    *
@@ -3753,8 +3759,32 @@ export class SheetsBar extends BasePlugin {
       return;
     }
 
-    setAttribute(root, [A11Y_LABELED_BY(labelId)]);
+    if (root.getAttribute('aria-labelledby') !== labelId) {
+      setAttribute(root, [A11Y_LABELED_BY(labelId)]);
+    }
+
     this.#gridNameId = labelId;
+    this.#watchHostGridName(root);
+  }
+
+  /**
+   * Starts watching the grid root for a name the host writes later. Without it the bar's
+   * `aria-labelledby`, which wins over an `aria-label`, kept naming the grid after the sheet until
+   * the next repaint of the bar.
+   *
+   * @param {HTMLElement} root The grid's root element.
+   */
+  #watchHostGridName(root: HTMLElement) {
+    if (this.#gridNameObserver !== null) {
+      return;
+    }
+
+    this.#gridNameObserver = new this.hot.rootWindow.MutationObserver(() => {
+      if (this.#gridNameId !== null && this.#hostNamesGrid(root)) {
+        this.#clearGridName();
+      }
+    });
+    this.#gridNameObserver.observe(root, { attributes: true, attributeFilter: ['aria-label', 'aria-labelledby'] });
   }
 
   /**
@@ -3774,6 +3804,9 @@ export class SheetsBar extends BasePlugin {
    */
   #clearGridName() {
     const root = this.hot.rootElement;
+
+    this.#gridNameObserver?.disconnect();
+    this.#gridNameObserver = null;
 
     if (this.#gridNameId !== null && root?.getAttribute('aria-labelledby') === this.#gridNameId) {
       removeAttribute(root, 'aria-labelledby');
@@ -4880,10 +4913,10 @@ export class SheetsBar extends BasePlugin {
   #onAfterSetTheme = (themeName: unknown) => {
     this.#ui?.updateTheme(themeName as string | undefined);
     // The icons are refreshed in place, never through `#refreshUI()`: `TabStrip#render()` aborts
-    // a tab drag and cancels an open rename, and this hook also fires for a color-scheme or
-    // density switch (a ThemeBuilder `params()` or `setColorScheme()` included), so a user typing
-    // a sheet name would lose it when the app toggled dark mode. `syncIcon()` re-applies a
-    // class-list or renderer mapping only when the theme's icons revision moved.
+    // a tab drag in progress, and this hook also fires for a color-scheme or density switch (a
+    // ThemeBuilder `params()` or `setColorScheme()` included), so a user dragging a tab would drop
+    // it when the app toggled dark mode. `syncIcon()` re-applies a class-list or renderer mapping
+    // only when the theme's icons revision moved.
     this.#ui?.refreshIcons();
     this.#tabStrip?.refreshIcons();
     this.#overflow?.refresh();

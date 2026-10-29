@@ -369,9 +369,14 @@ the compat `mousedown` focused the menu's `td.current`, the input blurred, the b
 empty rename and the repaint removed the input. `Menu#endTapBeforeCommand()` therefore calls
 `preventDefault()` on a cancelable touch `touchend` before `executeCommand()`, which tells the
 browser to send none of them. A command never needs them: it ran already. Keep it before the
-command, because a command that throws must not leave the compat events armed. A test that counts
+command, because a command that throws must not leave the compat events armed. **Only a row that
+runs a command and closes the menu is ended this way** (`shouldAutoCloseMenu`, the negation of
+`isCommandPassive()`). A passive row needs the tap's mouse events: the Filters controls inside the
+dropdown menu (`isCommand: false` rows) answer the `click` and take the focus from it, and a submenu
+parent opens its submenu from the tap's `mouseover`. Ending every tap broke both on touch screens:
+the filter search took no focus, checkboxes and OK did nothing, and no submenu opened. A test that counts
 `click`s after a menu tap reads 0 for the tap (`tests/e2e/touch-tap-to-edit.spec.ts`, #12803);
-pinned by `tests/e2e/sheets-bar-touch-menus.spec.ts`.
+pinned by `tests/e2e/sheets-bar-touch-menus.spec.ts`, which also taps the Filters controls and a submenu parent.
 
 ## Where to look next
 

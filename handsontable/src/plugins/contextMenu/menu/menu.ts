@@ -649,7 +649,11 @@ export class Menu {
       beforeOnCellMouseUp: (event: MouseEvent) => {
         if (this.hasSelectedItem()) {
           shouldAutoCloseMenu = !this.isCommandPassive(this.getSelectedItem()!);
-          this.#endTapBeforeCommand(event);
+
+          if (shouldAutoCloseMenu) {
+            this.#endTapBeforeCommand(event);
+          }
+
           this.executeCommand(event);
         }
       },
@@ -1126,6 +1130,11 @@ export class Menu {
    * and `click` to the menu, which is still open, and that `mousedown` moves the focus onto the menu's
    * cell. A command that put the focus somewhere (the sheets bar's Rename opens an input and focuses
    * it) lost it at once. Canceling the `touchend` is what tells the browser not to send them.
+   *
+   * Only a tap on an item that runs a command and closes the menu is ended this way. A passive row
+   * (a Filters control with `isCommand: false`, a disabled item, a submenu parent, a separator) needs
+   * the tap's mouse events: the Filters inputs, checkboxes and buttons react to the `click` and take
+   * the focus from it, and a submenu opens from the tap's `mouseover`.
    *
    * @param {Event} event The event that ended the press on the item.
    */

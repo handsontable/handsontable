@@ -301,7 +301,7 @@ export class TabStrip {
   #revealedId = -1;
   /**
    * Ends the rename in progress without committing it, or `null` when none is in progress. A
-   * repaint that replaces the tabs would otherwise take the input away silently. The `silent`
+   * repaint that drops the renamed sheet would otherwise take the input away silently. The `silent`
    * flag skips the `tabRenameCancel` dispatch for the cancel `render()` itself performs — the
    * hook's handler repaints the strip, and re-entering `render()` from inside a render pass
    * leaves the outer pass restoring focus and scroll against tabs the inner pass has replaced.
@@ -353,8 +353,9 @@ export class TabStrip {
    */
   #indicatorEndsAt = 0;
   /**
-   * The tabs sliding into the strip, by sheet id. A repaint rebuilds every tab, so the entry is
-   * what lets the rebuilt tab continue the slide instead of restarting it.
+   * The tabs sliding into the strip, by sheet id. A repaint keeps a tab and its slide; the entry is
+   * what lets a tab built again (a rename that ended) or handed to a rebuilt strip continue the slide
+   * instead of restarting it.
    */
   readonly #entering = new Map<number, EnteringTab>();
   /**
@@ -372,8 +373,8 @@ export class TabStrip {
    */
   #restingSlideDuration: string | null = null;
   /**
-   * The copies of removed tabs still leaving the strip. A repaint clears the strip, so the entry
-   * is what puts each copy back at the point its exit reached.
+   * The copies of removed tabs still leaving the strip. A repaint removes every node it does not
+   * keep as a tab, so the entry is what puts each copy back at the point its exit reached.
    */
   #leaving: LeavingTab[] = [];
 
@@ -416,15 +417,19 @@ export class TabStrip {
 
   /**
    * Brings the tabs in step with the sheet descriptors. A tab whose sheet is still in the strip
-   * is kept and updated in place, so a press, a drag or an open rename on it survives a repaint
-   * it did not cause; only the tabs of new sheets are built, and a kept tab is moved only when
-   * its place changed. An open rename is canceled, silently, only when its sheet is gone. Sheet
-   * names render via `textContent` only (XSS-safe).
+   * is kept and updated in place; only the tabs of new sheets are built, and a kept tab is moved
+   * only when its place changed. A press that has not become a drag (a touch press timing its hold
+   * included) survives a repaint that keeps its tab where it was, and is canceled otherwise; a drag
+   * in progress is always canceled, because its tabs are out of their places. An open rename
+   * survives too: its tab is never moved, the others move around it, and it is canceled, silently,
+   * only when its sheet is gone. Sheet names render via `textContent` only (XSS-safe).
    *
    * @param {object[]} sheets The sheets in tab order.
    */
   render(sheets: SheetDescriptor[]): void {
-    this.#drag.abort();
+    if (this.#drag.isDragging()) {
+      this.#drag.abort();
+    }
 
     if (this.#renamingId !== null && !sheets.some(sheet => sheet.id === this.#renamingId)) {
       this.#cancelRename?.(true);
@@ -446,19 +451,18 @@ export class TabStrip {
         : this.#buildTab(sheet);
     });
     const keep = new Set<Node>(tabs);
+    const held = this.#drag.heldTab();
+
+    if (held !== null && tabs.indexOf(held) !== this.#tabs().indexOf(held)) {
+      this.#drag.abort();
+    }
 
     Array.from(this.#host.childNodes).forEach((node) => {
       if (!keep.has(node)) {
         node.parentNode?.removeChild(node);
       }
     });
-    tabs.forEach((tab, index) => {
-      const current = this.#host.children[index] ?? null;
-
-      if (current !== tab) {
-        this.#host.insertBefore(tab, current);
-      }
-    });
+    this.#placeTabs(tabs);
 
     if (slide !== null) {
       this.#startSlide(slide.from, slide.endsAt - this.#now(), slide.leadId);
@@ -472,6 +476,48 @@ export class TabStrip {
 
     this.#restoreFocus(focused);
     this.#revealActiveTab(sheets.find(sheet => sheet.isActive)?.id ?? -1);
+  }
+
+  /**
+   * Puts the kept and new tabs in the given order. A tab holding an open rename is never moved:
+   * moving a node takes the focus off the input inside it, which left the rename open and unfocused,
+   * or committed it from a `blur` in the middle of this pass. Its neighbors are moved around it
+   * instead, as the drag does with the tab it holds.
+   *
+   * @param {HTMLElement[]} tabs The tabs in their new order, already the only tabs in the host.
+   */
+  #placeTabs(tabs: HTMLElement[]): void {
+    const pinnedIndex = tabs.findIndex(tab => Number(tab.dataset.sheetId) === this.#renamingId);
+
+    if (pinnedIndex === -1) {
+      tabs.forEach((tab, index) => {
+        const current = this.#host.children[index] ?? null;
+
+        if (current !== tab) {
+          this.#host.insertBefore(tab, current);
+        }
+      });
+
+      return;
+    }
+
+    const pinned = tabs[pinnedIndex];
+
+    tabs.slice(0, pinnedIndex).forEach((tab) => {
+      if (tab.nextSibling !== pinned) {
+        this.#host.insertBefore(tab, pinned);
+      }
+    });
+
+    let previous = pinned;
+
+    tabs.slice(pinnedIndex + 1).forEach((tab) => {
+      if (previous.nextSibling !== tab) {
+        this.#host.insertBefore(tab, previous.nextSibling);
+      }
+
+      previous = tab;
+    });
   }
 
   /**
@@ -721,14 +767,15 @@ export class TabStrip {
     this.#host.getBoundingClientRect();
     tabs.forEach((tab) => {
       tab.style.removeProperty('transition');
-      removeClass(tab, SLIDE_LEAD_CLASS);
     });
   }
 
   /**
    * Forgets the running slide of the tabs, cancels its timeout, and takes its styles off the
-   * strip, leaving the tabs untouched. Returns the slide it forgot, with every tab's position
-   * read from the screen first, or `null` when none runs.
+   * strip and the lead mark off the tabs, leaving their transforms untouched. A slide that goes
+   * on marks its lead again; one that stops here, because no tab is left to shift, must not leave
+   * a tab raised above its neighbors. Returns the slide it forgot, with every tab's position read
+   * from the screen first, or `null` when none runs.
    */
   #takeSlide(): TabSlide | null {
     if (this.#slide === null) {
@@ -744,6 +791,7 @@ export class TabStrip {
 
     this.#slide = null;
     removeClass(this.#host, SLIDING_CLASS);
+    this.#tabs().forEach(tab => removeClass(tab, SLIDE_LEAD_CLASS));
     this.#applyRestingSlideDuration();
 
     return slide;
@@ -857,9 +905,9 @@ export class TabStrip {
   }
 
   /**
-   * Slides the tab of a newly created sheet into the strip over `durationMs`. Every repaint
-   * within that time rebuilds the tab mid-slide, at the point the slide has reached. A zero
-   * duration marks nothing.
+   * Slides the tab of a newly created sheet into the strip over `durationMs`. A repaint within
+   * that time keeps the tab sliding; a tab built again (a rename that ended) resumes the slide at
+   * the point it has reached. A zero duration marks nothing.
    */
   markEntering(id: number, durationMs: number): void {
     if (durationMs <= 0) {
@@ -1229,7 +1277,7 @@ export class TabStrip {
 
   /**
    * Brings every tab's chevron icon in step with the theme after a theme change, in place. Unlike
-   * `render()`, it neither rebuilds the tabs nor aborts a drag or an open rename: `afterSetTheme`
+   * `render()`, which aborts a drag in progress, it touches nothing but the icons: `afterSetTheme`
    * also fires for a color-scheme or density switch, which must not cost the user what they were
    * typing. `syncIcon()` leaves an icon whose mapping did not move untouched.
    */
@@ -1325,7 +1373,8 @@ export class TabStrip {
   }
 
   /**
-   * Puts the focus back on the rebuilt tab that held it — or, when that sheet is gone, on the
+   * Puts the focus back on the tab that held it, when a repaint built that tab again (a rename that
+   * ended) — or, when that sheet is gone, on the
    * tab that took its place, and on the last tab when it was the last one. The focus must land
    * somewhere in the strip either way; the document body is not a place to leave a user.
    *
@@ -1385,7 +1434,7 @@ export class TabStrip {
    * reveal left it, so a strip the user paged by hand stays put.
    */
   settleReveal(): void {
-    if (this.#revealedScrollLeft === null || this.#host.scrollLeft !== this.#revealedScrollLeft) {
+    if (this.#revealedScrollLeft === null || !this.#sitsWhereRevealLeftIt(this.#revealedScrollLeft)) {
       return;
     }
 
@@ -1395,6 +1444,22 @@ export class TabStrip {
       this.#scrollIntoStrip(tab);
       this.#revealedScrollLeft = this.#host.scrollLeft;
     }
+  }
+
+  /**
+   * Tells whether the strip still sits where the last reveal left it. Tabs that shrank leave a
+   * shorter scroll range, and the browser then clamps `scrollLeft` to its new end, which is not a
+   * page the user made, so the reveal's offset is compared after the same clamp. The range runs to
+   * negative values under RTL.
+   *
+   * @param {number} revealed The `scrollLeft` the reveal left.
+   * @returns {boolean} `true` when the user has not paged the strip since.
+   */
+  #sitsWhereRevealLeftIt(revealed: number): boolean {
+    const range = Math.max(0, this.#host.scrollWidth - this.#host.clientWidth);
+    const expected = Math.max(-range, Math.min(revealed, range));
+
+    return Math.abs(this.#host.scrollLeft - expected) < 1;
   }
 
   /**

@@ -2,10 +2,6 @@
 
 // Sheets bar
 
-// The line along the bottom edge that marks the active tab. Shared, because the dragged tab has
-// to carry it alongside its own drop shadow.
-$active-marker: inset 0 calc(var(--ht-sheets-bar-tab-active-border-width) * -1) 0 0 var(--ht-sheets-bar-tab-active-border-color);
-
 // How many rows of the all-sheets menu stay visible before it starts to scroll.
 $all-sheets-visible-items: 8;
 
@@ -338,13 +334,26 @@ $all-sheets-visible-items: 8;
         }
 
         &--lifted {
+          z-index: 1;
+          color: var(--ht-sheets-bar-tab-hover-foreground-color);
+          background-color: var(--ht-sheets-bar-tab-background-color);
+
           @include mixins.box-shadow;
         }
 
         // The active tab keeps its own opaque surface while it travels.
-        &--active.ht-sheets-bar__tab--dragging {
+        &--active.ht-sheets-bar__tab--dragging,
+        &--active.ht-sheets-bar__tab--lifted {
           color: var(--ht-sheets-bar-tab-active-foreground-color);
           background-color: var(--ht-sheets-bar-tab-active-background-color);
+        }
+
+        @media (forced-colors: active) {
+          &--lifted,
+          &--dragging {
+            outline: 2px solid Highlight;
+            outline-offset: -2px;
+          }
         }
       }
 
@@ -388,7 +397,7 @@ $all-sheets-visible-items: 8;
         width: var(--ht-private-tab-indicator-width);
         transform: translateX(var(--ht-private-tab-indicator-x));
         background: var(--ht-sheets-bar-tab-active-background-color);
-        box-shadow: $active-marker;
+        border-block-end: var(--ht-sheets-bar-tab-active-border-width) solid var(--ht-sheets-bar-tab-active-border-color);
         pointer-events: none;
         transition-property: transform, width;
         transition-timing-function: ease-in-out;

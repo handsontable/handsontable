@@ -131,6 +131,11 @@ export class TabDrag {
    */
   #isLifted = false;
   /**
+   * Where a touch press is while it times its hold, horizontally. The hold allows the finger to
+   * drift, and the drag measures its threshold from this point once the tab lifts.
+   */
+  #holdX = 0;
+  /**
    * The tab being dragged, or `null` when no gesture is in progress.
    */
   #tab: HTMLElement | null = null;
@@ -249,6 +254,8 @@ export class TabDrag {
     if (this.#isTouchPress) {
       this.#eventManager.addEventListener(this.#host, 'touchmove', this.#onTouchMove, { passive: false });
       this.#eventManager.addEventListener(this.#host, 'touchend', this.#onTouchEnd, { passive: false });
+      this.#eventManager.addEventListener(this.#host, 'touchcancel', this.#onTouchCancel);
+      this.#holdX = event.clientX;
       this.#longPress.start(event.clientX, event.clientY);
     }
   }
@@ -271,6 +278,17 @@ export class TabDrag {
    */
   isTouchPressing(): boolean {
     return this.#tab !== null && this.#isTouchPress;
+  }
+
+  /**
+   * The tab a press holds before it became a drag: a mouse press under the drag threshold, or a
+   * touch press timing its hold or lifted. A repaint that keeps this tab where it was can leave
+   * the press alone.
+   *
+   * @returns {HTMLElement | null} The pressed tab, or `null` with no press or mid-drag.
+   */
+  heldTab(): HTMLElement | null {
+    return this.#isDragging ? null : this.#tab;
   }
 
   /**
@@ -322,6 +340,8 @@ export class TabDrag {
     if (this.#isTouchPress && !this.#isLifted) {
       if (this.#longPress.move(event.clientX, event.clientY)) {
         this.#finish();
+      } else {
+        this.#holdX = event.clientX;
       }
 
       return;
@@ -548,13 +568,17 @@ export class TabDrag {
   };
 
   /**
-   * Lifts the tab a touch press has held long enough: from now on the finger drags it.
+   * Lifts the tab a touch press has held long enough: from now on the finger drags it. The drag
+   * threshold and the grab offset start from where the finger rests now, not where it landed, so
+   * the drift the hold allowed does not count as the start of a drag.
    */
   #lift(): void {
     if (this.#tab === null) {
       return;
     }
 
+    this.#originX = this.#holdX;
+    this.#grabOffset = this.#holdX - (this.#tab.getBoundingClientRect().left - translationOf(this.#tab));
     this.#isLifted = true;
     addClass(this.#tab, LIFTED_CLASS);
   }
@@ -567,14 +591,15 @@ export class TabDrag {
    * @param {TouchEvent} event The `touchmove` event.
    */
   #onTouchMove = (event: TouchEvent): void => {
-    if (this.#isLifted && event.cancelable) {
+    if (this.#tab !== null && this.#isLifted && event.cancelable) {
       event.preventDefault();
     }
   };
 
   /**
    * Ends a held touch press without the mouse events the browser would send for it, so a `click`
-   * does not land on the tab after its menu opened or its drag ended.
+   * does not land on the tab after its menu opened or its drag ended. The listeners stay until no
+   * finger is left on the screen: a second finger lifting first is not the end of the press.
    *
    * @param {TouchEvent} event The `touchend` event.
    */
@@ -583,7 +608,20 @@ export class TabDrag {
       event.preventDefault();
     }
 
-    this.#detachTouch();
+    if (event.touches.length === 0) {
+      this.#detachTouch();
+    }
+  };
+
+  /**
+   * Drops the touch state when the browser cancels the touches, which sends no `touchend`.
+   *
+   * @param {TouchEvent} event The `touchcancel` event.
+   */
+  #onTouchCancel = (event: TouchEvent): void => {
+    if (event.touches.length === 0) {
+      this.#detachTouch();
+    }
   };
 
   /**
@@ -686,6 +724,7 @@ export class TabDrag {
     this.#isLifted = false;
     this.#eventManager.removeEventListener(this.#host, 'touchmove', this.#onTouchMove as EventListener);
     this.#eventManager.removeEventListener(this.#host, 'touchend', this.#onTouchEnd as EventListener);
+    this.#eventManager.removeEventListener(this.#host, 'touchcancel', this.#onTouchCancel as EventListener);
   }
 
   /**

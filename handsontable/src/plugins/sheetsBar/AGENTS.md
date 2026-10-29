@@ -461,7 +461,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   starts before the hold runs out scrolls the strip (`touch-action: pan-x pan-y`; the drag ends as
   soon as the detector reports the drift). A hold lifts the tab (`ht-sheets-bar__tab--lifted`), and
   only then does a move drag it: the lifted press calls `preventDefault()` on a non-passive
-  `touchmove`, which is what keeps the browser from panning once the drag owns the finger. Lifting
+  `touchmove`, which is what keeps the browser from panning once the drag owns the finger. It blocks only while the press is held (`#tab` set), so a press that ended in `pointercancel` blocks nothing, and the touch listeners come off only when no finger is left on the screen (`touches.length === 0` on `touchend` or `touchcancel`): a second finger lifting first ended the held finger's drag. The lift re-bases the drag origin on where the finger rests (`#holdX`), because the hold allows 10px of drift and the drag starts at 4px. A lifted tab looks like a dragged one (raised, opaque, the hover text color), and both carry an outline in forced colors, which drop the shadow. Lifting
   the finger without moving opens the tab menu with no item preselected (`onHoldRelease`). The
   browser's own long-press `contextmenu` is ignored while a touch press is held
   (`TabDrag#isTouchPressing()`), or the menu opened twice. A pen press is timed the same way; a
@@ -546,7 +546,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   active and renaming classes, the `tabIndex`, the ARIA and the label only; it keeps the motion
   and the inline style, and never re-applies the entrance. A rename is canceled, silently, only
   when its sheet left the model (`#renamingId`): the cancel-hook handler repaints the strip, and
-  dispatching it from inside `render()` re-enters the render pass. `#restoreFocus` skips when the
+  dispatching it from inside `render()` re-enters the render pass. **The tab holding an open rename is never moved** (`#placeTabs`): moving a node takes the focus off the input inside it, so an API move of another sheet left the rename open and unfocused in Firefox and WebKit, and in Chromium the blur committed it from inside the reorder loop, which then threw `NotFoundError`. Its neighbors move around it instead, as the drag does. **A press survives a repaint that keeps its tab where it was** (`TabDrag#heldTab()`): a touch press is held for 500ms, and an unrelated repaint in that window (a host `renameSheet()`, an add) used to abort it, after which the browser's own long-press `contextmenu` opened the menu as if from the keyboard. A drag in progress is still aborted first, because its tabs are out of their places. `#restoreFocus` skips when the
   focus is still inside the strip, because the kept tab never lost it.
 - **The strip is one Tab stop** (a roving `tabIndex`, `#rovingId`): the active tab holds it until
   the user arrows to another tab, and the stop returns to the active tab when the focus leaves the
@@ -555,12 +555,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 - **The grid takes its accessible name from the active tab's label** (`aria-labelledby` on
   `hot.rootElement`, `#syncGridName`), and follows a rename and a switch. A name the host set
   (`aria-label` or its own `aria-labelledby`) wins: the bar then removes only its own id, and
-  restores nothing it did not write on teardown.
+  restores nothing it did not write on teardown. A host can only name the grid after it is built, so the bar watches the root's two attributes (`#gridNameObserver`, a `MutationObserver` disconnected with the name); without it the bar's `aria-labelledby`, which wins over an `aria-label`, named the grid after the sheet until the next repaint.
 - **A move and a duplicate made in the bar are announced politely** (`SHEETS_BAR_SHEET_MOVED`,
   `SHEETS_BAR_SHEET_DUPLICATED`, `SOURCE_UI` only); the switch announcement keeps its assertive
   politeness.
 - **The active-tab marker is a `::after` border, not a `box-shadow`**, and the rename edge is an
-  `outline`: forced-colors mode drops box shadows and backgrounds, so neither cue showed there.
+  `outline`: forced-colors mode drops box shadows and backgrounds, so neither cue showed there. The sliding marker (`.ht-sheets-bar__tab-indicator`) draws its line with a border for the same reason, or no marker showed while it slid.
   Hide the `::after` while the indicator slides and while a tab is renamed, or two markers show.
 - **The theme class goes on the bar only in a `uiContainer`.** In a layout slot the bar sits under
   the grid's own themed wrapper; a class of its own there broke the theme engine's scope (the
@@ -572,7 +572,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `density` grid applies after the bar is built in `beforeInit`, so the first reveal measured
   unthemed tabs a third of their width. The strip remembers the `scrollLeft` its reveal left
   (`#revealedScrollLeft`) and repeats the reveal only while it still sits there, so a strip the
-  user paged by hand stays put through a theme or density switch. The reveal latches only once
+  user paged by hand stays put through a theme or density switch. "Still sits there" is compared after the clamp the browser applies when the tabs shrink (`#sitsWhereRevealLeftIt`): a shorter scroll range pulls `scrollLeft` back by itself, and an exact comparison read that as a page and left the active tab out of view. The reveal latches only once
   the strip is measured (`clientWidth > 0`), so a bar built in a hidden container reveals the tab
   when it is shown.
 - **A listener can cancel the restore's `filter()` and `sort()`, and the restore must survive it.**
@@ -881,14 +881,15 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     `TabStrip.destroy()`, which `#releaseState()` runs on a genuine teardown and on the grid's
     destroy, so no callback outlives the strip. Pinned by `__tests__/motionTimers.unit.js`.
   - Never move the tab marker by transforming a tab element: the drag FLIP owns each tab's inline
-    `transform`. The marker is a separate `aria-hidden` element, and `TabStrip.render()` clears the
-    host, so while a slide runs it puts the element back and restarts the slide from the marker's
+    `transform`. The marker is a separate `aria-hidden` element, and `TabStrip.render()` removes every
+    node of the host it does not keep as a tab, so while a slide runs it puts the element back and restarts the slide from the marker's
     on-screen box to the active tab's new box, over the time left (inline `transition-duration`).
     Removing the active tab switches before the model drops it, so the slide's first target is
     stale until that repaint. A newly created tab does animate its own
-    `transform` (the `ht-sheets-bar-tab-enter` keyframes). Every render rebuilds it, so
-    `#applyEntrance()` re-applies the class with a negative `animation-delay` to resume at the
-    elapsed point. A drag start finishes entrances and the marker, and `TabDrag` measures the grab
+    `transform` (the `ht-sheets-bar-tab-enter` keyframes). A repaint keeps the tab and its running
+    entrance untouched; `#applyEntrance()` runs only for a tab `#buildTab()` creates (a new sheet, or
+    a tab whose rename just ended) and in `resumeMotion()`, and then re-applies the class with a
+    negative `animation-delay` to resume at the elapsed point. A drag start finishes entrances and the marker, and `TabDrag` measures the grab
     offset from the tab's resting edge, without its in-flight translation.
   - A sheet moved from the tab menu or the API slides the tabs (`TabStrip.slideTabs()`): the plugin
     records each tab's `offsetLeft` before the model moves (`captureTabPositions()`, plus the
@@ -907,7 +908,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     `#activeTabBox()`, the focusable list in `bar.ts`, the fixtures' test-id stamping) would count it.
     It fades out toward the inline start over `T` (`ht-sheets-bar-tab-leave`, the entrance offset
     reversed) and is removed by a timeout, while the tabs after it close the gap through
-    the move slide. `render()` clears the strip, so it re-inserts each copy first in the strip, under
+    the move slide. `render()` removes every node it does not keep as a tab, so it re-inserts each copy first in the strip, under
     the tabs and the marker, with a negative `animation-delay`; a drag start, a rename, and
     `destroy()` remove it, and a preserved rebuild hands it over in `releaseMotion()`.
   - A workbook-preserving `updatePlugin()` keeps the motion running. When nothing the bar is built

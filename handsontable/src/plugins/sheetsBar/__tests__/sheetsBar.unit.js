@@ -4516,7 +4516,35 @@ describe('SheetsBar plugin', () => {
     host.remove();
   });
 
-  it('aborts an in-progress drag before render() rebuilds the strip, on a later pointermove', () => {
+  it('keeps a press across a repaint that leaves its tab in place, so a later move drags it', () => {
+    const sheets = [
+      { id: 1, name: 'A', isActive: true },
+      { id: 2, name: 'B', isActive: false },
+      { id: 3, name: 'C', isActive: false },
+    ];
+    const { host, strip } = buildTabStrip(sheets);
+    const originalTab = host.querySelector('[data-sheet-id="1"]');
+    const label = originalTab.querySelector('.ht-sheets-bar__tab-label');
+
+    originalTab.setPointerCapture = jest.fn();
+    originalTab.releasePointerCapture = jest.fn();
+
+    label.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0, clientX: 50 }));
+    strip.render(sheets);
+
+    expect(() => {
+      host.ownerDocument.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 90 }));
+    }).not.toThrow();
+
+    expect(host.querySelector('[data-sheet-id="1"]')).toBe(originalTab);
+    expect(originalTab.classList.contains('ht-sheets-bar__tab--dragging')).toBe(true);
+
+    host.ownerDocument.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    strip.destroy();
+    host.remove();
+  });
+
+  it('aborts a press when a repaint moves its tab, so a later move drags nothing', () => {
     const sheets = [
       { id: 1, name: 'A', isActive: true },
       { id: 2, name: 'B', isActive: false },
@@ -4529,16 +4557,13 @@ describe('SheetsBar plugin', () => {
     originalTab.setPointerCapture = jest.fn();
 
     label.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0, clientX: 50 }));
-
-    // A repaint (a rename commit, or a model change from elsewhere) lands mid-gesture, before
-    // the pointer has moved past the drag threshold.
-    strip.render(sheets);
+    strip.render([sheets[1], sheets[0], sheets[2]]);
 
     expect(() => {
       host.ownerDocument.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 90 }));
     }).not.toThrow();
 
-    expect(Array.from(host.children).map(tab => tab.dataset.sheetId)).toEqual(['1', '2', '3']);
+    expect(Array.from(host.children).map(tab => tab.dataset.sheetId)).toEqual(['2', '1', '3']);
     expect(originalTab.classList.contains('ht-sheets-bar__tab--dragging')).toBe(false);
     expect(originalTab.style.transform).toBe('');
 
@@ -4546,7 +4571,7 @@ describe('SheetsBar plugin', () => {
     host.remove();
   });
 
-  it('aborts an in-progress drag before render() rebuilds the strip, on a later Escape', () => {
+  it('aborts a drag in progress when render() repaints the strip, on a later Escape', () => {
     const sheets = [
       { id: 1, name: 'A', isActive: true },
       { id: 2, name: 'B', isActive: false },
@@ -4564,7 +4589,6 @@ describe('SheetsBar plugin', () => {
 
     expect(originalTab.classList.contains('ht-sheets-bar__tab--dragging')).toBe(true);
 
-    // A repaint lands mid-gesture, after the pointer has already crossed the threshold.
     strip.render(sheets);
 
     expect(() => {
