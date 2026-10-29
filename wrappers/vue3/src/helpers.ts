@@ -1,8 +1,51 @@
-import { toRaw } from 'vue';
-import Handsontable from 'handsontable/base';
+import { toRaw, PropType } from 'vue';
+import Handsontable, { OmitHooks, RemoveIndexSignature } from 'handsontable/base';
 import { HotTableProps, VueProps } from './types';
 
 const unassignedPropSymbol = Symbol('unassigned');
+
+/**
+ * The shape `defineComponent()` reads the prop types from, with one entry per option of `Settings`. `type`
+ * exists only for the type checker: the runtime schema built by `propFactory()` carries none, so Vue
+ * neither validates nor casts a prop.
+ *
+ * `RemoveIndexSignature` drops the index signature of `Settings`. Left in, it becomes an index signature of
+ * the props, and Vue types every prop as `any` again. The mapping also drops `afterChangesObserved`: the
+ * settings types list that hook, but core neither registers nor fires it, so a prop for it could never work.
+ * `SettingsProp` is what the `settings` prop takes.
+ */
+type PropSchema<Settings, SettingsProp = Settings> = {
+  [P in keyof RemoveIndexSignature<Settings> as P extends 'afterChangesObserved' ? never : P]-?: {
+    type: PropType<RemoveIndexSignature<Settings>[P]>,
+    default: unknown,
+  };
+} & {
+  settings: {
+    type: PropType<SettingsProp>,
+    default: unknown,
+  },
+};
+
+/**
+ * `HotColumn` takes column settings, not grid settings: its `data` is a property name or a getter, where the
+ * grid's `data` is an array of rows. Hooks run from the grid-level settings only, and core reads `getValue`
+ * from the table meta only, so neither is a prop of a column. The `settings` prop also takes a grid settings
+ * object, as it did when every prop was `any`: such an object has no `data` that would clash.
+ */
+type HotColumnPropSchema = PropSchema<
+  Omit<OmitHooks<RemoveIndexSignature<Handsontable.ColumnSettings>>, 'getValue'>,
+  Handsontable.ColumnSettings | Handsontable.GridSettings
+>;
+
+/**
+ * `HotTable` takes the settings `updateSettings()` takes: a hook prop may be `null`, which removes the
+ * callback the earlier props passed for it.
+ */
+type HotTablePropSchema = PropSchema<Handsontable.SettingsUpdate> & {
+  id: {
+    type: PropType<string>,
+  },
+};
 
 /**
  * Message for the warning thrown if the Handsontable instance has been destroyed.
@@ -27,7 +70,15 @@ export function hasOwnProperty(object: unknown, key: string): boolean {
  * @param {string} source Source for the factory (either 'HotTable' or 'HotColumn').
  * @returns {object}
  */
-export function propFactory(source: 'HotTable' | 'HotColumn'): VueProps<HotTableProps> {
+export function propFactory(source: 'HotTable'): HotTablePropSchema;
+export function propFactory(source: 'HotColumn'): HotColumnPropSchema;
+/**
+ * Implementation of the overloads above.
+ *
+ * @param {string} source Source for the factory (either 'HotTable' or 'HotColumn').
+ * @returns {object}
+ */
+export function propFactory(source: 'HotTable' | 'HotColumn'): HotTablePropSchema | HotColumnPropSchema {
   const registeredHooks = Handsontable.hooks.getRegistered();
   const propSchema: VueProps<HotTableProps> = {};
 
@@ -46,17 +97,29 @@ export function propFactory(source: 'HotTable' | 'HotColumn'): VueProps<HotTable
     };
   }
 
+  // Documented options that have no entry in `DefaultSettings`, so the loops above never reach them.
+  propSchema.handsontable = {
+    default: unassignedPropSymbol
+  };
+
   propSchema.settings = {
     default: unassignedPropSymbol
   };
 
   if (source === 'HotTable') {
+    // Core reads `getValue` from the table meta only, so a column has no use for it.
+    propSchema.getValue = {
+      default: unassignedPropSymbol
+    };
+
     propSchema.id = {
       type: String,
     };
   }
 
-  return propSchema;
+  // The schema is filled at runtime from `DefaultSettings`, the registered hooks, and the options named
+  // above, which is why it is built loosely and typed here, from `SettingsUpdate` and `ColumnSettings`, for the template type checker.
+  return propSchema as unknown as HotTablePropSchema | HotColumnPropSchema;
 }
 
 /**
