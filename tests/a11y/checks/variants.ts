@@ -32,3 +32,21 @@ export async function installDarkScheme(page: Page): Promise<void> {
     };
   });
 }
+
+/**
+ * Whether the dark scheme reached the grid: its root wrapper, or the element that carries its theme
+ * class, has a `ht-theme-<name>-dark` class. A class the init script cannot see (one in the static
+ * markup, one set with `classList.toggle()`) leaves the grid light, and a dark record of it would be a
+ * light measurement.
+ *
+ * @param page The page.
+ * @param root The root container selector.
+ * @returns Whether the grid is dark.
+ */
+export async function darkSchemeApplied(page: Page, root: string): Promise<boolean> {
+  return page.evaluate((selector) => {
+    const wrapper = document.querySelector(selector)?.querySelector('.ht-root-wrapper');
+
+    return !!wrapper && /ht-theme-\w+-dark/.test(`${wrapper.className} ${wrapper.closest('[class*="ht-theme-"]')?.className ?? ''}`);
+  }, root);
+}

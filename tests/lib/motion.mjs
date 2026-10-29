@@ -11,11 +11,21 @@
  */
 
 export const MOTION_CHECK = 'forced-colors-motion';
-export const MOTION_CRITERIA = ['1.4.1', '2.2.2', '2.3.3'];
-// What moves: position, size and transform. Opacity and color change what is shown, not where.
-const MOTION_PROPERTIES = new Set(['transform', 'translate', 'rotate', 'scale', 'left', 'right', 'top', 'bottom', 'inset', 'inset-inline-start',
-  'inset-inline-end', 'inset-block-start', 'inset-block-end', 'width', 'height', 'margin', 'margin-left', 'margin-right', 'margin-top',
-  'margin-bottom', 'margin-inline-start', 'margin-inline-end', 'offset-distance', 'scroll-position', 'background-position']);
+export const MOTION_CRITERIA = ['1.4.1', '1.4.11', '2.2.2', '2.3.3', '2.4.7'];
+// What the forced-colors capture evaluates: every criterion its findings name.
+export const FORCED_COLORS_CRITERIA = ['1.4.1', '1.4.11', '2.4.7'];
+// What moves: position, size and transform. Opacity and color change what is shown, not where. Chromium
+// reports a transition per longhand, and a shorthand's keyframes as its longhands (`background-position`
+// as `background-position-x` and `-y`), so the longhands are listed with the shorthands.
+const MOTION_PROPERTIES = new Set(['transform', 'translate', 'rotate', 'scale', 'offset-distance', 'scroll-position',
+  'left', 'right', 'top', 'bottom', 'inset', 'inset-inline-start', 'inset-inline-end', 'inset-block-start', 'inset-block-end',
+  'width', 'height', 'min-width', 'min-height', 'max-width', 'max-height',
+  'inline-size', 'block-size', 'min-inline-size', 'min-block-size', 'max-inline-size', 'max-block-size',
+  'margin', 'margin-left', 'margin-right', 'margin-top', 'margin-bottom',
+  'margin-inline-start', 'margin-inline-end', 'margin-block-start', 'margin-block-end',
+  'padding', 'padding-left', 'padding-right', 'padding-top', 'padding-bottom',
+  'padding-inline-start', 'padding-inline-end', 'padding-block-start', 'padding-block-end',
+  'background-position', 'background-position-x', 'background-position-y']);
 // A duration a reduced-motion rule shrinks to (0.01ms is the common one) moves nothing a user can see.
 const INSTANT_MS = 1;
 // 2.2.2's limit.
@@ -60,19 +70,43 @@ export function motionFindings({ reducedMotion, step, animations }) {
 }
 
 /**
- * The 2.2.2 findings of a state at rest: an animation still running at the end of the watch that ran from
- * its start, and repeats without end or lasts five seconds or more. Moving and blinking content both
- * count, so an opacity pulse is reported like a spinner. The record says how long it was seen.
+ * The problem of a positive control that saw no motion: an interaction expected to move on this theme,
+ * run without the reduced-motion preference, that moved nothing. Its reduced-motion run then proves
+ * nothing (the watch may have missed what moves), so the run says so instead of reading as clean.
  *
  * @param {object} input What the spec saw.
- * @param {number} input.windowMs How long the spec watched.
+ * @param {boolean} input.reducedMotion Whether the page was told the user prefers reduced motion.
+ * @param {boolean} input.expectsMotion Whether the interaction moves on this theme without the preference.
+ * @param {string} input.step The interaction.
  * @param {object[]} input.animations The animations seen.
+ * @returns {string[]} The problems.
+ */
+export function controlProblems({ reducedMotion, expectsMotion, step, animations }) {
+  if (reducedMotion || !expectsMotion || animations.some(isMotion)) {
+    return [];
+  }
+
+  return [`the positive control saw no motion: "${step}" moved nothing without the reduced-motion preference, so its reduced-motion run proves nothing`];
+}
+
+/**
+ * The 2.2.2 findings of a state at rest: an animation seen running on the watch's first frame and still
+ * running on its last, longer than an instant, that repeats without end or lasts five seconds or more.
+ * The watch's own frames are the bounds, not its nominal length, so a late first frame hides nothing.
+ * Moving and blinking content both count, so an opacity pulse is reported like a spinner. The record
+ * says how long it was seen.
+ *
+ * @param {object} input What the spec saw.
+ * @param {{first: number, last: number}} input.frames When the watch's first and last frames ran.
+ * @param {object[]} input.animations The animations seen. An endless one's `iterations` is `'Infinity'`,
+ *   the string the spec records because JSON has no Infinity.
  * @returns {object[]} The findings.
  */
-export function longRunningFindings({ windowMs, animations }) {
+export function longRunningFindings({ frames, animations }) {
   return dedupe(animations.filter(animation => animation.running
-    && animation.lastSeen - animation.firstSeen >= Math.min(windowMs, FIVE_SECONDS) - 100
-    && (animation.iterations === Infinity || animation.duration * animation.iterations >= FIVE_SECONDS)))
+    && animation.firstSeen <= frames.first && animation.lastSeen >= frames.last
+    && animation.duration > INSTANT_MS
+    && animation.duration * Number(animation.iterations) >= FIVE_SECONDS))
     .map(animation => ({
       kind: 'moves-over-five-seconds',
       criteria: ['2.2.2'],

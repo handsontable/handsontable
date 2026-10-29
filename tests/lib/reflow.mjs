@@ -1,5 +1,5 @@
 /**
- * Zoom, reflow, text spacing and hover content: the pure half.
+ * Zoom, reflow, text spacing, and hover content: the pure half.
  *
  * `a11y/checks/reflow.spec.ts` loads each page under three conditions (`CONDITIONS`) and measures the
  * boxes of the surfaces around the grid: menus, the editors' lists, dialogs, notifications, the bars, the
@@ -31,11 +31,37 @@ const CLIPPING = new Set(['hidden', 'clip']);
 const TOLERANCE = 1;
 // Two controls overlapping by less than this many square pixels share an antialiased edge, not a box.
 const OVERLAP = 4;
+// A box this many pixels square or smaller is screen-reader-only (the announcer's live regions,
+// `utils/a11yAnnouncer.ts`, are 1 by 1 px with overflow hidden): its text is read out, never drawn.
+const SCREEN_READER_ONLY = 1;
+
+/**
+ * Tells apart the items of one measurement that share a name: the second and later item with a name
+ * get an ordinal (`div.htMenu (2)`), in the order the page lists them. A finding's id keys on its
+ * selector (`findingId()` in `lib/a11y-evidence.mjs`), and the spec names an element by its tag, its
+ * first class, and its label, so the context menu and its submenu, or two pager buttons with one label,
+ * would otherwise give two findings one id.
+ *
+ * @param {Array<{selector: string}>} items The surfaces, the controls, or the clipping containers of one measurement.
+ * @returns {Array<{selector: string}>} Copies of the items, each with a name no earlier item has.
+ */
+export function nameApart(items) {
+  const seen = new Map();
+
+  return items.map((item) => {
+    const count = (seen.get(item.selector) ?? 0) + 1;
+
+    seen.set(item.selector, count);
+
+    return count === 1 ? { ...item } : { ...item, selector: `${item.selector} (${count})` };
+  });
+}
 
 /**
  * The text a clipping container cuts off: a container whose overflow is `hidden` or `clip` on an axis
  * and whose content is larger than its box on that axis. Cut off with an ellipsis it is truncated
- * (`moderate`: the text is shortened, not gone); cut off without one it is clipped (`serious`).
+ * (`moderate`: the text is shortened, not gone); cut off without one it is clipped (`serious`). A
+ * screen-reader-only box (`SCREEN_READER_ONLY`) shows no text, so it cuts none off.
  *
  * @param {object} input The measurement.
  * @param {string} input.condition The condition (`CONDITIONS`).
@@ -48,6 +74,10 @@ export function clippingFindings({ condition, boxes }) {
   const findings = [];
 
   for (const box of boxes) {
+    if (box.clientWidth <= SCREEN_READER_ONLY && box.clientHeight <= SCREEN_READER_ONLY) {
+      continue;
+    }
+
     const hiddenX = CLIPPING.has(box.overflowX) ? box.scrollWidth - box.clientWidth : 0;
     const hiddenY = CLIPPING.has(box.overflowY) ? box.scrollHeight - box.clientHeight : 0;
     const axis = hiddenX >= hiddenY ? 'x' : 'y';
@@ -77,22 +107,27 @@ export function clippingFindings({ condition, boxes }) {
 
 /**
  * The surfaces the viewport cuts off. A surface positioned against the viewport (`fixed`) that reaches
- * past it cannot be scrolled to (`outside-viewport`). Any other surface past the viewport's right edge
- * makes the page scroll sideways (`needs-horizontal-scroll`, a second scroll direction 1.4.10 does not
- * allow outside a data table), or is out of reach when the page cannot scroll there; past the bottom
- * edge it is a vertical scroll away, which is allowed, unless the page cannot scroll there either.
+ * past it cannot be scrolled to (`outside-viewport`). Any other surface is placed in the page's own
+ * coordinates (its box plus the scroll offset), and scrolling reaches from the page's origin to its
+ * scroll size and no further: a part before the origin (a menu flipped above or left of the page) or
+ * past the scroll size is out of reach too. Within reach, a surface past the viewport's right edge needs
+ * a sideways scroll (`needs-horizontal-scroll`), the second scroll direction 1.4.10 does not allow
+ * outside a data table; it is a finding at 320 px only, because 1.4.4 and 1.4.12 ask for no loss of
+ * content and a sideways scroll loses none. Past the bottom edge a surface is a vertical scroll away,
+ * which is allowed.
  *
  * @param {object} input The measurement.
  * @param {string} input.condition The condition.
- * @param {{width: number, height: number, scrollWidth: number, scrollHeight: number}} input.viewport The viewport and the page's scroll size.
+ * @param {{width: number, height: number, scrollX?: number, scrollY?: number, scrollWidth: number, scrollHeight: number}} input.viewport
+ *   The viewport, the page's scroll offset and its scroll size.
  * @param {Array<{selector: string, surface: string, left: number, right: number, top: number, bottom: number, fixed: boolean}>} input.surfaces The surfaces.
  * @returns {object[]} The findings.
  */
 export function viewportFindings({ condition, viewport, surfaces }) {
   const { criteria, label } = CONDITIONS[condition];
   const findings = [];
+  const [scrollX, scrollY] = [viewport.scrollX ?? 0, viewport.scrollY ?? 0];
   const scrollsSideways = viewport.scrollWidth > viewport.width + TOLERANCE;
-  const scrollsDown = viewport.scrollHeight > viewport.height + TOLERANCE;
   const unreachable = (surface, beyond) => ({
     kind: 'outside-viewport', criteria, severity: 'serious', selector: surface.selector, step: label,
     measured: { beyond: Math.round(beyond), surface: surface.surface },
@@ -100,21 +135,27 @@ export function viewportFindings({ condition, viewport, surfaces }) {
   });
 
   for (const surface of surfaces) {
-    const beyondX = Math.max(0, surface.right - viewport.width, -surface.left);
-    const beyondY = Math.max(0, surface.bottom - viewport.height, -surface.top);
-
     if (surface.fixed) {
-      if (Math.max(beyondX, beyondY) > TOLERANCE) {
-        findings.push(unreachable(surface, Math.max(beyondX, beyondY)));
+      const beyond = Math.max(0, surface.right - viewport.width, -surface.left, surface.bottom - viewport.height, -surface.top);
+
+      if (beyond > TOLERANCE) {
+        findings.push(unreachable(surface, beyond));
       }
-    } else if (beyondX > TOLERANCE && scrollsSideways) {
+      continue;
+    }
+
+    const [left, right, top, bottom] = [surface.left + scrollX, surface.right + scrollX, surface.top + scrollY, surface.bottom + scrollY];
+    const outOfReach = Math.max(0, -left, -top, right - viewport.scrollWidth, bottom - viewport.scrollHeight);
+    const beyondRight = right - viewport.width;
+
+    if (outOfReach > TOLERANCE) {
+      findings.push(unreachable(surface, outOfReach));
+    } else if (beyondRight > TOLERANCE && scrollsSideways && criteria.includes('1.4.10')) {
       findings.push({
         kind: 'needs-horizontal-scroll', criteria, severity: 'serious', selector: surface.selector, step: label,
-        measured: { beyond: Math.round(beyondX), surface: surface.surface },
-        reason: `The ${surface.surface} is wider than the viewport, so reading it needs a second scroll direction`,
+        measured: { beyond: Math.round(beyondRight), surface: surface.surface },
+        reason: `The ${surface.surface} reaches past the viewport's right edge, so reading it needs a second scroll direction`,
       });
-    } else if (beyondX > TOLERANCE || (beyondY > TOLERANCE && !scrollsDown)) {
-      findings.push(unreachable(surface, Math.max(beyondX, scrollsDown ? 0 : beyondY)));
     }
   }
 
@@ -148,9 +189,10 @@ export function overlapFindings({ condition, controls }) {
       const area = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
 
       if (area > OVERLAP) {
+        // Both controls name the finding, so one control over two neighbors is two findings with two ids.
         findings.push({
-          kind: 'controls-overlap', criteria, severity: 'serious', selector: a.selector, step: label,
-          measured: { with: b.selector, area: Math.round(area) },
+          kind: 'controls-overlap', criteria, severity: 'serious', selector: `${a.selector} × ${b.selector}`, step: label,
+          measured: { area: Math.round(area) },
           reason: 'Two controls are drawn over each other, so one hides part of the other',
         });
       }
@@ -163,28 +205,24 @@ export function overlapFindings({ condition, controls }) {
 /**
  * The findings of content that appears on hover (1.4.13): it must be dismissible without moving the
  * pointer or the focus, hoverable (the pointer can move onto it), and persistent (it stays until the
- * hover ends, it is dismissed, or it no longer applies). Content that never appeared is advisory: the
- * setup did not reach the state, which is a problem with the check.
+ * hover ends, it is dismissed, or it no longer applies). The spec measures each property on its own,
+ * from the content on screen; a property it could not measure (the content did not show for it, or never
+ * appeared) is `undefined`, gives no finding, and is a problem of the spec's target instead.
  *
  * @param {object} input What the spec saw.
  * @param {string} input.selector The content.
- * @param {boolean} input.appeared Whether it appeared.
  * @param {boolean} [input.dismissible] Whether Escape hid it.
  * @param {boolean} [input.hoverable] Whether it stayed while the pointer moved onto it.
  * @param {boolean} [input.persistent] Whether it stayed while the pointer rested on it for ten seconds.
  * @returns {object[]} The findings.
  */
-export function hoverFindings({ selector, appeared, dismissible, hoverable, persistent }) {
+export function hoverFindings({ selector, dismissible, hoverable, persistent }) {
   const finding = (kind, reason) => ({ kind, criteria: ['1.4.13'], severity: 'serious', selector, step: 'hover a commented cell', reason });
 
-  if (!appeared) {
-    return [{ ...finding('hover-content-did-not-appear', 'The comment did not appear on hover, so 1.4.13 was not measured'), severity: 'advisory' }];
-  }
-
   return [
-    ...(dismissible ? [] : [finding('hover-content-not-dismissible', 'Escape does not hide the content that appeared on hover')]),
-    ...(hoverable ? [] : [finding('hover-content-not-hoverable', 'The content disappears when the pointer moves onto it')]),
-    ...(persistent ? [] : [finding('hover-content-not-persistent', 'The content disappears on its own while the pointer rests on it')]),
+    ...(dismissible === false ? [finding('hover-content-not-dismissible', 'Escape does not hide the content that appeared on hover')] : []),
+    ...(hoverable === false ? [finding('hover-content-not-hoverable', 'The content disappears when the pointer moves onto it')] : []),
+    ...(persistent === false ? [finding('hover-content-not-persistent', 'The content disappears on its own while the pointer rests on it')] : []),
   ];
 }
 

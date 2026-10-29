@@ -4,21 +4,22 @@ import { emulate, openTarget, reachState, releaseParkedFetches, selectCell, type
 import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } from '../evidence';
 import { A11Y_THEMES } from '../../lib/a11y-baseline.mjs';
 import { dominantColor, indicatorChange, isDrawn, strongestPixel } from '../../lib/contrast.mjs';
-import { forcedColorsFindings, isMotion, longRunningFindings, motionFindings } from '../../lib/motion.mjs';
+import { FORCED_COLORS_CRITERIA, controlProblems, forcedColorsFindings, isMotion, longRunningFindings, motionFindings } from '../../lib/motion.mjs';
 import { capture, cellBox, grow, settle, type Image } from './pixels';
 
 /**
  * Forced colors and reduced motion: WCAG 2.2.2, 2.3.3, and the forced-colors support of 1.4.1, 1.4.11
  * and 2.4.7, on every theme. Nightly only: watching every state for five seconds is minutes of work.
  *
- * - **Reduced motion, at rest** (2.2.2, 2.3.3): every page of the catalog in its state, with
- *   `prefers-reduced-motion: reduce`, watched for five seconds frame by frame through
- *   `document.getAnimations()`. A motion animation still running is `motion-despite-reduced-motion`; an
- *   animation that moves or blinks for the whole window is `moves-over-five-seconds`.
+ * - **At rest** (2.2.2): every page of the catalog in its state, without the reduced-motion preference,
+ *   watched for five seconds frame by frame through `document.getAnimations()`. An animation that moves or
+ *   blinks from the watch's first frame to its last, and repeats without end or lasts five seconds or more,
+ *   is `moves-over-five-seconds`.
  * - **Reduced motion, on interaction** (2.3.3): a sheet switch, a dialog shown, a notification shown and a
- *   menu opened, watched for 1.5 seconds each, with the preference and without it. Without it is the
- *   positive control: an interaction that animates there, and not under the preference, proves the watch
- *   sees motion and the grid honors the preference.
+ *   menu opened, watched for 1.5 seconds each, with the preference and without it, once the finite
+ *   animations the load started have ended. Without it is the positive control: an interaction that
+ *   animates there, and not under the preference, proves the watch sees motion and the grid honors the
+ *   preference. A control that should move and saw nothing is a problem of its run, not a clean result.
  * - **Forced colors** (`forcedColors: 'active'`): the cell focus, a selected range, a menu's highlight,
  *   the grid lines and the icons, each captured (attached as a PNG) and required to stay visible.
  *
@@ -33,25 +34,34 @@ interface SeenAnimation {
   name: string;
   properties: string[];
   duration: number;
-  iterations: number;
+  // 'Infinity' for an endless animation: the record is attached as JSON, which writes the number as null.
+  iterations: number | 'Infinity';
   target: string;
   firstSeen: number;
   lastSeen: number;
   running: boolean;
 }
 
+interface Watch {
+  animations: SeenAnimation[];
+  // When the watch's first and last frames ran, on the clock of `firstSeen` and `lastSeen`.
+  frames: { first: number; last: number };
+}
+
 /**
  * Watches `document.getAnimations()` on every frame for a time and records each animation seen running:
  * its kind, its name (the animation name or the transitioned property), the properties it animates, its
- * duration and iterations, its target, and when it was first and last seen running.
+ * duration and iterations, its target, and when it was first and last seen running. It also records when
+ * its own first and last frames ran, which bound what "seen for the whole watch" means.
  *
  * @param page The page.
  * @param ms How long to watch.
- * @returns The animations.
+ * @returns The animations and the watch's frames.
  */
-async function watchAnimations(page: Page, ms: number): Promise<SeenAnimation[]> {
-  const seen = await page.evaluate(async(duration) => {
+async function watchAnimations(page: Page, ms: number): Promise<Watch> {
+  return page.evaluate(async(duration) => {
     const start = performance.now();
+    const frames = { first: -1, last: -1 };
     const records = new Map<Animation, Record<string, unknown>>();
     const kebab = (name: string) => name.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
     const describe = (animation: Animation) => {
@@ -67,7 +77,8 @@ async function watchAnimations(page: Page, ms: number): Promise<SeenAnimation[]>
 
       return {
         kind: animation.constructor.name,
-        name: css.animationName ?? css.transitionProperty ?? animation.id ?? 'animation',
+        // A script animation's `id` is '' unless the script set one.
+        name: css.animationName ?? css.transitionProperty ?? (animation.id || 'animation'),
         properties,
         duration: Number(timing.duration) || 0,
         iterations: timing.iterations === Infinity ? 'Infinity' : Number(timing.iterations ?? 1),
@@ -79,6 +90,10 @@ async function watchAnimations(page: Page, ms: number): Promise<SeenAnimation[]>
       const tick = () => {
         const now = performance.now() - start;
 
+        if (frames.first < 0) {
+          frames.first = now;
+        }
+        frames.last = now;
         for (const animation of document.getAnimations()) {
           if (animation.playState === 'running') {
             const record = records.get(animation) ?? { ...describe(animation), firstSeen: now };
@@ -97,14 +112,16 @@ async function watchAnimations(page: Page, ms: number): Promise<SeenAnimation[]>
       requestAnimationFrame(tick);
     });
 
-    return [...records].map(([animation, record]) => ({ ...record, running: animation.playState === 'running' }));
+    return {
+      animations: [...records].map(([animation, record]) => ({ ...record, running: animation.playState === 'running' }) as SeenAnimation),
+      frames,
+    };
   }, ms);
-
-  return seen.map(item => ({ ...item, iterations: item.iterations === 'Infinity' ? Infinity : Number(item.iterations) }) as SeenAnimation);
 }
 
 /**
- * Watches every catalog state at rest for five seconds with the reduced-motion preference.
+ * Watches every catalog state at rest for five seconds, without the reduced-motion preference: 2.2.2 asks
+ * for a way to pause what moves on its own, and a user who never set the preference is the one who sees it.
  *
  * @param page The page.
  * @param testInfo The running test.
@@ -113,10 +130,10 @@ async function watchAnimations(page: Page, ms: number): Promise<SeenAnimation[]>
  */
 async function watchState(page: Page, testInfo: TestInfo, entry: A11yPage, theme: string) {
   const startedAt = Date.now();
-  const target = { page: entry.id, theme, state: entry.state, variant: 'reduced-motion', url: fixtureUrl(entry, theme) };
+  const target = { page: entry.id, theme, state: entry.state, variant: 'at-rest', url: fixtureUrl(entry, theme) };
 
   declareTarget(testInfo, target);
-  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
 
   const opened = await openTarget(page, entry, theme);
 
@@ -124,16 +141,30 @@ async function watchState(page: Page, testInfo: TestInfo, entry: A11yPage, theme
   await releaseParkedFetches(page);
 
   const environment = await readEnvironment(page);
-  const animations = await watchAnimations(page, WATCH_MS);
-  const findings = [
-    ...motionFindings({ reducedMotion: true, step: `the ${entry.state} state, watched for five seconds`, animations: animations.filter(item => item.running) }),
-    ...longRunningFindings({ windowMs: WATCH_MS, animations }),
-  ];
+  const { animations, frames } = await watchAnimations(page, WATCH_MS);
+  // Not 2.3.3: that is motion an interaction starts, and nothing is touched here. The interaction runs own it.
+  const findings = longRunningFindings({ frames, animations });
 
-  await attachEvidence(testInfo, { target, startedAt, environment, findings, criteria: ['2.2.2', '2.3.3'], detail: { animations } });
+  await attachEvidence(testInfo, {
+    target, startedAt, environment, findings, criteria: ['2.2.2'], detail: { animations, frames }, pageErrors: opened.pageErrors,
+  });
 }
 
-type Interaction = { page: string; label: string; query?: string; act: (page: Page, opened: OpenedTarget) => Promise<void> };
+/**
+ * Waits until every running animation that ends has ended, so a watch that starts next records no finite
+ * animation the load started. One that repeats without end never ends: the watch at rest reports it, and
+ * a watch that starts next would still record it, so an interaction's page must have none.
+ *
+ * @param page The page.
+ */
+async function animationsEnded(page: Page): Promise<void> {
+  await expect.poll(() => page.evaluate(() => document.getAnimations().filter(animation => animation.playState === 'running'
+    && animation.effect?.getComputedTiming().iterations !== Infinity).length), { message: 'the animations the load started ended' }).toBe(0);
+}
+
+// `moves`: whether the interaction moves something when the theme has a transition and the user has not
+// asked for reduced motion. Its run without the preference must then see that motion.
+type Interaction = { page: string; label: string; query?: string; moves: boolean; act: (page: Page, opened: OpenedTarget) => Promise<void> };
 
 const hotOf = (selector: string) => `(document.querySelector(${JSON.stringify(selector)})?.querySelector('.ht-root-wrapper'))?.__hotInstance`;
 
@@ -144,6 +175,8 @@ const INTERACTIONS: Interaction[] = [
   {
     page: 'sheets-bar',
     label: 'switch to the second sheet',
+    // The active tab's indicator slides to the new tab.
+    moves: true,
     act: async(page, opened) => {
       await page.locator(`${opened.root} .ht-sheets-bar__tab`).nth(1).click();
     },
@@ -151,6 +184,8 @@ const INTERACTIONS: Interaction[] = [
   {
     page: 'dialog',
     label: 'show the dialog again',
+    // It fades in: opacity, not motion.
+    moves: false,
     act: async(page, opened) => {
       await page.evaluate(`(() => {
         const hot = ${hotOf(opened.root)};
@@ -166,6 +201,8 @@ const INTERACTIONS: Interaction[] = [
     page: 'notification',
     label: 'show a notification',
     query: 'animation=1',
+    // The toast slides in from its edge.
+    moves: true,
     act: async(page, opened) => {
       await page.evaluate(`${hotOf(opened.root)}.getPlugin('notification').showMessage({ title: 'Saved', message: 'The change was saved.' })`);
     },
@@ -173,6 +210,8 @@ const INTERACTIONS: Interaction[] = [
   {
     page: 'grid',
     label: 'open the context menu',
+    // The menu appears at once.
+    moves: false,
     act: async(page, opened) => {
       await selectCell(page, opened.root, [1, 1]);
       await page.keyboard.press('Shift+F10');
@@ -181,7 +220,8 @@ const INTERACTIONS: Interaction[] = [
 ];
 
 /**
- * Runs one interaction with the preference and without it, and watches what it animates.
+ * Runs one interaction with the preference or without it, and watches what it animates. The run without
+ * it is the positive control.
  *
  * @param page The page.
  * @param testInfo The running test.
@@ -192,7 +232,7 @@ const INTERACTIONS: Interaction[] = [
 async function interact(page: Page, testInfo: TestInfo, interaction: Interaction, theme: string, reducedMotion: boolean) {
   const startedAt = Date.now();
   const entry = A11Y_PAGES.find(item => item.id === interaction.page)!;
-  // Not `reduced-motion`: the same page is watched at rest under that variant, and a target is keyed by it.
+  // Not `at-rest`: the same page is watched at rest under that variant, and a target is keyed by it.
   const variant = reducedMotion ? 'interaction-reduced-motion' : 'interaction-motion-allowed';
   const url = `${fixtureUrl(entry, theme)}${interaction.query ? `&${interaction.query}` : ''}`;
   const target = { page: entry.id, theme, state: entry.state, variant, url };
@@ -206,19 +246,34 @@ async function interact(page: Page, testInfo: TestInfo, interaction: Interaction
   await releaseParkedFetches(page);
   // Let what the load started finish, so the watch sees what the interaction starts.
   await settle(page);
+  await animationsEnded(page);
 
   const environment = await readEnvironment(page);
+  // A theme whose transition token is 0s (classic) animates nothing, so its control is not expected to move.
+  const transition = await page.evaluate((selector) => {
+    const wrapper = document.querySelector(selector)?.querySelector('.ht-root-wrapper');
+
+    return wrapper ? getComputedStyle(wrapper).getPropertyValue('--ht-table-transition').trim() : '';
+  }, opened.root);
+  const expectsMotion = interaction.moves && parseFloat(transition) > 0;
   const watching = watchAnimations(page, INTERACTION_MS);
 
+  // When the interaction throws, the watch is never awaited and rejects as the page closes; handled here,
+  // that rejection is not reported on top of the real error.
+  watching.catch(() => undefined);
   await interaction.act(page, opened);
 
-  const animations = await watching;
+  const { animations } = await watching;
   const motion = animations.filter(isMotion);
 
+  // The run without the preference is the control: it evaluates no criterion, and a control that should
+  // move and saw nothing is a problem of the run.
   await attachEvidence(testInfo, {
-    target, startedAt, environment, criteria: ['2.3.3'],
+    target, startedAt, environment, criteria: reducedMotion ? ['2.3.3'] : [],
     findings: motionFindings({ reducedMotion, step: interaction.label, animations }),
-    detail: { interaction: interaction.label, reducedMotion, animations, motion: motion.length },
+    problems: controlProblems({ reducedMotion, expectsMotion, step: interaction.label, animations }),
+    detail: { interaction: interaction.label, reducedMotion, expectsMotion, transition, animations, motion: motion.length },
+    pageErrors: opened.pageErrors,
   });
 }
 
@@ -330,7 +385,9 @@ async function forcedColors(page: Page, testInfo: TestInfo, theme: string) {
     const part = strongestPixel(image, dominantColor(image));
 
     await keep(testInfo, `icon-${index}`, image);
-    findings.push(...forcedColorsFindings({ part: 'icon', selector: '.changeType', step: 'at rest', changed: isDrawn(part) ? 1 : 0 }));
+    // The index keeps the two icons' finding ids apart (an id is built from the selector and the step, and
+    // both are 'at rest'), and matches the capture's name.
+    findings.push(...forcedColorsFindings({ part: 'icon', selector: `.changeType (header icon ${index})`, step: 'at rest', changed: isDrawn(part) ? 1 : 0 }));
   }
   detail.icons = icons.length;
 
@@ -341,7 +398,10 @@ async function forcedColors(page: Page, testInfo: TestInfo, theme: string) {
 
   const itemBox = await page.evaluate(() => {
     const menu = [...document.querySelectorAll('.htContextMenu')].find(node => node.getBoundingClientRect().width > 0);
-    const cells = [...(menu?.querySelectorAll('.ht_master .htCore tbody td') ?? [])].filter(td => !td.classList.contains('htSeparator'));
+    // As `measureMenuHighlight()` in focus-contrast.spec.ts: ArrowDown skips a disabled or hidden item, so
+    // the box must be one it can land on.
+    const cells = [...(menu?.querySelectorAll('.ht_master .htCore tbody td') ?? [])].filter(td => !td.classList.contains('htSeparator')
+      && !td.classList.contains('htDisabled') && td.getBoundingClientRect().height > 0);
     const current = cells.findIndex(td => td.classList.contains('current'));
     const rect = (cells[current + 1] ?? cells[1])?.getBoundingClientRect();
 
@@ -362,8 +422,7 @@ async function forcedColors(page: Page, testInfo: TestInfo, theme: string) {
     findings.push(...forcedColorsFindings({ part: 'menu', selector: 'td (a menu item)', step: 'ArrowDown in the context menu', changed: change.changed }));
   }
 
-  expect(opened.pageErrors, 'the page threw no error while it was measured').toEqual([]);
-  await attachEvidence(testInfo, { target, startedAt, environment, findings, criteria: ['1.4.1'], detail });
+  await attachEvidence(testInfo, { target, startedAt, environment, findings, criteria: FORCED_COLORS_CRITERIA, detail, pageErrors: opened.pageErrors });
 }
 
 for (const theme of A11Y_THEMES) {

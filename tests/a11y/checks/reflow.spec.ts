@@ -1,6 +1,6 @@
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
 import { A11Y_PAGES, fixtureUrl, type A11yPage } from '../pages.mjs';
-import { PORTAL_MARK, openTarget, reachState, releaseParkedFetches, selectCell } from '../harness';
+import { PORTAL_MARK, openTarget, reachState, releaseParkedFetches, selectCell, type RootWrapper } from '../harness';
 import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } from '../evidence';
 import { A11Y_THEMES } from '../../lib/a11y-baseline.mjs';
 import {
@@ -8,13 +8,14 @@ import {
   TEXT_SPACING_CSS,
   clippingFindings,
   hoverFindings,
+  nameApart,
   orientationFindings,
   overlapFindings,
   viewportFindings,
 } from '../../lib/reflow.mjs';
 
 /**
- * Zoom, reflow, text spacing and hover content: WCAG 1.3.4, 1.4.4, 1.4.10, 1.4.12 and 1.4.13 on every
+ * Zoom, reflow, text spacing, and hover content: WCAG 1.3.4, 1.4.4, 1.4.10, 1.4.12, and 1.4.13 on every
  * theme.
  *
  * - **The conditions** (`CONDITIONS` in `lib/reflow.mjs`): 320 CSS px wide (1.4.10), 200% zoom as a
@@ -30,24 +31,29 @@ import {
  * Report-only: a test fails for tooling only. Policy: `tests/AGENTS.md`, "A11y: the checks beyond axe".
  */
 
-// The pages whose surfaces reflow: every popup and bar of the catalog, and the plain grid.
+// The plain grid and the pages with a surface of their own around it. Left out: the pages whose surfaces lie
+// inside the grid's box (the freeze bars, the selection handles), the editors with a native control in the cell
+// or the autocomplete's list, the dark pages, and the right-to-left menu, whose fixture lays several wide grids
+// on one page: tests/AGENTS.md, "Zoom, reflow, text spacing, and hover content".
 const PAGES = ['grid', 'context-menu', 'context-menu-submenu', 'dropdown-menu', 'filters-conditions', 'autocomplete-editor', 'multiselect-editor',
   'comments', 'dialog', 'notification', 'pagination', 'sheets-bar', 'data-provider-sheets-bar', 'license-bar', 'empty-data', 'loading',
   'formula-builder', 'formula-builder-suggestions', 'formula-builder-function-help'];
 const ORIENTATION_PAGES = ['grid', 'pagination', 'sheets-bar'];
 // The surfaces around the grid, by the class that marks each, and whether it is a popup (a menu, a list,
 // a dialog) or a part of the page's flow (a bar). Whether a surface is positioned against the viewport is
-// read from its computed style, because that decides whether the page can scroll to it.
-const SURFACES: Array<[string, string, boolean]> = [
+// read from its computed style, because that decides whether the page can scroll to it. A layer that
+// covers the whole grid (the dialog's, the notification's) has the grid's box, so its box is taken from
+// the part a user reads, the fourth entry: the dialog's card, each toast.
+const SURFACES: Array<[string, string, boolean, string?]> = [
   ['.htMenu', 'menu', true],
   ['.handsontableEditor, .autocompleteEditor, .ht-multi-select-editor', 'editor list', true],
   ['.htComments', 'comment editor', true],
-  ['.ht-dialog', 'dialog', true],
-  ['.ht-notification', 'notification', true],
+  ['.ht-dialog', 'dialog', true, '.ht-dialog__content-wrapper-inner, .ht-dialog__content'],
+  ['.ht-notification', 'notification', true, '.ht-notification__toast'],
   ['.ht-pagination', 'pagination', false],
   ['.ht-sheets-bar', 'sheets bar', false],
   ['.ht-empty-data-state', 'empty-data message', false],
-  ['[class*="ht-license"]', 'license bar', false],
+  ['.hot-display-license-info', 'license bar', false],
   ['.hfe-suggestions, .hfe-fn-help', 'formula popup', true],
   ['.ht-formula-builder__formula-bar', 'formula bar', false],
 ];
@@ -82,15 +88,49 @@ async function installTextSpacing(page: Page): Promise<void> {
 }
 
 /**
+ * Gives a grid the page's width (`width: '100%'`) when its fixture pins a pixel `width` wider than the
+ * viewport, before its state is reached. With a pixel width the bars and the overlays follow the grid's
+ * own box, so they would reach past a 320 or 640 px viewport for the fixture's sake: that is the page's
+ * layout, not the grid's reflow. A grid without a pixel width is left as its fixture built it.
+ *
+ * @param page The page.
+ * @param root The root container selector.
+ * @returns Whether the grid was given the page's width.
+ */
+async function fitToViewport(page: Page, root: string): Promise<boolean> {
+  const fitted = await page.evaluate((selector) => {
+    const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as RootWrapper | null)?.__hotInstance;
+
+    if (!hot) {
+      return null;
+    }
+
+    const pinned = typeof hot.getSettings().width === 'number' && hot.rootElement.getBoundingClientRect().right > innerWidth;
+
+    if (pinned) {
+      hot.updateSettings({ width: '100%' });
+    }
+
+    return pinned;
+  }, root);
+
+  expect(fitted, `the grid under ${root} has a Handsontable instance`).not.toBeNull();
+
+  return fitted!;
+}
+
+/**
  * Measures the surfaces around the grid in one evaluation: the clipping containers holding text, the
- * surfaces' boxes, the controls' boxes, and the viewport with the page's scroll size.
+ * surfaces' boxes, the controls' boxes, and the viewport with the page's scroll offset and scroll size.
+ * Two items of one list that share a name are told apart by an ordinal (`nameApart()`): the context menu
+ * and its submenu are both `div.htMenu`, and each needs a finding id of its own.
  *
  * @param page The page.
  * @param root The root container selector.
  * @returns What was measured.
  */
 async function collect(page: Page, root: string) {
-  return page.evaluate(([selector, portalMark, surfaces]) => {
+  const measured = await page.evaluate(([selector, portalMark, surfaces]) => {
     const container = document.querySelector(selector)!;
     // Every marked portal: a state whose popups mount in a portal of their own marks that one too.
     const scopes = [container, ...document.querySelectorAll(`[${portalMark}]`)].filter((node): node is Element => !!node);
@@ -125,8 +165,8 @@ async function collect(page: Page, root: string) {
         scrollWidth: node.scrollWidth, clientWidth: node.clientWidth, scrollHeight: node.scrollHeight, clientHeight: node.clientHeight,
       };
     });
-    const surfaceBoxes = surfaces.flatMap(([css, label, popup]) => scopes.flatMap(scope => [...scope.querySelectorAll(css)])
-      .filter(node => visible(node) && !node.parentElement?.closest(css))
+    const surfaceBoxes = surfaces.flatMap(([css, label, popup, part = css]) => scopes.flatMap(scope => [...scope.querySelectorAll(part)])
+      .filter(node => visible(node) && !node.parentElement?.closest(part))
       .map((node) => {
         const rect = node.getBoundingClientRect();
         let fixed = false;
@@ -171,9 +211,14 @@ async function collect(page: Page, root: string) {
       boxes,
       surfaces: surfaceBoxes,
       controls,
-      viewport: { width: innerWidth, height: innerHeight, scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight },
+      viewport: {
+        width: innerWidth, height: innerHeight, scrollX, scrollY,
+        scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight,
+      },
     };
   }, [root, PORTAL_MARK, SURFACES] as const);
+
+  return { ...measured, boxes: nameApart(measured.boxes), surfaces: nameApart(measured.surfaces), controls: nameApart(measured.controls) };
 }
 
 /**
@@ -195,6 +240,7 @@ async function measure(page: Page, testInfo: TestInfo, entry: A11yPage, theme: s
   }
 
   const opened = await openTarget(page, entry, theme);
+  const fitted = await fitToViewport(page, opened.root);
 
   await reachState(page, entry, opened);
   await releaseParkedFetches(page);
@@ -208,8 +254,8 @@ async function measure(page: Page, testInfo: TestInfo, entry: A11yPage, theme: s
   ];
 
   await attachEvidence(testInfo, {
-    target, startedAt, environment, findings, criteria: CONDITIONS[condition].criteria,
-    detail: { settled, viewport: measured.viewport, surfaces: measured.surfaces, clippingContainers: measured.boxes, controls: measured.controls.length },
+    target, startedAt, environment, findings, criteria: CONDITIONS[condition].criteria, pageErrors: opened.pageErrors,
+    detail: { settled, fitted, viewport: measured.viewport, surfaces: measured.surfaces, clippingContainers: measured.boxes, controls: measured.controls.length },
   });
 }
 
@@ -242,7 +288,11 @@ async function collectSettled(page: Page, root: string) {
 
 /**
  * Hovers a commented cell and checks its comment for 1.4.13: it appears, stays while the pointer moves
- * onto it, stays while the pointer rests on it (a fake clock runs ten seconds), and Escape hides it.
+ * onto it, stays while the pointer rests on it (a fake clock runs ten seconds), and Escape hides it. Each
+ * property is measured from the comment on screen, so one that fails does not decide the next: a comment
+ * an earlier step hid is shown again from its cell first. A property that still finds no comment, or a
+ * comment that never appeared, is a problem of the target and no finding; with no comment, no criterion
+ * was evaluated.
  *
  * @param page The page.
  * @param testInfo The running test.
@@ -258,6 +308,7 @@ async function hover(page: Page, testInfo: TestInfo, theme: string) {
   const opened = await openTarget(page, entry, theme);
 
   await reachState(page, entry, opened);
+  await releaseParkedFetches(page);
   // The grid listens, as it would for a user who has worked in it, so Escape reaches it.
   await selectCell(page, opened.root, [5, 3]);
 
@@ -275,28 +326,53 @@ async function hover(page: Page, testInfo: TestInfo, theme: string) {
     appeared = false;
   }
 
-  const result = { appeared, hoverable: false, persistent: false, dismissible: false };
+  const result: { appeared: boolean; hoverable?: boolean; persistent?: boolean; dismissible?: boolean } = { appeared };
+  const problems: string[] = [];
 
   if (appeared) {
     // The comment's own timers run on a fake clock from here, so "stays" means after the time its hide
-    // timers take, not after an arbitrary wait.
+    // timers take, not after an arbitrary wait. The boxes are read first: the mouse moves to them directly.
+    const box = (await comment.boundingBox())!;
+    const cellBox = (await cell.boundingBox())!;
+
     await page.clock.install();
 
-    const box = (await comment.boundingBox())!;
+    // A comment an earlier step hid is shown again: the pointer leaves the grid and comes back onto the
+    // cell, and the clock runs past the show delay. Whether it is on screen afterwards is the answer.
+    const shownAgain = async() => {
+      if (!(await comment.isVisible())) {
+        await page.mouse.move(0, 0);
+        await page.mouse.move(cellBox.x + cellBox.width / 2, cellBox.y + cellBox.height / 2, { steps: 5 });
+        await page.clock.runFor(1000);
+      }
+
+      return comment.isVisible();
+    };
 
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 5 });
     await page.clock.runFor(1000);
     result.hoverable = await comment.isVisible();
-    await page.clock.runFor(10_000);
-    result.persistent = await comment.isVisible();
-    await page.keyboard.press('Escape');
-    await page.clock.runFor(1000);
-    result.dismissible = !(await comment.isVisible());
+    if (await shownAgain()) {
+      await page.clock.runFor(10_000);
+      result.persistent = await comment.isVisible();
+    }
+    if (await shownAgain()) {
+      await page.keyboard.press('Escape');
+      await page.clock.runFor(1000);
+      result.dismissible = !(await comment.isVisible());
+    }
+    for (const property of ['persistent', 'dismissible'] as const) {
+      if (result[property] === undefined) {
+        problems.push(`the comment did not show again on hover, so whether it is ${property} was not measured`);
+      }
+    }
+  } else {
+    problems.push('the comment of cell (1, 1) did not appear on hover, so 1.4.13 was not measured');
   }
 
   await attachEvidence(testInfo, {
-    target, startedAt, environment, criteria: ['1.4.13'],
-    findings: hoverFindings({ selector: '.htComments', ...result }),
+    target, startedAt, environment, criteria: appeared ? ['1.4.13'] : [], problems, pageErrors: opened.pageErrors,
+    findings: hoverFindings({ selector: '.htComments', hoverable: result.hoverable, persistent: result.persistent, dismissible: result.dismissible }),
     detail: result,
   });
 }
@@ -316,6 +392,9 @@ async function orientation(page: Page, testInfo: TestInfo, entry: A11yPage, them
   declareTarget(testInfo, target);
 
   const sizes: Record<string, { width: number; height: number }> = {};
+  // The page loads once per viewport, and each load's error list stops growing at the next load: the part
+  // carries both.
+  const pageErrors: string[][] = [];
   let environment = null;
 
   for (const [name, viewport] of [['portrait', { width: 390, height: 844 }], ['landscape', { width: 844, height: 390 }]] as const) {
@@ -323,7 +402,9 @@ async function orientation(page: Page, testInfo: TestInfo, entry: A11yPage, them
 
     const opened = await openTarget(page, entry, theme);
 
+    pageErrors.push(opened.pageErrors);
     await reachState(page, entry, opened);
+    await releaseParkedFetches(page);
     environment ??= await readEnvironment(page);
     sizes[name] = await page.evaluate((selector) => {
       const rect = document.querySelector(selector)!.querySelector('.ht-root-wrapper')!.getBoundingClientRect();
@@ -335,7 +416,7 @@ async function orientation(page: Page, testInfo: TestInfo, entry: A11yPage, them
   }
 
   await attachEvidence(testInfo, {
-    target, startedAt, environment: environment!, criteria: ['1.3.4'],
+    target, startedAt, environment: environment!, criteria: ['1.3.4'], pageErrors: pageErrors.flat(),
     findings: orientationFindings(sizes as { portrait: { width: number; height: number }; landscape: { width: number; height: number } }),
     detail: sizes,
   });

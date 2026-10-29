@@ -8,7 +8,10 @@ import {
   escapeFindings,
   goldenStops,
   inventoryLines,
+  isProductStop,
   parseShortcutTables,
+  probePresses,
+  probeStep,
   probeVerdict,
   shortcutKey,
   singleCharacterShortcuts,
@@ -17,6 +20,7 @@ import {
 } from '../../lib/keyboard-walker.mjs';
 import { SHORTCUT_PROBES } from './keyboard-shortcuts.mjs';
 import {
+  contextChange,
   installSentinels,
   openAxSession,
   readStop,
@@ -76,8 +80,9 @@ const SHORTCUTS_PAGE: A11yPage = {
   surface: 'the keyboard walker\'s probe grid: menus, filters, comments, merging, undo, clipboard, sorting, navigable headers',
 };
 // The APG grid keys pressed on every grid at rest, each from the same cell.
-// `edge` names the edge the key cannot move past from the start cell, where staying put is right.
-const GRID_KEYS: Array<{ key: string; expect: string; edit?: boolean; prepare?: string; edge?: string }> = [
+// `edge` names the edge the key cannot move past from the start cell, where staying put is right; `edit` needs an
+// editable cell, and `enter` a grid where Enter begins editing (`enterBeginsEditing`, which changes Enter alone).
+const GRID_KEYS: Array<{ key: string; expect: string; edit?: boolean; enter?: boolean; prepare?: string; edge?: string }> = [
   { key: 'ArrowDown', expect: 'selection-moves', edge: 'bottom' },
   { key: 'ArrowUp', expect: 'selection-moves', edge: 'top' },
   { key: 'ArrowRight', expect: 'selection-moves', edge: 'right' },
@@ -87,9 +92,9 @@ const GRID_KEYS: Array<{ key: string; expect: string; edit?: boolean; prepare?: 
   { key: 'PageDown', expect: 'selection-moves', edge: 'bottom' },
   { key: 'PageUp', expect: 'selection-moves', edge: 'top' },
   { key: 'ControlOrMeta+Home', expect: 'selection-moves', edge: 'origin' },
-  { key: 'Enter', expect: 'editor-opens', edit: true },
+  { key: 'Enter', expect: 'editor-opens', edit: true, enter: true },
   { key: 'F2', expect: 'editor-opens', edit: true },
-  { key: 'Escape', expect: 'editor-closes', edit: true, prepare: 'Enter' },
+  { key: 'Escape', expect: 'editor-closes', edit: true, prepare: 'F2' },
 ];
 
 /**
@@ -118,26 +123,30 @@ async function gridState(page: Page, root: string) {
 }
 
 /**
- * Whether a cell can be edited: not read-only and with an editor.
+ * Whether a cell can be edited (not read-only, with an editor), and whether Enter opens its editor:
+ * `enterBeginsEditing: false` changes Enter alone, so F2 still has to open it.
  *
  * @param page The page.
  * @param root The root container selector.
  * @param cell The cell.
- * @returns Whether Enter or F2 should open an editor there.
+ * @returns Whether F2 (`edit`) and Enter (`enter`) should open an editor there.
  */
-async function isEditable(page: Page, root: string, [row, col]: [number, number]): Promise<boolean> {
+async function editability(page: Page, root: string, [row, col]: [number, number]): Promise<{ edit: boolean; enter: boolean }> {
   return page.evaluate(([selector, r, c]) => {
     const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as (HTMLElement & { __hotInstance?: any }) | null)?.__hotInstance;
     const meta = hot?.getCellMeta(r, c);
-
     // A checkbox cell toggles on Enter instead of opening an editor, as the guide documents.
-    return !!meta && !meta.readOnly && meta.editor !== false && meta.type !== 'checkbox' && hot.getSettings().enterBeginsEditing !== false;
+    const edit = !!meta && !meta.readOnly && meta.editor !== false && meta.type !== 'checkbox';
+
+    return { edit, enter: edit && hot.getSettings().enterBeginsEditing !== false };
   }, [root, row, col] as const);
 }
 
 /**
- * Closes every popup the grid may have open and drops the selection, through the API, so the next
- * probe starts from a grid at rest.
+ * Closes every popup the grid may have open (the editor, the menus, the comment editor), through the
+ * API, so the next probe starts from a grid at rest. The selection stays: every caller selects again
+ * next (`selectThrough()` in `gridKeysTest()` and `setUp()`, a catalog state's opener), except the
+ * `outside` setup, which moves the focus off the grid instead.
  *
  * @param page The page.
  * @param root The root container selector.
@@ -169,7 +178,44 @@ async function resetGrid(page: Page, root: string): Promise<void> {
 }
 
 /**
- * Presses Escape until a popup state is closed (up to three times), then reads where the focus is.
+ * Whether the focused element (followed through shadow roots) is the opener of a popup: the opener cell's
+ * own element, or, on a grid in mixed focus mode (`imeFastEdit`), the element that mode keeps the focus on
+ * by design (`getRefocusElement()`, the editor's input).
+ *
+ * @param page The page.
+ * @param root The root container selector.
+ * @param cell The cell the popup opened on.
+ * @returns Whether the focus is on the opener.
+ */
+async function focusOnOpener(page: Page, root: string, cell: [number, number]): Promise<boolean> {
+  return page.evaluate(([selector, [row, col]]) => {
+    const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as (HTMLElement & { __hotInstance?: any }) | null)?.__hotInstance;
+    let el = document.activeElement as HTMLElement | null;
+
+    while (el?.shadowRoot?.activeElement) {
+      el = el.shadowRoot.activeElement as HTMLElement;
+    }
+    if (!hot || !el) {
+      return false;
+    }
+    if (el.tagName === 'TD' || el.tagName === 'TH') {
+      const coords = hot.getCoords(el);
+
+      return coords?.row === row && coords?.col === col;
+    }
+
+    const manager = hot.getFocusManager?.();
+
+    return manager?.getFocusMode?.() === 'mixed' && el === manager.getRefocusElement?.();
+  }, [root, cell] as const);
+}
+
+/**
+ * Presses Escape until a popup state is closed (up to three times), then reads where the focus is: back
+ * means on the opener, with the selection still on its cell (`focusOnOpener()`): the cell's own element,
+ * or the element mixed focus mode parks the focus on by design. Another element of the grid (a header, a
+ * button in a cell, the hidden editor input on a grid in cell focus mode) is not back, though the cell
+ * stays highlighted.
  *
  * @param page The page.
  * @param root The root container selector.
@@ -183,8 +229,8 @@ async function escapeTest(page: Page, root: string, cell: [number, number]) {
     const state = await snapshot(page, root);
 
     if (state.menus === 0 && !state.editorOpen && !state.comment) {
-      const returned = state.active.region === 'grid'
-        && JSON.stringify(state.highlight) === JSON.stringify(cell);
+      const returned = state.active.region === 'grid' && JSON.stringify(state.highlight) === JSON.stringify(cell)
+        && await focusOnOpener(page, root, cell);
 
       return { closedAfter: press, focusReturned: returned, focus: `${state.active.region} ${state.active.key}`.slice(0, 120), highlight: state.highlight };
     }
@@ -194,7 +240,40 @@ async function escapeTest(page: Page, root: string, cell: [number, number]) {
 }
 
 /**
- * Presses Tab from where the focus is inside an open popup, recording each stop until the focus leaves
+ * How the keyboard leaves the modal dialog that held a walk: Escape pressed from inside it, or else a
+ * button in it, pressed with Enter. Each try is judged by whether the dialog is still open afterwards,
+ * so a button that does nothing is no exit.
+ *
+ * @param page The page.
+ * @param root The root container selector.
+ * @param held The stops the walks made inside the dialog.
+ * @returns The exit, in words, or `null` when there is none.
+ */
+async function modalExitOf(page: Page, root: string, held: FocusStop[]): Promise<string | null> {
+  const focus = (stop: FocusStop) => page.locator(`[data-a11y-walk-ref="${stop.ref}"]`);
+
+  // The backward walk can end outside the dialog when only the forward walk was held, so the focus goes back in first.
+  await focus(held[0]).focus();
+  await page.keyboard.press('Escape');
+  if (!(await gridState(page, root)).modal) {
+    return 'Escape closes it';
+  }
+  // Each button once, though both walks stopped on it.
+  for (const button of held.filter((item, index) => item.role === 'button' && held.findIndex(other => other.ref === item.ref) === index)) {
+    if (await focus(button).isVisible()) {
+      await focus(button).press('Enter');
+      if (!(await gridState(page, root)).modal) {
+        return `its ${button.name || button.locator} button closes it`;
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Presses Tab from where the focus is inside an open popup, recording each stop, and what the press
+ * changed beyond the focus (`contextChange()`, judged as 3.2.1 like a Tab walk's), until the focus leaves
  * the product, comes back to a stop, or twelve presses have passed.
  *
  * @param page The page.
@@ -210,9 +289,13 @@ async function popupWalk(page: Page, cdp: CDPSession, root: string): Promise<Foc
     await page.keyboard.press('Tab');
 
     const next = await readStop(page, cdp, root);
+    const previous = stops.at(-1)!;
+    // A Tab that keeps the focus on the same element (the formula editor accepting a suggestion) moved no
+    // focus, so what it changed is input, not a change of context on focus.
+    const change = next.ref === previous.ref ? null : contextChange(previous, next);
 
-    stops.push(next);
-    if (!['grid', 'portal'].includes(next.region) || seen.has(next.ref)) {
+    stops.push(change ? { ...next, contextChange: change } : next);
+    if (!isProductStop(next) || seen.has(next.ref)) {
       break;
     }
     seen.add(next.ref);
@@ -297,7 +380,7 @@ async function inputTest(page: Page, cdp: CDPSession, root: string, stops: Focus
 async function gridKeysTest(page: Page, root: string, cell: [number, number]) {
   const findings: EvidenceFinding[] = [];
   const landings: Array<{ key: string; status: string; effects: string[]; highlight: [number, number] | null; focus: string }> = [];
-  const editable = await isEditable(page, root, cell);
+  const editable = await editability(page, root, cell);
   const edges = await page.evaluate(([selector, [row, col]]) => {
     const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as (HTMLElement & { __hotInstance?: any }) | null)?.__hotInstance;
     const settings = hot.getSettings();
@@ -318,7 +401,7 @@ async function gridKeysTest(page: Page, root: string, cell: [number, number]) {
   }, [root, cell] as const);
 
   for (const item of GRID_KEYS) {
-    if ((item.edit && !editable) || (item.edge && edges[item.edge])) {
+    if ((item.edit && !editable.edit) || (item.enter && !editable.enter) || (item.edge && edges[item.edge])) {
       continue;
     }
 
@@ -468,15 +551,14 @@ async function walkPage(page: Page, testInfo: TestInfo, entry: A11yPage): Promis
     let modalExit: string | null = null;
 
     if (forwardVerdict.modal || backwardVerdict.modal) {
-      await page.keyboard.press('Escape');
-      if (!(await gridState(page, root)).modal) {
-        modalExit = 'Escape closes it';
-      } else if (forward.stops.some(item => item.modal && item.role === 'button')) {
-        modalExit = 'a button in it';
-      }
+      modalExit = await modalExitOf(page, root, [...forward.stops, ...backward.stops].filter(item => item.modal));
     }
-    findings.push(...walkFindings({ walk: forwardVerdict, stops: forward.stops, direction: 'forward', modalExit }));
-    findings.push(...walkFindings({ walk: backwardVerdict, stops: backward.stops, direction: 'backward', modalExit }));
+    // One set for both walks: a stop's role and name do not depend on the walk that reached it, so a stop both
+    // walks pass is one finding.
+    const reported = new Set<string>();
+
+    findings.push(...walkFindings({ walk: forwardVerdict, stops: forward.stops, direction: 'forward', modalExit, reported }));
+    findings.push(...walkFindings({ walk: backwardVerdict, stops: backward.stops, direction: 'backward', modalExit, reported }));
     findings.push(...compareGolden(entry.id, { forward: goldenStops(forward.stops), backward: goldenStops(backward.stops) }));
 
     const inputs = await inputTest(page, cdp, root, [...forward.stops, ...backward.stops]);
@@ -497,7 +579,7 @@ async function walkPage(page: Page, testInfo: TestInfo, entry: A11yPage): Promis
     }
   }
 
-  await attachEvidence(testInfo, { target, startedAt, environment, findings, criteria: WALK_CRITERIA, detail });
+  await attachEvidence(testInfo, { target, startedAt, environment, findings, criteria: WALK_CRITERIA, detail, pageErrors: opened.pageErrors });
 }
 
 /**
@@ -557,6 +639,7 @@ interface ProbeDefinition {
   press: string | Array<string | { key: string; prepare: PrepareStep[] }>;
   then?: PrepareStep[];
   expect: string | string[];
+  forbid?: string[];
 }
 
 // The parts of a snapshot a probe can leave changed for the next one: when any differs from the page as
@@ -594,14 +677,24 @@ async function prepare(page: Page, root: string, steps: ProbeDefinition['prepare
  */
 async function probePage(page: Page, testInfo: TestInfo, entry: A11yPage, probes: typeof SHORTCUT_PROBES): Promise<void> {
   const startedAt = Date.now();
+  // A probe whose setup never comes waits for it, so a setup that breaks for every probe could run the test
+  // into its timeout before the evidence is attached: the probes stop early enough to attach what they found.
+  const deadline = testInfo.timeout > 0 ? startedAt + testInfo.timeout - 20_000 : Infinity;
   const target = { page: entry.id, theme: THEME, state: 'none', variant: 'shortcuts', url: fixtureUrl(entry, THEME) };
 
   declareTarget(testInfo, target);
 
+  // The errors the page throws, in the list of the current load (`openTarget()` points the page's listener at
+  // a new list on every load). The page loads again between probes, so an error a probe's key threw is a
+  // problem of that probe, not the end of the others: the target, measured with a problem, then evaluates no
+  // criterion. An error that comes after the last drain still fails the test (`attachEvidence()`).
+  let pageErrors: string[] = [];
   const load = async() => {
     const opened = await openTarget(page, { ...entry, state: 'none' }, THEME);
 
+    pageErrors = opened.pageErrors;
     await reachState(page, { ...entry, state: 'none' }, opened);
+    await releaseParkedFetches(page);
     await installSentinels(page, opened.root);
     // A popup library's own portal (hyperformula-ui's on the formula builder page) is marked too, so a key
     // that moves the focus into one of its popups reads as a move inside the product.
@@ -620,16 +713,19 @@ async function probePage(page: Page, testInfo: TestInfo, entry: A11yPage, probes
 
   for (const item of probes) {
     const probe = item.probe as ProbeDefinition;
-    const presses = (Array.isArray(probe.press) ? probe.press : [probe.press])
-      .map(press => (typeof press === 'string' ? { key: press, prepare: [] as PrepareStep[] } : press));
     const line = INVENTORY_LINES.get(shortcutKey(item));
-    const then = (probe.then ?? []).map(next => (typeof next === 'string' ? next : JSON.stringify(next))).join(', ');
 
-    for (const { key, prepare: steps } of presses) {
-      const step = `${item.keys} (${key}${then ? `, then ${then}` : ''}) on ${probe.setup}${probe.at ? ` at (${probe.at.join(', ')})` : ''}`;
+    for (const press of probePresses(probe)) {
+      const { key, prepare: steps } = press;
+      // The press's own steps are in its name, so two presses of one key on one page are two steps.
+      const step = probeStep({ keys: item.keys, probe }, press);
       let before: GridSnapshot;
       let after: GridSnapshot;
 
+      if (Date.now() > deadline) {
+        problems.push(`the probe "${step}" (${item.section}) did not run: the test was close to its timeout`);
+        continue;
+      }
       try {
         await resetGrid(page, root);
 
@@ -649,9 +745,14 @@ async function probePage(page: Page, testInfo: TestInfo, entry: A11yPage, probes
       } catch (error) {
         problems.push(`the probe "${step}" (${item.section}) could not be set up: ${String(error instanceof Error ? error.message : error).split('\n')[0]}`);
         continue;
+      } finally {
+        // An uncaught error from a key handler explains what the probe saw, so it is reported with the probe.
+        for (const error of pageErrors.splice(0)) {
+          problems.push(`the probe "${step}" (${item.section}) threw on the page: ${error.split('\n')[0]}`);
+        }
       }
 
-      const verdict = probeVerdict({ expect: probe.expect, before, after });
+      const verdict = probeVerdict({ expect: probe.expect, forbid: probe.forbid, before, after });
       const located = { step, file: INVENTORY_FILE, ...(line ? { line } : {}) };
 
       results.push({ section: item.section, keys: item.keys, press: key, setup: probe.setup, status: verdict.status, effects: verdict.effects });
@@ -670,7 +771,7 @@ async function probePage(page: Page, testInfo: TestInfo, entry: A11yPage, probes
       } else if (verdict.status === 'unexpected') {
         findings.push({
           kind: 'shortcut-unexpected-effect', criteria: ['2.1.1'], severity: 'advisory', ...located,
-          measured: { effects: verdict.effects.join(','), expected: [probe.expect].flat().join(',') },
+          measured: { effects: verdict.effects.join(','), expected: [probe.expect].flat().join(','), ...(probe.forbid ? { forbidden: probe.forbid.join(',') } : {}) },
           reason: `${item.section.replace(/ keyboard shortcuts$/, '')}: ${key} did something other than what the guide documents`,
         });
       }
@@ -680,28 +781,34 @@ async function probePage(page: Page, testInfo: TestInfo, entry: A11yPage, probes
   const criteria = ['2.1.1', '2.4.3'];
 
   if (entry.id === SHORTCUTS_PAGE.id) {
-    // 2.1.4: with the focus outside the grid, a printable key reaches nothing.
-    await load();
-    await selectThrough(page, root, [5, 5]);
-    await page.locator('[data-a11y-walk-sentinel="start"]').focus();
+    // 2.1.4: with the focus outside the grid, a printable key reaches nothing. The grid holds a selection first,
+    // or a key that changed nothing would prove nothing; a setup that fails is a problem, and 2.1.4 is not credited.
+    try {
+      await load();
+      expect(await selectThrough(page, root, [5, 5]), 'select (5, 5)').toBe(true);
+      await page.locator('[data-a11y-walk-sentinel="start"]').focus();
 
-    const before = await snapshot(page, root);
+      const before = await snapshot(page, root);
 
-    for (const key of ['a', 'z', '1', '/', '?']) {
-      await page.keyboard.press(key);
-    }
+      for (const key of ['a', 'z', '1', '/', '?']) {
+        await page.keyboard.press(key);
+      }
 
-    const after = await snapshot(page, root);
-    const changed = ['dataHash', 'editorOpen', 'ranges', 'menus', 'comment', 'sorting', 'filtered']
-      .filter(field => JSON.stringify(before[field as keyof GridSnapshot]) !== JSON.stringify(after[field as keyof GridSnapshot]));
+      const after = await snapshot(page, root);
+      const changed = ['dataHash', 'editorOpen', 'ranges', 'menus', 'comment', 'sorting', 'filtered']
+        .filter(field => JSON.stringify(before[field as keyof GridSnapshot]) !== JSON.stringify(after[field as keyof GridSnapshot]));
 
-    results.push({ characterKeysWithoutFocus: changed });
-    if (changed.length > 0) {
-      findings.push({
-        kind: 'character-key-without-focus', criteria: ['2.1.4'], severity: 'serious', step: 'a, z, 1, /, ? with the focus outside the grid',
-        measured: { changed: changed.join(',') },
-        reason: 'A printable key changed the grid while the grid did not have the focus',
-      });
+      results.push({ characterKeysWithoutFocus: changed });
+      if (changed.length > 0) {
+        findings.push({
+          kind: 'character-key-without-focus', criteria: ['2.1.4'], severity: 'serious', step: 'a, z, 1, /, ? with the focus outside the grid',
+          measured: { changed: changed.join(',') },
+          reason: 'A printable key changed the grid while the grid did not have the focus',
+        });
+      }
+      criteria.push('2.1.4');
+    } catch (error) {
+      problems.push(`the character keys with the focus outside the grid could not be set up: ${String(error instanceof Error ? error.message : error).split('\n')[0]}`);
     }
     for (const row of singleCharacterShortcuts(DOCS_ROWS)) {
       findings.push({
@@ -709,10 +816,12 @@ async function probePage(page: Page, testInfo: TestInfo, entry: A11yPage, probes
         reason: 'The guide documents a single-character shortcut; it must work only while the grid has the focus, or be remappable or switchable off',
       });
     }
-    criteria.push('2.1.4');
   }
 
-  await attachEvidence(testInfo, { target, startedAt, environment, findings, criteria, detail: { probes: results, reloads }, problems });
+  for (const error of pageErrors.splice(0)) {
+    problems.push(`the page threw: ${error.split('\n')[0]}`);
+  }
+  await attachEvidence(testInfo, { target, startedAt, environment, findings, criteria, detail: { probes: results, reloads }, problems, pageErrors });
 }
 
 test.describe.configure({ mode: 'parallel' });

@@ -11,10 +11,10 @@ name: A11y nightly
 # that was not measured, or one flagged flaky, is a finding against the check: fix the measurement.
 on:
   schedule:
-    # 05:00 UTC Tue–Sat: after the screen reader nightly (04:30), clear of the E2E nightly (03:30), the
-    # visual nightly (02:00), the visual stability run (02:30), the code-quality baseline (03:00) and
-    # the readme (04:00).
-    - cron: '0 5 * * 2-6'
+    # 05:30 UTC Tue–Sat: after the screen reader nightly (04:30), clear of the E2E nightly (03:30), the
+    # visual nightly (02:00), the visual stability run (02:30), the code-quality baseline (03:00), the
+    # readme (04:00) and the docs sync (05:00).
+    - cron: '30 5 * * 2-6'
   # From any ref: a dispatch from a feature branch is how a new check proves itself before it merges.
   workflow_dispatch:
   # Self-validation, as screenreader-nightly.yml does it: this file never runs on an ordinary pull
