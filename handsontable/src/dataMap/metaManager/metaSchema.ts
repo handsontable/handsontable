@@ -3082,7 +3082,7 @@ export default (): Record<string, unknown> => {
      * | `'date'`            | `DateEditor`                                                               |
      * | `'intl-date'`       | `IntlDateEditor`                                                           |
      * | `'dropdown'`        | `DropdownEditor`                                                           |
-     * | `'formula'`         | The [`FormulaBuilder`](@/api/formulaBuilder.md) formula editor (a plain text editor while that plugin is off) |
+     * | `'formula'`         | The [`FormulaBuilder`](@/api/formulaBuilder.md) formula editor (a bare textarea while that plugin is off) |
      * | `'handsontable'`    | `HandsontableEditor`                                                       |
      * | `'numeric'`         | `NumericEditor`                                                            |
      * | `'password'`        | `PasswordEditor`                                                           |
@@ -4100,7 +4100,9 @@ export default (): Record<string, unknown> => {
      * which must be enabled with a configured engine.
      *
      * You can set the `formulaBuilder` option to `false` (the plugin is off) or to an object with the
-     * following properties. There is no `true`: the plugin needs the `builder` module to run.
+     * following properties. There is no `true`: the plugin needs the `builder` module to run. The plugin
+     * logs a warning and stays disabled for `true`, for `{}`, and for an object without `builder`,
+     * although `validateSettings()` accepts all three.
      *
      * | Property         | Possible values                                                 |
      * | ---------------- | --------------------------------------------------------------- |
