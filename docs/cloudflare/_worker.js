@@ -409,6 +409,9 @@ const FLAT_HTML_MAP = {
   'tutorial-release-notes': 'release-notes',
   'tutorial-migration-guide': 'migration-from-7.4-to-8.0',
   'tutorial-known-limitations': '/third-party-licenses/',
+  'tutorial-changelog': '/changelog/',
+  'demo-using-callbacks': '/events-and-hooks/',
+  'demo-react-simple-examples': 'binding-to-data',
   'demo-scrolling': 'row-virtualization',
   'demo-fixing': 'column-freezing',
   'demo-resizing': 'column-width',
@@ -543,7 +546,7 @@ function flatHtmlDestination(page, framework) {
   const redirectPath = FLAT_HTML_MAP[page];
 
   // Framework override based on page prefix.
-  if (page.startsWith('frameworks-wrapper-for-react')) {
+  if (page.startsWith('frameworks-wrapper-for-react') || page.startsWith('demo-react-')) {
     framework = 'react-data-grid';
   } else if (page.startsWith('frameworks-wrapper-for-vue') || page.startsWith('frameworks-wrapper-for-angular')) {
     framework = 'javascript-data-grid';
