@@ -614,7 +614,7 @@ export interface GridSettings {
   afterSheetAdded?: (addedSheetDisplayName: string) => void;
   afterSheetRemoved?: (removedSheetDisplayName: string, changes: unknown[]) => void;
   afterSheetRenamed?: (oldDisplayName: string, newDisplayName: string) => void;
-  afterSheetTabAdd?: (sheetId: number, name: string, source: string) => void;
+  afterSheetTabAdd?: (sheetId: number, name: string, duplicateOfId: number | null, source: string) => void;
   afterSheetTabChange?: (oldSheetId: number, newSheetId: number, source: string) => void;
   afterSheetTabMove?: (sheetId: number, finalIndex: number, source: string) => void;
   afterSheetTabRemove?: (sheetId: number, source: string) => void;
@@ -789,7 +789,7 @@ export interface GridSettings {
   beforeSetRangeEnd?: (coords: WalkontableCellCoords) => void;
   beforeSetRangeStart?: (coords: WalkontableCellCoords) => void;
   beforeSetRangeStartOnly?: (coords: WalkontableCellCoords) => void;
-  beforeSheetTabAdd?: (name: string | null, source: string) => void | boolean;
+  beforeSheetTabAdd?: (name: string | null, duplicateOfId: number | null, source: string) => void | boolean;
   beforeSheetTabChange?: (oldSheetId: number, newSheetId: number, source: string) => void | boolean;
   beforeSheetTabMove?: (sheetId: number, finalIndex: number, source: string) => void | boolean;
   beforeSheetTabRemove?: (sheetId: number, source: string) => void | boolean;

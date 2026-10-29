@@ -219,7 +219,8 @@ describe('SheetsBar plugin', () => {
     hot.getPlugin('sheetsBar').addSheet();
 
     expect(after).toHaveBeenCalledTimes(1);
-    expect(after.calls.mostRecent().args[2]).toBe('SheetsBar.api');
+    expect(after.calls.mostRecent().args[2]).toBe(null);
+    expect(after.calls.mostRecent().args[3]).toBe('SheetsBar.api');
   });
 
   it('applies per-sheet settings on switch with fallback to grid settings', () => {
