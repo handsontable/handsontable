@@ -483,7 +483,7 @@ export class ColumnSorting extends BasePlugin {
       return;
     }
 
-    if (currentSortConfig.length === 0 && !this.#rowsShowSortResult()) {
+    if (this.indexesSequenceCache === null || (currentSortConfig.length === 0 && !this.#rowsShowSortResult())) {
       this.#capturePresortOrder();
     }
 
@@ -525,12 +525,13 @@ export class ColumnSorting extends BasePlugin {
 
   /**
    * Stores the current row order as the order the sort starts from and a cleared sort goes back to. It runs
-   * whenever a sort starts from rows that show no sort result, never only the first time: while nothing is
-   * sorted the rows can move, and a data load re-initializes the stored order to the identity one, so an
-   * order kept from an earlier sort would bring back rows in a place they no longer hold. Rows left sorted
-   * under emptied states keep the stored order, see `#rowsShowSortResult()`. Both maps are registered
-   * together and stay registered after a clear, because UndoRedo restores them with the rest of the row
-   * maps and drops its history when the set of map names changes.
+   * whenever the cache is missing, and whenever a sort starts from emptied states on rows that show no sort
+   * result, never only the first time: while nothing is sorted the rows can move, and a data load
+   * re-initializes the stored order to the identity one, so an order kept from an earlier sort would bring
+   * back rows in a place they no longer hold. Rows left sorted under emptied states keep the stored order,
+   * see `#rowsShowSortResult()`. Both maps are registered together and stay registered after a clear,
+   * because UndoRedo restores them with the rest of the row maps and drops its history when the set of map
+   * names changes.
    */
   #capturePresortOrder(): void {
     const rowIndexMapper = this.hot.rowIndexMapper;
