@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the ColumnSummary plugin throwing an error while the grid is built when an endpoint's `ranges` option is an empty array. Such an endpoint now summarizes no rows.",
+  "type": "fixed",
+  "issueOrPR": 14088,
+  "breaking": false,
+  "framework": "none"
+}
