@@ -62,6 +62,17 @@ const CELL_MOUSE_HOOK_ORDER = -1;
  */
 const CELL_ERROR_ATTRIBUTE = 'data-hfe-error';
 /**
+ * The longest error message, in characters, the plugin puts in a cell's description or an
+ * announcement. A screen reader reads a description in full each time the cell gets the focus, and a
+ * HyperFormula parse error lists every token it expected (about 300 characters over 14 lines). 120
+ * keeps the error code and a sentence of explanation, about one line of speech.
+ */
+const MAX_SPOKEN_ERROR_LENGTH = 120;
+/**
+ * The separator `hyperformula-ui` puts between an error code and its message (`#ERROR! — Parsing error.`).
+ */
+const ERROR_CODE_SEPARATOR = ' — ';
+/**
  * The class of the text field `hyperformula-ui` edits a formula in.
  */
 const EDITOR_INPUT_SELECTOR = '.hfe-editor__input';
@@ -197,6 +208,32 @@ function copySettingValue<T>(value: T): T {
   });
 
   return copy as T;
+}
+
+/**
+ * Shortens an error message for speech: its first line, up to the end of the first sentence after the
+ * error code, capped at `MAX_SPOKEN_ERROR_LENGTH` at a word boundary. The error popup reads the full
+ * message from the cell's mark, so nothing is lost visually.
+ *
+ * @param {string} message The message `hyperformula-ui` built (`#CODE — message`, or a bare code).
+ * @returns {string}
+ */
+function toSpokenErrorMessage(message: string): string {
+  const firstLine = message.split('\n', 1)[0].trim();
+  const separatorIndex = firstLine.indexOf(ERROR_CODE_SEPARATOR);
+  // The sentence search starts after the code, which itself ends in `!` (`#ERROR!`, `#DIV/0!`).
+  const bodyStart = separatorIndex === -1 ? 0 : separatorIndex + ERROR_CODE_SEPARATOR.length;
+  const sentenceEnd = /[.!?](?=\s|$)/.exec(firstLine.slice(bodyStart));
+  const sentence = sentenceEnd ? firstLine.slice(0, bodyStart + sentenceEnd.index + 1) : firstLine;
+
+  if (sentence.length <= MAX_SPOKEN_ERROR_LENGTH) {
+    return sentence;
+  }
+
+  const cut = sentence.slice(0, MAX_SPOKEN_ERROR_LENGTH);
+  const lastSpace = cut.lastIndexOf(' ');
+
+  return `${(lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`;
 }
 
 /**
@@ -1076,8 +1113,10 @@ export class FormulaBuilder extends BasePlugin {
     const message = cellEl.getAttribute(CELL_ERROR_ATTRIBUTE);
 
     if (message && this.hot.getSettings().ariaTags) {
-      setAttribute(cellEl, [A11Y_DESCRIPTION(message)]);
-      this.#describedCells.set(cellEl, message);
+      const description = toSpokenErrorMessage(message);
+
+      setAttribute(cellEl, [A11Y_DESCRIPTION(description)]);
+      this.#describedCells.set(cellEl, description);
 
       return;
     }
@@ -2048,7 +2087,8 @@ export class FormulaBuilder extends BasePlugin {
       close: phrase(C.FORMULA_BUILDER_CLOSE),
       invalidCellAddress: (text: string) => phrase(C.FORMULA_BUILDER_INVALID_ADDRESS, { text }),
       cellUnavailable: (text: string) => phrase(C.FORMULA_BUILDER_CELL_UNAVAILABLE, { text }),
-      cellError: (cell: string, message: string) => phrase(C.FORMULA_BUILDER_CELL_ERROR, { cell, message }),
+      cellError: (cell: string, message: string) =>
+        phrase(C.FORMULA_BUILDER_CELL_ERROR, { cell, message: toSpokenErrorMessage(message) }),
       // One key per form: the dictionary cannot pick a plural form and fill in a variable at once.
       dependentCellErrors: (count: number) =>
         phrase(count === 1 ? C.FORMULA_BUILDER_DEPENDENT_ERROR : C.FORMULA_BUILDER_DEPENDENT_ERRORS, { count }),

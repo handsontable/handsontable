@@ -934,4 +934,53 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(addressInput().value).toBe('A1:B2');
     });
   });
+
+  describe('a long engine error message', () => {
+    // HyperFormula's message for `=1+` lists every token it expected, one per line.
+    const PARSE_ERROR_FORMULA = '=1+';
+
+    it('describes the cell with the first sentence only, while the popup mark keeps the whole message', () => {
+      createGrid({ data: [[PARSE_ERROR_FORMULA, 1]] });
+
+      const cell = hot.getCell(0, 0)!;
+      const mark = cell.getAttribute('data-hfe-error') ?? '';
+      const description = cell.getAttribute('aria-description') ?? '';
+
+      expect(mark).toContain('NumberLiteral');
+      expect(description).toBe('#ERROR! — Parsing error.');
+    });
+
+    it('caps a long single-sentence message at a word boundary', () => {
+      createGrid({ data: [[`=${'VERYLONGFUNCTIONNAME'.repeat(10)}(1)`, 1]] });
+
+      const description = hot.getCell(0, 0)!.getAttribute('aria-description') ?? '';
+
+      expect(description.length).toBeLessThanOrEqual(121);
+      expect(description.startsWith('#NAME? — Function name')).toBe(true);
+      expect(description.endsWith('…')).toBe(true);
+    });
+
+    it('announces the first sentence only when an edit commits the error', async() => {
+      createGrid({ data: [['=1', 1]] });
+      hot.selectCell(0, 0);
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+      hot.getPlugin('formulaBuilder').getActiveEditor()?.setValue(PARSE_ERROR_FORMULA);
+      container.querySelector<HTMLTextAreaElement>('.ht-formula-builder__inline-editor textarea')!
+        .dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+      const liveRegions = document.querySelectorAll('.hfe-live-region');
+      const liveRegion = liveRegions[liveRegions.length - 1];
+      const deadline = Date.now() + 2000;
+
+      // The package announces after a short delay of its own.
+      while (!liveRegion?.textContent && Date.now() < deadline) {
+        // eslint-disable-next-line no-await-in-loop
+        await settle();
+      }
+
+      const announced = liveRegion?.textContent ?? '';
+
+      expect(announced).toContain('Parsing error.');
+      expect(announced).not.toContain('NumberLiteral');
+    });
+  });
 });

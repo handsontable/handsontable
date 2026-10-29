@@ -249,6 +249,11 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   (a `WeakMap`) and removes the attribute only while it still holds that text: a recycled element can carry
   the plugin's description from its last cell, but a renderer runs before `afterRenderer` and may already
   have written the application's own, which a "did the plugin touch this element" check deleted.
+  The description and the `cellError` announcement carry a SHORT message (`toSpokenErrorMessage()`: first
+  line, first sentence after the `#CODE — ` prefix, 120 characters at a word boundary). A HyperFormula
+  parse error lists every token it expected over 14 lines, and a screen reader read all of it on each
+  focus of the cell. The `data-hfe-error` mark keeps the whole text, which the error popup shows. Start
+  the sentence search after the separator: the codes end in `!` themselves.
 - **`afterRenderer` runs for every rendered cell on every draw.** It reads the editor from the
   `cellProperties` the hook passes, never from `getCellMetaTransient()`, which would resolve the cascade
   (and a `cells` callback) a second time per cell. It also clears the error mark (`data-hfe-error`) from a
