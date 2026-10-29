@@ -65,6 +65,14 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   press moves the focus on its own; a touch press does not, and the rename input's blur-driven
   commit used to repaint the strip in the middle of `#moveAround`, which then threw
   `NotFoundError`. Pinned by the rename case in `tests/e2e/sheets-bar-touch-drag.spec.ts`.
+- **A drag's Escape listener sits on the window in the capture phase** (`TabDrag#start`). A drag
+  started with a fresh press leaves the bar's focus scope inactive: the focus manager skips
+  `focusin` while the mouse is down and activates scopes on the `click` that follows, and a drag
+  ends without one. The bar's Escape shortcut then never runs, so `TabDrag`'s own listener is the
+  only thing that cancels the drag. It used to sit on the document in the bubble phase, added at
+  `pointerdown`, so a host `keydown` listener on the document that stopped Escape ran first and
+  the release moved the tab. Do not move it back to the document. Pinned by
+  `tests/e2e/sheets-bar-tab-drag-escape.spec.ts`.
 - **Every tab is its own stacking context (`isolation: isolate`).** The chevron glyph carries
   `z-index: 1` to stay above its `::before` hover surface. Without the isolation that z-index
   competes in the strip at the dragged tab's level (`--dragging` is `z-index: 1` too), so a tab
