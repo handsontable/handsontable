@@ -243,6 +243,29 @@ export class SheetsBarInFlightWorkPage {
   }
 
   /**
+   * Starts measuring every column again and, in the same task, sends the grid one row of one column through
+   * `updateData()`. Then waits for an idle task queued after the one that carries on measuring, and answers
+   * whether the measuring was running when the data shrank and whether it still runs after that task.
+   */
+  shrinkDataAndWaitOneSweepChunk(): Promise<{ before: boolean, afterOneChunk: boolean }> {
+    return this.page.evaluate(() => new Promise((resolve) => {
+      const autoColumnSize = window.hot.getPlugin('autoColumnSize');
+
+      autoColumnSize.recalculateAllColumnsWidth();
+
+      const before = autoColumnSize.inProgress;
+
+      window.hot.updateData([['x']]);
+
+      // AutoColumnSize queues its next chunk the same way, earlier, so that chunk runs first.
+      const queueTask = (callback: () => void) => (typeof window.requestIdleCallback === 'function' ?
+        window.requestIdleCallback(callback) : window.requestAnimationFrame(callback));
+
+      queueTask(() => resolve({ before, afterOneChunk: autoColumnSize.inProgress }));
+    }));
+  }
+
+  /**
    * Whether AutoColumnSize is still measuring columns.
    */
   isColumnSweepRunning(): Promise<boolean> {

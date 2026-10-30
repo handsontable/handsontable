@@ -138,6 +138,8 @@ export const SHEETS_BAR_PAGE_PREV = `${SHEETS_BAR_NAMESPACE}pagePrev`;
 export const SHEETS_BAR_PAGE_NEXT = `${SHEETS_BAR_NAMESPACE}pageNext`;
 export const SHEETS_BAR_SHEET_CHANGED = `${SHEETS_BAR_NAMESPACE}announcement.sheetChanged`;
 export const SHEETS_BAR_RENAME_REJECTED = `${SHEETS_BAR_NAMESPACE}announcement.renameRejected`;
+export const SHEETS_BAR_SHEET_DUPLICATED = `${SHEETS_BAR_NAMESPACE}announcement.sheetDuplicated`;
+export const SHEETS_BAR_SHEET_MOVED = `${SHEETS_BAR_NAMESPACE}announcement.sheetMoved`;
 export const SHEETS_BAR_DEFAULT_SHEET_NAME = `${SHEETS_BAR_NAMESPACE}defaultSheetName`;
 
 export const CHECKBOX_RENDERER_NAMESPACE = 'CheckboxRenderer:';

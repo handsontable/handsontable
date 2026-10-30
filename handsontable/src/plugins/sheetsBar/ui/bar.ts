@@ -7,6 +7,7 @@ import { A11Y_GROUP, A11Y_LABEL } from '../../../helpers/a11y';
 import { isKeyboardActivation } from './activation';
 import { DISABLED_CLASS } from './overflow';
 import type { IconKey } from '../../../themes/types';
+import type { AnnouncementPoliteness } from '../../../utils/a11yAnnouncer';
 import type { IconOptions, IconSlotSync } from '../../../themes/engine/icons';
 
 /**
@@ -126,7 +127,7 @@ export class SheetsBarUI {
   /**
    * Accessibility announcement callback.
    */
-  readonly #a11yAnnouncer: (message: unknown) => void;
+  readonly #a11yAnnouncer: (message: unknown, politeness?: AnnouncementPoliteness) => void;
   /**
    * Whether the grid emits ARIA attributes.
    */
@@ -151,7 +152,7 @@ export class SheetsBarUI {
     this.#ariaTags = ariaTags !== false;
     this.#themeName = themeName as string | undefined;
     this.#phraseTranslator = phraseTranslator as (...args: unknown[]) => string;
-    this.#a11yAnnouncer = a11yAnnouncer as (message: unknown) => void;
+    this.#a11yAnnouncer = a11yAnnouncer as (message: unknown, politeness?: AnnouncementPoliteness) => void;
     this.#syncIcon = syncIcon as IconSlotSync;
 
     this.#install();
@@ -172,14 +173,17 @@ export class SheetsBarUI {
   }
 
   /**
-   * Returns the bar's focusable controls in tab order: the live buttons and the tabs. Hidden
-   * sections and spent paging arrows are left out.
+   * Returns the bar's Tab stops in tab order: the live buttons and the one tab of the strip that
+   * holds its stop. Hidden sections, spent paging arrows and the other tabs (`tabindex="-1"`,
+   * reached with the arrow keys) are left out.
    *
    * @returns {HTMLElement[]} The controls the focus can land on.
    */
   getFocusableElements(): HTMLElement[] {
     return Array.from(this.getContainer().querySelectorAll<HTMLElement>('button, .ht-sheets-bar__tab'))
-      .filter(element => element.closest('[hidden]') === null && !element.classList.contains(DISABLED_CLASS));
+      .filter(element => element.closest('[hidden]') === null
+        && !element.classList.contains(DISABLED_CLASS)
+        && element.tabIndex >= 0);
   }
 
   /**
@@ -191,9 +195,13 @@ export class SheetsBarUI {
 
   /**
    * Announces a message to assistive technology.
+   *
+   * @param {string} message The message.
+   * @param {'assertive'|'polite'} [politeness='assertive'] How urgently it interrupts the screen
+   *   reader: a status message passes `'polite'`.
    */
-  announce(message: string): void {
-    this.#a11yAnnouncer(message);
+  announce(message: string, politeness: AnnouncementPoliteness = 'assertive'): void {
+    this.#a11yAnnouncer(message, politeness);
   }
 
   /**
@@ -239,7 +247,11 @@ export class SheetsBarUI {
   }
 
   /**
-   * Swaps the theme class on the container.
+   * Swaps the theme class on the container, for a bar in a custom `uiContainer` only. A bar in
+   * a layout slot sits inside the grid's root wrapper and takes the theme from it, together with
+   * the grid's `colorScheme` and `density`, which the theme engine scopes to that wrapper. A
+   * theme class of its own matched the theme's base rules again on the bar and reset both to the
+   * theme's defaults, so a dark grid had a light bar. Pagination does the same.
    */
   updateTheme(themeName?: string): void {
     const container = this.getContainer();
@@ -249,7 +261,7 @@ export class SheetsBarUI {
     }
     this.#themeName = themeName;
 
-    if (themeName) {
+    if (themeName && this.#uiContainer) {
       addClass(container, themeName);
     }
   }

@@ -98,10 +98,11 @@ any of them.
   resolves to the last one, as `propToCol()` does. `getViewState()` and `previous` never emit properties:
   a `columns[].data` can be a function, a property can be shared, and array data has none. The row parts
   and `columnOrder` take integers only.
-- **The public sort carries no pre-sort order.** The sorting plugin builds its pre-sort cache on its
-  first sort and keeps it until it is disabled, so an order handed to it later is overwritten on a
-  grid that has sorted before. The restore hands it the current order, and `rowOrder` restores the
-  exact sequence when the state carries it.
+- **The public sort carries no pre-sort order.** The sorting plugin takes its pre-sort cache from the row
+  order it finds whenever sort states go onto an unsorted grid (a `sort()` while the cache is missing or
+  from empty states, or a `setSortConfig()` there once the cache exists). The restore clears a sort that is
+  on first, so the plugin takes the current order, and `rowOrder` restores the exact sequence when the state
+  carries it.
 - **By default the restore records no undo step, and keeps the earlier ones.** Unlike a sheet switch there
   is no `loadData()` to empty the stacks, so a later undo of an older sort or filter step acts on the
   restored view. `ViewState#setViewState()`'s JSDoc says so, and `undo: 'record'` is the way out (below).
@@ -172,6 +173,10 @@ any of them.
   `previous` carries the sort only when there was one.
 - **`getViewState()` reads only the parts the grid can give.** Passing the available parts to
   `captureViewState()` keeps a grid with merges and borders from paying for scans whose result is dropped.
+- **The engine's `collapsedColumns` and `checkedRows` parts are not public.** They exist for the sheets bar,
+  which keeps CollapsibleColumns groups and RowSelection checks per sheet. This layer never puts them in the
+  set it passes, so `getViewState()` does not read them and `setViewState()` does not touch them. Exposing
+  them needs a `GridViewState` key, a validator in `writePart()`, and a JSON form of the server selection.
 - **The NestedRows collapse is replaced, not merged.** `restoreCollapsedParents()` expands every
   parent collapsed now before it collapses the stored ones. On a sheet switch nothing is collapsed
   by then (`loadData()` drops it), so that step is a no-op there.

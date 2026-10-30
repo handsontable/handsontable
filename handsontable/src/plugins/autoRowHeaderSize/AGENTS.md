@@ -37,10 +37,14 @@ A row header renderer that draws through the grid can bring the draw back around
 `modifyRowHeaderWidth`. Answering with what is already known is what keeps that from recursing — do not
 replace the early answer with a fresh measurement.
 
-## Two re-measure triggers nothing else would notice
+## Three re-measure triggers nothing else would notice
 
 - **`useTheme()`.** A theme carries its own font and cell padding, so every measured width is wrong under a
   new one — and `useTheme()` does not go through `updateSettings`, so no other mechanism reacts.
+- **`afterFontsLoad` (DEV-199).** A web font that loads after the labels were measured changes their width
+  without changing the container, so no resize observer sees it. The listener invalidates the widths the
+  same way as on `afterSetTheme`, with `FONT_REMEASURE_ORDER_INDEX` (`core/fontLoad.ts`), so the
+  application's listeners run first. Core fires the hook only on a visible grid, and renders after it.
 - **`afterFormulasValuesUpdate`.** Recalculated formulas can feed a label with no cell write being reported,
   and the payload describes engine addresses rather than rows, so the whole thing is measured again rather
   than diffed.
