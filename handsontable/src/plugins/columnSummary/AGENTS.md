@@ -157,15 +157,21 @@ Known residuals, both identical to what the visual comparison gave before:
   the summary silently moves to (or sums) the previous column.
 - Removing the destination row makes the reset clear, and the refresh overwrite, the preceding row's cell.
 
-## A settings update before the grid has a view computes nothing
+## The endpoints are computed in the ready step
 
-`updatePlugin()` runs `initEndpoints()` only once the grid has a view. The sheets bar applies its
-opening sheet's settings through `updateSettings()` while the grid is still being built, and the
-endpoints were then checked against the data the grid held before the sheet loaded (an
-out-of-bounds warning for a summary that fits the sheet). The `afterInit` listener computes them
-against the loaded data anyway. Do not move the computation after the load from the caller's side
-instead: before the view exists, the `setDataAtCell()` it writes through throws on the missing
-editor manager.
+`enablePlugin()` and `updatePlugin()` compute nothing. The ready step (`onGridReady()`,
+`../base/AGENTS.md`) parses the endpoints and writes the summaries once after each enable or update, when
+the data is loaded and the editor manager exists (`setDataAtCell()` throws without one). `#endpointsOwed`
+is set by `enablePlugin()` and cleared by whichever path computes them, so `onDataReady()` and the step
+never both run `initEndpoints()`. That covers what used to take three paths: the `afterInit` listener at
+init, `updatePlugin()` on a live grid, and its `this.hot.view` guard for a settings update made while the
+grid is still being built (the sheets bar applying its opening sheet), which checked the endpoints against
+the data the grid held before the sheet loaded. A direct `enablePlugin()` call used to compute nothing.
+
+At init the step runs before the `init` hook, and core holds the renders the writes ask for, so the first
+render draws the summaries and the grid renders once. A consequence for hook order: the summaries'
+`afterChange` (`ColumnSummary.set`) now fires before the `init` hook and before the init load's own
+`afterChange`. Pinned by `__tests__/readyStep.unit.js`.
 
 ## `exportEndpointSettings()` gives back the endpoints where they are now
 

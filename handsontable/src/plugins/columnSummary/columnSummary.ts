@@ -177,6 +177,12 @@ export class ColumnSummary extends BasePlugin {
   declare currentEndpoint: unknown;
 
   /**
+   * `true` from an `enablePlugin()` until the endpoints are parsed and computed. The ready step computes them;
+   * `onDataReady()` does when core applies the settings ahead of their data.
+   */
+  #endpointsOwed = false;
+
+  /**
    * Re-entry guard for the `afterFormulasValuesUpdate` hook so that the summary
    * recalculation triggered by writing the summary result does not start
    * another refresh.
@@ -208,7 +214,6 @@ export class ColumnSummary extends BasePlugin {
       this, this.settings as unknown as EndpointConfig[] | ((...args: unknown[]) => EndpointConfig[])
     );
 
-    this.addHook('afterInit', this.#onAfterInit);
     this.addHook('afterChange', this.#onAfterChange);
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
     this.addHook('afterLoadData', this.#onAfterLoadData);
@@ -242,6 +247,8 @@ export class ColumnSummary extends BasePlugin {
     this.addHook('beforeSetCellMeta', this.#onBeforeSetCellMeta);
     this.addHook('beforeRemoveCellMeta', this.#onBeforeRemoveCellMeta);
 
+    this.#endpointsOwed = true;
+
     super.enablePlugin();
   }
 
@@ -262,21 +269,15 @@ export class ColumnSummary extends BasePlugin {
    * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
    *  - [`columnSummary`](@/api/options.md#columnsummary)
    *
-   * Before the grid has a view (a settings update made while the grid is still being built, such as
-   * the sheets bar applying its opening sheet), the endpoints are left to the `afterInit` listener,
-   * which computes them against the data the grid starts with. While core applies the settings ahead
-   * of their data (`isDataWorkDeferred()`), they are left to `onDataReady()`.
+   * The endpoints are computed in the ready step, once the call returns and the data is loaded. While
+   * core applies the settings ahead of their data (`isDataWorkDeferred()`), `onDataReady()` computes them.
    */
   updatePlugin(): void {
     this.disablePlugin();
     this.enablePlugin();
 
-    if (this.hot.view) {
-      if (this.isDataWorkDeferred()) {
-        this.deferDataWork();
-      } else {
-        this.endpoints!.initEndpoints();
-      }
+    if (this.isDataWorkDeferred()) {
+      this.deferDataWork();
     }
 
     super.updatePlugin();
@@ -293,10 +294,27 @@ export class ColumnSummary extends BasePlugin {
    */
   onDataReady() {
     if (this.takeDeferredDataWork()) {
+      this.#endpointsOwed = false;
       this.endpoints!.initEndpoints();
     } else {
       this.endpoints?.refreshAllEndpoints();
     }
+  }
+
+  /**
+   * Parses the endpoints and computes the summaries after an enable or update. Core runs it once the call
+   * returns, when the data is loaded and the editor manager exists: the results are written through
+   * `setDataAtCell()`. At init that is before the `init` hook, with the render held for the first one.
+   *
+   * @private
+   */
+  onGridReady() {
+    if (!this.#endpointsOwed) {
+      return;
+    }
+
+    this.#endpointsOwed = false;
+    this.endpoints!.initEndpoints();
   }
 
   /**
@@ -684,13 +702,6 @@ export class ColumnSummary extends BasePlugin {
     if (key === 'readOnly' && this.isLockedSummaryCell(row, column)) {
       return false;
     }
-  };
-
-  /**
-   * `afterInit` hook callback.
-   */
-  #onAfterInit = () => {
-    this.endpoints!.initEndpoints();
   };
 
   /**
