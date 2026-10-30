@@ -144,7 +144,7 @@ export class ValueComponent extends BaseComponent {
 
       select.setItems(value.itemsSnapshot);
       select.setValue(value.args[0]);
-      // A restored `by_value` state with nothing selected is the record of a deliberate "Clear" -
+      // A restored `by_value` state with nothing selected is the record of a deliberate "Select none" -
       // the condition exists, it just excludes every value. This is the only place that knows it:
       // `reset()` runs for a column carrying no condition, where an empty list means the opposite
       // and must not turn a column the user never filtered into one that hides every row.

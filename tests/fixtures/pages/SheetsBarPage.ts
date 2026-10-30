@@ -21,12 +21,14 @@ export class SheetsBarPage {
     filters?: boolean,
     loadSwitches?: boolean,
     barOff?: boolean,
+    productionStrip?: boolean,
   } = {}): Promise<void> {
     const rtlParam = options.rtl ? '&rtl=1' : '';
     const filtersParam = [
       options.filters ? '&filters=1' : '',
       options.loadSwitches ? '&loadSwitches=1' : '',
       options.barOff ? '&barOff=1' : '',
+      options.productionStrip ? '&productionStrip=1' : '',
     ].join('');
     // A script error on the fixture leaves the page with no test ids at all, which surfaces as
     // an unexplained ten-second timeout on the first locator. Collecting the errors turns that

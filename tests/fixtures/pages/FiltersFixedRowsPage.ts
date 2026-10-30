@@ -289,10 +289,10 @@ export class FiltersFixedRowsPage {
   }
 
   /**
-   * Click the "Clear" link, which unchecks every value the list holds.
+   * Click the "Select none" link, which unchecks every value the list holds.
    */
   async clearAllValues(): Promise<void> {
-    await this.menu.locator('.htUIMultipleSelect a', { hasText: /^Clear$/ }).click();
+    await this.menu.locator('.htUIMultipleSelect .htUIClearAll a').click();
 
     await expect(this.valueList.first().locator('input[type="checkbox"]')).not.toBeChecked();
   }

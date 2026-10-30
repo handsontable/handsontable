@@ -9,6 +9,32 @@ import { REGISTERED_HOOKS } from './constants';
  */
 export type HookCallback = (...args: never[]) => unknown;
 
+/**
+ * The key under which a function that only forwards to a hook callback names that callback. The Angular
+ * wrapper's zone wrapper sets it, so the bucket treats the wrapper and the callback as one listener: a
+ * callback the app registers twice, once through its settings and once through `addHook()`, still runs once,
+ * and `removeHook()` with the callback removes the wrapper too. `Symbol.for()` keeps the key the same across
+ * the separately bundled wrapper and core without an import.
+ */
+export const FORWARDED_HOOK_CALLBACK: unique symbol = Symbol.for('handsontable.forwardedHookCallback');
+
+/**
+ * Returns the callback a hook entry stands for: the callback a forwarding function names, or the function
+ * itself.
+ *
+ * @param {Function} callback The registered function.
+ * @returns {Function}
+ */
+function callbackIdentity(callback: HookCallback): unknown {
+  if (typeof callback !== 'function') {
+    return callback;
+  }
+
+  const forwarded = (callback as HookCallback & { [FORWARDED_HOOK_CALLBACK]?: unknown })[FORWARDED_HOOK_CALLBACK];
+
+  return typeof forwarded === 'function' ? forwarded : callback;
+}
+
 export interface HookEntry {
   callback: HookCallback;
   orderIndex: number;
@@ -23,6 +49,11 @@ export interface HookEntry {
    * of replacing it. A `runOnce` registration (`addHookOnce()`) is dropped as a duplicate and claims nothing.
    */
   fromSettings: boolean;
+  /**
+   * The callback the entry stands for (`callbackIdentity()`), kept in step with `callback`. Every identity
+   * test of the bucket compares it, so a forwarding function and the callback it names are one listener.
+   */
+  identity: unknown;
   /**
    * Intrusive singly-linked-list pointer to the next entry. The entry IS the list node (no wrapper
    * object) so dispatch reads `entry.callback` with a single indirection. `null` marks the tail.
@@ -118,13 +149,11 @@ export class HooksBucket {
 
     // Adding the same callback twice is silently ignored. With true-delete a match is always a live entry.
     const fromSettings = !!options.fromSettings;
+    const identity = callbackIdentity(callback);
 
     for (let node = list.head; node !== null; node = node.next) {
-      if (node.callback === callback) {
-        if (!fromSettings && !options.runOnce) {
-          node.fromSettings = false;
-          node.initialHook = false;
-        }
+      if (node.identity === identity) {
+        this.#claimDuplicate(hookName, node, callback, options);
 
         return;
       }
@@ -140,6 +169,7 @@ export class HooksBucket {
       for (let node = list.head; node !== null; node = node.next) {
         if (node.initialHook) {
           node.callback = callback;
+          node.identity = identity;
           node.fromSettings = fromSettings;
 
           return;
@@ -147,7 +177,51 @@ export class HooksBucket {
       }
     }
 
-    this.#insertByOrder(list, { callback, orderIndex, runOnce, initialHook, fromSettings, next: null });
+    this.#insertByOrder(list, { callback, orderIndex, runOnce, initialHook, fromSettings, identity, next: null });
+  }
+
+  /**
+   * Settles an `add()` that meets an entry standing for the same callback, in place of adding a second one.
+   *
+   * A forwarding function takes the entry's place when the entry holds the plain callback: the Angular
+   * wrapper's zone wrapper must stay the function that runs, whichever of the two was registered first. An
+   * `addHook()` registration claims the entry from the settings (see `HookEntry#fromSettings`). And a settings
+   * function that meets an entry it does not own as the fixed one leaves no fixed entry of an earlier settings
+   * function behind: the settings no longer name that function, so it stops running.
+   *
+   * @param {string} hookName The name of the hook.
+   * @param {object} node The entry standing for the same callback.
+   * @param {Function} callback The function being added.
+   * @param {object} options The options of the `add()` call.
+   */
+  #claimDuplicate(
+    hookName: string,
+    node: HookEntry,
+    callback: HookCallback,
+    options: { runOnce?: boolean; initialHook?: boolean; fromSettings?: boolean },
+  ) {
+    if (callback !== node.callback && callback !== node.identity) {
+      node.callback = callback;
+    }
+
+    const replacesFixedEntry = !!options.initialHook && !!options.fromSettings && !node.initialHook;
+
+    if (node.runOnce && !options.runOnce) {
+      node.runOnce = false;
+      node.fromSettings = !!options.fromSettings;
+      node.initialHook = !!options.initialHook;
+    }
+
+    if (!options.fromSettings && !options.runOnce) {
+      node.fromSettings = false;
+      node.initialHook = false;
+
+      return;
+    }
+
+    if (replacesFixedEntry) {
+      this.#removeSettingsEntries(hookName, other => other === node || !other.initialHook);
+    }
   }
 
   /**
@@ -171,7 +245,9 @@ export class HooksBucket {
    * @returns {boolean}
    */
   remove(hookName: string, callback: HookCallback): boolean {
-    return this.#removeWhere(hookName, node => node.callback === callback);
+    const identity = callbackIdentity(callback);
+
+    return this.#removeWhere(hookName, node => node.identity === identity);
   }
 
   /**
@@ -206,9 +282,9 @@ export class HooksBucket {
    */
   replaceFromSettings(hookName: string, callback: HookCallback | HookCallback[]) {
     if (Array.isArray(callback)) {
-      const wanted = new Set<HookCallback>(callback);
+      const wanted = new Set<unknown>(callback.map(item => callbackIdentity(item)));
 
-      this.#removeSettingsEntries(hookName, node => wanted.has(node.callback));
+      this.#removeSettingsEntries(hookName, node => wanted.has(node.identity));
       callback.forEach(item => this.add(hookName, item, { fromSettings: true }));
 
       return;
@@ -228,10 +304,11 @@ export class HooksBucket {
 
     const keptFixed = fixed as HookEntry | null;
     const claimed = this.getHooks(hookName)
-      .some(node => node !== keptFixed && node.callback === callback);
+      .some(node => node !== keptFixed && node.identity === callbackIdentity(callback));
 
     if (keptFixed && !claimed) {
       keptFixed.callback = callback;
+      keptFixed.identity = callbackIdentity(callback);
 
       return;
     }

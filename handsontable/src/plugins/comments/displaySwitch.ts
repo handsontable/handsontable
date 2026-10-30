@@ -123,6 +123,22 @@ class DisplaySwitch {
   }
 
   /**
+   * Drops every pending action: the delayed show, the delayed hide, and the show a rebuild would carry
+   * over. The plugin calls it when it is turned off, because a show armed by a hover before that ran
+   * later and opened the editor over a grid with the plugin off, where nothing could close it. The
+   * last-action flag goes back to its initial `true`, which also silences an older hide timer that
+   * `hide()` left running beside the one it tracks.
+   */
+  cancel() {
+    this.showDebounced?.cancel();
+    this.#pendingShowRange = null;
+    this.wasLastActionShow = true;
+
+    clearTimeout(this.hidingTimer ?? undefined);
+    this.hidingTimer = null;
+  }
+
+  /**
    * Update the switch settings.
    *
    * @param {number} displayDelay Delay of showing the comments (in milliseconds).
@@ -165,6 +181,7 @@ class DisplaySwitch {
    * Destroy the switcher.
    */
   destroy() {
+    this.cancel();
     this.clearLocalHooks();
   }
 }
