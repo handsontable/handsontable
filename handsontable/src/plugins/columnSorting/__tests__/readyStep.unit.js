@@ -88,4 +88,24 @@ describe.each([
     expect(sorts).toHaveBeenCalledTimes(1);
     expect(hot.getDataAtCol(0)).toEqual(['Cherry', 'Banana', 'Apple']);
   });
+
+  it('should sort the rows an init listener loads after the ready step', () => {
+    buildGrid({
+      [pluginKey]: { initialConfig: { column: 0, sortOrder: 'asc' } },
+      init() {
+        this.loadData([['Kiwi'], ['Fig'], ['Plum']]);
+      },
+    });
+
+    expect(hot.getDataAtCol(0)).toEqual(['Fig', 'Kiwi', 'Plum']);
+    expect(hot.getPlugin(pluginKey).getSortConfig()).toEqual([{ column: 0, sortOrder: 'asc' }]);
+  });
+
+  it('should not sort the rows a load made after init brings', () => {
+    buildGrid({ [pluginKey]: { initialConfig: { column: 0, sortOrder: 'asc' } } });
+
+    hot.loadData([['Kiwi'], ['Fig'], ['Plum']]);
+
+    expect(hot.getDataAtCol(0)).toEqual(['Kiwi', 'Fig', 'Plum']);
+  });
 });

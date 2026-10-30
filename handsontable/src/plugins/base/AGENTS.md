@@ -274,7 +274,11 @@ refreshes every endpoint when nothing was deferred (`refreshAllEndpoints()`, whi
 `setDataAtCell`). Called at the new points it would write the summaries twice per `updateSettings()` and fire
 an extra `afterChange`. Load hooks are not covered either: an `afterLoadData` listener still fires during
 the init pass with no view, so a plugin that needs the view there skips `initialLoad` and leaves the work to
-the step. Which plugins implement `onGridReady()`, and which init listeners stay on purpose, is in the #6806
+the step. **A load an `init` listener makes gets no step pass.** It runs after the init steps, with a truthy
+`initialLoad` (`[null, 'loadData']`) and the view in place, and `replaceData()` skips `beforeRender` for it.
+A plugin whose step built state from the rows redoes it from `afterLoadData` for exactly that value: a truthy
+`initialLoad` while `this.hot.view` exists (ColumnSorting does, pinned by
+`tests/e2e/column-sorting-init-load.spec.ts`). Which plugins implement `onGridReady()`, and which init listeners stay on purpose, is in the #6806
 section below.
 
 Pinned by `__tests__/readyStep.unit.js`.

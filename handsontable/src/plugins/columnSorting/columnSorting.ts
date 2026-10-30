@@ -322,6 +322,7 @@ export class ColumnSorting extends BasePlugin {
     this.addHook('afterColumnMove', this.#onAfterColumnMove);
     this.addHook('afterColumnSequenceChange', this.#onAfterColumnSequenceChange);
 
+    this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch, -1);
 
     this.#settingsSortOwed = true;
@@ -1333,6 +1334,20 @@ export class ColumnSorting extends BasePlugin {
     this.#settingsSortOwed = false;
     this.#loadOrSortBySettings();
   }
+
+  /**
+   * Callback for the `afterLoadData` hook. Sorts the rows an `init` listener loads: that load replaces the rows
+   * the ready step sorted, and it skips the load's own ready step pass. Only that load has a truthy
+   * `initialLoad` while the view exists; the load made before the view and every load after init pass by.
+   *
+   * @param {Array} sourceData The loaded data.
+   * @param {boolean|Array} initialLoad Whether the load is made during init.
+   */
+  #onAfterLoadData = (sourceData: unknown[], initialLoad: unknown) => {
+    if (initialLoad && this.hot.view) {
+      this.#loadOrSortBySettings();
+    }
+  };
 
   /**
    * Callback for the `afterDataProviderFetch` hook.

@@ -482,7 +482,9 @@ the `init` hook, and after the load on a settings switch. Core holds the renders
 so the sort's own render is skipped and the first render draws sorted rows; the grid renders once at init
 instead of twice. It replaced an `afterInit` listener (which sorted after the first render had drawn the rows
 unsorted), the #6806 `this.hot.view` branch in `enablePlugin()`, and an `afterLoadData` listener whose
-`initialLoad` branch never ran (it read the data array as the flag). Pinned by `__tests__/readyStep.unit.js`.
+`initialLoad` branch never ran (it read the data array as the flag). A load an `init` listener makes comes
+after the step, so the new `#onAfterLoadData` sorts it (see the `onDataReady()` section below). Pinned by
+`__tests__/readyStep.unit.js`.
 
 ## Enabling via `updateSettings` must not sort twice (DEV-187)
 
@@ -561,15 +563,17 @@ While core's `_applySettingsAndData()` applies settings ahead of their data (`is
 `../base/AGENTS.md`), the sort in `onUpdateSettings()` is held, and `onDataReady()` runs
 `#loadOrSortBySettings()` against the loaded rows. The sort of a fresh enable needs no hold: its ready step
 runs after the load. Run before the load, either sorted the departing rows and the load reset the order, so
-a sheet's own `initialConfig` was ignored on its first visit. The plugin has no `afterLoadData` listener.
-Core passes `afterLoadData` one of three `initialLoad` values: `true` for the load made before the view
-exists, the truthy `[null, 'loadData']` for a load made later during init (from an `init` listener, with the
-view in place), and `false` after init. A listener that tests it as a truthy flag, as NestedHeaders and
-SheetsBar do, also runs for that second load.
+a sheet's own `initialConfig` was ignored on its first visit.
 
-**Open: rows an `init` listener loads are not sorted.** The ready step sorts before the `init` hook, so a
-`loadData()` from an `init` listener replaces the sorted rows and drops the `initialConfig` sort.
-`tests/e2e/column-sorting-init-load.spec.ts` ("sorts the rows an `init` listener loads") expects them sorted.
+**Rows an `init` listener loads are sorted by `#onAfterLoadData`, not by the ready step.** The ready step sorts
+before the `init` hook, so a `loadData()` from an `init` listener replaces the sorted rows, and `replaceData()`
+runs no ready step pass for it (it skips `beforeRender` while `firstRun` is truthy). Core passes `afterLoadData`
+one of three `initialLoad` values: `true` for the load made before the view exists, the truthy
+`[null, 'loadData']` for a load made later during init (from an `init` listener, with the view in place), and
+`false` after init. The listener sorts by the settings only for a truthy value with the view in place, which is
+that second load alone. A load after init keeps the order it brings. Test
+the value as truthy, not `=== true`: the listener this replaced did, and never ran. Pinned by
+`__tests__/readyStep.unit.js` and `tests/e2e/column-sorting-init-load.spec.ts`.
 
 ## `true` after an object resets the column properties; `true` after `true` does not
 
