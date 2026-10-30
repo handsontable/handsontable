@@ -665,6 +665,32 @@ export class BasePlugin {
   }
 
   /**
+   * Records that a settings pass made before the plugin's init enable turn carried the plugin's own option,
+   * so the turn reads the settings again.
+   *
+   * @param {object} newSettings The config object passed to updateSettings.
+   */
+  #recordSettingsChangeBeforeInitEnable(newSettings: Record<string, unknown>) {
+    if (newSettings[this.constructor.PLUGIN_KEY] !== undefined) {
+      this.#settingsChangedBeforeInitEnable = true;
+    }
+  }
+
+  /**
+   * Returns the plugin setting an update applies to a plugin that stays enabled: the payload's `PLUGIN_KEY`
+   * value when the payload carries the key (an explicit `undefined` included), otherwise the value declared
+   * in the merged grid settings.
+   *
+   * @param {object} newSettings The config object passed to updateSettings.
+   * @returns {*}
+   */
+  #getUpdatedPluginSetting(newSettings: Record<string, unknown>): unknown {
+    const pluginKey = this.constructor.PLUGIN_KEY;
+
+    return hasOwnProperty(newSettings, pluginKey) ? newSettings[pluginKey] : this.hot.getSettings()[pluginKey];
+  }
+
+  /**
    * Optional step core's `_applySettingsAndData()` calls once the data the settings describe is loaded,
    * for every enabled plugin that defines it, in plugin priority order (see `isDataWorkDeferred()`).
    *
@@ -829,9 +855,7 @@ export class BasePlugin {
     // A plugin another plugin already enabled directly takes the pass as usual, so it can be disabled
     // or updated by it.
     if (this.#awaitsInitEnableTurn && !this.enabled) {
-      if (newSettings[this.constructor.PLUGIN_KEY] !== undefined) {
-        this.#settingsChangedBeforeInitEnable = true;
-      }
+      this.#recordSettingsChangeBeforeInitEnable(newSettings);
 
       return;
     }
@@ -869,11 +893,7 @@ export class BasePlugin {
       relevantToSettings
     ) {
       if (!settingsRefreshed) {
-        const pluginKey = this.constructor.PLUGIN_KEY;
-
-        this.updatePluginSettings(
-          hasOwnProperty(newSettings, pluginKey) ? newSettings[pluginKey] : this.hot.getSettings()[pluginKey]
-        );
+        this.updatePluginSettings(this.#getUpdatedPluginSetting(newSettings));
       }
 
       this.updatePlugin(newSettings);
