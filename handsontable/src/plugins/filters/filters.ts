@@ -1048,15 +1048,6 @@ export class Filters extends BasePlugin {
         ?.addLocalHook('selectTabKeydown', forwardToFocusNavigation);
     }
 
-    // On the first enable this runs on `afterPluginsInitialized`, before the view exists, where the
-    // column meta layer is not resolvable yet and every column reads as carrying nothing - so the scan
-    // waits for `afterInit`. Any later enable (`updatePlugin()`, a direct `enablePlugin()` call, the
-    // off-to-on `updateSettings()` path) comes after `afterInit` has fired, so it scans right away.
-    if (this.hot.view) {
-      this.#warnAboutPerColumnSettingsObjects();
-    } else {
-      this.addHook('afterInit', this.#warnAboutPerColumnSettingsObjects);
-    }
     this.registerShortcuts();
     super.enablePlugin();
   }
@@ -1069,6 +1060,17 @@ export class Filters extends BasePlugin {
     this.enablePlugin();
 
     super.updatePlugin();
+  }
+
+  /**
+   * Scans the columns for per-column settings that do nothing. Core runs it once after each enable or
+   * update, when the column meta is resolvable: the first enable runs before the data loads, where every
+   * column reads as carrying nothing.
+   *
+   * @private
+   */
+  onGridReady() {
+    this.#warnAboutPerColumnSettingsObjects();
   }
 
   /**

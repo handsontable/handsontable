@@ -497,6 +497,21 @@ Rules that keep it correct:
   `updateSettings(settings, true)`, so it is absent during the construction-time `afterCellMetaReset`
   and present for every later one; `collapsibleColumns` and `emptyDataState` read the same signal. Covered
   by `fills the sheet before the first draw at construction`.
+- **The axis syncers' postponed index syncs run in the ready step of the init pass only.** An index sync
+  asked for while no engine sheet is bound (`IndexSyncer#getPostponeAction()`) is queued in
+  `#postponedIndexActions` and run by `onGridReady()` when `isInitReadyStep()` answers `true`
+  (`../base/AGENTS.md`): before the `init` hook, which the syncs used to wait for through a one-off `init`
+  listener. **Every endpoint setup drops the queue** (`#setupSyncEndpoint()`, the one path to
+  `IndexSyncer#setupSyncEndpoint()`): the setup sends the grid's order itself, and the only sync that queues is
+  the initial-order sync (`AxisSyncer#applyInitialOrder()`), which resets the stored engine order to physical
+  before it sends. Replayed after the engine already took the order, it sent it a second time, the double
+  transform that rewrote `=A1+10` to `=B1+10` (below). A live grid never replays the queue: every settings
+  update writes the sheet and so sets the endpoint up, and a step without such a write (a direct
+  `updatePlugin()`) has nothing safe to replay. `disablePlugin()` drops the queue with the syncers it belongs
+  to. (`calculateAndSyncMoves()` passes its move to `getPostponeAction()` as an argument, which is ignored, so
+  a move made with no sheet bound is never queued; that is older than the ready step.) The `hot.view` checks
+  above stay: they tell construction from a later settings update, which the ready step does not answer.
+  Pinned by `__tests__/readyStep.unit.js`, where each half fails alone with the other in place.
 - **The incremental alternative was considered and rejected.** Replacing the late full scan with
   `addRows` / `removeRows` for the row delta does not work: flattening inserts rows in the INTERIOR of the
   sheet, not at the end, so the delta is not an append and the insert positions would have to be derived

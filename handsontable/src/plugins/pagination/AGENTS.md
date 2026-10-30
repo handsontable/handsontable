@@ -55,12 +55,20 @@ order. Stamping the tracker from the new declared number while applying a stale
 `getSetting()` result would skip the later `updatePlugin()` pass and leave the
 wrong page. The grid settings object is already merged when `enablePlugin()` runs.
 
-## `PLUGIN_PRIORITY = 900`, and the `init` hook is pinned early
+## `PLUGIN_PRIORITY = 900`, and the first page is applied in the ready step
 
-Priority 900 puts it after every ordinary plugin. Separately, **the `init` hook callback is placed before
-the others**, so the pagination state is computed and applied to the index mapper *before* AutoColumnSize
-starts calculating column sizes. Those are two different mechanisms — see the priority-versus-hook-order
-note in `../base/AGENTS.md`.
+Priority 900 puts it after every ordinary plugin. The first page state is computed in the ready step
+(`onGridReady()`, `../base/AGENTS.md`), which core runs before the `init` hook, so the page is applied to
+the index mapper *before* AutoColumnSize and AutoRowSize measure from their `init` listeners. That used to
+take an `init` listener at order index `-1`; the step keeps the same order without one. The two auto-size
+plugins stay on `init` on purpose: a ready step of theirs would run at priority 10 and 40, before this one
+and before NestedHeaders builds its labels.
+
+The step computes the state only when nothing else did (`#stateOwed`): `updatePlugin()` and `onDataReady()`
+compute it themselves, so after them it does nothing. At init it does not render and leaves an `'auto'`
+page size to the first render, as the listener did. On a grid already drawn (a direct `enablePlugin()`
+call) it computes and renders; before, that enable showed every row until the next index cache update.
+Pinned by `__tests__/readyStep.unit.js`.
 
 ## The layout manager owns the pager's placement, unless `uiContainer` is set
 

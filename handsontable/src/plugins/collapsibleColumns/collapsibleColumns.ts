@@ -260,6 +260,14 @@ export class CollapsibleColumns extends BasePlugin {
    * re-derived the header tree for a new column order there.
    */
   #versionsBeforeCacheUpdate: number[] = [];
+  /**
+   * `true` from an enable or update until the ready step writes the `collapsible` flags. While it is set,
+   * NestedHeaders' `afterHeaderStateRebuild` local hook leaves the flags to the step, which runs right after
+   * NestedHeaders' own, so one pass writes them once.
+   *
+   * @type {boolean}
+   */
+  #flagsOwed = false;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -295,7 +303,6 @@ export class CollapsibleColumns extends BasePlugin {
     this.headerStateManager = this.nestedHeadersPlugin.getStateManager();
     this.nestedHeadersPlugin.addLocalHook('afterHeaderStateRebuild', this.#onAfterHeaderStateRebuild);
 
-    this.addHook('init', this.#onInit);
     this.addHook('afterGetColHeader', this.#onAfterGetColHeader);
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
     // NestedHeaders (priority 280) rebuilds the header tree on column insert/remove/move before this
@@ -311,9 +318,8 @@ export class CollapsibleColumns extends BasePlugin {
     this.hot.columnIndexMapper.addLocalHook('afterCacheUpdate', this.#onAfterColumnCacheUpdate);
 
     this.registerShortcuts();
+    this.#flagsOwed = true;
     super.enablePlugin();
-    // @TODO: Workaround for broken plugin initialization abstraction (#6806).
-    this.updatePlugin();
   }
 
   /**
@@ -322,22 +328,30 @@ export class CollapsibleColumns extends BasePlugin {
    * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
    *   - [`collapsibleColumns`](@/api/options.md#collapsiblecolumns)
    *   - [`nestedHeaders`](@/api/options.md#nestedheaders)
+   *
+   * The update runs in the plugin's ready step, once the call returns and the data is loaded.
    */
   updatePlugin(): void {
-    // @TODO: Workaround for broken plugin initialization abstraction (#6806).
-    if (!this.hot.view) {
-      return;
-    }
-
-    this.#applyCollapsibleFlags();
-
+    this.#flagsOwed = true;
     super.updatePlugin();
   }
 
   /**
+   * Marks the collapsible headers and hides the `visibleWhen` columns, against the header tree NestedHeaders
+   * (priority 280) built in its own ready step just before this one. Core runs it once after each enable or
+   * update, when the data is loaded.
+   *
+   * @private
+   */
+  onGridReady(): void {
+    this.#flagsOwed = false;
+    this.#applyCollapsibleFlags();
+  }
+
+  /**
    * Writes the `collapsible` flags of the plugin's settings into the NestedHeaders state, then applies
-   * the per-child `visibleWhen` rules. NestedHeaders resets those flags whenever it builds its state
-   * from its own setting (after a data load, or a `nestedHeaders` update), so this runs again from its
+   * the per-child `visibleWhen` rules. NestedHeaders resets those flags whenever its ready step builds its
+   * state from its own setting (after a data load, or a `nestedHeaders` update), so this runs again from its
    * `afterHeaderStateRebuild` local hook. Relying on this plugin's own `afterLoadData` listener lost them:
    * that listener runs before the NestedHeaders one, which then reset the flags.
    */
@@ -1259,19 +1273,11 @@ export class CollapsibleColumns extends BasePlugin {
   };
 
   /**
-   * Updates the plugin state after HoT initialization.
-   */
-  #onInit = () => {
-    // @TODO: Workaround for broken plugin initialization abstraction (#6806).
-    this.updatePlugin();
-  };
-
-  /**
    * NestedHeaders' `afterHeaderStateRebuild` local hook callback. Its state was just built from the
    * `nestedHeaders` setting, without the `collapsible` flags, so they are written again.
    */
   #onAfterHeaderStateRebuild = () => {
-    if (this.enabled && this.hot.view) {
+    if (this.enabled && this.hot.view && !this.#flagsOwed) {
       this.#applyCollapsibleFlags();
     }
   };

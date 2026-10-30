@@ -24,6 +24,10 @@ interface ReplaceDataConfig {
   source: string;
   metaManager: MetaManagerInstance;
   firstRun: boolean | [null, string];
+  /**
+   * Runs after the `afterLoadData`/`afterUpdateData` hook and before the `afterChange` hook and the render
+   * a load after init makes. Core runs the plugins' owed ready steps there.
+   */
   beforeRender: () => void;
 }
 
@@ -147,7 +151,8 @@ function warnAboutUndetectableColumns(hotInstance: HotInstance, data: unknown[],
  * @param {string} config.internalSource The immediate internal source of the `replaceData` call.
  * @param {string} config.source The source of the call.
  * @param {boolean} config.firstRun `true` if it's a first call in the Handsontable lifecycle, `false` otherwise.
- * @param {Function} config.beforeRender Called right before the render that ends a call made after the first run.
+ * @param {Function} config.beforeRender Called before the `afterChange` hook and the render that end a call made after
+ * the first run.
  * @fires Hooks#beforeLoadData
  * @fires Hooks#beforeUpdateData
  * @fires Hooks#afterLoadData
@@ -239,8 +244,8 @@ function replaceData(
 
   // TODO: rethink the way the `afterChange` hook is being run here in the core `init` method.
   if (!firstRun) {
-    hotInstance.runHooks('afterChange', null, internalSource);
     beforeRender();
+    hotInstance.runHooks('afterChange', null, internalSource);
     hotInstance.render();
   }
 

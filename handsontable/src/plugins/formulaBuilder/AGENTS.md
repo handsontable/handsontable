@@ -131,7 +131,9 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   records that failure and warns from `afterInit` only if it is still off (`#formulasWarningPending`);
   after the init it warns at once. Pinned by `__tests__/sheetsBar.unit.ts`, which also pins the builder
   rebuild on each sheet switch. A stub grid never runs `afterInit`, so a stub test of a post-init enable
-  calls `finishInit()` first.
+  calls `finishInit()` first. This listener does not move to the ready step (`onGridReady()`,
+  `../base/AGENTS.md`), unlike the other plugins' init work: it answers for a plugin that FAILED to enable,
+  and a plugin that is not enabled owes no step. It is bound in the constructor for the same reason.
 - **A popup container element counts only while it is connected.** A framework can unmount the element
   passed in `popups.*.container` while the settings still hold it, and a popup mounted there never shows,
   so a detached element is dropped with the same warning as a selector that finds nothing. So is `null`

@@ -192,6 +192,17 @@ double-click-to-autofit needs it even with `autoRowSize: false`.
 
 Heights are also kept unchanged when every column is deleted or trimmed.
 
+## The first full measure stays on the `init` hook, on purpose
+
+Every other plugin that parked init work on `init` or `afterInit` moved it to the ready step
+(`onGridReady()`, `../base/AGENTS.md`). This one keeps its `init` listener. The steps run in
+`PLUGIN_PRIORITY` order, so a step of this plugin would run at 40, before the plugins that build what it
+measures: NestedHeaders (280) builds the header labels, MergeCells (150) the merges, and Pagination (900)
+the page. Measured from a step, the rows and the header height would be measured before that state exists
+(for AutoColumnSize that is the empty-label width defect PR #14080 fixed). Every ready step now runs before
+the `init` hook, so `init` is the point where the other plugins' state is in place and the first render has
+not run yet. AutoColumnSize keeps its listener for the same reason.
+
 ## Where to look next
 
 - The shared pipeline, sampling rules and refresh-queue behavior: `../autoColumnSize/AGENTS.md`.

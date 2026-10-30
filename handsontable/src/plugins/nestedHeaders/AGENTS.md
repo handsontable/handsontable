@@ -121,6 +121,39 @@ internal form so a single trailing `#applySyncVisibility` regenerates the matrix
 public one in a loop regenerates per iteration (expensive). If you call `triggerNodeModification` from
 outside, do not assume each call rebuilds the matrix.
 
+## The header state is built in the ready step (DEV-3646)
+
+Both plugins build their state in `onGridReady()` (`../base/AGENTS.md`, "The ready step"), never in
+`enablePlugin()`/`updatePlugin()`. NestedHeaders' step is the old `updatePlugin()` body: column limit, the
+live column arrangement, `setState(nestedHeaders)`, the rowspan class, `syncVisibility()` and the widths-map
+flag. CollapsibleColumns' step marks the `collapsible` flags (`mapState`/`mergeStateWith`) and re-derives the
+`visibleWhen` set. Core runs the steps in priority order, so NestedHeaders' tree is built before
+CollapsibleColumns reads it, at init, on `updateSettings()`, and on `loadData()`. Five rules:
+
+- **`updatePlugin()` only owes the step.** It sets `#stateOwed` and calls `super.updatePlugin()`; the step runs
+  when the call returns. A direct `getPlugin('nestedHeaders').updatePlugin()` still rebuilds the tree before it
+  returns control to the caller's next line, but the caller renders, as before.
+- **No `init` listener and no `updatePlugin()` call from `enablePlugin()`.** Those were the `#6806` replays.
+  `updateSettings()` that turns either plugin on now builds the state once; it used to build it twice (from
+  `enablePlugin()`, then from `updatePlugin()` in the same pass).
+- **`afterLoadData` (not the initial load) builds the state at once, through `#buildHeaderState()`.** Plugins
+  enable before the settings hooks are added, so this listener runs before every `afterLoadData` listener of the
+  application, and those read the rebuilt tree. Deferred to the ready step (which runs after every listener),
+  a listener that called `collapseAll()` collapsed the old tree, and the step's `setState()` then expanded every
+  group while the hiding map kept their columns hidden. The build clears `#stateOwed`, so a call that also
+  updated the plugin (a sheets bar switch) builds once: its ready step finds nothing owed.
+- **The `!this.hot.view` guards in `clearColspans()` and `clearButtons()` stay.** They run from
+  `disablePlugin()`, which can run before the view exists (a settings pass inside the init sequence turning a
+  plugin off), and disabling has no ready step.
+- **At init the state now exists before the `init` hook, and that changes the first widths by 1–2 px.**
+  AutoColumnSize (10) measures from its `init` listener, which used to run before NestedHeaders' `init` listener
+  built the tree, so it read every bottom-level header as `''` (`#onModifyColumnHeaderValue` falls back to an
+  empty label) and the ghost table's fractional widths won (`#onModifyColWidth` takes the larger). Now it
+  measures the real labels and its whole-pixel widths win: measured in Chrome over six configurations in all
+  three themes, a column whose bottom label decides its width is 1–2 px wider at init (174.2 → 176 in main).
+  Those are exactly the widths the old code reached after any `loadData()`, when AutoColumnSize re-measured with
+  the tree built (18 of 18 configurations identical), so only the first draw of such a grid changes.
+
 ## CollapsibleColumns relationship (priority ordering is load-bearing)
 
 - `NestedHeaders.PLUGIN_PRIORITY = 280`, `CollapsibleColumns.PLUGIN_PRIORITY = 290`. Lower runs first, so
@@ -144,8 +177,8 @@ outside, do not assume each call rebuilds the matrix.
   `beforeColumnMove`, so reading `getCollapsedGroups()` inside/after that hook can show fewer groups than
   before.
 - **`setState()` drops every `collapsible` flag CollapsibleColumns wrote, so the plugin runs the
-  `afterHeaderStateRebuild` local hook (the `localHooks` mixin) at the end of `updatePlugin()`**, the path
-  that calls it: enable, a `nestedHeaders` update, and every `afterLoadData`. CollapsibleColumns writes its
+  `afterHeaderStateRebuild` local hook (the `localHooks` mixin) at the end of its ready step**, the path that
+  calls `setState()`: after an enable, a `nestedHeaders` update, and every `afterLoadData`. CollapsibleColumns writes its
   flags again from that hook. Its own `afterLoadData` listener ran first, by plugin order, and lost them, so
   a `loadData()` or a sheets bar switch onto a sheet declaring `nestedHeaders` showed no collapse buttons. A
   new path that rebuilds the state from the setting must run the hook too. `rebuildState()`, `insertColumns()`
@@ -173,8 +206,8 @@ outside, do not assume each call rebuilds the matrix.
   `../collapsibleColumns/__tests__/columnOrderUpdate.unit.js`.
 - **A data load is not a reorder.** `loadData()` re-initializes the column index mapper to the identity order,
   and its cache update leaves a sequence that differs from a moved one. `beforeLoadData` drops
-  `#derivedColumnSequence`, so that update does not re-derive the tree; the `afterLoadData` `setState()` derives
-  it and marks the new order. Without that, every load after a column move derived the tree twice (one
+  `#derivedColumnSequence`, so that update does not re-derive the tree; the `setState()` of the load's ready step
+  (owed from `afterLoadData`) derives it and marks the new order. Without that, every load after a column move derived the tree twice (one
   `rebuildState()` thrown away by the `setState()` right after it), which is every sheet switch. A sequence
   written after the load (a sheets bar return, `setIndexesSequence()`) still re-derives.
 - **The sheets bar keeps the membership overrides per sheet** through the `@private`

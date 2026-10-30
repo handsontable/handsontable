@@ -2021,8 +2021,10 @@ describe('ColumnSummarySpec', () => {
       });
 
       // The result styling is plugin-internal render state - it is written declaratively and must not
-      // surface through the public cell-meta hooks.
-      expect(getCellMeta(3, 0).className).toBe('columnSummaryResult');
+      // surface through the public cell-meta hooks. The summary is written before the first render, which
+      // adds the numeric renderer's own classes, so the class is checked as a token.
+      expect(getCellMeta(3, 0).className.split(' ')).toContain('columnSummaryResult');
+      expect(getCell(3, 0)).toHaveClass('columnSummaryResult');
       expect(getCellMeta(3, 0).readOnly).toBe(true);
       expect(beforeSetCellMeta).not.toHaveBeenCalled();
       expect(afterSetCellMeta).not.toHaveBeenCalled();
@@ -2043,7 +2045,8 @@ describe('ColumnSummarySpec', () => {
 
       // A `beforeSetCellMeta` veto blocks user-facing `setCellMeta` calls, but it must not block the
       // plugin's own declarative result styling.
-      expect(getCellMeta(3, 0).className).toBe('columnSummaryResult');
+      expect(getCellMeta(3, 0).className.split(' ')).toContain('columnSummaryResult');
+      expect(getCell(3, 0)).toHaveClass('columnSummaryResult');
       expect(getCellMeta(3, 0).readOnly).toBe(true);
     });
 
