@@ -1460,9 +1460,11 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   grid's container that leaves no element focused is `focus-lost` (2.4.3): the sentinels bracket the
   container, so the focused element went away. A `body` stop after a portal stop is not judged, because the
   portal can be the last focusable element of the page, and Playwright emulates page focus, so
-  `document.hasFocus()` cannot tell leaving the page from losing the focus. A stop both walks pass is
-  judged once (the walks share one `reported` set): its role and name do not depend on the walk that
-  reached it, so a second finding would count one defect twice. Every form control a walk
+  `document.hasFocus()` cannot tell leaving the page from losing the focus. A stop both walks pass gets
+  one role or name finding (the walks share one `reported` set): its role and name do not depend on the
+  walk that reached it, so a second finding would count one defect twice. A focus loss, a Tab out of a
+  modal and a change of context on focus depend on the key, so each walk keeps its own: Tab and Shift+Tab
+  losing the focus from one cell are two defects, and fixing one leaves the other. Every form control a walk
   stopped on then gets an input (Space, ArrowDown, a letter), and an input that navigates, opens a popup
   or moves the focus away is `context-change-on-input` (3.2.2).
 - **The APG grid keys** (arrows, Home, End, Page Up, Page Down, Ctrl+Home, Enter, F2, Escape) are pressed

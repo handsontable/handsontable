@@ -197,6 +197,31 @@ test('a stop both walks of a page pass is reported once', () => {
   assert.deepEqual(findings.map(item => [item.kind, item.selector, item.step]), [['focus-stop-without-role', 'div.ht-empty-data-state', 'Tab 2']]);
 });
 
+test('a focus loss, a Tab out of a modal and a context change are judged per walk; a missing name once per stop', () => {
+  // These three depend on the key pressed: Tab and Shift+Tab losing the focus from one cell are two defects, and
+  // fixing one leaves the other. A stop's role and name do not depend on the key that reached it.
+  const lost = cell(0, 0, { locator: 'td' });
+  const opener = stop('grid', { role: 'button', name: '', ref: 5, locator: 'button.menu', contextChange: 'a menu, a dialog or a list opened' });
+  const dialog = stop('grid', { role: 'button', name: 'OK', ref: 6, locator: 'button.ok', modal: true });
+  const walks = {
+    forward: [[stop('start'), lost, stop('body')], [stop('start'), opener, stop('end')], [stop('start'), dialog, stop('end')]],
+    backward: [[stop('end'), lost, stop('body')], [stop('end'), opener, stop('start')], [stop('end'), dialog, stop('start')]],
+  };
+  const reported = new Set();
+  const findings = Object.entries(walks).flatMap(([direction, list]) => list
+    .flatMap(stops => walkFindings({ walk: walkVerdict({ direction, stops }), stops, direction, reported })));
+
+  assert.deepEqual(findings.map(item => [item.kind, item.selector, item.step]), [
+    ['focus-lost', 'td', 'Tab 2'],
+    ['focus-stop-unnamed', 'button.menu', 'Tab 1'],
+    ['context-change-on-focus', 'button.menu', 'Tab 1'],
+    ['focus-leaves-modal', 'button.ok', 'Tab 2'],
+    ['focus-lost', 'td', 'Shift+Tab 2'],
+    ['context-change-on-focus', 'button.menu', 'Shift+Tab 1'],
+    ['focus-leaves-modal', 'button.ok', 'Shift+Tab 2'],
+  ]);
+});
+
 test('a backward walk names its steps Shift+Tab; a popup walk counts from where the popup put the focus', () => {
   const stops = [stop('end'), stop('grid', { name: '', ref: 1, locator: 'button.x' }), stop('start')];
   const findings = walkFindings({ walk: walkVerdict({ direction: 'backward', stops }), stops, direction: 'backward' });

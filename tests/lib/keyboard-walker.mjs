@@ -116,7 +116,9 @@ export function walkVerdict({ direction, stops, budgetExhausted = false, exitRou
  *   `tab-keeps-focus`.
  * @param {Set<string>} [input.reported] The findings already reported on this page: the forward and the backward walk
  *   share one, because a stop's role and name do not depend on the walk that reached it, so a stop both walks pass is
- *   one finding, not one per direction, which would double the summary counts.
+ *   one role or name finding, not one per direction, which would double the summary counts. A focus loss, a Tab out of a
+ *   modal and a change of context on focus depend on the key pressed, so they are kept per direction: Tab and Shift+Tab
+ *   losing the focus from one cell are two defects, and fixing one leaves the other.
  * @returns {object[]} The findings.
  */
 export function walkFindings({ walk, stops, direction, modalExit = null, opened = false, reported = new Set() }) {
@@ -128,7 +130,8 @@ export function walkFindings({ walk, stops, direction, modalExit = null, opened 
     return press === 0 ? 'where the popup put the focus' : `${key} ${press}`;
   };
   const add = (kind, item, index, finding) => {
-    const key = `${kind}|${stopKey(item)}`;
+    const perStop = kind === 'focus-stop-without-role' || kind === 'focus-stop-unnamed';
+    const key = `${kind}|${stopKey(item)}${perStop ? '' : `|${direction}`}`;
 
     if (!reported.has(key)) {
       reported.add(key);
