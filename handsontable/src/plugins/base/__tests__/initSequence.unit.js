@@ -4,6 +4,7 @@ import { registerAllModules } from 'handsontable/registry';
 
 const EARLY_KEY = 'initSequenceEarlyProbe';
 const LATE_KEY = 'initSequenceLateProbe';
+const CONSTRUCTOR_LISTENER_KEY = 'initSequenceConstructorListenerProbe';
 const log = [];
 
 /**
@@ -87,9 +88,31 @@ class LateProbePlugin extends BasePlugin {
   };
 }
 
+/**
+ * Listens to `beforeInit` from its constructor, the way a custom plugin can. It declares no priority, so it
+ * comes after every other plugin, and it records what its listener finds.
+ */
+class ConstructorListenerProbePlugin extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return CONSTRUCTOR_LISTENER_KEY;
+  }
+
+  constructor(hotInstance) {
+    super(hotInstance);
+
+    this.hot.addHook('beforeInit', () => {
+      log.push([this.hot.guid, 'constructor listener', {
+        ownName: this.pluginName,
+        lateProbeEnabled: this.hot.getPlugin(LATE_KEY).enabled,
+      }]);
+    });
+  }
+}
+
 registerPlugin(EarlyProbePlugin);
 registerPlugin(LateProbePlugin);
 registerAllModules();
+registerPlugin(ConstructorListenerProbePlugin);
 
 const roots = [];
 
@@ -115,6 +138,54 @@ describe('BasePlugin init sequence', () => {
     grids.splice(0).forEach(hot => hot.destroy());
     roots.splice(0).forEach(root => root.remove());
     jest.restoreAllMocks();
+  });
+
+  it('should run a `beforeInit` listener a plugin adds in its constructor after the plugins are enabled', () => {
+    const hot = new Handsontable(createRoot(), {
+      [LATE_KEY]: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    grids.push(hot);
+
+    expect(entriesOf(hot, 'constructor listener').map(([, , details]) => details)).toEqual([
+      { ownName: hot.getPluginName(hot.getPlugin(CONSTRUCTOR_LISTENER_KEY)), lateProbeEnabled: true },
+    ]);
+  });
+
+  it('should run an `afterPluginsInitialized` listener before the enables, and after them at a positive ' +
+     '`orderIndex`', () => {
+    const hot = new Handsontable.Core(createRoot(), {
+      [LATE_KEY]: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const seen = [];
+
+    grids.push(hot);
+    hot.addHook('afterPluginsInitialized', () => seen.push(['order 1', hot.getPlugin(LATE_KEY).enabled]), 1);
+    hot.addHook('afterPluginsInitialized', () => seen.push(['order 0', hot.getPlugin(LATE_KEY).enabled]));
+    hot.init();
+
+    expect(seen).toEqual([
+      ['order 0', false],
+      ['order 1', true],
+    ]);
+  });
+
+  it('should enable a later plugin once when ColumnSorting and MultiColumnSorting are both declared', () => {
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const hot = new Handsontable(createRoot(), {
+      columnSorting: true,
+      multiColumnSorting: true,
+      [LATE_KEY]: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    grids.push(hot);
+
+    expect(hot.getPlugin('multiColumnSorting').enabled).toBe(false);
+    expect(entriesOf(hot, 'enable').filter(([, , key]) => key === LATE_KEY).length).toBe(1);
   });
 
   it('should let a pass inside the init sequence turn off a plugin another plugin enabled before its turn', () => {

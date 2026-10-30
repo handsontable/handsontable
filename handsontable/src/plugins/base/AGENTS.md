@@ -54,20 +54,25 @@ Gold standard to copy: `../pagination/pagination.ts`.
 Details that bite:
 
 - **Core runs the init sequence, once per grid, from one `beforeInit` listener** (`initializePlugins()` in
-  `base.ts`, registered in the Core constructor right after the plugins are built). In priority order: every
-  plugin's `init()`, enabled or not; one error for all missing `PLUGIN_DEPS`; one `afterPluginsInitialized`;
-  then `onInitEnableTurn()`, which enables each enabled plugin once (hard-conflict check included). So
-  `enablePlugin()` still runs during `beforeInit`, before the data loads and before `this.hot.view`
-  exists — see [#6806](#6806-the-initialization-order-workarounds) below. The state of the sequence lives in
-  that call. It used to live in module-level variables shared by every grid, and two `Handsontable.Core`
-  grids built before either `init()` then fired `afterPluginsInitialized` once per plugin for the second
-  grid, enabling each plugin before the next one was initialized (DEV-147).
-- **A plugin waiting for its turn is not enabled by a settings pass.** SheetsBar (910) builds its first sheet
-  from its own `enablePlugin()`, and that fires `afterUpdateSettings` mid-sequence. `onUpdateSettings`
-  returns early for a plugin that has not had its turn yet, and records whether the pass carried the
-  plugin's own option so `onInitEnableTurn()` reads the settings again. Without it, every plugin after
-  SheetsBar (ViewState, DataProvider, UndoRedo, any plugin without a priority) was enabled early by branch 2
-  and then again by its own turn, with no `disablePlugin()` in between (DEV-147). A plugin turned off by
+  `base.ts`). In priority order: every plugin's `init()`, enabled or not; one error for all missing
+  `PLUGIN_DEPS`; one `afterPluginsInitialized`, during which `onInitEnableTurn()` enables each enabled plugin
+  once (hard-conflict check included). So `enablePlugin()` still runs during `beforeInit`, before the data
+  loads and before `this.hot.view` exists — see [#6806](#6806-the-initialization-order-workarounds) below. The
+  state of the sequence lives in that call. It used to live in module-level variables shared by every grid, and
+  two `Handsontable.Core` grids built before either `init()` then fired `afterPluginsInitialized` once per
+  plugin for the second grid, enabling each plugin before the next one was initialized (DEV-147). **Where the
+  two listeners sit is the public order, so keep them there.** The `beforeInit` listener is added **before** the
+  plugins are built: a `beforeInit` listener a plugin adds in its constructor must find every plugin enabled
+  and its own `pluginName` set. The enables are a default-order listener **of** the `afterPluginsInitialized`
+  dispatch, added right before it: a listener added earlier at the default order runs before them, and one at
+  a positive `orderIndex` runs after them and sees the plugins enabled.
+- **A plugin waiting for its turn is not enabled by a settings pass.** Two built-in plugins fire
+  `afterUpdateSettings` mid-sequence: SheetsBar (910) builds its first sheet from its own `enablePlugin()`, and
+  MultiColumnSorting (170) turns itself off when `columnSorting` is declared too. `onUpdateSettings` returns
+  early for a plugin that has not had its turn yet, and records whether the pass carried the plugin's own
+  option so `onInitEnableTurn()` reads the settings again. Without it, every later plugin (ViewState,
+  DataProvider, UndoRedo, any plugin without a priority) was enabled early by branch 2 and then again by its
+  own turn, with no `disablePlugin()` in between (DEV-147). A plugin turned off by
   such a pass stays off: its turn re-reads `isEnabled()`. The consequence for SheetsBar: those plugins now
   enable **after** SheetsBar's `enablePlugin()` returns, so they no longer see the first sheet's
   `_applySettingsAndData()` load – only core's own init pass. **The skip covers only a plugin that is not
@@ -187,12 +192,14 @@ The contract:
   and disabled in one pass runs nothing.
 - **When everything exists, before the next render.** Core runs the owed steps, in `PLUGIN_PRIORITY`
   order: at init right after the view, the editor manager and the focus manager (before the `init` hook and
-  the first render); in `updateSettings()` after the `min*` sizing, before its render; in
-  `_applySettingsAndData()` after the `onDataReady()` pass, against the loaded data; in `loadData()` and
-  `updateData()` after the `afterLoadData`/`afterUpdateData` hook, before `afterChange` and the load's render
-  (`beforeRender` in `dataMap/replaceData.ts`); and in `alter()` before its closing render. Without the last
-  two, a plugin that rebuilds from its `afterLoadData` listener (NestedHeaders, CollapsibleColumns) ran its step
-  after the load had already rendered, and nothing rendered the new state.
+  the first render); in `updateSettings()` after the `min*` sizing, before its render; in `loadData()` and
+  `updateData()` after the `afterLoadData`/`afterUpdateData` hook, before `afterChange` and the render that ends
+  them (`beforeRender` in `replaceData()`), and in `alter()` before the closing render of `runAlter()`, for a step
+  one of their hooks made a plugin owe; in `_applySettingsAndData()` after the `onDataReady()` pass, against the
+  loaded data. Without the load and `alter()` points, a plugin that rebuilds from its `afterLoadData` listener
+  (NestedHeaders, CollapsibleColumns) ran its step after the load had already rendered, and nothing rendered the
+  new state. The load's step runs before `afterChange`, so an `afterChange` listener that renders draws the
+  rebuilt state.
 - **After the whole pass.** Core counts open lifecycle passes (`lifecyclePassDepth` in `core.ts`):
   `updateSettings()`, `_applySettingsAndData()`, `loadData()`, `updateData()`, `alter()`, every plugin
   lifecycle call, and a ready-step run. Steps run only when the outermost pass closes (or at its pre-render
@@ -241,9 +248,12 @@ The contract:
   (`_runWithoutFetching()`) must not fetch even when the step runs after the passive scope ended.
 - **Known limit: the steps run before the end of `updateSettings()`.** They run before its render, which
   comes before the theme hook and the layout config (`finishSettingsUpdate()`), so a step sees the state
-  that render draws. A step a plugin comes to owe during that render or that finishing work (a lifecycle call
+  that render draws. A step a plugin comes to owe during a render or that finishing work (a lifecycle call
   from an `afterRender` or `afterSetTheme` listener) runs when the pass closes, after the render, and
   nothing renders again for it.
+- **Known limit: a call nested in another pass renders ahead of the step.** A plugin's `updatePlugin()` that
+  calls `_applySettingsAndData()` during `updateSettings()` is such a call: its `resumeRender()` renders,
+  then the outer pass runs the step and renders again. That costs one extra render and the end state is right.
 
 **Not `onDataReady()`.** That hook stays the sheet-switch protocol below, called for every enabled plugin on
 every `_applySettingsAndData()`. The ready step got its own name because ColumnSummary's `onDataReady()`

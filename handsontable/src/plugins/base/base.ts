@@ -83,8 +83,8 @@ function getMissingDependenciesMessage(plugin: BasePlugin): string | null {
 /**
  * Runs the init sequence of one grid's plugins. Core calls it once, while `beforeInit` is dispatched,
  * with the plugins in `PLUGIN_PRIORITY` order: every plugin's `init()`, one error for all missing
- * dependencies, one `afterPluginsInitialized`, then one `enablePlugin()` for each enabled plugin, in the
- * same order. The state lives in this call, so grids built side by side cannot share it.
+ * dependencies, then one `afterPluginsInitialized`, during which each enabled plugin is enabled once, in
+ * the same order. The state lives in this call, so grids built side by side cannot share it.
  *
  * @param {HotInstance} hot The Handsontable instance the plugins belong to.
  * @param {BasePlugin[]} allPlugins The grid's plugins, in priority order.
@@ -111,9 +111,11 @@ export function initializePlugins(hot: HotInstance, allPlugins: BasePlugin[]): v
     ].join(''));
   }
 
+  // A listener of the dispatch at the default order index, so a listener at a positive one sees the plugins enabled.
+  hot.addHookOnce('afterPluginsInitialized', () => {
+    plugins.forEach(plugin => plugin.onInitEnableTurn());
+  });
   hot.runHooks('afterPluginsInitialized');
-
-  plugins.forEach(plugin => plugin.onInitEnableTurn());
 }
 
 /**
@@ -286,15 +288,13 @@ export class BasePlugin {
   #routeLifecycleCalls(): void {
     // `this.constructor.prototype` is the most derived class's prototype, read on every call.
     defineGetter(this, 'enablePlugin', () => this.#runLifecycleCall(true, () => {
-      this.constructor.prototype.enablePlugin.call(this);
+      return this.constructor.prototype.enablePlugin.call(this);
     }), { enumerable: false });
     defineGetter(this, 'updatePlugin', (...args: Parameters<BasePlugin['updatePlugin']>) => {
-      this.#runLifecycleCall(true, () => {
-        this.constructor.prototype.updatePlugin.apply(this, args);
-      });
+      return this.#runLifecycleCall(true, () => this.constructor.prototype.updatePlugin.apply(this, args));
     }, { enumerable: false });
     defineGetter(this, 'disablePlugin', () => this.#runLifecycleCall(false, () => {
-      this.constructor.prototype.disablePlugin.call(this);
+      return this.constructor.prototype.disablePlugin.call(this);
     }), { enumerable: false });
   }
 
@@ -304,22 +304,23 @@ export class BasePlugin {
    *
    * @param {boolean} owesReadyStep Whether the call is an enable or an update.
    * @param {Function} call The lifecycle call.
+   * @returns {*} What the call returns.
    */
-  #runLifecycleCall(owesReadyStep: boolean, call: () => void): void {
+  #runLifecycleCall<T>(owesReadyStep: boolean, call: () => T): T {
     // A destroyed plugin has no grid to run a pass on, and a host that is not a Handsontable instance
     // (a test double built around the plugin) runs no passes. The method then runs as it always did.
     if (!this.hot || typeof this.hot._runInPluginLifecyclePass !== 'function') {
-      call();
-
-      return;
+      return call();
     }
 
-    this.hot._runInPluginLifecyclePass(() => {
-      call();
+    return this.hot._runInPluginLifecyclePass(() => {
+      const result = call();
 
       if (owesReadyStep && this.enabled) {
         this.#readyStepOwed = true;
       }
+
+      return result;
     });
   }
 

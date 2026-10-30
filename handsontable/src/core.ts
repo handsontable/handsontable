@@ -2026,7 +2026,7 @@ export default function Core(
         instance.view.invalidateColumnWidthCache();
       }
 
-      // The steps a hook of this call made the plugins owe, run before its render. `alter()` holds one pass.
+      // The ready steps a hook of this call made the plugins owe, run before its render. The call holds one pass.
       runOwedReadySteps(1);
       instance.view.render();
     },
@@ -5045,7 +5045,6 @@ export default function Core(
         source,
         metaManager,
         firstRun,
-        // The steps a load hook made the plugins owe, run before the load's render. `updateData()` holds one pass.
         beforeRender: () => runOwedReadySteps(1),
       }));
   }
@@ -5143,7 +5142,6 @@ export default function Core(
         source,
         metaManager,
         firstRun,
-        // The steps a load hook made the plugins owe, run before the load's render. `loadData()` holds one pass.
         beforeRender: () => runOwedReadySteps(1),
       }));
   }
@@ -10197,18 +10195,18 @@ export default function Core(
     initializeThemeManager(theme as ThemeBuilder | undefined, readThemeOverrides(mergedUserSettings));
   }
 
+  // Registered ahead of the plugins, so a `beforeInit` listener a plugin adds in its constructor, and every
+  // listener added later, still runs after the plugins are initialized and enabled.
+  instance.addHook('beforeInit', () => {
+    initializePlugins(instance, pluginsRegistry.getItems().map(([, plugin]) => plugin as BasePlugin));
+  });
+
   getPluginsNames().forEach((pluginName) => {
     const PluginClass = getPlugin(pluginName);
 
     if (PluginClass) {
       pluginsRegistry.addItem(pluginName, new PluginClass(this));
     }
-  });
-
-  // Registered right after the plugins, where each plugin used to register its own `beforeInit` listener,
-  // so the listeners declared in the settings still run after the plugins are enabled.
-  instance.addHook('beforeInit', () => {
-    initializePlugins(instance, pluginsRegistry.getItems().map(([, plugin]) => plugin as BasePlugin));
   });
 
   registerAllShortcutContexts(instance);
