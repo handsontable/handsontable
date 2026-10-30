@@ -14,6 +14,8 @@ import { createWorkbookSnapshot } from '../../../utils/xlsxEngine/model';
 import { loadFixture as fixture, toArrayBuffer } from '../../../utils/xlsxEngine/__tests__/helpers/fixtures';
 import * as consoleHelpers from '../../../helpers/console';
 import { registerCellType } from '../../../cellTypes/registry';
+import { buildTestKey } from '../../../utils/entitlementLicenseKey/__tests__/buildTestKey';
+import { SUBSCRIPTION_KEY } from '../../../utils/entitlementLicenseKey/__tests__/fixtures';
 
 function fakeCtx(importFileSettings) {
   return { hot: { getSettings: () => ({ importFile: importFileSettings }) } };
@@ -64,7 +66,7 @@ function fakeDocument() {
   };
 }
 
-function pluginWithFakeHot(importFileSettings, { formulasEnabled = false, rtl = false } = {}) {
+function pluginWithFakeHot(importFileSettings, { formulasEnabled = false, rtl = false, licenseKey } = {}) {
   const calls = [];
   const hooks = {};
   const listeners = {};
@@ -84,7 +86,7 @@ function pluginWithFakeHot(importFileSettings, { formulasEnabled = false, rtl = 
     removeHook: (name, callback) => {
       listeners[name] = (listeners[name] ?? []).filter(listener => listener !== callback);
     },
-    getSettings: () => ({ importFile: importFileSettings }),
+    getSettings: () => ({ importFile: importFileSettings, licenseKey }),
     getPlugin: name => ({
       formulas: { isEnabled: () => formulasEnabled },
       comments: { isEnabled: () => false },
@@ -1345,5 +1347,53 @@ describe('selectSheet by index on an export with dropdowns', () => {
     expect(selectSheet(workbook, 2).name).toBe('Archive');
     // By name the helper is still reachable.
     expect(selectSheet(workbook, '_HotValidation').name).toBe('_HotValidation');
+  });
+});
+
+describe('ImportFile license gate', () => {
+  const keyWith = tokens => buildTestKey({
+    products: {
+      handsontable: {
+        capabilities: ['core', ...tokens],
+        usage_until: '2027-08-12',
+        notice: 60,
+        grace: 90,
+        flags: [],
+      },
+    },
+  });
+  const message = 'ImportFile: the license does not unlock "xlsx:import".';
+
+  it('exposes its capability declarations', () => {
+    expect(ImportFile.CAPABILITIES.map(c => c.id)).toContain('xlsx:import');
+    expect(ImportFile.CAPABILITIES.map(c => c.id)).not.toContain('xlsx:export');
+  });
+
+  it('refuses an import and reports no xlsx support when the key lacks xlsx:import', async() => {
+    const { plugin, calls } = pluginWithFakeHot(
+      { engines: { xlsx: ExcelJS } },
+      { licenseKey: keyWith(['xlsx:export']) }
+    );
+    const bytes = fixture('values');
+
+    expect(plugin.supportsImportFormat('xlsx')).toBe(false);
+    await expect(plugin.importFromArrayBuffer('xlsx', bytes)).rejects.toThrow(message);
+    await expect(plugin.importFromBlob('xlsx', new Blob([bytes]))).rejects.toThrow(message);
+    expect(calls).toEqual([]);
+  });
+
+  it('does not throw from supportsImportFormat on a disabled plugin', () => {
+    const { plugin } = pluginWithFakeHot(false, { licenseKey: keyWith(['xlsx:export']) });
+
+    expect(plugin.supportsImportFormat('xlsx')).toBe(false);
+  });
+
+  it('imports for a key with xlsx:import, a key with no xlsx token and the legacy key', async() => {
+    for (const licenseKey of [keyWith(['xlsx:import']), SUBSCRIPTION_KEY, 'non-commercial-and-evaluation']) {
+      const { plugin } = pluginWithFakeHot({ engines: { xlsx: ExcelJS } }, { licenseKey });
+
+      expect(plugin.supportsImportFormat('xlsx')).toBe(true);
+      await expect(plugin.importFromArrayBuffer('xlsx', fixture('values'))).resolves.toBeDefined();
+    }
   });
 });

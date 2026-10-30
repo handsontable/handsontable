@@ -1,6 +1,8 @@
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
+import { capabilitiesOfPlugin } from '../../utils/xlsxEngine/licenseCapabilities';
+import { getXlsxEntitlement } from '../../core/license';
 import {
   detectXlsxEngine, resolveEngineOverride, tryDetectXlsxEngine, type DetectedXlsxEngine,
 } from '../../utils/xlsxEngine/detect';
@@ -596,6 +598,13 @@ export class ImportFile extends BasePlugin {
   }
 
   /**
+   * Returns the license capabilities this plugin gates.
+   */
+  static get CAPABILITIES() {
+    return capabilitiesOfPlugin('ImportFile');
+  }
+
+  /**
    * Returns the setting keys that trigger a plugin update when changed via `updateSettings`.
    */
   static get SETTING_KEYS() {
@@ -690,12 +699,18 @@ export class ImportFile extends BasePlugin {
 
   /**
    * Returns `true` when the format can be read: `xlsx`, through the built-in engine or the one
-   * configured in `engines`. An engine of unknown shape reads nothing and answers `false`.
+   * configured in `engines`. An engine of unknown shape reads nothing and answers `false`. `'xlsx'` also
+   * answers `false` when the license key lists `xlsx:*` capabilities without `xlsx:import`. A key
+   * with no `xlsx:*` token, and the evaluation key, are not restricted.
    *
    * @param {string} format The import format, e.g. `'xlsx'`.
    * @returns {boolean}
    */
   supportsImportFormat(format: string): boolean {
+    if (format === 'xlsx' && !getXlsxEntitlement(this.hot).import) {
+      return false;
+    }
+
     const detected = tryDetectEngine(this.hot, undefined, format);
 
     return detected !== null && detected.capabilities.readFormats.includes(format);
@@ -769,6 +784,7 @@ export class ImportFile extends BasePlugin {
     format: string, buffer: ArrayBuffer | ArrayBufferView, options: ImportOptions = {}
   ): Promise<ImportResult> {
     this.#assertEnabled();
+    this.#assertLicensed(format);
 
     const detected = requireEngine(this.hot, format, options.engine);
     // Validated before the ticket is taken, so a call refused for an option never cancels an import
@@ -798,6 +814,7 @@ export class ImportFile extends BasePlugin {
    */
   async importFromBlob(format: string, blob: Blob, options: ImportOptions = {}): Promise<ImportResult> {
     this.#assertEnabled();
+    this.#assertLicensed(format);
 
     // Detected, validated and ticketed before the first `await`, so a call refused for its format,
     // its engine or an option never cancels an import in flight, and the order of the tickets is the
@@ -927,6 +944,16 @@ export class ImportFile extends BasePlugin {
       this.#importSettings = null;
     }
   };
+
+  /**
+   * Rejects an xlsx import when the license key lists `xlsx:*` capabilities without `xlsx:import`.
+   * Runs right after `#assertEnabled()`, before any engine detection or file read.
+   */
+  #assertLicensed(format: string): void {
+    if (format === 'xlsx' && !getXlsxEntitlement(this.hot).import) {
+      throwWithCause('ImportFile: the license does not unlock "xlsx:import".');
+    }
+  }
 
   /**
    * Rejects a public call on a disabled plugin (`importFile: false`), the way every other plugin's
