@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { markRaw } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import { HyperFormula } from 'hyperformula';
@@ -7,11 +8,12 @@ import type { GridSettings } from 'handsontable/settings';
 registerAllModules();
 
 // One engine, shared by every sheet of the workbook.
-const engine = HyperFormula.buildEmpty({
+// `markRaw()` keeps Vue from tracking the engine's internals.
+const engine = markRaw(HyperFormula.buildEmpty({
   // this demo uses the GPLv3 key,
   // use your own HyperFormula license key in your app
   licenseKey: 'gpl-v3',
-});
+}));
 
 const ratesData = [
   ['VAT rate', 0.23],

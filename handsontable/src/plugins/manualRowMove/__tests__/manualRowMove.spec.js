@@ -242,26 +242,17 @@ describe('manualRowMove', () => {
             expect(orderChanged).toBeFalsy();
           });
 
-          it('drag first row to the top of first header', async() => {
-            let finalIndex1;
-            let dropIndex1;
-            let movePossible1;
-            let finalIndex2;
-            let dropIndex2;
-            let movePossible2;
-            let orderChanged;
+          it('press and release the first header without moving the pointer', async() => {
+            const beforeRowMoveCallback = jasmine.createSpy('beforeRowMoveCallback');
+            const afterRowMoveCallback = jasmine.createSpy('afterRowMoveCallback');
 
             handsontable({
               data: createSpreadsheetData(10, 10),
               rowHeaders: true,
               colHeaders: true,
               manualRowMove: true,
-              beforeRowMove(...args) {
-                [, finalIndex1, dropIndex1, movePossible1] = args;
-              },
-              afterRowMove(...args) {
-                [, finalIndex2, dropIndex2, movePossible2, orderChanged] = args;
-              }
+              beforeRowMove: beforeRowMoveCallback,
+              afterRowMove: afterRowMoveCallback
             });
 
             spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
@@ -272,14 +263,9 @@ describe('manualRowMove', () => {
             spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousemove');
             spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseup');
 
-            expect(finalIndex1).toEqual(0);
-            expect(dropIndex1).toEqual(0);
-            expect(movePossible1).toBeTruthy();
-
-            expect(finalIndex2).toEqual(0);
-            expect(dropIndex2).toEqual(0);
-            expect(movePossible2).toBeTruthy();
-            expect(orderChanged).toBeFalsy();
+            expect(beforeRowMoveCallback).not.toHaveBeenCalled();
+            expect(afterRowMoveCallback).not.toHaveBeenCalled();
+            expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
           });
 
           it('drag second row above the top of first header', async() => {
@@ -369,26 +355,17 @@ describe('manualRowMove', () => {
             expect(orderChanged).toBeTruthy();
           });
 
-          it('drag second row to the bottom of first header (top of second row)', async() => {
-            let finalIndex1;
-            let dropIndex1;
-            let movePossible1;
-            let finalIndex2;
-            let dropIndex2;
-            let movePossible2;
-            let orderChanged;
+          it('press and release the second header without moving the pointer', async() => {
+            const beforeRowMoveCallback = jasmine.createSpy('beforeRowMoveCallback');
+            const afterRowMoveCallback = jasmine.createSpy('afterRowMoveCallback');
 
             handsontable({
               data: createSpreadsheetData(10, 10),
               rowHeaders: true,
               colHeaders: true,
               manualRowMove: true,
-              beforeRowMove(...args) {
-                [, finalIndex1, dropIndex1, movePossible1] = args;
-              },
-              afterRowMove(...args) {
-                [, finalIndex2, dropIndex2, movePossible2, orderChanged] = args;
-              }
+              beforeRowMove: beforeRowMoveCallback,
+              afterRowMove: afterRowMoveCallback
             });
 
             spec().$container.find('tbody tr:eq(1) th:eq(0)').simulate('mousedown');
@@ -399,14 +376,9 @@ describe('manualRowMove', () => {
             spec().$container.find('tbody tr:eq(1) th:eq(0)').simulate('mousemove');
             spec().$container.find('tbody tr:eq(1) th:eq(0)').simulate('mouseup');
 
-            expect(finalIndex1).toEqual(1);
-            expect(dropIndex1).toEqual(1);
-            expect(movePossible1).toBeTruthy();
-
-            expect(finalIndex2).toEqual(1);
-            expect(dropIndex2).toEqual(1);
-            expect(movePossible2).toBeTruthy();
-            expect(orderChanged).toBeFalsy();
+            expect(beforeRowMoveCallback).not.toHaveBeenCalled();
+            expect(afterRowMoveCallback).not.toHaveBeenCalled();
+            expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
           });
         });
 

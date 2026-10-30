@@ -66,6 +66,8 @@ type SharedDemoHot = {
   getCellMeta(row: number, column: number): { rowspan?: number, colspan?: number },
   toPhysicalRow(row: number): number,
   isListening(): boolean,
+  selectRows(row: number): boolean,
+  addHook(key: 'beforeRowMove' | 'afterRowMove', callback: (...args: unknown[]) => void): void,
   getActiveEditor(): {
     isOpened(): boolean,
     TEXTAREA: HTMLTextAreaElement | HTMLInputElement,
@@ -79,6 +81,12 @@ type SharedDemoHot = {
 };
 
 type SharedDemoWindow = { hot: SharedDemoHot };
+
+type RowMoveHookRecord = {
+  beforeRowMove: number,
+  afterRowMove: number,
+  lastAfterRowMove: { movePossible: boolean, orderChanged: boolean } | null,
+};
 
 /**
  * Page Object for the shared-demo-grid fixture: the visual suite's `/` grid, rebuilt for the functional
@@ -443,6 +451,22 @@ export class SharedDemoGridPage {
   }
 
   /**
+   * The middle of a row header, in page coordinates: where a real press on it lands.
+   *
+   * @param {number} row The visual row index.
+   * @returns {Promise<{ x: number, y: number }>}
+   */
+  private async rowHeaderCenter(row: number): Promise<{ x: number, y: number }> {
+    const box = await this.rowHeader(row).boundingBox();
+
+    if (box === null) {
+      throw new Error(`Row header ${row} has no box to press.`);
+    }
+
+    return { x: box.x + (box.width / 2), y: box.y + (box.height / 2) };
+  }
+
+  /**
    * Drags a row header with the real mouse onto the upper part of another row's header: the gesture
    * ManualRowMove takes as "put the dragged row in that row's place".
    *
@@ -450,17 +474,122 @@ export class SharedDemoGridPage {
    * @param {number} targetRow The visual row it is dropped on.
    */
   async dragRowHeaderOnto(row: number, targetRow: number): Promise<void> {
-    const from = await this.rowHeader(row).boundingBox();
+    const from = await this.rowHeaderCenter(row);
     const to = await this.rowHeader(targetRow).boundingBox();
 
-    if (from === null || to === null) {
-      throw new Error(`Row header ${row} or ${targetRow} has no box to drag between.`);
+    if (to === null) {
+      throw new Error(`Row header ${targetRow} has no box to drop on.`);
     }
 
-    await this.page.mouse.move(from.x + (from.width / 2), from.y + (from.height / 2));
+    await this.page.mouse.move(from.x, from.y);
     await this.page.mouse.down();
     await this.page.mouse.move(to.x + (to.width / 2), to.y + 3, { steps: 5 });
     await this.page.mouse.up();
+  }
+
+  /**
+   * Presses a row header with the real mouse, moves the pointer straight down by a few pixels while it
+   * stays on the header, and releases it: the grab that shows the fist cursor and, with no travel or only a
+   * jitter, moves nothing.
+   *
+   * @param {number} row The visual row whose header is pressed.
+   * @param {number} [travel] How many pixels the pointer moves down before the release.
+   */
+  async pressRowHeaderAndRelease(row: number, travel = 0): Promise<void> {
+    const from = await this.rowHeaderCenter(row);
+
+    await this.page.mouse.move(from.x, from.y);
+    await this.page.mouse.down();
+    await expect(this.page.locator('.on-moving--rows')).toHaveCount(1);
+
+    if (travel > 0) {
+      await this.page.mouse.move(from.x, from.y + travel);
+    }
+
+    await this.page.mouse.up();
+  }
+
+  /**
+   * Drags a row header onto the upper part of another row's header and back onto its own, then
+   * releases: a gesture that travels and ends where it started.
+   *
+   * @param {number} row The visual row whose header is dragged.
+   * @param {number} awayRow The visual row the pointer visits before it returns.
+   */
+  async dragRowHeaderAwayAndBack(row: number, awayRow: number): Promise<void> {
+    const from = await this.rowHeaderCenter(row);
+    const away = await this.rowHeader(awayRow).boundingBox();
+
+    if (away === null) {
+      throw new Error(`Row header ${awayRow} has no box to drag to.`);
+    }
+
+    await this.page.mouse.move(from.x, from.y);
+    await this.page.mouse.down();
+    await this.page.mouse.move(away.x + (away.width / 2), away.y + 3, { steps: 5 });
+    await this.page.mouse.move(from.x, from.y, { steps: 5 });
+    await this.page.mouse.up();
+  }
+
+  /**
+   * Selects a whole row through the API. A header click followed by a press on the same point would read
+   * as a double click, so a test that presses the header right after uses this.
+   *
+   * @param {number} row The visual row index.
+   */
+  async selectRow(row: number): Promise<void> {
+    await this.page.evaluate((r) => (window as unknown as SharedDemoWindow).hot.selectRows(r), row);
+  }
+
+  /**
+   * Starts recording the two row move hooks: how many times each ran, and the arguments of the latest
+   * `afterRowMove`.
+   */
+  async trackRowMoveHooks(): Promise<void> {
+    await this.page.evaluate(() => {
+      const { hot } = window as unknown as SharedDemoWindow;
+      const record: RowMoveHookRecord = {
+        beforeRowMove: 0,
+        afterRowMove: 0,
+        lastAfterRowMove: null,
+      };
+
+      (window as unknown as { rowMoveHookRecord: RowMoveHookRecord }).rowMoveHookRecord = record;
+      hot.addHook('beforeRowMove', () => { record.beforeRowMove += 1; });
+      hot.addHook('afterRowMove', (...args) => {
+        record.afterRowMove += 1;
+        record.lastAfterRowMove = {
+          movePossible: args[3] as boolean,
+          orderChanged: args[4] as boolean,
+        };
+      });
+    });
+  }
+
+  /**
+   * How many times each row move hook has run since `trackRowMoveHooks()`.
+   *
+   * @returns {Promise<{ beforeRowMove: number, afterRowMove: number }>}
+   */
+  async rowMoveHookCalls(): Promise<{ beforeRowMove: number, afterRowMove: number }> {
+    return this.page.evaluate(() => {
+      const { beforeRowMove, afterRowMove } = (
+        window as unknown as { rowMoveHookRecord: RowMoveHookRecord }
+      ).rowMoveHookRecord;
+
+      return { beforeRowMove, afterRowMove };
+    });
+  }
+
+  /**
+   * The `movePossible` and `orderChanged` arguments of the latest `afterRowMove`, or `null` when it has not run.
+   *
+   * @returns {Promise<{ movePossible: boolean, orderChanged: boolean } | null>}
+   */
+  async lastAfterRowMove(): Promise<{ movePossible: boolean, orderChanged: boolean } | null> {
+    return this.page.evaluate(() => (
+      window as unknown as { rowMoveHookRecord: RowMoveHookRecord }
+    ).rowMoveHookRecord.lastAfterRowMove);
   }
 
   /**

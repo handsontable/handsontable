@@ -8,35 +8,76 @@ plugin.
 ## It force-enables the Dialog plugin
 
 `enablePlugin()` resolves `getPlugin('dialog')` and, if that plugin is not enabled, sets
-`getSettings().dialog = true` directly. Two things follow:
+`getSettings().dialog = true` directly. Four things follow:
 
 - **This is the exception to "no direct cross-plugin coupling"**, and it is deliberate. Everything visible —
-  `isVisible()`, `show()`, `hide()`, `update()` — delegates to the dialog. Every one of those methods
-  re-checks `this.#dialogPlugin?.isEnabled()` before acting, because a user can switch `dialog: false` back
-  off at any time.
+  `isVisible()`, `show()`, `hide()`, `update()` — delegates to the dialog, while the dialog is this plugin's
+  (see "Loading owns the dialog" below). Every one of those methods
+  re-checks `this.#dialogPlugin?.isEnabled()` before acting; keep those checks as guards, but do not read
+  them as "the user can turn Dialog off".
+- **Dialog stays on, by design.** The direct settings write is never undone: after `loading: false` the
+  Dialog plugin is still enabled and `getSettings().dialog` is still `true`. And while `loading` is on,
+  `updateSettings({ dialog: false })` does not turn Dialog off either (measured: the plugin stays enabled
+  and `show()` still shows the overlay). Loading is built on Dialog, so this is the intended state; the
+  class JSDoc says so for users. Do not "fix" it by restoring the previous `dialog` value on disable: an
+  application may have opened its own dialog in the meantime.
 - **The dialog reference is resolved once**, guarded on `#dialogPlugin === null`, and it outlives a
   disable. **The `afterDialogFocus` hook is not**: it is registered with the tracked `this.addHook(...)` on
   every `enablePlugin()`, outside that guard, so `disablePlugin()` drops it and the next enable puts it
-  back. `updatePlugin()` runs the usual `disablePlugin(); enablePlugin();` cycle, and the tracked
-  registration is what keeps that from doubling the hook. Registering it inside the guard is the older
-  shape and it silently loses the hook on the first `updateSettings()` (fixed in #13410, covered by
-  `src/plugins/__tests__/hooksReleasedOnDisable.unit.js`).
+  back. Registering it inside the guard is the older shape and it silently loses the hook after one
+  disable and enable (fixed in #13410, covered by `src/plugins/__tests__/hooksReleasedOnDisable.unit.js`).
+- **`updatePlugin()` does NOT run the disable and enable cycle.** `disablePlugin()` hides the overlay, so
+  the cycle hid a visible loading screen on every `updateSettings()` that carried `loading`, including a
+  wrapper re-sending the same value. It keeps the plugin enabled and, when the overlay is visible, applies
+  the new options through `update({})` (an empty object: `update(undefined)` would wipe the plugin's
+  settings through `updatePluginSettings`). So no `afterLoadingHide` fires on such an update, and the
+  `afterDialogFocus` hook stays registered once. Pinned by `__tests__/loadingUpdate.unit.js`.
+- **The content element is reused while its inputs are the same** (`#content`: the id, icon, title,
+  description and sanitizer it was built from). Dialog skips a render only when the description is the
+  same, and it compares `content` by identity, so a fresh element per `#describeDialog()` re-rendered the
+  shown screen and restarted the spinner on every wrapper re-send.
+
+### Loading owns the dialog only while it shows its own screen
+
+The dialog is a surface the application uses too, so its visibility says nothing about the loading screen.
+`#ownsDialog` is set by a successful `show()` and cleared by `hide()`, by `afterDialogHide` for any other hide
+(`dialog.hide()`, Escape on a configured `closable` dialog, the Dialog plugin turned off), and by the Dialog
+plugin's replaced listener (`_addReplacedListener()`) when another dialog is shown over the screen (an app
+`dialog.show({ content })` or `dialog.update({ content })`, `showAlert()`/`showConfirm()`, the ExportFile progress
+dialog). Loading's own `update()` goes through `dialog._updateDialog()`, which calls no listener. `isVisible()`, `hide()`
+and `update()` act on the dialog only while the flag is set: before it, `loading.isVisible()` answered `true` for
+the application's own dialog, and `loading.hide()`/`update()` closed or rewrote it. Rules that ride along:
+
+- **Every way the screen goes away fires `afterLoadingHide` once, and only `hide()` fires `beforeLoadingHide`**: a
+  hide or a replacement through the Dialog plugin cannot be vetoed. `hide()` clears the flag *before* it hides the
+  dialog, so its own hide fires the hook once, after `afterDialogHide` as before.
+- **The flag is set before the dialog shows and reset when that show throws** (the error is rethrown). It has to be
+  set first, because `afterDialogFocus` fires from inside the show; without the reset a throwing
+  `beforeDialogShow` listener or a template conflict left the flag set, and the application's next dialog read as
+  the loading screen and fired a spurious `afterLoadingHide` when it hid.
+- **`show()` shows a complete description through `dialog._showDialog()`** (`#describeDialog()`), after hiding a
+  dialog the application shows. `_showDialog()` starts from the configured `dialog` options alone, so options an
+  application prepared with `dialog.update()` for another dialog (`closable: true`, say) never reach the screen.
+- **`update()` while the screen is not on screen only stores the options** for the next `show()`. It used to
+  write the loading content into the hidden dialog, which is where the cross-show leaks in `../dialog/AGENTS.md`
+  started.
+
+The replaced listener is added in `enablePlugin()` and removed in `disablePlugin()`, so it is registered once per
+enable, like the tracked hooks.
 
 ### `afterDialogFocus` fires for EVERY dialog, so the listener must check whose it is
 
 `#onAfterDialogFocus()` re-focuses the dialog container, which is what lets a screen reader announce the
 loading overlay — a loading screen always renders through `content`, so it reports no focusable elements
 and nothing inside it can hold the focus. But the hook is the **dialog's**, not this plugin's, so it also
-fires for a dialog the application opened for its own reasons. It is therefore gated on
-`getSetting('template') !== null`: a `template` dialog reports its own focusable elements and the dialog
-plugin has just focused one of them, so re-focusing the container would undo that and leave the buttons
-unannounced.
+fires for a dialog the application opened for its own reasons. It is therefore gated on `#ownsDialog`: a
+`template` dialog reports its own focusable elements and the dialog plugin has just focused one of them, so
+re-focusing the container would undo that and leave the buttons unannounced.
 
 Without the gate, enabling `loading` silently broke the confirm-dialog focus fix from DEV-47 — the dialog
 focused the first button and this listener pulled it straight back onto the container. It stayed invisible
 because `focus()` was a no-op on the `confirm` template until that same ticket fixed it, so the two
-defects hid each other. `isVisible()` is **not** a usable guard here: it delegates to
-`dialogPlugin.isVisible()`, which is true for any dialog at all.
+defects hid each other. Pinned by `__tests__/loadingOwnership.unit.js`.
 
 ## `show()` is idempotent, and vetoable only on a real open
 

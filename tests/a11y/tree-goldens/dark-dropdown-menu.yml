@@ -74,8 +74,8 @@
           - textbox "Search"
           - button "Select all":
             - button "Select all"
-          - button "Clear":
-            - button "Clear"
+          - button "Select none":
+            - button "Select none"
           - treegrid:
             - rowgroup:
               - row "Checked Blue":

@@ -104,7 +104,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: 'Vai',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: 'Izvēlēties visu',
-  [C.FILTERS_BUTTONS_CLEAR]: 'Notīrīt',
+  [C.FILTERS_BUTTONS_CLEAR]: 'Noņemt izvēli',
   [C.FILTERS_BUTTONS_OK]: 'Labi',
   [C.FILTERS_BUTTONS_CANCEL]: 'Atcelt',
 
@@ -136,6 +136,8 @@ const dictionary = {
   [C.SHEETS_BAR_PAGE_NEXT]: 'Ritināt lapas uz priekšu',
   [C.SHEETS_BAR_SHEET_CHANGED]: 'Lapa [name] aktivizēta',
   [C.SHEETS_BAR_RENAME_REJECTED]: 'Lapas nosaukums nav mainīts: [name] jau tiek izmantots',
+  [C.SHEETS_BAR_SHEET_DUPLICATED]: 'Lapa [name] dublēta kā [copy]',
+  [C.SHEETS_BAR_SHEET_MOVED]: 'Lapa [name] pārvietota uz [position]. vietu no [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Lapa',
 
   [C.LOADING_TITLE]: 'Ielādē...',

@@ -20,6 +20,12 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
 - `PLUGIN_PRIORITY = 290`, and `static PLUGIN_DEPS = ['plugin:NestedHeaders']`. NestedHeaders is 280, so
   it rebuilds the tree (and applies move/reparent overrides) **before** this plugin re-derives its
   `visibleWhen` hidden set. This ordering is load-bearing — see the NestedHeaders doc.
+- **The `collapsible` flags are written from NestedHeaders' `afterHeaderStateRebuild` local hook, not from
+  this plugin's `afterLoadData`** (`#applyCollapsibleFlags()`, registered on the NestedHeaders plugin in
+  `enablePlugin()` and removed in `disablePlugin()`). Plugin order runs this plugin's `afterLoadData` before
+  NestedHeaders rebuilds its state from the setting, and that rebuild drops the flags, so the buttons
+  disappeared after a `loadData()` and never showed on a sheets bar sheet declaring `nestedHeaders`. Pinned by
+  `__tests__/headerStateRebuild.unit.js` and `tests/e2e/sheets-bar-collapsible-nested-headers.spec.ts`.
 - **Two separate hiding maps**, both type `'hiding'`:
   - `this.pluginName` (`'collapsibleColumns'`) — legacy first-visible-child collapse;
     `getCollapsedColumns()` reports this map (PHYSICAL indexes).
@@ -31,6 +37,19 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
   rollbacks — including for declarative groups that flipped `isCollapsed` but reported no affected columns.
 - On a move that would split a *collapsed* group, this plugin **preemptively expands it** in
   `beforeColumnMove`, so `getCollapsedGroups()` read in/after that hook can return fewer groups.
+- **A column order written without a move (`setIndexesSequence()`, source `'update'`) never reaches
+  `beforeColumnMove`, so nothing expands a group it splits first.** NestedHeaders re-derives the tree in its
+  `cacheUpdated` handler and drops the split group's collapse, and the collapse hiding map kept its columns
+  hidden with no button left to show them. This plugin records the state manager's
+  `getCollapsedGroupsVersion()` in the mapper's `beforeCacheUpdate` local hook (a stack, since cache updates
+  nest) and, when the version moved by `afterCacheUpdate`, rebuilds the map from the collapsed groups
+  (`#collapseGroups()`). It runs in `afterCacheUpdate`, not `cacheUpdated`, so it does not depend on the
+  order the two plugins registered their local hooks and its own map write is a separate cache update.
+- **`#collapseGroups()` makes the groups the record and the map a derivative.** It re-collapses the given
+  groups through `importCollapsedGroups(groups, visibility)`, which returns the visual columns the collapses
+  hide, and writes the map only when that set differs. The visibility passed in leaves this plugin's own
+  map out: a column the map hid before would otherwise count as hidden by another source and move a group's
+  first visible column.
 - Hook-payload coordinate spaces are mixed under active moves/trim: `currentCollapsedColumns` is PHYSICAL,
   `destinationCollapsedColumns` mixes physical + visual with no conversion. Re-read `getCollapsedColumns()`
   after structural changes rather than caching a hook payload.
@@ -50,6 +69,24 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
   clear that map (older behavior), so right after it the collapsed columns stay hidden with no group
   collapsed. The same config sent again (a wrapper re-render) is not another configuration: the version
   stays, so an undo and a redo across it put the group back with its hidden columns.
+- **`restoreState()` rebuilds the hiding map from the groups it imports (`#collapseGroups()`), not only the
+  tree.** UndoRedo restores the column index maps before the plugin states, and the order restore is a
+  cache update: NestedHeaders re-derives the tree, which still has the group the undone move split
+  expanded, so `#onAfterColumnCacheUpdate` rebuilds the map from no groups and clears the columns the
+  snapshot had just hidden. A tree-only import then left the group collapsed with every column showing.
+  For the same reason `#collapseGroups([])` skips its early return while the tree still has a collapsed
+  group: an undone collapse must expand the tree even when the map is already empty. Pinned in
+  `../undoRedo/__tests__/pluginState.unit.js` ("undo of a move that split its group").
+- **The sheets bar keeps the collapsed groups per sheet through `_exportViewState()` and
+  `_importViewState()`**, because a data load rebuilds the header state with every group expanded. Like
+  `restoreState()`, `_importViewState()` writes this plugin's hiding map too, since a load re-creates it
+  empty. The state holds the groups only, and the import
+  derives the hidden columns through `#collapseGroups()`: columns captured under the old column order and
+  membership could name a column that, after a return with the order reset (a `manualColumnMove` redeclared
+  through `updateSheetSettings()`, or an order of another length), sits in a group that is not collapsed, and
+  expanding the collapsed group never released it. It runs no collapse hook and does not check the
+  config version: a sheet that changed its `nestedHeaders` or `collapsibleColumns` while hidden has the part
+  reset by the bar instead.
 - **`getStateColumns()` answers `[]`.** A group is recorded by header position, and the columns a
   collapse hides are in this plugin's hiding maps, which the UndoRedo check of a `columns` settings
   update reads column by column. Without the method a collapse step - and every step older than it -

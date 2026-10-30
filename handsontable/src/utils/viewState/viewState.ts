@@ -18,6 +18,24 @@ export interface TrackedCellMeta {
 }
 
 /**
+ * One merged area of a {@link ViewState}: where it is drawn, by visual indexes, and, when MergeCells knows
+ * them, the physical rows it owns and its physical left column. The restore places an area that carries
+ * them from those, so it covers the same cells whatever row and column order the sheet returns with.
+ */
+export interface MergedAreaState extends MergeAreaGeometry {
+
+  /**
+   * The physical rows the area owns. Internal to the sheets bar, and its shape may change.
+   */
+  physicalRows?: number[];
+
+  /**
+   * The physical left column of the area. Internal to the sheets bar, and its shape may change.
+   */
+  physicalColumn?: number;
+}
+
+/**
  * One sorted column of a {@link ViewState}, by its physical index.
  */
 export interface SortedColumn {
@@ -33,6 +51,13 @@ export interface SortedColumn {
  */
 export interface ViewState {
   rowSequence: number[];
+
+  /**
+   * The row header number of every physical row, kept by the `'strict'` BindRowsWithHeaders strategy. Absent
+   * when that strategy is off, since the other one numbers each row by its physical index. Part of the row
+   * order. Internal to the sheets bar, and its shape may change.
+   */
+  rowHeaders?: number[];
   unsortedRowSequence: number[];
   columnSequence: number[];
   hiddenRows: number[];
@@ -47,7 +72,13 @@ export interface ViewState {
    */
   sortConfig: SortedColumn[];
   filterConditions: unknown[] | null;
-  mergedCells: MergeAreaGeometry[];
+
+  /**
+   * The merged areas on screen. Each carries its visual geometry, for a listener to read, and the physical
+   * rows and left column it owns when MergeCells has captured them; the restore places an area by those
+   * when they are present, and by its visual geometry otherwise.
+   */
+  mergedCells: MergedAreaState[];
   fixedColumnsStart: number | undefined;
   fixedColumnsEnd: number | undefined;
   fixedRowsTop?: number | undefined;
@@ -80,6 +111,52 @@ export interface ViewState {
    */
   selectionState: SelectionState | null;
   scroll: { row: number, col: number };
+
+  /**
+   * The collapsed CollapsibleColumns groups, or `null` when the plugin is off.
+   * Absent from a view state the `ViewState` plugin built, which does not restore it. Internal to the sheets
+   * bar, and its shape may change.
+   */
+  collapsedColumns?: CollapsedColumnsState | null;
+
+  /**
+   * The header group a moved column joined, per NestedHeaders level, or `null` when the plugin is off.
+   * Captured and restored with `collapsedColumns`, and put back only together with the column order it
+   * was recorded for. Absent from a view state the `ViewState` plugin built, which does not restore it.
+   */
+  columnMembership?: ColumnMembershipState | null;
+
+  /**
+   * The rows checked through RowSelection, or `null` when the plugin is off or a bound checkbox column
+   * holds them. Absent from a view state the `ViewState` plugin built, which does not restore it. Internal to
+   * the sheets bar, and its shape may change.
+   */
+  checkedRows?: CheckedRowsState | null;
+}
+
+/**
+ * The collapsed CollapsibleColumns groups of one sheet, by header level and authored group identity.
+ * The columns they hide are derived on the restore, against the column order and the group membership
+ * the sheet comes back with.
+ */
+export interface CollapsedColumnsState {
+  groups: Array<{ headerLevel: number, authoredColumnIndex: number }>;
+}
+
+/**
+ * The header group membership column moves left behind on one sheet, as
+ * `[physicalColumn, [[headerLevel, ownerIdentity], ...]]` entries.
+ */
+export type ColumnMembershipState = Array<[number, Array<[number, number]>]>;
+
+/**
+ * The rows one sheet checked through RowSelection: the physical rows of its selection map and, for a
+ * server-backed sheet, its selection by row id and the row count of its server query.
+ */
+export interface CheckedRowsState {
+  rows: number[];
+  server: { selectAll: boolean, toggledRowIds: unknown[] } | null;
+  serverTotalRows: number;
 }
 
 /**
@@ -93,7 +170,8 @@ export interface PaginationState {
 
 /**
  * One independently restorable part of a view state. A restore given a set of parts runs only
- * their steps, in the usual order; a restore given none runs every step.
+ * their steps, in the usual order; a restore given none runs every step. `collapsedColumns` and
+ * `checkedRows` are the sheets bar's own: the `ViewState` plugin never passes them.
  */
 export type ViewStatePart =
   'columnOrder' |
@@ -104,6 +182,8 @@ export type ViewStatePart =
   'hiddenRows' |
   'hiddenColumns' |
   'collapsedRows' |
+  'collapsedColumns' |
+  'checkedRows' |
   'columnWidths' |
   'rowHeights' |
   'mergedCells' |
@@ -125,6 +205,8 @@ export const VIEW_STATE_PARTS: readonly ViewStatePart[] = [
   'hiddenRows',
   'hiddenColumns',
   'collapsedRows',
+  'collapsedColumns',
+  'checkedRows',
   'columnWidths',
   'rowHeights',
   'mergedCells',
@@ -217,6 +299,7 @@ function captureAxisState(hot: HotInstance, covers: PartFilter = () => true) {
   // request for a scroll position on a million-row grid must not pay for.
   return {
     rowSequence: covers('rowOrder') ? hot.rowIndexMapper.getIndexesSequence().slice() : [],
+    rowHeaders: covers('rowOrder') ? captureStrictRowHeaders(hot) : undefined,
     unsortedRowSequence: covers('sort') ? captureUnsortedRowSequence(hot) : [],
     columnSequence: covers('columnOrder') ? hot.columnIndexMapper.getIndexesSequence().slice() : [],
     hiddenRows: covers('hiddenRows') ? hiddenRowsMap?.getHiddenIndexes() ?? [] : [],
@@ -224,6 +307,24 @@ function captureAxisState(hot: HotInstance, covers: PartFilter = () => true) {
       (hiddenColumnsPlugin?.getHiddenColumns() ?? []).map(col => hot.toPhysicalColumn(col)) : [],
     trimmedRows: covers('trimmedRows') ? trimRowsPlugin?.getTrimmedRows() ?? [] : [],
   };
+}
+
+/**
+ * Returns the BindRowsWithHeaders plugin when it is enabled. Read through the typed `getPlugin()` overload, so
+ * a change to the methods the view state calls on it fails the type check.
+ */
+function getEnabledBindRowsWithHeaders(hot: HotInstance) {
+  const bindRowsWithHeaders = hot.getPlugin('bindRowsWithHeaders');
+
+  return bindRowsWithHeaders?.enabled ? bindRowsWithHeaders : undefined;
+}
+
+/**
+ * Captures the row header numbers the `'strict'` BindRowsWithHeaders strategy keeps, by physical row. A data
+ * load re-initializes them to the physical indexes, so a sheet switch would renumber every inserted row.
+ */
+function captureStrictRowHeaders(hot: HotInstance): number[] | undefined {
+  return getEnabledBindRowsWithHeaders(hot)?._exportStrictHeaders() ?? undefined;
 }
 
 /**
@@ -303,6 +404,79 @@ function restoreCollapsedParents(hot: HotInstance, state: ViewState) {
     .filter((row): row is number => row !== null && dataManager.hasChildren(row));
 
   nestedRows.collapsingUI.toggleCollapsedRows(parents, 'collapse', false, false);
+}
+
+/**
+ * The part of the CollapsibleColumns plugin the view state talks to.
+ */
+interface CollapsibleColumnsPlugin {
+  _exportViewState: () => CollapsedColumnsState | null;
+  _importViewState: (state: CollapsedColumnsState | null) => void;
+}
+
+/**
+ * The part of the NestedHeaders plugin the view state talks to.
+ */
+interface NestedHeadersPlugin {
+  _exportViewState: () => ColumnMembershipState | null;
+  _importViewState: (state: ColumnMembershipState | null) => void;
+}
+
+/**
+ * The part of the RowSelection plugin the view state talks to.
+ */
+interface RowSelectionPlugin {
+  _exportViewState: () => CheckedRowsState | null;
+  _importViewState: (state: CheckedRowsState | null) => void;
+}
+
+/**
+ * Captures the collapsed CollapsibleColumns groups. A data load rebuilds the header state with every
+ * group expanded, so a sheet switch would otherwise expand them all.
+ */
+function captureCollapsedColumns(hot: HotInstance): CollapsedColumnsState | null {
+  return (getEnabledPlugin(hot, 'collapsibleColumns') as CollapsibleColumnsPlugin | undefined)
+    ?._exportViewState() ?? null;
+}
+
+/**
+ * Captures the header group a moved column joined. A data load rebuilds the header state from the
+ * authored groups, so a sheet switch would otherwise split a group that adopted a column.
+ */
+function captureColumnMembership(hot: HotInstance): ColumnMembershipState | null {
+  return (getEnabledPlugin(hot, 'nestedHeaders') as NestedHeadersPlugin | undefined)?._exportViewState() ?? null;
+}
+
+/**
+ * Puts the stored group membership back and derives the headers from it, with no hooks.
+ */
+function restoreColumnMembership(hot: HotInstance, state: ViewState) {
+  (getEnabledPlugin(hot, 'nestedHeaders') as NestedHeadersPlugin | undefined)
+    ?._importViewState(state.columnMembership ?? null);
+}
+
+/**
+ * Collapses the stored groups again, with the collapse hooks off, and expands every other group.
+ */
+function restoreCollapsedColumns(hot: HotInstance, state: ViewState) {
+  (getEnabledPlugin(hot, 'collapsibleColumns') as CollapsibleColumnsPlugin | undefined)
+    ?._importViewState(state.collapsedColumns ?? null);
+}
+
+/**
+ * Captures the rows checked through RowSelection. `loadData` re-creates its selection map empty, and a
+ * server-backed grid's selection by row id belongs to the server of the sheet it was made on.
+ */
+function captureCheckedRows(hot: HotInstance): CheckedRowsState | null {
+  return (getEnabledPlugin(hot, 'rowSelection') as RowSelectionPlugin | undefined)?._exportViewState() ?? null;
+}
+
+/**
+ * Puts the stored checked rows back, with the selection hooks off, replacing whatever is checked now.
+ */
+function restoreCheckedRows(hot: HotInstance, state: ViewState) {
+  (getEnabledPlugin(hot, 'rowSelection') as RowSelectionPlugin | undefined)
+    ?._importViewState(state.checkedRows ?? null);
 }
 
 /**
@@ -387,12 +561,14 @@ function getEnabledMergeCells(hot: HotInstance) {
 }
 
 /**
- * Captures the merged cell ranges on screen as plain `{row, col, rowspan, colspan}` records.
- * A merge whose rows are all trimmed is left out: restored at its stale position it would come
- * back as a visible merge over unrelated rows.
+ * Captures the merged cell ranges as `{row, col, rowspan, colspan}` records, each with the physical rows
+ * it owns and its physical left column. Visual coordinates name cells only under the order they were read
+ * with, and the restore runs under another one (see {@link restoreMergedCells}). A merge whose rows are all
+ * trimmed is captured by its anchor and restored off screen, so it is drawn again once its rows return. One
+ * without an anchor is captured only while it is on screen: its stale position would name unrelated rows.
  */
-function captureMergedCells(hot: HotInstance): MergeAreaGeometry[] {
-  return getEnabledMergeCells(hot)?.getVisibleMergedAreas() ?? [];
+function captureMergedCells(hot: HotInstance): MergedAreaState[] {
+  return getEnabledMergeCells(hot)?._exportMergedAreas() ?? [];
 }
 
 /**
@@ -630,6 +806,9 @@ export function captureViewState(
   return {
     ...captureAxisState(hot, covers),
     collapsedParents: covers('collapsedRows') ? captureCollapsedParents(hot) : neutral.collapsedParents,
+    collapsedColumns: covers('collapsedColumns') ? captureCollapsedColumns(hot) : neutral.collapsedColumns,
+    columnMembership: covers('collapsedColumns') ? captureColumnMembership(hot) : neutral.columnMembership,
+    checkedRows: covers('checkedRows') ? captureCheckedRows(hot) : neutral.checkedRows,
     colWidths,
     rowHeights,
     sortConfig: covers('sort') ? captureSortConfig(hot) : neutral.sortConfig,
@@ -707,7 +886,8 @@ function restoreHiddenState(hot: HotInstance, state: ViewState, covers: PartFilt
 }
 
 /**
- * Clears the sort when one is on and the grid sorts its own rows.
+ * Clears the sort when one is on and the grid sorts its own rows. A grid with no sort is left alone, so a
+ * switch between unsorted sheets fires no `beforeColumnSort`/`afterColumnSort`.
  */
 function clearActiveSort(hot: HotInstance) {
   const sorting = getSortingPlugin(hot);
@@ -740,14 +920,17 @@ function restoreSequence(
 /**
  * Restores the row/column order together with the sort state. The sorting plugin owns the
  * row order while a sort is on: it sorts from the order it cached before the first sort, and
- * resets the rows to that cache every time it sorts. So the sort is cleared first (dropping
- * the states the previous sheet left behind), the unsorted order is handed back, the sort is
- * re-applied on top of it, and only then the exact live order — which may carry manual moves
- * made after the sort — is written last.
+ * resets the rows to that cache every time it sorts. So a sort that is on is cleared first
+ * (dropping the states the previous sheet left behind), the unsorted order is handed back, the
+ * sort is re-applied on top of it — the plugin takes the order it finds as its cache, because the
+ * sort starts from empty states — and only then the exact live order, which may carry manual moves
+ * made after the sort, is written last.
  *
  * A `beforeColumnSort` listener can cancel either `sort()` call. The rows still land in the
  * captured order, which is written directly, so `restoreCanceledSortStates()` puts the sort
- * states back to match them.
+ * states back to match them. It runs right after the canceled call, while the rows are still in
+ * the unsorted order, because writing the states onto an unsorted grid is when the plugin takes
+ * its cache.
  *
  * Returns the order parts whose stored sequence no longer matched the data's length and was
  * therefore not written.
@@ -765,11 +948,17 @@ function restoreAxisState(hot: HotInstance, state: ViewState, covers: PartFilter
   }
 
   if (sorting) {
-    sorting.sort([]);
+    clearActiveSort(hot);
 
     if (hasSortConfig) {
-      restoreSequence(hot.rowIndexMapper, state.unsortedRowSequence ?? state.rowSequence);
+      const isUnsortedOrderRestored =
+        restoreSequence(hot.rowIndexMapper, state.unsortedRowSequence ?? state.rowSequence);
+
       sorting.sort(toPluginSortConfig(hot, state.sortConfig));
+
+      if (isUnsortedOrderRestored && covers('rowOrder')) {
+        restoreCanceledSortStates(sorting, toPluginSortConfig(hot, state.sortConfig));
+      }
     }
   }
 
@@ -786,14 +975,14 @@ function restoreAxisState(hot: HotInstance, state: ViewState, covers: PartFilter
     clearActiveSort(hot);
   }
 
-  const isRowOrderRestored = restoreSequence(hot.rowIndexMapper, state.rowSequence);
-
-  if (!isRowOrderRestored) {
+  if (!restoreSequence(hot.rowIndexMapper, state.rowSequence)) {
     notApplied.push('rowOrder');
+
+    return notApplied;
   }
 
-  if (sorting && hasSortConfig && isRowOrderRestored) {
-    restoreCanceledSortStates(sorting, toPluginSortConfig(hot, state.sortConfig));
+  if (state.rowHeaders) {
+    getEnabledBindRowsWithHeaders(hot)?._importStrictHeaders(state.rowHeaders);
   }
 
   return notApplied;
@@ -804,21 +993,23 @@ function restoreAxisState(hot: HotInstance, state: ViewState, covers: PartFilter
  * `sort()`. A canceled call returns before the plugin records the states, and `loadData` has
  * already cleared them, so the header indicators and `getSortConfig()` would describe an unsorted
  * grid over the sorted rows. It goes through `setSortConfig()`, the pattern the sorting plugin
- * documents for a canceled sort. The caller runs it only once the captured row order is back: when
- * the sheet's data changed size while it was away, the order is skipped, the rows stay in the
- * `loadData` order, and an indicator would claim a sort they do not have.
+ * documents for a canceled sort, and it runs while the rows are in the captured unsorted order,
+ * which `setSortConfig()` then keeps as the order a later clear goes back to. The caller runs it
+ * only when that order and the row order are restored: when the sheet's data changed size while it
+ * was away, the order is skipped, the rows stay in the `loadData` order, and an indicator would
+ * claim a sort they do not have.
  *
  * Nothing is written when the states are no longer empty: the sort ran, or the listener that
- * canceled it set a config of its own, which stays. Nothing is written either while the plugin
- * holds no pre-sort row cache. It builds that cache only inside a `sort()` that starts from empty
- * states, so states written without one make the next `sort()` throw. The cache is missing after
- * the plugin was disabled and enabled again, which a sheet declaring `columnSorting: false` does
- * on every switch.
+ * canceled it set a config of its own, which stays. The states are written when the plugin holds
+ * no pre-sort row cache too (it was disabled and enabled again, which a sheet declaring
+ * `columnSorting: false` does on every switch): `setSortConfig()` builds no cache then, and the
+ * sorting plugin takes it from the rows of the next sort or clear, as it does after any
+ * `setSortConfig()` on a grid that never sorted.
  */
 function restoreCanceledSortStates(sorting: SortingPlugin, sortConfig: SortedColumn[]) {
   const currentStates = sorting.getSortConfig() as unknown[];
 
-  if (sorting.indexesSequenceCache === null || currentStates.length > 0) {
+  if (currentStates.length > 0) {
     return;
   }
 
@@ -956,11 +1147,17 @@ export function clearMergedCells(hot: HotInstance): void {
 /**
  * Restores merged cell ranges into a collection {@link clearMergedCells} emptied before the
  * sheet's data load. The merges the sheet's settings declare are not built on this path.
- * MergeCells drops a stored merge that no longer fits — the sheet's data is the caller's own and
- * can shrink while the sheet is away — and one that would overlap a merge already on screen,
- * which a host listener can add during the load. The rest go through the automatic merge path,
- * like merges declared in the settings: the hooks report `auto`, so a listener can tell a restore
- * from a user's merge, and no cell is written, so the covered cells keep the values they hold.
+ * MergeCells drops a stored merge whose rows or columns no longer exist — the sheet's data is the
+ * caller's own and can shrink while the sheet is away — and one that would overlap a merge already
+ * on screen, which a host listener can add during the load. It puts an anchored merge back the way
+ * the grid held it, also one a sort drew past the last row or whose rows a filter hides. A merge it
+ * draws fires the merge hooks with `auto`, so a listener can tell a restore from a user's merge,
+ * and no cell is written, so the covered cells keep the values they hold.
+ *
+ * It runs after the restore's batch, once the index cache holds the restored row and column order: an area is
+ * placed from its physical anchor through that cache, and a merge made inside the batch was placed through the
+ * order from before the restore, so a sheet with a sort or a row or column move got its merges back over
+ * other cells.
  */
 function restoreMergedCells(hot: HotInstance, state: ViewState) {
   getEnabledMergeCells(hot)?.restoreMergedAreas(state.mergedCells);
@@ -1002,7 +1199,9 @@ export function clearCustomBorders(hot: HotInstance): void {
  * which decide the visual space; then the hidden sets, which are addressed in it; then the
  * collapsed NestedRows parents, after the hidden sets because collapsing trims the children out
  * of that visual space and a hidden child would no longer be found by its visual index; then
- * sizes, merges, freeze, and borders, none of which depend on each other.
+ * sizes, freeze, and borders, none of which depend on each other. After the batch come the merges,
+ * which are placed through the index cache and need the restored order in it (see {@link restoreMergedCells}),
+ * then the collapsed column groups, whose header tree is derived through the same cache, and the checked rows.
  *
  * The kept cell meta (`state.cellMeta`) is not replayed here: the sheets bar hands it to core's
  * `_applySettingsAndData()` together with the sheet's rows, which writes it back before the cell
@@ -1042,10 +1241,6 @@ export function restoreViewState(
 
     restoreSizes(hot, state, covers);
 
-    if (covers('mergedCells')) {
-      restoreMergedCells(hot, state);
-    }
-
     // A captured `undefined` means no freeze was configured when the sheet was captured, so a
     // freeze another sheet set at runtime is cleared back to none rather than left in force. The
     // frozen end columns and the frozen rows follow the same rule as the start ones.
@@ -1058,9 +1253,35 @@ export function restoreViewState(
     }
   });
 
+  if (covers('mergedCells')) {
+    safeBatch(hot, () => restoreMergedCells(hot, state));
+  }
+
+  restorePluginStates(hot, state, part => covers(part) && !notApplied.includes(part));
   hot.render();
 
   return notApplied;
+}
+
+/**
+ * Puts back the header group membership, the collapsed column groups, and the checked rows, the state
+ * three plugins keep for the data they show and drop on every `loadData()`. Runs outside the restore batch
+ * (see {@link restoreViewState}). The membership goes first, so the groups collapse on the headers it
+ * derives, and only with the column order it was recorded for: against another order, a column would
+ * join a group it no longer sits next to.
+ */
+function restorePluginStates(hot: HotInstance, state: ViewState, covers: PartFilter) {
+  if (covers('collapsedColumns') && covers('columnOrder')) {
+    restoreColumnMembership(hot, state);
+  }
+
+  if (covers('collapsedColumns')) {
+    restoreCollapsedColumns(hot, state);
+  }
+
+  if (covers('checkedRows')) {
+    restoreCheckedRows(hot, state);
+  }
 }
 
 /**
@@ -1095,19 +1316,25 @@ export function restoreViewport(hot: HotInstance, state: ViewState, parts?: Read
 }
 
 /**
- * Opens a never-visited sheet on the configured initial page and page size, instead of the page
- * and page size the previous sheet left behind. Runs after the render batch, like
- * {@link restoreViewport}, so the page count is the arriving sheet's. With `parts` given, the page
- * is reset only when they include `pagination`.
+ * Opens a never-visited sheet on the configured initial page and page size, and scrolled to its first
+ * row and column, instead of the page, the page size, and the scroll offset the previous sheet left
+ * behind: `loadData` keeps the holder's scroll offset. Runs after the render batch, like
+ * {@link restoreViewport}, so the page count and the column widths are the arriving sheet's. With
+ * `parts` given, only the page and the scroll position those parts name are reset.
  */
 export function resetViewport(hot: HotInstance, parts?: ReadonlySet<ViewStatePart>): void {
+  const covers = toPartFilter(parts);
   const pagination = getLocalPagination(hot);
 
-  if (pagination && toPartFilter(parts)('pagination')) {
+  if (pagination && covers('pagination')) {
     applyPagination(hot, {
       page: pagination.getSetting('initialPage') as number,
       pageSize: pagination.getSetting('pageSize') as number | 'auto',
     });
+  }
+
+  if (covers('scroll')) {
+    hot.scrollViewportTo({ row: 0, col: 0, verticalSnap: 'top', horizontalSnap: 'start' });
   }
 }
 
@@ -1158,6 +1385,8 @@ function stepTowardsRow(pagination: PaginationPlugin, row: number): boolean {
  * page, so a gap of many pages fires the page hooks once, and then walks one page at a time: a walk
  * cannot overshoot, where repeated estimates from pages of different lengths can bounce past the
  * row for ever. Stops when a step does not move the page, and after one pass over the page count.
+ * A jump that does not land on the estimate was vetoed by a `beforePageChange` listener, and the
+ * follow gives up there: walking on would fire the page hooks for every page in between.
  */
 function followRow(hot: HotInstance, pagination: PaginationPlugin, row: number): boolean {
   const { totalPages } = pagination.getPaginationData();
@@ -1165,6 +1394,10 @@ function followRow(hot: HotInstance, pagination: PaginationPlugin, row: number):
 
   if (estimate !== pagination.getCurrentPage()) {
     pagination.setPage(estimate);
+
+    if (pagination.getCurrentPage() !== estimate) {
+      return false;
+    }
   }
 
   for (let step = 0; step < totalPages && !isRowOnPage(pagination, row); step++) {
@@ -1205,12 +1438,13 @@ export function keepSelectionOnPage(hot: HotInstance, follow: boolean): void {
 
 /**
  * Returns the view state a never-visited sheet opens with: nothing hidden, trimmed,
- * sorted, filtered, merged, bordered, or manually sized. The row/column sequences are
+ * sorted, filtered, merged, bordered, collapsed, checked, or manually sized. The row/column sequences are
  * left empty because `loadData` has already reset both mappers by the time this runs.
  */
 export function createNeutralViewState(): ViewState {
   return {
     rowSequence: [],
+    rowHeaders: undefined,
     unsortedRowSequence: [],
     columnSequence: [],
     hiddenRows: [],
@@ -1232,6 +1466,9 @@ export function createNeutralViewState(): ViewState {
     selection: undefined,
     selectionState: null,
     scroll: { row: 0, col: 0 },
+    collapsedColumns: null,
+    columnMembership: null,
+    checkedRows: null,
   };
 }
 
@@ -1338,7 +1575,7 @@ export function resetViewState(
     }
 
     if (covers('sort')) {
-      getSortingPlugin(hot)?.sort([]);
+      clearActiveSort(hot);
     }
 
     if (covers('filters')) {
@@ -1357,5 +1594,6 @@ export function resetViewState(
     }
   });
 
+  restorePluginStates(hot, state, covers);
   hot.render();
 }

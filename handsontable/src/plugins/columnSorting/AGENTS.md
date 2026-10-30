@@ -25,6 +25,53 @@ The `columnMeta` map's initializer converts physical → visual and **falls back
 `toVisualColumn()` returns `null`**. Keep that fallback: during an alter the column may have no visual index
 yet.
 
+## The pre-sort order is taken whenever a sort starts from unsorted rows
+
+`indexesSequenceCache` (the `columnSorting` row map) is the order the sort starts from and a cleared sort goes
+back to. `#capturePresortOrder()` writes it from the live sequence whenever the cache is missing (the first
+sort, including one after `setSortConfig()` on a never-sorted grid) and every time a `sort()` starts from empty
+states on rows that show no sort result. `setSortConfig()` does the same when it writes states onto such a
+grid and the cache exists.
+
+**Open: a row moved after `setSortConfig()` is kept or reverted depending on the cache.** On a grid with no
+cache the clear takes the rows as they are then, so the move stays. On a grid that sorted before, the cache
+exists and `setSortConfig()` leaves it, so the clear puts the pre-move order back. Making both keep the move
+breaks the sheets bar restore, which writes the sort states, then writes the sorted order straight into the
+row sequence, and expects a later clear to return to the unsorted order
+(`sheetsBar/__tests__/viewStateRoundTrip.unit.js`, "brings back the unsorted order after a switch whose sort a
+listener canceled"). It needs a decision, not a patch.
+
+**Empty sort states do not mean unsorted rows.** `setSortConfig([])` and removing the sorted column empty the
+states and leave the rows in sorted order. Retaking the cache there makes the sorted order the one a later
+`clearSort()` returns to, and a later sort on another column breaks its ties by it. So `#sortedRowOrder` holds
+the order the last applied sort or clear left the rows in, and `#rowsShowSortResult()` compares the live
+sequence with it: equal means the rows are still the sort result and the cache stays. Compare the order, do
+not keep a flag: UndoRedo, `loadData()` and row moves rewrite the sequence without going through `sort()`, and a
+flag would miss a row moved after an undone sort.
+
+**`#sortedRowOrder` is a registered `indexesSequence` map (`<pluginKey>.sortedRowOrder`), not a plain copy.**
+A plain array is not touched by a row insert or removal, so after either it no longer matched the live order
+while the rows still showed the sort, and the next sort from emptied states retook the sorted order as the
+pre-sort one. As a registered map it gets the same `insert()`/`remove()` the live sequence and the cache get,
+so equal stays equal and different stays different. A row move rewrites only the live order (the rows no longer
+show the sort, so the next sort retakes the cache, as for any move). UndoRedo captures and restores it with the
+cache and the live order, so an undone sort or clear brings back a matching triple, and `loadData()` resets all
+three to the identity order. A clear writes it too (it equals the cache then), which stands in for "no sort
+result": a `true` while the rows show the cache only skips a capture that would write the same values. It is
+registered and unregistered together with the cache, never alone, so it never changes the set of map names
+UndoRedo watches at a moment the cache does not. Every path (both plugins, both ways of emptying the states,
+the tie-break, the undo, inserts and removals while sorted) is pinned in `__tests__/presortOrderCapture.unit.js`.
+Taking it only on the first sort was wrong twice: a row moved while nothing was sorted was lost on the next
+sort-and-clear, and `loadData()` re-initializes the registered map to the identity order (with the states
+emptied), so after a load the next clear put back the identity order instead of the one the rows had.
+
+**Do not unregister the map on a clear.** It looks like the clean fix (create on sort, drop on clear, the way
+`disablePlugin()` does), but UndoRedo captures this map with the other row maps and drops its whole history
+whenever the set of map names changes, and an undo of a clear restores its values. Keep it registered and
+rewrite its values. `setSortConfig()` does not create the map when it is missing, so the server-side pattern
+(`setSortConfig()` from `beforeColumnSort` on a grid that never sorted) registers nothing. Pinned by
+`__tests__/presortOrderCapture.unit.js` (both sorting plugins).
+
 ## Sort configs carry VISUAL column indexes
 
 `getColumnNextConfig()`, `sort()` and `getSortConfig()` all speak visual indexes, and
@@ -508,3 +555,18 @@ While core's `_applySettingsAndData()` applies settings ahead of their data (`is
 Run before, they sorted the departing rows and the load reset the order, so a sheet's own `initialConfig`
 was ignored on its first visit. Known, separate defect: `#onAfterLoadData` reads the hook's first argument
 (the data array) as `initialLoad`, so its `initialLoad === true` branch never runs.
+
+## `true` after an object resets the column properties; `true` after `true` does not
+
+The column properties a configuration object sets (`indicator`, `headerAction`, `sortEmptyCells`,
+`compareFunctionFactory`) live on the `ColumnStatesManager`, which is created only on enable.
+`getMergedPluginSettings()` merges the settings value over them, and a boolean adds nothing there, so an object's
+values used to outlive a later `true` (and a sheets bar sheet declaring `true` inherited the previous sheet's
+object). `onUpdateSettings()` reads the plugin's previous value (`getSetting()`, before `super`) and calls
+`ColumnStatesManager#resetAllColumnsProperties()` when a non-object value replaces an object, before the column
+meta cache is rebuilt. `true` sent again (every React or Angular render) changes nothing and keeps the sort; an
+object after an object still merges. Object → `false` → `true` also starts from the defaults, as it always did:
+`disablePlugin()` destroys the manager and the next enable builds a fresh one, so the reset never runs on that path
+(Search keeps the object's options there instead, because its options live on the plugin itself). MultiColumnSorting
+inherits all of it unchanged. Pinned by
+`__tests__/settingsReset.unit.js` and `../sheetsBar/__tests__/pluginOptionReset.unit.js`.

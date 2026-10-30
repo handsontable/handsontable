@@ -16,8 +16,49 @@ instead of a flat `getCellMeta().comment`.
 
 Removing a comment is `setCellMeta(row, col, META_COMMENT, undefined)`, not `delete`.
 
+`getCommentMeta()` answers `undefined` for a negative row or column (a header), and reads through
+`getCellMetaTransient()` because it only probes. `getComment()` and `getCommentAtCell()` go through it, so
+they soft-fail for a header. Keep that guard in this plugin: `Core#getCellMeta()` still asserts an unsigned
+index on purpose. What else a header does:
+
+- `show()` and `showAtCell()` return `false` before they read any meta.
+- The editor's focus handler and `#onAfterUndoRedo` return early (or hide) for a range on a header. Without
+  that, a focus switches the shortcut context to `plugin:comments` and the blur's save throws before the
+  context goes back to `grid`, leaving the grid shortcuts dead.
+- The write side throws on purpose, a write to a header being a caller bug: `setCommentAtCell()`,
+  `setComment()`, `updateCommentMeta()`, `removeCommentAtCell()`. So does `refreshEditor()`, which reads the raw
+  `getCellMeta()` and is only reached for a cell.
+
+A row or column past the last one is not guarded: it still reaches `getCellMeta()` and is read as a physical
+index, as it was before.
+
 Because the value lives in cell meta, a comment travels with the record through sorts and moves, and a
 sparse object data source needs no special handling (that was DEV-1718).
+
+## A comment menu item's `disabled()` judges the cells its `callback()` acts on
+
+"Delete comment" and "Read-only comment" act on every cell of the active selection range
+(`range.forAll`) that holds a comment. Past the guards both items share (a header highlight, select-all,
+nothing rendered), each is disabled when no cell in that range holds one:
+`checkSelectionConsistency([range], hasCommentAtCell)`. The guards win: select-all keeps both items
+disabled even over cells with comments. A highlight-only check greys out an item that would still have
+acted on the rest of the range, and no check at all left "Delete comment" enabled on a cell without a
+comment, where its click wrote `comment: undefined` meta (DEV-263).
+
+**`disabled()` and the click must count the same cells.** Both items use `hasCommentAtCell()` /
+`hasCommentInMeta()` from `utils.ts` in both places: a value is required, a hidden cell under a merged
+block is skipped, and the read is transient, because the walk runs on every menu draw. So a click writes
+nothing to a cell without a comment (no meta write, no undo entry), and a comment on a hidden cell is never
+deleted or toggled from the menu - it is invisible, and counting it in the click but not in `disabled()`
+greyed out an item that would still have deleted it. "Add comment" / "Edit comment" is the exception: it
+looks at the highlighted cell only, through `plugin.getCommentAtCell()`, which does not skip hidden cells.
+
+The `META_*` keys and `CommentObject` live in `constants.ts`, so `utils.ts` and the items do not import
+`comments.ts` (which imports them). `comments.ts` re-exports them, and that stays the public path.
+
+The menu renderer (`../contextMenu/menu/menuItemRenderer.ts`) calls `isItemDisabled()` once per render,
+because these callbacks walk the whole range: a column selected from its header on a 100k-row grid with no
+comment is a full walk on every call.
 
 ## Shadow DOM: the handlers are bound twice, and the dedupe is required
 
@@ -61,8 +102,16 @@ Keep them that way.
 ## `DisplaySwitch` owns the show/hide delays
 
 Show is a `debounce`d call whose reference is **immutable** (re-creating it per hover would never fire);
-hide is a plain `setTimeout`. The API is `show(range)` / `hide()` / `cancelHiding()` / `updateDelay()` —
+hide is a plain `setTimeout`. The API is `show(range)` / `hide()` / `cancelHiding()` / `keepVisible()` /
+`cancel()` / `updateDelay()` —
 `updateDelay()` is what builds the debounced show, so it is also the constructor path.
+
+**`disablePlugin()` calls `cancel()` first**, and `destroy()` does too. `cancel()` drops the debounced
+show, the tracked hide timer and the carried-over range, and sets the flag back to its initial `true`.
+Without it a hover that armed a show just before `updateSettings({ comments: false })`, or a switch to a
+sheet that turns the plugin off, opened the editor a moment later over a grid with the plugin off, and
+neither Escape nor a click outside closed it: those handlers went with the plugin. Pinned by
+`__tests__/commentsDisableHover.unit.js` and `tests/e2e/comments-plugin-off-hover.spec.ts`.
 
 Its internal flag records whether the last action was a show or a hide. Anything that hides the tooltip
 clears that flag — which is exactly the shadow-DOM double-binding failure above.
@@ -233,6 +282,14 @@ The shortcut context is a third case: `ShortcutManager` can create a context but
 
 `contextMenuItem/` holds `addEditComment`, `readOnlyComment` and `removeComment`, wired through
 `afterContextMenuDefaultOptions`. A new item goes there, not inline in `comments.ts`.
+
+`show()` and `showAtCell()` open the editor on a cell with no comment, empty, and that is a contract: `addEditComment`
+(Add comment) and the Ctrl+Alt+M shortcut call `show()` on such cells to author a comment, and applications call
+`showAtCell()` for the same reason. Do not gate either on an existing comment; it is a breaking change. Leaving the focused
+empty editor stores an empty comment (`{ value: '' }`), as before. The hover path is gated on the `htCommentCell` class
+(`targetIsCellWithComment()`), not on the comment meta, so it is not a guard for this. The empty editor is pinned for
+`show()` through `showAtCell()` in `tests/e2e/comments-show-at-cell.spec.ts`. For Add comment, `comments.spec.js` pins only
+that the editor opens on a cell without a comment, not that it is empty; `addEditComment` reaches the same `show()`.
 
 `readOnlyComment`'s mark and click must agree on which cells count (DEV-124). Both go through
 `getCommentReadOnlyState()`, which leaves out a hidden cell under a merged block and a cell with no
