@@ -87,6 +87,30 @@ export const OVERLAY_SCROLLBAR_FILLER_HOST_CLASS = 'htScrollbarClearanceFillers'
 export const OVERLAY_SCROLLBAR_FILLER_CLASS = 'htScrollbarClearanceFiller';
 
 /**
+ * An empty scroll container that shows the grid's classic scrollbar along the scrolling part of an edge
+ * only - below the column headers and frozen top rows, after the row headers and frozen start columns.
+ * It sits in the gutter the master holder reserves and covers the holder's own scrollbar there.
+ */
+export const SCROLLBAR_PROXY_CLASS = 'htScrollbarProxy';
+
+/**
+ * Covers the part of a gutter beside a frozen band (or the headers), where the scrollbar no longer runs.
+ */
+export const SCROLLBAR_PROXY_FILLER_CLASS = 'htScrollbarProxyFiller';
+
+/**
+ * The grid's frame, redrawn over the gutters of its classic scrollbars, which the browser paints above
+ * the frame the holder draws itself.
+ */
+export const SCROLLBAR_FRAME_CLASS = 'htScrollbarFrame';
+
+/**
+ * The square where the two classic gutters meet, in the track color. Safari paints that corner itself,
+ * in white, once `scrollbar-color` applies (it then ignores `::-webkit-scrollbar-corner`).
+ */
+export const SCROLLBAR_CORNER_CLASS = 'htScrollbarCorner';
+
+/**
  * How many `ResizeObserver` deliveries in direct succession make the callback a self-sustaining loop
  * rather than a burst of real resizes. A parent sized in dynamic units (`dvh`) can be re-sized by the
  * very refresh the previous delivery triggered, and that cycle never ends on its own (#11021).

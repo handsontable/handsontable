@@ -74,6 +74,11 @@
               background-color: var(--ht-background-color);
               box-shadow: inset 0 0 0 1px var(--ht-border-color);
             }
+
+            // The same frame, over the scrollbar gutters (`overlay/scrollbarProxies.ts`).
+            .htScrollbarFrame {
+              box-shadow: inset 0 0 0 1px var(--ht-border-color);
+            }
           }
         }
       }
@@ -187,6 +192,80 @@
       }
     }
 
+    // The scrollbar proxies (`overlay/scrollbarProxies.ts`) show the master holder's classic scrollbar
+    // along the scrolling part of each edge only, and the fillers cover the gutter beside the headers and
+    // the frozen bands. Both sit in the holder's gutter, above its own scrollbar. The proxy takes the
+    // holder's scrollbar styles, so its bar fills the gutter it sits in; the engine also copies the
+    // holder's computed `scrollbar-width` and thumb color onto it inline, with a transparent track, so
+    // the background below shows the track. Firefox draws a line along a track it colors itself, which
+    // the fillers do not have. Mirrored in `src/3rdparty/walkontable/css/walkontable.scss`.
+    .htScrollbarProxy {
+      @include mixins.scrollbar-styles;
+
+      position: absolute;
+      z-index: 1;
+      // Its own bar fills the box, so this shows only where a host rule widened the holder's bar alone
+      // (`.wtHolder::-webkit-scrollbar`, which cannot be copied), and keeps that bar from showing through.
+      // The track color sits on the grid's background, as the holder's own track does, so a see-through
+      // track color in a custom theme still covers the holder's bar.
+      background:
+        linear-gradient(var(--ht-scrollbar-track-color), var(--ht-scrollbar-track-color)),
+        var(--ht-background-color);
+
+      > div {
+        width: 1px;
+        height: 1px;
+      }
+
+      &::-webkit-scrollbar {
+        width: 9px;
+        height: 9px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: var(--ht-scrollbar-track-color);
+        border-radius: var(--ht-scrollbar-border-radius);
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background-color: var(--ht-scrollbar-thumb-color);
+        border-radius: var(--ht-scrollbar-border-radius);
+      }
+    }
+
+    .htScrollbarProxy-vertical {
+      overflow-x: hidden;
+      overflow-y: scroll;
+    }
+
+    .htScrollbarProxy-horizontal {
+      overflow-x: scroll;
+      overflow-y: hidden;
+    }
+
+    // An empty rectangle in the track color over the gutter beside the headers and the frozen bands,
+    // where no scrollbar is shown, and over the square where the two gutters meet (Safari paints that
+    // corner white once `scrollbar-color` applies). Painted on the grid's background, like the proxy.
+    .htScrollbarProxyFiller,
+    .htScrollbarCorner {
+      position: absolute;
+      z-index: 1;
+      background:
+        linear-gradient(var(--ht-scrollbar-track-color), var(--ht-scrollbar-track-color)),
+        var(--ht-background-color);
+    }
+
+    // The grid's frame, redrawn over the gutters of its classic scrollbars. A browser paints a scroll
+    // container's scrollbars above its own `box-shadow`, so the holder's frame is hidden along the
+    // scrollbar edges. The shadow comes from the rules that frame the holder (they switch on with the
+    // root's `htHasScroll*` classes, which core sets after the draw); the engine sets the box, the
+    // holder's corner radius, and the clip to the gutters. It never takes a pointer event.
+    .htScrollbarFrame {
+      position: absolute;
+      z-index: 2;
+      pointer-events: none;
+    }
+
     // Wrapper
     &.ht-wrapper {
       height: 100%;
@@ -247,6 +326,11 @@
         .ht_master {
           .wtHolder {
             background-color: var(--ht-background-color);
+            box-shadow: inset 0 0 0 1px var(--ht-border-color);
+          }
+
+          // The same frame, over the scrollbar gutters (`overlay/scrollbarProxies.ts`).
+          .htScrollbarFrame {
             box-shadow: inset 0 0 0 1px var(--ht-border-color);
           }
         }

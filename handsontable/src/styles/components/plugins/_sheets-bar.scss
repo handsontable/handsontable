@@ -31,7 +31,8 @@ $all-sheets-visible-items: 8;
     // menu's rows are opaque and cover it, but the block padding above exposes the line at the
     // scroll extremes — and the menu's own border already comes from its wrapper, so the inner
     // one is dropped. `.htMenu` is repeated for specificity: the base rule carries five classes.
-    &.htMenu.htSheetsBarMenu .ht_master .wtHolder {
+    &.htMenu.htSheetsBarMenu .ht_master .wtHolder,
+    &.htMenu.htSheetsBarMenu .ht_master .htScrollbarFrame {
       box-shadow: none;
     }
 
