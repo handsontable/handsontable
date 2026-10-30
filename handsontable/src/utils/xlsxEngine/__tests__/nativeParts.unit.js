@@ -233,6 +233,26 @@ describe('package parts', () => {
     expect(dropped.count('definedNames:unsupported')).toBe(1);
   });
 
+  it('should skip R1C1-shaped names, same-scope duplicates and empty definitions, recording once', () => {
+    const dropped = new DroppedFeatures();
+    const bad = ['R', 'C', 'RC', 'R2C', 'RC3', 'R1C1', 'r1c1', 'xfd1', 'A1'].map(name => ({
+      name, formula: '1', sheetName: null,
+    }));
+    const xml = workbookXml(sheets, ['rId3', 'rId4'], false, [
+      ...bad,
+      { name: 'Sales', formula: '1', sheetName: null },
+      { name: 'SALES', formula: '2', sheetName: null },
+      { name: 'Sales', formula: '3', sheetName: 'Data' },
+      { name: 'Empty', formula: '  ', sheetName: null },
+    ], ['Data'], dropped);
+
+    expect(xml).toContain('<definedNames><definedName name="Sales">1</definedName>'
+      + '<definedName name="Sales" localSheetId="0">3</definedName></definedNames>');
+    expect(xml.match(/<definedName /g)).toHaveLength(2);
+    expect(dropped.list()).toEqual(['definedNames:unsupported']);
+    expect(dropped.count('definedNames:unsupported')).toBe(1);
+  });
+
   it('should omit definedNames when nothing valid remains', () => {
     const dropped = new DroppedFeatures();
 

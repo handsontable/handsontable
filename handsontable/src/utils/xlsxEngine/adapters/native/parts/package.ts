@@ -251,6 +251,12 @@ export function sheetRelsXml(index: number): string {
 const DEFINED_NAME_PATTERN = /^[A-Za-z_\\][A-Za-z0-9_.\\]{0,254}$/;
 
 /**
+ * The R1C1 spellings Excel reads as references (`R`, `C`, `RC`, `R2C`, `RC3`, `R1C1`), which it
+ * refuses as names.
+ */
+const R1C1_NAME_PATTERN = /^(?:[RC]|R\d*C\d*)$/i;
+
+/**
  * Serializes `xl/workbook.xml`. Child order is schema-fixed: `workbookPr`, `bookViews`, `sheets`,
  * `definedNames`, `calcPr`. `fullCalcOnLoad` asks LibreOffice and Google Sheets to compute formulas
  * written without a cached result; Excel recalculates on its own.
@@ -289,14 +295,19 @@ export function workbookXml(
 
   const lowerSheetNames = sheetNames.map(sheetName => localeLowerCase(sheetName));
   const entries: Array<{ name: string; localSheetId: number | undefined; formula: string }> = [];
+  const seen = new Set<string>();
   let skipped = false;
 
   definedNames.forEach(({ name, formula, sheetName }) => {
     const localSheetId = sheetName === null ? undefined : lowerSheetNames.indexOf(localeLowerCase(sheetName));
 
-    if (!DEFINED_NAME_PATTERN.test(name) || parseCellRef(name) !== null || localSheetId === -1) {
+    const key = `${localSheetId ?? ''}\u0000${localeLowerCase(name)}`;
+
+    if (!DEFINED_NAME_PATTERN.test(name) || parseCellRef(name) !== null || R1C1_NAME_PATTERN.test(name)
+      || localSheetId === -1 || formula.trim() === '' || seen.has(key)) {
       skipped = true;
     } else {
+      seen.add(key);
       entries.push({ name, localSheetId, formula });
     }
   });
