@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { test, expect, type CDPSession, type Page, type TestInfo } from '@playwright/test';
 import { A11Y_PAGES, fixtureUrl, type A11yPage } from '../pages.mjs';
-import { PORTAL_MARK, STATES, emulate, openTarget, reachState, type OpenedTarget } from '../harness';
+import { PORTAL_MARK, STATES, emulate, expectEditorOpen, openTarget, reachState, type OpenedTarget } from '../harness';
 import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } from '../evidence';
 import {
   diffTabOrder,
@@ -606,7 +606,9 @@ async function setUp(page: Page, root: string, probe: ProbeDefinition): Promise<
   switch (probe.setup) {
     case 'editor':
       await page.keyboard.press('Enter');
-      await expect.poll(() => snapshot(page, root).then(state => state.editorOpen), { timeout: 3000 }).toBe(true);
+      // The catalog's own wait: a list editor counts as open once it has drawn its choices, or an arrow key
+      // pressed next would meet an empty list.
+      await expectEditorOpen(page, root);
       break;
     case 'context-menu':
       await page.keyboard.press('Shift+F10');
