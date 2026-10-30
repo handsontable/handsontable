@@ -429,6 +429,21 @@ export class AutoColumnSize extends BasePlugin {
    */
   #replayedColumns: Set<number> = new Set();
   /**
+   * The visual columns a full render's re-walk measures from scratch, with no cached samples.
+   *
+   * @type {Set<number>}
+   */
+  #rescannedColumns: Set<number> = new Set();
+  /**
+   * `true` from a sweep that dropped its samples until the next full render re-walks the visible columns.
+   * That re-walk scans every column from scratch, so it cannot tell a style change from a data change, and
+   * a width it changes counts as both. The grid is first drawn after the `init` sweep, so the render that
+   * re-walks the columns first can be one that follows a style change.
+   *
+   * @type {boolean}
+   */
+  #rewalkAfterSweepPending = false;
+  /**
    * The `useHeaders` option value as this plugin last applied it.
    *
    * Kept separately from the ghost table's own copy of the setting, which `#measureCellsWidth()`
@@ -645,6 +660,10 @@ export class AutoColumnSize extends BasePlugin {
     const overwriteCache = this.hot.forceFullRender;
 
     this.calculateColumnsWidth({ from: firstVisibleColumn, to: lastVisibleColumn }, undefined, overwriteCache);
+
+    if (overwriteCache) {
+      this.#rewalkAfterSweepPending = false;
+    }
   }
 
   /**
@@ -680,6 +699,10 @@ export class AutoColumnSize extends BasePlugin {
           this.#replayedColumns.add(visualColumn);
           this.#addGhostTableColumn(visualColumn, cachedSamples);
         } else {
+          if (overwriteCache) {
+            this.#rescannedColumns.add(visualColumn);
+          }
+
           this.#fillGhostTableWithSamples(visualColumn, rowsRange);
         }
       }
@@ -1131,7 +1154,8 @@ export class AutoColumnSize extends BasePlugin {
 
         if (this.columnWidthsMap.getValueAtIndex(physicalColumn) !== width) {
           this.#mergedCellsWidths.markWidthsChanged();
-          stylesChanged ||= this.#replayedColumns.has(visualColumn);
+          stylesChanged ||= this.#replayedColumns.has(visualColumn) ||
+            (this.#rewalkAfterSweepPending && this.#rescannedColumns.has(visualColumn));
         }
 
         this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
@@ -1139,9 +1163,10 @@ export class AutoColumnSize extends BasePlugin {
     }, true);
     this.ghostTable.clean();
     this.#replayedColumns.clear();
+    this.#rescannedColumns.clear();
 
-    // The same samples rendered to another width: the styles changed, so the merges' widths, kept from
-    // the same texts, are measured again too.
+    // The same samples rendered to another width (or a column the first re-walk after a sweep measured from
+    // scratch did): the styles changed, so the merges' widths, kept from the same texts, are measured again too.
     if (stylesChanged) {
       this.#mergedCellsWidths.markStylesChanged();
     }
@@ -1229,6 +1254,7 @@ export class AutoColumnSize extends BasePlugin {
       // like it always did. Samples stored by the asynchronous part run after the cascade
       // and stay.
       this.#columnSamplesCache.clear();
+      this.#rewalkAfterSweepPending = true;
     }
   }
 

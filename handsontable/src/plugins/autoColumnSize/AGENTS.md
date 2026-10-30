@@ -100,7 +100,15 @@ Eight rules hold this together.
    - an undo or redo, which can restore merges with no merge hook (rule 8, control);
    - a style change: a column re-measured from its cached samples to another width
      (`#replayedColumns`) makes every group measure again from its kept texts (control). A style change
-     that moves no visible plain column goes unseen until another input arrives;
+     that moves no visible plain column goes unseen until another input arrives. The first full render
+     after a sweep has no samples to replay (the sweep drops them), so while `#rewalkAfterSweepPending` is
+     set, a width that changed on a column that re-walk measured from scratch (`#rescannedColumns`) counts as
+     a style change too: the re-walk cannot tell one from a data change. The flag clears after that re-walk,
+     which fills the cache again. The grid draws once at init and the first re-walk can follow a style
+     change ("fits a merge again when the styles change before a render", control). Do not keep the sweep's
+     samples instead: a replay cannot see a value written into the data array with no hook, and the first
+     `render()` after init then keeps the old width (`textEditor.spec.js`, "textarea should have cell
+     dimensions (after render)");
    - a settings update (`updatePlugin()`), which can restyle a merge's text (control);
    - rows hidden, shown, or trimmed (control for shown), the rows sorted, a column inserted, moved, removed,
      or hidden (control for hidden), `loadData()` and `updateData()` (control), and `enablePlugin()`
@@ -294,6 +302,16 @@ does not disable, so a wrapper re-render keeps the sweep). Before that, a sweep 
 replaced (a sheets bar switch away from a wide sheet) sampled cells the new data does not have, the ghost table kept a
 column it never built, and every later render threw `Cannot read properties of undefined (reading
 'getBoundingClientRect')`. Not on `updateData()`: the React wrapper sends `data` on every re-render, and nothing restarts the sweep after an `updateData()`. A re-render can still shrink the data between two idle tasks, so each chunk clamps the sweep's row and column bounds to `countRows()` and `countCols()` (`processChunk`); without it the sweep sampled columns the grid no longer had and broke the ghost table the same way. Pinned by `tests/e2e/sheets-bar-in-flight-work.spec.ts` ("leaves a wide sheet...", "...when an update shrinks the data").
+
+## The first full measure stays on the `init` hook, on purpose
+
+Every other plugin that parked init work on `init` or `afterInit` moved it to the ready step
+(`onGridReady()`, `../base/AGENTS.md`). This one keeps its `init` listener. The steps run in
+`PLUGIN_PRIORITY` order, so a step of this plugin would run at 10, before the plugins that build what it
+measures: NestedHeaders (280) builds the header labels, MergeCells (150) the merges, and Pagination (900)
+the page. Measured from a step, the columns would come out of empty labels again, the defect PR #14080
+fixed. Every ready step now runs before the `init` hook, so `init` is the point where the other plugins'
+state is in place and the first render has not run yet. AutoRowSize keeps its listener for the same reason.
 
 ## Where to look next
 
