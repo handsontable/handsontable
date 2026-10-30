@@ -1,11 +1,12 @@
 import Handsontable from 'handsontable/base';
-import { registerPlugin, BasePlugin } from 'handsontable/plugins';
+import { registerPlugin, BasePlugin, getPluginsNames } from 'handsontable/plugins';
 import { registerAllModules } from 'handsontable/registry';
 
 const PROBE = 'readyStepProbe';
 const PARENT = 'readyStepParentProbe';
 const CHILD = 'readyStepChildProbe';
 const DISABLER = 'readyStepDisablerProbe';
+const RETURNING = 'readyStepReturningProbe';
 const log = [];
 
 /**
@@ -46,6 +47,53 @@ class ReadyStepProbe extends BasePlugin {
     if (this.getSetting('updateOnReady')) {
       this.updatePlugin();
     }
+
+    if (this.getSetting('throwOnReady')) {
+      throw new Error('a ready step failed');
+    }
+  }
+
+  destroy() {
+    if (this.hot && this.getSetting('updateOnDestroy')) {
+      this.updatePlugin();
+    }
+
+    super.destroy();
+  }
+}
+
+/**
+ * Its lifecycle methods return values, which the types do not promise and a subclass may still rely on.
+ */
+class ReturningProbe extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return RETURNING;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return 970;
+  }
+
+  isEnabled() {
+    return false;
+  }
+
+  enablePlugin() {
+    super.enablePlugin();
+
+    return 'enabled';
+  }
+
+  updatePlugin() {
+    super.updatePlugin();
+
+    return 'updated';
+  }
+
+  disablePlugin() {
+    super.disablePlugin();
+
+    return 'disabled';
   }
 }
 
@@ -128,6 +176,7 @@ registerPlugin(ReadyStepProbe);
 registerPlugin(ParentProbe);
 registerPlugin(ChildProbe);
 registerPlugin(DisablerProbe);
+registerPlugin(ReturningProbe);
 registerAllModules();
 
 const roots = [];
@@ -149,6 +198,17 @@ const createGrid = (settings) => {
 };
 
 const readySteps = (key = PROBE) => log.filter(([step, plugin]) => step === 'ready' && plugin === key);
+
+/**
+ * Checks that the log, cleared right before the call, shows the step ahead of the call's first render.
+ */
+const expectStepBeforeFirstRender = () => {
+  const steps = log.map(([step]) => step);
+
+  expect(steps).toContain('ready');
+  expect(steps).toContain('render');
+  expect(steps.indexOf('ready')).toBeLessThan(steps.indexOf('render'));
+};
 
 describe('BasePlugin ready step (`onGridReady()`)', () => {
   let hot;
@@ -180,19 +240,24 @@ describe('BasePlugin ready step (`onGridReady()`)', () => {
     expect(steps.indexOf('ready')).toBeLessThan(steps.indexOf('render'));
   });
 
-  it('should run a step a `loadData()` hook makes the plugin owe after the load, against the loaded rows', () => {
-    hot = createGrid({ [PROBE]: true });
-    hot.addHook('beforeLoadData', () => hot.getPlugin(PROBE).updatePlugin());
-    log.length = 0;
+  ['loadData', 'updateData'].forEach((method) => {
+    const hookName = `before${method[0].toUpperCase()}${method.slice(1)}`;
 
-    hot.loadData([[5], [6], [7]]);
+    it(`should run a step a \`${method}()\` hook makes the plugin owe against the new rows, before the render`, () => {
+      hot = createGrid({ [PROBE]: true });
+      hot.addHook(hookName, () => hot.getPlugin(PROBE).updatePlugin());
+      log.length = 0;
 
-    expect(readySteps()).toEqual([
-      ['ready', PROBE, { view: true, rows: 3, firstCell: 5 }],
-    ]);
+      hot[method]([[5], [6], [7]]);
+
+      expect(readySteps()).toEqual([
+        ['ready', PROBE, { view: true, rows: 3, firstCell: 5 }],
+      ]);
+      expectStepBeforeFirstRender();
+    });
   });
 
-  it('should run a step an `alter()` hook makes the plugin owe after the alteration', () => {
+  it('should run a step an `alter()` hook makes the plugin owe after the alteration, before the render', () => {
     hot = createGrid({ [PROBE]: true });
     hot.addHook('beforeRemoveRow', () => hot.getPlugin(PROBE).updatePlugin());
     log.length = 0;
@@ -202,23 +267,62 @@ describe('BasePlugin ready step (`onGridReady()`)', () => {
     expect(readySteps()).toEqual([
       ['ready', PROBE, { view: true, rows: 1, firstCell: 3 }],
     ]);
+    expectStepBeforeFirstRender();
   });
 
   it('should run once for each `updateSettings()` that enables or updates the plugin, before its render', () => {
     hot = createGrid();
+    log.length = 0;
 
     hot.updateSettings({ [PROBE]: true });
 
     expect(readySteps().length).toBe(1);
-    expect(log.slice(log.indexOf(readySteps()[0])).map(([step]) => step)).toContain('render');
+    expectStepBeforeFirstRender();
+
+    log.length = 0;
 
     hot.updateSettings({ [PROBE]: { writeOnReady: false } });
 
-    expect(readySteps().length).toBe(2);
+    expect(readySteps().length).toBe(1);
+    expectStepBeforeFirstRender();
+
+    log.length = 0;
 
     hot.updateSettings({ colHeaders: true });
 
-    expect(readySteps().length).toBe(2);
+    expect(readySteps()).toEqual([]);
+  });
+
+  it('should not run a step that threw again on a later pass', () => {
+    hot = createGrid();
+
+    expect(() => hot.updateSettings({ [PROBE]: { throwOnReady: true } })).toThrow('a ready step failed');
+    expect(readySteps().length).toBe(1);
+
+    hot.updateSettings({ colHeaders: true });
+
+    expect(readySteps().length).toBe(1);
+  });
+
+  it('should not run a step a plugin comes to owe while the grid is being destroyed', () => {
+    hot = createGrid({ [PROBE]: { updateOnDestroy: true } });
+    log.length = 0;
+
+    hot.destroy();
+    hot = null;
+
+    expect(log.map(([step]) => step)).toContain('update end');
+    expect(readySteps()).toEqual([]);
+  });
+
+  it('should return what the lifecycle methods of the plugin return', () => {
+    hot = createGrid();
+
+    const plugin = hot.getPlugin(RETURNING);
+
+    expect(plugin.enablePlugin()).toBe('enabled');
+    expect(plugin.updatePlugin()).toBe('updated');
+    expect(plugin.disablePlugin()).toBe('disabled');
   });
 
   it('should run once, after the whole call, for a direct `updatePlugin()` that disables and enables the plugin', () => {
@@ -286,7 +390,7 @@ describe('BasePlugin ready step (`onGridReady()`)', () => {
     try {
       hot = createGrid({ [PROBE]: { updateOnReady: true } });
 
-      expect(readySteps().length).toBeGreaterThan(1);
+      expect(readySteps().length).toBe(getPluginsNames().length);
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('kept enabling or updating plugins'));
     } finally {
       warnSpy.mockRestore();

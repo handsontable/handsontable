@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed the `afterPluginsInitialized` hook firing once per plugin when two grids were created before either called `init()`, and plugins enabling twice on a grid that declares `sheetsBar.sheets`.",
+  "title": "Fixed the `afterPluginsInitialized` hook firing once per plugin when two grids were created before either called `init()`, and plugins enabling twice on a grid that declares both `columnSorting` and `multiColumnSorting`.",
   "type": "fixed",
   "issueOrPR": 14070,
   "breaking": false,

@@ -220,9 +220,10 @@ of them are named public options, so each carries a JSDoc note saying it is glob
   puts settings hooks ahead of the ones wrappers attach between `new Handsontable.Core()` and `init()`
   (the React wrapper attaches two there).
 - **`afterPluginsInitialized`** is run once per grid by core's init sequence (`initializePlugins()` in
-  `src/plugins/base/base.ts`) during the `beforeInit` dispatch, after every plugin's `init()`.
-  Pulling it forward would land the callback before `enablePlugin()`, so the hook would fire before the
-  plugins are actually enabled.
+  `src/plugins/base/base.ts`) during the `beforeInit` dispatch, after every plugin's `init()`. The enables are
+  a default-order listener of this dispatch: a listener added before `init()` at the default order runs before
+  them, and one at a positive `orderIndex` runs after them. Pulling a settings callback forward would land it
+  before `enablePlugin()`, so it would fire before the plugins are actually enabled.
 
 ```js
 new Handsontable(el, {
