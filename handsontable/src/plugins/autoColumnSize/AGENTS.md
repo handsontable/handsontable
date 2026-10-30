@@ -102,9 +102,11 @@ Eight rules hold this together.
      (`#replayedColumns`) makes every group measure again from its kept texts (control). A style change
      that moves no visible plain column goes unseen until another input arrives. The first full render
      after a sweep has no samples to replay (the sweep drops them), so while `#rewalkAfterSweepPending` is
-     set, a width that changed on a column that re-walk measured from scratch (`#rescannedColumns`) counts as
-     a style change too: the re-walk cannot tell one from a data change. The flag clears after that re-walk,
-     which fills the cache again. The grid draws once at init and the first re-walk can follow a style
+     set, a width that changed on a column that re-walk measured from scratch counts as a style change too:
+     the re-walk cannot tell one from a data change. Those columns are a set local to one
+     `#calculateColumnsWidth()` call, handed to the width update, so none is left over for a later measure.
+     The flag clears after the first full re-walk, which fills the cache again; a full render that returns
+     before it (no rows, no visible column) leaves it set, because that render re-walked nothing. The grid draws once at init and the first re-walk can follow a style
      change ("fits a merge again when the styles change before a render", control). Do not keep the sweep's
      samples instead: a replay cannot see a value written into the data array with no hook, and the first
      `render()` after init then keeps the old width (`textEditor.spec.js`, "textarea should have cell

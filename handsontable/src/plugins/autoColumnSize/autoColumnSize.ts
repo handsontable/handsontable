@@ -467,12 +467,6 @@ export class AutoColumnSize extends BasePlugin {
    */
   #replayedColumns: Set<number> = new Set();
   /**
-   * The visual columns a full render's re-walk measures from scratch, with no cached samples.
-   *
-   * @type {Set<number>}
-   */
-  #rescannedColumns: Set<number> = new Set();
-  /**
    * `true` from a sweep that dropped its samples until the next full render re-walks the visible columns.
    * That re-walk scans every column from scratch, so it cannot tell a style change from a data change, and
    * a width it changes counts as both. The grid is first drawn after the `init` sweep, so the render that
@@ -752,6 +746,10 @@ export class AutoColumnSize extends BasePlugin {
     rowsRange: { from: number, to: number },
     shouldOverwrite: (visualColumn: number) => boolean,
   ) {
+    // The columns an overwrite measures from scratch, with no cached samples. Kept to this one measure, so no
+    // column is left in it for a later one.
+    const rescannedColumns = new Set<number>();
+
     rangeEach(columnsRange.from, columnsRange.to, (visualColumn) => {
       let physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
@@ -773,7 +771,7 @@ export class AutoColumnSize extends BasePlugin {
           this.#addGhostTableColumn(visualColumn, cachedSamples);
         } else {
           if (overwriteCache) {
-            this.#rescannedColumns.add(visualColumn);
+            rescannedColumns.add(visualColumn);
           }
 
           this.#fillGhostTableWithSamples(visualColumn, rowsRange);
@@ -782,7 +780,7 @@ export class AutoColumnSize extends BasePlugin {
     });
 
     if (this.ghostTable.columns.length) {
-      this.#updateColumnWidthsMapBasedOnGhostTable();
+      this.#updateColumnWidthsMapBasedOnGhostTable(rescannedColumns);
       this.measuredColumns = columnsRange.to + 1;
     }
   }
@@ -1420,9 +1418,10 @@ export class AutoColumnSize extends BasePlugin {
    * table, and then fits the merged cells again when a width changed. The fit measures through the
    * ghost table too, so it has to run after the clean.
    *
+   * @param {Set<number>} [rescannedColumns] The columns a full render's re-walk measured from scratch.
    * @returns {number[]} The visual columns whose width changed.
    */
-  #updateColumnWidthsMapBasedOnGhostTable(): number[] {
+  #updateColumnWidthsMapBasedOnGhostTable(rescannedColumns: ReadonlySet<number> = new Set()): number[] {
     let stylesChanged = false;
     const changedColumns: number[] = [];
 
@@ -1434,7 +1433,7 @@ export class AutoColumnSize extends BasePlugin {
           changedColumns.push(visualColumn);
           this.#mergedCellsWidths.markWidthsChanged();
           stylesChanged ||= this.#replayedColumns.has(visualColumn) ||
-            (this.#rewalkAfterSweepPending && this.#rescannedColumns.has(visualColumn));
+            (this.#rewalkAfterSweepPending && rescannedColumns.has(visualColumn));
         }
 
         this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
@@ -1442,7 +1441,6 @@ export class AutoColumnSize extends BasePlugin {
     }, true);
     this.ghostTable.clean();
     this.#replayedColumns.clear();
-    this.#rescannedColumns.clear();
 
     // The same samples rendered to another width (or a column the first re-walk after a sweep measured from
     // scratch did): the styles changed, so the merges' widths, kept from the same texts, are measured again too.
