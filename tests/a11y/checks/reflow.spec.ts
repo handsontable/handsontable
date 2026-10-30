@@ -399,17 +399,16 @@ async function orientation(page: Page, testInfo: TestInfo, entry: A11yPage, them
   declareTarget(testInfo, target);
 
   const sizes: Record<string, { width: number; height: number }> = {};
-  // The page loads once per viewport, and each load's error list stops growing at the next load: the part
-  // carries both.
-  const pageErrors: string[][] = [];
+  // The page loads once per viewport, and both loads write to one list: the test holds it before each
+  // navigation, so an error from either load reaches the part.
+  const pageErrors: string[] = [];
   let environment = null;
 
   for (const [name, viewport] of [['portrait', { width: 390, height: 844 }], ['landscape', { width: 844, height: 390 }]] as const) {
     await page.setViewportSize(viewport);
 
-    const opened = await openTarget(page, entry, theme);
+    const opened = await openTarget(page, entry, theme, { pageErrors });
 
-    pageErrors.push(opened.pageErrors);
     await reachState(page, entry, opened);
     await releaseParkedFetches(page);
     environment ??= await readEnvironment(page);
@@ -423,7 +422,7 @@ async function orientation(page: Page, testInfo: TestInfo, entry: A11yPage, them
   }
 
   await attachEvidence(testInfo, {
-    target, startedAt, environment: environment!, criteria: ['1.3.4'], pageErrors: pageErrors.flat(),
+    target, startedAt, environment: environment!, criteria: ['1.3.4'], pageErrors,
     findings: orientationFindings(sizes as { portrait: { width: number; height: number }; landscape: { width: number; height: number } }),
     detail: sizes,
   });
