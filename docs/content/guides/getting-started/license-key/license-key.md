@@ -13,6 +13,7 @@ vue:
   metaTitle: License key | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Getting started
+menuTag: updated
 ---
 Activate Handsontable DataGrid, passing your license key in the configuration object. Use a special key for non-commercial and evaluation purposes.
 
@@ -342,6 +343,42 @@ against the build date of your Handsontable version, never against the current d
 versions released on or before that date indefinitely, including offline. On a newer version, the
 console reports an error and the grid shows a notice below the table.
 
+## Capabilities
+
+An entitlement key can list the capabilities it unlocks. A capability is a named part of a feature, such as `xlsx:export`. Handsontable reads the list from the key when the grid starts and gates the matching features.
+
+- A key without a capability list unlocks every feature. Every key issued so far works this way, so nothing changes for you when you update Handsontable.
+- A key with a capability list unlocks exactly the capabilities on it. A feature you did not license is skipped, and the grid tells you so in the console.
+- The `non-commercial-and-evaluation` key and the 25-character keys unlock every feature.
+
+Which capabilities your key lists depends on the package you bought. See the [pricing page](https://handsontable.com/pricing) for the packages. The full list of features and the modules each one needs is in the manifest that ships with every release, at `https://cdn.jsdelivr.net/npm/handsontable@{{$currentVersion}}/dist/manifest.json`.
+
+### XLSX capabilities
+
+The [`ImportFile`](@/api/importFile.md) and [`ExportFile`](@/api/exportFile.md) plugins read these capabilities.
+
+| Capability | What it covers | Import | Export |
+|---|---|---|---|
+| `xlsx:import` | Reading an `.xlsx` file into the grid. | Yes | - |
+| `xlsx:export` | Writing the grid to an `.xlsx` file, and the **To Excel** context menu item. | - | Yes |
+| `xlsx:formulas` | Importing formulas into the `Formulas` plugin, and exporting live formulas. | Yes | Yes |
+| `xlsx:layout` | Column widths, row heights, hidden rows and columns, merged cells, frozen panes, and right-to-left direction. | Yes | Yes |
+| `xlsx:number_formats` | Date, time, currency, percentage, and custom number formats. | Always on | Yes |
+| `xlsx:comments` | Cell comments. | Yes | Yes |
+| `xlsx:styles` | Font, fill, borders, and alignment of cells and headers. | Yes | Yes |
+| `xlsx:conditional_formatting` | Conditional formatting rules. | Yes | Yes |
+| `xlsx:data_validation` | Dropdown lists from data validation rules. | Yes | Yes |
+| `xlsx:protection` | Locked cells and sheet protection, including the `protection` export option. | Yes | Yes |
+| `xlsx:import_report` | The list of dropped features on `result.dropped`. | Always on | - |
+
+`xlsx:import_report` is part of every key, so the import report is always complete. An import always reads number formats to infer cell types, so a missing `xlsx:number_formats` does not restrict it.
+
+### What happens without a capability
+
+- **`xlsx:import` or `xlsx:export`:** the call throws `ImportFile: the license does not unlock "xlsx:import".` or `ExportFile: the license does not unlock "xlsx:export".` [`supportsImportFormat('xlsx')`](@/api/importFile.md#supportsimportformat) and [`supportsExportFormat('xlsx')`](@/api/exportFile.md#supportsexportformat) return `false`, and the **To Excel** context menu item is hidden.
+- **Any other capability:** the plugin skips that part of the file and does the rest. It prints one console warning, `The xlsx export skipped features your license does not unlock: <ids>.` or `The xlsx import skipped features your license does not unlock: <ids>.` The export warning names only export capabilities, and the import warning names only import capabilities. The `no-console-warns` flag on a key silences the warning.
+- **Import report:** an import adds a `license:xlsx:<capability>` entry to `result.dropped` for each missing capability. Without `xlsx:styles` the report names `license:xlsx:styles` instead of `cellStyles`, and without `xlsx:comments` it names `license:xlsx:comments` instead of `comments` and `comment:header`. See the [Dropped features reference](@/guides/import-and-export/dropped-features/dropped-features.md).
+
 ## Result
 
 Your grid is now licensed. A valid commercial key removes the license notice from the grid header.
@@ -457,6 +494,8 @@ All features still work, but you're not entitled to use that version under an ex
 <div class="boxes-list gray">
 
 - [Software license](@/guides/technical-specification/software-license/software-license.md)
+- [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md#what-your-license-unlocks)
+- [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md#what-your-license-unlocks)
 
 </div>
 
@@ -468,3 +507,9 @@ All features still work, but you're not entitled to use that version under an ex
   - [`licenseKey`](@/api/options.md#licensekey)
 
 </div>
+
+---
+
+::: tip Trademark notice
+Microsoft® and Excel® are registered trademarks of Microsoft Corporation.
+:::

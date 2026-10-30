@@ -147,7 +147,7 @@ fileInput.addEventListener('change', async () => {
 
 ### 3. Read what was dropped
 
-`result.dropped` lists what the file carried and the grid did not take, and the plugin prints the same list in one console warning per import. An import that a newer import replaced while its file was being read, or that the plugin was disabled during, prints none. The [Dropped features reference](@/guides/import-and-export/dropped-features/dropped-features.md#dropped-on-import) explains every key.
+`result.dropped` lists what the file carried and the grid did not take, and the plugin prints the same list in one console warning per import. An import that a newer import replaced while its file was being read, or that the plugin was disabled during, prints none. The [Dropped features reference](@/guides/import-and-export/dropped-features/dropped-features.md#dropped-on-import) explains every key. A capability your license does not unlock is reported as `license:xlsx:<capability>`: see [What your license unlocks](#what-your-license-unlocks).
 
 ### 4. Preview before you apply
 
@@ -266,6 +266,23 @@ Pass these options as the third argument of `importFromArrayBuffer(format, buffe
 | `apply` | `boolean` | `true` | Apply the result to the grid. With `false`, the result comes back and nothing changes, neither hook fires, and the dropped-features warning still prints. Its `dropped` leaves out the names that come from applying (`cellType:<name>`, `mergeCells`, `hiddenRows`, `hiddenColumns`, and `layoutDirection`), so a preview's list can be shorter than the real import's. |
 | `engine` | `object \| null` | - | Engine for this call only. See [Choose the engine](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#choose-the-engine). |
 
+### What your license unlocks
+
+The XLSX import reads your license key for the [capabilities](@/guides/getting-started/license-key/license-key.md#capabilities) it needs. A key without a capability list unlocks all of them. A key with a list unlocks the ones on it:
+
+- `xlsx:import` - the import itself.
+- `xlsx:formulas` - `importFormulas`.
+- `xlsx:layout` - `importLayout`.
+- `xlsx:comments` - cell comments.
+- `xlsx:styles` - `importStyles`.
+- `xlsx:conditional_formatting` - `result.conditionalFormatting`.
+- `xlsx:data_validation` - `dropdown` columns made from data validation lists.
+- `xlsx:protection` - `readOnly` cells made from sheet protection.
+
+`xlsx:number_formats` never restricts an import, because the import reads number formats to infer cell types. `xlsx:import_report` is always on, so `result.dropped` is always complete.
+
+Without `xlsx:import`, `importFromBlob()` and `importFromArrayBuffer()` throw `ImportFile: the license does not unlock "xlsx:import".` Without any other capability, the import skips that part of the file, adds a `license:xlsx:<capability>` entry to `result.dropped`, and prints one console warning: `The xlsx import skipped features your license does not unlock: <ids>.` The warning names only the missing capabilities the import reads. The `no-console-warns` flag on a key silences it. The capabilities and their packages are on the [pricing page](https://handsontable.com/pricing).
+
 ### Styles
 
 By default, the plugin reads cell styling from the workbook and reports it as `cellStyles` in `result.dropped` instead of applying it. Set `importStyles: true` to apply it:
@@ -294,7 +311,7 @@ Each import method takes the format first (`'xlsx'`), the file second, and an op
 
 - [`importFromBlob(format, blob, options)`](@/api/importFile.md#importfromblob) - imports a `Blob` or a `File`, such as one from an `<input type="file">`. Returns a `Promise` of the result.
 - [`importFromArrayBuffer(format, buffer, options)`](@/api/importFile.md#importfromarraybuffer) - imports an `ArrayBuffer`, or a view over one such as a `Uint8Array`. Returns a `Promise` of the result.
-- [`supportsImportFormat(format)`](@/api/importFile.md#supportsimportformat) - `true` when the format can be read.
+- [`supportsImportFormat(format)`](@/api/importFile.md#supportsimportformat) - `true` when the format can be read. `supportsImportFormat('xlsx')` also returns `false` when the license does not unlock `xlsx:import`.
 
 To type data that doesn't come from a workbook, such as CSV rows, pasted text, or API values, use [`inferColumnTypes()`](@/api/importFile.md#infercolumntypes). See [Infer column types](@/guides/import-and-export/infer-column-types/infer-column-types.md).
 
