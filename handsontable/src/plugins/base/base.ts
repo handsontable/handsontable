@@ -751,15 +751,19 @@ export class BasePlugin {
   /**
    * Records that the plugin owes work to core's `onDataReady()` pass, which runs once the data the settings
    * describe is loaded. Nothing is recorded while the grid has no view: core skips that pass on a grid still
-   * being built, and the plugin's own `afterInit` does the work there. The record is dropped when the plugin
-   * is disabled, and when the call fails before the pass, so it can never run against another call's data.
+   * being built, and the plugin's ready step (`onGridReady()`) does the work there. The record is dropped when
+   * the plugin is disabled, and when the call fails before the pass, so it can never run against another
+   * call's data.
    *
    * @private
+   * @returns {boolean} `true` when the work was recorded.
    */
-  deferDataWork(): void {
+  deferDataWork(): boolean {
     if (this.hot.view) {
       this.#deferredDataWork = true;
     }
+
+    return this.#deferredDataWork;
   }
 
   /**

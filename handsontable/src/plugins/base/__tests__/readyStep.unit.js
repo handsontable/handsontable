@@ -180,6 +180,30 @@ describe('BasePlugin ready step (`onGridReady()`)', () => {
     expect(steps.indexOf('ready')).toBeLessThan(steps.indexOf('render'));
   });
 
+  it('should hold the renders a step asks for at init, so the first render after the `init` hook draws its work', () => {
+    hot = createGrid({
+      [PROBE]: { writeOnReady: true },
+      init() {
+        log.push(['init hook']);
+      },
+    });
+
+    // `setDataAtCell()` renders on its own. At init that render would draw the grid before the steps of the
+    // plugins after this one built their state, and before the `init` hook.
+    expect(log.map(([step]) => step)).toEqual(['ready', 'init hook', 'render']);
+    expect(hot.getDataAtCell(0, 0)).toBe('written by the ready step');
+  });
+
+  it('should let a step render on a grid already drawn', () => {
+    hot = createGrid({});
+    log.length = 0;
+
+    hot.updateSettings({ [PROBE]: { writeOnReady: true } });
+
+    // The write renders from the step, and `updateSettings()` renders once at its end.
+    expect(log.map(([step]) => step)).toEqual(['update end', 'ready', 'render', 'render']);
+  });
+
   it('should run a step a `loadData()` hook makes the plugin owe after the load, against the loaded rows', () => {
     hot = createGrid({ [PROBE]: true });
     hot.addHook('beforeLoadData', () => hot.getPlugin(PROBE).updatePlugin());

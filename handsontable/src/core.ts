@@ -2819,8 +2819,23 @@ export default function Core(
     }
 
     // The data is loaded and the view, the editor manager and the focus manager exist: the plugins enabled
-    // while the grid was built run their ready steps before the `init` hook and the first render.
-    runOwedReadySteps();
+    // while the grid was built run their ready steps before the `init` hook and the first render. Rendering
+    // is held while they run, so a step that renders (a sort, a cell write) cannot draw the grid before a
+    // later step builds its state; the counter is put back without a render, because the first one follows.
+    const renderState = instance as HotInstance & CoreInternals;
+
+    renderState.renderSuspendedCounter += 1;
+
+    try {
+      runOwedReadySteps();
+    } finally {
+      renderState.renderSuspendedCounter -= 1;
+    }
+
+    // A held render also skipped the start of a full render, which makes each stored cell meta run its
+    // dynamic extension again. Without it the `init` listeners (the AutoColumnSize sweep) read the meta of
+    // a cell as it was before a step changed it: a merge's first cell without its `colspan`.
+    metaManager.invalidateMetaExtensions();
 
     instance.runHooks('init');
 

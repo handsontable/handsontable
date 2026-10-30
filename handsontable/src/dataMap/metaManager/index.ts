@@ -19,6 +19,7 @@ import type { CellProperties } from '../../settings';
 interface MetaManagerLocalHooks {
   afterGetCellMeta: (cellMeta: CellProperties) => void;
   extendTransientCellMeta: (cellMeta: CellProperties) => void;
+  invalidateMetaExtensions: () => void;
 }
 
 /**
@@ -630,6 +631,15 @@ export default class MetaManager {
     this.#structureVersion += 1;
     this.cellMeta.removeColumn(physicalColumn, amount);
     this.columnMeta.removeColumn(physicalColumn, amount);
+  }
+
+  /**
+   * Makes the next read of each stored cell meta object run the dynamic extension again (the `cells`
+   * function and the `beforeGetCellMeta`/`afterGetCellMeta` hooks). The extension runs once per cell per
+   * full render, and a full render forgets that at its start; core calls this where it held such a render.
+   */
+  invalidateMetaExtensions() {
+    this.runLocalHooks('invalidateMetaExtensions');
   }
 
   /**
