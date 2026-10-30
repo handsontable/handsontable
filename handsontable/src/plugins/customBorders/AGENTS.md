@@ -301,6 +301,26 @@ read through `hot.view.countFixedColumnsEnd()`, so the start columns keep the pr
 columns even when the master range is far from them, exactly like the start clone, so a border on an end column
 has to be in the working set or it is never drawn. Pinned by `tests/e2e/fixed-columns-end-plugins.spec.ts`.
 
+## The declared borders have one owner per enable
+
+The borders the settings declare are applied once per enable, by whichever path gets there:
+`updatePlugin()` (a `customBorders` update, including the off-to-on one, which runs `enablePlugin()` and
+then `updatePlugin()`), `onDataReady()` (the same update made ahead of its data), or the ready step
+(`onGridReady()`, `../base/AGENTS.md`) when neither ran: at init, and after a direct `enablePlugin()` call.
+`#declaredBordersOwed` is set by `enablePlugin()` and cleared by whichever applies them, so the step skips
+the pass after the other two and no border is written twice.
+
+At init the step runs before the `init` hook and the first render, and it does not render: that render
+syncs the master table's borders, and a render from the step would paint before later-priority plugins
+(NestedHeaders) build their state (#11031). The overlay clones that first render builds still need one
+more selection pass, so the step schedules a render for `afterInit` when any border exists. On a grid
+already drawn (`view._wt.drawn`) the step renders once itself. It replaced an `init` listener, which never
+fired again after init, so a direct `enablePlugin()` on a live grid used to apply nothing. Known limit: a
+grid built inside a hidden container skips its draws, so `drawn` stays `false` until it is first shown, and a
+direct `enablePlugin()` before that takes the init branch; the `afterInit` render it schedules never fires,
+so the frozen panes may miss the borders until the next render after the grid appears. Pinned by
+`__tests__/readyStep.unit.js`.
+
 ## Declared borders applied ahead of their data wait for `onDataReady()`
 
 While core's `_applySettingsAndData()` applies settings ahead of their data (`isDataWorkDeferred()`,
