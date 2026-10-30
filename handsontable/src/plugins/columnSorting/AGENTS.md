@@ -423,29 +423,33 @@ both directions, `htRight`/`htLeft`, sorted and unsorted; the menu icon has to s
 `#pendingHeaderSort = null` and `columnStatesManager?.destroy()` are explicit here. Any new `#field` holding
 state needs the same treatment.
 
-## Known workaround
+## The settings sort of an enable runs in the ready step
 
-`enablePlugin()` carries a `// TODO: Workaround? It should be refactored / described.` guard on
-`this.hot.view` — the #6806 initialization-order problem described in `../base/AGENTS.md`.
+`enablePlugin()` sorts nothing. It marks the settings sort as owed (`#settingsSortOwed`), and the ready step
+(`onGridReady()`, `../base/AGENTS.md`) runs it once the data the settings describe is loaded: at init before
+the `init` hook, and after the load on a settings switch. Core holds the renders at init while the steps run,
+so the sort's own render is skipped and the first render draws sorted rows; the grid renders once at init
+instead of twice. It replaced an `afterInit` listener (which sorted after the first render had drawn the rows
+unsorted), the #6806 `this.hot.view` branch in `enablePlugin()`, and an `afterLoadData` listener whose
+`initialLoad` branch never ran (it read the data array as the flag). Pinned by `__tests__/readyStep.unit.js`.
 
 ## Enabling via `updateSettings` must not sort twice (DEV-187)
 
 A `disabled → enabled` transition through `updateSettings()` (e.g. `hot.updateSettings({ columnSorting:
-{...} })` on a grid built without the option) runs the settings sort from **two** places in the same
-pass: `enablePlugin()`'s `#loadOrSortBySettings()` (the #6806 `this.hot.view` workaround above, which
-already fires because `view` exists by then) and `onUpdateSettings()`'s own tail call to
+{...} })` on a grid built without the option) can run the settings sort from **two** places in the same
+pass: the ready step of the enable (above) and `onUpdateSettings()`'s own tail call to
 `sortBySettings(pluginSettings)`. Left unguarded, that runs the comparator twice for the same sort -
 the original DEV-187 report blamed construction-time `initialConfig`, which was already fixed and
 measures single on develop; the survivor is this enable-via-`updateSettings` path.
 
 `onUpdateSettings()` captures `wasEnabled = this.enabled` **before** calling `super.onUpdateSettings()`
 (which is what may flip `enabled` from `false` to `true`), and only re-sorts when the plugin was
-`enabled` on **both** sides of that call. A fresh enable is left to `enablePlugin()` alone; an
+`enabled` on **both** sides of that call. A fresh enable is left to its ready step alone; an
 already-enabled plugin receiving a new sort config through `updateSettings` still re-sorts here as
-before. `MultiColumnSorting` overrides neither `onUpdateSettings()` nor `sortBySettings()` - its
-`enablePlugin()` override only adds an already-enabled early return before delegating to `super`,
-so it still runs the same #6806 workaround path - and it inherits this guard unchanged. Do not
-special-case it.
+before, and its step does nothing (only `enablePlugin()` marks the sort as owed). `MultiColumnSorting`
+overrides neither `onUpdateSettings()` nor `sortBySettings()` - its `enablePlugin()` override only adds
+an already-enabled early return before delegating to `super` - and it inherits this guard and the step
+unchanged. Do not special-case it.
 
 ## `Enter` on a collapsible header belongs to CollapsibleColumns
 
@@ -503,8 +507,7 @@ order" in `tests/e2e/icon-elements.spec.ts`.
 ## The `initialConfig` sort applied ahead of its data waits for `onDataReady()`
 
 While core's `_applySettingsAndData()` applies settings ahead of their data (`isDataWorkDeferred()`,
-`../base/AGENTS.md`), both settings sorts (the live-grid branch of `enablePlugin()` and the one in
-`onUpdateSettings()`) are held, and `onDataReady()` runs `#loadOrSortBySettings()` against the loaded rows.
-Run before, they sorted the departing rows and the load reset the order, so a sheet's own `initialConfig`
-was ignored on its first visit. Known, separate defect: `#onAfterLoadData` reads the hook's first argument
-(the data array) as `initialLoad`, so its `initialLoad === true` branch never runs.
+`../base/AGENTS.md`), the sort in `onUpdateSettings()` is held, and `onDataReady()` runs
+`#loadOrSortBySettings()` against the loaded rows. The sort of a fresh enable needs no hold: its ready step
+runs after the load. Run before the load, either sorted the departing rows and the load reset the order, so
+a sheet's own `initialConfig` was ignored on its first visit.
