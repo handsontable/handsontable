@@ -1,4 +1,6 @@
-import { normalizeFormula, normalizeNamedExpression, toFormulaLiteral } from '../types/xlsx/formula-utils';
+import {
+  ArrayRangeClaims, normalizeFormula, normalizeNamedExpression, toFormulaLiteral,
+} from '../types/xlsx/formula-utils';
 
 describe('normalizeFormula', () => {
   describe('relative references', () => {
@@ -158,5 +160,55 @@ describe('toFormulaLiteral', () => {
     expect(toFormulaLiteral(null)).toBeNull();
     expect(toFormulaLiteral({ type: 'CYCLE', value: '#CYCLE!' })).toBeNull();
     expect(toFormulaLiteral(Infinity)).toBeNull();
+  });
+});
+
+describe('ArrayRangeClaims', () => {
+  const range = (top, left, bottom, right) => ({ top, left, bottom, right });
+
+  it('should claim ranges in row-major order and refuse one that overlaps an earlier claim', () => {
+    // The export asks master by master, row by row and left to right.
+    const claims = new ArrayRangeClaims();
+
+    expect(claims.claim(range(1, 1, 3, 2))).toBe(true); // A1:B3
+    expect(claims.claim(range(1, 3, 1, 3))).toBe(true); // C1, right of A1:B3
+    expect(claims.claim(range(2, 2, 2, 2))).toBe(false); // B2, inside A1:B3
+    expect(claims.claim(range(2, 3, 3, 4))).toBe(true); // C2:D3, touches A1:B3 and C1 only at the edges
+    expect(claims.claim(range(4, 1, 4, 1))).toBe(true); // A4, below A1:B3
+    expect(claims.claim(range(4, 3, 6, 3))).toBe(true); // C4:C6
+    expect(claims.claim(range(5, 1, 5, 4))).toBe(false); // A5:D5, a free master reaching into C4:C6
+    expect(claims.claim(range(6, 1, 6, 2))).toBe(true); // A6:B6, stops left of C6
+    expect(claims.claim(range(7, 3, 7, 3))).toBe(true); // C7, below C4:C6
+  });
+
+  it('should not let a refused claim block a later range', () => {
+    const claims = new ArrayRangeClaims();
+
+    expect(claims.claim(range(1, 1, 2, 1))).toBe(true);
+    expect(claims.claim(range(2, 1, 9, 9))).toBe(false);
+    expect(claims.claim(range(3, 3, 3, 3))).toBe(true);
+  });
+
+  it('should claim a 100,000-row column of one-cell arrays in linear time', () => {
+    // An IFS column is a one-cell dynamic array per row. Comparing each claim with every earlier
+    // one took about 3 seconds for 100,000 rows.
+    const claims = new ArrayRangeClaims();
+    const started = performance.now();
+
+    const answers = new Set();
+
+    for (let row = 1; row <= 100000; row++) {
+      answers.add(claims.claim(range(row, 3, row, 3)));
+
+      if (row === 1) {
+        // A spill over D1:D100000 next to the IFS column.
+        answers.add(claims.claim(range(1, 4, 100000, 4)));
+      }
+    }
+
+    expect(performance.now() - started).toBeLessThan(500);
+    expect([...answers]).toEqual([true]);
+    // A master inside the spill is still refused.
+    expect(claims.claim(range(100000, 4, 100000, 5))).toBe(false);
   });
 });

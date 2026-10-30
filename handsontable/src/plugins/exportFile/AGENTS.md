@@ -313,7 +313,11 @@ Other rules:
   public spill-range API, so the size comes from the engine's INTERNAL
   `arrayMapping.getArrayByCorner()` (duck-typed; any unexpected shape answers `null`), with a walk over
   `ARRAY`-typed cells as the fallback. The walk can over-count next to another array, so the xlsx type
-  keeps a per-sheet list of claimed ranges and writes an overlapping array as a plain formula. The data
+  keeps per-sheet claims (`ArrayRangeClaims` in `types/xlsx/formula-utils.ts`) and writes an overlapping
+  array as a plain formula. **The claims rely on row-major order** (masters are claimed row by row, left
+  to right): an overlap is then always on the new range's first row, one-cell claims are never stored,
+  and only multi-cell spills keep their cells in a `Set`. Never claim out of order, and never go back to
+  comparing every pair: a 100,000-row `IFS` column cost about 3 s that way. The data
   provider decides `exported` (every spilled row and column lands right after the master in the matrix):
   a spill crossing a hidden row with `exportHiddenRows: false`, a trimmed or filtered row, or the `range`
   edge is written as a plain formula and `formula:arrayExcluded` is recorded once. `ARRAYFORMULA(x)`

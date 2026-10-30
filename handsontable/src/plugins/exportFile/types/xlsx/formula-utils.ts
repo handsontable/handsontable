@@ -368,3 +368,71 @@ export function toFormulaLiteral(value: unknown): string | null {
 
   return toOoxmlErrorCode(value);
 }
+
+/**
+ * A 1-based, inclusive cell range of a sheet.
+ */
+export interface SheetRange {
+  top: number;
+  left: number;
+  bottom: number;
+  right: number;
+}
+
+/**
+ * The widest column index plus one, so `row * CLAIM_ROW_STRIDE + col` keys a cell uniquely.
+ */
+const CLAIM_ROW_STRIDE = 16385;
+
+/**
+ * The ranges a sheet's array formulas claimed. Two overlapping refs are invalid OOXML (Excel
+ * repairs the file), and the size of an array can be an over-counting estimate
+ * (`ExportDataProvider#getArrayFormulaSizes`), so an array whose range overlaps an earlier one is
+ * written without its flag.
+ *
+ * The export claims master by master in row-major order (row by row, left to right), and every
+ * range starts at its master. So a range overlaps an earlier claim exactly when an earlier claim
+ * covers a cell of the range's FIRST row: the earlier range starts on that row or above it. A
+ * one-cell claim never covers a cell a later master's first row reaches (that master starts right
+ * of it or below it), so only the cells of multi-cell claims are kept, and a one-cell claim costs
+ * O(1) - an `IFS` column of 100,000 rows used to cost a comparison with every earlier claim. The
+ * kept cells never exceed the sheet's exported cells, because the claims do not overlap.
+ *
+ * @private
+ */
+export class ArrayRangeClaims {
+  /**
+   * The cells the multi-cell claims cover, keyed `row * CLAIM_ROW_STRIDE + col`.
+   */
+  #cells = new Set<number>();
+
+  /**
+   * Claims the range of an array formula, or answers `false` when it overlaps a range claimed
+   * earlier. Ranges must be claimed in row-major order of their top-left corner.
+   *
+   * @param {object} range The range to claim.
+   * @returns {boolean}
+   */
+  claim(range: SheetRange): boolean {
+    const { top, left, bottom, right } = range;
+    const firstRow = top * CLAIM_ROW_STRIDE;
+
+    for (let col = left; col <= right; col++) {
+      if (this.#cells.has(firstRow + col)) {
+        return false;
+      }
+    }
+
+    if (top === bottom && left === right) {
+      return true;
+    }
+
+    for (let row = top; row <= bottom; row++) {
+      for (let col = left; col <= right; col++) {
+        this.#cells.add((row * CLAIM_ROW_STRIDE) + col);
+      }
+    }
+
+    return true;
+  }
+}

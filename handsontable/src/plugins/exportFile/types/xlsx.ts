@@ -12,6 +12,7 @@ import {
   normalizeNamedExpression,
   isFormulaValue,
   type ExportedEngineSheet,
+  ArrayRangeClaims,
 } from './xlsx/formula-utils';
 import {
   getCssStyleFromElement,
@@ -291,22 +292,12 @@ interface FormulaCellFacts {
 }
 
 /**
- * A 1-based, inclusive cell range of a sheet.
- */
-interface SheetRange {
-  top: number;
-  left: number;
-  bottom: number;
-  right: number;
-}
-
-/**
  * Where a sheet's array formulas go: the export's dropped-feature collector and the ranges the
  * sheet's earlier array formulas already cover.
  */
 interface ArrayFormulaTarget {
   dropped: DroppedFeatures;
-  arrayRanges: SheetRange[];
+  arrayRanges: ArrayRangeClaims;
 }
 
 /**
@@ -318,27 +309,6 @@ function recordArrayExcluded(dropped: DroppedFeatures): void {
   if (dropped.count(DROPPED_FEATURES.formulaArrayExcluded) === 0) {
     dropped.record(DROPPED_FEATURES.formulaArrayExcluded);
   }
-}
-
-/**
- * Claims the range of an array formula for the sheet, or answers `false` when it overlaps the
- * range an earlier array formula of the sheet claimed. Two overlapping refs are invalid OOXML
- * (Excel repairs the file), and the size of an array can be an over-counting estimate
- * (`ExportDataProvider#getArrayFormulaSizes`), so the later array is written without its flag.
- *
- * @param {Array} arrayRanges The ranges the sheet's earlier array formulas claimed.
- * @param {object} range The range to claim.
- * @returns {boolean}
- */
-function claimArrayRange(arrayRanges: SheetRange[], range: SheetRange): boolean {
-  const overlaps = arrayRanges.some(other => range.top <= other.bottom && other.top <= range.bottom
-    && range.left <= other.right && other.left <= range.right);
-
-  if (!overlaps) {
-    arrayRanges.push(range);
-  }
-
-  return !overlaps;
 }
 
 /**
@@ -380,7 +350,7 @@ function resolveArrayFormula(
   const rows = arraySize?.rows ?? 1;
   const cols = arraySize?.cols ?? 1;
 
-  if (!claimArrayRange(target.arrayRanges, { top: row, left: col, bottom: row + rows - 1, right: col + cols - 1 })) {
+  if (!target.arrayRanges.claim({ top: row, left: col, bottom: row + rows - 1, right: col + cols - 1 })) {
     recordArrayExcluded(target.dropped);
 
     return { text: formulaText };
@@ -432,7 +402,7 @@ interface SheetContext {
   formulaErrorCodes: (string | null)[][] | null;
   arrayFormulaSizes: (ArrayFormulaSize | null)[][] | null;
   dropped: DroppedFeatures;
-  arrayRanges: SheetRange[];
+  arrayRanges: ArrayRangeClaims;
   hasRowHeaders: boolean;
   headerFill: HeaderFill | null;
   headerBorder: HeaderBorder | null;
@@ -763,7 +733,7 @@ class Xlsx extends BaseType {
       formulaErrorCodes,
       arrayFormulaSizes,
       dropped,
-      arrayRanges: [],
+      arrayRanges: new ArrayRangeClaims(),
       hasRowHeaders,
       headerFill,
       headerBorder,
