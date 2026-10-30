@@ -1,4 +1,5 @@
 import { BasePlugin } from '../base';
+import { getPluginsNames } from '../registry';
 import { Hooks } from '../../core/hooks';
 import type { HookCallback } from '../../core/hooks/bucket';
 import {
@@ -1730,6 +1731,8 @@ export class SheetsBar extends BasePlugin {
       return;
     }
 
+    const restoredSettings = this.#withOwnOptionObjects(restored);
+
     // Emptied before the write: `updateSettings` re-enters `BasePlugin#onUpdateSettings`, and
     // on a `sheetsBar: false` teardown that call reaches `disablePlugin()` again — the empty
     // baseline (and the freeze now matching neutral) is what stops the second pass from
@@ -1739,7 +1742,7 @@ export class SheetsBar extends BasePlugin {
     try {
       this.#isRestoringBaseline = true;
       this.#pendingHookSync = {};
-      this.hot.updateSettings(restored);
+      this.hot.updateSettings(restoredSettings);
     } finally {
       this.#isRestoringBaseline = false;
       this.#pendingHookSync = null;
@@ -3812,9 +3815,68 @@ export class SheetsBar extends BasePlugin {
       restored.dataProvider = null;
     }
 
-    const merged = { ...restored, ...(settings ?? {}) };
+    const merged = this.#withOwnOptionObjects({ ...restored, ...(settings ?? {}) }, settings);
 
     return Object.keys(merged).length > 0 ? merged : null;
+  }
+
+  /**
+   * Makes every plugin option a payload sets as an object complete: the plugin's defaults for the keys
+   * (`_getObjectSettingDefaults()`), then the grid-level object when the sheet declares the option itself,
+   * then the payload's object. A plugin merges an object into the previous one, so a key one sheet set
+   * stayed on every sheet opened after it that left the key out, over the grid-level value too. Plain
+   * `updateSettings()` keeps merging; only the bar's own writes send a complete object.
+   *
+   * @param {object} payload The settings about to be applied.
+   * @param {object} [ownSettings] The sheet's own settings, when the payload applies a sheet.
+   * @returns {object} The payload, or a copy with the objects completed.
+   */
+  #withOwnOptionObjects(payload: Record<string, unknown>, ownSettings?: Record<string, unknown> | null) {
+    let result = payload;
+
+    Object.keys(payload).forEach((key) => {
+      const value = payload[key];
+      const defaults = isPlainObject(value) ? this.#objectSettingDefaultsOf(key) : null;
+
+      if (defaults === null) {
+        return;
+      }
+
+      const gridLevel = this.#settingsBaseline.get(key);
+      const underneath = ownSettings && key in ownSettings && isPlainObject(gridLevel) ? gridLevel : {};
+
+      if (result === payload) {
+        result = { ...payload };
+      }
+
+      result[key] = { ...defaults, ...underneath, ...(value as Record<string, unknown>) };
+    });
+
+    return result;
+  }
+
+  /**
+   * Returns the defaults of the object form of the option `key`, from the plugin registered under that
+   * option on this grid, or `null` when no such plugin merges an object setting. The keys with rules of
+   * their own (`SELF_BASELINED_KEYS`) are left as sent: a `dataProvider` is told apart by its identity.
+   *
+   * @param {string} key The option key.
+   * @returns {object|null}
+   */
+  #objectSettingDefaultsOf(key: string): Record<string, unknown> | null {
+    if (key === PLUGIN_KEY || SELF_BASELINED_KEYS.has(key)) {
+      return null;
+    }
+
+    for (const pluginName of getPluginsNames()) {
+      const plugin = this.hot.getPlugin(pluginName as never) as BasePlugin | undefined;
+
+      if (plugin && (plugin.constructor as typeof BasePlugin).PLUGIN_KEY === key) {
+        return plugin._getObjectSettingDefaults();
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -3832,7 +3894,7 @@ export class SheetsBar extends BasePlugin {
     try {
       this.#isApplyingOwnSettings = true;
       this.#pendingHookSync = { ownSettings };
-      this.hot.updateSettings(changes);
+      this.hot.updateSettings(this.#withOwnOptionObjects(changes, ownSettings));
     } finally {
       this.#isApplyingOwnSettings = false;
       this.#pendingHookSync = null;

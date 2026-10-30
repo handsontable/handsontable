@@ -196,6 +196,17 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   grid; a reset part made one call with `initialPage` win over every later call without it. And a new
   `manualColumnMove`/`manualRowMove` shows exactly the declared order, while the plain grid applies the
   declared array on top of the user's moves, which depends on what the user did before.
+- **A plugin option a sheet sets as an object is that sheet's own** (`#withOwnOptionObjects`, on every
+  write the bar makes for a sheet: `#withBaselineFor`, `#applyToVisibleSheet`, `#restoreBaselineToGrid`).
+  BasePlugin's `updatePluginSettings()` merges an object into the previous one, and Search and ColumnSorting
+  merge theirs the same way, so a key one sheet set stayed on every later sheet that left it out, over the
+  grid-level value too. The bar sends the plugin's defaults (`_getObjectSettingDefaults()`, `@private` on
+  BasePlugin, overridden by ColumnSorting and Search), then the grid-level object when the sheet declares the
+  option, then the sheet's object. Plain `updateSettings()` keeps merging. The `SELF_BASELINED_KEYS` are
+  left as sent: a `dataProvider` is told apart by its identity, and a completed copy read as a new provider.
+  A new plugin that merges its object option in its own way overrides `_getObjectSettingDefaults()`, or its
+  keys leak across sheets again. Pinned by `__tests__/pluginOptionReset.unit.js` and
+  `tests/e2e/sheets-bar-plugin-option-objects.spec.ts`.
 - **A grid-level value set later through `updateSettings()` refreshes the baseline**
   (`#refreshSettingsBaseline`, the first step of `#onAfterUpdateSettings` at `orderIndex` -1, so it
   runs before BasePlugin's own listener tears the bar down or rebuilds it in the same call). Only

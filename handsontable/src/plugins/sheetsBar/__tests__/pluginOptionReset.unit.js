@@ -94,4 +94,93 @@ describe('SheetsBar: a plugin option object stays on its own sheet', () => {
 
     expect(hot.getDataAtCol(0)).toEqual(['apple', 'plum', null]);
   });
+
+  describe('an object a sheet sets, after a sheet that set another', () => {
+    /**
+     * Builds a workbook with a grid-level object for a plugin option, a sheet 'X' setting one object and a
+     * sheet 'Y' setting another, and a 'Plain' sheet that sets none.
+     *
+     * @param {string} pluginKey The plugin option key.
+     * @param {object} gridLevel The grid-level object.
+     * @param {object} x The object of sheet 'X'.
+     * @param {object} y The object of sheet 'Y'.
+     * @returns {object} The SheetsBar plugin.
+     */
+    function buildObjects(pluginKey, gridLevel, x, y) {
+      hot = new Handsontable(container, {
+        colHeaders: true,
+        [pluginKey]: gridLevel,
+        sheetsBar: {
+          sheets: [
+            { name: 'Plain', data: [[1]] },
+            { name: 'X', data: [[1]], settings: { [pluginKey]: x } },
+            { name: 'Y', data: [[1]], settings: { [pluginKey]: y } },
+          ],
+        },
+        licenseKey: LICENSE_KEY,
+      });
+
+      return hot.getPlugin('sheetsBar');
+    }
+
+    it.each([
+      ['autoLink', { target: '_blank' }, { target: '_self', className: 'x' }, { className: 'y' },
+        { target: '_blank', className: 'y' }, { target: '_blank', className: '' }],
+      ['notification', { stackLimit: 3 }, { stackLimit: 5, animation: false }, { stackLimit: 4 },
+        { stackLimit: 4, animation: true }, { stackLimit: 3, animation: true }],
+      ['filters', { searchMode: 'apply' }, { searchMode: 'show' }, {},
+        { searchMode: 'apply' }, { searchMode: 'apply' }],
+    ])('gives `%s` keys a sheet leaves out the grid-level value or the default', (
+      pluginKey, gridLevel, x, y, onY, onPlain
+    ) => {
+      const plugin = buildObjects(pluginKey, gridLevel, x, y);
+
+      plugin.setActiveSheet('X');
+      plugin.setActiveSheet('Y');
+
+      expect(hot.getPlugin(pluginKey).getSetting()).toEqual(expect.objectContaining(onY));
+
+      plugin.setActiveSheet('X');
+      plugin.setActiveSheet('Plain');
+
+      expect(hot.getPlugin(pluginKey).getSetting()).toEqual(expect.objectContaining(onPlain));
+    });
+
+    it.each([
+      ['columnSorting'],
+      ['multiColumnSorting'],
+    ])('gives a `%s` object the default sorting options it leaves out', (pluginKey) => {
+      const plugin = buildObjects(pluginKey, true, { indicator: false, headerAction: false, sortEmptyCells: true }, {});
+
+      plugin.setActiveSheet('X');
+      plugin.setActiveSheet('Y');
+
+      const merged = hot.getPlugin(pluginKey).getMergedPluginSettings(0);
+
+      expect(merged.indicator).toBe(true);
+      expect(merged.headerAction).toBe(true);
+      expect(merged.sortEmptyCells).toBe(false);
+    });
+
+    it('gives a `search` object the default result class it leaves out', () => {
+      const plugin = buildObjects('search', true, { searchResultClass: 'x-hit' }, { callback: null });
+
+      plugin.setActiveSheet('X');
+      plugin.setActiveSheet('Y');
+
+      expect(hot.getPlugin('search').getSearchResultClass()).toBe('htSearchResult');
+    });
+
+    it('keeps a plain `updateSettings()` object merging into the previous one', () => {
+      hot = new Handsontable(container, {
+        autoLink: { target: '_self', className: 'x' },
+        licenseKey: LICENSE_KEY,
+      });
+
+      hot.updateSettings({ autoLink: { className: 'y' } });
+
+      expect(hot.getPlugin('autoLink').getSetting())
+        .toEqual(expect.objectContaining({ target: '_self', className: 'y' }));
+    });
+  });
 });

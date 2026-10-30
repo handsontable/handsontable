@@ -142,6 +142,21 @@ export class Search extends BasePlugin {
   #appliedSettings: unknown = null;
 
   /**
+   * Returns the value each option an object setting sets takes when the object leaves it out: an object
+   * sets the options it names and keeps the others (see `BasePlugin`). Internal; not public API.
+   *
+   * @private
+   * @returns {object}
+   */
+  _getObjectSettingDefaults(): Record<string, unknown> {
+    return {
+      searchResultClass: DEFAULT_SEARCH_RESULT_CLASS,
+      queryMethod: DEFAULT_QUERY_METHOD,
+      callback: DEFAULT_CALLBACK,
+    };
+  }
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link AutoRowSize#enablePlugin} method is called.
    *
