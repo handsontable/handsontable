@@ -1301,9 +1301,13 @@ describe('ImportFile and the workbook\'s defined names in a real HyperFormula en
    * A `Data` workbook with a header row: `G2:G4` holds 10, 20, 30 under the names `Sales` (absolute)
    * and `Relative` (`Data!G2`, legal in Excel), `C2` sums `Sales` and `C3` reads `Relative`.
    *
+   * @param {object[]} [names] The workbook's defined names.
    * @returns {Promise<ArrayBuffer>}
    */
-  async function salesBytes() {
+  async function salesBytes(names = [
+    { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null },
+    { name: 'Relative', formula: 'Data!G2', sheetName: null },
+  ]) {
     const snapshot = createWorkbookSnapshot();
     const sheet = createSheetSnapshot('Data');
     const at = overrides => ({ ...createCellSnapshot(), ...overrides });
@@ -1319,10 +1323,7 @@ describe('ImportFile and the workbook\'s defined names in a real HyperFormula en
     ];
     snapshot.sheets.push(sheet);
     // Written by the built-in writer: ExcelJS turns `Data!G2` into `Data!$G$2` on the way out.
-    snapshot.definedNames = [
-      { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null },
-      { name: 'Relative', formula: 'Data!G2', sheetName: null },
-    ];
+    snapshot.definedNames = names;
 
     return toArrayBuffer(await nativeAdapter.write(snapshot, undefined, new DroppedFeatures()));
   }
@@ -1364,6 +1365,81 @@ describe('ImportFile and the workbook\'s defined names in a real HyperFormula en
 
       hf.destroy();
     }
+  });
+
+  /**
+   * Imports `bytes` with `apply: false` into a fake grid whose Formulas plugin holds `hf`.
+   *
+   * @param {object} hf The HyperFormula instance.
+   * @param {ArrayBuffer} bytes The file.
+   * @param {string} [sheetName] The engine's name for the grid's sheet.
+   * @returns {Promise<object>} The import result.
+   */
+  function importInto(hf, bytes, sheetName = 'Sheet1') {
+    const { plugin, hot } = pluginWithFakeHot(true);
+
+    hot.getPlugin = name => ({ formulas: { isEnabled: () => true, sheetName, engine: hf } })[name];
+
+    return plugin.importFromArrayBuffer('xlsx', bytes, { apply: false, colHeaders: 'firstRow' });
+  }
+
+  it('should keep a re-imported name live when unchanged, and import its formulas cached when it changed', async() => {
+    const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+
+    hf.addSheet('Sheet1');
+
+    const sales = formula => [{ name: 'Sales', formula, sheetName: null }];
+    const first = await importInto(hf, await salesBytes(sales('Data!$G$2:$G$4')));
+
+    // What the applier does: the names first, then the data.
+    first.namedExpressions.forEach(({ name, formula }) => hf.addNamedExpression(name, `=${formula}`));
+    hf.setSheetContent(0, first.data);
+
+    // The same file again, its definition spelled differently: HyperFormula's normal form matches.
+    const same = await importInto(hf, await salesBytes(sales('data!$g$2:$G$4')));
+
+    expect(same.namedExpressions).toBeUndefined();
+    expect(same.data[0][2]).toBe('=SUM(Sales)');
+    expect(same.dropped).not.toContain('definedNames:unsupported');
+
+    // An updated file whose `Sales` covers two rows: the engine's three-row `Sales` would read 60.
+    const changed = await importInto(hf, await salesBytes(sales('Data!$G$2:$G$3')));
+
+    expect(changed.namedExpressions).toBeUndefined();
+    expect(changed.data[0][2]).toBe(60);
+    expect(changed.dropped).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+
+    hf.destroy();
+  });
+
+  it('should leave out a definition HyperFormula cannot parse, which isItPossibleToAddNamedExpression accepts', async() => {
+    const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+
+    hf.addSheet('Sheet1');
+
+    expect(hf.isItPossibleToAddNamedExpression('Broken', '=SUM(')).toBe(true);
+
+    const result = await importInto(hf, await salesBytes([{ name: 'Broken', formula: 'SUM(', sheetName: null }]));
+
+    expect(result.namedExpressions).toBeUndefined();
+    expect(result.dropped).toContain('definedNames:unsupported');
+
+    hf.destroy();
+  });
+
+  it('should leave out a name over the imported sheet when the engine has no name for the grid\'s sheet', async() => {
+    const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+
+    hf.addSheet('Sheet1');
+
+    const result = await importInto(hf, await salesBytes(), null);
+
+    // Without a qualifier the reference is relative to HyperFormula, which refuses it.
+    expect(result.namedExpressions).toBeUndefined();
+    expect(result.data[0][2]).toBe(60);
+    expect(result.dropped).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+
+    hf.destroy();
   });
 });
 

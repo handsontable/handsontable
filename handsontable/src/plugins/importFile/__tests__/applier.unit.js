@@ -666,40 +666,80 @@ describe('installImportedStyles - declaration allow-list', () => {
 
 describe('applyImportResult – named expressions', () => {
   /**
-   * A Formulas plugin stand-in whose engine records `addNamedExpression` into `calls`.
+   * A Formulas plugin stand-in whose engine records `addNamedExpression` into `calls` and refuses
+   * the names in `refused`, the way HyperFormula refuses a name it already defines.
    *
-   * @param {Array} calls The fake grid's call log.
+   * @param {Array} calls The call log.
    * @param {boolean} enabled Whether the plugin is enabled.
+   * @param {string[]} [refused] The names the engine refuses.
    * @returns {object}
    */
-  function formulasPlugin(calls, enabled) {
+  function formulasPlugin(calls, enabled, refused = []) {
     return {
       isEnabled: () => enabled,
       engine: {
-        addNamedExpression: (name, expression) => calls.push(['addNamedExpression', name, expression]),
+        isItPossibleToAddNamedExpression: name => !refused.includes(name),
+        addNamedExpression: (name, expression) => {
+          if (refused.includes(name)) {
+            throw new Error(`Name ${name} already exists`);
+          }
+
+          calls.push(['addNamedExpression', name, expression]);
+        },
       },
     };
   }
 
-  it('should add every named expression to the engine inside the batch, before the data is loaded', () => {
-    // The engine's calls and the grid's go into one log, so their order is visible.
-    const order = [];
-    const ordered = fakeHot({ formulas: formulasPlugin(order, true) });
+  /**
+   * A fake grid whose own calls go into the engine's log too, so their order is visible.
+   *
+   * @param {Array} order The shared call log.
+   * @param {string[]} [refused] The names the engine refuses.
+   * @returns {object}
+   */
+  function orderedHot(order, refused) {
+    const hot = fakeHot({ formulas: formulasPlugin(order, true, refused) });
 
-    ordered.loadData = data => order.push(['loadData', data]);
-    ordered.batch = (fn) => {
+    hot.loadData = data => order.push(['loadData', data]);
+    hot.updateSettings = settings => order.push(['updateSettings', Object.keys(settings)]);
+    hot.batch = (fn) => {
       order.push(['batch:start']);
       fn();
       order.push(['batch:end']);
     };
-    applyImportResult(ordered, {
+
+    return hot;
+  }
+
+  it('should add every named expression inside the batch, before the column types and the data', () => {
+    const order = [];
+
+    applyImportResult(orderedHot(order), {
       data: [['=SUM(Sales)']],
+      columns: [{ type: 'numeric' }],
       namedExpressions: [{ name: 'Sales', formula: 'Sheet1!$F$1:$F$3' }, { name: 'TaxRate', formula: '0.07' }],
     });
 
     expect(order).toEqual([
       ['batch:start'],
       ['addNamedExpression', 'Sales', '=Sheet1!$F$1:$F$3'],
+      ['addNamedExpression', 'TaxRate', '=0.07'],
+      ['updateSettings', ['columns']],
+      ['loadData', [['=SUM(Sales)']]],
+      ['batch:end'],
+    ]);
+  });
+
+  it('should skip a name the engine defined since the mapper asked, instead of throwing mid-batch', () => {
+    // A `beforeImport` handler, or another grid on a shared engine, defined `Sales` in between.
+    const order = [];
+
+    expect(() => applyImportResult(orderedHot(order, ['Sales']), {
+      data: [['=SUM(Sales)']],
+      namedExpressions: [{ name: 'Sales', formula: 'Sheet1!$F$1:$F$3' }, { name: 'TaxRate', formula: '0.07' }],
+    })).not.toThrow();
+    expect(order).toEqual([
+      ['batch:start'],
       ['addNamedExpression', 'TaxRate', '=0.07'],
       ['loadData', [['=SUM(Sales)']]],
       ['batch:end'],
@@ -730,7 +770,7 @@ describe('applyImportResult – named expressions', () => {
       container.remove();
     });
 
-    it('should evaluate an imported formula over an imported name, and keep the name across a re-import', () => {
+    it('should evaluate an imported formula over an imported name, as a step that is not undoable', () => {
       hot = new Handsontable(container, {
         licenseKey: 'non-commercial-and-evaluation',
         data: [[null]],
@@ -743,19 +783,26 @@ describe('applyImportResult – named expressions', () => {
         namedExpressions: [{ name: 'Sales', formula: 'Sheet1!$A$1:$A$3' }],
       });
 
-      const { engine } = hot.getPlugin('formulas');
-
       expect(hot.getDataAtCell(0, 1)).toBe(60);
-      expect(engine.getNamedExpressionFormula('Sales')).toBe('=Sheet1!$A$1:$A$3');
+      expect(hot.getPlugin('formulas').engine.getNamedExpressionFormula('Sales')).toBe('=Sheet1!$A$1:$A$3');
       // `loadData` resets the grid's history: the import, names included, is not an undoable step.
       expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+    });
 
-      // A second import of a file defining `Sales` again: the mapper leaves the name out (the
-      // engine already defines it), so the first import's definition is the one the formula reads.
-      applyImportResult(hot, { data: [[1, '=SUM(Sales)'], [2, null], [3, null]] });
+    it('should load the data when the engine already defines a name of the result', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [[null]],
+        formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
+      });
+      hot.getPlugin('formulas').engine.addNamedExpression('Sales', '=Sheet1!$A$1');
 
-      expect(hot.getDataAtCell(0, 1)).toBe(6);
-      expect(engine.listNamedExpressions()).toEqual(['Sales']);
+      expect(() => applyImportResult(hot, {
+        data: [[10, '=SUM(Sales)'], [20, null]],
+        namedExpressions: [{ name: 'Sales', formula: 'Sheet1!$A$1:$A$2' }],
+      })).not.toThrow();
+      expect(hot.getDataAtCell(0, 0)).toBe(10);
+      expect(hot.getDataAtCell(0, 1)).toBe(10);
     });
   });
 });

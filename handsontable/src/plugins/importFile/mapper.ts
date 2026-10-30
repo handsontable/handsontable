@@ -70,6 +70,14 @@ export interface MapperContext {
    * handed over, and those formulas import their cached values.
    */
   canAddNamedExpression?: (name: string, expression: string) => boolean;
+  /**
+   * Whether the Formulas plugin's engine already defines this workbook-scoped name with this
+   * expression (`=` included), both compared in the engine's own normalized form. A workbook name the
+   * engine defines DIFFERENTLY - a re-import of a file whose name changed - is treated as unresolved:
+   * the formulas using it import their cached values instead of reading the old definition. Absent
+   * means a name the engine defines is trusted as it is.
+   */
+  definesNamedExpression?: (name: string, expression: string) => boolean;
 }
 
 /**
@@ -638,7 +646,10 @@ function unresolvedDefinedNames(workbook: WorkbookSnapshot, context: MapperConte
  * A name scoped to another sheet is ignored: the imported sheet's formulas never see it in Excel
  * either. A name scoped to the imported sheet is handed over at workbook scope (the grid holds that
  * one sheet), ahead of a workbook-scoped name spelled like it, which is what Excel resolves on that
- * sheet. A name the engine already defines is left as the engine has it.
+ * sheet. A name the engine already defines is left as the engine has it; when its definition is
+ * not this file's (`MapperContext.definesNamedExpression`), the name is added to
+ * `scope.unresolvedNames`, so the formulas over it import their cached values instead of reading the
+ * engine's old definition, and `definedNames:unsupported` is recorded.
  *
  * A definition is read like a cell formula: its stored prefixes stripped and the walk charged by
  * `readFormulaText`, then moved into grid coordinates by `rebaseImportedFormula`, with a reference
@@ -666,28 +677,44 @@ function collectNamedExpressions(scope: CollectContext): NonNullable<ImportResul
   // Sheet-scoped first, so it wins over a workbook-scoped name spelled like it. The sort is stable.
   const ordered = definitions.slice().sort((a, b) => Number(a.sheetName === null) - Number(b.sheetName === null));
   const added = new Map<string, { name: string; formula: string }>();
+  const seen = new Set<string>();
   let unsupported = false;
 
   ordered.forEach(({ name, formula }) => {
     const lowered = name.toLowerCase();
+    const defined = context.formulaNamedExpressions?.has(lowered) === true;
 
-    if (added.has(lowered) || context.formulaNamedExpressions?.has(lowered)) {
+    if (seen.has(lowered) || (defined && context.definesNamedExpression === undefined)) {
       return;
     }
+
+    seen.add(lowered);
 
     const rebased = rebaseImportedFormula(readFormulaText(formula, scope), shift.rowDelta, shift.colDelta, {
       self: sheet.name,
       selfAs: context.formulaSheetName,
       isKnown: candidate => isSheetKnown(candidate, scope),
     });
+    const expression = rebased.formula === null || rebased.unknownSheet ? null : `=${rebased.formula}`;
 
-    if (rebased.formula === null || rebased.unknownSheet || !canAdd(name, `=${rebased.formula}`)) {
+    if (defined) {
+      // The engine keeps its own definition. When it is not this file's, the formulas over the name
+      // would read the old one, so the name is treated as one the engine does not define.
+      if (expression === null || context.definesNamedExpression?.(name, expression) !== true) {
+        unresolvedNames.add(lowered);
+        unsupported = true;
+      }
+
+      return;
+    }
+
+    if (expression === null || !canAdd(name, expression)) {
       unsupported = true;
 
       return;
     }
 
-    added.set(lowered, { name, formula: rebased.formula });
+    added.set(lowered, { name, formula: rebased.formula as string });
   });
 
   // A name over a name left out shows `#NAME?` like the left-out one. The uses are read once per

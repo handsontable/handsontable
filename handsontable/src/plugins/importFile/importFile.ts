@@ -272,8 +272,11 @@ export interface ImportResult {
    * the data is loaded. Install them yourself with `addNamedExpression(name, '=' + formula)` when
    * `apply` is `false`.
    *
-   * A name the engine already defines is not handed over, and the engine keeps its own definition. A
-   * name scoped to another sheet is ignored. A name the engine cannot take (a relative reference, a
+   * Names are handed over only when the engine exposes `isItPossibleToAddNamedExpression`, as
+   * HyperFormula does. A name the engine already defines is not handed over, and the engine keeps its
+   * own definition: when that definition differs from the file's (a re-import of a changed file), the
+   * formulas using the name import their cached values with `formula:definedName`, and
+   * `definedNames:unsupported` is listed. A name scoped to another sheet is ignored. A name the engine cannot take (a relative reference, a
    * reference into the dropped header band, a sheet the engine does not hold, or a name over such a
    * name) is listed as `definedNames:unsupported` in `dropped`, and the formulas using it import
    * their cached values with `formula:definedName`. The import is not an undoable step, and neither
@@ -388,17 +391,57 @@ function engineNamedExpressions(engine: { listNamedExpressions?: () => string[] 
  * `isItPossibleToAddNamedExpression`, or `undefined` when the engine has no such method, so no name
  * is handed over.
  */
-function namedExpressionCheck(
-  engine: { isItPossibleToAddNamedExpression?: (name: string, expression: string) => boolean } | null | undefined
-): ((name: string, expression: string) => boolean) | undefined {
+function namedExpressionCheck(engine: NamedExpressionEngine | null | undefined): NamedExpressionPredicate | undefined {
   const check = engine?.isItPossibleToAddNamedExpression;
 
   if (typeof check !== 'function') {
     return undefined;
   }
 
-  return (name, expression) => check.call(engine, name, expression) === true;
+  // `isItPossibleToAddNamedExpression` checks the name and refuses relative references only: a
+  // definition that does not parse (`=A1:`) passes it and registers as a name that evaluates to an
+  // error, so the formula is validated as well.
+  return (name, expression) => isValidFormula(engine, expression) && check.call(engine, name, expression) === true;
 }
+
+/**
+ * Whether a Formulas engine defines a workbook-scoped name with this expression, both read in the
+ * engine's normalized form (`normalizeFormula` writes exactly what `getNamedExpressionFormula`
+ * answers: canonical sheet case, upper-case functions), or `undefined` when the engine cannot answer,
+ * so a name it defines is trusted as it is.
+ */
+function namedExpressionComparison(
+  engine: NamedExpressionEngine | null | undefined
+): NamedExpressionPredicate | undefined {
+  if (typeof engine?.getNamedExpressionFormula !== 'function' || typeof engine.normalizeFormula !== 'function') {
+    return undefined;
+  }
+
+  return (name, expression) => isValidFormula(engine, expression)
+    && engine.getNamedExpressionFormula?.(name) === engine.normalizeFormula?.(expression);
+}
+
+/**
+ * Whether a Formulas engine parses the formula. An engine without `validateFormula` is not asked.
+ */
+function isValidFormula(engine: NamedExpressionEngine | null | undefined, formula: string): boolean {
+  return typeof engine?.validateFormula !== 'function' || engine.validateFormula(formula) === true;
+}
+
+/**
+ * The part of a Formulas engine the named-expression checks read.
+ */
+interface NamedExpressionEngine {
+  isItPossibleToAddNamedExpression?: (name: string, expression: string) => boolean;
+  getNamedExpressionFormula?: (name: string) => string | undefined;
+  normalizeFormula?: (formula: string) => string;
+  validateFormula?: (formula: string) => boolean;
+}
+
+/**
+ * A check on a name and its expression (`=` included).
+ */
+type NamedExpressionPredicate = (name: string, expression: string) => boolean;
 
 /**
  * Records `layoutDirection` as dropped when the workbook's sheet direction disagrees with the grid
@@ -879,6 +922,7 @@ export class ImportFile extends BasePlugin {
       formulaSheetName: formulasEnabled ? formulasPlugin?.sheetName ?? undefined : undefined,
       formulaNamedExpressions: formulasEnabled ? engineNamedExpressions(formulasPlugin?.engine) : undefined,
       canAddNamedExpression: formulasEnabled ? namedExpressionCheck(formulasPlugin?.engine) : undefined,
+      definesNamedExpression: formulasEnabled ? namedExpressionComparison(formulasPlugin?.engine) : undefined,
     }, dropped);
 
     recordLayoutDirectionMismatch(this.hot, mapped, resolved.apply, dropped);

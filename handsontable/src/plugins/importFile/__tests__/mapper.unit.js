@@ -2252,6 +2252,64 @@ describe('mapWorkbook – the workbook\'s defined names as named expressions', (
     expect(result.namedExpressions).toEqual([{ name: 'Spread', formula: 'STDEV.S(Sheet1!$F$1:$F$3)' }]);
   });
 
+  it('should keep a formula live over a name the engine defines the same way, and import it cached when it differs', () => {
+    // A re-import of an updated file: the engine still holds the previous import's `Sales`.
+    const compared = [];
+    const engineHas = formula => contextOf({
+      formulaNamedExpressions: new Set(['sales']),
+      definesNamedExpression: (name, expression) => {
+        compared.push([name, expression]);
+
+        return expression === formula;
+      },
+    }).context;
+
+    const same = map(salesWorkbook(NAMES.slice(0, 2)), OPTIONS, engineHas('=Sheet1!$F$1:$F$3'));
+
+    expect(compared).toEqual([['Sales', '=Sheet1!$F$1:$F$3']]);
+    expect(same.result.namedExpressions).toEqual([{ name: 'TaxRate', formula: '0.07' }]);
+    expect(same.result.data[0][1]).toBe('=SUM(Sales)');
+    expect(same.result.dropped).not.toContain('definedNames:unsupported');
+
+    const changed = map(salesWorkbook(NAMES.slice(0, 2)), OPTIONS, engineHas('=Sheet1!$F$1:$F$2'));
+
+    expect(changed.result.namedExpressions).toEqual([{ name: 'TaxRate', formula: '0.07' }]);
+    expect(changed.result.data[0][1]).toBe(60);
+    expect(changed.result.dropped).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+  });
+
+  it('should treat a name the engine defines as changed when the file\'s definition cannot be expressed', () => {
+    const { context } = contextOf({
+      formulaNamedExpressions: new Set(['sales']),
+      definesNamedExpression: () => true,
+    });
+    const { result } = map(salesWorkbook([{ name: 'Sales', formula: 'Data!$A$1', sheetName: null }]), OPTIONS, context);
+
+    expect(result.data[0][1]).toBe(60);
+    expect(result.dropped).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+  });
+
+  it('should register both names of a cycle, and stop', () => {
+    const { context } = contextOf();
+    const { result } = map(salesWorkbook([
+      { name: 'Ping', formula: 'Pong+1', sheetName: null },
+      { name: 'Pong', formula: 'Ping+1', sheetName: null },
+    ]), OPTIONS, context);
+
+    expect(result.namedExpressions).toEqual([{ name: 'Ping', formula: 'Pong+1' }, { name: 'Pong', formula: 'Ping+1' }]);
+  });
+
+  it('should leave out a name defined over a name scoped to another sheet', () => {
+    const { context } = contextOf();
+    const { result } = map(salesWorkbook([
+      { name: 'Local', formula: 'Rates!$A$1', sheetName: 'Rates' },
+      { name: 'Twice', formula: 'Local*2', sheetName: null },
+    ]), OPTIONS, context);
+
+    expect(result.namedExpressions).toBeUndefined();
+    expect(result.dropped).toContain('definedNames:unsupported');
+  });
+
   it('should register nothing without the engine check, with the Formulas plugin off, or with importFormulas off', () => {
     const noCheck = map(salesWorkbook(NAMES), OPTIONS, contextOf({ canAddNamedExpression: undefined }).context);
 
