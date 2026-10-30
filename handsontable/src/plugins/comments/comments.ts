@@ -349,6 +349,8 @@ export class Comments extends BasePlugin {
        value: unknown, cellProperties: Record<string, unknown>) =>
         this.#onAfterRenderer(TD, cellProperties));
     this.addHook('afterScroll', this.#onAfterScroll);
+    this.addHook('afterLoadData', this.#onAfterDataReplaced);
+    this.addHook('afterUpdateData', this.#onAfterDataReplaced);
     this.addHook('beforeUndo', this.#onBeforeUndoRedo);
     this.addHook('beforeRedo', this.#onBeforeUndoRedo);
     this.addHook('afterUndo', this.#onAfterUndoRedo);
@@ -1288,6 +1290,15 @@ export class Comments extends BasePlugin {
     if (!this.#preventEditorHiding) {
       this.hide();
     }
+  };
+
+  /**
+   * Drops a show or hide still waiting on the display delay when the grid's data is replaced. The hover
+   * that armed it rested on a cell of the old data, so the show ran over a cell of the new data (a sheet
+   * switch, a `loadData()` call) and opened an empty editor there.
+   */
+  #onAfterDataReplaced = () => {
+    this.#displaySwitch?.cancel();
   };
 
   /**

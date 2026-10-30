@@ -113,6 +113,10 @@ sheet that turns the plugin off, opened the editor a moment later over a grid wi
 neither Escape nor a click outside closed it: those handlers went with the plugin. Pinned by
 `__tests__/commentsDisableHover.unit.js` and `tests/e2e/comments-plugin-off-hover.spec.ts`.
 
+**A data replacement calls `cancel()` too** (`afterLoadData`, `afterUpdateData`). The armed show names a
+cell by position, so after `loadData()` or a sheet switch that keeps the plugin on it opened an empty
+editor over a cell of the new data, and a typed note was saved there. Pinned by the same spec.
+
 Its internal flag records whether the last action was a show or a hide. Anything that hides the tooltip
 clears that flag — which is exactly the shadow-DOM double-binding failure above.
 
