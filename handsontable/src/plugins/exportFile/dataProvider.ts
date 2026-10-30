@@ -44,6 +44,74 @@ export interface ArrayFormulaSize {
 }
 
 /**
+ * The cell address HyperFormula takes.
+ */
+interface EngineCellAddress {
+  sheet: number;
+  row: number;
+  col: number;
+}
+
+/**
+ * Reads the exact size of the array whose master sits at `address` from HyperFormula's array
+ * mapping. The mapping is `@internal` in HyperFormula (3.3.0 answers an `ArrayFormulaVertex` with
+ * `width` and `height`), so every step is duck-typed and anything unexpected answers `null`.
+ *
+ * @param {object} engine The Formulas plugin's engine.
+ * @param {object} address The master's engine address.
+ * @returns {{ rows: number, cols: number }|null}
+ */
+function readMappedArraySize(engine: object, address: EngineCellAddress): { rows: number; cols: number } | null {
+  const { arrayMapping } = engine as { arrayMapping?: { getArrayByCorner?: unknown } };
+
+  if (typeof arrayMapping?.getArrayByCorner !== 'function') {
+    return null;
+  }
+
+  const vertex = (arrayMapping.getArrayByCorner as (address: EngineCellAddress) => unknown).call(arrayMapping, address);
+  const { width, height } = (vertex ?? {}) as { width?: unknown; height?: unknown };
+
+  if (typeof width !== 'number' || typeof height !== 'number' || width < 1 || height < 1) {
+    return null;
+  }
+
+  return { rows: height, cols: width };
+}
+
+/**
+ * Estimates the size of the array whose master sits at `address` by walking right, then down, over
+ * the cells the engine types `ARRAY`. The fallback for `readMappedArraySize()`; it can
+ * over-count when another array spills next to the master.
+ *
+ * @param {object} engine The Formulas plugin's engine.
+ * @param {object} address The master's engine address.
+ * @returns {{ rows: number, cols: number }}
+ */
+function walkArraySize(
+  engine: {
+    getCellType(address: EngineCellAddress): unknown;
+    getSheetDimensions(sheetId: number): { width: number; height: number };
+  },
+  address: EngineCellAddress
+): { rows: number; cols: number } {
+  const { sheet, row, col } = address;
+  const { width, height } = engine.getSheetDimensions(sheet);
+  const isSpilled = (r: number, c: number) => engine.getCellType({ sheet, row: r, col: c }) === 'ARRAY';
+  let cols = 1;
+  let rows = 1;
+
+  while (col + cols < width && isSpilled(row, col + cols)) {
+    cols += 1;
+  }
+
+  while (row + rows < height && isSpilled(row + rows, col)) {
+    rows += 1;
+  }
+
+  return { rows, cols };
+}
+
+/**
  * Whether the engine indexes `hfStart … hfStart + length - 1` of one axis land, in that order, on
  * consecutive positions of the exported matrix, starting at the master's own position.
  *
@@ -293,9 +361,15 @@ class ExportDataProvider {
    * `ARRAYFORMULA`: a spilling function such as `SEQUENCE`, or `ARRAYFORMULA(…)`). Every entry is
    * `null` when the Formulas plugin is absent or disabled.
    *
-   * The engine has no public API for the spill range, so the size is found by walking right, then
-   * down, from the master over the cells it types `ARRAY` (the spilled cells), bounded by the
-   * engine sheet's dimensions. `isCellPartOfArray()` cannot drive the walk: it is `true` for a
+   * HyperFormula has no public API for the spill range. The size is read from the engine's array
+   * mapping (`arrayMapping.getArrayByCorner()`), which holds the exact size of every array. That
+   * mapping is `@internal` in HyperFormula and may change between 3.x releases, so it is
+   * duck-typed and, when it is missing or answers an unexpected shape, the size is estimated by
+   * walking right, then down, from the master over the cells the engine types `ARRAY`, bounded by
+   * the sheet's dimensions. The walk is only an estimate: a spilled cell next to the master can
+   * belong to another array (a `=SEQUENCE(3)` in B1 spills into B2, right of a master in A2), so
+   * it can over-count, and the export refuses a ref that overlaps an earlier one
+   * (`types/xlsx.ts`). `isCellPartOfArray()` cannot drive the walk: it is `true` for a
    * neighboring array's master too.
    *
    * `exported` tells whether every spilled row and column lands in the exported matrix right
@@ -318,28 +392,21 @@ class ExportDataProvider {
       ? (row: number) => this._isHiddenRow(row) : () => false);
     const exportedCols = this.#getExportedPositions(startCol, endCol, this.options.exportHiddenColumns === false
       ? (col: number) => this._isHiddenColumn(col) : () => false);
-    const { width, height } = engine.getSheetDimensions(sheetId);
-    const isSpilled = (row: number, col: number) => engine.getCellType({ sheet: sheetId, row, col }) === 'ARRAY';
 
     return this._extractDataMatrix((row, col) => {
-      const hfRow = rowAxisSyncer.getHfIndexFromVisualIndex(row);
-      const hfCol = columnAxisSyncer.getHfIndexFromVisualIndex(col);
+      const address = {
+        sheet: sheetId,
+        row: rowAxisSyncer.getHfIndexFromVisualIndex(row),
+        col: columnAxisSyncer.getHfIndexFromVisualIndex(col),
+      };
 
-      if (hfRow < 0 || hfCol < 0 || engine.getCellType({ sheet: sheetId, row: hfRow, col: hfCol }) !== 'ARRAYFORMULA') {
+      if (address.row < 0 || address.col < 0 || engine.getCellType(address) !== 'ARRAYFORMULA') {
         return null;
       }
 
-      let cols = 1;
-      let rows = 1;
-
-      while (hfCol + cols < width && isSpilled(hfRow, hfCol + cols)) {
-        cols += 1;
-      }
-
-      while (hfRow + rows < height && isSpilled(hfRow + rows, hfCol)) {
-        rows += 1;
-      }
-
+      const { rows, cols } = readMappedArraySize(engine, address) ?? walkArraySize(engine, address);
+      const hfRow = address.row;
+      const hfCol = address.col;
       const exported = spillsInPlace(rowAxisSyncer, hfRow, rows, exportedRows, row)
         && spillsInPlace(columnAxisSyncer, hfCol, cols, exportedCols, col);
 

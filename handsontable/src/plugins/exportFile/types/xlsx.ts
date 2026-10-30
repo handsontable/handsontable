@@ -278,9 +278,6 @@ interface ConditionalFormattingDescriptor {
 }
 
 /**
- * An entry in a nested-header layer returned by ExportDataProvider#getNestedColumnHeaders.
- */
-/**
  * What the Formulas engine and the sheet layout tell about one exported cell.
  */
 interface FormulaCellFacts {
@@ -288,6 +285,57 @@ interface FormulaCellFacts {
   arraySize: ArrayFormulaSize | null;
   row: number;
   col: number;
+}
+
+/**
+ * A 1-based, inclusive cell range of a sheet.
+ */
+interface SheetRange {
+  top: number;
+  left: number;
+  bottom: number;
+  right: number;
+}
+
+/**
+ * Where a sheet's array formulas go: the export's dropped-feature collector and the ranges the
+ * sheet's earlier array formulas already cover.
+ */
+interface ArrayFormulaTarget {
+  dropped: DroppedFeatures;
+  arrayRanges: SheetRange[];
+}
+
+/**
+ * Records `formula:arrayExcluded`, once per export.
+ *
+ * @param {DroppedFeatures} dropped The export's dropped-feature collector.
+ */
+function recordArrayExcluded(dropped: DroppedFeatures): void {
+  if (dropped.count(DROPPED_FEATURES.formulaArrayExcluded) === 0) {
+    dropped.record(DROPPED_FEATURES.formulaArrayExcluded);
+  }
+}
+
+/**
+ * Claims the range of an array formula for the sheet, or answers `false` when it overlaps the
+ * range an earlier array formula of the sheet claimed. Two overlapping refs are invalid OOXML
+ * (Excel repairs the file), and the size of an array can be an over-counting estimate
+ * (`ExportDataProvider#getArrayFormulaSizes`), so the later array is written without its flag.
+ *
+ * @param {Array} arrayRanges The ranges the sheet's earlier array formulas claimed.
+ * @param {object} range The range to claim.
+ * @returns {boolean}
+ */
+function claimArrayRange(arrayRanges: SheetRange[], range: SheetRange): boolean {
+  const overlaps = arrayRanges.some(other => range.top <= other.bottom && other.top <= range.bottom
+    && range.left <= other.right && other.left <= range.right);
+
+  if (!overlaps) {
+    arrayRanges.push(range);
+  }
+
+  return !overlaps;
 }
 
 /**
@@ -299,39 +347,43 @@ interface FormulaCellFacts {
  * 3. A call to a function Excel evaluates as a dynamic array (`IFS`, `SWITCH`) is a one-cell
  *    dynamic array, so Excel does not add the implicit-intersection `@`.
  *
- * A spill the export does not keep in shape (an excluded row or column, the `range` edge) is
- * written as a plain formula and reported once per export as `formula:arrayExcluded`.
+ * A spill the export does not keep in shape (an excluded row or column, the `range` edge), and an
+ * array whose range overlaps an earlier array formula of the sheet, are written as plain formulas
+ * and reported once per export as `formula:arrayExcluded`.
  *
  * @param {string} text The normalized formula, without the leading `=`.
  * @param {object} facts The cell's facts.
- * @param {DroppedFeatures} dropped The export's dropped-feature collector.
+ * @param {object} target The export's dropped-feature collector and the sheet's claimed ranges.
  * @returns {{ text: string, array?: object }}
  */
 function resolveArrayFormula(
-  text: string, facts: FormulaCellFacts, dropped: DroppedFeatures
+  text: string, facts: FormulaCellFacts, target: ArrayFormulaTarget
 ): { text: string; array?: CellFormulaArray } {
   const { arraySize, row, col } = facts;
   const inner = unwrapArrayFormula(text);
   const formulaText = inner ?? text;
   const dynamic = inner === null;
 
-  if (inner === null && arraySize === null) {
-    return callsDynamicArrayFunction(text) ? { text, array: { ref: toArrayRef(row, col, 1, 1), dynamic } } : { text };
+  if (inner === null && arraySize === null && !callsDynamicArrayFunction(text)) {
+    return { text };
   }
 
-  if (arraySize === null) {
-    return { text: formulaText, array: { ref: toArrayRef(row, col, 1, 1), dynamic } };
-  }
-
-  if (!arraySize.exported) {
-    if (dropped.count(DROPPED_FEATURES.formulaArrayExcluded) === 0) {
-      dropped.record(DROPPED_FEATURES.formulaArrayExcluded);
-    }
+  if (arraySize !== null && !arraySize.exported) {
+    recordArrayExcluded(target.dropped);
 
     return { text: formulaText };
   }
 
-  return { text: formulaText, array: { ref: toArrayRef(row, col, arraySize.rows, arraySize.cols), dynamic } };
+  const rows = arraySize?.rows ?? 1;
+  const cols = arraySize?.cols ?? 1;
+
+  if (!claimArrayRange(target.arrayRanges, { top: row, left: col, bottom: row + rows - 1, right: col + cols - 1 })) {
+    recordArrayExcluded(target.dropped);
+
+    return { text: formulaText };
+  }
+
+  return { text: formulaText, array: { ref: toArrayRef(row, col, rows, cols), dynamic } };
 }
 
 /**
@@ -352,6 +404,9 @@ function toArrayRef(row: number, col: number, rows: number, cols: number): strin
   return toRangeRef(row, col, row + rows - 1, col + cols - 1);
 }
 
+/**
+ * An entry in a nested-header layer returned by ExportDataProvider#getNestedColumnHeaders.
+ */
 interface NestedHeaderEntry {
   label: string | null;
   colspan: number;
@@ -374,6 +429,7 @@ interface SheetContext {
   formulaErrorCodes: (string | null)[][] | null;
   arrayFormulaSizes: (ArrayFormulaSize | null)[][] | null;
   dropped: DroppedFeatures;
+  arrayRanges: SheetRange[];
   hasRowHeaders: boolean;
   headerFill: HeaderFill | null;
   headerBorder: HeaderBorder | null;
@@ -681,6 +737,7 @@ class Xlsx extends BaseType {
       formulaErrorCodes,
       arrayFormulaSizes,
       dropped,
+      arrayRanges: [],
       hasRowHeaders,
       headerFill,
       headerBorder,
@@ -912,7 +969,7 @@ class Xlsx extends BaseType {
       const { text, array } = resolveArrayFormula(normalizeFormula(
         sourceValue, formulasSeparator, dataRowOffset - 1, dataColOffset - 1,
         excludedHiddenRows ?? undefined, excludedHiddenCols ?? undefined
-      ), facts, context.dropped);
+      ), facts, context);
       const { errorCode } = facts;
       // An error result is cached as its OOXML code, which the engine's language does not
       // translate, and flagged so both writers type it `t="e"`.

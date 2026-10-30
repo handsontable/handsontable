@@ -98,6 +98,81 @@ describe('Xlsx export: array formulas', () => {
     expect(rows[0][0].formula.array).toEqual({ ref: 'A1:C2', dynamic: true });
   });
 
+  it('should size staggered neighboring spills exactly', async() => {
+    // B1 spills into B2:B3, right of the master in A2: a walk over the `ARRAY` cells would size A2
+    // as 2x2 and write a ref overlapping B1's.
+    const { rows, dropped } = await exportSheet({ data: [[null, '=SEQUENCE(3)'], ['=SEQUENCE(2)', null], []] });
+
+    expect(rows[0][1].formula.array).toEqual({ ref: 'B1:B3', dynamic: true });
+    expect(rows[1][0].formula.array).toEqual({ ref: 'A2:A3', dynamic: true });
+    expect(dropped).toEqual([]);
+  });
+
+  it('should refuse an array ref that overlaps an earlier one when the engine has no array mapping', async() => {
+    hot = new Handsontable(container, {
+      data: [[null, '=SEQUENCE(3)'], ['=SEQUENCE(2)', null], []],
+      formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
+      exportFile: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // The mapping is internal to HyperFormula; without it the size comes from the walk, which
+    // over-counts A2 as 2x2 here.
+    Object.defineProperty(hot.getPlugin('formulas').engine, 'arrayMapping', { value: undefined, configurable: true });
+
+    await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', { exportFormulas: true });
+
+    const [snapshot, , dropped] = writeSpy.mock.calls[0];
+    const { rows } = snapshot.sheets[0];
+
+    expect(rows[0][1].formula.array).toEqual({ ref: 'B1:B3', dynamic: true });
+    expect(rows[1][0].formula).toEqual({ text: 'SEQUENCE(2)', result: 1 });
+    expect(dropped.list()).toEqual(['formula:arrayExcluded']);
+  });
+
+  it('should write the master of a blocked spill as a one-cell dynamic array caching the `#SPILL!` text', async() => {
+    const { rows, dropped } = await exportSheet({ data: [['=SEQUENCE(1,3)', null, 'x']] });
+
+    expect(hot.getDataAtCell(0, 0)).toBe('#SPILL!');
+    expect(rows[0][0].formula).toEqual({
+      text: 'SEQUENCE(1,3)', result: '#SPILL!', array: { ref: 'A1', dynamic: true },
+    });
+    expect(dropped).toEqual([]);
+  });
+
+  it('should write the file the grid shows after a sort', async() => {
+    // HyperFormula refuses to move rows holding an array, so the spill stays on the rows it was on.
+    const { rows } = await exportSheet({
+      data: [['=SEQUENCE(3)', 'b'], [null, 'c'], [null, 'a']],
+      columnSorting: true,
+    }, {});
+
+    expect(hot.getDataAtCol(0)).toEqual([1, 2, 3]);
+    expect(rows[0][0].formula).toEqual({ text: 'SEQUENCE(3)', result: 1, array: { ref: 'A1:A3', dynamic: true } });
+    expect(rows.map(row => row[0].value)).toEqual([null, '2', '3']);
+  });
+
+  it('should move the ref with its spill when another column is moved in front of it', async() => {
+    hot = new Handsontable(container, {
+      data: [['=SEQUENCE(2,2)', null, 'x'], [null, null, 'y']],
+      formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
+      manualColumnMove: true,
+      exportFile: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    hot.getPlugin('manualColumnMove').moveColumn(2, 0);
+    hot.render();
+
+    await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', { exportFormulas: true });
+
+    const [snapshot] = writeSpy.mock.calls[0];
+    const { rows } = snapshot.sheets[0];
+
+    expect(hot.getData()).toEqual([['x', 1, 2], ['y', 3, 4]]);
+    expect(rows[0][1].formula).toEqual({ text: 'SEQUENCE(2,2)', result: 1, array: { ref: 'B1:C2', dynamic: true } });
+    expect(rows[0][0].formula).toBeNull();
+  });
+
   it('should shift the ref by the column header row and the row header column', async() => {
     const { rows } = await exportSheet(
       { data: createData(), colHeaders: true, rowHeaders: true },
