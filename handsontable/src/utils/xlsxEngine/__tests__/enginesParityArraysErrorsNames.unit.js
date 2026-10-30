@@ -10,10 +10,9 @@ import { excelJsAdapter } from '../adapters/exceljs';
 import { DroppedFeatures } from '../capabilities';
 import { createWorkbookSnapshot } from '../model';
 import { SheetBuilder } from '../builder';
-import { toArrayBuffer } from './helpers/fixtures';
+import { toArrayBuffer, rewriteArchive } from './helpers/fixtures';
 import { strip } from './helpers/snapshotNormalize';
 import { readZip } from '../adapters/native/zip/reader';
-import { writeZip } from '../adapters/native/zip/writer';
 
 function buildSnapshot() {
   const snapshot = createWorkbookSnapshot();
@@ -34,6 +33,7 @@ function buildSnapshot() {
   snapshot.definedNames = [
     { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null },
     { name: 'TaxRate', formula: '0.07', sheetName: null },
+    { name: 'Local', formula: 'Sheet1!$B$1', sheetName: 'Sheet1' },
   ];
 
   return snapshot;
@@ -74,6 +74,36 @@ function withDynamic(stripped, dynamic) {
   return copy;
 }
 
+/**
+ * Reduces the first sheet to the value and formula of every non-empty cell, the shape the legs are
+ * compared in (the readers pad the grid with empty cells and the writers add the _xlfn. prefix, neither is under test).
+ *
+ * @param {object} snapshot The workbook snapshot.
+ * @returns {Array} One list of `[value, formula]` pairs per row, empty cells as null.
+ */
+function cellContents(snapshot) {
+  return snapshot.sheets[0].rows.map((row) => {
+    const pairs = row.map(cell => (cell ? [cell.value ?? null, cell.formula, cell.valueIsError ?? false] : null));
+
+    while (pairs.length && pairs[pairs.length - 1] === null) {
+      pairs.pop();
+    }
+
+    return pairs;
+  });
+}
+
+const CSE = { ref: 'E1:E2', dynamic: false };
+const EXPECTED_CELLS = [
+  [[1, null, false], null, null,
+    [null, { text: '_xlfn.SEQUENCE(3)', result: 1, array: { ref: 'D1:D3', dynamic: true } }, false],
+    [null, { text: 'A1:A2*2', result: 2, array: CSE }, false], ['#N/A', null, true],
+    [null, { text: '1/0', result: '#DIV/0!', resultIsError: true }, false],
+    [null, { text: '"#N/A"', result: '#N/A' }, false]],
+  [[2, null, false], null, null, [2, null, false], [4, null, false]],
+  [[3, null, false], null, null, [3, null, false]],
+];
+
 describe('four-way parity: arrays, errors, defined names', () => {
   let result;
 
@@ -90,10 +120,8 @@ describe('four-way parity: arrays, errors, defined names', () => {
     expect(row[6].formula).toEqual(expect.objectContaining({ result: '#DIV/0!', resultIsError: true }));
     expect(row[7].formula.resultIsError).toBeFalsy();
     expect(row[7].formula.result).toBe('#N/A');
-    expect(result.nn.definedNames).toEqual([
-      { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null },
-      { name: 'TaxRate', formula: '0.07', sheetName: null },
-    ]);
+    expect(cellContents(result.nn)).toEqual(EXPECTED_CELLS);
+    expect(result.nn.definedNames).toEqual(buildSnapshot().definedNames);
     expect(result.nativeDropped.list()).not.toContain('dynamicArrays');
   });
 
@@ -102,8 +130,10 @@ describe('four-way parity: arrays, errors, defined names', () => {
 
     expect(row[3].formula.array).toEqual({ ref: 'D1:D3', dynamic: false });
     expect(strip(result.ne)).toEqual(withDynamic(strip(result.nn), false));
+    // ExcelJS drops the constant and loses the sheet scope: Local comes back workbook-scoped.
     expect(result.ne.definedNames).toEqual([
       { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null },
+      { name: 'Local', formula: 'Sheet1!$B$1', sheetName: null },
     ]);
   });
 
@@ -114,7 +144,11 @@ describe('four-way parity: arrays, errors, defined names', () => {
     expect(strip(result.en)).toEqual(withDynamic(strip(result.nn), false));
     expect(result.exceljsDropped.list()).toContain('dynamicArrays');
     expect(result.exceljsDropped.list()).toContain('definedNames:unsupported');
-    expect(result.en.definedNames.map(({ name }) => name)).toEqual(['Sales']);
+    // The ExcelJS writer keeps only the workbook-scoped single range: the constant and the
+    // sheet-scoped Local are dropped.
+    expect(result.en.definedNames).toEqual([
+      { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null },
+    ]);
   });
 
   it('ExcelJS write -> ExcelJS read agrees with the ExcelJS write -> native read leg', () => {
@@ -134,11 +168,9 @@ describe('four-way parity: arrays, errors, defined names', () => {
       expect(result.ne.sheets[0].rows[0][3].formula.array.dynamic).toBe(false);
     });
 
-    it('reads a rewritten file with cm="1", metadata, override and relationship the same on both readers except dynamic', async() => {
-      // Start from the ExcelJS-written file (no metadata), and add the Excel dynamic-array machinery.
-      const exceljsBytes = toArrayBuffer(
-        await excelJsAdapter.write(buildSnapshot(), ExcelJS, new DroppedFeatures())
-      );
+    it('reads an Excel-form cm="1" file the same on both readers except dynamic', async() => {
+      // The native file already carries cm="1", the override and the relationship; its metadata part is
+      // replaced with the text Excel itself writes.
       const metadata = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         + '<metadata xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"'
         + ' xmlns:xda="http://schemas.microsoft.com/office/spreadsheetml/2017/dynamicarray">'
@@ -148,35 +180,32 @@ describe('four-way parity: arrays, errors, defined names', () => {
         + '<futureMetadata name="XLDAPR" count="1"><bk><extLst><ext uri="{bdbb8cdc-fa1e-496e-a857-3c3f30c029c3}">'
         + '<xda:dynamicArrayProperties fDynamic="1" fCollapsed="0"/></ext></extLst></bk></futureMetadata>'
         + '<cellMetadata count="1"><bk><rc t="1" v="0"/></bk></cellMetadata></metadata>';
-      const encoder = new TextEncoder();
-      const zip = await readZip(exceljsBytes);
-      const names = zip.names();
-      const entries = [];
+      const dialect = await rewriteArchive(result.nativeBytes, (name, text) => {
+        return name === 'xl/metadata.xml' ? metadata : text;
+      });
+      const zip = await readZip(dialect);
 
-      for (const name of names) {
-        let text = await zip.text(name);
+      expect(await zip.text('xl/metadata.xml')).toBe(metadata);
+      expect(await zip.text('xl/worksheets/sheet1.xml')).toContain(' cm="1"');
+      expect(await zip.text('[Content_Types].xml')).toContain('/xl/metadata.xml');
+      expect(await zip.text('xl/_rels/workbook.xml.rels')).toContain('metadata.xml');
 
-        if (name === 'xl/worksheets/sheet1.xml') {
-          text = text.replace('<c r="D1"', '<c r="D1" cm="1"');
-        } else if (name === '[Content_Types].xml') {
-          text = text.replace('</Types>', '<Override PartName="/xl/metadata.xml"'
-            + ' ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheetMetadata+xml"/></Types>');
-        } else if (name === 'xl/_rels/workbook.xml.rels') {
-          text = text.replace('</Relationships>', '<Relationship Id="rIdMeta"'
-            + ' Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sheetMetadata"'
-            + ' Target="metadata.xml"/></Relationships>');
-        }
-        entries.push({ name, data: encoder.encode(text) });
-      }
-      entries.push({ name: 'xl/metadata.xml', data: encoder.encode(metadata) });
-
-      const dialect = toArrayBuffer(await writeZip(entries, true));
-      const native = await nativeAdapter.read(dialect, undefined, new DroppedFeatures());
-      const exceljs = await excelJsAdapter.read(dialect, ExcelJS, new DroppedFeatures());
+      const nativeDropped = new DroppedFeatures();
+      const exceljsDropped = new DroppedFeatures();
+      const native = await nativeAdapter.read(dialect, undefined, nativeDropped);
+      const exceljs = await excelJsAdapter.read(dialect, ExcelJS, exceljsDropped);
 
       expect(native.sheets[0].rows[0][3].formula.array).toEqual({ ref: 'D1:D3', dynamic: true });
       expect(exceljs.sheets[0].rows[0][3].formula.array).toEqual({ ref: 'D1:D3', dynamic: false });
       expect(strip(exceljs)).toEqual(withDynamic(strip(native), false));
+      // Names differ by the documented ExcelJS reader losses only (constant dropped, scope lost).
+      expect(native.definedNames).toEqual(buildSnapshot().definedNames);
+      expect(exceljs.definedNames).toEqual([
+        { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null },
+        { name: 'Local', formula: 'Sheet1!$B$1', sheetName: null },
+      ]);
+      expect(nativeDropped.list()).toEqual([]);
+      expect(exceljsDropped.list()).toEqual([]);
     });
   });
 });
