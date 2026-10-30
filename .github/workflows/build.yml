@@ -44,6 +44,10 @@ jobs:
       - name: Build
         run: |
           cd handsontable
+          # dist/manifest.json, the feature manifest license keys are built from. It runs first because it also
+          # fails the job when a committed feature.generated.ts or released-tokens.json is stale, in about 100 ms,
+          # and nothing below clears dist/.
+          npm run build:feature-manifest
           npm run build:umd
           npm run build:umd.min
           # The CDN file of handsontable/settingsSchema; it reads the registries of the Handsontable
@@ -56,9 +60,6 @@ jobs:
           # is not the full UMD output, and the preview package ships no theme bundles.
           npm run build:themes-umd
           npm run build:themes-umd.min
-          # dist/manifest.json, the feature manifest license keys are built from. It also fails the job
-          # when a committed feature.generated.ts or released-tokens.json is stale.
-          npm run build:feature-manifest
       - run: tar -zcf dist.tar.gz ./handsontable/dist ./handsontable/styles
       - name: Upload the Handsontable UMD build artifact.
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0

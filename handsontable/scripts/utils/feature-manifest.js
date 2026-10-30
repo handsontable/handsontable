@@ -127,6 +127,11 @@ const SHARED_SOURCES = [
 
 const PLUGIN_SOURCE_NAME = 'feature.json';
 const GENERATED_MODULE_NAME = 'feature.generated.ts';
+
+/**
+ * The record of released ids: each stable id with every `licensing` value it has had, sorted. It only grows,
+ * and CI compares it with the base branch's copy, so an id counts as released once it is merged.
+ */
 const RELEASED_FILE = 'src/featureManifest/released-tokens.json';
 const OUTPUT_FILE = 'dist/manifest.json';
 
@@ -146,6 +151,20 @@ const ENTRY_FIELDS = [
   'requires', 'enforceAtInit', 'packages',
 ];
 const REGISTRY_KINDS = REGISTRIES.map(registry => registry.kind);
+
+/**
+ * Turns a registered name into the part of an id after the namespace: `DropdownMenu` and `dropdownMenu` give
+ * `dropdown_menu`, `intl-date` gives `intl_date`.
+ *
+ * @param {string} module The registered name.
+ * @returns {string}
+ */
+function toIdName(module) {
+  return module
+    .replace(/^[A-Z]/, letter => letter.toLowerCase())
+    .replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
+    .replace(/-/g, '_');
+}
 
 /**
  * Upper-cases the first letter, the way the plugin registry names a plugin after its `PLUGIN_KEY`.
@@ -238,11 +257,14 @@ function loadSources(packageDir) {
     .filter(file => existsSync(join(packageDir, file)))
     .map(file => ({ file, content: readFileSync(join(packageDir, file), 'utf8') }));
 
+  const releasedPath = join(packageDir, RELEASED_FILE);
+
   return {
     files,
     modules,
     generatedModules,
     released: readSourceFile(packageDir, RELEASED_FILE) ?? {},
+    releasedText: existsSync(releasedPath) ? readFileSync(releasedPath, 'utf8') : null,
   };
 }
 
@@ -319,6 +341,29 @@ function requiredIds(entry) {
 }
 
 /**
+ * Lists every declared id an entry requires, directly or through other entries, `allOf` and `anyOf` alike.
+ *
+ * @param {object} entry A manifest entry.
+ * @param {Map<string, object>} byId Every entry, by id.
+ * @returns {string[]} The ids, in the order they are reached.
+ */
+function reachableIds(entry, byId) {
+  const reached = new Set();
+  const pending = requiredIds(entry);
+
+  while (pending.length > 0) {
+    const id = pending.shift();
+
+    if (!reached.has(id) && id !== entry.id && byId.has(id)) {
+      reached.add(id);
+      pending.push(...requiredIds(byId.get(id)));
+    }
+  }
+
+  return [...reached];
+}
+
+/**
  * Checks the shape of one source file.
  *
  * @param {object} source A file of `loadSources()`.
@@ -380,9 +425,10 @@ function checkEntryFields(entry, kind) {
  * Checks the id of one entry: the key-token rule, the namespace of its kind, and the reserved names.
  *
  * @param {object} entry A manifest entry.
+ * @param {Set<string>} recorded The ids `released-tokens.json` holds.
  * @returns {string[]} The problems, without the file name.
  */
-function checkId(entry) {
+function checkId(entry, recorded) {
   if (typeof entry.id !== 'string') {
     return [];
   }
@@ -399,9 +445,15 @@ function checkId(entry) {
   }
   if (registry && namespace !== registry.namespace) {
     problems.push(`id "${entry.id}" must start with "${registry.namespace}:"`);
+
+  } else if (registry && typeof entry.module === 'string' && TOKEN_RULE.test(entry.id) && !recorded.has(entry.id) &&
+      entry.id !== `${registry.namespace}:${toIdName(entry.module)}`) {
+    // An id is permanent once recorded, so a typo in it is too. A recorded id keeps its name when its module is
+    // renamed: one module has one entry, so the old id could not stay next to a new one.
+    problems.push(`id "${entry.id}" must be "${registry.namespace}:${toIdName(entry.module)}", made from "module"`);
   }
-  if (entry.kind === 'sub_feature' && REGISTRIES.some(item => item.namespace === namespace)) {
-    problems.push(`id "${entry.id}" uses a registry namespace; a sub-feature needs a namespace of its own`);
+  if (entry.kind === 'sub_feature' && (namespace === null || REGISTRIES.some(item => item.namespace === namespace))) {
+    problems.push(`id "${entry.id}" needs a namespace of its own: a sub-feature cannot use none or a registry one`);
   }
   if (entry.kind === 'core_area' && namespace !== null) {
     problems.push(`id "${entry.id}" of a core area takes no namespace`);
@@ -472,6 +524,10 @@ function checkKindFields(entry, pluginModules) {
 
   if (entry.enforceAtInit !== undefined && (entry.kind !== 'plugin' || typeof entry.enforceAtInit !== 'boolean')) {
     problems.push('"enforceAtInit" is a boolean, and only for a plugin');
+
+  } else if (entry.enforceAtInit === true &&
+      !(isStringList(entry.requires?.allOf) && entry.requires.allOf.length > 0)) {
+    problems.push('"enforceAtInit" needs a non-empty "requires.allOf": that list is what PLUGIN_DEPS checks');
   }
 
   return problems;
@@ -516,8 +572,8 @@ function checkReferences(entry, byId) {
 }
 
 /**
- * Checks what an entry requires against the licensing of the entries it names, and what an `enforceAtInit`
- * entry can turn into `PLUGIN_DEPS`.
+ * Checks what an entry requires against the entries it names: a core entry reaches no token, a stable entry
+ * names no planned one, and an `enforceAtInit` entry names only what `PLUGIN_DEPS` can hold.
  *
  * @param {object} entry A manifest entry.
  * @param {Map<string, object>} byId Every entry, by id.
@@ -525,10 +581,17 @@ function checkReferences(entry, byId) {
  */
 function checkRequiredLicensing(entry, byId) {
   const problems = [];
+  const direct = requiredIds(entry);
 
   if (entry.licensing === 'core') {
-    requiredIds(entry).filter(id => byId.get(id)?.licensing === 'token').forEach((id) => {
-      problems.push(`a core entry cannot require "${id}", which a key must list`);
+    reachableIds(entry, byId).filter(id => byId.get(id).licensing === 'token').forEach((id) => {
+      problems.push(`a core entry cannot require "${id}", which a key must list` +
+        `${direct.includes(id) ? '' : ' (it requires it through another entry)'}`);
+    });
+  }
+  if (entry.status === 'stable') {
+    direct.filter(id => byId.get(id)?.status === 'planned').forEach((id) => {
+      problems.push(`a stable entry cannot require "${id}", which is planned and may still be renamed`);
     });
   }
   if (entry.enforceAtInit === true) {
@@ -638,6 +701,7 @@ function checkSources(sources) {
   const problems = sources.files.flatMap(checkFileShape);
   const byId = indexEntries(sources);
   const pluginModules = new Set(sources.modules.filter(({ kind }) => kind === 'plugin').map(({ module }) => module));
+  const recorded = new Set(Object.keys(sources.released ?? {}));
   const seen = new Set();
 
   listEntries(sources).forEach(({ file, entry, folder }) => {
@@ -656,7 +720,7 @@ function checkSources(sources) {
 
     problems.push(...[
       ...checkEntryFields(entry, kind),
-      ...checkId(entry),
+      ...checkId(entry, recorded),
       ...checkLicensing(entry),
       ...checkKindFields(entry, pluginModules),
       ...checkReferences(entry, byId),
@@ -792,18 +856,39 @@ function renderPluginModule(entry, byId) {
 }
 
 /**
- * Builds the record of released ids: every stable id, with its licensing. A record is never dropped, so an id
- * that left the manifest still cannot come back as a token.
+ * Checks the shape of a record of released ids: every id lists the distinct `licensing` values it has had.
+ *
+ * @param {object} record The parsed record.
+ * @returns {string[]} The problems.
+ */
+function checkRecordShape(record) {
+  if (record === null || typeof record !== 'object' || Array.isArray(record)) {
+    return [`${RELEASED_FILE} must be an object of ids`];
+  }
+
+  return Object.entries(record)
+    .filter(([, values]) => !isStringList(values) || values.length === 0 ||
+      values.some(value => !LICENSING.includes(value)))
+    .map(([id]) => `${RELEASED_FILE}: "${id}" must list the licensing values it has had (${LICENSING.join(', ')})`);
+}
+
+/**
+ * Builds the record of released ids: every stable id, with every licensing value it has had. A value is never
+ * dropped, so an id once sold can never be removed, and an id once free can never be sold, even after it moved
+ * from `token` to `core`.
  *
  * @param {object} sources What `loadSources()` returns, already checked.
- * @returns {object} The record, keys sorted.
+ * @returns {object} The record, keys and values sorted.
  */
 function buildReleased(sources) {
-  const record = { ...sources.released };
+  const record = {};
 
+  Object.entries(sources.released).forEach(([id, values]) => {
+    record[id] = [...values];
+  });
   indexEntries(sources).forEach((entry) => {
     if (entry.status === 'stable') {
-      record[entry.id] = entry.licensing;
+      record[entry.id] = [...new Set([...(record[entry.id] ?? []), entry.licensing])].sort();
     }
   });
 
@@ -811,28 +896,70 @@ function buildReleased(sources) {
 }
 
 /**
- * Checks the manifest against the released ids. A sold id may never be removed, and an id released as `core`
- * or `none` may never become sold: a restricted key issued before would not list it, and the feature would
- * turn off for that customer on upgrade.
+ * Checks the manifest against the released ids. A sold id may never be removed, an id released as `core` or
+ * `none` may never become sold (a restricted key issued before would not list it, and the feature would turn
+ * off for that customer on upgrade), and a released id never goes back to `planned`.
  *
  * @param {object} sources What `loadSources()` returns, already checked.
  * @returns {string[]} The problems.
  */
 function checkReleased(sources) {
+  const shapeProblems = checkRecordShape(sources.released);
+
+  if (shapeProblems.length > 0) {
+    return shapeProblems;
+  }
+
   const byId = indexEntries(sources);
 
-  return Object.entries(sources.released).flatMap(([id, licensing]) => {
+  return Object.entries(sources.released).flatMap(([id, values]) => {
     const entry = byId.get(id);
+    const freeAs = values.filter(value => value !== 'token');
 
-    if (licensing === 'token' && entry === undefined) {
-      return [`"${id}" was released as a token, so it can never be removed (keys already carry it)`];
-    }
-    if (licensing !== 'token' && entry?.licensing === 'token') {
-      return [`"${id}" was released as "${licensing}", so it can never become a token (restricted keys issued ` +
-        'before would lose it)'];
+    if (entry === undefined) {
+      return values.includes('token') ? [`"${id}" was released as a token, so it can never be removed (keys ` +
+        `already carry it). If it never reached the base branch, delete its line from ${RELEASED_FILE} instead.`] : [];
     }
 
-    return [];
+    const problems = [];
+
+    if (entry.licensing === 'token' && freeAs.length > 0) {
+      problems.push(`"${id}" was released as "${freeAs.join('" and "')}", so it can never become a token ` +
+        '(restricted keys issued before would lose it)');
+    }
+    if (entry.status === 'planned') {
+      problems.push(`"${id}" was released, so it cannot go back to "planned"`);
+    }
+
+    return problems;
+  });
+}
+
+/**
+ * Compares the record of released ids with the base branch's copy. The record only grows: every id of the base
+ * stays, with every licensing value it had there. This is what makes an id released once it is merged: a
+ * feature branch may still drop an id the base never had, and nothing else.
+ *
+ * @param {object} base The base branch's record (`{}` before the record existed there).
+ * @param {object} current The record on this branch.
+ * @returns {string[]} The problems.
+ */
+function checkRecordAgainstBase(base, current) {
+  const shapeProblems = [...checkRecordShape(base), ...checkRecordShape(current)];
+
+  if (shapeProblems.length > 0) {
+    return shapeProblems;
+  }
+
+  return Object.entries(base).flatMap(([id, values]) => {
+    if (current[id] === undefined) {
+      return [`"${id}" is in the base branch's ${RELEASED_FILE}, so it must stay in it`];
+    }
+
+    const lost = values.filter(value => !current[id].includes(value));
+
+    return lost.length > 0 ?
+      [`"${id}" was recorded as "${lost.join('" and "')}" on the base branch, and a record never loses a value`] : [];
   });
 }
 
@@ -867,9 +994,9 @@ function buildCommittedOutputs(sources) {
 function findStaleOutputs(sources) {
   const expected = buildCommittedOutputs(sources);
   const current = new Map(sources.generatedModules.map(({ file, content }) => [file, content]));
-  const releasedContent = `${JSON.stringify(sources.released, null, 2)}\n`;
 
-  current.set(RELEASED_FILE, releasedContent);
+  // The file's own bytes, so a record reordered or reformatted by hand reads as stale too.
+  current.set(RELEASED_FILE, sources.releasedText);
 
   const stale = expected.filter(({ file, content }) => current.get(file) !== content).map(({ file }) => file);
   const orphaned = sources.generatedModules.map(({ file }) => file)
@@ -890,6 +1017,7 @@ exports.listEntries = listEntries;
 exports.indexEntries = indexEntries;
 exports.checkSources = checkSources;
 exports.checkReleased = checkReleased;
+exports.checkRecordAgainstBase = checkRecordAgainstBase;
 exports.computeImplies = computeImplies;
 exports.toPluginDeps = toPluginDeps;
 exports.buildManifest = buildManifest;

@@ -5,6 +5,7 @@ import {
   RELEASED_FILE,
   buildCommittedOutputs,
   buildManifest,
+  checkRecordAgainstBase,
   checkReleased,
   checkSources,
   computeImplies,
@@ -159,6 +160,20 @@ describe('feature manifest', () => {
         'cannot name "xlsx:import"'],
       ['a sub-feature that names an unknown plugin', 'xlsx:protection',
         entry => ({ ...entry, plugins: ['ImportFile', 'Spreadsheet'] }), 'unknown plugins: Spreadsheet'],
+      // An id is permanent once merged, so a typo in it must fail before that.
+      ['a registry id that does not match its module', 'feat:search', entry => ({ ...entry, id: 'feat:serch' }),
+        'must be "feat:search", made from "module"'],
+      ['a sub-feature id with no namespace', 'xlsx:protection', entry => ({ ...entry, id: 'protection' }),
+        'needs a namespace of its own'],
+      ['enforceAtInit with nothing for PLUGIN_DEPS to check', 'feat:search',
+        entry => ({ ...entry, enforceAtInit: true }), 'needs a non-empty "requires.allOf"'],
+      // `cell:text` (core) requires `editor:text`, which would then require a token.
+      ['a core entry that reaches a token through another entry', 'editor:text',
+        entry => ({ ...entry, requires: { allOf: ['feat:search'] } }),
+        'a core entry cannot require "feat:search", which a key must list (it requires it through another entry)'],
+      // `feat:loading` requires `feat:dialog`, and a planned id may still be renamed.
+      ['a stable entry that requires a planned one', 'feat:dialog', entry => ({ ...entry, status: 'planned' }),
+        'a stable entry cannot require "feat:dialog", which is planned'],
     ])('should report %s', (_, id, change, message) => {
       const problems = checkSources(withEntry(sources, id, change));
 
@@ -177,6 +192,14 @@ describe('feature manifest', () => {
       const problems = checkSources(withFile(sources, 'src/plugins/search/feature.json', change));
 
       expect(problems).toEqual([`src/plugins/search/feature.json: ${message}`]);
+    });
+
+    it('should let a recorded id keep its name after its module is renamed', () => {
+      // One module has one entry, so a renamed plugin keeps the id that keys already carry.
+      const renamed = withEntry(sources, 'feat:search', entry => ({ ...entry, id: 'feat:find' }));
+
+      expect(checkSources({ ...renamed, released: { ...renamed.released, 'feat:find': ['token'] } })).toEqual([]);
+      expect(checkSources(renamed)).toEqual([expect.stringContaining('must be "feat:search", made from "module"')]);
     });
 
     it('should report a registry folder with no entry', () => {
@@ -224,8 +247,72 @@ describe('feature manifest', () => {
       const changed = withEntry(sources, 'renderer:html', () => null);
       const released = JSON.parse(buildCommittedOutputs(changed).find(({ file }) => file === RELEASED_FILE).content);
 
-      expect(released['renderer:html']).toBe('none');
+      expect(released['renderer:html']).toEqual(['none']);
       expect(Object.keys(released)).toEqual(expect.arrayContaining([...byId.keys()]));
+    });
+
+    it('should remember that an id was sold after it became core', () => {
+      const asCore = withEntry(sources, 'xlsx:protection', entry => ({ ...entry, licensing: 'core', gate: undefined }));
+      const record = JSON.parse(buildCommittedOutputs(asCore).find(({ file }) => file === RELEASED_FILE).content);
+
+      expect(record['xlsx:protection']).toEqual(['core', 'token']);
+      // Removed later: keys issued while it was sold still carry it.
+      expect(checkReleased({ ...withEntry(asCore, 'xlsx:protection', () => null), released: record }))
+        .toEqual([expect.stringContaining('"xlsx:protection" was released as a token, so it can never be removed')]);
+      // Sold again: restricted keys issued while it was core do not list it.
+      expect(checkReleased({ ...sources, released: record }))
+        .toEqual([expect.stringContaining('"xlsx:protection" was released as "core", so it can never become a token')]);
+    });
+
+    it('should refuse to put a released id back to planned', () => {
+      const changed = withEntry(sources, 'xlsx:protection', entry => ({ ...entry, status: 'planned' }));
+
+      expect(checkReleased(changed)).toEqual(['"xlsx:protection" was released, so it cannot go back to "planned"']);
+    });
+
+    it('should name the way to drop an id that never reached the base branch', () => {
+      const changed = withEntry(sources, 'feat:search', () => null);
+
+      expect(checkReleased(changed)).toEqual([expect.stringContaining(`delete its line from ${RELEASED_FILE}`)]);
+    });
+
+    it('should refuse a record that does not list licensing values', () => {
+      const changed = { ...sources, released: { ...sources.released, 'feat:search': 'token' } };
+
+      expect(checkReleased(changed)).toEqual([`${RELEASED_FILE}: "feat:search" must list the licensing values it has ` +
+        'had (core, token, none)']);
+    });
+
+    it('should read a record reformatted by hand as stale', () => {
+      expect(findStaleOutputs({ ...sources, releasedText: JSON.stringify(sources.released) }))
+        .toEqual([RELEASED_FILE]);
+    });
+  });
+
+  describe('checkRecordAgainstBase()', () => {
+    const record = sources.released;
+
+    it('should accept a record that keeps everything the base recorded', () => {
+      expect(checkRecordAgainstBase({}, record)).toEqual([]);
+      expect(checkRecordAgainstBase(record, record)).toEqual([]);
+      expect(checkRecordAgainstBase(record, { ...record, 'feat:new_feature': ['token'] })).toEqual([]);
+    });
+
+    it('should refuse a record that drops an id the base recorded', () => {
+      const { 'feat:search': removed, ...current } = record;
+
+      expect(removed).toEqual(['token']);
+      expect(checkRecordAgainstBase(record, current)).toEqual([
+        `"feat:search" is in the base branch's ${RELEASED_FILE}, so it must stay in it`,
+      ]);
+    });
+
+    it('should refuse a record that loses a value the base recorded', () => {
+      const base = { ...record, 'xlsx:protection': ['core', 'token'] };
+
+      expect(checkRecordAgainstBase(base, record)).toEqual([
+        '"xlsx:protection" was recorded as "core" on the base branch, and a record never loses a value',
+      ]);
     });
   });
 

@@ -100,7 +100,7 @@ entries. Each entry takes these fields:
 
 | Field | Required | Meaning |
 |---|---|---|
-| `id` | yes | The token. Must pass the license-key rule `^[a-z][a-z0-9_]*(:[a-z0-9_]+(\.[a-z0-9_]+)*)?$` and start with the namespace of its kind. `<namespace>:all` is reserved. |
+| `id` | yes | The token. Must pass the license-key rule `^[a-z][a-z0-9_]*(:[a-z0-9_]+(\.[a-z0-9_]+)*)?$` and start with the namespace of its kind. A new registry entry's id is that namespace plus `module` in snake_case (`feat:dropdown_menu`, `cell:intl_date`), so a typo cannot become permanent; a recorded id keeps its name when the module is renamed. A sub-feature has a namespace of its own (`xlsx:`). `<namespace>:all` is reserved. |
 | `kind` | yes | `plugin`, `cell_type`, `editor`, `renderer`, `validator`, `sub_feature`, or `core_area` |
 | `module` | registry kinds | The registered name: `Filters`, `checkbox`, `intl-date`. Checked against the source constant and the runtime registry. |
 | `plugins` | `sub_feature` | The plugins whose behavior the sub-feature changes. |
@@ -110,7 +110,7 @@ entries. Each entry takes these fields:
 | `licensing` | yes | `token` (a key must list it), `core` (always granted), `none` (never in a key). Fixed by kind, see below. |
 | `gate` | when `token` | How Handsontable will check it: `enable` (plugin turns on), `call` (an always-on plugin, checked in its methods), `degrade` (sub-feature left out of the result), `report` (listed, keeps working). |
 | `requires` | no | `{ "allOf": [...], "anyOf": [...] }`. `anyOf` means at least one, which the key builder cannot choose on its own. |
-| `enforceAtInit` | plugins | `true` turns `requires.allOf` into `PLUGIN_DEPS` (see above). |
+| `enforceAtInit` | plugins | `true` turns `requires.allOf` into `PLUGIN_DEPS` (see above), so it needs a non-empty `allOf`. |
 | `packages` | no | npm packages the user supplies (`hyperformula`, `hyperformula-ui`). |
 
 Unknown fields fail the check, so the format cannot drift.
@@ -143,14 +143,31 @@ without the other.
 
 A key carries tokens for years. So:
 
-- **A token is never removed or renamed.** Rename = new id plus the old one kept.
+- **A token is never removed or renamed.** A sub-feature can take a new id with the old one kept beside it. A
+  registry entry cannot (one module, one entry), so a plugin, cell type, editor, renderer, or validator renamed
+  after its id was recorded keeps that id: the "id is made from `module`" rule applies only to an id the record
+  does not hold yet.
 - **An id released as `core` or `none` never becomes `token`.** A restricted key issued before would not list
-  it, and the feature would turn off for that customer on upgrade. `token` → `core` is allowed.
-- **A `core` entry never requires a `token` entry.**
+  it, and the feature would turn off for that customer on upgrade. `token` → `core` is allowed, and the id
+  then stays both: never removable, never sellable again.
+- **A `core` entry never requires a `token` entry**, directly or through other entries.
+- **A released id never goes back to `planned`, and a stable entry never requires a planned one.** A planned
+  id may still be renamed, so it must not reach a key through `implies`.
 
-`released-tokens.json` records every stable id with its licensing, and a record is never dropped.
-`generate:feature-manifest` refuses a forbidden change. An id is "released" from the moment it is merged:
-`next` builds publish the manifest too.
+`released-tokens.json` lists every stable id with every `licensing` value it has had (`["core", "token"]` after
+a `token` → `core` move). It only grows. Two checks hold it:
+
+- `generate:feature-manifest` (and the Jest suite) refuse a source change the record forbids.
+- CI ("Check that the released feature ids only grow", in the `test presence` job of `checks.yml`) compares
+  the record with the base branch's copy (`--check-base`), because one pull request can edit the manifest and
+  the record together. So an id is "released" from the moment it is merged (`next` builds publish the
+  manifest too), and not before.
+
+**To rename or drop an id that never reached the base branch**, delete its line from the record, then run
+`generate:feature-manifest`. The base check allows that and nothing else. To run it locally:
+`git show origin/develop:handsontable/src/featureManifest/released-tokens.json > /tmp/base.json`, then
+`node scripts/generate-feature-manifest.mjs --check-base /tmp/base.json` (in `handsontable/`). A missing file
+on the base branch means `{}`.
 
 ## Traps
 
