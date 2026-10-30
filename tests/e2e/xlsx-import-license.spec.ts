@@ -35,9 +35,15 @@ test.describe('xlsx import license gate', { tag: BUNDLES_TAG }, () => {
 });
 
 /**
- * The seven Pro tokens a Standard key lacks, in declaration order.
+ * The six Pro tokens a Standard key lacks, in declaration order.
  */
 const PRO_TOKENS = ALL_XLSX_TOKENS.filter(id => !(STANDARD_TOKENS as readonly string[]).includes(id));
+
+/**
+ * The Pro tokens the import gates, the ones its warning and its `license:` entries name:
+ * `xlsx:number_formats` restricts the export only.
+ */
+const IMPORT_PRO_TOKENS = PRO_TOKENS.filter(id => id !== 'xlsx:number_formats');
 
 /**
  * The tokens that gate a part of an import, every one but the two entry tokens.
@@ -63,11 +69,6 @@ const EXPORT_OPTIONS = {
  */
 const IMPORT_OPTIONS = { colHeaders: 'firstRow', importStyles: true };
 
-/**
- * A second import without styles: the styled cell is then reported as `cellStyles`, an entry of the
- * report that no other token decides, so it shows whether the report reached the result.
- */
-const REPORT_OPTIONS = { colHeaders: 'firstRow' };
 
 const LICENSE_WARNING_PREFIX = 'The xlsx import skipped features your license does not unlock: ';
 
@@ -86,16 +87,14 @@ function allMeta(result: ImportResult): Record<string, unknown>[] {
 /**
  * Reports, per token, whether the part it unlocks reached the import result. `xlsx:formulas` is
  * read on the full bundle only, the one whose target can hold a live formula. `xlsx:number_formats`
- * reports the dated column typed as a date, which no key may take away. `xlsx:import_report` is read
- * from `report`, the result of an import without styles.
+ * reports the dated column typed as a date, which no key may take away.
  */
-function importedFeatures(result: ImportResult, report: ImportResult, bundle: string): Record<string, boolean> {
+function importedFeatures(result: ImportResult, bundle: string): Record<string, boolean> {
   const features: Record<string, boolean> = {
     'xlsx:layout': result.mergeCells !== undefined && result.hiddenColumns !== undefined
       && result.colWidths !== undefined,
     'xlsx:number_formats': result.columns?.[2]?.type === 'date',
     'xlsx:comments': result.comments !== undefined,
-    'xlsx:import_report': report.dropped.includes('cellStyles'),
     'xlsx:styles': result.styles !== undefined,
     'xlsx:conditional_formatting': result.conditionalFormatting !== undefined,
     'xlsx:data_validation': allMeta(result).some(meta => meta.type === 'dropdown'),
@@ -110,16 +109,15 @@ function importedFeatures(result: ImportResult, report: ImportResult, bundle: st
 }
 
 /**
- * Imports `bytes` twice under the current key, with and without styles, and reports the parts
- * that reached the result, plus the result of the styled import.
+ * Imports `bytes` under the current key and reports the parts that reached the result, plus the
+ * result itself.
  */
 async function importAndMeasure(
   lic: XlsxLicensePage, bytes: Buffer, bundle: string,
 ): Promise<{ result: ImportResult; features: Record<string, boolean> }> {
   const result = await lic.importBytes(bytes, IMPORT_OPTIONS);
-  const report = await lic.importBytes(bytes, REPORT_OPTIONS);
 
-  return { result, features: importedFeatures(result, report, bundle) };
+  return { result, features: importedFeatures(result, bundle) };
 }
 
 /**
@@ -164,14 +162,26 @@ for (const engine of ['native', 'exceljs'] as const) {
         expect(features[token], token).toBe(false);
       }
 
-      expect(standard.dropped).toEqual(PRO_TOKENS.map(id => `license:${id}`));
+      // The report is always on. This workbook is the grid's own export, so the legacy key drops
+      // nothing, and a Standard key reports exactly the `license:` entry of each import token it
+      // lacks – never `xlsx:number_formats`, which restricts the export only. (The unit suite pins
+      // a lossy file, whose file-driven entries come first.)
+      expect(full.dropped).toEqual([]);
+      expect(standard.dropped).toEqual([
+        'license:xlsx:comments',
+        'license:xlsx:styles',
+        'license:xlsx:conditional_formatting',
+        'license:xlsx:data_validation',
+        'license:xlsx:protection',
+      ]);
 
       const warnings = await lic.warnings();
 
-      // One per import call: `importAndMeasure` imports twice.
       expect(warnings.filter(message => message.startsWith(LICENSE_WARNING_PREFIX)))
-        .toEqual(Array(2).fill(`${LICENSE_WARNING_PREFIX}${PRO_TOKENS.join(', ')}.`));
-      expect(warnings.filter(message => message.includes('xlsx engine dropped features'))).toEqual([]);
+        .toEqual([`${LICENSE_WARNING_PREFIX}${IMPORT_PRO_TOKENS.join(', ')}.`]);
+      // The engine's own warning never repeats the license entries.
+      expect(warnings.filter(message => message.includes('xlsx engine dropped features') && message.includes('license:')))
+        .toEqual([]);
     });
 
     test('each Pro token removes exactly its part', async({ page, theme, bundle }) => {
@@ -192,8 +202,9 @@ for (const engine of ['native', 'exceljs'] as const) {
         ]));
 
         expect(features, token).toEqual(expected);
+        // The import names only its own tokens, so a missing export-only token leaves no entry.
         expect(result.dropped.filter((name: string) => name.startsWith('license:')), token)
-          .toEqual([`license:${token}`]);
+          .toEqual(token === 'xlsx:number_formats' ? [] : [`license:${token}`]);
       }
     });
 

@@ -5,8 +5,9 @@ import { buildTestKey } from '../../handsontable/src/utils/entitlementLicenseKey
 import { SUBSCRIPTION_KEY } from '../../handsontable/src/utils/entitlementLicenseKey/__tests__/fixtures';
 
 /**
- * Every `xlsx:*` capability token, in the order the core declares them
- * (`handsontable/src/utils/xlsxEngine/licenseCapabilities.ts`).
+ * Every `xlsx:*` token a key must list, in the order the core declares them
+ * (`handsontable/src/utils/xlsxEngine/licenseCapabilities.ts`, held equal to `features.json`).
+ * `xlsx:import_report` is not one of them: it is a `core` feature every key gets.
  */
 export const ALL_XLSX_TOKENS: readonly string[] = Object.freeze([
   'xlsx:import',
@@ -15,7 +16,6 @@ export const ALL_XLSX_TOKENS: readonly string[] = Object.freeze([
   'xlsx:layout',
   'xlsx:number_formats',
   'xlsx:comments',
-  'xlsx:import_report',
   'xlsx:styles',
   'xlsx:conditional_formatting',
   'xlsx:data_validation',
@@ -33,21 +33,28 @@ export const STANDARD_TOKENS = ['xlsx:import', 'xlsx:export', 'xlsx:formulas', '
 export const LEGACY_KEY = 'non-commercial-and-evaluation';
 
 /**
+ * The per-product key flag that makes a key unlock exactly the tokens it lists (the feature
+ * manifest's `keyFlag`). A product entry without it unlocks every feature.
+ */
+export const LISTED_CAPABILITIES_FLAG = 'listed-capabilities';
+
+/**
  * A current subscription key with the `core` capability only, as the real generator issued it. It
- * carries no `xlsx:` token, so it is unrestricted for the whole family.
+ * carries no `listed-capabilities` flag, so it is unrestricted for the whole family.
  */
 export const CORE_ONLY_KEY: string = SUBSCRIPTION_KEY;
 
 /**
- * Builds a current subscription key that grants `core` plus `tokens`. It runs to 2027-08-12 with a
- * 60-day notice and a 90-day grace period, the same window as `CORE_ONLY_KEY`, so the page object's
- * pinned clock keeps it far from its notice period.
+ * Builds a current subscription key that grants `core` plus `tokens` and does NOT carry the
+ * `listed-capabilities` flag, so it unlocks every xlsx feature whatever it lists. It runs to
+ * 2027-08-12 with a 60-day notice and a 90-day grace period, the same window as `CORE_ONLY_KEY`, so
+ * the page object's pinned clock keeps it far from its notice period.
  *
  * @param {readonly string[]} tokens The capability tokens to grant besides `core`.
  * @param {string[]} [flags] The product flags.
  * @returns {string}
  */
-export function keyWith(tokens: readonly string[], flags: string[] = []): string {
+export function keyWithoutFlag(tokens: readonly string[], flags: string[] = []): string {
   return buildTestKey({
     products: {
       handsontable: {
@@ -62,6 +69,18 @@ export function keyWith(tokens: readonly string[], flags: string[] = []): string
 }
 
 /**
+ * Builds a current subscription key that unlocks exactly `core` plus `tokens`: it always carries the
+ * `listed-capabilities` flag, besides `flags`.
+ *
+ * @param {readonly string[]} tokens The capability tokens to grant besides `core`.
+ * @param {string[]} [flags] Further product flags.
+ * @returns {string}
+ */
+export function keyWith(tokens: readonly string[], flags: string[] = []): string {
+  return keyWithoutFlag(tokens, [LISTED_CAPABILITIES_FLAG, ...flags]);
+}
+
+/**
  * Builds a key that grants every xlsx token but `token`.
  *
  * @param {string} token The token to leave out.
@@ -69,6 +88,7 @@ export function keyWith(tokens: readonly string[], flags: string[] = []): string
  */
 export function keyWithout(token: string): string {
   if (!ALL_XLSX_TOKENS.includes(token)) {
+    // `xlsx:import_report` lands here too: it is `core`, so no key can leave it out.
     throw new Error(`Unknown xlsx token ${JSON.stringify(token)}.`);
   }
 

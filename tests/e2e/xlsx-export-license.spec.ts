@@ -30,8 +30,7 @@ test.describe('Export entry gate (xlsx:export)', { tag: BUNDLES_TAG }, () => {
 });
 
 /**
- * The Pro tokens of the export, in declaration order. `xlsx:import_report` is Pro too, but only
- * restricts the import.
+ * The Pro tokens of the export, in declaration order.
  */
 const PRO_EXPORT_TOKENS = [
   'xlsx:number_formats',
@@ -43,7 +42,8 @@ const PRO_EXPORT_TOKENS = [
 ] as const;
 
 /**
- * The seven Pro tokens a Standard key lacks, in declaration order.
+ * The six Pro tokens a Standard key lacks, in declaration order. Every one of them is an export
+ * token, so the export's warning names them all.
  */
 const PRO_TOKENS = ALL_XLSX_TOKENS.filter(id => !(STANDARD_TOKENS as readonly string[]).includes(id));
 
@@ -136,10 +136,11 @@ for (const engine of ['native', 'exceljs'] as const) {
         expect(sheet.getCell('B6').formula).toBe('B2+B3');
       }
 
-      expect(await licenseWarnings(lic)).toEqual([
-        `The xlsx export skipped features your license does not unlock: ${PRO_TOKENS.join(', ')}.`,
-        `The xlsx export skipped features your license does not unlock: ${PRO_TOKENS.join(', ')}.`,
-      ]);
+      expect(PRO_TOKENS).toEqual([...PRO_EXPORT_TOKENS]);
+      expect(await licenseWarnings(lic)).toEqual(Array(2).fill(
+        'The xlsx export skipped features your license does not unlock: xlsx:number_formats, xlsx:comments, '
+        + 'xlsx:styles, xlsx:conditional_formatting, xlsx:data_validation, xlsx:protection.'
+      ));
     });
 
     // Compared on the built-in engine only, whose output carries nothing but the content.
