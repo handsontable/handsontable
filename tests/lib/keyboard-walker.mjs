@@ -61,9 +61,11 @@ export function isProductStop(stop) {
  * @param {'forward'|'backward'} input.direction Tab or Shift+Tab.
  * @param {object[]} input.stops The stops: the starting sentinel, then one per press.
  * @param {boolean} [input.budgetExhausted] Whether the walk stopped because it ran out of presses.
- * @param {{keys: string, left: boolean, presses: number}|null} [input.exitRoute] What the documented way out did after the
- *   presses ran out: Ctrl+End then Tab (Ctrl+Home then Shift+Tab backward), which leaves a grid whose Tab wraps from row to row
- *   (`autoWrapRow`) from its last cell. A walk that got out that way is long, not a trap.
+ * @param {{keys: string, left: boolean|'body', presses: number, from?: {region: string, locator: string}}|null} [input.exitRoute] What
+ *   the documented way out did after the presses ran out: Ctrl+End then Tab (Ctrl+Home then Shift+Tab backward), which leaves a
+ *   grid whose Tab wraps from row to row (`autoWrapRow`) from its last cell. `left` is `true` when the focus reached the other
+ *   sentinel, `'body'` when it left no element focused (`from` is the stop the last press left), `false` when it never got out.
+ *   A walk that got out either way is long, not a trap; `walkFindings()` judges the `'body'` exit.
  * @returns {{reachedEnd: boolean, leftDocument: boolean, cycle: {from: number, to: number}|null, trapped: boolean, presses: number, productStops: number, modal: boolean, exitRoute: object|null}} The verdict.
  */
 export function walkVerdict({ direction, stops, budgetExhausted = false, exitRoute = null }) {
@@ -84,7 +86,7 @@ export function walkVerdict({ direction, stops, budgetExhausted = false, exitRou
   });
 
   const held = cycle ? stops.slice(cycle.from, cycle.to) : stops.slice(-1);
-  const trapped = !reachedEnd && !leftDocument && (cycle !== null || (budgetExhausted && exitRoute?.left !== true))
+  const trapped = !reachedEnd && !leftDocument && (cycle !== null || (budgetExhausted && !exitRoute?.left))
     && held.length > 0 && held.every(isProductStop);
 
   return {
@@ -205,6 +207,20 @@ export function walkFindings({ walk, stops, direction, modalExit = null, opened 
       measured: { editorOpen: last.signals?.editorOpen === true },
       reason: `${key} left the focus on the element it was on, so the walk inside the popup stopped: review whether it moved within the control `
         + '(a date input\'s fields), took the key as input (a suggestion accepted) or did nothing, where the guide says Tab completes the entry and moves on',
+    });
+  }
+  // The way out can lose the focus the way a walk does: a press from inside the grid's container that leaves no element
+  // focused. From the portal it may have left the page, as in a walk, so that is not judged.
+  if (walk.exitRoute?.left === 'body' && walk.exitRoute.from?.region === 'grid') {
+    findings.push({
+      kind: 'focus-lost',
+      criteria: ['2.4.3'],
+      severity: 'serious',
+      selector: walk.exitRoute.from.locator ?? 'grid',
+      step: `${label(walk.presses)}, then ${walk.exitRoute.keys} ${walk.exitRoute.presses}`,
+      measured: { to: 'body' },
+      reason: `${walk.exitRoute.keys} from inside the grid left no element focused: the focused element went away instead of passing `
+        + 'the focus on, so a screen reader has nothing to announce',
     });
   }
   if (walk.exitRoute?.left && !walk.trapped) {

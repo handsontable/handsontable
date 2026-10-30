@@ -1431,7 +1431,9 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   Tab wraps rows and leaves from the last cell of the grid, so a walk can run out of presses (the
   column count plus 40) with nothing wrong. The walker then tries the way out the shortcut guide
   documents, Ctrl+End then Tab (Ctrl+Home then Shift+Tab back): a walk that gets out that way is an
-  advisory `tab-walk-needs-shortcut`, one that does not is a `keyboard-trap`. A walk that comes back to a
+  advisory `tab-walk-needs-shortcut`, one that does not is a `keyboard-trap`. A way out whose press from
+  inside the grid's container leaves no element focused is also `focus-lost`, as in a walk: the focus left
+  the grid, so it is no trap, but a screen reader has nothing focused. A walk that comes back to a
   stop outside the product (the sentinel it started on) without reaching the other one is neither an exit
   nor a trap held in the grid, and is an advisory `tab-walk-incomplete`. A modal dialog holds the
   focus by design: a cycle inside one is a trap only when neither Escape nor a button in it lets the

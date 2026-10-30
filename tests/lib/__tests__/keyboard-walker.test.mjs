@@ -222,6 +222,25 @@ test('a focus loss, a Tab out of a modal and a context change are judged per wal
   ]);
 });
 
+test('a way out that leaves no element focused from inside the grid lost the focus; from the portal it left the page', () => {
+  // Ctrl+End then Tab from a grid whose Tab wraps rows: the focus left the grid, so the walk is no trap, but a press
+  // from inside the grid's container that leaves no element focused is the same 2.4.3 defect the walk itself reports.
+  const stops = [stop('start'), cell(0, 0), cell(0, 1), cell(1, 0)];
+  const exitRoute = { keys: 'Ctrl+End, then Tab', left: 'body', presses: 2, from: { region: 'grid', locator: 'td' } };
+  const walk = walkVerdict({ direction: 'forward', stops, budgetExhausted: true, exitRoute });
+
+  assert.equal(walk.trapped, false, 'the focus left the grid, though to no element');
+  assert.deepEqual(walkFindings({ walk, stops, direction: 'forward' }).map(item => [item.kind, item.criteria, item.severity, item.selector, item.step]), [
+    ['focus-lost', ['2.4.3'], 'serious', 'td', 'Tab 3, then Ctrl+End, then Tab 2'],
+    ['tab-walk-needs-shortcut', ['2.1.2'], 'advisory', undefined, 'Tab 3, then Ctrl+End, then Tab'],
+  ]);
+
+  const page = walkVerdict({ direction: 'forward', stops, budgetExhausted: true, exitRoute: { ...exitRoute, from: { region: 'portal', locator: 'button.ok' } } });
+
+  assert.deepEqual(walkFindings({ walk: page, stops, direction: 'forward' }).map(item => item.kind), ['tab-walk-needs-shortcut'],
+    'the portal can be the last focusable element of the page, so Tab from it may leave the page');
+});
+
 test('a backward walk names its steps Shift+Tab; a popup walk counts from where the popup put the focus', () => {
   const stops = [stop('end'), stop('grid', { name: '', ref: 1, locator: 'button.x' }), stop('start')];
   const findings = walkFindings({ walk: walkVerdict({ direction: 'backward', stops }), stops, direction: 'backward' });
