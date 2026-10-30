@@ -681,6 +681,44 @@ describe('buildReport -- the gate\'s verdict leads', () => {
     assert.ok(!report.includes('Waiting for approval'));
   });
 
+  test('a fail on the shift alone names the median, and says how to tell it from the runner', () => {
+    // +8% everywhere: over no scenario's own line (+1.9 ms is under the floor), over the shift's.
+    const results = Object.fromEntries(NAMES.map(name => [name, slower(1.08)]));
+    const verdict = verdictOf(results, baseline(), { mode: 'block' });
+    const report = buildReport(results, baseline(), { gated: true }, undefined, verdict);
+
+    assert.deepEqual(verdict.failing, []);
+    assert.match(report, /^## ⚡ Performance: ❌ the median scenario ran \+8\.0% slower/m);
+    assert.ok(report.includes('The run shift of +8.0% is above the +5% line.'));
+    assert.ok(report.includes('re-run the job to tell them apart'));
+    assert.ok(report.includes('Waiting for approval'));
+    assert.ok(!report.includes('every scenario ran'));
+  });
+
+  test('a run where the report withholds every scenario reads as not assessed, not as a pass', () => {
+    const meta = { crossWindowScenarios: NAMES };
+    const verdict = decideGate({ assessment: assessReport(quiet(), baseline(), meta), baseline: baseline() });
+    const report = buildReport(quiet(), baseline(), meta, undefined, verdict);
+
+    assert.match(report, /^## ⚡ Performance: ⏸ not assessed$/m);
+    assert.ok(report.includes('Not assessed: no scenario could be compared with the develop baseline.'));
+    assert.ok(!visible(report).includes('within tolerance'));
+  });
+
+  test('after a re-run the footer and the column keep the first pass\'s shift', () => {
+    // Median +14 on the first pass (+8, +8, +8, +20, +20, +20); the re-run rows would pull it to +4.
+    const rest = { 'scroll-down': slower(1.08), 'scroll-up': slower(1.08), 'undo-sort': slower(1.08) };
+    const first = { ...quiet(), sorting: slower(1.2), filtering: slower(1.2), 'cell-editing': slower(1.2), ...rest };
+    const second = { ...quiet(), ...rest };
+    const verdict = confirmVerdict(verdictOf(first, baseline()), verdictOf(second, baseline()));
+    const report = buildReport(second, baseline(), {}, undefined, verdict);
+
+    assert.ok(report.includes('Run shift: +14.0%'));
+    assert.ok(!report.includes('Run shift: +4.0%'));
+    // Sorting at +0.0% raw, against that shift of +14.0%: -12.3%.
+    assert.match(fullTableRow(report, 'Sorting'), /\| \+0\.0% +\| -12\.3% +\|/);
+  });
+
   test('a run the gate does not act on states the verdict alone', () => {
     const results = { ...quiet(), sorting: slower(1.2) };
     const verdict = verdictOf(results, baseline(), { mode: 'block' });

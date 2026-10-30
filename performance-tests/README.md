@@ -243,7 +243,7 @@ painted red exactly where the gate fails it.
 | `GATE_TIMING_THRESHOLD` | 10 | A scenario fails when its total active time is more than 10% slower… |
 | `GATE_TIMING_FLOOR_MS` | 2 | …and more than 2 ms slower. 10% of the 13–19 ms scenarios is timer rounding |
 | `WATCH_TIMING_THRESHOLD` | 5 | Above this a scenario is listed "to watch"; it never fails |
-| `GATE_RUN_SHIFT_THRESHOLD` | 5 | Every scenario slower by more than this, together, fails the run |
+| `GATE_RUN_SHIFT_THRESHOLD` | 5 | The run fails when its median scenario is more than this slower, which catches a slowdown most scenarios share |
 | `REGRESSION_CALLOUT_THRESHOLD_HEAP` | 5 | A scenario fails when its JS heap is more than 5% larger (10% on scroll-left and scroll-right, `HEAP_THRESHOLDS_BY_SCENARIO`) |
 
 None of these is a guess, and none should be changed by eye. They come from replaying every develop
@@ -290,8 +290,8 @@ in the teardown (`lib/gate.mjs`), from the same assessment the comment renders, 
   goldens.
 - **The run fails** when its shift is above +5% and the newest golden's is not.
 - **Not assessed, never failed:** a pull request into any branch other than `develop` (the baseline is
-  always develop's), a run with no compatible baseline, and, per scenario, a scenario with no baseline
-  yet or a comparison the report withholds.
+  always develop's), a run with no compatible baseline, a run where the report withholds every
+  scenario, and, per scenario, a scenario with no baseline yet or a comparison the report withholds.
 - **Confirm re-run.** On a pull request run, every failing scenario (up to `CONFIRM_MAX_SCENARIOS`, 4)
   runs once more on its own. It passes only when the re-run measures it under the line: one the
   re-run could not judge (an incomplete capture, or no traces) stays failed. The self-hosted runner has
@@ -299,7 +299,9 @@ in the teardown (`lib/gate.mjs`), from the same assessment the comment renders, 
   run spread), and no replay of the goldens can see them. `scripts/run.mjs` moves the first traces
   to `output/first-pass/` and re-runs the spec files; Playwright then runs the global teardown again,
   which merges the two verdicts (`rerun.confirmed`, `rerun.cleared`, `rerun.unconfirmed`). More
-  failing scenarios than the cap, or a run that failed only on its shift, is not re-run.
+  failing scenarios than the cap, or a run that failed only on its shift, is not re-run. The run shift
+  stays the first pass's: the second pass's rows mix two runs, so their median cannot clear a shift
+  failure or invent one.
 - **Approval, not a red job.** In block mode a regression does not fail `Performance / run`: the last
   step (`scripts/enforce-gate.mjs`) exports `verdict=regressed`, and `performance.yml`'s `approve` job
   waits on the `performance-approval` environment, the same mechanism as the visual and manual QA

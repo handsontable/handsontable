@@ -33,7 +33,8 @@ export const GATE_VERDICT_FILE = 'verdict.json';
 // 0.6% and a run shift of +0.2%), and no replay of the develop goldens can see them. The cap keeps
 // the job's worst case bounded; a run with more failing scenarios than this is not one slow spell,
 // and its verdict stands. A run-shift failure is not re-run: it is already a median across every
-// scenario, which one slow spell does not move.
+// scenario, which one slow spell does not move. The re-run does not recompute it either
+// (confirmVerdict): the second pass's rows mix two runs, and their median says nothing about either.
 export const CONFIRM_MAX_SCENARIOS = 4;
 // The first pass's verdict and traces, kept beside the confirmed ones for the artifact.
 export const GATE_FIRST_PASS_FILE = 'verdict-first-pass.json';
@@ -180,10 +181,24 @@ function describeScenario(row, rules, failedAgainst = null) {
 }
 
 /**
+ * @param {{ failing: Array<object>, absorbed: Array<object>, watching: Array<object>,
+ *   shiftFailed: boolean }} verdict
+ * @returns {'fail' | 'watch' | 'pass'}
+ */
+function statusOf(verdict) {
+  if (verdict.failing.length > 0 || verdict.shiftFailed) {
+    return 'fail';
+  }
+
+  return verdict.watching.length > 0 || verdict.absorbed.length > 0 ? 'watch' : 'pass';
+}
+
+/**
  * Decides the gate for one run.
  *
  * The whole run is `not-assessed` -- never failed -- when the pull request targets a branch other
- * than develop, or when there is no develop baseline to compare against. Within a run, a scenario
+ * than develop, when there is no develop baseline to compare against, or when the report withholds
+ * every scenario. Within a run, a scenario
  * the report withholds (no baseline yet, a trace or version mismatch, an incomplete capture) is
  * listed as not assessed; heap still counts when only a timing category was missed.
  *
@@ -293,15 +308,19 @@ export function decideGate({
   verdict.newestShift = newestAssessment?.shift ?? null;
   verdict.shiftFailed = isShiftFail(verdict.shift, verdict.newestShift, rules);
 
-  if (verdict.failing.length > 0 || verdict.shiftFailed) {
-    verdict.status = 'fail';
-  } else if (verdict.watching.length > 0 || verdict.absorbed.length > 0) {
-    verdict.status = 'watch';
+  verdict.status = statusOf(verdict);
+
+  // A baseline in hand but no scenario judged: "pass" would claim a comparison nothing made. A
+  // failure still stands, because an incomplete capture's heap is judged.
+  if (verdict.status !== 'fail' && verdict.judged.length === 0) {
+    verdict.status = 'not-assessed';
+    verdict.reason = `no scenario could be compared with the ${GATE_BASE_BRANCH} baseline`;
   }
 
+  // A median, so some scenarios can have run faster: this must not say that every one ran slower.
   if (verdict.shiftFailed) {
-    verdict.reason = `every scenario ran slower: the run shift is +${verdict.shift.toFixed(1)}%, above `
-      + `+${rules.shiftThreshold}%. That is a slowdown shared by every scenario, or a change on the `
+    verdict.reason = `the run shift of +${verdict.shift.toFixed(1)}% is above the `
+      + `+${rules.shiftThreshold}% line. That is a slowdown most scenarios share, or a change on the `
       + 'runner; re-run the job to tell them apart';
   }
 
@@ -334,6 +353,10 @@ export function confirmCandidates(verdict, max = CONFIRM_MAX_SCENARIOS) {
  * not judge -- an incomplete capture, or no traces at all -- keeps its first-pass failure as
  * `unconfirmed`: the gate never passes what it could not see.
  *
+ * The run's shift stays the first pass's, the one median over rows measured together. Recomputed
+ * here it would mix re-run rows with first-pass rows, so re-running up to four scenarios could clear
+ * a shift failure or invent one.
+ *
  * @param {object} firstPass -- the verdict that chose the scenarios to re-run
  * @param {object} secondPass -- the verdict decided over the re-run data
  * @returns {object} the second pass, with `rerun` set
@@ -346,12 +369,12 @@ export function confirmVerdict(firstPass, secondPass) {
     && !stillFailing.has(scenario.name));
   const unconfirmed = rerunFailures.filter(scenario => !judged.has(scenario.name));
   const kept = new Set(unconfirmed.map(scenario => scenario.name));
-  const status = unconfirmed.length > 0 ? 'fail' : secondPass.status;
-
-  return {
+  const verdict = {
     ...secondPass,
-    status,
-    blocking: status === 'fail' && secondPass.mode === 'block',
+    shift: firstPass.shift,
+    newestShift: firstPass.newestShift,
+    shiftFailed: firstPass.shiftFailed,
+    reason: firstPass.reason,
     failing: [...secondPass.failing, ...unconfirmed],
     // Listed once, as failing: a heap the incomplete re-run still judged can have put it here too.
     absorbed: secondPass.absorbed.filter(scenario => !kept.has(scenario.name)),
@@ -363,6 +386,11 @@ export function confirmVerdict(firstPass, secondPass) {
       unconfirmed: unconfirmed.map(scenario => scenario.name),
     },
   };
+
+  verdict.status = statusOf(verdict);
+  verdict.blocking = verdict.status === 'fail' && verdict.mode === 'block';
+
+  return verdict;
 }
 
 /**

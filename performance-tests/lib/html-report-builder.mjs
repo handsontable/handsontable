@@ -186,9 +186,10 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
 
   // The common factor this run differs from the baseline by -- the CI runner's speed, which every
   // scenario shares. Reported, never gated on: see runShift(). Not on a self-comparison, where every
-  // delta is 0 and a 0.0% shift would read as a measurement of the runner.
+  // delta is 0 and a 0.0% shift would read as a measurement of the runner. `meta.runShift` is the
+  // first pass's after a confirm re-run, whose rows mix two runs (confirmVerdict).
   const shift = hasGolden && !goldenSnapshots?.isSelfCompare
-    ? runShift(scenarios.map(s => s.totalChange))
+    ? (meta.runShift ?? runShift(scenarios.map(s => s.totalChange)))
     : null;
 
   for (const scenario of scenarios) {

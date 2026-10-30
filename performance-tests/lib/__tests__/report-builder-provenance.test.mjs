@@ -133,7 +133,7 @@ describe('buildReport -- run shift', () => {
     const total = Object.keys(results).length;
 
     assert.match(report, new RegExp(`^## ⚡ Performance: ❌ ${total} of ${total} scenarios regressed`, 'm'));
-    assert.ok(report.includes('every scenario ran slower: the run shift is +20.0%'));
+    assert.ok(report.includes('The run shift of +20.0% is above the +5% line.'));
     assert.match(report, /\| Scroll Down .*\+20\.0% 🔴 \| \+0\.0% /);
   });
 

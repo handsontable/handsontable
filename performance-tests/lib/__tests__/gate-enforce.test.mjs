@@ -56,10 +56,10 @@ describe('describeFailure', () => {
       status: 'fail',
       failing: [{ ...SORTING, overTiming: false, overHeap: true, heapPct: 6.2 }],
       shiftFailed: true,
-      reason: 'every scenario ran slower',
+      reason: 'the run shift of +6.0% is above the +5% line',
     });
 
-    assert.equal(describeFailure(v), 'Sorting heap +6.2%; every scenario ran slower');
+    assert.equal(describeFailure(v), 'Sorting heap +6.2%; the run shift of +6.0% is above the +5% line');
   });
 });
 

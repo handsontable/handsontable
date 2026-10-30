@@ -76,7 +76,9 @@ export function buildReport(
   })
 ) {
   const goldenScenarios = goldenSnapshots?.scenarios || {};
-  const { assessments, shift, hasGolden } = assessment;
+  const { assessments, hasGolden } = assessment;
+  // After a re-run the rows mix two runs, so the run's shift is the first pass's (confirmVerdict).
+  const shift = verdict.rerun ? verdict.shift : assessment.shift;
   // A self-comparison is 0% by construction, so nothing on it may read as cleared or flagged.
   const compared = hasGolden && !goldenSnapshots?.isSelfCompare;
   const sections = [buildHeadline(verdict, assessments, meta, compared)];
@@ -515,9 +517,11 @@ function buildHeadline(verdict, assessments, meta, compared) {
     const regressed = verdict.failing.length;
     const what = regressed > 0
       ? `❌ ${regressed} of ${plural(total, 'scenario')} regressed`
-      : `❌ every scenario ran slower (${fmtPct(verdict.shift)})`;
-    // The run-wide reason as well when scenarios also failed on their own.
-    const shift = regressed > 0 && verdict.shiftFailed ? `\n\n${verdict.reason}.` : '';
+      : `❌ the median scenario ran ${fmtPct(verdict.shift)} slower`;
+    // Always when the shift failed: it says how to tell a slowdown from a change on the runner.
+    const shift = verdict.shiftFailed
+      ? `\n\n${verdict.reason[0].toUpperCase()}${verdict.reason.slice(1)}.`
+      : '';
 
     return `${title}: ${what}${extras}${shift}${nextStep(verdict, meta)}`;
   }
@@ -664,8 +668,8 @@ function buildRulesLine() {
 
   return `<sub>Gate: a scenario fails above +${GATE_TIMING_THRESHOLD}% and +${GATE_TIMING_FLOOR_MS} ms of `
     + `active time, or +${REGRESSION_CALLOUT_THRESHOLD_HEAP}% of JS heap (${heapOverrides}), and is `
-    + `watched above +${WATCH_TIMING_THRESHOLD}%. Every scenario slower by more than `
-    + `+${GATE_RUN_SHIFT_THRESHOLD}% fails the run. A failing scenario is re-run once and passes only `
+    + `watched above +${WATCH_TIMING_THRESHOLD}%. The run fails when its median scenario is more than `
+    + `+${GATE_RUN_SHIFT_THRESHOLD}% slower. A failing scenario is re-run once and passes only `
     + 'when the re-run measures it under the line.</sub>';
 }
 

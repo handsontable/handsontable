@@ -43,6 +43,15 @@ function entry(scripting, heap = 100_000_000) {
 }
 
 /**
+ * @param {number} pct -- how far this entry's active time sits from the baseline's 112 ms, in percent
+ * @param {number} [heap] -- jsHeapMaxBytes
+ * @returns {object}
+ */
+function at(pct, heap) {
+  return entry(112 * (1 + pct / 100) - 12, heap);
+}
+
+/**
  * @param {Record<string, object>} [overrides] -- per-scenario entries
  * @returns {Record<string, object>} every scenario at 100 ms scripting (112 ms active) unless overridden
  */
@@ -270,7 +279,20 @@ describe('decideGate', () => {
     assert.deepEqual(verdict.failing, []);
     assert.equal(verdict.shiftFailed, true);
     assert.equal(verdict.status, 'fail');
-    assert.match(verdict.reason, /every scenario ran slower/);
+    assert.match(verdict.reason, /^the run shift of \+6\.3% is above the \+5% line\./);
+  });
+
+  test('says the shift is over the line, not that every scenario ran slower: it is a median', () => {
+    // Two of the five got much faster, and the median still sits above the line.
+    const verdict = gate({
+      current: {
+        sorting: at(8), filtering: at(8), 'cell-editing': at(8), 'undo-sort': at(-20), 'scroll-left': at(-20),
+      },
+    });
+
+    assert.equal(verdict.shiftFailed, true);
+    assert.match(verdict.reason, /the run shift of \+8\.0%/);
+    assert.doesNotMatch(verdict.reason, /every scenario/);
   });
 
   test('does not fail a shift the newest develop golden shares', () => {
@@ -311,6 +333,49 @@ describe('decideGate', () => {
     const self = { timestamp: '2026-10-27T00:00:00.000Z', isSelfCompare: true, scenarios: scenarios() };
 
     assert.equal(gate({ baseline: self }).status, 'not-assessed');
+  });
+
+  test('is not assessed when the report withholds every scenario', () => {
+    const baseline = median();
+    const verdict = decideGate({
+      assessment: assessReport(scenarios(), baseline, { crossWindowScenarios: NAMES }),
+      baseline,
+    });
+
+    assert.equal(verdict.status, 'not-assessed');
+    assert.deepEqual(verdict.judged, []);
+    assert.equal(verdict.notAssessed.length, NAMES.length);
+    assert.equal(verdict.reason, 'no scenario could be compared with the develop baseline');
+  });
+
+  test('still fails on a heap it could read when every scenario is incomplete', () => {
+    const incomplete = (heap) => {
+      const broken = entry(100, heap);
+
+      broken.categories.painting = 0;
+
+      return broken;
+    };
+    const verdict = gate({
+      current: Object.fromEntries(NAMES.map(name => [
+        name, incomplete(name === 'sorting' ? 110_000_000 : undefined),
+      ])),
+    });
+
+    assert.deepEqual(verdict.judged, []);
+    assert.equal(verdict.status, 'fail');
+    assert.deepEqual(verdict.failing.map(s => s.name), ['sorting']);
+  });
+
+  test('one judged scenario is enough for a verdict', () => {
+    const baseline = median();
+    const verdict = decideGate({
+      assessment: assessReport(scenarios(), baseline, { crossWindowScenarios: NAMES.slice(1) }),
+      baseline,
+    });
+
+    assert.deepEqual(verdict.judged, [NAMES[0]]);
+    assert.equal(verdict.status, 'pass');
   });
 
   test('lists a scenario the baseline does not have as not assessed', () => {
@@ -508,6 +573,52 @@ describe('confirmVerdict', () => {
     assert.equal(verdict.blocking, true);
     assert.deepEqual(verdict.failing.map(s => s.name), ['sorting']);
     assert.deepEqual(verdict.absorbed, []);
+  });
+
+  test('keeps the first pass\'s shift: re-running rows cannot clear a shift failure', () => {
+    // A median of +12 on the first pass. Re-run at 0, a recomputed median would fall to 0.
+    const rest = { 'undo-sort': at(6), 'scroll-left': at(6) };
+    const first = gate({
+      current: { sorting: at(12), filtering: at(12), 'cell-editing': at(12), ...rest }, extra: { mode: 'block' },
+    });
+    const second = gate({
+      current: { sorting: at(0), filtering: at(0), 'cell-editing': at(0), ...rest }, extra: { mode: 'block' },
+    });
+
+    assert.equal(first.shiftFailed, true);
+    assert.equal(second.shiftFailed, false);
+
+    const verdict = confirmVerdict(first, second);
+
+    assert.deepEqual(verdict.failing, []);
+    assert.equal(verdict.rerun.cleared.length, 3);
+    assert.equal(verdict.shift, first.shift);
+    assert.equal(verdict.shiftFailed, true);
+    assert.equal(verdict.reason, first.reason);
+    assert.equal(verdict.status, 'fail');
+    assert.equal(verdict.blocking, true);
+  });
+
+  test('keeps the first pass\'s shift: re-running rows cannot invent a shift failure', () => {
+    // Two fast rows fail on heap, so the median is +4. Re-run at +6 with a quiet heap, a recomputed
+    // median would rise to +6, over the line, with nothing failing.
+    const rest = { 'cell-editing': at(4), 'undo-sort': at(6), 'scroll-left': at(6) };
+    const first = gate({
+      current: { sorting: at(-20, 110_000_000), filtering: at(-20, 110_000_000), ...rest }, extra: { mode: 'block' },
+    });
+    const second = gate({ current: { sorting: at(6), filtering: at(6), ...rest }, extra: { mode: 'block' } });
+
+    assert.equal(first.shiftFailed, false);
+    assert.equal(second.shiftFailed, true);
+
+    const verdict = confirmVerdict(first, second);
+
+    assert.deepEqual(verdict.failing, []);
+    assert.equal(verdict.shift, first.shift);
+    assert.equal(verdict.shiftFailed, false);
+    assert.equal(verdict.reason, null);
+    assert.equal(verdict.status, 'watch');
+    assert.equal(verdict.blocking, false);
   });
 
   test('a run without a re-run says so', () => {

@@ -470,7 +470,9 @@ export default async function teardown() {
   }
 
   const report = buildReport(scenarioResults, golden, meta, assessment, verdict);
-  const htmlReport = buildHtmlReport(scenarioResults, golden, meta);
+  const htmlReport = buildHtmlReport(
+    scenarioResults, golden, verdict.rerun ? { ...meta, runShift: verdict.shift } : meta
+  );
 
   // Write to output/
   await mkdir(OUTPUT_DIR, { recursive: true });
