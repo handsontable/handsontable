@@ -29,7 +29,7 @@ import {
   throwCellLimit, throwColumnLimit, throwLimitExceeded, throwRowLimit,
 } from '../limits';
 import { noteToComment } from '../threadedComments';
-import { clampCellText, clampColumnWidth, clampRowHeight } from '../writeLimits';
+import { clampCellText, clampColumnWidth, clampRowHeight, MAX_EXCELJS_DEFINED_NAME_CELLS } from '../writeLimits';
 import type { XlsxEngineAdapter } from './types';
 
 /**
@@ -1162,7 +1162,8 @@ function isSingleRangeDefinition(formula: string): boolean {
 
 /**
  * Writes the defined names ExcelJS can hold: the ones the native writer accepts (shared validation),
- * that are workbook-scoped, and whose definition is a single range. Every other name is left out and
+ * that are workbook-scoped, and whose definition is a single range within the
+ * `MAX_EXCELJS_DEFINED_NAME_CELLS` budget. Every other name is left out and
  * `DROPPED_FEATURES.definedNamesUnsupported` is recorded once.
  */
 function writeDefinedNames(workbook: ExcelJsWorkbook, snapshot: WorkbookSnapshot, dropped: DroppedFeatures): void {
@@ -1171,10 +1172,17 @@ function writeDefinedNames(workbook: ExcelJsWorkbook, snapshot: WorkbookSnapshot
     snapshot.sheets.map(sheet => sheet.name),
   );
   let unsupported = skipped;
+  let coveredCells = 0;
 
   entries.forEach(({ name, formula, sheetName }) => {
-    if (sheetName === null && workbook.definedNames?.add && isSingleRangeDefinition(formula)) {
-      workbook.definedNames.add(formula.trim(), name);
+    const range = sheetName === null && workbook.definedNames?.add && isSingleRangeDefinition(formula)
+      ? parseRangeRef(formula.slice(formula.lastIndexOf('!') + 1))
+      : null;
+    const area = range === null ? 0 : (range.endRow - range.startRow + 1) * (range.endCol - range.startCol + 1);
+
+    if (range !== null && coveredCells + area <= MAX_EXCELJS_DEFINED_NAME_CELLS) {
+      coveredCells += area;
+      workbook.definedNames?.add?.(formula.trim(), name);
     } else {
       unsupported = true;
     }

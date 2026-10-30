@@ -419,6 +419,7 @@ describe('excelJsAdapter.write', () => {
         b.cell(1, 4).formula = { text: 'SEQUENCE(3)', result: 1, array: { ref: 'D1:D3', dynamic: true } };
         b.cell(2, 4).value = 2;
         b.cell(3, 4).value = 3;
+        b.cell(1, 9).formula = { text: 'SEQUENCE(2)', result: 1, array: { ref: 'I1:I2', dynamic: true } };
         b.cell(1, 5).formula = { text: 'A1:A2*2', result: 2, array: { ref: 'E1:E2', dynamic: false } };
         b.cell(2, 5).value = 4;
         Object.assign(b.cell(1, 6), { value: '#N/A', valueIsError: true });
@@ -496,7 +497,7 @@ describe('excelJsAdapter.write', () => {
       expect(dropped.list()).toContain('dynamicArrays');
     });
 
-    it('should refuse the names the native writer refuses', async() => {
+    it('should refuse the names the shared validation refuses (native and ExcelJS) and the ExcelJS-only shapes', async() => {
       const snapshot = snapshotWith((b) => {
         b.cell(1, 1).value = 1;
       });
@@ -518,6 +519,46 @@ describe('excelJsAdapter.write', () => {
       await workbook.xlsx.load(bytes);
 
       expect(workbook.definedNames.model.map(({ name }) => name)).toEqual(['Ok']);
+      expect(dropped.list()).toEqual(['definedNames:unsupported']);
+    });
+
+    it('should write a name with a quoted sheet qualifier and read it back with both adapters', async() => {
+      const snapshot = createWorkbookSnapshot();
+      const builder = new SheetBuilder('My Sheet');
+
+      builder.cell(1, 1).value = 1;
+      snapshot.sheets.push(builder.toSnapshot());
+      snapshot.definedNames = [{ name: 'Quoted', formula: '\'My Sheet\'!$A$1:$B$2', sheetName: null }];
+
+      const bytes = await excelJsAdapter.write(snapshot, ExcelJS, new DroppedFeatures());
+
+      for (const adapter of [excelJsAdapter, nativeAdapter]) {
+        const read = await adapter.read(toArrayBuffer(bytes), adapter === excelJsAdapter ? ExcelJS : undefined,
+          new DroppedFeatures());
+
+        expect(read.definedNames).toEqual([{ name: 'Quoted', formula: '\'My Sheet\'!$A$1:$B$2', sheetName: null }]);
+      }
+    });
+
+    it('should leave out a whole-sheet name quickly, record it, and still write a normal range', async() => {
+      const snapshot = snapshotWith((b) => {
+        b.cell(1, 1).value = 1;
+      });
+
+      snapshot.definedNames = [
+        { name: 'Everything', formula: 'Sheet1!$A$1:$XFD$1048576', sheetName: null },
+        { name: 'Small', formula: 'Sheet1!$A$1:$B$2', sheetName: null },
+      ];
+
+      const dropped = new DroppedFeatures();
+      const started = Date.now();
+      const bytes = await excelJsAdapter.write(snapshot, ExcelJS, dropped);
+      const workbook = new ExcelJS.Workbook();
+
+      await workbook.xlsx.load(bytes);
+
+      expect(Date.now() - started).toBeLessThan(5000);
+      expect(workbook.definedNames.model.map(({ name }) => name)).toEqual(['Small']);
       expect(dropped.list()).toEqual(['definedNames:unsupported']);
     });
   });
