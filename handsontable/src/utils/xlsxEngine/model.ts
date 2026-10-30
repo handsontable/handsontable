@@ -25,16 +25,33 @@ export function isOoxmlErrorCode(value: unknown): value is string {
  * round-trip unchanged.
  *
  * `resultIsError` says the cached result is an ERROR value, not text: `result` then holds the
- * OOXML error code (`#DIV/0!`) and both writers type the cell `t="e"`. It is set by the export from
- * the Formulas engine's own cell value, never from the text, because a formula may answer the text
- * `#N/A` (`="#N/A"`), which is a string. A flagged result that is not one of the
- * {@link OOXML_ERROR_CODES} is written as text. The readers do not set it: they hand an error result
- * back as its code text, as before.
+ * OOXML error code (`#DIV/0!`) and both writers type the cell `t="e"`. The export sets it from the
+ * Formulas engine's own cell value, never from the text, because a formula may answer the text
+ * `#N/A` (`="#N/A"`), which is a string. The readers set it from a `t="e"` cell, so they no longer
+ * hand the code back unflagged. A flagged result that is not one of the {@link OOXML_ERROR_CODES}
+ * is written as text.
+ *
+ * `array` says the formula is the master of an array formula (`<f t="array" ref="…">`).
+ */
+export interface CellFormulaArray {
+  /**
+   * The A1 range the array covers, in the file's own 1-based sheet coordinates (`D1:D3`).
+   */
+  ref: string;
+  /**
+   * `true` for an Excel 365 dynamic array (`cm="1"`), `false` for a legacy CSE array.
+   */
+  dynamic: boolean;
+}
+
+/**
+ * The formula of a cell, see {@link CellFormulaArray} for the array part.
  */
 export interface CellFormula {
   text: string;
   result?: CellValue;
   resultIsError?: boolean;
+  array?: CellFormulaArray;
 }
 
 /**
@@ -67,6 +84,11 @@ export interface CellSnapshot {
   validation: CellValidationSnapshot | null;
   locked: boolean | null;
   comment: string | null;
+  /**
+   * `true` when `value` holds an error code (`#N/A`), not text. Optional and absent by default:
+   * readers set it from `t="e"`, and `exportFile` sets it from the engine's value.
+   */
+  valueIsError?: boolean;
 }
 
 /**
