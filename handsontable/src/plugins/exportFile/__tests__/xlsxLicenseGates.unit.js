@@ -52,7 +52,7 @@ jest.mock('../dataProvider', () => ({
     }
 
     getColumnHeadersClassNames() {
-      return ['', '', ''];
+      return ['htCenter', '', ''];
     }
 
     getRowHeaders() {
@@ -224,8 +224,11 @@ describe('Xlsx export license gates', () => {
 
     expect(dataCells(full).some(cell => cell.style !== null)).toBe(true);
     expect(headerCells(full).every(cell => cell.style?.fill !== null)).toBe(true);
+    expect(full.rows[0][0].style.alignment).toBeTruthy();
+    expect(full.rows[0][0].style.alignment.horizontal).toBe('center');
 
     expect(dataCells(gated).every(cell => cell.style === null)).toBe(true);
+    // `htCenter` on the first header: no alignment either, so no style at all.
     expect(headerCells(gated).every(cell => cell.style === null)).toBe(true);
     expect(headerCells(gated).map(cell => cell.value)).toEqual(['Name', 'Amount', 'Status']);
   });

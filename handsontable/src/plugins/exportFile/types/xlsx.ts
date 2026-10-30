@@ -1031,17 +1031,21 @@ class Xlsx extends BaseType {
   }
 
   /**
-   * Applies the header fill, border and optional alignment to a header cell.
+   * Applies the header fill, border and optional alignment to a header cell. Every header cell
+   * (column, nested, row header, corner) goes through here, so the alignment is gated on
+   * `xlsx:styles` in this one place; the fill and border already arrive `null` without the token.
    */
   #applyHeaderStyle(
     cell: CellSnapshot, alignment: CellStyleSnapshot['alignment'],
     fill: HeaderFill | null, border: HeaderBorder | null
   ): void {
-    if (!alignment && !fill && !border) {
+    const headerAlignment = this.#entitlement.styles ? alignment : null;
+
+    if (!headerAlignment && !fill && !border) {
       return;
     }
 
-    cell.style = { alignment: alignment ?? null, font: null, fill, border };
+    cell.style = { alignment: headerAlignment ?? null, font: null, fill, border };
   }
 
   /**
