@@ -46,6 +46,8 @@ export interface GridSnapshot {
   filtered: string;
   listSelection: string | null;
   rowSelection: string | null;
+  filterList: string | null;
+  filterChecked: string | null;
   active: { region: string; key: string };
 }
 
@@ -87,7 +89,10 @@ export async function installSentinels(page: Page, root: string): Promise<void> 
 
       if (anchor) {
         event.preventDefault();
-        win.__a11yLinks += 1;
+        // An anchor to `#` opens nothing: the column filter's Select all and Select none are buttons drawn as one.
+        if (anchor.getAttribute('href') !== '#') {
+          win.__a11yLinks += 1;
+        }
       }
     }, true);
   }, root);
@@ -252,7 +257,8 @@ export function contextChange(before: FocusStop, after: FocusStop): string | nul
  * document, comes back to a stop it visited, or runs out of presses. When the presses run out inside
  * the grid, it tries the way out the shortcut guide documents for a grid whose Tab wraps rows: Ctrl+End
  * then Tab (Ctrl+Home then Shift+Tab backward), for up to 150 more presses, and says whether that
- * left the grid.
+ * left the grid: to the other sentinel (`left: true`), or to no element focused (`left: 'body'`, with the
+ * stop the last press left, so `walkFindings()` judges it the way it judges a walk).
  *
  * @param page The page.
  * @param cdp The accessibility session.
@@ -287,34 +293,51 @@ export async function tabWalk(page: Page, cdp: CDPSession, root: string, directi
 
   const route = direction === 'forward' ? 'ControlOrMeta+End' : 'ControlOrMeta+Home';
   let routePresses = 0;
-  let left = false;
+  let left: boolean | 'body' = false;
+  let lostFrom: { region: string; locator: string } | undefined;
 
   if (isProductStop(stops.at(-1)!)) {
     await page.keyboard.press(route);
+
+    // Only the region and the locator matter here, so the accessibility tree is not read: up to 150 presses a walk.
+    let previous = await readStop(page, cdp, root, { ax: false });
+
+    // The route key itself can leave no element focused: the same focus loss, before any Tab.
+    if (previous.region === 'body') {
+      left = 'body';
+      lostFrom = { region: stops.at(-1)!.region, locator: stops.at(-1)!.locator };
+    }
+
     // A grid with navigable headers on several levels walks back through every header row first.
     while (routePresses < 150 && !left) {
       await page.keyboard.press(key);
       routePresses += 1;
 
-      // Only the region matters here, so the accessibility tree is not read: up to 150 presses a walk.
       const next = await readStop(page, cdp, root, { ax: false });
 
-      left = next.region === goal || next.region === 'body';
+      if (next.region === goal) {
+        left = true;
+      } else if (next.region === 'body') {
+        // No element focused: `walkFindings()` tells a focus lost inside the grid from a page left from the portal.
+        left = 'body';
+        lostFrom = { region: previous.region, locator: previous.locator };
+      }
+      previous = next;
     }
   }
 
   return {
     stops,
     budgetExhausted: true,
-    exitRoute: { keys: `${direction === 'forward' ? 'Ctrl+End' : 'Ctrl+Home'}, then ${key}`, left, presses: routePresses },
+    exitRoute: { keys: `${direction === 'forward' ? 'Ctrl+End' : 'Ctrl+Home'}, then ${key}`, left, presses: routePresses, ...(lostFrom ? { from: lostFrom } : {}) },
   };
 }
 
 /**
  * A snapshot of what a key can change: the selection, the editor and its text and caret, the menus
  * and their highlighted item, the comment editor and the highlighted cell's comment, the data, the scroll, the sort, the merges, the
- * frozen counts, the clipboard and link counters, the collapsed groups, the filters, and where the
- * focus is. One evaluation, after two animation frames.
+ * frozen counts, the clipboard and link counters, the collapsed groups, the filters, the open column menu's Filter by value
+ * list (its highlighted item and its checked values), and where the focus is. One evaluation, after two animation frames.
  *
  * @param page The page.
  * @param root The root container selector.
@@ -437,6 +460,11 @@ export async function snapshot(page: Page, root: string): Promise<GridSnapshot> 
     const win = window as unknown as { __a11yClipboard?: number; __a11yLinks?: number };
     const settings = hot?.getSettings() ?? {};
     const rowSelection = plugin('rowSelection');
+    // The Filter by value list of the open column menu: a grid of its own inside the menu, read through the plugin.
+    // Opening the menu restores it from the filter's conditions, so every probe starts from the same list.
+    const valueList = menus.some(node => node.classList.contains('htDropdownMenu'))
+      ? filters?.components?.get?.('filter_by_value')?.getMultipleSelectElement?.() ?? null
+      : null;
 
     return {
       highlight: range ? [range.highlight.row, range.highlight.col] as [number, number] : null,
@@ -471,6 +499,8 @@ export async function snapshot(page: Page, root: string): Promise<GridSnapshot> 
       filtered: JSON.stringify(filters?.exportConditions?.() ?? null),
       listSelection: editorOpen && editor.htEditor ? JSON.stringify(editor.htEditor.getSelected() ?? null) : null,
       rowSelection: rowSelection ? JSON.stringify(rowSelection.getSelectedRows?.() ?? rowSelection.getSelected?.() ?? null) : null,
+      filterList: valueList ? JSON.stringify(valueList.getItemsBox?.()?.getSelected?.() ?? null) : null,
+      filterChecked: valueList ? JSON.stringify(valueList.getValue?.() ?? null) : null,
       active: { region, key },
     };
   }, [root, PORTAL_MARK] as const);

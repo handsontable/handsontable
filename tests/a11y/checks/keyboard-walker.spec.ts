@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { test, expect, type CDPSession, type Page, type TestInfo } from '@playwright/test';
 import { A11Y_PAGES, fixtureUrl, type A11yPage } from '../pages.mjs';
-import { PORTAL_MARK, STATES, emulate, openTarget, reachState, type OpenedTarget } from '../harness';
+import { PORTAL_MARK, STATES, emulate, expectEditorOpen, openTarget, reachState, type OpenedTarget } from '../harness';
 import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } from '../evidence';
 import {
   diffTabOrder,
@@ -15,6 +15,7 @@ import {
   probeVerdict,
   shortcutKey,
   singleCharacterShortcuts,
+  stopKey,
   walkFindings,
   walkVerdict,
 } from '../../lib/keyboard-walker.mjs';
@@ -274,7 +275,9 @@ async function modalExitOf(page: Page, root: string, held: FocusStop[]): Promise
 /**
  * Presses Tab from where the focus is inside an open popup, recording each stop, and what the press
  * changed beyond the focus (`contextChange()`, judged as 3.2.1 like a Tab walk's), until the focus leaves
- * the product, comes back to a stop, or twelve presses have passed.
+ * the product, comes back to a stop, or twelve presses have passed. A stop is keyed by its cell, as in a Tab
+ * walk (`stopKey()`): on an editor Tab commits and moves from cell to cell, and Walkontable reuses a `<td>`
+ * for another cell after a scroll.
  *
  * @param page The page.
  * @param cdp The accessibility session.
@@ -283,22 +286,22 @@ async function modalExitOf(page: Page, root: string, held: FocusStop[]): Promise
  */
 async function popupWalk(page: Page, cdp: CDPSession, root: string): Promise<FocusStop[]> {
   const stops = [await readStop(page, cdp, root)];
-  const seen = new Set([stops[0].ref]);
+  const seen = new Set([stopKey(stops[0])]);
 
   for (let press = 1; press <= 12; press++) {
     await page.keyboard.press('Tab');
 
     const next = await readStop(page, cdp, root);
     const previous = stops.at(-1)!;
-    // A Tab that keeps the focus on the same element (the formula editor accepting a suggestion) moved no
+    // A Tab that keeps the focus on the same stop (the formula editor accepting a suggestion) moved no
     // focus, so what it changed is input, not a change of context on focus.
-    const change = next.ref === previous.ref ? null : contextChange(previous, next);
+    const change = stopKey(next) === stopKey(previous) ? null : contextChange(previous, next);
 
     stops.push(change ? { ...next, contextChange: change } : next);
-    if (!isProductStop(next) || seen.has(next.ref)) {
+    if (!isProductStop(next) || seen.has(stopKey(next))) {
       break;
     }
-    seen.add(next.ref);
+    seen.add(stopKey(next));
   }
 
   return stops;
@@ -553,7 +556,8 @@ async function walkPage(page: Page, testInfo: TestInfo, entry: A11yPage): Promis
       modalExit = await modalExitOf(page, root, [...forward.stops, ...backward.stops].filter(item => item.modal));
     }
     // One set for both walks: a stop's role and name do not depend on the walk that reached it, so a stop both
-    // walks pass is one finding.
+    // walks pass gets one role or name finding. The findings that depend on the key pressed are keyed by
+    // direction in `walkFindings()`.
     const reported = new Set<string>();
 
     findings.push(...walkFindings({ walk: forwardVerdict, stops: forward.stops, direction: 'forward', modalExit, reported }));
@@ -603,7 +607,9 @@ async function setUp(page: Page, root: string, probe: ProbeDefinition): Promise<
   switch (probe.setup) {
     case 'editor':
       await page.keyboard.press('Enter');
-      await expect.poll(() => snapshot(page, root).then(state => state.editorOpen), { timeout: 3000 }).toBe(true);
+      // The catalog's own wait: a list editor counts as open once it has drawn its choices, or an arrow key
+      // pressed next would meet an empty list.
+      await expectEditorOpen(page, root);
       break;
     case 'context-menu':
       await page.keyboard.press('Shift+F10');
@@ -683,15 +689,15 @@ async function probePage(page: Page, testInfo: TestInfo, entry: A11yPage, probes
 
   declareTarget(testInfo, target);
 
-  // The errors the page throws, in the list of the current load (`openTarget()` points the page's listener at
-  // a new list on every load). The page loads again between probes, so an error a probe's key threw is a
-  // problem of that probe, not the end of the others: the target, measured with a problem, then evaluates no
-  // criterion. An error that comes after the last drain still fails the test (`attachEvidence()`).
-  let pageErrors: string[] = [];
+  // The errors the page throws, in one list for every load: `openTarget()` points the page at it before it
+  // navigates, so this test holds the live list even when a reload throws. The page loads again between probes,
+  // so an error a probe's key or its reload threw is a problem of that probe (each probe drains the list), not
+  // the end of the others: the target, measured with a problem, then evaluates no criterion. An error that comes
+  // after the last drain still fails the test (`attachEvidence()`).
+  const pageErrors: string[] = [];
   const load = async() => {
-    const opened = await openTarget(page, { ...entry, state: 'none' }, THEME);
+    const opened = await openTarget(page, { ...entry, state: 'none' }, THEME, { pageErrors });
 
-    pageErrors = opened.pageErrors;
     await reachState(page, { ...entry, state: 'none' }, opened);
     await installSentinels(page, opened.root);
     // A popup library's own portal (hyperformula-ui's on the formula builder page) is marked too, so a key

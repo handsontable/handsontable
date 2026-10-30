@@ -197,6 +197,56 @@ test('a stop both walks of a page pass is reported once', () => {
   assert.deepEqual(findings.map(item => [item.kind, item.selector, item.step]), [['focus-stop-without-role', 'div.ht-empty-data-state', 'Tab 2']]);
 });
 
+test('a focus loss, a Tab out of a modal and a context change are judged per walk; a missing name once per stop', () => {
+  // These three depend on the key pressed: Tab and Shift+Tab losing the focus from one cell are two defects, and
+  // fixing one leaves the other. A stop's role and name do not depend on the key that reached it.
+  const lost = cell(0, 0, { locator: 'td' });
+  const opener = stop('grid', { role: 'button', name: '', ref: 5, locator: 'button.menu', contextChange: 'a menu, a dialog or a list opened' });
+  const dialog = stop('grid', { role: 'button', name: 'OK', ref: 6, locator: 'button.ok', modal: true });
+  const walks = {
+    forward: [[stop('start'), lost, stop('body')], [stop('start'), opener, stop('end')], [stop('start'), dialog, stop('end')]],
+    backward: [[stop('end'), lost, stop('body')], [stop('end'), opener, stop('start')], [stop('end'), dialog, stop('start')]],
+  };
+  const reported = new Set();
+  const findings = Object.entries(walks).flatMap(([direction, list]) => list
+    .flatMap(stops => walkFindings({ walk: walkVerdict({ direction, stops }), stops, direction, reported })));
+
+  assert.deepEqual(findings.map(item => [item.kind, item.selector, item.step]), [
+    ['focus-lost', 'td', 'Tab 2'],
+    ['focus-stop-unnamed', 'button.menu', 'Tab 1'],
+    ['context-change-on-focus', 'button.menu', 'Tab 1'],
+    ['focus-leaves-modal', 'button.ok', 'Tab 2'],
+    ['focus-lost', 'td', 'Shift+Tab 2'],
+    ['context-change-on-focus', 'button.menu', 'Shift+Tab 1'],
+    ['focus-leaves-modal', 'button.ok', 'Shift+Tab 2'],
+  ]);
+});
+
+test('a way out that leaves no element focused from inside the grid lost the focus; from the portal it left the page', () => {
+  // Ctrl+End then Tab from a grid whose Tab wraps rows: the focus left the grid, so the walk is no trap, but a press
+  // from inside the grid's container that leaves no element focused is the same 2.4.3 defect the walk itself reports.
+  const stops = [stop('start'), cell(0, 0), cell(0, 1), cell(1, 0)];
+  const exitRoute = { keys: 'Ctrl+End, then Tab', left: 'body', presses: 2, from: { region: 'grid', locator: 'td' } };
+  const walk = walkVerdict({ direction: 'forward', stops, budgetExhausted: true, exitRoute });
+
+  assert.equal(walk.trapped, false, 'the focus left the grid, though to no element');
+  assert.deepEqual(walkFindings({ walk, stops, direction: 'forward' }).map(item => [item.kind, item.criteria, item.severity, item.selector, item.step]), [
+    ['focus-lost', ['2.4.3'], 'serious', 'td', 'Tab 3, then Ctrl+End, then Tab 2'],
+    ['tab-walk-needs-shortcut', ['2.1.2'], 'advisory', undefined, 'Tab 3, then Ctrl+End, then Tab'],
+  ]);
+
+  const page = walkVerdict({ direction: 'forward', stops, budgetExhausted: true, exitRoute: { ...exitRoute, from: { region: 'portal', locator: 'button.ok' } } });
+
+  assert.deepEqual(walkFindings({ walk: page, stops, direction: 'forward' }).map(item => item.kind), ['tab-walk-needs-shortcut'],
+    'the portal can be the last focusable element of the page, so Tab from it may leave the page');
+
+  const routeKey = walkVerdict({ direction: 'forward', stops, budgetExhausted: true, exitRoute: { ...exitRoute, presses: 0 } });
+
+  assert.deepEqual(walkFindings({ walk: routeKey, stops, direction: 'forward' }).filter(item => item.kind === 'focus-lost')
+    .map(item => [item.step, item.reason.startsWith('Ctrl+End from inside the grid')]), [['Tab 3, then Ctrl+End', true]],
+  'the route key itself can leave no element focused, before any Tab: the step and the reason name that key');
+});
+
 test('a backward walk names its steps Shift+Tab; a popup walk counts from where the popup put the focus', () => {
   const stops = [stop('end'), stop('grid', { name: '', ref: 1, locator: 'button.x' }), stop('start')];
   const findings = walkFindings({ walk: walkVerdict({ direction: 'backward', stops }), stops, direction: 'backward' });
@@ -403,7 +453,7 @@ test('every probe is well formed: a setup, the keys pressed, an expected effect;
 const EFFECTS = new Set(['selection-moves', 'selection-changes', 'editor-opens', 'editor-closes', 'value-changes', 'menu-opens',
   'menu-closes', 'menu-moves', 'comment-opens', 'comment-closes', 'scrolls', 'sorts', 'merges', 'freezes', 'clipboard',
   'caret-moves', 'text-changes', 'focus-moves', 'focus-leaves', 'link-opens', 'collapses', 'filters', 'list-moves', 'row-selection-changes',
-  'comment-changes', 'any']);
+  'comment-changes', 'filter-list-moves', 'filter-checked-changes', 'any']);
 
 /**
  * The snapshot the walker takes around a key press.
@@ -415,7 +465,8 @@ function snapshot(fields = {}) {
   return {
     highlight: [1, 1], ranges: [[1, 1, 1, 1]], editorOpen: false, editorText: null, caret: null, menus: 0, menuItem: null,
     comment: false, dataHash: 'h1', scroll: [0, 0], sorting: '[]', merged: 0, frozen: '0,0', clipboard: 0, links: 0,
-    collapsed: '', filtered: '', listSelection: null, rowSelection: null, focusedText: null, commentText: null, active: { region: 'grid', key: 'cell|1,1' }, ...fields,
+    collapsed: '', filtered: '', listSelection: null, rowSelection: null, focusedText: null, commentText: null, filterList: null, filterChecked: null,
+    active: { region: 'grid', key: 'cell|1,1' }, ...fields,
   };
 }
 
@@ -437,6 +488,18 @@ test('the effects between two snapshots name what a key changed', () => {
     'the comment saved on the cell the editor was open on');
   assert.deepEqual(effectsBetween(snapshot({ commentText: 'Note' }), snapshot({ highlight: [2, 1], commentText: null })), ['selection-moves'],
     'another cell\'s comment is not a change');
+});
+
+test('the column filter\'s value list has effects of its own: its highlight moves, its checked values change', () => {
+  // The Filter by value list is a grid of its own inside the open column menu; both fields read null while the menu is closed.
+  const menu = { menus: 1, filterList: '[[1,0,1,0]]', filterChecked: '["F1","F2","F3"]' };
+
+  assert.deepEqual(effectsBetween(snapshot(menu), snapshot({ ...menu, filterList: '[[2,0,2,0]]' })), ['filter-list-moves']);
+  assert.deepEqual(effectsBetween(snapshot(menu), snapshot({ ...menu, filterChecked: '[]' })), ['filter-checked-changes'], 'Select none');
+  assert.deepEqual(effectsBetween(snapshot(), snapshot(menu)), ['menu-opens'], 'a menu that opens moved no highlight and changed no value');
+  assert.deepEqual(effectsBetween(snapshot(menu), snapshot()), ['menu-closes'], 'nor did one that closes');
+  assert.deepEqual(probeVerdict({ expect: 'filter-list-moves', forbid: ['filter-checked-changes'], before: snapshot(menu),
+    after: snapshot({ ...menu, filterList: '[[2,0,2,0]]', filterChecked: '["F1"]' }) }).status, 'unexpected', 'an arrow key must not tick an item');
 });
 
 test('a probe is ok, did nothing, did something else, or moved the focus out of the grid', () => {
