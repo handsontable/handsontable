@@ -604,6 +604,49 @@ function unresolvedDefinedNames(workbook: WorkbookSnapshot, context: MapperConte
 }
 
 /**
+ * Records the cells a live array master spills over, so `pushCellValue` imports them empty.
+ *
+ * `row`/`col` are the master's window coordinates. Excel writes the master as the top-left corner of
+ * its `ref`, and the window is walked row by row, left to right, so every cell the array covers is
+ * visited AFTER its master: recording the range here, when the master is visited, is early enough. A
+ * `ref` that does not start at the master is not trusted to empty anything. The range is clipped to
+ * the window, and each covered row is charged against the formula budget before it is recorded, so
+ * a hostile `ref="A1:XFD1048576"` is refused rather than recording a million rows.
+ */
+function recordLiveArray(ref: string, row: number, col: number, scope: CollectContext): void {
+  const range = parseRangeRef(ref);
+  const { window } = scope;
+
+  if (range === null || range.startRow - 1 - window.firstRow !== row || range.startCol - 1 - window.firstCol !== col) {
+    return;
+  }
+
+  const lastRow = Math.min(range.endRow - 1, window.lastRow) - window.firstRow;
+  const lastCol = Math.min(range.endCol - 1, window.lastCol) - window.firstCol;
+
+  chargeFormulaWalk(lastRow - row + 1, scope);
+
+  for (let covered = row; covered <= lastRow; covered++) {
+    const ranges = scope.liveArrayRows.get(covered);
+
+    if (ranges) {
+      ranges.push([col, lastCol]);
+    } else {
+      scope.liveArrayRows.set(covered, [[col, lastCol]]);
+    }
+  }
+}
+
+/**
+ * Whether a live array master recorded by `recordLiveArray` spills over this window cell.
+ */
+function isCoveredByLiveArray(row: number, col: number, scope: CollectContext): boolean {
+  const ranges = scope.liveArrayRows.get(row);
+
+  return ranges !== undefined && ranges.some(([start, end]) => col >= start && col <= end);
+}
+
+/**
  * Pushes one cell's value onto the data row, writing a live formula string when the formulas
  * plugin is enabled and recording the cached formula otherwise.
  *
@@ -632,7 +675,21 @@ function pushCellValue(
   const live = rebased !== null && !otherSheet && !unknownName ? rebased.formula : null;
 
   if (live !== null) {
-    pass.data[pass.data.length - 1].push(`=${live}`);
+    const array = cell.formula?.array;
+
+    // A legacy CSE array (`{=A1:A2*2}`) is an ordinary formula to HyperFormula unless it is
+    // wrapped; a dynamic array spills on its own.
+    pass.data[pass.data.length - 1].push(array && !array.dynamic ? `=ARRAYFORMULA(${live})` : `=${live}`);
+
+    if (array) {
+      recordLiveArray(array.ref, row, col, scope);
+    }
+
+    return;
+  }
+
+  if (cell.formula === null && isCoveredByLiveArray(row, col, scope)) {
+    pass.data[pass.data.length - 1].push(null);
 
     return;
   }
@@ -840,6 +897,17 @@ interface CollectContext {
    * Every sheet name of the workbook, lower-cased.
    */
   workbookSheetNames: ReadonlySet<string>;
+  /**
+   * The window, in sheet coordinates, that a live array's `ref` is converted into and clipped to.
+   */
+  window: SheetWindow;
+  /**
+   * The cells a LIVE array formula spills over, per window row as `[startCol, endCol]` column
+   * ranges (inclusive, window coordinates). HyperFormula fills them itself, so they import empty: a
+   * cached value left in one makes the spill collide with it (`#SPILL!`). A row's entry is dropped
+   * once the walk has passed it.
+   */
+  liveArrayRows: Map<number, Array<[number, number]>>;
 }
 
 /**
@@ -995,6 +1063,8 @@ function collectCells(
     walkedFormulaChars: workbook.translatedFormulaChars ?? 0,
     ownSheetName: context.formulaSheetName?.toLowerCase() ?? null,
     workbookSheetNames: new Set(workbook.sheets.map(candidate => candidate.name.toLowerCase())),
+    window,
+    liveArrayRows: new Map(),
   };
 
   for (let row = window.firstRow; row <= window.lastRow; row++) {
@@ -1015,6 +1085,9 @@ function collectCells(
         collectCell(pass, cell, row - window.firstRow, col - window.firstCol, scope);
       }
     }
+
+    // No later cell is on this row, so its spilled ranges are done with.
+    scope.liveArrayRows.delete(row - window.firstRow);
   }
 
   return pass;

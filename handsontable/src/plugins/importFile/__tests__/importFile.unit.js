@@ -3,6 +3,7 @@
  */
 import { Blob } from 'node:buffer';
 import ExcelJS from 'exceljs';
+import { HyperFormula } from 'hyperformula';
 import { ImportFile, PLUGIN_KEY, PLUGIN_PRIORITY } from '../importFile';
 import { installImportedStyles } from '../applier';
 import { mapWorkbook, resolveImportOptions, selectSheet } from '../mapper';
@@ -10,7 +11,11 @@ import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
 import { excelJsAdapter } from '../../../utils/xlsxEngine/adapters/exceljs';
 import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
 import { SheetBuilder } from '../../../utils/xlsxEngine/builder';
-import { createWorkbookSnapshot } from '../../../utils/xlsxEngine/model';
+import {
+  createCellSnapshot,
+  createSheetSnapshot,
+  createWorkbookSnapshot,
+} from '../../../utils/xlsxEngine/model';
 import { loadFixture as fixture, toArrayBuffer } from '../../../utils/xlsxEngine/__tests__/helpers/fixtures';
 import * as consoleHelpers from '../../../helpers/console';
 import { registerCellType } from '../../../cellTypes/registry';
@@ -1288,6 +1293,59 @@ describe('ImportFile and the Formulas engine\'s named expressions', () => {
     expect(result.data[1][3]).toBe('=SUM(Sales)');
     expect(result.data[2][3]).toBe(7);
     expect(result.dropped).toContain('formula:definedName');
+  });
+});
+
+describe('ImportFile and array formulas evaluated by HyperFormula', () => {
+  it('should let a dynamic array spill without #SPILL!, whichever engine read the file', async() => {
+    // The spilled cells used to import their cached values, so HyperFormula's spill of D1 collided
+    // with those constants and D1 showed `#SPILL!`. The built-in reader keeps D1 dynamic; ExcelJS
+    // reads every array as CSE, so D1 arrives as `=ARRAYFORMULA(SEQUENCE(3))`, which spills too.
+    const snapshot = createWorkbookSnapshot();
+    const sheet = createSheetSnapshot('Sheet1');
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+
+    sheet.rows = [
+      [at({ value: 1 }), null, null,
+        at({ formula: { text: 'SEQUENCE(3)', result: 1, array: { ref: 'D1:D3', dynamic: true } } }),
+        at({ formula: { text: 'A1:A2*2', result: 2, array: { ref: 'E1:E2', dynamic: false } } })],
+      [at({ value: 2 }), null, null, at({ value: 2 }), at({ value: 4 })],
+      [at({ value: 3 }), null, null, at({ value: 3 }), null],
+    ];
+    snapshot.sheets.push(sheet);
+
+    const bytes = toArrayBuffer(await nativeAdapter.write(snapshot, undefined, new DroppedFeatures()));
+
+    for (const [kind, engine, d1] of [
+      ['native', undefined, '=SEQUENCE(3)'],
+      ['exceljs', ExcelJS, '=ARRAYFORMULA(SEQUENCE(3))'],
+    ]) {
+      const { plugin, hot } = pluginWithFakeHot(true);
+
+      hot.getPlugin = name => ({
+        formulas: {
+          isEnabled: () => true,
+          sheetName: 'Sheet1',
+          engine: { getSheetNames: () => ['Sheet1'], listNamedExpressions: () => [] },
+        },
+      })[name];
+
+      // eslint-disable-next-line no-await-in-loop -- one engine at a time.
+      const result = await plugin.importFromArrayBuffer('xlsx', bytes, { apply: false, engine });
+
+      expect([kind, result.data[0][3]]).toEqual([kind, d1]);
+      expect([kind, result.data[0][4]]).toEqual([kind, '=ARRAYFORMULA(A1:A2*2)']);
+
+      const hf = HyperFormula.buildFromArray(result.data, { licenseKey: 'gpl-v3' });
+      const values = hf.getSheetValues(0);
+
+      expect([kind, hf.getCellValue({ sheet: 0, row: 1, col: 3 })]).toEqual([kind, 2]);
+      expect([kind, values.map(row => row[3])]).toEqual([kind, [1, 2, 3]]);
+      expect([kind, values.map(row => row[4] ?? null)]).toEqual([kind, [2, 4, null]]);
+      expect([kind, values.flat().filter(value => value?.type === 'SPILL')]).toEqual([kind, []]);
+
+      hf.destroy();
+    }
   });
 });
 

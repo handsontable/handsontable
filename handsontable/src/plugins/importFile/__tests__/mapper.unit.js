@@ -1825,3 +1825,172 @@ describe('mapWorkbook on the slots one list validation covers', () => {
   });
 });
 
+describe('mapWorkbook – array formulas', () => {
+  const FORMULAS_ON = { formulasEnabled: true, commentsEnabled: false, customBordersEnabled: false };
+
+  /**
+   * A1:A3 hold 1, 2, 3. D1 is a dynamic array master `SEQUENCE(3)` spilling over D1:D3, E1 a legacy
+   * CSE master `A1:A2*2` over E1:E2. The covered cells carry their cached values with no formula,
+   * the way both readers hand them over.
+   *
+   * @param {string} [masterText] The formula text of the D1 master.
+   * @returns {object} The sheet snapshot.
+   */
+  function arraySheet(masterText = 'SEQUENCE(3)') {
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = [
+      [cell({ value: 1 }), null, null,
+        cell({ formula: { text: masterText, result: 1, array: { ref: 'D1:D3', dynamic: true } } }),
+        cell({ formula: { text: 'A1:A2*2', result: 2, array: { ref: 'E1:E2', dynamic: false } } })],
+      [cell({ value: 2 }), null, null, cell({ value: 2 }), cell({ value: 4 })],
+      [cell({ value: 3 }), null, null, cell({ value: 3 }), null],
+    ];
+
+    return sheet;
+  }
+
+  it('should import a dynamic master bare, a CSE master wrapped in ARRAYFORMULA, and their spilled cells empty', () => {
+    // The spilled cells used to import their cached values, so HyperFormula's spill collided with
+    // those constants and D1 showed `#SPILL!`.
+    const { result } = map(workbook(arraySheet()), {}, FORMULAS_ON);
+
+    expect(result.data[0][3]).toBe('=SEQUENCE(3)');
+    expect(result.data[1][3]).toBe(null);
+    expect(result.data[2][3]).toBe(null);
+    expect(result.data[0][4]).toBe('=ARRAYFORMULA(A1:A2*2)');
+    expect(result.data[1][4]).toBe(null);
+    expect(result.data.map(row => row[0])).toEqual([1, 2, 3]);
+    expect(result.formulas).toBeUndefined();
+  });
+
+  it('should keep the column typed from the cached values a spilled cell no longer carries', () => {
+    const { result } = map(workbook(arraySheet()), {}, FORMULAS_ON);
+
+    expect(result.columns[3].type).toBe('numeric');
+    expect(result.columns[4].type).toBe('numeric');
+    expect(result.cellsMeta).toBeUndefined();
+  });
+
+  it('should import the cached values of the master and its spilled cells with the Formulas plugin off', () => {
+    const { result } = map(workbook(arraySheet()));
+
+    expect(result.data.map(row => row[3])).toEqual([1, 2, 3]);
+    expect(result.data.map(row => row[4])).toEqual([2, 4, null]);
+    expect(result.formulas).toEqual([
+      { row: 0, col: 3, formula: 'SEQUENCE(3)' },
+      { row: 0, col: 4, formula: 'A1:A2*2' },
+    ]);
+  });
+
+  it('should keep the spilled cells\' cached values when the master imports its cached value', () => {
+    // `Rates!A1` names a sheet the engine does not hold, so the master imports its cached 1, and
+    // nothing spills over D2:D3.
+    const { result, dropped } = map(workbook(arraySheet('SEQUENCE(Rates!A1)')), {}, FORMULAS_ON);
+
+    expect(result.data.map(row => row[3])).toEqual([1, 2, 3]);
+    expect(result.formulas).toEqual([{ row: 0, col: 3, formula: 'SEQUENCE(Rates!A1)' }]);
+    expect(dropped.list()).toContain('formula:otherSheet');
+    expect(result.data[1][4]).toBe(null);
+  });
+
+  it('should keep the spilled cells\' cached values when the window starts below the master', () => {
+    const { result } = map(workbook(arraySheet()), { range: [1, 0, 2, 5] }, FORMULAS_ON);
+
+    expect(result.data.map(row => row[3])).toEqual([2, 3]);
+    expect(result.data.map(row => row[4])).toEqual([4, null]);
+  });
+
+  it('should clip the spilled range to the window', () => {
+    // The window ends at row 2 and column D, so E1's array and D3 fall outside it; D2 stays empty.
+    const { result } = map(workbook(arraySheet()), { range: [0, 0, 1, 3] }, FORMULAS_ON);
+
+    expect(result.data).toEqual([[1, null, null, '=SEQUENCE(3)'], [2, null, null, null]]);
+  });
+
+  it('should rebase the spilled range by the window origin', () => {
+    // The promoted header row and the dropped row-header column move the master to the window's
+    // (0, 2); its spilled rows follow it.
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = [
+      [text('id'), text('a'), text('b'), text('c')],
+      [text('r1'), cell({ value: 5 }), null,
+        cell({ formula: { text: 'SEQUENCE(2,2)', result: 1, array: { ref: 'D2:E3', dynamic: true } } }),
+        cell({ value: 2 })],
+      [text('r2'), cell({ value: 6 }), null, cell({ value: 3 }), cell({ value: 4 })],
+      [text('r3'), cell({ value: 7 }), null, cell({ value: 9 }), cell({ value: 9 })],
+    ];
+
+    const { result } = map(workbook(sheet), { colHeaders: 'firstRow', rowHeaders: true }, FORMULAS_ON);
+
+    expect(result.data).toEqual([
+      [5, null, '=SEQUENCE(2,2)', null],
+      [6, null, null, null],
+      [7, null, 9, 9],
+    ]);
+  });
+
+  it('should keep cells the ref names but the master does not start', () => {
+    // Excel always writes the master as the top-left corner of its ref. A ref that starts elsewhere
+    // is not trusted to empty any cell.
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = [
+      [cell({ formula: { text: 'SEQUENCE(2)', result: 1, array: { ref: 'B2:B3', dynamic: true } } }), null],
+      [null, cell({ value: 7 })],
+      [null, cell({ value: 8 })],
+    ];
+
+    const { result } = map(workbook(sheet), {}, FORMULAS_ON);
+
+    expect(result.data).toEqual([['=SEQUENCE(2)', null], [null, 7], [null, 8]]);
+  });
+
+  it('should import a single-cell CSE master wrapped in ARRAYFORMULA', () => {
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = [[cell({ value: 2 }), cell({ value: 3 }),
+      cell({ formula: { text: 'SUM(A1:B1*2)', result: 10, array: { ref: 'C1', dynamic: false } } })]];
+
+    const { result } = map(workbook(sheet), {}, FORMULAS_ON);
+
+    expect(result.data).toEqual([[2, 3, '=ARRAYFORMULA(SUM(A1:B1*2))']]);
+  });
+
+  it('should charge the spilled rows to the formula budget, so a whole-sheet ref is refused', () => {
+    // `A1:XFD1048576` records one entry per row of the window it covers, so the rows it spills
+    // over are charged against the same budget as the formula walks.
+    const rowCount = 2000;
+    const build = () => {
+      const sheet = createSheetSnapshot('Sheet1');
+
+      sheet.rows = Array.from({ length: rowCount }, (_, row) => [cell({ value: row })]);
+      sheet.rows[0] = [
+        cell({ formula: { text: 'SEQUENCE(9)', result: 1, array: { ref: 'A1:XFD1048576', dynamic: true } } }),
+      ];
+
+      return workbook(sheet);
+    };
+    const fits = build();
+    const refused = build();
+
+    fits.translatedFormulaChars = MAX_TRANSLATED_FORMULA_CHARS - rowCount;
+    refused.translatedFormulaChars = MAX_TRANSLATED_FORMULA_CHARS - rowCount + 1;
+
+    const { result } = map(fits, {}, FORMULAS_ON);
+
+    expect(result.data[0][0]).toBe('=SEQUENCE(9)');
+    expect(result.data[rowCount - 1][0]).toBe(null);
+
+    let thrown = null;
+
+    try {
+      map(refused, {}, FORMULAS_ON);
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(isLimitError(thrown)).toBe(true);
+  });
+});
