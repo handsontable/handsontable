@@ -957,7 +957,8 @@ describe('MergeCells', () => {
       expect(getSelectedRangeLast().from.row).toEqual(6);
     });
 
-    // TODO: After some changes please take a look at #7010 (test for unspecified behavior)
+    // A range that touches a merge grows to cover it whole and keeps its direction: the corner the
+    // selection started from moves out to the edge of the grown rectangle (DEV-161, #7010).
     it('should select cells in the correct direction when changing selections around a merged range', async() => {
       handsontable({
         data: createSpreadsheetObjectData(10, 10),
@@ -972,12 +973,10 @@ describe('MergeCells', () => {
       // Rectangular area from the marginal cell to the cell on the opposite.
       expect(getSelected()).toEqual([[4, 5, 5, 2]]);
 
-      // What about, for example: selectCell(5, 4, 5, 2);
-      // Is it specified properly?
       await selectCell(4, 4, 2, 5);
 
       expect(getSelectedRangeLast().getDirection()).toEqual('SW-NE');
-      // It flips the selection direction vertically.
+      // The start corner moves from row 4 down to row 5, the merge's bottom edge.
       expect(getSelected()).toEqual([[5, 4, 2, 5]]);
 
       await selectCell(4, 4, 5, 7);
@@ -988,7 +987,7 @@ describe('MergeCells', () => {
       await selectCell(4, 5, 7, 5);
 
       expect(getSelectedRangeLast().getDirection()).toEqual('NW-SE');
-      // It flips the selection direction horizontally.
+      // The start corner moves from column 5 to column 4, the merge's start edge.
       expect(getSelected()).toEqual([[4, 4, 7, 5]]);
     });
 
