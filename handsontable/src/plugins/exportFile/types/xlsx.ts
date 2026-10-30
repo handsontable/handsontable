@@ -287,6 +287,7 @@ interface ConditionalFormattingDescriptor {
 interface FormulaCellFacts {
   errorCode: string | null;
   arraySize: ArrayFormulaSize | null;
+  computedValue: number | boolean | null;
   row: number;
   col: number;
 }
@@ -401,6 +402,7 @@ interface SheetContext {
   sourceData: unknown[][] | null;
   formulaErrorCodes: (string | null)[][] | null;
   arrayFormulaSizes: (ArrayFormulaSize | null)[][] | null;
+  engineComputedValues: (number | boolean | null)[][] | null;
   dropped: DroppedFeatures;
   arrayRanges: ArrayRangeClaims;
   hasRowHeaders: boolean;
@@ -660,6 +662,9 @@ class Xlsx extends BaseType {
     // is an error exports as an Excel error whether or not its formula goes out with it.
     const formulaErrorCodes = dataProvider.getFormulaErrorCodes();
     const arrayFormulaSizes = exportFormulas ? dataProvider.getArrayFormulaSizes() : null;
+    // Read whenever the Formulas plugin is on, like the error codes: a computed number or boolean
+    // keeps its type, so a text column does not write a spilled `2` as the text `"2"`.
+    const engineComputedValues = dataProvider.getEngineComputedValues();
     const formulasSeparator = exportFormulas ? dataProvider.getFormulasSeparator() : ',';
     const hasColumnHeaders = columnHeaders.length > 0;
     const hasRowHeaders = rowHeaders.length > 0;
@@ -732,6 +737,7 @@ class Xlsx extends BaseType {
       sourceData,
       formulaErrorCodes,
       arrayFormulaSizes,
+      engineComputedValues,
       dropped,
       arrayRanges: new ArrayRangeClaims(),
       hasRowHeaders,
@@ -926,6 +932,7 @@ class Xlsx extends BaseType {
       const facts: FormulaCellFacts = {
         errorCode: context.formulaErrorCodes?.[rowIndex][colIndex] ?? null,
         arraySize: context.arrayFormulaSizes?.[rowIndex][colIndex] ?? null,
+        computedValue: context.engineComputedValues?.[rowIndex][colIndex] ?? null,
         row: excelRowNumber,
         col: colIndex + context.dataColOffset,
       };
@@ -1006,7 +1013,9 @@ class Xlsx extends BaseType {
    * 5. Time cells (time string → fractional day serial).
    * 6. Checkbox cells (boolean from `checkedTemplate` comparison; an empty value stays empty).
    * 7. Multiselect cells (comma-separated string).
-   * 8. All other cells (numeric-aware or stringified).
+   * 8. Cells whose value the Formulas engine computed as a number or a boolean
+   *    (`ExportDataProvider#getEngineComputedValues`) — written with that type.
+   * 9. All other cells (numeric-aware or stringified).
    *
    * @param {*} cellValue Pre-calculated display value from `getData()`.
    * @param {object} meta Cell meta object.
@@ -1100,6 +1109,13 @@ class Xlsx extends BaseType {
 
     if (meta.type === 'numeric') {
       return { value: this.#getCellValue(cellValue, meta), formula: null, numFmt: resolveMetaNumFmt(meta) };
+    }
+
+    if (facts.computedValue !== null) {
+      // A number or boolean the Formulas engine computed (a formula exported as its value, or a cell
+      // an array spills) keeps its type: stringified, `=SUM()` over it reads 0 in a reader that does
+      // not recalculate. A value the user typed into the column is data, and is not in the matrix.
+      return { value: facts.computedValue, formula: null, numFmt: null };
     }
 
     return { value: this.#getCellValue(cellValue, meta), formula: null, numFmt: null };

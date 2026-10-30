@@ -78,11 +78,12 @@ describe('Xlsx export: array formulas', () => {
   it('should export the spilled cells as plain values', async() => {
     const { rows } = await exportSheet({ data: createData() });
 
-    // A text column writes its display value, as it does for any non-formula cell.
-    expect(rows[1][0]).toMatchObject({ value: '2', formula: null });
-    expect(rows[2][0]).toMatchObject({ value: '3', formula: null });
-    expect(rows[1][1]).toMatchObject({ value: '4', formula: null });
-    expect(rows[2][1]).toMatchObject({ value: '6', formula: null });
+    // The engine computed them, so they keep its number type even in a text column: a reader that
+    // takes cached values without recalculating then sums them (`getEngineComputedValues`).
+    expect(rows[1][0]).toMatchObject({ value: 2, formula: null });
+    expect(rows[2][0]).toMatchObject({ value: 3, formula: null });
+    expect(rows[1][1]).toMatchObject({ value: 4, formula: null });
+    expect(rows[2][1]).toMatchObject({ value: 6, formula: null });
   });
 
   it('should stop a spill at the next array formula on its right', async() => {
@@ -149,7 +150,7 @@ describe('Xlsx export: array formulas', () => {
 
     expect(hot.getDataAtCol(0)).toEqual([1, 2, 3]);
     expect(rows[0][0].formula).toEqual({ text: 'SEQUENCE(3)', result: 1, array: { ref: 'A1:A3', dynamic: true } });
-    expect(rows.map(row => row[0].value)).toEqual([null, '2', '3']);
+    expect(rows.map(row => row[0].value)).toEqual([null, 2, 3]);
   });
 
   it('should move the ref with its spill when another column is moved in front of it', async() => {
@@ -241,6 +242,6 @@ describe('Xlsx export: array formulas', () => {
   it('should write no array without `exportFormulas`', async() => {
     const { rows } = await exportSheet({ data: createData() }, { exportFormulas: false });
 
-    expect(rows[0][0]).toMatchObject({ value: '1', formula: null });
+    expect(rows[0][0]).toMatchObject({ value: 1, formula: null });
   });
 });

@@ -306,6 +306,15 @@ Other rules:
   ExportDataProvider mock of the `xlsx*.unit.js` suites therefore carries `getFormulaErrorCodes()`,
   and the ones used with `exportFormulas` also carry `getNamedExpressions()` and
   `getFormulasBinding()`; a new mock needs them too. Pinned by `xlsxPlainErrorValue.unit.js`.
+- **A number or boolean the Formulas engine COMPUTED keeps its type in a text column** (DEV-3648,
+  `ExportDataProvider#getEngineComputedValues()`, read on every export with the plugin on). The
+  default `text` type stringifies a cell, so a spilled `2` went out as the shared string `"2"`; Excel
+  and LibreOffice recalculate and never noticed, but Apple Numbers reads cached values and summed a
+  spill as 1 (found in the DEV-3648 manual checks). The matrix holds the engine value only for a cell
+  whose engine type is not `VALUE`/`EMPTY` (a formula, an array formula, a spilled `ARRAY` cell) and
+  whose value is a finite number or a boolean; `#resolveCellValue` uses it in the default branch, after
+  the typed branches (a `numeric`, date, checkbox column keeps its own handling). A value the user
+  typed stays text: HyperFormula holds it as `VALUE`. Every ExportDataProvider mock carries the method.
 - **A HyperFormula array formula exports as an Excel dynamic array, never as a plain formula** (DEV-3648).
   Excel adds an `@` to a spilling function that is not flagged, so the master carries the dynamic flag
   (`cm="1"` on the native engine). `ExportDataProvider#getArrayFormulaSizes()` returns

@@ -81,6 +81,12 @@ jest.mock('../dataProvider', () => ({
       return this.getData().map(row => row.map(() => null));
     }
 
+    getEngineComputedValues() {
+
+      return this.getData().map(row => row.map(() => null));
+
+    }
+
     getFormulasSeparator() {
       return ',';
     }

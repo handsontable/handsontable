@@ -358,6 +358,50 @@ class ExportDataProvider {
   }
 
   /**
+   * Gets, for every cell of the export range, the value the Formulas plugin's engine COMPUTED for
+   * it when that value is a finite number or a boolean, or `null` otherwise: a cell the engine
+   * holds as a plain value (`VALUE`) or not at all (`EMPTY`), a computed text, an error, and every
+   * cell when the Formulas plugin is absent or disabled. A formula cell, an array formula and the
+   * cells an array spills (`ARRAY`) are computed.
+   *
+   * The xlsx export writes such a cell with the engine's type, so a computed number in a text
+   * column is not written as text, which a reader that takes cached values without recalculating
+   * would not count (`=SUM()` over a spill).
+   *
+   * @returns {Array[]}
+   */
+  getEngineComputedValues(): (number | boolean | null)[][] {
+    const formulasPlugin = this.hot.getPlugin('formulas');
+    const engine = formulasPlugin?.isEnabled() ? formulasPlugin.engine : null;
+    const { sheetId, rowAxisSyncer, columnAxisSyncer } = formulasPlugin ?? {};
+
+    if (!engine || sheetId === null || sheetId === undefined || !rowAxisSyncer || !columnAxisSyncer) {
+      return this._extractDataMatrix(() => null);
+    }
+
+    return this._extractDataMatrix((row, col) => {
+      const address = {
+        sheet: sheetId,
+        row: rowAxisSyncer.getHfIndexFromVisualIndex(row),
+        col: columnAxisSyncer.getHfIndexFromVisualIndex(col),
+      };
+      const cellType = engine.getCellType(address);
+
+      if (cellType === 'VALUE' || cellType === 'EMPTY') {
+        return null;
+      }
+
+      const value = engine.getCellValue(address);
+
+      if ((typeof value === 'number' && Number.isFinite(value)) || typeof value === 'boolean') {
+        return value;
+      }
+
+      return null;
+    });
+  }
+
+  /**
    * Gets the workbook-scoped named expressions of the Formulas plugin's engine, in the engine's
    * order, each with its definition: the formula text (`=Sheet1!$A$1:$A$3`), or, for a name defined
    * with a constant, that constant spelled as a formula literal (`5`, `"text"`, `TRUE()`). The
