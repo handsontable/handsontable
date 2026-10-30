@@ -459,6 +459,14 @@ Rules that keep it correct:
   `updateSettings(settings, true)`, so it is absent during the construction-time `afterCellMetaReset`
   and present for every later one; `collapsibleColumns` and `emptyDataState` read the same signal. Covered
   by `fills the sheet before the first draw at construction`.
+- **The axis syncers' postponed index syncs run in the ready step.** An index sync asked for while no
+  engine sheet is bound (`IndexSyncer#getPostponeAction()`) is queued in `#postponedIndexActions` and run
+  by `onGridReady()`, which core calls once after each enable or update (`../base/AGENTS.md`): at init
+  before the `init` hook, which the syncs used to wait for through a one-off `init` listener. On a live
+  grid that listener never fired; the queue runs at the next enable or update. A sync that still finds no
+  sheet queues itself for the step after, and `disablePlugin()` drops the queue with the syncers it belongs
+  to. The `hot.view` checks above stay: they tell construction from a later settings update, which the
+  ready step does not answer. Pinned by `__tests__/readyStep.unit.js`.
 - **The incremental alternative was considered and rejected.** Replacing the late full scan with
   `addRows` / `removeRows` for the row delta does not work: flattening inserts rows in the INTERIOR of the
   sheet, not at the end, so the delta is not an append and the insert positions would have to be derived

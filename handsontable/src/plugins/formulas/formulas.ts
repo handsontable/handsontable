@@ -535,6 +535,13 @@ export class Formulas extends BasePlugin {
    * @type {boolean}
    */
   #sheetResyncPending = false;
+  /**
+   * Index syncs the axis syncers could not send because no sheet was bound yet. The ready step runs them;
+   * one that still finds no sheet is queued again for the next step.
+   *
+   * @type {Function[]}
+   */
+  #postponedIndexActions: Function[] = [];
 
   /**
    * Counts the full sheet writes from the source data (`#writeSheet`). A change set compares it
@@ -1114,11 +1121,9 @@ export class Formulas extends BasePlugin {
 
     this.indexSyncer = new IndexSyncer(
       this.hot.rowIndexMapper, this.hot.columnIndexMapper, (postponedAction: Function) => {
-        this.hot.addHookOnce('init', () => {
-          // Engine is initialized after executing callback to `afterLoadData` hook. Thus, some actions on indexes should
-          // be postponed.
-          postponedAction();
-        });
+        // The engine sheet is bound by the `afterLoadData` listener, so an index sync asked for before it
+        // waits for the ready step.
+        this.#postponedIndexActions.push(postponedAction);
       }, <T>(engine: HyperFormulaEngine, fn: () => T) => this.#writeOwnSheet(engine, fn));
 
     this.rowAxisSyncer = this.indexSyncer.getForAxis('row');
@@ -1255,6 +1260,7 @@ export class Formulas extends BasePlugin {
     this.#sourceRowCountAtLastSync = null;
     this.#sheetIdAtLastSync = null;
     this.#sheetResyncPending = false;
+    this.#postponedIndexActions = [];
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
 
     if (this.engine) {
@@ -1303,6 +1309,22 @@ export class Formulas extends BasePlugin {
     deprecatedWarnOnce('Formulas.unregisterShortcuts', toSingleLine`The "unregisterShortcuts" method\x20
       of the Formulas plugin does nothing: the Alt+Enter link shortcut is a core grid shortcut since\x20
       19.0.0. It will be removed in 20.0.0. Remove the call.`);
+  }
+
+  /**
+   * Runs the index syncs the axis syncers postponed while no engine sheet was bound. Core runs it once after
+   * each enable or update, when the data is loaded: at init before the `init` hook, which the postponed syncs
+   * used to wait for.
+   *
+   * @private
+   */
+  onGridReady() {
+    const actions = this.#postponedIndexActions;
+
+    this.#postponedIndexActions = [];
+    actions.forEach((action) => {
+      action();
+    });
   }
 
   /**
