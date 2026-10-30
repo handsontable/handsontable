@@ -713,8 +713,8 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   unmerged or moved. This one pass stays the bar's call (not MergeCells' `onDataReady()`) because only
   the bar knows whether the sheet returns with a stored state. Skipping the build also writes no cell,
   so a value the user typed into a formerly merged cell survives a round trip. Without a view (the
-  init build) the bar runs nothing, and MergeCells' own `afterInit` builds the merges against the
-  loaded sheet and clears the pending pass. The pass must run before the view-state restore: it sets MergeCells'
+  init build) the bar runs nothing, and MergeCells' ready step (`onGridReady()`, before the `init` hook)
+  builds the merges against the loaded sheet and clears the pending pass. The pass must run before the view-state restore: it sets MergeCells'
   `#initialized`, and the restored merges' anchors are captured only once that is set. Capture
   keeps every merge with a physical anchor, including one whose rows are all trimmed, and a
   merge without an anchor only while the lookup matrix holds it (its stale position would name
