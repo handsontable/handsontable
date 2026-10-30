@@ -16,12 +16,7 @@
           "cell:checkbox"
         ]
       },
-      "enforceAtInit": true,
-      "worksWith": [
-        "feat:data_provider",
-        "feat:empty_data_state",
-        "feat:freeze_bar"
-      ]
+      "enforceAtInit": true
     }
   ]
 }

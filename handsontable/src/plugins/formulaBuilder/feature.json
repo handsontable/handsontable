@@ -14,9 +14,6 @@
           "feat:formulas"
         ]
       },
-      "worksWith": [
-        "feat:nested_headers"
-      ],
       "packages": [
         "hyperformula-ui"
       ]

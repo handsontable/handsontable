@@ -61,7 +61,7 @@ Statics (`PLUGIN_KEY`, `PLUGIN_PRIORITY`, `SETTING_KEYS`, `PLUGIN_DEPS` – gene
    Git stores it as mode `120000`; a regular file in `git status` means you copied.
 6. **Add your `PLUGIN_PRIORITY` row to the table in `src/plugins/base/AGENTS.md`**, in the same change: nothing enforces it, so it drifts silently.
 7. **Add the plugin to `tests/a11y/coverage.mjs`**: the pages that scan it, why it draws nothing, or a counted gap. The root `test:tooling` fails until you do. A plugin with UI adds a page to `tests/a11y/pages.mjs` and follows the `handsontable-a11y` skill (plan, build rules, proof).
-8. **Write `feature.json` in the plugin folder** – its feature manifest entry (`feat:<plugin_key_in_snake_case>`, `licensing: "token"`, a `gate`, a plain-English `name` and `description`, `requires` and `worksWith`). Then run `npm run generate:feature-manifest --prefix handsontable` and commit what it writes. The unit suite fails until the entry exists. Copy an existing one (`src/plugins/filters/feature.json`); the fields and rules are in `src/featureManifest/AGENTS.md`.
+8. **Write `feature.json` in the plugin folder** – its feature manifest entry (`feat:<plugin_key_in_snake_case>`, `licensing: "token"`, a `gate`, a plain-English `name` and `description`, and `requires` – only what the plugin cannot work without). Then run `npm run generate:feature-manifest --prefix handsontable` and commit what it writes. The unit suite fails until the entry exists. Copy an existing one (`src/plugins/filters/feature.json`); the fields and rules are in `src/featureManifest/AGENTS.md`.
 
 ## Plugin dependencies (`PLUGIN_DEPS`) are generated
 

@@ -15,15 +15,7 @@
         "allOf": [
           "feat:import_file"
         ]
-      },
-      "worksWith": [
-        "cell:checkbox",
-        "cell:date",
-        "cell:dropdown",
-        "cell:intl_datetime",
-        "cell:numeric",
-        "cell:time"
-      ]
+      }
     },
     {
       "id": "xlsx:export",
@@ -55,14 +47,14 @@
       "licensing": "token",
       "gate": "degrade",
       "requires": {
+        "allOf": [
+          "feat:formulas"
+        ],
         "anyOf": [
           "xlsx:import",
           "xlsx:export"
         ]
-      },
-      "worksWith": [
-        "feat:formulas"
-      ]
+      }
     },
     {
       "id": "xlsx:layout",
@@ -81,12 +73,7 @@
           "xlsx:import",
           "xlsx:export"
         ]
-      },
-      "worksWith": [
-        "feat:merge_cells",
-        "feat:hidden_rows",
-        "feat:hidden_columns"
-      ]
+      }
     },
     {
       "id": "xlsx:number_formats",
@@ -103,13 +90,7 @@
         "allOf": [
           "xlsx:export"
         ]
-      },
-      "worksWith": [
-        "cell:date",
-        "cell:intl_datetime",
-        "cell:numeric",
-        "cell:time"
-      ]
+      }
     },
     {
       "id": "xlsx:comments",
@@ -124,14 +105,14 @@
       "licensing": "token",
       "gate": "degrade",
       "requires": {
+        "allOf": [
+          "feat:comments"
+        ],
         "anyOf": [
           "xlsx:import",
           "xlsx:export"
         ]
-      },
-      "worksWith": [
-        "feat:comments"
-      ]
+      }
     },
     {
       "id": "xlsx:import_report",
@@ -142,10 +123,7 @@
       "name": "Import report",
       "description": "The list of workbook features the import did not carry over, returned in the import result. Always produced, because it is also where a missing license token is reported.",
       "status": "stable",
-      "licensing": "core",
-      "worksWith": [
-        "xlsx:import"
-      ]
+      "licensing": "core"
     },
     {
       "id": "xlsx:styles",
@@ -164,10 +142,7 @@
           "xlsx:import",
           "xlsx:export"
         ]
-      },
-      "worksWith": [
-        "feat:custom_borders"
-      ]
+      }
     },
     {
       "id": "xlsx:conditional_formatting",

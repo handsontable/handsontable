@@ -44,8 +44,7 @@ A plugin entry looks like this (`src/plugins/filters/feature.json`):
       "licensing": "token",
       "gate": "enable",
       "requires": { "allOf": ["feat:dropdown_menu", "feat:hidden_rows", "cell:checkbox"] },
-      "enforceAtInit": true,
-      "worksWith": ["feat:data_provider", "feat:empty_data_state", "feat:freeze_bar"]
+      "enforceAtInit": true
     }
   ]
 }
@@ -81,7 +80,9 @@ To change a plugin's dependencies, edit its `feature.json` and run `generate:fea
 
 The strings must stay byte-identical: the custom-build service reads `PLUGIN_DEPS` from each plugin class. The four `pluginDependencies.unit.ts` tests pin today's strings.
 
-`worksWith` is a soft link (a hint), never added to a key and never checked.
+List only what the feature cannot work without. Most plugins work alongside many others, so "works with" is not
+recorded; a link that is really a need belongs in `requires` (`xlsx:formulas` requires `feat:formulas`, because
+the import and the export read formulas through that plugin).
 
 ## Fields
 
@@ -98,7 +99,6 @@ The strings must stay byte-identical: the custom-build service reads `PLUGIN_DEP
 | `gate` | when `token` | How Handsontable will check it: `enable` (plugin turns on), `call` (an always-on plugin, checked in its methods), `degrade` (sub-feature left out of the result), `report` (listed, keeps working). |
 | `requires` | no | `{ "allOf": [...], "anyOf": [...] }`. `anyOf` means at least one, which the key builder cannot choose on its own. |
 | `enforceAtInit` | plugins | `true` turns `requires.allOf` into `PLUGIN_DEPS` (see above). |
-| `worksWith` | no | Soft links. |
 | `packages` | no | npm packages the user supplies (`hyperformula`, `hyperformula-ui`). |
 
 Unknown fields fail the check, so the format cannot drift.
@@ -137,7 +137,7 @@ A key carries tokens for years. So:
 - **Every registry folder needs exactly one entry**, and every entry needs a folder. A folder that registers
   nothing goes in `REGISTRIES[].skip` in `scripts/utils/feature-manifest.js`, with the reason (`base`,
   `editors/utils`, `maxLengthValidator`, `regExpValidator`). The checkbox validator is registered but the checkbox
-  cell type does not use it (opt-in `validator: 'checkbox'`), so it is a `worksWith` of `cell:checkbox`, not a part.
+  cell type does not use it (opt-in `validator: 'checkbox'`), so it is not one of the parts `cell:checkbox` requires.
 - **A cell type's `requires.allOf` lists exactly the editor, renderer, and validator its source imports.** The
   Jest suite compares them.
 - **`build:feature-manifest` never writes into `src/`.** It fails when a committed output is stale. Only

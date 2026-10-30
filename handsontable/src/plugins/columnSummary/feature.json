@@ -8,10 +8,7 @@
       "description": "Calculates a sum, minimum, maximum, count, or average over a column range and shows it in a cell.",
       "status": "stable",
       "licensing": "token",
-      "gate": "enable",
-      "worksWith": [
-        "feat:formulas"
-      ]
+      "gate": "enable"
     }
   ]
 }

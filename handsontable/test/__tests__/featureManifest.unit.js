@@ -125,8 +125,11 @@ describe('feature manifest', () => {
       // Whether a plugin is on by default is the option's default in metaSchema.ts and the plugin's isEnabled().
       ['a copy of a default the source already declares', 'feat:copy_paste',
         entry => ({ ...entry, enabledByDefault: true }), 'unknown field "enabledByDefault"'],
+      // Only what an entry needs is recorded; a list of plugins it merely works with is noise.
+      ['a list of soft links', 'feat:filters', entry => ({ ...entry, worksWith: ['feat:pagination'] }),
+        'unknown field "worksWith"'],
       ['a reference to an id nobody declares', 'feat:search',
-        entry => ({ ...entry, worksWith: ['feat:does_not_exist'] }), 'which no manifest file declares'],
+        entry => ({ ...entry, requires: { allOf: ['feat:does_not_exist'] } }), 'which no manifest file declares'],
       ['a plugin that is not sold', 'feat:search', entry => ({ ...entry, licensing: 'core', gate: undefined }),
         '"licensing" must be "token"'],
       ['a gate on an entry no key lists', 'cell:text', entry => ({ ...entry, gate: 'report' }),
@@ -211,6 +214,9 @@ describe('feature manifest', () => {
         .toEqual(['cell:checkbox', 'feat:auto_column_size', 'feat:dropdown_menu', 'feat:hidden_rows']);
       expect(computeImplies(entryOf('cell:date'), byId)).toEqual([]);
       expect(computeImplies(entryOf('xlsx:data_validation'), byId)).toEqual(['cell:dropdown']);
+      // Formulas and comments in a file are read into, and written from, their plugins.
+      expect(computeImplies(entryOf('xlsx:formulas'), byId)).toEqual(['feat:formulas']);
+      expect(computeImplies(entryOf('xlsx:comments'), byId)).toEqual(['feat:comments']);
     });
 
     it('should build the same bytes every time, with every field on every capability', () => {
@@ -229,7 +235,7 @@ describe('feature manifest', () => {
       manifest.capabilities.forEach((capability) => {
         expect(Object.keys(capability)).toEqual([
           'id', 'kind', 'module', 'plugins', 'name', 'description', 'since', 'status', 'licensing', 'gate',
-          'requires', 'enforceAtInit', 'worksWith', 'packages', 'implies',
+          'requires', 'enforceAtInit', 'packages', 'implies',
         ]);
       });
     });

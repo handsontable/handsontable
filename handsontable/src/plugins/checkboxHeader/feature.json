@@ -13,11 +13,7 @@
         "allOf": [
           "cell:checkbox"
         ]
-      },
-      "worksWith": [
-        "feat:row_selection",
-        "feat:pagination"
-      ]
+      }
     }
   ]
 }

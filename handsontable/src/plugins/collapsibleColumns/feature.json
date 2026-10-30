@@ -14,10 +14,7 @@
           "feat:nested_headers"
         ]
       },
-      "enforceAtInit": true,
-      "worksWith": [
-        "feat:hidden_columns"
-      ]
+      "enforceAtInit": true
     }
   ]
 }

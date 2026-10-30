@@ -261,7 +261,7 @@ class MyPlugin extends BasePlugin {
 ```
 
 **Plugin dependencies come from the feature manifest.** Every plugin folder has a `feature.json` (its manifest
-entry: license token, `requires`, `worksWith`). A dependency `new Handsontable()` must check at init is listed in
+entry: license token and `requires`). A dependency `new Handsontable()` must check at init is listed in
 `requires.allOf` with `"enforceAtInit": true`; `npm run generate:feature-manifest` writes it to the committed
 `feature.generated.ts`, which the class imports (`import { PLUGIN_DEPS } from './feature.generated';`). A new
 plugin, cell type, editor, renderer, or validator needs its manifest entry, or the unit suite fails. Rules:

@@ -133,7 +133,7 @@ const CORE_CELL_TYPES = ['text'];
 
 const ENTRY_FIELDS = [
   'id', 'kind', 'module', 'plugins', 'name', 'description', 'since', 'status', 'licensing', 'gate',
-  'requires', 'enforceAtInit', 'worksWith', 'packages',
+  'requires', 'enforceAtInit', 'packages',
 ];
 const REGISTRY_KINDS = REGISTRIES.map(registry => registry.kind);
 
@@ -462,7 +462,7 @@ function checkKindFields(entry, pluginModules) {
 }
 
 /**
- * Checks `requires`, `worksWith`, and `packages` of one entry against the other entries.
+ * Checks `requires` and `packages` of one entry against the other entries.
  *
  * @param {object} entry A manifest entry.
  * @param {Map<string, object>} byId Every entry, by id.
@@ -480,15 +480,12 @@ function checkReferences(entry, byId) {
       problems.push('"requires" takes "allOf" and "anyOf", each a list of distinct ids');
     }
   }
-  ['worksWith', 'packages'].forEach((key) => {
-    if (entry[key] !== undefined && !isStringList(entry[key])) {
-      problems.push(`"${key}" must be a list of distinct strings`);
-    }
-  });
+  if (entry.packages !== undefined && !isStringList(entry.packages)) {
+    problems.push('"packages" must be a list of distinct strings');
+  }
 
   const referenced = [...(isStringList(requires?.allOf) ? requires.allOf : []),
-    ...(isStringList(requires?.anyOf) ? requires.anyOf : []),
-    ...(isStringList(entry.worksWith) ? entry.worksWith : [])];
+    ...(isStringList(requires?.anyOf) ? requires.anyOf : [])];
 
   referenced.forEach((id) => {
     if (id === entry.id) {
@@ -729,7 +726,6 @@ function toPublishedCapability(entry, byId) {
       anyOf: entry.requires?.anyOf ?? [],
     },
     enforceAtInit: entry.enforceAtInit ?? false,
-    worksWith: entry.worksWith ?? [],
     packages: entry.packages ?? [],
     implies: computeImplies(entry, byId),
   };

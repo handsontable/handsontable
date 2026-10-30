@@ -131,10 +131,7 @@
           "editor:checkbox",
           "renderer:checkbox"
         ]
-      },
-      "worksWith": [
-        "validator:checkbox"
-      ]
+      }
     },
     {
       "id": "cell:select",

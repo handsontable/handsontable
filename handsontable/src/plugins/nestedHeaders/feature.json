@@ -8,11 +8,7 @@
       "description": "Groups column headers on several levels.",
       "status": "stable",
       "licensing": "token",
-      "gate": "enable",
-      "worksWith": [
-        "feat:hidden_columns",
-        "feat:export_file"
-      ]
+      "gate": "enable"
     }
   ]
 }
