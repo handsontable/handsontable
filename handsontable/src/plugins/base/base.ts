@@ -2,7 +2,7 @@ import type { HotInstance } from '../../core/types';
 import type { HookCallback } from '../../core/hooks/bucket';
 import type { Events } from '../../core/settings';
 import {
-  defineGetter, objectEach, isObject, isPlainObject, assignObjectDefaults, getProperty,
+  defineGetter, objectEach, isObject, isPlainObject, assignObjectDefaults, getProperty, hasOwnProperty,
 } from '../../helpers/object';
 import { throwWithCause } from '../../helpers/errors';
 import { arrayEach } from '../../helpers/array';
@@ -665,6 +665,32 @@ export class BasePlugin {
   }
 
   /**
+   * Records that a settings pass made before the plugin's init enable turn carried the plugin's own option,
+   * so the turn reads the settings again.
+   *
+   * @param {object} newSettings The config object passed to updateSettings.
+   */
+  #recordSettingsChangeBeforeInitEnable(newSettings: Record<string, unknown>) {
+    if (newSettings[this.constructor.PLUGIN_KEY] !== undefined) {
+      this.#settingsChangedBeforeInitEnable = true;
+    }
+  }
+
+  /**
+   * Returns the plugin setting an update applies to a plugin that stays enabled: the payload's `PLUGIN_KEY`
+   * value when the payload carries the key (an explicit `undefined` included), otherwise the value declared
+   * in the merged grid settings.
+   *
+   * @param {object} newSettings The config object passed to updateSettings.
+   * @returns {*}
+   */
+  #getUpdatedPluginSetting(newSettings: Record<string, unknown>): unknown {
+    const pluginKey = this.constructor.PLUGIN_KEY;
+
+    return hasOwnProperty(newSettings, pluginKey) ? newSettings[pluginKey] : this.hot.getSettings()[pluginKey];
+  }
+
+  /**
    * Optional step core's `_applySettingsAndData()` calls once the data the settings describe is loaded,
    * for every enabled plugin that defines it, in plugin priority order (see `isDataWorkDeferred()`).
    *
@@ -805,8 +831,15 @@ export class BasePlugin {
    *
    * A call that turns the plugin on refreshes the plugin settings from the merged grid settings before
    * `enablePlugin()`, which reads them, and does not refresh them again before `updatePlugin()`: a second
-   * refresh logged every validation warning twice, and, for a payload carrying only a foreign `SETTING_KEYS`
-   * option, wiped what the first one read.
+   * refresh logged every validation warning twice.
+   *
+   * A call that keeps the plugin on refreshes the plugin settings from the payload's `PLUGIN_KEY` value, an explicit
+   * `undefined` included. When the payload does not carry that key (a plugin with `SETTING_KEYS: true`, or one
+   * listing foreign keys), the refresh reads the merged grid settings instead, so the stored setting is reset to
+   * the value declared for the grid, not kept as the plugin holds it now. Two consequences follow for such a
+   * plugin: a setting it changed at runtime through `updatePluginSettings()` is replaced by the declared value on
+   * every update that reaches it, and an invalid declared value logs its `SETTINGS_VALIDATORS` warning again on
+   * each of those updates.
    *
    * @private
    * @param {object} newSettings New set of settings passed to the updateSettings method.
@@ -822,9 +855,7 @@ export class BasePlugin {
     // A plugin another plugin already enabled directly takes the pass as usual, so it can be disabled
     // or updated by it.
     if (this.#awaitsInitEnableTurn && !this.enabled) {
-      if (newSettings[this.constructor.PLUGIN_KEY] !== undefined) {
-        this.#settingsChangedBeforeInitEnable = true;
-      }
+      this.#recordSettingsChangeBeforeInitEnable(newSettings);
 
       return;
     }
@@ -862,7 +893,7 @@ export class BasePlugin {
       relevantToSettings
     ) {
       if (!settingsRefreshed) {
-        this.updatePluginSettings(newSettings[this.constructor.PLUGIN_KEY]);
+        this.updatePluginSettings(this.#getUpdatedPluginSetting(newSettings));
       }
 
       this.updatePlugin(newSettings);

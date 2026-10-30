@@ -265,16 +265,14 @@ that method returns early on an already-enabled plugin, and `BasePlugin` only re
 when the plugin's enabled state itself changed — so a plain settings change never reaches it. All three were
 silently ignored when they arrived through `updateSettings()` (DEV-2850). Four rules ride along:
 
-- **Restore the stored settings first when the payload omits this plugin's key.** `SETTING_KEYS` is `true`,
-  so an update that never mentions `autoColumnSize` still reaches `updatePlugin()` — and `onUpdateSettings`
-  has already fed `updatePluginSettings()` that missing key as `undefined`, which **wipes** the stored
-  settings (this plugin declares no `SETTINGS_VALIDATORS`, so the assignment falls straight through). Read
-  them in that state and you get the *defaults*, so re-applying would reset the user's `samplingRatio`, flip
-  `useHeaders` back to `true`, and re-measure every column on an unrelated `updateSettings({ readOnly: true })`.
-  Restore from `hot.getSettings()[PLUGIN_KEY]`, which is untouched — the same repair `manualColumnResize`
-  makes for the same base-class reason (`../../utils/manualResize/AGENTS.md`). **This is the common path:** the Vue
-  wrapper omits every settings key whose value is unchanged (`wrappers/vue3/src/helpers.ts`, `simpleEqual`),
-  so a Vue app sends a payload *without* `autoColumnSize` on virtually every prop change.
+- **An update that omits this plugin's key keeps the stored settings.** `SETTING_KEYS` is `true`, so an
+  update that never mentions `autoColumnSize` still reaches `updatePlugin()`. `BasePlugin#onUpdateSettings`
+  then refreshes the plugin settings from `hot.getSettings()[PLUGIN_KEY]`, not from the payload, so
+  `updatePlugin()` reads the user's `samplingRatio` and `useHeaders`, not the defaults, and an unrelated
+  `updateSettings({ readOnly: true })` re-measures nothing. Before that fallback lived in the base class, this
+  plugin restored the settings itself. **This is the common path:** the Vue wrapper omits every settings key
+  whose value is unchanged (`wrappers/vue3/src/helpers.ts`, `simpleEqual`), so a Vue app sends a payload
+  *without* `autoColumnSize` on virtually every prop change. Pinned by `__tests__/samplingSettings.unit.ts`.
 - **Re-measure with `recalculateAllColumnsWidth()`, not `clearCache()`.** A bare clear empties every measured
   width, but the only render-time measurement is `calculateVisibleColumnsWidth()` — so every column outside
   the viewport would keep the default width until it is scrolled into view, shrinking the table width and the

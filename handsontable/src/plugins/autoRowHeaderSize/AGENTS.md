@@ -76,20 +76,18 @@ measurement still stands — laying samples out is the expensive half, and this 
 
 A row with no renderable index is hidden, so no header of it is drawn and none is measured.
 
-## `updatePlugin()` restores the stored settings before it re-enables
+## `updatePlugin()` re-enables with the stored settings
 
 `updatePlugin()` runs `disablePlugin(); enablePlugin();`, which is what makes this plugin re-read its
 sampling settings for free — unlike `AutoRowSize` and `AutoColumnSize`, whose `enablePlugin()` early return
 made those settings inert on an update (DEV-2850).
 
-It still needs one repair first. `BasePlugin#onUpdateSettings` feeds `updatePluginSettings()` with
-`newSettings[PLUGIN_KEY]`, and an update that never mentions `autoRowHeaderSize` carries that as `undefined`,
-which **wipes** the stored settings (this plugin declares no `SETTINGS_VALIDATORS`, so the assignment falls
-straight through). The re-enable then reads the *defaults*, so `allowSampleDuplicates: true` silently
-reverted to `false` on every unrelated `updateSettings()` call. `updatePlugin()` therefore restores the
-option from `hot.getSettings()[PLUGIN_KEY]` when the payload omits the key — the same repair
-`manualRowResize` makes for the same reason (`../../utils/manualResize/AGENTS.md`). The Vue wrapper makes this the
-common path: it omits every settings key whose value is unchanged.
+An update that never mentions `autoRowHeaderSize` still reaches `updatePlugin()`. `BasePlugin#onUpdateSettings`
+refreshes the plugin settings from `hot.getSettings()[PLUGIN_KEY]` when the payload omits the key, so the
+re-enable reads the user's `allowSampleDuplicates`, not the default. Before that fallback lived in the base
+class, `allowSampleDuplicates: true` silently reverted to `false` on every unrelated `updateSettings()` call,
+and this plugin restored the option itself. The Vue wrapper makes this the common path: it omits every
+settings key whose value is unchanged. Pinned by `__tests__/autoRowHeaderSize.unit.ts`.
 
 `samplingRatio` and `allowSampleDuplicates` go through the shared
 `SamplesGenerator#applySamplingOptions()`, so this plugin resolves the option exactly as the other two do.
