@@ -7,6 +7,12 @@ plugin.
 
 ## It force-enables the Dialog plugin
 
+**Dialog must be registered, and `new Handsontable()` throws without it (since 19.0).** `PLUGIN_DEPS` names
+`plugin:Dialog` (`feature.json`, `enforceAtInit`; generated into `feature.generated.ts`). Before 19.0 a modular
+build that registered Loading alone got a working grid where `show()` showed nothing and nothing said why,
+because every method below returns early without a dialog. This was a breaking change, with a step in the
+18.1 → 19.0 migration guide. Pinned by `__tests__/pluginDependencies.unit.ts`.
+
 `enablePlugin()` resolves `getPlugin('dialog')` and, if that plugin is not enabled, sets
 `getSettings().dialog = true` directly. Four things follow:
 

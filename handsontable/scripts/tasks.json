@@ -36,6 +36,18 @@
       "deps": [],
       "note": "writes the gitignored src/settingsSchema/schema.generated.ts that handsontable/settingsSchema imports; every task that compiles, lints, or tests src/ depends on it"
     },
+    "build:feature-manifest": {
+      "cmd": "node scripts/generate-feature-manifest.mjs",
+      "deps": [],
+      "mode": "inherit",
+      "note": "writes dist/manifest.json from the feature.json/features.json sources in src/ and fails when a committed output (feature.generated.ts, released-tokens.json) is stale; run generate:feature-manifest to refresh those"
+    },
+    "generate:feature-manifest": {
+      "cmd": "node scripts/generate-feature-manifest.mjs --write",
+      "deps": [],
+      "mode": "inherit",
+      "note": "Codegen: rewrites the committed feature.generated.ts modules and src/featureManifest/released-tokens.json from the manifest sources, then writes dist/manifest.json. Run it after changing a feature.json or features.json file; commit the result."
+    },
     "build:commonjs": {
       "cmd": "env-cmd -f ../hot.config.js node scripts/swc-transpile.mjs --format commonjs --out-dir tmp",
       "deps": ["build:styles.min", "build:settings-schema"],
@@ -247,6 +259,7 @@
         "build:styles",
         "build:styles.min",
         "build:settings-schema",
+        "build:feature-manifest",
         "build:themes-css",
         "build:themes-css.min",
         "build:commonjs",

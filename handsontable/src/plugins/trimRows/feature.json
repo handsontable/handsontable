@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:trim_rows",
+      "kind": "plugin",
+      "module": "TrimRows",
+      "name": "Trim rows",
+      "description": "Removes rows from the grid without changing the data.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

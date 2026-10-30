@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:notification",
+      "kind": "plugin",
+      "module": "Notification",
+      "name": "Notifications",
+      "description": "Shows toast messages over the grid.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

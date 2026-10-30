@@ -44,6 +44,10 @@ jobs:
       - name: Build
         run: |
           cd handsontable
+          # dist/manifest.json, the feature manifest license keys are built from. It runs first because it also
+          # fails the job when a committed feature.generated.ts or released-tokens.json is stale, in about 100 ms,
+          # and nothing below clears dist/.
+          npm run build:feature-manifest
           npm run build:umd
           npm run build:umd.min
           # The CDN file of handsontable/settingsSchema; it reads the registries of the Handsontable

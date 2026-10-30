@@ -15,6 +15,10 @@ pressed. Read this before touching `checkboxHeader.ts`, `../../utils/checkboxCol
 
 ## The traps
 
+- **The `checkbox` cell type must be registered.** `PLUGIN_DEPS` names `cell-type:checkbox` (`feature.json`,
+  `enforceAtInit`), so `new Handsontable()` throws when the plugin is registered without it. The plugin finds
+  its columns by `type: 'checkbox'` and has nothing to work on otherwise. Pinned by
+  `__tests__/pluginDependencies.unit.ts`.
 - **The plugin is always on** (`isEnabled()` returns `true`, `SETTING_KEYS` is `false`): the option is
   column-level, and no grid-level key could switch a plugin on for it. Everything it does is gated on
   `hasHeaderCheckbox(column)`, so a grid without the option pays one column meta read per header draw.

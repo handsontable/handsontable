@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:hidden_columns",
+      "kind": "plugin",
+      "module": "HiddenColumns",
+      "name": "Hidden columns",
+      "description": "Hides columns while keeping their data.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

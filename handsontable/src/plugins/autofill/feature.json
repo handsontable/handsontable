@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:autofill",
+      "kind": "plugin",
+      "module": "Autofill",
+      "name": "Autofill",
+      "description": "Fills cells by dragging the fill handle at the corner of the selection.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

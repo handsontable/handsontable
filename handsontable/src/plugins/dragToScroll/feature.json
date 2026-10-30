@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:drag_to_scroll",
+      "kind": "plugin",
+      "module": "DragToScroll",
+      "name": "Drag to scroll",
+      "description": "Scrolls the grid when a drag reaches its edge.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

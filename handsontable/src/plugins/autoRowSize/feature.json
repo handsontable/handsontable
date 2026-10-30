@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:auto_row_size",
+      "kind": "plugin",
+      "module": "AutoRowSize",
+      "name": "Auto row size",
+      "description": "Sets row heights from the content of each row.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

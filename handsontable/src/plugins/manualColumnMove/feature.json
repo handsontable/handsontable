@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:manual_column_move",
+      "kind": "plugin",
+      "module": "ManualColumnMove",
+      "name": "Column moving",
+      "description": "Reorders columns by dragging their headers.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

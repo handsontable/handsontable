@@ -1,0 +1,209 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "xlsx:import",
+      "kind": "sub_feature",
+      "plugins": [
+        "ImportFile"
+      ],
+      "name": "XLSX import",
+      "description": "Reads .xlsx files into the grid: cell values, shared strings, sheet selection, and column type inference.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "call",
+      "requires": {
+        "allOf": [
+          "feat:import_file"
+        ]
+      }
+    },
+    {
+      "id": "xlsx:export",
+      "kind": "sub_feature",
+      "plugins": [
+        "ExportFile"
+      ],
+      "name": "XLSX export",
+      "description": "Writes the grid to an .xlsx file: cell values, sheet names, and the \"To Excel\" context menu item.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "call",
+      "requires": {
+        "allOf": [
+          "feat:export_file"
+        ]
+      }
+    },
+    {
+      "id": "xlsx:formulas",
+      "kind": "sub_feature",
+      "plugins": [
+        "ImportFile",
+        "ExportFile"
+      ],
+      "name": "Formulas",
+      "description": "Imports formulas into the Formulas plugin and exports live formulas instead of calculated values, including shared-formula translation.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "degrade",
+      "requires": {
+        "allOf": [
+          "feat:formulas"
+        ],
+        "anyOf": [
+          "xlsx:import",
+          "xlsx:export"
+        ]
+      }
+    },
+    {
+      "id": "xlsx:layout",
+      "kind": "sub_feature",
+      "plugins": [
+        "ImportFile",
+        "ExportFile"
+      ],
+      "name": "Sheet layout",
+      "description": "Column widths, row heights, hidden rows and columns, merged cells, frozen panes, right-to-left direction, and sheet state.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "degrade",
+      "requires": {
+        "anyOf": [
+          "xlsx:import",
+          "xlsx:export"
+        ]
+      }
+    },
+    {
+      "id": "xlsx:number_formats",
+      "kind": "sub_feature",
+      "plugins": [
+        "ExportFile"
+      ],
+      "name": "Number formats",
+      "description": "Date, time, currency, percentage, and custom number formats on export. Import always reads number formats to infer cell types, so this token does not restrict import.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "degrade",
+      "requires": {
+        "allOf": [
+          "xlsx:export"
+        ]
+      }
+    },
+    {
+      "id": "xlsx:comments",
+      "kind": "sub_feature",
+      "plugins": [
+        "ImportFile",
+        "ExportFile"
+      ],
+      "name": "Comments",
+      "description": "Cell comments, imported into the Comments plugin and exported with VML so they display in Excel.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "degrade",
+      "requires": {
+        "allOf": [
+          "feat:comments"
+        ],
+        "anyOf": [
+          "xlsx:import",
+          "xlsx:export"
+        ]
+      }
+    },
+    {
+      "id": "xlsx:import_report",
+      "kind": "sub_feature",
+      "plugins": [
+        "ImportFile"
+      ],
+      "name": "Import report",
+      "description": "The list of workbook features the import did not carry over, returned in the import result. Always produced, because it is also where a missing license token is reported.",
+      "status": "stable",
+      "licensing": "core"
+    },
+    {
+      "id": "xlsx:styles",
+      "kind": "sub_feature",
+      "plugins": [
+        "ImportFile",
+        "ExportFile"
+      ],
+      "name": "Cell styles",
+      "description": "Font, fill, borders, and alignment of cells and headers.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "degrade",
+      "requires": {
+        "anyOf": [
+          "xlsx:import",
+          "xlsx:export"
+        ]
+      }
+    },
+    {
+      "id": "xlsx:conditional_formatting",
+      "kind": "sub_feature",
+      "plugins": [
+        "ImportFile",
+        "ExportFile"
+      ],
+      "name": "Conditional formatting",
+      "description": "Conditional formatting rules: cellIs, expression, containsText family, top10, aboveAverage, and timePeriod.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "degrade",
+      "requires": {
+        "anyOf": [
+          "xlsx:import",
+          "xlsx:export"
+        ]
+      }
+    },
+    {
+      "id": "xlsx:data_validation",
+      "kind": "sub_feature",
+      "plugins": [
+        "ImportFile",
+        "ExportFile"
+      ],
+      "name": "Data validation",
+      "description": "Dropdown lists from data validation rules, imported as dropdown cells and exported with a helper sheet for the list values.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "degrade",
+      "requires": {
+        "allOf": [
+          "cell:dropdown"
+        ],
+        "anyOf": [
+          "xlsx:import",
+          "xlsx:export"
+        ]
+      }
+    },
+    {
+      "id": "xlsx:protection",
+      "kind": "sub_feature",
+      "plugins": [
+        "ImportFile",
+        "ExportFile"
+      ],
+      "name": "Sheet protection",
+      "description": "Locked cells and sheet protection with a SHA-512 password hash, imported as read-only cells and exported from read-only cells.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "degrade",
+      "requires": {
+        "anyOf": [
+          "xlsx:import",
+          "xlsx:export"
+        ]
+      }
+    }
+  ]
+}

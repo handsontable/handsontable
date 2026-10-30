@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:manual_row_move",
+      "kind": "plugin",
+      "module": "ManualRowMove",
+      "name": "Row moving",
+      "description": "Reorders rows by dragging their headers.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

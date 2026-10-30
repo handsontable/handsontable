@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:hidden_rows",
+      "kind": "plugin",
+      "module": "HiddenRows",
+      "name": "Hidden rows",
+      "description": "Hides rows while keeping their data.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

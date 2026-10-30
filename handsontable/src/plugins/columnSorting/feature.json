@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:column_sorting",
+      "kind": "plugin",
+      "module": "ColumnSorting",
+      "name": "Column sorting",
+      "description": "Sorts rows by the values of one column.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

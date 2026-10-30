@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:custom_borders",
+      "kind": "plugin",
+      "module": "CustomBorders",
+      "name": "Custom borders",
+      "description": "Draws borders around individual cells and ranges.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

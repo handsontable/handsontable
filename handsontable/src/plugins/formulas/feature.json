@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:formulas",
+      "kind": "plugin",
+      "module": "Formulas",
+      "name": "Formulas",
+      "description": "Calculates formulas in cells with the HyperFormula engine.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable",
+      "packages": [
+        "hyperformula"
+      ]
+    }
+  ]
+}

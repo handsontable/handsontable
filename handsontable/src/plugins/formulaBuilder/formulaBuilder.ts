@@ -26,6 +26,7 @@ import {
 } from './formulaCellEditor';
 import { HandsontableAdapter, setFormulaBuilderAdapter } from './handsontableAdapter';
 import { REQUIRED_CORE_MEMBERS } from './internalTypes';
+import { PLUGIN_DEPS } from './feature.generated';
 
 /**
  * The `hyperformula-ui` module namespace (see `internalTypes.ts` for why it is not shared).
@@ -304,6 +305,13 @@ export class FormulaBuilder extends BasePlugin {
    */
   static get SETTING_KEYS() {
     return [PLUGIN_KEY, 'formulas'];
+  }
+
+  /**
+   * Returns the list of plugin dependencies required before this plugin can be initialized.
+   */
+  static get PLUGIN_DEPS() {
+    return [...PLUGIN_DEPS];
   }
 
   /**
