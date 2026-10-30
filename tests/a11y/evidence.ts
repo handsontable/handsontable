@@ -97,8 +97,9 @@ export async function readEnvironment(page: Page): Promise<EvidenceEnvironment> 
  * @param part.findings The findings; an empty list is evidence that nothing was found.
  * @param part.criteria The criteria this target evaluated, when it is fewer than the check's.
  * @param part.detail Everything measured, written to the target's detail file beside the document.
- * @param part.pageErrors The errors the page threw (`opened.pageErrors` of `openTarget()`; every page the
- *   test opened, when it opened more than one).
+ * @param part.pageErrors The errors the page threw that the test has not reported elsewhere: `opened.pageErrors`
+ *   of `openTarget()`, or, for a test that loaded the page more than once, the one list it passed to every
+ *   `openTarget()` as `pageErrors`.
  */
 export async function attachEvidence(testInfo: TestInfo, {
   target, startedAt, environment, findings, criteria, detail, pageErrors,
