@@ -830,10 +830,18 @@ directions.
     definition. It refuses a non-ASCII name (`Umsätze`) and a ref-like name outside the grid. That is
     deliberate data loss, reported as `definedNames:unsupported`, instead of a file Excel repairs.
     `DefinedNameSnapshot` is `{ name, formula, sheetName }` (`sheetName: null` is workbook scope).
-  - **The ExcelJS name adapters are narrower than the native ones.** Its reader keeps the FIRST range
-    of a name (a multi-area name loses the rest), loses the sheet scope, and drops constants. Its
+  - **The ExcelJS name adapters are narrower than the native ones.** Its reader (`readDefinedNames`)
+    leaves out a name ExcelJS lists with more than one range (a multi-area name) and records
+    `definedNames:unsupported` once - keeping the first range silently redefined the name. It loses
+    the sheet scope, drops constants, and cannot see a name defined in several scopes: ExcelJS 4.4's
+    `definedNames.model` setter keys its map by name, so the LAST definition wins with one range. Its
     writer takes workbook-scoped, sheet-qualified single ranges only, with a total area under
     `MAX_EXCELJS_DEFINED_NAME_CELLS` (`writeLimits.ts`, 100,000), and reports `definedNames:unsupported` once for everything else.
+  - **The native reader caps a name definition at `MAX_FORMULA_LENGTH`** (`parseWorkbook`): the text
+    stops growing once it crosses the cap, and the name is left out with ONE
+    `definedNames:unsupported`, like an over-long `<f>` (`formula:tooLong`).
+  - **`unwrapArrayFormula('ARRAYFORMULA()')` is `null`**, as is a whitespace-only call: there is no
+    formula to write as an array.
   - **The native writer refuses a workbook with no sheets** (`write.ts`): `CT_Sheets` needs one
     `<sheet>`. ExcelJS wrote a file Excel calls invalid; the refusal is deliberate.
 

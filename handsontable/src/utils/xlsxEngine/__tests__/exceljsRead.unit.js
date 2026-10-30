@@ -6,6 +6,8 @@ import { join } from 'node:path';
 import ExcelJS from 'exceljs';
 import { excelJsAdapter } from '../adapters/exceljs';
 import { DroppedFeatures } from '../capabilities';
+import { nativeAdapter } from '../adapters/native';
+import { createCellSnapshot, createSheetSnapshot, createWorkbookSnapshot } from '../model';
 import { isLimitError, MAX_INPUT_BYTES, MAX_WORKBOOK_CELLS, MAX_WORKBOOK_SHEETS } from '../limits';
 
 function load(name) {
@@ -439,5 +441,30 @@ describe('excelJsAdapter.read', () => {
       expect(row[1].formula.result).toBe('#DIV/0!');
       expect(row[1].formula.resultIsError).toBe(true);
     });
+  });
+});
+
+describe('excelJsAdapter.read on defined names', () => {
+  it('should leave out a name over several areas and report it, keeping the single-range names', async() => {
+    // ExcelJS lists each area of `Multi` as its own range. Keeping the first silently turned the name
+    // into a different one.
+    const workbook = createWorkbookSnapshot();
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = [[{ ...createCellSnapshot(), value: 1 }]];
+    workbook.sheets.push(sheet);
+    workbook.definedNames = [
+      { name: 'Multi', formula: 'Sheet1!$A$1,Sheet1!$C$1', sheetName: null },
+      { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null },
+    ];
+
+    const bytes = await nativeAdapter.write(workbook, undefined, new DroppedFeatures());
+    const dropped = new DroppedFeatures();
+    const snapshot = await excelJsAdapter.read(
+      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), ExcelJS, dropped,
+    );
+
+    expect(snapshot.definedNames).toEqual([{ name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null }]);
+    expect(dropped.list()).toEqual(['definedNames:unsupported']);
   });
 });

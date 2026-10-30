@@ -51,6 +51,12 @@ describe('unwrapArrayFormula', () => {
     expect(unwrapArrayFormula('ARRAYFORMULA(A1')).toBe(null);
   });
 
+  it('should return null for an empty call, which has no formula to write as an array', () => {
+    // An empty inner text was written as an array formula with no formula text.
+    expect(unwrapArrayFormula('ARRAYFORMULA()')).toBe(null);
+    expect(unwrapArrayFormula('ARRAYFORMULA(  )')).toBe(null);
+  });
+
   it('should return null for any other formula', () => {
     expect(unwrapArrayFormula('SUM(A1:A3)')).toBe(null);
   });

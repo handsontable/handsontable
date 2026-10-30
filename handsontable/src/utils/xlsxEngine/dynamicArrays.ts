@@ -56,7 +56,8 @@ const ARRAYFORMULA_OPENING = 'ARRAYFORMULA(';
 
 /**
  * Unwraps a formula that is one `ARRAYFORMULA(…)` call as a whole: `ARRAYFORMULA(x)` gives `x`.
- * Returns `null` when the formula is anything else, including `ARRAYFORMULA(a)+ARRAYFORMULA(b)`.
+ * Returns `null` when the formula is anything else, including `ARRAYFORMULA(a)+ARRAYFORMULA(b)`
+ * and an empty `ARRAYFORMULA()`, which has no formula to write as an array.
  *
  * @param {string} formula The formula, without the leading `=`.
  * @returns {string|null}
@@ -82,7 +83,9 @@ export function unwrapArrayFormula(formula: string): string | null {
         depth -= 1;
 
         if (depth === 0) {
-          return index === formula.length - 1 ? formula.slice(ARRAYFORMULA_OPENING.length, index) : null;
+          const inner = formula.slice(ARRAYFORMULA_OPENING.length, index);
+
+          return index === formula.length - 1 && inner.trim() !== '' ? inner : null;
         }
       }
 

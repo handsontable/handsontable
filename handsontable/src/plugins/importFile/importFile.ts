@@ -400,8 +400,11 @@ function namedExpressionCheck(engine: NamedExpressionEngine | null | undefined):
 
   // `isItPossibleToAddNamedExpression` checks the name and refuses relative references only: a
   // definition that does not parse (`=A1:`) passes it and registers as a name that evaluates to an
-  // error, so the formula is validated as well.
-  return (name, expression) => isValidFormula(engine, expression) && check.call(engine, name, expression) === true;
+  // error, so the formula is validated as well. Both parse the formula, and HyperFormula's parser
+  // throws on a deeply nested one: a throw answers no, so the name is left out instead of the whole
+  // import failing.
+  return (name, expression) => isValidFormula(engine, expression)
+    && answersTrue(() => check.call(engine, name, expression));
 }
 
 /**
@@ -438,7 +441,7 @@ function namedExpressionComparison(
       return sameConstant(engine, name, expression, sheetName);
     }
 
-    return stored === engine.normalizeFormula?.(expression);
+    return answersTrue(() => stored === engine.normalizeFormula?.(expression));
   };
 }
 
@@ -526,9 +529,30 @@ function functionRegistryCheck(
 
 /**
  * Whether a Formulas engine parses the formula. An engine without `validateFormula` is not asked.
+ * HyperFormula 3.3's parser overflows the stack (`RangeError`) on about 100 levels of nesting; a
+ * formula it throws on is not valid.
+ *
+ * @param {NamedExpressionEngine|null|undefined} engine The Formulas plugin's engine.
+ * @param {string} formula The formula, `=` included.
+ * @returns {boolean}
  */
 function isValidFormula(engine: NamedExpressionEngine | null | undefined, formula: string): boolean {
-  return typeof engine?.validateFormula !== 'function' || engine.validateFormula(formula) === true;
+  return typeof engine?.validateFormula !== 'function'
+    || answersTrue(() => engine.validateFormula?.(formula));
+}
+
+/**
+ * Whether a question to the Formulas engine answers `true`. A throw answers `false`.
+ *
+ * @param {Function} ask The question.
+ * @returns {boolean}
+ */
+function answersTrue(ask: () => unknown): boolean {
+  try {
+    return ask() === true;
+  } catch {
+    return false;
+  }
 }
 
 /**

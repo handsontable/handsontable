@@ -1517,6 +1517,33 @@ describe('ImportFile and the workbook\'s defined names in a real HyperFormula en
     hf.destroy();
   });
 
+  it('should leave out a definition nested too deep for HyperFormula instead of failing the import', async() => {
+    // HyperFormula 3.3's parser overflows the stack (`RangeError`) on about 100 levels of nesting.
+    const deep = `${'('.repeat(150)}1${')'.repeat(150)}`;
+    const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+
+    hf.addSheet('Sheet1');
+
+    expect(() => hf.validateFormula(`=${deep}`)).toThrow(RangeError);
+
+    const added = await importInto(hf, await salesBytes([
+      { name: 'Deep', formula: deep, sheetName: null },
+      { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null },
+    ]));
+
+    expect(added.namedExpressions).toEqual([{ name: 'Sales', formula: 'Sheet1!$G$1:$G$3' }]);
+    expect(added.dropped).toEqual(['definedNames:unsupported']);
+
+    // A name the engine already defines is compared with the file's definition.
+    hf.addNamedExpression('Deep', '=1');
+
+    const compared = await importInto(hf, await salesBytes([{ name: 'Deep', formula: deep, sheetName: null }]));
+
+    expect(compared.dropped).toEqual(['definedNames:unsupported']);
+
+    hf.destroy();
+  });
+
   it('should leave out a name over the imported sheet when the engine has no name for the grid\'s sheet', async() => {
     const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
 

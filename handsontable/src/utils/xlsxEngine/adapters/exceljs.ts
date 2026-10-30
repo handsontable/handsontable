@@ -751,19 +751,38 @@ function readNumFmt(source: ExcelJsCell): string | null {
 /**
  * The names an ExcelJS workbook defines, Excel's own `_xlnm.` names left out. ExcelJS keeps only
  * the names whose value is a range, which is what a formula over a named range uses.
+ *
+ * A name ExcelJS lists with several ranges - a name over several areas (`Sheet1!$A$1,Sheet1!$C$1`)
+ * - is left out and recorded as `definedNames:unsupported`: its first range alone is a different
+ * name. ExcelJS 4.4 keeps one definition of a name defined in several scopes (the last), and the
+ * reader cannot tell it happened.
+ *
+ * @param {object} workbook The loaded ExcelJS workbook.
+ * @param {DroppedFeatures} dropped The read's dropped-feature collector.
+ * @returns {DefinedNameSnapshot[]}
  */
-function readDefinedNames(workbook: ExcelJsWorkbook): DefinedNameSnapshot[] {
+function readDefinedNames(workbook: ExcelJsWorkbook, dropped: DroppedFeatures): DefinedNameSnapshot[] {
   const model = workbook.definedNames?.model;
   const names = new Map<string, DefinedNameSnapshot>();
+  let unsupported = false;
 
   (Array.isArray(model) ? model : []).forEach(({ name, ranges }) => {
-    const formula = Array.isArray(ranges) ? ranges[0] : undefined;
-
-    if (typeof name === 'string' && name !== '' && !name.startsWith('_xlnm.')
-      && typeof formula === 'string' && !names.has(name)) {
-      names.set(name, { name, formula, sheetName: null });
+    if (typeof name !== 'string' || name === '' || name.startsWith('_xlnm.') || names.has(name)) {
+      return;
     }
+
+    if (!Array.isArray(ranges) || ranges.length !== 1 || typeof ranges[0] !== 'string') {
+      unsupported = unsupported || (Array.isArray(ranges) && ranges.length > 1);
+
+      return;
+    }
+
+    names.set(name, { name, formula: ranges[0], sheetName: null });
   });
+
+  if (unsupported) {
+    dropped.record(DROPPED_FEATURES.definedNamesUnsupported);
+  }
 
   return [...names.values()];
 }
@@ -1241,7 +1260,7 @@ export const excelJsAdapter: XlsxEngineAdapter = {
       snapshot.sheets.push(sheet);
     });
 
-    snapshot.definedNames = readDefinedNames(workbook);
+    snapshot.definedNames = readDefinedNames(workbook, dropped);
 
     return snapshot;
   },

@@ -40,7 +40,7 @@ The table covers both directions: **read** is what an import takes from the file
 | Conditional formatting | All rule kinds except `colorScale`, `dataBar`, `iconSet`, and rules Excel stores only in an `x14` extension | `cellIs`, `expression`, `containsText`, `top10`, `aboveAverage`, `timePeriod` | All kinds | `cellIs`, `expression`, `containsText`, `top10`, `aboveAverage`, `timePeriod`, `colorScale`, `dataBar`, `iconSet`; any other kind, such as `duplicateValues`, is left out with no report |
 | Numeric `compression` level | - | Platform default, reported as `compressionLevel` for any level but 6 | - | Honored |
 | Array formulas | Dynamic and legacy (CSE) arrays | Dynamic arrays, and `ARRAYFORMULA` as a legacy array | Every array as a legacy array | Legacy arrays only; a dynamic array is written as one and reported as `dynamicArrays` |
-| Defined names | Ranges and constants, workbook and sheet scope | Ranges and constants, workbook and sheet scope | The first range of a name; scope is lost; no constants | Workbook-scoped names over one range on a sheet |
+| Defined names | Ranges and constants, workbook and sheet scope | Ranges and constants, workbook and sheet scope | Names over one range (a name over several areas is left out); scope is lost; no constants | Workbook-scoped names over one range on a sheet |
 | Chart, dialog, and macro sheets, VBA projects | Skipped and reported | - | Skipped, not reported | - |
 
 What each engine reports when it drops something: [Dropped features reference](@/guides/import-and-export/dropped-features/dropped-features.md).
@@ -107,7 +107,7 @@ The ExcelJS engine reads these files differently, whatever wrote them:
 - A cell that uses one of Excel's built-in currency or accounting formats (ids 5-8 and 41-44) imports with no number format.
 - A workbook that openpyxl saved with a cell comment is refused, because ExcelJS looks for comments under `xl/comments<N>.xml` only.
 - ExcelJS cannot see the flag Excel 365 sets on a dynamic array, so every array formula reads as a legacy array and imports as `ARRAYFORMULA(...)`. The built-in engine imports a dynamic array live and lets it spill.
-- A defined name keeps only its first range, so a name over several areas loses the rest. A name scoped to a sheet reads as a workbook name, and a name defined as a constant is not read. A formula over such a name stays live and shows `#NAME?`, with nothing reported.
+- A defined name over several areas is not read: the import reports `definedNames:unsupported`, and a formula over the name stays live and shows `#NAME?`. A name scoped to a sheet reads as a workbook name, and a name defined in several scopes keeps only one definition. A name defined as a constant is not read: a formula over it stays live and shows `#NAME?`, with nothing reported.
 
 ### ExcelJS on export
 
@@ -115,7 +115,7 @@ The ExcelJS engine reads these files differently, whatever wrote them:
 - ExcelJS writes too many rows for one sheet with no warning. The built-in engine refuses them with a message that names the sheet. See [Limits](#limits).
 - ExcelJS writes nothing and reports nothing for a conditional formatting rule kind it does not know, such as `duplicateValues`.
 - ExcelJS writes a dynamic array formula as a legacy (CSE) array formula, and reports `dynamicArrays`. Excel shows it in braces, and the cells it spills over stay fixed to the range.
-- ExcelJS writes only the defined names that are workbook-scoped, point at one sheet-qualified range, and cover 100,000 cells in total. It leaves out every other name, such as a constant, an unqualified reference, a name scoped to a sheet, or a name over several areas, and reports `definedNames:unsupported`.
+- ExcelJS writes only the defined names that are workbook-scoped, point at one sheet-qualified range, and cover 100,000 cells in total. It leaves out every other name, such as a constant, an unqualified reference, a name scoped to a sheet, or a name over several areas, and reports `definedNames:unsupported`. A formula over a name it leaves out stays in the file, and Excel shows `#NAME?` for it. To keep such formulas working, use the built-in engine.
 
 ### Built-in engine
 

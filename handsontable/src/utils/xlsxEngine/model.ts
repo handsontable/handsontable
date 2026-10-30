@@ -20,18 +20,8 @@ export function isOoxmlErrorCode(value: unknown): value is string {
 }
 
 /**
- * A formula cell. `text` carries the formula without the leading `=`; `result` is the cached value
- * and is optional so the two shapes the export produces (`{ formula }` and `{ formula, result }`)
- * round-trip unchanged.
- *
- * `resultIsError` says the cached result is an ERROR value, not text: `result` then holds the
- * OOXML error code (`#DIV/0!`) and both writers type the cell `t="e"`. The export sets it from the
- * Formulas engine's own cell value, never from the text, because a formula may answer the text
- * `#N/A` (`="#N/A"`), which is a string. The readers set it from a `t="e"` cell, so they no longer
- * hand the code back unflagged. A flagged result that is not one of the {@link OOXML_ERROR_CODES}
- * is written as text.
- *
- * `array` says the formula is the master of an array formula (`<f t="array" ref="…">`).
+ * The array part of a formula cell: the formula is the master of an array formula
+ * (`<f t="array" ref="…">`), dynamic (Excel 365, `cm="1"`) or a legacy CSE array.
  */
 export interface CellFormulaArray {
   /**
@@ -45,7 +35,18 @@ export interface CellFormulaArray {
 }
 
 /**
- * The formula of a cell, see {@link CellFormulaArray} for the array part.
+ * A formula cell. `text` carries the formula without the leading `=`; `result` is the cached value
+ * and is optional so the two shapes the export produces (`{ formula }` and `{ formula, result }`)
+ * round-trip unchanged.
+ *
+ * `resultIsError` says the cached result is an ERROR value, not text: `result` then holds the
+ * OOXML error code (`#DIV/0!`) and both writers type the cell `t="e"`. The export sets it from the
+ * Formulas engine's own cell value, never from the text, because a formula may answer the text
+ * `#N/A` (`="#N/A"`), which is a string. The readers set it from a `t="e"` cell, so they no longer
+ * hand the code back unflagged. A flagged result that is not one of the {@link OOXML_ERROR_CODES}
+ * is written as text.
+ *
+ * `array` says the formula is the master of an array formula, see {@link CellFormulaArray}.
  */
 export interface CellFormula {
   text: string;

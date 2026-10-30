@@ -1,6 +1,6 @@
 import { localeLowerCase } from '../../../../../helpers/string';
 import { DROPPED_FEATURES, type DroppedFeatures } from '../../../capabilities';
-import { MAX_WORKBOOK_SHEETS, throwLimitExceeded } from '../../../limits';
+import { MAX_FORMULA_LENGTH, MAX_WORKBOOK_SHEETS, throwLimitExceeded } from '../../../limits';
 import { selectWritableDefinedNames } from '../../../definedNames';
 import { addFunctionPrefixes } from '../../../functionPrefixes';
 import type { DefinedNameSnapshot, SheetSnapshot } from '../../../model';
@@ -588,7 +588,9 @@ export const MAX_DEFINED_NAMES = 65536;
  *
  * A name past `MAX_DEFINED_NAMES` is left out and `DROPPED_FEATURES.definedNamesTruncated` is
  * recorded once. Dropped silently, a formula using such a name stayed live and showed `#NAME?`
- * with nothing in the import result to say why.
+ * with nothing in the import result to say why. A definition longer than `MAX_FORMULA_LENGTH` (the
+ * cap a cell formula gets) is left out and `DROPPED_FEATURES.definedNamesUnsupported` is recorded
+ * once; its text stops growing as soon as it crosses the cap.
  */
 export function parseWorkbook(
   xml: string,
@@ -597,7 +599,7 @@ export function parseWorkbook(
   const sheets: WorkbookSheetEntry[] = [];
   const definedNames = new Map<string, DefinedNameSnapshot>();
   let date1904 = false;
-  let pending: { name: string; sheetName: string | null; text: string } | null = null;
+  let pending: { name: string; sheetName: string | null; text: string; tooLong: boolean } | null = null;
   const localName = createLocalName();
   const relationshipIds = createRelationshipIdReader();
 
@@ -609,10 +611,18 @@ export function parseWorkbook(
       return;
     }
 
-    const { name, sheetName, text } = pending;
+    const { name, sheetName, text, tooLong } = pending;
     const key = `${sheetName ?? ''}\u0000${name}`;
 
     pending = null;
+
+    if (tooLong) {
+      if (dropped?.count(DROPPED_FEATURES.definedNamesUnsupported) === 0) {
+        dropped.record(DROPPED_FEATURES.definedNamesUnsupported);
+      }
+
+      return;
+    }
 
     if (definedNames.size < MAX_DEFINED_NAMES) {
       if (!definedNames.has(key)) {
@@ -632,8 +642,13 @@ export function parseWorkbook(
       }
     },
     text(text) {
-      if (pending) {
+      if (pending && !pending.tooLong) {
         pending.text += text;
+
+        if (pending.text.length > MAX_FORMULA_LENGTH) {
+          pending.tooLong = true;
+          pending.text = '';
+        }
       }
     },
     open(rawName, attrs, selfClosing) {
@@ -674,7 +689,7 @@ export function parseWorkbook(
           sheetName = scope.name;
         }
 
-        pending = { name: attrs.name, sheetName, text: '' };
+        pending = { name: attrs.name, sheetName, text: '', tooLong: false };
 
         if (selfClosing) {
           finish();

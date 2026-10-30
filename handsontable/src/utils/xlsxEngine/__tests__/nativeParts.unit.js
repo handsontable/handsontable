@@ -20,7 +20,7 @@ import { XmlWriter } from '../adapters/native/xml/writer';
 import { escapeXmlText, escapeXmlAttr, decodeOoxmlEscapes } from '../adapters/native/xml/escapes';
 import { DroppedFeatures } from '../capabilities';
 import { SheetBuilder } from '../builder';
-import { MAX_SHEET_CELLS, MAX_WORKBOOK_CELLS } from '../limits';
+import { MAX_FORMULA_LENGTH, MAX_SHEET_CELLS, MAX_WORKBOOK_CELLS } from '../limits';
 
 const sheets = [
   { index: 1, name: 'Data', state: 'visible', hasComments: true },
@@ -272,6 +272,24 @@ describe('package parts', () => {
     expect(definedNames[65535].name).toBe('N65535');
     expect(dropped.list()).toEqual(['definedNames:truncated']);
     expect(dropped.count('definedNames:truncated')).toBe(1);
+  });
+
+  it('should leave out a definition longer than MAX_FORMULA_LENGTH and record it once', () => {
+    // A cell formula that long is refused as `formula:tooLong`; a name definition was kept whole.
+    const dropped = new DroppedFeatures();
+    const atCap = '1'.repeat(MAX_FORMULA_LENGTH);
+    // Split by an entity, so the tokenizer hands the text over in several pieces.
+    const tooLong = `"${'a'.repeat(MAX_FORMULA_LENGTH / 2)}&amp;${'b'.repeat(MAX_FORMULA_LENGTH / 2)}"`;
+    const { definedNames } = parseWorkbook('<workbook><sheets/><definedNames>'
+      + `<definedName name="AtCap">${atCap}</definedName>`
+      + `<definedName name="TooLong">${tooLong}</definedName>`
+      + `<definedName name="AlsoTooLong">${atCap}1</definedName>`
+      + '<definedName name="Short">2</definedName>'
+      + '</definedNames></workbook>', dropped);
+
+    expect(definedNames.map(({ name }) => name)).toEqual(['AtCap', 'Short']);
+    expect(definedNames[0].formula).toBe(atCap);
+    expect(dropped.list()).toEqual(['definedNames:unsupported']);
   });
 
   it('should record nothing at exactly the defined-name cap, or for a repeated name past it', () => {

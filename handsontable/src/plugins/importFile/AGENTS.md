@@ -428,7 +428,8 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `_xlnm.` names left out). The ExcelJS reader carries RANGE names only: ExcelJS 4.4's
   `definedNames.model` drops a name whose value is a constant (`<definedName name="TaxRate">0.07`)
   and a relative one (`Data!G2`), so a formula over such a name stays live and shows `#NAME?` on that
-  engine, with nothing reported. Each formula is charged ONCE against `MAX_TRANSLATED_FORMULA_CHARS`, and
+  engine, with nothing reported. A multi-area name is left out by the ExcelJS reader with
+  `definedNames:unsupported`; its formulas stay live (`#NAME?`) too. Each formula is charged ONCE against `MAX_TRANSLATED_FORMULA_CHARS`, and
   that one charge covers the prefix strip, the reference walk (which also judges each sheet
   qualifier, through the walk's own `qualifier` group), the defined-name scan and the bare `TRUE`/`FALSE` walk. Charging every
   check separately refused files that imported at 1a59dedd71.
@@ -458,7 +459,7 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `collectNamedExpressions` in `mapper.ts`), so a formula over one imports live. It runs only with
   live formulas on AND `MapperContext.canAddNamedExpression` given (`importFile.ts` wires it to the
   engine's `validateFormula` AND `isItPossibleToAddNamedExpression` - the latter accepts a definition
-  that does not parse, `=A1:` or `=SUM(`, which would register an erroring name; an engine without that method registers nothing and
+  that does not parse, `=A1:` or `=SUM(`, which would register an erroring name; every engine question in these checks goes through `answersTrue`, because HF 3.3's parser throws `RangeError` on ~100-deep nesting and an uncaught throw failed the whole import; an engine without that method registers nothing and
   the old cached-value path applies). Rules: a name scoped to ANOTHER sheet is ignored, unreported;
   one scoped to the imported sheet is registered at WORKBOOK scope (the grid owns one engine sheet),
   ahead of a workbook-scoped name spelled like it. **A name the engine already lists
