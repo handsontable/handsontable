@@ -99,6 +99,8 @@ To let users change the number of frozen rows by dragging, enable the [`freezeBa
 
 The plugin changes the counts on the grid and doesn't write them back to the settings you passed in. To keep the counts in your own state, copy them in the [`afterFreezeChange`](@/api/hooks.md#afterfreezechange) hook.
 
+Undo and redo, [`alter()`](@/api/core.md#alter), and a tab switch in the [sheets bar](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md#per-sheet-view-state) change the counts without `afterFreezeChange`. After them, read the counts with [`getFreezeCount()`](@/api/freezeBar.md#getfreezecount), for example in the [`afterUndo`](@/api/hooks.md#afterundo), [`afterRedo`](@/api/hooks.md#afterredo), and [`afterSheetTabStateRestore`](@/api/hooks.md#aftersheettabstaterestore) hooks.
+
 The plugin hides the bars for rows when the [`Pagination`](@/api/pagination.md) plugin is on, because Pagination doesn't support frozen rows. For the full guide, see [Column freezing: Freeze columns by dragging](@/guides/columns/column-freezing/column-freezing.md#freeze-columns-by-dragging).
 
 ## Result
