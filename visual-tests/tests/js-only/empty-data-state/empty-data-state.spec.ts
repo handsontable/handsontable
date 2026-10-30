@@ -29,7 +29,7 @@ visualTest(__filename, {
   await expect(title).toHaveText('No data available');
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
-  // Into the corner header, onto Company name, open its menu, then Clear the value list and press OK.
+  // Into the corner header, onto Company name, open its menu, then Select none on the value list and press OK.
   await tablePage.keyboard.press('Tab');
   await tablePage.keyboard.press('Tab');
   await expect(companyName).toHaveClass(/\bcurrent\b/);

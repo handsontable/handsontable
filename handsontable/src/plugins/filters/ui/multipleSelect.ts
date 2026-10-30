@@ -76,7 +76,7 @@ export class MultipleSelectUI extends BaseUI {
    */
   #unlistedValue: unknown[] | null = null;
   /**
-   * Whether the user emptied the box with "Clear". An empty list cannot say on its own whether the
+   * Whether the user emptied the box with "Select none". An empty list cannot say on its own whether the
    * column filters nothing or excludes everything, so the answer is recorded when it is given.
    */
   #cleared = false;
@@ -575,7 +575,7 @@ export class MultipleSelectUI extends BaseUI {
   }
 
   /**
-   * On click listener for "Clear" link.
+   * On click listener for "Select none" link.
    *
    * @param {DOMEvent} event The mouse event object.
    */

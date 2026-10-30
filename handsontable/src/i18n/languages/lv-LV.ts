@@ -104,7 +104,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: 'Vai',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: 'Izvēlēties visu',
-  [C.FILTERS_BUTTONS_CLEAR]: 'Notīrīt',
+  [C.FILTERS_BUTTONS_CLEAR]: 'Noņemt izvēli',
   [C.FILTERS_BUTTONS_OK]: 'Labi',
   [C.FILTERS_BUTTONS_CANCEL]: 'Atcelt',
 

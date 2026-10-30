@@ -75,6 +75,9 @@ export function createMenuItemRenderer(mainTableHot: HotInstance) {
       ? ((item as Record<string, unknown>).ariaChecked as (...args: unknown[]) => unknown).call(mainTableHot)
       : (item as Record<string, unknown>).ariaChecked) as boolean | string | undefined;
     const checkedState = getItemCheckedState(item, mainTableHot);
+    // Read once per render: a `disabled()` callback may walk the whole selection (the comment items
+    // do), and the ARIA attributes and the class below all need the same answer.
+    const isDisabled = isItemDisabled(item, mainTableHot);
 
     cellProperties.readOnlyCellClassName = '';
 
@@ -82,7 +85,7 @@ export function createMenuItemRenderer(mainTableHot: HotInstance) {
     addClass(wrapper, 'htItemWrapper');
 
     if (mainTableHot.getSettings().ariaTags) {
-      const isFocusable = !isItemDisabled(item, mainTableHot) &&
+      const isFocusable = !isDisabled &&
         !isItemSelectionDisabled(item) &&
         !isItemSeparator(item);
 
@@ -96,7 +99,7 @@ export function createMenuItemRenderer(mainTableHot: HotInstance) {
           A11Y_LABEL(itemValue)
         ]),
         ...(isFocusable ? [A11Y_TABINDEX(-1)] : []),
-        ...(isItemDisabled(item, mainTableHot) ? [A11Y_DISABLED()] : []),
+        ...(isDisabled ? [A11Y_DISABLED()] : []),
         ...(isItemSubMenu(item) ? [A11Y_EXPANDED(false)] : []),
       ]);
     }
@@ -142,7 +145,7 @@ export function createMenuItemRenderer(mainTableHot: HotInstance) {
       }
     }
 
-    if (isItemDisabled(item, mainTableHot)) {
+    if (isDisabled) {
       addClass(TD, 'htDisabled');
 
     } else if (isItemSelectionDisabled(item)) {

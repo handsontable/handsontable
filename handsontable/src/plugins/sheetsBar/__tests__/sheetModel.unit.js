@@ -225,6 +225,38 @@ describe('SheetModel', () => {
     expect(copy.settings.colHeaders).toBe(true);
   });
 
+  describe('a name written in composed and decomposed form', () => {
+    const composed = 'Caf\u00e9';
+    const decomposed = 'Cafe\u0301';
+
+    it('resolves to the same sheet', () => {
+      const model = new SheetModel();
+      const sheet = model.addSheet(composed, [[]]);
+
+      expect(composed).not.toBe(decomposed);
+      expect(model.resolveId(decomposed)).toBe(sheet.id);
+    });
+
+    it('refuses a rename onto the other form of a taken name', () => {
+      const model = new SheetModel();
+
+      model.addSheet(composed, [[]]);
+
+      const other = model.addSheet('Other', [[]]);
+
+      expect(model.renameSheet(other.id, decomposed)).toBe(false);
+      expect(other.name).toBe('Other');
+    });
+
+    it('numbers a new sheet that asks for the other form of a taken name', () => {
+      const model = new SheetModel();
+
+      model.addSheet(composed, [[]]);
+
+      expect(model.addSheet(decomposed, [[]]).name).toBe(`${decomposed} (2)`);
+    });
+  });
+
   describe('resolveId', () => {
     it.each([
       ['undefined', undefined],
