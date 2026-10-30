@@ -1,5 +1,5 @@
 # grid
-- treegrid:
+- treegrid "Orders":
   - rowgroup:
     - 'row "ORD-01 #1"':
       - gridcell "ORD-01" [selected]

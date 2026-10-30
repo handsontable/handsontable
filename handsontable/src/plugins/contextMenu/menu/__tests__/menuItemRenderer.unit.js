@@ -285,4 +285,28 @@ describe('menuItemRenderer', () => {
       expect(isItemCheckable({ key: 'a', name: 'Top', checked: () => false })).toBe(true);
     });
   });
+
+  describe('the disabled state of an item', () => {
+    it('should call the `disabled` callback once per render and mark the item from that answer', () => {
+      // A `disabled()` callback may walk the whole selection (the comment items do), so the
+      // renderer asks once and reuses the answer for `tabindex`, `aria-disabled` and the class.
+      const disabled = jest.fn(() => true);
+      const { TD } = renderItem({ key: 'a', name: 'Delete comment', disabled }, { ariaTags: true });
+
+      expect(disabled).toHaveBeenCalledTimes(1);
+      expect(TD.getAttribute('aria-disabled')).toBe('true');
+      expect(TD.hasAttribute('tabindex')).toBe(false);
+      expect(TD.classList.contains('htDisabled')).toBe(true);
+    });
+
+    it('should leave an enabled item focusable and not mark it as disabled', () => {
+      const disabled = jest.fn(() => false);
+      const { TD } = renderItem({ key: 'a', name: 'Delete comment', disabled }, { ariaTags: true });
+
+      expect(disabled).toHaveBeenCalledTimes(1);
+      expect(TD.getAttribute('aria-disabled')).toBe(null);
+      expect(TD.getAttribute('tabindex')).toBe('-1');
+      expect(TD.classList.contains('htDisabled')).toBe(false);
+    });
+  });
 });

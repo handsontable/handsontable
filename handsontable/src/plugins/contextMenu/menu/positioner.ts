@@ -110,6 +110,7 @@ export class Positioner {
         this.setPositionBelowCursor();
       }
 
+      this.#clampVertically();
       this.updateHorizontalPosition();
     } else {
       this.setPositionBelowCursor();
@@ -134,6 +135,8 @@ export class Positioner {
     } else {
       this.setPositionOnLeftOfCursor();
     }
+
+    this.#clampHorizontally();
   }
 
   /**
@@ -210,4 +213,66 @@ export class Positioner {
 
     this.#container!.style.left = `${left}px`;
   }
+
+  /**
+   * Moves the menu back inside the viewport when the side it was placed on leaves it. The side is
+   * chosen from the room on one side of the cursor, so a menu that fits on neither side of it ends
+   * up past the viewport's edge. The check runs on the position written to `style.left`, which is in
+   * page coordinates, so the viewport's edges are the window's scroll offset and that offset plus the
+   * viewport's width. A menu wider than the viewport keeps the edge the window can not scroll to: the
+   * left edge in an LTR document and the right edge in an RTL one. The document's direction decides
+   * that, not the menu's, because the document is what scrolls.
+   */
+  #clampHorizontally() {
+    const container = this.#container!;
+    const { scrollLeft, rootWindow } = this.#cursor!;
+    const { documentElement } = rootWindow.document;
+    const minLeft = scrollLeft;
+    const maxLeft = scrollLeft + documentElement.clientWidth - container.offsetWidth;
+    const left = Number.parseFloat(container.style.left);
+    const isDocumentRtl = rootWindow.getComputedStyle(documentElement).direction === 'rtl';
+    const clampedLeft = clampIntoRange(left, minLeft, maxLeft, !isDocumentRtl);
+
+    if (clampedLeft !== left) {
+      container.style.left = `${clampedLeft}px`;
+    }
+  }
+
+  /**
+   * Moves the menu back inside the viewport when neither the room below the cursor nor the room above
+   * it fits the menu, which `updatePosition()` answers by placing it below anyway. The check runs on
+   * the position written to `style.top`, which is in page coordinates, so the viewport's edges are the
+   * window's scroll offset and that offset plus the viewport's height without a horizontal scrollbar
+   * (`clientHeight`, as the horizontal clamp reads `clientWidth`). A menu taller than the viewport keeps
+   * its top edge visible.
+   */
+  #clampVertically() {
+    const container = this.#container!;
+    const { scrollTop, rootWindow } = this.#cursor!;
+    const minTop = scrollTop;
+    const maxTop = scrollTop + rootWindow.document.documentElement.clientHeight - container.offsetHeight;
+    const top = Number.parseFloat(container.style.top);
+    const clampedTop = clampIntoRange(top, minTop, maxTop, true);
+
+    if (clampedTop !== top) {
+      container.style.top = `${clampedTop}px`;
+    }
+  }
+}
+
+/**
+ * Limits a position to the range a menu may start in. A range whose maximum is below its minimum is
+ * a menu larger than the viewport: the bound listed last wins, so `preferMin` keeps the menu's
+ * leading edge at the minimum, and its absence keeps the menu's trailing edge at the maximum.
+ *
+ * @param {number} value The position to limit.
+ * @param {number} min The lowest position that keeps the menu's start edge in the viewport.
+ * @param {number} max The highest position that keeps the menu's end edge in the viewport.
+ * @param {boolean} preferMin Whether the minimum wins when the range is empty.
+ * @returns {number} The position inside the range, or the preferred bound when there is none.
+ */
+function clampIntoRange(value: number, min: number, max: number, preferMin: boolean) {
+  return preferMin ?
+    Math.max(min, Math.min(value, max)) :
+    Math.min(max, Math.max(value, min));
 }

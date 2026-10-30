@@ -661,6 +661,16 @@ export class DataProviderSheetsBarPage {
   }
 
   /**
+   * The row header the grid shows for a visual row: on a server-paged sheet, the row's number across all pages.
+   *
+   * @param {number} row The visual row index.
+   * @returns {Promise<unknown>} The row header.
+   */
+  async rowHeader(row: number): Promise<unknown> {
+    return this.page.evaluate(r => window.hot.getRowHeader(r), row);
+  }
+
+  /**
    * The pager's current page, page size, and total page count.
    *
    * @returns {Promise<{ currentPage: number, pageSize: number, totalPages: number }>} The pagination state.

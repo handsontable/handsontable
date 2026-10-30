@@ -43,6 +43,10 @@ describe('Loading - update method', () => {
       title: 'Updated title',
     });
 
+    expect(loadingPlugin.isVisible()).toBe(false);
+
+    loadingPlugin.show();
+
     const container = getLoadingContainerElement();
 
     expect(container.querySelector('.ht-loading__title').textContent).toBe('Updated title');

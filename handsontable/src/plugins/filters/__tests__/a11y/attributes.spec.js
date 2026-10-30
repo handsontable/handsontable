@@ -12,7 +12,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     }
   });
 
-  it('should assign the `role=button` to the `Select All` and `Clear` links', async() => {
+  it('should assign the `role=button` to the `Select All` and `Select none` links', async() => {
     handsontable({
       colHeaders: true,
       filters: true,

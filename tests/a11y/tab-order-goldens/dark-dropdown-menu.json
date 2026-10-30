@@ -27,7 +27,7 @@
       {
         "region": "portal",
         "role": "button",
-        "name": "Clear"
+        "name": "Select none"
       },
       {
         "region": "portal",

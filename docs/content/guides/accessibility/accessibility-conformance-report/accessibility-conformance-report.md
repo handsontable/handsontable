@@ -84,7 +84,7 @@ Known issues are tracked in the public GitHub repository at [github.com/handsont
 
 Screen readers:
 
-{{$a11y.matrix.list}}
+{{$a11y.matrix.auditList}}
 
 Browsers:
 

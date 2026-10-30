@@ -39,14 +39,15 @@ describe('ExtendMetaPropertiesMod', () => {
         expect(metaManager.getTableMeta().fixedColumnsStart).toEqual(0);
       });
 
-      it('when set `fixedColumnsLeft` = 0 and `fixedColumnsStart` = 0 should throws', () => {
+      it('when set `fixedColumnsLeft` = 0 and then `fixedColumnsStart` = 0 should equal 0', () => {
         const hotMock = new Handsontable();
         const metaManager = new MetaManager(hotMock, {}, [ExtendMetaPropertiesMod]);
 
-        expect(() => {
-          metaManager.getTableMeta().fixedColumnsLeft = 0;
-          metaManager.getTableMeta().fixedColumnsStart = 0;
-        }).toThrow();
+        metaManager.getTableMeta().fixedColumnsLeft = 0;
+        metaManager.getTableMeta().fixedColumnsStart = 0;
+
+        expect(metaManager.getTableMeta().fixedColumnsLeft).toEqual(0);
+        expect(metaManager.getTableMeta().fixedColumnsStart).toEqual(0);
       });
 
       it('when set `fixedColumnsStart` = 0 should equal 0', () => {
@@ -69,14 +70,20 @@ describe('ExtendMetaPropertiesMod', () => {
         expect(metaManager.getTableMeta().fixedColumnsStart).toEqual(1);
       });
 
-      it('when set `fixedColumnsLeft` = 1 and `fixedColumnsStart` = 2 should throws', () => {
+      it('when set `fixedColumnsLeft` = 1 and then `fixedColumnsStart` = 2 the later value wins', () => {
         const hotMock = new Handsontable();
         const metaManager = new MetaManager(hotMock, {}, [ExtendMetaPropertiesMod]);
 
-        expect(() => {
-          metaManager.getTableMeta().fixedColumnsLeft = 1;
-          metaManager.getTableMeta().fixedColumnsStart = 2;
-        }).toThrow();
+        metaManager.getTableMeta().fixedColumnsLeft = 1;
+        metaManager.getTableMeta().fixedColumnsStart = 2;
+
+        expect(metaManager.getTableMeta().fixedColumnsLeft).toEqual(2);
+        expect(metaManager.getTableMeta().fixedColumnsStart).toEqual(2);
+
+        metaManager.getTableMeta().fixedColumnsLeft = 3;
+
+        expect(metaManager.getTableMeta().fixedColumnsLeft).toEqual(3);
+        expect(metaManager.getTableMeta().fixedColumnsStart).toEqual(3);
       });
 
       it('when set `fixedColumnsStart` = 2 should equal 2', () => {

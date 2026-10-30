@@ -6,6 +6,7 @@ import {
 } from '../utils/utils';
 import { GRID_SCOPE, GRID_GROUP, GRID_TAB_NAVIGATION_GROUP } from '../../shortcuts/contexts';
 import { hasRenderedCells } from '../../shortcuts/guards';
+import { getTabReentryCoords, setTabReentryCoords, setLeftByTab } from '../tabReentry';
 
 /**
  * @param {Handsontable} hot The Handsontable instance.
@@ -17,18 +18,29 @@ export function focusGridScope(hot: HotInstance) {
     wrapped: false,
     flipped: false,
   };
-  let recentlyAddedFocusCoords: Record<string, number> | undefined;
   let isSavingCoordsEnabled = true;
   let isEmptyDataStateActive = false;
+  let isTabPressed = false;
 
   hot.addHook('afterSelection', () => {
+    setLeftByTab(hot, false);
+
     if (isSavingCoordsEnabled) {
-      recentlyAddedFocusCoords =
-        hot.getSelectedRangeActive()?.highlight as unknown as Record<string, number> | undefined;
+      setTabReentryCoords(
+        hot,
+        hot.getSelectedRangeActive()?.highlight as unknown as Record<string, number> | undefined,
+      );
     }
   });
+  hot.addHook('afterDeselect', () => {
+    setLeftByTab(hot, isTabPressed);
+  });
+  hot.addHook('afterDocumentKeyDown', () => {
+    isTabPressed = false;
+  });
   hot.addHook('afterLoadData', () => {
-    recentlyAddedFocusCoords = undefined;
+    setTabReentryCoords(hot, undefined);
+    setLeftByTab(hot, false);
   });
   hot.addHook('beforeRowWrap', (
     interruptedByAutoInsertMode: boolean, newCoords: Record<string, number>, isFlipped: boolean) => {
@@ -53,6 +65,8 @@ export function focusGridScope(hot: HotInstance) {
     position: 'before',
     callback() {
       const { tabNavigation } = hot.getSettings();
+
+      isTabPressed = true;
 
       if (hot.getSelectedRangeActive() && !tabNavigation) {
         isSavingCoordsEnabled = false;
@@ -79,7 +93,7 @@ export function focusGridScope(hot: HotInstance) {
           const newCoords = event.shiftKey
             ? getMostTopStartPosition(hot) : getMostBottomEndPosition(hot);
 
-          recentlyAddedFocusCoords = newCoords as unknown as Record<string, number> | undefined;
+          setTabReentryCoords(hot, newCoords as unknown as Record<string, number> | undefined);
         }
 
         rowWrapState.wrapped = false;
@@ -127,7 +141,8 @@ export function focusGridScope(hot: HotInstance) {
     },
     onActivate: (focusSource: string) => {
       if (focusSource === 'tab_from_above') {
-        const mostTopStartCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostTopStartPosition(hot);
+        const mostTopStartCoords = clampCoordsIfNeeded(getTabReentryCoords(hot))
+          ?? getMostTopStartPosition(hot);
 
         if (mostTopStartCoords) {
           const result = hot.runHooks('modifyFocusOnTabNavigation', 'from_above', mostTopStartCoords);
@@ -139,7 +154,8 @@ export function focusGridScope(hot: HotInstance) {
           }
         }
       } else if (focusSource === 'tab_from_below') {
-        const mostBottomEndCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostBottomEndPosition(hot);
+        const mostBottomEndCoords = clampCoordsIfNeeded(getTabReentryCoords(hot))
+          ?? getMostBottomEndPosition(hot);
 
         if (mostBottomEndCoords) {
           const result = hot.runHooks('modifyFocusOnTabNavigation', 'from_below', mostBottomEndCoords);
