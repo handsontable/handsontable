@@ -56,6 +56,8 @@ Keep in mind that starting from version `15.0`, importing a theme is required.
 
 If you want to use the `main` theme without any modifications, you don't need to configure anything. Handsontable will automatically use the `main` theme with default settings.
 
+The default color scheme is `'auto'`, so the grid follows the color scheme of the operating system. On a system set to dark mode, the grid renders dark. To always render the light color scheme, see [Light and dark modes](#light-and-dark-modes).
+
 :::
 
 ::: only-for javascript
