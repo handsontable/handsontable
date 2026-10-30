@@ -8,6 +8,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 
 ## What it owns
 
+- **Where a sheet's rows live.** With `sheetsBar: true`, Sheet1 is the host's `data` array and every sheet
+  added later exists only in the plugin (`Sheet.data` in the model); with a declared workbook the host owns
+  every array (`sheets[i].data`). `getSheetData()` reads either without a switch: the model's array for a
+  hidden sheet (physical order, also for a sorted one, as a switch loads it) and `#getLiveSourceData()` for
+  the sheet the grid holds (`#loadedSheetId`, else the active one), since a host `loadData()` replaces it.
 - `sheetModel.ts` — the sheet collection (ids, unique clamped names, order). Pure, no
   Handsontable access. Names are compared NFC-normalized and case-insensitively, with plain
   `toLowerCase()` (`isSameName`), the way HyperFormula canonicalizes sheet names: a tab name the

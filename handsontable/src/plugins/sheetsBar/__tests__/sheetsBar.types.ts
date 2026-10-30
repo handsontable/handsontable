@@ -34,6 +34,10 @@ const renamed: boolean = sheetsBar.renameSheet(sheets[0].id, 'Totals');
 const removed: boolean = sheetsBar.removeSheet(copy === null ? 1 : copy.id);
 const switched: boolean = sheetsBar.setActiveSheet('Budget');
 const updated: boolean = sheetsBar.updateSheetSettings('Budget', { readOnly: true });
+const budgetData: unknown[] | null = sheetsBar.getSheetData('Budget');
+const staffData: unknown[] | null = sheetsBar.getSheetData(sheets[1].id);
+const savedWorkbook: Array<{ name: string, data: unknown[] | null }> = sheetsBar.getSheets()
+  .map(({ id, name }) => ({ name, data: sheetsBar.getSheetData(id) }));
 
 hot.addHook('beforeSheetTabAdd', (name, duplicateOfId, source) => {
   return name === 'x' && duplicateOfId === 1 && source === 'SheetsBar.ui' ? false : undefined;
@@ -42,5 +46,11 @@ hot.addHook('afterSheetTabAdd', (sheetId, name, duplicateOfId, source) => {
   return `${sheetId}${name}${duplicateOfId}${source}${moved}${renamed}${removed}${switched}${updated}`;
 });
 
+// @ts-expect-error a sheet's data is not a two-dimensional array of numbers
+const typedData: number[][] = sheetsBar.getSheetData('Budget');
+
+// @ts-expect-error a sheet is named by its id or its name
+sheetsBar.getSheetData({ id: 1 });
+hot.addHook('afterSheetTabChange', () => [budgetData, staffData, savedWorkbook, typedData]);
 // @ts-expect-error a sheet's position is a number
 sheetsBar.moveSheetToIndex(sheets[0].id, '1');

@@ -2109,6 +2109,46 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
+   * Returns a sheet's source data, without switching to it. With `sheetsBar: true`, the sheets added
+   * after the first one exist only in the plugin, and this is how you read them. With a declared
+   * workbook, it returns the same array as the sheet's `data` in your `sheets` array.
+   *
+   * The array is live: no copy is made. For the active sheet, it is the array the grid works on, so after a
+   * {@link Core#loadData} it is the array you loaded. Rows of a sorted sheet keep their own order. While the
+   * sheet is active, change its data through {@link Core#setDataAtCell} or {@link Core#loadData}, not in
+   * place.
+   *
+   * Returns `null` when the bar is off or the sheet does not exist.
+   *
+   * @example
+   * ```js
+   * const sheetsBar = hot.getPlugin('sheetsBar');
+   * const workbook = sheetsBar.getSheets().map(({ id, name }) => ({ name, data: sheetsBar.getSheetData(id) }));
+   * ```
+   *
+   * @param {number|string} idOrName The sheet's id, or its name.
+   * @returns {Array|null} The sheet's source data, or `null`.
+   */
+  getSheetData(idOrName: number | string): unknown[] | null {
+    const model = this.#model;
+
+    if (model === null || this.hot.isDestroyed) {
+      return null;
+    }
+
+    const id = model.resolveId(idOrName);
+    const sheet = id === null ? null : model.getSheetById(id);
+
+    if (!sheet) {
+      return null;
+    }
+
+    const loadedId = this.#loadedSheetId ?? model.getActiveSheet()?.id ?? null;
+
+    return id === loadedId ? this.#getLiveSourceData() : sheet.data;
+  }
+
+  /**
    * Renames a sheet.
    *
    * Returns `false` when the bar is off, the id is unknown, the name has no visible character or is

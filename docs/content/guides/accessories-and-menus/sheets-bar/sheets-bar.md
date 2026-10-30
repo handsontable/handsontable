@@ -185,6 +185,9 @@ sheetsBar.getSheets();
 // switch the active sheet, by id or by name
 sheetsBar.setActiveSheet('Notes');
 
+// read a sheet's data without switching to it, by id or by name
+sheetsBar.getSheetData('Notes');
+
 // append a new sheet, and keep its id
 const { id } = sheetsBar.addSheet('Q3 Forecast', [['Category', 'Q3 2026']]);
 
@@ -200,6 +203,19 @@ sheetsBar.updateSheetSettings('Budget', { readOnly: true });
 ```
 
 A sheet's id never changes, and no other sheet gets it later, even after you pass a new `sheets` value.
+
+### Read the data of every sheet
+
+With `sheetsBar: true`, the first sheet uses the grid's `data`, but the sheets you add exist only in the plugin. To read any sheet's data without switching to it, call [`getSheetData()`](@/api/sheetsBar.md#getsheetdata). It works the same way with a `sheets` array, where it returns the array of that sheet's `data`.
+
+To save the whole workbook:
+
+```js
+const sheetsBar = hot.getPlugin('sheetsBar');
+const workbook = sheetsBar.getSheets().map(({ id, name }) => ({ name, data: sheetsBar.getSheetData(id) }));
+```
+
+The method returns the sheet's own array, not a copy. To change the data of the active sheet, use [`setDataAtCell()`](@/api/core.md#setdataatcell) or [`loadData()`](@/api/core.md#loaddata), not the array itself.
 
 ## Work with tabs
 
