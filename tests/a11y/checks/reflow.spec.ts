@@ -198,13 +198,20 @@ async function collect(page: Page, root: string) {
       return { left, top, right: Math.max(left, right), bottom: Math.max(top, bottom) };
     };
     const interactiveElements = elements.filter(node => node.matches(interactive));
+    // Each popup element is a layer of its own (a submenu is a second `.htMenu` beside its menu); the page
+    // outside every popup is layer 0.
+    const popupSelector = surfaces.filter(([, , isPopup]) => isPopup).map(([css]) => css).join(', ');
+    const layers: Element[] = [];
     const controls = interactiveElements.map((node, id) => {
       const rect = shown(node);
       const within = interactiveElements.map((other, index) => (other !== node && other.contains(node) ? index : -1)).filter(index => index > -1);
+      const popup = node.closest(popupSelector);
 
-      const popup = surfaces.some(([css, , isPopup]) => isPopup && !!node.closest(css));
+      if (popup && !layers.includes(popup)) {
+        layers.push(popup);
+      }
 
-      return { id, selector: name(node), left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, within, popup };
+      return { id, selector: name(node), left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, within, layer: popup ? layers.indexOf(popup) + 1 : 0 };
     });
 
     return {
