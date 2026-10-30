@@ -36,17 +36,27 @@ describe('ColumnSummary with `ranges: []`', () => {
   });
 
   /**
-   * Builds a grid with one summary of the given type on the first row and an empty range.
+   * Builds a grid with the summary on the first row and two data rows below it.
    *
-   * @param {string} type The summary type.
+   * @param {object[]|Function} columnSummary The endpoints to declare.
    * @returns {Handsontable} The created instance.
    */
-  function buildGrid(type) {
+  function buildGrid(columnSummary) {
     return new Handsontable(container, {
       licenseKey: 'non-commercial-and-evaluation',
       data: [[null], [10], [20]],
-      columnSummary: [{ destinationColumn: 0, destinationRow: 0, type, ranges: [] }],
+      columnSummary,
     });
+  }
+
+  /**
+   * Returns one endpoint with the summary on the first row.
+   *
+   * @param {object} config The endpoint options to add.
+   * @returns {object} The endpoint.
+   */
+  function endpoint(config) {
+    return { destinationColumn: 0, destinationRow: 0, ...config };
   }
 
   it.each([
@@ -56,13 +66,46 @@ describe('ColumnSummary with `ranges: []`', () => {
     ['max', 'Not enough data'],
     ['average', 'Not enough data'],
   ])('shows the empty result for `%s`', (type, expected) => {
-    hot = buildGrid(type);
+    hot = buildGrid([endpoint({ type, ranges: [] })]);
 
     expect(hot.getDataAtCell(0, 0)).toBe(expected);
   });
 
+  it('hands a `custom` function an empty `ranges` array', () => {
+    let receivedRanges;
+
+    hot = buildGrid([endpoint({
+      type: 'custom',
+      ranges: [],
+      customFunction(summaryEndpoint) {
+        receivedRanges = summaryEndpoint.ranges;
+
+        return 7;
+      },
+    })]);
+
+    expect(receivedRanges).toEqual([]);
+    expect(hot.getDataAtCell(0, 0)).toBe(7);
+  });
+
+  it('summarizes no rows when the settings are a function', () => {
+    hot = buildGrid(() => [endpoint({ type: 'sum', ranges: [] })]);
+
+    expect(hot.getDataAtCell(0, 0)).toBe(0);
+  });
+
+  it('summarizes no rows after `updateSettings()`', async() => {
+    hot = buildGrid([endpoint({ type: 'sum' })]);
+
+    expect(hot.getDataAtCell(0, 0)).toBe(30);
+
+    await hot.updateSettings({ columnSummary: [endpoint({ type: 'sum', ranges: [] })] });
+
+    expect(hot.getDataAtCell(0, 0)).toBe(0);
+  });
+
   it('keeps summarizing no rows after a row is added and removed', async() => {
-    hot = buildGrid('sum');
+    hot = buildGrid([endpoint({ type: 'sum', ranges: [] })]);
 
     await hot.alter('insert_row_above', 1);
     hot.setDataAtCell(1, 0, 5);
@@ -74,9 +117,14 @@ describe('ColumnSummary with `ranges: []`', () => {
     expect(hot.getDataAtCell(0, 0)).toBe(0);
   });
 
-  it('exports the empty range as `[]`', () => {
-    hot = buildGrid('sum');
+  it('summarizes the whole column when `ranges` is not an array', async() => {
+    hot = buildGrid([endpoint({ type: 'sum', ranges: null })]);
 
-    expect(hot.getPlugin('columnSummary').exportEndpointSettings()[0].ranges).toEqual([]);
+    expect(hot.getDataAtCell(0, 0)).toBe(30);
+
+    await hot.alter('insert_row_below', 2);
+    hot.setDataAtCell(3, 0, 5);
+
+    expect(hot.getDataAtCell(0, 0)).toBe(35);
   });
 });

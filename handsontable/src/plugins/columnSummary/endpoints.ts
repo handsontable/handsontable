@@ -366,7 +366,7 @@ class Endpoints {
    * @param {object} defaultValue Default value for the settings.
    */
   assignSetting(settings: EndpointConfig, endpoint: EndpointConfig, name: string, defaultValue: unknown) {
-    if (name === 'ranges' && settings[name] === undefined) {
+    if (name === 'ranges' && !Array.isArray(settings[name])) {
       endpoint[name] = defaultValue as number[][];
       // Remember that the range is the whole-table default, so a structure alteration can re-derive it
       // (DEV-2995). INTERNAL field: not declared on `EndpointConfig`, and `parseSettings()` never copies it.

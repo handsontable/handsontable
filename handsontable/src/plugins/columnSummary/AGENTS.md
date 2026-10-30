@@ -310,9 +310,12 @@ the internal `rangesFromDefault` flag (not on `EndpointConfig`, never copied by 
 
 - **Only the flag decides.** An explicit range names records and must not auto-grow, so it is never re-derived.
   `ranges: []` is an explicit range too: it summarizes no rows, the same result as an empty table, and
-  carries no flag. It used to leave `ranges` unset, and every calculation threw `endpoint.ranges is not
-  iterable` while the grid was built. Do not read it as the whole-table default: a caller that builds `ranges`
-  in code and filters it down to nothing would then get a total over every row. `emptyRanges.unit.js` pins it.
+  carries no flag. It used to leave `ranges` unset. In 17.x `objectEach` skipped the unset value, so `[]`
+  already summarized nothing; from 18.0.0 the built-in types loop with `for...of` and threw `endpoint.ranges
+  is not iterable`, at build and on `updateSettings()`. A `custom` function never threw, and it now gets
+  `[]` instead of `undefined`. Do not read `[]` as the whole-table default: a caller that builds `ranges` in
+  code and filters it down to nothing would then get a total over every row. Any other non-array value
+  (`null`) takes the default, so every stored `ranges` is an array. `emptyRanges.unit.js` pins it.
 - **The default means the whole table**, so a row inserted above row 0 is included, and a removal under
   `maxRows` pulls in the row the cap used to hide. The shift alone would have moved the start to 1 and
   shortened the end.
