@@ -7,6 +7,8 @@ import BaseType from '../types/_base';
 import { normalizeExportOptions } from '../utils';
 import { detectXlsxEngine } from '../../../utils/xlsxEngine/detect';
 import { _resetDeprecationWarnings } from '../../../helpers/console';
+import { buildTestKey } from '../../../utils/entitlementLicenseKey/__tests__/buildTestKey';
+import { SUBSCRIPTION_KEY } from '../../../utils/entitlementLicenseKey/__tests__/fixtures';
 
 beforeEach(() => {
   // `deprecatedWarnOnce` records printed warnings module-globally, so without this the
@@ -471,5 +473,65 @@ describe('ExportDataProvider#getLayoutDirection', () => {
 
     expect(provider(true).getLayoutDirection()).toBe('rtl');
     expect(provider(false).getLayoutDirection()).toBe('ltr');
+  });
+});
+
+describe('ExportFile license capabilities', () => {
+  let container;
+  let hot;
+
+  const keyWith = tokens => buildTestKey({
+    products: {
+      handsontable: {
+        capabilities: ['core', ...tokens],
+        usage_until: '2027-08-12',
+        notice: 60,
+        grace: 90,
+        flags: [],
+      },
+    },
+  });
+  const createGrid = (licenseKey) => {
+    hot = new Handsontable(container, { data: [['a', 1]], exportFile: true, licenseKey });
+
+    return hot.getPlugin('exportFile');
+  };
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    hot?.destroy();
+    hot = null;
+    container.remove();
+  });
+
+  it('exposes its capability declarations', () => {
+    expect(ExportFile.CAPABILITIES.map(c => c.id)).toContain('xlsx:export');
+    expect(ExportFile.CAPABILITIES.map(c => c.id)).not.toContain('xlsx:import');
+  });
+
+  it('refuses an xlsx export and reports no xlsx support when the key lacks xlsx:export', async() => {
+    const plugin = createGrid(keyWith(['xlsx:import']));
+    const message = 'ExportFile: the license does not unlock "xlsx:export".';
+
+    expect(plugin.supportsExportFormat('xlsx')).toBe(false);
+    expect(plugin.supportsExportFormat('csv')).toBe(true);
+    expect(() => plugin.exportAsString('csv')).not.toThrow();
+    expect(() => plugin.exportAsString('xlsx')).toThrow(message);
+    expect(() => plugin.exportAsBlob('xlsx')).toThrow(message);
+    await expect(plugin.exportAsBlobAsync('xlsx')).rejects.toThrow(message);
+    await expect(plugin.downloadFileAsync('xlsx')).rejects.toThrow(message);
+    expect(() => plugin.downloadFile('xlsx')).toThrow(message);
+  });
+
+  it('keeps xlsx support for a key with xlsx:export, a key with no xlsx token and the legacy key', () => {
+    expect(createGrid(keyWith(['xlsx:export'])).supportsExportFormat('xlsx')).toBe(true);
+    hot.destroy();
+    expect(createGrid(SUBSCRIPTION_KEY).supportsExportFormat('xlsx')).toBe(true);
+    hot.destroy();
+    expect(createGrid('non-commercial-and-evaluation').supportsExportFormat('xlsx')).toBe(true);
   });
 });

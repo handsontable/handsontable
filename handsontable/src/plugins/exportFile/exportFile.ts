@@ -4,6 +4,8 @@ import { isObject } from '../../helpers/object';
 import { LOADING_CLASS_NAME } from '../../helpers/constants';
 import { EXPORT_FILE_DIALOG_TITLE } from '../../i18n/constants';
 import { resolveEngineOverride, tryDetectXlsxEngine } from '../../utils/xlsxEngine/detect';
+import { capabilitiesOfPlugin } from '../../utils/xlsxEngine/licenseCapabilities';
+import { getXlsxEntitlement } from '../../core/license';
 import ExportDataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
 import exportItem from './contextMenuItem/exportItem';
@@ -425,6 +427,13 @@ export class ExportFile extends BasePlugin {
   }
 
   /**
+   * Returns the license capabilities this plugin gates.
+   */
+  static get CAPABILITIES() {
+    return capabilitiesOfPlugin('ExportFile');
+  }
+
+  /**
    * Returns the setting keys that trigger a plugin update when changed via `updateSettings`.
    */
   static get SETTING_KEYS() {
@@ -790,7 +799,9 @@ export class ExportFile extends BasePlugin {
    * Returns `true` when the plugin can produce an export in the given format. `'csv'` always can,
    * because it needs no engine. `'xlsx'` can through the built-in xlsx engine or through the one
    * configured in `engines`; an engine of unknown shape writes nothing and answers `false`, which
-   * is the same answer `ImportFile#supportsImportFormat` gives for that configuration.
+   * is the same answer `ImportFile#supportsImportFormat` gives for that configuration. `'xlsx'` also
+   * answers `false` when the license key lists `xlsx:*` capabilities without `xlsx:export`. A key
+   * with no `xlsx:*` token, and the evaluation key, are not restricted.
    *
    * @param {string} format Export format — `'csv'` or `'xlsx'`.
    * @returns {boolean}
@@ -802,6 +813,10 @@ export class ExportFile extends BasePlugin {
 
     if (format !== 'xlsx') {
       return true;
+    }
+
+    if (!getXlsxEntitlement(this.hot).export) {
+      return false;
     }
 
     const pluginSettings = getPluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
@@ -832,6 +847,10 @@ export class ExportFile extends BasePlugin {
 
     if (!EXPORT_TYPES[format]) {
       throwWithCause(`Export format type "${format}" is not supported.`);
+    }
+
+    if (format === 'xlsx' && !getXlsxEntitlement(this.hot).export) {
+      throwWithCause('ExportFile: the license does not unlock "xlsx:export".');
     }
 
     const pluginSettings = getPluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
