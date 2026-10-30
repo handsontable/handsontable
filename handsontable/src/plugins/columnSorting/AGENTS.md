@@ -91,6 +91,10 @@ Everything about that machinery is load-bearing:
 - **`#onBeforeOnCellMouseDown` drops any stale press.** A release that never arrived — the window lost focus
   while the button was held — would otherwise resolve on the next unrelated release and sort a column out of
   nowhere.
+- **A column order reset drops the queued press.** `afterColumnSequenceChange` with the `'init'` source
+  (`loadData()`, `updateSettings()` with `columns`, a new column layout) names the press's column in an order that
+  no longer exists. ManualColumnMove cancels a held drag on the same change, so `isDragging()` then reads `false`
+  and the release would have sorted a column of the new order. A same-shape `updateData()` fires no `'init'`.
 - **Two release signals, deliberately.** `afterOnCellMouseUp` is primary: on touch devices Walkontable calls
   its `onMouseUp` straight from `touchend` instead of dispatching a DOM `mouseup`, so a document listener
   alone would never fire and tapping a header would stop sorting. A raw `mouseup` on `documentElement` is

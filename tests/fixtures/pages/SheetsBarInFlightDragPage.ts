@@ -53,27 +53,6 @@ export class SheetsBarInFlightDragPage extends SheetsBarInFlightWorkPage {
   }
 
   /**
-   * Selects a column by its header and starts dragging it, held at the inline end of the last column's
-   * header, so a release moves it to the end.
-   */
-  async startColumnMove(fromCol: number): Promise<void> {
-    const headers = this.page.locator('.ht_clone_top .htCore thead th');
-    const header = headers.nth(fromCol + 1);
-    const lastHeader = headers.last();
-
-    await header.click();
-    await this.#dragFromTo(header, lastHeader);
-
-    const box = await lastHeader.boundingBox();
-
-    if (!box) {
-      throw new Error('The last column header is not rendered.');
-    }
-
-    await this.page.mouse.move(box.x + box.width - 2, box.y + (box.height / 2));
-  }
-
-  /**
    * Starts resizing a column by its resize handle, held over a cell to its inline end.
    */
   async startColumnResize(column: number): Promise<void> {
@@ -128,9 +107,7 @@ export class SheetsBarInFlightDragPage extends SheetsBarInFlightWorkPage {
   /**
    * Whether the gesture of a kind is in progress, read from the state its plugin keeps while it runs.
    */
-  isDragInProgress(
-    kind: 'cellMove' | 'rowMove' | 'columnMove' | 'columnResize' | 'rowResize' | 'fill' | 'freeze',
-  ): Promise<boolean> {
+  isDragInProgress(kind: 'cellMove' | 'rowMove' | 'columnResize' | 'rowResize' | 'fill' | 'freeze'): Promise<boolean> {
     return this.page.evaluate((gesture) => {
       const { hot } = window;
 
@@ -139,8 +116,6 @@ export class SheetsBarInFlightDragPage extends SheetsBarInFlightWorkPage {
           return hot.getPlugin('moveCells').isDragActive();
         case 'rowMove':
           return hot.rootElement.classList.contains('on-moving--rows');
-        case 'columnMove':
-          return hot.getPlugin('manualColumnMove').isDragging();
         case 'columnResize':
           return !!document.querySelector('.manualColumnResizerGuide.active');
         case 'rowResize':

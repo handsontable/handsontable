@@ -103,14 +103,26 @@ load-bearing, and the root has no clipping or scroll tracking of its own.
   (`tests/e2e/manual-column-freeze-boundary.spec.ts`, "the drop guideline"); the pointer-events-none backlight
   cannot be probed that way.
 
-## A drag ends when the data is replaced
+## A drag ends when the column order starts over
 
-`beforeLoadData` cancels a held header drag (`#onBeforeDataReplace`), so the release moves nothing. The columns a
-drag holds are visual indexes of the data it started on, and the release moved the columns of the data that
-replaced it (a sheets bar switch). The cancel and `#onMouseUp()` share `#endDrag()`, which also moves the guideline
-back to the master table, so the next drag finds it there. Not on `updateData()`: the React wrapper sends `data` on
-every re-render, so a parent re-render would cancel the gesture. Pinned by
-`tests/e2e/sheets-bar-in-flight-drags.spec.ts`.
+`afterColumnSequenceChange` with the `'init'` source cancels a held header drag (`#cancelDrag()`), so the release
+moves nothing. `initIndexMappers()` is the one place that source comes from: `loadData()`, `updateSettings()` with
+`columns`, and new data or a schema with another column layout. The columns a drag holds are visual indexes of the
+order it started on, so the release moved other columns. Hooking `beforeLoadData` alone missed the `columns` paths.
+A same-shape `updateData()` keeps the order (`fitToLength()`, no `'init'`) and the drag: the React wrapper sends
+`data` on every re-render, so a parent re-render must not cancel the gesture.
+
+- **ColumnSorting drops its queued header press on the same change.** A drag starts with a press on the header,
+  and the cancel makes `isDragging()` read `false`, so without that the release sorted a column of the new order.
+- **`disablePlugin()` cancels too, but not inside `updatePlugin()`.** A drag held while the plugin is turned off
+  otherwise kept its state, and the first `mouseup` after it was turned back on moved those columns. A restart
+  through `updatePlugin()` (`#restarting`) keeps the drag, because the wrappers send `manualColumnMove` with every
+  render.
+- `#cancelDrag()` is also the reset of both mousedown branches that start no drag, so the reset fields cannot drift
+  apart. It goes through `#endDrag()`, which `#onMouseUp()` shares and which moves the guideline back to the master
+  table.
+
+Pinned by `tests/e2e/manual-column-move-data-replace.spec.ts`.
 
 ## DataProvider blocks this plugin
 

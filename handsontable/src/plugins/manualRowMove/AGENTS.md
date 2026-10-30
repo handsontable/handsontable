@@ -83,7 +83,8 @@ configuration, **DataProvider** is the plugin that stays disabled. See `../base/
 `beforeLoadData` cancels a held header drag (`#onBeforeDataReplace`: the pressed flag, the
 rows to move and the moving classes), so the `mouseup` takes its early return. The rows a drag holds are visual
 indexes of the data it started on, and the release moved the rows of the data that replaced it (a sheets bar switch).
-Not on `updateData()`: the React wrapper sends `data` on every re-render, so a parent re-render would cancel the gesture. ManualColumnMove does the same (`../manualColumnMove/AGENTS.md`). Pinned by
+Not on `updateData()`: the React wrapper sends `data` on every re-render, so a parent re-render would cancel the gesture. ManualColumnMove cancels on every column order reset instead, `updateSettings()` with `columns` included
+(`../manualColumnMove/AGENTS.md`); this plugin still covers `loadData()` only. Pinned by
 `tests/e2e/sheets-bar-in-flight-drags.spec.ts`.
 
 ## Where to look next

@@ -48,44 +48,6 @@ test.describe('SheetsBar switch during a drag', { tag: THEMES_TAG }, () => {
     expect(await grid.visualColumn(0)).toEqual(['a3', 'a1', 'a2']);
   });
 
-  test('moves a column when the data stays', async() => {
-    await grid.startColumnMove(0);
-
-    expect(await grid.isDragInProgress('columnMove')).toBe(true);
-
-    await grid.release();
-
-    expect(await grid.visualColumn(0)).toEqual(['a-x', 'a-y', 'a-z']);
-  });
-
-  test('cancels a column move', async() => {
-    await grid.startColumnMove(0);
-
-    expect(await grid.isDragInProgress('columnMove')).toBe(true);
-    expect(await grid.setActiveSheet('Beta')).toBe(true);
-    expect(await grid.isDragInProgress('columnMove')).toBe(false);
-
-    await grid.release();
-
-    expect(await grid.visualColumn(0)).toEqual(betaColumn);
-    expect(await grid.setActiveSheet('Alpha')).toBe(true);
-    expect(await grid.visualColumn(0)).toEqual(['a3', 'a1', 'a2']);
-  });
-
-  test('keeps a column move held while the grid only updates its data', async() => {
-    await grid.startColumnMove(0);
-
-    expect(await grid.isDragInProgress('columnMove')).toBe(true);
-
-    await grid.updateDataInPlace();
-
-    expect(await grid.isDragInProgress('columnMove')).toBe(true);
-
-    await grid.release();
-
-    expect(await grid.visualColumn(0)).toEqual(['a-x', 'a-y', 'a-z']);
-  });
-
   test('cancels a column resize', async() => {
     await grid.startColumnResize(0);
 
