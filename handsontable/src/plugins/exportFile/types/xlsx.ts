@@ -1,4 +1,6 @@
 import { isDefined, isEmpty, stringify } from '../../../helpers/mixed';
+import { isObject } from '../../../helpers/object';
+import { throwWithCause } from '../../../helpers/errors';
 import { getChoiceLabel, isKeyValueEntry, isListableLabel } from '../../../utils/cellSource';
 import type { SourceLabel } from '../../../utils/cellSource';
 import ExportDataProvider from '../dataProvider';
@@ -341,6 +343,31 @@ interface XlsxOptions extends Record<string, unknown> {
 }
 
 /**
+ * Refuses a `protection` option the export cannot honor: anything but `undefined`, `null` or a plain
+ * object, and an object whose `password` is neither `undefined`, `null` nor a string. A number would
+ * otherwise reach the engines, which disagree on it: the built-in one hashes it as an empty password
+ * (a protected-looking sheet with no real password), and ExcelJS throws a bare `TypeError`. The
+ * messages name the option, never its value, because the value may be a password.
+ *
+ * @param {unknown} protection The `protection` export option.
+ */
+function assertProtectionOption(protection: unknown): void {
+  if (protection === undefined || protection === null) {
+    return;
+  }
+
+  if (!isObject(protection)) {
+    throwWithCause('ExportFile: the "protection" option has to be an object or null.');
+  }
+
+  const { password } = protection as { password?: unknown };
+
+  if (password !== undefined && password !== null && typeof password !== 'string') {
+    throwWithCause('ExportFile: the "protection.password" option has to be a string.');
+  }
+}
+
+/**
  * @private
  */
 class Xlsx extends BaseType {
@@ -417,6 +444,9 @@ class Xlsx extends BaseType {
    * @returns {Promise<Uint8Array>}
    */
   async export(): Promise<Uint8Array> {
+    // An invalid option is refused before any engine work, whatever the license unlocks.
+    assertProtectionOption(this.options.protection);
+
     // A nullish `engine` (the option's own default, or a resolved `engines: { xlsx: null }`) is
     // read as the built-in engine by `detectXlsxEngine` itself, so nothing is mapped here.
     const detected = detectXlsxEngine(this.options.engine, 'exportFile');

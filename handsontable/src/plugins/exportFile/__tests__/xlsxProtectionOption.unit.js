@@ -297,6 +297,65 @@ describe('Xlsx export `protection` option', () => {
     expect(passwordReachedAWarning()).toBe(false);
   });
 
+  const PASSWORD_REFUSAL = 'ExportFile: the "protection.password" option has to be a string.';
+  const PROTECTION_REFUSAL = 'ExportFile: the "protection" option has to be an object or null.';
+
+  /**
+   * Runs an export that must be refused and returns the error.
+   *
+   * @param {string} licenseKey The license key of the exporting instance.
+   * @param {object} options The export options.
+   * @returns {Promise<Error>}
+   */
+  async function refusal(licenseKey, options) {
+    const xlsx = new Xlsx(new ExportDataProvider(createInstance(licenseKey)), options);
+
+    writeSpy.mockClear();
+
+    return xlsx.export().then(() => null, error => error);
+  }
+
+  it.each([
+    ['a number', 1234],
+    ['an object', { secret: 'q4' }],
+    ['a boolean', true],
+  ])('refuses %s as the password, without naming the value', async(_, password) => {
+    const error = await refusal(FULL_KEY, { protection: { password } });
+
+    expect(error).toBeInstanceOf(Error);
+    expect(error.message).toBe(PASSWORD_REFUSAL);
+    expect(error.message.includes('1234') || error.message.includes('q4')).toBe(false);
+    expect(writeSpy).not.toHaveBeenCalled();
+  });
+
+  it('refuses a non-string password even without xlsx:protection', async() => {
+    const key = keyWith(ALL_XLSX_TOKENS.filter(id => id !== 'xlsx:protection'));
+    const error = await refusal(key, { protection: { password: 1234 } });
+
+    expect(error?.message).toBe(PASSWORD_REFUSAL);
+    expect(writeSpy).not.toHaveBeenCalled();
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('refuses a protection value that is neither an object nor null', async() => {
+    for (const protection of [true, 'q4-budget', 1, ['q4-budget']]) {
+      // eslint-disable-next-line no-await-in-loop
+      const error = await refusal(FULL_KEY, { protection });
+
+      expect(error?.message).toBe(PROTECTION_REFUSAL);
+      expect(error.message.includes(PASSWORD)).toBe(false);
+    }
+
+    expect(writeSpy).not.toHaveBeenCalled();
+  });
+
+  it('accepts a null password as no password', async() => {
+    const sheet = (await exportSnapshot(FULL_KEY, { protection: { password: null } })).sheets[0];
+
+    expect(sheet.protection.enabled).toBe(true);
+    expect(sheet.protection.password).toBeNull();
+  });
+
   it('leaves the default output unchanged for a key with no xlsx restriction', async() => {
     const legacy = await exportSnapshot('non-commercial-and-evaluation');
     const explicit = await exportSnapshot('non-commercial-and-evaluation', { protection: undefined });

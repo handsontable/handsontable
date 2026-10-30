@@ -223,6 +223,18 @@ for (const engine of ['native', 'exceljs'] as const) {
       expect(workbook.worksheets[0].getCell('A1').protection?.locked).not.toBe(true);
     });
 
+    test('a non-string password rejects the export without naming the value', async({ page, theme, bundle }) => {
+      const lic = new XlsxLicensePage(page, theme, bundle, engine);
+
+      await lic.goto();
+      await lic.create(keyWith(ALL_XLSX_TOKENS));
+
+      const error = await lic.exportBytes({ protection: { password: 1234 } }).then(() => null, (e: Error) => e);
+
+      expect(error?.message).toContain('ExportFile: the "protection.password" option has to be a string.');
+      expect(error?.message.includes('1234')).toBe(false);
+    });
+
     test('a Standard key writes no sheetProtection despite the option, and the warning has no password', async({
       page, theme, bundle,
     }) => {

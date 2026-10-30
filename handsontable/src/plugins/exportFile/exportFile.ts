@@ -244,6 +244,10 @@ export interface ExportOptions {
    *   SHA-512 hash of it, never the password itself. An empty or missing `password` sets no password.
    * - `null`: no sheet is protected and no cell is locked.
    *
+   * Any other value is refused: the export rejects when `protection` is not an object or `null`, or
+   * when `password` is set to something other than a string. The error names the option, never its
+   * value.
+   *
    * A sheet with no read-only cell, or with a ColumnSummary, is never protected. With the `sheets`
    * option, every protected sheet gets the same password. This is a guard against accidental edits,
    * not encryption: the cell values stay readable in the file.
