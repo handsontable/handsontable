@@ -1,7 +1,7 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed column widths under nested headers changing on the first data reload: with `autoColumnSize`, a column sized by its bottom header label now gets its final width on the first render.",
-  "type": "fixed",
+  "title": "Changed when plugins set up their initial state: `columnSorting`, `columnSummary`, `mergeCells`, `customBorders`, `pagination`, `emptyDataState`, `nestedRows` and `dataProvider` now apply their settings before the first render, so the grid renders once at init and columns under nested headers get their final width at once. Calling `enablePlugin()` on a running grid now applies the plugin's settings.",
+  "type": "changed",
   "issueOrPR": 14080,
   "breaking": false,
   "framework": "none"

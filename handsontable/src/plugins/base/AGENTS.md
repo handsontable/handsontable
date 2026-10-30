@@ -220,6 +220,25 @@ The contract:
   failing does not throw on every later pass; its throw ends the pass like any throwing hook. A step that
   keeps re-enabling plugins is cut off after one round per plugin, and core warns only when a step is still
   owed after the last round.
+- **At init core holds the renders the steps ask for.** The steps run inside a raised render-suspend
+  counter, and core puts the counter back without rendering, because the first render follows the `init`
+  hook. A step that renders (a sort, a cell write through `setDataAtCell()`, an explicit `hot.render()`)
+  would otherwise draw the grid before the steps of the later plugins built their state, the early paint
+  CustomBorders documents as #11031. The work is drawn by the first render, so the grid renders once at
+  init. Outside init a step renders as it asks, on a grid that is already drawn. A held render also skips
+  what a full render does first: forget which stored cell meta already ran its dynamic extension (the `cells`
+  function and the meta hooks). So core calls `metaManager.invalidateMetaExtensions()` after the steps.
+  Without it the `init` listeners read a meta as it was before a step changed it: AutoColumnSize's sweep
+  read a merge's first cell (stored during the init load) without its `colspan`, and sized its column for
+  the merge's text.
+- **One owner per enable for work that `updatePlugin()` or `onDataReady()` also does.** The step runs after
+  every enable AND every update, and many plugins already do their data work in `updatePlugin()` (a settings
+  sort, the declared borders, the page state). Such a plugin sets a private `#...Owed` flag in
+  `enablePlugin()` and clears it in whichever path does the work, so the step does it only when nothing else
+  did: at init, after a direct `enablePlugin()` call, and on a grid still being built where
+  `deferDataWork()` recorded nothing. CustomBorders, Pagination, ColumnSorting, ColumnSummary, MergeCells and
+  DataProvider follow it; DataProvider captures "owed" at enable time, because a passive enable
+  (`_runWithoutFetching()`) must not fetch even when the step runs after the passive scope ended.
 - **Known limit: the steps run before the end of `updateSettings()`.** They run before its render, which
   comes before the theme hook and the layout config (`finishSettingsUpdate()`), so a step sees the state
   that render draws. A step a plugin comes to owe during that render or that finishing work (a lifecycle call
@@ -232,8 +251,8 @@ refreshes every endpoint when nothing was deferred (`refreshAllEndpoints()`, whi
 `setDataAtCell`). Called at the new points it would write the summaries twice per `updateSettings()` and fire
 an extra `afterChange`. Load hooks are not covered either: an `afterLoadData` listener still fires during
 the init pass with no view, so a plugin that needs the view there skips `initialLoad` and leaves the work to
-the step. NestedHeaders and CollapsibleColumns implement `onGridReady()`; the rest of the migration list is the
-#6806 section below.
+the step. Which plugins implement `onGridReady()`, and which init listeners stay on purpose, is in the #6806
+section below.
 
 Pinned by `__tests__/readyStep.unit.js`.
 
@@ -261,7 +280,7 @@ data the grid still holds. The call has three phases:
    column meta only now, and validating during the load blanked a value under the previous sheet's rules),
    then every **enabled** plugin's optional `onDataReady()` in `PLUGIN_PRIORITY` order, then one render
    (rendering is suspended for the whole call and resumed in a `finally`). A grid without a view skips the
-   `onDataReady()` loop: its plugins do that work from their own `afterInit`.
+   `onDataReady()` loop: its plugins do that work from their ready step (`onGridReady()`).
 
 The rule for a plugin: **work in `enablePlugin()`, `updatePlugin()` or a load hook that reads or writes the
 loaded rows checks `isDataWorkDeferred()` and, while it is `true`, records it with `deferDataWork()` and does
@@ -283,9 +302,10 @@ ColumnSummary (endpoints), ColumnSorting and MultiColumnSorting (the `initialCon
 (the declared borders), MergeCells (the settings pass, run by SheetsBar), NestedRows (the data check),
 Formulas (bind only, no sheet fill), Pagination (the page state), EmptyDataState (the overlay toggle) and
 DataProvider (the fetch). The public `updateSettings()` and `loadData()` never set the flag. Core skips the
-`onDataReady()` pass on a grid still being built and the plugin's own `afterInit` does the work there, which
-is why `deferDataWork()` records nothing without a view (a record made then would fire on a later, unrelated
-switch: ColumnSorting ran its settings sort on the first switch, with its sort hooks). Declare `onDataReady()` as an ordinary method;
+`onDataReady()` pass on a grid still being built and the plugin's ready step does the work there, which
+is why `deferDataWork()` records nothing without a view: a record made then would fire on a later, unrelated
+switch (ColumnSorting ran its settings sort on the first switch, with its sort hooks). It returns whether it
+recorded, so a plugin can tell which of the two owns the work. Declare `onDataReady()` as an ordinary method;
 BasePlugin declares the optional signature. MergeCells is the one plugin whose owed pass is run by its caller
 (SheetsBar's `runDeferredSettingsPass(apply)`), not by `onDataReady()`, because only the bar knows whether the
 sheet returns with a stored state that must build no declared merges; it still keeps the record in
@@ -398,23 +418,49 @@ distinction.
 
 ## #6806: the initialization-order workarounds
 
-Because `enablePlugin()` fires during `beforeInit`, before the data and the view exist, a plugin that
-needs rendering state has to guard on `!this.hot.view` and sometimes force an `updatePlugin()` call from
-inside `enablePlugin()` or an `init`/`afterInit` listener. The two original sites, CollapsibleColumns (the
-three `#6806` markers) and NestedHeaders (an unnumbered "Workaround for broken plugin initialization
-abstraction"), are migrated: both build their state in `onGridReady()` and neither has an `init` listener. Their
-`clearColspans()`/`clearButtons()` keep a `!this.hot.view` guard on purpose, because they run from
-`disablePlugin()`, which can run before the view exists and has no ready step. About 13 more plugins park work on
-`init`/`afterInit` for the same reason. `../../../.ai/CONCERNS.md` has the list; do not trust a grep alone.
+Because `enablePlugin()` fires during `beforeInit`, before the data and the view exist, plugins used to guard
+on `!this.hot.view` and park the work that needs them on an `init` or `afterInit` listener, which never fired
+again for a later enable. **The fix is the ready step** (above), and these plugins use it:
 
-**The fix is the ready step** (above): move the guarded work into `onGridReady()` and drop the guard and the
-`init`/`afterInit` replay. Do not move `enablePlugin()` itself later: plugins add their hooks there, before
-the init settings pass adds the hooks declared in the settings, so a later enable would run every user
-callback ahead of the plugin's on a shared hook (pinned by the `beforeInit` order test in
-`__tests__/initSequence.unit.js`), and index maps and load hooks must be in place before the first load.
-Never copy the old workaround into a new plugin. Migrate one plugin per change, with a test for the order it
-relies on: priority now orders the ready steps too, which puts AutoColumnSize (10) ahead of Pagination (900),
-the opposite of their `init` listeners today.
+| Plugin | Work in `onGridReady()` | Replaced |
+|---|---|---|
+| NestedHeaders, CollapsibleColumns | the header tree and the collapsed set | `init` replay of `updatePlugin()` |
+| Filters | the per-column settings scan | `afterInit` on the first enable |
+| NestedRows | the row header width | `afterInit` (with a second render) |
+| EmptyDataState | the overlay toggle | `afterInit` (with a second render) |
+| CustomBorders | the declared borders, when no update applied them | `init` |
+| Pagination | the page state, when no update computed it | `init` at order index `-1` |
+| ColumnSorting, MultiColumnSorting | the settings sort of an enable | `afterInit`, the `this.hot.view` branch, a dead `afterLoadData` branch |
+| ColumnSummary | the endpoints | `afterInit` and the `this.hot.view` guard in `updatePlugin()` |
+| MergeCells | the settings pass, when no update ran or handed it over | `afterInit` |
+| DataProvider | the fetch of an enable or update | `afterInit` and the `this.hot.view` guard in `updatePlugin()` |
+| Formulas | the index syncs the axis syncers postponed | a one-off `init` listener |
+
+Every replaced listener ran after the first render (`afterInit`) or between the `init` hook and it; the steps
+run before both, with the renders held (above), so these plugins' work is drawn by the first render and the
+grid renders once at init. A direct `enablePlugin()` on a live grid now does the work too, which only
+ColumnSorting's `this.hot.view` branch did before. Each plugin's `AGENTS.md` has its details, and its `__tests__/readyStep.unit.*` pins them.
+
+What stays, on purpose:
+
+- **AutoColumnSize and AutoRowSize keep their `init` listener.** The steps run in `PLUGIN_PRIORITY` order, so
+  their steps would run at 10 and 40, before NestedHeaders, MergeCells and Pagination build what they
+  measure. Since every step now runs before the `init` hook, `init` is where that state is in place and the
+  first render has not run. `tests/e2e/nested-headers-autosize-init.spec.ts` fails if they move.
+- **FormulaBuilder's `afterInit` listener** decides when to warn about a failed enable (Formulas off), and a
+  plugin that did not enable owes no step.
+- **Formulas' `this.hot.view` checks** tell construction from a later settings update for its eager first
+  resync, which the step does not answer (`../formulas/AGENTS.md`).
+- **`!this.hot.view` guards on the disable path** (NestedHeaders' `clearColspans()`, CollapsibleColumns'
+  `clearButtons()`): `disablePlugin()` can run before the view exists and has no step.
+- **A nested grid's own `afterInit`** (the context menu's `hotMenu`) belongs to that grid, not to a plugin of
+  this one.
+
+Do not move `enablePlugin()` itself later: plugins add their hooks there, before the init settings pass adds
+the hooks declared in the settings, so a later enable would run every user callback ahead of the plugin's on
+a shared hook (pinned by the `beforeInit` order test in `__tests__/initSequence.unit.js`), and index maps and
+load hooks must be in place before the first load. Never copy the old workaround into a new plugin: put the
+work in `onGridReady()`, and use the one-owner flag above when `updatePlugin()` does the same work.
 
 ## Undo/redo: `runOperation()` and the snapshot contract
 
