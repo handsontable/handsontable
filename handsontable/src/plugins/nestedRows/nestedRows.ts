@@ -205,7 +205,6 @@ export class NestedRows extends BasePlugin {
       this as unknown as ConstructorParameters<typeof RowMoveController>[0]
     );
 
-    this.addHook('afterInit', this.#onAfterInit);
     this.addHook('beforeViewRender', this.#onBeforeViewRender);
     this.addHook('modifyRowData', this.onModifyRowData.bind(this));
     this.addHook('modifySourceLength', this.onModifySourceLength.bind(this));
@@ -316,15 +315,6 @@ export class NestedRows extends BasePlugin {
     // After enabling plugin previously stored data is restored.
     this.dataManager!.updateWithData(currentSourceData!);
 
-    // `enablePlugin()` built a new HeadersUI, whose width cache starts empty, and the `afterInit`
-    // hook that normally seeds it has long since fired on a settings-driven enable. Left empty,
-    // `#onModifyRowHeaderWidth` falls back to `?? 0` and the header keeps its default width, which
-    // clips the indentation and the collapse button (measured: 50px against the 71px an
-    // init-enabled three-level tree gets). Seeded here, where the cache knows the tree's depth, and
-    // without its render: the Core draws right after `afterUpdateSettings`, and this method runs on
-    // every re-render in React.
-    this.headersUI!.updateRowHeaderWidth(undefined, false);
-
     if (collapsedParents.length > 0) {
       // Replaying a state the user already chose is not a new action, so the hooks stay silent. Firing
       // them here would report a collapse on every settings update.
@@ -332,6 +322,17 @@ export class NestedRows extends BasePlugin {
     }
 
     super.updatePlugin();
+  }
+
+  /**
+   * Sizes the row header to the depth of the tree. Core runs it once after each enable or update, when the
+   * data is loaded, before the next render: `enablePlugin()` builds a new `HeadersUI` whose width cache starts
+   * empty, and left empty the header keeps the grid default and clips the indentation and the collapse button.
+   *
+   * @private
+   */
+  onGridReady() {
+    this.headersUI!.updateRowHeaderWidth(undefined, false);
   }
 
   /**
@@ -1664,13 +1665,6 @@ export class NestedRows extends BasePlugin {
   };
 
   /**
-   * `afterInit` hook callback.
-   */
-  #onAfterInit = () => {
-    this.headersUI!.updateRowHeaderWidth(undefined);
-  };
-
-  /**
    * `beforeViewRender` hook callback.
    *
    * @param {boolean} force Indicates if the render call was triggered by a change of settings or data.
@@ -1772,8 +1766,6 @@ export class NestedRows extends BasePlugin {
    * @param {Array} data The source data.
    */
   #onBeforeLoadData = (data: unknown[]) => {
-    const awaitedLoad = this.#awaitsDataLoad;
-
     this.#awaitsDataLoad = false;
 
     if (!this.#acceptsData(data)) {
@@ -1784,10 +1776,6 @@ export class NestedRows extends BasePlugin {
 
     this.dataManager!.setData(data as RowObject[]);
     this.dataManager!.rewriteCache();
-
-    if (awaitedLoad && this.hot.view) {
-      this.headersUI!.updateRowHeaderWidth(undefined, false);
-    }
   };
 
   /**

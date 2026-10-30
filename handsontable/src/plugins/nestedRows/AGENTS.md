@@ -385,7 +385,7 @@ They are written in different places and can drift. Keep this in mind:
   good. With it, `updatePlugin()` only enables the plugin, `onUpdateSettings()` skips its toggle
   repair (`fitToLength`, selection clamp, undo clear, render: the load re-inits the maps and clears the
   history, and before the first load there is no editor manager to clear an editor through), and
-  `#onBeforeLoadData` takes the tree from the load and seeds the header width on a drawn grid. Until
+  `#onBeforeLoadData` takes the tree from the load (the ready step sizes the header after it). Until
   that load the data manager holds no data, so `modifySourceLength` reports 0 rows. A data manager
   that already holds a tree (a nested sheet after a nested sheet) takes the normal path.
 - **A settings-driven enable arrives with an EMPTY data manager and a stale row count, and the plugin
@@ -413,12 +413,14 @@ They are written in different places and can drift. Keep this in mind:
   into `enablePlugin()`/`disablePlugin()`: `updatePlugin()` calls both on every rebuild, and the
   intermediate count would be wrong in each direction.
   **The row header width has to be seeded on that path too.** `HeadersUI`'s `rowHeaderWidthCache`
-  starts empty on the instance `enablePlugin()` builds, and the only startup call to
-  `updateRowHeaderWidth()` hangs off `afterInit` — which fired long before a settings-driven enable.
-  Left empty, `#onModifyRowHeaderWidth` falls back to `?? 0` and `Math.max` keeps the grid default, so
-  the indentation and the collapse button are clipped: measured 50px against the 71px the same
-  three-level tree gets when the plugin is on at construction. `updatePlugin()` seeds it after
-  `updateWithData()`, where the cache knows the tree's depth (found by Bugbot on #13564).
+  starts empty on the instance `enablePlugin()` builds. Left empty, `#onModifyRowHeaderWidth` falls
+  back to `?? 0` and `Math.max` keeps the grid default, so the indentation and the collapse button are
+  clipped: measured 50px against the 71px the same three-level tree gets when the plugin is on at
+  construction (found by Bugbot on #13564). The ready step seeds it (`onGridReady()`,
+  `../base/AGENTS.md`): core runs it once after every enable or update, after the data is loaded and
+  before the next render. That one call covers init (it replaced an `afterInit` listener, which also
+  rendered a second time), a settings-driven enable, a direct `enablePlugin()` call, and the enable
+  held back for a sheet switch's load. Pinned by `__tests__/readyStep.unit.js`.
   **A row-count change owes the selection and the editor the same protocol `updateData` pays**, and
   `updateSettings()` does not pay it for you: after `afterUpdateSettings` it runs only
   `adjustRowsAndCols()` and a render, neither of which touches the selection. Measured on the first
@@ -438,8 +440,8 @@ They are written in different places and can drift. Keep this in mind:
   viewport onto the selected cell: measured, a grid scrolled to row 11 jumped back to the top on a
   toggle. `updateData` is in that list and is what the operation is from the selection's side.
   **Seed the header width without its render.** `HeadersUI#updateRowHeaderWidth()` ends with
-  `hot.render()`, and `updatePlugin()` runs on every `updateSettings()` carrying the `nestedRows` key —
-  every re-render in React. Pass `shouldRender: false` there; the Core draws right after the hook, and
+  `hot.render()`, and the step runs after every `updateSettings()` carrying the `nestedRows` key —
+  every re-render in React. Pass `shouldRender: false` there; the Core draws right after the step, and
   leaving the render in doubled every re-render's draw (measured: 2 draws per no-op re-send, now 1).
   **Formulas is carried across the toggle by Formulas itself, not from here.** That plugin
   resyncs its sheet from `afterLoadData` / `afterUpdateData`, and on a settings update from
