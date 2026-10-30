@@ -333,7 +333,7 @@ function addNamedExpressions(hot: HotInstance, result: ImportResult): void {
 
     // The mapper asked the engine already, but a `beforeImport` handler, or another grid sharing the
     // engine, may have defined the name since; `addNamedExpression` would then throw mid-batch.
-    if (engine.isItPossibleToAddNamedExpression(name, expression)) {
+    if (engine.isItPossibleToAddNamedExpression?.(name, expression) === true) {
       engine.addNamedExpression(name, expression, undefined, undefined);
     }
   });

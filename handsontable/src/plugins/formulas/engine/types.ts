@@ -24,6 +24,11 @@ export interface FormulasCellRange {
 /**
  * Minimal duck-type interface for a HyperFormula engine **instance**.
  * Describes only the methods and properties accessed by Handsontable internals.
+ *
+ * The members the XLSX import and export read for named expressions, array formulas, and functions
+ * (`getNamedExpressionValue`, `isItPossibleToAddNamedExpression`, `getRegisteredFunctionNames`,
+ * `calculateFormula`) are optional: every caller checks that the method exists and skips the
+ * feature when it does not, so an engine object without them keeps type-checking.
  */
 export interface HyperFormulaEngine {
   doesSheetExist(sheetName: string): boolean;
@@ -37,19 +42,19 @@ export interface HyperFormulaEngine {
   getCellFormula(address: { sheet: number; row: number; col: number }): string | undefined;
   listNamedExpressions(scope?: number): string[];
   getNamedExpressionFormula(name: string, scope?: number): string | undefined;
-  getNamedExpressionValue(name: string, scope?: number): unknown;
+  getNamedExpressionValue?(name: string, scope?: number): unknown;
   getNamedExpression(name: string, scope?: number): {
     options?: Record<string, string | number | boolean>;
   } | undefined;
-  isItPossibleToAddNamedExpression(name: string, expression: unknown, scope?: number): boolean;
+  isItPossibleToAddNamedExpression?(name: string, expression: unknown, scope?: number): boolean;
   isItPossibleToChangeNamedExpression(name: string, expression: unknown, scope?: number): boolean;
   changeNamedExpression(
     name: string, expression: unknown, scope?: number, options?: Record<string, string | number | boolean>,
   ): unknown[];
   normalizeFormula(formula: string): string;
   validateFormula(formula: string): boolean;
-  getRegisteredFunctionNames(): string[];
-  calculateFormula(formula: string, sheetId: number): unknown;
+  getRegisteredFunctionNames?(): string[];
+  calculateFormula?(formula: string, sheetId: number): unknown;
   getSheetDimensions(sheetId: number): { width: number; height: number };
   getCellType(address: { sheet: number | null; row: number; col: number }): unknown;
   isCellEmpty(address: { sheet: number | null; row: number; col: number }): boolean;

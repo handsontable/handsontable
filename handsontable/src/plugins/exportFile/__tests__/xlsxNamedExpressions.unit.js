@@ -115,6 +115,21 @@ describe('Xlsx export: named expressions as defined names', () => {
     ]);
   });
 
+  it('should leave out a constant name when the engine cannot read its value', async() => {
+    // `getNamedExpressionValue` is optional on the engine type: without it a constant name has no
+    // definition to write, so it is left out and reported instead of the export throwing.
+    const engine = createGrid();
+
+    engine.addNamedExpression('Count', 5);
+    engine.addNamedExpression('Sales', '=Sheet1!$A$1:$A$3');
+    engine.getNamedExpressionValue = undefined;
+
+    const { snapshot, dropped } = await exportWorkbook();
+
+    expect(snapshot.definedNames).toEqual([{ name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null }]);
+    expect(dropped.list()).toContain('definedNames:unsupported');
+  });
+
   it('should re-qualify the engine sheet name (any case) with the exported sheet name', async() => {
     const engine = createGrid({}, 'My Data');
 

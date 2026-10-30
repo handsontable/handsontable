@@ -379,7 +379,7 @@ class ExportDataProvider {
 
       return {
         name,
-        formula: formula === undefined ? toFormulaLiteral(engine.getNamedExpressionValue(name)) : formula,
+        formula: formula === undefined ? toFormulaLiteral(engine.getNamedExpressionValue?.(name)) : formula,
       };
     });
   }

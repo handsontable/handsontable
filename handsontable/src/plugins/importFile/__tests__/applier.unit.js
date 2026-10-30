@@ -746,6 +746,25 @@ describe('applyImportResult – named expressions', () => {
     ]);
   });
 
+  it('should add no name to an engine that cannot say whether it takes one, instead of throwing', () => {
+    // `isItPossibleToAddNamedExpression` is optional on the engine type: an engine without it gets
+    // no name rather than a `TypeError` in the middle of the batch.
+    const order = [];
+    const hot = orderedHot(order);
+
+    delete hot.getPlugin('formulas').engine.isItPossibleToAddNamedExpression;
+
+    expect(() => applyImportResult(hot, {
+      data: [['=SUM(Sales)']],
+      namedExpressions: [{ name: 'Sales', formula: 'Sheet1!$F$1:$F$3' }],
+    })).not.toThrow();
+    expect(order).toEqual([
+      ['batch:start'],
+      ['loadData', [['=SUM(Sales)']]],
+      ['batch:end'],
+    ]);
+  });
+
   it('should not touch the engine when the Formulas plugin is off', () => {
     const calls = [];
     const hot = fakeHot({ formulas: formulasPlugin(calls, false) });
