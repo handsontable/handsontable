@@ -420,14 +420,17 @@ interface SheetContext {
 }
 
 /**
- * One grid of the export whose Formulas engine may define names: its data provider, the engine it
- * is bound to, and where its engine sheet landed in the file.
+ * One grid of the export bound to a Formulas engine: its data provider, the engine, where its
+ * engine sheet landed in the file, and whether it was exported with `exportFormulas`. Every bound
+ * grid is a sheet a name may point to; only a grid with `exportFormulas` makes its engine's names
+ * part of the file.
  */
 interface NamedExpressionSource {
   dataProvider: ExportDataProvider;
   engine: object;
   engineSheetName: string;
   separator: string;
+  exportFormulas: boolean;
   sheet: ExportedEngineSheet;
 }
 
@@ -756,7 +759,9 @@ class Xlsx extends BaseType {
 
     this.#writeDataRows(sheet, data, context);
 
-    const binding = exportFormulas ? dataProvider.getFormulasBinding() : null;
+    // Registered with or without `exportFormulas`: a sheet written as values is still in the file,
+    // so a name of another grid on the same engine may point at it.
+    const binding = dataProvider.getFormulasBinding();
 
     if (binding) {
       namedSources.push({
@@ -764,12 +769,13 @@ class Xlsx extends BaseType {
         engine: binding.engine,
         engineSheetName: binding.sheetName,
         separator: formulasSeparator,
+        exportFormulas,
         sheet: {
           exportedName: name,
           rowOffset: dataRowOffset - 1,
           colOffset: dataColOffset - 1,
-          excludedRows: excludedHiddenRows ?? undefined,
-          excludedCols: excludedHiddenCols ?? undefined,
+          excludedRows: (excludedHiddenRows ?? dataProvider.getExcludedHiddenRows()) ?? undefined,
+          excludedCols: (excludedHiddenCols ?? dataProvider.getExcludedHiddenColumns()) ?? undefined,
         },
       });
     }
@@ -832,19 +838,29 @@ class Xlsx extends BaseType {
    * the export does not write among others), or that repeats an added name with another
    * definition, is left out and `definedNames:unsupported` recorded once.
    *
+   * Every grid bound to an engine is a sheet a name may point to, `exportFormulas` or not. An
+   * engine's names are written only when at least one of its grids is exported with
+   * `exportFormulas`, and they are read from that grid.
+   *
    * @param {object} workbook The neutral workbook snapshot.
-   * @param {object[]} sources The grids exported with `exportFormulas` and a Formulas engine.
+   * @param {object[]} sources The exported grids bound to a Formulas engine.
    * @param {DroppedFeatures} dropped The export's dropped-feature collector.
    */
   #addDefinedNames(workbook: WorkbookSnapshot, sources: NamedExpressionSource[], dropped: DroppedFeatures): void {
-    const byEngine = new Map<object, { source: NamedExpressionSource; sheets: Map<string, ExportedEngineSheet> }>();
+    const byEngine = new Map<object, {
+      source: NamedExpressionSource | null; sheets: Map<string, ExportedEngineSheet>;
+    }>();
 
     sources.forEach((source) => {
-      const group = byEngine.get(source.engine) ?? { source, sheets: new Map() };
+      const group = byEngine.get(source.engine) ?? { source: null, sheets: new Map() };
       const key = source.engineSheetName.toLowerCase();
 
       if (!group.sheets.has(key)) {
         group.sheets.set(key, source.sheet);
+      }
+
+      if (group.source === null && source.exportFormulas) {
+        group.source = source;
       }
 
       byEngine.set(source.engine, group);
@@ -859,6 +875,10 @@ class Xlsx extends BaseType {
     };
 
     byEngine.forEach(({ source, sheets }) => {
+      if (source === null) {
+        return;
+      }
+
       source.dataProvider.getNamedExpressions().forEach(({ name, formula: definition }) => {
         const formula = definition === null ? null : normalizeNamedExpression(definition, source.separator, sheets);
         const key = name.toLowerCase();

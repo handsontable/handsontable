@@ -91,6 +91,12 @@ jest.mock('../dataProvider', () => ({
 
     }
 
+    getFormulasBinding() {
+
+      return null;
+
+    }
+
     getFormulasSeparator() {
       return ',';
     }

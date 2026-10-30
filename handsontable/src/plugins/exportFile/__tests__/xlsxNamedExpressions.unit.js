@@ -208,6 +208,63 @@ describe('Xlsx export: named expressions as defined names', () => {
     }
   });
 
+  it('should keep a name that points at a sheet exported without `exportFormulas`', async() => {
+    // The sheet is in the file as values, so the name still has its target. Registering only the
+    // grids with `exportFormulas` dropped the name and left `#NAME?` in the other sheet's formulas.
+    const engine = createGrid();
+    const second = document.createElement('div');
+
+    document.body.appendChild(second);
+
+    const hot2 = new Handsontable(second, {
+      data: [[10], [20]],
+      formulas: { engine, sheetName: 'Sheet2' },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    try {
+      engine.addNamedExpression('OnB', '=Sheet2!$A$1:$A$2');
+
+      const { snapshot, dropped } = await exportWorkbook({
+        exportFormulas: true,
+        colHeaders: true,
+        sheets: [{ instance: hot, name: 'Alpha' }, { instance: hot2, name: 'Beta', exportFormulas: false }],
+      });
+
+      expect(snapshot.definedNames).toEqual([{ name: 'OnB', formula: 'Beta!$A$2:$A$3', sheetName: null }]);
+      expect(dropped.count('definedNames:unsupported')).toBe(0);
+    } finally {
+      hot2.destroy();
+      second.remove();
+    }
+  });
+
+  it('should write no names when no grid of the engine is exported with `exportFormulas`', async() => {
+    const engine = createGrid();
+    const second = document.createElement('div');
+
+    document.body.appendChild(second);
+
+    const hot2 = new Handsontable(second, {
+      data: [[10], [20]],
+      formulas: { engine, sheetName: 'Sheet2' },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    try {
+      engine.addNamedExpression('OnB', '=Sheet2!$A$1:$A$2');
+
+      const { snapshot } = await exportWorkbook({
+        sheets: [{ instance: hot, name: 'Alpha' }, { instance: hot2, name: 'Beta' }],
+      });
+
+      expect(snapshot.definedNames).toBeUndefined();
+    } finally {
+      hot2.destroy();
+      second.remove();
+    }
+  });
+
   it('should shift an open span by the row-header band only on the column axis', async() => {
     const engine = createGrid();
 

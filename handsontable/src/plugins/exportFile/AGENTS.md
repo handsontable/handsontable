@@ -345,7 +345,11 @@ Other rules:
   grid's sheet unshifted under the engine's sheet name (review round 1). `#populateWorksheet` only
   registers each grid's binding (`getFormulasBinding()`: engine + engine sheet name) with its
   exported name, header offsets and left-out rows and columns; `#addDefinedNames` groups them per
-  engine and runs `normalizeNamedExpression` once per name against that map. Every qualified
+  engine and runs `normalizeNamedExpression` once per name against that map. **Every bound grid
+  registers, with or without `exportFormulas`**: a sheet written as values is still in the file, and
+  registering only the `exportFormulas` grids dropped a name pointing at it (Bugbot on #14096). An
+  engine's names are written only when one of its grids has `exportFormulas`, read from that grid.
+  The `xlsx*.unit.js` mocks therefore all carry `getFormulasBinding()`. Every qualified
   reference is moved by the grid its sheet belongs to and re-qualified with that grid's exported
   name (`mapFormulaReferences`' `requalify`, whose answer carries the per-sheet map and whose new
   name the walker quotes). A reference to an engine sheet the export does not write, an unqualified
