@@ -18,7 +18,6 @@ interface HtLicense {
   exportBytes(options?: Record<string, unknown>): Promise<number[]>;
   importBytes(bytes: number[], options?: Record<string, unknown>): Promise<Record<string, unknown>>;
   warnings(): string[];
-  contextMenuItems(): string[];
 }
 
 /**

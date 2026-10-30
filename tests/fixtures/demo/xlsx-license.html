@@ -57,8 +57,6 @@
       importBytes(bytes, options = {})    target importFromArrayBuffer('xlsx', ...), the result's own
                                           enumerable properties
       warnings()                          the console.warn messages logged since create() began
-      contextMenuItems()                  the labels of the Export submenu of the context menu
-                                          opened on A1 ([] when the Export item is absent)
   -->
   <div id="source" data-testid="source"></div>
   <div id="target" data-testid="target"></div>
@@ -188,32 +186,6 @@
 
         warnings() {
           return captured.slice();
-        },
-
-        contextMenuItems() {
-          const contextMenu = source.getPlugin('contextMenu');
-          const anchor = source.getCell(0, 0).getBoundingClientRect();
-
-          source.selectCell(0, 0);
-          contextMenu.open({ top: anchor.top, left: anchor.left, width: anchor.width, height: anchor.height });
-
-          try {
-            const { menu } = contextMenu;
-            const row = menu.getItemPositionByKey('export_file');
-
-            if (row < 0) {
-              return [];
-            }
-
-            const subMenu = menu.openSubMenu(row);
-
-            return subMenu
-              ? Array.from(subMenu.hotMenu.rootElement.querySelectorAll('.ht_master td'),
-                td => td.textContent.trim())
-              : [];
-          } finally {
-            contextMenu.close();
-          }
         },
       };
     })();
