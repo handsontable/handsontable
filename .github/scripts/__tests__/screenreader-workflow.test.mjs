@@ -122,8 +122,21 @@ test('the VoiceOver job: macOS, two browsers at most two at a time, report-only,
     `${LANE}: nothing in the job pushes, so the checkout keeps the token out of .git/config, where the npx -y steps could read it.`);
   assert.match(step('Download the Handsontable UMD build artifact'), /name: handsontable-build-umd/,
     `${LANE}: the lane consumes the UMD build artifact the Build module uploads. ${DOC}`);
-  assert.match(step('Prepare the environment for screen reader automation'), /^ {8}run: cd tests && npx -y @guidepup\/setup@0\.29\.3 setup --ci --macos-record$/m,
-    `${LANE}: on macOS the setup grants the automation permissions and records the screen while it does, through the pinned CLI and npx, never installed (its recorder depends on a GPL-licensed ffmpeg build). ${DOC}`);
+  const setupScript = (step('Prepare the environment for screen reader automation').split(/^ {8}run: \|\n/m)[1] ?? '')
+    .split('\n').filter(line => /^ {10}\S/.test(line)).map(line => line.trim());
+
+  assert.deepEqual(setupScript.filter(line => !line.startsWith('echo ')), [
+    'cd tests',
+    'setup() { npx -y @guidepup/setup@0.29.3 setup "$@" --macos-record; }',
+    'setup --ci && exit 0',
+    'killall ControlCenter || true',
+    'sleep 5',
+    'setup --ci && exit 0',
+    'setup',
+  ], `${LANE}: the setup recovers on the same runner. It tries \`setup --ci\`, then once more after relaunching Control Center, whose UI the CLI's Do Not Disturb step drives, then without \`--ci\`, which grants the same automation permissions without Do Not Disturb. Every attempt is recorded, through the pinned CLI run by npx and never installed (its recorder depends on a GPL-licensed ffmpeg build). ${DOC}`);
+  assert.equal(setupScript.filter(line => line.startsWith('echo "::warning title=VoiceOver setup::')).length, 2,
+    `${LANE}: each fallback says so on the run, and the last one names the missing Do Not Disturb. ${DOC}`);
+  assert.match(setupScript.at(-2) ?? '', /Do Not Disturb/, `${LANE}: the warning before the last attempt names what it leaves out.`);
   assert.match(step('Install the browser'), /^ {8}run: cd tests && npx playwright install \$\{\{ matrix\.browser \}\}$/m);
   assert.match(step('Install VoiceOver'), /^ {8}run: cd tests && npx -y @guidepup\/setup@0\.29\.3 install voiceover$/m,
     `${LANE}: VoiceOver's preferences bundle is installed from inside tests/, where @guidepup/guidepup resolves its manifest. ${DOC}`);
