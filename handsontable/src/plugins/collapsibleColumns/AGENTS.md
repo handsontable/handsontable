@@ -20,6 +20,12 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
 - `PLUGIN_PRIORITY = 290`, and `static PLUGIN_DEPS = ['plugin:NestedHeaders']`. NestedHeaders is 280, so
   it rebuilds the tree (and applies move/reparent overrides) **before** this plugin re-derives its
   `visibleWhen` hidden set. This ordering is load-bearing — see the NestedHeaders doc.
+- **The `collapsible` flags are written from NestedHeaders' `afterHeaderStateRebuild` local hook, not from
+  this plugin's `afterLoadData`** (`#applyCollapsibleFlags()`, registered on the NestedHeaders plugin in
+  `enablePlugin()` and removed in `disablePlugin()`). Plugin order runs this plugin's `afterLoadData` before
+  NestedHeaders rebuilds its state from the setting, and that rebuild drops the flags, so the buttons
+  disappeared after a `loadData()` and never showed on a sheets bar sheet declaring `nestedHeaders`. Pinned by
+  `__tests__/headerStateRebuild.unit.js` and `tests/e2e/sheets-bar-collapsible-nested-headers.spec.ts`.
 - **Two separate hiding maps**, both type `'hiding'`:
   - `this.pluginName` (`'collapsibleColumns'`) — legacy first-visible-child collapse;
     `getCollapsedColumns()` reports this map (PHYSICAL indexes).

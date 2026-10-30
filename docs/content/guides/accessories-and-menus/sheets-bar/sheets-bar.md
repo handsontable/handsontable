@@ -197,12 +197,15 @@ sheetsBar.removeSheet(id);
 sheetsBar.updateSheetSettings('Budget', { readOnly: true });
 ```
 
+A sheet's id never changes, and no other sheet gets it later, even after you pass a new `sheets` value.
+
 ## Work with tabs
 
 Right-click a tab, or click the chevron on the active tab, to open its menu: **Rename**, **Duplicate**, **Delete**, **Move left**, and **Move right**. On an inactive tab, the first click on the chevron switches sheets.
 
 - Double-click a tab to rename it.
 - Drag a tab to reorder sheets.
+- On a touch screen, swipe the tab strip to scroll it. To reorder sheets, press and hold a tab until it lifts, then drag it. To open a tab's menu, press and hold the tab, then lift your finger without moving it.
 - Click the **+** button (Add sheet) to append a sheet.
 - Click the list button (All sheets) to pick a sheet from a list.
 
@@ -391,6 +394,7 @@ With `exportFormulas: true`, a formula that references another sheet keeps that 
 - The plugin doesn't watch your own edits of the `sheets` array or its entries. To change the workbook, call the plugin's methods.
 - When the plugin loads new rows for a sheet that isn't shown (for example, a server response), your entry's `data` keeps the old array.
 - Switching sheets clears the [`UndoRedo`](@/api/undoRedo.md) history.
+- When two sheets set an option such as `autoLink` as an object, keys the second sheet leaves out keep the first sheet's values. List every key you rely on in each sheet's object.
 - With formulas, a sheet that is sorted or has moved rows or columns doesn't see changes you make in place to its `data` while it's hidden. Pass a new `sheets` value instead, which rebuilds the workbook.
 - After a rename, `getSettings().formulas.sheetName` keeps the old name. Read the current name from `hot.getPlugin('formulas').sheetName`.
 - With formulas, a rename that rewrites references inside a frozen `data` array (for example, from Immer) writes them into a copy, not into your array, so update your store yourself. On the active sheet, this also clears the undo history.
@@ -399,7 +403,9 @@ With `exportFormulas: true`, a formula that references another sheet keeps that 
 
 ## Related keyboard shortcuts
 
-Each tab is one stop in the tab order.
+The tab strip is one stop in the tab order: <kbd>**Tab**</kbd> moves the focus to the active tab, and the arrow keys move it along the strip.
+
+Screen readers name the grid after the active sheet. To give the grid a name of your own, set `aria-label` or `aria-labelledby` on `hot.rootElement`, and the sheets bar keeps your name.
 
 | Windows | macOS | Action |
 | --- | --- | --- |

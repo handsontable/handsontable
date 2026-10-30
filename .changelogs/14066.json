@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where the \"Delete comment\" context menu item was enabled on a selection without any comment, and the \"Read-only comment\" item was disabled on a range whose highlighted cell had no comment.",
+  "type": "fixed",
+  "issueOrPR": 14066,
+  "breaking": false,
+  "framework": "none"
+}

@@ -107,7 +107,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: 'Lub',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: 'Zaznacz wszystko',
-  [C.FILTERS_BUTTONS_CLEAR]: 'Wyczyść',
+  [C.FILTERS_BUTTONS_CLEAR]: 'Odznacz wszystko',
   [C.FILTERS_BUTTONS_OK]: 'OK',
   [C.FILTERS_BUTTONS_CANCEL]: 'Anuluj',
 
@@ -139,6 +139,8 @@ const dictionary = {
   [C.SHEETS_BAR_PAGE_NEXT]: 'Przewiń arkusze do przodu',
   [C.SHEETS_BAR_SHEET_CHANGED]: 'Arkusz [name] aktywowany',
   [C.SHEETS_BAR_RENAME_REJECTED]: 'Nazwa arkusza nie została zmieniona: [name] jest już zajęta',
+  [C.SHEETS_BAR_SHEET_DUPLICATED]: 'Arkusz [name] zduplikowany jako [copy]',
+  [C.SHEETS_BAR_SHEET_MOVED]: 'Arkusz [name] przeniesiony na pozycję [position] z [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Arkusz',
 
   [C.CHECKBOX_CHECKED]: 'Zaznaczony',

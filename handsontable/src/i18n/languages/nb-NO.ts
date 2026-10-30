@@ -100,7 +100,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: 'Eller',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: 'Velg alle',
-  [C.FILTERS_BUTTONS_CLEAR]: 'Tøm',
+  [C.FILTERS_BUTTONS_CLEAR]: 'Velg bort alle',
   [C.FILTERS_BUTTONS_OK]: 'OK',
   [C.FILTERS_BUTTONS_CANCEL]: 'Avbryt',
 
@@ -132,6 +132,8 @@ const dictionary = {
   [C.SHEETS_BAR_PAGE_NEXT]: 'Rull ark fremover',
   [C.SHEETS_BAR_SHEET_CHANGED]: 'Ark [name] aktivert',
   [C.SHEETS_BAR_RENAME_REJECTED]: 'Arknavnet ble ikke endret: [name] er allerede i bruk',
+  [C.SHEETS_BAR_SHEET_DUPLICATED]: 'Ark [name] duplisert som [copy]',
+  [C.SHEETS_BAR_SHEET_MOVED]: 'Ark [name] flyttet til posisjon [position] av [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Ark',
 
   [C.LOADING_TITLE]: 'Laster...',

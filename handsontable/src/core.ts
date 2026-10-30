@@ -19,7 +19,7 @@ import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray,
 import { instanceToHTML, instanceToTableElement } from './utils/parseTable';
 import { staticRegister } from './utils/staticRegister';
 import { getPlugin, getPluginsNames } from './plugins/registry';
-import type { BasePlugin } from './plugins/base/base';
+import { initializePlugins, type BasePlugin } from './plugins/base/base';
 import { getRenderer } from './renderers/registry';
 import type { BaseRenderer } from './renderers/baseRenderer';
 import { getEditor } from './editors/registry';
@@ -107,6 +107,7 @@ import type { default as EditorManagerInstance } from './editorManager';
 import type { BaseEditor } from './editors/baseEditor';
 import type { default as MetaManagerInstance } from './dataMap/metaManager';
 import { OperationScope } from './core/operationScope';
+import { normalizeFixedColumnsAlias, withCallerFixedColumnsName } from './core/fixedColumnsAlias';
 import { watchFontLoads } from './core/fontLoad';
 import {
   detachValue,
@@ -461,6 +462,23 @@ export default function Core(
    * after its load in the order the updates were made.
    */
   let heldMetaPhases: (() => void)[] = [];
+  /**
+   * How many lifecycle passes are open: `updateSettings()` and `_applySettingsAndData()` calls, plugin
+   * lifecycle calls (`enablePlugin()`, `updatePlugin()`, `disablePlugin()`), and runs of the ready steps.
+   * The ready steps the plugins owe (`BasePlugin#onGridReady()`) wait while a pass is open, so a pass
+   * enables or updates every plugin before any of them runs its step.
+   */
+  let lifecyclePassDepth = 0;
+  /**
+   * Whether a plugin may owe a ready step: set by every plugin lifecycle call (the only way a plugin comes
+   * to owe one), cleared once a run of the steps leaves none owed. A pass that ran no plugin call then
+   * skips the steps without looking at any plugin.
+   */
+  let readyStepsMayBeOwed = false;
+  /**
+   * Set when `destroy()` starts, so no ready step runs against a grid being torn down.
+   */
+  let isBeingDestroyed = false;
   /**
    * The settings core's own init settings pass applies, while `beforeInit` runs, or `null` outside that
    * window (see `_replaceInitPassSettings()`).
@@ -1629,7 +1647,8 @@ export default function Core(
       //
       // The action itself is split out so this closes on every exit, the action's own early returns
       // and a throwing hook included. A scope left open stops the selection repairing at all.
-      runInShiftScope(() => grid.runAlter(action, index, amount, source, keepEmptyRows));
+      // It is also a lifecycle pass, so a ready step one of its hooks makes a plugin owe runs after it.
+      runInLifecyclePass(() => runInShiftScope(() => grid.runAlter(action, index, amount, source, keepEmptyRows)));
     },
 
     /**
@@ -1946,10 +1965,6 @@ export default function Core(
                 // `calcIndex` is -1 on a grid with no columns left: the removal took nothing, and a
                 // frozen count of 0 must not drop to -1.
                 if (calcIndex >= 0 && fixedColumnsStart >= calcIndex + 1) {
-                  // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
-                  // However, keeping the old name still in effect. When both option names are used together,
-                  // the error is thrown. To prevent that, the engine needs to modify the original option key
-                  // to bypass the validation.
                   (tableMeta as unknown as { _fixedColumnsStart: number })._fixedColumnsStart -=
                     Math.min(groupAmount, fixedColumnsStart - calcIndex);
                 }
@@ -2028,6 +2043,8 @@ export default function Core(
         instance.view.invalidateColumnWidthCache();
       }
 
+      // The ready steps a hook of this call made the plugins owe, run before its render. The call holds one pass.
+      runOwedReadySteps(1);
       instance.view.render();
     },
 
@@ -2574,6 +2591,90 @@ export default function Core(
   };
 
   /**
+   * Runs a callback as one lifecycle pass (see `lifecyclePassDepth`), then the ready steps the plugins
+   * owe, when it closed the outermost pass. A pass that throws leaves the steps owed: each step reads the
+   * grid as it is when it runs, so the next pass runs it.
+   *
+   * @private
+   * @param {Function} callback The pass.
+   * @returns {*} What the callback returns.
+   */
+  function runInLifecyclePass<T>(callback: () => T): T {
+    lifecyclePassDepth += 1;
+
+    let result: T;
+
+    try {
+      result = callback();
+    } finally {
+      lifecyclePassDepth -= 1;
+    }
+
+    runOwedReadySteps();
+
+    return result;
+  }
+
+  /**
+   * Runs the ready step (`BasePlugin#onGridReady()`) of every plugin that owes one, in `PLUGIN_PRIORITY`
+   * order. It runs only once the data is loaded and the view exists, and only when no pass is open other
+   * than the ones the caller holds itself. A step that makes a plugin owe another one (it enables or
+   * updates a plugin) gets a further round, up to one round per plugin. Applying settings is not a user
+   * action, so nothing a step does is journaled.
+   *
+   * @private
+   * @param {number} [ownPasses=0] The passes the caller holds itself.
+   */
+  function runOwedReadySteps(ownPasses = 0): void {
+    if (
+      !readyStepsMayBeOwed || isBeingDestroyed || lifecyclePassDepth > ownPasses || dataWorkPhase !== null ||
+      !instance.view
+    ) {
+      return;
+    }
+
+    const plugins = pluginsRegistry.getItems().map(([, plugin]) => plugin as BasePlugin);
+    const runRound = () => plugins.reduce((ranAny, plugin) => plugin.runOwedReadyStep() || ranAny, false);
+
+    lifecyclePassDepth += 1;
+
+    try {
+      operationScope.suppress(() => {
+        let round = 0;
+
+        // Each round runs the steps the previous one made the plugins owe.
+        while (round < plugins.length && runRound()) {
+          round += 1;
+        }
+      });
+    } finally {
+      lifecyclePassDepth -= 1;
+    }
+
+    readyStepsMayBeOwed = plugins.some(plugin => plugin.isReadyStepOwed());
+
+    if (readyStepsMayBeOwed) {
+      warn('A plugin ready step (`onGridReady()`) kept enabling or updating plugins. The steps still owed ' +
+        'run when the next settings update, data load, or plugin call ends.');
+    }
+  }
+
+  /**
+   * Runs a plugin lifecycle call (`enablePlugin()`, `updatePlugin()`, `disablePlugin()`) as a lifecycle
+   * pass, so the ready steps it makes the plugins owe run once it returns, after every plugin call it made.
+   * BasePlugin routes its lifecycle methods through it.
+   *
+   * @private
+   * @param {Function} callback The lifecycle call.
+   * @returns {*} What the callback returns.
+   */
+  this._runInPluginLifecyclePass = function<T>(callback: () => T): T {
+    readyStepsMayBeOwed = true;
+
+    return runInLifecyclePass(callback);
+  };
+
+  /**
    * The body of `init()`, run with recording suppressed. It is called directly, not through the
    * instance, so code that wraps or spies on `init()` sees each call once.
    *
@@ -2733,6 +2834,10 @@ export default function Core(
       });
       slots.forEach(slot => slotsResizeObserver?.observe(slot));
     }
+
+    // The data is loaded and the view, the editor manager and the focus manager exist: the plugins enabled
+    // while the grid was built run their ready steps before the `init` hook and the first render.
+    runOwedReadySteps();
 
     instance.runHooks('init');
 
@@ -4961,7 +5066,8 @@ export default function Core(
    */
   this.updateData = function(data: unknown[][][] | object[], source: string) {
     // Replacing the data is not a user action: nothing it does may open an operation or be journaled.
-    operationScope.suppress(() => applyUpdateData(data, source));
+    // It is a lifecycle pass, so a ready step a load hook makes a plugin owe reads the new rows.
+    runInLifecyclePass(() => operationScope.suppress(() => applyUpdateData(data, source)));
   };
 
   /**
@@ -5021,7 +5127,8 @@ export default function Core(
         internalSource: 'updateData',
         source,
         metaManager,
-        firstRun
+        firstRun,
+        beforeRender: () => runOwedReadySteps(1),
       }));
   }
 
@@ -5072,7 +5179,8 @@ export default function Core(
    */
   this.loadData = function(data: unknown[][][] | object[], source: string) {
     // Loading data is not a user action: nothing it does may open an operation or be journaled.
-    operationScope.suppress(() => applyLoadData(data, source));
+    // It is a lifecycle pass, so a ready step a load hook makes a plugin owe reads the new rows.
+    runInLifecyclePass(() => operationScope.suppress(() => applyLoadData(data, source)));
   };
 
   /**
@@ -5116,7 +5224,8 @@ export default function Core(
         internalSource: 'loadData',
         source,
         metaManager,
-        firstRun
+        firstRun,
+        beforeRender: () => runOwedReadySteps(1),
       }));
   }
 
@@ -5343,6 +5452,11 @@ export default function Core(
    * callback that settings passed for it and leaves `null` in {@link Core#getSettings}. A hook set to `undefined` is
    * left as it is. Listeners added with {@link Core#addHook} are not affected by either.
    *
+   * The legacy [`fixedColumnsLeft`](@/api/options.md#fixedcolumnsleft) option is applied as
+   * [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart), while the settings object that
+   * [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings) receives keeps the name you passed. Passing both
+   * names in one call throws an error. When you pass them in separate calls, the later value applies.
+   *
    * This method reinitializes the affected plugins and then renders, so it does more work than a plain
    * [render()](@/api/core.md#render). When only cell metadata changed, call [render()](@/api/core.md#render)
    * instead. See the [Understanding rendering](@/guides/optimization/rendering/rendering.md) guide.
@@ -5367,15 +5481,18 @@ export default function Core(
    * @fires Hooks#afterUpdateSettings
    */
   this.updateSettings = function(settings: SettingsUpdate, init = false) {
-    const applied = init ? settings : filterSettings(settings);
+    const normalized = normalizeFixedColumnsAlias(settings, instance.isRtl());
+    const applied = init ? normalized : filterSettings(normalized);
 
-    if (applied !== settings && Object.keys(applied).length === 0) {
+    if (applied !== normalized && Object.keys(applied).length === 0) {
       return;
     }
 
+    const notified = withCallerFixedColumnsName(applied, settings);
+
     // Applying settings is not a user action: a plugin that updates its state from the new
     // settings, or the `cell` option writing meta, must not open an operation or be journaled.
-    operationScope.suppress(() => {
+    runInLifecyclePass(() => operationScope.suppress(() => {
       if (dataWorkPhase !== 'configure' || init) {
         const outerPhase = dataWorkPhase;
 
@@ -5384,7 +5501,7 @@ export default function Core(
         }
 
         try {
-          applySettings(applied, init);
+          applySettings(applied, init, false, null, null, notified);
         } finally {
           dataWorkPhase = outerPhase;
         }
@@ -5397,12 +5514,12 @@ export default function Core(
           'applied is ignored: the data that change loads replaces it. Call loadData() once it has finished.');
       }
 
-      const metaPhase = applySettings(applied, init, true);
+      const metaPhase = applySettings(applied, init, true, null, null, notified);
 
       if (metaPhase) {
         heldMetaPhases.push(metaPhase);
       }
-    });
+    }));
   };
 
   /**
@@ -5471,6 +5588,7 @@ export default function Core(
     cellOptionMetas: CellOptionMetaEntry[] | null = null,
     keptCellMetas: KeptCellMetas | null = null,
   ) {
+    const normalized = normalizeFixedColumnsAlias(settings, instance.isRtl());
     const suspendsRender = !!instance.view;
 
     if (suspendsRender) {
@@ -5478,7 +5596,7 @@ export default function Core(
     }
 
     try {
-      operationScope.suppress(() => {
+      runInLifecyclePass(() => operationScope.suppress(() => {
         const outerPhase = dataWorkPhase;
         const outerHeldMetaPhases = heldMetaPhases;
         const isNested = outerPhase !== null;
@@ -5488,7 +5606,10 @@ export default function Core(
 
         try {
           try {
-            const metaPhase = applySettings(filterSettings(settings), false, true, cellOptionMetas, keptCellMetas);
+            const filtered = filterSettings(normalized);
+            const metaPhase = applySettings(
+              filtered, false, true, cellOptionMetas, keptCellMetas, withCallerFixedColumnsName(filtered, settings)
+            );
             const nestedMetaPhases = heldMetaPhases;
 
             dataWorkPhase = 'data';
@@ -5514,6 +5635,9 @@ export default function Core(
               }
             });
           }
+
+          // The ready steps the call made the plugins owe, run before its render. The call holds one pass.
+          runOwedReadySteps(1);
         } catch (error) {
           if (!isNested) {
             pluginsRegistry.getItems().forEach(([, plugin]) => {
@@ -5523,7 +5647,7 @@ export default function Core(
 
           throw error;
         }
-      });
+      }));
     } finally {
       if (suspendsRender) {
         instance.resumeRender();
@@ -6392,6 +6516,9 @@ export default function Core(
     }
 
     grid.adjustRowsAndCols();
+    // The ready steps this call made the plugins owe, run before its render. The call itself holds one pass,
+    // so a call nested in another pass leaves them to the outermost one.
+    runOwedReadySteps(1);
 
     if (instance.view && !firstRun) {
       instance.render();
@@ -6417,12 +6544,15 @@ export default function Core(
    * the meta phase instead of applying `settings.cell` (see `_applySettingsAndData()`).
    * @param {object|null} [keptCellMetas=null] The user-set meta and invalid marks to put back in the meta phase
    * (see `_applySettingsAndData()`).
+   * @param {object} [notifiedSettings] The settings `afterUpdateSettings` receives, `settings` by default: the
+   * caller's key names where core applies a normalized payload (`withCallerFixedColumnsName()`).
    * @returns {Function|null} The held-back meta phase, or `null` when it ran.
    */
   function applySettings(
     settings: SettingsUpdate, init: boolean, defersDataWork = false,
     restoredCellOptionMetas: CellOptionMetaEntry[] | null = null,
-    keptCellMetas: KeptCellMetas | null = null
+    keptCellMetas: KeptCellMetas | null = null,
+    notifiedSettings: SettingsUpdate = settings,
   ): (() => void) | null {
     const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(instance);
 
@@ -6481,7 +6611,7 @@ export default function Core(
     const rootSize = applyRootSizeSettings(settings, init, previousRootSize);
 
     if (!init) {
-      notifySettingsUpdated(settings);
+      notifySettingsUpdated(notifiedSettings);
     }
 
     if (!defersDataWork) {
@@ -9359,6 +9489,7 @@ export default function Core(
    * @fires Hooks#afterDestroy
    */
   this.destroy = function() {
+    isBeingDestroyed = true;
     // Never resumed: nothing may render a grid that is being torn down. A plugin whose `destroy()`
     // re-renders to reflect its own removal at runtime (Autofill hides the fill handle) would
     // otherwise render the view destroyed below (DEV-775).
@@ -10187,6 +10318,12 @@ export default function Core(
   ) {
     initializeThemeManager(theme as ThemeBuilder | undefined, readThemeOverrides(mergedUserSettings));
   }
+
+  // Registered ahead of the plugins, so a `beforeInit` listener a plugin adds in its constructor, and every
+  // listener added later, still runs after the plugins are initialized and enabled.
+  instance.addHook('beforeInit', () => {
+    initializePlugins(instance, pluginsRegistry.getItems().map(([, plugin]) => plugin as BasePlugin));
+  });
 
   getPluginsNames().forEach((pluginName) => {
     const PluginClass = getPlugin(pluginName);

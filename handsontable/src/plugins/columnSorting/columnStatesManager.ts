@@ -86,6 +86,17 @@ export class ColumnStatesManager {
   }
 
   /**
+   * Puts every column property which affects the sorting result back to its default value, dropping a
+   * `compareFunctionFactory` set by an earlier configuration object.
+   */
+  resetAllColumnsProperties() {
+    this.sortEmptyCells = SORT_EMPTY_CELLS_DEFAULT;
+    this.indicator = SHOW_SORT_INDICATOR_DEFAULT;
+    this.headerAction = HEADER_ACTION_DEFAULT;
+    this.compareFunctionFactory = undefined;
+  }
+
+  /**
    * Get all column properties which affect the sorting result.
    *
    * @returns {object}

@@ -143,6 +143,13 @@ outside, do not assume each call rebuilds the matrix.
 - On a move that would split a *collapsed* group, CollapsibleColumns **preemptively expands it** in
   `beforeColumnMove`, so reading `getCollapsedGroups()` inside/after that hook can show fewer groups than
   before.
+- **`setState()` drops every `collapsible` flag CollapsibleColumns wrote, so the plugin runs the
+  `afterHeaderStateRebuild` local hook (the `localHooks` mixin) at the end of `updatePlugin()`**, the path
+  that calls it: enable, a `nestedHeaders` update, and every `afterLoadData`. CollapsibleColumns writes its
+  flags again from that hook. Its own `afterLoadData` listener ran first, by plugin order, and lost them, so
+  a `loadData()` or a sheets bar switch onto a sheet declaring `nestedHeaders` showed no collapse buttons. A
+  new path that rebuilds the state from the setting must run the hook too. `rebuildState()`, `insertColumns()`
+  and `removeColumns()` keep the flags and do not.
 
 ## Hook timing & move gotchas (hard-won)
 
@@ -183,7 +190,10 @@ outside, do not assume each call rebuilds the matrix.
 - The captured move state (`#movedPhysicalColumns`, `#preMoveColumnSequence`) is cleared **only after it
   is consumed** in the cacheUpdated handler, not unconditionally — a CollapsibleColumns auto-expand fires
   a synchronous hidden-only `cacheUpdated` *before* `moveIndexes`, and clearing eagerly dropped the
-  pending move.
+  pending move. The one other release is `#onAfterColumnMove` with `orderChanged === false`: a move that
+  changes nothing never reaches `moveIndexes()` (see `../manualColumnMove/AGENTS.md`), so no cache update
+  consumes the capture, and a later reorder that skips `beforeColumnMove` (`freezeColumn`) would meet it
+  stale. Pinned by `__tests__/noopMoveCapture.unit.js`.
 - The header renderer strips `beforeHiddenColumn` / `afterHiddenColumn` from every header that does not
   reach the cells (`reachesCells`). It runs *after* HiddenColumns' `afterGetColHeader` hook, which — since
   icons became elements — also appends a real `<i class="ht-icon …">` caret into `.relative`. Stripping the class does

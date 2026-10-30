@@ -552,9 +552,19 @@ export class PaginationUI {
   }
 
   /**
-   * Removes the pagination UI elements from the DOM and clears the refs.
+   * Removes the pagination UI elements from the DOM and clears the refs. Without a custom
+   * `uiContainer` it also takes the `htPagination` marker off the root wrapper, which
+   * `#updateContainerVisibility()` adds while a section is visible.
    */
   destroy() {
+    if (!this.#uiContainer) {
+      const wrapper = this.#rootElement.querySelector('.ht-wrapper');
+
+      if (wrapper) {
+        removeClass(wrapper as HTMLElement, 'htPagination');
+      }
+    }
+
     this.#refs?.container.remove();
     this.#refs = null;
   }

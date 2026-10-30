@@ -65,6 +65,24 @@ test.describe('sheets bar switch animation – active tab marker', { tag: [THEME
     expectSameBox(end, newTab);
   });
 
+  test('the sliding marker stays visible in forced colors', async ({ page, theme, bundle }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await page.emulateMedia({ forcedColors: 'active' });
+    await openPaused(bar);
+    await bar.clickTab(1);
+    await expect(bar.indicator).toHaveCount(1);
+
+    const line = await bar.indicator.evaluate((indicator) => {
+      const style = getComputedStyle(indicator);
+
+      return { style: style.borderBottomStyle, width: parseFloat(style.borderBottomWidth) };
+    });
+
+    expect(line.style).toBe('solid');
+    expect(line.width).toBeGreaterThan(0);
+  });
+
   test('the marker is removed after the slide and the new tab carries the active styling', async ({
     page, theme, bundle,
   }) => {
@@ -388,8 +406,8 @@ test.describe('sheets bar switch animation – new tab entrance', { tag: [THEMES
     const name = await bar.lastSheetName();
     const added = await bar.tabsAdded(name);
 
-    expect(added.length).toBeGreaterThanOrEqual(2);
-    expect(added.every(entry => entry.entering)).toBe(true);
+    expect(added).toHaveLength(1);
+    expect(added[0].entering).toBe(true);
     expect(await bar.tabEntrance(name)).toEqual({ entering: true, delay: '0ms' });
     expect((await bar.tabsAdded()).filter(entry => entry.name !== name).every(entry => !entry.entering)).toBe(true);
 
@@ -432,14 +450,18 @@ test.describe('sheets bar switch animation – new tab entrance', { tag: [THEMES
 
     expect(await bar.tabEntrance('Delta')).toEqual({ entering: true, delay: '0ms' });
 
+    await bar.tabByName('Delta').evaluate((tab) => {
+      (window as never as { deltaEntrance: Animation }).deltaEntrance = tab.getAnimations()[0];
+    });
     await page.clock.runFor(40);
     await page.evaluate(() => (window as never as { hot: any }).hot.getPlugin('sheetsBar').setActiveSheet('Delta'));
 
     const added = await bar.tabsAdded('Delta');
 
-    expect(added).toHaveLength(2);
-    expect(added[1]).toEqual({ name: 'Delta', entering: true, delay: '-40ms' });
-    expect(await bar.tabEntrance('Delta')).toEqual({ entering: true, delay: '-40ms' });
+    expect(added).toHaveLength(1);
+    expect(await bar.tabEntrance('Delta')).toEqual({ entering: true, delay: '0ms' });
+    expect(await bar.tabByName('Delta').evaluate(tab => tab.getAnimations()
+      .includes((window as never as { deltaEntrance: Animation }).deltaEntrance))).toBe(true);
   });
 
   test('a wrapper re-sending the same sheets leaves a new tab sliding in on its own element', async ({

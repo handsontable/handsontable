@@ -48,6 +48,7 @@ import type { Pagination } from './pagination';
 import type { RowSelection } from './rowSelection';
 import type { CheckboxHeader } from './checkboxHeader';
 import type { Search } from './search';
+import type { SheetsBar } from './sheetsBar';
 import type { SelectionHandles } from './selectionHandles';
 import type { StretchColumns } from './stretchColumns';
 import type { TouchScroll } from './touchScroll';
@@ -104,6 +105,7 @@ export interface PluginTypeMap {
   checkboxHeader: CheckboxHeader;
   search: Search;
   selectionHandles: SelectionHandles;
+  sheetsBar: SheetsBar;
   stretchColumns: StretchColumns;
   touchScroll: TouchScroll;
   trimRows: TrimRows;
