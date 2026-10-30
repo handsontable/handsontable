@@ -1,6 +1,6 @@
 import { FocusOrder } from '../focusOrder';
 
-describe('MergeCells', () => {
+describe('Selection', () => {
   describe('FocusOrder', () => {
     const GRID_SIZE = 30;
 
@@ -57,7 +57,7 @@ describe('MergeCells', () => {
         }
       });
 
-      return (row, column) => matrix.get(row)?.get(column) ?? false;
+      return (row, column) => matrix.get(row)?.get(column) ?? null;
     }
 
     /**
@@ -180,7 +180,7 @@ describe('MergeCells', () => {
       const rowMapper = createMapperMock([]);
       const colMapper = createMapperMock([]);
       const focusOrder = new FocusOrder({
-        mergedCellsGetter: createMergedCellsGetter([]),
+        blockGetter: createMergedCellsGetter([]),
         rowIndexMapper: rowMapper,
         columnIndexMapper: colMapper,
       });
@@ -202,7 +202,7 @@ describe('MergeCells', () => {
     it('should merge a fully-contained merged cell into a single focus stop', () => {
       const merge = { row: 1, col: 1, rowspan: 2, colspan: 2 };
       const focusOrder = new FocusOrder({
-        mergedCellsGetter: createMergedCellsGetter([merge]),
+        blockGetter: createMergedCellsGetter([merge]),
         rowIndexMapper: createMapperMock([]),
         columnIndexMapper: createMapperMock([]),
       });
@@ -224,10 +224,25 @@ describe('MergeCells', () => {
         .toEqual({ selectionLayer: 0, rowStart: 1, rowEnd: 1, colStart: 3, colEnd: 3 });
     });
 
+    it('should anchor a node at its first visible cell', () => {
+      const merge = { row: 1, col: 1, rowspan: 2, colspan: 3 };
+      const focusOrder = new FocusOrder({
+        blockGetter: createMergedCellsGetter([merge]),
+        rowIndexMapper: createMapperMock([1]),
+        columnIndexMapper: createMapperMock([1]),
+      });
+
+      // The merge's top row and left column are hidden.
+      expect(focusOrder.getNodeAnchor({ selectionLayer: 0, rowStart: 1, rowEnd: 2, colStart: 1, colEnd: 3 }))
+        .toEqual({ row: 2, column: 2 });
+      expect(focusOrder.getNodeAnchor({ selectionLayer: 0, rowStart: 0, rowEnd: 0, colStart: 4, colEnd: 4 }))
+        .toEqual({ row: 0, column: 4 });
+    });
+
     it('should produce no focus stop for a merged cell that sticks out of the selection', () => {
       const merge = { row: 0, col: 0, rowspan: 3, colspan: 3 };
       const focusOrder = new FocusOrder({
-        mergedCellsGetter: createMergedCellsGetter([merge]),
+        blockGetter: createMergedCellsGetter([merge]),
         rowIndexMapper: createMapperMock([]),
         columnIndexMapper: createMapperMock([]),
       });
@@ -305,7 +320,7 @@ describe('MergeCells', () => {
         const colMapper = createMapperMock(hiddenColumns);
         const mergedCellsGetter = createMergedCellsGetter(merges);
         const focusOrder = new FocusOrder({
-          mergedCellsGetter,
+          blockGetter: mergedCellsGetter,
           rowIndexMapper: rowMapper,
           columnIndexMapper: colMapper,
         });

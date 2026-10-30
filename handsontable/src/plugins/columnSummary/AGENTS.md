@@ -177,9 +177,8 @@ position. A `reversedRowCoords` destination is given back as the offset from the
 (`countAddressableRows() - destinationRow - 1`), not the declared `reversedRowOffset`: a removal that
 leaves the summary parked above a data row, or a `minSpareRows` row that an `auto` insert adds below it,
 changes that offset, and re-applying the declared one wrote the total over the data row. A whole-table
-default range is left out so it keeps following the table. An explicit `ranges: []` is exported as `[]`:
-`assignSetting()` leaves `ranges` unset for it and sets no `rangesFromDefault`, so leaving the key out made the
-return parse it as the whole-table default.
+default range is left out so it keeps following the table. An explicit `ranges: []` is exported as `[]`,
+because leaving the key out would make the return parse it as the whole-table default.
 The function form answers `null`, because it reads its settings again on every pass.
 
 ## Styling uses `_setCellMetaDeclarative`, not `setCellMeta`
@@ -310,7 +309,13 @@ the internal `rangesFromDefault` flag (not on `EndpointConfig`, never copied by 
 `#rederiveDefaultRanges()`.
 
 - **Only the flag decides.** An explicit range names records and must not auto-grow, so it is never re-derived.
-  `ranges: []` leaves `ranges` unset and carries no flag.
+  `ranges: []` is an explicit range too: it summarizes no rows, the same result as an empty table, and
+  carries no flag. It used to leave `ranges` unset. In 17.x `objectEach` skipped the unset value, so `[]`
+  already summarized nothing; from 18.0.0 the built-in types loop with `for...of` and threw `endpoint.ranges
+  is not iterable`, at build and on `updateSettings()`. A `custom` function never threw, and it now gets
+  `[]` instead of `undefined`. Do not read `[]` as the whole-table default: a caller that builds `ranges` in
+  code and filters it down to nothing would then get a total over every row. Any other non-array value
+  (`null`) takes the default, so every stored `ranges` is an array. `emptyRanges.unit.js` pins it.
 - **The default means the whole table**, so a row inserted above row 0 is included, and a removal under
   `maxRows` pulls in the row the cap used to hide. The shift alone would have moved the start to 1 and
   shortened the end.

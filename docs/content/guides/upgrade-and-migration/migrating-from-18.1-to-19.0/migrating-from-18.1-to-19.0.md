@@ -2650,3 +2650,30 @@ Fix the value, or cast it when a type is wrong for your case:
 <!-- A value your own types cannot narrow -->
 <HotTable :readOnly="(isLocked as boolean)" />
 ```
+
+## 47. Four `MergedCellsCollection` methods are deprecated
+
+This applies only if you call one of these methods of the
+[`MergedCellsCollection`](@/api/mergedCellsCollection.md) that the `MergeCells` plugin keeps
+(`hot.getPlugin('mergeCells').mergedCellsCollection`):
+
+- `getStartMostColumnIndex()`
+- `getEndMostColumnIndex()`
+- `getTopMostRowIndex()`
+- `getBottomMostRowIndex()`
+
+The selection now steps over merged cells by itself, so Handsontable no longer calls these methods.
+They still return what they did, and each prints a one-time console warning when called. They will
+be removed in 20.0.0.
+
+The answers change in one case only: a merged cell whose rows a filter or `trimRows` hides is left
+out, because its coordinates point at the rows that took its place.
+
+### Who is affected
+
+You are affected only if your code calls one of the four methods.
+
+### How to migrate
+
+There is no replacement. Remove the call: keyboard and mouse selection already cover every merged
+cell they touch.

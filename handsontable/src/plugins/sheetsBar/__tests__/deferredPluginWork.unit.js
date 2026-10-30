@@ -174,8 +174,7 @@ describe('plugins applied ahead of their data', () => {
         sourceColumn: 0,
         destinationRow: 3,
         destinationColumn: 0,
-        type: 'custom',
-        customFunction: () => 0,
+        type: 'sum',
         ranges: [],
       }]);
 
