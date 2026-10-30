@@ -173,17 +173,36 @@ export interface SheetSnapshot {
 }
 
 /**
+ * One defined name: its text and its definition.
+ */
+export interface DefinedNameSnapshot {
+  /**
+   * The name, as a formula spells it.
+   */
+  name: string;
+  /**
+   * The definition, without the leading `=` (`Data!$G$2:$G$4`, `0.07`).
+   */
+  formula: string;
+  /**
+   * The sheet the name is scoped to, or `null` for a name visible in the whole workbook.
+   */
+  sheetName: string | null;
+}
+
+/**
  * A whole workbook, the unit every adapter reads and writes.
  */
 export interface WorkbookSnapshot {
   sheets: SheetSnapshot[];
   compression: false | number;
   /**
-   * The names the workbook defines (`<definedNames>`), read on import only and never written. A
-   * formula that uses one cannot resolve unless the Formulas engine defines it too. Excel's own
-   * `_xlnm.` names (print areas, the filter database) are left out.
+   * The names the workbook defines (`<definedNames>`), with their definitions. The native engine
+   * reads and writes them. A formula that uses one cannot resolve on import unless the Formulas
+   * engine defines it too. Excel's own `_xlnm.` names (print areas, the filter database) are left
+   * out.
    */
-  definedNames?: string[];
+  definedNames?: DefinedNameSnapshot[];
   /**
    * The formula characters the native reader's shared-formula translation ran over, read on import
    * only. The import mapper starts its own formula-walk count from it, so one import spends

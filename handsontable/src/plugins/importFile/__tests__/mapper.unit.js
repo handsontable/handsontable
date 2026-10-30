@@ -623,7 +623,7 @@ describe('mapWorkbook', () => {
       const wb = workbook(sheet);
 
       sheet.rows = [row];
-      wb.definedNames = names;
+      wb.definedNames = names.map(name => ({ name, formula: '1', sheetName: null }));
 
       return map(wb, options, context);
     }
@@ -933,7 +933,7 @@ describe('mapWorkbook', () => {
 
     const namedWorkbook = workbook(read('Q1Sales*A2'));
 
-    namedWorkbook.definedNames = ['Q1Sales'];
+    namedWorkbook.definedNames = [{ name: 'Q1Sales', formula: 'Data!$A$1', sheetName: null }];
 
     const named = map(namedWorkbook, { colHeaders: 'firstRow' }, context);
 

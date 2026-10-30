@@ -928,7 +928,7 @@ describe('mapWorkbook on number formats a spreadsheet app writes, whichever engi
       // eslint-disable-next-line no-await-in-loop -- one engine at a time.
       const read = await adapter.read(bytes, engine, dropped);
 
-      expect(read.definedNames).toEqual(expect.arrayContaining(['Sales', 'Rate']));
+      expect(read.definedNames.map(({ name }) => name)).toEqual(expect.arrayContaining(['Sales', 'Rate']));
 
       const unknown = mapWorkbook(read, resolveImportOptions({}), {
         formulasEnabled: true, commentsEnabled: false, customBordersEnabled: false, formulaNamedExpressions: new Set(),
@@ -961,7 +961,7 @@ describe('mapWorkbook on number formats a spreadsheet app writes, whichever engi
     const snapshot = createWorkbookSnapshot();
 
     snapshot.sheets.push(sheet.toSnapshot());
-    snapshot.definedNames = ['Sales'];
+    snapshot.definedNames = [{ name: 'Sales', formula: 'Data!$B$2:$B$4', sheetName: null }];
 
     const dropped = new DroppedFeatures();
     const mapped = mapWorkbook(snapshot, resolveImportOptions({}), {

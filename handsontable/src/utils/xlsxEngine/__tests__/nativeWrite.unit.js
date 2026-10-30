@@ -431,6 +431,41 @@ describe('nativeAdapter.write', () => {
     expect(sheet.freeze).toEqual({ rows: 1, cols: 0 });
   });
 
+  it('should round-trip defined names, with their scope, through the native reader', async() => {
+    const snapshot = snapshotWith((b) => {
+      b.cell(1, 1).value = 1;
+    }, 'Data');
+    const names = [
+      { name: 'Sales', formula: 'Data!$A$1:$A$3', sheetName: null },
+      { name: 'Local', formula: 'IFS(1,2)&"<&>"', sheetName: 'Data' },
+    ];
+
+    snapshot.definedNames = names;
+
+    const dropped = new DroppedFeatures();
+    const bytes = await nativeAdapter.write(snapshot, undefined, dropped);
+    const back = await nativeAdapter.read(toArrayBuffer(bytes), undefined, new DroppedFeatures());
+
+    // The reader keeps the `_xlfn.` prefix as it does in a cell formula; the import mapper strips it.
+    expect(back.definedNames).toEqual([names[0], { ...names[1], formula: '_xlfn.IFS(1,2)&"<&>"' }]);
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should write no definedNames element for an empty or fully invalid list', async() => {
+    const snapshot = snapshotWith((b) => {
+      b.cell(1, 1).value = 1;
+    });
+
+    snapshot.definedNames = [{ name: 'A1', formula: '1', sheetName: null }];
+
+    const dropped = new DroppedFeatures();
+    const bytes = await nativeAdapter.write(snapshot, undefined, dropped);
+    const back = await nativeAdapter.read(toArrayBuffer(bytes), undefined, new DroppedFeatures());
+
+    expect(back.definedNames).toEqual([]);
+    expect(dropped.list()).toEqual(['definedNames:unsupported']);
+  });
+
   it('should round-trip a cell value that looks like the reader\'s own control-character escape', async() => {
     // `_x0041_` is not a control character; it is a literal string. Left unescaped on write it
     // would be indistinguishable from the `_xHHHH_` a reader writes FOR a real control character,

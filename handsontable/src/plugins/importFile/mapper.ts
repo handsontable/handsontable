@@ -592,7 +592,7 @@ function unresolvedDefinedNames(workbook: WorkbookSnapshot, context: MapperConte
   const known = context.formulaNamedExpressions;
   const names = new Set<string>();
 
-  (workbook.definedNames ?? []).forEach((name) => {
+  (workbook.definedNames ?? []).forEach(({ name }) => {
     const lowered = name.toLowerCase();
 
     if (!known?.has(lowered)) {

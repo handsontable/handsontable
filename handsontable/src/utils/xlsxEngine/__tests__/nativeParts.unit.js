@@ -28,6 +28,8 @@ const sheets = [
 ];
 
 describe('package parts', () => {
+  const noDropped = () => new DroppedFeatures();
+
   it('should declare every part in [Content_Types].xml, the vml default only when a sheet has comments', () => {
     const xml = contentTypesXml(sheets, true, false);
 
@@ -139,18 +141,19 @@ describe('package parts', () => {
   });
 
   it('should write and read back the sheet list with states, and the full-calc flag', () => {
-    const xml = workbookXml(sheets, ['rId3', 'rId4'], true);
+    const xml = workbookXml(sheets, ['rId3', 'rId4'], true, [], [], noDropped());
 
     expect(xml).toContain('<sheet name="Data" sheetId="1" r:id="rId3"/>');
     expect(xml).toContain('<sheet name="_HotValidation" sheetId="2" state="veryHidden" r:id="rId4"/>');
     expect(xml).toContain('<calcPr calcId="171027" fullCalcOnLoad="1"/>');
     expect(xml.indexOf('<bookViews>')).toBeLessThan(xml.indexOf('<sheets>'));
     expect(xml.indexOf('<sheets>')).toBeLessThan(xml.indexOf('<calcPr'));
-    expect(workbookXml(sheets, ['rId3', 'rId4'], false)).toContain('<calcPr calcId="171027"/>');
+    expect(workbookXml(sheets, ['rId3', 'rId4'], false, [], [], noDropped())).toContain('<calcPr calcId="171027"/>');
     expect(workbookXml([
       { index: 1, name: 'Data', state: 'visible', hasComments: false },
       { index: 2, name: 'Lists', state: 'hidden', hasComments: false },
-    ], ['rId3', 'rId4'], false)).toContain('<sheet name="Lists" sheetId="2" state="hidden" r:id="rId4"/>');
+    ], ['rId3', 'rId4'], false, [], [], noDropped()))
+      .toContain('<sheet name="Lists" sheetId="2" state="hidden" r:id="rId4"/>');
 
     expect(parseWorkbook(xml)).toEqual({
       sheets: [
@@ -166,15 +169,76 @@ describe('package parts', () => {
     expect(parseWorkbook('<workbook><workbookPr date1904="false"/><sheets/></workbook>').date1904).toBe(false);
   });
 
-  it('should read the names a workbook defines, leaving out Excel\'s own `_xlnm.` names', () => {
-    const { definedNames } = parseWorkbook('<workbook><sheets/><definedNames>'
-      + '<definedName name="Sales">Data!$B$2:$B$4</definedName>'
-      + '<definedName name="Rate" localSheetId="0">Data!$F$1</definedName>'
-      + '<definedName name="_xlnm.Print_Area" localSheetId="0">Data!$A$1:$D$4</definedName>'
+  it('should read the names a workbook defines with their definitions, leaving out Excel\'s own `_xlnm.` names', () => {
+    const dropped = new DroppedFeatures();
+    const { definedNames } = parseWorkbook('<workbook><sheets>'
+      + '<sheet name="Data" sheetId="1" r:id="rId1"/><sheet name="Rates" sheetId="2" r:id="rId2"/></sheets>'
+      + '<definedNames>'
+      + '<definedName name="Sales">Data!$G$2:$G$4</definedName>'
+      + '<definedName name="TaxRate">0.07</definedName>'
+      + '<definedName name="Local" localSheetId="1">Rates!$A$1</definedName>'
+      + '<definedName name="_xlnm.Print_Area" localSheetId="0">Data!$A$1:$B$2</definedName>'
       + '<definedName name="Sales">Other!$A$1</definedName>'
-      + '</definedNames></workbook>');
+      + '<definedName name="Lost" localSheetId="7">1</definedName>'
+      + '<definedName name="Amp">IF(A1&lt;2,&quot;a&amp;b&quot;,0)</definedName>'
+      + '</definedNames></workbook>', dropped);
 
-    expect(definedNames).toEqual(['Sales', 'Rate']);
+    expect(definedNames).toEqual([
+      { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null },
+      { name: 'TaxRate', formula: '0.07', sheetName: null },
+      { name: 'Local', formula: 'Rates!$A$1', sheetName: 'Rates' },
+      { name: 'Amp', formula: 'IF(A1<2,"a&b",0)', sheetName: null },
+    ]);
+    expect(dropped.list()).toEqual(['definedNames:unsupported']);
+  });
+
+  it('should keep the same name defined in two scopes as two entries', () => {
+    const { definedNames } = parseWorkbook('<workbook><sheets><sheet name="A" sheetId="1" r:id="rId1"/></sheets>'
+      + '<definedNames><definedName name="X">1</definedName>'
+      + '<definedName name="X" localSheetId="0">2</definedName></definedNames></workbook>');
+
+    expect(definedNames).toEqual([
+      { name: 'X', formula: '1', sheetName: null },
+      { name: 'X', formula: '2', sheetName: 'A' },
+    ]);
+  });
+
+  it('should write defined names between the sheets and calcPr, adding function prefixes', () => {
+    const dropped = new DroppedFeatures();
+    const xml = workbookXml(sheets, ['rId3', 'rId4'], false, [
+      { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null },
+      { name: 'L', formula: 'IFS(1,2)', sheetName: 'data' },
+      { name: 'Esc', formula: 'A1<2', sheetName: null },
+    ], ['Data', '_HotValidation'], dropped);
+
+    expect(xml).toContain('<definedNames><definedName name="Sales">Data!$G$2:$G$4</definedName>'
+      + '<definedName name="L" localSheetId="0">_xlfn.IFS(1,2)</definedName>'
+      + '<definedName name="Esc">A1&lt;2</definedName></definedNames><calcPr');
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should skip an invalid name or an unknown scope and record definedNames:unsupported once', () => {
+    const dropped = new DroppedFeatures();
+    const xml = workbookXml(sheets, ['rId3', 'rId4'], false, [
+      { name: 'A1', formula: '1', sheetName: null },
+      { name: '1st', formula: '1', sheetName: null },
+      { name: 'has space', formula: '1', sheetName: null },
+      { name: 'Ghost', formula: '1', sheetName: 'Nope' },
+      { name: 'Fine', formula: '1', sheetName: null },
+    ], ['Data'], dropped);
+
+    expect(xml).toContain('<definedNames><definedName name="Fine">1</definedName></definedNames>');
+    expect(xml).not.toContain('A1"');
+    expect(dropped.list()).toEqual(['definedNames:unsupported']);
+    expect(dropped.count('definedNames:unsupported')).toBe(1);
+  });
+
+  it('should omit definedNames when nothing valid remains', () => {
+    const dropped = new DroppedFeatures();
+
+    expect(workbookXml(sheets, ['rId3', 'rId4'], false, [{ name: 'B2', formula: '1', sheetName: null }], ['Data'],
+      dropped)).not.toContain('definedNames');
+    expect(dropped.list()).toEqual(['definedNames:unsupported']);
   });
 
   it('should record the names past the defined-name cap as dropped, once', () => {
@@ -185,7 +249,7 @@ describe('package parts', () => {
       + '</definedNames></workbook>', dropped);
 
     expect(definedNames).toHaveLength(65536);
-    expect(definedNames[65535]).toBe('N65535');
+    expect(definedNames[65535].name).toBe('N65535');
     expect(dropped.list()).toEqual(['definedNames:truncated']);
     expect(dropped.count('definedNames:truncated')).toBe(1);
   });
@@ -201,7 +265,8 @@ describe('package parts', () => {
   });
 
   it('should escape a sheet name with markup characters', () => {
-    expect(workbookXml([{ index: 1, name: 'A & B', state: 'visible', hasComments: false }], ['rId2'], false))
+    expect(workbookXml([{ index: 1, name: 'A & B', state: 'visible', hasComments: false }], ['rId2'], false, [], [],
+      noDropped()))
       .toContain('name="A &amp; B"');
   });
 

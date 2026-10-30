@@ -45,7 +45,7 @@ function mapFormulas(formula, count, { header = false, names = [], readerChars }
   }
 
   workbook.sheets.push(sheet);
-  workbook.definedNames = names;
+  workbook.definedNames = names.map(name => ({ name, formula: '1', sheetName: null }));
 
   if (readerChars !== undefined) {
     workbook.translatedFormulaChars = readerChars;

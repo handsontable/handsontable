@@ -2,7 +2,7 @@ import { throwWithCause } from '../../../../helpers/errors';
 import { localeLowerCase } from '../../../../helpers/string';
 import { DROPPED_FEATURES, type DroppedFeatureName, type DroppedFeatures } from '../../capabilities';
 import { isLimitError, MAX_INPUT_BYTES, throwLimitExceeded } from '../../limits';
-import { createWorkbookSnapshot, type WorkbookSnapshot } from '../../model';
+import { createWorkbookSnapshot, type DefinedNameSnapshot, type WorkbookSnapshot } from '../../model';
 import { noteToComment } from '../../threadedComments';
 import { parseComments } from './parts/comments';
 import {
@@ -119,7 +119,7 @@ interface OpenedPackage {
   workbookRels: Relationship[];
   sheets: ReturnType<typeof parseWorkbook>['sheets'];
   date1904: boolean;
-  definedNames: string[];
+  definedNames: DefinedNameSnapshot[];
   styles: ParsedStyles;
   sharedStrings: ParsedSharedStrings;
   contentTypes: ContentTypes;

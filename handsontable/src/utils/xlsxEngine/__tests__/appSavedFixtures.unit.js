@@ -186,7 +186,9 @@ describe('workbooks a spreadsheet app saved', () => {
       });
 
       ['native', 'exceljs'].forEach((kind) => {
-        expect(unknown[kind].read.definedNames).toEqual(['Sales']);
+        expect(unknown[kind].read.definedNames).toEqual([
+          { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null },
+        ]);
         expect(unknown[kind].result.data[0][6]).toBe(60);
         expect(unknown[kind].result.formulas).toEqual(expect.arrayContaining([
           { row: 0, col: 6, formula: 'SUM(Sales)' },

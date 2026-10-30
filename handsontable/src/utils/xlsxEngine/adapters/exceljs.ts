@@ -11,6 +11,7 @@ import {
   type CellSnapshot,
   type CellStyleSnapshot,
   type CellValue,
+  type DefinedNameSnapshot,
   type MergeSnapshot,
   type SheetProtectionOptions,
   type SheetSnapshot,
@@ -184,7 +185,7 @@ export interface ExcelJsWorkbook {
   /**
    * The names the workbook defines, as `{ name, ranges }` entries.
    */
-  definedNames?: { model?: Array<{ name?: string }> };
+  definedNames?: { model?: Array<{ name?: string; ranges?: string[] }> };
   xlsx: {
     writeBuffer(options?: object): Promise<Uint8Array>;
     load(buffer: ArrayBuffer): Promise<unknown>;
@@ -714,17 +715,20 @@ function readNumFmt(source: ExcelJsCell): string | null {
  * The names an ExcelJS workbook defines, Excel's own `_xlnm.` names left out. ExcelJS keeps only
  * the names whose value is a range, which is what a formula over a named range uses.
  */
-function readDefinedNames(workbook: ExcelJsWorkbook): string[] {
+function readDefinedNames(workbook: ExcelJsWorkbook): DefinedNameSnapshot[] {
   const model = workbook.definedNames?.model;
-  const names = new Set<string>();
+  const names = new Map<string, DefinedNameSnapshot>();
 
-  (Array.isArray(model) ? model : []).forEach(({ name }) => {
-    if (typeof name === 'string' && name !== '' && !name.startsWith('_xlnm.')) {
-      names.add(name);
+  (Array.isArray(model) ? model : []).forEach(({ name, ranges }) => {
+    const formula = Array.isArray(ranges) ? ranges[0] : undefined;
+
+    if (typeof name === 'string' && name !== '' && !name.startsWith('_xlnm.')
+      && typeof formula === 'string' && !names.has(name)) {
+      names.set(name, { name, formula, sheetName: null });
     }
   });
 
-  return [...names];
+  return [...names.values()];
 }
 
 /**

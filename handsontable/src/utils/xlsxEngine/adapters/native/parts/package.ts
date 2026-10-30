@@ -1,7 +1,9 @@
 import { localeLowerCase } from '../../../../../helpers/string';
 import { DROPPED_FEATURES, type DroppedFeatures } from '../../../capabilities';
 import { MAX_WORKBOOK_SHEETS, throwLimitExceeded } from '../../../limits';
-import type { SheetSnapshot } from '../../../model';
+import { parseCellRef } from '../../../cellRef';
+import { addFunctionPrefixes } from '../../../functionPrefixes';
+import type { DefinedNameSnapshot, SheetSnapshot } from '../../../model';
 import { createLocalName, tokenizeXml, type XmlAttributes } from '../xml/tokenizer';
 import { foldPartName } from '../zip/reader';
 import { XmlWriter } from '../xml/writer';
@@ -243,11 +245,29 @@ export function sheetRelsXml(index: number): string {
 }
 
 /**
- * Serializes `xl/workbook.xml`. Child order is schema-fixed: `workbookPr`, `bookViews`, `sheets`,
- * `calcPr`. `fullCalcOnLoad` asks LibreOffice and Google Sheets to compute formulas written
- * without a cached result; Excel recalculates on its own.
+ * A name Excel accepts: a letter, underscore or backslash first, then letters, digits, dots,
+ * underscores or backslashes.
  */
-export function workbookXml(sheets: PackageSheet[], sheetRelIds: string[], fullCalcOnLoad: boolean): string {
+const DEFINED_NAME_PATTERN = /^[A-Za-z_\\][A-Za-z0-9_.\\]{0,254}$/;
+
+/**
+ * Serializes `xl/workbook.xml`. Child order is schema-fixed: `workbookPr`, `bookViews`, `sheets`,
+ * `definedNames`, `calcPr`. `fullCalcOnLoad` asks LibreOffice and Google Sheets to compute formulas
+ * written without a cached result; Excel recalculates on its own.
+ *
+ * A defined name that is not a valid name, that spells a cell reference, or that is scoped to a
+ * sheet `sheetNames` does not hold is left out, and `DROPPED_FEATURES.definedNamesUnsupported` is
+ * recorded once. The definition is written the way a cell formula is: function prefixes added, then
+ * escaped as element text. `<definedNames>` is omitted when nothing valid remains.
+ */
+export function workbookXml(
+  sheets: PackageSheet[],
+  sheetRelIds: string[],
+  fullCalcOnLoad: boolean,
+  definedNames: DefinedNameSnapshot[],
+  sheetNames: string[],
+  dropped: DroppedFeatures,
+): string {
   const w = new XmlWriter().open('workbook', { xmlns: MAIN_NS, 'xmlns:r': R_NS });
 
   w.leaf('workbookPr', { defaultThemeVersion: '164011' });
@@ -266,6 +286,33 @@ export function workbookXml(sheets: PackageSheet[], sheetRelIds: string[], fullC
     });
   });
   w.close();
+
+  const lowerSheetNames = sheetNames.map(sheetName => localeLowerCase(sheetName));
+  const entries: Array<{ name: string; localSheetId: number | undefined; formula: string }> = [];
+  let skipped = false;
+
+  definedNames.forEach(({ name, formula, sheetName }) => {
+    const localSheetId = sheetName === null ? undefined : lowerSheetNames.indexOf(localeLowerCase(sheetName));
+
+    if (!DEFINED_NAME_PATTERN.test(name) || parseCellRef(name) !== null || localSheetId === -1) {
+      skipped = true;
+    } else {
+      entries.push({ name, localSheetId, formula });
+    }
+  });
+
+  if (skipped) {
+    dropped.record(DROPPED_FEATURES.definedNamesUnsupported);
+  }
+
+  if (entries.length > 0) {
+    w.open('definedNames');
+    entries.forEach(({ name, localSheetId, formula }) => {
+      w.formulaLeaf('definedName', addFunctionPrefixes(formula), { name, localSheetId });
+    });
+    w.close();
+  }
+
   w.leaf('calcPr', { calcId: '171027', fullCalcOnLoad: fullCalcOnLoad ? '1' : undefined });
 
   return w.close().toString();
@@ -564,16 +611,48 @@ export const MAX_DEFINED_NAMES = 65536;
 export function parseWorkbook(
   xml: string,
   dropped?: DroppedFeatures,
-): { sheets: WorkbookSheetEntry[]; date1904: boolean; definedNames: string[] } {
+): { sheets: WorkbookSheetEntry[]; date1904: boolean; definedNames: DefinedNameSnapshot[] } {
   const sheets: WorkbookSheetEntry[] = [];
-  const definedNames = new Set<string>();
+  const definedNames = new Map<string, DefinedNameSnapshot>();
   let date1904 = false;
+  let pending: { name: string; sheetName: string | null; text: string } | null = null;
   const localName = createLocalName();
   const relationshipIds = createRelationshipIdReader();
 
+  /**
+   * Keeps the finished definition, or records one a scope cannot be resolved for.
+   */
+  const finish = () => {
+    if (!pending) {
+      return;
+    }
+
+    const { name, sheetName, text } = pending;
+    const key = `${sheetName ?? ''}\u0000${name}`;
+
+    pending = null;
+
+    if (definedNames.size < MAX_DEFINED_NAMES) {
+      if (!definedNames.has(key)) {
+        definedNames.set(key, { name, formula: text.trim(), sheetName });
+      }
+    } else if (!definedNames.has(key) && dropped?.count(DROPPED_FEATURES.definedNamesTruncated) === 0) {
+      dropped.record(DROPPED_FEATURES.definedNamesTruncated);
+    }
+  };
+
   tokenizeXml(xml, {
-    close() {
+    close(rawName) {
       relationshipIds.close();
+
+      if (pending && localName(rawName) === 'definedName') {
+        finish();
+      }
+    },
+    text(text) {
+      if (pending) {
+        pending.text += text;
+      }
     },
     open(rawName, attrs, selfClosing) {
       const name = localName(rawName);
@@ -595,16 +674,34 @@ export function parseWorkbook(
       } else if (name === 'workbookPr') {
         date1904 = attrs.date1904 === '1' || attrs.date1904 === 'true';
       } else if (name === 'definedName' && attrs.name && !attrs.name.startsWith('_xlnm.')) {
-        if (definedNames.size < MAX_DEFINED_NAMES) {
-          definedNames.add(attrs.name);
-        } else if (!definedNames.has(attrs.name) && dropped?.count(DROPPED_FEATURES.definedNamesTruncated) === 0) {
-          dropped.record(DROPPED_FEATURES.definedNamesTruncated);
+        let sheetName: string | null = null;
+
+        if (attrs.localSheetId !== undefined) {
+          const scope = /^\d+$/.test(attrs.localSheetId) ? sheets[Number(attrs.localSheetId)] : undefined;
+
+          if (!scope) {
+            // A scope that names no sheet cannot be kept as workbook-wide: that would redefine the
+            // name for every sheet.
+            if (dropped?.count(DROPPED_FEATURES.definedNamesUnsupported) === 0) {
+              dropped.record(DROPPED_FEATURES.definedNamesUnsupported);
+            }
+
+            return;
+          }
+
+          sheetName = scope.name;
+        }
+
+        pending = { name: attrs.name, sheetName, text: '' };
+
+        if (selfClosing) {
+          finish();
         }
       }
     },
   });
 
-  return { sheets, date1904, definedNames: [...definedNames] };
+  return { sheets, date1904, definedNames: [...definedNames.values()] };
 }
 
 /**
