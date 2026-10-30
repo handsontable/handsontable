@@ -801,6 +801,92 @@ describe('SheetsBar settings baseline and lifecycle', () => {
       expect(hot.getDataAtCell(0, 0)).toBe('typed again');
     });
 
+    describe('the same top-level `data` sent again to a `sheetsBar: true` workbook', () => {
+      /**
+       * Builds a `sheetsBar: true` grid over `appData` and adds two sheets with typed rows.
+       *
+       * @param {Array} appData The grid's top-level data.
+       * @returns {object} The SheetsBar plugin.
+       */
+      function buildWithAddedSheets(appData) {
+        hot = new Handsontable(container, {
+          data: appData,
+          sheetsBar: true,
+          licenseKey: LICENSE_KEY,
+        });
+
+        const bar = hot.getPlugin('sheetsBar');
+
+        bar.addSheet('Second', [['second']]);
+        bar.addSheet('Third', [['third']]);
+
+        return bar;
+      }
+
+      it('keeps the visible sheet\'s rows after the first sheet, which held the array, is removed', () => {
+        const appData = [['A1', 'B1']];
+        const bar = buildWithAddedSheets(appData);
+
+        bar.setActiveSheet('Second');
+        bar.removeSheet(bar.getSheets().find(sheet => sheet.name === 'Sheet1').id);
+        hot.updateSettings({ data: appData, sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('second');
+
+        bar.setActiveSheet('Third');
+        hot.updateSettings({ data: appData, sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('third');
+
+        bar.setActiveSheet('Second');
+
+        expect(hot.getDataAtCell(0, 0)).toBe('second');
+        expect(appData).toEqual([['A1', 'B1']]);
+      });
+
+      it('changes nothing when the first sheet is the visible one', () => {
+        const appData = [['A1', 'B1']];
+        const bar = buildWithAddedSheets(appData);
+
+        hot.setDataAtCell(0, 0, 'typed');
+        hot.updateSettings({ data: appData, sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('typed');
+        expect(bar.getSheetData('Sheet1')).toBe(appData);
+
+        bar.setActiveSheet('Second');
+
+        expect(hot.getDataAtCell(0, 0)).toBe('second');
+      });
+
+      it('keeps the visible copy\'s rows after the first sheet is duplicated and removed', () => {
+        const appData = [['A1', 'B1']];
+        const bar = buildWithAddedSheets(appData);
+        const copy = bar.duplicateSheet(bar.getSheets().find(sheet => sheet.name === 'Sheet1').id);
+
+        bar.setActiveSheet(copy.id);
+        hot.setDataAtCell(0, 0, 'copy edited');
+        bar.removeSheet(bar.getSheets().find(sheet => sheet.name === 'Sheet1').id);
+        hot.updateSettings({ data: appData, sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('copy edited');
+        expect(appData).toEqual([['A1', 'B1']]);
+      });
+
+      it('loads the array as usual once the bar was turned off and on again', () => {
+        const appData = [['A1', 'B1']];
+        const bar = buildWithAddedSheets(appData);
+
+        bar.setActiveSheet('Second');
+        hot.updateSettings({ sheetsBar: false });
+        hot.loadData([['other']]);
+        hot.updateSettings({ data: appData, sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('A1');
+        expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Sheet1']);
+      });
+    });
+
     it('does not change how a grid-level `dataProvider` set later keeps the shown rows', async() => {
       const provider = makeProvider();
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});

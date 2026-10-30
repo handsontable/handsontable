@@ -933,6 +933,14 @@ export class SheetsBar extends BasePlugin {
    */
   #warnedAboutTopLevelData = false;
   /**
+   * The last top-level `data` array the grid received while the workbook declares no sheets
+   * (`sheetsBar: true`): the grid's `data` when the workbook was built, then the array of every
+   * `updateSettings()` call that sends `data`. `null` for a declared workbook and while the bar is off.
+   *
+   * @type {Array|null}
+   */
+  #receivedTopLevelData: unknown[] | null = null;
+  /**
    * The tab name to re-activate after a workbook rebuild, or `null` when the rebuild should
    * follow the `activeSheet` setting. Set by `updatePlugin` for the window of one rebuild.
    *
@@ -1116,7 +1124,13 @@ export class SheetsBar extends BasePlugin {
         this.#captureGridDataProvider();
         this.#captureGridColumnSummary();
         this.#gridCellOption = this.hot.getSettings().cell;
+
+        const topLevelData = this.hot.getSettings().data;
+
         this.#buildInitialWorkbook();
+        this.#receivedTopLevelData = this.#declaredEntries.size === 0 && Array.isArray(topLevelData)
+          ? topLevelData
+          : null;
       } catch (error) {
         this.hot._removeSettingsFilter(this.#filterGridSettings);
         throw error;
@@ -1655,6 +1669,7 @@ export class SheetsBar extends BasePlugin {
       const keptImportedKeys = isTeardown && activeSheet ? this.#importedKeys.get(activeSheet) : undefined;
 
       this.#model = null;
+      this.#receivedTopLevelData = null;
       this.#releaseDataProviderContexts(discardedSheets);
       this.#restoreBaselineToGrid(keptColumnSummary, keptImportedKeys);
     }
@@ -5804,12 +5819,9 @@ export class SheetsBar extends BasePlugin {
    * way `#onBeforeLoadData` ignores it at init (one warning covers both): applied, it replaced the active
    * sheet's rows, and the next switch away stored the host's array as that sheet's data. A framework wrapper
    * re-sends its `data` prop on a re-render, which is how this happens without the host asking for it.
-   * A `sheetsBar: true` workbook declares no sheets, so its first sheet is the grid's own data and follows
-   * the update. The array another sheet already holds is the exception: a wrapper re-sends the first
-   * sheet's array while an added sheet is shown, and loaded, it replaced that sheet's rows and tied both
-   * sheets to one array. While the active sheet has an external data source, the incoming array is core's
-   * own placeholder for DataProvider (a `dataProvider` the user re-configured on the visible server sheet),
-   * and it goes through.
+   * A `sheetsBar: true` workbook declares no sheets; see `#keepUndeclaredSheetRows`. While the active sheet
+   * has an external data source, the incoming array is core's own placeholder for DataProvider (a
+   * `dataProvider` the user re-configured on the visible server sheet), and it goes through.
    *
    * @param {Array} sourceData The rows about to be loaded.
    * @returns {Array|undefined} The rows the grid shows, when the incoming ones are ignored.
@@ -5817,12 +5829,16 @@ export class SheetsBar extends BasePlugin {
   #keepDeclaredSheetRows(sourceData: unknown[]): unknown[] | undefined {
     const liveData = this.#getLiveSourceData();
 
-    if (this.#isSwitching || sourceData === liveData || this.hot.runHooks('hasExternalDataSource') === true) {
+    if (this.#isSwitching || this.hot.runHooks('hasExternalDataSource') === true) {
       return;
     }
 
     if (this.#declaredEntries.size === 0 || !this.#declaresWorkbookNow()) {
-      return this.#keepsUndeclaredWorkbook() && this.#isHiddenSheetData(sourceData) ? liveData : undefined;
+      return this.#keepUndeclaredSheetRows(sourceData, liveData);
+    }
+
+    if (sourceData === liveData) {
+      return;
     }
 
     if (!this.#warnedAboutTopLevelData) {
@@ -5843,6 +5859,34 @@ export class SheetsBar extends BasePlugin {
     const setting: unknown = this.hot.getSettings()[PLUGIN_KEY];
 
     return setting === true || (isPlainObject(setting) && !('sheets' in setting));
+  }
+
+  /**
+   * Keeps the visible sheet's rows when a workbook that declares no sheets (`sheetsBar: true`) gets the
+   * top-level `data` array it already received (`#receivedTopLevelData`). A framework wrapper sends its
+   * `data` prop again on every re-render, and loaded, the first sheet's array replaced the rows of whichever
+   * sheet was shown, also after the first sheet was removed. An array the workbook has not received yet is
+   * loaded into the visible sheet, as before, and becomes the one received, unless another sheet holds it
+   * (`#isHiddenSheetData`): loaded, it tied two sheets to one array.
+   *
+   * @param {Array} sourceData The rows about to be loaded.
+   * @param {Array} liveData The rows the grid shows.
+   * @returns {Array|undefined} The rows the grid shows, when the incoming ones are ignored.
+   */
+  #keepUndeclaredSheetRows(sourceData: unknown[], liveData: unknown[]): unknown[] | undefined {
+    if (!this.#keepsUndeclaredWorkbook()) {
+      return;
+    }
+
+    const isReceived = sourceData === this.#receivedTopLevelData;
+
+    this.#receivedTopLevelData = sourceData;
+
+    if (sourceData === liveData) {
+      return;
+    }
+
+    return isReceived || this.#isHiddenSheetData(sourceData) ? liveData : undefined;
   }
 
   /**
