@@ -498,4 +498,90 @@ describe('nativeAdapter.write', () => {
     expect(noteText(workbook.worksheets[0].getCell('A2').note)).toBe('first sheet, second note');
     expect(noteText(workbook.worksheets[2].getCell('A1').note)).toBe('third sheet note');
   });
+
+  describe('array formulas and error cells', () => {
+    const formulaCell = (formula, extra = {}) => (b, row, col) => {
+      const cell = b.cell(row, col);
+
+      cell.formula = formula;
+      Object.assign(cell, extra);
+    };
+    const writeCells = async(cells) => {
+      const snapshot = snapshotWith((b) => {
+        cells.forEach(([row, col, fill]) => fill(b, row, col));
+      });
+      const bytes = await nativeAdapter.write(snapshot, undefined, new DroppedFeatures());
+      const zip = await readZip(toArrayBuffer(bytes));
+
+      return { zip, sheet: await zip.text('xl/worksheets/sheet1.xml'), bytes };
+    };
+
+    it('should write a dynamic array master with cm="1" and the metadata part', async() => {
+      const { zip, sheet } = await writeCells([[1, 4, formulaCell({
+        text: 'SEQUENCE(3)', result: 1, array: { ref: 'D1:D3', dynamic: true },
+      })]]);
+
+      expect(sheet).toContain('<c r="D1" cm="1"><f t="array" ref="D1:D3">_xlfn.SEQUENCE(3)</f><v>1</v></c>');
+      expect(zip.has('xl/metadata.xml')).toBe(true);
+      expect(await zip.text('[Content_Types].xml')).toContain('PartName="/xl/metadata.xml"');
+      expect(await zip.text('xl/_rels/workbook.xml.rels')).toContain('Target="metadata.xml"');
+    });
+
+    it('should write a CSE master without cm and without a metadata part', async() => {
+      const { zip, sheet } = await writeCells([[1, 5, formulaCell({
+        text: 'A1:A2*2', result: 2, array: { ref: 'E1:E2', dynamic: false },
+      })]]);
+
+      expect(sheet).toContain('<c r="E1"><f t="array" ref="E1:E2">A1:A2*2</f><v>2</v></c>');
+      expect(sheet).not.toContain('cm=');
+      expect(zip.has('xl/metadata.xml')).toBe(false);
+      expect(await zip.text('[Content_Types].xml')).not.toContain('metadata');
+      expect(await zip.text('xl/_rels/workbook.xml.rels')).not.toContain('metadata');
+    });
+
+    it('should write a flagged OOXML error as t="e" and keep it out of the shared strings', async() => {
+      const { zip, sheet } = await writeCells([[1, 6, (b, r, c) => {
+        Object.assign(b.cell(r, c), { value: '#N/A', valueIsError: true });
+      }]]);
+
+      expect(sheet).toContain('<c r="F1" t="e"><v>#N/A</v></c>');
+      expect(zip.has('xl/sharedStrings.xml')).toBe(false);
+    });
+
+    it('should write a flagged non-OOXML error code as a shared string', async() => {
+      const { zip, sheet } = await writeCells([[1, 1, (b, r, c) => {
+        Object.assign(b.cell(r, c), { value: '#SPILL!', valueIsError: true });
+      }]]);
+
+      expect(sheet).toContain('<c r="A1" t="s"><v>0</v></c>');
+      expect(await zip.text('xl/sharedStrings.xml')).toContain('#SPILL!');
+    });
+
+    it('should write an unflagged error-looking text as a shared string', async() => {
+      const { zip, sheet } = await writeCells([[1, 1, (b, r, c) => {
+        b.cell(r, c).value = '#N/A';
+      }]]);
+
+      expect(sheet).toContain('<c r="A1" t="s">');
+      expect(await zip.text('xl/sharedStrings.xml')).toContain('#N/A');
+    });
+
+    it('should read back the array, error and resultIsError facts it wrote', async() => {
+      const snapshot = snapshotWith((b) => {
+        formulaCell({ text: 'SEQUENCE(3)', result: 1, array: { ref: 'A1:A3', dynamic: true } })(b, 1, 1);
+        formulaCell({ text: 'B1:B2*2', result: 2, array: { ref: 'C1:C2', dynamic: false } })(b, 1, 3);
+        formulaCell({ text: 'NA()', result: '#N/A', resultIsError: true })(b, 1, 5);
+        Object.assign(b.cell(1, 6), { value: '#DIV/0!', valueIsError: true });
+      });
+      const bytes = await nativeAdapter.write(snapshot, undefined, new DroppedFeatures());
+      const read = await nativeAdapter.read(toArrayBuffer(bytes), undefined, new DroppedFeatures());
+      const [row] = read.sheets[0].rows;
+
+      expect(row[0].formula.array).toEqual({ ref: 'A1:A3', dynamic: true });
+      expect(row[2].formula.array).toEqual({ ref: 'C1:C2', dynamic: false });
+      expect(row[4].formula.resultIsError).toBe(true);
+      expect(row[5].valueIsError).toBe(true);
+      expect(row[5].value).toBe('#DIV/0!');
+    });
+  });
 });

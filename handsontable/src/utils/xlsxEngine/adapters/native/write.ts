@@ -7,7 +7,8 @@ import {
 } from '../../sheetNames';
 import { commentsXml, vmlBlockCount, vmlDrawingXml } from './parts/comments';
 import {
-  appXml, contentTypesXml, coreXml, rootRelsXml, sheetRelsXml, workbookRelsXml, workbookXml, type PackageSheet,
+  appXml, contentTypesXml, coreXml, METADATA_PART, metadataXml, rootRelsXml, sheetRelsXml, workbookRelsXml,
+  workbookXml, type PackageSheet,
 } from './parts/package';
 import { hashSheetPassword } from './parts/protection';
 import { SharedStringTable } from './parts/sharedStrings';
@@ -106,6 +107,7 @@ export async function writeWorkbook(snapshot: WorkbookSnapshot, dropped: Dropped
   const entries: ZipEntryInput[] = [];
   const packageSheets: PackageSheet[] = [];
   let wroteFormula = false;
+  let wroteDynamicArray = false;
   // The next free VML id block. Blocks are allocated across the whole workbook, so the notes of two
   // sheets never share a shape id.
   let nextVmlBlock = 1;
@@ -123,6 +125,7 @@ export async function writeWorkbook(snapshot: WorkbookSnapshot, dropped: Dropped
     const result = worksheetXml(sheet, styles, strings, dropped, passwordHash);
 
     wroteFormula = wroteFormula || result.wroteFormula;
+    wroteDynamicArray = wroteDynamicArray || result.wroteDynamicArray;
     packageSheets.push({ index, name: sheet.name, state: sheet.state, hasComments: result.comments.length > 0 });
     entries.push({ name: `xl/worksheets/sheet${index}.xml`, data: encoder.encode(result.xml) });
 
@@ -141,16 +144,20 @@ export async function writeWorkbook(snapshot: WorkbookSnapshot, dropped: Dropped
   }
 
   const hasSharedStrings = strings.count > 0;
-  const { xml: workbookRels, sheetRelIds } = workbookRelsXml(packageSheets, hasSharedStrings);
+  const { xml: workbookRels, sheetRelIds } = workbookRelsXml(packageSheets, hasSharedStrings, wroteDynamicArray);
 
   entries.unshift(
-    { name: '[Content_Types].xml', data: encoder.encode(contentTypesXml(packageSheets, hasSharedStrings)) },
+    {
+      name: '[Content_Types].xml',
+      data: encoder.encode(contentTypesXml(packageSheets, hasSharedStrings, wroteDynamicArray)),
+    },
     { name: '_rels/.rels', data: encoder.encode(rootRelsXml()) },
     { name: 'docProps/core.xml', data: encoder.encode(coreXml(WORKBOOK_AUTHOR, new Date())) },
     { name: 'docProps/app.xml', data: encoder.encode(appXml(packageSheets.map(s => s.name))) },
     { name: 'xl/workbook.xml', data: encoder.encode(workbookXml(packageSheets, sheetRelIds, wroteFormula)) },
     { name: 'xl/_rels/workbook.xml.rels', data: encoder.encode(workbookRels) },
     { name: 'xl/styles.xml', data: encoder.encode(styles.toXml()) },
+    ...(wroteDynamicArray ? [{ name: METADATA_PART, data: encoder.encode(metadataXml()) }] : []),
     // The table is complete once every sheet is rendered, and it goes in front of the sheets: a
     // streaming reader reads the parts in archive order, and ExcelJS's `WorkbookReader` returned
     // `{ sharedString: n }` placeholders instead of the text of a small export while the table came

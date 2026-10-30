@@ -59,6 +59,7 @@ export const REL_TYPES = {
   intlMacrosheet: `${OFFICE_REL}/xlIntlMacrosheet`,
   styles: `${OFFICE_REL}/styles`,
   sharedStrings: `${OFFICE_REL}/sharedStrings`,
+  sheetMetadata: `${OFFICE_REL}/sheetMetadata`,
   comments: `${OFFICE_REL}/comments`,
   vmlDrawing: `${OFFICE_REL}/vmlDrawing`,
   drawing: `${OFFICE_REL}/drawing`,
@@ -77,6 +78,7 @@ export const CONTENT_TYPES = {
   worksheet: 'application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml',
   styles: 'application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml',
   sharedStrings: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml',
+  sheetMetadata: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheetMetadata+xml',
   comments: 'application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml',
   vml: 'application/vnd.openxmlformats-officedocument.vmlDrawing',
   rels: 'application/vnd.openxmlformats-package.relationships+xml',
@@ -107,10 +109,46 @@ export const SPREADSHEET_MAIN_CONTENT_TYPES: ReadonlySet<string> = new Set([
 export const BINARY_WORKBOOK_CONTENT_TYPE = localeLowerCase('application/vnd.ms-excel.sheet.binary.macroEnabled.main');
 
 /**
- * Serializes `[Content_Types].xml`. The `vml` default is written only when some sheet carries
- * comments, and the shared-strings override only when the table is non-empty.
+ * The package path of the metadata part that marks a formula cell as a dynamic array (`cm="1"`).
  */
-export function contentTypesXml(sheets: PackageSheet[], hasSharedStrings: boolean): string {
+export const METADATA_PART = 'xl/metadata.xml';
+
+/**
+ * The namespace of Excel's dynamic-array metadata (`xda:`).
+ */
+const DYNAMIC_ARRAY_NS = 'http://schemas.microsoft.com/office/spreadsheetml/2017/dynamicarray';
+
+/**
+ * The `ext` uri Excel gives the `XLDAPR` (dynamic array properties) future metadata.
+ */
+const DYNAMIC_ARRAY_EXT_URI = '{bdbb8cdc-fa1e-496e-a857-3c3f30c029c3}';
+
+/**
+ * Serializes `xl/metadata.xml` exactly as Excel writes it for a workbook with dynamic arrays: one
+ * `XLDAPR` metadata type whose single future-metadata block flags `fDynamic`, and one cell
+ * metadata record pointing at it. A cell carries `cm="1"` (the 1-based index of that record).
+ */
+export function metadataXml(): string {
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+    + `<metadata xmlns="${MAIN_NS}" xmlns:xda="${DYNAMIC_ARRAY_NS}">`
+    + '<metadataTypes count="1">'
+    + '<metadataType name="XLDAPR" minSupportedVersion="120000" copy="1" pasteAll="1" pasteValues="1" '
+    + 'merge="1" splitFirst="1" rowColShift="1" clearFormats="1" clearComments="1" assign="1" coerce="1" '
+    + 'cellMeta="1"/>'
+    + '</metadataTypes>'
+    + '<futureMetadata name="XLDAPR" count="1"><bk><extLst>'
+    + `<ext uri="${DYNAMIC_ARRAY_EXT_URI}"><xda:dynamicArrayProperties fDynamic="1" fCollapsed="0"/></ext>`
+    + '</extLst></bk></futureMetadata>'
+    + '<cellMetadata count="1"><bk><rc t="1" v="0"/></bk></cellMetadata>'
+    + '</metadata>';
+}
+
+/**
+ * Serializes `[Content_Types].xml`. The `vml` default is written only when some sheet carries
+ * comments, the shared-strings override only when the table is non-empty, and the metadata override
+ * only when a dynamic array was written.
+ */
+export function contentTypesXml(sheets: PackageSheet[], hasSharedStrings: boolean, hasMetadata: boolean): string {
   const w = new XmlWriter().open('Types', { xmlns: 'http://schemas.openxmlformats.org/package/2006/content-types' });
 
   w.leaf('Default', { Extension: 'rels', ContentType: CONTENT_TYPES.rels });
@@ -128,6 +166,10 @@ export function contentTypesXml(sheets: PackageSheet[], hasSharedStrings: boolea
 
   if (hasSharedStrings) {
     w.leaf('Override', { PartName: '/xl/sharedStrings.xml', ContentType: CONTENT_TYPES.sharedStrings });
+  }
+
+  if (hasMetadata) {
+    w.leaf('Override', { PartName: `/${METADATA_PART}`, ContentType: CONTENT_TYPES.sheetMetadata });
   }
 
   sheets.filter(s => s.hasComments).forEach((sheet) => {
@@ -167,11 +209,16 @@ export function rootRelsXml(): string {
 export function workbookRelsXml(
   sheets: PackageSheet[],
   hasSharedStrings: boolean,
+  hasMetadata: boolean,
 ): { xml: string; sheetRelIds: string[] } {
   const rels: Relationship[] = [{ id: 'rId1', type: REL_TYPES.styles, target: 'styles.xml' }];
 
   if (hasSharedStrings) {
     rels.push({ id: `rId${rels.length + 1}`, type: REL_TYPES.sharedStrings, target: 'sharedStrings.xml' });
+  }
+
+  if (hasMetadata) {
+    rels.push({ id: `rId${rels.length + 1}`, type: REL_TYPES.sheetMetadata, target: 'metadata.xml' });
   }
 
   const sheetRelIds = sheets.map((sheet) => {

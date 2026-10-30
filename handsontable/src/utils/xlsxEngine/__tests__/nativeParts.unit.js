@@ -3,7 +3,7 @@
  */
 import Encryptor from 'exceljs/lib/utils/encryptor';
 import {
-  contentTypesXml, rootRelsXml, workbookRelsXml, workbookXml, sheetRelsXml, coreXml, appXml,
+  contentTypesXml, metadataXml, rootRelsXml, workbookRelsXml, workbookXml, sheetRelsXml, coreXml, appXml,
   parseRels, parseWorkbook, resolvePartPath, REL_TYPES,
 } from '../adapters/native/parts/package';
 import { SharedStringTable, parseSharedStrings } from '../adapters/native/parts/sharedStrings';
@@ -29,7 +29,7 @@ const sheets = [
 
 describe('package parts', () => {
   it('should declare every part in [Content_Types].xml, the vml default only when a sheet has comments', () => {
-    const xml = contentTypesXml(sheets, true);
+    const xml = contentTypesXml(sheets, true, false);
 
     expect(xml).toContain(
       '<Default Extension="rels" '
@@ -69,7 +69,7 @@ describe('package parts', () => {
       + 'ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>',
     );
 
-    expect(contentTypesXml([{ ...sheets[0], hasComments: false }], false)).not.toMatch(/vml|sharedStrings/);
+    expect(contentTypesXml([{ ...sheets[0], hasComments: false }], false, false)).not.toMatch(/vml|sharedStrings/);
   });
 
   it('should relate the root to the workbook and both docProps parts', () => {
@@ -82,8 +82,50 @@ describe('package parts', () => {
     ]);
   });
 
+  it('should write the metadata part Excel writes for dynamic arrays', () => {
+    const squash = text => text.replace(/>\s+</g, '><').trim();
+
+    /* eslint-disable max-len */
+    const excel = `
+<metadata xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:xda="http://schemas.microsoft.com/office/spreadsheetml/2017/dynamicarray">
+  <metadataTypes count="1">
+    <metadataType name="XLDAPR" minSupportedVersion="120000" copy="1" pasteAll="1" pasteValues="1" merge="1" splitFirst="1" rowColShift="1" clearFormats="1" clearComments="1" assign="1" coerce="1" cellMeta="1"/>
+  </metadataTypes>
+  <futureMetadata name="XLDAPR" count="1">
+    <bk><extLst><ext uri="{bdbb8cdc-fa1e-496e-a857-3c3f30c029c3}"><xda:dynamicArrayProperties fDynamic="1" fCollapsed="0"/></ext></extLst></bk>
+  </futureMetadata>
+  <cellMetadata count="1"><bk><rc t="1" v="0"/></bk></cellMetadata>
+</metadata>`;
+    /* eslint-enable max-len */
+
+    expect(squash(metadataXml().replace(/^<\?xml[^>]*\?>/, ''))).toBe(squash(excel));
+  });
+
+  it('should declare and relate the metadata part only when asked', () => {
+    const overrideType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheetMetadata+xml';
+
+    expect(contentTypesXml(sheets, true, true)).toContain(
+      `<Override PartName="/xl/metadata.xml" ContentType="${overrideType}"/>`,
+    );
+    expect(contentTypesXml(sheets, true, false)).not.toContain('metadata');
+
+    const { xml, sheetRelIds } = workbookRelsXml(sheets, true, true);
+    const rels = parseRels(xml);
+    const metadata = rels.find(r => r.type === REL_TYPES.sheetMetadata);
+
+    expect(REL_TYPES.sheetMetadata)
+      .toBe('http://schemas.openxmlformats.org/officeDocument/2006/relationships/sheetMetadata');
+    expect(metadata.target).toBe('metadata.xml');
+
+    const ids = rels.map(r => r.id);
+
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(sheetRelIds.every(id => rels.find(r => r.id === id).type === REL_TYPES.worksheet)).toBe(true);
+    expect(workbookRelsXml(sheets, true, false).xml).not.toContain('metadata');
+  });
+
   it('should relate the workbook to styles, shared strings and every sheet, and hand the sheet ids back', () => {
-    const { xml, sheetRelIds } = workbookRelsXml(sheets, true);
+    const { xml, sheetRelIds } = workbookRelsXml(sheets, true, false);
     const rels = parseRels(xml);
 
     expect(rels.map(r => r.type)).toEqual([
@@ -93,7 +135,7 @@ describe('package parts', () => {
       'styles.xml', 'sharedStrings.xml', 'worksheets/sheet1.xml', 'worksheets/sheet2.xml',
     ]);
     expect(sheetRelIds).toEqual(['rId3', 'rId4']);
-    expect(workbookRelsXml(sheets, false).sheetRelIds).toEqual(['rId2', 'rId3']);
+    expect(workbookRelsXml(sheets, false, false).sheetRelIds).toEqual(['rId2', 'rId3']);
   });
 
   it('should write and read back the sheet list with states, and the full-calc flag', () => {
