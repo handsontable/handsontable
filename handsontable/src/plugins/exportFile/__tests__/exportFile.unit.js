@@ -8,6 +8,7 @@ import { normalizeExportOptions } from '../utils';
 import { detectXlsxEngine } from '../../../utils/xlsxEngine/detect';
 import { _resetDeprecationWarnings } from '../../../helpers/console';
 import { buildTestKey } from '../../../utils/entitlementLicenseKey/__tests__/buildTestKey';
+import XLSX_FEATURES from '../../../utils/xlsxEngine/features.json';
 import { SUBSCRIPTION_KEY } from '../../../utils/entitlementLicenseKey/__tests__/fixtures';
 
 beforeEach(() => {
@@ -487,7 +488,7 @@ describe('ExportFile license capabilities', () => {
         usage_until: '2027-08-12',
         notice: 60,
         grace: 90,
-        flags: [],
+        flags: ['listed-capabilities'],
       },
     },
   });
@@ -508,9 +509,15 @@ describe('ExportFile license capabilities', () => {
     container.remove();
   });
 
-  it('exposes its capability declarations', () => {
-    expect(ExportFile.CAPABILITIES.map(c => c.id)).toContain('xlsx:export');
-    expect(ExportFile.CAPABILITIES.map(c => c.id)).not.toContain('xlsx:import');
+  it('exposes the license tokens it gates, each one features.json assigns to it', () => {
+    expect(ExportFile.CAPABILITIES).toContain('xlsx:export');
+    expect(ExportFile.CAPABILITIES).not.toContain('xlsx:import');
+    ExportFile.CAPABILITIES.forEach((id) => {
+      const entry = XLSX_FEATURES.capabilities.find(candidate => candidate.id === id);
+
+      expect(entry.licensing).toBe('token');
+      expect(entry.plugins).toContain('ExportFile');
+    });
   });
 
   it('refuses an xlsx export and reports no xlsx support when the key lacks xlsx:export', async() => {

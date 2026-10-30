@@ -76,6 +76,28 @@ describe('DroppedFeatures', () => {
     );
   });
 
+  it('should leave the license entries out of the engine warning', () => {
+    const dropped = new DroppedFeatures();
+
+    dropped.record('cellStyles');
+    dropped.recordLicense('xlsx:comments');
+    dropped.warn('native');
+
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy.mock.calls[0][0]).toBe(
+      'The built-in xlsx engine dropped features it cannot write or read: cellStyles.'
+    );
+  });
+
+  it('should stay silent when only license entries were recorded', () => {
+    const dropped = new DroppedFeatures();
+
+    dropped.recordLicense('xlsx:comments');
+    dropped.warn('native');
+
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
   it('should stay silent when nothing was dropped', () => {
     new DroppedFeatures().warn('exceljs');
 
@@ -189,7 +211,7 @@ describe('DroppedFeatures', () => {
     expect(dropped.count('numFmt:other')).toBe(0);
   });
 
-  it('should list only the license entries, in recorded order, from licenseEntries()', () => {
+  it('should keep the license entries in list(), in recorded order', () => {
     const dropped = new DroppedFeatures();
 
     dropped.record('cellStyles');
@@ -197,7 +219,7 @@ describe('DroppedFeatures', () => {
     dropped.recordUnsupported('numFmt', 'x');
     dropped.recordLicense('xlsx:styles');
 
-    expect(dropped.licenseEntries()).toEqual(['license:xlsx:comments', 'license:xlsx:styles']);
     expect(dropped.list()).toEqual(['cellStyles', 'license:xlsx:comments', 'numFmt:x', 'license:xlsx:styles']);
+    expect(dropped.licenseEntries).toBeUndefined();
   });
 });

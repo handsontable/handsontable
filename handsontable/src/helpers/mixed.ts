@@ -9,7 +9,12 @@ import {
   UNRESTRICTED_GRANTS,
   HANDSONTABLE_PRODUCT,
 } from '../utils/entitlementLicenseKey';
-import type { LicenseLifecycle, LicenseGrants, LicenseChannels } from '../utils/entitlementLicenseKey';
+import type {
+  LicenseLifecycle,
+  LicenseGrants,
+  LicenseChannels,
+  ProductEntitlement,
+} from '../utils/entitlementLicenseKey';
 
 /**
  * Converts any value to string.
@@ -740,6 +745,28 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
     channels: resolveChannels(entitlement),
     grants: getLicenseGrants(keyData),
   };
+}
+
+/**
+ * Returns the `handsontable` product entry of a license key, read the way `_getLicenseState` reads
+ * it (the same trim, the same format test, the same memoized reader), or `null` for a key outside
+ * the entitlement format, an unreadable key, or one that does not grant Handsontable. Capability
+ * gating reads the entry's flags from here; whether those flags apply at all is decided by the
+ * grants `_getLicenseState` resolves, which stay unrestricted for every one of those `null` cases.
+ *
+ * @param {string} [rawKey] The license key from the grid settings.
+ * @returns {ProductEntitlement|null}
+ */
+export function _getHandsontableEntitlement(rawKey?: string): ProductEntitlement | null {
+  const key = _trimKey(rawKey);
+
+  if (!isEntitlementKey(key)) {
+    return null;
+  }
+
+  const keyData = extractEntitlementKeyData(key as string);
+
+  return keyData === null ? null : getProductEntitlement(keyData, HANDSONTABLE_PRODUCT);
 }
 
 /**

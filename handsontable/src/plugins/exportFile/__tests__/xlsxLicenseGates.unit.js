@@ -128,7 +128,6 @@ const ALL_XLSX_TOKENS = [
   'xlsx:layout',
   'xlsx:number_formats',
   'xlsx:comments',
-  'xlsx:import_report',
   'xlsx:styles',
   'xlsx:conditional_formatting',
   'xlsx:data_validation',
@@ -139,14 +138,17 @@ const CONDITIONAL_FORMATTING = [
   { cols: [1, 1], rules: [{ type: 'cellIs', operator: 'greaterThan', formulae: ['1'], style: {} }] },
 ];
 
+const STANDARD_TOKENS = ['xlsx:import', 'xlsx:export', 'xlsx:formulas', 'xlsx:layout'];
+
 /**
- * Builds a current subscription key granting `core` plus `tokens`.
+ * Builds a current subscription key granting `core` plus `tokens`, without the `listed-capabilities`
+ * flag: such a key unlocks every xlsx feature, whatever it lists.
  *
  * @param {string[]} tokens The capability tokens besides `core`.
  * @param {string[]} [flags] The product flags.
  * @returns {string}
  */
-function keyWith(tokens, flags = []) {
+function keyWithoutFlag(tokens, flags = []) {
   return buildTestKey({
     products: {
       handsontable: {
@@ -158,6 +160,18 @@ function keyWith(tokens, flags = []) {
       },
     },
   });
+}
+
+/**
+ * Builds a current subscription key that unlocks exactly `tokens`: it carries the
+ * `listed-capabilities` flag besides `flags`.
+ *
+ * @param {string[]} tokens The capability tokens besides `core`.
+ * @param {string[]} [flags] Further product flags.
+ * @returns {string}
+ */
+function keyWith(tokens, flags = []) {
+  return keyWithoutFlag(tokens, ['listed-capabilities', ...flags]);
 }
 
 /**
@@ -320,16 +334,15 @@ describe('Xlsx export license gates', () => {
     expect(gated.protection).toBeNull();
   });
 
-  it('warns once with every missing token, unless no-console-warns is set', async() => {
-    const standard = ['xlsx:import', 'xlsx:export', 'xlsx:formulas', 'xlsx:layout'];
+  it('warns once with every missing export token, unless no-console-warns is set', async() => {
+    const standard = STANDARD_TOKENS;
 
     await exportSnapshot(keyWith(standard));
 
     expect(warnSpy).toHaveBeenCalledTimes(1);
     expect(warnSpy.mock.calls[0][0]).toBe(
       'The xlsx export skipped features your license does not unlock: xlsx:number_formats, ' +
-      'xlsx:comments, xlsx:import_report, xlsx:styles, xlsx:conditional_formatting, ' +
-      'xlsx:data_validation, xlsx:protection.'
+      'xlsx:comments, xlsx:styles, xlsx:conditional_formatting, xlsx:data_validation, xlsx:protection.'
     );
 
     warnSpy.mockClear();
@@ -367,5 +380,27 @@ describe('Xlsx export license gates', () => {
     const legacy = await exportSnapshot('non-commercial-and-evaluation');
 
     expect(full).toEqual(legacy);
+  });
+
+  it('names only the tokens the export gates in its warning', async() => {
+    await exportSnapshot(keyWithout('xlsx:import'));
+
+    expect(warnSpy).not.toHaveBeenCalled();
+
+    await exportSnapshot(keyWith(['xlsx:export']));
+
+    expect(warnSpy.mock.calls.map(call => call[0])).toEqual([
+      'The xlsx export skipped features your license does not unlock: xlsx:formulas, xlsx:layout, ' +
+      'xlsx:number_formats, xlsx:comments, xlsx:styles, xlsx:conditional_formatting, ' +
+      'xlsx:data_validation, xlsx:protection.',
+    ]);
+  });
+
+  it('leaves a key without the listed-capabilities flag unrestricted, whatever it lists', async() => {
+    const unflagged = await exportSnapshot(keyWithoutFlag(STANDARD_TOKENS));
+    const legacy = await exportSnapshot('non-commercial-and-evaluation');
+
+    expect(unflagged).toEqual(legacy);
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 });

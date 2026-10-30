@@ -1,30 +1,9 @@
 /**
- * The license capability tokens the XLSX engine reads from an entitlement license key. This module
- * imports nothing, so any other module can depend on it.
+ * The license capability tokens the XLSX engine reads from an entitlement license key. The tokens
+ * themselves (names, descriptions, plugins, requirements) are declared in `features.json` next to
+ * this file, the feature manifest's source; this module keeps only what the runtime checks need, and
+ * its unit test holds it equal to that file. It imports nothing, so any other module can depend on it.
  */
-
-/**
- * The lifecycle stage of a capability token.
- */
-export type CapabilityStatus = 'stable';
-
-/**
- * The plugins that gate a feature behind a capability token.
- */
-export type CapabilityPlugin = 'ImportFile' | 'ExportFile';
-
-/**
- * One capability token and the plugins and tokens it relates to.
- */
-export interface CapabilityDefinition {
-  id: string;
-  name: string;
-  description: string;
-  plugins: CapabilityPlugin[];
-  since: string;
-  status: CapabilityStatus;
-  requires: { allOf?: string[]; anyOf?: string[] };
-}
 
 /**
  * The prefix every XLSX capability token starts with.
@@ -37,139 +16,55 @@ export const XLSX_CAPABILITY_PREFIX = 'xlsx:';
 export const CAPABILITY_TOKEN_PATTERN = /^[a-z][a-z0-9_]*(?::[a-z0-9_]+(?:\.[a-z0-9_]+)*)?$/;
 
 /**
- * The XLSX capability tokens, in the order the specification lists them.
+ * The per-product key flag that makes a key unlock exactly the tokens it lists (the feature
+ * manifest's `keyFlag`). A product entry without it unlocks every feature, so every key issued
+ * before the tokens existed keeps working.
  */
-export const XLSX_CAPABILITIES: readonly CapabilityDefinition[] = Object.freeze([
-  Object.freeze<CapabilityDefinition>({
-    id: 'xlsx:import',
-    name: 'XLSX import',
-    description:
-        'Read .xlsx files into the grid: cell values, shared strings, sheet selection, and column '
-      + 'type inference.',
-    plugins: ['ImportFile'],
-    since: '19.0.0',
-    status: 'stable',
-    requires: {},
-  }),
-  Object.freeze<CapabilityDefinition>({
-    id: 'xlsx:export',
-    name: 'XLSX export',
-    description: 'Write the grid to an .xlsx file: cell values, sheet names, and the To Excel context menu item.',
-    plugins: ['ExportFile'],
-    since: '19.0.0',
-    status: 'stable',
-    requires: {},
-  }),
-  Object.freeze<CapabilityDefinition>({
-    id: 'xlsx:formulas',
-    name: 'Formulas',
-    description:
-        'Import formulas into the Formulas plugin and export live formulas instead of calculated '
-      + 'values, including shared-formula translation.',
-    plugins: ['ImportFile', 'ExportFile'],
-    since: '19.0.0',
-    status: 'stable',
-    requires: { anyOf: ['xlsx:import', 'xlsx:export'] },
-  }),
-  Object.freeze<CapabilityDefinition>({
-    id: 'xlsx:layout',
-    name: 'Sheet layout',
-    description:
-        'Column widths, row heights, hidden rows and columns, merged cells, frozen panes, '
-      + 'right-to-left direction, and sheet state.',
-    plugins: ['ImportFile', 'ExportFile'],
-    since: '19.0.0',
-    status: 'stable',
-    requires: { anyOf: ['xlsx:import', 'xlsx:export'] },
-  }),
-  Object.freeze<CapabilityDefinition>({
-    id: 'xlsx:number_formats',
-    name: 'Number formats',
-    description:
-        'Date, time, currency, percentage, and custom number formats on export. Import always reads '
-      + 'number formats to infer cell types, so this token does not restrict import.',
-    plugins: ['ImportFile', 'ExportFile'],
-    since: '19.0.0',
-    status: 'stable',
-    requires: { anyOf: ['xlsx:import', 'xlsx:export'] },
-  }),
-  Object.freeze<CapabilityDefinition>({
-    id: 'xlsx:comments',
-    name: 'Comments',
-    description: 'Cell comments, imported into the Comments plugin and exported with VML so they display in Excel.',
-    plugins: ['ImportFile', 'ExportFile'],
-    since: '19.0.0',
-    status: 'stable',
-    requires: { anyOf: ['xlsx:import', 'xlsx:export'] },
-  }),
-  Object.freeze<CapabilityDefinition>({
-    id: 'xlsx:import_report',
-    name: 'Import report',
-    description:
-        'The full list of workbook features the import did not carry over, returned in the import '
-      + 'result. Without this token the list holds only the license entries, so you always see '
-      + 'which tokens are missing.',
-    plugins: ['ImportFile'],
-    since: '19.0.0',
-    status: 'stable',
-    requires: { allOf: ['xlsx:import'] },
-  }),
-  Object.freeze<CapabilityDefinition>({
-    id: 'xlsx:styles',
-    name: 'Cell styles',
-    description: 'Font, fill, borders, and alignment of cells and headers.',
-    plugins: ['ImportFile', 'ExportFile'],
-    since: '19.0.0',
-    status: 'stable',
-    requires: { anyOf: ['xlsx:import', 'xlsx:export'] },
-  }),
-  Object.freeze<CapabilityDefinition>({
-    id: 'xlsx:conditional_formatting',
-    name: 'Conditional formatting',
-    description:
-        'Conditional formatting rules: cellIs, expression, containsText family, top10, '
-      + 'aboveAverage, and timePeriod.',
-    plugins: ['ImportFile', 'ExportFile'],
-    since: '19.0.0',
-    status: 'stable',
-    requires: { anyOf: ['xlsx:import', 'xlsx:export'] },
-  }),
-  Object.freeze<CapabilityDefinition>({
-    id: 'xlsx:data_validation',
-    name: 'Data validation',
-    description:
-        'Dropdown lists from data validation rules, imported as dropdown cells and exported with a '
-      + 'helper sheet for the list values.',
-    plugins: ['ImportFile', 'ExportFile'],
-    since: '19.0.0',
-    status: 'stable',
-    requires: { anyOf: ['xlsx:import', 'xlsx:export'] },
-  }),
-  Object.freeze<CapabilityDefinition>({
-    id: 'xlsx:protection',
-    name: 'Sheet protection',
-    description:
-        'Locked cells and sheet protection, with an optional SHA-512 password hash on export. '
-      + 'Read-only cells export as locked cells on a protected sheet, and a protected sheet imports '
-      + 'its locked cells as read-only.',
-    plugins: ['ImportFile', 'ExportFile'],
-    since: '19.0.0',
-    status: 'stable',
-    requires: { anyOf: ['xlsx:import', 'xlsx:export'] },
-  }),
+export const LISTED_CAPABILITIES_FLAG = 'listed-capabilities';
+
+/**
+ * The XLSX tokens a key must list (`licensing: "token"` in `features.json`), in the order that
+ * file declares them. `xlsx:import_report` is `core`, always granted, so it is not one of them.
+ */
+export const XLSX_CAPABILITY_IDS: readonly string[] = Object.freeze([
+  'xlsx:import',
+  'xlsx:export',
+  'xlsx:formulas',
+  'xlsx:layout',
+  'xlsx:number_formats',
+  'xlsx:comments',
+  'xlsx:styles',
+  'xlsx:conditional_formatting',
+  'xlsx:data_validation',
+  'xlsx:protection',
 ]);
 
 /**
- * The ids of all XLSX capability tokens, in declaration order.
+ * The tokens the ImportFile plugin gates, in declaration order. `xlsx:number_formats` is not one of
+ * them: the import always reads number formats to infer cell types.
  */
-export const XLSX_CAPABILITY_IDS: readonly string[] = Object.freeze(XLSX_CAPABILITIES.map(({ id }) => id));
+export const IMPORT_FILE_CAPABILITY_IDS: readonly string[] = Object.freeze([
+  'xlsx:import',
+  'xlsx:formulas',
+  'xlsx:layout',
+  'xlsx:comments',
+  'xlsx:styles',
+  'xlsx:conditional_formatting',
+  'xlsx:data_validation',
+  'xlsx:protection',
+]);
 
 /**
- * Returns the capability tokens a plugin gates.
- *
- * @param {CapabilityPlugin} plugin The plugin name.
- * @returns {CapabilityDefinition[]}
+ * The tokens the ExportFile plugin gates, in declaration order.
  */
-export function capabilitiesOfPlugin(plugin: CapabilityPlugin): CapabilityDefinition[] {
-  return XLSX_CAPABILITIES.filter(({ plugins }) => plugins.includes(plugin));
-}
+export const EXPORT_FILE_CAPABILITY_IDS: readonly string[] = Object.freeze([
+  'xlsx:export',
+  'xlsx:formulas',
+  'xlsx:layout',
+  'xlsx:number_formats',
+  'xlsx:comments',
+  'xlsx:styles',
+  'xlsx:conditional_formatting',
+  'xlsx:data_validation',
+  'xlsx:protection',
+]);

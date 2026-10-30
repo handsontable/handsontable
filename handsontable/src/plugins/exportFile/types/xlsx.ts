@@ -56,8 +56,10 @@ import {
 } from '../../../utils/xlsxEngine/model';
 import type { HotInstance } from '../../../core/types';
 import { getLicenseState, getXlsxEntitlement } from '../../../core/license';
+import { EXPORT_FILE_CAPABILITY_IDS } from '../../../utils/xlsxEngine/licenseCapabilities';
 import {
   formatMissingCapabilitiesWarning,
+  scopeXlsxEntitlement,
   UNRESTRICTED_XLSX_ENTITLEMENT,
   type XlsxEntitlement,
 } from '../../../utils/xlsxEngine/xlsxEntitlement';
@@ -414,7 +416,8 @@ class Xlsx extends BaseType {
     const detected = detectXlsxEngine(this.options.engine, 'exportFile');
     const { hot } = this.dataProvider;
 
-    this.#entitlement = getXlsxEntitlement(hot);
+    // Scoped to the export's own tokens, so the warning never names `xlsx:import`.
+    this.#entitlement = scopeXlsxEntitlement(getXlsxEntitlement(hot), EXPORT_FILE_CAPABILITY_IDS);
 
     // Clear style caches for all documents involved in this export. In multi-sheet
     // mode each sheet may come from a different Handsontable instance living in a

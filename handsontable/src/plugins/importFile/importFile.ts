@@ -1,9 +1,13 @@
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
-import { capabilitiesOfPlugin } from '../../utils/xlsxEngine/licenseCapabilities';
+import { IMPORT_FILE_CAPABILITY_IDS } from '../../utils/xlsxEngine/licenseCapabilities';
 import { getLicenseState, getXlsxEntitlement } from '../../core/license';
-import { formatMissingCapabilitiesWarning, type XlsxEntitlement } from '../../utils/xlsxEngine/xlsxEntitlement';
+import {
+  formatMissingCapabilitiesWarning,
+  scopeXlsxEntitlement,
+  type XlsxEntitlement,
+} from '../../utils/xlsxEngine/xlsxEntitlement';
 import { warn } from '../../helpers/console';
 import {
   detectXlsxEngine, resolveEngineOverride, tryDetectXlsxEngine, type DetectedXlsxEngine,
@@ -600,10 +604,10 @@ export class ImportFile extends BasePlugin {
   }
 
   /**
-   * Returns the license capabilities this plugin gates.
+   * Returns the ids of the license capability tokens this plugin gates.
    */
-  static get CAPABILITIES() {
-    return capabilitiesOfPlugin('ImportFile');
+  static get CAPABILITIES(): readonly string[] {
+    return IMPORT_FILE_CAPABILITY_IDS;
   }
 
   /**
@@ -702,8 +706,8 @@ export class ImportFile extends BasePlugin {
   /**
    * Returns `true` when the format can be read: `xlsx`, through the built-in engine or the one
    * configured in `engines`. An engine of unknown shape reads nothing and answers `false`. `'xlsx'` also
-   * answers `false` when the license key lists `xlsx:*` capabilities without `xlsx:import`. A key
-   * with no `xlsx:*` token, and the evaluation key, are not restricted.
+   * answers `false` when the license key carries the `listed-capabilities` flag without listing
+   * `xlsx:import`. A key without that flag, and the evaluation key, are not restricted.
    *
    * @param {string} format The import format, e.g. `'xlsx'`.
    * @returns {boolean}
@@ -856,7 +860,9 @@ export class ImportFile extends BasePlugin {
     const commentsPlugin = this.hot.getPlugin('comments');
     const customBordersPlugin = this.hot.getPlugin('customBorders');
     const formulasEnabled = formulasPlugin?.isEnabled() === true;
-    const entitlement = getXlsxEntitlement(this.hot);
+    // Scoped to the import's own tokens, so the warning and the `license:` entries never name an
+    // export-only token (`xlsx:export`, `xlsx:number_formats`).
+    const entitlement = scopeXlsxEntitlement(getXlsxEntitlement(this.hot), IMPORT_FILE_CAPABILITY_IDS);
     const mapped = mapWorkbook(workbook, resolved, {
       formulasEnabled,
       commentsEnabled: commentsPlugin?.isEnabled() === true,
@@ -876,7 +882,7 @@ export class ImportFile extends BasePlugin {
 
     const result: ImportResult = {
       ...mapped,
-      dropped: entitlement.importReport ? dropped.list() : dropped.licenseEntries(),
+      dropped: dropped.list(),
       engine: { kind: detected.kind, version: detected.version },
     };
 
@@ -950,18 +956,16 @@ export class ImportFile extends BasePlugin {
   };
 
   /**
-   * Emits the warnings of one import call: the engine's dropped-features warning, only when the
-   * license unlocks `xlsx:import_report`, and the missing-capabilities warning, only when the
-   * license lacks a token and its console channel is on.
+   * Emits the warnings of one import call: the engine's dropped-features warning, and the
+   * missing-capabilities warning, only when the license lacks a token the import gates and its
+   * console channel is on.
    *
    * @param {DroppedFeatures} dropped The features recorded during the call.
    * @param {XlsxEngineKind} kind The engine that read the file.
    * @param {XlsxEntitlement} entitlement What the license unlocks.
    */
   #warnDropped(dropped: DroppedFeatures, kind: XlsxEngineKind, entitlement: XlsxEntitlement): void {
-    if (entitlement.importReport) {
-      dropped.warn(kind);
-    }
+    dropped.warn(kind);
 
     if (entitlement.missing.length > 0 && getLicenseState(this.hot).channels.console) {
       warn(formatMissingCapabilitiesWarning('import', entitlement.missing));
@@ -969,7 +973,8 @@ export class ImportFile extends BasePlugin {
   }
 
   /**
-   * Rejects an xlsx import when the license key lists `xlsx:*` capabilities without `xlsx:import`.
+   * Rejects an xlsx import when the license key carries the `listed-capabilities` flag without
+   * listing `xlsx:import`.
    * Runs right after `#assertEnabled()`, before any engine detection or file read.
    */
   #assertLicensed(format: string): void {

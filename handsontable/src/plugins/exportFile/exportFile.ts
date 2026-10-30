@@ -4,7 +4,7 @@ import { isObject } from '../../helpers/object';
 import { LOADING_CLASS_NAME } from '../../helpers/constants';
 import { EXPORT_FILE_DIALOG_TITLE } from '../../i18n/constants';
 import { resolveEngineOverride, tryDetectXlsxEngine } from '../../utils/xlsxEngine/detect';
-import { capabilitiesOfPlugin } from '../../utils/xlsxEngine/licenseCapabilities';
+import { EXPORT_FILE_CAPABILITY_IDS } from '../../utils/xlsxEngine/licenseCapabilities';
 import { getXlsxEntitlement } from '../../core/license';
 import ExportDataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
@@ -427,10 +427,10 @@ export class ExportFile extends BasePlugin {
   }
 
   /**
-   * Returns the license capabilities this plugin gates.
+   * Returns the ids of the license capability tokens this plugin gates.
    */
-  static get CAPABILITIES() {
-    return capabilitiesOfPlugin('ExportFile');
+  static get CAPABILITIES(): readonly string[] {
+    return EXPORT_FILE_CAPABILITY_IDS;
   }
 
   /**
@@ -800,8 +800,8 @@ export class ExportFile extends BasePlugin {
    * because it needs no engine. `'xlsx'` can through the built-in xlsx engine or through the one
    * configured in `engines`; an engine of unknown shape writes nothing and answers `false`, which
    * is the same answer `ImportFile#supportsImportFormat` gives for that configuration. `'xlsx'` also
-   * answers `false` when the license key lists `xlsx:*` capabilities without `xlsx:export`. A key
-   * with no `xlsx:*` token, and the evaluation key, are not restricted.
+   * answers `false` when the license key carries the `listed-capabilities` flag without listing
+   * `xlsx:export`. A key without that flag, and the evaluation key, are not restricted.
    *
    * @param {string} format Export format — `'csv'` or `'xlsx'`.
    * @returns {boolean}

@@ -15,6 +15,7 @@ import { loadFixture as fixture, toArrayBuffer } from '../../../utils/xlsxEngine
 import * as consoleHelpers from '../../../helpers/console';
 import { registerCellType } from '../../../cellTypes/registry';
 import { buildTestKey } from '../../../utils/entitlementLicenseKey/__tests__/buildTestKey';
+import XLSX_FEATURES from '../../../utils/xlsxEngine/features.json';
 import { SUBSCRIPTION_KEY } from '../../../utils/entitlementLicenseKey/__tests__/fixtures';
 import { UNRESTRICTED_XLSX_ENTITLEMENT } from '../../../utils/xlsxEngine/xlsxEntitlement';
 
@@ -1389,15 +1390,21 @@ describe('ImportFile license gate', () => {
         usage_until: '2027-08-12',
         notice: 60,
         grace: 90,
-        flags: [],
+        flags: ['listed-capabilities'],
       },
     },
   });
   const message = 'ImportFile: the license does not unlock "xlsx:import".';
 
-  it('exposes its capability declarations', () => {
-    expect(ImportFile.CAPABILITIES.map(c => c.id)).toContain('xlsx:import');
-    expect(ImportFile.CAPABILITIES.map(c => c.id)).not.toContain('xlsx:export');
+  it('exposes the license tokens it gates, each one features.json assigns to it', () => {
+    expect(ImportFile.CAPABILITIES).toContain('xlsx:import');
+    expect(ImportFile.CAPABILITIES).not.toContain('xlsx:export');
+    ImportFile.CAPABILITIES.forEach((id) => {
+      const entry = XLSX_FEATURES.capabilities.find(candidate => candidate.id === id);
+
+      expect(entry.licensing).toBe('token');
+      expect(entry.plugins).toContain('ImportFile');
+    });
   });
 
   it('refuses an import and reports no xlsx support when the key lacks xlsx:import', async() => {

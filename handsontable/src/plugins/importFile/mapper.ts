@@ -1611,7 +1611,8 @@ export function mapWorkbook(
     if (pass.droppedBorders) {
       dropped.record(DROPPED_FEATURES.cellStylesBorders);
     }
-  } else if (pass.sawStyle) {
+  } else if (pass.sawStyle && entitlement.styles) {
+    // Without `xlsx:styles` the `license:xlsx:styles` entry names the loss, as it does for comments.
     dropped.record(DROPPED_FEATURES.cellStyles);
   }
 

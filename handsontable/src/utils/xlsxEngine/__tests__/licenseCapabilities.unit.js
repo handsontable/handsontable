@@ -1,13 +1,29 @@
 import {
-  XLSX_CAPABILITIES, XLSX_CAPABILITY_IDS, XLSX_CAPABILITY_PREFIX, CAPABILITY_TOKEN_PATTERN, capabilitiesOfPlugin,
+  XLSX_CAPABILITY_IDS,
+  XLSX_CAPABILITY_PREFIX,
+  CAPABILITY_TOKEN_PATTERN,
+  LISTED_CAPABILITIES_FLAG,
+  IMPORT_FILE_CAPABILITY_IDS,
+  EXPORT_FILE_CAPABILITY_IDS,
 } from '../licenseCapabilities';
 
+const features = require('../features.json');
+const { KEY_FLAG } = require('../../../../scripts/utils/feature-manifest');
+
+/**
+ * The ids of the `features.json` entries a key must list, in the order the file declares them.
+ */
+const TOKEN_IDS = features.capabilities.filter(entry => entry.licensing === 'token').map(entry => entry.id);
+
 describe('xlsxEngine/licenseCapabilities', () => {
-  it('declares the eleven stable tokens in the agreed order', () => {
+  it('lists the token entries of features.json, in its order', () => {
+    expect(XLSX_CAPABILITY_IDS).toEqual(TOKEN_IDS);
     expect(XLSX_CAPABILITY_IDS).toEqual([
       'xlsx:import', 'xlsx:export', 'xlsx:formulas', 'xlsx:layout', 'xlsx:number_formats', 'xlsx:comments',
-      'xlsx:import_report', 'xlsx:styles', 'xlsx:conditional_formatting', 'xlsx:data_validation', 'xlsx:protection',
+      'xlsx:styles', 'xlsx:conditional_formatting', 'xlsx:data_validation', 'xlsx:protection',
     ]);
+    expect(XLSX_CAPABILITY_IDS).not.toContain('xlsx:import_report');
+    expect(Object.isFrozen(XLSX_CAPABILITY_IDS)).toBe(true);
   });
 
   it('spells every id in the generator token shape', () => {
@@ -16,27 +32,22 @@ describe('xlsxEngine/licenseCapabilities', () => {
     XLSX_CAPABILITY_IDS.forEach(id => expect(id.startsWith(XLSX_CAPABILITY_PREFIX)).toBe(true));
   });
 
-  it('points every requires entry at a declared id, with no cycle', () => {
-    const ids = new Set(XLSX_CAPABILITY_IDS);
-
-    XLSX_CAPABILITIES.forEach(({ requires }) => {
-      [...(requires.allOf ?? []), ...(requires.anyOf ?? [])].forEach(dep => expect(ids.has(dep)).toBe(true));
-    });
-    expect(XLSX_CAPABILITIES.find(c => c.id === 'xlsx:import').requires).toEqual({});
-    expect(XLSX_CAPABILITIES.find(c => c.id === 'xlsx:import_report').requires).toEqual({ allOf: ['xlsx:import'] });
-    expect(XLSX_CAPABILITIES.find(c => c.id === 'xlsx:styles').requires)
-      .toEqual({ anyOf: ['xlsx:import', 'xlsx:export'] });
+  it('names the key flag the feature manifest declares', () => {
+    expect(LISTED_CAPABILITIES_FLAG).toBe(KEY_FLAG);
+    expect(LISTED_CAPABILITIES_FLAG).toBe('listed-capabilities');
   });
 
-  it('gives every token a non-empty plugins list, since 19.0.0, status stable, and is frozen', () => {
-    XLSX_CAPABILITIES.forEach((c) => {
-      expect(c.plugins.length).toBeGreaterThan(0);
-      expect(c.since).toBe('19.0.0');
-      expect(c.status).toBe('stable');
-    });
-    expect(Object.isFrozen(XLSX_CAPABILITIES)).toBe(true);
-    expect(capabilitiesOfPlugin('ImportFile').map(c => c.id)).not.toContain('xlsx:export');
-    expect(capabilitiesOfPlugin('ExportFile').map(c => c.id)).not.toContain('xlsx:import');
-    expect(capabilitiesOfPlugin('ExportFile').map(c => c.id)).toContain('xlsx:styles');
+  it('gives each plugin exactly the tokens features.json assigns to it', () => {
+    const tokensOf = plugin => features.capabilities
+      .filter(entry => entry.licensing === 'token' && entry.plugins.includes(plugin))
+      .map(entry => entry.id);
+
+    expect(IMPORT_FILE_CAPABILITY_IDS).toEqual(tokensOf('ImportFile'));
+    expect(EXPORT_FILE_CAPABILITY_IDS).toEqual(tokensOf('ExportFile'));
+    expect(IMPORT_FILE_CAPABILITY_IDS).not.toContain('xlsx:number_formats');
+    expect(IMPORT_FILE_CAPABILITY_IDS).not.toContain('xlsx:export');
+    expect(EXPORT_FILE_CAPABILITY_IDS).not.toContain('xlsx:import');
+    expect(Object.isFrozen(IMPORT_FILE_CAPABILITY_IDS)).toBe(true);
+    expect(Object.isFrozen(EXPORT_FILE_CAPABILITY_IDS)).toBe(true);
   });
 });

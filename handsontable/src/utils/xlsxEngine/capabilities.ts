@@ -297,14 +297,6 @@ export class DroppedFeatures {
   }
 
   /**
-   * The `license:<token>` entries, in first-seen order. What the import reports in place of the
-   * full list when the license does not unlock `xlsx:import_report`.
-   */
-  licenseEntries(): string[] {
-    return this.list().filter(name => name.startsWith(LICENSE_PREFIX));
-  }
-
-  /**
    * How many times a feature was dropped.
    */
   count(feature: string): number {
@@ -320,9 +312,11 @@ export class DroppedFeatures {
 
   /**
    * Emits one warning naming the engine and every dropped feature. Silent when nothing was dropped.
+   * The `license:<token>` entries are left out: the plugin's own missing-token warning already
+   * names them, and the engine did not drop them.
    */
   warn(kind: XlsxEngineKind): void {
-    const features = this.list();
+    const features = this.list().filter(name => !name.startsWith(LICENSE_PREFIX));
 
     if (features.length === 0) {
       return;
