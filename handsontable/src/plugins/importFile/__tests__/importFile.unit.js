@@ -1466,6 +1466,57 @@ describe('ImportFile and the workbook\'s defined names in a real HyperFormula en
     hf.destroy();
   });
 
+  it('should keep a formula live over a name the engine holds as a constant equal to the file\'s', async() => {
+    // `addNamedExpression('TaxRate', 0.07)` stores no formula (`getNamedExpressionFormula` answers
+    // `undefined`), and the export writes the constant as the literal `0.07`. Re-importing that
+    // file used to freeze every formula over the name to its cached value.
+    const constantBytes = async(names) => {
+      const snapshot = createWorkbookSnapshot();
+      const sheet = createSheetSnapshot('Data');
+      const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+
+      sheet.rows = [
+        [at({ value: 'Amount' }), at({ value: 'Tax' }), at({ value: 'Label' }), at({ value: 'On' })],
+        [at({ value: 100 }), at({ formula: { text: 'TaxRate*A2', result: 7 } }),
+          at({ formula: { text: 'Label&"!"', result: 'net!' } }), at({ formula: { text: 'IF(Flag,1,0)', result: 1 } })],
+      ];
+      snapshot.sheets.push(sheet);
+      snapshot.definedNames = names;
+
+      return toArrayBuffer(await nativeAdapter.write(snapshot, undefined, new DroppedFeatures()));
+    };
+    const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+
+    hf.addSheet('Sheet1');
+    hf.addNamedExpression('TaxRate', 0.07);
+    hf.addNamedExpression('Label', 'net');
+    hf.addNamedExpression('Flag', true);
+
+    expect(hf.getNamedExpressionFormula('TaxRate')).toBeUndefined();
+
+    const same = await importInto(hf, await constantBytes([
+      { name: 'TaxRate', formula: '0.07', sheetName: null },
+      { name: 'Label', formula: '"net"', sheetName: null },
+      { name: 'Flag', formula: 'TRUE()', sheetName: null },
+    ]));
+
+    expect(same.data[0].slice(1)).toEqual(['=TaxRate*A1', '=Label&"!"', '=IF(Flag,1,0)']);
+    expect(same.namedExpressions).toBeUndefined();
+    expect(same.dropped).toEqual([]);
+
+    // A file whose constant changed: the engine's 0.07 would compute a tax the file does not hold.
+    const changed = await importInto(hf, await constantBytes([
+      { name: 'TaxRate', formula: '0.08', sheetName: null },
+      { name: 'Label', formula: '"gross"', sheetName: null },
+      { name: 'Flag', formula: 'TRUE()', sheetName: null },
+    ]));
+
+    expect(changed.data[0].slice(1)).toEqual([7, 'net!', '=IF(Flag,1,0)']);
+    expect(changed.dropped).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+
+    hf.destroy();
+  });
+
   it('should leave out a name over the imported sheet when the engine has no name for the grid\'s sheet', async() => {
     const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
 

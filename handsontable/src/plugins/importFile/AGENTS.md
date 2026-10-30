@@ -459,7 +459,12 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   (`formulaNamedExpressions`) is never re-registered, and is trusted only when its definition is the
   file's** (`MapperContext.definesNamedExpression`: `getNamedExpressionFormula(name)` ===
   `normalizeFormula('=' + rebased)` - HF's normal form, canonical sheet case and upper-case
-  functions, is what `getNamedExpressionFormula` answers). Equal: the formulas over it stay live.
+  functions, is what `getNamedExpressionFormula` answers). **A name the engine holds as a CONSTANT
+  (`addNamedExpression('TaxRate', 0.07)`) has no stored formula** (`getNamedExpressionFormula` answers
+  `undefined`), and the export writes it as a literal (`0.07`): `sameConstant` compares
+  `getNamedExpressionValue(name)` with `calculateFormula('=' + rebased, getSheetId(formulaSheetName))`
+  (side-effect free; an error value compares by its code; a throw, a range, or no sheet id is unequal).
+  Without it, re-importing your own export froze every formula over a constant name. Equal: the formulas over it stay live.
   Different, or not expressible: the name goes INTO `unresolvedNames`, so its formulas import cached
   values with `formula:definedName`, plus `definedNames:unsupported`. A re-import of a changed file used
   to read the previous import's range silently. Replacing the old definition (`changeNamedExpression`)

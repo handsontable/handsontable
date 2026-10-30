@@ -409,16 +409,92 @@ function namedExpressionCheck(engine: NamedExpressionEngine | null | undefined):
  * engine's normalized form (`normalizeFormula` writes exactly what `getNamedExpressionFormula`
  * answers: canonical sheet case, upper-case functions), or `undefined` when the engine cannot answer,
  * so a name it defines is trusted as it is.
+ *
+ * A name the engine holds as a constant (`addNamedExpression('TaxRate', 0.07)`) stores no formula,
+ * and the export writes it as a literal (`0.07`, `"text"`, `TRUE()`). Its value is compared instead
+ * with what the file's expression evaluates to (`sameConstant`).
+ *
+ * @param {NamedExpressionEngine|null|undefined} engine The Formulas plugin's engine.
+ * @param {string|null|undefined} sheetName The engine's name for the grid's sheet, which
+ * `calculateFormula` evaluates the file's expression against.
+ * @returns {NamedExpressionPredicate|undefined}
  */
 function namedExpressionComparison(
-  engine: NamedExpressionEngine | null | undefined
+  engine: NamedExpressionEngine | null | undefined,
+  sheetName: string | null | undefined,
 ): NamedExpressionPredicate | undefined {
   if (typeof engine?.getNamedExpressionFormula !== 'function' || typeof engine.normalizeFormula !== 'function') {
     return undefined;
   }
 
-  return (name, expression) => isValidFormula(engine, expression)
-    && engine.getNamedExpressionFormula?.(name) === engine.normalizeFormula?.(expression);
+  return (name, expression) => {
+    if (!isValidFormula(engine, expression)) {
+      return false;
+    }
+
+    const stored = engine.getNamedExpressionFormula?.(name);
+
+    if (stored === undefined) {
+      return sameConstant(engine, name, expression, sheetName);
+    }
+
+    return stored === engine.normalizeFormula?.(expression);
+  };
+}
+
+/**
+ * Whether a name the engine holds as a constant has the value the file's expression evaluates to.
+ * The expression is evaluated by `calculateFormula`, which changes nothing in the engine. A value
+ * the engine cannot compute (no sheet to evaluate against, an expression that throws) or a range
+ * never matches, so the formulas over the name import their cached values.
+ *
+ * @param {NamedExpressionEngine} engine The Formulas plugin's engine.
+ * @param {string} name The name.
+ * @param {string} expression The file's definition, `=` included.
+ * @param {string|null|undefined} sheetName The engine's name for the grid's sheet.
+ * @returns {boolean}
+ */
+function sameConstant(
+  engine: NamedExpressionEngine, name: string, expression: string, sheetName: string | null | undefined
+): boolean {
+  if (typeof engine.getNamedExpressionValue !== 'function' || typeof engine.calculateFormula !== 'function') {
+    return false;
+  }
+
+  const sheetId = typeof sheetName === 'string' ? engine.getSheetId?.(sheetName) : undefined;
+
+  if (typeof sheetId !== 'number') {
+    return false;
+  }
+
+  let computed: unknown;
+
+  try {
+    computed = engine.calculateFormula(expression, sheetId);
+  } catch {
+    return false;
+  }
+
+  const held = engine.getNamedExpressionValue(name);
+
+  if (held === computed) {
+    return true;
+  }
+
+  // An error value (`#N/A`) is a fresh `DetailedCellError` on every read; its code identifies it.
+  return isCellError(held) && isCellError(computed) && held.value === computed.value;
+}
+
+/**
+ * Whether a value is one of HyperFormula's error values, which carry their code in `value`.
+ *
+ * @param {*} value The value.
+ * @returns {boolean}
+ */
+function isCellError(value: unknown): value is { value: string } {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+    && typeof (value as { value?: unknown }).value === 'string'
+    && typeof (value as { type?: unknown }).type === 'string';
 }
 
 /**
@@ -436,6 +512,9 @@ interface NamedExpressionEngine {
   getNamedExpressionFormula?: (name: string) => string | undefined;
   normalizeFormula?: (formula: string) => string;
   validateFormula?: (formula: string) => boolean;
+  getNamedExpressionValue?: (name: string) => unknown;
+  calculateFormula?: (formula: string, sheetId: number) => unknown;
+  getSheetId?: (sheetName: string) => number | undefined;
 }
 
 /**
@@ -922,7 +1001,9 @@ export class ImportFile extends BasePlugin {
       formulaSheetName: formulasEnabled ? formulasPlugin?.sheetName ?? undefined : undefined,
       formulaNamedExpressions: formulasEnabled ? engineNamedExpressions(formulasPlugin?.engine) : undefined,
       canAddNamedExpression: formulasEnabled ? namedExpressionCheck(formulasPlugin?.engine) : undefined,
-      definesNamedExpression: formulasEnabled ? namedExpressionComparison(formulasPlugin?.engine) : undefined,
+      definesNamedExpression: formulasEnabled
+        ? namedExpressionComparison(formulasPlugin?.engine, formulasPlugin?.sheetName)
+        : undefined,
     }, dropped);
 
     recordLayoutDirectionMismatch(this.hot, mapped, resolved.apply, dropped);
