@@ -18,6 +18,8 @@ import { EVIDENCE_CHECKS, EVIDENCE_SCHEMA, findingId, validatePart } from '../a1
 test('an action is what a press does to the grid; a selection, a focus or a hover highlight is not', () => {
   assert.deepEqual(actionEffects(['selection-changes', 'focus-moves', 'menu-moves', 'sorts', 'menu-opens']), ['menu-opens', 'sorts']);
   assert.deepEqual(actionEffects(['selection-moves', 'caret-moves', 'scrolls', 'list-moves']), []);
+  assert.deepEqual(actionEffects(['filter-list-moves', 'filter-checked-changes']), ['filter-checked-changes'],
+    'the Filter by value list\'s highlight is a highlight; checking a value is the action');
 });
 
 test('a control that acts on the press is a 2.5.2 finding; one that only opens a popup is advisory', () => {

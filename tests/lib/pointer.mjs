@@ -24,7 +24,7 @@ export const DRAG_INVENTORY_FILE = 'tests/a11y/checks/drag-operations.mjs';
 // effects the pointer spec reads. A selection, a focus move, a hover highlight, a caret or a scroll is
 // not an action: a press on a cell selects it by design, and a pointer over a menu item highlights it.
 const NOT_ACTIONS = new Set(['selection-moves', 'selection-changes', 'focus-moves', 'focus-leaves', 'caret-moves', 'scrolls', 'list-moves',
-  'menu-moves']);
+  'menu-moves', 'filter-list-moves']);
 // An action that only shows a popup: Escape takes it back, which is the undo 2.5.2 allows, so a person
 // decides whether the press is acceptable.
 const POPUP_EFFECTS = new Set(['menu-opens', 'editor-opens', 'comment-opens', 'popup-opens']);
