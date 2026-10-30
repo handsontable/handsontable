@@ -87,4 +87,25 @@ describe('EmptyDataState ready step', () => {
     expect(showSpy).toHaveBeenCalledTimes(1);
     expect(hot.getPlugin('emptyDataState').isVisible()).toBe(true);
   });
+
+  it('should leave the toggle to the update itself, so the ready step does not toggle again', () => {
+    buildGrid({ data: [] });
+
+    const countSpy = jest.spyOn(hot.view, 'countRenderableColumns');
+    const step = EmptyDataState.prototype.onGridReady;
+    const readsInStep = [];
+    const stepSpy = jest.spyOn(EmptyDataState.prototype, 'onGridReady').mockImplementation(function() {
+      const before = countSpy.mock.calls.length;
+
+      step.call(this);
+      readsInStep.push(countSpy.mock.calls.length - before);
+    });
+
+    hot.updateSettings({ emptyDataState: { message: 'Nothing here' } });
+
+    expect(readsInStep).toEqual([0]);
+    expect(hot.getPlugin('emptyDataState').isVisible()).toBe(true);
+
+    stepSpy.mockRestore();
+  });
 });

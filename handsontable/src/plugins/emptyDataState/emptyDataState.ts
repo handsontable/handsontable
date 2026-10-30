@@ -298,6 +298,14 @@ export class EmptyDataState extends BasePlugin {
   #loadingActive = false;
 
   /**
+   * `true` after an enable that ran without a view (the grid was still being built), so its own toggle did
+   * nothing and the ready step owes it. An enable with a view toggles, or leaves it to `onDataReady()`.
+   *
+   * @type {boolean}
+   */
+  #toggleOwed = false;
+
+  /**
    * Check if the plugin is enabled in the handsontable settings.
    *
    * The empty data state renders into the root grid element and registers a focus scope, and both
@@ -346,6 +354,7 @@ export class EmptyDataState extends BasePlugin {
     super.enablePlugin();
 
     this.#onSequenceCacheUpdate();
+    this.#toggleOwed = !this.hot.view;
   }
 
   /**
@@ -379,13 +388,19 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
-   * Shows or hides the empty state. Core runs it once after each enable or update, when the view exists,
-   * before the next render. At init that is where the overlay first appears: the enable runs before the
-   * view exists, so its own toggle does nothing.
+   * Shows or hides the empty state when the enable could not: it ran before the view existed, so its own
+   * toggle did nothing. Core runs it once after each enable or update, when the view exists, before the next
+   * render. At init that is where the overlay first appears. An enable or update with a view toggles itself,
+   * or leaves it to `onDataReady()`, so the step does nothing after it.
    *
    * @private
    */
   onGridReady() {
+    if (!this.#toggleOwed) {
+      return;
+    }
+
+    this.#toggleOwed = false;
     this.#toggleEmptyDataState();
   }
 
