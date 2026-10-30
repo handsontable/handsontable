@@ -155,7 +155,7 @@ jobs:
   voiceover:
     name: VoiceOver (${{ matrix.browser }})
     runs-on: macos-26
-    # The backstop above the step timeouts below (10 + 5 + 5 + 25 minutes). A hung step fails on its own
+    # The backstop above the step timeouts below (12 + 5 + 5 + 25 minutes). A hung step fails on its own
     # timeout first, so the evidence still uploads; this only stops a runner that hangs outside them.
     timeout-minutes: 55
     # Report-only: a red job here would show as a failure on the run, and the run is a report.
@@ -198,16 +198,34 @@ jobs:
       # Guidepup's own recipe, in its order: the environment first, the browser, then the screen reader
       # assets. On macOS `setup --ci` is the real work: it writes the automation permissions into the
       # TCC database, enables VoiceOver's AppleScript control, turns off its splash screen and
-      # dictation, and turns on Do Not Disturb. `--macos-record` screen-records that setup into
-      # tests/recordings/, uploaded below: a setup that fails (about one job in a hundred on
-      # Guidepup's own CI, and a whole-job re-run passes) shows what the runner's screen did. The
+      # dictation, and turns on Do Not Disturb. `--macos-record` screen-records each attempt into
+      # tests/recordings/, uploaded below, so a failed one shows what the runner's screen did. The
       # recorder is the CLI's optional dependency, resolved by npx and never installed (the GPL-licensed
       # ffmpeg build, root AGENTS.md). `install voiceover` fetches Guidepup's VoiceOver preferences
       # bundle for this macOS from the installed @guidepup/guidepup's manifest, so it runs inside
       # tests/. The CLI version is pinned here, in the NVDA job and in tests/AGENTS.md together.
+      #
+      # The setup recovers on the same runner. It turns on Do Not Disturb by driving the Control Center
+      # UI through AppleScript, and about one job in a hundred fails there ("Failed to enable Do not
+      # disturb mode", on Guidepup's own CI and on the first develop nightly) once the CLI's own five
+      # tries are spent, about 3.5 minutes. A second `--ci` attempt runs after Control Center is
+      # relaunched (launchd restarts it); a third runs without `--ci`, which grants the same automation
+      # permissions without Do Not Disturb, so the lane still records a transcript and a warning says a
+      # notification could be spoken into it. No attempt is cut short: a good setup takes 32 to 42 s,
+      # the CLI bounds a failing one itself, and killing it mid-run could leave osascript and the
+      # recorder running. 12 minutes covers the three.
       - name: Prepare the environment for screen reader automation
-        timeout-minutes: 10
-        run: cd tests && npx -y @guidepup/setup@0.29.3 setup --ci --macos-record
+        timeout-minutes: 12
+        run: |
+          cd tests
+          setup() { npx -y @guidepup/setup@0.29.3 setup "$@" --macos-record; }
+          setup --ci && exit 0
+          echo "::warning title=VoiceOver setup::The setup failed; relaunching Control Center and trying again."
+          killall ControlCenter || true
+          sleep 5
+          setup --ci && exit 0
+          echo "::warning title=VoiceOver setup::The setup failed twice; setting up without Do Not Disturb, so a notification could be spoken into a transcript."
+          setup
       # Playwright's own browser builds: `webkit` is Playwright's WebKit (Playwright.app), not
       # Safari.app, and `chromium` is Chrome for Testing; Guidepup activates each by its bundle id.
       - name: Install the browser

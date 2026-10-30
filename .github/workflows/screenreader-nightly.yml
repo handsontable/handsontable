@@ -16,9 +16,9 @@ name: Screen reader nightly
 # input once the new wording is right. A red step inside a lane job is tooling (the screen reader did
 # not start, a fixture did not load), never a finding, and it shows on that job's `failure` check run and summary:
 # the jobs carry `continue-on-error`, so they report success to this run and nothing here reaches
-# Slack for them. Slack hears only of a run that never reached the lanes (the `notify` job below). A
-# VoiceOver job red in its setup step is the runner, not the lane (about one job in a hundred on
-# Guidepup's own CI): re-run that job from its page, and it passes.
+# Slack for them. Slack hears only of a run that never reached the lanes (the `notify` job below). The
+# VoiceOver setup recovers from its known flake on the same runner (screenreader.yml); a VoiceOver job
+# still red in its setup step is the runner, not the lane: re-run that job from its page.
 on:
   schedule:
     # 04:30 UTC Tue–Sat: after the E2E nightly (03:30), clear of the visual nightly (02:00), the
