@@ -235,6 +235,21 @@ export interface ExportOptions {
    */
   headerStyle?: HeaderStyle | null;
   /**
+   * Sheet protection of read-only cells (XLSX only). A sheet that has a read-only cell is protected,
+   * and its read-only cells are locked, so Excel does not let users edit them.
+   *
+   * - Unset (`undefined`, the default): such a sheet is protected with no password, so anyone can
+   *   unprotect it.
+   * - `{ password: '...' }`: such a sheet is protected with this password. The file keeps only a salted
+   *   SHA-512 hash of it, never the password itself. An empty or missing `password` sets no password.
+   * - `null`: no sheet is protected and no cell is locked.
+   *
+   * A sheet with no read-only cell, or with a ColumnSummary, is never protected. With the `sheets`
+   * option, every protected sheet gets the same password. This is a guard against accidental edits,
+   * not encryption: the cell values stay readable in the file.
+   */
+  protection?: { password?: string } | null;
+  /**
    * An xlsx engine module for this export only. `null`/absent uses the plugin's `engines` entry, or
    * the built-in engine.
    */

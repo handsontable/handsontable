@@ -60,6 +60,13 @@ const EXPORT_OPTIONS = {
   ],
 };
 
+/**
+ * A made-up sheet password. Tests compare it inside `toBe(true)`/`toBe(false)` assertions, so a
+ * failure never prints it.
+ */
+const PASSWORD = 'q4-budget';
+const PASSWORD_OPTIONS = { protection: { password: PASSWORD } };
+
 type ExportFeature = 'xlsx:formulas' | 'xlsx:layout' | typeof PRO_EXPORT_TOKENS[number];
 
 /**
@@ -181,6 +188,77 @@ for (const engine of ['native', 'exceljs'] as const) {
         ]);
       }
     });
+
+    test('a password writes a SHA-512 sheet protection with a fresh salt', async({ page, theme, bundle }) => {
+      const lic = new XlsxLicensePage(page, theme, bundle, engine);
+
+      await lic.goto();
+      await lic.create(keyWith(ALL_XLSX_TOKENS));
+
+      const first = lic.sheetXml(await lic.exportBytes(PASSWORD_OPTIONS));
+      const second = lic.sheetXml(await lic.exportBytes(PASSWORD_OPTIONS));
+      const salt = (xml: string) => xml.match(/<sheetProtection[^>]*saltValue="([^"]+)"/)?.[1];
+
+      expect(first).toMatch(/<sheetProtection[^>]*algorithmName="SHA-512"/);
+      expect(first).toMatch(/<sheetProtection[^>]*spinCount="100000"/);
+      expect(first).toMatch(/<sheetProtection[^>]*hashValue="[^"]+"/);
+      expect(salt(first)).toBeTruthy();
+      expect(salt(first)).not.toBe(salt(second));
+      // Only the hash reaches the file.
+      expect(first.includes(PASSWORD)).toBe(false);
+
+      // Without the option the sheet is protected with no password, as before.
+      expect(lic.sheetXml(await lic.exportBytes())).not.toMatch(/<sheetProtection[^>]*hashValue=/);
+    });
+
+    test('protection: null writes no sheetProtection and no locked cell', async({ page, theme, bundle }) => {
+      const lic = new XlsxLicensePage(page, theme, bundle, engine);
+
+      await lic.goto();
+      await lic.create(keyWith(ALL_XLSX_TOKENS));
+
+      const workbook = await lic.exportWorkbook({ protection: null });
+
+      expect(lic.sheetXml(await lic.exportBytes({ protection: null }))).not.toContain('<sheetProtection');
+      expect(workbook.worksheets[0].getCell('A1').protection?.locked).not.toBe(true);
+    });
+
+    test('a Standard key writes no sheetProtection despite the option, and the warning has no password', async({
+      page, theme, bundle,
+    }) => {
+      const lic = new XlsxLicensePage(page, theme, bundle, engine);
+
+      await lic.goto();
+      await lic.create(keyWith(STANDARD_TOKENS));
+
+      const xml = lic.sheetXml(await lic.exportBytes(PASSWORD_OPTIONS));
+      const warnings = await lic.warnings();
+
+      expect(xml).not.toContain('<sheetProtection');
+      expect(await licenseWarnings(lic)).toEqual([
+        'The xlsx export skipped features your license does not unlock: xlsx:number_formats, xlsx:comments, '
+        + 'xlsx:styles, xlsx:conditional_formatting, xlsx:data_validation, xlsx:protection.',
+      ]);
+      expect(warnings.some(message => message.includes(PASSWORD))).toBe(false);
+    });
+
+    test('a password-protected file imports its locked cells as read-only and reports sheetProtection:password',
+      async({ page, theme, bundle }) => {
+        const lic = new XlsxLicensePage(page, theme, bundle, engine);
+
+        await lic.goto();
+        await lic.create(keyWith(ALL_XLSX_TOKENS));
+
+        const result = await lic.importBytes(await lic.exportBytes(PASSWORD_OPTIONS));
+        const cellsMeta = (result.cellsMeta ?? []) as { row: number; col: number; meta: Record<string, unknown> }[];
+
+        // The fixture's read-only cell is A1 (no header row is exported here).
+        expect(cellsMeta.some(({ row, col, meta }) => row === 0 && col === 0 && meta.readOnly === true)).toBe(true);
+        expect(cellsMeta.some(({ row, col, meta }) => row === 1 && col === 0 && meta.readOnly === true)).toBe(false);
+        expect(result.dropped).toContain('sheetProtection:password');
+        expect(JSON.stringify(result).includes(PASSWORD)).toBe(false);
+        expect((await lic.warnings()).some(message => message.includes(PASSWORD))).toBe(false);
+      });
 
     test('no-console-warns silences the warning but not the gate', async({ page, theme, bundle }) => {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);

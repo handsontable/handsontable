@@ -337,6 +337,7 @@ interface XlsxOptions extends Record<string, unknown> {
   exportFormulas?: boolean;
   headerStyle?: { backgroundColor?: string; border?: { style?: string; color?: string } | null } | null;
   conditionalFormatting?: ConditionalFormattingDescriptor[];
+  protection?: { password?: string } | null;
 }
 
 /**
@@ -379,6 +380,7 @@ class Xlsx extends BaseType {
     conditionalFormatting: ConditionalFormattingDescriptor[];
     exportFormulas: boolean;
     headerStyle: { backgroundColor: string; border: { style: string } } | null;
+    protection: { password?: string } | null | undefined;
     } {
     return {
       mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -398,6 +400,10 @@ class Xlsx extends BaseType {
       // string. `border` sets the border style on all four sides; set to `null` to suppress it.
       // Set the whole option to `null` to export headers with no styling at all.
       headerStyle: { backgroundColor: '#F2F2F2', border: { style: 'thin' } },
+      // Sheet protection of the read-only cells. `undefined` (the default) protects every sheet that
+      // has a read-only cell, with no password. `{ password }` protects them with that password (the
+      // file keeps only its salted SHA-512 hash); `null` never protects and leaves every cell unlocked.
+      protection: undefined,
     };
   }
 
@@ -616,7 +622,8 @@ class Xlsx extends BaseType {
     //    initialize font/fill/border to sentinel values, which adds noise to the file
     //    and breaks styling assertions in tests.
     const hasColumnSummary = summaryMap.size > 0;
-    const hasReadOnlyCells = this.#entitlement.protection && !hasColumnSummary &&
+    const { protection } = options;
+    const hasReadOnlyCells = this.#entitlement.protection && protection !== null && !hasColumnSummary &&
       cellsMeta.some((row: unknown[]) =>
         row.some((meta: unknown) => (meta as Record<string, unknown>)?.readOnly === true));
 
@@ -652,11 +659,11 @@ class Xlsx extends BaseType {
     }
 
     if (hasReadOnlyCells) {
-      // Protect the worksheet so that locked cells become read-only in Excel.
-      // No password is set — users can unprotect at any time.
-      // The permissive options keep non-editing actions (select, sort, filter,
+      // Protect the worksheet so that locked cells become read-only in Excel. Without a
+      // `protection.password` (or with an empty one) no password is set, and users can unprotect at
+      // any time. The permissive options keep non-editing actions (select, sort, filter,
       // resize) available so the spreadsheet remains usable.
-      sheet.protect('', {
+      sheet.protect(protection?.password ?? '', {
         selectLockedCells: true,
         selectUnlockedCells: true,
         formatColumns: true,

@@ -168,6 +168,14 @@ Other rules:
   `"dataRow:dataCol" → descriptor` map.
 - **`cell.protection` is written only when the sheet actually has cells to lock in Excel.** The pre-scan
   exists to skip it — writing it unconditionally bloats the file and changes Excel's behavior.
+- **The `protection` option only chooses the password, never whether a sheet is protected.** `undefined` (the
+  default) keeps the pre-scan's verdict with no password; `{ password }` passes the password to
+  `sheet.protect()` (empty means none, the builder stores `null`); `null` forces `hasReadOnlyCells` off, so
+  nothing is locked. A password on a sheet with no read-only cell, or with a ColumnSummary, still writes
+  nothing, and without `xlsx:protection` the whole option is ignored. The password must never reach a log,
+  a warning, `dropped` or an error: the missing-token warning names the token only. The engines hash it
+  (salted SHA-512, `crypto.getRandomValues` salt in `parts/protection.ts`; ExcelJS's own `protect()`).
+  Pinned by `__tests__/xlsxProtectionOption.unit.js` and `tests/e2e/xlsx-export-license.spec.ts`.
 - **Clear the style caches for *every* document involved.** In multi-sheet mode each sheet may come from a
   different Handsontable instance in a different document (an iframe), so one document's cache is not
   enough.
