@@ -320,6 +320,7 @@ export class ColumnSorting extends BasePlugin {
     this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mouseup',
       () => this.#resolvePendingSort());
     this.addHook('afterColumnMove', this.#onAfterColumnMove);
+    this.addHook('afterColumnSequenceChange', this.#onAfterColumnSequenceChange);
 
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch, -1);
 
@@ -1500,6 +1501,19 @@ export class ColumnSorting extends BasePlugin {
   #onAfterColumnMove = () => {
     if (this.#pendingHeaderSort !== null) {
       this.#pendingHeaderSort.consumedByMove = true;
+    }
+  };
+
+  /**
+   * Drops a queued press when the column order starts over (`loadData()`, `updateSettings()` with `columns`,
+   * or new data with another column layout). The press names a column of the order it was made on, so the
+   * release would sort another column.
+   *
+   * @param {string} source The source of the sequence change.
+   */
+  #onAfterColumnSequenceChange = (source: string) => {
+    if (source === 'init') {
+      this.#pendingHeaderSort = null;
     }
   };
 

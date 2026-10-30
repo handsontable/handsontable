@@ -91,6 +91,10 @@ Everything about that machinery is load-bearing:
 - **`#onBeforeOnCellMouseDown` drops any stale press.** A release that never arrived — the window lost focus
   while the button was held — would otherwise resolve on the next unrelated release and sort a column out of
   nowhere.
+- **A column order reset drops the queued press.** `afterColumnSequenceChange` with the `'init'` source
+  (`loadData()`, `updateSettings()` with `columns`, a new column layout) names the press's column in an order that
+  no longer exists. ManualColumnMove cancels a held drag on the same change, so `isDragging()` then reads `false`
+  and the release would have sorted a column of the new order. A same-shape `updateData()` fires no `'init'`.
 - **Two release signals, deliberately.** `afterOnCellMouseUp` is primary: on touch devices Walkontable calls
   its `onMouseUp` straight from `touchend` instead of dispatching a DOM `mouseup`, so a document listener
   alone would never fire and tapping a header would stop sorting. A raw `mouseup` on `documentElement` is
@@ -557,7 +561,15 @@ While core's `_applySettingsAndData()` applies settings ahead of their data (`is
 `../base/AGENTS.md`), the sort in `onUpdateSettings()` is held, and `onDataReady()` runs
 `#loadOrSortBySettings()` against the loaded rows. The sort of a fresh enable needs no hold: its ready step
 runs after the load. Run before the load, either sorted the departing rows and the load reset the order, so
-a sheet's own `initialConfig` was ignored on its first visit.
+a sheet's own `initialConfig` was ignored on its first visit. The plugin has no `afterLoadData` listener.
+Core passes `afterLoadData` one of three `initialLoad` values: `true` for the load made before the view
+exists, the truthy `[null, 'loadData']` for a load made later during init (from an `init` listener, with the
+view in place), and `false` after init. A listener that tests it as a truthy flag, as NestedHeaders and
+SheetsBar do, also runs for that second load.
+
+**Open: rows an `init` listener loads are not sorted.** The ready step sorts before the `init` hook, so a
+`loadData()` from an `init` listener replaces the sorted rows and drops the `initialConfig` sort.
+`tests/e2e/column-sorting-init-load.spec.ts` ("sorts the rows an `init` listener loads") expects them sorted.
 
 ## `true` after an object resets the column properties; `true` after `true` does not
 
