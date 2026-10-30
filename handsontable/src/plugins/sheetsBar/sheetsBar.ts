@@ -5570,8 +5570,10 @@ export class SheetsBar extends BasePlugin {
    * way `#onBeforeLoadData` ignores it at init (one warning covers both): applied, it replaced the active
    * sheet's rows, and the next switch away stored the host's array as that sheet's data. A framework wrapper
    * re-sends its `data` prop on a re-render, which is how this happens without the host asking for it.
-   * A `sheetsBar: true` workbook declares no sheets, so its only sheet is the grid's own data and still
-   * follows the update. While the active sheet has an external data source, the incoming array is core's
+   * A `sheetsBar: true` workbook declares no sheets, so its first sheet is the grid's own data and follows
+   * the update. The array another sheet already holds is the exception: a wrapper re-sends the first
+   * sheet's array while an added sheet is shown, and loaded, it replaced that sheet's rows and tied both
+   * sheets to one array. While the active sheet has an external data source, the incoming array is core's
    * own placeholder for DataProvider (a `dataProvider` the user re-configured on the visible server sheet),
    * and it goes through.
    *
@@ -5581,9 +5583,12 @@ export class SheetsBar extends BasePlugin {
   #keepDeclaredSheetRows(sourceData: unknown[]): unknown[] | undefined {
     const liveData = this.#getLiveSourceData();
 
-    if (this.#isSwitching || this.#declaredEntries.size === 0 || sourceData === liveData
-      || !this.#declaresWorkbookNow() || this.hot.runHooks('hasExternalDataSource') === true) {
+    if (this.#isSwitching || sourceData === liveData || this.hot.runHooks('hasExternalDataSource') === true) {
       return;
+    }
+
+    if (this.#declaredEntries.size === 0 || !this.#declaresWorkbookNow()) {
+      return this.#keepsUndeclaredWorkbook() && this.#isHiddenSheetData(sourceData) ? liveData : undefined;
     }
 
     if (!this.#warnedAboutTopLevelData) {
@@ -5592,6 +5597,33 @@ export class SheetsBar extends BasePlugin {
     }
 
     return liveData;
+  }
+
+  /**
+   * Tells whether the grid-level `sheetsBar` setting keeps a workbook that declares no sheets
+   * (`sheetsBar: true`, or an object without a `sheets` key), as opposed to turning the bar off.
+   *
+   * @returns {boolean}
+   */
+  #keepsUndeclaredWorkbook(): boolean {
+    const setting: unknown = this.hot.getSettings()[PLUGIN_KEY];
+
+    return setting === true || (isPlainObject(setting) && !('sheets' in setting));
+  }
+
+  /**
+   * Tells whether the array is the data of a sheet other than the active one.
+   *
+   * @param {Array} sourceData The rows about to be loaded.
+   * @returns {boolean}
+   */
+  #isHiddenSheetData(sourceData: unknown[]): boolean {
+    const activeId = this.#model?.getActiveSheet()?.id ?? null;
+
+    const model = this.#model;
+
+    return model?.getSheets().some(({ id }) => id !== activeId && model.getSheetById(id)?.data === sourceData)
+      ?? false;
   }
 
   /**

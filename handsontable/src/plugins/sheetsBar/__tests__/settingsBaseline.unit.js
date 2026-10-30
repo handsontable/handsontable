@@ -770,6 +770,37 @@ describe('SheetsBar settings baseline and lifecycle', () => {
       expect(hot.getDataAtCell(0, 0)).toBe('b');
     });
 
+    it('keeps an added sheet\'s rows when a `sheetsBar: true` workbook gets the first sheet\'s array again', () => {
+      const appData = [['A1', 'B1'], ['A2', 'B2']];
+
+      hot = new Handsontable(container, {
+        data: appData,
+        sheetsBar: true,
+        licenseKey: LICENSE_KEY,
+      });
+
+      const bar = hot.getPlugin('sheetsBar');
+
+      bar.addSheet('Second');
+      bar.setActiveSheet('Second');
+      hot.setDataAtCell(0, 0, 'typed');
+      hot.updateSettings({ data: appData, sheetsBar: true });
+
+      expect(hot.getDataAtCell(0, 0)).toBe('typed');
+
+      hot.setDataAtCell(0, 0, 'typed again');
+
+      expect(appData[0][0]).toBe('A1');
+
+      bar.setActiveSheet('Sheet1');
+
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+
+      bar.setActiveSheet('Second');
+
+      expect(hot.getDataAtCell(0, 0)).toBe('typed again');
+    });
+
     it('does not change how a grid-level `dataProvider` set later keeps the shown rows', async() => {
       const provider = makeProvider();
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
