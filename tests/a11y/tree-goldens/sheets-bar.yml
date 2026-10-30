@@ -1,5 +1,5 @@
 # grid
-- treegrid:
+- treegrid "Alpha":
   - rowgroup:
     - row "A1 A2":
       - gridcell "A1"
