@@ -229,9 +229,7 @@ $all-sheets-visible-items: 8;
         display: flex;
         align-items: stretch;
         flex: 1 1 auto;
-        min-width: calc(
-          10ch + var(--ht-icon-size) + var(--ht-sizing-size-1) + (2 * var(--ht-sheets-bar-tab-horizontal-padding))
-        );
+        min-width: 0;
         padding-inline-end: var(--ht-gap-size);
         overflow-x: auto;
 

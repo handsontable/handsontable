@@ -1,6 +1,6 @@
 import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SheetsBarUiPage } from '../fixtures/pages/SheetsBarUiPage';
-import type { Locator } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
 /**
  * Reads a one-pixel line along one edge of an element, inset from its corners.
@@ -20,6 +20,36 @@ async function edgePixels(element: Locator, edge: 'top' | 'bottom'): Promise<Buf
     clip: { x: x + 4, y: edge === 'top' ? y : y + height - 1, width: 16, height: 1 },
     animations: 'disabled',
   });
+}
+
+/**
+ * Counts how often the paging section is shown or hidden over ten animation frames.
+ *
+ * @param {Page} page The page.
+ * @returns {Promise<number>} The number of `hidden` attribute changes.
+ */
+function pagingToggles(page: Page): Promise<number> {
+  return page.evaluate(() => new Promise<number>((resolve) => {
+    const paging = document.querySelector('.ht-sheets-bar__paging') as HTMLElement;
+    let toggles = 0;
+    let frames = 0;
+    const observer = new MutationObserver((records) => {
+      toggles += records.length;
+    });
+    const tick = () => {
+      frames += 1;
+
+      if (frames < 10) {
+        requestAnimationFrame(tick);
+      } else {
+        observer.disconnect();
+        resolve(toggles);
+      }
+    };
+
+    observer.observe(paging, { attributes: true, attributeFilter: ['hidden'] });
+    requestAnimationFrame(tick);
+  }));
 }
 
 test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
@@ -332,6 +362,7 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
 
         const layout = await readLayout();
 
+        expect(await pagingToggles(page)).toBe(0);
         expect(layout.insideBar).toBe(true);
         expect(layout.painted).toBe(true);
         expect(layout.slotScrolls).toBe(false);
