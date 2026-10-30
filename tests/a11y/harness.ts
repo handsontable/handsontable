@@ -57,7 +57,8 @@ export type RootWrapper = HTMLElement & { __hotInstance?: HotInstance };
 
 /**
  * What `openTarget()` leaves: where the grid is, the cell a state opens on, the fixture's URL, and the
- * page errors collected so far (the list keeps growing until the next `openTarget()` on the same page).
+ * page errors collected so far: the list the caller passed, or a new one. It keeps growing until the next
+ * `openTarget()` on the same page points the page at another list.
  */
 export interface OpenedTarget {
   root: string;
@@ -76,17 +77,26 @@ export interface OpenedTarget {
  * constructor error of their own (`htBuildError`, `data-init-error`), and a plugin that throws after
  * the root wrapper is in the DOM leaves a page that still looks ready.
  *
+ * The page's errors go to the list the caller passes as `pageErrors`, which this points the page at
+ * before it navigates, so the caller holds the live list even when this throws (the `goto()`, the theme
+ * check, the build check). A test that loads the page more than once and reads the errors between loads
+ * creates one list, passes it to every `openTarget()` and drains it in place (`splice(0)`): a list taken
+ * from the return value is lost when a reload throws, and every error after that lands in a list
+ * nobody reads.
+ *
  * @param page The page.
  * @param entry The catalog entry.
  * @param theme The theme.
  * @param options.url The URL to open instead of the catalog's (a variant that adds a query).
+ * @param options.pageErrors The list the page's errors go to from now on; a new one when absent.
  * @returns What locates the grid.
  */
-export async function openTarget(page: Page, entry: A11yPage, theme: string, { url }: { url?: string } = {}): Promise<OpenedTarget> {
+export async function openTarget(
+  page: Page, entry: A11yPage, theme: string, { url, pageErrors = [] }: { url?: string; pageErrors?: string[] } = {},
+): Promise<OpenedTarget> {
   const root = entry.root ?? DEFAULT_ROOT;
   const cell = entry.cell ?? DEFAULT_CELL;
   const target = url ?? fixtureUrl(entry, theme);
-  const pageErrors: string[] = [];
 
   // One listener per page, feeding the list of its latest load: a check that reloads for every
   // measurement would otherwise add a listener per load, past the emitter's limit of ten.
@@ -115,8 +125,9 @@ export async function openTarget(page: Page, entry: A11yPage, theme: string, { u
 }
 
 /**
- * Reaches the state a catalog entry names, then checks that the page threw nothing on the way, and
- * marks the grid's portal (a formula state has marked hyperformula-ui's popup portal already).
+ * Reaches the state a catalog entry names, then checks that the page threw nothing on the way (nothing
+ * since the list was last drained, when the caller shares one list across loads), and marks the grid's
+ * portal (a formula state has marked hyperformula-ui's popup portal already).
  *
  * @param page The page.
  * @param entry The catalog entry.
