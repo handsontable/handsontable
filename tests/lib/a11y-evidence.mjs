@@ -172,8 +172,7 @@ export const EVIDENCE_CHECKS = Object.freeze({
     title: 'axe discovery run',
     spec: 'axe-discovery.spec.ts',
     criteria: [],
-    // One-off (reverted in the next commit): run on this pull request once, to show the drag states on CI.
-    pullRequest: true,
+    pullRequest: false,
     triage: true,
   },
 });
