@@ -122,6 +122,19 @@ describe('NestedHeaders and CollapsibleColumns ready steps', () => {
     expect(container.querySelectorAll('.ht_master .collapsibleIndicator').length).toBe(1);
   });
 
+  it('should let an `afterLoadData` listener collapse the groups of the loaded headers', () => {
+    createGrid({ nestedHeaders: NESTED_HEADERS, collapsibleColumns: true });
+
+    const collapsibleColumns = hot!.getPlugin('collapsibleColumns');
+
+    hot!.addHook('afterLoadData', () => collapsibleColumns.collapseAll());
+    hot!.loadData([[7, 8, 9], [10, 11, 12]]);
+
+    // The tree and the hiding map agree: the group is collapsed, and its second column is the one hidden.
+    expect(hot!.getPlugin('nestedHeaders').getHeaderSettings(0, 0)?.isCollapsed).toBe(true);
+    expect(collapsibleColumns.getCollapsedColumns()).toEqual([1]);
+  });
+
   it('should rebuild the header state once for a direct `updatePlugin()` call', () => {
     createGrid({ nestedHeaders: NESTED_HEADERS, collapsibleColumns: true });
 

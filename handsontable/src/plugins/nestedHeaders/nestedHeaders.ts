@@ -498,6 +498,11 @@ export class NestedHeaders extends BasePlugin {
    * Determines if the current nested headers state contains headers with `rowspan`.
    */
   #hasRowspanHeaders = false;
+  /**
+   * `true` from an enable or update until the header state is built. A data load builds it at once, so the
+   * ready step of a call whose load already built it builds nothing.
+   */
+  #stateOwed = false;
 
   /**
    * Returns whether the plugin is enabled based on the presence of the `nestedHeaders` settings key.
@@ -554,6 +559,7 @@ export class NestedHeaders extends BasePlugin {
     this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
 
+    this.#stateOwed = true;
     super.enablePlugin();
   }
 
@@ -562,18 +568,30 @@ export class NestedHeaders extends BasePlugin {
    * The rebuild runs in the plugin's ready step, once the call returns and the data is loaded.
    */
   updatePlugin() {
+    this.#stateOwed = true;
     super.updatePlugin();
   }
 
   /**
-   * Builds the header tree from the `nestedHeaders` setting against the loaded columns, and marks the column widths
-   * for a rebuild. Core runs it once after each enable or update, when the data is loaded.
+   * Builds the header tree after an enable or update, unless the call's data load built it already. Core runs it
+   * once after each enable or update, when the data is loaded.
    *
    * @private
    */
   onGridReady() {
+    if (this.#stateOwed) {
+      this.#buildHeaderState();
+    }
+  }
+
+  /**
+   * Builds the header tree from the `nestedHeaders` setting against the loaded columns, and marks the column widths
+   * for a rebuild.
+   */
+  #buildHeaderState() {
     const { nestedHeaders } = this.hot.getSettings();
 
+    this.#stateOwed = false;
     this.#rowspanHeaderNavigationContextRow = null;
     this.#expectedNextKeyboardHighlightCoords = null;
     this.#stateManager.setColumnsLimit(this.hot.countCols());
@@ -2079,12 +2097,12 @@ export class NestedHeaders extends BasePlugin {
   };
 
   /**
-   * Re-initializes the plugin state after new data is loaded, unless this is the initial data load (the ready step of
-   * the enable covers it). The rebuild runs in the ready step, before the load's render.
+   * Builds the header state for the loaded data at once, unless this is the initial data load (the ready step of
+   * the enable covers it), so a later `afterLoadData` listener reads, and collapses, the rebuilt tree.
    */
   #onAfterLoadData = (sourceData: unknown[], initialLoad: boolean) => {
     if (!initialLoad) {
-      this.updatePlugin();
+      this.#buildHeaderState();
     }
   };
 

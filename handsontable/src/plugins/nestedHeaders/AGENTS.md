@@ -130,15 +130,18 @@ flag. CollapsibleColumns' step marks the `collapsible` flags (`mapState`/`mergeS
 `visibleWhen` set. Core runs the steps in priority order, so NestedHeaders' tree is built before
 CollapsibleColumns reads it, at init, on `updateSettings()`, and on `loadData()`. Five rules:
 
-- **`updatePlugin()` only owes the step.** It calls `super.updatePlugin()` and nothing else; the step runs when
-  the call returns. A direct `getPlugin('nestedHeaders').updatePlugin()` still rebuilds the tree before it
+- **`updatePlugin()` only owes the step.** It sets `#stateOwed` and calls `super.updatePlugin()`; the step runs
+  when the call returns. A direct `getPlugin('nestedHeaders').updatePlugin()` still rebuilds the tree before it
   returns control to the caller's next line, but the caller renders, as before.
 - **No `init` listener and no `updatePlugin()` call from `enablePlugin()`.** Those were the `#6806` replays.
   `updateSettings()` that turns either plugin on now builds the state once; it used to build it twice (from
   `enablePlugin()`, then from `updatePlugin()` in the same pass).
-- **`afterLoadData` (not the initial load) still calls `updatePlugin()`.** The step runs before the load's
-  render because core runs owed steps there (`beforeRender` in `dataMap/replaceData.ts`). Without that core
-  hook the step ran after the render, and the grid drew the previous tree until something else rendered.
+- **`afterLoadData` (not the initial load) builds the state at once, through `#buildHeaderState()`.** Plugins
+  enable before the settings hooks are added, so this listener runs before every `afterLoadData` listener of the
+  application, and those read the rebuilt tree. Deferred to the ready step (which runs after every listener),
+  a listener that called `collapseAll()` collapsed the old tree, and the step's `setState()` then expanded every
+  group while the hiding map kept their columns hidden. The build clears `#stateOwed`, so a call that also
+  updated the plugin (a sheets bar switch) builds once: its ready step finds nothing owed.
 - **The `!this.hot.view` guards in `clearColspans()` and `clearButtons()` stay.** They run from
   `disablePlugin()`, which can run before the view exists (a settings pass inside the init sequence turning a
   plugin off), and disabling has no ready step.
