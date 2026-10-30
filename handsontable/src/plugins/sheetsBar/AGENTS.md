@@ -495,7 +495,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   ignored with one warning per array (`REMOVED_DATA_OWNER_WARNING`) once it was removed. Turning the bar off
   and on or rebuilding picks a new owner. A payload that turns a declared workbook into `sheetsBar: true` loads
   its `data` (`#declaredEntries` is not empty yet).
-- **A sheet added without data starts with no rows while it would show with NestedRows on**
+- **A sheet added without data starts with `NEW_NESTED_SHEET_ROW_COUNT` empty object rows (`createEmptyObjectRows()`, each its own object) while it would show with NestedRows on**
   (`#blankSheetData`: its own `nestedRows`, else the grid-level value). NestedRows answers an array of
   arrays by writing `nestedRows = false` into the grid settings and disabling itself, a released path
   that stays as it is, so the add button's `createEmptySheetData()` turned a grid-level tree view off for

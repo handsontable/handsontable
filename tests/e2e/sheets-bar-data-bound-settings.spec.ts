@@ -78,12 +78,20 @@ test.describe('SheetsBar settings that read the data', { tag: BUNDLES_TAG }, () 
   });
 
   test.describe('NestedRows on the whole grid', () => {
-    test('stays on after the add button creates a sheet', async() => {
+    test('stays on after the add button creates a sheet of empty rows the user can type into', async() => {
       await grid.goto('gridNestedRows');
       await grid.addButton.click();
 
       expect(await grid.activeSheetName()).toBe('Sheet2');
       expect(await grid.isPluginEnabled('nestedRows')).toBe(true);
+      expect(await grid.countRows()).toBe(1000);
+
+      await grid.cell(0, 0).click();
+      await grid.page.keyboard.type('typed');
+      await grid.page.keyboard.press('Enter');
+
+      await expect(grid.cell(0, 0)).toHaveText('typed');
+      expect(await grid.sheetDataFirstRow('Sheet2')).toEqual({ name: 'typed' });
       expect(await grid.switchTo('Tree')).toEqual([true]);
 
       expect(await grid.consoleMessages()).toEqual([]);

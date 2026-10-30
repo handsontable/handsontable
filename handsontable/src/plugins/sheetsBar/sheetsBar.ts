@@ -6,6 +6,7 @@ import {
   SheetModel,
   clampSheetName,
   copySettingsValue,
+  createEmptyObjectRows,
   isObjectLiteral,
   type Sheet,
   type SheetDescriptor,
@@ -2619,7 +2620,7 @@ export class SheetsBar extends BasePlugin {
    *
    * @param {string} [name] The sheet's name. Omitted, the next free `Sheet{n}` is used.
    * @param {Array} [data] The sheet's data: rows as arrays, or as objects. Omitted, the sheet starts blank,
-   * with no rows while the sheet shows with NestedRows on.
+   * with empty object rows while the sheet shows with NestedRows on.
    * @param {object} [settings] The sheet's settings. Omitted, the sheet inherits the
    * workbook's shared formula engine when one is configured.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
@@ -2669,12 +2670,12 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Returns the rows a sheet added without data starts with: no rows while the sheet would show with
-   * NestedRows on, which takes an array of objects only and turns itself off for the rest of the session
-   * on an array of arrays, else the blank grid of `createEmptySheetData()`.
+   * Returns the rows a sheet added without data starts with: empty object rows (`createEmptyObjectRows()`)
+   * while the sheet would show with NestedRows on, which takes an array of objects only and turns itself off
+   * for the rest of the session on an array of arrays, else the blank grid of `createEmptySheetData()`.
    *
    * @param {object} [settings] The new sheet's own settings.
-   * @returns {Array|undefined} `[]`, or `undefined` for the model's blank grid.
+   * @returns {Array|undefined} The object rows, or `undefined` for the model's blank grid.
    */
   #blankSheetData(settings?: Record<string, unknown>): unknown[] | undefined {
     const own = settings ?? {};
@@ -2682,7 +2683,7 @@ export class SheetsBar extends BasePlugin {
       ? own.nestedRows
       : this.#gridLevelValueOf('nestedRows');
 
-    return nestedRows ? [] : undefined;
+    return nestedRows ? createEmptyObjectRows() : undefined;
   }
 
   /**

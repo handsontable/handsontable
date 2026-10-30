@@ -6,6 +6,7 @@ import enUS from '../../../i18n/languages/en-US';
 import * as C from '../../../i18n/constants';
 import { registerPlugin } from '../../registry';
 import { SheetsBar } from '../sheetsBar';
+import { NEW_NESTED_SHEET_ROW_COUNT } from '../sheetModel';
 import { syncIcon } from '../../../themes/engine/icons';
 import { ManualRowResize } from '../../manualRowResize/manualRowResize';
 import { Comments } from '../../comments/comments';
@@ -523,6 +524,24 @@ describe('SheetsBar plugin', () => {
     nestedRows.collapsingUI.collapseChildren(0);
 
     expect(hot.getData().map(row => row[0])).toEqual(['Group 1', 'Group 2', 'Line 3']);
+  });
+
+  it('starts a sheet added with NestedRows on with empty object rows, each its own object', () => {
+    hot = new Handsontable(container, {
+      nestedRows: true,
+      columns: [{ data: 'name' }, { data: 'qty' }],
+      sheetsBar: { sheets: [{ name: 'Tree', data: [{ name: 'P', qty: 1, __children: [{ name: 'C', qty: 2 }] }] }] },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const added = sheetsBar.addSheet('Blank');
+    const rows = sheetsBar.getSheetData(added.id);
+
+    expect(rows).toHaveLength(NEW_NESTED_SHEET_ROW_COUNT);
+    expect(rows.every(row => Object.keys(row).length === 0 && Object.getPrototypeOf(row) === Object.prototype))
+      .toBe(true);
+    expect(new Set(rows).size).toBe(rows.length);
   });
 
   it('guards the enable-time sheet load: `nestedRows` stays on across a workbook declared without a top-level `data` (passes on develop, pins the load path rather than the fix)', () => {

@@ -38,6 +38,15 @@ export class SheetsBarDataBoundSettingsPage {
   }
 
   /**
+   * The first row of a sheet's data, read through `getSheetData()` without switching to it.
+   */
+  sheetDataFirstRow(name: string): Promise<unknown> {
+    return this.page.evaluate(sheetName => (
+      window.hot.getPlugin('sheetsBar').getSheetData(sheetName)?.[0] ?? null
+    ), name);
+  }
+
+  /**
    * The sheets bar's add button.
    */
   get addButton(): Locator {

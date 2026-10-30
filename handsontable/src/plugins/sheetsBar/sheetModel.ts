@@ -28,6 +28,16 @@ export const NEW_SHEET_COLUMN_COUNT = 26;
 export const NEW_SHEET_ROW_COUNT = 1000;
 
 /**
+ * Rows a sheet starts with when no data is supplied and the sheet shows with NestedRows on. Each row is an
+ * empty object (`createEmptyObjectRows()`), not an array: NestedRows takes an array of objects only, and on
+ * an array of arrays it turns itself off for the rest of the session. A blank grid of 1000 object rows opens
+ * from the add button within the time a plain blank sheet takes (measured in Chrome).
+ *
+ * @type {number}
+ */
+export const NEW_NESTED_SHEET_ROW_COUNT = 1000;
+
+/**
  * The longest a sheet name may be, counted in characters rather than in UTF-16 units so an
  * emoji or an accented letter costs the same as a plain one.
  *
@@ -106,6 +116,17 @@ export function createEmptySheetData(
   columns: number = NEW_SHEET_COLUMN_COUNT,
 ): unknown[][] {
   return Array.from({ length: rows }, () => Array.from({ length: columns }, () => null));
+}
+
+/**
+ * Builds the blank rows a new sheet with NestedRows on starts from: top-level rows with no children, each its
+ * own object, so an edit in one row never shows up in another.
+ *
+ * @param {number} [rows] Row count.
+ * @returns {object[]} A fresh data array, safe for the caller to mutate.
+ */
+export function createEmptyObjectRows(rows: number = NEW_NESTED_SHEET_ROW_COUNT): Record<string, unknown>[] {
+  return Array.from({ length: rows }, () => ({}));
 }
 
 /**
