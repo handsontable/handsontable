@@ -5,9 +5,17 @@
 // The error color for TEXT (a `#DIV/0!` value, an unknown function name, an invalid reference,
 // the error popup title). The theme's notification error accent is drawn for borders and icons
 // and measures 3.4:1 on white in every light theme, below the 4.5:1 that text needs (WCAG 1.4.3).
-// Mixing 30% of the foreground color in keeps the hue and clears 5:1 in the light themes; in the
-// dark themes the foreground is light, so the mix only lightens the red against the dark background.
-$error-text-color: color-mix(in srgb, var(--ht-notification-error-accent) 70%, var(--ht-foreground-color));
+// Mixing 35% of the foreground color in keeps the hue and clears 4.8:1 on the tint of a selected range,
+// the darkest background an error cell gets (30% left main at 4.46:1 there, classic and horizon at
+// 4.49:1). In the dark themes the foreground is light, so the mix only lightens the red against the
+// dark background (horizon's dark range is the lowest, at 4.76:1).
+$error-text-color: color-mix(in srgb, var(--ht-notification-error-accent) 65%, var(--ht-foreground-color));
+
+// The color of a named expression in the suggestions and of a sheet name in a formula. The package's
+// default (#64748b) measures 4.12:1 to 4.41:1 on the hover background of the active suggestion in the
+// light themes. 20% of the foreground mixed into the secondary text color lifts the lowest (classic,
+// active row) to 4.75:1 and stays muted next to the function names.
+$secondary-text-color: color-mix(in srgb, var(--ht-foreground-secondary-color) 80%, var(--ht-foreground-color));
 
 // The accent color for TEXT (the matched letters of a suggestion, a parameter name in the function
 // help, a matching parenthesis) and for the chip that carries the active argument under light text.
@@ -97,6 +105,7 @@ $accent-text-color: color-mix(in srgb, var(--ht-accent-color) 55%, var(--ht-fore
     --hfe-token-paren-match: #{$accent-text-color};
     --hfe-token-bracket: var(--ht-foreground-color);
     --hfe-token-sep: var(--ht-foreground-color);
+    --hfe-token-sheet: #{$secondary-text-color};
     --hfe-token-ident: var(--ht-foreground-color);
     --hfe-token-err: #{$error-text-color};
     --hfe-token-ref-invalid: #{$error-text-color};
@@ -124,6 +133,14 @@ $accent-text-color: color-mix(in srgb, var(--ht-accent-color) 55%, var(--ht-fore
 
   .handsontable .hfe-editor--focused {
     outline: none;
+  }
+
+  /* The bar-hosted editor draws the same ring as the address box (WCAG 2.4.7). The in-cell editor
+     keeps the cell editor border and no outline, so the rule is scoped to the bar's overlay. The bar
+     sits in a root-wrapper slot, outside `.handsontable`, so the selector does not start there. */
+  .ht-formula-builder__formula-bar .hfe-formula-bar__overlay .hfe-editor--focused {
+    outline: var(--hfe-border-width-focus) solid var(--hfe-formula-bar-input-focus-ring);
+    outline-offset: calc(-1 * var(--hfe-border-width-focus));
   }
 
   .handsontable .ht-formula-builder__inline-editor {

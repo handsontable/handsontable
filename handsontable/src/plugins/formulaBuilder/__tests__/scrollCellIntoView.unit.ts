@@ -175,7 +175,7 @@ describe('HandsontableAdapter.getActiveCell', () => {
     tracked: { row: number; col: number } | null,
     mappingOverrides: Partial<VisualHfIndexMapping> = {},
   ) {
-    const hot = makeHotStub({ getCell: () => null });
+    const hot = makeHotStub({ getCell: () => null, countRows: () => 300, countCols: () => 300 });
     const overlayHost = document.createElement('div');
 
     document.body.appendChild(overlayHost);
@@ -218,7 +218,7 @@ describe('HandsontableAdapter.setActiveCell', () => {
    * @returns {{ adapter: HandsontableAdapter, plugin: object }}
    */
   function makeSetActiveCellAdapter(mappingOverrides: Partial<VisualHfIndexMapping> = {}) {
-    const hot = makeHotStub({ getCell: () => null });
+    const hot = makeHotStub({ getCell: () => null, countRows: () => 300, countCols: () => 300 });
     const overlayHost = document.createElement('div');
 
     document.body.appendChild(overlayHost);
@@ -273,7 +273,7 @@ describe('HandsontableAdapter.onSelectionChange', () => {
    * @returns {{ adapter: HandsontableAdapter, emit: Function }}
    */
   function makeSelectionChangeAdapter(mappingOverrides: Partial<VisualHfIndexMapping> = {}) {
-    const hot = makeHotStub({ getCell: () => null });
+    const hot = makeHotStub({ getCell: () => null, countRows: () => 300, countCols: () => 300 });
     const overlayHost = document.createElement('div');
 
     document.body.appendChild(overlayHost);
@@ -362,7 +362,7 @@ describe('HandsontableAdapter.setSelection', () => {
    * @returns {{ adapter: HandsontableAdapter, plugin: object }}
    */
   function makeSetSelectionAdapter(mappingOverrides: Partial<VisualHfIndexMapping> = {}) {
-    const hot = makeHotStub({ getCell: () => null });
+    const hot = makeHotStub({ getCell: () => null, countRows: () => 300, countCols: () => 300 });
     const overlayHost = document.createElement('div');
 
     document.body.appendChild(overlayHost);

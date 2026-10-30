@@ -13,12 +13,17 @@ export type FormulaBuilderVariant =
   | 'rtl'
   | 'frozen'
   | 'hidden-row'
+  | 'filtered'
+  | 'pagination'
   | 'read-only'
   | 'split-scroll'
+  | 'window-scroll'
   | 'shadow'
   | 'menus'
   | 'dropdown'
-  | 'checkboxes';
+  | 'checkboxes'
+  | 'hyperlink'
+  | 'theme-engine';
 
 /**
  * The overlay a frozen cell is drawn in, by the class of its clone.
@@ -67,6 +72,8 @@ interface FixtureWindow {
     useTheme(name: string): void;
     updateSettings(settings: Record<string, unknown>): void;
     addHook(name: string, callback: () => void): void;
+    rootElement: HTMLElement;
+    rootWrapperElement: HTMLElement;
   };
   FormulaBuilderModule: unknown;
   beginEditingCount?: number;
@@ -411,15 +418,20 @@ export class FormulaBuilderPage {
   }
 
   /**
-   * The source value of a cell (the formula text of a formula cell).
+   * The source value of a cell (the formula text of a formula cell). The row is a visual index:
+   * `getSourceDataAtCell()` takes a physical one, so it is translated first (under a sort or a
+   * trimmed row the two differ).
    *
    * @param {number} row The visual row index.
    * @param {number} col The visual column index.
    * @returns {Promise<unknown>}
    */
   async sourceAt(row: number, col: number): Promise<unknown> {
-    return this.page.evaluate(
-      ([r, c]) => (window as unknown as FixtureWindow).hot.getSourceDataAtCell(r, c), [row, col]);
+    return this.page.evaluate(([r, c]) => {
+      const { hot } = window as unknown as FixtureWindow;
+
+      return hot.getSourceDataAtCell(hot.toPhysicalRow(r) as number, c);
+    }, [row, col]);
   }
 
   /**
@@ -537,6 +549,60 @@ export class FormulaBuilderPage {
         formulaBuilder: { builder: fixture.FormulaBuilderModule, showFormulaBar: show },
       });
     }, showFormulaBar);
+  }
+
+  /**
+   * Sends grid settings through `hot.updateSettings()`.
+   *
+   * @param {object} settings The settings to send.
+   */
+  async updateGridSettings(settings: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate((next) => {
+      (window as unknown as FixtureWindow).hot.updateSettings(next);
+    }, settings);
+  }
+
+  /**
+   * The computed `color-scheme` of the grid's root element, which every cell inherits.
+   *
+   * @returns {Promise<string>}
+   */
+  async rootColorScheme(): Promise<string> {
+    return this.page.evaluate(
+      () => getComputedStyle((window as unknown as FixtureWindow).hot.rootElement).colorScheme);
+  }
+
+  /**
+   * The `ht-theme-*` classes on the grid's root element. Core keeps the theme class on the root
+   * wrapper; one on the root element makes the cells match that theme's own token block.
+   *
+   * @returns {Promise<string[]>}
+   */
+  async rootElementThemeClasses(): Promise<string[]> {
+    return this.page.evaluate(() => Array.from((window as unknown as FixtureWindow).hot.rootElement.classList)
+      .filter(name => name.startsWith('ht-theme-')));
+  }
+
+  /**
+   * The theme tokens a cell resolves that differ from the ones on the grid's root wrapper, which
+   * carries the current theme class. An empty list means the cell is drawn in the current theme.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @returns {Promise<string[]>}
+   */
+  async cellTokensOffTheme(row: number, col: number): Promise<string[]> {
+    return this.page.evaluate(([r, c]) => {
+      const hot = (window as unknown as FixtureWindow).hot;
+      const cell = hot.rootElement.querySelector(`.ht_master [data-testid="cell-${r}-${c}"]`);
+      const tokens = ['--ht-font-size', '--ht-line-height', '--ht-cell-horizontal-padding',
+        '--ht-cell-vertical-padding', '--ht-foreground-color', '--ht-background-color', '--ht-border-color',
+        '--ht-cell-selection-border-color', '--ht-row-header-odd-background-color'];
+      const cellStyle = getComputedStyle(cell as Element);
+      const wrapperStyle = getComputedStyle(hot.rootWrapperElement);
+
+      return tokens.filter(name => cellStyle.getPropertyValue(name) !== wrapperStyle.getPropertyValue(name));
+    }, [row, col]);
   }
 
   /**

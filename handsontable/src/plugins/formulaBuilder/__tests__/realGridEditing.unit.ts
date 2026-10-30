@@ -3,6 +3,7 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { Formulas } from '../../formulas';
 import { HiddenRows } from '../../hiddenRows';
+import { UndoRedo } from '../../undoRedo';
 import { FormulaBuilder } from '../formulaBuilder';
 import { getFormulaBuilderAdapter } from '../handsontableAdapter';
 import type { HandsontableAdapter } from '../handsontableAdapter';
@@ -35,6 +36,7 @@ describe('FormulaBuilder editing on a real grid', () => {
     registerPlugin(Formulas);
     registerPlugin(FormulaBuilder);
     registerPlugin(HiddenRows);
+    registerPlugin(UndoRedo);
   });
 
   beforeEach(() => {
@@ -224,6 +226,54 @@ describe('FormulaBuilder editing on a real grid', () => {
     });
   });
 
+  describe('committing an unchanged bar edit', () => {
+    it('leaves the cell and its type alone', async() => {
+      createGrid({ data: [[5, true], [null, 2]], undo: true });
+      const afterChange = jest.fn();
+      const plugin = hot.getPlugin('formulaBuilder') as unknown as FormulaBuilder;
+
+      hot.addHook('afterChange', afterChange);
+
+      // Only the first rows and columns are rendered under jsdom, and an unrendered cell gets no editor.
+      for (const [row, col] of [[0, 0], [0, 1], [1, 0]]) {
+        const text = plugin.getRawCellText(row, col);
+
+        hot.selectCell(row, col);
+        adapter().beginEdit({ sheet: '', row, col }, text);
+        adapter().commit(text, 'down');
+        await settle();
+      }
+
+      expect(hot.getSourceData()).toEqual([[5, true], [null, 2]]);
+      expect(afterChange).not.toHaveBeenCalled();
+      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+    });
+
+    it('leaves a formula cell alone', async() => {
+      createGrid({ data: [[1, 2, '=A1+B1']] });
+      const afterChange = jest.fn();
+
+      hot.addHook('afterChange', afterChange);
+      hot.selectCell(0, 2);
+      adapter().beginEdit({ sheet: '', row: 0, col: 2 }, '=A1+B1');
+      adapter().commit('=A1+B1', 'down');
+      await settle();
+
+      expect(hot.getSourceData()[0]).toEqual([1, 2, '=A1+B1']);
+      expect(afterChange).not.toHaveBeenCalled();
+    });
+
+    it('still writes when the text changed', async() => {
+      createGrid();
+      hot.selectCell(0, 0);
+      adapter().beginEdit({ sheet: '', row: 0, col: 0 }, 'A1');
+      adapter().commit('changed', 'down');
+      await settle();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('changed');
+    });
+  });
+
   describe('committing with a direction', () => {
     it.each([
       ['down', [2, 1]],
@@ -338,6 +388,37 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(hot.getSelectedLast()).toEqual([1, 1, 1, 1]);
       expect(isEditorOpened()).toBe(true);
     });
+
+    it('listens again when the validator rejected the value and the editor stays open', async() => {
+      createGrid({
+        cell: [{
+          row: 1,
+          col: 1,
+          validator: (value: unknown, callback: (valid: boolean) => void) => callback(value !== 'bad'),
+          allowInvalid: false,
+        }],
+      });
+      hot.selectCell(1, 1);
+      adapter().beginEdit({ sheet: '', row: 1, col: 1 });
+      // Focusing the bar unlistens the grid.
+      hot.unlisten();
+      adapter().commit('bad', 'down');
+      await settle();
+
+      expect(isEditorOpened()).toBe(true);
+      expect(hot.isListening()).toBe(true);
+    });
+
+    it('listens again after a commit with a direction', async() => {
+      createGrid();
+      hot.selectCell(1, 1);
+      adapter().beginEdit({ sheet: '', row: 1, col: 1 });
+      hot.unlisten();
+      adapter().commit('7', 'down');
+      await settle();
+
+      expect(hot.isListening()).toBe(true);
+    });
   });
 
   describe('committing to the whole selection', () => {
@@ -379,6 +460,45 @@ describe('FormulaBuilder editing on a real grid', () => {
 
       expect(hot.getDataAtCell(1, 1)).toBe('9');
       expect(hot.getData(0, 0, 2, 2).flat().filter(value => value === '9')).toHaveLength(1);
+    });
+
+    it('Ctrl/Cmd+Enter on one selected cell moves the selection without adding a layer', async() => {
+      createGrid();
+      hot.selectCell(0, 0);
+      adapter().beginEdit({ sheet: '', row: 0, col: 0 });
+      // Simulate the chord being held while the package commits.
+      hot.rootDocument.documentElement.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Control', ctrlKey: true, bubbles: true })
+      );
+
+      expect(hot.getShortcutManager().isCtrlPressed()).toBe(true);
+
+      adapter().commitFill('10');
+      await settle();
+
+      expect(hot.getSelected()).toEqual([[1, 0, 1, 0]]);
+
+      adapter().beginEdit({ sheet: '', row: 1, col: 0 });
+      hot.rootDocument.documentElement.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Control', ctrlKey: true, bubbles: true })
+      );
+      adapter().commitFill('20');
+      await settle();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('10');
+      expect(hot.getDataAtCell(1, 0)).toBe('20');
+    });
+
+    it('Ctrl/Cmd+Enter with a single-cell active layer among others keeps every layer', async() => {
+      createGrid();
+      hot.selectCells([[0, 0, 1, 0], [3, 0, 3, 0]]);
+      adapter().beginEdit({ sheet: '', row: 3, col: 0 });
+      adapter().commitFill('5');
+      await settle();
+
+      expect(hot.getSelectedRange()?.length).toBe(2);
+      expect(hot.getDataAtCell(0, 0)).toBe('5');
+      expect(hot.getDataAtCell(3, 0)).toBe('5');
     });
   });
 
@@ -612,6 +732,280 @@ describe('FormulaBuilder editing on a real grid', () => {
 
       expect(enter.defaultPrevented).toBe(true);
       expect(beforeKeyDown).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('an address the grid does not show or cannot select', () => {
+    it('is refused when its row is hidden, and the selection stays', () => {
+      createGrid({ hiddenRows: { rows: [2] } });
+      hot.selectCell(0, 0);
+
+      expect(adapter().setActiveCell({ sheet: '', row: 2, col: 0 })).toBe(false);
+      expect(hot.getSelectedLast()).toEqual([0, 0, 0, 0]);
+    });
+
+    it('is refused when it sits at or past maxRows, and the selection stays', () => {
+      createGrid({ maxRows: 3 });
+      hot.selectCell(0, 0);
+
+      expect(adapter().setActiveCell({ sheet: '', row: 4, col: 0 })).toBe(false);
+      expect(hot.getSelectedLast()).toEqual([0, 0, 0, 0]);
+    });
+
+    it('is refused as a range the grid collapses under selectionMode single', () => {
+      createGrid({ selectionMode: 'single' });
+      hot.selectCell(4, 4);
+
+      const range = { start: { sheet: '', row: 0, col: 0 }, end: { sheet: '', row: 1, col: 1 } };
+
+      expect(adapter().setSelection(range)).toBe(false);
+    });
+
+    it('is selected when the grid shows it', () => {
+      createGrid({ hiddenRows: { rows: [2] } });
+      hot.selectCell(0, 0);
+
+      expect(adapter().setActiveCell({ sheet: '', row: 1, col: 1 })).not.toBe(false);
+      expect(hot.getSelectedLast()).toEqual([1, 1, 1, 1]);
+    });
+  });
+
+  describe('selectFirstFormulaCell()', () => {
+    it('prefers the cell the grid focused last over the first formula cell', () => {
+      createGrid();
+      hot.selectCell(2, 1);
+      hot.deselectCell();
+
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([2, 1, 2, 1]);
+    });
+
+    it('scans for the first formula cell when the remembered cell no longer uses the formula editor', () => {
+      createGrid();
+      hot.selectCell(2, 1);
+      hot.deselectCell();
+      hot.setCellMeta(2, 1, 'editor', 'text');
+
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([0, 0, 0, 0]);
+    });
+
+    it('scans when the remembered cell is out of range after the grid shrank', () => {
+      createGrid();
+      hot.selectCell(4, 4);
+      hot.deselectCell();
+      hot.updateSettings({ data: [['A1', 'B1']] });
+
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([0, 0, 0, 0]);
+    });
+  });
+
+  describe('committing an unchanged formula with unbalanced parentheses', () => {
+    /**
+     * Returns the formula editor's text input.
+     *
+     * @returns {HTMLTextAreaElement}
+     */
+    function formulaInput(): HTMLTextAreaElement {
+      const input = container.querySelector<HTMLTextAreaElement>('.ht-formula-builder__inline-editor textarea');
+
+      if (!input) {
+        throw new Error('no formula editor input');
+      }
+
+      return input;
+    }
+
+    it('writes nothing on Enter', async() => {
+      createGrid({ data: [['=SUM(B1', 1]] });
+      const afterChange = jest.fn();
+
+      hot.addHook('afterChange', afterChange);
+      hot.selectCell(0, 0);
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+      formulaInput().dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+      await settle();
+
+      expect(isEditorOpened()).toBe(false);
+      expect(hot.getSourceDataAtCell(0, 0)).toBe('=SUM(B1');
+      expect(afterChange).not.toHaveBeenCalled();
+    });
+
+    it('writes nothing on a native commit (an outside click)', async() => {
+      createGrid({ data: [['=SUM(B1', 1]] });
+      const afterChange = jest.fn();
+
+      hot.addHook('afterChange', afterChange);
+      hot.selectCell(0, 0);
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+      hot.getActiveEditor()?.finishEditing();
+      await settle();
+
+      expect(hot.getSourceDataAtCell(0, 0)).toBe('=SUM(B1');
+      expect(afterChange).not.toHaveBeenCalled();
+    });
+
+    it('still closes them when the text changed', async() => {
+      createGrid({ data: [['=SUM(B1', 1]] });
+      hot.selectCell(0, 0);
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+      hot.getPlugin('formulaBuilder').getActiveEditor()?.setValue('=SUM(B1,B1');
+      formulaInput().dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+      await settle();
+
+      expect(hot.getSourceDataAtCell(0, 0)).toBe('=SUM(B1,B1)');
+    });
+
+    it('writes a closing parenthesis the user typed', async() => {
+      createGrid({ data: [['=SUM(B1', 1]] });
+      hot.selectCell(0, 0);
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+      // The same text the commit would produce by closing the parentheses, typed by the user instead.
+      hot.getPlugin('formulaBuilder').getActiveEditor()?.setValue('=SUM(B1)');
+      formulaInput().dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+      await settle();
+
+      expect(hot.getSourceDataAtCell(0, 0)).toBe('=SUM(B1)');
+    });
+  });
+
+  describe('the event the formula bar opens the editor with', () => {
+    it('is an event a `beforeBeginEditing` listener can read', () => {
+      const types: string[] = [];
+
+      createGrid({
+        beforeBeginEditing: (row: number, col: number, value: unknown, event: Event) => {
+          types.push(event.type);
+        },
+      });
+      hot.selectCell(1, 1);
+
+      expect(adapter().beginEdit({ sheet: '', row: 1, col: 1 }, '=1+1')).toBe(true);
+      expect(isEditorOpened()).toBe(true);
+      expect(types).toEqual(['focus']);
+    });
+
+    it('is not a mouse event, so a bar edit of a selected range still opens', () => {
+      createGrid();
+      hot.selectCell(0, 0, 1, 1);
+
+      expect(adapter().beginEdit({ sheet: '', row: 0, col: 0 }, '=1+1')).toBe(true);
+      expect(isEditorOpened()).toBe(true);
+    });
+  });
+
+  describe('the address box after an edit closes on a range', () => {
+    /**
+     * Returns the formula bar's address input.
+     *
+     * @returns {HTMLInputElement}
+     */
+    function addressInput(): HTMLInputElement {
+      const input = container.parentElement?.querySelector<HTMLInputElement>('.hfe-formula-bar__address-input');
+
+      if (!input) {
+        throw new Error('no address input');
+      }
+
+      return input;
+    }
+
+    it.each([
+      ['committed', false],
+      ['cancelled', true],
+    ])('keeps showing the selected range when the edit is %s', (_, cancel) => {
+      createGrid({ formulaBuilder: { builder: core, showFormulaBar: true } });
+      hot.selectCell(0, 0, 1, 1);
+
+      expect(addressInput().value).toBe('A1:B2');
+
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }));
+
+      expect(isEditorOpened()).toBe(true);
+
+      hot.getActiveEditor()?.finishEditing(cancel);
+
+      expect(isEditorOpened()).toBe(false);
+      expect(hot.getSelectedRangeActive()?.from.row).toBe(0);
+      expect(addressInput().value).toBe('A1:B2');
+    });
+  });
+
+  describe('a long engine error message', () => {
+    // HyperFormula's message for `=1+` lists every token it expected, one per line.
+    const PARSE_ERROR_FORMULA = '=1+';
+
+    it('describes the cell with the first sentence only, while the popup mark keeps the whole message', () => {
+      createGrid({ data: [[PARSE_ERROR_FORMULA, 1]] });
+
+      const cell = hot.getCell(0, 0)!;
+      const mark = cell.getAttribute('data-hfe-error') ?? '';
+      const description = cell.getAttribute('aria-description') ?? '';
+
+      expect(mark).toContain('NumberLiteral');
+      expect(description).toBe('#ERROR! — Parsing error.');
+    });
+
+    it('caps a long single-sentence message at a word boundary', () => {
+      createGrid({ data: [[`=${'VERYLONGFUNCTIONNAME'.repeat(10)}(1)`, 1]] });
+
+      const description = hot.getCell(0, 0)!.getAttribute('aria-description') ?? '';
+
+      expect(description.length).toBeLessThanOrEqual(121);
+      expect(description.startsWith('#NAME? — Function name')).toBe(true);
+      expect(description.endsWith('…')).toBe(true);
+    });
+
+    it('announces the first sentence only when an edit commits the error', async() => {
+      createGrid({ data: [['=1', 1]] });
+      hot.selectCell(0, 0);
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+      hot.getPlugin('formulaBuilder').getActiveEditor()?.setValue(PARSE_ERROR_FORMULA);
+      container.querySelector<HTMLTextAreaElement>('.ht-formula-builder__inline-editor textarea')!
+        .dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+      const liveRegions = document.querySelectorAll('.hfe-live-region');
+      const liveRegion = liveRegions[liveRegions.length - 1];
+      const deadline = Date.now() + 2000;
+
+      // The package announces after a short delay of its own.
+      while (!liveRegion?.textContent && Date.now() < deadline) {
+        // eslint-disable-next-line no-await-in-loop
+        await settle();
+      }
+
+      const announced = liveRegion?.textContent ?? '';
+
+      expect(announced).toContain('Parsing error.');
+      expect(announced).not.toContain('NumberLiteral');
+    });
+  });
+
+  describe('a teardown while the formula bar holds the edit', () => {
+    it.each([
+      ['the plugin is turned off', () => hot.updateSettings({ formulaBuilder: false } as Handsontable.GridSettings)],
+      ['the plugin is disabled through its API', () => hot.getPlugin('formulaBuilder').disablePlugin()],
+      ['the Formulas plugin is turned off', () => hot.updateSettings({ formulas: false } as Handsontable.GridSettings)],
+      ['a settings change rebuilds the plugin', () => {
+        hot.updateSettings({
+          formulaBuilder: { builder: core, showFormulaBar: true, direction: 'rtl' },
+        } as Handsontable.GridSettings);
+      }],
+    ])('listens again when %s', async(_, teardown) => {
+      createGrid({ formulaBuilder: { builder: core, showFormulaBar: true } });
+      hot.selectCell(1, 1);
+      adapter().beginEdit({ sheet: '', row: 1, col: 1 }, '=1+1');
+      // Focusing the bar unlistens the grid.
+      hot.unlisten();
+      teardown();
+      await settle();
+
+      expect(isEditorOpened()).toBe(false);
+      expect(hot.getDataAtCell(1, 1)).toBe('B2');
+      expect(hot.isListening()).toBe(true);
     });
   });
 });

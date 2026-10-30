@@ -1,3 +1,4 @@
+import { devices } from '@playwright/test';
 import { test, expect, THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { FormulaBuilderPage } from '../fixtures/pages/FormulaBuilderPage';
 
@@ -27,6 +28,77 @@ test.describe('formulaBuilder mouse reference picking', { tag: [THEMES_TAG, BUND
     expect(await grid.dataAt(3, 0)).toBe(2);
   });
 
+  test('a pick drag released outside the grid leaves the editor focused and the grid listening', async({ page }) => {
+    await grid.cell(0, 1).hover();
+    await page.mouse.down();
+    await page.mouse.move(5, 5, { steps: 5 });
+    await page.mouse.up();
+
+    await expect(grid.editorInput).toBeFocused();
+    await expect.poll(() => grid.isListening()).toBe(true);
+
+    await page.keyboard.press('Enter');
+    await expect.poll(() => grid.editorOpened()).toBe(false);
+    await expect.poll(() => grid.isListening()).toBe(true);
+    await page.keyboard.press('ArrowUp');
+    expect(await grid.selectedLast()).toEqual([3, 0, 3, 0]);
+  });
+
+  test('a pick during a bar-hosted edit keeps the keys in the bar and the grid not listening', async({ page }) => {
+    await page.keyboard.press('Escape');
+    await expect.poll(() => grid.editorOpened()).toBe(false);
+    await grid.openBarEditor();
+    await page.keyboard.type('=');
+
+    await grid.cell(0, 1).click();
+    await expect(grid.editorInput).toHaveValue('=B1');
+    await expect(grid.editorInput).toBeFocused();
+
+    await page.keyboard.type('+1');
+    await expect(grid.editorInput).toHaveValue('=B1+1');
+    await expect(grid.editorInput).toBeFocused();
+    // The grid listens on its own cell `mousedown`; a pick released inside the grid takes the keyboard
+    // back from it while the bar edits.
+    expect(await grid.isListening()).toBe(false);
+
+    // A listening grid would move the selection on ArrowDown. Delete at the end of the text changes
+    // nothing in the editor and must not reach the grid either.
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Delete');
+    expect(await grid.selectedLast()).toEqual([3, 0, 3, 0]);
+    await expect(grid.editorInput).toHaveValue('=B1+1');
+    expect(await grid.editorOpened()).toBe(true);
+    expect(await grid.isListening()).toBe(false);
+    await expect(grid.editorInput).toBeFocused();
+
+    // The commit hands the keyboard back to the grid.
+    await grid.editorInput.press('End');
+    await page.keyboard.press('Enter');
+    await expect.poll(() => grid.editorOpened()).toBe(false);
+    expect(await grid.sourceAt(3, 0)).toBe('=B1+1');
+    await expect.poll(() => grid.isListening()).toBe(true);
+    expect(await grid.selectedLast()).toEqual([4, 0, 4, 0]);
+    // Row 4 is the fixture's last row, so the listening grid shows itself on ArrowUp.
+    await page.keyboard.press('ArrowUp');
+    expect(await grid.selectedLast()).toEqual([3, 0, 3, 0]);
+  });
+
+  test('Escape during a pick drag cancels the edit, and the rest of the drag selects nothing', async({ page }) => {
+    await grid.cell(0, 1).hover();
+    await page.mouse.down();
+    await grid.cell(1, 1).hover();
+    await page.keyboard.press('Escape');
+    await expect.poll(() => grid.editorOpened()).toBe(false);
+
+    // The grid saw the press as its own: unclaimed, these hovers extended a range from the edited cell.
+    await grid.cell(1, 2).hover();
+    await grid.cell(2, 2).hover();
+    await page.mouse.up();
+
+    expect(await grid.selectedAll()).toEqual([[3, 0, 3, 0]]);
+    expect(await grid.sourceAt(3, 0)).toBe('');
+  });
+
   test('a drag across cells inserts a range reference', async({ page }) => {
     await grid.drag(grid.cell(0, 0), grid.cell(1, 1));
     await expect(grid.editorInput).toHaveValue('=A1:B2');
@@ -51,6 +123,25 @@ test.describe('formulaBuilder mouse reference picking', { tag: [THEMES_TAG, BUND
     // new reference after an argument separator, the way a spreadsheet builds a multi-area list.
     await grid.cell(2, 1).click({ modifiers: ['ControlOrMeta'] });
     await expect(grid.editorInput).toHaveValue('=A2+A3,B3');
+  });
+
+  test('Shift+click extends the picked reference to a range, as Shift+click extends a selection', async({ page }) => {
+    await grid.cell(0, 1).click();
+    await expect(grid.editorInput).toHaveValue('=B1');
+
+    await grid.cell(1, 2).click({ modifiers: ['Shift'] });
+    await expect(grid.editorInput).toHaveValue('=B1:C2');
+    await expect(grid.editorInput).toBeFocused();
+    expect(await grid.selectedAll()).toEqual([[3, 0, 3, 0]]);
+
+    // The range keeps its first anchor, as the grid's selection does.
+    await grid.cell(2, 0).click({ modifiers: ['Shift'] });
+    await expect(grid.editorInput).toHaveValue('=A1:B3');
+
+    // Once the text changed, a Shift+click picks a single cell again.
+    await page.keyboard.press('+');
+    await grid.cell(0, 2).click({ modifiers: ['Shift'] });
+    await expect(grid.editorInput).toHaveValue('=A1:B3+C1');
   });
 
   test('a column header click inserts a whole-column reference, and a header drag a column range', async({ page }) => {
@@ -86,6 +177,32 @@ test.describe('formulaBuilder mouse reference picking', { tag: [THEMES_TAG, BUND
     // Positive control: with no edit open the same header press sorts.
     await grid.columnHeader('B').click();
     await expect.poll(() => grid.sortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+  });
+});
+
+// MergeCells: a range picked through a merged cell grows over the whole merge, as the grid's own
+// selection does, so the inserted reference never cuts a merge.
+test.describe('formulaBuilder picking over merged cells', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  let grid: FormulaBuilderPage;
+
+  test.beforeEach(async({ page, theme, bundle }) => {
+    grid = new FormulaBuilderPage(page, theme, bundle, 'sorting');
+    await grid.goto();
+    await grid.updateGridSettings({ mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }] });
+    await grid.selectCellByApi(3, 0);
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+  });
+
+  test('a drag onto a merged cell inserts a range that covers the whole merge', async() => {
+    await grid.drag(grid.cell(2, 0), grid.cell(0, 0));
+    await expect(grid.editorInput).toHaveValue('=A1:B3');
+    expect(await grid.selectedAll()).toEqual([[3, 0, 3, 0]]);
+  });
+
+  test('a click on a merged cell inserts its first cell', async() => {
+    await grid.cell(0, 0).click();
+    await expect(grid.editorInput).toHaveValue('=A1');
   });
 });
 
@@ -238,6 +355,31 @@ test.describe('formulaBuilder picking on a sorted grid', { tag: [THEMES_TAG, BUN
   });
 });
 
+// A pick on a grid that trims a row: the visual row of a cell and its HyperFormula row differ, and
+// the plugin must translate both ways. A sort keeps them equal, so only a trimming map shows it.
+test.describe('formulaBuilder picking on a grid with a trimmed row', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
+  test('a click inserts the reference of the clicked data, highlights the clicked cell, and commits its value', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle, 'filtered');
+
+    await grid.goto();
+    // Visual row 0 is physical row 1, which HyperFormula calls row 2 (A2).
+    await grid.expectCell(0, 0, '3');
+
+    await grid.selectCellByApi(2, 0);
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+
+    await grid.cell(0, 1).click();
+    await expect(grid.editorInput).toHaveValue('=B2');
+    await expect(grid.cell(0, 1)).toHaveClass(/ht-formula-ref-/);
+    await expect(grid.cell(1, 1)).not.toHaveClass(/ht-formula-ref-/);
+
+    await page.keyboard.press('Enter');
+    await expect.poll(() => grid.dataAt(2, 0)).toBe(4);
+    expect(await grid.sourceAt(2, 0)).toBe('=B2');
+  });
+});
+
 // A pick claims the press from the grid's own handlers, but not from the document: a menu that
 // closes on an outside press has to close on a pick too. The legs are the spec's own (one set per
 // spec): themes size the menu and the cells it may cover, and engines dispatch the press to the document.
@@ -352,5 +494,274 @@ test.describe('formulaBuilder picking next to other plugins\' controls', { tag: 
     await grid.cell(0, 2).click();
     await expect(grid.inlineEditor).toBeVisible();
     expect(await grid.selectedRows()).toEqual([]);
+  });
+});
+
+// With no `height` the window scrolls the grid, so the pick's edge auto-scroller has to scroll the
+// page: the grid's holder never overflows, and DragToScroll stays out of a claimed press. Themes: the
+// row heights decide how many rows fit the viewport. Engines: a pointer held past the window edge.
+test.describe('formulaBuilder picking in a window-scrolled grid', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  test('a reference drag held below the viewport scrolls the page and extends the range', async({ page, theme, bundle, browserName }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle, 'window-scroll');
+
+    await grid.goto();
+    await grid.selectCellByApi(0, 0);
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+
+    const viewport = page.viewportSize();
+    const start = await grid.cell(0, 1).boundingBox();
+    const scrollY = () => page.evaluate(() => window.scrollY);
+
+    const endRow = async() => Number((await grid.editorInput.inputValue()).match(/^=B1:B(\d+)$/)?.[1] ?? 0);
+
+    expect(await scrollY()).toBe(0);
+    // The page scrolls, and the grid's own holder does not.
+    expect(await page.evaluate(() => document.documentElement.scrollHeight > window.innerHeight)).toBe(true);
+    expect(await grid.grid.locator('.ht_master .wtHolder').evaluate(holder => holder.scrollHeight > holder.clientHeight))
+      .toBe(false);
+
+    const pointerX = (start?.x ?? 0) + 10;
+    const belowViewport = (viewport?.height ?? 0) + 40;
+
+    await grid.cell(0, 1).hover();
+    await page.mouse.down();
+    // The drag runs to the viewport's last pixel row: the auto-scroller does nothing there, since its
+    // edge zone starts past the viewport's bottom edge.
+    await page.mouse.move(pointerX, (viewport?.height ?? 0) - 1, { steps: 10 });
+
+    if (browserName === 'firefox') {
+      // Playwright's Firefox delivers a held-button move past the viewport edge as `clientY: -85`
+      // with `buttons: 0` (measured at 1280x720: y 720 arrives as sent, y 721 and beyond do not),
+      // which reads as a release outside the window and ends the drag. A browser keeps sending
+      // `mousemove` to the document with the button held there, so the move past the edge is
+      // dispatched as that event.
+      await page.evaluate(({ x, y }) => {
+        document.dispatchEvent(new MouseEvent('mousemove', {
+          bubbles: true, cancelable: true, view: window, clientX: x, clientY: y, buttons: 1,
+        }));
+      }, { x: pointerX, y: belowViewport });
+    } else {
+      await page.mouse.move(pointerX, belowViewport);
+    }
+
+    // The pointer stays past the bottom edge: the auto-scroller keeps stepping on its own until the
+    // page has brought row 26 into view. The editor takes the reference on the release.
+    await expect.poll(scrollY).toBeGreaterThan(0);
+    await expect(grid.cell(25, 1)).toBeInViewport();
+
+    await page.mouse.up();
+    await expect(grid.editorInput).toHaveValue(/^=B1:B\d{2}$/);
+    expect(await endRow()).toBeGreaterThan(20);
+  });
+});
+
+// A drag held on a header clamps to the first visible track: after the grid scrolled, the first row or
+// column is out of view, and a range that starts there would reach far past anything on screen. The
+// frozen band counts as visible, so a frozen grid clamps to its own first track.
+test.describe('formulaBuilder picking onto the headers of a scrolled grid', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  test('a drag from a cell up onto the column header starts at the first visible row', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle);
+
+    await grid.goto();
+    await page.evaluate(() => {
+      const hot = (window as unknown as { hot: { loadData(data: unknown[][]): void } }).hot;
+
+      hot.loadData(Array.from({ length: 100 }, (_, row) => [row + 1, '', '']));
+    });
+    await page.evaluate(() => {
+      (window as unknown as { hot: { scrollViewportTo(options: { row: number }): void } }).hot
+        .scrollViewportTo({ row: 50 });
+    });
+    await expect.poll(() => page.evaluate(
+      () => (window as unknown as { hot: { getFirstFullyVisibleRow(): number } }).hot.getFirstFullyVisibleRow()
+    )).toBeGreaterThan(20);
+
+    const firstVisible = await page.evaluate(
+      () => (window as unknown as { hot: { getFirstFullyVisibleRow(): number } }).hot.getFirstFullyVisibleRow()
+    );
+    const editedRow = firstVisible + 1;
+
+    await grid.selectCellByApi(editedRow, 0);
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+
+    const targetRow = firstVisible + 3;
+    const start = await grid.cell(targetRow, 1).boundingBox();
+    const header = await grid.columnHeaderLabel('B').boundingBox();
+
+    await grid.cell(targetRow, 1).hover();
+    await page.mouse.down();
+    await page.mouse.move((start?.x ?? 0) + 10, (header?.y ?? 0) + (header?.height ?? 0) / 2, { steps: 10 });
+    await page.mouse.up();
+
+    const startRow = firstVisible + 1;
+
+    await expect(grid.editorInput).toHaveValue(`=B${startRow}:B${targetRow + 1}`);
+  });
+});
+
+// A frozen band is always on screen, so a header hover in a scrolled frozen grid clamps to its first track.
+test.describe('formulaBuilder picking onto the headers of a scrolled frozen grid', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  test('a drag from a cell up onto the column header starts at the frozen first row', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle, 'frozen');
+
+    await grid.goto();
+    await page.evaluate(() => {
+      const hot = (window as unknown as { hot: { loadData(data: unknown[][]): void; scrollViewportTo(o: { row: number }): void } }).hot;
+
+      hot.loadData(Array.from({ length: 100 }, (_, row) => [row + 1, '', '']));
+      hot.scrollViewportTo({ row: 50 });
+    });
+
+    await expect.poll(() => page.evaluate(
+      () => (window as unknown as { hot: { getFirstFullyVisibleRow(): number } }).hot.getFirstFullyVisibleRow()
+    )).toBeGreaterThan(20);
+    await grid.selectCellByApi(0, 0);
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+
+    const targetRow = await page.evaluate(
+      () => (window as unknown as { hot: { getFirstFullyVisibleRow(): number } }).hot.getFirstFullyVisibleRow()
+    ) + 2;
+    const start = await grid.cell(targetRow, 1).boundingBox();
+    const header = await grid.columnHeaderLabel('B').boundingBox();
+
+    await grid.cell(targetRow, 1).hover();
+    await page.mouse.down();
+    await page.mouse.move((start?.x ?? 0) + 10, (header?.y ?? 0) + (header?.height ?? 0) / 2, { steps: 10 });
+    await page.mouse.up();
+
+    await expect(grid.editorInput).toHaveValue(`=B1:B${targetRow + 1}`);
+  });
+
+  test('a drag onto the column header starts at the first visible row when limitFixedToViewport draws no frozen row', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle, 'frozen');
+
+    await grid.goto();
+    // The first row is taller than the 320px grid (sized here, the fixture's root grows with its rows), so `limitFixedToViewport` draws none of the one row
+    // `fixedRowsTop` asks for: the option still says 1, the drawn band is 0.
+    await page.evaluate(() => {
+      const hot = (window as unknown as { hot: {
+        loadData(data: unknown[][]): void;
+        updateSettings(settings: object): void;
+        scrollViewportTo(o: { row: number }): void;
+      } }).hot;
+
+      hot.loadData(Array.from({ length: 100 }, (_, row) => [row + 1, '', '']));
+      hot.updateSettings({
+        height: 320,
+        limitFixedToViewport: true,
+        rowHeights: (row: number) => (row === 0 ? 400 : undefined),
+      });
+      hot.scrollViewportTo({ row: 50 });
+    });
+
+    const readCounts = () => page.evaluate(() => {
+      const hot = (window as unknown as { hot: {
+        getSettings(): { fixedRowsTop: number };
+        view: { countFixedRowsTop(): number };
+        getFirstFullyVisibleRow(): number;
+      } }).hot;
+
+      return {
+        raw: hot.getSettings().fixedRowsTop,
+        drawn: hot.view.countFixedRowsTop(),
+        scrolled: hot.getFirstFullyVisibleRow() > 20,
+      };
+    });
+
+    await expect.poll(readCounts).toEqual({ raw: 1, drawn: 0, scrolled: true });
+
+    const firstVisible = await page.evaluate(
+      () => (window as unknown as { hot: { getFirstFullyVisibleRow(): number } }).hot.getFirstFullyVisibleRow()
+    );
+
+    await grid.selectCellByApi(firstVisible + 1, 0);
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+
+    const targetRow = firstVisible + 3;
+    const start = await grid.cell(targetRow, 1).boundingBox();
+    const header = await grid.columnHeaderLabel('B').boundingBox();
+
+    await grid.cell(targetRow, 1).hover();
+    await page.mouse.down();
+    await page.mouse.move((start?.x ?? 0) + 10, (header?.y ?? 0) + (header?.height ?? 0) / 2, { steps: 10 });
+    await page.mouse.up();
+
+    await expect(grid.editorInput).toHaveValue(`=B${firstVisible + 1}:B${targetRow + 1}`);
+  });
+});
+
+// A pick on a cell that shows a link inserts the reference and leaves the link alone: the claim
+// prevents the `mousedown` default only, and the browser follows an anchor on the `click` after it.
+test.describe('formulaBuilder picking a cell that shows a link', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  for (const [name, row, col, reference] of [
+    ['a HYPERLINK formula', 0, 1, '=B1'],
+    ['an AutoLink URL', 0, 2, '=C1'],
+  ] as const) {
+    test(`a click on ${name} inserts the reference and follows no link`, async({ page, theme, bundle }) => {
+      const grid = new FormulaBuilderPage(page, theme, bundle, 'hyperlink');
+
+      await grid.goto();
+      await grid.selectCellByApi(3, 0);
+      await page.keyboard.press('=');
+      await expect(grid.editorInput).toBeFocused();
+      await expect(grid.cell(row, col).locator('a[href]')).toHaveCount(1);
+
+      const url = page.url();
+      // A followed link would open a tab (`_blank`) or navigate this page (`_self`).
+      const popupOpened = page.waitForEvent('popup', { timeout: 1000 }).then(() => true, () => false);
+
+      await grid.cell(row, col).locator('a[href]').click();
+      await expect(grid.editorInput).toHaveValue(reference);
+
+      expect(await popupOpened).toBe(false);
+      expect(page.url()).toBe(url);
+      expect(page.context().pages()).toHaveLength(1);
+    });
+  }
+});
+
+// A pick by a tap on a phone. Walkontable runs the press from `touchend`, so the claim's
+// `preventDefault()` lands on a finished event, and the compatibility `mousedown` the browser fires
+// after the tap would move the focus onto the cell: the next typed characters were lost and the soft
+// keyboard closed. Themes: `locator.tap()` aims at the center of a cell or header label, and the
+// theme's padding decides what sits there. Bundles: the file is declared as a whole, and the fixture
+// loads HyperFormula externally on the plain UMD leg.
+test.describe('formulaBuilder picking by a touch tap', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
+  // The phone's viewport, touch, and mobile flags without its browser type: a describe group cannot
+  // switch the browser, and this block runs on the Chromium legs only (no `CROSS_BROWSER_TAG`).
+  const { defaultBrowserType, ...iPhone } = devices['iPhone 13'];
+
+  test.use(iPhone);
+
+  let grid: FormulaBuilderPage;
+
+  test.beforeEach(async({ page, theme, bundle }) => {
+    grid = new FormulaBuilderPage(page, theme, bundle, 'default');
+    await grid.goto();
+    await grid.cell(3, 0).tap();
+    await page.keyboard.type('=');
+    await expect(grid.editorInput).toBeFocused();
+  });
+
+  test('a tap on a cell inserts its reference and keeps the editor focused for typing', async({ page }) => {
+    await grid.cell(0, 1).tap();
+    await expect(grid.editorInput).toHaveValue('=B1');
+    await expect(grid.editorInput).toBeFocused();
+
+    await page.keyboard.type('+1');
+    await expect(grid.editorInput).toHaveValue('=B1+1');
+  });
+
+  test('a tap on a column header inserts the column reference once and keeps the editor focused', async({ page }) => {
+    await grid.columnHeaderLabel('B').tap();
+    await expect(grid.editorInput).toHaveValue('=B:B');
+    await expect(grid.editorInput).toBeFocused();
+
+    await page.keyboard.type('+1');
+    await expect(grid.editorInput).toHaveValue('=B:B+1');
   });
 });

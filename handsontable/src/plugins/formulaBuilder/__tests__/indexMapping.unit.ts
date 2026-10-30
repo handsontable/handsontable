@@ -254,6 +254,57 @@ describe('HandsontableAdapter host delegation', () => {
 
     expect(adapter.getScrollHolder()).toBe(holder);
   });
+
+  it('auto-scrolls the scroll holder when there is one', () => {
+    const holder = document.createElement('div');
+    const view = { _wt: { wtOverlays: { topOverlay: { mainTableScrollableElement: holder } } } };
+    const { adapter } = makeMappedAdapter({ view } as Parameters<typeof makeMappedAdapter>[0]);
+
+    expect(adapter.getAutoScrollTarget()).toBe(holder);
+  });
+
+  it('auto-scrolls the window\'s viewport when the window scrolls both axes', () => {
+    const view = {
+      _wt: {
+        wtOverlays: {
+          topOverlay: { mainTableScrollableElement: window },
+          inlineStartOverlay: { mainTableScrollableElement: window },
+        },
+      },
+    };
+    const { adapter } = makeMappedAdapter({ view } as Parameters<typeof makeMappedAdapter>[0]);
+    const viewport = document.documentElement;
+    const scroller = document.scrollingElement ?? viewport;
+
+    jest.spyOn(viewport, 'clientWidth', 'get').mockReturnValue(800);
+    jest.spyOn(viewport, 'clientHeight', 'get').mockReturnValue(600);
+    // The document's own rectangle spans the whole page, which is what the stand-in must not report.
+    jest.spyOn(viewport, 'getBoundingClientRect').mockReturnValue({
+      left: 0, top: -300, right: 800, bottom: 1700,
+    } as DOMRect);
+
+    const target = adapter.getAutoScrollTarget();
+
+    expect(target).not.toBeNull();
+    expect(target).not.toBe(viewport);
+    expect(target?.getBoundingClientRect()).toEqual({ left: 0, top: 0, right: 800, bottom: 600 });
+    expect([target?.clientLeft, target?.clientTop, target?.clientWidth, target?.clientHeight])
+      .toEqual([0, 0, 800, 600]);
+
+    scroller.scrollTop = 0;
+    scroller.scrollLeft = 0;
+    (target as NonNullable<typeof target>).scrollTop = 24;
+    (target as NonNullable<typeof target>).scrollLeft = 12;
+
+    expect(scroller.scrollTop).toBe(24);
+    expect(scroller.scrollLeft).toBe(12);
+    expect(target?.scrollTop).toBe(24);
+    expect(target?.scrollLeft).toBe(12);
+
+    scroller.scrollTop = 0;
+    scroller.scrollLeft = 0;
+    jest.restoreAllMocks();
+  });
 });
 
 describe('stepCell over hidden columns', () => {

@@ -7,9 +7,9 @@ import {
   hasTouchList,
   isLeftClick,
 } from '../../helpers/dom/event';
-import { getDeepActiveElement, isHTMLElement } from '../../helpers/dom/element';
+import { getComposedEventTargetEl, getDeepActiveElement, isHTMLElement } from '../../helpers/dom/element';
 import type { HandsontableAdapter } from './handsontableAdapter';
-import type { CellRange, HeaderAxis, HeaderPick, PickingEditor } from './gridContract';
+import type { CellAddress, CellRange, HeaderAxis, HeaderPick, PickingEditor } from './gridContract';
 
 /**
  * The `hyperformula-ui` module namespace (see `internalTypes.ts` for why it is not shared).
@@ -99,6 +99,33 @@ export interface CellPickControllerDeps {
    */
   getHostActiveEditor(): unknown;
   /**
+   * Hands the keyboard back to the grid after a pick drag that ended outside the grid, or after any
+   * pick of an in-cell edit. A drag released outside the grid leaves the grid unlistened (the `click`
+   * after the release unlistens it), so the implementation must listen after that click. A pick of a
+   * bar-hosted edit released inside the grid does not call it: the focus stays in the bar, and a
+   * listening grid would run its shortcuts on the keys typed there.
+   */
+  relisten(): void;
+  /**
+   * Takes the keyboard from the grid again after a pick of a bar-hosted edit released inside the grid.
+   * The grid's own cell `mousedown` handler calls `listen()` before the pick claims the press, so
+   * without it the keys typed in the bar would run the grid's shortcuts. The implementation must run
+   * after the `click` that follows the release.
+   */
+  unlisten(): void;
+  /**
+   * Whether the open edit is hosted by the formula bar (the in-cell editor is hidden).
+   *
+   * @returns {boolean}
+   */
+  isBarHostedEdit(): boolean;
+  /**
+   * Returns the grid's root element.
+   *
+   * @returns {HTMLElement}
+   */
+  getRootElement(): HTMLElement;
+  /**
    * Returns the master overlay scroll holder, or `null`.
    *
    * @returns {HTMLElement | null}
@@ -117,6 +144,27 @@ export interface CellPickControllerDeps {
    * @returns {{ start: number, end: number }}
    */
   getColumnHeaderSpan(coords: GridCoords): { start: number; end: number };
+  /**
+   * Returns the first visual row the viewport shows in full, which a drag held on a column header
+   * clamps to. Frozen rows count as shown, so a grid with frozen rows reports its first row.
+   *
+   * @returns {number}
+   */
+  firstVisibleRow(): number;
+  /**
+   * Returns the first visual column the viewport shows in full, which a drag held on a row header
+   * clamps to. Frozen columns count as shown, so a grid with frozen columns reports its first column.
+   *
+   * @returns {number}
+   */
+  firstVisibleCol(): number;
+  /**
+   * Runs the callback in a later task, after the event being dispatched now has reached every
+   * listener.
+   *
+   * @param {Function} callback The callback.
+   */
+  deferTask(callback: () => void): void;
 }
 
 /**
@@ -236,10 +284,28 @@ export class CellPickController {
    */
   #touchId: number | null = null;
   /**
+   * Removes the pending one-shot `touchend` listener a touch pick arms, when armed.
+   */
+  #touchEndCancelCleanup: (() => void) | null = null;
+  /**
    * The HyperFormula span of the header a header drag started on (a nested-header group covers
    * several), whether it appends, and the index the header tracker is anchored at now.
    */
   #headerDrag: { start: number; end: number; append: boolean; trackerAnchor: number } | null = null;
+  /**
+   * Removes the listeners that end a drag `reset()` cancelled mid-gesture, `null` when none is held.
+   * While set, the rest of that gesture stays claimed (see `reset()`).
+   */
+  #releaseCancelledDrag: (() => void) | null = null;
+  /**
+   * The anchor of the active cell drag, in HyperFormula coordinates.
+   */
+  #cellDragAnchor: CellAddress | null = null;
+  /**
+   * The anchor of the last cell or range pick of the edit, with the editor text and caret right after
+   * it. A Shift+press extends that pick while the editor still holds exactly that text and caret.
+   */
+  #lastPick: { anchor: CellAddress; text: string; caret: number } | null = null;
 
   /**
    * `beforeOnCellMouseDown` hook listener.
@@ -270,7 +336,8 @@ export class CellPickController {
     cellEl: HTMLTableCellElement | undefined,
     eventController: SelectionController,
   ): void => {
-    if (this.#handleHover(coords, eventController)) {
+    if (this.#releaseCancelledDrag !== null || this.#handleHover(coords, eventController)) {
+      this.#suppress(eventController);
       this.#claim(event);
     }
   };
@@ -293,9 +360,12 @@ export class CellPickController {
   onWindowBlur = (): void => this.#handleWindowBlur();
 
   /**
-   * Document `mouseup` listener finishing the active drag.
+   * Document `mouseup` listener finishing the active drag. Called without an event, the release
+   * counts as outside the grid.
+   *
+   * @param {MouseEvent} [event] The mouse event.
    */
-  onDocMouseUp = (): void => this.#handleDocMouseUp();
+  onDocMouseUp = (event?: MouseEvent): void => this.#handleDocMouseUp(!this.#isWithinGrid(event));
 
   /**
    * Document `touchend`/`touchcancel` listener finishing a touch pick. On a touch device the press
@@ -306,7 +376,8 @@ export class CellPickController {
    */
   onDocTouchEnd = (event: TouchEvent): void => {
     if (this.#touchId === null || getTouchPointById(event, this.#touchId) === null) {
-      this.#handleDocMouseUp();
+      // A touch drag ends where it started (`touchend` targets the touched element), inside the grid.
+      this.#handleDocMouseUp(false);
     }
   };
 
@@ -317,12 +388,18 @@ export class CellPickController {
     this.#deps = deps;
     this.#core = deps.core as CoreModule;
     this.#tracker = new this.#core.RangeDragTracker({
-      getScrollElement: () => this.#deps.getScrollHolder(),
+      // The package types the container as an `HTMLElement` but reads only the members of
+      // `AutoScrollTarget`, which the window's viewport stand-in also has.
+      getScrollElement: () => (this.#deps.getAdapter()?.getAutoScrollTarget() ?? null) as HTMLElement | null,
       getCellAddressAt: (x, y) => this.#deps.getAdapter()?.getCellAddressAt(x, y) ?? null,
       onPreview: (range, append) => this.#previewRange(range, append),
       onDragEnd: () => this.#deps.getAdapter()?.clearEphemeralHighlight(),
       onDropCell: pick => this.#deps.getAdapter()?.emitCellPick(pick),
-      onDropRange: pick => this.#deps.getAdapter()?.emitRangePick(pick),
+      onDropRange: (pick) => {
+        const adapter = this.#deps.getAdapter();
+
+        adapter?.emitRangePick({ ...pick, ref: adapter.expandRangeOverMerges(pick.ref) });
+      },
     });
     this.#headerTracker = new this.#core.HeaderDragTracker({
       sheet: '',
@@ -345,14 +422,56 @@ export class CellPickController {
   }
 
   /**
-   * Cancels any active drag and disarms the click swallow.
+   * Cancels any active drag and disarms the click swallow. A drag cancelled while the button is still
+   * held (Escape closed the edit mid-drag) stays claimed until the button is released: the grid saw
+   * the press as its own, so every later `mouseover` would extend a native range selection from the
+   * edited cell.
    */
   reset(): void {
+    const wasDragging = this.#tracker.isActive() || this.#headerTracker.isActive();
+
     this.#unlistenDrag();
     this.#tracker.cancel();
     this.#headerTracker.cancel();
     this.#disarmClickSwallow();
+    this.#disarmTouchEndCancel();
     this.#focusBeforePick = null;
+    this.#headerDrag = null;
+    this.#cellDragAnchor = null;
+    this.#lastPick = null;
+
+    if (wasDragging && this.#touchId === null) {
+      this.#holdCancelledDrag();
+    }
+
+    this.#touchId = null;
+  }
+
+  /**
+   * Keeps claiming the hovers of a cancelled drag until its button is released (a `mouseup`, a
+   * buttonless `mousemove` after a release outside the window, or the window losing focus).
+   */
+  #holdCancelledDrag(): void {
+    this.#releaseCancelledDrag?.();
+
+    const rootDocument = this.#deps.getRootDocument();
+    const rootWindow = rootDocument.defaultView;
+    const release = (): void => {
+      rootDocument.removeEventListener('mouseup', release);
+      rootDocument.removeEventListener('mousemove', onMove);
+      rootWindow?.removeEventListener('blur', release);
+      this.#releaseCancelledDrag = null;
+    };
+    const onMove = (event: MouseEvent): void => {
+      if (event.buttons === 0) {
+        release();
+      }
+    };
+
+    rootDocument.addEventListener('mouseup', release);
+    rootDocument.addEventListener('mousemove', onMove);
+    rootWindow?.addEventListener('blur', release);
+    this.#releaseCancelledDrag = release;
   }
 
   /**
@@ -369,7 +488,12 @@ export class CellPickController {
       return;
     }
 
-    adapter.highlightRange(range, editor.getRefPreviewColor(range, append));
+    // A one-cell preview drops as a cell pick, which a merge does not grow; a range drops grown over
+    // every merge it touches (see `onDropRange`), so its preview grows the same way.
+    const isSingleCell = range.start.row === range.end.row && range.start.col === range.end.col;
+    const shown = isSingleCell ? range : adapter.expandRangeOverMerges(range);
+
+    adapter.highlightRange(shown, editor.getRefPreviewColor(shown, append));
   }
 
   /**
@@ -460,19 +584,63 @@ export class CellPickController {
     this.#suppress(eventController);
     this.#claim(event);
     this.#armCheckboxClickSwallow(event);
+    this.#armAnchorClickSwallow(event);
     this.#focusBeforePick = this.#activeElement();
 
     this.#listenDrag(event);
-    this.#tracker.begin(
-      { sheet: '', col: anchor.col, row: anchor.row },
-      isAppendPress(event),
-      readPressPoint(event),
-    );
+    this.#beginCellDrag(event, anchor, editor);
 
     // A touch press arrives from `touchend`, with the finger already lifted: the tap is the whole pick.
     if (event !== undefined && hasTouchList(event)) {
-      this.#handleDocMouseUp();
+      this.#finishTouchPick();
     }
+  }
+
+  /**
+   * Begins a cell drag. A Shift+press, like the grid's Shift+click, extends the pending pick: the drag
+   * is anchored where that pick was, so it drops as a range that replaces the pick's reference.
+   *
+   * @param {MouseEvent | undefined} event The press event.
+   * @param {GridCoords} anchor The pressed cell, in HyperFormula coordinates.
+   * @param {PickingEditor} editor The live formula editor.
+   */
+  #beginCellDrag(event: MouseEvent | undefined, anchor: GridCoords, editor: PickingEditor): void {
+    const append = isAppendPress(event);
+    const pressed = { sheet: '', col: anchor.col, row: anchor.row };
+    const extendFrom = !append && event?.shiftKey === true ? this.#pendingPickAnchor(editor) : null;
+
+    this.#cellDragAnchor = extendFrom ?? pressed;
+    this.#tracker.begin(this.#cellDragAnchor, append, readPressPoint(event));
+
+    if (extendFrom) {
+      this.#tracker.extendTo(pressed);
+    }
+  }
+
+  /**
+   * Returns the anchor of the last pick while the editor still holds the text and caret that pick
+   * left, or `null` once anything changed them (typing, a caret move, another edit).
+   *
+   * @param {PickingEditor} editor The live formula editor.
+   * @returns {CellAddress | null}
+   */
+  #pendingPickAnchor(editor: PickingEditor): CellAddress | null {
+    const last = this.#lastPick;
+
+    return last && editor.getValue() === last.text && editor.getCaretOffset() === last.caret ?
+      last.anchor : null;
+  }
+
+  /**
+   * Remembers the anchor of a cell or range pick that just dropped, with the editor state it left.
+   *
+   * @param {CellAddress | null} anchor The anchor of the drag that dropped, `null` for a header pick.
+   */
+  #rememberPick(anchor: CellAddress | null): void {
+    const editor = this.#deps.getActiveEditor();
+
+    this.#lastPick = anchor && editor ?
+      { anchor, text: editor.getValue(), caret: editor.getCaretOffset() } : null;
   }
 
   /**
@@ -539,7 +707,7 @@ export class CellPickController {
     this.#armHeaderClickSwallow();
 
     if (event !== undefined && hasTouchList(event)) {
-      this.#handleDocMouseUp();
+      this.#finishTouchPick();
     }
   }
 
@@ -595,6 +763,53 @@ export class CellPickController {
   }
 
   /**
+   * Finishes a pick a tap started. Walkontable runs the press from `touchend` and hands it the
+   * `touchstart` event, which has already been dispatched, so the claim's `preventDefault()` cancels
+   * nothing. The browser then fires the compatibility `mousedown`, `mouseup`, and `click` for the tap,
+   * and that `mousedown` moves the focus from the formula editor onto the cell, so the next typed
+   * characters are lost and a phone closes its soft keyboard. Cancelling the `touchend` that is being
+   * dispatched now stops the browser from firing them. The click swallows the pick armed have no
+   * `click` left to swallow (and the compatibility `mousedown` used to disarm them before its own
+   * `click` anyway), so they are disarmed too.
+   */
+  #finishTouchPick(): void {
+    this.#disarmClickSwallow();
+    this.#armTouchEndCancel();
+    this.#handleDocMouseUp(false);
+  }
+
+  /**
+   * Arms a one-shot document `touchend` listener that cancels the `touchend` being dispatched now:
+   * this method runs from a Walkontable `touchend` listener on the grid's holder, so the event still
+   * bubbles to the document. A task later the listener is removed unused, so it never cancels the
+   * `touchend` of a later tap.
+   */
+  #armTouchEndCancel(): void {
+    this.#disarmTouchEndCancel();
+
+    const rootDocument = this.#deps.getRootDocument();
+    const cancelTouchEnd = (event: TouchEvent): void => {
+      this.#disarmTouchEndCancel();
+
+      if (event.cancelable) {
+        event.preventDefault();
+      }
+    };
+
+    rootDocument.addEventListener('touchend', cancelTouchEnd);
+    this.#touchEndCancelCleanup = () => rootDocument.removeEventListener('touchend', cancelTouchEnd);
+    this.#deps.deferTask(() => this.#disarmTouchEndCancel());
+  }
+
+  /**
+   * Removes the pending one-shot `touchend` listener, if any.
+   */
+  #disarmTouchEndCancel(): void {
+    this.#touchEndCancelCleanup?.();
+    this.#touchEndCancelCleanup = null;
+  }
+
+  /**
    * Arms a one-shot document-capture click swallow for header clicks.
    */
   #armHeaderClickSwallow(): void {
@@ -614,6 +829,21 @@ export class CellPickController {
     // A label toggles a box only when it holds one (the renderer's `label` option).
     if (toggle && (toggle.tagName !== 'LABEL' || toggle.querySelector('input[type="checkbox"]'))) {
       this.#armClickSwallow(clickTarget => toggle.contains(clickTarget));
+    }
+  }
+
+  /**
+   * Arms a one-shot click swallow when a cell pick starts on a link. The claim prevents the
+   * `mousedown` default only; the browser follows the link on the `click` that follows. A cell that
+   * holds a checkbox and a link keeps the checkbox swallow, which the pick arms first.
+   *
+   * @param {MouseEvent | undefined} event The press that started the pick.
+   */
+  #armAnchorClickSwallow(event: MouseEvent | undefined): void {
+    const anchor = closestTarget(event, 'a[href]');
+
+    if (anchor && !closestTarget(event, CHECKBOX_TOGGLE_SELECTOR)) {
+      this.#armClickSwallow(clickTarget => anchor.contains(clickTarget));
     }
   }
 
@@ -649,8 +879,9 @@ export class CellPickController {
       return;
     }
 
+    // Released outside the window: no `mouseup` reached the document.
     if (event.buttons === 0) {
-      this.#handleDocMouseUp();
+      this.#handleDocMouseUp(true);
 
       return;
     }
@@ -675,20 +906,63 @@ export class CellPickController {
    */
   #handleWindowBlur(): void {
     if (this.#tracker.isActive() || this.#headerTracker.isActive()) {
-      this.#handleDocMouseUp();
+      this.#handleDocMouseUp(true);
     }
   }
 
   /**
-   * Finishes the active drag, emits the pick, and restores focus.
+   * Whether a `mouseup` was released inside the grid's root. The composed path sees through the shadow
+   * roots between the target and the root; a sandboxed host that filters the path falls back to the
+   * composed target, and a release the check cannot place reads as outside, which hands the keyboard
+   * back.
+   *
+   * @param {MouseEvent} [event] The mouse event.
+   * @returns {boolean}
    */
-  #handleDocMouseUp(): void {
+  #isWithinGrid(event: MouseEvent | undefined): boolean {
+    if (event === undefined) {
+      return false;
+    }
+
+    const rootElement = this.#deps.getRootElement();
+
+    if (typeof event.composedPath === 'function' && event.composedPath().includes(rootElement)) {
+      return true;
+    }
+
+    const target = getComposedEventTargetEl(event);
+
+    return target !== null && rootElement.contains(target);
+  }
+
+  /**
+   * Finishes the active drag, emits the pick, and restores focus.
+   *
+   * @param {boolean} endedOutside Whether the drag ended outside the grid (or the window).
+   */
+  #handleDocMouseUp(endedOutside: boolean): void {
     const wasActive = this.#tracker.isActive() || this.#headerTracker.isActive();
+    const cellAnchor = this.#tracker.isActive() ? this.#cellDragAnchor : null;
 
     this.#unlistenDrag();
 
     this.#tracker.finish();
     this.#headerTracker.finish();
+
+    // The drop inserted the reference synchronously, so the editor now holds the text it left.
+    if (wasActive) {
+      this.#rememberPick(cellAnchor);
+    }
+
+    this.#cellDragAnchor = null;
+
+    // A bar-hosted edit keeps the focus in the bar after a pick inside the grid, so the grid is left
+    // unlistened there: its shortcuts would otherwise run on the keys typed in the bar.
+    if (wasActive && (endedOutside || !this.#deps.isBarHostedEdit())) {
+      this.#deps.relisten();
+    } else if (wasActive) {
+      this.#deps.unlisten();
+    }
 
     if (this.#focusBeforePick) {
       // The drag may have auto-scrolled the grid; focusing the editor must not scroll it back.
@@ -826,7 +1100,12 @@ export class CellPickController {
       return false;
     }
 
-    const clamped = { row: Math.max(coords.row, 0), col: Math.max(coords.col, 0) };
+    // A header hover has a negative index on one axis only: that axis clamps to the first visible
+    // track, not to the first one, which a scrolled grid has left behind.
+    const clamped = {
+      row: coords.row < 0 ? Math.max(this.#deps.firstVisibleRow(), 0) : coords.row,
+      col: coords.col < 0 ? Math.max(this.#deps.firstVisibleCol(), 0) : coords.col,
+    };
     const mapped = this.#deps.toHfCoords(clamped);
 
     if (mapped.row >= 0 && mapped.col >= 0) {

@@ -11,6 +11,7 @@ import type {
 export interface IndexMapperStub {
   getRenderableFromVisualIndex: (visualIndex: number) => number | null;
   getNumberOfIndexes: () => number;
+  isHidden?: (physicalIndex: number) => boolean;
 }
 
 /**
@@ -163,6 +164,8 @@ export interface HotStubShape extends GridSelectionApiStub {
   getSettings: () => Record<string, unknown>;
   countRows: () => number;
   countCols: () => number;
+  toPhysicalRow: (visualRow: number) => number;
+  toPhysicalColumn: (visualColumn: number) => number;
   getDataAtCell: (row: number, col: number) => unknown;
   getActiveEditor: () => unknown;
   getSelectedRangeLast: () => { highlight: { row: number; col: number } } | undefined;
@@ -231,6 +234,8 @@ export function makeHotStub(overrides: Partial<HotStubShape> = {}): HotInstance 
     getSettings: () => ({}),
     countRows: () => 0,
     countCols: () => 0,
+    toPhysicalRow: (visualRow: number) => visualRow,
+    toPhysicalColumn: (visualColumn: number) => visualColumn,
     getDataAtCell: () => null,
     getActiveEditor: () => undefined,
     getSelectedRangeLast: () => undefined,
@@ -264,6 +269,10 @@ export function makeHotStub(overrides: Partial<HotStubShape> = {}): HotInstance 
     ...makeGridSelectionApiStub(),
     ...overrides,
   };
+
+  // An override of a mapper keeps the members it does not name (a hiding map answers `false`).
+  stub.rowIndexMapper = { isHidden: () => false, ...stub.rowIndexMapper };
+  stub.columnIndexMapper = { isHidden: () => false, ...stub.columnIndexMapper };
 
   withLocalHooks(stub.rowIndexMapper);
   withLocalHooks(stub.columnIndexMapper);

@@ -1,7 +1,7 @@
 import { FormulaBuilder } from '../formulaBuilder';
 import { getFormulaBuilderAdapter } from '../handsontableAdapter';
 import type { HandsontableAdapter } from '../handsontableAdapter';
-import { makePluginHotStub } from './helpers/pluginHotStub';
+import { findHook, makePluginHotStub } from './helpers/pluginHotStub';
 import type { PluginHotStubBundle } from './helpers/pluginHotStub';
 
 /**
@@ -187,6 +187,33 @@ describe('FormulaBuilder selection API used by the formula bar', () => {
     plugin.disablePlugin();
   });
 
+  it.each(['afterLoadData', 'afterUpdateData'])(
+    'selectFirstFormulaCell forgets the cell the grid focused last after %s, and scans the new data instead',
+    (hookName) => {
+      const stub = makePluginHotStub();
+
+      layoutGrid(stub, { rows: 4, cols: 4, viewportRows: [0, 3], viewportCols: [0, 3] });
+      useFormulaEditorAt(stub, [[0, 1], [3, 3]]);
+
+      const plugin = enabledPlugin(stub);
+
+      stub.hot.getSelectedRangeLast = () => ({ highlight: { row: 3, col: 3 } });
+      findHook(stub.hot, 'afterSelectionEnd')(3, 3, 3, 3);
+
+      // Control: before the load, the remembered cell wins over the scan.
+      plugin.selectFirstFormulaCell();
+      expect(stub.hot.selectCell.mock.calls).toEqual([[3, 3]]);
+
+      stub.hot.selectCell.mockClear();
+      findHook(stub.hot, hookName)();
+      plugin.selectFirstFormulaCell();
+
+      expect(stub.hot.selectCell.mock.calls).toEqual([[0, 1]]);
+
+      plugin.disablePlugin();
+    },
+  );
+
   it('selectFirstFormulaCell selects nothing when no cell uses the formula editor', () => {
     const stub = makePluginHotStub();
 
@@ -305,7 +332,7 @@ describe('FormulaBuilder adapter end of the formula bar contract', () => {
   });
 
   it('adapter.setActiveCell and adapter.setSelection reach the grid in visual coordinates', () => {
-    const stub = makePluginHotStub();
+    const stub = makePluginHotStub({}, { countRows: () => 5, countCols: () => 5 });
     const plugin = enabledPlugin(stub);
 
     adapterOf(plugin).setActiveCell({ sheet: '', row: 2, col: 3 });

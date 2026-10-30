@@ -117,9 +117,13 @@
     "testURL": "http://localhost/",
     "testTimeout": 60000,
     "transform": {
+      "hyperformula-ui.+\\.js$": "<rootDir>/test/hyperformulaUiTransform.js",
       "^.+\\.tsx?$": "babel-jest",
       "^.+\\.js$": "babel-jest"
     },
+    "transformIgnorePatterns": [
+      "/node_modules/(?!(\\.pnpm/)?hyperformula-ui[@/])"
+    ],
     "testRegex": "(/test/(.*).(test|spec)).(jsx?|tsx?)$",
     "moduleFileExtensions": [
       "ts",

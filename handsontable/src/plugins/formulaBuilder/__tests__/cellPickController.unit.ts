@@ -38,6 +38,10 @@ interface HarnessOptions {
    * The visual column span each column header covers, by its column (a nested-header group).
    */
   headerSpans?: Record<number, { start: number; end: number }>;
+  /**
+   * Whether the formula bar hosts the edit (the in-cell editor is hidden).
+   */
+  barHosted?: boolean;
 }
 
 interface HolderStub {
@@ -77,27 +81,38 @@ function makeHarness(options: HarnessOptions = {}) {
     cellAtPoint = null,
     hostActiveEditor,
     headerSpans = {},
+    barHosted = false,
   } = options;
   const holder = makeHolder();
+  const rootElement = document.createElement('div');
+  const relisten = jest.fn();
+  const unlisten = jest.fn();
   const adapterStub = {
     highlightRange: jest.fn(),
     clearEphemeralHighlight: jest.fn(),
     emitCellPick: jest.fn(),
     emitRangePick: jest.fn(),
     emitHeaderPick: jest.fn(),
+    expandRangeOverMerges: jest.fn(range => range),
     getGridSize: jest.fn(() => ({ rows: 10, cols: 8 })),
     getCellAddressAt: jest.fn(() =>
       (cellAtPoint ? { sheet: '', row: cellAtPoint.row, col: cellAtPoint.col } : null),
     ),
+    getAutoScrollTarget: () => holder,
   };
   const closeUnbalancedParens = jest.fn();
+  // The text and caret the editor holds; a test changes them to stand for typing or a caret move.
+  const editorState = { text: editorValue, caret: editorValue.length };
   const editorStub = {
     isFormula: () => editorValue.startsWith('='),
     isRefSelectionActive: () => refSelectionActive,
     getRefPreviewColor: () => EPHEMERAL_COLOR,
     closeUnbalancedParens,
+    getValue: () => editorState.text,
+    getCaretOffset: () => editorState.caret,
   };
   const emitSwitchToInline = jest.fn();
+  const deferTask = jest.fn<void, [() => void]>();
   const controller = new CellPickController({
     core,
     getAdapter: () => (hasAdapter ? (adapterStub as unknown as HandsontableAdapter) : null),
@@ -106,17 +121,29 @@ function makeHarness(options: HarnessOptions = {}) {
     toHfCoords: coords => ({ row: coords.row + rowOffset, col: coords.col }),
     emitSwitchToInline,
     getHostActiveEditor: () => hostActiveEditor,
+    relisten,
+    unlisten,
+    isBarHostedEdit: () => barHosted,
+    getRootElement: () => rootElement,
     getScrollHolder: () => holder as unknown as HTMLElement,
     getRootDocument: () => document,
     getColumnHeaderSpan: coords => headerSpans[coords.col] ?? { start: coords.col, end: coords.col },
+    firstVisibleRow: () => 0,
+    firstVisibleCol: () => 0,
+    deferTask,
   });
 
   return {
     controller,
     adapterStub,
+    deferTask,
     emitSwitchToInline,
     holder,
     closeUnbalancedParens,
+    editorState,
+    relisten,
+    unlisten,
+    rootElement,
   };
 }
 
@@ -601,6 +628,85 @@ describe('CellPickController drag listeners', () => {
 });
 
 describe('CellPickController.onDocMouseUp', () => {
+  describe('handing the keyboard back to the grid', () => {
+    /**
+     * Releases the pressed button over the given element, the way a real `mouseup` reaches the
+     * document listener.
+     *
+     * @param {CellPickController} controller The controller under test.
+     * @param {HTMLElement} target The element under the pointer.
+     */
+    function releaseOver(controller: CellPickController, target: HTMLElement): void {
+      const event = new MouseEvent('mouseup', { bubbles: true, composed: true });
+
+      target.addEventListener('mouseup', controller.onDocMouseUp, { once: true });
+      target.dispatchEvent(event);
+    }
+
+    it('unlistens, and does not relisten, after a bar-hosted pick released inside the grid', () => {
+      const { controller, relisten, unlisten, rootElement } = makeHarness({ barHosted: true });
+      const cell = document.createElement('td');
+
+      rootElement.append(cell);
+      document.body.append(rootElement);
+      pressCell(controller, { row: 2, col: 3 });
+      releaseOver(controller, cell);
+
+      expect(relisten).not.toHaveBeenCalled();
+      expect(unlisten).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not relisten after a bar-hosted pick released inside a grid rendered in a shadow root', () => {
+      const { controller, relisten, unlisten, rootElement } = makeHarness({ barHosted: true });
+      const host = document.createElement('div');
+      const shadowRoot = host.attachShadow({ mode: 'open' });
+      const cell = document.createElement('td');
+
+      rootElement.append(cell);
+      shadowRoot.append(rootElement);
+      document.body.append(host);
+      pressCell(controller, { row: 2, col: 3 });
+      releaseOver(controller, cell);
+
+      expect(relisten).not.toHaveBeenCalled();
+      expect(unlisten).toHaveBeenCalledTimes(1);
+    });
+
+    it('relistens after a bar-hosted pick released outside the grid', () => {
+      const { controller, relisten, unlisten, rootElement } = makeHarness({ barHosted: true });
+      const outside = document.createElement('div');
+
+      document.body.append(rootElement, outside);
+      pressCell(controller, { row: 2, col: 3 });
+      releaseOver(controller, outside);
+
+      expect(relisten).toHaveBeenCalledTimes(1);
+      expect(unlisten).not.toHaveBeenCalled();
+    });
+
+    it('relistens after a bar-hosted pick whose button was released outside the window', () => {
+      const { controller, relisten } = makeHarness({ barHosted: true });
+
+      pressCell(controller, { row: 2, col: 3 });
+      document.dispatchEvent(new MouseEvent('mousemove', { buttons: 0 }));
+
+      expect(relisten).toHaveBeenCalledTimes(1);
+    });
+
+    it('relistens after an in-cell pick released inside the grid', () => {
+      const { controller, relisten, unlisten, rootElement } = makeHarness({ barHosted: false });
+      const cell = document.createElement('td');
+
+      rootElement.append(cell);
+      document.body.append(rootElement);
+      pressCell(controller, { row: 2, col: 3 });
+      releaseOver(controller, cell);
+
+      expect(relisten).toHaveBeenCalledTimes(1);
+      expect(unlisten).not.toHaveBeenCalled();
+    });
+  });
+
   it('emits a cell pick when press and release land on the same cell', () => {
     const { controller, adapterStub } = makeHarness();
 
@@ -630,6 +736,31 @@ describe('CellPickController.onDocMouseUp', () => {
       append: false,
     });
     expect(adapterStub.emitCellPick).not.toHaveBeenCalled();
+  });
+
+  it('emits a range pick grown over the merged cells it touches, and previews the grown range', () => {
+    const { controller, adapterStub } = makeHarness();
+    const grown = { start: { sheet: '', row: 0, col: 0 }, end: { sheet: '', row: 3, col: 4 } };
+
+    adapterStub.expandRangeOverMerges.mockImplementation(() => grown);
+    pressCell(controller, { row: 3, col: 4 });
+    hoverCell(controller, { row: 1, col: 2 });
+
+    expect(adapterStub.highlightRange).toHaveBeenLastCalledWith(grown, EPHEMERAL_COLOR);
+
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitRangePick).toHaveBeenCalledWith({ ref: grown, append: false });
+  });
+
+  it('does not grow a single-cell pick over a merge', () => {
+    const { controller, adapterStub } = makeHarness();
+
+    pressCell(controller, { row: 3, col: 4 });
+    controller.onDocMouseUp();
+
+    expect(adapterStub.expandRangeOverMerges).not.toHaveBeenCalled();
+    expect(adapterStub.emitCellPick).toHaveBeenCalledTimes(1);
   });
 
   it('emits an append=true cell pick when the mousedown held ctrl', () => {
@@ -1021,6 +1152,56 @@ describe('CellPickController.reset', () => {
     expect(adapterStub.emitCellPick).not.toHaveBeenCalled();
     expect(adapterStub.emitRangePick).not.toHaveBeenCalled();
   });
+
+  it('keeps claiming the hovers of a drag it cancelled until the button is released', () => {
+    // Escape closes the edit mid-drag. The grid saw the press as its own, so a hover it is handed
+    // would extend a native range selection from the edited cell.
+    const { controller: dragging, adapterStub } = makeHarness();
+
+    pressCell(dragging, { row: 2, col: 3 });
+    dragging.reset();
+
+    const during = new MouseEvent('mouseover', { cancelable: true });
+    const flags = hoverCell(dragging, { row: 4, col: 4 }, makeFlags(), during);
+
+    expect(flags).toEqual({ row: true, column: true, cell: true });
+    expect(isImmediatePropagationStopped(during)).toBe(true);
+
+    document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+
+    const after = new MouseEvent('mouseover', { cancelable: true });
+
+    hoverCell(dragging, { row: 4, col: 4 }, makeFlags(), after);
+
+    expect(isImmediatePropagationStopped(after)).toBe(false);
+    expect(adapterStub.emitRangePick).not.toHaveBeenCalled();
+  });
+
+  it('releases a cancelled drag on a buttonless mousemove', () => {
+    const { controller } = makeHarness();
+
+    pressCell(controller, { row: 2, col: 3 });
+    controller.reset();
+    document.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, buttons: 0 }));
+
+    const after = new MouseEvent('mouseover', { cancelable: true });
+
+    hoverCell(controller, { row: 4, col: 4 }, makeFlags(), after);
+
+    expect(isImmediatePropagationStopped(after)).toBe(false);
+  });
+
+  it('claims nothing after a reset with no drag in progress', () => {
+    const { controller } = makeHarness({ refSelectionActive: false });
+
+    controller.reset();
+
+    const after = new MouseEvent('mouseover', { cancelable: true });
+    const flags = hoverCell(controller, { row: 4, col: 4 }, makeFlags(), after);
+
+    expect(flags).toEqual({ row: false, column: false, cell: false });
+    expect(isImmediatePropagationStopped(after)).toBe(false);
+  });
 });
 
 /**
@@ -1216,6 +1397,55 @@ describe('CellPickController press filter', () => {
     expect(adapterStub.emitCellPick).toHaveBeenCalledTimes(1);
     expect(controller.isHeaderPickActive()).toBe(false);
   });
+
+  it('cancels the touchend of a tap pick, so the browser fires no compatibility mousedown', () => {
+    const { controller } = makeHarness();
+
+    controller.onBeforeMouseDown(makeTapPress(), { row: 1, col: 1 }, undefined, makeFlags());
+
+    expect(dispatchTouchEnd().defaultPrevented).toBe(true);
+    // One-shot: the next tap's touchend is left alone.
+    expect(dispatchTouchEnd().defaultPrevented).toBe(false);
+  });
+
+  it('cancels the touchend of a header tap pick', () => {
+    const { controller, adapterStub } = makeHarness();
+
+    controller.onBeforeMouseDown(makeTapPress(), { row: -1, col: 1 }, undefined, makeFlags());
+
+    expect(adapterStub.emitHeaderPick).toHaveBeenCalledTimes(1);
+    expect(dispatchTouchEnd().defaultPrevented).toBe(true);
+  });
+
+  it('stops cancelling once the task that dispatched the tap is over', () => {
+    const { controller, deferTask } = makeHarness();
+
+    controller.onBeforeMouseDown(makeTapPress(), { row: 1, col: 1 }, undefined, makeFlags());
+    expect(deferTask).toHaveBeenCalledTimes(1);
+    deferTask.mock.calls[0][0]();
+
+    expect(dispatchTouchEnd().defaultPrevented).toBe(false);
+  });
+
+  it('stops cancelling on reset', () => {
+    const { controller } = makeHarness();
+
+    controller.onBeforeMouseDown(makeTapPress(), { row: 1, col: 1 }, undefined, makeFlags());
+    controller.reset();
+
+    expect(dispatchTouchEnd().defaultPrevented).toBe(false);
+  });
+
+  it('leaves no header click swallow armed after a header tap pick, which fires no click', () => {
+    const { controller } = makeHarness();
+    const th = document.createElement('th');
+
+    document.body.appendChild(th);
+    controller.onBeforeMouseDown(makeTapPress(), { row: -1, col: 1 }, undefined, makeFlags());
+
+    // A click without a mousedown before it (a keyboard activation) must reach the header.
+    expect(clickOn(th).defaultPrevented).toBe(false);
+  });
 });
 
 describe('CellPickController nested-header group picks', () => {
@@ -1250,6 +1480,34 @@ describe('CellPickController nested-header group picks', () => {
     });
   });
 });
+
+/**
+ * Builds the press Walkontable hands the hook for a tap: the `touchstart` it deferred to `touchend`.
+ *
+ * @returns {MouseEvent} The touch press, typed the way the hook receives it.
+ */
+function makeTapPress(): MouseEvent {
+  const touch = { identifier: 3, clientX: 10, clientY: 10 } as unknown as Touch;
+  const event = new Event('touchstart', { cancelable: true }) as unknown as MouseEvent;
+
+  Object.defineProperty(event, 'changedTouches', { value: [touch] });
+  Object.defineProperty(event, 'touches', { value: [touch] });
+
+  return event;
+}
+
+/**
+ * Dispatches a cancelable `touchend` on the document and returns it.
+ *
+ * @returns {Event} The dispatched event.
+ */
+function dispatchTouchEnd(): Event {
+  const event = new Event('touchend', { bubbles: true, cancelable: true });
+
+  document.dispatchEvent(event);
+
+  return event;
+}
 
 /**
  * Simulates a grid mousedown whose target is the given element.
@@ -1398,5 +1656,95 @@ describe('CellPickController picks on a checkbox cell', () => {
     controller.onDocMouseUp();
 
     expect(clickOn(label).defaultPrevented).toBe(false);
+  });
+});
+
+describe('CellPickController Shift+press', () => {
+  it('extends the pending pick to a range anchored where that pick was', () => {
+    const { controller, adapterStub } = makeHarness();
+
+    pressCell(controller, { row: 0, col: 1 });
+    controller.onDocMouseUp();
+    pressCell(controller, { row: 2, col: 3 }, { shiftKey: true });
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitRangePick).toHaveBeenCalledWith({
+      ref: { start: { sheet: '', row: 0, col: 1 }, end: { sheet: '', row: 2, col: 3 } },
+      append: false,
+    });
+  });
+
+  it('keeps the first anchor over repeated Shift+presses, as the grid does', () => {
+    const { controller, adapterStub } = makeHarness();
+
+    pressCell(controller, { row: 2, col: 2 });
+    controller.onDocMouseUp();
+    pressCell(controller, { row: 4, col: 4 }, { shiftKey: true });
+    controller.onDocMouseUp();
+    pressCell(controller, { row: 0, col: 0 }, { shiftKey: true });
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitRangePick).toHaveBeenLastCalledWith({
+      ref: { start: { sheet: '', row: 0, col: 0 }, end: { sheet: '', row: 2, col: 2 } },
+      append: false,
+    });
+  });
+
+  it('picks the pressed cell when the editor changed since the last pick', () => {
+    const { controller, adapterStub, editorState } = makeHarness();
+
+    pressCell(controller, { row: 0, col: 1 });
+    controller.onDocMouseUp();
+    editorState.text += '+';
+    editorState.caret += 1;
+    pressCell(controller, { row: 2, col: 3 }, { shiftKey: true });
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitRangePick).not.toHaveBeenCalled();
+    expect(adapterStub.emitCellPick).toHaveBeenLastCalledWith({ ref: { sheet: '', row: 2, col: 3 }, append: false });
+  });
+
+  it('picks the pressed cell when the caret moved since the last pick', () => {
+    const { controller, adapterStub, editorState } = makeHarness();
+
+    pressCell(controller, { row: 0, col: 1 });
+    controller.onDocMouseUp();
+    editorState.caret -= 1;
+    pressCell(controller, { row: 2, col: 3 }, { shiftKey: true });
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitRangePick).not.toHaveBeenCalled();
+  });
+
+  it('picks the pressed cell when no pick was made in the edit', () => {
+    const { controller, adapterStub } = makeHarness();
+
+    pressCell(controller, { row: 2, col: 3 }, { shiftKey: true });
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitCellPick).toHaveBeenCalledWith({ ref: { sheet: '', row: 2, col: 3 }, append: false });
+  });
+
+  it('forgets the pending pick on reset (the edit closed)', () => {
+    const { controller, adapterStub } = makeHarness();
+
+    pressCell(controller, { row: 0, col: 1 });
+    controller.onDocMouseUp();
+    controller.reset();
+    pressCell(controller, { row: 2, col: 3 }, { shiftKey: true });
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitRangePick).not.toHaveBeenCalled();
+  });
+
+  it('appends, without extending, when Ctrl/Cmd is held too', () => {
+    const { controller, adapterStub } = makeHarness();
+
+    pressCell(controller, { row: 0, col: 1 });
+    controller.onDocMouseUp();
+    pressCell(controller, { row: 2, col: 3 }, { shiftKey: true, ctrlKey: true });
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitCellPick).toHaveBeenLastCalledWith({ ref: { sheet: '', row: 2, col: 3 }, append: true });
   });
 });

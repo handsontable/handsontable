@@ -74,6 +74,34 @@ test.describe('formulaBuilder with a hidden row', { tag: [THEMES_TAG, BUNDLES_TA
   });
 });
 
+test.describe('formulaBuilder with pagination', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  test('an address on another page is refused, and a later bar commit still writes the selected cell', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle, 'pagination');
+
+    await grid.goto();
+    await grid.selectCellByApi(0, 0);
+    await expect(grid.addressInput).toHaveValue('A1');
+
+    await grid.addressInput.click();
+    await grid.addressInput.fill('A5');
+    await page.keyboard.press('Enter');
+
+    await expect(page.locator('.hfe-live-region')).toContainText('Cannot select A5');
+    await expect(grid.addressInput).toHaveValue('A1');
+    expect(await grid.selectedLast()).toEqual([0, 0, 0, 0]);
+    expect(await page.evaluate(() => (window as unknown as { hot: { getPlugin(n: string): { getPaginationData(): { currentPage: number } } } })
+      .hot.getPlugin('pagination').getPaginationData().currentPage)).toBe(1);
+
+    await grid.barFormulaArea.click();
+    await page.keyboard.press('ControlOrMeta+A');
+    await page.keyboard.type('=999');
+    await page.keyboard.press('Enter');
+
+    expect(await grid.sourceAt(0, 0)).toBe('=999');
+    expect(await grid.sourceAt(4, 0)).toBe('');
+  });
+});
+
 test.describe('formulaBuilder with frozen panes', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
   let grid: FormulaBuilderPage;
 
@@ -304,6 +332,58 @@ test.describe('formulaBuilder theme switch during an edit', { tag: [THEMES_TAG, 
     expect(await grid.sourceAt(3, 0)).toBe('=A1*10');
     expect(await grid.dataAt(3, 0)).toBe(10);
     await expect(grid.formulaBar).toHaveClass(new RegExp(`\\b${target}\\b`));
+  });
+
+  test('draws the cells in the new theme while the edit stays open', async({ page }) => {
+    await grid.selectCellByApi(3, 0);
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toHaveValue('=');
+
+    const target = await grid.switchToAnotherTheme();
+
+    expect(await grid.editorOpened()).toBe(true);
+    // The rebuild waits for the edit to close, so nothing but core's own wrapper class may theme the
+    // cells: a theme class on the root element would keep them in the old theme.
+    expect(await grid.cellTokensOffTheme(0, 0)).toEqual([]);
+    expect(await grid.rootElementThemeClasses()).toEqual([]);
+
+    await page.keyboard.press('Escape');
+    await expect(grid.formulaBar).toHaveClass(new RegExp(`\\b${target}\\b`));
+    expect(await grid.cellTokensOffTheme(0, 0)).toEqual([]);
+    expect(await grid.rootElementThemeClasses()).toEqual([]);
+  });
+});
+
+// `colorScheme` and `density` are per-instance overrides the theme engine scopes to the root wrapper
+// (the `theme-engine` variant passes the theme as its config object; a container class skips the engine).
+// The plugin hands its theme class to the builder, and a copy of that class on the root element would
+// match the theme's own token block below the wrapper and win over both overrides.
+test.describe('formulaBuilder with the colorScheme and density options', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
+  let grid: FormulaBuilderPage;
+
+  test.beforeEach(async({ page, theme, bundle }) => {
+    grid = new FormulaBuilderPage(page, theme, bundle, 'theme-engine');
+    await grid.goto();
+  });
+
+  test('colorScheme reaches the grid root and its cells', async() => {
+    await grid.updateGridSettings({ colorScheme: 'dark' });
+
+    await expect.poll(() => grid.rootColorScheme()).toBe('dark');
+    expect(await grid.cellTokensOffTheme(0, 0)).toEqual([]);
+
+    await grid.updateGridSettings({ colorScheme: 'light' });
+
+    await expect.poll(() => grid.rootColorScheme()).toBe('light');
+  });
+
+  test('density changes the cell height', async() => {
+    const before = (await grid.cell(0, 0).boundingBox())!.height;
+
+    await grid.updateGridSettings({ density: 'comfortable' });
+
+    await expect.poll(async() => (await grid.cell(0, 0).boundingBox())!.height).toBeGreaterThan(before);
+    expect(await grid.cellTokensOffTheme(0, 0)).toEqual([]);
   });
 });
 

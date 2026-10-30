@@ -192,7 +192,7 @@ The plugin stays disabled and logs a warning to the console in two cases:
 
 A `showFormulaBar` value that is not a boolean, or a `direction` other than `'ltr'` or `'rtl'`, logs a warning too. The plugin then enables without the formula bar, or with the grid's layout direction.
 
-Cells that use `editor: 'formula'` stay editable while the plugin is disabled: they open a plain text editor instead of the formula editor.
+Cells that use `editor: 'formula'` stay editable while the plugin is disabled: they open a bare textarea instead of the formula editor. The textarea is not the grid's text editor: <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd> adds no line break, and <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**Enter**</kbd> commits the edit.
 
 When you call [`updateSettings()`](@/api/core.md#updatesettings) with `formulaBuilder` values that match the current ones, the plugin keeps its state, including an open edit. This is what happens when React or Angular passes a new `formulaBuilder` object with the same values on each render.
 
@@ -200,10 +200,10 @@ When you call [`updateSettings()`](@/api/core.md#updatesettings) with `formulaBu
 
 Set `showFormulaBar: true` to render an Excel-style formula bar above the grid. The bar consists of:
 
-- An **address box** that shows the active cell address. Type an address such as `B3`, or a range such as `B2:D4`, and press <kbd>**Enter**</kbd> to jump to it.
-- A **formula area** that shows the source text of the active cell. Click it to edit the cell from the bar. Press <kbd>**F6**</kbd> during a bar edit to move the shared editor between the bar and the cell.
+- An **address box** that shows the address of the active cell, or the range when you select more than one cell. Over a cell that does not use the formula editor, the address box stays blank. Type an address such as `B3`, or a range such as `B2:D4`, and press <kbd>**Enter**</kbd> to jump to it.
+- A **formula area** that shows the source text of the active cell. Over a cell that does not use the formula editor, the formula area stays blank. Click it to edit the cell from the bar. Press <kbd>**F6**</kbd> during a bar edit to move the shared editor between the bar and the cell.
 
-The bar renders in the grid's top layout slot, so it takes part in the [layout](@/api/options.md#layout) ordering with other top-slot UI.
+The bar renders in the grid's top layout slot, so it takes part in the [layout](@/api/options.md#layout) ordering with other top-slot UI. Its layout key is `formulaBuilder`.
 
 ## Reference picking
 
@@ -310,7 +310,7 @@ If a `container` selector matches no element when the plugin builds the formula 
 
 ## Error indicators and read-only cells
 
-Cells whose formula evaluates to an error - such as `#DIV/0!` or `#REF!` - get an error indicator, and selecting or hovering the cell shows a popup with the error message. Press <kbd>**Escape**</kbd> to close the popup. With [`ariaTags`](@/api/options.md#ariatags) enabled, the cell is marked as invalid and carries the error message as its accessible description, so a screen reader reads the message when you move to the cell.
+Cells whose formula evaluates to an error - such as `#DIV/0!` or `#REF!` - get an error indicator, and selecting or hovering the cell shows a popup with the error message. Selecting the cell with the keyboard shows the popup only with [`ariaTags`](@/api/options.md#ariatags) enabled, because with `ariaTags: false` the grid puts no `tabindex` on cells and the browser focus does not move onto them. Press <kbd>**Escape**</kbd> to close the popup. With [`ariaTags`](@/api/options.md#ariatags) enabled, the cell is marked as invalid and carries the error message as its accessible description, so a screen reader reads the message when you move to the cell.
 
 Read-only cells stay protected: the formula bar and the inline editor refuse to start an edit on a cell with [`readOnly: true`](@/api/options.md#readonly).
 
@@ -368,14 +368,14 @@ formulaBuilder: {
 
 ## Reference colors and highlights
 
-The colors of the references and of their highlights, the look of the highlights in the grid, and the color of error text, come from CSS custom properties:
+The colors of the references and of their highlights, the look of the highlights in the grid, and the color of the error popup and cell marker, come from CSS custom properties:
 
 | Property | Default | Description |
 |---|---|---|
 | `--hfe-ref-1` to `--hfe-ref-8` | package palette | The reference colors, in the order references appear in a formula. |
 | `--hfe-reference-border-width` | `1px` | The border width of a reference highlight in the grid. |
 | `--hfe-selection-opacity` | `0.08` | The opacity of the tint that fills the referenced cells. |
-| `--hfe-color-error` | theme error color | The color of error text. |
+| `--hfe-color-error` | theme error color | The color of the error popup's title and accent border, and of the error triangle in the corner of an error cell. It does not recolor the error text in cells or in the editor. |
 
 The default reference colors clear a 4.5:1 contrast ratio on the editor's light and dark backgrounds, and no two of them look alike. The theme declares `--hfe-color-error` on the grid's root element, the formula bar (`.hfe-formula-bar`), the popup portal (`.hfe-popup-portal`), and the two popups you can dock into your own container (`.hfe-suggestions`, `.hfe-fn-help`). Declare your values on the same elements, because the popup portal and a docked popup are not inside the grid's container. The theme's declarations have no specificity, so yours take precedence whatever order the stylesheets load in:
 
@@ -392,7 +392,7 @@ The default reference colors clear a 4.5:1 contrast ratio on the editor's light 
 }
 ```
 
-Keep the contrast of each color at 4.5:1 or more against the editor background, because the colors are used for text. The plugin reads the border width when it draws the first highlight and keeps that value until the theme changes or the plugin is enabled again - an [`updateSettings()`](@/api/core.md#updatesettings) call that changes a `formulaBuilder` or `formulas` value. Highlights drawn before the change keep their width until they are drawn again. So declare it in a stylesheet rather than changing it while the grid is open.
+Keep the contrast of each color at 4.5:1 or more against the editor background, because the colors are used for text. The plugin reads the border width when it draws the first highlight and keeps that value until the theme changes or the plugin is enabled again - an [`updateSettings()`](@/api/core.md#updatesettings) call that changes a `formulaBuilder` value. A change of the `formulas` value does not re-read it. Highlights drawn before the change keep their width until they are drawn again. So declare it in a stylesheet rather than changing it while the grid is open.
 
 ## Language
 
@@ -413,7 +413,7 @@ The formula editor handles these keys while you edit a cell, either in place or 
 | <kbd>**Escape**</kbd> | <kbd>**Escape**</kbd> | Close the open popup. With no popup open, leave point mode, or cancel the edit. The selection stays as it is. |
 | <kbd>**↑**</kbd> / <kbd>**↓**</kbd> | <kbd>**↑**</kbd> / <kbd>**↓**</kbd> | With the autocomplete popup open, move through the suggestions. |
 | Arrow keys | Arrow keys | In a value you started by typing (not a formula with a reference valid at the caret), commit the edit and move the selection, as in the grid's other editors. |
-| <kbd>**F2**</kbd> or <kbd>**Ctrl**</kbd>+<kbd>**E**</kbd> | <kbd>**F2**</kbd> or <kbd>⌘</kbd>+<kbd>**E**</kbd> | Switch point mode on or off. |
+| <kbd>**F2**</kbd> or <kbd>**Ctrl**</kbd>+<kbd>**E**</kbd> | <kbd>**F2**</kbd> or <kbd>⌃</kbd>/<kbd>⌘</kbd>+<kbd>**E**</kbd> | Switch point mode on or off. |
 | <kbd>**F4**</kbd> | <kbd>**F4**</kbd> | Cycle the reference at the caret between relative and absolute forms. |
 | <kbd>**F6**</kbd> / <kbd>**Shift**</kbd>+<kbd>**F6**</kbd> | <kbd>**F6**</kbd> / <kbd>⇧</kbd>+<kbd>**F6**</kbd> | While you edit a cell, with the formula bar enabled, move the editor between the formula bar and the cell. With the function help popup open, move the focus into it. |
 
@@ -421,7 +421,7 @@ With the formula bar enabled, these keys work outside the formula editor:
 
 | Windows | macOS | Action |
 |---|---|---|
-| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | <kbd>⇧</kbd>+<kbd>**Tab**</kbd> | From the first cell, leave the grid through the formula bar: the focus moves to the formula area, which starts an edit of the cell. Press it again to move to the address box. From any other cell, the key moves the selection to the previous cell. |
+| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | <kbd>⇧</kbd>+<kbd>**Tab**</kbd> | From the first column, the key leaves the grid into the formula bar, which starts an edit of the cell you left. Press it again to move to the address box. From any other column, the key moves the selection to the previous cell. |
 | <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | In the address box, go to the address or range you typed, such as `B3` or `B2:D4`. |
 | <kbd>**Escape**</kbd> | <kbd>**Escape**</kbd> | In the address box, put back the address of the active cell. |
 

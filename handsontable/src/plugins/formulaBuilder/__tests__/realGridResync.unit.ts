@@ -1,8 +1,12 @@
 import { HyperFormula } from 'hyperformula';
 import Handsontable from '../../../base';
+import deDE from '../../../i18n/languages/de-DE';
+import { registerLanguageDictionary } from '../../../i18n/registry';
 import { registerPlugin } from '../../registry';
 import { Formulas } from '../../formulas';
 import { UndoRedo } from '../../undoRedo';
+import { ColumnSorting } from '../../columnSorting';
+import { ManualRowMove } from '../../manualRowMove';
 import { FormulaBuilder } from '../formulaBuilder';
 import { getFormulaBuilderAdapter } from '../handsontableAdapter';
 
@@ -33,6 +37,9 @@ describe('FormulaBuilder state that has to follow the grid', () => {
     registerPlugin(Formulas);
     registerPlugin(FormulaBuilder);
     registerPlugin(UndoRedo);
+    registerPlugin(ColumnSorting);
+    registerPlugin(ManualRowMove);
+    registerLanguageDictionary(deDE);
   });
 
   beforeEach(() => {
@@ -100,6 +107,84 @@ describe('FormulaBuilder state that has to follow the grid', () => {
       grid.setDataAtCell(0, 0, '');
 
       expect(barText()).toBe('');
+    });
+
+    it('shows the new content after a source data write to the selected cell', () => {
+      const grid = createGrid({ data: [[1, 2, '=A1+B1'], [4, 5, 6]] });
+
+      grid.selectCell(0, 2);
+
+      expect(barText()).toBe('=A1+B1');
+
+      grid.setSourceDataAtCell(0, 2, '=A1*B1');
+
+      expect(barText()).toBe('=A1*B1');
+    });
+
+    it('shows the new cell after the data was replaced with the selection kept', () => {
+      const grid = createGrid({ data: [[1, 2, '=A1+B1'], [4, 5, 6]] });
+
+      grid.selectCell(0, 2);
+      grid.updateSettings({ data: [[1, 2, '=A1-B1'], [4, 5, 6]] });
+
+      expect(barText()).toBe('=A1-B1');
+    });
+
+    it('shows the rewritten formula after a row was inserted above the selected cell', () => {
+      const grid = createGrid({ data: [[1, 2], ['=A1+B1', 5]] });
+
+      grid.selectCell(1, 0);
+      expect(barText()).toBe('=A1+B1');
+
+      grid.alter('insert_row_above', 0);
+
+      expect(grid.getSelectedRangeLast()?.highlight.row).toBe(2);
+      expect(barText()).toBe('=A2+B2');
+    });
+
+    it('shows the cell under the highlight after a sort', () => {
+      const grid = createGrid({ data: [['=1+1', 1], ['=2+2', 2], ['=3+3', 3]], columnSorting: true });
+
+      grid.selectCell(0, 0);
+      expect(barText()).toBe('=1+1');
+
+      const sorting = grid.getPlugin('columnSorting') as unknown as { sort(config: object): void };
+
+      sorting.sort({ column: 1, sortOrder: 'desc' });
+
+      expect(grid.getDataAtCell(0, 1)).toBe(3);
+      expect(barText()).toBe('=3+3');
+    });
+
+    it('shows the cell under the highlight after a row move', () => {
+      const grid = createGrid({ data: [['=1+1', 1], ['=2+2', 2], ['=3+3', 3]], manualRowMove: true });
+
+      grid.selectCell(0, 0);
+      expect(barText()).toBe('=1+1');
+
+      (grid.getPlugin('manualRowMove') as unknown as { moveRow(from: number, to: number): void }).moveRow(0, 2);
+      grid.render();
+
+      expect(grid.getSourceDataAtCell(grid.toPhysicalRow(0), 0)).toBe('=2+2');
+      expect(barText()).toBe('=2+2');
+    });
+
+    it('keeps the text typed in the address box through a settings or same-data update', () => {
+      const data = [[1, 2, '=A1+B1'], [4, 5, 6]];
+      const grid = createGrid({ data });
+
+      grid.selectCell(0, 2);
+
+      const input = container.querySelector('.hfe-formula-bar__address-input') as HTMLInputElement;
+
+      input.value = 'B2';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+
+      grid.updateSettings({});
+      expect(input.value).toBe('B2');
+
+      grid.updateSettings({ data: data.map(row => row.slice()) });
+      expect(input.value).toBe('B2');
     });
 
     it('shows the restored content after an undo', () => {
@@ -250,6 +335,56 @@ describe('FormulaBuilder state that has to follow the grid', () => {
     });
   });
 
+  describe('the language', () => {
+    /**
+     * Builds a grid whose builder constructions are counted.
+     *
+     * @returns {object} The grid and the construction counter.
+     */
+    function createCountingGrid() {
+      const counter = { builds: 0 };
+
+      class CountingFormulaBuilder extends core.FormulaBuilder {
+        constructor(options: ConstructorParameters<typeof core.FormulaBuilder>[0]) {
+          super(options);
+          counter.builds += 1;
+        }
+      }
+
+      const grid = createGrid({ formulaBuilder: { builder: { ...core, FormulaBuilder: CountingFormulaBuilder } } });
+
+      return { grid, counter };
+    }
+
+    it('does not rebuild the builder when `updateSettings` re-sends the language in use', () => {
+      const { grid, counter } = createCountingGrid();
+
+      grid.updateSettings({ language: 'en-US' });
+      grid.updateSettings({ language: 'en-US' });
+
+      expect(counter.builds).toBe(1);
+    });
+
+    it('rebuilds the builder once when the language changes', () => {
+      const { grid, counter } = createCountingGrid();
+
+      grid.updateSettings({ language: 'de-DE' });
+      grid.updateSettings({ language: 'de-DE' });
+
+      expect(counter.builds).toBe(2);
+    });
+
+    it('keeps the builder, and does not throw, for a language code that is not registered', () => {
+      const error = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+      const { grid, counter } = createCountingGrid();
+
+      expect(() => grid.updateSettings({ language: 'xx-XX' })).not.toThrow();
+      expect(error).toHaveBeenCalled();
+      expect(counter.builds).toBe(1);
+      expect(grid.getPlugin('formulaBuilder').enabled).toBe(true);
+    });
+  });
+
   describe('the reference border width', () => {
     it('is read again after a theme change', () => {
       const grid = createGrid({ theme: 'ht-theme-main' });
@@ -259,6 +394,59 @@ describe('FormulaBuilder state that has to follow the grid', () => {
       grid.useTheme('ht-theme-horizon');
 
       expect(reset).toHaveBeenCalled();
+    });
+  });
+
+  describe('a rebuild while the address box has the focus', () => {
+    /**
+     * Returns the formula bar's address input.
+     *
+     * @returns {HTMLInputElement}
+     */
+    function addressInput(): HTMLInputElement {
+      const input = document.querySelector<HTMLInputElement>('.hfe-formula-bar__address-input');
+
+      if (!input) {
+        throw new Error('no address input');
+      }
+
+      return input;
+    }
+
+    it.each([
+      ['a theme change', { theme: 'ht-theme-main' }, (grid: Handsontable) => grid.useTheme('ht-theme-horizon')],
+      ['a language change', {}, (grid: Handsontable) => grid.updateSettings({ language: 'de-DE' })],
+      ['a direction change', {}, (grid: Handsontable) => grid.updateSettings({
+        formulaBuilder: { builder: core, showFormulaBar: true, direction: 'rtl' },
+      } as Handsontable.GridSettings)],
+    ])('keeps the focus and the typed text after %s', (_, settings, change) => {
+      const grid = createGrid(settings);
+
+      grid.selectCell(0, 0);
+
+      const before = addressInput();
+
+      before.focus();
+      before.value = 'B3';
+      before.setSelectionRange(1, 1);
+      change(grid);
+
+      const after = addressInput();
+
+      expect(after).not.toBe(before);
+      expect(document.activeElement).toBe(after);
+      expect(after.value).toBe('B3');
+      expect(after.selectionStart).toBe(1);
+    });
+
+    it('leaves the focus alone when the address box did not have it', () => {
+      const grid = createGrid({ theme: 'ht-theme-main' });
+
+      grid.selectCell(0, 0);
+      grid.useTheme('ht-theme-horizon');
+
+      expect(document.activeElement).not.toBe(addressInput());
+      expect(addressInput().value).toBe('A1');
     });
   });
 });

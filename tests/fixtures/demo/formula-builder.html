@@ -37,12 +37,17 @@
       rtl: 'rtl',
       frozen: 'frozen',
       'hidden-row': 'hidden-row',
+      filtered: 'filtered',
+      pagination: 'pagination',
       'read-only': 'read-only',
       'split-scroll': 'split-scroll',
+      'window-scroll': 'window-scroll',
       shadow: 'shadow',
       menus: 'menus',
       dropdown: 'dropdown',
       checkboxes: 'checkboxes',
+      hyperlink: 'hyperlink',
+      'theme-engine': 'theme-engine',
     })[htParams.get('variant') ?? 'default'];
     if (!window.htVariant) {
       throw new Error('Unknown ?variant= value: ' + JSON.stringify(htParams.get('variant')));
@@ -121,18 +126,48 @@
       rtl: { settings: { layoutDirection: 'rtl' } },
       frozen: { settings: { fixedRowsTop: 1, fixedColumnsStart: 1 } },
       'hidden-row': { settings: { hiddenRows: { rows: [1] } } },
+      // Physical row 0 is trimmed: the visual row of a cell is one less than its HyperFormula row.
+      filtered: { settings: { trimRows: [0] } },
+      // Pages of three rows: the rows of the other pages are hidden through a hiding map.
+      pagination: { settings: { pagination: { pageSize: 3 } } },
       'read-only': { settings: { cell: [{ row: 0, col: 2, readOnly: true }] } },
       // A pixel width and no height: the window scrolls the rows, the grid's holder the columns.
       'split-scroll': { settings: { width: 300, colWidths: 200 } },
+      // No `width` and an `auto` height over 60 rows: the window scrolls both axes, and the page is
+      // taller than the viewport.
+      'window-scroll': {
+        settings: {
+          height: 'auto',
+          data: Array.from({ length: 60 }, (_, row) => [row + 1, (row + 1) * 2, '']),
+        },
+      },
       // The grid inside an open shadow root, with its stylesheets linked inside it: document
       // stylesheets do not reach the shadow tree, so every style the plugin generates must too.
       shadow: { shadow: true },
+      // The theme as the registered config object instead of a container class: the theme engine
+      // drives the grid, which the `colorScheme` and `density` options need.
+      'theme-engine': { themeEngine: true, settings: { theme: Handsontable.themes.getTheme(window.htTheme) } },
       // A menu that is open when a pick starts must close, as on any other press in the grid.
       menus: { settings: { dropdownMenu: true } },
       // Column B as a dropdown: a pick on its arrow must not open the cell's own editor.
       dropdown: {
         settings: {
           columns: [{}, { type: 'dropdown', source: [2, 4, 6], renderer: testIdDropdownRenderer }, {}],
+        },
+      },
+      // Cells that render a link: a `HYPERLINK` formula (the text renderer draws its anchor) and a URL
+      // AutoLink linkifies. A pick on either must not follow the link.
+      hyperlink: {
+        settings: {
+          autoLink: true,
+          formulas: { engine: HyperFormula, hyperlinks: true },
+          data: [
+            [1, '=HYPERLINK("https://example.com/formula", "formula link")', 'https://example.com/auto'],
+            [3, 4, '=A2+B2'],
+            ['', '', ''],
+            ['', '', ''],
+            ['', '', ''],
+          ],
         },
       },
       // Controls other plugins act on from a press: a "check all" header checkbox on column D, checkbox
@@ -191,6 +226,11 @@
 
       if (variant.shadow) {
         await mountInShadowRoot();
+      }
+
+      if (variant.themeEngine) {
+        // A container class would make core skip the theme engine.
+        container.className = '';
       }
 
       window.FormulaBuilderModule = FormulaBuilderModule;

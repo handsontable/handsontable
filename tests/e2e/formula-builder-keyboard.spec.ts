@@ -13,6 +13,16 @@ test.describe('formulaBuilder keyboard flow', { tag: [THEMES_TAG, BUNDLES_TAG, C
     await grid.goto();
   });
 
+  test('Shift+Tab from the first column opens the bar on the cell that was left, not on A1', async({ page }) => {
+    await grid.selectCellByApi(2, 0);
+    await page.keyboard.press('Shift+Tab');
+    await expect(grid.editorInput).toBeFocused();
+    await expect(grid.addressInput).toHaveValue('A3');
+    await page.keyboard.type('99');
+    await page.keyboard.press('Enter');
+    await expect.poll(() => grid.dataAt(0, 0)).toBe(1);
+  });
+
   test('Shift+Tab walks out of the grid through the formula bar, and Tab walks back in', async({ page }) => {
     await grid.selectCellByApi(0, 0);
 
@@ -126,6 +136,19 @@ test.describe('formulaBuilder keyboard flow', { tag: [THEMES_TAG, BUNDLES_TAG, C
     await expect(grid.cell(4, 0)).toBeFocused();
   });
 
+  test('Ctrl/Cmd+Enter twice on single cells writes two values and adds no selection layer', async({ page }) => {
+    await grid.selectCellByApi(3, 0);
+    await page.keyboard.type('10');
+    await page.keyboard.press('ControlOrMeta+Enter');
+    await expect.poll(() => grid.editorOpened()).toBe(false);
+    expect(await grid.selectedAll()).toEqual([[4, 0, 4, 0]]);
+
+    await page.keyboard.type('20');
+    await page.keyboard.press('ControlOrMeta+Enter');
+    await expect.poll(() => grid.sourceAt(3, 0)).toBe('10');
+    await expect.poll(() => grid.sourceAt(4, 0)).toBe('20');
+  });
+
   test('Tab on the last cell commits and drops the selection, as in the text editor', async({ page }) => {
     // The grid's Tab pair drops the selection when Tab has nowhere to move it, so the next Tab
     // leaves the grid. The last cell of the last row has no cell after it (`autoWrapRow` is off).
@@ -137,6 +160,49 @@ test.describe('formulaBuilder keyboard flow', { tag: [THEMES_TAG, BUNDLES_TAG, C
     await expect.poll(() => grid.editorOpened()).toBe(false);
     expect(await grid.sourceAt(4, 2)).toBe('8');
     await expect.poll(() => grid.selectedAll()).toBeNull();
+  });
+
+  test('the keyboard works after a commit from the formula bar', async({ page }) => {
+    await grid.selectCellByApi(1, 0);
+    await grid.openBarEditor();
+    await page.keyboard.type('=A1');
+    await page.keyboard.press('Enter');
+    await expect.poll(() => grid.isListening()).toBe(true);
+    // The bar's Enter moves the selection down one row, as the grid's own editors do.
+    expect(await grid.selectedLast()).toEqual([2, 0, 2, 0]);
+    // Row 2 has a row below it, so only a listening grid can move the selection to row 3.
+    await page.keyboard.press('ArrowDown');
+    expect(await grid.selectedLast()).toEqual([3, 0, 3, 0]);
+  });
+
+  test('the bar editor shows a focus ring and the in-cell editor does not get one', async({ page }) => {
+    await grid.selectCellByApi(1, 0);
+    await grid.openBarEditor();
+    await expect(grid.editorInput).toBeFocused();
+    const ring = await grid.barEditor.evaluate((el) => {
+      const style = getComputedStyle(el);
+
+      return { style: style.outlineStyle, width: parseFloat(style.outlineWidth) };
+    });
+
+    expect(ring.style).not.toBe('none');
+    expect(ring.width).toBeGreaterThan(0);
+
+    // The in-cell editor keeps the cell editor border and no outline.
+    await page.keyboard.press('Escape');
+    await grid.selectCellByApi(1, 0);
+    await page.keyboard.press('Enter');
+    await expect(grid.inlineEditor).toBeVisible();
+    await expect(grid.inlineEditor).toHaveClass(/hfe-editor--focused/);
+    expect(await grid.inlineEditor.evaluate(el => getComputedStyle(el).outlineStyle)).toBe('none');
+  });
+
+  test('the keyboard works after a Ctrl/Cmd+Enter commit from the formula bar', async({ page }) => {
+    await grid.selectCellByApi(3, 0);
+    await grid.openBarEditor();
+    await page.keyboard.type('7');
+    await page.keyboard.press(process.platform === 'darwin' ? 'Meta+Enter' : 'Control+Enter');
+    await expect.poll(() => grid.isListening()).toBe(true);
   });
 });
 
@@ -304,6 +370,27 @@ test.describe('formulaBuilder quick edit', { tag: [THEMES_TAG, BUNDLES_TAG, CROS
     expect(await grid.editorOpened()).toBe(false);
     expect(await grid.sourceAt(3, 0)).toBe('abc');
   });
+
+  // The package's point-mode toggle (F2, mod+E) emits no event: the shim watches the handled keydown
+  // and enters full edit mode, so the arrows move the caret instead of committing the quick edit.
+  for (const [title, chord] of [['F2', 'F2'], ['Ctrl/Cmd+E', 'ControlOrMeta+e']]) {
+    test(`${title} in a typed edit switches the arrows to caret movement`, async({ page, theme, bundle }) => {
+      const grid = new FormulaBuilderPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectCellByApi(3, 1);
+      await page.keyboard.type('=');
+      await page.keyboard.press('ArrowUp');
+      await expect(grid.editorInput).toHaveValue('=B3');
+      await page.keyboard.press(chord);
+      await page.keyboard.press('ArrowLeft');
+
+      expect(await grid.editorOpened()).toBe(true);
+      await expect(grid.editorInput).toHaveValue('=B3');
+      expect(await grid.selectedLast()).toEqual([3, 1, 3, 1]);
+      await page.keyboard.press('Escape');
+    });
+  }
 
   test('an arrow key moves the caret in a value opened with Enter', async({ page, theme, bundle }) => {
     const grid = new FormulaBuilderPage(page, theme, bundle);

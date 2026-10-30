@@ -13,6 +13,7 @@ export interface PluginIndexMapperStub {
   getVisualFromRenderableIndex: (renderableIndex: number) => number | null;
   getRenderableIndexesLength: () => number;
   getNumberOfIndexes: () => number;
+  isHidden: (physicalIndex: number) => boolean;
 }
 
 /**
@@ -63,6 +64,8 @@ export interface PluginHotStubShape {
   getCoords: () => unknown;
   countRows: () => number;
   countCols: () => number;
+  toPhysicalRow: (visualRow: number) => number;
+  toPhysicalColumn: (visualColumn: number) => number;
   render: jest.Mock;
   getFirstRenderedVisibleRow: () => number;
   getLastRenderedVisibleRow: () => number;
@@ -81,6 +84,7 @@ export interface PluginHotStubShape {
   getCellMetaTransient: jest.Mock<Record<string, unknown>, [number, number]>;
   selectCell: jest.Mock;
   selectCells: jest.Mock;
+  listen: jest.Mock;
   getLayoutManager: () => { register: jest.Mock; unregister: jest.Mock };
   getCurrentThemeName: () => string | null;
   isRtl: () => boolean;
@@ -134,6 +138,7 @@ export function makeIndexMapperStub(length = 0): PluginIndexMapperStub {
     getVisualFromRenderableIndex: renderableIndex => renderableIndex,
     getRenderableIndexesLength: () => length,
     getNumberOfIndexes: () => length,
+    isHidden: () => false,
   };
 }
 
@@ -190,6 +195,8 @@ export function makePluginHotStub(
     getCoords: () => null,
     countRows: () => 0,
     countCols: () => 0,
+    toPhysicalRow: visualRow => visualRow,
+    toPhysicalColumn: visualColumn => visualColumn,
     render: jest.fn(),
     getFirstRenderedVisibleRow: () => 0,
     getLastRenderedVisibleRow: () => 0,
@@ -208,6 +215,7 @@ export function makePluginHotStub(
     getCellMetaTransient: jest.fn(() => ({})),
     selectCell: jest.fn(),
     selectCells: jest.fn(),
+    listen: jest.fn(),
     ...makeGridSelectionApiStub(),
     getLayoutManager: () => layoutManager,
     getCurrentThemeName: () => null,
