@@ -1015,12 +1015,14 @@ deletes its entry. Locally: `npm --prefix tests run test:a11y`, after `build:umd
 `build:styles.min` and `build:themes-css.min` (an unstyled grid gives wrong contrast results;
 `README.md`).
 
-- **The scan includes the grid's root container and that grid's own portal, nothing else.**
-  `.include(root)` plus the instance's `rootPortalElement`, the `body`-level element the core
-  appends for menus and the comment editor. The spec marks that element with a data attribute
-  before the scan (`markPortal()`) and includes the attribute, never the `.ht-portal` class:
-  every instance appends a portal, so on a page with several grids the class would scan the other
-  grids' menus too and key their findings to this page. The fixture page's own buttons, inputs
+- **The scan includes the grid's root container, that grid's own portal, and a popup portal its state
+  marks, nothing else.** `.include(root)` plus the instance's `rootPortalElement`, the `body`-level
+  element the core appends for menus and the comment editor. The spec marks that element with a data
+  attribute before the scan (`markPortal()` in `a11y/harness.ts`) and includes the attribute, never the
+  `.ht-portal` class: every instance appends a portal, so on a page with several grids the class would
+  scan the other grids' menus too and key their findings to this page. A state whose popups mount in a
+  portal of their own marks it with the same attribute: the formula states mark hyperformula-ui's
+  `.hfe-popup-portal` (`markFormulaPopups()` in the harness). The fixture page's own buttons, inputs
   and headings are not the product, and a finding on them would be baselined forever. A page
   whose fixture holds several grids names its `root` (`nested-headers`, `read-only`); the default
   is `[data-testid="grid"]`.
@@ -1156,7 +1158,7 @@ sorts a run into six sets, each with a one-line remedy:
 Add an entry to `a11y/pages.mjs`: `id` (a kebab-case slug that names the surface, not the
 fixture; one fixture can be scanned in several states), `fixture` (under `fixtures/demo/`),
 `query` (appended after the theme), `root` (when the fixture has several grids), `cell` (where a
-menu or an editor opens; `[1, 1]` when absent), `state` (one of `STATES` in the spec: add a new
+menu or an editor opens; `[1, 1]` when absent), `state` (one of `STATES` in `a11y/harness.ts`: add a new
 opener there for a new kind of surface, keyboard first), `device` (a Playwright device to emulate,
 for a surface that exists on a phone only) and `surface` (what it covers). Keep
 `{ id: '…'` at the start of the entry's first line: the check run annotates a new finding on that
@@ -1292,6 +1294,110 @@ validate exit 1; block mode exits 1 on a new finding and 0 when every finding is
 tooling problem prints as one escaped annotation. Every workflow command the a11y job prints goes
 through `workflowCommand()` in `lib/a11y-baseline.mjs`: a problem quotes the baseline, and an
 unescaped newline or `%` would cut the one line that explains a red job.
+
+## A11y: the checks beyond axe
+
+The axe scan reads the accessibility tree against axe's rules. It never presses a key, measures a
+focus ring, zooms the page, turns on forced colors or drags anything, and the published conformance
+report still marks criteria "Not Evaluated" for want of that evidence. The checks beyond axe measure
+those. Each check is one Playwright project of a config whose reporter is `reporters/a11y-checks.ts`,
+named by its id, and each test of a check measures one target: a page of the catalog
+(`a11y/pages.mjs`) in a theme and a state, or a variant the check makes of it (dark, right to left, a
+phone). What a check measured lands in one evidence document per check, which the conformance report
+generator cites per criterion.
+
+- **Report-only, and the rule is one constant.** `EVIDENCE_MODE` in `lib/a11y-evidence.mjs` is
+  `report`, and `lib/__tests__/a11y-evidence.test.mjs` pins it. A finding is a row in the job summary,
+  an annotation and a `neutral` `A11y / <check> report` check run; `buildEvidenceCheckRun()` never
+  returns `failure`, so no check turns a pull request red. A test fails for tooling only (a fixture that
+  does not load, a state the keyboard did not reach), and the document records that test as a target
+  with `status: 'error'` and its error as a problem. So does a test that did not run (the run stopped
+  before it, or a failure before it skipped it: a `beforeAll` hook, an earlier test of a serial group, the
+  worker) and one whose part is not readable
+  JSON or does not validate: only a test that asked to be skipped is left out, so `summary.byCriterion`
+  never reads a partial run as a full one. A test that measured only on a retry is flagged
+  (`flaky`) and listed as a problem too. Flakiness is a finding against the check, not the product: fix
+  the measurement, never quarantine it. A check that starts gating changes the constant, its test and
+  this section together, after its findings have proven precise.
+- **One document per check, in one shape.** `test-results/a11y-checks/<check>.json`
+  (`mergeEvidence()`): `check`, `title`, `mode`, `criteria` (what the check evidences, from
+  `EVIDENCE_CHECKS`), `run` (the commit the run tested, the head on a pull request and never the merge
+  commit, so `null` on a pull request run without `A11Y_HEAD_SHA`; the ref, the run URL, the browser
+  and its version, the Handsontable version and build date),
+  `targets` (every target, measured or not, with the criteria it evaluated and the path of its detail
+  file), `findings`, `problems` and `summary`. A target is its page, theme and variant: a check that
+  measures one page two ways (a scheme, a state, an interaction) gives each its own variant, because a
+  second part for the same target is dropped as a problem (it would count the target twice and
+  overwrite its detail file). A finding has a stable `id` (check, kind, page, theme, variant, and the
+  element, the step or both, so two runs give the same finding the same id; two findings that share one
+  are a problem), `kind`, `criteria`,
+  `severity`, its target (`page`, `theme`, `state`, `variant`, `url`), a `selector` or a `step` or
+  both, `measured` (flat values), optionally `expected`, and a one-sentence `reason`. What a target
+  measured in full (every focus stop, every ratio) goes to `<check>/<page>--<theme>[--<variant>].json`
+  beside the document, so the document stays small enough to read. `summary.byCriterion` counts, per
+  criterion, the targets that evaluated it and the findings against it: a criterion evaluated on many
+  targets with no finding is the evidence of a pass, and that count is what the generator cites.
+  `schema` (`EVIDENCE_SCHEMA`) changes when a field is removed or renamed; `validateEvidence()` is what
+  a reader can rely on, and it checks every field the summary and the check run read, so a document
+  that validates never crashes the report script before it posts.
+- **Criteria are WCAG 2.2 ids from one table.** `WCAG_CRITERIA` lists every 2.2 success criterion with
+  its name and level, without the obsolete 4.1.1, and a finding naming any other id is refused. A
+  finding may name a criterion outside its check's list when the measurement shows it (a focus stop
+  with no name is a 4.1.2 fact a keyboard walk sees); it is then counted under that criterion with
+  no target evaluating it, because the check does not evaluate it everywhere.
+- **Severity is axe's scale plus one.** `critical`, `serious`, `moderate`, `minor`, as axe rates
+  impact, so a finding reads the same in every report, and `advisory` for a difference to review that
+  is not a failure on its own (a tab-order golden that moved). An advisory finding still makes the
+  check run neutral: someone has to look at it.
+- **The same pages, states and guards as the scan.** Every check opens its targets through
+  `a11y/harness.ts`: `openTarget()` loads the fixture and turns an uncaught page error, a missing theme
+  stylesheet or a constructor throw into a red test, and `reachState()` reaches the catalog state with
+  the keyboard (`STATES`) and marks the grid's own portal (`PORTAL`). A check therefore measures the DOM
+  a keyboard user reaches, the one the axe scan reads. A state a check needs and the catalog lacks gets
+  an opener in `STATES`, keyboard first. A state whose popups mount in a portal of their own marks that
+  one too (see the scan's own rule above), and it comes after the grid's in `body`, so a check reads the
+  marked portals with `querySelectorAll()`: a `querySelector()` sees the grid's portal only and measures
+  the page without the popup the state opened. The `test()` calls stay in the spec, never in a helper: a test
+  declared from a helper reports the helper as its location.
+- **A test declares its target first and attaches its part last.** `declareTarget()` (`a11y/evidence.ts`)
+  writes the target as a test annotation before anything can fail, so the reporter can name a test that
+  failed before it measured; `attachEvidence()` attaches the part, with `readEnvironment()`'s browser
+  and build. It takes the page errors `openTarget()` collected (`opened.pageErrors`) and fails the test
+  when the page threw while it was measured, so a page that crashed halfway is a target not measured,
+  never a clean one. A test that loads the page more than once owns that list: it passes one list to
+  every `openTarget()` as `pageErrors` and drains it in place, and the page writes to it from before the
+  navigation, so the test holds the live list even when a load throws. An empty `findings` list is
+  evidence too: the target was measured and nothing was found.
+- **Findings on the product are recorded, never fixed in the check's change.** A check lands with what
+  it finds listed in its pull request; the product tasks are filed apart, and a fix later clears the
+  finding. A finding the check gets wrong is fixed in the check.
+- **Every report value is escaped.** The summary and the check run render values from the fixture DOM
+  (selectors, accessible names), so `renderEvidenceSummary()` escapes them with the scan's own
+  `escapeMarkdownText()` and links a URL only when the scan's `isSafeLink()` passes it (both from
+  `lib/a11y-baseline.mjs`: one copy to fix), and puts a selector in a `<code>` element.
+- **Every check gets its check run.** A summary lists twenty tooling problems at most and is cut to the
+  Checks API's limit (a longer one is refused with a 422), and the report script posts each check run
+  on its own: one the API refuses does not cost the checks after it theirs; the step still ends red.
+
+The merge, the validation, the summary and the check run are pure (`lib/a11y-evidence.mjs`, tested
+in `lib/__tests__/a11y-evidence.test.mjs` through the root `test:tooling`). The reporter
+(`reporters/a11y-checks.ts`) reads the last attempt of every test of each project that ran and writes
+the documents, the detail files and a `summary.md`; it never changes the run's status.
+`e2e/a11y-checks-reporter.spec.ts` (no browser, a few seconds) proves it on synthetic projects: the
+last attempt read, a failed test recorded as an error target, a retried one flagged, a detail written
+to its own file. `scripts/a11y-evidence-report.mjs` reads the documents and writes the job summary,
+or posts one check run per check with `--check-run` (`--dry-run` prints the payloads); a check the job
+ran that left no document (`A11Y_CHECKS`) gets a neutral tooling check run instead of none.
+
+### Adding a check
+
+Add its entry to `EVIDENCE_CHECKS` in `lib/a11y-evidence.mjs` (a title and the criteria it
+evidences), and a Playwright project named by the entry's key, in a config whose reporter is
+`reporters/a11y-checks.ts`, with one test per target that calls `declareTarget()` first and
+`attachEvidence()` last. Write the measurer or matcher as a pure function with a tooling test that is red
+before the function exists. Prove the check on the product with a planted defect (a fixture hook that
+removes a focus ring or a name), shown in the check run of its pull request, then reverted. Document
+its rules here, its line in `handsontable/.ai/TESTING.md` and its job in `.ai/CI.md`.
 
 ## Screen readers: the NVDA and VoiceOver lanes
 

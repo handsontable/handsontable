@@ -1,8 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { test, expect, devices, type Page, type TestInfo } from '@playwright/test';
+import { test, type Page, type TestInfo } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { awaitBundle } from '../fixtures/bundle';
 import {
   A11Y_THEMES,
   findingsFromScan,
@@ -12,15 +11,18 @@ import {
   type NodeBox,
   type ScanMark,
 } from '../lib/a11y-baseline.mjs';
-import { A11Y_PAGES, type A11yPage, type A11yState } from './pages.mjs';
+import { A11Y_PAGES } from './pages.mjs';
+import { PORTAL, emulate, openTarget, reachState } from './harness';
 
 /**
  * The axe scan: every page of `pages.mjs` on every theme, through `@axe-core/playwright`,
  * against the WCAG 2.2 A and AA rule set (the level the published Accessibility Conformance
- * Report claims). The scan includes the grid's root container and that grid's own portal (its
- * `rootPortalElement`, where menus and the comment editor render) and nothing else on the fixture
+ * Report claims). The scan includes the grid's root container, that grid's own portal (its
+ * `rootPortalElement`, where menus and the comment editor render), and a popup portal the page's state
+ * marks (the formula states mark hyperformula-ui's `.hfe-popup-portal`), and nothing else on the fixture
  * page: the fixture's own buttons and text, and any other grid on it, are not under test. A page
- * that throws, or whose theme stylesheet did not load, is a red test before anything is scanned.
+ * that throws, or whose theme stylesheet did not load, is a red test before anything is scanned
+ * (`openTarget()` and `reachState()` in `harness.ts`, which the checks beyond axe share).
  *
  * A test here never fails on a violation. It writes the raw axe result to
  * `test-results/a11y/scans/<page>--<theme>.json` (the CI artifact) and attaches it. Every
@@ -38,20 +40,6 @@ import { A11Y_PAGES, type A11yPage, type A11yState } from './pages.mjs';
  */
 
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
-const DEFAULT_ROOT = '[data-testid="grid"]';
-const DEFAULT_CELL: [number, number] = [1, 1];
-// The scanned grid's own portal, marked before the scan (`markPortal()`). Every instance appends a
-// `.ht-portal` to `body`, so on a page with several grids the class alone would scan the portals of
-// the grids that are not under test too, and their findings would be keyed to this page.
-const PORTAL_MARK = 'data-a11y-scan-portal';
-const PORTAL = `[${PORTAL_MARK}]`;
-// A token every theme stylesheet defines (`--ht-line-height`, which the core also probes): an empty
-// value on the grid means the theme's `.min.css` did not load, and contrast and target size would
-// then be measured on an unstyled grid.
-const THEME_TOKEN = '--ht-line-height';
-// How many ArrowDown presses may be needed to reach a menu item; the default context menu has
-// fewer than twenty rows, separators included.
-const MENU_WALK_LIMIT = 30;
 // The outline colors of the screenshot marks, matching the report's numbered legend: new is the
 // critical red, grown a dark orange, a pictured known issue a dark blue. Each carries its number in
 // white, so each clears 4.5:1 against white.
@@ -70,247 +58,14 @@ const BASELINE_ENTRIES: BaselineEntry[] = (() => {
 })();
 const PICTURED = representativeScans(BASELINE_ENTRIES);
 
-type GridWindow = Window & {
-  htBuildError?: string;
-  htServer?: { release(prefix: string): void };
-  startRequest?: (row: number, col: number) => number;
-};
-
-// The Handsontable instance that owns a root container is read inside the page through the
-// `__hotInstance` the core stamps on its root wrapper, so no page needs to say which global holds
-// its grid (the fixtures differ: `hot`, `hots['menus-grid']`, `hotStyled`, or none). The lookup is
-// spelled out in each `evaluate` callback: Playwright serializes the callback's source, so a helper
-// defined here is not visible in the page.
-type HotInstance = {
-  selectCell(row: number, col: number): boolean;
-  selectCells(ranges: number[][]): boolean;
-  getActiveEditor(): { isOpened(): boolean; htEditor?: { countRenderedRows(): number } } | undefined;
-  rootPortalElement: HTMLElement;
-};
-type RootWrapper = HTMLElement & { __hotInstance?: HotInstance };
-
-/**
- * Selects a cell through the API, so the keyboard reaches the grid.
- *
- * @param page The page.
- * @param root The root container selector.
- * @param cell The cell.
- */
-async function selectCell(page: Page, root: string, cell: [number, number]): Promise<void> {
-  const selected = await page.evaluate(([selector, [row, col]]) => {
-    const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as RootWrapper | null)?.__hotInstance;
-
-    return hot ? hot.selectCell(row, col) : null;
-  }, [root, cell] as const);
-
-  expect(selected, `selectCell(${cell}) on ${root}`).toBe(true);
-}
-
-/**
- * Walks the highlighted item of an open menu down to the item with the given label, with
- * ArrowDown, and fails loudly when the walk never reaches it.
- *
- * @param page The page.
- * @param menu The menu's selector.
- * @param label The item's label.
- */
-async function highlightMenuItem(page: Page, menu: string, label: string): Promise<void> {
-  const highlighted = page.locator(`${menu} .ht_master .htCore tbody td.current`);
-
-  for (let press = 0; press < MENU_WALK_LIMIT; press++) {
-    await page.keyboard.press('ArrowDown');
-    await expect(highlighted).toHaveCount(1);
-    if ((await highlighted.innerText()).trim() === label) {
-      return;
-    }
-  }
-
-  throw new Error(`ArrowDown never reached the ${JSON.stringify(label)} item of ${menu}`);
-}
-
-/**
- * Waits for the active editor to be open, and for a list editor to have drawn its choices.
- *
- * @param page The page.
- * @param root The root container selector.
- */
-async function expectEditorOpen(page: Page, root: string): Promise<void> {
-  await expect.poll(() => page.evaluate((selector) => {
-    const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as RootWrapper | null)?.__hotInstance;
-    const editor = hot?.getActiveEditor();
-
-    if (!editor?.isOpened()) {
-      return 'closed';
-    }
-    if (editor.htEditor && editor.htEditor.countRenderedRows() <= 0) {
-      return 'list not drawn';
-    }
-
-    return 'open';
-  }, root), { message: 'the editor opened from the keyboard' }).toBe('open');
-}
-
-/**
- * Opens the formula editor on a cell from the keyboard and replaces its text with typed text.
- *
- * @param page The page.
- * @param entry The scanned page entry.
- * @param root The grid container selector.
- * @param cell The cell to edit.
- * @param text The text to type.
- */
-async function typeIntoFormulaEditor(
-  page: Page, entry: A11yPage, root: string, cell: [number, number], text: string,
-): Promise<void> {
-  await STATES.editor(page, entry, root, cell);
-  await page.keyboard.press('ControlOrMeta+a');
-  await page.keyboard.type(text);
-}
-
-/**
- * Marks the popup portal hyperformula-ui mounts in the document body, so the scan includes it.
- *
- * @param page The page.
- */
-async function markFormulaPopups(page: Page): Promise<void> {
-  const marked = await page.evaluate((attribute) => {
-    const portals = document.querySelectorAll('.hfe-popup-portal');
-
-    portals.forEach(portal => portal.setAttribute(attribute, ''));
-
-    return portals.length;
-  }, PORTAL_MARK);
-
-  expect(marked, 'the formula editor mounted its popup portal').toBeGreaterThan(0);
-}
-
-/**
- * The state each page is scanned in. Every opener drives the real keyboard where the surface
- * has a shortcut, so the scanned DOM is the one a keyboard user reaches.
- */
-const STATES: Record<A11yState, (page: Page, entry: A11yPage, root: string, cell: [number, number]) => Promise<void>> = {
-  none: async() => {},
-  'context-menu': async(page, _entry, root, cell) => {
-    await selectCell(page, root, cell);
-    await page.keyboard.press('Shift+F10');
-    await expect(page.locator('.htContextMenu .ht_master .htCore tbody td').first()).toBeVisible();
-  },
-  'context-menu-submenu': async(page, entry, root, cell) => {
-    await STATES['context-menu'](page, entry, root, cell);
-    await highlightMenuItem(page, '.htContextMenu', 'Alignment');
-    await page.keyboard.press('ArrowRight');
-    await expect(page.locator('.htContextMenuSub_Alignment .ht_master .htCore tbody td').first()).toBeVisible();
-  },
-  'dropdown-menu': async(page, _entry, root, cell) => {
-    await selectCell(page, root, cell);
-    await page.keyboard.press('Shift+Alt+ArrowDown');
-    await expect(page.locator('.htDropdownMenu .ht_master .htCore tbody td').first()).toBeVisible();
-  },
-  editor: async(page, _entry, root, cell) => {
-    await selectCell(page, root, cell);
-    await page.keyboard.press('Enter');
-    await expectEditorOpen(page, root);
-  },
-  comment: async(page, _entry, root, cell) => {
-    // Ctrl+Alt+M on the grid context shows the comment editor and focuses it, which is the state a
-    // keyboard user reaches; `showAtCell()` would only show it.
-    await selectCell(page, root, cell);
-    await page.keyboard.press('Control+Alt+M');
-    await expect(page.locator('.htComments .htCommentTextArea')).toBeFocused();
-  },
-  'data-provider': async(page, _entry, root) => {
-    // The fixture parks every fetch until the test releases it; the grid is empty with the
-    // loading overlay until then, which the `loading` and `empty-data` pages already cover.
-    await page.evaluate(() => (window as GridWindow).htServer?.release('ORD'));
-    await expect(page.locator(`${root} .ht_master .htCore tbody td`).first()).toBeVisible();
-  },
-  // A selection draws what only exists while one is laid: the selection handles, on a desktop grid
-  // that enables them and on a phone, where the core draws them itself.
-  selection: async(page, _entry, root, cell) => {
-    await selectCell(page, root, cell);
-    await expect(page.locator(`${root} .ht_master td.current`)).toBeVisible();
-  },
-  // The desktop selection handles draw only while the pointer is over a selected range, so this
-  // state selects three by three cells from `cell` and hovers the middle one: a pointer-only surface,
-  // which the scan can still check for names and contrast.
-  'selection-hover': async(page, _entry, root, [row, col]) => {
-    const selected = await page.evaluate(([selector, [r, c]]) => {
-      const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as RootWrapper | null)?.__hotInstance;
-
-      return hot ? hot.selectCells([[r, c, r + 2, c + 2]]) : null;
-    }, [root, [row, col]] as const);
-
-    expect(selected, `selectCells from (${row}, ${col}) on ${root}`).toBe(true);
-    await page.locator(`${root} .ht_master`).getByTestId(`cell-${row + 1}-${col + 1}`).hover();
-    await expect(page.locator(`${root} .ht_master .wtSelectionHandle:visible`)).toHaveCount(4);
-  },
-  // hyperformula-ui mounts its popups in a portal of its own in the document body, outside the grid's
-  // root and its `rootPortalElement`, so the state marks that portal for the scan too.
-  'formula-suggestions': async(page, entry, root, cell) => {
-    await typeIntoFormulaEditor(page, entry, root, cell, '=SU');
-    await expect(page.locator('.hfe-suggestions [role="option"]').first()).toBeVisible();
-    await markFormulaPopups(page);
-  },
-  'formula-function-help': async(page, entry, root, cell) => {
-    await typeIntoFormulaEditor(page, entry, root, cell, '=SUM(');
-    await expect(page.locator('.hfe-fn-help')).toBeVisible();
-    await markFormulaPopups(page);
-  },
-  // The fixture fills the cell from a promise it never settles, so the cell stays pending: the
-  // indicator, the pending message and `aria-busy` are what the scan sees.
-  'async-pending': async(page, _entry, root, [row, col]) => {
-    await page.evaluate(([r, c]) => (window as GridWindow).startRequest?.(r, c), [row, col] as const);
-    await expect(page.locator(`${root} .ht_master td.htAsyncPending .htAsyncIndicator`)).toBeVisible();
-  },
-};
-
-/**
- * The context options that emulate a device, without its browser: every page runs on the project's
- * Chromium, and a describe block may not switch the browser.
- *
- * @param name The device, as Playwright's `devices` names it.
- * @returns The options for `test.use()`.
- */
-function emulate(name: string) {
-  const { defaultBrowserType: _browser, ...options } = devices[name];
-
-  return options;
-}
-
 for (const theme of A11Y_THEMES) {
   for (const entry of A11Y_PAGES) {
     const scan = async({ page }: { page: Page }, testInfo: TestInfo) => {
-      const root = entry.root ?? DEFAULT_ROOT;
-      const cell = entry.cell ?? DEFAULT_CELL;
-      const url = `/tests/fixtures/demo/${entry.fixture}?theme=${theme}${entry.query ? `&${entry.query}` : ''}`;
       const started = Date.now();
+      const opened = await openTarget(page, entry, theme);
+      const { root, url } = opened;
 
-      // Any uncaught error on the page is a red test, not a scan of a half-built grid: about half the
-      // fixtures report no constructor error of their own (`htBuildError`, `data-init-error`), and a
-      // plugin that throws after the root wrapper is in the DOM leaves a page that still looks ready.
-      const pageErrors: string[] = [];
-
-      page.on('pageerror', error => pageErrors.push(String(error.stack ?? error)));
-      await page.goto(url);
-      await awaitBundle(page);
-      await expect(page.locator(root).locator('.ht-root-wrapper')).toBeVisible();
-      expect(await page.evaluate(([selector, token]) => {
-        const wrapper = document.querySelector(selector)?.querySelector('.ht-root-wrapper');
-
-        return wrapper ? getComputedStyle(wrapper).getPropertyValue(token).trim() : '';
-      }, [root, THEME_TOKEN] as const), `the ${theme} theme stylesheet styles the grid (${THEME_TOKEN} is set); `
-        + 'build it with `npm --prefix handsontable run build:themes-css.min`').not.toBe('');
-
-      // A constructor throw is a red test with its cause, never a scan of a blank container:
-      // the fixtures report it either way, as the contract in tests/AGENTS.md says.
-      const buildError = await page.evaluate((selector) => (window as GridWindow).htBuildError
-        ?? document.querySelector(selector)?.getAttribute('data-init-error') ?? null, root);
-
-      expect(buildError, 'the fixture built its grid').toBeNull();
-
-      await STATES[entry.state](page, entry, root, cell);
-      expect(pageErrors, 'the page threw no error while it loaded and while the state was reached').toEqual([]);
-      await markPortal(page, root);
+      await reachState(page, entry, opened);
 
       // `options()` replaces the option object and `withTags()` adds to it, so the options go first.
       // `ancestry` adds each node's full DOM path, which locates it where axe's short selector is ambiguous.
@@ -471,23 +226,4 @@ async function outlineMarks(page: Page, marks: ScanMark[], root: string): Promis
 
     return { x: Math.round(left), y: Math.round(top), width: Math.max(1, Math.round(right - left)), height: Math.max(1, Math.round(bottom - top)) };
   }, [marks, MARK_COLORS, root, PORTAL] as const);
-}
-
-/**
- * Marks the scanned grid's own portal (`rootPortalElement`), so the scan includes it and no other
- * grid's portal.
- *
- * @param page The page.
- * @param root The root container selector.
- */
-async function markPortal(page: Page, root: string): Promise<void> {
-  const marked = await page.evaluate(([selector, attribute]) => {
-    const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as RootWrapper | null)?.__hotInstance;
-
-    hot?.rootPortalElement?.setAttribute(attribute, '');
-
-    return !!hot?.rootPortalElement;
-  }, [root, PORTAL_MARK] as const);
-
-  expect(marked, `the grid under ${root} has a portal to scan`).toBe(true);
 }
