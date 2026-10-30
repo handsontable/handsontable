@@ -179,38 +179,29 @@ export class OverflowController {
 
   /**
    * Returns the width the strip would have with the paging section hidden: its width plus the
-   * paging section's, less what the bar's row already overflows by, and never less than the
-   * strip's own `min-width`. The plain sum holds only while the row fits. A bar narrower than its
-   * sections (a slot that follows a one-column table) holds the strip at its `min-width`, so the sum
-   * overstated the room, the arrows hid, the strip grew, and they came back on the next frame.
+   * paging section's, less what the bar already sticks out of its container by, and never less than
+   * the strip's own `min-width`. The plain sum holds only while the bar fits its container. On a slot
+   * that follows a narrow table the bar grows to its content (`min-width: min-content`), so it shrinks
+   * by the arrows' width when they hide and the strip stays at its `min-width`: the sum overstated the
+   * room, the arrows hid, and they came back on the next frame.
    *
    * @returns {number}
    */
   #roomWithoutPaging(): number {
     const strip = this.#strip;
-    const row = strip.parentElement;
     const view = strip.ownerDocument.defaultView;
     const pagingWidth = this.#pagingSection.hidden ? 0 : this.#pagingSection.offsetWidth;
+    const bar = strip.closest('.ht-sheets-bar');
+    const container = bar?.parentElement;
 
-    if (!row || !view) {
+    if (!view || !bar || !container) {
       return strip.clientWidth + pagingWidth;
     }
 
-    const rowStyle = view.getComputedStyle(row);
-    const rowWidth = row.clientWidth - (Number.parseFloat(rowStyle.paddingInlineStart) || 0)
-      - (Number.parseFloat(rowStyle.paddingInlineEnd) || 0);
     const minWidth = Number.parseFloat(view.getComputedStyle(strip).minWidth) || 0;
-    let contentWidth = 0;
+    const excess = bar.getBoundingClientRect().width - container.clientWidth;
 
-    Array.from(row.children).forEach((child) => {
-      if (child instanceof view.HTMLElement && !child.hidden) {
-        contentWidth += child.offsetWidth;
-      }
-    });
-
-    const rowOverflow = contentWidth - rowWidth;
-
-    return Math.max(minWidth, strip.clientWidth + pagingWidth - (rowOverflow > SCROLL_END_TOLERANCE ? rowOverflow : 0));
+    return Math.max(minWidth, strip.clientWidth + pagingWidth - (excess > SCROLL_END_TOLERANCE ? excess : 0));
   }
 
   /**
