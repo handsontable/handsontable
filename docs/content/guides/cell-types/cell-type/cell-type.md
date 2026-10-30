@@ -807,20 +807,9 @@ The example below shows some of the built-in cell types, i.e. combinations of ce
 
 It's worth to mention that values such as `''` (empty string), `null` and `undefined` are considered empty values. Cells with empty values are displayed in a similar way for most of the data types (see below).
 
-The value of a cleared cell depends on how the cell was cleared:
+The value of a cleared cell depends on how you cleared it. For every case, see [Empty cell values](@/guides/getting-started/binding-to-data/binding-to-data.md#empty-cell-values).
 
-| How the cell was cleared                                                                                                      | Resulting value      |
-| ----------------------------------------------------------------------------------------------------------------------------- | -------------------- |
-| Pressing <kbd>Delete</kbd> or <kbd>Backspace</kbd> while the cell editor is closed, or calling [`clear()`](@/api/core.md#clear) | `null`               |
-| Opening the cell editor, erasing the content, and confirming the change                                                       | `''` (empty string)  |
-
-A cell that was never filled in keeps its original value (`null` or `undefined`), so it can differ from a cell that was filled in and then cleared. To store one kind of empty value, normalize it in the [`beforeChange`](@/api/hooks.md#beforechange) hook.
-
-::: tip
-
-Please keep in mind that opening a cell with `undefined` and `null` values results in overwriting the original value with an empty string. Moreover, copying and pasting that values will result in pasting the empty string.
-
-:::
+A cell that you never filled in keeps the value it was loaded with, so it can differ from a cell you filled in and then cleared. To store one kind of empty value for every way of clearing a cell, set the [`emptyValue`](@/api/options.md#emptyvalue) option.
 
 ::: only-for javascript
 
