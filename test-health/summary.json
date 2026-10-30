@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-29T16:36:42.498Z",
+  "generatedAt": "2026-10-30T06:56:08.439Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -2033,7 +2033,7 @@
       "file": "e2e/formulas-object-columns.spec.ts",
       "line": 44,
       "title": "Formulas: fill handle over object rows read through `columns` › fills the value of the source cell when the source column lies past the keys of the first row",
-      "count7": 4,
+      "count7": 2,
       "count30": 4,
       "countAll": 4,
       "runs30": 2,
@@ -2067,7 +2067,7 @@
       "file": "e2e/touch-interactive-cell.spec.ts",
       "line": 40,
       "title": "touch taps on interactive renderer elements › a tap on a file input label runs the input when visual selection is off",
-      "count7": 2,
+      "count7": 0,
       "count30": 4,
       "countAll": 4,
       "runs30": 2,
@@ -2101,7 +2101,7 @@
       "file": "e2e/touch-interactive-cell.spec.ts",
       "line": 97,
       "title": "touch taps on interactive renderer elements › on iOS Chrome, a control still receives the tap when visual selection is off",
-      "count7": 2,
+      "count7": 0,
       "count30": 4,
       "countAll": 4,
       "runs30": 2,
