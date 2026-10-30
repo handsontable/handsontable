@@ -546,23 +546,28 @@ again. Five rules:
   `afterChange` painted the raw formula text until the next render (negative control in the test below).
 - **`#clearRejectedSheet` does not bump the count.** Writing one change back into a sheet the engine
   refused to hold would leave it holding that one cell.
-- **A sheet switch in the window does NOT stop the write-back - the engine follows the grid.** The Core
-  applies the validated change to whatever data the grid holds when validation ends, and after a switch
-  that is the switched-to sheet's. A guard on the sheet id used to skip the write-back there, which left
-  the grid holding the change while the engine did not, so the cell showed its raw formula text. The
-  plugin's invariant is that the engine mirrors the grid, so the set is written into the CURRENT sheet.
-  The switch alone does not move the count (its `loadData()` writes no sheet), so the record also keeps
-  the sheet id it was written under, and a changed id triggers the write-back too. Comparing the count
-  alone skipped a bare switch, and the switched-to sheet never got the change. Pinned by `keeps the
-  engine in step with the grid when the sheet switched while the change was validated` (switch plus a
-  full write) and `writes a change into the switched-to sheet when the switch alone ran while the change
-  was validated` (switch only).
-- **After a switch, the switched-AWAY sheet is put back.** `afterSetDataAtCell` already wrote the change
-  into the sheet the grid showed then, and the Core never applies it there, so one `setDataAtCell()` used
-  to land in both sheets: switching back showed a value the grid data never held. `#restoreSwitchedAwaySheet`
-  writes the change set's OLD values back into the sheet recorded on the set (they are what that sheet
-  held, since the grid's data was that sheet's when the change was made), skipping out-of-bounds changes
-  (never written there) and a sheet removed from the engine. **It restores the cells the first write
+- **A sheet switch in the window drops the change, and the plugin takes its first write back.** Every
+  sheet switch is a `loadData()` (`switchSheet()`, the sheets bar's `_applySettingsAndData()`), and the
+  Core drops a change set that waited for its validators across a load instead of writing it into the
+  loaded rows (`handsontable/AGENTS.md`, "A change waiting for an async validator is dropped"). A dropped
+  set fires neither `beforeChangeRender` nor `afterChange`, so the Core calls the plugin's
+  `#onChangesDropped` through the `@private` `_addDroppedChangesListener()`. It is registered in
+  `enablePlugin()` and removed in `disablePlugin()`. Before the Core dropped such a set, it applied it to
+  the switched-to sheet's data, and this plugin wrote it into that sheet to match; that was writing an edit
+  into a record the user never touched, and it never shipped in a release. `#onBeforeChangeRender` still
+  compares the sheet id as well as the count, for a set that reaches the render after the binding moved
+  without a load. Pinned by `drops the change from both sheets when the sheet switched while the change was
+  validated` (switch plus a full write) and `drops the change from both sheets when the switch alone ran
+  while the change was validated` (switch only).
+- **A dropped set puts the switched-AWAY sheet back.** `afterSetDataAtCell` already wrote the change into
+  the sheet the grid showed then, so without the restore one `setDataAtCell()` stayed in that sheet while
+  its grid data never got it, and a switch back showed it. `#restoreSwitchedAwaySheet` writes the change
+  set's OLD values back into the sheet recorded on the set (they are what that sheet held, since the grid's
+  data was that sheet's when the change was made), skipping out-of-bounds changes (never written there)
+  and a sheet removed from the engine. **Nothing is put back while the grid still shows that sheet**: the
+  load either wrote the loaded data over the whole sheet, and a restore would write the old value over the
+  loaded one, or loaded the grid from that sheet, so the two agree. Pinned by `keeps the loaded values when
+  loadData() on the same sheet drops the change`. **It restores the cells the first write
   RECORDED (`ChangeSetAwaitingApply#writtenCells`: engine address, grid coordinates, old value), never
   a fresh mapping.** The index mapping DOES move on a switch: the switch's `loadData` clears runtime
   trims, so with row 0 trimmed a change to visual row 0 was written to sheet row 1, while a mapping

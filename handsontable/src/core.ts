@@ -498,6 +498,11 @@ export default function Core(
    */
   const filterSettings = (settings: SettingsUpdate) => settingsFilters
     .reduce((payload, filter) => filter(payload), settings);
+  /**
+   * The functions told about a change set that waited for its validators while `loadData()` replaced the
+   * data, and that is therefore never applied (see `_addDroppedChangesListener()`).
+   */
+  const droppedChangesListeners: Array<(changes: CellChange[], source: string | undefined) => void> = [];
   // Guards `init()` so it runs once per instance. Set at the very top of `init()`, before any work, so
   // that a second call is a no-op regardless of how the first one ended (see the `init` method).
   let initialized = false;
@@ -4055,16 +4060,29 @@ export default function Core(
    * validator has answered, including when every change is rejected; when it throws before that (a
    * `beforeValidate` listener that throws), it never calls back and the hold is released here.
    *
+   * The changes address the data the grid held when they were made. When a `loadData()` replaces that
+   * data before the last validator answers, the changes are dropped: written now, they would land in
+   * the loaded rows at the same coordinates, which usually hold other records. The validation hooks
+   * still fire for them, `afterChange` does not. `updateData()` does not count as a replacement,
+   * because the wrappers call it with the same records in a new array, often while an edit is waiting.
+   * The functions `_addDroppedChangesListener()` added are told about a dropped set, in the order they
+   * were added, with the same array the other change hooks received.
+   *
    * @param {Array} changes The processed changes.
    * @param {string} [source] The change source.
    */
   function validateAndApplyChanges(changes: CellChange[], source: string | undefined) {
     const hold = operationScope.hold();
+    const loadGeneration = validationLoadGeneration;
 
     try {
       validateChanges(changes, source, () => {
         try {
-          hold.resume(() => applyChanges(changes, source));
+          if (loadGeneration === validationLoadGeneration) {
+            hold.resume(() => applyChanges(changes, source));
+          } else {
+            droppedChangesListeners.slice().forEach(listener => listener(changes, source));
+          }
         } finally {
           hold.release();
         }
@@ -5165,6 +5183,10 @@ export default function Core(
    *
    * To replace Handsontable's [`data`](@/api/options.md#data) without resetting states, use the [`updateData()`](#updatedata) method.
    *
+   * A change that still waits for an asynchronous [`validator`](@/api/options.md#validator) when you call `loadData()` is dropped:
+   * it isn't written into the new data, and [`afterChange`](@/api/hooks.md#afterchange) doesn't fire for it. An open editor
+   * that waits for that validator closes without saving.
+   *
    * Read more:
    * - [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
    * - [Saving data](@/guides/getting-started/saving-data/saving-data.md)
@@ -5187,6 +5209,11 @@ export default function Core(
    * The body of `loadData()`, run with recording suppressed. It is called directly, not through
    * the instance, so code that wraps or spies on `loadData()` sees each call once.
    *
+   * A load drops every change still waiting for its validator (`validateAndApplyChanges()`), so an
+   * editor waiting for one is closed here: the value it saved will not be written, and its validator's
+   * answer must not reopen it on a record of the loaded data. The first load runs before the editor
+   * manager exists.
+   *
    * @private
    * @param {Array} data The new data.
    * @param {string} source The source of the call.
@@ -5194,6 +5221,7 @@ export default function Core(
   function applyLoadData(data: unknown[][][] | object[], source: string) {
     pendingValidatorAnswers = 0;
     validationLoadGeneration += 1;
+    editorManager?.getActiveEditor()?._endValidationWait();
 
     runWithGridTrackingFitsSuspended(() => replaceData(
       data,
@@ -5732,6 +5760,42 @@ export default function Core(
 
     if (index !== -1) {
       settingsFilters.splice(index, 1);
+    }
+  };
+
+  /**
+   * Adds a function that is told when a change set is dropped: the set waited for its validators while
+   * `loadData()` replaced the data, so it is never applied and fires no `beforeChangeRender` and no
+   * `afterChange` (see `validateAndApplyChanges()`). The function receives the change array the other
+   * change hooks received and the change source. It is for a plugin that acted on a change before
+   * validation and has to take that back: the Formulas plugin writes a change into the engine from
+   * `afterSetDataAtCell`. Adding a function that is already there changes nothing.
+   *
+   * @private
+   * @param {Function} listener The function to add.
+   */
+  this._addDroppedChangesListener = function(
+    listener: (changes: CellChange[], source: string | undefined) => void
+  ) {
+    if (!droppedChangesListeners.includes(listener)) {
+      droppedChangesListeners.push(listener);
+    }
+  };
+
+  /**
+   * Removes a function `_addDroppedChangesListener()` added. Removing one that is not there changes
+   * nothing.
+   *
+   * @private
+   * @param {Function} listener The function to remove.
+   */
+  this._removeDroppedChangesListener = function(
+    listener: (changes: CellChange[], source: string | undefined) => void
+  ) {
+    const index = droppedChangesListeners.indexOf(listener);
+
+    if (index !== -1) {
+      droppedChangesListeners.splice(index, 1);
     }
   };
 

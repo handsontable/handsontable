@@ -11,7 +11,7 @@ import type CellCoords from '../3rdparty/walkontable/src/cell/coords';
 import type CellRange from '../3rdparty/walkontable/src/cell/range';
 import type { Events, GridSettings } from './settings';
 import type { RenderChangeTracker } from './incrementalRender/renderChangeTracker';
-import type { CellProperties, ColumnDataGetterSetterFunction, SettingsUpdate } from '../settings';
+import type { CellChange, CellProperties, ColumnDataGetterSetterFunction, SettingsUpdate } from '../settings';
 import type { default as SelectionManager } from '../selection/selection';
 import type { default as ViewInstance } from '../tableView';
 import type { ShortcutManager } from '../shortcuts/manager';
@@ -342,6 +342,8 @@ export interface HotInstance {
   _replaceInitPassSettings(settings: Record<string, unknown>): Record<string, unknown> | null;
   _addSettingsFilter(filter: (settings: SettingsUpdate) => SettingsUpdate): void;
   _removeSettingsFilter(filter: (settings: SettingsUpdate) => SettingsUpdate): void;
+  _addDroppedChangesListener(listener: (changes: CellChange[], source: string | undefined) => void): void;
+  _removeDroppedChangesListener(listener: (changes: CellChange[], source: string | undefined) => void): void;
 
   // DOM references
   rootElement: HTMLElement;

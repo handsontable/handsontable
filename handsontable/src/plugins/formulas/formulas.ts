@@ -562,10 +562,10 @@ export class Formulas extends BasePlugin {
    * The plugin writes a change into the engine from `afterSetDataAtCell`, before validation, while
    * the Core applies a validated change to the source data only after its validators resolve, in a
    * microtask. A full sheet write in between - an `updateSettings()` in the same task - scans source
-   * data that does not hold the change yet and drops it from the engine, and a sheet switch in
-   * between hands the grid another sheet's data, which the change then lands in;
-   * `#onBeforeChangeRender` writes it back into the current sheet. A `WeakMap`, so a change set that never reaches `beforeChangeRender` holds
-   * nothing alive.
+   * data that does not hold the change yet and drops it from the engine; `#onBeforeChangeRender`
+   * writes it back. A sheet switch in between is a `loadData()`, so the Core drops the set instead of
+   * applying it, and `#onChangesDropped` takes the first write back. A `WeakMap`, so a change set that
+   * never reaches either holds nothing alive.
    *
    * @type {WeakMap<CellChange[], ChangeSetAwaitingApply>}
    */
@@ -1115,6 +1115,7 @@ export class Formulas extends BasePlugin {
     this.addHook('afterSetDataAtCell', this.#onAfterSetDataAtCell);
     this.addHook('afterSetDataAtRowProp', this.#onAfterSetDataAtCell);
     this.addHook('beforeChangeRender', this.#onBeforeChangeRender);
+    this.hot._addDroppedChangesListener(this.#onChangesDropped);
 
     this.addHook('beforeCreateRow', this.#onBeforeCreateRow);
     this.addHook('beforeCreateCol', this.#onBeforeCreateCol);
@@ -1259,6 +1260,7 @@ export class Formulas extends BasePlugin {
     // plugin does), and that edit's render runs this plugin's `afterRenderer`, which would wrap the
     // `HYPERLINK` anchors again after the cleanup below. The engine is still set here too.
     this.#notifyEngineDetach();
+    this.hot._removeDroppedChangesListener(this.#onChangesDropped);
     this.#unregisterToggleFormulasShortcut();
     this.#showFormulasFlag = false;
     this.#unwrapRenderedHyperlinks();
@@ -4478,10 +4480,11 @@ export class Formulas extends BasePlugin {
    * `adjustRowsAndCols`, when a change lies out of bounds). It runs before the render that follows, so
    * the cell never paints its raw formula text. That window
    * is open while the Core validates a change, which it does in a microtask, so an `updateSettings()`
-   * in the same task rebuilds the sheet from source data that does not hold the change yet. After a
-   * sheet switch, the Core applies the change to the data of the sheet the grid shows now, so the
-   * set is written into that sheet - the current `sheetId` - for the engine to hold what the grid
-   * holds. A switch alone writes no sheet, so the sheet id, not the write count, detects it.
+   * in the same task rebuilds the sheet from source data that does not hold the change yet. A sheet
+   * switch loads data, so the Core drops a set that waited across one and this listener never sees it
+   * (`#onChangesDropped` handles it). The sheet id is still compared, so a set that does reach the
+   * render after the binding moved to another sheet is written into the current one, where the grid
+   * holds it.
    *
    * By now the Core has created the rows and columns an out-of-bounds change needed, so the whole set
    * is written in one batch - one engine undo entry for one grid action - and the deferred
@@ -4522,14 +4525,43 @@ export class Formulas extends BasePlugin {
   };
 
   /**
-   * Puts a sheet the grid switched away from back to the values a change set replaced in it. It runs
-   * inside the plugin write of the change set, which paints the grids that read the sheet.
-   *
-   * `afterSetDataAtCell` writes a change into the sheet the grid shows at that moment. When the grid
-   * switches to another sheet before the Core applies the (validated) change, the Core applies it to
-   * the data the grid shows NOW, and `#onBeforeChangeRender` writes it into that sheet. Without this,
-   * one `setDataAtCell()` ended up in both sheets: the switched-away sheet kept a value its grid data
+   * Called by the Core for a change set it dropped: the set waited for its validators while
+   * `loadData()` replaced the data, so it is never applied. `afterSetDataAtCell` already wrote it into
+   * the sheet the grid showed then, so when the grid now shows another sheet, that sheet is put back
+   * to the values the set replaced. Without this, the switched-away sheet kept a value its grid data
    * never received, and showed it on a switch back.
+   *
+   * Nothing is put back while the grid still shows the sheet the set was written into: the load either
+   * wrote the loaded data over the whole sheet (`#sheetWriteCount` moved), or loaded the grid from that
+   * sheet, so the grid and the engine hold the same values.
+   *
+   * @param {Array[]} changes The dropped change array, the one `afterSetDataAtCell` received.
+   */
+  #onChangesDropped = (changes: CellChange[]) => {
+    const awaitingApply = this.#changesAwaitingApply.get(changes);
+
+    if (!awaitingApply) {
+      return;
+    }
+
+    this.#changesAwaitingApply.delete(changes);
+
+    const { sheetId, writtenCells } = awaitingApply;
+
+    if (!this.engine || sheetId === null || sheetId === this.sheetId) {
+      return;
+    }
+
+    this.#writeOwnSheet(this.engine, () => this.#restoreSwitchedAwaySheet(writtenCells, sheetId));
+  };
+
+  /**
+   * Puts a sheet the grid switched away from back to the values a change set replaced in it. It runs
+   * inside a plugin write, which paints the grids that read the sheet.
+   *
+   * `afterSetDataAtCell` writes a change into the sheet the grid shows at that moment, before the Core
+   * validates it. When the grid shows another sheet by the time the set is dropped or applied, the
+   * sheet it was written into must not keep it.
    *
    * The cells come from the record the FIRST write kept (`ChangeSetAwaitingApply#writtenCells`), not
    * from mapping the changes again: by now the grid's indexes describe the switched-to sheet's data -

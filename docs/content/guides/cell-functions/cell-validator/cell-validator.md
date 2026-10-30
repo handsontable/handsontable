@@ -453,6 +453,8 @@ Mind that changes in table are applied after running all validators (both synchr
 
 When you write to the same cell twice while an asynchronous validator is still running, the last write wins. If the validator of the newer write answers first, Handsontable applies the newer value and drops the older one, and the cell keeps the validity of the newer value. The dropped write fires [`beforeChange`](@/api/hooks.md#beforechange) but not [`afterChange`](@/api/hooks.md#afterchange). If the newer write is rejected because [`allowInvalid`](@/api/options.md#allowinvalid) is `false`, the older write still applies.
 
+If you call [`loadData()`](@/api/core.md#loaddata) while an asynchronous validator is still running, Handsontable drops the write: the new data doesn't get the value, and [`afterChange`](@/api/hooks.md#afterchange) doesn't fire for it. The validation hooks still fire. An editor that waits for that validator closes without saving. [`updateData()`](@/api/core.md#updatedata) doesn't drop the write, because it's meant for the same records in a new array, so the value lands at the same row and column of the updated data.
+
 The order holds only among writes that wait on a validator. A [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell) call is not tracked, and neither is a correction that a validator writes late with a `setDataAtCell()` source ending in `Validator`, so an older validated write can still land on top of either.
 
 ### FAQ: Does the invalid CSS class still apply when <code>allowInvalid</code> is <code>true</code>?
