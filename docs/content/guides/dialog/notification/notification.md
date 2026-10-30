@@ -81,6 +81,8 @@ Enable the plugin with [`notification: true`](@/api/options.md#notification), th
 
 :::
 
+A `message` string does not keep line breaks: a `\n` character renders as a space. To show several lines, pass an `HTMLElement` as the `message`.
+
 ## Toolbar actions (inventory-style)
 
 Use separate buttons for save, error recovery, and warnings. Primary and secondary actions on an error toast can call `hideAll()` before showing follow-up feedback.
