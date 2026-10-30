@@ -42,14 +42,15 @@ const THEME = 'main';
  *
  * @param page The page.
  * @param entry The catalog entry.
+ * @param pageErrors The test's page error list, which every load writes to.
  * @returns The opened target and its controls.
  */
-async function fresh(page: Page, entry: A11yPage): Promise<{ opened: OpenedTarget; targets: PointerTarget[] }> {
+async function fresh(page: Page, entry: A11yPage, pageErrors: string[]): Promise<{ opened: OpenedTarget; targets: PointerTarget[] }> {
   // Left on the last control, the pointer would hover the reloaded page (open a submenu or a comment)
   // before its controls are marked.
   await page.mouse.move(0, 0);
 
-  const opened = await openTarget(page, entry, THEME);
+  const opened = await openTarget(page, entry, THEME, { pageErrors });
 
   await reachState(page, entry, opened);
   await releaseParkedFetches(page);
@@ -92,19 +93,17 @@ async function cancellation(page: Page, testInfo: TestInfo, entry: A11yPage) {
 
   declareTarget(testInfo, target);
 
-  const first = await fresh(page, entry);
+  // Every load writes to this one list, which the test holds before each navigation, so an error between two
+  // loads is never lost: the list is checked after each measurement and goes to `attachEvidence()`.
+  const pageErrors: string[] = [];
+  const first = await fresh(page, entry, pageErrors);
   const environment = await readEnvironment(page);
   const findings: EvidenceFinding[] = [];
   const controls: Record<string, unknown>[] = [];
-  // The harness feeds a page's errors to the list of its latest load only, so each load's list is
-  // checked once its measurement is done, and the last load's goes to `attachEvidence()`.
-  let latest = first.opened;
 
   for (const control of first.targets) {
     // The positive control: what a click does, on a page as it loads.
-    const clickPage = control.id === 0 ? first : await fresh(page, entry);
-
-    latest = clickPage.opened;
+    const clickPage = control.id === 0 ? first : await fresh(page, entry, pageErrors);
 
     const clickPoints = await locate(page, clickPage, control);
 
@@ -121,12 +120,10 @@ async function cancellation(page: Page, testInfo: TestInfo, entry: A11yPage) {
 
     const onClick = pointerEffects(beforeClick, await pointerState(page, clickPage.opened.root));
 
-    expect(clickPage.opened.pageErrors, 'the page threw no error while it was clicked').toEqual([]);
+    expect(pageErrors, 'the page threw no error while it was clicked').toEqual([]);
 
     // The press, held, moved away from the grid and released, on a page as it loads.
-    const pressPage = await fresh(page, entry);
-
-    latest = pressPage.opened;
+    const pressPage = await fresh(page, entry, pageErrors);
 
     const points = await locate(page, pressPage, control);
 
@@ -152,7 +149,7 @@ async function cancellation(page: Page, testInfo: TestInfo, entry: A11yPage) {
 
     const afterAway = pointerEffects(hovered, await pointerState(page, pressPage.opened.root));
 
-    expect(pressPage.opened.pageErrors, 'the page threw no error while it was pressed and released').toEqual([]);
+    expect(pageErrors, 'the page threw no error while it was pressed and released').toEqual([]);
 
     const result = cancellationFindings({ target: control, onPress, afterAway, onClick });
 
@@ -161,7 +158,7 @@ async function cancellation(page: Page, testInfo: TestInfo, entry: A11yPage) {
   }
 
   await attachEvidence(testInfo, {
-    target, startedAt, environment, findings, criteria: ['2.5.2'], pageErrors: latest.pageErrors,
+    target, startedAt, environment, findings, criteria: ['2.5.2'], pageErrors,
     detail: { controls, measured: controls.filter(item => item.measured).length },
   });
 }
@@ -183,10 +180,11 @@ function pageOf(operation: DragOperation): A11yPage {
  *
  * @param page The page.
  * @param entry The page to load.
+ * @param pageErrors The test's page error list, which every load writes to.
  * @returns The opened target.
  */
-async function load(page: Page, entry: A11yPage): Promise<OpenedTarget> {
-  const opened = await openTarget(page, entry, THEME);
+async function load(page: Page, entry: A11yPage, pageErrors: string[]): Promise<OpenedTarget> {
+  const opened = await openTarget(page, entry, THEME, { pageErrors });
 
   await reachState(page, entry, opened);
   await releaseParkedFetches(page);
@@ -234,28 +232,26 @@ async function dragOperation(page: Page, testInfo: TestInfo, operation: DragOper
 
   declareTarget(testInfo, target);
 
-  const dragPage = await load(page, entry);
+  // Every load writes to this one list, which the test holds before each navigation, so an error between two
+  // loads is never lost: the list is checked after each load's steps and goes to `attachEvidence()`.
+  const pageErrors: string[] = [];
+  const dragPage = await load(page, entry, pageErrors);
   const drag = await perform(page, dragPage, operation.expect, operation.drag);
   const environment = await readEnvironment(page);
 
-  // The harness feeds a page's errors to the list of its latest load only, so each load's list is
-  // checked once its steps are done, and the last load's goes to `attachEvidence()`.
-  expect(dragPage.pageErrors, 'the page threw no error while it was dragged').toEqual([]);
+  expect(pageErrors, 'the page threw no error while it was dragged').toEqual([]);
   expect(drag.effects, `the drag (${operation.operation}) has the effect the inventory names`).toContain(operation.expect);
   expect(Object.keys(drag.after).sort(), 'DRAG_FIELDS of lib/pointer.mjs names every field of the drag state').toEqual([...DRAG_FIELDS].sort());
 
   const alternatives: Record<string, unknown>[] = [];
   const proven: boolean[] = [];
   const problems: string[] = [];
-  let latest = dragPage;
 
   for (const [index, alternative] of operation.alternatives.entries()) {
     const described = { input: alternative.input, covers: alternative.covers, how: alternative.how };
-    const opened = await load(page, entry);
+    const opened = await load(page, entry, pageErrors);
     let result: Awaited<ReturnType<typeof perform>> | null = null;
     let cause = '';
-
-    latest = opened;
 
     try {
       result = await perform(page, opened, operation.expect, alternative.steps, alternative.prepare);
@@ -266,7 +262,7 @@ async function dragOperation(page: Page, testInfo: TestInfo, operation: DragOper
     }
 
     // A page that threw is a target not measured (`attachEvidence()`), whichever step it threw in.
-    expect(opened.pageErrors, `the page threw no error while alternative ${index + 1} ran`).toEqual([]);
+    expect(pageErrors, `the page threw no error while alternative ${index + 1} ran`).toEqual([]);
 
     if (!result) {
       // The cause goes in the detail and in the problems, so a person tells a stale inventory from a
@@ -289,7 +285,7 @@ async function dragOperation(page: Page, testInfo: TestInfo, operation: DragOper
   const findings: EvidenceFinding[] = [...dragFindings({ operation, proven, line }), ...gestureFindings({ operation, proven, line })];
 
   await attachEvidence(testInfo, {
-    target, startedAt, environment, findings, problems, pageErrors: latest.pageErrors, criteria: operationCriteria(operation),
+    target, startedAt, environment, findings, problems, pageErrors, criteria: operationCriteria(operation),
     detail: { operation: operation.id, plugin: operation.plugin, gesture: operation.gesture, what: operation.operation, drag: drag.effects, alternatives },
   });
 }
