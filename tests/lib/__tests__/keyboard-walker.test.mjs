@@ -209,7 +209,7 @@ test('a backward walk names its steps Shift+Tab; a popup walk counts from where 
     .map(item => item.step), ['where the popup put the focus', 'Tab 1']);
 });
 
-test('a Tab that leaves the focus where the popup put it is an advisory finding, with whether the editor stayed open', () => {
+test('a Tab that leaves the focus where it was is an advisory finding, with whether the editor stayed open', () => {
   // A cell editor whose popup walk is [editor, editor]: Tab moved inside a date input, accepted a suggestion, or did nothing.
   const editor = stop('grid', { role: 'Date', name: 'Sell date', ref: 1, locator: 'input.htDateInput', signals: { url: 'u', popups: 0, editorOpen: true } });
   const popup = [{ ...editor, region: 'start' }, editor, editor];
@@ -217,6 +217,12 @@ test('a Tab that leaves the focus where the popup put it is an advisory finding,
 
   assert.deepEqual(findings.map(item => [item.kind, item.criteria, item.severity, item.selector, item.step, item.measured.editorOpen]),
     [['tab-keeps-focus', ['2.1.1'], 'advisory', 'input.htDateInput', 'Tab 1', true]]);
+
+  const later = [{ ...editor, region: 'start' }, editor, cell(1, 3), cell(1, 3)];
+  const [kept] = walkFindings({ walk: { ...walkVerdict({ direction: 'forward', stops: later }), trapped: false }, stops: later, direction: 'forward', opened: true });
+
+  assert.deepEqual([kept.kind, kept.step], ['tab-keeps-focus', 'Tab 2'], 'a later Tab that keeps the focus stops the walk the same way');
+  assert.doesNotMatch(kept.reason, /popup put it on/, 'the reason holds for a Tab after the first, where the popup did not put the focus');
 
   const moved = [{ ...editor, region: 'start' }, editor, cell(1, 3), stop('end')];
 
