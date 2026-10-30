@@ -2,13 +2,17 @@ import { isDefined, isEmpty, stringify } from '../../../helpers/mixed';
 import { getChoiceLabel, isKeyValueEntry, isListableLabel } from '../../../utils/cellSource';
 import type { SourceLabel } from '../../../utils/cellSource';
 import ExportDataProvider from '../dataProvider';
+import type { ArrayFormulaSize } from '../dataProvider';
 import BaseType from './_base';
 import { normalizeExportOptions } from '../utils';
 import { matchCheckboxTemplate } from '../../../utils/checkboxColumn';
 import {
   buildSummaryFormula,
   normalizeFormula,
+  normalizeNamedExpression,
   isFormulaValue,
+  type ExportedEngineSheet,
+  ArrayRangeClaims,
 } from './xlsx/formula-utils';
 import {
   getCssStyleFromElement,
@@ -33,7 +37,8 @@ import {
 } from './xlsx/date-utils';
 import { intlNumFormatToExcelNumFmt } from './xlsx/numeric-utils';
 import { detectXlsxEngine } from '../../../utils/xlsxEngine/detect';
-import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
+import { DROPPED_FEATURES, DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
+import { callsDynamicArrayFunction, unwrapArrayFormula } from '../../../utils/xlsxEngine/dynamicArrays';
 import { SheetBuilder } from '../../../utils/xlsxEngine/builder';
 import { colIndexToLetter, toRangeRef } from '../../../utils/xlsxEngine/cellRef';
 import { DEFAULT_COMPRESSION_LEVEL } from '../../../utils/xlsxEngine/compression';
@@ -47,10 +52,12 @@ import {
 import {
   createWorkbookSnapshot,
   type CellFormula,
+  type CellFormulaArray,
   type CellSnapshot,
   type CellStyleSnapshot,
   type CellValidationSnapshot,
   type CellValue,
+  type DefinedNameSnapshot,
   type SheetSnapshot,
   type WorkbookSnapshot,
 } from '../../../utils/xlsxEngine/model';
@@ -275,6 +282,103 @@ interface ConditionalFormattingDescriptor {
 }
 
 /**
+ * What the Formulas engine and the sheet layout tell about one exported cell.
+ */
+interface FormulaCellFacts {
+  errorCode: string | null;
+  arraySize: ArrayFormulaSize | null;
+  computedValue: number | boolean | null;
+  row: number;
+  col: number;
+}
+
+/**
+ * Where a sheet's array formulas go: the export's dropped-feature collector and the ranges the
+ * sheet's earlier array formulas already cover.
+ */
+interface ArrayFormulaTarget {
+  dropped: DroppedFeatures;
+  arrayRanges: ArrayRangeClaims;
+}
+
+/**
+ * Records `formula:arrayExcluded`, once per export.
+ *
+ * @param {DroppedFeatures} dropped The export's dropped-feature collector.
+ */
+function recordArrayExcluded(dropped: DroppedFeatures): void {
+  if (dropped.count(DROPPED_FEATURES.formulaArrayExcluded) === 0) {
+    dropped.record(DROPPED_FEATURES.formulaArrayExcluded);
+  }
+}
+
+/**
+ * Decides whether a formula is written as an array formula, and as which kind.
+ *
+ * 1. `ARRAYFORMULA(x)` as a whole is HyperFormula's legacy (CSE) array: `x` is written as a CSE
+ *    array over the spill, or over the cell itself when the engine reports no spill.
+ * 2. A formula the engine spills (`SEQUENCE(3)`) is a dynamic array over the spill.
+ * 3. A call to a function Excel evaluates as a dynamic array (`IFS`, `SWITCH`) is a one-cell
+ *    dynamic array, so Excel does not add the implicit-intersection `@`.
+ *
+ * A spill the export does not keep in shape (an excluded row or column, the `range` edge), and an
+ * array whose range overlaps an earlier array formula of the sheet, are written as plain formulas
+ * and reported once per export as `formula:arrayExcluded`.
+ *
+ * @param {string} text The normalized formula, without the leading `=`.
+ * @param {object} facts The cell's facts.
+ * @param {object} target The export's dropped-feature collector and the sheet's claimed ranges.
+ * @returns {{ text: string, array?: object }}
+ */
+function resolveArrayFormula(
+  text: string, facts: FormulaCellFacts, target: ArrayFormulaTarget
+): { text: string; array?: CellFormulaArray } {
+  const { arraySize, row, col } = facts;
+  const inner = unwrapArrayFormula(text);
+  const formulaText = inner ?? text;
+  const dynamic = inner === null;
+
+  if (inner === null && arraySize === null && !callsDynamicArrayFunction(text)) {
+    return { text };
+  }
+
+  if (arraySize !== null && !arraySize.exported) {
+    recordArrayExcluded(target.dropped);
+
+    return { text: formulaText };
+  }
+
+  const rows = arraySize?.rows ?? 1;
+  const cols = arraySize?.cols ?? 1;
+
+  if (!target.arrayRanges.claim({ top: row, left: col, bottom: row + rows - 1, right: col + cols - 1 })) {
+    recordArrayExcluded(target.dropped);
+
+    return { text: formulaText };
+  }
+
+  return { text: formulaText, array: { ref: toArrayRef(row, col, rows, cols), dynamic } };
+}
+
+/**
+ * Builds the `ref` of an array formula: the single address for one cell (`C1`, Excel's own form),
+ * the range otherwise (`A1:A3`). Coordinates are 1-based.
+ *
+ * @param {number} row The master's row.
+ * @param {number} col The master's column.
+ * @param {number} rows The spill height.
+ * @param {number} cols The spill width.
+ * @returns {string}
+ */
+function toArrayRef(row: number, col: number, rows: number, cols: number): string {
+  if (rows === 1 && cols === 1) {
+    return `${colIndexToLetter(col)}${row}`;
+  }
+
+  return toRangeRef(row, col, row + rows - 1, col + cols - 1);
+}
+
+/**
  * An entry in a nested-header layer returned by ExportDataProvider#getNestedColumnHeaders.
  */
 interface NestedHeaderEntry {
@@ -297,6 +401,10 @@ interface SheetContext {
   summaryMap: Map<string, ColumnSummaryDescriptor>;
   sourceData: unknown[][] | null;
   formulaErrorCodes: (string | null)[][] | null;
+  arrayFormulaSizes: (ArrayFormulaSize | null)[][] | null;
+  engineComputedValues: (number | boolean | null)[][] | null;
+  dropped: DroppedFeatures;
+  arrayRanges: ArrayRangeClaims;
   hasRowHeaders: boolean;
   headerFill: HeaderFill | null;
   headerBorder: HeaderBorder | null;
@@ -309,6 +417,21 @@ interface SheetContext {
   cellElements: Array<Array<HTMLElement | null>>;
   rowHeaders: Array<string | number | null>;
   rowsHeights: number[];
+}
+
+/**
+ * One grid of the export bound to a Formulas engine: its data provider, the engine, where its
+ * engine sheet landed in the file, and whether it was exported with `exportFormulas`. Every bound
+ * grid is a sheet a name may point to; only a grid with `exportFormulas` makes its engine's names
+ * part of the file.
+ */
+interface NamedExpressionSource {
+  dataProvider: ExportDataProvider;
+  engine: object;
+  engineSheetName: string;
+  separator: string;
+  exportFormulas: boolean;
+  sheet: ExportedEngineSheet;
 }
 
 interface XlsxSheetConfig {
@@ -418,6 +541,10 @@ class Xlsx extends BaseType {
     // case-insensitively and throws on a duplicate. The `_HotValidation` helper sheets share the
     // set, so a data sheet carrying that name can never collide with one.
     const usedSheetNames = new Set<string>();
+    const dropped = new DroppedFeatures();
+    // Every grid exported with `exportFormulas` and a Formulas engine, so the engines' names are
+    // written once, against every sheet of the file, after all of them are known.
+    const namedSources: NamedExpressionSource[] = [];
 
     if (sheets && sheets.length > 0) {
       // multi-sheet mode
@@ -431,16 +558,19 @@ class Xlsx extends BaseType {
 
         const name = this.#uniqueSheetName(sheetConfig.name || 'Sheet', usedSheetNames);
 
-        this.#populateWorksheet(workbook, name, dp, sheetOptions, usedSheetNames);
+        this.#populateWorksheet(workbook, name, dp, sheetOptions, { usedSheetNames, dropped, namedSources });
       });
     } else {
       // single-sheet mode
       const name = this.#uniqueSheetName('Sheet1', usedSheetNames);
 
-      this.#populateWorksheet(workbook, name, this.dataProvider, this.options, usedSheetNames);
+      this.#populateWorksheet(
+        workbook, name, this.dataProvider, this.options, { usedSheetNames, dropped, namedSources }
+      );
     }
 
-    const dropped = new DroppedFeatures();
+    this.#addDefinedNames(workbook, namedSources, dropped);
+
     const bytes = await detected.adapter.write(workbook, detected.module, dropped);
 
     dropped.warn(detected.kind);
@@ -488,12 +618,17 @@ class Xlsx extends BaseType {
    * @param {string} name The worksheet name.
    * @param {ExportDataProvider} dataProvider ExportDataProvider configured for this sheet.
    * @param {object} options Merged options for this sheet.
+   * @param {object} collectors The workbook-wide collectors: `usedSheetNames` (the lower-cased sheet
+   *   names the workbook already uses), `dropped` (the export's dropped-feature collector, which the
+   *   writer gets as well) and `namedSources` (the grids whose engine names `#addDefinedNames`
+   *   writes once every sheet is known).
    * @returns {number} Number of data rows written.
    */
   #populateWorksheet(
-    workbook: WorkbookSnapshot, name: string, dataProvider: ExportDataProvider,
-    options: XlsxOptions, usedSheetNames: Set<string>
+    workbook: WorkbookSnapshot, name: string, dataProvider: ExportDataProvider, options: XlsxOptions,
+    collectors: { usedSheetNames: Set<string>; dropped: DroppedFeatures; namedSources: NamedExpressionSource[] }
   ): number {
+    const { usedSheetNames, dropped, namedSources } = collectors;
     const sheet = new SheetBuilder(name);
     const data = dataProvider.getData();
     const cellsMeta = dataProvider.getCellsMeta();
@@ -526,7 +661,13 @@ class Xlsx extends BaseType {
     });
 
     const sourceData = exportFormulas ? dataProvider.getSourceData() : null;
-    const formulaErrorCodes = exportFormulas ? dataProvider.getFormulaErrorCodes() : null;
+    // Read whenever the Formulas plugin is on (every entry is `null` otherwise): a cell whose value
+    // is an error exports as an Excel error whether or not its formula goes out with it.
+    const formulaErrorCodes = dataProvider.getFormulaErrorCodes();
+    const arrayFormulaSizes = exportFormulas ? dataProvider.getArrayFormulaSizes() : null;
+    // Read whenever the Formulas plugin is on, like the error codes: a computed number or boolean
+    // keeps its type, so a text column does not write a spilled `2` as the text `"2"`.
+    const engineComputedValues = dataProvider.getEngineComputedValues();
     const formulasSeparator = exportFormulas ? dataProvider.getFormulasSeparator() : ',';
     const hasColumnHeaders = columnHeaders.length > 0;
     const hasRowHeaders = rowHeaders.length > 0;
@@ -598,6 +739,10 @@ class Xlsx extends BaseType {
       summaryMap,
       sourceData,
       formulaErrorCodes,
+      arrayFormulaSizes,
+      engineComputedValues,
+      dropped,
+      arrayRanges: new ArrayRangeClaims(),
       hasRowHeaders,
       headerFill,
       headerBorder,
@@ -613,6 +758,27 @@ class Xlsx extends BaseType {
     };
 
     this.#writeDataRows(sheet, data, context);
+
+    // Registered with or without `exportFormulas`: a sheet written as values is still in the file,
+    // so a name of another grid on the same engine may point at it.
+    const binding = dataProvider.getFormulasBinding();
+
+    if (binding) {
+      namedSources.push({
+        dataProvider,
+        engine: binding.engine,
+        engineSheetName: binding.sheetName,
+        separator: formulasSeparator,
+        exportFormulas,
+        sheet: {
+          exportedName: name,
+          rowOffset: dataRowOffset - 1,
+          colOffset: dataColOffset - 1,
+          excludedRows: (excludedHiddenRows ?? dataProvider.getExcludedHiddenRows()) ?? undefined,
+          excludedCols: (excludedHiddenCols ?? dataProvider.getExcludedHiddenColumns()) ?? undefined,
+        },
+      });
+    }
 
     if (hiddenRowIndices.length > 0) {
       this.#applyHiddenRows(sheet, hiddenRowIndices, dataRowOffset);
@@ -660,6 +826,76 @@ class Xlsx extends BaseType {
     }
 
     return data.length;
+  }
+
+  /**
+   * Adds the workbook-scoped named expressions of the exported grids' Formulas engines to the
+   * workbook as workbook defined names, each one ONCE. Grids of a multi-sheet export usually share
+   * one engine, so the names are read per engine, and each is normalized against every engine
+   * sheet this export writes (`normalizeNamedExpression`): a reference moves with the header band
+   * and the left-out rows and columns of the grid that sheet belongs to, and names that grid's
+   * exported sheet. A name that cannot be expressed in the file (a reference to an engine sheet
+   * the export does not write among others), or that repeats an added name with another
+   * definition, is left out and `definedNames:unsupported` recorded once.
+   *
+   * Every grid bound to an engine is a sheet a name may point to, `exportFormulas` or not. An
+   * engine's names are written only when at least one of its grids is exported with
+   * `exportFormulas`, and they are read from that grid.
+   *
+   * @param {object} workbook The neutral workbook snapshot.
+   * @param {object[]} sources The exported grids bound to a Formulas engine.
+   * @param {DroppedFeatures} dropped The export's dropped-feature collector.
+   */
+  #addDefinedNames(workbook: WorkbookSnapshot, sources: NamedExpressionSource[], dropped: DroppedFeatures): void {
+    const byEngine = new Map<object, {
+      source: NamedExpressionSource | null; sheets: Map<string, ExportedEngineSheet>;
+    }>();
+
+    sources.forEach((source) => {
+      const group = byEngine.get(source.engine) ?? { source: null, sheets: new Map() };
+      const key = source.engineSheetName.toLowerCase();
+
+      if (!group.sheets.has(key)) {
+        group.sheets.set(key, source.sheet);
+      }
+
+      if (group.source === null && source.exportFormulas) {
+        group.source = source;
+      }
+
+      byEngine.set(source.engine, group);
+    });
+
+    const definedNames: DefinedNameSnapshot[] = [];
+    const added = new Map<string, string>();
+    const leaveOut = () => {
+      if (dropped.count(DROPPED_FEATURES.definedNamesUnsupported) === 0) {
+        dropped.record(DROPPED_FEATURES.definedNamesUnsupported);
+      }
+    };
+
+    byEngine.forEach(({ source, sheets }) => {
+      if (source === null) {
+        return;
+      }
+
+      source.dataProvider.getNamedExpressions().forEach(({ name, formula: definition }) => {
+        const formula = definition === null ? null : normalizeNamedExpression(definition, source.separator, sheets);
+        const key = name.toLowerCase();
+
+        if (formula === null || (added.has(key) && added.get(key) !== formula)) {
+          leaveOut();
+
+        } else if (!added.has(key)) {
+          added.set(key, formula);
+          definedNames.push({ name, formula, sheetName: null });
+        }
+      });
+    });
+
+    if (definedNames.length > 0) {
+      workbook.definedNames = definedNames;
+    }
   }
 
   /**
@@ -713,14 +949,24 @@ class Xlsx extends BaseType {
       const meta = context.cellsMeta[rowIndex][colIndex];
       const summary = context.summaryMap.get(`${rowIndex}:${colIndex}`);
       const sourceValue = context.sourceData?.[rowIndex][colIndex];
-      const errorCode = context.formulaErrorCodes?.[rowIndex][colIndex] ?? null;
-      const { value, formula, numFmt } = this.#resolveCellValue(
-        cellValue, meta, sourceValue, errorCode, summary, context
+      const facts: FormulaCellFacts = {
+        errorCode: context.formulaErrorCodes?.[rowIndex][colIndex] ?? null,
+        arraySize: context.arrayFormulaSizes?.[rowIndex][colIndex] ?? null,
+        computedValue: context.engineComputedValues?.[rowIndex][colIndex] ?? null,
+        row: excelRowNumber,
+        col: colIndex + context.dataColOffset,
+      };
+      const { value, formula, numFmt, valueIsError } = this.#resolveCellValue(
+        cellValue, meta, sourceValue, facts, summary, context
       );
 
       cell.value = value;
       cell.formula = formula;
       cell.numFmt = numFmt;
+
+      if (valueIsError) {
+        cell.valueIsError = true;
+      }
 
       const cssStyle = getCssStyleFromElement(
         context.cellElements[rowIndex][colIndex], meta.className, context.rootDocument, context.rootWindow
@@ -781,29 +1027,35 @@ class Xlsx extends BaseType {
    * 2. HyperFormula formula cells (when `exportFormulas` is `true`) — written with the number
    *    format their column's meta describes and with the pre-calculated value cached as the
    *    formula's `result`.
-   * 3. Date cells (ISO 8601 string → serial number).
-   * 4. Time cells (time string → fractional day serial).
-   * 5. Checkbox cells (boolean from `checkedTemplate` comparison; an empty value stays empty).
-   * 6. Multiselect cells (comma-separated string).
-   * 7. All other cells (numeric-aware or stringified).
+   * 3. Cells whose engine value is an error with an OOXML code (any cell, a formula exported as
+   *    its value included) — written as that code, flagged so both writers type it `t="e"`.
+   * 4. Date cells (ISO 8601 string → serial number).
+   * 5. Time cells (time string → fractional day serial).
+   * 6. Checkbox cells (boolean from `checkedTemplate` comparison; an empty value stays empty).
+   * 7. Multiselect cells (comma-separated string).
+   * 8. Cells whose value the Formulas engine computed as a number or a boolean
+   *    (`ExportDataProvider#getEngineComputedValues`) — written with that type.
+   * 9. All other cells (numeric-aware or stringified).
    *
    * @param {*} cellValue Pre-calculated display value from `getData()`.
    * @param {object} meta Cell meta object.
    * @param {*} sourceValue Raw source value from `getSourceDataAtCell()` (may be a formula string).
-   * @param {string|null} errorCode The OOXML error code of the Formulas engine's value for the cell
-   *   (`ExportDataProvider#getFormulaErrorCodes`), or `null` when it is not an error.
+   * @param {object} facts What the Formulas engine and the sheet layout tell about the cell: the
+   *   OOXML error code of its value (`ExportDataProvider#getFormulaErrorCodes`, `null` when it is
+   *   not an error), the size of the array it spills (`ExportDataProvider#getArrayFormulaSizes`)
+   *   and its 1-based sheet address.
    * @param {object|undefined} summary ColumnSummary descriptor, or `undefined` for non-summary cells.
    * @param {object} context Sheet-level context passed through from `#populateWorksheet`.
-   * @returns {{ value: *, formula: object|null, numFmt: string|null }}
+   * @returns {{ value: *, formula: object|null, numFmt: string|null, valueIsError?: boolean }}
    */
   #resolveCellValue(
     cellValue: unknown,
     meta: CellMeta,
     sourceValue: unknown,
-    errorCode: string | null,
+    facts: FormulaCellFacts,
     summary: ColumnSummaryDescriptor | undefined,
     context: SheetContext
-  ): { value: CellValue; formula: CellFormula | null; numFmt: string | null } {
+  ): { value: CellValue; formula: CellFormula | null; numFmt: string | null; valueIsError?: true } {
     const {
       exportFormulas, formulasSeparator, dataRowOffset, dataColOffset,
       excludedHiddenRows, excludedHiddenCols,
@@ -819,20 +1071,28 @@ class Xlsx extends BaseType {
     }
 
     if (exportFormulas && isFormulaValue(sourceValue)) {
-      const text = normalizeFormula(
+      const { text, array } = resolveArrayFormula(normalizeFormula(
         sourceValue, formulasSeparator, dataRowOffset - 1, dataColOffset - 1,
         excludedHiddenRows ?? undefined, excludedHiddenCols ?? undefined
-      );
+      ), facts, context);
+      const { errorCode } = facts;
+      // An error result is cached as its OOXML code, which the engine's language does not
+      // translate, and flagged so both writers type it `t="e"`.
+      const formula: CellFormula = errorCode === null
+        ? { text, result: toPrimitiveResult(cellValue) }
+        : { text, result: errorCode, resultIsError: true };
 
-      return {
-        value: null,
-        // An error result is cached as its OOXML code, which the engine's language does not
-        // translate, and flagged so both writers type it `t="e"`.
-        formula: errorCode === null
-          ? { text, result: toPrimitiveResult(cellValue) }
-          : { text, result: errorCode, resultIsError: true },
-        numFmt: resolveMetaNumFmt(meta),
-      };
+      if (array) {
+        formula.array = array;
+      }
+
+      return { value: null, formula, numFmt: resolveMetaNumFmt(meta) };
+    }
+
+    if (facts.errorCode !== null) {
+      // The code, not the displayed text: the engine's language translates the text, and a typed
+      // `#N/A` reads the same as the text a formula such as `="#N/A"` answers.
+      return { value: facts.errorCode, formula: null, numFmt: null, valueIsError: true };
     }
 
     if (meta.type === 'intl-datetime') {
@@ -869,6 +1129,13 @@ class Xlsx extends BaseType {
 
     if (meta.type === 'numeric') {
       return { value: this.#getCellValue(cellValue, meta), formula: null, numFmt: resolveMetaNumFmt(meta) };
+    }
+
+    if (facts.computedValue !== null) {
+      // A number or boolean the Formulas engine computed (a formula exported as its value, or a cell
+      // an array spills) keeps its type: stringified, `=SUM()` over it reads 0 in a reader that does
+      // not recalculate. A value the user typed into the column is data, and is not in the matrix.
+      return { value: facts.computedValue, formula: null, numFmt: null };
     }
 
     return { value: this.#getCellValue(cellValue, meta), formula: null, numFmt: null };

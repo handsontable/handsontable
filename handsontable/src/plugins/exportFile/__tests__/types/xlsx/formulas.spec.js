@@ -276,8 +276,9 @@ import HyperFormula from 'hyperformula';
 
         // Default: static pre-calculated value, not a formula object.
         expect(ws.getRow(4).getCell(1).value?.formula).toBeUndefined();
-        // HyperFormula evaluates =SUM(A1:A3) to 6; exported as a string (no numeric type configured).
-        expect(ws.getRow(4).getCell(1).value).toBe('6');
+        // HyperFormula evaluates =SUM(A1:A3) to 6. A computed number keeps its type even in a text
+        // column, so a reader that does not recalculate still sums it.
+        expect(ws.getRow(4).getCell(1).value).toBe(6);
       });
 
       it('should offset cell references in formulas when column headers are exported', async() => {

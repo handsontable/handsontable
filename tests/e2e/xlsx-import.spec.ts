@@ -264,13 +264,15 @@ for (const engine of ['exceljs', 'native'] as const) {
       // 12:00 is a time; 25:30 does not fit a clock, so it stays the number of days it is.
       await expect(grids.targetCell(0, 4)).toHaveText('12:00');
       await expect(grids.targetCell(1, 4)).toHaveText('1.0625');
-      // The target's Formulas engine does not define `Sales`, so `=SUM(Sales)` shows its cached value.
+      // The import registers the workbook's `Sales` in the target's Formulas engine, so `=SUM(Sales)`
+      // stays a live formula and evaluates to 60.
       await expect(grids.targetCell(0, 6)).toHaveText('60');
 
       const result = await grids.lastImport();
 
       expect((result.engine as { kind: string }).kind).toBe(engine);
-      expect(result.dropped).toEqual(expect.arrayContaining(['numFmt:[h]:mm', 'formula:definedName']));
+      expect(result.dropped).toContain('numFmt:[h]:mm');
+      expect(result.dropped).not.toContain('formula:definedName');
     });
 
     test('keeps a formula over defined names live when the Formulas engine defines them', async () => {
@@ -282,13 +284,23 @@ for (const engine of ['exceljs', 'native'] as const) {
       expect(outcome.dropped).not.toContain('formula:definedName');
     });
 
-    test('imports the cached value of a formula over defined names the Formulas engine lacks', async () => {
+    test('registers the defined names the Formulas engine lacks, and keeps the formulas over them live', async () => {
       const outcome = await grids.importDefinedNamesWorkbook(false);
 
       await expect(grids.targetCell(1, 3)).toHaveText('60');
       await expect(grids.targetCell(2, 3)).toHaveText('7');
+      expect(outcome.sources).toEqual(['=SUM(Sales)', '=Rate*100']);
+      expect(outcome.names).toEqual(expect.arrayContaining(['Sales', 'Rate']));
+      expect(outcome.dropped).not.toContain('formula:definedName');
+    });
+
+    test('imports the cached value of a formula over a name the Formulas engine defines differently', async () => {
+      const outcome = await grids.importDefinedNamesWorkbook('differently');
+
+      await expect(grids.targetCell(1, 3)).toHaveText('60');
+      await expect(grids.targetCell(2, 3)).toHaveText('7');
       expect(outcome.sources).toEqual([60, 7]);
-      expect(outcome.dropped).toContain('formula:definedName');
+      expect(outcome.dropped).toEqual(expect.arrayContaining(['formula:definedName', 'definedNames:unsupported']));
     });
 
     test('round-trips a text cell that starts with an apostrophe and "=" the documented way', async ({ page }) => {

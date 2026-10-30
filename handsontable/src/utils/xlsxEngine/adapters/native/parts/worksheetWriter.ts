@@ -8,7 +8,7 @@ import {
 import { coveredCellFormatting } from '../../../coveredCellFormatting';
 import { MAX_SHEET_COLUMNS, MAX_SHEET_ROWS } from '../../../limits';
 import { clampCellText, clampColumnWidth, clampRowHeight } from '../../../writeLimits';
-import { escapeXmlMarkup, escapeXmlText } from '../xml/escapes';
+import { escapeXmlAttr, escapeXmlMarkup, escapeXmlText } from '../xml/escapes';
 import { type XmlAttributeMap, XmlWriter } from '../xml/writer';
 import type { SheetComment } from './comments';
 import { conditionalFormattingXml, maxRulePriority } from './conditionalFormatting';
@@ -25,6 +25,10 @@ export interface WorksheetWriteResult {
   xml: string;
   comments: SheetComment[];
   wroteFormula: boolean;
+  /**
+   * `true` when a dynamic array master (`cm="1"`) was written, so the workbook needs `xl/metadata.xml`.
+   */
+  wroteDynamicArray: boolean;
 }
 
 /**
@@ -147,7 +151,12 @@ function formulaResultText(result: CellValue | undefined): string {
  * is built by hand rather than through `XmlWriter#open`: `ref` is an A1 address and `s` a number,
  * neither of which the attribute escaper could change, and `t` is one of four literals.
  */
-function cellStartTag(ref: string, styleAttr: number | undefined, t: 'b' | 'e' | 's' | 'str' | undefined): string {
+function cellStartTag(
+  ref: string,
+  styleAttr: number | undefined,
+  t: 'b' | 'e' | 's' | 'str' | undefined,
+  cm = false,
+): string {
   let tag = `<c r="${ref}"`;
 
   if (styleAttr !== undefined) {
@@ -156,6 +165,11 @@ function cellStartTag(ref: string, styleAttr: number | undefined, t: 'b' | 'e' |
 
   if (t !== undefined) {
     tag += ` t="${t}"`;
+  }
+
+  if (cm) {
+    // The 1-based index of the one cell-metadata record `xl/metadata.xml` holds (dynamic array).
+    tag += ' cm="1"';
   }
 
   return tag;
@@ -190,7 +204,11 @@ function formulaCellXml(ref: string, styleAttr: number | undefined, formula: Cel
 
   const value = hasResult ? `<v>${escapeXmlText(formulaResultText(result))}</v>` : '';
 
-  return `${cellStartTag(ref, styleAttr, t)}><f>${escapeXmlMarkup(addFunctionPrefixes(text))}</f>${value}</c>`;
+  const { array } = formula;
+  const fOpen = array === undefined ? '<f>' : `<f t="array" ref="${escapeXmlAttr(array.ref)}">`;
+
+  return `${cellStartTag(ref, styleAttr, t, array?.dynamic === true)}>${fOpen}`
+    + `${escapeXmlMarkup(addFunctionPrefixes(text))}</f>${value}</c>`;
 }
 
 /**
@@ -203,9 +221,16 @@ function valueCellXml(
   ref: string,
   styleAttr: number | undefined,
   value: CellValue,
+  valueIsError: boolean,
   strings: SharedStringTable,
   dropped: DroppedFeatures,
 ): string {
+  // A flagged error is `<v>` text of an `e` cell, never a shared string; the code is one of eight
+  // OOXML literals, so it needs no escaping. A flagged code outside that set (`#SPILL!`) stays text.
+  if (valueIsError && isOoxmlErrorCode(value)) {
+    return `${cellStartTag(ref, styleAttr, 'e')}><v>${value}</v></c>`;
+  }
+
   const asString = stringCellText(value);
 
   if (asString !== null) {
@@ -260,7 +285,8 @@ function writeCell(
   strings: SharedStringTable,
   dropped: DroppedFeatures,
   isMergeMaster: boolean,
-): boolean {
+  written: Pick<SheetDataResult, 'wroteFormula' | 'wroteDynamicArray'>,
+): void {
   const s = cellStyleIndex(cell, styles);
   const styleAttr = s === 0 ? undefined : s;
 
@@ -272,18 +298,18 @@ function writeCell(
       w.raw(`${cellStartTag(ref, styleAttr, undefined)}/>`);
     }
 
-    return false;
+    return;
   }
 
   if (cell.formula !== null) {
     w.raw(formulaCellXml(ref, styleAttr, cell.formula));
+    written.wroteFormula = true;
+    written.wroteDynamicArray = written.wroteDynamicArray || cell.formula.array?.dynamic === true;
 
-    return true;
+    return;
   }
 
-  w.raw(valueCellXml(ref, styleAttr, cell.value, strings, dropped));
-
-  return false;
+  w.raw(valueCellXml(ref, styleAttr, cell.value, cell.valueIsError === true, strings, dropped));
 }
 
 /**
@@ -317,6 +343,7 @@ interface SheetDataResult {
   comments: SheetComment[];
   validations: ValidationCell[];
   wroteFormula: boolean;
+  wroteDynamicArray: boolean;
 }
 
 /**
@@ -478,8 +505,8 @@ function writeRowCells(
 
     if (merge !== undefined) {
       writeCoveredCell(w, ref, cell, sheet.rows[merge.row]?.[merge.col], styles);
-    } else if (writeCell(w, ref, cell, styles, strings, dropped, isMergeMaster)) {
-      collected.wroteFormula = true;
+    } else {
+      writeCell(w, ref, cell, styles, strings, dropped, isMergeMaster, collected);
     }
 
     if (!cell) {
@@ -502,7 +529,9 @@ function writeRowCells(
  */
 function writeSheetData(w: XmlWriter, context: SheetDataContext): SheetDataResult {
   const { sheet, rowCount, colCount, hiddenRows, lastCoveredColByRow, dropped } = context;
-  const collected: SheetDataResult = { comments: [], validations: [], wroteFormula: false };
+  const collected: SheetDataResult = {
+    comments: [], validations: [], wroteFormula: false, wroteDynamicArray: false,
+  };
   // The column letters once per sheet rather than once per cell: `colIndexToLetter` is a loop
   // and a string build, and every row repeats the same first `colCount` answers.
   const columnLetters = Array.from({ length: colCount }, (_unused, c) => colIndexToLetter(c + 1));
@@ -619,7 +648,7 @@ export function worksheetXml(
   w.leaf('sheetFormatPr', { defaultRowHeight: DEFAULT_ROW_HEIGHT_POINTS });
   writeCols(w, sheet, hiddenCols, colCount, dropped);
 
-  const { comments, validations, wroteFormula } = writeSheetData(w, {
+  const { comments, validations, wroteFormula, wroteDynamicArray } = writeSheetData(w, {
     sheet, rowCount, colCount, hiddenRows, covered, masters, lastCoveredColByRow, styles, strings, dropped,
   });
 
@@ -641,5 +670,5 @@ export function worksheetXml(
     w.leaf('legacyDrawing', { 'r:id': 'rId2' });
   }
 
-  return { xml: w.close().toString(), comments, wroteFormula };
+  return { xml: w.close().toString(), comments, wroteFormula, wroteDynamicArray };
 }

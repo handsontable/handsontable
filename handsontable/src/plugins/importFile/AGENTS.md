@@ -426,12 +426,72 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   the grid's sheet that names no workbook sheet stays live, and so does a sheet another grid holds in a
   shared engine. Both readers carry the workbook's names (`WorkbookSnapshot.definedNames`, Excel's
   `_xlnm.` names left out). The ExcelJS reader carries RANGE names only: ExcelJS 4.4's
-  `definedNames.model` drops a name whose value is a constant (`<definedName name="TaxRate">0.07`),
-  so a formula over such a name stays live and shows `#NAME?` on that engine, with nothing reported. Each formula is charged ONCE against `MAX_TRANSLATED_FORMULA_CHARS`, and
+  `definedNames.model` drops a name whose value is a constant (`<definedName name="TaxRate">0.07`)
+  and a relative one (`Data!G2`), so a formula over such a name stays live and shows `#NAME?` on that
+  engine, with nothing reported. A multi-area name reaches the mapper from both readers as its areas
+  joined by commas; HyperFormula refuses the union, so its formulas import cached values with
+  `formula:definedName` and `definedNames:unsupported`. Each formula is charged ONCE against `MAX_TRANSLATED_FORMULA_CHARS`, and
   that one charge covers the prefix strip, the reference walk (which also judges each sheet
-  qualifier, through the walk's own `qualifier` group) and the defined-name scan. Charging every
-  check separately refused files that imported at 1a59dedd71. Registering the file's names in HyperFormula would make them round-trip; it is a feature
-  of its own, not done here.
+  qualifier, through the walk's own `qualifier` group), the defined-name scan and the bare `TRUE`/`FALSE` walk. Charging every
+  check separately refused files that imported at 1a59dedd71.
+- **Array formulas import live; their spilled cells import empty** (DEV-3648, `pushCellValue`,
+  `recordLiveArray`). A dynamic array (`cm` on the master) goes in as written and spills. A legacy CSE
+  array goes in as `=ARRAYFORMULA(...)`, never double-wrapped (`unwrapArrayFormula`). The ExcelJS
+  engine cannot read `cm`, so it imports every array as CSE. While the master is live, the cells its
+  `ref` covers are pushed `null` (still typed from the cached value): a cached value there would make
+  the spill `#SPILL!`. The rectangle is recorded only when the `ref` starts at the master, and is clipped
+  to the window. A master that cannot go live (other sheet, unresolved name, Formulas off) imports its
+  cached values, spilled cells included, as before. **A live master calling a function the engine does not
+  register** (`MapperContext.registersFunction`, wired to the engine's `getRegisteredFunctionNames()` - its
+  own language, custom functions included; HF 3.3 lacks UNIQUE, SORT, SORTBY, LET, VSTACK, TEXTSPLIT,
+  RANDARRAY) **records no rectangle** (`callsUnregisteredFunction`): it shows `#NAME?` and spills nothing,
+  so its covered cells keep their cached values instead of importing empty (they used to be lost). The scan
+  walks every identifier followed by `(`, upper-cased, and shares the formula's one charge
+  (`readFormulaText(..., scansFunctions)`). The sweep over the rectangles charges the formula
+  budget (`beginLiveArrayRow`), so many narrow arrays cannot make the walk quadratic.
+- **A bare `TRUE`/`FALSE` in a live formula or a name definition is rewritten to `TRUE()`/`FALSE()`** (DEV-3648,
+  `rewriteBareBooleans`, called by `readFormulaText`): HyperFormula reads the bare literal as an unknown name
+  (`=IF(TRUE,1,2)` is `#NAME?`). `readFormulaText` returns `{ recorded, live }`: `ImportResult.formulas` records
+  `recorded` (the file's text, prefixes stripped), the engine gets `live`. It rewrites after the prefix strip
+  and before `rebaseImportedFormula`, shares the formula's ONE budget charge (a `/true|false/i` hit charges,
+  like the strip and the walks), and skips a quoted token, one followed by `(`, `!` or `]`, or preceded by
+  `!`, `.`, `[`, `@`, `$` or a name character.
+- **The workbook's defined names are registered as HyperFormula named expressions** (DEV-3648,
+  `collectNamedExpressions` in `mapper.ts`), so a formula over one imports live. It runs only with
+  live formulas on AND `MapperContext.canAddNamedExpression` given (`importFile.ts` wires it to the
+  engine's `validateFormula` AND `isItPossibleToAddNamedExpression` - the latter accepts a definition
+  that does not parse, `=A1:` or `=SUM(`, which would register an erroring name; every engine question in these checks goes through `answersTrue`, because HF 3.3's parser throws `RangeError` on ~100-deep nesting and an uncaught throw failed the whole import; an engine without that method registers nothing and
+  the old cached-value path applies). Rules: a name scoped to ANOTHER sheet is ignored, unreported;
+  one scoped to the imported sheet is registered at WORKBOOK scope (the grid owns one engine sheet),
+  ahead of a workbook-scoped name spelled like it. **A name the engine already lists
+  (`formulaNamedExpressions`) is never re-registered, and is trusted only when its definition is the
+  file's** (`MapperContext.definesNamedExpression`: `getNamedExpressionFormula(name)` ===
+  `normalizeFormula('=' + rebased)` - HF's normal form, canonical sheet case and upper-case
+  functions, is what `getNamedExpressionFormula` answers). **A name the engine holds as a CONSTANT
+  (`addNamedExpression('TaxRate', 0.07)`) has no stored formula** (`getNamedExpressionFormula` answers
+  `undefined`), and the export writes it as a literal (`0.07`): `sameConstant` compares
+  `getNamedExpressionValue(name)` with `calculateFormula('=' + rebased, getSheetId(formulaSheetName))`
+  (side-effect free; an error value compares by its code; a throw, a range, or no sheet id is unequal).
+  Without it, re-importing your own export froze every formula over a constant name. Equal: the formulas over it stay live.
+  Different, or not expressible: the name goes INTO `unresolvedNames`, so its formulas import cached
+  values with `formula:definedName`, plus `definedNames:unsupported`. A re-import of a changed file used
+  to read the previous import's range silently. Replacing the old definition (`changeNamedExpression`)
+  is deliberately not done: the engine may be shared and nothing tags a name as the import's. A definition goes through `readFormulaText`
+  (prefix strip, budget charge) and `rebaseImportedFormula` with the cell's shift, and **a reference to
+  the imported sheet is re-qualified with the grid's sheet name** (`selfAs` =
+  `formulaSheetName`) instead of dropped: HyperFormula 3 reads an unqualified `$F$1:$F$3` in a named
+  expression as relative and refuses it (`NoRelativeAddressesAllowedError`; `isItPossible...` answers
+  false). A definition that is rejected by the shift, names an unknown sheet, is refused by the engine
+  (relative references), or uses a left-out name (followed transitively through `namesIn`) is left out
+  with ONE `definedNames:unsupported`, and the formulas over it keep `formula:definedName`. Registered
+  names are removed from `CollectContext.unresolvedNames`. The result carries them in
+  `ImportResult.namedExpressions` (formula without `=`); `applier.ts#addNamedExpressions` adds them
+  FIRST in the batch (before `columns` and `loadData`; after `loadData` the formulas evaluate to
+  `#NAME?`) and re-asks `isItPossibleToAddNamedExpression` per name, skipping a refused one: a
+  `beforeImport` handler or another grid on a shared engine can define the name after the mapper
+  asked, and `addNamedExpression` would throw mid-batch with the grid half-applied. Not undoable:
+  `loadData` resets the grid's history, so the import never was an undo step. A name cycle
+  (`A = B`, `B = A`) registers both and evaluates `#CYCLE!`.
 - **A live formula is shifted back into grid coordinates, and one that cannot be is dropped.** The export
   prepends a header row and a row-header column and shifts every relative reference forward by them
   (`normalizeFormula` in `../exportFile/types/xlsx/formula-utils.ts`), so the grid's `=B1*0.2` is written

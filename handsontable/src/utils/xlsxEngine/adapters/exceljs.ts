@@ -11,12 +11,14 @@ import {
   type CellSnapshot,
   type CellStyleSnapshot,
   type CellValue,
+  type DefinedNameSnapshot,
   type MergeSnapshot,
   type SheetProtectionOptions,
   type SheetSnapshot,
   type WorkbookSnapshot,
 } from '../model';
-import { parseRangeRef } from '../cellRef';
+import { parseCellRef, parseRangeRef } from '../cellRef';
+import { selectWritableDefinedNames } from '../definedNames';
 import { EXCEL_EPOCH_OFFSET, MS_PER_DAY } from '../dates';
 import { isWritableConditionalRule } from '../conditionalRules';
 import { coveredCellFormatting, type CellFormatting } from '../coveredCellFormatting';
@@ -27,7 +29,7 @@ import {
   throwCellLimit, throwColumnLimit, throwLimitExceeded, throwRowLimit,
 } from '../limits';
 import { noteToComment } from '../threadedComments';
-import { clampCellText, clampColumnWidth, clampRowHeight } from '../writeLimits';
+import { clampCellText, clampColumnWidth, clampRowHeight, MAX_EXCELJS_DEFINED_NAME_CELLS } from '../writeLimits';
 import type { XlsxEngineAdapter } from './types';
 
 /**
@@ -40,7 +42,12 @@ export type ExcelCellValue =
   | null
   | undefined
   | Date
-  | { formula: string; result?: string | number | boolean | null | { error: string } }
+  | {
+    formula: string;
+    result?: string | number | boolean | null | { error: string };
+    ref?: string;
+    shareType?: string;
+  }
   | { sharedFormula: string; result?: string | number | boolean | null | { error: string } }
   | { richText: Array<{ text: string }> }
   | { text: string | { richText: Array<{ text: string }> }; hyperlink: string }
@@ -184,7 +191,10 @@ export interface ExcelJsWorkbook {
   /**
    * The names the workbook defines, as `{ name, ranges }` entries.
    */
-  definedNames?: { model?: Array<{ name?: string }> };
+  definedNames?: {
+    model?: Array<{ name?: string; ranges?: string[] }>;
+    add?(location: string, name: string): void;
+  };
   xlsx: {
     writeBuffer(options?: object): Promise<Uint8Array>;
     load(buffer: ArrayBuffer): Promise<unknown>;
@@ -251,7 +261,24 @@ function writeCell(target: ExcelJsCell, cell: CellSnapshot, dropped: DroppedFeat
   if (cell.formula) {
     const formula = addFunctionPrefixes(cell.formula.text);
 
-    target.value = 'result' in cell.formula ? { formula, result: formulaResultValue(cell.formula) } : { formula };
+    const { array } = cell.formula;
+    const value: ExcelCellValue = 'result' in cell.formula
+      ? { formula, result: formulaResultValue(cell.formula) }
+      : { formula };
+
+    if (array !== undefined) {
+      // ExcelJS writes `<f t="array" ref>` from these two keys. It has no way to write the `cm`
+      // attribute and the metadata part, so a dynamic array is written as a legacy (CSE) array.
+      Object.assign(value, { ref: array.ref, shareType: 'array' });
+
+      if (array.dynamic) {
+        dropped.record(DROPPED_FEATURES.dynamicArrays);
+      }
+    }
+
+    target.value = value;
+  } else if (cell.valueIsError === true && isOoxmlErrorCode(cell.value)) {
+    target.value = { error: cell.value };
   } else {
     target.value = typeof cell.value === 'string' ? clampCellText(cell.value, dropped) : cell.value;
   }
@@ -587,7 +614,7 @@ function hyperlinkText(text: unknown): CellValue {
  */
 function readValue(
   raw: ExcelCellValue, cellFormula?: string, cellResult?: unknown,
-): { value: CellValue; formula: CellFormula | null } {
+): { value: CellValue; formula: CellFormula | null; valueIsError?: boolean } {
   if (raw === null || raw === undefined) {
     return { value: null, formula: null };
   }
@@ -617,6 +644,17 @@ function readValue(
       ? { text }
       : { text, result: readValue(result as ExcelCellValue).value };
 
+    if (typeof result === 'object' && result !== null && 'error' in result) {
+      formula.resultIsError = true;
+    }
+
+    // ExcelJS copies `ref` and `shareType` of an array formula into the cell value, but it does not
+    // read the `cm` attribute, so a dynamic array cannot be told from a legacy one here: every array
+    // master reads as `dynamic: false`.
+    if ('shareType' in raw && raw.shareType === 'array' && typeof raw.ref === 'string' && raw.ref !== '') {
+      formula.array = { ref: raw.ref, dynamic: false };
+    }
+
     return { value: null, formula };
   }
 
@@ -629,7 +667,7 @@ function readValue(
   }
 
   if ('error' in raw) {
-    return { value: raw.error, formula: null };
+    return { value: raw.error, formula: null, valueIsError: true };
   }
 
   return { value: null, formula: null };
@@ -713,18 +751,39 @@ function readNumFmt(source: ExcelJsCell): string | null {
 /**
  * The names an ExcelJS workbook defines, Excel's own `_xlnm.` names left out. ExcelJS keeps only
  * the names whose value is a range, which is what a formula over a named range uses.
+ *
+ * A name ExcelJS lists with several ranges - a name over several areas (`Sheet1!$A$1,Sheet1!$C$1`)
+ * - keeps every range, joined with commas, the way the file spells the union. Its first range alone
+ * would be a different name, and leaving the name out made `importFile` treat a formula over it as
+ * an ordinary one: it imported live and showed `#NAME?` instead of its cached value. Kept, the name
+ * is one the Formulas engine refuses (`validateFormula` rejects the union), so the formula imports
+ * its cached value and the import reports `formula:definedName` and `definedNames:unsupported`, as
+ * the native reader's text does. ExcelJS regroups adjacent areas, so the joined text may differ from
+ * the file's while covering the same cells. ExcelJS 4.4 keeps one definition of a name defined in
+ * several scopes (the last), and the reader cannot tell it happened.
+ *
+ * @param {object} workbook The loaded ExcelJS workbook.
+ * @returns {DefinedNameSnapshot[]}
  */
-function readDefinedNames(workbook: ExcelJsWorkbook): string[] {
+function readDefinedNames(workbook: ExcelJsWorkbook): DefinedNameSnapshot[] {
   const model = workbook.definedNames?.model;
-  const names = new Set<string>();
+  const names = new Map<string, DefinedNameSnapshot>();
 
-  (Array.isArray(model) ? model : []).forEach(({ name }) => {
-    if (typeof name === 'string' && name !== '' && !name.startsWith('_xlnm.')) {
-      names.add(name);
+  (Array.isArray(model) ? model : []).forEach(({ name, ranges }) => {
+    if (typeof name !== 'string' || name === '' || name.startsWith('_xlnm.') || names.has(name)) {
+      return;
     }
+
+    const areas = Array.isArray(ranges) ? ranges.filter((range): range is string => typeof range === 'string') : [];
+
+    if (areas.length === 0) {
+      return;
+    }
+
+    names.set(name, { name, formula: areas.join(','), sheetName: null });
   });
 
-  return [...names];
+  return [...names.values()];
 }
 
 /**
@@ -732,12 +791,17 @@ function readDefinedNames(workbook: ExcelJsWorkbook): string[] {
  */
 function readCell(source: ExcelJsCell, dropped: DroppedFeatures): CellSnapshot {
   const cell = createCellSnapshot();
-  const { value, formula } = readValue(source.value, source.formula, source.result);
+  const { value, formula, valueIsError } = readValue(source.value, source.formula, source.result);
 
   recordLossyValue(source.value, dropped);
 
   cell.value = value;
   cell.formula = formula;
+
+  if (valueIsError === true) {
+    cell.valueIsError = true;
+  }
+
   cell.numFmt = readNumFmt(source);
 
   // The value is lost inside ExcelJS, so the cell is empty; say which format did it rather than
@@ -1097,6 +1161,57 @@ function addWorksheet(workbook: ExcelJsWorkbook, name: string): ExcelJsWorksheet
 }
 
 /**
+ * Whether a defined name's definition is one sheet-qualified cell or rectangle (`Sheet1!$A$1:$B$2`,
+ * `'My Sheet'!$A$1`), the only shape `workbook.definedNames.add` takes. A whole-column or whole-row
+ * span, a constant, a formula, and a definition with no sheet are not.
+ */
+function isSingleRangeDefinition(formula: string): boolean {
+  const match = /^(?:'(?:[^']|'')+'|[^'!\s]+)!([^!]+)$/.exec(formula.trim());
+
+  if (match === null) {
+    return false;
+  }
+
+  const corners = match[1].split(':');
+
+  return corners.length <= 2 && corners.every(corner => parseCellRef(corner) !== null)
+    && parseRangeRef(match[1]) !== null;
+}
+
+/**
+ * Writes the defined names ExcelJS can hold: the ones the native writer accepts (shared validation),
+ * that are workbook-scoped, and whose definition is a single range within the
+ * `MAX_EXCELJS_DEFINED_NAME_CELLS` budget. Every other name is left out and
+ * `DROPPED_FEATURES.definedNamesUnsupported` is recorded once.
+ */
+function writeDefinedNames(workbook: ExcelJsWorkbook, snapshot: WorkbookSnapshot, dropped: DroppedFeatures): void {
+  const { entries, skipped } = selectWritableDefinedNames(
+    snapshot.definedNames ?? [],
+    snapshot.sheets.map(sheet => sheet.name),
+  );
+  let unsupported = skipped;
+  let coveredCells = 0;
+
+  entries.forEach(({ name, formula, sheetName }) => {
+    const range = sheetName === null && workbook.definedNames?.add && isSingleRangeDefinition(formula)
+      ? parseRangeRef(formula.slice(formula.lastIndexOf('!') + 1))
+      : null;
+    const area = range === null ? 0 : (range.endRow - range.startRow + 1) * (range.endCol - range.startCol + 1);
+
+    if (range !== null && coveredCells + area <= MAX_EXCELJS_DEFINED_NAME_CELLS) {
+      coveredCells += area;
+      workbook.definedNames?.add?.(formula.trim(), name);
+    } else {
+      unsupported = true;
+    }
+  });
+
+  if (unsupported) {
+    dropped.record(DROPPED_FEATURES.definedNamesUnsupported);
+  }
+}
+
+/**
  * The ExcelJS adapter.
  */
 export const excelJsAdapter: XlsxEngineAdapter = {
@@ -1169,6 +1284,8 @@ export const excelJsAdapter: XlsxEngineAdapter = {
       // eslint-disable-next-line no-await-in-loop -- one sheet at a time: `protect()` hashes the password.
       await writeSheetFeatures(worksheet, sheet, dropped);
     }
+
+    writeDefinedNames(workbook, snapshot, dropped);
 
     if (wroteFormula && workbook.calcProperties) {
       // A formula written without a cached result shows as blank until the application recalculates.

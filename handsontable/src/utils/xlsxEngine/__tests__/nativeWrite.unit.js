@@ -431,6 +431,41 @@ describe('nativeAdapter.write', () => {
     expect(sheet.freeze).toEqual({ rows: 1, cols: 0 });
   });
 
+  it('should round-trip defined names, with their scope, through the native reader', async() => {
+    const snapshot = snapshotWith((b) => {
+      b.cell(1, 1).value = 1;
+    }, 'Data');
+    const names = [
+      { name: 'Sales', formula: 'Data!$A$1:$A$3', sheetName: null },
+      { name: 'Local', formula: 'IFS(1,2)&"<&>"', sheetName: 'Data' },
+    ];
+
+    snapshot.definedNames = names;
+
+    const dropped = new DroppedFeatures();
+    const bytes = await nativeAdapter.write(snapshot, undefined, dropped);
+    const back = await nativeAdapter.read(toArrayBuffer(bytes), undefined, new DroppedFeatures());
+
+    // The reader keeps the `_xlfn.` prefix as it does in a cell formula; the import mapper strips it.
+    expect(back.definedNames).toEqual([names[0], { ...names[1], formula: '_xlfn.IFS(1,2)&"<&>"' }]);
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should write no definedNames element for an empty or fully invalid list', async() => {
+    const snapshot = snapshotWith((b) => {
+      b.cell(1, 1).value = 1;
+    });
+
+    snapshot.definedNames = [{ name: 'A1', formula: '1', sheetName: null }];
+
+    const dropped = new DroppedFeatures();
+    const bytes = await nativeAdapter.write(snapshot, undefined, dropped);
+    const back = await nativeAdapter.read(toArrayBuffer(bytes), undefined, new DroppedFeatures());
+
+    expect(back.definedNames).toEqual([]);
+    expect(dropped.list()).toEqual(['definedNames:unsupported']);
+  });
+
   it('should round-trip a cell value that looks like the reader\'s own control-character escape', async() => {
     // `_x0041_` is not a control character; it is a literal string. Left unescaped on write it
     // would be indistinguishable from the `_xHHHH_` a reader writes FOR a real control character,
@@ -497,5 +532,91 @@ describe('nativeAdapter.write', () => {
     expect(shapeIds(third)).toEqual(['_x0000_s2049']);
     expect(noteText(workbook.worksheets[0].getCell('A2').note)).toBe('first sheet, second note');
     expect(noteText(workbook.worksheets[2].getCell('A1').note)).toBe('third sheet note');
+  });
+
+  describe('array formulas and error cells', () => {
+    const formulaCell = (formula, extra = {}) => (b, row, col) => {
+      const cell = b.cell(row, col);
+
+      cell.formula = formula;
+      Object.assign(cell, extra);
+    };
+    const writeCells = async(cells) => {
+      const snapshot = snapshotWith((b) => {
+        cells.forEach(([row, col, fill]) => fill(b, row, col));
+      });
+      const bytes = await nativeAdapter.write(snapshot, undefined, new DroppedFeatures());
+      const zip = await readZip(toArrayBuffer(bytes));
+
+      return { zip, sheet: await zip.text('xl/worksheets/sheet1.xml'), bytes };
+    };
+
+    it('should write a dynamic array master with cm="1" and the metadata part', async() => {
+      const { zip, sheet } = await writeCells([[1, 4, formulaCell({
+        text: 'SEQUENCE(3)', result: 1, array: { ref: 'D1:D3', dynamic: true },
+      })]]);
+
+      expect(sheet).toContain('<c r="D1" cm="1"><f t="array" ref="D1:D3">_xlfn.SEQUENCE(3)</f><v>1</v></c>');
+      expect(zip.has('xl/metadata.xml')).toBe(true);
+      expect(await zip.text('[Content_Types].xml')).toContain('PartName="/xl/metadata.xml"');
+      expect(await zip.text('xl/_rels/workbook.xml.rels')).toContain('Target="metadata.xml"');
+    });
+
+    it('should write a CSE master without cm and without a metadata part', async() => {
+      const { zip, sheet } = await writeCells([[1, 5, formulaCell({
+        text: 'A1:A2*2', result: 2, array: { ref: 'E1:E2', dynamic: false },
+      })]]);
+
+      expect(sheet).toContain('<c r="E1"><f t="array" ref="E1:E2">A1:A2*2</f><v>2</v></c>');
+      expect(sheet).not.toContain('cm=');
+      expect(zip.has('xl/metadata.xml')).toBe(false);
+      expect(await zip.text('[Content_Types].xml')).not.toContain('metadata');
+      expect(await zip.text('xl/_rels/workbook.xml.rels')).not.toContain('metadata');
+    });
+
+    it('should write a flagged OOXML error as t="e" and keep it out of the shared strings', async() => {
+      const { zip, sheet } = await writeCells([[1, 6, (b, r, c) => {
+        Object.assign(b.cell(r, c), { value: '#N/A', valueIsError: true });
+      }]]);
+
+      expect(sheet).toContain('<c r="F1" t="e"><v>#N/A</v></c>');
+      expect(zip.has('xl/sharedStrings.xml')).toBe(false);
+    });
+
+    it('should write a flagged non-OOXML error code as a shared string', async() => {
+      const { zip, sheet } = await writeCells([[1, 1, (b, r, c) => {
+        Object.assign(b.cell(r, c), { value: '#SPILL!', valueIsError: true });
+      }]]);
+
+      expect(sheet).toContain('<c r="A1" t="s"><v>0</v></c>');
+      expect(await zip.text('xl/sharedStrings.xml')).toContain('#SPILL!');
+    });
+
+    it('should write an unflagged error-looking text as a shared string', async() => {
+      const { zip, sheet } = await writeCells([[1, 1, (b, r, c) => {
+        b.cell(r, c).value = '#N/A';
+      }]]);
+
+      expect(sheet).toContain('<c r="A1" t="s">');
+      expect(await zip.text('xl/sharedStrings.xml')).toContain('#N/A');
+    });
+
+    it('should read back the array, error and resultIsError facts it wrote', async() => {
+      const snapshot = snapshotWith((b) => {
+        formulaCell({ text: 'SEQUENCE(3)', result: 1, array: { ref: 'A1:A3', dynamic: true } })(b, 1, 1);
+        formulaCell({ text: 'B1:B2*2', result: 2, array: { ref: 'C1:C2', dynamic: false } })(b, 1, 3);
+        formulaCell({ text: 'NA()', result: '#N/A', resultIsError: true })(b, 1, 5);
+        Object.assign(b.cell(1, 6), { value: '#DIV/0!', valueIsError: true });
+      });
+      const bytes = await nativeAdapter.write(snapshot, undefined, new DroppedFeatures());
+      const read = await nativeAdapter.read(toArrayBuffer(bytes), undefined, new DroppedFeatures());
+      const [row] = read.sheets[0].rows;
+
+      expect(row[0].formula.array).toEqual({ ref: 'A1:A3', dynamic: true });
+      expect(row[2].formula.array).toEqual({ ref: 'C1:C2', dynamic: false });
+      expect(row[4].formula.resultIsError).toBe(true);
+      expect(row[5].valueIsError).toBe(true);
+      expect(row[5].value).toBe('#DIV/0!');
+    });
   });
 });

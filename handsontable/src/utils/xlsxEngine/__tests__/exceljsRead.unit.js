@@ -6,6 +6,8 @@ import { join } from 'node:path';
 import ExcelJS from 'exceljs';
 import { excelJsAdapter } from '../adapters/exceljs';
 import { DroppedFeatures } from '../capabilities';
+import { nativeAdapter } from '../adapters/native';
+import { createCellSnapshot, createSheetSnapshot, createWorkbookSnapshot } from '../model';
 import { isLimitError, MAX_INPUT_BYTES, MAX_WORKBOOK_CELLS, MAX_WORKBOOK_SHEETS } from '../limits';
 
 function load(name) {
@@ -393,5 +395,79 @@ describe('excelJsAdapter.read', () => {
     const snapshot = await excelJsAdapter.read(new ArrayBuffer(0), engine, new DroppedFeatures());
 
     expect(snapshot.sheets).toHaveLength(MAX_WORKBOOK_SHEETS);
+  });
+
+  describe('array formulas and error cells', () => {
+    async function readBuilt(fill) {
+      const workbook = new ExcelJS.Workbook();
+
+      fill(workbook.addWorksheet('Sheet1'));
+
+      const bytes = await workbook.xlsx.writeBuffer();
+      const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+      const dropped = new DroppedFeatures();
+      const snapshot = await excelJsAdapter.read(buffer, ExcelJS, dropped);
+
+      return { snapshot, dropped, row: snapshot.sheets[0].rows[0] };
+    }
+
+    it('should read an array master as a non-dynamic array, since ExcelJS does not expose cm', async() => {
+      const { row } = await readBuilt((ws) => {
+        ws.getCell('A1').value = { formula: 'B1:B2*2', ref: 'A1:A2', shareType: 'array', result: 2 };
+      });
+
+      expect(row[0].formula).toEqual({ text: 'B1:B2*2', result: 2, array: { ref: 'A1:A2', dynamic: false } });
+    });
+
+    it('should leave array and the error flags absent on ordinary cells', async() => {
+      const { row } = await readBuilt((ws) => {
+        ws.getCell('A1').value = { formula: 'B1*2', result: 4 };
+        ws.getCell('B1').value = 5;
+      });
+
+      expect('array' in row[0].formula).toBe(false);
+      expect('resultIsError' in row[0].formula).toBe(false);
+      expect('valueIsError' in row[1]).toBe(false);
+    });
+
+    it('should flag a plain error cell and a formula error result', async() => {
+      const { row } = await readBuilt((ws) => {
+        ws.getCell('A1').value = { error: '#N/A' };
+        ws.getCell('B1').value = { formula: '1/0', result: { error: '#DIV/0!' } };
+      });
+
+      expect(row[0].value).toBe('#N/A');
+      expect(row[0].valueIsError).toBe(true);
+      expect(row[1].formula.result).toBe('#DIV/0!');
+      expect(row[1].formula.resultIsError).toBe(true);
+    });
+  });
+});
+
+describe('excelJsAdapter.read on defined names', () => {
+  it('should keep a name over several areas with its areas joined, and report nothing', async() => {
+    // ExcelJS lists each area of `Multi` as its own range. Keeping the first silently turned the name
+    // into a different one, and leaving it out made a formula over it import live as `#NAME?`.
+    const workbook = createWorkbookSnapshot();
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = [[{ ...createCellSnapshot(), value: 1 }]];
+    workbook.sheets.push(sheet);
+    workbook.definedNames = [
+      { name: 'Multi', formula: 'Sheet1!$A$1,Sheet1!$C$1', sheetName: null },
+      { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null },
+    ];
+
+    const bytes = await nativeAdapter.write(workbook, undefined, new DroppedFeatures());
+    const dropped = new DroppedFeatures();
+    const snapshot = await excelJsAdapter.read(
+      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), ExcelJS, dropped,
+    );
+
+    expect(snapshot.definedNames).toEqual([
+      { name: 'Multi', formula: 'Sheet1!$A$1,Sheet1!$C$1', sheetName: null },
+      { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null },
+    ]);
+    expect(dropped.list()).toEqual([]);
   });
 });

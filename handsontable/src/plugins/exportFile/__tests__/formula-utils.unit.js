@@ -1,4 +1,6 @@
-import { normalizeFormula } from '../types/xlsx/formula-utils';
+import {
+  ArrayRangeClaims, normalizeFormula, normalizeNamedExpression, toFormulaLiteral,
+} from '../types/xlsx/formula-utils';
 
 describe('normalizeFormula', () => {
   describe('relative references', () => {
@@ -81,5 +83,132 @@ describe('normalizeFormula', () => {
     it('should not replace a separator inside string literals', () => {
       expect(normalizeFormula('=CONCATENATE("a;b";C1)', ';', 0, 0)).toBe('CONCATENATE("a;b",C1)');
     });
+  });
+});
+
+describe('normalizeNamedExpression', () => {
+  const normalize = (formula, { rows = 0, cols = 0, exRows, exCols, separator = ',' } = {}) => {
+    const sheets = new Map([
+      ['data', {
+        exportedName: 'Sheet1', rowOffset: rows, colOffset: cols, excludedRows: exRows, excludedCols: exCols,
+      }],
+      ['rates', { exportedName: 'Rate Table', rowOffset: 0, colOffset: 0 }],
+    ]);
+
+    return normalizeNamedExpression(formula, separator, sheets);
+  };
+
+  it('should strip the `=`, shift a reference to an exported sheet and qualify it with its exported name', () => {
+    expect(normalize('=Data!$A$1:$A$3', { rows: 1 })).toBe('Sheet1!$A$2:$A$4');
+    expect(normalize('=data!A$1', { rows: 1, cols: 1 })).toBe('Sheet1!B$2');
+  });
+
+  it('should move each reference by the sheet it names', () => {
+    expect(normalize('=Rates!$A$1+Data!$B$1', { rows: 1 })).toBe('\'Rate Table\'!$A$1+Sheet1!$B$2');
+  });
+
+  it('should answer null for a reference to a sheet the export does not write, or to no sheet', () => {
+    expect(normalize('=Other!$A$1+Data!$A$1')).toBeNull();
+    expect(normalize('=2026!$A$1')).toBeNull();
+    expect(normalize('=$A$1')).toBeNull();
+  });
+
+  it('should keep a constant as it is', () => {
+    expect(normalize('=0.07', { rows: 1 })).toBe('0.07');
+    expect(normalize('="Data!A1"', { rows: 1 })).toBe('"Data!A1"');
+  });
+
+  it('should convert the argument separator', () => {
+    expect(normalize('=SUM(Data!$A$1;Data!$A$2)', { separator: ';' })).toBe('SUM(Sheet1!$A$1,Sheet1!$A$2)');
+  });
+
+  it('should shift an open span on its own axis only', () => {
+    expect(normalize('=Data!$A:$A', { rows: 1, cols: 1 })).toBe('Sheet1!$B:$B');
+    expect(normalize('=Data!$2:$3', { rows: 1, cols: 1 })).toBe('Sheet1!$3:$4');
+  });
+
+  it('should shrink a range around a left-out row and shift the references below it', () => {
+    expect(normalize('=Data!$A$1:$A$3', { exRows: new Set([1]) })).toBe('Sheet1!$A$1:$A$2');
+    expect(normalize('=Data!$A$4', { exRows: new Set([1]) })).toBe('Sheet1!$A$3');
+  });
+
+  it('should answer null for a reference that starts or ends on a left-out row or column', () => {
+    expect(normalize('=Data!$A$2', { exRows: new Set([1]) })).toBeNull();
+    expect(normalize('=Data!$A$1:$A$2', { exRows: new Set([1]) })).toBeNull();
+    expect(normalize('=Data!$A$2:$A$3', { exRows: new Set([1]) })).toBeNull();
+    expect(normalize('=Data!$B$1', { exCols: new Set([1]) })).toBeNull();
+    expect(normalize('=Data!$B:$B', { exCols: new Set([1]) })).toBeNull();
+  });
+
+  it('should not reject a reference to another sheet at a left-out index of this one', () => {
+    expect(normalize('=Rates!$A$2', { exRows: new Set([1]) })).toBe('\'Rate Table\'!$A$2');
+  });
+});
+
+describe('toFormulaLiteral', () => {
+  it('should spell numbers, strings, booleans and coded errors', () => {
+    expect(toFormulaLiteral(0.5)).toBe('0.5');
+    expect(toFormulaLiteral('say "hi"')).toBe('"say ""hi"""');
+    expect(toFormulaLiteral(true)).toBe('TRUE()');
+    expect(toFormulaLiteral(false)).toBe('FALSE()');
+    expect(toFormulaLiteral({ type: 'NA', value: '#N/A' })).toBe('#N/A');
+  });
+
+  it('should answer null for what a literal cannot spell', () => {
+    expect(toFormulaLiteral('x'.repeat(256))).toBeNull();
+    expect(toFormulaLiteral('x'.repeat(255))).toBe(`"${'x'.repeat(255)}"`);
+    expect(toFormulaLiteral(null)).toBeNull();
+    expect(toFormulaLiteral({ type: 'CYCLE', value: '#CYCLE!' })).toBeNull();
+    expect(toFormulaLiteral(Infinity)).toBeNull();
+  });
+});
+
+describe('ArrayRangeClaims', () => {
+  const range = (top, left, bottom, right) => ({ top, left, bottom, right });
+
+  it('should claim ranges in row-major order and refuse one that overlaps an earlier claim', () => {
+    // The export asks master by master, row by row and left to right.
+    const claims = new ArrayRangeClaims();
+
+    expect(claims.claim(range(1, 1, 3, 2))).toBe(true); // A1:B3
+    expect(claims.claim(range(1, 3, 1, 3))).toBe(true); // C1, right of A1:B3
+    expect(claims.claim(range(2, 2, 2, 2))).toBe(false); // B2, inside A1:B3
+    expect(claims.claim(range(2, 3, 3, 4))).toBe(true); // C2:D3, touches A1:B3 and C1 only at the edges
+    expect(claims.claim(range(4, 1, 4, 1))).toBe(true); // A4, below A1:B3
+    expect(claims.claim(range(4, 3, 6, 3))).toBe(true); // C4:C6
+    expect(claims.claim(range(5, 1, 5, 4))).toBe(false); // A5:D5, a free master reaching into C4:C6
+    expect(claims.claim(range(6, 1, 6, 2))).toBe(true); // A6:B6, stops left of C6
+    expect(claims.claim(range(7, 3, 7, 3))).toBe(true); // C7, below C4:C6
+  });
+
+  it('should not let a refused claim block a later range', () => {
+    const claims = new ArrayRangeClaims();
+
+    expect(claims.claim(range(1, 1, 2, 1))).toBe(true);
+    expect(claims.claim(range(2, 1, 9, 9))).toBe(false);
+    expect(claims.claim(range(3, 3, 3, 3))).toBe(true);
+  });
+
+  it('should claim a 100,000-row column of one-cell arrays in linear time', () => {
+    // An IFS column is a one-cell dynamic array per row. Comparing each claim with every earlier
+    // one took about 3 seconds for 100,000 rows.
+    const claims = new ArrayRangeClaims();
+    const started = performance.now();
+
+    const answers = new Set();
+
+    for (let row = 1; row <= 100000; row++) {
+      answers.add(claims.claim(range(row, 3, row, 3)));
+
+      if (row === 1) {
+        // A spill over D1:D100000 next to the IFS column.
+        answers.add(claims.claim(range(1, 4, 100000, 4)));
+      }
+    }
+
+    expect(performance.now() - started).toBeLessThan(500);
+    expect([...answers]).toEqual([true]);
+    // A master inside the spill is still refused.
+    expect(claims.claim(range(100000, 4, 100000, 5))).toBe(false);
   });
 });

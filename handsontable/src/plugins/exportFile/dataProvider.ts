@@ -1,7 +1,7 @@
 import type { HotInstance } from '../../core/types';
 import { extractText } from '../../utils/textExtractor';
 import { normalizeExportOptions, expandNestedHeaderLayers } from './utils';
-import { toOoxmlErrorCode } from './types/xlsx/formula-utils';
+import { toFormulaLiteral, toOoxmlErrorCode } from './types/xlsx/formula-utils';
 import type { SummaryEndpoint } from '../columnSummary/columnSummary';
 
 interface MergeCellDescriptor {
@@ -32,6 +32,114 @@ type NestedHeadersPluginWithState = {
 type NestedHeadersPluginWithSettings = {
   getHeaderSettings(layer: number, col: number): NestedHeaderSettings | null | undefined;
 };
+
+/**
+ * The size of the array a formula spills, in cells, as `ExportDataProvider#getArrayFormulaSizes()`
+ * reports it.
+ */
+export interface ArrayFormulaSize {
+  rows: number;
+  cols: number;
+  exported: boolean;
+}
+
+/**
+ * The cell address HyperFormula takes.
+ */
+interface EngineCellAddress {
+  sheet: number;
+  row: number;
+  col: number;
+}
+
+/**
+ * Reads the exact size of the array whose master sits at `address` from HyperFormula's array
+ * mapping. The mapping is `@internal` in HyperFormula (3.3.0 answers an `ArrayFormulaVertex` with
+ * `width` and `height`), so every step is duck-typed and anything unexpected answers `null`.
+ *
+ * @param {object} engine The Formulas plugin's engine.
+ * @param {object} address The master's engine address.
+ * @returns {{ rows: number, cols: number }|null}
+ */
+function readMappedArraySize(engine: object, address: EngineCellAddress): { rows: number; cols: number } | null {
+  const { arrayMapping } = engine as { arrayMapping?: { getArrayByCorner?: unknown } };
+
+  if (typeof arrayMapping?.getArrayByCorner !== 'function') {
+    return null;
+  }
+
+  const vertex = (arrayMapping.getArrayByCorner as (address: EngineCellAddress) => unknown).call(arrayMapping, address);
+  const { width, height } = (vertex ?? {}) as { width?: unknown; height?: unknown };
+
+  if (typeof width !== 'number' || typeof height !== 'number' || width < 1 || height < 1) {
+    return null;
+  }
+
+  return { rows: height, cols: width };
+}
+
+/**
+ * Estimates the size of the array whose master sits at `address` by walking right, then down, over
+ * the cells the engine types `ARRAY`. The fallback for `readMappedArraySize()`; it can
+ * over-count when another array spills next to the master.
+ *
+ * @param {object} engine The Formulas plugin's engine.
+ * @param {object} address The master's engine address.
+ * @returns {{ rows: number, cols: number }}
+ */
+function walkArraySize(
+  engine: {
+    getCellType(address: EngineCellAddress): unknown;
+    getSheetDimensions(sheetId: number): { width: number; height: number };
+  },
+  address: EngineCellAddress
+): { rows: number; cols: number } {
+  const { sheet, row, col } = address;
+  const { width, height } = engine.getSheetDimensions(sheet);
+  const isSpilled = (r: number, c: number) => engine.getCellType({ sheet, row: r, col: c }) === 'ARRAY';
+  let cols = 1;
+  let rows = 1;
+
+  while (col + cols < width && isSpilled(row, col + cols)) {
+    cols += 1;
+  }
+
+  while (row + rows < height && isSpilled(row + rows, col)) {
+    rows += 1;
+  }
+
+  return { rows, cols };
+}
+
+/**
+ * Whether the engine indexes `hfStart … hfStart + length - 1` of one axis land, in that order, on
+ * consecutive positions of the exported matrix, starting at the master's own position.
+ *
+ * @param {object} syncer The Formulas plugin's syncer of the axis.
+ * @param {number} hfStart The master's engine index.
+ * @param {number} length The spill length along the axis.
+ * @param {Map<number, number>} positions Visual index to exported position.
+ * @param {number} visualStart The master's visual index.
+ * @returns {boolean}
+ */
+function spillsInPlace(
+  syncer: { getVisualIndexFromHfIndex(hfIndex: number): number },
+  hfStart: number, length: number, positions: Map<number, number>, visualStart: number
+): boolean {
+  const start = positions.get(visualStart);
+
+  if (start === undefined) {
+    return false;
+  }
+
+  for (let offset = 1; offset < length; offset++) {
+    if (positions.get(syncer.getVisualIndexFromHfIndex(hfStart + offset)) !== start + offset) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 /**
  * @private
@@ -227,7 +335,9 @@ class ExportDataProvider {
    *
    * The answer comes from the engine's own cell value, not from the displayed text, which cannot
    * tell the error `#N/A` from the text a formula such as `="#N/A"` answers, and which the
-   * engine's language translates.
+   * engine's language translates. The XLSX export reads it with and without `exportFormulas`:
+   * a formula exported live caches the code as its result, and any other cell whose value is an
+   * error (a typed `#N/A`, or a formula exported as its value) is written as the code.
    *
    * @returns {Array[]}
    */
@@ -245,6 +355,173 @@ class ExportDataProvider {
       row: rowAxisSyncer.getHfIndexFromVisualIndex(row),
       col: columnAxisSyncer.getHfIndexFromVisualIndex(col),
     })));
+  }
+
+  /**
+   * Gets, for every cell of the export range, the value the Formulas plugin's engine COMPUTED for
+   * it when that value is a finite number or a boolean, or `null` otherwise: a cell the engine
+   * holds as a plain value (`VALUE`) or not at all (`EMPTY`), a computed text, an error, and every
+   * cell when the Formulas plugin is absent or disabled. A formula cell, an array formula and the
+   * cells an array spills (`ARRAY`) are computed.
+   *
+   * The xlsx export writes such a cell with the engine's type, so a computed number in a text
+   * column is not written as text, which a reader that takes cached values without recalculating
+   * would not count (`=SUM()` over a spill).
+   *
+   * @returns {Array[]}
+   */
+  getEngineComputedValues(): (number | boolean | null)[][] {
+    const formulasPlugin = this.hot.getPlugin('formulas');
+    const engine = formulasPlugin?.isEnabled() ? formulasPlugin.engine : null;
+    const { sheetId, rowAxisSyncer, columnAxisSyncer } = formulasPlugin ?? {};
+
+    if (!engine || sheetId === null || sheetId === undefined || !rowAxisSyncer || !columnAxisSyncer) {
+      return this._extractDataMatrix(() => null);
+    }
+
+    return this._extractDataMatrix((row, col) => {
+      const address = {
+        sheet: sheetId,
+        row: rowAxisSyncer.getHfIndexFromVisualIndex(row),
+        col: columnAxisSyncer.getHfIndexFromVisualIndex(col),
+      };
+      const cellType = engine.getCellType(address);
+
+      if (cellType === 'VALUE' || cellType === 'EMPTY') {
+        return null;
+      }
+
+      const value = engine.getCellValue(address);
+
+      if ((typeof value === 'number' && Number.isFinite(value)) || typeof value === 'boolean') {
+        return value;
+      }
+
+      return null;
+    });
+  }
+
+  /**
+   * Gets the workbook-scoped named expressions of the Formulas plugin's engine, in the engine's
+   * order, each with its definition: the formula text (`=Sheet1!$A$1:$A$3`), or, for a name defined
+   * with a constant, that constant spelled as a formula literal (`5`, `"text"`, `TRUE()`). The
+   * definition is `null` when the constant cannot be spelled. A name scoped to a sheet is left out.
+   * Empty when the Formulas plugin is absent or disabled.
+   *
+   * @returns {Array<{ name: string, formula: string|null }>}
+   */
+  getNamedExpressions(): Array<{ name: string; formula: string | null }> {
+    const formulasPlugin = this.hot.getPlugin('formulas');
+    const engine = formulasPlugin?.isEnabled() ? formulasPlugin.engine : null;
+
+    if (!engine) {
+      return [];
+    }
+
+    return engine.listNamedExpressions().map((name: string) => {
+      const formula = engine.getNamedExpressionFormula(name);
+
+      return {
+        name,
+        formula: formula === undefined ? toFormulaLiteral(engine.getNamedExpressionValue?.(name)) : formula,
+      };
+    });
+  }
+
+  /**
+   * Gets the Formulas plugin's engine and the name of the engine sheet it binds this grid to, or
+   * `null` when the plugin is absent or disabled. Grids of one export may share an engine; the
+   * engine object tells them apart.
+   *
+   * @returns {{ engine: object, sheetName: string }|null}
+   */
+  getFormulasBinding(): { engine: object; sheetName: string } | null {
+    const formulasPlugin = this.hot.getPlugin('formulas');
+
+    if (!formulasPlugin?.isEnabled() || !formulasPlugin.engine || formulasPlugin.sheetName === null) {
+      return null;
+    }
+
+    return { engine: formulasPlugin.engine, sheetName: formulasPlugin.sheetName };
+  }
+
+  /**
+   * Gets, for every cell of the export range, the size of the array the Formulas plugin's engine
+   * spills from it, or `null` when the cell is not the master of an array (the engine types it
+   * `ARRAYFORMULA`: a spilling function such as `SEQUENCE`, or `ARRAYFORMULA(…)`). Every entry is
+   * `null` when the Formulas plugin is absent or disabled.
+   *
+   * HyperFormula has no public API for the spill range. The size is read from the engine's array
+   * mapping (`arrayMapping.getArrayByCorner()`), which holds the exact size of every array. That
+   * mapping is `@internal` in HyperFormula and may change between 3.x releases, so it is
+   * duck-typed and, when it is missing or answers an unexpected shape, the size is estimated by
+   * walking right, then down, from the master over the cells the engine types `ARRAY`, bounded by
+   * the sheet's dimensions. The walk is only an estimate: a spilled cell next to the master can
+   * belong to another array (a `=SEQUENCE(3)` in B1 spills into B2, right of a master in A2), so
+   * it can over-count, and the export refuses a ref that overlaps an earlier one
+   * (`types/xlsx.ts`). `isCellPartOfArray()` cannot drive the walk: it is `true` for a
+   * neighboring array's master too.
+   *
+   * `exported` tells whether every spilled row and column lands in the exported matrix right
+   * after the master, so the spill keeps its shape in the file. It is `false` when the spill
+   * crosses a trimmed row, a hidden row or column the export leaves out, or the `range` edge.
+   *
+   * @returns {Array[]}
+   */
+  getArrayFormulaSizes(): (ArrayFormulaSize | null)[][] {
+    const formulasPlugin = this.hot.getPlugin('formulas');
+    const engine = formulasPlugin?.isEnabled() ? formulasPlugin.engine : null;
+    const { sheetId, rowAxisSyncer, columnAxisSyncer } = formulasPlugin ?? {};
+
+    if (!engine || sheetId === null || sheetId === undefined || !rowAxisSyncer || !columnAxisSyncer) {
+      return this._extractDataMatrix(() => null);
+    }
+
+    const { startRow, endRow, startCol, endCol } = this._getDataRange();
+    const exportedRows = this.#getExportedPositions(startRow, endRow, this.options.exportHiddenRows === false
+      ? (row: number) => this._isHiddenRow(row) : () => false);
+    const exportedCols = this.#getExportedPositions(startCol, endCol, this.options.exportHiddenColumns === false
+      ? (col: number) => this._isHiddenColumn(col) : () => false);
+
+    return this._extractDataMatrix((row, col) => {
+      const address = {
+        sheet: sheetId,
+        row: rowAxisSyncer.getHfIndexFromVisualIndex(row),
+        col: columnAxisSyncer.getHfIndexFromVisualIndex(col),
+      };
+
+      if (address.row < 0 || address.col < 0 || engine.getCellType(address) !== 'ARRAYFORMULA') {
+        return null;
+      }
+
+      const { rows, cols } = readMappedArraySize(engine, address) ?? walkArraySize(engine, address);
+      const hfRow = address.row;
+      const hfCol = address.col;
+      const exported = spillsInPlace(rowAxisSyncer, hfRow, rows, exportedRows, row)
+        && spillsInPlace(columnAxisSyncer, hfCol, cols, exportedCols, col);
+
+      return { rows, cols, exported };
+    });
+  }
+
+  /**
+   * Maps every visual index of one axis the exported matrix holds to its position in the matrix.
+   *
+   * @param {number} start The first visual index of the export range.
+   * @param {number} end The last visual index of the export range.
+   * @param {Function} isLeftOut Whether the export leaves a visual index out.
+   * @returns {Map<number, number>}
+   */
+  #getExportedPositions(start: number, end: number, isLeftOut: (index: number) => boolean): Map<number, number> {
+    const positions = new Map<number, number>();
+
+    for (let index = start; index <= end; index++) {
+      if (!isLeftOut(index)) {
+        positions.set(index, positions.size);
+      }
+    }
+
+    return positions;
   }
 
   /**

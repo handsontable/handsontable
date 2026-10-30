@@ -1,7 +1,9 @@
 import { localeLowerCase } from '../../../../../helpers/string';
 import { DROPPED_FEATURES, type DroppedFeatures } from '../../../capabilities';
-import { MAX_WORKBOOK_SHEETS, throwLimitExceeded } from '../../../limits';
-import type { SheetSnapshot } from '../../../model';
+import { MAX_FORMULA_LENGTH, MAX_WORKBOOK_SHEETS, throwLimitExceeded } from '../../../limits';
+import { selectWritableDefinedNames } from '../../../definedNames';
+import { addFunctionPrefixes } from '../../../functionPrefixes';
+import type { DefinedNameSnapshot, SheetSnapshot } from '../../../model';
 import { createLocalName, tokenizeXml, type XmlAttributes } from '../xml/tokenizer';
 import { foldPartName } from '../zip/reader';
 import { XmlWriter } from '../xml/writer';
@@ -59,6 +61,7 @@ export const REL_TYPES = {
   intlMacrosheet: `${OFFICE_REL}/xlIntlMacrosheet`,
   styles: `${OFFICE_REL}/styles`,
   sharedStrings: `${OFFICE_REL}/sharedStrings`,
+  sheetMetadata: `${OFFICE_REL}/sheetMetadata`,
   comments: `${OFFICE_REL}/comments`,
   vmlDrawing: `${OFFICE_REL}/vmlDrawing`,
   drawing: `${OFFICE_REL}/drawing`,
@@ -77,6 +80,7 @@ export const CONTENT_TYPES = {
   worksheet: 'application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml',
   styles: 'application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml',
   sharedStrings: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml',
+  sheetMetadata: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheetMetadata+xml',
   comments: 'application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml',
   vml: 'application/vnd.openxmlformats-officedocument.vmlDrawing',
   rels: 'application/vnd.openxmlformats-package.relationships+xml',
@@ -107,10 +111,46 @@ export const SPREADSHEET_MAIN_CONTENT_TYPES: ReadonlySet<string> = new Set([
 export const BINARY_WORKBOOK_CONTENT_TYPE = localeLowerCase('application/vnd.ms-excel.sheet.binary.macroEnabled.main');
 
 /**
- * Serializes `[Content_Types].xml`. The `vml` default is written only when some sheet carries
- * comments, and the shared-strings override only when the table is non-empty.
+ * The package path of the metadata part that marks a formula cell as a dynamic array (`cm="1"`).
  */
-export function contentTypesXml(sheets: PackageSheet[], hasSharedStrings: boolean): string {
+export const METADATA_PART = 'xl/metadata.xml';
+
+/**
+ * The namespace of Excel's dynamic-array metadata (`xda:`).
+ */
+const DYNAMIC_ARRAY_NS = 'http://schemas.microsoft.com/office/spreadsheetml/2017/dynamicarray';
+
+/**
+ * The `ext` uri Excel gives the `XLDAPR` (dynamic array properties) future metadata.
+ */
+const DYNAMIC_ARRAY_EXT_URI = '{bdbb8cdc-fa1e-496e-a857-3c3f30c029c3}';
+
+/**
+ * Serializes `xl/metadata.xml` exactly as Excel writes it for a workbook with dynamic arrays: one
+ * `XLDAPR` metadata type whose single future-metadata block flags `fDynamic`, and one cell
+ * metadata record pointing at it. A cell carries `cm="1"` (the 1-based index of that record).
+ */
+export function metadataXml(): string {
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+    + `<metadata xmlns="${MAIN_NS}" xmlns:xda="${DYNAMIC_ARRAY_NS}">`
+    + '<metadataTypes count="1">'
+    + '<metadataType name="XLDAPR" minSupportedVersion="120000" copy="1" pasteAll="1" pasteValues="1" '
+    + 'merge="1" splitFirst="1" rowColShift="1" clearFormats="1" clearComments="1" assign="1" coerce="1" '
+    + 'cellMeta="1"/>'
+    + '</metadataTypes>'
+    + '<futureMetadata name="XLDAPR" count="1"><bk><extLst>'
+    + `<ext uri="${DYNAMIC_ARRAY_EXT_URI}"><xda:dynamicArrayProperties fDynamic="1" fCollapsed="0"/></ext>`
+    + '</extLst></bk></futureMetadata>'
+    + '<cellMetadata count="1"><bk><rc t="1" v="0"/></bk></cellMetadata>'
+    + '</metadata>';
+}
+
+/**
+ * Serializes `[Content_Types].xml`. The `vml` default is written only when some sheet carries
+ * comments, the shared-strings override only when the table is non-empty, and the metadata override
+ * only when a dynamic array was written.
+ */
+export function contentTypesXml(sheets: PackageSheet[], hasSharedStrings: boolean, hasMetadata: boolean): string {
   const w = new XmlWriter().open('Types', { xmlns: 'http://schemas.openxmlformats.org/package/2006/content-types' });
 
   w.leaf('Default', { Extension: 'rels', ContentType: CONTENT_TYPES.rels });
@@ -128,6 +168,10 @@ export function contentTypesXml(sheets: PackageSheet[], hasSharedStrings: boolea
 
   if (hasSharedStrings) {
     w.leaf('Override', { PartName: '/xl/sharedStrings.xml', ContentType: CONTENT_TYPES.sharedStrings });
+  }
+
+  if (hasMetadata) {
+    w.leaf('Override', { PartName: `/${METADATA_PART}`, ContentType: CONTENT_TYPES.sheetMetadata });
   }
 
   sheets.filter(s => s.hasComments).forEach((sheet) => {
@@ -167,11 +211,16 @@ export function rootRelsXml(): string {
 export function workbookRelsXml(
   sheets: PackageSheet[],
   hasSharedStrings: boolean,
+  hasMetadata: boolean,
 ): { xml: string; sheetRelIds: string[] } {
   const rels: Relationship[] = [{ id: 'rId1', type: REL_TYPES.styles, target: 'styles.xml' }];
 
   if (hasSharedStrings) {
     rels.push({ id: `rId${rels.length + 1}`, type: REL_TYPES.sharedStrings, target: 'sharedStrings.xml' });
+  }
+
+  if (hasMetadata) {
+    rels.push({ id: `rId${rels.length + 1}`, type: REL_TYPES.sheetMetadata, target: 'metadata.xml' });
   }
 
   const sheetRelIds = sheets.map((sheet) => {
@@ -197,10 +246,22 @@ export function sheetRelsXml(index: number): string {
 
 /**
  * Serializes `xl/workbook.xml`. Child order is schema-fixed: `workbookPr`, `bookViews`, `sheets`,
- * `calcPr`. `fullCalcOnLoad` asks LibreOffice and Google Sheets to compute formulas written
- * without a cached result; Excel recalculates on its own.
+ * `definedNames`, `calcPr`. `fullCalcOnLoad` asks LibreOffice and Google Sheets to compute formulas
+ * written without a cached result; Excel recalculates on its own.
+ *
+ * A defined name that is not a valid name, that spells a cell reference, or that is scoped to a
+ * sheet `sheetNames` does not hold is left out, and `DROPPED_FEATURES.definedNamesUnsupported` is
+ * recorded once. The definition is written the way a cell formula is: function prefixes added, then
+ * escaped as element text. `<definedNames>` is omitted when nothing valid remains.
  */
-export function workbookXml(sheets: PackageSheet[], sheetRelIds: string[], fullCalcOnLoad: boolean): string {
+export function workbookXml(
+  sheets: PackageSheet[],
+  sheetRelIds: string[],
+  fullCalcOnLoad: boolean,
+  definedNames: DefinedNameSnapshot[],
+  sheetNames: string[],
+  dropped: DroppedFeatures,
+): string {
   const w = new XmlWriter().open('workbook', { xmlns: MAIN_NS, 'xmlns:r': R_NS });
 
   w.leaf('workbookPr', { defaultThemeVersion: '164011' });
@@ -219,6 +280,21 @@ export function workbookXml(sheets: PackageSheet[], sheetRelIds: string[], fullC
     });
   });
   w.close();
+
+  const { entries, skipped } = selectWritableDefinedNames(definedNames, sheetNames);
+
+  if (skipped) {
+    dropped.record(DROPPED_FEATURES.definedNamesUnsupported);
+  }
+
+  if (entries.length > 0) {
+    w.open('definedNames');
+    entries.forEach(({ name, localSheetId, formula }) => {
+      w.formulaLeaf('definedName', addFunctionPrefixes(formula), { name, localSheetId });
+    });
+    w.close();
+  }
+
   w.leaf('calcPr', { calcId: '171027', fullCalcOnLoad: fullCalcOnLoad ? '1' : undefined });
 
   return w.close().toString();
@@ -512,21 +588,68 @@ export const MAX_DEFINED_NAMES = 65536;
  *
  * A name past `MAX_DEFINED_NAMES` is left out and `DROPPED_FEATURES.definedNamesTruncated` is
  * recorded once. Dropped silently, a formula using such a name stayed live and showed `#NAME?`
- * with nothing in the import result to say why.
+ * with nothing in the import result to say why. A definition longer than `MAX_FORMULA_LENGTH` (the
+ * cap a cell formula gets) is left out and `DROPPED_FEATURES.definedNamesUnsupported` is recorded
+ * once; its text stops growing as soon as it crosses the cap.
  */
 export function parseWorkbook(
   xml: string,
   dropped?: DroppedFeatures,
-): { sheets: WorkbookSheetEntry[]; date1904: boolean; definedNames: string[] } {
+): { sheets: WorkbookSheetEntry[]; date1904: boolean; definedNames: DefinedNameSnapshot[] } {
   const sheets: WorkbookSheetEntry[] = [];
-  const definedNames = new Set<string>();
+  const definedNames = new Map<string, DefinedNameSnapshot>();
   let date1904 = false;
+  let pending: { name: string; sheetName: string | null; text: string; tooLong: boolean } | null = null;
   const localName = createLocalName();
   const relationshipIds = createRelationshipIdReader();
 
+  /**
+   * Keeps the finished definition, or records one a scope cannot be resolved for.
+   */
+  const finish = () => {
+    if (!pending) {
+      return;
+    }
+
+    const { name, sheetName, text, tooLong } = pending;
+    const key = `${sheetName ?? ''}\u0000${name}`;
+
+    pending = null;
+
+    if (tooLong) {
+      if (dropped?.count(DROPPED_FEATURES.definedNamesUnsupported) === 0) {
+        dropped.record(DROPPED_FEATURES.definedNamesUnsupported);
+      }
+
+      return;
+    }
+
+    if (definedNames.size < MAX_DEFINED_NAMES) {
+      if (!definedNames.has(key)) {
+        definedNames.set(key, { name, formula: text.trim(), sheetName });
+      }
+    } else if (!definedNames.has(key) && dropped?.count(DROPPED_FEATURES.definedNamesTruncated) === 0) {
+      dropped.record(DROPPED_FEATURES.definedNamesTruncated);
+    }
+  };
+
   tokenizeXml(xml, {
-    close() {
+    close(rawName) {
       relationshipIds.close();
+
+      if (pending && localName(rawName) === 'definedName') {
+        finish();
+      }
+    },
+    text(text) {
+      if (pending && !pending.tooLong) {
+        pending.text += text;
+
+        if (pending.text.length > MAX_FORMULA_LENGTH) {
+          pending.tooLong = true;
+          pending.text = '';
+        }
+      }
     },
     open(rawName, attrs, selfClosing) {
       const name = localName(rawName);
@@ -548,16 +671,34 @@ export function parseWorkbook(
       } else if (name === 'workbookPr') {
         date1904 = attrs.date1904 === '1' || attrs.date1904 === 'true';
       } else if (name === 'definedName' && attrs.name && !attrs.name.startsWith('_xlnm.')) {
-        if (definedNames.size < MAX_DEFINED_NAMES) {
-          definedNames.add(attrs.name);
-        } else if (!definedNames.has(attrs.name) && dropped?.count(DROPPED_FEATURES.definedNamesTruncated) === 0) {
-          dropped.record(DROPPED_FEATURES.definedNamesTruncated);
+        let sheetName: string | null = null;
+
+        if (attrs.localSheetId !== undefined) {
+          const scope = /^\d+$/.test(attrs.localSheetId) ? sheets[Number(attrs.localSheetId)] : undefined;
+
+          if (!scope) {
+            // A scope that names no sheet cannot be kept as workbook-wide: that would redefine the
+            // name for every sheet.
+            if (dropped?.count(DROPPED_FEATURES.definedNamesUnsupported) === 0) {
+              dropped.record(DROPPED_FEATURES.definedNamesUnsupported);
+            }
+
+            return;
+          }
+
+          sheetName = scope.name;
+        }
+
+        pending = { name: attrs.name, sheetName, text: '', tooLong: false };
+
+        if (selfClosing) {
+          finish();
         }
       }
     },
   });
 
-  return { sheets, date1904, definedNames: [...definedNames] };
+  return { sheets, date1904, definedNames: [...definedNames.values()] };
 }
 
 /**

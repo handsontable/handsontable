@@ -3,7 +3,7 @@
  */
 import Encryptor from 'exceljs/lib/utils/encryptor';
 import {
-  contentTypesXml, rootRelsXml, workbookRelsXml, workbookXml, sheetRelsXml, coreXml, appXml,
+  contentTypesXml, metadataXml, rootRelsXml, workbookRelsXml, workbookXml, sheetRelsXml, coreXml, appXml,
   parseRels, parseWorkbook, resolvePartPath, REL_TYPES,
 } from '../adapters/native/parts/package';
 import { SharedStringTable, parseSharedStrings } from '../adapters/native/parts/sharedStrings';
@@ -20,7 +20,7 @@ import { XmlWriter } from '../adapters/native/xml/writer';
 import { escapeXmlText, escapeXmlAttr, decodeOoxmlEscapes } from '../adapters/native/xml/escapes';
 import { DroppedFeatures } from '../capabilities';
 import { SheetBuilder } from '../builder';
-import { MAX_SHEET_CELLS, MAX_WORKBOOK_CELLS } from '../limits';
+import { MAX_FORMULA_LENGTH, MAX_SHEET_CELLS, MAX_WORKBOOK_CELLS } from '../limits';
 
 const sheets = [
   { index: 1, name: 'Data', state: 'visible', hasComments: true },
@@ -28,8 +28,10 @@ const sheets = [
 ];
 
 describe('package parts', () => {
+  const noDropped = () => new DroppedFeatures();
+
   it('should declare every part in [Content_Types].xml, the vml default only when a sheet has comments', () => {
-    const xml = contentTypesXml(sheets, true);
+    const xml = contentTypesXml(sheets, true, false);
 
     expect(xml).toContain(
       '<Default Extension="rels" '
@@ -69,7 +71,7 @@ describe('package parts', () => {
       + 'ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>',
     );
 
-    expect(contentTypesXml([{ ...sheets[0], hasComments: false }], false)).not.toMatch(/vml|sharedStrings/);
+    expect(contentTypesXml([{ ...sheets[0], hasComments: false }], false, false)).not.toMatch(/vml|sharedStrings/);
   });
 
   it('should relate the root to the workbook and both docProps parts', () => {
@@ -82,8 +84,50 @@ describe('package parts', () => {
     ]);
   });
 
+  it('should write the metadata part Excel writes for dynamic arrays', () => {
+    const squash = text => text.replace(/>\s+</g, '><').trim();
+
+    /* eslint-disable max-len */
+    const excel = `
+<metadata xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:xda="http://schemas.microsoft.com/office/spreadsheetml/2017/dynamicarray">
+  <metadataTypes count="1">
+    <metadataType name="XLDAPR" minSupportedVersion="120000" copy="1" pasteAll="1" pasteValues="1" merge="1" splitFirst="1" rowColShift="1" clearFormats="1" clearComments="1" assign="1" coerce="1" cellMeta="1"/>
+  </metadataTypes>
+  <futureMetadata name="XLDAPR" count="1">
+    <bk><extLst><ext uri="{bdbb8cdc-fa1e-496e-a857-3c3f30c029c3}"><xda:dynamicArrayProperties fDynamic="1" fCollapsed="0"/></ext></extLst></bk>
+  </futureMetadata>
+  <cellMetadata count="1"><bk><rc t="1" v="0"/></bk></cellMetadata>
+</metadata>`;
+    /* eslint-enable max-len */
+
+    expect(squash(metadataXml().replace(/^<\?xml[^>]*\?>/, ''))).toBe(squash(excel));
+  });
+
+  it('should declare and relate the metadata part only when asked', () => {
+    const overrideType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheetMetadata+xml';
+
+    expect(contentTypesXml(sheets, true, true)).toContain(
+      `<Override PartName="/xl/metadata.xml" ContentType="${overrideType}"/>`,
+    );
+    expect(contentTypesXml(sheets, true, false)).not.toContain('metadata');
+
+    const { xml, sheetRelIds } = workbookRelsXml(sheets, true, true);
+    const rels = parseRels(xml);
+    const metadata = rels.find(r => r.type === REL_TYPES.sheetMetadata);
+
+    expect(REL_TYPES.sheetMetadata)
+      .toBe('http://schemas.openxmlformats.org/officeDocument/2006/relationships/sheetMetadata');
+    expect(metadata.target).toBe('metadata.xml');
+
+    const ids = rels.map(r => r.id);
+
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(sheetRelIds.every(id => rels.find(r => r.id === id).type === REL_TYPES.worksheet)).toBe(true);
+    expect(workbookRelsXml(sheets, true, false).xml).not.toContain('metadata');
+  });
+
   it('should relate the workbook to styles, shared strings and every sheet, and hand the sheet ids back', () => {
-    const { xml, sheetRelIds } = workbookRelsXml(sheets, true);
+    const { xml, sheetRelIds } = workbookRelsXml(sheets, true, false);
     const rels = parseRels(xml);
 
     expect(rels.map(r => r.type)).toEqual([
@@ -93,22 +137,23 @@ describe('package parts', () => {
       'styles.xml', 'sharedStrings.xml', 'worksheets/sheet1.xml', 'worksheets/sheet2.xml',
     ]);
     expect(sheetRelIds).toEqual(['rId3', 'rId4']);
-    expect(workbookRelsXml(sheets, false).sheetRelIds).toEqual(['rId2', 'rId3']);
+    expect(workbookRelsXml(sheets, false, false).sheetRelIds).toEqual(['rId2', 'rId3']);
   });
 
   it('should write and read back the sheet list with states, and the full-calc flag', () => {
-    const xml = workbookXml(sheets, ['rId3', 'rId4'], true);
+    const xml = workbookXml(sheets, ['rId3', 'rId4'], true, [], [], noDropped());
 
     expect(xml).toContain('<sheet name="Data" sheetId="1" r:id="rId3"/>');
     expect(xml).toContain('<sheet name="_HotValidation" sheetId="2" state="veryHidden" r:id="rId4"/>');
     expect(xml).toContain('<calcPr calcId="171027" fullCalcOnLoad="1"/>');
     expect(xml.indexOf('<bookViews>')).toBeLessThan(xml.indexOf('<sheets>'));
     expect(xml.indexOf('<sheets>')).toBeLessThan(xml.indexOf('<calcPr'));
-    expect(workbookXml(sheets, ['rId3', 'rId4'], false)).toContain('<calcPr calcId="171027"/>');
+    expect(workbookXml(sheets, ['rId3', 'rId4'], false, [], [], noDropped())).toContain('<calcPr calcId="171027"/>');
     expect(workbookXml([
       { index: 1, name: 'Data', state: 'visible', hasComments: false },
       { index: 2, name: 'Lists', state: 'hidden', hasComments: false },
-    ], ['rId3', 'rId4'], false)).toContain('<sheet name="Lists" sheetId="2" state="hidden" r:id="rId4"/>');
+    ], ['rId3', 'rId4'], false, [], [], noDropped()))
+      .toContain('<sheet name="Lists" sheetId="2" state="hidden" r:id="rId4"/>');
 
     expect(parseWorkbook(xml)).toEqual({
       sheets: [
@@ -124,15 +169,96 @@ describe('package parts', () => {
     expect(parseWorkbook('<workbook><workbookPr date1904="false"/><sheets/></workbook>').date1904).toBe(false);
   });
 
-  it('should read the names a workbook defines, leaving out Excel\'s own `_xlnm.` names', () => {
-    const { definedNames } = parseWorkbook('<workbook><sheets/><definedNames>'
-      + '<definedName name="Sales">Data!$B$2:$B$4</definedName>'
-      + '<definedName name="Rate" localSheetId="0">Data!$F$1</definedName>'
-      + '<definedName name="_xlnm.Print_Area" localSheetId="0">Data!$A$1:$D$4</definedName>'
+  it('should read the names a workbook defines with their definitions, leaving out Excel\'s own `_xlnm.` names', () => {
+    const dropped = new DroppedFeatures();
+    const { definedNames } = parseWorkbook('<workbook><sheets>'
+      + '<sheet name="Data" sheetId="1" r:id="rId1"/><sheet name="Rates" sheetId="2" r:id="rId2"/></sheets>'
+      + '<definedNames>'
+      + '<definedName name="Sales">Data!$G$2:$G$4</definedName>'
+      + '<definedName name="TaxRate">0.07</definedName>'
+      + '<definedName name="Local" localSheetId="1">Rates!$A$1</definedName>'
+      + '<definedName name="_xlnm.Print_Area" localSheetId="0">Data!$A$1:$B$2</definedName>'
       + '<definedName name="Sales">Other!$A$1</definedName>'
-      + '</definedNames></workbook>');
+      + '<definedName name="Lost" localSheetId="7">1</definedName>'
+      + '<definedName name="Amp">IF(A1&lt;2,&quot;a&amp;b&quot;,0)</definedName>'
+      + '</definedNames></workbook>', dropped);
 
-    expect(definedNames).toEqual(['Sales', 'Rate']);
+    expect(definedNames).toEqual([
+      { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null },
+      { name: 'TaxRate', formula: '0.07', sheetName: null },
+      { name: 'Local', formula: 'Rates!$A$1', sheetName: 'Rates' },
+      { name: 'Amp', formula: 'IF(A1<2,"a&b",0)', sheetName: null },
+    ]);
+    expect(dropped.list()).toEqual(['definedNames:unsupported']);
+  });
+
+  it('should keep the same name defined in two scopes as two entries', () => {
+    const { definedNames } = parseWorkbook('<workbook><sheets><sheet name="A" sheetId="1" r:id="rId1"/></sheets>'
+      + '<definedNames><definedName name="X">1</definedName>'
+      + '<definedName name="X" localSheetId="0">2</definedName></definedNames></workbook>');
+
+    expect(definedNames).toEqual([
+      { name: 'X', formula: '1', sheetName: null },
+      { name: 'X', formula: '2', sheetName: 'A' },
+    ]);
+  });
+
+  it('should write defined names between the sheets and calcPr, adding function prefixes', () => {
+    const dropped = new DroppedFeatures();
+    const xml = workbookXml(sheets, ['rId3', 'rId4'], false, [
+      { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null },
+      { name: 'L', formula: 'IFS(1,2)', sheetName: 'data' },
+      { name: 'Esc', formula: 'A1<2', sheetName: null },
+    ], ['Data', '_HotValidation'], dropped);
+
+    expect(xml).toContain('<definedNames><definedName name="Sales">Data!$G$2:$G$4</definedName>'
+      + '<definedName name="L" localSheetId="0">_xlfn.IFS(1,2)</definedName>'
+      + '<definedName name="Esc">A1&lt;2</definedName></definedNames><calcPr');
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should skip an invalid name or an unknown scope and record definedNames:unsupported once', () => {
+    const dropped = new DroppedFeatures();
+    const xml = workbookXml(sheets, ['rId3', 'rId4'], false, [
+      { name: 'A1', formula: '1', sheetName: null },
+      { name: '1st', formula: '1', sheetName: null },
+      { name: 'has space', formula: '1', sheetName: null },
+      { name: 'Ghost', formula: '1', sheetName: 'Nope' },
+      { name: 'Fine', formula: '1', sheetName: null },
+    ], ['Data'], dropped);
+
+    expect(xml).toContain('<definedNames><definedName name="Fine">1</definedName></definedNames>');
+    expect(xml).not.toContain('A1"');
+    expect(dropped.list()).toEqual(['definedNames:unsupported']);
+    expect(dropped.count('definedNames:unsupported')).toBe(1);
+  });
+
+  it('should skip R1C1-shaped names, same-scope duplicates and empty definitions, recording once', () => {
+    const dropped = new DroppedFeatures();
+    const bad = ['R', 'C', 'RC', 'R2C', 'RC3', 'R1C1', 'r1c1', 'xfd1', 'A1'].map(name => ({
+      name, formula: '1', sheetName: null,
+    }));
+    const xml = workbookXml(sheets, ['rId3', 'rId4'], false, [
+      ...bad,
+      { name: 'Sales', formula: '1', sheetName: null },
+      { name: 'SALES', formula: '2', sheetName: null },
+      { name: 'Sales', formula: '3', sheetName: 'Data' },
+      { name: 'Empty', formula: '  ', sheetName: null },
+    ], ['Data'], dropped);
+
+    expect(xml).toContain('<definedNames><definedName name="Sales">1</definedName>'
+      + '<definedName name="Sales" localSheetId="0">3</definedName></definedNames>');
+    expect(xml.match(/<definedName /g)).toHaveLength(2);
+    expect(dropped.list()).toEqual(['definedNames:unsupported']);
+    expect(dropped.count('definedNames:unsupported')).toBe(1);
+  });
+
+  it('should omit definedNames when nothing valid remains', () => {
+    const dropped = new DroppedFeatures();
+
+    expect(workbookXml(sheets, ['rId3', 'rId4'], false, [{ name: 'B2', formula: '1', sheetName: null }], ['Data'],
+      dropped)).not.toContain('definedNames');
+    expect(dropped.list()).toEqual(['definedNames:unsupported']);
   });
 
   it('should record the names past the defined-name cap as dropped, once', () => {
@@ -143,9 +269,27 @@ describe('package parts', () => {
       + '</definedNames></workbook>', dropped);
 
     expect(definedNames).toHaveLength(65536);
-    expect(definedNames[65535]).toBe('N65535');
+    expect(definedNames[65535].name).toBe('N65535');
     expect(dropped.list()).toEqual(['definedNames:truncated']);
     expect(dropped.count('definedNames:truncated')).toBe(1);
+  });
+
+  it('should leave out a definition longer than MAX_FORMULA_LENGTH and record it once', () => {
+    // A cell formula that long is refused as `formula:tooLong`; a name definition was kept whole.
+    const dropped = new DroppedFeatures();
+    const atCap = '1'.repeat(MAX_FORMULA_LENGTH);
+    // Split by an entity, so the tokenizer hands the text over in several pieces.
+    const tooLong = `"${'a'.repeat(MAX_FORMULA_LENGTH / 2)}&amp;${'b'.repeat(MAX_FORMULA_LENGTH / 2)}"`;
+    const { definedNames } = parseWorkbook('<workbook><sheets/><definedNames>'
+      + `<definedName name="AtCap">${atCap}</definedName>`
+      + `<definedName name="TooLong">${tooLong}</definedName>`
+      + `<definedName name="AlsoTooLong">${atCap}1</definedName>`
+      + '<definedName name="Short">2</definedName>'
+      + '</definedNames></workbook>', dropped);
+
+    expect(definedNames.map(({ name }) => name)).toEqual(['AtCap', 'Short']);
+    expect(definedNames[0].formula).toBe(atCap);
+    expect(dropped.list()).toEqual(['definedNames:unsupported']);
   });
 
   it('should record nothing at exactly the defined-name cap, or for a repeated name past it', () => {
@@ -159,7 +303,8 @@ describe('package parts', () => {
   });
 
   it('should escape a sheet name with markup characters', () => {
-    expect(workbookXml([{ index: 1, name: 'A & B', state: 'visible', hasComments: false }], ['rId2'], false))
+    expect(workbookXml([{ index: 1, name: 'A & B', state: 'visible', hasComments: false }], ['rId2'], false, [], [],
+      noDropped()))
       .toContain('name="A &amp; B"');
   });
 

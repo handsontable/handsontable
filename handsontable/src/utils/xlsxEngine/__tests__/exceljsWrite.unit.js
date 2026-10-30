@@ -412,4 +412,154 @@ describe('excelJsAdapter.write', () => {
     expect(writeOptions).toEqual([{ zip: { compression: 'DEFLATE', compressionOptions: { level: 9 } } }]);
     expect(workbook.worksheets[0].conditionalFormattings[0].ref).toBe('A1:A1');
   });
+
+  describe('array formulas, error cells and defined names', () => {
+    const buildSnapshot = () => {
+      const snapshot = snapshotWith((b) => {
+        b.cell(1, 4).formula = { text: 'SEQUENCE(3)', result: 1, array: { ref: 'D1:D3', dynamic: true } };
+        b.cell(2, 4).value = 2;
+        b.cell(3, 4).value = 3;
+        b.cell(1, 9).formula = { text: 'SEQUENCE(2)', result: 1, array: { ref: 'I1:I2', dynamic: true } };
+        b.cell(1, 5).formula = { text: 'A1:A2*2', result: 2, array: { ref: 'E1:E2', dynamic: false } };
+        b.cell(2, 5).value = 4;
+        Object.assign(b.cell(1, 6), { value: '#N/A', valueIsError: true });
+        b.cell(1, 7).formula = { text: '1/0', result: '#DIV/0!', resultIsError: true };
+        Object.assign(b.cell(1, 8), { value: '#SPILL!', valueIsError: true });
+        b.cell(1, 1).value = 1;
+      });
+
+      snapshot.definedNames = [
+        { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null },
+        { name: 'TaxRate', formula: '0.07', sheetName: null },
+        { name: 'Local', formula: 'Sheet1!$A$1', sheetName: 'Sheet1' },
+      ];
+
+      return snapshot;
+    };
+
+    it('should write array masters as <f t="array"> and record dynamicArrays once', async() => {
+      const snapshot = buildSnapshot();
+      const dropped = new DroppedFeatures();
+      const bytes = await excelJsAdapter.write(snapshot, ExcelJS, dropped);
+      const sheet = await sheetXmlOf(bytes);
+
+      expect(sheet).toMatch(/<f t="array" ref="D1:D3">_xlfn\.SEQUENCE\(3\)<\/f>/);
+      expect(sheet).toMatch(/<f t="array" ref="E1:E2">A1:A2\*2<\/f>/);
+      expect(sheet).not.toContain('cm=');
+      expect(dropped.list().filter(key => key === 'dynamicArrays')).toHaveLength(1);
+    });
+
+    it('should not record dynamicArrays when no master is dynamic', async() => {
+      const snapshot = snapshotWith((b) => {
+        b.cell(1, 1).formula = { text: 'B1:B2*2', result: 2, array: { ref: 'A1:A2', dynamic: false } };
+      });
+      const dropped = new DroppedFeatures();
+
+      await excelJsAdapter.write(snapshot, ExcelJS, dropped);
+
+      expect(dropped.list()).toEqual([]);
+    });
+
+    it('should write error cells typed e, and a non-OOXML code as text', async() => {
+      const sheet = await sheetXmlOf(await excelJsAdapter.write(buildSnapshot(), ExcelJS, new DroppedFeatures()));
+
+      expect(sheet).toContain('<c r="F1" t="e"><v>#N/A</v></c>');
+      expect(sheet).toMatch(/<c r="G1" t="e"><f>1\/0<\/f><v>#DIV\/0!<\/v><\/c>/);
+      expect(sheet).not.toMatch(/<c r="H1" t="e"/);
+    });
+
+    it('should round-trip through both adapters', async() => {
+      const bytes = await excelJsAdapter.write(buildSnapshot(), ExcelJS, new DroppedFeatures());
+
+      for (const adapter of [excelJsAdapter, nativeAdapter]) {
+        const read = await adapter.read(toArrayBuffer(bytes), adapter === excelJsAdapter ? ExcelJS : undefined,
+          new DroppedFeatures());
+        const [row] = read.sheets[0].rows;
+
+        expect(row[3].formula.array.ref).toBe('D1:D3');
+        expect(row[3].formula.array.dynamic).toBe(false);
+        expect(row[4].formula.array).toEqual({ ref: 'E1:E2', dynamic: false });
+        expect(row[5]).toEqual(expect.objectContaining({ value: '#N/A', valueIsError: true }));
+        expect(row[6].formula.resultIsError).toBe(true);
+        expect(row[6].formula.result).toBe('#DIV/0!');
+        expect(row[7].value).toBe('#SPILL!');
+        expect('valueIsError' in row[7]).toBe(false);
+        expect(read.definedNames.map(({ name }) => name)).toEqual(['Sales']);
+      }
+    });
+
+    it('should write only workbook-scoped single-range names and record the rest once', async() => {
+      const dropped = new DroppedFeatures();
+
+      await excelJsAdapter.write(buildSnapshot(), ExcelJS, dropped);
+
+      expect(dropped.list().filter(key => key === 'definedNames:unsupported')).toHaveLength(1);
+      expect(dropped.list()).toContain('dynamicArrays');
+    });
+
+    it('should refuse the names the shared validation refuses (native and ExcelJS) and the ExcelJS-only shapes', async() => {
+      const snapshot = snapshotWith((b) => {
+        b.cell(1, 1).value = 1;
+      });
+
+      snapshot.definedNames = [
+        { name: 'A1', formula: 'Sheet1!$A$1', sheetName: null },
+        { name: 'R1C1', formula: 'Sheet1!$A$1', sheetName: null },
+        { name: '1bad', formula: 'Sheet1!$A$1', sheetName: null },
+        { name: 'Ok', formula: 'Sheet1!$A$1', sheetName: null },
+        { name: 'OK', formula: 'Sheet1!$B$1', sheetName: null },
+        { name: 'Cols', formula: 'Sheet1!$A:$A', sheetName: null },
+        { name: 'Bare', formula: '$A$1', sheetName: null },
+      ];
+
+      const dropped = new DroppedFeatures();
+      const bytes = await excelJsAdapter.write(snapshot, ExcelJS, dropped);
+      const workbook = new ExcelJS.Workbook();
+
+      await workbook.xlsx.load(bytes);
+
+      expect(workbook.definedNames.model.map(({ name }) => name)).toEqual(['Ok']);
+      expect(dropped.list()).toEqual(['definedNames:unsupported']);
+    });
+
+    it('should write a name with a quoted sheet qualifier and read it back with both adapters', async() => {
+      const snapshot = createWorkbookSnapshot();
+      const builder = new SheetBuilder('My Sheet');
+
+      builder.cell(1, 1).value = 1;
+      snapshot.sheets.push(builder.toSnapshot());
+      snapshot.definedNames = [{ name: 'Quoted', formula: '\'My Sheet\'!$A$1:$B$2', sheetName: null }];
+
+      const bytes = await excelJsAdapter.write(snapshot, ExcelJS, new DroppedFeatures());
+
+      for (const adapter of [excelJsAdapter, nativeAdapter]) {
+        const read = await adapter.read(toArrayBuffer(bytes), adapter === excelJsAdapter ? ExcelJS : undefined,
+          new DroppedFeatures());
+
+        expect(read.definedNames).toEqual([{ name: 'Quoted', formula: '\'My Sheet\'!$A$1:$B$2', sheetName: null }]);
+      }
+    });
+
+    it('should leave out a whole-sheet name quickly, record it, and still write a normal range', async() => {
+      const snapshot = snapshotWith((b) => {
+        b.cell(1, 1).value = 1;
+      });
+
+      snapshot.definedNames = [
+        { name: 'Everything', formula: 'Sheet1!$A$1:$XFD$1048576', sheetName: null },
+        { name: 'Small', formula: 'Sheet1!$A$1:$B$2', sheetName: null },
+      ];
+
+      const dropped = new DroppedFeatures();
+      const started = Date.now();
+      const bytes = await excelJsAdapter.write(snapshot, ExcelJS, dropped);
+      const workbook = new ExcelJS.Workbook();
+
+      await workbook.xlsx.load(bytes);
+
+      expect(Date.now() - started).toBeLessThan(5000);
+      expect(workbook.definedNames.model.map(({ name }) => name)).toEqual(['Small']);
+      expect(dropped.list()).toEqual(['definedNames:unsupported']);
+    });
+  });
 });

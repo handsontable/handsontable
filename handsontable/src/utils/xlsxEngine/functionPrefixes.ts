@@ -49,7 +49,7 @@ const FUTURE_FUNCTIONS = new Set([
  * @param {string} char The character.
  * @returns {boolean}
  */
-function isNameChar(char: string): boolean {
+export function isNameChar(char: string): boolean {
   const code = char.charCodeAt(0);
 
   // Almost every character of a formula is ASCII, and this runs once per character on both write
@@ -71,7 +71,7 @@ function isNameChar(char: string): boolean {
  * @param {number} start The index of the opening quote.
  * @returns {number}
  */
-function skipQuoted(formula: string, start: number): number {
+export function skipQuoted(formula: string, start: number): number {
   const quote = formula[start];
   let index = start + 1;
 

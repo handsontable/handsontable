@@ -314,6 +314,32 @@ export function removeImportedStyles(hot: HotInstance): void {
 }
 
 /**
+ * Adds the result's named expressions to the Formulas plugin's engine, at workbook scope, skipping
+ * one the engine refuses by now (a name defined since the mapper asked). Nothing is added when the
+ * plugin is off. Adding a name is not undoable: the `loadData` that follows resets the
+ * grid's history anyway.
+ */
+function addNamedExpressions(hot: HotInstance, result: ImportResult): void {
+  const formulas = hot.getPlugin('formulas');
+
+  if (!result.namedExpressions || formulas?.isEnabled() !== true || !formulas.engine) {
+    return;
+  }
+
+  const { engine } = formulas;
+
+  result.namedExpressions.forEach(({ name, formula }) => {
+    const expression = `=${formula}`;
+
+    // The mapper asked the engine already, but a `beforeImport` handler, or another grid sharing the
+    // engine, may have defined the name since; `addNamedExpression` would then throw mid-batch.
+    if (engine.isItPossibleToAddNamedExpression?.(name, expression) === true) {
+      engine.addNamedExpression(name, expression, undefined, undefined);
+    }
+  });
+}
+
+/**
  * Applies an import result to a Handsontable instance: data, then the generated stylesheet, then
  * settings (including `customBorders`), then per-cell meta and comments, all inside one render batch.
  *
@@ -334,6 +360,11 @@ export function applyImportResult(
   const update = options.updateSettings ?? ((settings: Record<string, unknown>) => hot.updateSettings(settings));
 
   hot.batch(() => {
+    // First, ahead of every grid change: a name the engine refuses is skipped rather than thrown
+    // mid-batch, and the imported formulas over the names are evaluated as `loadData` writes them,
+    // so a name the engine lacks at that moment makes them `#NAME?`.
+    addNamedExpressions(hot, result);
+
     const settings = toSettings(hot, result, options);
 
     // The column types go in BEFORE the data, unlike the layout below: `loadData` runs the source-data

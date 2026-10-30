@@ -228,6 +228,55 @@ describe('mapFormulaReferences', () => {
   it('should return null as soon as the mapper rejects a reference', () => {
     expect(mapFormulaReferences('A1+B2', reference => (reference.col === 2 ? null : reference))).toBeNull();
   });
+
+  describe('the `requalify` option', () => {
+    const down = reference => ({ row: reference.row === null ? null : reference.row + 1, col: reference.col });
+
+    it('should map a reference whose sheet the callback renames and write the new name', () => {
+      const names = [];
+      const result = mapFormulaReferences('Data!$A$1:$A$3+\'my sheet\'!B2+Other!C3', down, {
+        requalify: (name) => {
+          names.push(name);
+
+          return name.toLowerCase() === 'data' || name === 'my sheet' ? { sheetName: 'Sheet1' } : null;
+        },
+      });
+
+      expect(names).toEqual(['Data', 'my sheet', 'Other']);
+      expect(result).toBe('Sheet1!$A$2:$A$4+Sheet1!B3+Other!C3');
+    });
+
+    it('should quote a new sheet name that needs quotes, doubling an apostrophe', () => {
+      const renamedTo = name => mapFormulaReferences('Data!A1', down, { requalify: () => ({ sheetName: name }) });
+
+      expect(renamedTo('Q1 Sales')).toBe('\'Q1 Sales\'!A2');
+      expect(renamedTo('Bob\'s')).toBe('\'Bob\'\'s\'!A2');
+      expect(renamedTo('A1')).toBe('\'A1\'!A2');
+      expect(renamedTo('R1C1')).toBe('\'R1C1\'!A2');
+      expect(renamedTo('Sales_2024')).toBe('Sales_2024!A2');
+    });
+
+    it('should map a requalified reference through the map the callback answers with', () => {
+      const right = reference => ({ row: reference.row, col: reference.col + 2 });
+      const result = mapFormulaReferences('A!A1+B!A1', down, {
+        requalify: name => (name === 'A' ? { sheetName: 'X', map: right } : { sheetName: 'Y' }),
+      });
+
+      expect(result).toBe('X!C1+Y!A2');
+    });
+
+    it('should return null when the mapper rejects a requalified reference', () => {
+      const toSheet1 = { requalify: () => ({ sheetName: 'Sheet1' }) };
+
+      expect(mapFormulaReferences('Data!A1', () => null, toSheet1)).toBeNull();
+    });
+
+    it('should leave a qualifier of another workbook untouched', () => {
+      const toSheet1 = { requalify: () => ({ sheetName: 'Sheet1' }) };
+
+      expect(mapFormulaReferences('[1]Data!A1', down, toSheet1)).toBe('[1]Data!A1');
+    });
+  });
 });
 
 describe('translateSharedFormula', () => {
@@ -325,6 +374,21 @@ describe('rebaseImportedFormula', () => {
     expect(rebase('Sheet1!B2*2', -1, 0)).toEqual({ formula: 'B1*2', unknownSheet: false, asked: [] });
     expect(rebase('SUM(sheet1!$B$2:B3)+\'Sheet1\'!C:C', -1, -1)).toMatchObject({ formula: 'SUM($A$1:A2)+B:B' });
     expect(rebase('Data!A1*2', 0, 0, ['sheet1'], 'Data')).toEqual({ formula: 'A1*2', unknownSheet: false, asked: [] });
+  });
+
+  it('should write the qualifier naming the imported sheet as `selfAs` when one is given', () => {
+    // A named expression in HyperFormula refuses an unqualified reference as relative, so a defined
+    // name over the imported sheet keeps a qualifier: the grid's own sheet name.
+    const rebaseAs = (formula, selfAs) => rebaseImportedFormula(formula, -1, -1, {
+      self: 'Data', selfAs, isKnown: () => false,
+    });
+
+    expect(rebaseAs('Data!$G$2:$G$4', 'Sheet1')).toEqual({ formula: 'Sheet1!$F$1:$F$3', unknownSheet: false });
+    expect(rebaseAs('SUM(data!$B$2,\'Data\'!C:C)', 'My Sheet')).toEqual({
+      formula: 'SUM(\'My Sheet\'!$A$1,\'My Sheet\'!B:B)', unknownSheet: false,
+    });
+    expect(rebaseAs('Data!$A$1', 'Sheet1')).toEqual({ formula: null, unknownSheet: false });
+    expect(rebaseAs('B2+1', 'Sheet1')).toEqual({ formula: 'A1+1', unknownSheet: false });
   });
 
   it('should reject a self-qualified reference the shift pushes into the dropped band', () => {

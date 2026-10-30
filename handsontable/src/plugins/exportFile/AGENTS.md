@@ -295,9 +295,68 @@ Other rules:
   `toOoxmlErrorCode()` (`types/xlsx/formula-utils.ts`) maps the `DetailedCellError#type`, recognized
   by shape, to a code; the formula branch of `#resolveCellValue` then writes
   `{ result: code, resultIsError: true }`. `CYCLE`, `ERROR`, `LIC` and `SPILL` have no code (POI
-  refuses `#SPILL!` in a `t="e"` cell) and keep the display text, typed `str`. The three
-  ExportDataProvider mocks of the `xlsx*.unit.js` suites carry the method; a new mock used with
-  `exportFormulas` needs it too. Pinned by `xlsxFormulaErrorResult.unit.js`.
+  refuses `#SPILL!` in a `t="e"` cell) and keep the display text, typed `str`. Pinned by
+  `xlsxFormulaErrorResult.unit.js`.
+- **A cell whose VALUE is an error exports as an Excel error too, with or without `exportFormulas`**
+  (DEV-3648). `getFormulaErrorCodes()` is read on every export (every entry is `null` without the
+  Formulas plugin), and `#resolveCellValue` writes `{ value: code, valueIsError: true }` for any cell
+  the formula branch did not take: a typed `#N/A`, and a formula exported as its value. Until DEV-3648
+  the second went out as the display text. The check runs BEFORE the type branches, so an error in a
+  numeric column is not converted. Without the plugin a typed `#N/A` stays a string. Every
+  ExportDataProvider mock of the `xlsx*.unit.js` suites therefore carries `getFormulaErrorCodes()`,
+  and the ones used with `exportFormulas` also carry `getNamedExpressions()` and
+  `getFormulasBinding()`; a new mock needs them too. Pinned by `xlsxPlainErrorValue.unit.js`.
+- **A number or boolean the Formulas engine COMPUTED keeps its type in a text column** (DEV-3648,
+  `ExportDataProvider#getEngineComputedValues()`, read on every export with the plugin on). The
+  default `text` type stringifies a cell, so a spilled `2` went out as the shared string `"2"`; Excel
+  and LibreOffice recalculate and never noticed, but Apple Numbers reads cached values and summed a
+  spill as 1 (found in the DEV-3648 manual checks). The matrix holds the engine value only for a cell
+  whose engine type is not `VALUE`/`EMPTY` (a formula, an array formula, a spilled `ARRAY` cell) and
+  whose value is a finite number or a boolean; `#resolveCellValue` uses it in the default branch, after
+  the typed branches (a `numeric`, date, checkbox column keeps its own handling). A value the user
+  typed stays text: HyperFormula holds it as `VALUE`. Every ExportDataProvider mock carries the method.
+- **A HyperFormula array formula exports as an Excel dynamic array, never as a plain formula** (DEV-3648).
+  Excel adds an `@` to a spilling function that is not flagged, so the master carries the dynamic flag
+  (`cm="1"` on the native engine). `ExportDataProvider#getArrayFormulaSizes()` returns
+  `ArrayFormulaSize { rows, cols, exported }` per cell, `null` for a non-master. HyperFormula has no
+  public spill-range API, so the size comes from the engine's INTERNAL
+  `arrayMapping.getArrayByCorner()` (duck-typed; any unexpected shape answers `null`), with a walk over
+  `ARRAY`-typed cells as the fallback. The walk can over-count next to another array, so the xlsx type
+  keeps per-sheet claims (`ArrayRangeClaims` in `types/xlsx/formula-utils.ts`) and writes an overlapping
+  array as a plain formula. **The claims rely on row-major order** (masters are claimed row by row, left
+  to right): an overlap is then always on the new range's first row, one-cell claims are never stored,
+  and only multi-cell spills keep their cells in a `Set`. Never claim out of order, and never go back to
+  comparing every pair: a 100,000-row `IFS` column cost about 3 s that way. The data
+  provider decides `exported` (every spilled row and column lands right after the master in the matrix):
+  a spill crossing a hidden row with `exportHiddenRows: false`, a trimmed or filtered row, or the `range`
+  edge is written as a plain formula and `formula:arrayExcluded` is recorded once. `ARRAYFORMULA(x)`
+  as a whole is written as the legacy CSE array `{=x}`; `IFS` and `SWITCH` as a one-cell dynamic array
+  (`EXCEL_DYNAMIC_ARRAY_FUNCTIONS`). A 1 x 1 spill (`=SEQUENCE(1)`) is not flagged. A blocked spill
+  (`#SPILL!`) exports as a one-cell array with the `#SPILL!` text. The ExcelJS engine writes every
+  dynamic array as CSE and records `dynamicArrays`. Four-way parity is pinned by
+  `utils/xlsxEngine/__tests__/enginesParityArraysErrorsNames.unit.js`. Known gap: an error typed into a
+  date column is not flagged as an error.
+- **Named expressions export as workbook defined names, with `exportFormulas` only** (DEV-3648).
+  `getNamedExpressions()` lists the engine's WORKBOOK-scoped names (a sheet-scoped one is left out);
+  a name defined with a constant has no formula text, so its value is spelled as a literal
+  (`toFormulaLiteral`: `"text"` with `""`, at most 255 characters, `TRUE()`/`FALSE()`, an error code).
+  **Names are written ONCE per export, not per grid**: grids of a multi-sheet export usually share
+  one engine, and normalizing every name against each grid's own sheet wrote a reference to another
+  grid's sheet unshifted under the engine's sheet name (review round 1). `#populateWorksheet` only
+  registers each grid's binding (`getFormulasBinding()`: engine + engine sheet name) with its
+  exported name, header offsets and left-out rows and columns; `#addDefinedNames` groups them per
+  engine and runs `normalizeNamedExpression` once per name against that map. **Every bound grid
+  registers, with or without `exportFormulas`**: a sheet written as values is still in the file, and
+  registering only the `exportFormulas` grids dropped a name pointing at it (Bugbot on #14096). An
+  engine's names are written only when one of its grids has `exportFormulas`, read from that grid.
+  The `xlsx*.unit.js` mocks therefore all carry `getFormulasBinding()`. Every qualified
+  reference is moved by the grid its sheet belongs to and re-qualified with that grid's exported
+  name (`mapFormulaReferences`' `requalify`, whose answer carries the per-sheet map and whose new
+  name the walker quotes). A reference to an engine sheet the export does not write, an unqualified
+  one, or one that STARTS or ENDS on a left-out row or column refuses the whole name
+  (`definedNames:unsupported`, recorded once); a left-out index inside a range only shrinks it.
+  Names are deduplicated case-insensitively: the first wins, a later one with another definition is
+  left out and recorded. Pinned by `xlsxNamedExpressions.unit.js` and `formula-utils.unit.js`.
 - `headerStyle: null` exports headers with no styling; `headerStyle.border: null` suppresses only the border.
 - **The frozen pane counts EXPORTED indexes, not the raw `fixedColumnsStart`/`fixedRowsTop`.**
   `ExportDataProvider#getFrozenColumns()`/`getFrozenRows()` count the visual indexes of the frozen band

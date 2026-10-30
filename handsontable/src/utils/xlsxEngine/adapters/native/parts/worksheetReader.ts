@@ -199,6 +199,11 @@ interface CellState {
   formulaAttrs: XmlAttributes | null;
   formulaText: string;
   /**
+   * Whether the `<c>` carries a `cm` (cell metadata) attribute, which Excel writes on the master of
+   * a dynamic-array formula.
+   */
+  dynamic: boolean;
+  /**
    * Whether the `<f>` text crossed `MAX_FORMULA_LENGTH`. The text collected so far is discarded
    * and nothing more is appended, so the formula is dropped and the cached value kept.
    */
@@ -1204,6 +1209,7 @@ class WorksheetParser {
       styleIndex: parseUnsignedIntAttr(attrs.s) ?? 0,
       formulaAttrs: null,
       formulaText: '',
+      dynamic: attrs.cm !== undefined,
       formulaTooLong: false,
       valueText: null,
       inlineText: null,
@@ -1696,6 +1702,8 @@ class WorksheetParser {
     const rawText = state.type === 'inlineStr' ? state.inlineText : state.valueText;
     let value: CellValue = rawText === null ? null : this.#decodeValue(state, rawText, xf.numFmt);
     let formula: CellSnapshot['formula'] = null;
+    // A `t="e"` cell with a value: the file says it is an error, whatever the code.
+    const isError = state.type === 'e' && typeof value === 'string' && value !== '';
 
     if (state.inlineRich) {
       this.#ctx.dropped.record(DROPPED_FEATURES.richText);
@@ -1712,6 +1720,16 @@ class WorksheetParser {
 
       if (text !== null && text !== '') {
         formula = value === null ? { text } : { text, result: value };
+
+        if (isError) {
+          formula.resultIsError = true;
+        }
+
+        if (state.formulaAttrs.t === 'array' && state.formulaAttrs.ref !== undefined
+            && parseRangeRef(state.formulaAttrs.ref)) {
+          formula.array = { ref: state.formulaAttrs.ref, dynamic: state.dynamic };
+        }
+
         value = null;
       }
     }
@@ -1742,6 +1760,11 @@ class WorksheetParser {
 
     target.value = value;
     target.formula = formula;
+
+    if (isError && formula === null) {
+      target.valueIsError = true;
+    }
+
     target.numFmt = xf.numFmt;
     target.style = xf.style;
     target.locked = xf.locked;

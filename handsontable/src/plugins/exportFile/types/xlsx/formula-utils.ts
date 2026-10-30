@@ -1,5 +1,5 @@
 import { colIndexToLetter, colLetterToIndex } from '../../../../utils/xlsxEngine/cellRef';
-import { mapFormulaReferences } from '../../../../utils/xlsxEngine/formulaRefs';
+import { mapFormulaReferences, type ReferenceMap } from '../../../../utils/xlsxEngine/formulaRefs';
 
 /**
  * The column-letter converters, re-exported from the shared xlsx engine layer so the export's own
@@ -209,6 +209,99 @@ export function normalizeFormula(
 }
 
 /**
+ * Where the export put one engine sheet: the name the file gives it and the arithmetic that moves
+ * a reference to it, as `normalizeFormula` applies it to that sheet's cell formulas.
+ */
+export interface ExportedEngineSheet {
+  /**
+   * The name the export gives the sheet.
+   */
+  exportedName: string;
+  /**
+   * Base number added to every row number of a reference (the column-header band).
+   */
+  rowOffset: number;
+  /**
+   * Base number added to every column number of a reference (the row-header band).
+   */
+  colOffset: number;
+  /**
+   * The rows left out of the export, as engine row indexes (`ExportDataProvider#getExcludedHiddenRows`).
+   */
+  excludedRows?: Set<number>;
+  /**
+   * The columns left out of the export (`ExportDataProvider#getExcludedHiddenColumns`).
+   */
+  excludedCols?: Set<number>;
+}
+
+/**
+ * Builds the reference map of one exported engine sheet: the shift `normalizeFormula` applies to
+ * its cell formulas, refusing a reference that names a left-out row or column itself.
+ */
+function exportedSheetMap(sheet: ExportedEngineSheet): ReferenceMap {
+  const { rowOffset, colOffset, excludedRows, excludedCols } = sheet;
+
+  return ({ row, col }) => {
+    if ((row !== null && excludedRows?.has(row - 1)) || (col !== null && excludedCols?.has(col - 1))) {
+      return null;
+    }
+
+    return {
+      row: row === null ? null : row + rowOffset - (excludedRows ? countBelow(excludedRows, row - 1) : 0),
+      col: col === null ? null : col + colOffset - (excludedCols ? countBelow(excludedCols, col - 1) : 0),
+    };
+  };
+}
+
+/**
+ * Normalizes the definition of a HyperFormula named expression for an Excel defined name.
+ *
+ * A named expression qualifies every reference (`=Sheet1!$A$1:$A$3`), and one engine may serve
+ * several grids of the export, so each reference is moved by the sheet it names: `sheets` maps
+ * every engine sheet the export writes (its name lower-cased, as the engine compares names) to
+ * the name the file gives it and the header band and left-out rows and columns of its grid. The
+ * reference is shifted the way that grid's cell formulas are, `$` components included, and
+ * qualified with the exported name. The definition cannot be expressed, and `null` is returned,
+ * when a reference names a sheet the export does not write (the file has no such sheet), has no
+ * sheet at all, or ends on a left-out row or column. A left-out row or column INSIDE a range
+ * only shrinks it, the way a cell formula's range shrinks. The argument separator becomes `,`.
+ *
+ * @private
+ * @param {string} formula The definition (with or without its leading `=`).
+ * @param {string} separator HyperFormula's `functionArgSeparator`.
+ * @param {Map<string, object>} sheets The exported engine sheets, by lower-cased engine sheet name.
+ * @returns {string|null} The definition without its `=`, or `null` when it cannot be expressed.
+ */
+export function normalizeNamedExpression(
+  formula: string,
+  separator: string,
+  sheets: Map<string, ExportedEngineSheet>
+): string | null {
+  const definition = formula.startsWith('=') ? formula.slice(1) : formula;
+  let unknownSheet = false;
+  const mapped = mapFormulaReferences(definition, () => null, {
+    requalify: (sheetName) => {
+      const sheet = sheets.get(sheetName.toLowerCase());
+
+      if (!sheet) {
+        unknownSheet = true;
+
+        return null;
+      }
+
+      return { sheetName: sheet.exportedName, map: exportedSheetMap(sheet) };
+    },
+  });
+
+  if (mapped === null || unknownSheet) {
+    return null;
+  }
+
+  return separator && separator !== ',' ? replaceSeparatorOutsideStrings(mapped, separator, ',') : mapped;
+}
+
+/**
  * HyperFormula's error types (`DetailedCellError#type`) that have an OOXML error code. The rest have
  * none: `CYCLE` (Excel reports a circular reference as a warning and shows `0`), `ERROR` (a formula
  * HyperFormula could not parse) and `LIC`. `SPILL` is left out too: `#SPILL!` is not one of the
@@ -240,4 +333,106 @@ export function toOoxmlErrorCode(cellValue: unknown): string | null {
   const { type } = cellValue as { type?: unknown };
 
   return typeof type === 'string' ? HF_ERROR_TYPE_TO_OOXML_CODE.get(type) ?? null : null;
+}
+
+/**
+ * The longest string literal Excel accepts in a formula, in characters.
+ */
+const MAX_FORMULA_STRING_LITERAL_LENGTH = 255;
+
+/**
+ * Spells the constant value of a HyperFormula named expression (one defined with a value rather
+ * than a formula) as an Excel formula literal: a finite number as it is, a string double-quoted
+ * with every `"` doubled, a boolean as `TRUE()` or `FALSE()` (the function form, which every
+ * reader parses as a boolean), and an error with an OOXML code as that code. Answers `null` for
+ * anything else (an empty value, an error with no code, a string longer than the 255 characters
+ * Excel accepts in a literal), which no definition can spell.
+ *
+ * @private
+ * @param {*} value The value `getNamedExpressionValue()` answers.
+ * @returns {string|null}
+ */
+export function toFormulaLiteral(value: unknown): string | null {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? String(value) : null;
+  }
+
+  if (typeof value === 'string') {
+    // Excel refuses a string literal longer than 255 characters in a formula.
+    return value.length > MAX_FORMULA_STRING_LITERAL_LENGTH ? null : `"${value.replaceAll('"', '""')}"`;
+  }
+
+  if (typeof value === 'boolean') {
+    return value ? 'TRUE()' : 'FALSE()';
+  }
+
+  return toOoxmlErrorCode(value);
+}
+
+/**
+ * A 1-based, inclusive cell range of a sheet.
+ */
+export interface SheetRange {
+  top: number;
+  left: number;
+  bottom: number;
+  right: number;
+}
+
+/**
+ * The widest column index plus one, so `row * CLAIM_ROW_STRIDE + col` keys a cell uniquely.
+ */
+const CLAIM_ROW_STRIDE = 16385;
+
+/**
+ * The ranges a sheet's array formulas claimed. Two overlapping refs are invalid OOXML (Excel
+ * repairs the file), and the size of an array can be an over-counting estimate
+ * (`ExportDataProvider#getArrayFormulaSizes`), so an array whose range overlaps an earlier one is
+ * written without its flag.
+ *
+ * The export claims master by master in row-major order (row by row, left to right), and every
+ * range starts at its master. So a range overlaps an earlier claim exactly when an earlier claim
+ * covers a cell of the range's FIRST row: the earlier range starts on that row or above it. A
+ * one-cell claim never covers a cell a later master's first row reaches (that master starts right
+ * of it or below it), so only the cells of multi-cell claims are kept, and a one-cell claim costs
+ * O(1) - an `IFS` column of 100,000 rows used to cost a comparison with every earlier claim. The
+ * kept cells never exceed the sheet's exported cells, because the claims do not overlap.
+ *
+ * @private
+ */
+export class ArrayRangeClaims {
+  /**
+   * The cells the multi-cell claims cover, keyed `row * CLAIM_ROW_STRIDE + col`.
+   */
+  #cells = new Set<number>();
+
+  /**
+   * Claims the range of an array formula, or answers `false` when it overlaps a range claimed
+   * earlier. Ranges must be claimed in row-major order of their top-left corner.
+   *
+   * @param {object} range The range to claim.
+   * @returns {boolean}
+   */
+  claim(range: SheetRange): boolean {
+    const { top, left, bottom, right } = range;
+    const firstRow = top * CLAIM_ROW_STRIDE;
+
+    for (let col = left; col <= right; col++) {
+      if (this.#cells.has(firstRow + col)) {
+        return false;
+      }
+    }
+
+    if (top === bottom && left === right) {
+      return true;
+    }
+
+    for (let row = top; row <= bottom; row++) {
+      for (let col = left; col <= right; col++) {
+        this.#cells.add((row * CLAIM_ROW_STRIDE) + col);
+      }
+    }
+
+    return true;
+  }
 }

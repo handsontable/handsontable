@@ -112,6 +112,14 @@ export const DROPPED_FEATURES = {
   // so a note stored as a plain `<text><t>` (no run) loads with no text. The comment is skipped
   // rather than imported empty; the native engine reads such a note.
   commentUnreadable: 'comment:unreadable',
+  // Raised by the ExcelJS writer only: it cannot write the `cm` attribute and the metadata part a
+  // dynamic array needs, so the formula is written as a legacy array formula.
+  dynamicArrays: 'dynamicArrays',
+  // Raised by both adapters: a defined name a writer or the engine cannot take.
+  definedNamesUnsupported: 'definedNames:unsupported',
+  // Raised on export: a spill range crosses an excluded row or column, so the array is written
+  // as plain formulas.
+  formulaArrayExcluded: 'formula:arrayExcluded',
   // Raised by the native writer only: ExcelJS honors a compression level.
   compressionLevel: 'compressionLevel',
   // Raised by BOTH writers: a conditional-formatting entry that is not a rule object with a string

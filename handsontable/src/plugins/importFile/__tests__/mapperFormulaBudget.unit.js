@@ -45,7 +45,7 @@ function mapFormulas(formula, count, { header = false, names = [], readerChars }
   }
 
   workbook.sheets.push(sheet);
-  workbook.definedNames = names;
+  workbook.definedNames = names.map(name => ({ name, formula: '1', sheetName: null }));
 
   if (readerChars !== undefined) {
     workbook.translatedFormulaChars = readerChars;
@@ -123,6 +123,20 @@ describe('mapWorkbook formula walk budget', () => {
 
     expect(isLimitError(refusal)).toBe(true);
     expect(refusal.message).toMatch(/rewrite to more than 10000 characters/);
+  });
+
+  it('should charge the boolean rewrite once, shared with the other walks', () => {
+    // A formula spelling `TRUE` is walked by the rewrite; with a qualifier and a prefix as well it
+    // is still one charge.
+    const boolish = formulaOf('_xlfn.IFS(Rates!A1>1,TRUE,1)');
+
+    expect(boolish).toHaveLength(100);
+    expect(mapFormulas(boolish, fits).data).toHaveLength(fits);
+    expect(isLimitError(refusalOf(() => mapFormulas(boolish, fits + 1)))).toBe(true);
+
+    const plainBoolean = formulaOf('IF(TRUE,A1,2)');
+
+    expect(isLimitError(refusalOf(() => mapFormulas(plainBoolean, fits + 1)))).toBe(true);
   });
 
   it('should import a header and qualified formulas within the budget live', () => {
