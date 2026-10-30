@@ -266,8 +266,9 @@ export const STATES: Record<A11yState, (page: Page, entry: A11yPage, root: strin
     await expect(page.locator('.htComments .htCommentTextArea')).toBeFocused();
   },
   'data-provider': async(page, _entry, root) => {
-    // The fixture parks every fetch until the test releases it; the grid is empty with the
-    // loading overlay until then, which the `loading` and `empty-data` pages already cover.
+    // The fixture parks every fetch until the test releases it, and the grid shows the data provider's
+    // loading overlay until then. No catalog page holds that overlay: the `loading` page is the Loading
+    // plugin's dialog and `empty-data` has no data provider. This state scans the grid with its data.
     await page.evaluate(() => (window as GridWindow).htServer?.release('ORD'));
     await expect(page.locator(`${root} .ht_master .htCore tbody td`).first()).toBeVisible();
   },

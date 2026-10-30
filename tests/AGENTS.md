@@ -1450,10 +1450,11 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   input of a grid in cell focus mode) is not back, though the cell stays highlighted. A
   popup state walked like a grid at rest reads a Tab the editor keeps (the formula editor accepts a
   suggestion with it) as a trap, so a state that opens a popup belongs on that list. Then the
-  popup opens again and Tab walks inside it, judged per stop. A first Tab that leaves the focus on the
-  element the popup put it on is an advisory `tab-keeps-focus`, with whether the editor stayed open: the
-  walk cannot tell a date input moving between its fields, a suggestion accepted and a Tab that did
-  nothing apart, and the guide says Tab completes the entry and moves on. A focus that lands on `body` after the
+  popup opens again and Tab walks inside it, judged per stop. A Tab that leaves the focus on the element
+  it was on (the one the popup put it on, for the first) is an advisory `tab-keeps-focus`, with whether
+  the editor stayed open: the walk cannot tell a date input moving between its fields, a suggestion
+  accepted and a Tab that did nothing apart, and the guide says Tab completes the entry and moves on. A
+  focus that lands on `body` after the
   popup closed is `focus-not-returned`: the grid often still listens, so the next arrow key brings the
   focus back, but a screen reader has nothing focused until then.
 - **Per stop:** a product stop the accessibility tree gives no role is `focus-stop-without-role`, one whose
