@@ -688,15 +688,15 @@ async function probePage(page: Page, testInfo: TestInfo, entry: A11yPage, probes
 
   declareTarget(testInfo, target);
 
-  // The errors the page throws, in the list of the current load (`openTarget()` points the page's listener at
-  // a new list on every load). The page loads again between probes, so an error a probe's key threw is a
-  // problem of that probe, not the end of the others: the target, measured with a problem, then evaluates no
-  // criterion. An error that comes after the last drain still fails the test (`attachEvidence()`).
-  let pageErrors: string[] = [];
+  // The errors the page throws, in one list for every load: `openTarget()` points the page at it before it
+  // navigates, so this test holds the live list even when a reload throws. The page loads again between probes,
+  // so an error a probe's key or its reload threw is a problem of that probe (each probe drains the list), not
+  // the end of the others: the target, measured with a problem, then evaluates no criterion. An error that comes
+  // after the last drain still fails the test (`attachEvidence()`).
+  const pageErrors: string[] = [];
   const load = async() => {
-    const opened = await openTarget(page, { ...entry, state: 'none' }, THEME);
+    const opened = await openTarget(page, { ...entry, state: 'none' }, THEME, { pageErrors });
 
-    pageErrors = opened.pageErrors;
     await reachState(page, { ...entry, state: 'none' }, opened);
     await installSentinels(page, opened.root);
     // A popup library's own portal (hyperformula-ui's on the formula builder page) is marked too, so a key
