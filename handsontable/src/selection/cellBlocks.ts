@@ -33,18 +33,18 @@ export interface CellBlock {
  * it is disabled. Selection then grows ranges over the blocks, snaps the highlight to a block's
  * top-left, and steps arrow keys and Shift+Arrow over blocks, all before the matching public hook runs.
  *
- * Both methods answer for the blocks on screen only, in visual coordinates. A block whose rows are all
- * trimmed must be left out: its coordinates point at other records, and a selection grown over them
- * reaches cells the block does not cover.
+ * Both methods answer in visual coordinates and leave out a block whose rows are all trimmed: its
+ * coordinates point at other records, and a selection grown over them reaches cells the block does not
+ * cover. A block whose rows are only hidden stays in, because hidden rows keep their visual index.
  */
 export interface CellBlockProvider {
   /**
-   * Returns the blocks that are on screen, in any order. Read once per range change and once per
+   * Returns the blocks that are not trimmed away, in any order. Read once per range change and once per
    * Shift+Arrow step, so it may build a list.
    */
   getBlocks(): readonly CellBlock[];
   /**
-   * Returns the on-screen block that covers the cell, or `null` when no block covers it. Read several
+   * Returns the not-trimmed block that covers the cell, or `null` when no block covers it. Read several
    * times per selection change (`Selection#isMultiple()` asks it), so it must be a lookup, not a scan.
    */
   getBlockAt(row: number, column: number): CellBlock | null;
@@ -57,7 +57,7 @@ export interface CellBlockProvider {
  * so there are at most `blocks.length + 1` passes, and one pass when the range touches no block.
  *
  * @param {CellRange} range The range to grow. It is changed in place.
- * @param {CellBlock[]} blocks The blocks the range must not cut. Pass only the blocks that are on screen.
+ * @param {CellBlock[]} blocks The blocks the range must not cut. Pass only the blocks that are not trimmed away.
  * @param {boolean} changeDirection Passed on to `CellRange#expandByRange()`: `true` lets the range
  * flip its direction when the highlight ends up on its far edge.
  * @returns {boolean} `true` when the range grew.
@@ -73,9 +73,14 @@ export function expandRangeToBlocks(
   while (grewInPass) {
     grewInPass = false;
 
+    let bounds = getRangeBounds(range);
+
     for (let i = 0; i < blocks.length; i += 1) {
-      if (range.expandByRange(blocks[i].getRange(), changeDirection)) {
+      // A chain listed against the growth direction takes one pass per block, so building every
+      // block's range on every pass costs blocks² ranges. Only a block the range cuts can grow it.
+      if (cutsBlock(bounds, blocks[i]) && range.expandByRange(blocks[i].getRange(), changeDirection)) {
         grewInPass = true;
+        bounds = getRangeBounds(range);
       }
     }
 
@@ -86,12 +91,49 @@ export function expandRangeToBlocks(
 }
 
 /**
+ * Reads a range's edges as plain numbers.
+ *
+ * @param {CellRange} range The range.
+ * @returns {{top: number, bottom: number, start: number, end: number}}
+ */
+function getRangeBounds(range: CellRange) {
+  const topStart = range.getOuterTopStartCorner();
+  const bottomEnd = range.getOuterBottomEndCorner();
+
+  return {
+    top: topStart.row ?? 0,
+    bottom: bottomEnd.row ?? 0,
+    start: topStart.col ?? 0,
+    end: bottomEnd.col ?? 0,
+  };
+}
+
+/**
+ * Tells whether a range cuts a block: it touches the block and does not already cover it. Only such a
+ * block can grow the range (`CellRange#expandByRange` skips the rest).
+ *
+ * @param {{top: number, bottom: number, start: number, end: number}} bounds The range's edges.
+ * @param {CellBlock} block The block.
+ * @returns {boolean}
+ */
+function cutsBlock(bounds: { top: number, bottom: number, start: number, end: number }, block: CellBlock) {
+  const blockBottom = block.row + block.rowspan - 1;
+  const blockEnd = block.col + block.colspan - 1;
+  const touches = block.row <= bounds.bottom && blockBottom >= bounds.top &&
+    block.col <= bounds.end && blockEnd >= bounds.start;
+  const isCovered = block.row >= bounds.top && blockBottom <= bounds.bottom &&
+    block.col >= bounds.start && blockEnd <= bounds.end;
+
+  return touches && !isCovered;
+}
+
+/**
  * Tells whether the range's corners are exactly the corners of one block, so the range is one cell
  * to the user. Header coordinates count as `0`, so a full column whose only cells are one block
  * counts as that block.
  *
  * @param {CellRange} range The range to test.
- * @param {CellBlock[]} blocks The blocks to compare with. Pass only the blocks that are on screen.
+ * @param {CellBlock[]} blocks The blocks to compare with. Pass only the blocks that are not trimmed away.
  * @returns {boolean}
  */
 export function isRangeOneBlock(range: CellRange, blocks: readonly CellBlock[]): boolean {
@@ -121,7 +163,7 @@ export function isRangeOneBlock(range: CellRange, blocks: readonly CellBlock[]):
  * index when scanning forward, the first when scanning backward) and the number of range cells it
  * covers within the line. Lines without any block are absent from the returned map.
  *
- * @param {CellBlock[]} blocks The blocks on screen.
+ * @param {CellBlock[]} blocks The blocks that are not trimmed away.
  * @param {CellRange} range The range to search within.
  * @param {'row' | 'col'} axis The axis to search within.
  * @param {number} scanDirection The direction to scan the range. `1` for forward, `-1` for backward.
@@ -190,7 +232,7 @@ function collectLineContributions(
  *
  * Shift+Arrow uses it to find the line a range's end moves from, so the end never stops inside a block.
  *
- * @param {CellBlock[]} blocks The blocks on screen.
+ * @param {CellBlock[]} blocks The blocks that are not trimmed away.
  * @param {CellRange} range The range to search within.
  * @param {'row' | 'col'} axis The axis to search within.
  * @param {number} scanDirection The direction to scan the range. `1` for forward, `-1` for backward.

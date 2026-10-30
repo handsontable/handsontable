@@ -2,10 +2,11 @@ import type { HotInstance } from '../../core/types';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 import MergedCellCoords from './cellCoords';
 import { rangeEach, clamp } from '../../helpers/number';
-import { warn } from '../../helpers/console';
+import { deprecatedWarnOnce, warn } from '../../helpers/console';
 import { arrayEach } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import type { MergeCells } from './mergeCells';
+import { findNonIntersectingIndex } from '../../selection/cellBlocks';
 import {
   getFirstRowOfActiveBottomOverlay,
   getFirstRenderedRowOfOverlay,
@@ -122,9 +123,10 @@ class MergedCellsCollection {
   }
 
   /**
-   * Get the merged cells that are on screen: every merge except the ones purged from the lookup
+   * Get the merged cells that are not trimmed away: every merge except the ones purged from the lookup
    * matrix because all of their rows are trimmed. A purged merge keeps stale visual coordinates in
-   * the `mergedCells` list, which can point at rows that other records have moved into.
+   * the `mergedCells` list, which can point at rows that other records have moved into. A merge whose
+   * rows are only hidden is returned, because hidden rows keep their visual index.
    *
    * @returns {MergedCellCoords[]} The visible merged cells, in the order of the `mergedCells` list.
    */
@@ -530,6 +532,77 @@ class MergedCellsCollection {
       this.hot.columnIndexMapper.getNearestNotHiddenIndex(mergeParent.col, 1) ?? mergeParent.col;
 
     return this.hot._createCellCoords(firstRenderableRow, firstRenderableColumn);
+  }
+
+  /**
+   * Gets the start-most visual column index that do not intersect with other merged cells within the provided range.
+   *
+   * @deprecated Since 19.0.0. The selection steps over merged cells itself now, so nothing in Handsontable
+   * calls this method. It will be removed in 20.0.0. There is no replacement.
+   * @param {CellRange} range The range to search within.
+   * @param {number} visualColumnIndex The visual column index to start the search from.
+   * @returns {number}
+   */
+  getStartMostColumnIndex(range: CellRange, visualColumnIndex: number) {
+    this.#warnDeprecatedScan('getStartMostColumnIndex');
+
+    return findNonIntersectingIndex(this.getVisibleMergedCells(), range, 'col', -1, visualColumnIndex);
+  }
+
+  /**
+   * Gets the end-most visual column index that do not intersect with other merged cells within the provided range.
+   *
+   * @deprecated Since 19.0.0. The selection steps over merged cells itself now, so nothing in Handsontable
+   * calls this method. It will be removed in 20.0.0. There is no replacement.
+   * @param {CellRange} range The range to search within.
+   * @param {number} visualColumnIndex The visual column index to start the search from.
+   * @returns {number}
+   */
+  getEndMostColumnIndex(range: CellRange, visualColumnIndex: number) {
+    this.#warnDeprecatedScan('getEndMostColumnIndex');
+
+    return findNonIntersectingIndex(this.getVisibleMergedCells(), range, 'col', 1, visualColumnIndex);
+  }
+
+  /**
+   * Gets the top-most visual row index that do not intersect with other merged cells within the provided range.
+   *
+   * @deprecated Since 19.0.0. The selection steps over merged cells itself now, so nothing in Handsontable
+   * calls this method. It will be removed in 20.0.0. There is no replacement.
+   * @param {CellRange} range The range to search within.
+   * @param {number} visualRowIndex The visual row index to start the search from.
+   * @returns {number}
+   */
+  getTopMostRowIndex(range: CellRange, visualRowIndex: number) {
+    this.#warnDeprecatedScan('getTopMostRowIndex');
+
+    return findNonIntersectingIndex(this.getVisibleMergedCells(), range, 'row', -1, visualRowIndex);
+  }
+
+  /**
+   * Gets the bottom-most visual row index that do not intersect with other merged cells within the provided range.
+   *
+   * @deprecated Since 19.0.0. The selection steps over merged cells itself now, so nothing in Handsontable
+   * calls this method. It will be removed in 20.0.0. There is no replacement.
+   * @param {CellRange} range The range to search within.
+   * @param {number} visualRowIndex The visual row index to start the search from.
+   * @returns {number}
+   */
+  getBottomMostRowIndex(range: CellRange, visualRowIndex: number) {
+    this.#warnDeprecatedScan('getBottomMostRowIndex');
+
+    return findNonIntersectingIndex(this.getVisibleMergedCells(), range, 'row', 1, visualRowIndex);
+  }
+
+  /**
+   * Prints the one-time deprecation warning of a line-scan method.
+   *
+   * @param {string} methodName The deprecated method's name.
+   */
+  #warnDeprecatedScan(methodName: string) {
+    deprecatedWarnOnce(`MergedCellsCollection.${methodName}`,
+      `\`MergedCellsCollection#${methodName}()\` is deprecated and will be removed in Handsontable 20.0.0. ` +
+      'The selection steps over merged cells itself now.');
   }
 
   /**

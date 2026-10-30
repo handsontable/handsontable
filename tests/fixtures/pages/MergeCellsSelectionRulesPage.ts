@@ -10,7 +10,8 @@ export type Selection = [number, number, number, number];
 /**
  * The fixture's grid cases (`?case=`).
  */
-export type SelectionRulesCase = 'staircase' | 'staircase-reversed' | 'filtered' | 'merge-to-merge' | 'two-layers';
+export type SelectionRulesCase =
+  'staircase' | 'staircase-reversed' | 'filtered' | 'trimmed' | 'merge-to-merge' | 'two-layers';
 
 interface FixtureWindow extends Window {
   htFilterOutColumnC(values: string[]): void;
@@ -156,6 +157,21 @@ export class MergeCellsSelectionRulesPage {
 
     await expect.poll(() => this.page.evaluate(() => window.hot.countRows()))
       .toBe(rowsBefore - values.length);
+  }
+
+  /**
+   * Hides the given physical rows with the TrimRows plugin, and waits until they are gone from the grid.
+   */
+  async trimRows(rows: number[]): Promise<void> {
+    const rowsBefore = await this.page.evaluate(() => window.hot.countRows());
+
+    await this.page.evaluate((trimmed) => {
+      window.hot.getPlugin('trimRows').trimRows(trimmed);
+      window.hot.render();
+    }, rows);
+
+    await expect.poll(() => this.page.evaluate(() => window.hot.countRows()))
+      .toBe(rowsBefore - rows.length);
   }
 
   /**

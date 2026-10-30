@@ -53,6 +53,8 @@
         'staircase-reversed': { rows: 6, cols: 6, mergeCells: staircase.slice().reverse() },
         // A3:B4 over two rows that a filter on column C hides (the rows holding C3 and C4).
         filtered: { rows: 8, cols: 4, mergeCells: [{ row: 2, col: 0, rowspan: 2, colspan: 2 }], filters: true },
+        // The same merge, for rows the TrimRows plugin hides.
+        trimmed: { rows: 8, cols: 4, mergeCells: [{ row: 2, col: 0, rowspan: 2, colspan: 2 }], trimRows: true },
         // B1:B2 beside the plain cells of column A.
         'two-layers': { rows: 8, cols: 8, mergeCells: [{ row: 0, col: 1, rowspan: 2, colspan: 1 }] },
         // B2:C3 and E5:F6, plus D1:D2, which the rectangle between the other two cuts.
@@ -82,6 +84,7 @@
         rowHeaders: true,
         mergeCells: htCase.mergeCells,
         filters: htCase.filters ?? false,
+        trimRows: htCase.trimRows ?? false,
         width: 600,
         height: 320,
         afterRenderer(td, row, col) {

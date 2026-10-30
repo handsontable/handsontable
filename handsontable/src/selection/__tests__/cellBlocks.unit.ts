@@ -83,6 +83,37 @@ describe('cellBlocks', () => {
       expect(corners(range)).toEqual([0, 0, 5, 4]);
     });
 
+    it('should build a block\'s range only for a block the range cuts, on a long chain in either order', () => {
+      // Two columns of bricks: A1:A2, B2:B3, A3:A4, ... 1000 blocks over rows 0-1000. Selecting the
+      // last row reaches the first block only after one pass per block when they are listed top-down.
+      const createChain = () => {
+        const chain = [];
+
+        for (let k = 0; k < 500; k++) {
+          chain.push(createBlock(2 * k, 0, 2, 1), createBlock((2 * k) + 1, 1, 2, 1));
+        }
+
+        return chain;
+      };
+
+      [createChain(), createChain().reverse()].forEach((blocks) => {
+        let rangesBuilt = 0;
+        const countedBlocks = blocks.map(block => ({
+          ...block,
+          getRange: () => {
+            rangesBuilt += 1;
+
+            return block.getRange();
+          },
+        }));
+        const range = createRange(999, 0, 999, 1);
+
+        expect(expandRangeToBlocks(range, countedBlocks, false)).toBe(true);
+        expect(corners(range)).toEqual([0, 0, 1000, 1]);
+        expect(rangesBuilt).toBeLessThanOrEqual(2 * blocks.length);
+      });
+    });
+
     it('should keep the range direction when `changeDirection` is `false`', () => {
       const range = createRange(2, 0, 2, 0);
 

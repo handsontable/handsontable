@@ -2302,7 +2302,7 @@ export const REGISTERED_HOOKS = [
    * The behavior of <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> differs from <kbd>**←**</kbd> when there's no further movement possible.
    *
    * With merged cells, the selected range already covers every merged cell it touches, and its focus
-   * sits on a merged cell's top-left. A range selected through a header keeps its own extent.
+   * sits on a merged cell's top-left visible cell. A range selected through a header keeps its own extent.
    *
    * @since 14.0.0
    * @event Hooks#beforeSelectionHighlightSet

@@ -2,6 +2,7 @@ import MergedCellsCollection from '../cellsCollection';
 import MergedCell from '../cellCoords';
 import { CellCoords, CellRange } from '../../../3rdparty/walkontable/src';
 import { findNonIntersectingIndex } from '../../../selection/cellBlocks';
+import { _resetDeprecationWarnings } from '../../../helpers/console';
 
 describe('MergeCells', () => {
   /**
@@ -588,6 +589,62 @@ describe('MergeCells', () => {
         expect(mergedCellsCollection.isOverlapping(createMergedCell(21, 19, 5, 5))).toEqual(true);
         expect(mergedCellsCollection.isOverlapping(createMergedCell(21, 22, 5, 5))).toEqual(true);
         expect(mergedCellsCollection.isOverlapping(createMergedCell(24, 25, 5, 5))).toEqual(false);
+      });
+    });
+
+    describe('deprecated line-scan methods', () => {
+      const methods = [
+        'getStartMostColumnIndex', 'getEndMostColumnIndex', 'getTopMostRowIndex', 'getBottomMostRowIndex',
+      ];
+
+      beforeEach(() => {
+        _resetDeprecationWarnings();
+      });
+
+      afterEach(() => {
+        jest.restoreAllMocks();
+      });
+
+      /**
+       * Builds the collection the line-scan tests below use: two merges that touch at a corner.
+       */
+      function createCollection() {
+        const collection = new MergedCellsCollection({ hot: hotMock });
+
+        collection.add({ row: 1, col: 2, rowspan: 2, colspan: 2 });
+        collection.add({ row: 3, col: 3, rowspan: 2, colspan: 2 });
+
+        return collection;
+      }
+
+      it('should keep answering like the shared line scan', () => {
+        jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+        const collection = createCollection();
+        const range = createCellRange(0, 1, 5, 5);
+
+        for (let index = 0; index < 6; index++) {
+          expect(collection.getStartMostColumnIndex(range, index)).toBe(startMostColumn(collection, range, index));
+          expect(collection.getEndMostColumnIndex(range, index)).toBe(endMostColumn(collection, range, index));
+          expect(collection.getTopMostRowIndex(range, index)).toBe(topMostRow(collection, range, index));
+          expect(collection.getBottomMostRowIndex(range, index)).toBe(bottomMostRow(collection, range, index));
+        }
+      });
+
+      it('should print one deprecation warning per method, however often it is called', () => {
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const collection = createCollection();
+        const range = createCellRange(0, 1, 5, 5);
+
+        methods.forEach((method) => {
+          collection[method](range, 2);
+          collection[method](range, 3);
+        });
+
+        expect(warnSpy).toHaveBeenCalledTimes(methods.length);
+        methods.forEach((method, index) => {
+          expect(warnSpy.mock.calls[index][0]).toContain(`MergedCellsCollection#${method}()\` is deprecated`);
+        });
       });
     });
 

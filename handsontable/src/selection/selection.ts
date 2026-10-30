@@ -1681,8 +1681,9 @@ class Selection {
 
   /**
    * Registers the source of the blocks (merged cells) a cell range must cover whole. Pass `null` to
-   * stop growing ranges.
+   * stop growing ranges. There is one slot, and MergeCells overwrites it whenever it is enabled.
    *
+   * @private
    * @param {CellBlockProvider|null} provider The block source.
    */
   setCellBlockProvider(provider: CellBlockProvider | null) {

@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { MergeCellsSelectionRulesPage } from '../fixtures/pages/MergeCellsSelectionRulesPage';
 
 /**
@@ -12,7 +12,7 @@ import { MergeCellsSelectionRulesPage } from '../fixtures/pages/MergeCellsSelect
  * declared bottom-up were not. And a merge whose rows a filter hides still pulled the selection
  * onto the rows that took its place, so Delete on one plain cell emptied four.
  */
-test.describe('MergeCells: a selection covers every merge it touches whole (DEV-161)', () => {
+test.describe('MergeCells: a selection covers every merge it touches whole (DEV-161)', { tag: CROSS_BROWSER_TAG }, () => {
   for (const gridCase of ['staircase', 'staircase-reversed'] as const) {
     test(`selecting A4:C4 grows over the whole chain of merges (${gridCase})`, async({ page, theme, bundle }) => {
       const grid = new MergeCellsSelectionRulesPage(page, theme, bundle);
@@ -87,39 +87,47 @@ test.describe('MergeCells: a selection covers every merge it touches whole (DEV-
   });
 });
 
-test.describe('MergeCells: a merge whose rows a filter hides takes no part in selection (DEV-161)', () => {
-  let grid: MergeCellsSelectionRulesPage;
+for (const hiddenBy of ['a filter', 'trimRows'] as const) {
+  test.describe(`MergeCells: a merge whose rows ${hiddenBy} hides takes no part in selection (DEV-161)`,
+    { tag: CROSS_BROWSER_TAG }, () => {
+      let grid: MergeCellsSelectionRulesPage;
 
-  test.beforeEach(async({ page, theme, bundle }) => {
-    grid = new MergeCellsSelectionRulesPage(page, theme, bundle);
+      test.beforeEach(async({ page, theme, bundle }) => {
+        grid = new MergeCellsSelectionRulesPage(page, theme, bundle);
 
-    await grid.goto('filtered');
-    // Hides the rows of the merge A3:B4, so rows 5 and 6 move up into its place.
-    await grid.filterOutColumnC(['C3', 'C4']);
-  });
+        // Hides the rows of the merge A3:B4, so rows 5 and 6 move up into its place.
+        if (hiddenBy === 'a filter') {
+          await grid.goto('filtered');
+          await grid.filterOutColumnC(['C3', 'C4']);
+        } else {
+          await grid.goto('trimmed');
+          await grid.trimRows([2, 3]);
+        }
+      });
 
-  test('clicking the cell that moved into the merge\'s place selects that one cell', async() => {
-    await grid.click(2, 0);
+      test('clicking the cell that moved into the merge\'s place selects that one cell', async() => {
+        await grid.click(2, 0);
 
-    expect(await grid.valuesAt(2, 0, 2, 0)).toEqual([['A5']]);
-    expect(await grid.selected()).toEqual([2, 0, 2, 0]);
-  });
+        expect(await grid.valuesAt(2, 0, 2, 0)).toEqual([['A5']]);
+        expect(await grid.selected()).toEqual([2, 0, 2, 0]);
+      });
 
-  test('Delete empties only the clicked cell', async() => {
-    await grid.click(2, 0);
-    await grid.pressKeys('Delete');
+      test('Delete empties only the clicked cell', async() => {
+        await grid.click(2, 0);
+        await grid.pressKeys('Delete');
 
-    expect(await grid.valuesAt(2, 0, 3, 1)).toEqual([
-      [null, 'B5'],
-      ['A6', 'B6'],
-    ]);
-  });
+        expect(await grid.valuesAt(2, 0, 3, 1)).toEqual([
+          [null, 'B5'],
+          ['A6', 'B6'],
+        ]);
+      });
 
-  test('a two-cell range there stays two cells and is painted as a range', async() => {
-    await grid.drag([2, 0], [2, 1]);
+      test('a two-cell range there stays two cells and is painted as a range', async() => {
+        await grid.drag([2, 0], [2, 1]);
 
-    expect(await grid.selected()).toEqual([2, 0, 2, 1]);
-    expect(await grid.isMultiple()).toBe(true);
-    await expect(grid.cell(2, 0)).toContainClass('area');
-  });
-});
+        expect(await grid.selected()).toEqual([2, 0, 2, 1]);
+        expect(await grid.isMultiple()).toBe(true);
+        await expect(grid.cell(2, 0)).toContainClass('area');
+      });
+    });
+}

@@ -278,12 +278,12 @@ export class MergeCells extends BasePlugin {
    */
   declare selectionCalculations: SelectionCalculations;
   /**
-   * Tells Selection which merges a cell range must cover whole: the ones on screen. Selection also
-   * walks them for Enter and Tab inside a range.
+   * Tells Selection which merges a cell range must cover whole: the ones not trimmed away. Selection
+   * also walks them for Enter and Tab inside a range.
    */
   #cellBlockProvider: CellBlockProvider = {
     getBlocks: () => this.mergedCellsCollection.getVisibleMergedCells(),
-    // The lookup matrix holds the merges on screen only.
+    // The lookup matrix leaves out the merges whose rows are all trimmed.
     getBlockAt: (row: number, column: number) => this.mergedCellsCollection.get(row, column) || null,
   };
   /**

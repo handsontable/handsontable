@@ -1,7 +1,7 @@
 # MergeCells plugin — spanning cells across rows and columns
 
 The `mergeCells` plugin merges a rectangular range into one visible cell. Read this before touching
-`mergeCells.ts` (2.1k lines), `cellsCollection.ts`, `cellCoords.ts`, `renderer.ts`,
+`mergeCells.ts`, `cellsCollection.ts`, `cellCoords.ts`, `renderer.ts`,
 `utils.ts` or anything in `calculations/` and `contextMenuItem/`.
 
 ## Read `colspan` / `rowspan` from cell meta, never from the DOM
@@ -35,7 +35,7 @@ band once per slave. The reference scans measure against a column or row that no
 Reading visibility off `mergedCells` is the bug this split exists to prevent.
 
 The Shift+Arrow line scan, `findNonIntersectingIndex()` in `../../selection/cellBlocks.ts`, encodes the rest
-of that logic, over the merges on screen only (`getVisibleMergedCells()`): the first merge-touched line (in scan order) whose
+of that logic, over the merges that are not trimmed away (`getVisibleMergedCells()`): the first merge-touched line (in scan order) whose
 cells all agree on a single index at or past `visualIndex`, and the first merge-**free** line at or past it
 (which always emits its own index — cells covered by no merge contribute their line's own index).
 
@@ -706,7 +706,7 @@ is almost always a missing branch rather than wrong arithmetic — check all six
 
 `../../../.ai/CONCERNS.md` flags this. **Selection owns the selection geometry over merges; this plugin
 only tells it where the merges are.** It registers a cell block provider (`#cellBlockProvider`:
-`getBlocks()` returns the merges on screen, `getBlockAt()` looks one up in the matrix) through
+`getBlocks()` returns the merges that are not trimmed away, `getBlockAt()` looks one up in the matrix) through
 `Selection#setCellBlockProvider()` on enable, and unregisters it on disable. The provider contract is in
 `../../selection/cellBlocks.ts`. Two steps move the highlight, and each owns one case: Selection moves it
 onto a merge's top-left (`Selection#applyCellBlocks`, right before `beforeSelectionHighlightSet`), then
@@ -726,8 +726,9 @@ These are the decided rules. A change that breaks one is a bug, whatever a spec 
 - **R1. A cell range never cuts a merge.** A range that touches a merge grows to cover it whole. Covering
   one merge can make the range touch another, so it keeps growing until it cuts none. The range is a
   rectangle, so it may take in plain cells that no merge covers.
-- **R2. Only merges on screen count.** A merge whose rows are all trimmed is purged from the lookup matrix
-  and keeps stale visual coordinates in the list; it takes no part in selection.
+- **R2. Only merges that are not trimmed away count.** A merge whose rows are all trimmed is purged from
+  the lookup matrix and keeps stale visual coordinates in the list; it takes no part in selection. A merge
+  whose rows are only hidden still counts, because hidden rows keep their visual index.
 - **R3. The highlight inside a merge sits on its top-left visible cell.**
 - **R4. A header selection is never grown.** A column, row or corner selection keeps its own extent and
   may cut a merge (see below).
