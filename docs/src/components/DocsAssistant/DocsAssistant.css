@@ -257,6 +257,25 @@
 .da-msg-assistant {
   align-items: flex-start;
 }
+/* A reply a teammate wrote from Slack. Starlight's blue tokens switch with the theme, so it stands
+   apart from the bot's plain text and from the reader's accent-colored bubble in light and dark. */
+.da-msg-agent {
+  align-items: flex-start;
+}
+.da-agent-label {
+  margin-bottom: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--sl-color-blue-high);
+}
+.da-agent-body {
+  box-sizing: border-box;
+  padding: 0.625rem 0.875rem;
+  background: var(--sl-color-blue-low);
+  border-left: 3px solid var(--sl-color-blue);
+  word-wrap: break-word;
+}
 /* ── Assistant body — mirrors .sl-markdown-content typography ─────── */
 .da-assistant-body {
   max-width: 100%;
