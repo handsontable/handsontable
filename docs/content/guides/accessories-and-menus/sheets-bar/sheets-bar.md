@@ -229,6 +229,8 @@ Right-click a tab, or click the chevron on the active tab, to open its menu: **R
 - Click the **+** button (Add sheet) to append a sheet.
 - Click the list button (All sheets) to pick a sheet from a list.
 
+A sheet you add with the **+** button uses the grid-level settings. To keep an option such as [`nestedRows`](@/api/options.md#nestedrows) or [`columns`](@/api/options.md#columns) to one sheet, set it in that sheet's own `settings`.
+
 ## Per-sheet view state
 
 Each sheet keeps its own:
