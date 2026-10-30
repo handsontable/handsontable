@@ -1242,11 +1242,130 @@ describe('SheetsBar plugin', () => {
 
     before.mockClear();
 
+    const beforeAdd = jest.fn();
+    const beforeRemove = jest.fn();
+
+    hot.addHook('beforeSheetTabAdd', beforeAdd);
+    hot.addHook('beforeSheetTabRemove', beforeRemove);
+
     expect(sheetsBar.renameSheet(id, undefined)).toBe(false);
     expect(sheetsBar.renameSheet(999, 'B')).toBe(false);
     expect(sheetsBar.duplicateSheet(999)).toBe(null);
     expect(sheetsBar.removeSheet(999)).toBe(false);
     expect(before).not.toHaveBeenCalled();
+    expect(beforeAdd).not.toHaveBeenCalled();
+    expect(beforeRemove).not.toHaveBeenCalled();
+  });
+
+  describe('API guards and vetoes', () => {
+    /**
+     * Builds a grid with sheets 'A', 'B' and 'C' and spies on every workbook hook.
+     *
+     * @returns {object} The plugin and the spies by hook name.
+     */
+    function buildWithSpies() {
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }, { name: 'C', data: [['c']] }],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const spies = {};
+
+      [
+        'beforeSheetTabChange', 'afterSheetTabChange', 'afterSheetTabStateCapture', 'afterSheetTabStateRestore',
+        'beforeSheetTabAdd', 'afterSheetTabAdd', 'beforeSheetTabRemove', 'afterSheetTabRemove',
+      ].forEach((hookName) => {
+        spies[hookName] = jest.fn();
+        hot.addHook(hookName, spies[hookName]);
+      });
+
+      return { sheetsBar: hot.getPlugin('sheetsBar'), spies };
+    }
+
+    /**
+     * Returns the id of the sheet with the given name.
+     *
+     * @param {object} sheetsBar The plugin.
+     * @param {string} name The sheet's name.
+     * @returns {number}
+     */
+    function idOf(sheetsBar, name) {
+      return sheetsBar.getSheets().find(sheet => sheet.name === name).id;
+    }
+
+    it('refuses to activate the sheet that is already active, firing no change hook', () => {
+      const { sheetsBar, spies } = buildWithSpies();
+
+      expect(sheetsBar.setActiveSheet('A')).toBe(false);
+      expect(sheetsBar.setActiveSheet(idOf(sheetsBar, 'A'))).toBe(false);
+      expect(spies.beforeSheetTabChange).not.toHaveBeenCalled();
+      expect(spies.afterSheetTabStateCapture).not.toHaveBeenCalled();
+      expect(spies.afterSheetTabStateRestore).not.toHaveBeenCalled();
+      expect(spies.afterSheetTabChange).not.toHaveBeenCalled();
+    });
+
+    it('answers `null` for an `addSheet()` a `beforeSheetTabAdd` listener cancels, firing no after-hook', () => {
+      const { sheetsBar, spies } = buildWithSpies();
+
+      spies.beforeSheetTabAdd.mockReturnValue(false);
+
+      expect(sheetsBar.addSheet('New', [['n']])).toBe(null);
+      expect(spies.beforeSheetTabAdd).toHaveBeenCalledWith('New', null, 'SheetsBar.api');
+      expect(spies.afterSheetTabAdd).not.toHaveBeenCalled();
+      expect(sheetsBar.getSheets().map(sheet => sheet.name)).toEqual(['A', 'B', 'C']);
+    });
+
+    it('refuses to remove or duplicate a sheet that does not exist, firing no hook', () => {
+      const { sheetsBar, spies } = buildWithSpies();
+
+      expect(sheetsBar.removeSheet(999)).toBe(false);
+      expect(sheetsBar.duplicateSheet(999)).toBe(null);
+      expect(spies.beforeSheetTabRemove).not.toHaveBeenCalled();
+      expect(spies.beforeSheetTabAdd).not.toHaveBeenCalled();
+      expect(sheetsBar.getSheets()).toHaveLength(3);
+    });
+
+    it('passes the ids and the source to the change hooks', () => {
+      const { sheetsBar, spies } = buildWithSpies();
+      const a = idOf(sheetsBar, 'A');
+      const b = idOf(sheetsBar, 'B');
+
+      expect(sheetsBar.setActiveSheet(b, 'custom')).toBe(true);
+      expect(spies.beforeSheetTabChange.mock.calls).toEqual([[a, b, 'custom']]);
+      expect(spies.afterSheetTabChange.mock.calls).toEqual([[a, b, 'custom']]);
+    });
+
+    it('passes the removed sheet\'s id and the source to the remove hooks', () => {
+      const { sheetsBar, spies } = buildWithSpies();
+      const c = idOf(sheetsBar, 'C');
+
+      expect(sheetsBar.removeSheet(c, 'custom')).toBe(true);
+      expect(spies.beforeSheetTabRemove.mock.calls).toEqual([[c, 'custom']]);
+      expect(spies.afterSheetTabRemove.mock.calls).toEqual([[c, 'custom']]);
+      expect(spies.beforeSheetTabChange).not.toHaveBeenCalled();
+    });
+
+    it('passes the switch to the neighbor and then the removal when the active sheet is removed', () => {
+      const { sheetsBar, spies } = buildWithSpies();
+      const a = idOf(sheetsBar, 'A');
+      const b = idOf(sheetsBar, 'B');
+
+      expect(sheetsBar.removeSheet(a, 'custom')).toBe(true);
+      expect(spies.beforeSheetTabRemove.mock.calls).toEqual([[a, 'custom']]);
+      expect(spies.afterSheetTabChange.mock.calls).toEqual([[a, b, 'custom']]);
+      expect(spies.afterSheetTabRemove.mock.calls).toEqual([[a, 'custom']]);
+    });
+
+    it('passes the copy\'s name, the original\'s id and the source to the add hooks of a duplicate', () => {
+      const { sheetsBar, spies } = buildWithSpies();
+      const b = idOf(sheetsBar, 'B');
+      const copy = sheetsBar.duplicateSheet(b, 'custom');
+
+      expect(spies.beforeSheetTabAdd.mock.calls).toEqual([[copy.name, b, 'custom']]);
+      expect(spies.afterSheetTabAdd.mock.calls).toEqual([[copy.id, copy.name, b, 'custom']]);
+    });
   });
 
   it('leaves the bar alone when a sheet\'s settings try to reconfigure it', () => {
