@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-30T09:30:59.409Z",
+  "generatedAt": "2026-10-30T10:50:48.554Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,7 +9,7 @@
   "retentionDays": 90,
   "totals": {
     "tests": 429,
-    "needsTicket": 33,
+    "needsTicket": 32,
     "quarantined": 0,
     "entries": 2240
   },
@@ -856,44 +856,6 @@
       "needsTicket": true
     },
     {
-      "key": "playwright|e2e/unlaid-out-init-scroll-sync.spec.ts|grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "tier": "playwright",
-      "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
-      "line": 65,
-      "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "count7": 0,
-      "count30": 5,
-      "countAll": 28,
-      "runs30": 3,
-      "flakyRuns30": 3,
-      "branches30": 3,
-      "nightlyRuns30": 0,
-      "openBranches30": 3,
-      "legs": [
-        "e2e-classic",
-        "e2e-classic-min",
-        "e2e-horizon",
-        "e2e-horizon-min",
-        "e2e-main",
-        "e2e-main-min"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-07T11:49:14Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37613189147",
-        "branch": "feature/DEV-2700_Fit-frozen-area-to-viewport",
-        "leg": "e2e-main-min",
-        "status": "flaky",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
       "key": "visual|visual-tests/tests/js-only/notification/notification-bottom-end.spec.ts|js-only/notification/notification-bottom-end-1",
       "tier": "visual",
       "file": "visual-tests/tests/js-only/notification/notification-bottom-end.spec.ts",
@@ -992,6 +954,44 @@
         "leg": "cross-browser/webkit",
         "status": "failed",
         "error": "differs from base/develop (full tier); render sha256 ce84cbd1ce93",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/unlaid-out-init-scroll-sync.spec.ts|grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
+      "tier": "playwright",
+      "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
+      "line": 65,
+      "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
+      "count7": 0,
+      "count30": 4,
+      "countAll": 28,
+      "runs30": 3,
+      "flakyRuns30": 3,
+      "branches30": 3,
+      "nightlyRuns30": 0,
+      "openBranches30": 3,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-07T11:49:14Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37613189147",
+        "branch": "feature/DEV-2700_Fit-frozen-area-to-viewport",
+        "leg": "e2e-main-min",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": true
@@ -1159,39 +1159,6 @@
         "leg": "e2e-webkit",
         "status": "failed",
         "error": "Error: expect(locator).not.toHaveValue(expected) failed",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "visual|visual-tests/tests/js-only/editors/handsontable/rtl/position-scrolled-viewport.spec.ts|js-only/editors/handsontable/rtl/position-scrolled-viewport-2",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/editors/handsontable/rtl/position-scrolled-viewport.spec.ts",
-      "line": null,
-      "title": "js-only/editors/handsontable/rtl/position-scrolled-viewport-2",
-      "count7": 0,
-      "count30": 2,
-      "countAll": 3,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "js/chromium-theme-main"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-09-30T10:53:44Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36700182805/attempts/2",
-        "branch": "docs/SheetJS-CDN-xlsx",
-        "leg": "js/chromium-theme-main",
-        "status": "failed",
-        "error": "differs from base/develop (pr tier); render sha256 78539c431a55",
         "source": "ci"
       },
       "needsTicket": true
@@ -4618,6 +4585,39 @@
         "leg": "cross-browser/webkit",
         "status": "failed",
         "error": "differs from base/develop (full tier); render sha256 4fc6d0de5bac",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/editors/handsontable/rtl/position-scrolled-viewport.spec.ts|js-only/editors/handsontable/rtl/position-scrolled-viewport-2",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/editors/handsontable/rtl/position-scrolled-viewport.spec.ts",
+      "line": null,
+      "title": "js-only/editors/handsontable/rtl/position-scrolled-viewport-2",
+      "count7": 0,
+      "count30": 1,
+      "countAll": 3,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "js/chromium-theme-main"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-30T10:53:44Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36700182805/attempts/2",
+        "branch": "docs/SheetJS-CDN-xlsx",
+        "leg": "js/chromium-theme-main",
+        "status": "failed",
+        "error": "differs from base/develop (pr tier); render sha256 78539c431a55",
         "source": "ci"
       },
       "needsTicket": false
