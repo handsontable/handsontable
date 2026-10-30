@@ -1817,8 +1817,8 @@ half presses and drags (`pointer-state.ts`, `drag-runner.ts`); the verdicts are 
   measured on a reload only when the reload marked the same control under its id: an id is a place in
   the marking order, so one control more or less hands it to another. A control is not measured either
   when the grid or its portal covers every corner of the viewport, since no release is away from it.
-  Each load's page errors are checked once its click or its release is done: the harness feeds a page's
-  errors to its latest load only.
+  Every load of a test writes to one page error list, which is checked once each click or release is done:
+  the test passes it to every `openTarget()`, so an error between two loads is never lost.
 - **With a menu, a dialog or an editor open, only the controls inside it are measured.** A press
   anywhere else dismisses what is open (and commits an editor) on the press, by design, and those
   controls are measured on the pages where nothing is open. A link counts its click instead of
