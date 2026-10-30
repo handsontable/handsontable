@@ -1,0 +1,18 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:nested_headers",
+      "kind": "plugin",
+      "module": "NestedHeaders",
+      "name": "Nested headers",
+      "description": "Groups column headers on several levels.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable",
+      "worksWith": [
+        "feat:hidden_columns",
+        "feat:export_file"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:stretch_columns",
+      "kind": "plugin",
+      "module": "StretchColumns",
+      "name": "Column stretching",
+      "description": "Stretches columns to fill the width of the grid.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

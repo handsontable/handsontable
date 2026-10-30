@@ -1,0 +1,139 @@
+{
+  "capabilities": [
+    {
+      "id": "editor:base",
+      "kind": "editor",
+      "module": "base",
+      "name": "Base editor",
+      "description": "The class every editor extends.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "editor:text",
+      "kind": "editor",
+      "module": "text",
+      "name": "Text editor",
+      "description": "The editor of the text cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "editor:numeric",
+      "kind": "editor",
+      "module": "numeric",
+      "name": "Numeric editor",
+      "description": "The editor of the numeric cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "editor:date",
+      "kind": "editor",
+      "module": "date",
+      "name": "Date editor",
+      "description": "The editor of the date cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "editor:time",
+      "kind": "editor",
+      "module": "time",
+      "name": "Time editor",
+      "description": "The editor of the time cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "editor:intl_date",
+      "kind": "editor",
+      "module": "intl-date",
+      "name": "Date (Intl) editor",
+      "description": "The editor of the intl-date cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "editor:intl_time",
+      "kind": "editor",
+      "module": "intl-time",
+      "name": "Time (Intl) editor",
+      "description": "The editor of the intl-time cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "editor:intl_datetime",
+      "kind": "editor",
+      "module": "intl-datetime",
+      "name": "Date and time (Intl) editor",
+      "description": "The editor of the intl-datetime cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "editor:checkbox",
+      "kind": "editor",
+      "module": "checkbox",
+      "name": "Checkbox editor",
+      "description": "The editor of the checkbox cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "editor:select",
+      "kind": "editor",
+      "module": "select",
+      "name": "Select editor",
+      "description": "The editor of the select cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "editor:dropdown",
+      "kind": "editor",
+      "module": "dropdown",
+      "name": "Dropdown editor",
+      "description": "The editor of the dropdown cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "editor:autocomplete",
+      "kind": "editor",
+      "module": "autocomplete",
+      "name": "Autocomplete editor",
+      "description": "The editor of the autocomplete cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "editor:handsontable",
+      "kind": "editor",
+      "module": "handsontable",
+      "name": "Handsontable editor",
+      "description": "The editor of the handsontable cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "editor:password",
+      "kind": "editor",
+      "module": "password",
+      "name": "Password editor",
+      "description": "The editor of the password cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "editor:multiselect",
+      "kind": "editor",
+      "module": "multiselect",
+      "name": "Multiselect editor",
+      "description": "The editor of the multiselect cell type.",
+      "status": "stable",
+      "licensing": "none"
+    }
+  ]
+}

@@ -57,6 +57,7 @@ import type { BaseComponent } from './component/_base';
 import type { BaseUI } from './ui/_base';
 import { ColumnDataMap, stampPhysicalCoordinates } from './columnDataMap';
 import type { CellProperties } from '../../settings';
+import { PLUGIN_DEPS } from './feature.generated';
 
 export type OperationType = 'conjunction' | 'disjunction' | 'disjunctionWithExtraCondition';
 
@@ -301,11 +302,7 @@ export class Filters extends BasePlugin {
    * Returns the list of plugin dependencies required before this plugin can be initialized.
    */
   static get PLUGIN_DEPS() {
-    return [
-      'plugin:DropdownMenu',
-      'plugin:HiddenRows',
-      'cell-type:checkbox',
-    ];
+    return [...PLUGIN_DEPS];
   }
 
   /**

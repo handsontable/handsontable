@@ -1,0 +1,25 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:formula_builder",
+      "kind": "plugin",
+      "module": "FormulaBuilder",
+      "name": "Formula builder",
+      "description": "Adds a formula bar, a formula editor, and reference picking with the mouse.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable",
+      "requires": {
+        "allOf": [
+          "feat:formulas"
+        ]
+      },
+      "worksWith": [
+        "feat:nested_headers"
+      ],
+      "packages": [
+        "hyperformula-ui"
+      ]
+    }
+  ]
+}

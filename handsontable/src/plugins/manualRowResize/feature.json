@@ -1,0 +1,14 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:manual_row_resize",
+      "kind": "plugin",
+      "module": "ManualRowResize",
+      "name": "Row resizing",
+      "description": "Resizes rows by dragging the edge of their header.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

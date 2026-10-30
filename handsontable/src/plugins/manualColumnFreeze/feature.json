@@ -1,0 +1,14 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:manual_column_freeze",
+      "kind": "plugin",
+      "module": "ManualColumnFreeze",
+      "name": "Column freezing",
+      "description": "Freezes a column at the start of the grid from a menu.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

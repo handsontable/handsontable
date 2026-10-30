@@ -22,7 +22,7 @@ mis-prioritized, it lands in the un-prioritized registration-order bucket.
 | `SETTING_KEYS` | which `updateSettings()` calls reach `updatePlugin()` | `true` = every call, `false` = never, array = only when one of those keys is present |
 | `DEFAULT_SETTINGS` | the fallback `getSetting()` merges under the user value | `defaultMainSettingSymbol` names the key an array/primitive setting maps onto |
 | `SETTINGS_VALIDATORS` | per-key (object) or whole-value (function) validation | only the validator's **own** keys are checked — unknown keys inside a settings object pass untouched |
-| `PLUGIN_DEPS` | required modules, as `'type:Name'` | types are `plugin`, `cell-type`, `editor`, `renderer`, `validator`; a wrong type **throws** |
+| `PLUGIN_DEPS` | required modules, as `'type:Name'` | **generated, never hand-written**: declared as `requires.allOf` with `"enforceAtInit": true` in the plugin's `feature.json`, written to `feature.generated.ts` by `npm run generate:feature-manifest`, returned as `[...PLUGIN_DEPS]` (`../../featureManifest/AGENTS.md`); types are `plugin`, `cell-type`, `editor`, `renderer`, `validator`; a wrong type **throws** |
 
 `SETTING_KEYS` defaults to `[this.PLUGIN_KEY]`, so a plugin that says nothing updates only when its own
 option is passed.

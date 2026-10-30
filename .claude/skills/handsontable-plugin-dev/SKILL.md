@@ -19,7 +19,7 @@ src/plugins/{pluginName}/
 
 ## Contract
 
-Statics (`PLUGIN_KEY`, `PLUGIN_PRIORITY`, `SETTING_KEYS`, `PLUGIN_DEPS`, `DEFAULT_SETTINGS`, `SETTINGS_VALIDATORS`), lifecycle order, `onUpdateSettings`, hard conflicts, and the `PLUGIN_PRIORITY` table: `src/plugins/base/AGENTS.md`. Pick a free priority number from that table and add your row to it.
+Statics (`PLUGIN_KEY`, `PLUGIN_PRIORITY`, `SETTING_KEYS`, `PLUGIN_DEPS` – generated from `feature.json`, see "Plugin dependencies" below, `DEFAULT_SETTINGS`, `SETTINGS_VALIDATORS`), lifecycle order, `onUpdateSettings`, hard conflicts, and the `PLUGIN_PRIORITY` table: `src/plugins/base/AGENTS.md`. Pick a free priority number from that table and add your row to it.
 
 ## Key patterns (gold standard: `src/plugins/pagination/pagination.ts`)
 
@@ -61,6 +61,21 @@ Statics (`PLUGIN_KEY`, `PLUGIN_PRIORITY`, `SETTING_KEYS`, `PLUGIN_DEPS`, `DEFAUL
    Git stores it as mode `120000`; a regular file in `git status` means you copied.
 6. **Add your `PLUGIN_PRIORITY` row to the table in `src/plugins/base/AGENTS.md`**, in the same change: nothing enforces it, so it drifts silently.
 7. **Add the plugin to `tests/a11y/coverage.mjs`**: the pages that scan it, why it draws nothing, or a counted gap. The root `test:tooling` fails until you do. A plugin with UI adds a page to `tests/a11y/pages.mjs` and follows the `handsontable-a11y` skill (plan, build rules, proof).
+8. **Write `feature.json` in the plugin folder** – its feature manifest entry (`feat:<plugin_key_in_snake_case>`, `licensing: "token"`, a `gate`, a plain-English `name` and `description`, `requires` and `worksWith`, and `"enabledByDefault": true` if a grid with no options turns it on). Then run `npm run generate:feature-manifest --prefix handsontable` and commit what it writes. The unit suite fails until the entry exists. Copy an existing one (`src/plugins/filters/feature.json`); the fields and rules are in `src/featureManifest/AGENTS.md`.
+
+## Plugin dependencies (`PLUGIN_DEPS`) are generated
+
+Never write a `PLUGIN_DEPS` array in the class. Declare what the plugin needs in `requires.allOf` of its `feature.json`. Add `"enforceAtInit": true` only when `new Handsontable()` must throw if the module is not registered: the generator then writes the `'type:Name'` list to `feature.generated.ts` in the folder, and the class returns a copy of it:
+
+```ts
+import { PLUGIN_DEPS } from './feature.generated';
+
+static get PLUGIN_DEPS() {
+  return [...PLUGIN_DEPS];
+}
+```
+
+To change a dependency, edit `feature.json` and run `generate:feature-manifest`; never edit `feature.generated.ts` by hand. `enforceAtInit` on a dependency that was not checked before is a **breaking change** for modular users, so a real dependency that never threw (Loading → Dialog) stays in `requires` without it.
 
 ## Focus management
 

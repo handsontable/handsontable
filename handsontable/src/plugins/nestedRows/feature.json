@@ -1,0 +1,17 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:nested_rows",
+      "kind": "plugin",
+      "module": "NestedRows",
+      "name": "Nested rows",
+      "description": "Shows rows as a tree whose branches collapse and expand.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable",
+      "worksWith": [
+        "feat:undo_redo"
+      ]
+    }
+  ]
+}

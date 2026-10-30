@@ -1,0 +1,12 @@
+{
+  "capabilities": [
+    {
+      "id": "core",
+      "kind": "core_area",
+      "name": "Core",
+      "description": "The data grid itself, which every key unlocks: rendering, data binding, selection, keyboard navigation, editing, validation, frozen rows and columns, themes, translations, and the text cell type.",
+      "status": "stable",
+      "licensing": "core"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:multi_column_sorting",
+      "kind": "plugin",
+      "module": "MultiColumnSorting",
+      "name": "Multi-column sorting",
+      "description": "Sorts rows by the values of several columns.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:row_selection",
+      "kind": "plugin",
+      "module": "RowSelection",
+      "name": "Row selection",
+      "description": "Selects rows with checkboxes in a column of their own.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable",
+      "worksWith": [
+        "cell:checkbox",
+        "feat:data_provider",
+        "feat:pagination",
+        "feat:nested_rows"
+      ]
+    }
+  ]
+}

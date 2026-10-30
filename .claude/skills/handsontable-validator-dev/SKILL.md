@@ -40,6 +40,8 @@ import { registerValidator } from '../../validators/registry';
 registerValidator('myValidator', myValidator);
 ```
 
+A new built-in validator also needs its entry in `src/validators/features.json` (`validator:<name_in_snake_case>`, `licensing: "none"`; copy a neighbor), and a cell type that uses it lists it in its `requires.allOf`. The unit suite fails until both exist. A validator folder that is never registered under a name (`maxLengthValidator`, `regExpValidator`) goes in the skip list of `scripts/utils/feature-manifest.js` instead, with the reason. Run `npm run generate:feature-manifest --prefix handsontable` and commit what it writes. Rules: `src/featureManifest/AGENTS.md`.
+
 ## Triggers
 
 - The editor system during `finishEditing()`.

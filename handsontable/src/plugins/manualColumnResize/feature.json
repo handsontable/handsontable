@@ -1,0 +1,14 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:manual_column_resize",
+      "kind": "plugin",
+      "module": "ManualColumnResize",
+      "name": "Column resizing",
+      "description": "Resizes columns by dragging the edge of their header.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

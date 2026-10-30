@@ -1,0 +1,19 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:freeze_bar",
+      "kind": "plugin",
+      "module": "FreezeBar",
+      "name": "Freeze bar",
+      "description": "Adds bars the user drags to set how many rows and columns are frozen.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable",
+      "worksWith": [
+        "feat:filters",
+        "feat:pagination",
+        "feat:manual_column_resize"
+      ]
+    }
+  ]
+}

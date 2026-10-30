@@ -1,0 +1,23 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:sheets_bar",
+      "kind": "plugin",
+      "module": "SheetsBar",
+      "name": "Sheets bar",
+      "description": "Adds tabs that switch between several sheets in one grid.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable",
+      "worksWith": [
+        "feat:formulas",
+        "feat:column_summary",
+        "feat:import_file",
+        "feat:dialog",
+        "feat:comments",
+        "feat:pagination",
+        "feat:merge_cells"
+      ]
+    }
+  ]
+}

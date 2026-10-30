@@ -1,0 +1,13 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:multiple_selection_handles",
+      "kind": "plugin",
+      "module": "MultipleSelectionHandles",
+      "name": "Touch selection handles",
+      "description": "Draws handles on the corners of the selection on touch devices.",
+      "status": "stable",
+      "licensing": "none"
+    }
+  ]
+}

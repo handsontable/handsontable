@@ -1,0 +1,15 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:import_file",
+      "kind": "plugin",
+      "module": "ImportFile",
+      "name": "Import from file",
+      "description": "Imports a file into the grid. Importing an .xlsx file also needs xlsx:import.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "call",
+      "enabledByDefault": true
+    }
+  ]
+}

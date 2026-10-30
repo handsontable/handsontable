@@ -1,0 +1,14 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:move_cells",
+      "kind": "plugin",
+      "module": "MoveCells",
+      "name": "Move cells",
+      "description": "Moves a block of cells by dragging the border of the selection.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:context_menu",
+      "kind": "plugin",
+      "module": "ContextMenu",
+      "name": "Context menu",
+      "description": "Opens a menu of cell and header actions on right-click.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable",
+      "requires": {
+        "allOf": [
+          "feat:auto_column_size"
+        ]
+      },
+      "enforceAtInit": true
+    }
+  ]
+}

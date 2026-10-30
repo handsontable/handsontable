@@ -1,0 +1,239 @@
+{
+  "capabilities": [
+    {
+      "id": "cell:text",
+      "kind": "cell_type",
+      "module": "text",
+      "name": "Text",
+      "description": "Plain text. The default cell type.",
+      "status": "stable",
+      "licensing": "core",
+      "requires": {
+        "allOf": [
+          "editor:text",
+          "renderer:text"
+        ]
+      }
+    },
+    {
+      "id": "cell:numeric",
+      "kind": "cell_type",
+      "module": "numeric",
+      "name": "Numeric",
+      "description": "Numbers, formatted with Intl.NumberFormat.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "report",
+      "requires": {
+        "allOf": [
+          "editor:numeric",
+          "renderer:numeric",
+          "validator:numeric"
+        ]
+      }
+    },
+    {
+      "id": "cell:date",
+      "kind": "cell_type",
+      "module": "date",
+      "name": "Date",
+      "description": "Dates picked from a calendar.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "report",
+      "requires": {
+        "allOf": [
+          "editor:date",
+          "renderer:date",
+          "validator:date"
+        ]
+      }
+    },
+    {
+      "id": "cell:time",
+      "kind": "cell_type",
+      "module": "time",
+      "name": "Time",
+      "description": "Times of day.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "report",
+      "requires": {
+        "allOf": [
+          "editor:time",
+          "renderer:time",
+          "validator:time"
+        ]
+      }
+    },
+    {
+      "id": "cell:intl_date",
+      "kind": "cell_type",
+      "module": "intl-date",
+      "name": "Date (Intl)",
+      "description": "Dates formatted with Intl.DateTimeFormat.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "report",
+      "requires": {
+        "allOf": [
+          "editor:intl_date",
+          "renderer:intl_date",
+          "validator:intl_date"
+        ]
+      }
+    },
+    {
+      "id": "cell:intl_time",
+      "kind": "cell_type",
+      "module": "intl-time",
+      "name": "Time (Intl)",
+      "description": "Times of day formatted with Intl.DateTimeFormat.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "report",
+      "requires": {
+        "allOf": [
+          "editor:intl_time",
+          "renderer:intl_time",
+          "validator:intl_time"
+        ]
+      }
+    },
+    {
+      "id": "cell:intl_datetime",
+      "kind": "cell_type",
+      "module": "intl-datetime",
+      "name": "Date and time (Intl)",
+      "description": "Dates with times, formatted with Intl.DateTimeFormat.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "report",
+      "requires": {
+        "allOf": [
+          "editor:intl_datetime",
+          "renderer:intl_datetime",
+          "validator:intl_datetime"
+        ]
+      }
+    },
+    {
+      "id": "cell:checkbox",
+      "kind": "cell_type",
+      "module": "checkbox",
+      "name": "Checkbox",
+      "description": "Values shown and changed as checkboxes.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "report",
+      "requires": {
+        "allOf": [
+          "editor:checkbox",
+          "renderer:checkbox"
+        ]
+      },
+      "worksWith": [
+        "validator:checkbox"
+      ]
+    },
+    {
+      "id": "cell:select",
+      "kind": "cell_type",
+      "module": "select",
+      "name": "Select",
+      "description": "Values picked from a native select list.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "report",
+      "requires": {
+        "allOf": [
+          "editor:select",
+          "renderer:select"
+        ]
+      }
+    },
+    {
+      "id": "cell:dropdown",
+      "kind": "cell_type",
+      "module": "dropdown",
+      "name": "Dropdown",
+      "description": "Values picked from a list.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "report",
+      "requires": {
+        "allOf": [
+          "editor:dropdown",
+          "renderer:dropdown",
+          "validator:dropdown"
+        ]
+      }
+    },
+    {
+      "id": "cell:autocomplete",
+      "kind": "cell_type",
+      "module": "autocomplete",
+      "name": "Autocomplete",
+      "description": "Values typed with suggestions from a list.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "report",
+      "requires": {
+        "allOf": [
+          "editor:autocomplete",
+          "renderer:autocomplete",
+          "validator:autocomplete"
+        ]
+      }
+    },
+    {
+      "id": "cell:handsontable",
+      "kind": "cell_type",
+      "module": "handsontable",
+      "name": "Handsontable",
+      "description": "Values picked from a grid that opens below the cell.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "report",
+      "requires": {
+        "allOf": [
+          "editor:handsontable",
+          "renderer:handsontable"
+        ]
+      }
+    },
+    {
+      "id": "cell:password",
+      "kind": "cell_type",
+      "module": "password",
+      "name": "Password",
+      "description": "Values shown masked.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "report",
+      "requires": {
+        "allOf": [
+          "editor:password",
+          "renderer:password"
+        ]
+      }
+    },
+    {
+      "id": "cell:multiselect",
+      "kind": "cell_type",
+      "module": "multiselect",
+      "name": "Multiselect",
+      "description": "Several values picked from a list.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "report",
+      "requires": {
+        "allOf": [
+          "editor:multiselect",
+          "renderer:multiselect",
+          "validator:multiselect"
+        ]
+      }
+    }
+  ]
+}

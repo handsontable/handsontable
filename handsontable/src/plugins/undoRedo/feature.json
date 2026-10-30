@@ -1,0 +1,15 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:undo_redo",
+      "kind": "plugin",
+      "module": "UndoRedo",
+      "name": "Undo and redo",
+      "description": "Undoes and redoes changes.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable",
+      "enabledByDefault": true
+    }
+  ]
+}

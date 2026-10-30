@@ -1,0 +1,20 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:dropdown_menu",
+      "kind": "plugin",
+      "module": "DropdownMenu",
+      "name": "Column menu",
+      "description": "Opens a menu of column actions from a button in the column header.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable",
+      "requires": {
+        "allOf": [
+          "feat:auto_column_size"
+        ]
+      },
+      "enforceAtInit": true
+    }
+  ]
+}

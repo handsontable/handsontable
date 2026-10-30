@@ -1,0 +1,18 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:pagination",
+      "kind": "plugin",
+      "module": "Pagination",
+      "name": "Pagination",
+      "description": "Splits rows into pages and shows a pager below the grid.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable",
+      "worksWith": [
+        "feat:auto_row_size",
+        "feat:data_provider"
+      ]
+    }
+  ]
+}

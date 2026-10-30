@@ -1,0 +1,14 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:auto_link",
+      "kind": "plugin",
+      "module": "AutoLink",
+      "name": "Auto link",
+      "description": "Turns URLs in the rendered cell text into links.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

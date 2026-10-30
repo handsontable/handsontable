@@ -1,0 +1,15 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:copy_paste",
+      "kind": "plugin",
+      "module": "CopyPaste",
+      "name": "Copy and paste",
+      "description": "Copies, cuts, and pastes cells through the clipboard.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable",
+      "enabledByDefault": true
+    }
+  ]
+}

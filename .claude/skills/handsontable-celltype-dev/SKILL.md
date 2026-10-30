@@ -31,6 +31,7 @@ Files: `src/cellTypes/{typeName}/{typeName}.ts` (the object) and `index.ts` (re-
 1. `registerCellType(MyCellType)` (import from `../../cellTypes/registry`).
 2. Export from `src/cellTypes/index.ts` so the full bundle has it.
 3. Add the type string to the `type` option's accepted values in `src/dataMap/metaManager/metaSchema.ts`.
+4. **Add its feature manifest entry to `src/cellTypes/features.json`**: `cell:<type_in_snake_case>`, `licensing: "token"`, `gate: "report"`, and a `requires.allOf` that lists exactly the `editor:`, `renderer:`, and `validator:` entries the cell type file imports (the unit suite compares them). A new editor, renderer, or validator also gets its own entry (see those skills). Run `npm run generate:feature-manifest --prefix handsontable` and commit what it writes. Rules: `src/featureManifest/AGENTS.md`.
 
 ## Key rules
 

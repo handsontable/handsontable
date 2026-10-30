@@ -1,0 +1,14 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:dialog",
+      "kind": "plugin",
+      "module": "Dialog",
+      "name": "Dialog",
+      "description": "Shows a modal dialog over the grid.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

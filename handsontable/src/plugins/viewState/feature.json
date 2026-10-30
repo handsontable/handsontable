@@ -1,0 +1,15 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:view_state",
+      "kind": "plugin",
+      "module": "ViewState",
+      "name": "View state",
+      "description": "Saves and restores the state of the view, such as sorting, filters, and sizes.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "call",
+      "enabledByDefault": true
+    }
+  ]
+}

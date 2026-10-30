@@ -1,0 +1,19 @@
+{
+  "capabilities": [
+    {
+      "id": "feat:loading",
+      "kind": "plugin",
+      "module": "Loading",
+      "name": "Loading",
+      "description": "Shows a loading indicator over the grid.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable",
+      "requires": {
+        "allOf": [
+          "feat:dialog"
+        ]
+      }
+    }
+  ]
+}

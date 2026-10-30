@@ -1,0 +1,150 @@
+# Feature manifest – what Handsontable is made of, and what each part needs
+
+Every Handsontable feature a license key can name, and every module a feature needs, is described in a small
+JSON file next to its code. A build step checks the files against the source and produces:
+
+- `dist/manifest.json`, published in the npm package (`handsontable/dist/manifest.json`) and on jsDelivr. The
+  license portal reads it to build license keys ("Filters needs Checkbox").
+- the committed `feature.generated.ts` modules the plugins read their `PLUGIN_DEPS` from. **`PLUGIN_DEPS` is
+  never written by hand any more.**
+- the committed `released-tokens.json`, the record that keeps an id from being removed or sold later.
+
+Code: `scripts/utils/feature-manifest.js` (loader, checks, builders; CommonJS so Jest and node both load it) and
+`scripts/generate-feature-manifest.mjs` (the CLI). Tests: `test/__tests__/featureManifest.unit.js` (the sources
+against the source code, and the checks themselves) and `__tests__/registries.unit.js` (the sources against the
+runtime registries).
+
+## Adding a module: the manifest entry is part of the change
+
+**A new plugin, cell type, editor, renderer, or validator is not complete without its manifest entry.** The
+Jest suite fails until it has one (`needs exactly one "plugin" entry for "<Name>"`).
+
+| You add | Add an entry to | `id` | `licensing` |
+|---|---|---|---|
+| a plugin `src/plugins/<name>/` | `src/plugins/<name>/feature.json` | `feat:<plugin_key_in_snake_case>` | `token` |
+| a cell type | `src/cellTypes/features.json` | `cell:<type_in_snake_case>` | `token` |
+| an editor, renderer, or validator | `src/editors/`, `src/renderers/`, or `src/validators/` `features.json` | `editor:…`, `renderer:…`, `validator:…` | `none` |
+| an XLSX sub-feature a key can switch | `src/utils/xlsxEngine/features.json` | `xlsx:<name>` | `token` or `core` |
+
+Then run `npm run generate:feature-manifest --prefix handsontable` and commit what it writes (the record in
+`released-tokens.json`, and a `feature.generated.ts` if the plugin's dependencies are checked at init).
+
+A plugin entry looks like this (`src/plugins/filters/feature.json`):
+
+```json
+{
+  "capabilities": [
+    {
+      "id": "feat:filters",
+      "kind": "plugin",
+      "module": "Filters",
+      "name": "Filters",
+      "description": "Filters rows by condition or by value from the column menu.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable",
+      "requires": { "allOf": ["feat:dropdown_menu", "feat:hidden_rows", "cell:checkbox"] },
+      "enforceAtInit": true,
+      "worksWith": ["feat:data_provider", "feat:empty_data_state", "feat:freeze_bar"]
+    }
+  ]
+}
+```
+
+## Plugin dependencies: declare them in `feature.json`, never in the class
+
+`requires.allOf` lists what the feature needs to work. It feeds two things:
+
+1. **The license closure.** A key that lists an entry also lists every token it requires (`implies` in
+   `dist/manifest.json`).
+2. **`PLUGIN_DEPS`, when `"enforceAtInit": true`.** The generator turns `requires.allOf` into the
+   `'type:Name'` strings `initializePlugins()` checks (`plugins/base/base.ts`; `plugin:DropdownMenu`,
+   `cell-type:checkbox`) and writes them
+   to `feature.generated.ts` in the plugin's folder. The class returns a copy:
+
+   ```ts
+   import { PLUGIN_DEPS } from './feature.generated';
+
+   static get PLUGIN_DEPS() {
+     return [...PLUGIN_DEPS];
+   }
+   ```
+
+   `new Handsontable()` throws when such a module is not registered, so `enforceAtInit` makes a dependency hard
+   for modular users. **Turning it on for an existing dependency is a breaking change** (a user who registered the
+   plugin without it starts getting a throw). Loading → Dialog and FormulaBuilder → Formulas are real
+   dependencies listed in `requires` without `enforceAtInit` for exactly that reason.
+
+To change a plugin's dependencies, edit its `feature.json` and run `generate:feature-manifest`. Hand-editing
+`feature.generated.ts` or writing a `PLUGIN_DEPS` array in the class fails the Jest suite. The order of
+`requires.allOf` is the order of `PLUGIN_DEPS` and of the error message.
+
+The strings must stay byte-identical: the custom-build service reads `PLUGIN_DEPS` from each plugin class. The four `pluginDependencies.unit.ts` tests pin today's strings.
+
+`worksWith` is a soft link (a hint), never added to a key and never checked.
+
+## Fields
+
+| Field | Required | Meaning |
+|---|---|---|
+| `id` | yes | The token. Must pass the license-key rule `^[a-z][a-z0-9_]*(:[a-z0-9_]+(\.[a-z0-9_]+)*)?$` and start with the namespace of its kind. `<namespace>:all` is reserved. |
+| `kind` | yes | `plugin`, `cell_type`, `editor`, `renderer`, `validator`, `sub_feature`, or `core_area` |
+| `module` | registry kinds | The registered name: `Filters`, `checkbox`, `intl-date`. Checked against the source constant and the runtime registry. |
+| `plugins` | `sub_feature` | The plugins whose behavior the sub-feature changes. |
+| `name`, `description` | yes | English text shown where keys are built. Not translated. Never prices. |
+| `since` | no | The release that first ships the id. Default `19.0.0` (`FIRST_RELEASE`); a feature added later declares its own. |
+| `status` | yes | `stable`, or `planned` (listed but not issued yet, not recorded as released, may still be renamed). |
+| `licensing` | yes | `token` (a key must list it), `core` (always granted), `none` (never in a key). Fixed by kind, see below. |
+| `gate` | when `token` | How Handsontable will check it: `enable` (plugin turns on), `call` (an always-on plugin, checked in its methods), `degrade` (sub-feature left out of the result), `report` (listed, keeps working). |
+| `enabledByDefault` | plugins | `true` when a grid with no options turns the plugin on. The runtime test checks it. A key that leaves one out turns it off once keys are checked. |
+| `requires` | no | `{ "allOf": [...], "anyOf": [...] }`. `anyOf` means at least one, which the key builder cannot choose on its own. |
+| `enforceAtInit` | plugins | `true` turns `requires.allOf` into `PLUGIN_DEPS` (see above). |
+| `worksWith` | no | Soft links. |
+| `packages` | no | npm packages the user supplies (`hyperformula`, `hyperformula-ui`). |
+
+Unknown fields fail the check, so the format cannot drift.
+
+## The licensing rule
+
+`licensing` follows the kind, not a per-feature choice:
+
+- every plugin: `token`, except `TouchScroll` and `MultipleSelectionHandles` (`none`: private, no option, on by
+  device);
+- every cell type: `token`, except `text` (`core`). Handsontable does not check cell types yet; a key grants all
+  of them with `cell:all`;
+- editors, renderers, validators: `none` – licensed through their cell type;
+- XLSX sub-features: decided per entry (`xlsx:import_report` is `core`).
+
+## Rules that keep issued keys working
+
+A key carries tokens for years. So:
+
+- **A token is never removed or renamed.** Rename = new id plus the old one kept.
+- **An id released as `core` or `none` never becomes `token`.** A restricted key issued before would not list
+  it, and the feature would turn off for that customer on upgrade. `token` → `core` is allowed.
+- **A `core` entry never requires a `token` entry.**
+
+`released-tokens.json` records every stable id with its licensing, and a record is never dropped.
+`generate:feature-manifest` refuses a forbidden change. An id is "released" from the moment it is merged:
+`next` builds publish the manifest too.
+
+## Traps
+
+- **Every registry folder needs exactly one entry**, and every entry needs a folder. A folder that registers
+  nothing goes in `REGISTRIES[].skip` in `scripts/utils/feature-manifest.js`, with the reason (`base`,
+  `editors/utils`, `maxLengthValidator`, `regExpValidator`). The checkbox validator is registered but the checkbox
+  cell type does not use it (opt-in `validator: 'checkbox'`), so it is a `worksWith` of `cell:checkbox`, not a part.
+- **A cell type's `requires.allOf` lists exactly the editor, renderer, and validator its source imports.** The
+  Jest suite compares them.
+- **`build:feature-manifest` never writes into `src/`.** It fails when a committed output is stale. Only
+  `generate:feature-manifest` (`--write`) rewrites them, and it deletes a `feature.generated.ts` that is no longer
+  needed.
+- **Only plugins with `enforceAtInit: true` get a `feature.generated.ts`.** The license check in Handsontable
+  (a later phase) will add more to the generated modules; nothing reads license data at runtime yet.
+- **`dist/manifest.json` takes its `version` from `package.json`** and has no timestamp: the same sources give
+  the same bytes.
+
+## Testing
+
+- `npm run test:unit --prefix handsontable -- --testPathPattern=featureManifest`
+- `npm run build:feature-manifest --prefix handsontable` runs every check without Jest.
