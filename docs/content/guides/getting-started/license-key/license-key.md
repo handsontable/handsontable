@@ -347,8 +347,8 @@ console reports an error and the grid shows a notice below the table.
 
 An entitlement key can list the capabilities it unlocks. A capability is a named part of a feature, such as `xlsx:export`. Handsontable reads the list from the key when the grid starts and gates the matching features.
 
-- A key without a capability list unlocks every feature. Every key issued so far works this way, so nothing changes for you when you update Handsontable.
-- A key with a capability list unlocks exactly the capabilities on it. A feature you did not license is skipped, and the grid tells you so in the console.
+- A key issued without the `listed-capabilities` flag unlocks every feature. Every key issued before 19.0 works this way, so nothing changes for you when you update Handsontable.
+- A key with the `listed-capabilities` flag unlocks exactly the capabilities it lists. A feature you did not license is skipped, and the grid tells you so in the console.
 - The `non-commercial-and-evaluation` key and the 25-character keys unlock every feature.
 
 Which capabilities your key lists depends on the package you bought. See the [pricing page](https://handsontable.com/pricing) for the packages. The full list of features and the modules each one needs is in the manifest that ships with every release, at `https://cdn.jsdelivr.net/npm/handsontable@{{$currentVersion}}/dist/manifest.json`.

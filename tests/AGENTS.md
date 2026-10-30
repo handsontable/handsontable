@@ -489,6 +489,15 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   review, because every assertion read columns and the top clone's rows, and
   nothing asked the master where its band was. Reference:
   `e2e/iframe-cross-realm-scroll.spec.ts` (`masterRowBand()`).
+- **The xlsx license fixture reaches into the core package's Jest helpers.**
+  `fixtures/xlsxLicenseKeys.ts` imports
+  `handsontable/src/utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys.js`
+  (which uses `__tests__/buildTestKey.js`) and `__tests__/fixtures.js` through
+  Playwright's loader, so the Jest suites and these specs build keys with one
+  builder. Moving or renaming those files breaks the xlsx license specs. And
+  `demo/xlsx-license.html` takes a third fail-loud allowlisted param besides
+  `?theme=`/`?bundle=`: `?engine=` (`native` or `exceljs`); an unknown value
+  throws, like the other two.
 
 ## Two clicks on the same cell are a double click
 

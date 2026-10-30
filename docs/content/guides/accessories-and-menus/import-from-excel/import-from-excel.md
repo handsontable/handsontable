@@ -268,7 +268,7 @@ Pass these options as the third argument of `importFromArrayBuffer(format, buffe
 
 ### What your license unlocks
 
-The XLSX import reads your license key for the [capabilities](@/guides/getting-started/license-key/license-key.md#capabilities) it needs. A key without a capability list unlocks all of them. A key with a list unlocks the ones on it:
+The XLSX import reads your license key for the [capabilities](@/guides/getting-started/license-key/license-key.md#capabilities) it needs. A key issued without the `listed-capabilities` flag (every key issued before 19.0) unlocks all of them. A key with the flag unlocks exactly the ones it lists:
 
 - `xlsx:import` - the import itself.
 - `xlsx:formulas` - `importFormulas`.

@@ -246,7 +246,7 @@ Pass these options as the second argument of `downloadFileAsync('xlsx', options)
 
 ### What your license unlocks
 
-The XLSX export reads your license key for the [capabilities](@/guides/getting-started/license-key/license-key.md#capabilities) it needs. A key without a capability list unlocks all of them. A key with a list unlocks the ones on it:
+The XLSX export reads your license key for the [capabilities](@/guides/getting-started/license-key/license-key.md#capabilities) it needs. A key issued without the `listed-capabilities` flag (every key issued before 19.0) unlocks all of them. A key with the flag unlocks exactly the ones it lists:
 
 - `xlsx:export` - the export itself, and the **To Excel** context menu item.
 - `xlsx:formulas` - `exportFormulas`.

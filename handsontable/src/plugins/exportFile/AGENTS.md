@@ -177,7 +177,9 @@ Other rules:
   not a plain object or `null`, or a `password` that is not a string (`null` and `undefined` mean none), is
   refused by `assertProtectionOption()` at the top of `Xlsx#export()`, before any engine work and whatever
   the license unlocks: the built-in engine hashed a number as an empty password and ExcelJS threw a bare
-  `TypeError`, so letting it through made the two engines disagree. The engines hash it
+  `TypeError`, so letting it through made the two engines disagree. The option is workbook-wide: the
+  multi-sheet loop drops a `protection` key from each `sheets` entry before merging it over the top-level
+  options, so a per-sheet value can neither bypass that check nor set another password. The engines hash it
   (salted SHA-512, `crypto.getRandomValues` salt in `parts/protection.ts`; ExcelJS's own `protect()`).
   Pinned by `__tests__/xlsxProtectionOption.unit.js` and `tests/e2e/xlsx-export-license.spec.ts`.
 - **Clear the style caches for *every* document involved.** In multi-sheet mode each sheet may come from a
