@@ -1486,8 +1486,9 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   the catalog page that draws the feature. The verdict compares two snapshots of the grid
   (`effectsBetween()`): nothing changed is `shortcut-does-nothing` (2.1.1), the focus leaving the grid is
   `shortcut-moves-focus-out` (2.4.3), another effect is advisory, and so is an effect the guide rules out,
-  which the probe lists in `forbid` (Escape on the comment editor must close it without saving what was
-  typed). **Every probe starts from the page as it
+  which the probe lists in `forbid` (Escape on an editor or the comment editor must close it without
+  saving what was typed): a probe passes on any one expected effect, so a key that also does the wrong
+  thing passes unless the probe forbids it. **Every probe starts from the page as it
   loaded**: a probe that changed the data, the merges, the sort, the filters, the collapsed groups, the
   frozen counts or the row selection makes the walker load the page again, because a cleared cell or a
   collapsed row made the next probe report a shortcut as dead. Write a probe from a cell the key can
