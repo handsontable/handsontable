@@ -27,7 +27,7 @@
  * - `expect`: the effect the guide describes (`effectsBetween()`), or a list of effects any of which
  *   satisfies it;
  * - `forbid`: effects the guide rules out, which make the probe `unexpected` even with the expected one
- *   (Escape on the comment editor closes it and must not save what was typed).
+ *   (Escape on an editor or the comment editor closes it and must not save what was typed).
  *
  * The walker loads the page again before a probe when the one before changed the data, the merges, the
  * sort, the filters, the collapsed groups, the frozen counts or the row selection, so every probe starts
@@ -104,7 +104,9 @@ export const SHORTCUT_PROBES = [
   { section: 'Edition keyboard shortcuts', keys: 'Alt+Enter', probe: { setup: 'editor', at: [5, 5], press: 'Alt+Enter', expect: 'text-changes' } },
   // A single selected cell gives Ctrl+Enter no other cell to write to, so the guide's line break is the only right effect.
   { section: 'Edition keyboard shortcuts', keys: 'Ctrl+Enter', probe: { setup: 'editor', at: [5, 5], press: 'ControlOrMeta+Enter', expect: 'text-changes' } },
-  { section: 'Edition keyboard shortcuts', keys: 'Escape', probe: { setup: 'editor', at: [5, 5], prepare: [{ type: 'x' }], press: 'Escape', expect: 'editor-closes' } },
+  // Escape closes the editor and throws away what was typed, so a saved edit is ruled out.
+  { section: 'Edition keyboard shortcuts', keys: 'Escape',
+    probe: { setup: 'editor', at: [5, 5], prepare: [{ type: 'x' }], press: 'Escape', expect: 'editor-closes', forbid: ['value-changes'] } },
 
   // The cell editors, on the catalog pages that draw them.
   { section: 'Checkbox editor keyboard shortcuts', keys: 'Space', probe: { page: 'checkbox', setup: 'cell', at: [0, 1], press: 'Space', expect: 'value-changes' } },
@@ -176,10 +178,18 @@ export const SHORTCUT_PROBES = [
   { section: 'Column filter keyboard shortcuts', keys: 'Alt+A', probe: { setup: 'cell', at: [5, 5], prepare: [{ api: 'filter' }], press: 'Alt+a', expect: 'filters' } },
   { section: 'Column filter keyboard shortcuts', keys: 'Tab', probe: { setup: 'dropdown-menu', at: [5, 5], press: 'Tab', expect: 'focus-moves' } },
   { section: 'Column filter keyboard shortcuts', keys: 'Shift+Tab', probe: { setup: 'dropdown-menu', at: [5, 5], press: 'Shift+Tab', expect: 'focus-moves' } },
+  // The Filter by value list (column F: F1 to F60, all checked) is a grid of its own in the menu. ArrowDown from the search
+  // field highlights its first item and one more the second, so ArrowUp has an item above it; moving ticks nothing.
   { section: 'Column filter keyboard shortcuts', keys: '↑ / ↓',
-    probe: { setup: 'dropdown-menu', at: [5, 5], prepare: [{ focus: '.htUIMultipleSelectSearch input' }, 'ArrowDown'], press: ['ArrowDown', 'ArrowUp'], expect: 'any' } },
+    probe: { setup: 'dropdown-menu', at: [5, 5], prepare: [{ focus: '.htUIMultipleSelectSearch input' }, 'ArrowDown', 'ArrowDown'], press: ['ArrowDown', 'ArrowUp'],
+      expect: 'filter-list-moves', forbid: ['filter-checked-changes'] } },
+  // Select none unticks every value of the full list; Select all ticks them again after an Enter on Select none. Neither
+  // applies the filter or closes the menu: that is the OK button's.
   { section: 'Column filter keyboard shortcuts', keys: 'Enter / Space',
-    probe: { setup: 'dropdown-menu', at: [5, 5], prepare: [{ focus: '.htUISelectionControls .htUIClearAll a' }], press: ['Enter', 'Space'], expect: 'any' } },
+    probe: { setup: 'dropdown-menu', at: [5, 5], prepare: [{ focus: '.htUISelectionControls .htUIClearAll a' }],
+      press: ['Enter', 'Space', { key: 'Enter', prepare: ['Enter', { focus: '.htUISelectionControls .htUISelectAll a' }] },
+        { key: 'Space', prepare: ['Enter', { focus: '.htUISelectionControls .htUISelectAll a' }] }],
+      expect: 'filter-checked-changes', forbid: ['filters', 'menu-closes'] } },
   { section: 'Comments keyboard shortcuts', keys: 'Ctrl+Alt+M', probe: { setup: 'cell', at: [5, 5], press: 'Control+Alt+m', expect: 'comment-opens' } },
   // Ctrl+Enter saves what was typed; Escape closes the editor and puts the comment back as it was.
   { section: 'Comments keyboard shortcuts', keys: 'Ctrl+Enter',
@@ -221,7 +231,7 @@ export const SHORTCUT_PROBES = [
     probe: { page: 'formula-builder', setup: 'range', at: [3, 0], to: [2, 1], prepare: ['F2'], press: 'ControlOrMeta+Enter', expect: 'value-changes' } },
   { section: 'Formula builder keyboard shortcuts', keys: 'Alt+Enter', probe: { page: 'formula-builder', setup: 'editor', at: [0, 2], press: 'Alt+Enter', expect: 'text-changes' } },
   { section: 'Formula builder keyboard shortcuts', keys: 'Escape', ordinal: 1,
-    probe: { page: 'formula-builder', setup: 'editor', at: [0, 2], prepare: [{ type: '*10' }], press: 'Escape', expect: 'editor-closes' } },
+    probe: { page: 'formula-builder', setup: 'editor', at: [0, 2], prepare: [{ type: '*10' }], press: 'Escape', expect: 'editor-closes', forbid: ['value-changes'] } },
   { section: 'Formula builder keyboard shortcuts', keys: '↑ / ↓',
     probe: { page: 'formula-builder', setup: 'editor', at: [3, 1], prepare: [{ type: '=SU' }, 'ArrowDown'], press: ['ArrowDown', 'ArrowUp'], expect: 'focus-moves' } },
   { section: 'Formula builder keyboard shortcuts', keys: 'Arrow keys',
