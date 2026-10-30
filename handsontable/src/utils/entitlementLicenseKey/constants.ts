@@ -1,3 +1,5 @@
+import { XLSX_CAPABILITY_IDS } from '../xlsxEngine/licenseCapabilities';
+
 /**
  * The length of the checksum that closes the machine-readable
  * block of every entitlement license key.
@@ -47,7 +49,7 @@ export const HANDSONTABLE_PRODUCT = 'handsontable';
  *
  * @type {string[]}
  */
-export const KNOWN_CAPABILITIES = ['core'];
+export const KNOWN_CAPABILITIES = ['core', ...XLSX_CAPABILITY_IDS];
 
 /**
  * Marks a license as an evaluation one. A flag is present or absent - there is
