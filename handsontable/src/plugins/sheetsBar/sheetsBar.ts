@@ -181,6 +181,11 @@ function isEngineChangingSource(source?: string): boolean {
 }
 
 /**
+ * How a rename ended (`#commitRename`).
+ */
+type RenameResult = 'renamed' | 'unchanged' | 'taken' | 'refused';
+
+/**
  * Returns a lookup from a physical index to the engine index that holds it, for an engine order's
  * `sequence` (the physical index at each engine index). With no sequence, the engine holds the axis in
  * physical order.
@@ -1189,14 +1194,12 @@ export class SheetsBar extends BasePlugin {
           this.#openTabMenu(id, anchor, fromKeyboard, positionTarget);
         })
         .addLocalHook('tabRenameCommit', (id: number, name: string, restoreFocus: boolean) => {
-          const oldName = this.#model?.getSheetById(id)?.name;
-          const committed = this.#commitRename(id, name);
-          const attempted = clampSheetName(name);
+          const result = this.#commitRename(id, name);
 
-          // A name typed and then refused reverts without a visible change, so a reader who
-          // did not see the input snap back is told why.
-          if (!committed && attempted !== '' && attempted !== oldName) {
-            this.#ui?.announce(this.#ui.translate(C.SHEETS_BAR_RENAME_REJECTED, { name: attempted }));
+          if (result === 'taken') {
+            this.#ui?.announce(this.#ui.translate(C.SHEETS_BAR_RENAME_REJECTED, { name: clampSheetName(name) }));
+          } else if (result === 'refused') {
+            this.#ui?.announce(this.#ui.translate(C.SHEETS_BAR_RENAME_NOT_CHANGED));
           }
 
           if (restoreFocus) {
@@ -2121,7 +2124,7 @@ export class SheetsBar extends BasePlugin {
    * @fires Hooks#afterSheetTabRename
    */
   renameSheet(id: number, name: string, source: string = SOURCE_API): boolean {
-    return this.#commitRename(id, name, source);
+    return this.#commitRename(id, name, source) === 'renamed';
   }
 
   /**
@@ -4275,38 +4278,54 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Commits an inline tab rename coming from the tab strip. Rejects (and just
-   * restores the tab strip's rendered state) when the name is blank, unchanged, already
-   * identifying a different sheet in the formula engine, a `beforeSheetTabRename` listener
-   * cancels, or the model rejects the name (collision with another sheet).
+   * Commits a tab rename, and tells how it ended, so the bar announces a refusal for what it was:
+   * `'renamed'`; `'unchanged'` for a blank or unchanged name (or no such sheet), which reverts with
+   * nothing to tell; `'taken'` when another sheet, in the bar or in the formula engine, already has the
+   * name; `'refused'` when a `beforeSheetTabRename` listener cancels it or the host's `sheets` entry
+   * cannot be written. Every refusal restores the tab strip's rendered state.
+   *
+   * @param {number} id The sheet's id.
+   * @param {string} newName The requested name.
+   * @param {string} [source] Operation source tag.
+   * @returns {string}
    */
-  #commitRename(id: number, newName: string, source: string = SOURCE_UI): boolean {
+  #commitRename(id: number, newName: string, source: string = SOURCE_UI): RenameResult {
     const model = this.#model;
+    const sheet = model?.getSheetById(id);
 
-    if (!model) {
-      return false;
+    if (!model || !sheet || typeof newName !== 'string') {
+      return 'unchanged';
     }
 
-    const sheet = model.getSheetById(id);
-
-    if (!sheet || typeof newName !== 'string') {
-      return false;
-    }
-
-    // Clamped here, before the hooks, so the name the hooks report is the name the sheet ends
-    // up with.
     const oldName = sheet.name;
     const trimmed = clampSheetName(newName);
-    const canAttempt = trimmed !== '' && trimmed !== oldName
-      && !model.isNameTaken(trimmed, id)
-      && !this.#renameCollidesInEngine(sheet, oldName, trimmed)
-      && this.#canWriteDeclaredName(id);
 
-    const committed = canAttempt && this.#commit(
+    if (trimmed === '' || trimmed === oldName) {
+      this.#refreshUI();
+
+      return 'unchanged';
+    }
+
+    if (model.isNameTaken(trimmed, id) || this.#renameCollidesInEngine(sheet, oldName, trimmed)) {
+      this.#refreshUI();
+
+      return 'taken';
+    }
+
+    if (!this.#canWriteDeclaredName(id)) {
+      this.#refreshUI();
+
+      return 'refused';
+    }
+
+    let isTaken = false;
+    const committed = this.#commit(
       'beforeSheetTabRename',
       [id, oldName, trimmed],
       () => {
         if (!model.renameSheet(id, trimmed)) {
+          isTaken = true;
+
           return false;
         }
 
@@ -4325,11 +4344,13 @@ export class SheetsBar extends BasePlugin {
       source,
     );
 
-    if (committed === false) {
+    if (committed === false || committed === undefined) {
       this.#refreshUI();
+
+      return isTaken ? 'taken' : 'refused';
     }
 
-    return committed !== false && committed !== undefined;
+    return 'renamed';
   }
 
   /**
@@ -4381,7 +4402,7 @@ export class SheetsBar extends BasePlugin {
 
       this.#lastCommitCanceled = false;
 
-      return this.#commitRename(id, name, replaySource) || !this.#lastCommitCanceled;
+      return this.#commitRename(id, name, replaySource) === 'renamed' || !this.#lastCommitCanceled;
     };
 
     undoRedo.done(() => ({

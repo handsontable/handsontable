@@ -193,6 +193,26 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
     await expect(politeRegion).toContainText('Sheet Sheet 1 moved to position 2 of 4');
   });
 
+  test('a refused rename is announced for the reason it was refused', async({ page, theme, bundle }) => {
+    const fixture = new SheetsBarUiPage(page, theme, bundle);
+    const assertiveRegion = page.locator('[aria-live="assertive"]');
+
+    await fixture.goto();
+    await fixture.tab(0).locator('.ht-sheets-bar__tab-label').dblclick();
+    await fixture.renameInput.fill('Sheet 2');
+    await page.keyboard.press('Enter');
+
+    await expect(assertiveRegion).toContainText('Sheet name not changed: Sheet 2 is already in use');
+
+    await page.evaluate(() => (window as any).hot.addHook('beforeSheetTabRename', () => false));
+    await fixture.tab(0).locator('.ht-sheets-bar__tab-label').dblclick();
+    await fixture.renameInput.fill('Fresh');
+    await page.keyboard.press('Enter');
+
+    await expect(assertiveRegion).toHaveText('Sheet name not changed');
+    await expect(fixture.tab(0)).toHaveText('Sheet 1');
+  });
+
   test('the bar follows the colorScheme and density of its grid', async({ page, theme, bundle }) => {
     const fixture = new SheetsBarUiPage(page, theme, bundle);
 

@@ -1599,6 +1599,50 @@ describe('SheetsBar plugin', () => {
     expect(hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab--active').getAttribute('role')).toBe('button');
   });
 
+  /**
+   * Renames the active tab through its inline input and presses Enter.
+   *
+   * @param {string} name The typed name.
+   */
+  function renameActiveTabTo(name) {
+    const tab = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab--active');
+
+    tab.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+
+    const input = tab.querySelector('.ht-sheets-bar__tab-rename');
+
+    input.value = name;
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+  }
+
+  it('announces a rename a `beforeSheetTabRename` listener canceled as not changed, not as a taken name', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
+      beforeSheetTabRename: () => false,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const announce = jest.spyOn(SheetsBarUI.prototype, 'announce');
+
+    renameActiveTabTo('Fresh');
+
+    expect(hot.getPlugin('sheetsBar').getSheets()[0].name).toBe('A');
+    expect(announce.mock.calls).toEqual([['Sheet name not changed']]);
+  });
+
+  it('announces a rename refused for a frozen `sheets` entry as not changed, not as a taken name', () => {
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [Object.freeze({ name: 'A', data: [['a']] }), { name: 'B', data: [['b']] }] },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const announce = jest.spyOn(SheetsBarUI.prototype, 'announce');
+
+    renameActiveTabTo('Fresh');
+
+    expect(hot.getPlugin('sheetsBar').getSheets()[0].name).toBe('A');
+    expect(announce.mock.calls).toEqual([['Sheet name not changed']]);
+  });
+
   it('leaves Enter and Escape to the IME while a character is being composed', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },

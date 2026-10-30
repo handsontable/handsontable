@@ -136,6 +136,7 @@ const dictionary = {
   [C.SHEETS_BAR_PAGE_NEXT]: 'Pomeri listove unapred',
   [C.SHEETS_BAR_SHEET_CHANGED]: 'List [name] aktiviran',
   [C.SHEETS_BAR_RENAME_REJECTED]: 'Naziv lista nije promenjen: [name] se već koristi',
+  [C.SHEETS_BAR_RENAME_NOT_CHANGED]: 'Naziv lista nije promenjen',
   [C.SHEETS_BAR_SHEET_DUPLICATED]: 'List [name] dupliran kao [copy]',
   [C.SHEETS_BAR_SHEET_MOVED]: 'List [name] premešten na poziciju [position] od [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'List',
