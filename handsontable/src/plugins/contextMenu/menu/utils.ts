@@ -18,6 +18,11 @@ export interface MenuItemLike {
   submenu?: Record<string, unknown>;
   hidden?: boolean | (() => boolean);
   checkable?: boolean;
+  /**
+   * Marks a checkable item as one of a set the user picks exactly one of, so it is announced as
+   * `menuitemradio`. Internal: the sheets bar's all-sheets menu sets it.
+   */
+  radio?: boolean;
   checked?: MenuItemCheckedState | (() => MenuItemCheckedState);
   [key: string]: unknown;
 }

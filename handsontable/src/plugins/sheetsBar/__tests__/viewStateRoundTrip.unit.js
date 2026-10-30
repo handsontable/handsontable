@@ -1,0 +1,663 @@
+import Handsontable from '../../../index';
+
+const LICENSE_KEY = 'non-commercial-and-evaluation';
+
+/**
+ * A sheet left and visited again comes back with the row and column order, the sort, the merged areas and
+ * the headers it had, and a switch fires only the hooks of what it really changes.
+ */
+describe('SheetsBar -> view state round trip', () => {
+  let container;
+  let hot;
+
+  beforeAll(() => {
+    Object.defineProperty(Element.prototype, 'scrollIntoView', { configurable: true, value: () => {} });
+  });
+
+  afterAll(() => {
+    delete Element.prototype.scrollIntoView;
+  });
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    hot?.destroy();
+    hot = null;
+    container.remove();
+  });
+
+  /**
+   * Builds a grid with two sheets.
+   *
+   * @param {object} settings Grid settings.
+   * @param {Array[]} alphaData The first sheet's data.
+   * @param {Array[]} [betaData] The second sheet's data.
+   * @param {object} [betaSettings] The second sheet's own settings.
+   * @returns {object} The SheetsBar plugin.
+   */
+  function build(settings, alphaData, betaData = [[0, 0, 0, 0]], betaSettings = {}) {
+    hot = new Handsontable(container, {
+      ...settings,
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: alphaData },
+          { name: 'Beta', data: betaData, settings: betaSettings },
+        ],
+      },
+      licenseKey: LICENSE_KEY,
+    });
+
+    return hot.getPlugin('sheetsBar');
+  }
+
+  /**
+   * Leaves the first sheet and comes back to it.
+   *
+   * @param {object} bar The SheetsBar plugin.
+   */
+  function roundTrip(bar) {
+    bar.setActiveSheet('Beta');
+    bar.setActiveSheet('Alpha');
+  }
+
+  /**
+   * Returns four rows whose third column sorts them in another order than the first one.
+   *
+   * @returns {Array[]}
+   */
+  function createData() {
+    return [
+      [1, 'd', 30, 'x'],
+      [2, 'a', 10, 'y'],
+      [3, 'c', 40, 'z'],
+      [4, 'b', 20, 'w'],
+    ];
+  }
+
+  describe('sort and row order', () => {
+    it('brings back a row moved before the sort when the sort is cleared after a switch', () => {
+      const bar = build({ manualRowMove: true, columnSorting: true }, createData());
+
+      hot.getPlugin('manualRowMove').moveRow(3, 0);
+      hot.render();
+
+      const unsorted = hot.getDataAtCol(0);
+
+      hot.getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+      roundTrip(bar);
+
+      expect(hot.getDataAtCol(0)).toEqual([2, 4, 1, 3]);
+
+      hot.getPlugin('columnSorting').clearSort();
+
+      expect(hot.getDataAtCol(0)).toEqual(unsorted);
+    });
+
+    it('brings back the unsorted order after a switch whose sort a listener canceled', () => {
+      const bar = build({ manualRowMove: true, columnSorting: true }, createData());
+
+      hot.getPlugin('manualRowMove').moveRow(3, 0);
+      hot.render();
+
+      const unsorted = hot.getDataAtCol(0);
+
+      hot.getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      const sorted = hot.getDataAtCol(0);
+      const veto = () => false;
+
+      bar.setActiveSheet('Beta');
+      hot.addHook('beforeColumnSort', veto);
+      bar.setActiveSheet('Alpha');
+      hot.removeHook('beforeColumnSort', veto);
+
+      expect(hot.getDataAtCol(0)).toEqual(sorted);
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 2, sortOrder: 'asc' }]);
+
+      hot.getPlugin('columnSorting').clearSort();
+
+      expect(hot.getDataAtCol(0)).toEqual(unsorted);
+    });
+
+    it('keeps the sort states of a sheet whose sort a listener canceled after the sorting plugin was disabled', () => {
+      const bar = build({ manualRowMove: true, columnSorting: true }, createData(), [[0, 0, 0, 0]],
+        { columnSorting: false });
+
+      hot.getPlugin('manualRowMove').moveRow(3, 0);
+      hot.render();
+      hot.getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      const sorted = hot.getDataAtCol(0);
+      const veto = () => false;
+
+      bar.setActiveSheet('Beta');
+      hot.addHook('beforeColumnSort', veto);
+      bar.setActiveSheet('Alpha');
+      hot.removeHook('beforeColumnSort', veto);
+
+      const sorting = hot.getPlugin('columnSorting');
+
+      expect(hot.getDataAtCol(0)).toEqual(sorted);
+      expect(sorting.getSortConfig()).toEqual([{ column: 2, sortOrder: 'asc' }]);
+      expect(() => sorting.clearSort()).not.toThrow();
+      expect(sorting.getSortConfig()).toEqual([]);
+      expect(hot.getDataAtCol(0)).toEqual(sorted);
+    });
+
+    it('fires no sort hooks on a switch when no sheet is sorted', () => {
+      const bar = build({ columnSorting: true }, createData());
+      const before = jest.fn();
+      const after = jest.fn();
+
+      hot.addHook('beforeColumnSort', before);
+      hot.addHook('afterColumnSort', after);
+      roundTrip(bar);
+
+      expect(before).not.toHaveBeenCalled();
+      expect(after).not.toHaveBeenCalled();
+    });
+
+    it('fires no sort hooks on a switch to a never-visited sheet when nothing is sorted', () => {
+      const bar = build({ columnSorting: true }, createData());
+      const before = jest.fn();
+
+      hot.addHook('beforeColumnSort', before);
+      bar.setActiveSheet('Beta');
+
+      expect(before).not.toHaveBeenCalled();
+    });
+
+    it('re-applies the sort of a sorted sheet through the sort hooks', () => {
+      const bar = build({ columnSorting: true }, createData());
+      const after = jest.fn();
+
+      hot.getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+      bar.setActiveSheet('Beta');
+      hot.addHook('afterColumnSort', after);
+      bar.setActiveSheet('Alpha');
+
+      expect(after).toHaveBeenCalledWith([], [{ column: 2, sortOrder: 'asc' }], true);
+    });
+
+    it('fires no row or column move hooks while it puts the order back', () => {
+      const bar = build({ manualRowMove: true, manualColumnMove: true }, createData());
+      const moveHooks = jest.fn();
+
+      hot.getPlugin('manualRowMove').moveRow(3, 0);
+      hot.getPlugin('manualColumnMove').moveColumn(3, 0);
+      hot.render();
+
+      ['beforeRowMove', 'afterRowMove', 'beforeColumnMove', 'afterColumnMove']
+        .forEach(name => hot.addHook(name, moveHooks));
+      roundTrip(bar);
+
+      expect(moveHooks).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('column order and hidden columns', () => {
+    it('brings back a moved column on its sheet only', () => {
+      const bar = build({ manualColumnMove: true }, createData(), createData());
+
+      hot.getPlugin('manualColumnMove').moveColumn(3, 0);
+      hot.render();
+
+      const moved = hot.getDataAtRow(0);
+
+      bar.setActiveSheet('Beta');
+
+      expect(hot.getDataAtRow(0)).toEqual([1, 'd', 30, 'x']);
+
+      bar.setActiveSheet('Alpha');
+
+      expect(moved).toEqual(['x', 1, 'd', 30]);
+      expect(hot.getDataAtRow(0)).toEqual(moved);
+      expect(hot.toPhysicalColumn(0)).toBe(3);
+    });
+
+    it('brings back the columns hidden on a sheet after a round trip, and hides none on the other', () => {
+      const bar = build({ hiddenColumns: true }, createData(), createData());
+      const hiddenColumns = hot.getPlugin('hiddenColumns');
+
+      hiddenColumns.hideColumns([1, 3]);
+      hot.render();
+      bar.setActiveSheet('Beta');
+
+      expect(hiddenColumns.getHiddenColumns()).toEqual([]);
+
+      bar.setActiveSheet('Alpha');
+
+      expect(hiddenColumns.getHiddenColumns()).toEqual([1, 3]);
+      expect(hot.countRenderedCols()).toBe(2);
+    });
+
+    it('brings back a hidden column on its own record after the columns were moved', () => {
+      const bar = build({ hiddenColumns: true, manualColumnMove: true }, createData());
+
+      hot.getPlugin('manualColumnMove').moveColumn(3, 0);
+      hot.getPlugin('hiddenColumns').hideColumn(0);
+      hot.render();
+      roundTrip(bar);
+
+      expect(hot.columnIndexMapper.isHidden(3)).toBe(true);
+      expect(hot.columnIndexMapper.isHidden(0)).toBe(false);
+      expect(hot.getPlugin('hiddenColumns').isHidden(0)).toBe(true);
+    });
+  });
+
+  describe('merged cells', () => {
+    [
+      ['a row move', () => hot.getPlugin('manualRowMove').moveRow(3, 0)],
+      ['a column move', () => hot.getPlugin('manualColumnMove').moveColumn(3, 0)],
+      ['a sort', () => hot.getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' })],
+    ].forEach(([name, reorder]) => {
+      it(`keeps a merged area on its cells after a round trip with ${name}`, () => {
+        const bar = build({
+          manualRowMove: true, manualColumnMove: true, columnSorting: true, mergeCells: true,
+        }, createData());
+
+        reorder();
+        hot.render();
+        hot.getPlugin('mergeCells').merge(1, 1, 2, 2);
+
+        const topLeft = { row: hot.toPhysicalRow(1), col: hot.toPhysicalColumn(1) };
+        const dataBefore = hot.getData();
+
+        roundTrip(bar);
+
+        expect(hot.getPlugin('mergeCells').getVisibleMergedAreas())
+          .toEqual([{ row: 1, col: 1, rowspan: 2, colspan: 2 }]);
+        expect({ row: hot.toPhysicalRow(1), col: hot.toPhysicalColumn(1) }).toEqual(topLeft);
+        expect(hot.getData()).toEqual(dataBefore);
+      });
+    });
+
+    it('keeps the rows a merge owns when a sort made after it scattered them', () => {
+      const bar = build({ columnSorting: true, mergeCells: true }, createData());
+      const mergeCells = hot.getPlugin('mergeCells');
+
+      mergeCells.merge(0, 1, 1, 2);
+      hot.getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      const areasBefore = mergeCells._exportMergedAreas();
+
+      roundTrip(bar);
+
+      expect(mergeCells._exportMergedAreas()).toEqual(areasBefore);
+
+      hot.getPlugin('columnSorting').clearSort();
+
+      expect(mergeCells.getVisibleMergedAreas()).toEqual([{ row: 0, col: 1, rowspan: 2, colspan: 2 }]);
+    });
+
+    /**
+     * Returns six rows whose first column holds their own physical index.
+     *
+     * @returns {Array[]}
+     */
+    function createIndexedData() {
+      return Array.from({ length: 6 }, (_, row) => [row, `b${row}`, `c${row}`, `d${row}`]);
+    }
+
+    /**
+     * Merges, hides the merge's rows with a sort or a filter, optionally leaves the sheet and comes back, and
+     * undoes the sort or the filter. Returns the merged areas on screen at the end.
+     *
+     * @param {object} scenario The scenario.
+     * @param {number[]} scenario.merge The merge, as `merge()` takes it.
+     * @param {Function} scenario.hide Sorts or filters.
+     * @param {Function} scenario.reveal Undoes what `hide` did.
+     * @param {boolean} withRoundTrip Whether to switch sheets between `hide` and `reveal`.
+     * @returns {object[]}
+     */
+    function runScenario({ merge, hide, reveal }, withRoundTrip) {
+      const bar = build({ columnSorting: true, filters: true, mergeCells: true }, createIndexedData());
+      const mergeCells = hot.getPlugin('mergeCells');
+
+      mergeCells.merge(...merge);
+      hide();
+
+      if (withRoundTrip) {
+        roundTrip(bar);
+      }
+
+      reveal();
+
+      const areas = mergeCells.getVisibleMergedAreas();
+
+      hot.destroy();
+      hot = null;
+
+      return areas;
+    }
+
+    /**
+     * Filters the first column by one condition.
+     *
+     * @param {string} name The condition name.
+     * @param {Array} args The condition arguments.
+     */
+    function filterFirstColumn(name, args) {
+      const filters = hot.getPlugin('filters');
+
+      filters.addCondition(0, name, args);
+      filters.filter();
+    }
+
+    /**
+     * Clears every filter condition.
+     */
+    function clearFilters() {
+      const filters = hot.getPlugin('filters');
+
+      filters.clearConditions();
+      filters.filter();
+    }
+
+    [
+      {
+        name: 'a sort pushes its rows past the last row',
+        merge: [0, 1, 1, 2],
+        hide: () => hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' }),
+        reveal: () => hot.getPlugin('columnSorting').clearSort(),
+        expected: [{ row: 0, col: 1, rowspan: 2, colspan: 2 }],
+      },
+      {
+        name: 'a filter leaves one of its cells visible',
+        merge: [0, 1, 1, 1],
+        hide: () => filterFirstColumn('neq', [1]),
+        reveal: clearFilters,
+        expected: [{ row: 0, col: 1, rowspan: 2, colspan: 1 }],
+      },
+      {
+        name: 'a filter hides all of its rows',
+        merge: [0, 1, 1, 2],
+        hide: () => filterFirstColumn('gt', [1]),
+        reveal: clearFilters,
+        expected: [{ row: 0, col: 1, rowspan: 2, colspan: 2 }],
+      },
+    ].forEach(({ name, expected, ...scenario }) => {
+      it(`keeps a merge after a round trip when ${name}, as the grid without one does`, () => {
+        const control = runScenario(scenario, false);
+
+        expect(control).toEqual(expected);
+        expect(runScenario(scenario, true)).toEqual(control);
+      });
+    });
+
+    /**
+     * Reads what the grid shows for its merges: the merges it holds, the merge the lookup finds on every cell,
+     * and every cell's span.
+     *
+     * @returns {object}
+     */
+    function readMergeState() {
+      const mergeCells = hot.getPlugin('mergeCells');
+      const collection = mergeCells.mergedCellsCollection;
+      const describe = merge => (merge ? [merge.row, merge.col, merge.rowspan, merge.colspan] : null);
+      const cells = Array.from({ length: hot.countRows() }, (_, row) => (
+        Array.from({ length: hot.countCols() }, (__, col) => {
+          const { rowspan, colspan } = hot.getCellMeta(row, col);
+
+          return { merge: describe(collection.get(row, col)), rowspan, colspan };
+        })
+      ));
+
+      return {
+        visible: mergeCells.getVisibleMergedAreas(),
+        held: collection.mergedCells.map(describe),
+        cells,
+      };
+    }
+
+    /**
+     * Merges two stacked areas in one column, sorts so their rows interleave, optionally leaves the sheet and
+     * comes back, and clears the sort. Returns what the grid shows while sorted and after the sort is cleared.
+     *
+     * @param {boolean} withRoundTrip Whether to switch sheets between the sort and its clearing.
+     * @returns {object}
+     */
+    function runInterleavedScenario(withRoundTrip) {
+      const bar = build({ columnSorting: true, mergeCells: true }, [
+        [0, 'b0', 1, 'd0'],
+        [1, 'b1', 3, 'd1'],
+        [2, 'b2', 2, 'd2'],
+        [3, 'b3', 4, 'd3'],
+        [4, 'b4', 5, 'd4'],
+        [5, 'b5', 6, 'd5'],
+      ]);
+      const mergeCells = hot.getPlugin('mergeCells');
+
+      mergeCells.merge(0, 1, 1, 1);
+      mergeCells.merge(2, 1, 3, 1);
+      hot.getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      if (withRoundTrip) {
+        roundTrip(bar);
+      }
+
+      const sorted = readMergeState();
+
+      hot.getPlugin('columnSorting').clearSort();
+
+      const cleared = readMergeState();
+
+      hot.destroy();
+      hot = null;
+
+      return { sorted, cleared };
+    }
+
+    it('brings back two merges a sort drew over each other after a round trip, as the grid without one does', () => {
+      const control = runInterleavedScenario(false);
+
+      expect(control.cleared.visible).toEqual([
+        { row: 0, col: 1, rowspan: 2, colspan: 1 },
+        { row: 2, col: 1, rowspan: 2, colspan: 1 },
+      ]);
+
+      const roundTripped = runInterleavedScenario(true);
+
+      expect(roundTripped.sorted).toEqual(control.sorted);
+      expect(roundTripped.cleared).toEqual(control.cleared);
+    });
+  });
+
+  describe('row headers', () => {
+    it('keeps the strict numbers of a moved and an inserted row after a round trip', () => {
+      const bar = build({ rowHeaders: true, manualRowMove: true, bindRowsWithHeaders: 'strict' }, createData());
+
+      hot.getPlugin('manualRowMove').moveRow(3, 0);
+      hot.render();
+      hot.alter('insert_row_above', 0, 1);
+
+      const headersBefore = [0, 1, 2, 3, 4].map(row => hot.getRowHeader(row));
+
+      expect(headersBefore).toEqual([5, 4, 1, 2, 3]);
+
+      roundTrip(bar);
+
+      expect([0, 1, 2, 3, 4].map(row => hot.getRowHeader(row))).toEqual(headersBefore);
+    });
+
+    it('numbers a sheet that never used the strict strategy by its physical rows', () => {
+      const bar = build({ rowHeaders: true, manualRowMove: true, bindRowsWithHeaders: true }, createData());
+
+      hot.alter('insert_row_above', 0, 1);
+      roundTrip(bar);
+
+      expect([0, 1, 2, 3, 4].map(row => hot.getRowHeader(row))).toEqual([1, 2, 3, 4, 5]);
+    });
+  });
+
+  describe('nested headers', () => {
+    it('labels a moved column with its own header after a round trip', () => {
+      const bar = build({
+        manualColumnMove: true,
+        nestedHeaders: [
+          [{ label: 'G1', colspan: 2 }, { label: 'G2', colspan: 2 }],
+          ['ID', 'Name', 'Qty', 'Done'],
+        ],
+      }, [[1, 'alpha', 5, true], [2, 'beta', 6, false]]);
+
+      hot.getPlugin('manualColumnMove').moveColumn(2, 0);
+      hot.render();
+
+      roundTrip(bar);
+
+      expect(hot.getDataAtRow(0)).toEqual([5, 1, 'alpha', true]);
+      expect([0, 1, 2, 3].map(column => hot.getColHeader(column, 1))).toEqual(['Qty', 'ID', 'Name', 'Done']);
+      expect([0, 1, 2, 3].map(column => hot.getColHeader(column, 0))).toEqual(['G2', 'G1', 'G1', 'G2']);
+    });
+
+    /**
+     * Reads the label and the colspan of every column on one header level.
+     *
+     * @param {number} level The header level.
+     * @returns {Array<{label: string, colspan: number}>}
+     */
+    function headerLevel(level) {
+      const stateManager = hot.getPlugin('nestedHeaders').getStateManager();
+
+      return [0, 1, 2, 3, 4].map(column => ({
+        label: hot.getColHeader(column, level),
+        colspan: stateManager.getHeaderSettings(level, column).colspan,
+      }));
+    }
+
+    /**
+     * Builds two sheets of five columns under a group of three and a group of two.
+     *
+     * @param {object} [settings] Extra grid settings.
+     * @returns {object} The SheetsBar plugin.
+     */
+    function buildGroups(settings = {}) {
+      return build({
+        manualColumnMove: true,
+        nestedHeaders: [
+          [{ label: 'G1', colspan: 3 }, { label: 'G2', colspan: 2 }],
+          ['a', 'b', 'c', 'd', 'e'],
+        ],
+        ...settings,
+      }, [[1, 2, 3, 4, 5]], [[0, 0, 0, 0, 0]]);
+    }
+
+    it('keeps a column moved into another group in that group after a round trip', () => {
+      const bar = buildGroups();
+
+      hot.getPlugin('manualColumnMove').moveColumn(4, 1);
+      hot.render();
+
+      const topLevel = headerLevel(0);
+
+      expect(topLevel.map(({ label }) => label)).toEqual(['G1', 'G1', 'G1', 'G1', 'G2']);
+
+      roundTrip(bar);
+
+      expect(hot.getDataAtRow(0)).toEqual([1, 5, 2, 3, 4]);
+      expect(headerLevel(0)).toEqual(topLevel);
+      expect([0, 1, 2, 3, 4].map(column => hot.getColHeader(column, 1))).toEqual(['a', 'e', 'b', 'c', 'd']);
+    });
+
+    it('collapses a group that adopted a moved column as one group after a round trip', () => {
+      const bar = buildGroups({
+        collapsibleColumns: true,
+        nestedHeaders: [
+          [{ label: 'G1', colspan: 3, collapsible: true }, { label: 'G2', colspan: 2 }],
+          ['a', 'b', 'c', 'd', 'e'],
+        ],
+      });
+
+      hot.getPlugin('manualColumnMove').moveColumn(4, 1);
+      hot.render();
+      hot.getPlugin('collapsibleColumns').collapseSection({ row: -2, col: 0 });
+
+      const hiddenBefore = hot.getPlugin('collapsibleColumns').getCollapsedColumns();
+      const topLevel = headerLevel(0);
+
+      roundTrip(bar);
+
+      expect(hot.getPlugin('collapsibleColumns').getCollapsedColumns()).toEqual(hiddenBefore);
+      expect(headerLevel(0)).toEqual(topLevel);
+    });
+
+    it('starts a never-visited sheet without the group membership of a column moved on another sheet', () => {
+      const bar = buildGroups();
+
+      hot.getPlugin('manualColumnMove').moveColumn(4, 1);
+      hot.render();
+      bar.setActiveSheet('Beta');
+
+      expect(headerLevel(0).map(({ label }) => label)).toEqual(['G1', 'G1', 'G1', 'G2', 'G2']);
+      expect([0, 1, 2, 3, 4].map(column => hot.getColHeader(column, 1))).toEqual(['a', 'b', 'c', 'd', 'e']);
+    });
+
+    it('keeps the authored groups of a sheet whose column order was reset by a declared column move', () => {
+      const bar = buildGroups();
+
+      hot.getPlugin('manualColumnMove').moveColumn(4, 1);
+      hot.render();
+      bar.setActiveSheet('Beta');
+      bar.updateSheetSettings('Alpha', { manualColumnMove: [0, 1, 2, 3, 4] });
+      bar.setActiveSheet('Alpha');
+
+      expect(hot.getDataAtRow(0)).toEqual([1, 2, 3, 4, 5]);
+      expect(headerLevel(0)).toEqual([
+        { label: 'G1', colspan: 3 },
+        { label: 'G1', colspan: undefined },
+        { label: 'G1', colspan: undefined },
+        { label: 'G2', colspan: 2 },
+        { label: 'G2', colspan: undefined },
+      ]);
+    });
+
+    it('hides only the columns of the collapsed group after a declared column move resets the order', () => {
+      const bar = buildGroups({
+        collapsibleColumns: true,
+        nestedHeaders: [
+          [{ label: 'G1', colspan: 3, collapsible: true }, { label: 'G2', colspan: 2 }],
+          ['a', 'b', 'c', 'd', 'e'],
+        ],
+      });
+      const collapsibleColumns = hot.getPlugin('collapsibleColumns');
+
+      hot.getPlugin('manualColumnMove').moveColumn(4, 1);
+      hot.render();
+      collapsibleColumns.collapseSection({ row: -2, col: 0 });
+
+      expect(collapsibleColumns.getCollapsedColumns()).toEqual([1, 2, 4]);
+
+      bar.setActiveSheet('Beta');
+      bar.updateSheetSettings('Alpha', { manualColumnMove: true });
+      bar.setActiveSheet('Alpha');
+
+      expect(hot.getDataAtRow(0)).toEqual([1, 2, 3, 4, 5]);
+      expect(collapsibleColumns.getCollapsedColumns()).toEqual([1, 2]);
+
+      collapsibleColumns.expandSection({ row: -2, col: 0 });
+
+      expect(collapsibleColumns.getCollapsedColumns()).toEqual([]);
+      expect([0, 1, 2, 3, 4].filter(column => hot.columnIndexMapper.isHidden(column))).toEqual([]);
+    });
+
+    it('drops the group membership of a sheet whose nested headers were declared again', () => {
+      const bar = buildGroups();
+      const redeclared = [
+        [{ label: 'H1', colspan: 2 }, { label: 'H2', colspan: 3 }],
+        ['a', 'b', 'c', 'd', 'e'],
+      ];
+
+      hot.getPlugin('manualColumnMove').moveColumn(4, 1);
+      hot.render();
+      bar.setActiveSheet('Beta');
+      bar.updateSheetSettings('Alpha', { nestedHeaders: redeclared });
+      bar.setActiveSheet('Alpha');
+
+      expect(hot.getDataAtRow(0)).toEqual([1, 5, 2, 3, 4]);
+      expect(hot.getPlugin('nestedHeaders').getStateManager().exportMembershipOverrides()).toEqual([]);
+    });
+  });
+});

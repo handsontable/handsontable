@@ -601,12 +601,12 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 - Output: one evidence document per check, `tests/test-results/a11y-checks/<check>.json`, that the conformance report generator cites per criterion (the targets each criterion was evaluated on, and the findings against it), plus a detail file per target
 - Report-only: a finding is a summary row, an annotation and a neutral `A11y / <check> report` check run, never a red job or a `failure` check run; a test fails for tooling only, and a flaky check is a finding against the check. Product findings are recorded, never fixed in the check's change. How to add a check: `tests/AGENTS.md` → "A11y: the checks beyond axe"
 
-**Screen reader lane (NVDA, through Guidepup):**
-- Framework: Playwright + `@guidepup/playwright` (a real NVDA driven over the fixture pages, one Playwright project per screen reader and browser)
+**Screen reader lanes (NVDA and VoiceOver, through Guidepup):**
+- Framework: Playwright + `@guidepup/playwright` (a real NVDA or VoiceOver driven over the fixture pages, one Playwright project per screen reader and browser)
 - Location: `tests/screenreader/` — `screenreader.spec.ts` (the runner), `scenarios/<surface>.scenario.json` (data: the fixture, the setup, the ordered keys and the token groups each announcement must carry), `goldens/<project>/<scenario>.json` (the exact announcements per project, advisory)
 - Config: `tests/playwright.screenreader.config.ts`; the schema is `tests/lib/screenreader-scenario.mjs`, the normalizer, matcher and golden diff `tests/lib/screenreader-transcript.mjs`, the report `tests/lib/screenreader-report.mjs`
-- CI: its own nightly (`Screen reader nightly`, NVDA on Windows, one job per browser), report-only — a missing token group or a golden difference is a summary row and a neutral `Screen reader / <project> report` check run, never a red job; the pull-request pipeline does not run it. The transcripts it uploads are the conformance report's evidence for what a screen reader announces
-- It is not a test of a change either: a change to something a user operates still proves its keyboard path and accessible names with a Playwright spec in `tests/e2e/`. How to add a scenario, record goldens, and what is advisory: `tests/AGENTS.md` → "Screen readers: the NVDA lane"
+- CI: its own nightly (`Screen reader nightly`, NVDA on Windows and VoiceOver on macOS, one job per screen reader and browser), report-only — a missing token group or a golden difference is a summary row and a neutral `Screen reader / <project> report` check run, never a red job; the pull-request pipeline does not run it. The transcripts it uploads are the evidence a future version of the conformance report can cite for what a screen reader announces
+- It is not a test of a change either: a change to something a user operates still proves its keyboard path and accessible names with a Playwright spec in `tests/e2e/`. How to add a scenario, record goldens, and what is advisory: `tests/AGENTS.md` → "Screen readers: the NVDA and VoiceOver lanes"
 
 ## Plugin Testing Requirements
 

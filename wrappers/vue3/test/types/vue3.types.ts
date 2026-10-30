@@ -12,6 +12,7 @@
  * TS7016 while typing `HotTable` as `any`. Every assertion below is a real value
  * assignment, so the compiler proves it.
  */
+import { h } from 'vue';
 import Handsontable from 'handsontable/base';
 import HotTableDefault, { HotColumn, HotTable, HotTableProps, VueProps } from '../../index';
 
@@ -73,6 +74,65 @@ const nestedSettings: HotTableProps['settings'] = { colHeaders: true };
 const vuePropsIsNotAny: IsAny<VueProps<{ a: 1 }>> = false;
 const vueProps: VueProps<{ readOnly: boolean }> = { readOnly: 'anything' };
 
+// Every prop of `HotTable` and `HotColumn` carries its option's type, so `vue-tsc` rejects a wrong value
+// in a template. `h()` and `$props` resolve a template's props through the same declaration, so both are
+// used here. Before the props were typed, each was `any` and every one of these lines compiled.
+type HotTableProps$ = HotTableInstance['$props'];
+type HotColumnProps$ = InstanceType<typeof HotColumn>['$props'];
+
+// Each prop is optional: a template names only the ones it sets.
+const gridSettingsObject: HotTableProps = { type: 'numeric' };
+const noProps: HotTableProps$ = {};
+const noColumnProps: HotColumnProps$ = {};
+const validProps: HotTableProps$ = {
+  id: 'grid',
+  data: [[1, 2]],
+  rowHeaders: true,
+  settings: { colHeaders: true },
+  sheetsBar: { sheets: [] },
+  afterSheetTabRename: () => undefined,
+};
+// A column's `data` names the property it shows, where the grid's `data` holds the rows.
+// `null` removes the callback an earlier render passed for a hook, so a hook prop takes it.
+const nullHook: HotTableProps$ = { afterChange: null };
+const classAndCustomKey = h(HotTable, { class: 'grid', customMeta: 1 });
+const validColumnProps: HotColumnProps$ = { readOnly: true, title: 'A', data: 'firstName', filters: false };
+const validColumnSettingsProp: HotColumnProps$ = { settings: { data: 'firstName' } };
+const validVNode = h(HotTable, { rowHeaders: true, sheetsBar: { sheets: [] } });
+
+// @ts-expect-error -- `sheetsBar` takes a boolean or a settings object.
+const badSheetsBar: HotTableProps$ = { sheetsBar: 42 };
+// @ts-expect-error -- a sheet tab hook takes a function.
+const badSheetTabHook: HotTableProps$ = { afterSheetTabRename: 'rename' };
+// @ts-expect-error -- `readOnly` takes a boolean.
+const badReadOnly: HotTableProps$ = { readOnly: 'yes' };
+// @ts-expect-error -- `settings` takes a `GridSettings` object.
+const badSettingsProp: HotTableProps$ = { settings: 42 };
+// @ts-expect-error -- `HotColumn` checks its props too.
+const badColumnReadOnly: HotColumnProps$ = { readOnly: 'yes' };
+// @ts-expect-error -- `h()` resolves the props the way a template does.
+const badVNode = h(HotTable, { sheetsBar: 42 });
+// @ts-expect-error -- `data` takes rows, not `null`.
+const badNullData: HotTableProps$ = { data: null };
+// @ts-expect-error -- the grid's `data` is an array of rows, not a property name.
+const badGridData: HotTableProps$ = { data: 'firstName' };
+// @ts-expect-error -- core neither registers nor fires `afterChangesObserved`, so no prop exists for it.
+const badDeadHook: HotTableProps$ = { afterChangesObserved: () => undefined };
+// `handsontable` is a prop of both components. `getValue` is a prop of `HotTable` only: core reads it from
+// the table meta, so a column has no use for it.
+const nestedGridColumn: HotColumnProps$ = { handsontable: { colHeaders: true } };
+const nestedGridTable: HotTableProps$ = { handsontable: { colHeaders: true }, getValue: () => 'value' };
+// @ts-expect-error -- core reads `getValue` from the table meta only, so it is not a `HotColumn` prop.
+const badColumnGetValue: HotColumnProps$ = { getValue: () => 'value' };
+// @ts-expect-error -- hooks run from the grid-level settings only, so they are not `HotColumn` props.
+const badColumnHook: HotColumnProps$ = { afterChange: () => undefined };
+// The `settings` prop of a column takes a grid settings object, as it did when every prop was `any`.
+const gridSettingsColumn: HotColumnProps$ = { settings: gridSettingsObject };
+// `id` names the container of `HotTable`; `HotColumn` has no such prop, so the schema rejects it as an
+// excess property. A template that writes it still compiles unless `strictTemplates` is on.
+// @ts-expect-error -- `id` is not a `HotColumn` prop.
+const badColumnId: HotColumnProps$ = { id: 'column' };
+
 // `HotTableProps` must still extend `GridSettings`, not be a bare property bag.
 const gridSettings: Handsontable.GridSettings = settings;
 
@@ -105,4 +165,28 @@ export {
   vueProps,
   gridSettings,
   badNestedSettings,
+  noProps,
+  noColumnProps,
+  validProps,
+  nullHook,
+  classAndCustomKey,
+  validColumnProps,
+  validColumnSettingsProp,
+  badNullData,
+  badGridData,
+  badDeadHook,
+  nestedGridColumn,
+  nestedGridTable,
+  badColumnGetValue,
+  badColumnHook,
+  gridSettingsObject,
+  gridSettingsColumn,
+  validVNode,
+  badSheetsBar,
+  badSheetTabHook,
+  badReadOnly,
+  badSettingsProp,
+  badColumnReadOnly,
+  badVNode,
+  badColumnId,
 };

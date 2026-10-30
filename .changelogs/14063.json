@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed plugins leaving UI, options, and loading overlays behind when they are turned off or reconfigured. Search, ColumnSorting, and MultiColumnSorting reset their options to the defaults when `true` replaces an options object. The loading overlay clears on every way a DataProvider fetch ends. Dialog no longer carries one dialog's options into the next or hides on a settings re-send, and Loading acts only on its own screen. ColumnSummary no longer adds its previous total on a reload. `fixedColumnsLeft` and `fixedColumnsStart` no longer throw across separate `updateSettings()` calls. The column header row shrinks back after multi-line headers.",
+  "type": "fixed",
+  "issueOrPR": 14063,
+  "breaking": false,
+  "framework": "none"
+}

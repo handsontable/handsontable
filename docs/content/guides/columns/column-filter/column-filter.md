@@ -1203,7 +1203,10 @@ const settings = {
 The **Filter by value** list of a column only holds the values present in the rows that pass the
 *other* columns' filters, so a value can drop off the list while it's still selected. Those values
 stay selected: confirming the menu keeps them, and they apply again as soon as their rows come back
-into scope. **Select all** and **Clear** both act on them along with everything else.
+into scope. **Select all** and **Select none** both act on them along with everything else.
+
+While a search term narrows the list, **Select all** and **Select none** act on the values the list
+shows. The values the search hides keep their state.
 
 A value that leaves the data entirely is a different case. Once no row holds it, it drops out of the
 filter as well, so a column whose values you edit away stops filtering instead of holding on to a
@@ -1909,9 +1912,9 @@ At the moment, filtering comes with the following limitations:
 
 Use keyboard and pointer interactions together to control the filtering UI:
 
-- Press <kbd>**Tab**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> to move between filtering components, such as the search input, **Select all**, **Clear all**, condition controls, and action bar controls.
+- Press <kbd>**Tab**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> to move between filtering components, such as the search input, **Select all**, **Select none**, condition controls, and action bar controls.
 - When the search input is focused, press <kbd>**Arrow up**</kbd> and <kbd>**Arrow down**</kbd> to move through the **Filter by value** list.
-- When **Select all** or **Clear all** is focused, press <kbd>**Enter**</kbd> or <kbd>**Space**</kbd> to run the action.
+- When **Select all** or **Select none** is focused, press <kbd>**Enter**</kbd> or <kbd>**Space**</kbd> to run the action.
 - If you hover a non-filter menu item (for example, **Clear column**), the filter-components focus order resets. The next <kbd>**Tab**</kbd> focuses the first filter component.
 
 For a reference list of filter-related shortcuts, see [Keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#column-filter-keyboard-shortcuts).

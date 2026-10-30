@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the Vue 3 wrapper to type-check every `HotTable` and `HotColumn` prop in a template, so `vue-tsc` rejects a wrong value, a non-function hook prop, or `data: null` on `HotTable`. Also made the `handsontable` prop of both components, and the `getValue` prop of `HotTable`, reach the grid settings, which they did not before. See the migration guide for what to change.",
+  "type": "changed",
+  "issueOrPR": 14059,
+  "breaking": true,
+  "framework": "vue"
+}

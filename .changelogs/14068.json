@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a tapped command in the context menu or the dropdown menu losing the focus it set on a touch screen.",
+  "type": "fixed",
+  "issueOrPR": 14068,
+  "breaking": false,
+  "framework": "none"
+}
