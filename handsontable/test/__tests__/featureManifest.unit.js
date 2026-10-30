@@ -47,6 +47,23 @@ function withEntry(sources, id, change) {
   return copy;
 }
 
+/**
+ * Returns a copy of the sources with the top level of one file changed.
+ *
+ * @param {object} sources What `loadSources()` returns.
+ * @param {string} file The file, relative to `handsontable/`.
+ * @param {Function} change Gets a copy of the parsed file, returns the new one.
+ * @returns {object}
+ */
+function withFile(sources, file, change) {
+  const copy = JSON.parse(JSON.stringify(sources));
+  const source = copy.files.find(item => item.file === file);
+
+  source.data = change(source.data);
+
+  return copy;
+}
+
 describe('feature manifest', () => {
   const sources = loadSources(PACKAGE_DIR);
   const byId = indexEntries(sources);
@@ -146,6 +163,20 @@ describe('feature manifest', () => {
       const problems = checkSources(withEntry(sources, id, change));
 
       expect(problems).toEqual([expect.stringContaining(message)]);
+    });
+
+    it.each([
+      ['no format version', ({ schemaVersion, ...data }) => data, '"schemaVersion" must be 1, found undefined'],
+      ['a format version this generator does not read', data => ({ ...data, schemaVersion: 2 }),
+        '"schemaVersion" must be 1, found 2'],
+      ['a format version written as a string', data => ({ ...data, schemaVersion: '1' }),
+        '"schemaVersion" must be 1, found "1"'],
+      ['an unknown top-level key', data => ({ ...data, $schema: './feature.schema.json' }),
+        'unknown top-level key "$schema"'],
+    ])('should report a source file with %s', (_, change, message) => {
+      const problems = checkSources(withFile(sources, 'src/plugins/search/feature.json', change));
+
+      expect(problems).toEqual([`src/plugins/search/feature.json: ${message}`]);
     });
 
     it('should report a registry folder with no entry', () => {

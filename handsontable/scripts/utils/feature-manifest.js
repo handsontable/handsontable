@@ -29,7 +29,17 @@ const TOKEN_RULE = /^[a-z][a-z0-9_]*(?::[a-z0-9_]+(?:\.[a-z0-9_]+)*)?$/;
  */
 const KEY_FLAG = 'listed-capabilities';
 
+/**
+ * The format version of `dist/manifest.json`. A new field or capability keeps it. Removing or renaming a field,
+ * changing what a value means, or adding a `kind` or `licensing` value raises it.
+ */
 const SCHEMA_VERSION = 1;
+
+/**
+ * The format version of the source files, separate from the published one. Only the generator reads the sources,
+ * so raising it rewrites every source file in the same commit.
+ */
+const SOURCE_SCHEMA_VERSION = 1;
 const PRODUCT = 'handsontable';
 
 /**
@@ -322,8 +332,14 @@ function checkFileShape({ file, data }) {
   }
 
   const problems = Object.keys(data)
-    .filter(key => key !== '$schema' && key !== 'capabilities')
+    .filter(key => key !== 'schemaVersion' && key !== 'capabilities')
     .map(key => `${file}: unknown top-level key "${key}"`);
+
+  if (data.schemaVersion !== SOURCE_SCHEMA_VERSION) {
+    const found = JSON.stringify(data.schemaVersion);
+
+    problems.push(`${file}: "schemaVersion" must be ${SOURCE_SCHEMA_VERSION}, found ${found}`);
+  }
 
   if (!Array.isArray(data.capabilities) || data.capabilities.length === 0) {
     problems.push(`${file}: "capabilities" must be a non-empty array`);

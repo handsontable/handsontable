@@ -1,4 +1,5 @@
 {
+  "schemaVersion": 1,
   "capabilities": [
     {
       "id": "feat:bind_rows_with_headers",

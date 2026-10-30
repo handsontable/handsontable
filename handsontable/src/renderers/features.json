@@ -1,4 +1,5 @@
 {
+  "schemaVersion": 1,
   "capabilities": [
     {
       "id": "renderer:base",

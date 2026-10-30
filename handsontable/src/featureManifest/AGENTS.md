@@ -33,6 +33,7 @@ A plugin entry looks like this (`src/plugins/filters/feature.json`):
 
 ```json
 {
+  "schemaVersion": 1,
   "capabilities": [
     {
       "id": "feat:filters",
@@ -86,6 +87,9 @@ the import and the export read formulas through that plugin).
 
 ## Fields
 
+Every source file has two top-level keys, both required: `"schemaVersion": 1` and `capabilities`, the list of
+entries. Each entry takes these fields:
+
 | Field | Required | Meaning |
 |---|---|---|
 | `id` | yes | The token. Must pass the license-key rule `^[a-z][a-z0-9_]*(:[a-z0-9_]+(\.[a-z0-9_]+)*)?$` and start with the namespace of its kind. `<namespace>:all` is reserved. |
@@ -102,6 +106,19 @@ the import and the export read formulas through that plugin).
 | `packages` | no | npm packages the user supplies (`hyperformula`, `hyperformula-ui`). |
 
 Unknown fields fail the check, so the format cannot drift.
+
+## Format versions
+
+The source files and `dist/manifest.json` each carry a `schemaVersion`. The two numbers are separate
+(`SOURCE_SCHEMA_VERSION` and `SCHEMA_VERSION` in `scripts/utils/feature-manifest.js`), so either format can change
+without the other.
+
+- **`dist/manifest.json` is public** (npm, jsDelivr), and the license portal reads it. A reader ignores fields it
+  does not know, and stops on a version it does not know. A new field or a new capability keeps the version.
+  Removing or renaming a field, changing what a value means, or adding a `kind` or `licensing` value raises it.
+- **The source files** are read only by the generator, which accepts only the current version. Raising it
+  rewrites every source file in the same commit.
+- `released-tokens.json` has no version: only the generator reads it, and it changes in the same commit.
 
 ## The licensing rule
 
