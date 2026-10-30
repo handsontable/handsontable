@@ -117,6 +117,11 @@
     border: 1px solid var(--ht-border-color);
   }
 
+  .ht-slot-top > .ht-slot-element:not(.ht-slot-element--fills-wrapper),
+  .ht-slot-bottom > .ht-slot-element:not(.ht-slot-element--fills-wrapper) {
+    max-width: var(--ht-private-slot-item-width, none);
+  }
+
   .ht-slot-top > .ht-slot-element {
     &:not(:first-of-type) {
       border-top-width: 0;

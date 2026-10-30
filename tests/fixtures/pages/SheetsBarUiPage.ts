@@ -19,6 +19,7 @@ export interface SheetsBarUiConfig {
   columnCounts?: number[];
   fixedHeight?: boolean;
   tabNames?: string[];
+  position?: 'top' | 'bottom';
 }
 
 /**

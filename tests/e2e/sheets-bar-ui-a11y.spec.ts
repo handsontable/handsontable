@@ -261,30 +261,90 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
   });
 
   test.describe('the tab strip', () => {
-    test('keeps the active tab whole on a sheet narrower than the bar\'s controls', async({ page, theme, bundle }) => {
+    test('spans the grid\'s container in the top slot too, and stays as it is in a uiContainer', async({
+      page, theme, bundle,
+    }) => {
       const fixture = new SheetsBarUiPage(page, theme, bundle);
-      const pageScrollsSideways = () => page.evaluate(() => (
-        document.scrollingElement!.scrollWidth > document.scrollingElement!.clientWidth
-      ));
-      const barBelowGrid = () => page.evaluate(() => {
-        const bar = document.querySelector('.ht-sheets-bar')!.getBoundingClientRect();
-        const grid = document.querySelector('.ht-grid')!.getBoundingClientRect();
+      const readBar = () => page.evaluate(() => {
+        const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
 
-        return bar.top >= grid.bottom - 1;
+        return {
+          width: Math.round(bar.getBoundingClientRect().width),
+          containerWidth: bar.parentElement!.clientWidth,
+          wrapperWidth: (document.querySelector('.ht-root-wrapper') as HTMLElement).clientWidth,
+          fillsWrapper: bar.classList.contains('ht-slot-element--fills-wrapper'),
+          inTopSlot: bar.parentElement!.classList.contains('ht-slot-top'),
+        };
       });
 
-      await fixture.goto({ sheets: 2, columnCounts: [1, 3], fixedHeight: false });
+      await fixture.goto({ sheets: 2, columnCounts: [1, 1], fixedHeight: false, position: 'top' });
 
-      expect(await fixture.tabInStrip(0)).toBe(true);
-      expect(await fixture.tab(0).evaluate(tab => tab.getBoundingClientRect().width)).toBeGreaterThan(0);
-      expect(await pageScrollsSideways()).toBe(false);
-      expect(await barBelowGrid()).toBe(true);
+      expect(await readBar()).toEqual(expect.objectContaining({ inTopSlot: true, fillsWrapper: true }));
+      expect((await readBar()).width).toBe((await readBar()).wrapperWidth);
 
-      await fixture.setActiveSheet(1);
+      await fixture.goto({ sheets: 2, columnCounts: [1, 1], fixedHeight: false, uiContainer: true });
 
-      await expect.poll(() => fixture.tabInStrip(1)).toBe(true);
-      expect(await pageScrollsSideways()).toBe(false);
-      expect(await barBelowGrid()).toBe(true);
+      const inContainer = await readBar();
+
+      expect(inContainer.fillsWrapper).toBe(false);
+      expect(inContainer.width).toBe(inContainer.containerWidth);
+    });
+
+    test('spans the grid\'s container on a sheet narrower than the bar, while Pagination follows the table', async({
+      page, theme, bundle,
+    }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+      const tabNames = Array.from({ length: 6 }, (_, index) => `Quarterly report ${index + 1}`);
+      const readLayout = () => page.evaluate(() => {
+        const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
+        const barBox = bar.getBoundingClientRect();
+        const wrapper = document.querySelector('.ht-root-wrapper') as HTMLElement;
+        const visible = Array.from(bar.querySelectorAll<HTMLElement>(
+          '.ht-sheets-bar__controls, .ht-sheets-bar__paging, .ht-sheets-bar__tab--active'
+        )).filter(element => !element.hidden && element.offsetParent !== null);
+        const root = document.scrollingElement as HTMLElement;
+        const pagination = document.querySelector('.ht-pagination') as HTMLElement;
+        const tableWidth = (window as any).hot.view.getTotalTableWidth();
+
+        return {
+          barWidth: Math.round(barBox.width),
+          wrapperWidth: wrapper.clientWidth,
+          tableWidth: Math.round(tableWidth),
+          paginationWidth: Math.round(pagination.getBoundingClientRect().width),
+          insideBar: visible.every((element) => {
+            const box = element.getBoundingClientRect();
+
+            return box.left >= barBox.left && box.right <= barBox.right;
+          }),
+          painted: !['transparent', 'rgba(0, 0, 0, 0)'].includes(getComputedStyle(bar).backgroundColor),
+          pageScrollsSideways: root.scrollWidth > root.clientWidth,
+          slotScrolls: bar.parentElement!.scrollWidth > bar.parentElement!.clientWidth,
+        };
+      });
+
+      await fixture.goto({
+        sheets: 6, tabNames, columnCounts: [1, 3, 25, 4, 4, 4], fixedHeight: false, pagination: true,
+      });
+
+      for (const [index, narrow] of [[0, true], [1, true], [2, false]] as const) {
+        await fixture.setActiveSheet(index);
+        await expect.poll(() => fixture.tabWhollyInStrip(index)).toBe(true);
+
+        const layout = await readLayout();
+
+        expect(layout.insideBar).toBe(true);
+        expect(layout.painted).toBe(true);
+        expect(layout.slotScrolls).toBe(false);
+        expect(layout.barWidth).toBe(layout.wrapperWidth);
+
+        if (narrow) {
+          expect(layout.pageScrollsSideways).toBe(false);
+          expect(layout.tableWidth).toBeLessThan(layout.wrapperWidth);
+          expect(Math.abs(layout.paginationWidth - layout.tableWidth)).toBeLessThanOrEqual(1);
+        }
+      }
+
+      await expect(fixture.bar.locator('.ht-sheets-bar__paging')).toBeVisible();
     });
 
     test('reveals the active tab on first paint', async({ page, theme, bundle }) => {

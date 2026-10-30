@@ -2,6 +2,7 @@ import { throwWithCause } from '../../helpers/errors';
 import { DomSlot } from './domSlot';
 import {
   LAYOUT_SLOTS,
+  SLOT_FILLS_WRAPPER_CLASS,
   SLOT_ITEM_CLASS,
   getSlotFilledClassName,
   type LayoutSlotName,
@@ -47,6 +48,14 @@ export type LayoutConfig = { [K in LayoutSide]?: string[] };
 export interface LayoutRegisterOptions {
   side: LayoutSide;
   weight?: number;
+  /**
+   * Widens the slot to the wrapper's width while the window owns the horizontal axis and the table is
+   * narrower, instead of following the table. The slot's other elements keep the table's width. Internal;
+   * not public API: the SheetsBar plugin sets it.
+   *
+   * @private
+   */
+  fillsWrapperWidth?: boolean;
 }
 
 /**
@@ -104,7 +113,8 @@ export class LayoutManager {
    * @param {LayoutRegisterOptions} options The target slot and ordering weight.
    * @returns {void}
    */
-  register(key: string, element: HTMLElement, { side, weight = 0 }: LayoutRegisterOptions): void {
+  register(key: string, element: HTMLElement, { side, weight = 0, fillsWrapperWidth }: LayoutRegisterOptions): void {
+    element.classList.toggle(SLOT_FILLS_WRAPPER_CLASS, fillsWrapperWidth === true);
     this.getSlot(side).add(key, element, weight);
   }
 

@@ -67,6 +67,7 @@
      * @param {boolean} [config.menus=false] Turns on the context menu, the dropdown menu and the filters.
      * @param {boolean} [config.fixedHeight=true] Gives the grid a `height`; `false` leaves the grid to the
      *   window's scroll on both axes.
+     * @param {string} [config.position] The bar's `position`, `'top'` or `'bottom'`.
      * @param {string[]} [config.tabNames] The sheet names, by position (`Sheet {n}` when absent).
      * @param {number[]} [config.columnCounts] How many columns each sheet has, by position (4 when absent).
      * @param {boolean} [config.pagination=false] Turns on Pagination, in its own `uiContainer` beside the
@@ -75,7 +76,7 @@
     window.buildGrid = (config = {}) => {
       const {
         sheets = 3, activeSheet = 0, rtl = false, uiContainer = false, hidden = false,
-        colorScheme, density, ariaTags = true, hostLabel, menus = false, pagination = false, columnCounts = [], fixedHeight = true, tabNames = [],
+        colorScheme, density, ariaTags = true, hostLabel, menus = false, pagination = false, columnCounts = [], fixedHeight = true, tabNames = [], position,
       } = config;
       const container = document.querySelector('[data-testid="grid"]');
       const host = document.querySelector('[data-testid="host"]');
@@ -110,6 +111,7 @@
               data: sheetData(index, columnCounts[index]),
             })),
             activeSheet,
+            ...(position ? { position } : {}),
             ...(uiContainer ? { uiContainer: document.querySelector('[data-testid="outside-bar"]') } : {}),
           },
           licenseKey: 'non-commercial-and-evaluation',
