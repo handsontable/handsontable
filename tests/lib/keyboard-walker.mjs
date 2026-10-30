@@ -190,7 +190,8 @@ export function walkFindings({ walk, stops, direction, modalExit = null, opened 
 
   const last = stops.at(-1);
 
-  // A popup walk stops on the first stop it reached twice; one that stopped on its first Tab never left the element.
+  // A popup walk stops on the first stop it reached twice; one whose last Tab left the focus where it was
+  // never got past that element.
   if (opened && stops.length > 2 && isProductStop(last) && stopKey(last) === stopKey(stops.at(-2))) {
     findings.push({
       kind: 'tab-keeps-focus',
@@ -199,7 +200,7 @@ export function walkFindings({ walk, stops, direction, modalExit = null, opened 
       selector: last.locator ?? last.tag ?? last.region,
       step: label(stops.length - 1),
       measured: { editorOpen: last.signals?.editorOpen === true },
-      reason: `${key} left the focus on the element the popup put it on, so the walk inside the popup stopped: review whether it moved within the control `
+      reason: `${key} left the focus on the element it was on, so the walk inside the popup stopped: review whether it moved within the control `
         + '(a date input\'s fields), took the key as input (a suggestion accepted) or did nothing, where the guide says Tab completes the entry and moves on',
     });
   }
