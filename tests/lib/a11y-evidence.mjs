@@ -1,11 +1,11 @@
 /**
  * The evidence shape of the accessibility checks beyond axe: the pure half.
  *
- * The axe scan (`a11y/axe.spec.ts`) reads the accessibility tree against axe's rules. The checks in
- * `a11y/checks/` measure what axe does not run: the keyboard, the tree's structure, focus and
+ * The axe scan (`a11y/axe.spec.ts`) reads the accessibility tree against axe's rules. The checks
+ * beyond axe measure what axe does not run: the keyboard, the tree's structure, focus and
  * contrast, reflow, forced colors and motion, pointer alternatives. Each is a Playwright project of
- * `playwright.a11y-checks.config.ts`, and each test of a check measures one target (a page of the
- * catalog, in a theme and a state) and attaches what it measured as an evidence part
+ * a config whose reporter is `reporters/a11y-checks.ts`, and each test of a check measures one target
+ * (a page of the catalog, in a theme and a state) and attaches what it measured as an evidence part
  * (`EVIDENCE_ATTACHMENT`). The reporter (`reporters/a11y-checks.ts`) merges a check's parts into one
  * document, `test-results/a11y-checks/<check>.json` (`mergeEvidence()`), which the Accessibility
  * Conformance Report generator cites per criterion, and `scripts/a11y-evidence-report.mjs` turns
@@ -145,7 +145,7 @@ export const WCAG_CRITERIA = Object.freeze({
  * The checks this tier runs: one Playwright project each, named by the key. `criteria` is what the
  * check evidences, and what the conformance report generator cites it for; a finding may name a
  * criterion outside the list when the measurement shows it (a focus stop with no name is a 4.1.2
- * fact the keyboard walker sees), but a target counts as evaluating only the check's own criteria
+ * fact a keyboard walk sees), but a target counts as evaluating only the check's own criteria
  * unless it says otherwise. Each pull request that adds a check adds its entry.
  */
 export const EVIDENCE_CHECKS = Object.freeze({});

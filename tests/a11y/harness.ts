@@ -5,7 +5,7 @@ import { fixtureUrl, type A11yPage, type A11yState } from './pages.mjs';
 /**
  * The shared half of the accessibility tier: how a page of the catalog (`pages.mjs`) is opened, how
  * its state is reached from the keyboard, and the guards that make a half-built page a red test
- * rather than a measurement. The axe scan (`axe.spec.ts`) and every check in `checks/` go through
+ * rather than a measurement. The axe scan (`axe.spec.ts`) and every check beyond axe go through
  * here, so a menu, an editor or a selection is the same DOM for all of them. Policy:
  * `tests/AGENTS.md`, "A11y: the axe scan and its baseline" and "A11y: the checks beyond axe".
  */

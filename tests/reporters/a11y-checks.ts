@@ -17,7 +17,7 @@ import {
 /**
  * Merges the evidence parts of the checks beyond axe into one document per check.
  *
- * Each project of `playwright.a11y-checks.config.ts` is one check, named by the project. Each of its
+ * Each project of a config that lists this reporter is one check, named by the project. Each of its
  * tests measures one target and attaches an evidence part (`a11y/evidence.ts`). For every project that
  * ran, this reporter reads the last attempt of every test and writes, into
  * `test-results/a11y-checks/`:
@@ -32,8 +32,7 @@ import {
  * (a `beforeAll` hook, an earlier test of a serial group, or the worker; both are Playwright's "did not
  * run"), and one whose part is not readable JSON or is malformed. Only a test that asked to be skipped is left out. A test that passed only on a retry is
  * flagged. All of them are tooling problems in the document, never a finding. The reporter does
- * not change the run's status: these checks are report-only, a red run is a tooling failure, and the
- * workflow step that runs them carries `continue-on-error`.
+ * not change the run's status: these checks are report-only, and a red run is a tooling failure.
  */
 export default class A11yChecksReporter implements Reporter {
   #suite: Suite | undefined;
@@ -41,7 +40,7 @@ export default class A11yChecksReporter implements Reporter {
   #startedAt = new Date();
 
   // `checks` and `outputDir` exist for `e2e/a11y-checks-reporter.spec.ts`, which proves the reporter on
-  // synthetic projects; `playwright.a11y-checks.config.ts` passes neither.
+  // synthetic projects; a config that runs real checks passes neither.
   #checks: Record<string, { title: string; criteria: string[] }>;
 
   #outputDir: string;

@@ -6,9 +6,9 @@
  * `test-results/a11y-checks/<check>.json`, validates it (`validateEvidence()`), and builds each check's
  * summary and check run through `lib/a11y-evidence.mjs`. By default it appends the summaries to the
  * GitHub job summary when `GITHUB_STEP_SUMMARY` is set. With `--check-run` it posts the check runs
- * through the Checks API (`lib/github-check-run.mjs`), behind the fork guard in
- * `.github/workflows/a11y.yml`, with `continue-on-error`. `--dry-run` prints the payloads instead and
- * needs no token. A check run is never a failure: the checks are report-only.
+ * through the Checks API (`lib/github-check-run.mjs`); a fork's token cannot write checks, so a workflow
+ * step that posts them needs the canonical fork guard and `continue-on-error`. `--dry-run` prints the
+ * payloads instead and needs no token. A check run is never a failure: the checks are report-only.
  *
  * Environment: `A11Y_CHECKS` (the checks the job ran, comma-separated: one that left no document gets a
  * neutral tooling check run instead of none), `A11Y_EVIDENCE_URL` (the uploaded evidence artifact),

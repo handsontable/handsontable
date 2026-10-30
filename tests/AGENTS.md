@@ -1299,12 +1299,12 @@ unescaped newline or `%` would cut the one line that explains a red job.
 
 The axe scan reads the accessibility tree against axe's rules. It never presses a key, measures a
 focus ring, zooms the page, turns on forced colors or drags anything, and the published conformance
-report still marks criteria "Not Evaluated" for want of that evidence. The checks in `a11y/checks/`
-measure those. Each check is one Playwright project of `playwright.a11y-checks.config.ts`, named by its
-id, and each test of a check measures one target: a page of the catalog (`a11y/pages.mjs`) in a theme
-and a state, or a variant the check makes of it (dark, right to left, a phone). What a check measured
-lands in one evidence document per check, which the conformance report generator cites per
-criterion.
+report still marks criteria "Not Evaluated" for want of that evidence. The checks beyond axe measure
+those. Each check is one Playwright project of a config whose reporter is `reporters/a11y-checks.ts`,
+named by its id, and each test of a check measures one target: a page of the catalog
+(`a11y/pages.mjs`) in a theme and a state, or a variant the check makes of it (dark, right to left, a
+phone). What a check measured lands in one evidence document per check, which the conformance report
+generator cites per criterion.
 
 - **Report-only, and the rule is one constant.** `EVIDENCE_MODE` in `lib/a11y-evidence.mjs` is
   `report`, and `lib/__tests__/a11y-evidence.test.mjs` pins it. A finding is a row in the job summary,
@@ -1343,7 +1343,7 @@ criterion.
 - **Criteria are WCAG 2.2 ids from one table.** `WCAG_CRITERIA` lists every 2.2 success criterion with
   its name and level, without the obsolete 4.1.1, and a finding naming any other id is refused. A
   finding may name a criterion outside its check's list when the measurement shows it (a focus stop
-  with no name is a 4.1.2 fact the keyboard walker sees); it is then counted under that criterion with
+  with no name is a 4.1.2 fact a keyboard walk sees); it is then counted under that criterion with
   no target evaluating it, because the check does not evaluate it everywhere.
 - **Severity is axe's scale plus one.** `critical`, `serious`, `moderate`, `minor`, as axe rates
   impact, so a finding reads the same in every report, and `advisory` for a difference to review that
@@ -1390,8 +1390,9 @@ ran that left no document (`A11Y_CHECKS`) gets a neutral tooling check run inste
 ### Adding a check
 
 Add its entry to `EVIDENCE_CHECKS` in `lib/a11y-evidence.mjs` (a title and the criteria it
-evidences), a project named by the entry's key to `playwright.a11y-checks.config.ts`, and its spec to
-`a11y/checks/`. Write the measurer or matcher as a pure function with a tooling test that is red
+evidences), and a Playwright project named by the entry's key, in a config whose reporter is
+`reporters/a11y-checks.ts`, with one test per target that calls `declareTarget()` first and
+`attachEvidence()` last. Write the measurer or matcher as a pure function with a tooling test that is red
 before the function exists. Prove the check on the product with a planted defect (a fixture hook that
 removes a focus ring or a name), shown in the check run of its pull request, then reverted. Document
 its rules here, its line in `handsontable/.ai/TESTING.md` and its job in `.ai/CI.md`.
