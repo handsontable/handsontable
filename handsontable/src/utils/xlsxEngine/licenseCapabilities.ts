@@ -40,7 +40,7 @@ export const CAPABILITY_TOKEN_PATTERN = /^[a-z][a-z0-9_]*(?::[a-z0-9_]+(?:\.[a-z
  * The XLSX capability tokens, in the order the specification lists them.
  */
 export const XLSX_CAPABILITIES: readonly CapabilityDefinition[] = Object.freeze([
-  Object.freeze({
+  Object.freeze<CapabilityDefinition>({
     id: 'xlsx:import',
     name: 'XLSX import',
     description:
@@ -51,7 +51,7 @@ export const XLSX_CAPABILITIES: readonly CapabilityDefinition[] = Object.freeze(
     status: 'stable',
     requires: {},
   }),
-  Object.freeze({
+  Object.freeze<CapabilityDefinition>({
     id: 'xlsx:export',
     name: 'XLSX export',
     description: 'Write the grid to an .xlsx file: cell values, sheet names, and the To Excel context menu item.',
@@ -60,7 +60,7 @@ export const XLSX_CAPABILITIES: readonly CapabilityDefinition[] = Object.freeze(
     status: 'stable',
     requires: {},
   }),
-  Object.freeze({
+  Object.freeze<CapabilityDefinition>({
     id: 'xlsx:formulas',
     name: 'Formulas',
     description:
@@ -71,7 +71,7 @@ export const XLSX_CAPABILITIES: readonly CapabilityDefinition[] = Object.freeze(
     status: 'stable',
     requires: { anyOf: ['xlsx:import', 'xlsx:export'] },
   }),
-  Object.freeze({
+  Object.freeze<CapabilityDefinition>({
     id: 'xlsx:layout',
     name: 'Sheet layout',
     description:
@@ -82,7 +82,7 @@ export const XLSX_CAPABILITIES: readonly CapabilityDefinition[] = Object.freeze(
     status: 'stable',
     requires: { anyOf: ['xlsx:import', 'xlsx:export'] },
   }),
-  Object.freeze({
+  Object.freeze<CapabilityDefinition>({
     id: 'xlsx:number_formats',
     name: 'Number formats',
     description:
@@ -93,7 +93,7 @@ export const XLSX_CAPABILITIES: readonly CapabilityDefinition[] = Object.freeze(
     status: 'stable',
     requires: { anyOf: ['xlsx:import', 'xlsx:export'] },
   }),
-  Object.freeze({
+  Object.freeze<CapabilityDefinition>({
     id: 'xlsx:comments',
     name: 'Comments',
     description: 'Cell comments, imported into the Comments plugin and exported with VML so they display in Excel.',
@@ -102,7 +102,7 @@ export const XLSX_CAPABILITIES: readonly CapabilityDefinition[] = Object.freeze(
     status: 'stable',
     requires: { anyOf: ['xlsx:import', 'xlsx:export'] },
   }),
-  Object.freeze({
+  Object.freeze<CapabilityDefinition>({
     id: 'xlsx:import_report',
     name: 'Import report',
     description:
@@ -114,7 +114,7 @@ export const XLSX_CAPABILITIES: readonly CapabilityDefinition[] = Object.freeze(
     status: 'stable',
     requires: { allOf: ['xlsx:import'] },
   }),
-  Object.freeze({
+  Object.freeze<CapabilityDefinition>({
     id: 'xlsx:styles',
     name: 'Cell styles',
     description: 'Font, fill, borders, and alignment of cells and headers.',
@@ -123,7 +123,7 @@ export const XLSX_CAPABILITIES: readonly CapabilityDefinition[] = Object.freeze(
     status: 'stable',
     requires: { anyOf: ['xlsx:import', 'xlsx:export'] },
   }),
-  Object.freeze({
+  Object.freeze<CapabilityDefinition>({
     id: 'xlsx:conditional_formatting',
     name: 'Conditional formatting',
     description:
@@ -134,7 +134,7 @@ export const XLSX_CAPABILITIES: readonly CapabilityDefinition[] = Object.freeze(
     status: 'stable',
     requires: { anyOf: ['xlsx:import', 'xlsx:export'] },
   }),
-  Object.freeze({
+  Object.freeze<CapabilityDefinition>({
     id: 'xlsx:data_validation',
     name: 'Data validation',
     description:
@@ -145,7 +145,7 @@ export const XLSX_CAPABILITIES: readonly CapabilityDefinition[] = Object.freeze(
     status: 'stable',
     requires: { anyOf: ['xlsx:import', 'xlsx:export'] },
   }),
-  Object.freeze({
+  Object.freeze<CapabilityDefinition>({
     id: 'xlsx:protection',
     name: 'Sheet protection',
     description:
