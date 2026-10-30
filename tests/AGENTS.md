@@ -1368,8 +1368,10 @@ criterion.
   when the page threw while it was measured, so a page that crashed halfway is a target not measured,
   never a clean one. The documented-shortcuts test is the one exception: it reloads its page between
   probes, so it records an error the page threw during a probe as a problem of that probe, and the
-  target, measured with a problem, evaluates no criterion. An empty `findings` list is evidence too: the
-  target was measured and nothing was found.
+  target, measured with a problem, evaluates no criterion. A test that loads the page more than once
+  owns that list: it passes one list to every `openTarget()` as `pageErrors` and drains it in place,
+  and the page writes to it from before the navigation, so the test holds the live list even when a
+  load throws. An empty `findings` list is evidence too: the target was measured and nothing was found.
 - **Findings on the product are recorded, never fixed in the check's change.** A check lands with what
   it finds listed in its pull request; the product tasks are filed apart, and a fix later clears the
   finding. A finding the check gets wrong is fixed in the check.
