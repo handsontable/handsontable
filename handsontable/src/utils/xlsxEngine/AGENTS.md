@@ -91,8 +91,10 @@ directions.
   `shiftFormulaReferences` keeps skipping qualified references. A third option, `requalify(name)`,
   RENAMES a qualifier (`exportFile`'s named expressions move each engine sheet's references and
   name its exported sheet): it gets the unquoted name and answers `{ sheetName, map? }` (the `map`
-  moves that sheet's reference part) or `null`, and the walker quotes the new name itself (`quoteSheetName`, which also quotes a cell-shaped name such as
-  `A1`). A qualifier after `]` (another workbook) is never offered.
+  moves that sheet's reference part) or `null`. The walker quotes the new name itself
+  (`quoteSheetName`, exported, which also quotes a cell-shaped name such as `A1`). A qualifier
+  after `]` (another workbook) is never offered. `rebaseImportedFormula` has the matching `selfAs`
+  option: it re-qualifies a reference to the imported sheet with the engine's name for it.
 - **Covered merge cells lose their content on write** and read back `null`; the master keeps it.
 - **The worksheet reader is a CLASS, and its traps below name private methods.** `parseWorksheet` is
   a one-line wrapper over `WorksheetParser` in `parts/worksheetReader.ts`: the tokenizer is
@@ -799,9 +801,40 @@ directions.
   `OOXML_ERROR_CODES` (the seven ECMA-376 lists), so a flagged `#CYCLE!` or a hand-built snapshot
   still goes out as `str`. NEVER infer the flag from the string: `="#N/A"` answers the text `#N/A`
   and must stay `str`. Before this every error result was `t="str"`, so POI, ClosedXML, openpyxl and
-  SheetJS read text. The readers do not set the flag: both hand a `t="e"` result back as its code
-  text in `formula.result`, exactly as before, so the import is unchanged. Pinned by
-  `formulaErrorResult.unit.js`.
+  SheetJS read text. Since DEV-3648 both readers DO set it: `resultIsError` on a `t="e"` formula
+  cell and `valueIsError` on a plain `t="e"` cell (any non-empty code), while `result` / `value`
+  stay the code text. The writers mirror that: a plain cell is typed `e` only when `valueIsError`
+  is set and the code is in `OOXML_ERROR_CODES`. Pinned by `formulaErrorResult.unit.js`.
+- **Array formulas, error cells and defined names (DEV-3648).** Traps that cost a review round:
+  - **`cm` presence alone means "dynamic" on read** (`CellFormulaArray.dynamic`, from
+    `attrs.cm !== undefined`). There is no `xl/metadata.xml` lookup. The ExcelJS reader cannot see
+    `cm`, so every array reads `dynamic: false` there (pinned in the parity tests).
+  - **The dynamic-array metadata is FOUR pieces or Excel repairs the file**: `cm="1"` on the master
+    (`worksheetWriter.ts`), `xl/metadata.xml` (`package.ts#METADATA_PART`), the `sheetMetadata`
+    relationship in the workbook rels, and the content-type override. Drop any one and Excel opens
+    a "repair" dialog. A CSE array carries no `cm` and needs none of them. The ExcelJS adapter
+    writes only CSE arrays, and records `dynamicArrays` for each dynamic one.
+  - **`#SPILL!` and `#CALC!` are flagged on read but never typed `e` on write.** POI refuses them in
+    a `t="e"` cell, so `isOoxmlErrorCode` gates the write and they go out as text.
+  - **`EXCEL_DYNAMIC_ARRAY_FUNCTIONS` (`dynamicArrays.ts`) is observed behavior, not a spec**: the
+    set (`IFS`, `SWITCH`) comes from what Excel Online wrote in fixtures. Add a function only with
+    a fixture saved by Excel; a function missing from the set opens with an `@` in Excel.
+  - **Parity tests cannot see `@`.** They compare workbook snapshots, which carry no implicit
+    intersection. Whether a written formula opens with an `@` is checked only by opening the file
+    in Excel (the manual QA step of DEV-3648).
+  - **Defined names share one validator** (`definedNames.ts#selectWritableDefinedNames`): a name must
+    match the Excel pattern, must not spell an A1 reference (`ZZZ1`) or an R1C1 one (`R`, `C`, `RC`,
+    `R2C3`), must not repeat a name of the same scope case-insensitively, and needs a non-empty
+    definition. It refuses a non-ASCII name (`Umsätze`) and a ref-like name outside the grid. That is
+    deliberate data loss, reported as `definedNames:unsupported`, instead of a file Excel repairs.
+    `DefinedNameSnapshot` is `{ name, formula, sheetName }` (`sheetName: null` is workbook scope).
+  - **The ExcelJS name adapters are narrower than the native ones.** Its reader keeps the FIRST range
+    of a name (a multi-area name loses the rest), loses the sheet scope, and drops constants. Its
+    writer takes workbook-scoped, sheet-qualified single ranges only, with a total area under
+    `MAX_EXCELJS_DEFINED_NAME_CELLS` (`writeLimits.ts`, 100,000), and reports `definedNames:unsupported` once for everything else.
+  - **The native writer refuses a workbook with no sheets** (`write.ts`): `CT_Sheets` needs one
+    `<sheet>`. ExcelJS wrote a file Excel calls invalid; the refusal is deliberate.
+
 - **The `_xHHHH_` lookalike escape is a LOOKAHEAD.** `escapeXmlText` rewrites the underscore of
   every `_(?=x[0-9A-Fa-f]{4}_)` as `_x005F_` (`OOXML_ESCAPE_LOOKALIKE`, `xml/escapes.ts`). A
   pattern that consumed the trailing underscore escaped only the first of `_x0041_x0042_`, which

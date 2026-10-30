@@ -306,6 +306,23 @@ Other rules:
   ExportDataProvider mock of the `xlsx*.unit.js` suites therefore carries `getFormulaErrorCodes()`,
   and the ones used with `exportFormulas` also carry `getNamedExpressions()` and
   `getFormulasBinding()`; a new mock needs them too. Pinned by `xlsxPlainErrorValue.unit.js`.
+- **A HyperFormula array formula exports as an Excel dynamic array, never as a plain formula** (DEV-3648).
+  Excel adds an `@` to a spilling function that is not flagged, so the master carries the dynamic flag
+  (`cm="1"` on the native engine). `ExportDataProvider#getArrayFormulaSizes()` returns
+  `ArrayFormulaSize { rows, cols, exported }` per cell, `null` for a non-master. HyperFormula has no
+  public spill-range API, so the size comes from the engine's INTERNAL
+  `arrayMapping.getArrayByCorner()` (duck-typed; any unexpected shape answers `null`), with a walk over
+  `ARRAY`-typed cells as the fallback. The walk can over-count next to another array, so the xlsx type
+  keeps a per-sheet list of claimed ranges and writes an overlapping array as a plain formula. The data
+  provider decides `exported` (every spilled row and column lands right after the master in the matrix):
+  a spill crossing a hidden row with `exportHiddenRows: false`, a trimmed or filtered row, or the `range`
+  edge is written as a plain formula and `formula:arrayExcluded` is recorded once. `ARRAYFORMULA(x)`
+  as a whole is written as the legacy CSE array `{=x}`; `IFS` and `SWITCH` as a one-cell dynamic array
+  (`EXCEL_DYNAMIC_ARRAY_FUNCTIONS`). A 1 x 1 spill (`=SEQUENCE(1)`) is not flagged. A blocked spill
+  (`#SPILL!`) exports as a one-cell array with the `#SPILL!` text. The ExcelJS engine writes every
+  dynamic array as CSE and records `dynamicArrays`. Four-way parity is pinned by
+  `utils/xlsxEngine/__tests__/enginesParityArraysErrorsNames.unit.js`. Known gap: an error typed into a
+  date column is not flagged as an error.
 - **Named expressions export as workbook defined names, with `exportFormulas` only** (DEV-3648).
   `getNamedExpressions()` lists the engine's WORKBOOK-scoped names (a sheet-scoped one is left out);
   a name defined with a constant has no formula text, so its value is spelled as a literal

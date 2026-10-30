@@ -430,8 +430,17 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   and a relative one (`Data!G2`), so a formula over such a name stays live and shows `#NAME?` on that
   engine, with nothing reported. Each formula is charged ONCE against `MAX_TRANSLATED_FORMULA_CHARS`, and
   that one charge covers the prefix strip, the reference walk (which also judges each sheet
-  qualifier, through the walk's own `qualifier` group) and the defined-name scan. Charging every
+  qualifier, through the walk's own `qualifier` group), the defined-name scan and the bare `TRUE`/`FALSE` walk. Charging every
   check separately refused files that imported at 1a59dedd71.
+- **Array formulas import live; their spilled cells import empty** (DEV-3648, `pushCellValue`,
+  `recordLiveArray`). A dynamic array (`cm` on the master) goes in as written and spills. A legacy CSE
+  array goes in as `=ARRAYFORMULA(...)`, never double-wrapped (`unwrapArrayFormula`). The ExcelJS
+  engine cannot read `cm`, so it imports every array as CSE. While the master is live, the cells its
+  `ref` covers are pushed `null` (still typed from the cached value): a cached value there would make
+  the spill `#SPILL!`. The rectangle is recorded only when the `ref` starts at the master, and is clipped
+  to the window. A master that cannot go live (other sheet, unresolved name, Formulas off) imports its
+  cached values, spilled cells included, as before. The sweep over the rectangles charges the formula
+  budget (`beginLiveArrayRow`), so many narrow arrays cannot make the walk quadratic.
 - **A bare `TRUE`/`FALSE` in a live formula or a name definition is rewritten to `TRUE()`/`FALSE()`** (DEV-3648,
   `rewriteBareBooleans`, called by `readFormulaText`): HyperFormula reads the bare literal as an unknown name
   (`=IF(TRUE,1,2)` is `#NAME?`). `readFormulaText` returns `{ recorded, live }`: `ImportResult.formulas` records
