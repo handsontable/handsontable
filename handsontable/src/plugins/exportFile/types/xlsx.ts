@@ -11,6 +11,7 @@ import {
   normalizeFormula,
   normalizeNamedExpression,
   isFormulaValue,
+  type ExportedEngineSheet,
 } from './xlsx/formula-utils';
 import {
   getCssStyleFromElement,
@@ -446,6 +447,18 @@ interface SheetContext {
   rowsHeights: number[];
 }
 
+/**
+ * One grid of the export whose Formulas engine may define names: its data provider, the engine it
+ * is bound to, and where its engine sheet landed in the file.
+ */
+interface NamedExpressionSource {
+  dataProvider: ExportDataProvider;
+  engine: object;
+  engineSheetName: string;
+  separator: string;
+  sheet: ExportedEngineSheet;
+}
+
 interface XlsxSheetConfig {
   instance: HotInstance;
   name?: string;
@@ -554,6 +567,9 @@ class Xlsx extends BaseType {
     // set, so a data sheet carrying that name can never collide with one.
     const usedSheetNames = new Set<string>();
     const dropped = new DroppedFeatures();
+    // Every grid exported with `exportFormulas` and a Formulas engine, so the engines' names are
+    // written once, against every sheet of the file, after all of them are known.
+    const namedSources: NamedExpressionSource[] = [];
 
     if (sheets && sheets.length > 0) {
       // multi-sheet mode
@@ -567,14 +583,18 @@ class Xlsx extends BaseType {
 
         const name = this.#uniqueSheetName(sheetConfig.name || 'Sheet', usedSheetNames);
 
-        this.#populateWorksheet(workbook, name, dp, sheetOptions, usedSheetNames, dropped);
+        this.#populateWorksheet(workbook, name, dp, sheetOptions, { usedSheetNames, dropped, namedSources });
       });
     } else {
       // single-sheet mode
       const name = this.#uniqueSheetName('Sheet1', usedSheetNames);
 
-      this.#populateWorksheet(workbook, name, this.dataProvider, this.options, usedSheetNames, dropped);
+      this.#populateWorksheet(
+        workbook, name, this.dataProvider, this.options, { usedSheetNames, dropped, namedSources }
+      );
     }
+
+    this.#addDefinedNames(workbook, namedSources, dropped);
 
     const bytes = await detected.adapter.write(workbook, detected.module, dropped);
 
@@ -623,15 +643,17 @@ class Xlsx extends BaseType {
    * @param {string} name The worksheet name.
    * @param {ExportDataProvider} dataProvider ExportDataProvider configured for this sheet.
    * @param {object} options Merged options for this sheet.
-   * @param {Set<string>} usedSheetNames The lower-cased sheet names the workbook already uses.
-   * @param {DroppedFeatures} dropped The export's dropped-feature collector, which the writer
-   *   gets as well.
+   * @param {object} collectors The workbook-wide collectors: `usedSheetNames` (the lower-cased sheet
+   *   names the workbook already uses), `dropped` (the export's dropped-feature collector, which the
+   *   writer gets as well) and `namedSources` (the grids whose engine names `#addDefinedNames`
+   *   writes once every sheet is known).
    * @returns {number} Number of data rows written.
    */
   #populateWorksheet(
-    workbook: WorkbookSnapshot, name: string, dataProvider: ExportDataProvider,
-    options: XlsxOptions, usedSheetNames: Set<string>, dropped: DroppedFeatures
+    workbook: WorkbookSnapshot, name: string, dataProvider: ExportDataProvider, options: XlsxOptions,
+    collectors: { usedSheetNames: Set<string>; dropped: DroppedFeatures; namedSources: NamedExpressionSource[] }
   ): number {
+    const { usedSheetNames, dropped, namedSources } = collectors;
     const sheet = new SheetBuilder(name);
     const data = dataProvider.getData();
     const cellsMeta = dataProvider.getCellsMeta();
@@ -758,8 +780,22 @@ class Xlsx extends BaseType {
 
     this.#writeDataRows(sheet, data, context);
 
-    if (exportFormulas) {
-      this.#addDefinedNames(workbook, name, dataProvider, context);
+    const binding = exportFormulas ? dataProvider.getFormulasBinding() : null;
+
+    if (binding) {
+      namedSources.push({
+        dataProvider,
+        engine: binding.engine,
+        engineSheetName: binding.sheetName,
+        separator: formulasSeparator,
+        sheet: {
+          exportedName: name,
+          rowOffset: dataRowOffset - 1,
+          colOffset: dataColOffset - 1,
+          excludedRows: excludedHiddenRows ?? undefined,
+          excludedCols: excludedHiddenCols ?? undefined,
+        },
+      });
     }
 
     if (hiddenRowIndices.length > 0) {
@@ -811,45 +847,54 @@ class Xlsx extends BaseType {
   }
 
   /**
-   * Adds the workbook-scoped named expressions of the sheet's Formulas engine to the workbook as
-   * workbook defined names. A reference to the grid's own engine sheet moves with the header band
-   * and the left-out rows and columns, the way a cell formula's does, and names the exported sheet
-   * (`normalizeNamedExpression`). A name that cannot be expressed in the file is left out and
-   * `definedNames:unsupported` recorded. In a multi-sheet export the grids may share one engine, so
-   * a name already added with the same definition is skipped quietly.
+   * Adds the workbook-scoped named expressions of the exported grids' Formulas engines to the
+   * workbook as workbook defined names, each one ONCE. Grids of a multi-sheet export usually share
+   * one engine, so the names are read per engine, and each is normalized against every engine
+   * sheet this export writes (`normalizeNamedExpression`): a reference moves with the header band
+   * and the left-out rows and columns of the grid that sheet belongs to, and names that grid's
+   * exported sheet. A name that cannot be expressed in the file (a reference to an engine sheet
+   * the export does not write among others), or that repeats an added name with another
+   * definition, is left out and `definedNames:unsupported` recorded once.
    *
    * @param {object} workbook The neutral workbook snapshot.
-   * @param {string} sheetName The name the export gives this grid's sheet.
-   * @param {ExportDataProvider} dataProvider ExportDataProvider configured for this sheet.
-   * @param {object} context Sheet-level context built by `#populateWorksheet`.
+   * @param {object[]} sources The grids exported with `exportFormulas` and a Formulas engine.
+   * @param {DroppedFeatures} dropped The export's dropped-feature collector.
    */
-  #addDefinedNames(
-    workbook: WorkbookSnapshot, sheetName: string, dataProvider: ExportDataProvider, context: SheetContext
-  ): void {
-    const names = dataProvider.getNamedExpressions();
-    const selfSheetName = dataProvider.getFormulasSheetName();
+  #addDefinedNames(workbook: WorkbookSnapshot, sources: NamedExpressionSource[], dropped: DroppedFeatures): void {
+    const byEngine = new Map<object, { source: NamedExpressionSource; sheets: Map<string, ExportedEngineSheet> }>();
 
-    if (names.length === 0 || selfSheetName === null) {
-      return;
-    }
+    sources.forEach((source) => {
+      const group = byEngine.get(source.engine) ?? { source, sheets: new Map() };
+      const key = source.engineSheetName.toLowerCase();
 
-    const definedNames: DefinedNameSnapshot[] = workbook.definedNames ?? [];
-
-    names.forEach(({ name, formula: definition }) => {
-      const formula = definition === null ? null : normalizeNamedExpression(
-        definition, context.formulasSeparator, context.dataRowOffset - 1, context.dataColOffset - 1,
-        context.excludedHiddenRows ?? undefined, context.excludedHiddenCols ?? undefined,
-        selfSheetName, sheetName
-      );
-
-      if (formula === null) {
-        if (context.dropped.count(DROPPED_FEATURES.definedNamesUnsupported) === 0) {
-          context.dropped.record(DROPPED_FEATURES.definedNamesUnsupported);
-        }
-
-      } else if (!definedNames.some(entry => entry.name === name && entry.formula === formula)) {
-        definedNames.push({ name, formula, sheetName: null });
+      if (!group.sheets.has(key)) {
+        group.sheets.set(key, source.sheet);
       }
+
+      byEngine.set(source.engine, group);
+    });
+
+    const definedNames: DefinedNameSnapshot[] = [];
+    const added = new Map<string, string>();
+    const leaveOut = () => {
+      if (dropped.count(DROPPED_FEATURES.definedNamesUnsupported) === 0) {
+        dropped.record(DROPPED_FEATURES.definedNamesUnsupported);
+      }
+    };
+
+    byEngine.forEach(({ source, sheets }) => {
+      source.dataProvider.getNamedExpressions().forEach(({ name, formula: definition }) => {
+        const formula = definition === null ? null : normalizeNamedExpression(definition, source.separator, sheets);
+        const key = name.toLowerCase();
+
+        if (formula === null || (added.has(key) && added.get(key) !== formula)) {
+          leaveOut();
+
+        } else if (!added.has(key)) {
+          added.set(key, formula);
+          definedNames.push({ name, formula, sheetName: null });
+        }
+      });
     });
 
     if (definedNames.length > 0) {

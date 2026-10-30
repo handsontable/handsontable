@@ -1,4 +1,4 @@
-import { normalizeFormula, normalizeNamedExpression } from '../types/xlsx/formula-utils';
+import { normalizeFormula, normalizeNamedExpression, toFormulaLiteral } from '../types/xlsx/formula-utils';
 
 describe('normalizeFormula', () => {
   describe('relative references', () => {
@@ -85,16 +85,30 @@ describe('normalizeFormula', () => {
 });
 
 describe('normalizeNamedExpression', () => {
-  const normalize = (formula, { rows = 0, cols = 0, exRows, exCols, separator = ',' } = {}) =>
-    normalizeNamedExpression(formula, separator, rows, cols, exRows, exCols, 'Data', 'Sheet1');
+  const normalize = (formula, { rows = 0, cols = 0, exRows, exCols, separator = ',' } = {}) => {
+    const sheets = new Map([
+      ['data', {
+        exportedName: 'Sheet1', rowOffset: rows, colOffset: cols, excludedRows: exRows, excludedCols: exCols,
+      }],
+      ['rates', { exportedName: 'Rate Table', rowOffset: 0, colOffset: 0 }],
+    ]);
 
-  it('should strip the `=`, shift a reference to the engine sheet and re-qualify it (any case)', () => {
+    return normalizeNamedExpression(formula, separator, sheets);
+  };
+
+  it('should strip the `=`, shift a reference to an exported sheet and qualify it with its exported name', () => {
     expect(normalize('=Data!$A$1:$A$3', { rows: 1 })).toBe('Sheet1!$A$2:$A$4');
     expect(normalize('=data!A$1', { rows: 1, cols: 1 })).toBe('Sheet1!B$2');
   });
 
-  it('should keep a reference to another sheet as written', () => {
-    expect(normalize('=Rates!$A$1+Data!$B$1', { rows: 1 })).toBe('Rates!$A$1+Sheet1!$B$2');
+  it('should move each reference by the sheet it names', () => {
+    expect(normalize('=Rates!$A$1+Data!$B$1', { rows: 1 })).toBe('\'Rate Table\'!$A$1+Sheet1!$B$2');
+  });
+
+  it('should answer null for a reference to a sheet the export does not write, or to no sheet', () => {
+    expect(normalize('=Other!$A$1+Data!$A$1')).toBeNull();
+    expect(normalize('=2026!$A$1')).toBeNull();
+    expect(normalize('=$A$1')).toBeNull();
   });
 
   it('should keep a constant as it is', () => {
@@ -106,19 +120,43 @@ describe('normalizeNamedExpression', () => {
     expect(normalize('=SUM(Data!$A$1;Data!$A$2)', { separator: ';' })).toBe('SUM(Sheet1!$A$1,Sheet1!$A$2)');
   });
 
+  it('should shift an open span on its own axis only', () => {
+    expect(normalize('=Data!$A:$A', { rows: 1, cols: 1 })).toBe('Sheet1!$B:$B');
+    expect(normalize('=Data!$2:$3', { rows: 1, cols: 1 })).toBe('Sheet1!$3:$4');
+  });
+
   it('should shrink a range around a left-out row and shift the references below it', () => {
     expect(normalize('=Data!$A$1:$A$3', { exRows: new Set([1]) })).toBe('Sheet1!$A$1:$A$2');
     expect(normalize('=Data!$A$4', { exRows: new Set([1]) })).toBe('Sheet1!$A$3');
   });
 
-  it('should answer null for a reference that ends on a left-out row or column', () => {
+  it('should answer null for a reference that starts or ends on a left-out row or column', () => {
     expect(normalize('=Data!$A$2', { exRows: new Set([1]) })).toBeNull();
     expect(normalize('=Data!$A$1:$A$2', { exRows: new Set([1]) })).toBeNull();
+    expect(normalize('=Data!$A$2:$A$3', { exRows: new Set([1]) })).toBeNull();
     expect(normalize('=Data!$B$1', { exCols: new Set([1]) })).toBeNull();
     expect(normalize('=Data!$B:$B', { exCols: new Set([1]) })).toBeNull();
   });
 
-  it('should not reject a reference to another sheet that sits on a left-out index', () => {
-    expect(normalize('=Rates!$A$2', { exRows: new Set([1]) })).toBe('Rates!$A$2');
+  it('should not reject a reference to another sheet at a left-out index of this one', () => {
+    expect(normalize('=Rates!$A$2', { exRows: new Set([1]) })).toBe('\'Rate Table\'!$A$2');
+  });
+});
+
+describe('toFormulaLiteral', () => {
+  it('should spell numbers, strings, booleans and coded errors', () => {
+    expect(toFormulaLiteral(0.5)).toBe('0.5');
+    expect(toFormulaLiteral('say "hi"')).toBe('"say ""hi"""');
+    expect(toFormulaLiteral(true)).toBe('TRUE()');
+    expect(toFormulaLiteral(false)).toBe('FALSE()');
+    expect(toFormulaLiteral({ type: 'NA', value: '#N/A' })).toBe('#N/A');
+  });
+
+  it('should answer null for what a literal cannot spell', () => {
+    expect(toFormulaLiteral('x'.repeat(256))).toBeNull();
+    expect(toFormulaLiteral('x'.repeat(255))).toBe(`"${'x'.repeat(255)}"`);
+    expect(toFormulaLiteral(null)).toBeNull();
+    expect(toFormulaLiteral({ type: 'CYCLE', value: '#CYCLE!' })).toBeNull();
+    expect(toFormulaLiteral(Infinity)).toBeNull();
   });
 });

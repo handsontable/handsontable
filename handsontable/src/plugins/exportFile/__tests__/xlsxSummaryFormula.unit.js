@@ -91,7 +91,7 @@ jest.mock('../dataProvider', () => ({
       return [];
     }
 
-    getFormulasSheetName() {
+    getFormulasBinding() {
       return null;
     }
 

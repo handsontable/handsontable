@@ -143,17 +143,80 @@ describe('Xlsx export: named expressions as defined names', () => {
     ]);
   });
 
-  it('should keep a reference to another engine sheet untouched', async() => {
+  it('should leave out a name that references an engine sheet the export does not write', async() => {
     const engine = createGrid();
 
     engine.addSheet('Rates');
     engine.addNamedExpression('Rate', '=Rates!$A$1:$B$2');
+    engine.addNamedExpression('Kept', '=Sheet1!$A$1');
 
-    const { snapshot } = await exportWorkbook({ exportFormulas: true, colHeaders: true });
+    const { snapshot, dropped } = await exportWorkbook({ exportFormulas: true, colHeaders: true });
 
     expect(snapshot.definedNames).toEqual([
-      { name: 'Rate', formula: 'Rates!$A$1:$B$2', sheetName: null },
+      { name: 'Kept', formula: 'Sheet1!$A$2', sheetName: null },
     ]);
+    expect(dropped.count('definedNames:unsupported')).toBe(1);
+  });
+
+  it('should write each name once, against the sheet of every grid sharing the engine', async() => {
+    const engine = createGrid();
+    const second = document.createElement('div');
+
+    document.body.appendChild(second);
+
+    const hot2 = new Handsontable(second, {
+      data: [[10], [20]],
+      formulas: { engine, sheetName: 'Sheet2' },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    try {
+      engine.addNamedExpression('OnA', '=Sheet1!$A$1:$A$2');
+      engine.addNamedExpression('OnB', '=Sheet2!$A$1');
+      engine.addNamedExpression('Both', '=SUM(Sheet1!$A$1,sheet2!$A$2)');
+
+      const { snapshot, dropped } = await exportWorkbook({
+        exportFormulas: true,
+        colHeaders: true,
+        sheets: [{ instance: hot, name: 'Alpha' }, { instance: hot2, name: 'Beta Sheet', rowHeaders: true }],
+      });
+
+      expect(snapshot.definedNames).toEqual([
+        { name: 'OnA', formula: 'Alpha!$A$2:$A$3', sheetName: null },
+        { name: 'OnB', formula: '\'Beta Sheet\'!$B$2', sheetName: null },
+        { name: 'Both', formula: 'SUM(Alpha!$A$2,\'Beta Sheet\'!$B$3)', sheetName: null },
+      ]);
+      expect(dropped.count('definedNames:unsupported')).toBe(0);
+    } finally {
+      hot2.destroy();
+      second.remove();
+    }
+  });
+
+  it('should shift an open span by the row-header band only on the column axis', async() => {
+    const engine = createGrid();
+
+    engine.addNamedExpression('Whole', '=Sheet1!$A:$A');
+
+    const { snapshot } = await exportWorkbook({ exportFormulas: true, colHeaders: true, rowHeaders: true });
+
+    expect(snapshot.definedNames).toEqual([
+      { name: 'Whole', formula: 'Sheet1!$B:$B', sheetName: null },
+    ]);
+  });
+
+  it('should spell an error constant as its code and leave out a string Excel cannot hold', async() => {
+    const engine = createGrid();
+
+    engine.addNamedExpression('Missing', '#N/A');
+    engine.addNamedExpression('Long', 'x'.repeat(256));
+
+    const { snapshot, dropped } = await exportWorkbook();
+
+    expect(snapshot.definedNames).toEqual([
+      { name: 'Missing', formula: '#N/A', sheetName: null },
+    ]);
+    expect(dropped.count('definedNames:unsupported')).toBe(1);
   });
 
   it('should convert the engine argument separator to a comma', async() => {
@@ -207,6 +270,7 @@ describe('Xlsx export: named expressions as defined names', () => {
     });
 
     engine.addNamedExpression('Second', '=Sheet1!$A$2');
+    engine.addNamedExpression('From', '=Sheet1!$A$2:$A$3');
     engine.addNamedExpression('Upto', '=Sheet1!$A$1:$A$2');
     engine.addNamedExpression('Col', '=Sheet1!$B$1');
     engine.addNamedExpression('Kept', '=Sheet1!$A$3');

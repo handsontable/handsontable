@@ -89,9 +89,9 @@ directions.
   ExcelJS's `slideFormula`), so `translateSharedFormula` calls `mapFormulaReferences(…, { qualified:
   true })` (`formulaRefs.ts`), which re-walks only the reference part with `QUALIFIED_PART_REGEX`;
   `shiftFormulaReferences` keeps skipping qualified references. A third option, `requalify(name)`,
-  RENAMES a qualifier (`exportFile`'s named expressions move the Formulas engine sheet's references
-  and name the exported sheet): it gets the unquoted name, answers the new one or `null`, and the
-  walker quotes the new name itself (`quoteSheetName`, which also quotes a cell-shaped name such as
+  RENAMES a qualifier (`exportFile`'s named expressions move each engine sheet's references and
+  name its exported sheet): it gets the unquoted name and answers `{ sheetName, map? }` (the `map`
+  moves that sheet's reference part) or `null`, and the walker quotes the new name itself (`quoteSheetName`, which also quotes a cell-shaped name such as
   `A1`). A qualifier after `]` (another workbook) is never offered.
 - **Covered merge cells lose their content on write** and read back `null`; the master keeps it.
 - **The worksheet reader is a CLASS, and its traps below name private methods.** `parseWorksheet` is

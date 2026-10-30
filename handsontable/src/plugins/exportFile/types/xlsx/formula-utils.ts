@@ -1,5 +1,5 @@
 import { colIndexToLetter, colLetterToIndex } from '../../../../utils/xlsxEngine/cellRef';
-import { mapFormulaReferences } from '../../../../utils/xlsxEngine/formulaRefs';
+import { mapFormulaReferences, type ReferenceMap } from '../../../../utils/xlsxEngine/formulaRefs';
 
 /**
  * The column-letter converters, re-exported from the shared xlsx engine layer so the export's own
@@ -209,45 +209,40 @@ export function normalizeFormula(
 }
 
 /**
- * Normalizes the definition of a HyperFormula named expression for an Excel defined name.
- *
- * Works like {@link normalizeFormula}, with two differences that follow from a name living outside
- * any sheet. A named expression qualifies its references (`=Sheet1!$A$1:$A$3`), so a reference
- * qualified with the engine sheet the grid is bound to (`selfSheetName`, compared
- * case-insensitively) is the one that moves with the header band and the left-out rows and
- * columns, and it is re-qualified with the name the export gives that sheet (`exportedSheetName`).
- * A reference to any other sheet is kept as written. And a reference that ends on a left-out row
- * or column cannot be expressed in the exported sheet, so the whole definition is refused: the
- * caller leaves the name out. A left-out row or column INSIDE a range only shrinks it, the way
- * a cell formula's range shrinks.
- *
- * @private
- * @param {string} formula The definition (with or without its leading `=`).
- * @param {string} separator HyperFormula's `functionArgSeparator`.
- * @param {number} rowOffset Base number to add to every row number of a moved reference.
- * @param {number} colOffset Base number to add to every column number of a moved reference.
- * @param {Set<number>} [excludedRows] The rows left out of the export, as engine row indexes
- *   (`ExportDataProvider#getExcludedHiddenRows`).
- * @param {Set<number>} [excludedCols] The columns left out of the export
- *   (`ExportDataProvider#getExcludedHiddenColumns`).
- * @param {string} selfSheetName The name of the engine sheet the grid is bound to.
- * @param {string} exportedSheetName The name the export gives the grid's sheet.
- * @returns {string|null} The definition without its `=`, or `null` when it cannot be expressed.
+ * Where the export put one engine sheet: the name the file gives it and the arithmetic that moves
+ * a reference to it, as `normalizeFormula` applies it to that sheet's cell formulas.
  */
-export function normalizeNamedExpression(
-  formula: string,
-  separator: string,
-  rowOffset: number,
-  colOffset: number,
-  excludedRows: Set<number> | undefined,
-  excludedCols: Set<number> | undefined,
-  selfSheetName: string,
-  exportedSheetName: string
-): string | null {
-  const definition = formula.startsWith('=') ? formula.slice(1) : formula;
-  const self = selfSheetName.toLowerCase();
-  const mapped = mapFormulaReferences(definition, ({ row, col }) => {
-    // A reference names a left-out index on its own row or column; an open axis names none.
+export interface ExportedEngineSheet {
+  /**
+   * The name the export gives the sheet.
+   */
+  exportedName: string;
+  /**
+   * Base number added to every row number of a reference (the column-header band).
+   */
+  rowOffset: number;
+  /**
+   * Base number added to every column number of a reference (the row-header band).
+   */
+  colOffset: number;
+  /**
+   * The rows left out of the export, as engine row indexes (`ExportDataProvider#getExcludedHiddenRows`).
+   */
+  excludedRows?: Set<number>;
+  /**
+   * The columns left out of the export (`ExportDataProvider#getExcludedHiddenColumns`).
+   */
+  excludedCols?: Set<number>;
+}
+
+/**
+ * Builds the reference map of one exported engine sheet: the shift `normalizeFormula` applies to
+ * its cell formulas, refusing a reference that names a left-out row or column itself.
+ */
+function exportedSheetMap(sheet: ExportedEngineSheet): ReferenceMap {
+  const { rowOffset, colOffset, excludedRows, excludedCols } = sheet;
+
+  return ({ row, col }) => {
     if ((row !== null && excludedRows?.has(row - 1)) || (col !== null && excludedCols?.has(col - 1))) {
       return null;
     }
@@ -256,11 +251,50 @@ export function normalizeNamedExpression(
       row: row === null ? null : row + rowOffset - (excludedRows ? countBelow(excludedRows, row - 1) : 0),
       col: col === null ? null : col + colOffset - (excludedCols ? countBelow(excludedCols, col - 1) : 0),
     };
-  }, {
-    requalify: sheetName => (sheetName.toLowerCase() === self ? exportedSheetName : null),
+  };
+}
+
+/**
+ * Normalizes the definition of a HyperFormula named expression for an Excel defined name.
+ *
+ * A named expression qualifies every reference (`=Sheet1!$A$1:$A$3`), and one engine may serve
+ * several grids of the export, so each reference is moved by the sheet it names: `sheets` maps
+ * every engine sheet the export writes (its name lower-cased, as the engine compares names) to
+ * the name the file gives it and the header band and left-out rows and columns of its grid. The
+ * reference is shifted the way that grid's cell formulas are, `$` components included, and
+ * qualified with the exported name. The definition cannot be expressed, and `null` is returned,
+ * when a reference names a sheet the export does not write (the file has no such sheet), has no
+ * sheet at all, or ends on a left-out row or column. A left-out row or column INSIDE a range
+ * only shrinks it, the way a cell formula's range shrinks. The argument separator becomes `,`.
+ *
+ * @private
+ * @param {string} formula The definition (with or without its leading `=`).
+ * @param {string} separator HyperFormula's `functionArgSeparator`.
+ * @param {Map<string, object>} sheets The exported engine sheets, by lower-cased engine sheet name.
+ * @returns {string|null} The definition without its `=`, or `null` when it cannot be expressed.
+ */
+export function normalizeNamedExpression(
+  formula: string,
+  separator: string,
+  sheets: Map<string, ExportedEngineSheet>
+): string | null {
+  const definition = formula.startsWith('=') ? formula.slice(1) : formula;
+  let unknownSheet = false;
+  const mapped = mapFormulaReferences(definition, () => null, {
+    requalify: (sheetName) => {
+      const sheet = sheets.get(sheetName.toLowerCase());
+
+      if (!sheet) {
+        unknownSheet = true;
+
+        return null;
+      }
+
+      return { sheetName: sheet.exportedName, map: exportedSheetMap(sheet) };
+    },
   });
 
-  if (mapped === null) {
+  if (mapped === null || unknownSheet) {
     return null;
   }
 
@@ -302,11 +336,17 @@ export function toOoxmlErrorCode(cellValue: unknown): string | null {
 }
 
 /**
+ * The longest string literal Excel accepts in a formula, in characters.
+ */
+const MAX_FORMULA_STRING_LITERAL_LENGTH = 255;
+
+/**
  * Spells the constant value of a HyperFormula named expression (one defined with a value rather
  * than a formula) as an Excel formula literal: a finite number as it is, a string double-quoted
  * with every `"` doubled, a boolean as `TRUE()` or `FALSE()` (the function form, which every
  * reader parses as a boolean), and an error with an OOXML code as that code. Answers `null` for
- * anything else (an empty value, an error with no code), which no definition can spell.
+ * anything else (an empty value, an error with no code, a string longer than the 255 characters
+ * Excel accepts in a literal), which no definition can spell.
  *
  * @private
  * @param {*} value The value `getNamedExpressionValue()` answers.
@@ -318,7 +358,8 @@ export function toFormulaLiteral(value: unknown): string | null {
   }
 
   if (typeof value === 'string') {
-    return `"${value.replaceAll('"', '""')}"`;
+    // Excel refuses a string literal longer than 255 characters in a formula.
+    return value.length > MAX_FORMULA_STRING_LITERAL_LENGTH ? null : `"${value.replaceAll('"', '""')}"`;
   }
 
   if (typeof value === 'boolean') {

@@ -385,15 +385,20 @@ class ExportDataProvider {
   }
 
   /**
-   * Gets the name of the engine sheet the Formulas plugin binds this grid to, or `null` when the
-   * plugin is absent or disabled.
+   * Gets the Formulas plugin's engine and the name of the engine sheet it binds this grid to, or
+   * `null` when the plugin is absent or disabled. Grids of one export may share an engine; the
+   * engine object tells them apart.
    *
-   * @returns {string|null}
+   * @returns {{ engine: object, sheetName: string }|null}
    */
-  getFormulasSheetName(): string | null {
+  getFormulasBinding(): { engine: object; sheetName: string } | null {
     const formulasPlugin = this.hot.getPlugin('formulas');
 
-    return formulasPlugin?.isEnabled() && formulasPlugin.engine ? formulasPlugin.sheetName : null;
+    if (!formulasPlugin?.isEnabled() || !formulasPlugin.engine || formulasPlugin.sheetName === null) {
+      return null;
+    }
+
+    return { engine: formulasPlugin.engine, sheetName: formulasPlugin.sheetName };
   }
 
   /**

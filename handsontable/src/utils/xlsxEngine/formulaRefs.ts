@@ -151,12 +151,17 @@ export interface MapFormulaReferencesOptions {
   /**
    * Decides, for each qualified reference, whether its sheet is renamed. It gets the sheet name as
    * the formula spells it, unquoted, and answers the name to write in its place - the reference
-   * part is then mapped like an unqualified reference, and the new name quoted when it has to be -
-   * or `null` to leave the reference to `qualified`. A qualifier naming a sheet of another workbook
-   * (`[1]Data!A1`) is never offered.
+   * part is then mapped through the answer's own `map` (or the main one when it has none), and the
+   * new name quoted when it has to be - or `null` to leave the reference to `qualified`. A
+   * qualifier naming a sheet of another workbook (`[1]Data!A1`) is never offered.
    */
-  requalify?: (sheetName: string) => string | null;
+  requalify?: Requalify;
 }
+
+/**
+ * The callback of `MapFormulaReferencesOptions#requalify`.
+ */
+export type Requalify = (sheetName: string) => { sheetName: string; map?: ReferenceMap } | null;
 
 /**
  * A sheet name a formula may write without quotes: a letter or `_` first, then letters, digits,
@@ -180,7 +185,7 @@ export function quoteSheetName(sheetName: string): string {
 /**
  * The reference callback `mapFormulaReferences` takes.
  */
-type ReferenceMap = (reference: FormulaReference) => MappedReference | null;
+export type ReferenceMap = (reference: FormulaReference) => MappedReference | null;
 
 /**
  * Rewrites one cell reference through `map`, or returns `null` when `map` rejects it or leaves it
@@ -230,7 +235,7 @@ function mapSpan(groups: ReferenceGroups, map: ReferenceMap): string | null {
  */
 function rewriteReferences(
   formula: string, regex: RegExp, map: ReferenceMap, qualified: boolean,
-  requalify?: (sheetName: string) => string | null
+  requalify?: Requalify
 ): string | null {
   let rejected = false;
 
@@ -246,9 +251,9 @@ function rewriteReferences(
       replacement = match;
 
     } else if (renamed !== null) {
-      const part = rewriteReferences(groups.qualified ?? '', QUALIFIED_PART_REGEX, map, false);
+      const part = rewriteReferences(groups.qualified ?? '', QUALIFIED_PART_REGEX, renamed.map ?? map, false);
 
-      replacement = part === null ? null : `${quoteSheetName(renamed)}!${part}`;
+      replacement = part === null ? null : `${quoteSheetName(renamed.sheetName)}!${part}`;
 
     } else if (groups.qualifier !== undefined) {
       // The reference part is a cell, a range or a span of at most a few dozen characters, so the
