@@ -566,6 +566,9 @@ export class Pagination extends BasePlugin {
 
     this.#stateOwed = false;
 
+    // Whether the grid can measure, not whether this is the init pass: a grid that never drew (at init, or
+    // built hidden) cannot size an `'auto'` page and shows nothing a render would change. Its first render
+    // measures the `'auto'` page, as every render does.
     if (this.hot.view._wt.drawn) {
       this.#refreshUI();
     } else if (this.#pageSize !== 'auto') {

@@ -476,6 +476,11 @@ export default function Core(
    */
   let readyStepsMayBeOwed = false;
   /**
+   * `true` while the grid's init pass runs the ready steps: before the `init` hook and the first render, with
+   * the renders they ask for held.
+   */
+  let initReadyStepsRunning = false;
+  /**
    * Set when `destroy()` starts, so no ready step runs against a grid being torn down.
    */
   let isBeingDestroyed = false;
@@ -2840,18 +2845,24 @@ export default function Core(
     // is held while they run, so a step that renders (a sort, a cell write) cannot draw the grid before a
     // later step builds its state; the counter is put back without a render, because the first one follows.
     const renderState = instance as HotInstance & CoreInternals;
+    const suspendedBefore = renderState.renderSuspendedCounter;
 
-    renderState.renderSuspendedCounter += 1;
+    renderState.renderSuspendedCounter = suspendedBefore + 1;
+    initReadyStepsRunning = true;
 
     try {
       runOwedReadySteps();
     } finally {
-      renderState.renderSuspendedCounter -= 1;
+      initReadyStepsRunning = false;
+      // Put back, not decremented: a step that resumed rendering once more than it suspended would leave the
+      // counter below zero, and the next `suspendRender()` would not hold.
+      renderState.renderSuspendedCounter = suspendedBefore;
     }
 
     // A held render also skipped the start of a full render, which makes each stored cell meta run its
     // dynamic extension again. Without it the `init` listeners (the AutoColumnSize sweep) read the meta of
-    // a cell as it was before a step changed it: a merge's first cell without its `colspan`.
+    // a cell as it was before a step changed it: a merge's first cell without its `colspan`. Only here, not
+    // on every held `render()`: inside `batch()` that doubled the cost of reading meta after each `render()`.
     metaManager.invalidateMetaExtensions();
 
     instance.runHooks('init');
@@ -5774,6 +5785,18 @@ export default function Core(
    */
   this._isHeldMetaPhaseRunning = function() {
     return dataWorkPhase === 'meta';
+  };
+
+  /**
+   * Tells a plugin whether its ready step runs in the grid's init pass: before the `init` hook and the first
+   * render, with the renders the steps ask for held. A step that needs a drawn grid leaves that work to the
+   * first render then.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  this._isRunningInitReadySteps = function() {
+    return initReadyStepsRunning;
   };
 
   /**

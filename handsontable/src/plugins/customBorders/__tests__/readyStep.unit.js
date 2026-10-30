@@ -109,4 +109,24 @@ describe('CustomBorders ready step', () => {
     expect(applySpy.mock.calls).toEqual([[true]]);
     expect(plugin.getBorders().length).toBe(1);
   });
+
+  it('should render, and wait for no `afterInit`, when a direct enable runs on a grid that was never drawn', () => {
+    buildGrid({ customBorders: BORDERS });
+
+    const plugin = hot.getPlugin('customBorders');
+
+    plugin.disablePlugin();
+    // A grid built inside a hidden container skips its draws, so its view still reports that it never drew.
+    hot.view._wt.drawn = false;
+
+    const addHookOnceSpy = jest.spyOn(hot, 'addHookOnce');
+
+    applySpy.mockClear();
+    plugin.enablePlugin();
+
+    // Not the init pass: the step renders itself, and leaves no `afterInit` listener that would never fire.
+    expect(applySpy.mock.calls).toEqual([[true]]);
+    expect(addHookOnceSpy).not.toHaveBeenCalledWith('afterInit', expect.anything());
+    expect(plugin.getBorders().length).toBe(1);
+  });
 });

@@ -368,13 +368,13 @@ the pass after the other two and no border is written twice.
 At init the step runs before the `init` hook and the first render, and it does not render: that render
 syncs the master table's borders, and a render from the step would paint before later-priority plugins
 (NestedHeaders) build their state (#11031). The overlay clones that first render builds still need one
-more selection pass, so the step schedules a render for `afterInit` when any border exists. On a grid
-already drawn (`view._wt.drawn`) the step renders once itself. It replaced an `init` listener, which never
-fired again after init, so a direct `enablePlugin()` on a live grid used to apply nothing. Known limit: a
-grid built inside a hidden container skips its draws, so `drawn` stays `false` until it is first shown, and a
-direct `enablePlugin()` before that takes the init branch; the `afterInit` render it schedules never fires,
-so the frozen panes may miss the borders until the next render after the grid appears. Pinned by
-`__tests__/readyStep.unit.js`.
+more selection pass, so the step schedules a render for `afterInit` (`#onAfterInitRender`) when any border
+exists. Outside the init pass the step renders once itself. It replaced an `init` listener, which never
+fired again after init, so a direct `enablePlugin()` on a live grid used to apply nothing. **The step asks
+core whether it runs in the init pass (`isInitReadyStep()`), never whether the view has drawn.** A grid built
+inside a hidden container skips its draws, so `view._wt.drawn` stays `false` until it is first shown: read as
+"init", a direct `enablePlugin()` there rendered nothing and left an `afterInit` listener that never fires.
+Pinned by `__tests__/readyStep.unit.js`.
 
 ## Declared borders applied ahead of their data wait for `onDataReady()`
 

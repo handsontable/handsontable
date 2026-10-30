@@ -489,15 +489,23 @@ export class CustomBorders extends BasePlugin {
       return;
     }
 
-    const isFirstDraw = !this.hot.view._wt.drawn;
+    const isInitPass = this.isInitReadyStep();
 
     this.#declaredBordersOwed = false;
-    this.changeBorderSettings(!isFirstDraw);
+    this.changeBorderSettings(!isInitPass);
 
-    if (isFirstDraw && this.savedBorders.length > 0) {
-      this.hot.addHookOnce('afterInit', () => this.hot.render());
+    if (isInitPass && this.savedBorders.length > 0) {
+      this.hot.addHookOnce('afterInit', this.#onAfterInitRender);
     }
   }
+
+  /**
+   * Renders once more after the first render of the grid, which builds the overlay clones that still need a
+   * selection pass for the declared borders.
+   */
+  #onAfterInitRender = () => {
+    this.hot.render();
+  };
 
   /**
    * Set custom borders.

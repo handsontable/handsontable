@@ -241,7 +241,16 @@ The contract:
   function and the meta hooks). So core calls `metaManager.invalidateMetaExtensions()` after the steps.
   Without it the `init` listeners read a meta as it was before a step changed it: AutoColumnSize's sweep
   read a merge's first cell (stored during the init load) without its `colspan`, and sized its column for
-  the merge's text.
+  the merge's text. **Only there, not on every held `Core#render()`.** Clearing on each held render would let
+  a read inside `batch()` see what a `render()` call changed, but it re-runs the `cells` function and the meta
+  hooks for every cell read after each such call: a `batch()` of 1,000 `render()` calls with 50 meta reads
+  after each took 30.4 ms against 14.3 ms (medians of 10, Chromium), and batched `setDataAtCell()` writes do
+  not go through `Core#render()` at all. A stale extension inside a batch is the older behavior and has no
+  report behind it, so the read speed wins. The counter is put back to its value from before the steps, not
+  decremented: a step that resumed rendering once more than it suspended left it below zero, and the next
+  `suspendRender()` held nothing. **A step that needs to know it runs in the init pass asks
+  `isInitReadyStep()`, never `view._wt.drawn`**: a grid built hidden is never drawn, so the view answer is
+  wrong for every later enable on it (CustomBorders left an `afterInit` listener there that never fired).
 - **One owner per enable for work that `updatePlugin()` or `onDataReady()` also does.** The step runs after
   every enable AND every update, and many plugins already do their data work in `updatePlugin()` (a settings
   sort, the declared borders, the page state). Such a plugin sets a private `#...Owed` flag in

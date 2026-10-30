@@ -40,6 +40,14 @@ class ReadyStepProbe extends BasePlugin {
       firstCell: this.hot.getDataAtCell(0, 0),
     }]);
 
+    if (this.getSetting('logInitPass')) {
+      log.push(['init pass', PROBE, this.isInitReadyStep()]);
+    }
+
+    if (this.getSetting('resumeRenderOnReady')) {
+      this.hot.resumeRender();
+    }
+
     if (this.getSetting('writeOnReady')) {
       this.hot.setDataAtCell(0, 0, 'written by the ready step');
     }
@@ -262,6 +270,30 @@ describe('BasePlugin ready step (`onGridReady()`)', () => {
 
     // The write renders from the step, and `updateSettings()` renders once at its end.
     expect(log.map(([step]) => step)).toEqual(['update end', 'ready', 'render', 'render']);
+  });
+
+  it('should tell a step whether it runs in the init pass', () => {
+    hot = createGrid({ [PROBE]: { logInitPass: true } });
+    hot.updateSettings({ [PROBE]: { logInitPass: true, updated: true } });
+    hot.getPlugin(PROBE).disablePlugin();
+    hot.getPlugin(PROBE).enablePlugin();
+
+    // Init, an update, and a direct enable on a grid that jsdom never draws: only the first is the init pass.
+    expect(log.filter(([step]) => step === 'init pass').map(([, , initPass]) => initPass))
+      .toEqual([true, false, false]);
+  });
+
+  it('should leave rendering not held after init when a step resumed it once more than it suspended', () => {
+    hot = createGrid({ [PROBE]: { resumeRenderOnReady: true } });
+
+    expect(hot.isRenderSuspended()).toBe(false);
+
+    hot.suspendRender();
+
+    // A counter left below zero by the init hold would make this suspension hold nothing.
+    expect(hot.isRenderSuspended()).toBe(true);
+
+    hot.resumeRender();
   });
 
   ['loadData', 'updateData'].forEach((method) => {
