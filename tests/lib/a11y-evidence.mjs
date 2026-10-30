@@ -178,6 +178,13 @@ export const EVIDENCE_CHECKS = Object.freeze({
     criteria: ['1.3.4', '1.4.4', '1.4.10', '1.4.12', '1.4.13'],
     pullRequest: true,
   },
+  // Nightly only: watching every catalog state for five seconds is minutes of work.
+  'forced-colors-motion': {
+    title: 'Forced colors and reduced motion',
+    spec: 'forced-colors-motion.spec.ts',
+    criteria: ['1.4.1', '1.4.11', '2.2.2', '2.3.3', '2.4.7'],
+    pullRequest: false,
+  },
   // Triage, not evidence: its records list what axe's wider rules found and could not decide, for a
   // person or the agent grader to sort, and the conformance report cites none of them as they stand.
   'axe-discovery': {

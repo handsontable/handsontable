@@ -1743,6 +1743,56 @@ counts as lost content.
 - **Orientation** (1.3.4): the grid's root must have an area on screen in a 390 by 844 and an 844 by 390
   viewport.
 
+### Forced colors and reduced motion
+
+`a11y/checks/forced-colors-motion.spec.ts`, the `forced-colors-motion` check, nightly only (every page is
+watched for five seconds): 2.2.2, 2.3.3 and the forced-colors support of 1.4.1, 1.4.11 and 2.4.7, on
+every theme. The spec watches and captures; the verdicts are `lib/motion.mjs` (tested in
+`lib/__tests__/motion.test.mjs`).
+
+- **Motion is read from `document.getAnimations()`, frame by frame.** One `requestAnimationFrame` loop in
+  the page records every animation it sees running: CSS transitions, CSS animations and script
+  animations alike, with the properties they animate, their duration, iterations and target, and when
+  they were first and last seen, and when the watch's own first and last frames ran. An endless
+  animation's `iterations` is recorded as the string `'Infinity'`: the record goes to the detail as JSON,
+  which writes the number as `null`. `page.clock` drives none of them (the trap in "The matrix" above), so
+  the watch runs on real time. Motion is a change of position, size or transform for longer than 1 ms
+  (`isMotion()`); an opacity or color fade is not, and a duration a reduced-motion rule shrinks to
+  (0.01 ms) moves nothing.
+- **Every catalog state is watched at rest for five seconds, without the reduced-motion preference**
+  (`emulateMedia({ reducedMotion: 'no-preference' })`, the variant `at-rest`). 2.2.2 asks for a way to
+  pause what moves on its own, and a theme's `prefers-reduced-motion` rule is not one: a user who never
+  set the preference sees the spinner it stops. An animation seen running from the watch's first frame
+  to its last, longer than 1 ms, that repeats without end or lasts five seconds or more is
+  `moves-over-five-seconds` (2.2.2), moving or blinking alike. The bounds are the watch's frames, never
+  its nominal length, so a late first frame hides nothing. The watch at rest evaluates no 2.3.3: that
+  criterion is motion an interaction starts, and the interaction runs below own it.
+- **An interaction is watched with the preference and without it.** A sheet switch, a dialog shown, a
+  notification shown and a context menu opened, each watched for 1.5 seconds under the variants
+  `interaction-reduced-motion` and `interaction-motion-allowed` (never `at-rest`, which the watch at rest
+  owns, and a target is keyed by its variant). 2.3.3 is AAA, so its findings are `moderate`. The watch
+  starts once every animation the load started that ends has ended (`expect.poll` on
+  `document.getAnimations()`), so a finite animation the page started on its own, such as a toast a
+  fixture shows on load, is never counted as the interaction's. An animation that repeats without end
+  never ends and the watch would count it, so an interaction's page must have none. Without the
+  preference is the positive control: an interaction that moves there and not under the preference
+  proves both that the watch sees motion and that the product honors the preference. The control
+  evaluates no criterion, and a control that should move and saw none is a problem of its target
+  (`controlProblems()`), never a clean result. An interaction marked `moves` (the sheet switch, the
+  notification) should move on a theme whose `--ht-table-transition` is not `0s`; the dialog only fades
+  and the context menu appears at once, so neither is expected to. The dialog and notification fixtures
+  turn animation off so their states are reached at once, so the check turns it back on (the dialog's
+  `animation` setting, the notification's `?animation=1`).
+- **Forced colors is a capture, before and after.** With `forcedColors: 'active'` on the shared demo, the
+  cell focus, a selected range and a menu item's highlight are captured before and after the keyboard
+  reaches them, and the grid lines and the header menu icons at rest. A state that changes no pixel, or a
+  part that draws nothing (`isDrawn()`, from `lib/contrast.mjs`), is a finding (`focus-`, `selection-`,
+  `menu-highlight-`, `icon-` or `gridlines-lost-in-forced-colors`), and the target evaluates every
+  criterion those findings name (`FORCED_COLORS_CRITERIA`: 1.4.1, 1.4.11 and 2.4.7), so a criterion never
+  shows a finding with no target evaluating it. Every capture is attached as a PNG to the test, for the
+  person who reads the report. Chromium's emulation applies the system colors the way Windows High
+  Contrast does; the colors themselves are the emulation's, not a Windows theme's.
+
 ### Adding a check
 
 Add its entry to `EVIDENCE_CHECKS` in `lib/a11y-evidence.mjs`, keyed by the check's id: its `title`,
