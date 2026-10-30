@@ -456,6 +456,12 @@ When the [`autoColumnSize`](@/api/options.md#autocolumnsize) option sizes the co
 
 A spanned column with a fixed [`width`](@/api/options.md#width) or a width you dragged keeps it, and a hidden spanned column counts as zero.
 
+## Row heights
+
+A merged cell with long text can make the rows it spans taller. When the text wraps onto several lines, it stretches the spanned rows, so the grid ends up taller than the sum of your [`rowHeights`](@/api/options.md#rowheights). A cell that is not merged grows the same way.
+
+To keep the configured heights, set [`textEllipsis`](@/api/options.md#textellipsis) to `true` or set [`wordWrap`](@/api/options.md#wordwrap) to `false` for the column or the cell. The text then stays on one line.
+
 ## Effect on viewport getter methods
 
 With merged cells, the rendered range extends to fit any merged cell that crosses the viewport edge. This is the same expansion that the `virtualized` option turns off. As a result, the rendered-range getters can return indexes beyond what you see on the screen:
