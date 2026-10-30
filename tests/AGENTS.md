@@ -1793,6 +1793,73 @@ every theme. The spec watches and captures; the verdicts are `lib/motion.mjs` (t
   person who reads the report. Chromium's emulation applies the system colors the way Windows High
   Contrast does; the colors themselves are the emulation's, not a Windows theme's.
 
+### Pointer and drag alternatives
+
+`a11y/checks/pointer.spec.ts`, the `pointer` check: 2.5.1, 2.5.2 and 2.5.7, and 2.1.1 for every drag (a
+key path must do all it does), on the main theme: a pointer works the same on every theme. The browser
+half presses and drags (`pointer-state.ts`, `drag-runner.ts`); the verdicts are `lib/pointer.mjs` (tested in
+`lib/__tests__/pointer.test.mjs`).
+
+- **Pointer cancellation is the press compared with the click.** On every catalog page in its state,
+  one control of each kind the grid and its portal draw (tag, first class and role; at most twelve) is
+  clicked on a page as it loads, which is the positive control: a control whose click changes nothing
+  the state reads is not measured, unless its press acts. Then, on another page as it loads, it is pressed, the pointer moves
+  to a corner away from the grid and is released. What the press alone did is `activates-on-press`
+  (advisory when all it did is show a popup, which Escape takes back); doing what the click does after
+  the pointer left is `completes-after-pointer-left`. A selection, a focus move or a hover highlight is
+  never an action: a press on a cell selects it by design. The state before the press, and before the
+  click, is read once the hover has held still (`settledPointerState()`): a hovered menu item opens its
+  submenu on a 300 ms timer, and a state read the moment the pointer arrives blamed the press for it
+  whenever the run was slow. The controls in the grid's own cells and
+  headers are judged through the data, the sort and the collapsed groups, never through their drawn
+  `checked` or `aria-*` states: a press dragged off a cell scrolls the grid, and the scroll redraws
+  other rows into the same nodes. A reload parks the pointer off the grid first, and a control is
+  measured on a reload only when the reload marked the same control under its id: an id is a place in
+  the marking order, so one control more or less hands it to another. A control is not measured either
+  when the grid or its portal covers every corner of the viewport, since no release is away from it.
+  Every load of a test writes to one page error list, which is checked once each click or release is done:
+  the test passes it to every `openTarget()`, so an error between two loads is never lost.
+- **With a menu, a dialog or an editor open, only the controls inside it are measured.** A press
+  anywhere else dismisses what is open (and commits an editor) on the press, by design, and those
+  controls are measured on the pages where nothing is open. A link counts its click instead of
+  navigating (`installSentinels()`).
+- **Every drag the product does is in `a11y/checks/drag-operations.mjs`**, with every way to do it
+  without a drag that the product has today: its input (`single-pointer`, `keyboard`, or
+  `pointer-modifier`, a click with a key held, which is neither), whether it covers the whole drag or a
+  part, and the steps that perform it. The spec performs the drag first, and a drag that does not have
+  the effect the entry names is a red test: the inventory is wrong. Each alternative then runs on a page
+  as it loads and is proven when it has the same effect and, for one that covers the whole drag, leaves
+  the compared field (the data, the selection, the sheet order, the open editor's text) exactly as the drag left it. 2.5.7 needs
+  a proven single-pointer alternative that covers the whole drag, and 2.1.1 a proven keyboard one that
+  covers it too: a key path that does part of it (cut and paste for a move that carries cell meta) is
+  not all of the function. A listed alternative that did not work is `alternative-does-not-work`,
+  advisory for a click with a key held, which meets neither criterion anyway. So is one whose steps
+  could not run: the throw is caught, its cause goes in the detail and the problems, and the drag's own
+  findings stand, so a person tells a stale inventory from a broken product. A page that threw is not
+  caught: each load's errors are checked once its steps are done, and the test fails, as
+  `attachEvidence()` fails a page that threw. An operation with no alternative lists none, and that
+  absence is the finding. A drag target evaluates 2.1.1 and 2.5.7, a path-based or multipoint one 2.5.1
+  (`operationCriteria()`), and a drag finding is annotated on its entry's line in the inventory.
+- **The tooling test keeps the inventory complete.** It reads `handsontable/src/plugins/`, and a plugin
+  that follows the pointer must be in the inventory or in `NOT_DRAG` with its reason: one that listens
+  to `mousemove`, `pointermove` or `touchmove`, registers a cell mouse-over hook (a drag across cells or
+  headers, like the nested-header column selection), or imports a module under `src/utils/` that
+  listens (the resize drags live in `utils/manualResize/resizeGesture.ts`). A reason for a plugin that
+  no longer follows the pointer fails as stale. `inventoryProblems()` refuses a `compare` that is not a
+  field of the drag state (`DRAG_FIELDS`): a misspelled one reads `undefined` after the drag and after
+  the alternative alike, and every full alternative would pass on its effect alone. A new drag
+  is accounted for in the change that adds it. A path-based or multipoint gesture goes in with its
+  `gesture`, and 2.5.1 judges it like 2.5.7 judges a drag; the product has none today (a long press and
+  a double tap are time-based, single-point gestures). The inventory is a target of its own for 2.5.1
+  (`gestureInventory()`): since the tooling test keeps it complete, its count of path-based and
+  multipoint gestures is the evidence for the product as a whole.
+- **A step that acts on a timer is read until it lands.** The double-click autofit runs from a 500 ms
+  timer and a sheet tab settles after its transition, so the state after the last step is read until the
+  effect shows, for two seconds at most; a read that throws is a tooling error with its cause, never a
+  missing effect. Every step but the last sets up, and an alternative's `prepare`
+  sets up what a partial alternative undoes (a wide column for the autofit, empty cells for the
+  copy-down) through the API, never with a drag.
+
 ### Adding a check
 
 Add its entry to `EVIDENCE_CHECKS` in `lib/a11y-evidence.mjs`, keyed by the check's id: its `title`,
