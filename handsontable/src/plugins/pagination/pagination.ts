@@ -221,6 +221,13 @@ export class Pagination extends BasePlugin {
    */
   #isUpdatingPlugin = false;
   /**
+   * `true` from an `enablePlugin()` until the page state is computed. `updatePlugin()` and `onDataReady()`
+   * compute it themselves; otherwise the ready step does (at init, and after a direct `enablePlugin()` call).
+   *
+   * @type {boolean}
+   */
+  #stateOwed = false;
+  /**
    * Page size setup by the user. It can be a number or 'auto' (in which case the plugin will
    * calculate the page size based on the viewport size and row heights).
    *
@@ -351,9 +358,6 @@ export class Pagination extends BasePlugin {
         .register(PLUGIN_KEY, this.#ui.getContainer(), { side: 'bottom', weight: LAYOUT_WEIGHT });
     }
 
-    // Place the onInit hook before others to make sure that the pagination state is computed
-    // and applied to the index mapper before AutoColumnSize plugin begins calculate the column sizes.
-    this.addHook('init', this.#onInit, -1);
     this.addHook('beforeSelectAll', this.#onBeforeSelectAllRows);
     this.addHook('beforeSelectColumns', this.#onBeforeSelectAllRows);
     this.addHook('beforeSetRangeEnd', this.#onBeforeSetRangeEnd);
@@ -367,6 +371,8 @@ export class Pagination extends BasePlugin {
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
     this.#registerFocusScope();
+
+    this.#stateOwed = true;
 
     super.enablePlugin();
   }
@@ -511,7 +517,34 @@ export class Pagination extends BasePlugin {
       return;
     }
 
+    this.#stateOwed = false;
     this.#refreshUI();
+  }
+
+  /**
+   * Computes the page state when no `updatePlugin()` or `onDataReady()` computed it: at init, and after a
+   * direct `enablePlugin()` call. Core runs it once after each enable or update, when the data is loaded and
+   * the view exists.
+   *
+   * At init it runs before the `init` hook and the first render, so the page is applied to the index mapper
+   * before AutoColumnSize and AutoRowSize measure from their `init` listeners. It does not render then, and
+   * leaves an `'auto'` page size to the render, which measures the rows it needs. On a grid already drawn it
+   * computes and renders.
+   *
+   * @private
+   */
+  onGridReady() {
+    if (!this.#stateOwed) {
+      return;
+    }
+
+    this.#stateOwed = false;
+
+    if (this.hot.view._wt.drawn) {
+      this.#refreshUI();
+    } else if (this.#pageSize !== 'auto') {
+      this.#computeAndApplyState();
+    }
   }
 
   /**
@@ -530,6 +563,7 @@ export class Pagination extends BasePlugin {
     if (this.isDataWorkDeferred()) {
       this.deferDataWork();
     } else {
+      this.#stateOwed = false;
       this.#refreshUI();
     }
 
@@ -1225,17 +1259,6 @@ export class Pagination extends BasePlugin {
 
     this.#internalRenderCall = true;
     this.#refreshUI();
-  };
-
-  /**
-   * Called after the initialization of the plugin. It computes the initial state of the pagination.
-   */
-  #onInit = () => {
-    if (this.#pageSize === 'auto') {
-      return;
-    }
-
-    this.#computeAndApplyState();
   };
 
   /**
