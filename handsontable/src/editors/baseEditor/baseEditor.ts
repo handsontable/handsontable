@@ -10,6 +10,7 @@ import {
   getScrollbarWidth,
   offset,
   standsBehindRowHeader,
+  isStartGapCovered,
   hasVerticalScrollbar,
   hasHorizontalScrollbar,
   outerWidth,
@@ -846,13 +847,11 @@ export class BaseEditor {
       return false;
     }
 
-    const cellRect = TD.getBoundingClientRect();
-    const overlayRect = coveringOverlay.clone.wtTable.TABLE.getBoundingClientRect();
-    const gap = this.hot.isRtl() ? overlayRect.left - cellRect.right : cellRect.left - overlayRect.right;
-
-    // The gridline is the pixel just before the cell, so it is covered when the overlay reaches
-    // the cell or past it. Half a pixel absorbs the fractional sizes of a zoomed page.
-    return gap < 0.5;
+    return isStartGapCovered(
+      TD.getBoundingClientRect(),
+      coveringOverlay.clone.wtTable.TABLE.getBoundingClientRect(),
+      this.hot.isRtl()
+    );
   }
 
   /**

@@ -100,7 +100,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: 'Или',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: 'Выбрать все',
-  [C.FILTERS_BUTTONS_CLEAR]: 'Убрать',
+  [C.FILTERS_BUTTONS_CLEAR]: 'Отменить выбор',
   [C.FILTERS_BUTTONS_OK]: 'OK',
   [C.FILTERS_BUTTONS_CANCEL]: 'Отмена',
 
@@ -132,6 +132,8 @@ const dictionary = {
   [C.SHEETS_BAR_PAGE_NEXT]: 'Прокрутить листы вперёд',
   [C.SHEETS_BAR_SHEET_CHANGED]: 'Лист [name] активирован',
   [C.SHEETS_BAR_RENAME_REJECTED]: 'Имя листа не изменено: [name] уже используется',
+  [C.SHEETS_BAR_SHEET_DUPLICATED]: 'Лист [name] дублирован как [copy]',
+  [C.SHEETS_BAR_SHEET_MOVED]: 'Лист [name] перемещён на позицию [position] из [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Лист',
 
   [C.LOADING_TITLE]: 'Загрузка...',

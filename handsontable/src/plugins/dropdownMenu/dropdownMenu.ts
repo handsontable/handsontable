@@ -722,6 +722,10 @@ export class DropdownMenu extends BasePlugin {
   /**
    * On after get column header listener.
    *
+   * The header cell is reused between renders and core strips every `aria-*` attribute off it each
+   * time, while the button survives. So `aria-haspopup="menu"` is set again on every call while the
+   * plugin is on, not only when the button is created.
+   *
    * @private
    * @param {number} col Visual column index.
    * @param {HTMLTableCellElement} TH Header's TH element.
@@ -746,6 +750,12 @@ export class DropdownMenu extends BasePlugin {
       // here as well - `syncIcon()` re-applies the mapping only when the theme's icons revision
       // moved, so on an ordinary redraw this is one class check per header.
       syncIcon(this.hot, existingButton as HTMLElement, BUTTON_ICON_CLASS_NAME, 'menu');
+
+      if (this.hot.getSettings().ariaTags) {
+        setAttribute(TH, [
+          A11Y_HASPOPUP('menu'),
+        ]);
+      }
 
       return;
     }

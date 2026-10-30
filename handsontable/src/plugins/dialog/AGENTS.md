@@ -59,10 +59,71 @@ value containing a space.
 `emptyDataState` and `notification` share this helper; `notification` has no button-type validator and
 normalizes action types in `#normalizeOptions` instead.
 
+## Each show describes one complete dialog
+
+The plugin keeps two option sets apart, and the base plugin's settings are only ever the composition of the two
+(`#composeSettings()`, defaults first):
+
+- `#configuredOptions`: what the `dialog` setting configured, merged across `updateSettings()` calls. Dialog
+  overrides `updatePluginSettings()`, which the base plugin calls for the settings path only.
+- `#dialogOptions`: the options of the last dialog, its `show()` merged with its `update()` calls. They stay after
+  the hide, so `getSetting()` still reads them and a bare `show()` shows the same dialog again, as 18.1.2 did.
+
+**What starts a new dialog.** The first `show()` or `update()` after a hide (`#beginsNewDialog`) starts from the
+configured options alone when its options name `content` or `template`; any other first call continues from the
+last dialog. A `show()` that names `content` or `template` while a dialog is visible **replaces** it the same way
+(`#replaceDialog()`), and `_showDialog()` (`@private`, Loading's entry) always starts from scratch. The older shape
+merged every call into one stored object, so options outlived the dialog that set them: after `showConfirm()` the
+`template` stayed and every `loading.show()` threw, after a loading screen its `content` stayed and every
+`showAlert()`/`showConfirm()` threw, and a `closable: true` let Escape close the next loading screen. Do not "fix"
+the bare re-show by clearing on hide: 18.1.2 showed the last dialog again for `show()` without options, and that is
+released behavior.
+
+**A rejected call stores nothing.** `#applyOptions()` runs the template plus content check and the UI's template
+type check (`useTemplate()`, which throws before it changes anything) before it commits. Options are validated
+against `SETTINGS_VALIDATORS` once, when they arrive (`#pickValidOptions()`, which warns the way the base plugin
+does); never feed the composed object back through validation, because the default `template: null` fails its own
+validator and would warn on every show.
+
+**A replacement is announced.** `#replaceDialog()` calls the listeners of `_addReplacedListener()` after the new
+dialog rendered. No hide or show hook fires for it: the modal stays open and keeps its stashed selection. Loading
+listens, because its screen is gone at that point (`../loading/AGENTS.md`). A public `update()` on a visible
+dialog calls them too when it changed the rendered `content` or `template` (`#showsOtherContent()`): it merges
+rather than replaces, but the screen it rewrites is no longer the one shown before. Naming the option is not
+enough, because an ignored value (`template: null`) or the same value changes nothing, and Loading would give
+up a screen that is still up. Loading rewrites its own screen through `_updateDialog()` (`@private`,
+the options alone over the configured ones, no listeners), so its own updates are not read as a replacement.
+
+## `updatePlugin()` does NOT run the disable and enable cycle
+
+`disablePlugin()` hides the dialog, so the cycle hid a shown dialog (the loading screen included, without
+`afterLoadingHide`) on every `updateSettings()` that carried `dialog`, which a wrapper re-render does. The plugin
+stays enabled and re-renders a shown dialog through `update({})`, so the shortcuts and the focus scope stay
+registered once. Turning the option off still goes through `disablePlugin()`.
+
+**A render replaces the controls, so it must not run for nothing and must keep the focus.** `DialogUI#updateDialog`
+empties the wrapper and builds the buttons anew; a focused button is removed, the focus falls to `body`, the grid
+stops listening and Escape stops closing the dialog. `#applyOptions()` therefore renders only when the composed
+description differs from the last rendered one (`isSameDialogDescription()` in `description.ts`: plain objects and
+arrays by value, so a wrapper resending an equal `a11y` object is no change; elements and functions by identity,
+because a generic deep compare reads both as empty values). When it does render a visible dialog that held the
+focus, it puts the focus back on the control at the same index, else the first control, else the dialog itself.
+`#renderedDescription` resets with the UI in `disablePlugin()`. Pinned by `__tests__/sharedSurface.unit.js`.
+
 ## `template` and `content` are mutually exclusive
 
 Passing both throws (`throwWithCause`). The check compares each against `DEFAULT_SETTINGS`, so "not the
-default" is what counts as "supplied".
+default" is what counts as "supplied". It throws only when one layer sets both: one call (with the `update()`
+calls of the same dialog), or the `dialog` setting. Across the layers the dialog's own options win
+(`#describeDialog()`): a show that names `content` and no `template` drops a configured `template` for that
+dialog, and the reverse. Without that, a `template` in the `dialog` setting made every `loading.show()` throw,
+since Loading always passes `content`, so the loading screen could never appear.
+
+The UI's own template check (`Invalid template: …`) runs before the options are committed too: `update()` hands
+the composed template to `useTemplate()` first, which throws before it changes anything. Committed first, a
+rejected template type stayed in the dialog's options of a dialog that never became visible, so `hide()`
+(which returns early on a hidden dialog) could not clear it, and every later `show({ content })` and
+`loading.show()` threw.
 
 ## Titles are DOM text now, via `htmlToPlainText()`
 
@@ -158,9 +219,18 @@ its container was not.)
 `show()` stashes the selection and `hide()` imports it back, as coordinates. When the view changes under an open
 dialog (a sheets bar switch), those coordinates name the departing sheet's cells, so the sheets bar calls
 `_adoptViewSelection()` (`@private`) after the switch: the dialog takes the selection the grid shows then as the one
-to restore, and clears it while it stays open. A plain `loadData()` under an open dialog keeps the old behavior on
-purpose (show loading, reload, hide, and the cursor is back where it was). EmptyDataState's `isViewChange` is the
-same rule. Pinned by `tests/e2e/sheets-bar-in-flight-work.spec.ts`.
+to restore, and clears it while it stays open.
+
+**The hide restores only what the current data holds** (`fitSelectionToGrid()` in `selectionFit.ts`). A layer that
+lies within `countRows()`/`countCols()` comes back unchanged, so the documented Loading pattern (select a cell,
+`loading.show()`, `loadData()`, `loading.hide()`) keeps the cell. A whole-row or whole-column extent (the layer is in
+`rowExtentSpansGrid`/`columnExtentSpansGrid`) is fitted to the new size. Any other layer that reaches past the end is
+dropped, never moved onto cells the user did not select; the layer-indexed lists are re-indexed and the active layer
+falls back to the last surviving one. This holds for every way the data changes (`loadData()`, `updateData()`,
+`updateSettings({ data })`, a removal): the older code imported the stash as it was and selected `[[8, 8]]` on a
+2×2 grid. Do not go back to dropping the stash on `beforeLoadData`: that also dropped selections the new data still
+holds and broke the Loading guide's examples. Pinned by `__tests__/sharedSurface.unit.js` and
+`tests/e2e/sheets-bar-in-flight-work.spec.ts`.
 
 ## Where to look next
 

@@ -23,6 +23,10 @@ import {
   TRACE_MISMATCH_REASONS,
   activeTotalsPerIteration,
   heapThresholdFor,
+  GATE_TIMING_FLOOR_MS,
+  GATE_TIMING_THRESHOLD,
+  WATCH_TIMING_THRESHOLD,
+  isOverTimingLine,
   relativeToShift,
   runShift,
   traceMismatches,
@@ -31,6 +35,7 @@ import {
   classifyChange,
   fmtCv,
   fmtCvValue,
+  fmtMsDelta,
   fmtPct,
   fmtPctWithEmoji,
   pctChange,
@@ -48,6 +53,41 @@ describe('thresholds -- callout constants', () => {
 
   test('active categories are scripting, rendering and painting only', () => {
     assert.deepEqual(ACTIVE_CATEGORIES, ['scripting', 'rendering', 'painting']);
+  });
+});
+
+describe('isOverTimingLine', () => {
+  test('the watch line sits below the fail line', () => {
+    assert.ok(WATCH_TIMING_THRESHOLD < GATE_TIMING_THRESHOLD);
+  });
+
+  test('needs both the relative and the absolute part', () => {
+    // 100 -> 112 ms: +12%, +12 ms.
+    assert.equal(isOverTimingLine(100, 112), true);
+    // 13 -> 14.6 ms: +12.3%, but only +1.6 ms, under the floor.
+    assert.equal(isOverTimingLine(13, 14.6), false);
+    // 1000 -> 1050 ms: +50 ms, but only +5%.
+    assert.equal(isOverTimingLine(1000, 1050), false);
+  });
+
+  test('is strict at both edges', () => {
+    assert.equal(isOverTimingLine(100, 100 + GATE_TIMING_THRESHOLD), false);
+    assert.equal(isOverTimingLine(10, 10 + GATE_TIMING_FLOOR_MS), false);
+  });
+
+  test('takes another line and floor', () => {
+    assert.equal(isOverTimingLine(100, 106, 5, 0), true);
+    assert.equal(isOverTimingLine(100, 106, 5, 10), false);
+  });
+
+  test('is false when either side is missing or the baseline is zero', () => {
+    assert.equal(isOverTimingLine(null, 200), false);
+    assert.equal(isOverTimingLine(100, null), false);
+    assert.equal(isOverTimingLine(0, 200), false);
+  });
+
+  test('a speed-up is never over the line', () => {
+    assert.equal(isOverTimingLine(100, 50), false);
   });
 });
 
@@ -347,6 +387,12 @@ describe('fmtPct and fmtPctWithEmoji', () => {
     assert.equal(fmtPct(null), '--');
   });
 
+  test('renders a tiny negative as +0.0%, never -0.0%', () => {
+    assert.equal(fmtPct(-0.036), '+0.0%');
+    assert.equal(fmtPct(-0.04), '+0.0%');
+    assert.equal(fmtPct(-0.05), '-0.1%');
+  });
+
   test('suppresses the emoji below one percent', () => {
     assert.equal(fmtPctWithEmoji(0.4), '+0.4%');
   });
@@ -356,6 +402,46 @@ describe('fmtPct and fmtPctWithEmoji', () => {
 
     assert.ok(fmtPctWithEmoji(pct, REGRESSION_CALLOUT_THRESHOLD_HEAP).includes('\u{1F534}'));
     assert.ok(!fmtPctWithEmoji(pct, REGRESSION_CALLOUT_THRESHOLD_TIMING).includes('\u{1F534}'));
+  });
+
+  test('marks only where the gate acts: red over the line, yellow over the watch line, green under the mirror', () => {
+    assert.equal(fmtPctWithEmoji(GATE_TIMING_THRESHOLD + 1), `+${GATE_TIMING_THRESHOLD + 1}.0% \u{1F534}`);
+    assert.equal(fmtPctWithEmoji(WATCH_TIMING_THRESHOLD + 1), `+${WATCH_TIMING_THRESHOLD + 1}.0% \u{1F7E1}`);
+    assert.equal(fmtPctWithEmoji(-GATE_TIMING_THRESHOLD - 1), `-${GATE_TIMING_THRESHOLD + 1}.0% \u{1F7E2}`);
+  });
+
+  test('carries no marker for the runner\'s noise, and never the blue one', () => {
+    assert.equal(fmtPctWithEmoji(3), '+3.0%');
+    assert.equal(fmtPctWithEmoji(WATCH_TIMING_THRESHOLD), `+${WATCH_TIMING_THRESHOLD}.0%`);
+    assert.equal(fmtPctWithEmoji(-3), '-3.0%');
+    assert.equal(fmtPctWithEmoji(-GATE_TIMING_THRESHOLD + 1), `-${GATE_TIMING_THRESHOLD - 1}.0%`);
+  });
+
+  test('has no watch tier for a metric that passes none (heap)', () => {
+    assert.equal(fmtPctWithEmoji(4, REGRESSION_CALLOUT_THRESHOLD_HEAP, null), '+4.0%');
+  });
+});
+
+describe('fmtMsDelta', () => {
+  test('is signed, one decimal, and never -0.0', () => {
+    assert.equal(fmtMsDelta(14.84), '+14.8 ms');
+    assert.equal(fmtMsDelta(-2.26), '-2.3 ms');
+    assert.equal(fmtMsDelta(-0.04), '+0.0 ms');
+    assert.equal(fmtMsDelta(null), '--');
+    assert.equal(fmtMsDelta(Number.NaN), '--');
+  });
+});
+
+describe('the reports\' red line', () => {
+  test('is the gate\'s fail line, so a row is red exactly where the gate fails it', () => {
+    assert.equal(REGRESSION_CALLOUT_THRESHOLD_TIMING, GATE_TIMING_THRESHOLD);
+  });
+});
+
+describe('fmtCvValue -- flag', () => {
+  test('can leave a wide-by-construction spread unflagged', () => {
+    assert.equal(fmtCvValue(CV_WARNING_THRESHOLD + 10, { flag: false }), `${CV_WARNING_THRESHOLD + 10}.0%`);
+    assert.ok(fmtCvValue(CV_WARNING_THRESHOLD + 10).includes('⚠️'));
   });
 });
 

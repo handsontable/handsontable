@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the column dropdown menu and the context menu opening past the edge of a narrow or short viewport, which clipped part of the menu.",
+  "type": "fixed",
+  "issueOrPR": 14051,
+  "breaking": false,
+  "framework": "none"
+}

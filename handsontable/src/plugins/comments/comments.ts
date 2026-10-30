@@ -18,6 +18,13 @@ import { throwWithCause } from '../../helpers/errors';
 import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
 import { getEditorAnchorHeight, getEditorAnchorWidth } from './utils';
+import {
+  META_COMMENT,
+  META_COMMENT_VALUE,
+  META_STYLE,
+  META_READONLY,
+  type CommentMeta,
+} from './constants';
 import { shrinkSizeToViewport, clampPositionToViewport } from './viewport';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import type { PredefinedMenuItemKey, MenuItemConfig } from '../contextMenu/contextMenu';
@@ -28,21 +35,16 @@ import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/
 
 export const PLUGIN_KEY = 'comments';
 export const PLUGIN_PRIORITY = 60;
-export const META_COMMENT = 'comment';
-export const META_COMMENT_VALUE = 'value';
-export const META_STYLE = 'style';
-export const META_READONLY = 'readOnly';
 
-/**
- * Represents a comment's metadata stored in cell meta.
- */
-interface CommentMeta {
-  [META_COMMENT_VALUE]?: string;
-  [META_STYLE]?: { width: number; height: number };
-  [META_READONLY]?: boolean;
-}
-
-export interface CommentObject extends CommentMeta { }
+// The keys live in `constants.ts`, so `utils.ts` and the menu items read them without importing the
+// plugin, which imports both. Re-exported here, where they have always been importable from.
+export {
+  META_COMMENT,
+  META_COMMENT_VALUE,
+  META_STYLE,
+  META_READONLY,
+  type CommentObject,
+} from './constants';
 
 /**
  * Checks if a value is a CommentMeta object.
@@ -377,6 +379,7 @@ export class Comments extends BasePlugin {
   disablePlugin(): void {
     const manager = this.hot.getShortcutManager();
 
+    this.#displaySwitch?.cancel();
     this.hide();
 
     // The hold flag outlives a disable, because it is an instance field and `enablePlugin()` never
@@ -691,7 +694,8 @@ export class Comments extends BasePlugin {
   /**
    * Gets comment from a cell according to previously set range (see {@link Comments#setRange}).
    *
-   * @returns {string|undefined} Returns a content of the comment.
+   * @returns {string|undefined} Returns a content of the comment, or `undefined` if the cell has no comment
+   * or the range points at a header.
    */
   getComment(): string | undefined {
     const { row, col } = this.#getRangeCoords();
@@ -704,7 +708,8 @@ export class Comments extends BasePlugin {
    *
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
-   * @returns {string|undefined} Returns a content of the comment.
+   * @returns {string|undefined} Returns a content of the comment, or `undefined` if the cell has no comment
+   * or the coordinates point at a header (a negative index).
    */
   getCommentAtCell(row: number, column: number): string | undefined {
     return this.getCommentMeta(row, column, META_COMMENT_VALUE);
@@ -713,7 +718,10 @@ export class Comments extends BasePlugin {
   /**
    * Shows the comment editor accordingly to the previously set range (see {@link Comments#setRange}).
    *
-   * @returns {boolean} Returns `true` if comment editor was shown.
+   * The editor opens even if the cell has no comment. In that case, it is empty, so you can add a comment.
+   * To check first, use {@link Comments#getCommentAtCell}.
+   *
+   * @returns {boolean} Returns `true` if comment editor was shown. Returns `false` if the cell is outside the grid.
    */
   show(): boolean {
     if (!this.range.from) {
@@ -741,9 +749,12 @@ export class Comments extends BasePlugin {
   /**
    * Shows comment editor according to cell coordinates.
    *
+   * The editor opens even if the cell has no comment. In that case, it is empty, so you can add a comment.
+   * To check first, use {@link Comments#getCommentAtCell}.
+   *
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
-   * @returns {boolean} Returns `true` if comment editor was shown.
+   * @returns {boolean} Returns `true` if comment editor was shown. Returns `false` if the cell is outside the grid.
    */
   showAtCell(row: number, column: number): boolean {
     this.setRange({
@@ -1007,7 +1018,7 @@ export class Comments extends BasePlugin {
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    * @param {string} property Cell meta property.
-   * @returns {Mixed}
+   * @returns {Mixed} Returns `undefined` if the cell has no comment or the coordinates point at a header (a negative index).
    */
   /**
    * @overload
@@ -1031,7 +1042,12 @@ export class Comments extends BasePlugin {
    * Returns the value of a specific meta property from the comment attached to the given cell.
    */
   getCommentMeta(row: number, column: number, property: string): unknown {
-    const cellMeta = this.hot.getCellMeta<{ [META_COMMENT]?: CommentMeta }>(row, column);
+    // Header coordinates are negative, and `getCellMeta()` asserts unsigned indexes.
+    if (row < 0 || column < 0) {
+      return undefined;
+    }
+
+    const cellMeta = this.hot.getCellMetaTransient<{ [META_COMMENT]?: CommentMeta }>(row, column);
     const comment = cellMeta[META_COMMENT];
 
     if (!comment) {
@@ -1207,6 +1223,13 @@ export class Comments extends BasePlugin {
    * the keyboard shortcuts by switching the context to plugins one.
    */
   #onEditorFocus() {
+    const { row, col } = this.#getRangeCoords();
+
+    // A range on a header has no comment to edit, and the blur that follows could not save one.
+    if (row < 0 || col < 0) {
+      return;
+    }
+
     this.#commentValueBeforeSave = this.getComment() ?? '';
     this.hot.listen();
     this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
@@ -1287,7 +1310,7 @@ export class Comments extends BasePlugin {
 
     const { row, col } = this.#getRangeCoords();
 
-    if (row >= this.hot.countRows() || col >= this.hot.countCols()) {
+    if (row < 0 || col < 0 || row >= this.hot.countRows() || col >= this.hot.countCols()) {
       this.hide();
 
       return;

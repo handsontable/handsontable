@@ -41,32 +41,12 @@
         "name": "Alpha"
       },
       {
-        "region": "grid",
-        "role": "button",
-        "name": "Beta"
-      },
-      {
-        "region": "grid",
-        "role": "button",
-        "name": "Gamma"
-      },
-      {
         "region": "end"
       }
     ],
     "backward": [
       {
         "region": "end"
-      },
-      {
-        "region": "grid",
-        "role": "button",
-        "name": "Gamma"
-      },
-      {
-        "region": "grid",
-        "role": "button",
-        "name": "Beta"
       },
       {
         "region": "grid",

@@ -201,6 +201,8 @@ These keyboard shortcuts work when the [`CopyPaste`](@/api/copyPaste.md) plugin 
 | <kbd>**Ctrl**</kbd>+<kbd>**C**</kbd> | <kbd>⌘</kbd>+<kbd>**C**</kbd> | Copy the contents of the selected cells to the system clipboard | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**V**</kbd> | <kbd>⌘</kbd>+<kbd>**V**</kbd> | Paste from the system clipboard                                 | &check; | &check; |
 
+To turn off these keyboard shortcuts, see [Remove the copy, cut, and paste shortcuts](@/guides/navigation/custom-shortcuts/custom-shortcuts.md#remove-the-copy-cut-and-paste-shortcuts).
+
 ### Cell merging keyboard shortcuts
 
 These keyboard shortcuts work when the [`MergeCells`](@/api/mergeCells.md) plugin is enabled.
@@ -295,7 +297,7 @@ These keyboard shortcuts work with the [column filter](@/guides/columns/column-f
 | <kbd>**Tab**</kbd> | <kbd>**Tab**</kbd> | Move focus to the next filtering component in the open filter menu. | &cross; | &cross; |
 | <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | <kbd>⇧</kbd>+<kbd>**Tab**</kbd> | Move focus to the previous filtering component in the open filter menu. | &cross; | &cross; |
 | <kbd>**↑**</kbd> / <kbd>**↓**</kbd> | <kbd>**↑**</kbd> / <kbd>**↓**</kbd> | When the filter search input is focused, move through the **Filter by value** list. | &cross; | &cross; |
-| <kbd>**Enter**</kbd> / <kbd>**Space**</kbd> | <kbd>**Enter**</kbd> / <kbd>**Space**</kbd> | When **Select all** or **Clear all** is focused, run the action. | &cross; | &cross; |
+| <kbd>**Enter**</kbd> / <kbd>**Space**</kbd> | <kbd>**Enter**</kbd> / <kbd>**Space**</kbd> | When **Select all** or **Select none** is focused, run the action. | &cross; | &cross; |
 
 ### Comments keyboard shortcuts
 

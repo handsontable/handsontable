@@ -42,7 +42,7 @@ describe('Filters UI', () => {
     expect(getComputedStyle(embeddedHolder).boxShadow).toBe('none');
   });
 
-  it('should deselect all values in "Filter by value" after clicking "Clear" link', async() => {
+  it('should deselect all values in "Filter by value" after clicking "Select none" link', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),

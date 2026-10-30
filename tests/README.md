@@ -11,10 +11,10 @@ tests/
 ├── playwright.config.ts   # one config; projects split e2e (flake-strict) from visual
 ├── playwright.a11y.config.ts # the axe scan's config: one project over a11y/, the e2e server inherited
 ├── playwright.a11y-checks.config.ts # the accessibility checks beyond axe: one project per check of EVIDENCE_CHECKS
-├── playwright.screenreader.config.ts # the screen reader lane's config: one project per screen reader and browser, through Guidepup
+├── playwright.screenreader.config.ts # the screen reader lanes' config: one project per screen reader and browser, through Guidepup
 ├── e2e/                    # functional specs (*.spec.ts)
 ├── a11y/                   # the axe scan: axe.spec.ts, pages.mjs (the curated pages), axe-baseline.json; harness.ts (openers and guards shared with the checks beyond axe), evidence.ts; checks/ (the checks beyond axe, one spec each), tab-order-goldens/, tree-goldens/
-├── screenreader/           # the screen reader lane: screenreader.spec.ts (the runner), scenarios/*.scenario.json, goldens/<project>/
+├── screenreader/           # the screen reader lanes: screenreader.spec.ts (the runner), scenarios/*.scenario.json, goldens/<project>/
 ├── visual/                 # visual regression — destination for the current visual-tests/ suite
 ├── fixtures/
 │   ├── demo/               # static pages that mount a real grid for tests to drive
@@ -41,7 +41,7 @@ cd tests
 npm test                # all projects (package scripts work as usual once installed)
 npm run test:e2e        # the e2e-main leg (plain UMD, main theme) — the same leg the local hooks run
 npm run test:a11y       # the axe scan over the curated fixture pages, three themes (AGENTS.md, "A11y")
-npm run test:screenreader # the scenarios through a real screen reader (NVDA on Windows); HOT_SR_LANE=dom-echo runs them without one (AGENTS.md, "Screen readers")
+npm run test:screenreader # the scenarios through a real screen reader (NVDA on Windows, VoiceOver on macOS); HOT_SR_LANE=dom-echo runs them without one (AGENTS.md, "Screen readers")
 npm run lint            # determinism + parse checks on the specs
 ```
 
@@ -126,23 +126,24 @@ finding outside the baseline is reported, never a red run (warn mode); what fail
 does not load or a baseline that does not validate. How to add a page or baseline a finding:
 `AGENTS.md`, "A11y: the axe scan and its baseline".
 
-## The screen reader lane, locally
+## The screen reader lanes, locally
 
 `npm run test:screenreader` runs the scenarios of `screenreader/scenarios/` against a real screen reader
-through Guidepup: NVDA on Windows (`npx -y @guidepup/setup@0.29.3 install nvda` in this directory once,
-after the install; the setup CLI is never a dependency, because its optional recording helper depends on a
-GPL-licensed ffmpeg build). macOS has no default lane yet: the config throws unless `HOT_SR_LANE` is set,
-because the VoiceOver runner lands in the next pull request, and `HOT_SR_LANE=dom-echo` runs the scenarios
-without a screen reader. It needs the same build as the e2e tier. A missing token group or a golden
-difference is reported, never a red run (report mode); what fails is a fixture that does not load, a step
-that never reaches its state, or a screen reader that does not start. The transcripts land in
-`test-results/screenreader/transcripts/`, and `npm run screenreader:report` is a dry run: it writes
-`test-results/screenreader/summary.md` and prints the check-run payload CI would post. Without a screen
-reader, `HOT_SR_LANE=dom-echo npm run test:screenreader` runs the same scenarios against the focused element
-in headless Chromium, which checks the fixture, the keys, the `after` states and the report before the
-Windows job does; its wording rows are not evidence, because it always announces the focused element. Goldens are
-recorded by the nightly's `update-goldens` dispatch, not locally. The rules: `AGENTS.md`, "Screen readers:
-the NVDA lane".
+through Guidepup, the platform's own: NVDA on Windows (`npx -y @guidepup/setup@0.29.3 install nvda` in this
+directory once, after the install) and VoiceOver on macOS (`npx -y @guidepup/setup@0.29.3 setup` and
+`npx -y @guidepup/setup@0.29.3 install voiceover` once; the setup changes the Mac's accessibility and
+automation permissions, so run it on a machine you mean to automate). The setup CLI is never a dependency,
+because its optional recording helper depends on a GPL-licensed ffmpeg build. On a Mac the default starts
+VoiceOver, which then speaks and moves its cursor while the run lasts. It needs the same build as the e2e
+tier. A missing token group or a golden difference is reported, never a red run (report mode); what fails is
+a fixture that does not load, a step that never reaches its state, or a screen reader that does not start.
+The transcripts land in `test-results/screenreader/transcripts/`, and `npm run screenreader:report` is a dry
+run: it writes `test-results/screenreader/summary.md` and prints the check-run payload CI would post.
+Without a screen reader, `HOT_SR_LANE=dom-echo npm run test:screenreader` runs the same scenarios against the
+focused element in headless Chromium, which checks the fixture, the keys, the `after` states and the report
+before the Windows and macOS jobs do; its wording rows are not evidence, because it always announces the
+focused element. Goldens are recorded by the nightly's `update-goldens` dispatch, not locally. The rules:
+`AGENTS.md`, "Screen readers: the NVDA and VoiceOver lanes".
 
 ## One Playwright version across the monorepo
 

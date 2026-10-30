@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture, comments turned off during a hover</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    window.htLayout = ({ plain: 'plain', sheets: 'sheets' })[htParams.get('layout') ?? 'plain'];
+    if (!window.htLayout) {
+      throw new Error('Unknown ?layout= value: ' + JSON.stringify(htParams.get('layout')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    A grid whose cell (0, 0) carries a comment, shown 300 ms after the pointer rests on it.
+    - plain: a grid with `comments`.
+    - sheets: sheet 'Alpha' with `comments` and the commented cell, sheet 'Beta' with `comments: false`.
+  -->
+  <div id="grid" data-testid="grid"></div>
+  <div data-testid="outside" style="height: 200px;"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const commented = {
+      comments: { displayDelay: 300 },
+      cell: [{ row: 0, col: 0, comment: { value: 'Hello' } }],
+    };
+    const data = [['a', 'b'], ['c', 'd']];
+    const layouts = {
+      plain: { data, ...commented },
+      sheets: {
+        sheetsBar: {
+          sheets: [
+            { name: 'Alpha', data, settings: commented },
+            { name: 'Beta', data: [['x', 'y']], settings: { comments: false } },
+          ],
+        },
+      },
+    };
+
+    try {
+      window.hot = new Handsontable(container, {
+        rowHeaders: true,
+        colHeaders: true,
+        width: 400,
+        height: 200,
+        afterRenderer: (td, row, col) => {
+          td.setAttribute('data-testid', `cell-${row}-${col}`);
+        },
+        ...layouts[window.htLayout],
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+  </script>
+</body>
+</html>
