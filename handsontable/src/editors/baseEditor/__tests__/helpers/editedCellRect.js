@@ -14,7 +14,8 @@ export function activeEditorEditedCellRectWidthHeightFromTd() {
   const rootWindow = hotInstance.rootWindow;
   const cs = rootWindow.getComputedStyle(TD);
   const borderPhysicalWidthProp = hotInstance.isRtl() ? 'borderRightWidth' : 'borderLeftWidth';
-  const inlineStartBorderCompensation = parseInt(cs[borderPhysicalWidthProp], 10) > 0 ? 0 : 1;
+  const standsBehindRowHeader = TD.previousElementSibling?.nodeName === 'TH';
+  const inlineStartBorderCompensation = parseInt(cs[borderPhysicalWidthProp], 10) > 0 || standsBehindRowHeader ? 0 : 1;
   const topBorderCompensation = parseInt(cs.borderTopWidth, 10) > 0 ? 0 : 1;
 
   return {

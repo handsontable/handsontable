@@ -927,6 +927,17 @@ row. The paint value stays the ghost number: putting the pixel into `style.heigh
 every nested level after the first 1px taller. An explicit `columnHeaderHeight` and the
 first-draw content probe already include the gridline, so they do not get another pixel.
 
+`adjustColumnHeaderHeights` writes a raised level's height on its first header cell, and those cells are
+reused across draws, so it clears that inline height once the level is back at the default. Otherwise a
+header row that once held multi-line labels stayed tall: the render-size probe measured the written height
+back into the funnel on every draw. `TableView` drops a stored header height above one line at the start
+of each full render for the same reason (`#dropRaisedColumnHeaderHeights`), so the pre-measure takes the new
+content. "One line" is the default row height PLUS the header's bottom gridline (`#hasRaisedColumnHeader`,
+shared with the post-draw overlay re-sync): the probe measures a border-box height, so against the default
+height alone every one-line header read as raised and each full render re-measured and re-synced for
+nothing. Pinned by `test/unit/axisSizing/columnHeaderHeights.unit.ts`,
+`src/__tests__/columnHeaderHeightReset.unit.js` and `tests/e2e/sheets-bar-header-height.spec.ts`.
+
 ## Border ownership: the header owns its gridline, on both axes
 
 Both axes are settled, and they are now symmetric. On the column axis a row header `th` carries its
@@ -1011,17 +1022,49 @@ Consequences worth knowing:
 - **Anything positioning an element over a cell must read the cell's border, not its index.** Which
   cells own an inline-start border is no longer "column 0": with row headers none of them do, and
   `htFirstDatasetColumnNotRendered` takes it off the first rendered column too. `BaseEditor#getEditedCellRect`
-  keys both the editor's width and its inline-start offset off the same computed border for exactly
-  that reason — key them off different things and the editor is a pixel wider than where it starts,
-  overhanging the next column.
+  keys both the editor's width and its inline-start offset off the same value (the computed border, or a
+  row-header previous sibling, see the next bullet) for exactly that reason — key them off different
+  things and the editor is a pixel wider than where it starts, overhanging the next column.
 - **Reading the border is not enough for anything the overlays paint over.** The shared pixel in front
   of column 0 belongs to the inline-start overlay, which is z-index 120 against the selection border
   layer's 10, so an affordance centred on that gridline is *geometrically* right and *invisible*.
-  `Border#appear` therefore shifts the edge onto the cell's own boundary when the cell either owns an
-  inline-start border **or** has a row-header `th` as its previous sibling. That second test is what
-  keeps a selection on column 0 visible; without it the edge lands at `rowHeaderWidth - 1` and
-  disappears behind the row header. The `customBorders` specs cannot catch it — they count visible
-  elements, and the element is there, just covered.
+  `Border#appear` therefore shifts the edge onto the cell's own boundary when the cell owns an
+  inline-start border, has a row-header `th` as its previous sibling, **or** stands where an inline-start
+  overlay ends (`Border#isStartGridlineCoveredByOverlay`). The row-header test is what keeps a selection
+  on column 0 visible; without it the edge lands at `rowHeaderWidth - 1` and disappears behind the row
+  header. It is not enough on its own: with the default overscan the cell after the row header is a
+  hidden column, so the first fully visible column of a scrolled grid has a data cell as its previous
+  sibling, and so has the first column past `fixedColumnsStart`. Both showed 1px of their 2px edge.
+  The rectangle test (`isStartGapCovered` in `helpers/dom/element.ts`, the rule
+  `BaseEditor#isStartPixelCovered` shares) asks the overlay that is painted over the layer the border
+  lives in: the inline-start clone for the master table, the top start corner for the `top` clone, the
+  bottom start corner for the `bottom` clone. The top edge has the same blind spot and the same answer
+  (`isTopGapCovered`, `Border#isTopGridlineCoveredByOverlay`): `standsBelowColumnHeader` keys on the
+  first row of the body, so the first visible row of a scrolled grid and the first row after
+  `fixedRowsTop` kept 1px of their 2px edge. The covering overlay is the top clone for the master
+  table and the top corner on the clone's own side for the inline-start and inline-end clones. Neither test applies to an
+  edge that lands exactly on a freeze line (`isFrozenBoundaryEdge`): the master and the frozen overlay
+  draw its two halves around the line, and `frozenBoundaryEdge.spec.js` pins that a shift would break it. A cell of the inline-start clone and of the corners is in
+  the overlay's own layer and draws its edge itself. The decision is made on each draw, so a scroll that
+  brings a column next to the overlay moves its edge too. Pinned by
+  `tests/e2e/selection-start-edge-row-header.spec.ts`, which measures how much of the edge lies inside
+  the overlay's table. Hit-testing cannot do it: the clone's `.wtHolder` is wider than its table and
+  answers `elementFromPoint` over the cell.
+
+  The `customBorders` specs cannot catch the covered edge either. They count visible
+  elements, and the element is there, just covered. The editor is the second such affordance, with a
+  split rule by the layer its holder is in. The holder of a cell the MASTER table draws is at z-index 100,
+  under the inline-start overlay (120); that of a frozen top row is at 160, under the top start corner
+  (180); that of a frozen bottom row is at 130, under the bottom start corner (150). An editor that
+  reaches 1px into the pixel in front of its cell shows 1px of its 2px start border when that pixel is
+  the last of the covering overlay. `BaseEditor#getEditedCellRect` therefore drops its 1px shift (start
+  on the cell's edge, exactly as wide as the cell) when the covering overlay's table ends where the cell
+  starts: column 0 behind the row headers, the first visible column of a scrolled grid, the first column
+  past `fixedColumnsStart`, in all three layers. A cell of a frozen COLUMN clone has its holder in the
+  clone's own layer (120, painted after the row header by DOM order), so the overlap was never hidden
+  there; it takes the row-header test only, to stay the same width as the master column A (and
+  `Border#appear`). Both the editor and `Border#appear` read the borders with `parseFloat`: above 100%
+  zoom a 1px border computes as 0.8px, and `parseInt` reads it as none.
 
   The row axis has the same branch and a wider z-gap: `.ht_clone_top` is 160 (the corner 180) against
   the same border layer's 10. `standsBelowColumnHeader(cellElement)` in `selection/border/utils.ts` is
@@ -1480,6 +1523,7 @@ Never guess a container from an empty style read, and never cache a layout decis
 - **Cancel `touchend` when a tap moved focus onto the cell, and when the gesture was not a tap on a cell that was not selected at `touchstart`.** A non-tap never runs the deferred mousedown, so the focus range does not include that cell. The cancel stops a compatibility mousedown inside the browser's tap slop from selecting it (#11659). A drift that ends on the already-selected cell is not cancelled (DEV-2687). `disableVisualSelection` of `true`, `'current'`, or an array containing `'current'` never commits a range (`Highlight#isEnabledFor` skips `add().commit()`), so a tap there is not cancelled. A hook that stops selection leaves the previous range where it was, so a tap is not cancelled either. A checkbox stays exempt. On iOS Chrome and iOS Firefox, `preventDefault` also runs for a non-interactive target whether or not a range was committed, because those engines drop the second tap otherwise. `A`, `BUTTON`, `INPUT`, and a label whose control is a file input stay exempt. Read the range, not the Handsontable setting.
 
 - **Drop only the first synthesized pair after a tap, gated veto → pending pair → ceiling.** `#isTouchSynthesizedMouseEvent()` gates both `mousedown` and `mouseup` in that order: an engine that reports the origin and says "not touch" wins first (Blink's `sourceCapabilities.firesTouchEvents === false` means a real mouse or pen click, always processed, even right after a tap); otherwise the event is synthesized only if a touch-driven `onMouseUp` just armed `#synthesizedPairPending` AND the `TOUCH_SYNTHESIZED_MOUSE_WINDOW` (500 ms) ceiling since `#lastTouchMouseUpAt` has not passed — a tap that drifted past the move threshold is classified as a scroll by the touch path (no `onMouseDown`/`onMouseUp`, no stamp, pair never armed) — a drift ending over the already-selected cell gets its compatibility pair processed on every engine alike (DEV-2687); a drift over an unselected cell is `preventDefault`-ed and synthesizes nothing — provided no tap armed the pair inside the ceiling; a scroll-classified gesture clears the flag at its `touchend`, before its own compatibility pair arrives. The `mouseup` half consumes the pair (`#synthesizedPairPending = false`), so any later real mouse event inside the ceiling is treated as real — a fill-handle grab, a drag-selection, or a right-click started with a mouse right after a tap works on engines that do not report the input origin (WebKit, Firefox), where the residual gap is only the FIRST synthesized pair itself. Dropping only `mouseup` (the original #12804 fix) fired `onCellMouseDown` twice per tap and re-armed the pairing slot and made iPad double-tap-to-edit nondeterministic. `TOUCH_SYNTHESIZED_MOUSE_WINDOW` lives in `helpers/dom/inputOrigin.ts`, alongside `getMouseEventTouchOrigin()`, and is shared with `tableView.ts` (its `#recentTouchEndTimeout` uses the same constant), so both layers use the same fallback window. `tableView.ts`'s own gate (`#isSyntheticMouseEvent()`) deliberately keeps its older `reported ?? #recentTouchEnd` policy instead of adopting `event.ts`'s consume-once order: a Blink-flagged pair (`firesTouchEvents === true`) must never be allowed to close the editor through the outside-click handler, so the two gates are not to be "harmonized".
+- **The long-press timer is the shared `LongPressDetector`** (`helpers/dom/longPress.ts`: `LONG_PRESS_DELAY` 500 ms, `LONG_PRESS_MOVE_THRESHOLD` 10 px). `event.ts` keeps what a long press does on a cell (`#onLongPress`: the mouse-down, the double-click reset, the synthetic `contextmenu`); the detector only times the press. The sheets bar's tabs use the same detector, so a change to the delay or the drift changes both surfaces, which is the point: one touch rule across the grid's UI.
 - **Touch double-taps are paired independently of the mouse double-click slots.** `#handleTouchTap()` tracks `#lastTapCoords`/`#lastTapAt` and fires the double-click callbacks when a second tap lands on the same coordinates within `TOUCH_DBLTAP_TIMEOUT` (1000 ms); a long-press, a tap outside the cells, or a tap on different coordinates resets the detector. Coordinates, not the resolved TD, because Walkontable recycles TD elements across scrolls and re-renders (DEV-2687 review). Touch taps never arm `#dblClickOrigin` — only a mouse `mousedown` with `button === 0` does — so a real mouse click right after a tap cannot complete a double-click by pairing with it. Mouse double-click timing (`DBLCLICK_MOUSEDOWN_TIMEOUT` 1000 ms / `DBLCLICK_MOUSEUP_TIMEOUT` 500 ms) is unchanged. `touchcancel` resets the per-gesture state (`onTouchCancel`) — `touchApplied`, the mouse-down flag, the long-press timer, and the pending synthesized pair — so a cancelled gesture cannot leave `touchApplied` stuck and route real mouse events into the tap detector, leave drag-selection armed with no `mouseup` coming, or leave an earlier tap's pending flag dropping the next real mouse pair inside the ceiling.
 - **Before 18.1, a tap on an already-selected cell opened the editor** on these devices (the unsuppressed synthesized pair completed a second double-click match). A first tap that commits a focus range is `preventDefault`-ed and synthesizes nothing. A first tap that does not commit a range (visual selection off, or a hook that blocks selection) is not cancelled, except on iOS Chrome and iOS Firefox, where a non-interactive target still is. The pre-18.1 editor-on-first-tap behavior was a side effect. Do not restore it.
 - Test it in Playwright with `test.use({ ...devices['Desktop Chrome'], hasTouch: true, browserName: 'chromium' })` (`tests/e2e/touch-tap-to-edit.spec.ts`); Chromium synthesizes the same mouse sequence after `locator.tap()`. Use `page.clock` to drive the pairing timers. Script-dispatched `MouseEvent`s have `sourceCapabilities === null` and exercise the WebKit fallback.

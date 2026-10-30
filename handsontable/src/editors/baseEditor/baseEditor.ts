@@ -9,6 +9,8 @@ import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
 import {
   getScrollbarWidth,
   offset,
+  standsBehindRowHeader,
+  isStartGapCovered,
   hasVerticalScrollbar,
   hasHorizontalScrollbar,
   outerWidth,
@@ -757,15 +759,16 @@ export class BaseEditor {
 
     const cellComputedStyle = rootWindow.getComputedStyle(TD);
     const borderPhysicalWidthProp = this.hot.isRtl() ? 'borderRightWidth' : 'borderLeftWidth';
-    const inlineStartBorderCompensation = Number.parseInt(cellComputedStyle[borderPhysicalWidthProp], 10) > 0 ? 0 : 1;
+    const ownsInlineStartBorder = Number.parseFloat(cellComputedStyle[borderPhysicalWidthProp]) > 0;
+    const inlineStartBorderCompensation = ownsInlineStartBorder || this.#isStartPixelCovered(TD, overlayName) ? 0 : 1;
 
     // The position above shifted the editor 1px towards the inline start so that it covers the
     // gridline the previous cell draws on its inline-end side. A cell that draws its OWN
-    // inline-start border keeps that gridline inside its box, so there is nothing to cover and the
-    // shift is canceled here. Which cells those are is not a fixed index: with row headers the
-    // header owns the gridline and column 0 draws none (#6673), and `htFirstDatasetColumnNotRendered`
-    // takes it off the first rendered column too - so read the border rather than the index, and
-    // key it off the same value that sizes the editor below, or the two disagree by a pixel.
+    // inline-start border keeps that gridline inside its box, and one whose gridline is covered by
+    // the inline-start overlay shows nothing of the shifted pixel, so the shift is canceled for both.
+    // Which cells those are is not a fixed index: `htFirstDatasetColumnNotRendered` takes the border
+    // off the first rendered column - so read the DOM rather than the index, and key it off the same
+    // value that sizes the editor below, or the two disagree by a pixel.
     if (inlineStartBorderCompensation === 0) {
       inlineStartPos += 1;
     }
@@ -787,7 +790,7 @@ export class BaseEditor {
         horizontalScrollPosition : 0) :
       this.#calcCellStartOffset(TD, overlayName, overlayTable, cellWidth, firstColumnOffset, horizontalScrollPosition);
 
-    const topBorderCompensation = Number.parseInt(cellComputedStyle.borderTopWidth, 10) > 0 ? 0 : 1;
+    const topBorderCompensation = Number.parseFloat(cellComputedStyle.borderTopWidth) > 0 ? 0 : 1;
     const width = outerWidth(TD) + inlineStartBorderCompensation;
     const height = outerHeight(TD) + topBorderCompensation;
     const actualVerticalScrollbarWidth = scrollableContainerTop &&
@@ -808,6 +811,47 @@ export class BaseEditor {
       width,
       maxWidth,
     };
+  }
+
+  /**
+   * Whether the pixel in front of the edited cell lies under an inline-start overlay, so the editor
+   * would show nothing of it. That is the gridline the row header owns in front of column 0 and, for a
+   * cell of the master table or of a frozen top or bottom row, the one in front of the first column
+   * after the overlay: the first visible column of a scrolled grid, the first one past `fixedColumnsStart`.
+   *
+   * The overlay that can cover it is the one whose layer is above the editor's own holder: the
+   * inline-start clone (120) over the master's (100), the top start corner (180) over the top clone's
+   * (160), and the bottom start corner (150) over the bottom clone's (130). A frozen column's holder is
+   * part of its own clone and paints over the row header by DOM order, so it never loses the pixel. It
+   * is canceled there too, by the row header test alone, so that column A is the same width with and
+   * without `fixedColumnsStart`.
+   *
+   * @param {HTMLTableCellElement} TD The edited cell.
+   * @param {string} overlayName The name of the overlay containing the edited cell.
+   * @returns {boolean}
+   */
+  #isStartPixelCovered(TD: HTMLTableCellElement, overlayName: string): boolean {
+    if (standsBehindRowHeader(TD)) {
+      return true;
+    }
+
+    const { wtOverlays } = this.hot.view._wt;
+    const coveringOverlay = {
+      master: wtOverlays.inlineStartOverlay,
+      top: wtOverlays.topInlineStartCornerOverlay,
+      bottom: wtOverlays.bottomInlineStartCornerOverlay,
+    }[overlayName];
+
+    // A grid with nothing frozen on that side has no overlay there to paint over anything.
+    if (!coveringOverlay?.needFullRender || !coveringOverlay.clone) {
+      return false;
+    }
+
+    return isStartGapCovered(
+      TD.getBoundingClientRect(),
+      coveringOverlay.clone.wtTable.TABLE.getBoundingClientRect(),
+      this.hot.isRtl()
+    );
   }
 
   /**

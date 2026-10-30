@@ -3,10 +3,10 @@
 ## Tech Debt
 
 **Broken Plugin Initialization Abstraction (#6806):**
-- Issue: Multiple plugins contain explicit workarounds for a broken plugin initialization order. Plugins must guard against uninitialized state (`!this.hot.view`) and force `updatePlugin()` calls during `enablePlugin()`.
-- Files: `handsontable/src/plugins/nestedHeaders/nestedHeaders.ts`, `handsontable/src/plugins/collapsibleColumns/collapsibleColumns.ts`
+- Issue: `enablePlugin()` runs before the data and the view exist at init, and after them on `updateSettings()`. Plugins guard against the first state (`!this.hot.view`), force `updatePlugin()` calls during `enablePlugin()`, or park work on `init`/`afterInit` listeners.
+- Files: guard-and-replay in `handsontable/src/plugins/nestedHeaders/nestedHeaders.ts` and `handsontable/src/plugins/collapsibleColumns/collapsibleColumns.ts`; `init`/`afterInit` parking in ColumnSorting, Filters, CustomBorders, MergeCells, ColumnSummary, Pagination, EmptyDataState, DataProvider, Formulas, NestedRows, AutoColumnSize, AutoRowSize, and FormulaBuilder.
 - Impact: Every new plugin that depends on rendering state risks hitting the same initialization timing bug. The workarounds obscure the actual plugin lifecycle and make the code fragile.
-- Fix approach: Refactor the plugin initialization sequence in `handsontable/src/plugins/base/base.ts` and the core plugin registry to guarantee that `this.hot.view` is available before `enablePlugin()` is called. Remove all `#6806` workarounds once fixed.
+- Fix approach: the mechanism exists – the ready step `BasePlugin#onGridReady()`, which core runs once after every enable or update, when the data, the view and the editor manager exist (`handsontable/src/plugins/base/AGENTS.md`, "The ready step"). What remains is migrating each plugin above: move the guarded or parked work into `onGridReady()` and remove the guard. Do not move `enablePlugin()` itself after the view: that reorders plugin hooks behind settings-declared ones, and plugins must be in place before the first data load.
 
 **EventManager Shared Listener Array:**
 - Issue: `EventManager` mutates an external object's `eventListeners` array, and all `EventManager` instances sharing the same context share the same listener list.

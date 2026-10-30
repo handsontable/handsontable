@@ -198,15 +198,33 @@ export default class StateManager {
 
   /**
    * Re-derives the headers tree with exactly the given groups collapsed – the way `rebuildState()`
-   * re-applies the current ones. A group a move has split apart stays expanded.
+   * re-applies the current ones. A group a move has split apart stays expanded. Returns the visual
+   * columns the collapses hide, the same columns a collapse through `triggerNodeModification()` reports.
    *
    * @param {Array<{headerLevel: number, authoredColumnIndex: number}>} collapsedGroups The groups.
+   * @param {ColumnVisibility} [columnVisibility] The column visibility the collapses are derived against.
+   *   The last one passed to `syncVisibility()` when omitted. A caller that keeps the hidden columns of
+   *   the collapses passes one without them, so a column a collapse hid earlier does not count as hidden
+   *   by another source.
+   * @returns {number[]}
    */
-  importCollapsedGroups(collapsedGroups: ReadonlyArray<{ headerLevel: number, authoredColumnIndex: number }>) {
+  importCollapsedGroups(
+    collapsedGroups: ReadonlyArray<{ headerLevel: number, authoredColumnIndex: number }>,
+    columnVisibility?: ColumnVisibility,
+  ): number[] {
     this.#deriveTree();
-    this.#deriveVisibility();
-    this.#reapplyCollapsedGroupsByIdentity(collapsedGroups);
+
+    if (columnVisibility) {
+      syncVisibilityOnTree(this.#headersTree.getRoots(), columnVisibility);
+    } else {
+      this.#deriveVisibility();
+    }
+
+    const hiddenColumns = this.#reapplyCollapsedGroupsByIdentity(collapsedGroups);
+
     this.#applySyncVisibility();
+
+    return hiddenColumns;
   }
 
   /**
@@ -237,18 +255,25 @@ export default class StateManager {
    * re-collapsed; a group that maps to more than one node was split by the move and is left expanded.
    *
    * @param {Array<{headerLevel: number, authoredColumnIndex: number}>} collapsedGroups The captured groups.
+   * @returns {number[]} The visual columns the re-applied collapses hide.
    */
   #reapplyCollapsedGroupsByIdentity(
     collapsedGroups: ReadonlyArray<{ headerLevel: number, authoredColumnIndex: number }>,
-  ) {
+  ): number[] {
+    const hiddenColumns = new Set<number>();
+
     collapsedGroups.forEach(({ headerLevel, authoredColumnIndex }) => {
       const matches = this.#findNodesByAuthoredIdentity(headerLevel, authoredColumnIndex);
 
       if (matches.length === 1) {
         // Matrix-free: the trailing #applySyncVisibility regenerates the matrix once for all groups.
-        this.#applyNodeModification('collapse', headerLevel, matches[0].data.columnIndex);
+        const { actionResult } = this.#applyNodeModification('collapse', headerLevel, matches[0].data.columnIndex);
+
+        actionResult?.affectedColumns.forEach(column => hiddenColumns.add(column));
       }
     });
+
+    return Array.from(hiddenColumns);
   }
 
   /**

@@ -294,6 +294,113 @@ describe('SheetsBar formula sheets', () => {
       expect(hot.getSettings().data[0][1]).toBe('=\'A (2)\'!A1*10');
       expect(hot.getDataAtRow(0)).toEqual([7, 70, 70]);
     });
+
+    const engineTextOf = (engine, name) => engine.getSheetSerialized(engine.getSheetId(name));
+
+    it('gives a copy of a sorted sheet the values and formulas the original shows', () => {
+      const engine = buildEngine();
+
+      hot = build([
+        boundSheet(engine, 'Sheet', [
+          [3, '=A1+B2', '=$A$1*2', '=SUM(A1:A3)'],
+          [1, '=A2+A3', '=A3', null],
+          [2, '=A3*10', '=$A$2', null],
+        ], { columnSorting: true }),
+      ]);
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      expect(hot.getData()).toEqual([[1, 3, 2, null], [2, 20, 2, null], [3, 3, 2, 3]]);
+
+      const copy = sheetsBar().duplicateSheet(idOf('Sheet'));
+
+      sheetsBar().setActiveSheet(copy.id);
+
+      expect(hot.getData()).toEqual([[1, 3, 2, null], [2, 20, 2, null], [3, 3, 2, 3]]);
+      expect(engineTextOf(engine, copy.name)).toEqual(engineTextOf(engine, 'Sheet'));
+    });
+
+    it('gives a copy of a sheet with a moved row the values and formulas the original shows', () => {
+      const engine = buildEngine();
+
+      hot = build([
+        boundSheet(engine, 'Sheet', [[3, '=A1*10'], [1, '=A2+A1'], [2, '=SUM(A1:A3)']], { manualRowMove: true }),
+      ]);
+      hot.getPlugin('manualRowMove').moveRow(0, 2);
+      hot.render();
+
+      expect(hot.getData()).toEqual([[1, 4], [2, 3], [3, 30]]);
+
+      const copy = sheetsBar().duplicateSheet(idOf('Sheet'));
+
+      sheetsBar().setActiveSheet(copy.id);
+
+      expect(hot.getData()).toEqual([[1, 4], [2, 3], [3, 30]]);
+      expect(engineTextOf(engine, copy.name)).toEqual([[1, '=A1+A3'], [2, '=SUM(A1:A2)'], [3, '=A3*10']]);
+    });
+
+    it('gives a copy of a sheet with a moved column the values and formulas the original shows', () => {
+      const engine = buildEngine();
+
+      hot = build([
+        boundSheet(engine, 'Sheet', [[1, 2, '=A1+B1'], [3, 4, '=A2+B2']], { manualColumnMove: true }),
+      ]);
+      hot.getPlugin('manualColumnMove').moveColumn(2, 0);
+      hot.render();
+
+      const copy = sheetsBar().duplicateSheet(idOf('Sheet'));
+
+      sheetsBar().setActiveSheet(copy.id);
+
+      expect(hot.getData()).toEqual([[3, 1, 2], [7, 3, 4]]);
+      expect(engineTextOf(engine, copy.name)).toEqual([['=B1+C1', 1, 2], ['=B2+C2', 3, 4]]);
+    });
+
+    it('gives a copy of a hidden sheet with a moved row and an inserted row the values the original showed', () => {
+      const engine = buildEngine();
+
+      hot = build([
+        boundSheet(engine, 'Sheet', [[3, '=A1*10'], [1, '=A2*10'], [2, '=A3*10']], { manualRowMove: true }),
+        boundSheet(engine, 'Other', [['x']]),
+      ]);
+      hot.getPlugin('manualRowMove').moveRow(0, 2);
+      hot.render();
+      hot.alter('insert_row_above', 0);
+
+      expect(hot.getData()).toEqual([[null, null], [1, 10], [2, 20], [3, 30]]);
+
+      sheetsBar().setActiveSheet(idOf('Other'));
+
+      const copy = sheetsBar().duplicateSheet(idOf('Sheet'));
+
+      sheetsBar().setActiveSheet(copy.id);
+
+      expect(hot.getData()).toEqual([[null, null], [1, 10], [2, 20], [3, 30]]);
+    });
+
+    it('points the self-references of a moved sheet at the copy, and keeps the two engine sheets apart', () => {
+      const engine = buildEngine();
+
+      hot = build([
+        boundSheet(engine, 'Sheet', [[3, '=Sheet!A2*10'], [1, '=A1+1'], [2, null]], { manualRowMove: true }),
+      ]);
+      hot.getPlugin('manualRowMove').moveRow(0, 2);
+      hot.render();
+
+      const copy = sheetsBar().duplicateSheet(idOf('Sheet'));
+
+      sheetsBar().setActiveSheet(copy.id);
+
+      expect(hot.getData()).toEqual([[1, 4], [2, null], [3, 10]]);
+      expect(engineTextOf(engine, copy.name)[2][1]).toBe('=\'Sheet (2)\'!A1*10');
+
+      hot.setDataAtCell(0, 0, 5);
+
+      expect(hot.getData()).toEqual([[5, 4], [2, null], [3, 50]]);
+
+      sheetsBar().setActiveSheet(idOf('Sheet'));
+
+      expect(hot.getData()).toEqual([[1, 4], [2, null], [3, 10]]);
+    });
   });
 
   describe('sheet data layout', () => {

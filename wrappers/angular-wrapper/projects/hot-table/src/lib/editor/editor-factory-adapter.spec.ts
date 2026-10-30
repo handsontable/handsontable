@@ -249,6 +249,20 @@ describe('FactoryEditorAdapter', () => {
   });
 
   describe('afterClose', () => {
+    it('should stop finishing the edit when the editor component emits after the editor closed', () => {
+      instance.selectCell(0, 0);
+      adapter.beginEditing();
+      adapter.finishEditing();
+
+      const finishSpy = jest.spyOn(adapter, 'finishEditing');
+
+      customEditor.componentInstance.finishEdit.emit();
+
+      expect(finishSpy).not.toHaveBeenCalled();
+      expect(adapter._finishEditSubscription).toBeUndefined();
+      expect(adapter._cancelEditSubscription).toBeUndefined();
+    });
+
     it('should reset editor state', () => {
       const setInputSpy = jest.spyOn(adapter._editorPlaceHolderRef, 'setInput');
       setInputSpy.mockClear();

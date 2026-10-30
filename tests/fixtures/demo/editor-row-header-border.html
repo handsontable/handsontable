@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Editor start border under the row headers e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // Page zoom, through the same kind of allowlist. Above 100% a 1px border computes as 0.8px.
+    window.htZoom = ({ 1: '1', '1.25': '1.25' })[htParams.get('zoom') ?? '1'];
+    if (!window.htZoom) {
+      throw new Error('Unknown ?zoom= value: ' + JSON.stringify(htParams.get('zoom')));
+    }
+    document.documentElement.style.zoom = window.htZoom;
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } h2 { font-size: .9rem; } </style>
+</head>
+<body>
+  <!--
+    The editor of a cell that stands behind a row header. The row header owns the gridline in front
+    of column 0, so that cell draws no start border and the editor has to sit exactly on the cell's
+    start edge: one pixel further out lands under the inline-start overlay, which paints above the
+    editor holder. One grid per case:
+
+      row-headers     rowHeaders + colHeaders
+      frozen          the same, with fixedColumnsStart: 2
+      frozen-rows     the same, with fixedColumnsStart: 2, fixedRowsTop: 1 and fixedRowsBottom: 1
+      scrolled        the same, with no column overscan, so the first rendered column is a visible one
+      scrolled-top    the same, with fixedRowsTop: 1 and the default overscan
+      rtl             the same, layoutDirection: 'rtl'
+      no-row-headers  colHeaders only - column 0 draws its own start border
+      rows            the same as row-headers, with 100 rows, for the vertical scroll cases
+      rows-frozen     the same as rows, with fixedRowsTop: 2
+      rows-end        the same as rows, with fixedColumnsEnd: 1
+      rows-start      the same as rows, with fixedColumnsStart: 1
+  -->
+  <h2>Row headers</h2>
+  <div id="row-headers" data-testid="row-headers"></div>
+
+  <h2>Row headers, two frozen columns</h2>
+  <div id="frozen" data-testid="frozen"></div>
+
+  <h2>Row headers, two frozen columns, a frozen top row and a frozen bottom row</h2>
+  <div id="frozen-rows" data-testid="frozen-rows"></div>
+
+  <h2>Row headers, scrolled with a frozen top row</h2>
+  <div id="scrolled-top" data-testid="scrolled-top"></div>
+
+  <h2>Row headers, scrolled with no column overscan</h2>
+  <div id="scrolled" data-testid="scrolled"></div>
+
+  <h2>Row headers, RTL</h2>
+  <div id="rtl" data-testid="rtl" dir="rtl"></div>
+
+  <h2>No row headers</h2>
+  <div id="no-row-headers" data-testid="no-row-headers"></div>
+
+  <h2>Row headers, 100 rows</h2>
+  <div id="rows" data-testid="rows"></div>
+
+  <h2>Row headers, 100 rows, two frozen top rows</h2>
+  <div id="rows-frozen" data-testid="rows-frozen"></div>
+
+  <h2>Row headers, 100 rows, a frozen end column</h2>
+  <div id="rows-end" data-testid="rows-end"></div>
+
+  <h2>Row headers, 100 rows, a frozen start column</h2>
+  <div id="rows-start" data-testid="rows-start"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const build = (id, settings) => {
+      const container = document.querySelector(`[data-testid="${id}"]`);
+
+      container.classList.add(`ht-theme-${window.htTheme}`);
+
+      window[`hot_${id.replace(/-/g, '_')}`] = new Handsontable(container, {
+        data: Handsontable.helper.createSpreadsheetData(8, 20),
+        colHeaders: true,
+        colWidths: 50,
+        width: 400,
+        height: 250,
+        licenseKey: 'non-commercial-and-evaluation',
+        ...settings,
+      });
+    };
+
+    build('row-headers', { rowHeaders: true });
+    build('frozen', { rowHeaders: true, fixedColumnsStart: 2 });
+    build('frozen-rows', { rowHeaders: true, fixedColumnsStart: 2, fixedRowsTop: 1, fixedRowsBottom: 1 });
+    build('scrolled-top', { rowHeaders: true, fixedRowsTop: 1 });
+    build('scrolled', { rowHeaders: true, viewportColumnRenderingOffset: 0 });
+    build('rtl', { rowHeaders: true, layoutDirection: 'rtl' });
+    build('no-row-headers', {});
+    build('rows', { rowHeaders: true, data: Handsontable.helper.createSpreadsheetData(100, 10) });
+    build('rows-frozen', {
+      rowHeaders: true,
+      fixedRowsTop: 2,
+      data: Handsontable.helper.createSpreadsheetData(100, 10),
+    });
+    build('rows-end', {
+      rowHeaders: true,
+      fixedColumnsEnd: 1,
+      data: Handsontable.helper.createSpreadsheetData(100, 10),
+    });
+    build('rows-start', {
+      rowHeaders: true,
+      fixedColumnsStart: 1,
+      data: Handsontable.helper.createSpreadsheetData(100, 10),
+    });
+  </script>
+</body>
+</html>

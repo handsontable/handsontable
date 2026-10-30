@@ -19,7 +19,7 @@ import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray,
 import { instanceToHTML, instanceToTableElement } from './utils/parseTable';
 import { staticRegister } from './utils/staticRegister';
 import { getPlugin, getPluginsNames } from './plugins/registry';
-import type { BasePlugin } from './plugins/base/base';
+import { initializePlugins, type BasePlugin } from './plugins/base/base';
 import { getRenderer } from './renderers/registry';
 import type { BaseRenderer } from './renderers/baseRenderer';
 import { getEditor } from './editors/registry';
@@ -107,6 +107,8 @@ import type { default as EditorManagerInstance } from './editorManager';
 import type { BaseEditor } from './editors/baseEditor';
 import type { default as MetaManagerInstance } from './dataMap/metaManager';
 import { OperationScope } from './core/operationScope';
+import { normalizeFixedColumnsAlias, withCallerFixedColumnsName } from './core/fixedColumnsAlias';
+import { watchFontLoads } from './core/fontLoad';
 import {
   detachValue,
   recordCellChange,
@@ -461,15 +463,41 @@ export default function Core(
    */
   let heldMetaPhases: (() => void)[] = [];
   /**
+   * How many lifecycle passes are open: `updateSettings()` and `_applySettingsAndData()` calls, plugin
+   * lifecycle calls (`enablePlugin()`, `updatePlugin()`, `disablePlugin()`), and runs of the ready steps.
+   * The ready steps the plugins owe (`BasePlugin#onGridReady()`) wait while a pass is open, so a pass
+   * enables or updates every plugin before any of them runs its step.
+   */
+  let lifecyclePassDepth = 0;
+  /**
+   * Whether a plugin may owe a ready step: set by every plugin lifecycle call (the only way a plugin comes
+   * to owe one), cleared once a run of the steps leaves none owed. A pass that ran no plugin call then
+   * skips the steps without looking at any plugin.
+   */
+  let readyStepsMayBeOwed = false;
+  /**
+   * Set when `destroy()` starts, so no ready step runs against a grid being torn down.
+   */
+  let isBeingDestroyed = false;
+  /**
    * The settings core's own init settings pass applies, while `beforeInit` runs, or `null` outside that
    * window (see `_replaceInitPassSettings()`).
    */
   let initPassSettings: Record<string, unknown> | null = null;
   /**
-   * The function that reads every `updateSettings()` payload before it is applied, or `null` when no
-   * caller registered one (see `_setSettingsFilter()`).
+   * The functions that read every `updateSettings()` and `_applySettingsAndData()` payload, and the values
+   * `_replaceInitPassSettings()` hands the init pass, before they are applied, in the order they were added
+   * (see `_addSettingsFilter()`).
    */
-  let settingsFilter: ((settings: SettingsUpdate) => SettingsUpdate) | null = null;
+  const settingsFilters: Array<(settings: SettingsUpdate) => SettingsUpdate> = [];
+  /**
+   * Runs a settings payload through every filter `_addSettingsFilter()` added, in order.
+   *
+   * @param {object} settings The payload.
+   * @returns {object} The payload to apply.
+   */
+  const filterSettings = (settings: SettingsUpdate) => settingsFilters
+    .reduce((payload, filter) => filter(payload), settings);
   // Guards `init()` so it runs once per instance. Set at the very top of `init()`, before any work, so
   // that a second call is a no-op regardless of how the first one ended (see the `init` method).
   let initialized = false;
@@ -508,6 +536,16 @@ export default function Core(
    * the height the engine reserves inside a scrollable ancestor (`layoutReservedHeight`).
    */
   let slotsResizeObserver: ResizeObserver | null = null;
+  /**
+   * Stops watching the document's web font loads (see `refreshAfterFontsLoad()`), or `null` before
+   * `init` started watching.
+   */
+  let stopWatchingFontLoads: (() => void) | null = null;
+  /**
+   * Waits for a grid that was hidden when a web font loaded to be shown, so the re-measure skipped then
+   * runs (see `refreshAfterFontsLoad()`), or `null` when no re-measure is owed.
+   */
+  let fontRefreshVisibilityObserver: IntersectionObserver | null = null;
 
   const mergedUserSettings: GridSettings = {
     ...userSettings.initialState,
@@ -1609,7 +1647,8 @@ export default function Core(
       //
       // The action itself is split out so this closes on every exit, the action's own early returns
       // and a throwing hook included. A scope left open stops the selection repairing at all.
-      runInShiftScope(() => grid.runAlter(action, index, amount, source, keepEmptyRows));
+      // It is also a lifecycle pass, so a ready step one of its hooks makes a plugin owe runs after it.
+      runInLifecyclePass(() => runInShiftScope(() => grid.runAlter(action, index, amount, source, keepEmptyRows)));
     },
 
     /**
@@ -1926,10 +1965,6 @@ export default function Core(
                 // `calcIndex` is -1 on a grid with no columns left: the removal took nothing, and a
                 // frozen count of 0 must not drop to -1.
                 if (calcIndex >= 0 && fixedColumnsStart >= calcIndex + 1) {
-                  // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
-                  // However, keeping the old name still in effect. When both option names are used together,
-                  // the error is thrown. To prevent that, the engine needs to modify the original option key
-                  // to bypass the validation.
                   (tableMeta as unknown as { _fixedColumnsStart: number })._fixedColumnsStart -=
                     Math.min(groupAmount, fixedColumnsStart - calcIndex);
                 }
@@ -2008,6 +2043,8 @@ export default function Core(
         instance.view.invalidateColumnWidthCache();
       }
 
+      // The ready steps a hook of this call made the plugins owe, run before its render. The call holds one pass.
+      runOwedReadySteps(1);
       instance.view.render();
     },
 
@@ -2554,6 +2591,90 @@ export default function Core(
   };
 
   /**
+   * Runs a callback as one lifecycle pass (see `lifecyclePassDepth`), then the ready steps the plugins
+   * owe, when it closed the outermost pass. A pass that throws leaves the steps owed: each step reads the
+   * grid as it is when it runs, so the next pass runs it.
+   *
+   * @private
+   * @param {Function} callback The pass.
+   * @returns {*} What the callback returns.
+   */
+  function runInLifecyclePass<T>(callback: () => T): T {
+    lifecyclePassDepth += 1;
+
+    let result: T;
+
+    try {
+      result = callback();
+    } finally {
+      lifecyclePassDepth -= 1;
+    }
+
+    runOwedReadySteps();
+
+    return result;
+  }
+
+  /**
+   * Runs the ready step (`BasePlugin#onGridReady()`) of every plugin that owes one, in `PLUGIN_PRIORITY`
+   * order. It runs only once the data is loaded and the view exists, and only when no pass is open other
+   * than the ones the caller holds itself. A step that makes a plugin owe another one (it enables or
+   * updates a plugin) gets a further round, up to one round per plugin. Applying settings is not a user
+   * action, so nothing a step does is journaled.
+   *
+   * @private
+   * @param {number} [ownPasses=0] The passes the caller holds itself.
+   */
+  function runOwedReadySteps(ownPasses = 0): void {
+    if (
+      !readyStepsMayBeOwed || isBeingDestroyed || lifecyclePassDepth > ownPasses || dataWorkPhase !== null ||
+      !instance.view
+    ) {
+      return;
+    }
+
+    const plugins = pluginsRegistry.getItems().map(([, plugin]) => plugin as BasePlugin);
+    const runRound = () => plugins.reduce((ranAny, plugin) => plugin.runOwedReadyStep() || ranAny, false);
+
+    lifecyclePassDepth += 1;
+
+    try {
+      operationScope.suppress(() => {
+        let round = 0;
+
+        // Each round runs the steps the previous one made the plugins owe.
+        while (round < plugins.length && runRound()) {
+          round += 1;
+        }
+      });
+    } finally {
+      lifecyclePassDepth -= 1;
+    }
+
+    readyStepsMayBeOwed = plugins.some(plugin => plugin.isReadyStepOwed());
+
+    if (readyStepsMayBeOwed) {
+      warn('A plugin ready step (`onGridReady()`) kept enabling or updating plugins. The steps still owed ' +
+        'run when the next settings update, data load, or plugin call ends.');
+    }
+  }
+
+  /**
+   * Runs a plugin lifecycle call (`enablePlugin()`, `updatePlugin()`, `disablePlugin()`) as a lifecycle
+   * pass, so the ready steps it makes the plugins owe run once it returns, after every plugin call it made.
+   * BasePlugin routes its lifecycle methods through it.
+   *
+   * @private
+   * @param {Function} callback The lifecycle call.
+   * @returns {*} What the callback returns.
+   */
+  this._runInPluginLifecyclePass = function<T>(callback: () => T): T {
+    readyStepsMayBeOwed = true;
+
+    return runInLifecyclePass(callback);
+  };
+
+  /**
    * The body of `init()`, run with recording suppressed. It is called directly, not through the
    * instance, so code that wraps or spies on `init()` sees each call once.
    *
@@ -2714,9 +2835,17 @@ export default function Core(
       slots.forEach(slot => slotsResizeObserver?.observe(slot));
     }
 
+    // The data is loaded and the view, the editor manager and the focus manager exist: the plugins enabled
+    // while the grid was built run their ready steps before the `init` hook and the first render.
+    runOwedReadySteps();
+
     instance.runHooks('init');
 
     instance.render();
+
+    if (stopWatchingFontLoads === null) {
+      stopWatchingFontLoads = watchFontLoads(instance.rootDocument, refreshAfterFontsLoad);
+    }
 
     // Run the logic only if it's the table's initialization and the root element is not visible.
     if (!!firstRun && instance.rootElement.offsetParent === null) {
@@ -2738,6 +2867,82 @@ export default function Core(
     }
 
     instance.runHooks('afterInit');
+  }
+
+  /**
+   * Re-measures the grid after the document finished loading a web font (DEV-199). The rows and columns
+   * were measured with the fallback font, and the new font changes the size of the text without changing
+   * the size of the container, so no resize observer sees it. Without this, the cells that grew stay out
+   * of line with their row headers and frozen columns, the grid keeps its old height, and columns sized
+   * from their content clip the wider text.
+   *
+   * The handler fires `afterFontsLoad`, on which the sizing plugins re-measure, then drops the engine's
+   * size caches and renders. `refreshDimensions()` is not enough: it skips the render when the container
+   * keeps its size, which is the case for a grid with a fixed `height`. On a hidden grid the re-measure
+   * waits until the grid is shown, and so does the render after a listener that hid the grid.
+   */
+  function refreshAfterFontsLoad() {
+    if (!instance || instance.isDestroyed || !instance.view) {
+      return;
+    }
+
+    // The auto-size plugins skip measuring a hidden grid, and a scroll draw after the grid is shown
+    // measures only the columns that have no width yet. So the re-measure waits until the grid is shown.
+    if (!instance.view.isVisible()) {
+      refreshAfterFontsLoadOnceShown();
+
+      return;
+    }
+
+    fontRefreshVisibilityObserver?.disconnect();
+    fontRefreshVisibilityObserver = null;
+
+    // The sizing plugins re-measure what they measured from text (AutoColumnSize, AutoRowSize,
+    // AutoRowHeaderSize, NestedHeaders). Core does not name them, so a plugin added later only needs a hook.
+    instance.runHooks('afterFontsLoad');
+
+    // A listener can destroy the grid (a framework teardown), and `destroy()` drops the instance. This runs
+    // from a promise, so a throw here surfaced only as an unhandled rejection.
+    if (!instance || instance.isDestroyed || !instance.view) {
+      return;
+    }
+
+    // A listener can hide the grid too (a tab switch). The forced render would then measure the columns on
+    // screen inside the hidden root and write the minimum width for each, and a draw after the grid is shown
+    // measures only the columns that have no width. The whole re-measure runs again once it is shown.
+    if (!instance.view.isVisible()) {
+      refreshAfterFontsLoadOnceShown();
+
+      return;
+    }
+
+    // Walkontable's records of rows taller than the default stay: without AutoRowSize nothing else knows
+    // the height of a row outside the rendered band, and dropping them would draw every such row above the
+    // viewport at the default height, which moves a grid scrolled far down to other rows. The band is
+    // measured again on this render, and every other row when it is drawn.
+    instance.view.invalidateIndexSizesCache();
+    // `render()` is not a full repaint under `renderMode: 'onChange'`, and a cell whose renderer reads a
+    // size (a merged block's height) would keep the stale one.
+    instance.renderChangeTracker.markAllChanged();
+    instance.render();
+  }
+
+  /**
+   * Runs `refreshAfterFontsLoad()` again once the hidden grid is shown.
+   */
+  function refreshAfterFontsLoadOnceShown() {
+    if (fontRefreshVisibilityObserver !== null) {
+      return;
+    }
+
+    // The observer watches the table `isVisible()` reads, not the root element. The two can disagree:
+    // a root element with `content-visibility: hidden` has a box and intersects the viewport, while
+    // the table inside it has no box. An observer on the root would then fire at once, see the grid
+    // still hidden, and arm again on every frame for as long as the grid stays hidden.
+    fontRefreshVisibilityObserver = observeVisibilityChangeOnce(instance.view._wt.wtTable.TABLE, () => {
+      fontRefreshVisibilityObserver = null;
+      refreshAfterFontsLoad();
+    });
   }
 
   /**
@@ -4783,7 +4988,8 @@ export default function Core(
    * You rarely need to call this method. Handsontable already calls it for you on a window resize and through a
    * `ResizeObserver` on the container. The case it does not cover is a container resized while the grid is
    * hidden (for example inside a `display: none` tab or accordion): the observer callback is skipped, so call
-   * this method yourself once the grid becomes visible again.
+   * this method yourself once the grid becomes visible again. A web font that loads after the grid renders needs no
+   * call: Handsontable re-measures its rows and columns when the document finishes loading a font.
    *
    * The method renders when the measured size changed. It also renders unconditionally when the grid scrolls
    * with the window (no fixed `height`), so on such a grid it is not free even at an unchanged size. To repaint
@@ -4860,7 +5066,8 @@ export default function Core(
    */
   this.updateData = function(data: unknown[][][] | object[], source: string) {
     // Replacing the data is not a user action: nothing it does may open an operation or be journaled.
-    operationScope.suppress(() => applyUpdateData(data, source));
+    // It is a lifecycle pass, so a ready step a load hook makes a plugin owe reads the new rows.
+    runInLifecyclePass(() => operationScope.suppress(() => applyUpdateData(data, source)));
   };
 
   /**
@@ -4920,7 +5127,8 @@ export default function Core(
         internalSource: 'updateData',
         source,
         metaManager,
-        firstRun
+        firstRun,
+        beforeRender: () => runOwedReadySteps(1),
       }));
   }
 
@@ -4971,7 +5179,8 @@ export default function Core(
    */
   this.loadData = function(data: unknown[][][] | object[], source: string) {
     // Loading data is not a user action: nothing it does may open an operation or be journaled.
-    operationScope.suppress(() => applyLoadData(data, source));
+    // It is a lifecycle pass, so a ready step a load hook makes a plugin owe reads the new rows.
+    runInLifecyclePass(() => operationScope.suppress(() => applyLoadData(data, source)));
   };
 
   /**
@@ -5015,7 +5224,8 @@ export default function Core(
         internalSource: 'loadData',
         source,
         metaManager,
-        firstRun
+        firstRun,
+        beforeRender: () => runOwedReadySteps(1),
       }));
   }
 
@@ -5242,6 +5452,11 @@ export default function Core(
    * callback that settings passed for it and leaves `null` in {@link Core#getSettings}. A hook set to `undefined` is
    * left as it is. Listeners added with {@link Core#addHook} are not affected by either.
    *
+   * The legacy [`fixedColumnsLeft`](@/api/options.md#fixedcolumnsleft) option is applied as
+   * [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart), while the settings object that
+   * [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings) receives keeps the name you passed. Passing both
+   * names in one call throws an error. When you pass them in separate calls, the later value applies.
+   *
    * This method reinitializes the affected plugins and then renders, so it does more work than a plain
    * [render()](@/api/core.md#render). When only cell metadata changed, call [render()](@/api/core.md#render)
    * instead. See the [Understanding rendering](@/guides/optimization/rendering/rendering.md) guide.
@@ -5266,15 +5481,18 @@ export default function Core(
    * @fires Hooks#afterUpdateSettings
    */
   this.updateSettings = function(settings: SettingsUpdate, init = false) {
-    const applied = !init && settingsFilter !== null ? settingsFilter(settings) : settings;
+    const normalized = normalizeFixedColumnsAlias(settings, instance.isRtl());
+    const applied = init ? normalized : filterSettings(normalized);
 
-    if (applied !== settings && Object.keys(applied).length === 0) {
+    if (applied !== normalized && Object.keys(applied).length === 0) {
       return;
     }
 
+    const notified = withCallerFixedColumnsName(applied, settings);
+
     // Applying settings is not a user action: a plugin that updates its state from the new
     // settings, or the `cell` option writing meta, must not open an operation or be journaled.
-    operationScope.suppress(() => {
+    runInLifecyclePass(() => operationScope.suppress(() => {
       if (dataWorkPhase !== 'configure' || init) {
         const outerPhase = dataWorkPhase;
 
@@ -5283,7 +5501,7 @@ export default function Core(
         }
 
         try {
-          applySettings(applied, init);
+          applySettings(applied, init, false, null, null, notified);
         } finally {
           dataWorkPhase = outerPhase;
         }
@@ -5296,12 +5514,12 @@ export default function Core(
           'applied is ignored: the data that change loads replaces it. Call loadData() once it has finished.');
       }
 
-      const metaPhase = applySettings(applied, init, true);
+      const metaPhase = applySettings(applied, init, true, null, null, notified);
 
       if (metaPhase) {
         heldMetaPhases.push(metaPhase);
       }
-    });
+    }));
   };
 
   /**
@@ -5370,6 +5588,7 @@ export default function Core(
     cellOptionMetas: CellOptionMetaEntry[] | null = null,
     keptCellMetas: KeptCellMetas | null = null,
   ) {
+    const normalized = normalizeFixedColumnsAlias(settings, instance.isRtl());
     const suspendsRender = !!instance.view;
 
     if (suspendsRender) {
@@ -5377,7 +5596,7 @@ export default function Core(
     }
 
     try {
-      operationScope.suppress(() => {
+      runInLifecyclePass(() => operationScope.suppress(() => {
         const outerPhase = dataWorkPhase;
         const outerHeldMetaPhases = heldMetaPhases;
         const isNested = outerPhase !== null;
@@ -5387,7 +5606,10 @@ export default function Core(
 
         try {
           try {
-            const metaPhase = applySettings(settings, false, true, cellOptionMetas, keptCellMetas);
+            const filtered = filterSettings(normalized);
+            const metaPhase = applySettings(
+              filtered, false, true, cellOptionMetas, keptCellMetas, withCallerFixedColumnsName(filtered, settings)
+            );
             const nestedMetaPhases = heldMetaPhases;
 
             dataWorkPhase = 'data';
@@ -5413,6 +5635,9 @@ export default function Core(
               }
             });
           }
+
+          // The ready steps the call made the plugins owe, run before its render. The call holds one pass.
+          runOwedReadySteps(1);
         } catch (error) {
           if (!isNested) {
             pluginsRegistry.getItems().forEach(([, plugin]) => {
@@ -5422,7 +5647,7 @@ export default function Core(
 
           throw error;
         }
-      });
+      }));
     } finally {
       if (suspendsRender) {
         instance.resumeRender();
@@ -5448,7 +5673,9 @@ export default function Core(
    * hook callback of the settings and applies their `cell` option after the first load, so a plugin that
    * applied settings of its own in `beforeInit` (the SheetsBar plugin, its opening sheet) would see the pass
    * replace its hook callbacks and its `cell` entries with the grid-level ones. Replaced here, they are
-   * applied once, by the pass itself, with no settings update of their own.
+   * applied once, by the pass itself, with no settings update of their own. The values go through the
+   * settings filters (`_addSettingsFilter()`) first: unlike the rest of the pass, they are not the settings
+   * the grid was created with.
    *
    * @private
    * @param {object} settings The values to apply in the init settings pass instead.
@@ -5460,32 +5687,52 @@ export default function Core(
     }
 
     const passSettings = initPassSettings;
+    const filtered: Record<string, unknown> = filterSettings(settings);
     const replaced: Record<string, unknown> = {};
 
-    Object.keys(settings).forEach((key) => {
+    Object.keys(filtered).forEach((key) => {
       replaced[key] = passSettings[key];
-      passSettings[key] = settings[key];
+      passSettings[key] = filtered[key];
     });
 
     return replaced;
   };
 
   /**
-   * Registers the function that reads every later `updateSettings()` payload before core applies it, and
-   * returns the payload to apply instead. Passing `null` removes it. One filter at a time: the SheetsBar
-   * plugin is the only caller, and it uses it to keep the visible sheet's own settings when a grid-level
-   * value for the same key arrives (a framework wrapper sends every prop again on each render). The filter
-   * must return a new object rather than change the one it was given, which belongs to the caller of
-   * `updateSettings()`. A payload the filter empties is not applied at all: no settings cycle runs and
-   * `afterUpdateSettings` does not fire, so the Vue wrapper, which sends a key again whenever it differs
-   * from the grid's live value, does not pay one empty cycle per edit. `afterUpdateSettings` listeners
-   * receive the filtered payload. The init settings pass is never filtered.
+   * Adds a function that reads every later `updateSettings()` and `_applySettingsAndData()` payload, and
+   * the values `_replaceInitPassSettings()` hands the init settings pass, before core applies them, and
+   * returns the payload to apply instead. The filters run in the order they were added, each one reading
+   * what the one before returned. The SheetsBar plugin uses one to keep the visible sheet's own settings
+   * when a grid-level value for the same key arrives (a framework wrapper sends every prop again on each
+   * render), and the Angular wrapper one to turn the components a sheet's settings declare into what core
+   * reads and to run in Angular's zone the hook functions its `settings` input declares. A filter returns the payload it was given when it has nothing to change, or a new object; it never
+   * changes the one it was given, which belongs to the caller. A payload a filter empties is not applied at
+   * all by `updateSettings()`: no settings cycle runs and `afterUpdateSettings` does not fire, so the Vue
+   * wrapper, which sends a key again whenever it differs from the grid's live value, does not pay one empty
+   * cycle per edit. `afterUpdateSettings` listeners receive the filtered payload. The settings the grid is
+   * created with are never filtered. Adding a filter that is already there changes nothing.
    *
    * @private
-   * @param {Function|null} filter The function to register, or `null`.
+   * @param {Function} filter The function to add.
    */
-  this._setSettingsFilter = function(filter: ((settings: SettingsUpdate) => SettingsUpdate) | null) {
-    settingsFilter = filter;
+  this._addSettingsFilter = function(filter: (settings: SettingsUpdate) => SettingsUpdate) {
+    if (!settingsFilters.includes(filter)) {
+      settingsFilters.push(filter);
+    }
+  };
+
+  /**
+   * Removes a function `_addSettingsFilter()` added. Removing one that is not there changes nothing.
+   *
+   * @private
+   * @param {Function} filter The function to remove.
+   */
+  this._removeSettingsFilter = function(filter: (settings: SettingsUpdate) => SettingsUpdate) {
+    const index = settingsFilters.indexOf(filter);
+
+    if (index !== -1) {
+      settingsFilters.splice(index, 1);
+    }
   };
 
   /**
@@ -6269,6 +6516,9 @@ export default function Core(
     }
 
     grid.adjustRowsAndCols();
+    // The ready steps this call made the plugins owe, run before its render. The call itself holds one pass,
+    // so a call nested in another pass leaves them to the outermost one.
+    runOwedReadySteps(1);
 
     if (instance.view && !firstRun) {
       instance.render();
@@ -6294,12 +6544,15 @@ export default function Core(
    * the meta phase instead of applying `settings.cell` (see `_applySettingsAndData()`).
    * @param {object|null} [keptCellMetas=null] The user-set meta and invalid marks to put back in the meta phase
    * (see `_applySettingsAndData()`).
+   * @param {object} [notifiedSettings] The settings `afterUpdateSettings` receives, `settings` by default: the
+   * caller's key names where core applies a normalized payload (`withCallerFixedColumnsName()`).
    * @returns {Function|null} The held-back meta phase, or `null` when it ran.
    */
   function applySettings(
     settings: SettingsUpdate, init: boolean, defersDataWork = false,
     restoredCellOptionMetas: CellOptionMetaEntry[] | null = null,
-    keptCellMetas: KeptCellMetas | null = null
+    keptCellMetas: KeptCellMetas | null = null,
+    notifiedSettings: SettingsUpdate = settings,
   ): (() => void) | null {
     const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(instance);
 
@@ -6358,7 +6611,7 @@ export default function Core(
     const rootSize = applyRootSizeSettings(settings, init, previousRootSize);
 
     if (!init) {
-      notifySettingsUpdated(settings);
+      notifySettingsUpdated(notifiedSettings);
     }
 
     if (!defersDataWork) {
@@ -9236,6 +9489,7 @@ export default function Core(
    * @fires Hooks#afterDestroy
    */
   this.destroy = function() {
+    isBeingDestroyed = true;
     // Never resumed: nothing may render a grid that is being torn down. A plugin whose `destroy()`
     // re-renders to reflect its own removal at runtime (Autofill hides the fill handle) would
     // otherwise render the view destroyed below (DEV-775).
@@ -9255,6 +9509,10 @@ export default function Core(
     visibilityObserver = null;
     slotsResizeObserver?.disconnect();
     slotsResizeObserver = null;
+    stopWatchingFontLoads?.();
+    stopWatchingFontLoads = null;
+    fontRefreshVisibilityObserver?.disconnect();
+    fontRefreshVisibilityObserver = null;
 
     if (instance.view) { // in case HT is destroyed before initialization has finished
       instance.view.destroy();
@@ -10060,6 +10318,12 @@ export default function Core(
   ) {
     initializeThemeManager(theme as ThemeBuilder | undefined, readThemeOverrides(mergedUserSettings));
   }
+
+  // Registered ahead of the plugins, so a `beforeInit` listener a plugin adds in its constructor, and every
+  // listener added later, still runs after the plugins are initialized and enabled.
+  instance.addHook('beforeInit', () => {
+    initializePlugins(instance, pluginsRegistry.getItems().map(([, plugin]) => plugin as BasePlugin));
+  });
 
   getPluginsNames().forEach((pluginName) => {
     const PluginClass = getPlugin(pluginName);

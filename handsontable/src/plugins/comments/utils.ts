@@ -1,4 +1,6 @@
 import { outerWidth } from '../../helpers/dom/element';
+import type { HotInstance } from '../../core/types';
+import { META_COMMENT, META_COMMENT_VALUE, type CommentObject } from './constants';
 
 /**
  * Get the horizontal anchor width used to place the comments editor.
@@ -37,4 +39,38 @@ export function getEditorAnchorHeight(rowspan: number, cellHeight: number): numb
   }
 
   return undefined;
+}
+
+/**
+ * The cell meta fields the comment menu items read.
+ */
+export type CommentCellMeta = { [META_COMMENT]?: CommentObject; hidden?: boolean };
+
+/**
+ * Checks whether a cell's meta holds a comment the user can act on. A hidden cell under a merged block
+ * does not count, and neither does comment meta without a value, which earlier versions of the
+ * "Read-only comment" item's click left on cells without a comment.
+ *
+ * @param {object} cellMeta The cell meta.
+ * @returns {boolean}
+ */
+export function hasCommentInMeta(cellMeta: CommentCellMeta): boolean {
+  return !cellMeta.hidden && !!cellMeta[META_COMMENT]?.[META_COMMENT_VALUE];
+}
+
+/**
+ * Checks whether a cell holds a comment the user can act on (see `hasCommentInMeta()`).
+ *
+ * Read transiently rather than through `plugin.getCommentMeta()`, which resolves via `getCellMeta`.
+ * The comment menu items walk the whole selection on every menu draw, so the materializing read would
+ * retain one meta object per visited cell for the grid's life – the pattern `handsontable/AGENTS.md`
+ * bans for a range loop.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @param {number} row The visual row index.
+ * @param {number} col The visual column index.
+ * @returns {boolean}
+ */
+export function hasCommentAtCell(hot: HotInstance, row: number, col: number): boolean {
+  return hasCommentInMeta(hot.getCellMetaTransient<CommentCellMeta>(row, col));
 }
