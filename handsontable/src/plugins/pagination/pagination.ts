@@ -321,6 +321,7 @@ export class Pagination extends BasePlugin {
         uiContainer: this.getSetting('uiContainer'),
         isRtl: this.hot.isRtl(),
         themeName: this.hot.getCurrentThemeName(),
+        themeScopeClassName: this.hot.themeManager?.scopeClassName,
         phraseTranslator: (key: string, extraArguments?: unknown) => this.hot.getTranslatedPhrase(key, extraArguments),
         a11yAnnouncer: (message: unknown) => announce(String(message ?? '')),
         syncIcon: (
@@ -1277,7 +1278,7 @@ export class Pagination extends BasePlugin {
    * @param {string | undefined} themeName The name of the theme to use.
    */
   #onAfterSetTheme = (themeName: unknown) => {
-    this.#ui?.updateTheme(themeName as string | undefined);
+    this.#ui?.updateTheme(themeName as string | undefined, this.hot.themeManager?.scopeClassName);
     this.#ui?.refreshIcons();
   };
 

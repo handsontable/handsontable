@@ -652,7 +652,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   Hide the `::after` while the indicator slides and while a tab is renamed, or two markers show.
 - **The theme class goes on the bar only in a `uiContainer`.** In a layout slot the bar sits under
   the grid's own themed wrapper; a class of its own there broke the theme engine's scope (the
-  `colorScheme` and `density` tokens of the grid stopped reaching the bar).
+  `colorScheme` and `density` tokens of the grid stopped reaching the bar). In a `uiContainer` the bar
+  gets the theme engine's scope class too (`applyUiContainerTheme()`, shared with Pagination), or it
+  matched only the theme's base rules and stayed light under a dark grid.
 - **The active tab's reveal is repeated whenever the strip's layout changes under it**
   (`settleReveal()`: after the overflow refresh in `#refreshUI`, from the overflow controller's
   `onResize`, and from `#onAfterSetTheme`). Two layouts changed under a first reveal: the paging

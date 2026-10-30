@@ -8,6 +8,7 @@ import {
   setAttribute,
 } from '../../helpers/dom/element';
 import { A11Y_DISABLED, A11Y_LABEL } from '../../helpers/a11y';
+import { applyUiContainerTheme } from '../../utils/uiContainerTheme';
 import type { IconKey } from '../../themes/types';
 import type { IconSlotSync } from '../../themes/engine/icons';
 
@@ -124,6 +125,10 @@ export class PaginationUI {
    */
   #themeName: string | undefined;
   /**
+   * The theme engine's scope class for the grid, `undefined` without the theme engine.
+   */
+  #themeScopeClassName: string | undefined;
+  /**
    * A function to translate phrases used in the UI.
    *
    * @type {function(string): string}
@@ -151,6 +156,7 @@ export class PaginationUI {
     uiContainer,
     isRtl,
     themeName,
+    themeScopeClassName,
     phraseTranslator,
     a11yAnnouncer,
     syncIcon,
@@ -159,6 +165,7 @@ export class PaginationUI {
     this.#uiContainer = uiContainer as HTMLElement | null;
     this.#isRtl = isRtl as boolean;
     this.#themeName = themeName as string | undefined;
+    this.#themeScopeClassName = themeScopeClassName as string | undefined;
     this.#phraseTranslator = phraseTranslator as (...args: unknown[]) => string;
     this.#a11yAnnouncer = a11yAnnouncer as (message: unknown) => void;
     this.#syncIcon = syncIcon as IconSlotSync;
@@ -218,7 +225,8 @@ export class PaginationUI {
     if (this.#uiContainer) {
       this.#uiContainer.appendChild(elements.fragment);
 
-      addClass(container, [this.#themeName ?? '', 'handsontable']);
+      addClass(container, 'handsontable');
+      applyUiContainerTheme(container, this.#themeName, this.#themeScopeClassName);
     }
 
     // Without a custom `uiContainer`, the LayoutManager owns placement: it appends the container
@@ -290,22 +298,20 @@ export class PaginationUI {
   }
 
   /**
-   * Updates the theme of the pagination container.
+   * Updates the theme of the pagination container. In a custom `uiContainer` the container gets the theme
+   * engine's scope class beside the theme class, so it follows the grid's `colorScheme` and `density`
+   * (`applyUiContainerTheme()`).
    *
    * @param {string | false | undefined} themeName The name of the theme to use.
+   * @param {string} [scopeClassName] The theme engine's scope class for the grid.
    * @returns {PaginationUI} The instance of the PaginationUI for method chaining.
    */
-  updateTheme(themeName: string | undefined): PaginationUI {
+  updateTheme(themeName: string | undefined, scopeClassName?: string): PaginationUI {
     this.#themeName = themeName;
+    this.#themeScopeClassName = scopeClassName;
 
     if (this.#uiContainer) {
-      const { container } = this.#refs!;
-
-      removeClass(container, /ht-theme-.*/g);
-
-      if (this.#themeName) {
-        addClass(container, this.#themeName);
-      }
+      applyUiContainerTheme(this.#refs!.container, this.#themeName, scopeClassName);
     }
 
     return this;

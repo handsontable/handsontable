@@ -3,6 +3,7 @@ import { mixin } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
 import * as C from '../../../i18n/constants';
 import { addClass, setAttribute } from '../../../helpers/dom/element';
+import { applyUiContainerTheme } from '../../../utils/uiContainerTheme';
 import { A11Y_GROUP, A11Y_LABEL } from '../../../helpers/a11y';
 import { isKeyboardActivation } from './activation';
 import { DISABLED_CLASS } from './overflow';
@@ -121,6 +122,10 @@ export class SheetsBarUI {
    */
   #themeName: string | undefined;
   /**
+   * The theme engine's scope class for the grid, `undefined` without the theme engine.
+   */
+  #themeScopeClassName: string | undefined;
+  /**
    * Phrase translation callback.
    */
   readonly #phraseTranslator: (...args: unknown[]) => string;
@@ -144,13 +149,16 @@ export class SheetsBarUI {
    * Creates the UI and installs it (into `uiContainer` when provided; otherwise the
    * container stays detached for the layout slot to place).
    */
-  constructor({ rootDocument, uiContainer, isRtl, themeName, phraseTranslator, a11yAnnouncer, ariaTags, syncIcon }:
-    Record<string, unknown>) {
+  constructor({
+    rootDocument, uiContainer, isRtl, themeName, themeScopeClassName,
+    phraseTranslator, a11yAnnouncer, ariaTags, syncIcon,
+  }: Record<string, unknown>) {
     this.#rootDocument = rootDocument as Document;
     this.#uiContainer = uiContainer as HTMLElement | null;
     this.#isRtl = isRtl as boolean;
     this.#ariaTags = ariaTags !== false;
     this.#themeName = themeName as string | undefined;
+    this.#themeScopeClassName = themeScopeClassName as string | undefined;
     this.#phraseTranslator = phraseTranslator as (...args: unknown[]) => string;
     this.#a11yAnnouncer = a11yAnnouncer as (message: unknown, politeness?: AnnouncementPoliteness) => void;
     this.#syncIcon = syncIcon as IconSlotSync;
@@ -247,22 +255,23 @@ export class SheetsBarUI {
   }
 
   /**
-   * Swaps the theme class on the container, for a bar in a custom `uiContainer` only. A bar in
+   * Swaps the theme classes on the container, for a bar in a custom `uiContainer` only. A bar in
    * a layout slot sits inside the grid's root wrapper and takes the theme from it, together with
    * the grid's `colorScheme` and `density`, which the theme engine scopes to that wrapper. A
    * theme class of its own matched the theme's base rules again on the bar and reset both to the
-   * theme's defaults, so a dark grid had a light bar. Pagination does the same.
+   * theme's defaults, so a dark grid had a light bar. In a `uiContainer` the bar gets the theme
+   * engine's scope class beside the theme class for the same reason (`applyUiContainerTheme()`).
+   * Pagination does the same.
+   *
+   * @param {string} [themeName] The grid's theme class.
+   * @param {string} [scopeClassName] The theme engine's scope class for the grid.
    */
-  updateTheme(themeName?: string): void {
-    const container = this.getContainer();
-
-    if (this.#themeName) {
-      container.classList.remove(this.#themeName);
-    }
+  updateTheme(themeName?: string, scopeClassName?: string): void {
     this.#themeName = themeName;
+    this.#themeScopeClassName = scopeClassName;
 
-    if (themeName && this.#uiContainer) {
-      addClass(container, themeName);
+    if (this.#uiContainer) {
+      applyUiContainerTheme(this.getContainer(), themeName, scopeClassName);
     }
   }
 
@@ -314,7 +323,8 @@ export class SheetsBarUI {
 
     if (this.#uiContainer) {
       this.#uiContainer.appendChild(elements.fragment);
-      addClass(container, [this.#themeName ?? '', 'handsontable']);
+      addClass(container, 'handsontable');
+      applyUiContainerTheme(container, this.#themeName, this.#themeScopeClassName);
     }
   }
 

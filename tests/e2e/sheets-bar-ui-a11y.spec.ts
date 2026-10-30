@@ -231,6 +231,35 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
     expect(tokens.bar).toEqual(tokens.grid);
   });
 
+  test('the bar and Pagination in a uiContainer follow the colorScheme and density of their grid', async({ page, theme, bundle }) => {
+    const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+    await fixture.goto({ uiContainer: true, pagination: true, colorScheme: 'dark', density: 'compact' });
+
+    const pagination = page.getByTestId('outside-pagination').locator('.ht-pagination');
+    const read = (element: Element) => {
+      const wrapper = document.querySelector('.ht-root-wrapper') as HTMLElement;
+      const style = (target: Element) => getComputedStyle(target);
+
+      return {
+        colorScheme: style(element).colorScheme,
+        tokens: [style(element).getPropertyValue('--ht-background-color').trim(),
+          style(element).getPropertyValue('--ht-cell-vertical-padding').trim()],
+        gridTokens: [style(wrapper).getPropertyValue('--ht-background-color').trim(),
+          style(wrapper).getPropertyValue('--ht-cell-vertical-padding').trim()],
+      };
+    };
+
+    await expect(pagination).toBeAttached();
+
+    for (const element of [fixture.bar, pagination]) {
+      const styles = await element.evaluate(read);
+
+      expect(styles.colorScheme).toBe('dark');
+      expect(styles.tokens).toEqual(styles.gridTokens);
+    }
+  });
+
   test.describe('the tab strip', () => {
     test('reveals the active tab on first paint', async({ page, theme, bundle }) => {
       const fixture = new SheetsBarUiPage(page, theme, bundle);

@@ -1144,6 +1144,7 @@ export class SheetsBar extends BasePlugin {
         uiContainer: this.getSetting('uiContainer'),
         isRtl: this.hot.isRtl(),
         themeName: this.hot.getCurrentThemeName(),
+        themeScopeClassName: this.hot.themeManager?.scopeClassName,
         phraseTranslator: (key: string, args?: unknown) => this.hot.getTranslatedPhrase(key, args),
         a11yAnnouncer: (message: unknown, politeness?: AnnouncementPoliteness) => (
           announce(String(message ?? ''), politeness)
@@ -5294,7 +5295,7 @@ export class SheetsBar extends BasePlugin {
    * Updates the bar's theme when the grid's theme changes.
    */
   #onAfterSetTheme = (themeName: unknown) => {
-    this.#ui?.updateTheme(themeName as string | undefined);
+    this.#ui?.updateTheme(themeName as string | undefined, this.hot.themeManager?.scopeClassName);
     // The icons are refreshed in place, never through `#refreshUI()`: `TabStrip#render()` aborts
     // a tab drag in progress, and this hook also fires for a color-scheme or density switch (a
     // ThemeBuilder `params()` or `setColorScheme()` included), so a user dragging a tab would drop

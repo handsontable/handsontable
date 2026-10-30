@@ -15,6 +15,7 @@ export interface SheetsBarUiConfig {
   ariaTags?: boolean;
   hostLabel?: string;
   menus?: boolean;
+  pagination?: boolean;
 }
 
 /**

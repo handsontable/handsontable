@@ -67,6 +67,10 @@ note in `../base/AGENTS.md`.
 - **Default**: the UI registers its container with `hot.getLayoutManager()` and the manager appends it into
   the **bottom slot**. **The element stays detached until then** — do not `appendChild` it yourself.
 - **With a custom `uiContainer`**: the UI installs itself there and the slot registration is skipped.
+  Outside the root wrapper it takes the theme from `applyUiContainerTheme()` (`src/utils/uiContainerTheme.ts`,
+  shared with the sheets bar): the theme class plus the theme engine's scope class. The engine writes
+  `colorScheme` and `density` under `.<theme>.<scope>` and stamps the scope class on the wrapper and portal
+  only, so with the theme class alone the pager stayed light under a dark grid.
 - **This plugin no longer reserves its own height.** Its `beforeHeightChange` `calc(height - bar)` hook
   moved into core (`reserveEdgeSlotsHeight` in `core/rootSize.ts`), which subtracts EVERY bottom- and top-slot
   bar from a pixel `height` — the sheets bar and the license notification too, so both bars behave
