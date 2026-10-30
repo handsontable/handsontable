@@ -15,6 +15,17 @@ inputs:
     required: false
     default: 'false'
 
+outputs:
+  verdict:
+    description: 'The regression gate outcome (performance-tests/lib/gate-enforce.mjs, OUTCOMES); `regressed` asks for an approval'
+    value: ${{ steps.gate.outputs.verdict }}
+  summary:
+    description: 'What regressed, on one line, when `verdict` is `regressed`; empty otherwise'
+    value: ${{ steps.gate.outputs.summary }}
+  report-url:
+    description: 'The pull request report on GitHub Pages; empty where the report is not deployed (fork and Dependabot runs)'
+    value: ${{ steps.report-url.outputs.pages_url }}
+
 runs:
   using: composite
   steps:
@@ -126,6 +137,15 @@ runs:
         # the report would cite a SHA nobody can look up. Fall back to GITHUB_SHA off the PR path.
         PERF_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         PERF_MODE: ${{ github.event_name == 'push' && 'golden' || 'compare' }}
+        # The regression gate's inputs (lib/gate.mjs). The base branch: a pull request into anything
+        # but develop is not assessed, because the baseline is always develop's. The base commit is
+        # only recorded in output/verdict.json, beside the newest golden's commit, so a would-fail
+        # can be checked for a baseline that lags develop.
+        PERF_BASE_REF: ${{ github.base_ref || '' }}
+        PERF_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+        # A run the gate acts on: the confirm re-run and the comment's gate text (isGatedRun in
+        # lib/gate.mjs). Same condition as the enforce step's `if:` below; only this path sets it.
+        PERF_GATED: ${{ github.event_name == 'pull_request' && '1' || '' }}
       run: PERF_MODE=$PERF_MODE node scripts/run.mjs
 
     - name: Upload performance-tests output
@@ -307,3 +327,19 @@ runs:
       with:
         header: performance-tests
         path: performance-tests/output/result.md
+
+    # The regression gate. LAST, so the report, the job summary and the sticky
+    # comment are always published before it runs. It reads output/verdict.json
+    # (decided in the teardown, lib/gate.mjs) and exports `verdict`, which
+    # performance.yml's `approve` job keys on: in block mode a regression is
+    # `regressed`, and `approve` waits on the `performance-approval` environment.
+    # It never fails the job over a regression, only over a missing verdict in
+    # block mode, so an unset output always comes with a red job. No
+    # `continue-on-error` for the same reason. Needs no token, so fork pull
+    # requests are gated the same way. `!cancelled()` like its caller: it must run
+    # after a failed step, and a cancelled job must not read as a gate failure.
+    - name: Enforce the performance gate
+      id: gate
+      if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+      shell: bash
+      run: node performance-tests/scripts/enforce-gate.mjs

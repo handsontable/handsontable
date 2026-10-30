@@ -433,6 +433,7 @@ export class DataProvider extends BasePlugin {
     this.addHook('afterPageSizeChange', this.#onAfterPageSizeChangeExternalPagination);
     this.addHook('beforeFilter', this.#onBeforeFilter);
     this.addHook('afterNotificationHide', this.#onAfterNotificationHide);
+    this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings, 1);
 
     this.#fetchOwed = !this.#isPassive;
 
@@ -454,7 +455,7 @@ export class DataProvider extends BasePlugin {
       return;
     }
 
-    this.disablePlugin();
+    this.#disable(false);
     this.enablePlugin();
 
     // The ready step starts the fetch once the call returns. While core applies the settings ahead of their
@@ -507,8 +508,25 @@ export class DataProvider extends BasePlugin {
    * `enablePlugin()` registers it again so it survives each `updatePlugin()` cycle.
    */
   disablePlugin(): void {
+    this.#disable(true);
+  }
+
+  /**
+   * Disables the plugin. A real disable syncs EmptyDataState's loading overlay after the abort, because an
+   * aborted fetch fires no hook that would hide it. The disable and enable cycle of `updatePlugin()` skips the
+   * sync: its refetch takes the overlay over, and hiding it in between would restore the selection and show it
+   * again for the same fetch. A passive disable aborts nothing, and the owner's context change syncs the overlay
+   * itself.
+   *
+   * @param {boolean} syncsLoadingOverlay Whether to sync the loading overlay after the abort.
+   */
+  #disable(syncsLoadingOverlay: boolean): void {
     if (!this.#isPassive) {
-      this.#abortFetchesFor(this.#currentContext());
+      if (syncsLoadingOverlay) {
+        this.#abortFetchesAndSyncLoading(this.#currentContext());
+      } else {
+        this.#abortFetchesFor(this.#currentContext());
+      }
     }
 
     this.#queryParameters = { ...INITIAL_QUERY_PARAMETERS };
@@ -739,14 +757,12 @@ export class DataProvider extends BasePlugin {
    * @param {object|null} context The context to drop.
    */
   _releaseContext(context: object | null): void {
-    this.#abortFetchesFor(context);
-
     if (context !== null) {
       this.#releasedContexts.add(context);
       this.#hideErrorToastsFor(context);
     }
 
-    this.hot.getPlugin('emptyDataState')?._syncDataProviderLoading(this.isFetching());
+    this.#abortFetchesAndSyncLoading(context);
   }
 
   /**
@@ -1109,19 +1125,20 @@ export class DataProvider extends BasePlugin {
 
     const base = baseQuery ?? this.#queryFor(binding);
     const params = this.#mergeAndNormalizeFetchParams(overrides, base);
-    const controller = new AbortController();
-
-    this.#abortFetchesFor(binding.context, this.#createAbortReason());
-    this.#inFlight.set(binding.context, { binding, controller, params, skipLoading: overrides.skipLoading === true });
-
     const hookParams = this.#isVisible(binding) ? params : { ...params, skipLoading: true };
 
     if (this.hot.runHooks('beforeDataProviderFetch', hookParams) === false) {
-      this.#releaseInFlight(binding.context, controller);
+      this.#syncLoadingIfShown(binding);
       this.hot.render();
 
       return null;
     }
+
+    const controller = new AbortController();
+    const skipLoading = this.#resolveSkipLoading(binding.context, overrides.skipLoading === true);
+
+    this.#abortFetchesFor(binding.context, this.#createAbortReason());
+    this.#inFlight.set(binding.context, { binding, controller, params, skipLoading });
 
     const { signal } = controller;
 
@@ -1131,6 +1148,7 @@ export class DataProvider extends BasePlugin {
       if (signal.aborted) {
         this.#releaseInFlight(binding.context, controller);
         this.#runAfterDataProviderFetchAbort(params, undefined);
+        this.#syncLoadingIfShown(binding);
 
         return null;
       }
@@ -1148,11 +1166,9 @@ export class DataProvider extends BasePlugin {
       );
 
       if (clampedPage !== persistedParams.page) {
-        return this.#fetchFor(
-          binding,
-          { page: clampedPage, skipLoading: overrides.skipLoading },
-          persistedParams
-        );
+        this.#releaseInFlight(binding.context, controller);
+
+        return this.#fetchFor(binding, { page: clampedPage, skipLoading }, persistedParams);
       }
 
       this.#releaseInFlight(binding.context, controller);
@@ -1164,6 +1180,7 @@ export class DataProvider extends BasePlugin {
 
       if (signal.aborted || (err instanceof Error && err.name === 'AbortError')) {
         this.#runAfterDataProviderFetchAbort(params, err);
+        this.#syncLoadingIfShown(binding);
 
         return null;
       }
@@ -1300,6 +1317,56 @@ export class DataProvider extends BasePlugin {
       this.#inFlight.delete(context);
       entry.controller.abort(reason);
     }
+  }
+
+  /**
+   * Aborts the fetch in flight for one context, without a reason, and syncs EmptyDataState's loading overlay
+   * with what is still loading: an aborted fetch fires no hook that would hide the overlay.
+   *
+   * @param {object|null} context The context.
+   */
+  #abortFetchesAndSyncLoading(context: object | null): void {
+    this.#abortFetchesFor(context);
+    this.#syncLoading();
+  }
+
+  /**
+   * Syncs EmptyDataState's loading overlay with what is still loading for the context shown.
+   */
+  #syncLoading(): void {
+    this.hot.getPlugin('emptyDataState')?._syncDataProviderLoading(this.isFetching());
+  }
+
+  /**
+   * Syncs the loading overlay after a fetch for a binding ended without a response or an error: a listener canceled
+   * it, or it was aborted. Those endings fire no {@link Hooks#afterDataProviderFetch} and no
+   * {@link Hooks#afterDataProviderFetchError}, and the overlay its {@link Hooks#beforeDataProviderFetch} raised
+   * stayed up for good. A fetch whose context is not shown never raised it. A newer fetch that replaced this one
+   * keeps it up, because `isFetching()` answers for the newer one. Does nothing once the plugin was destroyed.
+   *
+   * @param {object} binding What the fetch was for.
+   */
+  #syncLoadingIfShown(binding: RequestBinding): void {
+    if (this.hot && this.#isVisible(binding)) {
+      this.#syncLoading();
+    }
+  }
+
+  /**
+   * Tells whether a fetch about to start for a context skips the loading state. A fetch asked to skip it
+   * still counts as loading when it supersedes a fetch of the same context that was loading: the overlay
+   * that fetch raised stays up until the successor lands, which is the only one left to clear it. Without
+   * that, the superseded fetch's abort synced the overlay with an `isFetching()` that ignored the silent
+   * successor, and a sort or a save made during a load uncovered the grid while its refetch still ran.
+   *
+   * @param {object|null} context The context of the fetch.
+   * @param {boolean} requested Whether the caller asked to skip the loading state.
+   * @returns {boolean}
+   */
+  #resolveSkipLoading(context: object | null, requested: boolean): boolean {
+    const previous = this.#inFlight.get(context);
+
+    return requested && (previous === undefined || previous.skipLoading);
   }
 
   /**
@@ -1599,18 +1666,31 @@ export class DataProvider extends BasePlugin {
 
   /**
    * Derives the query parameters again after the owner changed the view, from the Pagination, ColumnSorting, and
-   * Filters states the change left behind (the new view's own, since restoring its sort and filters runs passively),
-   * starting on page 1. A fetch still running for the new context keeps its own query. A replayed response sets
-   * its own query afterwards.
+   * Filters states the change left behind (the new view's own, since restoring its sort and filters runs passively).
+   * A view the owner keeps no response for puts Pagination back on the configured `initialPage` and `pageSize`
+   * first, and its query takes that `initialPage` even while the pager, which counts the rows the grid holds until
+   * a response gives a total, shows a lower page, so its first fetch asks for them, as the grid's own first fetch
+   * does. A fetch still running for the new
+   * context keeps its own query. A replayed response sets its own query afterwards.
    */
   #rederiveQuery(): void {
-    if (!this.enabled) {
+    const binding = this.#currentBinding();
+
+    if (!this.enabled || !binding) {
       return;
     }
 
+    const initialPage = this.#latestResultFor(binding) === null
+      ? this.hot.getPlugin('pagination')?._resetDataProviderPage()
+      : undefined;
+
     this.#queryParameters = { ...INITIAL_QUERY_PARAMETERS };
     this.#applyQueryParametersFromPlugins();
-    this.#queryParameters = { ...this.#queryParameters, page: 1 };
+
+    if (initialPage !== undefined) {
+      this.#queryParameters = { ...this.#queryParameters, page: initialPage };
+    }
+
     this.#adoptPendingQuery();
   }
 
@@ -1893,6 +1973,22 @@ export class DataProvider extends BasePlugin {
       destinationSortConfigs,
       sortPossible
     );
+  };
+
+  /**
+   * Tells EmptyDataState about the fetch it missed when a settings update turned it on. The plugin raises its
+   * loading overlay from `beforeDataProviderFetch`, and an enable made while a fetch runs never saw that hook, so
+   * the overlay showed "No data" over an empty grid, or nothing over rows, until the fetch landed. Registered after
+   * the plugins' own settings listeners (`orderIndex` 1), so EmptyDataState is enabled by then; the sync does
+   * nothing when it is off. A passive update belongs to the owner's context change, which syncs the overlay after
+   * its callback, with the arriving view's selection.
+   *
+   * @param {object} newSettings The settings passed to `updateSettings()`.
+   */
+  readonly #onAfterUpdateSettings = (newSettings: Record<string, unknown>) => {
+    if (!this.#isPassive && hasOwnProperty(newSettings, 'emptyDataState')) {
+      this.#syncLoading();
+    }
   };
 
   /**

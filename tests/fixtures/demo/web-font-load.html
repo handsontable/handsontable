@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - web font loaded after the first draw</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright
+    // projects, mapped through fixed allowlists to LITERALS so a crafted param can never be
+    // reflected into the document. An ABSENT param keeps the default (main / plain UMD); an
+    // unknown value THROWS rather than falling back, so a typo in the project config is one red
+    // leg instead of a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+    /* The face is added by the test only after the grid has drawn, so the first draw measures the fallback. */
+    .ht-late-font { font-family: 'HtLateFont', sans-serif !important; font-size: 15px !important; }
+    /* `?headers=1`: every header label uses the late font, ghost tables included (they sit outside the grid). */
+    body.ht-late-headers th { font-family: 'HtLateFont', sans-serif !important; font-size: 15px !important; }
+    /* A class a test sets on a cell while the font re-measure runs: it widens the cell without touching the font. */
+    .ht-wide-cell { padding-left: 100px !important; }
+    /* A class a test sets on the body while the font re-measure runs: it widens every cell, ghost tables included. */
+    body.ht-wide-cells td { padding-left: 100px !important; }
+  </style>
+</head>
+<body>
+  <!--
+    DEV-199: two cells use a web font the document loads only after the grid has measured its rows and
+    columns. B2 wraps in a 120px column, so the wider font adds lines to its row. C4 does not wrap and its
+    column is sized from its content, so the wider font needs a wider column.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+    const variant = new URLSearchParams(location.search);
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // ?variant flags: height=1 (a fixed grid height, so the container never resizes), auto=1 (autoRowSize),
+    // preload=1 (a font load is already in progress when the grid is created, see below), many=1 (3000 more
+    // rows whose column B wraps in the late font, to scroll far down), headers=1 (see below), wide=1 (see below),
+    // merge=1 (see below), longheader=1 (see below).
+    const data = [
+      ['', '', '', ''],
+      ['', 'The long text should be wrapped', '', ''],
+      ['', '', '', ''],
+      ['', '', 'Auto-sized column, no wrap', ''],
+      ['', '', '', ''],
+      ['', '', '', ''],
+    ];
+
+    if (variant.get('many') === '1') {
+      for (let row = 0; row < 3000; row++) {
+        data.push(['', `Row ${row} has long text that should be wrapped`, '', '']);
+      }
+    }
+
+    // wide=1: 40 columns in a 1200px wide grid, so most of them are outside the viewport (column F stays on
+    // screen after the font widens A and C), and 25000 rows, so
+    // one chunk of AutoColumnSize's sweep (100000 cells) measures four of them. Copies of the no-wrap
+    // late-font text sit in A4 (the frozen column), F4, on screen but past that chunk, and in the last
+    // column, far off screen. The
+    // column count stays under the 50 columns AutoColumnSize measures at init without idle tasks: the idle
+    // part re-draws the grid, which caches the samples of the columns on screen before the font loads
+    // (so does a grid without a fixed height, through the resize that follows its first draw).
+    const wide = variant.get('wide') === '1';
+
+    if (wide) {
+      for (let row = data.length; row < 25000; row++) {
+        data.push(['', '', '', '']);
+      }
+      data.forEach((row, rowIndex) => {
+        while (row.length < 40) {
+          row.push(String(rowIndex));
+        }
+      });
+      data[3][0] = 'Frozen column, no wrap';
+      data[3][5] = 'Auto-sized column, no wrap';
+      data[3][39] = 'Auto-sized column, no wrap';
+      // The same text in a wrapping cell of row 300, below the rendered rows and within AutoRowSize's
+      // synchronous 500 rows: it fits on one line once column AN is wide enough for the no-wrap copy.
+      data[300][39] = 'Auto-sized column, no wrap';
+    }
+
+    // merge=1: a merge over C5:D5 whose late-font text is wider than both columns, fitted by AutoColumnSize.
+    const withMerge = variant.get('merge') === '1';
+
+    if (withMerge) {
+      data[4][2] = 'A merged text in the late font, far wider than column C and column D together, no wrap';
+    }
+
+    // longheader=1 (with wide=1): the header label of the last column uses the late font and is the widest
+    // text of its column, so only a measure of the header sizes the column for it.
+    const longHeader = variant.get('longheader') === '1';
+
+    if (longHeader) {
+      document.body.classList.add('ht-late-headers');
+    }
+
+    // headers=1: row header labels sized by AutoRowHeaderSize, and a nested header label over two columns.
+    const withHeaders = variant.get('headers') === '1';
+
+    if (withHeaders) {
+      document.body.classList.add('ht-late-headers');
+    }
+
+    const createGrid = () => {
+      window.hot = new Handsontable(container, {
+        data,
+        ...(withHeaders ? {
+          rowHeaders: row => `Row label ${row + 1}`,
+          autoRowHeaderSize: true,
+          nestedHeaders: [
+            // Over columns A (empty) and B (a fixed width), whose cells do not widen with the font, so only
+            // NestedHeaders' own measurement can widen them for the label.
+            [{ label: 'A nested header label wider than both of its columns', colspan: 2 }, 'C', 'D'],
+            ['A', 'B', 'C', 'D'],
+          ],
+        } : {}),
+        height: variant.get('height') === '1' ? 400 : undefined,
+        width: wide ? 1200 : undefined,
+        colHeaders: longHeader ? column => (column === 39 ? 'A long header label in the late font' : String(column)) : true,
+        ...(withHeaders ? {} : { rowHeaders: true }),
+        autoRowSize: variant.get('auto') === '1',
+        fixedColumnsStart: 1,
+        columns: Array.from({ length: wide ? 40 : 4 }, (_, column) => (column === 1 ?
+          { width: 120, className: variant.get('many') === '1' ? 'ht-late-font' : '' } : {})),
+        cell: [
+          { row: 1, col: 1, className: 'ht-late-font' },
+          { row: 3, col: 2, className: 'ht-late-font', wordWrap: false },
+          ...(wide ? [
+            { row: 3, col: 0, className: 'ht-late-font', wordWrap: false },
+            { row: 3, col: 5, className: 'ht-late-font', wordWrap: false },
+            { row: 3, col: 39, className: 'ht-late-font', wordWrap: false },
+            { row: 300, col: 39, className: 'ht-late-font' },
+          ] : []),
+          ...(withMerge ? [{ row: 4, col: 2, className: 'ht-late-font', wordWrap: false }] : []),
+        ],
+        ...(withMerge ? { mergeCells: [{ row: 4, col: 2, rowspan: 1, colspan: 2 }] } : {}),
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    };
+
+    if (variant.get('preload') === '1') {
+      // A face from a URL the test holds open (WebFontLoadPage#holdFontRequest), so `document.fonts` is
+      // still loading when the grid is created. The grid is created in a later task than the `loading`
+      // event, the way a page whose own text asked for a font first creates it, so the watcher never sees
+      // that event. The face never loads (the test answers 404); it only keeps the set loading.
+      const blocker = new FontFace('HtBlockerFont', 'url("/__ht-held-font.woff2")');
+
+      document.fonts.add(blocker);
+      blocker.load().catch(() => {});
+      document.fonts.addEventListener('loading', () => setTimeout(createGrid), { once: true });
+    } else {
+      createGrid();
+    }
+  </script>
+</body>
+</html>

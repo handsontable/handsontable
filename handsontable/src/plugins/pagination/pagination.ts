@@ -455,6 +455,32 @@ export class Pagination extends BasePlugin {
   }
 
   /**
+   * Puts the page and page size back to the configured `initialPage` and `pageSize` without firing the page hooks,
+   * and returns the configured `initialPage`. The DataProvider plugin calls it when the grid has just changed to a
+   * view that has no response yet: the page and page size the previous view left describe that view, and the new
+   * view's first fetch asks for the configured ones, as the grid's own first fetch does. Until that response gives a
+   * row total, the pages are counted from the rows the grid holds, so the page shown may be clamped below the one
+   * returned; the response brings the page, page size, and total in through {@link Hooks#afterDataProviderFetch}.
+   * Does nothing and returns `undefined` while this plugin is disabled. Internal; not public API.
+   *
+   * @private
+   * @returns {number|undefined} The configured initial page.
+   */
+  _resetDataProviderPage(): number | undefined {
+    if (!this.enabled) {
+      return;
+    }
+
+    const initialPage = this.getSetting<number>('initialPage')!;
+
+    this.#setCurrentPage(initialPage);
+    this.#setPageSizeValue(this.getSetting<number | 'auto'>('pageSize')!);
+    this.#computeAndApplyState();
+
+    return initialPage;
+  }
+
+  /**
    * Tells whether a DataProvider currently backs the grid. Read on demand, because the answer
    * changes whenever `updateSettings()` adds or removes a `dataProvider`, and this plugin is not
    * updated then.

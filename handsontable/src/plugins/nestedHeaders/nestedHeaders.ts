@@ -12,6 +12,8 @@ import {
   HEADER_TYPE,
 } from '../../selection';
 import { BasePlugin } from '../base';
+import { mixin } from '../../helpers/object';
+import localHooks from '../../mixins/localHooks';
 import StateManager from './stateManager';
 import { createColumnVisibilityAdapter } from './stateManager/columnVisibility';
 import { createColumnArrangementAdapter } from './stateManager/columnArrangement';
@@ -22,6 +24,7 @@ import type CellRange from '../../3rdparty/walkontable/src/cell/range';
 import GhostTable from './utils/ghostTable';
 import { resolveRowspanNavigationContextRow } from './utils/navigation';
 import { getEndOverlayHeaders } from '../../utils/endOverlayHeaders';
+import { FONT_REMEASURE_ORDER_INDEX } from '../../core/fontLoad';
 
 /**
  * A single configured nested header. Declares the header label and how it spans and behaves.
@@ -82,6 +85,12 @@ interface MembershipState {
   readonly configVersion: number;
   readonly overrides: ReadonlyArray<readonly [number, ReadonlyArray<readonly [number, number]>]>;
 }
+
+/**
+ * The header group membership a column move left behind, as `NestedHeaders#_exportViewState()` returns
+ * it: `[physicalColumn, [[headerLevel, ownerIdentity], ...]]` entries.
+ */
+export type ColumnMembershipViewState = Array<[number, Array<[number, number]>]>;
 
 /**
  * Tells whether a value is a membership state `NestedHeaders#captureState()` recorded.
@@ -172,6 +181,26 @@ function isMembershipState(value: unknown): value is MembershipState {
  */
 export class NestedHeaders extends BasePlugin {
   /**
+   * Registers a local hook listener. Provided by the `localHooks` mixin. The plugin runs
+   * `afterHeaderStateRebuild` each time it builds the header state from the `nestedHeaders` setting,
+   * which resets every flag another plugin wrote into that state (CollapsibleColumns' `collapsible`).
+   *
+   * @private
+   */
+  declare addLocalHook: (key: string, callback: Function) => this;
+  /**
+   * Removes a local hook listener. Provided by the `localHooks` mixin.
+   *
+   * @private
+   */
+  declare removeLocalHook: (key: string, callback: Function) => this;
+  /**
+   * Runs the local hook listeners registered under the given name. Provided by the `localHooks` mixin.
+   *
+   * @private
+   */
+  declare runLocalHooks: (key: string, ...args: unknown[]) => void;
+  /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.
    */
   static get PLUGIN_KEY() {
@@ -199,16 +228,26 @@ export class NestedHeaders extends BasePlugin {
    * The physical indexes of the columns a move is relocating, captured in `beforeColumnMove` (where
    * the pre-move mapping is fresh). After the move, `#reparentMovedColumns` translates them to their
    * new visual positions and re-parents them into the cohesive group they were dropped inside. Cleared
-   * once consumed. Null when no move is in flight.
+   * once consumed, or by `afterColumnMove` when the move changed nothing. Null when no move is in flight.
    */
   #movedPhysicalColumns: number[] | null = null;
   /**
    * The column index sequence captured in `beforeColumnMove`, before the move is applied. Compared
-   * against the post-move sequence so a no-op move (e.g. clicking a selected group header, which
-   * "moves" the columns to their own position) skips re-parenting - recomputing membership there
-   * would needlessly drop a column's existing adoption. Null when no move is in flight.
+   * against the post-move sequence so a move that leaves the order as it is skips re-parenting -
+   * recomputing membership there would needlessly drop a column's existing adoption. Null when no move
+   * is in flight.
    */
   #preMoveColumnSequence: number[] | null = null;
+  /**
+   * A copy of the column index sequence the header tree was last derived against. A cache update that
+   * leaves the sequence a different permutation of the same columns re-derives the tree, whatever wrote
+   * the order: `setIndexesSequence()` (UndoRedo, a ViewState or SheetsBar restore) reports the `'update'`
+   * source, not `'move'`. A sequence of another length is an insert or a removal, which
+   * `afterCreateCol`/`afterRemoveCol` derive on their own. Null until the first derive, and from
+   * `beforeLoadData` until the `afterLoadData` derive: a data load re-initializes the column order, which
+   * is not a reorder, and the derive that follows the load covers it.
+   */
+  #derivedColumnSequence: number[] | null = null;
   /**
    * Handler bound to columnIndexMapper's cacheUpdated local hook. Keeps header colspan state
    * in sync with the current hiding map whenever visibility or column order changes.
@@ -225,16 +264,19 @@ export class NestedHeaders extends BasePlugin {
     // group whose columns are no longer adjacent renders as multiple same-label banners. A non-batched
     // move carries the 'move' change source on this cache update. A batched / suspended move's cache
     // update fires on resume with the source already cleared, so afterColumnMove flags a pending
-    // rebuild for that case. Both re-derive here, where the mapping is fresh. The 'move' gate excludes
-    // init / insert / remove, which rebuild through their own paths (setState, afterCreateCol,
-    // afterRemoveCol) and would otherwise be double-processed (e.g. re-applying a collapse twice).
+    // rebuild for that case. Any other write that leaves a different permutation of the same columns
+    // (`setIndexesSequence()`, source 'update') re-derives too. All of them re-derive here, where the
+    // mapping is fresh. Insert / remove change the length and rebuild through their own paths
+    // (afterCreateCol, afterRemoveCol), which would otherwise be double-processed (e.g. re-applying a
+    // collapse twice).
     const isColumnMove = indexesSequenceChanged && this.hot.columnIndexMapper.indexesChangeSource === 'move';
+    const isReordered = indexesSequenceChanged && this.#isReorderedSinceDerive();
 
-    if (isColumnMove || this.#structureRebuildPending) {
+    if (isColumnMove || isReordered || this.#structureRebuildPending) {
       // Re-parent the moved columns first (cohesive groups adopt/release members), then re-derive so
       // the tree reflects both the new arrangement and the membership changes.
       this.#reparentMovedColumns();
-      this.#stateManager.rebuildState();
+      this.#rebuildState();
 
       // Only release the captured move state once it has been consumed here. A move that splits a
       // collapsed group makes CollapsibleColumns expand it from its own beforeColumnMove handler; that
@@ -264,8 +306,21 @@ export class NestedHeaders extends BasePlugin {
    * cache update fires on resume with the source already cleared, so flag a pending rebuild here -
    * the resume cache update consumes it once the mapping is fresh.
    */
-  #onAfterColumnMove = () => {
-    if (this.enabled && this.hot.columnIndexMapper.isBatched) {
+  #onAfterColumnMove = (movedColumns: number[], finalIndex: number, dropIndex: number | undefined,
+                        movePossible: boolean, orderChanged: boolean) => {
+    if (!this.enabled) {
+      return;
+    }
+
+    // A move that leaves the order as it is never reaches the index mapper, so no cache update consumes the
+    // capture of `#onBeforeColumnMove`. Release it here, or a later reorder that skips `beforeColumnMove`
+    // (`manualColumnFreeze`) would re-parent the stale columns.
+    if (orderChanged === false) {
+      this.#movedPhysicalColumns = null;
+      this.#preMoveColumnSequence = null;
+    }
+
+    if (this.hot.columnIndexMapper.isBatched) {
       this.#structureRebuildPending = true;
     }
   };
@@ -287,6 +342,35 @@ export class NestedHeaders extends BasePlugin {
     }
   };
   /**
+   * Reports whether the column order is a different permutation of the columns the header tree was last
+   * derived against.
+   *
+   * @returns {boolean}
+   */
+  #isReorderedSinceDerive(): boolean {
+    const derived = this.#derivedColumnSequence;
+    const sequence = this.hot.columnIndexMapper.getIndexesSequence();
+
+    return derived !== null && derived.length === sequence.length &&
+      derived.some((physicalColumn, index) => physicalColumn !== sequence[index]);
+  }
+
+  /**
+   * Remembers the column order the header tree has just been derived against.
+   */
+  #markDerived(): void {
+    this.#derivedColumnSequence = this.hot.columnIndexMapper.getIndexesSequence().slice();
+  }
+
+  /**
+   * Re-derives the header tree for the current column order and remembers that order.
+   */
+  #rebuildState(): void {
+    this.#stateManager.rebuildState();
+    this.#markDerived();
+  }
+
+  /**
    * Re-parents the columns captured by `#onBeforeColumnMove` after the move completes. Translates the
    * stored physical indexes to their new visual positions (the mapping is fresh by the time this runs)
    * and hands them to the state manager, which records the membership overrides the derive needs to
@@ -300,9 +384,10 @@ export class NestedHeaders extends BasePlugin {
       return;
     }
 
-    // A no-op move (the column order is unchanged - e.g. clicking a selected group header) must not
-    // re-parent: recomputing membership for the "moved" columns would drop a prior adoption and split
-    // the group. Only re-parent when the move actually reordered the columns.
+    // A cache update that leaves the column order unchanged must not re-parent: recomputing membership
+    // for the captured columns would drop a prior adoption and split the group. A no-op move (e.g.
+    // clicking a selected group header) no longer reaches this point, since it skips the index mapper.
+    // Only re-parent when the order actually changed.
     const sequence = this.hot.columnIndexMapper.getIndexesSequence();
 
     if (previous.length === sequence.length &&
@@ -436,6 +521,7 @@ export class NestedHeaders extends BasePlugin {
                         passed as an array of arrays e.q. [['A1', { label: 'A2', colspan: 2 }]]`);
     }
 
+    this.addHook('beforeLoadData', this.#onBeforeLoadData);
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('afterCreateCol', this.#onAfterCreateCol);
     this.addHook('afterRemoveCol', this.#onAfterRemoveCol);
@@ -459,6 +545,7 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('beforeCopy', this.#onBeforeCopy);
     this.addHook('beforeSelectColumns', this.#onBeforeSelectColumns);
     this.addHook('beforeViewRender', this.#onBeforeViewRender);
+    this.addHook('afterFontsLoad', this.#onAfterFontsLoad, FONT_REMEASURE_ORDER_INDEX);
     this.addHook('afterViewportColumnCalculatorOverride', this.#onAfterViewportColumnCalculatorOverride);
     this.addHook('modifyFocusedElement', this.#onModifyFocusedElement);
     // Sync the header tree's hidden state from the hiding map *before* the focus highlight is
@@ -495,6 +582,7 @@ export class NestedHeaders extends BasePlugin {
 
     if (Array.isArray(nestedHeaders)) {
       this.detectedOverlappedHeaders = this.#stateManager.setState(nestedHeaders);
+      this.#markDerived();
     }
 
     this.#hasRowspanHeaders = this.#stateManager
@@ -518,6 +606,10 @@ export class NestedHeaders extends BasePlugin {
     this.#stateManager.syncVisibility(createColumnVisibilityAdapter(this.hot));
 
     this.#updateWidthsMap = true;
+
+    if (Array.isArray(nestedHeaders)) {
+      this.runLocalHooks('afterHeaderStateRebuild');
+    }
   }
 
   /**
@@ -533,6 +625,7 @@ export class NestedHeaders extends BasePlugin {
 
     this.clearColspans();
     this.#stateManager.clear();
+    this.#derivedColumnSequence = null;
     this.#rowspanHeaderNavigationContextRow = null;
     this.#expectedNextKeyboardHighlightCoords = null;
     this.#selectionLayerAtPress = null;
@@ -595,7 +688,48 @@ export class NestedHeaders extends BasePlugin {
       this.#stateManager.importMembershipOverrides(state.overrides);
     }
 
-    this.#stateManager.rebuildState();
+    this.#rebuildState();
+    this.#stateManager.syncVisibility(createColumnVisibilityAdapter(this.hot));
+  }
+
+  /**
+   * Returns the header group membership column moves recorded, for the sheets bar to keep with a sheet's
+   * column order. `null` when the plugin is off.
+   *
+   * @private
+   * @returns {Array|null} The overrides, as `[physicalColumn, [[headerLevel, ownerIdentity], ...]]` entries.
+   */
+  _exportViewState(): ColumnMembershipViewState | null {
+    if (!this.enabled) {
+      return null;
+    }
+
+    return this.#stateManager.exportMembershipOverrides();
+  }
+
+  /**
+   * Puts back the header group membership {@link NestedHeaders#_exportViewState} returned, or clears it
+   * for `null`, and derives the headers from it when it changed. Hook-silent: the sheets bar calls it on a
+   * switch, after the sheet's column order is written back, so the derive sees both. A column past the
+   * end of the data is dropped.
+   *
+   * @private
+   * @param {Array|null} state The overrides, as `[physicalColumn, [[headerLevel, ownerIdentity], ...]]` entries.
+   */
+  _importViewState(state: ColumnMembershipViewState | null): void {
+    if (!this.enabled) {
+      return;
+    }
+
+    const columnsCount = this.hot.columnIndexMapper.getNumberOfIndexes();
+    const overrides = (state ?? []).filter(([physicalColumn]) => physicalColumn < columnsCount);
+
+    if (JSON.stringify(overrides) === JSON.stringify(this.#stateManager.exportMembershipOverrides())) {
+      return;
+    }
+
+    this.#stateManager.importMembershipOverrides(overrides);
+    this.#rebuildState();
     this.#stateManager.syncVisibility(createColumnVisibilityAdapter(this.hot));
   }
 
@@ -1936,6 +2070,15 @@ export class NestedHeaders extends BasePlugin {
   };
 
   /**
+   * Forgets the column order the header tree was derived against before a data load re-initializes the
+   * column index mapper. The re-initialization is not a reorder: the derive of the load's ready step covers it,
+   * so the cache update it fires must not re-derive the tree first.
+   */
+  #onBeforeLoadData = () => {
+    this.#derivedColumnSequence = null;
+  };
+
+  /**
    * Re-initializes the plugin state after new data is loaded, unless this is the initial data load (the ready step of
    * the enable covers it). The rebuild runs in the ready step, before the load's render.
    */
@@ -1960,6 +2103,7 @@ export class NestedHeaders extends BasePlugin {
       visualColumnIndex;
 
     this.#stateManager.insertColumns(visualColumnIndex, physicalColumnIndex, amount);
+    this.#markDerived();
     this.#updateWidthsMap = true;
   };
 
@@ -1974,6 +2118,15 @@ export class NestedHeaders extends BasePlugin {
    */
   #onAfterRemoveCol = (visualColumnIndex: number, amount: number, physicalColumns: number[]) => {
     this.#stateManager.removeColumns(visualColumnIndex, amount, physicalColumns);
+    this.#markDerived();
+    this.#updateWidthsMap = true;
+  };
+
+  /**
+   * Rebuilds the widths map on the next render after the document loaded a web font, because the ghost
+   * table measured the multi-column labels with the fallback font.
+   */
+  #onAfterFontsLoad = () => {
     this.#updateWidthsMap = true;
   };
 
@@ -1994,6 +2147,7 @@ export class NestedHeaders extends BasePlugin {
    */
   destroy() {
     this.#stateManager.clear();
+    this.#derivedColumnSequence = null;
     removeClass(this.hot.rootElement, 'htHasRowspanHeaders');
 
     super.destroy();
@@ -2010,3 +2164,5 @@ export class NestedHeaders extends BasePlugin {
     return this.#stateManager.getHeaderTreeNodeData(coords.row, coords.col);
   }
 }
+
+mixin(NestedHeaders, localHooks);

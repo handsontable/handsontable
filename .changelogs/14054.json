@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed removing the Ctrl/Cmd+C, Ctrl/Cmd+X, and Ctrl/Cmd+V shortcuts through the ShortcutManager, which now stops the Ctrl/Cmd+C, Ctrl/Cmd+X, and Ctrl/Cmd+V keys from copying, cutting, and pasting. Other native clipboard keys, such as Ctrl+Shift+V and Shift+Insert, are not blocked. The `grid` shortcut context now lists these three shortcuts by default, so `hasShortcut()` and `getShortcuts()` report them, and an application that removed its own Ctrl/Cmd+V by keys to get the native paste back must now remove it by group.",
+  "type": "fixed",
+  "issueOrPR": 14054,
+  "breaking": true,
+  "framework": "none"
+}

@@ -246,6 +246,16 @@ export class ColumnSorting extends BasePlugin {
    * @type {null|IndexesSequence}
    */
   indexesSequenceCache: IndexesSequence | null = null;
+  /**
+   * The row order the last applied sort or clear left the rows in, registered next to
+   * `indexesSequenceCache` so that row inserts and removals update it the way they update the live
+   * order, and UndoRedo restores it with the rest of the row maps. Sort states can be emptied while the
+   * rows stay sorted (`setSortConfig([])`, removing the sorted column), so empty states do not tell
+   * whether the rows show a sort result. Comparing this order with the live one does.
+   *
+   * @type {null|IndexesSequence}
+   */
+  #sortedRowOrder: IndexesSequence | null = null;
 
   /**
    * Checks if the plugin is enabled in the Handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -354,8 +364,10 @@ export class ColumnSorting extends BasePlugin {
       if (this.indexesSequenceCache !== null) {
         this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache!.getValues());
         this.hot.rowIndexMapper.unregisterMap(this.pluginKey);
+        this.hot.rowIndexMapper.unregisterMap(`${this.pluginKey}.sortedRowOrder`);
 
         this.indexesSequenceCache = null;
+        this.#sortedRowOrder = null;
       }
     }, true);
 
@@ -471,15 +483,14 @@ export class ColumnSorting extends BasePlugin {
       return;
     }
 
-    if (currentSortConfig.length === 0 && this.indexesSequenceCache === null) {
-      this.indexesSequenceCache =
-        this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginKey, 'indexesSequence');
-      this.indexesSequenceCache.setValues(this.hot.rowIndexMapper.getIndexesSequence());
+    if (this.indexesSequenceCache === null || (currentSortConfig.length === 0 && !this.#rowsShowSortResult())) {
+      this.#capturePresortOrder();
     }
 
     if (sortPossible) {
       this.columnStatesManager?.setSortStates(destinationSortConfigs);
       this.sortByPresetSortStates(destinationSortConfigs);
+      this.#sortedRowOrder?.setValues(this.hot.rowIndexMapper.getIndexesSequence());
     }
 
     this.hot.runHooks('afterColumnSort',
@@ -488,6 +499,53 @@ export class ColumnSorting extends BasePlugin {
     if (sortPossible) {
       this.hot.render();
     }
+  }
+
+  /**
+   * Tells whether the rows still show the order the last applied sort or clear left them in. The sort
+   * states alone do not: `setSortConfig([])` and removing the sorted column empty them and leave the rows
+   * sorted, and the pre-sort order stored for that sort is still the one a clear goes back to. The live
+   * order is compared, not a flag, because UndoRedo, `loadData()` and row moves rewrite the row order
+   * without passing through the sort. After a clear both orders equal the stored pre-sort order, so a
+   * `true` there only skips a capture that would write the same values.
+   *
+   * @returns {boolean}
+   */
+  #rowsShowSortResult(): boolean {
+    if (this.#sortedRowOrder === null) {
+      return false;
+    }
+
+    const sortedRowOrder = this.#sortedRowOrder.getValues();
+    const rowOrder = this.hot.rowIndexMapper.getIndexesSequence();
+
+    return rowOrder.length === sortedRowOrder.length &&
+      rowOrder.every((physicalRow, index) => physicalRow === sortedRowOrder[index]);
+  }
+
+  /**
+   * Stores the current row order as the order the sort starts from and a cleared sort goes back to. It runs
+   * whenever the cache is missing, and whenever a sort starts from emptied states on rows that show no sort
+   * result, never only the first time: while nothing is sorted the rows can move, and a data load
+   * re-initializes the stored order to the identity one, so an order kept from an earlier sort would bring
+   * back rows in a place they no longer hold. Rows left sorted under emptied states keep the stored order,
+   * see `#rowsShowSortResult()`. Both maps are registered together and stay registered after a clear,
+   * because UndoRedo restores them with the rest of the row maps and drops its history when the set of map
+   * names changes.
+   */
+  #capturePresortOrder(): void {
+    const rowIndexMapper = this.hot.rowIndexMapper;
+
+    if (this.indexesSequenceCache === null) {
+      this.indexesSequenceCache = rowIndexMapper.createAndRegisterIndexMap(this.pluginKey, 'indexesSequence');
+      this.#sortedRowOrder =
+        rowIndexMapper.createAndRegisterIndexMap(`${this.pluginKey}.sortedRowOrder`, 'indexesSequence');
+    }
+
+    const rowOrder = rowIndexMapper.getIndexesSequence();
+
+    this.indexesSequenceCache.setValues(rowOrder);
+    this.#sortedRowOrder?.setValues(rowOrder);
   }
 
   /**
@@ -551,6 +609,13 @@ export class ColumnSorting extends BasePlugin {
     const destinationSortConfigs = this.getNormalizedSortConfigs(sortConfig);
 
     if (this.areValidSortConfigs(destinationSortConfigs)) {
+      const isUnsorted = this.columnStatesManager?.isListOfSortedColumnsEmpty();
+
+      if (isUnsorted && destinationSortConfigs.length > 0 && this.indexesSequenceCache !== null &&
+          !this.#rowsShowSortResult()) {
+        this.#capturePresortOrder();
+      }
+
       this.columnStatesManager?.setSortStates(destinationSortConfigs);
     }
   }
@@ -1196,6 +1261,11 @@ export class ColumnSorting extends BasePlugin {
    * Overwriting base plugin's `onUpdateSettings` method. Please keep in mind that `onAfterUpdateSettings` isn't called
    * for `updateSettings` in specific situations.
    *
+   * A value that is not an object (`true`) replacing a configuration object puts the column properties
+   * that object set (`indicator`, `headerAction`, `sortEmptyCells`, `compareFunctionFactory`) back to their
+   * defaults, the way a grid built with that value starts. The same value sent again changes nothing, and
+   * an object replacing an object still merges into the previous one.
+   *
    * @private
    * @param {object} newSettings New settings object.
    */
@@ -1204,15 +1274,23 @@ export class ColumnSorting extends BasePlugin {
     // leaves the settings sort to its ready step, so running it below on that same pass would run the
     // comparator twice for no reason (DEV-187).
     const wasEnabled = this.enabled;
+    const previousPluginSettings = this.getSetting();
 
     super.onUpdateSettings(newSettings);
+
+    const pluginSettings = newSettings[this.pluginKey];
+
+    if (
+      wasEnabled && this.enabled && isDefined(pluginSettings) &&
+      isPlainObject(previousPluginSettings) && !isPlainObject(pluginSettings)
+    ) {
+      this.columnStatesManager?.resetAllColumnsProperties();
+    }
 
     if (this.columnMetaCache !== null) {
       // Column meta cache base on settings, thus we should re-init the map.
       this.columnMetaCache.init(this.hot.columnIndexMapper.getNumberOfIndexes());
     }
-
-    const pluginSettings = newSettings[this.pluginKey];
 
     if (wasEnabled && this.enabled && isDefined(pluginSettings)) {
       if (this.isDataWorkDeferred()) {

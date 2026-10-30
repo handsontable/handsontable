@@ -1,3 +1,4 @@
+import { execFile, execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { release } from 'node:os';
 import path from 'node:path';
@@ -20,12 +21,21 @@ import {
   type TranscriptIncomplete,
   type TranscriptStep,
 } from '../lib/screenreader-transcript.mjs';
+import {
+  OUTPUT_STEP_BOUNDARY,
+  READ_LAST_PHRASE,
+  STEP_BOUNDARY,
+  isStepBoundary,
+  stripStepBoundary,
+  voiceOverAppleScript,
+} from '../lib/screenreader-voiceover.mjs';
 
 /**
  * The screen reader runner: one test per scenario of `scenarios/`, on every project of
  * `playwright.screenreader.config.ts`. A test opens the scenario's fixture, lets the screen reader
- * enter the page, runs the setup (the API selection that puts the focus in the grid), pins the mode a
- * grid user works in, then captures what the screen reader says for every step
+ * enter the page, runs the setup (the API selection that puts the focus in the grid), lets the reader
+ * settle where a grid user works (NVDA's focus mode, VoiceOver interacting with the grid), then captures
+ * what the screen reader says for every step
  * (`screenReader.capture(() => page.keyboard.press(key))`), normalizes it, checks the step's token
  * groups, compares the whole run with the project's golden, and writes the transcript
  * (`test-results/screenreader/transcripts/<project>--<scenario>.json` and `.log`), which
@@ -38,13 +48,14 @@ import {
  * before it and where it stopped (`incomplete`).
  *
  * Goldens: `--update-snapshots` (`npm run test:screenreader:update-goldens`) or `HOT_SR_UPDATE_GOLDENS=1`
- * writes `goldens/<project>/<scenario>.json` from the run. Nobody records an NVDA golden on a Mac: the
- * nightly's `update-goldens` input records them on the Windows runner and uploads them as an artifact.
+ * writes `goldens/<project>/<scenario>.json` from the run. Nobody records a golden on a developer
+ * machine: the nightly's `update-goldens` input records them on the Windows and macOS runners and
+ * uploads them as an artifact.
  *
- * The screen reader is behind a small `Reader` interface. The Guidepup reader is NVDA now; VoiceOver,
- * which needs its own way into the grid (`interact()`), lands in the next pull request. The `dom-echo`
- * lane echoes the focused element instead, on any platform, so the runner and the scenarios can be
- * proven without a screen reader.
+ * The screen reader is behind a small `Reader` interface, one reader per screen reader Guidepup drives:
+ * NVDA (`nvdaReader()`) and VoiceOver (`voiceOverReader()`), which differ in how they enter the grid and
+ * in how a silent step is told from a repeated one. The `dom-echo` lane echoes the focused element
+ * instead, on any platform, so the runner and the scenarios can be proven without a screen reader.
  */
 interface Reader {
   /**
@@ -56,14 +67,21 @@ interface Reader {
    */
   enter(): Promise<void>;
   /**
-   * Runs after the setup put the focus in the grid: pins the mode and clears what was spoken so far.
-   * Returns what the screen reader said while entering, for the record.
+   * Runs after the setup put the focus in the grid: settles the reader where a grid user works (NVDA's
+   * focus mode, VoiceOver interacting with the grid) and clears what was spoken so far. Returns what the
+   * screen reader said while entering, for the record.
    */
   ready(): Promise<string[]>;
   /**
-   * Runs one action and returns what the screen reader spoke for it.
+   * Runs one action and returns what the screen reader spoke for it, an empty string for silence.
    */
   capture(action: () => Promise<void>): Promise<string>;
+  /**
+   * Leaves the grid the way a user does, after the last step of a complete run, when the reader has a
+   * way out (VoiceOver stops interacting). The transcript is written by then, and a failure here is a
+   * warning, never a red test.
+   */
+  leave?(): Promise<void>;
 }
 
 type HotWindow = Window & { hot?: { selectCell(row: number, col: number): boolean } };
@@ -84,13 +102,37 @@ const NVDA_SETTINGS = {
   virtualBuffers: { passThroughAudioIndication: false },
 };
 /**
+ * VoiceOver preferences for a reproducible transcript, merged into the bundle `@guidepup/setup install
+ * voiceover` installed. Usage hints off: VoiceOver says "You are currently on a cell, inside of a
+ * table…" a second after every move, which is about VoiceOver, not the grid, and doubled every step's
+ * time (about 10 s against 4 s). The mouse pointer no longer follows VoiceOver's cursor: with it on,
+ * an opened context menu puts VoiceOver's cursor on the menu, the pointer lands in the menu's middle,
+ * and the hover selects the item under it ("Remove column"), so every later ArrowDown started from
+ * there. A keyboard user's pointer stays where it was.
+ */
+const VOICEOVER_SETTINGS = {
+  SCRShouldOutputVOInstructions: false,
+  SCRConfigurationCursorTrackingMToVO: false,
+};
+/**
  * What `ready()` records in `entering` when the mode toggle named no mode: the run goes on, and the
  * transcript says the mode was never confirmed.
  */
 const NO_MODE_ANNOUNCED = '(no mode announced after the toggle)';
 /**
+ * How many times the VoiceOver reader reads the last phrase after it spoke the step boundary, before
+ * it speaks the boundary again, and how many times it speaks it before the run stops as tooling. Each
+ * read is one `osascript` round trip (tens of milliseconds), which is the polling interval: no timer.
+ */
+const BOUNDARY_READS = 40;
+const BOUNDARY_ATTEMPTS = 3;
+/**
+ * The budget of one `osascript` call to VoiceOver, before Node kills it.
+ */
+const OSASCRIPT_TIMEOUT_MS = 10_000;
+/**
  * The `incomplete.step` of a run that stopped before its first step: the page load, the reader's
- * entry, the setup actions or the mode pin.
+ * entry, the setup actions or the reader settling in the grid.
  */
 const SETUP_STEP = 'setup';
 /**
@@ -157,16 +199,151 @@ async function awaitAfter(page: Page, step: ScenarioStep): Promise<void> {
 }
 
 /**
- * The Guidepup reader for the screen reader the fixture started.
+ * The Guidepup reader for the screen reader the fixture started: Guidepup picks the platform's screen
+ * reader (NVDA on Windows, VoiceOver on macOS), and the reader follows its name.
  *
  * @param screenReader Guidepup's screen reader.
  * @returns The reader.
  */
 function guidepupReader(screenReader: ScreenReaderPlaywright): Reader {
-  if (screenReader.name !== 'NVDA') {
-    throw new Error(`The ${screenReader.name} runner is not in this lane yet: the VoiceOver lane lands in the next pull request.`);
+  if (screenReader.name === 'NVDA') {
+    return nvdaReader(screenReader);
+  }
+  if (screenReader.name === 'VoiceOver') {
+    return voiceOverReader(screenReader);
   }
 
+  throw new Error(`No reader for ${screenReader.name}: the screen reader lanes are NVDA and VoiceOver.`);
+}
+
+/**
+ * Runs AppleScript in VoiceOver's dictionary through `osascript`, the way Guidepup does (the script on
+ * stdin), and returns what it printed.
+ *
+ * @param body The commands, inside `tell application "VoiceOver"`.
+ * @returns The script's output, trimmed.
+ */
+function runVoiceOverScript(body: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const child = execFile('/usr/bin/osascript', [], { timeout: OSASCRIPT_TIMEOUT_MS }, (error, stdout) => {
+      if (error) {
+        reject(error);
+
+        return;
+      }
+
+      resolve(String(stdout).trim());
+    });
+
+    child.stdin?.end(voiceOverAppleScript(body));
+  });
+}
+
+/**
+ * Makes VoiceOver speak the step boundary and waits until it is VoiceOver's last phrase, so the next
+ * capture tells silence (the boundary alone) from a phrase the previous step left behind
+ * (`lib/screenreader-voiceover.mjs`). A read that fails counts as not yet. Speech that arrives while
+ * the boundary is being set (a late phrase of the previous step) is lost, as Guidepup loses speech
+ * while it stops the previous utterance.
+ */
+async function markStepBoundary(): Promise<void> {
+  for (let attempt = 0; attempt < BOUNDARY_ATTEMPTS; attempt += 1) {
+    await runVoiceOverScript(OUTPUT_STEP_BOUNDARY);
+
+    for (let read = 0; read < BOUNDARY_READS; read += 1) {
+      const last = await runVoiceOverScript(READ_LAST_PHRASE).catch(() => '');
+
+      if (isStepBoundary(last)) {
+        return;
+      }
+    }
+  }
+
+  throw new Error(`VoiceOver never reported the step boundary ("${STEP_BOUNDARY}") as its last phrase after ${BOUNDARY_ATTEMPTS} attempts; without it a silent step reads as the previous step's phrase.`);
+}
+
+/**
+ * The macOS version, for the transcript: Guidepup's VoiceOver version is the version of its
+ * preferences bundle, and VoiceOver ships with the system.
+ *
+ * @returns The product version (`26.0.1`), or `unknown`.
+ */
+function macOSVersion(): string {
+  try {
+    return execFileSync('/usr/bin/sw_vers', ['-productVersion'], { encoding: 'utf8' }).trim() || 'unknown';
+  } catch {
+    return 'unknown';
+  }
+}
+
+/**
+ * The VoiceOver reader.
+ *
+ * - **Into the page**: Guidepup's `navigateToWebContent()` activates the browser, picks "web content"
+ *   in VoiceOver's item chooser and interacts with it (VO-Shift-Down), so VoiceOver works inside the
+ *   page and not on the browser's toolbar.
+ * - **Into the grid**: Guidepup leaves VoiceOver's cursor on the first item of the page, the grid, and
+ *   `enter()` interacts with it (VO-Shift-Down), the way a VoiceOver user enters a table. The setup
+ *   then puts the focus on a cell, and VoiceOver's cursor follows the keyboard focus onto it. The
+ *   order matters: interacting once the focus is on a cell takes VoiceOver into the cell's text, and on
+ *   Chromium it then announced no cell move at all (in the run that tried it, only the editor and an
+ *   API reselection were announced, 2 of 20 steps).
+ *   What VoiceOver says on the way in goes to `entering`.
+ * - **Each step**: VoiceOver keeps its last phrase, so a step it says nothing on would read as the
+ *   previous step's phrase. Every capture starts with the step boundary as the last phrase
+ *   (`markStepBoundary()`), and `stripStepBoundary()` removes it from what the capture read: a
+ *   silent step is an empty string, as it is on NVDA. Keys still go to the page through Playwright,
+ *   so VoiceOver hears the page react and never the keystroke, on NVDA's terms.
+ * - **Out of the grid**: `leave()` stops interacting (VO-Shift-Up) after the last step.
+ *
+ * @param screenReader Guidepup's screen reader, VoiceOver.
+ * @returns The reader.
+ */
+function voiceOverReader(screenReader: ScreenReaderPlaywright): Reader {
+  return {
+    name: `${screenReader.name} (macOS ${macOSVersion()})`,
+    async enter() {
+      await screenReader.navigateToWebContent();
+      await screenReader.interact({ capture: true });
+    },
+    async ready() {
+      const entering = [...(await screenReader.spokenPhraseLog())];
+
+      await markStepBoundary();
+      await screenReader.clearSpokenPhraseLog();
+
+      return entering;
+    },
+    async capture(action) {
+      await markStepBoundary();
+
+      const { spokenPhrase } = await screenReader.capture(action, { capture: true });
+      const spoken = stripStepBoundary(spokenPhrase);
+
+      if (spoken !== '') {
+        return spoken;
+      }
+
+      // Only the boundary: listen once more for another silence window, as the NVDA reader does, so a
+      // phrase VoiceOver speaks late lands on its own step rather than the next one. The boundary is
+      // still the last phrase, so a step that stays silent is still an empty string.
+      const late = await screenReader.capture(async() => {}, { capture: true });
+
+      return stripStepBoundary(late.spokenPhrase);
+    },
+    async leave() {
+      await screenReader.stopInteracting({ capture: false });
+    },
+  };
+}
+
+/**
+ * The NVDA reader.
+ *
+ * @param screenReader Guidepup's screen reader, NVDA.
+ * @returns The reader.
+ */
+function nvdaReader(screenReader: ScreenReaderPlaywright): Reader {
   return {
     name: `${screenReader.name} ${screenReader.version}`,
     async enter() {
@@ -424,6 +601,17 @@ async function runScenario(page: Page, reader: Reader, scenario: Scenario, testI
     await writeTranscript(page, reader, scenario, testInfo, { startedAt, started, steps, entering, incomplete });
   }
 
+  // After the transcript, on a complete run only. Leaving changes nothing the transcript records, so a
+  // failure is a warning in the report and the log, never a red test that `retries: 2` would rerun
+  // (minutes on VoiceOver) and whose rerun would overwrite the complete transcript. A run that threw
+  // leaves the screen reader to the fixture, which stops it either way.
+  try {
+    await reader.leave?.();
+  } catch (error) {
+    testInfo.annotations.push({ type: 'warning', description: `Leaving the grid after a complete run failed: ${errorText(error)}` });
+    console.warn(`${testInfo.project.name} ${scenario.id}: leaving the grid after a complete run failed:`, error);
+  }
+
   if (SCREENREADER_MODE === 'gate') {
     const failed = steps.filter(step => !step.tokens.passed).map(step => step.id);
 
@@ -436,9 +624,10 @@ const scenarios = loadScenarios(SCENARIOS_DIR, { fixtures: FIXTURES });
 // One scenario at a time on a screen reader lane comes from the config: `withGuidepup` pins one worker
 // and no parallelism, because a screen reader is one per machine. The dom-echo lane drives no screen
 // reader and keeps the base config's parallelism. No serial mode on top: it would skip every scenario
-// after a red one, and re-run the scenarios that passed on a retry.
+// after a red one, and re-run the scenarios that passed on a retry. Each screen reader starts with its
+// settings above: Guidepup starts NVDA on Windows and VoiceOver on macOS.
 screenReaderTest.use({
-  screenReaderStartOptions: { capture: true, settings: process.platform === 'win32' ? NVDA_SETTINGS : undefined },
+  screenReaderStartOptions: { capture: true, settings: process.platform === 'win32' ? NVDA_SETTINGS : VOICEOVER_SETTINGS },
 });
 
 // A scenario file that does not validate is a red test, not a skipped one: the tooling test refuses

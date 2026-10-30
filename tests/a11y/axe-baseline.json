@@ -6,7 +6,7 @@
     {"id":"editor-input-names","title":"Cell editor inputs have no accessible name","tracker":"DEV-3492"},
     {"id":"filter-by-value-name","title":"The accessible name of the Filters \"Filter by value\" component does not include its visible text","tracker":"DEV-2948"},
     {"id":"filters-listbox","title":"The Filters condition select and the autocomplete list use role=listbox without option children or a name","tracker":"DEV-2970"},
-    {"id":"filters-nested-buttons","title":"The Filters \"Select all\" and \"Clear\" controls are buttons nested inside buttons","tracker":"DEV-3493"},
+    {"id":"filters-nested-buttons","title":"The Filters \"Select all\" and \"Select none\" controls are buttons nested inside buttons","tracker":"DEV-3493"},
     {"id":"grid-roles","title":"The grid is built from divs with ARIA roles, and its treegrid root holds children the role does not allow","tracker":"DEV-2964"},
     {"id":"horizon-contrast","title":"Text contrast is below 4.5:1 in the horizon theme","tracker":"DEV-2946"},
     {"id":"menu-roles","title":"Menu items have no menu parent, and the highlighted item carries aria-selected","tracker":"DEV-3491"},

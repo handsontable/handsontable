@@ -90,6 +90,13 @@ arises — read it that way, it is easy to take backwards.) A direct `enablePlug
 instance dies earlier, in the UI, which reads `rootGridElement`. The same guard is mirrored later in the
 file with a comment pointing back — keep both, and keep the comments.
 
+## `PaginationUI#destroy()` takes `htPagination` off the root wrapper
+
+Without a custom `uiContainer`, the UI marks the root wrapper with `htPagination` while a section is
+visible (the bar's corner styling). `destroy()`, which `disablePlugin()` runs, removes it, or the class
+stayed after `pagination: false` and on a later sheet without pagination. Pinned by `__tests__/ui.unit.js`
+and `tests/e2e/plugin-ui-teardown.spec.ts`.
+
 ## Two page-size strategies
 
 | `pageSize` | Strategy | Behavior |
@@ -212,6 +219,8 @@ For the same reason, `#computeAndApplyState()` drops `#serverSideTotalCount` whe
 ## The server total belongs to the view it came from
 
 DataProvider calls the internal `_resetDataProviderTotal()` (`@private`, not API; a no-op while this plugin is disabled) before its owner changes the view the grid shows, which drops `#serverSideTotalCount`. It has to happen before the change, not after: the change itself renders, and the pager must not show the previous view's total for that frame. A view shown again replays its own total through `afterDataProviderFetch`; one fetching for the first time, or showing a failed first fetch, has no response yet and would otherwise page by the previous view's total. This plugin never listens to an owner plugin's hooks; `test/__tests__/releasedPluginsViewAgnostic.unit.js` fails if its source names the owner plugin or its hooks.
+
+The page and page size describe a view too. After a view change to a view that has no response yet, DataProvider calls the internal `_resetDataProviderPage()` (`@private`, a no-op while disabled), which puts `#currentPage` and `#pageSize` back on the configured `initialPage` and `pageSize` so the view's first fetch asks for those. It fires no page hook (`afterPageChange`/`afterPageSizeChange` would make DataProvider fetch at once with the query of the view that was left), and it recomputes the pages: `#setPageSizeValue()` replaces the strategy, and an uncalculated one reports 0 pages. The recompute clamps the page against the rows the grid holds before the response (none, so page 1 of 1), which is why it returns the configured `initialPage` and DataProvider puts that page into the query itself, the same split a plain grid's first fetch has (its query is derived before Pagination's `init` recompute clamps the pager). The response then brings the page, page size, and total in through `afterDataProviderFetch`.
 
 ## Where to look next
 

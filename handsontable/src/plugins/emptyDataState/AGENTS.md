@@ -167,11 +167,35 @@ Only when nothing was captured — no ranges — does it fall back to selecting 
 is suppressed**. That is deliberate: a scroll-into-view on an arriving dataset would jump the viewport.
 Either way, `afterEmptyDataStateHide` fires last.
 
+**A `loadData()` drops the captured selection** (`#onBeforeLoadData`). The coordinates addressed the
+replaced rows, and restoring them put a selection on unrelated cells of the new data; under the sheets bar
+a sheet the user never visited opened with the departing sheet's selection. When a selection was captured,
+the drop also sets `#isSelectionDataReplaced`, and the hide after it then leaves the selection alone, as
+`#hide(false)` does for a view change: neither the old cells nor the first cell belong to the new data, and
+a sheet switch opens a never-visited sheet with nothing selected. Only a hide with nothing captured (a grid
+built empty) still takes the `(0, 0)` fallback. Two loads keep it, on purpose. One made while `hasExternalDataSource`
+answers `true`: a server-backed grid replaces its rows with `loadData()` on every page, sort and filter,
+and restoring the selection is how the user keeps it there. Ask the core hook, never the plugin behind it
+(`releasedPluginsViewAgnostic.unit.js`). And `updateData()`, which keeps the dataset's state by design
+(the wrappers send it on re-render), is not listened to at all.
+
+**`disablePlugin()` forgets the overlay**: `#isVisible` goes to `false` and the captured selection to
+`null`, like `destroy()`, and no hide hook fires. Left as they were, `isVisible()` answered `true` for a
+disabled plugin, and the next enable over rows ran `#hide()`: a phantom `afterEmptyDataStateHide` and a
+forced `selectCell(0, 0)`. `updatePlugin()` saves that state before its own disable and puts it back before
+the enable, so an update of the options keeps a visible overlay visible without a hide or show hook.
+**`#loadingActive` is part of that state.** `disablePlugin()` clears it, and an update that did not put it
+back dropped the loading overlay mid-fetch: "No data" over 0 rows, nothing over rows, and the fetch's
+`afterDataProviderFetch` then had no loading state left to clear. A sheet switch that re-sends an
+`emptyDataState` object took the same path. A new piece of overlay state belongs in that save and restore.
+Pinned by `__tests__/emptyDataStateLifecycle.unit.js` and `../dataProvider/__tests__/dataProviderLoadingSettle.unit.js`.
+
 ## Where to look next
 
 - Sibling overlay surfaces and the shared button-type rule: `../dialog/AGENTS.md`,
   `../notification/AGENTS.md`, `../loading/AGENTS.md`.
 - A failed DataProvider fetch hides the loading overlay only when the hook's third argument, `isVisible`, is not `false`. A request made for a view the grid no longer shows can fail while the view on screen still waits for its own fetch; clearing on that failure dropped the overlay mid-fetch.
+- **A replayed DataProvider response does not hide the loading overlay.** `afterDataProviderFetch` hides it for a loaded response only; a payload with `isRestored: true` (`DataProvider#_restoreFetchResult()`) is left alone. A replay brings back rows the grid already shows, and it can run while a fetch of the same view is still loading (the owner replays the view's last response before it waits for that fetch), so hiding there took the overlay off a fetch still in flight. When no fetch runs, the view change has already hidden the overlay through `_syncDataProviderLoading()`. Pinned by `__tests__/dataProviderReplay.unit.js`.
 - **This plugin knows nothing about the view that changed.** When DataProvider's owner changes the view the grid shows, no fetch hook fires, so DataProvider calls the internal `_syncDataProviderLoading(isLoading, isViewChange)` (`@private`, not API) with its own `isFetching()`, also after releasing a context (an aborted fetch fires no hook). It does nothing while this plugin is disabled — the default — because `#show()` activates a focus scope that only exists while the plugin is enabled. The call exists because a fetch left running for another view must not keep the overlay up, and a view whose fetch still runs must show it again. A view change (`isViewChange: true`) also re-homes the selection `#show()` stashed: while the overlay stays up, the stash becomes the arriving view's selection (the owner restored it before the sync runs), and when the change hides the overlay, `#hide(false)` restores nothing — no `importSelection()` and no `selectCell(0, 0)` fallback. The stash otherwise belonged to the view that was left, and hiding pasted that view's selection over the arriving one, or reset it to the first cell. Never listen to an owner plugin's hooks here; `test/__tests__/releasedPluginsViewAgnostic.unit.js` fails if this directory's source names the owner plugin or its hooks.
 - Where the message usually comes from on a server-backed grid: `../dataProvider/AGENTS.md`.
 - Layout slots vs fixed internal elements: `../../core/layout/`.

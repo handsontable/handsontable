@@ -172,6 +172,19 @@ to decide whether the refresh queue is safe to drain. Entry points that can over
 `#onAfterLoadData`, the column-resize gesture, an explicit `recalculateAllRowsHeight()`, and now a
 `clearCache()` that schedules one.
 
+## A web font re-measures the rows twice when the columns are still widening (DEV-199)
+
+`#onAfterFontsLoad` runs `recalculateAllRowsHeight()` right away, after AutoColumnSize's listener (both register
+`afterFontsLoad` with the same order index, and AutoColumnSize enables first). That listener measures one chunk of
+columns and leaves the rest to idle tasks, so the rows are measured against columns still at their fallback-font
+widths: text wraps more in them, and the rows outside the rendered band keep the extra height, since a render
+measures only the band. When AutoColumnSize's sweep is still running, `#rowsOwedToColumnSweep` is set, and the first
+`#onBeforeRender` of a visible grid that finds the sweep over schedules a full recalculation. AutoColumnSize draws
+once when its sweep ends, so that render comes by itself. The check reads `getPlugin('autoColumnSize').inProgress`,
+the plugin's public field, and a sweep AutoColumnSize restarts in the same render reads as still running, because
+its `beforeRender` listener runs first. Pinned by "measures the rows again once the column re-measure ends" in
+`tests/e2e/web-font-load.spec.ts`.
+
 ## Listeners stay bound while disabled — deliberately
 
 `disablePlugin()` leaves the height-recalculation listener active, because ManualRowResize's

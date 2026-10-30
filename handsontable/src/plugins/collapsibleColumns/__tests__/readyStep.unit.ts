@@ -102,19 +102,24 @@ describe('NestedHeaders and CollapsibleColumns ready steps', () => {
     expect(container.querySelectorAll('.ht_master .collapsibleIndicator').length).toBe(1);
   });
 
-  it('should rebuild the header state on `loadData()` before the load\'s render', () => {
+  it('should rebuild the header state and its `collapsible` flags once on `loadData()`, before the load\'s render', () => {
     createGrid({ nestedHeaders: NESTED_HEADERS, collapsibleColumns: true });
-    nestedHeadersStep.mockClear();
-    collapsibleColumnsStep.mockClear();
+
+    const setStateSpy = jest.spyOn(hot!.getPlugin('nestedHeaders').getStateManager(), 'setState');
+    const mapStateSpy = jest.spyOn(hot!.getPlugin('nestedHeaders').getStateManager(), 'mapState');
+
     renderSpy.mockClear();
 
     hot!.loadData([[7, 8, 9], [10, 11, 12], [13, 14, 15]]);
 
-    expect(nestedHeadersStep).toHaveBeenCalledTimes(1);
-    expect(collapsibleColumnsStep).toHaveBeenCalledTimes(1);
-    expect(collapsibleColumnsStep.mock.invocationCallOrder[0]).toBeLessThan(renderSpy.mock.invocationCallOrder[0]);
+    // The rebuild drops the flags, and CollapsibleColumns writes them again from NestedHeaders' local hook.
+    expect(setStateSpy).toHaveBeenCalledTimes(1);
+    expect(mapStateSpy).toHaveBeenCalledTimes(1);
+    expect(setStateSpy.mock.invocationCallOrder[0]).toBeLessThan(mapStateSpy.mock.invocationCallOrder[0]);
+    expect(mapStateSpy.mock.invocationCallOrder[0]).toBeLessThan(renderSpy.mock.invocationCallOrder[0]);
     expect(headerLabels()).toEqual([['Group', '', 'C'], ['A', 'B', 'C']]);
     expect(drawnTopLabels()).toEqual(['Group', '']);
+    expect(container.querySelectorAll('.ht_master .collapsibleIndicator').length).toBe(1);
   });
 
   it('should rebuild the header state once for a direct `updatePlugin()` call', () => {

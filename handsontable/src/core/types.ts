@@ -340,7 +340,8 @@ export interface HotInstance {
   _runInPluginLifecyclePass<T>(callback: () => T): T;
   _isHeldMetaPhaseRunning(): boolean;
   _replaceInitPassSettings(settings: Record<string, unknown>): Record<string, unknown> | null;
-  _setSettingsFilter(filter: ((settings: SettingsUpdate) => SettingsUpdate) | null): void;
+  _addSettingsFilter(filter: (settings: SettingsUpdate) => SettingsUpdate): void;
+  _removeSettingsFilter(filter: (settings: SettingsUpdate) => SettingsUpdate): void;
 
   // DOM references
   rootElement: HTMLElement;
