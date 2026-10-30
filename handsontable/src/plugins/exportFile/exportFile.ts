@@ -447,6 +447,9 @@ export class ExportFile extends BasePlugin {
 
   /**
    * Returns the ids of the license capability tokens this plugin gates.
+   *
+   * @private
+   * @returns {string[]}
    */
   static get CAPABILITIES(): readonly string[] {
     return EXPORT_FILE_CAPABILITY_IDS;
