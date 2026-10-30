@@ -123,7 +123,9 @@ describe('ContextMenu (RTL mode)', () => {
         // Derive expected from DOM state so horizontal/vertical scroll introduced
         // by denser themes is accounted for. See the LTR variant for the full note.
         expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight + window.scrollY, 4);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left + window.scrollX, 0);
+        // The last cell of an RTL grid sits at the left edge, which a denser theme pushes past the viewport's
+        // left edge, and the menu is pulled back to that edge instead of following the cell out of it.
+        expect(menuOffset.left).toBeCloseTo(Math.max(cellOffset.left + window.scrollX, window.scrollX), 0);
       });
     });
   });

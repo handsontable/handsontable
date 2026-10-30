@@ -113,7 +113,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: 'Ili',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: 'Odaberi sve',
-  [C.FILTERS_BUTTONS_CLEAR]: 'Očisti',
+  [C.FILTERS_BUTTONS_CLEAR]: 'Poništi odabir',
   [C.FILTERS_BUTTONS_OK]: 'U redu',
   [C.FILTERS_BUTTONS_CANCEL]: 'Odustani',
 
@@ -145,6 +145,8 @@ const dictionary = {
   [C.SHEETS_BAR_PAGE_NEXT]: 'Pomakni listove naprijed',
   [C.SHEETS_BAR_SHEET_CHANGED]: 'List [name] aktiviran',
   [C.SHEETS_BAR_RENAME_REJECTED]: 'Naziv lista nije promijenjen: [name] se već koristi',
+  [C.SHEETS_BAR_SHEET_DUPLICATED]: 'List [name] dupliciran kao [copy]',
+  [C.SHEETS_BAR_SHEET_MOVED]: 'List [name] premješten na položaj [position] od [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'List',
 
   [C.CHECKBOX_CHECKED]: 'Označeno',

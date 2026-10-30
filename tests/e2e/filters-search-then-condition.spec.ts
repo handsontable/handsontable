@@ -25,7 +25,7 @@ test.describe('a searched value list and a date condition', { tag: CROSS_BROWSER
   test('keeps the searched values, then the rows inside the date range', async({ page }) => {
     expect(await grid.columnData(0)).toHaveLength(60);
 
-    // "Clear", search "India", "Select all", OK: the one value the search lists is the one kept.
+    // "Select none", search "India", "Select all", OK: the one value the search lists is the one kept.
     await grid.keepSearchedValues('Country', 'India', ['India']);
 
     expect(await grid.columnData(6)).toEqual(Array(6).fill('India'));

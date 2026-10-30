@@ -3,6 +3,15 @@
  */
 export const GRID_GROUP = 'gridDefault';
 /**
+ * Group name for the keyboard shortcuts that mark the clipboard keys as default grid shortcuts. The browser
+ * runs the action, so the shortcuts do nothing. Removing one tells the `CopyPaste` plugin to cancel that key.
+ */
+export const GRID_CLIPBOARD_GROUP = 'gridClipboard';
+/**
+ * The keys of the clipboard shortcuts: copy, cut, and paste.
+ */
+export const GRID_CLIPBOARD_KEYS = [['Control/Meta', 'C'], ['Control/Meta', 'X'], ['Control/Meta', 'V']];
+/**
  * Scope name for the grid.
  */
 export const GRID_SCOPE = 'grid';

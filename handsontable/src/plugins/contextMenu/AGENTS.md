@@ -309,6 +309,75 @@ this helper's `false` to mean every visited cell was proven writable, which a tr
 guarantee). Fixed by returning `!result` instead: continue while no match has been found yet, stop
 once it has. Pinned by `contextMenu/__tests__/utils.unit.js`.
 
+## The positioner clamps to the viewport AFTER it picks a side (DEV-3623)
+
+`Positioner` chooses a side from the room around the cursor: below or above it (`Cursor#fitsBelow()`,
+`fitsAbove()`), then to the right or left (`fitsOnRight()`, `fitsOnLeft()`, mirrored in RTL). When the
+first side does not fit, it falls back to the other. It never asked whether the fallback fits, so a menu
+that fits on neither side of its point went past the viewport's edge. A 218px column dropdown on a 390px
+phone started 26px left of the screen, and its first controls were clipped (issue #14048, reported on
+16.2.0 and still present in 18.1.2). A 372px context menu on a 390px-tall window opened below its point
+and ran 105px past the bottom. `#clampHorizontally()` and `#clampVertically()` now run last and hold
+`style.left` and `style.top` inside the viewport.
+
+- **Clamp, never add a predicate.** The `fits*` checks do not describe the placement they gate.
+  `fitsOnLeft()` ignores `#offset.left`, which the dropdown sets to the button width. `fitsOnRight()`
+  always adds `cellWidth`, while `setPositionOnRightOfCursor()` adds it for submenus only. Another
+  predicate inherits the same drift. The clamps read what the `setPositionOn*()` methods wrote, so they
+  hold whatever those did.
+- **The edges are in the frame `style.left` and `style.top` are written in: the window's page
+  coordinates.** Horizontally they are the window's `scrollX`, and that offset plus
+  `documentElement.clientWidth`. Vertically they are `scrollY`, and that offset plus
+  `documentElement.clientHeight`. Both client sizes leave the scrollbar out. `innerHeight`, which
+  `fitsBelow()` uses to pick the side, counts a horizontal scrollbar, so a menu pinned to the bottom with
+  it would end under the bar on a classic-scrollbar platform (headless Chromium hides scrollbars, so no
+  spec shows it). A clamp against `0` passes at rest and
+  breaks on a scrolled window. In an RTL document `scrollX` is `0` at rest and goes negative as the
+  window scrolls toward the inline end. A custom `uiContainer` with its own containing block is the
+  exception (`Menu#captureScrollFollowBaseline` explains why a measured rect is used there): the position
+  is then not a page coordinate. The positioner was already off in that case, and the clamps inherit it.
+- **A menu larger than the viewport keeps the edge the window cannot scroll to.** That is the top edge,
+  and the left edge in an LTR document or the right edge in an RTL one, so the menu overflows the way the
+  page can still scroll. The edge comes from the DOCUMENT's computed `direction`, not from the menu's
+  `dir`, which follows the grid: an RTL grid in an LTR page keeps its left edge, because an LTR page has
+  no negative `scrollX` to reach a strip cut off on the left. `clampIntoRange()` takes the edge to keep
+  as `preferMin`, and an RTL document passes it `false`, so do not merge the two directions.
+- **Only `keepInViewport: true` reaches it.** The Filters value-list select passes `false` and takes the
+  other branch of `updatePosition()`. The menus that do reach it are the context menu, the dropdown
+  menu, their submenus, and the sheets bar menus. The sheets bar already lifts its upward menu by hand
+  and pins it to the top in a squeeze, which the clamp agrees with.
+- **It moves a menu only when the menu would leave the viewport**, so every placement that was inside
+  it stays where it was. A menu that fits neither below nor above its point now covers the point
+  instead of leaving the screen, and a submenu that fits on neither side of its parent overlaps the
+  parent menu. The legacy specs that pinned such a menu outside the viewport changed with it: the RTL
+  dropdown keyboard specs (the last column's button at x = -27) and the RTL `open()` specs of both menus
+  expect the viewport's left edge, and the iframe context menu spec gives its outer frame room for the
+  whole menu. Several of these pass on `main` and fail on `horizon`, whose menus are wider and taller
+  and whose grid overflows the page by more, so run a spec of this kind on all three themes
+  (`npm run test:e2e -- --theme=horizon`).
+- **Pinned by** `menu/__tests__/positioner.unit.ts` (both axes and directions, a menu larger than the
+  viewport, and scroll offsets) and `tests/e2e/menu-viewport-clamp.spec.ts` (the issue's menus on a 320px
+  viewport, a short viewport, a window scrolled on both axes in both document directions with the grid inset
+  from the viewport's edge, and a submenu).
+
+## A tapped menu item runs on `touchend`, and the menu cancels that `touchend`
+
+On a touch screen `beforeOnCellMouseUp` is Walkontable's `touchend`, so the command runs before the
+browser synthesizes the tap's compatibility `mousedown`, `mouseup` and `click`. Those events used to
+land after the command, on whatever the command had shown: the sheets bar's Rename opens an input,
+the compat `mousedown` focused the menu's `td.current`, the input blurred, the blur committed an
+empty rename and the repaint removed the input. `Menu#endTapBeforeCommand()` therefore calls
+`preventDefault()` on a cancelable touch `touchend` before `executeCommand()`, which tells the
+browser to send none of them. A command never needs them: it ran already. Keep it before the
+command, because a command that throws must not leave the compat events armed. **Only a row that
+runs a command and closes the menu is ended this way** (`shouldAutoCloseMenu`, the negation of
+`isCommandPassive()`). A passive row needs the tap's mouse events: the Filters controls inside the
+dropdown menu (`isCommand: false` rows) answer the `click` and take the focus from it, and a submenu
+parent opens its submenu from the tap's `mouseover`. Ending every tap broke both on touch screens:
+the filter search took no focus, checkboxes and OK did nothing, and no submenu opened. A tap on a link or a form control that an item renderer puts in a row (`TAP_ACTIVATED_CONTROLS`: `a[href]`, `button`, `input`, `select`, `textarea`, `label`) is left alone too: the browser follows the link or toggles the control from the tap's `click`. A test that counts
+`click`s after a menu tap reads 0 for the tap (`tests/e2e/touch-tap-to-edit.spec.ts`, #12803);
+pinned by `tests/e2e/sheets-bar-touch-menus.spec.ts`, which also taps the Filters controls and a submenu parent.
+
 ## Where to look next
 
 - DropdownMenu specifics: `handsontable/src/plugins/dropdownMenu/AGENTS.md`.

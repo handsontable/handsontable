@@ -39,6 +39,13 @@
     },
     {
       "name": "VoiceOver",
+      "version": "macOS 26",
+      "platform": "macOS",
+      "browsers": ["WebKit (Playwright)", "Chromium"],
+      "howTested": ["automated-nightly"]
+    },
+    {
+      "name": "VoiceOver",
       "version": "iOS 18.3",
       "platform": "iOS",
       "howTested": ["audit", "manual-per-major"]
@@ -48,6 +55,13 @@
       "version": "2025.3",
       "platform": "Windows 11",
       "howTested": ["audit"]
+    },
+    {
+      "name": "NVDA",
+      "version": "2026.2",
+      "platform": "Windows Server 2025",
+      "browsers": ["Chromium", "Firefox (Playwright)"],
+      "howTested": ["automated-nightly"]
     },
     {
       "name": "JAWS",
@@ -160,6 +174,6 @@
   ],
   "notes": {
     "mobile": "VoiceOver on iOS was part of the last audit. Mobile screen readers are checked by hand once per major release.",
-    "automation": "Screen-reader checks are manual today. The automated nightly runs with NVDA and VoiceOver that are being set up join this list when they run."
+    "automation": "An automated nightly run drives a real screen reader through the grid's keyboard scenarios and records what it announces. A screen reader joins the list above as an automated nightly run once its run is in place."
   }
 }

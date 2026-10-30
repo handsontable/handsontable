@@ -103,7 +103,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: '或',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: '全选',
-  [C.FILTERS_BUTTONS_CLEAR]: '清除',
+  [C.FILTERS_BUTTONS_CLEAR]: '取消全选',
   [C.FILTERS_BUTTONS_OK]: '确认',
   [C.FILTERS_BUTTONS_CANCEL]: '取消',
 
@@ -135,6 +135,8 @@ const dictionary = {
   [C.SHEETS_BAR_PAGE_NEXT]: '向前滚动工作表',
   [C.SHEETS_BAR_SHEET_CHANGED]: '工作表 [name] 已激活',
   [C.SHEETS_BAR_RENAME_REJECTED]: '工作表名称未更改：[name] 已被使用',
+  [C.SHEETS_BAR_SHEET_DUPLICATED]: '工作表 [name] 已复制为 [copy]',
+  [C.SHEETS_BAR_SHEET_MOVED]: '工作表 [name] 已移至第 [position] 个位置（共 [count] 个）',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: '工作表',
 
   [C.LOADING_TITLE]: '加载中...',

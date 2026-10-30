@@ -42,6 +42,31 @@ corrupt data, by inserting the rows twice.
 Under LWS only one listener fires anyway, so dedupe is not what carries that case — but the membrane's
 event identity is unverified, so do not lean on it there.
 
+### The keyboard shortcuts are markers, and the plugin cancels the key when one is gone (DEV-763)
+
+Copy, cut and paste run from the native events above, never from a keydown. So the grid context registers
+Ctrl/Cmd+C, X and V in `shortcuts/contexts/grid.ts` as no-op, `preventDefault: false` entries in the
+`gridClipboard` group (`GRID_CLIPBOARD_GROUP`, `GRID_CLIPBOARD_KEYS` in `shortcuts/contexts/constants.ts`).
+Their presence means "the browser runs this key". `#onBeforeKeyDown` cancels the key's default when the
+event is one of those three chords, the grid context no longer has a shortcut for it, and the key press is
+the grid's own. That is what makes `removeShortcutsByKeys(['control/meta', 'c'])` stop keyboard copy.
+It returns early without Ctrl or Meta, with an open editor (`isEditorOpened()`), and for a target
+that `#isGridClipboardTarget()` rejects (the same predicate `onCopy`, `onCut` and `onPaste` use).
+
+- **The registration lives in core, not in `enablePlugin()`.** `updatePlugin()` re-enables the plugin and would
+  put back a shortcut the application removed.
+- **The group is not `gridDefault`**, so `removeShortcutsByGroup('gridDefault')` keeps its old meaning.
+- **Only the keydown is cancelled.** The context menu items, `copy()`, `cut()` and `paste()` never touch a
+  keydown, so they keep working. A custom editor that keeps the `grid` context (a plain `BaseEditor`
+  subclass) is covered by the `isEditorOpened()` check, not by the context.
+- **The active context follows the fallback chain.** `#isGridShortcutContextActive()` walks
+  `getFallbackContext()` from the active context until it reaches `grid`, so the empty data state overlay
+  (`plugin:emptyDataState`, which falls back to `grid`) is covered. Do not hardcode context names.
+- **The chord match is exact, apart from the Ctrl/Meta folding.** `getEventKeyCombinations` folds both
+  into `control/meta`, so Ctrl+Cmd+C/X/V on macOS and Ctrl+Win+C/X/V on Windows match too. Ctrl+Shift+V,
+  Shift+Insert, Ctrl+Insert and Shift+Delete are not cancelled.
+- Specs: `tests/e2e/clipboard-shortcuts-removal.spec.ts` (Playwright, real clipboard, includes a Mac emulation).
+
 ### Testing the LWS shape
 
 `tests/e2e/shadow-dom.spec.ts` drives it through the `?delivery=lws-shape` mode of
