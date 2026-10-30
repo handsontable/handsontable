@@ -16,6 +16,8 @@ export interface SheetsBarUiConfig {
   hostLabel?: string;
   menus?: boolean;
   pagination?: boolean;
+  columnCounts?: number[];
+  fixedHeight?: boolean;
 }
 
 /**

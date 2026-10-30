@@ -261,6 +261,32 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
   });
 
   test.describe('the tab strip', () => {
+    test('keeps the active tab whole on a sheet narrower than the bar\'s controls', async({ page, theme, bundle }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+      const pageScrollsSideways = () => page.evaluate(() => (
+        document.scrollingElement!.scrollWidth > document.scrollingElement!.clientWidth
+      ));
+      const barBelowGrid = () => page.evaluate(() => {
+        const bar = document.querySelector('.ht-sheets-bar')!.getBoundingClientRect();
+        const grid = document.querySelector('.ht-grid')!.getBoundingClientRect();
+
+        return bar.top >= grid.bottom - 1;
+      });
+
+      await fixture.goto({ sheets: 2, columnCounts: [1, 3], fixedHeight: false });
+
+      expect(await fixture.tabInStrip(0)).toBe(true);
+      expect(await fixture.tab(0).evaluate(tab => tab.getBoundingClientRect().width)).toBeGreaterThan(0);
+      expect(await pageScrollsSideways()).toBe(false);
+      expect(await barBelowGrid()).toBe(true);
+
+      await fixture.setActiveSheet(1);
+
+      await expect.poll(() => fixture.tabInStrip(1)).toBe(true);
+      expect(await pageScrollsSideways()).toBe(false);
+      expect(await barBelowGrid()).toBe(true);
+    });
+
     test('reveals the active tab on first paint', async({ page, theme, bundle }) => {
       const fixture = new SheetsBarUiPage(page, theme, bundle);
 

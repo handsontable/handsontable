@@ -655,6 +655,15 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 - **The active-tab marker is a `::after` border, not a `box-shadow`**, and the rename edge is an
   `outline`: forced-colors mode drops box shadows and backgrounds, so neither cue showed there. The sliding marker (`.ht-sheets-bar__tab-indicator`) draws its line with a border for the same reason, or no marker showed while it slid.
   Hide the `::after` while the indicator slides and while a tab is renamed, or two markers show.
+- **The tab strip has a `min-width`** (a tab with a ten-character name: `10ch`, the chevron, the gap and
+  the tab's padding). With no `width` option core sizes the edge slot to the table (`syncEdgeSlotsWidth`,
+  "a narrow table gets a narrow bar"), and a one-column sheet left the strip 0px wide. Past a narrow slot
+  the bar overflows and the slot scrolls it (`.ht-slot-bottom { overflow-x: auto }`): no page scroll, no
+  overlap. The floor broke `OverflowController#refresh()`'s "strip width plus the arrows' width" measure of
+  the room without the arrows, because the strip no longer grows by the arrows' width when the row
+  overflows, so the arrows hid and came back each frame; `#roomWithoutPaging()` takes the row's overflow
+  off. Pinned by "keeps the active tab whole on a sheet narrower than the bar's controls" in
+  `tests/e2e/sheets-bar-ui-a11y.spec.ts`.
 - **The theme class goes on the bar only in a `uiContainer`.** In a layout slot the bar sits under
   the grid's own themed wrapper; a class of its own there broke the theme engine's scope (the
   `colorScheme` and `density` tokens of the grid stopped reaching the bar). In a `uiContainer` the bar

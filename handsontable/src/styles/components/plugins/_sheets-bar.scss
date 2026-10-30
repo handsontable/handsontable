@@ -229,7 +229,9 @@ $all-sheets-visible-items: 8;
         display: flex;
         align-items: stretch;
         flex: 1 1 auto;
-        min-width: 0;
+        min-width: calc(
+          10ch + var(--ht-icon-size) + var(--ht-sizing-size-1) + (2 * var(--ht-sheets-bar-tab-horizontal-padding))
+        );
         overflow-x: auto;
 
         // The strip scrolls with the paging arrows and the wheel, never with a bar of its own.
