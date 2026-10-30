@@ -447,7 +447,7 @@ test('every probe is well formed: a setup, the keys pressed, an expected effect;
 const EFFECTS = new Set(['selection-moves', 'selection-changes', 'editor-opens', 'editor-closes', 'value-changes', 'menu-opens',
   'menu-closes', 'menu-moves', 'comment-opens', 'comment-closes', 'scrolls', 'sorts', 'merges', 'freezes', 'clipboard',
   'caret-moves', 'text-changes', 'focus-moves', 'focus-leaves', 'link-opens', 'collapses', 'filters', 'list-moves', 'row-selection-changes',
-  'comment-changes', 'any']);
+  'comment-changes', 'filter-list-moves', 'filter-checked-changes', 'any']);
 
 /**
  * The snapshot the walker takes around a key press.
@@ -459,7 +459,8 @@ function snapshot(fields = {}) {
   return {
     highlight: [1, 1], ranges: [[1, 1, 1, 1]], editorOpen: false, editorText: null, caret: null, menus: 0, menuItem: null,
     comment: false, dataHash: 'h1', scroll: [0, 0], sorting: '[]', merged: 0, frozen: '0,0', clipboard: 0, links: 0,
-    collapsed: '', filtered: '', listSelection: null, rowSelection: null, focusedText: null, commentText: null, active: { region: 'grid', key: 'cell|1,1' }, ...fields,
+    collapsed: '', filtered: '', listSelection: null, rowSelection: null, focusedText: null, commentText: null, filterList: null, filterChecked: null,
+    active: { region: 'grid', key: 'cell|1,1' }, ...fields,
   };
 }
 
@@ -481,6 +482,18 @@ test('the effects between two snapshots name what a key changed', () => {
     'the comment saved on the cell the editor was open on');
   assert.deepEqual(effectsBetween(snapshot({ commentText: 'Note' }), snapshot({ highlight: [2, 1], commentText: null })), ['selection-moves'],
     'another cell\'s comment is not a change');
+});
+
+test('the column filter\'s value list has effects of its own: its highlight moves, its checked values change', () => {
+  // The Filter by value list is a grid of its own inside the open column menu; both fields read null while the menu is closed.
+  const menu = { menus: 1, filterList: '[[1,0,1,0]]', filterChecked: '["F1","F2","F3"]' };
+
+  assert.deepEqual(effectsBetween(snapshot(menu), snapshot({ ...menu, filterList: '[[2,0,2,0]]' })), ['filter-list-moves']);
+  assert.deepEqual(effectsBetween(snapshot(menu), snapshot({ ...menu, filterChecked: '[]' })), ['filter-checked-changes'], 'Select none');
+  assert.deepEqual(effectsBetween(snapshot(), snapshot(menu)), ['menu-opens'], 'a menu that opens moved no highlight and changed no value');
+  assert.deepEqual(effectsBetween(snapshot(menu), snapshot()), ['menu-closes'], 'nor did one that closes');
+  assert.deepEqual(probeVerdict({ expect: 'filter-list-moves', forbid: ['filter-checked-changes'], before: snapshot(menu),
+    after: snapshot({ ...menu, filterList: '[[2,0,2,0]]', filterChecked: '["F1"]' }) }).status, 'unexpected', 'an arrow key must not tick an item');
 });
 
 test('a probe is ok, did nothing, did something else, or moved the focus out of the grid', () => {

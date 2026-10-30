@@ -46,6 +46,8 @@ export interface GridSnapshot {
   filtered: string;
   listSelection: string | null;
   rowSelection: string | null;
+  filterList: string | null;
+  filterChecked: string | null;
   active: { region: string; key: string };
 }
 
@@ -87,7 +89,10 @@ export async function installSentinels(page: Page, root: string): Promise<void> 
 
       if (anchor) {
         event.preventDefault();
-        win.__a11yLinks += 1;
+        // An anchor to `#` opens nothing: the column filter's Select all and Select none are buttons drawn as one.
+        if (anchor.getAttribute('href') !== '#') {
+          win.__a11yLinks += 1;
+        }
       }
     }, true);
   }, root);
@@ -325,8 +330,8 @@ export async function tabWalk(page: Page, cdp: CDPSession, root: string, directi
 /**
  * A snapshot of what a key can change: the selection, the editor and its text and caret, the menus
  * and their highlighted item, the comment editor and the highlighted cell's comment, the data, the scroll, the sort, the merges, the
- * frozen counts, the clipboard and link counters, the collapsed groups, the filters, and where the
- * focus is. One evaluation, after two animation frames.
+ * frozen counts, the clipboard and link counters, the collapsed groups, the filters, the open column menu's Filter by value
+ * list (its highlighted item and its checked values), and where the focus is. One evaluation, after two animation frames.
  *
  * @param page The page.
  * @param root The root container selector.
@@ -449,6 +454,11 @@ export async function snapshot(page: Page, root: string): Promise<GridSnapshot> 
     const win = window as unknown as { __a11yClipboard?: number; __a11yLinks?: number };
     const settings = hot?.getSettings() ?? {};
     const rowSelection = plugin('rowSelection');
+    // The Filter by value list of the open column menu: a grid of its own inside the menu, read through the plugin.
+    // Opening the menu restores it from the filter's conditions, so every probe starts from the same list.
+    const valueList = menus.some(node => node.classList.contains('htDropdownMenu'))
+      ? filters?.components?.get?.('filter_by_value')?.getMultipleSelectElement?.() ?? null
+      : null;
 
     return {
       highlight: range ? [range.highlight.row, range.highlight.col] as [number, number] : null,
@@ -483,6 +493,8 @@ export async function snapshot(page: Page, root: string): Promise<GridSnapshot> 
       filtered: JSON.stringify(filters?.exportConditions?.() ?? null),
       listSelection: editorOpen && editor.htEditor ? JSON.stringify(editor.htEditor.getSelected() ?? null) : null,
       rowSelection: rowSelection ? JSON.stringify(rowSelection.getSelectedRows?.() ?? rowSelection.getSelected?.() ?? null) : null,
+      filterList: valueList ? JSON.stringify(valueList.getItemsBox?.()?.getSelected?.() ?? null) : null,
+      filterChecked: valueList ? JSON.stringify(valueList.getValue?.() ?? null) : null,
       active: { region, key },
     };
   }, [root, PORTAL_MARK] as const);

@@ -487,8 +487,9 @@ function stepText(step) {
  * an editor opened or closed, a menu opened, closed or moved its highlight, the comment editor opened
  * or closed, the highlighted cell's comment changed, the data, the scroll, the sort, the merges, the frozen counts, the clipboard, the
  * collapsed groups, the filters, the highlight of an open editor's list or the rows a row selection holds
- * changed, a link opened, the text of the open editor or of the focused field changed, the open editor's
- * caret moved, the focus moved, the focus left the product.
+ * changed, the highlight or the checked values of the open column menu's Filter by value list changed,
+ * a link opened, the text of the open editor or of the focused field changed, the open editor's caret
+ * moved, the focus moved, the focus left the product.
  *
  * @param {object} before The snapshot before the key.
  * @param {object} after The snapshot after it.
@@ -523,6 +524,17 @@ export function effectsBetween(before, after) {
   }
   if (editing && differs('listSelection')) {
     effects.add('list-moves');
+  }
+
+  // The Filter by value list of the open column menu reads null while the menu is closed, so a key that opens or closes
+  // the menu did that: it moved no highlight in the list and ticked no value.
+  const filtering = before.filterChecked != null && after.filterChecked != null;
+
+  if (filtering && differs('filterList')) {
+    effects.add('filter-list-moves');
+  }
+  if (filtering && differs('filterChecked')) {
+    effects.add('filter-checked-changes');
   }
   if ((after.menus ?? 0) > (before.menus ?? 0)) {
     effects.add('menu-opens');

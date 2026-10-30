@@ -178,10 +178,18 @@ export const SHORTCUT_PROBES = [
   { section: 'Column filter keyboard shortcuts', keys: 'Alt+A', probe: { setup: 'cell', at: [5, 5], prepare: [{ api: 'filter' }], press: 'Alt+a', expect: 'filters' } },
   { section: 'Column filter keyboard shortcuts', keys: 'Tab', probe: { setup: 'dropdown-menu', at: [5, 5], press: 'Tab', expect: 'focus-moves' } },
   { section: 'Column filter keyboard shortcuts', keys: 'Shift+Tab', probe: { setup: 'dropdown-menu', at: [5, 5], press: 'Shift+Tab', expect: 'focus-moves' } },
+  // The Filter by value list (column F: F1 to F60, all checked) is a grid of its own in the menu. ArrowDown from the search
+  // field highlights its first item and one more the second, so ArrowUp has an item above it; moving ticks nothing.
   { section: 'Column filter keyboard shortcuts', keys: '↑ / ↓',
-    probe: { setup: 'dropdown-menu', at: [5, 5], prepare: [{ focus: '.htUIMultipleSelectSearch input' }, 'ArrowDown'], press: ['ArrowDown', 'ArrowUp'], expect: 'any' } },
+    probe: { setup: 'dropdown-menu', at: [5, 5], prepare: [{ focus: '.htUIMultipleSelectSearch input' }, 'ArrowDown', 'ArrowDown'], press: ['ArrowDown', 'ArrowUp'],
+      expect: 'filter-list-moves', forbid: ['filter-checked-changes'] } },
+  // Select none unticks every value of the full list; Select all ticks them again after an Enter on Select none. Neither
+  // applies the filter or closes the menu: that is the OK button's.
   { section: 'Column filter keyboard shortcuts', keys: 'Enter / Space',
-    probe: { setup: 'dropdown-menu', at: [5, 5], prepare: [{ focus: '.htUISelectionControls .htUIClearAll a' }], press: ['Enter', 'Space'], expect: 'any' } },
+    probe: { setup: 'dropdown-menu', at: [5, 5], prepare: [{ focus: '.htUISelectionControls .htUIClearAll a' }],
+      press: ['Enter', 'Space', { key: 'Enter', prepare: ['Enter', { focus: '.htUISelectionControls .htUISelectAll a' }] },
+        { key: 'Space', prepare: ['Enter', { focus: '.htUISelectionControls .htUISelectAll a' }] }],
+      expect: 'filter-checked-changes', forbid: ['filters', 'menu-closes'] } },
   { section: 'Comments keyboard shortcuts', keys: 'Ctrl+Alt+M', probe: { setup: 'cell', at: [5, 5], press: 'Control+Alt+m', expect: 'comment-opens' } },
   // Ctrl+Enter saves what was typed; Escape closes the editor and puts the comment back as it was.
   { section: 'Comments keyboard shortcuts', keys: 'Ctrl+Enter',

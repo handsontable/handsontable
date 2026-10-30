@@ -1498,7 +1498,9 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   between the cell and the formula bar (the focus key carries the part of the root wrapper, so F6 is a
   move), the text of the focused text field (`focusedText`, counted as a text change only while the focus
   stays on the same element: a key that also moves the focus reads as a focus move), and a key that only
-  switches a mode (`then` presses the key that shows the mode). The editor's text, caret and list read
+  switches a mode (`then` presses the key that shows the mode). The column menu's Filter by value list
+  is a grid of its own: the snapshot reads its highlighted item and its checked values while the menu is
+  open, because its keys change only those. The editor's text, caret and list read
   `null` while it is closed, so they count as changed only while the editor stays open: a key that
   closes the editor closed it, and a probe that expects an edit reads that as another effect.
 - **A probe's step is its id.** A probe finding has a step and no selector (`probeStep()`): the
