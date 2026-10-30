@@ -285,6 +285,34 @@ describe('Xlsx export `protection` option', () => {
     expect(sheets.every(sheet => sheet.protection.password === PASSWORD)).toBe(true);
   });
 
+  it.each([
+    ['a valid per-sheet password', { password: 'other-sheet-password' }],
+    ['an invalid per-sheet password', { password: 1234 }],
+    ['a per-sheet protection: null', null],
+    ['an invalid per-sheet protection', true],
+  ])('ignores %s and applies the top-level password to every sheet', async(_, sheetProtection) => {
+    const own = createInstance(FULL_KEY);
+    const xlsx = new Xlsx(new ExportDataProvider(own), {
+      protection: { password: PASSWORD },
+      sheets: [
+        { instance: own, name: 'One', protection: sheetProtection },
+        { instance: createInstance(FULL_KEY), name: 'Two' },
+      ],
+    });
+
+    writeSpy.mockClear();
+
+    const error = await xlsx.export().then(() => null, reason => reason);
+
+    expect(error).toBeNull();
+
+    const { sheets } = writeSpy.mock.calls[0][0];
+
+    expect(sheets.every(sheet => sheet.protection?.enabled === true)).toBe(true);
+    expect(sheets.every(sheet => sheet.protection.password === PASSWORD)).toBe(true);
+    expect(sheets.every(sheet => lockedCell(sheet).locked === true)).toBe(true);
+  });
+
   it('ignores the option and names only the token without xlsx:protection', async() => {
     const key = keyWith(ALL_XLSX_TOKENS.filter(id => id !== 'xlsx:protection'));
     const sheet = (await exportSnapshot(key, { protection: { password: PASSWORD } })).sheets[0];

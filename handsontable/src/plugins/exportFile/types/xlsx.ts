@@ -480,7 +480,10 @@ class Xlsx extends BaseType {
         const dp = new ExportDataProvider(sheetConfig.instance);
         // Promote the deprecated `columnHeaders` alias on the per-sheet config before it is merged
         // with the already-normalized top-level options, which carry `colHeaders` either way.
-        const sheetOptions = { ...this.options, ...normalizeExportOptions(sheetConfig) };
+        // `protection` is a workbook-wide option: only the top-level value, checked by
+        // `assertProtectionOption()` above, applies, so a per-sheet one is dropped before the merge.
+        const { protection: _ignoredProtection, ...perSheetConfig } = normalizeExportOptions(sheetConfig);
+        const sheetOptions = { ...this.options, ...perSheetConfig };
 
         dp.setOptions(sheetOptions);
 
