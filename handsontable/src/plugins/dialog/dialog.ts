@@ -503,6 +503,28 @@ export class Dialog extends BasePlugin {
   }
 
   /**
+   * Returns a copy of the selection the open dialog stashed and restores when it hides, or `null` when no
+   * dialog is open or nothing was selected. The sheets bar reads it when the user leaves a sheet under an
+   * open dialog: the grid shows no selection then, so the sheet's own capture records none.
+   *
+   * @private
+   * @returns {object|null}
+   */
+  _getStashedSelection(): SelectionState | null {
+    const state = this.#selectionState;
+
+    if (!this.isVisible() || !state || state.ranges.length === 0 || !state.activeRange) {
+      return null;
+    }
+
+    return {
+      ...state,
+      ranges: state.ranges.map(range => range.clone()),
+      activeRange: state.activeRange.clone(),
+    };
+  }
+
+  /**
    * Takes the selection the grid shows now as the one to restore when the dialog hides, and clears it
    * from the grid while the dialog stays open. The sheets bar calls it after a switch made under an
    * open dialog: the selection stashed when the dialog opened belongs to the sheet that was left, and

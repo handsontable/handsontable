@@ -2280,8 +2280,9 @@ export class SheetsBar extends BasePlugin {
 
         if (oldSheet) {
           this.#syncActiveSheetData();
-          oldSheet.viewState = this.#withTabReentryCell(captureViewState(this.hot, this.#captureCellMeta())) as
-            unknown as Record<string, unknown>;
+          oldSheet.viewState = this.#withTabReentryCell(
+            this.#withDialogSelection(captureViewState(this.hot, this.#captureCellMeta()))
+          ) as unknown as Record<string, unknown>;
           this.#captureColumnSummary(oldSheet);
           this.#captureCellOption(oldSheet);
           this.#captureImportedStyles(oldSheet);
@@ -4065,6 +4066,30 @@ export class SheetsBar extends BasePlugin {
     this.#overflow?.refresh();
     this.#tabStrip?.settleReveal();
     this.#syncGridName();
+  }
+
+  /**
+   * Gives a view state captured under an open dialog the selection the dialog stashed. A dialog (the
+   * Loading overlay among them) clears the grid's selection while it is open and puts it back when it
+   * hides, so the departing sheet's capture recorded none, and the dialog's stash was then replaced by
+   * the arriving sheet's selection (`Dialog#_adoptViewSelection()`): the departing sheet lost its
+   * selection for good.
+   *
+   * @param {object} viewState The captured view state.
+   * @returns {object} The same view state, with the dialog's stashed selection when one is open.
+   */
+  #withDialogSelection(viewState: ViewState): ViewState {
+    const stashed = this.hot.getPlugin('dialog')?._getStashedSelection() ?? null;
+
+    if (stashed === null) {
+      return viewState;
+    }
+
+    return {
+      ...viewState,
+      selection: stashed.ranges.map(({ from, to }) => [from.row, from.col, to.row, to.col] as number[]),
+      selectionState: stashed,
+    };
   }
 
   /**

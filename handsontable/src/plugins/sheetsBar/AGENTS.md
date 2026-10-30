@@ -1099,7 +1099,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     `@private` `_adoptViewSelection()`). The dialog stashes the selection it hides when it opens,
     and on hide it put the departing sheet's coordinates on the arriving sheet. A dialog opened
     during the switch already stashed the arriving selection, so it is left alone. This mirrors
-    EmptyDataState's `isViewChange`.
+    EmptyDataState's `isViewChange`. The departing sheet keeps the selection the dialog stashed
+    (`#withDialogSelection`, through Dialog's `@private` `_getStashedSelection()`): the grid shows none
+    while a dialog is open, so the capture alone recorded none.
   - **Gestures and async work are each plugin's own.** MoveCells, ManualRowMove,
     ManualColumnResize and ManualRowResize (`ResizeGesture#abort()`), Autofill and FreezeBar cancel a held drag on
     `beforeLoadData` (never on `updateData()`, which the React wrapper sends on every re-render); AutoColumnSize cancels its idle-task sweep; ImportFile
