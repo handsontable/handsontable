@@ -7,7 +7,7 @@ import BaseType from '../types/_base';
 import { normalizeExportOptions } from '../utils';
 import { detectXlsxEngine } from '../../../utils/xlsxEngine/detect';
 import { _resetDeprecationWarnings } from '../../../helpers/console';
-import { buildTestKey } from '../../../utils/entitlementLicenseKey/__tests__/buildTestKey';
+import { keyWith } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 import XLSX_FEATURES from '../../../utils/xlsxEngine/features.json';
 import { SUBSCRIPTION_KEY } from '../../../utils/entitlementLicenseKey/__tests__/fixtures';
 
@@ -481,17 +481,6 @@ describe('ExportFile license capabilities', () => {
   let container;
   let hot;
 
-  const keyWith = tokens => buildTestKey({
-    products: {
-      handsontable: {
-        capabilities: ['core', ...tokens],
-        usage_until: '2027-08-12',
-        notice: 60,
-        grace: 90,
-        flags: ['listed-capabilities'],
-      },
-    },
-  });
   const createGrid = (licenseKey) => {
     hot = new Handsontable(container, { data: [['a', 1]], exportFile: true, licenseKey });
 

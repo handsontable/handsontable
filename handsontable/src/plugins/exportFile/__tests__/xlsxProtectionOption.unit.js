@@ -2,7 +2,7 @@ import Xlsx from '../types/xlsx';
 import ExportDataProvider from '../dataProvider';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
 import * as consoleHelpers from '../../../helpers/console';
-import { buildTestKey } from '../../../utils/entitlementLicenseKey/__tests__/buildTestKey';
+import { ALL_XLSX_TOKENS, keyWith } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 
 // A small sheet with one read-only cell. The tests swap `cellsMeta` and `columnSummaries` to drop the
 // read-only cell or to add a ColumnSummary destination. Read lazily by the mock below (jest hoists the
@@ -115,43 +115,9 @@ jest.mock('../dataProvider', () => ({
   },
 }));
 
-const ALL_XLSX_TOKENS = [
-  'xlsx:import',
-  'xlsx:export',
-  'xlsx:formulas',
-  'xlsx:layout',
-  'xlsx:number_formats',
-  'xlsx:comments',
-  'xlsx:styles',
-  'xlsx:conditional_formatting',
-  'xlsx:data_validation',
-  'xlsx:protection',
-];
-
 // A made-up password. Assertions compare it with `===` inside `expect(...).toBe(true)`, so a failure
 // never prints it; it never goes into a test title or an `expect` message either.
 const PASSWORD = 'q4-budget';
-
-/**
- * Builds a current subscription key that unlocks exactly `tokens`: it carries the
- * `listed-capabilities` flag.
- *
- * @param {string[]} tokens The capability tokens besides `core`.
- * @returns {string}
- */
-function keyWith(tokens) {
-  return buildTestKey({
-    products: {
-      handsontable: {
-        capabilities: ['core', ...tokens],
-        usage_until: '2027-08-12',
-        notice: 60,
-        grace: 90,
-        flags: ['listed-capabilities'],
-      },
-    },
-  });
-}
 
 /**
  * A stand-in for a Handsontable instance carrying a license key.

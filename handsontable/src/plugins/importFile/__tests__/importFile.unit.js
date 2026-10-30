@@ -14,7 +14,7 @@ import { createWorkbookSnapshot } from '../../../utils/xlsxEngine/model';
 import { loadFixture as fixture, toArrayBuffer } from '../../../utils/xlsxEngine/__tests__/helpers/fixtures';
 import * as consoleHelpers from '../../../helpers/console';
 import { registerCellType } from '../../../cellTypes/registry';
-import { buildTestKey } from '../../../utils/entitlementLicenseKey/__tests__/buildTestKey';
+import { keyWith } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 import XLSX_FEATURES from '../../../utils/xlsxEngine/features.json';
 import { SUBSCRIPTION_KEY } from '../../../utils/entitlementLicenseKey/__tests__/fixtures';
 import { UNRESTRICTED_XLSX_ENTITLEMENT } from '../../../utils/xlsxEngine/xlsxEntitlement';
@@ -1383,17 +1383,6 @@ describe('selectSheet by index on an export with dropdowns', () => {
 });
 
 describe('ImportFile license gate', () => {
-  const keyWith = tokens => buildTestKey({
-    products: {
-      handsontable: {
-        capabilities: ['core', ...tokens],
-        usage_until: '2027-08-12',
-        notice: 60,
-        grace: 90,
-        flags: ['listed-capabilities'],
-      },
-    },
-  });
   const message = 'ImportFile: the license does not unlock "xlsx:import".';
 
   it('exposes the license tokens it gates, each one features.json assigns to it', () => {

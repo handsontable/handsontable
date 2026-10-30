@@ -9,21 +9,13 @@ import { createWorkbookSnapshot } from '../../../utils/xlsxEngine/model';
 import { UNRESTRICTED_XLSX_ENTITLEMENT } from '../../../utils/xlsxEngine/xlsxEntitlement';
 import { loadFixture as fixture } from '../../../utils/xlsxEngine/__tests__/helpers/fixtures';
 import * as consoleHelpers from '../../../helpers/console';
-import { buildTestKey } from '../../../utils/entitlementLicenseKey/__tests__/buildTestKey';
+import {
+  ALL_XLSX_TOKENS,
+  STANDARD_TOKENS,
+  keyWith,
+  keyWithoutFlag,
+} from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 
-const ALL_XLSX_TOKENS = [
-  'xlsx:import',
-  'xlsx:export',
-  'xlsx:formulas',
-  'xlsx:layout',
-  'xlsx:number_formats',
-  'xlsx:comments',
-  'xlsx:styles',
-  'xlsx:conditional_formatting',
-  'xlsx:data_validation',
-  'xlsx:protection',
-];
-const STANDARD_TOKENS = ['xlsx:import', 'xlsx:export', 'xlsx:formulas', 'xlsx:layout'];
 const PRO_TOKENS = ALL_XLSX_TOKENS.filter(id => !STANDARD_TOKENS.includes(id));
 /**
  * The Pro tokens the import gates: `xlsx:number_formats` restricts the export only.
@@ -37,40 +29,6 @@ const IMPORT_PRO_TOKENS = PRO_TOKENS.filter(id => id !== 'xlsx:number_formats');
  * @returns {string[]}
  */
 const licenseEntriesOf = names => names.filter(name => name.startsWith('license:'));
-
-/**
- * Builds a current subscription key granting `core` plus `tokens`, without the `listed-capabilities`
- * flag: such a key unlocks every xlsx feature, whatever it lists.
- *
- * @param {string[]} tokens The capability tokens besides `core`.
- * @param {string[]} [flags] The product flags.
- * @returns {string}
- */
-function keyWithoutFlag(tokens, flags = []) {
-  return buildTestKey({
-    products: {
-      handsontable: {
-        capabilities: ['core', ...tokens],
-        usage_until: '2027-08-12',
-        notice: 60,
-        grace: 90,
-        flags,
-      },
-    },
-  });
-}
-
-/**
- * Builds a current subscription key that unlocks exactly `tokens`: it carries the
- * `listed-capabilities` flag besides `flags`.
- *
- * @param {string[]} tokens The capability tokens besides `core`.
- * @param {string[]} [flags] Further product flags.
- * @returns {string}
- */
-function keyWith(tokens, flags = []) {
-  return keyWithoutFlag(tokens, ['listed-capabilities', ...flags]);
-}
 
 /**
  * An entitlement with one flag switched off and its token listed as missing.
@@ -96,7 +54,7 @@ const STANDARD_ENTITLEMENT = {
 
 /**
  * One sheet carrying every feature a token gates: a header row, a dated column, a styled and
- * bordered cell, a comment, a locked cell under sheet protection, a list validation, a merge, a
+ * bordered cell, a comment and a header-band comment, a locked cell under sheet protection, a list validation, a merge, a
  * hidden column, a frozen row, and a conditional formatting block.
  *
  * @returns {object} The workbook snapshot.
@@ -124,6 +82,8 @@ function richWorkbook() {
   }
 
   sheet.cell(3, 1).comment = 'Check';
+  // A comment in the header band, so the `comment:header` entry is pinned to `xlsx:comments` too.
+  sheet.cell(1, 2).comment = 'Header note';
   sheet.cell(4, 1).style = {
     alignment: { horizontal: 'right' },
     font: { bold: true, color: { argb: 'FFFF0000' } },
@@ -237,7 +197,9 @@ describe('ImportFile mapper license gates', () => {
     expect(full.result.comments).toEqual([{ row: 1, col: 0, value: 'Check' }]);
     expect(gated.result.comments).toBeUndefined();
     // Not reported as the file-driven `comments` entry: the license entry names the loss.
+    expect(full.dropped.list()).toContain('comment:header');
     expect(gated.dropped.list()).not.toContain('comments');
+    expect(gated.dropped.list()).not.toContain('comment:header');
     expect(licenseEntriesOf(gated.dropped.list())).toEqual(['license:xlsx:comments']);
   });
 

@@ -2,7 +2,13 @@ import Xlsx from '../types/xlsx';
 import ExportDataProvider from '../dataProvider';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
 import * as consoleHelpers from '../../../helpers/console';
-import { buildTestKey } from '../../../utils/entitlementLicenseKey/__tests__/buildTestKey';
+import {
+  ALL_XLSX_TOKENS,
+  STANDARD_TOKENS,
+  keyWith,
+  keyWithout,
+  keyWithoutFlag,
+} from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 
 // One rich sheet: headers, a formula, a currency number, a read-only cell, a comment, a dropdown, a
 // right-aligned cell, a merge, a hidden row and column, a frozen row, RTL, widths and heights. Read
@@ -121,68 +127,9 @@ jest.mock('../dataProvider', () => ({
   },
 }));
 
-const ALL_XLSX_TOKENS = [
-  'xlsx:import',
-  'xlsx:export',
-  'xlsx:formulas',
-  'xlsx:layout',
-  'xlsx:number_formats',
-  'xlsx:comments',
-  'xlsx:styles',
-  'xlsx:conditional_formatting',
-  'xlsx:data_validation',
-  'xlsx:protection',
-];
-
 const CONDITIONAL_FORMATTING = [
   { cols: [1, 1], rules: [{ type: 'cellIs', operator: 'greaterThan', formulae: ['1'], style: {} }] },
 ];
-
-const STANDARD_TOKENS = ['xlsx:import', 'xlsx:export', 'xlsx:formulas', 'xlsx:layout'];
-
-/**
- * Builds a current subscription key granting `core` plus `tokens`, without the `listed-capabilities`
- * flag: such a key unlocks every xlsx feature, whatever it lists.
- *
- * @param {string[]} tokens The capability tokens besides `core`.
- * @param {string[]} [flags] The product flags.
- * @returns {string}
- */
-function keyWithoutFlag(tokens, flags = []) {
-  return buildTestKey({
-    products: {
-      handsontable: {
-        capabilities: ['core', ...tokens],
-        usage_until: '2027-08-12',
-        notice: 60,
-        grace: 90,
-        flags,
-      },
-    },
-  });
-}
-
-/**
- * Builds a current subscription key that unlocks exactly `tokens`: it carries the
- * `listed-capabilities` flag besides `flags`.
- *
- * @param {string[]} tokens The capability tokens besides `core`.
- * @param {string[]} [flags] Further product flags.
- * @returns {string}
- */
-function keyWith(tokens, flags = []) {
-  return keyWithoutFlag(tokens, ['listed-capabilities', ...flags]);
-}
-
-/**
- * Builds a key granting every xlsx token but `token`.
- *
- * @param {string} token The token to leave out.
- * @returns {string}
- */
-function keyWithout(token) {
-  return keyWith(ALL_XLSX_TOKENS.filter(id => id !== token));
-}
 
 /**
  * A stand-in for a Handsontable instance carrying a license key.
@@ -237,7 +184,8 @@ describe('Xlsx export license gates', () => {
     const gated = (await exportSnapshot(keyWithout('xlsx:styles'))).sheets[0];
 
     expect(dataCells(full).some(cell => cell.style !== null)).toBe(true);
-    expect(headerCells(full).every(cell => cell.style?.fill !== null)).toBe(true);
+    expect(headerCells(full).length).toBeGreaterThan(0);
+    expect(headerCells(full).every(cell => Boolean(cell.style?.fill))).toBe(true);
     expect(full.rows[0][0].style.alignment).toBeTruthy();
     expect(full.rows[0][0].style.alignment.horizontal).toBe('center');
 
