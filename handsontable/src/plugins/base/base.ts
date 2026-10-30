@@ -2,7 +2,7 @@ import type { HotInstance } from '../../core/types';
 import type { HookCallback } from '../../core/hooks/bucket';
 import type { Events } from '../../core/settings';
 import {
-  defineGetter, objectEach, isObject, isPlainObject, assignObjectDefaults, getProperty,
+  defineGetter, objectEach, isObject, isPlainObject, assignObjectDefaults, getProperty, hasOwnProperty,
 } from '../../helpers/object';
 import { throwWithCause } from '../../helpers/errors';
 import { arrayEach } from '../../helpers/array';
@@ -660,9 +660,13 @@ export class BasePlugin {
    * `enablePlugin()`, which reads them, and does not refresh them again before `updatePlugin()`: a second
    * refresh logged every validation warning twice.
    *
-   * A call that keeps the plugin on refreshes the plugin settings from the payload's `PLUGIN_KEY` value. When the
-   * payload does not carry that key (a plugin with `SETTING_KEYS: true`, or one listing foreign keys), the refresh
-   * reads the merged grid settings instead, so an unrelated update never wipes the stored setting.
+   * A call that keeps the plugin on refreshes the plugin settings from the payload's `PLUGIN_KEY` value, an explicit
+   * `undefined` included. When the payload does not carry that key (a plugin with `SETTING_KEYS: true`, or one
+   * listing foreign keys), the refresh reads the merged grid settings instead, so the stored setting is reset to
+   * the value declared for the grid, not kept as the plugin holds it now. Two consequences follow for such a
+   * plugin: a setting it changed at runtime through `updatePluginSettings()` is replaced by the declared value on
+   * every update that reaches it, and an invalid declared value logs its `SETTINGS_VALIDATORS` warning again on
+   * each of those updates.
    *
    * @private
    * @param {object} newSettings New set of settings passed to the updateSettings method.
@@ -708,7 +712,7 @@ export class BasePlugin {
         const pluginKey = this.constructor.PLUGIN_KEY;
 
         this.updatePluginSettings(
-          newSettings[pluginKey] === undefined ? this.hot.getSettings()[pluginKey] : newSettings[pluginKey]
+          hasOwnProperty(newSettings, pluginKey) ? newSettings[pluginKey] : this.hot.getSettings()[pluginKey]
         );
       }
 
