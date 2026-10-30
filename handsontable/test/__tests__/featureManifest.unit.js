@@ -239,6 +239,13 @@ describe('feature manifest', () => {
       expect(toPluginDeps(entryOf('feat:collapsible_columns'), byId)).toEqual(['plugin:NestedHeaders']);
     });
 
+    it('should generate PLUGIN_DEPS for the plugins that cannot work without their dependency', () => {
+      // FormulaBuilder and CheckboxHeader are new in 19.0. Loading does nothing without Dialog, so it throws too.
+      expect(toPluginDeps(entryOf('feat:formula_builder'), byId)).toEqual(['plugin:Formulas']);
+      expect(toPluginDeps(entryOf('feat:checkbox_header'), byId)).toEqual(['cell-type:checkbox']);
+      expect(toPluginDeps(entryOf('feat:loading'), byId)).toEqual(['plugin:Dialog']);
+    });
+
     it('should imply every sold entry "requires.allOf" reaches, and nothing else', () => {
       // Filters needs DropdownMenu, which needs AutoColumnSize. Parts (licensing "none") and "anyOf" stay out.
       expect(computeImplies(entryOf('feat:filters'), byId))

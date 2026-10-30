@@ -71,15 +71,23 @@ A plugin entry looks like this (`src/plugins/filters/feature.json`):
    ```
 
    `new Handsontable()` throws when such a module is not registered, so `enforceAtInit` makes a dependency hard
-   for modular users. **Turning it on for an existing dependency is a breaking change** (a user who registered the
-   plugin without it starts getting a throw). Loading → Dialog and FormulaBuilder → Formulas are real
-   dependencies listed in `requires` without `enforceAtInit` for exactly that reason.
+   for modular users. The check runs for every **registered** plugin, enabled or not. **Turning it on for a
+   released plugin is a breaking change** (a user who registered the plugin without the dependency starts
+   getting a throw): it needs a migration-guide step and a breaking changelog entry. Loading → Dialog went
+   that way in 19.0, because Loading did nothing at all without Dialog. For a plugin no release has shipped
+   yet (FormulaBuilder, CheckboxHeader in 19.0) it is free, so turn it on whenever the plugin cannot work
+   without the dependency. The custom-build service adds `PLUGIN_DEPS` to a build, so a link left out of it
+   can produce a build that silently lacks the dependency.
+
+   No `feature.generated.ts` in a plugin folder does not mean a dependency was forgotten: most plugins need
+   none. To find one, look for `getPlugin('X')` calls the plugin cannot work without.
 
 To change a plugin's dependencies, edit its `feature.json` and run `generate:feature-manifest`. Hand-editing
 `feature.generated.ts` or writing a `PLUGIN_DEPS` array in the class fails the Jest suite. The order of
 `requires.allOf` is the order of `PLUGIN_DEPS` and of the error message.
 
-The strings must stay byte-identical: the custom-build service reads `PLUGIN_DEPS` from each plugin class. The four `pluginDependencies.unit.ts` tests pin today's strings.
+The strings must stay byte-identical: the custom-build service reads `PLUGIN_DEPS` from each plugin class. Each
+plugin with `enforceAtInit` has a `__tests__/pluginDependencies.unit.ts` that pins its strings and the error.
 
 List only what the feature cannot work without. Most plugins work alongside many others, so "works with" is not
 recorded; a link that is really a need belongs in `requires` (`xlsx:formulas` requires `feat:formulas`, because

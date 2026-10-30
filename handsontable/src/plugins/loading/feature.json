@@ -14,7 +14,8 @@
         "allOf": [
           "feat:dialog"
         ]
-      }
+      },
+      "enforceAtInit": true
     }
   ]
 }

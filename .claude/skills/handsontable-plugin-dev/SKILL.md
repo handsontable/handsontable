@@ -75,7 +75,7 @@ static get PLUGIN_DEPS() {
 }
 ```
 
-To change a dependency, edit `feature.json` and run `generate:feature-manifest`; never edit `feature.generated.ts` by hand. `enforceAtInit` on a dependency that was not checked before is a **breaking change** for modular users, so a real dependency that never threw (Loading → Dialog) stays in `requires` without it.
+To change a dependency, edit `feature.json` and run `generate:feature-manifest`; never edit `feature.generated.ts` by hand. Turn `enforceAtInit` on for every dependency the plugin cannot work without, and add a `__tests__/pluginDependencies.unit.ts` like the others. For a plugin no release has shipped yet that costs nothing. For a released plugin it is a **breaking change** for modular users: add a migration-guide step and a breaking changelog entry (Loading → Dialog, 19.0).
 
 ## Focus management
 

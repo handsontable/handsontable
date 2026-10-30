@@ -4,6 +4,7 @@ import { getSanitizer } from '../../utils/sanitizer';
 import * as C from '../../i18n/constants';
 import { isRootInstance } from '../../utils/rootInstance';
 import { LOADING_CLASS_NAME } from '../../helpers/constants';
+import { PLUGIN_DEPS } from './feature.generated';
 
 /**
  * Interface for the Dialog plugin used by Loading.
@@ -61,6 +62,9 @@ export { LOADING_CLASS_NAME };
  * The loading overlay is a dialog, so enabling this plugin also enables the Dialog plugin
  * ({@link Options#dialog}). The Dialog plugin stays enabled after you turn `loading` off, and while
  * `loading` is on, setting `dialog: false` does not turn the Dialog plugin off.
+ *
+ * If you register modules one by one, register the Dialog plugin too: `new Handsontable()` throws an error
+ * when the Loading plugin is registered without it.
  *
  * Calling `updateSettings()` with new `loading` options updates a visible loading overlay in place,
  * without hiding it.
@@ -188,6 +192,13 @@ export class Loading extends BasePlugin {
       title: (value: unknown) => typeof value === 'string',
       description: (value: unknown) => typeof value === 'string',
     };
+  }
+
+  /**
+   * Returns the list of plugin dependencies required before this plugin can be initialized.
+   */
+  static get PLUGIN_DEPS() {
+    return [...PLUGIN_DEPS];
   }
 
   /**

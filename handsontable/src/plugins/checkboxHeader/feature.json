@@ -14,7 +14,8 @@
         "allOf": [
           "cell:checkbox"
         ]
-      }
+      },
+      "enforceAtInit": true
     }
   ]
 }

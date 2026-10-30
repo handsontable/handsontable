@@ -15,6 +15,7 @@
           "feat:formulas"
         ]
       },
+      "enforceAtInit": true,
       "packages": [
         "hyperformula-ui"
       ]
