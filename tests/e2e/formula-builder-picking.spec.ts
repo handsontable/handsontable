@@ -501,7 +501,7 @@ test.describe('formulaBuilder picking next to other plugins\' controls', { tag: 
 // page: the grid's holder never overflows, and DragToScroll stays out of a claimed press. Themes: the
 // row heights decide how many rows fit the viewport. Engines: a pointer held past the window edge.
 test.describe('formulaBuilder picking in a window-scrolled grid', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
-  test('a reference drag held below the viewport scrolls the page and extends the range', async({ page, theme, bundle }) => {
+  test('a reference drag held below the viewport scrolls the page and extends the range', async({ page, theme, bundle, browserName }) => {
     const grid = new FormulaBuilderPage(page, theme, bundle, 'window-scroll');
 
     await grid.goto();
@@ -521,9 +521,29 @@ test.describe('formulaBuilder picking in a window-scrolled grid', { tag: [THEMES
     expect(await grid.grid.locator('.ht_master .wtHolder').evaluate(holder => holder.scrollHeight > holder.clientHeight))
       .toBe(false);
 
+    const pointerX = (start?.x ?? 0) + 10;
+    const belowViewport = (viewport?.height ?? 0) + 40;
+
     await grid.cell(0, 1).hover();
     await page.mouse.down();
-    await page.mouse.move((start?.x ?? 0) + 10, (viewport?.height ?? 0) + 40, { steps: 10 });
+    // The drag runs to the viewport's last pixel row: the auto-scroller does nothing there, since its
+    // edge zone starts past the viewport's bottom edge.
+    await page.mouse.move(pointerX, (viewport?.height ?? 0) - 1, { steps: 10 });
+
+    if (browserName === 'firefox') {
+      // Playwright's Firefox delivers a held-button move past the viewport edge as `clientY: -85`
+      // with `buttons: 0` (measured at 1280x720: y 720 arrives as sent, y 721 and beyond do not),
+      // which reads as a release outside the window and ends the drag. A browser keeps sending
+      // `mousemove` to the document with the button held there, so the move past the edge is
+      // dispatched as that event.
+      await page.evaluate(({ x, y }) => {
+        document.dispatchEvent(new MouseEvent('mousemove', {
+          bubbles: true, cancelable: true, view: window, clientX: x, clientY: y, buttons: 1,
+        }));
+      }, { x: pointerX, y: belowViewport });
+    } else {
+      await page.mouse.move(pointerX, belowViewport);
+    }
 
     // The pointer stays past the bottom edge: the auto-scroller keeps stepping on its own until the
     // page has brought row 26 into view. The editor takes the reference on the release.
