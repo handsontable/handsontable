@@ -95,7 +95,7 @@
       - row "Add comment":
         - menuitem "Add comment"
       - row "Delete comment":
-        - menuitem "Delete comment"
+        - menuitem "Delete comment" [disabled]
       - row "Read-only comment":
         - menuitemcheckbox "Read-only comment" [disabled]
       - row "---------":
@@ -106,11 +106,11 @@
         - menuitem "Cut"
       - row "---------":
         - menuitem "---------"
-      - row "Borders":
-        - menuitem "Borders"
-      - row "---------":
-        - menuitem "---------"
       - row "Merge cells":
         - menuitem "Merge cells" [disabled]
+      - row "---------":
+        - menuitem "---------"
+      - row "Borders":
+        - menuitem "Borders"
 - status
 - status

@@ -5,6 +5,7 @@ import { DEFAULT_COLUMN_WIDTH } from '../../3rdparty/walkontable/src';
 import { cancelIdleTask, requestIdleTask } from '../../helpers/feature';
 import { isPercentValue } from '../../helpers/string';
 import { valueAccordingPercent } from '../../helpers/number';
+import { FONT_REMEASURE_ORDER_INDEX } from '../../core/fontLoad';
 
 export const PLUGIN_KEY = 'autoRowHeaderSize';
 export const PLUGIN_PRIORITY = 45;
@@ -353,6 +354,8 @@ export class AutoRowHeaderSize extends BasePlugin {
     // A theme carries its own font and cell padding, so every measured width is wrong under a new
     // one. `useTheme()` does not go through `updateSettings`, so nothing else would notice.
     this.addHook('afterSetTheme', this.#onInvalidate);
+    // A web font that loads after the headers were measured changes the width of their labels the same way.
+    this.addHook('afterFontsLoad', this.#onInvalidate, FONT_REMEASURE_ORDER_INDEX);
     // Recalculated formulas can feed a label without any cell write being reported, and the payload
     // describes engine addresses rather than rows - so the whole thing is measured again.
     this.addHook('afterFormulasValuesUpdate', this.#onInvalidate);

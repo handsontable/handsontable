@@ -1,7 +1,51 @@
-import Handsontable from 'handsontable/base';
+import { toRaw, PropType } from 'vue';
+import Handsontable, { OmitHooks, RemoveIndexSignature } from 'handsontable/base';
 import { HotTableProps, VueProps } from './types';
 
 const unassignedPropSymbol = Symbol('unassigned');
+
+/**
+ * The shape `defineComponent()` reads the prop types from, with one entry per option of `Settings`. `type`
+ * exists only for the type checker: the runtime schema built by `propFactory()` carries none, so Vue
+ * neither validates nor casts a prop.
+ *
+ * `RemoveIndexSignature` drops the index signature of `Settings`. Left in, it becomes an index signature of
+ * the props, and Vue types every prop as `any` again. The mapping also drops `afterChangesObserved`: the
+ * settings types list that hook, but core neither registers nor fires it, so a prop for it could never work.
+ * `SettingsProp` is what the `settings` prop takes.
+ */
+type PropSchema<Settings, SettingsProp = Settings> = {
+  [P in keyof RemoveIndexSignature<Settings> as P extends 'afterChangesObserved' ? never : P]-?: {
+    type: PropType<RemoveIndexSignature<Settings>[P]>,
+    default: unknown,
+  };
+} & {
+  settings: {
+    type: PropType<SettingsProp>,
+    default: unknown,
+  },
+};
+
+/**
+ * `HotColumn` takes column settings, not grid settings: its `data` is a property name or a getter, where the
+ * grid's `data` is an array of rows. Hooks run from the grid-level settings only, and core reads `getValue`
+ * from the table meta only, so neither is a prop of a column. The `settings` prop also takes a grid settings
+ * object, as it did when every prop was `any`: such an object has no `data` that would clash.
+ */
+type HotColumnPropSchema = PropSchema<
+  Omit<OmitHooks<RemoveIndexSignature<Handsontable.ColumnSettings>>, 'getValue'>,
+  Handsontable.ColumnSettings | Handsontable.GridSettings
+>;
+
+/**
+ * `HotTable` takes the settings `updateSettings()` takes: a hook prop may be `null`, which removes the
+ * callback the earlier props passed for it.
+ */
+type HotTablePropSchema = PropSchema<Handsontable.SettingsUpdate> & {
+  id: {
+    type: PropType<string>,
+  },
+};
 
 /**
  * Message for the warning thrown if the Handsontable instance has been destroyed.
@@ -26,7 +70,15 @@ export function hasOwnProperty(object: unknown, key: string): boolean {
  * @param {string} source Source for the factory (either 'HotTable' or 'HotColumn').
  * @returns {object}
  */
-export function propFactory(source: 'HotTable' | 'HotColumn'): VueProps<HotTableProps> {
+export function propFactory(source: 'HotTable'): HotTablePropSchema;
+export function propFactory(source: 'HotColumn'): HotColumnPropSchema;
+/**
+ * Implementation of the overloads above.
+ *
+ * @param {string} source Source for the factory (either 'HotTable' or 'HotColumn').
+ * @returns {object}
+ */
+export function propFactory(source: 'HotTable' | 'HotColumn'): HotTablePropSchema | HotColumnPropSchema {
   const registeredHooks = Handsontable.hooks.getRegistered();
   const propSchema: VueProps<HotTableProps> = {};
 
@@ -45,17 +97,29 @@ export function propFactory(source: 'HotTable' | 'HotColumn'): VueProps<HotTable
     };
   }
 
+  // Documented options that have no entry in `DefaultSettings`, so the loops above never reach them.
+  propSchema.handsontable = {
+    default: unassignedPropSymbol
+  };
+
   propSchema.settings = {
     default: unassignedPropSymbol
   };
 
   if (source === 'HotTable') {
+    // Core reads `getValue` from the table meta only, so a column has no use for it.
+    propSchema.getValue = {
+      default: unassignedPropSymbol
+    };
+
     propSchema.id = {
       type: String,
     };
   }
 
-  return propSchema;
+  // The schema is filled at runtime from `DefaultSettings`, the registered hooks, and the options named
+  // above, which is why it is built loosely and typed here, from `SettingsUpdate` and `ColumnSettings`, for the template type checker.
+  return propSchema as unknown as HotTablePropSchema | HotColumnPropSchema;
 }
 
 /**
@@ -122,7 +186,8 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
       hasOwnProperty(hotSettingsInProps, key) &&
       hotSettingsInProps[key] !== undefined &&
       !initOnlySettingKeys.includes(key) &&
-      ((currentSettings && key !== 'data') ? !simpleEqual(currentSettings[key], hotSettingsInProps[key]) : true)
+      ((currentSettings && key !== 'data')
+        ? !isEqualSetting(key, currentSettings[key], hotSettingsInProps[key], currentSettings) : true)
     ) {
       newSettings[key] = hotSettingsInProps[key];
     }
@@ -137,13 +202,115 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
       additionalHotSettingsInProps[key] !== undefined &&
       !initOnlySettingKeys.includes(key) &&
       ((currentSettings && key !== 'data')
-        ? !simpleEqual(currentSettings[key], additionalHotSettingsInProps[key]) : true)
+        ? !isEqualSetting(key, currentSettings[key], additionalHotSettingsInProps[key], currentSettings) : true)
     ) {
       newSettings[key] = additionalHotSettingsInProps[key];
     }
   }
 
   return newSettings;
+}
+
+/**
+ * Compare the grid's current value of a setting with the value passed through the props.
+ *
+ * `sheetsBar` is compared key by key: a template writes it as an object literal
+ * (`:sheetsBar="{ sheets }"`), which is a new object on every render, while the sheets it holds keep
+ * every sheet's data, which must not be serialized on each change. The `sheets` array is compared by
+ * reference, and an option given as an object literal (`animation: { switch: false }`) by the
+ * references of its own keys. A new `sheets` array or a changed option in a new `sheetsBar` object is
+ * therefore sent, even when it differs only by a function. A change made inside the same `sheetsBar`
+ * object or the same `sheets` array is not sent, and neither are the plugin's own writes into that
+ * array. `themeName` is compared with the grid's `theme`, because core moves the name there and
+ * `getSettings().themeName` stays `undefined`. Every other setting is compared with `simpleEqual()`.
+ *
+ * @param {string} key The setting name.
+ * @param {unknown} currentValue The grid's current value.
+ * @param {unknown} newValue The value passed through the props.
+ * @param {Handsontable.GridSettings} currentSettings The grid's current settings.
+ * @returns {boolean} `true` if the value does not need to be sent.
+ */
+function isEqualSetting(
+  key: string,
+  currentValue: unknown,
+  newValue: unknown,
+  currentSettings: Handsontable.GridSettings
+): boolean {
+  if (key === 'sheetsBar') {
+    return haveEqualOwnKeys(currentValue, newValue, (propName, valueA, valueB) => (
+      propName === 'sheets' ? isSameReference(valueA, valueB) : isShallowEqualByReference(valueA, valueB)
+    ));
+  }
+
+  if (key === 'themeName' && currentValue === undefined) {
+    return typeof newValue === 'string' && currentSettings.theme === newValue;
+  }
+
+  return simpleEqual(currentValue, newValue);
+}
+
+/**
+ * Compare two values by reference, and two plain objects by the references of their own keys.
+ *
+ * @param {unknown} valueA First value to compare.
+ * @param {unknown} valueB Second value to compare.
+ * @returns {boolean} `true` if they're the same, `false` otherwise.
+ */
+function isShallowEqualByReference(valueA: unknown, valueB: unknown): boolean {
+  return haveEqualOwnKeys(valueA, valueB, (propName, keyValueA, keyValueB) => isSameReference(keyValueA, keyValueB));
+}
+
+/**
+ * Compare two values by reference, or, when both are plain objects, compare their own keys with the
+ * given function. Reactive proxies are compared by their raw objects.
+ *
+ * @param {unknown} valueA First value to compare.
+ * @param {unknown} valueB Second value to compare.
+ * @param {Function} isEqualValue Compares the values both objects hold under one key.
+ * @returns {boolean} `true` if they're the same, `false` otherwise.
+ */
+function haveEqualOwnKeys(
+  valueA: unknown,
+  valueB: unknown,
+  isEqualValue: (propName: string, keyValueA: unknown, keyValueB: unknown) => boolean,
+): boolean {
+  const rawA = toRaw(valueA);
+  const rawB = toRaw(valueB);
+
+  if (rawA === rawB) {
+    return true;
+  }
+
+  if (!isPlainObject(rawA) || !isPlainObject(rawB)) {
+    return false;
+  }
+
+  const keysA = Object.keys(rawA);
+  const keysB = Object.keys(rawB);
+
+  return keysA.length === keysB.length &&
+    keysA.every(propName => hasOwnProperty(rawB, propName) && isEqualValue(propName, rawA[propName], rawB[propName]));
+}
+
+/**
+ * Compare two values by reference, with reactive proxies compared by their raw objects.
+ *
+ * @param {unknown} valueA First value to compare.
+ * @param {unknown} valueB Second value to compare.
+ * @returns {boolean} `true` if they're the same, `false` otherwise.
+ */
+function isSameReference(valueA: unknown, valueB: unknown): boolean {
+  return toRaw(valueA) === toRaw(valueB);
+}
+
+/**
+ * Check if a value is a plain object.
+ *
+ * @param {unknown} value The value to check.
+ * @returns {boolean}
+ */
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return Object.prototype.toString.call(value) === '[object Object]';
 }
 
 /**

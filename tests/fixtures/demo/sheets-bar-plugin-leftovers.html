@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    window.htScenario = ({
+      'summary-workbook': 'summary-workbook',
+      'summary-plain': 'summary-plain',
+      'collapsible-workbook': 'collapsible-workbook',
+      'collapsible-plain': 'collapsible-plain',
+      'tall-header-workbook': 'tall-header-workbook',
+      'tall-header-plain': 'tall-header-plain',
+    })[htParams.get('scenario') ?? 'summary-workbook'];
+    if (!window.htScenario) {
+      throw new Error('Unknown ?scenario= value: ' + JSON.stringify(htParams.get('scenario')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    Plugin state that one sheet leaves behind on the next, and its plain-grid analogue.
+    summary-*: a sum of column 0 written into row 3. The workbook holds two sheets and a
+      grid-level summary; the plain grid is the first sheet's data on its own.
+    collapsible-*: CollapsibleColumns on, with a two-level NestedHeaders layout. The workbook
+      declares it on its second sheet only; the plain grid gets it through updateSettings().
+    tall-header-*: three-line column headers on one sheet, single-line ones elsewhere.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    const summary = [{ sourceColumn: 0, destinationRow: 3, destinationColumn: 0, type: 'sum', forceNumeric: true }];
+    const nestedHeaders = [[{ label: 'G', colspan: 3 }], ['a', 'b', 'c']];
+    const spreadsheet = () => Handsontable.helper.createSpreadsheetData(3, 3);
+
+    window.sheetData = {
+      A: [[1], [1], [1], [null]],
+      B: [[5], [5], [5], [null]],
+    };
+    window.nestedHeadersSetting = nestedHeaders;
+
+    const scenarios = {
+      'summary-workbook': () => ({
+        columnSummary: summary,
+        sheetsBar: { sheets: [{ name: 'A', data: window.sheetData.A }, { name: 'B', data: window.sheetData.B }] },
+      }),
+      'summary-plain': () => ({ columnSummary: summary, data: window.sheetData.A }),
+      'collapsible-workbook': () => ({
+        colHeaders: true,
+        collapsibleColumns: true,
+        sheetsBar: {
+          sheets: [
+            { name: 'Plain', data: spreadsheet() },
+            { name: 'Grouped', data: spreadsheet(), settings: { nestedHeaders } },
+          ],
+        },
+      }),
+      'collapsible-plain': () => ({ colHeaders: true, collapsibleColumns: true, data: spreadsheet() }),
+      'tall-header-workbook': () => ({
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: spreadsheet(), settings: { colHeaders: ['x', 'y', 'z'] } },
+            { name: 'Tall', data: spreadsheet(), settings: { colHeaders: ['A<br>B<br>C', 'y', 'z'] } },
+            { name: 'C', data: spreadsheet(), settings: { colHeaders: ['x', 'y', 'z'] } },
+          ],
+        },
+      }),
+      'tall-header-plain': () => ({ colHeaders: ['x', 'y', 'z'], data: spreadsheet() }),
+    };
+
+    try {
+      window.hot = new Handsontable(container, {
+        rowHeaders: true,
+        renderer: testIdRenderer,
+        width: 600,
+        height: 300,
+        ...scenarios[window.htScenario](),
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htBuildError = error.message;
+    }
+
+    const stampBar = () => {
+      document.querySelectorAll('.ht-sheets-bar__tab').forEach((tab, index) => {
+        tab.setAttribute('data-testid', `sheet-tab-${index}`);
+      });
+    };
+
+    stampBar();
+    new MutationObserver(stampBar).observe(document.body, { childList: true, subtree: true });
+  </script>
+</body>
+</html>

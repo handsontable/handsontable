@@ -125,7 +125,9 @@ describe('DropdownMenu (RTL mode)', () => {
         // to the literal cell offset; when the grid overflows the body slightly, that
         // shifts the menu by the scroll amount).
         expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight + window.scrollY, 4);
-        expect(menuOffset.left).toBeAroundValue(cellOffset.left + window.scrollX, 4);
+        // The last cell of an RTL grid sits at the left edge, which a denser theme pushes past the viewport's
+        // left edge, and the menu is pulled back to that edge instead of following the cell out of it.
+        expect(menuOffset.left).toBeAroundValue(Math.max(cellOffset.left + window.scrollX, window.scrollX), 4);
       });
     });
   });

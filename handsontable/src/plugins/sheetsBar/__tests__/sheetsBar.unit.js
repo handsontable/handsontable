@@ -2,6 +2,8 @@ import HyperFormula from 'hyperformula';
 import Handsontable from '../../../base';
 import { registerLanguageDictionary } from '../../../i18n/registry';
 import plPL from '../../../i18n/languages/pl-PL';
+import enUS from '../../../i18n/languages/en-US';
+import * as C from '../../../i18n/constants';
 import { registerPlugin } from '../../registry';
 import { SheetsBar } from '../sheetsBar';
 import { syncIcon } from '../../../themes/engine/icons';
@@ -95,6 +97,7 @@ function buildTabStrip(sheets) {
     isRtl: false,
     syncIcon: stubSyncIcon,
     rootWindow: window,
+    labelIdPrefix: 'test-sheet-tab-label',
   });
 
   strip.render(sheets);
@@ -216,7 +219,8 @@ describe('SheetsBar plugin', () => {
     hot.getPlugin('sheetsBar').addSheet();
 
     expect(after).toHaveBeenCalledTimes(1);
-    expect(after.calls.mostRecent().args[2]).toBe('SheetsBar.api');
+    expect(after.calls.mostRecent().args[2]).toBe(null);
+    expect(after.calls.mostRecent().args[3]).toBe('SheetsBar.api');
   });
 
   it('applies per-sheet settings on switch with fallback to grid settings', () => {
@@ -1366,6 +1370,21 @@ describe('SheetsBar plugin', () => {
     expect(opened.mock.calls[0][1].selectFirstItem).toBe(false);
   });
 
+  it('preselects an item when a keyboard context menu follows a press released off the strip', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const opened = jest.spyOn(SheetsBarMenus.prototype, 'openTabMenu').mockImplementation(() => {});
+    const tab = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab--active');
+
+    tab.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, cancelable: true, button: 0 }));
+    document.body.dispatchEvent(new MouseEvent('pointerup', { bubbles: true, cancelable: true, button: 0 }));
+    tab.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, button: 0 }));
+
+    expect(opened.mock.calls[0][1].selectFirstItem).toBe(true);
+  });
+
   it('writes no ARIA state from the bar when ariaTags is off', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
@@ -1420,7 +1439,7 @@ describe('SheetsBar plugin', () => {
     hot.getFocusScopeManager().deactivateScope('sheetsBar');
     hot.getFocusScopeManager().activateScope('sheetsBar', 'tab_from_below');
 
-    expect(document.activeElement).toBe(bar.querySelectorAll('.ht-sheets-bar__tab')[1]);
+    expect(document.activeElement).toBe(bar.querySelector('.ht-sheets-bar__tab--active'));
     expect(hot.getShortcutManager().getActiveContextName()).toBe('plugin:sheetsBar');
 
     hot.updateSettings({ sheetsBar: false });
@@ -1621,7 +1640,7 @@ describe('SheetsBar plugin', () => {
     expect(input.value).toBe(family.repeat(50));
   });
 
-  it('lists the sheets as checkable menu items with the active one checked', () => {
+  it('lists the sheets as radio menu items with the active one checked', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
       licenseKey: 'non-commercial-and-evaluation',
@@ -1632,7 +1651,8 @@ describe('SheetsBar plugin', () => {
     const rows = document.querySelectorAll('.htSheetsBarMenu td');
 
     expect(rows.length).toBe(2);
-    expect(rows[0].getAttribute('role')).toBe('menuitemcheckbox');
+    expect(rows[0].getAttribute('role')).toBe('menuitemradio');
+    expect(rows[1].getAttribute('role')).toBe('menuitemradio');
     expect(rows[0].getAttribute('aria-checked')).toBe('true');
     expect(rows[0].getAttribute('aria-label')).toBe('A');
     expect(rows[1].getAttribute('aria-checked')).toBe('false');
@@ -3161,14 +3181,35 @@ describe('SheetsBar plugin', () => {
       sheetsBar: true,
       licenseKey: 'non-commercial-and-evaluation',
     });
-    const addButton = hot.rootWrapperElement.querySelector('.ht-sheets-bar__add');
+    const labels = () => {
+      const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
 
-    expect(addButton.getAttribute('aria-label')).toBe('Add sheet');
+      return {
+        add: bar.querySelector('.ht-sheets-bar__add').getAttribute('aria-label'),
+        all: bar.querySelector('.ht-sheets-bar__all').getAttribute('aria-label'),
+        pagePrev: bar.querySelector('.ht-sheets-bar__page-prev').getAttribute('aria-label'),
+        pageNext: bar.querySelector('.ht-sheets-bar__page-next').getAttribute('aria-label'),
+        section: bar.querySelector('.ht-sheets-bar__tabs').getAttribute('aria-label'),
+      };
+    };
+    const labelsIn = dictionary => ({
+      add: dictionary[C.SHEETS_BAR_ADD_SHEET],
+      all: dictionary[C.SHEETS_BAR_ALL_SHEETS],
+      pagePrev: dictionary[C.SHEETS_BAR_PAGE_PREV],
+      pageNext: dictionary[C.SHEETS_BAR_PAGE_NEXT],
+      section: dictionary[C.SHEETS_BAR_SECTION],
+    });
+
+    expect(labels()).toEqual(labelsIn(enUS));
+    expect(labels().add).toBe('Add sheet');
 
     hot.updateSettings({ language: 'pl-PL' });
 
-    expect(hot.rootWrapperElement.querySelector('.ht-sheets-bar__add').getAttribute('aria-label'))
-      .toBe('Dodaj arkusz');
+    expect(labels()).toEqual(labelsIn(plPL));
+    expect(labels().add).toBe('Dodaj arkusz');
+    Object.keys(labels()).forEach((key) => {
+      expect(labelsIn(plPL)[key]).not.toBe(labelsIn(enUS)[key]);
+    });
   });
 
   it('does not carry a runtime freeze onto a sheet that was never visited', () => {
@@ -3918,8 +3959,9 @@ describe('SheetsBar plugin', () => {
     const opened = jest.spyOn(SheetsBarMenus.prototype, 'openTabMenu').mockImplementation(() => {});
 
     // Right-click: the one gesture that opens the menu of a tab you are not currently on.
-    hot.rootWrapperElement.querySelectorAll('.ht-sheets-bar__tab').forEach((tab) => {
-      tab.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
+    [0, 1, 2].forEach((index) => {
+      hot.rootWrapperElement.querySelectorAll('.ht-sheets-bar__tab')[index]
+        .dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
     });
 
     expect(opened.mock.calls.map(call => [call[1].canMoveLeft, call[1].canMoveRight])).toEqual([
@@ -3939,10 +3981,10 @@ describe('SheetsBar plugin', () => {
     });
 
     const opened = jest.spyOn(SheetsBarMenus.prototype, 'openTabMenu').mockImplementation(() => {});
-    const tabs = hot.rootWrapperElement.querySelectorAll('.ht-sheets-bar__tab');
 
-    tabs.forEach((tab) => {
-      tab.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
+    [0, 1, 2].forEach((index) => {
+      hot.rootWrapperElement.querySelectorAll('.ht-sheets-bar__tab')[index]
+        .dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
     });
 
     // Under RTL the sheet at index 0 is the rightmost tab, so "move right" is the one with
@@ -4498,7 +4540,125 @@ describe('SheetsBar plugin', () => {
     host.remove();
   });
 
-  it('aborts an in-progress drag before render() rebuilds the strip, on a later pointermove', () => {
+  it('keeps the Tab stop on a tab when the focus moves to another tab of a strip from another realm', () => {
+    const frame = document.createElement('iframe');
+
+    document.body.appendChild(frame);
+
+    const frameDocument = frame.contentDocument;
+    const frameWindow = frame.contentWindow;
+    const host = frameDocument.createElement('div');
+
+    frameDocument.body.appendChild(host);
+
+    const strip = new TabStrip({
+      host,
+      dragRoot: host,
+      eventManager: new EventManager({}),
+      translate: key => key,
+      ariaTags: true,
+      isRtl: false,
+      syncIcon: stubSyncIcon,
+      rootWindow: frameWindow,
+      labelIdPrefix: 'frame-sheet-tab-label',
+    });
+
+    strip.render([
+      { id: 1, name: 'A', isActive: true },
+      { id: 2, name: 'B', isActive: false },
+      { id: 3, name: 'C', isActive: false },
+    ]);
+
+    const second = host.querySelector('[data-sheet-id="2"]');
+    const third = host.querySelector('[data-sheet-id="3"]');
+
+    second.dispatchEvent(new frameWindow.FocusEvent('focusin', { bubbles: true }));
+    second.dispatchEvent(new frameWindow.FocusEvent('focusout', { bubbles: true, relatedTarget: third }));
+
+    expect(second.tabIndex).toBe(0);
+    expect(host.querySelector('[data-sheet-id="1"]').tabIndex).toBe(-1);
+
+    strip.destroy();
+    frame.remove();
+  });
+
+  it('opens the menu with no item preselected for a touch long-press whose press a repaint ended', () => {
+    const sheets = [
+      { id: 1, name: 'A', isActive: true },
+      { id: 2, name: 'B', isActive: false },
+      { id: 3, name: 'C', isActive: false },
+    ];
+    const { host, strip } = buildTabStrip(sheets);
+    const tab = host.querySelector('[data-sheet-id="1"]');
+    const label = tab.querySelector('.ht-sheets-bar__tab-label');
+    const menuClicks = [];
+    const press = new MouseEvent('pointerdown', { bubbles: true, button: 0, clientX: 50 });
+
+    strip.addLocalHook('tabMenuClick', (id, element, fromKeyboard) => menuClicks.push(fromKeyboard));
+    Object.defineProperty(press, 'pointerType', { value: 'touch' });
+    label.dispatchEvent(press);
+    strip.render([sheets[1], sheets[0], sheets[2]]);
+
+    const longPress = new MouseEvent('contextmenu', { bubbles: true, cancelable: true, button: 0, buttons: 0 });
+
+    Object.defineProperty(longPress, 'sourceCapabilities', { value: { firesTouchEvents: true } });
+    label.dispatchEvent(longPress);
+
+    expect(menuClicks).toEqual([false]);
+
+    strip.destroy();
+    host.remove();
+  });
+
+  it('moves no tab when a repaint during a rename keeps the order', () => {
+    const sheets = [
+      { id: 1, name: 'A', isActive: false },
+      { id: 2, name: 'B', isActive: false },
+      { id: 3, name: 'C', isActive: true },
+    ];
+    const { host, strip } = buildTabStrip(sheets);
+
+    strip.startRename(3);
+
+    const insertBefore = jest.spyOn(host, 'insertBefore');
+
+    strip.render(sheets);
+
+    expect(insertBefore).not.toHaveBeenCalled();
+
+    strip.destroy();
+    host.remove();
+  });
+
+  it('keeps a press across a repaint that leaves its tab in place, so a later move drags it', () => {
+    const sheets = [
+      { id: 1, name: 'A', isActive: true },
+      { id: 2, name: 'B', isActive: false },
+      { id: 3, name: 'C', isActive: false },
+    ];
+    const { host, strip } = buildTabStrip(sheets);
+    const originalTab = host.querySelector('[data-sheet-id="1"]');
+    const label = originalTab.querySelector('.ht-sheets-bar__tab-label');
+
+    originalTab.setPointerCapture = jest.fn();
+    originalTab.releasePointerCapture = jest.fn();
+
+    label.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0, clientX: 50 }));
+    strip.render(sheets);
+
+    expect(() => {
+      host.ownerDocument.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 90 }));
+    }).not.toThrow();
+
+    expect(host.querySelector('[data-sheet-id="1"]')).toBe(originalTab);
+    expect(originalTab.classList.contains('ht-sheets-bar__tab--dragging')).toBe(true);
+
+    host.ownerDocument.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    strip.destroy();
+    host.remove();
+  });
+
+  it('aborts a press when a repaint moves its tab, so a later move drags nothing', () => {
     const sheets = [
       { id: 1, name: 'A', isActive: true },
       { id: 2, name: 'B', isActive: false },
@@ -4511,23 +4671,21 @@ describe('SheetsBar plugin', () => {
     originalTab.setPointerCapture = jest.fn();
 
     label.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0, clientX: 50 }));
-
-    // A repaint (a rename commit, or a model change from elsewhere) lands mid-gesture, before
-    // the pointer has moved past the drag threshold.
-    strip.render(sheets);
+    strip.render([sheets[1], sheets[0], sheets[2]]);
 
     expect(() => {
       host.ownerDocument.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 90 }));
     }).not.toThrow();
 
-    expect(host.children.length).toBe(3);
-    expect(Array.from(host.children)).not.toContain(originalTab);
+    expect(Array.from(host.children).map(tab => tab.dataset.sheetId)).toEqual(['2', '1', '3']);
+    expect(originalTab.classList.contains('ht-sheets-bar__tab--dragging')).toBe(false);
+    expect(originalTab.style.transform).toBe('');
 
     strip.destroy();
     host.remove();
   });
 
-  it('aborts an in-progress drag before render() rebuilds the strip, on a later Escape', () => {
+  it('aborts a drag in progress when render() repaints the strip, on a later Escape', () => {
     const sheets = [
       { id: 1, name: 'A', isActive: true },
       { id: 2, name: 'B', isActive: false },
@@ -4545,15 +4703,15 @@ describe('SheetsBar plugin', () => {
 
     expect(originalTab.classList.contains('ht-sheets-bar__tab--dragging')).toBe(true);
 
-    // A repaint lands mid-gesture, after the pointer has already crossed the threshold.
     strip.render(sheets);
 
     expect(() => {
       host.ownerDocument.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     }).not.toThrow();
 
-    expect(host.children.length).toBe(3);
-    expect(Array.from(host.children)).not.toContain(originalTab);
+    expect(Array.from(host.children).map(tab => tab.dataset.sheetId)).toEqual(['1', '2', '3']);
+    expect(originalTab.classList.contains('ht-sheets-bar__tab--dragging')).toBe(false);
+    expect(originalTab.style.transform).toBe('');
 
     strip.destroy();
     host.remove();
@@ -4839,13 +4997,18 @@ describe('SheetsBar plugin', () => {
     });
 
     const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
-    const iconButtons = ['add', 'all', 'page-prev', 'page-next'];
+    const iconButtons = {
+      add: enUS[C.SHEETS_BAR_ADD_SHEET],
+      all: enUS[C.SHEETS_BAR_ALL_SHEETS],
+      'page-prev': enUS[C.SHEETS_BAR_PAGE_PREV],
+      'page-next': enUS[C.SHEETS_BAR_PAGE_NEXT],
+    };
 
-    iconButtons.forEach((name) => {
+    Object.entries(iconButtons).forEach(([name, label]) => {
       const button = bar.querySelector(`.ht-sheets-bar__${name}`);
 
       expect(button.textContent).toBe('');
-      expect(button.getAttribute('aria-label')).not.toBe('');
+      expect(button.getAttribute('aria-label')).toBe(label);
     });
   });
 
@@ -4877,6 +5040,72 @@ describe('SheetsBar plugin', () => {
     expect(allButton.getAttribute('aria-expanded')).toBe('true');
 
     hot.getPlugin('sheetsBar').disablePlugin();
+  });
+
+  it('sets `aria-expanded` back to `false` on the anchor when its menu closes', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }] },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const openSpy = jest.spyOn(Menu.prototype, 'open');
+    const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
+    const allButton = bar.querySelector('.ht-sheets-bar__all');
+    const tab = bar.querySelector('.ht-sheets-bar__tab[aria-haspopup]');
+
+    allButton.click();
+
+    expect(allButton.getAttribute('aria-expanded')).toBe('true');
+
+    openSpy.mock.instances.at(-1).close();
+
+    expect(allButton.getAttribute('aria-expanded')).toBe('false');
+
+    tab.querySelector('.ht-sheets-bar__tab-chevron').click();
+
+    expect(tab.getAttribute('aria-expanded')).toBe('true');
+
+    openSpy.mock.instances.at(-1).close();
+
+    expect(tab.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('swaps the theme class of a bar in a uiContainer on a runtime theme change and keeps an open rename', () => {
+    const uiHost = document.createElement('div');
+
+    document.body.appendChild(uiHost);
+    hot = new Handsontable(container, {
+      themeName: 'ht-theme-main',
+      sheetsBar: {
+        sheets: [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }],
+        uiContainer: uiHost,
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const bar = uiHost.querySelector('.ht-sheets-bar');
+
+    expect(bar.classList.contains('ht-theme-main')).toBe(true);
+
+    bar.querySelector('.ht-sheets-bar__tab-label')
+      .dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+
+    const input = bar.querySelector('.ht-sheets-bar__tab-rename');
+
+    input.focus();
+    input.value = 'Alpha renamed';
+    hot.useTheme('ht-theme-horizon');
+
+    expect(bar.classList.contains('ht-theme-horizon')).toBe(true);
+    expect(bar.classList.contains('ht-theme-main')).toBe(false);
+    expect(bar.querySelector('.ht-sheets-bar__tab-rename')).toBe(input);
+    expect(input.value).toBe('Alpha renamed');
+    expect(hot.rootDocument.activeElement).toBe(input);
+
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+
+    expect(hot.getPlugin('sheetsBar').getSheets()[0].name).toBe('Alpha renamed');
+    uiHost.remove();
   });
 
   it('labels the rename input and restores focus to the tab on Enter and Escape', () => {
@@ -5286,6 +5515,75 @@ describe('SheetsBar plugin', () => {
       expect(hot.getSettings().dataProvider).toBeNull();
       plugin.setActiveSheet('Orders');
       expect(hot.getSettings().dataProvider).toBe(own);
+    });
+
+    it('replaces the visible server sheet\'s dataProvider through updateSheetSettings()', () => {
+      const declared = makeProvider();
+      const next = makeProvider();
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'Orders', data: [], settings: { dataProvider: declared } },
+            { name: 'Notes', data: [[1]] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      expect(plugin.updateSheetSettings('Orders', { dataProvider: next })).toBe(true);
+      expect(hot.getSettings().dataProvider).toBe(next);
+      plugin.setActiveSheet('Notes');
+      expect(hot.getSettings().dataProvider).toBeNull();
+      plugin.setActiveSheet('Orders');
+      expect(hot.getSettings().dataProvider).toBe(next);
+    });
+
+    it('turns the visible server sheet local with updateSheetSettings({ dataProvider: null })', () => {
+      const declared = makeProvider();
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'Orders', data: [], settings: { dataProvider: declared } },
+            { name: 'Notes', data: [[1]] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      expect(plugin.updateSheetSettings('Orders', { dataProvider: null })).toBe(true);
+      expect(hot.getSettings().dataProvider).toBeNull();
+      plugin.setActiveSheet('Notes');
+      plugin.setActiveSheet('Orders');
+      expect(hot.getSettings().dataProvider).toBeNull();
+    });
+
+    it('gives a hidden local sheet a dataProvider through updateSheetSettings()', () => {
+      const own = makeProvider();
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'Notes', data: [[1]] },
+            { name: 'Orders', data: [] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      expect(plugin.updateSheetSettings('Orders', { dataProvider: own })).toBe(true);
+      expect(hot.getSettings().dataProvider ?? null).toBeNull();
+      plugin.setActiveSheet('Orders');
+      expect(hot.getSettings().dataProvider).toBe(own);
+      plugin.setActiveSheet('Notes');
+      expect(hot.getSettings().dataProvider).toBeNull();
     });
 
     it('does not adopt the first-visited sheet\'s own dataProvider as the grid-level baseline', () => {

@@ -100,7 +100,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: '또는',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: '전체선택',
-  [C.FILTERS_BUTTONS_CLEAR]: '지우기',
+  [C.FILTERS_BUTTONS_CLEAR]: '전체선택 해제',
   [C.FILTERS_BUTTONS_OK]: '확인',
   [C.FILTERS_BUTTONS_CANCEL]: '취소',
 
@@ -132,6 +132,8 @@ const dictionary = {
   [C.SHEETS_BAR_PAGE_NEXT]: '시트 앞으로 스크롤',
   [C.SHEETS_BAR_SHEET_CHANGED]: '시트 [name] 활성화됨',
   [C.SHEETS_BAR_RENAME_REJECTED]: '시트 이름이 변경되지 않았습니다: [name]은(는) 이미 사용 중입니다',
+  [C.SHEETS_BAR_SHEET_DUPLICATED]: '시트 [name]을(를) [copy](으)로 복제함',
+  [C.SHEETS_BAR_SHEET_MOVED]: '시트 [name]을(를) [count]개 중 [position]번째 위치로 이동함',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: '시트',
 
   [C.LOADING_TITLE]: '로딩 중...',

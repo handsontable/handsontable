@@ -12,6 +12,14 @@ import { HOOK_TIMING_FILE } from './hook-timing.mjs';
 import { readSidecar } from './sidecar.mjs';
 import { saveSnapshots, loadBaseline } from './snapshot-store.mjs';
 import { assessReport, buildReport, collectRegressions } from './report-builder.mjs';
+import {
+  GATE_FIRST_PASS_FILE,
+  GATE_VERDICT_FILE,
+  confirmVerdict,
+  decideGate,
+  gateMode,
+  isGatedRun,
+} from './gate.mjs';
 import { buildHtmlReport } from './html-report-builder.mjs';
 import { HARNESS_VERSION } from './trace-runner.mjs';
 import {
@@ -250,7 +258,7 @@ function annotateRegressions(regressions, golden) {
     if (r.timingRegressed) {
       parts.push(`total ${fmtPct(r.totalPct)}`);
 
-      // Same context the markdown callout gives: a slow runner fires on every row at once, and the
+      // Same context the comment's footer gives: a slow runner fires on every row at once, and the
       // annotation must not read identically to a row that moved on its own.
       if (r.relativePct != null) {
         parts.push(`${fmtPct(r.relativePct)} relative to this run's shift of ${fmtPct(r.shift)}`);
@@ -330,6 +338,7 @@ export default async function teardown() {
 
   // Load golden for comparison
   let golden = null;
+  let newest = null;
   let baselineUnavailable = null;
 
   if (mode === 'compare' || mode === 'golden') {
@@ -352,6 +361,7 @@ export default async function teardown() {
     });
 
     golden = loaded.snapshot;
+    newest = loaded.newest ?? null;
     baselineUnavailable = loaded.unavailableReason;
 
     if (golden) {
@@ -418,19 +428,57 @@ export default async function teardown() {
     // merge commit that exists on no branch. See the env block in performance-tests.yml.
     commit: process.env.PERF_COMMIT_SHA || process.env.GITHUB_SHA || null,
     runId: process.env.GITHUB_RUN_ID || null,
+    // Where a reviewer approves a regression, linked from the comment's headline.
+    runUrl: process.env.GITHUB_SERVER_URL && process.env.GITHUB_REPOSITORY && process.env.GITHUB_RUN_ID
+      ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`
+      : null,
+    // The gate acts on the composite's pull request runs only; any other report states the verdict
+    // alone, without the rules or what happens next.
+    gated: isGatedRun(process.env),
     environment,
     baselineUnavailable,
   };
 
   // Every verdict decided once; the comment renders from it and the annotations list from it.
   const assessment = assessReport(scenarioResults, golden, meta);
-  const report = buildReport(scenarioResults, golden, meta, assessment);
-  const htmlReport = buildHtmlReport(scenarioResults, golden, meta);
+
+  // The regression gate, decided before the reports because the comment leads with it. The
+  // workflow's last step reads the verdict file and acts on it; nothing here exits, so the reports
+  // and the comment are always published first. The newest develop golden is assessed against the
+  // same median so the gate can tell a level develop already shows from one this run introduced.
+  const newestAssessment = newest && golden && !golden.isSelfCompare
+    ? assessReport(newest.scenarios || {}, golden, {})
+    : null;
+  let verdict = decideGate({
+    assessment,
+    newestAssessment,
+    baseline: golden,
+    newest,
+    baseRef: process.env.PERF_BASE_REF || null,
+    baseSha: process.env.PERF_BASE_SHA || null,
+    unavailableReason: baselineUnavailable,
+    mode: gateMode(),
+  });
+
+  // The confirm re-run's teardown (scripts/run.mjs re-runs the failing scenarios, and Playwright runs
+  // the global teardown again after them): judge the re-run data, then record which scenarios it
+  // confirmed and which it cleared.
+  if (process.env.PERF_CONFIRM_PASS) {
+    const firstPass = JSON.parse(await readFile(join(OUTPUT_DIR, GATE_FIRST_PASS_FILE), 'utf8'));
+
+    verdict = confirmVerdict(firstPass, verdict);
+  }
+
+  const report = buildReport(scenarioResults, golden, meta, assessment, verdict);
+  const htmlReport = buildHtmlReport(
+    scenarioResults, golden, verdict.rerun ? { ...meta, runShift: verdict.shift } : meta
+  );
 
   // Write to output/
   await mkdir(OUTPUT_DIR, { recursive: true });
   await writeFile(join(OUTPUT_DIR, 'result.md'), report, 'utf8');
   await writeFile(join(OUTPUT_DIR, 'report.html'), htmlReport, 'utf8');
+  await writeFile(join(OUTPUT_DIR, GATE_VERDICT_FILE), `${JSON.stringify(verdict, null, 2)}\n`, 'utf8');
 
   // On develop, a regression against the trailing median is the develop push's own news. Annotate
   // the run so it is seen where it happened; the snapshot is still deployed as recorded.
@@ -438,6 +486,6 @@ export default async function teardown() {
     annotateRegressions(collectRegressions(scenarioResults, golden, meta, assessment), golden);
   }
 
-  console.log('\nReports written to output/result.md and output/report.html\n');
+  console.log(`\nReports written to output/result.md, output/report.html and output/${GATE_VERDICT_FILE}\n`);
   console.log(report);
 }
