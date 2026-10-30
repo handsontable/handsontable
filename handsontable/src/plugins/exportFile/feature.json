@@ -8,8 +8,7 @@
       "description": "Exports the grid to a CSV file. Exporting to an .xlsx file also needs xlsx:export.",
       "status": "stable",
       "licensing": "token",
-      "gate": "call",
-      "enabledByDefault": true
+      "gate": "call"
     }
   ]
 }

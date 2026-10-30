@@ -8,8 +8,7 @@
       "description": "Imports a file into the grid. Importing an .xlsx file also needs xlsx:import.",
       "status": "stable",
       "licensing": "token",
-      "gate": "call",
-      "enabledByDefault": true
+      "gate": "call"
     }
   ]
 }

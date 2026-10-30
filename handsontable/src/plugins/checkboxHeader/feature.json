@@ -9,7 +9,6 @@
       "status": "stable",
       "licensing": "token",
       "gate": "call",
-      "enabledByDefault": true,
       "requires": {
         "allOf": [
           "cell:checkbox"

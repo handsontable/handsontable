@@ -133,7 +133,7 @@ const CORE_CELL_TYPES = ['text'];
 
 const ENTRY_FIELDS = [
   'id', 'kind', 'module', 'plugins', 'name', 'description', 'since', 'status', 'licensing', 'gate',
-  'enabledByDefault', 'requires', 'enforceAtInit', 'worksWith', 'packages',
+  'requires', 'enforceAtInit', 'worksWith', 'packages',
 ];
 const REGISTRY_KINDS = REGISTRIES.map(registry => registry.kind);
 
@@ -454,11 +454,9 @@ function checkKindFields(entry, pluginModules) {
     problems.push('"plugins" is only for a sub-feature');
   }
 
-  ['enabledByDefault', 'enforceAtInit'].forEach((key) => {
-    if (entry[key] !== undefined && (entry.kind !== 'plugin' || typeof entry[key] !== 'boolean')) {
-      problems.push(`"${key}" is a boolean, and only for a plugin`);
-    }
-  });
+  if (entry.enforceAtInit !== undefined && (entry.kind !== 'plugin' || typeof entry.enforceAtInit !== 'boolean')) {
+    problems.push('"enforceAtInit" is a boolean, and only for a plugin');
+  }
 
   return problems;
 }
@@ -726,7 +724,6 @@ function toPublishedCapability(entry, byId) {
     status: entry.status,
     licensing: entry.licensing,
     gate: entry.gate ?? null,
-    enabledByDefault: entry.enabledByDefault ?? false,
     requires: {
       allOf: entry.requires?.allOf ?? [],
       anyOf: entry.requires?.anyOf ?? [],

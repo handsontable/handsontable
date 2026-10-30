@@ -122,6 +122,9 @@ describe('feature manifest', () => {
       ['a reserved "<namespace>:all" id', 'xlsx:protection', entry => ({ ...entry, id: 'xlsx:all' }),
         'is reserved'],
       ['an unknown field', 'feat:search', entry => ({ ...entry, price: 10 }), 'unknown field "price"'],
+      // Whether a plugin is on by default is the option's default in metaSchema.ts and the plugin's isEnabled().
+      ['a copy of a default the source already declares', 'feat:copy_paste',
+        entry => ({ ...entry, enabledByDefault: true }), 'unknown field "enabledByDefault"'],
       ['a reference to an id nobody declares', 'feat:search',
         entry => ({ ...entry, worksWith: ['feat:does_not_exist'] }), 'which no manifest file declares'],
       ['a plugin that is not sold', 'feat:search', entry => ({ ...entry, licensing: 'core', gate: undefined }),
@@ -226,7 +229,7 @@ describe('feature manifest', () => {
       manifest.capabilities.forEach((capability) => {
         expect(Object.keys(capability)).toEqual([
           'id', 'kind', 'module', 'plugins', 'name', 'description', 'since', 'status', 'licensing', 'gate',
-          'enabledByDefault', 'requires', 'enforceAtInit', 'worksWith', 'packages', 'implies',
+          'requires', 'enforceAtInit', 'worksWith', 'packages', 'implies',
         ]);
       });
     });

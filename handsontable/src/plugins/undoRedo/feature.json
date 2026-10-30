@@ -8,8 +8,7 @@
       "description": "Undoes and redoes changes.",
       "status": "stable",
       "licensing": "token",
-      "gate": "enable",
-      "enabledByDefault": true
+      "gate": "enable"
     }
   ]
 }

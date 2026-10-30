@@ -96,7 +96,6 @@ The strings must stay byte-identical: the custom-build service reads `PLUGIN_DEP
 | `status` | yes | `stable`, or `planned` (listed but not issued yet, not recorded as released, may still be renamed). |
 | `licensing` | yes | `token` (a key must list it), `core` (always granted), `none` (never in a key). Fixed by kind, see below. |
 | `gate` | when `token` | How Handsontable will check it: `enable` (plugin turns on), `call` (an always-on plugin, checked in its methods), `degrade` (sub-feature left out of the result), `report` (listed, keeps working). |
-| `enabledByDefault` | plugins | `true` when a grid with no options turns the plugin on. The runtime test checks it. A key that leaves one out turns it off once keys are checked. |
 | `requires` | no | `{ "allOf": [...], "anyOf": [...] }`. `anyOf` means at least one, which the key builder cannot choose on its own. |
 | `enforceAtInit` | plugins | `true` turns `requires.allOf` into `PLUGIN_DEPS` (see above). |
 | `worksWith` | no | Soft links. |
@@ -130,6 +129,11 @@ A key carries tokens for years. So:
 
 ## Traps
 
+- **The manifest does not say whether a plugin is on by default, on purpose.** That fact already lives in
+  `dataMap/metaManager/metaSchema.ts` (the option's default) and in the plugin's `isEnabled()` (AutoColumnSize and
+  ImportFile turn on unless the option is `false`; ExportFile, ViewState, and CheckboxHeader are always on and use
+  `gate: "call"`). Do not copy it into an entry. A plugin that is on by default still needs its token: a key that
+  leaves it out will turn it off once Handsontable checks keys.
 - **Every registry folder needs exactly one entry**, and every entry needs a folder. A folder that registers
   nothing goes in `REGISTRIES[].skip` in `scripts/utils/feature-manifest.js`, with the reason (`base`,
   `editors/utils`, `maxLengthValidator`, `regExpValidator`). The checkbox validator is registered but the checkbox
