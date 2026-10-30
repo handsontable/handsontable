@@ -358,24 +358,26 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
         const forward = rtl ? 'ArrowLeft' : 'ArrowRight';
         const backward = rtl ? 'ArrowRight' : 'ArrowLeft';
 
-        await fixture.goto({ sheets: 30, rtl });
+        const tabNames = Array.from({ length: 30 }, (_, index) => `${'Wide'.repeat((index % 4) + 1)} ${index + 1}`);
+
+        await fixture.goto({ sheets: 30, rtl, tabNames });
         await fixture.activeTab.focus();
 
         for (let index = 1; index < 30; index += 1) {
           await page.keyboard.press(forward);
           await expect(fixture.tab(index)).toBeFocused();
-          await expect.poll(() => fixture.tabInStrip(index), `tab ${index} going forward`).toBe(true);
+          await expect.poll(() => fixture.tabWhollyInStrip(index), `tab ${index} going forward`).toBe(true);
         }
 
         for (let index = 28; index >= 0; index -= 1) {
           await page.keyboard.press(backward);
           await expect(fixture.tab(index)).toBeFocused();
-          await expect.poll(() => fixture.tabInStrip(index), `tab ${index} going back`).toBe(true);
+          await expect.poll(() => fixture.tabWhollyInStrip(index), `tab ${index} going back`).toBe(true);
         }
 
         await page.keyboard.press('End');
         await expect(fixture.tab(29)).toBeFocused();
-        await expect.poll(() => fixture.tabInStrip(29)).toBe(true);
+        await expect.poll(() => fixture.tabWhollyInStrip(29)).toBe(true);
       });
     });
 

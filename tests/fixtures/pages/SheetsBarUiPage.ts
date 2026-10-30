@@ -18,6 +18,7 @@ export interface SheetsBarUiConfig {
   pagination?: boolean;
   columnCounts?: number[];
   fixedHeight?: boolean;
+  tabNames?: string[];
 }
 
 /**
@@ -125,10 +126,28 @@ export class SheetsBarUiPage {
   }
 
   /**
-   * Whether a tab lies wholly inside the strip's visible part.
+   * Whether a tab's border box, which carries its focus ring, lies wholly inside the strip's visible part,
+   * with no slack: a ring cut by a fraction of a pixel fails.
    *
    * @param {number} index The tab's position.
    * @returns {Promise<boolean>} `true` when the tab is fully in view.
+   */
+  tabWhollyInStrip(index: number): Promise<boolean> {
+    return this.page.evaluate((position) => {
+      const strip = document.querySelector('.ht-sheets-bar__tabs') as HTMLElement;
+      const tab = strip.querySelectorAll('.ht-sheets-bar__tab')[position] as HTMLElement;
+      const stripBox = strip.getBoundingClientRect();
+      const tabBox = tab.getBoundingClientRect();
+
+      return tabBox.left >= stripBox.left && tabBox.right <= stripBox.right;
+    }, index);
+  }
+
+  /**
+   * Whether a tab lies wholly inside the strip's visible part, with a pixel of slack at each end.
+   *
+   * @param {number} index The tab's position.
+   * @returns {Promise<boolean>} `true` when the tab is in view.
    */
   tabInStrip(index: number): Promise<boolean> {
     return this.page.evaluate((position) => {

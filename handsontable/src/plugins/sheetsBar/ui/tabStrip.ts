@@ -1494,21 +1494,40 @@ export class TabStrip {
   }
 
   /**
-   * Scrolls the strip just far enough to bring a tab fully into view, by its layout box, which
-   * leaves out the transform of an entrance, a slide, or a drag in flight, in the coordinates
-   * `scrollLeft` uses under both directions.
+   * Scrolls the strip just far enough to bring a tab fully into view, with the theme's gap
+   * (`--ht-gap-size`) between the tab and the edge it comes in at. The tab is measured by its
+   * fractional box less its in-flight translation (an entrance, a slide, or a drag), relative to the
+   * strip's visible part. `offsetLeft` and `offsetWidth` are rounded to whole pixels, so a tab of
+   * fractional width revealed flush with the edge could end up to a pixel past it, which is exactly
+   * where its focus ring is drawn (an inset outline), and the controls or the paging arrows cut the
+   * ring. The strip is scrolled by the difference, which reads the same under both directions.
    */
   #scrollIntoStrip(tab: HTMLElement): void {
-    const start = tab.offsetLeft;
-    const end = start + tab.offsetWidth;
-    const viewStart = this.#host.scrollLeft;
-    const viewEnd = viewStart + this.#host.clientWidth;
+    const host = this.#host;
+    const visibleWidth = host.clientWidth;
+    const tabBox = tab.getBoundingClientRect();
+    const start = tabBox.left - translationOf(tab) - host.getBoundingClientRect().left - host.clientLeft;
+    const end = start + tabBox.width;
+    const margin = Math.min(this.#revealMargin(), Math.max(0, (visibleWidth - tabBox.width) / 2));
 
-    if (start < viewStart) {
-      this.#host.scrollLeft = start;
-    } else if (end > viewEnd) {
-      this.#host.scrollLeft = end - this.#host.clientWidth;
+    if (start < margin) {
+      host.scrollLeft += start - margin;
+    } else if (end > visibleWidth - margin) {
+      host.scrollLeft += end - (visibleWidth - margin);
     }
+  }
+
+  /**
+   * The room a revealed tab keeps from the strip's edge: the theme's `--ht-gap-size`, or `0` when the
+   * theme does not set it.
+   *
+   * @returns {number}
+   */
+  #revealMargin(): number {
+    const view = this.#host.ownerDocument.defaultView;
+    const value = view ? Number.parseFloat(view.getComputedStyle(this.#host).getPropertyValue('--ht-gap-size')) : NaN;
+
+    return Number.isFinite(value) && value > 0 ? value : 0;
   }
 
   /**
