@@ -1406,6 +1406,36 @@ describe('ImportFile and the workbook\'s defined names in a real HyperFormula en
     }
   });
 
+  it('should import a formula over a name of several areas as its cached value, on both engines', async() => {
+    // HyperFormula has no union reference, so the name cannot be registered; the formula must keep
+    // the value the file holds. The ExcelJS reader used to leave the name out, and the formula then
+    // imported live as `#NAME?`.
+    const bytes = await salesBytes([{ name: 'Sales', formula: 'Data!$G$2,Data!$G$4', sheetName: null }]);
+
+    for (const [kind, engine] of [['native', undefined], ['exceljs', ExcelJS]]) {
+      const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+
+      hf.addSheet('Sheet1');
+
+      const { plugin, hot } = pluginWithFakeHot(true);
+
+      hot.getPlugin = name => ({
+        formulas: { isEnabled: () => true, sheetName: 'Sheet1', engine: hf },
+      })[name];
+
+      // eslint-disable-next-line no-await-in-loop -- one engine at a time.
+      const result = await plugin.importFromArrayBuffer('xlsx', bytes, {
+        apply: false, engine, colHeaders: 'firstRow',
+      });
+
+      expect([kind, result.namedExpressions ?? []]).toEqual([kind, []]);
+      expect([kind, result.data[0][2]]).toEqual([kind, 60]);
+      expect([kind, result.dropped]).toEqual([kind, ['definedNames:unsupported', 'formula:definedName']]);
+
+      hf.destroy();
+    }
+  });
+
   /**
    * Imports `bytes` with `apply: false` into a fake grid whose Formulas plugin holds `hf`.
    *

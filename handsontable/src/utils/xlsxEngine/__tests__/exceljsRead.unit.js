@@ -445,9 +445,9 @@ describe('excelJsAdapter.read', () => {
 });
 
 describe('excelJsAdapter.read on defined names', () => {
-  it('should leave out a name over several areas and report it, keeping the single-range names', async() => {
+  it('should keep a name over several areas with its areas joined, and report nothing', async() => {
     // ExcelJS lists each area of `Multi` as its own range. Keeping the first silently turned the name
-    // into a different one.
+    // into a different one, and leaving it out made a formula over it import live as `#NAME?`.
     const workbook = createWorkbookSnapshot();
     const sheet = createSheetSnapshot('Sheet1');
 
@@ -464,7 +464,10 @@ describe('excelJsAdapter.read on defined names', () => {
       bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), ExcelJS, dropped,
     );
 
-    expect(snapshot.definedNames).toEqual([{ name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null }]);
-    expect(dropped.list()).toEqual(['definedNames:unsupported']);
+    expect(snapshot.definedNames).toEqual([
+      { name: 'Multi', formula: 'Sheet1!$A$1,Sheet1!$C$1', sheetName: null },
+      { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null },
+    ]);
+    expect(dropped.list()).toEqual([]);
   });
 });

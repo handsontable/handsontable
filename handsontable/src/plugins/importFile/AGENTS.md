@@ -428,8 +428,9 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `_xlnm.` names left out). The ExcelJS reader carries RANGE names only: ExcelJS 4.4's
   `definedNames.model` drops a name whose value is a constant (`<definedName name="TaxRate">0.07`)
   and a relative one (`Data!G2`), so a formula over such a name stays live and shows `#NAME?` on that
-  engine, with nothing reported. A multi-area name is left out by the ExcelJS reader with
-  `definedNames:unsupported`; its formulas stay live (`#NAME?`) too. Each formula is charged ONCE against `MAX_TRANSLATED_FORMULA_CHARS`, and
+  engine, with nothing reported. A multi-area name reaches the mapper from both readers as its areas
+  joined by commas; HyperFormula refuses the union, so its formulas import cached values with
+  `formula:definedName` and `definedNames:unsupported`. Each formula is charged ONCE against `MAX_TRANSLATED_FORMULA_CHARS`, and
   that one charge covers the prefix strip, the reference walk (which also judges each sheet
   qualifier, through the walk's own `qualifier` group), the defined-name scan and the bare `TRUE`/`FALSE` walk. Charging every
   check separately refused files that imported at 1a59dedd71.

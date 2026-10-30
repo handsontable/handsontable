@@ -753,36 +753,35 @@ function readNumFmt(source: ExcelJsCell): string | null {
  * the names whose value is a range, which is what a formula over a named range uses.
  *
  * A name ExcelJS lists with several ranges - a name over several areas (`Sheet1!$A$1,Sheet1!$C$1`)
- * - is left out and recorded as `definedNames:unsupported`: its first range alone is a different
- * name. ExcelJS 4.4 keeps one definition of a name defined in several scopes (the last), and the
- * reader cannot tell it happened.
+ * - keeps every range, joined with commas, the way the file spells the union. Its first range alone
+ * would be a different name, and leaving the name out made `importFile` treat a formula over it as
+ * an ordinary one: it imported live and showed `#NAME?` instead of its cached value. Kept, the name
+ * is one the Formulas engine refuses (`validateFormula` rejects the union), so the formula imports
+ * its cached value and the import reports `formula:definedName` and `definedNames:unsupported`, as
+ * the native reader's text does. ExcelJS regroups adjacent areas, so the joined text may differ from
+ * the file's while covering the same cells. ExcelJS 4.4 keeps one definition of a name defined in
+ * several scopes (the last), and the reader cannot tell it happened.
  *
  * @param {object} workbook The loaded ExcelJS workbook.
- * @param {DroppedFeatures} dropped The read's dropped-feature collector.
  * @returns {DefinedNameSnapshot[]}
  */
-function readDefinedNames(workbook: ExcelJsWorkbook, dropped: DroppedFeatures): DefinedNameSnapshot[] {
+function readDefinedNames(workbook: ExcelJsWorkbook): DefinedNameSnapshot[] {
   const model = workbook.definedNames?.model;
   const names = new Map<string, DefinedNameSnapshot>();
-  let unsupported = false;
 
   (Array.isArray(model) ? model : []).forEach(({ name, ranges }) => {
     if (typeof name !== 'string' || name === '' || name.startsWith('_xlnm.') || names.has(name)) {
       return;
     }
 
-    if (!Array.isArray(ranges) || ranges.length !== 1 || typeof ranges[0] !== 'string') {
-      unsupported = unsupported || (Array.isArray(ranges) && ranges.length > 1);
+    const areas = Array.isArray(ranges) ? ranges.filter((range): range is string => typeof range === 'string') : [];
 
+    if (areas.length === 0) {
       return;
     }
 
-    names.set(name, { name, formula: ranges[0], sheetName: null });
+    names.set(name, { name, formula: areas.join(','), sheetName: null });
   });
-
-  if (unsupported) {
-    dropped.record(DROPPED_FEATURES.definedNamesUnsupported);
-  }
 
   return [...names.values()];
 }
@@ -1260,7 +1259,7 @@ export const excelJsAdapter: XlsxEngineAdapter = {
       snapshot.sheets.push(sheet);
     });
 
-    snapshot.definedNames = readDefinedNames(workbook, dropped);
+    snapshot.definedNames = readDefinedNames(workbook);
 
     return snapshot;
   },

@@ -831,8 +831,10 @@ directions.
     deliberate data loss, reported as `definedNames:unsupported`, instead of a file Excel repairs.
     `DefinedNameSnapshot` is `{ name, formula, sheetName }` (`sheetName: null` is workbook scope).
   - **The ExcelJS name adapters are narrower than the native ones.** Its reader (`readDefinedNames`)
-    leaves out a name ExcelJS lists with more than one range (a multi-area name) and records
-    `definedNames:unsupported` once - keeping the first range silently redefined the name. It loses
+    keeps a name ExcelJS lists with more than one range (a multi-area name) with its ranges joined by
+    commas. Keeping the first range silently redefined the name, and leaving the name out made
+    `importFile` import a formula over it live as `#NAME?`; kept, HyperFormula's `validateFormula`
+    refuses the union, so the formula imports its cached value with `formula:definedName`. It loses
     the sheet scope, drops constants, and cannot see a name defined in several scopes: ExcelJS 4.4's
     `definedNames.model` setter keys its map by name, so the LAST definition wins with one range. Its
     writer takes workbook-scoped, sheet-qualified single ranges only, with a total area under
