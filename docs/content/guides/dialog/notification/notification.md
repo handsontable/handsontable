@@ -81,7 +81,7 @@ Enable the plugin with [`notification: true`](@/api/options.md#notification), th
 
 :::
 
-A `message` string does not keep line breaks: a `\n` character renders as a space. To show several lines, pass an `HTMLElement` as the `message`.
+A `message` string does not keep line breaks on its own: the toast does not set `white-space`, so a `\n` collapses like other whitespace. To show several lines, add `.ht-notification__message { white-space: pre-line; }` to your styles, or use `<br>` tags in the `message` string. A string with `<br>` tags is written as HTML, so it goes through the [`sanitizer`](@/api/options.md#sanitizer) option. If no `sanitizer` is set, the grid logs a one-time warning in the console.
 
 ## Toolbar actions (inventory-style)
 
