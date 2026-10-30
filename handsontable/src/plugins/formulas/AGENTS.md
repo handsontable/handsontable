@@ -980,8 +980,8 @@ summary formulas stay out of the sort (#12627). User-facing copy:
 ## `beforeAutofill`: `orderIndex`, then registration order, decides who wins (DEV-3424)
 
 `#onBeforeAutofill` is added in `enablePlugin()` at the default `orderIndex` 0. At init that call comes from
-`afterPluginsInitialized` (`BasePlugin.init()` registers it with `addHookOnce`), which the last plugin's `init()`
-fires inside `beforeInit`, before `updateSettings()` registers the `beforeAutofill` option. The last callback that
+core's init sequence (`initializePlugins()` in `../base/base.ts`), which runs inside `beforeInit`, before
+`updateSettings()` registers the `beforeAutofill` option. The last callback that
 returns a value wins, so the option and any `addHook()` made after enabling beat the plugin, while a global hook,
 an `addHook()` made before enabling, and the option when Formulas is enabled later lose. `updatePlugin()` keeps
 the hook where it is, but `disablePlugin()` plus `enablePlugin()` re-adds it at the END of the `orderIndex` 0
