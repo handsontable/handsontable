@@ -2,10 +2,11 @@ import type { HotInstance } from '../../core/types';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 import MergedCellCoords from './cellCoords';
 import { rangeEach, clamp } from '../../helpers/number';
-import { warn } from '../../helpers/console';
+import { deprecatedWarnOnce, warn } from '../../helpers/console';
 import { arrayEach } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import type { MergeCells } from './mergeCells';
+import { findNonIntersectingIndex } from '../../selection/cellBlocks';
 import {
   getFirstRowOfActiveBottomOverlay,
   getFirstRenderedRowOfOverlay,
@@ -108,7 +109,9 @@ class MergedCellsCollection {
 
       if (
         row >= rowStart && row + rowspan - 1 <= rowEnd &&
-        col >= columnStart && col + colspan - 1 <= columnEnd
+        col >= columnStart && col + colspan - 1 <= columnEnd &&
+        // The lookup matrix is the authority on visibility (see `getWithinRange`).
+        this.get(row, col) === mergedCell
       ) {
         result = mergedCell;
 
@@ -117,6 +120,18 @@ class MergedCellsCollection {
     }
 
     return result;
+  }
+
+  /**
+   * Get the merged cells that are not trimmed away: every merge except the ones purged from the lookup
+   * matrix because all of their rows are trimmed. A purged merge keeps stale visual coordinates in
+   * the `mergedCells` list, which can point at rows that other records have moved into. A merge whose
+   * rows are only hidden is returned, because hidden rows keep their visual index.
+   *
+   * @returns {MergedCellCoords[]} The visible merged cells, in the order of the `mergedCells` list.
+   */
+  getVisibleMergedCells() {
+    return this.mergedCells.filter(mergedCell => this.get(mergedCell.row, mergedCell.col) === mergedCell);
   }
 
   /**
@@ -522,188 +537,72 @@ class MergedCellsCollection {
   /**
    * Gets the start-most visual column index that do not intersect with other merged cells within the provided range.
    *
+   * @deprecated Since 19.0.0. The selection steps over merged cells itself now, so nothing in Handsontable
+   * calls this method. It will be removed in 20.0.0. There is no replacement.
    * @param {CellRange} range The range to search within.
    * @param {number} visualColumnIndex The visual column index to start the search from.
    * @returns {number}
    */
   getStartMostColumnIndex(range: CellRange, visualColumnIndex: number) {
-    return this.#findNonIntersectingIndex(range, 'col', -1, visualColumnIndex);
+    this.#warnDeprecatedScan('getStartMostColumnIndex');
+
+    return findNonIntersectingIndex(this.getVisibleMergedCells(), range, 'col', -1, visualColumnIndex);
   }
 
   /**
    * Gets the end-most visual column index that do not intersect with other merged cells within the provided range.
    *
+   * @deprecated Since 19.0.0. The selection steps over merged cells itself now, so nothing in Handsontable
+   * calls this method. It will be removed in 20.0.0. There is no replacement.
    * @param {CellRange} range The range to search within.
    * @param {number} visualColumnIndex The visual column index to start the search from.
    * @returns {number}
    */
   getEndMostColumnIndex(range: CellRange, visualColumnIndex: number) {
-    return this.#findNonIntersectingIndex(range, 'col', 1, visualColumnIndex);
+    this.#warnDeprecatedScan('getEndMostColumnIndex');
+
+    return findNonIntersectingIndex(this.getVisibleMergedCells(), range, 'col', 1, visualColumnIndex);
   }
 
   /**
    * Gets the top-most visual row index that do not intersect with other merged cells within the provided range.
    *
+   * @deprecated Since 19.0.0. The selection steps over merged cells itself now, so nothing in Handsontable
+   * calls this method. It will be removed in 20.0.0. There is no replacement.
    * @param {CellRange} range The range to search within.
    * @param {number} visualRowIndex The visual row index to start the search from.
    * @returns {number}
    */
   getTopMostRowIndex(range: CellRange, visualRowIndex: number) {
-    return this.#findNonIntersectingIndex(range, 'row', -1, visualRowIndex);
+    this.#warnDeprecatedScan('getTopMostRowIndex');
+
+    return findNonIntersectingIndex(this.getVisibleMergedCells(), range, 'row', -1, visualRowIndex);
   }
 
   /**
    * Gets the bottom-most visual row index that do not intersect with other merged cells within the provided range.
    *
+   * @deprecated Since 19.0.0. The selection steps over merged cells itself now, so nothing in Handsontable
+   * calls this method. It will be removed in 20.0.0. There is no replacement.
    * @param {CellRange} range The range to search within.
    * @param {number} visualRowIndex The visual row index to start the search from.
    * @returns {number}
    */
   getBottomMostRowIndex(range: CellRange, visualRowIndex: number) {
-    return this.#findNonIntersectingIndex(range, 'row', 1, visualRowIndex);
+    this.#warnDeprecatedScan('getBottomMostRowIndex');
+
+    return findNonIntersectingIndex(this.getVisibleMergedCells(), range, 'row', 1, visualRowIndex);
   }
 
   /**
-   * Collects, per range line along the provided axis, the contributions of the merged cells that
-   * intersect the provided range. A line is a single row (for the `row` axis) or a single column
-   * (for the `col` axis) of the range. Each merged cell contributes, to every line it covers, its
-   * scan extent along the axis (the last covered index when scanning forward, the first when
-   * scanning backward) and the number of range cells it covers within the line. Lines without any
-   * merged cell are absent from the returned map. Only merged cells present in the lookup matrix
-   * are considered — merges purged from the matrix (fully hidden) are skipped.
+   * Prints the one-time deprecation warning of a line-scan method.
    *
-   * @param {CellRange} range The range to search within.
-   * @param {'row' | 'col'} axis The axis to search within.
-   * @param {number} scanDirection The direction to scan the range. `1` for forward, `-1` for backward.
-   * @returns {Map<number, { extents: Set<number>, coveredCells: number }>} Map keyed by the line index.
+   * @param {string} methodName The deprecated method's name.
    */
-  #collectLineContributions(range: CellRange, axis: 'row' | 'col', scanDirection: number) {
-    const { row: rangeStartRow, col: rangeStartColumn } = range.getTopStartCorner();
-    const { row: rangeEndRow, col: rangeEndColumn } = range.getBottomEndCorner();
-    const startRow = rangeStartRow ?? 0;
-    const startColumn = rangeStartColumn ?? 0;
-    const endRow = rangeEndRow ?? 0;
-    const endColumn = rangeEndColumn ?? 0;
-    const isRowAxis = axis === 'row';
-    const lineStart = isRowAxis ? startRow : startColumn;
-    const lineEnd = isRowAxis ? endRow : endColumn;
-    const crossStart = isRowAxis ? startColumn : startRow;
-    const crossEnd = isRowAxis ? endColumn : endRow;
-    const lines = new Map<number, { extents: Set<number>, coveredCells: number }>();
-
-    for (let i = 0; i < this.mergedCells.length; i++) {
-      const mergedCell = this.mergedCells[i];
-      const mergeLineStart = isRowAxis ? mergedCell.row : mergedCell.col;
-      const mergeLineEnd = mergeLineStart + (isRowAxis ? mergedCell.rowspan : mergedCell.colspan) - 1;
-      const mergeCrossStart = isRowAxis ? mergedCell.col : mergedCell.row;
-      const mergeCrossEnd = mergeCrossStart + (isRowAxis ? mergedCell.colspan : mergedCell.rowspan) - 1;
-
-      if (
-        mergeLineEnd < lineStart || mergeLineStart > lineEnd ||
-        mergeCrossEnd < crossStart || mergeCrossStart > crossEnd ||
-        // The lookup matrix is the authority on visibility: merges purged from the matrix
-        // (fully hidden) keep stale visual coordinates in the `mergedCells` list.
-        this.get(mergedCell.row, mergedCell.col) !== mergedCell
-      ) {
-        continue;
-      }
-
-      const extent = scanDirection === 1 ? mergeLineEnd : mergeLineStart;
-      const coveredCells = Math.min(mergeCrossEnd, crossEnd) - Math.max(mergeCrossStart, crossStart) + 1;
-      const firstLine = Math.max(mergeLineStart, lineStart);
-      const lastLine = Math.min(mergeLineEnd, lineEnd);
-
-      for (let line = firstLine; line <= lastLine; line++) {
-        let entry = lines.get(line);
-
-        if (!entry) {
-          entry = { extents: new Set(), coveredCells: 0 };
-          lines.set(line, entry);
-        }
-
-        entry.extents.add(extent);
-        entry.coveredCells += coveredCells;
-      }
-    }
-
-    return lines;
-  }
-
-  /**
-   * Finds the nearest index along the provided axis that does not intersect with any merged cell
-   * within the provided range. The range's lines are conceptually scanned in the provided
-   * direction; a line emits a candidate index when all of its cells agree on a single index — its
-   * own index when no merged cell touches it, or the shared scan extent when merged cells cover
-   * it uniformly. The first emitted candidate located at or past `visualIndex` (in the scan
-   * direction) wins. The cost scales with the number of merged cells intersecting the range, not
-   * with the area of the range.
-   *
-   * @param {CellRange} range The range to search within.
-   * @param {'row' | 'col'} axis The axis to search within.
-   * @param {number} scanDirection The direction to scan the range. `1` for forward, `-1` for backward.
-   * @param {number} visualIndex The visual row/column index the search relates to.
-   * @returns {number} The found visual index, or `visualIndex` when every line intersects a merged cell.
-   */
-  #findNonIntersectingIndex(range: CellRange, axis: 'row' | 'col', scanDirection: number, visualIndex: number) {
-    const { row: rangeStartRow, col: rangeStartColumn } = range.getTopStartCorner();
-    const { row: rangeEndRow, col: rangeEndColumn } = range.getBottomEndCorner();
-    const isRowAxis = axis === 'row';
-    const lineStart = (isRowAxis ? rangeStartRow : rangeStartColumn) ?? 0;
-    const lineEnd = (isRowAxis ? rangeEndRow : rangeEndColumn) ?? 0;
-    const crossLength = isRowAxis
-      ? ((rangeEndColumn ?? 0) - (rangeStartColumn ?? 0) + 1)
-      : ((rangeEndRow ?? 0) - (rangeStartRow ?? 0) + 1);
-    const matches = (index: number) => (scanDirection === 1 ? index >= visualIndex : index <= visualIndex);
-    const lines = this.#collectLineContributions(range, axis, scanDirection);
-    const touchedLines = Array.from(lines.keys())
-      .sort((lineA, lineB) => (lineA - lineB) * scanDirection);
-
-    // The first merge-touched line (in scan order) whose cells all agree on a single index
-    // that lies at or past `visualIndex`.
-    let touchedMatchLine = null;
-    let touchedMatchIndex = 0;
-
-    for (let i = 0; i < touchedLines.length; i++) {
-      const line = touchedLines[i];
-      const { extents, coveredCells } = lines.get(line)!;
-
-      // Cells not covered by any merged cell contribute the line's own index.
-      if (coveredCells < crossLength) {
-        extents.add(line);
-      }
-
-      if (extents.size === 1) {
-        const candidate = extents.values().next().value!;
-
-        if (matches(candidate)) {
-          touchedMatchLine = line;
-          touchedMatchIndex = candidate;
-          break;
-        }
-      }
-    }
-
-    // The first merge-free line in scan order that lies at or past `visualIndex`; such a line
-    // always emits its own index.
-    let freeMatchLine = scanDirection === 1
-      ? Math.max(lineStart, visualIndex)
-      : Math.min(lineEnd, visualIndex);
-
-    while (freeMatchLine >= lineStart && freeMatchLine <= lineEnd && lines.has(freeMatchLine)) {
-      freeMatchLine += scanDirection;
-    }
-
-    const hasFreeMatch = freeMatchLine >= lineStart && freeMatchLine <= lineEnd;
-
-    if (touchedMatchLine === null) {
-      return hasFreeMatch ? freeMatchLine : visualIndex;
-    }
-
-    if (!hasFreeMatch || (touchedMatchLine - freeMatchLine) * scanDirection <= 0) {
-      return touchedMatchIndex;
-    }
-
-    return freeMatchLine;
+  #warnDeprecatedScan(methodName: string) {
+    deprecatedWarnOnce(`MergedCellsCollection.${methodName}`,
+      `\`MergedCellsCollection#${methodName}()\` is deprecated and will be removed in Handsontable 20.0.0. ` +
+      'The selection steps over merged cells itself now.');
   }
 
   /**
