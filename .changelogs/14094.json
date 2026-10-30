@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added `dist/manifest.json` to the package: a list of every feature, the license token that names it, and the features it needs.",
+  "type": "added",
+  "issueOrPR": 14094,
+  "breaking": false,
+  "framework": "none"
+}
