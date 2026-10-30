@@ -370,6 +370,13 @@ export class DataProvider extends BasePlugin {
    */
   #isPassive = false;
   /**
+   * The `dataProvider` value the plugin was enabled with, `null` while it is disabled. A settings update that sends
+   * the same object again leaves the plugin and its rows alone.
+   *
+   * @type {*}
+   */
+  #appliedConfig: unknown = null;
+  /**
    * `true` while {@link Hooks#afterDataProviderFetch} runs for a response the plugin loads or replays, so the page
    * size Pagination takes from that response is not read as a user's change.
    *
@@ -414,6 +421,7 @@ export class DataProvider extends BasePlugin {
 
     this.#applyQueryParametersFromPlugins();
     this.#adoptPendingQuery();
+    this.#appliedConfig = this.hot.getSettings()[PLUGIN_KEY];
 
     this.addHook('hasExternalDataSource', this.#onHasExternalDataSource);
     this.addHook('afterInit', this.#onAfterInit);
@@ -432,15 +440,16 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Re-applies settings and refetches when the instance is already initialized. A payload whose `dataProvider`
-   * is no longer the grid's (an earlier `afterUpdateSettings` listener replaced it with a nested `updateSettings()`
-   * call, which already re-applied the plugin) changes nothing.
+   * Re-applies settings and refetches when the instance is already initialized. Two payloads change nothing: one
+   * whose `dataProvider` is no longer the grid's (an earlier `afterUpdateSettings` listener replaced it with a
+   * nested `updateSettings()` call, which already re-applied the plugin), and one that sends the `dataProvider`
+   * object the plugin already runs with (a framework wrapper re-sends every prop on each render), which would
+   * otherwise abort the running fetch and refetch the same rows.
    *
    * @param {object} [newSettings] The settings passed to `updateSettings()`.
    */
   updatePlugin(newSettings?: Record<string, unknown>): void {
-    if (newSettings && hasOwnProperty(newSettings, 'dataProvider')
-      && newSettings.dataProvider !== this.hot.getSettings().dataProvider) {
+    if (newSettings && hasOwnProperty(newSettings, PLUGIN_KEY) && this.#leavesConfigInPlace(newSettings[PLUGIN_KEY])) {
       super.updatePlugin();
 
       return;
@@ -503,8 +512,25 @@ export class DataProvider extends BasePlugin {
     }
 
     this.#queryParameters = { ...INITIAL_QUERY_PARAMETERS };
+    this.#appliedConfig = null;
 
     super.disablePlugin();
+  }
+
+  /**
+   * Tells whether an update's `dataProvider` value leaves the running configuration in place: the grid holds
+   * another value by now (a nested update already re-applied the plugin), or the value is the object the plugin
+   * was enabled with. While passive, the owner's context change re-applies the plugin as before.
+   *
+   * @param {*} value The `dataProvider` value of the update.
+   * @returns {boolean}
+   */
+  #leavesConfigInPlace(value: unknown): boolean {
+    if (value !== this.hot.getSettings()[PLUGIN_KEY]) {
+      return true;
+    }
+
+    return !this.#isPassive && value === this.#appliedConfig;
   }
 
   /**

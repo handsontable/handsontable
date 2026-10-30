@@ -5462,8 +5462,10 @@ export default function Core(
    * instead. See the [Understanding rendering](@/guides/optimization/rendering/rendering.md) guide.
    *
    * When {@link Hooks#hasExternalDataSource} is true, Handsontable clears and rebinds the placeholder dataset only during
-   * initialization or when `settings` includes `data` or `dataProvider`. Other keys alone (for example `height`) do not clear loaded rows.
-   * If only `columns` changes, the column map is rebuilt without clearing rows.
+   * initialization or when `settings` replaces `dataProvider` with another value. A `data` value is ignored with a
+   * warning and keeps the loaded rows, and so does the same `dataProvider` object passed again. Other keys alone
+   * (for example `height`) do not clear loaded rows. If only `columns` changes, the column map is rebuilt without
+   * clearing rows.
    *
    * @memberof Core#
    * @function updateSettings
@@ -6243,22 +6245,25 @@ export default function Core(
    * @private
    * @param {object} settings A settings object (see {@link Options}).
    * @param {boolean} init `true` while the grid initializes.
+   * @param {*} previousDataProvider The `dataProvider` value before the payload merged.
    * @param {Function} dataUpdateFunction `loadData()` on the first run, `updateData()` after it.
    */
   function applyExternalDataPhase(
-    settings: SettingsUpdate, init: boolean, dataUpdateFunction: (data: unknown[], source: string) => void
+    settings: SettingsUpdate,
+    init: boolean,
+    previousDataProvider: unknown,
+    dataUpdateFunction: (data: unknown[], source: string) => void
   ): void {
     // When dataProvider is a complete server-backed config, ignore static data, the plugin loads rows.
     if (settings.data) {
       warn('The "data" setting is ignored when "hasExternalDataSource" returns `true`.');
     }
 
-    // Replace the in-memory placeholder only when the update touches init, `data`, or `dataProvider`. Otherwise
-    // `updateData([], …)` would empty the grid without a refetch, because DataProvider runs `updatePlugin` only when
-    // `dataProvider` is present in this payload.
+    // Replace the in-memory placeholder only at init or when the update replaces `dataProvider`, because only then
+    // does DataProvider fetch the rows again. A `data` payload, or the same `dataProvider` object sent again (a
+    // wrapper re-sends every prop on each render), would otherwise empty the grid with nothing to refill it.
     const shouldSyncExternalPlaceholderData = init ||
-      hasOwnProperty(settings, 'data') ||
-      hasOwnProperty(settings, 'dataProvider');
+      (hasOwnProperty(settings, 'dataProvider') && settings.dataProvider !== previousDataProvider);
 
     if (shouldSyncExternalPlaceholderData) {
       dataUpdateFunction([], 'updateSettings');
@@ -6277,17 +6282,19 @@ export default function Core(
    * @param {boolean} init `true` while the grid initializes.
    * @param {ColumnLayout|null} previousColumnLayout The column layout read before the payload merged, `null`
    * when the payload could not change it.
+   * @param {*} previousDataProvider The `dataProvider` value before the payload merged.
    * @param {Function} dataUpdateFunction `loadData()` on the first run, `updateData()` after it.
    */
   function applyDataPhase(
     settings: SettingsUpdate,
     init: boolean,
     previousColumnLayout: ColumnLayout | null,
+    previousDataProvider: unknown,
     dataUpdateFunction: (data: unknown[], source: string) => void
   ): void {
     // Load data or create data map
     if (instance.runHooks('hasExternalDataSource') === true) {
-      applyExternalDataPhase(settings, init, dataUpdateFunction);
+      applyExternalDataPhase(settings, init, previousDataProvider, dataUpdateFunction);
 
     } else if (settings.data === undefined && tableMeta.data === undefined) {
       dataUpdateFunction(null as unknown as unknown[], 'updateSettings'); // data source created just now
@@ -6405,8 +6412,8 @@ export default function Core(
    * @private
    * @param {object} settings A settings object (see {@link Options}).
    * @param {boolean} init `true` while the grid initializes.
-   * @returns {object} The `min*` sizes, the column layout (`null` when the payload cannot change it) and the root
-   * `height` and `width` as they stand.
+   * @returns {object} The `min*` sizes, the column layout (`null` when the payload cannot change it), the root
+   * `height` and `width`, and the `dataProvider` value as they stand.
    */
   function readSettingsBaseline(settings: SettingsUpdate, init: boolean) {
     return {
@@ -6430,6 +6437,7 @@ export default function Core(
         height: init ? undefined : tableMeta.height,
         width: init ? undefined : tableMeta.width,
       },
+      previousDataProvider: tableMeta.dataProvider,
     };
   }
 
@@ -6563,7 +6571,9 @@ export default function Core(
     columnsSettingIndexes = null;
 
     // Read before the payload merges into the table meta.
-    const { previousMinimumSizes, previousColumnLayout, previousRootSize } = readSettingsBaseline(settings, init);
+    const {
+      previousMinimumSizes, previousColumnLayout, previousRootSize, previousDataProvider,
+    } = readSettingsBaseline(settings, init);
 
     warnAboutRowHeightsAlias(settings);
 
@@ -6587,7 +6597,7 @@ export default function Core(
     const columnPhase = applyColumnMetaBeforeLoad(settings, isCellOptionRestated, defersDataWork);
 
     if (!defersDataWork) {
-      applyDataPhase(settings, init, previousColumnLayout, dataUpdateFunction);
+      applyDataPhase(settings, init, previousColumnLayout, previousDataProvider, dataUpdateFunction);
     }
 
     if (!firstRun && settings.language) {
