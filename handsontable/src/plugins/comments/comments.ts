@@ -18,6 +18,13 @@ import { throwWithCause } from '../../helpers/errors';
 import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
 import { getEditorAnchorHeight, getEditorAnchorWidth } from './utils';
+import {
+  META_COMMENT,
+  META_COMMENT_VALUE,
+  META_STYLE,
+  META_READONLY,
+  type CommentMeta,
+} from './constants';
 import { shrinkSizeToViewport, clampPositionToViewport } from './viewport';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import type { PredefinedMenuItemKey, MenuItemConfig } from '../contextMenu/contextMenu';
@@ -28,21 +35,16 @@ import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/
 
 export const PLUGIN_KEY = 'comments';
 export const PLUGIN_PRIORITY = 60;
-export const META_COMMENT = 'comment';
-export const META_COMMENT_VALUE = 'value';
-export const META_STYLE = 'style';
-export const META_READONLY = 'readOnly';
 
-/**
- * Represents a comment's metadata stored in cell meta.
- */
-interface CommentMeta {
-  [META_COMMENT_VALUE]?: string;
-  [META_STYLE]?: { width: number; height: number };
-  [META_READONLY]?: boolean;
-}
-
-export interface CommentObject extends CommentMeta { }
+// The keys live in `constants.ts`, so `utils.ts` and the menu items read them without importing the
+// plugin, which imports both. Re-exported here, where they have always been importable from.
+export {
+  META_COMMENT,
+  META_COMMENT_VALUE,
+  META_STYLE,
+  META_READONLY,
+  type CommentObject,
+} from './constants';
 
 /**
  * Checks if a value is a CommentMeta object.
