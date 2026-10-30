@@ -1328,13 +1328,18 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Runs the index syncs the axis syncers postponed while no engine sheet was bound. Core runs it once after
-   * each enable or update, when the data is loaded: at init before the `init` hook, which the postponed syncs
-   * used to wait for.
+   * Runs the index syncs the axis syncers postponed while no engine sheet was bound, in the init pass only:
+   * before the `init` hook, which the postponed syncs used to wait for. On a live grid every sheet write sets
+   * the sync endpoint up again, which sends the order itself and drops the queue (`#setupSyncEndpoint()`), and a
+   * replay without such a write would send the order on top of the one the engine already holds.
    *
    * @private
    */
   onGridReady() {
+    if (!this.isInitReadyStep()) {
+      return;
+    }
+
     const actions = this.#postponedIndexActions;
 
     this.#postponedIndexActions = [];
@@ -3842,7 +3847,7 @@ export class Formulas extends BasePlugin {
       dependentCells = this.#writeOwnSheet(this.engine!, () => {
         const changes = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
 
-        this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
+        this.#setupSyncEndpoint();
 
         return changes;
       });
@@ -3874,7 +3879,7 @@ export class Formulas extends BasePlugin {
       dependentCells = this.#writeOwnSheet(this.engine!, () => {
         const changes = this.engine!.setSheetContent(this.sheetId, [[]]);
 
-        this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
+        this.#setupSyncEndpoint();
 
         return changes;
       });
@@ -4053,6 +4058,16 @@ export class Formulas extends BasePlugin {
   };
 
   /**
+   * Sets the axis syncers up against the bound engine sheet. The setup sends the grid's order to the engine
+   * itself, so every index sync postponed before it is dropped: run later, it would send that order a second
+   * time, on top of the one the engine then holds.
+   */
+  #setupSyncEndpoint() {
+    this.#postponedIndexActions = [];
+    this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
+  }
+
+  /**
    * Binds the sheet a load brought back without writing the loaded data into it: the engine already holds
    * the sheet as the grid left it, in the order `order` describes, and its formula text there is what the
    * user saw (see {@link Formulas#runWithEngineOrderHeld}). The order is taken over without being sent,
@@ -4062,7 +4077,7 @@ export class Formulas extends BasePlugin {
    */
   #adoptEngineSheet(order: FormulasEngineSheetOrder) {
     this.#sheetResyncPending = false;
-    this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
+    this.#setupSyncEndpoint();
     this.rowAxisSyncer!.adoptEngineOrder(order.rowOrder);
     this.columnAxisSyncer!.adoptEngineOrder(order.columnOrder);
     this.#recordSyncedLayout();

@@ -5,8 +5,9 @@ const LICENSE_KEY = 'non-commercial-and-evaluation';
 
 /**
  * The axis syncers postpone an index sync they cannot send while no engine sheet is bound. Formulas runs
- * the postponed syncs in its ready step (`onGridReady()`): at init before the `init` hook, which they used
- * to wait for, and on a live grid after the next enable or update, where an `init` listener never fired.
+ * the postponed syncs in the ready step of the init pass (`onGridReady()`), before the `init` hook, which
+ * they used to wait for. Every endpoint setup sends the order itself and drops the queue, and a live grid
+ * never replays it: without a sheet write the replay would send the order on top of the engine's.
  */
 describe('Formulas ready step', () => {
   let container;
@@ -23,7 +24,7 @@ describe('Formulas ready step', () => {
     container.remove();
   });
 
-  it('should run a sync postponed during the init load before the init hook', () => {
+  it('should run a sync postponed after the last endpoint setup of the init before the init hook', () => {
     const postponed = jest.fn();
     const callsAtInit = [];
 
@@ -31,10 +32,9 @@ describe('Formulas ready step', () => {
       data: [[1, '=A1*2']],
       formulas: { engine: HyperFormula },
       licenseKey: LICENSE_KEY,
-      afterLoadData(_sourceData, initialLoad) {
-        if (initialLoad) {
-          this.getPlugin('formulas').indexSyncer.getPostponeAction()(postponed);
-        }
+      // After the construction resync, which writes the sheet and sets the sync endpoint up last.
+      afterCellMetaReset() {
+        this.getPlugin('formulas').indexSyncer.getPostponeAction()(postponed);
       },
       init() {
         callsAtInit.push(postponed.mock.calls.length);
@@ -45,7 +45,25 @@ describe('Formulas ready step', () => {
     expect(postponed).toHaveBeenCalledTimes(1);
   });
 
-  it('should run a sync postponed on a live grid after the next update of the plugin', () => {
+  it('should drop a sync postponed before the init load sets the sync endpoint up', () => {
+    const postponed = jest.fn();
+
+    hot = new Handsontable(container, {
+      data: [[1, '=A1*2']],
+      formulas: { engine: HyperFormula },
+      licenseKey: LICENSE_KEY,
+      beforeLoadData(_sourceData, initialLoad) {
+        if (initialLoad) {
+          this.getPlugin('formulas').indexSyncer.getPostponeAction()(postponed);
+        }
+      },
+    });
+
+    // The setup sent the grid's order itself; a replay would send it a second time.
+    expect(postponed).not.toHaveBeenCalled();
+  });
+
+  it('should not replay a sync postponed on a live grid', () => {
     const postponed = jest.fn();
 
     hot = new Handsontable(container, {
@@ -57,12 +75,17 @@ describe('Formulas ready step', () => {
     const plugin = hot.getPlugin('formulas');
 
     plugin.indexSyncer.getPostponeAction()(postponed);
+    // A direct update writes no sheet, so nothing sets the sync endpoint up again, and only the ready step
+    // could replay the sync.
+    plugin.updatePlugin({});
 
     expect(postponed).not.toHaveBeenCalled();
 
+    // A data load writes the sheet and sets the endpoint up, which sends the order and drops the queue.
+    hot.loadData([[2, '=A1*3']]);
     hot.updateSettings({ formulas: { engine: plugin.engine, sheetName: plugin.sheetName } });
 
-    expect(postponed).toHaveBeenCalledTimes(1);
+    expect(postponed).not.toHaveBeenCalled();
   });
 
   it('should drop the postponed syncs when the plugin is disabled', () => {
