@@ -135,16 +135,21 @@ export class XlsxImportPage {
    * `defineNames`, the same two names are first added to the target's own HyperFormula engine,
    * over the cells the import fills. Answers the source data of D2 and D3 and the `dropped` list.
    */
-  async importDefinedNamesWorkbook(defineNames: boolean): Promise<{ sources: unknown[]; dropped: string[] }> {
+  async importDefinedNamesWorkbook(
+    defineNames: boolean | 'differently',
+  ): Promise<{ sources: unknown[]; dropped: string[]; names: string[] }> {
     return this.page.evaluate(async(withNames) => {
       const w = window as unknown as Record<string, any>;
       const target = w.__target;
+      const engine = target.getPlugin('formulas').engine;
 
-      if (withNames) {
-        const engine = target.getPlugin('formulas').engine;
-
+      if (withNames === true) {
         engine.addNamedExpression('Sales', '=Target!$B$2:$B$4');
         engine.addNamedExpression('Rate', '=Target!$F$1');
+      } else if (withNames === 'differently') {
+        // Defined already, over other cells than the file's: the file's definition is not taken.
+        engine.addNamedExpression('Sales', '=Target!$B$2:$B$3');
+        engine.addNamedExpression('Rate', '=Target!$F$2');
       }
 
       const workbook = new w.ExcelJS.Workbook();
@@ -165,6 +170,7 @@ export class XlsxImportPage {
       return {
         sources: [target.getSourceDataAtCell(1, 3), target.getSourceDataAtCell(2, 3)],
         dropped: result.dropped,
+        names: engine.listNamedExpressions(),
       };
     }, defineNames);
   }
