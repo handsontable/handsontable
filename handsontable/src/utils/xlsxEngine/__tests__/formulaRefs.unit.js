@@ -376,6 +376,21 @@ describe('rebaseImportedFormula', () => {
     expect(rebase('Data!A1*2', 0, 0, ['sheet1'], 'Data')).toEqual({ formula: 'A1*2', unknownSheet: false, asked: [] });
   });
 
+  it('should write the qualifier naming the imported sheet as `selfAs` when one is given', () => {
+    // A named expression in HyperFormula refuses an unqualified reference as relative, so a defined
+    // name over the imported sheet keeps a qualifier: the grid's own sheet name.
+    const rebaseAs = (formula, selfAs) => rebaseImportedFormula(formula, -1, -1, {
+      self: 'Data', selfAs, isKnown: () => false,
+    });
+
+    expect(rebaseAs('Data!$G$2:$G$4', 'Sheet1')).toEqual({ formula: 'Sheet1!$F$1:$F$3', unknownSheet: false });
+    expect(rebaseAs('SUM(data!$B$2,\'Data\'!C:C)', 'My Sheet')).toEqual({
+      formula: 'SUM(\'My Sheet\'!$A$1,\'My Sheet\'!B:B)', unknownSheet: false,
+    });
+    expect(rebaseAs('Data!$A$1', 'Sheet1')).toEqual({ formula: null, unknownSheet: false });
+    expect(rebaseAs('B2+1', 'Sheet1')).toEqual({ formula: 'A1+1', unknownSheet: false });
+  });
+
   it('should reject a self-qualified reference the shift pushes into the dropped band', () => {
     expect(rebase('Sheet1!B1*2', -1, 0)).toMatchObject({ formula: null, unknownSheet: false });
   });

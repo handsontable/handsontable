@@ -62,6 +62,14 @@ export interface MapperContext {
    * cached value is imported instead. Absent means the engine defines none.
    */
   formulaNamedExpressions?: ReadonlySet<string>;
+  /**
+   * Whether the Formulas plugin's engine takes a workbook-scoped named expression of this name and
+   * expression (`=` included) - `isItPossibleToAddNamedExpression` of HyperFormula. With it, the
+   * workbook's defined names the engine does not define yet are handed over in
+   * `ImportResult.namedExpressions`, so the formulas using them import live. Absent means no name is
+   * handed over, and those formulas import their cached values.
+   */
+  canAddNamedExpression?: (name: string, expression: string) => boolean;
 }
 
 /**
@@ -351,6 +359,10 @@ interface CellPass {
    */
   comments: NonNullable<ImportResult['comments']>;
   /**
+   * The workbook's defined names handed to the Formulas engine.
+   */
+  namedExpressions: NonNullable<ImportResult['namedExpressions']>;
+  /**
    * The cells that must be marked `readOnly`, per column as runs of consecutive rows (`[start, end]`,
    * inclusive). Under sheet protection every blank is locked, so one entry per cell cost one object
    * per slot of the window: a protected sheet with cells in `A1:E1` and `A1000000:E1000000` grew the
@@ -572,18 +584,32 @@ function usesUnresolvedName(formula: string, scope: CollectContext): boolean {
     return false;
   }
 
-  for (const match of formula.matchAll(FORMULA_IDENTIFIER_REGEX)) {
-    const [token] = match;
-    const next = formula[(match.index ?? 0) + token.length];
-
-    const isQuoted = token[0] === '"' || token[0] === '\'';
-
-    if (!isQuoted && next !== '(' && next !== '!' && unresolvedNames.has(token.toLowerCase())) {
+  for (const name of namesIn(formula)) {
+    if (unresolvedNames.has(name)) {
       return true;
     }
   }
 
   return false;
+}
+
+/**
+ * The identifiers of a formula that can be names, lower-cased: neither a string literal, a quoted
+ * sheet name, a function (followed by `(`) nor a sheet (followed by `!`).
+ *
+ * @param {string} formula The formula, without its `=`.
+ * @returns {Generator<string>}
+ */
+function* namesIn(formula: string): Generator<string> {
+  for (const match of formula.matchAll(FORMULA_IDENTIFIER_REGEX)) {
+    const [token] = match;
+    const next = formula[(match.index ?? 0) + token.length];
+    const isQuoted = token[0] === '"' || token[0] === '\'';
+
+    if (!isQuoted && next !== '(' && next !== '!') {
+      yield token.toLowerCase();
+    }
+  }
 }
 
 /**
@@ -602,6 +628,105 @@ function unresolvedDefinedNames(workbook: WorkbookSnapshot, context: MapperConte
   });
 
   return names;
+}
+
+/**
+ * Hands the workbook's defined names to the Formulas engine as workbook-scoped named expressions,
+ * and takes every name handed over out of `scope.unresolvedNames`, so the formulas using it import
+ * live. Runs only with live formulas on and `MapperContext.canAddNamedExpression` given.
+ *
+ * A name scoped to another sheet is ignored: the imported sheet's formulas never see it in Excel
+ * either. A name scoped to the imported sheet is handed over at workbook scope (the grid holds that
+ * one sheet), ahead of a workbook-scoped name spelled like it, which is what Excel resolves on that
+ * sheet. A name the engine already defines is left as the engine has it.
+ *
+ * A definition is read like a cell formula: its stored prefixes stripped and the walk charged by
+ * `readFormulaText`, then moved into grid coordinates by `rebaseImportedFormula`, with a reference
+ * to the imported sheet written against the engine's name for the grid's sheet
+ * (`MapperContext.formulaSheetName`): HyperFormula reads an unqualified reference in a named
+ * expression as relative and refuses it. A definition that points into the dropped header band,
+ * names a sheet the engine does not hold, is refused by the engine (a relative reference such as
+ * `Data!A1`), or uses a name left out itself (followed through any chain of names) is left out, and
+ * `definedNames:unsupported` is recorded once; the formulas using it import their cached values.
+ *
+ * @param {CollectContext} scope The pass context.
+ * @returns {Array<{ name: string, formula: string }>} The names to add, each formula without its `=`.
+ */
+function collectNamedExpressions(scope: CollectContext): NonNullable<ImportResult['namedExpressions']> {
+  const { shift, context, sheet, unresolvedNames } = scope;
+  const canAdd = context.canAddNamedExpression;
+
+  if (shift === null || canAdd === undefined) {
+    return [];
+  }
+
+  const own = sheet.name.toLowerCase();
+  const definitions = (scope.workbook.definedNames ?? [])
+    .filter(({ sheetName }) => sheetName === null || sheetName.toLowerCase() === own);
+  // Sheet-scoped first, so it wins over a workbook-scoped name spelled like it. The sort is stable.
+  const ordered = definitions.slice().sort((a, b) => Number(a.sheetName === null) - Number(b.sheetName === null));
+  const added = new Map<string, { name: string; formula: string }>();
+  let unsupported = false;
+
+  ordered.forEach(({ name, formula }) => {
+    const lowered = name.toLowerCase();
+
+    if (added.has(lowered) || context.formulaNamedExpressions?.has(lowered)) {
+      return;
+    }
+
+    const rebased = rebaseImportedFormula(readFormulaText(formula, scope), shift.rowDelta, shift.colDelta, {
+      self: sheet.name,
+      selfAs: context.formulaSheetName,
+      isKnown: candidate => isSheetKnown(candidate, scope),
+    });
+
+    if (rebased.formula === null || rebased.unknownSheet || !canAdd(name, `=${rebased.formula}`)) {
+      unsupported = true;
+
+      return;
+    }
+
+    added.set(lowered, { name, formula: rebased.formula });
+  });
+
+  // A name over a name left out shows `#NAME?` like the left-out one. The uses are read once per
+  // definition (already charged above), and every name leaves `added` at most once.
+  const dependents = new Map<string, string[]>();
+  const leftOut: string[] = [];
+
+  added.forEach(({ formula }, lowered) => {
+    for (const used of namesIn(formula)) {
+      if (added.has(used)) {
+        const users = dependents.get(used);
+
+        if (users) {
+          users.push(lowered);
+        } else {
+          dependents.set(used, [lowered]);
+        }
+      } else if (unresolvedNames.has(used)) {
+        leftOut.push(lowered);
+      }
+    }
+  });
+
+  while (leftOut.length > 0) {
+    const lowered = leftOut.pop() as string;
+
+    if (added.delete(lowered)) {
+      unsupported = true;
+      leftOut.push(...(dependents.get(lowered) ?? []));
+    }
+  }
+
+  added.forEach((_, lowered) => unresolvedNames.delete(lowered));
+
+  if (unsupported) {
+    scope.dropped.record(DROPPED_FEATURES.definedNamesUnsupported);
+  }
+
+  return [...added.values()];
 }
 
 /**
@@ -1123,6 +1248,7 @@ function collectCells(
     dataCells: 0,
     formulas: [],
     comments: [],
+    namedExpressions: [],
     readOnly: new Map(),
     sawStyle: false,
     classNames: new Map(),
@@ -1153,6 +1279,8 @@ function collectCells(
     window,
     liveArrays: { active: [], noted: [], spans: [], cursor: 0, maxEndCol: -1 },
   };
+
+  pass.namedExpressions = collectNamedExpressions(scope);
 
   for (let row = window.firstRow; row <= window.lastRow; row++) {
     pass.data.push([]);
@@ -1770,6 +1898,7 @@ export function mapWorkbook(
     ...(options.importLayout ? mapLayout(sheet, window) : {}),
     formulas: pass.formulas.length > 0 ? pass.formulas : undefined,
     comments: pass.comments.length > 0 ? pass.comments : undefined,
+    namedExpressions: pass.namedExpressions.length > 0 ? pass.namedExpressions : undefined,
     conditionalFormatting: mapConditionalFormatting(sheet, window, dropped),
     styles: pass.styles.size > 0 ? Object.fromEntries(pass.styles) : undefined,
     customBorders: pass.borders.length > 0 ? pass.borders : undefined,

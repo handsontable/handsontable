@@ -2091,3 +2091,183 @@ describe('mapWorkbook – array formulas', () => {
     expect(isLimitError(thrown)).toBe(true);
   });
 });
+
+describe('mapWorkbook – the workbook\'s defined names as named expressions', () => {
+  /**
+   * A `Data` sheet with a header row and a row-header column, so the window starts at sheet `B2`:
+   * `G2:G4` holds 10, 20, 30 (the grid's `F1:F3`), `C2` sums `Sales` and `C3` sums `Other`.
+   *
+   * @param {object[]} names The workbook's defined names.
+   * @param {object[]} [extraRow] Cells appended as one more data row.
+   * @returns {object} The workbook snapshot.
+   */
+  function salesWorkbook(names, extraRow = []) {
+    const data = createSheetSnapshot('Data');
+    const rates = createSheetSnapshot('Rates');
+    const row = (label, formula, amount) => [
+      text(label), text('x'), formula ? cell({ formula }) : null, null, null, null, cell({ value: amount }),
+    ];
+
+    data.rows = [
+      [null, text('Name'), text('Total'), null, null, null, text('Amount')],
+      row('r1', { text: 'SUM(Sales)', result: 60 }, 10),
+      row('r2', { text: 'SUM(Other)', result: 60 }, 20),
+      row('r3', null, 30),
+    ];
+
+    if (extraRow.length > 0) {
+      data.rows.push(extraRow);
+    }
+
+    rates.rows = [[cell({ value: 1 })]];
+
+    const wb = workbook(data, rates);
+
+    wb.definedNames = names;
+
+    return wb;
+  }
+
+  const NAMES = [
+    { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null },
+    { name: 'TaxRate', formula: '0.07', sheetName: null },
+    { name: 'Other', formula: 'Rates!$A$1', sheetName: null },
+    { name: 'Bad', formula: 'B2:', sheetName: null },
+    { name: 'Local', formula: 'Rates!$A$1', sheetName: 'Rates' },
+  ];
+  const OPTIONS = { colHeaders: 'firstRow', rowHeaders: true };
+
+  /**
+   * The Formulas plugin's state, with an engine that refuses `Bad` and records every question.
+   *
+   * @param {object} [overrides] Context keys to replace.
+   * @returns {object}
+   */
+  function contextOf(overrides = {}) {
+    const asked = [];
+
+    return {
+      asked,
+      context: {
+        formulasEnabled: true,
+        commentsEnabled: false,
+        customBordersEnabled: false,
+        formulaSheetNames: new Set(['sheet1']),
+        formulaSheetName: 'Sheet1',
+        formulaNamedExpressions: new Set(),
+        canAddNamedExpression: (name, expression) => {
+          asked.push([name, expression]);
+
+          return name !== 'Bad';
+        },
+        ...overrides,
+      },
+    };
+  }
+
+  it('should register the names over the imported sheet and constants, shifted and qualified with the grid\'s sheet', () => {
+    const { context, asked } = contextOf();
+    const { result } = map(salesWorkbook(NAMES), OPTIONS, context);
+
+    // HyperFormula reads an unqualified `$F$1:$F$3` as relative and refuses it in a named expression,
+    // so the own-sheet reference is qualified with the engine's name for the grid's sheet.
+    expect(result.namedExpressions).toEqual([
+      { name: 'Sales', formula: 'Sheet1!$F$1:$F$3' },
+      { name: 'TaxRate', formula: '0.07' },
+    ]);
+    expect(asked).toEqual([['Sales', '=Sheet1!$F$1:$F$3'], ['TaxRate', '=0.07'], ['Bad', '=A1:']]);
+    expect(result.dropped).toContain('definedNames:unsupported');
+    expect(result.dropped.filter(name => name === 'definedNames:unsupported')).toHaveLength(1);
+  });
+
+  it('should import a formula over a registered name live and one over a left-out name as its cached value', () => {
+    const { context } = contextOf();
+    const { result } = map(salesWorkbook(NAMES), OPTIONS, context);
+
+    expect(result.data[0][1]).toBe('=SUM(Sales)');
+    expect(result.data[1][1]).toBe(60);
+    expect(result.formulas).toEqual([{ row: 1, col: 1, formula: 'SUM(Other)' }]);
+    expect(result.dropped).toContain('formula:definedName');
+  });
+
+  it('should leave out a name the engine already defines and keep the formulas over it live', () => {
+    const { context, asked } = contextOf({ formulaNamedExpressions: new Set(['sales']) });
+    const { result } = map(salesWorkbook(NAMES), OPTIONS, context);
+
+    expect(result.namedExpressions).toEqual([{ name: 'TaxRate', formula: '0.07' }]);
+    expect(asked.map(([name]) => name)).not.toContain('Sales');
+    expect(result.data[0][1]).toBe('=SUM(Sales)');
+  });
+
+  it('should register a name scoped to the imported sheet, ahead of a workbook name spelled like it', () => {
+    const { context } = contextOf();
+    const { result } = map(salesWorkbook([
+      { name: 'Sales', formula: 'Data!$G$3', sheetName: null },
+      { name: 'SALES', formula: 'data!$G$2:$G$4', sheetName: 'DATA' },
+    ]), OPTIONS, context);
+
+    expect(result.namedExpressions).toEqual([{ name: 'SALES', formula: 'Sheet1!$F$1:$F$3' }]);
+    expect(result.dropped).not.toContain('definedNames:unsupported');
+  });
+
+  it('should ignore a name scoped to another sheet without reporting it', () => {
+    const { context, asked } = contextOf();
+    const names = [{ name: 'Local', formula: 'Data!$G$2', sheetName: 'Rates' }];
+    const { result } = map(salesWorkbook(names), OPTIONS, context);
+
+    expect(result.namedExpressions).toBeUndefined();
+    expect(asked).toEqual([]);
+    expect(result.dropped).not.toContain('definedNames:unsupported');
+  });
+
+  it('should leave out a name the window shift pushes into the dropped header band', () => {
+    const { context } = contextOf();
+    const names = [{ name: 'Header', formula: 'Data!$A$1', sheetName: null }];
+    const { result } = map(salesWorkbook(names), OPTIONS, context);
+
+    expect(result.namedExpressions).toBeUndefined();
+    expect(result.dropped).toContain('definedNames:unsupported');
+  });
+
+  it('should leave out a name defined over a name that was left out, and import the formulas over it cached', () => {
+    const { context } = contextOf();
+    const { result } = map(salesWorkbook([
+      { name: 'Doubled', formula: 'Total*2', sheetName: null },
+      { name: 'Total', formula: 'SUM(Bad)', sheetName: null },
+      { name: 'Bad', formula: 'B2:', sheetName: null },
+      { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null },
+    ], [text('r4'), text('x'), cell({ formula: { text: 'Doubled+1', result: 5 } })]), OPTIONS, context);
+
+    expect(result.namedExpressions).toEqual([{ name: 'Sales', formula: 'Sheet1!$F$1:$F$3' }]);
+    expect(result.data[3][1]).toBe(5);
+    expect(result.dropped).toContain('formula:definedName');
+  });
+
+  it('should strip the stored function prefixes from a definition', () => {
+    const { context } = contextOf();
+    const { result } = map(salesWorkbook([
+      { name: 'Spread', formula: '_xlfn.STDEV.S(Data!$G$2:$G$4)', sheetName: null },
+    ]), OPTIONS, context);
+
+    expect(result.namedExpressions).toEqual([{ name: 'Spread', formula: 'STDEV.S(Sheet1!$F$1:$F$3)' }]);
+  });
+
+  it('should register nothing without the engine check, with the Formulas plugin off, or with importFormulas off', () => {
+    const noCheck = map(salesWorkbook(NAMES), OPTIONS, contextOf({ canAddNamedExpression: undefined }).context);
+
+    expect(noCheck.result.namedExpressions).toBeUndefined();
+    expect(noCheck.result.data[0][1]).toBe(60);
+    expect(noCheck.result.dropped).toContain('formula:definedName');
+
+    const { context, asked } = contextOf({ formulasEnabled: false });
+    const off = map(salesWorkbook(NAMES), OPTIONS, context);
+
+    expect(off.result.namedExpressions).toBeUndefined();
+    expect(asked).toEqual([]);
+
+    const cached = map(salesWorkbook(NAMES), { ...OPTIONS, importFormulas: false }, contextOf().context);
+
+    expect(cached.result.namedExpressions).toBeUndefined();
+    expect(cached.result.dropped).not.toContain('definedNames:unsupported');
+  });
+});

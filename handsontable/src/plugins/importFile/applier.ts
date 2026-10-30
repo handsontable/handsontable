@@ -314,6 +314,25 @@ export function removeImportedStyles(hot: HotInstance): void {
 }
 
 /**
+ * Adds the result's named expressions to the Formulas plugin's engine, at workbook scope. Nothing is
+ * added when the plugin is off. Adding a name is not undoable: the `loadData` that follows resets the
+ * grid's history anyway.
+ */
+function addNamedExpressions(hot: HotInstance, result: ImportResult): void {
+  const formulas = hot.getPlugin('formulas');
+
+  if (!result.namedExpressions || formulas?.isEnabled() !== true || !formulas.engine) {
+    return;
+  }
+
+  const { engine } = formulas;
+
+  result.namedExpressions.forEach(({ name, formula }) => {
+    engine.addNamedExpression(name, `=${formula}`, undefined, undefined);
+  });
+}
+
+/**
  * Applies an import result to a Handsontable instance: data, then the generated stylesheet, then
  * settings (including `customBorders`), then per-cell meta and comments, all inside one render batch.
  *
@@ -349,6 +368,9 @@ export function applyImportResult(
       delete settings.columns;
     }
 
+    // Before the data: the imported formulas over these names are evaluated as `loadData` writes
+    // them, and a name the engine lacks at that moment makes them `#NAME?`.
+    addNamedExpressions(hot, result);
     hot.loadData(result.data);
 
     const installed = installImportedStyles(hot, result.styles ?? {});

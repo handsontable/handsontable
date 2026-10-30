@@ -310,6 +310,13 @@ export interface ImportedFormulaSheets {
    */
   self: string;
   /**
+   * The name a qualifier naming `self` is written as, quoted when it has to be, instead of being
+   * dropped. A named expression needs it: HyperFormula reads an unqualified reference in one as
+   * relative and refuses it, so a defined name over the imported sheet is qualified with the grid's
+   * own sheet name. Absent means the qualifier is dropped.
+   */
+  selfAs?: string;
+  /**
    * Whether the Formulas engine holds a sheet of this name (unquoted, as written).
    */
   isKnown: (name: string) => boolean;
@@ -361,8 +368,9 @@ function isPlainQualifier(before: string | undefined, sheet: string, followedShe
  *
  * - every unqualified reference is shifted by `rowDelta` rows and `colDelta` columns, the way
  * `shiftFormulaReferences` does;
- * - a qualifier naming the formula's own sheet (`sheets.self`) is dropped, and its reference is
- * shifted like an unqualified one, because the band the shift accounts for is on that sheet;
+ * - a qualifier naming the formula's own sheet (`sheets.self`) is dropped (or written as
+ * `sheets.selfAs`), and its reference is shifted like an unqualified one, because the band the shift
+ * accounts for is on that sheet;
  * - a qualifier naming any other sheet is kept with its reference as written, and checked with
  * `sheets.isKnown`; a bare qualifier right after `]` or `:` is never a sheet the engine can resolve,
  * except one after `:` that repeats the qualifier of the reference before the colon
@@ -380,6 +388,7 @@ export function rebaseImportedFormula(
   }
 
   const self = sheets.self.toLowerCase();
+  const selfQualifier = sheets.selfAs === undefined ? '' : `${quoteSheetName(sheets.selfAs)}!`;
   let unknownSheet = false;
   let rejected = false;
   const map: ReferenceMap = (reference) => {
@@ -416,7 +425,9 @@ export function rebaseImportedFormula(
 
       } else if (lowered === self) {
         // The reference part is a cell, a range or a span of at most a few dozen characters.
-        replacement = rewriteReferences(groups.qualified ?? '', QUALIFIED_PART_REGEX, map, false);
+        const part = rewriteReferences(groups.qualified ?? '', QUALIFIED_PART_REGEX, map, false);
+
+        replacement = part === null ? null : `${selfQualifier}${part}`;
 
       } else if (!sheets.isKnown(name)) {
         unknownSheet = true;

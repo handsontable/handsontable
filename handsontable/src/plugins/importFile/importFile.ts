@@ -264,6 +264,23 @@ export interface ImportResult {
    */
   comments?: Array<{ row: number; col: number; value: string }>;
   /**
+   * The workbook's defined names handed to the Formulas engine as workbook-scoped named
+   * expressions, each `formula` without its leading `=` and in grid coordinates, a reference to the
+   * imported sheet written against the grid's own sheet name (`Sheet1!$F$1:$F$3`). Present only when
+   * the Formulas plugin is enabled, `importFormulas` is on, and at least one name was handed over.
+   * The formulas using these names import live; applying the result adds them to the engine before
+   * the data is loaded. Install them yourself with `addNamedExpression(name, '=' + formula)` when
+   * `apply` is `false`.
+   *
+   * A name the engine already defines is not handed over, and the engine keeps its own definition. A
+   * name scoped to another sheet is ignored. A name the engine cannot take (a relative reference, a
+   * reference into the dropped header band, a sheet the engine does not hold, or a name over such a
+   * name) is listed as `definedNames:unsupported` in `dropped`, and the formulas using it import
+   * their cached values with `formula:definedName`. The import is not an undoable step, and neither
+   * is adding these names.
+   */
+  namedExpressions?: Array<{ name: string; formula: string }>;
+  /**
    * Conditional formatting read from the workbook, in grid coordinates. Nothing applies it - the
    * grid has no conditional formatting plugin - so it is handed back for the caller to use, for
    * instance by passing it to `exportFile`'s `conditionalFormatting` option on a re-export. The
@@ -364,6 +381,23 @@ function engineNamedExpressions(engine: { listNamedExpressions?: () => string[] 
   const names = typeof engine?.listNamedExpressions === 'function' ? engine.listNamedExpressions() : [];
 
   return new Set(names.map(name => name.toLowerCase()));
+}
+
+/**
+ * Whether a Formulas engine takes a workbook-scoped named expression, through HyperFormula's
+ * `isItPossibleToAddNamedExpression`, or `undefined` when the engine has no such method, so no name
+ * is handed over.
+ */
+function namedExpressionCheck(
+  engine: { isItPossibleToAddNamedExpression?: (name: string, expression: string) => boolean } | null | undefined
+): ((name: string, expression: string) => boolean) | undefined {
+  const check = engine?.isItPossibleToAddNamedExpression;
+
+  if (typeof check !== 'function') {
+    return undefined;
+  }
+
+  return (name, expression) => check.call(engine, name, expression) === true;
 }
 
 /**
@@ -844,6 +878,7 @@ export class ImportFile extends BasePlugin {
       formulaSheetNames: formulasEnabled ? engineSheetNames(formulasPlugin?.engine) : undefined,
       formulaSheetName: formulasEnabled ? formulasPlugin?.sheetName ?? undefined : undefined,
       formulaNamedExpressions: formulasEnabled ? engineNamedExpressions(formulasPlugin?.engine) : undefined,
+      canAddNamedExpression: formulasEnabled ? namedExpressionCheck(formulasPlugin?.engine) : undefined,
     }, dropped);
 
     recordLayoutDirectionMismatch(this.hot, mapped, resolved.apply, dropped);

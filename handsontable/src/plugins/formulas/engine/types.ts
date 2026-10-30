@@ -41,6 +41,7 @@ export interface HyperFormulaEngine {
   getNamedExpression(name: string, scope?: number): {
     options?: Record<string, string | number | boolean>;
   } | undefined;
+  isItPossibleToAddNamedExpression(name: string, expression: unknown, scope?: number): boolean;
   isItPossibleToChangeNamedExpression(name: string, expression: unknown, scope?: number): boolean;
   changeNamedExpression(
     name: string, expression: unknown, scope?: number, options?: Record<string, string | number | boolean>,
