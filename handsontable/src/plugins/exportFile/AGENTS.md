@@ -391,6 +391,7 @@ Other rules:
   `workbook.worksheets[1].state === 'hidden'` for the validation sheet, and "should write the rows
   before merging, so a merged range keeps its master value" is the row-before-merge regression test —
   run it before reordering `writeColumnLayout`/`writeRows`/`writeSheetFeatures` in `exceljs.ts`.
+- **The license entitlement is read from `dataProvider.hot`, never from `options`.** A user can pass any option, so `Xlsx#export()` calls `getXlsxEntitlement(hot)` and scopes it with `EXPORT_FILE_CAPABILITY_IDS` before the gates (`numFmt`, layout, header style, validations, formulas, protection) read it. `supportsExportFormat('xlsx')` is also the predicate the "To Excel" context menu item reads, so a missing `xlsx:export` hides the item and throws from `exportAsBlobAsync`; keep the two answers the same. Header alignment is gated in `#applyHeaderStyle`, the one place every header cell passes through. The `protection` password never appears in a message. Token rules: `utils/xlsxEngine/AGENTS.md` "License gating".
 
 ## Column widths come from `_getColWidthFromSettings()`
 

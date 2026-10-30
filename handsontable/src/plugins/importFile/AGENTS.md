@@ -612,6 +612,7 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   entry was removed when the key was added. The ref parsing lives in
   `../../utils/xlsxEngine/cellRef.ts#parseMultiRangeRef`, beside the single-range parser both directions
   already share; do not grow a second A1 parser in the plugin.
+- **License gates sit in two places only.** `importFile.ts` refuses the call without `xlsx:import` (and `supportsImportFormat('xlsx')` answers `false`) and forces `importFormulas`, `importLayout`, and `importStyles` off for a missing token before the mapper runs; `mapper.ts` skips comments, validations, protection, and conditional formatting from `MapperContext.entitlement`, which is required, so a new call site cannot forget it. A missing token forces an option off instead of adding an option. `xlsx:number_formats` never restricts import (it feeds type inference) and `xlsx:import_report` is always on, so `result.dropped` stays complete: a missing token adds a `license:xlsx:<token>` entry through `recordLicense`, and without `xlsx:styles` or `xlsx:comments` it replaces `cellStyles`, `comments`, and `comment:header`. Scope the entitlement with `IMPORT_FILE_CAPABILITY_IDS` before use. Token rules: `utils/xlsxEngine/AGENTS.md` "License gating".
 
 ## Raw-value inference
 

@@ -920,6 +920,11 @@ directions.
   separators (such as "…"), which the ZIP format does not allow.` A `mimetype` entry starting with
   `application/vnd.oasis.opendocument.spreadsheet` is refused as
   `the file is an OpenDocument spreadsheet (.ods), not an Excel workbook. Save it as .xlsx.`
+## License gating
+
+- **Two tables, two jobs.** `capabilities.ts` is the engine feature table and `DroppedFeatures`; `licenseCapabilities.ts` holds only the runtime license id lists (`XLSX_CAPABILITY_IDS`, `IMPORT_FILE_CAPABILITY_IDS`, `EXPORT_FILE_CAPABILITY_IDS`) and `LISTED_CAPABILITIES_FLAG`. Names, descriptions, and which plugin reads a token come from `features.json` (the feature manifest's source, rules in `src/featureManifest/AGENTS.md`), and a unit test holds the id lists equal to it.
+- **Gates sit on the snapshot (`XlsxEntitlement`, `xlsxEntitlement.ts`), never in an adapter.** A gate in the native adapter would let the ExcelJS adapter bypass it. The plugin resolves the entitlement once per call and strips the feature from the snapshot or the options before any engine runs. `xlsx:number_formats` never restricts an import, because the import reads number formats to infer cell types, and `xlsx:import_report` is `core`, always on.
+- **`DroppedFeatures#recordLicense` is the only writer of `license:<token>` entries.** The token comes from the dictionary, never from the file, so it skips the 32-name cap. `warn()` leaves those entries out: the plugin's own missing-token warning names them. Scope the entitlement per plugin (`scopeXlsxEntitlement`) before use, or the export warns about `xlsx:import`.
 
 ## Testing
 
