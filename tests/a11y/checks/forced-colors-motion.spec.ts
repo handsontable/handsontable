@@ -310,6 +310,7 @@ async function forcedColors(page: Page, testInfo: TestInfo, theme: string) {
   const { root } = opened;
 
   await reachState(page, entry, opened);
+  await releaseParkedFetches(page);
   await page.mouse.move(0, 0);
 
   const environment = await readEnvironment(page);
