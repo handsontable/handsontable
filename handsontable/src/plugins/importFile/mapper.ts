@@ -78,6 +78,13 @@ export interface MapperContext {
    * means a name the engine defines is trusted as it is.
    */
   definesNamedExpression?: (name: string, expression: string) => boolean;
+  /**
+   * Whether the Formulas plugin's engine registers a function of this name (upper-cased, in the
+   * engine's language). A live array master calling a function the engine lacks shows `#NAME?` and
+   * spills nothing, so the cells its `ref` covers keep their cached values instead of importing
+   * empty. Absent means every function is trusted.
+   */
+  registersFunction?: (name: string) => boolean;
 }
 
 /**
@@ -594,16 +601,23 @@ function rewriteBareBooleans(formula: string): string {
  * A formula any walk will run over is charged against the budget ONCE, before the first walk: the
  * prefix strip, the boolean rewrite (a formula that spells `true` or `false` in any case), and - with
  * live formulas on - the reference walk of `rebaseImportedFormula` (a non-zero window origin, or a
- * `!` to check) and the defined-name scan (a workbook that defines a name the engine lacks). Each
- * walk is linear in the formula's length, so one charge per formula is what the budget's figures in
- * `limits.ts` were measured against.
+ * `!` to check), the defined-name scan (a workbook that defines a name the engine lacks) and the
+ * function scan of an array master (`callsUnregisteredFunction`, asked by the caller through
+ * `scansFunctions`). Each walk is linear in the formula's length, so one charge per formula is what
+ * the budget's figures in `limits.ts` were measured against.
+ *
+ * @param {string} text The formula as the file stores it, without its `=`.
+ * @param {CollectContext} scope The pass context.
+ * @param {boolean} [scansFunctions] Whether the caller also runs the function scan over the text.
+ * @returns {ReadFormula}
  */
-function readFormulaText(text: string, scope: CollectContext): ReadFormula {
+function readFormulaText(text: string, scope: CollectContext, scansFunctions = false): ReadFormula {
   const { shift } = scope;
   const stripping = STORED_PREFIX_HINT.test(text);
   const rewriting = shift !== null && BOOLEAN_HINT.test(text);
   const walking = shift !== null && (
     shift.rowDelta !== 0 || shift.colDelta !== 0 || text.includes('!') || scope.unresolvedNames.size > 0
+    || scansFunctions
   );
 
   if (stripping || rewriting || walking) {
@@ -681,6 +695,35 @@ function* namesIn(formula: string): Generator<string> {
       yield token.toLowerCase();
     }
   }
+}
+
+/**
+ * Whether a formula calls a function the Formulas engine does not register
+ * (`MapperContext.registersFunction`), asked upper-cased. HyperFormula shows `#NAME?` for such a
+ * formula and spills nothing, so an array master calling one must not empty the cells its `ref`
+ * covers. An engine that cannot answer is trusted. `readFormulaText` has already charged the walk.
+ *
+ * @param {string} formula The formula, without its `=`.
+ * @param {CollectContext} scope The pass context.
+ * @returns {boolean}
+ */
+function callsUnregisteredFunction(formula: string, scope: CollectContext): boolean {
+  const registers = scope.context.registersFunction;
+
+  if (registers === undefined) {
+    return false;
+  }
+
+  for (const match of formula.matchAll(FORMULA_IDENTIFIER_REGEX)) {
+    const [token] = match;
+    const isQuoted = token[0] === '"' || token[0] === '\'';
+
+    if (!isQuoted && formula[(match.index ?? 0) + token.length] === '(' && !registers(token.toUpperCase())) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -963,7 +1006,11 @@ function pushCellValue(
   row: number, col: number, scope: CollectContext
 ): void {
   const { shift, dropped } = scope;
-  const read = cell.formula ? readFormulaText(cell.formula.text, scope) : null;
+  const array = cell.formula?.array;
+  // An array master is also scanned for its functions; the one charge covers that walk.
+  const read = cell.formula
+    ? readFormulaText(cell.formula.text, scope, array !== undefined && scope.context.registersFunction !== undefined)
+    : null;
   const formula = read === null ? null : read.recorded;
   const rebased = read !== null && shift !== null
     ? rebaseImportedFormula(read.live, shift.rowDelta, shift.colDelta, {
@@ -976,8 +1023,6 @@ function pushCellValue(
   const live = rebased !== null && !otherSheet && !unknownName ? rebased.formula : null;
 
   if (live !== null) {
-    const array = cell.formula?.array;
-
     // A legacy CSE array (`{=A1:A2*2}`) is an ordinary formula to HyperFormula unless it is
     // wrapped; a dynamic array spills on its own.
     // A master the file already wraps in `ARRAYFORMULA(...)` is not wrapped twice.
@@ -985,7 +1030,9 @@ function pushCellValue(
 
     pass.data[pass.data.length - 1].push(wrap ? `=ARRAYFORMULA(${live})` : `=${live}`);
 
-    if (array) {
+    // A master calling a function the engine lacks shows `#NAME?` and spills nothing: its covered
+    // cells keep the values the file caches.
+    if (array && !callsUnregisteredFunction(live, scope)) {
       recordLiveArray(array.ref, row, col, scope);
     }
 

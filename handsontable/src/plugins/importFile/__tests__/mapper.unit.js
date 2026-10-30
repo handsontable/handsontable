@@ -1968,6 +1968,42 @@ describe('mapWorkbook – array formulas', () => {
     expect(result.data[1][4]).toBe(null);
   });
 
+  it('should keep the spilled cells\' cached values when the engine lacks a function the master calls', () => {
+    // HyperFormula 3.3 has no UNIQUE: the live master shows `#NAME?` and spills nothing, so blanking
+    // B2 lost the value the file holds.
+    const sheet = createSheetSnapshot('Sheet1');
+    const registered = new Set(['SEQUENCE', 'SUM', 'ARRAYFORMULA']);
+    const asked = [];
+    const context = {
+      ...FORMULAS_ON,
+      registersFunction: (name) => {
+        asked.push(name);
+
+        return registered.has(name);
+      },
+    };
+
+    sheet.rows = [
+      [cell({ value: 1 }),
+        cell({ formula: { text: '_xlfn.UNIQUE(A1:A3)', result: 1, array: { ref: 'B1:B2', dynamic: true } } }),
+        cell({ formula: { text: 'SEQUENCE(2)', result: 1, array: { ref: 'C1:C2', dynamic: true } } }),
+        cell({ formula: { text: 'sum(_xlfn.UNIQUE(A1:A3))', result: 3, array: { ref: 'D1:D2', dynamic: false } } })],
+      [cell({ value: 1 }), cell({ value: 2 }), cell({ value: 2 }), cell({ value: 9 })],
+      [cell({ value: 2 }), null, null, null],
+    ];
+
+    const { result } = map(workbook(sheet), {}, context);
+
+    expect(result.data).toEqual([
+      [1, '=UNIQUE(A1:A3)', '=SEQUENCE(2)', '=ARRAYFORMULA(sum(UNIQUE(A1:A3)))'],
+      [1, 2, null, 9],
+      [2, null, null, null],
+    ]);
+    // Names are asked upper-cased; a reference or a name is never asked.
+    expect(asked).toEqual(expect.arrayContaining(['UNIQUE', 'SEQUENCE', 'SUM']));
+    expect(asked).not.toContain('A1');
+  });
+
   it('should keep the spilled cells\' cached values when the window starts below the master', () => {
     const { result } = map(workbook(arraySheet()), { range: [1, 0, 2, 5] }, FORMULAS_ON);
 

@@ -439,7 +439,13 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `ref` covers are pushed `null` (still typed from the cached value): a cached value there would make
   the spill `#SPILL!`. The rectangle is recorded only when the `ref` starts at the master, and is clipped
   to the window. A master that cannot go live (other sheet, unresolved name, Formulas off) imports its
-  cached values, spilled cells included, as before. The sweep over the rectangles charges the formula
+  cached values, spilled cells included, as before. **A live master calling a function the engine does not
+  register** (`MapperContext.registersFunction`, wired to the engine's `getRegisteredFunctionNames()` - its
+  own language, custom functions included; HF 3.3 lacks UNIQUE, SORT, SORTBY, LET, VSTACK, TEXTSPLIT,
+  RANDARRAY) **records no rectangle** (`callsUnregisteredFunction`): it shows `#NAME?` and spills nothing,
+  so its covered cells keep their cached values instead of importing empty (they used to be lost). The scan
+  walks every identifier followed by `(`, upper-cased, and shares the formula's one charge
+  (`readFormulaText(..., scansFunctions)`). The sweep over the rectangles charges the formula
   budget (`beginLiveArrayRow`), so many narrow arrays cannot make the walk quadratic.
 - **A bare `TRUE`/`FALSE` in a live formula or a name definition is rewritten to `TRUE()`/`FALSE()`** (DEV-3648,
   `rewriteBareBooleans`, called by `readFormulaText`): HyperFormula reads the bare literal as an unknown name

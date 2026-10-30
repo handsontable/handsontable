@@ -498,6 +498,33 @@ function isCellError(value: unknown): value is { value: string } {
 }
 
 /**
+ * Whether a Formulas engine registers a function, through HyperFormula's
+ * `getRegisteredFunctionNames()` (the names in the engine's own language, custom functions
+ * included), or `undefined` when the engine has no such method, so every function is trusted. The
+ * list is read once, on the first question.
+ *
+ * @param {object|null|undefined} engine The Formulas plugin's engine.
+ * @returns {Function|undefined}
+ */
+function functionRegistryCheck(
+  engine: { getRegisteredFunctionNames?: () => string[] } | null | undefined
+): ((name: string) => boolean) | undefined {
+  if (typeof engine?.getRegisteredFunctionNames !== 'function') {
+    return undefined;
+  }
+
+  let names: Set<string> | null = null;
+
+  return (name) => {
+    if (names === null) {
+      names = new Set((engine.getRegisteredFunctionNames?.() ?? []).map(registered => registered.toUpperCase()));
+    }
+
+    return names.has(name);
+  };
+}
+
+/**
  * Whether a Formulas engine parses the formula. An engine without `validateFormula` is not asked.
  */
 function isValidFormula(engine: NamedExpressionEngine | null | undefined, formula: string): boolean {
@@ -1004,6 +1031,7 @@ export class ImportFile extends BasePlugin {
       definesNamedExpression: formulasEnabled
         ? namedExpressionComparison(formulasPlugin?.engine, formulasPlugin?.sheetName)
         : undefined,
+      registersFunction: formulasEnabled ? functionRegistryCheck(formulasPlugin?.engine) : undefined,
     }, dropped);
 
     recordLayoutDirectionMismatch(this.hot, mapped, resolved.apply, dropped);

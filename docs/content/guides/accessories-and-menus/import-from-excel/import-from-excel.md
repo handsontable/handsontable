@@ -175,7 +175,7 @@ For a file from an untrusted source, import it with `apply: false` first or with
 
 With the `Formulas` plugin on and `importFormulas` left at `true`, formulas import live:
 
-- **Dynamic arrays** (`=SEQUENCE(3)`, `=FILTER(...)`) import live and spill over the cells below them. The cells the array covers import empty, so the spill does not collide with their cached values.
+- **Dynamic arrays** (`=SEQUENCE(3)`, `=FILTER(...)`) import live and spill over the cells below them. The cells the array covers import empty, so the spill does not collide with their cached values. When the array calls a function HyperFormula lacks, such as `UNIQUE` or `SORT`, it shows an error and does not spill, so the cells it covers keep their cached values.
 - **Legacy (CSE) arrays** import as `=ARRAYFORMULA(...)`. The [ExcelJS engine](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#known-differences) cannot tell the two kinds apart, so it imports every array this way.
 - **Defined names** are added to the Formulas plugin's engine as named expressions, and `result.namedExpressions` lists them. A formula such as `=SUM(Sales)` stays live. A name HyperFormula cannot take, or one that points at a sheet it does not hold, is reported as `definedNames:unsupported`. The formulas over it import their cached values and are reported as `formula:definedName`.
 - **`TRUE` and `FALSE`** written without parentheses become `TRUE()` and `FALSE()` in the live formula, because HyperFormula reads the bare words as names. `result.formulas` keeps the text from the file.

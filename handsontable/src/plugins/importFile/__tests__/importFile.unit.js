@@ -1584,6 +1584,50 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
       hf.destroy();
     }
   });
+
+  it('should keep the cached spilled values of a master calling a function HyperFormula lacks', async() => {
+    // HyperFormula 3.3 registers no UNIQUE, so B1 shows `#NAME?` and spills nothing. Importing B2
+    // empty lost the 2 the file holds.
+    const snapshot = createWorkbookSnapshot();
+    const sheet = createSheetSnapshot('Sheet1');
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+
+    sheet.rows = [
+      [at({ value: 1 }),
+        at({ formula: { text: '_xlfn.UNIQUE(A1:A3)', result: 1, array: { ref: 'B1:B2', dynamic: true } } })],
+      [at({ value: 1 }), at({ value: 2 })],
+      [at({ value: 2 }), null],
+    ];
+    snapshot.sheets.push(sheet);
+
+    const bytes = toArrayBuffer(await nativeAdapter.write(snapshot, undefined, new DroppedFeatures()));
+
+    expect(HyperFormula.getRegisteredFunctionNames('enGB')).not.toContain('UNIQUE');
+
+    for (const [kind, engine, b1] of [
+      ['native', undefined, '=UNIQUE(A1:A3)'],
+      ['exceljs', ExcelJS, '=ARRAYFORMULA(UNIQUE(A1:A3))'],
+    ]) {
+      const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+
+      hf.addSheet('Sheet1');
+
+      const { plugin, hot } = pluginWithFakeHot(true);
+
+      hot.getPlugin = name => ({ formulas: { isEnabled: () => true, sheetName: 'Sheet1', engine: hf } })[name];
+
+      // eslint-disable-next-line no-await-in-loop -- one engine at a time.
+      const result = await plugin.importFromArrayBuffer('xlsx', bytes, { apply: false, engine });
+
+      expect([kind, result.data.map(row => row[1])]).toEqual([kind, [b1, 2, null]]);
+
+      hf.setSheetContent(0, result.data);
+
+      expect([kind, hf.getCellValue({ sheet: 0, row: 1, col: 1 })]).toEqual([kind, 2]);
+
+      hf.destroy();
+    }
+  });
 });
 
 describe('ImportFile and the Formulas engine\'s own sheet', () => {

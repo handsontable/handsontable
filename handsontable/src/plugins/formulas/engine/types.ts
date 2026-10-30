@@ -48,6 +48,8 @@ export interface HyperFormulaEngine {
   ): unknown[];
   normalizeFormula(formula: string): string;
   validateFormula(formula: string): boolean;
+  getRegisteredFunctionNames(): string[];
+  calculateFormula(formula: string, sheetId: number): unknown;
   getSheetDimensions(sheetId: number): { width: number; height: number };
   getCellType(address: { sheet: number | null; row: number; col: number }): unknown;
   isCellEmpty(address: { sheet: number | null; row: number; col: number }): boolean;
