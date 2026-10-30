@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added dynamic-array formulas, error cells, and defined names to the XLSX export and import: a HyperFormula array formula is written as an Excel dynamic array (no `@` in Excel), an error value is stored as an Excel error with or without `exportFormulas`, named expressions are written as defined names, and a number the Formulas plugin computed keeps its type in a `text` column. The import keeps spilled cells empty so arrays spill without `#SPILL!`, registers the workbook's defined names in HyperFormula, and rewrites a bare `TRUE` or `FALSE` to `TRUE()` or `FALSE()`.",
+  "type": "added",
+  "issueOrPR": 14096,
+  "breaking": false,
+  "framework": "none"
+}
