@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "page": "formula-builder-function-help",
+  "theme": "main",
+  "walks": {
+    "popup": [
+      {
+        "region": "portal",
+        "role": "generic",
+        "name": "any... - repeatable"
+      },
+      {
+        "region": "portal",
+        "role": "generic",
+        "name": "any... - repeatable"
+      }
+    ]
+  }
+}

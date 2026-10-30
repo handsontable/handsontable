@@ -1,0 +1,72 @@
+name: A11y nightly
+
+# Every accessibility check on develop, every weeknight: the axe scan and every check beyond axe
+# (a11y.yml with `nightly: true`; tests/AGENTS.md, "A11y: the checks beyond axe"). The pull-request
+# Tests pipeline runs the axe scan and the checks that finish in under two minutes; this run adds the
+# slower ones and keeps the evidence 30 days, which is what the Accessibility Conformance Report cites
+# per criterion. Report-only: the checks job carries `continue-on-error`, and the verdict of each
+# check is its `A11y / <check> report` check run and the job summary.
+#
+# Triage. A finding is about the product: record it, never fix it in the check's change. A target
+# that was not measured, or one flagged flaky, is a finding against the check: fix the measurement.
+on:
+  schedule:
+    # 05:30 UTC Tue–Sat: after the screen reader nightly (04:30), clear of the E2E nightly (03:30), the
+    # visual nightly (02:00), the visual stability run (02:30), the code-quality baseline (03:00), the
+    # readme (04:00) and the docs sync (05:00).
+    - cron: '30 5 * * 2-6'
+  # From any ref: a dispatch from a feature branch is how a new check proves itself before it merges.
+  workflow_dispatch:
+  # Self-validation, as screenreader-nightly.yml does it: this file never runs on an ordinary pull
+  # request, so a broken workflow_call graph would first execute after merging. With this trigger a
+  # pull request that touches the file gets a startup-validated run whose jobs skip themselves.
+  pull_request:
+    paths: [ '.github/workflows/a11y-nightly.yml' ]
+
+# NO permissions block: the called workflow validates its job-level grants against the default token
+# this caller hands down (the parity rule of e2e-nightly.yml and screenreader-nightly.yml).
+
+concurrency:
+  # Static prefix, never the workflow-name expression (a called workflow resolves it to the caller's).
+  group: a11y-nightly-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build
+    if: github.event_name != 'pull_request'
+    uses: ./.github/workflows/build.yml
+    with:
+      run-umd: true
+    secrets: inherit
+
+  a11y:
+    name: A11y
+    needs: [ build ]
+    if: github.event_name != 'pull_request'
+    uses: ./.github/workflows/a11y.yml
+    with:
+      nightly: true
+    # No `secrets: inherit`: the called workflow reads only secrets.GITHUB_TOKEN, which every job has.
+
+  # Optional Slack ping, develop only, when the run never reached the checks (the UMD build failed or
+  # the called workflow could not start). The checks job carries `continue-on-error`, so a red check is
+  # never reported here; its verdict is its check run. The same webhook as the other nightlies.
+  notify:
+    name: Notify Slack
+    needs: [ a11y ]
+    if: ${{ failure() && github.event_name != 'pull_request' && github.ref_name == 'develop' }}
+    runs-on: ubuntu-26.04
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_VISUAL_WEBHOOK_URL }}
+    steps:
+      - name: Send the failure to Slack
+        if: env.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # https://github.com/slackapi/slack-github-action/releases/tag/v3.0.2
+        with:
+          webhook: ${{ env.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": ":red_circle: A11y nightly on ${{ github.ref_name }} failed outside the checks: the UMD build, or the axe scan's tooling. A finding of a check beyond axe is not reported here; its verdict is its A11y check run.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nTriage: tests/AGENTS.md, A11y: the checks beyond axe."
+            }

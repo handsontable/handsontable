@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "page": "dropdown-editor",
+  "theme": "main",
+  "walks": {
+    "popup": [
+      {
+        "region": "grid",
+        "role": "combobox",
+        "name": ""
+      },
+      {
+        "region": "grid",
+        "role": "combobox",
+        "name": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "page": "multiselect-editor",
+  "theme": "main",
+  "walks": {
+    "popup": [
+      {
+        "region": "grid",
+        "role": "textbox",
+        "name": "Search options"
+      },
+      {
+        "region": "body"
+      }
+    ]
+  }
+}

@@ -1299,12 +1299,12 @@ unescaped newline or `%` would cut the one line that explains a red job.
 
 The axe scan reads the accessibility tree against axe's rules. It never presses a key, measures a
 focus ring, zooms the page, turns on forced colors or drags anything, and the published conformance
-report still marks criteria "Not Evaluated" for want of that evidence. The checks beyond axe measure
-those. Each check is one Playwright project of a config whose reporter is `reporters/a11y-checks.ts`,
-named by its id, and each test of a check measures one target: a page of the catalog
-(`a11y/pages.mjs`) in a theme and a state, or a variant the check makes of it (dark, right to left, a
-phone). What a check measured lands in one evidence document per check, which the conformance report
-generator cites per criterion.
+report still marks criteria "Not Evaluated" for want of that evidence. The checks in `a11y/checks/`
+measure those. Each check is one Playwright project of `playwright.a11y-checks.config.ts`, named by its
+id, and each test of a check measures one target: a page of the catalog (`a11y/pages.mjs`) in a theme
+and a state, or a variant the check makes of it (dark, right to left, a phone). What a check measured
+lands in one evidence document per check, which the conformance report generator cites per
+criterion.
 
 - **Report-only, and the rule is one constant.** `EVIDENCE_MODE` in `lib/a11y-evidence.mjs` is
   `report`, and `lib/__tests__/a11y-evidence.test.mjs` pins it. A finding is a row in the job summary,
@@ -1336,14 +1336,16 @@ generator cites per criterion.
   measured in full (every focus stop, every ratio) goes to `<check>/<page>--<theme>[--<variant>].json`
   beside the document, so the document stays small enough to read. `summary.byCriterion` counts, per
   criterion, the targets that evaluated it and the findings against it: a criterion evaluated on many
-  targets with no finding is the evidence of a pass, and that count is what the generator cites.
-  `schema` (`EVIDENCE_SCHEMA`) changes when a field is removed or renamed; `validateEvidence()` is what
+  targets with no finding is the evidence of a pass, and that count is what the generator cites. A
+  target whose test could not take a step (the part's `problems`, counted as the target's `problems`)
+  stays measured and keeps its findings, but evaluates no criterion: a step that did not run found
+  nothing, which is not a pass. `schema` (`EVIDENCE_SCHEMA`) changes when a field is removed or renamed; `validateEvidence()` is what
   a reader can rely on, and it checks every field the summary and the check run read, so a document
   that validates never crashes the report script before it posts.
 - **Criteria are WCAG 2.2 ids from one table.** `WCAG_CRITERIA` lists every 2.2 success criterion with
   its name and level, without the obsolete 4.1.1, and a finding naming any other id is refused. A
   finding may name a criterion outside its check's list when the measurement shows it (a focus stop
-  with no name is a 4.1.2 fact a keyboard walk sees); it is then counted under that criterion with
+  with no name is a 4.1.2 fact the keyboard walker sees); it is then counted under that criterion with
   no target evaluating it, because the check does not evaluate it everywhere.
 - **Severity is axe's scale plus one.** `critical`, `serious`, `moderate`, `minor`, as axe rates
   impact, so a finding reads the same in every report, and `advisory` for a difference to review that
@@ -1364,10 +1366,12 @@ generator cites per criterion.
   failed before it measured; `attachEvidence()` attaches the part, with `readEnvironment()`'s browser
   and build. It takes the page errors `openTarget()` collected (`opened.pageErrors`) and fails the test
   when the page threw while it was measured, so a page that crashed halfway is a target not measured,
-  never a clean one. A test that loads the page more than once owns that list: it passes one list to
-  every `openTarget()` as `pageErrors` and drains it in place, and the page writes to it from before the
-  navigation, so the test holds the live list even when a load throws. An empty `findings` list is
-  evidence too: the target was measured and nothing was found.
+  never a clean one. The documented-shortcuts test is the one exception: it reloads its page between
+  probes, so it records an error the page threw during a probe as a problem of that probe, and the
+  target, measured with a problem, evaluates no criterion. A test that loads the page more than once
+  owns that list: it passes one list to every `openTarget()` as `pageErrors` and drains it in place,
+  and the page writes to it from before the navigation, so the test holds the live list even when a
+  load throws. An empty `findings` list is evidence too: the target was measured and nothing was found.
 - **Findings on the product are recorded, never fixed in the check's change.** A check lands with what
   it finds listed in its pull request; the product tasks are filed apart, and a fix later clears the
   finding. A finding the check gets wrong is fixed in the check.
@@ -1386,15 +1390,146 @@ the documents, the detail files and a `summary.md`; it never changes the run's s
 `e2e/a11y-checks-reporter.spec.ts` (no browser, a few seconds) proves it on synthetic projects: the
 last attempt read, a failed test recorded as an error target, a retried one flagged, a detail written
 to its own file. `scripts/a11y-evidence-report.mjs` reads the documents and writes the job summary,
-or posts one check run per check with `--check-run` (`--dry-run` prints the payloads); a check the job
-ran that left no document (`A11Y_CHECKS`) gets a neutral tooling check run instead of none.
+or posts one check run per check with `--check-run` (`--dry-run` prints the payloads); a check of the
+suite the job ran (`HOT_A11Y_CHECKS_SUITE`, or the comma-separated `A11Y_CHECKS` when it is set) that
+left no document gets a neutral tooling check run instead of none.
+
+- **Where they run.** `a11y.yml` has a second job, `checks`, beside `axe`: the same Playwright
+  container and UMD artifact, `continue-on-error` on the job only (a tooling failure turns the job red,
+  as it does the axe job, and never the Tests pipeline), and one
+  `A11y / <check> report` check run per check on the pull request's head commit (behind the canonical
+  fork guard). `HOT_A11Y_CHECKS_SUITE` picks the checks: a pull request runs the ones with
+  `pullRequest: true` in `EVIDENCE_CHECKS` (a check earns it by finishing in under two minutes), and the
+  `A11y nightly` (`a11y-nightly.yml`, weeknights on develop, and a dispatch from any branch) runs them
+  all with `nightly: true`. The evidence goes up as `a11y-checks-evidence`, outside the
+  `playwright-report-*` glob the flake ledger reads, for 30 days from the nightly (what the report
+  cites) and 7 from a pull request. `EVIDENCE_CHECKS` is the one list: the config builds its projects
+  from it (`checksForSuite()`), and the report script posts a neutral tooling check run for a check of
+  the suite that left no document. Locally: `npm --prefix tests run test:a11y-checks`, every check, or
+  `-- --project=<check>`; the reporter writes the documents only when the config's reporters run, so do
+  not pass `--reporter` on the command line.
+
+### The keyboard walker
+
+`a11y/checks/keyboard-walker.spec.ts`, the `keyboard-walker` check: 2.1.1, 2.1.2, 2.1.4, 2.4.3, 3.2.1
+and 3.2.2, measured with real keys. The browser half records (`a11y/checks/walker.ts`), the pure half
+judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test.mjs`).
+
+- **Every catalog page, on the main theme.** A theme is CSS: it moves no tab stop and changes no key,
+  so the walker runs each page of `a11y/pages.mjs` once, in its state, on `main`. The dark and
+  right-to-left pages are in the catalog already.
+- **A walk covers the grid and nothing else.** A focusable sentinel goes right before and right after the
+  grid's root container, and a walk presses Tab from the first until the focus reaches the second
+  (Shift+Tab back). The fixture page's own buttons are not the product and are never walked. Each stop
+  records its region (`grid`, `portal` for any element the harness marked as a portal, the grid's own or
+  a popup library's, a sentinel, `outside`, or `body` when no element has the focus), the role and name Chromium's accessibility tree gives the focused element (read over CDP
+  with `Accessibility.getPartialAXTree`, because the DOM cannot say what a screen reader gets), and its
+  cell. **A stop is keyed by its cell, never by its element**: Walkontable reuses a `<td>` for another
+  cell after a scroll, so keying by element would read a scroll as a cycle.
+- **A trap is a walk that never gets out, and a long walk is not a trap.** With `tabNavigation` (the
+  default) every cell is a tab stop and Tab leaves the grid from a row's last cell; with `autoWrapRow`
+  Tab wraps rows and leaves from the last cell of the grid, so a walk can run out of presses (the
+  column count plus 40) with nothing wrong. The walker then tries the way out the shortcut guide
+  documents, Ctrl+End then Tab (Ctrl+Home then Shift+Tab back): a walk that gets out that way is an
+  advisory `tab-walk-needs-shortcut`, one that does not is a `keyboard-trap`. A way out whose press from
+  inside the grid's container leaves no element focused is also `focus-lost`, as in a walk: the focus left
+  the grid, so it is no trap, but a screen reader has nothing focused. A walk that comes back to a
+  stop outside the product (the sentinel it started on) without reaching the other one is neither an exit
+  nor a trap held in the grid, and is an advisory `tab-walk-incomplete`. A modal dialog holds the
+  focus by design: a cycle inside one is a trap only when neither Escape nor a button in it lets the
+  keyboard out, and a Tab that walks out of an open modal to the content behind it is a
+  `focus-leaves-modal` finding.
+- **A popup is judged by Escape.** On a menu, an editor, the comment editor or the formula editor's popups
+  (`POPUP_STATES`), Escape (pressed up to three times: a submenu takes two, and so does a formula popup,
+  which closes before the edit does) must close it and give the focus back to the cell it opened on: to
+  that cell's own element, or, on a grid in mixed focus mode (`imeFastEdit`), to the editor input that
+  mode keeps the focus on by design. Another element of the grid (a header, a button, the hidden editor
+  input of a grid in cell focus mode) is not back, though the cell stays highlighted. A
+  popup state walked like a grid at rest reads a Tab the editor keeps (the formula editor accepts a
+  suggestion with it) as a trap, so a state that opens a popup belongs on that list. Then the
+  popup opens again and Tab walks inside it, judged per stop, and its stops are keyed by cell like a Tab
+  walk's: on an editor Tab commits and moves from cell to cell. A Tab that leaves the focus on the element
+  it was on (the one the popup put it on, for the first) is an advisory `tab-keeps-focus`, with whether
+  the editor stayed open: the walk cannot tell a date input moving between its fields, a suggestion
+  accepted and a Tab that did nothing apart, and the guide says Tab completes the entry and moves on. A
+  focus that lands on `body` after the
+  popup closed is `focus-not-returned`: the grid often still listens, so the next arrow key brings the
+  focus back, but a screen reader has nothing focused until then.
+- **Per stop:** a product stop the accessibility tree gives no role is `focus-stop-without-role`, one whose
+  role needs a name (a button, a menu item, a text field, a native date or time input, a header) and has none is
+  `focus-stop-unnamed` (both 4.1.2: the walker sees them, the tree snapshots own the criterion); a grid
+  cell needs no name, because an empty cell's empty name is its value. A press that also opened a menu,
+  a dialog or an editor, or navigated, is `context-change-on-focus` (3.2.1). A press from a stop inside the
+  grid's container that leaves no element focused is `focus-lost` (2.4.3): the sentinels bracket the
+  container, so the focused element went away. A `body` stop after a portal stop is not judged, because the
+  portal can be the last focusable element of the page, and Playwright emulates page focus, so
+  `document.hasFocus()` cannot tell leaving the page from losing the focus. A stop both walks pass gets
+  one role or name finding (the walks share one `reported` set): its role and name do not depend on the
+  walk that reached it, so a second finding would count one defect twice. A focus loss, a Tab out of a
+  modal and a change of context on focus depend on the key, so each walk keeps its own: Tab and Shift+Tab
+  losing the focus from one cell are two defects, and fixing one leaves the other. Every form control a walk
+  stopped on then gets an input (Space, ArrowDown, a letter), and an input that navigates, opens a popup
+  or moves the focus away is `context-change-on-input` (3.2.2).
+- **The APG grid keys** (arrows, Home, End, Page Up, Page Down, Ctrl+Home, Enter, F2, Escape) are pressed
+  on every grid at rest, each from the page's cell. A key that moves the focus out of the grid is a
+  finding; one that does nothing is advisory, because an edge cell, a frozen band or a hidden column can
+  make that right. A key the start cell is already at the edge for is skipped, and so are Enter and F2
+  on a cell that is read-only, has no editor, or is a checkbox (which toggles instead), and Enter alone
+  on a grid with `enterBeginsEditing: false`, which changes Enter and leaves F2 opening the editor.
+- **Every documented shortcut is accounted for.** `a11y/checks/keyboard-shortcuts.mjs` has one entry per
+  row of the keyboard shortcuts guide, by section, Windows keys and ordinal (what `parseShortcutTables()`
+  reads from the page): a `probe` (the page, where the focus starts, the steps before, the keys, the
+  effect the guide describes) or a `notProbed` reason. The tooling test fails on a documented row with no
+  entry and on an entry whose row is gone, so a shortcut added to the guide is probed, or its reason
+  written, in the same change. The probes run on `fixtures/demo/keyboard-shortcuts.html` (one grid with
+  menus, filters, comments, merging, undo, clipboard, multi-column sorting and navigable headers) or on
+  the catalog page that draws the feature. The verdict compares two snapshots of the grid
+  (`effectsBetween()`): nothing changed is `shortcut-does-nothing` (2.1.1), the focus leaving the grid is
+  `shortcut-moves-focus-out` (2.4.3), another effect is advisory, and so is an effect the guide rules out,
+  which the probe lists in `forbid` (Escape on an editor or the comment editor must close it without
+  saving what was typed): a probe passes on any one expected effect, so a key that also does the wrong
+  thing passes unless the probe forbids it. **Every probe starts from the page as it
+  loaded**: a probe that changed the data, the merges, the sort, the filters, the collapsed groups, the
+  frozen counts or the row selection makes the walker load the page again, because a cleared cell or a
+  collapsed row made the next probe report a shortcut as dead. Write a probe from a cell the key can
+  move from (the start cell of an arrow is not on the edge it moves toward), and read the fixture first:
+  a read-only cell, a list that keeps the focus on its input (`aria-activedescendant`, which the
+  snapshot counts as a move), a freeze bar that takes one arrow axis only, an editor the grid moves
+  between the cell and the formula bar (the focus key carries the part of the root wrapper, so F6 is a
+  move), the text of the focused text field (`focusedText`, counted as a text change only while the focus
+  stays on the same element: a key that also moves the focus reads as a focus move), and a key that only
+  switches a mode (`then` presses the key that shows the mode). The column menu's Filter by value list
+  is a grid of its own: the snapshot reads its highlighted item and its checked values while the menu is
+  open, because its keys change only those. The editor's text, caret and list read
+  `null` while it is closed, so they count as changed only while the editor stays open: a key that
+  closes the editor closed it, and a probe that expects an edit reads that as another effect.
+- **A probe's step is its id.** A probe finding has a step and no selector (`probeStep()`): the
+  documented keys, the key with the steps of its own (`F6 after F6`), the steps after it, and where the
+  focus starts. No two presses of one page share a step (a tooling test checks it), because two findings
+  that share an id read as one in a diff between runs.
+- **A probe that could not run is a problem, never a pass.** A probe whose setup fails, one the page threw
+  on (the error explains what the probe saw), and one skipped because the test is close to its timeout
+  are tooling problems of that probe, and the others keep their findings; the target then evaluates no
+  criterion. The probes stop early enough for the evidence to be attached: a setup that waits its full
+  timeout on every probe would otherwise run the test out of time and lose everything.
+- **2.1.4 is measured, not assumed.** With the grid holding a selection and the focus on the sentinel
+  outside it, printable keys must change nothing (a key that changed nothing on a grid with no selection
+  would prove nothing, so a setup that fails is a problem and 2.1.4 is not credited); and a documented
+  shortcut that is a single character with no modifier
+  (`singleCharacterShortcuts()`; none today) is listed as advisory, because it must work only while the
+  grid has the focus.
+- **The tab order has goldens, advisory.** `a11y/tab-order-goldens/<page>.json` holds every walk's stops as
+  a reviewer reads them (region, role, name, cell). A difference is `tab-order-changed` (advisory, 2.4.3),
+  a page without one `tab-order-golden-missing`. Record them with `HOT_A11Y_UPDATE_GOLDENS=1` and read
+  the diff before committing: a golden pins what the grid does, findings included.
 
 ### Adding a check
 
-Add its entry to `EVIDENCE_CHECKS` in `lib/a11y-evidence.mjs` (a title and the criteria it
-evidences), and a Playwright project named by the entry's key, in a config whose reporter is
-`reporters/a11y-checks.ts`, with one test per target that calls `declareTarget()` first and
-`attachEvidence()` last. Write the measurer or matcher as a pure function with a tooling test that is red
+Add its entry to `EVIDENCE_CHECKS` in `lib/a11y-evidence.mjs`, keyed by the check's id: its `title`,
+its `spec` (the file name under `a11y/checks/`), the `criteria` it evidences, and `pullRequest` (whether
+pull requests run it, which it earns by finishing in under two minutes). The config builds one project
+per entry from that list (`checksForSuite()`), so never add a project by hand: it would run the check
+twice. Then add its spec to `a11y/checks/`. Write the measurer or matcher as a pure function with a tooling test that is red
 before the function exists. Prove the check on the product with a planted defect (a fixture hook that
 removes a focus ring or a name), shown in the check run of its pull request, then reverted. Document
 its rules here, its line in `handsontable/.ai/TESTING.md` and its job in `.ai/CI.md`.

@@ -1,11 +1,11 @@
 /**
  * The evidence shape of the accessibility checks beyond axe: the pure half.
  *
- * The axe scan (`a11y/axe.spec.ts`) reads the accessibility tree against axe's rules. The checks
- * beyond axe measure what axe does not run: the keyboard, the tree's structure, focus and
+ * The axe scan (`a11y/axe.spec.ts`) reads the accessibility tree against axe's rules. The checks in
+ * `a11y/checks/` measure what axe does not run: the keyboard, the tree's structure, focus and
  * contrast, reflow, forced colors and motion, pointer alternatives. Each is a Playwright project of
- * a config whose reporter is `reporters/a11y-checks.ts`, and each test of a check measures one target
- * (a page of the catalog, in a theme and a state) and attaches what it measured as an evidence part
+ * `playwright.a11y-checks.config.ts`, and each test of a check measures one target (a page of the
+ * catalog, in a theme and a state) and attaches what it measured as an evidence part
  * (`EVIDENCE_ATTACHMENT`). The reporter (`reporters/a11y-checks.ts`) merges a check's parts into one
  * document, `test-results/a11y-checks/<check>.json` (`mergeEvidence()`), which the Accessibility
  * Conformance Report generator cites per criterion, and `scripts/a11y-evidence-report.mjs` turns
@@ -142,13 +142,43 @@ export const WCAG_CRITERIA = Object.freeze({
 });
 
 /**
- * The checks this tier runs: one Playwright project each, named by the key. `criteria` is what the
- * check evidences, and what the conformance report generator cites it for; a finding may name a
- * criterion outside the list when the measurement shows it (a focus stop with no name is a 4.1.2
- * fact a keyboard walk sees), but a target counts as evaluating only the check's own criteria
- * unless it says otherwise. Each pull request that adds a check adds its entry.
+ * The checks this tier runs: one Playwright project each, named by the key, running `spec` under
+ * `a11y/checks/` (`playwright.a11y-checks.config.ts` builds its projects from this list). `criteria` is
+ * what the check evidences, and what the conformance report generator cites it for; a finding may name
+ * a criterion outside the list when the measurement shows it (a focus stop with no name is a 4.1.2
+ * fact the keyboard walker sees), but a target counts as evaluating only the check's own criteria
+ * unless it says otherwise. `pullRequest` says whether the check also runs on pull requests next to
+ * the axe scan, which a check earns by finishing in under two minutes; every check runs in the A11y
+ * nightly. Each pull request that adds a check adds its entry.
  */
-export const EVIDENCE_CHECKS = Object.freeze({});
+export const EVIDENCE_CHECKS = Object.freeze({
+  'keyboard-walker': {
+    title: 'Keyboard walker',
+    spec: 'keyboard-walker.spec.ts',
+    criteria: ['2.1.1', '2.1.2', '2.1.4', '2.4.3', '3.2.1', '3.2.2'],
+    pullRequest: true,
+  },
+});
+/**
+ * Which checks a run covers: `pull-request` (the checks with `pullRequest`, next to the axe scan) or
+ * `nightly` (every check). Read from `HOT_A11Y_CHECKS_SUITE`; a run without it covers every check.
+ */
+export const CHECK_SUITES = ['pull-request', 'nightly'];
+
+/**
+ * The checks a suite runs.
+ *
+ * @param {string|undefined} suite The suite (`HOT_A11Y_CHECKS_SUITE`); empty or unset means every check.
+ * @param {Record<string, {pullRequest?: boolean}>} [checks] The registry; defaults to `EVIDENCE_CHECKS`.
+ * @returns {string[]} The check ids, in registry order.
+ */
+export function checksForSuite(suite, checks = EVIDENCE_CHECKS) {
+  if (suite !== undefined && suite !== '' && !CHECK_SUITES.includes(suite)) {
+    throw new Error(`HOT_A11Y_CHECKS_SUITE must be one of ${CHECK_SUITES.join(', ')}, received "${suite}".`);
+  }
+
+  return Object.entries(checks).filter(([, check]) => suite !== 'pull-request' || check.pullRequest === true).map(([id]) => id);
+}
 
 /**
  * The commit a run tested, for the document's `run.commit`: `A11Y_HEAD_SHA` (the pull request's head,
@@ -276,6 +306,9 @@ export function validatePart(part) {
   if (part.criteria !== undefined) {
     problems.push(...criteriaProblems(part.criteria, 'criteria'));
   }
+  if (part.problems !== undefined && (!Array.isArray(part.problems) || part.problems.some(item => typeof item !== 'string'))) {
+    problems.push('problems is not an array of strings');
+  }
   if (!Array.isArray(part.findings)) {
     problems.push('findings is not an array');
   } else {
@@ -336,10 +369,19 @@ export function mergeEvidence({ check, parts, failures = [], run = {}, problems 
     criteria: [...(part.criteria ?? criteria)].sort(compareCriteria),
     durationMs: Math.round(part.durationMs),
     findings: part.findings.length,
+    problems: (part.problems ?? []).length,
     flaky: flaky.has(targetKey(part.target)),
     detail: part.detail === undefined ? null : `${check}/${targetFileName(part.target)}`,
   }));
 
+  // A test can measure its target and still hit a tooling problem on one of its steps (a probe whose
+  // setup never came); it reports the step as a problem and keeps its findings, and the target counts
+  // as evaluating no criterion (`summarize()`), because the steps that did not run left no finding.
+  for (const part of valid) {
+    for (const problem of part.problems ?? []) {
+      all.push(`${describeTarget(part.target)}: ${problem}`);
+    }
+  }
   for (const failure of failures.filter(item => !item.flaky)) {
     targets.push({
       page: failure.target?.page ?? null,
@@ -420,8 +462,9 @@ export function mergeEvidence({ check, parts, failures = [], run = {}, problems 
 
 /**
  * The counts of a document: targets measured and errored, findings by severity, by kind and by
- * criterion. A criterion's `evaluated` is the number of measured targets that evaluated it: what the
- * conformance report cites as evidence that the criterion was checked, findings or none.
+ * criterion. A criterion's `evaluated` is the number of measured targets that evaluated it with every
+ * step taken (no tooling problem): what the conformance report cites as evidence that the criterion was
+ * checked, findings or none. A target with a problem still counts as measured, and its findings count.
  *
  * @param {{criteria: string[], targets: object[], findings: object[]}} input The document's lists.
  * @returns {object} The summary.
@@ -437,7 +480,7 @@ function summarize({ criteria, targets, findings }) {
     byCriterion[id] = {
       name: WCAG_CRITERIA[id]?.name ?? null,
       level: WCAG_CRITERIA[id]?.level ?? null,
-      evaluated: measured.filter(target => target.criteria.includes(id)).length,
+      evaluated: measured.filter(target => target.criteria.includes(id) && !target.problems).length,
       findings: own.length,
       pages: [...new Set(own.map(finding => finding.page))].sort(),
     };

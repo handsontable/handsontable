@@ -9,6 +9,7 @@
     "report": "playwright show-report",
     "lint": "eslint --ext .js,.mjs,.ts a11y e2e fixtures reporters lib scripts screenreader",
     "test:a11y": "playwright test --config playwright.a11y.config.ts",
+    "test:a11y-checks": "playwright test --config playwright.a11y-checks.config.ts",
     "test:screenreader": "playwright test --config playwright.screenreader.config.ts",
     "test:screenreader:update-goldens": "playwright test --config playwright.screenreader.config.ts --update-snapshots",
     "screenreader:report": "node scripts/screenreader-report.mjs --dry-run"

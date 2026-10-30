@@ -18,8 +18,8 @@ import base from './playwright.config';
 export default defineConfig({
   ...base,
   testDir: 'a11y',
-  // The checks beyond axe run under a config of their own, never this one, so the scan
-  // collects its one spec only.
+  // The checks beyond axe live in `a11y/checks/` and run under their own config
+  // (`playwright.a11y-checks.config.ts`), so the scan collects its one spec only.
   testMatch: 'axe.spec.ts',
   outputDir: 'test-results/a11y',
   // A scan of a big fixture (the complex demo on a slow worker) takes longer than a functional
