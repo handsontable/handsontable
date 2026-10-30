@@ -34,6 +34,46 @@ type NestedHeadersPluginWithSettings = {
 };
 
 /**
+ * The size of the array a formula spills, in cells, as `ExportDataProvider#getArrayFormulaSizes()`
+ * reports it.
+ */
+export interface ArrayFormulaSize {
+  rows: number;
+  cols: number;
+  exported: boolean;
+}
+
+/**
+ * Whether the engine indexes `hfStart … hfStart + length - 1` of one axis land, in that order, on
+ * consecutive positions of the exported matrix, starting at the master's own position.
+ *
+ * @param {object} syncer The Formulas plugin's syncer of the axis.
+ * @param {number} hfStart The master's engine index.
+ * @param {number} length The spill length along the axis.
+ * @param {Map<number, number>} positions Visual index to exported position.
+ * @param {number} visualStart The master's visual index.
+ * @returns {boolean}
+ */
+function spillsInPlace(
+  syncer: { getVisualIndexFromHfIndex(hfIndex: number): number },
+  hfStart: number, length: number, positions: Map<number, number>, visualStart: number
+): boolean {
+  const start = positions.get(visualStart);
+
+  if (start === undefined) {
+    return false;
+  }
+
+  for (let offset = 1; offset < length; offset++) {
+    if (positions.get(syncer.getVisualIndexFromHfIndex(hfStart + offset)) !== start + offset) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
  * @private
  */
 class ExportDataProvider {
@@ -245,6 +285,86 @@ class ExportDataProvider {
       row: rowAxisSyncer.getHfIndexFromVisualIndex(row),
       col: columnAxisSyncer.getHfIndexFromVisualIndex(col),
     })));
+  }
+
+  /**
+   * Gets, for every cell of the export range, the size of the array the Formulas plugin's engine
+   * spills from it, or `null` when the cell is not the master of an array (the engine types it
+   * `ARRAYFORMULA`: a spilling function such as `SEQUENCE`, or `ARRAYFORMULA(…)`). Every entry is
+   * `null` when the Formulas plugin is absent or disabled.
+   *
+   * The engine has no public API for the spill range, so the size is found by walking right, then
+   * down, from the master over the cells it types `ARRAY` (the spilled cells), bounded by the
+   * engine sheet's dimensions. `isCellPartOfArray()` cannot drive the walk: it is `true` for a
+   * neighboring array's master too.
+   *
+   * `exported` tells whether every spilled row and column lands in the exported matrix right
+   * after the master, so the spill keeps its shape in the file. It is `false` when the spill
+   * crosses a trimmed row, a hidden row or column the export leaves out, or the `range` edge.
+   *
+   * @returns {Array[]}
+   */
+  getArrayFormulaSizes(): (ArrayFormulaSize | null)[][] {
+    const formulasPlugin = this.hot.getPlugin('formulas');
+    const engine = formulasPlugin?.isEnabled() ? formulasPlugin.engine : null;
+    const { sheetId, rowAxisSyncer, columnAxisSyncer } = formulasPlugin ?? {};
+
+    if (!engine || sheetId === null || sheetId === undefined || !rowAxisSyncer || !columnAxisSyncer) {
+      return this._extractDataMatrix(() => null);
+    }
+
+    const { startRow, endRow, startCol, endCol } = this._getDataRange();
+    const exportedRows = this.#getExportedPositions(startRow, endRow, this.options.exportHiddenRows === false
+      ? (row: number) => this._isHiddenRow(row) : () => false);
+    const exportedCols = this.#getExportedPositions(startCol, endCol, this.options.exportHiddenColumns === false
+      ? (col: number) => this._isHiddenColumn(col) : () => false);
+    const { width, height } = engine.getSheetDimensions(sheetId);
+    const isSpilled = (row: number, col: number) => engine.getCellType({ sheet: sheetId, row, col }) === 'ARRAY';
+
+    return this._extractDataMatrix((row, col) => {
+      const hfRow = rowAxisSyncer.getHfIndexFromVisualIndex(row);
+      const hfCol = columnAxisSyncer.getHfIndexFromVisualIndex(col);
+
+      if (hfRow < 0 || hfCol < 0 || engine.getCellType({ sheet: sheetId, row: hfRow, col: hfCol }) !== 'ARRAYFORMULA') {
+        return null;
+      }
+
+      let cols = 1;
+      let rows = 1;
+
+      while (hfCol + cols < width && isSpilled(hfRow, hfCol + cols)) {
+        cols += 1;
+      }
+
+      while (hfRow + rows < height && isSpilled(hfRow + rows, hfCol)) {
+        rows += 1;
+      }
+
+      const exported = spillsInPlace(rowAxisSyncer, hfRow, rows, exportedRows, row)
+        && spillsInPlace(columnAxisSyncer, hfCol, cols, exportedCols, col);
+
+      return { rows, cols, exported };
+    });
+  }
+
+  /**
+   * Maps every visual index of one axis the exported matrix holds to its position in the matrix.
+   *
+   * @param {number} start The first visual index of the export range.
+   * @param {number} end The last visual index of the export range.
+   * @param {Function} isLeftOut Whether the export leaves a visual index out.
+   * @returns {Map<number, number>}
+   */
+  #getExportedPositions(start: number, end: number, isLeftOut: (index: number) => boolean): Map<number, number> {
+    const positions = new Map<number, number>();
+
+    for (let index = start; index <= end; index++) {
+      if (!isLeftOut(index)) {
+        positions.set(index, positions.size);
+      }
+    }
+
+    return positions;
   }
 
   /**
