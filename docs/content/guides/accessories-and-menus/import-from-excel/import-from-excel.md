@@ -180,7 +180,7 @@ With the `Formulas` plugin on and `importFormulas` left at `true`, formulas impo
 - **Defined names** are added to the Formulas plugin's engine as named expressions, and `result.namedExpressions` lists them. A formula such as `=SUM(Sales)` stays live. A name HyperFormula cannot take, or one that points at a sheet it does not hold, is reported as `definedNames:unsupported`. The formulas over it import their cached values and are reported as `formula:definedName`.
 - **`TRUE` and `FALSE`** written without parentheses become `TRUE()` and `FALSE()` in the live formula, because HyperFormula reads the bare words as names. `result.formulas` keeps the text from the file.
 
-When the engine already defines a name, the import keeps that definition if it matches the file's. If the definition differs, as in a second import of a changed file, the import does not replace it. The formulas over that name import their cached values, and the import reports `formula:definedName` and `definedNames:unsupported`. Remove the name from the engine before you import again to take the file's definition.
+When the engine already defines a name, the import keeps that definition if it matches the file's. If the definition differs, as in a second import of a changed file, the import does not replace it. The formulas over that name import their cached values, and the import reports `formula:definedName` and `definedNames:unsupported`. To take the file's definition, remove the name first with HyperFormula's `removeNamedExpression()`.
 
 ### Re-importing an export
 

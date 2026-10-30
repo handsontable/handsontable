@@ -40,7 +40,7 @@ The table covers both directions: **read** is what an import takes from the file
 | Conditional formatting | All rule kinds except `colorScale`, `dataBar`, `iconSet`, and rules Excel stores only in an `x14` extension | `cellIs`, `expression`, `containsText`, `top10`, `aboveAverage`, `timePeriod` | All kinds | `cellIs`, `expression`, `containsText`, `top10`, `aboveAverage`, `timePeriod`, `colorScale`, `dataBar`, `iconSet`; any other kind, such as `duplicateValues`, is left out with no report |
 | Numeric `compression` level | - | Platform default, reported as `compressionLevel` for any level but 6 | - | Honored |
 | Array formulas | Dynamic and legacy (CSE) arrays | Dynamic arrays, and `ARRAYFORMULA` as a legacy array | Every array as a legacy array | Legacy arrays only; a dynamic array is written as one and reported as `dynamicArrays` |
-| Defined names | Ranges and constants, workbook and sheet scope | Ranges and constants, workbook and sheet scope | The first range of a workbook-scoped name; no constants | Workbook-scoped names over one range on a sheet |
+| Defined names | Ranges and constants, workbook and sheet scope | Ranges and constants, workbook and sheet scope | The first range of a name; scope is lost; no constants | Workbook-scoped names over one range on a sheet |
 | Chart, dialog, and macro sheets, VBA projects | Skipped and reported | - | Skipped, not reported | - |
 
 What each engine reports when it drops something: [Dropped features reference](@/guides/import-and-export/dropped-features/dropped-features.md).
