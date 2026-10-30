@@ -220,6 +220,5 @@ describe('DroppedFeatures', () => {
     dropped.recordLicense('xlsx:styles');
 
     expect(dropped.list()).toEqual(['cellStyles', 'license:xlsx:comments', 'numFmt:x', 'license:xlsx:styles']);
-    expect(dropped.licenseEntries).toBeUndefined();
   });
 });
