@@ -191,18 +191,20 @@ test('one control drawn over two neighbors is two findings, each named by its pa
   assert.equal(new Set(ids).size, 2, 'a run-to-run compare tells the two overlaps apart, and fixing one clears its id');
 });
 
-test('a popup lies over what is under it by design: its controls overlap only the controls of a popup', () => {
+test('a popup lies over what is under it by design: its controls overlap only the controls of the same popup', () => {
   const findings = overlapFindings({
     condition: 'reflow-320',
     controls: [
-      { id: 0, selector: 'input.address', left: 0, top: 0, right: 80, bottom: 30, within: [], popup: false },
-      { id: 1, selector: 'div.option', left: 10, top: 10, right: 90, bottom: 40, within: [], popup: true },
-      { id: 2, selector: 'div.close', left: 60, top: 10, right: 100, bottom: 40, within: [], popup: true },
+      { id: 0, selector: 'input.address', left: 0, top: 0, right: 80, bottom: 30, within: [], layer: 0 },
+      { id: 1, selector: 'div.option', left: 10, top: 10, right: 90, bottom: 40, within: [], layer: 1 },
+      { id: 2, selector: 'div.close', left: 60, top: 10, right: 100, bottom: 40, within: [], layer: 1 },
+      { id: 3, selector: 'td "Left"', left: 0, top: 0, right: 100, bottom: 40, within: [], layer: 2 },
     ],
   });
 
   assert.deepEqual(findings.map(item => item.selector), ['div.option × div.close'],
-    'a list drawn over the formula bar hides it until it closes; two of its own controls over each other are lost');
+    'a list drawn over the formula bar hides it until it closes, and a submenu drawn over its menu hides the menu until it '
+    + 'closes; two controls of one popup over each other are lost');
 });
 
 test('hover content must be dismissible, hoverable, and persistent', () => {

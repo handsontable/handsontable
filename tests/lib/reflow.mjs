@@ -163,13 +163,15 @@ export function viewportFindings({ condition, viewport, surfaces }) {
 }
 
 /**
- * Controls drawn over each other: two controls whose boxes share an area, one not inside the other, both
- * in a popup or both outside one. Text spacing and zoom push labels into their neighbors.
+ * Controls drawn over each other: two controls whose boxes share an area, one not inside the other, on the
+ * same layer: both outside a popup, or both in the same popup. Text spacing and zoom push labels into their
+ * neighbors.
  *
  * @param {object} input The measurement.
  * @param {string} input.condition The condition.
- * @param {Array<{id: number, selector: string, left: number, top: number, right: number, bottom: number, within: number[], popup?: boolean}>} input.controls
- *   The controls, each with its id, the ids of the controls it sits inside, and whether it is in a popup.
+ * @param {Array<{id: number, selector: string, left: number, top: number, right: number, bottom: number, within: number[], layer?: number}>} input.controls
+ *   The controls, each with its id, the ids of the controls it sits inside, and its layer: 0 (or none) outside
+ *   every popup, and one number per popup otherwise.
  * @returns {object[]} The findings.
  */
 export function overlapFindings({ condition, controls }) {
@@ -180,9 +182,10 @@ export function overlapFindings({ condition, controls }) {
     for (let second = first + 1; second < controls.length; second++) {
       const [a, b] = [controls[first], controls[second]];
 
-      // A control inside the other is not drawn over it, and a popup lies over what is under it by design
-      // (Escape closes it), so only two controls on the same layer can hide each other.
-      if (a.within.includes(b.id) || b.within.includes(a.id) || Boolean(a.popup) !== Boolean(b.popup)) {
+      // A control inside the other is not drawn over it, and a popup lies over what is under it by design,
+      // the page or another popup (a submenu over its menu; Escape closes it), so only two controls on the
+      // same layer can hide each other.
+      if (a.within.includes(b.id) || b.within.includes(a.id) || (a.layer ?? 0) !== (b.layer ?? 0)) {
         continue;
       }
 

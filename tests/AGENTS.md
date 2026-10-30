@@ -1694,9 +1694,10 @@ counts as lost content.
   dialogs, notifications, the bars and the overlays are measured for text a clipping container cuts off
   (`text-clipped`; `text-truncated`, moderate, when the container ends it with an ellipsis), surfaces the
   viewport cuts off, and controls drawn over each other (`controls-overlap`, judged on the part of each
-  box its clipping ancestors leave on screen, never between a control and one inside it, and never between
-  a popup's control and one outside a popup: a popup lies over what is under it by design and Escape closes
-  it). The formula builder's suggestion list and function help count as popups and its formula bar as a
+  box its clipping ancestors leave on screen, never between a control and one inside it, and only between
+  two controls on the same layer: the page outside every popup is one layer and each popup element is one
+  of its own, because a popup lies over what is under it by design, the page or another popup (a submenu
+  over its menu), and Escape closes it). The formula builder's suggestion list and function help count as popups and its formula bar as a
   bar. A layer that covers the whole grid (the dialog's, the notification's) has the grid's box, so it is
   measured by the part a user reads: the dialog's card and each toast. A screen-reader-only box (one pixel
   square, like the announcer's live regions) is never text cut off: its text is read out, not drawn.
