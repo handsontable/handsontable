@@ -333,6 +333,31 @@ describe('SheetModel', () => {
     });
   });
 
+  describe('names with line breaks and other control characters', () => {
+    it.each([
+      ['a line feed', 'A\nB', 'A B'],
+      ['a carriage return and a line feed', 'A\r\nB', 'A B'],
+      ['a tab', 'A\tB', 'A B'],
+      ['a line separator', 'A\u2028B', 'A B'],
+      ['a paragraph separator', 'A\u2029B', 'A B'],
+      ['a null character', 'A\u0000B', 'A B'],
+    ])('stores %s as a space', (_label, name, stored) => {
+      const model = new SheetModel();
+      const added = model.addSheet(name, [[]]);
+      const renamed = model.addSheet('C', [[]]);
+
+      expect(added.name).toBe(stored);
+      expect(model.renameSheet(renamed.id, `R${name}`)).toBe(true);
+      expect(model.getSheetById(renamed.id).name).toBe(`R${stored}`);
+    });
+
+    it('treats a name of control characters only as blank', () => {
+      const model = new SheetModel();
+
+      expect(model.addSheet('\n\r\t', [[]]).name).toBe('Sheet1');
+    });
+  });
+
   describe('collision numbering', () => {
     it('keeps a trailing number in parentheses that the requested name carries', () => {
       const model = new SheetModel();

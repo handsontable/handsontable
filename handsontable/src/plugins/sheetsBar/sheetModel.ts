@@ -57,15 +57,24 @@ export function truncateSheetName(name: string, limit: number = MAX_SHEET_NAME_L
 const VISIBLE_CHARACTER = /[^\s\p{Cf}]/u;
 
 /**
- * Trims a name and cuts it to the length limit. A name with no visible character comes back empty, the
- * way a blank one does, so it cannot label a tab that looks blank.
+ * Matches a run of line breaks and other control characters (`\p{Cc}`, the line and paragraph separators).
+ *
+ * @type {RegExp}
+ */
+const CONTROL_CHARACTERS = /[\p{Cc}\u2028\u2029]+/gu;
+
+/**
+ * Trims a name and cuts it to the length limit. A run of line breaks or other control characters becomes
+ * one space: the rename input is a single line and drops them, so a stored `A\nB` read back from the input
+ * as `AB`, and confirming the rename unchanged renamed the sheet. A name with no visible character comes
+ * back empty, the way a blank one does, so it cannot label a tab that looks blank.
  *
  * @param {string} name The requested name.
  * @param {number} [limit] The longest the result may be.
  * @returns {string} The name as it may be stored, or `''`.
  */
 export function clampSheetName(name: string, limit: number = MAX_SHEET_NAME_LENGTH): string {
-  const clamped = truncateSheetName(name.trim(), limit).trim();
+  const clamped = truncateSheetName(name.replace(CONTROL_CHARACTERS, ' ').trim(), limit).trim();
 
   return VISIBLE_CHARACTER.test(clamped) ? clamped : '';
 }

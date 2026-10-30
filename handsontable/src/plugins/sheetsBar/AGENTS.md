@@ -17,7 +17,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `__tests__/sheetModel.unit.js` and `__tests__/apiContract.unit.js`:
   - **`clampSheetName()` is the one gate for a name**, and it answers `''` for a name with no
     visible character (white space and `\p{Cf}`: zero-width spaces and joiners, bidi marks), so
-    such a name is "blank" everywhere the model and `#commitRename` test for `''`. A look-alike
+    such a name is "blank" everywhere the model and `#commitRename` test for `''`. A run of line breaks or
+    other control characters (`\p{Cc}`, U+2028, U+2029) becomes one space first: the single-line rename
+    input drops them, so a stored `A\nB` read back as `AB` and an unchanged confirm renamed the sheet. A look-alike
     (`Budget` plus a zero-width space) stays a separate name, the way HyperFormula treats it.
   - **A collision numbers the whole requested name** (`#freeNumberedName`), never a name with its
     trailing ` (n)` stripped, the way `freeEngineName()` numbers engine sheet names: a stripped

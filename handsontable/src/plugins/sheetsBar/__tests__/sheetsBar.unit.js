@@ -1643,6 +1643,28 @@ describe('SheetsBar plugin', () => {
     expect(announce.mock.calls).toEqual([['Sheet name not changed']]);
   });
 
+  it('fires no rename when a declared name with a line break is confirmed unchanged in the rename input', () => {
+    const sheets = [{ name: 'A\nB', data: [['a']] }, { name: 'C', data: [['c']] }];
+    const afterRename = jest.fn();
+
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets },
+      afterSheetTabRename: afterRename,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    expect(hot.getPlugin('sheetsBar').getSheets()[0].name).toBe('A B');
+
+    const tab = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab--active');
+
+    tab.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    tab.querySelector('.ht-sheets-bar__tab-rename')
+      .dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+
+    expect(afterRename).not.toHaveBeenCalled();
+    expect(hot.getPlugin('sheetsBar').getSheets()[0].name).toBe('A B');
+  });
+
   it('leaves Enter and Escape to the IME while a character is being composed', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
