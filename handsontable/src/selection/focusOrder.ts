@@ -1,6 +1,6 @@
-import type { IndexMapper } from '../../translations';
-import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
-import type MergedCellCoords from './cellCoords';
+import type { IndexMapper } from '../translations';
+import type { default as CellRange } from '../3rdparty/walkontable/src/cell/range';
+import type { CellBlock } from './cellBlocks';
 
 /**
  * Data shape for focus order nodes.
@@ -42,12 +42,12 @@ type FocusOrderDirection = 'horizontal' | 'vertical';
 
 /**
  * Class responsible for providing the correct focus order (vertical and horizontal) within a selection that
- * contains merged cells.
+ * contains cell blocks (`CellBlockProvider`, such as merged cells). Enter and Tab inside a range use it.
  *
- * The order is computed lazily. A focus stop ("node") is either a visible non-merged cell or a merged
- * cell that is fully contained in the selection layer (anchored at its first visible cell in scan
- * order). Cells covered by a merged cell that sticks out of the layer produce no focus stop. Each
- * navigation step costs time relative to the merged cells it walks past — never to the selection area.
+ * The order is computed lazily. A focus stop ("node") is either a visible cell outside any block or a
+ * block that is fully contained in the selection layer (anchored at its first visible cell in scan
+ * order). Cells covered by a block that sticks out of the layer produce no focus stop. Each
+ * navigation step costs time relative to the blocks it walks past — never to the selection area.
  *
  * @private
  */
@@ -66,9 +66,9 @@ export class FocusOrder {
    */
   #currentVerticalNode: FocusNodeData | null = null;
   /**
-   * The merged cells getter function.
+   * Returns the block that covers a cell, or `null` (`CellBlockProvider#getBlockAt`).
    */
-  #mergedCellsGetter!: (row: number, column: number) => MergedCellCoords | false;
+  #blockGetter!: (row: number, column: number) => CellBlock | null;
   /**
    * The row index mapper.
    */
@@ -79,13 +79,13 @@ export class FocusOrder {
   #columnIndexMapper!: IndexMapper;
 
   /**
-   * Initializes the focus order manager with the merged cell getter and row and column index mappers used to navigate focus through merged regions.
+   * Initializes the focus order manager with the block getter and row and column index mappers used to navigate focus through blocks.
    */
-  constructor({ mergedCellsGetter, rowIndexMapper, columnIndexMapper }: {
-    mergedCellsGetter: (row: number, column: number) => MergedCellCoords | false,
+  constructor({ blockGetter, rowIndexMapper, columnIndexMapper }: {
+    blockGetter: (row: number, column: number) => CellBlock | null,
     rowIndexMapper: IndexMapper, columnIndexMapper: IndexMapper
   }) {
-    this.#mergedCellsGetter = mergedCellsGetter;
+    this.#blockGetter = blockGetter;
     this.#rowIndexMapper = rowIndexMapper;
     this.#columnIndexMapper = columnIndexMapper;
   }
@@ -165,6 +165,16 @@ export class FocusOrder {
   getPrevHorizontalNode(): FocusNodeData {
     // See `getNextVerticalNode` for why the cast is kept.
     return this.#neighborNode(this.#currentHorizontalNode, 'horizontal', -1) as FocusNodeData;
+  }
+
+  /**
+   * Gets the cell the focus lands on for the provided node: its first visible cell in scan order.
+   *
+   * @param {FocusNodeData} node The node.
+   * @returns {{row: number, column: number}}
+   */
+  getNodeAnchor(node: FocusNodeData) {
+    return this.#nodeScanPosition(node);
   }
 
   /**
@@ -257,8 +267,8 @@ export class FocusOrder {
 
   /**
    * Gets the focus node that contains the provided cell within the provided selection layer, or
-   * `null` when the cell produces no focus stop (outside the layer, hidden, or covered by a merged
-   * cell that sticks out of the layer).
+   * `null` when the cell produces no focus stop (outside the layer, hidden, or covered by a block
+   * that sticks out of the layer).
    *
    * @param {number} selectionLayer The selection layer index.
    * @param {number} row The visual row index.
@@ -272,10 +282,10 @@ export class FocusOrder {
       return null;
     }
 
-    const mergeParent = this.#mergedCellsGetter(row, column);
+    const block = this.#blockGetter(row, column);
 
-    if (mergeParent) {
-      return this.#createMergeNode(selectionLayer, mergeParent);
+    if (block) {
+      return this.#createBlockNode(selectionLayer, block);
     }
 
     if (
@@ -290,19 +300,19 @@ export class FocusOrder {
   }
 
   /**
-   * Creates a focus node for the provided merged cell, or `null` when the merged cell produces no
+   * Creates a focus node for the provided block, or `null` when the block produces no
    * focus stop — it sticks out of the layer's bounds or has no visible cell to anchor at.
    *
    * @param {number} selectionLayer The selection layer index.
-   * @param {MergedCellCoords} mergeParent The merged cell to create the node for.
+   * @param {CellBlock} block The block to create the node for.
    * @returns {FocusNodeData | null}
    */
-  #createMergeNode(selectionLayer: number, mergeParent: MergedCellCoords): FocusNodeData | null {
+  #createBlockNode(selectionLayer: number, block: CellBlock): FocusNodeData | null {
     const layer = this.#layers[selectionLayer];
-    const rowStart = mergeParent.row;
-    const rowEnd = mergeParent.row + mergeParent.rowspan - 1;
-    const colStart = mergeParent.col;
-    const colEnd = mergeParent.col + mergeParent.colspan - 1;
+    const rowStart = block.row;
+    const rowEnd = block.row + block.rowspan - 1;
+    const colStart = block.col;
+    const colEnd = block.col + block.colspan - 1;
 
     if (
       rowStart < layer.rowFrom || rowEnd > layer.rowTo ||
@@ -441,9 +451,9 @@ export class FocusOrder {
       : this.#advance(layer, fromPosition, order, direction);
 
     while (position !== null) {
-      const mergeParent = this.#mergedCellsGetter(position.row, position.column);
+      const block = this.#blockGetter(position.row, position.column);
 
-      if (!mergeParent) {
+      if (!block) {
         return {
           selectionLayer,
           rowStart: position.row,
@@ -453,37 +463,37 @@ export class FocusOrder {
         };
       }
 
-      const mergeNode = this.#createMergeNode(selectionLayer, mergeParent);
+      const blockNode = this.#createBlockNode(selectionLayer, block);
 
-      if (mergeNode && this.#emitsMergeNodeAt(mergeNode, position, order, direction)) {
-        return mergeNode;
+      if (blockNode && this.#emitsBlockNodeAt(blockNode, position, order, direction)) {
+        return blockNode;
       }
 
-      position = this.#skipMerge(layer, position, mergeParent, order, direction);
+      position = this.#skipBlock(layer, position, block, order, direction);
     }
 
     return null;
   }
 
   /**
-   * Checks whether the merged cell's node is emitted at the provided scan position. Scanning
-   * forward, a merged cell is emitted exactly at its anchor. Scanning backward, it is emitted as
+   * Checks whether the block's node is emitted at the provided scan position. Scanning
+   * forward, a block is emitted exactly at its anchor. Scanning backward, it is emitted as
    * soon as the scan enters the anchor's row (horizontal order) or column (vertical order) — every
-   * cell between that position and the anchor belongs to the same merged cell.
+   * cell between that position and the anchor belongs to the same block.
    *
-   * @param {FocusNodeData} mergeNode The merged cell's node.
-   * @param {ScanPosition} position The current scan position (a cell of the merged cell).
+   * @param {FocusNodeData} blockNode The block's node.
+   * @param {ScanPosition} position The current scan position (a cell of the block).
    * @param {FocusOrderDirection} order The traversal order.
    * @param {number} direction The traversal direction. `1` for forward, `-1` for backward.
    * @returns {boolean}
    */
-  #emitsMergeNodeAt(
-    mergeNode: FocusNodeData,
+  #emitsBlockNodeAt(
+    blockNode: FocusNodeData,
     position: ScanPosition,
     order: FocusOrderDirection,
     direction: 1 | -1,
   ): boolean {
-    const anchor = this.#findAnchor(mergeNode.rowStart, mergeNode.rowEnd, mergeNode.colStart, mergeNode.colEnd);
+    const anchor = this.#findAnchor(blockNode.rowStart, blockNode.rowEnd, blockNode.colStart, blockNode.colEnd);
 
     if (anchor === null) {
       return false;
@@ -497,34 +507,34 @@ export class FocusOrder {
   }
 
   /**
-   * Advances the scan position past the provided merged cell along the traversal order's inner
-   * axis, so the scan cost stays relative to the merged cells walked past — not to their area.
+   * Advances the scan position past the provided block along the traversal order's inner
+   * axis, so the scan cost stays relative to the blocks walked past — not to their area.
    *
    * @param {LayerGeometry} layer The layer geometry.
-   * @param {ScanPosition} position The current scan position (a cell of the merged cell).
-   * @param {MergedCellCoords} mergeParent The merged cell to skip.
+   * @param {ScanPosition} position The current scan position (a cell of the block).
+   * @param {CellBlock} block The block to skip.
    * @param {FocusOrderDirection} order The traversal order.
    * @param {number} direction The traversal direction. `1` for forward, `-1` for backward.
    * @returns {ScanPosition | null}
    */
-  #skipMerge(
+  #skipBlock(
     layer: LayerGeometry,
     position: ScanPosition,
-    mergeParent: MergedCellCoords,
+    block: CellBlock,
     order: FocusOrderDirection,
     direction: 1 | -1,
   ): ScanPosition | null {
     if (order === 'horizontal') {
       const column = direction === 1
-        ? Math.min(mergeParent.col + mergeParent.colspan - 1, layer.colTo)
-        : Math.max(mergeParent.col, layer.colFrom);
+        ? Math.min(block.col + block.colspan - 1, layer.colTo)
+        : Math.max(block.col, layer.colFrom);
 
       return this.#advance(layer, { row: position.row, column }, order, direction);
     }
 
     const row = direction === 1
-      ? Math.min(mergeParent.row + mergeParent.rowspan - 1, layer.rowTo)
-      : Math.max(mergeParent.row, layer.rowFrom);
+      ? Math.min(block.row + block.rowspan - 1, layer.rowTo)
+      : Math.max(block.row, layer.rowFrom);
 
     return this.#advance(layer, { row, column: position.column }, order, direction);
   }

@@ -132,11 +132,12 @@ describe('MergeCells keyboard shortcut', () => {
       await keyDownUp('tab');
       await keyDownUp('tab'); // moves focus to the next layer
 
+      // A layer the focus leaves keeps its last focus stop (3,5), as it does without merged cells.
       expect(getActiveSelectionLayerIndex()).toBe(0);
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 0,0 from: 0,0 to: 2,2',
         'highlight: 3,3 from: 3,3 to: 5,5',
-        'highlight: 1,6 from: 1,6 to: 3,5',
+        'highlight: 3,5 from: 1,6 to: 3,5',
       ]);
 
       await keyDownUp('tab');
@@ -148,7 +149,7 @@ describe('MergeCells keyboard shortcut', () => {
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 2,2 from: 0,0 to: 2,2',
         'highlight: 3,3 from: 3,3 to: 5,5',
-        'highlight: 1,6 from: 1,6 to: 3,5',
+        'highlight: 3,5 from: 1,6 to: 3,5',
       ]);
 
       await keyDownUp('tab');
@@ -172,7 +173,7 @@ describe('MergeCells keyboard shortcut', () => {
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 0,0 from: 0,0 to: 2,2',
         'highlight: 5,5 from: 3,3 to: 5,5',
-        'highlight: 1,6 from: 1,6 to: 3,5',
+        'highlight: 3,5 from: 1,6 to: 3,5',
       ]);
     });
 

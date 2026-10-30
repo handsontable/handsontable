@@ -315,9 +315,9 @@ export class ColumnSorting extends BasePlugin {
     this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mouseup',
       () => this.#resolvePendingSort());
     this.addHook('afterColumnMove', this.#onAfterColumnMove);
+    this.addHook('afterColumnSequenceChange', this.#onAfterColumnSequenceChange);
 
     this.addHook('afterInit', this.#loadOrSortBySettings);
-    this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch, -1);
 
     // TODO: Workaround? It should be refactored / described.
@@ -1328,20 +1328,6 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Callback for the `afterLoadData` hook.
-   *
-   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
-   */
-  #onAfterLoadData = (initialLoad: boolean) => {
-    if (initialLoad === true) {
-      // TODO: Workaround? It should be refactored / described.
-      if (this.hot.view) {
-        this.#loadOrSortBySettings();
-      }
-    }
-  };
-
-  /**
    * Callback for the `afterDataProviderFetch` hook.
    * Keeps header sort state in sync with query `sort` after server-backed `loadData` (same timing as Pagination).
    *
@@ -1508,6 +1494,19 @@ export class ColumnSorting extends BasePlugin {
   #onAfterColumnMove = () => {
     if (this.#pendingHeaderSort !== null) {
       this.#pendingHeaderSort.consumedByMove = true;
+    }
+  };
+
+  /**
+   * Drops a queued press when the column order starts over (`loadData()`, `updateSettings()` with `columns`,
+   * or new data with another column layout). The press names a column of the order it was made on, so the
+   * release would sort another column.
+   *
+   * @param {string} source The source of the sequence change.
+   */
+  #onAfterColumnSequenceChange = (source: string) => {
+    if (source === 'init') {
+      this.#pendingHeaderSort = null;
     }
   };
 
