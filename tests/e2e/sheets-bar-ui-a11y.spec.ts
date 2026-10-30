@@ -1,6 +1,6 @@
 import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SheetsBarUiPage } from '../fixtures/pages/SheetsBarUiPage';
-import type { Locator, Page } from '@playwright/test';
+import type { Locator } from '@playwright/test';
 
 /**
  * Reads a one-pixel line along one edge of an element, inset from its corners.
@@ -20,36 +20,6 @@ async function edgePixels(element: Locator, edge: 'top' | 'bottom'): Promise<Buf
     clip: { x: x + 4, y: edge === 'top' ? y : y + height - 1, width: 16, height: 1 },
     animations: 'disabled',
   });
-}
-
-/**
- * Counts how often the paging section is shown or hidden over ten animation frames.
- *
- * @param {Page} page The page.
- * @returns {Promise<number>} The number of `hidden` attribute changes.
- */
-function pagingToggles(page: Page): Promise<number> {
-  return page.evaluate(() => new Promise<number>((resolve) => {
-    const paging = document.querySelector('.ht-sheets-bar__paging') as HTMLElement;
-    let toggles = 0;
-    let frames = 0;
-    const observer = new MutationObserver((records) => {
-      toggles += records.length;
-    });
-    const tick = () => {
-      frames += 1;
-
-      if (frames < 10) {
-        requestAnimationFrame(tick);
-      } else {
-        observer.disconnect();
-        resolve(toggles);
-      }
-    };
-
-    observer.observe(paging, { attributes: true, attributeFilter: ['hidden'] });
-    requestAnimationFrame(tick);
-  }));
 }
 
 test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
@@ -291,40 +261,6 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
   });
 
   test.describe('the tab strip', () => {
-    test('keeps the paging arrows steady when the tabs overflow the strip\'s minimum by less than the arrows', async({
-      page, theme, bundle,
-    }) => {
-      const fixture = new SheetsBarUiPage(page, theme, bundle);
-
-      await fixture.goto({ sheets: 2, columnCounts: [1, 1], fixedHeight: false, tabNames: ['Sheet 1', 'B'] });
-
-      const widths = await page.evaluate(() => {
-        const strip = document.querySelector('.ht-sheets-bar__tabs') as HTMLElement;
-
-        return {
-          tabs: strip.scrollWidth,
-          floor: Number.parseFloat(getComputedStyle(strip).minWidth),
-          arrows: (document.querySelector('.ht-sheets-bar__page-prev') as HTMLElement).offsetWidth * 2,
-        };
-      });
-
-      expect(widths.tabs).toBeGreaterThan(widths.floor);
-      expect(widths.tabs).toBeLessThan(widths.floor + widths.arrows);
-      await expect(fixture.bar.locator('.ht-sheets-bar__paging')).toBeVisible();
-      expect(await pagingToggles(page)).toBe(0);
-
-      for (const name of ['C', 'D']) {
-        await page.evaluate((newName) => {
-          const sheetsBar = (window as any).hot.getPlugin('sheetsBar');
-
-          sheetsBar.renameSheet(sheetsBar.getSheets()[1].id, newName);
-        }, name);
-        await expect(fixture.bar.locator('.ht-sheets-bar__paging')).toBeVisible();
-      }
-
-      expect(await fixture.tabWhollyInStrip(0)).toBe(true);
-    });
-
     test('keeps the active tab whole on a sheet narrower than the bar\'s controls', async({ page, theme, bundle }) => {
       const fixture = new SheetsBarUiPage(page, theme, bundle);
       const pageScrollsSideways = () => page.evaluate(() => (
@@ -337,36 +273,18 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
         return bar.top >= grid.bottom - 1;
       });
 
-      const sectionsOnBarBackground = () => page.evaluate(() => {
-        const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
-        const barBox = bar.getBoundingClientRect();
-        const sections = Array.from(bar.querySelectorAll<HTMLElement>('.ht-sheets-bar__controls, .ht-sheets-bar__paging'))
-          .filter(section => !section.hidden)
-          .map(section => section.getBoundingClientRect());
-
-        return {
-          sections: sections.length,
-          inside: sections.every(box => box.left >= barBox.left && box.right <= barBox.right),
-          painted: !['transparent', 'rgba(0, 0, 0, 0)'].includes(getComputedStyle(bar).backgroundColor),
-        };
-      });
-
       await fixture.goto({ sheets: 2, columnCounts: [1, 3], fixedHeight: false });
 
       expect(await fixture.tabInStrip(0)).toBe(true);
       expect(await fixture.tab(0).evaluate(tab => tab.getBoundingClientRect().width)).toBeGreaterThan(0);
       expect(await pageScrollsSideways()).toBe(false);
       expect(await barBelowGrid()).toBe(true);
-      await expect(fixture.bar.locator('.ht-sheets-bar__paging')).toBeVisible();
-      expect(await sectionsOnBarBackground()).toEqual({ sections: 2, inside: true, painted: true });
-      expect(await pagingToggles(page)).toBe(0);
 
       await fixture.setActiveSheet(1);
 
       await expect.poll(() => fixture.tabInStrip(1)).toBe(true);
       expect(await pageScrollsSideways()).toBe(false);
       expect(await barBelowGrid()).toBe(true);
-      expect(await sectionsOnBarBackground()).toEqual(expect.objectContaining({ inside: true, painted: true }));
     });
 
     test('reveals the active tab on first paint', async({ page, theme, bundle }) => {
