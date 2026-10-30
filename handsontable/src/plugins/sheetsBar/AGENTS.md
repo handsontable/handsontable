@@ -551,7 +551,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   browser's own long-press `contextmenu` is ignored while a touch press is held
   (`TabDrag#isTouchPressing()`), or the menu opened twice. A `contextmenu` the browser reports as touch-raised (`getMouseEventTouchOrigin()`) never opens the menu as from the keyboard: a repaint that moves the held tab ends the press before Android raises its long-press menu, and the press flags alone then read it as Shift+F10. A press that never lifted drops its touch listeners as soon as it ends, because nothing needs its `touchend` canceled. A pen press is timed the same way; a
   mouse press drags at once, as before. The detector's timers are the grid's window, so `page.clock` drives the hold in the
-  specs (`tests/e2e/sheets-bar-touch-drag.spec.ts`, `sheets-bar-touch-menus.spec.ts`).
+  specs (`tests/e2e/sheets-bar-touch-drag.spec.ts`, `sheets-bar-touch-menus.spec.ts`). Time a hold with
+  `page.clock.runFor()`, never with `expect.poll` intervals: the poll runs its callback at once, so a
+  finger lifted from inside it is a tap, and a long-press test written that way passed with no
+  `contextmenu` and no lift.
 - **The menus' upward flip needs a negative `above` offset.** The positioner aligns a flipped
   menu's bottom to the cursor point — the anchor's *bottom* edge — so `#openMenu` sets
   `setOffset('above', -(anchorHeight + 4))` per opening; a flat offset covered the chevron.

@@ -1904,9 +1904,11 @@ export class TabStrip {
    * `button: 0`, so the keyboard is recognized by no button being held, no pointer
    * having gone down on the tab, and no touch origin reported by the browser
    * (`sourceCapabilities.firesTouchEvents`): a repaint can end the press a long-press began
-   * before the browser raises its `contextmenu`. The long-press half is pinned by a Playwright touch test;
-   * a genuine macOS Ctrl+click cannot be synthesized from Playwright, so that half rides on
-   * the same flag untested.
+   * before the browser raises its `contextmenu`. The long-press half is pinned by
+   * `tests/e2e/sheets-bar-touch-menus.spec.ts`, which holds the finger with `page.clock`, and the
+   * touch-raised `contextmenu` after a repaint by a unit test in `__tests__/sheetsBar.unit.js`; a
+   * genuine macOS Ctrl+click cannot be synthesized from Playwright, so that half rides on the same
+   * flag untested.
    *
    * @param {Event} event The `contextmenu` event.
    */
