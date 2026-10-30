@@ -488,7 +488,13 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   received** (`#receivedTopLevelData`: the grid's `data` at build, then every `updateSettings()` array;
   reset when the bar turns off or the workbook is rebuilt). Ask "is this the array the grid already got",
   never "does a sheet still hold it": a wrapper re-render after the first sheet was removed sent an array no
-  sheet held, and it replaced the visible sheet's rows. An array not received yet still loads.
+  sheet held, and it replaced the visible sheet's rows. **A new array belongs to one sheet**, the one built
+  from the grid's data (`#topLevelDataOwnerId`, by id, so a rename or a move keeps it and a duplicate is not
+  it): loaded when that sheet is shown, put in as its data while it is hidden (`#replaceHiddenSheetData`, which
+  drops what the sheet kept from its last visit, as a `loadData()` would, and feeds its engine sheet), and
+  ignored with one warning per array (`REMOVED_DATA_OWNER_WARNING`) once it was removed. Turning the bar off
+  and on or rebuilding picks a new owner. A payload that turns a declared workbook into `sheetsBar: true` loads
+  its `data` (`#declaredEntries` is not empty yet).
 - **A sheet added without data starts with no rows while it would show with NestedRows on**
   (`#blankSheetData`: its own `nestedRows`, else the grid-level value). NestedRows answers an array of
   arrays by writing `nestedRows = false` into the grid settings and disabling itself, a released path

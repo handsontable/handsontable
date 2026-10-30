@@ -281,6 +281,15 @@ const TOP_LEVEL_DATA_WARNING = 'The `data` setting is ignored when `sheetsBar.sh
   'each sheet declares its own data.';
 
 /**
+ * The warning logged when a `sheetsBar: true` workbook gets a new top-level `data` after the sheet built from
+ * the grid's data was removed.
+ *
+ * @type {string}
+ */
+const REMOVED_DATA_OWNER_WARNING = 'The sheet the grid\'s `data` option belongs to was removed, so the new ' +
+  '`data` was not applied.';
+
+/**
  * Compares two values structurally, with two deliberate reference-equality floors: arrays are
  * compared element by element, object literals key by key (`isObjectLiteral`), dates by their time value,
  * and everything else — a class instance such as a HyperFormula engine, a function, a DOM element — by reference,
@@ -941,6 +950,20 @@ export class SheetsBar extends BasePlugin {
    */
   #receivedTopLevelData: unknown[] | null = null;
   /**
+   * The id of the sheet the top-level `data` belongs to while the workbook declares no sheets: the sheet
+   * built from the grid's data. Kept by id, so a rename or a move keeps it; a duplicate is not it.
+   *
+   * @type {number|null}
+   */
+  #topLevelDataOwnerId: number | null = null;
+  /**
+   * The top-level `data` arrays already reported as not applied (`REMOVED_DATA_OWNER_WARNING`), so a wrapper
+   * sending the same array on every render warns once.
+   *
+   * @type {WeakSet<Array>}
+   */
+  #unappliedTopLevelData = new WeakSet<unknown[]>();
+  /**
    * The tab name to re-activate after a workbook rebuild, or `null` when the rebuild should
    * follow the `activeSheet` setting. Set by `updatePlugin` for the window of one rebuild.
    *
@@ -1130,6 +1153,9 @@ export class SheetsBar extends BasePlugin {
         this.#buildInitialWorkbook();
         this.#receivedTopLevelData = this.#declaredEntries.size === 0 && Array.isArray(topLevelData)
           ? topLevelData
+          : null;
+        this.#topLevelDataOwnerId = this.#declaredEntries.size === 0
+          ? (this.#model.getSheets()[0]?.id ?? null)
           : null;
       } catch (error) {
         this.hot._removeSettingsFilter(this.#filterGridSettings);
@@ -1670,6 +1696,7 @@ export class SheetsBar extends BasePlugin {
 
       this.#model = null;
       this.#receivedTopLevelData = null;
+      this.#topLevelDataOwnerId = null;
       this.#releaseDataProviderContexts(discardedSheets);
       this.#restoreBaselineToGrid(keptColumnSummary, keptImportedKeys);
     }
@@ -5862,19 +5889,21 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Keeps the visible sheet's rows when a workbook that declares no sheets (`sheetsBar: true`) gets the
-   * top-level `data` array it already received (`#receivedTopLevelData`). A framework wrapper sends its
-   * `data` prop again on every re-render, and loaded, the first sheet's array replaced the rows of whichever
-   * sheet was shown, also after the first sheet was removed. An array the workbook has not received yet is
-   * loaded into the visible sheet, as before, and becomes the one received, unless another sheet holds it
-   * (`#isHiddenSheetData`): loaded, it tied two sheets to one array.
+   * Routes a top-level `data` sent to a workbook that declares no sheets (`sheetsBar: true`). The array
+   * belongs to one sheet, the one built from the grid's data (`#topLevelDataOwnerId`). The array the workbook
+   * already received (`#receivedTopLevelData`) changes nothing: a framework wrapper sends its `data` prop again
+   * on every re-render, and loaded, it replaced the rows of whichever sheet was shown. A new array is that
+   * sheet's new data: loaded when the sheet is shown, put in its place while it is hidden
+   * (`#replaceHiddenSheetData`), and ignored with one warning per array once the sheet was removed. Either way
+   * it becomes the array received. A payload that turns a declared workbook into `sheetsBar: true` loads its
+   * `data`, which the rebuild then takes as the new first sheet's.
    *
    * @param {Array} sourceData The rows about to be loaded.
    * @param {Array} liveData The rows the grid shows.
-   * @returns {Array|undefined} The rows the grid shows, when the incoming ones are ignored.
+   * @returns {Array|undefined} The rows the grid shows, when the incoming ones are not loaded.
    */
   #keepUndeclaredSheetRows(sourceData: unknown[], liveData: unknown[]): unknown[] | undefined {
-    if (!this.#keepsUndeclaredWorkbook()) {
+    if (this.#declaredEntries.size > 0 || !this.#keepsUndeclaredWorkbook()) {
       return;
     }
 
@@ -5886,22 +5915,54 @@ export class SheetsBar extends BasePlugin {
       return;
     }
 
-    return isReceived || this.#isHiddenSheetData(sourceData) ? liveData : undefined;
+    if (isReceived) {
+      return liveData;
+    }
+
+    const ownerId = this.#topLevelDataOwnerId;
+    const owner = ownerId === null ? null : this.#model?.getSheetById(ownerId) ?? null;
+
+    if (owner === null) {
+      if (!this.#unappliedTopLevelData.has(sourceData)) {
+        this.#unappliedTopLevelData.add(sourceData);
+        warn(REMOVED_DATA_OWNER_WARNING);
+      }
+
+      return liveData;
+    }
+
+    if (ownerId === (this.#loadedSheetId ?? this.#model?.getActiveSheet()?.id ?? null)) {
+      return;
+    }
+
+    this.#replaceHiddenSheetData(owner, sourceData);
+
+    return liveData;
   }
 
   /**
-   * Tells whether the array is the data of a sheet other than the active one.
+   * Gives a hidden sheet a new data array, as a `loadData()` on that sheet would: the sheet comes back as on a
+   * first visit, with only what its own settings declare, because everything kept from the last visit (the view
+   * state with its cell meta, the formula engine's order, the ColumnSummary endpoints, the `cell` meta) addresses
+   * rows of the replaced data. The sheet's formula engine sheet gets the new content at once, so formulas on other
+   * sheets read it.
    *
-   * @param {Array} sourceData The rows about to be loaded.
-   * @returns {boolean}
+   * @param {object} sheet The hidden sheet.
+   * @param {Array} data Its new data.
    */
-  #isHiddenSheetData(sourceData: unknown[]): boolean {
-    const activeId = this.#model?.getActiveSheet()?.id ?? null;
+  #replaceHiddenSheetData(sheet: Sheet, data: unknown[]) {
+    sheet.data = data;
+    sheet.viewState = undefined;
+    this.#engineOrders.delete(sheet);
+    this.#columnSummaryStates.delete(sheet);
+    this.#cellOptionStates.delete(sheet);
+    this.#redeclaredParts.delete(sheet);
 
-    const model = this.#model;
+    const engine = formulasSettingOf(sheet)?.engine;
 
-    return model?.getSheets().some(({ id }) => id !== activeId && model.getSheetById(id)?.data === sourceData)
-      ?? false;
+    if (isEngineInstance(engine)) {
+      this.#withEngineWrites([engine!], () => this.#registerFormulaSheet(sheet));
+    }
   }
 
   /**

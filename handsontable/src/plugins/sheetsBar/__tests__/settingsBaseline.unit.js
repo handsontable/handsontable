@@ -887,6 +887,145 @@ describe('SheetsBar settings baseline and lifecycle', () => {
       });
     });
 
+    describe('a new top-level `data` array sent to a `sheetsBar: true` workbook', () => {
+      /**
+       * Builds a `sheetsBar: true` grid over `appData` and adds two sheets.
+       *
+       * @param {Array} appData The grid's top-level data.
+       * @returns {object} The SheetsBar plugin.
+       */
+      function buildWithAddedSheets(appData) {
+        hot = new Handsontable(container, {
+          data: appData,
+          sheetsBar: true,
+          licenseKey: LICENSE_KEY,
+        });
+
+        const bar = hot.getPlugin('sheetsBar');
+
+        bar.addSheet('Second', [['second']]);
+        bar.addSheet('Third', [['third']]);
+
+        return bar;
+      }
+
+      /**
+       * Returns the id of the sheet with the given name.
+       *
+       * @param {object} bar The SheetsBar plugin.
+       * @param {string} name The sheet's name.
+       * @returns {number}
+       */
+      function idOf(bar, name) {
+        return bar.getSheets().find(sheet => sheet.name === name).id;
+      }
+
+      /**
+       * Returns the `console.warn` calls about a top-level `data` that was not applied.
+       *
+       * @param {object} warnSpy The `console.warn` spy.
+       * @returns {Array}
+       */
+      function notAppliedWarnings(warnSpy) {
+        return warnSpy.mock.calls.filter(args => String(args[0]).includes('was not applied'));
+      }
+
+      it('loads into the first sheet when it is the visible one', () => {
+        const bar = buildWithAddedSheets([['A1']]);
+        const newRows = [['new']];
+
+        hot.updateSettings({ data: newRows, sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('new');
+        expect(bar.getSheetData('Sheet1')).toBe(newRows);
+      });
+
+      it('becomes the hidden first sheet\'s data and leaves the visible sheet alone', () => {
+        const bar = buildWithAddedSheets([['A1'], ['A2']]);
+        const newRows = [['new']];
+
+        hot.selectCell(1, 0);
+        bar.setActiveSheet('Second');
+        hot.updateSettings({ data: newRows, sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('second');
+        expect(bar.getSheetData('Sheet1')).toBe(newRows);
+        expect(bar.getSheets().find(sheet => sheet.isActive).name).toBe('Second');
+
+        hot.updateSettings({ data: newRows, sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('second');
+
+        bar.setActiveSheet('Sheet1');
+
+        expect(hot.getData()).toEqual([['new']]);
+        expect(hot.getSelected()).toBeUndefined();
+      });
+
+      it('follows the first sheet through a rename and a move', () => {
+        const bar = buildWithAddedSheets([['A1']]);
+        const newRows = [['new']];
+
+        bar.renameSheet(idOf(bar, 'Sheet1'), 'Main');
+        bar.moveSheetToIndex(idOf(bar, 'Main'), 2);
+        bar.setActiveSheet('Second');
+        hot.updateSettings({ data: newRows, sheetsBar: true });
+
+        expect(bar.getSheetData('Main')).toBe(newRows);
+        expect(bar.getSheetData('Third')).toEqual([['third']]);
+      });
+
+      it('changes nothing and warns once per array when the first sheet was removed', () => {
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const bar = buildWithAddedSheets([['A1']]);
+        const newRows = [['new']];
+
+        bar.setActiveSheet('Second');
+        bar.removeSheet(idOf(bar, 'Sheet1'));
+        hot.updateSettings({ data: newRows, sheetsBar: true });
+        hot.updateSettings({ data: newRows, sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('second');
+        expect(bar.getSheetData('Third')).toEqual([['third']]);
+        expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Second', 'Third']);
+        expect(notAppliedWarnings(warnSpy)).toHaveLength(1);
+
+        hot.updateSettings({ data: [['other']], sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('second');
+        expect(notAppliedWarnings(warnSpy)).toHaveLength(2);
+      });
+
+      it('changes nothing when only a copy of the first sheet is left', () => {
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const bar = buildWithAddedSheets([['A1']]);
+        const copy = bar.duplicateSheet(idOf(bar, 'Sheet1'));
+
+        bar.setActiveSheet(copy.id);
+        bar.removeSheet(idOf(bar, 'Sheet1'));
+        hot.updateSettings({ data: [['new']], sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('A1');
+        expect(bar.getSheetData('Second')).toEqual([['second']]);
+        expect(notAppliedWarnings(warnSpy)).toHaveLength(1);
+      });
+
+      it('takes the sheet the grid shows as the first sheet again after the bar is turned off and on', () => {
+        const bar = buildWithAddedSheets([['A1']]);
+        const newRows = [['new']];
+
+        bar.setActiveSheet('Second');
+        hot.updateSettings({ sheetsBar: false });
+        hot.updateSettings({ sheetsBar: true });
+        bar.addSheet('Other', [['other']]);
+        bar.setActiveSheet('Other');
+        hot.updateSettings({ data: newRows, sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('other');
+        expect(bar.getSheetData('Sheet1')).toBe(newRows);
+      });
+    });
+
     it('does not change how a grid-level `dataProvider` set later keeps the shown rows', async() => {
       const provider = makeProvider();
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});

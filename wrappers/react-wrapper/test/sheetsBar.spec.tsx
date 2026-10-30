@@ -117,6 +117,44 @@ describe('HotTable with a sheets bar', () => {
     expect(hot.getDataAtCell(0, 0)).toBe('A1');
   });
 
+  it('puts new `data` rows into the first sheet of a `sheetsBar: true` grid while another sheet is visible', () => {
+    const ref = React.createRef<HotTableRef>();
+    let setRows: (rows: string[][]) => void = () => {};
+
+    const App = () => {
+      const [rows, setState] = React.useState([['A1', 'B1']]);
+
+      setRows = setState;
+
+      return <HotTable ref={ref} licenseKey="non-commercial-and-evaluation" data={rows} sheetsBar />;
+    };
+
+    mountComponent(<App />);
+
+    const hot = ref.current!.hotInstance!;
+    const plugin = hot.getPlugin('sheetsBar');
+    const newRows = [['new', 'rows']];
+
+    act(() => {
+      plugin.addSheet('Second', [['second']]);
+    });
+    act(() => {
+      plugin.setActiveSheet('Second');
+    });
+    act(() => {
+      setRows(newRows);
+    });
+
+    expect(hot.getDataAtCell(0, 0)).toBe('second');
+    expect(plugin.getSheetData('Sheet1')).toBe(newRows);
+
+    act(() => {
+      plugin.setActiveSheet('Sheet1');
+    });
+
+    expect(hot.getDataAtCell(0, 0)).toBe('new');
+  });
+
   it('keeps the visible sheet\'s rows on a `sheetsBar: true` re-render after the first sheet is removed', () => {
     const appData = [['A1', 'B1']];
     const props = (): HotTableProps => ({
