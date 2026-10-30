@@ -5,6 +5,7 @@ import type { CellSnapshot, MergeSnapshot, SheetSnapshot, WorkbookSnapshot } fro
 import { parseMultiRangeRef, parseRangeRef } from '../../utils/xlsxEngine/cellRef';
 import { rebaseImportedFormula } from '../../utils/xlsxEngine/formulaRefs';
 import { stripFunctionPrefixes } from '../../utils/xlsxEngine/functionPrefixes';
+import { unwrapArrayFormula } from '../../utils/xlsxEngine/dynamicArrays';
 import { MAX_TRANSLATED_FORMULA_CHARS, MIN_CELL_META_BUDGET, throwLimitExceeded } from '../../utils/xlsxEngine/limits';
 import {
   MAX_COLUMN_WIDTH_UNITS as MAX_EXCEL_COLUMN_WIDTH,
@@ -604,46 +605,130 @@ function unresolvedDefinedNames(workbook: WorkbookSnapshot, context: MapperConte
 }
 
 /**
- * Records the cells a live array master spills over, so `pushCellValue` imports them empty.
+ * The window rectangle one live array master spills over, inclusive, in window coordinates.
+ */
+interface LiveArrayRect {
+  startRow: number;
+  startCol: number;
+  endRow: number;
+  endCol: number;
+}
+
+/**
+ * The live array rectangles of a pass, and a forward sweep over them that answers, for each cell in
+ * row-major order, whether a rectangle covers it.
+ */
+interface LiveArraySweep {
+  /**
+   * The rectangles still reaching the current row or below.
+   */
+  active: LiveArrayRect[];
+  /**
+   * The rectangles recorded on the current row, joined to `active` when the sweep moves on.
+   */
+  noted: LiveArrayRect[];
+  /**
+   * The rectangles that cover the current row, ordered by start column.
+   */
+  spans: LiveArrayRect[];
+  /**
+   * The first entry of `spans` the current row's column walk has not reached yet.
+   */
+  cursor: number;
+  /**
+   * The last column any span reached so far on the current row covers, or `-1`.
+   */
+  maxEndCol: number;
+}
+
+/**
+ * Moves the live-array sweep to a new window row: drops the rectangles that ended above it, joins
+ * the ones recorded on the previous row and orders the row's spans by start column. Every rectangle
+ * looked at is charged against the formula budget, so the sweep is bounded by the same limit as the
+ * formula walks: W single-column arrays over N rows cost W x N, refused past
+ * `MAX_TRANSLATED_FORMULA_CHARS`.
+ *
+ * @param {number} row The window row the walk enters.
+ * @param {CollectContext} scope The pass context.
+ */
+function beginLiveArrayRow(row: number, scope: CollectContext): void {
+  const sweep = scope.liveArrays;
+
+  sweep.cursor = 0;
+  sweep.maxEndCol = -1;
+
+  if (sweep.active.length === 0 && sweep.noted.length === 0) {
+    sweep.spans = [];
+
+    return;
+  }
+
+  const candidates = sweep.active.concat(sweep.noted);
+
+  chargeFormulaWalk(candidates.length, scope);
+  sweep.noted = [];
+  sweep.active = candidates.filter(rect => rect.endRow >= row);
+  // Every rectangle starts on its master's row, which the walk has already passed, so all of the
+  // active ones cover this row.
+  sweep.spans = sweep.active.slice().sort((a, b) => a.startCol - b.startCol);
+}
+
+/**
+ * Records the rectangle a live array master spills over, so `pushCellValue` imports its cells empty.
  *
  * `row`/`col` are the master's window coordinates. Excel writes the master as the top-left corner of
  * its `ref`, and the window is walked row by row, left to right, so every cell the array covers is
- * visited AFTER its master: recording the range here, when the master is visited, is early enough. A
- * `ref` that does not start at the master is not trusted to empty anything. The range is clipped to
- * the window, and each covered row is charged against the formula budget before it is recorded, so
- * a hostile `ref="A1:XFD1048576"` is refused rather than recording a million rows.
+ * visited AFTER its master: recording the rectangle when the master is visited is early enough. A
+ * `ref` that does not start at the master is not trusted to empty anything. The rectangle is clipped
+ * to the window and stored once, whatever its size; the rows it covers are charged one by one as the
+ * sweep crosses them (`beginLiveArrayRow`).
+ *
+ * @param {string} ref The array's A1 range, in the file's 1-based sheet coordinates.
+ * @param {number} row The master's window row.
+ * @param {number} col The master's window column.
+ * @param {CollectContext} scope The pass context.
  */
 function recordLiveArray(ref: string, row: number, col: number, scope: CollectContext): void {
   const range = parseRangeRef(ref);
-  const { window } = scope;
+  const { window, liveArrays } = scope;
 
   if (range === null || range.startRow - 1 - window.firstRow !== row || range.startCol - 1 - window.firstCol !== col) {
     return;
   }
 
-  const lastRow = Math.min(range.endRow - 1, window.lastRow) - window.firstRow;
-  const lastCol = Math.min(range.endCol - 1, window.lastCol) - window.firstCol;
+  const rect: LiveArrayRect = {
+    startRow: row,
+    startCol: col,
+    endRow: Math.min(range.endRow - 1, window.lastRow) - window.firstRow,
+    endCol: Math.min(range.endCol - 1, window.lastCol) - window.firstCol,
+  };
 
-  chargeFormulaWalk(lastRow - row + 1, scope);
-
-  for (let covered = row; covered <= lastRow; covered++) {
-    const ranges = scope.liveArrayRows.get(covered);
-
-    if (ranges) {
-      ranges.push([col, lastCol]);
-    } else {
-      scope.liveArrayRows.set(covered, [[col, lastCol]]);
-    }
-  }
+  chargeFormulaWalk(1, scope);
+  liveArrays.noted.push(rect);
+  // The rest of the master's own row lies right of `col`, so the rectangle covers every column the
+  // walk still visits on this row up to its end.
+  liveArrays.maxEndCol = Math.max(liveArrays.maxEndCol, rect.endCol);
 }
 
 /**
- * Whether a live array master recorded by `recordLiveArray` spills over this window cell.
+ * Whether a live array recorded by `recordLiveArray` spills over this cell of the current row. The
+ * columns of a row are asked in ascending order, so the cursor only moves forward over the row's
+ * spans, and each cell costs O(1) amortized: the cell is covered when the furthest end of every
+ * span started at or before it reaches it.
+ *
+ * @param {number} col The cell's window column.
+ * @param {CollectContext} scope The pass context.
+ * @returns {boolean}
  */
-function isCoveredByLiveArray(row: number, col: number, scope: CollectContext): boolean {
-  const ranges = scope.liveArrayRows.get(row);
+function isCoveredByLiveArray(col: number, scope: CollectContext): boolean {
+  const sweep = scope.liveArrays;
 
-  return ranges !== undefined && ranges.some(([start, end]) => col >= start && col <= end);
+  while (sweep.cursor < sweep.spans.length && sweep.spans[sweep.cursor].startCol <= col) {
+    sweep.maxEndCol = Math.max(sweep.maxEndCol, sweep.spans[sweep.cursor].endCol);
+    sweep.cursor += 1;
+  }
+
+  return col <= sweep.maxEndCol;
 }
 
 /**
@@ -679,7 +764,10 @@ function pushCellValue(
 
     // A legacy CSE array (`{=A1:A2*2}`) is an ordinary formula to HyperFormula unless it is
     // wrapped; a dynamic array spills on its own.
-    pass.data[pass.data.length - 1].push(array && !array.dynamic ? `=ARRAYFORMULA(${live})` : `=${live}`);
+    // A master the file already wraps in `ARRAYFORMULA(...)` is not wrapped twice.
+    const wrap = array !== undefined && !array.dynamic && unwrapArrayFormula(live) === null;
+
+    pass.data[pass.data.length - 1].push(wrap ? `=ARRAYFORMULA(${live})` : `=${live}`);
 
     if (array) {
       recordLiveArray(array.ref, row, col, scope);
@@ -688,7 +776,7 @@ function pushCellValue(
     return;
   }
 
-  if (cell.formula === null && isCoveredByLiveArray(row, col, scope)) {
+  if (cell.formula === null && isCoveredByLiveArray(col, scope)) {
     pass.data[pass.data.length - 1].push(null);
 
     return;
@@ -902,12 +990,11 @@ interface CollectContext {
    */
   window: SheetWindow;
   /**
-   * The cells a LIVE array formula spills over, per window row as `[startCol, endCol]` column
-   * ranges (inclusive, window coordinates). HyperFormula fills them itself, so they import empty: a
-   * cached value left in one makes the spill collide with it (`#SPILL!`). A row's entry is dropped
-   * once the walk has passed it.
+   * The rectangles LIVE array formulas spill over, and the sweep that looks a cell up in them.
+   * HyperFormula fills those cells itself, so they import empty: a cached value left in one makes the
+   * spill collide with it (`#SPILL!`).
    */
-  liveArrayRows: Map<number, Array<[number, number]>>;
+  liveArrays: LiveArraySweep;
 }
 
 /**
@@ -1064,11 +1151,12 @@ function collectCells(
     ownSheetName: context.formulaSheetName?.toLowerCase() ?? null,
     workbookSheetNames: new Set(workbook.sheets.map(candidate => candidate.name.toLowerCase())),
     window,
-    liveArrayRows: new Map(),
+    liveArrays: { active: [], noted: [], spans: [], cursor: 0, maxEndCol: -1 },
   };
 
   for (let row = window.firstRow; row <= window.lastRow; row++) {
     pass.data.push([]);
+    beginLiveArrayRow(row - window.firstRow, scope);
 
     for (let col = window.firstCol; col <= window.lastCol; col++) {
       const cell = sheet.rows[row]?.[col] ?? null;
@@ -1085,9 +1173,6 @@ function collectCells(
         collectCell(pass, cell, row - window.firstRow, col - window.firstCol, scope);
       }
     }
-
-    // No later cell is on this row, so its spilled ranges are done with.
-    scope.liveArrayRows.delete(row - window.firstRow);
   }
 
   return pass;

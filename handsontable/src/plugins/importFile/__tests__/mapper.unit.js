@@ -1958,6 +1958,103 @@ describe('mapWorkbook – array formulas', () => {
     expect(result.data).toEqual([[2, 3, '=ARRAYFORMULA(SUM(A1:B1*2))']]);
   });
 
+  it('should keep the spilled cells\' cached values with importFormulas off and the Formulas plugin on', () => {
+    const { result } = map(workbook(arraySheet()), { importFormulas: false }, FORMULAS_ON);
+
+    expect(result.data.map(row => row[3])).toEqual([1, 2, 3]);
+    expect(result.data.map(row => row[4])).toEqual([2, 4, null]);
+  });
+
+  it('should not wrap a CSE master the file already wraps in ARRAYFORMULA', () => {
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = [
+      [cell({ value: 1 }),
+        cell({ formula: { text: 'ARRAYFORMULA(A1:A2*2)', result: 2, array: { ref: 'B1:B2', dynamic: false } } })],
+      [cell({ value: 2 }), cell({ value: 4 })],
+    ];
+
+    const { result } = map(workbook(sheet), {}, FORMULAS_ON);
+
+    expect(result.data).toEqual([[1, '=ARRAYFORMULA(A1:A2*2)'], [2, null]]);
+  });
+
+  it('should empty the spilled cells of many single-column masters on one row', () => {
+    // One span per master per row, scanned linearly per cell, cost W^2/2 comparisons per row:
+    // about a minute at W = 16384. The sweep looks each cell up in O(1) amortized.
+    const width = 2000;
+    const sheet = createSheetSnapshot('Sheet1');
+    const letters = (index) => {
+      let label = '';
+
+      for (let n = index + 1; n > 0; n = Math.floor((n - 1) / 26)) {
+        label = String.fromCharCode(65 + ((n - 1) % 26)) + label;
+      }
+
+      return label;
+    };
+
+    sheet.rows = [
+      Array.from({ length: width }, (_, col) => cell({
+        formula: { text: 'SEQUENCE(3)', result: 1, array: { ref: `${letters(col)}1:${letters(col)}3`, dynamic: true } },
+      })),
+      Array.from({ length: width }, () => cell({ value: 2 })),
+      Array.from({ length: width }, () => cell({ value: 3 })),
+      Array.from({ length: width }, () => cell({ value: 4 })),
+    ];
+
+    const startedAt = Date.now();
+    const { result } = map(workbook(sheet), {}, FORMULAS_ON);
+    const elapsed = Date.now() - startedAt;
+
+    expect(result.data[0].every(value => value === '=SEQUENCE(3)')).toBe(true);
+    expect(result.data[1].every(value => value === null)).toBe(true);
+    expect(result.data[2].every(value => value === null)).toBe(true);
+    expect(result.data[3].every(value => value === 4)).toBe(true);
+    expect(elapsed).toBeLessThan(5000);
+  });
+
+  it('should charge every rectangle the sweep looks at on every row it crosses', () => {
+    // Ten single-column masters in row 1, each spilling down the whole 100-row sheet: one charge per
+    // rectangle recorded plus one per rectangle per later row swept, 10 + 10 x 99 = 1000.
+    const masters = 10;
+    const rowCount = 100;
+    const build = () => {
+      const sheet = createSheetSnapshot('Sheet1');
+
+      sheet.rows = Array.from({ length: rowCount }, () => Array.from({ length: masters }, () => cell({ value: 0 })));
+      sheet.rows[0] = Array.from({ length: masters }, (_, col) => {
+        const letter = String.fromCharCode(65 + col);
+
+        return cell({
+          formula: {
+            text: 'SEQUENCE(100)', result: 1, array: { ref: `${letter}1:${letter}${rowCount}`, dynamic: true },
+          },
+        });
+      });
+
+      return workbook(sheet);
+    };
+    const charge = masters * rowCount;
+    const fits = build();
+    const refused = build();
+
+    fits.translatedFormulaChars = MAX_TRANSLATED_FORMULA_CHARS - charge;
+    refused.translatedFormulaChars = MAX_TRANSLATED_FORMULA_CHARS - charge + 1;
+
+    expect(map(fits, {}, FORMULAS_ON).result.data[rowCount - 1]).toEqual(Array(masters).fill(null));
+
+    let thrown = null;
+
+    try {
+      map(refused, {}, FORMULAS_ON);
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(isLimitError(thrown)).toBe(true);
+  });
+
   it('should charge the spilled rows to the formula budget, so a whole-sheet ref is refused', () => {
     // `A1:XFD1048576` records one entry per row of the window it covers, so the rows it spills
     // over are charged against the same budget as the formula walks.
