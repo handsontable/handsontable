@@ -248,7 +248,15 @@ export const STATES: Record<A11yState, (page: Page, entry: A11yPage, root: strin
   'context-menu-submenu': async(page, entry, root, cell) => {
     await STATES['context-menu'](page, entry, root, cell);
     await highlightMenuItem(page, '.htContextMenu', 'Alignment');
-    await page.keyboard.press('ArrowRight');
+
+    // A submenu opens toward the inline end: ArrowLeft in a right-to-left grid (the axe discovery run's variant).
+    const rtl = await page.evaluate((selector) => {
+      const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as (HTMLElement & { __hotInstance?: { isRtl(): boolean } }) | null)?.__hotInstance;
+
+      return !!hot?.isRtl();
+    }, root);
+
+    await page.keyboard.press(rtl ? 'ArrowLeft' : 'ArrowRight');
     await expect(page.locator('.htContextMenuSub_Alignment .ht_master .htCore tbody td').first()).toBeVisible();
   },
   'dropdown-menu': async(page, _entry, root, cell) => {
