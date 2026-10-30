@@ -1447,7 +1447,8 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   input of a grid in cell focus mode) is not back, though the cell stays highlighted. A
   popup state walked like a grid at rest reads a Tab the editor keeps (the formula editor accepts a
   suggestion with it) as a trap, so a state that opens a popup belongs on that list. Then the
-  popup opens again and Tab walks inside it, judged per stop. A Tab that leaves the focus on the element
+  popup opens again and Tab walks inside it, judged per stop, and its stops are keyed by cell like a Tab
+  walk's: on an editor Tab commits and moves from cell to cell. A Tab that leaves the focus on the element
   it was on (the one the popup put it on, for the first) is an advisory `tab-keeps-focus`, with whether
   the editor stayed open: the walk cannot tell a date input moving between its fields, a suggestion
   accepted and a Tab that did nothing apart, and the guide says Tab completes the entry and moves on. A

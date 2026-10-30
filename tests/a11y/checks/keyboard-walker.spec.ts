@@ -15,6 +15,7 @@ import {
   probeVerdict,
   shortcutKey,
   singleCharacterShortcuts,
+  stopKey,
   walkFindings,
   walkVerdict,
 } from '../../lib/keyboard-walker.mjs';
@@ -274,7 +275,9 @@ async function modalExitOf(page: Page, root: string, held: FocusStop[]): Promise
 /**
  * Presses Tab from where the focus is inside an open popup, recording each stop, and what the press
  * changed beyond the focus (`contextChange()`, judged as 3.2.1 like a Tab walk's), until the focus leaves
- * the product, comes back to a stop, or twelve presses have passed.
+ * the product, comes back to a stop, or twelve presses have passed. A stop is keyed by its cell, as in a Tab
+ * walk (`stopKey()`): on an editor Tab commits and moves from cell to cell, and Walkontable reuses a `<td>`
+ * for another cell after a scroll.
  *
  * @param page The page.
  * @param cdp The accessibility session.
@@ -283,22 +286,22 @@ async function modalExitOf(page: Page, root: string, held: FocusStop[]): Promise
  */
 async function popupWalk(page: Page, cdp: CDPSession, root: string): Promise<FocusStop[]> {
   const stops = [await readStop(page, cdp, root)];
-  const seen = new Set([stops[0].ref]);
+  const seen = new Set([stopKey(stops[0])]);
 
   for (let press = 1; press <= 12; press++) {
     await page.keyboard.press('Tab');
 
     const next = await readStop(page, cdp, root);
     const previous = stops.at(-1)!;
-    // A Tab that keeps the focus on the same element (the formula editor accepting a suggestion) moved no
+    // A Tab that keeps the focus on the same stop (the formula editor accepting a suggestion) moved no
     // focus, so what it changed is input, not a change of context on focus.
-    const change = next.ref === previous.ref ? null : contextChange(previous, next);
+    const change = stopKey(next) === stopKey(previous) ? null : contextChange(previous, next);
 
     stops.push(change ? { ...next, contextChange: change } : next);
-    if (!isProductStop(next) || seen.has(next.ref)) {
+    if (!isProductStop(next) || seen.has(stopKey(next))) {
       break;
     }
-    seen.add(next.ref);
+    seen.add(stopKey(next));
   }
 
   return stops;
