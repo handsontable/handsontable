@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-30T06:56:08.439Z",
+  "generatedAt": "2026-10-30T09:30:59.409Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -3235,7 +3235,7 @@
       "file": "handsontable/src/plugins/manualColumnResize/__tests__/manualColumnResize.spec.js",
       "line": null,
       "title": "manualColumnResize should autosize selected columns after double click on handler",
-      "count7": 1,
+      "count7": 0,
       "count30": 1,
       "countAll": 1,
       "runs30": 1,
