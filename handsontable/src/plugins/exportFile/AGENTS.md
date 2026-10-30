@@ -295,9 +295,28 @@ Other rules:
   `toOoxmlErrorCode()` (`types/xlsx/formula-utils.ts`) maps the `DetailedCellError#type`, recognized
   by shape, to a code; the formula branch of `#resolveCellValue` then writes
   `{ result: code, resultIsError: true }`. `CYCLE`, `ERROR`, `LIC` and `SPILL` have no code (POI
-  refuses `#SPILL!` in a `t="e"` cell) and keep the display text, typed `str`. The three
-  ExportDataProvider mocks of the `xlsx*.unit.js` suites carry the method; a new mock used with
-  `exportFormulas` needs it too. Pinned by `xlsxFormulaErrorResult.unit.js`.
+  refuses `#SPILL!` in a `t="e"` cell) and keep the display text, typed `str`. Pinned by
+  `xlsxFormulaErrorResult.unit.js`.
+- **A cell whose VALUE is an error exports as an Excel error too, with or without `exportFormulas`**
+  (DEV-3648). `getFormulaErrorCodes()` is read on every export (every entry is `null` without the
+  Formulas plugin), and `#resolveCellValue` writes `{ value: code, valueIsError: true }` for any cell
+  the formula branch did not take: a typed `#N/A`, and a formula exported as its value. Until DEV-3648
+  the second went out as the display text. The check runs BEFORE the type branches, so an error in a
+  numeric column is not converted. Without the plugin a typed `#N/A` stays a string. Every
+  ExportDataProvider mock of the `xlsx*.unit.js` suites therefore carries `getFormulaErrorCodes()`,
+  and the ones used with `exportFormulas` also carry `getNamedExpressions()` and
+  `getFormulasSheetName()`; a new mock needs them too. Pinned by `xlsxPlainErrorValue.unit.js`.
+- **Named expressions export as workbook defined names, with `exportFormulas` only** (DEV-3648).
+  `getNamedExpressions()` lists the engine's WORKBOOK-scoped names (a sheet-scoped one is left out);
+  a name defined with a constant has no formula text, so its value is spelled as a literal
+  (`toFormulaLiteral`: `"text"` with `""`, `TRUE()`/`FALSE()`). `normalizeNamedExpression` moves only
+  the references qualified with the Formulas plugin's own `sheetName` (case-insensitively), by the
+  same header offsets and left-out rows and columns as a cell formula, and re-qualifies them with the
+  name the export gives the sheet (`mapFormulaReferences`' `requalify` option, which quotes the name
+  when needed). Other qualifiers stay as written. A reference that ENDS on a left-out row or column
+  refuses the whole name (`definedNames:unsupported`, recorded once); a left-out index inside a range
+  only shrinks it. In a multi-sheet export the grids may share one engine, so an identical name is
+  added once. Pinned by `xlsxNamedExpressions.unit.js` and `formula-utils.unit.js`.
 - `headerStyle: null` exports headers with no styling; `headerStyle.border: null` suppresses only the border.
 - **The frozen pane counts EXPORTED indexes, not the raw `fixedColumnsStart`/`fixedRowsTop`.**
   `ExportDataProvider#getFrozenColumns()`/`getFrozenRows()` count the visual indexes of the frozen band

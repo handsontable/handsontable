@@ -148,6 +148,33 @@ export interface MapFormulaReferencesOptions {
    * as written. Off by default: a header band exists on one sheet only.
    */
   qualified?: boolean;
+  /**
+   * Decides, for each qualified reference, whether its sheet is renamed. It gets the sheet name as
+   * the formula spells it, unquoted, and answers the name to write in its place - the reference
+   * part is then mapped like an unqualified reference, and the new name quoted when it has to be -
+   * or `null` to leave the reference to `qualified`. A qualifier naming a sheet of another workbook
+   * (`[1]Data!A1`) is never offered.
+   */
+  requalify?: (sheetName: string) => string | null;
+}
+
+/**
+ * A sheet name a formula may write without quotes: a letter or `_` first, then letters, digits,
+ * `_` and `.`, and not something Excel reads as a cell (`A1`) or an R1C1 reference (`R1C1`).
+ */
+const UNQUOTED_SHEET_NAME_PATTERN = /^[A-Za-z_][A-Za-z0-9_.]*$/;
+const CELL_LIKE_SHEET_NAME_PATTERN = /^(?:[A-Za-z]{1,3}\d+|[RC]|R\d*C\d*)$/i;
+
+/**
+ * Spells a sheet name as a formula qualifier, without its `!`: as it is when Excel reads it
+ * unquoted, otherwise single-quoted with every apostrophe doubled (`'Q1 Sales'`, `'Bob''s'`).
+ */
+export function quoteSheetName(sheetName: string): string {
+  if (UNQUOTED_SHEET_NAME_PATTERN.test(sheetName) && !CELL_LIKE_SHEET_NAME_PATTERN.test(sheetName)) {
+    return sheetName;
+  }
+
+  return `'${sheetName.replaceAll('\'', '\'\'')}'`;
 }
 
 /**
@@ -201,15 +228,27 @@ function mapSpan(groups: ReferenceGroups, map: ReferenceMap): string | null {
  * Walks `formula` with `regex` and rewrites every reference it finds through `map`. Returns `null`
  * when `map` rejects any of them.
  */
-function rewriteReferences(formula: string, regex: RegExp, map: ReferenceMap, qualified: boolean): string | null {
+function rewriteReferences(
+  formula: string, regex: RegExp, map: ReferenceMap, qualified: boolean,
+  requalify?: (sheetName: string) => string | null
+): string | null {
   let rejected = false;
 
   const rewritten = formula.replace(regex, (match: string, ...args: unknown[]) => {
     const groups = args[args.length - 1] as ReferenceGroups;
+    const offset = args[args.length - 3] as number;
     let replacement: string | null;
+    const renamed = groups.qualifier !== undefined && requalify !== undefined && formula[offset - 1] !== ']'
+      ? requalify(unquoteQualifier(groups.qualifier))
+      : null;
 
     if (groups.literal !== undefined) {
       replacement = match;
+
+    } else if (renamed !== null) {
+      const part = rewriteReferences(groups.qualified ?? '', QUALIFIED_PART_REGEX, map, false);
+
+      replacement = part === null ? null : `${quoteSheetName(renamed)}!${part}`;
 
     } else if (groups.qualifier !== undefined) {
       // The reference part is a cell, a range or a span of at most a few dozen characters, so the
@@ -239,7 +278,8 @@ function rewriteReferences(formula: string, regex: RegExp, map: ReferenceMap, qu
 /**
  * Rewrites every unqualified A1-style reference in a formula through `map`, leaving string
  * literals untouched, and qualified references (`Data!A2`, `'Sheet 1'!B2:C3`) too unless
- * `options.qualified` is set - then their reference part is mapped as well and the sheet name kept.
+ * `options.qualified` is set - then their reference part is mapped as well and the sheet name kept -
+ * or `options.requalify` renames their sheet, which maps the reference part and writes the new name.
  * An open span's ends reach `map` with `null` on the open axis and keep it open however `map`
  * answers. Returns `null` when `map` rejects any reference, so a caller that cannot express a
  * reference in the target coordinate space can drop the whole formula rather than emit a wrong one.
@@ -251,7 +291,7 @@ export function mapFormulaReferences(
   map: ReferenceMap,
   options: MapFormulaReferencesOptions = {}
 ): string | null {
-  return rewriteReferences(formula, REFERENCE_REGEX, map, options.qualified === true);
+  return rewriteReferences(formula, REFERENCE_REGEX, map, options.qualified === true, options.requalify);
 }
 
 /**

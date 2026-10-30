@@ -37,6 +37,7 @@ export interface HyperFormulaEngine {
   getCellFormula(address: { sheet: number; row: number; col: number }): string | undefined;
   listNamedExpressions(scope?: number): string[];
   getNamedExpressionFormula(name: string, scope?: number): string | undefined;
+  getNamedExpressionValue(name: string, scope?: number): unknown;
   getNamedExpression(name: string, scope?: number): {
     options?: Record<string, string | number | boolean>;
   } | undefined;

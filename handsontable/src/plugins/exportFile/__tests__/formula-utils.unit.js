@@ -1,4 +1,4 @@
-import { normalizeFormula } from '../types/xlsx/formula-utils';
+import { normalizeFormula, normalizeNamedExpression } from '../types/xlsx/formula-utils';
 
 describe('normalizeFormula', () => {
   describe('relative references', () => {
@@ -81,5 +81,44 @@ describe('normalizeFormula', () => {
     it('should not replace a separator inside string literals', () => {
       expect(normalizeFormula('=CONCATENATE("a;b";C1)', ';', 0, 0)).toBe('CONCATENATE("a;b",C1)');
     });
+  });
+});
+
+describe('normalizeNamedExpression', () => {
+  const normalize = (formula, { rows = 0, cols = 0, exRows, exCols, separator = ',' } = {}) =>
+    normalizeNamedExpression(formula, separator, rows, cols, exRows, exCols, 'Data', 'Sheet1');
+
+  it('should strip the `=`, shift a reference to the engine sheet and re-qualify it (any case)', () => {
+    expect(normalize('=Data!$A$1:$A$3', { rows: 1 })).toBe('Sheet1!$A$2:$A$4');
+    expect(normalize('=data!A$1', { rows: 1, cols: 1 })).toBe('Sheet1!B$2');
+  });
+
+  it('should keep a reference to another sheet as written', () => {
+    expect(normalize('=Rates!$A$1+Data!$B$1', { rows: 1 })).toBe('Rates!$A$1+Sheet1!$B$2');
+  });
+
+  it('should keep a constant as it is', () => {
+    expect(normalize('=0.07', { rows: 1 })).toBe('0.07');
+    expect(normalize('="Data!A1"', { rows: 1 })).toBe('"Data!A1"');
+  });
+
+  it('should convert the argument separator', () => {
+    expect(normalize('=SUM(Data!$A$1;Data!$A$2)', { separator: ';' })).toBe('SUM(Sheet1!$A$1,Sheet1!$A$2)');
+  });
+
+  it('should shrink a range around a left-out row and shift the references below it', () => {
+    expect(normalize('=Data!$A$1:$A$3', { exRows: new Set([1]) })).toBe('Sheet1!$A$1:$A$2');
+    expect(normalize('=Data!$A$4', { exRows: new Set([1]) })).toBe('Sheet1!$A$3');
+  });
+
+  it('should answer null for a reference that ends on a left-out row or column', () => {
+    expect(normalize('=Data!$A$2', { exRows: new Set([1]) })).toBeNull();
+    expect(normalize('=Data!$A$1:$A$2', { exRows: new Set([1]) })).toBeNull();
+    expect(normalize('=Data!$B$1', { exCols: new Set([1]) })).toBeNull();
+    expect(normalize('=Data!$B:$B', { exCols: new Set([1]) })).toBeNull();
+  });
+
+  it('should not reject a reference to another sheet that sits on a left-out index', () => {
+    expect(normalize('=Rates!$A$2', { exRows: new Set([1]) })).toBe('Rates!$A$2');
   });
 });

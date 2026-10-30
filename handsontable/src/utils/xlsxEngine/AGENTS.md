@@ -88,7 +88,11 @@ directions.
   copy rule moves a QUALIFIED reference too (`=Data!B2` filled down is `=Data!B3`, as in Excel and
   ExcelJS's `slideFormula`), so `translateSharedFormula` calls `mapFormulaReferences(…, { qualified:
   true })` (`formulaRefs.ts`), which re-walks only the reference part with `QUALIFIED_PART_REGEX`;
-  `shiftFormulaReferences` keeps skipping qualified references.
+  `shiftFormulaReferences` keeps skipping qualified references. A third option, `requalify(name)`,
+  RENAMES a qualifier (`exportFile`'s named expressions move the Formulas engine sheet's references
+  and name the exported sheet): it gets the unquoted name, answers the new one or `null`, and the
+  walker quotes the new name itself (`quoteSheetName`, which also quotes a cell-shaped name such as
+  `A1`). A qualifier after `]` (another workbook) is never offered.
 - **Covered merge cells lose their content on write** and read back `null`; the master keeps it.
 - **The worksheet reader is a CLASS, and its traps below name private methods.** `parseWorksheet` is
   a one-line wrapper over `WorksheetParser` in `parts/worksheetReader.ts`: the tokenizer is

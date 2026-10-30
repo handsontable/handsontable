@@ -9,6 +9,7 @@ import { matchCheckboxTemplate } from '../../../utils/checkboxColumn';
 import {
   buildSummaryFormula,
   normalizeFormula,
+  normalizeNamedExpression,
   isFormulaValue,
 } from './xlsx/formula-utils';
 import {
@@ -54,6 +55,7 @@ import {
   type CellStyleSnapshot,
   type CellValidationSnapshot,
   type CellValue,
+  type DefinedNameSnapshot,
   type SheetSnapshot,
   type WorkbookSnapshot,
 } from '../../../utils/xlsxEngine/model';
@@ -662,7 +664,9 @@ class Xlsx extends BaseType {
     });
 
     const sourceData = exportFormulas ? dataProvider.getSourceData() : null;
-    const formulaErrorCodes = exportFormulas ? dataProvider.getFormulaErrorCodes() : null;
+    // Read whenever the Formulas plugin is on (every entry is `null` otherwise): a cell whose value
+    // is an error exports as an Excel error whether or not its formula goes out with it.
+    const formulaErrorCodes = dataProvider.getFormulaErrorCodes();
     const arrayFormulaSizes = exportFormulas ? dataProvider.getArrayFormulaSizes() : null;
     const formulasSeparator = exportFormulas ? dataProvider.getFormulasSeparator() : ',';
     const hasColumnHeaders = columnHeaders.length > 0;
@@ -754,6 +758,10 @@ class Xlsx extends BaseType {
 
     this.#writeDataRows(sheet, data, context);
 
+    if (exportFormulas) {
+      this.#addDefinedNames(workbook, name, dataProvider, context);
+    }
+
     if (hiddenRowIndices.length > 0) {
       this.#applyHiddenRows(sheet, hiddenRowIndices, dataRowOffset);
     }
@@ -800,6 +808,53 @@ class Xlsx extends BaseType {
     }
 
     return data.length;
+  }
+
+  /**
+   * Adds the workbook-scoped named expressions of the sheet's Formulas engine to the workbook as
+   * workbook defined names. A reference to the grid's own engine sheet moves with the header band
+   * and the left-out rows and columns, the way a cell formula's does, and names the exported sheet
+   * (`normalizeNamedExpression`). A name that cannot be expressed in the file is left out and
+   * `definedNames:unsupported` recorded. In a multi-sheet export the grids may share one engine, so
+   * a name already added with the same definition is skipped quietly.
+   *
+   * @param {object} workbook The neutral workbook snapshot.
+   * @param {string} sheetName The name the export gives this grid's sheet.
+   * @param {ExportDataProvider} dataProvider ExportDataProvider configured for this sheet.
+   * @param {object} context Sheet-level context built by `#populateWorksheet`.
+   */
+  #addDefinedNames(
+    workbook: WorkbookSnapshot, sheetName: string, dataProvider: ExportDataProvider, context: SheetContext
+  ): void {
+    const names = dataProvider.getNamedExpressions();
+    const selfSheetName = dataProvider.getFormulasSheetName();
+
+    if (names.length === 0 || selfSheetName === null) {
+      return;
+    }
+
+    const definedNames: DefinedNameSnapshot[] = workbook.definedNames ?? [];
+
+    names.forEach(({ name, formula: definition }) => {
+      const formula = definition === null ? null : normalizeNamedExpression(
+        definition, context.formulasSeparator, context.dataRowOffset - 1, context.dataColOffset - 1,
+        context.excludedHiddenRows ?? undefined, context.excludedHiddenCols ?? undefined,
+        selfSheetName, sheetName
+      );
+
+      if (formula === null) {
+        if (context.dropped.count(DROPPED_FEATURES.definedNamesUnsupported) === 0) {
+          context.dropped.record(DROPPED_FEATURES.definedNamesUnsupported);
+        }
+
+      } else if (!definedNames.some(entry => entry.name === name && entry.formula === formula)) {
+        definedNames.push({ name, formula, sheetName: null });
+      }
+    });
+
+    if (definedNames.length > 0) {
+      workbook.definedNames = definedNames;
+    }
   }
 
   /**
@@ -859,13 +914,17 @@ class Xlsx extends BaseType {
         row: excelRowNumber,
         col: colIndex + context.dataColOffset,
       };
-      const { value, formula, numFmt } = this.#resolveCellValue(
+      const { value, formula, numFmt, valueIsError } = this.#resolveCellValue(
         cellValue, meta, sourceValue, facts, summary, context
       );
 
       cell.value = value;
       cell.formula = formula;
       cell.numFmt = numFmt;
+
+      if (valueIsError) {
+        cell.valueIsError = true;
+      }
 
       const cssStyle = getCssStyleFromElement(
         context.cellElements[rowIndex][colIndex], meta.className, context.rootDocument, context.rootWindow
@@ -926,11 +985,13 @@ class Xlsx extends BaseType {
    * 2. HyperFormula formula cells (when `exportFormulas` is `true`) — written with the number
    *    format their column's meta describes and with the pre-calculated value cached as the
    *    formula's `result`.
-   * 3. Date cells (ISO 8601 string → serial number).
-   * 4. Time cells (time string → fractional day serial).
-   * 5. Checkbox cells (boolean from `checkedTemplate` comparison; an empty value stays empty).
-   * 6. Multiselect cells (comma-separated string).
-   * 7. All other cells (numeric-aware or stringified).
+   * 3. Cells whose engine value is an error with an OOXML code (any cell, a formula exported as
+   *    its value included) — written as that code, flagged so both writers type it `t="e"`.
+   * 4. Date cells (ISO 8601 string → serial number).
+   * 5. Time cells (time string → fractional day serial).
+   * 6. Checkbox cells (boolean from `checkedTemplate` comparison; an empty value stays empty).
+   * 7. Multiselect cells (comma-separated string).
+   * 8. All other cells (numeric-aware or stringified).
    *
    * @param {*} cellValue Pre-calculated display value from `getData()`.
    * @param {object} meta Cell meta object.
@@ -941,7 +1002,7 @@ class Xlsx extends BaseType {
    *   and its 1-based sheet address.
    * @param {object|undefined} summary ColumnSummary descriptor, or `undefined` for non-summary cells.
    * @param {object} context Sheet-level context passed through from `#populateWorksheet`.
-   * @returns {{ value: *, formula: object|null, numFmt: string|null }}
+   * @returns {{ value: *, formula: object|null, numFmt: string|null, valueIsError?: boolean }}
    */
   #resolveCellValue(
     cellValue: unknown,
@@ -950,7 +1011,7 @@ class Xlsx extends BaseType {
     facts: FormulaCellFacts,
     summary: ColumnSummaryDescriptor | undefined,
     context: SheetContext
-  ): { value: CellValue; formula: CellFormula | null; numFmt: string | null } {
+  ): { value: CellValue; formula: CellFormula | null; numFmt: string | null; valueIsError?: true } {
     const {
       exportFormulas, formulasSeparator, dataRowOffset, dataColOffset,
       excludedHiddenRows, excludedHiddenCols,
@@ -982,6 +1043,12 @@ class Xlsx extends BaseType {
       }
 
       return { value: null, formula, numFmt: resolveMetaNumFmt(meta) };
+    }
+
+    if (facts.errorCode !== null) {
+      // The code, not the displayed text: the engine's language translates the text, and a typed
+      // `#N/A` reads the same as the text a formula such as `="#N/A"` answers.
+      return { value: facts.errorCode, formula: null, numFmt: null, valueIsError: true };
     }
 
     if (meta.type === 'intl-datetime') {

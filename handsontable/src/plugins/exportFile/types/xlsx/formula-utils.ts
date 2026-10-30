@@ -209,6 +209,65 @@ export function normalizeFormula(
 }
 
 /**
+ * Normalizes the definition of a HyperFormula named expression for an Excel defined name.
+ *
+ * Works like {@link normalizeFormula}, with two differences that follow from a name living outside
+ * any sheet. A named expression qualifies its references (`=Sheet1!$A$1:$A$3`), so a reference
+ * qualified with the engine sheet the grid is bound to (`selfSheetName`, compared
+ * case-insensitively) is the one that moves with the header band and the left-out rows and
+ * columns, and it is re-qualified with the name the export gives that sheet (`exportedSheetName`).
+ * A reference to any other sheet is kept as written. And a reference that ends on a left-out row
+ * or column cannot be expressed in the exported sheet, so the whole definition is refused: the
+ * caller leaves the name out. A left-out row or column INSIDE a range only shrinks it, the way
+ * a cell formula's range shrinks.
+ *
+ * @private
+ * @param {string} formula The definition (with or without its leading `=`).
+ * @param {string} separator HyperFormula's `functionArgSeparator`.
+ * @param {number} rowOffset Base number to add to every row number of a moved reference.
+ * @param {number} colOffset Base number to add to every column number of a moved reference.
+ * @param {Set<number>} [excludedRows] The rows left out of the export, as engine row indexes
+ *   (`ExportDataProvider#getExcludedHiddenRows`).
+ * @param {Set<number>} [excludedCols] The columns left out of the export
+ *   (`ExportDataProvider#getExcludedHiddenColumns`).
+ * @param {string} selfSheetName The name of the engine sheet the grid is bound to.
+ * @param {string} exportedSheetName The name the export gives the grid's sheet.
+ * @returns {string|null} The definition without its `=`, or `null` when it cannot be expressed.
+ */
+export function normalizeNamedExpression(
+  formula: string,
+  separator: string,
+  rowOffset: number,
+  colOffset: number,
+  excludedRows: Set<number> | undefined,
+  excludedCols: Set<number> | undefined,
+  selfSheetName: string,
+  exportedSheetName: string
+): string | null {
+  const definition = formula.startsWith('=') ? formula.slice(1) : formula;
+  const self = selfSheetName.toLowerCase();
+  const mapped = mapFormulaReferences(definition, ({ row, col }) => {
+    // A reference names a left-out index on its own row or column; an open axis names none.
+    if ((row !== null && excludedRows?.has(row - 1)) || (col !== null && excludedCols?.has(col - 1))) {
+      return null;
+    }
+
+    return {
+      row: row === null ? null : row + rowOffset - (excludedRows ? countBelow(excludedRows, row - 1) : 0),
+      col: col === null ? null : col + colOffset - (excludedCols ? countBelow(excludedCols, col - 1) : 0),
+    };
+  }, {
+    requalify: sheetName => (sheetName.toLowerCase() === self ? exportedSheetName : null),
+  });
+
+  if (mapped === null) {
+    return null;
+  }
+
+  return separator && separator !== ',' ? replaceSeparatorOutsideStrings(mapped, separator, ',') : mapped;
+}
+
+/**
  * HyperFormula's error types (`DetailedCellError#type`) that have an OOXML error code. The rest have
  * none: `CYCLE` (Excel reports a circular reference as a warning and shows `0`), `ERROR` (a formula
  * HyperFormula could not parse) and `LIC`. `SPILL` is left out too: `#SPILL!` is not one of the
@@ -240,4 +299,31 @@ export function toOoxmlErrorCode(cellValue: unknown): string | null {
   const { type } = cellValue as { type?: unknown };
 
   return typeof type === 'string' ? HF_ERROR_TYPE_TO_OOXML_CODE.get(type) ?? null : null;
+}
+
+/**
+ * Spells the constant value of a HyperFormula named expression (one defined with a value rather
+ * than a formula) as an Excel formula literal: a finite number as it is, a string double-quoted
+ * with every `"` doubled, a boolean as `TRUE()` or `FALSE()` (the function form, which every
+ * reader parses as a boolean), and an error with an OOXML code as that code. Answers `null` for
+ * anything else (an empty value, an error with no code), which no definition can spell.
+ *
+ * @private
+ * @param {*} value The value `getNamedExpressionValue()` answers.
+ * @returns {string|null}
+ */
+export function toFormulaLiteral(value: unknown): string | null {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? String(value) : null;
+  }
+
+  if (typeof value === 'string') {
+    return `"${value.replaceAll('"', '""')}"`;
+  }
+
+  if (typeof value === 'boolean') {
+    return value ? 'TRUE()' : 'FALSE()';
+  }
+
+  return toOoxmlErrorCode(value);
 }

@@ -79,10 +79,12 @@ describe('Xlsx export: the error flag of a cached formula result', () => {
     expect(row[0].formula).toEqual({ text: 'A1', result: '#CYCLE!' });
   });
 
-  it('should write no formula and no flag without `exportFormulas`', async() => {
+  it('should write no formula without `exportFormulas`, and the error value flagged (DEV-3648)', async() => {
     const row = await exportedFirstRow({ data: [['=1/0']] }, {});
 
     expect(row[0].formula).toBeNull();
     expect(row[0].value).toBe('#DIV/0!');
+    // Until DEV-3648 the value went out as the text the grid shows, unflagged.
+    expect(row[0].valueIsError).toBe(true);
   });
 });

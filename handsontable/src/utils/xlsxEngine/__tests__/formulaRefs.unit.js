@@ -228,6 +228,40 @@ describe('mapFormulaReferences', () => {
   it('should return null as soon as the mapper rejects a reference', () => {
     expect(mapFormulaReferences('A1+B2', reference => (reference.col === 2 ? null : reference))).toBeNull();
   });
+
+  describe('the `requalify` option', () => {
+    const down = reference => ({ row: reference.row === null ? null : reference.row + 1, col: reference.col });
+
+    it('should map a reference whose sheet the callback renames and write the new name', () => {
+      const names = [];
+      const result = mapFormulaReferences('Data!$A$1:$A$3+\'my sheet\'!B2+Other!C3', down, {
+        requalify: (name) => {
+          names.push(name);
+
+          return name.toLowerCase() === 'data' || name === 'my sheet' ? 'Sheet1' : null;
+        },
+      });
+
+      expect(names).toEqual(['Data', 'my sheet', 'Other']);
+      expect(result).toBe('Sheet1!$A$2:$A$4+Sheet1!B3+Other!C3');
+    });
+
+    it('should quote a new sheet name that needs quotes, doubling an apostrophe', () => {
+      expect(mapFormulaReferences('Data!A1', down, { requalify: () => 'Q1 Sales' })).toBe('\'Q1 Sales\'!A2');
+      expect(mapFormulaReferences('Data!A1', down, { requalify: () => 'Bob\'s' })).toBe('\'Bob\'\'s\'!A2');
+      expect(mapFormulaReferences('Data!A1', down, { requalify: () => 'A1' })).toBe('\'A1\'!A2');
+      expect(mapFormulaReferences('Data!A1', down, { requalify: () => 'R1C1' })).toBe('\'R1C1\'!A2');
+      expect(mapFormulaReferences('Data!A1', down, { requalify: () => 'Sales_2024' })).toBe('Sales_2024!A2');
+    });
+
+    it('should return null when the mapper rejects a requalified reference', () => {
+      expect(mapFormulaReferences('Data!A1', () => null, { requalify: () => 'Sheet1' })).toBeNull();
+    });
+
+    it('should leave a qualifier of another workbook untouched', () => {
+      expect(mapFormulaReferences('[1]Data!A1', down, { requalify: () => 'Sheet1' })).toBe('[1]Data!A1');
+    });
+  });
 });
 
 describe('translateSharedFormula', () => {

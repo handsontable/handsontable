@@ -1,7 +1,7 @@
 import type { HotInstance } from '../../core/types';
 import { extractText } from '../../utils/textExtractor';
 import { normalizeExportOptions, expandNestedHeaderLayers } from './utils';
-import { toOoxmlErrorCode } from './types/xlsx/formula-utils';
+import { toFormulaLiteral, toOoxmlErrorCode } from './types/xlsx/formula-utils';
 import type { SummaryEndpoint } from '../columnSummary/columnSummary';
 
 interface MergeCellDescriptor {
@@ -335,7 +335,9 @@ class ExportDataProvider {
    *
    * The answer comes from the engine's own cell value, not from the displayed text, which cannot
    * tell the error `#N/A` from the text a formula such as `="#N/A"` answers, and which the
-   * engine's language translates.
+   * engine's language translates. The XLSX export reads it with and without `exportFormulas`:
+   * a formula exported live caches the code as its result, and any other cell whose value is an
+   * error (a typed `#N/A`, or a formula exported as its value) is written as the code.
    *
    * @returns {Array[]}
    */
@@ -353,6 +355,45 @@ class ExportDataProvider {
       row: rowAxisSyncer.getHfIndexFromVisualIndex(row),
       col: columnAxisSyncer.getHfIndexFromVisualIndex(col),
     })));
+  }
+
+  /**
+   * Gets the workbook-scoped named expressions of the Formulas plugin's engine, in the engine's
+   * order, each with its definition: the formula text (`=Sheet1!$A$1:$A$3`), or, for a name defined
+   * with a constant, that constant spelled as a formula literal (`5`, `"text"`, `TRUE()`). The
+   * definition is `null` when the constant cannot be spelled. A name scoped to a sheet is left out.
+   * Empty when the Formulas plugin is absent or disabled.
+   *
+   * @returns {Array<{ name: string, formula: string|null }>}
+   */
+  getNamedExpressions(): Array<{ name: string; formula: string | null }> {
+    const formulasPlugin = this.hot.getPlugin('formulas');
+    const engine = formulasPlugin?.isEnabled() ? formulasPlugin.engine : null;
+
+    if (!engine) {
+      return [];
+    }
+
+    return engine.listNamedExpressions().map((name: string) => {
+      const formula = engine.getNamedExpressionFormula(name);
+
+      return {
+        name,
+        formula: formula === undefined ? toFormulaLiteral(engine.getNamedExpressionValue(name)) : formula,
+      };
+    });
+  }
+
+  /**
+   * Gets the name of the engine sheet the Formulas plugin binds this grid to, or `null` when the
+   * plugin is absent or disabled.
+   *
+   * @returns {string|null}
+   */
+  getFormulasSheetName(): string | null {
+    const formulasPlugin = this.hot.getPlugin('formulas');
+
+    return formulasPlugin?.isEnabled() && formulasPlugin.engine ? formulasPlugin.sheetName : null;
   }
 
   /**

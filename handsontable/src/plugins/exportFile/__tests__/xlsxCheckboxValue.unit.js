@@ -77,6 +77,10 @@ jest.mock('../dataProvider', () => ({
       return mockProviderState.sourceData;
     }
 
+    getFormulaErrorCodes() {
+      return this.getData().map(row => row.map(() => null));
+    }
+
     getFormulasSeparator() {
       return ',';
     }

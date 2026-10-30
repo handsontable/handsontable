@@ -87,6 +87,14 @@ jest.mock('../dataProvider', () => ({
       return ',';
     }
 
+    getNamedExpressions() {
+      return [];
+    }
+
+    getFormulasSheetName() {
+      return null;
+    }
+
     getExcludedHiddenRows() {
       return null;
     }
