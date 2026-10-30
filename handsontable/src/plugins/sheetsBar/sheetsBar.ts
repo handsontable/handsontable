@@ -2307,7 +2307,7 @@ export class SheetsBar extends BasePlugin {
 
         try {
           this.#isSwitching = true;
-          this.#withoutFetching(() => this.#switchTo(model, newId, source));
+          this.#withoutFetching(() => this.#asViewChange(() => this.#switchTo(model, newId, source)));
         } finally {
           this.#isSwitching = false;
         }
@@ -4066,6 +4066,23 @@ export class SheetsBar extends BasePlugin {
     this.#overflow?.refresh();
     this.#tabStrip?.settleReveal();
     this.#syncGridName();
+  }
+
+  /**
+   * Runs a switch as a view change for EmptyDataState (`_runViewChange()`, `@private`), so the overlay a sheet
+   * without rows showed hides without selecting the first cell of the arriving sheet: a sheet the user has not
+   * visited opens with nothing selected, and a visited one with the selection it kept.
+   *
+   * @param {Function} run The switch.
+   */
+  #asViewChange(run: () => void) {
+    const emptyDataState = this.hot.getPlugin('emptyDataState');
+
+    if (emptyDataState) {
+      emptyDataState._runViewChange(run);
+    } else {
+      run();
+    }
   }
 
   /**
