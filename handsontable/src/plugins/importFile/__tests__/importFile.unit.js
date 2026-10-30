@@ -1296,6 +1296,45 @@ describe('ImportFile and the Formulas engine\'s named expressions', () => {
   });
 });
 
+describe('ImportFile and bare TRUE and FALSE in a real HyperFormula engine', () => {
+  it('should evaluate imported booleans and a name defined as TRUE instead of showing #NAME?', async() => {
+    const snapshot = createWorkbookSnapshot();
+    const sheet = createSheetSnapshot('Data');
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+
+    sheet.rows = [
+      [at({ formula: { text: 'IF(TRUE,1,2)', result: 1 } }), at({ value: true })],
+      [at({ formula: { text: 'AND(B1,FALSE)', result: false } })],
+      [at({ formula: { text: 'IF(Flag,"yes","no")', result: 'yes' } })],
+    ];
+    snapshot.sheets.push(sheet);
+    snapshot.definedNames = [{ name: 'Flag', formula: 'TRUE', sheetName: null }];
+
+    const bytes = toArrayBuffer(await nativeAdapter.write(snapshot, undefined, new DroppedFeatures()));
+    const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+
+    hf.addSheet('Sheet1');
+
+    const { plugin, hot } = pluginWithFakeHot(true);
+
+    hot.getPlugin = name => ({
+      formulas: { isEnabled: () => true, sheetName: 'Sheet1', engine: hf },
+    })[name];
+
+    const result = await plugin.importFromArrayBuffer('xlsx', bytes, { apply: false });
+
+    expect(result.data.map(row => row[0])).toEqual(['=IF(TRUE(),1,2)', '=AND(B1,FALSE())', '=IF(Flag,"yes","no")']);
+    expect(result.namedExpressions).toEqual([{ name: 'Flag', formula: 'TRUE()' }]);
+
+    result.namedExpressions.forEach(({ name, formula }) => hf.addNamedExpression(name, `=${formula}`));
+    hf.setSheetContent(0, result.data);
+
+    expect([0, 1, 2].map(row => hf.getCellValue({ sheet: 0, row, col: 0 }))).toEqual([1, false, 'yes']);
+
+    hf.destroy();
+  });
+});
+
 describe('ImportFile and the workbook\'s defined names in a real HyperFormula engine', () => {
   /**
    * A `Data` workbook with a header row: `G2:G4` holds 10, 20, 30 under the names `Sales` (absolute)

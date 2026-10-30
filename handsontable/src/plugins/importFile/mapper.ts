@@ -527,29 +527,92 @@ function chargeFormulaWalk(length: number, scope: CollectContext): void {
 }
 
 /**
+ * A formula as `readFormulaText` hands it over.
+ */
+interface ReadFormula {
+  /**
+   * What the file holds, minus the stored prefixes: the text `ImportResult.formulas` records.
+   */
+  recorded: string;
+  /**
+   * The text the engine receives: `recorded` with a bare `TRUE`/`FALSE` rewritten to a call.
+   */
+  live: string;
+}
+
+/**
+ * Matches a bare boolean literal's spelling: the only formulas `rewriteBareBooleans` walks.
+ */
+const BOOLEAN_HINT = /true|false/i;
+
+/**
+ * Rewrites a bare `TRUE`/`FALSE` (any case) to `TRUE()`/`FALSE()`. HyperFormula reads a bare boolean
+ * literal as an unknown name (`=IF(TRUE,1,2)` is `#NAME?`), while Excel stores it that way.
+ *
+ * A string literal and a quoted sheet name are left alone, and so is a token followed by `(` (already
+ * a call) or `!` (a sheet named `TRUE`), preceded by `!` (a name on a sheet), `.` or a name character
+ * (the tail of a longer name), or sitting in a structured reference (`Table[TRUE]`, `[@TRUE]`).
+ * Linear: one pass of `FORMULA_IDENTIFIER_REGEX`. `readFormulaText` has already charged the formula.
+ *
+ * @param {string} formula The formula, without its `=`.
+ * @returns {string}
+ */
+function rewriteBareBooleans(formula: string): string {
+  if (!BOOLEAN_HINT.test(formula)) {
+    return formula;
+  }
+
+  let out = '';
+  let last = 0;
+
+  for (const match of formula.matchAll(FORMULA_IDENTIFIER_REGEX)) {
+    const [token] = match;
+    const start = match.index ?? 0;
+    const lowered = token.toLowerCase();
+
+    if (lowered === 'true' || lowered === 'false') {
+      const prev = start > 0 ? formula[start - 1] : '';
+      const next = formula[start + token.length];
+
+      if (next !== '(' && next !== '!' && next !== ']' && !/[!.[@$\p{L}\p{N}_]/u.test(prev)) {
+        out += `${formula.slice(last, start)}${token.toUpperCase()}()`;
+        last = start + token.length;
+      }
+    }
+  }
+
+  return last === 0 ? formula : out + formula.slice(last);
+}
+
+/**
  * The formula as the grid takes it: the `_xlfn.`/`_xlws.`/`_xlpm.` prefixes Excel stores in front of
  * post-2007 functions and `LET`/`LAMBDA` parameters removed, so HyperFormula does not read them as
  * unknown names (`#NAME?`). Every engine hands the stored text over verbatim, so the mapper strips
- * it for both.
+ * it for both. `live`, the text for the engine, also has a bare `TRUE`/`FALSE` rewritten to a call
+ * (`rewriteBareBooleans`); `recorded` keeps what the file holds.
  *
  * A formula any walk will run over is charged against the budget ONCE, before the first walk: the
- * prefix strip, and - with live formulas on - the reference walk of `rebaseImportedFormula` (a
- * non-zero window origin, or a `!` to check) and the defined-name scan (a workbook that defines a
- * name the engine lacks). Each walk is linear in the formula's length, so one charge per formula is
- * what the budget's figures in `limits.ts` were measured against.
+ * prefix strip, the boolean rewrite (a formula that spells `true` or `false` in any case), and - with
+ * live formulas on - the reference walk of `rebaseImportedFormula` (a non-zero window origin, or a
+ * `!` to check) and the defined-name scan (a workbook that defines a name the engine lacks). Each
+ * walk is linear in the formula's length, so one charge per formula is what the budget's figures in
+ * `limits.ts` were measured against.
  */
-function readFormulaText(text: string, scope: CollectContext): string {
+function readFormulaText(text: string, scope: CollectContext): ReadFormula {
   const { shift } = scope;
   const stripping = STORED_PREFIX_HINT.test(text);
+  const rewriting = shift !== null && BOOLEAN_HINT.test(text);
   const walking = shift !== null && (
     shift.rowDelta !== 0 || shift.colDelta !== 0 || text.includes('!') || scope.unresolvedNames.size > 0
   );
 
-  if (stripping || walking) {
+  if (stripping || rewriting || walking) {
     chargeFormulaWalk(text.length, scope);
   }
 
-  return stripping ? stripFunctionPrefixes(text) : text;
+  const recorded = stripping ? stripFunctionPrefixes(text) : text;
+
+  return { recorded, live: rewriting ? rewriteBareBooleans(recorded) : recorded };
 }
 
 /**
@@ -690,7 +753,7 @@ function collectNamedExpressions(scope: CollectContext): NonNullable<ImportResul
 
     seen.add(lowered);
 
-    const rebased = rebaseImportedFormula(readFormulaText(formula, scope), shift.rowDelta, shift.colDelta, {
+    const rebased = rebaseImportedFormula(readFormulaText(formula, scope).live, shift.rowDelta, shift.colDelta, {
       self: sheet.name,
       selfAs: context.formulaSheetName,
       isKnown: candidate => isSheetKnown(candidate, scope),
@@ -900,15 +963,16 @@ function pushCellValue(
   row: number, col: number, scope: CollectContext
 ): void {
   const { shift, dropped } = scope;
-  const formula = cell.formula ? readFormulaText(cell.formula.text, scope) : null;
-  const rebased = formula !== null && shift !== null
-    ? rebaseImportedFormula(formula, shift.rowDelta, shift.colDelta, {
+  const read = cell.formula ? readFormulaText(cell.formula.text, scope) : null;
+  const formula = read === null ? null : read.recorded;
+  const rebased = read !== null && shift !== null
+    ? rebaseImportedFormula(read.live, shift.rowDelta, shift.colDelta, {
       self: scope.sheet.name,
       isKnown: name => isSheetKnown(name, scope),
     })
     : null;
   const otherSheet = rebased !== null && rebased.unknownSheet;
-  const unknownName = rebased !== null && !otherSheet && usesUnresolvedName(formula ?? '', scope);
+  const unknownName = rebased !== null && !otherSheet && usesUnresolvedName(read?.live ?? '', scope);
   const live = rebased !== null && !otherSheet && !unknownName ? rebased.formula : null;
 
   if (live !== null) {

@@ -708,6 +708,80 @@ describe('mapWorkbook', () => {
       .toEqual(['STDEV.S(A2:A4)', 'SORT(A2:A4)', 'LET(x,A4,x*2)']);
   });
 
+  describe('bare TRUE and FALSE', () => {
+    /**
+     * Imports one formula live into a one-cell sheet and answers the grid's text.
+     *
+     * @param {string} formulaText The formula as the file stores it, without `=`.
+     * @returns {string}
+     */
+    function importedFormula(formulaText) {
+      const sheet = createSheetSnapshot('Data');
+
+      sheet.rows = [[cell({ value: 1 }), cell({ value: null, formula: { text: formulaText, result: 1 } })]];
+
+      // The engine holds a sheet named `TRUE`, so a qualifier spelled like it stays live.
+      return map(workbook(sheet), {}, {
+        formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['true', 'sheet1']),
+      }).result.data[0][1];
+    }
+
+    it('should rewrite a bare boolean literal to a call, whatever its case', () => {
+      expect(importedFormula('IF(TRUE,1,2)')).toBe('=IF(TRUE(),1,2)');
+      expect(importedFormula('IFS(A1>1,"a",true,"b")')).toBe('=IFS(A1>1,"a",TRUE(),"b")');
+      expect(importedFormula('AND(A1,False)')).toBe('=AND(A1,FALSE())');
+      expect(importedFormula('IF(TRUE,FALSE,TRUE)')).toBe('=IF(TRUE(),FALSE(),TRUE())');
+    });
+
+    it('should leave a call, a string, a longer name, a sheet and a qualified name alone', () => {
+      expect(importedFormula('TRUE()')).toBe('=TRUE()');
+      expect(importedFormula('"TRUE"&A1')).toBe('="TRUE"&A1');
+      expect(importedFormula('"say ""true"""&A1')).toBe('="say ""true"""&A1');
+      expect(importedFormula('TRUEVALUE')).toBe('=TRUEVALUE');
+      expect(importedFormula('MYTRUE+A1')).toBe('=MYTRUE+A1');
+      expect(importedFormula('TRUE!A1')).toBe('=TRUE!A1');
+      expect(importedFormula('\'TRUE\'!A1')).toBe('=\'TRUE\'!A1');
+      expect(importedFormula('Sheet1!TRUE')).toBe('=Sheet1!TRUE');
+      expect(importedFormula('Tbl[TRUE]')).toBe('=Tbl[TRUE]');
+      expect(importedFormula('Tbl[@TRUE]')).toBe('=Tbl[@TRUE]');
+      expect(importedFormula('A.TRUE+1')).toBe('=A.TRUE+1');
+    });
+
+    it('should rewrite after the prefix strip and record the formula as the file holds it', () => {
+      expect(importedFormula('_xlfn.IFS(TRUE,1)')).toBe('=IFS(TRUE(),1)');
+
+      const sheet = createSheetSnapshot('Data');
+
+      sheet.rows = [[cell({ value: 1 }), cell({ value: null, formula: { text: 'IF(TRUE,A1,2)', result: 1 } })]];
+
+      const { result } = map(workbook(sheet), {});
+
+      expect(result.formulas.map(entry => entry.formula)).toEqual(['IF(TRUE,A1,2)']);
+      expect(result.data[0][1]).toBe(1);
+    });
+
+    it('should rewrite a defined name\'s definition', () => {
+      const sheet = createSheetSnapshot('Data');
+
+      sheet.rows = [[cell({ value: 1 }), cell({ value: null, formula: { text: 'IF(Flag,1,2)', result: 1 } })]];
+
+      const wb = workbook(sheet);
+
+      wb.definedNames = [{ name: 'Flag', formula: 'TRUE', sheetName: null }];
+
+      const { result } = map(wb, {}, {
+        formulasEnabled: true,
+        commentsEnabled: false,
+        formulaSheetName: 'Data',
+        formulaSheetNames: new Set(['data']),
+        formulaNamedExpressions: new Set(),
+        canAddNamedExpression: () => true,
+      });
+
+      expect(result.namedExpressions).toEqual([{ name: 'Flag', formula: 'TRUE()' }]);
+    });
+  });
+
   it('should strip the prefixes on a formula that needs no shift', () => {
     const sheet = createSheetSnapshot('Data');
 

@@ -432,6 +432,13 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   that one charge covers the prefix strip, the reference walk (which also judges each sheet
   qualifier, through the walk's own `qualifier` group) and the defined-name scan. Charging every
   check separately refused files that imported at 1a59dedd71.
+- **A bare `TRUE`/`FALSE` in a live formula or a name definition is rewritten to `TRUE()`/`FALSE()`** (DEV-3648,
+  `rewriteBareBooleans`, called by `readFormulaText`): HyperFormula reads the bare literal as an unknown name
+  (`=IF(TRUE,1,2)` is `#NAME?`). `readFormulaText` returns `{ recorded, live }`: `ImportResult.formulas` records
+  `recorded` (the file's text, prefixes stripped), the engine gets `live`. It rewrites after the prefix strip
+  and before `rebaseImportedFormula`, shares the formula's ONE budget charge (a `/true|false/i` hit charges,
+  like the strip and the walks), and skips a quoted token, one followed by `(`, `!` or `]`, or preceded by
+  `!`, `.`, `[`, `@`, `$` or a name character.
 - **The workbook's defined names are registered as HyperFormula named expressions** (DEV-3648,
   `collectNamedExpressions` in `mapper.ts`), so a formula over one imports live. It runs only with
   live formulas on AND `MapperContext.canAddNamedExpression` given (`importFile.ts` wires it to the
