@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import {
+  getPassedHookKeys,
   prepareSettings,
   propFactory
 } from '../src/helpers';
@@ -27,6 +28,21 @@ describe('propFactory', () => {
     expect(typeof props.afterRowCollapse).toBe('object');
     expect(typeof props.beforeRowExpand).toBe('object');
     expect(typeof props.afterRowExpand).toBe('object');
+  });
+});
+
+describe('getPassedHookKeys', () => {
+  it('should list the hooks passed a callback, directly or through the `settings` prop', () => {
+    const callback = jest.fn();
+
+    expect(getPassedHookKeys({
+      afterChange: callback,
+      beforeChange: callback,
+      afterSelection: undefined,
+      afterScroll: null,
+      width: 300,
+      settings: { afterLoadData: callback },
+    })).toEqual(['afterLoadData', 'afterChange', 'beforeChange']);
   });
 });
 
@@ -138,6 +154,24 @@ describe('prepareSettings', () => {
     expect(preparedSettings.layoutDirection).toBe(undefined);
     expect(preparedSettings.ariaTags).toBe(undefined);
     expect(preparedSettings.width).toBe(500);
+  });
+
+  it('should send `null` for a hook the previous props passed and the current props do not', () => {
+    const afterChange = jest.fn();
+    const beforeChange = jest.fn();
+    const currentSettings = { afterChange, beforeChange, afterSelection: afterChange };
+
+    expect(prepareSettings(
+      { beforeChange, afterChange: undefined },
+      currentSettings,
+      ['afterChange', 'beforeChange']
+    )).toEqual({ afterChange: null });
+    expect(prepareSettings(
+      { settings: { beforeChange } },
+      currentSettings,
+      ['afterChange', 'beforeChange']
+    )).toEqual({ afterChange: null });
+    expect(prepareSettings({ width: 300 }, currentSettings)).toEqual({ width: 300 });
   });
 
   it('should include init-only settings during initial call (no currentSettings)', () => {

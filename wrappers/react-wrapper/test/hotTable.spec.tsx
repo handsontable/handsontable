@@ -1,5 +1,6 @@
 import React from 'react';
 import { act } from '@testing-library/react';
+import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { HotTable } from '../src/hotTable';
 import {
@@ -1425,5 +1426,88 @@ describe('Props set to `undefined`', () => {
     } as HotTableProps);
 
     expect(hotTableRef.current!.hotInstance!.getCellMeta(0, 0).readOnly).toBe(true);
+  });
+});
+
+describe('Removing a hook prop', () => {
+  const data = [[1, 2], [3, 4]];
+  const baseProps: HotTableProps = {
+    data,
+    licenseKey: 'non-commercial-and-evaluation',
+  };
+  const editCell = (hotInstance: Handsontable, value: string) => {
+    act(() => {
+      hotInstance.setDataAtCell(0, 0, value);
+    });
+  };
+
+  beforeEach(() => {
+    data[0][0] = 1;
+  });
+
+  it('should stop running the callback when the hook prop is removed', async() => {
+    const afterChange = jest.fn();
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, afterChange }, false);
+    const hotInstance = hotTableRef.current!.hotInstance!;
+
+    editCell(hotInstance, 'a');
+
+    expect(afterChange).toHaveBeenCalledWith([[0, 0, 1, 'a']], 'edit');
+
+    renderHotTableWithProps({ ...baseProps }, false, hotTableRef);
+    editCell(hotInstance, 'b');
+
+    expect(afterChange).not.toHaveBeenCalledWith([[0, 0, 'a', 'b']], 'edit');
+    expect(hotInstance.getSettings().afterChange).toBe(null);
+  });
+
+  it('should stop running the callback when the hook prop becomes `undefined`', async() => {
+    const afterChange = jest.fn();
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, afterChange }, false);
+    const hotInstance = hotTableRef.current!.hotInstance!;
+
+    renderHotTableWithProps({ ...baseProps, afterChange: undefined }, false, hotTableRef);
+    editCell(hotInstance, 'a');
+
+    expect(afterChange).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+    expect(hotInstance.getSettings().afterChange).toBe(null);
+  });
+
+  it('should stop running the callback when the hook prop becomes `null`', async() => {
+    const afterChange = jest.fn();
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, afterChange }, false);
+    const hotInstance = hotTableRef.current!.hotInstance!;
+
+    renderHotTableWithProps({ ...baseProps, afterChange: null }, false, hotTableRef);
+    editCell(hotInstance, 'a');
+
+    expect(afterChange).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+  });
+
+  it('should keep a callback added with `addHook()` when the hook prop is removed', async() => {
+    const afterChange = jest.fn();
+    const addedAfterChange = jest.fn();
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, afterChange }, false);
+    const hotInstance = hotTableRef.current!.hotInstance!;
+
+    hotInstance.addHook('afterChange', addedAfterChange);
+    renderHotTableWithProps({ ...baseProps }, false, hotTableRef);
+    editCell(hotInstance, 'a');
+
+    expect(afterChange).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+    expect(addedAfterChange).toHaveBeenCalledWith([[0, 0, 1, 'a']], 'edit');
+  });
+
+  it('should run the callback again when the hook prop is passed back', async() => {
+    const afterChange = jest.fn();
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, afterChange }, false);
+    const hotInstance = hotTableRef.current!.hotInstance!;
+
+    renderHotTableWithProps({ ...baseProps }, false, hotTableRef);
+    renderHotTableWithProps({ ...baseProps, afterChange }, false, hotTableRef);
+    editCell(hotInstance, 'a');
+
+    expect(afterChange).toHaveBeenCalledWith([[0, 0, 1, 'a']], 'edit');
+    expect(afterChange.mock.calls.filter(([, source]) => source === 'edit')).toHaveLength(1);
   });
 });

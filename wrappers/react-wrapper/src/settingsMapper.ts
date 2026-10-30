@@ -28,6 +28,31 @@ const COMPARED_AGAINST_LIVE_SETTINGS: Array<keyof Handsontable.GridSettings> = [
   'rowHeights', 'minRowHeights', 'colWidths'
 ];
 
+/**
+ * Checks whether a setting is a hook, the way `updateSettings()` does.
+ *
+ * @param {string} key The setting name.
+ * @returns {boolean}
+ */
+function isHookKey(key: string): boolean {
+  return Handsontable.hooks.isRegistered(key) || Handsontable.hooks.isDeprecated(key);
+}
+
+/**
+ * Returns the value that clears a setting whose prop went from a value to `undefined`: `null` for a
+ * hook, which removes its callback, and the option's default for anything else.
+ *
+ * @param {string} key The setting name.
+ * @returns {*} The value to forward to `updateSettings()`.
+ */
+function getClearedValue(key: string): unknown {
+  if (isHookKey(key)) {
+    return null;
+  }
+
+  return (Handsontable.DefaultSettings as any)[key];
+}
+
 export class SettingsMapper {
   /**
    * Parse component settings into Handsontable-compatible settings.
@@ -37,6 +62,9 @@ export class SettingsMapper {
    * of a prop that had a value in the previous props, the option's default is forwarded instead, so
    * the grid matches a fresh mount with the same props (`height={full ? undefined : 400}` clears the
    * height, `copyPaste={on ? false : undefined}` turns copy and paste back on).
+   * A hook has no default to fall back to, so a hook prop that had a callback and is now `undefined`
+   * is forwarded as `null`, which removes the callback (`afterChange={on ? logChange : undefined}`).
+   * So is a hook prop that had a callback and is no longer passed at all.
    * `null` and `false` are real values and are forwarded.
    *
    * @param {object} properties Object containing properties from the HotTable object.
@@ -95,9 +123,21 @@ export class SettingsMapper {
       ) {
         const value = properties[key as keyof HotTableProps];
 
-        (newSettings as any)[key] = value === undefined ? Handsontable.DefaultSettings[key] : value;
+        (newSettings as any)[key] = value === undefined ? getClearedValue(key) : value;
       }
     });
+
+    if (!isInit) {
+      Object.keys(prevProps).forEach((key) => {
+        if (
+          !Object.prototype.hasOwnProperty.call(properties, key) &&
+          prevProps[key as keyof HotTableProps] !== undefined &&
+          isHookKey(key)
+        ) {
+          (newSettings as any)[key] = null;
+        }
+      });
+    }
 
     return newSettings;
   }

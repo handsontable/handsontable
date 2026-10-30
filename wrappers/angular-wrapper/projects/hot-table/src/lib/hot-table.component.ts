@@ -204,6 +204,8 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
         prevColumnsArray
       );
 
+      this.clearRemovedHooks(newOptions, changes.settings.previousValue);
+
       // updateHotTable closes any active editor via HOT.updateSettings before we destroy old refs.
       this.updateHotTable(newOptions);
 
@@ -283,6 +285,30 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
 
     this.container.nativeElement.classList.toggle(FILL_HEIGHT_CLASS_NAME, fillHeight);
     this._host.nativeElement.classList.toggle(FILL_HEIGHT_CLASS_NAME, fillHeight);
+  }
+
+  /**
+   * Sets to `null` each hook the previous `settings` input passed a callback for and the new one does
+   * not, so `updateSettings()` removes that callback. A key missing from the new object is otherwise
+   * left out of the payload, and core keeps the callback.
+   *
+   * @param newOptions The settings about to be applied. Changed in place.
+   * @param previousSettings The previous `settings` input.
+   */
+  private clearRemovedHooks(newOptions: Handsontable.GridSettings, previousSettings: GridSettings | undefined): void {
+    if (!previousSettings) {
+      return;
+    }
+
+    Object.keys(previousSettings).forEach((key) => {
+      if (
+        previousSettings[key] != null &&
+        newOptions[key] === undefined &&
+        (Handsontable.hooks.isRegistered(key) || Handsontable.hooks.isDeprecated(key))
+      ) {
+        newOptions[key] = null;
+      }
+    });
   }
 
   /**
