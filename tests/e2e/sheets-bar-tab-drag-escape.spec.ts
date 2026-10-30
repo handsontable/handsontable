@@ -3,15 +3,14 @@ import { test, expect, THEMES_TAG, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { SheetsBarPage } from '../fixtures/pages/SheetsBarPage';
 
 /**
- * Reads the tab labels in strip order.
+ * Reads the sheet names in the workbook's order, from the plugin rather than the strip.
  *
  * @param {Page} page The page under test.
- * @returns {Promise<Array<string | null>>} The labels.
+ * @returns {Promise<string[]>} The sheet names.
  */
-function tabNames(page: Page) {
-  return page.evaluate(() => Array.from(
-    document.querySelectorAll('.ht-sheets-bar__tab-label'),
-  ).map(label => label.textContent));
+function sheetOrder(page: Page) {
+  return page.evaluate(() => (window as never as { hot: any }).hot.getPlugin('sheetsBar')
+    .getSheets().map((sheet: { name: string }) => sheet.name));
 }
 
 /**
@@ -25,23 +24,39 @@ function isDragging(page: Page) {
 }
 
 /**
- * Presses on one tab and drags it over another without releasing it.
+ * Adds a host `keydown` listener on the document that records whether each Escape reached it with
+ * its default prevented, and optionally stops it there.
  *
  * @param {Page} page The page under test.
- * @param {SheetsBarPage} bar The sheets bar page object.
- * @param {number} from The index of the dragged tab.
- * @param {number} to The index of the tab it is held over.
+ * @param {boolean} stopsEscape Whether the listener calls `stopImmediatePropagation()` on Escape.
  */
-async function holdTabOver(page: Page, bar: SheetsBarPage, from: number, to: number) {
-  const source = (await bar.tab(from).boundingBox())!;
-  const target = (await bar.tab(to).boundingBox())!;
-  const direction = to > from ? 1 : -1;
-  const y = source.y + (source.height / 2);
+function listenForEscape(page: Page, stopsEscape: boolean) {
+  return page.evaluate((stops) => {
+    const records: boolean[] = [];
 
-  await page.mouse.move(source.x + (source.width / 2), y);
-  await page.mouse.down();
-  await page.mouse.move(source.x + (source.width / 2) + (direction * 10), y);
-  await page.mouse.move(target.x + (target.width / 2) + (direction * 5), target.y + (target.height / 2));
+    (window as never as { escapeDefaultPrevented: boolean[] }).escapeDefaultPrevented = records;
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') {
+        return;
+      }
+
+      records.push(event.defaultPrevented);
+
+      if (stops) {
+        event.stopImmediatePropagation();
+      }
+    });
+  }, stopsEscape);
+}
+
+/**
+ * Reads what the host listener recorded for each Escape.
+ *
+ * @param {Page} page The page under test.
+ * @returns {Promise<boolean[]>} One `defaultPrevented` value per Escape.
+ */
+function escapeDefaultPrevented(page: Page) {
+  return page.evaluate(() => (window as never as { escapeDefaultPrevented: boolean[] }).escapeDefaultPrevented);
 }
 
 test.describe('sheets bar tab drag and Escape', { tag: [THEMES_TAG, CROSS_BROWSER_TAG] }, () => {
@@ -51,26 +66,46 @@ test.describe('sheets bar tab drag and Escape', { tag: [THEMES_TAG, CROSS_BROWSE
     const bar = new SheetsBarPage(page, theme, bundle);
 
     await bar.goto();
-    await page.evaluate(() => {
-      document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') {
-          event.stopImmediatePropagation();
-        }
-      });
-    });
+    await listenForEscape(page, true);
 
-    await holdTabOver(page, bar, 0, 2);
+    await bar.dragTabPast('Alpha', 'Gamma');
 
-    await expect.poll(() => tabNames(page)).toEqual(['Beta', 'Gamma', 'Alpha']);
+    await expect.poll(() => bar.tabNames()).toEqual(['Beta', 'Gamma', 'Alpha']);
     expect(await isDragging(page)).toBe(true);
 
     await page.keyboard.press('Escape');
 
     expect(await isDragging(page)).toBe(false);
-    expect(await tabNames(page)).toEqual(['Alpha', 'Beta', 'Gamma']);
+    expect(await bar.tabNames()).toEqual(['Alpha', 'Beta', 'Gamma']);
+    expect(await escapeDefaultPrevented(page)).toEqual([true]);
 
     await page.mouse.up();
 
-    expect(await tabNames(page)).toEqual(['Alpha', 'Beta', 'Gamma']);
+    expect(await sheetOrder(page)).toEqual(['Alpha', 'Beta', 'Gamma']);
+  });
+
+  test('Escape cancels a drag started after a click on a tab and prevents the key\'s default', async({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+    await bar.clickTab(1);
+    await bar.expectActiveTab(1);
+    await listenForEscape(page, false);
+
+    await bar.dragTabPast('Alpha', 'Gamma');
+
+    await expect.poll(() => bar.tabNames()).toEqual(['Beta', 'Gamma', 'Alpha']);
+    expect(await isDragging(page)).toBe(true);
+
+    await page.keyboard.press('Escape');
+
+    expect(await isDragging(page)).toBe(false);
+    expect(await escapeDefaultPrevented(page)).toEqual([true]);
+
+    await page.mouse.up();
+
+    expect(await sheetOrder(page)).toEqual(['Alpha', 'Beta', 'Gamma']);
   });
 });

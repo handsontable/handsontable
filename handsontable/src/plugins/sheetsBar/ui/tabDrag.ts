@@ -627,17 +627,25 @@ export class TabDrag {
   /**
    * Aborts the gesture on Escape, putting the strip back the way it was.
    *
-   * It listens on the window in the capture phase, ahead of every listener on the document, so a
-   * page that stops Escape there cannot keep a drag alive. A drag started with a fresh press leaves
-   * the bar's focus scope inactive, so the bar's own Escape shortcut does not run, and this listener
-   * is the only one that cancels it.
+   * It listens on the window in the capture phase, ahead of the listeners on the document and
+   * below it, so a page that stops Escape there cannot keep a drag alive. A window capture listener
+   * the page added before the press still runs first. While a drag started with a fresh press runs,
+   * the bar's focus scope is inactive, so the bar's own Escape shortcut does not run, and this
+   * listener is the only one that cancels it. A canceled drag prevents the key's default, as the
+   * bar's shortcut does, so the same press does not also close a dialog the grid sits in.
    *
    * @param {KeyboardEvent} event The keydown event.
    */
   #onKeyDown = (event: KeyboardEvent): void => {
-    if (event.key === 'Escape') {
-      this.#cancel();
+    if (event.key !== 'Escape') {
+      return;
     }
+
+    if (this.#isDragging) {
+      event.preventDefault();
+    }
+
+    this.#cancel();
   };
 
   /**
