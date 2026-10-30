@@ -32,7 +32,9 @@ const PAGE_ERRORS = new WeakMap<Page, string[]>();
 
 export type GridWindow = Window & {
   htBuildError?: string;
-  htServer?: { release(prefix: string): void };
+  // The data-provider fixture's server: `release()` settles the parked fetches of one prefix, or every
+  // parked fetch without one, and returns how many it settled.
+  htServer?: { release(prefix?: string): number };
   startRequest?: (row: number, col: number) => number;
 };
 
@@ -50,6 +52,8 @@ export type HotInstance = {
   isListening(): boolean;
   countRows(): number;
   countCols(): number;
+  getSettings(): { width?: unknown };
+  updateSettings(settings: Record<string, unknown>): void;
   rootElement: HTMLElement;
   rootPortalElement: HTMLElement;
 };
@@ -353,4 +357,31 @@ export function emulate(name: string) {
   const { defaultBrowserType: _browser, ...options } = devices[name];
 
   return options;
+}
+
+/**
+ * Releases every request the data-provider fixture parks (`window.htServer`), until none has been pending
+ * for two checks in a row. The catalog's `data-provider` opener releases the first fetch only, and a
+ * fetch the grid makes after it (the bars' count, a page) lands or not depending on timing, which changed
+ * what the bars showed from one run to the next. Every check beyond axe calls this after every
+ * `reachState()`, on every page, so a data-provider page added to a check's plan later is measured in the
+ * same state; the gating axe scan does not, so the state its baseline was taken in stays as it was. Ten
+ * rounds at most; a page without the fixture server is left alone.
+ *
+ * @param page The page.
+ */
+export async function releaseParkedFetches(page: Page): Promise<void> {
+  let quiet = 0;
+
+  for (let round = 0; round < 10 && quiet < 2; round++) {
+    const released = await page.evaluate(async() => {
+      const count = (window as GridWindow).htServer?.release() ?? 0;
+
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+      return count;
+    });
+
+    quiet = released === 0 ? quiet + 1 : 0;
+  }
 }
