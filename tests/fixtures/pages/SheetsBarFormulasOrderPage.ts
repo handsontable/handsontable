@@ -2,7 +2,7 @@ import { expect, type Locator, type Page } from '@playwright/test';
 import { awaitBundle, type Bundle } from '../bundle';
 
 export type FormulasOrderWorkbook =
-  'sortedReport' | 'summary' | 'sortedData' | 'movedColumns' | 'sortedFormulas' | 'sortedSum' | 'showFormulas'
+  'sortedReport' | 'summary' | 'sortedSummary' | 'sortedData' | 'movedColumns' | 'sortedFormulas' | 'sortedSum' | 'showFormulas'
   | 'quotedNames';
 
 /**
@@ -91,6 +91,12 @@ export class SheetsBarFormulasOrderPage {
     return this.page.evaluate(([col, order]) => {
       window.hot.getPlugin('columnSorting').sort({ column: col as number, sortOrder: order as 'asc' | 'desc' });
     }, [column, sortOrder]);
+  }
+
+  clearSort(): Promise<void> {
+    return this.page.evaluate(() => {
+      window.hot.getPlugin('columnSorting').clearSort();
+    });
   }
 
   moveColumn(column: number, target: number): Promise<void> {

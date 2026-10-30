@@ -80,6 +80,37 @@ test.describe('SheetsBar formulas across a sorted or moved sheet', { tag: BUNDLE
       await expect(grid.cell(0, 0)).toHaveText('#REF!');
       expect(await grid.declaredSheetCell(1, 0, 0)).toBe('=#REF!');
     });
+
+    test('moves the references of a sorted sheet the user left, so a later order keeps its values', async() => {
+      await grid.goto('sortedSummary');
+
+      expect(await grid.switchTo('Summary')).toEqual([true]);
+
+      await grid.sort(1, 'asc');
+
+      expect(await grid.getData()).toEqual([[10, 'a'], [50, 'b']]);
+      expect(await grid.switchTo('Data')).toEqual([true]);
+
+      await grid.alter('insert_row_above', 0);
+
+      expect(await grid.declaredSheetCell(1, 0, 0)).toBe('=Data!$A$6');
+      expect(await grid.declaredSheetCell(1, 1, 0)).toBe('=Data!$A$2');
+      expect(await grid.switchTo('Summary')).toEqual([true]);
+      expect(await grid.getData()).toEqual([[10, 'a'], [50, 'b']]);
+
+      await grid.sort(1, 'desc');
+
+      expect(await grid.switchTo('Data', 'Summary')).toEqual([true, true]);
+      expect(await grid.getData()).toEqual([[50, 'b'], [10, 'a']]);
+
+      await grid.clearSort();
+
+      expect(await grid.switchTo('Data', 'Summary')).toEqual([true, true]);
+      expect(await grid.getData()).toEqual([[50, 'b'], [10, 'a']]);
+      expect(await grid.declaredSheetCell(1, 0, 0)).toBe('=Data!$A$6');
+      expect(await grid.declaredSheetCell(1, 1, 0)).toBe('=Data!$A$2');
+      expect(await grid.consoleMessages()).toEqual([]);
+    });
   });
 
   test.describe('round trips', () => {

@@ -181,6 +181,26 @@ function isEngineChangingSource(source?: string): boolean {
 }
 
 /**
+ * Returns a lookup from a physical index to the engine index that holds it, for an engine order's
+ * `sequence` (the physical index at each engine index). With no sequence, the engine holds the axis in
+ * physical order.
+ *
+ * @param {number[]} [sequence] The physical index at each engine index.
+ * @returns {Function}
+ */
+function toEngineIndexes(sequence?: number[]): (physicalIndex: number) => number | undefined {
+  if (!sequence) {
+    return physicalIndex => physicalIndex;
+  }
+
+  const engineIndexOf = new Map<number, number>();
+
+  sequence.forEach((physicalIndex, engineIndex) => engineIndexOf.set(physicalIndex, engineIndex));
+
+  return physicalIndex => engineIndexOf.get(physicalIndex);
+}
+
+/**
  * Baseline keys a later grid-level `updateSettings()` does not refresh through the generic rule, because
  * each has a rule of its own: the bar blocks a grid-level `dataProvider`, and the grid-level `columnSummary`
  * and `cell` also drop the state each sheet stored for the previous value.
@@ -5328,9 +5348,13 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Copies the engine's formula text into the data of every sheet bound to `engine` that is not in front
-   * of the grid. Only a sheet the engine holds in physical order is written: a sheet left sorted or with
-   * moved rows or columns has its rows in another order there, and its formulas exist only in the engine
-   * until the user returns, when the bar takes the engine sheet over (`#captureEngineOrder`).
+   * of the grid. A sheet left sorted or with moved rows or columns has its rows in another order there
+   * (`#captureEngineOrder`), so each of its cells is read at the engine position the stored order gives
+   * its physical row and column. Skipped, the data kept the old references: the first return took the
+   * engine sheet over and hid it, but once the user changed the order and left again, the next return
+   * loaded the old text, and the references moved back by the rows inserted. A sheet whose stored order
+   * the bar no longer takes over (the host replaced or resized its data) is skipped: the engine holds
+   * rows the data no longer has.
    *
    * The engine's cells are matched to the data through the layout the sheet is fed with
    * (`getEngineColumnLayout()`), so a sheet whose `columns` leaves data columns out, a sheet of object rows
@@ -5373,8 +5397,13 @@ export class SheetsBar extends BasePlugin {
       const formulas = formulasSettingOf(sheet);
       const sheetId = formulas?.sheetName ? engine.getSheetId!(formulas.sheetName) : undefined;
 
-      if (sheet === active || formulas?.engine !== engine || typeof sheetId !== 'number'
-        || this.#engineOrders.has(sheet)) {
+      if (sheet === active || formulas?.engine !== engine || typeof sheetId !== 'number') {
+        return;
+      }
+
+      const engineOrder = this.#engineOrders.has(sheet) ? this.#engineOrderToAdopt(sheet) : null;
+
+      if (this.#engineOrders.has(sheet) && engineOrder === null) {
         return;
       }
 
@@ -5385,13 +5414,22 @@ export class SheetsBar extends BasePlugin {
         return;
       }
 
+      const engineRowOf = toEngineIndexes(engineOrder?.rowOrder.sequence);
+      const engineColumnOf = toEngineIndexes(engineOrder?.columnOrder.sequence);
       const changes: FormulaTextChange[] = [];
 
-      listSheetRows(sheet.data, !!settings.nestedRows).forEach(({ row, path }, engineRow) => {
-        getEngineCellKeys(row, layout).forEach((key, engineColumn) => {
+      listSheetRows(sheet.data, !!settings.nestedRows).forEach(({ row, path }, physicalRow) => {
+        getEngineCellKeys(row, layout).forEach((key, physicalColumn) => {
           const cell = typeof key === 'number' || typeof key === 'string' ? readCell(row, key) : undefined;
 
           if (typeof cell !== 'string' || !cell.startsWith('=') || !namesActiveSheet(cell)) {
+            return;
+          }
+
+          const engineRow = engineRowOf(physicalRow);
+          const engineColumn = engineColumnOf(physicalColumn);
+
+          if (engineRow === undefined || engineColumn === undefined) {
             return;
           }
 

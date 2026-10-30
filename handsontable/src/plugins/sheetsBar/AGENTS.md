@@ -293,8 +293,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   undo and redo only after a structural step, `#onAfterUndoRedo`, once the restore is complete, so the
   row hooks of the replay itself are skipped):
   HyperFormula moves `=Data!A5` to `=Data!A6` inside itself, and the Formulas plugin writes the
-  new text back only for the grids it knows. Only a sheet the engine holds in physical order is
-  written, and only its formula cells whose text names the active sheet, or holds `#REF!` (an undone
+  new text back only for the grids it knows. A sheet left sorted or moved is written too, each cell
+  read at the engine position its stored order (`#engineOrders`) gives it (`toEngineIndexes`): skipped,
+  the first return hid the old text by taking the engine sheet over, but after a new order and another
+  round trip the old text loaded again and the references moved back. A sheet whose stored order is no
+  longer taken over (`#engineOrderToAdopt` answers `null`: the host replaced or resized its data) is
+  skipped. Only its formula cells whose text names the active sheet, or holds `#REF!` (an undone
   removal brings the reference back), are read, one by one. A cell is written only when its references
   differ: the host's own text (`=sum(data!a1)`) is kept when the engine's normalized text of it is the
   same. Reading cell by cell (`getCellFormula`) replaced serializing every inactive sheet, which made

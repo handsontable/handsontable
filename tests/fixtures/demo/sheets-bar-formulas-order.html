@@ -30,6 +30,7 @@
     window.htWorkbook = ({
       sortedReport: 'sortedReport',
       summary: 'summary',
+      sortedSummary: 'sortedSummary',
       sortedData: 'sortedData',
       movedColumns: 'movedColumns',
       sortedFormulas: 'sortedFormulas',
@@ -50,6 +51,8 @@
     fixture declares, reachable as `window.workbook.sheets[i].data`.
     - sortedReport: 'Report' (`columnSorting`) with `=Prices!A1` in A1, and 'Prices' with 99.
     - summary: 'Data' with 10..50 in A1:A5, and 'Summary' with `=Data!A5`.
+    - sortedSummary: 'Data' with 10..50 in A1:A5, and 'Summary' (`columnSorting`) with `=Data!$A$5` and
+      `=Data!$A$1` in A1:A2, labeled 'b' and 'a' in B1:B2.
     - sortedData: 'Data' (`columnSorting`) with 30, 10, 20, and 'Summary' with `=Data!A1`.
     - movedColumns: 'Sheet' (`manualColumnMove`) with `=A1+B1` in C1 and `=A2+B2` in C2, 'Plain' with
       no formulas, and 'Other' bound to the engine.
@@ -101,6 +104,10 @@
       summary: [
         bound('Data', [[10], [20], [30], [40], [50]]),
         bound('Summary', [['=Data!A5']]),
+      ],
+      sortedSummary: [
+        bound('Data', [[10], [20], [30], [40], [50]]),
+        bound('Summary', [['=Data!$A$5', 'b'], ['=Data!$A$1', 'a']], { columnSorting: true }),
       ],
       sortedData: [
         bound('Data', [[30], [10], [20]], { columnSorting: true }),
