@@ -553,9 +553,13 @@ While core's `_applySettingsAndData()` applies settings ahead of their data (`is
 `../base/AGENTS.md`), both settings sorts (the live-grid branch of `enablePlugin()` and the one in
 `onUpdateSettings()`) are held, and `onDataReady()` runs `#loadOrSortBySettings()` against the loaded rows.
 Run before, they sorted the departing rows and the load reset the order, so a sheet's own `initialConfig`
-was ignored on its first visit. The plugin has no `afterLoadData` listener: core sends `initialLoad: true`
-only for the load made before the view exists, so the `initialConfig` sort of a grid being built comes from
-`afterInit` alone, including rows an `init` listener loads (`tests/e2e/column-sorting-init-load.spec.ts`).
+was ignored on its first visit. The plugin has no `afterLoadData` listener, and the `initialConfig` sort of a
+grid being built comes from `afterInit` alone, including rows an `init` listener loads
+(`tests/e2e/column-sorting-init-load.spec.ts`). Core passes `afterLoadData` one of three `initialLoad` values:
+`true` for the load made before the view exists, the truthy `[null, 'loadData']` for a load made later during
+init (from an `init` listener, with the view in place), and `false` after init. A listener that tests it as a
+truthy flag, as NestedHeaders and SheetsBar do, also runs for that second load, so a sort added there would run
+again in `afterInit`.
 
 ## `true` after an object resets the column properties; `true` after `true` does not
 

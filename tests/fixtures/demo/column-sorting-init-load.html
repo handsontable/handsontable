@@ -65,33 +65,38 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
-    window.hot = new Handsontable(container, {
-      data: [
-        ['Mia', 34],
-        ['Liam', 27],
-        ['Olivia', 45],
-      ],
-      colHeaders: ['Name', 'Age'],
-      rowHeaders: true,
-      columnSorting: {
-        initialConfig: { column: 1, sortOrder: 'asc' },
-      },
-      renderer: testIdRenderer,
-      afterLoadData(sourceData, initialLoad) {
-        window.initialLoadCalls.push({ initialLoad, hasView: !!this.view });
-      },
-      init() {
-        if (loadsDuringInit) {
-          this.loadData([
-            ['Noah', 61],
-            ['Ethan', 19],
-            ['Ava', 52],
-            ['Zoe', 40],
-          ]);
-        }
-      },
-      licenseKey: 'non-commercial-and-evaluation',
-    });
+    try {
+      window.hot = new Handsontable(container, {
+        data: [
+          ['Mia', 34],
+          ['Liam', 9],
+          ['Olivia', 27],
+        ],
+        colHeaders: ['Name', 'Age'],
+        rowHeaders: true,
+        columnSorting: {
+          initialConfig: { column: 1, sortOrder: 'asc' },
+        },
+        renderer: testIdRenderer,
+        afterLoadData(sourceData, initialLoad) {
+          window.initialLoadCalls.push({ initialLoad, hasView: !!this.view });
+        },
+        init() {
+          if (loadsDuringInit) {
+            this.loadData([
+              ['Noah', 61],
+              ['Ethan', 19],
+              ['Ava', 52],
+              ['Zoe', 7],
+            ]);
+          }
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
   </script>
 </body>
 </html>

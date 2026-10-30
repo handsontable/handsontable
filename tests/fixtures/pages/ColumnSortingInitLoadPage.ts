@@ -1,5 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
-import { awaitBundle } from '../bundle';
+import { awaitBundle, awaitFixtureBuilt } from '../bundle';
 
 /**
  * When the column-sorting-init-load fixture replaces the data: `init` from an `init` listener,
@@ -37,6 +37,7 @@ export class ColumnSortingInitLoadPage {
     await this.page.goto(
       `/tests/fixtures/demo/column-sorting-init-load.html?theme=${this.theme}&bundle=${this.bundle}&load=${load}`);
     await awaitBundle(this.page);
+    await awaitFixtureBuilt(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
