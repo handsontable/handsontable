@@ -1,7 +1,7 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 import { awaitBundle } from '../bundle';
 
-export type DataBoundWorkbook = 'nestedRows' | 'nestedRowsPadded' | 'nestedSummary' | 'columnSummary' | 'formulasSummary' | 'mergeCells';
+export type DataBoundWorkbook = 'nestedRows' | 'nestedRowsPadded' | 'gridNestedRows' | 'nestedSummary' | 'columnSummary' | 'formulasSummary' | 'mergeCells';
 
 /**
  * Page object for the sheets-bar-data-bound-settings fixture
@@ -35,6 +35,13 @@ export class SheetsBarDataBoundSettingsPage {
       this.cell(0, 0),
       this.pageErrors.length > 0 ? `the fixture page threw: ${this.pageErrors.join(' | ')}` : undefined,
     ).toBeVisible();
+  }
+
+  /**
+   * The sheets bar's add button.
+   */
+  get addButton(): Locator {
+    return this.page.locator('.ht-sheets-bar__add');
   }
 
   /**

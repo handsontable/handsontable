@@ -2528,7 +2528,8 @@ export class SheetsBar extends BasePlugin {
    * one, under its own name. Formulas and cross-sheet references then work on it right away.
    *
    * @param {string} [name] The sheet's name. Omitted, the next free `Sheet{n}` is used.
-   * @param {Array} [data] The sheet's data: rows as arrays, or as objects. Omitted, the sheet starts blank.
+   * @param {Array} [data] The sheet's data: rows as arrays, or as objects. Omitted, the sheet starts blank,
+   * with no rows while the sheet shows with NestedRows on.
    * @param {object} [settings] The sheet's settings. Omitted, the sheet inherits the
    * workbook's shared formula engine when one is configured.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
@@ -2552,7 +2553,7 @@ export class SheetsBar extends BasePlugin {
       'beforeSheetTabAdd',
       [name ?? null, null],
       () => {
-        const added = model.addSheet(name ?? null, data ?? undefined, settings ?? undefined);
+        const added = model.addSheet(name ?? null, data ?? this.#blankSheetData(settings), settings ?? undefined);
 
         if (!added.settings) {
           const inherited = this.#inheritedFormulaSettings(added.name);
@@ -2575,6 +2576,23 @@ export class SheetsBar extends BasePlugin {
     );
 
     return sheet === false ? null : this.#describe(sheet);
+  }
+
+  /**
+   * Returns the rows a sheet added without data starts with: no rows while the sheet would show with
+   * NestedRows on, which takes an array of objects only and turns itself off for the rest of the session
+   * on an array of arrays, else the blank grid of `createEmptySheetData()`.
+   *
+   * @param {object} [settings] The new sheet's own settings.
+   * @returns {Array|undefined} `[]`, or `undefined` for the model's blank grid.
+   */
+  #blankSheetData(settings?: Record<string, unknown>): unknown[] | undefined {
+    const own = settings ?? {};
+    const nestedRows = Object.prototype.hasOwnProperty.call(own, 'nestedRows')
+      ? own.nestedRows
+      : this.#gridLevelValueOf('nestedRows');
+
+    return nestedRows ? [] : undefined;
   }
 
   /**
@@ -5457,13 +5475,12 @@ export class SheetsBar extends BasePlugin {
    */
   #layoutSettingsOf(sheet: Sheet): SheetLayoutSettings {
     const own = (sheet.settings ?? {}) as Record<string, unknown>;
-    const gridSettings = this.hot.getSettings() as unknown as Record<string, unknown>;
     const valueOf = (key: string) => {
       if (Object.prototype.hasOwnProperty.call(own, key)) {
         return own[key];
       }
 
-      return this.#settingsBaseline.has(key) ? this.#settingsBaseline.get(key) : gridSettings[key];
+      return this.#gridLevelValueOf(key);
     };
 
     return {
@@ -5472,6 +5489,19 @@ export class SheetsBar extends BasePlugin {
       dataSchema: valueOf('dataSchema'),
       nestedRows: valueOf('nestedRows'),
     };
+  }
+
+  /**
+   * Returns the grid-level value of a setting, the one a sheet that does not declare it is shown with:
+   * the baseline the switch restores, else the grid's current value.
+   *
+   * @param {string} key The setting.
+   * @returns {*}
+   */
+  #gridLevelValueOf(key: string): unknown {
+    const gridSettings = this.hot.getSettings() as unknown as Record<string, unknown>;
+
+    return this.#settingsBaseline.has(key) ? this.#settingsBaseline.get(key) : gridSettings[key];
   }
 
   /**

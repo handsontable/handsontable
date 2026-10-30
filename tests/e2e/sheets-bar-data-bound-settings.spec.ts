@@ -77,6 +77,22 @@ test.describe('SheetsBar settings that read the data', { tag: BUNDLES_TAG }, () 
     });
   });
 
+  test.describe('NestedRows on the whole grid', () => {
+    test('stays on after the add button creates a sheet', async() => {
+      await grid.goto('gridNestedRows');
+      await grid.addButton.click();
+
+      expect(await grid.activeSheetName()).toBe('Sheet2');
+      expect(await grid.isPluginEnabled('nestedRows')).toBe(true);
+      expect(await grid.switchTo('Tree')).toEqual([true]);
+
+      expect(await grid.consoleMessages()).toEqual([]);
+      expect(await grid.isPluginEnabled('nestedRows')).toBe(true);
+      expect(await grid.countRows()).toBe(9);
+      await expect(grid.cell(1, 0)).toHaveText('P0C1');
+    });
+  });
+
   test.describe('ColumnSummary', () => {
     test('is checked against the arriving sheet', async() => {
       await grid.goto('columnSummary');
