@@ -61,9 +61,11 @@ export function isProductStop(stop) {
  * @param {'forward'|'backward'} input.direction Tab or Shift+Tab.
  * @param {object[]} input.stops The stops: the starting sentinel, then one per press.
  * @param {boolean} [input.budgetExhausted] Whether the walk stopped because it ran out of presses.
- * @param {{keys: string, left: boolean, presses: number}|null} [input.exitRoute] What the documented way out did after the
- *   presses ran out: Ctrl+End then Tab (Ctrl+Home then Shift+Tab backward), which leaves a grid whose Tab wraps from row to row
- *   (`autoWrapRow`) from its last cell. A walk that got out that way is long, not a trap.
+ * @param {{keys: string, left: boolean|'body', presses: number, from?: {region: string, locator: string}}|null} [input.exitRoute] What
+ *   the documented way out did after the presses ran out: Ctrl+End then Tab (Ctrl+Home then Shift+Tab backward), which leaves a
+ *   grid whose Tab wraps from row to row (`autoWrapRow`) from its last cell. `left` is `true` when the focus reached the other
+ *   sentinel, `'body'` when it left no element focused (`from` is the stop the last press left), `false` when it never got out.
+ *   A walk that got out either way is long, not a trap; `walkFindings()` judges the `'body'` exit.
  * @returns {{reachedEnd: boolean, leftDocument: boolean, cycle: {from: number, to: number}|null, trapped: boolean, presses: number, productStops: number, modal: boolean, exitRoute: object|null}} The verdict.
  */
 export function walkVerdict({ direction, stops, budgetExhausted = false, exitRoute = null }) {
@@ -84,7 +86,7 @@ export function walkVerdict({ direction, stops, budgetExhausted = false, exitRou
   });
 
   const held = cycle ? stops.slice(cycle.from, cycle.to) : stops.slice(-1);
-  const trapped = !reachedEnd && !leftDocument && (cycle !== null || (budgetExhausted && exitRoute?.left !== true))
+  const trapped = !reachedEnd && !leftDocument && (cycle !== null || (budgetExhausted && !exitRoute?.left))
     && held.length > 0 && held.every(isProductStop);
 
   return {
@@ -116,7 +118,9 @@ export function walkVerdict({ direction, stops, budgetExhausted = false, exitRou
  *   `tab-keeps-focus`.
  * @param {Set<string>} [input.reported] The findings already reported on this page: the forward and the backward walk
  *   share one, because a stop's role and name do not depend on the walk that reached it, so a stop both walks pass is
- *   one finding, not one per direction, which would double the summary counts.
+ *   one role or name finding, not one per direction, which would double the summary counts. A focus loss, a Tab out of a
+ *   modal and a change of context on focus depend on the key pressed, so they are kept per direction: Tab and Shift+Tab
+ *   losing the focus from one cell are two defects, and fixing one leaves the other.
  * @returns {object[]} The findings.
  */
 export function walkFindings({ walk, stops, direction, modalExit = null, opened = false, reported = new Set() }) {
@@ -128,7 +132,8 @@ export function walkFindings({ walk, stops, direction, modalExit = null, opened 
     return press === 0 ? 'where the popup put the focus' : `${key} ${press}`;
   };
   const add = (kind, item, index, finding) => {
-    const key = `${kind}|${stopKey(item)}`;
+    const perStop = kind === 'focus-stop-without-role' || kind === 'focus-stop-unnamed';
+    const key = `${kind}|${stopKey(item)}${perStop ? '' : `|${direction}`}`;
 
     if (!reported.has(key)) {
       reported.add(key);
@@ -202,6 +207,23 @@ export function walkFindings({ walk, stops, direction, modalExit = null, opened 
       measured: { editorOpen: last.signals?.editorOpen === true },
       reason: `${key} left the focus on the element it was on, so the walk inside the popup stopped: review whether it moved within the control `
         + '(a date input\'s fields), took the key as input (a suggestion accepted) or did nothing, where the guide says Tab completes the entry and moves on',
+    });
+  }
+  // The way out can lose the focus the way a walk does: a press from inside the grid's container that leaves no element
+  // focused. From the portal it may have left the page, as in a walk, so that is not judged.
+  if (walk.exitRoute?.left === 'body' && walk.exitRoute.from?.region === 'grid') {
+    // No Tab of the way out pressed (`presses` 0): the route key itself lost the focus.
+    const lostOn = walk.exitRoute.presses === 0 ? walk.exitRoute.keys.split(', then ')[0] : walk.exitRoute.keys;
+
+    findings.push({
+      kind: 'focus-lost',
+      criteria: ['2.4.3'],
+      severity: 'serious',
+      selector: walk.exitRoute.from.locator ?? 'grid',
+      step: `${label(walk.presses)}, then ${lostOn}${walk.exitRoute.presses === 0 ? '' : ` ${walk.exitRoute.presses}`}`,
+      measured: { to: 'body' },
+      reason: `${lostOn} from inside the grid left no element focused: the focused element went away instead of passing `
+        + 'the focus on, so a screen reader has nothing to announce',
     });
   }
   if (walk.exitRoute?.left && !walk.trapped) {
@@ -468,8 +490,9 @@ function stepText(step) {
  * an editor opened or closed, a menu opened, closed or moved its highlight, the comment editor opened
  * or closed, the highlighted cell's comment changed, the data, the scroll, the sort, the merges, the frozen counts, the clipboard, the
  * collapsed groups, the filters, the highlight of an open editor's list or the rows a row selection holds
- * changed, a link opened, the text of the open editor or of the focused field changed, the open editor's
- * caret moved, the focus moved, the focus left the product.
+ * changed, the highlight or the checked values of the open column menu's Filter by value list changed,
+ * a link opened, the text of the open editor or of the focused field changed, the open editor's caret
+ * moved, the focus moved, the focus left the product.
  *
  * @param {object} before The snapshot before the key.
  * @param {object} after The snapshot after it.
@@ -504,6 +527,17 @@ export function effectsBetween(before, after) {
   }
   if (editing && differs('listSelection')) {
     effects.add('list-moves');
+  }
+
+  // The Filter by value list of the open column menu reads null while the menu is closed, so a key that opens or closes
+  // the menu did that: it moved no highlight in the list and ticked no value.
+  const filtering = before.filterChecked != null && after.filterChecked != null;
+
+  if (filtering && differs('filterList')) {
+    effects.add('filter-list-moves');
+  }
+  if (filtering && differs('filterChecked')) {
+    effects.add('filter-checked-changes');
   }
   if ((after.menus ?? 0) > (before.menus ?? 0)) {
     effects.add('menu-opens');
