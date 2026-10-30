@@ -2,6 +2,7 @@ import { throwWithCause } from '../../helpers/errors';
 import { escapeHtml } from '../../helpers/string';
 import { DROPPED_FEATURES, type DroppedFeatures } from '../../utils/xlsxEngine/capabilities';
 import type { CellSnapshot, MergeSnapshot, SheetSnapshot, WorkbookSnapshot } from '../../utils/xlsxEngine/model';
+import type { XlsxEntitlement } from '../../utils/xlsxEngine/xlsxEntitlement';
 import { parseMultiRangeRef, parseRangeRef } from '../../utils/xlsxEngine/cellRef';
 import { rebaseImportedFormula } from '../../utils/xlsxEngine/formulaRefs';
 import { stripFunctionPrefixes } from '../../utils/xlsxEngine/functionPrefixes';
@@ -61,6 +62,11 @@ export interface MapperContext {
    * cached value is imported instead. Absent means the engine defines none.
    */
   formulaNamedExpressions?: ReadonlySet<string>;
+  /**
+   * What the license unlocks of the XLSX engine. A feature it does not unlock is skipped and its
+   * token recorded as `license:<token>`; `xlsx:number_formats` never restricts the import.
+   */
+  entitlement: XlsxEntitlement;
 }
 
 /**
@@ -430,7 +436,7 @@ function resolveDropdownMeta(cell: CellSnapshot, scope: CollectContext): ImportC
 function resolveCellMeta(cell: CellSnapshot, inferredMeta: InferredMeta, scope: CollectContext): ImportColumn | null {
   const { meta } = inferredMeta;
 
-  if (cell.validation) {
+  if (cell.validation && scope.context.entitlement.dataValidation) {
     const dropdown = resolveDropdownMeta(cell, scope);
 
     if (dropdown) {
@@ -916,6 +922,14 @@ function recordReadOnly(readOnly: Map<number, Array<[number, number]>>, row: num
 }
 
 /**
+ * Whether the sheet's protection makes its locked cells read-only: the sheet is protected and the
+ * license unlocks `xlsx:protection`.
+ */
+function isProtected(sheet: SheetSnapshot, context: MapperContext): boolean {
+  return context.entitlement.protection && sheet.protection?.enabled === true;
+}
+
+/**
  * Collects one cell into the pass, in the window's own 0-based coordinates.
  */
 function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: number, scope: CollectContext): void {
@@ -934,7 +948,7 @@ function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: numbe
 
   pushCellValue(pass, cell, inferred, row, col, scope);
 
-  if (cell.comment !== null) {
+  if (cell.comment !== null && context.entitlement.comments) {
     if (context.commentsEnabled) {
       pass.comments.push({ row, col, value: cell.comment });
     } else {
@@ -942,7 +956,7 @@ function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: numbe
     }
   }
 
-  const readOnly = sheet.protection?.enabled === true && cell.locked !== false;
+  const readOnly = isProtected(sheet, context) && cell.locked !== false;
 
   if (readOnly) {
     recordReadOnly(pass.readOnly, row, col);
@@ -1008,7 +1022,7 @@ function collectCells(
 
         // OOXML treats a cell with no explicit `<protection>` as locked, and an empty cell has
         // none, so under sheet protection a blank imports read-only like its filled neighbours.
-        if (sheet.protection?.enabled === true) {
+        if (isProtected(sheet, context)) {
           recordReadOnly(pass.readOnly, row - window.firstRow, col - window.firstCol);
         }
       } else {
@@ -1581,8 +1595,14 @@ function stripUndefined<T extends object>(result: T): T {
 export function mapWorkbook(
   workbook: WorkbookSnapshot, requestedOptions: ResolvedImportOptions, context: MapperContext, dropped: DroppedFeatures
 ): MappedResult {
+  const { entitlement } = context;
   const sheet = selectSheet(workbook, requestedOptions.sheet, dropped);
-  const options = clampToSheet(sheet, requestedOptions);
+  const options = clampToSheet(sheet, {
+    ...requestedOptions,
+    importFormulas: requestedOptions.importFormulas && entitlement.formulas,
+    importLayout: requestedOptions.importLayout && entitlement.layout,
+    importStyles: requestedOptions.importStyles && entitlement.styles,
+  });
   const window = computeWindow(sheet, options);
   const colCount = Math.max(window.lastCol - window.firstCol + 1, 0);
   const pass = collectCells(sheet, workbook, window, options, context, dropped);
@@ -1599,9 +1619,15 @@ export function mapWorkbook(
     dropped.record(DROPPED_FEATURES.comments);
   }
 
-  if (hasHeaderBandComment(sheet, window, options)) {
+  if (entitlement.comments && hasHeaderBandComment(sheet, window, options)) {
     dropped.record(DROPPED_FEATURES.commentHeader);
   }
+
+  const conditionalFormatting = entitlement.conditionalFormatting
+    ? mapConditionalFormatting(sheet, window, dropped)
+    : undefined;
+
+  entitlement.missing.forEach(id => dropped.recordLicense(id));
 
   const result: MappedResult = {
     data: pass.data,
@@ -1612,7 +1638,7 @@ export function mapWorkbook(
     ...(options.importLayout ? mapLayout(sheet, window) : {}),
     formulas: pass.formulas.length > 0 ? pass.formulas : undefined,
     comments: pass.comments.length > 0 ? pass.comments : undefined,
-    conditionalFormatting: mapConditionalFormatting(sheet, window, dropped),
+    conditionalFormatting,
     styles: pass.styles.size > 0 ? Object.fromEntries(pass.styles) : undefined,
     customBorders: pass.borders.length > 0 ? pass.borders : undefined,
     sheetNames: workbook.sheets.map(candidate => candidate.name),

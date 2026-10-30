@@ -158,4 +158,46 @@ describe('DroppedFeatures', () => {
     expect(dropped.count('numFmt:pattern-0')).toBe(2);
     expect(dropped.count('numFmt:other')).toBe(8);
   });
+
+  it('should record a license token as `license:<token>`, apart from the file-driven cap', () => {
+    const dropped = new DroppedFeatures();
+
+    for (let i = 0; i < 40; i++) {
+      dropped.recordUnsupported('numFmt', `pattern-${i}`);
+    }
+
+    dropped.recordLicense('xlsx:styles');
+    dropped.recordLicense('xlsx:protection');
+
+    expect(dropped.count('license:xlsx:styles')).toBe(1);
+    expect(dropped.count('license:xlsx:protection')).toBe(1);
+    // The file-driven budget was spent, and the license names still got their own keys.
+    expect(dropped.count('numFmt:other')).toBe(8);
+    expect(dropped.list().slice(-2)).toEqual(['license:xlsx:styles', 'license:xlsx:protection']);
+  });
+
+  it('should not let license names eat into the file-driven budget', () => {
+    const dropped = new DroppedFeatures();
+
+    dropped.recordLicense('xlsx:styles');
+
+    for (let i = 0; i < 32; i++) {
+      dropped.recordUnsupported('numFmt', `pattern-${i}`);
+    }
+
+    expect(dropped.count('numFmt:pattern-31')).toBe(1);
+    expect(dropped.count('numFmt:other')).toBe(0);
+  });
+
+  it('should list only the license entries, in recorded order, from licenseEntries()', () => {
+    const dropped = new DroppedFeatures();
+
+    dropped.record('cellStyles');
+    dropped.recordLicense('xlsx:comments');
+    dropped.recordUnsupported('numFmt', 'x');
+    dropped.recordLicense('xlsx:styles');
+
+    expect(dropped.licenseEntries()).toEqual(['license:xlsx:comments', 'license:xlsx:styles']);
+    expect(dropped.list()).toEqual(['cellStyles', 'license:xlsx:comments', 'numFmt:x', 'license:xlsx:styles']);
+  });
 });

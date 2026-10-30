@@ -2,7 +2,9 @@ import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
 import { capabilitiesOfPlugin } from '../../utils/xlsxEngine/licenseCapabilities';
-import { getXlsxEntitlement } from '../../core/license';
+import { getLicenseState, getXlsxEntitlement } from '../../core/license';
+import { formatMissingCapabilitiesWarning, type XlsxEntitlement } from '../../utils/xlsxEngine/xlsxEntitlement';
+import { warn } from '../../helpers/console';
 import {
   detectXlsxEngine, resolveEngineOverride, tryDetectXlsxEngine, type DetectedXlsxEngine,
 } from '../../utils/xlsxEngine/detect';
@@ -854,6 +856,7 @@ export class ImportFile extends BasePlugin {
     const commentsPlugin = this.hot.getPlugin('comments');
     const customBordersPlugin = this.hot.getPlugin('customBorders');
     const formulasEnabled = formulasPlugin?.isEnabled() === true;
+    const entitlement = getXlsxEntitlement(this.hot);
     const mapped = mapWorkbook(workbook, resolved, {
       formulasEnabled,
       commentsEnabled: commentsPlugin?.isEnabled() === true,
@@ -861,6 +864,7 @@ export class ImportFile extends BasePlugin {
       formulaSheetNames: formulasEnabled ? engineSheetNames(formulasPlugin?.engine) : undefined,
       formulaSheetName: formulasEnabled ? formulasPlugin?.sheetName ?? undefined : undefined,
       formulaNamedExpressions: formulasEnabled ? engineNamedExpressions(formulasPlugin?.engine) : undefined,
+      entitlement,
     }, dropped);
 
     recordLayoutDirectionMismatch(this.hot, mapped, resolved.apply, dropped);
@@ -872,12 +876,12 @@ export class ImportFile extends BasePlugin {
 
     const result: ImportResult = {
       ...mapped,
-      dropped: dropped.list(),
+      dropped: entitlement.importReport ? dropped.list() : dropped.licenseEntries(),
       engine: { kind: detected.kind, version: detected.version },
     };
 
     if (!resolved.apply) {
-      dropped.warn(detected.kind);
+      this.#warnDropped(dropped, detected.kind, entitlement);
 
       return result;
     }
@@ -888,7 +892,7 @@ export class ImportFile extends BasePlugin {
     this.#assertAlive('before the import was applied');
     // Warned only once the guards passed, so an import they reject logs nothing about data that never
     // reached the grid (review round 12).
-    dropped.warn(detected.kind);
+    this.#warnDropped(dropped, detected.kind, entitlement);
 
     this.#isApplying = true;
 
@@ -913,7 +917,7 @@ export class ImportFile extends BasePlugin {
 
     try {
       applyImportResult(this.hot, result, {
-        importLayout: resolved.importLayout,
+        importLayout: resolved.importLayout && entitlement.layout,
         updateSettings: this.#applyImportSettings,
         onStylesInstalled: (styles) => {
           this.#installedStyles = styles;
@@ -944,6 +948,25 @@ export class ImportFile extends BasePlugin {
       this.#importSettings = null;
     }
   };
+
+  /**
+   * Emits the warnings of one import call: the engine's dropped-features warning, only when the
+   * license unlocks `xlsx:import_report`, and the missing-capabilities warning, only when the
+   * license lacks a token and its console channel is on.
+   *
+   * @param {DroppedFeatures} dropped The features recorded during the call.
+   * @param {XlsxEngineKind} kind The engine that read the file.
+   * @param {XlsxEntitlement} entitlement What the license unlocks.
+   */
+  #warnDropped(dropped: DroppedFeatures, kind: XlsxEngineKind, entitlement: XlsxEntitlement): void {
+    if (entitlement.importReport) {
+      dropped.warn(kind);
+    }
+
+    if (entitlement.missing.length > 0 && getLicenseState(this.hot).channels.console) {
+      warn(formatMissingCapabilitiesWarning('import', entitlement.missing));
+    }
+  }
 
   /**
    * Rejects an xlsx import when the license key lists `xlsx:*` capabilities without `xlsx:import`.

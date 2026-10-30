@@ -16,6 +16,7 @@ import * as consoleHelpers from '../../../helpers/console';
 import { registerCellType } from '../../../cellTypes/registry';
 import { buildTestKey } from '../../../utils/entitlementLicenseKey/__tests__/buildTestKey';
 import { SUBSCRIPTION_KEY } from '../../../utils/entitlementLicenseKey/__tests__/fixtures';
+import { UNRESTRICTED_XLSX_ENTITLEMENT } from '../../../utils/xlsxEngine/xlsxEntitlement';
 
 function fakeCtx(importFileSettings) {
   return { hot: { getSettings: () => ({ importFile: importFileSettings }) } };
@@ -680,7 +681,12 @@ describe('mapWorkbook on a merge whose covered cells were never written', () => 
     return mapWorkbook(
       read,
       resolveImportOptions({ headerRows: 1 }),
-      { formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false },
+      {
+        formulasEnabled: false,
+        commentsEnabled: false,
+        customBordersEnabled: false,
+        entitlement: UNRESTRICTED_XLSX_ENTITLEMENT
+      },
       new DroppedFeatures(),
     );
   }
@@ -726,7 +732,12 @@ describe('mapWorkbook on a protected sheet with an unlocked cell under a merge',
     return mapWorkbook(
       read,
       resolveImportOptions({}),
-      { formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false },
+      {
+        formulasEnabled: false,
+        commentsEnabled: false,
+        customBordersEnabled: false,
+        entitlement: UNRESTRICTED_XLSX_ENTITLEMENT
+      },
       new DroppedFeatures(),
     );
   }
@@ -784,7 +795,12 @@ describe('mapWorkbook on a formula Excel stored with a function prefix', () => {
     return mapWorkbook(
       read,
       resolveImportOptions({}),
-      { formulasEnabled: true, commentsEnabled: false, customBordersEnabled: false },
+      {
+        formulasEnabled: true,
+        commentsEnabled: false,
+        customBordersEnabled: false,
+        entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
+      },
       new DroppedFeatures(),
     );
   }
@@ -830,7 +846,13 @@ async function mapWithBothEngines(build, options = {}, context = {}, writer = 'e
     const result = mapWorkbook(
       read,
       resolveImportOptions(options),
-      { formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false, ...context },
+      {
+        formulasEnabled: false,
+        commentsEnabled: false,
+        customBordersEnabled: false,
+        entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
+        ...context,
+      },
       dropped,
     );
 
@@ -933,7 +955,11 @@ describe('mapWorkbook on number formats a spreadsheet app writes, whichever engi
       expect(read.definedNames).toEqual(expect.arrayContaining(['Sales', 'Rate']));
 
       const unknown = mapWorkbook(read, resolveImportOptions({}), {
-        formulasEnabled: true, commentsEnabled: false, customBordersEnabled: false, formulaNamedExpressions: new Set(),
+        formulasEnabled: true,
+        commentsEnabled: false,
+        customBordersEnabled: false,
+        entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
+        formulaNamedExpressions: new Set(),
       }, dropped);
 
       expect(unknown.data.map(row => row[3])).toEqual([null, 60, 7, '=SUM(B2:B4)']);
@@ -944,6 +970,7 @@ describe('mapWorkbook on number formats a spreadsheet app writes, whichever engi
         formulasEnabled: true,
         commentsEnabled: false,
         customBordersEnabled: false,
+        entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
         formulaNamedExpressions: new Set(['sales', 'rate']),
       }, knownDropped);
 
@@ -970,6 +997,7 @@ describe('mapWorkbook on number formats a spreadsheet app writes, whichever engi
       formulasEnabled: true,
       commentsEnabled: false,
       customBordersEnabled: false,
+      entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
       formulaSheetNames: new Set(['sales data']),
       formulaNamedExpressions: new Set(),
     }, dropped);
@@ -992,7 +1020,10 @@ describe('mapWorkbook on number formats a spreadsheet app writes, whichever engi
       const read = await adapter.read(fixture('values'), engine, recorder);
 
       mapWorkbook(read, resolveImportOptions({}), {
-        formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false,
+        formulasEnabled: false,
+        commentsEnabled: false,
+        customBordersEnabled: false,
+        entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
       }, recorder);
       dropped[kind] = recorder.list();
     }
