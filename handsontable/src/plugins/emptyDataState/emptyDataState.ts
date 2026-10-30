@@ -325,7 +325,6 @@ export class EmptyDataState extends BasePlugin {
       this.#registerEvents();
     }
 
-    this.addHook('afterInit', this.#onAfterInit);
     this.addHook('afterRender', this.#onAfterRender);
     this.addHook('afterRowSequenceCacheUpdate', this.#onSequenceCacheUpdate);
     this.addHook('afterColumnSequenceCacheUpdate', this.#onSequenceCacheUpdate);
@@ -348,8 +347,8 @@ export class EmptyDataState extends BasePlugin {
    * `onDataReady()` while core applies settings ahead of their data. The sequence changes several times
    * on the way (the settings pass, the load re-initializing the index maps), and a toggle on one of the
    * intermediate states showed the overlay, and took the keyboard, for a grid about to receive rows.
-   * Without a view (the grid is still being built) the toggle runs as before: it does nothing then, and
-   * the plugin's own `afterInit` shows or hides the overlay.
+   * Without a view (the grid is still being built) the toggle does nothing, and the ready step shows or
+   * hides the overlay.
    */
   #onSequenceCacheUpdate = () => {
     if (this.isDataWorkDeferred() && this.hot.view) {
@@ -371,6 +370,17 @@ export class EmptyDataState extends BasePlugin {
     if (this.takeDeferredDataWork()) {
       this.#toggleEmptyDataState();
     }
+  }
+
+  /**
+   * Shows or hides the empty state. Core runs it once after each enable or update, when the view exists,
+   * before the next render. At init that is where the overlay first appears: the enable runs before the
+   * view exists, so its own toggle does nothing.
+   *
+   * @private
+   */
+  onGridReady() {
+    this.#toggleEmptyDataState();
   }
 
   /**
@@ -761,16 +771,6 @@ export class EmptyDataState extends BasePlugin {
       event.preventDefault();
     }
   }
-
-  /**
-   * Called after the initialization of the table is completed.
-   * It toggles the emptyDataState.
-   */
-  #onAfterInit = () => {
-    this.#toggleEmptyDataState();
-
-    this.hot.render();
-  };
 
   /**
    * Called after the rendering of the table is completed.

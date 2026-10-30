@@ -194,6 +194,15 @@ Either way, `afterEmptyDataStateHide` fires last.
 The shortcut behavior is pinned by the Playwright spec, not by `__tests__/keyboardShortcuts/`: it needs a
 real context menu and real key events, and the legacy suite is frozen.
 
+## The overlay first appears in the ready step
+
+At init `enablePlugin()` runs before the view exists, so its own toggle does nothing. `onGridReady()`
+(`../base/AGENTS.md`) toggles once after each enable or update, before the next render, so at init the
+overlay is shown before the `init` hook and drawn by the first render. It replaced an `afterInit` listener
+that showed it after the first render and then rendered a second time. On a live grid the step runs after
+the enable's own toggle, and the second toggle changes nothing: `#show()` and `#hide()` return early when
+the state does not change. Pinned by `__tests__/readyStep.unit.js`.
+
 ## The enable-time toggle waits for `onDataReady()` when settings arrive ahead of data
 
 While core's `_applySettingsAndData()` applies settings ahead of their data (`isDataWorkDeferred()`,
