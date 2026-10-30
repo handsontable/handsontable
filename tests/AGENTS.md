@@ -1373,8 +1373,10 @@ criterion.
   when the page threw while it was measured, so a page that crashed halfway is a target not measured,
   never a clean one. The documented-shortcuts test is the one exception: it reloads its page between
   probes, so it records an error the page threw during a probe as a problem of that probe, and the
-  target, measured with a problem, evaluates no criterion. An empty `findings` list is evidence too: the
-  target was measured and nothing was found.
+  target, measured with a problem, evaluates no criterion. A test that loads the page more than once
+  owns that list: it passes one list to every `openTarget()` as `pageErrors` and drains it in place,
+  and the page writes to it from before the navigation, so the test holds the live list even when a
+  load throws. An empty `findings` list is evidence too: the target was measured and nothing was found.
 - **Findings on the product are recorded, never fixed in the check's change.** A check lands with what
   it finds listed in its pull request; the product tasks are filed apart, and a fix later clears the
   finding. A finding the check gets wrong is fixed in the check.
@@ -1436,7 +1438,9 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   Tab wraps rows and leaves from the last cell of the grid, so a walk can run out of presses (the
   column count plus 40) with nothing wrong. The walker then tries the way out the shortcut guide
   documents, Ctrl+End then Tab (Ctrl+Home then Shift+Tab back): a walk that gets out that way is an
-  advisory `tab-walk-needs-shortcut`, one that does not is a `keyboard-trap`. A walk that comes back to a
+  advisory `tab-walk-needs-shortcut`, one that does not is a `keyboard-trap`. A way out whose press from
+  inside the grid's container leaves no element focused is also `focus-lost`, as in a walk: the focus left
+  the grid, so it is no trap, but a screen reader has nothing focused. A walk that comes back to a
   stop outside the product (the sentinel it started on) without reaching the other one is neither an exit
   nor a trap held in the grid, and is an advisory `tab-walk-incomplete`. A modal dialog holds the
   focus by design: a cycle inside one is a trap only when neither Escape nor a button in it lets the
@@ -1450,7 +1454,8 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   input of a grid in cell focus mode) is not back, though the cell stays highlighted. A
   popup state walked like a grid at rest reads a Tab the editor keeps (the formula editor accepts a
   suggestion with it) as a trap, so a state that opens a popup belongs on that list. Then the
-  popup opens again and Tab walks inside it, judged per stop. A Tab that leaves the focus on the element
+  popup opens again and Tab walks inside it, judged per stop, and its stops are keyed by cell like a Tab
+  walk's: on an editor Tab commits and moves from cell to cell. A Tab that leaves the focus on the element
   it was on (the one the popup put it on, for the first) is an advisory `tab-keeps-focus`, with whether
   the editor stayed open: the walk cannot tell a date input moving between its fields, a suggestion
   accepted and a Tab that did nothing apart, and the guide says Tab completes the entry and moves on. A
@@ -1465,9 +1470,11 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   grid's container that leaves no element focused is `focus-lost` (2.4.3): the sentinels bracket the
   container, so the focused element went away. A `body` stop after a portal stop is not judged, because the
   portal can be the last focusable element of the page, and Playwright emulates page focus, so
-  `document.hasFocus()` cannot tell leaving the page from losing the focus. A stop both walks pass is
-  judged once (the walks share one `reported` set): its role and name do not depend on the walk that
-  reached it, so a second finding would count one defect twice. Every form control a walk
+  `document.hasFocus()` cannot tell leaving the page from losing the focus. A stop both walks pass gets
+  one role or name finding (the walks share one `reported` set): its role and name do not depend on the
+  walk that reached it, so a second finding would count one defect twice. A focus loss, a Tab out of a
+  modal and a change of context on focus depend on the key, so each walk keeps its own: Tab and Shift+Tab
+  losing the focus from one cell are two defects, and fixing one leaves the other. Every form control a walk
   stopped on then gets an input (Space, ArrowDown, a letter), and an input that navigates, opens a popup
   or moves the focus away is `context-change-on-input` (3.2.2).
 - **The APG grid keys** (arrows, Home, End, Page Up, Page Down, Ctrl+Home, Enter, F2, Escape) are pressed
@@ -1486,8 +1493,9 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   the catalog page that draws the feature. The verdict compares two snapshots of the grid
   (`effectsBetween()`): nothing changed is `shortcut-does-nothing` (2.1.1), the focus leaving the grid is
   `shortcut-moves-focus-out` (2.4.3), another effect is advisory, and so is an effect the guide rules out,
-  which the probe lists in `forbid` (Escape on the comment editor must close it without saving what was
-  typed). **Every probe starts from the page as it
+  which the probe lists in `forbid` (Escape on an editor or the comment editor must close it without
+  saving what was typed): a probe passes on any one expected effect, so a key that also does the wrong
+  thing passes unless the probe forbids it. **Every probe starts from the page as it
   loaded**: a probe that changed the data, the merges, the sort, the filters, the collapsed groups, the
   frozen counts or the row selection makes the walker load the page again, because a cleared cell or a
   collapsed row made the next probe report a shortcut as dead. Write a probe from a cell the key can
@@ -1497,7 +1505,9 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   between the cell and the formula bar (the focus key carries the part of the root wrapper, so F6 is a
   move), the text of the focused text field (`focusedText`, counted as a text change only while the focus
   stays on the same element: a key that also moves the focus reads as a focus move), and a key that only
-  switches a mode (`then` presses the key that shows the mode). The editor's text, caret and list read
+  switches a mode (`then` presses the key that shows the mode). The column menu's Filter by value list
+  is a grid of its own: the snapshot reads its highlighted item and its checked values while the menu is
+  open, because its keys change only those. The editor's text, caret and list read
   `null` while it is closed, so they count as changed only while the editor stays open: a key that
   closes the editor closed it, and a probe that expects an edit reads that as another effect.
 - **A probe's step is its id.** A probe finding has a step and no selector (`probeStep()`): the
