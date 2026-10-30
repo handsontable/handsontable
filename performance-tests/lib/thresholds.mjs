@@ -1,22 +1,33 @@
 // Shared classification logic for performance change percentages.
 // Used by both the markdown report builder and the HTML report builder.
 
-// Timing and heap need separate thresholds: replaying the 18 post-PR1 develop goldens on gh-pages
-// against a trailing median-of-5 baseline, timing's run-to-run CV is 11-19% per scenario while
-// heap's is 0.4-3.6%. A shared value cannot serve both -- at 15 a genuine +10% heap leak is detected
-// 9% of the time instead of 93%.
+// The regression gate's lines (lib/gate.mjs). A scenario fails when its total active time is more
+// than GATE_TIMING_THRESHOLD percent AND more than GATE_TIMING_FLOOR_MS slower than the baseline;
+// above WATCH_TIMING_THRESHOLD it is only listed. The floor exists for the four 13-19 ms scenarios,
+// where 10% is 1.3-1.9 ms of timer rounding. A run whose shift (the median delta of every scenario)
+// is above GATE_RUN_SHIFT_THRESHOLD fails as a whole: every scenario slowing alike stays under the
+// per-scenario line.
 //
-// The timing number is interim, and it is only correct for the baseline it was measured against:
-// the knee of the false-positive curve for a cross-runner median baseline (34% of no-change
-// comparisons fire a callout at 5, 3% at 15). Re-derive it with scripts/replay-goldens.mjs
-// whenever the comparand changes -- a quieter baseline makes 15 far too permissive to catch
-// anything.
+// Calibrated on the single self-hosted Apple M1 runner the suite moved to on 2026-09-15. Replaying
+// the 98 develop goldens from 2026-09-18 against a trailing median of 5 (scripts/replay-goldens.mjs,
+// `--since 2026-09-18`): the run-to-run spread of total active time is 0.3-2.4% per scenario, the
+// run shift stays within -0.7% to +0.8%, no run would fail at 10% (+2 ms), and 2 of 98 would show a
+// scenario to watch at 5%. The calibration before it (11-19% spread, a 15% line) described the
+// shared Linux runners and no longer holds.
 //
-// Do not assume a same-runner comparison is that quieter baseline. Running the suite twice in one
-// job against a byte-identical build was measured and does not hold: the second run came out
-// slower on 8 of 9 scenarios, median +9.2%, worst +22.5%. Whatever replaces the comparand has to
-// be calibrated the same way rather than argued for from first principles.
-export const REGRESSION_CALLOUT_THRESHOLD_TIMING = 15;
+// Re-derive these with that script whenever the runner, the measurement, or the baseline changes,
+// and move each line to where the replay's curve says. It replays the gate rule for rule.
+export const GATE_TIMING_THRESHOLD = 10;
+export const GATE_TIMING_FLOOR_MS = 2;
+export const WATCH_TIMING_THRESHOLD = 5;
+export const GATE_RUN_SHIFT_THRESHOLD = 5;
+
+// The red band of both reports is the gate's fail line, so a row is painted red exactly where the
+// gate fails it.
+export const REGRESSION_CALLOUT_THRESHOLD_TIMING = GATE_TIMING_THRESHOLD;
+
+// Heap is judged on its own, tighter line: the same replay puts no quiet run over 5%, against 10
+// of 98 at 3%. Timing's line would let a genuine +8% leak through.
 export const REGRESSION_CALLOUT_THRESHOLD_HEAP = 5;
 
 // Per-scenario heap overrides. `jsHeapMaxBytes` is the highest heap sample inside the window, and
@@ -143,6 +154,24 @@ export function pctChange(baseline, current) {
   }
 
   return ((current - baseline) / baseline) * 100;
+}
+
+/**
+ * Whether a timing comparison crosses a line that has both a relative and an absolute part. The
+ * gate and the replay that calibrates it both decide through this, so they cannot drift apart.
+ *
+ * @param {number | null} baselineMs
+ * @param {number | null} currentMs
+ * @param {number} [thresholdPct] -- the relative part, percent
+ * @param {number} [floorMs] -- the absolute part: the slowdown must also exceed this many ms
+ * @returns {boolean}
+ */
+export function isOverTimingLine(
+  baselineMs, currentMs, thresholdPct = GATE_TIMING_THRESHOLD, floorMs = GATE_TIMING_FLOOR_MS
+) {
+  const pct = pctChange(baselineMs, currentMs);
+
+  return pct != null && Number.isFinite(pct) && pct > thresholdPct && currentMs - baselineMs > floorMs;
 }
 
 /**
@@ -383,29 +412,43 @@ export function fmtPct(pct) {
     return '--';
   }
 
-  const sign = pct >= 0 ? '+' : '';
+  // Rounded first, and `+ 0` turns the -0 a tiny negative rounds to into 0, so it reads "+0.0%",
+  // never "-0.0%".
+  const rounded = Number(pct.toFixed(1)) + 0;
+  const sign = rounded >= 0 ? '+' : '';
 
-  return `${sign}${pct.toFixed(1)}%`;
+  return `${sign}${rounded.toFixed(1)}%`;
 }
 
 /**
+ * A percentage with a marker only where the gate acts on it: red above the fail line, green below
+ * its mirror, yellow above the watch line. Anything smaller is the runner's noise (a run-to-run
+ * spread of 0.3-2.4%), and marking it trained readers to skim past every marker.
+ *
  * @param {number | null} pct
- * @param {number} [threshold] -- band edge passed through to `classifyChange`
+ * @param {number} [threshold] -- the fail line, passed through to `classifyChange`
+ * @param {number | null} [watch] -- the watch line; null for a metric with no watch tier (heap)
  * @returns {string}
  */
-export function fmtPctWithEmoji(pct, threshold = REGRESSION_CALLOUT_THRESHOLD_TIMING) {
+export function fmtPctWithEmoji(
+  pct, threshold = REGRESSION_CALLOUT_THRESHOLD_TIMING, watch = WATCH_TIMING_THRESHOLD
+) {
   if (pct == null) {
     return '--';
   }
 
   const text = fmtPct(pct);
-  const { emoji } = classifyChange(pct, threshold);
+  const { status, emoji } = classifyChange(pct, threshold);
 
-  if (Math.abs(pct) < 1) {
-    return text;
+  if (status === 'regression' || status === 'improvement') {
+    return `${text} ${emoji}`;
   }
 
-  return emoji ? `${text} ${emoji}` : text;
+  if (watch != null && pct > watch) {
+    return `${text} \u{1F7E1}`;
+  }
+
+  return text;
 }
 
 // Display titles that cannot be derived from the kebab-case scenario name (e.g. need punctuation
@@ -460,14 +503,16 @@ export function calcCv(values) {
  * a rendered `0.0%` would read as a perfectly stable measurement.
  *
  * @param {number | null | undefined} cv
+ * @param {{ flag?: boolean }} [options] -- `flag: false` drops the warning glyph, for a spread that
+ *   is wide by construction rather than by accident (see reliabilityCell in report-builder.mjs)
  * @returns {string}
  */
-export function fmtCvValue(cv) {
+export function fmtCvValue(cv, { flag = true } = {}) {
   if (cv == null || !Number.isFinite(cv)) {
     return 'n/a';
   }
 
-  return `${cv.toFixed(1)}%${cv > CV_WARNING_THRESHOLD ? ' \u26A0\uFE0F' : ''}`;
+  return `${cv.toFixed(1)}%${flag && cv > CV_WARNING_THRESHOLD ? ' \u26A0\uFE0F' : ''}`;
 }
 
 /**

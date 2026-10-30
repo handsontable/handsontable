@@ -129,10 +129,10 @@ npm run typecheck                                   # spec files
 
 ## CI workflow
 
-`.github/workflows/performance-tests.yml`:
+Two entry points on the single self-hosted runner:
 
-- **`push` to `develop`**: runs all scenarios in `golden` mode, deploys `snapshots.json` + `report.html` to `gh-pages` under `performance-reports/develop/<timestamp>/`, updates `latest.json` (the pointer for PR comparisons), and builds a history index page. The run is also compared against the trailing median of compatible develop goldens, for its report, job summary and one `::warning` annotation per regressed scenario. The snapshot it saves is never derived from history (teardown saves before it loads).
-- **`pull_request`**: fetches the last 20 develop goldens into `golden/history/` (plus `latest.json` as a single-file fallback), runs all scenarios in `compare` mode, posts a sticky PR comment (summary table + regression callouts), and deploys the HTML report to `performance-reports/<branch-slug>/`.
+- **`push` to `develop`** (`develop.yml` → `.github/workflows/performance-tests.yml`): runs all scenarios in `golden` mode, deploys `snapshots.json` + `report.html` to `gh-pages` under `performance-reports/develop/<timestamp>/`, updates `latest.json` (the pointer for PR comparisons), and builds a history index page. The run is also compared against the trailing median of compatible develop goldens, for its report, job summary and one `::warning` annotation per regressed scenario. The snapshot it saves is never derived from history (teardown saves before it loads). Never gated.
+- **`pull_request`** (`test.yml` → `.github/workflows/performance.yml` → the `.github/actions/performance-run` composite): fetches the last 20 develop goldens into `golden/history/` (plus `latest.json` as a single-file fallback), runs all scenarios in `compare` mode, re-runs the failing ones, posts a sticky PR comment (the gate's verdict, the scenarios that need attention, the full table folded), deploys the HTML report to `performance-reports/<branch-slug>/`, and ends with the regression gate.
 
 Push retries with rebase (up to 3 attempts) for concurrent gh-pages writes.
 
@@ -142,9 +142,19 @@ All in `lib/environment.mjs`. A Playwright bump (new Chromium) once shifted init
 
 - **Provenance.** `lib/setup.mjs` (Playwright `globalSetup`) records the Chromium build (`browser.version()`), CPU model and count, memory, platform and GitHub runner image into `output/environment.json`. Teardown stamps it on the snapshot (`environment`, `harnessVersion`); both reports print it in the footer.
 - **Compatibility key.** `{ chromium, platform, harnessVersion }` per snapshot, `measurementVersion` per scenario. `computeMedianSnapshot(..., { compatibleWith })` draws only on goldens with the same key, and within a scenario only on entries at the same `measurementVersion`. A golden without the provenance fields is excluded, as a pre-marks golden is by `windowSource`. With no compatible golden the comment says "no comparable baseline" and why (`describeKeyMismatch`, or one of `BASELINE_REFUSALS` in `snapshot-store.mjs`: empty history, no marks-valid golden, every scenario redefined, disjoint scenarios, empty `latest.json`). With exactly one, the single-file fallback serves and the footer says "single develop run"; the median needs two. **Bump `HARNESS_VERSION` in `trace-runner.mjs`** when the runner changes what a window contains (settle, GC between iterations, work moved in or out); **bump a scenario's `measurementVersion`** when only that spec's definition changes.
-- **Run shift.** The comment's `Δ vs shift` column and the footer's `Run shift` line give the median delta across scenarios (how much faster or slower this runner ran than the baseline's; the per-run factor spans 0.63x-1.12x across develop goldens, and removing it takes the scroll scenarios' CV from ~13% to ~3%). It is reported only; callouts fire on the raw `Δ Total`, because a change that slows every scenario alike is invisible to a median.
+- **Run shift.** The comment's `Δ vs shift` column and the footer's `Run shift` line give the median delta across scenarios (how much faster or slower this runner ran than the baseline's; within ±1% on the Apple M1 runner since 2026-09-15, 0.63x–1.12x on the shared runners before it). The gate judges the raw `Δ Total`, because a change that slows every scenario alike is invisible to a median; a shift above +5% fails the run on its own.
 
 `scripts/replay-goldens.mjs` groups goldens by key before replaying; its `Compatibility groups` block shows the counts per group.
+
+### Regression gate
+
+The rules, the numbers behind them, and the approval flow are in `performance-tests/README.md` → "Thresholds" and "Regression gate". `lib/gate.mjs` decides the verdict in the teardown; `scripts/enforce-gate.mjs` (the composite's last step) exports `verdict`; `performance.yml`'s `approve` job waits on the `performance-approval` environment when it is `regressed`. Traps:
+
+- **`globalSetup` and `globalTeardown` run on every `playwright test` call**, so the confirm re-run (a second `playwright test` over the failing spec files, `scripts/run.mjs`) runs the teardown again. That teardown knows it is the re-run from `PERF_CONFIRM_PASS` and merges `output/verdict-first-pass.json`. The first traces go to `output/first-pass/<name>/`, one level down, because the teardown reads only `iteration-*.json` directly inside `output/<name>/`; anything at that level would be averaged in.
+- **An unset `verdict` must only ever come with a red job.** `approve` keys on the output, so a green run with no output would skip the approval and merge a regression unreviewed. The enforce step stays last, has no `continue-on-error`, and writes `GITHUB_OUTPUT` before it sets the exit code; `approve` carries `!failure()`. `.github/scripts/__tests__/perf-gate-step.test.mjs` pins all of it, including that `approve`'s `if:` keys on `OUTCOMES.REGRESSED`.
+- **The confirm re-run is part of the job's time budget.** `perf-artifact-download.test.mjs` derives the PR job's `timeout-minutes` from the scenario count, the Playwright timeout and `CONFIRM_MAX_SCENARIOS`; raise one and the test asks for the matching timeout.
+- **A line moves only through the replay.** Change `GATE_*` or a heap threshold after `node scripts/replay-goldens.mjs --since <date>` says where the knee is, and quote its gate section in the pull request. The reports' red band follows `GATE_TIMING_THRESHOLD`.
+- **Warn first.** `GATE_MODE` in `lib/gate.mjs` is `'warn'` until the warn period's `::notice title=perf-gate::` lines show no false would-fail; `'block'` also needs the `performance-approval` environment to exist with required reviewers.
 
 ## The trace pipeline
 
@@ -177,4 +187,5 @@ Follow `node-scripts-dev`. `.mjs` files are plain JavaScript: use `/** @type {an
 | `waitForFunction()` without `{ polling }` | The rAF default is starved on a loaded machine. Pass `undefined, { polling: 100 }`; the tier's eslint config bans the default |
 | `waitForTimeout()` for scroll/render waits | `scrollToRow()` / `scrollToColumn()`, or `waitForFunction` with a renderable-index check |
 | Changing a window's contents without a version bump | Bump `HARNESS_VERSION` (`lib/trace-runner.mjs`) for a runner change, or the scenario's `measurementVersion` for a spec change; otherwise the median averages two definitions of the scenario for five develop pushes |
-| Gating a callout on `Δ vs shift` | Gate on the raw delta; the shift is a median across scenarios and is shown beside it for the reader to weigh |
+| Gating on `Δ vs shift` | Gate on the raw delta; the shift is a median across scenarios and is shown beside it for the reader to weigh |
+| Tuning a gate line by eye | Re-run `scripts/replay-goldens.mjs` and move the line to the knee of its curve; it replays the gate rule for rule |

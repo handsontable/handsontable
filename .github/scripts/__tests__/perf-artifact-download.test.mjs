@@ -4,6 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
 import { job, steps } from '../lib/workflow-text.mjs';
+import { CONFIRM_MAX_SCENARIOS } from '../../../performance-tests/lib/gate.mjs';
 
 // The performance jobs download the shared UMD build artifact on the single
 // self-hosted runner. In run 37947963835 (2026-10-09) `actions/download-artifact`
@@ -26,16 +27,20 @@ import { job, steps } from '../lib/workflow-text.mjs';
 const root = repoRoot();
 const read = rel => readFileSync(path.join(root, rel), 'utf8');
 
+// `confirms`: the job runs the regression gate's confirm re-run (pull request runs only, through the
+// composite), which can add up to CONFIRM_MAX_SCENARIOS more scenarios at the Playwright timeout.
 const SITES = [
   {
     file: '.github/workflows/performance.yml',
     jobId: 'run',
     consumer: /uses: \.\/\.github\/actions\/performance-run$/m,
+    confirms: true,
   },
   {
     file: '.github/workflows/performance-tests.yml',
     jobId: 'performance-tests',
     consumer: /name: Run performance tests$/m,
+    confirms: false,
   },
 ];
 const COMPOSITE = '.github/actions/performance-run/action.yml';
@@ -85,7 +90,8 @@ function jobTimeout(jobBody) {
  * The longest the performance suite itself lets its scenarios run: every test, one after another
  * (`workers` must stay 1, or the scenarios measure each other), each up to the Playwright test timeout.
  *
- * @returns {{ tests: number, minutes: number }} The test count and their total timeout in minutes.
+ * @returns {{ tests: number, minutes: number, perTest: number }} The test count, their total timeout in
+ * minutes, and one test's timeout.
  */
 function scenarioBudget() {
   const config = read('performance-tests/playwright.config.ts');
@@ -102,10 +108,10 @@ function scenarioBudget() {
 
   assert.ok(tests > 0, 'no scenario tests found under performance-tests/scenarios');
 
-  return { tests, minutes: tests * Number(timeout[1]) };
+  return { tests, minutes: tests * Number(timeout[1]), perTest: Number(timeout[1]) };
 }
 
-for (const { file, jobId, consumer } of SITES) {
+for (const { file, jobId, consumer, confirms } of SITES) {
   describe(`${file} guards the UMD artifact download`, () => {
     const body = job(read(file), jobId);
     const all = steps(body);
@@ -185,12 +191,14 @@ for (const { file, jobId, consumer } of SITES) {
       const minutes = jobTimeout(body);
       const attempts = downloads.reduce((sum, step) => sum + Number(stepKey(step, 'timeout-minutes')), 0);
       const scenarios = scenarioBudget();
-      const required = SETUP_MINUTES + attempts + scenarios.minutes;
+      const confirm = confirms ? CONFIRM_MAX_SCENARIOS * scenarios.perTest : 0;
+      const required = SETUP_MINUTES + attempts + scenarios.minutes + confirm;
 
       assert.ok(minutes !== null && minutes >= required,
         `the job timeout must be at least ${required} minutes (setup ${SETUP_MINUTES}, both download `
           + `attempts ${attempts}, ${scenarios.tests} scenarios at their Playwright timeout `
-          + `${scenarios.minutes}): shorter, a run whose scenarios time out is cancelled before it reports`);
+          + `${scenarios.minutes}, the confirm re-run ${confirm}): shorter, a run whose scenarios time `
+          + 'out is cancelled before it reports');
       assert.ok(minutes <= required + JOB_TIMEOUT_SLACK_MINUTES,
         `the job timeout must stay within ${JOB_TIMEOUT_SLACK_MINUTES} minutes of ${required}, `
           + 'so a hang outside the downloads still fails reasonably fast');
