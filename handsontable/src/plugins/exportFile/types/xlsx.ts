@@ -55,6 +55,13 @@ import {
   type WorkbookSnapshot,
 } from '../../../utils/xlsxEngine/model';
 import type { HotInstance } from '../../../core/types';
+import { getLicenseState, getXlsxEntitlement } from '../../../core/license';
+import {
+  formatMissingCapabilitiesWarning,
+  UNRESTRICTED_XLSX_ENTITLEMENT,
+  type XlsxEntitlement,
+} from '../../../utils/xlsxEngine/xlsxEntitlement';
+import { warn } from '../../../helpers/console';
 
 /**
  * The name used when sanitization leaves nothing behind (a sheet named `"[*]"`, say).
@@ -335,6 +342,12 @@ interface XlsxOptions extends Record<string, unknown> {
  */
 class Xlsx extends BaseType {
   /**
+   * What the license of the plugin's own instance unlocks of the XLSX engine. Resolved at the start
+   * of every export; the instances named in the `sheets` option never override it.
+   */
+  #entitlement: XlsxEntitlement = UNRESTRICTED_XLSX_ENTITLEMENT;
+
+  /**
    * Marks this formatter as binary (non-stringifiable).
    *
    * @returns {boolean}
@@ -399,6 +412,9 @@ class Xlsx extends BaseType {
     // A nullish `engine` (the option's own default, or a resolved `engines: { xlsx: null }`) is
     // read as the built-in engine by `detectXlsxEngine` itself, so nothing is mapped here.
     const detected = detectXlsxEngine(this.options.engine, 'exportFile');
+    const { hot } = this.dataProvider;
+
+    this.#entitlement = getXlsxEntitlement(hot);
 
     // Clear style caches for all documents involved in this export. In multi-sheet
     // mode each sheet may come from a different Handsontable instance living in a
@@ -406,7 +422,7 @@ class Xlsx extends BaseType {
     const sheets = this.options.sheets as unknown as XlsxSheetConfig[] | null | undefined;
     const docsToClear = sheets && sheets.length > 0
       ? new Set(sheets.map(s => s.instance.rootDocument))
-      : new Set([this.dataProvider.hot.rootDocument]);
+      : new Set([hot.rootDocument]);
 
     docsToClear.forEach(doc => clearStyleCaches(doc as Document));
 
@@ -438,6 +454,14 @@ class Xlsx extends BaseType {
       const name = this.#uniqueSheetName('Sheet1', usedSheetNames);
 
       this.#populateWorksheet(workbook, name, this.dataProvider, this.options, usedSheetNames);
+    }
+
+    const { missing } = this.#entitlement;
+
+    // One warning per export, naming the tokens only. An option the license overrode
+    // (`exportFormulas`, `conditionalFormatting`) is already covered by its token in the list.
+    if (missing.length > 0 && getLicenseState(hot).channels.console) {
+      warn(formatMissingCapabilitiesWarning('export', missing));
     }
 
     const dropped = new DroppedFeatures();
@@ -498,8 +522,10 @@ class Xlsx extends BaseType {
     const data = dataProvider.getData();
     const cellsMeta = dataProvider.getCellsMeta();
     const sourceLabels = createSourceLabelsResolver();
-    const { validationMap, sheet: validationSheet } =
-      this.#buildValidationSheet(usedSheetNames, cellsMeta, sourceLabels);
+    // Without `xlsx:data_validation` there is no dropdown list to point at, so no helper sheet either.
+    const { validationMap, sheet: validationSheet } = this.#entitlement.dataValidation
+      ? this.#buildValidationSheet(usedSheetNames, cellsMeta, sourceLabels)
+      : { validationMap: new Map<string, string>(), sheet: null };
     const cellElements = dataProvider.getCellElements();
     const columnHeaders = dataProvider.getColumnHeaders();
     const columnHeadersClassNames = dataProvider.getColumnHeadersClassNames();
@@ -510,8 +536,9 @@ class Xlsx extends BaseType {
     const frozenRows = dataProvider.getFrozenRows();
     const frozenColumns = dataProvider.getFrozenColumns();
     const nestedColumnHeaders = dataProvider.getNestedColumnHeaders();
-    const isRtl = dataProvider.getLayoutDirection() === 'rtl';
-    const exportFormulas: boolean = options.exportFormulas ?? false;
+    const { layout } = this.#entitlement;
+    const isRtl = layout && dataProvider.getLayoutDirection() === 'rtl';
+    const exportFormulas = this.#entitlement.formulas && Boolean(options.exportFormulas);
 
     // Build a fast O(1) lookup: "dataRowIndex:dataColIndex" → summary descriptor.
     // Always built so the protection pre-scan can identify ColumnSummary destination
@@ -551,15 +578,17 @@ class Xlsx extends BaseType {
 
     const { rootDocument, rootWindow } = dataProvider.hot;
 
-    this.#applyColumnWidths(sheet, columnsWidths, hasRowHeaders);
-
-    if (hiddenColIndices.length > 0) {
+    if (layout) {
+      this.#applyColumnWidths(sheet, columnsWidths, hasRowHeaders);
       this.#applyHiddenColumns(sheet, hiddenColIndices, hasRowHeaders);
+      this.#applyWorksheetViews(sheet, frozenRows, frozenColumns, headerRowCount, hasRowHeaders, isRtl);
     }
-    this.#applyWorksheetViews(sheet, frozenRows, frozenColumns, headerRowCount, hasRowHeaders, isRtl);
 
-    const headerFill = this.#buildHeaderFill(options.headerStyle);
-    const headerBorder = this.#buildHeaderBorder(options.headerStyle);
+    // The header fill and border are styles: without `xlsx:styles` headers export as if
+    // `headerStyle` were `null`.
+    const headerStyle = this.#entitlement.styles ? options.headerStyle : null;
+    const headerFill = this.#buildHeaderFill(headerStyle);
+    const headerBorder = this.#buildHeaderBorder(headerStyle);
 
     if (useNestedHeaders) {
       this.#writeNestedColumnHeaders(
@@ -584,7 +613,7 @@ class Xlsx extends BaseType {
     //    initialize font/fill/border to sentinel values, which adds noise to the file
     //    and breaks styling assertions in tests.
     const hasColumnSummary = summaryMap.size > 0;
-    const hasReadOnlyCells = !hasColumnSummary &&
+    const hasReadOnlyCells = this.#entitlement.protection && !hasColumnSummary &&
       cellsMeta.some((row: unknown[]) =>
         row.some((meta: unknown) => (meta as Record<string, unknown>)?.readOnly === true));
 
@@ -609,13 +638,14 @@ class Xlsx extends BaseType {
       cellsMeta,
       cellElements,
       rowHeaders,
-      rowsHeights,
+      rowsHeights: layout ? rowsHeights : [],
     };
 
     this.#writeDataRows(sheet, data, context);
 
-    if (hiddenRowIndices.length > 0) {
+    if (layout) {
       this.#applyHiddenRows(sheet, hiddenRowIndices, dataRowOffset);
+      this.#applyMerges(sheet, mergeCells, dataRowOffset, dataColOffset);
     }
 
     if (hasReadOnlyCells) {
@@ -633,16 +663,9 @@ class Xlsx extends BaseType {
       });
     }
 
-    mergeCells.forEach((merge: MergeDescriptor) => {
-      const startRow = merge.row + dataRowOffset;
-      const startCol = merge.col + dataColOffset;
-
-      sheet.merge(startRow, startCol, startRow + merge.rowspan - 1, startCol + merge.colspan - 1);
-    });
-
     const { conditionalFormatting } = options;
 
-    if (conditionalFormatting && conditionalFormatting.length > 0) {
+    if (this.#entitlement.conditionalFormatting && conditionalFormatting && conditionalFormatting.length > 0) {
       this.#applyConditionalFormatting(
         sheet,
         conditionalFormatting,
@@ -720,7 +743,7 @@ class Xlsx extends BaseType {
 
       cell.value = value;
       cell.formula = formula;
-      cell.numFmt = numFmt;
+      cell.numFmt = this.#entitlement.numberFormats ? numFmt : null;
 
       const cssStyle = getCssStyleFromElement(
         context.cellElements[rowIndex][colIndex], meta.className, context.rootDocument, context.rootWindow
@@ -750,13 +773,15 @@ class Xlsx extends BaseType {
   #writeCellStyling(
     cell: CellSnapshot, meta: CellMeta, cssStyle: CssStyle | null, context: SheetContext
   ): void {
-    const alignment = getAlignmentFromMeta(meta);
-    const border = getBorderFromMeta(meta);
-    const font = getFontFromMeta(meta, cssStyle);
-    const fill = getFillFromMeta(meta, cssStyle);
+    if (this.#entitlement.styles) {
+      const alignment = getAlignmentFromMeta(meta);
+      const border = getBorderFromMeta(meta);
+      const font = getFontFromMeta(meta, cssStyle);
+      const fill = getFillFromMeta(meta, cssStyle);
 
-    if (alignment || border || font || fill) {
-      cell.style = { alignment, border, font, fill };
+      if (alignment || border || font || fill) {
+        cell.style = { alignment, border, font, fill };
+      }
     }
 
     const rangeRef = Array.isArray(meta.source)
@@ -764,11 +789,11 @@ class Xlsx extends BaseType {
       : null;
     const dropdownValidation = getDropdownValidation(meta, rangeRef);
 
-    if (dropdownValidation) {
+    if (dropdownValidation && this.#entitlement.dataValidation) {
       cell.validation = dropdownValidation;
     }
 
-    if (meta.comment?.value) {
+    if (meta.comment?.value && this.#entitlement.comments) {
       cell.comment = String(meta.comment.value);
     }
   }
@@ -1112,6 +1137,25 @@ class Xlsx extends BaseType {
 
     hiddenColIndices.forEach((dataColIndex) => {
       sheet.hideCol(dataColIndex + 1 + offset);
+    });
+  }
+
+  /**
+   * Merges the ranges the MergeCells plugin describes, shifted by the header offsets.
+   *
+   * @param {object} sheet The sheet builder.
+   * @param {Array} mergeCells The merge descriptors, in data coordinates.
+   * @param {number} dataRowOffset 1-based Excel row number where data row 0 starts.
+   * @param {number} dataColOffset 1-based Excel column number where data column 0 starts.
+   */
+  #applyMerges(
+    sheet: SheetBuilder, mergeCells: MergeDescriptor[], dataRowOffset: number, dataColOffset: number
+  ): void {
+    mergeCells.forEach((merge) => {
+      const startRow = merge.row + dataRowOffset;
+      const startCol = merge.col + dataColOffset;
+
+      sheet.merge(startRow, startCol, startRow + merge.rowspan - 1, startCol + merge.colspan - 1);
     });
   }
 
