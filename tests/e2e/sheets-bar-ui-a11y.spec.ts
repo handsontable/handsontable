@@ -277,22 +277,31 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
       await expect.poll(() => fixture.tabInStrip(25)).toBe(true);
     });
 
-    test('reveals the tab the arrow keys move the focus to', async({ page, theme, bundle }) => {
-      const fixture = new SheetsBarUiPage(page, theme, bundle);
+    [false, true].forEach((rtl) => {
+      test(`reveals every tab the arrow keys move the focus to${rtl ? ' (RTL)' : ''}`, async({ page, theme, bundle }) => {
+        const fixture = new SheetsBarUiPage(page, theme, bundle);
+        const forward = rtl ? 'ArrowLeft' : 'ArrowRight';
+        const backward = rtl ? 'ArrowRight' : 'ArrowLeft';
 
-      await fixture.goto({ sheets: 30 });
-      await fixture.activeTab.focus();
+        await fixture.goto({ sheets: 30, rtl });
+        await fixture.activeTab.focus();
 
-      for (let step = 0; step < 20; step += 1) {
-        await page.keyboard.press('ArrowRight');
-      }
+        for (let index = 1; index < 30; index += 1) {
+          await page.keyboard.press(forward);
+          await expect(fixture.tab(index)).toBeFocused();
+          await expect.poll(() => fixture.tabInStrip(index), `tab ${index} going forward`).toBe(true);
+        }
 
-      await expect(fixture.tab(20)).toBeFocused();
-      await expect.poll(() => fixture.tabInStrip(20)).toBe(true);
+        for (let index = 28; index >= 0; index -= 1) {
+          await page.keyboard.press(backward);
+          await expect(fixture.tab(index)).toBeFocused();
+          await expect.poll(() => fixture.tabInStrip(index), `tab ${index} going back`).toBe(true);
+        }
 
-      await page.keyboard.press('End');
-      await expect(fixture.tab(29)).toBeFocused();
-      await expect.poll(() => fixture.tabInStrip(29)).toBe(true);
+        await page.keyboard.press('End');
+        await expect(fixture.tab(29)).toBeFocused();
+        await expect.poll(() => fixture.tabInStrip(29)).toBe(true);
+      });
     });
 
     test('a rename stays open and focused while another sheet moves past it', async({ page, theme, bundle }) => {
