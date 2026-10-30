@@ -556,7 +556,8 @@ async function walkPage(page: Page, testInfo: TestInfo, entry: A11yPage): Promis
       modalExit = await modalExitOf(page, root, [...forward.stops, ...backward.stops].filter(item => item.modal));
     }
     // One set for both walks: a stop's role and name do not depend on the walk that reached it, so a stop both
-    // walks pass is one finding.
+    // walks pass gets one role or name finding. The findings that depend on the key pressed are keyed by
+    // direction in `walkFindings()`.
     const reported = new Set<string>();
 
     findings.push(...walkFindings({ walk: forwardVerdict, stops: forward.stops, direction: 'forward', modalExit, reported }));

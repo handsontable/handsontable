@@ -239,6 +239,12 @@ test('a way out that leaves no element focused from inside the grid lost the foc
 
   assert.deepEqual(walkFindings({ walk: page, stops, direction: 'forward' }).map(item => item.kind), ['tab-walk-needs-shortcut'],
     'the portal can be the last focusable element of the page, so Tab from it may leave the page');
+
+  const routeKey = walkVerdict({ direction: 'forward', stops, budgetExhausted: true, exitRoute: { ...exitRoute, presses: 0 } });
+
+  assert.deepEqual(walkFindings({ walk: routeKey, stops, direction: 'forward' }).filter(item => item.kind === 'focus-lost')
+    .map(item => [item.step, item.reason.startsWith('Ctrl+End from inside the grid')]), [['Tab 3, then Ctrl+End', true]],
+  'the route key itself can leave no element focused, before any Tab: the step and the reason name that key');
 });
 
 test('a backward walk names its steps Shift+Tab; a popup walk counts from where the popup put the focus', () => {

@@ -302,6 +302,12 @@ export async function tabWalk(page: Page, cdp: CDPSession, root: string, directi
     // Only the region and the locator matter here, so the accessibility tree is not read: up to 150 presses a walk.
     let previous = await readStop(page, cdp, root, { ax: false });
 
+    // The route key itself can leave no element focused: the same focus loss, before any Tab.
+    if (previous.region === 'body') {
+      left = 'body';
+      lostFrom = { region: stops.at(-1)!.region, locator: stops.at(-1)!.locator };
+    }
+
     // A grid with navigable headers on several levels walks back through every header row first.
     while (routePresses < 150 && !left) {
       await page.keyboard.press(key);

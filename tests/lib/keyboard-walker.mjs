@@ -212,14 +212,17 @@ export function walkFindings({ walk, stops, direction, modalExit = null, opened 
   // The way out can lose the focus the way a walk does: a press from inside the grid's container that leaves no element
   // focused. From the portal it may have left the page, as in a walk, so that is not judged.
   if (walk.exitRoute?.left === 'body' && walk.exitRoute.from?.region === 'grid') {
+    // No Tab of the way out pressed (`presses` 0): the route key itself lost the focus.
+    const lostOn = walk.exitRoute.presses === 0 ? walk.exitRoute.keys.split(', then ')[0] : walk.exitRoute.keys;
+
     findings.push({
       kind: 'focus-lost',
       criteria: ['2.4.3'],
       severity: 'serious',
       selector: walk.exitRoute.from.locator ?? 'grid',
-      step: `${label(walk.presses)}, then ${walk.exitRoute.keys} ${walk.exitRoute.presses}`,
+      step: `${label(walk.presses)}, then ${lostOn}${walk.exitRoute.presses === 0 ? '' : ` ${walk.exitRoute.presses}`}`,
       measured: { to: 'body' },
-      reason: `${walk.exitRoute.keys} from inside the grid left no element focused: the focused element went away instead of passing `
+      reason: `${lostOn} from inside the grid left no element focused: the focused element went away instead of passing `
         + 'the focus on, so a screen reader has nothing to announce',
     });
   }

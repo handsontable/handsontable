@@ -24,7 +24,14 @@ export interface WalkVerdict {
   presses: number;
   productStops: number;
   modal: boolean;
-  exitRoute: { keys: string; left: boolean; presses: number } | null;
+  exitRoute: ExitRoute | null;
+}
+
+export interface ExitRoute {
+  keys: string;
+  left: boolean | 'body';
+  presses: number;
+  from?: { region: string; locator: string };
 }
 
 export function stopKey(stop: WalkStop): string;
@@ -33,7 +40,7 @@ export function walkVerdict(input: {
   direction: 'forward' | 'backward';
   stops: WalkStop[];
   budgetExhausted?: boolean;
-  exitRoute?: { keys: string; left: boolean; presses: number } | null;
+  exitRoute?: ExitRoute | null;
 }): WalkVerdict;
 export function walkFindings(input: {
   walk: WalkVerdict;
