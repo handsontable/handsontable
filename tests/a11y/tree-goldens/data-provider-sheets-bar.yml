@@ -1,0 +1,64 @@
+# grid
+- treegrid "Orders":
+  - rowgroup:
+    - 'row "ORD-01 #1"':
+      - gridcell "ORD-01" [selected]
+      - gridcell "#1"
+    - 'row "ORD-02 #1"':
+      - gridcell "ORD-02"
+      - gridcell "#1"
+    - 'row "ORD-03 #1"':
+      - gridcell "ORD-03"
+      - gridcell "#1"
+    - 'row "ORD-04 #1"':
+      - gridcell "ORD-04"
+      - gridcell "#1"
+    - 'row "ORD-05 #1"':
+      - gridcell "ORD-05"
+      - gridcell "#1"
+  - rowgroup:
+    - row "Select whole grid ID Fetch":
+      - gridcell "Select whole grid"
+      - columnheader "ID"
+      - columnheader "Fetch"
+  - rowgroup
+  - rowgroup:
+    - row "1":
+      - rowheader "1"
+    - row "2":
+      - rowheader "2"
+    - row "3":
+      - rowheader "3"
+    - row "4":
+      - rowheader "4"
+    - row "5":
+      - rowheader "5"
+  - rowgroup:
+    - row "Select whole grid":
+      - gridcell "Select whole grid"
+  - rowgroup
+  - textbox
+- button "Add sheet"
+- button "All sheets"
+- group "Sheets":
+  - button "Orders"
+  - button "Notes"
+  - button "Customers"
+- text: "Page size:"
+- combobox "Page size":
+  - option "Auto"
+  - option "5" [selected]
+  - option "10"
+  - option "20"
+  - option "50"
+  - option "100"
+- text: 1 - 5 of 25
+- navigation "Pagination":
+  - button "Go to first page" [disabled]
+  - button "Go to previous page" [disabled]
+  - text: Page 1 of 5
+  - button "Go to next page"
+  - button "Go to last page"
+# portal
+- status: Page 1 of 5
+- status

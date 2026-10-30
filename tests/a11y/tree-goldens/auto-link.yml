@@ -1,0 +1,270 @@
+# grid
+- treegrid:
+  - rowgroup:
+    - row "https://example.com/one https://example.com/optout go https://example.com/marked user link https://example.com/memo HF label https://example.com/whole google.com":
+      - gridcell "https://example.com/one":
+        - link "https://example.com/one":
+          - /url: https://example.com/one
+      - gridcell "https://example.com/optout"
+      - gridcell "go https://example.com/marked":
+        - text: go
+        - link "https://example.com/marked":
+          - /url: https://example.com/marked
+      - gridcell "user link":
+        - link "user link":
+          - /url: https://example.com/user
+      - gridcell "https://example.com/memo":
+        - link "https://example.com/memo":
+          - /url: https://example.com/memo
+      - gridcell "HF label":
+        - link "HF label":
+          - /url: https://example.com/hf
+      - gridcell "https://example.com/whole":
+        - link "https://example.com/whole":
+          - /url: https://example.com/whole
+      - gridcell "google.com":
+        - link "google.com":
+          - /url: https://google.com/
+    - row "Visit https://example.com/two for details. b2 c2 d2 e2 https://example.com/raw see https://example.com/inline-off www.example.org/docs":
+      - gridcell "Visit https://example.com/two for details.":
+        - text: Visit
+        - link "https://example.com/two":
+          - /url: https://example.com/two
+        - text: for details.
+      - gridcell "b2"
+      - gridcell "c2"
+      - gridcell "d2"
+      - gridcell "e2"
+      - gridcell "https://example.com/raw":
+        - link "https://example.com/raw":
+          - /url: https://example.com/raw
+      - gridcell "see https://example.com/inline-off"
+      - gridcell "www.example.org/docs":
+        - link "www.example.org/docs":
+          - /url: https://www.example.org/docs
+    - row "someone@example.com b3 c3 d3 e3 mailto:hf@example.com https://example.com/padded ana.garcia@example.com":
+      - gridcell "someone@example.com":
+        - link "someone@example.com":
+          - /url: mailto:someone@example.com
+      - gridcell "b3"
+      - gridcell "c3"
+      - gridcell "d3"
+      - gridcell "e3"
+      - gridcell "mailto:hf@example.com":
+        - link "mailto:hf@example.com":
+          - /url: mailto:hf@example.com
+      - gridcell "https://example.com/padded":
+        - link "https://example.com/padded":
+          - /url: https://example.com/padded
+      - gridcell "ana.garcia@example.com":
+        - link "ana.garcia@example.com":
+          - /url: mailto:ana.garcia@example.com
+    - row "+48123456789 b4 c4 d4 e4 f4 g4 README.md":
+      - gridcell "+48123456789":
+        - link "+48123456789":
+          - /url: tel:+48123456789
+      - gridcell "b4"
+      - gridcell "c4"
+      - gridcell "d4"
+      - gridcell "e4"
+      - gridcell "f4"
+      - gridcell "g4"
+      - gridcell "README.md":
+        - link "README.md":
+          - /url: https://readme.md/
+    - row "(see https://example.com/paren). b5 c5 d5 e5 f5 g5 report.zip":
+      - gridcell "(see https://example.com/paren).":
+        - text: (see
+        - link "https://example.com/paren":
+          - /url: https://example.com/paren
+        - text: ).
+      - gridcell "b5"
+      - gridcell "c5"
+      - gridcell "d5"
+      - gridcell "e5"
+      - gridcell "f5"
+      - gridcell "g5"
+      - gridcell "report.zip":
+        - link "report.zip":
+          - /url: https://report.zip/
+    - row "https://example.com/cell-optout b6 c6 d6 e6 f6 g6 node.js":
+      - gridcell "https://example.com/cell-optout"
+      - gridcell "b6"
+      - gridcell "c6"
+      - gridcell "d6"
+      - gridcell "e6"
+      - gridcell "f6"
+      - gridcell "g6"
+      - gridcell "node.js"
+    - row "<origin>/tests/fixtures/demo/grid.html b7 c7 d7 e7 f7 g7 Visit handsontable.com today.":
+      - gridcell "<origin>/tests/fixtures/demo/grid.html":
+        - link "<origin>/tests/fixtures/demo/grid.html":
+          - /url: <origin>/tests/fixtures/demo/grid.html
+      - gridcell "b7"
+      - gridcell "c7"
+      - gridcell "d7"
+      - gridcell "e7"
+      - gridcell "f7"
+      - gridcell "g7"
+      - gridcell "Visit handsontable.com today.":
+        - text: Visit
+        - link "handsontable.com":
+          - /url: https://handsontable.com/
+        - text: today.
+    - row "javascript:alert(1) b8 c8 d8 e8 f8 g8 1.2.3":
+      - gridcell "javascript:alert(1)"
+      - gridcell "b8"
+      - gridcell "c8"
+      - gridcell "d8"
+      - gridcell "e8"
+      - gridcell "f8"
+      - gridcell "g8"
+      - gridcell "1.2.3"
+    - row "plain text b9 c9 d9 e9 f9 g9 x":
+      - gridcell "plain text"
+      - gridcell "b9"
+      - gridcell "c9"
+      - gridcell "d9"
+      - gridcell "e9"
+      - gridcell "f9"
+      - gridcell "g9"
+      - gridcell "x"
+    - row "https://example.com/hotel:deals b10 c10 d10 e10 f10 g10 x":
+      - gridcell "https://example.com/hotel:deals":
+        - link "https://example.com/hotel:deals":
+          - /url: https://example.com/hotel:deals
+      - gridcell "b10"
+      - gridcell "c10"
+      - gridcell "d10"
+      - gridcell "e10"
+      - gridcell "f10"
+      - gridcell "g10"
+      - gridcell "x"
+    - row "https://a.com/xhttps://b.com/y b11 c11 d11 e11 f11 g11 x":
+      - gridcell "https://a.com/xhttps://b.com/y":
+        - link "https://a.com/x":
+          - /url: https://a.com/x
+        - link "https://b.com/y":
+          - /url: https://b.com/y
+      - gridcell "b11"
+      - gridcell "c11"
+      - gridcell "d11"
+      - gridcell "e11"
+      - gridcell "f11"
+      - gridcell "g11"
+      - gridcell "x"
+    - row "Grand Hotel:Warsaw b12 c12 d12 e12 f12 g12 x":
+      - gridcell "Grand Hotel:Warsaw"
+      - gridcell "b12"
+      - gridcell "c12"
+      - gridcell "d12"
+      - gridcell "e12"
+      - gridcell "f12"
+      - gridcell "g12"
+      - gridcell "x"
+    - row "https://web.archive.org/web/2020/https://example.com b13 c13 d13 e13 f13 g13 x":
+      - gridcell "https://web.archive.org/web/2020/https://example.com":
+        - link "https://web.archive.org/web/2020/https://example.com":
+          - /url: https://web.archive.org/web/2020/https://example.com
+      - gridcell "b13"
+      - gridcell "c13"
+      - gridcell "d13"
+      - gridcell "e13"
+      - gridcell "f13"
+      - gridcell "g13"
+      - gridcell "x"
+    - row "https://example.com/a, b@example.com b14 c14 d14 e14 f14 g14 x":
+      - gridcell "https://example.com/a, b@example.com":
+        - link "https://example.com/a":
+          - /url: https://example.com/a
+        - text: ","
+        - link "b@example.com":
+          - /url: mailto:b@example.com
+      - gridcell "b14"
+      - gridcell "c14"
+      - gridcell "d14"
+      - gridcell "e14"
+      - gridcell "f14"
+      - gridcell "g14"
+      - gridcell "x"
+    - row "google.com b15 c15 d15 e15 f15 g15 x":
+      - gridcell "google.com"
+      - gridcell "b15"
+      - gridcell "c15"
+      - gridcell "d15"
+      - gridcell "e15"
+      - gridcell "f15"
+      - gridcell "g15"
+      - gridcell "x"
+    - row "x b16 c16 d16 e16 f16 g16 www.google.co.uk:123456":
+      - gridcell "x"
+      - gridcell "b16"
+      - gridcell "c16"
+      - gridcell "d16"
+      - gridcell "e16"
+      - gridcell "f16"
+      - gridcell "g16"
+      - gridcell "www.google.co.uk:123456"
+    - row "x b17 c17 d17 e17 f17 g17 C:\\Users\\example.com\\file":
+      - gridcell "x"
+      - gridcell "b17"
+      - gridcell "c17"
+      - gridcell "d17"
+      - gridcell "e17"
+      - gridcell "f17"
+      - gridcell "g17"
+      - gridcell "C:\\Users\\example.com\\file"
+  - rowgroup:
+    - row "Select whole grid A B C D E F G H":
+      - gridcell "Select whole grid"
+      - columnheader "A"
+      - columnheader "B"
+      - columnheader "C"
+      - columnheader "D"
+      - columnheader "E"
+      - columnheader "F"
+      - columnheader "G"
+      - columnheader "H"
+  - rowgroup
+  - rowgroup:
+    - row "1":
+      - rowheader "1"
+    - row "2":
+      - rowheader "2"
+    - row "3":
+      - rowheader "3"
+    - row "4":
+      - rowheader "4"
+    - row "5":
+      - rowheader "5"
+    - row "6":
+      - rowheader "6"
+    - row "7":
+      - rowheader "7"
+    - row "8":
+      - rowheader "8"
+    - row "9":
+      - rowheader "9"
+    - row "10":
+      - rowheader "10"
+    - row "11":
+      - rowheader "11"
+    - row "12":
+      - rowheader "12"
+    - row "13":
+      - rowheader "13"
+    - row "14":
+      - rowheader "14"
+    - row "15":
+      - rowheader "15"
+    - row "16":
+      - rowheader "16"
+    - row "17":
+      - rowheader "17"
+  - rowgroup:
+    - row "Select whole grid":
+      - gridcell "Select whole grid"
+  - rowgroup
+# portal
+- status
+- status

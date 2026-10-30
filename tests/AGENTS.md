@@ -1523,6 +1523,52 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   a page without one `tab-order-golden-missing`. Record them with `HOT_A11Y_UPDATE_GOLDENS=1` and read
   the diff before committing: a golden pins what the grid does, findings included.
 
+### The accessibility-tree snapshots
+
+`a11y/checks/tree-snapshots.spec.ts`, the `tree-snapshots` check: 1.3.1, 1.3.2 and 4.1.2, read from
+Chromium's accessibility tree of the grid's root container and its portal, on every page of the catalog
+in its state and on every theme. A state whose popups mount in a portal of their own marks that portal
+too (hyperformula-ui's `.hfe-popup-portal`), so the check reads every marked portal, in document order,
+never only the first. The browser half flattens the tree (`a11y/checks/ax-tree.ts`), the pure
+half judges it (`lib/aria-tree.mjs`, tested in `lib/__tests__/aria-tree.test.mjs`).
+
+- **The tree as a screen reader gets it, in reading order.** `Accessibility.getFullAXTree` gives the roles,
+  names and order; one `DOMSnapshot.captureSnapshot` gives each node's tag and attributes
+  (`aria-rowindex`, `aria-colindex`, `tabindex`, the class), joined by backend node id. An ignored node is
+  dropped and its children are read in its place. The axe scan reads the same tree against axe's rules;
+  this check reads its order and structure, which no axe rule does. A grid root the tree does not hold
+  throws in `flattenAxTree()`: with no node read, the page would pass 1.3.1, 1.3.2 and 4.1.2 with no
+  finding, so it is a tooling failure, never a clean target. A portal stays optional.
+- **Structure** (`structureFindings()`): the column headers read after the data rows
+  (`headers-after-data`, 1.3.2), data rows without their row header while the row headers sit in rows of
+  their own (`row-headers-apart`, 1.3.1), one row index exposed by several rows (`row-exposed-twice`,
+  1.3.1), cells or rows read out of their index order (1.3.2), a grid role with no row (1.3.1). Today the
+  first three show on every grid with headers: the overlay clones put the header row after the master
+  table and repeat each row in the row-header clone. They are one root cause, reported per page and
+  theme, because the evidence is per page. Each grid is judged on its own rows (a row belongs to its
+  nearest grid, treegrid or table ancestor). A list inside the page (the handsontable editor's list, the
+  filters' value list) therefore neither adds rows without a header to the grid nor shares its row
+  indexes. A grid after the first is named by its place among the grids with rows (`grid 2 in reading
+  order`). A row whose own rowgroup is a table head (`thead`) is never a data row: the corner clone
+  repeats the head row with its corner cell alone.
+- **Names and roles** (`nameFindings()`): a widget role with no name (`unnamed-control`), a column or row
+  header with no name (`unnamed-header`), and a tab stop (any node the tree marks focusable, an editable
+  region too) the tree gives no role (`focusable-without-role`). An empty grid cell needs no name; an
+  element focusable by script only (`tabindex="-1"`, every cell) is not a tab stop. One finding per kind,
+  role and element, with its node count. The element is the portal mark for a node in the portal, the tag
+  (`unknown` without a DOM element), the first class and the `role` attribute; a cell or a header carries
+  no class there, because its classes are rendering state (the selection, the last visible header) and
+  would split one finding across themes and runs. A closed cell editor stays in the DOM and in the tree,
+  so its input is judged on every page.
+- **Goldens, advisory, on the main theme.** `a11y/tree-goldens/<page>.yml` holds Playwright's
+  `ariaSnapshot()` of the grid and the portal. The theme changes which rows are drawn, not the roles or
+  names, so one theme keeps the goldens and every theme is judged. A difference is
+  `tree-snapshot-changed`, with the first line that differs. What the run decides, not the page, is
+  masked before the comparison (`maskSnapshot()`): the server's origin reads `<origin>` and the installed
+  version `<version>`, so a golden moves for a tree change only, on any port and after a version bump.
+  Record with `HOT_A11Y_UPDATE_GOLDENS=1` (the same switch as the tab-order goldens) and read the diff
+  before committing.
+
 ### Adding a check
 
 Add its entry to `EVIDENCE_CHECKS` in `lib/a11y-evidence.mjs`, keyed by the check's id: its `title`,

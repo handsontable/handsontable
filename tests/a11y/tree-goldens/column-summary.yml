@@ -1,0 +1,48 @@
+# grid
+- treegrid:
+  - rowgroup:
+    - row "1 10 a":
+      - gridcell "1"
+      - gridcell "10"
+      - gridcell "a"
+    - row "2 20 b":
+      - gridcell "2"
+      - gridcell "20"
+      - gridcell "b"
+    - row "3 30 c":
+      - gridcell "3"
+      - gridcell "30"
+      - gridcell "c"
+    - row "4 40 d":
+      - gridcell "4"
+      - gridcell "40"
+      - gridcell "d"
+    - row "10 100 e":
+      - gridcell "10"
+      - gridcell "100"
+      - gridcell "e"
+  - rowgroup:
+    - row "Select whole grid A B C":
+      - gridcell "Select whole grid"
+      - columnheader "A"
+      - columnheader "B"
+      - columnheader "C"
+  - rowgroup
+  - rowgroup:
+    - row "1":
+      - rowheader "1"
+    - row "2":
+      - rowheader "2"
+    - row "3":
+      - rowheader "3"
+    - row "4":
+      - rowheader "4"
+    - row "5":
+      - rowheader "5"
+  - rowgroup:
+    - row "Select whole grid":
+      - gridcell "Select whole grid"
+  - rowgroup
+# portal
+- status
+- status
