@@ -394,4 +394,50 @@ describe('excelJsAdapter.read', () => {
 
     expect(snapshot.sheets).toHaveLength(MAX_WORKBOOK_SHEETS);
   });
+
+  describe('array formulas and error cells', () => {
+    async function readBuilt(fill) {
+      const workbook = new ExcelJS.Workbook();
+
+      fill(workbook.addWorksheet('Sheet1'));
+
+      const bytes = await workbook.xlsx.writeBuffer();
+      const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+      const dropped = new DroppedFeatures();
+      const snapshot = await excelJsAdapter.read(buffer, ExcelJS, dropped);
+
+      return { snapshot, dropped, row: snapshot.sheets[0].rows[0] };
+    }
+
+    it('should read an array master as a non-dynamic array, since ExcelJS does not expose cm', async() => {
+      const { row } = await readBuilt((ws) => {
+        ws.getCell('A1').value = { formula: 'B1:B2*2', ref: 'A1:A2', shareType: 'array', result: 2 };
+      });
+
+      expect(row[0].formula).toEqual({ text: 'B1:B2*2', result: 2, array: { ref: 'A1:A2', dynamic: false } });
+    });
+
+    it('should leave array and the error flags absent on ordinary cells', async() => {
+      const { row } = await readBuilt((ws) => {
+        ws.getCell('A1').value = { formula: 'B1*2', result: 4 };
+        ws.getCell('B1').value = 5;
+      });
+
+      expect('array' in row[0].formula).toBe(false);
+      expect('resultIsError' in row[0].formula).toBe(false);
+      expect('valueIsError' in row[1]).toBe(false);
+    });
+
+    it('should flag a plain error cell and a formula error result', async() => {
+      const { row } = await readBuilt((ws) => {
+        ws.getCell('A1').value = { error: '#N/A' };
+        ws.getCell('B1').value = { formula: '1/0', result: { error: '#DIV/0!' } };
+      });
+
+      expect(row[0].value).toBe('#N/A');
+      expect(row[0].valueIsError).toBe(true);
+      expect(row[1].formula.result).toBe('#DIV/0!');
+      expect(row[1].formula.resultIsError).toBe(true);
+    });
+  });
 });
