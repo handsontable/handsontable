@@ -437,7 +437,7 @@ describe('excelJsAdapter.write', () => {
       return snapshot;
     };
 
-    it('should write array masters as <f t="array"> and record dynamicArrays once', async() => {
+    it('should write array masters as <f t="array"> and record dynamicArrays per multi-cell dynamic master', async() => {
       const snapshot = buildSnapshot();
       const dropped = new DroppedFeatures();
       const bytes = await excelJsAdapter.write(snapshot, ExcelJS, dropped);
@@ -446,7 +446,8 @@ describe('excelJsAdapter.write', () => {
       expect(sheet).toMatch(/<f t="array" ref="D1:D3">_xlfn\.SEQUENCE\(3\)<\/f>/);
       expect(sheet).toMatch(/<f t="array" ref="E1:E2">A1:A2\*2<\/f>/);
       expect(sheet).not.toContain('cm=');
-      expect(dropped.list().filter(key => key === 'dynamicArrays')).toHaveLength(1);
+      // D1:D3 and I1:I2; the CSE array in E1:E2 loses nothing.
+      expect(dropped.count('dynamicArrays')).toBe(2);
     });
 
     it('should not record dynamicArrays when no master is dynamic', async() => {
@@ -505,7 +506,8 @@ describe('excelJsAdapter.write', () => {
 
       await excelJsAdapter.write(buildSnapshot(), ExcelJS, dropped);
 
-      expect(dropped.list().filter(key => key === 'definedNames:unsupported')).toHaveLength(1);
+      // The constant `TaxRate` and the sheet-scoped `Local` are left out, under one record.
+      expect(dropped.count('definedNames:unsupported')).toBe(1);
       expect(dropped.list()).toContain('dynamicArrays');
     });
 

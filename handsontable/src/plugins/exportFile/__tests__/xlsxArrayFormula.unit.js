@@ -224,6 +224,65 @@ describe('Xlsx export: array formulas', () => {
     expect(dropped).toEqual(['formula:arrayExcluded']);
   });
 
+  it('should write no array when a trimmed row cuts the spill', async() => {
+    // The engine still holds the trimmed row, and the syncer answers `-1` for it, which no exported
+    // position matches. A ref over the spill would cover the next exported record's row.
+    const { rows, dropped } = await exportSheet({
+      data: [['=SEQUENCE(3)', 'a'], [null, 'b'], [null, 'c']],
+      trimRows: [1],
+    });
+
+    expect(hot.getDataAtCol(0)).toEqual([1, 3]);
+    expect(rows).toHaveLength(2);
+    expect(rows[0][0].formula).toEqual({ text: 'SEQUENCE(3)', result: 1 });
+    expect(rows[1][0]).toMatchObject({ value: 3, formula: null });
+    expect(dropped).toEqual(['formula:arrayExcluded']);
+  });
+
+  it('should keep the claimed array ranges per sheet when grids share one engine', async() => {
+    // Both masters sit in A1: one claim set for the workbook would refuse the second as overlapping.
+    hot = new Handsontable(container, {
+      data: [[null], [null], [null]],
+      formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
+      exportFile: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const second = document.createElement('div');
+
+    document.body.appendChild(second);
+
+    const hot2 = new Handsontable(second, {
+      data: [[null, null], [null, null]],
+      formulas: { engine: hot.getPlugin('formulas').engine, sheetName: 'Sheet2' },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    try {
+      // Typed after both grids exist: a grid joining the engine turns the other sheet's spilled
+      // cells into typed values, which blocks the spill (`#SPILL!`).
+      hot.setDataAtCell(0, 0, '=SEQUENCE(3)');
+      hot2.setDataAtCell(0, 0, '=SEQUENCE(2,2)');
+
+      expect(hot.getData()).toEqual([[1], [2], [3]]);
+      expect(hot2.getData()).toEqual([[1, 2], [3, 4]]);
+
+      await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', {
+        exportFormulas: true,
+        sheets: [{ instance: hot, name: 'Alpha' }, { instance: hot2, name: 'Beta' }],
+      });
+
+      const [snapshot, , dropped] = writeSpy.mock.calls[0];
+
+      expect(snapshot.sheets[0].rows[0][0].formula.array).toEqual({ ref: 'A1:A3', dynamic: true });
+      expect(snapshot.sheets[1].rows[0][0].formula.array).toEqual({ ref: 'A1:B2', dynamic: true });
+      expect(dropped.count('formula:arrayExcluded')).toBe(0);
+    } finally {
+      hot2.destroy();
+      second.remove();
+    }
+  });
+
   it('should write no array when the spill crosses the edge of the exported range', async() => {
     const { rows, dropped } = await exportSheet({ data: createData() }, { range: [0, 0, 1, 4] });
 
