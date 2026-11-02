@@ -1,6 +1,6 @@
 import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SheetsBarUiPage } from '../fixtures/pages/SheetsBarUiPage';
-import type { Locator } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
 /**
  * Reads a one-pixel line along one edge of an element, inset from its corners.
@@ -20,6 +20,36 @@ async function edgePixels(element: Locator, edge: 'top' | 'bottom'): Promise<Buf
     clip: { x: x + 4, y: edge === 'top' ? y : y + height - 1, width: 16, height: 1 },
     animations: 'disabled',
   });
+}
+
+/**
+ * Counts how often the paging section is shown or hidden over ten animation frames.
+ *
+ * @param {Page} page The page.
+ * @returns {Promise<number>} The number of `hidden` attribute changes.
+ */
+function pagingToggles(page: Page): Promise<number> {
+  return page.evaluate(() => new Promise<number>((resolve) => {
+    const paging = document.querySelector('.ht-sheets-bar__paging') as HTMLElement;
+    let toggles = 0;
+    let frames = 0;
+    const observer = new MutationObserver((records) => {
+      toggles += records.length;
+    });
+    const tick = () => {
+      frames += 1;
+
+      if (frames < 10) {
+        requestAnimationFrame(tick);
+      } else {
+        observer.disconnect();
+        resolve(toggles);
+      }
+    };
+
+    observer.observe(paging, { attributes: true, attributeFilter: ['hidden'] });
+    requestAnimationFrame(tick);
+  }));
 }
 
 test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
@@ -261,6 +291,167 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
   });
 
   test.describe('the tab strip', () => {
+    test('scrolls as a whole on a table narrower than its minimum, and stays as wide as the table', async({
+      page, theme, bundle,
+    }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+      const tabNames = Array.from({ length: 6 }, (_, index) => `Quarterly report ${index + 1}`);
+      const readLayout = () => page.evaluate(() => {
+        const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
+        const barBox = bar.getBoundingClientRect();
+        const strip = bar.querySelector('.ht-sheets-bar__tabs') as HTMLElement;
+        const active = bar.querySelector('.ht-sheets-bar__tab--active') as HTMLElement;
+        const sheet1 = active.cloneNode(true) as HTMLElement;
+        const table = (document.querySelector('.ht_master .htCore') as HTMLElement).getBoundingClientRect();
+        const root = document.scrollingElement as HTMLElement;
+
+        (sheet1.querySelector('.ht-sheets-bar__tab-label') as HTMLElement).textContent = 'Sheet1';
+        strip.appendChild(sheet1);
+
+        const sheet1Width = sheet1.getBoundingClientRect().width;
+
+        sheet1.remove();
+
+        return {
+          minimum: (bar.querySelector('.ht-sheets-bar__inner') as HTMLElement).scrollWidth,
+          clientWidth: bar.clientWidth,
+          barWidth: Math.round(barBox.width),
+          slotWidth: bar.parentElement!.clientWidth,
+          barRightPastTable: Math.round(barBox.right - table.right),
+          scrolls: bar.scrollWidth > bar.clientWidth,
+          stripWidth: strip.clientWidth,
+          sheet1Width,
+          pageScrollsSideways: root.scrollWidth > root.clientWidth,
+          paginationWidth: Math.round((document.querySelector('.ht-pagination') as HTMLElement).getBoundingClientRect().width),
+        };
+      });
+      const paintedBehind = (selector: string) => page.evaluate((target) => {
+        const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
+        const box = (bar.querySelector(target) as HTMLElement).getBoundingClientRect();
+        const behind = document.elementsFromPoint(box.left + (box.width / 2), box.top + (box.height / 2))
+          .filter(element => bar.contains(element) && element !== bar.querySelector(target)
+            && !(bar.querySelector(target) as HTMLElement).contains(element));
+
+        return behind.some(element => !['transparent', 'rgba(0, 0, 0, 0)']
+          .includes(getComputedStyle(element).backgroundColor));
+      }, selector);
+      const shownInBar = (selector: string) => page.evaluate((target) => {
+        const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
+        const barBox = bar.getBoundingClientRect();
+        const box = (bar.querySelector(target) as HTMLElement).getBoundingClientRect();
+
+        return box.left >= barBox.left && box.right <= barBox.right;
+      }, selector);
+      const scrollBarTo = (end: boolean) => page.evaluate((toEnd) => {
+        const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
+
+        bar.scrollLeft = toEnd ? bar.scrollWidth : 0;
+      }, end);
+
+      await fixture.goto({
+        sheets: 6, tabNames, columnCounts: [1, 3, 25, 4, 4, 4], fixedHeight: false, pagination: true,
+      });
+
+      const minimum = (await readLayout()).minimum;
+
+      for (const index of [0, 1]) {
+        await fixture.setActiveSheet(index);
+        await expect(fixture.bar.locator('.ht-sheets-bar__paging')).toBeVisible();
+
+        const layout = await readLayout();
+
+        expect(layout.barWidth).toBe(layout.slotWidth);
+        expect(layout.barRightPastTable).toBeLessThanOrEqual(0);
+        expect(layout.scrolls).toBe(layout.clientWidth < minimum);
+        expect(layout.stripWidth).toBeGreaterThanOrEqual(Math.floor(layout.sheet1Width));
+        expect(layout.pageScrollsSideways).toBe(false);
+        expect(Math.abs(layout.paginationWidth - layout.slotWidth)).toBeLessThanOrEqual(1);
+        expect(await pagingToggles(page)).toBe(0);
+
+        await scrollBarTo(true);
+
+        expect(await shownInBar('.ht-sheets-bar__page-next')).toBe(true);
+        expect(await paintedBehind('.ht-sheets-bar__page-next')).toBe(true);
+
+        await fixture.activeTab.focus();
+        await page.keyboard.press('Shift+Tab');
+        await page.keyboard.press('Shift+Tab');
+        await expect(fixture.addButton).toBeFocused();
+        expect(await shownInBar('.ht-sheets-bar__add')).toBe(true);
+
+        await scrollBarTo(false);
+
+        await fixture.activeTab.focus();
+        await page.keyboard.press('Tab');
+        await page.keyboard.press('Tab');
+        await expect(fixture.bar.locator('.ht-sheets-bar__page-next')).toBeFocused();
+        expect(await shownInBar('.ht-sheets-bar__page-next')).toBe(true);
+      }
+
+      await fixture.setActiveSheet(2);
+
+      const wide = await readLayout();
+
+      expect(wide.barWidth).toBe(wide.slotWidth);
+      expect(wide.scrolls).toBe(false);
+    });
+
+    test('stays inside a container narrower than its minimum', async({ page, theme, bundle }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+      await fixture.goto({
+        sheets: 6,
+        tabNames: Array.from({ length: 6 }, (_, index) => `Quarterly report ${index + 1}`),
+        columnCounts: [4, 4, 4, 4, 4, 4],
+        fixedHeight: false,
+      });
+      await page.evaluate(() => {
+        (document.querySelector('[data-testid="host"]') as HTMLElement).style.width = '180px';
+        (window as any).hot.render();
+      });
+
+      await expect.poll(() => page.evaluate(() => {
+        const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
+        const wrapper = document.querySelector('.ht-root-wrapper') as HTMLElement;
+
+        return {
+          scrolls: bar.scrollWidth > bar.clientWidth,
+          insideContainer: bar.getBoundingClientRect().right <= wrapper.getBoundingClientRect().right + 1,
+        };
+      })).toEqual({ scrolls: true, insideContainer: true });
+      expect(await pagingToggles(page)).toBe(0);
+
+      const shown = (selector: string) => page.evaluate((target) => {
+        const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
+        const barBox = bar.getBoundingClientRect();
+        const box = (bar.querySelector(target) as HTMLElement).getBoundingClientRect();
+
+        return box.left >= barBox.left && box.right <= barBox.right;
+      }, selector);
+
+      await page.evaluate(() => {
+        const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
+
+        bar.scrollLeft = bar.scrollWidth;
+      });
+      expect(await shown('.ht-sheets-bar__add')).toBe(false);
+      await fixture.activeTab.focus();
+      await page.keyboard.press('Shift+Tab');
+      await page.keyboard.press('Shift+Tab');
+      await expect(fixture.addButton).toBeFocused();
+      expect(await shown('.ht-sheets-bar__add')).toBe(true);
+
+      await page.evaluate(() => {
+        (document.querySelector('.ht-sheets-bar') as HTMLElement).scrollLeft = 0;
+      });
+      expect(await shown('.ht-sheets-bar__page-next')).toBe(false);
+      await fixture.activeTab.focus();
+      await page.keyboard.press('Tab');
+      await page.keyboard.press('Tab');
+      await expect(fixture.bar.locator('.ht-sheets-bar__page-next')).toBeFocused();
+      expect(await shown('.ht-sheets-bar__page-next')).toBe(true);
+    });
+
     test('reveals the active tab on first paint', async({ page, theme, bundle }) => {
       const fixture = new SheetsBarUiPage(page, theme, bundle);
 

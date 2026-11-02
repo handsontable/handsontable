@@ -2,7 +2,7 @@ import { buildTemplate, type TemplateSpec } from '../../../helpers/dom/template'
 import { mixin } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
 import * as C from '../../../i18n/constants';
-import { addClass, setAttribute } from '../../../helpers/dom/element';
+import { addClass, isHTMLElement, setAttribute } from '../../../helpers/dom/element';
 import { applyUiContainerTheme } from '../../../utils/uiContainerTheme';
 import { A11Y_GROUP, A11Y_LABEL } from '../../../helpers/a11y';
 import { isKeyboardActivation } from './activation';
@@ -276,6 +276,33 @@ export class SheetsBarUI {
   }
 
   /**
+   * Scrolls the bar just far enough to show a focused element whole, when the bar is narrower than its minimum
+   * and scrolls inside the grid's container. The browser's own focus scroll leaves an element that is partly in
+   * view where it is, so a control the keyboard reached could stay cut at the bar's edge. The element is measured
+   * by its fractional box, and the offset is rounded away from it, because `scrollLeft` snaps to whole pixels.
+   *
+   * @param {EventTarget|null} target The element that took the focus.
+   */
+  #revealInBar(target: EventTarget | null): void {
+    const container = this.getContainer();
+
+    if (!isHTMLElement(target) || container.scrollWidth <= container.clientWidth) {
+      return;
+    }
+
+    const barBox = container.getBoundingClientRect();
+    const box = target.getBoundingClientRect();
+    const start = box.left - barBox.left - container.clientLeft;
+    const end = start + box.width;
+
+    if (start < 0) {
+      container.scrollLeft = Math.floor(container.scrollLeft + start);
+    } else if (end > container.clientWidth) {
+      container.scrollLeft = Math.ceil(container.scrollLeft + end - container.clientWidth);
+    }
+  }
+
+  /**
    * Removes the UI from the DOM and clears local hooks. Idempotent — a second call is a
    * no-op, since `getContainer()` reads refs the first call already dropped.
    */
@@ -318,6 +345,7 @@ export class SheetsBarUI {
 
     addButton.addEventListener('click', () => this.runLocalHooks('addSheetClick'));
     allButton.addEventListener('click', event => this.runLocalHooks('allSheetsClick', isKeyboardActivation(event)));
+    container.addEventListener('focusin', event => this.#revealInBar(event.target));
 
     this.#installIcons();
 

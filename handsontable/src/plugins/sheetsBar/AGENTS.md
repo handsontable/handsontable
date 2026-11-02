@@ -682,6 +682,34 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 - **The active-tab marker is a `::after` border, not a `box-shadow`**, and the rename edge is an
   `outline`: forced-colors mode drops box shadows and backgrounds, so neither cue showed there. The sliding marker (`.ht-sheets-bar__tab-indicator`) draws its line with a border for the same reason, or no marker showed while it slid.
   Hide the `::after` while the indicator slides and while a tab is renamed, or two markers show.
+- **On a table narrower than the bar's minimum, the whole bar scrolls inside itself.** The bar stays exactly
+  as wide as its slot (core sizes the slot to the table, "a narrow table gets a narrow bar") and is a horizontal
+  scroll box (`overflow-x: auto`); it never sticks out past the table. Its inner row is a grid (controls, tabs
+  pane, arrows) with `min-width: min-content`, and that minimum is one English "Sheet1" tab plus the controls
+  and the arrows. Five parts hold it together:
+  - **The "Sheet1" width comes from a sizer, not from `ch`.** A hidden, zero-height `::after` on the inner row
+    carries the text "Sheet1" with the tab's font and the tab's padding, gap and chevron, so the browser
+    measures the real text. `5ch` missed it by a fraction of a pixel either way depending on the theme's font,
+    which clipped the label. The sizer spans the tabs and arrows columns, and its padding includes the arrows'
+    width, so the minimum is the same whether the arrows show or not: hiding them gives the strip exactly
+    their width, and `OverflowController#refresh()`'s plain measure stays right (no flicker). It needs
+    `min-width: max-content`: an item spanning a flexible track gets no content-based minimum, and without it
+    only the padding counted. It must not be `overflow: hidden`, which makes it a scroll container whose
+    minimum is 0. The text is a CSS literal, so the grid's language does not change it.
+  - **The strip has `contain: inline-size`.** Without it the strip's intrinsic width is its tabs' width, so
+    any `min-content` above it grew the bar to all its tabs (3972px with 30 long tabs, the arrows and the
+    focused tab thousands of pixels off screen).
+  - **The inner row paints the bar's background too.** A scroll container's background covers its own box
+    only, not the overflow scrolled into view, so the arrows lost their background after a scroll to the end.
+  - **The bar reveals a focused control itself** (`SheetsBarUI#revealInBar`, a `focusin` listener). The
+    browser's focus scroll leaves a partly visible element where it is, so + or an arrow reached with Tab
+    stayed cut at the bar's edge. It measures fractional boxes and rounds outward, like the tab reveal.
+  - **Test fixtures pin the strip with `width`, not `flex`.** `tests/fixtures/demo/sheets-bar.html` forces a
+    600px strip so the arrows always show; the strip is a grid item now, so `flex: 0 0 600px` stopped applying.
+
+  Pinned by "scrolls as a whole on a table narrower than its minimum, and stays as wide as the table" and
+  "stays inside a container narrower than its minimum" in `tests/e2e/sheets-bar-ui-a11y.spec.ts`, and by the
+  narrow-container guards in `tests/e2e/bottom-slot-sizing.spec.ts`.
 - **The theme class goes on the bar only in a `uiContainer`.** In a layout slot the bar sits under
   the grid's own themed wrapper; a class of its own there broke the theme engine's scope (the
   `colorScheme` and `density` tokens of the grid stopped reaching the bar). In a `uiContainer` the bar

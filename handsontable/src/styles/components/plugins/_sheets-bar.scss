@@ -97,8 +97,12 @@ $all-sheets-visible-items: 8;
 
     &.ht-sheets-bar {
       --ht-private-tab-enter-offset: -2em;
+      --ht-private-sheets-bar-button-width: calc(
+        (2 * var(--ht-icon-button-large-padding)) + var(--ht-icon-size) + 2px
+      );
 
       width: 100%;
+      overflow-x: auto;
       color: var(--ht-bar-foreground-color);
       background: var(--ht-sheets-bar-background-color);
       font-size: var(--ht-font-size);
@@ -125,10 +129,28 @@ $all-sheets-visible-items: 8;
       }
 
       .ht-sheets-bar__inner {
-        display: flex;
+        display: grid;
+        grid-template-columns: auto minmax(auto, 1fr) auto;
         align-items: stretch;
-        justify-content: space-between;
+        min-width: min-content;
         padding-inline: var(--ht-sheets-bar-horizontal-padding);
+        background: var(--ht-sheets-bar-background-color);
+
+        &::after {
+          content: "Sheet1";
+          grid-row: 1;
+          grid-column: 2 / 4;
+          min-width: max-content;
+          height: 0;
+          visibility: hidden;
+          white-space: nowrap;
+          pointer-events: none;
+          padding-inline: var(--ht-sheets-bar-tab-horizontal-padding) calc(
+            var(--ht-sheets-bar-tab-horizontal-padding) + var(--ht-sizing-size-1) + var(--ht-icon-size) +
+            var(--ht-gap-size) + 1px +
+            (2 * var(--ht-private-sheets-bar-button-width)) + 1px + (2 * var(--ht-gap-size))
+          );
+        }
       }
 
       .ht-sheets-bar__controls,
@@ -146,6 +168,8 @@ $all-sheets-visible-items: 8;
       }
 
       .ht-sheets-bar__controls {
+        grid-row: 1;
+        grid-column: 1;
         position: relative;
         padding-inline: calc(var(--ht-gap-size) * 2);
       }
@@ -170,6 +194,8 @@ $all-sheets-visible-items: 8;
       // Paired the way the add and all-sheets buttons are paired, so the two clusters read as
       // the same kind of control rather than as two different ones.
       .ht-sheets-bar__paging {
+        grid-row: 1;
+        grid-column: 3;
         position: relative;
         padding-inline-start: calc(var(--ht-gap-size) * 2);
       }
@@ -228,8 +254,10 @@ $all-sheets-visible-items: 8;
         position: relative;
         display: flex;
         align-items: stretch;
-        flex: 1 1 auto;
+        grid-row: 1;
+        grid-column: 2;
         min-width: 0;
+        contain: inline-size;
         padding-inline-end: 1px;
         overflow-x: auto;
 
