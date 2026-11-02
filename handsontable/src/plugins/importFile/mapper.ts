@@ -5,10 +5,13 @@ import type {
   CellSnapshot, DefinedNameSnapshot, MergeSnapshot, SheetSnapshot, WorkbookSnapshot,
 } from '../../utils/xlsxEngine/model';
 import { parseMultiRangeRef, parseRangeRef } from '../../utils/xlsxEngine/cellRef';
-import { rebaseImportedFormula } from '../../utils/xlsxEngine/formulaRefs';
+import { closedReferenceArea, rebaseImportedFormula } from '../../utils/xlsxEngine/formulaRefs';
 import { stripFunctionPrefixes } from '../../utils/xlsxEngine/functionPrefixes';
 import { unwrapArrayFormula } from '../../utils/xlsxEngine/dynamicArrays';
-import { MAX_TRANSLATED_FORMULA_CHARS, MIN_CELL_META_BUDGET, throwLimitExceeded } from '../../utils/xlsxEngine/limits';
+import {
+  MAX_DEFINED_NAME_CELLS, MAX_DEFINED_NAME_CHARS, MAX_DEFINED_NAME_LENGTH, MAX_DEFINED_NAME_TOTAL_CELLS,
+  MAX_TRANSLATED_FORMULA_CHARS, MIN_CELL_META_BUDGET, throwLimitExceeded
+} from '../../utils/xlsxEngine/limits';
 import {
   MAX_COLUMN_WIDTH_UNITS as MAX_EXCEL_COLUMN_WIDTH,
   MAX_ROW_HEIGHT_POINTS as MAX_EXCEL_ROW_HEIGHT_POINTS,
@@ -857,6 +860,24 @@ function unresolvedDefinedNames(
 }
 
 /**
+ * Whether a defined name's definition, rebased, is one the import does not hand to the Formulas
+ * engine for its cost or its outcome: its closed ranges cover more than `MAX_DEFINED_NAME_CELLS`
+ * cells, or bring the import's names past `MAX_DEFINED_NAME_TOTAL_CELLS` (HyperFormula evaluates a
+ * definition as soon as it is added), or it calls a function the engine does not register
+ * (`=UNIQUE(...)`: every formula over the name would show `#NAME?`).
+ *
+ * @param {string} formula The rebased definition, without its `=`.
+ * @param {number} cells The cells its closed ranges cover (`closedReferenceArea`).
+ * @param {number} spent The cells the names handed over so far cover.
+ * @param {CollectContext} scope The pass context.
+ * @returns {boolean}
+ */
+function isTooCostly(formula: string, cells: number, spent: number, scope: CollectContext): boolean {
+  return cells > MAX_DEFINED_NAME_CELLS || spent + cells > MAX_DEFINED_NAME_TOTAL_CELLS
+    || callsUnregisteredFunction(formula, scope);
+}
+
+/**
  * Hands the workbook's defined names to the Formulas engine as workbook-scoped named expressions,
  * and takes every name handed over out of `scope.unresolvedNames`, so the formulas using it import
  * live. Runs only with live formulas on and `MapperContext.canAddNamedExpression` given.
@@ -877,6 +898,9 @@ function unresolvedDefinedNames(
  * names a sheet the engine does not hold, is refused by the engine (a relative reference such as
  * `Data!A1`), or uses a name left out itself (followed through any chain of names) is left out, and
  * `definedNames:unsupported` is recorded once; the formulas using it import their cached values.
+ * So is a definition past the import's caps, which bound what the engine would parse and evaluate
+ * (`MAX_DEFINED_NAME_LENGTH`, `MAX_DEFINED_NAME_CHARS`, `isTooCostly`), and one calling a function
+ * the engine does not register.
  *
  * @param {CollectContext} scope The pass context.
  * @returns {Array<{ name: string, formula: string }>} The names to add, each formula without its `=`.
@@ -901,6 +925,8 @@ function collectNamedExpressions(scope: CollectContext): NonNullable<ImportResul
   const added = new Map<string, { name: string; formula: string }>();
   const seen = new Set<string>();
   let unsupported = false;
+  let definitionChars = 0;
+  let definitionCells = 0;
 
   ordered.forEach(({ name, formula, unsupported: flagged }) => {
     const lowered = name.toLowerCase();
@@ -926,13 +952,29 @@ function collectNamedExpressions(scope: CollectContext): NonNullable<ImportResul
       return;
     }
 
-    const rebased = rebaseImportedFormula(readFormulaText(formula, scope).live, shift.rowDelta, shift.colDelta, {
+    definitionChars += formula.length;
+
+    // Past a cap the definition is never read: the engine would parse it (twice, `canAdd`) and
+    // evaluate it on add, and those are what the caps bound.
+    if (formula.length > MAX_DEFINED_NAME_LENGTH || definitionChars > MAX_DEFINED_NAME_CHARS) {
+      unresolvedNames.add(lowered);
+      unsupported = true;
+
+      return;
+    }
+
+    const rebased = rebaseImportedFormula(readFormulaText(formula, scope, true).live, shift.rowDelta, shift.colDelta, {
       self: sheet.name,
       selfAs: context.formulaSheetName,
       isKnown: candidate => isSheetKnown(candidate, scope),
     });
+    const cells = rebased.formula === null ? 0 : closedReferenceArea(rebased.formula);
     const expression = rebased.formula === null || rebased.unknownSheet || rebased.formula.trim() === ''
-      ? null : `=${rebased.formula}`;
+      || isTooCostly(rebased.formula, cells, definitionCells, scope) ? null : `=${rebased.formula}`;
+
+    if (expression !== null) {
+      definitionCells += cells;
+    }
 
     if (defined) {
       // The engine keeps its own definition. When it is not this file's, the formulas over the name

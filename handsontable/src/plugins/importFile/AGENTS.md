@@ -466,7 +466,8 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   recorded, `MapperContext.probeLiveArrays` builds a scratch engine (`importFile.ts`
   `liveArrayProbe`: `engine.constructor.buildFromSheets` with `engine.getConfig()` - no import of
   hyperformula, the base bundle keeps it external) over the mapped `data`, one sheet named like the
-  engine's grid sheet, plus the engine's names and `pass.namedExpressions`. Per rectangle: master
+  engine's grid sheet, plus the engine's names and `pass.namedExpressions`, added inside ONE
+  `scratch.batch()` (unbatched, each add re-evaluated the scratch sheet). Per rectangle: master
   `#SPILL!` -> master and its emptied cells take their cached values, the text goes to `formulas`,
   `formula:arraySpill`; master another error (`masterState` answers HF's error type) -> the same
   when the file caches a VALUE for it (`LiveArrayRect.cachedIsError` false): HF 3.3 shows `#VALUE!`
@@ -557,7 +558,28 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `engine.batch()` (none when the list is empty, since an empty batch still pushes an engine undo
   step): unbatched, every `addNamedExpression` recalculated the engine and fired `valuesUpdated`,
   and 300 names over `RAND()` rows took ~6 s instead of ~25 ms. Do not route it through the
-  plugin's `registerNamedExpressions` – it takes another input shape and swallows errors.
+  plugin's `registerNamedExpressions` – it takes another input shape and swallows errors. Each add
+  is wrapped (`addOrReport`): `addNamedExpression` evaluates the definition at once and HyperFormula
+  can still throw there (`RangeError: Invalid array length`), so a throw removes the name again when
+  the engine lists it and pushes `definedNames:unsupported` onto `result.dropped` (the warning has
+  already been logged by then), and the import goes on.
+- **A definition is bounded BEFORE the engine sees it** (QA round 3, `collectNamedExpressions`,
+  constants in `utils/xlsxEngine/limits.ts`). HyperFormula parses a definition twice in `canAdd`
+  (9-27 ms per 32k characters in Chrome, against 0.6 ms for the import's own walk) and evaluates it
+  on add, used or not (`SUM(Sheet1!$A$1:$ZZ$10000)` took 15-46 s and 2 GB), and the formula budget's
+  figures cover neither. So: a definition over `MAX_DEFINED_NAME_LENGTH` (8,192, Excel's limit), or
+  read once `MAX_DEFINED_NAME_CHARS` (256 Ki per import, every definition read counted) is spent, is
+  not even rebased; a rebased one whose closed ranges cover more than `MAX_DEFINED_NAME_CELLS`
+  (100,000, `closedReferenceArea` in `formulaRefs.ts`) or bring the handed-over names past
+  `MAX_DEFINED_NAME_TOTAL_CELLS` (1,000,000), or that calls a function the engine does not register
+  (`callsUnregisteredFunction`: `=UNIQUE(...)` names made every formula over them `#NAME?`) is not
+  handed over (`isTooCostly`). Each goes into `unresolvedNames` with `definedNames:unsupported`, so
+  the formulas over it import cached values with `formula:definedName`. The checks run for a name the
+  engine already defines too: `sameConstant` evaluates the file's definition with `calculateFormula`.
+  A whole column or row is NOT counted: HyperFormula sizes `$A:$A` to the rows its sheet holds
+  (4 ms measured), and refusing it would freeze the common dynamic-list idiom. 1,024 names of 32,000
+  characters: 11.7 s -> 0.15 s in the mapper (Node). Not bounded: a range built by a function
+  (`OFFSET(Sheet1!$A$1,0,0,1000000,100)`), which `closedReferenceArea` cannot size.
 - **A live formula is shifted back into grid coordinates, and one that cannot be is dropped.** The export
   prepends a header row and a row-header column and shifts every relative reference forward by them
   (`normalizeFormula` in `../exportFile/types/xlsx/formula-utils.ts`), so the grid's `=B1*0.2` is written

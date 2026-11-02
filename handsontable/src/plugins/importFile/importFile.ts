@@ -608,6 +608,7 @@ interface ProbeEngine {
   listNamedExpressions(): string[];
   getNamedExpressionFormula(name: string): string | undefined;
   getNamedExpressionValue(name: string): unknown;
+  batch?(callback: () => void): unknown;
   destroy(): void;
 }
 
@@ -667,8 +668,7 @@ function liveArrayProbe(engine: unknown, sheetName: string | null | undefined): 
     };
 
     let sheet: number;
-
-    try {
+    const addAll = () => {
       try {
         (typeof held.listNamedExpressions === 'function' ? held.listNamedExpressions() : []).forEach((heldName) => {
           add(heldName, held.getNamedExpressionFormula?.(heldName) ?? held.getNamedExpressionValue?.(heldName));
@@ -678,6 +678,16 @@ function liveArrayProbe(engine: unknown, sheetName: string | null | undefined): 
       }
 
       namedExpressions.forEach(({ name: added, formula }) => add(added, `=${formula}`));
+    };
+
+    try {
+      // One batch: unbatched, every add re-evaluated the whole scratch sheet.
+      if (typeof scratch.batch === 'function') {
+        scratch.batch(addAll);
+      } else {
+        addAll();
+      }
+
       sheet = scratch.getSheetId(name) as number;
     } catch {
       // A scratch engine that fails its setup answers nothing; it is not leaked.

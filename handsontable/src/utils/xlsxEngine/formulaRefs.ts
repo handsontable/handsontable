@@ -1,4 +1,4 @@
-import { colIndexToLetter, colLetterToIndex } from './cellRef';
+import { colIndexToLetter, colLetterToIndex, parseCellRef } from './cellRef';
 import { MAX_SHEET_COLUMNS, MAX_SHEET_ROWS } from './limits';
 
 /**
@@ -363,6 +363,85 @@ function isPlainQualifier(before: string | undefined, sheet: string, followedShe
   }
 
   return before !== ':' || followedSheet === sheet;
+}
+
+/**
+ * One corner a `closedReferenceArea` walk may join with the next reference into a range.
+ */
+interface AreaCorner {
+  /**
+   * Where the reference ends in the formula.
+   */
+  end: number;
+  row: number;
+  col: number;
+}
+
+/**
+ * The corner of a single-cell reference matched by `REFERENCE_REGEX` (`A1`, `Data!$B$2`), or
+ * `null` for a range, an open span or a literal.
+ *
+ * @param {object} groups The match's named groups.
+ * @returns {{ row: number, col: number }|null}
+ */
+function singleCellOf(groups: ReferenceGroups): { row: number; col: number } | null {
+  if (groups.qualified !== undefined) {
+    return groups.qualified.includes(':') ? null : parseCellRef(groups.qualified);
+  }
+
+  if (groups.colLetters !== undefined && groups.rowDigits !== undefined) {
+    return parseCellRef(`${groups.colLetters}${groups.rowDigits}`);
+  }
+
+  return null;
+}
+
+/**
+ * The cells a rectangle between two corners covers, corners included, in any order.
+ */
+function rectangleCells(a: { row: number; col: number }, b: { row: number; col: number }): number {
+  return (Math.abs(a.row - b.row) + 1) * (Math.abs(a.col - b.col) + 1);
+}
+
+/**
+ * How many cells the closed references of a formula cover, summed: a cell counts 1 and a range its
+ * rectangle, whether it is written `Data!$A$1:$B$2`, `A1:B2` or `Data!A1:Data!B2` (two references
+ * joined by `:`). A whole column or row (`A:A`, `2:3`) counts nothing, and neither does a string
+ * literal. Linear: one walk of `REFERENCE_REGEX`.
+ *
+ * The formula is expected without its leading `=`.
+ *
+ * @param {string} formula The formula.
+ * @returns {number}
+ */
+export function closedReferenceArea(formula: string): number {
+  let area = 0;
+  let previous: AreaCorner | null = null;
+
+  for (const match of formula.matchAll(REFERENCE_REGEX)) {
+    const groups = (match.groups ?? {}) as ReferenceGroups;
+    const start = match.index ?? 0;
+    const end = start + match[0].length;
+    const corner = singleCellOf(groups);
+
+    if (corner === null) {
+      const [first, second] = groups.qualified?.split(':') ?? [];
+      const from = first === undefined ? null : parseCellRef(first);
+      const to = second === undefined ? null : parseCellRef(second);
+
+      area += from !== null && to !== null ? rectangleCells(from, to) : 0;
+      previous = null;
+    } else if (previous !== null && previous.end + 1 === start && formula[previous.end] === ':') {
+      // The two corners were counted as one cell each: the range replaces the first.
+      area += rectangleCells(previous, corner) - 1;
+      previous = null;
+    } else {
+      area += 1;
+      previous = { end, ...corner };
+    }
+  }
+
+  return area;
 }
 
 /**

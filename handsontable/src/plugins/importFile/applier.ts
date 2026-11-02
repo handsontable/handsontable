@@ -2,6 +2,8 @@ import { warn } from '../../helpers/console';
 import { isPlainObject } from '../../helpers/object';
 import type { HotInstance } from '../../core/types';
 import type { ImportResult } from './importFile';
+import type { HyperFormulaEngine } from '../formulas/engine/types';
+import { DROPPED_FEATURES } from '../../utils/xlsxEngine/capabilities';
 
 /**
  * What the applier needs to know about how the result was produced.
@@ -350,10 +352,47 @@ function addNamedExpressions(hot: HotInstance, result: ImportResult): void {
       // The first name passed the check above; the rest are checked inside the batch, where the
       // check sees the names added before them.
       if (index === 0 || canAdd(name, expression)) {
-        engine.addNamedExpression(name, expression, undefined, undefined);
+        addOrReport(engine, name, expression, result);
       }
     });
   });
+}
+
+/**
+ * Adds one named expression the engine said it takes. `addNamedExpression` evaluates the definition
+ * at once, and HyperFormula can still throw there (`RangeError: Invalid array length` over a huge
+ * range), which failed the whole import with an internal error and left the name half-added. A
+ * throw removes the name again when the engine lists it (it did not before: the check passed) and
+ * reports `definedNames:unsupported` on the result; the import goes on.
+ *
+ * @param {object} engine The Formulas plugin's engine.
+ * @param {string} name The name.
+ * @param {string} expression The definition, `=` included.
+ * @param {ImportResult} result The result being applied, whose `dropped` list takes the report.
+ */
+function addOrReport(
+  engine: HyperFormulaEngine,
+  name: string,
+  expression: string,
+  result: ImportResult,
+): void {
+  try {
+    engine.addNamedExpression(name, expression, undefined, undefined);
+  } catch {
+    try {
+      const lowered = name.toLowerCase();
+
+      if (engine.listNamedExpressions().some(listed => listed.toLowerCase() === lowered)) {
+        engine.removeNamedExpression(name);
+      }
+    } catch {
+      // An engine that cannot list or remove the name keeps it; the report below still names it.
+    }
+
+    if (Array.isArray(result.dropped) && !result.dropped.includes(DROPPED_FEATURES.definedNamesUnsupported)) {
+      result.dropped.push(DROPPED_FEATURES.definedNamesUnsupported);
+    }
+  }
 }
 
 /**

@@ -97,7 +97,9 @@ export const MAX_FORMULA_LENGTH = 32768;
  * needs: the `_xlfn.` prefix strip, the bare `TRUE`/`FALSE` rewrite, one `REFERENCE_REGEX` walk that
  * shifts the references and checks every sheet qualifier together (`rebaseImportedFormula`), and the
  * defined-name scan. The figures
- * above are for that reference walk. The name scan adds 0.04 us per character on the same dense
+ * above are for that reference walk, and they bound only the import's own regex work. A defined
+ * name's definition costs far more once it reaches the Formulas engine, so it is bounded on its own
+ * (`MAX_DEFINED_NAME_LENGTH`, `MAX_DEFINED_NAME_CHARS`, `MAX_DEFINED_NAME_CELLS`). The name scan adds 0.04 us per character on the same dense
  * `A1+A1+...` text (developer machine), and the strip is a single pass, so one charge per formula
  * keeps the bound within about 15% of the measured one. Charging each walk separately spent the
  * budget two or three times per formula and refused workbooks the reader accepts.
@@ -108,6 +110,41 @@ export const MAX_FORMULA_LENGTH = 32768;
  * the mapper, so the figures above held per half, not per import.
  */
 export const MAX_TRANSLATED_FORMULA_CHARS = 32 * 1024 * 1024;
+
+/**
+ * The longest defined-name definition the import hands to the Formulas engine, in characters -
+ * Excel's own limit for a formula. HyperFormula parses a definition twice before taking it
+ * (`validateFormula`, `isItPossibleToAddNamedExpression`), at 9-27 ms per 32,000 characters in
+ * Chrome against 0.6 ms for the import's reference walk, so 1,024 names of 32,000 characters
+ * blocked the tab for 15-24 s, with `apply: false` too. A longer definition is not parsed: the name
+ * is reported as `definedNames:unsupported` and the formulas over it import their cached values.
+ */
+export const MAX_DEFINED_NAME_LENGTH = 8192;
+
+/**
+ * The most definition text one import hands to the Formulas engine, in characters, summed over the
+ * workbook's defined names. `MAX_DEFINED_NAME_LENGTH` bounds one definition; this bounds how many
+ * of them get parsed. A name read once the budget is spent is reported as unsupported, like one
+ * over the per-definition cap.
+ */
+export const MAX_DEFINED_NAME_CHARS = 256 * 1024;
+
+/**
+ * The most cells one defined name's closed ranges may cover for the import to hand it to the
+ * Formulas engine. HyperFormula evaluates a definition as soon as it is added, whether or not a
+ * cell uses it: a 2 KB file whose one name summed `$A$1:$ZZ$10000` (7 million cells) took 15-46 s
+ * and about 2 GB in Chrome, and `$A$1:$XFD$1048576` crashed the tab. The value mirrors
+ * `MAX_EXCELJS_DEFINED_NAME_CELLS` on the write side. A whole column or row (`$A:$A`, `$1:$1`) is not
+ * counted: HyperFormula sizes it to the rows or columns its sheet holds (measured at 4 ms).
+ */
+export const MAX_DEFINED_NAME_CELLS = 100000;
+
+/**
+ * The most cells the closed ranges of all the defined names one import hands to the Formulas engine
+ * may cover together. Ten names at `MAX_DEFINED_NAME_CELLS`: without a total, the per-name cap
+ * multiplied by every name `MAX_DEFINED_NAME_CHARS` leaves room for is still hours of evaluation.
+ */
+export const MAX_DEFINED_NAME_TOTAL_CELLS = 10 * MAX_DEFINED_NAME_CELLS;
 
 /**
  * The longest number-format code the reader keeps, in characters - the limit Excel itself puts on a

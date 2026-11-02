@@ -1,4 +1,5 @@
 import {
+  closedReferenceArea,
   rebaseImportedFormula,
   mapFormulaReferences,
   shiftFormulaReferences,
@@ -443,5 +444,21 @@ describe('rebaseImportedFormula', () => {
 
   it('should return the formula unchanged without a walk when nothing can change it', () => {
     expect(rebase('SUM(A1:B2)', 0, 0)).toEqual({ formula: 'SUM(A1:B2)', unknownSheet: false, asked: [] });
+  });
+});
+
+describe('closedReferenceArea', () => {
+  it('should count every cell a closed reference covers, however the range is spelled', () => {
+    expect(closedReferenceArea('SUM(Data!$A$1:$B$3)')).toBe(6);
+    expect(closedReferenceArea('A1+B2')).toBe(2);
+    expect(closedReferenceArea('SUM(A1:B3)')).toBe(6);
+    expect(closedReferenceArea('SUM(Data!$B$3:Data!A1)')).toBe(6);
+    expect(closedReferenceArea('\'My Data\'!$A$1:$A$10+Data!C5')).toBe(11);
+    expect(closedReferenceArea('SUM(Sheet1!$A$1:$ZZ$10000)')).toBe(7020000);
+  });
+
+  it('should count nothing for an open span, a string or a name', () => {
+    expect(closedReferenceArea('SUM(Data!$A:$C)+SUM(2:3)')).toBe(0);
+    expect(closedReferenceArea('LEN("A1:B9")&Sales')).toBe(0);
   });
 });

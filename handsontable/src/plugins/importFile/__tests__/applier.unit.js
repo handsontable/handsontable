@@ -759,6 +759,49 @@ describe('applyImportResult – named expressions', () => {
     ]);
   });
 
+  it('should remove a name whose add threw, report it, and go on with the other names and the data', () => {
+    // `addNamedExpression` evaluates the definition at once: over a huge range HyperFormula threw
+    // `RangeError: Invalid array length` out of the import and left the engine broken.
+    const order = [];
+    const hot = orderedHot(order);
+    const { engine } = hot.getPlugin('formulas');
+    const listed = [];
+
+    engine.addNamedExpression = (name, expression) => {
+      listed.push(name);
+
+      if (name === 'Huge') {
+        throw new RangeError('Invalid array length');
+      }
+
+      order.push(['addNamedExpression', name, expression]);
+    };
+    engine.listNamedExpressions = () => listed.slice();
+    engine.removeNamedExpression = (name) => {
+      listed.splice(listed.indexOf(name), 1);
+      order.push(['removeNamedExpression', name]);
+    };
+
+    const result = {
+      data: [['=SUM(Huge)']],
+      namedExpressions: [{ name: 'Huge', formula: 'SUM(Sheet1!$A$1:$ZZ$10000)' }, { name: 'TaxRate', formula: '0.07' }],
+      dropped: ['cellStyles'],
+    };
+
+    expect(() => applyImportResult(hot, result)).not.toThrow();
+    expect(order).toEqual([
+      ['batch:start'],
+      ['engine.batch:start'],
+      ['removeNamedExpression', 'Huge'],
+      ['addNamedExpression', 'TaxRate', '=0.07'],
+      ['engine.batch:end'],
+      ['loadData', [['=SUM(Huge)']]],
+      ['batch:end'],
+    ]);
+    expect(listed).toEqual(['TaxRate']);
+    expect(result.dropped).toEqual(['cellStyles', 'definedNames:unsupported']);
+  });
+
   it('should add no name to an engine that cannot say whether it takes one, instead of throwing', () => {
     // `isItPossibleToAddNamedExpression` is optional on the engine type: an engine without it gets
     // no name rather than a `TypeError` in the middle of the batch.

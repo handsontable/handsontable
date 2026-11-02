@@ -670,7 +670,11 @@ directions.
   that number. The import's own walks are budgeted too, against the same
   `MAX_TRANSLATED_FORMULA_CHARS` (`CollectContext.walkedFormulaChars` in `importFile/mapper.ts`),
   charged ONCE per formula for the prefix strip, the reference shift (with its sheet-qualifier
-  check) and the defined-name scan together — see `plugins/importFile/AGENTS.md`. The field is optional on
+  check) and the defined-name scan together — see `plugins/importFile/AGENTS.md`. That budget bounds
+  regex work only: a defined name's definition costs far more in HyperFormula (two parses, then an
+  evaluation on add), so the import bounds it on its own with `MAX_DEFINED_NAME_LENGTH`,
+  `MAX_DEFINED_NAME_CHARS`, `MAX_DEFINED_NAME_CELLS` and `MAX_DEFINED_NAME_TOTAL_CELLS` (`limits.ts`;
+  cells counted by `closedReferenceArea` in `formulaRefs.ts`, whole columns and rows excluded). The field is optional on
   `WorkbookBudget` (absent reads as zero) because tests pass `{ declaredCells: 0 }`. Validation and
   conditional-formatting formulae are not capped: nothing runs that regex over them.
 - **The `date1904` shift asks `isTemporalFormatCode` (`numFmtCode.ts`), the import's own
