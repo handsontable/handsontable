@@ -44,6 +44,8 @@ export const A11Y_PAGES = [
     surface: 'collapsible column groups: the collapse indicators and their expanded state' },
   { id: 'nested-rows', fixture: 'nested-rows-treegrid.html', state: 'none',
     surface: 'nested rows as a tree grid: row levels, the expand and collapse indicators' },
+  { id: 'exact-row-heights', fixture: 'row-heights-exact.html', query: 'scenario=thin', state: 'none',
+    surface: 'rows set to an exact height below the default: clipped cell content, checkbox and dropdown cells, row headers' },
   { id: 'merge-cells', fixture: 'merge-cells-init-renders.html', query: 'scenario=areas', state: 'none',
     surface: 'merged cells: the spanned cell and the cells it covers' },
   { id: 'column-summary', fixture: 'column-summary-read-only.html', state: 'none',

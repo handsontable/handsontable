@@ -79,6 +79,30 @@
       });
     };
 
+    // `?scenario=thin` builds a grid on load, for the axe scan (`tests/a11y/pages.mjs`): rows at 16px, under every
+    // theme's default row height, with a checkbox and a dropdown column so the controls sit in clipped rows.
+    if (htParams.get('scenario') === 'thin') {
+      try {
+        window.mountGrid({
+          data: [
+            ['Update API docs', true, 'In progress'],
+            ['Deploy hotfix', false, 'Blocked'],
+            ['Review pull request', true, 'Done'],
+            ['Plan release', false, 'In progress'],
+          ],
+          columns: [
+            { type: 'text' },
+            { type: 'checkbox' },
+            { type: 'dropdown', source: ['In progress', 'Blocked', 'Done'] },
+          ],
+          colHeaders: ['Task', 'Reviewed', 'Status'],
+          rowHeights: 16,
+        });
+      } catch (error) {
+        window.htBuildError = String(error);
+      }
+    }
+
     window.updateGrid = (settings = {}) => {
       const { rowHeightsFromArray, ...rest } = settings;
 
