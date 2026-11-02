@@ -262,7 +262,9 @@ export interface ImportResult {
   /**
    * Formulas that were not imported live, because the Formulas plugin is off, `importFormulas` is
    * `false`, or the formula cannot resolve in the grid. Their cells hold the cached value in `data`.
-   * Live formulas are in `data` as `=` strings.
+   * Live formulas are in `data` as `=` strings. Left out when the license does not unlock
+   * `xlsx:formulas`: the formula cells then hold their cached values, and `dropped` lists
+   * `license:xlsx:formulas`.
    */
   formulas?: Array<{ row: number; col: number; formula: string }>;
   /**
