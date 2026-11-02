@@ -638,7 +638,8 @@ function rewriteBareBooleans(formula: string): string {
  * A formula any walk will run over is charged against the budget ONCE, before the first walk: the
  * prefix strip, the boolean rewrite (a formula that spells `true` or `false` in any case), and - with
  * live formulas on - the reference walk of `rebaseImportedFormula` (a non-zero window origin, or a
- * `!` to check), the defined-name scan (a workbook that defines a name the engine lacks) and the
+ * `!` to check), the defined-name scan (a workbook that defines a name the engine lacks), the
+ * spill-operator scan (a formula spelling `anchorarray` or `single`, `callsSpillOperator`) and the
  * function scan of an array master (`callsUnregisteredFunction`, asked by the caller through
  * `scansFunctions`). Each walk is linear in the formula's length, so one charge per formula is what
  * the budget's figures in `limits.ts` were measured against.
@@ -654,7 +655,7 @@ function readFormulaText(text: string, scope: CollectContext, scansFunctions = f
   const rewriting = shift !== null && BOOLEAN_HINT.test(text);
   const walking = shift !== null && (
     shift.rowDelta !== 0 || shift.colDelta !== 0 || text.includes('!') || scope.unresolvedNames.size > 0
-    || scansFunctions
+    || scansFunctions || SPILL_OPERATOR_HINT.test(text)
   );
 
   if (stripping || rewriting || walking) {
@@ -739,6 +740,45 @@ function* namesIn(formula: string): Generator<string> {
       yield token.toLowerCase();
     }
   }
+}
+
+/**
+ * Matches the spelling of the functions Excel stores its spill operator and implicit intersection
+ * as: the only formulas `callsSpillOperator` walks.
+ */
+const SPILL_OPERATOR_HINT = /anchorarray|single/i;
+
+/**
+ * The functions Excel stores its spill operator (`B1#` is `_xlfn.ANCHORARRAY(B1)`) and implicit
+ * intersection (`@A1:A3` is `_xlfn.SINGLE(A1:A3)`) as, upper-cased.
+ */
+const SPILL_OPERATOR_FUNCTIONS: ReadonlySet<string> = new Set(['ANCHORARRAY', 'SINGLE']);
+
+/**
+ * Whether a formula calls `ANCHORARRAY` or `SINGLE`, Excel's stored form of the spill operator and
+ * of implicit intersection. HyperFormula has neither: such a formula shows `#NAME?`, or a wrong
+ * number with no error (`COUNTA(ANCHORARRAY(B1))` counts the error as one value), so it imports its
+ * cached value. `readFormulaText` has already charged the walk.
+ *
+ * @param {string} formula The formula, without its `=`.
+ * @returns {boolean}
+ */
+function callsSpillOperator(formula: string): boolean {
+  if (!SPILL_OPERATOR_HINT.test(formula)) {
+    return false;
+  }
+
+  for (const match of formula.matchAll(FORMULA_IDENTIFIER_REGEX)) {
+    const [token] = match;
+    const isQuoted = token[0] === '"' || token[0] === '\'';
+
+    if (!isQuoted && formula[(match.index ?? 0) + token.length] === '('
+      && SPILL_OPERATOR_FUNCTIONS.has(token.toUpperCase())) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -1253,7 +1293,8 @@ function pushCellValue(
     : null;
   const otherSheet = rebased !== null && rebased.unknownSheet;
   const unknownName = rebased !== null && !otherSheet && usesUnresolvedName(read?.live ?? '', scope);
-  const live = rebased !== null && !otherSheet && !unknownName ? rebased.formula : null;
+  const spillOperator = rebased !== null && !otherSheet && !unknownName && callsSpillOperator(read?.live ?? '');
+  const live = rebased !== null && !otherSheet && !unknownName && !spillOperator ? rebased.formula : null;
 
   if (live !== null) {
     // A legacy CSE array (`{=A1:A2*2}`) is an ordinary formula to HyperFormula unless it is
@@ -1303,6 +1344,8 @@ function pushCellValue(
       dropped.record(DROPPED_FEATURES.formulaOtherSheet);
     } else if (unknownName) {
       dropped.record(DROPPED_FEATURES.formulaDefinedName);
+    } else if (spillOperator) {
+      dropped.record(DROPPED_FEATURES.formulaSpillReference);
     } else if (shift) {
       dropped.record(DROPPED_FEATURES.formulaOutOfRange);
     }

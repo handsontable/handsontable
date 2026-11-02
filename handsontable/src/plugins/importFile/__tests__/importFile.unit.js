@@ -1890,6 +1890,37 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
     }
   });
 
+  it('should import the cached value of a formula using the spill operator or implicit intersection', async() => {
+    // Excel stores `=SUM(B1#)` as `SUM(_xlfn.ANCHORARRAY(B1))` and `=@A1:A3` as `_xlfn.SINGLE(A1:A3)`.
+    // HyperFormula has neither function: C1 and D1 showed `#NAME?`, and `COUNTA(ANCHORARRAY(B1))`
+    // counted the error as one value, 1 where the file holds 3, with nothing reported.
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const rows = [
+      [at({ value: 1 }),
+        at({ formula: { text: '_xlfn.SEQUENCE(3)', result: 1, array: { ref: 'B1:B3', dynamic: true } } }),
+        at({ formula: { text: 'SUM(_xlfn.ANCHORARRAY(B1))', result: 6 } }),
+        at({ formula: { text: '_xlfn.SINGLE(A1:A3)', result: 1 } }),
+        at({ formula: { text: 'COUNTA(_xlfn.ANCHORARRAY(B1))', result: 3 } })],
+      [at({ value: 2 }), at({ value: 2 })],
+      [at({ value: 3 }), at({ value: 3 })],
+    ];
+
+    for (const [kind, engine] of [['native', undefined], ['exceljs', ExcelJS]]) {
+      // eslint-disable-next-line no-await-in-loop -- one engine at a time.
+      const { result, hf } = await importArrays(rows, engine);
+
+      expect([kind, result.data[0].slice(2)]).toEqual([kind, [6, 1, 3]]);
+      expect([kind, result.formulas]).toEqual([kind, [
+        { row: 0, col: 2, formula: 'SUM(ANCHORARRAY(B1))' },
+        { row: 0, col: 3, formula: 'SINGLE(A1:A3)' },
+        { row: 0, col: 4, formula: 'COUNTA(ANCHORARRAY(B1))' },
+      ]]);
+      expect([kind, result.dropped.includes('formula:spillReference')]).toEqual([kind, true]);
+
+      hf.destroy();
+    }
+  });
+
   it('should import the cached values of a dynamic array HyperFormula cannot spill', async() => {
     // HyperFormula sizes FILTER by its input (three rows), Excel by its result (two rows): the
     // spill hits the text in B3 and B1 showed `#SPILL!`, and B2's cached 3 was lost.

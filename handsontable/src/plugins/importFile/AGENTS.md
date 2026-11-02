@@ -487,6 +487,14 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   +85 ms on 10,000 rows x 5 columns (10,000 formulas; ~110 ms -> ~200 ms for the whole import).
   The scratch engine evaluates the sheet again, so volatile functions (`RAND`, `NOW`) and custom
   functions registered on the HyperFormula class run a second time during the import.
+- **A formula calling `ANCHORARRAY` or `SINGLE` imports its cached value** (DEV-3648, `callsSpillOperator`
+  in `pushCellValue`, `formula:spillReference`). Excel stores the spill operator `B1#` as
+  `_xlfn.ANCHORARRAY(B1)` and implicit intersection `@A1:A3` as `_xlfn.SINGLE(A1:A3)`; both readers hand
+  the text over verbatim and the prefix strip leaves `ANCHORARRAY(...)`/`SINGLE(...)`, which HF 3.3 lacks
+  (`#NAME?`, and `COUNTA(ANCHORARRAY(B1))` silently answered 1). The check runs on every live formula, not
+  only array masters, and is charged with the formula's one walk (`SPILL_OPERATOR_HINT` in
+  `readFormulaText`). Deferred, not built: rewriting `ANCHORARRAY(B1)` to the master's recorded `ref`
+  (`B1:B3`) when that master imports live, which would keep such formulas live.
 - **A bare `TRUE`/`FALSE` in a live formula or a name definition is rewritten to `TRUE()`/`FALSE()`** (DEV-3648,
   `rewriteBareBooleans`, called by `readFormulaText`): HyperFormula reads the bare literal as an unknown name
   (`=IF(TRUE,1,2)` is `#NAME?`). `readFormulaText` returns `{ recorded, live }`: `ImportResult.formulas` records

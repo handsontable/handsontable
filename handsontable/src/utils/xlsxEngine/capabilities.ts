@@ -156,6 +156,10 @@ export const DROPPED_FEATURES = {
   // master and the cells it covers import their cached values, and the formula is only in
   // `result.formulas`.
   formulaArraySpill: 'formula:arraySpill',
+  // A formula using Excel's spill operator (`B1#`, stored as `_xlfn.ANCHORARRAY(B1)`) or implicit
+  // intersection (`@A1:A3`, stored as `_xlfn.SINGLE(A1:A3)`), which HyperFormula lacks: it imports
+  // its cached value, and the formula is only in `result.formulas`.
+  formulaSpillReference: 'formula:spillReference',
   // A note on a cell of the promoted header band: a column header cannot hold one.
   commentHeader: 'comment:header',
   layoutDirection: 'layoutDirection',
