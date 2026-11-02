@@ -171,6 +171,40 @@ describe('SheetsBar: a plugin option object stays on its own sheet', () => {
       expect(hot.getPlugin('search').getSearchResultClass()).toBe('htSearchResult');
     });
 
+    it('gives a sheet the default Loading `title` and Dialog `template` it leaves out', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            {
+              name: 'X',
+              data: [[1]],
+              settings: {
+                dialog: { template: { type: 'alert', title: 'From X' } },
+                loading: { title: 'Loading X' },
+              },
+            },
+            { name: 'Y', data: [[1]], settings: { dialog: { content: 'y' }, loading: { description: 'y' } } },
+          ],
+        },
+        licenseKey: LICENSE_KEY,
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      expect(hot.getPlugin('dialog').getSetting('template')).toEqual({ type: 'alert', title: 'From X' });
+      expect(hot.getPlugin('loading').getSetting('title')).toBe('Loading X');
+
+      plugin.setActiveSheet('Y');
+
+      expect(hot.getPlugin('dialog').getSetting('template')).toBeNull();
+      expect(hot.getPlugin('loading').getSetting('title')).toBeUndefined();
+      expect(warnSpy).not.toHaveBeenCalled();
+
+      warnSpy.mockRestore();
+    });
+
     it('keeps a plain `updateSettings()` object merging into the previous one', () => {
       hot = new Handsontable(container, {
         autoLink: { target: '_self', className: 'x' },

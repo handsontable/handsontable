@@ -185,7 +185,7 @@ export class Loading extends BasePlugin {
   static get SETTINGS_VALIDATORS() {
     return {
       icon: (value: unknown) => typeof value === 'string',
-      title: (value: unknown) => typeof value === 'string',
+      title: (value: unknown) => typeof value === 'string' || value === undefined,
       description: (value: unknown) => typeof value === 'string',
     };
   }

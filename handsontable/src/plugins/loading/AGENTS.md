@@ -138,3 +138,10 @@ caller-supplied.
   suite's `/loading-demo`, on every theme and bundle (default and custom content, the focus Tab puts on
   the container, a grid with no rows, the RTL mirror). Its fixture loads the ar-AR pack for RTL, which
   neither bundle carries.
+
+## A default value passes its own validator
+
+`title` accepts `undefined`, its default, as well as a string. The sheets bar resets an object option by sending
+every `DEFAULT_SETTINGS` key a sheet leaves out (`BasePlugin#_getObjectSettingDefaults()` keeps only defaults
+their validator accepts), and a validator that rejected `undefined` left one sheet's loading title on the next
+sheet. Pinned by `sheetsBar/__tests__/pluginOptionReset.unit.js`.

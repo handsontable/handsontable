@@ -252,3 +252,11 @@ holds and broke the Loading guide's examples. Pinned by `__tests__/sharedSurface
 
 `__tests__/` splits into `hooks/`, `methods/`, `options/`, `keyboardShortcuts/`, `plugins/` and a separate
 `editor.spec.js` — a dialog change usually touches the keyboard and editor specs too.
+
+## A default value passes its own validator
+
+`template` accepts `null`, its default, as well as a template object, so an update can put the default back. The
+sheets bar resets an object option by sending every `DEFAULT_SETTINGS` key a sheet leaves out
+(`BasePlugin#_getObjectSettingDefaults()` keeps only defaults their validator accepts), and a validator that
+rejected `null` left one sheet's template on the next sheet. Pinned by
+`sheetsBar/__tests__/pluginOptionReset.unit.js`.

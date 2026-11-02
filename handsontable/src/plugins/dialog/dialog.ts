@@ -212,7 +212,7 @@ export class Dialog extends BasePlugin {
    */
   static get SETTINGS_VALIDATORS() {
     return {
-      template: (value: unknown) => isPlainObject(value) &&
+      template: (value: unknown) => value === null || isPlainObject(value) &&
         (typeof ['alert', 'confirm'].includes(String(value.type))) &&
         (typeof value.title === 'string') &&
         (typeof value?.description === 'undefined' || typeof value?.description === 'string') &&
