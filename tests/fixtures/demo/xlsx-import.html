@@ -60,6 +60,7 @@
   </div>
   <div id="source" data-testid="source"></div>
   <div id="source2" data-testid="source2"></div>
+  <div id="source3" data-testid="source3"></div>
   <div id="target" data-testid="target"></div>
 
   <script>
@@ -87,6 +88,7 @@
     sourceEl.className = `ht-theme-${window.htTheme}`;
     targetEl.className = `ht-theme-${window.htTheme}`;
     document.getElementById('source2').className = `ht-theme-${window.htTheme}`;
+    document.getElementById('source3').className = `ht-theme-${window.htTheme}`;
 
     const stamp = prefix => function(td, row, col) {
       td.setAttribute('data-testid', `${prefix}-${row}-${col}`);
@@ -155,6 +157,26 @@
     });
 
     window.__source2 = source2;
+
+    // A third source grid of array formulas and error cells, so a real browser runs the array and
+    // error paths of both engines on the dist bundle: `SEQUENCE` spills down column B, `FILTER` on
+    // row 2 spills down to the last row (the engine reserves a row more than it fills), `=1/0`
+    // computes an error, and `#N/A` is typed. Its own engine and sheet, so the first grid's tests
+    // see nothing of it.
+    const source3 = new Handsontable(document.getElementById('source3'), {
+      data: [
+        [3, '=SEQUENCE(3)', null, '=1/0', '#N/A'],
+        [1, null, '=FILTER(A1:A4,A1:A4>1)', null, null],
+        [2, null, null, null, null],
+        [5, null, null, null, null],
+      ],
+      formulas: { engine: HyperFormula, sheetName: 'Arrays' },
+      exportFile: engineSetting,
+      afterRenderer: stamp('source3'),
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    window.__source3 = source3;
 
     const target = new Handsontable(targetEl, {
       data: [[]],

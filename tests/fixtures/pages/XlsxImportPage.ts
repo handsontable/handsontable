@@ -176,6 +176,59 @@ export class XlsxImportPage {
   }
 
   /**
+   * Exports the array and error grid (`window.__source3`: `SEQUENCE(3)` in B1, `FILTER` in C2, `=1/0`
+   * in D1 and a typed `#N/A` in E1, over 3, 1, 2, 5 in column A) with `exportFormulas` and no
+   * headers, and imports the blob into the target, so the cells keep their coordinates. Answers the
+   * target's source data and displayed data over the same 4 x 5 block, and the import's `dropped`.
+   */
+  async roundTripArraysAndErrors(): Promise<{ sources: unknown[][]; values: unknown[][]; dropped: string[] }> {
+    return this.page.evaluate(async() => {
+      const w = window as unknown as Record<string, any>;
+      const target = w.__target;
+      const blob = await w.__source3.getPlugin('exportFile').exportAsBlobAsync('xlsx', { exportFormulas: true });
+      const result = await target.getPlugin('importFile').importFromBlob('xlsx', blob);
+      const block = (read: (row: number, col: number) => unknown) => [0, 1, 2, 3]
+        .map(row => [0, 1, 2, 3, 4].map(col => read(row, col)));
+
+      return {
+        sources: block((row, col) => target.getSourceDataAtCell(row, col)),
+        values: block((row, col) => target.getDataAtCell(row, col)),
+        dropped: result.dropped,
+      };
+    });
+  }
+
+  /**
+   * Imports a workbook ExcelJS writes, whose B1 holds the legacy array formula `{=A1:A3}` over B1:B3
+   * with the values Excel cached (3, 1, 2), over 3, 1, 2 in column A. HyperFormula evaluates a lone
+   * range to `#VALUE!`, so the import keeps the cached values. Answers the target's source data of
+   * B1:B3 and the import's `dropped`.
+   */
+  async importBareRangeArray(): Promise<{ sources: unknown[]; dropped: string[] }> {
+    return this.page.evaluate(async() => {
+      const w = window as unknown as Record<string, any>;
+      const target = w.__target;
+      const workbook = new w.ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Data');
+
+      [3, 1, 2].forEach((value, row) => {
+        sheet.getCell(row + 1, 1).value = value;
+      });
+      sheet.getCell('B1').value = { formula: 'A1:A3', result: 3, shareType: 'array', ref: 'B1:B3' };
+      sheet.getCell('B2').value = 1;
+      sheet.getCell('B3').value = 2;
+
+      const bytes = new Uint8Array(await workbook.xlsx.writeBuffer());
+      const result = await target.getPlugin('importFile').importFromArrayBuffer('xlsx', bytes.slice().buffer);
+
+      return {
+        sources: [0, 1, 2].map(row => target.getSourceDataAtCell(row, 1)),
+        dropped: result.dropped,
+      };
+    });
+  }
+
+  /**
    * Imports raw bytes into the target and answers how the call ended, what the grid holds after it
    * and whether `afterImport` ran - the shape a refused upload is asserted on.
    */
