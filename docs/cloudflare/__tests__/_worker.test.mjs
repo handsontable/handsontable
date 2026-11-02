@@ -1713,3 +1713,100 @@ test('other methods on the date endpoint fall through to assets (rule 18c)', asy
     assert.equal(env.calls.length, 0, `${method} must not reach Figma`);
   }
 });
+
+/**
+ * An `env` whose static assets hold only the given paths. Every other path
+ * answers 404, the way Cloudflare Pages does, and each lookup is recorded.
+ *
+ * @param {string[]} existing The asset paths that exist.
+ * @returns {{ASSETS: {fetch: Function}, lookups: string[]}}
+ */
+function envWithPages(existing) {
+  const lookups = [];
+
+  return {
+    lookups,
+    ASSETS: {
+      fetch: async(target) => {
+        const { pathname } = new URL(typeof target === 'string' ? target : target.url);
+
+        lookups.push(pathname);
+
+        return existing.includes(pathname)
+          ? new Response('static-asset-passthrough')
+          : new Response('not found', { status: 404 });
+      },
+    },
+  };
+}
+
+test('an unprefixed page that 404s redirects to the same page under the framework (PRO-1371)', async() => {
+  const worker = loadWorker();
+  const pagesEnv = envWithPages([
+    '/docs/javascript-data-grid/long-term-support/',
+    '/docs/javascript-data-grid/migration-from-16.2-to-17.0/',
+    '/docs/javascript-data-grid/recipes/',
+  ]);
+
+  for (const [path, destination] of [
+    ['/docs/long-term-support/', '/docs/javascript-data-grid/long-term-support/'],
+    ['/docs/migration-from-16.2-to-17.0', '/docs/javascript-data-grid/migration-from-16.2-to-17.0/'],
+    ['/docs/recipes', '/docs/javascript-data-grid/recipes/'],
+  ]) {
+    const response = await worker.fetch(request(path), pagesEnv);
+
+    assert.equal(response.status, 302, path);
+    assert.equal(response.headers.get('location'), `https://handsontable.com${destination}`);
+  }
+});
+
+test('the unprefixed fallback prefers the cookie framework and falls back to JavaScript', async() => {
+  const worker = loadWorker();
+  const pagesEnv = envWithPages([
+    '/docs/react-data-grid/long-term-support/',
+    '/docs/javascript-data-grid/long-term-support/',
+    '/docs/javascript-data-grid/javascript-only/',
+  ]);
+
+  const react = await worker.fetch(request('/docs/long-term-support/', 'react'), pagesEnv);
+
+  assert.equal(react.headers.get('location'), 'https://handsontable.com/docs/react-data-grid/long-term-support/');
+
+  const fallback = await worker.fetch(request('/docs/javascript-only/', 'react'), pagesEnv);
+
+  assert.equal(fallback.headers.get('location'), 'https://handsontable.com/docs/javascript-data-grid/javascript-only/');
+});
+
+test('the unprefixed fallback keeps the 404 when no framework has the page', async() => {
+  const worker = loadWorker();
+  const pagesEnv = envWithPages([]);
+  const response = await worker.fetch(request('/docs/dHV0b3JpYW'), pagesEnv);
+
+  assert.equal(response.status, 404);
+  assert.deepEqual(pagesEnv.lookups, [
+    '/docs/dHV0b3JpYW',
+    '/docs/javascript-data-grid/dHV0b3JpYW/',
+  ]);
+});
+
+test('the unprefixed fallback leaves existing assets, prefixed paths, versions, and files alone', async() => {
+  const worker = loadWorker();
+  const pagesEnv = envWithPages(['/docs/sitemap-index.xml']);
+  const asset = await worker.fetch(request('/docs/sitemap-index.xml'), pagesEnv);
+
+  assert.equal(asset.status, 200);
+
+  for (const path of [
+    '/docs/react-data-grid/no-such-page/',
+    '/docs/16.2/javascript-data-grid/no-such-page/',
+    '/docs/img/missing.png',
+    '/docs/scripts/missing.js',
+  ]) {
+    pagesEnv.lookups.length = 0;
+
+    const response = await worker.fetch(request(path), pagesEnv);
+
+    assert.equal(response.status, 404, path);
+    assert.deepEqual(pagesEnv.lookups, [path], `${path} must not be retried`);
+  }
+});
