@@ -1033,7 +1033,13 @@ class Xlsx extends BaseType {
       resolved.forEach((name) => {
         (uses.get(name) ?? []).forEach((used) => {
           if (resolved.has(used)) {
-            dependents.set(used, [...(dependents.get(used) ?? []), name]);
+            const users = dependents.get(used);
+
+            if (users) {
+              users.push(name);
+            } else {
+              dependents.set(used, [name]);
+            }
           } else {
             unresolved.push(name);
           }
