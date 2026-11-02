@@ -484,9 +484,16 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   for a lone range (`=A1:A3`, `=(A1:A3)`, `=Sheet1!A1:A3`), a range name (`=Sales`,
   `FILTER(Sales,Sales>1)`), `INDEX(A1:A3,0)` and `ARRAYFORMULA(A1:A3)`, which Excel spills, and
   their covered cells used to import empty under a `#VALUE!` master. So `formula:arraySpill` means
-  "HF cannot evaluate this array the way Excel did", not only `#SPILL!`. Left as written: `#REF!`
-  (the scratch lacks the engine's other sheets - the documented weak spot), `#NAME?` (it lacks the
-  engine's sheet-scoped names), and an error the file caches too (`settledState`). Do NOT replace
+  "HF cannot evaluate this array the way Excel did", not only `#SPILL!`. Left as written: `#REF!`,
+  `#NAME?`, an error the file caches too or caches NO value for (openpyxl: the error proves nothing a
+  cached value could replace), and - unless it is `#SPILL!` - any master that reads OUTSIDE the probe
+  (`settledState`, `readsOutsideProbe`): another engine sheet (`LiveArrayRect.readsOtherSheet`, set when
+  `rebaseImportedFormula` asks `isKnown` about a qualifier) or an engine name the scratch lacks
+  (`LiveArrayRect.names` from `engineNamesIn` over `CollectContext.engineNames`, checked against the
+  probe's `definesName`; a name the engine scopes to the grid's sheet is not copied). The error code
+  cannot tell those apart: HF turns an unknown sheet into a REF node INSIDE the AST, so
+  `FILTER(A1:A3,ISNUMBER(Other!A1:A3))` is `#N/A` and `A1:A3/IFERROR(Other!B1,0)` is `#DIV/0!` in the
+  scratch while the real engine evaluates both; settling on them froze a live array to its cached values. Do NOT replace
   this with a check after `loadData` in the applier: `apply: false` must return the settled data.
   Otherwise an emptied cell not `isCellPartOfArray` takes its cached value. One probe, before anything is put back; a probe that
   throws, while built, set up (`getSheetId`, the name adds) or asked, changes nothing, and the scratch

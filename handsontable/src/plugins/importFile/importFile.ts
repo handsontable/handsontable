@@ -696,8 +696,9 @@ interface ProbeEngineClass {
  * the engine's own config (array arithmetic, language, custom functions registered on the class).
  * It holds one sheet, named like the engine's sheet for the grid so a reference qualified with it
  * resolves, and the workbook-scoped named expressions the engine defines plus the ones the import
- * adds. A reference to any other engine sheet does not resolve in it; the mapper leaves a master that
- * evaluates to an error there as written.
+ * adds. A reference to any other engine sheet does not resolve in it, nor does a name the engine
+ * scopes to the grid's sheet (`definesName` answers which names it holds): the mapper settles a
+ * master reading either only on `#SPILL!`, and otherwise leaves it as written.
  *
  * @param {object|null|undefined} engine The Formulas plugin's engine.
  * @param {string|null|undefined} sheetName The engine's name for the grid's sheet.
@@ -736,6 +737,7 @@ function liveArrayProbe(engine: unknown, sheetName: string | null | undefined): 
     };
 
     let sheet: number;
+    let defined: Set<string> | undefined;
     const addAll = () => {
       try {
         (typeof held.listNamedExpressions === 'function' ? held.listNamedExpressions() : []).forEach((heldName) => {
@@ -775,6 +777,12 @@ function liveArrayProbe(engine: unknown, sheetName: string | null | undefined): 
         return value.type;
       },
       isPartOfArray: (row, col) => answersTrue(() => scratch.isCellPartOfArray({ sheet, row, col })),
+      definesName: (lowered) => {
+        // Read once, on the first question; the scratch engine's names change no more.
+        defined ??= new Set(scratch.listNamedExpressions().map(held => held.toLowerCase()));
+
+        return defined.has(lowered);
+      },
       destroy: () => scratch.destroy(),
     };
   };

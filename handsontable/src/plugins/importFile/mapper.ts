@@ -123,6 +123,11 @@ export interface LiveArrayProbe {
    */
   isPartOfArray(row: number, col: number): boolean;
   /**
+   * Whether the scratch engine defines a named expression of this lower-cased name. Absent means it
+   * defines none.
+   */
+  definesName?(name: string): boolean;
+  /**
    * Releases the scratch engine.
    */
   destroy(): void;
@@ -647,13 +652,14 @@ function rewriteBareBooleans(formula: string): string {
  * live formulas on - the reference walk of `rebaseImportedFormula` (a non-zero window origin, or a
  * `!` to check), the defined-name scan (a workbook that defines a name the engine lacks), the
  * spill-operator scan (a formula spelling `anchorarray` or `single`, `callsSpillOperator`) and the
- * function scan of an array master (`callsUnregisteredFunction`, asked by the caller through
- * `scansFunctions`). Each walk is linear in the formula's length, so one charge per formula is what
+ * function and engine-name scans of an array master (`callsUnregisteredFunction`, `engineNamesIn`,
+ * asked by the caller through `scansFunctions`). Each walk is linear in the formula's length, so one charge per formula is what
  * the budget's figures in `limits.ts` were measured against.
  *
  * @param {string} text The formula as the file stores it, without its `=`.
  * @param {CollectContext} scope The pass context.
- * @param {boolean} [scansFunctions] Whether the caller also runs the function scan over the text.
+ * @param {boolean} [scansFunctions] Whether the caller also runs the function or engine-name scan
+ * over the text.
  * @returns {ReadFormula}
  */
 function readFormulaText(text: string, scope: CollectContext, scansFunctions = false): ReadFormula {
@@ -764,6 +770,32 @@ function* namesIn(formula: string): Generator<string> {
       yield token.toLowerCase();
     }
   }
+}
+
+/**
+ * The engine's names a formula reads (`CollectContext.engineNames`), lower-cased, each once. An
+ * engine and an import with no names cost no walk.
+ *
+ * @param {string} formula The formula, without its `=`.
+ * @param {CollectContext} scope The pass context.
+ * @returns {string[]}
+ */
+function engineNamesIn(formula: string, scope: CollectContext): string[] {
+  const { engineNames } = scope;
+
+  if (engineNames.size === 0) {
+    return [];
+  }
+
+  const used = new Set<string>();
+
+  for (const name of namesIn(formula)) {
+    if (engineNames.has(name)) {
+      used.add(name);
+    }
+  }
+
+  return [...used];
 }
 
 /**
@@ -1058,6 +1090,15 @@ interface LiveArrayRect {
    * Whether the file caches an error for the master (`t="e"`): Excel could not evaluate it either.
    */
   cachedIsError: boolean;
+  /**
+   * Whether the master reads another engine sheet, which the probe's scratch engine does not hold.
+   */
+  readsOtherSheet: boolean;
+  /**
+   * The engine's names the master reads (`CollectContext.engineNames`), lower-cased. The probe is
+   * asked which of them its scratch engine lacks.
+   */
+  names: string[];
 }
 
 /**
@@ -1159,11 +1200,13 @@ function beginLiveArrayRow(row: number, scope: CollectContext): void {
  * @param {string} ref The array's A1 range, in the file's 1-based sheet coordinates.
  * @param {number} row The master's window row.
  * @param {number} col The master's window column.
- * @param {{ cached: unknown, recorded: string }} master The master's cached value and recorded text.
+ * @param {object} master The master's cached value, recorded text, and what it reads outside the
+ * imported sheet.
  * @param {CollectContext} scope The pass context.
  */
 function recordLiveArray(
-  ref: string, row: number, col: number, master: Pick<LiveArrayRect, 'cached' | 'recorded' | 'cachedIsError'>,
+  ref: string, row: number, col: number,
+  master: Pick<LiveArrayRect, 'cached' | 'recorded' | 'cachedIsError' | 'readsOtherSheet' | 'names'>,
   scope: CollectContext
 ): void {
   const range = parseRangeRef(ref);
@@ -1181,6 +1224,8 @@ function recordLiveArray(
     cached: master.cached,
     recorded: master.recorded,
     cachedIsError: master.cachedIsError,
+    readsOtherSheet: master.readsOtherSheet,
+    names: master.names,
   };
 
   chargeFormulaWalk(1, scope);
@@ -1228,20 +1273,46 @@ function liveArrayCovering(col: number, scope: CollectContext): LiveArrayRect | 
  * import their cached values), `'written'` (left as written) or `'value'` (its emptied cells are
  * judged one by one).
  *
+ * A master that reads outside the probe (`readsOutside`) settles only on `#SPILL!`: HyperFormula
+ * turns a sheet it does not hold into a `#REF!` inside the formula, which `IFERROR` or `ISNUMBER`
+ * turn into any other error or value. Any other error settles only when the file caches a value
+ * that is not an error, so the cached value has something to put back.
+ *
  * @param {string|null} error The master's error type in the probe, `null` for a value.
  * @param {LiveArrayRect} rect The master's rectangle.
+ * @param {boolean} readsOutside Whether the master reads a sheet or a name the probe lacks.
  * @returns {string}
  */
-function settledState(error: string | null, rect: LiveArrayRect): 'cached' | 'written' | 'value' {
+function settledState(
+  error: string | null, rect: LiveArrayRect, readsOutside: boolean
+): 'cached' | 'written' | 'value' {
+  if (error === 'SPILL') {
+    return 'cached';
+  }
+
+  if (readsOutside) {
+    return 'written';
+  }
+
   if (error === null) {
     return 'value';
   }
 
-  if (error === 'SPILL' || (error !== 'REF' && error !== 'NAME' && !rect.cachedIsError)) {
-    return 'cached';
-  }
+  const hasCachedValue = rect.cached !== null && rect.cached !== undefined && !rect.cachedIsError;
 
-  return 'written';
+  return error !== 'REF' && error !== 'NAME' && hasCachedValue ? 'cached' : 'written';
+}
+
+/**
+ * Whether a live array master reads what the probe's scratch engine lacks: another engine sheet,
+ * or an engine name the scratch engine does not define (one scoped to the grid's sheet).
+ *
+ * @param {LiveArrayRect} rect The master's rectangle.
+ * @param {LiveArrayProbe} probe The probe.
+ * @returns {boolean}
+ */
+function readsOutsideProbe(rect: LiveArrayRect, probe: LiveArrayProbe): boolean {
+  return rect.readsOtherSheet || rect.names.some(name => probe.definesName?.(name) !== true);
 }
 
 /**
@@ -1251,13 +1322,13 @@ function settledState(error: string | null, rect: LiveArrayRect): 'cached' | 'wr
  * legacy array with a one-value formula (`{=A1*2}` over `B1:B3`) is one cell to it. Some arrays it
  * cannot evaluate at all: a lone range (`=A1:A3`), a range name and `INDEX(A1:A3,0)` are `#VALUE!`.
  *
- * - A master that evaluates to `#SPILL!`, or to another error while the file caches a value for it,
- *   imports its cached value, and so does every cell it emptied; its formula moves to
+ * - A master that evaluates to `#SPILL!`, or to another error while the file caches a value (not an
+ *   error) for it, imports its cached value, and so does every cell it emptied; its formula moves to
  *   `ImportResult.formulas`, and `formula:arraySpill` is recorded (with `formula:noCachedValue` when
- *   the file caches no value for the master).
- * - A master that evaluates to `#REF!` or `#NAME?`, or to an error the file caches too, is left as
- *   written: the probe lacks the engine's other sheets and its sheet-scoped names, so its emptied
- *   cells are not judged.
+ *   the file caches no value for a `#SPILL!` master).
+ * - A master that evaluates to `#REF!` or `#NAME?`, to an error the file caches too or caches no
+ *   value for, or that reads another engine sheet or an engine name the probe lacks (and is not
+ *   `#SPILL!`), is left as written: its emptied cells are not judged (`settledState`).
  * - Otherwise, an emptied cell that no array the engine placed covers gets its cached value back.
  *
  * The probe runs once, over the data before any value is put back. A probe that throws, built or
@@ -1285,7 +1356,9 @@ function settleLiveArrays(pass: CellPass, scope: CollectContext): void {
   const restored: EmptiedCell[] = [];
 
   try {
-    recorded.forEach(rect => states.set(rect, settledState(probe.masterState(rect.startRow, rect.startCol), rect)));
+    recorded.forEach(rect => states.set(rect, settledState(
+      probe.masterState(rect.startRow, rect.startCol), rect, readsOutsideProbe(rect, probe)
+    )));
     emptied.forEach((cell) => {
       const state = states.get(cell.rect);
 
@@ -1343,15 +1416,23 @@ function pushCellValue(
 ): void {
   const { shift, dropped } = scope;
   const array = cell.formula?.array;
-  // An array master is also scanned for its functions; the one charge covers that walk.
+  // An array master is also scanned for its functions and the engine's names; the one charge covers
+  // those walks.
   const read = cell.formula
-    ? readFormulaText(cell.formula.text, scope, array !== undefined && scope.context.registersFunction !== undefined)
+    ? readFormulaText(cell.formula.text, scope, array !== undefined
+      && (scope.context.registersFunction !== undefined || scope.engineNames.size > 0))
     : null;
   const formula = read === null ? null : read.recorded;
+  // Asked for every qualifier other than the imported sheet's own.
+  let readsOtherSheet = false;
   const rebased = read !== null && shift !== null
     ? rebaseImportedFormula(read.live, shift.rowDelta, shift.colDelta, {
       self: scope.sheet.name,
-      isKnown: name => isSheetKnown(name, scope),
+      isKnown: (name) => {
+        readsOtherSheet = true;
+
+        return isSheetKnown(name, scope);
+      },
     })
     : null;
   const otherSheet = rebased !== null && rebased.unknownSheet;
@@ -1375,6 +1456,8 @@ function pushCellValue(
         cached: escapeTextFormula(toGridValue(cell, inferred), scope.context.formulasEnabled),
         recorded: formula as string,
         cachedIsError: cell.formula?.resultIsError === true,
+        readsOtherSheet,
+        names: engineNamesIn(live, scope),
       }, scope);
     }
 
@@ -1612,6 +1695,13 @@ interface CollectContext {
    * spill collide with it (`#SPILL!`).
    */
   liveArrays: LiveArraySweep;
+  /**
+   * The names a live array master can read from the engine, lower-cased: the ones the engine defines
+   * (`MapperContext.formulaNamedExpressions`) and the ones the import hands over. A master reading
+   * one the probe's scratch engine lacks is not judged by the probe (`LiveArrayRect.readsOutside`).
+   * Filled once the names are collected.
+   */
+  engineNames: Set<string>;
 }
 
 /**
@@ -1774,9 +1864,14 @@ function collectCells(
     liveArrays: {
       active: [], noted: [], spans: [], cursor: 0, maxEndCol: -1, maxEndRect: null, recorded: [], emptied: [],
     },
+    engineNames: new Set(),
   };
 
   pass.namedExpressions = collectNamedExpressions(scope);
+  scope.engineNames = new Set([
+    ...context.formulaNamedExpressions ?? [],
+    ...pass.namedExpressions.map(({ name }) => name.toLowerCase()),
+  ]);
 
   for (let row = window.firstRow; row <= window.lastRow; row++) {
     pass.data.push([]);
