@@ -322,7 +322,8 @@ export function removeImportedStyles(hot: HotInstance): void {
  * The names go in one engine batch. Each `addNamedExpression` outside a batch recalculates the
  * engine and fires `valuesUpdated`, so a workbook with hundreds of names over volatile formulas
  * (`RAND()`) took seconds; batched, the engine recalculates once. The batch resumes evaluation when
- * a call throws, and the check inside it still sees the names added earlier in the same batch.
+ * a call throws, and the check inside it still sees the names added earlier in the same batch. No
+ * batch opens when the engine refuses every name: an empty batch still pushes an engine undo step.
  */
 function addNamedExpressions(hot: HotInstance, result: ImportResult): void {
   const formulas = hot.getPlugin('formulas');
@@ -332,15 +333,23 @@ function addNamedExpressions(hot: HotInstance, result: ImportResult): void {
   }
 
   const { engine } = formulas;
-  const { namedExpressions } = result;
+  // The mapper asked the engine already, but a `beforeImport` handler, or another grid sharing the
+  // engine, may have defined the name since; `addNamedExpression` would then throw mid-batch.
+  const canAdd = (name: string, expression: string) =>
+    engine.isItPossibleToAddNamedExpression?.(name, expression) === true;
+  const namedExpressions = result.namedExpressions.map(({ name, formula }) => ({ name, expression: `=${formula}` }));
+  const first = namedExpressions.findIndex(({ name, expression }) => canAdd(name, expression));
+
+  // An empty engine batch still pushes an engine undo step, so none opens when every name is refused.
+  if (first === -1) {
+    return;
+  }
 
   engine.batch(() => {
-    namedExpressions.forEach(({ name, formula }) => {
-      const expression = `=${formula}`;
-
-      // The mapper asked the engine already, but a `beforeImport` handler, or another grid sharing
-      // the engine, may have defined the name since; `addNamedExpression` would then throw mid-batch.
-      if (engine.isItPossibleToAddNamedExpression?.(name, expression) === true) {
+    namedExpressions.slice(first).forEach(({ name, expression }, index) => {
+      // The first name passed the check above; the rest are checked inside the batch, where the
+      // check sees the names added before them.
+      if (index === 0 || canAdd(name, expression)) {
         engine.addNamedExpression(name, expression, undefined, undefined);
       }
     });

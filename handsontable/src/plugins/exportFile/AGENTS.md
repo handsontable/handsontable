@@ -322,7 +322,9 @@ Other rules:
   negative index). Three separate passes (error codes, computed values, array sizes) read every cell
   up to three times on every export with the plugin on, `exportFormulas` or not. Do not add a second
   per-cell engine pass: add the fact to `EngineCellFacts`. `xlsxEngineCellFacts.unit.js` pins one
-  read per cell by counting the engine calls whose nearest source frame is `dataProvider.ts`.
+  read per cell by counting only the engine calls made while a wrapped `getEngineCellFacts` runs
+  (an `active` flag set in a `try`/`finally`), and pins one `getEngineCellFacts` call per sheet. Its
+  grid keeps clear of the `walkArraySize` fallback, which reads a master's neighbors a second time.
 - **A HyperFormula array formula exports as an Excel dynamic array, never as a plain formula** (DEV-3648).
   Excel adds an `@` to a spilling function that is not flagged, so the master carries the dynamic flag
   (`cm="1"` on the native engine). `ExportDataProvider#getEngineCellFacts(true)` returns

@@ -771,8 +771,23 @@ describe('applyImportResult – named expressions', () => {
       data: [['=SUM(Sales)']],
       namedExpressions: [{ name: 'Sales', formula: 'Sheet1!$F$1:$F$3' }],
     })).not.toThrow();
-    expect(order.filter(([call]) => call === 'addNamedExpression')).toEqual([]);
-    expect(order.filter(([call]) => !call.startsWith('engine.batch'))).toEqual([
+    expect(order).toEqual([
+      ['batch:start'],
+      ['loadData', [['=SUM(Sales)']]],
+      ['batch:end'],
+    ]);
+  });
+
+  it('should open no engine batch when the engine refuses every name', () => {
+    // An empty engine batch still pushes an engine undo step.
+    const order = [];
+
+    applyImportResult(orderedHot(order, ['Sales', 'TaxRate']), {
+      data: [['=SUM(Sales)']],
+      namedExpressions: [{ name: 'Sales', formula: 'Sheet1!$F$1:$F$3' }, { name: 'TaxRate', formula: '0.07' }],
+    });
+
+    expect(order).toEqual([
       ['batch:start'],
       ['loadData', [['=SUM(Sales)']]],
       ['batch:end'],

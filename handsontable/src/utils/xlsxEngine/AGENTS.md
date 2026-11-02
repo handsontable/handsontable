@@ -827,9 +827,10 @@ directions.
   - **Defined names share one validator** (`definedNames.ts#selectWritableDefinedNames`): a name must
     match the Excel pattern, must not spell an A1 reference (`ZZZ1`) or an R1C1 one (`R`, `C`, `RC`,
     `R2C3`), must not repeat a name of the same scope case-insensitively, and needs a non-empty
-    definition. A letter is any Unicode letter (`\p{L}` under the `u` flag), so `Umsätze` and `Größe`
-    are written: HyperFormula accepts them, and an ASCII-only class left every formula over them as
-    `#NAME?` in Excel. It refuses a ref-like name outside the grid (`ZZZ1`) and a leading digit
+    definition. A letter is any Unicode letter (`\p{L}` under the `u` flag), as in Excel, so `Umsätze`
+    and `Größe` are written; an ASCII-only class left every formula over them as `#NAME?` in Excel.
+    HyperFormula accepts a narrower range (`[A-Za-zÀ-ʯ_]` first, Latin letters only), a subset of
+    this class: a CJK name passes here but not in HyperFormula. It refuses a ref-like name outside the grid (`ZZZ1`) and a leading digit
     (`1abc`). That is deliberate data loss, reported as `definedNames:unsupported`, instead of a file
     Excel repairs.
     `DefinedNameSnapshot` is `{ name, formula, sheetName, unsupported? }` (`sheetName: null` is

@@ -4,6 +4,7 @@ import { registerPlugin } from '../../registry';
 import { ExportFile } from '../exportFile';
 import { Formulas } from '../../formulas';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
+import ExportDataProvider from '../dataProvider';
 
 /**
  * DEV-3648: the xlsx export reads what the Formulas engine holds for a cell (its error code, its
@@ -32,6 +33,7 @@ describe('Xlsx export: the engine facts of a cell', () => {
     hot?.destroy();
     hot = null;
     container.remove();
+    jest.restoreAllMocks();
   });
 
   function createGrid(data) {
@@ -46,53 +48,65 @@ describe('Xlsx export: the engine facts of a cell', () => {
   }
 
   /**
-   * Tells whether the engine call in progress comes straight from the export data provider: the
-   * nearest frame of the repository's sources is in `dataProvider.ts`. The grid's own hooks read the
-   * engine too while the provider collects the displayed data, with the provider further up.
-   *
-   * @returns {boolean}
-   */
-  function isProviderRead() {
-    const sourceFrame = new Error().stack.split('\n')
-      .find(frame => frame.includes('/src/') && !frame.includes('__tests__'));
-
-    return sourceFrame?.includes('exportFile/dataProvider') === true;
-  }
-
-  /**
-   * Counts, per method and engine cell, the reads the export data provider makes itself.
+   * Records the engine reads made while `ExportDataProvider#getEngineCellFacts` runs, and nothing
+   * else: the grid's own hooks read the engine too while the provider collects the displayed data,
+   * outside that window. Each read is logged as `[method, row, col]`.
    *
    * @param {object} engine The engine.
-   * @returns {Map<string, number>}
+   * @returns {{ reads: Array[], factsCalls: jest.SpyInstance }}
    */
-  function countProviderReads(engine) {
-    const counts = new Map();
+  function recordFactsReads(engine) {
+    const reads = [];
+    const original = ExportDataProvider.prototype.getEngineCellFacts;
+    let active = false;
+
+    const factsCalls = jest.spyOn(ExportDataProvider.prototype, 'getEngineCellFacts')
+      .mockImplementation(function(...args) {
+        active = true;
+
+        try {
+          return original.apply(this, args);
+        } finally {
+          active = false;
+        }
+      });
 
     ['getCellType', 'getCellValue'].forEach((method) => {
-      const original = engine[method].bind(engine);
+      const read = engine[method].bind(engine);
 
       jest.spyOn(engine, method).mockImplementation((address) => {
-        if (isProviderRead()) {
-          const key = `${method}:${address.row},${address.col}`;
-
-          counts.set(key, (counts.get(key) ?? 0) + 1);
+        if (active) {
+          reads.push([method, address.row, address.col]);
         }
 
-        return original(address);
+        return read(address);
       });
     });
 
-    return counts;
+    return { reads, factsCalls };
   }
 
   it.each([false, true])('should read each cell\'s type and value at most once (exportFormulas: %s)',
     async(exportFormulas) => {
+      // `SEQUENCE(2)`'s size comes from HyperFormula's array mapping, so the walk fallback
+      // (`walkArraySize`), which reads the cells next to a master, never runs on this grid: every read
+      // counted here is the main loop's.
       const { engine } = createGrid([['=SEQUENCE(2)', 1, '=1/0'], [null, 'x', '=A1+1']]);
-      const counts = countProviderReads(engine);
+      const { reads, factsCalls } = recordFactsReads(engine);
 
       await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', { exportFormulas });
 
-      expect(counts.size).toBeGreaterThan(0);
+      expect(factsCalls).toHaveBeenCalledTimes(1);
+      expect(reads.length).toBeGreaterThan(0);
+
+      const counts = new Map();
+
+      reads.forEach((read) => {
+        const key = read.join(':');
+
+        counts.set(key, (counts.get(key) ?? 0) + 1);
+      });
+
       expect([...counts].filter(([, count]) => count > 1)).toEqual([]);
 
       const [snapshot] = writeSpy.mock.calls[0];
@@ -116,24 +130,23 @@ describe('Xlsx export: the engine facts of a cell', () => {
       const formulas = createGrid([['=1/0', 2], ['=1+1', 3]]);
       const { engine, rowAxisSyncer } = formulas;
       const toHfIndex = rowAxisSyncer.getHfIndexFromVisualIndex.bind(rowAxisSyncer);
-      const asked = [];
 
       jest.spyOn(rowAxisSyncer, 'getHfIndexFromVisualIndex')
         .mockImplementation(row => (row === 1 ? -1 : toHfIndex(row)));
-      ['getCellType', 'getCellValue'].forEach((method) => {
-        const original = engine[method].bind(engine);
 
-        jest.spyOn(engine, method).mockImplementation((address) => {
-          if (isProviderRead()) {
-            asked.push(address.row);
-          }
-
-          return original(address);
-        });
-      });
+      const { reads } = recordFactsReads(engine);
 
       await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', { exportFormulas: true });
 
-      expect(asked).not.toContain(-1);
+      const askedRows = reads.map(([, row]) => row);
+
+      expect(askedRows).not.toContain(-1);
+      // The skip is per cell: row 0 is still read, and its facts still reach the file.
+      expect(askedRows).toContain(0);
+
+      const [snapshot] = writeSpy.mock.calls[0];
+      const { rows } = snapshot.sheets[0];
+
+      expect(rows[0][0].formula).toEqual(expect.objectContaining({ text: '1/0', result: '#DIV/0!' }));
     });
 });
