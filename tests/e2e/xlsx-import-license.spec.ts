@@ -202,9 +202,13 @@ for (const engine of ['native', 'exceljs'] as const) {
         ]));
 
         expect(features, token).toEqual(expected);
-        // The import names only its own tokens, so a missing export-only token leaves no entry.
+        // The import names only its own tokens, so a missing export-only token leaves no entry, and
+        // only a feature the file carries: the umd bundle has no HyperFormula, so its export holds
+        // no formula.
+        const fileHasIt = token !== 'xlsx:number_formats' && (token !== 'xlsx:formulas' || bundle === 'full-min');
+
         expect(result.dropped.filter((name: string) => name.startsWith('license:')), token)
-          .toEqual(token === 'xlsx:number_formats' ? [] : [`license:${token}`]);
+          .toEqual(fileHasIt ? [`license:${token}`] : []);
       }
     });
 

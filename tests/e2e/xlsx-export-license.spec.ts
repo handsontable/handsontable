@@ -249,9 +249,10 @@ for (const engine of ['native', 'exceljs'] as const) {
       const warnings = await lic.warnings();
 
       expect(xml).not.toContain('<sheetProtection');
+      // No `conditionalFormatting` option here, so the warning leaves out its token.
       expect(await licenseWarnings(lic)).toEqual([
         'The xlsx export skipped features your license does not unlock: xlsx:number_formats, xlsx:comments, '
-        + 'xlsx:styles, xlsx:conditional_formatting, xlsx:data_validation, xlsx:protection.',
+        + 'xlsx:styles, xlsx:data_validation, xlsx:protection.',
       ]);
       expect(warnings.some(message => message.includes(PASSWORD))).toBe(false);
     });
