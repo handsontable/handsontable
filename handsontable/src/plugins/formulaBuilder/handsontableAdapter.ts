@@ -582,20 +582,78 @@ export class HandsontableAdapter {
   }
 
   /**
-   * Returns what the reference drag's edge auto-scroller scrolls: the scroll holder, or the window's
-   * viewport when the window owns both axes. The viewport cannot be the document's scrolling element
-   * itself: its rectangle is the whole page, so a pointer below the window would still sit inside it
-   * and the page would never scroll. The stand-in reports the viewport's box and steps the page.
+   * Returns what the reference drag's edge auto-scroller scrolls, per axis: the element that owns the
+   * axis, or a stand-in for the window's viewport when the window owns it. With one owner for both
+   * axes that owner is returned; with a pixel `width` and no `height` the window scrolls the rows and
+   * the holder the columns, so the target takes its vertical members from the viewport and its
+   * horizontal ones from the holder. The holder alone spans every row there, so a pointer below the
+   * window still sat inside it and the page never scrolled.
    *
    * @returns {AutoScrollTarget | null}
    */
   getAutoScrollTarget(): AutoScrollTarget | null {
-    const holder = this.getScrollHolder();
+    const overlays = this.#hot.view?._wt?.wtOverlays;
+    const verticalOwner = overlays?.topOverlay?.mainTableScrollableElement;
+    const horizontalOwner = overlays?.inlineStartOverlay?.mainTableScrollableElement;
+    const viewport = this.#viewportScrollTarget();
+    const vertical = isHTMLElement(verticalOwner) ? verticalOwner : viewport;
+    const horizontal = isHTMLElement(horizontalOwner) ? horizontalOwner : viewport;
 
-    if (holder) {
-      return holder;
+    if (vertical === null || horizontal === null) {
+      return vertical ?? horizontal;
     }
 
+    if (vertical === horizontal) {
+      return vertical;
+    }
+
+    return {
+      getBoundingClientRect: () => {
+        const verticalBox = vertical.getBoundingClientRect();
+        const horizontalBox = horizontal.getBoundingClientRect();
+
+        return {
+          left: horizontalBox.left,
+          right: horizontalBox.right,
+          top: verticalBox.top,
+          bottom: verticalBox.bottom,
+        };
+      },
+      get scrollLeft() {
+        return horizontal.scrollLeft;
+      },
+      set scrollLeft(value: number) {
+        horizontal.scrollLeft = value;
+      },
+      get scrollTop() {
+        return vertical.scrollTop;
+      },
+      set scrollTop(value: number) {
+        vertical.scrollTop = value;
+      },
+      get clientLeft() {
+        return horizontal.clientLeft;
+      },
+      get clientTop() {
+        return vertical.clientTop;
+      },
+      get clientWidth() {
+        return horizontal.clientWidth;
+      },
+      get clientHeight() {
+        return vertical.clientHeight;
+      },
+    };
+  }
+
+  /**
+   * Returns a stand-in for the window's viewport. It cannot be the document's scrolling element itself:
+   * its rectangle is the whole page, so a pointer below the window would still sit inside it and the
+   * page would never scroll. The stand-in reports the viewport's box and steps the page.
+   *
+   * @returns {AutoScrollTarget | null}
+   */
+  #viewportScrollTarget(): AutoScrollTarget | null {
     const rootDocument = this.#hot.rootDocument;
     const viewport = rootDocument.documentElement;
     // The root element in standards mode; an environment without `scrollingElement` scrolls it too.

@@ -337,8 +337,11 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   computes its edge zones from `getBoundingClientRect()`, and the root element's rectangle is the whole
   page, so a pointer below the window sits inside it and nothing scrolls. The stand-in reports the
   viewport's box and forwards `scrollTop`/`scrollLeft` to the scrolling element (`window-scroll` fixture
-  variant, `formula-builder-picking.spec.ts`). In `split-scroll` the holder wins and its rectangle spans
-  every row, so a drag below the window still does not scroll the page there.
+  variant, `formula-builder-picking.spec.ts`). The target is built PER AXIS: when the two axes have
+  different owners (`split-scroll`: the window scrolls the rows, the holder the columns) it is a composite
+  whose vertical members come from the viewport stand-in and horizontal ones from the holder. Handing it
+  the holder alone left a drag below the window inside the holder's rectangle, which spans every row,
+  so the page never scrolled.
 - **The tracked column header level comes from `TableView#getColumnHeadersCount()`, not from the levels
   seen.** A deepest-level-seen rule only grows, so `updateSettings({ nestedHeaders: false })` (which does
   not rebuild the adapter) left level 0 untracked and the column headers untinted for good.

@@ -255,12 +255,60 @@ describe('HandsontableAdapter host delegation', () => {
     expect(adapter.getScrollHolder()).toBe(holder);
   });
 
-  it('auto-scrolls the scroll holder when there is one', () => {
+  it('auto-scrolls the scroll holder when it owns both axes', () => {
     const holder = document.createElement('div');
-    const view = { _wt: { wtOverlays: { topOverlay: { mainTableScrollableElement: holder } } } };
+    const view = {
+      _wt: {
+        wtOverlays: {
+          topOverlay: { mainTableScrollableElement: holder },
+          inlineStartOverlay: { mainTableScrollableElement: holder },
+        },
+      },
+    };
     const { adapter } = makeMappedAdapter({ view } as Parameters<typeof makeMappedAdapter>[0]);
 
     expect(adapter.getAutoScrollTarget()).toBe(holder);
+  });
+
+  it('auto-scrolls the window\'s viewport vertically and the holder horizontally when they split the axes', () => {
+    const holder = document.createElement('div');
+    const view = {
+      _wt: {
+        wtOverlays: {
+          topOverlay: { mainTableScrollableElement: window },
+          inlineStartOverlay: { mainTableScrollableElement: holder },
+        },
+      },
+    };
+    const { adapter } = makeMappedAdapter({ view } as Parameters<typeof makeMappedAdapter>[0]);
+    const viewport = document.documentElement;
+    const scroller = document.scrollingElement ?? viewport;
+
+    jest.spyOn(viewport, 'clientHeight', 'get').mockReturnValue(600);
+    jest.spyOn(viewport, 'clientWidth', 'get').mockReturnValue(800);
+    // The holder is as tall as the table: a pointer below the window would still sit inside it.
+    jest.spyOn(holder, 'getBoundingClientRect').mockReturnValue({
+      left: 20, top: 40, right: 320, bottom: 2400,
+    } as DOMRect);
+    jest.spyOn(holder, 'clientWidth', 'get').mockReturnValue(300);
+    jest.spyOn(holder, 'clientHeight', 'get').mockReturnValue(2360);
+
+    const target = adapter.getAutoScrollTarget();
+
+    expect(target?.getBoundingClientRect()).toEqual({ left: 20, top: 0, right: 320, bottom: 600 });
+    expect([target?.clientWidth, target?.clientHeight]).toEqual([300, 600]);
+
+    scroller.scrollTop = 0;
+    holder.scrollLeft = 0;
+    (target as NonNullable<typeof target>).scrollTop = 24;
+    (target as NonNullable<typeof target>).scrollLeft = 12;
+
+    expect(scroller.scrollTop).toBe(24);
+    expect(holder.scrollLeft).toBe(12);
+    expect(scroller.scrollLeft).toBe(0);
+
+    scroller.scrollTop = 0;
+    jest.restoreAllMocks();
   });
 
   it('auto-scrolls the window\'s viewport when the window scrolls both axes', () => {

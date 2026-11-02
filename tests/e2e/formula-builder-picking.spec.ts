@@ -1,4 +1,4 @@
-import { devices } from '@playwright/test';
+import { devices, type Page } from '@playwright/test';
 import { test, expect, THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { FormulaBuilderPage } from '../fixtures/pages/FormulaBuilderPage';
 
@@ -570,26 +570,16 @@ test.describe('formulaBuilder picking next to other plugins\' controls', { tag: 
 // page: the grid's holder never overflows, and DragToScroll stays out of a claimed press. Themes: the
 // row heights decide how many rows fit the viewport. Engines: a pointer held past the window edge.
 test.describe('formulaBuilder picking in a window-scrolled grid', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
-  test('a reference drag held below the viewport scrolls the page and extends the range', async({ page, theme, bundle, browserName }) => {
-    const grid = new FormulaBuilderPage(page, theme, bundle, 'window-scroll');
-
-    await grid.goto();
-    await grid.selectCellByApi(0, 0);
-    await page.keyboard.press('=');
-    await expect(grid.editorInput).toBeFocused();
-
+  /**
+   * Starts a reference drag on B1 and holds the pointer 40px below the viewport.
+   *
+   * @param {Page} page The page.
+   * @param {FormulaBuilderPage} grid The grid page object.
+   * @param {string} browserName The engine.
+   */
+  async function holdDragBelowViewport(page: Page, grid: FormulaBuilderPage, browserName: string): Promise<void> {
     const viewport = page.viewportSize();
     const start = await grid.cell(0, 1).boundingBox();
-    const scrollY = () => page.evaluate(() => window.scrollY);
-
-    const endRow = async() => Number((await grid.editorInput.inputValue()).match(/^=B1:B(\d+)$/)?.[1] ?? 0);
-
-    expect(await scrollY()).toBe(0);
-    // The page scrolls, and the grid's own holder does not.
-    expect(await page.evaluate(() => document.documentElement.scrollHeight > window.innerHeight)).toBe(true);
-    expect(await grid.grid.locator('.ht_master .wtHolder').evaluate(holder => holder.scrollHeight > holder.clientHeight))
-      .toBe(false);
-
     const pointerX = (start?.x ?? 0) + 10;
     const belowViewport = (viewport?.height ?? 0) + 40;
 
@@ -613,9 +603,59 @@ test.describe('formulaBuilder picking in a window-scrolled grid', { tag: [THEMES
     } else {
       await page.mouse.move(pointerX, belowViewport);
     }
+  }
+
+  test('a reference drag held below the viewport scrolls the page and extends the range', async({ page, theme, bundle, browserName }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle, 'window-scroll');
+
+    await grid.goto();
+    await grid.selectCellByApi(0, 0);
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+
+    const scrollY = () => page.evaluate(() => window.scrollY);
+    const endRow = async() => Number((await grid.editorInput.inputValue()).match(/^=B1:B(\d+)$/)?.[1] ?? 0);
+
+    expect(await scrollY()).toBe(0);
+    // The page scrolls, and the grid's own holder does not.
+    expect(await page.evaluate(() => document.documentElement.scrollHeight > window.innerHeight)).toBe(true);
+    expect(await grid.grid.locator('.ht_master .wtHolder').evaluate(holder => holder.scrollHeight > holder.clientHeight))
+      .toBe(false);
+
+    await holdDragBelowViewport(page, grid, browserName);
 
     // The pointer stays past the bottom edge: the auto-scroller keeps stepping on its own until the
     // page has brought row 26 into view. The editor takes the reference on the release.
+    await expect.poll(scrollY).toBeGreaterThan(0);
+    await expect(grid.cell(25, 1)).toBeInViewport();
+
+    await page.mouse.up();
+    await expect(grid.editorInput).toHaveValue(/^=B1:B\d{2}$/);
+    expect(await endRow()).toBeGreaterThan(20);
+  });
+
+  test('a reference drag held below the viewport scrolls the page when the holder scrolls only the columns', async({ page, theme, bundle, browserName }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle, 'split-scroll');
+
+    await grid.goto();
+    await grid.updateGridSettings({ data: Array.from({ length: 60 }, (_, row) => [row + 1, (row + 1) * 2, '']) });
+    await grid.selectCellByApi(0, 0);
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+
+    const scrollY = () => page.evaluate(() => window.scrollY);
+    const endRow = async() => Number((await grid.editorInput.inputValue()).match(/^=B1:B(\d+)$/)?.[1] ?? 0);
+
+    expect(await scrollY()).toBe(0);
+    // The window scrolls the rows; the holder is as tall as the table and scrolls only the columns.
+    expect(await page.evaluate(() => document.documentElement.scrollHeight > window.innerHeight)).toBe(true);
+    expect(await grid.grid.locator('.ht_master .wtHolder').evaluate(holder => holder.scrollHeight > holder.clientHeight))
+      .toBe(false);
+    expect(await grid.grid.locator('.ht_master .wtHolder').evaluate(holder => holder.scrollWidth > holder.clientWidth))
+      .toBe(true);
+
+    await holdDragBelowViewport(page, grid, browserName);
+
     await expect.poll(scrollY).toBeGreaterThan(0);
     await expect(grid.cell(25, 1)).toBeInViewport();
 
