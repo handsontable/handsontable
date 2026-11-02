@@ -82,6 +82,34 @@ rows are trimmed covers no cell on screen, so it does not refuse a merge over it
 Pinned by `tests/e2e/merge-cells-rejected-merge-undo.spec.ts` and the `canAdd` block of
 `__tests__/cellsCollection.unit.ts`.
 
+**The check costs `min(cells of the new merge, merges in the collection)`, never their product (DEV-3657).**
+`isOverlapping()` and the restore's `#restoreAnchoredArea` both go through
+`MergedCellsCollection#overlapsLiveMerge()`. Scanning every merge per add made `n` merges cost `n²/2`
+range checks, twice per merge (`canAdd()` and `add()`), each allocating `CellCoords` through
+`CellRange#overlaps`: 8,000 merges in one `batch()` took 17.6 s in a browser. Three rules keep it linear
+without changing an answer:
+
+- **A merge with no more cells than there are merges reads its own cells from the matrix.** A cell's owner
+  refuses the merge when the matrix holds it at its own top-left (`get(owner.row, owner.col) === owner`) and
+  it is not ignored, which is the filter the scan applies.
+- **Once a merge was written over another one's cell, every check scans the list.** A sort can draw two
+  merges over each other (`relocateInMatrix` has no overlap guard), and so can `add(…, true)`. The matrix then
+  names one merge per cell, and removing the one on top leaves a hole in the one under it, so the cells no
+  longer show every merge an area meets. `#addMergedCellToMatrix` sets `#hasDrawnOver` when it overwrites
+  another merge's entry, and only a full rebuild (`clear()`, `shiftCollections()`,
+  `translateAfterAxisMove()`) resets it. A grid that never had such an overlap never scans.
+- **A merge with more cells than there are merges scans the list with plain arithmetic**
+  (`areMergesOverlapping`, `utils.ts`), not `CellRange#overlaps`. Do not drop this branch: walking every cell
+  of one large merge against a few others undoes #13083 (MergeCells scales with merge count, not grid size).
+
+**Row trimming is not covered.** With a trimmed row between the rows a new merge covers,
+`#fillTrimmedGaps` still reads the anchors of every other merge (`#getRowsOwnedBesides`), so a batch on a
+filtered sheet stays quadratic there.
+
+Pinned by `__tests__/mergeCountScaling.unit.js` (it counts lookups and scan comparisons, not time) and the
+`the overlap check` block of `__tests__/cellsCollection.unit.ts`: the scan pin with one large merge, the reset
+after a rebuild, and the ignored, purged, drawn-over and drawn-over-then-removed cases on both branches.
+
 Undo and redo carry the anchors too: `captureState()` returns every merge with its anchor, and
 `restoreState(state, context)` applies only what the step changed: it removes the live merges listed on
 the other side of the step but not in `state`, adds the ones `state` lists that the other side did not,

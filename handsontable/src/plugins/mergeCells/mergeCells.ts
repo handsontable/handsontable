@@ -17,6 +17,7 @@ import { isChrome } from '../../helpers/browser';
 import type { CellBlockProvider } from '../../selection/cellBlocks';
 import { createMergeCellRenderer } from './renderer';
 import {
+  areMergesOverlapping,
   sumCellsHeights,
   toMergeAreaKey,
   getFirstRenderedRowOfOverlay,
@@ -119,18 +120,6 @@ function isMergeListed(list: readonly MergeStateEntry[], entry: MergeStateEntry)
     listed.row === entry.row && listed.col === entry.col && listed.rowspan === entry.rowspan &&
     listed.colspan === entry.colspan && areAnchorsEqual(listed.anchor, entry.anchor)
   ));
-}
-
-/**
- * Tells whether two merge areas share a cell.
- *
- * @param {object} left One area.
- * @param {object} right The other area.
- * @returns {boolean}
- */
-function areMergesOverlapping(left: MergeAreaGeometry, right: MergeAreaGeometry): boolean {
-  return left.row < right.row + right.rowspan && right.row < left.row + left.rowspan &&
-    left.col < right.col + right.colspan && right.col < left.col + left.colspan;
 }
 
 /**
@@ -1224,12 +1213,7 @@ export class MergeCells extends BasePlugin {
       merge = collection.addOutsideMatrix({ row, col, rowspan, colspan });
 
     } else {
-      const isOverlapping = collection.mergedCells.some(mergedCell => (
-        !restoredMerges.has(mergedCell) &&
-        collection.get(mergedCell.row, mergedCell.col) === mergedCell && areMergesOverlapping(geometry, mergedCell)
-      ));
-
-      if (isOverlapping) {
+      if (collection.overlapsLiveMerge(geometry, mergedCell => restoredMerges.has(mergedCell))) {
         return false;
       }
 
