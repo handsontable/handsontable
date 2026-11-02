@@ -1019,9 +1019,11 @@ class Xlsx extends BaseType {
       ), 'xlsx:styles');
     }
 
-    // The same test `getDropdownValidation` makes: a function `source` writes no list.
+    // The same test `getDropdownValidation` and `#buildValidationSheet` make: a function `source` and
+    // an empty list write no validation.
     this.#needIf(
-      (meta.type === 'dropdown' || meta.type === 'autocomplete') && Array.isArray(meta.source),
+      (meta.type === 'dropdown' || meta.type === 'autocomplete')
+        && Array.isArray(meta.source) && meta.source.length > 0,
       'xlsx:data_validation'
     );
     this.#needIf(Boolean(meta.comment?.value), 'xlsx:comments');

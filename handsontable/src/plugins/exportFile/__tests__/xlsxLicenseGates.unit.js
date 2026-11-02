@@ -582,6 +582,8 @@ describe('Xlsx export license gates', () => {
     for (const [type, source, expected] of [
       ['dropdown', sourceFn, []],
       ['autocomplete', sourceFn, []],
+      // An empty list writes no validation either: `#buildValidationSheet` skips it.
+      ['dropdown', [], []],
       ['dropdown', ['Engineering'], ['xlsx:data_validation']],
       ['autocomplete', ['Engineering'], ['xlsx:data_validation']],
     ]) {
@@ -590,6 +592,12 @@ describe('Xlsx export license gates', () => {
       // eslint-disable-next-line no-await-in-loop
       await withMockSheet({ ...PLAIN_SHEET, cellsMeta: [[{}, { type, source }], [{}, {}]] }, async() => {
         await exportSnapshot(keyWith(['xlsx:export']), { conditionalFormatting: [], exportFormulas: false });
+
+        // A full key writes a validation exactly when the warning would name the token.
+        const full = await exportSnapshot(keyWith(ALL_XLSX_TOKENS), { conditionalFormatting: [] });
+
+        expect([type, source, full.sheets[0].rows[0][1].validation !== null])
+          .toEqual([type, source, expected.length > 0]);
       });
 
       expect([type, typeof source, exportWarnings()]).toEqual([
