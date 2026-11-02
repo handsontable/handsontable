@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Made adding many merged cells at once, and restoring them on a sheet switch, scale linearly with the number of merged cells.",
+  "type": "fixed",
+  "issueOrPR": 14099,
+  "breaking": false,
+  "framework": "none"
+}
