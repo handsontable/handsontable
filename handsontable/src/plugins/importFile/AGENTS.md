@@ -425,7 +425,10 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `Sheet1`. Such a qualifier imports the cached value with `formula:otherSheet`; a qualifier spelled like
   the grid's sheet that names no workbook sheet stays live, and so does a sheet another grid holds in a
   shared engine. Both readers carry the workbook's names (`WorkbookSnapshot.definedNames`, Excel's
-  `_xlnm.` names left out). The ExcelJS reader carries RANGE names only: ExcelJS 4.4's
+  `_xlnm.` names left out). **The ExcelJS reader flags every name `unsupported`** (it loses the scope
+  and keeps one definition of a name defined in several scopes), so on that engine no name is ever
+  registered: a formula over one imports its cached value unless the engine already defines the name
+  with the file's definition. The ExcelJS reader carries RANGE names only: ExcelJS 4.4's
   `definedNames.model` drops a name whose value is a constant (`<definedName name="TaxRate">0.07`)
   and a relative one (`Data!G2`), so a formula over such a name stays live and shows `#NAME?` on that
   engine, with nothing reported. A multi-area name reaches the mapper from both readers as its areas

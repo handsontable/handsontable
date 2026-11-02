@@ -264,15 +264,21 @@ for (const engine of ['exceljs', 'native'] as const) {
       // 12:00 is a time; 25:30 does not fit a clock, so it stays the number of days it is.
       await expect(grids.targetCell(0, 4)).toHaveText('12:00');
       await expect(grids.targetCell(1, 4)).toHaveText('1.0625');
-      // The import registers the workbook's `Sales` in the target's Formulas engine, so `=SUM(Sales)`
-      // stays a live formula and evaluates to 60.
+      // The built-in engine registers the workbook's `Sales` in the target's Formulas engine, so
+      // `=SUM(Sales)` stays a live formula and evaluates to 60. ExcelJS loses the name's scope, so the
+      // name is not registered and the formula imports its cached 60.
       await expect(grids.targetCell(0, 6)).toHaveText('60');
 
       const result = await grids.lastImport();
 
       expect((result.engine as { kind: string }).kind).toBe(engine);
       expect(result.dropped).toContain('numFmt:[h]:mm');
-      expect(result.dropped).not.toContain('formula:definedName');
+
+      if (engine === 'native') {
+        expect(result.dropped).not.toContain('formula:definedName');
+      } else {
+        expect(result.dropped).toEqual(expect.arrayContaining(['formula:definedName', 'definedNames:unsupported']));
+      }
     });
 
     test('keeps a formula over defined names live when the Formulas engine defines them', async () => {
@@ -289,9 +295,18 @@ for (const engine of ['exceljs', 'native'] as const) {
 
       await expect(grids.targetCell(1, 3)).toHaveText('60');
       await expect(grids.targetCell(2, 3)).toHaveText('7');
-      expect(outcome.sources).toEqual(['=SUM(Sales)', '=Rate*100']);
-      expect(outcome.names).toEqual(expect.arrayContaining(['Sales', 'Rate']));
-      expect(outcome.dropped).not.toContain('formula:definedName');
+
+      if (engine === 'native') {
+        expect(outcome.sources).toEqual(['=SUM(Sales)', '=Rate*100']);
+        expect(outcome.names).toEqual(expect.arrayContaining(['Sales', 'Rate']));
+        expect(outcome.dropped).not.toContain('formula:definedName');
+      } else {
+        // ExcelJS loses every name's scope, so none is registered: the formulas import their cached
+        // values.
+        expect(outcome.sources).toEqual([60, 7]);
+        expect(outcome.names).toEqual([]);
+        expect(outcome.dropped).toEqual(expect.arrayContaining(['formula:definedName', 'definedNames:unsupported']));
+      }
     });
 
     test('imports the cached value of a formula over a name the Formulas engine defines differently', async () => {

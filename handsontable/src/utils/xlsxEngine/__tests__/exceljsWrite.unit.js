@@ -536,7 +536,12 @@ describe('excelJsAdapter.write', () => {
         const read = await adapter.read(toArrayBuffer(bytes), adapter === excelJsAdapter ? ExcelJS : undefined,
           new DroppedFeatures());
 
-        expect(read.definedNames).toEqual([{ name: 'Quoted', formula: '\'My Sheet\'!$A$1:$B$2', sheetName: null }]);
+        // The ExcelJS reader flags every name it reads (it loses the scope).
+        const flag = adapter === excelJsAdapter ? { unsupported: true } : {};
+
+        expect(read.definedNames).toEqual([
+          { name: 'Quoted', formula: '\'My Sheet\'!$A$1:$B$2', sheetName: null, ...flag },
+        ]);
       }
     });
 

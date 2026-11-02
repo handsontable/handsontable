@@ -199,11 +199,14 @@ describe('xlsx round trip through exportFile and importFile with HyperFormula', 
     ]);
     expect(hot.getData()).toEqual(SHOWN);
 
-    // A fresh grid: a formula over the left-out constant shows `#NAME?`, as documented.
+    // A fresh grid: ExcelJS loses the scope of every name, so none is registered and `=SUM(Sales)`
+    // imports its cached value; a formula over the left-out constant shows `#NAME?`, as documented.
     const target = createGrid([[null]]);
     const fresh = await importBytes(target, bytes, ExcelJS);
 
-    expect(fresh.namedExpressions).toEqual([{ name: 'Sales', formula: 'Data!$A$1:$A$3' }]);
+    expect(fresh.namedExpressions).toBeUndefined();
+    expect(fresh.dropped).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+    expect(target.getSourceDataAtRow(0)[4]).toBe(SHOWN[0][4]);
     expect(target.getData()[0][6]).toBe('#NAME?');
     expect(target.getData().map(row => row.slice(0, 6))).toEqual(SHOWN.map(row => row.slice(0, 6)));
   });

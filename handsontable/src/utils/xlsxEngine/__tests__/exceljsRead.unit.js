@@ -464,10 +464,37 @@ describe('excelJsAdapter.read on defined names', () => {
       bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), ExcelJS, dropped,
     );
 
+    // Flagged: ExcelJS loses the scope, so no definition it reads is one `importFile` can trust.
     expect(snapshot.definedNames).toEqual([
-      { name: 'Multi', formula: 'Sheet1!$A$1,Sheet1!$C$1', sheetName: null },
-      { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null },
+      { name: 'Multi', formula: 'Sheet1!$A$1,Sheet1!$C$1', sheetName: null, unsupported: true },
+      { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null, unsupported: true },
     ]);
     expect(dropped.list()).toEqual([]);
+  });
+
+  it('should flag every name, since a name defined in two scopes keeps one definition without its scope', async() => {
+    // ExcelJS 4.4 keys its names by name: of the workbook `Rate` and the `Sheet2` one, only the last
+    // survives, read as workbook-wide. Registered, `=Rate*100` on Sheet1 read Sheet2's rate.
+    const workbook = createWorkbookSnapshot();
+
+    ['Sheet1', 'Sheet2'].forEach((name) => {
+      const sheet = createSheetSnapshot(name);
+
+      sheet.rows = [[{ ...createCellSnapshot(), value: 1 }]];
+      workbook.sheets.push(sheet);
+    });
+    workbook.definedNames = [
+      { name: 'Rate', formula: 'Sheet1!$A$1', sheetName: null },
+      { name: 'Rate', formula: 'Sheet2!$A$1', sheetName: 'Sheet2' },
+    ];
+
+    const bytes = await nativeAdapter.write(workbook, undefined, new DroppedFeatures());
+    const snapshot = await excelJsAdapter.read(
+      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), ExcelJS, new DroppedFeatures(),
+    );
+
+    expect(snapshot.definedNames).toEqual([
+      { name: 'Rate', formula: 'Sheet2!$A$1', sheetName: null, unsupported: true },
+    ]);
   });
 });

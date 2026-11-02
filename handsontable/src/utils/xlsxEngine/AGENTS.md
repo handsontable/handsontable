@@ -840,7 +840,11 @@ directions.
     `importFile` import a formula over it live as `#NAME?`; kept, HyperFormula's `validateFormula`
     refuses the union, so the formula imports its cached value with `formula:definedName`. It loses
     the sheet scope, drops constants, and cannot see a name defined in several scopes: ExcelJS 4.4's
-    `definedNames.model` setter keys its map by name, so the LAST definition wins with one range. Its
+    `definedNames.model` setter keys its map by name, so the LAST definition wins with one range.
+    **So every name it reads is flagged `unsupported`** and `importFile` registers none: with a
+    workbook `Rate` and a `Sheet2` one, only Sheet2's came back, workbook-wide, and registering it made
+    `=Rate*100` on Sheet1 read 42 instead of 1 (4200, not 100). The reader records nothing itself; the
+    mapper reports `definedNames:unsupported` when a formula's name stays unresolved. Its
     writer takes workbook-scoped, sheet-qualified single ranges only, with a total area under
     `MAX_EXCELJS_DEFINED_NAME_CELLS` (`writeLimits.ts`, 100,000), and reports `definedNames:unsupported` once for everything else.
   - **A name the reader cannot trust is KEPT, flagged, never dropped** (`DefinedNameSnapshot.unsupported`).

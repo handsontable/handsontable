@@ -40,7 +40,7 @@ The table covers both directions: **read** is what an import takes from the file
 | Conditional formatting | All rule kinds except `colorScale`, `dataBar`, `iconSet`, and rules Excel stores only in an `x14` extension | `cellIs`, `expression`, `containsText`, `top10`, `aboveAverage`, `timePeriod` | All kinds | `cellIs`, `expression`, `containsText`, `top10`, `aboveAverage`, `timePeriod`, `colorScale`, `dataBar`, `iconSet`; any other kind, such as `duplicateValues`, is left out with no report |
 | Numeric `compression` level | - | Platform default, reported as `compressionLevel` for any level but 6 | - | Honored |
 | Array formulas | Dynamic and legacy (CSE) arrays | Dynamic arrays, and `ARRAYFORMULA` as a legacy array | Every array as a legacy array | Legacy arrays only; a dynamic array is written as one and reported as `dynamicArrays` |
-| Defined names | Ranges and constants, workbook and sheet scope | Ranges and constants, workbook and sheet scope | Ranges, including a name over several areas; scope is lost; no constants | Workbook-scoped names over one range on a sheet |
+| Defined names | Ranges and constants, workbook and sheet scope | Ranges and constants, workbook and sheet scope | Not registered: scope is lost, so formulas over a name import their cached values | Workbook-scoped names over one range on a sheet |
 | Chart, dialog, and macro sheets, VBA projects | Skipped and reported | - | Skipped, not reported | - |
 
 What each engine reports when it drops something: [Dropped features reference](@/guides/import-and-export/dropped-features/dropped-features.md).
@@ -107,7 +107,7 @@ The ExcelJS engine reads these files differently, whatever wrote them:
 - A cell that uses one of Excel's built-in currency or accounting formats (ids 5-8 and 41-44) imports with no number format.
 - A workbook that openpyxl saved with a cell comment is refused, because ExcelJS looks for comments under `xl/comments<N>.xml` only.
 - ExcelJS cannot see the flag Excel 365 sets on a dynamic array, so every array formula reads as a legacy array and imports as `ARRAYFORMULA(...)`. The built-in engine imports a dynamic array live and lets it spill.
-- A defined name over several areas is read, but HyperFormula cannot evaluate it, so a formula over the name imports its cached value and the import reports `definedNames:unsupported` and `formula:definedName`. The built-in engine does the same. A name scoped to a sheet reads as a workbook name, and a name defined in several scopes keeps only one definition. A name defined as a constant is not read: a formula over it stays live and shows `#NAME?`, with nothing reported.
+- Defined names are not added to the Formulas plugin's engine. ExcelJS loses a name's scope, and of a name defined in several scopes it keeps one definition, so the import cannot tell which definition a sheet reads. A formula over a range name therefore imports its cached value, and the import reports `definedNames:unsupported` and `formula:definedName`. A name the engine already defines with the same range keeps the formulas over it live. A name defined as a constant, or with a relative reference, is not read: a formula over it stays live and shows `#NAME?`, with nothing reported. To keep formulas over defined names live, use the built-in engine.
 
 ### ExcelJS on export
 

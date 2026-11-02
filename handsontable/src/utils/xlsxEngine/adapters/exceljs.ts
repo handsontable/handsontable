@@ -759,8 +759,13 @@ function readNumFmt(source: ExcelJsCell): string | null {
  * is one the Formulas engine refuses (`validateFormula` rejects the union), so the formula imports
  * its cached value and the import reports `formula:definedName` and `definedNames:unsupported`, as
  * the native reader's text does. ExcelJS regroups adjacent areas, so the joined text may differ from
- * the file's while covering the same cells. ExcelJS 4.4 keeps one definition of a name defined in
- * several scopes (the last), and the reader cannot tell it happened.
+ * the file's while covering the same cells.
+ *
+ * Every name is flagged `unsupported`. ExcelJS 4.4 drops the scope and keeps one definition of a
+ * name defined in several scopes (the last), and the reader cannot tell it happened: with a
+ * workbook-wide `Rate` and a `Sheet2` one, the `Sheet2` one came back as workbook-wide, and
+ * registering it made `=Rate*100` on another sheet read the wrong rate. Flagged, `importFile`
+ * registers none of them, so the formulas over them import their cached values.
  *
  * @param {object} workbook The loaded ExcelJS workbook.
  * @returns {DefinedNameSnapshot[]}
@@ -780,7 +785,7 @@ function readDefinedNames(workbook: ExcelJsWorkbook): DefinedNameSnapshot[] {
       return;
     }
 
-    names.set(name, { name, formula: areas.join(','), sheetName: null });
+    names.set(name, { name, formula: areas.join(','), sheetName: null, unsupported: true });
   });
 
   return [...names.values()];

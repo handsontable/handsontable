@@ -186,8 +186,11 @@ describe('workbooks a spreadsheet app saved', () => {
       });
 
       ['native', 'exceljs'].forEach((kind) => {
+        // The ExcelJS reader flags every name it reads: it loses the scope.
+        const flag = kind === 'exceljs' ? { unsupported: true } : {};
+
         expect(unknown[kind].read.definedNames).toEqual([
-          { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null },
+          { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null, ...flag },
         ]);
         expect(unknown[kind].result.data[0][6]).toBe(60);
         expect(unknown[kind].result.formulas).toEqual(expect.arrayContaining([
