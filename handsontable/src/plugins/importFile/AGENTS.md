@@ -591,11 +591,16 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `engine.batch()` (none when the list is empty, since an empty batch still pushes an engine undo
   step): unbatched, every `addNamedExpression` recalculated the engine and fired `valuesUpdated`,
   and 300 names over `RAND()` rows took ~6 s instead of ~25 ms. Do not route it through the
-  plugin's `registerNamedExpressions` – it takes another input shape and swallows errors. Each add
-  is wrapped (`addOrReport`): `addNamedExpression` evaluates the definition at once and HyperFormula
-  can still throw there (`RangeError: Invalid array length`), so a throw removes the name again when
-  the engine lists it and pushes `definedNames:unsupported` onto `result.dropped` (the warning has
-  already been logged by then), and the import goes on.
+  plugin's `registerNamedExpressions` – it takes another input shape and swallows errors. **Inside the
+  batch HyperFormula 3.3 evaluates nothing**: `addNamedExpression` only records the name, and the
+  evaluation runs in `resumeEvaluation()` when `engine.batch()` ends, so a `RangeError: Invalid array
+  length` over a huge range leaves `engine.batch()` itself (its `finally`-like path has already reset
+  the suspended flag before it recalculates). `addNamedExpressions` therefore wraps the whole
+  `engine.batch()` call: on a throw it resumes evaluation if the engine is still suspended, removes
+  every name THIS call added (which one threw is unknown), each removal in its own `try` because a
+  removal recalculates and can throw again, and pushes `definedNames:unsupported` onto
+  `result.dropped` (the warning has already been logged by then); the import goes on. Each add is
+  wrapped too (`addOrReport`), for an engine that refuses or evaluates on the add itself.
 - **A definition is bounded BEFORE the engine sees it** (QA round 3, `collectNamedExpressions`,
   constants in `utils/xlsxEngine/limits.ts`). HyperFormula parses a definition twice in `canAdd`
   (9-27 ms per 32k characters in Chrome, against 0.6 ms for the import's own walk) and evaluates it

@@ -672,7 +672,7 @@ directions.
   charged ONCE per formula for the prefix strip, the reference shift (with its sheet-qualifier
   check) and the defined-name scan together — see `plugins/importFile/AGENTS.md`. That budget bounds
   regex work only: a defined name's definition costs far more in HyperFormula (two parses, then an
-  evaluation on add), so the import bounds it on its own with `MAX_DEFINED_NAME_LENGTH`,
+  evaluation when the applier's batch ends), so the import bounds it on its own with `MAX_DEFINED_NAME_LENGTH`,
   `MAX_DEFINED_NAME_CHARS`, `MAX_DEFINED_NAME_CELLS` and `MAX_DEFINED_NAME_TOTAL_CELLS` (`limits.ts`;
   cells counted by `closedReferenceArea` in `formulaRefs.ts`, whole columns and rows excluded). The field is optional on
   `WorkbookBudget` (absent reads as zero) because tests pass `{ declaredCells: 0 }`. Validation and

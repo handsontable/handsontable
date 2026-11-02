@@ -922,6 +922,49 @@ describe('applyImportResult – named expressions', () => {
       expect(hot.getDataAtCell(0, 1)).toBe(6);
     });
 
+    it('should remove the names and report them when the engine throws evaluating them at the batch end', () => {
+      // Inside `engine.batch()` HyperFormula evaluates nothing until the batch resumes evaluation, so
+      // a `RangeError: Invalid array length` over a huge range left `engine.batch()` itself and
+      // failed the whole import with the names added.
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [[null]],
+        formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
+      });
+      const { engine } = hot.getPlugin('formulas');
+      const recompute = engine.recomputeIfDependencyGraphNeedsIt.bind(engine);
+      let throws = 1;
+
+      engine.recomputeIfDependencyGraphNeedsIt = () => {
+        if (!engine.isEvaluationSuspended() && throws > 0) {
+          throws -= 1;
+
+          throw new RangeError('Invalid array length');
+        }
+
+        return recompute();
+      };
+
+      const result = {
+        data: [[1, '=SUM(1,2)']],
+        namedExpressions: [{ name: 'Alpha', formula: '1' }, { name: 'Huge', formula: 'SUM(Sheet1!$A$1:$A$2)' }],
+        dropped: ['cellStyles'],
+      };
+
+      expect(() => applyImportResult(hot, result)).not.toThrow();
+      expect(throws).toBe(0);
+      expect(engine.listNamedExpressions()).toEqual([]);
+      expect(engine.isEvaluationSuspended()).toBe(false);
+      expect(result.dropped).toEqual(['cellStyles', 'definedNames:unsupported']);
+      expect(hot.getDataAtCell(0, 0)).toBe(1);
+      expect(hot.getDataAtCell(0, 1)).toBe(3);
+
+      // The grid still computes.
+      hot.setDataAtCell(0, 0, '=2*3');
+
+      expect(hot.getDataAtCell(0, 0)).toBe(6);
+    });
+
     it('should add a string constant with an escaped quote as the text it spells', () => {
       // `="a""b"` does not parse in HyperFormula, so the name is added as the constant `a"b`.
       hot = new Handsontable(container, {

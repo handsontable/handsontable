@@ -350,9 +350,11 @@ export function toNamedExpressionInput(expression: string): string {
  *
  * The names go in one engine batch. Each `addNamedExpression` outside a batch recalculates the
  * engine and fires `valuesUpdated`, so a workbook with hundreds of names over volatile formulas
- * (`RAND()`) took seconds; batched, the engine recalculates once. The batch resumes evaluation when
- * a call throws, and the check inside it still sees the names added earlier in the same batch. No
- * batch opens when the engine refuses every name: an empty batch still pushes an engine undo step.
+ * (`RAND()`) took seconds; batched, the engine recalculates once. The check inside the batch still
+ * sees the names added earlier in it. The batch evaluates the names when it ends, and a throw there
+ * leaves `engine.batch()` itself: every name this call added is removed again and
+ * `definedNames:unsupported` is reported, and the import goes on. No batch opens when the engine
+ * refuses every name: an empty batch still pushes an engine undo step.
  */
 function addNamedExpressions(hot: HotInstance, result: ImportResult): void {
   const formulas = hot.getPlugin('formulas');
@@ -375,51 +377,94 @@ function addNamedExpressions(hot: HotInstance, result: ImportResult): void {
     return;
   }
 
-  engine.batch(() => {
-    namedExpressions.slice(first).forEach(({ name, expression }, index) => {
-      // The first name passed the check above; the rest are checked inside the batch, where the
-      // check sees the names added before them.
-      if (index === 0 || canAdd(name, expression)) {
-        addOrReport(engine, name, expression, result);
-      }
+  const added: string[] = [];
+
+  try {
+    engine.batch(() => {
+      namedExpressions.slice(first).forEach(({ name, expression }, index) => {
+        // The first name passed the check above; the rest are checked inside the batch, where the
+        // check sees the names added before them.
+        if ((index === 0 || canAdd(name, expression)) && addOrReport(engine, name, expression, result)) {
+          added.push(name);
+        }
+      });
     });
-  });
+  } catch {
+    // The batch evaluates the names only when it resumes evaluation, at its end, and HyperFormula can
+    // throw there (`RangeError: Invalid array length` over a huge range). Which name threw is not
+    // known, so every name this call added goes, each on its own: a removal recalculates, and may
+    // throw again while a name it has not reached yet stays.
+    if (engine.isEvaluationSuspended?.() === true) {
+      ignoreThrow(() => engine.resumeEvaluation());
+    }
+
+    added.forEach(name => ignoreThrow(() => removeListed(engine, name)));
+    reportUnsupported(result);
+  }
 }
 
 /**
- * Adds one named expression the engine said it takes. `addNamedExpression` evaluates the definition
- * at once, and HyperFormula can still throw there (`RangeError: Invalid array length` over a huge
- * range), which failed the whole import with an internal error and left the name half-added. A
- * throw removes the name again when the engine lists it (it did not before: the check passed) and
- * reports `definedNames:unsupported` on the result; the import goes on.
+ * Runs `operation`, swallowing what it throws: the import goes on whatever the engine does.
+ */
+function ignoreThrow(operation: () => unknown): void {
+  try {
+    operation();
+  } catch {
+    // The engine keeps what it could not undo; the caller reports the name anyway.
+  }
+}
+
+/**
+ * Removes a workbook-scoped name when the engine lists it.
+ */
+function removeListed(engine: HyperFormulaEngine, name: string): void {
+  const lowered = name.toLowerCase();
+
+  if (engine.listNamedExpressions().some(listed => listed.toLowerCase() === lowered)) {
+    engine.removeNamedExpression(name);
+  }
+}
+
+/**
+ * Records `definedNames:unsupported` once on the result being applied.
+ */
+function reportUnsupported(result: ImportResult): void {
+  if (Array.isArray(result.dropped) && !result.dropped.includes(DROPPED_FEATURES.definedNamesUnsupported)) {
+    result.dropped.push(DROPPED_FEATURES.definedNamesUnsupported);
+  }
+}
+
+/**
+ * Adds one named expression the engine said it takes. Outside a batch `addNamedExpression`
+ * evaluates the definition at once; inside one (the only way the applier calls it) evaluation waits
+ * for the batch's end, which `addNamedExpressions` guards. The add itself can still throw on an
+ * engine that evaluates eagerly or refuses the name late, which failed the whole import with an
+ * internal error and left the name half-added. A throw removes the name again when the engine lists
+ * it (it did not before: the check passed) and reports `definedNames:unsupported` on the result;
+ * the import goes on.
  *
  * @param {object} engine The Formulas plugin's engine.
  * @param {string} name The name.
  * @param {string} expression The definition, `=` included.
  * @param {ImportResult} result The result being applied, whose `dropped` list takes the report.
+ * @returns {boolean} Whether the name was added.
  */
 function addOrReport(
   engine: HyperFormulaEngine,
   name: string,
   expression: string,
   result: ImportResult,
-): void {
+): boolean {
   try {
     engine.addNamedExpression(name, expression, undefined, undefined);
+
+    return true;
   } catch {
-    try {
-      const lowered = name.toLowerCase();
+    // An engine that cannot list or remove the name keeps it; the report below still names it.
+    ignoreThrow(() => removeListed(engine, name));
+    reportUnsupported(result);
 
-      if (engine.listNamedExpressions().some(listed => listed.toLowerCase() === lowered)) {
-        engine.removeNamedExpression(name);
-      }
-    } catch {
-      // An engine that cannot list or remove the name keeps it; the report below still names it.
-    }
-
-    if (Array.isArray(result.dropped) && !result.dropped.includes(DROPPED_FEATURES.definedNamesUnsupported)) {
-      result.dropped.push(DROPPED_FEATURES.definedNamesUnsupported);
-    }
+    return false;
   }
 }
 
