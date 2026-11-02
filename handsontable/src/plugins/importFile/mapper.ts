@@ -87,6 +87,12 @@ export interface MapperContext {
    * empty. Absent means every function is trusted.
    */
   registersFunction?: (name: string) => boolean;
+  /**
+   * Whether the Formulas plugin's engine evaluates array arithmetic (`useArrayArithmetic` of
+   * HyperFormula). Without it, `=A1:A3*2` is one value, not a spill, so a dynamic array master is
+   * wrapped in `ARRAYFORMULA(...)` like a legacy CSE one. Absent means the engine does.
+   */
+  arrayArithmetic?: boolean;
 }
 
 /**
@@ -1062,9 +1068,10 @@ function pushCellValue(
 
   if (live !== null) {
     // A legacy CSE array (`{=A1:A2*2}`) is an ordinary formula to HyperFormula unless it is
-    // wrapped; a dynamic array spills on its own.
+    // wrapped; a dynamic array spills on its own, unless the engine has no array arithmetic.
     // A master the file already wraps in `ARRAYFORMULA(...)` is not wrapped twice.
-    const wrap = array !== undefined && !array.dynamic && unwrapArrayFormula(live) === null;
+    const wrap = array !== undefined && (!array.dynamic || scope.context.arrayArithmetic === false)
+      && unwrapArrayFormula(live) === null;
 
     pass.data[pass.data.length - 1].push(wrap ? `=ARRAYFORMULA(${live})` : `=${live}`);
 

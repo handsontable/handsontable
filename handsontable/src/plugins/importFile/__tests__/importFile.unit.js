@@ -1760,7 +1760,8 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
       ['native', undefined, '=UNIQUE(A1:A3)'],
       ['exceljs', ExcelJS, '=ARRAYFORMULA(UNIQUE(A1:A3))'],
     ]) {
-      const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+      // With array arithmetic, so the built-in reader's dynamic master stays unwrapped.
+      const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3', useArrayArithmetic: true });
 
       hf.addSheet('Sheet1');
 
@@ -1779,6 +1780,43 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
 
       hf.destroy();
     }
+  });
+
+  it('should wrap a dynamic array in ARRAYFORMULA when the engine has no array arithmetic', async() => {
+    // `HyperFormula.buildEmpty` leaves `useArrayArithmetic` off, which the Formulas guide
+    // recommends for a shared engine. Such an engine evaluates `=A1:A3*2` as one value: B1 showed 2
+    // and B2:B3 (imported empty under the spill) stayed empty.
+    const snapshot = createWorkbookSnapshot();
+    const sheet = createSheetSnapshot('Sheet1');
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+
+    sheet.rows = [
+      [at({ value: 1 }), at({ formula: { text: 'A1:A3*2', result: 2, array: { ref: 'B1:B3', dynamic: true } } })],
+      [at({ value: 2 }), at({ value: 4 })],
+      [at({ value: 3 }), at({ value: 6 })],
+    ];
+    snapshot.sheets.push(sheet);
+
+    const bytes = toArrayBuffer(await nativeAdapter.write(snapshot, undefined, new DroppedFeatures()));
+    const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+
+    hf.addSheet('Sheet1');
+
+    expect(hf.getConfig().useArrayArithmetic).toBe(false);
+
+    const { plugin, hot } = pluginWithFakeHot(true);
+
+    hot.getPlugin = name => ({ formulas: { isEnabled: () => true, sheetName: 'Sheet1', engine: hf } })[name];
+
+    const result = await plugin.importFromArrayBuffer('xlsx', bytes, { apply: false });
+
+    expect(result.data.map(row => row[1])).toEqual(['=ARRAYFORMULA(A1:A3*2)', null, null]);
+
+    hf.setSheetContent(0, result.data);
+
+    expect(hf.getSheetValues(0).map(row => row[1])).toEqual([2, 4, 6]);
+
+    hf.destroy();
   });
 });
 

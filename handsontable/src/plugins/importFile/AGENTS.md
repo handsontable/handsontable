@@ -440,7 +440,10 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   check separately refused files that imported at 1a59dedd71.
 - **Array formulas import live; their spilled cells import empty** (DEV-3648, `pushCellValue`,
   `recordLiveArray`). A dynamic array (`cm` on the master) goes in as written and spills. A legacy CSE
-  array goes in as `=ARRAYFORMULA(...)`, never double-wrapped (`unwrapArrayFormula`). The ExcelJS
+  array goes in as `=ARRAYFORMULA(...)`, never double-wrapped (`unwrapArrayFormula`). So does a dynamic
+  one when the engine's `useArrayArithmetic` is off (`MapperContext.arrayArithmetic`, from
+  `getConfig()`; `HyperFormula.buildEmpty` defaults it off): such an engine evaluates `=A1:A3*2` as one
+  value. The cost is that the grid re-exports it as CSE. The ExcelJS
   engine cannot read `cm`, so it imports every array as CSE. While the master is live, the cells its
   `ref` covers are pushed `null` (still typed from the cached value): a cached value there would make
   the spill `#SPILL!`. The rectangle is recorded only when the `ref` starts at the master, and is clipped

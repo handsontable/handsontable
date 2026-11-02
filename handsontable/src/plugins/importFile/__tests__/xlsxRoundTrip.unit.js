@@ -20,6 +20,13 @@ describe('xlsx round trip through exportFile and importFile with HyperFormula', 
   const FORMULAS = [
     '=SEQUENCE(3)', '=ARRAYFORMULA(A1:A3*2)', '=IFS(A1>0,"p",TRUE(),"n")', '=SUM(Sales)', '=1/0', '=TaxRate*A1',
   ];
+  // The grid's engine is `HyperFormula.buildEmpty`, which has no array arithmetic, so the import
+  // wraps the dynamic masters in `ARRAYFORMULA(...)`: without it, such an engine evaluates a dynamic
+  // array that needs array arithmetic (`=A1:A3*2`) as one value.
+  const REIMPORTED = [
+    '=ARRAYFORMULA(SEQUENCE(3))', '=ARRAYFORMULA(A1:A3*2)', '=ARRAYFORMULA(IFS(A1>0,"p",TRUE(),"n"))',
+    '=SUM(Sales)', '=1/0', '=TaxRate*A1',
+  ];
   const containers = [];
   let warn;
 
@@ -161,7 +168,7 @@ describe('xlsx round trip through exportFile and importFile with HyperFormula', 
     expect(droppedBesidesStyles(result)).toEqual([]);
     // The engine already defines both names with the file's definitions, so nothing is re-added.
     expect(result.namedExpressions).toBeUndefined();
-    expect(hot.getSourceDataAtRow(0).slice(1, 7)).toEqual(FORMULAS);
+    expect(hot.getSourceDataAtRow(0).slice(1, 7)).toEqual(REIMPORTED);
     expect(hot.getData()).toEqual(SHOWN);
   });
 
@@ -175,7 +182,7 @@ describe('xlsx round trip through exportFile and importFile with HyperFormula', 
       { name: 'Sales', formula: 'Data!$A$1:$A$3' },
       { name: 'TaxRate', formula: '0.07' },
     ]);
-    expect(target.getSourceDataAtRow(0).slice(1, 7)).toEqual(FORMULAS);
+    expect(target.getSourceDataAtRow(0).slice(1, 7)).toEqual(REIMPORTED);
     expect(target.getData()).toEqual(SHOWN);
   });
 

@@ -530,6 +530,26 @@ function functionRegistryCheck(
 }
 
 /**
+ * Whether a Formulas engine evaluates array arithmetic, read from HyperFormula's
+ * `getConfig().useArrayArithmetic`, or `undefined` when the engine cannot answer (the mapper then
+ * trusts it to spill a dynamic array).
+ *
+ * @param {object|null|undefined} engine The Formulas plugin's engine.
+ * @returns {boolean|undefined}
+ */
+function engineArrayArithmetic(
+  engine: { getConfig?: () => { useArrayArithmetic?: unknown } } | null | undefined
+): boolean | undefined {
+  if (typeof engine?.getConfig !== 'function') {
+    return undefined;
+  }
+
+  const enabled = engine.getConfig()?.useArrayArithmetic;
+
+  return typeof enabled === 'boolean' ? enabled : undefined;
+}
+
+/**
  * Whether a Formulas engine parses the formula. An engine without `validateFormula` is not asked.
  * HyperFormula 3.3's parser overflows the stack (`RangeError`) on about 100 levels of nesting; a
  * formula it throws on is not valid.
@@ -1058,6 +1078,7 @@ export class ImportFile extends BasePlugin {
         ? namedExpressionComparison(formulasPlugin?.engine, formulasPlugin?.sheetName)
         : undefined,
       registersFunction: formulasEnabled ? functionRegistryCheck(formulasPlugin?.engine) : undefined,
+      arrayArithmetic: formulasEnabled ? engineArrayArithmetic(formulasPlugin?.engine) : undefined,
     }, dropped);
 
     recordLayoutDirectionMismatch(this.hot, mapped, resolved.apply, dropped);
