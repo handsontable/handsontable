@@ -362,10 +362,17 @@ Other rules:
   comparing every pair: a 100,000-row `IFS` column cost about 3 s that way. The data
   provider decides `exported` (every spilled row and column lands right after the master in the matrix):
   a spill crossing a hidden row with `exportHiddenRows: false`, a trimmed or filtered row, or the `range`
-  edge is written as a plain formula and `formula:arrayExcluded` is recorded once. A formula
-  with any `ARRAYFORMULA(…)` call is written as a legacy CSE array with every call stripped
-  (`stripArrayFormulaCalls`): `ARRAYFORMULA(x)` as `{=x}`, `SUM(ARRAYFORMULA(x))` as the one-cell
-  `{=SUM(x)}`, since the call evaluates its argument as an array; `IFS` and `SWITCH` as a one-cell dynamic array
+  edge is written as a plain formula and `formula:arrayExcluded` is recorded once. Every
+  `ARRAYFORMULA(…)` call is stripped (`stripArrayFormulaCalls`), but **only a whole-formula call
+  (`unwrapArrayFormula(text) !== null`) makes the formula a legacy CSE array** (`ARRAYFORMULA(x)` as
+  `{=x}`). Any other formula keeps its own treatment on the stripped text: a spill
+  (`ARRAYFORMULA(A1:A3)*2` under array arithmetic, `FILTER(A1:A6, ARRAYFORMULA(A1:A6>3))`) is a
+  dynamic array, range arithmetic a one-cell dynamic array. Left with no spill and no dynamic
+  reason, a call that is a whole function argument (`SUM(ARRAYFORMULA(x))`) is a one-cell CSE array,
+  since the call evaluates its argument as an array, and a call that is an operand
+  (`ARRAYFORMULA(A1:A3)*2` without array arithmetic, `callsArrayFormulaAsOperand`) is a PLAIN
+  formula: the engine intersects it (A2*2 on row 2) as Excel's `@` does, and a one-cell CSE array
+  would compute A1*2. `IFS` and `SWITCH` as a one-cell dynamic array
   (`EXCEL_DYNAMIC_ARRAY_FUNCTIONS`). A 1 x 1 spill (`=SEQUENCE(1)`) is not flagged. A blocked spill
   (`#SPILL!`) exports as a one-cell array with the `#SPILL!` text. The ExcelJS engine writes every
   dynamic array as CSE and records `dynamicArrays` for a multi-cell spill only: a one-cell CSE array

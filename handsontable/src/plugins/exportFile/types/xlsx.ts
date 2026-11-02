@@ -39,7 +39,8 @@ import { intlNumFormatToExcelNumFmt } from './xlsx/numeric-utils';
 import { detectXlsxEngine } from '../../../utils/xlsxEngine/detect';
 import { DROPPED_FEATURES, DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
 import {
-  appliesOperatorToRange, callsDynamicArrayFunction, stripArrayFormulaCalls,
+  appliesOperatorToRange, callsArrayFormulaAsOperand, callsDynamicArrayFunction, stripArrayFormulaCalls,
+  unwrapArrayFormula,
 } from '../../../utils/xlsxEngine/dynamicArrays';
 import { SheetBuilder } from '../../../utils/xlsxEngine/builder';
 import { colIndexToLetter, toRangeRef } from '../../../utils/xlsxEngine/cellRef';
@@ -325,12 +326,13 @@ function recordArrayExcluded(dropped: DroppedFeatures): void {
 /**
  * Decides whether a formula is written as an array formula, and as which kind.
  *
- * 1. A formula that calls `ARRAYFORMULA(…)` is HyperFormula's legacy (CSE) array: every call is
- *    stripped (`stripArrayFormulaCalls`; Excel has no such function, and inside an array formula
- *    the wrapper means nothing) and the rest is written as a CSE array over the spill, or over the
- *    cell itself when the engine reports no spill. A call nested in the formula
- *    (`SUM(ARRAYFORMULA(x))`) evaluates its argument as an array, which a one-cell CSE array keeps.
- * 2. A formula the engine spills (`SEQUENCE(3)`) is a dynamic array over the spill.
+ * Every `ARRAYFORMULA(…)` call is stripped first (`stripArrayFormulaCalls`): Excel has no such
+ * function, and the decisions below read the stripped text.
+ *
+ * 1. A formula that is one `ARRAYFORMULA(…)` call as a whole is HyperFormula's legacy (CSE) array,
+ *    written as a CSE array over the spill, or over the cell itself when the engine reports no spill.
+ * 2. A formula the engine spills (`SEQUENCE(3)`, `ARRAYFORMULA(A1:A3)*2` under array arithmetic) is a
+ *    dynamic array over the spill.
  * 3. A call to a function Excel evaluates as a dynamic array (`IFS`, `SWITCH`) is a one-cell
  *    dynamic array, so Excel does not add the implicit-intersection `@`.
  * 4. Under the engine's `useArrayArithmetic`, an operator applied to a multi-cell range
@@ -338,6 +340,11 @@ function recordArrayExcluded(dropped: DroppedFeatures): void {
  *    computes it over every cell, and Excel 365 would open a plain formula as
  *    `SUM(@A1:A3*@B1:B3)`. Without array arithmetic the engine intersects the range itself, as
  *    the `@` does, so the plain formula already matches.
+ * 5. Otherwise, an `ARRAYFORMULA` call that is a whole function argument (`SUM(ARRAYFORMULA(x))`)
+ *    evaluates its argument as an array, which a one-cell CSE array keeps. A call that is an operand
+ *    (`ARRAYFORMULA(A1:A3)*2`, `callsArrayFormulaAsOperand`) is intersected by the engine without
+ *    array arithmetic (A2*2 on row 2), as Excel's `@` does, so it is a plain formula: a one-cell CSE
+ *    array would compute A1*2.
  *
  * A spill the export does not keep in shape (an excluded row or column, the `range` edge), and an
  * array whose range overlaps an earlier array formula of the sheet, are written as plain formulas
@@ -353,11 +360,20 @@ function resolveArrayFormula(
 ): { text: string; array?: CellFormulaArray } {
   const { arraySize, row, col } = facts;
   const formulaText = stripArrayFormulaCalls(text);
-  const dynamic = formulaText === text;
+  let dynamic: boolean;
 
-  if (dynamic && arraySize === null && !callsDynamicArrayFunction(text)
-    && !(target.arrayArithmetic && appliesOperatorToRange(text))) {
-    return { text };
+  if (unwrapArrayFormula(text) !== null) {
+    dynamic = false;
+
+  } else if (arraySize !== null || callsDynamicArrayFunction(formulaText)
+    || (target.arrayArithmetic && appliesOperatorToRange(formulaText))) {
+    dynamic = true;
+
+  } else if (formulaText !== text && !callsArrayFormulaAsOperand(text)) {
+    dynamic = false;
+
+  } else {
+    return { text: formulaText };
   }
 
   if (arraySize !== null && !arraySize.exported) {

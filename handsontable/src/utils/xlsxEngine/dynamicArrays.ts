@@ -245,7 +245,31 @@ function findClosingParenthesis(formula: string, open: number): number {
  * @returns {string}
  */
 export function stripArrayFormulaCalls(formula: string): string {
+  return stripCalls(formula).text;
+}
+
+/**
+ * Whether a formula holds an `ARRAYFORMULA(…)` call that is an operand (`ARRAYFORMULA(x)*2`,
+ * `-ARRAYFORMULA(x)`), not a whole expression: the whole formula or a whole function argument, as
+ * `stripArrayFormulaCalls` tells them apart. A call inside another `ARRAYFORMULA` call does not
+ * count: the outer call evaluates it as an array.
+ *
+ * @param {string} formula The formula, without the leading `=`.
+ * @returns {boolean}
+ */
+export function callsArrayFormulaAsOperand(formula: string): boolean {
+  return stripCalls(formula).operand;
+}
+
+/**
+ * The walk behind `stripArrayFormulaCalls` and `callsArrayFormulaAsOperand`.
+ *
+ * @param {string} formula The formula, without the leading `=`.
+ * @returns {{ text: string, operand: boolean }}
+ */
+function stripCalls(formula: string): { text: string; operand: boolean } {
   let output = '';
+  let operand = false;
   let index = 0;
 
   while (index < formula.length) {
@@ -278,9 +302,11 @@ export function stripArrayFormulaCalls(formula: string): string {
         const after = formula.slice(close + 1).trimStart()[0];
         const isWholeExpression = (before === undefined || before === '(' || before === ',')
           && (after === undefined || after === ')' || after === ',');
-        const stripped = stripArrayFormulaCalls(inner);
+        const stripped = stripCalls(inner);
 
-        output += isWholeExpression ? stripped : `(${stripped})`;
+        // A call inside another call is evaluated as an array anyway, operand or not.
+        operand = operand || !isWholeExpression;
+        output += isWholeExpression ? stripped.text : `(${stripped.text})`;
         index = close + 1;
       }
 
@@ -290,7 +316,7 @@ export function stripArrayFormulaCalls(formula: string): string {
     }
   }
 
-  return output;
+  return { text: output, operand };
 }
 
 const ARRAYFORMULA_OPENING = 'ARRAYFORMULA(';

@@ -2,6 +2,7 @@ import {
   EXCEL_DYNAMIC_ARRAY_FUNCTIONS,
   appliesOperatorToRange,
   callsDynamicArrayFunction,
+  callsArrayFormulaAsOperand,
   stripArrayFormulaCalls,
   unwrapArrayFormula,
 } from '../dynamicArrays';
@@ -61,6 +62,27 @@ describe('unwrapArrayFormula', () => {
 
   it('should return null for any other formula', () => {
     expect(unwrapArrayFormula('SUM(A1:A3)')).toBe(null);
+  });
+});
+
+describe('callsArrayFormulaAsOperand', () => {
+  it('should find a call that is an operand', () => {
+    expect(callsArrayFormulaAsOperand('ARRAYFORMULA(A1:A3)*2')).toBe(true);
+    expect(callsArrayFormulaAsOperand('-ARRAYFORMULA(A1:A3)')).toBe(true);
+    expect(callsArrayFormulaAsOperand('SUM(ARRAYFORMULA(A1:A3) * 2)')).toBe(true);
+    expect(callsArrayFormulaAsOperand('SUM(A1, 1+ARRAYFORMULA(A1:A3))')).toBe(true);
+  });
+
+  it('should not find a call that is the whole formula or a whole function argument', () => {
+    expect(callsArrayFormulaAsOperand('ARRAYFORMULA(A1:A3*2)')).toBe(false);
+    expect(callsArrayFormulaAsOperand('SUM(ARRAYFORMULA(A1:A3*2))')).toBe(false);
+    expect(callsArrayFormulaAsOperand('FILTER(A1:A6, ARRAYFORMULA(A1:A6>3))')).toBe(false);
+  });
+
+  it('should not count a call inside another ARRAYFORMULA call, a quoted run, or a formula with no call', () => {
+    expect(callsArrayFormulaAsOperand('ARRAYFORMULA(ARRAYFORMULA(A1:A3)*2)')).toBe(false);
+    expect(callsArrayFormulaAsOperand('LEN("ARRAYFORMULA(x)*2")')).toBe(false);
+    expect(callsArrayFormulaAsOperand('A1*2')).toBe(false);
   });
 });
 

@@ -301,8 +301,10 @@ describe('Xlsx export: array formulas', () => {
     expect(rows[0][4].formula).toEqual({ text: 'A1+1', result: '=A1+1' });
   });
 
-  it('should strip every ARRAYFORMULA call, not only a whole-formula one, and write the formula as a CSE array', async() => {
-    // Excel has no ARRAYFORMULA function: a call left in the text opens as `#NAME?`.
+  it('should strip every ARRAYFORMULA call, and write only a whole-formula call as a CSE array', async() => {
+    // Excel has no ARRAYFORMULA function: a call left in the text opens as `#NAME?`. A call inside
+    // the formula keeps the treatment of the rest: a spill is a dynamic array, and an operator over a
+    // range under array arithmetic a one-cell dynamic array.
     const { rows, dropped } = await exportSheet({
       data: [
         [1, '=ARRAYFORMULA(ARRAYFORMULA(A1:A3*2))', '=ARRAYFORMULA(A1:A3)*2', '=SUM(ARRAYFORMULA(A1:A3*2))',
@@ -315,22 +317,52 @@ describe('Xlsx export: array formulas', () => {
     expect(hot.getDataAtRow(0)).toEqual([1, 2, 2, 12, 15]);
     expect(rows[0][1].formula).toEqual({ text: 'A1:A3*2', result: 2, array: { ref: 'B1:B3', dynamic: false } });
     // The parentheses stay where they group an operand.
-    expect(rows[0][2].formula).toEqual({ text: '(A1:A3)*2', result: 2, array: { ref: 'C1:C3', dynamic: false } });
-    expect(rows[0][3].formula).toEqual({ text: 'SUM(A1:A3*2)', result: 12, array: { ref: 'D1', dynamic: false } });
+    expect(rows[0][2].formula).toEqual({ text: '(A1:A3)*2', result: 2, array: { ref: 'C1:C3', dynamic: true } });
+    expect(rows[0][3].formula).toEqual({ text: 'SUM(A1:A3*2)', result: 12, array: { ref: 'D1', dynamic: true } });
     expect(rows[0][4].formula).toEqual({ text: 'LEN("ARRAYFORMULA(x)")', result: 15 });
     expect(dropped).toEqual([]);
   });
 
-  it('should write a nested ARRAYFORMULA call as a one-cell CSE array when the engine intersects ranges itself', async() => {
-    // Without array arithmetic the engine computes `(A1:A3)*2` as 1*2, which a one-cell array keeps.
-    const { rows } = await exportSheet({
-      data: [[1, '=ARRAYFORMULA(A1:A3)*2', '=SUM(ARRAYFORMULA(A1:A3*2))'], [2], [3]],
-      formulas: { engine: { hyperformula: HyperFormula, useArrayArithmetic: false }, sheetName: 'Sheet1' },
+  it('should keep a FILTER over an ARRAYFORMULA argument a dynamic array', async() => {
+    const { rows, dropped } = await exportSheet({
+      data: [[1, '=FILTER(A1:A6, ARRAYFORMULA(A1:A6>3))'], [2], [3], [4], [5], [6]],
     });
 
-    expect(hot.getDataAtRow(0)).toEqual([1, 2, 12]);
-    expect(rows[0][1].formula).toEqual({ text: '(A1:A3)*2', result: 2, array: { ref: 'B1', dynamic: false } });
-    expect(rows[0][2].formula).toEqual({ text: 'SUM(A1:A3*2)', result: 12, array: { ref: 'C1', dynamic: false } });
+    expect(hot.getDataAtCol(1)).toEqual([4, 5, 6, null, null, null]);
+    expect(rows[0][1].formula).toEqual({
+      text: 'FILTER(A1:A6, A1:A6>3)', result: 4, array: { ref: 'B1:B3', dynamic: true },
+    });
+    expect(dropped).toEqual([]);
+  });
+
+  describe('an ARRAYFORMULA call inside a formula when the engine intersects ranges itself', () => {
+    const intersectingEngine = {
+      engine: { hyperformula: HyperFormula, useArrayArithmetic: false }, sheetName: 'Sheet1',
+    };
+
+    it('should write a call that is a whole function argument as a one-cell CSE array', async() => {
+      // The call evaluates its argument as an array, which a one-cell CSE array keeps.
+      const { rows } = await exportSheet({
+        data: [[1, '=SUM(ARRAYFORMULA(A1:A3*2))'], [2], [3]],
+        formulas: intersectingEngine,
+      });
+
+      expect(hot.getDataAtCell(0, 1)).toBe(12);
+      expect(rows[0][1].formula).toEqual({ text: 'SUM(A1:A3*2)', result: 12, array: { ref: 'B1', dynamic: false } });
+    });
+
+    it('should write a call that is an operand as a plain formula, which Excel intersects as the engine does', async() => {
+      // The engine computes `ARRAYFORMULA(A1:A3)*2` on row 2 as A2*2. Excel opens the plain
+      // `(A1:A3)*2` with the `@` and computes the same; a one-cell CSE array would compute A1*2.
+      const { rows, dropped } = await exportSheet({
+        data: [[1, null], [2, '=ARRAYFORMULA(A1:A3)*2'], [3, null]],
+        formulas: intersectingEngine,
+      });
+
+      expect(hot.getDataAtCell(1, 1)).toBe(4);
+      expect(rows[1][1].formula).toEqual({ text: '(A1:A3)*2', result: 4 });
+      expect(dropped).toEqual([]);
+    });
   });
 
   describe('a spill HyperFormula reserves more room for than its result', () => {
@@ -377,7 +409,8 @@ describe('Xlsx export: array formulas', () => {
     });
 
     it('should keep the reserved size of a FILTER that matches nothing', async() => {
-      // An error result holds no values to trim; Excel recalculates it to one cell.
+      // Deliberate: the error array fills the whole reservation, so the ref covers it, and Excel
+      // recalculates the formula to one cell when it opens the file.
       const { rows } = await exportSheet({ data: createFilterData(12, '=FILTER(A1:A6,A1:A6>30)') });
 
       expect(rows[4][1].formula.array).toEqual({ ref: 'B5:B10', dynamic: true });

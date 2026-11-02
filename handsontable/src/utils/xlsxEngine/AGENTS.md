@@ -894,6 +894,8 @@ directions.
     `ARRAYFORMULA(x)*2` and `SUM(ARRAYFORMULA(x))` in the `<f>` text, which Excel opens as `#NAME?`.
     The call's parentheses go only where it is a whole expression (the formula, a function
     argument), so `ARRAYFORMULA(x)*2` gives `(x)*2`. An empty or unclosed call is left alone.
+    `callsArrayFormulaAsOperand` answers whether a call outside another call is such an operand;
+    `exportFile` writes that formula plain without array arithmetic.
   - **The native writer refuses a workbook with no sheets** (`write.ts`): `CT_Sheets` needs one
     `<sheet>`. ExcelJS wrote a file Excel calls invalid; the refusal is deliberate.
 
