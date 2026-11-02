@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added support for license keys that list the features they unlock: a plugin such a key does not list stays off, and the console and the bar under the grid name the missing features.",
+  "type": "added",
+  "issueOrPR": 14104,
+  "breaking": false,
+  "framework": "none"
+}
