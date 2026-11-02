@@ -476,6 +476,13 @@ class Xlsx extends BaseType {
 
     if (sheets && sheets.length > 0) {
       // multi-sheet mode
+      // `protection` applies to the whole workbook, so a per-sheet value is dropped below. Said once
+      // per export, and never with the value, which may be a password.
+      if (sheets.some(sheetConfig => Object.prototype.hasOwnProperty.call(sheetConfig, 'protection'))) {
+        warn('ExportFile: the "protection" option applies to the whole workbook; '
+          + 'the value set on a sheet entry was ignored.');
+      }
+
       sheets.forEach((sheetConfig) => {
         const dp = new ExportDataProvider(sheetConfig.instance);
         // Promote the deprecated `columnHeaders` alias on the per-sheet config before it is merged

@@ -271,7 +271,7 @@ hot.getPlugin('exportFile').downloadFileAsync('xlsx', {
 });
 ```
 
-- `protection: { password: '...' }` protects the sheet with that password. With the [`sheets`](#multi-sheet-export) option, every protected sheet gets the same password.
+- `protection: { password: '...' }` protects the sheet with that password. With the [`sheets`](#multi-sheet-export) option, every protected sheet gets the same password. A `protection` key on a `sheets` entry is ignored, and the export prints one console warning: `ExportFile: the "protection" option applies to the whole workbook; the value set on a sheet entry was ignored.`
 - `protection: null` protects no sheet, and read-only cells export unlocked.
 - An empty `password` sets no password.
 - A sheet with no read-only cell is not protected, so a password writes nothing. A sheet with a `columnSummary` destination cell is not protected either.

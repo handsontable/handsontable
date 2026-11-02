@@ -279,6 +279,38 @@ describe('Xlsx export `protection` option', () => {
     expect(sheets.every(sheet => lockedCell(sheet).locked === true)).toBe(true);
   });
 
+  const PER_SHEET_WARNING = 'ExportFile: the "protection" option applies to the whole workbook; '
+    + 'the value set on a sheet entry was ignored.';
+
+  it('warns once, without the value, when sheet entries carry a protection key', async() => {
+    const own = createInstance(FULL_KEY);
+    const xlsx = new Xlsx(new ExportDataProvider(own), {
+      protection: { password: PASSWORD },
+      sheets: [
+        { instance: own, name: 'One', protection: { password: 'other-sheet-password' } },
+        { instance: createInstance(FULL_KEY), name: 'Two', protection: null },
+      ],
+    });
+
+    await xlsx.export();
+
+    expect(warnSpy.mock.calls.map(call => call[0])).toEqual([PER_SHEET_WARNING]);
+    expect(warnSpy.mock.calls.flat().some(arg => String(arg).includes('other-sheet-password'))).toBe(false);
+    expect(passwordReachedAWarning()).toBe(false);
+  });
+
+  it('does not warn about a per-sheet protection when no sheet entry carries one', async() => {
+    const own = createInstance(FULL_KEY);
+    const xlsx = new Xlsx(new ExportDataProvider(own), {
+      protection: { password: PASSWORD },
+      sheets: [{ instance: own, name: 'One' }, { instance: createInstance(FULL_KEY), name: 'Two' }],
+    });
+
+    await xlsx.export();
+
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
   it('ignores the option and names only the token without xlsx:protection', async() => {
     const key = keyWith(ALL_XLSX_TOKENS.filter(id => id !== 'xlsx:protection'));
     const sheet = (await exportSnapshot(key, { protection: { password: PASSWORD } })).sheets[0];
