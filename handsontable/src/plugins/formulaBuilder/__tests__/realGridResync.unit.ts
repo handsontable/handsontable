@@ -109,6 +109,25 @@ describe('FormulaBuilder state that has to follow the grid', () => {
       expect(barText()).toBe('');
     });
 
+    it('stops treating the selected cell as a formula cell when a settings change gives it another editor', () => {
+      const grid = createGrid();
+      const isFormulaArea = () => container.querySelector('.hfe-formula-bar__idle')
+        ?.classList.contains('hfe-editor--formula');
+
+      grid.selectCell(0, 0);
+
+      expect(isFormulaArea()).toBe(true);
+
+      grid.updateSettings({ columns: [{ editor: 'text' }, {}] });
+
+      // The same state a plain selection of a cell with another editor gives.
+      expect(isFormulaArea()).toBe(false);
+
+      grid.updateSettings({ columns: [{}, {}] });
+
+      expect(isFormulaArea()).toBe(true);
+    });
+
     it('shows the new content after a source data write to the selected cell', () => {
       const grid = createGrid({ data: [[1, 2, '=A1+B1'], [4, 5, 6]] });
 

@@ -1087,6 +1087,35 @@ describe('FormulaBuilder editing on a real grid', () => {
     });
   });
 
+  describe('a destroy while an async validator holds the edit', () => {
+    it('removes the document keydown listener the edit added', () => {
+      const rootDocument = document;
+      const added: EventListenerOrEventListenerObject[] = [];
+      const removed: EventListenerOrEventListenerObject[] = [];
+      const addSpy = jest.spyOn(rootDocument, 'addEventListener');
+      const removeSpy = jest.spyOn(rootDocument, 'removeEventListener');
+
+      // A validator that never answers keeps the commit waiting.
+      createGrid({ validator: () => {} });
+      hot.selectCell(1, 1);
+      addSpy.mockClear();
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+      addSpy.mock.calls.filter(([type, , capture]) => type === 'keydown' && capture === true)
+        .forEach(([, listener]) => added.push(listener));
+      // The commit waits for the validator, so `afterClose` has not run when the grid is destroyed.
+      hot.getActiveEditor()?.finishEditing();
+      hot.destroy();
+      removeSpy.mock.calls.filter(([type, , capture]) => type === 'keydown' && capture === true)
+        .forEach(([, listener]) => removed.push(listener));
+
+      expect(added.length).toBeGreaterThan(0);
+      expect(added.filter(listener => !removed.includes(listener))).toEqual([]);
+
+      addSpy.mockRestore();
+      removeSpy.mockRestore();
+    });
+  });
+
   describe('a teardown while another grid holds the keyboard', () => {
     let otherContainer: HTMLDivElement;
     let other: Handsontable;

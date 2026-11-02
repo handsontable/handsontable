@@ -222,7 +222,7 @@ function copySettingValue<T>(value: T): T {
  * @param {string} message The message `hyperformula-ui` built (`#CODE — message`, or a bare code).
  * @returns {string}
  */
-function toSpokenErrorMessage(message: string): string {
+export function toSpokenErrorMessage(message: string): string {
   const firstLine = message.split('\n', 1)[0].trim();
   const separatorIndex = firstLine.indexOf(ERROR_CODE_SEPARATOR);
   // The sentence search starts after the code, which itself ends in `!` (`#ERROR!`, `#DIV/0!`).
@@ -237,7 +237,9 @@ function toSpokenErrorMessage(message: string): string {
   const cut = sentence.slice(0, MAX_SPOKEN_ERROR_LENGTH);
   const lastSpace = cut.lastIndexOf(' ');
 
-  return `${(lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`;
+  // A space inside the code prefix is no word boundary of the message: a long run without spaces (CJK
+  // text) is cut at the limit instead.
+  return `${(lastSpace > bodyStart ? cut.slice(0, lastSpace) : cut).trimEnd()}…`;
 }
 
 /**
@@ -387,9 +389,11 @@ export class FormulaBuilder extends BasePlugin {
    */
   #barSelected: { row: number; col: number } | null = null;
   /**
-   * The active cell and its raw text as the bar last showed them, for `#resyncBarCell()`.
+   * The active cell, its raw text, and whether it uses the formula editor, as the bar last showed them,
+   * for `#resyncBarCell()`. A settings change can move the cell to or from the formula editor with
+   * the same text.
    */
-  #lastBarCell: { row: number; col: number; text: string } | null = null;
+  #lastBarCell: { row: number; col: number; text: string; isFormula: boolean } | null = null;
   /**
    * The visual coordinates of the cell the grid focused last. Not cleared on deselect: Shift+Tab from
    * the first column drops the selection and moves the focus onto the bar, and the bar then asks
@@ -1235,7 +1239,8 @@ export class FormulaBuilder extends BasePlugin {
 
     // Nothing the bar shows changed (a re-render re-sending the settings or the same data): an emit
     // would make the package rewrite the address box and drop the text typed there.
-    if (current?.row === last?.row && current?.col === last?.col && current?.text === last?.text) {
+    if (current?.row === last?.row && current?.col === last?.col && current?.text === last?.text &&
+        current?.isFormula === last?.isFormula) {
       return;
     }
 
@@ -1244,18 +1249,24 @@ export class FormulaBuilder extends BasePlugin {
   };
 
   /**
-   * Reads the active cell and its raw text.
+   * Reads the active cell, its raw text, and whether it uses the formula editor.
    *
-   * @returns {{ row: number, col: number, text: string } | null} `null` without an active cell.
+   * @returns {{ row: number, col: number, text: string, isFormula: boolean } | null} `null` without an
+   * active cell.
    */
-  #readActiveCell(): { row: number; col: number; text: string } | null {
+  #readActiveCell(): { row: number; col: number; text: string; isFormula: boolean } | null {
     const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
     if (!highlight || highlight.row === null || highlight.col === null || highlight.row < 0 || highlight.col < 0) {
       return null;
     }
 
-    return { row: highlight.row, col: highlight.col, text: this.getRawCellText(highlight.row, highlight.col) };
+    return {
+      row: highlight.row,
+      col: highlight.col,
+      text: this.getRawCellText(highlight.row, highlight.col),
+      isFormula: this.#isFormulaCell(highlight.row, highlight.col),
+    };
   }
 
   /**

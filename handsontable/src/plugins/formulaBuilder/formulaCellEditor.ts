@@ -164,6 +164,8 @@ interface EditorHost {
     getPlugin(name: string): unknown;
     isDestroyed: boolean;
     rootDocument: Document;
+    addHook(key: 'afterDestroy', callback: () => void): void;
+    removeHook(key: 'afterDestroy', callback: () => void): void;
   };
 }
 
@@ -402,9 +404,18 @@ function startKeyDownSnapshot(editor: FormulaHostEditor): void {
     }
   };
 
+  // `afterClose` never runs when the grid is destroyed while an async validator holds the edit
+  // (`finishEditing()` returns early while the editor waits), so the destroy removes the listener too.
+  const remove = (): void => {
+    rootDocument.removeEventListener('keydown', snapshot, true);
+    hot.removeHook('afterDestroy', remove);
+    editor._removeKeyDownSnapshot = null;
+  };
+
   editor._removeKeyDownSnapshot?.();
   rootDocument.addEventListener('keydown', snapshot, true);
-  editor._removeKeyDownSnapshot = () => rootDocument.removeEventListener('keydown', snapshot, true);
+  hot.addHook('afterDestroy', remove);
+  editor._removeKeyDownSnapshot = remove;
 }
 
 /**

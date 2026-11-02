@@ -146,7 +146,9 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   keeps the coordinates, so the selection dedupe hid the new cell. The Formulas plugin enables first (priority
   260 < 265) and its load listeners carry order -1, so the engine has resynced when the bar re-reads. The
   exception is `updateSettings({ data })`: Formulas fills the engine from `afterUpdateSettings` (order 1),
-  after `afterUpdateData`, so the bar listens there with order 2.
+  after `afterUpdateData`, so the bar listens there with order 2. The dedupe key (`#lastBarCell`) also
+  holds whether the cell uses the formula editor: `updateSettings({ columns })` can move the selected cell
+  to or from the formula editor with the same text, and the bar kept offering a formula edit there.
 - **`updatePlugin()` keeps the built plugin when nothing it was built from changed.** `SETTING_KEYS` lists
   `formulas`, and the React and Angular wrappers re-send every object prop with a new identity on each
   render, so a full rebuild per render discarded the bar's focus and an open edit. `#isConfigUnchanged()`
@@ -407,7 +409,9 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   seeded with the cell's own value (`afterOpen`): the package normalizes some formulas as it reads them
   (`=1+N("note")` reads back as `=1+ N("note")`), so comparing with `_original` alone wrote the
   normalized text on an untouched Enter. The shim's `getValue()` returns `_original` for an untouched
-  buffer, so a native commit writes nothing either.
+  buffer, so a native commit writes nothing either. The `_textAtKeyDown` listener also goes away on
+  `afterDestroy`: a destroy while an async validator holds the commit never reaches `afterClose`
+  (`finishEditing()` returns early while the editor waits).
 - **Ctrl/Cmd+Enter fills the selection through the grid's editor.** The adapter's `commitFill()` calls
   `commitInlineEditToSelection()`, which saves through `finishEditing(false, true)`: the `ctrlDown` path of
   `BaseEditor#saveValue()`, shared with the grid's own fill (`selection/fillSelection.ts`). After a
