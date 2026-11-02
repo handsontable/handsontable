@@ -159,3 +159,103 @@ describe('DisplaySwitch#cancel', () => {
     expect(jest.getTimerCount()).toBe(0);
   });
 });
+
+describe('Comments hover armed before the grid\'s data changes', () => {
+  let container;
+  let hot;
+
+  beforeAll(() => {
+    Object.defineProperty(document, 'elementFromPoint', { configurable: true, value: () => null });
+  });
+
+  afterAll(() => {
+    delete document.elementFromPoint;
+  });
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    hot?.destroy();
+    hot = null;
+    container.remove();
+  });
+
+  /**
+   * Builds a grid with a comment on cell (0, 0) shown 300 ms after the pointer rests on it.
+   *
+   * @param {Array} data The grid's data.
+   * @returns {object} The Comments plugin.
+   */
+  function build(data) {
+    hot = new Handsontable(container, {
+      data,
+      comments: { displayDelay: 300 },
+      cell: [{ row: 0, col: 0, comment: { value: 'Hello' } }],
+      licenseKey: LICENSE_KEY,
+    });
+
+    return hot.getPlugin('comments');
+  }
+
+  it('still shows the comment when a wrapper sends the same data again during the delay', () => {
+    const data = [['a', 'b'], ['c', 'd']];
+    const plugin = build(data);
+    const showAtCell = jest.spyOn(plugin, 'showAtCell');
+
+    jest.useFakeTimers();
+    hover(hot.getCell(0, 0));
+    jest.advanceTimersByTime(50);
+    hot.updateSettings({ data });
+    jest.advanceTimersByTime(600);
+
+    expect(showAtCell).toHaveBeenCalledWith(0, 0);
+  });
+
+  it('still shows the comment when `updateData()` replaces the rows during the delay', () => {
+    const plugin = build([['a', 'b'], ['c', 'd']]);
+    const showAtCell = jest.spyOn(plugin, 'showAtCell');
+
+    jest.useFakeTimers();
+    hover(hot.getCell(0, 0));
+    jest.advanceTimersByTime(50);
+    hot.updateData([['e', 'f'], ['g', 'h']]);
+    jest.advanceTimersByTime(600);
+
+    expect(showAtCell).toHaveBeenCalledWith(0, 0);
+  });
+
+  it('still hides the open comment when a wrapper sends the same data again during the hide delay', () => {
+    const data = [['a', 'b'], ['c', 'd']];
+    const plugin = build(data);
+
+    plugin.showAtCell(0, 0);
+
+    expect(plugin.getEditorInputElement().parentElement.style.display).toBe('block');
+
+    jest.useFakeTimers();
+    hover(hot.getCell(1, 1));
+    jest.advanceTimersByTime(50);
+    hot.updateSettings({ data });
+    jest.advanceTimersByTime(600);
+
+    expect(plugin.getEditorInputElement().parentElement.style.display).not.toBe('block');
+  });
+
+  it('drops the show when `loadData()` replaces the data during the delay', () => {
+    const plugin = build([['a', 'b'], ['c', 'd']]);
+    const showAtCell = jest.spyOn(plugin, 'showAtCell');
+
+    jest.useFakeTimers();
+    hover(hot.getCell(0, 0));
+    jest.advanceTimersByTime(50);
+    hot.loadData([['e', 'f'], ['g', 'h']]);
+    jest.advanceTimersByTime(600);
+
+    expect(showAtCell).not.toHaveBeenCalled();
+  });
+});
+

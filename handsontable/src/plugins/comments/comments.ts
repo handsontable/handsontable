@@ -349,8 +349,7 @@ export class Comments extends BasePlugin {
        value: unknown, cellProperties: Record<string, unknown>) =>
         this.#onAfterRenderer(TD, cellProperties));
     this.addHook('afterScroll', this.#onAfterScroll);
-    this.addHook('afterLoadData', this.#onAfterDataReplaced);
-    this.addHook('afterUpdateData', this.#onAfterDataReplaced);
+    this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('beforeUndo', this.#onBeforeUndoRedo);
     this.addHook('beforeRedo', this.#onBeforeUndoRedo);
     this.addHook('afterUndo', this.#onAfterUndoRedo);
@@ -1293,12 +1292,13 @@ export class Comments extends BasePlugin {
   };
 
   /**
-   * Drops a show or hide still waiting on the display delay when the grid's data is replaced. The hover
+   * Drops a show still waiting on the display delay when `loadData()` replaces the grid's data. The hover
    * that armed it rested on a cell of the old data, so the show ran over a cell of the new data (a sheet
-   * switch, a `loadData()` call) and opened an empty editor there.
+   * switch, a `loadData()` call) and opened an empty editor there. A pending hide stays armed. `updateData()`
+   * is left alone: the wrappers send it on every re-render with the data the grid already shows.
    */
-  #onAfterDataReplaced = () => {
-    this.#displaySwitch?.cancel();
+  #onAfterLoadData = () => {
+    this.#displaySwitch?.cancelShow();
   };
 
   /**

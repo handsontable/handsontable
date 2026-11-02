@@ -123,6 +123,15 @@ class DisplaySwitch {
   }
 
   /**
+   * Drops the delayed show only, and the range it waits on. A pending hide and the last-action flag
+   * stay as they are, so a comment on screen still hides when its hide was already armed.
+   */
+  cancelShow() {
+    this.showDebounced?.cancel();
+    this.#pendingShowRange = null;
+  }
+
+  /**
    * Drops every pending action: the delayed show, the delayed hide, and the show a rebuild would carry
    * over. The plugin calls it when it is turned off, because a show armed by a hover before that ran
    * later and opened the editor over a grid with the plugin off, where nothing could close it. The
