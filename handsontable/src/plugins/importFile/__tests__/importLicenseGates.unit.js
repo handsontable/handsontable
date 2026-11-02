@@ -136,6 +136,50 @@ function allMeta(result) {
   return [...(result.columns ?? []), ...(result.cellsMeta ?? []).map(entry => entry.meta)];
 }
 
+/**
+ * A sheet with a two-row header band whose top row merges A1:B1 into one group, and one data row.
+ *
+ * @returns {object} The workbook snapshot.
+ */
+function headerBandWorkbook() {
+  const workbook = createWorkbookSnapshot();
+  const sheet = new SheetBuilder('Data');
+
+  sheet.cell(1, 1).value = 'Person';
+  sheet.cell(1, 3).value = 'Pay';
+  sheet.merge(1, 1, 1, 2);
+  sheet.cell(2, 1).value = 'Name';
+  sheet.cell(2, 2).value = 'Team';
+  sheet.cell(2, 3).value = 'Amount';
+  sheet.cell(3, 1).value = 'Ana García';
+  sheet.cell(3, 2).value = 'Engineering';
+  sheet.cell(3, 3).value = 4200;
+  workbook.sheets.push(sheet.toSnapshot());
+
+  return workbook;
+}
+
+/**
+ * Maps a workbook with `colHeaders: 'firstRow'` and a two-row header band, unless `options` says
+ * otherwise.
+ *
+ * @param {object} workbook The workbook snapshot.
+ * @param {object} entitlement The entitlement in the mapper context.
+ * @param {object} [options] Import options merged over the header-band ones.
+ * @returns {{result: object, names: string[]}}
+ */
+function mapHeaderBand(workbook, entitlement, options = {}) {
+  const dropped = new DroppedFeatures();
+  const result = mapWorkbook(workbook, resolveImportOptions({ colHeaders: 'firstRow', headerRows: 2, ...options }), {
+    formulasEnabled: false,
+    commentsEnabled: false,
+    customBordersEnabled: false,
+    entitlement,
+  }, dropped);
+
+  return { result, names: dropped.list() };
+}
+
 describe('ImportFile mapper license gates', () => {
   it('still infers a date from its number format without xlsx:number_formats', () => {
     const full = mapRich(UNRESTRICTED_XLSX_ENTITLEMENT).result;
@@ -412,31 +456,9 @@ describe('ImportFile mapper license gates', () => {
   });
 
   it('builds the header band without groups without xlsx:layout, and records the license entry', () => {
-    const workbook = createWorkbookSnapshot();
-    const sheet = new SheetBuilder('Data');
+    const workbook = headerBandWorkbook();
 
-    sheet.cell(1, 1).value = 'Person';
-    sheet.cell(1, 3).value = 'Pay';
-    sheet.merge(1, 1, 1, 2);
-    sheet.cell(2, 1).value = 'Name';
-    sheet.cell(2, 2).value = 'Team';
-    sheet.cell(2, 3).value = 'Amount';
-    sheet.cell(3, 1).value = 'Ana García';
-    sheet.cell(3, 2).value = 'Engineering';
-    sheet.cell(3, 3).value = 4200;
-    workbook.sheets.push(sheet.toSnapshot());
-
-    const map = (entitlement) => {
-      const dropped = new DroppedFeatures();
-      const result = mapWorkbook(workbook, resolveImportOptions({ colHeaders: 'firstRow', headerRows: 2 }), {
-        formulasEnabled: false,
-        commentsEnabled: false,
-        customBordersEnabled: false,
-        entitlement,
-      }, dropped);
-
-      return { result, names: dropped.list() };
-    };
+    const map = entitlement => mapHeaderBand(workbook, entitlement);
     const full = map(UNRESTRICTED_XLSX_ENTITLEMENT);
     const gated = map(without('layout', 'xlsx:layout'));
 
@@ -454,6 +476,32 @@ describe('ImportFile mapper license gates', () => {
     expect(gated.result.nestedHeaders.flat().some(header => typeof header === 'object')).toBe(false);
     expect(gated.names).toContain('license:xlsx:layout');
     expect(gated.result.data).toEqual(full.result.data);
+  });
+
+  it('records license:xlsx:layout for header groups the license dropped, even with importLayout off', () => {
+    const workbook = headerBandWorkbook();
+    const gated = mapHeaderBand(workbook, without('layout', 'xlsx:layout'), { importLayout: false });
+
+    // `importLayout` does not govern the header groups, the license does, so the loss is named.
+    expect(gated.result.nestedHeaders[0]).toEqual(['Person', '', 'Pay']);
+    expect(licenseEntriesOf(gated.names)).toEqual(['license:xlsx:layout']);
+
+    // A full key keeps the group with `importLayout: false`, so nothing is lost and nothing recorded.
+    const full = mapHeaderBand(workbook, UNRESTRICTED_XLSX_ENTITLEMENT, { importLayout: false });
+
+    expect(full.result.nestedHeaders[0]).toEqual([{ label: 'Person', colspan: 2 }, 'Pay']);
+    expect(licenseEntriesOf(full.names)).toEqual([]);
+  });
+
+  it('records no license entry for a header merge no nested header would use', () => {
+    // One header row: the band becomes `colHeaders`, which has no groups, and the caller turned
+    // layout off, so the merge was never going to be imported.
+    const single = mapHeaderBand(headerBandWorkbook(), without('layout', 'xlsx:layout'), {
+      importLayout: false, headerRows: 1,
+    });
+
+    expect(single.result.nestedHeaders).toBeUndefined();
+    expect(licenseEntriesOf(single.names)).toEqual([]);
   });
 
   it('records license:<token> for every missing token in dictionary order', () => {

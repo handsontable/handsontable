@@ -272,7 +272,7 @@ The XLSX import reads your license key for the [capabilities](@/guides/getting-s
 
 - `xlsx:import` - the import itself.
 - `xlsx:formulas` - `importFormulas`.
-- `xlsx:layout` - `importLayout`, and the column groups of nested headers. Without it, a merged cell in the header band does not become a group: each header cell becomes its own label.
+- `xlsx:layout` - `importLayout`, and the column groups of nested headers. Without it, a merged cell in the header band does not become a group: each header cell becomes its own label. The import then lists `license:xlsx:layout`, even with `importLayout: false`.
 - `xlsx:comments` - cell comments.
 - `xlsx:styles` - `importStyles`.
 - `xlsx:conditional_formatting` - `result.conditionalFormatting`.
@@ -281,7 +281,7 @@ The XLSX import reads your license key for the [capabilities](@/guides/getting-s
 
 `xlsx:number_formats` never restricts an import, because the import reads number formats to infer cell types. `xlsx:import_report` is always on, so `result.dropped` is always complete.
 
-Without `xlsx:import`, `importFromBlob()` and `importFromArrayBuffer()` throw `ImportFile: the license does not unlock "xlsx:import".` Without any other capability, the import skips that part of the file. When the file carries that feature and your options ask the import to bring it over, the import adds a `license:xlsx:<capability>` entry to `result.dropped` and prints one console warning: `The xlsx import skipped features your license does not unlock: <ids>.` The warning names only the capabilities the file needed and your license does not unlock, so a file with values only imports with no license warning. A feature your options leave out gets no license entry: with `importStyles` off, a styled file reports `cellStyles` as on any key, and with `importLayout: false`, `importFormulas: false`, `inferCellTypes: false` (for data validation), or no `Comments` plugin (for comments), the license is not named. Without `xlsx:formulas`, each formula cell imports its cached value and `result.formulas` is left out. The `no-console-warns` flag on a key silences it. The capabilities and their packages are on the [pricing page](https://handsontable.com/pricing).
+Without `xlsx:import`, `importFromBlob()` and `importFromArrayBuffer()` throw `ImportFile: the license does not unlock "xlsx:import".` Without any other capability, the import skips that part of the file. When the file carries that feature and your options ask the import to bring it over, the import adds a `license:xlsx:<capability>` entry to `result.dropped` and prints one console warning: `The xlsx import skipped features your license does not unlock: <ids>.` The warning names only the capabilities the file needed and your license does not unlock, so a file with values only imports with no license warning. A feature your options leave out gets no license entry: with `importStyles` off, a styled file reports `cellStyles` as on any key, and with `importLayout: false`, `importFormulas: false`, `inferCellTypes: false` (for data validation), or no `Comments` plugin (for comments), the license is not named. Header groups are the exception: they follow the license, not `importLayout`. Without `xlsx:formulas`, each formula cell imports its cached value and `result.formulas` is left out. The `no-console-warns` flag on a key silences it. The capabilities and their packages are on the [pricing page](https://handsontable.com/pricing).
 
 ### Styles
 

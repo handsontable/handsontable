@@ -1603,6 +1603,29 @@ function mapNestedHeaders(
 }
 
 /**
+ * Whether the header band holds a merge `mapNestedHeaders` would turn into a group: a band of two or
+ * more rows under `colHeaders: 'firstRow'`, with a merge still wider than one column once clamped to
+ * the window. Bounded like `mapNestedHeaders`, by the band's merges.
+ */
+function hasHeaderBandGroup(sheet: SheetSnapshot, window: SheetWindow, options: ResolvedImportOptions): boolean {
+  if (options.colHeaders !== 'firstRow' || options.headerRows < 2) {
+    return false;
+  }
+
+  const bandEnd = window.firstRow - 1;
+  const bandStart = bandEnd - options.headerRows + 1;
+  const coverage = buildHeaderCoverage(sheet, bandStart, bandEnd, window);
+
+  for (const merge of coverage.values()) {
+    if (Math.min(merge.col + merge.colspan - 1, window.lastCol) > Math.max(merge.col, window.firstCol)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
  * Whether the sheet carries any layout the `xlsx:layout` token gates: a merge, a hidden row or
  * column, a frozen pane, an explicit column width or row height, or a right-to-left direction.
  */
@@ -1630,7 +1653,10 @@ function recordMissingLicenses(
   const { entitlement } = context;
   const carried: Record<string, () => boolean> = {
     'xlsx:formulas': () => requestedOptions.importFormulas && pass.sawFormula,
-    'xlsx:layout': () => requestedOptions.importLayout && hasLayout(sheet),
+    // Header groups follow the license, not `importLayout`, so a group the license dropped counts
+    // whatever the caller's option says.
+    'xlsx:layout': () => (requestedOptions.importLayout && hasLayout(sheet))
+      || hasHeaderBandGroup(sheet, window, options),
     // Without the Comments plugin the comments are reported as `comments`, as for any key.
     'xlsx:comments': () => context.commentsEnabled
       && (pass.sawComment || hasHeaderBandComment(sheet, window, options)),
