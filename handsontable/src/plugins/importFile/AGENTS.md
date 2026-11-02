@@ -508,7 +508,8 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 - **`FORMULA_IDENTIFIER_REGEX` matches an error literal whole** (`#N/A`, `#DIV/0!`, `#NAME?`, ...,
   case-insensitive; `isLiteralToken`), like a string or a quoted sheet name: `#N/A` was read as the names
   `n` and `a`, so a workbook name `N` or `A` the import could not take (one scoped to another sheet) froze
-  every formula spelling `#N/A` to its cached value. `namesIn`, `rewriteBareBooleans`,
+  every formula spelling `#N/A` to its cached value. The newer literals (`#FIELD!`, `#BLOCKED!`, `#UNKNOWN!`,
+  `#CONNECT!`, `#BUSY!`, `#EXTERNAL!`, `#PYTHON!`) are listed too. `namesIn`, `rewriteBareBooleans`,
   `callsUnregisteredFunction` and `callsSpillOperator` all skip such a token.
 - **A formula calling `ANCHORARRAY` or `SINGLE` imports its cached value** (DEV-3648, `callsSpillOperator`
   in `pushCellValue`, `formula:spillReference`). Excel stores the spill operator `B1#` as
@@ -517,7 +518,10 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   (`#NAME?`, and `COUNTA(ANCHORARRAY(B1))` silently answered 1). The check runs on every live formula, not
   only array masters, and is charged with the formula's one walk (`SPILL_OPERATOR_HINT` in
   `readFormulaText`). Deferred, not built: rewriting `ANCHORARRAY(B1)` to the master's recorded `ref`
-  (`B1:B3`) when that master imports live, which would keep such formulas live.
+  (`B1:B3`) when that master imports live, which would keep such formulas live. A DEFINED NAME over the
+  spill operator (`Spill = _xlfn.ANCHORARRAY(Sheet1!$B$1)`, Excel's `Sheet1!$B$1#`) is left out with
+  `definedNames:unsupported` (`callsSpillOperator` in `collectNamedExpressions`), also on an engine that
+  cannot list its functions, where `callsUnregisteredFunction` answers nothing.
 - **A bare `TRUE`/`FALSE` in a live formula or a name definition is rewritten to `TRUE()`/`FALSE()`** (DEV-3648,
   `rewriteBareBooleans`, called by `readFormulaText`): HyperFormula reads the bare literal as an unknown name
   (`=IF(TRUE,1,2)` is `#NAME?`). `readFormulaText` returns `{ recorded, live }`: `ImportResult.formulas` records

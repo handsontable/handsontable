@@ -2429,18 +2429,39 @@ describe('mapWorkbook – the workbook\'s defined names as named expressions', (
     // `#N/A` read as the names `n` and `a`: a name `N` the import cannot take (here one scoped to
     // another sheet) made every formula spelling `#N/A` import its cached value.
     const { context } = contextOf();
-    const scoped = ['N', 'A', 'Div', 'Name', 'Getting_Data', 'Null']
+    const scoped = ['N', 'A', 'Div', 'Name', 'Getting_Data', 'Null', 'Field', 'Blocked', 'Unknown', 'Connect',
+      'Busy', 'External', 'Python']
       .map(name => ({ name, formula: 'Rates!$A$1', sheetName: 'Rates' }));
     const errors = 'IF(G2>0,#N/A,IF(G3>0,#div/0!,IFERROR(#NAME?,#GETTING_DATA)))';
+    // The errors newer Excel versions write (data types, blocked links, Python cells).
+    const newer = 'IFERROR(#FIELD!,IFERROR(#BLOCKED!,IFERROR(#UNKNOWN!,IFERROR(#connect!,'
+      + 'IFERROR(#BUSY!,IFERROR(#EXTERNAL!,#PYTHON!))))))';
     const { result } = map(salesWorkbook([...scoped, NAMES[0]], [
       text('r4'), text('x'), cell({ formula: { text: errors, result: '#N/A', resultIsError: true } }),
-      null, null, null, cell({ formula: { text: 'IF(G2>0,N,1)', result: 1 } }),
+      cell({ formula: { text: newer, result: '#FIELD!', resultIsError: true } }),
+      null, null, cell({ formula: { text: 'IF(G2>0,N,1)', result: 1 } }),
     ]), OPTIONS, context);
 
     expect(result.data[3][1]).toBe('=IF(F1>0,#N/A,IF(F2>0,#div/0!,IFERROR(#NAME?,#GETTING_DATA)))');
+    expect(result.data[3][2]).toBe(`=${newer}`);
     // A name spelled outside an error literal is still read.
     expect(result.data[3][5]).toBe(1);
     expect(result.dropped).toContain('formula:definedName');
+  });
+
+  it('should leave out a name over the spill operator, even when the engine cannot list its functions', () => {
+    // `Sheet1!$B$1#` is stored as `_xlfn.ANCHORARRAY(Sheet1!$B$1)`. HyperFormula has no ANCHORARRAY,
+    // so the name would be `#NAME?` and `COUNTA(Spill)` would count that error as one value.
+    const { context, asked } = contextOf();
+    const names = [{ name: 'Spill', formula: '_xlfn.anchorarray(Data!$G$2)', sheetName: null }];
+    const { result } = map(salesWorkbook(names, [
+      text('r4'), text('x'), cell({ formula: { text: 'COUNTA(Spill)', result: 3 } }),
+    ]), OPTIONS, context);
+
+    expect(asked).toEqual([]);
+    expect(result.namedExpressions).toBeUndefined();
+    expect(result.data[3][1]).toBe(3);
+    expect(result.dropped).toContain('definedNames:unsupported');
   });
 
   it('should leave out a name the window shift pushes into the dropped header band', () => {

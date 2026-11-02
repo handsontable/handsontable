@@ -2172,6 +2172,54 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
     offset.hf.destroy();
   });
 
+  it('should keep the cached covered cells of an array master that itself uses the spill operator', async() => {
+    // `=B1#*2` is stored as `_xlfn.ANCHORARRAY(B1)*2`, in any case; HyperFormula has no ANCHORARRAY.
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+
+    for (const text of ['_xlfn.ANCHORARRAY(B1)*2', '_xlfn.anchorarray(B1)*2']) {
+      const rows = [
+        [at({ value: 1 }),
+          at({ formula: { text: '_xlfn.SEQUENCE(3)', result: 1, array: { ref: 'B1:B3', dynamic: true } } }),
+          at({ formula: { text, result: 2, array: { ref: 'C1:C3', dynamic: true } } })],
+        [at({ value: 2 }), at({ value: 2 }), at({ value: 4 })],
+        [at({ value: 3 }), at({ value: 3 }), at({ value: 6 })],
+      ];
+
+      for (const [kind, engine] of [['native', undefined], ['exceljs', ExcelJS]]) {
+        const label = [kind, text];
+        // eslint-disable-next-line no-await-in-loop -- one import at a time.
+        const { result, hf } = await importArrays(rows, engine);
+
+        expect([label, result.data.map(row => row[2])]).toEqual([label, [2, 4, 6]]);
+        expect([label, result.formulas]).toEqual([label, [{ row: 0, col: 2, formula: text.replace('_xlfn.', '') }]]);
+        expect([label, result.dropped.includes('formula:spillReference')]).toEqual([label, true]);
+
+        hf.destroy();
+      }
+    }
+  });
+
+  it('should leave out a defined name over the spill operator', async() => {
+    // `Spill` refers to `Sheet1!$B$1#`, stored as `_xlfn.ANCHORARRAY(Sheet1!$B$1)`. HyperFormula
+    // has no ANCHORARRAY, so the name would be `#NAME?` and `COUNTA(Spill)` would count it as 1.
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const names = [{ name: 'Spill', formula: '_xlfn.ANCHORARRAY(Sheet1!$B$1)', sheetName: null }];
+    const { result, hf } = await importArrays([
+      [at({ value: 1 }),
+        at({ formula: { text: '_xlfn.SEQUENCE(3)', result: 1, array: { ref: 'B1:B3', dynamic: true } } }),
+        at({ formula: { text: 'COUNTA(Spill)', result: 3 } })],
+      [at({ value: 2 }), at({ value: 2 }), null],
+      [at({ value: 3 }), at({ value: 3 }), null],
+    ], undefined, {}, names);
+
+    expect(result.namedExpressions).toBeUndefined();
+    expect(result.data[0][2]).toBe(3);
+    expect(result.formulas).toEqual([{ row: 0, col: 2, formula: 'COUNTA(Spill)' }]);
+    expect(result.dropped).toContain('definedNames:unsupported');
+
+    hf.destroy();
+  });
+
   it('should import the cached value of a formula using the spill operator or implicit intersection', async() => {
     // Excel stores `=SUM(B1#)` as `SUM(_xlfn.ANCHORARRAY(B1))` and `=@A1:A3` as `_xlfn.SINGLE(A1:A3)`.
     // HyperFormula has neither function: C1 and D1 showed `#NAME?`, and `COUNTA(ANCHORARRAY(B1))`

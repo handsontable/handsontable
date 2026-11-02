@@ -701,14 +701,16 @@ function isSheetKnown(name: string, scope: CollectContext): boolean {
 
 /**
  * An identifier in a formula: a name, a function name or a cell reference. A string literal, a
- * quoted sheet name (`'Sales Data'!A1`) and an error literal (`#N/A`, any case) are matched whole so
- * their words are never read as names (`#N/A` was the names `n` and `a`); `isLiteralToken` tells
- * them apart. Linear: one greedy run per match, no backtracking.
+ * quoted sheet name (`'Sales Data'!A1`) and an error literal (`#N/A`, any case, also the newer ones
+ * such as `#FIELD!` and `#PYTHON!`) are matched whole so their words are never read as names (`#N/A`
+ * was the names `n` and `a`); `isLiteralToken` tells them apart. Linear: one greedy run per match,
+ * no backtracking.
  */
 const FORMULA_IDENTIFIER_REGEX = new RegExp([
   '"(?:[^"]|"")*"',
   '\'(?:[^\']|\'\')*\'',
-  '#(?:NULL!|DIV\\/0!|VALUE!|REF!|NAME\\?|NUM!|N\\/A|SPILL!|CALC!|GETTING_DATA)',
+  '#(?:NULL!|DIV\\/0!|VALUE!|REF!|NAME\\?|NUM!|N\\/A|SPILL!|CALC!|GETTING_DATA'
+    + '|FIELD!|BLOCKED!|UNKNOWN!|CONNECT!|BUSY!|EXTERNAL!|PYTHON!)',
   '[\\p{L}_\\\\][\\p{L}\\p{N}_.]*',
 ].join('|'), 'giu');
 
@@ -934,8 +936,10 @@ function isTooCostly(formula: string, cells: number, spent: number, scope: Colle
  * `Data!A1`), or uses a name left out itself (followed through any chain of names) is left out, and
  * `definedNames:unsupported` is recorded once; the formulas using it import their cached values.
  * So is a definition past the import's caps, which bound what the engine would parse and evaluate
- * (`MAX_DEFINED_NAME_LENGTH`, `MAX_DEFINED_NAME_CHARS`, `isTooCostly`), and one calling a function
- * the engine does not register.
+ * (`MAX_DEFINED_NAME_LENGTH`, `MAX_DEFINED_NAME_CHARS`, `isTooCostly`), one calling a function
+ * the engine does not register, and one over the spill operator or implicit intersection
+ * (`callsSpillOperator`: `Sheet1!$B$1#` is stored as `_xlfn.ANCHORARRAY(Sheet1!$B$1)`), which the
+ * engine evaluates to `#NAME?` even when it cannot list its functions.
  *
  * @param {CollectContext} scope The pass context.
  * @returns {Array<{ name: string, formula: string }>} The names to add, each formula without its `=`.
@@ -1005,7 +1009,8 @@ function collectNamedExpressions(scope: CollectContext): NonNullable<ImportResul
     });
     const cells = rebased.formula === null ? 0 : closedReferenceArea(rebased.formula);
     const expression = rebased.formula === null || rebased.unknownSheet || rebased.formula.trim() === ''
-      || isTooCostly(rebased.formula, cells, definitionCells, scope) ? null : `=${rebased.formula}`;
+      || isTooCostly(rebased.formula, cells, definitionCells, scope) || callsSpillOperator(rebased.formula)
+      ? null : `=${rebased.formula}`;
 
     if (expression !== null) {
       definitionCells += cells;
