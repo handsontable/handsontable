@@ -97,7 +97,12 @@ describe('normalizeFormula', () => {
     });
 
     it('should convert every number literal form the engine reads', () => {
-      expect(normalizeComma('=1,5e3+1,5E-3+,5+5,')).toBe('1.5e3+1.5E-3+.5+5.');
+      expect(normalizeComma('=1,5e3+1,5e-3+,5+5,')).toBe('1.5e3+1.5e-3+.5+5.');
+    });
+
+    it('should convert an uppercase exponent too, which the engine does not read, without harm', () => {
+      // HyperFormula reads a lowercase `e` only, so such a formula never comes from the engine.
+      expect(normalizeComma('=1,5E-3')).toBe('1.5E-3');
     });
 
     it('should not offset the exponent of a number with a trailing decimal comma', () => {
