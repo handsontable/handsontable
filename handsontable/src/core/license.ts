@@ -1,4 +1,4 @@
-import { _getHandsontableEntitlement, _getLicenseState } from '../helpers/mixed';
+import { _getLicenseState } from '../helpers/mixed';
 import type { LicenseStateDescriptor } from '../helpers/mixed';
 import { resolveXlsxEntitlement, UNRESTRICTED_XLSX_ENTITLEMENT } from '../utils/xlsxEngine/xlsxEntitlement';
 import type { XlsxEntitlement } from '../utils/xlsxEngine/xlsxEntitlement';
@@ -61,9 +61,7 @@ export function getXlsxEntitlement(hot: HotInstance): XlsxEntitlement {
   let entitlement = xlsxEntitlementsByKey.get(licenseKey);
 
   if (!entitlement) {
-    const { grants } = _getLicenseState(licenseKey);
-
-    entitlement = resolveXlsxEntitlement(_getHandsontableEntitlement(licenseKey), grants);
+    entitlement = resolveXlsxEntitlement(_getLicenseState(licenseKey).grants);
     xlsxEntitlementsByKey.set(licenseKey, entitlement);
   }
 

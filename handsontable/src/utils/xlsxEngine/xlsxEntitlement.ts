@@ -1,11 +1,9 @@
 import {
   type LicenseGrants,
-  type ProductEntitlement,
   hasCapability,
   HANDSONTABLE_PRODUCT,
 } from '../entitlementLicenseKey';
 import {
-  LISTED_CAPABILITIES_FLAG,
   XLSX_ALL_CAPABILITY,
   XLSX_CAPABILITY_IDS,
   XLSX_FLAG_BY_ID,
@@ -57,37 +55,18 @@ export const UNRESTRICTED_XLSX_ENTITLEMENT: XlsxEntitlement = Object.freeze({
 });
 
 /**
- * Tells whether a product entry carries the `listed-capabilities` flag. The reader normalizes
- * `flags` into an own array, and it is read as an own property all the same.
+ * Resolves what the license unlocks of the XLSX engine from its grants, as `_getLicenseState`
+ * (`helpers/mixed.ts`) resolves them. That is where the flag rule lives: a legacy, missing or invalid
+ * key, a key that does not grant Handsontable, and a Handsontable entry without the
+ * `listed-capabilities` flag (every key issued before the tokens existed) all resolve to unrestricted
+ * grants, and so to the unrestricted entitlement here. With the flag, only the listed tokens unlock,
+ * and `xlsx:all` unlocks every one of them.
  *
- * @param {ProductEntitlement} entitlement The product entry.
- * @returns {boolean}
- */
-function listsCapabilities(entitlement: ProductEntitlement): boolean {
-  if (!Object.prototype.hasOwnProperty.call(entitlement, 'flags')) {
-    return false;
-  }
-
-  const { flags } = entitlement;
-
-  return Array.isArray(flags) && flags.indexOf(LISTED_CAPABILITIES_FLAG) !== -1;
-}
-
-/**
- * Resolves what the license unlocks of the XLSX engine. A license is unrestricted when it is
- * unrestricted as a whole, has no Handsontable product entry, or its entry does not carry the
- * `listed-capabilities` flag (every key issued before the tokens existed). With the flag, only the
- * listed tokens unlock, and `xlsx:all` unlocks every one of them.
- *
- * @param {ProductEntitlement|null} entitlement The `handsontable` product entry of the key, or `null`.
  * @param {LicenseGrants} grants The resolved grants.
  * @returns {XlsxEntitlement}
  */
-export function resolveXlsxEntitlement(
-  entitlement: ProductEntitlement | null,
-  grants: LicenseGrants,
-): XlsxEntitlement {
-  if (grants.unrestricted || entitlement === null || !listsCapabilities(entitlement)) {
+export function resolveXlsxEntitlement(grants: LicenseGrants): XlsxEntitlement {
+  if (grants.unrestricted) {
     return UNRESTRICTED_XLSX_ENTITLEMENT;
   }
 
