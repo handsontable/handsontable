@@ -3,6 +3,9 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { ExportFile } from '../exportFile';
 import { Formulas } from '../../formulas';
+import { registerCellType } from '../../../cellTypes/registry';
+import { NumericCellType } from '../../../cellTypes/numericType';
+import { CheckboxCellType } from '../../../cellTypes/checkboxType';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
 
 /**
@@ -20,6 +23,8 @@ describe('Xlsx export: the type of a value the Formulas engine computed', () => 
   beforeAll(() => {
     registerPlugin(Formulas);
     registerPlugin(ExportFile);
+    registerCellType(NumericCellType);
+    registerCellType(CheckboxCellType);
   });
 
   beforeEach(() => {
@@ -67,6 +72,24 @@ describe('Xlsx export: the type of a value the Formulas engine computed', () => 
 
     expect(rows[0].map(cell => cell.value)).toEqual([1, 2, true, 'text']);
     expect(rows[1][0].value).toBe(2);
+  });
+
+  it('should let a numeric and a checkbox column keep their own handling of a computed value', async() => {
+    // The computed-value branch runs AFTER the typed branches. Moved above them, `=A1*1.5` in a
+    // formatted numeric column lost its `numFmt`, and the checkbox column wrote the number 1.
+    const rows = await exportedRows({
+      data: [[100, '=A1*1.5', '=2-1']],
+      columns: [
+        { type: 'numeric' },
+        { type: 'numeric', numericFormat: { minimumFractionDigits: 2 }, locale: 'en-US' },
+        { type: 'checkbox', checkedTemplate: 1, uncheckedTemplate: 0 },
+      ],
+    });
+    const [, scaled, checked] = rows[0];
+
+    expect(scaled.value).toBe(150);
+    expect(scaled.numFmt).toBe('#,##0.00');
+    expect(checked.value).toBe(true);
   });
 
   it('should keep a value typed into a text column as text', async() => {

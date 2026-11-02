@@ -323,7 +323,8 @@ Other rules:
   spill as 1 (found in the DEV-3648 manual checks). The matrix holds the engine value only for a cell
   whose engine type is not `VALUE`/`EMPTY` (a formula, an array formula, a spilled `ARRAY` cell) and
   whose value is a finite number or a boolean; `#resolveCellValue` uses it in the default branch, after
-  the typed branches (a `numeric`, date, checkbox column keeps its own handling). A value the user
+  the typed branches (a `numeric`, date, checkbox column keeps its own handling; the order is pinned
+  in `xlsxComputedValueType.unit.js` without `exportFormulas`). A value the user
   typed stays text: HyperFormula holds it as `VALUE`.
 - **The engine is read in ONE pass per sheet** (`ExportDataProvider#getEngineCellFacts(withArraySizes)`):
   per cell it translates the address once, asks `getCellType` once and `getCellValue` once, and
@@ -380,7 +381,8 @@ Other rules:
 - **Named expressions export as workbook defined names, with `exportFormulas` only** (DEV-3648).
   `getNamedExpressions()` lists the engine's WORKBOOK-scoped names (a sheet-scoped one is left out);
   a name defined with a constant has no formula text, so its value is spelled as a literal
-  (`toFormulaLiteral`: `"text"` with `""`, at most 255 characters, `TRUE()`/`FALSE()`, an error code).
+  (`toFormulaLiteral`: `"text"` with `""`, at most 255 characters and no XML-forbidden control
+  character, which the writer would strip silently, `TRUE()`/`FALSE()`, an error code).
   **Names are written ONCE per export, not per grid**: grids of a multi-sheet export usually share
   one engine, and normalizing every name against each grid's own sheet wrote a reference to another
   grid's sheet unshifted under the engine's sheet name (review round 1). `#populateWorksheet` only

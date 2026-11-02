@@ -206,6 +206,13 @@ describe('toFormulaLiteral', () => {
     expect(toFormulaLiteral('x'.repeat(255))).toBe(`"${'x'.repeat(255)}"`);
     expect(toFormulaLiteral(null)).toBeNull();
     expect(toFormulaLiteral({ type: 'CYCLE', value: '#CYCLE!' })).toBeNull();
+    // The file cannot hold these characters: the XML writer strips them, which silently changed
+    // `x\u0001y` to `xy`. A tab, a line feed and a carriage return are kept.
+    expect(toFormulaLiteral('x\u0001y')).toBeNull();
+    expect(toFormulaLiteral('\u0000')).toBeNull();
+    expect(toFormulaLiteral('a\u000Bb\u000Cc')).toBeNull();
+    expect(toFormulaLiteral('end\u001F')).toBeNull();
+    expect(toFormulaLiteral('a\tb\nc\rd')).toBe('"a\tb\nc\rd"');
     expect(toFormulaLiteral(Infinity)).toBeNull();
   });
 });

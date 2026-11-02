@@ -430,12 +430,20 @@ export function toOoxmlErrorCode(cellValue: unknown): string | null {
 const MAX_FORMULA_STRING_LITERAL_LENGTH = 255;
 
 /**
+ * The control characters an XML 1.0 file cannot hold. The writers strip them, so a literal holding
+ * one would silently change; a tab, a line feed and a carriage return are allowed.
+ */
+// eslint-disable-next-line no-control-regex
+const XML_FORBIDDEN_CONTROL_CHARACTERS = /[\x00-\x08\x0B\x0C\x0E-\x1F]/;
+
+/**
  * Spells the constant value of a HyperFormula named expression (one defined with a value rather
  * than a formula) as an Excel formula literal: a finite number as it is, a string double-quoted
  * with every `"` doubled, a boolean as `TRUE()` or `FALSE()` (the function form, which every
  * reader parses as a boolean), and an error with an OOXML code as that code. Answers `null` for
  * anything else (an empty value, an error with no code, a string longer than the 255 characters
- * Excel accepts in a literal), which no definition can spell.
+ * Excel accepts in a literal, a string with a control character the file cannot hold), which no
+ * definition can spell.
  *
  * @private
  * @param {*} value The value `getNamedExpressionValue()` answers.
@@ -448,7 +456,11 @@ export function toFormulaLiteral(value: unknown): string | null {
 
   if (typeof value === 'string') {
     // Excel refuses a string literal longer than 255 characters in a formula.
-    return value.length > MAX_FORMULA_STRING_LITERAL_LENGTH ? null : `"${value.replaceAll('"', '""')}"`;
+    if (value.length > MAX_FORMULA_STRING_LITERAL_LENGTH || XML_FORBIDDEN_CONTROL_CHARACTERS.test(value)) {
+      return null;
+    }
+
+    return `"${value.replaceAll('"', '""')}"`;
   }
 
   if (typeof value === 'boolean') {

@@ -10,6 +10,8 @@ import { registerCellType } from '../../../cellTypes/registry';
 import { IntlDateCellType } from '../../../cellTypes/intlDateType';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
 import { excelJsAdapter } from '../../../utils/xlsxEngine/adapters/exceljs';
+import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
+import { toArrayBuffer } from '../../../utils/xlsxEngine/__tests__/helpers/fixtures';
 
 /**
  * DEV-3648: with `exportFormulas`, the workbook-scoped named expressions of the Formulas plugin's
@@ -300,6 +302,39 @@ describe('Xlsx export: named expressions as defined names', () => {
       { name: 'Missing', formula: '#N/A', sheetName: null },
     ]);
     expect(dropped.count('definedNames:unsupported')).toBe(1);
+  });
+
+  it('should leave out a text constant with a control character and export the formulas over it as values', async() => {
+    // The XML writer strips the character, so the name would silently hold `xy`, not `x\u0001y`.
+    const engine = createGrid({ data: [['=LEN(Ctl)'], ['=LEN(Tab)']] });
+
+    engine.addNamedExpression('Ctl', 'x\u0001y');
+    engine.addNamedExpression('Tab', 'x\ty');
+
+    const { snapshot, dropped } = await exportWorkbook();
+    const [[ctl], [tab]] = snapshot.sheets[0].rows;
+
+    expect(snapshot.definedNames).toEqual([{ name: 'Tab', formula: '"x\ty"', sheetName: null }]);
+    expect(ctl.formula).toBeNull();
+    expect(ctl.value).toBe(3);
+    expect(tab.formula).toEqual(expect.objectContaining({ text: 'LEN(Tab)', result: 3 }));
+    expect(dropped.list()).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+  });
+
+  it('should write a text constant holding a quote with the quote doubled, read back as written', async() => {
+    writeSpy.mockRestore();
+    writeSpy = jest.spyOn(nativeAdapter, 'write');
+
+    const engine = createGrid();
+
+    engine.addNamedExpression('Quoted', 'a"b');
+
+    await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', { exportFormulas: true });
+
+    const bytes = await writeSpy.mock.results[0].value;
+    const read = await nativeAdapter.read(toArrayBuffer(bytes), undefined, new DroppedFeatures());
+
+    expect(read.definedNames).toEqual([{ name: 'Quoted', formula: '"a""b"', sheetName: null }]);
   });
 
   it('should convert the engine argument separator to a comma', async() => {
