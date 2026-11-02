@@ -38,7 +38,8 @@
  *  18. Versioned /docs/:ver/react-*        → /docs/:ver/react-data-grid/*
  * 18a. POST /docs/scripts/json/save.json   → mock 200 JSON (saving-data demo)
  * 18b. /docs/_md/**.md, /docs/llms*.txt   → served from assets as text/plain
- *  19. Static asset fallback (env.ASSETS)
+ *  19. Static asset fallback (env.ASSETS); a 404 for an unprefixed
+ *      /docs/:slug retries it under the framework (cookie, 302)
  */
 
 // ---------------------------------------------------------------------------
@@ -713,6 +714,40 @@ const SITEMAP_PASSTHROUGH_SLUGS = new Set([
  */
 function isFlatPageKey(page) {
   return Object.prototype.hasOwnProperty.call(FLAT_PAGES_REMAP, page) || SITEMAP_PASSTHROUGH_SLUGS.has(page);
+}
+
+// A slug the rule 19 retry never looks up under a framework: a framework
+// prefix, a version, or a file.
+const NOT_A_PAGE_SLUG = /^(?:(?:javascript|react|angular|vue)-data-grid|\d+\.\d+)(?:\/|$)|\.(?:html?|m?js|css|json|xml|txt|md|map|png|jpe?g|gif|svg|webp|avif|ico|pdf|woff2?|ttf)$/i;
+
+/**
+ * Finds the page an unprefixed `/docs/{slug}` URL names, under the cookie
+ * framework first and JavaScript second, by asking the static assets.
+ *
+ * @param {Request} request The incoming request.
+ * @param {object} env The Pages environment.
+ * @param {URL} url The parsed request URL.
+ * @returns {Promise<string|null>} The page's path, or `null` when no framework has it.
+ */
+async function findFrameworkPage(request, env, url) {
+  const slug = url.pathname.match(/^\/docs\/(.+?)\/?$/)?.[1];
+
+  if (!slug || NOT_A_PAGE_SLUG.test(slug)) {
+    return null;
+  }
+
+  const preferred = getFrameworkFromCookie(getCookie(request, 'docs_fw'));
+
+  for (const framework of new Set([preferred, 'javascript-data-grid'])) {
+    const candidate = `/docs/${framework}/${slug}/`;
+    const lookup = await env.ASSETS.fetch(new Request(new URL(candidate, url), { method: 'HEAD' }));
+
+    if (lookup.ok) {
+      return candidate;
+    }
+  }
+
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -1405,7 +1440,22 @@ async function route(request, env) {
     }
 
     // -- 19. Fallback: serve static assets via env.ASSETS --------------------
-    return env.ASSETS.fetch(request);
+    // A 404 for an unprefixed /docs/{slug} retries the slug under the
+    // framework (cookie, 302). Rule 16 lists slugs by hand, and that list goes
+    // stale; this asks the deployed assets instead.
+    {
+      const response = await env.ASSETS.fetch(request);
+
+      if (response.status === 404 && (request.method === 'GET' || request.method === 'HEAD')) {
+        const dest = await findFrameworkPage(request, env, url);
+
+        if (dest !== null) {
+          return redirect302(abs(dest, url));
+        }
+      }
+
+      return response;
+    }
 }
 
 export default {
