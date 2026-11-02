@@ -242,11 +242,13 @@ export interface ExportOptions {
    *   unprotect it.
    * - `{ password: '...' }`: such a sheet is protected with this password. The file keeps only a salted
    *   SHA-512 hash of it, never the password itself. An empty or missing `password` sets no password.
+   *   Excel accepts at most 255 characters, so a longer password is refused.
    * - `null`: no sheet is protected and no cell is locked.
    *
    * Any other value is refused: the export rejects when `protection` is not an object or `null`, or
-   * when `password` is set to something other than a string. The error names the option, never its
-   * value.
+   * when `password` is set to something other than a string or is longer than 255 characters. The
+   * error names the option, never its value. A `protection` key on a `sheets` entry is ignored, with a
+   * console warning.
    *
    * A sheet with no read-only cell, or with a ColumnSummary, is never protected. With the `sheets`
    * option, every protected sheet gets the same password. This is a guard against accidental edits,

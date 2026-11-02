@@ -275,7 +275,7 @@ hot.getPlugin('exportFile').downloadFileAsync('xlsx', {
 - `protection: null` protects no sheet, and read-only cells export unlocked.
 - An empty `password` sets no password.
 - A sheet with no read-only cell is not protected, so a password writes nothing. A sheet with a `columnSummary` destination cell is not protected either.
-- A `protection` value that is not an object or `null` rejects the export with `ExportFile: the "protection" option has to be an object or null.` A `password` that is not a string rejects it with `ExportFile: the "protection.password" option has to be a string.` The messages never contain the value.
+- A `protection` value that is not an object or `null` rejects the export with `ExportFile: the "protection" option has to be an object or null.` A `password` that is not a string rejects it with `ExportFile: the "protection.password" option has to be a string.` Excel accepts a password of at most 255 characters, so a longer one rejects the export with `ExportFile: the "protection.password" option has to be at most 255 characters long.` The messages never contain the value.
 
 The password is stored as a salted SHA-512 hash, and Excel asks for it when a user unprotects the sheet. This is a guard against accidental edits, not encryption: the cell values stay readable in the file. Without the `xlsx:protection` capability, the option is ignored.
 

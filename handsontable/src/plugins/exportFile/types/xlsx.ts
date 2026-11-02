@@ -343,10 +343,16 @@ interface XlsxOptions extends Record<string, unknown> {
 }
 
 /**
+ * The longest sheet password Excel accepts, in UTF-16 units.
+ */
+const MAX_PROTECTION_PASSWORD_LENGTH = 255;
+
+/**
  * Refuses a `protection` option the export cannot honor: anything but `undefined`, `null` or a plain
- * object, and an object whose `password` is neither `undefined`, `null` nor a string. A number would
- * otherwise reach the engines, which disagree on it: the built-in one hashes it as an empty password
- * (a protected-looking sheet with no real password), and ExcelJS throws a bare `TypeError`. The
+ * object, an object whose `password` is neither `undefined`, `null` nor a string, and a password
+ * longer than Excel's 255 characters. A number would otherwise reach the engines, which disagree on
+ * it: the built-in one hashes it as an empty password (a protected-looking sheet with no real
+ * password), and ExcelJS throws a bare `TypeError`. The
  * messages name the option, never its value, because the value may be a password.
  *
  * @param {*} protection The `protection` export option.
@@ -364,6 +370,15 @@ function assertProtectionOption(protection: unknown): void {
 
   if (password !== undefined && password !== null && typeof password !== 'string') {
     throwWithCause('ExportFile: the "protection.password" option has to be a string.');
+  }
+
+  // Excel accepts a sheet password of at most 255 characters, counted in UTF-16 units, which is what
+  // `length` counts.
+  if (typeof password === 'string' && password.length > MAX_PROTECTION_PASSWORD_LENGTH) {
+    throwWithCause(
+      `ExportFile: the "protection.password" option has to be at most ${MAX_PROTECTION_PASSWORD_LENGTH} `
+      + 'characters long.'
+    );
   }
 }
 

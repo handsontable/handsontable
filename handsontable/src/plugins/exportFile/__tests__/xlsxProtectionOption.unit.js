@@ -375,6 +375,20 @@ describe('Xlsx export `protection` option', () => {
     expect(writeSpy).not.toHaveBeenCalled();
   });
 
+  it('accepts a password of 255 characters and refuses one of 256, without naming the value', async() => {
+    const longest = `${'q'.repeat(254)}Z`;
+    const sheet = (await exportSnapshot(FULL_KEY, { protection: { password: longest } })).sheets[0];
+
+    expect(sheet.protection.password === longest).toBe(true);
+
+    const tooLong = `${'q'.repeat(255)}Z`;
+    const error = await refusal(FULL_KEY, { protection: { password: tooLong } });
+
+    expect(error?.message).toBe('ExportFile: the "protection.password" option has to be at most 255 characters long.');
+    expect(error.message.includes('qqq')).toBe(false);
+    expect(writeSpy).not.toHaveBeenCalled();
+  });
+
   it('accepts a null password as no password', async() => {
     const sheet = (await exportSnapshot(FULL_KEY, { protection: { password: null } })).sheets[0];
 
