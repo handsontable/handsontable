@@ -827,8 +827,11 @@ directions.
   - **Defined names share one validator** (`definedNames.ts#selectWritableDefinedNames`): a name must
     match the Excel pattern, must not spell an A1 reference (`ZZZ1`) or an R1C1 one (`R`, `C`, `RC`,
     `R2C3`), must not repeat a name of the same scope case-insensitively, and needs a non-empty
-    definition. It refuses a non-ASCII name (`Umsätze`) and a ref-like name outside the grid. That is
-    deliberate data loss, reported as `definedNames:unsupported`, instead of a file Excel repairs.
+    definition. A letter is any Unicode letter (`\p{L}` under the `u` flag), so `Umsätze` and `Größe`
+    are written: HyperFormula accepts them, and an ASCII-only class left every formula over them as
+    `#NAME?` in Excel. It refuses a ref-like name outside the grid (`ZZZ1`) and a leading digit
+    (`1abc`). That is deliberate data loss, reported as `definedNames:unsupported`, instead of a file
+    Excel repairs.
     `DefinedNameSnapshot` is `{ name, formula, sheetName }` (`sheetName: null` is workbook scope).
   - **The ExcelJS name adapters are narrower than the native ones.** Its reader (`readDefinedNames`)
     keeps a name ExcelJS lists with more than one range (a multi-area name) with its ranges joined by

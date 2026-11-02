@@ -4,9 +4,11 @@ import type { DefinedNameSnapshot } from './model';
 
 /**
  * A name Excel accepts: a letter, underscore or backslash first, then letters, digits, dots,
- * underscores or backslashes.
+ * underscores or backslashes. A letter is any Unicode letter (a German umlaut, a CJK character), as
+ * in Excel and HyperFormula; an ASCII-only class refused those names and left the cells over them as
+ * `#NAME?` in Excel. This file stays 7-bit ASCII, so the class is written with `\p{L}`.
  */
-const DEFINED_NAME_PATTERN = /^[A-Za-z_\\][A-Za-z0-9_.\\]{0,254}$/;
+const DEFINED_NAME_PATTERN = /^[\p{L}_\\][\p{L}\p{N}_.\\]{0,254}$/u;
 
 /**
  * The R1C1 spellings Excel reads as references (`R`, `C`, `RC`, `R2C`, `RC3`, `R1C1`), which it

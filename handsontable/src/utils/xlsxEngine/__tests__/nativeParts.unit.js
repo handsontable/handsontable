@@ -233,6 +233,16 @@ describe('package parts', () => {
     expect(dropped.count('definedNames:unsupported')).toBe(1);
   });
 
+  it('should write a name spelled with non-ASCII letters', () => {
+    const dropped = new DroppedFeatures();
+    const xml = workbookXml(sheets, ['rId3', 'rId4'], false, [
+      { name: 'Umsätze', formula: 'Data!$A$1:$A$3', sheetName: null },
+    ], ['Data'], dropped);
+
+    expect(xml).toContain('<definedNames><definedName name="Umsätze">Data!$A$1:$A$3</definedName></definedNames>');
+    expect(dropped.list()).toEqual([]);
+  });
+
   it('should skip R1C1-shaped names, same-scope duplicates and empty definitions, recording once', () => {
     const dropped = new DroppedFeatures();
     const bad = ['R', 'C', 'RC', 'R2C', 'RC3', 'R1C1', 'r1c1', 'xfd1', 'A1'].map(name => ({
