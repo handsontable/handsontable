@@ -353,7 +353,8 @@ Other rules:
   as a whole is written as the legacy CSE array `{=x}`; `IFS` and `SWITCH` as a one-cell dynamic array
   (`EXCEL_DYNAMIC_ARRAY_FUNCTIONS`). A 1 x 1 spill (`=SEQUENCE(1)`) is not flagged. A blocked spill
   (`#SPILL!`) exports as a one-cell array with the `#SPILL!` text. The ExcelJS engine writes every
-  dynamic array as CSE and records `dynamicArrays`. Four-way parity is pinned by
+  dynamic array as CSE and records `dynamicArrays` for a multi-cell spill only: a one-cell CSE array
+  (`IFS`, `SWITCH`, range arithmetic) computes the same value in Excel, so nothing is lost. Four-way parity is pinned by
   `utils/xlsxEngine/__tests__/enginesParityArraysErrorsNames.unit.js`. Known gap: an error typed into a
   date column is not flagged as an error.
 - **Range arithmetic is a one-cell dynamic array too, gated on the engine's `useArrayArithmetic`**
@@ -364,7 +365,7 @@ Other rules:
   the plain formula as `SUM(@A1:A3*@B1:B3)` (2, not 20). With `useArrayArithmetic: false` the engine
   intersects the range itself and the plain formula matches, so it stays plain. Under the ExcelJS
   engine it goes out as the one-cell CSE array `{=SUM(A1:A3*B1:B3)}`, which Excel computes the same
-  way, plus `dynamicArrays`. **Known gaps:** a function that takes a range where it expects one value
+  way, so `dynamicArrays` is not recorded. **Known gaps:** a function that takes a range where it expects one value
   (`SUM(ABS(A1:A3))`) has the same `@` problem and is not detected – that needs per-function
   knowledge, deliberately left out. A defined name used as an operand is not detected either (its size
   is unknown), and neither is a range with both corners sheet-qualified (`Sheet1!A1:Sheet1!A3`).

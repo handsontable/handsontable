@@ -113,7 +113,8 @@ export const DROPPED_FEATURES = {
   // rather than imported empty; the native engine reads such a note.
   commentUnreadable: 'comment:unreadable',
   // Raised by the ExcelJS writer only: it cannot write the `cm` attribute and the metadata part a
-  // dynamic array needs, so the formula is written as a legacy array formula.
+  // dynamic array needs, so the formula is written as a legacy array formula. Raised for a
+  // multi-cell spill only: a one-cell legacy array computes the same value, so nothing is lost.
   dynamicArrays: 'dynamicArrays',
   // Raised by both adapters, `importFile` and `exportFile`: a defined name a reader, a writer or the
   // Formulas engine cannot take.

@@ -269,9 +269,11 @@ function writeCell(target: ExcelJsCell, cell: CellSnapshot, dropped: DroppedFeat
     if (array !== undefined) {
       // ExcelJS writes `<f t="array" ref>` from these two keys. It has no way to write the `cm`
       // attribute and the metadata part, so a dynamic array is written as a legacy (CSE) array.
+      // A one-cell CSE array computes the same value as a one-cell dynamic array (`IFS`, range
+      // arithmetic), so only a multi-cell spill, whose range the CSE array fixes, loses anything.
       Object.assign(value, { ref: array.ref, shareType: 'array' });
 
-      if (array.dynamic) {
+      if (array.dynamic && array.ref.includes(':')) {
         dropped.record(DROPPED_FEATURES.dynamicArrays);
       }
     }

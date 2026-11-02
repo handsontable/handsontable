@@ -460,6 +460,18 @@ describe('excelJsAdapter.write', () => {
       expect(dropped.list()).toEqual([]);
     });
 
+    it('should write a one-cell dynamic array as a one-cell CSE array without recording dynamicArrays', async() => {
+      // A one-cell CSE array computes the same value as a one-cell dynamic array in every Excel.
+      const snapshot = snapshotWith((b) => {
+        b.cell(1, 1).formula = { text: 'IFS(B1>0,"p",TRUE,"n")', result: 'p', array: { ref: 'A1', dynamic: true } };
+      });
+      const dropped = new DroppedFeatures();
+      const sheet = await sheetXmlOf(await excelJsAdapter.write(snapshot, ExcelJS, dropped));
+
+      expect(sheet).toMatch(/<f t="array" ref="A1">_xlfn\.IFS\(B1&gt;0,&quot;p&quot;,TRUE,&quot;n&quot;\)<\/f>/);
+      expect(dropped.list()).toEqual([]);
+    });
+
     it('should write error cells typed e, and a non-OOXML code as text', async() => {
       const sheet = await sheetXmlOf(await excelJsAdapter.write(buildSnapshot(), ExcelJS, new DroppedFeatures()));
 

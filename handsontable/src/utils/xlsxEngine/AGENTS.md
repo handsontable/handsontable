@@ -813,7 +813,9 @@ directions.
     (`worksheetWriter.ts`), `xl/metadata.xml` (`package.ts#METADATA_PART`), the `sheetMetadata`
     relationship in the workbook rels, and the content-type override. Drop any one and Excel opens
     a "repair" dialog. A CSE array carries no `cm` and needs none of them. The ExcelJS adapter
-    writes only CSE arrays, and records `dynamicArrays` for each dynamic one.
+    writes only CSE arrays, and records `dynamicArrays` for a dynamic one whose `ref` spans more
+    than one cell. A one-cell CSE array (`IFS`, range arithmetic) gives Excel the same value, so it
+    is lossless and not recorded; do not "fix" that back.
   - **`#SPILL!` and `#CALC!` are flagged on read but never typed `e` on write.** POI refuses them in
     a `t="e"` cell, so `isOoxmlErrorCode` gates the write and they go out as text.
   - **`EXCEL_DYNAMIC_ARRAY_FUNCTIONS` (`dynamicArrays.ts`) is observed behavior, not a spec**: the

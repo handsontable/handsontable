@@ -296,7 +296,7 @@ describe('Xlsx export: array formulas', () => {
       expect(rows[0][2].formula).toEqual({ text: 'SUM(A1:A3*B1:B3)', result: 2 });
     });
 
-    it('should write it as a one-cell CSE array with the ExcelJS engine and report `dynamicArrays`', async() => {
+    it('should write it as a one-cell CSE array with the ExcelJS engine, with no `dynamicArrays`', async() => {
       const excelJsWrite = jest.spyOn(excelJsAdapter, 'write');
 
       try {
@@ -317,7 +317,44 @@ describe('Xlsx export: array formulas', () => {
         // A one-cell CSE array computes the same 20 in every Excel, without the `@`.
         expect(sheet).toMatch(/<f t="array" ref="C1">SUM\(A1:A3\*B1:B3\)<\/f>/);
         expect(sheet).not.toContain('cm=');
-        expect(dropped.list()).toContain('dynamicArrays');
+        // Nothing is lost, so nothing is reported.
+        expect(dropped.list()).not.toContain('dynamicArrays');
+      } finally {
+        excelJsWrite.mockRestore();
+      }
+    });
+
+    it('should report `dynamicArrays` with the ExcelJS engine for a multi-cell spill only', async() => {
+      const excelJsWrite = jest.spyOn(excelJsAdapter, 'write');
+
+      try {
+        hot = new Handsontable(container, {
+          data: [
+            [1, 2, '=SUMPRODUCT((A1:A3>1)*B1:B3)'],
+            [2, 3],
+            [3, 4],
+          ],
+          formulas: arrayArithmeticEngine,
+          exportFile: true,
+          licenseKey: 'non-commercial-and-evaluation',
+        });
+
+        await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', { exportFormulas: true, engine: ExcelJS });
+
+        const [, , dropped] = excelJsWrite.mock.calls[0];
+        const bytes = await excelJsWrite.mock.results[0].value;
+        const zip = await readZip(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+        const sheet = await zip.text('xl/worksheets/sheet1.xml');
+
+        expect(hot.getDataAtCell(0, 2)).toBe(7);
+        expect(sheet).toMatch(/<f t="array" ref="C1">SUMPRODUCT\(\(A1:A3&gt;1\)\*B1:B3\)<\/f>/);
+        expect(dropped.list()).not.toContain('dynamicArrays');
+
+        hot.setDataAtCell(0, 3, '=SEQUENCE(3)');
+        excelJsWrite.mockClear();
+        await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', { exportFormulas: true, engine: ExcelJS });
+
+        expect(excelJsWrite.mock.calls[0][2].list()).toContain('dynamicArrays');
       } finally {
         excelJsWrite.mockRestore();
       }
