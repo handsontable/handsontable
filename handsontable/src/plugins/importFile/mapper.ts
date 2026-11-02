@@ -665,19 +665,26 @@ const FORMULA_IDENTIFIER_REGEX = /"(?:[^"]|"")*"|'(?:[^']|'')*'|[\p{L}_\\][\p{L}
  * nothing.
  */
 function usesUnresolvedName(formula: string, scope: CollectContext): boolean {
-  const { unresolvedNames } = scope;
+  const { unresolvedNames, flaggedNames } = scope;
 
   if (unresolvedNames.size === 0) {
     return false;
   }
 
+  let uses = false;
+
   for (const name of namesIn(formula)) {
-    if (unresolvedNames.has(name)) {
+    if (flaggedNames.has(name)) {
+      // A flagged name is reported only once a formula uses it: the ExcelJS reader flags every name.
+      scope.dropped.record(DROPPED_FEATURES.definedNamesUnsupported);
+
       return true;
     }
+
+    uses ||= unresolvedNames.has(name);
   }
 
-  return false;
+  return uses;
 }
 
 /**
@@ -729,21 +736,31 @@ function callsUnregisteredFunction(formula: string, scope: CollectContext): bool
 }
 
 /**
- * The names a workbook defines that the Formulas engine does not, lower-cased.
+ * The names a workbook defines that the Formulas engine does not, lower-cased, and every name the
+ * reader flagged `unsupported` that no unflagged entry spells: the reader could not tell which
+ * definition the file means, so an engine name spelled like it proves nothing either.
  */
-function unresolvedDefinedNames(workbook: WorkbookSnapshot, context: MapperContext): Set<string> {
+function unresolvedDefinedNames(
+  workbook: WorkbookSnapshot, context: MapperContext
+): { unresolved: Set<string>; flagged: Set<string> } {
   const known = context.formulaNamedExpressions;
-  const names = new Set<string>();
+  const definedNames = workbook.definedNames ?? [];
+  const valid = new Set(definedNames.filter(({ unsupported }) => !unsupported).map(({ name }) => name.toLowerCase()));
+  const unresolved = new Set<string>();
+  const flagged = new Set<string>();
 
-  (workbook.definedNames ?? []).forEach(({ name }) => {
+  definedNames.forEach(({ name }) => {
     const lowered = name.toLowerCase();
 
-    if (!known?.has(lowered)) {
-      names.add(lowered);
+    if (!valid.has(lowered)) {
+      flagged.add(lowered);
+      unresolved.add(lowered);
+    } else if (!known?.has(lowered)) {
+      unresolved.add(lowered);
     }
   });
 
-  return names;
+  return { unresolved, flagged };
 }
 
 /**
@@ -796,11 +813,25 @@ function collectNamedExpressions(scope: CollectContext): NonNullable<ImportResul
     const lowered = name.toLowerCase();
     const defined = context.formulaNamedExpressions?.has(lowered) === true;
 
-    if (seen.has(lowered) || (defined && context.definesNamedExpression === undefined)) {
+    if (seen.has(lowered)) {
       return;
     }
 
     seen.add(lowered);
+
+    // A flagged name is never registered and never counts as the engine's: the reader could not
+    // tell which definition is the file's (ExcelJS loses the scope), so the formulas over it import
+    // their cached values.
+    if (flagged) {
+      unresolvedNames.add(lowered);
+      scope.flaggedNames.add(lowered);
+
+      return;
+    }
+
+    if (defined && context.definesNamedExpression === undefined) {
+      return;
+    }
 
     const rebased = rebaseImportedFormula(readFormulaText(formula, scope).live, shift.rowDelta, shift.colDelta, {
       self: sheet.name,
@@ -821,8 +852,7 @@ function collectNamedExpressions(scope: CollectContext): NonNullable<ImportResul
       return;
     }
 
-    // A flagged name is never registered: the reader could not tell which definition is the file's.
-    if (flagged || expression === null || !canAdd(name, expression)) {
+    if (expression === null || !canAdd(name, expression)) {
       unsupported = true;
 
       return;
@@ -1238,6 +1268,11 @@ interface CollectContext {
    */
   unresolvedNames: Set<string>;
   /**
+   * The names of `unresolvedNames` the reader flagged `unsupported`, lower-cased. A formula over one
+   * records `definedNames:unsupported`; an unused one records nothing.
+   */
+  flaggedNames: Set<string>;
+  /**
    * The inferred type and its meta object per distinct number format and value kind, so a sheet
    * with a handful of formats parses each once rather than once per cell, and every cell of a
    * homogeneous column shares one meta object that `columnMetaAgrees` settles by reference.
@@ -1404,6 +1439,9 @@ function collectCells(
     droppedBorders: false,
     droppedComments: false,
   };
+  const names = options.importFormulas && context.formulasEnabled
+    ? unresolvedDefinedNames(workbook, context)
+    : { unresolved: new Set<string>(), flagged: new Set<string>() };
   const scope: CollectContext = {
     sheet,
     workbook,
@@ -1414,9 +1452,8 @@ function collectCells(
       : null,
     dropped,
     listMetaByFormula: new Map(),
-    unresolvedNames: options.importFormulas && context.formulasEnabled
-      ? unresolvedDefinedNames(workbook, context)
-      : new Set(),
+    unresolvedNames: names.unresolved,
+    flaggedNames: names.flagged,
     inferredByFormat: new Map(),
     // The reader's shared-formula translation already spent part of the same budget.
     walkedFormulaChars: workbook.translatedFormulaChars ?? 0,

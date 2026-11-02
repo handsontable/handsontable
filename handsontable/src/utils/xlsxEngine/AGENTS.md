@@ -852,12 +852,15 @@ directions.
     `definedNames.model` setter keys its map by name, so the LAST definition wins with one range.
     **So every name it reads is flagged `unsupported`** and `importFile` registers none: with a
     workbook `Rate` and a `Sheet2` one, only Sheet2's came back, workbook-wide, and registering it made
-    `=Rate*100` on Sheet1 read 42 instead of 1 (4200, not 100). The reader records nothing itself; the
-    mapper reports `definedNames:unsupported` when a formula's name stays unresolved. Its
+    `=Rate*100` on Sheet1 read 42 instead of 1 (4200, not 100). A flagged name never matches a name the
+    engine already defines either, even with the same text: the match cannot tell which scope the
+    text came from. The reader records nothing itself; the mapper reports `definedNames:unsupported`
+    only when a formula uses a flagged name (`CollectContext.flaggedNames`), so an ExcelJS import of a
+    workbook whose names no formula uses warns about nothing. Its
     writer takes workbook-scoped, sheet-qualified single ranges only, with a total area under
     `MAX_EXCELJS_DEFINED_NAME_CELLS` (`writeLimits.ts`, 100,000), and reports `definedNames:unsupported` once for everything else.
     That selection is `selectExcelJsDefinedNames`, pure, and both adapters expose theirs as the
-    optional `XlsxEngineAdapter#selectDefinedNames`: `exportFile` asks it before the write, so a formula
+    required `XlsxEngineAdapter#selectDefinedNames`: `exportFile` asks it before the write, so a formula
     over a name the writer leaves out goes out as its value. Change the writer's filter there, never
     inline in `writeDefinedNames`, or the two disagree and the formula ships as `#NAME?`.
   - **A name the reader cannot trust is KEPT, flagged, never dropped** (`DefinedNameSnapshot.unsupported`).
@@ -867,7 +870,7 @@ directions.
     Dropping them (as the first cut did) made `importFile` treat `=SUM(Big)` as an ordinary formula:
     it imported live as `#NAME?` and the cached value was lost. A flagged entry has its own map key,
     so a valid name of the same scope still lands beside it. `importFile` never registers a flagged
-    name, ranks it after a valid one of its scope, and lets one scoped to the imported sheet hide the
+    name, never takes an engine name spelled like it as a match, ranks it after a valid one of its scope, and lets one scoped to the imported sheet hide the
     workbook-scoped name spelled like it (Excel reads the sheet one there).
   - **`unwrapArrayFormula('ARRAYFORMULA()')` is `null`**, as is a whitespace-only call: there is no
     formula to write as an array.

@@ -190,14 +190,15 @@ describe('xlsx round trip through exportFile and importFile with HyperFormula', 
     expect(snapshot.definedNames).toEqual([{ name: 'Sales', formula: 'Sheet1!$B$2:$B$4', sheetName: null }]);
     expect(snapshot.sheets[0].rows[1][7]).toEqual(expect.objectContaining({ value: 0.07, formula: null }));
 
-    // The same grid: ExcelJS reads every array back as CSE (`ARRAYFORMULA`); the engine still
-    // defines `Sales` with the file's definition.
+    // The same grid: ExcelJS reads every array back as CSE (`ARRAYFORMULA`). It loses the scope of
+    // every name, so the engine's `Sales` is not taken for the file's, though they are spelled alike,
+    // and `=SUM(Sales)` imports its cached value.
     const same = await importBytes(hot, bytes, ExcelJS);
 
-    expect(droppedBesidesStyles(same)).toEqual([]);
+    expect(droppedBesidesStyles(same)).toEqual(['definedNames:unsupported', 'formula:definedName']);
     expect(hot.getSourceDataAtRow(0).slice(1, 7)).toEqual([
       '=ARRAYFORMULA(SEQUENCE(3))', '=ARRAYFORMULA(A1:A3*2)', '=ARRAYFORMULA(IFS(A1>0,"p",TRUE(),"n"))',
-      '=SUM(Sales)', '=1/0', 0.07,
+      SHOWN[0][4], '=1/0', 0.07,
     ]);
     expect(hot.getData()).toEqual(SHOWN);
 

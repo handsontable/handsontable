@@ -427,8 +427,9 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   shared engine. Both readers carry the workbook's names (`WorkbookSnapshot.definedNames`, Excel's
   `_xlnm.` names left out). **The ExcelJS reader flags every name `unsupported`** (it loses the scope
   and keeps one definition of a name defined in several scopes), so on that engine no name is ever
-  registered: a formula over one imports its cached value unless the engine already defines the name
-  with the file's definition. The ExcelJS reader carries RANGE names only: ExcelJS 4.4's
+  registered and none counts as the engine's: a formula over one imports its cached value, even when
+  the engine already defines the name with the same text (the reader lost which scope it came from,
+  so the match proves nothing - the 4200-instead-of-100 bug). The ExcelJS reader carries RANGE names only: ExcelJS 4.4's
   `definedNames.model` drops a name whose value is a constant (`<definedName name="TaxRate">0.07`)
   and a relative one (`Data!G2`), so a formula over such a name stays live and shows `#NAME?` on that
   engine, with nothing reported. A multi-area name reaches the mapper from both readers as its areas
@@ -487,11 +488,16 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   false). A definition that is rejected by the shift, names an unknown sheet, is refused by the engine
   (relative references), or uses a left-out name (followed transitively through `namesIn`) is left out
   with ONE `definedNames:unsupported`, and the formulas over it keep `formula:definedName`. **A name a
-  reader flagged `unsupported`** (a definition too long to read, a scope that names no sheet) **is never
-  registered**: it only keeps the name in `unresolvedNames`. It sorts after a valid name of its scope
-  (an orphan scope reads as workbook scope and must not hide the real workbook name), while a flagged
-  name scoped to the imported sheet still wins over a workbook-scoped one. When the engine already
-  defines it, the comparison runs as for any name; an empty definition never matches. Registered
+  reader flagged `unsupported`** (every ExcelJS name; a native definition too long to read, a scope
+  that names no sheet) **is never registered and never matches an engine name**: it goes into
+  `unresolvedNames` and `flaggedNames` even when the engine lists the name, before the
+  `definesNamedExpression` comparison (and `unresolvedDefinedNames` puts it there when
+  `collectNamedExpressions` does not run, `canAddNamedExpression` absent). It sorts after a valid name
+  of its scope (an orphan scope reads as workbook scope and must not hide the real workbook name),
+  while a flagged name scoped to the imported sheet still wins over a workbook-scoped one. **A flagged
+  name records `definedNames:unsupported` only when a formula uses it** (`usesUnresolvedName` checks
+  `flaggedNames`): ExcelJS flags every name, so recording it up front warned on every ExcelJS import
+  of a workbook with names. Registered
   names are removed from `CollectContext.unresolvedNames`. The result carries them in
   `ImportResult.namedExpressions` (formula without `=`); `applier.ts#addNamedExpressions` adds them
   FIRST in the batch (before `columns` and `loadData`; after `loadData` the formulas evaluate to

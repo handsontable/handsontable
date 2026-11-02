@@ -273,10 +273,12 @@ export interface ImportResult {
    * `apply` is `false`.
    *
    * Names are handed over only when the engine exposes `isItPossibleToAddNamedExpression`, as
-   * HyperFormula does. A name the engine already defines is not handed over, and the engine keeps its
-   * own definition: when that definition differs from the file's (a re-import of a changed file), the
-   * formulas using the name import their cached values with `formula:definedName`, and
-   * `definedNames:unsupported` is listed. A name scoped to another sheet is ignored. A name the engine cannot take (a relative reference, a
+   * HyperFormula does. The ExcelJS engine hands over no names: ExcelJS loses their scope, so the
+   * formulas over every name import their cached values with `formula:definedName`, even when the
+   * engine already defines the name alike, and `definedNames:unsupported` is listed. A name the engine
+   * already defines is not handed over, and the engine keeps its own definition: when that definition
+   * differs from the file's (a re-import of a changed file), the formulas using the name import their
+   * cached values with `formula:definedName`, and `definedNames:unsupported` is listed. A name scoped to another sheet is ignored. A name the engine cannot take (a relative reference, a
    * reference into the dropped header band, a sheet the engine does not hold, or a name over such a
    * name) is listed as `definedNames:unsupported` in `dropped`, and the formulas using it import
    * their cached values with `formula:definedName`. The import is not an undoable step, and neither

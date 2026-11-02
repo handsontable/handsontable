@@ -953,8 +953,15 @@ describe('mapWorkbook on number formats a spreadsheet app writes, whichever engi
         formulaNamedExpressions: new Set(['sales', 'rate']),
       }, knownDropped);
 
-      expect(known.data.map(row => row[3])).toEqual([null, '=SUM(Sales)', '=Rate*100', '=SUM(B2:B4)']);
-      expect(knownDropped.list()).not.toContain('formula:definedName');
+      if (adapter === nativeAdapter) {
+        expect(known.data.map(row => row[3])).toEqual([null, '=SUM(Sales)', '=Rate*100', '=SUM(B2:B4)']);
+        expect(knownDropped.list()).not.toContain('formula:definedName');
+      } else {
+        // ExcelJS flags every name it reads (it loses the scope), so an engine name spelled like it
+        // never keeps the formulas live.
+        expect(known.data.map(row => row[3])).toEqual([null, 60, 7, '=SUM(B2:B4)']);
+        expect(knownDropped.list()).toContain('formula:definedName');
+      }
     }
   });
 

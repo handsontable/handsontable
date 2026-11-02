@@ -281,33 +281,47 @@ for (const engine of ['exceljs', 'native'] as const) {
       }
     });
 
-    test('keeps a formula over defined names live when the Formulas engine defines them', async () => {
-      const outcome = await grids.importDefinedNamesWorkbook(true);
+    if (engine === 'native') {
+      test('keeps a formula over defined names live when the Formulas engine defines them', async () => {
+        const outcome = await grids.importDefinedNamesWorkbook(true);
 
-      await expect(grids.targetCell(1, 3)).toHaveText('60');
-      await expect(grids.targetCell(2, 3)).toHaveText('7');
-      expect(outcome.sources).toEqual(['=SUM(Sales)', '=Rate*100']);
-      expect(outcome.dropped).not.toContain('formula:definedName');
-    });
+        await expect(grids.targetCell(1, 3)).toHaveText('60');
+        await expect(grids.targetCell(2, 3)).toHaveText('7');
+        expect(outcome.sources).toEqual(['=SUM(Sales)', '=Rate*100']);
+        expect(outcome.dropped).not.toContain('formula:definedName');
+      });
 
-    test('registers the defined names the Formulas engine lacks, and keeps the formulas over them live', async () => {
-      const outcome = await grids.importDefinedNamesWorkbook(false);
+      test('registers the defined names the Formulas engine lacks, and keeps the formulas over them live', async () => {
+        const outcome = await grids.importDefinedNamesWorkbook(false);
 
-      await expect(grids.targetCell(1, 3)).toHaveText('60');
-      await expect(grids.targetCell(2, 3)).toHaveText('7');
-
-      if (engine === 'native') {
+        await expect(grids.targetCell(1, 3)).toHaveText('60');
+        await expect(grids.targetCell(2, 3)).toHaveText('7');
         expect(outcome.sources).toEqual(['=SUM(Sales)', '=Rate*100']);
         expect(outcome.names).toEqual(expect.arrayContaining(['Sales', 'Rate']));
         expect(outcome.dropped).not.toContain('formula:definedName');
-      } else {
-        // ExcelJS loses every name's scope, so none is registered: the formulas import their cached
-        // values.
+      });
+    } else {
+      // ExcelJS loses every name's scope, so no name is registered, and a name the Formulas engine
+      // defines alike does not count as the file's either: the formulas import their cached values.
+      test('imports the cached values of the formulas over names the Formulas engine defines alike', async () => {
+        const outcome = await grids.importDefinedNamesWorkbook(true);
+
+        await expect(grids.targetCell(1, 3)).toHaveText('60');
+        await expect(grids.targetCell(2, 3)).toHaveText('7');
+        expect(outcome.sources).toEqual([60, 7]);
+        expect(outcome.dropped).toEqual(expect.arrayContaining(['formula:definedName', 'definedNames:unsupported']));
+      });
+
+      test('registers no defined name, and imports the cached values of the formulas over them', async () => {
+        const outcome = await grids.importDefinedNamesWorkbook(false);
+
+        await expect(grids.targetCell(1, 3)).toHaveText('60');
+        await expect(grids.targetCell(2, 3)).toHaveText('7');
         expect(outcome.sources).toEqual([60, 7]);
         expect(outcome.names).toEqual([]);
         expect(outcome.dropped).toEqual(expect.arrayContaining(['formula:definedName', 'definedNames:unsupported']));
-      }
-    });
+      });
+    }
 
     test('imports the cached value of a formula over a name the Formulas engine defines differently', async () => {
       const outcome = await grids.importDefinedNamesWorkbook('differently');

@@ -2317,6 +2317,55 @@ describe('mapWorkbook – the workbook\'s defined names as named expressions', (
     expect(scoped.dropped).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
   });
 
+  it('should import a formula over a flagged name as its cached value, even when the engine defines the name alike', () => {
+    // The ExcelJS reader flags every name: it lost the scope, so a definition matching the engine's
+    // proves nothing (of a workbook and a sheet `Rate`, ExcelJS keeps one and calls it workbook-wide).
+    const flagged = { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null, unsupported: true };
+    const contexts = {
+      matching: contextOf({
+        formulaNamedExpressions: new Set(['sales']),
+        definesNamedExpression: () => true,
+      }).context,
+      unchecked: contextOf({ formulaNamedExpressions: new Set(['sales']) }).context,
+      cannotAdd: contextOf({ formulaNamedExpressions: new Set(['sales']), canAddNamedExpression: undefined }).context,
+    };
+
+    Object.values(contexts).forEach((context) => {
+      const { result } = map(salesWorkbook([flagged]), OPTIONS, context);
+
+      expect(result.namedExpressions).toBeUndefined();
+      expect(result.data[0][1]).toBe(60);
+      expect(result.dropped).toContain('formula:definedName');
+    });
+
+    expect(map(salesWorkbook([flagged]), OPTIONS, contexts.matching).result.dropped)
+      .toContain('definedNames:unsupported');
+  });
+
+  it('should report a flagged name only when a formula uses it', () => {
+    // Every name the ExcelJS reader returns is flagged, so reporting the unused ones warned on every
+    // ExcelJS import of a workbook with names.
+    const sales = { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null };
+    const unused = { name: 'Unused', formula: 'Data!$G$2', sheetName: null, unsupported: true };
+    const quiet = map(salesWorkbook([sales, unused]), OPTIONS, contextOf().context).result;
+
+    expect(quiet.dropped).not.toContain('definedNames:unsupported');
+    expect(quiet.data[0][1]).toBe('=SUM(Sales)');
+
+    const used = map(salesWorkbook([{ ...sales, unsupported: true }, unused]), OPTIONS, contextOf().context).result;
+
+    expect(used.data[0][1]).toBe(60);
+    expect(used.dropped).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+
+    // Without the engine check (`canAddNamedExpression`), a used flagged name is reported the same way.
+    const unchecked = map(
+      salesWorkbook([{ ...sales, unsupported: true }]), OPTIONS, contextOf({ canAddNamedExpression: undefined }).context
+    ).result;
+
+    expect(unchecked.data[0][1]).toBe(60);
+    expect(unchecked.dropped).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+  });
+
   it('should import a formula over a registered name live and one over a left-out name as its cached value', () => {
     const { context } = contextOf();
     const { result } = map(salesWorkbook(NAMES), OPTIONS, context);
