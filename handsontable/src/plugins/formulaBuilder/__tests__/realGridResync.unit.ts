@@ -7,6 +7,7 @@ import { Formulas } from '../../formulas';
 import { UndoRedo } from '../../undoRedo';
 import { ColumnSorting } from '../../columnSorting';
 import { ManualRowMove } from '../../manualRowMove';
+import { TrimRows } from '../../trimRows';
 import { FormulaBuilder } from '../formulaBuilder';
 import { getFormulaBuilderAdapter } from '../handsontableAdapter';
 
@@ -39,6 +40,7 @@ describe('FormulaBuilder state that has to follow the grid', () => {
     registerPlugin(UndoRedo);
     registerPlugin(ColumnSorting);
     registerPlugin(ManualRowMove);
+    registerPlugin(TrimRows);
     registerLanguageDictionary(deDE);
   });
 
@@ -159,6 +161,37 @@ describe('FormulaBuilder state that has to follow the grid', () => {
 
       expect(grid.getSelectedRangeLast()?.highlight.row).toBe(2);
       expect(barText()).toBe('=A2+B2');
+    });
+
+    it('shows the cell under the highlight after a row above it was trimmed', () => {
+      const grid = createGrid({ data: [['=1+1', 1], ['=2+2', 2], ['=3+3', 3]], trimRows: true });
+
+      grid.selectCell(1, 0);
+      expect(barText()).toBe('=2+2');
+
+      // The highlight keeps its visual coordinates, which now show the next record.
+      (grid.getPlugin('trimRows') as unknown as { trimRow(row: number): void }).trimRow(0);
+      grid.render();
+
+      expect(grid.getSelectedRangeLast()?.highlight.row).toBe(1);
+      expect(grid.getSourceDataAtCell(grid.toPhysicalRow(1), 0)).toBe('=3+3');
+      expect(barText()).toBe('=3+3');
+    });
+
+    it('does not show the inserted empty row while an insert above the selected cell is in progress', () => {
+      const grid = createGrid({ data: [['=1+1', 1], ['=2+2', 2], ['=3+3', 3]] });
+      const seenDuringInsert: string[] = [];
+
+      grid.selectCell(2, 0);
+      expect(barText()).toBe('=3+3');
+
+      // Runs after the plugin's own listeners, before `alter()` shifts the selection.
+      grid.addHook('afterCreateRow', () => seenDuringInsert.push(barText()));
+      grid.alter('insert_row_above', 1);
+
+      expect(seenDuringInsert).toEqual(['=3+3']);
+      expect(grid.getSelectedRangeLast()?.highlight.row).toBe(3);
+      expect(barText()).toBe('=3+3');
     });
 
     it('shows the cell under the highlight after a sort', () => {

@@ -492,6 +492,11 @@ export class FormulaBuilder extends BasePlugin {
    * again once an engine is back (`Formulas#enablePlugin()` called directly fires no hook).
    */
   #engineDetached = false;
+  /**
+   * Whether an index change may have put another record under the bar's cell since the bar last read
+   * it (`#onIndexCacheUpdated`).
+   */
+  #barCellStale = false;
 
   /**
    * @param {HotInstance} hotInstance The Handsontable instance.
@@ -1286,11 +1291,33 @@ export class FormulaBuilder extends BasePlugin {
   };
 
   /**
-   * Re-reads the active cell into the bar. The structural, source-data, load, sort and move hooks
-   * register it directly and ignore their arguments: none of them has to move the selection, and a
-   * move that keeps the coordinates (a sort, a data replace) left the previous cell's formula in the
-   * bar. It runs after the Formulas plugin resynced the engine (it enables first, at a lower priority
-   * value, and its load listeners carry order -1). An open edit is left alone: its close re-reads.
+   * Index mapper `cacheUpdated` listener - marks the bar's cell stale. Every change of which record
+   * sits under a visual cell rebuilds a cache (an insert or removal, a sort, a move, hiding, trimming:
+   * Filters, TrimRows, a NestedRows collapse), and it can run in the middle of an operation, before
+   * `alter()` shifts the selection, so the bar re-reads before the next draw (`#onBeforeViewRender`).
+   */
+  #onIndexCacheUpdated = (): void => {
+    this.#barCellStale = true;
+  };
+
+  /**
+   * `beforeViewRender` hook listener - re-reads the bar's cell after an index change, once the
+   * operation that made it has finished and before the grid draws it.
+   */
+  #onBeforeViewRender = (): void => {
+    if (this.#barCellStale) {
+      this.#barCellStale = false;
+      this.#resyncBarCell();
+    }
+  };
+
+  /**
+   * Re-reads the active cell into the bar. The source-data and load hooks register it directly and
+   * ignore their arguments, and an index change runs it through `#onBeforeViewRender`: none of them
+   * has to move the selection, and a change that keeps the coordinates (a sort, a data replace, a trim
+   * above the cell) left the previous cell's formula in the bar. It runs after the Formulas plugin
+   * resynced the engine (it enables first, at a lower priority value, and its load listeners carry
+   * order -1). An open edit is left alone: its close re-reads.
    */
   #resyncBarCell = (): void => {
     if (this.#builder === null || this.#isEditing()) {
@@ -2111,13 +2138,9 @@ export class FormulaBuilder extends BasePlugin {
     this.addHook('afterRenderer', this.#onAfterRenderer);
     this.addHook('afterChange', this.#onAfterChange);
     this.addHook('afterSetSourceDataAtCell', this.#resyncBarCell);
-    this.addHook('afterCreateRow', this.#resyncBarCell);
-    this.addHook('afterCreateCol', this.#resyncBarCell);
-    this.addHook('afterRemoveRow', this.#resyncBarCell);
-    this.addHook('afterRemoveCol', this.#resyncBarCell);
-    this.addHook('afterColumnSort', this.#resyncBarCell);
-    this.addHook('afterRowMove', this.#resyncBarCell);
-    this.addHook('afterColumnMove', this.#resyncBarCell);
+    this.addHook('beforeViewRender', this.#onBeforeViewRender);
+    this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
+    this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
     // Order 2: the Formulas plugin loads a settings-update's data into the engine from its own
     // `afterUpdateSettings` listener (order 1), after `afterUpdateData` already fired.
     this.addHook('afterUpdateSettings', this.#resyncBarCell, 2);
@@ -2521,6 +2544,9 @@ export class FormulaBuilder extends BasePlugin {
    * Releases every enable-time resource.
    */
   #teardownPluginState(): void {
+    this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
+    this.hot.columnIndexMapper.removeLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
+    this.#barCellStale = false;
     this.#clearCellErrorMarks();
     this.#removeEngineDetachListener?.();
     this.#removeEngineDetachListener = null;
