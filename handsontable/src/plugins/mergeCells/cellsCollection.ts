@@ -45,6 +45,12 @@ class MergedCellsCollection {
    */
   #selectionHighlightStale = false;
   /**
+   * A merge was written over a cell of another merge in the lookup matrix since it was last rebuilt (a sort
+   * can draw two merges over each other, see `relocateInMatrix()`). The matrix then no longer names every
+   * merge a cell lies under, so the overlap check scans the merge list instead of reading the cells.
+   */
+  #hasDrawnOver = false;
+  /**
    * The Handsontable instance.
    *
    * @type {Handsontable}
@@ -438,6 +444,7 @@ class MergedCellsCollection {
 
     this.mergedCells.length = 0;
     this.mergedCellsMatrix = new Map<number, Map<number, MergedCellCoords>>();
+    this.#hasDrawnOver = false;
     this.hot?.markAllCellsChanged();
     this.#selectionHighlightStale = true;
   }
@@ -473,12 +480,9 @@ class MergedCellsCollection {
     const counts = (mergedCell: MergedCellCoords) => (
       this.get(mergedCell.row, mergedCell.col) === mergedCell && !isIgnored(mergedCell)
     );
-    const scan = () => this.mergedCells.some(mergedCell => (
-      areMergesOverlapping(area, mergedCell) && counts(mergedCell)
-    ));
 
-    if (area.rowspan * area.colspan > this.mergedCells.length) {
-      return scan();
+    if (this.#hasDrawnOver || area.rowspan * area.colspan > this.mergedCells.length) {
+      return this.mergedCells.some(mergedCell => areMergesOverlapping(area, mergedCell) && counts(mergedCell));
     }
 
     for (let row = area.row; row < area.row + area.rowspan; row++) {
@@ -487,13 +491,6 @@ class MergedCellsCollection {
 
         if (mergedCell && counts(mergedCell)) {
           return true;
-        }
-
-        // A cell the matrix gives to a merge that does not count can still lie under one that does: a sort
-        // can draw two merges over each other (`relocateInMatrix` has no overlap guard), and the matrix then
-        // names only one of them. The scan sees both by their geometry.
-        if (mergedCell) {
-          return scan();
         }
       }
     }
@@ -687,6 +684,7 @@ class MergedCellsCollection {
     });
 
     this.mergedCellsMatrix.clear();
+    this.#hasDrawnOver = false;
 
     this.mergedCells.forEach((currentMerge) => {
       this.#addMergedCellToMatrix(currentMerge);
@@ -856,6 +854,7 @@ class MergedCellsCollection {
 
     this.mergedCells.length = 0;
     this.mergedCellsMatrix.clear();
+    this.#hasDrawnOver = false;
 
     replacements.forEach(({ source, info }) => {
       const added = this.add(info, true);
@@ -880,7 +879,14 @@ class MergedCellsCollection {
           this.mergedCellsMatrix.set(row, new Map());
         }
 
-        this.mergedCellsMatrix.get(row)!.set(col, mergedCell);
+        const matrixRow = this.mergedCellsMatrix.get(row)!;
+        const previous = matrixRow.get(col);
+
+        if (previous !== undefined && previous !== mergedCell) {
+          this.#hasDrawnOver = true;
+        }
+
+        matrixRow.set(col, mergedCell);
       }
     }
   }

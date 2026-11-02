@@ -314,6 +314,40 @@ describe('MergeCells', () => {
                 .toBe(true);
               expect(warnSpy).toHaveBeenCalledTimes(1);
             });
+
+          it(`should refuse a merged cell over a merge another one was drawn over and then removed (${branch})`, () => {
+            const warnSpy = spyOn(console, 'warn');
+            const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+
+            if (manyMerges) {
+              addDistantMerges(mergedCellsCollection);
+            }
+
+            const under = mergedCellsCollection.add({ row: 0, col: 1, rowspan: 2, colspan: 2 });
+
+            mergedCellsCollection.add({ row: 1, col: 0, rowspan: 2, colspan: 2 }, true);
+            mergedCellsCollection.remove(1, 0);
+
+            // The removal takes back only its own cells, so the cell [1, 1] of the merge under it is empty.
+            expect(mergedCellsCollection.get(1, 1)).toBe(false);
+            expect(mergedCellsCollection.get(0, 1)).toBe(under);
+            expect(mergedCellsCollection.canAdd({ row: 1, col: 1, rowspan: 2, colspan: 1 })).toBe(false);
+            expect(warnSpy).toHaveBeenCalledTimes(1);
+          });
+        });
+
+        it('should read the cells again once the lookup matrix is rebuilt without merges drawn over each other', () => {
+          const mergedCellsCollection = new MergedCellsCollection({ hot: { ...hotMock, getCell: () => null } });
+
+          mergedCellsCollection.add({ row: 0, col: 1, rowspan: 2, colspan: 2 });
+          mergedCellsCollection.add({ row: 1, col: 0, rowspan: 2, colspan: 2 }, true);
+          mergedCellsCollection.clear();
+          addDistantMerges(mergedCellsCollection);
+
+          const scanSpy = jest.spyOn(mergeCellsUtils, 'areMergesOverlapping');
+
+          expect(mergedCellsCollection.canAdd({ row: 0, col: 0, rowspan: 2, colspan: 2 })).toBe(true);
+          expect(scanSpy).not.toHaveBeenCalled();
         });
       });
     });
