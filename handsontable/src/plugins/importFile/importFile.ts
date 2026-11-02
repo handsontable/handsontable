@@ -10,7 +10,9 @@ import {
   ENGINE_DISPLAY_NAMES,
   type XlsxEngineKind,
 } from '../../utils/xlsxEngine/capabilities';
-import { mapWorkbook, resolveImportOptions, type MappedResult, type ResolvedImportOptions } from './mapper';
+import {
+  mapWorkbook, resolveImportOptions, type MapperContext, type MappedResult, type ResolvedImportOptions,
+} from './mapper';
 import { applyImportResult, installImportedStyles, removeImportedStyles } from './applier';
 import { hasCellType } from '../../cellTypes/registry';
 import {
@@ -254,7 +256,8 @@ export interface ImportResult {
   layoutDirection?: 'rtl' | 'ltr';
   /**
    * Formulas that were not imported live, because the Formulas plugin is off, `importFormulas` is
-   * `false`, or the formula cannot resolve in the grid. Their cells hold the cached value in `data`.
+   * `false`, the formula cannot resolve in the grid, or it is an array formula HyperFormula cannot
+   * spill (`formula:arraySpill`). Their cells hold the cached value in `data`.
    * Live formulas are in `data` as `=` strings.
    */
   formulas?: Array<{ row: number; col: number; formula: string }>;
@@ -547,6 +550,105 @@ function engineArrayArithmetic(
   const enabled = engine.getConfig()?.useArrayArithmetic;
 
   return typeof enabled === 'boolean' ? enabled : undefined;
+}
+
+/**
+ * The part of a HyperFormula instance the live-array probe uses.
+ */
+interface ProbeEngine {
+  getConfig(): object;
+  getSheetId(sheetName: string): number | undefined;
+  getCellValue(address: { sheet: number; row: number; col: number }): unknown;
+  isCellPartOfArray(address: { sheet: number; row: number; col: number }): boolean;
+  isItPossibleToAddNamedExpression(name: string, expression: unknown): boolean;
+  addNamedExpression(name: string, expression: unknown): unknown;
+  listNamedExpressions(): string[];
+  getNamedExpressionFormula(name: string): string | undefined;
+  getNamedExpressionValue(name: string): unknown;
+  destroy(): void;
+}
+
+/**
+ * The static side of HyperFormula the probe builds its scratch engine with.
+ */
+interface ProbeEngineClass {
+  buildFromSheets(sheets: Record<string, unknown[][]>, config: object): ProbeEngine;
+}
+
+/**
+ * Builds the mapper's live-array probe (`MapperContext.probeLiveArrays`) on the Formulas plugin's
+ * engine, or `undefined` when the engine is not a HyperFormula instance that can be copied.
+ *
+ * The scratch engine is built with the engine's own class (`engine.constructor.buildFromSheets`),
+ * so `importFile` imports nothing from HyperFormula and the base bundle keeps it external, and with
+ * the engine's own config (array arithmetic, language, custom functions registered on the class).
+ * It holds one sheet, named like the engine's sheet for the grid so a reference qualified with it
+ * resolves, and the workbook-scoped named expressions the engine defines plus the ones the import
+ * adds. A reference to any other engine sheet does not resolve in it; the mapper leaves a master that
+ * evaluates to an error there as written.
+ *
+ * @param {object|null|undefined} engine The Formulas plugin's engine.
+ * @param {string|null|undefined} sheetName The engine's name for the grid's sheet.
+ * @returns {Function|undefined}
+ */
+function liveArrayProbe(engine: unknown, sheetName: string | null | undefined): MapperContext['probeLiveArrays'] {
+  const source = engine as Partial<ProbeEngine> | null | undefined;
+  const EngineClass = (source?.constructor ?? null) as Partial<ProbeEngineClass> | null;
+
+  if (typeof source?.getConfig !== 'function' || typeof EngineClass?.buildFromSheets !== 'function') {
+    return undefined;
+  }
+
+  const held = source as ProbeEngine;
+  const build = EngineClass.buildFromSheets.bind(EngineClass);
+
+  return (data, namedExpressions) => {
+    const name = typeof sheetName === 'string' && sheetName !== '' ? sheetName : 'Sheet1';
+    let scratch: ProbeEngine;
+
+    try {
+      scratch = build({ [name]: data }, held.getConfig());
+    } catch {
+      return null;
+    }
+
+    const add = (expressionName: string, expression: unknown) => {
+      if (answersTrue(() => scratch.isItPossibleToAddNamedExpression(expressionName, expression))) {
+        try {
+          scratch.addNamedExpression(expressionName, expression);
+        } catch {
+          // A name the scratch engine refuses evaluates to `#NAME?` there; the master over it is
+          // then an error and left as written.
+        }
+      }
+    };
+
+    try {
+      (typeof held.listNamedExpressions === 'function' ? held.listNamedExpressions() : []).forEach((heldName) => {
+        add(heldName, held.getNamedExpressionFormula?.(heldName) ?? held.getNamedExpressionValue?.(heldName));
+      });
+    } catch {
+      // The engine could not list its names; the masters over them are left as written.
+    }
+
+    namedExpressions.forEach(({ name: added, formula }) => add(added, `=${formula}`));
+
+    const sheet = scratch.getSheetId(name) as number;
+
+    return {
+      masterState: (row, col) => {
+        const value = scratch.getCellValue({ sheet, row, col });
+
+        if (!isCellError(value)) {
+          return 'value';
+        }
+
+        return (value as { type?: unknown }).type === 'SPILL' ? 'spill' : 'error';
+      },
+      isPartOfArray: (row, col) => answersTrue(() => scratch.isCellPartOfArray({ sheet, row, col })),
+      destroy: () => scratch.destroy(),
+    };
+  };
 }
 
 /**
@@ -1079,6 +1181,9 @@ export class ImportFile extends BasePlugin {
         : undefined,
       registersFunction: formulasEnabled ? functionRegistryCheck(formulasPlugin?.engine) : undefined,
       arrayArithmetic: formulasEnabled ? engineArrayArithmetic(formulasPlugin?.engine) : undefined,
+      probeLiveArrays: formulasEnabled
+        ? liveArrayProbe(formulasPlugin?.engine, formulasPlugin?.sheetName)
+        : undefined,
     }, dropped);
 
     recordLayoutDirectionMismatch(this.hot, mapped, resolved.apply, dropped);

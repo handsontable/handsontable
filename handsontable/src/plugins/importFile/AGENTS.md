@@ -456,6 +456,22 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   walks every identifier followed by `(`, upper-cased, and shares the formula's one charge
   (`readFormulaText(..., scansFunctions)`). The sweep over the rectangles charges the formula
   budget (`beginLiveArrayRow`), so many narrow arrays cannot make the walk quadratic.
+  **HyperFormula, not the file's `ref`, decides the spill** (`settleLiveArrays`): it sizes `FILTER` by
+  its INPUT (`FILTER(A1:A3,A1:A3>1)` with `ref` B1:B2 and text in B3 is `#SPILL!`), and a one-value
+  CSE array (`{=A1*2}` over B1:B3) is one cell. So each rectangle keeps its master's cached value and
+  recorded text, and every cell it empties keeps its cached value (`LiveArraySweep.emptied`, owner =
+  the span reaching furthest, `liveArrayCovering`). After the walk, ONLY when a rectangle was
+  recorded, `MapperContext.probeLiveArrays` builds a scratch engine (`importFile.ts`
+  `liveArrayProbe`: `engine.constructor.buildFromSheets` with `engine.getConfig()` - no import of
+  hyperformula, the base bundle keeps it external) over the mapped `data`, one sheet named like the
+  engine's grid sheet, plus the engine's names and `pass.namedExpressions`. Per rectangle: master
+  `#SPILL!` -> master and its emptied cells take their cached values, the text goes to `formulas`,
+  `formula:arraySpill`; master another error -> left as written (the scratch lacks the engine's other
+  sheets, so `#REF!` there proves nothing - the documented weak spot); otherwise an emptied cell not
+  `isCellPartOfArray` takes its cached value. One probe, before anything is put back; a probe that
+  throws changes nothing; the scratch is destroyed in `finally`. It runs in the mapper, so
+  `apply: false` returns the settled data. Cost: one extra HyperFormula build of the sheet, about
+  +85 ms on 10,000 rows x 5 columns (10,000 formulas; ~110 ms -> ~200 ms for the whole import).
 - **A bare `TRUE`/`FALSE` in a live formula or a name definition is rewritten to `TRUE()`/`FALSE()`** (DEV-3648,
   `rewriteBareBooleans`, called by `readFormulaText`): HyperFormula reads the bare literal as an unknown name
   (`=IF(TRUE,1,2)` is `#NAME?`). `readFormulaText` returns `{ recorded, live }`: `ImportResult.formulas` records

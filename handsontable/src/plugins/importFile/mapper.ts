@@ -93,6 +93,35 @@ export interface MapperContext {
    * wrapped in `ARRAYFORMULA(...)` like a legacy CSE one. Absent means the engine does.
    */
   arrayArithmetic?: boolean;
+  /**
+   * Builds a scratch copy of the Formulas plugin's engine over the mapped sheet, so the mapper can
+   * ask where the live array masters really spill (`settleLiveArrays`). Called only when the sheet
+   * holds a live array master. `null` (or absent) means no probe, and every array's `ref` is
+   * trusted as written.
+   */
+  probeLiveArrays?: (
+    data: unknown[][], namedExpressions: NonNullable<ImportResult['namedExpressions']>
+  ) => LiveArrayProbe | null;
+}
+
+/**
+ * A scratch engine holding the mapped sheet, as `MapperContext.probeLiveArrays` builds it. The
+ * coordinates are the window's own (the grid's).
+ */
+export interface LiveArrayProbe {
+  /**
+   * What the cell's formula evaluates to: `'spill'` for `#SPILL!`, `'error'` for any other error,
+   * `'value'` otherwise.
+   */
+  masterState(row: number, col: number): 'spill' | 'error' | 'value';
+  /**
+   * Whether an array the engine placed covers the cell.
+   */
+  isPartOfArray(row: number, col: number): boolean;
+  /**
+   * Releases the scratch engine.
+   */
+  destroy(): void;
 }
 
 /**
@@ -914,6 +943,25 @@ interface LiveArrayRect {
   startCol: number;
   endRow: number;
   endCol: number;
+  /**
+   * The master's cached value, as `data` would hold it had the formula not gone live.
+   */
+  cached: unknown;
+  /**
+   * The master's formula as `ImportResult.formulas` records it (the file's text, prefixes stripped).
+   */
+  recorded: string;
+}
+
+/**
+ * A cell `pushCellValue` imported empty because a live array covers it, with the cached value it
+ * held in the file and the rectangle that emptied it.
+ */
+interface EmptiedCell {
+  row: number;
+  col: number;
+  value: unknown;
+  rect: LiveArrayRect;
 }
 
 /**
@@ -941,6 +989,19 @@ interface LiveArraySweep {
    * The last column any span reached so far on the current row covers, or `-1`.
    */
   maxEndCol: number;
+  /**
+   * The span that reaches `maxEndCol`, or `null`.
+   */
+  maxEndRect: LiveArrayRect | null;
+  /**
+   * Every rectangle recorded in the pass, in the order its master was visited.
+   */
+  recorded: LiveArrayRect[];
+  /**
+   * The cells imported empty under a rectangle that held a cached value in the file, so
+   * `settleLiveArrays` can put it back where the engine does not spill.
+   */
+  emptied: EmptiedCell[];
 }
 
 /**
@@ -958,6 +1019,7 @@ function beginLiveArrayRow(row: number, scope: CollectContext): void {
 
   sweep.cursor = 0;
   sweep.maxEndCol = -1;
+  sweep.maxEndRect = null;
 
   if (sweep.active.length === 0 && sweep.noted.length === 0) {
     sweep.spans = [];
@@ -983,14 +1045,19 @@ function beginLiveArrayRow(row: number, scope: CollectContext): void {
  * visited AFTER its master: recording the rectangle when the master is visited is early enough. A
  * `ref` that does not start at the master is not trusted to empty anything. The rectangle is clipped
  * to the window and stored once, whatever its size; the rows it covers are charged one by one as the
- * sweep crosses them (`beginLiveArrayRow`).
+ * sweep crosses them (`beginLiveArrayRow`). The master's cached value and recorded text are kept with
+ * it, and the cached values of the cells it empties are kept as the walk reaches them, so
+ * `settleLiveArrays` can put them back where the engine does not spill.
  *
  * @param {string} ref The array's A1 range, in the file's 1-based sheet coordinates.
  * @param {number} row The master's window row.
  * @param {number} col The master's window column.
+ * @param {{ cached: unknown, recorded: string }} master The master's cached value and recorded text.
  * @param {CollectContext} scope The pass context.
  */
-function recordLiveArray(ref: string, row: number, col: number, scope: CollectContext): void {
+function recordLiveArray(
+  ref: string, row: number, col: number, master: { cached: unknown; recorded: string }, scope: CollectContext
+): void {
   const range = parseRangeRef(ref);
   const { window, liveArrays } = scope;
 
@@ -1003,34 +1070,113 @@ function recordLiveArray(ref: string, row: number, col: number, scope: CollectCo
     startCol: col,
     endRow: Math.min(range.endRow - 1, window.lastRow) - window.firstRow,
     endCol: Math.min(range.endCol - 1, window.lastCol) - window.firstCol,
+    cached: master.cached,
+    recorded: master.recorded,
   };
 
   chargeFormulaWalk(1, scope);
   liveArrays.noted.push(rect);
+  liveArrays.recorded.push(rect);
+
   // The rest of the master's own row lies right of `col`, so the rectangle covers every column the
   // walk still visits on this row up to its end.
-  liveArrays.maxEndCol = Math.max(liveArrays.maxEndCol, rect.endCol);
+  if (rect.endCol > liveArrays.maxEndCol) {
+    liveArrays.maxEndCol = rect.endCol;
+    liveArrays.maxEndRect = rect;
+  }
 }
 
 /**
- * Whether a live array recorded by `recordLiveArray` spills over this cell of the current row. The
- * columns of a row are asked in ascending order, so the cursor only moves forward over the row's
- * spans, and each cell costs O(1) amortized: the cell is covered when the furthest end of every
- * span started at or before it reaches it.
+ * The live array recorded by `recordLiveArray` that spills over this cell of the current row, or
+ * `null`. The columns of a row are asked in ascending order, so the cursor only moves forward over
+ * the row's spans, and each cell costs O(1) amortized: the cell is covered when the furthest end of
+ * every span started at or before it reaches it, and the span that reaches furthest is the one
+ * answered (of two overlapping arrays, the engine places one at most).
  *
  * @param {number} col The cell's window column.
  * @param {CollectContext} scope The pass context.
- * @returns {boolean}
+ * @returns {LiveArrayRect|null}
  */
-function isCoveredByLiveArray(col: number, scope: CollectContext): boolean {
+function liveArrayCovering(col: number, scope: CollectContext): LiveArrayRect | null {
   const sweep = scope.liveArrays;
 
   while (sweep.cursor < sweep.spans.length && sweep.spans[sweep.cursor].startCol <= col) {
-    sweep.maxEndCol = Math.max(sweep.maxEndCol, sweep.spans[sweep.cursor].endCol);
+    const span = sweep.spans[sweep.cursor];
+
+    if (span.endCol > sweep.maxEndCol) {
+      sweep.maxEndCol = span.endCol;
+      sweep.maxEndRect = span;
+    }
+
     sweep.cursor += 1;
   }
 
-  return col <= sweep.maxEndCol;
+  return col <= sweep.maxEndCol ? sweep.maxEndRect : null;
+}
+
+/**
+ * Asks a scratch copy of the engine (`MapperContext.probeLiveArrays`) where the live array masters
+ * recorded in the pass really spill, and puts the file's cached values back where they do not.
+ * HyperFormula decides a spill's size, not the file's `ref`: it sizes `FILTER` by its input, and a
+ * legacy array with a one-value formula (`{=A1*2}` over `B1:B3`) is one cell to it.
+ *
+ * - A master that evaluates to `#SPILL!` imports its cached value, and so does every cell it
+ *   emptied; its formula moves to `ImportResult.formulas`, and `formula:arraySpill` is recorded.
+ * - A master that evaluates to another error is left as written: the probe may lack what it reads
+ *   (another engine sheet), so its emptied cells are not judged.
+ * - Otherwise, an emptied cell that no array the engine placed covers gets its cached value back.
+ *
+ * The probe runs once, over the data before any value is put back. A probe that throws changes
+ * nothing, and the scratch engine is destroyed whatever happens.
+ *
+ * @param {CellPass} pass The pass, its `data` still holding the emptied cells.
+ * @param {CollectContext} scope The pass context.
+ */
+function settleLiveArrays(pass: CellPass, scope: CollectContext): void {
+  const { recorded, emptied } = scope.liveArrays;
+  const probe = scope.context.probeLiveArrays?.(pass.data, pass.namedExpressions) ?? null;
+
+  if (probe === null) {
+    return;
+  }
+
+  const states = new Map<LiveArrayRect, 'spill' | 'error' | 'value'>();
+  const restored: EmptiedCell[] = [];
+
+  try {
+    recorded.forEach(rect => states.set(rect, probe.masterState(rect.startRow, rect.startCol)));
+    emptied.forEach((cell) => {
+      const state = states.get(cell.rect);
+
+      if (state === 'spill' || (state === 'value' && !probe.isPartOfArray(cell.row, cell.col))) {
+        restored.push(cell);
+      }
+    });
+  } catch {
+    // A probe that throws answers nothing: every array's `ref` is trusted as written.
+    return;
+  } finally {
+    probe.destroy();
+  }
+
+  restored.forEach(({ row, col, value }) => {
+    pass.data[row][col] = value;
+  });
+
+  let spilled = false;
+
+  states.forEach((state, rect) => {
+    if (state === 'spill') {
+      pass.data[rect.startRow][rect.startCol] = rect.cached;
+      pass.formulas.push({ row: rect.startRow, col: rect.startCol, formula: rect.recorded });
+      spilled = true;
+    }
+  });
+
+  if (spilled) {
+    pass.formulas.sort((a, b) => a.row - b.row || a.col - b.col);
+    scope.dropped.record(DROPPED_FEATURES.formulaArraySpill);
+  }
 }
 
 /**
@@ -1078,21 +1224,29 @@ function pushCellValue(
     // A master calling a function the engine lacks shows `#NAME?` and spills nothing: its covered
     // cells keep the values the file caches.
     if (array && !callsUnregisteredFunction(live, scope)) {
-      recordLiveArray(array.ref, row, col, scope);
+      recordLiveArray(array.ref, row, col, {
+        cached: escapeTextFormula(toGridValue(cell, inferred), scope.context.formulasEnabled),
+        recorded: formula as string,
+      }, scope);
     }
 
     return;
   }
 
-  if (cell.formula === null && isCoveredByLiveArray(col, scope)) {
+  const cached = escapeTextFormula(toGridValue(cell, inferred), scope.context.formulasEnabled);
+  const covering = cell.formula === null ? liveArrayCovering(col, scope) : null;
+
+  if (covering !== null) {
     pass.data[pass.data.length - 1].push(null);
+
+    if (cached !== null) {
+      scope.liveArrays.emptied.push({ row, col, value: cached, rect: covering });
+    }
 
     return;
   }
 
-  pass.data[pass.data.length - 1].push(
-    escapeTextFormula(toGridValue(cell, inferred), scope.context.formulasEnabled)
-  );
+  pass.data[pass.data.length - 1].push(cached);
 
   if (formula !== null) {
     pass.formulas.push({ row, col, formula });
@@ -1467,7 +1621,9 @@ function collectCells(
     ownSheetName: context.formulaSheetName?.toLowerCase() ?? null,
     workbookSheetNames: new Set(workbook.sheets.map(candidate => candidate.name.toLowerCase())),
     window,
-    liveArrays: { active: [], noted: [], spans: [], cursor: 0, maxEndCol: -1 },
+    liveArrays: {
+      active: [], noted: [], spans: [], cursor: 0, maxEndCol: -1, maxEndRect: null, recorded: [], emptied: [],
+    },
   };
 
   pass.namedExpressions = collectNamedExpressions(scope);
@@ -1491,6 +1647,10 @@ function collectCells(
         collectCell(pass, cell, row - window.firstRow, col - window.firstCol, scope);
       }
     }
+  }
+
+  if (scope.liveArrays.recorded.length > 0) {
+    settleLiveArrays(pass, scope);
   }
 
   return pass;

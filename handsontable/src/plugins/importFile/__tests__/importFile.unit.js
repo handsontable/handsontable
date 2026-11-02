@@ -1818,6 +1818,170 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
 
     hf.destroy();
   });
+
+  /**
+   * Imports a one-sheet workbook into a fake grid whose Formulas plugin holds a real HyperFormula
+   * engine with array arithmetic (the Formulas plugin's default), without applying it.
+   *
+   * @param {Array[]} rows The sheet's cell snapshots.
+   * @param {object} [engine] The ExcelJS module, or `undefined` for the built-in engine.
+   * @returns {Promise<{ result: object, hf: HyperFormula }>}
+   */
+  async function importArrays(rows, engine) {
+    const snapshot = createWorkbookSnapshot();
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = rows;
+    snapshot.sheets.push(sheet);
+
+    const bytes = toArrayBuffer(await nativeAdapter.write(snapshot, undefined, new DroppedFeatures()));
+    const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3', useArrayArithmetic: true });
+
+    hf.addSheet('Sheet1');
+
+    const { plugin, hot } = pluginWithFakeHot(true);
+
+    hot.getPlugin = name => ({ formulas: { isEnabled: () => true, sheetName: 'Sheet1', engine: hf } })[name];
+
+    const result = await plugin.importFromArrayBuffer('xlsx', bytes, { apply: false, engine });
+
+    return { result, hf };
+  }
+
+  it('should import the cached values of a dynamic array HyperFormula cannot spill', async() => {
+    // HyperFormula sizes FILTER by its input (three rows), Excel by its result (two rows): the
+    // spill hits the text in B3 and B1 showed `#SPILL!`, and B2's cached 3 was lost.
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const buildFromSheets = jest.spyOn(HyperFormula, 'buildFromSheets');
+    const destroy = jest.spyOn(HyperFormula.prototype, 'destroy');
+
+    try {
+      const { result, hf } = await importArrays([
+        [at({ value: 1 }),
+          at({ formula: {
+            text: '_xlfn._xlws.FILTER(A1:A3,A1:A3>1)', result: 2, array: { ref: 'B1:B2', dynamic: true },
+          } })],
+        [at({ value: 2 }), at({ value: 3 })],
+        [at({ value: 3 }), at({ value: 'x' })],
+      ]);
+
+      expect(result.data.map(row => row[1])).toEqual([2, 3, 'x']);
+      expect(result.formulas).toEqual([{ row: 0, col: 1, formula: 'FILTER(A1:A3,A1:A3>1)' }]);
+      expect(result.dropped).toContain('formula:arraySpill');
+      // One scratch engine, built and destroyed; the grid's own engine is left alone.
+      expect(buildFromSheets).toHaveBeenCalledTimes(1);
+      expect(destroy).toHaveBeenCalledTimes(1);
+      expect(hf.getSheetNames()).toEqual(['Sheet1']);
+
+      hf.setSheetContent(0, result.data);
+
+      expect(hf.getSheetValues(0).flat().filter(value => value?.type === 'SPILL')).toEqual([]);
+      expect(hf.getSheetValues(0).map(row => row[1])).toEqual([2, 3, 'x']);
+
+      hf.destroy();
+    } finally {
+      buildFromSheets.mockRestore();
+      destroy.mockRestore();
+    }
+  });
+
+  it('should keep the cached values a one-value legacy array covers', async() => {
+    // `{=A1*2}` entered over B1:B3 shows 2 in each cell in Excel. HyperFormula evaluates it as one
+    // value in B1, so B2:B3, imported empty under the array, stayed empty.
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const rows = [
+      [at({ value: 1 }), at({ formula: { text: 'A1*2', result: 2, array: { ref: 'B1:B3', dynamic: false } } })],
+      [at({ value: 2 }), at({ value: 2 })],
+      [at({ value: 3 }), at({ value: 2 })],
+    ];
+
+    for (const [kind, engine] of [['native', undefined], ['exceljs', ExcelJS]]) {
+      // eslint-disable-next-line no-await-in-loop -- one engine at a time.
+      const { result, hf } = await importArrays(rows, engine);
+
+      expect([kind, result.data.map(row => row[1])]).toEqual([kind, ['=ARRAYFORMULA(A1*2)', 2, 2]]);
+      expect([kind, result.dropped]).not.toContain('formula:arraySpill');
+
+      hf.setSheetContent(0, result.data);
+
+      expect([kind, hf.getSheetValues(0).map(row => row[1])]).toEqual([kind, [2, 2, 2]]);
+
+      hf.destroy();
+    }
+  });
+
+  it('should still import empty the cells a spilling dynamic array covers', async() => {
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const { result, hf } = await importArrays([
+      [at({ value: 'a' }),
+        at({ formula: { text: '_xlfn.SEQUENCE(3)', result: 1, array: { ref: 'B1:B3', dynamic: true } } })],
+      [at({ value: 'b' }), at({ value: 2 })],
+      [at({ value: 'c' }), at({ value: 3 })],
+    ]);
+
+    expect(result.data.map(row => row[1])).toEqual(['=SEQUENCE(3)', null, null]);
+    expect(result.formulas).toBeUndefined();
+    expect(result.dropped).not.toContain('formula:arraySpill');
+
+    hf.setSheetContent(0, result.data);
+
+    expect(hf.getSheetValues(0).map(row => row[1])).toEqual([1, 2, 3]);
+
+    hf.destroy();
+  });
+
+  it('should leave an array as written when its master is another error in the probe, or the probe throws', () => {
+    // The probe holds one sheet, so a master reading another engine sheet is `#REF!` there although
+    // the grid spills it: its covered cells are not judged.
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const workbook = createWorkbookSnapshot();
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = [
+      [at({ value: 1 }), at({ formula: { text: 'SEQUENCE(2)', result: 1, array: { ref: 'B1:B2', dynamic: true } } })],
+      [at({ value: 2 }), at({ value: 2 })],
+    ];
+    workbook.sheets.push(sheet);
+
+    for (const masterState of [() => 'error', () => { throw new Error('probe'); }]) {
+      const destroy = jest.fn();
+      const isPartOfArray = jest.fn(() => false);
+      const dropped = new DroppedFeatures();
+      const mapped = mapWorkbook(workbook, resolveImportOptions({}), {
+        formulasEnabled: true,
+        commentsEnabled: false,
+        customBordersEnabled: false,
+        probeLiveArrays: () => ({ masterState, isPartOfArray, destroy }),
+      }, dropped);
+
+      expect(mapped.data.map(row => row[1])).toEqual(['=SEQUENCE(2)', null]);
+      expect(mapped.formulas).toBeUndefined();
+      expect(dropped.list()).not.toContain('formula:arraySpill');
+      expect(isPartOfArray).not.toHaveBeenCalled();
+      expect(destroy).toHaveBeenCalledTimes(1);
+    }
+  });
+
+  it('should build no scratch engine for a file without array formulas', async() => {
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const buildFromSheets = jest.spyOn(HyperFormula, 'buildFromSheets');
+    const buildFromArray = jest.spyOn(HyperFormula, 'buildFromArray');
+
+    try {
+      const { result, hf } = await importArrays([
+        [at({ value: 1 }), at({ formula: { text: 'A1*2', result: 2 } })],
+      ]);
+
+      expect(result.data).toEqual([[1, '=A1*2']]);
+      expect(buildFromSheets).not.toHaveBeenCalled();
+      expect(buildFromArray).not.toHaveBeenCalled();
+
+      hf.destroy();
+    } finally {
+      buildFromSheets.mockRestore();
+      buildFromArray.mockRestore();
+    }
+  });
 });
 
 describe('ImportFile and the Formulas engine\'s own sheet', () => {
