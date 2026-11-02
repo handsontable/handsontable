@@ -48,6 +48,10 @@ class ReadyStepProbe extends BasePlugin {
       this.hot.resumeRender();
     }
 
+    if (this.getSetting('suspendRenderOnReady')) {
+      this.hot.suspendRender();
+    }
+
     if (this.getSetting('writeOnReady')) {
       this.hot.setDataAtCell(0, 0, 'written by the ready step');
     }
@@ -296,6 +300,20 @@ describe('BasePlugin ready step (`onGridReady()`)', () => {
     hot.resumeRender();
   });
 
+  it('should keep a suspension a step makes at init until the step\'s owner resumes rendering', () => {
+    hot = createGrid({ [PROBE]: { suspendRenderOnReady: true } });
+
+    // Writing the saved counter back would drop the step's own suspension, and its `resumeRender()` would
+    // then draw nothing.
+    expect(hot.isRenderSuspended()).toBe(true);
+    expect(log.filter(([step]) => step === 'render')).toEqual([]);
+
+    hot.resumeRender();
+
+    expect(hot.isRenderSuspended()).toBe(false);
+    expect(log.filter(([step]) => step === 'render').length).toBe(1);
+  });
+
   ['loadData', 'updateData'].forEach((method) => {
     const hookName = `before${method[0].toUpperCase()}${method.slice(1)}`;
 
@@ -339,6 +357,27 @@ describe('BasePlugin ready step (`onGridReady()`)', () => {
     expect(steps.indexOf('ready')).toBeGreaterThan(-1);
     expect(steps.indexOf('ready')).toBeLessThan(steps.indexOf('afterChange'));
     expect(steps.indexOf('ready')).toBeLessThan(steps.indexOf('render'));
+  });
+
+  it('should draw a step an `afterChange` listener of a load makes the plugin owe with the load\'s render', () => {
+    hot = createGrid({ [PROBE]: true });
+    hot.addHook('afterChange', (changes, source) => {
+      if (source === 'loadData') {
+        hot.updateSettings({ [PROBE]: { updatedFromAfterChange: true } });
+      }
+    });
+    log.length = 0;
+
+    hot.loadData([[5], [6]]);
+
+    const steps = log.map(([step]) => step);
+
+    // The update runs inside the load's pass, so its step waits for the load. Run after the load's render,
+    // nothing would draw it.
+    expect(readySteps()).toEqual([
+      ['ready', PROBE, { view: true, rows: 2, firstCell: 5 }],
+    ]);
+    expect(steps.lastIndexOf('ready')).toBeLessThan(steps.lastIndexOf('render'));
   });
 
   it('should run a step an `alter()` hook makes the plugin owe before the alteration\'s render', () => {

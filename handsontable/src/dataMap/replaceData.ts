@@ -246,6 +246,9 @@ function replaceData(
   if (!firstRun) {
     beforeRender();
     hotInstance.runHooks('afterChange', null, internalSource);
+    // An `afterChange` listener can make a plugin owe a step too (an `updateSettings()` nested in this load),
+    // and that step cannot run before the load's pass closes, which is after this render.
+    beforeRender();
     hotInstance.render();
   }
 

@@ -2854,9 +2854,10 @@ export default function Core(
       runOwedReadySteps();
     } finally {
       initReadyStepsRunning = false;
-      // Put back, not decremented: a step that resumed rendering once more than it suspended would leave the
-      // counter below zero, and the next `suspendRender()` would not hold.
-      renderState.renderSuspendedCounter = suspendedBefore;
+      // Never below the saved value: a step that resumed rendering once more than it suspended would leave
+      // the counter below zero, and the next `suspendRender()` would not hold. A suspension a step made on
+      // its own is kept for its own `resumeRender()`.
+      renderState.renderSuspendedCounter = Math.max(renderState.renderSuspendedCounter - 1, suspendedBefore);
     }
 
     // A held render also skipped the start of a full render, which makes each stored cell meta run its

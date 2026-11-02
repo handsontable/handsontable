@@ -203,7 +203,9 @@ The contract:
   loaded data. Without the load and `alter()` points, a plugin that rebuilds from its `afterLoadData` listener
   (NestedHeaders, CollapsibleColumns) ran its step after the load had already rendered, and nothing rendered the
   new state. The load's step runs before `afterChange`, so an `afterChange` listener that renders draws the
-  rebuilt state.
+  rebuilt state. The load runs the owed steps once more after `afterChange`, right before its render: an
+  `updateSettings()` made from that listener is nested in the load's pass, so its step cannot run until the
+  pass closes, which is after the render, and nothing drew it.
 - **After the whole pass.** Core counts open lifecycle passes (`lifecyclePassDepth` in `core.ts`):
   `updateSettings()`, `_applySettingsAndData()`, `loadData()`, `updateData()`, `alter()`, every plugin
   lifecycle call, and a ready-step run. Steps run only when the outermost pass closes (or at its pre-render
@@ -236,7 +238,9 @@ The contract:
   hook. A step that renders (a sort, a cell write through `setDataAtCell()`, an explicit `hot.render()`)
   would otherwise draw the grid before the steps of the later plugins built their state, the early paint
   CustomBorders documents as #11031. The work is drawn by the first render, so the grid renders once at
-  init. Outside init a step renders as it asks, on a grid that is already drawn. A held render also skips
+  init, except with declared custom borders: the overlay clones that first render builds need one more
+  selection pass, which CustomBorders schedules for `afterInit`. Outside init a step renders as it asks, on a
+  grid that is already drawn. A held render also skips
   what a full render does first: forget which stored cell meta already ran its dynamic extension (the `cells`
   function and the meta hooks). So core calls `metaManager.invalidateMetaExtensions()` after the steps.
   Without it the `init` listeners read a meta as it was before a step changed it: AutoColumnSize's sweep
@@ -246,11 +250,14 @@ The contract:
   hooks for every cell read after each such call: a `batch()` of 1,000 `render()` calls with 50 meta reads
   after each took 30.4 ms against 14.3 ms (medians of 10, Chromium), and batched `setDataAtCell()` writes do
   not go through `Core#render()` at all. A stale extension inside a batch is the older behavior and has no
-  report behind it, so the read speed wins. The counter is put back to its value from before the steps, not
-  decremented: a step that resumed rendering once more than it suspended left it below zero, and the next
-  `suspendRender()` held nothing. **A step that needs to know it runs in the init pass asks
-  `isInitReadyStep()`, never `view._wt.drawn`**: a grid built hidden is never drawn, so the view answer is
-  wrong for every later enable on it (CustomBorders left an `afterInit` listener there that never fired).
+  report behind it, so the read speed wins. The counter is decremented but never below its value from
+  before the steps: a step that resumed rendering once more than it suspended left it below zero, and the
+  next `suspendRender()` held nothing. A suspension a step makes on its own stays for its own
+  `resumeRender()`; writing the saved value back dropped it, and that `resumeRender()` then drew nothing.
+  **A step that needs to know it runs in the init pass asks `isInitReadyStep()`, never `view._wt.drawn`**: a
+  grid built hidden is never drawn, so the view answer is wrong for every later enable on it (CustomBorders
+  left an `afterInit` listener there that never fired). A step that needs to know whether the grid can
+  measure yet asks the other question and reads `view._wt.drawn` (Pagination, for an `'auto'` page size).
 - **One owner per enable for work that `updatePlugin()` or `onDataReady()` also does.** The step runs after
   every enable AND every update, and many plugins already do their data work in `updatePlugin()` (a settings
   sort, the declared borders, the page state). Such a plugin sets a private `#...Owed` flag in
@@ -467,11 +474,11 @@ again for a later enable. **The fix is the ready step** (above), and these plugi
 | ColumnSummary | the endpoints | `afterInit` and the `this.hot.view` guard in `updatePlugin()` |
 | MergeCells | the settings pass, when no update ran or handed it over | `afterInit` |
 | DataProvider | the fetch of an enable or update | `afterInit` and the `this.hot.view` guard in `updatePlugin()` |
-| Formulas | the index syncs the axis syncers postponed | a one-off `init` listener |
 
 Every replaced listener ran after the first render (`afterInit`) or between the `init` hook and it; the steps
 run before both, with the renders held (above), so these plugins' work is drawn by the first render and the
-grid renders once at init. A direct `enablePlugin()` on a live grid now does the work too, which only
+grid renders once at init (with declared custom borders, twice: see above). A direct `enablePlugin()` on a
+live grid now does the work too, which only
 ColumnSorting's `this.hot.view` branch did before. Each plugin's `AGENTS.md` has its details, and its `__tests__/readyStep.unit.*` pins them.
 
 What stays, on purpose:
@@ -483,7 +490,8 @@ What stays, on purpose:
 - **FormulaBuilder's `afterInit` listener** decides when to warn about a failed enable (Formulas off), and a
   plugin that did not enable owes no step.
 - **Formulas' `this.hot.view` checks** tell construction from a later settings update for its eager first
-  resync, which the step does not answer (`../formulas/AGENTS.md`).
+  resync, which the step does not answer (`../formulas/AGENTS.md`). Formulas has no step: its one-off
+  `init` listener replayed index syncs that nothing postpones, so it was removed, not moved.
 - **`!this.hot.view` guards on the disable path** (NestedHeaders' `clearColspans()`, CollapsibleColumns'
   `clearButtons()`): `disablePlugin()` can run before the view exists and has no step.
 - **A nested grid's own `afterInit`** (the context menu's `hotMenu`) belongs to that grid, not to a plugin of
