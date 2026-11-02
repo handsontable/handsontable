@@ -384,9 +384,20 @@ Other rules:
   (`SUM(ABS(A1:A3))`) has the same `@` problem and is not detected – that needs per-function
   knowledge, deliberately left out. A defined name used as an operand is not detected either (its size
   is unknown), and neither is a range with both corners sheet-qualified (`Sheet1!A1:Sheet1!A3`).
-- **Named expressions export as workbook defined names, with `exportFormulas` only** (DEV-3648).
-  `getNamedExpressions()` lists the engine's WORKBOOK-scoped names (a sheet-scoped one is left out);
-  a name defined with a constant has no formula text, so its value is spelled as a literal
+- **Named expressions export as defined names, with `exportFormulas` only** (DEV-3648).
+  `getNamedExpressions()` lists the engine's workbook names, then each engine sheet's scoped names
+  (`scope`: the engine sheet name, or `null`). A scoped name is written with `sheetName` set to the
+  exported name of the grid bound to that engine sheet (the native writer turns it into
+  `localSheetId`), and skipped silently when no grid of the export binds it; the ExcelJS writer
+  cannot hold a scope, so `selectDefinedNames` leaves it out there and the cells over it unlink.
+  **Every name is keyed by scope AND name** (`definedNameKey`): the dedupe of `#addDefinedNames`,
+  its `written` map (engine key → file key) and `uses`, and the cells' `DefinedNameUse.names`. A word
+  of a formula on engine sheet S resolves to S's scoped name first, then the workbook's
+  (`resolveDefinedName`), and Excel does the same with the file's names on the exported sheet;
+  `#unlinkLeftOutNames` keeps a cell live only when both sides land on the same file name
+  (`readInFile`), so a left-out scoped `Rate` never falls back on the workbook `Rate` in Excel.
+  Before, scoped names were never read, and a formula over one was written live as `#NAME?`.
+  A name defined with a constant has no formula text, so its value is spelled as a literal
   (`toFormulaLiteral`: `"text"` with `""`, at most 255 characters and no XML-forbidden control
   character, which the writer would strip silently, `TRUE()`/`FALSE()`, an error code).
   **Names are written ONCE per export, not per grid**: grids of a multi-sheet export usually share
@@ -405,7 +416,7 @@ Other rules:
   one, or one that STARTS or ENDS on a left-out row or column (a row or column outside `range`
   counts as left out for names) refuses the whole name
   (`definedNames:unsupported`, recorded once); a left-out index inside a range only shrinks it.
-  Names are deduplicated case-insensitively: the first wins, a later one with another definition is
+  Names of one scope are deduplicated case-insensitively: the first wins, a later one with another definition is
   left out and recorded. Pinned by `xlsxNamedExpressions.unit.js` and `formula-utils.unit.js`.
   **A formula over a name that does not reach the file is written as its value** (`formula:definedName`,
   `#unlinkLeftOutNames`). Live, it showed `#NAME?` in Excel, or worse, read ANOTHER engine's `Rate`

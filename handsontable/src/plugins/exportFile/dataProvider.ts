@@ -392,15 +392,17 @@ class ExportDataProvider {
   }
 
   /**
-   * Gets the workbook-scoped named expressions of the Formulas plugin's engine, in the engine's
-   * order, each with its definition: the formula text (`=Sheet1!$A$1:$A$3`), or, for a name defined
-   * with a constant, that constant spelled as a formula literal (`5`, `"text"`, `TRUE()`). The
-   * definition is `null` when the constant cannot be spelled. A name scoped to a sheet is left out.
-   * Empty when the Formulas plugin is absent or disabled.
+   * Gets the named expressions of the Formulas plugin's engine, each with its definition: the
+   * formula text (`=Sheet1!$A$1:$A$3`), or, for a name defined with a constant, that constant
+   * spelled as a formula literal (`5`, `"text"`, `TRUE()`). The definition is `null` when the
+   * constant cannot be spelled. `scope` is `null` for a workbook-scoped name and the engine sheet
+   * name for a name scoped to a sheet; the workbook names come first, in the engine's order, then
+   * each sheet's names, in the engine's sheet order. Empty when the Formulas plugin is absent or
+   * disabled.
    *
-   * @returns {Array<{ name: string, formula: string|null }>}
+   * @returns {Array<{ name: string, formula: string|null, scope: string|null }>}
    */
-  getNamedExpressions(): Array<{ name: string; formula: string | null }> {
+  getNamedExpressions(): Array<{ name: string; formula: string | null; scope: string | null }> {
     const formulasPlugin = this.hot.getPlugin('formulas');
     const engine = formulasPlugin?.isEnabled() ? formulasPlugin.engine : null;
 
@@ -408,14 +410,26 @@ class ExportDataProvider {
       return [];
     }
 
-    return engine.listNamedExpressions().map((name: string) => {
-      const formula = engine.getNamedExpressionFormula(name);
+    const read = (scope: string | null, sheetId?: number) => (name: string) => {
+      const formula = engine.getNamedExpressionFormula(name, sheetId);
 
       return {
         name,
-        formula: formula === undefined ? toFormulaLiteral(engine.getNamedExpressionValue?.(name)) : formula,
+        formula: formula === undefined ? toFormulaLiteral(engine.getNamedExpressionValue?.(name, sheetId)) : formula,
+        scope,
       };
+    };
+    const names = engine.listNamedExpressions().map(read(null));
+
+    (engine.getSheetNames?.() ?? []).forEach((sheetName: string) => {
+      const sheetId = engine.getSheetId(sheetName);
+
+      if (sheetId !== undefined) {
+        engine.listNamedExpressions(sheetId).forEach((name: string) => names.push(read(sheetName, sheetId)(name)));
+      }
     });
+
+    return names;
   }
 
   /**

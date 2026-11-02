@@ -422,10 +422,18 @@ interface SheetContext {
   sourceData: unknown[][] | null;
   engineCellFacts: (EngineCellFacts | null)[][] | null;
   /**
-   * With `exportFormulas`, the workbook-scoped names of the grid's Formulas engine (lower-cased),
-   * or `null` when it has none: a formula over one of them is recorded in `nameUses`.
+   * With `exportFormulas`, the names of the grid's Formulas engine (`definedNameKey`, workbook and
+   * sheet scope), or `null` when it has none: a formula over one of them is recorded in `nameUses`.
    */
   engineNames: Set<string> | null;
+  /**
+   * The grid's engine sheet name, lower-cased: the scope a name of its formulas is read in first.
+   */
+  engineScope: string;
+  /**
+   * The name the export gives the grid's sheet, lower-cased: the scope Excel reads a name in first.
+   */
+  fileScope: string;
   engine: object | null;
   nameUses: DefinedNameUse[];
   dropped: DroppedFeatures;
@@ -467,17 +475,25 @@ interface NamedExpressionSource {
 interface DefinedNameUse {
   cell: CellSnapshot;
   engine: object;
+  /**
+   * The names the formula reads in its engine (`definedNameKey`).
+   */
   names: string[];
+  /**
+   * The exported sheet the cell is on, lower-cased.
+   */
+  fileScope: string;
   fallback: { value: CellValue; numFmt: string | null; valueIsError?: true };
 }
 
 /**
- * What `#addDefinedNames` tells about one engine's names: the lower-cased names added to the file
- * with that engine's definition, and, for each of its names, the other names of the engine its
- * definition uses.
+ * What `#addDefinedNames` tells about one engine's names, each keyed by `definedNameKey` with its
+ * ENGINE scope: `written` maps a name added to the file with that engine's definition to the key
+ * of the file's name (its exported scope), and `uses` lists, for each of its names, the names of the
+ * engine its definition reads.
  */
 interface EngineDefinedNames {
-  written: Set<string>;
+  written: Map<string, string>;
   uses: Map<string, string[]>;
 }
 
@@ -485,6 +501,52 @@ interface XlsxSheetConfig {
   instance: HotInstance;
   name?: string;
   [key: string]: unknown;
+}
+
+/**
+ * The key of a defined name in one scope: the lower-cased scope (a sheet name, or `''` for the
+ * workbook) and the lower-cased name, joined by a character neither can hold.
+ *
+ * @param {string|null} scope The sheet the name is scoped to, or `null` for the workbook.
+ * @param {string} name The name.
+ * @returns {string}
+ */
+function definedNameKey(scope: string | null, name: string): string {
+  return `${scope === null ? '' : localeLowerCase(scope)}\u0000${localeLowerCase(name)}`;
+}
+
+/**
+ * Splits a `definedNameKey` back into its lower-cased scope (`''` for the workbook) and name.
+ *
+ * @param {string} key The key.
+ * @returns {{ scope: string, name: string }}
+ */
+function splitDefinedNameKey(key: string): { scope: string; name: string } {
+  const separator = key.indexOf('\u0000');
+
+  return { scope: key.slice(0, separator), name: key.slice(separator + 1) };
+}
+
+/**
+ * Resolves a word of a formula to the key of the defined name it reads, the way Excel and
+ * HyperFormula do: the name scoped to the formula's sheet first, then the workbook's. Answers
+ * `null` when `keys` holds neither.
+ *
+ * @param {Set<string>} keys The keys of the names that may be read.
+ * @param {string} scope The lower-cased sheet the formula is on, `''` for a workbook name's definition.
+ * @param {string} word The lower-cased word.
+ * @returns {string|null}
+ */
+function resolveDefinedName(keys: Set<string>, scope: string, word: string): string | null {
+  const scoped = `${scope}\u0000${word}`;
+
+  if (scope !== '' && keys.has(scoped)) {
+    return scoped;
+  }
+
+  const workbookKey = `\u0000${word}`;
+
+  return keys.has(workbookKey) ? workbookKey : null;
 }
 
 // Default width (in Excel column-width units) assigned to the frozen row-header column
@@ -790,7 +852,8 @@ class Xlsx extends BaseType {
     // so a name of another grid on the same engine may point at it.
     const binding = dataProvider.getFormulasBinding();
     const engineNames = exportFormulas && binding
-      ? new Set(dataProvider.getNamedExpressions().map(({ name: definedName }) => localeLowerCase(definedName)))
+      ? new Set(dataProvider.getNamedExpressions()
+        .map(({ name: definedName, scope }) => definedNameKey(scope ?? null, definedName)))
       : null;
     const engineConfig = (binding?.engine as { getConfig?: () => { useArrayArithmetic?: unknown } } | undefined)
       ?.getConfig?.();
@@ -809,6 +872,8 @@ class Xlsx extends BaseType {
       engineCellFacts,
       engineNames: engineNames !== null && engineNames.size > 0 ? engineNames : null,
       engine: binding?.engine ?? null,
+      engineScope: binding ? localeLowerCase(binding.sheetName) : '',
+      fileScope: localeLowerCase(name),
       nameUses,
       dropped,
       arrayRanges: new ArrayRangeClaims(),
@@ -897,14 +962,17 @@ class Xlsx extends BaseType {
   }
 
   /**
-   * Adds the workbook-scoped named expressions of the exported grids' Formulas engines to the
-   * workbook as workbook defined names, each one ONCE. Grids of a multi-sheet export usually share
-   * one engine, so the names are read per engine, and each is normalized against every engine
-   * sheet this export writes (`normalizeNamedExpression`): a reference moves with the header band
-   * and the left-out rows and columns of the grid that sheet belongs to, and names that grid's
-   * exported sheet. A name that cannot be expressed in the file (a reference to an engine sheet
-   * the export does not write among others), or that repeats an added name with another
-   * definition, is left out and `definedNames:unsupported` recorded once.
+   * Adds the named expressions of the exported grids' Formulas engines to the workbook as defined
+   * names, each one ONCE. A workbook-scoped name is written with workbook scope, and a name scoped
+   * to an engine sheet with the scope of the sheet the export writes for it; a name scoped to an
+   * engine sheet the export does not write is skipped (no cell of the file can read it). Grids of a
+   * multi-sheet export usually share one engine, so the names are read per engine, and each is
+   * normalized against every engine sheet this export writes (`normalizeNamedExpression`): a
+   * reference moves with the header band and the left-out rows and columns of the grid that sheet
+   * belongs to, and names that grid's exported sheet. A name that cannot be expressed in the file
+   * (a reference to an engine sheet the export does not write among others), or that repeats an
+   * added name of the same scope with another definition, is left out and
+   * `definedNames:unsupported` recorded once.
    *
    * Every grid bound to an engine is a sheet a name may point to, `exportFormulas` or not. An
    * engine's names are written only when at least one of its grids is exported with
@@ -913,9 +981,10 @@ class Xlsx extends BaseType {
    * @param {object} workbook The neutral workbook snapshot.
    * @param {object[]} sources The exported grids bound to a Formulas engine.
    * @param {DroppedFeatures} dropped The export's dropped-feature collector.
-   * @returns {Map<object, object>} Per engine, `written`: the lower-cased names added with that
-   *   engine's own definition, and `uses`: for each of its names, the other names of that engine its
-   *   definition uses (`namesUsedIn`), lower-cased.
+   * @returns {Map<object, object>} Per engine, `written`: each name added with that engine's own
+   *   definition, mapped to the file's name, and `uses`: for each of its names, the names of that
+   *   engine its definition reads (`namesUsedIn`, resolved in the name's own scope first), all as
+   *   `definedNameKey` keys.
    */
   #addDefinedNames(
     workbook: WorkbookSnapshot, sources: NamedExpressionSource[], dropped: DroppedFeatures
@@ -953,34 +1022,47 @@ class Xlsx extends BaseType {
         return;
       }
 
-      const written = new Set<string>();
+      const written = new Map<string, string>();
       const uses = new Map<string, string[]>();
       const namedExpressions = source.dataProvider.getNamedExpressions();
-      const engineNames = new Set(namedExpressions.map(({ name }) => localeLowerCase(name)));
+      const engineKeys = new Set(namedExpressions.map(({ name, scope }) => definedNameKey(scope ?? null, name)));
 
       writtenByEngine.set(engine, { written, uses });
-      namedExpressions.forEach(({ name, formula: definition }) => {
+      namedExpressions.forEach(({ name, formula: definition, scope = null }) => {
+        const scopeSheet = scope === null ? null : sheets.get(scope.toLowerCase());
+
+        if (scopeSheet === undefined) {
+          return;
+        }
+
+        const engineKey = definedNameKey(scope, name);
+
         if (definition !== null) {
-          uses.set(localeLowerCase(name), [...namesUsedIn(definition)].filter(used => engineNames.has(used)));
+          const engineScope = splitDefinedNameKey(engineKey).scope;
+
+          uses.set(engineKey, [...namesUsedIn(definition)]
+            .map(word => resolveDefinedName(engineKeys, engineScope, word))
+            .filter((used): used is string => used !== null));
         }
 
         const formula = definition === null ? null : normalizeNamedExpression(
           definition, source.separator, sheets, source.decimalSeparator
         );
-        const key = name.toLowerCase();
+        const sheetName = scopeSheet === null ? null : scopeSheet.exportedName;
+        const fileKey = definedNameKey(sheetName, name);
 
-        if (formula === null || (added.has(key) && added.get(key) !== formula)) {
+        if (formula === null || (added.has(fileKey) && added.get(fileKey) !== formula)) {
           leaveOut();
 
           return;
         }
 
-        if (!added.has(key)) {
-          added.set(key, formula);
-          definedNames.push({ name, formula, sheetName: null });
+        if (!added.has(fileKey)) {
+          added.set(fileKey, formula);
+          definedNames.push({ name, formula, sheetName });
         }
 
-        written.add(localeLowerCase(name));
+        written.set(engineKey, fileKey);
       });
     });
 
@@ -1024,19 +1106,29 @@ class Xlsx extends BaseType {
       return;
     }
 
-    const inFile = new Set(adapter.selectDefinedNames(workbook).map(({ name }) => localeLowerCase(name)));
+    const inFile = new Set(adapter.selectDefinedNames(workbook)
+      .map(({ name, sheetName }) => definedNameKey(sheetName, name)));
+    // The file's name a formula on the sheet `fileScope` reads for an engine name, the way Excel
+    // reads it: the sheet's own name first, then the workbook's.
+    const readInFile = (fileScope: string, engineKey: string) => {
+      const scoped = `${fileScope}\u0000${splitDefinedNameKey(engineKey).name}`;
+
+      return fileScope !== '' && inFile.has(scoped) ? scoped : `\u0000${splitDefinedNameKey(engineKey).name}`;
+    };
     const resolvedByEngine = new Map<object, Set<string>>();
 
     namesByEngine.forEach(({ written, uses }, engine) => {
-      const resolved = new Set([...written].filter(name => inFile.has(name)));
-      // A name over a name that does not resolve does not resolve either. Every name leaves
-      // `resolved` at most once.
+      const resolved = new Set([...written].filter(([, fileKey]) => inFile.has(fileKey)).map(([key]) => key));
+      // A name over a name that does not resolve, or that the file reads as another definition,
+      // does not resolve either. Every name leaves `resolved` at most once.
       const dependents = new Map<string, string[]>();
       const unresolved: string[] = [];
 
       resolved.forEach((name) => {
+        const fileScope = splitDefinedNameKey(written.get(name) as string).scope;
+
         (uses.get(name) ?? []).forEach((used) => {
-          if (resolved.has(used)) {
+          if (resolved.has(used) && written.get(used) === readInFile(fileScope, used)) {
             const users = dependents.get(used);
 
             if (users) {
@@ -1061,11 +1153,15 @@ class Xlsx extends BaseType {
       resolvedByEngine.set(engine, resolved);
     });
 
-    const kept = definedNames.filter(({ name }) => {
-      const lowered = localeLowerCase(name);
+    const resolvedInFile = new Set<string>();
 
-      return [...resolvedByEngine.values()].some(resolved => resolved.has(lowered));
+    resolvedByEngine.forEach((resolved, engine) => {
+      const { written } = namesByEngine.get(engine) as EngineDefinedNames;
+
+      resolved.forEach(name => resolvedInFile.add(written.get(name) as string));
     });
+
+    const kept = definedNames.filter(({ name, sheetName }) => resolvedInFile.has(definedNameKey(sheetName, name)));
 
     if (kept.length < definedNames.length) {
       workbook.definedNames = kept.length > 0 ? kept : undefined;
@@ -1075,10 +1171,11 @@ class Xlsx extends BaseType {
       }
     }
 
-    nameUses.forEach(({ cell, engine, names, fallback }) => {
+    nameUses.forEach(({ cell, engine, names, fileScope, fallback }) => {
       const resolved = resolvedByEngine.get(engine);
+      const written = namesByEngine.get(engine)?.written;
 
-      if (names.every(name => resolved?.has(name) === true)) {
+      if (names.every(name => resolved?.has(name) === true && written?.get(name) === readInFile(fileScope, name))) {
         return;
       }
 
@@ -1200,7 +1297,9 @@ class Xlsx extends BaseType {
     context: SheetContext,
   ): void {
     const engineNames = context.engineNames as Set<string>;
-    const names = [...namesUsedIn(text)].filter(name => engineNames.has(name));
+    const names = [...namesUsedIn(text)]
+      .map(word => resolveDefinedName(engineNames, context.engineScope, word))
+      .filter((name): name is string => name !== null);
 
     if (names.length === 0) {
       return;
@@ -1215,7 +1314,11 @@ class Xlsx extends BaseType {
       ?? (typeof value === 'number' && !valueIsError ? resolveMetaNumFmt(source.meta) : null);
 
     context.nameUses.push({
-      cell, engine: context.engine as object, names, fallback: { value, numFmt: fallbackNumFmt, valueIsError },
+      cell,
+      engine: context.engine as object,
+      names,
+      fileScope: context.fileScope,
+      fallback: { value, numFmt: fallbackNumFmt, valueIsError },
     });
   }
 

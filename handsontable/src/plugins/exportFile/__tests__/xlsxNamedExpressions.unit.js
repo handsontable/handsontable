@@ -377,18 +377,103 @@ describe('Xlsx export: named expressions as defined names', () => {
     expect(snapshot.sheets[0].rows[1][2].formula.text).toBe('"1,5"');
   });
 
-  it('should export workbook-scoped names only', async() => {
-    const engine = createGrid();
+  it('should export a sheet-scoped name scoped to the exported sheet of its grid', async() => {
+    // Left out, `=Local*2` was still written live and Excel and LibreOffice showed `#NAME?`.
+    const engine = createGrid({ data: [[1], [2], ['=Local*2']] });
     const sheetId = hot.getPlugin('formulas').sheetId;
 
     engine.addNamedExpression('Global', '=Sheet1!$A$1');
     engine.addNamedExpression('Local', '=Sheet1!$A$2', sheetId);
 
-    const { snapshot } = await exportWorkbook();
+    const { snapshot, dropped } = await exportWorkbook({
+      exportFormulas: true, sheets: [{ instance: hot, name: 'Data' }],
+    });
 
     expect(snapshot.definedNames).toEqual([
-      { name: 'Global', formula: 'Sheet1!$A$1', sheetName: null },
+      { name: 'Global', formula: 'Data!$A$1', sheetName: null },
+      { name: 'Local', formula: 'Data!$A$2', sheetName: 'Data' },
     ]);
+    expect(snapshot.sheets[0].rows[2][0].formula).toEqual(expect.objectContaining({ text: 'Local*2', result: 4 }));
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should write a sheet-scoped name beside a workbook name spelled the same, as the engine reads them', async() => {
+    // On the sheet, `Rate` is the sheet's own name (2), in Excel as in HyperFormula; `Total` is a
+    // workbook name, so it reads the workbook `Rate` (1).
+    const engine = createGrid({ data: [[1], [2], ['=Rate*10'], ['=Total']] });
+    const sheetId = hot.getPlugin('formulas').sheetId;
+
+    engine.addNamedExpression('Rate', '=Sheet1!$A$1');
+    engine.addNamedExpression('Total', '=Rate*100');
+    engine.addNamedExpression('Rate', '=Sheet1!$A$2', sheetId);
+
+    const { snapshot, dropped } = await exportWorkbook();
+    const [, , scaled, total] = snapshot.sheets[0].rows.map(row => row[0]);
+
+    expect(snapshot.definedNames).toEqual([
+      { name: 'Rate', formula: 'Sheet1!$A$1', sheetName: null },
+      { name: 'Total', formula: 'Rate*100', sheetName: null },
+      { name: 'Rate', formula: 'Sheet1!$A$2', sheetName: 'Sheet1' },
+    ]);
+    expect(scaled.formula).toEqual(expect.objectContaining({ text: 'Rate*10', result: 20 }));
+    expect(total.formula).toEqual(expect.objectContaining({ text: 'Total', result: 100 }));
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should export a formula over a sheet-scoped name as its value when the scope did not reach the file', async() => {
+    // The workbook `Rate` is written, but a cell over the left-out sheet `Rate` must not fall back
+    // on it in Excel (1, not 2).
+    const engine = createGrid({ data: [[1], [2], ['=Rate*10']], hiddenRows: { rows: [1] } });
+    const sheetId = hot.getPlugin('formulas').sheetId;
+
+    engine.addNamedExpression('Rate', '=Sheet1!$A$1');
+    engine.addNamedExpression('Rate', '=Sheet1!$A$2', sheetId);
+
+    const { snapshot, dropped } = await exportWorkbook({ exportFormulas: true, exportHiddenRows: false });
+    const scaled = snapshot.sheets[0].rows[1][0];
+
+    expect(snapshot.definedNames).toEqual([{ name: 'Rate', formula: 'Sheet1!$A$1', sheetName: null }]);
+    expect(scaled.formula).toBeNull();
+    expect(scaled.value).toBe(20);
+    expect(dropped.list()).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+  });
+
+  it('should leave out a sheet-scoped name with the ExcelJS engine and export the formulas over it as values', async() => {
+    const excelJsWrite = jest.spyOn(excelJsAdapter, 'write').mockResolvedValue(new Uint8Array());
+
+    try {
+      const engine = createGrid({ data: [[1], [2], ['=Local*2'], ['=SUM(Global)']] });
+      const sheetId = hot.getPlugin('formulas').sheetId;
+
+      engine.addNamedExpression('Global', '=Sheet1!$A$1:$A$2');
+      engine.addNamedExpression('Local', '=Sheet1!$A$2', sheetId);
+
+      await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', { exportFormulas: true, engine: ExcelJS });
+
+      const [snapshot, , dropped] = excelJsWrite.mock.calls[0];
+      const [, , local, global] = snapshot.sheets[0].rows.map(row => row[0]);
+
+      expect(snapshot.definedNames).toEqual([{ name: 'Global', formula: 'Sheet1!$A$1:$A$2', sheetName: null }]);
+      expect(local.formula).toBeNull();
+      expect(local.value).toBe(4);
+      expect(global.formula).toEqual(expect.objectContaining({ text: 'SUM(Global)', result: 3 }));
+      expect(dropped.list()).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+    } finally {
+      excelJsWrite.mockRestore();
+    }
+  });
+
+  it('should skip a sheet-scoped name of an engine sheet the export does not write', async() => {
+    const engine = createGrid();
+
+    engine.addSheet('Other');
+    engine.addNamedExpression('Elsewhere', '=Other!$A$1', engine.getSheetId('Other'));
+    engine.addNamedExpression('Here', '=Sheet1!$A$1');
+
+    const { snapshot, dropped } = await exportWorkbook();
+
+    expect(snapshot.definedNames).toEqual([{ name: 'Here', formula: 'Sheet1!$A$1', sheetName: null }]);
+    expect(dropped.list()).toEqual([]);
   });
 
   it('should shrink a range around a hidden row the export leaves out', async() => {
