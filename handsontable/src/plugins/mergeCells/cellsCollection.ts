@@ -7,7 +7,9 @@ import { arrayEach } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import type { MergeCells } from './mergeCells';
 import { findNonIntersectingIndex } from '../../selection/cellBlocks';
+import type { MergeAreaGeometry } from '../../utils/mergeAreas';
 import {
+  areMergesOverlapping,
   getFirstRowOfActiveBottomOverlay,
   getFirstRenderedRowOfOverlay,
   getFirstRenderedColumnOfOverlay,
@@ -42,6 +44,12 @@ class MergedCellsCollection {
    * Merges were added or removed since the area highlight was last recomputed from this collection.
    */
   #selectionHighlightStale = false;
+  /**
+   * A merge was written over a cell of another merge in the lookup matrix since it was last rebuilt (a sort
+   * can draw two merges over each other, see `relocateInMatrix()`). The matrix then no longer names every
+   * merge a cell lies under, so the overlap check scans the merge list instead of reading the cells.
+   */
+  #hasDrawnOver = false;
   /**
    * The Handsontable instance.
    *
@@ -436,6 +444,7 @@ class MergedCellsCollection {
 
     this.mergedCells.length = 0;
     this.mergedCellsMatrix = new Map<number, Map<number, MergedCellCoords>>();
+    this.#hasDrawnOver = false;
     this.hot?.markAllCellsChanged();
     this.#selectionHighlightStale = true;
   }
@@ -450,28 +459,39 @@ class MergedCellsCollection {
    * @returns {boolean} `true` if the provided merged cell overlaps with the others, `false` otherwise.
    */
   isOverlapping(mergedCell: MergedCellCoords, ignoredMergedCells: MergedCellCoords[] = []) {
-    const mergedCellRange = mergedCell.getRange();
+    const ignored = new Set(ignoredMergedCells);
 
-    if (!mergedCellRange) {
-      return false;
+    return this.overlapsLiveMerge(mergedCell, otherMergedCell => ignored.has(otherMergedCell));
+  }
+
+  /**
+   * Checks whether an area shares a cell with a merge the lookup matrix holds at its own top-left (a merge
+   * purged because all of its rows are trimmed does not count, see `isOverlapping()`), leaving out the
+   * ignored ones. The cost is the smaller of the area's cell count and the number of merges: adding many
+   * small merges reads only their own cells, and one large merge is checked against the merge list instead
+   * of every cell it covers.
+   *
+   * @private
+   * @param {MergeAreaGeometry} area The area to check: `row`, `col`, `rowspan` and `colspan`.
+   * @param {Function} isIgnored Tells whether a merge is left out of the check.
+   * @returns {boolean}
+   */
+  overlapsLiveMerge(area: MergeAreaGeometry, isIgnored: (mergedCell: MergedCellCoords) => boolean): boolean {
+    const counts = (mergedCell: MergedCellCoords) => (
+      this.get(mergedCell.row, mergedCell.col) === mergedCell && !isIgnored(mergedCell)
+    );
+
+    if (this.#hasDrawnOver || area.rowspan * area.colspan > this.mergedCells.length) {
+      return this.mergedCells.some(mergedCell => areMergesOverlapping(area, mergedCell) && counts(mergedCell));
     }
 
-    for (let i = 0; i < this.mergedCells.length; i++) {
-      const otherMergedCell = this.mergedCells[i];
+    for (let row = area.row; row < area.row + area.rowspan; row++) {
+      for (let col = area.col; col < area.col + area.colspan; col++) {
+        const mergedCell = this.get(row, col);
 
-      if (
-        ignoredMergedCells.includes(otherMergedCell) ||
-        this.get(otherMergedCell.row, otherMergedCell.col) !== otherMergedCell
-      ) {
-        continue;
-      }
-
-      const otherMergedCellRange = otherMergedCell.getRange();
-
-      const overlappingRange = otherMergedCellRange as CellRange & { overlaps(range: CellRange): boolean };
-
-      if (otherMergedCellRange && overlappingRange.overlaps(mergedCellRange)) {
-        return true;
+        if (mergedCell && counts(mergedCell)) {
+          return true;
+        }
       }
     }
 
@@ -664,6 +684,7 @@ class MergedCellsCollection {
     });
 
     this.mergedCellsMatrix.clear();
+    this.#hasDrawnOver = false;
 
     this.mergedCells.forEach((currentMerge) => {
       this.#addMergedCellToMatrix(currentMerge);
@@ -833,6 +854,7 @@ class MergedCellsCollection {
 
     this.mergedCells.length = 0;
     this.mergedCellsMatrix.clear();
+    this.#hasDrawnOver = false;
 
     replacements.forEach(({ source, info }) => {
       const added = this.add(info, true);
@@ -857,7 +879,14 @@ class MergedCellsCollection {
           this.mergedCellsMatrix.set(row, new Map());
         }
 
-        this.mergedCellsMatrix.get(row)!.set(col, mergedCell);
+        const matrixRow = this.mergedCellsMatrix.get(row)!;
+        const previous = matrixRow.get(col);
+
+        if (previous !== undefined && previous !== mergedCell) {
+          this.#hasDrawnOver = true;
+        }
+
+        matrixRow.set(col, mergedCell);
       }
     }
   }

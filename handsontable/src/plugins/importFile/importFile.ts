@@ -30,6 +30,8 @@ import {
 } from '../../utils/columnTypeInference';
 import type { ImportedBorder } from './styles';
 import type { HotInstance } from '../../core/types';
+import { LICENSE } from './feature.generated';
+import { assertLicensedCall } from '../../utils/licenseNotification';
 
 export const PLUGIN_KEY = 'importFile';
 export const PLUGIN_PRIORITY = 245;
@@ -620,6 +622,14 @@ export class ImportFile extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns the setting keys that trigger a plugin update when changed via `updateSettings`.
    */
   static get SETTING_KEYS() {
@@ -760,8 +770,11 @@ export class ImportFile extends BasePlugin {
    *   data: importFile.convertToInferredTypes(rows, result),
    * });
    * ```
+   * @throws {Error} When the license key lists the features it unlocks and leaves out Import from file.
    */
   inferColumnTypes(data: InferenceData, options: InferColumnTypesOptions | null = {}): InferColumnTypesResult {
+    assertLicensedCall(this.hot, LICENSE);
+
     return inferColumnTypes(data, { ...options, locale: options?.locale || this.hot.getSettings().locale });
   }
 
@@ -772,8 +785,11 @@ export class ImportFile extends BasePlugin {
    * local date and time. A value the column cannot read, such as a `Total` row, is kept as it is, so the
    * cell type's validator marks it. When the result found a header row, that row is left out.
    * `data` itself is not changed.
+   * @throws {Error} When the license key lists the features it unlocks and leaves out Import from file.
    */
   convertToInferredTypes<T extends InferenceData>(data: T, result: InferColumnTypesResult): ConvertedData<T> {
+    assertLicensedCall(this.hot, LICENSE);
+
     return convertToInferredTypes(data, result);
   }
 
@@ -794,10 +810,13 @@ export class ImportFile extends BasePlugin {
    * @param {ArrayBuffer|ArrayBufferView} buffer The file's bytes.
    * @param {ImportOptions} [options] Import options.
    * @returns {Promise<ImportResult>}
+   * @throws {Error} The returned promise rejects when the license key lists the features it unlocks and leaves out Import from file.
    */
   async importFromArrayBuffer(
     format: string, buffer: ArrayBuffer | ArrayBufferView, options: ImportOptions = {}
   ): Promise<ImportResult> {
+    assertLicensedCall(this.hot, LICENSE);
+
     this.#assertEnabled();
     this.#assertLicensed(format);
 
@@ -826,8 +845,11 @@ export class ImportFile extends BasePlugin {
    * @param {Blob} blob The file.
    * @param {ImportOptions} [options] Import options.
    * @returns {Promise<ImportResult>}
+   * @throws {Error} The returned promise rejects when the license key lists the features it unlocks and leaves out Import from file.
    */
   async importFromBlob(format: string, blob: Blob, options: ImportOptions = {}): Promise<ImportResult> {
+    assertLicensedCall(this.hot, LICENSE);
+
     this.#assertEnabled();
     this.#assertLicensed(format);
 
@@ -868,14 +890,14 @@ export class ImportFile extends BasePlugin {
     const formulasPlugin = this.hot.getPlugin('formulas');
     const commentsPlugin = this.hot.getPlugin('comments');
     const customBordersPlugin = this.hot.getPlugin('customBorders');
-    const formulasEnabled = formulasPlugin?.isEnabled() === true;
+    const formulasEnabled = formulasPlugin?.enabled === true;
     // Scoped to the import's own tokens, so the warning and the `license:` entries never name an
     // export-only token (`xlsx:export`, `xlsx:number_formats`).
     const entitlement = scopeXlsxEntitlement(getXlsxEntitlement(this.hot), IMPORT_FILE_CAPABILITY_IDS);
     const mapped = mapWorkbook(workbook, resolved, {
       formulasEnabled,
-      commentsEnabled: commentsPlugin?.isEnabled() === true,
-      customBordersEnabled: customBordersPlugin?.isEnabled() === true,
+      commentsEnabled: commentsPlugin?.enabled === true,
+      customBordersEnabled: customBordersPlugin?.enabled === true,
       formulaSheetNames: formulasEnabled ? engineSheetNames(formulasPlugin?.engine) : undefined,
       formulaSheetName: formulasEnabled ? formulasPlugin?.sheetName ?? undefined : undefined,
       formulaNamedExpressions: formulasEnabled ? engineNamedExpressions(formulasPlugin?.engine) : undefined,

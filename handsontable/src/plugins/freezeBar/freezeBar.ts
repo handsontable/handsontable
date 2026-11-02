@@ -7,6 +7,7 @@ import { getMaxFittingFrozenCount, MIN_SCROLLABLE_SIZE } from '../../utils/froze
 import { getElementScaleFactor, normalizeVisualDelta } from '../../utils/manualResize/utils';
 import { resolveFreezeCount } from './snapResolver';
 import type { FreezeBarSettings, FreezeEdge, FreezeSource } from './types';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'freezeBar';
 export const PLUGIN_PRIORITY = 380;
@@ -114,6 +115,14 @@ export class FreezeBar extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

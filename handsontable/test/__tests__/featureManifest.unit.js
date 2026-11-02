@@ -143,10 +143,28 @@ describe('feature manifest', () => {
         const source = files.map(fileName => readPackageFile(`src/plugins/${folder}/${fileName}`)).join('\n');
         const declaresDeps = /static (get )?PLUGIN_DEPS\b/.test(source);
         const readsGenerated = /return \[\.\.\.PLUGIN_DEPS\];/.test(source) &&
-          /import \{ PLUGIN_DEPS \} from '\.\/feature\.generated';/.test(source);
+          /import \{[^}]*\bPLUGIN_DEPS\b[^}]*\} from '\.\/feature\.generated';/.test(source);
 
         expect({ folder, declaresDeps, readsGenerated })
           .toEqual({ folder, declaresDeps: enforced.has(folder), readsGenerated: enforced.has(folder) });
+      });
+    });
+
+    it('should give every sold plugin the LICENSE of its generated module, and no other plugin one', () => {
+      const sold = new Set(listEntries(sources)
+        .filter(({ entry }) => entry.kind === 'plugin' && entry.licensing === 'token')
+        .map(({ folder }) => folder));
+
+      sources.modules.filter(({ kind }) => kind === 'plugin').forEach(({ folder }) => {
+        const files = readdirSync(resolve(PACKAGE_DIR, 'src/plugins', folder))
+          .filter(fileName => fileName.endsWith('.ts') && fileName !== 'feature.generated.ts');
+        const source = files.map(fileName => readPackageFile(`src/plugins/${folder}/${fileName}`)).join('\n');
+        const declaresLicense = /static (get )?LICENSE\b/.test(source);
+        const readsGenerated = /static get LICENSE\(\) \{\s+return LICENSE;\s+\}/.test(source) &&
+          /import \{[^}]*\bLICENSE\b[^}]*\} from '\.\/feature\.generated';/.test(source);
+
+        expect({ folder, declaresLicense, readsGenerated })
+          .toEqual({ folder, declaresLicense: sold.has(folder), readsGenerated: sold.has(folder) });
       });
     });
   });

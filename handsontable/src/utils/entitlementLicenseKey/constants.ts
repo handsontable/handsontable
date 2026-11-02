@@ -83,6 +83,22 @@ export const NO_CONSOLE_WARNS_FLAG = 'no-console-warns';
 export const NO_UI_WARNS_FLAG = 'no-ui-warns';
 
 /**
+ * Says the entry's `capabilities` list is complete: the license grants the
+ * tokens it lists and nothing else. The issuer sets it per product entry; no
+ * contract type or mode implies it.
+ *
+ * The reader does not act on it - `getLicenseGrants` lists the tokens either
+ * way. The product decides what an entry WITHOUT it means. A product that
+ * gated no feature when its first keys were issued reads such an entry as
+ * granting everything, so a new gate never takes a feature away from a key
+ * already in the field. A product that has always gated on its tokens ignores
+ * the flag.
+ *
+ * @type {string}
+ */
+export const LISTED_CAPABILITIES_FLAG = 'listed-capabilities';
+
+/**
  * The number of milliseconds in a day, used to walk from one UTC midnight to
  * the next.
  *

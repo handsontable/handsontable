@@ -40,6 +40,18 @@ class ReadyStepProbe extends BasePlugin {
       firstCell: this.hot.getDataAtCell(0, 0),
     }]);
 
+    if (this.getSetting('logInitPass')) {
+      log.push(['init pass', PROBE, this.isInitReadyStep()]);
+    }
+
+    if (this.getSetting('resumeRenderOnReady')) {
+      this.hot.resumeRender();
+    }
+
+    if (this.getSetting('suspendRenderOnReady')) {
+      this.hot.suspendRender();
+    }
+
     if (this.getSetting('writeOnReady')) {
       this.hot.setDataAtCell(0, 0, 'written by the ready step');
     }
@@ -240,6 +252,68 @@ describe('BasePlugin ready step (`onGridReady()`)', () => {
     expect(steps.indexOf('ready')).toBeLessThan(steps.indexOf('render'));
   });
 
+  it('should hold the renders a step asks for at init, so the first render after the `init` hook draws its work', () => {
+    hot = createGrid({
+      [PROBE]: { writeOnReady: true },
+      init() {
+        log.push(['init hook']);
+      },
+    });
+
+    // `setDataAtCell()` renders on its own. At init that render would draw the grid before the steps of the
+    // plugins after this one built their state, and before the `init` hook.
+    expect(log.map(([step]) => step)).toEqual(['ready', 'init hook', 'render']);
+    expect(hot.getDataAtCell(0, 0)).toBe('written by the ready step');
+  });
+
+  it('should let a step render on a grid already drawn', () => {
+    hot = createGrid({});
+    log.length = 0;
+
+    hot.updateSettings({ [PROBE]: { writeOnReady: true } });
+
+    // The write renders from the step, and `updateSettings()` renders once at its end.
+    expect(log.map(([step]) => step)).toEqual(['update end', 'ready', 'render', 'render']);
+  });
+
+  it('should tell a step whether it runs in the init pass', () => {
+    hot = createGrid({ [PROBE]: { logInitPass: true } });
+    hot.updateSettings({ [PROBE]: { logInitPass: true, updated: true } });
+    hot.getPlugin(PROBE).disablePlugin();
+    hot.getPlugin(PROBE).enablePlugin();
+
+    // Init, an update, and a direct enable on a grid that jsdom never draws: only the first is the init pass.
+    expect(log.filter(([step]) => step === 'init pass').map(([, , initPass]) => initPass))
+      .toEqual([true, false, false]);
+  });
+
+  it('should leave rendering not held after init when a step resumed it once more than it suspended', () => {
+    hot = createGrid({ [PROBE]: { resumeRenderOnReady: true } });
+
+    expect(hot.isRenderSuspended()).toBe(false);
+
+    hot.suspendRender();
+
+    // A counter left below zero by the init hold would make this suspension hold nothing.
+    expect(hot.isRenderSuspended()).toBe(true);
+
+    hot.resumeRender();
+  });
+
+  it('should keep a suspension a step makes at init until the step\'s owner resumes rendering', () => {
+    hot = createGrid({ [PROBE]: { suspendRenderOnReady: true } });
+
+    // Writing the saved counter back would drop the step's own suspension, and its `resumeRender()` would
+    // then draw nothing.
+    expect(hot.isRenderSuspended()).toBe(true);
+    expect(log.filter(([step]) => step === 'render')).toEqual([]);
+
+    hot.resumeRender();
+
+    expect(hot.isRenderSuspended()).toBe(false);
+    expect(log.filter(([step]) => step === 'render').length).toBe(1);
+  });
+
   ['loadData', 'updateData'].forEach((method) => {
     const hookName = `before${method[0].toUpperCase()}${method.slice(1)}`;
 
@@ -268,6 +342,55 @@ describe('BasePlugin ready step (`onGridReady()`)', () => {
       ['ready', PROBE, { view: true, rows: 1, firstCell: 3 }],
     ]);
     expectStepBeforeFirstRender();
+  });
+
+  it('should run a step a `loadData()` hook makes the plugin owe before the load\'s render and `afterChange`', () => {
+    hot = createGrid({ [PROBE]: true });
+    hot.addHook('afterLoadData', () => hot.getPlugin(PROBE).updatePlugin());
+    hot.addHook('afterChange', () => log.push(['afterChange']));
+    log.length = 0;
+
+    hot.loadData([[5], [6]]);
+
+    const steps = log.map(([step]) => step);
+
+    expect(steps.indexOf('ready')).toBeGreaterThan(-1);
+    expect(steps.indexOf('ready')).toBeLessThan(steps.indexOf('afterChange'));
+    expect(steps.indexOf('ready')).toBeLessThan(steps.indexOf('render'));
+  });
+
+  it('should draw a step an `afterChange` listener of a load makes the plugin owe with the load\'s render', () => {
+    hot = createGrid({ [PROBE]: true });
+    hot.addHook('afterChange', (changes, source) => {
+      if (source === 'loadData') {
+        hot.updateSettings({ [PROBE]: { updatedFromAfterChange: true } });
+      }
+    });
+    log.length = 0;
+
+    hot.loadData([[5], [6]]);
+
+    const steps = log.map(([step]) => step);
+
+    // The update runs inside the load's pass, so its step waits for the load. Run after the load's render,
+    // nothing would draw it.
+    expect(readySteps()).toEqual([
+      ['ready', PROBE, { view: true, rows: 2, firstCell: 5 }],
+    ]);
+    expect(steps.lastIndexOf('ready')).toBeLessThan(steps.lastIndexOf('render'));
+  });
+
+  it('should run a step an `alter()` hook makes the plugin owe before the alteration\'s render', () => {
+    hot = createGrid({ [PROBE]: true });
+    hot.addHook('afterRemoveRow', () => hot.getPlugin(PROBE).updatePlugin());
+    log.length = 0;
+
+    hot.alter('remove_row', 0);
+
+    const steps = log.map(([step]) => step);
+
+    expect(steps.indexOf('ready')).toBeGreaterThan(-1);
+    expect(steps.indexOf('ready')).toBeLessThan(steps.indexOf('render'));
   });
 
   it('should run once for each `updateSettings()` that enables or updates the plugin, before its render', () => {

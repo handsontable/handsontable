@@ -12,6 +12,8 @@ import exportItem from './contextMenuItem/exportItem';
 import { buildExportDialogContent } from './utils';
 import type { HotInstance } from '../../core/types';
 import type BaseType from './types/_base';
+import { LICENSE } from './feature.generated';
+import { assertLicensedCall } from '../../utils/licenseNotification';
 
 export const PLUGIN_KEY = 'exportFile';
 
@@ -464,6 +466,14 @@ export class ExportFile extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns the setting keys that trigger a plugin update when changed via `updateSettings`.
    */
   static get SETTING_KEYS() {
@@ -560,8 +570,11 @@ export class ExportFile extends BasePlugin {
    * @param {number[]} [options.range=[]] Cell range to export: `[startRow, startColumn, endRow, endColumn]` (visual indexes).
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Controls the sanitization of cell values (CSV only).
    * @returns {string}
+   * @throws {Error} When the license key lists the features it unlocks and leaves out Export to file.
    */
   exportAsString(format: string, options: ExportOptions | Record<string, unknown> = {}): string {
+    assertLicensedCall(this.hot, LICENSE);
+
     const formatter = this._createTypeFormatter(format, options);
 
     if (formatter.binary) {
@@ -594,8 +607,11 @@ export class ExportFile extends BasePlugin {
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
    * @returns {Blob}
+   * @throws {Error} When the license key lists the features it unlocks and leaves out Export to file.
    */
   exportAsBlob(format: string, options: ExportOptions | Record<string, unknown> = {}): Blob {
+    assertLicensedCall(this.hot, LICENSE);
+
     const formatter = this._createTypeFormatter(format, options);
 
     if (formatter.binary) {
@@ -640,8 +656,11 @@ export class ExportFile extends BasePlugin {
    * @param {string} [options.protection.password] The sheet password, at most 255 characters. An empty one sets no password.
    * @returns {Promise<Blob>}
    * @since 17.1.0
+   * @throws {Error} The returned promise rejects when the license key lists the features it unlocks and leaves out Export to file.
    */
   async exportAsBlobAsync(format: string, options: ExportOptions | Record<string, unknown> = {}): Promise<Blob> {
+    assertLicensedCall(this.hot, LICENSE);
+
     return this._createBlob(this._createTypeFormatter(format, options));
   }
 
@@ -667,8 +686,11 @@ export class ExportFile extends BasePlugin {
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
    * @returns {void}
+   * @throws {Error} When the license key lists the features it unlocks and leaves out Export to file.
    */
   downloadFile(format: string, options: ExportOptions | Record<string, unknown> = {}): void {
+    assertLicensedCall(this.hot, LICENSE);
+
     const formatter = this._createTypeFormatter(format, options);
 
     if (formatter.binary) {
@@ -718,11 +740,14 @@ export class ExportFile extends BasePlugin {
    * @param {string} [options.protection.password] The sheet password, at most 255 characters. An empty one sets no password.
    * @returns {Promise<void>}
    * @since 17.1.0
+   * @throws {Error} The returned promise rejects when the license key lists the features it unlocks and leaves out Export to file.
    */
   async downloadFileAsync(format: string, options: ExportOptions | Record<string, unknown> = {}) {
+    assertLicensedCall(this.hot, LICENSE);
+
     const formatter = this._createTypeFormatter(format, options);
     const dialogPlugin = this.hot.getPlugin('dialog');
-    const hasDialog = dialogPlugin?.isEnabled();
+    const hasDialog = dialogPlugin?.enabled;
     const { rootWindow } = this.hot;
     const name = `${formatter.options.filename}.${formatter.options.fileExtension}`;
 

@@ -23,7 +23,7 @@ Statics (`PLUGIN_KEY`, `PLUGIN_PRIORITY`, `SETTING_KEYS`, `PLUGIN_DEPS` – gene
 
 ## Key patterns (gold standard: `src/plugins/pagination/pagination.ts`)
 
-- **Configure in `enablePlugin()`, touch the grid in `onGridReady()`:** `enablePlugin()`/`updatePlugin()` register hooks and index maps and read settings only. Work that reads the rows, `hot.view`, the DOM or the editor manager goes in the optional `onGridReady()`, which core runs once after every enable or update, when all of them exist. Never write `if (this.hot.view)` in enable/update, and never park that work on an `init`/`afterInit` listener (`src/plugins/base/AGENTS.md`, "The ready step").
+- **Configure in `enablePlugin()`, touch the grid in `onGridReady()`:** `enablePlugin()`/`updatePlugin()` register hooks and index maps and read settings only. Work that reads the rows, `hot.view`, the DOM or the editor manager goes in the optional `onGridReady()`, which core runs once after every enable or update, when all of them exist. Never write `if (this.hot.view)` in enable/update, and never park that work on an `init`/`afterInit` listener (`src/plugins/base/AGENTS.md`, "The ready step"). The step runs after every update too, so when `updatePlugin()` or `onDataReady()` already does the same work, keep a private `#...Owed` flag set in `enablePlugin()` and cleared by whichever path does it, or the work runs twice per update (CustomBorders, Pagination and MergeCells are worked examples). At init core holds the renders a step asks for, so the step may sort or write cells; the first render draws the result.
 - **Private fields:** `#` prefix for all internal state, no `@private` JSDoc.
 - **Hook callbacks (required for new code):** pass `#on*` handlers to `addHook` as arrow function class fields, directly: `this.addHook('afterLoadData', this.#onAfterLoadData)` (priority stays the 3rd arg). `.bind(this)` builds a new function per call, so the registered reference can never be removed. Existing inline-wrapper sites work; leave them as they are.
 - **Hook registration:** `this.addHook()` auto-cleans on `disablePlugin()`; `this.hot.addHook()` does not. Register new hook names at module level: `Hooks.getSingleton().register('beforeMyAction');` (import `Hooks` from `'../../core/hooks'`).
@@ -76,6 +76,20 @@ static get PLUGIN_DEPS() {
 ```
 
 To change a dependency, edit `feature.json` and run `generate:feature-manifest`; never edit `feature.generated.ts` by hand. Turn `enforceAtInit` on for every dependency the plugin cannot work without, and add a `__tests__/pluginDependencies.unit.ts` like the others. For a plugin no release has shipped yet that costs nothing. For a released plugin it is a **breaking change** for modular users: add a migration-guide step and a breaking changelog entry (Loading → Dialog, 19.0).
+
+## The license token (`LICENSE`) is generated too
+
+A plugin with `licensing: "token"` (every new one) gets a `LICENSE` export in the same `feature.generated.ts`: its token, display name, `gate` and `implies`. The class returns it, and the unit suite fails until it does:
+
+```ts
+import { LICENSE } from './feature.generated';
+
+static get LICENSE() {
+  return LICENSE;
+}
+```
+
+With it, a license key that lists its features keeps the plugin off when it does not list the token (`BasePlugin#isLicenseBlocked()`, at the same places as a hard conflict, never rewriting the setting). Pick `gate: "enable"` for a plugin turned on by its option. A plugin on in every grid (`isEnabled()` returns `true`) takes `gate: "call"` and checks the token itself at the top of each public method that does work: `assertLicensedCall(this.hot, LICENSE)` from `utils/licenseNotification.ts`, or `isLicensedUse()` where a throw would break a render. And when your plugin asks another plugin whether it runs, read `.enabled`, never `isEnabled()`: a plugin the key leaves out keeps its setting. Rules: `src/utils/entitlementLicenseKey/AGENTS.md`.
 
 ## Focus management
 

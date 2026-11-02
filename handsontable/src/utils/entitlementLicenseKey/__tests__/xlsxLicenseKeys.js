@@ -54,15 +54,25 @@ export function keyWithoutFlag(tokens, flags = []) {
 }
 
 /**
- * Builds a current subscription key that unlocks exactly `core` plus `tokens`: it always carries the
- * `listed-capabilities` flag, besides `flags`.
+ * The plugin and cell type grants every flagged test key carries. A flagged key also turns off each
+ * plugin and cell type it does not list, so without them the grid under test would lose MergeCells,
+ * Comments, Formulas, AutoColumnSize and the ExportFile and ImportFile calls themselves; these keys
+ * restrict the xlsx family only.
  *
- * @param {string[]} tokens The capability tokens besides `core`.
+ * @type {string[]}
+ */
+export const NON_XLSX_TOKENS = Object.freeze(['feat:all', 'cell:all']);
+
+/**
+ * Builds a current subscription key that unlocks every plugin and cell type, and of the xlsx family
+ * exactly `tokens`: it always carries the `listed-capabilities` flag, besides `flags`.
+ *
+ * @param {string[]} tokens The xlsx capability tokens besides `core`.
  * @param {string[]} [flags] Further product flags.
  * @returns {string}
  */
 export function keyWith(tokens, flags = []) {
-  return keyWithoutFlag(tokens, [LISTED_CAPABILITIES_FLAG, ...flags]);
+  return keyWithoutFlag([...NON_XLSX_TOKENS, ...tokens], [LISTED_CAPABILITIES_FLAG, ...flags]);
 }
 
 /**

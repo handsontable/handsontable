@@ -1,0 +1,62 @@
+# grid
+- treegrid:
+  - rowgroup:
+    - row "Root A Root A" [level=1]:
+      - gridcell "Root A"
+      - gridcell "Root A"
+    - row "A-1 A-1" [level=2]:
+      - gridcell "A-1"
+      - gridcell "A-1"
+    - row "A-2 A-2" [level=2]:
+      - gridcell "A-2"
+      - gridcell "A-2"
+    - row "A-2-a A-2-a" [level=3]:
+      - gridcell "A-2-a"
+      - gridcell "A-2-a"
+    - row "A-2-b A-2-b" [level=3]:
+      - gridcell "A-2-b"
+      - gridcell "A-2-b"
+    - row "A-3 A-3" [level=2]:
+      - gridcell "A-3"
+      - gridcell "A-3"
+    - row "Root B Root B" [level=1]:
+      - gridcell "Root B"
+      - gridcell "Root B"
+    - row "B-1 B-1" [level=2]:
+      - gridcell "B-1"
+      - gridcell "B-1"
+    - row "B-2 B-2" [level=2]:
+      - gridcell "B-2"
+      - gridcell "B-2"
+  - rowgroup:
+    - row "Select whole grid Name Copy":
+      - gridcell "Select whole grid"
+      - columnheader "Name"
+      - columnheader "Copy"
+  - rowgroup
+  - rowgroup:
+    - row "1" [level=1]:
+      - rowheader "1" [expanded]
+    - row "2" [level=2]:
+      - rowheader "2"
+    - row "3" [level=2]:
+      - rowheader "3" [expanded]
+    - row "4" [level=3]:
+      - rowheader "4"
+    - row "5" [level=3]:
+      - rowheader "5"
+    - row "6" [level=2]:
+      - rowheader "6"
+    - row "7" [level=1]:
+      - rowheader "7" [expanded]
+    - row "8" [level=2]:
+      - rowheader "8"
+    - row "9" [level=2]:
+      - rowheader "9"
+  - rowgroup:
+    - row "Select whole grid":
+      - gridcell "Select whole grid"
+  - rowgroup
+# portal
+- status
+- status

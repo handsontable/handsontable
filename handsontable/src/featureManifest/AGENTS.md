@@ -5,8 +5,8 @@ JSON file next to its code. A build step checks the files against the source and
 
 - `dist/manifest.json`, published in the npm package (`handsontable/dist/manifest.json`) and on jsDelivr. The
   license portal reads it to build license keys ("Filters needs Checkbox").
-- the committed `feature.generated.ts` modules the plugins read their `PLUGIN_DEPS` from. **`PLUGIN_DEPS` is
-  never written by hand any more.**
+- the committed `feature.generated.ts` modules the plugins read their `PLUGIN_DEPS` and `LICENSE` from. **Neither
+  is ever written by hand.**
 - the committed `src/utils/xlsxEngine/licenseCapabilities.generated.ts`, the XLSX token lists the runtime license
   check reads (`XLSX_CAPABILITY_IDS`, `IMPORT_FILE_CAPABILITY_IDS`, `EXPORT_FILE_CAPABILITY_IDS`, `XLSX_FLAG_BY_ID`,
   `LISTED_CAPABILITIES_FLAG`), made from the `token` entries of `src/utils/xlsxEngine/features.json`.
@@ -31,8 +31,9 @@ Jest suite fails until it has one (`needs exactly one "plugin" entry for "<Name>
 | an XLSX sub-feature a key can switch | `src/utils/xlsxEngine/features.json` | `xlsx:<name>` | `token` or `core` |
 
 Then run `npm run generate:feature-manifest --prefix handsontable` and commit what it writes (the record in
-`released-tokens.json`, a `feature.generated.ts` if the plugin's dependencies are checked at init, and, for an XLSX
-sub-feature, the generated module `licenseCapabilities.generated.ts`). A new `xlsx:<name>` token drives the
+`released-tokens.json`, the plugin's `feature.generated.ts`, and, for an XLSX sub-feature, the generated module
+`licenseCapabilities.generated.ts`). A plugin with `licensing: "token"` also returns the generated `LICENSE` from its
+class, or the Jest suite fails (see "The license check" below). A new `xlsx:<name>` token drives the
 `XlsxEntitlement` flag named after its suffix in camelCase (`xlsx:number_formats` → `numberFormats`), so add that
 key to the interface in `src/utils/xlsxEngine/xlsxEntitlement.ts` as well; `xlsxEntitlement.unit.js` fails until
 the two match.
@@ -87,8 +88,8 @@ A plugin entry looks like this (`src/plugins/filters/feature.json`):
    without the dependency. The custom-build service adds `PLUGIN_DEPS` to a build, so a link left out of it
    can produce a build that silently lacks the dependency.
 
-   No `feature.generated.ts` in a plugin folder does not mean a dependency was forgotten: most plugins need
-   none. To find one, look for `getPlugin('X')` calls the plugin cannot work without.
+   No `PLUGIN_DEPS` in a plugin's `feature.generated.ts` does not mean a dependency was forgotten: most plugins
+   need none. To find one, look for `getPlugin('X')` calls the plugin cannot work without.
 
 To change a plugin's dependencies, edit its `feature.json` and run `generate:feature-manifest`. Hand-editing
 `feature.generated.ts` or writing a `PLUGIN_DEPS` array in the class fails the Jest suite. The order of
@@ -100,6 +101,30 @@ plugin with `enforceAtInit` has a `__tests__/pluginDependencies.unit.ts` that pi
 List only what the feature cannot work without. Most plugins work alongside many others, so "works with" is not
 recorded; a link that is really a need belongs in `requires` (`xlsx:formulas` requires `feat:formulas`, because
 the import and the export read formulas through that plugin).
+
+## The license check: `LICENSE` is generated too
+
+Every plugin with `licensing: "token"` gets a `LICENSE` export in its `feature.generated.ts`: the token, the display
+name the license message prints, the `gate`, and `implies` (the same closure `dist/manifest.json` publishes). The class
+returns it, the way it returns `PLUGIN_DEPS`:
+
+```ts
+import { LICENSE } from './feature.generated';
+
+static get LICENSE() {
+  return LICENSE;
+}
+```
+
+Handsontable reads it at run time (`src/utils/licenseCapabilities/`, rules in
+`../utils/entitlementLicenseKey/AGENTS.md`): `BasePlugin` keeps a `gate: "enable"` plugin off when a key that lists its
+features does not list it, a `gate: "call"` plugin checks the token in its own public methods, and a key that lists a
+plugin is granted that plugin's `implies` too. The implications are read from the REGISTERED plugin classes, so the
+manifest is the only place a requirement is declared. Two tests hold it: `__tests__/registries.unit.js` compares every
+class's `LICENSE` with what the generator builds (`toPluginLicense()`), and `test/__tests__/featureManifest.unit.js`
+fails a plugin that writes the object in the class instead of importing it. A plugin with `licensing: "none"` has no
+`LICENSE` and is never checked. `gate: "call"` is for a plugin that is on in every grid; a check at enable would report
+it on every grid, so its public methods check instead (`assertLicensedCall()` in `utils/licenseNotification.ts`).
 
 ## Fields
 
@@ -193,9 +218,10 @@ on the base branch means `{}`.
 - **`build:feature-manifest` never writes into `src/`.** It fails when a committed output is stale. Only
   `generate:feature-manifest` (`--write`) rewrites them, and it deletes a `feature.generated.ts` that is no longer
   needed. The XLSX license module and `released-tokens.json` are always generated, so they are never deleted.
-- **Only plugins with `enforceAtInit: true` get a `feature.generated.ts`.** The only license data read at runtime
-  is the XLSX module (`licenseCapabilities.generated.ts`); `xlsx:all` stays hand-written in `licenseCapabilities.ts`,
-  because `<namespace>:all` is a reserved grant, never a manifest entry.
+- **A plugin gets a `feature.generated.ts` when it has `enforceAtInit: true` or `licensing: "token"`** (every
+  plugin but the two unsold ones). The two exports are independent: most modules hold `LICENSE` only. The XLSX
+  sub-feature tokens are read from their own module (`licenseCapabilities.generated.ts`); `xlsx:all` stays
+  hand-written in `licenseCapabilities.ts`, because `<namespace>:all` is a reserved grant, never a manifest entry.
 - **`dist/manifest.json` takes its `version` from `package.json`** and has no timestamp: the same sources give
   the same bytes.
 

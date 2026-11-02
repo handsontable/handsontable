@@ -339,6 +339,7 @@ export interface HotInstance {
   _isDataLoadPending(): boolean;
   _runInPluginLifecyclePass<T>(callback: () => T): T;
   _isHeldMetaPhaseRunning(): boolean;
+  _isRunningInitReadySteps(): boolean;
   _replaceInitPassSettings(settings: Record<string, unknown>): Record<string, unknown> | null;
   _addSettingsFilter(filter: (settings: SettingsUpdate) => SettingsUpdate): void;
   _removeSettingsFilter(filter: (settings: SettingsUpdate) => SettingsUpdate): void;

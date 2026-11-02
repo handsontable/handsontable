@@ -1,0 +1,106 @@
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
+import { LicenseCapabilitiesPage } from '../fixtures/pages/LicenseCapabilitiesPage';
+
+const FILTERS_MESSAGE = 'The license key for Handsontable does not include these features: Filters ' +
+  '(feat:filters). They are turned off. To add them, contact sales@handsontable.com.';
+// The bar can reach the end user, so it names the features without their tokens.
+const FILTERS_BAR_MESSAGE = 'The license key for Handsontable does not include these features: Filters. ' +
+  'They are turned off. To add them, contact sales@handsontable.com.';
+
+/**
+ * A license key whose Handsontable entry carries the `listed-capabilities` flag unlocks `core`, the
+ * features it lists and what they require. A plugin it leaves out stays off, and one console error
+ * and the license bar say so. A key without the flag unlocks every feature, as before.
+ */
+test.describe('license keys that list their features', { tag: BUNDLES_TAG }, () => {
+  let license: LicenseCapabilitiesPage;
+
+  test.beforeEach(async({ page, theme, bundle }) => {
+    license = new LicenseCapabilitiesPage(page, theme, bundle);
+  });
+
+  test('keeps Filters off when the key does not list it, and says so once', async() => {
+    await license.goto({ key: 'flagged-base', plugins: 'filters' });
+
+    expect(await license.isPluginEnabled('filters')).toBe(false);
+    // Filters would have turned the column menu on; nothing turned it on.
+    await expect(license.columnMenuButtons).toHaveCount(0);
+    // The setting is the user's, and stays as written.
+    expect(await license.filtersSetting()).toBe(true);
+    expect(license.licenseErrors()).toEqual([FILTERS_MESSAGE]);
+    await expect(license.missingFeatures).toHaveText(FILTERS_BAR_MESSAGE);
+    await expect(license.bar).toHaveCount(1);
+  });
+
+  test('shows no Filters items in a column menu the key does list', async() => {
+    await license.goto({ key: 'flagged-column-menu', plugins: 'column-menu' });
+
+    expect(await license.isPluginEnabled('dropdownMenu')).toBe(true);
+    expect(await license.isPluginEnabled('filters')).toBe(false);
+
+    await license.openFirstColumnMenu();
+
+    await expect(license.openColumnMenu).not.toContainText('Filter by');
+    await expect(license.valueList).toHaveCount(0);
+    expect(license.licenseErrors()).toEqual([FILTERS_MESSAGE]);
+  });
+
+  test('takes the keyboard to the bar\'s link when the focus leaves the grid', async() => {
+    await license.goto({ key: 'flagged-base', plugins: 'filters' });
+
+    await license.tabOutOfLastCell();
+
+    await expect(license.salesLink).toBeFocused();
+    await expect(license.salesLink).toHaveAttribute('href', 'mailto:sales@handsontable.com');
+  });
+
+  test('takes the message away for a key passed later, and brings it back reachable for another', async() => {
+    await license.goto({ key: 'flagged-base', plugins: 'filters' });
+
+    await license.updateLicenseKey('non-commercial');
+
+    await expect(license.bar).toHaveCount(0);
+    expect(await license.isPluginEnabled('filters')).toBe(true);
+
+    await license.updateLicenseKey('flagged-base');
+
+    expect(await license.isPluginEnabled('filters')).toBe(false);
+    await expect(license.missingFeatures).toHaveText(FILTERS_BAR_MESSAGE);
+
+    await license.tabOutOfLastCell();
+
+    await expect(license.salesLink).toBeFocused();
+  });
+
+  test('keeps Filters off with no bar when the key silences UI warnings', async() => {
+    await license.goto({ key: 'flagged-no-ui', plugins: 'filters' });
+
+    expect(await license.isPluginEnabled('filters')).toBe(false);
+    await expect(license.bar).toHaveCount(0);
+    expect(license.licenseErrors()).toEqual([FILTERS_MESSAGE]);
+  });
+
+  for (const key of ['unflagged', 'non-commercial'] as const) {
+    test(`unlocks every feature for the ${key} key`, async() => {
+      await license.goto({ key, plugins: 'column-menu' });
+
+      expect(await license.isPluginEnabled('filters')).toBe(true);
+      await expect(license.columnMenuButtons.first()).toBeVisible();
+      await expect(license.missingFeatures).toHaveCount(0);
+      expect(license.licenseErrors()).toEqual([]);
+    });
+  }
+
+  test('leaves the Filters value list, a nested grid, alone', async() => {
+    await license.goto({ key: 'flagged-filters', plugins: 'column-menu' });
+
+    // The key lists Filters; the column menu comes with it.
+    expect(await license.isPluginEnabled('filters')).toBe(true);
+
+    await license.openFirstColumnMenu();
+
+    await expect(license.valueList).toContainText('Alpha');
+    await expect(license.valueList).toContainText('Gamma');
+    expect(license.licenseErrors()).toEqual([]);
+  });
+});

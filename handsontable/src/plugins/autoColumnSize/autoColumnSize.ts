@@ -14,6 +14,7 @@ import type { CellChange } from '../../settings';
 import type CellRange from '../../3rdparty/walkontable/src/cell/range';
 import { MergedCellsWidths, isMultiColumnMerge } from './mergedCellsWidths';
 import { FONT_REMEASURE_ORDER_INDEX } from '../../core/fontLoad';
+import { LICENSE } from './feature.generated';
 
 Hooks.getSingleton().register('modifyAutoColumnSizeSeed');
 
@@ -208,6 +209,14 @@ export class AutoColumnSize extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
@@ -467,6 +476,15 @@ export class AutoColumnSize extends BasePlugin {
    */
   #replayedColumns: Set<number> = new Set();
   /**
+   * `true` from a sweep that dropped its samples until the next full render re-walks the visible columns.
+   * That re-walk scans every column from scratch, so it cannot tell a style change from a data change, and
+   * a width it changes counts as both. The grid is first drawn after the `init` sweep, so the render that
+   * re-walks the columns first can be one that follows a style change.
+   *
+   * @type {boolean}
+   */
+  #rewalkAfterSweepPending = false;
+  /**
    * The `useHeaders` option value as this plugin last applied it.
    *
    * Kept separately from the ghost table's own copy of the setting, which `#measureCellsWidth()`
@@ -572,16 +590,6 @@ export class AutoColumnSize extends BasePlugin {
    * @param {object} [newSettings] The settings passed to `updateSettings`.
    */
   updatePlugin(newSettings?: Record<string, unknown>): void {
-    // `SETTING_KEYS` is `true`, so an update that never mentions this plugin still arrives here -
-    // and `BasePlugin#onUpdateSettings` has already fed `updatePluginSettings()` the missing key as
-    // `undefined`, wiping the stored settings. Restore them from the merged settings before reading
-    // them, or an unrelated `updateSettings({ readOnly: true })` would read the defaults, reset the
-    // user's `samplingRatio`, and re-measure every column. The Vue wrapper makes this the common
-    // case, not the rare one: it omits every key whose value is unchanged.
-    if (newSettings !== undefined && newSettings[PLUGIN_KEY] === undefined) {
-      this.updatePluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
-    }
-
     this.findColumnsWhereHeaderWasChanged().forEach((visualColumn) => {
       this.#columnWidthsToRefresh.set(visualColumn, null);
     });
@@ -694,13 +702,15 @@ export class AutoColumnSize extends BasePlugin {
 
     if (pendingColumns === null || !overwriteCache || !this.#sweepDrawPending) {
       this.#calculateColumnsWidth(columnsRange, rowsRange, () => overwriteCache);
-
-      return;
+    } else {
+      // The sweep's own draw: the sweep measures the columns it has not reached yet (see `#sweepDrawPending`).
+      // One ghost table measures the others, so the draw lays out one table and fits the merges once.
+      this.#calculateColumnsWidth(columnsRange, rowsRange, visualColumn => !pendingColumns.has(visualColumn));
     }
 
-    // The sweep's own draw: the sweep measures the columns it has not reached yet (see `#sweepDrawPending`).
-    // One ghost table measures the others, so the draw lays out one table and fits the merges once.
-    this.#calculateColumnsWidth(columnsRange, rowsRange, visualColumn => !pendingColumns.has(visualColumn));
+    if (overwriteCache) {
+      this.#rewalkAfterSweepPending = false;
+    }
   }
 
   /**
@@ -735,6 +745,10 @@ export class AutoColumnSize extends BasePlugin {
     rowsRange: { from: number, to: number },
     shouldOverwrite: (visualColumn: number) => boolean,
   ) {
+    // The columns an overwrite measures from scratch, with no cached samples. Kept to this one measure, so no
+    // column is left in it for a later one.
+    const rescannedColumns = new Set<number>();
+
     rangeEach(columnsRange.from, columnsRange.to, (visualColumn) => {
       let physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
@@ -755,13 +769,17 @@ export class AutoColumnSize extends BasePlugin {
           this.#replayedColumns.add(visualColumn);
           this.#addGhostTableColumn(visualColumn, cachedSamples);
         } else {
+          if (overwriteCache) {
+            rescannedColumns.add(visualColumn);
+          }
+
           this.#fillGhostTableWithSamples(visualColumn, rowsRange);
         }
       }
     });
 
     if (this.ghostTable.columns.length) {
-      this.#updateColumnWidthsMapBasedOnGhostTable();
+      this.#updateColumnWidthsMapBasedOnGhostTable(rescannedColumns);
       this.measuredColumns = columnsRange.to + 1;
     }
   }
@@ -1399,9 +1417,10 @@ export class AutoColumnSize extends BasePlugin {
    * table, and then fits the merged cells again when a width changed. The fit measures through the
    * ghost table too, so it has to run after the clean.
    *
+   * @param {Set<number>} [rescannedColumns] The columns a full render's re-walk measured from scratch.
    * @returns {number[]} The visual columns whose width changed.
    */
-  #updateColumnWidthsMapBasedOnGhostTable(): number[] {
+  #updateColumnWidthsMapBasedOnGhostTable(rescannedColumns: ReadonlySet<number> = new Set()): number[] {
     let stylesChanged = false;
     const changedColumns: number[] = [];
 
@@ -1412,7 +1431,8 @@ export class AutoColumnSize extends BasePlugin {
         if (this.columnWidthsMap.getValueAtIndex(physicalColumn) !== width) {
           changedColumns.push(visualColumn);
           this.#mergedCellsWidths.markWidthsChanged();
-          stylesChanged ||= this.#replayedColumns.has(visualColumn);
+          stylesChanged ||= this.#replayedColumns.has(visualColumn) ||
+            (this.#rewalkAfterSweepPending && rescannedColumns.has(visualColumn));
         }
 
         this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
@@ -1421,8 +1441,8 @@ export class AutoColumnSize extends BasePlugin {
     this.ghostTable.clean();
     this.#replayedColumns.clear();
 
-    // The same samples rendered to another width: the styles changed, so the merges' widths, kept from
-    // the same texts, are measured again too.
+    // The same samples rendered to another width (or a column the first re-walk after a sweep measured from
+    // scratch did): the styles changed, so the merges' widths, kept from the same texts, are measured again too.
     if (stylesChanged) {
       this.#mergedCellsWidths.markStylesChanged();
     }
@@ -1523,6 +1543,7 @@ export class AutoColumnSize extends BasePlugin {
       // like it always did. Samples stored by the asynchronous part run after the cascade
       // and stay.
       this.#columnSamplesCache.clear();
+      this.#rewalkAfterSweepPending = true;
     }
   }
 

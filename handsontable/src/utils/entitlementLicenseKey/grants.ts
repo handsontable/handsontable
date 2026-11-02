@@ -21,6 +21,11 @@ export const UNRESTRICTED_GRANTS: LicenseGrants = Object.freeze({
  * capability tokens the payload lists, per product. Entitlement keys are never
  * unrestricted - they unlock only what they name.
  *
+ * The `listed-capabilities` flag changes nothing here. A product that reads an
+ * entry without it as granting everything checks the flag itself
+ * (`LISTED_CAPABILITIES_FLAG`) before it reads the grants with `hasCapability`
+ * or `getProductCapabilities`.
+ *
  * @param {EntitlementKeyData} keyData The verified key data.
  * @returns {LicenseGrants}
  */

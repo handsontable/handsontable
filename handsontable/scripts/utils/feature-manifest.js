@@ -7,7 +7,7 @@
  * `utils/xlsxEngine`, and `featureManifest/core.json`. This module reads them, checks them against the
  * source, and builds what is made from them:
  *   - `dist/manifest.json`, published with every release (the license portal reads it to build keys);
- *   - the committed `feature.generated.ts` modules the plugins read their `PLUGIN_DEPS` from;
+ *   - the committed `feature.generated.ts` modules the plugins read their `PLUGIN_DEPS` and `LICENSE` from;
  *   - the committed `utils/xlsxEngine/licenseCapabilities.generated.ts`, the XLSX token lists the license check reads;
  *   - the committed `featureManifest/released-tokens.json`, which keeps ids from being removed or sold later.
  *
@@ -849,23 +849,106 @@ function buildManifest(sources, version) {
 }
 
 /**
- * Renders the `feature.generated.ts` module of a plugin whose dependencies are checked at init.
+ * Tells whether a plugin entry gets a `feature.generated.ts` module: one whose dependencies are checked at init
+ * (`PLUGIN_DEPS`), or one a license key can name (`LICENSE`).
+ *
+ * @param {object} entry A manifest entry.
+ * @returns {boolean}
+ */
+function hasGeneratedModule(entry) {
+  return entry.kind === 'plugin' && (entry.enforceAtInit === true || entry.licensing === 'token');
+}
+
+/**
+ * Writes a value as a single-quoted TypeScript string literal.
+ *
+ * @param {string} value The value.
+ * @returns {string}
+ */
+function toStringLiteral(value) {
+  return `'${value.replace(/\\/g, '\\\\').replace(/'/g, '\\\'')}'`;
+}
+
+/**
+ * Builds the `LICENSE` a plugin a license key can name exposes (`PluginLicense` in
+ * `src/utils/licenseCapabilities/types.ts`).
+ *
+ * @param {object} entry The plugin's entry.
+ * @param {Map<string, object>} byId Every entry, by id.
+ * @returns {{capability: string, name: string, gate: string, implies: string[]}}
+ */
+function toPluginLicense(entry, byId) {
+  return {
+    capability: entry.id,
+    name: entry.name,
+    gate: entry.gate,
+    implies: computeImplies(entry, byId),
+  };
+}
+
+/**
+ * Renders the `LICENSE` export of a plugin a license key can name.
+ *
+ * @param {object} entry The plugin's entry.
+ * @param {Map<string, object>} byId Every entry, by id.
+ * @returns {string[]} The lines.
+ */
+function renderLicense(entry, byId) {
+  const { capability, name, gate, implies } = toPluginLicense(entry, byId);
+  const impliesLines = implies.length === 0 ? ['  implies: Object.freeze([]),'] : [
+    '  implies: Object.freeze([',
+    ...implies.map(id => `    ${toStringLiteral(id)},`),
+    '  ]),',
+  ];
+
+  return [
+    `// The license token of the ${entry.module} plugin, its display name, where it is checked (\`gate\`), and the`,
+    '// tokens it requires (`implies`), which a license key that lists it grants with it.',
+    'export const LICENSE: PluginLicense = Object.freeze({',
+    `  capability: ${toStringLiteral(capability)},`,
+    `  name: ${toStringLiteral(name)},`,
+    `  gate: ${toStringLiteral(gate)},`,
+    ...impliesLines,
+    '});',
+    '',
+  ];
+}
+
+/**
+ * Renders the `feature.generated.ts` module of a plugin: its `PLUGIN_DEPS` when its dependencies are checked at
+ * init, and its `LICENSE` when a license key can name it.
  *
  * @param {object} entry The plugin's entry.
  * @param {Map<string, object>} byId Every entry, by id.
  * @returns {string}
  */
 function renderPluginModule(entry, byId) {
+  const sold = entry.licensing === 'token';
   // Line comments only: the API reference generator reads every documented symbol in `tmp/plugins/*/*.js`.
-  return [
+  const lines = [
     `// Generated from \`${PLUGIN_SOURCE_NAME}\` by \`npm run generate:feature-manifest\`. Do not edit it by hand.`,
     '',
-    `// The modules the ${entry.module} plugin needs registered, in the \`PLUGIN_DEPS\` format (\`type:Name\`).`,
-    'export const PLUGIN_DEPS: readonly string[] = [',
-    ...toPluginDeps(entry, byId).map(dep => `  '${dep}',`),
-    '];',
-    '',
-  ].join('\n');
+  ];
+
+  if (sold) {
+    lines.push('import type { PluginLicense } from \'../../utils/licenseCapabilities/types\';', '');
+  }
+
+  if (entry.enforceAtInit === true) {
+    lines.push(
+      `// The modules the ${entry.module} plugin needs registered, in the \`PLUGIN_DEPS\` format (\`type:Name\`).`,
+      'export const PLUGIN_DEPS: readonly string[] = [',
+      ...toPluginDeps(entry, byId).map(dep => `  '${dep}',`),
+      '];',
+      '',
+    );
+  }
+
+  if (sold) {
+    lines.push(...renderLicense(entry, byId));
+  }
+
+  return lines.join('\n');
 }
 
 /**
@@ -1040,8 +1123,8 @@ function checkRecordAgainstBase(base, current) {
 }
 
 /**
- * Lists the committed files the sources generate: one module per plugin whose dependencies are checked at init,
- * the XLSX license token module, and the record of released ids.
+ * Lists the committed files the sources generate: one module per plugin whose dependencies are checked at init
+ * or that a license key can name, the XLSX license token module, and the record of released ids.
  *
  * @param {object} sources What `loadSources()` returns, already checked.
  * @returns {Array<{file: string, content: string}>}
@@ -1049,7 +1132,7 @@ function checkRecordAgainstBase(base, current) {
 function buildCommittedOutputs(sources) {
   const byId = indexEntries(sources);
   const modules = listEntries(sources)
-    .filter(({ entry }) => entry.kind === 'plugin' && entry.enforceAtInit === true)
+    .filter(({ entry }) => hasGeneratedModule(entry))
     .map(({ folder, entry }) => ({
       file: `src/plugins/${folder}/${GENERATED_MODULE_NAME}`,
       content: renderPluginModule(entry, byId),
@@ -1099,6 +1182,7 @@ exports.checkReleased = checkReleased;
 exports.checkRecordAgainstBase = checkRecordAgainstBase;
 exports.computeImplies = computeImplies;
 exports.toPluginDeps = toPluginDeps;
+exports.toPluginLicense = toPluginLicense;
 exports.buildManifest = buildManifest;
 exports.renderXlsxLicenseModule = renderXlsxLicenseModule;
 exports.buildCommittedOutputs = buildCommittedOutputs;
