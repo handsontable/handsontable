@@ -48,4 +48,11 @@ describe('namesUsedIn', () => {
     expect([...namesUsedIn('SUM(Rate)+"Sales"+\'Tax Rate\'!A1+Tax!B2+Größe*_x.y')])
       .toEqual(['rate', 'a1', 'b2', 'größe', '_x.y']);
   });
+
+  it('should skip the words inside brackets, nested ones included', () => {
+    // A structured reference's column (`Sales[Rate]`) and an external workbook index name no
+    // defined name; a LET parameter is still listed (see the JSDoc).
+    expect([...namesUsedIn('SUM(Sales[[#This Row],[Rate]])+[1]Book!A1+LET(x,1,x)')])
+      .toEqual(['sales', 'a1', 'x', '1']);
+  });
 });

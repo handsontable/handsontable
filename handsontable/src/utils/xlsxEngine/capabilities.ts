@@ -115,7 +115,8 @@ export const DROPPED_FEATURES = {
   // Raised by the ExcelJS writer only: it cannot write the `cm` attribute and the metadata part a
   // dynamic array needs, so the formula is written as a legacy array formula.
   dynamicArrays: 'dynamicArrays',
-  // Raised by both adapters: a defined name a writer or the engine cannot take.
+  // Raised by both adapters, `importFile` and `exportFile`: a defined name a reader, a writer or the
+  // Formulas engine cannot take.
   definedNamesUnsupported: 'definedNames:unsupported',
   // Raised on export: a spill range crosses an excluded row or column, so the array is written
   // as plain formulas.
@@ -142,6 +143,8 @@ export const DROPPED_FEATURES = {
   dataValidationUnresolvedList: 'dataValidation:unresolvedList',
   formulaOutOfRange: 'formula:outOfRange',
   formulaOtherSheet: 'formula:otherSheet',
+  // Raised by `importFile` (a formula over a name the engine cannot take imports its cached value)
+  // AND by `exportFile` (a formula over a name the file does not hold is written as its value).
   formulaDefinedName: 'formula:definedName',
   // A formula imported as a value (no live formulas) whose file carries no cached `<v>`: the cell
   // imports empty, and the formula is only in `result.formulas`.

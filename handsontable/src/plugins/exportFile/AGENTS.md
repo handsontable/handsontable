@@ -391,7 +391,7 @@ Other rules:
   `#unlinkLeftOutNames`). Live, it showed `#NAME?` in Excel, or worse, read ANOTHER engine's `Rate`
   (two engines, one file: grid B's `=SUM(Rate)` summed grid A's cells, 3 instead of 300). The cells
   are decided AFTER every sheet is populated, because the names in the file depend on every grid:
-  `#writeRowCells` notes each formula cell whose words (`namesUsedIn`, outside quotes, not followed by
+  `#writeRowCells` notes each formula cell whose words (`namesUsedIn`, outside quotes and brackets, not followed by
   `(` or `!`) include a name of its engine (`DefinedNameUse`, with the value the export writes without
   `exportFormulas` as its fallback); `#addDefinedNames` returns, per engine, the names written with
   that engine's definition; and the adapter's `selectDefinedNames` (pure, the same selection `write`

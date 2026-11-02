@@ -72,9 +72,14 @@ export function selectWritableDefinedNames(
 
 /**
  * The words of a formula that can only be defined names, lower-cased: every run of name characters
- * outside quotes (string literals and quoted sheet names) that is not followed by `(` (a function
- * call) or `!` (a sheet qualifier). Cell references and numbers come back too; the caller compares
- * the words with the names it knows.
+ * outside quotes (string literals and quoted sheet names) and brackets (a structured reference's
+ * column, an external workbook index) that is not followed by `(` (a function call) or `!` (a sheet
+ * qualifier). Cell references and numbers come back too; the caller compares the words with the
+ * names it knows.
+ *
+ * The scan is lexical, so it errs one way only: a `LET` or `LAMBDA` parameter spelled like a defined
+ * name is listed as that name. The cost is a formula exported as its value when the name does not
+ * reach the file, never a formula left live over a missing name.
  *
  * @param {string} formula The formula, without the leading `=`.
  * @returns {Set<string>}
@@ -88,6 +93,19 @@ export function namesUsedIn(formula: string): Set<string> {
 
     if (char === '"' || char === '\'') {
       index = skipQuoted(formula, index);
+
+    } else if (char === '[') {
+      let depth = 0;
+
+      do {
+        if (formula[index] === '[') {
+          depth += 1;
+        } else if (formula[index] === ']') {
+          depth -= 1;
+        }
+
+        index += 1;
+      } while (depth > 0 && index < formula.length);
 
     } else if (isNameChar(char)) {
       let end = index + 1;
