@@ -571,7 +571,7 @@ class DataMap {
     );
     this.#insertColumnsIntoDataSource(
       dataSource, firstNewPhysicalColumnIndex, visualColumnIndex, numberOfVisualCols,
-      numberOfSourceRows, numberOfCreatedCols
+      numberOfSourceRows, numberOfCreatedCols, fillsMinimumSize
     );
 
     if (numberOfCreatedCols > 0) {
@@ -626,6 +626,9 @@ class DataMap {
    * @param {number} numberOfVisualCols The visual column count before the insertion.
    * @param {number} numberOfSourceRows The number of source rows.
    * @param {number} amount The number of columns to insert.
+   * @param {boolean} fillsMinimumSize Whether the columns are appended to satisfy `minCols`/`minSpareCols`. Such
+   * columns are pushed to the end of every row, so a row longer than the grid (the grid width comes from the
+   * first row) keeps each value it holds where it is.
    */
   #insertColumnsIntoDataSource(
     dataSource: (Record<string, unknown> | unknown[])[],
@@ -633,7 +636,8 @@ class DataMap {
     visualColumnIndex: number | undefined,
     numberOfVisualCols: number,
     numberOfSourceRows: number,
-    amount: number
+    amount: number,
+    fillsMinimumSize: boolean
   ) {
     if (amount <= 0) {
       return;
@@ -645,7 +649,10 @@ class DataMap {
       appendCount = Math.max(0, Math.min(amount, visualColumnIndex - numberOfVisualCols + 1));
     }
 
-    const middleCount = amount - appendCount;
+    // The rule above pushes the first column and splices the others at a fixed position, which lands them
+    // inside a row longer than the grid. The filler columns are not a user's insert, so they all go to the end.
+    const rowAppendCount = fillsMinimumSize && appendCount > 0 ? amount : appendCount;
+    const middleCount = amount - rowAppendCount;
 
     if (appendCount > 0) {
       if (numberOfSourceRows > 0) {
@@ -654,7 +661,7 @@ class DataMap {
             dataSource[row] = [];
           }
 
-          for (let i = 0; i < appendCount; i++) {
+          for (let i = 0; i < rowAppendCount; i++) {
             (dataSource[row] as unknown[]).push(null);
           }
         }
@@ -670,7 +677,7 @@ class DataMap {
       // shorter than the insertion point get the nulls appended at their end - matching what
       // the previous repeated clamped `splice` calls did.
       for (let row = 0; row < numberOfSourceRows; row++) {
-        insertValuesInPlace(dataSource[row] as unknown[], firstColumn + appendCount, middleCount, null);
+        insertValuesInPlace(dataSource[row] as unknown[], firstColumn + rowAppendCount, middleCount, null);
       }
     }
   }
