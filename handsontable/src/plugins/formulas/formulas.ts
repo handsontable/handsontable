@@ -1129,12 +1129,9 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveCol', this.#onAfterRemoveCol);
 
     this.indexSyncer = new IndexSyncer(
-      this.hot.rowIndexMapper, this.hot.columnIndexMapper, (postponedAction: Function) => {
-        this.hot.addHookOnce('init', () => {
-          // Engine is initialized after executing callback to `afterLoadData` hook. Thus, some actions on indexes should
-          // be postponed.
-          postponedAction();
-        });
+      this.hot.rowIndexMapper, this.hot.columnIndexMapper, () => {
+        // Nothing is postponed: the axis syncers postpone the initial order only while no sheet is bound, and
+        // the plugin sets the sync endpoint up with a bound sheet only. Each setup sends the order itself.
       }, <T>(engine: HyperFormulaEngine, fn: () => T) => this.#writeOwnSheet(engine, fn));
 
     this.rowAxisSyncer = this.indexSyncer.getForAxis('row');
