@@ -252,6 +252,12 @@ function resolveMetaNumFmt(meta: CellMeta): string | null {
 }
 
 /**
+ * The cell types whose value is a date, a time or a date-time: the ones `parseTemporalSerial` reads
+ * and `toDisplayText` formats when `xlsx:number_formats` is missing.
+ */
+const TEMPORAL_CELL_TYPES = new Set(['date', 'intl-date', 'time', 'intl-time', 'intl-datetime']);
+
+/**
  * Parses the value of a date, time or date-time cell to its Excel serial, or `null` when the cell is
  * not one of those types or its value does not parse.
  */
@@ -1041,7 +1047,8 @@ class Xlsx extends BaseType {
    * 1. ColumnSummary formula destinations (when `exportFormulas` is `true`).
    * 2. HyperFormula formula cells (when `exportFormulas` is `true`) — written with the number
    *    format their column's meta describes and with the pre-calculated value cached as the
-   *    formula's `result`.
+   *    formula's `result`. Without `xlsx:number_formats`, a date, time or date-time formula cell is
+   *    written as the text the grid renders instead, with no formula.
    * 3. Date, time and date-time cells (ISO 8601 string → serial number with its number format, or,
    *    without `xlsx:number_formats`, the text the grid renders).
    * 4. Checkbox cells (boolean from `checkedTemplate` comparison; an empty value stays empty).
@@ -1080,6 +1087,14 @@ class Xlsx extends BaseType {
     }
 
     if (exportFormulas && isFormulaValue(sourceValue)) {
+      if (!this.#entitlement.numberFormats && TEMPORAL_CELL_TYPES.has(meta.type as string)) {
+        // A temporal formula opens as a bare serial without its number format (`=C2+30` as `45336`),
+        // so without `xlsx:number_formats` it goes out as the text the grid shows, like a literal date.
+        this.#needIf(resolveMetaNumFmt(meta) !== null, 'xlsx:number_formats');
+
+        return { value: toDisplayText(cellValue, meta), formula: null, numFmt: null };
+      }
+
       const text = normalizeFormula(
         sourceValue, formulasSeparator, dataRowOffset - 1, dataColOffset - 1,
         excludedHiddenRows ?? undefined, excludedHiddenCols ?? undefined

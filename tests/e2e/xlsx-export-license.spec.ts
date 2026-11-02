@@ -291,6 +291,49 @@ for (const engine of ['native', 'exceljs'] as const) {
         expect((await lic.warnings()).some(message => message.includes(PASSWORD))).toBe(false);
       });
 
+    test('a date formula exports its displayed value as text without xlsx:number_formats', async({
+      page, theme, bundle,
+    }) => {
+      const lic = new XlsxLicensePage(page, theme, bundle, engine);
+      // Only the full bundle carries HyperFormula, so only there does C2 compute a date; on the base
+      // bundle the grid shows the unparsed source as a bad value. Either way the export writes what
+      // the grid shows.
+      const dateFormula = {
+        data: [
+          ['Ana García', 4200.5, '2024-01-15', 'Open', 'north'],
+          ['James Okafor', 18700, '=C1+30', 'Closed', 'south'],
+        ],
+        cell: [],
+        mergeCells: false,
+      };
+
+      await lic.goto();
+
+      // A Standard key unlocks xlsx:formulas but not xlsx:number_formats.
+      await lic.create(keyWith(STANDARD_TOKENS), dateFormula);
+
+      const gated = (await lic.exportWorkbook({ exportFormulas: true })).worksheets[0].getCell('C2');
+
+      // The export writes what the grid shows in that cell.
+      const shown = (await page.getByTestId('source-1-2').textContent())?.trim();
+
+      expect(gated.formula).toBeUndefined();
+      expect(gated.type).toBe(ExcelJS.ValueType.String);
+      expect(gated.value).toBe(shown);
+
+      if (bundle === 'full-min') {
+        expect(shown).toBe('02/14/2024');
+      }
+
+      await lic.create(keyWith(ALL_XLSX_TOKENS), dateFormula);
+
+      const full = (await lic.exportWorkbook({ exportFormulas: true })).worksheets[0].getCell('C2');
+
+      // With both tokens the source formula goes out live, formatted as a date.
+      expect(full.formula).toBe('C1+30');
+      expect(full.numFmt).toMatch(/yy/);
+    });
+
     test('a grid on default settings warns about xlsx:layout for its auto-sized columns only', async({
       page, theme, bundle,
     }) => {

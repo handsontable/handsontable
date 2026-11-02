@@ -281,6 +281,35 @@ describe('Xlsx export license gates', () => {
     }
   });
 
+  it('writes a date formula as the text the grid shows without xlsx:number_formats', async() => {
+    const dateMeta = { ...DateCellType, type: 'date', locale: 'en-US' };
+
+    await withMockSheet({
+      data: [['2024-01-15', '2024-02-14']],
+      sourceData: [['2024-01-15', '=A1+30']],
+      cellsMeta: [[dateMeta, dateMeta]],
+    }, async() => {
+      const full = (await exportSnapshot(keyWith(ALL_XLSX_TOKENS))).sheets[0];
+      const gated = (await exportSnapshot(keyWithout('xlsx:number_formats'))).sheets[0];
+
+      // With both tokens: a live formula, formatted as a date.
+      expect(full.rows[1][1].formula).toEqual(expect.objectContaining({ text: 'A2+30' }));
+      expect(full.rows[1][1].numFmt).not.toBeNull();
+
+      // With xlsx:formulas but not xlsx:number_formats: the displayed date as static text, the same
+      // rule as a literal date, because a formula with no number format opens as a serial.
+      expect(gated.rows[1][1]).toEqual(expect.objectContaining({
+        value: formatCellValue('2024-02-14', dateMeta, dateMeta.renderer),
+        formula: null,
+        numFmt: null,
+      }));
+      expect(gated.rows[1][1].value).toBe('02/14/2024');
+      expect(warnSpy.mock.calls.map(call => call[0])).toEqual([
+        'The xlsx export skipped features your license does not unlock: xlsx:number_formats.',
+      ]);
+    });
+  });
+
   it('formats through a renderer named by a string without xlsx:number_formats', async() => {
     registerRenderer(dateRenderer);
 

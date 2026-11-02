@@ -363,7 +363,7 @@ The [`ImportFile`](@/api/importFile.md) and [`ExportFile`](@/api/exportFile.md) 
 | `xlsx:export` | Writing the grid to an `.xlsx` file, and the **To Excel** context menu item. | - | Yes |
 | `xlsx:formulas` | Importing formulas into the `Formulas` plugin, and exporting live formulas. | Yes | Yes |
 | `xlsx:layout` | Column widths, row heights, hidden rows and columns, merged cells, frozen panes, and right-to-left direction. | Yes | Yes |
-| `xlsx:number_formats` | Date, time, currency, percentage, and custom number formats. Without it, an export writes a date or time cell as the text the grid shows. | Always on | Yes |
+| `xlsx:number_formats` | Date, time, currency, percentage, and custom number formats. Without it, an export writes a date or time cell as the text the grid shows, a date formula included. | Always on | Yes |
 | `xlsx:comments` | Cell comments. | Yes | Yes |
 | `xlsx:styles` | Font, fill, borders, and alignment of cells and headers. | Yes | Yes |
 | `xlsx:conditional_formatting` | Conditional formatting rules. | Yes | Yes |
