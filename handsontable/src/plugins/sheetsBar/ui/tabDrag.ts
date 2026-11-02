@@ -241,10 +241,10 @@ export class TabDrag {
     this.#eventManager.addEventListener(ownerDocument, 'pointermove', this.#onPointerMove);
     this.#eventManager.addEventListener(ownerDocument, 'pointerup', this.#onPointerUp);
     this.#eventManager.addEventListener(ownerDocument, 'pointercancel', this.#onCancel);
-    this.#eventManager.addEventListener(ownerDocument, 'keydown', this.#onKeyDown);
     this.#eventManager.addEventListener(tab, 'lostpointercapture', this.#onLostCapture);
 
     if (view) {
+      this.#eventManager.addEventListener(view, 'keydown', this.#onKeyDown, true);
       this.#eventManager.addEventListener(view, 'blur', this.#onWindowBlur);
     }
 
@@ -627,12 +627,25 @@ export class TabDrag {
   /**
    * Aborts the gesture on Escape, putting the strip back the way it was.
    *
+   * It listens on the window in the capture phase, ahead of the listeners on the document and
+   * below it, so a page that stops Escape there cannot keep a drag alive. A window capture listener
+   * the page added before the press still runs first. While a drag started with a fresh press runs,
+   * the bar's focus scope is inactive, so the bar's own Escape shortcut does not run, and this
+   * listener is the only one that cancels it. A canceled drag prevents the key's default, as the
+   * bar's shortcut does, so the same press does not also close a dialog the grid sits in.
+   *
    * @param {KeyboardEvent} event The keydown event.
    */
   #onKeyDown = (event: KeyboardEvent): void => {
-    if (event.key === 'Escape') {
-      this.#cancel();
+    if (event.key !== 'Escape') {
+      return;
     }
+
+    if (this.#isDragging) {
+      event.preventDefault();
+    }
+
+    this.#cancel();
   };
 
   /**
@@ -741,9 +754,9 @@ export class TabDrag {
     this.#eventManager.removeEventListener(ownerDocument, 'pointermove', this.#onPointerMove as EventListener);
     this.#eventManager.removeEventListener(ownerDocument, 'pointerup', this.#onPointerUp as EventListener);
     this.#eventManager.removeEventListener(ownerDocument, 'pointercancel', this.#onCancel as EventListener);
-    this.#eventManager.removeEventListener(ownerDocument, 'keydown', this.#onKeyDown as EventListener);
 
     if (view) {
+      this.#eventManager.removeEventListener(view, 'keydown', this.#onKeyDown as EventListener);
       this.#eventManager.removeEventListener(view, 'blur', this.#onWindowBlur);
     }
   }

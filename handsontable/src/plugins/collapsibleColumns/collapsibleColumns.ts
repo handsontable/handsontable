@@ -23,6 +23,7 @@ import type { NestedHeaders } from '../nestedHeaders/nestedHeaders';
 import type StateManager from '../nestedHeaders/stateManager';
 import type { ColumnVisibility } from '../nestedHeaders/stateManager/columnVisibility';
 import { getEndOverlayHeaders } from '../../utils/endOverlayHeaders';
+import { PLUGIN_DEPS } from './feature.generated';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
@@ -210,9 +211,7 @@ export class CollapsibleColumns extends BasePlugin {
    * Returns the list of plugin dependencies required before this plugin can be initialized.
    */
   static get PLUGIN_DEPS() {
-    return [
-      'plugin:NestedHeaders',
-    ];
+    return [...PLUGIN_DEPS];
   }
 
   /**

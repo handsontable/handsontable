@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:auto_column_size",
+      "kind": "plugin",
+      "module": "AutoColumnSize",
+      "name": "Auto column size",
+      "description": "Sets column widths from the widest content in each column.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

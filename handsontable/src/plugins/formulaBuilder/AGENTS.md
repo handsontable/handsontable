@@ -125,6 +125,11 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   builder until its next `updatePlugin()`, which rebuilds it (`#builder === null` forces the full
   cycle); meanwhile the shim mounts the plain textarea (`handleInlineEditStart()` returns `false`).
   Pinned on a real grid by `__tests__/realGridTeardown.unit.ts`.
+- **A missing Formulas plugin throws; a disabled one warns.** `PLUGIN_DEPS` names `plugin:Formulas`
+  (`feature.json`, `enforceAtInit`), so `new Handsontable()` throws when FormulaBuilder is registered without
+  it (`__tests__/pluginDependencies.unit.ts`). The warning below covers Formulas registered but not enabled, or
+  without an engine, which `PLUGIN_DEPS` cannot express. Keep the `?? null` on the lookup anyway: a host that
+  is not a Handsontable instance (the stub tests) runs no dependency check.
 - **The "requires the Formulas plugin" warning waits for `afterInit` during the init.** A SheetsBar
   workbook declares `formulas` per sheet, and those settings enable the Formulas plugin after this plugin's
   first enable attempt, which then fails for a moment and succeeds later in the same init. The plugin
