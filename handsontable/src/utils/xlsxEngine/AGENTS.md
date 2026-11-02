@@ -832,7 +832,8 @@ directions.
     `#NAME?` in Excel. It refuses a ref-like name outside the grid (`ZZZ1`) and a leading digit
     (`1abc`). That is deliberate data loss, reported as `definedNames:unsupported`, instead of a file
     Excel repairs.
-    `DefinedNameSnapshot` is `{ name, formula, sheetName }` (`sheetName: null` is workbook scope).
+    `DefinedNameSnapshot` is `{ name, formula, sheetName, unsupported? }` (`sheetName: null` is
+    workbook scope). `selectWritableDefinedNames` skips an `unsupported` entry (see below).
   - **The ExcelJS name adapters are narrower than the native ones.** Its reader (`readDefinedNames`)
     keeps a name ExcelJS lists with more than one range (a multi-area name) with its ranges joined by
     commas. Keeping the first range silently redefined the name, and leaving the name out made
@@ -842,9 +843,15 @@ directions.
     `definedNames.model` setter keys its map by name, so the LAST definition wins with one range. Its
     writer takes workbook-scoped, sheet-qualified single ranges only, with a total area under
     `MAX_EXCELJS_DEFINED_NAME_CELLS` (`writeLimits.ts`, 100,000), and reports `definedNames:unsupported` once for everything else.
-  - **The native reader caps a name definition at `MAX_FORMULA_LENGTH`** (`parseWorkbook`): the text
-    stops growing once it crosses the cap, and the name is left out with ONE
-    `definedNames:unsupported`, like an over-long `<f>` (`formula:tooLong`).
+  - **A name the reader cannot trust is KEPT, flagged, never dropped** (`DefinedNameSnapshot.unsupported`).
+    The native reader caps a definition at `MAX_FORMULA_LENGTH` (`parseWorkbook`: the text stops
+    growing once it crosses the cap) and cannot place a `localSheetId` that names no sheet; both
+    keep `{ name, formula: '', sheetName, unsupported: true }` with ONE `definedNames:unsupported`.
+    Dropping them (as the first cut did) made `importFile` treat `=SUM(Big)` as an ordinary formula:
+    it imported live as `#NAME?` and the cached value was lost. A flagged entry has its own map key,
+    so a valid name of the same scope still lands beside it. `importFile` never registers a flagged
+    name, ranks it after a valid one of its scope, and lets one scoped to the imported sheet hide the
+    workbook-scoped name spelled like it (Excel reads the sheet one there).
   - **`unwrapArrayFormula('ARRAYFORMULA()')` is `null`**, as is a whitespace-only call: there is no
     formula to write as an array.
   - **The native writer refuses a workbook with no sheets** (`write.ts`): `CT_Sheets` needs one

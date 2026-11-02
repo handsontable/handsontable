@@ -189,6 +189,13 @@ export interface DefinedNameSnapshot {
    * The sheet the name is scoped to, or `null` for a name visible in the whole workbook.
    */
   sheetName: string | null;
+  /**
+   * `true` when a reader knows the name but not a definition it can trust: a definition too long
+   * to read, a scope that names no sheet (both native), or any name ExcelJS reads, since ExcelJS
+   * loses the scope. Such an entry is kept only so `importFile` imports the formulas over the name
+   * as their cached values; it is never registered and never written.
+   */
+  unsupported?: true;
 }
 
 /**

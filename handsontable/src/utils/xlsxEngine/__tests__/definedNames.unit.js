@@ -29,4 +29,16 @@ describe('selectWritableDefinedNames', () => {
     expect(entries.map(({ name }) => name)).toEqual(['Größe', 'Maß']);
     expect(skipped).toBe(true);
   });
+
+  it('should leave out a name a reader flagged as unsupported, whatever its definition', () => {
+    // A reader keeps such a name only so the formulas over it import their cached values; its text
+    // is not the file's definition and must never be written as one.
+    const { entries, skipped } = selectWritableDefinedNames([
+      { name: 'Rate', formula: 'Data!$A$1', sheetName: null, unsupported: true },
+      { name: 'Fine', formula: '1', sheetName: null },
+    ], ['Data']);
+
+    expect(entries.map(({ name }) => name)).toEqual(['Fine']);
+    expect(skipped).toBe(true);
+  });
 });

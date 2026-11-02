@@ -187,9 +187,23 @@ describe('package parts', () => {
       { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null },
       { name: 'TaxRate', formula: '0.07', sheetName: null },
       { name: 'Local', formula: 'Rates!$A$1', sheetName: 'Rates' },
+      // Its scope names no sheet: kept as a name only, flagged, so a formula over it imports its
+      // cached value instead of going live as `#NAME?`.
+      { name: 'Lost', formula: '', sheetName: null, unsupported: true },
       { name: 'Amp', formula: 'IF(A1<2,"a&b",0)', sheetName: null },
     ]);
     expect(dropped.list()).toEqual(['definedNames:unsupported']);
+  });
+
+  it('should keep a flagged name beside a valid one spelled like it in the workbook scope', () => {
+    const { definedNames } = parseWorkbook('<workbook><sheets><sheet name="A" sheetId="1" r:id="rId1"/></sheets>'
+      + '<definedNames><definedName name="Rate" localSheetId="7">1</definedName>'
+      + '<definedName name="Rate">2</definedName></definedNames></workbook>');
+
+    expect(definedNames).toEqual([
+      { name: 'Rate', formula: '', sheetName: null, unsupported: true },
+      { name: 'Rate', formula: '2', sheetName: null },
+    ]);
   });
 
   it('should keep the same name defined in two scopes as two entries', () => {
@@ -297,9 +311,15 @@ describe('package parts', () => {
       + '<definedName name="Short">2</definedName>'
       + '</definedNames></workbook>', dropped);
 
-    expect(definedNames.map(({ name }) => name)).toEqual(['AtCap', 'Short']);
+    // A name too long to read is kept as a name only, flagged, so the formulas over it import
+    // their cached values.
+    expect(definedNames.map(({ name, unsupported }) => [name, unsupported === true])).toEqual([
+      ['AtCap', false], ['TooLong', true], ['AlsoTooLong', true], ['Short', false],
+    ]);
     expect(definedNames[0].formula).toBe(atCap);
+    expect(definedNames[1]).toEqual({ name: 'TooLong', formula: '', sheetName: null, unsupported: true });
     expect(dropped.list()).toEqual(['definedNames:unsupported']);
+    expect(dropped.count('definedNames:unsupported')).toBe(1);
   });
 
   it('should record nothing at exactly the defined-name cap, or for a repeated name past it', () => {

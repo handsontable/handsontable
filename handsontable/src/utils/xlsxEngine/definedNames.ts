@@ -29,7 +29,7 @@ export interface WritableDefinedName {
 
 /**
  * Picks the defined names both writers can write, so the two engines accept the same set. A name is
- * left out when it is not a valid name, spells a cell reference or an R1C1 reference, is scoped to a
+ * left out when a reader flagged it `unsupported`, is not a valid name, spells a cell reference or an R1C1 reference, is scoped to a
  * sheet `sheetNames` does not hold, has an empty definition, or repeats an earlier name of the same
  * scope (names compare case-insensitively).
  *
@@ -46,7 +46,13 @@ export function selectWritableDefinedNames(
   const seen = new Set<string>();
   let skipped = false;
 
-  definedNames.forEach(({ name, formula, sheetName }) => {
+  definedNames.forEach(({ name, formula, sheetName, unsupported }) => {
+    if (unsupported) {
+      skipped = true;
+
+      return;
+    }
+
     const localSheetId = sheetName === null ? undefined : lowerSheetNames.indexOf(localeLowerCase(sheetName));
     const key = `${localSheetId ?? ''}\u0000${localeLowerCase(name)}`;
 

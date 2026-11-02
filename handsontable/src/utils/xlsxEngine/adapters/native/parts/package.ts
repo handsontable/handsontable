@@ -589,8 +589,10 @@ export const MAX_DEFINED_NAMES = 65536;
  * A name past `MAX_DEFINED_NAMES` is left out and `DROPPED_FEATURES.definedNamesTruncated` is
  * recorded once. Dropped silently, a formula using such a name stayed live and showed `#NAME?`
  * with nothing in the import result to say why. A definition longer than `MAX_FORMULA_LENGTH` (the
- * cap a cell formula gets) is left out and `DROPPED_FEATURES.definedNamesUnsupported` is recorded
- * once; its text stops growing as soon as it crosses the cap.
+ * cap a cell formula gets; its text stops growing as soon as it crosses the cap) and a name whose
+ * `localSheetId` names no sheet are kept as the name alone, flagged `unsupported`, and
+ * `DROPPED_FEATURES.definedNamesUnsupported` is recorded once. Left out, a formula over such a name
+ * imported live and showed `#NAME?`; flagged, `importFile` imports its cached value.
  */
 export function parseWorkbook(
   xml: string,
@@ -599,7 +601,13 @@ export function parseWorkbook(
   const sheets: WorkbookSheetEntry[] = [];
   const definedNames = new Map<string, DefinedNameSnapshot>();
   let date1904 = false;
-  let pending: { name: string; sheetName: string | null; text: string; tooLong: boolean } | null = null;
+  let pending: {
+    name: string;
+    sheetName: string | null;
+    text: string;
+    tooLong: boolean;
+    orphan: boolean;
+  } | null = null;
   const localName = createLocalName();
   const relationshipIds = createRelationshipIdReader();
 
@@ -611,22 +619,22 @@ export function parseWorkbook(
       return;
     }
 
-    const { name, sheetName, text, tooLong } = pending;
-    const key = `${sheetName ?? ''}\u0000${name}`;
+    const { name, sheetName, text, tooLong, orphan } = pending;
+    const unsupported = tooLong || orphan;
+    // A flagged entry has a key of its own, so it never displaces a valid name of the same scope.
+    const key = `${sheetName ?? ''}\u0000${name}${unsupported ? '\u0000unsupported' : ''}`;
 
     pending = null;
 
-    if (tooLong) {
-      if (dropped?.count(DROPPED_FEATURES.definedNamesUnsupported) === 0) {
-        dropped.record(DROPPED_FEATURES.definedNamesUnsupported);
-      }
-
-      return;
+    if (unsupported && dropped?.count(DROPPED_FEATURES.definedNamesUnsupported) === 0) {
+      dropped.record(DROPPED_FEATURES.definedNamesUnsupported);
     }
 
     if (definedNames.size < MAX_DEFINED_NAMES) {
       if (!definedNames.has(key)) {
-        definedNames.set(key, { name, formula: text.trim(), sheetName });
+        definedNames.set(key, unsupported
+          ? { name, formula: '', sheetName, unsupported: true }
+          : { name, formula: text.trim(), sheetName });
       }
     } else if (!definedNames.has(key) && dropped?.count(DROPPED_FEATURES.definedNamesTruncated) === 0) {
       dropped.record(DROPPED_FEATURES.definedNamesTruncated);
@@ -642,7 +650,7 @@ export function parseWorkbook(
       }
     },
     text(text) {
-      if (pending && !pending.tooLong) {
+      if (pending && !pending.tooLong && !pending.orphan) {
         pending.text += text;
 
         if (pending.text.length > MAX_FORMULA_LENGTH) {
@@ -672,24 +680,21 @@ export function parseWorkbook(
         date1904 = attrs.date1904 === '1' || attrs.date1904 === 'true';
       } else if (name === 'definedName' && attrs.name && !attrs.name.startsWith('_xlnm.')) {
         let sheetName: string | null = null;
+        let orphan = false;
 
         if (attrs.localSheetId !== undefined) {
           const scope = /^\d+$/.test(attrs.localSheetId) ? sheets[Number(attrs.localSheetId)] : undefined;
 
-          if (!scope) {
-            // A scope that names no sheet cannot be kept as workbook-wide: that would redefine the
-            // name for every sheet.
-            if (dropped?.count(DROPPED_FEATURES.definedNamesUnsupported) === 0) {
-              dropped.record(DROPPED_FEATURES.definedNamesUnsupported);
-            }
-
-            return;
+          // A scope that names no sheet cannot be kept as workbook-wide: that would redefine the
+          // name for every sheet. The name is kept flagged, with no definition.
+          if (scope) {
+            sheetName = scope.name;
+          } else {
+            orphan = true;
           }
-
-          sheetName = scope.name;
         }
 
-        pending = { name: attrs.name, sheetName, text: '', tooLong: false };
+        pending = { name: attrs.name, sheetName, text: '', tooLong: false, orphan };
 
         if (selfClosing) {
           finish();

@@ -1,7 +1,9 @@
 import { throwWithCause } from '../../helpers/errors';
 import { escapeHtml } from '../../helpers/string';
 import { DROPPED_FEATURES, type DroppedFeatures } from '../../utils/xlsxEngine/capabilities';
-import type { CellSnapshot, MergeSnapshot, SheetSnapshot, WorkbookSnapshot } from '../../utils/xlsxEngine/model';
+import type {
+  CellSnapshot, DefinedNameSnapshot, MergeSnapshot, SheetSnapshot, WorkbookSnapshot,
+} from '../../utils/xlsxEngine/model';
 import { parseMultiRangeRef, parseRangeRef } from '../../utils/xlsxEngine/cellRef';
 import { rebaseImportedFormula } from '../../utils/xlsxEngine/formulaRefs';
 import { stripFunctionPrefixes } from '../../utils/xlsxEngine/functionPrefixes';
@@ -780,13 +782,17 @@ function collectNamedExpressions(scope: CollectContext): NonNullable<ImportResul
   const own = sheet.name.toLowerCase();
   const definitions = (scope.workbook.definedNames ?? [])
     .filter(({ sheetName }) => sheetName === null || sheetName.toLowerCase() === own);
-  // Sheet-scoped first, so it wins over a workbook-scoped name spelled like it. The sort is stable.
-  const ordered = definitions.slice().sort((a, b) => Number(a.sheetName === null) - Number(b.sheetName === null));
+  // Sheet-scoped first, so it wins over a workbook-scoped name spelled like it; within a scope a
+  // flagged entry comes last, so a scope that names no sheet never hides a valid name. Stable.
+  const rank = ({ sheetName, unsupported }: DefinedNameSnapshot) => (
+    (sheetName === null ? 2 : 0) + (unsupported ? 1 : 0)
+  );
+  const ordered = definitions.slice().sort((a, b) => rank(a) - rank(b));
   const added = new Map<string, { name: string; formula: string }>();
   const seen = new Set<string>();
   let unsupported = false;
 
-  ordered.forEach(({ name, formula }) => {
+  ordered.forEach(({ name, formula, unsupported: flagged }) => {
     const lowered = name.toLowerCase();
     const defined = context.formulaNamedExpressions?.has(lowered) === true;
 
@@ -801,7 +807,8 @@ function collectNamedExpressions(scope: CollectContext): NonNullable<ImportResul
       selfAs: context.formulaSheetName,
       isKnown: candidate => isSheetKnown(candidate, scope),
     });
-    const expression = rebased.formula === null || rebased.unknownSheet ? null : `=${rebased.formula}`;
+    const expression = rebased.formula === null || rebased.unknownSheet || rebased.formula.trim() === ''
+      ? null : `=${rebased.formula}`;
 
     if (defined) {
       // The engine keeps its own definition. When it is not this file's, the formulas over the name
@@ -814,7 +821,8 @@ function collectNamedExpressions(scope: CollectContext): NonNullable<ImportResul
       return;
     }
 
-    if (expression === null || !canAdd(name, expression)) {
+    // A flagged name is never registered: the reader could not tell which definition is the file's.
+    if (flagged || expression === null || !canAdd(name, expression)) {
       unsupported = true;
 
       return;

@@ -11,12 +11,15 @@ import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
 import { excelJsAdapter } from '../../../utils/xlsxEngine/adapters/exceljs';
 import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
 import { SheetBuilder } from '../../../utils/xlsxEngine/builder';
+import { MAX_FORMULA_LENGTH } from '../../../utils/xlsxEngine/limits';
 import {
   createCellSnapshot,
   createSheetSnapshot,
   createWorkbookSnapshot,
 } from '../../../utils/xlsxEngine/model';
-import { loadFixture as fixture, toArrayBuffer } from '../../../utils/xlsxEngine/__tests__/helpers/fixtures';
+import {
+  loadFixture as fixture, rewriteArchive, toArrayBuffer,
+} from '../../../utils/xlsxEngine/__tests__/helpers/fixtures';
 import * as consoleHelpers from '../../../helpers/console';
 import { registerCellType } from '../../../cellTypes/registry';
 
@@ -1404,6 +1407,40 @@ describe('ImportFile and the workbook\'s defined names in a real HyperFormula en
 
       hf.destroy();
     }
+  });
+
+  it('should import the cached value of a formula over a name too long to read or scoped to no sheet', async() => {
+    // The native reader used to drop both names, so `=SUM(Sales)` and `=Relative*2` imported live and
+    // showed `#NAME?`, losing the values the file holds.
+    const tooLong = `IF(TRUE(),Data!$G$2:$G$4,"${'a'.repeat(MAX_FORMULA_LENGTH)}")`;
+    const written = await salesBytes([
+      { name: 'Sales', formula: tooLong, sheetName: null },
+      { name: 'Relative', formula: 'Data!$G$2', sheetName: null },
+    ]);
+    const bytes = await rewriteArchive(written, (part, text) => (part === 'xl/workbook.xml'
+      ? text.replace('<definedName name="Relative">', '<definedName name="Relative" localSheetId="7">')
+      : text));
+    const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+
+    hf.addSheet('Sheet1');
+
+    const { plugin, hot } = pluginWithFakeHot(true);
+
+    hot.getPlugin = name => ({
+      formulas: { isEnabled: () => true, sheetName: 'Sheet1', engine: hf },
+    })[name];
+
+    const result = await plugin.importFromArrayBuffer('xlsx', bytes, { apply: false, colHeaders: 'firstRow' });
+
+    expect(result.namedExpressions ?? []).toEqual([]);
+    expect([result.data[0][2], result.data[1][2]]).toEqual([60, 20]);
+    expect(result.formulas).toEqual(expect.arrayContaining([
+      expect.objectContaining({ formula: 'SUM(Sales)' }),
+      expect.objectContaining({ formula: 'Relative*2' }),
+    ]));
+    expect(result.dropped).toEqual(['definedNames:unsupported', 'formula:definedName']);
+
+    hf.destroy();
   });
 
   it('should import a formula over a name of several areas as its cached value, on both engines', async() => {

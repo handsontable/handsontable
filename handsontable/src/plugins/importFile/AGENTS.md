@@ -483,7 +483,12 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   expression as relative and refuses it (`NoRelativeAddressesAllowedError`; `isItPossible...` answers
   false). A definition that is rejected by the shift, names an unknown sheet, is refused by the engine
   (relative references), or uses a left-out name (followed transitively through `namesIn`) is left out
-  with ONE `definedNames:unsupported`, and the formulas over it keep `formula:definedName`. Registered
+  with ONE `definedNames:unsupported`, and the formulas over it keep `formula:definedName`. **A name a
+  reader flagged `unsupported`** (a definition too long to read, a scope that names no sheet) **is never
+  registered**: it only keeps the name in `unresolvedNames`. It sorts after a valid name of its scope
+  (an orphan scope reads as workbook scope and must not hide the real workbook name), while a flagged
+  name scoped to the imported sheet still wins over a workbook-scoped one. When the engine already
+  defines it, the comparison runs as for any name; an empty definition never matches. Registered
   names are removed from `CollectContext.unresolvedNames`. The result carries them in
   `ImportResult.namedExpressions` (formula without `=`); `applier.ts#addNamedExpressions` adds them
   FIRST in the batch (before `columns` and `loadData`; after `loadData` the formulas evaluate to

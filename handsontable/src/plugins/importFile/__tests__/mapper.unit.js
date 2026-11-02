@@ -2290,6 +2290,33 @@ describe('mapWorkbook – the workbook\'s defined names as named expressions', (
     expect(result.dropped.filter(name => name === 'definedNames:unsupported')).toHaveLength(1);
   });
 
+  it('should never register a flagged name, and let it hide no valid name of its scope', () => {
+    const valid = { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null };
+    const flagged = sheetName => ({ name: 'Sales', formula: '', sheetName, unsupported: true });
+
+    // A flagged workbook-scope entry (a scope naming no sheet) listed first: the valid one is taken.
+    const beside = map(salesWorkbook([flagged(null), valid]), OPTIONS, contextOf().context).result;
+
+    expect(beside.namedExpressions).toEqual([{ name: 'Sales', formula: 'Sheet1!$F$1:$F$3' }]);
+    expect(beside.data[0][1]).toBe('=SUM(Sales)');
+    expect(beside.dropped).not.toContain('formula:definedName');
+
+    // Flagged alone: nothing registered, the formula imports its cached value.
+    const alone = map(salesWorkbook([flagged(null)]), OPTIONS, contextOf().context).result;
+
+    expect(alone.namedExpressions).toBeUndefined();
+    expect(alone.data[0][1]).toBe(60);
+    expect(alone.dropped).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+
+    // Flagged and scoped to the imported sheet: Excel reads that one there, so the workbook-scoped
+    // `Sales` must not stand in for it.
+    const scoped = map(salesWorkbook([valid, flagged('Data')]), OPTIONS, contextOf().context).result;
+
+    expect(scoped.namedExpressions).toBeUndefined();
+    expect(scoped.data[0][1]).toBe(60);
+    expect(scoped.dropped).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+  });
+
   it('should import a formula over a registered name live and one over a left-out name as its cached value', () => {
     const { context } = contextOf();
     const { result } = map(salesWorkbook(NAMES), OPTIONS, context);
