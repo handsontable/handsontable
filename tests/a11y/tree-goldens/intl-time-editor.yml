@@ -1,0 +1,15 @@
+# grid
+- treegrid:
+  - rowgroup:
+    - row "#bad-value# two":
+      - gridcell "#bad-value#"
+      - gridcell "two"
+      - gridcell [selected]
+    - row "#bad-value# four":
+      - gridcell "#bad-value#"
+      - gridcell "four"
+      - gridcell
+  - textbox
+# portal
+- status
+- status
