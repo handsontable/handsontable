@@ -10,6 +10,7 @@ import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { isPlainObject } from '../../helpers/object';
 import { registerConflict } from '../base/conflictRegistry';
+import { LICENSE } from './feature.generated';
 
 // Hard conflicts: Pagination stays off while any of these top-level settings is truthy.
 registerConflict('pagination', [
@@ -167,6 +168,14 @@ export class Pagination extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
