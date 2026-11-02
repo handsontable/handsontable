@@ -744,6 +744,9 @@ describe('mapWorkbook', () => {
       expect(importedFormula('Sheet1!TRUE')).toBe('=Sheet1!TRUE');
       expect(importedFormula('Tbl[TRUE]')).toBe('=Tbl[TRUE]');
       expect(importedFormula('Tbl[@TRUE]')).toBe('=Tbl[@TRUE]');
+      // Only the `]` after it tells this one apart: the space before it is no name character.
+      expect(importedFormula('Tbl[ TRUE]')).toBe('=Tbl[ TRUE]');
+      expect(importedFormula('1TRUE')).toBe('=1TRUE');
       expect(importedFormula('A.TRUE+1')).toBe('=A.TRUE+1');
     });
 
@@ -758,6 +761,22 @@ describe('mapWorkbook', () => {
 
       expect(result.formulas.map(entry => entry.formula)).toEqual(['IF(TRUE,A1,2)']);
       expect(result.data[0][1]).toBe(1);
+    });
+
+    it('should record the file\'s text of a live-formula cell that imports its cached value', () => {
+      // `ImportResult.formulas` keeps the bare `TRUE` the file holds; only the engine's text is
+      // rewritten. The two differ only with live formulas on and the formula imported cached.
+      const sheet = createSheetSnapshot('Data');
+
+      sheet.rows = [[cell({ value: 1 }), cell({ value: null, formula: { text: 'IF(TRUE,Other!A1,2)', result: 3 } })]];
+
+      const { result } = map(workbook(sheet), {}, {
+        formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['sheet1']),
+      });
+
+      expect(result.data[0][1]).toBe(3);
+      expect(result.formulas).toEqual([{ row: 0, col: 1, formula: 'IF(TRUE,Other!A1,2)' }]);
+      expect(result.dropped).toContain('formula:otherSheet');
     });
 
     it('should rewrite a defined name\'s definition', () => {

@@ -598,8 +598,9 @@ const BOOLEAN_HINT = /true|false/i;
  * literal as an unknown name (`=IF(TRUE,1,2)` is `#NAME?`), while Excel stores it that way.
  *
  * A string literal and a quoted sheet name are left alone, and so is a token followed by `(` (already
- * a call) or `!` (a sheet named `TRUE`), preceded by `!` (a name on a sheet), `.` or a name character
- * (the tail of a longer name), or sitting in a structured reference (`Table[TRUE]`, `[@TRUE]`).
+ * a call) or `!` (a sheet named `TRUE`), preceded by `!` (a name on a sheet), `.`, `$` or a digit (the
+ * tail of something longer; a letter or `_` before it is part of the token already), or sitting in a
+ * structured reference (`Table[TRUE]`, `[@TRUE]`, `Table[ TRUE]`: `[`, `@` before it, `]` after it).
  * Linear: one pass of `FORMULA_IDENTIFIER_REGEX`. `readFormulaText` has already charged the formula.
  *
  * @param {string} formula The formula, without its `=`.
@@ -623,7 +624,8 @@ function rewriteBareBooleans(formula: string): string {
       const prev = start > 0 ? formula[start - 1] : '';
       const next = formula[start + token.length];
 
-      if (next !== '(' && next !== '!' && next !== ']' && !/[!.[@$\p{L}\p{N}_]/u.test(prev)) {
+      // A letter or `_` before it never gets here: `FORMULA_IDENTIFIER_REGEX` takes it into the token.
+      if (next !== '(' && next !== '!' && next !== ']' && !/[!.[@$\p{N}]/u.test(prev)) {
         out += `${formula.slice(last, start)}${token.toUpperCase()}()`;
         last = start + token.length;
       }

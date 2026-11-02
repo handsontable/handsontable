@@ -513,7 +513,10 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `recorded` (the file's text, prefixes stripped), the engine gets `live`. It rewrites after the prefix strip
   and before `rebaseImportedFormula`, shares the formula's ONE budget charge (a `/true|false/i` hit charges,
   like the strip and the walks), and skips a quoted token, an error literal, one followed by `(`, `!` or `]`, or preceded by
-  `!`, `.`, `[`, `@`, `$` or a name character.
+  `!`, `.`, `[`, `@`, `$` or a digit. A letter or `_` before it never reaches that check:
+  `FORMULA_IDENTIFIER_REGEX` takes it into the token (`MYTRUE`). The `]` rule is what catches
+  `Tbl[ TRUE]`; `Tbl[TRUE]` and `[@TRUE]` are caught by `[`/`@` already. Pinned in `mapper.unit.js`,
+  including the `recorded`/`live` split on a cached-value import (`IF(TRUE,Other!A1,2)`).
 - **The workbook's defined names are registered as HyperFormula named expressions** (DEV-3648,
   `collectNamedExpressions` in `mapper.ts`), so a formula over one imports live. It runs only with
   live formulas on AND `MapperContext.canAddNamedExpression` given (`importFile.ts` wires it to the
