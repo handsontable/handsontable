@@ -1444,12 +1444,20 @@ screen readers (`docs/AGENTS.md` 2.20).
   `install voiceover` fetches Guidepup's VoiceOver preferences bundle for the runner's macOS. `vo-webkit`
   is Playwright's own WebKit build (Playwright.app) with the Desktop Safari descriptor, not Safari.app;
   `vo-chromium` is Chrome for Testing. The job carries `max-parallel: 2`, because the organization runs
-  at most five macOS jobs at once, step timeouts of 10 minutes on the setup, 5 on each install and 25
+  at most five macOS jobs at once, step timeouts of 12 minutes on the setup, 5 on each install and 25
   on the run, and a 55-minute job backstop above their sum. A job is about 5 to 6 minutes, 4 to 5 of them the run.
-  **The re-run rule:** about one VoiceOver job in a hundred fails in the setup step on Guidepup's own
-  CI and passes when the whole job runs again. A red setup step is the runner, not the lane: re-run that
-  job from its page. Slack never hears of it (the job carries `continue-on-error`); Slack hears only of a
-  nightly whose build never reached the lanes.
+- **The VoiceOver setup recovers on the same runner.** The CLI turns on Do Not Disturb by driving the
+  Control Center UI through AppleScript, and about one job in a hundred fails there ("Failed to enable
+  Do not disturb mode") once the CLI's own five tries are spent, about 3.5 minutes; the first develop
+  nightly lost its Chromium transcripts that way. The step therefore runs `setup --ci` once more after
+  relaunching Control Center (`killall ControlCenter`; launchd restarts it), and then `setup` without
+  `--ci`, which grants the same automation permissions without Do Not Disturb, so the night still
+  records a transcript; a workflow warning says each fallback ran, and the last one that a notification
+  could be spoken into a transcript. Every attempt is screen-recorded. No attempt is cut short: a good
+  setup takes 32 to 42 s, the CLI bounds a failing one itself, and killing it mid-run could leave
+  osascript and the recorder running. A setup still red after all three is the runner: re-run that job
+  from its page. Slack never hears of it (the job carries `continue-on-error`); Slack hears only of a
+  nightly whose build never reached the lanes. The workflow test pins the three attempts.
 - **A screen reader is one per machine, so the lane is serial and headed.** `withGuidepup()` pins one
   worker, no parallelism and `headless: false` on every project; the matrix gives each browser its own
   job. The spec adds no serial mode on top: it would skip every scenario after a red one and re-run the
