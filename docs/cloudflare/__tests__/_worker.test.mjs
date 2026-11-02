@@ -413,6 +413,50 @@ test('a flat page link with a sentence\'s punctuation glued to it still redirect
   await assertRedirect(worker, '/docs/api/core.', '/docs/javascript-data-grid/api/core/', 302);
 });
 
+test('a page of the old Handsontable Pro docs redirects to its current page (PRO-1371)', async() => {
+  const worker = loadWorker();
+
+  // The Pro docs are not deployed, so every /docs/pro/ URL answered 404.
+  await assertRedirect(worker, '/docs/pro/Comments.html', '/docs/javascript-data-grid/api/comments/', 302);
+  await assertRedirect(worker, '/docs/pro/1.15.1/Hooks.html', '/docs/javascript-data-grid/api/hooks/', 302);
+  await assertRedirect(worker, '/docs/pro/6.0.1/ColumnSorting.html', '/docs/javascript-data-grid/api/column-sorting/', 302);
+  await assertRedirect(worker, '/docs/pro/2.0.0/demo-merged-cells.html', '/docs/javascript-data-grid/merge-cells/', 302);
+  await assertRedirect(worker, '/docs/pro/1.15.0/tutorial-internationalization.html', '/docs/javascript-data-grid/language/', 302);
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/pro/demo-date.html', 'react'),
+    'https://handsontable.com/docs/react-data-grid/date-cell-type/',
+  );
+});
+
+test('the root, or an unknown page, of the old Pro docs lands on the framework home', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(worker, '/docs/pro', '/docs/javascript-data-grid/', 302);
+  await assertRedirect(worker, '/docs/pro/', '/docs/javascript-data-grid/', 302);
+  await assertRedirect(worker, '/docs/pro/react', '/docs/javascript-data-grid/', 302);
+  await assertRedirect(worker, '/docs/pro/1.13.0/demo-paginating.html', '/docs/javascript-data-grid/', 302);
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/pro/1.13.0/', 'react'),
+    'https://handsontable.com/docs/react-data-grid/',
+  );
+});
+
+test('a path that only starts with "pro" is not caught by the Pro docs rule', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(request('/docs/products/'), env);
+
+  assert.equal(response.status, 200);
+  assert.equal(await response.text(), 'static-asset-passthrough');
+});
+
+test('the old Pro docs on the legacy host take one 301 to the canonical host first', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(requestOn('docs.handsontable.com', '/docs/pro/Core.html'), env);
+
+  assert.equal(response.status, 301);
+  assert.equal(response.headers.get('location'), 'https://handsontable.com/docs/pro/Core.html');
+});
+
 test('answers POST to the saving-data demo\'s save.json mock instead of 405ing (regression for DEV-2034)', async() => {
   const worker = loadWorker();
 

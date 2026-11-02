@@ -42,6 +42,7 @@
  * 12a. Legacy hostname (GET/HEAD)          → same path on handsontable.com (301)
  * 12b. /docs/:ver older than 9.0 (any form) → current framework page or home (cookie, 302)
  *      /docs/:major.:minor.:patch from 9.0 → /docs/:major.:minor (301)
+ * 12c. /docs/pro[/:ver][/:page.html]      → current framework page or home (cookie, 302)
  *  13. /docs/:ver/:page.html               → versioned framework pages (cookie, 302)
  *  14. /docs/:ver{/}                       → version root or framework home (cookie, 302)
  *  15. /docs/(page).html                   → flat framework page (cookie, 302)
@@ -560,6 +561,20 @@ function flatHtmlDestination(page, framework) {
   }
 
   return redirectPath ? `/docs/${framework}/${redirectPath}/` : `/docs/${framework}/`;
+}
+
+/**
+ * Resolves the rest of an undeployed docs URL: a known `{page}.html` slug to
+ * its current framework page, anything else to the framework home.
+ *
+ * @param {string} rest The path after the undeployed version segment.
+ * @param {string} framework The framework read from the `docs_fw` cookie.
+ * @returns {string} The destination path.
+ */
+function undeployedDocsDestination(rest, framework) {
+  const page = rest.match(/^([^/]+)\.html$/)?.[1];
+
+  return (page && flatHtmlDestination(page, framework)) || `/docs/${framework}/`;
 }
 
 // ---------------------------------------------------------------------------
@@ -1612,16 +1627,29 @@ async function route(request, env, ctx) {
 
       if (m && parseInt(m[1], 10) < OLDEST_DEPLOYED_DOCS_MAJOR) {
         const framework = getFrameworkFromCookie(getCookie(request, 'docs_fw'));
-        const page = (m[5] ?? '').match(/^([^/]+)\.html$/)?.[1];
-        const dest = (page && flatHtmlDestination(page, framework)) || `/docs/${framework}/`;
 
-        return redirect302(abs(dest, url));
+        return redirect302(abs(undeployedDocsDestination(m[5] ?? '', framework), url));
       }
 
       if (m && (m[3] || m[4])) {
         const rest = m[5] === undefined ? '' : `/${m[5]}`;
 
         return redirect301(abs(`/docs/${m[1]}.${m[2]}${rest}${url.search}`, url));
+      }
+    }
+
+    // -- 12c. /docs/pro[/{ver}][/{page}.html] → the old Pro docs ---------------
+    // The Handsontable Pro docs are not deployed at all. Like rule 12b, a
+    // known page goes to the current docs (cookie, 302), anything else to the
+    // framework home.
+    {
+      const m = path.match(/^\/docs\/pro(?:\/(.*))?$/);
+
+      if (m) {
+        const framework = getFrameworkFromCookie(getCookie(request, 'docs_fw'));
+        const rest = (m[1] ?? '').replace(/^\d+\.\d+[^/]*\//, '');
+
+        return redirect302(abs(undeployedDocsDestination(rest, framework), url));
       }
     }
 
