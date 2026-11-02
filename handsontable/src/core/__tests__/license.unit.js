@@ -2,6 +2,7 @@ import { getLicenseState, getXlsxEntitlement } from '../license';
 import { UNRESTRICTED_XLSX_ENTITLEMENT } from '../../utils/xlsxEngine/xlsxEntitlement';
 import { buildTestKey } from '../../utils/entitlementLicenseKey/__tests__/buildTestKey';
 import { SUBSCRIPTION_KEY } from '../../utils/entitlementLicenseKey/__tests__/fixtures';
+import { keyWithAll } from '../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 
 const standardPayload = {
   products: {
@@ -49,23 +50,46 @@ describe('core/license', () => {
     expect(getXlsxEntitlement(padded).import).toBe(true);
   });
 
-  it('reads the flag from the key the license state was read from', () => {
+  it('follows a key passed later, so the entitlement and the license state read the current key', () => {
+    const standardKey = buildTestKey(standardPayload);
+    const allKey = keyWithAll();
+    const settings = { licenseKey: standardKey };
+    const hot = { getSettings: () => settings };
+
+    expect(getXlsxEntitlement(hot).styles).toBe(false);
+    expect(getLicenseState(hot).grants.unrestricted).toBe(false);
+
+    settings.licenseKey = allKey;
+
+    expect(getXlsxEntitlement(hot)).toBe(UNRESTRICTED_XLSX_ENTITLEMENT);
+
+    settings.licenseKey = standardKey;
+
+    expect(getXlsxEntitlement(hot).styles).toBe(false);
+    expect(getXlsxEntitlement(hot).import).toBe(true);
+
+    settings.licenseKey = buildTestKey(unflaggedPayload);
+
+    expect(getXlsxEntitlement(hot)).toBe(UNRESTRICTED_XLSX_ENTITLEMENT);
+    expect(getLicenseState(hot).grants.unrestricted).toBe(true);
+  });
+
+  it('reads a key that is not a string as unrestricted', () => {
     const settings = { licenseKey: buildTestKey(standardPayload) };
     const hot = { getSettings: () => settings };
 
-    getLicenseState(hot);
-    settings.licenseKey = buildTestKey(unflaggedPayload);
-
     expect(getXlsxEntitlement(hot).styles).toBe(false);
+
+    settings.licenseKey = undefined;
+
+    expect(getXlsxEntitlement(hot)).toBe(UNRESTRICTED_XLSX_ENTITLEMENT);
   });
 
-  it('does not re-read a key changed after the first call', () => {
-    const settings = { licenseKey: SUBSCRIPTION_KEY };
-    const hot = { getSettings: () => settings };
-    const first = getXlsxEntitlement(hot);
+  it('shares one entitlement between instances with the same key', () => {
+    const key = buildTestKey(standardPayload);
+    const first = { getSettings: () => ({ licenseKey: key }) };
+    const second = { getSettings: () => ({ licenseKey: key }) };
 
-    settings.licenseKey = buildTestKey(standardPayload);
-
-    expect(getXlsxEntitlement(hot)).toBe(first);
+    expect(getXlsxEntitlement(first)).toBe(getXlsxEntitlement(second));
   });
 });

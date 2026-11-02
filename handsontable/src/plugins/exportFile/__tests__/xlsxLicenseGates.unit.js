@@ -219,6 +219,34 @@ describe('Xlsx export license gates', () => {
     expect(headerCells(gated).map(cell => cell.value)).toEqual(['Name', 'Amount', 'Status']);
   });
 
+  it('follows a license key passed later on the same instance', async() => {
+    const settings = { licenseKey: keyWithout('xlsx:styles') };
+    const hot = { rootDocument: document, rootWindow: window, getSettings: () => settings };
+    const exportWith = async() => {
+      writeSpy.mockClear();
+      await new Xlsx(new ExportDataProvider(hot), { conditionalFormatting: [] }).export();
+
+      return writeSpy.mock.calls[0][0].sheets[0];
+    };
+    const skipped = () => warnSpy.mock.calls
+      .map(call => call[0])
+      .filter(message => message.startsWith('The xlsx export skipped'));
+
+    const before = await exportWith();
+
+    expect(dataCells(before).every(cell => cell.style === null)).toBe(true);
+    expect(skipped().join()).toContain('xlsx:styles');
+
+    // What `updateSettings({ licenseKey })` does to the settings the plugin reads.
+    settings.licenseKey = keyWith(ALL_XLSX_TOKENS);
+    warnSpy.mockClear();
+
+    const after = await exportWith();
+
+    expect(dataCells(after).some(cell => cell.style !== null)).toBe(true);
+    expect(skipped()).toEqual([]);
+  });
+
   it('reads no computed cell style without xlsx:styles', async() => {
     const probeSpy = jest.spyOn(cellStyle, 'getCssStyleFromElement');
 

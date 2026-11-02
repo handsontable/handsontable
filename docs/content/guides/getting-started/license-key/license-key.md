@@ -345,7 +345,7 @@ console reports an error and the grid shows a notice below the table.
 
 ## Capabilities
 
-An entitlement key can list the capabilities it unlocks. A capability is a named part of a feature, such as `xlsx:export`. Handsontable reads the list from the key when the grid starts and gates the matching features.
+An entitlement key can list the capabilities it unlocks. A capability is a named part of a feature, such as `xlsx:export`. Handsontable reads the list from the current `licenseKey` and gates the matching features. A new key you pass through [`updateSettings()`](@/api/core.md#updatesettings) applies to the next import or export.
 
 - A key issued without the `listed-capabilities` flag unlocks every feature. Every key issued before 19.0 works this way, so nothing changes for you when you update Handsontable.
 - A key with the `listed-capabilities` flag unlocks exactly the capabilities it lists. A feature you did not license is skipped, and the grid tells you so in the console.
