@@ -578,10 +578,10 @@ interface FunctionRegistryEngine {
  * list is read once, on the first question.
  *
  * The instance's list leaves out `OFFSET`, which HyperFormula parses into a reference rather than
- * calls, so the class's static list for the engine's language
- * (`engine.constructor.getRegisteredFunctionNames(language)`) is added to it: an `OFFSET` array
- * master read as calling an unregistered function kept its covered cells, and its spill showed
- * `#SPILL!`.
+ * calls, so its name in the engine's language is added (`protectedFunctionNames`): an `OFFSET`
+ * array master read as calling an unregistered function kept its covered cells, and its spill
+ * showed `#SPILL!`. The class's whole static list is not added: it holds every plugin registered on
+ * the class, also the ones an engine built with `functionPlugins` leaves out.
  *
  * @param {object|null|undefined} engine The Formulas plugin's engine.
  * @returns {Function|undefined}
@@ -597,7 +597,7 @@ function functionRegistryCheck(
 
   return (name) => {
     if (names === null) {
-      const registered = [...engine.getRegisteredFunctionNames?.() ?? [], ...classFunctionNames(engine)];
+      const registered = [...engine.getRegisteredFunctionNames?.() ?? [], ...protectedFunctionNames(engine)];
 
       names = new Set(registered.map(fn => fn.toUpperCase()));
     }
@@ -607,27 +607,38 @@ function functionRegistryCheck(
 }
 
 /**
- * The function names the engine's class registers for the engine's language
- * (HyperFormula's static `getRegisteredFunctionNames(language)`), or none when it cannot answer.
+ * The functions HyperFormula provides on every engine, whatever plugins it loads, that
+ * `getRegisteredFunctionNames()` leaves out: `OFFSET`, parsed into a reference.
+ */
+const PROTECTED_FUNCTION_IDS: readonly string[] = ['OFFSET'];
+
+/**
+ * The names of `PROTECTED_FUNCTION_IDS` in the engine's language, translated by the engine's class
+ * (`engine.constructor.getLanguage(language).getFunctionTranslation(id)`), or none when it cannot
+ * answer.
  *
  * @param {object} engine The Formulas plugin's engine.
  * @returns {string[]}
  */
-function classFunctionNames(engine: FunctionRegistryEngine): string[] {
-  const EngineClass = engine.constructor as { getRegisteredFunctionNames?: (language: string) => unknown };
+function protectedFunctionNames(engine: FunctionRegistryEngine): string[] {
+  const EngineClass = engine.constructor as {
+    getLanguage?: (language: string) => { getFunctionTranslation?: (id: string) => unknown } | undefined;
+  };
 
   try {
     const language = engine.getConfig?.()?.language;
 
-    if (typeof EngineClass?.getRegisteredFunctionNames !== 'function' || typeof language !== 'string') {
+    if (typeof EngineClass?.getLanguage !== 'function' || typeof language !== 'string') {
       return [];
     }
 
-    const names = EngineClass.getRegisteredFunctionNames(language);
+    const translations = EngineClass.getLanguage(language);
 
-    return Array.isArray(names) ? names.filter((fn): fn is string => typeof fn === 'string') : [];
+    return PROTECTED_FUNCTION_IDS
+      .map(id => translations?.getFunctionTranslation?.(id))
+      .filter((fn): fn is string => typeof fn === 'string');
   } catch {
-    // An engine whose class cannot list its names keeps the instance's list.
+    // An engine whose class cannot translate the names keeps the instance's list.
     return [];
   }
 }

@@ -456,9 +456,13 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   to the window. A master that cannot go live (other sheet, unresolved name, Formulas off) imports its
   cached values, spilled cells included, as before. **A live master calling a function the engine does not
   register** (`MapperContext.registersFunction`, wired to the engine's `getRegisteredFunctionNames()` - its
-  own language, custom functions included - PLUS the class's static `getRegisteredFunctionNames(language)`:
+  own language, custom functions included - PLUS `OFFSET` translated for the engine's language
+  (`protectedFunctionNames`, `engine.constructor.getLanguage(language).getFunctionTranslation('OFFSET')`):
   the instance list leaves out `OFFSET`, which HF parses into a reference, and an `OFFSET(...)*2` master
-  read as unregistered kept its covered cells and showed `#SPILL!`; HF 3.3 lacks UNIQUE, SORT, SORTBY,
+  read as unregistered kept its covered cells and showed `#SPILL!`. Never add the class's whole static
+  `getRegisteredFunctionNames(language)` list: it holds every plugin registered on the class, so an engine
+  built with `functionPlugins` (no FILTER) had its FILTER master judged registered, its covered cells
+  emptied and its spill `#NAME?`; HF 3.3 lacks UNIQUE, SORT, SORTBY,
   LET, VSTACK, TEXTSPLIT, RANDARRAY) **records no rectangle** (`callsUnregisteredFunction`): it shows `#NAME?` and spills nothing,
   so its covered cells keep their cached values instead of importing empty (they used to be lost). The scan
   walks every identifier followed by `(`, upper-cased, and shares the formula's one charge

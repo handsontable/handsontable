@@ -2067,9 +2067,10 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
    * @param {object} [engine] The ExcelJS module, or `undefined` for the built-in engine.
    * @param {object} [options] More import options.
    * @param {object[]} [definedNames] The workbook's defined names.
+   * @param {object} [grid] The grid engine's extra config and its sheets (`{ Sheet1: [] }` by default).
    * @returns {Promise<{ result: object, hf: HyperFormula }>}
    */
-  async function importArrays(rows, engine, options = {}, definedNames = []) {
+  async function importArrays(rows, engine, options = {}, definedNames = [], grid = {}) {
     const snapshot = createWorkbookSnapshot();
     const sheet = createSheetSnapshot('Sheet1');
 
@@ -2078,9 +2079,13 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
     snapshot.definedNames = definedNames;
 
     const bytes = toArrayBuffer(await nativeAdapter.write(snapshot, undefined, new DroppedFeatures()));
-    const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3', useArrayArithmetic: true });
+    const config = { licenseKey: 'gpl-v3', useArrayArithmetic: true, ...grid.config };
+    // `buildEmpty` unless the grid holds more sheets: some tests count the probe's `buildFromSheets`.
+    const hf = grid.sheets ? HyperFormula.buildFromSheets(grid.sheets, config) : HyperFormula.buildEmpty(config);
 
-    hf.addSheet('Sheet1');
+    if (!grid.sheets) {
+      hf.addSheet('Sheet1');
+    }
 
     const { plugin, hot } = pluginWithFakeHot(true);
 
@@ -2128,6 +2133,43 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
 
       cached.hf.destroy();
     }
+  });
+
+  it('should keep the cached covered cells of a master calling a function the engine\'s plugins leave out', async() => {
+    // An engine built with `functionPlugins` registers only those plugins' functions: FILTER shows
+    // `#NAME?` there. The class's static list (every plugin) counted FILTER as registered, so B2 was
+    // imported empty under a master that spills nothing, and the 3 the file holds was lost.
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const grid = { config: { functionPlugins: [HyperFormula.getFunctionPlugin('SUM')] } };
+    const filter = await importArrays([
+      [at({ value: 1 }),
+        at({ formula: {
+          text: '_xlfn._xlws.FILTER(A1:A3,A1:A3>1)', result: 2, array: { ref: 'B1:B2', dynamic: true },
+        } })],
+      [at({ value: 2 }), at({ value: 3 })],
+      [at({ value: 3 }), null],
+    ], undefined, {}, [], grid);
+
+    expect(filter.hf.getRegisteredFunctionNames()).not.toContain('FILTER');
+    expect(filter.result.data.map(row => row[1])).toEqual(['=FILTER(A1:A3,A1:A3>1)', 3, null]);
+
+    filter.hf.destroy();
+
+    // OFFSET is HyperFormula's own, whatever plugins the engine loads: its array still spills.
+    const offset = await importArrays([
+      [at({ value: 1 }),
+        at({ formula: { text: 'OFFSET(A1,0,0,3,1)*2', result: 2, array: { ref: 'B1:B3', dynamic: true } } })],
+      [at({ value: 2 }), at({ value: 4 })],
+      [at({ value: 3 }), at({ value: 6 })],
+    ], undefined, {}, [], grid);
+
+    expect(offset.result.data.map(row => row[1])).toEqual(['=OFFSET(A1,0,0,3,1)*2', null, null]);
+
+    offset.hf.setSheetContent(0, offset.result.data);
+
+    expect(offset.hf.getSheetValues(0).map(row => row[1])).toEqual([2, 4, 6]);
+
+    offset.hf.destroy();
   });
 
   it('should import the cached value of a formula using the spill operator or implicit intersection', async() => {
