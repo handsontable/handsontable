@@ -326,6 +326,14 @@ labels too, so a label over an auto-sized column grows without this handler and 
 build without it (`tests/e2e/web-font-load.spec.ts`, "re-measures row header and nested header labels",
 puts it over an empty column and a fixed-width one).
 
+## The ghost table reads other plugins' settings, on purpose
+
+`#buildGhostTable()` (`utils/ghostTable.ts`) adds room for the dropdown and collapse buttons from the
+`dropdownMenu` and `collapsibleColumns` settings, not from whether those plugins run. The table is built during
+init, and CollapsibleColumns (290) enables after this plugin (280), so `.enabled` would read `false` there and
+shrink the measured headers. The cost: a license key that keeps one of them off leaves a little unused room in
+the header width.
+
 ## Testing
 
 - E2E: `npm run test:e2e --prefix handsontable -- --testPathPattern='nestedHeaders'`

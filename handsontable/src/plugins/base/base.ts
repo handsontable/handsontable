@@ -298,6 +298,11 @@ export class BasePlugin {
   #routeLifecycleCalls(): void {
     // `this.constructor.prototype` is the most derived class's prototype, read on every call.
     defineGetter(this, 'enablePlugin', () => this.#runLifecycleCall(true, () => {
+      // A key that leaves the plugin out keeps it off, also when an app turns it on directly.
+      if (this.hot && this.isLicenseBlocked()) {
+        return undefined;
+      }
+
       return this.constructor.prototype.enablePlugin.call(this);
     }), { enumerable: false });
     defineGetter(this, 'updatePlugin', (...args: Parameters<BasePlugin['updatePlugin']>) => {
@@ -390,7 +395,8 @@ export class BasePlugin {
    */
   isHardConflictBlocked() {
     const pluginKey = this.constructor.PLUGIN_KEY;
-    const conflict = getHardConflict(this.hot.getSettings(), pluginKey);
+    // A setting whose plugin the license key keeps off conflicts with nothing: that plugin does not run.
+    const conflict = getHardConflict(this.hot.getSettings(), pluginKey, key => this.#isKeptOffByLicense(key));
 
     if (conflict) {
       const { incompatibleSettingKey } = conflict;
@@ -402,6 +408,20 @@ export class BasePlugin {
     }
 
     return false;
+  }
+
+  /**
+   * Whether the license key of the grid keeps off the plugin that a top-level setting turns on.
+   *
+   * @param {string} settingKey The setting key, which is also the plugin key of a plugin's own option.
+   * @returns {boolean}
+   */
+  #isKeptOffByLicense(settingKey: string): boolean {
+    const plugin = this.hot.getPlugin(settingKey) as BasePlugin | undefined;
+    const license: unknown = plugin?.constructor.LICENSE;
+
+    return isPluginLicense(license) && license.gate === 'enable' &&
+      !hasLicenseCapability(this.hot, license.capability);
   }
 
   /**

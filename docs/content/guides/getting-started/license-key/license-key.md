@@ -364,6 +364,11 @@ When your key lists its features and your grid turns on a plugin the key does no
 - The plugin's methods work as they do for a plugin whose option is off. Some of them throw, because
   the plugin never started, so do not call the methods of a plugin your key does not list.
 
+A key that lists its features also turns off the plugins that are on by default, unless it lists
+them: [`CopyPaste`](@/api/copyPaste.md), [`UndoRedo`](@/api/undoRedo.md),
+[`Autofill`](@/api/autofill.md), [`AutoColumnSize`](@/api/autoColumnSize.md), and
+[`DragToScroll`](@/api/dragToScroll.md).
+
 Four plugins are on in every grid: [`ExportFile`](@/api/exportFile.md),
 [`ImportFile`](@/api/importFile.md), [`ViewState`](@/api/viewState.md), and
 [`CheckboxHeader`](@/api/checkboxHeader.md). They check the key when you use them. A method of

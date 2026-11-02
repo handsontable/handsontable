@@ -232,6 +232,19 @@ describe('license gates of the plugins that are on in every grid', () => {
       expect(printed[0]).toContain('Checkbox header (feat:checkbox_header)');
     });
 
+    it('should write nothing for a refused header checkbox when a key that covers it arrives first', async() => {
+      // The first render refuses the header checkbox and leaves its message to a microtask; the key below is
+      // passed before that microtask runs.
+      const hot = createGrid({ licenseKey: FLAGGED_MINIMAL_KEY, ...settings });
+
+      hot.updateSettings({ licenseKey: SUBSCRIPTION_KEY });
+
+      await Promise.resolve();
+
+      expect(missingFeatureErrors().filter(text => text.includes('Checkbox header'))).toEqual([]);
+      expect(hot.rootSlotBottomElement.querySelector('.hot-display-license-info_missing-features')).toBeNull();
+    });
+
     it('should draw the header checkbox when the key covers it', () => {
       const hot = createGrid({ licenseKey: FLAGGED_BASE_KEY, ...settings });
 

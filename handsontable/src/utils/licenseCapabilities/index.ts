@@ -239,7 +239,7 @@ export function forgetMissingCapabilities(hot: HotInstance): void {
 }
 
 /**
- * Returns the features the license key of a grid left out, sorted by token, when the list changed since
+ * Returns the features the license key of a grid left out, sorted by name, when the list changed since
  * the last call, and whether a feature was added to it (a list that only got shorter names nothing new).
  * Returns `null` when the list is the one the last call returned.
  *
@@ -266,7 +266,7 @@ export function takeChangedMissingCapabilities(
 
   const features = [...record.features.entries()]
     .map(([capability, { name }]) => ({ capability, name }))
-    .sort((a, b) => (a.capability < b.capability ? -1 : 1));
+    .sort((a, b) => (a.name < b.name ? -1 : 1));
 
   return { key: record.key, features, added };
 }

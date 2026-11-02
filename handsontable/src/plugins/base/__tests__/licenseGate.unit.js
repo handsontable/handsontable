@@ -7,6 +7,7 @@ import {
   FLAGGED_NO_UI_WARNS_KEY,
   FLAGGED_NO_CONSOLE_WARNS_KEY,
   FLAGGED_MAINTENANCE_EXPIRED_KEY,
+  FLAGGED_FEAT_ALL_KEY,
 } from '../../../utils/entitlementLicenseKey/__tests__/fixtures';
 import { buildTestKey } from '../../../utils/entitlementLicenseKey/__tests__/buildTestKey';
 
@@ -421,6 +422,79 @@ describe('BasePlugin license gate', () => {
       expect(bars.length).toBe(1);
       expect(bars[0].querySelectorAll('.hot-display-license-info_inner').length).toBe(2);
       expect(bars[0].querySelector('.hot-display-license-info_missing-features').textContent).toContain('View state');
+    });
+  });
+
+  describe('checks beyond the settings pass', () => {
+    // Lists Pagination and leaves NestedRows out. Built at test time: no fixture key has this list.
+    const PAGINATION_KEY = buildTestKey({
+      products: {
+        handsontable: {
+          capabilities: ['core', 'feat:pagination', 'cell:all'],
+          release_until: '2030-12-31',
+          notice: 60,
+          grace: 90,
+          flags: ['listed-capabilities'],
+        },
+      },
+    });
+
+    it('should keep a plugin off when an app turns it on directly and the key leaves it out', () => {
+      const hot = createGrid({ licenseKey: FLAGGED_BASE_KEY, filters: true });
+
+      hot.getPlugin('filters').enablePlugin();
+
+      expect(hot.getPlugin('filters').enabled).toBe(false);
+
+      // A plugin the key lists still turns on directly.
+      hot.getPlugin('undoRedo').disablePlugin();
+      hot.getPlugin('undoRedo').enablePlugin();
+
+      expect(hot.getPlugin('undoRedo').enabled).toBe(true);
+    });
+
+    it('should not let a plugin the key keeps off block a listed plugin it conflicts with', () => {
+      const hot = createGrid({ licenseKey: PAGINATION_KEY, pagination: true, nestedRows: true });
+
+      expect(hot.getPlugin('nestedRows').enabled).toBe(false);
+      expect(hot.getPlugin('pagination').enabled).toBe(true);
+      expect(hot.getSettings().pagination).toBe(true);
+
+      // With both plugins allowed, the conflict holds as before.
+      const covered = createGrid({
+        licenseKey: FLAGGED_FEAT_ALL_KEY,
+        data: [{ a: 1 }, { a: 2 }],
+        pagination: true,
+        nestedRows: true,
+      });
+
+      expect(covered.getPlugin('nestedRows').enabled).toBe(true);
+      expect(covered.getPlugin('pagination').enabled).toBe(false);
+    });
+
+    it('should name the missing features in alphabetical order', () => {
+      // By token the order would be Dialog (feat:dialog), Column menu (feat:dropdown_menu).
+      const hot = createGrid({ licenseKey: FLAGGED_BASE_KEY, dialog: true, dropdownMenu: true });
+
+      expect(licenseBars(hot)[0].textContent).toContain('these features: Column menu, Dialog. They are turned off.');
+      expect(missingFeatureErrors()[0]).toContain('Column menu (feat:dropdown_menu), Dialog (feat:dialog).');
+    });
+
+    it('should disable the "Copy with group headers" item when the key keeps NestedHeaders off', () => {
+      // eslint-disable-next-line global-require
+      const copyWithGroupHeadersItem = require(
+        'handsontable/plugins/copyPaste/contextMenuItem/copyWithColumnGroupHeaders'
+      ).default;
+      const nestedHeaders = [[{ label: 'Group', colspan: 2 }], ['A', 'B']];
+      const restricted = createGrid({ licenseKey: FLAGGED_BASE_KEY, nestedHeaders });
+      const covered = createGrid({ licenseKey: FLAGGED_FEAT_ALL_KEY, nestedHeaders });
+      const copyPastePlugin = { copyWithAllColumnHeaders() {} };
+
+      restricted.selectCell(0, 0, 0, 1);
+      covered.selectCell(0, 0, 0, 1);
+
+      expect(copyWithGroupHeadersItem(copyPastePlugin).disabled.call(restricted)).toBe(true);
+      expect(copyWithGroupHeadersItem(copyPastePlugin).disabled.call(covered)).toBe(false);
     });
   });
 });
