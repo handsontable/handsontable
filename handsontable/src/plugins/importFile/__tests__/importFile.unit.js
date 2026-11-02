@@ -1851,6 +1851,45 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
     return { result, hf };
   }
 
+  it('should let an OFFSET array spill, which the engine instance does not list as a function', async() => {
+    // HyperFormula parses OFFSET into a reference, so an instance's `getRegisteredFunctionNames()`
+    // leaves it out while the class's static list has it. B1 was read as calling an unregistered
+    // function, B2:B3 kept their cached values, and the spill collided with them (`#SPILL!`).
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const rows = (formula, results) => [
+      [at({ value: 1 }),
+        at({ formula: { text: formula, result: results[0], array: { ref: 'B1:B3', dynamic: true } } })],
+      [at({ value: 2 }), at({ value: results[1] })],
+      [at({ value: 3 }), at({ value: results[2] })],
+    ];
+
+    for (const [kind, engine, b1] of [
+      ['native', undefined, '=OFFSET(A1,0,0,3,1)*2'],
+      ['exceljs', ExcelJS, '=ARRAYFORMULA(OFFSET(A1,0,0,3,1)*2)'],
+    ]) {
+      // eslint-disable-next-line no-await-in-loop -- one engine at a time.
+      const spilled = await importArrays(rows('OFFSET(A1,0,0,3,1)*2', [2, 4, 6]), engine);
+
+      expect(spilled.hf.getRegisteredFunctionNames()).not.toContain('OFFSET');
+      expect([kind, spilled.result.data.map(row => row[1])]).toEqual([kind, [b1, null, null]]);
+
+      spilled.hf.setSheetContent(0, spilled.result.data);
+
+      expect([kind, spilled.hf.getSheetValues(0).map(row => row[1])]).toEqual([kind, [2, 4, 6]]);
+
+      spilled.hf.destroy();
+
+      // A lone OFFSET is a reference, which HyperFormula shows as `#VALUE!`: the cached values stay.
+      // eslint-disable-next-line no-await-in-loop -- one engine at a time.
+      const cached = await importArrays(rows('OFFSET(A1,0,0,3,1)', [1, 2, 3]), engine);
+
+      expect([kind, cached.result.data.map(row => row[1])]).toEqual([kind, [1, 2, 3]]);
+      expect([kind, cached.result.dropped.includes('formula:arraySpill')]).toEqual([kind, true]);
+
+      cached.hf.destroy();
+    }
+  });
+
   it('should import the cached values of a dynamic array HyperFormula cannot spill', async() => {
     // HyperFormula sizes FILTER by its input (three rows), Excel by its result (two rows): the
     // spill hits the text in B3 and B1 showed `#SPILL!`, and B2's cached 3 was lost.

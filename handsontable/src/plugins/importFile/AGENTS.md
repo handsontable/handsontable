@@ -450,8 +450,10 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   to the window. A master that cannot go live (other sheet, unresolved name, Formulas off) imports its
   cached values, spilled cells included, as before. **A live master calling a function the engine does not
   register** (`MapperContext.registersFunction`, wired to the engine's `getRegisteredFunctionNames()` - its
-  own language, custom functions included; HF 3.3 lacks UNIQUE, SORT, SORTBY, LET, VSTACK, TEXTSPLIT,
-  RANDARRAY) **records no rectangle** (`callsUnregisteredFunction`): it shows `#NAME?` and spills nothing,
+  own language, custom functions included - PLUS the class's static `getRegisteredFunctionNames(language)`:
+  the instance list leaves out `OFFSET`, which HF parses into a reference, and an `OFFSET(...)*2` master
+  read as unregistered kept its covered cells and showed `#SPILL!`; HF 3.3 lacks UNIQUE, SORT, SORTBY,
+  LET, VSTACK, TEXTSPLIT, RANDARRAY) **records no rectangle** (`callsUnregisteredFunction`): it shows `#NAME?` and spills nothing,
   so its covered cells keep their cached values instead of importing empty (they used to be lost). The scan
   walks every identifier followed by `(`, upper-cased, and shares the formula's one charge
   (`readFormulaText(..., scansFunctions)`). The sweep over the rectangles charges the formula

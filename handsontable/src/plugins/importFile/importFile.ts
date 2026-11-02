@@ -507,16 +507,30 @@ function isCellError(value: unknown): value is { value: string; type: string } {
 }
 
 /**
+ * The part of a HyperFormula instance `functionRegistryCheck` asks.
+ */
+interface FunctionRegistryEngine {
+  getRegisteredFunctionNames?: () => string[];
+  getConfig?: () => { language?: unknown };
+}
+
+/**
  * Whether a Formulas engine registers a function, through HyperFormula's
  * `getRegisteredFunctionNames()` (the names in the engine's own language, custom functions
  * included), or `undefined` when the engine has no such method, so every function is trusted. The
  * list is read once, on the first question.
  *
+ * The instance's list leaves out `OFFSET`, which HyperFormula parses into a reference rather than
+ * calls, so the class's static list for the engine's language
+ * (`engine.constructor.getRegisteredFunctionNames(language)`) is added to it: an `OFFSET` array
+ * master read as calling an unregistered function kept its covered cells, and its spill showed
+ * `#SPILL!`.
+ *
  * @param {object|null|undefined} engine The Formulas plugin's engine.
  * @returns {Function|undefined}
  */
 function functionRegistryCheck(
-  engine: { getRegisteredFunctionNames?: () => string[] } | null | undefined
+  engine: FunctionRegistryEngine | null | undefined
 ): ((name: string) => boolean) | undefined {
   if (typeof engine?.getRegisteredFunctionNames !== 'function') {
     return undefined;
@@ -526,11 +540,39 @@ function functionRegistryCheck(
 
   return (name) => {
     if (names === null) {
-      names = new Set((engine.getRegisteredFunctionNames?.() ?? []).map(registered => registered.toUpperCase()));
+      const registered = [...engine.getRegisteredFunctionNames?.() ?? [], ...classFunctionNames(engine)];
+
+      names = new Set(registered.map(fn => fn.toUpperCase()));
     }
 
     return names.has(name);
   };
+}
+
+/**
+ * The function names the engine's class registers for the engine's language
+ * (HyperFormula's static `getRegisteredFunctionNames(language)`), or none when it cannot answer.
+ *
+ * @param {object} engine The Formulas plugin's engine.
+ * @returns {string[]}
+ */
+function classFunctionNames(engine: FunctionRegistryEngine): string[] {
+  const EngineClass = engine.constructor as { getRegisteredFunctionNames?: (language: string) => unknown };
+
+  try {
+    const language = engine.getConfig?.()?.language;
+
+    if (typeof EngineClass?.getRegisteredFunctionNames !== 'function' || typeof language !== 'string') {
+      return [];
+    }
+
+    const names = EngineClass.getRegisteredFunctionNames(language);
+
+    return Array.isArray(names) ? names.filter((fn): fn is string => typeof fn === 'string') : [];
+  } catch {
+    // An engine whose class cannot list its names keeps the instance's list.
+    return [];
+  }
 }
 
 /**
