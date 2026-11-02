@@ -2058,6 +2058,17 @@ This applies to both engines.
 
 What to do: nothing.
 
+#### A formula keeps its references when columns are moved and hidden
+
+What changed: with `exportFormulas: true` and `exportHiddenColumns: false`, a formula's references
+now point at the columns they name in the file when columns were moved with `manualColumnMove`. In
+18.1, the export left out the wrong column when it moved the references past the hidden ones, so a
+formula was written one column off, next to the right cached value. Excel and LibreOffice recalculate
+on open, so the file showed wrong numbers with no warning.
+This applies to both engines.
+
+What to do: nothing.
+
 #### A formula error is stored as an error cell
 
 What changed: with `exportFormulas: true`, a formula whose result is an error (`#DIV/0!`, `#N/A`, `#NAME?`,

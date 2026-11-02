@@ -556,16 +556,16 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   Without it, re-importing your own export would freeze every formula over a constant name. **A name the
   engine defines on the grid's own sheet counts too**: `engineNamedExpressions` lists
   `listNamedExpressions(getSheetId(sheetName))` as well, and the comparison reads the formula and value
-  in that scope (`resolvingScope`), because HyperFormula resolves a sheet-scoped name first - handed over
-  at workbook scope, the file's `Sales` was silently shadowed by the user's. **A string constant with an
+  in that scope (`resolvingScope`), because HyperFormula resolves a sheet-scoped name first, so the
+  user's scoped `Sales` would shadow the file's handed over at workbook scope. **A string constant with an
   escaped quote** (`"a""b"`, what the export writes for `a"b`) does not parse in HyperFormula
   (`validateFormula` is false), so `toNamedExpressionInput` (`applier.ts`) turns it into the
   apostrophe-prefixed text `'a"b`, a string constant whatever follows the apostrophe; the check, the
   comparison (compared as that text), the probe and the applier all go through it, while
   `ImportResult.namedExpressions` keeps the file's `"a""b"`. Equal: the formulas over it stay live.
   Different, or not expressible: the name goes INTO `unresolvedNames`, so its formulas import cached
-  values with `formula:definedName`, plus `definedNames:unsupported`. A re-import of a changed file used
-  to read the previous import's range silently. Replacing the old definition (`changeNamedExpression`) is
+  values with `formula:definedName`, plus `definedNames:unsupported`, so a re-import of a changed file
+  never reads the previous import's range. Replacing the old definition (`changeNamedExpression`) is
   deliberately not done: the engine may be shared and nothing tags a name as the import's. A definition
   goes through `readFormulaText` (prefix strip, budget charge) and `rebaseImportedFormula` with the
   cell's shift, and **a reference to the imported sheet is re-qualified with the grid's sheet name**
@@ -597,8 +597,8 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   would throw mid-batch with the grid half-applied. Not undoable: `loadData` resets the grid's history,
   so the import never was an undo step. A name cycle (`A = B`, `B = A`) registers both and evaluates
   `#CYCLE!`. The adds run inside ONE `engine.batch()` (none when the list is empty, since an empty batch
-  still pushes an engine undo step): unbatched, every `addNamedExpression` recalculated the engine and
-  fired `valuesUpdated`, and 300 names over `RAND()` rows took ~6 s instead of ~25 ms. Do not route it
+  still pushes an engine undo step): unbatched, every `addNamedExpression` recalculates the engine and
+  fires `valuesUpdated`. Do not route it
   through the plugin's `registerNamedExpressions` – it takes another input shape and swallows errors.
   **Inside the batch HyperFormula 3.3 evaluates nothing**: `addNamedExpression` only records the name,
   and the evaluation runs in `resumeEvaluation()` when `engine.batch()` ends, so a
@@ -609,33 +609,33 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   name THIS call added (which one threw is unknown), each removal in its own `try` because a removal
   recalculates and can throw again, and pushes `definedNames:unsupported` onto `result.dropped` (the
   warning has already been logged by then); the import goes on. Each add is wrapped too (`addOrReport`),
-  for an engine that refuses or evaluates on the add itself.
+  for an engine that refuses or evaluates on the add itself. **A name removed this way leaves its
+  formulas showing `#NAME?`**: the mapper already put them into the data live, and no cached value is
+  available at that point, so the report (`definedNames:unsupported`, without `formula:definedName`) is
+  the only trace.
 - **A definition is bounded BEFORE the engine sees it** (`collectNamedExpressions`, constants in
-  `utils/xlsxEngine/limits.ts`). HyperFormula parses a definition twice in `canAdd` (9-27 ms per 32k
-  characters in Chrome, against 0.6 ms for the import's own walk) and evaluates it when the applier's
-  batch ends, used or not (`SUM(Sheet1!$A$1:$ZZ$10000)` took 15-46 s and 2 GB), and the formula budget's
-  figures cover neither. So: a definition over `MAX_DEFINED_NAME_LENGTH` (8,192, Excel's limit), or read
+  `utils/xlsxEngine/limits.ts`). HyperFormula parses a definition twice in `canAdd`, far slower than the
+  import's own walk, and evaluates it when the applier's batch ends, used or not, and the formula
+  budget's figures cover neither. So: a definition over `MAX_DEFINED_NAME_LENGTH` (8,192, Excel's limit), or read
   once `MAX_DEFINED_NAME_CHARS` (256 Ki per import, counting every definition within the per-definition
   cap: one over it is never parsed, so it spends nothing) is spent, is not even rebased; a rebased one
   whose ranges cover more than `MAX_DEFINED_NAME_CELLS` (100,000, `closedReferenceArea` in
   `formulaRefs.ts`) or bring the handed-over names past `MAX_DEFINED_NAME_TOTAL_CELLS` (1,000,000;
   charged only for a name the engine evaluates - one `canAdd` accepts, or one the engine already defines,
   whose comparison evaluates it - never for one `canAdd` refuses), or that calls a function the engine
-  does not register (`callsUnregisteredFunction`: `=UNIQUE(...)` names made every formula over them
+  does not register (`callsUnregisteredFunction`: every formula over a `=UNIQUE(...)` name shows
   `#NAME?`) is not handed over (`isTooCostly`). Each goes into `unresolvedNames` with
   `definedNames:unsupported`, so the formulas over it import cached values with `formula:definedName`.
   The checks run for a name the engine already defines too: `sameConstant` evaluates the file's
   definition with `calculateFormula`. **A whole column or row IS counted, against the engine sheet it is
   on**: `closedReferenceArea` counts a column span as columns x rows and a row span as rows x columns
-  (each at least 1), because HyperFormula evaluates it over the sheet's other axis, which made such a
-  name run out of memory while it counted 0. The names are added and evaluated when the applier's batch
+  (each at least 1), because HyperFormula evaluates it over the sheet's other axis. The names are added and evaluated when the applier's batch
   ends, BEFORE `loadData` replaces the grid's sheet, so the sheet is sized as the engine holds it then
   (`MapperContext.sheetExtent`, `getSheetDimensions`): an unqualified span or one on the grid's own
   engine sheet by the larger of that and the imported window, a span on another engine sheet by that
   sheet. A 3-row file imported into a 20,000-row grid counts `SUM(Sheet1!$A:$J)` as 200,000 cells. Without
   `getSheetDimensions` on the engine, every span is sized by the window. One column (`$B:$B`, the
-  dynamic-list idiom) of a sheet under 100,000 rows stays within the cap.
-  1,024 names of 32,000 characters: 11.7 s -> 0.15 s in the mapper (Node). Not bounded: a range a
+  dynamic-list idiom) of a sheet under 100,000 rows stays within the cap. Not bounded: a range a
   function builds at any size (`OFFSET(Sheet1!$A$1,0,0,1000000,100)`, `SEQUENCE`, `INDEX`), which
   `closedReferenceArea` cannot size.
 - **A live formula is shifted back into grid coordinates, and one that cannot be is dropped.** The export
