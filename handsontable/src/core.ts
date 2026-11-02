@@ -6520,6 +6520,9 @@ export default function Core(
       instance.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
       instance.view._wt.exportSettingsAsClassNames();
       instance.view.invalidateIndexSizesCache();
+      // `_getRowHeightFromSettings` answers from the new settings at once, so the engine has to follow
+      // before a scroll draw that a suspended render does not stop.
+      instance.view.syncRowHeightMode();
     }
 
     selection.updateHighlightClassNames();

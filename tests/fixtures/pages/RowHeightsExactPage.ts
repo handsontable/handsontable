@@ -50,6 +50,33 @@ export class RowHeightsExactPage {
   }
 
   /**
+   * Updates the settings with rendering suspended, scrolls to a row (a scroll draws the rows that come
+   * into view, which a suspended render does not stop) and returns the heights of the master rows
+   * painted by then, before rendering resumes.
+   */
+  async rowHeightsOfScrollDrawWhileSuspended(settings: RowHeightsExactSettings, row: number): Promise<number[]> {
+    return this.page.evaluate(async([s, r]) => {
+      const { hot } = window as any;
+      const frame = () => new Promise(resolve => requestAnimationFrame(resolve));
+
+      hot.suspendRender();
+      hot.updateSettings(s);
+      hot.scrollViewportTo({ row: r, verticalSnap: 'bottom' });
+
+      // The scroll event draws the rows that come into view on a later frame.
+      await frame();
+      await frame();
+
+      const heights = [...document.querySelectorAll('.ht_master tbody tr')]
+        .map(tr => tr.getBoundingClientRect().height);
+
+      hot.resumeRender();
+
+      return heights;
+    }, [settings, row] as [RowHeightsExactSettings, number]);
+  }
+
+  /**
    * A data cell of the master table, by visual row and column, via its stable test id. Frozen rows
    * and columns render the same cell again in an overlay clone, so the locator is scoped to the master.
    */

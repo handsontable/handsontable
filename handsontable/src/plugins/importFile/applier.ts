@@ -33,6 +33,19 @@ export interface ApplyOptions {
 type ResettableLayoutKey = 'mergeCells' | 'hiddenRows' | 'hiddenColumns' | 'fixedRowsTop'
   | 'fixedColumnsStart' | 'customBorders' | 'colWidths' | 'rowHeights';
 
+/**
+ * The grid setting a result key lands in. A workbook's row heights go to `minRowHeights`, not to
+ * `rowHeights`: the reader keeps every row's `ht`, also the height the producing app measured
+ * (LibreOffice and Google Sheets write one on every row, 20 px for the default 15 pt), and
+ * `rowHeights` would clip those rows below the theme's row height. As a floor they behave as before.
+ *
+ * @param {string} key A key of the import result.
+ * @returns {string}
+ */
+function settingKeyOf(key: string): string {
+  return key === 'rowHeights' ? 'minRowHeights' : key;
+}
+
 const RESETTABLE_LAYOUT_KEYS: ResettableLayoutKey[] = [
   'mergeCells', 'hiddenRows', 'hiddenColumns', 'fixedRowsTop', 'fixedColumnsStart', 'customBorders',
   'colWidths', 'rowHeights',
@@ -130,7 +143,7 @@ function toSettings(hot: HotInstance, result: ImportResult, options: ApplyOption
 
   direct.forEach((key) => {
     if (result[key] !== undefined) {
-      settings[key] = result[key];
+      settings[settingKeyOf(key)] = result[key];
     }
   });
 
@@ -201,7 +214,7 @@ function resetOmittedLayout(
   result: ImportResult, current: Record<string, unknown>, settings: Record<string, unknown>
 ): void {
   RESETTABLE_LAYOUT_KEYS.forEach((key) => {
-    if (result[key] !== undefined || !current[key]) {
+    if (result[key] !== undefined || !current[settingKeyOf(key)]) {
       return;
     }
 
@@ -220,7 +233,7 @@ function resetOmittedLayout(
         break;
       case 'colWidths':
       case 'rowHeights':
-        settings[key] = undefined;
+        settings[settingKeyOf(key)] = undefined;
         break;
       default:
         settings[key] = 0;

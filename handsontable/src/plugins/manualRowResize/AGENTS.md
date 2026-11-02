@@ -23,7 +23,7 @@ static get SETTING_KEYS() { return [PLUGIN_KEY, ...ROW_SIZE_OPTIONS]; }
 
 Both options state the row heights, so passing either one re-declares them. They are not equal at render
 time: only `rowHeights` is exact (`Core#_isRowHeightExact`), while `minRowHeights` is a floor
-(`Core#_getRowHeightFromSettings` reads `rowHeights ?? minRowHeights`). The column plugin has one entry,
+(`Core#_getRowHeightFromSettings` returns an exact `rowHeights` row as set, and uses `minRowHeights` for the rows `rowHeights` leaves out). The column plugin has one entry,
 because there is no `minColWidths` option. Do not symmetrize them.
 
 ## Where the row axis differs from the column axis

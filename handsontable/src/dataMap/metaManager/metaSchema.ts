@@ -7338,7 +7338,10 @@ export default (): Record<string, unknown> => {
      * visual row index, so with {@link ManualRowMove} a height stays at its screen position.
      *
      * When the {@link AutoRowSize} plugin is enabled, `rowHeights` sets the minimum row height, so a
-     * row still grows to fit its content, and the clipping described above does not apply.
+     * row still grows to fit its content, and the clipping described above does not apply. The
+     * [`autoRowSize`](#autoRowSize) option alone decides this, not the state of the plugin: with
+     * `autoRowSize` set, `rowHeights` stays a minimum even when the plugin is not registered, or after
+     * you call `disablePlugin()` on it.
      *
      * When {@link AutoRowSize} is disabled, a row resized by dragging keeps its height until the
      * height is re-declared. Passing `rowHeights` or [`minRowHeights`](#minRowHeights) to

@@ -466,7 +466,7 @@ class TableView {
       this.#discardSizesMeasuredWithoutStyles();
       this.#reservedSlotHeight = null;
       // Before the frozen counts are measured: they sum row heights, and those depend on the mode.
-      this.#syncRowHeightMode();
+      this.syncRowHeightMode();
       this.#refreshEffectiveFixed(isFullRender);
 
       this.#drawRenderedCells = false;
@@ -2994,7 +2994,7 @@ class TableView {
   }
 
   /**
-   * The row-height mode the options last asked for, as handed to the engine. `#syncRowHeightMode()`
+   * The row-height mode the options last asked for, as handed to the engine. `syncRowHeightMode()`
    * compares the options' answer with this, not with what the engine holds, so a caller that sets the
    * engine's mode directly (the E2E fixtures do) keeps it until the options ask for a different one.
    *
@@ -3043,8 +3043,11 @@ class TableView {
   /**
    * Hands the engine the row-height mode the current options ask for, before a draw. A mode that
    * changed drops the row-height cache, because the heights it holds were summed under the old one.
+   *
+   * `render()` runs it, and so does `updateSettings()` right after the merge: with rendering suspended
+   * a scroll still draws, and that draw has to read the new mode next to the new heights.
    */
-  #syncRowHeightMode() {
+  syncRowHeightMode() {
     const mode = this.#resolveRowHeightMode();
 
     if (this.#resolvedRowHeightMode !== mode) {

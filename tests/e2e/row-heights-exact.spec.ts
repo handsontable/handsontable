@@ -188,6 +188,19 @@ test.describe('exact row heights', { tag: THEMES_TAG }, () => {
     expect(await grid.clipWrapperCount()).toBe(0);
   });
 
+  test('paints a scroll draw with the new row height mode while rendering is suspended', async() => {
+    const LAST_ROW = 199;
+
+    await grid.goto({ minRowHeights: THIN, rowCount: LAST_ROW + 1, height: 120 });
+
+    const heights = await grid.rowHeightsOfScrollDrawWhileSuspended({ rowHeights: THIN }, LAST_ROW);
+
+    // The rows the scroll brought into view were drawn while rendering was suspended.
+    expect(heights.length).toBeGreaterThan(0);
+    expect(heights.every(height => height === THIN)).toBe(true);
+    await expect.poll(() => grid.lastFullyVisibleRow()).toBe(LAST_ROW);
+  });
+
   test('scrolls a grid of thin rows to its last row', async() => {
     const LAST_ROW = 199;
 
