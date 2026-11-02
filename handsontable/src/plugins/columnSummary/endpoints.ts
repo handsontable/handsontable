@@ -366,14 +366,12 @@ class Endpoints {
    * @param {object} defaultValue Default value for the settings.
    */
   assignSetting(settings: EndpointConfig, endpoint: EndpointConfig, name: string, defaultValue: unknown) {
-    if (name === 'ranges' && settings[name] === undefined) {
+    if (name === 'ranges' && !Array.isArray(settings[name])) {
       endpoint[name] = defaultValue as number[][];
       // Remember that the range is the whole-table default, so a structure alteration can re-derive it
       // (DEV-2995). INTERNAL field: not declared on `EndpointConfig`, and `parseSettings()` never copies it.
       endpoint.rangesFromDefault = true;
 
-      return;
-    } else if (name === 'ranges' && (settings[name] as number[][]).length === 0) {
       return;
     }
 
@@ -593,10 +591,7 @@ class Endpoints {
     if (axis === 'row') {
       endpoint.destinationRow = shiftIndex(endpoint.destinationRow!);
 
-      // `ranges: []` leaves the setting unset, so there can be nothing to shift.
-      if (endpoint.ranges) {
-        endpoint.ranges = this.#shiftRanges(endpoint.ranges, shiftIndex);
-      }
+      endpoint.ranges = this.#shiftRanges(endpoint.ranges!, shiftIndex);
 
     } else {
       endpoint.destinationColumn = shiftIndex(endpoint.destinationColumn!);

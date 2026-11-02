@@ -222,14 +222,14 @@ class VisualSelection extends Selection {
         this.cellRange = this.settings.createCellRange(cellCoordsRenderable as CellCoords);
       }
 
-      // TODO
-      // We set new highlight as it might change (for example, when showing/hiding some cells from the broader selection range)
-      // TODO: It is also handled by the `MergeCells` plugin while adjusting already modified coordinates. Should it?
+      // The highlight sits on a hidden cell, so it moves to the first visible cell of the range. This
+      // step owns hidden cells; `Selection#applyCellBlocks` owns merged blocks. That one moves the
+      // highlight onto a block's top-left before this runs. The top-left can be hidden, and then this
+      // step moves the highlight on to a visible cell.
       broaderCellRange.setHighlight(currentHighlight);
     }
 
-    // TODO
-    // Sync the highlight coords from the visual selection layer with logical coords.
+    // A focus highlight that is rendered syncs the logical highlight back from the visual layer.
     if (this.settings.selectionType === 'focus' && renderableHighlight !== null &&
         cellCoordsVisual === null && this.visualCellRange !== null) {
       broaderCellRange.setHighlight(this.visualCellRange.highlight);

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:checkbox_header",
+      "kind": "plugin",
+      "module": "CheckboxHeader",
+      "name": "Checkbox header",
+      "description": "Adds a \"check all\" checkbox to the header of a checkbox column.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "call",
+      "requires": {
+        "allOf": [
+          "cell:checkbox"
+        ]
+      },
+      "enforceAtInit": true
+    }
+  ]
+}
