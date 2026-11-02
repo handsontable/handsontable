@@ -496,7 +496,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   - **Remove / duplicate / workbook replaced.** A removed sheet's context is released (`_releaseContext`). A genuine teardown releases every sheet of the discarded workbook (captured before the model is dropped) plus `null`; a non-preserved enable releases `null`, which aborts a plain grid's fetch still running when the bar is enabled on a live grid. A plain grid's save still pending then is dropped by DataProvider (no refetch, no revert into the new sheet, no toast; pinned by a spec). A preserved `updatePlugin` round trip releases nothing. A duplicate gets the original's last response (`#copyServerView`), not its pending failures or its running fetch.
 - **A `sheetsBar: true` workbook keeps the visible rows when it gets the top-level `data` it already
   received** (`#receivedTopLevelData`: the grid's `data` at build, then every `updateSettings()` array;
-  reset when the bar turns off or the workbook is rebuilt). Ask "is this the array the grid already got",
+  reset when the bar turns off or the workbook is rebuilt). "Declares no sheets" is any `sheets` that is not a
+  non-empty array (absent, `null`, `undefined`, `[]`, `#keepsUndeclaredWorkbook`), the rule the build uses;
+  checking only for an absent key let a `{ sheets: null }` re-render load the first sheet's array into the
+  visible one. Ask "is this the array the grid already got",
   never "does a sheet still hold it": a wrapper re-render after the first sheet was removed sent an array no
   sheet held, and it replaced the visible sheet's rows. **A new array belongs to one sheet**, the one built
   from the grid's data (`#topLevelDataOwnerId`, by id, so a rename or a move keeps it and a duplicate is not

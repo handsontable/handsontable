@@ -5919,14 +5919,16 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Tells whether the grid-level `sheetsBar` setting keeps a workbook that declares no sheets
-   * (`sheetsBar: true`, or an object without a `sheets` key), as opposed to turning the bar off.
+   * (`sheetsBar: true`, or an object whose `sheets` is not a non-empty array: absent, `null`, `undefined`
+   * or `[]`, the rule `#buildInitialWorkbook` builds by), as opposed to turning the bar off.
    *
    * @returns {boolean}
    */
   #keepsUndeclaredWorkbook(): boolean {
     const setting: unknown = this.hot.getSettings()[PLUGIN_KEY];
 
-    return setting === true || (isPlainObject(setting) && !('sheets' in setting));
+    return setting === true
+      || (isPlainObject(setting) && !(Array.isArray(setting.sheets) && setting.sheets.length > 0));
   }
 
   /**

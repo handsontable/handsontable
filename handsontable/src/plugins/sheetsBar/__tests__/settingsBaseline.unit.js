@@ -887,6 +887,31 @@ describe('SheetsBar settings baseline and lifecycle', () => {
       });
     });
 
+    describe('a workbook built from `sheets` that declares no sheet', () => {
+      it.each([
+        ['null', null],
+        ['undefined', undefined],
+        ['an empty array', []],
+      ])('keeps the visible sheet\'s rows when `sheets` is %s and the same `data` comes again', (_label, sheets) => {
+        const appData = [['A1', 'B1']];
+
+        hot = new Handsontable(container, {
+          data: appData,
+          sheetsBar: { sheets },
+          licenseKey: LICENSE_KEY,
+        });
+
+        const bar = hot.getPlugin('sheetsBar');
+
+        bar.addSheet('Second', [['second']]);
+        bar.setActiveSheet('Second');
+        hot.updateSettings({ data: appData, sheetsBar: { sheets } });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('second');
+        expect(appData).toEqual([['A1', 'B1']]);
+      });
+    });
+
     describe('a new top-level `data` array sent to a `sheetsBar: true` workbook', () => {
       /**
        * Builds a `sheetsBar: true` grid over `appData` and adds two sheets.
