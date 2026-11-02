@@ -309,6 +309,9 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   is kept, as `hot.selectCells()` keeps it, so `A1:B3` with row 1 hidden selects `[0, 0, 2, 1]`.
 - **The reference border width is cached on the adapter, which outlives a theme rebuild.** `afterSetTheme`
   calls `resetBorderWidth()` before the theme class check (a stylesheet swapped in place keeps the class).
+  It is read from `hot.rootElement`, never from the overlay host: the host is the root wrapper, the root
+  element's parent, so the `.handsontable { --hfe-reference-border-width: 2px }` the guide shows never
+  reached it. The root element still inherits the theme's own value from the wrapper.
 - **Every engine read goes through `#readableSheetId()`.** An application on a shared engine can remove
   the grid's sheet; the Formulas plugin keeps the old id, and the engine throws `NoSheetWithIdError` for
   the package's `readCellText()` (the formula bar's selection sync threw on every select) and for
@@ -454,6 +457,12 @@ The `hyperformula-ui` side of each is listed for the package maintainers (the re
   element and could not move into the package's input when the editor opens. It needs a `hyperformula-ui`
   input that is mounted and focusable before the edit opens.
 - The horizon theme's accent focus ring measures below 3:1; it is the theme token every grid surface uses.
+  The formula bar's own rings (the address box and the bar-hosted editor) do not use it:
+  `--hfe-formula-bar-input-focus-ring` is the text accent (`$accent-text-color`, 5.33:1 on horizon). The
+  bar editor's ring is inset, so the bar's `.hfe-overlay` and `.hfe-editor__input` carry inline padding
+  of the ring width (the idle overlay too, so the text does not shift on focus); drawing the ring outward
+  instead is clipped by the top slot. Pinned by "the bar editor's focus ring" in
+  `tests/e2e/formula-builder-popups.spec.ts`.
 - `hyperformula-ui` is MIT-licensed since 0.3.6 (0.3.5 and earlier were `GPL-3.0-only`). It is pinned to an
   exact version because the 0.x line may break in a minor.
 

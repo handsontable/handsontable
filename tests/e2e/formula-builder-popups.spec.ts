@@ -175,15 +175,16 @@ test.describe('formulaBuilder error message by keyboard', { tag: [THEMES_TAG, BU
 
 
 /**
- * The WCAG contrast ratio of an element's text against what is painted under it: the background
- * colors and the `::before` tints (the grid draws a selected range as one) of the element and its
- * ancestors, composited down to the first opaque layer.
+ * The WCAG contrast ratio of an element's text (or another color it paints, such as its focus outline)
+ * against what is painted under it: the background colors and the `::before` tints (the grid draws a
+ * selected range as one) of the element and its ancestors, composited down to the first opaque layer.
  *
  * @param {Locator} locator The element holding the text.
+ * @param {'color' | 'outlineColor'} [property] The color to measure.
  * @returns {Promise<number>} The ratio, or `0` while a color cannot be read (poll it).
  */
-function textContrast(locator: Locator): Promise<number> {
-  return locator.evaluate((element) => {
+function textContrast(locator: Locator, property: 'color' | 'outlineColor' = 'color'): Promise<number> {
+  return locator.evaluate((element, colorProperty) => {
     type Rgba = [number, number, number, number];
     const parse = (value: string): Rgba | null => {
       const srgb = value.match(/color\(srgb ([^)]+)\)/);
@@ -233,7 +234,7 @@ function textContrast(locator: Locator): Promise<number> {
 
       return (0.2126 * channel(color[0])) + (0.7152 * channel(color[1])) + (0.0722 * channel(color[2]));
     };
-    const text = parse(getComputedStyle(element).color);
+    const text = parse(getComputedStyle(element)[colorProperty]);
 
     if (!text) {
       return 0;
@@ -242,7 +243,7 @@ function textContrast(locator: Locator): Promise<number> {
     const [lighter, darker] = [luminance(text), luminance(backdrop)].sort((first, second) => second - first);
 
     return (lighter + 0.05) / (darker + 0.05);
-  });
+  }, property);
 }
 
 // WCAG 1.4.3: the two text colors the plugin's tokens set that measured below 4.5:1 on the light
@@ -278,5 +279,38 @@ test.describe('formulaBuilder text contrast', { tag: [THEMES_TAG, BUNDLES_TAG] }
     await expect(cell).toHaveClass(/\barea\b/);
     await expect(cell).toHaveAttribute('data-hfe-error', '#DIV/0!');
     await expect.poll(() => textContrast(cell)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  // WCAG 1.4.11: horizon's accent measured 2.45:1 as the ring. The ring is inset, so the text must also
+  // start past it rather than under it.
+  test('the bar editor\'s focus ring reaches 3:1 and leaves the text clear', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.selectCellByApi(0, 2);
+    await grid.openBarEditor();
+    await expect(grid.editorInput).toBeFocused();
+
+    await expect.poll(() => textContrast(grid.barEditor, 'outlineColor')).toBeGreaterThanOrEqual(3);
+
+    const layout = await grid.barEditor.evaluate((editor) => {
+      const style = getComputedStyle(editor);
+      const text = editor.querySelector('.hfe-overlay')!;
+      const walker = editor.ownerDocument.createTreeWalker(text, NodeFilter.SHOW_TEXT);
+      const range = editor.ownerDocument.createRange();
+      const node = walker.nextNode()!;
+
+      range.setStart(node, 0);
+      range.setEnd(node, 1);
+
+      return {
+        ringInnerEdge: editor.getBoundingClientRect().left - parseFloat(style.outlineOffset),
+        ringWidth: parseFloat(style.outlineWidth),
+        textStart: range.getBoundingClientRect().left,
+      };
+    });
+
+    expect(layout.textStart).toBeGreaterThanOrEqual(layout.ringInnerEdge);
+    expect(layout.ringWidth).toBeGreaterThan(0);
   });
 });

@@ -43,7 +43,10 @@ $accent-text-color: color-mix(in srgb, var(--ht-accent-color) 55%, var(--ht-fore
     --hfe-font-family: #{mixins.$font-family-stack};
     --hfe-font-size: var(--ht-font-size);
     --hfe-line-height: var(--ht-line-height);
-    --hfe-formula-bar-input-focus-ring: var(--ht-accent-color, var(--hfe-color-focus-ring));
+    // The text accent, not the theme accent: a focus indicator needs 3:1 against the bar, and horizon's
+    // accent measures 2.45:1 on white (the text accent 5.33:1). The ring of the address box and of the
+    // bar-hosted editor both read it.
+    --hfe-formula-bar-input-focus-ring: #{$accent-text-color};
     --hfe-gap: var(--ht-gap-size);
     --hfe-color-background: var(--ht-cell-editor-background-color);
     --hfe-color-foreground: var(--ht-cell-editor-foreground-color);
@@ -196,7 +199,10 @@ $accent-text-color: color-mix(in srgb, var(--ht-accent-color) 55%, var(--ht-fore
 
   .ht-formula-builder__formula-bar.hfe-formula-bar .hfe-overlay,
   .ht-formula-builder__formula-bar.hfe-formula-bar .hfe-editor__input {
-    padding: var(--hfe-formula-bar-padding-vertical) 0;
+    /* The inline padding keeps the text clear of the bar editor's inset focus ring, which the top slot
+       would clip if it were drawn outward (`overflow: auto`). The idle overlay shares the rule, so the
+       text does not shift on focus. */
+    padding: var(--hfe-formula-bar-padding-vertical) var(--hfe-border-width-focus);
   }
 
   .ht-formula-builder__formula-bar .hfe-editor--height-capped .hfe-overlay,
