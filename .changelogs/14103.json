@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a data corruption where `minSpareCols` and `minCols` inserted a `null` into the middle of a row that is longer than the first row.",
+  "title": "Fixed `minSpareCols`, `minCols`, and inserting a column at the end of the grid writing a `null` into the middle of a row that is longer than the first row, and undo removing the values of such a row.",
   "type": "fixed",
   "issueOrPR": 14103,
   "breaking": false,

@@ -571,7 +571,7 @@ class DataMap {
     );
     this.#insertColumnsIntoDataSource(
       dataSource, firstNewPhysicalColumnIndex, visualColumnIndex, numberOfVisualCols,
-      numberOfSourceRows, numberOfCreatedCols, fillsMinimumSize
+      numberOfSourceRows, numberOfCreatedCols
     );
 
     if (numberOfCreatedCols > 0) {
@@ -612,13 +612,11 @@ class DataMap {
   }
 
   /**
-   * Inserts the given amount of null columns into the data source in at most two passes over
-   * the rows, instead of one full pass per created column. The previous per-column loop chose
-   * between an append and a middle splice per iteration, based on the visual index against the
-   * growing column count; the same sequence collapses into two batched phases: the first
-   * `appendCount` iterations (while the visual index is at or past the current count) are
-   * end-of-row pushes, and the remaining iterations are single splices at consecutive ascending
-   * positions - which is exactly one block insert at the first of those positions.
+   * Inserts the given amount of null columns into the data source, in one pass over the rows, as a block at
+   * the physical column the insertion is recorded at (the undo journal replays it by that index). The
+   * insertion index clamps to the row length inside `insertValuesInPlace`, so a row shorter than the
+   * insertion point gets the nulls at its end. A row longer than the grid (the grid width comes from the
+   * first row) keeps its values in order, and the nulls go in front of the values past the grid.
    *
    * @param {Array} dataSource The data source array.
    * @param {number} firstColumn The physical column index at which the first column is inserted.
@@ -626,9 +624,6 @@ class DataMap {
    * @param {number} numberOfVisualCols The visual column count before the insertion.
    * @param {number} numberOfSourceRows The number of source rows.
    * @param {number} amount The number of columns to insert.
-   * @param {boolean} fillsMinimumSize Whether the columns are appended to satisfy `minCols`/`minSpareCols`. Such
-   * columns are pushed to the end of every row, so a row longer than the grid (the grid width comes from the
-   * first row) keeps each value it holds where it is.
    */
   #insertColumnsIntoDataSource(
     dataSource: (Record<string, unknown> | unknown[])[],
@@ -636,49 +631,30 @@ class DataMap {
     visualColumnIndex: number | undefined,
     numberOfVisualCols: number,
     numberOfSourceRows: number,
-    amount: number,
-    fillsMinimumSize: boolean
+    amount: number
   ) {
     if (amount <= 0) {
       return;
     }
 
-    let appendCount = amount;
+    if (numberOfSourceRows === 0) {
+      // A grid without rows gets one row per column created at its end, to hold the new columns.
+      const appendCount = typeof visualColumnIndex === 'number' ?
+        Math.max(0, Math.min(amount, visualColumnIndex - numberOfVisualCols + 1)) : amount;
 
-    if (typeof visualColumnIndex === 'number') {
-      appendCount = Math.max(0, Math.min(amount, visualColumnIndex - numberOfVisualCols + 1));
+      for (let i = 0; i < appendCount; i++) {
+        dataSource.push([null]);
+      }
+
+      return;
     }
 
-    // The rule above pushes the first column and splices the others at a fixed position, which lands them
-    // inside a row longer than the grid. The filler columns are not a user's insert, so they all go to the end.
-    const rowAppendCount = fillsMinimumSize && appendCount > 0 ? amount : appendCount;
-    const middleCount = amount - rowAppendCount;
-
-    if (appendCount > 0) {
-      if (numberOfSourceRows > 0) {
-        for (let row = 0; row < numberOfSourceRows; row++) {
-          if (typeof dataSource[row] === 'undefined') {
-            dataSource[row] = [];
-          }
-
-          for (let i = 0; i < rowAppendCount; i++) {
-            (dataSource[row] as unknown[]).push(null);
-          }
-        }
-      } else {
-        for (let i = 0; i < appendCount; i++) {
-          dataSource.push([null]);
-        }
+    for (let row = 0; row < numberOfSourceRows; row++) {
+      if (typeof dataSource[row] === 'undefined') {
+        dataSource[row] = [];
       }
-    }
 
-    if (middleCount > 0) {
-      // The insertion index clamps to the row length inside `insertValuesInPlace`, so rows
-      // shorter than the insertion point get the nulls appended at their end - matching what
-      // the previous repeated clamped `splice` calls did.
-      for (let row = 0; row < numberOfSourceRows; row++) {
-        insertValuesInPlace(dataSource[row] as unknown[], firstColumn + rowAppendCount, middleCount, null);
-      }
+      insertValuesInPlace(dataSource[row] as unknown[], firstColumn, amount, null);
     }
   }
 

@@ -2,9 +2,10 @@ import Handsontable from 'handsontable';
 
 /**
  * The grid width comes from the first row, so a later row can be longer than the grid. The columns `minSpareCols`
- * and `minCols` append must only append to such a row, and never move a value it already holds (DEV-485).
+ * and `minCols` add are inserted as a block at one position, so the values of a longer row keep their order and
+ * undo and redo take out exactly the columns that were added (DEV-485).
  */
-describe('Appending `minSpareCols` and `minCols` columns to a grid with rows of different length', () => {
+describe('Creating columns in a grid with rows of different length', () => {
   let container;
   let hot;
 
@@ -35,31 +36,57 @@ describe('Appending `minSpareCols` and `minCols` columns to a grid with rows of 
   }
 
   /**
-   * Returns the source row without the trailing `null` values the grid appended.
+   * Returns a copy of the source data.
+   *
+   * @returns {Array}
+   */
+  function snapshot() {
+    return JSON.parse(JSON.stringify(hot.getSourceData()));
+  }
+
+  /**
+   * Returns the values of a source row without the `null` values the grid inserted.
    *
    * @param {number} row The physical row.
    * @returns {Array}
    */
-  function getRowWithoutTrailingNulls(row) {
-    const values = hot.getSourceDataAtRow(row).slice();
-
-    while (values.length > 0 && values[values.length - 1] === null) {
-      values.pop();
-    }
-
-    return values;
+  function getValues(row) {
+    return hot.getSourceDataAtRow(row).filter(value => value !== null);
   }
 
-  it('should keep the values of a longer row in place when `minSpareCols` adds columns', () => {
+  /**
+   * Edits the last column, which makes `minSpareCols` add columns, then undoes and redoes the edit.
+   *
+   * @returns {{ before: Array, after: Array, undone: Array, redone: Array }}
+   */
+  function editLastColumnThenUndoAndRedo() {
+    const undoRedo = hot.getPlugin('undoRedo');
+    const before = snapshot();
+
+    hot.setDataAtCell(0, hot.countCols() - 1, 'x');
+
+    const after = snapshot();
+
+    undoRedo.undo();
+
+    const undone = snapshot();
+
+    undoRedo.redo();
+
+    return { before, after, undone, redone: snapshot() };
+  }
+
+  it('should keep the values of a longer row in order when `minSpareCols` adds columns', () => {
     createGrid({
       data: [['first'], ['alpha', 'beta', 'cookie', 'delta']],
       minSpareCols: 2,
     });
 
-    expect(getRowWithoutTrailingNulls(1)).toEqual(['alpha', 'beta', 'cookie', 'delta']);
+    expect(hot.countCols()).toBe(3);
+    expect(hot.getSourceDataAtRow(1)).toEqual(['alpha', null, null, 'beta', 'cookie', 'delta']);
   });
 
-  it('should keep the values of a longer row in place after an edit makes `minSpareCols` add more columns', () => {
+  it('should keep the values of a longer row in order after an edit makes `minSpareCols` add more columns', () => {
     createGrid({
       data: [['first'], ['alpha', 'beta', 'cookie', 'delta']],
       minSpareCols: 2,
@@ -67,40 +94,42 @@ describe('Appending `minSpareCols` and `minCols` columns to a grid with rows of 
 
     hot.setDataAtCell(0, hot.countCols() - 1, 'x');
 
-    expect(getRowWithoutTrailingNulls(1)).toEqual(['alpha', 'beta', 'cookie', 'delta']);
-    expect(getRowWithoutTrailingNulls(0)).toContain('x');
+    const row = hot.getSourceDataAtRow(1);
+
+    expect(row.slice(row.indexOf('beta'))).toEqual(['beta', 'cookie', 'delta']);
+    expect(getValues(1)).toEqual(['alpha', 'beta', 'cookie', 'delta']);
+    expect(getValues(0)).toEqual(['first', 'x']);
   });
 
-  it('should keep the values of a longer row in place when `minCols` adds columns', () => {
+  it('should keep the values of a longer row in order when `minCols` adds columns', () => {
     createGrid({
       data: [['first'], ['alpha', 'beta', 'cookie', 'delta']],
       minCols: 4,
     });
 
-    expect(getRowWithoutTrailingNulls(1)).toEqual(['alpha', 'beta', 'cookie', 'delta']);
+    expect(hot.countCols()).toBe(4);
+    expect(hot.getSourceDataAtRow(1)).toEqual(['alpha', null, null, null, 'beta', 'cookie', 'delta']);
   });
 
-  it('should keep the values of a longer row in place when `minSpareCols` adds several columns at once', () => {
+  it('should keep the values of a longer row in order when `minSpareCols` adds several columns at once', () => {
     createGrid({
       data: [['first'], ['alpha', 'beta', 'cookie', 'delta']],
       minSpareCols: 3,
     });
 
-    expect(getRowWithoutTrailingNulls(1)).toEqual(['alpha', 'beta', 'cookie', 'delta']);
+    expect(hot.countCols()).toBe(4);
+    expect(getValues(1)).toEqual(['alpha', 'beta', 'cookie', 'delta']);
   });
 
-  it('should bring back a longer row when an explicit insert at the end of the grid is undone', () => {
+  it('should keep the values of a longer row when `minSpareCols` is lowered', () => {
     createGrid({
-      data: [['a'], ['b', 'c', 'd']],
-      undo: true,
+      data: [['first'], ['alpha', 'beta', 'cookie', 'delta']],
+      minSpareCols: 2,
     });
 
-    const before = JSON.parse(JSON.stringify(hot.getSourceData()));
+    hot.updateSettings({ minSpareCols: 0 });
 
-    hot.alter('insert_col_end', 0, 2);
-    hot.getPlugin('undoRedo').undo();
-
-    expect(hot.getSourceData()).toEqual(before);
+    expect(hot.getSourceDataAtRow(1)).toEqual(['alpha', 'beta', 'cookie', 'delta']);
   });
 
   it('should still insert into the middle of a longer row when a column is created before the last one', () => {
@@ -114,35 +143,90 @@ describe('Appending `minSpareCols` and `minCols` columns to a grid with rows of 
     expect(hot.getSourceDataAtRow(1)).toEqual(['alpha', null, null, 'beta', 'cookie', 'delta']);
   });
 
-  it('should keep all the values of a longer row when `minSpareCols` is lowered', () => {
+  it('should undo and redo an edit that made `minSpareCols` add columns to a grid with a trimmed longer row', () => {
     createGrid({
-      data: [['first'], ['alpha', 'beta', 'cookie', 'delta']],
+      data: [['a'], ['1', '2', '3', '4', '5', '6'], ['b']],
       minSpareCols: 2,
+      trimRows: [1],
+      undo: true,
     });
 
-    hot.updateSettings({ minSpareCols: 0 });
+    const { before, after, undone, redone } = editLastColumnThenUndoAndRedo();
 
-    expect(getRowWithoutTrailingNulls(1)).toEqual(['alpha', 'beta', 'cookie', 'delta']);
+    expect(undone).toEqual(before);
+    expect(redone).toEqual(after);
   });
 
-  it('should restore the source data after undoing and redoing an edit that made `minSpareCols` add columns', () => {
+  it('should undo and redo an edit that made `minSpareCols` add one column to a longer row', () => {
+    createGrid({
+      data: [['a', 'b'], ['1', '2', '3', '4', '5', '6']],
+      minSpareCols: 1,
+      undo: true,
+    });
+
+    const { before, after, undone, redone } = editLastColumnThenUndoAndRedo();
+
+    expect(undone).toEqual(before);
+    expect(redone).toEqual(after);
+  });
+
+  it('should undo and redo an edit that made `minSpareCols` add columns', () => {
     createGrid({
       data: [['first'], ['alpha', 'beta', 'cookie', 'delta']],
       minSpareCols: 2,
       undo: true,
     });
 
-    const before = JSON.parse(JSON.stringify(hot.getSourceData()));
+    const { before, after, undone, redone } = editLastColumnThenUndoAndRedo();
 
-    hot.setDataAtCell(0, 0, 'changed');
+    expect(undone).toEqual(before);
+    expect(redone).toEqual(after);
+  });
 
-    const after = JSON.parse(JSON.stringify(hot.getSourceData()));
+  it('should undo and redo an `insert_col_end` made on the last column of a grid with a longer row', () => {
+    createGrid({
+      data: [['a'], ['b', 'c', 'd']],
+      undo: true,
+    });
 
-    hot.getPlugin('undoRedo').undo();
+    const undoRedo = hot.getPlugin('undoRedo');
+    const before = snapshot();
+
+    hot.alter('insert_col_end', 0, 2);
+
+    const after = snapshot();
+
+    expect(after[1]).toEqual(['b', null, null, 'c', 'd']);
+
+    undoRedo.undo();
 
     expect(hot.getSourceData()).toEqual(before);
 
-    hot.getPlugin('undoRedo').redo();
+    undoRedo.redo();
+
+    expect(hot.getSourceData()).toEqual(after);
+  });
+
+  it('should undo and redo an `insert_col_start` made at the last column of a grid with a longer row', () => {
+    createGrid({
+      data: [['a'], ['b', 'c', 'd']],
+      undo: true,
+    });
+
+    const undoRedo = hot.getPlugin('undoRedo');
+    const before = snapshot();
+
+    hot.alter('insert_col_start', 1, 2);
+
+    const after = snapshot();
+
+    expect(after[1]).toEqual(['b', null, null, 'c', 'd']);
+
+    undoRedo.undo();
+
+    expect(hot.getSourceData()).toEqual(before);
+
+    undoRedo.redo();
 
     expect(hot.getSourceData()).toEqual(after);
   });
