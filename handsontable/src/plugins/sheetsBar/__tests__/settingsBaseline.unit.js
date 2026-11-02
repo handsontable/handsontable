@@ -1021,6 +1021,27 @@ describe('SheetsBar settings baseline and lifecycle', () => {
         expect(notAppliedWarnings(warnSpy)).toHaveLength(2);
       });
 
+      it('passes a `data: null` on as a plain grid takes it once the first sheet was removed', () => {
+        const plain = new Handsontable(document.createElement('div'), {
+          data: [['A1']],
+          licenseKey: LICENSE_KEY,
+        });
+
+        plain.updateSettings({ data: null });
+
+        const plainData = plain.getData();
+
+        plain.destroy();
+
+        const bar = buildWithAddedSheets([['A1']]);
+
+        bar.setActiveSheet('Second');
+        bar.removeSheet(idOf(bar, 'Sheet1'));
+
+        expect(() => hot.updateSettings({ data: null, sheetsBar: true })).not.toThrow();
+        expect(hot.getData()).toEqual(plainData);
+      });
+
       it('changes nothing when only a copy of the first sheet is left', () => {
         const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
         const bar = buildWithAddedSheets([['A1']]);

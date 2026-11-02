@@ -5939,14 +5939,15 @@ export class SheetsBar extends BasePlugin {
    * sheet's new data: loaded when the sheet is shown, put in its place while it is hidden
    * (`#replaceHiddenSheetData`), and ignored with one warning per array once the sheet was removed. Either way
    * it becomes the array received. A payload that turns a declared workbook into `sheetsBar: true` loads its
-   * `data`, which the rebuild then takes as the new first sheet's.
+   * `data`, which the rebuild then takes as the new first sheet's. A value that is not an array (`data: null`)
+   * goes on to core as it does on a plain grid.
    *
    * @param {Array} sourceData The rows about to be loaded.
    * @param {Array} liveData The rows the grid shows.
    * @returns {Array|undefined} The rows the grid shows, when the incoming ones are not loaded.
    */
   #keepUndeclaredSheetRows(sourceData: unknown[], liveData: unknown[]): unknown[] | undefined {
-    if (this.#declaredEntries.size > 0 || !this.#keepsUndeclaredWorkbook()) {
+    if (!Array.isArray(sourceData) || this.#declaredEntries.size > 0 || !this.#keepsUndeclaredWorkbook()) {
       return;
     }
 
