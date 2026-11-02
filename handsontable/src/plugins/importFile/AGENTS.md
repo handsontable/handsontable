@@ -591,6 +591,7 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `layoutDirection` in `dropped` when the sheet and the target grid disagree - before `dropped.warn()`,
   so the plugin still warns exactly once per call. Adding it to `toSettings` would look like a fix and
   change nothing.
+- **Without `xlsx:layout`, `mapNestedHeaders` reads no band merge at all** (its `readsMerges` argument is `entitlement.layout`), matching the export, which writes no nested-header merge without the token: each header cell becomes its own label with colspan 1, a blank cell stays `''`, and `result.nestedHeaders` carries no group. `license:xlsx:layout` is still recorded when the caller's `importLayout` is on, because the merges existed. Keyed on the license, not on the caller's `importLayout`: a full key with `importLayout: false` keeps its groups, as before. Pinned by `importLicenseGates.unit.js`.
 - **A merge inside the header band becomes a `nestedHeaders` colspan, and never a `mergeCells` entry.**
   `mapNestedHeaders` reads the band's merges for the group spans; `cropMerge` then drops those same
   merges for free, because shifting them by `window.firstRow` puts their last row above row 0. Do not add

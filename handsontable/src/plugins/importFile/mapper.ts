@@ -1563,9 +1563,13 @@ function headerLabelAt(sheet: SheetSnapshot, row: number, col: number): string {
  * imported rectangle.
  *
  * Returns `undefined` for a single-row band, which keeps `colHeaders` the answer for the common case.
+ *
+ * Without `xlsx:layout` (`readsMerges` is `false`) the band's merges are not read, the way the export
+ * writes no nested-header merge without it: every header cell becomes its own label with no colspan,
+ * and a blank cell stays `''`.
  */
 function mapNestedHeaders(
-  sheet: SheetSnapshot, window: SheetWindow, options: ResolvedImportOptions
+  sheet: SheetSnapshot, window: SheetWindow, options: ResolvedImportOptions, readsMerges: boolean
 ): ImportedNestedHeader[][] | undefined {
   if (options.colHeaders !== 'firstRow' || options.headerRows < 2) {
     return undefined;
@@ -1573,7 +1577,9 @@ function mapNestedHeaders(
 
   const bandEnd = window.firstRow - 1;
   const bandStart = bandEnd - options.headerRows + 1;
-  const coverage = buildHeaderCoverage(sheet, bandStart, bandEnd, window);
+  const coverage = readsMerges
+    ? buildHeaderCoverage(sheet, bandStart, bandEnd, window)
+    : new Map<string, MergeSnapshot>();
   const layers: ImportedNestedHeader[][] = [];
 
   for (let row = bandStart; row <= bandEnd; row++) {
@@ -1702,7 +1708,7 @@ export function mapWorkbook(
   const result: MappedResult = {
     data: pass.data,
     colHeaders: mapHeaders(sheet, window, options),
-    nestedHeaders: mapNestedHeaders(sheet, window, options),
+    nestedHeaders: mapNestedHeaders(sheet, window, options, entitlement.layout),
     rowHeaders: options.rowHeaders ? true : undefined,
     ...placeMeta(pass, pass.data.length, colCount, options.inferCellTypes),
     ...(options.importLayout ? mapLayout(sheet, window) : {}),

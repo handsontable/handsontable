@@ -272,7 +272,7 @@ The XLSX import reads your license key for the [capabilities](@/guides/getting-s
 
 - `xlsx:import` - the import itself.
 - `xlsx:formulas` - `importFormulas`.
-- `xlsx:layout` - `importLayout`.
+- `xlsx:layout` - `importLayout`, and the column groups of nested headers. Without it, a merged cell in the header band does not become a group: each header cell becomes its own label.
 - `xlsx:comments` - cell comments.
 - `xlsx:styles` - `importStyles`.
 - `xlsx:conditional_formatting` - `result.conditionalFormatting`.

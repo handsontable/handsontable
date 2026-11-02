@@ -411,6 +411,51 @@ describe('ImportFile mapper license gates', () => {
     });
   });
 
+  it('builds the header band without groups without xlsx:layout, and records the license entry', () => {
+    const workbook = createWorkbookSnapshot();
+    const sheet = new SheetBuilder('Data');
+
+    sheet.cell(1, 1).value = 'Person';
+    sheet.cell(1, 3).value = 'Pay';
+    sheet.merge(1, 1, 1, 2);
+    sheet.cell(2, 1).value = 'Name';
+    sheet.cell(2, 2).value = 'Team';
+    sheet.cell(2, 3).value = 'Amount';
+    sheet.cell(3, 1).value = 'Ana García';
+    sheet.cell(3, 2).value = 'Engineering';
+    sheet.cell(3, 3).value = 4200;
+    workbook.sheets.push(sheet.toSnapshot());
+
+    const map = (entitlement) => {
+      const dropped = new DroppedFeatures();
+      const result = mapWorkbook(workbook, resolveImportOptions({ colHeaders: 'firstRow', headerRows: 2 }), {
+        formulasEnabled: false,
+        commentsEnabled: false,
+        customBordersEnabled: false,
+        entitlement,
+      }, dropped);
+
+      return { result, names: dropped.list() };
+    };
+    const full = map(UNRESTRICTED_XLSX_ENTITLEMENT);
+    const gated = map(without('layout', 'xlsx:layout'));
+
+    expect(full.result.nestedHeaders).toEqual([
+      [{ label: 'Person', colspan: 2 }, 'Pay'],
+      ['Name', 'Team', 'Amount'],
+    ]);
+    expect(licenseEntriesOf(full.names)).toEqual([]);
+
+    // Each header cell is its own label, the blank one stays blank: no group survives.
+    expect(gated.result.nestedHeaders).toEqual([
+      ['Person', '', 'Pay'],
+      ['Name', 'Team', 'Amount'],
+    ]);
+    expect(gated.result.nestedHeaders.flat().some(header => typeof header === 'object')).toBe(false);
+    expect(gated.names).toContain('license:xlsx:layout');
+    expect(gated.result.data).toEqual(full.result.data);
+  });
+
   it('records license:<token> for every missing token in dictionary order', () => {
     const { result, dropped } = mapRich(STANDARD_ENTITLEMENT, { importStyles: true });
 
