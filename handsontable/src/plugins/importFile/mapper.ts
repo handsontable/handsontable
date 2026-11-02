@@ -1657,9 +1657,9 @@ function recordMissingLicenses(
     // whatever the caller's option says.
     'xlsx:layout': () => (requestedOptions.importLayout && hasLayout(sheet))
       || hasHeaderBandGroup(sheet, window, options),
-    // Without the Comments plugin the comments are reported as `comments`, as for any key.
-    'xlsx:comments': () => context.commentsEnabled
-      && (pass.sawComment || hasHeaderBandComment(sheet, window, options)),
+    // Without the Comments plugin the comments are reported as `comments`, as for any key. A note in
+    // the header band is lost on every key (`comment:header`), so it never counts toward the license.
+    'xlsx:comments': () => context.commentsEnabled && pass.sawComment,
     'xlsx:styles': () => requestedOptions.importStyles && pass.sawStyle,
     'xlsx:conditional_formatting': () => sheet.conditionalFormatting.length > 0,
     // A list validation becomes a dropdown only through type inference.
@@ -1720,8 +1720,8 @@ export function mapWorkbook(
     dropped.record(DROPPED_FEATURES.comments);
   }
 
-  // A header-band note is lost on every key; the license entry names it only when it replaces this one.
-  if ((entitlement.comments || !context.commentsEnabled) && hasHeaderBandComment(sheet, window, options)) {
+  // A header-band note is lost on every key, whatever the license or the Comments plugin.
+  if (hasHeaderBandComment(sheet, window, options)) {
     dropped.record(DROPPED_FEATURES.commentHeader);
   }
 

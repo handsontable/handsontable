@@ -299,8 +299,32 @@ describe('ImportFile mapper license gates', () => {
     // Not reported as the file-driven `comments` entry: the license entry names the loss.
     expect(full.dropped.list()).toContain('comment:header');
     expect(gated.dropped.list()).not.toContain('comments');
-    expect(gated.dropped.list()).not.toContain('comment:header');
+    // A header note is lost on every key, so it keeps its own entry and is never blamed on the license.
+    expect(gated.dropped.list()).toContain('comment:header');
     expect(licenseEntriesOf(gated.dropped.list())).toEqual(['license:xlsx:comments']);
+  });
+
+  it('reports a header-only note as comment:header, not as a license loss', () => {
+    const workbook = createWorkbookSnapshot();
+    const sheet = new SheetBuilder('Data');
+
+    sheet.cell(1, 1).value = 'Name';
+    sheet.cell(1, 1).comment = 'Header note';
+    sheet.cell(2, 1).value = 'Ana García';
+    workbook.sheets.push(sheet.toSnapshot());
+
+    const dropped = new DroppedFeatures();
+
+    mapWorkbook(workbook, resolveImportOptions({ colHeaders: 'firstRow' }), {
+      formulasEnabled: false,
+      commentsEnabled: true,
+      customBordersEnabled: false,
+      entitlement: without('comments', 'xlsx:comments'),
+    }, dropped);
+
+    expect(dropped.list()).toEqual(['comment:header']);
+    // The import warning names `licenseTokens()`, so an empty list means no license warning.
+    expect(dropped.licenseTokens()).toEqual([]);
   });
 
   it('sets no readOnly without xlsx:protection', () => {
