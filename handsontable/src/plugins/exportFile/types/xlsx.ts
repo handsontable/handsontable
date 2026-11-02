@@ -430,8 +430,8 @@ function hasLayout(facts: SheetFeatureFacts, isRtl: boolean): boolean {
  * object, an object whose `password` is neither `undefined`, `null` nor a string, and a password
  * longer than Excel's 255 characters. A number would otherwise reach the engines, which disagree on
  * it: the built-in one hashes it as an empty password (a protected-looking sheet with no real
- * password), and ExcelJS throws a bare `TypeError`. The
- * messages name the option, never its value, because the value may be a password.
+ * password), and ExcelJS throws a bare `TypeError`. The messages name the option, never its value,
+ * because the value may be a password.
  *
  * @param {*} protection The `protection` export option.
  */
@@ -653,7 +653,9 @@ class Xlsx extends BaseType {
     this.#needIf(facts.wouldProtect || isObject(options.protection), 'xlsx:protection');
     this.#needIf(hasLayout(facts, dataProvider.getLayoutDirection() === 'rtl'), 'xlsx:layout');
 
-    if (options.exportFormulas && !this.#needed.has('xlsx:formulas')) {
+    // Read only when the token is missing: with it, the flag changes nothing, and the source data
+    // would be read twice.
+    if (options.exportFormulas && !this.#entitlement.formulas && !this.#needed.has('xlsx:formulas')) {
       this.#needIf(facts.hasSummary || dataProvider.getSourceData()
         .some(row => row.some(value => isFormulaValue(value))), 'xlsx:formulas');
     }
