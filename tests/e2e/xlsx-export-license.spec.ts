@@ -104,6 +104,22 @@ async function exportedFeatures(lic: XlsxLicensePage): Promise<Record<ExportFeat
 }
 
 /**
+ * Overrides that turn the fixture's source grid into a plain text grid on default settings: no
+ * `colWidths`, no merge, hidden column, frozen row, comment, read-only cell or class, and text
+ * columns only.
+ */
+const PLAIN_GRID = {
+  data: [['Ana García', 'Engineering'], ['Li Wei', 'Marketing']],
+  colHeaders: false,
+  columns: [{ type: 'text' }, { type: 'text' }],
+  cell: [],
+  mergeCells: false,
+  hiddenColumns: false,
+  fixedRowsTop: 0,
+  colWidths: undefined,
+};
+
+/**
  * The export's missing-token warnings logged since the last `create()`.
  */
 async function licenseWarnings(lic: XlsxLicensePage): Promise<string[]> {
@@ -274,6 +290,28 @@ for (const engine of ['native', 'exceljs'] as const) {
         expect(JSON.stringify(result).includes(PASSWORD)).toBe(false);
         expect((await lic.warnings()).some(message => message.includes(PASSWORD))).toBe(false);
       });
+
+    test('a grid on default settings warns about xlsx:layout for its auto-sized columns only', async({
+      page, theme, bundle,
+    }) => {
+      const lic = new XlsxLicensePage(page, theme, bundle, engine);
+
+      await lic.goto();
+
+      // AutoColumnSize is on by default, and the widths it measures are layout the file would carry.
+      await lic.create(keyWith(['xlsx:export']), PLAIN_GRID);
+      await lic.exportBytes();
+
+      expect(await licenseWarnings(lic)).toEqual([
+        'The xlsx export skipped features your license does not unlock: xlsx:layout.',
+      ]);
+
+      // With every column at the default width, the grid has no layout to write.
+      await lic.create(keyWith(['xlsx:export']), { ...PLAIN_GRID, autoColumnSize: false });
+      await lic.exportBytes();
+
+      expect(await licenseWarnings(lic)).toEqual([]);
+    });
 
     test('no-console-warns silences the warning but not the gate', async({ page, theme, bundle }) => {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
