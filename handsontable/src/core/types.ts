@@ -331,6 +331,7 @@ export interface HotInstance {
   _getMetaManager(): MetaManagerInstance;
   _getOperationScope(): OperationScope;
   _hasPendingValidation(): boolean;
+  _isAnsweringStaleValidation(): boolean;
   _applySettingsAndData(
     settings: Partial<GridSettings>, data: unknown[], source: string, cellOptionMetas?: CellOptionMetaEntry[] | null,
     keptCellMetas?: KeptCellMetas | null

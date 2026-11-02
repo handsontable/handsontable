@@ -535,6 +535,12 @@ export default function Core(
    */
   let validationLoadGeneration = 0;
   /**
+   * Whether the `postAfterValidate` hook that runs now reports the answer of a validator call made before
+   * the last `loadData()`. Such an answer belongs to a change the load dropped, so a listener waiting for
+   * the answer to a later call (an editor's wait) must not take it (see `_isAnsweringStaleValidation()`).
+   */
+  let isAnsweringStaleValidation = false;
+  /**
    * Watches the root wrapper's edge slots for a height change (a bar that mounts after init, wraps
    * after a locale switch, or grows a horizontal scrollbar once its width is clamped). A slot's
    * height feeds two things nothing else observes: the pixel `height` core writes on the root, and
@@ -3305,7 +3311,9 @@ export default function Core(
 
   /**
    * Starts the validator of every change that has one, and queues each until it answers. A change the
-   * validator rejects under `allowInvalid: false` is taken out of the list.
+   * validator rejects under `allowInvalid: false` is taken out of the list. The loop stops when a
+   * `loadData()` lands in it (a `beforeValidate` listener can run one): the set is dropped then, and the
+   * changes still to validate would read the loaded records' meta and mark them for values never written.
    *
    * @param {Array} changes The changes, in the form `[row, prop, oldValue, newValue]`.
    * @param {string} [source] The change source.
@@ -3324,8 +3332,9 @@ export default function Core(
     onRejected: () => void,
   ) {
     const visibleRowsCount = instance.countRows();
+    const loadGeneration = validationLoadGeneration;
 
-    for (let i = changes.length - 1; i >= 0; i--) {
+    for (let i = changes.length - 1; i >= 0 && loadGeneration === validationLoadGeneration; i--) {
       const [row, prop,, newValue] = changes[i];
       // A change can address a column that auto column growth is about to create, and `propToCol()`
       // answers `null` for one that does not exist yet. Falling back to the prop keeps such a cell
@@ -3761,12 +3770,12 @@ export default function Core(
       // function itself — not a usable column reference. Fall back to the visual column index
       // so hook listeners always receive a number or a property string, never a function.
       const colArg = isFunction(cellProperties.prop) ? cellProperties.visualCol : cellProperties.prop;
+      // Captured before `beforeValidate`, so the callback can tell whether the cell's coordinates still
+      // mean what they meant when the validation was asked for: a listener of that hook can load other
+      // data, and the answer must not mark a loaded record.
+      const structureVersion = metaManager.getStructureVersion();
 
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, colArg, source);
-
-      // Captured before the validator runs, so the callback can tell whether the cell's coordinates
-      // still mean what they meant when it started.
-      const structureVersion = metaManager.getStructureVersion();
       // The validator answers after the call that asked for it has returned. What it and the
       // `afterValidate` listeners write belongs to that call's undo step – or to none, when the call
       // was not recorded – so the answer runs inside the call's operation.
@@ -3809,9 +3818,18 @@ export default function Core(
                 countAnswer();
 
                 done(valid);
-                instance.runHooks(
-                  'postAfterValidate', valid, value, cellProperties.visualRow, colArg, source
-                );
+
+                const wasAnsweringStaleValidation = isAnsweringStaleValidation;
+
+                isAnsweringStaleValidation = loadGeneration !== validationLoadGeneration;
+
+                try {
+                  instance.runHooks(
+                    'postAfterValidate', valid, value, cellProperties.visualRow, colArg, source
+                  );
+                } finally {
+                  isAnsweringStaleValidation = wasAnsweringStaleValidation;
+                }
               });
             } finally {
               countAnswer();
@@ -4984,9 +5002,10 @@ export default function Core(
 
   /**
    * Tells whether a validator call made for a change is still waiting for its answer. A change made through
-   * {@link Core#setDataAtCell} or an editor is applied to the data the grid holds when its last validator
-   * answers, so anything that replaces the grid's data must not run in the meantime. A validator that
-   * throws counts as answered. A `loadData()` call starts a new count, so a validator that never answers
+   * {@link Core#setDataAtCell} or an editor is dropped when a `loadData()` replaces the data before its last
+   * validator answers, so code that must keep the edit (the sheets bar) asks first and does not replace the
+   * data in the meantime. `updateData()` drops nothing: the change is written at its coordinates in the
+   * updated data. A validator that throws counts as answered. A `loadData()` call starts a new count, so a validator that never answers
    * stops counting once the grid loads other data. `validateCells()` and its siblings hold no change, so
    * their calls are not counted. The answer is counted out before its change is written, so an
    * `afterChange` listener of the last answer already reads `false`.
@@ -4998,6 +5017,20 @@ export default function Core(
    */
   this._hasPendingValidation = function() {
     return pendingValidatorAnswers > 0;
+  };
+
+  /**
+   * Tells a `postAfterValidate` listener whether the answer it receives comes from a validator call made
+   * before the last `loadData()`. The change that call validated was dropped, so a listener waiting for the
+   * answer to a later call (an editor waiting for its own value) must not take it as its own.
+   *
+   * @private
+   * @memberof Core#
+   * @function _isAnsweringStaleValidation
+   * @returns {boolean}
+   */
+  this._isAnsweringStaleValidation = function() {
+    return isAnsweringStaleValidation;
   };
 
   /**
@@ -5068,6 +5101,11 @@ export default function Core(
    * - Keeps columns' states (e.g. column order)
    *
    * To replace Handsontable's [`data`](@/api/options.md#data) and reset states, use the [`loadData()`](#loaddata) method.
+   *
+   * A change that still waits for its cell's [`validator`](@/api/options.md#validator) is written at its row and
+   * column of the new data when the validator answers, so pass the same records the grid shows. A `data` update
+   * through [`updateSettings()`](#updatesettings) runs `updateData()` too. To replace the records and drop such a
+   * change, use `loadData()`.
    *
    * Read more:
    * - [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
@@ -5183,9 +5221,11 @@ export default function Core(
    *
    * To replace Handsontable's [`data`](@/api/options.md#data) without resetting states, use the [`updateData()`](#updatedata) method.
    *
-   * A change that still waits for an asynchronous [`validator`](@/api/options.md#validator) when you call `loadData()` is dropped:
-   * it isn't written into the new data, and [`afterChange`](@/api/hooks.md#afterchange) doesn't fire for it. An open editor
-   * that waits for that validator closes without saving.
+   * A change that still waits for its cell's [`validator`](@/api/options.md#validator) when you call `loadData()` is dropped:
+   * it isn't written into the new data, and [`afterChange`](@/api/hooks.md#afterchange) doesn't fire for it. Validators always
+   * answer after the call that made the change returns, so this includes a synchronous validator and a change made in the
+   * same function right before `loadData()`. An open editor that waits for that validator closes without saving.
+   * [`updateData()`](#updatedata) drops nothing.
    *
    * Read more:
    * - [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
@@ -5211,8 +5251,9 @@ export default function Core(
    *
    * A load drops every change still waiting for its validator (`validateAndApplyChanges()`), so an
    * editor waiting for one is closed here: the value it saved will not be written, and its validator's
-   * answer must not reopen it on a record of the loaded data. The first load runs before the editor
-   * manager exists.
+   * answer must not reopen it on a record of the loaded data. The editor's close callbacks run with
+   * `false` (nothing saved) after the load, so one that prepares the editor again reads the loaded data.
+   * The first load runs before the editor manager exists.
    *
    * @private
    * @param {Array} data The new data.
@@ -5221,7 +5262,8 @@ export default function Core(
   function applyLoadData(data: unknown[][][] | object[], source: string) {
     pendingValidatorAnswers = 0;
     validationLoadGeneration += 1;
-    editorManager?.getActiveEditor()?._endValidationWait();
+
+    const finishEndedValidationWait = editorManager?.getActiveEditor()?._endValidationWait() ?? null;
 
     runWithGridTrackingFitsSuspended(() => replaceData(
       data,
@@ -5255,6 +5297,8 @@ export default function Core(
         firstRun,
         beforeRender: () => runOwedReadySteps(1),
       }));
+
+    finishEndedValidationWait?.();
   }
 
   /**

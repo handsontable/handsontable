@@ -1,5 +1,5 @@
 import { type Locator, type Page, expect } from '@playwright/test';
-import { awaitBundle } from '../bundle';
+import { awaitBundle, type Bundle } from '../bundle';
 
 interface EditorState {
   opened: boolean;
@@ -23,10 +23,10 @@ interface FixtureWindow {
 export class ValidatedEditReloadPage {
   readonly page: Page;
   readonly theme: string;
-  readonly bundle: string;
+  readonly bundle: Bundle;
   readonly pageErrors: string[] = [];
 
-  constructor(page: Page, theme = 'main', bundle = 'umd') {
+  constructor(page: Page, theme = 'main', bundle: Bundle = 'umd') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;

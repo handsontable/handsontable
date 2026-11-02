@@ -453,9 +453,11 @@ Mind that changes in table are applied after running all validators (both synchr
 
 When you write to the same cell twice while an asynchronous validator is still running, the last write wins. If the validator of the newer write answers first, Handsontable applies the newer value and drops the older one, and the cell keeps the validity of the newer value. The dropped write fires [`beforeChange`](@/api/hooks.md#beforechange) but not [`afterChange`](@/api/hooks.md#afterchange). If the newer write is rejected because [`allowInvalid`](@/api/options.md#allowinvalid) is `false`, the older write still applies.
 
-If you call [`loadData()`](@/api/core.md#loaddata) while an asynchronous validator is still running, Handsontable drops the write: the new data doesn't get the value, and [`afterChange`](@/api/hooks.md#afterchange) doesn't fire for it. The validation hooks still fire. An editor that waits for that validator closes without saving. [`updateData()`](@/api/core.md#updatedata) doesn't drop the write, because it's meant for the same records in a new array, so the value lands at the same row and column of the updated data.
-
 The order holds only among writes that wait on a validator. A [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell) call is not tracked, and neither is a correction that a validator writes late with a `setDataAtCell()` source ending in `Validator`, so an older validated write can still land on top of either.
+
+If you call [`loadData()`](@/api/core.md#loaddata) while a cell's validator hasn't answered yet, Handsontable drops the write: the new data doesn't get the value. This applies to every validator, including a synchronous one, a cell type's own validator (such as `numeric` or `date`), and [`maxLength`](@/api/options.md#maxlength), because Handsontable always runs validators after the call that made the change returns. So `setDataAtCell()` followed by `loadData()` in the same function drops the value too. The dropped write fires [`beforeChange`](@/api/hooks.md#beforechange) and the validation hooks, but not [`afterChange`](@/api/hooks.md#afterchange), and the row and column the validation hooks report refer to the data before the load. An editor that waits for that validator closes without saving.
+
+[`updateData()`](@/api/core.md#updatedata) doesn't drop the write, because it's meant for the same records in a new array. If the new array holds other records, the value is written into the record at the same row and column. To replace the records and drop the write, use `loadData()`.
 
 ### FAQ: Does the invalid CSS class still apply when <code>allowInvalid</code> is <code>true</code>?
 

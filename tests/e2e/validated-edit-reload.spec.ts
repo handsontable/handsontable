@@ -63,6 +63,24 @@ test.describe('an edit waiting for its validator when the app reloads the data',
     await expect(grid.cell(0, 2)).toHaveText('Data Analyst');
   });
 
+  test('keeps the next edit waiting for its own answer when the dropped edit answers first', async() => {
+    await grid.typeAndConfirm(0, 2, 'Staff Engineer');
+    await expect.poll(() => grid.pendingCount()).toBe(1);
+
+    await grid.reload();
+    await grid.typeAndConfirm(1, 2, 'Lead Analyst');
+    await expect.poll(() => grid.pendingCount()).toBe(2);
+
+    await grid.answer('Staff Engineer', true);
+
+    expect(await grid.editorState()).toEqual({ opened: true, waiting: true });
+
+    await grid.answer('Lead Analyst', true);
+
+    await expect.poll(() => grid.editorState()).toEqual({ opened: false, waiting: false });
+    expect((await grid.sourceData())[1].title).toBe('Lead Analyst');
+  });
+
   test('reopens the editor on a rejected edit when no reload lands first', async() => {
     await grid.typeAndConfirm(0, 2, 'Staff Engineer');
     await expect.poll(() => grid.pendingCount()).toBe(1);

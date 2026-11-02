@@ -540,7 +540,7 @@ The repair is `#onBeforeChangeRender`. `#onAfterSetDataAtCell` records each chan
 `#changesAwaitingApply` (a `WeakMap` keyed by the change array — the Core hands the same array to
 `beforeChangeRender`), together with `#sheetWriteCount` and `sheetId`. When the count has moved, or
 the sheet id has changed, by the time the Core applies the set, the set is written into the engine
-again. Five rules:
+again. The rules:
 
 - **`beforeChangeRender`, not `afterChange`.** The Core renders between the two, so writing back from
   `afterChange` painted the raw formula text until the next render (negative control in the test below).
@@ -552,7 +552,7 @@ again. Five rules:
   loaded rows (`handsontable/AGENTS.md`, "A change waiting for an async validator is dropped"). A dropped
   set fires neither `beforeChangeRender` nor `afterChange`, so the Core calls the plugin's
   `#onChangesDropped` through the `@private` `_addDroppedChangesListener()`. It is registered in
-  `enablePlugin()` and removed in `disablePlugin()`. Before the Core dropped such a set, it applied it to
+  `enablePlugin()` and removed in `disablePlugin()` and `destroy()` (`BasePlugin` does not track it). Before the Core dropped such a set, it applied it to
   the switched-to sheet's data, and this plugin wrote it into that sheet to match; that was writing an edit
   into a record the user never touched, and it never shipped in a release. `#onBeforeChangeRender` still
   compares the sheet id as well as the count, for a set that reaches the render after the binding moved
@@ -564,10 +564,18 @@ again. Five rules:
   its grid data never got it, and a switch back showed it. `#restoreSwitchedAwaySheet` writes the change
   set's OLD values back into the sheet recorded on the set (they are what that sheet held, since the grid's
   data was that sheet's when the change was made), skipping out-of-bounds changes (never written there)
-  and a sheet removed from the engine. **Nothing is put back while the grid still shows that sheet**: the
-  load either wrote the loaded data over the whole sheet, and a restore would write the old value over the
-  loaded one, or loaded the grid from that sheet, so the two agree. Pinned by `keeps the loaded values when
-  loadData() on the same sheet drops the change`. **It restores the cells the first write
+  and a sheet removed from the engine. The restore runs in a `withPluginEngineWrite` scope that paints THIS
+  grid too: the Core renders nothing for a dropped set, and `#writeOwnSheet()` left a cell of the sheet shown
+  that reads the restored cell painting the value computed from the dropped one (pinned by `repaints this grid
+  when the restore changes a cell its current sheet reads`). **While the grid still shows that sheet, the
+  sheet write count decides.** When it moved, the load wrote the loaded data over the whole sheet, and a
+  restore would write the old value over the loaded one, so nothing is put back (pinned by `keeps the loaded
+  values when loadData() on the same sheet drops the change`). When it did not, the grid was loaded FROM that
+  sheet (`switchSheet()` away and back within the window), so the grid's data holds the dropped value as
+  well, and `#restoreReloadedCells()` writes the old values through `setSourceDataAtCell()` under
+  `suppress()`: its `afterSetSourceDataAtCell` puts the engine back, at the cells the first write recorded,
+  translated from engine indexes, because the load built the rows from the engine sheet (pinned by `takes
+  the dropped change out of the grid data when the grid switched away and back`). **It restores the cells the first write
   RECORDED (`ChangeSetAwaitingApply#writtenCells`: engine address, grid coordinates, old value), never
   a fresh mapping.** The index mapping DOES move on a switch: the switch's `loadData` clears runtime
   trims, so with row 0 trimmed a change to visual row 0 was written to sheet row 1, while a mapping
@@ -587,11 +595,16 @@ again. Five rules:
   only that guard stops `setCellContents` from throwing `SheetSizeLimitExceededError`. Keep both: the
   first states the intent and avoids an empty engine batch, the second is the per-cell bound no
   sheet-level check gives. Pinned by `leaves a switched-away sheet alone when it was removed from the
-  engine before the change was applied` (the removed-sheet case, which throws only with both deleted) and
+  engine before the change was dropped` (the removed-sheet case, which throws only with both deleted) and
   `does not put back a cell the engine refused the first write of` (the per-cell guard alone).
 - **The write-back writes the whole set once, and the out-of-bounds write stands aside.** A change past
-  the last row or column is not written from `afterSetDataAtCell` but from a one-off `afterChange`
-  listener, after the Core created the row. By `beforeChangeRender` that row exists, so the write-back
+  the last row or column is not written from `afterSetDataAtCell` but from `afterChange`, after the Core
+  created the row: `#outOfBoundsWrites` keeps the changes keyed by the set's change array, and
+  `#onAfterChangeWriteOutOfBounds` writes them only for that same array. It used to be a one-off
+  `addHookOnce('afterChange')`, which any `afterChange` took, and a `loadData()` fires one (`null` changes):
+  the stale value went into the loaded sheet while the set was then dropped, so the engine held a value the
+  grid did not (pinned by `does not write a dropped change past the last row into the loaded data`). A drop
+  deletes the entry. By `beforeChangeRender` that row exists, so the write-back
   covers it and sets `writtenBack` on the record, which the `afterChange` listener checks. Writing it
   twice is a redundant engine write and an extra entry on the ENGINE's own undo stack. A grid undo never
   calls `engine.undo()` (it restores the engine from the state the plugin recorded), so only an app that

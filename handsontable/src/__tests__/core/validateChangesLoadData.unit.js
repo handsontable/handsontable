@@ -136,19 +136,68 @@ describe('Core validation of a change when loadData() replaces the data', () => 
     expect(edits).toEqual([]);
   });
 
-  it('should drop the change after a load even when the validator rejects it', async() => {
-    createGrid({ allowInvalid: false });
+  it('should drop the change of a synchronous validator when loadData() runs in the same task', async() => {
+    createGrid({
+      columns: [{ data: 'id' }, { data: 'name', validator: (value, callback) => callback(true) }],
+    });
 
     const loaded = otherRecords();
 
     hot.setDataAtCell(0, 1, 'typed');
-    await settle();
     hot.loadData(loaded);
-    answer('typed', false);
+    await settle();
 
     expect(loaded).toEqual(otherRecords());
     expect(edits).toEqual([]);
-    expect(validated).toEqual([['typed', false]]);
+  });
+
+  it('should not mark a loaded record invalid when loadData() runs from beforeValidate', async() => {
+    let loaded = null;
+
+    createGrid({
+      beforeValidate() {
+        if (!loaded) {
+          loaded = otherRecords();
+          hot.loadData(loaded);
+        }
+      },
+    });
+
+    hot.setDataAtRowProp([[0, 'name', 'bad'], [1, 'name', 'worse']]);
+    await settle();
+    pending.splice(0).forEach(({ answer: callback }) => callback(false));
+
+    expect(hot.getCellMeta(0, 1).valid).not.toBe(false);
+    expect(hot.getCellMeta(1, 1).valid).not.toBe(false);
+    expect(loaded).toEqual(otherRecords());
+    expect(edits).toEqual([]);
+  });
+
+  it('should tell the dropped-changes listeners about the dropped set, once each', async() => {
+    createGrid();
+
+    const heard = [];
+    const removedListener = jest.fn();
+    const listener = (changes, source) => heard.push([changes, source]);
+    let written = null;
+
+    hot.addHook('afterSetDataAtCell', (changes) => {
+      written = changes;
+    });
+    hot._addDroppedChangesListener(listener);
+    hot._addDroppedChangesListener(listener);
+    hot._addDroppedChangesListener(removedListener);
+    hot._removeDroppedChangesListener(removedListener);
+
+    hot.setDataAtCell(0, 1, 'typed', 'appEdit');
+    await settle();
+    hot.loadData(otherRecords());
+    answer('typed');
+
+    expect(heard).toHaveLength(1);
+    expect(heard[0][0]).toBe(written);
+    expect(heard[0][1]).toBe('appEdit');
+    expect(removedListener).not.toHaveBeenCalled();
   });
 
   it('should write a change made after the load and drop the one made before it', async() => {
@@ -198,17 +247,119 @@ describe('Core validation of a change when loadData() replaces the data', () => 
 
   describe('an editor waiting for the validator', () => {
     /**
-     * Opens the editor on cell (0, 1), types a value, and confirms it, so the editor waits for the validator.
+     * Opens the editor on a `name` cell, types a value, and confirms it, so the editor waits for the
+     * validator.
      *
      * @param {string} value The typed value.
+     * @param {number} [row=0] The visual row.
      */
-    async function confirmEdit(value) {
-      hot.selectCell(0, 1);
+    async function confirmEdit(value, row = 0) {
+      hot.selectCell(row, 1);
       hot.getActiveEditor().beginEditing();
       hot.getActiveEditor().setValue(value);
       hot.getActiveEditor().finishEditing();
       await settle();
     }
+
+    it('should not take the stale answer of a dropped edit as the answer to the next one', async() => {
+      createGrid({ allowInvalid: false });
+      await confirmEdit('first');
+      hot.loadData(otherRecords());
+      await confirmEdit('second', 1);
+
+      expect(hot.getActiveEditor().isWaiting()).toBe(true);
+
+      answer('first', true);
+
+      expect(hot.getActiveEditor().isWaiting()).toBe(true);
+
+      answer('second', false);
+
+      expect(hot.getActiveEditor().isOpened()).toBe(true);
+      expect(hot.getActiveEditor().getValue()).toBe('second');
+    });
+
+    it('should not reopen the next edit on the stale rejection of a dropped one', async() => {
+      createGrid({ allowInvalid: false });
+      await confirmEdit('first');
+      hot.loadData(otherRecords());
+      await confirmEdit('second', 1);
+      answer('first', false);
+
+      expect(hot.getActiveEditor().isWaiting()).toBe(true);
+
+      answer('second', true);
+
+      expect(hot.getActiveEditor().isOpened()).toBe(false);
+      expect(hot.getDataAtCell(1, 1)).toBe('second');
+    });
+
+    it('should prepare the editor against the loaded data after the load closed a waiting one', async() => {
+      createGrid();
+      await confirmEdit('typed');
+      hot.selectCell(1, 1);
+
+      const finishCallback = jest.fn();
+
+      hot.getActiveEditor().finishEditing(false, false, finishCallback);
+      hot.loadData(otherRecords());
+
+      expect(finishCallback).toHaveBeenCalledWith(false);
+
+      hot._getEditorManager().openEditor(null, null, true);
+
+      expect(hot.getActiveEditor().row).toBe(1);
+      expect(hot.getActiveEditor().getValue()).toBe('yolanda');
+    });
+
+    it('should stay closed when loadData() runs from a beforeChange listener of its own save', async() => {
+      let loaded = null;
+
+      createGrid({
+        allowInvalid: false,
+        beforeChange() {
+          if (!loaded) {
+            loaded = otherRecords();
+            hot.loadData(loaded);
+          }
+        },
+      });
+
+      await confirmEdit('typed');
+      answer('typed', false);
+
+      expect(hot.getActiveEditor().state).toBe('STATE_VIRGIN');
+      expect(hot.getActiveEditor().isOpened()).toBe(false);
+    });
+
+    it('should stay closed when an unchanged confirm is rejected after the load', async() => {
+      createGrid({ allowInvalid: false });
+      hot.selectCell(0, 1);
+      hot.getActiveEditor().beginEditing();
+      hot.getActiveEditor().finishEditing();
+      await settle();
+
+      expect(hot.getActiveEditor().isWaiting()).toBe(true);
+
+      hot.loadData(otherRecords());
+
+      expect(pending).toHaveLength(1);
+
+      pending.splice(0).forEach(({ answer: callback }) => callback(false));
+
+      expect(hot.getActiveEditor().isOpened()).toBe(false);
+      expect(hot.getActiveEditor().state).toBe('STATE_VIRGIN');
+    });
+
+    it('should leave an editor that is not waiting alone', () => {
+      createGrid();
+      hot.selectCell(0, 1);
+      hot.getActiveEditor().beginEditing();
+
+      expect(hot.getActiveEditor()._endValidationWait()).toBeNull();
+      expect(hot.getActiveEditor().state).toBe('STATE_EDITING');
+      expect(hot.getActiveEditor().isOpened()).toBe(true);
+    });
 
     it('should close when loadData() replaces the data', async() => {
       createGrid();
