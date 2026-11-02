@@ -87,7 +87,7 @@ describe('HotTable with a sheets bar', () => {
       data: appData,
       sheetsBar: true,
     });
-    const ref = renderHotTableWithProps(props(), false);
+    const ref = renderHotTableWithProps(props(), true);
     const hot = ref.current!.hotInstance!;
     const plugin = hot.getPlugin('sheetsBar');
 
