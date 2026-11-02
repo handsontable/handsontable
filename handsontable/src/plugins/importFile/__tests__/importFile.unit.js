@@ -14,7 +14,12 @@ import { createWorkbookSnapshot } from '../../../utils/xlsxEngine/model';
 import { loadFixture as fixture, toArrayBuffer } from '../../../utils/xlsxEngine/__tests__/helpers/fixtures';
 import * as consoleHelpers from '../../../helpers/console';
 import { registerCellType } from '../../../cellTypes/registry';
-import { keyWith } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
+import {
+  LISTED_CAPABILITIES_FLAG,
+  keyWith,
+  keyWithoutFlag,
+} from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
+import { registerAsRootInstance } from '../../../utils/rootInstance';
 import XLSX_FEATURES from '../../../utils/xlsxEngine/features.json';
 import { SUBSCRIPTION_KEY } from '../../../utils/entitlementLicenseKey/__tests__/fixtures';
 import { UNRESTRICTED_XLSX_ENTITLEMENT } from '../../../utils/xlsxEngine/xlsxEntitlement';
@@ -1429,6 +1434,47 @@ describe('ImportFile license gate', () => {
       expect(plugin.supportsImportFormat('xlsx')).toBe(true);
       await expect(plugin.importFromArrayBuffer('xlsx', fixture('values'))).resolves.toBeDefined();
     }
+  });
+
+  describe('on a key that lists its features (no feat:all)', () => {
+    // `keyWith()` always adds `feat:all`, so these keys are built without it: the plugin's own token
+    // (`feat:import_file`) and the xlsx token are then checked one after the other. The plugin token is
+    // checked on a root instance only, so the fake grid is registered as one.
+    const listedKey = tokens => keyWithoutFlag(tokens, [LISTED_CAPABILITIES_FLAG]);
+    const pluginMessage = 'The license key for Handsontable does not include these features: '
+      + 'Import from file (feat:import_file).';
+    const rootPluginFor = (licenseKey) => {
+      const fake = pluginWithFakeHot({ engines: { xlsx: ExcelJS } }, { licenseKey });
+
+      registerAsRootInstance(fake.hot);
+
+      return fake;
+    };
+
+    it('refuses an import with the plugin\'s license message first when the key lacks feat:import_file', async() => {
+      const { plugin, calls } = rootPluginFor(listedKey(['xlsx:import']));
+      const bytes = fixture('values');
+
+      expect(plugin.supportsImportFormat('xlsx')).toBe(false);
+      await expect(plugin.importFromArrayBuffer('xlsx', bytes)).rejects.toThrow(pluginMessage);
+      await expect(plugin.importFromBlob('xlsx', new Blob([bytes]))).rejects.toThrow(pluginMessage);
+      expect(calls).toEqual([]);
+    });
+
+    it('refuses an import with the xlsx:import message when the key has feat:import_file only', async() => {
+      const { plugin, calls } = rootPluginFor(listedKey(['feat:import_file']));
+
+      expect(plugin.supportsImportFormat('xlsx')).toBe(false);
+      await expect(plugin.importFromArrayBuffer('xlsx', fixture('values'))).rejects.toThrow(message);
+      expect(calls).toEqual([]);
+    });
+
+    it('imports when the key has both feat:import_file and xlsx:import', async() => {
+      const { plugin } = rootPluginFor(listedKey(['feat:import_file', 'xlsx:import']));
+
+      expect(plugin.supportsImportFormat('xlsx')).toBe(true);
+      await expect(plugin.importFromArrayBuffer('xlsx', fixture('values'))).resolves.toBeDefined();
+    });
   });
 });
 
