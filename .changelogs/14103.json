@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a data corruption where `minSpareCols` and `minCols` inserted a `null` into the middle of a row that is longer than the first row.",
+  "type": "fixed",
+  "issueOrPR": 14103,
+  "breaking": false,
+  "framework": "none"
+}
