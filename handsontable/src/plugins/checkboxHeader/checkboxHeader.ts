@@ -31,6 +31,7 @@ import {
   writeCheckboxColumn,
   type CheckboxMeta,
 } from '../../utils/checkboxColumn';
+import { PLUGIN_DEPS } from './feature.generated';
 
 export const PLUGIN_KEY = 'checkboxHeader';
 export const PLUGIN_PRIORITY = 390;
@@ -167,6 +168,13 @@ export class CheckboxHeader extends BasePlugin {
    */
   static get SETTING_KEYS() {
     return false;
+  }
+
+  /**
+   * Returns the list of plugin dependencies required before this plugin can be initialized.
+   */
+  static get PLUGIN_DEPS() {
+    return [...PLUGIN_DEPS];
   }
 
   /**
