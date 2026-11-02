@@ -844,4 +844,33 @@ describe('HotTableComponent with a sheets bar', () => {
       expect(turns).toBe(0);
     });
   });
+
+  describe('the `data` input of a `sheetsBar: true` grid', () => {
+    it('should give a new array to the first sheet while another sheet is visible', () => {
+      const firstRows = [['A1', 'B1']];
+      const newRows = [['new', 'rows']];
+
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.data = firstRows;
+      fixture.componentInstance.settings = { licenseKey: NON_COMMERCIAL_LICENSE, sheetsBar: true };
+      fixture.detectChanges();
+
+      const component = fixture.componentInstance;
+      const hot = component.hotInstance;
+      const plugin = sheetsBarOf(hot);
+
+      plugin.addSheet('Second', [['second']]);
+      plugin.setActiveSheet('Second');
+
+      component.data = newRows;
+      component.ngOnChanges({ data: new SimpleChange(firstRows, newRows, false) });
+
+      expect(hot.getDataAtCell(0, 0)).toBe('second');
+      expect(plugin.getSheetData('Sheet1')).toBe(newRows);
+
+      plugin.setActiveSheet('Sheet1');
+
+      expect(hot.getDataAtCell(0, 0)).toBe('new');
+    });
+  });
 });

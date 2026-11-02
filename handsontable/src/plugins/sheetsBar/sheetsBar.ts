@@ -976,6 +976,13 @@ export class SheetsBar extends BasePlugin {
    */
   #unappliedTopLevelData = new WeakSet<unknown[]>();
   /**
+   * Whether the bar itself is replacing the visible sheet's data through `updateData()` (a rename that had to
+   * copy a frozen array), which the top-level `data` rule leaves alone.
+   *
+   * @type {boolean}
+   */
+  #isUpdatingOwnData = false;
+  /**
    * The tab name to re-activate after a workbook rebuild, or `null` when the rebuild should
    * follow the `activeSheet` setting. Set by `updatePlugin` for the window of one rebuild.
    *
@@ -5436,7 +5443,14 @@ export class SheetsBar extends BasePlugin {
       return;
     }
 
-    const load = () => this.#withoutUndoEntry(() => this.hot.updateData(data as unknown[][], `${source}.rename`));
+    const load = () => this.#withoutUndoEntry(() => {
+      try {
+        this.#isUpdatingOwnData = true;
+        this.hot.updateData(data as unknown[][], `${source}.rename`);
+      } finally {
+        this.#isUpdatingOwnData = false;
+      }
+    });
 
     if (formulas?.enabled) {
       formulas.runWithEngineOrderHeld(load, formulas.exportEngineOrder());
@@ -5867,6 +5881,10 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
+   * A host's own `updateData()` call (the Angular wrapper's `data` input) goes through the same top-level `data`
+   * rule as `updateSettings({ data })` in a workbook that declares no sheets (`#keepUndeclaredSheetRows`), so
+   * a new array reaches the sheet built from the grid's data, whichever sheet is shown.
+   *
    * Keeps the visible sheet's rows when a later `updateSettings()` call sets a grid-level
    * `dataProvider`. Core applies the new setting before this plugin can block it, sees a complete
    * `dataProvider`, and replaces the grid's data with an empty placeholder through
@@ -5883,7 +5901,11 @@ export class SheetsBar extends BasePlugin {
    */
   #onBeforeUpdateData = (sourceData: unknown[], initialLoad: boolean, source: string) => {
     if (source !== 'updateSettings') {
-      return;
+      if (this.#isSwitching || this.#isUpdatingOwnData || this.hot.runHooks('hasExternalDataSource') === true) {
+        return;
+      }
+
+      return this.#keepUndeclaredSheetRows(sourceData, this.#getLiveSourceData());
     }
 
     const { dataProvider } = this.hot.getSettings();

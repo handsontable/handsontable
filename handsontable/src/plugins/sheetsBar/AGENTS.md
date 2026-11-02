@@ -510,7 +510,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   drops what the sheet kept from its last visit, as a `loadData()` would, and feeds its engine sheet), and
   ignored with one warning per array (`REMOVED_DATA_OWNER_WARNING`) once it was removed. Turning the bar off
   and on or rebuilding picks a new owner. A payload that turns a declared workbook into `sheetsBar: true` loads
-  its `data` (`#declaredEntries` is not empty yet).
+  its `data` (`#declaredEntries` is not empty yet). A host's own `updateData()` call follows the same rule
+  (`#onBeforeUpdateData`), because the Angular wrapper sends a changed `data` input that way: before, it
+  skipped the rule and replaced whichever sheet was shown. The bar's own `updateData()` (a rename that copied
+  a frozen array) is marked with `#isUpdatingOwnData` and left alone.
 - **A sheet added without data starts with `NEW_NESTED_SHEET_ROW_COUNT` empty object rows (`createEmptyObjectRows()`, each its own object) while it would show with NestedRows on**
   (`#blankSheetData`: its own `nestedRows`, else the grid-level value). NestedRows answers an array of
   arrays by writing `nestedRows = false` into the grid settings and disabling itself, a released path
