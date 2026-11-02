@@ -385,6 +385,35 @@ function engineSheetNames(engine: { getSheetNames?: () => string[] } | null | un
 }
 
 /**
+ * Builds the mapper's sizing of an engine sheet (`MapperContext.sheetExtent`): the rows and columns
+ * `getSheetDimensions` answers for the sheet of that name. `undefined` for an engine that cannot
+ * tell, so the mapper sizes a span by the imported window alone.
+ *
+ * @param {object|null|undefined} engine The Formulas plugin's engine.
+ * @returns {Function|undefined}
+ */
+function engineSheetExtent(engine: {
+  getSheetId?: (sheetName: string) => number | undefined;
+  getSheetDimensions?: (sheetId: number) => { width: number; height: number };
+} | null | undefined): MapperContext['sheetExtent'] {
+  if (typeof engine?.getSheetId !== 'function' || typeof engine.getSheetDimensions !== 'function') {
+    return undefined;
+  }
+
+  return (sheetName) => {
+    const sheetId = engine.getSheetId?.(sheetName);
+
+    if (typeof sheetId !== 'number') {
+      return undefined;
+    }
+
+    const { width, height } = engine.getSheetDimensions?.(sheetId) ?? { width: 0, height: 0 };
+
+    return { rows: height, cols: width };
+  };
+}
+
+/**
  * The named expressions a Formulas engine defines, lower-cased: the workbook-scoped ones and the
  * ones scoped to the grid's own sheet, which HyperFormula resolves first on that sheet. A formula
  * using a name the file defines and the engine does not shows `#NAME?`, so the mapper imports its
@@ -1320,6 +1349,7 @@ export class ImportFile extends BasePlugin {
       definesNamedExpression: formulasEnabled
         ? namedExpressionComparison(formulasPlugin?.engine, formulasPlugin?.sheetName)
         : undefined,
+      sheetExtent: formulasEnabled ? engineSheetExtent(formulasPlugin?.engine) : undefined,
       registersFunction: formulasEnabled ? functionRegistryCheck(formulasPlugin?.engine) : undefined,
       arrayArithmetic: formulasEnabled ? engineArrayArithmetic(formulasPlugin?.engine) : undefined,
       probeLiveArrays: formulasEnabled

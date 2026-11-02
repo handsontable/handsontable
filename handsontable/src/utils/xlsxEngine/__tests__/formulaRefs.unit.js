@@ -475,6 +475,15 @@ describe('closedReferenceArea', () => {
     expect(closedReferenceArea('Data!$B:$B+A1', extent)).toBe(11);
   });
 
+  it('should size each open span by the sheet its qualifier names when given a function', () => {
+    const extents = { data: { rows: 10, cols: 4 }, 'my data': { rows: 100, cols: 2 } };
+    const extent = sheet => (sheet === null ? { rows: 3, cols: 3 } : extents[sheet.toLowerCase()]);
+
+    expect(closedReferenceArea('SUM(Data!$A:$B)+SUM(\'My Data\'!$A:$A)+SUM(C:C)', extent))
+      .toBe((2 * 10) + 100 + 3);
+    expect(closedReferenceArea('SUM(Data!$1:$2)+SUM(\'My Data\'!1:1)+A1:B2', extent)).toBe((2 * 4) + 2 + 4);
+  });
+
   it('should count an open span as one line when the sheet is empty', () => {
     expect(closedReferenceArea('SUM(A:B)+SUM(1:3)', { rows: 0, cols: 0 })).toBe(5);
   });

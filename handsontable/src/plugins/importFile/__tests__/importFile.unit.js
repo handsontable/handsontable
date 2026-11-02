@@ -1863,6 +1863,42 @@ describe('ImportFile and the workbook\'s defined names in a real HyperFormula en
     expect(column.data[0][2]).toBe('=SUM(Sales)');
   });
 
+  it('should size a whole column in a name by the rows the grid\'s engine sheet holds before the import', async() => {
+    // The engine evaluates the names before the imported data replaces the grid's sheet, so a whole
+    // column costs the rows that sheet holds then (20,000), not the 3 rows of the file.
+    const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+
+    hf.addSheet('Sheet1');
+    hf.setCellContents({ sheet: hf.getSheetId('Sheet1'), row: 19999, col: 9 }, 1);
+
+    const names = [{ name: 'Sales', formula: 'SUM(Data!$A:$J)', sheetName: null }];
+    const result = await importInto(hf, await salesBytes(names));
+
+    expect(result.namedExpressions).toBeUndefined();
+    expect(result.data[0][2]).toBe(60);
+    expect(result.dropped).toEqual(['definedNames:unsupported', 'formula:definedName']);
+
+    hf.destroy();
+  });
+
+  it('should size a whole column on another engine sheet by the rows that sheet holds', async() => {
+    const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+
+    hf.addSheet('Sheet1');
+    hf.addSheet('Other');
+    hf.setCellContents({ sheet: hf.getSheetId('Other'), row: 29999, col: 0 }, 1);
+
+    // 4 columns of 30,000 rows: past the cap, though the imported sheet holds 4 rows.
+    const names = [{ name: 'Sales', formula: 'SUM(Other!$A:$D)', sheetName: null }];
+    const result = await importInto(hf, await salesBytes(names));
+
+    expect(result.namedExpressions).toBeUndefined();
+    expect(result.data[0][2]).toBe(60);
+    expect(result.dropped).toEqual(['definedNames:unsupported', 'formula:definedName']);
+
+    hf.destroy();
+  });
+
   it('should import the cached values of formulas over the names past the workbook\'s cell budget', async() => {
     // Each name within the per-name cap, but together past the budget of one import.
     const names = Array.from({ length: 12 }, (_, index) => ({

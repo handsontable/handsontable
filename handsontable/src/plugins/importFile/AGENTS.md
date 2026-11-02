@@ -621,12 +621,16 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `#NAME?`) is not handed over (`isTooCostly`). Each goes into `unresolvedNames` with
   `definedNames:unsupported`, so the formulas over it import cached values with `formula:definedName`.
   The checks run for a name the engine already defines too: `sameConstant` evaluates the file's
-  definition with `calculateFormula`. **A whole column or row IS counted, against the grid's sheet**:
-  `closedReferenceArea` takes the window's extent and counts a column span as columns x rows and a row
-  span as rows x columns (each at least 1), because HyperFormula evaluates it over the sheet's other axis
-  - `SUM(Sheet1!$1:$1048576)` took 1.9 s and 1.3 GB on a 3x3 sheet and `SUM(Sheet1!$A:$XFD)` ran out of
-  memory on 1,000 rows while both counted 0. One column (`$B:$B`, the dynamic-list idiom) of a sheet
-  under 100,000 rows stays within the cap. A span to another sheet is sized by the grid's sheet too.
+  definition with `calculateFormula`. **A whole column or row IS counted, against the engine sheet it is
+  on**: `closedReferenceArea` counts a column span as columns x rows and a row span as rows x columns
+  (each at least 1), because HyperFormula evaluates it over the sheet's other axis, which made such a
+  name run out of memory while it counted 0. The names are added and evaluated when the applier's batch
+  ends, BEFORE `loadData` replaces the grid's sheet, so the sheet is sized as the engine holds it then
+  (`MapperContext.sheetExtent`, `getSheetDimensions`): an unqualified span or one on the grid's own
+  engine sheet by the larger of that and the imported window, a span on another engine sheet by that
+  sheet. A 3-row file imported into a 20,000-row grid counts `SUM(Sheet1!$A:$J)` as 200,000 cells. Without
+  `getSheetDimensions` on the engine, every span is sized by the window. One column (`$B:$B`, the
+  dynamic-list idiom) of a sheet under 100,000 rows stays within the cap.
   1,024 names of 32,000 characters: 11.7 s -> 0.15 s in the mapper (Node). Not bounded: a range a
   function builds at any size (`OFFSET(Sheet1!$A$1,0,0,1000000,100)`, `SEQUENCE`, `INDEX`), which
   `closedReferenceArea` cannot size.

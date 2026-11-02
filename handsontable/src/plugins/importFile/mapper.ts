@@ -85,6 +85,14 @@ export interface MapperContext {
    */
   definesNamedExpression?: (name: string, expression: string) => boolean;
   /**
+   * The rows and columns an engine sheet holds now (`getSheetDimensions` of HyperFormula), by its
+   * lower-cased name, or `undefined` when the engine holds no such sheet. The import's names are
+   * added and evaluated before the imported data replaces the grid's sheet, so a whole column or row
+   * in a definition costs what the sheet it is on holds at that point. Absent means a span is sized
+   * by the imported sheet's window.
+   */
+  sheetExtent?: (sheetName: string) => { rows: number; cols: number } | undefined;
+  /**
    * Whether the Formulas plugin's engine registers a function of this name (upper-cased, in the
    * engine's language). A live array master calling a function the engine lacks shows `#NAME?` and
    * spills nothing, so the cells its `ref` covers keep their cached values instead of importing
@@ -904,7 +912,7 @@ function unresolvedDefinedNames(
  * (`=UNIQUE(...)`: every formula over the name would show `#NAME?`).
  *
  * @param {string} formula The rebased definition, without its `=`.
- * @param {number} cells The cells its ranges cover (`closedReferenceArea`, open spans sized by the sheet).
+ * @param {number} cells The cells its ranges cover (`closedReferenceArea`, open spans sized by the engine sheet they are on).
  * @param {number} spent The cells the names handed over so far cover.
  * @param {CollectContext} scope The pass context.
  * @returns {boolean}
@@ -966,10 +974,29 @@ function collectNamedExpressions(scope: CollectContext): NonNullable<ImportResul
   let unsupported = false;
   let definitionChars = 0;
   let definitionCells = 0;
-  // The grid's sheet in the engine, which sizes a whole column or row in a definition.
-  const extent = {
+  // A whole column or row in a definition is sized by the sheet it is on, as the engine holds it
+  // when the names are evaluated (before the imported data replaces the grid's sheet), and at least
+  // by the imported window on the grid's own sheet.
+  const windowExtent = {
     rows: scope.window.lastRow - scope.window.firstRow + 1,
     cols: scope.window.lastCol - scope.window.firstCol + 1,
+  };
+  const ownEngineSheet = (context.formulaSheetName ?? sheet.name).toLowerCase();
+  const extentCache = new Map<string, { rows: number; cols: number }>();
+  const extent = (qualifier: string | null) => {
+    const lowered = qualifier === null ? ownEngineSheet : qualifier.toLowerCase();
+    let sized = extentCache.get(lowered);
+
+    if (sized === undefined) {
+      const held = context.sheetExtent?.(lowered);
+
+      sized = lowered === ownEngineSheet || held === undefined
+        ? { rows: Math.max(windowExtent.rows, held?.rows ?? 0), cols: Math.max(windowExtent.cols, held?.cols ?? 0) }
+        : held;
+      extentCache.set(lowered, sized);
+    }
+
+    return sized;
   };
 
   ordered.forEach(({ name, formula, unsupported: flagged }) => {

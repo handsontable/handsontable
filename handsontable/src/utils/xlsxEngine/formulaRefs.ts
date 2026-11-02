@@ -404,12 +404,20 @@ function rectangleCells(a: { row: number; col: number }, b: { row: number; col: 
 }
 
 /**
+ * The rows and columns of a sheet, which size a whole column or row on it.
+ */
+export interface SheetExtent {
+  rows: number;
+  cols: number;
+}
+
+/**
  * The cells an open span covers on a sheet of `extent`, or `null` when the match is not a span: a
  * whole column (`A:C`) counts its columns times the sheet's rows, a whole row (`2:3`) its rows times
  * the sheet's columns, because HyperFormula sizes an open span to the other axis of its sheet. An
  * empty sheet counts as one row and one column.
  */
-function openSpanCells(groups: ReferenceGroups, extent: { rows: number; cols: number }): number | null {
+function openSpanCells(groups: ReferenceGroups, extent: SheetExtent): number | null {
   const [first, second] = groups.qualified?.replace(/\$/g, '').split(':')
     ?? [groups.c1 ?? groups.r1, groups.c2 ?? groups.r2];
 
@@ -435,13 +443,20 @@ function openSpanCells(groups: ReferenceGroups, extent: { rows: number; cols: nu
  * a sheet of `extent` (`openSpanCells`), so `$1:$1048576` on a 3x3 sheet counts 3,145,728 cells. A
  * string literal counts nothing. Linear: one walk of `REFERENCE_REGEX`.
  *
+ * `extent` is one size for every sheet, or a function that sizes the sheet a span is on: it gets
+ * the span's unquoted qualifier, or `null` for an unqualified span.
+ *
  * The formula is expected without its leading `=`.
  *
  * @param {string} formula The formula.
- * @param {{ rows: number, cols: number }} extent The rows and columns of the sheet the engine holds.
+ * @param {object|Function} extent The rows and columns of the sheet the engine holds, or a
+ *   function answering them for a qualifier.
  * @returns {number}
  */
-export function closedReferenceArea(formula: string, extent: { rows: number; cols: number }): number {
+export function closedReferenceArea(
+  formula: string,
+  extent: SheetExtent | ((sheet: string | null) => SheetExtent),
+): number {
   let area = 0;
   let previous: AreaCorner | null = null;
 
@@ -456,7 +471,10 @@ export function closedReferenceArea(formula: string, extent: { rows: number; col
       const from = first === undefined ? null : parseCellRef(first);
       const to = second === undefined ? null : parseCellRef(second);
 
-      area += from !== null && to !== null ? rectangleCells(from, to) : (openSpanCells(groups, extent) ?? 0);
+      const sheetExtent = typeof extent === 'function'
+        ? extent(groups.qualifier === undefined ? null : unquoteQualifier(groups.qualifier)) : extent;
+
+      area += from !== null && to !== null ? rectangleCells(from, to) : (openSpanCells(groups, sheetExtent) ?? 0);
       previous = null;
     } else if (previous !== null && previous.end + 1 === start && formula[previous.end] === ':') {
       // The two corners were counted as one cell each: the range replaces the first.
