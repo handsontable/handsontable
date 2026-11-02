@@ -297,6 +297,15 @@ export class DroppedFeatures {
   }
 
   /**
+   * The tokens recorded through `recordLicense`, in recorded order, without the `license:` prefix.
+   */
+  licenseTokens(): string[] {
+    return this.list()
+      .filter(name => name.startsWith(LICENSE_PREFIX))
+      .map(name => name.slice(LICENSE_PREFIX.length));
+  }
+
+  /**
    * How many times a feature was dropped.
    */
   count(feature: string): number {

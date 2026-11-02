@@ -6,7 +6,6 @@ import { getLicenseState, getXlsxEntitlement } from '../../core/license';
 import {
   formatMissingCapabilitiesWarning,
   scopeXlsxEntitlement,
-  type XlsxEntitlement,
 } from '../../utils/xlsxEngine/xlsxEntitlement';
 import { warn } from '../../helpers/console';
 import {
@@ -298,8 +297,9 @@ export interface ImportResult {
   engine: { kind: XlsxEngineKind; version: string | null };
   /**
    * Names of the features the file carried and the grid did not take: what the engine could not
-   * read, and what the plugin could not apply (an unregistered cell type, a missing plugin, a
-   * layout direction the grid does not follow).
+   * read, what the plugin could not apply (an unregistered cell type, a missing plugin, a layout
+   * direction the grid does not follow), and a feature the license did not unlock, as
+   * `license:xlsx:<token>`. A license entry is listed only when the file carried that feature.
    */
   dropped: string[];
 }
@@ -890,7 +890,7 @@ export class ImportFile extends BasePlugin {
     };
 
     if (!resolved.apply) {
-      this.#warnDropped(dropped, detected.kind, entitlement);
+      this.#warnDropped(dropped, detected.kind);
 
       return result;
     }
@@ -901,7 +901,7 @@ export class ImportFile extends BasePlugin {
     this.#assertAlive('before the import was applied');
     // Warned only once the guards passed, so an import they reject logs nothing about data that never
     // reached the grid (review round 12).
-    this.#warnDropped(dropped, detected.kind, entitlement);
+    this.#warnDropped(dropped, detected.kind);
 
     this.#isApplying = true;
 
@@ -960,18 +960,20 @@ export class ImportFile extends BasePlugin {
 
   /**
    * Emits the warnings of one import call: the engine's dropped-features warning, and the
-   * missing-capabilities warning, only when the license lacks a token the import gates and its
-   * console channel is on.
+   * missing-capabilities warning, only when the import recorded a `license:<token>` entry (a feature
+   * the file carried and the license does not unlock) and the console channel is on. The warning
+   * names exactly those tokens, in the order the mapper recorded them (`XLSX_CAPABILITY_IDS` order).
    *
    * @param {DroppedFeatures} dropped The features recorded during the call.
    * @param {XlsxEngineKind} kind The engine that read the file.
-   * @param {XlsxEntitlement} entitlement What the license unlocks.
    */
-  #warnDropped(dropped: DroppedFeatures, kind: XlsxEngineKind, entitlement: XlsxEntitlement): void {
+  #warnDropped(dropped: DroppedFeatures, kind: XlsxEngineKind): void {
     dropped.warn(kind);
 
-    if (entitlement.missing.length > 0 && getLicenseState(this.hot).channels.console) {
-      warn(formatMissingCapabilitiesWarning('import', entitlement.missing));
+    const tokens = dropped.licenseTokens();
+
+    if (tokens.length > 0 && getLicenseState(this.hot).channels.console) {
+      warn(formatMissingCapabilitiesWarning('import', tokens));
     }
   }
 

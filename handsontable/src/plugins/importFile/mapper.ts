@@ -367,6 +367,14 @@ interface CellPass {
    */
   sawStyle: boolean;
   /**
+   * Whether any visited cell carried a comment, a list validation, or a formula. With `sawStyle`,
+   * these decide which `license:<token>` entries the import records: one only for a feature the
+   * file carried.
+   */
+  sawComment: boolean;
+  sawValidation: boolean;
+  sawFormula: boolean;
+  /**
    * Class names collected when `importStyles` is on, per column as runs of consecutive rows that
    * wear the same classes. One `"row:col"` entry per styled cell let a 101 KB file of 305 x 16 384
    * cells with two fills alternating by row allocate 2.2 GB before the per-cell meta budget saw it.
@@ -626,7 +634,11 @@ function pushCellValue(
   row: number, col: number, scope: CollectContext
 ): void {
   const { shift, dropped } = scope;
-  const formula = cell.formula ? readFormulaText(cell.formula.text, scope) : null;
+  // Without `xlsx:formulas` no formula is read at all: the cell imports its cached value, nothing
+  // reaches `result.formulas`, and the `license:xlsx:formulas` entry names the loss.
+  const formula = cell.formula && scope.context.entitlement.formulas
+    ? readFormulaText(cell.formula.text, scope)
+    : null;
   const rebased = formula !== null && shift !== null
     ? rebaseImportedFormula(formula, shift.rowDelta, shift.colDelta, {
       self: scope.sheet.name,
@@ -946,6 +958,10 @@ function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: numbe
     pass.dataCells += 1;
   }
 
+  pass.sawFormula = pass.sawFormula || cell.formula !== null;
+  pass.sawComment = pass.sawComment || cell.comment !== null;
+  pass.sawValidation = pass.sawValidation || cell.validation !== null;
+
   pushCellValue(pass, cell, inferred, row, col, scope);
 
   if (cell.comment !== null && context.entitlement.comments) {
@@ -984,6 +1000,9 @@ function collectCells(
     comments: [],
     readOnly: new Map(),
     sawStyle: false,
+    sawComment: false,
+    sawValidation: false,
+    sawFormula: false,
     classNames: new Map(),
     chargedClassRuns: 0,
     styles: new Map(),
@@ -1576,6 +1595,46 @@ function mapNestedHeaders(
 }
 
 /**
+ * Whether the sheet carries any layout the `xlsx:layout` token gates: a merge, a hidden row or
+ * column, a frozen pane, an explicit column width or row height, or a right-to-left direction.
+ */
+function hasLayout(sheet: SheetSnapshot): boolean {
+  return sheet.rtl
+    || sheet.merges.length > 0
+    || sheet.hiddenRows.length > 0
+    || sheet.hiddenCols.length > 0
+    || (sheet.freeze !== null && (sheet.freeze.rows > 0 || sheet.freeze.cols > 0))
+    || sheet.colWidths.some(width => width !== null && width !== undefined)
+    || sheet.rowHeights.some(height => height !== null && height !== undefined);
+}
+
+/**
+ * Records a `license:<token>` entry for each token the license leaves out, but only when the file
+ * carried the feature it gates, so a plain workbook reports nothing. Recorded in the order of
+ * `entitlement.missing`, which is the order `XLSX_CAPABILITY_IDS` declares.
+ */
+function recordMissingLicenses(
+  sheet: SheetSnapshot, window: SheetWindow, options: ResolvedImportOptions, pass: CellPass,
+  entitlement: XlsxEntitlement, dropped: DroppedFeatures
+): void {
+  const carried: Record<string, () => boolean> = {
+    'xlsx:formulas': () => pass.sawFormula,
+    'xlsx:layout': () => hasLayout(sheet),
+    'xlsx:comments': () => pass.sawComment || hasHeaderBandComment(sheet, window, options),
+    'xlsx:styles': () => pass.sawStyle,
+    'xlsx:conditional_formatting': () => sheet.conditionalFormatting.length > 0,
+    'xlsx:data_validation': () => pass.sawValidation,
+    'xlsx:protection': () => sheet.protection?.enabled === true,
+  };
+
+  entitlement.missing.forEach((id) => {
+    if (Object.prototype.hasOwnProperty.call(carried, id) && carried[id]()) {
+      dropped.recordLicense(id);
+    }
+  });
+}
+
+/**
  * Removes every key whose value is `undefined`, so applying the result never overrides a setting
  * the file said nothing about.
  */
@@ -1628,7 +1687,7 @@ export function mapWorkbook(
     ? mapConditionalFormatting(sheet, window, dropped)
     : undefined;
 
-  entitlement.missing.forEach(id => dropped.recordLicense(id));
+  recordMissingLicenses(sheet, window, options, pass, entitlement, dropped);
 
   const result: MappedResult = {
     data: pass.data,

@@ -248,6 +248,114 @@ describe('ImportFile mapper license gates', () => {
     expect(gated.data[0]).toEqual([2, 4]);
   });
 
+  it('collects no formula and reports only the license entry without xlsx:formulas', () => {
+    const workbook = createWorkbookSnapshot();
+    const sheet = new SheetBuilder('Data');
+
+    sheet.cell(1, 1).value = 2;
+    sheet.cell(1, 2).formula = { text: 'A1*2', result: 4 };
+    // No cached value: with the token, a formula imported as a value reports `formula:noCachedValue`.
+    sheet.cell(1, 3).formula = { text: 'A1*3' };
+    workbook.sheets.push(sheet.toSnapshot());
+
+    const context = { formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false };
+    const fullDropped = new DroppedFeatures();
+    const full = mapWorkbook(workbook, resolveImportOptions({}), {
+      ...context, entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
+    }, fullDropped);
+    const gatedDropped = new DroppedFeatures();
+    const gated = mapWorkbook(workbook, resolveImportOptions({}), {
+      ...context, entitlement: without('formulas', 'xlsx:formulas'),
+    }, gatedDropped);
+
+    expect(full.formulas).toEqual([{ row: 0, col: 1, formula: 'A1*2' }, { row: 0, col: 2, formula: 'A1*3' }]);
+    expect(fullDropped.list()).toContain('formula:noCachedValue');
+
+    expect(gated.formulas).toBeUndefined();
+    expect(gated.data[0]).toEqual([2, 4, null]);
+    expect(gatedDropped.list()).toEqual(['license:xlsx:formulas']);
+  });
+
+  it('records no license entry for a workbook that carries values only', () => {
+    const workbook = createWorkbookSnapshot();
+    const sheet = new SheetBuilder('Data');
+
+    sheet.cell(1, 1).value = 'Name';
+    sheet.cell(2, 1).value = 'Ana García';
+    sheet.cell(2, 2).value = 4200;
+    workbook.sheets.push(sheet.toSnapshot());
+
+    const dropped = new DroppedFeatures();
+    const result = mapWorkbook(workbook, resolveImportOptions({ colHeaders: 'firstRow' }), {
+      formulasEnabled: false,
+      commentsEnabled: true,
+      customBordersEnabled: true,
+      entitlement: {
+        ...STANDARD_ENTITLEMENT,
+        formulas: false,
+        layout: false,
+        missing: ['xlsx:formulas', 'xlsx:layout', ...IMPORT_PRO_TOKENS],
+      },
+    }, dropped);
+
+    expect(dropped.list()).toEqual([]);
+    expect(result.dropped).toEqual([]);
+  });
+
+  it('records only the license entries of the features the file carries', () => {
+    const workbook = createWorkbookSnapshot();
+    const sheet = new SheetBuilder('Data');
+
+    sheet.cell(1, 1).value = 'Ana García';
+    sheet.cell(1, 1).comment = 'Check';
+    workbook.sheets.push(sheet.toSnapshot());
+
+    const dropped = new DroppedFeatures();
+
+    mapWorkbook(workbook, resolveImportOptions({}), {
+      formulasEnabled: false,
+      commentsEnabled: true,
+      customBordersEnabled: true,
+      entitlement: STANDARD_ENTITLEMENT,
+    }, dropped);
+
+    expect(dropped.list()).toEqual(['license:xlsx:comments']);
+  });
+
+  it('records each layout feature as license:xlsx:layout on its own', () => {
+    const layouts = {
+      merge: sheet => sheet.merge(1, 1, 1, 2),
+      hiddenRow: sheet => sheet.hideRow(1),
+      hiddenColumn: sheet => sheet.hideCol(1),
+      freeze: sheet => sheet.freeze(1, 0),
+      columnWidth: sheet => sheet.setColWidth(1, 20),
+      rowHeight: sheet => sheet.setRowHeight(1, 30),
+      rtl: sheet => sheet.setRtl(true),
+      none: () => {},
+    };
+
+    Object.entries(layouts).forEach(([name, apply]) => {
+      const workbook = createWorkbookSnapshot();
+      const sheet = new SheetBuilder('Data');
+
+      sheet.cell(1, 1).value = 'Ana García';
+      sheet.cell(1, 2).value = 'Li Wei';
+      apply(sheet);
+      workbook.sheets.push(sheet.toSnapshot());
+
+      const dropped = new DroppedFeatures();
+
+      mapWorkbook(workbook, resolveImportOptions({}), {
+        formulasEnabled: false,
+        commentsEnabled: true,
+        customBordersEnabled: true,
+        entitlement: without('layout', 'xlsx:layout'),
+      }, dropped);
+
+      expect([name, dropped.list()]).toEqual([name, name === 'none' ? [] : ['license:xlsx:layout']]);
+    });
+  });
+
   it('records license:<token> for every missing token in dictionary order', () => {
     const { result, dropped } = mapRich(STANDARD_ENTITLEMENT);
 
@@ -297,8 +405,14 @@ function pluginFor(licenseKey) {
 }
 
 /**
+ * The import tokens a Standard key lacks whose feature the `lossy` fixture carries: of the Pro
+ * features, the file has a protected sheet only.
+ */
+const STANDARD_LOSSY_LICENSE = ['xlsx:protection'];
+
+/**
  * What a Standard key's import of the `lossy` fixture reports, in recorded order: the entries the
- * read drives, the `license:` entry of each import token the key lacks (never
+ * read drives, the `license:` entry of each import token the key lacks and the file needs (never
  * `xlsx:number_formats`, which restricts the export only), then the cell types `pluginFor()`'s
  * stand-in instance does not register.
  */
@@ -309,11 +423,7 @@ const STANDARD_LOSSY_DROPPED = [
   'hyperlink',
   'images',
   'tables',
-  'license:xlsx:comments',
-  'license:xlsx:styles',
-  'license:xlsx:conditional_formatting',
-  'license:xlsx:data_validation',
-  'license:xlsx:protection',
+  ...STANDARD_LOSSY_LICENSE.map(id => `license:${id}`),
   'cellType:text',
   'cellType:numeric',
 ];
@@ -345,7 +455,7 @@ describe('ImportFile license report', () => {
     expect(warnSpy.mock.calls.map(([message]) => message)).toEqual([
       `The built-in xlsx engine dropped features it cannot write or read: ${
         STANDARD_LOSSY_DROPPED.filter(name => !name.startsWith('license:')).join(', ')}.`,
-      `The xlsx import skipped features your license does not unlock: ${IMPORT_PRO_TOKENS.join(', ')}.`,
+      `The xlsx import skipped features your license does not unlock: ${STANDARD_LOSSY_LICENSE.join(', ')}.`,
     ]);
   });
 
@@ -393,24 +503,31 @@ describe('ImportFile license report', () => {
     expect(warnSpy.mock.calls.filter(([message]) => message.startsWith('The xlsx import skipped'))).toEqual([]);
   });
 
+  it('says nothing about the license for a values-only file on a Standard key', async() => {
+    const result = await pluginFor(keyWith(STANDARD_TOKENS)).plugin.importFromArrayBuffer('xlsx', fixture('values'));
+
+    expect(licenseEntriesOf(result.dropped)).toEqual([]);
+    expect(warnSpy.mock.calls.filter(([message]) => message.startsWith('The xlsx import skipped'))).toEqual([]);
+  });
+
   it('warns once with the missing tokens, and stays silent under no-console-warns', async() => {
-    await pluginFor(keyWith(STANDARD_TOKENS)).plugin.importFromArrayBuffer('xlsx', fixture('values'));
+    await pluginFor(keyWith(STANDARD_TOKENS)).plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
 
     const licenseWarnings = () => warnSpy.mock.calls
       .map(([message]) => message)
       .filter(message => message.startsWith('The xlsx import skipped'));
 
     expect(licenseWarnings()).toEqual([
-      `The xlsx import skipped features your license does not unlock: ${IMPORT_PRO_TOKENS.join(', ')}.`,
+      'The xlsx import skipped features your license does not unlock: xlsx:protection.',
     ]);
 
     warnSpy.mockClear();
 
     const silenced = await pluginFor(keyWith(STANDARD_TOKENS, ['no-console-warns']))
-      .plugin.importFromArrayBuffer('xlsx', fixture('values'));
+      .plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
 
     expect(licenseWarnings()).toEqual([]);
-    expect(licenseEntriesOf(silenced.dropped)).toEqual(IMPORT_PRO_TOKENS.map(id => `license:${id}`));
+    expect(licenseEntriesOf(silenced.dropped)).toEqual(['license:xlsx:protection']);
 
     warnSpy.mockClear();
     await pluginFor(keyWith(ALL_XLSX_TOKENS)).plugin.importFromArrayBuffer('xlsx', fixture('values'));

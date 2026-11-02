@@ -147,7 +147,7 @@ fileInput.addEventListener('change', async () => {
 
 ### 3. Read what was dropped
 
-`result.dropped` lists what the file carried and the grid did not take, and the plugin prints the same list in one console warning per import. An import that a newer import replaced while its file was being read, or that the plugin was disabled during, prints none. The [Dropped features reference](@/guides/import-and-export/dropped-features/dropped-features.md#dropped-on-import) explains every key. A capability your license does not unlock is reported as `license:xlsx:<capability>`: see [What your license unlocks](#what-your-license-unlocks).
+`result.dropped` lists what the file carried and the grid did not take, and the plugin prints the same list in one console warning per import. An import that a newer import replaced while its file was being read, or that the plugin was disabled during, prints none. The [Dropped features reference](@/guides/import-and-export/dropped-features/dropped-features.md#dropped-on-import) explains every key. A feature the file carries and your license does not unlock is reported as `license:xlsx:<capability>`: see [What your license unlocks](#what-your-license-unlocks).
 
 ### 4. Preview before you apply
 
@@ -281,7 +281,7 @@ The XLSX import reads your license key for the [capabilities](@/guides/getting-s
 
 `xlsx:number_formats` never restricts an import, because the import reads number formats to infer cell types. `xlsx:import_report` is always on, so `result.dropped` is always complete.
 
-Without `xlsx:import`, `importFromBlob()` and `importFromArrayBuffer()` throw `ImportFile: the license does not unlock "xlsx:import".` Without any other capability, the import skips that part of the file, adds a `license:xlsx:<capability>` entry to `result.dropped`, and prints one console warning: `The xlsx import skipped features your license does not unlock: <ids>.` The warning names only the missing capabilities the import reads. The `no-console-warns` flag on a key silences it. The capabilities and their packages are on the [pricing page](https://handsontable.com/pricing).
+Without `xlsx:import`, `importFromBlob()` and `importFromArrayBuffer()` throw `ImportFile: the license does not unlock "xlsx:import".` Without any other capability, the import skips that part of the file. When the file carries that feature, the import adds a `license:xlsx:<capability>` entry to `result.dropped` and prints one console warning: `The xlsx import skipped features your license does not unlock: <ids>.` The warning names only the capabilities the file needed and your license does not unlock, so a file with values only imports with no license warning. Without `xlsx:formulas`, each formula cell imports its cached value and `result.formulas` is left out. The `no-console-warns` flag on a key silences it. The capabilities and their packages are on the [pricing page](https://handsontable.com/pricing).
 
 ### Styles
 
