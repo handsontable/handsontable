@@ -21,12 +21,12 @@ static get SETTING_KEYS() { return [PLUGIN_KEY, ...COLUMN_SIZE_OPTIONS]; }   // 
 
 That is what makes `updateSettings({ colWidths })` reach this plugin at all (issue
 [#4371](https://github.com/handsontable/handsontable/issues/4371)) — and it changes what `updatePlugin()`
-must assume, in three ways. **The rules are in `../../utils/manualResize/AGENTS.md`**; the short version, all visible
-in `updatePlugin()`:
+must assume. **The rules are in `../../utils/manualResize/AGENTS.md`**; the short version:
 
-1. **Restore the plugin option from the merged settings.** `BasePlugin#onUpdateSettings` feeds
-   `updatePluginSettings()` with `newSettings[PLUGIN_KEY]`, which a `colWidths`-only update does not carry —
-   so without the restore `getSetting()` starts lying for the rest of the session.
+1. **The plugin option survives.** A `colWidths`-only update does not carry `manualColumnResize`, so
+   `BasePlugin#onUpdateSettings` refreshes the plugin settings from the merged settings instead, and
+   `getSetting()` keeps reporting the declared array or `true`. This plugin no longer restores it itself.
+   Pinned by `__tests__/manualSizeApi.unit.js`.
 2. **Re-initialize only when the plugin's own option was declared.** `#onMapInit` replays the declared
    `manualColumnResize` array, so re-initializing on a `colWidths`-only update reverts a column the user had
    since dragged — to neither the dragged width nor the requested one.

@@ -38,5 +38,17 @@ Hello world`;
 
       expect(text).toEqual('Hello world');
     });
+
+    it('should print the number 0', () => {
+      const row = 1;
+      const column = 0;
+
+      expect(toSingleLine`declared at [${row}, ${column}]`).toEqual('declared at [1, 0]');
+      expect(toSingleLine`${0}`).toEqual('0');
+    });
+
+    it('should print nothing for `null`, `undefined` and `false`', () => {
+      expect(toSingleLine`[${null}|${undefined}|${false}]`).toEqual('[||]');
+    });
   });
 });
