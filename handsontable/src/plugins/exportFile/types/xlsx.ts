@@ -397,6 +397,7 @@ interface NestedHeaderEntry {
 interface SheetContext {
   exportFormulas: boolean;
   formulasSeparator: string;
+  formulasDecimalSeparator: string;
   dataRowOffset: number;
   dataColOffset: number;
   excludedHiddenRows: Set<number> | null;
@@ -438,6 +439,7 @@ interface NamedExpressionSource {
   engine: object;
   engineSheetName: string;
   separator: string;
+  decimalSeparator: string;
   exportFormulas: boolean;
   sheet: ExportedEngineSheet;
 }
@@ -697,6 +699,7 @@ class Xlsx extends BaseType {
     // as the text `"2"`. The array sizes are read with `exportFormulas` only.
     const engineCellFacts = dataProvider.getEngineCellFacts(exportFormulas);
     const formulasSeparator = exportFormulas ? dataProvider.getFormulasSeparator() : ',';
+    const formulasDecimalSeparator = exportFormulas ? dataProvider.getFormulasDecimalSeparator() : '.';
     const hasColumnHeaders = columnHeaders.length > 0;
     const hasRowHeaders = rowHeaders.length > 0;
     const useNestedHeaders = nestedColumnHeaders !== null && hasColumnHeaders;
@@ -767,6 +770,7 @@ class Xlsx extends BaseType {
     const context = {
       exportFormulas,
       formulasSeparator,
+      formulasDecimalSeparator,
       dataRowOffset,
       dataColOffset,
       excludedHiddenRows,
@@ -801,6 +805,7 @@ class Xlsx extends BaseType {
         engine: binding.engine,
         engineSheetName: binding.sheetName,
         separator: formulasSeparator,
+        decimalSeparator: formulasDecimalSeparator,
         exportFormulas,
         sheet: {
           exportedName: name,
@@ -920,7 +925,9 @@ class Xlsx extends BaseType {
 
       writtenByEngine.set(engine, written);
       source.dataProvider.getNamedExpressions().forEach(({ name, formula: definition }) => {
-        const formula = definition === null ? null : normalizeNamedExpression(definition, source.separator, sheets);
+        const formula = definition === null ? null : normalizeNamedExpression(
+          definition, source.separator, sheets, source.decimalSeparator
+        );
         const key = name.toLowerCase();
 
         if (formula === null || (added.has(key) && added.get(key) !== formula)) {
@@ -1191,7 +1198,7 @@ class Xlsx extends BaseType {
     context: SheetContext
   ): { value: CellValue; formula: CellFormula | null; numFmt: string | null; valueIsError?: true } {
     const {
-      exportFormulas, formulasSeparator, dataRowOffset, dataColOffset,
+      exportFormulas, formulasSeparator, formulasDecimalSeparator, dataRowOffset, dataColOffset,
       excludedHiddenRows, excludedHiddenCols,
     } = context;
 
@@ -1207,7 +1214,7 @@ class Xlsx extends BaseType {
     if (exportFormulas && isFormulaValue(sourceValue)) {
       const { text, array } = resolveArrayFormula(normalizeFormula(
         sourceValue, formulasSeparator, dataRowOffset - 1, dataColOffset - 1,
-        excludedHiddenRows ?? undefined, excludedHiddenCols ?? undefined
+        excludedHiddenRows ?? undefined, excludedHiddenCols ?? undefined, formulasDecimalSeparator
       ), facts, context);
       const { errorCode } = facts;
       // An error result is cached as its OOXML code, which the engine's language does not

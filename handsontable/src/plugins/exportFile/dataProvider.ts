@@ -674,6 +674,24 @@ class ExportDataProvider {
   }
 
   /**
+   * Gets the decimal separator of the HyperFormula engine's number literals, if active.
+   *
+   * Returns `'.'` when the Formulas plugin is absent or disabled, since that is the
+   * separator OOXML (Excel) always expects.
+   *
+   * @returns {string}
+   */
+  getFormulasDecimalSeparator(): string {
+    const formulasPlugin = this.hot.getPlugin('formulas');
+
+    if (!formulasPlugin || !formulasPlugin.isEnabled()) {
+      return '.';
+    }
+
+    return (formulasPlugin.engine?.getConfig()?.decimalSeparator as string | undefined) ?? '.';
+  }
+
+  /**
    * Gets cell meta for all cells in the export range.
    *
    * Returns a 2D array of cell meta objects with the same structure as {@link ExportDataProvider#getData}.

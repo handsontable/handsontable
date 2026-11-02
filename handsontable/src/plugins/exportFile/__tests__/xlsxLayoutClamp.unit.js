@@ -95,6 +95,10 @@ jest.mock('../dataProvider', () => ({
       return ',';
     }
 
+    getFormulasDecimalSeparator() {
+      return '.';
+    }
+
     getExcludedHiddenRows() {
       return null;
     }

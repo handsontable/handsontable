@@ -1,5 +1,6 @@
 import { colIndexToLetter, colLetterToIndex } from '../../../../utils/xlsxEngine/cellRef';
 import { mapFormulaReferences, type ReferenceMap } from '../../../../utils/xlsxEngine/formulaRefs';
+import { isNameChar, skipQuoted } from '../../../../utils/xlsxEngine/functionPrefixes';
 
 /**
  * The column-letter converters, re-exported from the shared xlsx engine layer so the export's own
@@ -120,6 +121,85 @@ export function replaceSeparatorOutsideStrings(str: string, from: string, to: st
 }
 
 /**
+ * Whether a character is an ASCII digit.
+ *
+ * @param {string|undefined} char The character.
+ * @returns {boolean}
+ */
+function isDigit(char: string | undefined): boolean {
+  return char !== undefined && char >= '0' && char <= '9';
+}
+
+/**
+ * Writes the decimal separator of HyperFormula's number literals as the `.` OOXML always uses.
+ *
+ * A number literal is what HyperFormula's lexer reads as one: digits with an optional decimal
+ * separator and digits, or a decimal separator and digits, then an optional exponent (`1,5`, `,5`,
+ * `5,`, `1,5e3`). Only a literal that starts a token is one: a digit or separator right after a
+ * name character or `$` belongs to a reference or a name (`A1`, `A$1`, `Sheet1`). String literals
+ * and quoted sheet names are copied as they are. It runs before the references are mapped, so the
+ * exponent of `1,e3` stays part of its number instead of reading as the reference `E3`.
+ *
+ * @private
+ * @param {string} formula The formula, without the leading `=`.
+ * @param {string} decimalSeparator HyperFormula's `decimalSeparator` (`'.'` or `','`).
+ * @returns {string}
+ */
+export function toDotDecimalSeparator(formula: string, decimalSeparator: string): string {
+  if (!decimalSeparator || decimalSeparator === '.' || !formula.includes(decimalSeparator)) {
+    return formula;
+  }
+
+  let result = '';
+  let index = 0;
+
+  while (index < formula.length) {
+    const char = formula[index];
+    const previous = formula[index - 1];
+    const startsToken = previous === undefined || (previous !== '$' && !isNameChar(previous));
+
+    if (char === '"' || char === '\'') {
+      const end = skipQuoted(formula, index);
+
+      result += formula.slice(index, end);
+      index = end;
+
+    } else if (startsToken && (isDigit(char) || (char === decimalSeparator && isDigit(formula[index + 1])))) {
+      let end = index;
+
+      while (isDigit(formula[end])) {
+        end += 1;
+      }
+
+      result += formula.slice(index, end);
+
+      if (formula[end] === decimalSeparator) {
+        result += '.';
+        end += 1;
+      }
+
+      index = end;
+
+    } else if (isNameChar(char)) {
+      let end = index + 1;
+
+      while (end < formula.length && isNameChar(formula[end])) {
+        end += 1;
+      }
+
+      result += formula.slice(index, end);
+      index = end;
+
+    } else {
+      result += char;
+      index += 1;
+    }
+  }
+
+  return result;
+}
+
+/**
  * Counts how many values in a `Set` are strictly less than `threshold`.
  *
  * @private
@@ -152,6 +232,10 @@ function countBelow(set: Set<number>, threshold: number): number {
  *    dropped from the exported data matrix.
  * 3. Replaces `separator` with `,` outside string literals (OOXML always uses `,`).
  *
+ * Before all that, the decimal separator of every number literal becomes `.`
+ * (`toDotDecimalSeparator`): under `decimalSeparator: ','` HyperFormula reads `1,5` as one and a
+ * half, and Excel would read `SUM(A1,1,5)` as three arguments.
+ *
  * @private
  * @param {string} formulaStr Raw formula string (starts with `=`).
  * @param {string} separator HyperFormula's `functionArgSeparator` (e.g. `','` or `';'`).
@@ -165,6 +249,7 @@ function countBelow(set: Set<number>, threshold: number): number {
  * @param {Set<number>} [excludedHiddenCols] Physical HOT column indices that are hidden
  *   and excluded from the exported data matrix. When provided, each column reference is
  *   further reduced by the number of excluded columns that precede it.
+ * @param {string} [decimalSeparator='.'] HyperFormula's `decimalSeparator` (`'.'` or `','`).
  * @returns {string}
  */
 export function normalizeFormula(
@@ -173,9 +258,10 @@ export function normalizeFormula(
   rowOffset: number,
   colOffset: number,
   excludedHiddenRows?: Set<number>,
-  excludedHiddenCols?: Set<number>
+  excludedHiddenCols?: Set<number>,
+  decimalSeparator = '.'
 ): string {
-  let formula = formulaStr.startsWith('=') ? formulaStr.slice(1) : formulaStr;
+  let formula = toDotDecimalSeparator(formulaStr.startsWith('=') ? formulaStr.slice(1) : formulaStr, decimalSeparator);
   const hasRowExclusions = (excludedHiddenRows?.size ?? 0) > 0;
   const hasColExclusions = (excludedHiddenCols?.size ?? 0) > 0;
 
@@ -265,20 +351,23 @@ function exportedSheetMap(sheet: ExportedEngineSheet): ReferenceMap {
  * qualified with the exported name. The definition cannot be expressed, and `null` is returned,
  * when a reference names a sheet the export does not write (the file has no such sheet), has no
  * sheet at all, or ends on a left-out row or column. A left-out row or column INSIDE a range
- * only shrinks it, the way a cell formula's range shrinks. The argument separator becomes `,`.
+ * only shrinks it, the way a cell formula's range shrinks. The argument separator becomes `,` and
+ * the decimal separator of a number literal `.`, as in a cell formula.
  *
  * @private
  * @param {string} formula The definition (with or without its leading `=`).
  * @param {string} separator HyperFormula's `functionArgSeparator`.
  * @param {Map<string, object>} sheets The exported engine sheets, by lower-cased engine sheet name.
+ * @param {string} [decimalSeparator='.'] HyperFormula's `decimalSeparator`.
  * @returns {string|null} The definition without its `=`, or `null` when it cannot be expressed.
  */
 export function normalizeNamedExpression(
   formula: string,
   separator: string,
-  sheets: Map<string, ExportedEngineSheet>
+  sheets: Map<string, ExportedEngineSheet>,
+  decimalSeparator = '.'
 ): string | null {
-  const definition = formula.startsWith('=') ? formula.slice(1) : formula;
+  const definition = toDotDecimalSeparator(formula.startsWith('=') ? formula.slice(1) : formula, decimalSeparator);
   let unknownSheet = false;
   const mapped = mapFormulaReferences(definition, () => null, {
     requalify: (sheetName) => {

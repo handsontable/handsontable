@@ -163,6 +163,16 @@ Other rules:
   directions agree on this (`shiftFormulaReferences` shifts `$` components as well), so `$A$1` goes out as
   `$B$2` and comes back as `$A$1`. `formula-utils.unit.js` pins the export half; a change that starts
   skipping `$` here is a behavior change, not a cleanup.
+- **HyperFormula's separators are locale text; OOXML's are not** (DEV-3648). The source formulas and the
+  named-expression definitions hold what the user typed under the engine's `functionArgSeparator` and
+  `decimalSeparator` (`=SUM(A1;1,5)` under `,`/`;`). `normalizeFormula` and `normalizeNamedExpression`
+  first write the decimal separator of every number literal as `.` (`toDotDecimalSeparator`, number
+  literals only: never inside a string literal, a quoted sheet name, a reference or a name), then map the
+  references, then swap the argument separator for `,`. Swapping only the argument separator wrote
+  `SUM(A1,1,5)`, which Excel sums as three arguments (8, not 2.5), and `Sheet1!$A$1*0,5`, which is
+  invalid. The decimal step runs **before** the reference mapping, so the exponent of `1,e3` stays part
+  of its number instead of reading as the reference `E3`. `getFormulasDecimalSeparator()` reads the
+  separator the way `getFormulasSeparator()` reads the other one, so every `xlsx*.unit.js` mock carries both.
 - **The summary lookup map is always built**, even when `exportFormulas` is false, because the protection
   pre-scan needs it to identify ColumnSummary destination cells. It is an O(1)
   `"dataRow:dataCol" → descriptor` map.

@@ -83,6 +83,10 @@ jest.mock('../dataProvider', () => ({
       return ',';
     }
 
+    getFormulasDecimalSeparator() {
+      return '.';
+    }
+
     getNamedExpressions() {
       return [];
     }

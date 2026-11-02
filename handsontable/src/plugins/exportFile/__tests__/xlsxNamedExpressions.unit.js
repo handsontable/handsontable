@@ -309,6 +309,28 @@ describe('Xlsx export: named expressions as defined names', () => {
     ]);
   });
 
+  it('should write a decimal comma of the engine as a dot in a name and in a cell formula', async() => {
+    hot = new Handsontable(container, {
+      data: [[1, '=SUM(A1;1,5)', '="1,5"']],
+      formulas: {
+        engine: { hyperformula: HyperFormula, decimalSeparator: ',', functionArgSeparator: ';' },
+        sheetName: 'Sheet1',
+      },
+      exportFile: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    hot.getPlugin('formulas').engine.addNamedExpression('Half', '=Sheet1!$A$1*0,5');
+
+    const { snapshot } = await exportWorkbook({ exportFormulas: true, colHeaders: true });
+
+    expect(snapshot.definedNames).toEqual([
+      { name: 'Half', formula: 'Sheet1!$A$2*0.5', sheetName: null },
+    ]);
+    // `SUM(A2,1,5)` would sum three arguments in Excel (8, not the engine's 2.5).
+    expect(snapshot.sheets[0].rows[1][1].formula.text).toBe('SUM(A2,1.5)');
+    expect(snapshot.sheets[0].rows[1][2].formula.text).toBe('"1,5"');
+  });
+
   it('should export workbook-scoped names only', async() => {
     const engine = createGrid();
     const sheetId = hot.getPlugin('formulas').sheetId;

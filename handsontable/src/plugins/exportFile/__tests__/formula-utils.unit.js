@@ -84,10 +84,46 @@ describe('normalizeFormula', () => {
       expect(normalizeFormula('=CONCATENATE("a;b";C1)', ';', 0, 0)).toBe('CONCATENATE("a;b",C1)');
     });
   });
+
+  describe('decimal separator', () => {
+    const normalizeComma = (formula, rows = 0, cols = 0) => (
+      normalizeFormula(formula, ';', rows, cols, undefined, undefined, ',')
+    );
+
+    it('should write a decimal comma of a number literal as a dot', () => {
+      // `SUM(A1,1,5)` would sum three arguments in Excel.
+      expect(normalizeComma('=SUM(A1;1,5)')).toBe('SUM(A1,1.5)');
+      expect(normalizeComma('=A1*0,5', 1, 1)).toBe('B2*0.5');
+    });
+
+    it('should convert every number literal form the engine reads', () => {
+      expect(normalizeComma('=1,5e3+1,5E-3+,5+5,')).toBe('1.5e3+1.5E-3+.5+5.');
+    });
+
+    it('should not offset the exponent of a number with a trailing decimal comma', () => {
+      expect(normalizeComma('=1,e3+A1', 1, 1)).toBe('1.e3+B2');
+    });
+
+    it('should leave a comma inside a string literal or a quoted sheet name', () => {
+      expect(normalizeComma('="1,5"&A1')).toBe('"1,5"&A1');
+      expect(normalizeComma('=\'Sheet 1,5\'!A1*2,5')).toBe('\'Sheet 1,5\'!A1*2.5');
+    });
+
+    it('should leave a comma that does not belong to a number literal', () => {
+      expect(normalizeComma('=Sheet1!A1,B1')).toBe('Sheet1!A1,B1');
+      expect(normalizeComma('=A$1,5')).toBe('A$1,5');
+    });
+
+    it('should leave a dot decimal separator as it is', () => {
+      expect(normalizeFormula('=SUM(A1,1.5)', ',', 0, 0, undefined, undefined, '.')).toBe('SUM(A1,1.5)');
+    });
+  });
 });
 
 describe('normalizeNamedExpression', () => {
-  const normalize = (formula, { rows = 0, cols = 0, exRows, exCols, separator = ',' } = {}) => {
+  const normalize = (formula, {
+    rows = 0, cols = 0, exRows, exCols, separator = ',', decimalSeparator = '.',
+  } = {}) => {
     const sheets = new Map([
       ['data', {
         exportedName: 'Sheet1', rowOffset: rows, colOffset: cols, excludedRows: exRows, excludedCols: exCols,
@@ -95,7 +131,7 @@ describe('normalizeNamedExpression', () => {
       ['rates', { exportedName: 'Rate Table', rowOffset: 0, colOffset: 0 }],
     ]);
 
-    return normalizeNamedExpression(formula, separator, sheets);
+    return normalizeNamedExpression(formula, separator, sheets, decimalSeparator);
   };
 
   it('should strip the `=`, shift a reference to an exported sheet and qualify it with its exported name', () => {
@@ -120,6 +156,12 @@ describe('normalizeNamedExpression', () => {
 
   it('should convert the argument separator', () => {
     expect(normalize('=SUM(Data!$A$1;Data!$A$2)', { separator: ';' })).toBe('SUM(Sheet1!$A$1,Sheet1!$A$2)');
+  });
+
+  it('should write a decimal comma of a number literal as a dot', () => {
+    expect(normalize('=Data!$A$1*0,5', { rows: 1, separator: ';', decimalSeparator: ',' })).toBe('Sheet1!$A$2*0.5');
+    expect(normalize('=SUM(Data!$A$1;1,5;"2,5")', { separator: ';', decimalSeparator: ',' }))
+      .toBe('SUM(Sheet1!$A$1,1.5,"2,5")');
   });
 
   it('should shift an open span on its own axis only', () => {
