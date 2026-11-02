@@ -1,6 +1,9 @@
 import { HyperFormula } from 'hyperformula';
+import ExcelJS from 'exceljs';
 import Handsontable from '../../../index';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
+import { excelJsAdapter } from '../../../utils/xlsxEngine/adapters/exceljs';
+import { readZip } from '../../../utils/xlsxEngine/adapters/native/zip/reader';
 
 /**
  * DEV-3648: a HyperFormula formula whose result spills (`=SEQUENCE(3)`) is exported as an Excel
@@ -237,6 +240,70 @@ describe('Xlsx export: array formulas', () => {
     });
     expect(rows[0][2].formula.array).toEqual({ ref: 'C1', dynamic: true });
     expect(rows[0][4].formula).toEqual({ text: 'A1+1', result: '=A1+1' });
+  });
+
+  describe('range arithmetic', () => {
+    // A1:B3 hold the operands; C1:F1 the formulas under test.
+    const createArithmeticData = () => [
+      [1, 2, '=SUM(A1:A3*B1:B3)', '=SUM(A1:A3)', '=A1+1', '=SUM(A1:A1*2)'],
+      [2, 3],
+      [3, 4],
+    ];
+    const arrayArithmeticEngine = {
+      engine: { hyperformula: HyperFormula, useArrayArithmetic: true }, sheetName: 'Sheet1',
+    };
+
+    it('should write an operator over a multi-cell range as a one-cell dynamic array under array arithmetic', async() => {
+      // The Formulas plugin turns `useArrayArithmetic` on by default. As a plain formula, Excel 365 opens it as `SUM(@A1:A3*@B1:B3)`, which is 1*2, not 20.
+      const { rows, dropped } = await exportSheet({ data: createArithmeticData(), formulas: arrayArithmeticEngine });
+
+      expect(hot.getDataAtCell(0, 2)).toBe(20);
+      expect(rows[0][2].formula).toEqual({
+        text: 'SUM(A1:A3*B1:B3)', result: 20, array: { ref: 'C1', dynamic: true },
+      });
+      expect(rows[0][3].formula).toEqual({ text: 'SUM(A1:A3)', result: 6 });
+      expect(rows[0][4].formula).toEqual({ text: 'A1+1', result: 2 });
+      expect(rows[0][5].formula).toEqual({ text: 'SUM(A1:A1*2)', result: 2 });
+      expect(dropped).toEqual([]);
+    });
+
+    it('should write it as a plain formula when the engine intersects ranges itself', async() => {
+      // With `useArrayArithmetic: false`, HyperFormula computes 1*2 as Excel's `@` does.
+      const { rows } = await exportSheet({
+        data: createArithmeticData(),
+        formulas: { engine: { hyperformula: HyperFormula, useArrayArithmetic: false }, sheetName: 'Sheet1' },
+      });
+
+      expect(hot.getDataAtCell(0, 2)).toBe(2);
+      expect(rows[0][2].formula).toEqual({ text: 'SUM(A1:A3*B1:B3)', result: 2 });
+    });
+
+    it('should write it as a one-cell CSE array with the ExcelJS engine and report `dynamicArrays`', async() => {
+      const excelJsWrite = jest.spyOn(excelJsAdapter, 'write');
+
+      try {
+        hot = new Handsontable(container, {
+          data: createArithmeticData(),
+          formulas: arrayArithmeticEngine,
+          exportFile: true,
+          licenseKey: 'non-commercial-and-evaluation',
+        });
+
+        await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', { exportFormulas: true, engine: ExcelJS });
+
+        const [, , dropped] = excelJsWrite.mock.calls[0];
+        const bytes = await excelJsWrite.mock.results[0].value;
+        const zip = await readZip(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+        const sheet = await zip.text('xl/worksheets/sheet1.xml');
+
+        // A one-cell CSE array computes the same 20 in every Excel, without the `@`.
+        expect(sheet).toMatch(/<f t="array" ref="C1">SUM\(A1:A3\*B1:B3\)<\/f>/);
+        expect(sheet).not.toContain('cm=');
+        expect(dropped.list()).toContain('dynamicArrays');
+      } finally {
+        excelJsWrite.mockRestore();
+      }
+    });
   });
 
   it('should write no array without `exportFormulas`', async() => {

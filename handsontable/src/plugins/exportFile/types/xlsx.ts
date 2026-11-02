@@ -38,7 +38,9 @@ import {
 import { intlNumFormatToExcelNumFmt } from './xlsx/numeric-utils';
 import { detectXlsxEngine } from '../../../utils/xlsxEngine/detect';
 import { DROPPED_FEATURES, DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
-import { callsDynamicArrayFunction, unwrapArrayFormula } from '../../../utils/xlsxEngine/dynamicArrays';
+import {
+  appliesOperatorToRange, callsDynamicArrayFunction, unwrapArrayFormula,
+} from '../../../utils/xlsxEngine/dynamicArrays';
 import { SheetBuilder } from '../../../utils/xlsxEngine/builder';
 import { colIndexToLetter, toRangeRef } from '../../../utils/xlsxEngine/cellRef';
 import { DEFAULT_COMPRESSION_LEVEL } from '../../../utils/xlsxEngine/compression';
@@ -302,6 +304,11 @@ interface FormulaCellFacts {
 interface ArrayFormulaTarget {
   dropped: DroppedFeatures;
   arrayRanges: ArrayRangeClaims;
+  /**
+   * Whether the grid's Formulas engine computes an operator over a range element by element
+   * (HyperFormula's `useArrayArithmetic`).
+   */
+  arrayArithmetic: boolean;
 }
 
 /**
@@ -323,6 +330,11 @@ function recordArrayExcluded(dropped: DroppedFeatures): void {
  * 2. A formula the engine spills (`SEQUENCE(3)`) is a dynamic array over the spill.
  * 3. A call to a function Excel evaluates as a dynamic array (`IFS`, `SWITCH`) is a one-cell
  *    dynamic array, so Excel does not add the implicit-intersection `@`.
+ * 4. Under the engine's `useArrayArithmetic`, an operator applied to a multi-cell range
+ *    (`SUM(A1:A3*B1:B3)`, `appliesOperatorToRange`) is a one-cell dynamic array too: the engine
+ *    computes it over every cell, and Excel 365 would open a plain formula as
+ *    `SUM(@A1:A3*@B1:B3)`. Without array arithmetic the engine intersects the range itself, as
+ *    the `@` does, so the plain formula already matches.
  *
  * A spill the export does not keep in shape (an excluded row or column, the `range` edge), and an
  * array whose range overlaps an earlier array formula of the sheet, are written as plain formulas
@@ -341,7 +353,8 @@ function resolveArrayFormula(
   const formulaText = inner ?? text;
   const dynamic = inner === null;
 
-  if (inner === null && arraySize === null && !callsDynamicArrayFunction(text)) {
+  if (inner === null && arraySize === null && !callsDynamicArrayFunction(text)
+    && !(target.arrayArithmetic && appliesOperatorToRange(text))) {
     return { text };
   }
 
@@ -396,6 +409,7 @@ interface NestedHeaderEntry {
  */
 interface SheetContext {
   exportFormulas: boolean;
+  arrayArithmetic: boolean;
   formulasSeparator: string;
   formulasDecimalSeparator: string;
   dataRowOffset: number;
@@ -766,9 +780,12 @@ class Xlsx extends BaseType {
     const engineNames = exportFormulas && binding
       ? new Set(dataProvider.getNamedExpressions().map(({ name: definedName }) => localeLowerCase(definedName)))
       : null;
+    const engineConfig = (binding?.engine as { getConfig?: () => { useArrayArithmetic?: unknown } } | undefined)
+      ?.getConfig?.();
 
     const context = {
       exportFormulas,
+      arrayArithmetic: exportFormulas && engineConfig?.useArrayArithmetic === true,
       formulasSeparator,
       formulasDecimalSeparator,
       dataRowOffset,

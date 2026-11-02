@@ -351,7 +351,17 @@ Other rules:
   a spill crossing a hidden row with `exportHiddenRows: false`, a trimmed or filtered row, or the `range`
   edge is written as a plain formula and `formula:arrayExcluded` is recorded once. `ARRAYFORMULA(x)`
   as a whole is written as the legacy CSE array `{=x}`; `IFS` and `SWITCH` as a one-cell dynamic array
-  (`EXCEL_DYNAMIC_ARRAY_FUNCTIONS`). A 1 x 1 spill (`=SEQUENCE(1)`) is not flagged. A blocked spill
+  (`EXCEL_DYNAMIC_ARRAY_FUNCTIONS`). **Range arithmetic is a one-cell dynamic array too, gated on the
+  engine's `useArrayArithmetic`** (`ArrayFormulaTarget.arrayArithmetic`, read from the bound engine's
+  `getConfig()`; the Formulas plugin turns it on by default): an operator right next to a multi-cell
+  range (`SUM(A1:A3*B1:B3)`, `appliesOperatorToRange` in `utils/xlsxEngine/dynamicArrays.ts`) is
+  computed over every cell by the engine, while Excel 365 opens the plain formula as
+  `SUM(@A1:A3*@B1:B3)` (2, not 20). With `useArrayArithmetic: false` the engine intersects the range
+  itself and the plain formula matches, so it stays plain. Under the ExcelJS engine it goes out as the
+  one-cell CSE array `{=SUM(A1:A3*B1:B3)}`, which Excel computes the same way, plus `dynamicArrays`.
+  **Known gap:** a function that takes a range where it expects one value (`SUM(ABS(A1:A3))`) has the
+  same `@` problem and is not detected – that needs per-function knowledge, deliberately left out. A
+  defined name used as an operand is not detected either (its size is unknown). A 1 x 1 spill (`=SEQUENCE(1)`) is not flagged. A blocked spill
   (`#SPILL!`) exports as a one-cell array with the `#SPILL!` text. The ExcelJS engine writes every
   dynamic array as CSE and records `dynamicArrays`. Four-way parity is pinned by
   `utils/xlsxEngine/__tests__/enginesParityArraysErrorsNames.unit.js`. Known gap: an error typed into a
