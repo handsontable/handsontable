@@ -35,6 +35,16 @@ bugs — the full rules are in `../../utils/manualResize/AGENTS.md`. The one to 
 `updatePluginSettings(newSettings[PLUGIN_KEY])`, and a call that carries only a *foreign* key passes
 `undefined`, which **wipes the stored setting** for the rest of the session.
 
+### `_getObjectSettingDefaults()`: what an object option's left-out keys reset to
+
+`@private`. The SheetsBar plugin sends a sheet's object option as these defaults, then the grid-level object,
+then the sheet's own object, so a key one sheet set never stays on the next sheet (`updateSettings()` itself
+keeps merging). The base answers for a plugin with an object of `SETTINGS_VALIDATORS`: each validated key with a
+`DEFAULT_SETTINGS` value its validator accepts. Two rules follow. A default must pass its own validator (Loading
+`title: undefined`, Dialog `template: null`), or that key leaks across sheets. And a plugin that merges an object
+setting its own way overrides the method and lists every key it merges: ColumnSorting (and MultiColumnSorting
+through it) and Search do. A new key added to such a plugin's object must be added to its override too.
+
 ## Lifecycle, in the order it actually runs
 
 ```

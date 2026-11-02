@@ -2185,10 +2185,13 @@ export class SheetsBar extends BasePlugin {
    * after the first one exist only in the plugin, and this is how you read them. With a declared
    * workbook, it returns the same array as the sheet's `data` in your `sheets` array.
    *
-   * The array is live: no copy is made. For the active sheet, it is the array the grid works on, so after a
-   * {@link Core#loadData} it is the array you loaded. Rows of a sorted sheet keep their own order. While the
-   * sheet is active, change its data through {@link Core#setDataAtCell} or {@link Core#loadData}, not in
-   * place.
+   * It returns the sheet's current array: no copy is made. For the active sheet, it is the array the grid works
+   * on, so after a {@link Core#loadData} it is the array you loaded. Rows of a sorted sheet keep their own order.
+   * The plugin can replace a sheet's array later (a server response, a copy of an array you froze, a new
+   * top-level `data`), so call this method again each time instead of keeping the array. A sheet that loads its
+   * rows through its own `dataProvider` returns only the page it has loaded. While the sheet is active, change
+   * its data through {@link Core#setDataAtCell} or {@link Core#loadData}, not in place, and do not add or remove
+   * rows of a hidden sheet's array in place either: a sorted sheet's formulas follow the rows it had.
    *
    * Returns `null` when the bar is off or the sheet does not exist.
    *
