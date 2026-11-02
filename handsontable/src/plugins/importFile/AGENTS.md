@@ -580,7 +580,11 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `definesNamedExpression` comparison (and `unresolvedDefinedNames` puts it there when
   `collectNamedExpressions` does not run, `canAddNamedExpression` absent). It sorts after a valid name of
   its scope (an orphan scope reads as workbook scope and must not hide the real workbook name), while a
-  flagged name scoped to the imported sheet still wins over a workbook-scoped one. **A flagged name
+  flagged name scoped to the imported sheet still wins over a workbook-scoped one. **A workbook-scoped
+  definition over a name the imported sheet scopes too is left out** (`shadowed` in
+  `collectNamedExpressions`): the sheet's one is handed over at workbook scope, so the engine would read
+  it where the file reads the workbook one (`Triple = Rate*3`). It goes into `unresolvedNames` with
+  `definedNames:unsupported`, and the names over it follow through the left-out chain. **A flagged name
   records `definedNames:unsupported` only when a formula uses it** (`usesUnresolvedName` checks
   `flaggedNames`): ExcelJS flags every name, so recording it up front warned on every ExcelJS import of a
   workbook with names. The built-in reader still records it on read for the names IT flags (too long,

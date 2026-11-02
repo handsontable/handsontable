@@ -220,6 +220,34 @@ describe('xlsx round trip through exportFile and importFile with HyperFormula', 
     expect(target.getData()).toEqual(SHOWN);
   });
 
+  it('should import a workbook name over a name the sheet scopes too as its cached value (built-in engine)', async() => {
+    // The file holds `Rate` for the workbook (1) and for the sheet (2). The grid has one sheet, so
+    // the import registers the sheet's `Rate` at workbook scope. The workbook `Triple = Rate*3` reads
+    // the workbook `Rate` in the file (3); registered, it would read the sheet's (6). It is left out,
+    // and the formula over it imports its cached value. The sheet's own formula over `Rate` stays live.
+    const hot = createGrid([
+      [1, '=Triple', '=Rate*10'],
+      [2, null, null],
+    ]);
+    const engine = hot.getPlugin('formulas').engine;
+
+    engine.addNamedExpression('Rate', '=Data!$A$1');
+    engine.addNamedExpression('Rate', '=Data!$A$2', hot.getPlugin('formulas').sheetId);
+    engine.addNamedExpression('Triple', '=Rate*3');
+
+    const shown = [[1, 3, 20], [2, null, null]];
+
+    expect(hot.getData().map(row => row.slice(0, 3))).toEqual(shown);
+
+    const target = createGrid([[null]]);
+    const result = await importBytes(target, await exportBytes(hot));
+
+    expect(result.namedExpressions).toEqual([{ name: 'Rate', formula: 'Data!$A$2' }]);
+    expect(droppedBesidesStyles(result)).toEqual(['definedNames:unsupported', 'formula:definedName']);
+    expect(target.getSourceDataAtRow(0).slice(1, 3)).toEqual([3, '=Rate*10']);
+    expect(target.getData().map(row => row.slice(0, 3))).toEqual(shown);
+  });
+
   it('should re-import a formula with nested or partial ARRAYFORMULA calls as a live CSE array (built-in engine)', async() => {
     // The export strips every ARRAYFORMULA call, which Excel cannot read, and writes a CSE array;
     // the import wraps a CSE array in one ARRAYFORMULA call again.

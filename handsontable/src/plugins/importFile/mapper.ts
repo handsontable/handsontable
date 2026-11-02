@@ -930,7 +930,8 @@ function isTooCostly(formula: string, cells: number, spent: number, scope: Colle
  * A name scoped to another sheet is ignored: the imported sheet's formulas never see it in Excel
  * either. A name scoped to the imported sheet is handed over at workbook scope (the grid holds that
  * one sheet), ahead of a workbook-scoped name spelled like it, which is what Excel resolves on that
- * sheet. A name the engine already defines is left as the engine has it; when its definition is
+ * sheet. A workbook-scoped definition over such a name reads the workbook one in the file, but would
+ * read the sheet's one in the engine, so it is left out like an unresolved name. A name the engine already defines is left as the engine has it; when its definition is
  * not this file's (`MapperContext.definesNamedExpression`), the name is added to
  * `scope.unresolvedNames`, so the formulas over it import their cached values instead of reading the
  * engine's old definition, and `definedNames:unsupported` is recorded.
@@ -969,6 +970,14 @@ function collectNamedExpressions(scope: CollectContext): NonNullable<ImportResul
     (sheetName === null ? 2 : 0) + (unsupported ? 1 : 0)
   );
   const ordered = definitions.slice().sort((a, b) => rank(a) - rank(b));
+  // The names the imported sheet scopes that the workbook defines too. The sheet's one is handed over
+  // at workbook scope, so a workbook definition over such a name would read it, where the file's
+  // reads the workbook one: those definitions are left out.
+  const scopedNames = new Set(definitions.filter(({ sheetName }) => sheetName !== null)
+    .map(({ name }) => name.toLowerCase()));
+  const shadowed = new Set(definitions.filter(({ sheetName, name }) => (
+    sheetName === null && scopedNames.has(name.toLowerCase())
+  )).map(({ name }) => name.toLowerCase()));
   const added = new Map<string, { name: string; formula: string }>();
   const seen = new Set<string>();
   let unsupported = false;
@@ -999,7 +1008,7 @@ function collectNamedExpressions(scope: CollectContext): NonNullable<ImportResul
     return sized;
   };
 
-  ordered.forEach(({ name, formula, unsupported: flagged }) => {
+  ordered.forEach(({ name, formula, sheetName: definedFor, unsupported: flagged }) => {
     const lowered = name.toLowerCase();
     const defined = context.formulaNamedExpressions?.has(lowered) === true;
 
@@ -1042,6 +1051,16 @@ function collectNamedExpressions(scope: CollectContext): NonNullable<ImportResul
       selfAs: context.formulaSheetName,
       isKnown: candidate => isSheetKnown(candidate, scope),
     });
+
+    // A workbook definition over a name the sheet's one shadows in the engine reads another value.
+    if (definedFor === null && rebased.formula !== null && shadowed.size > 0
+      && [...namesIn(rebased.formula)].some(used => shadowed.has(used))) {
+      unresolvedNames.add(lowered);
+      unsupported = true;
+
+      return;
+    }
+
     const cells = rebased.formula === null ? 0 : closedReferenceArea(rebased.formula, extent);
     const expression = rebased.formula === null || rebased.unknownSheet || rebased.formula.trim() === ''
       || isTooCostly(rebased.formula, cells, definitionCells, scope) || callsSpillOperator(rebased.formula)
