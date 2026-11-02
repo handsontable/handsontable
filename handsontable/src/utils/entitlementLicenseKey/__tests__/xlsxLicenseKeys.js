@@ -1,5 +1,5 @@
 import { buildTestKey } from './buildTestKey';
-import { XLSX_CAPABILITY_IDS } from '../../xlsxEngine/licenseCapabilities';
+import { LISTED_CAPABILITIES_FLAG, XLSX_CAPABILITY_IDS } from '../../xlsxEngine/licenseCapabilities';
 
 /**
  * The shared TEST-ONLY license keys for the xlsx capability gates. The Jest suites of `exportFile` and
@@ -14,6 +14,14 @@ import { XLSX_CAPABILITY_IDS } from '../../xlsxEngine/licenseCapabilities';
  * @type {string[]}
  */
 export const ALL_XLSX_TOKENS = XLSX_CAPABILITY_IDS;
+
+/**
+ * The per-product key flag that makes a key unlock exactly the tokens it lists (the feature
+ * manifest's `keyFlag`). A product entry without it unlocks every feature.
+ *
+ * @type {string}
+ */
+export { LISTED_CAPABILITIES_FLAG };
 
 /**
  * The tokens of the standard xlsx tier.
@@ -54,7 +62,7 @@ export function keyWithoutFlag(tokens, flags = []) {
  * @returns {string}
  */
 export function keyWith(tokens, flags = []) {
-  return keyWithoutFlag(tokens, ['listed-capabilities', ...flags]);
+  return keyWithoutFlag(tokens, [LISTED_CAPABILITIES_FLAG, ...flags]);
 }
 
 /**

@@ -7,6 +7,7 @@ import { SUBSCRIPTION_KEY } from '../../handsontable/src/utils/entitlementLicens
 
 export {
   ALL_XLSX_TOKENS,
+  LISTED_CAPABILITIES_FLAG,
   STANDARD_TOKENS,
   keyWith,
   keyWithAll,
@@ -19,11 +20,6 @@ export {
  */
 export const LEGACY_KEY = 'non-commercial-and-evaluation';
 
-/**
- * The per-product key flag that makes a key unlock exactly the tokens it lists (the feature
- * manifest's `keyFlag`). A product entry without it unlocks every feature.
- */
-export const LISTED_CAPABILITIES_FLAG = 'listed-capabilities';
 
 /**
  * A current subscription key with the `core` capability only, as the real generator issued it. It
