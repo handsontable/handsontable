@@ -2,11 +2,11 @@
 
 ## Tech Debt
 
-**Broken Plugin Initialization Abstraction (#6806):**
-- Issue: `enablePlugin()` runs before the data and the view exist at init, and after them on `updateSettings()`. Plugins guard against the first state (`!this.hot.view`), force `updatePlugin()` calls during `enablePlugin()`, or park work on `init`/`afterInit` listeners.
-- Files: guard-and-replay in `handsontable/src/plugins/nestedHeaders/nestedHeaders.ts` and `handsontable/src/plugins/collapsibleColumns/collapsibleColumns.ts`; `init`/`afterInit` parking in ColumnSorting, Filters, CustomBorders, MergeCells, ColumnSummary, Pagination, EmptyDataState, DataProvider, Formulas, NestedRows, AutoColumnSize, AutoRowSize, and FormulaBuilder.
-- Impact: Every new plugin that depends on rendering state risks hitting the same initialization timing bug. The workarounds obscure the actual plugin lifecycle and make the code fragile.
-- Fix approach: the mechanism exists – the ready step `BasePlugin#onGridReady()`, which core runs once after every enable or update, when the data, the view and the editor manager exist (`handsontable/src/plugins/base/AGENTS.md`, "The ready step"). What remains is migrating each plugin above: move the guarded or parked work into `onGridReady()` and remove the guard. Do not move `enablePlugin()` itself after the view: that reorders plugin hooks behind settings-declared ones, and plugins must be in place before the first data load.
+**Plugin Initialization Order (#6806) – migrated to the ready step:**
+- Issue: `enablePlugin()` runs before the data and the view exist at init, and after them on `updateSettings()`. Plugins used to guard against the first state (`!this.hot.view`), force `updatePlugin()` calls during `enablePlugin()`, or park work on `init`/`afterInit` listeners that never fired again for a later enable.
+- Status: every parking site uses the ready step `BasePlugin#onGridReady()` now – NestedHeaders, CollapsibleColumns, Filters, NestedRows, EmptyDataState, CustomBorders, Pagination, ColumnSorting (and MultiColumnSorting), ColumnSummary, MergeCells, DataProvider, and Formulas' postponed index syncs. Core holds the renders the steps ask for at init, so their work is drawn by the first render.
+- Kept on purpose: the `init` listeners of AutoColumnSize and AutoRowSize (their steps would run at priority 10 and 40, before NestedHeaders, MergeCells and Pagination build what they measure), FormulaBuilder's `afterInit` (a failed enable owes no step), Formulas' `this.hot.view` init detection, and the `!this.hot.view` guards on the disable path. The list and the reasons are in `handsontable/src/plugins/base/AGENTS.md`, "#6806".
+- Remaining risk: a ready step runs after every enable AND every update. A plugin whose `updatePlugin()` already does the same work needs the one-owner flag the base `AGENTS.md` describes, or the work runs twice per update.
 
 **EventManager Shared Listener Array:**
 - Issue: `EventManager` mutates an external object's `eventListeners` array, and all `EventManager` instances sharing the same context share the same listener list.
@@ -111,9 +111,9 @@
 
 **NestedHeaders + CollapsibleColumns:**
 - Files: `handsontable/src/plugins/nestedHeaders/nestedHeaders.ts`, `handsontable/src/plugins/collapsibleColumns/collapsibleColumns.ts`
-- Why fragile: Both plugins contain workarounds for the broken plugin initialization abstraction (#6806). `NestedHeaders` has 4 workaround sites, `CollapsibleColumns` has 3. These workarounds involve conditional state checks and forced `updatePlugin()` calls that mask timing issues.
+- Why fragile: The two plugins share one `StateManager`, and CollapsibleColumns re-derives its hidden set from the tree NestedHeaders builds. Both build their state in the ready step (`onGridReady()`), and the tree must be built first: NestedHeaders (280) runs its step before CollapsibleColumns (290), pinned by `collapsibleColumns/__tests__/readyStep.unit.ts`.
 - Safe modification: Always test with both plugins enabled simultaneously. Verify expand/collapse behavior with hidden columns. Run the full `collapsibleColumns.spec.js` and `hidingColumns.spec.js` in nested headers.
-- Test coverage: Good E2E coverage exists but the workarounds themselves are not directly tested.
+- Test coverage: Good E2E coverage; the build order and the once-per-update rule are pinned in the unit test above.
 
 **Overlay System (Walkontable):**
 - Files: `handsontable/src/3rdparty/walkontable/src/overlay/overlays.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/regions/topOverlay.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/regions/inlineStartOverlay.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/regions/bottomOverlay.ts`
@@ -143,7 +143,7 @@
 
 **No Plugin Integration Testing Framework:**
 - Problem: Plugin interactions (e.g., `MergeCells` + `HiddenColumns` + `NestedHeaders`) are tested via E2E specs but lack a structured integration test approach. Each combination must be manually tested.
-- Blocks: Confident refactoring of plugin initialization. The broken initialization abstraction (#6806) persists partly because testing all combinations is expensive.
+- Blocks: Confident refactoring of plugin initialization. The #6806 workarounds moved to the ready step one plugin at a time, each pinned by its own `readyStep.unit.*` file, because testing every combination is expensive.
 
 ## Test Coverage Gaps
 

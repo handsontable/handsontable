@@ -252,6 +252,13 @@ export class CustomBorders extends BasePlugin {
   #carriedBorders: BorderObject[] | null = null;
 
   /**
+   * `true` from an `enablePlugin()` until the borders the settings declare are applied. `updatePlugin()`
+   * and `onDataReady()` apply them themselves; otherwise the ready step does (at init, and after a direct
+   * `enablePlugin()` call).
+   */
+  #declaredBordersOwed = false;
+
+  /**
    * During a `createCustomBorders` pass, holds the `row,col` keys already written in this pass, so a
    * cell touched for the first time can skip the existing-meta merge read (there is nothing to merge
    * on a fresh cell - the pass starts after the previous borders' meta is cleared). Only cells hit by
@@ -372,7 +379,6 @@ export class CustomBorders extends BasePlugin {
 
     this.addHook('afterContextMenuDefaultOptions',
       (options: unknown) => this.#onAfterContextMenuDefaultOptions(options));
-    this.addHook('init', () => this.#onAfterInit());
     this.addHook('beforeCreateRow', this.#onBeforeCreateRow);
     this.addHook('afterCreateRow', this.#onAfterCreateRow);
     this.addHook('beforeRemoveRow', this.#onBeforeRemoveRow);
@@ -400,6 +406,8 @@ export class CustomBorders extends BasePlugin {
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
     this.addHook('beforeLoadData', this.#onBeforeDataReplacement);
     this.addHook('beforeUpdateData', this.#onBeforeDataReplacement);
+
+    this.#declaredBordersOwed = true;
 
     super.enablePlugin();
   }
@@ -440,6 +448,7 @@ export class CustomBorders extends BasePlugin {
       if (this.isDataWorkDeferred()) {
         this.deferDataWork();
       } else {
+        this.#declaredBordersOwed = false;
         this.changeBorderSettings();
       }
     } finally {
@@ -459,9 +468,44 @@ export class CustomBorders extends BasePlugin {
    */
   onDataReady() {
     if (this.takeDeferredDataWork()) {
+      this.#declaredBordersOwed = false;
       this.changeBorderSettings(false);
     }
   }
+
+  /**
+   * Applies the borders the settings declare when no `updatePlugin()` or `onDataReady()` applied them: at
+   * init, and after a direct `enablePlugin()` call. Core runs it once after each enable or update, when the
+   * data is loaded and the view exists.
+   *
+   * At init it runs before the `init` hook and the first render, so it does not render: that render syncs
+   * the master table's borders, and the overlay clones it builds get theirs from one more render, scheduled
+   * for `afterInit`. On a grid already drawn, it renders once.
+   *
+   * @private
+   */
+  onGridReady() {
+    if (!this.#declaredBordersOwed) {
+      return;
+    }
+
+    const isInitPass = this.isInitReadyStep();
+
+    this.#declaredBordersOwed = false;
+    this.changeBorderSettings(!isInitPass);
+
+    if (isInitPass && this.savedBorders.length > 0) {
+      this.hot.addHookOnce('afterInit', this.#onAfterInitRender);
+    }
+  }
+
+  /**
+   * Renders once more after the first render of the grid, which builds the overlay clones that still need a
+   * selection pass for the declared borders.
+   */
+  #onAfterInitRender = () => {
+    this.hot.render();
+  };
 
   /**
    * Set custom borders.
@@ -1603,10 +1647,10 @@ export class CustomBorders extends BasePlugin {
    *
    * @private
    * @param {boolean} [render=true] If `true`, a render is forced after the border model is rebuilt
-   * so `#syncViewportSelections` materializes the visible selections. Pass `false` on the `init`
-   * path: the `init` hook fires before the core's own first render, so that render performs the
-   * sync - and rendering here would paint the grid before later-priority plugins (e.g.
-   * NestedHeaders) finish their `init` setup, leaving corrupted header DOM behind.
+   * so `#syncViewportSelections` materializes the visible selections. Pass `false` from the ready step
+   * at init: the core's first render follows and performs the sync, and rendering here would paint the
+   * grid before later-priority plugins (e.g. NestedHeaders) build their state, leaving corrupted header
+   * DOM behind (#11031).
    */
   changeBorderSettings(render = true) {
     const customBorders = this.hot.getSettings()[PLUGIN_KEY];
@@ -2078,23 +2122,6 @@ The border style will be ignored.`);
         ]
       }
     });
-  }
-
-  /**
-   * `init` hook callback. Builds the border model without forcing a render: the `init` hook fires
-   * right before the core's first render, and a render forced from here would paint the grid
-   * before later-priority plugins (e.g. NestedHeaders) run their own `init` setup, leaving
-   * corrupted header DOM behind (#11031 regression). The core's first render syncs and draws the
-   * master overlay's borders; the freshly-bootstrapped overlay clones need one more selection
-   * pass, so that render is scheduled for `afterInit` - still inside the same synchronous init
-   * sequence, but after every plugin finished its initialization.
-   */
-  #onAfterInit() {
-    this.changeBorderSettings(false);
-
-    if (this.savedBorders.length > 0) {
-      this.hot.addHookOnce('afterInit', () => this.hot.render());
-    }
   }
 
   /**
