@@ -332,6 +332,14 @@ export class MergeCells extends BasePlugin {
    */
   #initialized = false;
   /**
+   * `true` from an `enablePlugin()` until the settings pass of that enable has run or has been handed over.
+   * `updatePlugin()` runs the pass itself, or hands it to the sheets bar (`runDeferredSettingsPass()`); the
+   * ready step runs it otherwise: at init, and after a direct `enablePlugin()` call.
+   *
+   * @type {boolean}
+   */
+  #settingsPassOwed = false;
+  /**
    * Keys of the merge areas seen in a previous settings application, in the {@link toMergeAreaKey}
    * form. Recording an area says only that its clearing pass has already run once — not that the
    * write landed, which a `beforeChange` handler or a validator can still refuse. Derived from the
@@ -456,7 +464,6 @@ export class MergeCells extends BasePlugin {
     this.autofillCalculations = new AutofillCalculations(this);
     this.selectionCalculations = new SelectionCalculations(this);
 
-    this.addHook('afterInit', this.#onAfterInit);
     this.addHook('modifyGetCellCoords', this.#onModifyGetCellCoords);
     this.addHook('modifyGetCoordsElement', this.#onModifyGetCellCoords);
     this.addHook('beforeRenderer', this.#onBeforeRenderer);
@@ -504,6 +511,8 @@ export class MergeCells extends BasePlugin {
     this.hot.rowIndexMapper.addLocalHook('beforeCacheUpdate', this.#onBeforeRowIndexCacheUpdate);
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
     this.hot.selection.setCellBlockProvider(this.#cellBlockProvider);
+
+    this.#settingsPassOwed = true;
 
     super.enablePlugin();
   }
@@ -564,7 +573,11 @@ export class MergeCells extends BasePlugin {
 
       alreadyAppliedMerges.forEach(key => this.#appliedMergeKeys.add(key));
       appliedAreas.forEach((area, key) => this.#appliedAreas.set(key, area));
-      this.deferDataWork();
+
+      // Recorded only on a drawn grid. On a grid still being built the ready step runs the pass instead.
+      if (this.deferDataWork()) {
+        this.#settingsPassOwed = false;
+      }
 
       super.updatePlugin();
 
@@ -588,6 +601,7 @@ export class MergeCells extends BasePlugin {
       }
     });
 
+    this.#settingsPassOwed = false;
     this.generateFromSettings(alreadyAppliedMerges, keptMergeKeys);
     this.#initialized = true;
     this.#captureMergeAnchors();
@@ -613,6 +627,48 @@ export class MergeCells extends BasePlugin {
 
     if (apply) {
       this.generateFromSettings(new Set(this.#appliedMergeKeys));
+    }
+
+    this.#initialized = true;
+    this.#captureMergeAnchors();
+  }
+
+  /**
+   * Runs the settings pass of an enable that nothing else ran: at init, and after a direct `enablePlugin()`
+   * call. Core runs it once after each enable or update, when the data is loaded and the editor manager
+   * exists. `updatePlugin()` runs its own pass, or hands it to the sheets bar, so the step does nothing then.
+   *
+   * Applying the declared merges used to draw the grid twice: `generateFromSettings()` clears the cells each
+   * area covers through `setDataAtCell()`, which renders on its own, and the merge then needs a render of its
+   * own to span them. Batching collapses the two into a single draw, and at init core holds even that one for
+   * the first render. With no declared area there is nothing to apply, so no draw is asked for (#5687).
+   *
+   * @private
+   */
+  onGridReady() {
+    if (!this.#settingsPassOwed) {
+      return;
+    }
+
+    this.#settingsPassOwed = false;
+    this.dropDeferredDataWork();
+
+    if (this.getSetting<unknown[]>('cells').length > 0) {
+      this.hot.suspendRender();
+
+      try {
+        this.generateFromSettings();
+        // Load-bearing: `resumeRender()` draws through the view, which picks fast-vs-full from
+        // `forceFullRender`, and only `Core#render` sets it. Without this the batched draw can be
+        // a fast one, which skips the cell renderers that apply the spans.
+        this.hot.render();
+      } finally {
+        // Suspend/resume by hand rather than through `Core#batchRender`, which has no `finally`:
+        // the clearing write runs user code (`beforeChange`, a validator), and a throw there would
+        // otherwise leave the render-suspend counter raised for the rest of the instance's life.
+        // Only that counter is restored here — the throw still propagates, as it did before.
+        this.hot.resumeRender();
+      }
     }
 
     this.#initialized = true;
@@ -1964,43 +2020,9 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * `afterInit` hook callback.
-   *
-   * Applying the declared merges used to draw the grid twice: `generateFromSettings()` clears the
-   * cells each area covers through `setDataAtCell()`, which renders on its own, and the merge then
-   * needs a render of its own to span them. Batching collapses the two into a single draw. With no
-   * declared area there is nothing to apply, so the initial render already shows the final grid and
-   * any draw here would repaint an identical table (#5687).
-   */
-  #onAfterInit = () => {
-    this.dropDeferredDataWork();
-
-    if (this.getSetting<unknown[]>('cells').length > 0) {
-      this.hot.suspendRender();
-
-      try {
-        this.generateFromSettings();
-        // Load-bearing: `resumeRender()` draws through the view, which picks fast-vs-full from
-        // `forceFullRender`, and only `Core#render` sets it. Without this the batched draw can be
-        // a fast one, which skips the cell renderers that apply the spans.
-        this.hot.render();
-      } finally {
-        // Suspend/resume by hand rather than through `Core#batchRender`, which has no `finally`:
-        // the clearing write runs user code (`beforeChange`, a validator), and a throw there would
-        // otherwise leave the render-suspend counter raised for the rest of the instance's life.
-        // Only that counter is restored here — the throw still propagates, as it did before.
-        this.hot.resumeRender();
-      }
-    }
-
-    this.#initialized = true;
-    this.#captureMergeAnchors();
-  };
-
-  /**
    * `afterMergeCells` hook callback. Captures the physical anchor of the just-created merge so it can
    * be re-anchored on later trimming changes (covers user/API merges; config merges are also captured
-   * in `afterInit`/`updatePlugin`).
+   * in the ready step and `updatePlugin()`).
    *
    * @param {CellRange} _cellRange The merged range (unused).
    * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergeParent The merged cell.
