@@ -181,6 +181,33 @@ test('redirects legacy Vue 3 pages under every framework prefix', async() => {
   }
 });
 
+test('redirects the old Vue 2 page names to the Vue data grid pages (PRO-1371)', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(worker, '/docs/javascript-data-grid/vue-installation/', '/docs/vue-data-grid/installation/');
+  await assertRedirect(worker, '/docs/angular-data-grid/vue-vuex-example/', '/docs/vue-data-grid/vue-vuex/');
+  await assertRedirect(worker, '/docs/angular-data-grid/vue-setting-up-a-translation/', '/docs/vue-data-grid/language/');
+  await assertRedirect(worker, '/docs/javascript-data-grid/vue-hot-reference/', '/docs/vue-data-grid/vue-instance-reference/');
+  await assertRedirect(worker, '/docs/angular-data-grid/vue-modules/', '/docs/vue-data-grid/modules/');
+  await assertRedirect(worker, '/docs/react-data-grid/vue-basic-example/', '/docs/vue-data-grid/installation/');
+  await assertRedirect(worker, '/docs/javascript-data-grid/vue-custom-editor-example', '/docs/vue-data-grid/cell-editor/');
+  await assertRedirect(worker, '/docs/javascript-data-grid/vue3-simple-example/', '/docs/vue-data-grid/installation/');
+});
+
+test('the live vue- pages are not redirected by the Vue legacy rule', async() => {
+  const worker = loadWorker();
+
+  // These slugs are live pages under every framework prefix.
+  for (const page of ['vue-hot-column', 'vue-instance-reference', 'vue-nuxt', 'vue-pinia', 'vue-vuex']) {
+    for (const framework of ['javascript', 'react', 'angular', 'vue']) {
+      const response = await worker.fetch(request(`/docs/${framework}-data-grid/${page}/`), env);
+
+      assert.equal(response.status, 200, `${framework}/${page} must not redirect`);
+      assert.equal(await response.text(), 'static-asset-passthrough');
+    }
+  }
+});
+
 test('redirects versioned legacy Vue 3 pages to versioned Vue data grid pages', async() => {
   const worker = loadWorker();
 
