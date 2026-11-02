@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a column header drag that moved or sorted the wrong column when `loadData()` or the `columns` option reset the column order during the drag.",
+  "type": "fixed",
+  "issueOrPR": 14083,
+  "breaking": false,
+  "framework": "none"
+}

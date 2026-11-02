@@ -127,7 +127,8 @@ outside, do not assume each call rebuilds the matrix.
   on insert/remove/move **NestedHeaders rebuilds the tree (+ applies overrides + re-attaches collapse)
   before** CollapsibleColumns re-derives its `visibleWhen` hidden set against the finalized tree. Reverse
   the order and `visibleWhen` is derived against a stale tree.
-- `CollapsibleColumns` declares `static PLUGIN_DEPS = ['plugin:NestedHeaders']` and reads the same
+- `CollapsibleColumns` requires NestedHeaders (`PLUGIN_DEPS` is `['plugin:NestedHeaders']`, generated from its
+  `feature.json`) and reads the same
   StateManager via `nestedHeadersPlugin.getStateManager()`. The data flow is one-directional:
   CollapsibleColumns **reads** tree/matrix state and **writes** hiding maps; NestedHeaders never asks
   CollapsibleColumns what is collapsed — it reads the hiding maps back through `syncVisibility`.

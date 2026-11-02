@@ -17,7 +17,8 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
 
 ## The few CollapsibleColumns-specific facts to keep straight
 
-- `PLUGIN_PRIORITY = 290`, and `static PLUGIN_DEPS = ['plugin:NestedHeaders']`. NestedHeaders is 280, so
+- `PLUGIN_PRIORITY = 290`, and `PLUGIN_DEPS` is `['plugin:NestedHeaders']` (declared in `feature.json` and
+  generated into `feature.generated.ts`; see `../../featureManifest/AGENTS.md`). NestedHeaders is 280, so
   it rebuilds the tree (and applies move/reparent overrides) **before** this plugin re-derives its
   `visibleWhen` hidden set. This ordering is load-bearing — see the NestedHeaders doc.
 - **The `collapsible` flags are written from NestedHeaders' `afterHeaderStateRebuild` local hook, not from

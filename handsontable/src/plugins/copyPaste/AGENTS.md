@@ -298,7 +298,7 @@ with `selectCell(..., false, false)` — no scroll and `changeListener: false`, 
 or not the grid still has focus and **never re-listens**: a slow async validator that settles after the user
 clicked away corrects the selection in place instead of yanking focus back. (4) It runs only while the live
 selection still equals the **exact range the inline selection produced** — read back from the grid after that
-selection (so `mergeCells`' `beforeSetRangeStart` snap is already reflected), start and end corners both — so
+selection (so the selection's growth over merged cells is already reflected), start and end corners both — so
 a selection the user or a synchronous `afterPaste` handler changed since the paste, even one that still starts
 at the paste origin, is left alone. (5) `#pastePlan` is cleared at the **top of `onPaste`**, not only when the
 correction consumes it: a paste that writes nothing (`beforeChange` returns false, or a `dropdown` under
@@ -327,9 +327,9 @@ needs to be correct.
 (c) A **merge partially overlapping the paste and extending outside it, on the COLUMN axis**, ends the
 validated (deferred) paste on a wider selection than the validator-free (synchronous) one (raised in review,
 measured, scoped out). The mechanism: the deferred correction re-selects at CopyPaste's `afterChange` priority
-(80), which runs BEFORE MergeCells' `#unmergeAfterPaste` (150) in the same cycle, so `#onBeforeSelectionHighlightSet`
-runs `expandByRange` on a merge that overlaps the corrected selection but extends outside it and pulls the
-outside cells in. A validator-free paste unmerges first (its inline `selectCell` runs after `#unmergeAfterPaste`,
+(80), which runs BEFORE MergeCells' `#unmergeAfterPaste` (150) in the same cycle, so `Selection#applyCellBlocks`
+grows the corrected selection over a merge that overlaps it but extends outside it, and pulls the outside
+cells in. A validator-free paste unmerges first (its inline `selectCell` runs after `#unmergeAfterPaste`,
 so the merge is already gone) and selects clean. The two axes behave differently:
 
 - **Row axis: closed by construction.** The DEV-38 bug is a paste that starts at the last row and runs past
