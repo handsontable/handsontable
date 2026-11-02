@@ -831,6 +831,16 @@ directions.
     (`t="array"` + `cm="1"`), while a scalar `XLOOKUP` and `A1+B1` stay a plain `<f>`. No committed
     fixture pins the set. Add a function only after checking a file Excel saved; a function missing
     from the set opens with an `@` in Excel.
+  - **`ARRAY_RETURNING_FUNCTIONS` / `isWholeArrayFunctionCall` (`dynamicArrays.ts`) is a separate,
+    whole-formula rule, also observed in files Excel Online saved**: a formula that is, apart from
+    whitespace and grouping parentheses, ONE call to `SEQUENCE`, `FILTER`, `TRANSPOSE`, `MMULT`,
+    `ARRAY_CONSTRAIN`, `SORT`, `SORTBY`, `UNIQUE`, `RANDARRAY`, `INDIRECT`, `LET` or `LAMBDA` (any
+    `_xlfn.`/`_xlws.` prefix, any case) is saved with `cm="1"` even when the result is one cell
+    (`SEQUENCE(1)`, `INDIRECT("A1")`, `LET(x,1,x)`). Excel saves `SUM(SEQUENCE(3))`, `INDEX(A1:A3,2)`,
+    `OFFSET(A1,1,0)`, `CHOOSE(1,A1,A2)`, `VLOOKUP(...)` and `IF(...)` plain, so a nested call or an
+    operand (`SEQUENCE(1)+1`) does not count – unlike `EXCEL_DYNAMIC_ARRAY_FUNCTIONS`, which matches a
+    call anywhere. Do not merge the two sets. Known gaps, kept plain: `SUM(ABS(A1:A3))`, and a bare
+    range or range name as the whole formula (`=A1:A3`, `=Sales`).
   - **`appliesOperatorToRange` (`dynamicArrays.ts`) is a narrow operator rule, not a type checker.** It
     answers `true` when one of `+ - * / ^ & = <> < > <= >=` (or a unary `-`, or a postfix `%` on the
     right) sits right next to a multi-cell range (`A1:A3`, `A:A`, `1:1`, qualified or not; `A1:A1` is

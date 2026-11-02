@@ -55,6 +55,56 @@ export function callsDynamicArrayFunction(formula: string): boolean {
 }
 
 /**
+ * The functions that can return an array, so Excel 365 saves a formula that is one whole call to
+ * one of them as a one-cell dynamic array (`cm="1"`), whatever size the result has. Upper case,
+ * without the `_xlfn.` and `_xlws.` prefixes. Taken from files Excel Online saved: `SEQUENCE(1)`,
+ * `INDIRECT("A1")` and `LET(x,1,x)` are flagged, `INDEX(A1:A3,2)`, `OFFSET(A1,1,0)` and
+ * `SUM(SEQUENCE(3))` are not.
+ */
+export const ARRAY_RETURNING_FUNCTIONS: ReadonlySet<string> = new Set([
+  'SEQUENCE', 'FILTER', 'TRANSPOSE', 'MMULT', 'ARRAY_CONSTRAIN', 'SORT', 'SORTBY', 'UNIQUE', 'RANDARRAY',
+  'INDIRECT', 'LET', 'LAMBDA',
+]);
+
+/**
+ * The `_xlfn.` and `_xlws.` prefixes in front of a function name, any number of them.
+ */
+const FUNCTION_PREFIXES = /^(?:_xl(?:fn|ws)\.)+/i;
+
+/**
+ * Whether a formula is, apart from surrounding whitespace and grouping parentheses, one whole call
+ * to a function of {@link ARRAY_RETURNING_FUNCTIONS}, with or without the `_xlfn.` and `_xlws.`
+ * prefixes (`SEQUENCE(1)`, `((_xlfn.SEQUENCE(1)))`). A call nested in another function
+ * (`SUM(SEQUENCE(3))`) or used as an operand (`SEQUENCE(1)+1`) does not count. Excel 365 saves a
+ * formula this finds as a one-cell dynamic array; written plain, Excel opens it with the
+ * implicit-intersection `@` (`=@SEQUENCE(1)`). Quoted runs are skipped.
+ *
+ * @param {string} formula The formula, without the leading `=`.
+ * @returns {boolean}
+ */
+export function isWholeArrayFunctionCall(formula: string): boolean {
+  let text = formula.trim();
+
+  while (text[0] === '(' && findClosingParenthesis(text, 0) === text.length - 1) {
+    text = text.slice(1, -1).trim();
+  }
+
+  let end = 0;
+
+  while (end < text.length && isNameChar(text[end])) {
+    end += 1;
+  }
+
+  if (end === 0 || text[end] !== '(') {
+    return false;
+  }
+
+  const name = text.slice(0, end).replace(FUNCTION_PREFIXES, '').toUpperCase();
+
+  return ARRAY_RETURNING_FUNCTIONS.has(name) && findClosingParenthesis(text, end) === text.length - 1;
+}
+
+/**
  * The characters an operator Excel applies element by element is made of: `+ - * / ^ & = < >`
  * (`<>`, `<=` and `>=` included, and a unary `-`).
  */

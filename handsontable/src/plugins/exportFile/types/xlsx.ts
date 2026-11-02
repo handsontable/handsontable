@@ -39,8 +39,8 @@ import { intlNumFormatToExcelNumFmt } from './xlsx/numeric-utils';
 import { detectXlsxEngine } from '../../../utils/xlsxEngine/detect';
 import { DROPPED_FEATURES, DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
 import {
-  appliesOperatorToRange, callsArrayFormulaAsOperand, callsDynamicArrayFunction, stripArrayFormulaCalls,
-  unwrapArrayFormula,
+  appliesOperatorToRange, callsArrayFormulaAsOperand, callsDynamicArrayFunction, isWholeArrayFunctionCall,
+  stripArrayFormulaCalls, unwrapArrayFormula,
 } from '../../../utils/xlsxEngine/dynamicArrays';
 import { SheetBuilder } from '../../../utils/xlsxEngine/builder';
 import { colIndexToLetter, toRangeRef } from '../../../utils/xlsxEngine/cellRef';
@@ -336,7 +336,10 @@ function recordArrayExcluded(dropped: DroppedFeatures): void {
  * 2. A formula the engine spills (`SEQUENCE(3)`, `ARRAYFORMULA(A1:A3)*2` under array arithmetic) is a
  *    dynamic array over the spill.
  * 3. A call to a function Excel evaluates as a dynamic array (`IFS`, `SWITCH`) is a one-cell
- *    dynamic array, so Excel does not add the implicit-intersection `@`.
+ *    dynamic array, so Excel does not add the implicit-intersection `@`. So is a formula that is one
+ *    whole call to a function that can return an array (`SEQUENCE(1)`, `INDIRECT("A1")`,
+ *    `LET(x,1,x)`, `isWholeArrayFunctionCall`) and has no spill, as Excel Online saves it, whatever
+ *    the engine computes or whether it knows the function.
  * 4. Under the engine's `useArrayArithmetic`, an operator applied to a multi-cell range
  *    (`SUM(A1:A3*B1:B3)`, `appliesOperatorToRange`) is a one-cell dynamic array too: the engine
  *    computes it over every cell, and Excel 365 would open a plain formula as
@@ -367,7 +370,7 @@ function resolveArrayFormula(
   if (unwrapArrayFormula(text) !== null) {
     dynamic = false;
 
-  } else if (arraySize !== null || callsDynamicArrayFunction(formulaText)
+  } else if (arraySize !== null || callsDynamicArrayFunction(formulaText) || isWholeArrayFunctionCall(formulaText)
     || (target.arrayArithmetic && appliesOperatorToRange(formulaText))) {
     dynamic = true;
 

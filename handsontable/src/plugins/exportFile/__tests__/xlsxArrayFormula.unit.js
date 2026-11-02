@@ -293,7 +293,11 @@ describe('Xlsx export: array formulas', () => {
   it('should write a CSE array on the cell itself and no spill without the Formulas plugin', async() => {
     const { rows } = await exportSheet({ data: createData(), formulas: undefined });
 
-    expect(rows[0][0].formula).toEqual({ text: 'SEQUENCE(3)', result: '=SEQUENCE(3)' });
+    // With no engine there is no spill, so the whole `SEQUENCE` call is a one-cell dynamic array,
+    // which Excel spills when it calculates; plain, Excel would open it as `=@SEQUENCE(3)`.
+    expect(rows[0][0].formula).toEqual({
+      text: 'SEQUENCE(3)', result: '=SEQUENCE(3)', array: { ref: 'A1', dynamic: true },
+    });
     expect(rows[0][1].formula).toEqual({
       text: 'A1:A3*2', result: '=ARRAYFORMULA(A1:A3*2)', array: { ref: 'B1', dynamic: false },
     });
@@ -333,6 +337,78 @@ describe('Xlsx export: array formulas', () => {
       text: 'FILTER(A1:A6, A1:A6>3)', result: 4, array: { ref: 'B1:B3', dynamic: true },
     });
     expect(dropped).toEqual([]);
+  });
+
+  describe('a formula that is one call to a function that can return an array', () => {
+    // Excel Online saves `=SEQUENCE(1)`, `=INDIRECT("A1")` and `=LET(x,1,x)` as one-cell dynamic
+    // arrays (`cm="1"`), and `=SUM(SEQUENCE(3))` plain. Written plain, Excel opens the first three as
+    // `=@SEQUENCE(1)`, `=@INDIRECT("A1")` and `=@LET(x,1,x)`.
+    const createCallData = () => [
+      [1, '=SEQUENCE(1)', '=INDIRECT("A1")', '=LET(x,1,x)', '=SUM(SEQUENCE(3))', '=SEQUENCE(1)+1',
+        '=(( _xlfn.SEQUENCE(1) ))'],
+    ];
+
+    it('should rely on HyperFormula typing a one-cell SEQUENCE a plain formula with no array mapping', () => {
+      const hf = HyperFormula.buildFromArray([['=SEQUENCE(1)', '=TRANSPOSE(1)']], { licenseKey: 'gpl-v3' });
+
+      expect(hf.getCellType({ sheet: 0, row: 0, col: 0 })).toBe('FORMULA');
+      expect(hf.getCellType({ sheet: 0, row: 0, col: 1 })).toBe('FORMULA');
+
+      hf.destroy();
+    });
+
+    it('should write the whole call as a one-cell dynamic array, and a nested or partial one plain', async() => {
+      const { rows, dropped } = await exportSheet({ data: createCallData() });
+
+      expect(rows[0][1].formula).toEqual({ text: 'SEQUENCE(1)', result: 1, array: { ref: 'B1', dynamic: true } });
+      // HyperFormula has no INDIRECT and no LET: the cell caches `#NAME?` as an error, still flagged.
+      expect(rows[0][2].formula).toEqual({
+        text: 'INDIRECT("A1")', result: '#NAME?', resultIsError: true, array: { ref: 'C1', dynamic: true },
+      });
+      expect(rows[0][3].formula).toEqual({
+        text: 'LET(x,1,x)', result: '#NAME?', resultIsError: true, array: { ref: 'D1', dynamic: true },
+      });
+      expect(rows[0][4].formula).toEqual({ text: 'SUM(SEQUENCE(3))', result: 6 });
+      expect(rows[0][5].formula).toEqual({ text: 'SEQUENCE(1)+1', result: 2 });
+      expect(rows[0][6].formula.array).toEqual({ ref: 'G1', dynamic: true });
+      expect(dropped).toEqual([]);
+    });
+
+    it('should flag it without array arithmetic too', async() => {
+      const { rows } = await exportSheet({
+        data: createCallData(),
+        formulas: { engine: { hyperformula: HyperFormula, useArrayArithmetic: false }, sheetName: 'Sheet1' },
+      });
+
+      expect(rows[0][1].formula.array).toEqual({ ref: 'B1', dynamic: true });
+      expect(rows[0][4].formula.array).toBeUndefined();
+    });
+
+    it('should write it as a one-cell CSE array with the ExcelJS engine, with no `dynamicArrays`', async() => {
+      const excelJsWrite = jest.spyOn(excelJsAdapter, 'write');
+
+      try {
+        hot = new Handsontable(container, {
+          data: createCallData(),
+          formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
+          exportFile: true,
+          licenseKey: 'non-commercial-and-evaluation',
+        });
+
+        await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', { exportFormulas: true, engine: ExcelJS });
+
+        const [, , dropped] = excelJsWrite.mock.calls[0];
+        const bytes = await excelJsWrite.mock.results[0].value;
+        const zip = await readZip(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+        const sheet = await zip.text('xl/worksheets/sheet1.xml');
+
+        expect(sheet).toMatch(/<f t="array" ref="B1">_xlfn\.SEQUENCE\(1\)<\/f>/);
+        expect(sheet).not.toContain('cm=');
+        expect(dropped.list()).not.toContain('dynamicArrays');
+      } finally {
+        excelJsWrite.mockRestore();
+      }
+    });
   });
 
   describe('an ARRAYFORMULA call inside a formula when the engine intersects ranges itself', () => {

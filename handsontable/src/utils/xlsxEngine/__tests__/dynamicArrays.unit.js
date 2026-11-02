@@ -1,8 +1,10 @@
 import {
+  ARRAY_RETURNING_FUNCTIONS,
   EXCEL_DYNAMIC_ARRAY_FUNCTIONS,
   appliesOperatorToRange,
   callsDynamicArrayFunction,
   callsArrayFormulaAsOperand,
+  isWholeArrayFunctionCall,
   stripArrayFormulaCalls,
   unwrapArrayFormula,
 } from '../dynamicArrays';
@@ -36,6 +38,76 @@ describe('callsDynamicArrayFunction', () => {
   it('should not match a longer name that ends in a listed one, or a name with no call', () => {
     expect(callsDynamicArrayFunction('MYIFS(1)')).toBe(false);
     expect(callsDynamicArrayFunction('IFS+1')).toBe(false);
+  });
+});
+
+describe('isWholeArrayFunctionCall', () => {
+  // Excel Online saves each of these as a one-cell dynamic array (`cm="1"`).
+  it('should find a formula that is one call to a function that can return an array', () => {
+    expect(isWholeArrayFunctionCall('SEQUENCE(1)')).toBe(true);
+    expect(isWholeArrayFunctionCall('INDIRECT("A1")')).toBe(true);
+    expect(isWholeArrayFunctionCall('LET(x,1,x)')).toBe(true);
+    expect(isWholeArrayFunctionCall('TRANSPOSE(A1)')).toBe(true);
+    expect(isWholeArrayFunctionCall('MMULT(A1,B1)')).toBe(true);
+    expect(isWholeArrayFunctionCall('FILTER(A1:A3,A1:A3>1)')).toBe(true);
+    expect(isWholeArrayFunctionCall('ARRAY_CONSTRAIN(A1:B2,1,1)')).toBe(true);
+    expect(isWholeArrayFunctionCall('SORT(A1:A3)')).toBe(true);
+    expect(isWholeArrayFunctionCall('SORTBY(A1:A3,B1:B3)')).toBe(true);
+    expect(isWholeArrayFunctionCall('UNIQUE(A1:A3)')).toBe(true);
+    expect(isWholeArrayFunctionCall('RANDARRAY(1)')).toBe(true);
+  });
+
+  it('should hold the functions of the rule', () => {
+    expect([...ARRAY_RETURNING_FUNCTIONS].sort()).toEqual([
+      'ARRAY_CONSTRAIN', 'FILTER', 'INDIRECT', 'LAMBDA', 'LET', 'MMULT', 'RANDARRAY', 'SEQUENCE', 'SORT',
+      'SORTBY', 'TRANSPOSE', 'UNIQUE',
+    ]);
+  });
+
+  it('should read the name case-insensitively and with the `_xlfn.` and `_xlfn._xlws.` prefixes', () => {
+    expect(isWholeArrayFunctionCall('sequence(1)')).toBe(true);
+    expect(isWholeArrayFunctionCall('_xlfn.SEQUENCE(1)')).toBe(true);
+    expect(isWholeArrayFunctionCall('_xlfn._xlws.SORT(A1:A3)')).toBe(true);
+    expect(isWholeArrayFunctionCall('_XLFN.LET(_xlpm.x,1,_xlpm.x)')).toBe(true);
+  });
+
+  it('should step over surrounding whitespace and grouping parentheses', () => {
+    expect(isWholeArrayFunctionCall('  SEQUENCE(1) ')).toBe(true);
+    expect(isWholeArrayFunctionCall('((SEQUENCE(1)))')).toBe(true);
+    expect(isWholeArrayFunctionCall('( SEQUENCE(1) )')).toBe(true);
+  });
+
+  it('should not find a formula Excel Online saves plain', () => {
+    expect(isWholeArrayFunctionCall('SUM(A1:A3)')).toBe(false);
+    expect(isWholeArrayFunctionCall('MAX(A1:A3)')).toBe(false);
+    expect(isWholeArrayFunctionCall('VLOOKUP(2,A1:A3,1,FALSE)')).toBe(false);
+    expect(isWholeArrayFunctionCall('INDEX(A1:A3,2)')).toBe(false);
+    expect(isWholeArrayFunctionCall('CHOOSE(1,A1,A2)')).toBe(false);
+    expect(isWholeArrayFunctionCall('OFFSET(A1,1,0)')).toBe(false);
+    expect(isWholeArrayFunctionCall('IF(A1>0,"y","n")')).toBe(false);
+    expect(isWholeArrayFunctionCall('SUM(SEQUENCE(3))')).toBe(false);
+    expect(isWholeArrayFunctionCall('A1+A2')).toBe(false);
+  });
+
+  it('should not find a call that is only a part of the formula', () => {
+    expect(isWholeArrayFunctionCall('SEQUENCE(1)+1')).toBe(false);
+    expect(isWholeArrayFunctionCall('(SEQUENCE(1))*2')).toBe(false);
+    expect(isWholeArrayFunctionCall('SEQUENCE(1)+SEQUENCE(1)')).toBe(false);
+    expect(isWholeArrayFunctionCall('(SEQUENCE(1))+(SEQUENCE(1))')).toBe(false);
+    expect(isWholeArrayFunctionCall('LAMBDA(x,x+1)(2)')).toBe(false);
+  });
+
+  it('should not match a longer name, a name with no call, a string, or an unclosed call', () => {
+    expect(isWholeArrayFunctionCall('MYSEQUENCE(1)')).toBe(false);
+    expect(isWholeArrayFunctionCall('SEQUENCE')).toBe(false);
+    expect(isWholeArrayFunctionCall('"SEQUENCE(1)"')).toBe(false);
+    expect(isWholeArrayFunctionCall('LEN("SEQUENCE(")')).toBe(false);
+    expect(isWholeArrayFunctionCall('SEQUENCE(1')).toBe(false);
+    expect(isWholeArrayFunctionCall('')).toBe(false);
+  });
+
+  it('should skip parentheses inside a string argument', () => {
+    expect(isWholeArrayFunctionCall('INDIRECT(")"&"A1")')).toBe(true);
   });
 });
 

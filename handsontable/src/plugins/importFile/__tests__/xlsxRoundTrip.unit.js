@@ -266,4 +266,28 @@ describe('xlsx round trip through exportFile and importFile with HyperFormula', 
     expect(hot.getSourceDataAtRow(0).slice(1, 3)).toEqual(['=ARRAYFORMULA(A1:A3*2)', '=ARRAYFORMULA(SUM(A1:A3*2))']);
     expect(hot.getData().map(row => row.slice(0, 3))).toEqual(shown);
   });
+
+  it('should re-import a one-cell dynamic SEQUENCE live, with the value the grid showed (built-in engine)', async() => {
+    // The export writes `=SEQUENCE(1)` as a one-cell dynamic array, as Excel Online saves it; the
+    // engine has no array arithmetic, so the import wraps it in ARRAYFORMULA, which evaluates the same.
+    const hot = createGrid([[1, '=SEQUENCE(1)', '=SUM(SEQUENCE(3))']]);
+    const shown = [[1, 1, 6]];
+
+    expect(hot.getData().map(row => row.slice(0, 3))).toEqual(shown);
+
+    const bytes = await exportBytes(hot);
+    const snapshot = await nativeAdapter.read(bytes, undefined, new DroppedFeatures());
+
+    expect(snapshot.sheets[0].rows[1][2].formula).toEqual({
+      text: '_xlfn.SEQUENCE(1)', result: 1, array: { ref: 'C2', dynamic: true },
+    });
+    expect(snapshot.sheets[0].rows[1][3].formula.array).toBeUndefined();
+
+    const target = createGrid([[null]]);
+    const result = await importBytes(target, bytes);
+
+    expect(droppedBesidesStyles(result)).toEqual([]);
+    expect(target.getSourceDataAtRow(0).slice(1, 3)).toEqual(['=ARRAYFORMULA(SEQUENCE(1))', '=SUM(SEQUENCE(3))']);
+    expect(target.getData().map(row => row.slice(0, 3))).toEqual(shown);
+  });
 });
