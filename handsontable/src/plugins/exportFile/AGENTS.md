@@ -408,16 +408,25 @@ Other rules:
   (`resolveDefinedName`), and Excel does the same with the file's names on the exported sheet;
   `#unlinkLeftOutNames` keeps a cell live only when both sides land on the same file name
   (`readInFile`), so a left-out scoped `Rate` never falls back on the workbook `Rate` in Excel.
-  Before, scoped names were never read, and a formula over one was written live as `#NAME?`.
+  Every engine sheet takes ONE scope in the file, the first exported sheet bound to it: when the
+  `sheets` option lists the same Handsontable instance twice, its scoped names are written for the
+  first sheet only, and the second sheet's formulas over them are written as values
+  (`formula:definedName`), because that sheet holds no such name in the file.
   A name defined with a constant has no formula text, so its value is spelled as a literal
-  (`toFormulaLiteral`: `"text"` with `""`, at most 255 characters and no XML-forbidden control
-  character, which the writer would strip silently, `TRUE()`/`FALSE()`, an error code).
+  (`toFormulaLiteral`: `"text"` with `""`, at most 255 characters, `TRUE()`/`FALSE()`, an error
+  code). A text holding a character the native writer drops (`ILLEGAL_XML_CHAR`, shared from
+  `utils/xlsxEngine/adapters/native/xml/escapes.ts`: C0 controls, DEL, U+FFFE, U+FFFF) or a
+  carriage return is refused: the writer would strip the first silently, and the reader's
+  end-of-line handling reads `"a\rb"` back as `"a\nb"` (pinned by a write-then-read test). The
+  ExcelJS writer keeps no constant name at all.
   **Names are written ONCE per export, not per grid**: grids of a multi-sheet export usually share
   one engine, and normalizing every name against each grid's own sheet wrote a reference to another
   grid's sheet unshifted under the engine's sheet name (review round 1). `#populateWorksheet` only
   registers each grid's binding (`getFormulasBinding()`: engine + engine sheet name) with its
-  exported name, header offsets and left-out rows and columns; `#addDefinedNames` groups them per
-  engine and runs `normalizeNamedExpression` once per name against that map. **Every bound grid
+  exported name and header offsets; `#addDefinedNames` groups them per engine, reads the left-out
+  rows and columns of each sheet (`getExcludedHiddenRows(true)`/`getExcludedHiddenColumns(true)`)
+  only for an engine that has names, and runs `normalizeNamedExpression` once per name against
+  that map. **Every bound grid
   registers, with or without `exportFormulas`**: a sheet written as values is still in the file, and
   registering only the `exportFormulas` grids dropped a name pointing at it (Bugbot on #14096). An
   engine's names are written only when one of its grids has `exportFormulas`, read from that grid.

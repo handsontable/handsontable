@@ -926,10 +926,8 @@ class Xlsx extends BaseType {
           exportedName: name,
           rowOffset: dataRowOffset - 1,
           colOffset: dataColOffset - 1,
-          // A name is moved by the start of `range` too, unlike a cell formula: the rows and
-          // columns outside it are left out, so a name that starts or ends there is refused.
-          excludedRows: dataProvider.getExcludedHiddenRows(true),
-          excludedCols: dataProvider.getExcludedHiddenColumns(true),
+          // The left-out rows and columns are read by `#addDefinedNames`, only for an engine
+          // that has names.
         },
       });
     }
@@ -1011,15 +1009,18 @@ class Xlsx extends BaseType {
     workbook: WorkbookSnapshot, sources: NamedExpressionSource[], dropped: DroppedFeatures
   ): Map<object, EngineDefinedNames> {
     const byEngine = new Map<object, {
-      source: NamedExpressionSource | null; sheets: Map<string, ExportedEngineSheet>;
+      source: NamedExpressionSource | null;
+      sheets: Map<string, ExportedEngineSheet>;
+      providers: Map<string, ExportDataProvider>;
     }>();
 
     sources.forEach((source) => {
-      const group = byEngine.get(source.engine) ?? { source: null, sheets: new Map() };
+      const group = byEngine.get(source.engine) ?? { source: null, sheets: new Map(), providers: new Map() };
       const key = source.engineSheetName.toLowerCase();
 
       if (!group.sheets.has(key)) {
         group.sheets.set(key, source.sheet);
+        group.providers.set(key, source.dataProvider);
       }
 
       if (group.source === null && source.exportFormulas) {
@@ -1038,7 +1039,7 @@ class Xlsx extends BaseType {
       }
     };
 
-    byEngine.forEach(({ source, sheets }, engine) => {
+    byEngine.forEach(({ source, sheets, providers }, engine) => {
       if (source === null) {
         return;
       }
@@ -1049,6 +1050,18 @@ class Xlsx extends BaseType {
       const engineKeys = new Set(namedExpressions.map(({ name, scope }) => definedNameKey(scope ?? null, name)));
 
       writtenByEngine.set(engine, { written, uses });
+
+      if (namedExpressions.length > 0) {
+        providers.forEach((dataProvider, key) => {
+          const sheet = sheets.get(key) as ExportedEngineSheet;
+
+          // A name is moved by the start of `range` too, unlike a cell formula: the rows and
+          // columns outside it are left out, so a name that starts or ends there is refused.
+          sheet.excludedRows = dataProvider.getExcludedHiddenRows(true);
+          sheet.excludedCols = dataProvider.getExcludedHiddenColumns(true);
+        });
+      }
+
       namedExpressions.forEach(({ name, formula: definition, scope = null }) => {
         const scopeSheet = scope === null ? null : sheets.get(scope.toLowerCase());
 
