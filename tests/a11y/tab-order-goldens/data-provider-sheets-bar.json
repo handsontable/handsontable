@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "page": "data-provider-sheets-bar",
+  "theme": "main",
+  "walks": {
+    "forward": [
+      {
+        "region": "start"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "ORD-01",
+        "cell": [
+          0,
+          0
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "#1",
+        "cell": [
+          0,
+          1
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Add sheet"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "All sheets"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Orders"
+      },
+      {
+        "region": "grid",
+        "role": "combobox",
+        "name": "Page size"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Go to next page"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Go to last page"
+      },
+      {
+        "region": "end"
+      }
+    ],
+    "backward": [
+      {
+        "region": "end"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Go to last page"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Go to next page"
+      },
+      {
+        "region": "grid",
+        "role": "combobox",
+        "name": "Page size"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Orders"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "All sheets"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Add sheet"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "#1",
+        "cell": [
+          0,
+          1
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "ORD-01",
+        "cell": [
+          0,
+          0
+        ]
+      },
+      {
+        "region": "start"
+      }
+    ]
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "page": "row-selection",
+  "theme": "main",
+  "walks": {
+    "forward": [
+      {
+        "region": "start"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "Select whole grid",
+        "cell": [
+          -1,
+          -1
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "columnheader",
+        "name": "Task",
+        "cell": [
+          -1,
+          0
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "columnheader",
+        "name": "Select all rows (1 of 5 selected) Done",
+        "cell": [
+          -1,
+          1
+        ]
+      },
+      {
+        "region": "end"
+      }
+    ],
+    "backward": [
+      {
+        "region": "end"
+      },
+      {
+        "region": "grid",
+        "role": "columnheader",
+        "name": "Select all rows (1 of 5 selected) Done",
+        "cell": [
+          -1,
+          1
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "columnheader",
+        "name": "Task",
+        "cell": [
+          -1,
+          0
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "Select whole grid",
+        "cell": [
+          -1,
+          -1
+        ]
+      },
+      {
+        "region": "start"
+      }
+    ]
+  }
+}

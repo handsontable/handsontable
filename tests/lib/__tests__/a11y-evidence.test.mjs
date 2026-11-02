@@ -1,13 +1,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readdirSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { escapeMarkdownText } from '../a11y-baseline.mjs';
 import {
+  EVIDENCE_CHECKS,
   EVIDENCE_MODE,
   EVIDENCE_SCHEMA,
   SEVERITIES,
   WCAG_CRITERIA,
   buildEvidenceCheckRun,
   checkRunName,
+  checksForSuite,
   compareCriteria,
   criterionInfo,
   evidenceHeadline,
@@ -65,6 +70,26 @@ const ORDER = {
 test('the tier is report-only, and the mode is one pinned constant', () => {
   assert.equal(EVIDENCE_MODE, 'report', 'flipping a check to gating changes EVIDENCE_MODE, this test and tests/AGENTS.md together');
   assert.deepEqual(SEVERITIES, ['critical', 'serious', 'moderate', 'minor', 'advisory']);
+});
+
+test('every registered check names a spec that exists, criteria from the table, and whether pull requests run it', () => {
+  const specs = readdirSync(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../a11y/checks'));
+
+  for (const [id, check] of Object.entries(EVIDENCE_CHECKS)) {
+    assert.match(id, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+    assert.ok(specs.includes(check.spec), `${id}: a11y/checks/${check.spec} exists`);
+    assert.ok(check.criteria.length > 0 && check.criteria.every(criterion => criterionInfo(criterion)), `${id}: WCAG 2.2 criteria`);
+    assert.equal(typeof check.pullRequest, 'boolean', `${id}: says whether pull requests run it`);
+  }
+});
+
+test('a suite picks its checks: pull requests run the quick ones, the nightly and a local run every one', () => {
+  const checks = { quick: { pullRequest: true }, slow: { pullRequest: false } };
+
+  assert.deepEqual(checksForSuite('pull-request', checks), ['quick']);
+  assert.deepEqual(checksForSuite('nightly', checks), ['quick', 'slow']);
+  assert.deepEqual(checksForSuite(undefined, checks), ['quick', 'slow']);
+  assert.throws(() => checksForSuite('pr', checks), /must be one of pull-request, nightly/);
 });
 
 test('the WCAG table is WCAG 2.2: 31 A, 24 AA and 31 AAA criteria, without the obsolete 4.1.1', () => {
@@ -206,6 +231,31 @@ test('a test that did not measure is an error target and a problem; one that mea
   ]);
   assert.deepEqual([doc.summary.targets, doc.summary.measured, doc.summary.errors, doc.summary.flaky], [3, 1, 2, 1]);
   assert.deepEqual(validateEvidence(doc, { checks: CHECKS }), [], 'an error target is part of a valid document');
+});
+
+test('a part that measured can report a step it could not take as a problem, and keep its findings', () => {
+  const doc = mergeEvidence({ check: 'demo-check', checks: CHECKS, parts: [part({ findings: [TRAP], problems: ['probe Ctrl+M: the range was not selected'] })] });
+
+  assert.deepEqual(doc.problems, ['grid on main: probe Ctrl+M: the range was not selected']);
+  assert.equal(doc.findings.length, 1);
+  assert.deepEqual(validatePart(part({ problems: [3] })), ['problems is not an array of strings']);
+});
+
+test('a target with a step it could not take is measured, but is not counted as evaluating its criteria', () => {
+  // Every probe of a target can fail to set up and leave no finding: that is no evidence of a pass.
+  const doc = mergeEvidence({
+    check: 'demo-check',
+    checks: CHECKS,
+    parts: [
+      part({ problems: ['probe Ctrl+M: the range was not selected', 'probe Ctrl+Z: the editor did not open'] }),
+      part({ target: { page: 'dialog', theme: 'main', state: 'none' } }),
+    ],
+  });
+
+  assert.deepEqual(doc.targets.map(target => [target.page, target.status, target.problems]), [['dialog', 'measured', 0], ['grid', 'measured', 2]]);
+  assert.deepEqual(doc.summary.byCriterion['2.1.2'], { name: 'No Keyboard Trap', level: 'A', evaluated: 1, findings: 0, pages: [] });
+  assert.equal(doc.summary.measured, 2, 'the target still measured what it could');
+  assert.deepEqual(validateEvidence(doc, { checks: CHECKS }), []);
 });
 
 test('a finding cannot move itself to another target or take another id', () => {

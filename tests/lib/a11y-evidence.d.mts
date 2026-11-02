@@ -7,7 +7,9 @@ export const SEVERITIES: readonly string[];
 export const TARGET_STATUSES: readonly string[];
 export const PAGES_FILE: string;
 export const WCAG_CRITERIA: Readonly<Record<string, { name: string; level: 'A' | 'AA' | 'AAA' }>>;
-export const EVIDENCE_CHECKS: Readonly<Record<string, { title: string; criteria: string[] }>>;
+export const EVIDENCE_CHECKS: Readonly<Record<string, { title: string; spec: string; criteria: string[]; pullRequest: boolean }>>;
+export const CHECK_SUITES: readonly string[];
+export function checksForSuite(suite: string | undefined, checks?: Record<string, { pullRequest?: boolean }>): string[];
 
 export interface EvidenceDocument {
   schema: number;

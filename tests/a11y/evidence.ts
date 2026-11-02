@@ -97,12 +97,14 @@ export async function readEnvironment(page: Page): Promise<EvidenceEnvironment> 
  * @param part.findings The findings; an empty list is evidence that nothing was found.
  * @param part.criteria The criteria this target evaluated, when it is fewer than the check's.
  * @param part.detail Everything measured, written to the target's detail file beside the document.
+ * @param part.problems Steps the test could not take (a probe whose setup never came): tooling problems
+ *   the document lists, while the findings of the steps that ran are kept.
  * @param part.pageErrors The errors the page threw that the test has not reported elsewhere: `opened.pageErrors`
  *   of `openTarget()`, or, for a test that loaded the page more than once, the one list it passed to every
  *   `openTarget()` as `pageErrors`.
  */
 export async function attachEvidence(testInfo: TestInfo, {
-  target, startedAt, environment, findings, criteria, detail, pageErrors,
+  target, startedAt, environment, findings, criteria, detail, problems, pageErrors,
 }: {
   target: EvidenceTarget;
   startedAt: number;
@@ -110,6 +112,7 @@ export async function attachEvidence(testInfo: TestInfo, {
   findings: EvidenceFinding[];
   criteria?: string[];
   detail?: unknown;
+  problems?: string[];
   pageErrors: string[];
 }): Promise<void> {
   expect(pageErrors, 'the page threw no error while it was measured').toEqual([]);
@@ -121,6 +124,7 @@ export async function attachEvidence(testInfo: TestInfo, {
     environment,
     ...(criteria ? { criteria } : {}),
     findings,
+    ...(problems && problems.length > 0 ? { problems } : {}),
     ...(detail === undefined ? {} : { detail }),
   };
   const file = testInfo.outputPath('evidence.json');
