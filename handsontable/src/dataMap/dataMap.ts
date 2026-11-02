@@ -548,7 +548,9 @@ class DataMap {
 
     const dataSource = this.dataSource ?? [];
     const maxCols = this.tableMeta.maxCols;
-    const numberOfSourceCols = this.hot!.countSourceCols();
+    // The index mapper holds the physical end of the grid. `countSourceCols()` is the first row's length, which is
+    // shorter than the grid when `dataSchema` or `minCols` made it wider, and 0 once every row was removed.
+    const numberOfSourceCols = this.hot!.columnIndexMapper.getNumberOfIndexes();
     const numberOfVisualCols = this.hot!.countCols();
     const numberOfSourceRows = this.hot!.countSourceRows();
     const visualColumnIndex = (typeof index === 'number' && index <= numberOfSourceCols) ? index : numberOfVisualCols;
@@ -615,8 +617,8 @@ class DataMap {
    * Inserts the given amount of null columns into the data source, in one pass over the rows, as a block at
    * the physical column the insertion is recorded at (the undo journal replays it by that index). The
    * insertion index clamps to the row length inside `insertValuesInPlace`, so a row shorter than the
-   * insertion point gets the nulls at its end. A row longer than the grid (the grid width comes from the
-   * first row) keeps its values in order, and the nulls go in front of the values past the grid.
+   * insertion point gets the nulls at its end. A row longer than the grid keeps its values in order, and the
+   * nulls go in front of the values past the grid.
    *
    * @param {Array} dataSource The data source array.
    * @param {number} firstColumn The physical column index at which the first column is inserted.

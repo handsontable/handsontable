@@ -118,7 +118,7 @@ describe('Creating columns in a grid with rows of different length', () => {
     });
 
     expect(hot.countCols()).toBe(4);
-    expect(getValues(1)).toEqual(['alpha', 'beta', 'cookie', 'delta']);
+    expect(hot.getSourceDataAtRow(1)).toEqual(['alpha', null, null, null, 'beta', 'cookie', 'delta']);
   });
 
   it('should keep the values of a longer row when `minSpareCols` is lowered', () => {
@@ -229,5 +229,57 @@ describe('Creating columns in a grid with rows of different length', () => {
     undoRedo.redo();
 
     expect(hot.getSourceData()).toEqual(after);
+  });
+
+  it('should add the spare column after the last column of a grid that `dataSchema` makes wider than the first row', () => {
+    createGrid({
+      data: [['A'], ['B', 'C']],
+      dataSchema: [null, null],
+      minSpareCols: 1,
+    });
+
+    expect(hot.countCols()).toBe(3);
+    expect(hot.getSourceDataAtRow(1)).toEqual(['B', 'C', null]);
+  });
+
+  it('should undo and redo a column inserted at the end of a grid that `dataSchema` makes wider than the first row', () => {
+    createGrid({
+      data: [['A'], ['B', 'C']],
+      dataSchema: [null, null],
+      undo: true,
+    });
+
+    const undoRedo = hot.getPlugin('undoRedo');
+
+    hot.alter('insert_col_start', hot.countCols(), 2);
+
+    expect(hot.getSourceDataAtRow(1)).toEqual(['B', 'C', null, null]);
+
+    undoRedo.undo();
+
+    // A row shorter than the grid keeps the trailing `null` values it was padded with.
+    expect(hot.getSourceDataAtRow(1)).toEqual(['B', 'C']);
+    expect(getValues(0)).toEqual(['A']);
+
+    undoRedo.redo();
+
+    expect(hot.getSourceDataAtRow(1)).toEqual(['B', 'C', null, null]);
+    expect(getValues(0)).toEqual(['A']);
+  });
+
+  it('should keep the values of a row shorter than the first row when columns are inserted and undone', () => {
+    createGrid({
+      data: [['a', 'b', 'c'], ['x']],
+      undo: true,
+    });
+
+    hot.alter('insert_col_start', 3, 2);
+
+    expect(getValues(1)).toEqual(['x']);
+
+    hot.getPlugin('undoRedo').undo();
+
+    expect(getValues(0)).toEqual(['a', 'b', 'c']);
+    expect(getValues(1)).toEqual(['x']);
   });
 });
