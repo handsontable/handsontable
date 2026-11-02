@@ -142,6 +142,32 @@ export class SheetsBarUiPage {
   }
 
   /**
+   * The tab strip's `scrollLeft`.
+   *
+   * @returns {Promise<number>}
+   */
+  stripScrollLeft(): Promise<number> {
+    return this.page.evaluate(() => (document.querySelector('.ht-sheets-bar__tabs') as HTMLElement).scrollLeft);
+  }
+
+  /**
+   * The distance between a tab and the strip edge nearest to it, in pixels: `0` for a tab flush with an edge.
+   *
+   * @param {number} index The tab's position.
+   * @returns {Promise<number>}
+   */
+  tabGapToStripEdge(index: number): Promise<number> {
+    return this.page.evaluate((position) => {
+      const strip = document.querySelector('.ht-sheets-bar__tabs') as HTMLElement;
+      const tab = strip.querySelectorAll('.ht-sheets-bar__tab')[position] as HTMLElement;
+      const stripBox = strip.getBoundingClientRect();
+      const tabBox = tab.getBoundingClientRect();
+
+      return Math.min(Math.abs(tabBox.left - stripBox.left), Math.abs(stripBox.right - tabBox.right));
+    }, index);
+  }
+
+  /**
    * Whether a tab lies wholly inside the strip's visible part, with a pixel of slack at each end.
    *
    * @param {number} index The tab's position.

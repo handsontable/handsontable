@@ -1494,13 +1494,14 @@ export class TabStrip {
   }
 
   /**
-   * Scrolls the strip just far enough to bring a tab fully into view, with the theme's gap
-   * (`--ht-gap-size`) between the tab and the edge it comes in at. The tab is measured by its
-   * fractional box less its in-flight translation (an entrance, a slide, or a drag), relative to the
-   * strip's visible part. `offsetLeft` and `offsetWidth` are rounded to whole pixels, so a tab of
-   * fractional width revealed flush with the edge could end up to a pixel past it, which is exactly
-   * where its focus ring is drawn (an inset outline), and the controls or the paging arrows cut the
-   * ring. The strip is scrolled by the difference, which reads the same under both directions.
+   * Scrolls the strip just far enough to bring a tab fully into view, flush with the edge it comes
+   * in at. The tab is measured by its fractional box less its in-flight translation (an entrance, a
+   * slide, or a drag), relative to the strip's visible part. `offsetLeft` and `offsetWidth` are
+   * rounded to whole pixels, so a tab of fractional width could end up to a pixel past the edge,
+   * which is exactly where its focus ring is drawn (an inset outline), and the controls or the
+   * paging arrows cut the ring. The strip is scrolled by the difference, which reads the same under
+   * both directions, and the offset is rounded away from the tab (down at the start, up at the end):
+   * the browser snaps `scrollLeft` to whole pixels, which put the tab a fraction past the edge again.
    */
   #scrollIntoStrip(tab: HTMLElement): void {
     const host = this.#host;
@@ -1508,26 +1509,12 @@ export class TabStrip {
     const tabBox = tab.getBoundingClientRect();
     const start = tabBox.left - translationOf(tab) - host.getBoundingClientRect().left - host.clientLeft;
     const end = start + tabBox.width;
-    const margin = Math.min(this.#revealMargin(), Math.max(0, (visibleWidth - tabBox.width) / 2));
 
-    if (start < margin) {
-      host.scrollLeft += start - margin;
-    } else if (end > visibleWidth - margin) {
-      host.scrollLeft += end - (visibleWidth - margin);
+    if (start < 0) {
+      host.scrollLeft = Math.floor(host.scrollLeft + start);
+    } else if (end > visibleWidth) {
+      host.scrollLeft = Math.ceil(host.scrollLeft + end - visibleWidth);
     }
-  }
-
-  /**
-   * The room a revealed tab keeps from the strip's edge: the theme's `--ht-gap-size`, or `0` when the
-   * theme does not set it.
-   *
-   * @returns {number}
-   */
-  #revealMargin(): number {
-    const view = this.#host.ownerDocument.defaultView;
-    const value = view ? Number.parseFloat(view.getComputedStyle(this.#host).getPropertyValue('--ht-gap-size')) : NaN;
-
-    return Number.isFinite(value) && value > 0 ? value : 0;
   }
 
   /**

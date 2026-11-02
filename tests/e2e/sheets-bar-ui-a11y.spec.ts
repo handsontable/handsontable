@@ -337,21 +337,35 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
         await fixture.goto({ sheets: 30, rtl, tabNames });
         await fixture.activeTab.focus();
 
-        for (let index = 1; index < 30; index += 1) {
-          await page.keyboard.press(forward);
+        /**
+         * Presses a key that moves the focus to a tab, then checks the tab is wholly in the strip and, when the
+         * strip scrolled to reveal it, that it sits flush with the strip edge it came in at.
+         *
+         * @param {string} key The key.
+         * @param {number} index The tab the key moves the focus to.
+         * @param {string} label What the step is, for the failure message.
+         */
+        const step = async(key: string, index: number, label: string) => {
+          const scrollBefore = await fixture.stripScrollLeft();
+
+          await page.keyboard.press(key);
           await expect(fixture.tab(index)).toBeFocused();
-          await expect.poll(() => fixture.tabWhollyInStrip(index), `tab ${index} going forward`).toBe(true);
+          await expect.poll(() => fixture.tabWhollyInStrip(index), `tab ${index} ${label}`).toBe(true);
+
+          if (await fixture.stripScrollLeft() !== scrollBefore) {
+            expect(await fixture.tabGapToStripEdge(index), `gap before tab ${index} ${label}`).toBeLessThanOrEqual(1);
+          }
+        };
+
+        for (let index = 1; index < 30; index += 1) {
+          await step(forward, index, 'going forward');
         }
 
         for (let index = 28; index >= 0; index -= 1) {
-          await page.keyboard.press(backward);
-          await expect(fixture.tab(index)).toBeFocused();
-          await expect.poll(() => fixture.tabWhollyInStrip(index), `tab ${index} going back`).toBe(true);
+          await step(backward, index, 'going back');
         }
 
-        await page.keyboard.press('End');
-        await expect(fixture.tab(29)).toBeFocused();
-        await expect.poll(() => fixture.tabWhollyInStrip(29)).toBe(true);
+        await step('End', 29, 'after End');
       });
     });
 

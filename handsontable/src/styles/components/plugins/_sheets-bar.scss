@@ -230,7 +230,7 @@ $all-sheets-visible-items: 8;
         align-items: stretch;
         flex: 1 1 auto;
         min-width: 0;
-        padding-inline-end: var(--ht-gap-size);
+        padding-inline-end: 1px;
         overflow-x: auto;
 
         // The strip scrolls with the paging arrows and the wheel, never with a bar of its own.

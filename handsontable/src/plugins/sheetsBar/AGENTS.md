@@ -687,14 +687,16 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `colorScheme` and `density` tokens of the grid stopped reaching the bar). In a `uiContainer` the bar
   gets the theme engine's scope class too (`applyUiContainerTheme()`, shared with Pagination), or it
   matched only the theme's base rules and stayed light under a dark grid.
-- **A reveal measures fractional boxes and keeps a gap from the edge** (`#scrollIntoStrip`: the tab's
-  `getBoundingClientRect()` less its in-flight translation, relative to the strip, and `--ht-gap-size` of
-  room). `offsetLeft`/`offsetWidth` round to whole pixels, so a tab of fractional width revealed flush sat up
-  to a pixel past the edge, exactly where its inset focus ring is drawn, and the controls or the arrows cut
-  it. The strip has `padding-inline-end: var(--ht-gap-size)` for the same reason at the far end: the browser
-  rounds the scroll range down, and the last tab of a fractional-width row could not be scrolled fully into
-  view. Pinned with zero tolerance by "reveals every tab the arrow keys move the focus to" in
-  `tests/e2e/sheets-bar-ui-a11y.spec.ts`.
+- **A reveal measures fractional boxes and rounds outward, flush with the edge** (`#scrollIntoStrip`: the
+  tab's `getBoundingClientRect()` less its in-flight translation, relative to the strip; the target
+  `scrollLeft` is floored at the start and ceiled at the end). `offsetLeft`/`offsetWidth` round to whole
+  pixels, and the browser snaps `scrollLeft` to whole pixels, so either way a tab of fractional width sat up to
+  a pixel past the edge, exactly where its inset focus ring is drawn, and the controls or the arrows cut it.
+  Do not reveal with a margin instead: a `--ht-gap-size` margin left a visible empty gap in front of the
+  focused tab. The strip has `padding-inline-end: 1px` because the browser rounds the scroll range down, and
+  without it the last tab of a fractional-width row could not be scrolled fully into view (RTL). Pinned by
+  "reveals every tab the arrow keys move the focus to" in `tests/e2e/sheets-bar-ui-a11y.spec.ts`: zero
+  tolerance for the ring, and at most 1px between a revealed tab and the strip edge.
 - **The active tab's reveal is repeated whenever the strip's layout changes under it**
   (`settleReveal()`: after the overflow refresh in `#refreshUI`, from the overflow controller's
   `onResize`, and from `#onAfterSetTheme`). Two layouts changed under a first reveal: the paging
