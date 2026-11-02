@@ -22,6 +22,7 @@ import {
   getDropdownValidation,
   cssColorToArgb,
   clearStyleCaches,
+  ALIGNMENT_CLASS_NAMES,
   type CellMeta,
   type CssStyle,
 } from './xlsx/cell-style';
@@ -59,6 +60,8 @@ import {
 import type { HotInstance } from '../../../core/types';
 import type { CellProperties } from '../../../settings';
 import { formatCellValue, type RendererWithValueFormatter } from '../../../renderers/renderCell';
+import { getRenderer, hasRenderer } from '../../../renderers/registry';
+import { normalizeClassNames } from '../../../helpers/dom/element';
 import { getLicenseState, getXlsxEntitlement } from '../../../core/license';
 import { EXPORT_FILE_CAPABILITY_IDS } from '../../../utils/xlsxEngine/licenseCapabilities';
 import {
@@ -274,10 +277,12 @@ function parseTemporalSerial(value: unknown, meta: CellMeta): number | null {
  */
 function toDisplayText(value: unknown, meta: CellMeta): string {
   const { renderer } = meta as { renderer?: unknown };
+  // A renderer named by a string resolves through the registry, as `Core#getCellRenderer` does it.
+  const resolved = typeof renderer === 'string' && hasRenderer(renderer) ? getRenderer(renderer) : renderer;
   const formatted = formatCellValue(
     value,
     meta as unknown as CellProperties,
-    (typeof renderer === 'function' ? renderer : undefined) as unknown as RendererWithValueFormatter,
+    (typeof resolved === 'function' ? resolved : undefined) as unknown as RendererWithValueFormatter,
   );
 
   return stringify(formatted);
@@ -404,9 +409,9 @@ interface SheetFeatureFacts {
 }
 
 /**
- * Whether a sheet has layout for `xlsx:layout` to write: a column width other than the default, an
- * explicit row height, a hidden row or column, a merge (a nested header group included), a frozen
- * pane, or a right-to-left direction. A default-width grid with none of them has no layout.
+ * Whether a sheet has layout for `xlsx:layout` to write: a column width other than the default, a
+ * row-header column (it always gets a width), an explicit row height, a hidden row or column, a
+ * merge (a nested header group included), a frozen pane, or a right-to-left direction. A default-width grid with none of them has no layout.
  */
 function hasLayout(facts: SheetFeatureFacts, isRtl: boolean): boolean {
   const nestedMerges = facts.nestedColumnHeaders !== null && (
@@ -421,6 +426,8 @@ function hasLayout(facts: SheetFeatureFacts, isRtl: boolean): boolean {
     || facts.frozenColumns > 0
     || facts.hiddenRowIndices.length > 0
     || facts.hiddenColIndices.length > 0
+    // The row-header column always gets a width of its own.
+    || facts.hasRowHeaders
     || facts.columnsWidths.some(width => isDefined(width) && width !== DEFAULT_COLUMN_WIDTH)
     || facts.rowsHeights.some(height => isDefined(height));
 }
@@ -998,9 +1005,11 @@ class Xlsx extends BaseType {
         cell.style = { alignment, border, font, fill };
       }
     } else if (!this.#needed.has('xlsx:styles')) {
-      // Without the token the computed CSS is never read, so only what the meta describes counts.
+      // Without the token the computed CSS is never read, so what the meta describes counts, and so
+      // does any class other than an alignment one: a stylesheet may give it a font or a fill.
       this.#needIf(Boolean(
         getAlignmentFromMeta(meta) || getBorderFromMeta(meta) || getFontFromMeta(meta) || getFillFromMeta(meta)
+        || normalizeClassNames(meta.className).some(name => !ALIGNMENT_CLASS_NAMES.has(name))
       ), 'xlsx:styles');
     }
 

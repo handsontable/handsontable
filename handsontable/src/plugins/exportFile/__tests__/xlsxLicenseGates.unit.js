@@ -6,6 +6,8 @@ import { DateCellType } from '../../../cellTypes/dateType';
 import { TimeCellType } from '../../../cellTypes/timeType';
 import { IntlDateCellType } from '../../../cellTypes/intlDateType';
 import { formatCellValue } from '../../../renderers/renderCell';
+import { registerRenderer } from '../../../renderers/registry';
+import { dateRenderer } from '../../../renderers/dateRenderer';
 import * as cellStyle from '../types/xlsx/cell-style';
 import {
   ALL_XLSX_TOKENS,
@@ -279,6 +281,26 @@ describe('Xlsx export license gates', () => {
     }
   });
 
+  it('formats through a renderer named by a string without xlsx:number_formats', async() => {
+    registerRenderer(dateRenderer);
+
+    await withMockSheet({
+      data: [['2024-01-15']],
+      sourceData: [['2024-01-15']],
+      cellsMeta: [[{
+        type: 'date',
+        renderer: 'date',
+        locale: 'de-DE',
+        dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' },
+      }]],
+    }, async() => {
+      const gated = (await exportSnapshot(keyWithout('xlsx:number_formats'))).sheets[0];
+
+      expect(gated.rows[1][0].value).toBe('15.01.2024');
+      expect(gated.rows[1][0].numFmt).toBeNull();
+    });
+  });
+
   it('writes no widths, heights, merges, hidden, freeze, rtl without xlsx:layout', async() => {
     const full = (await exportSnapshot(keyWith(ALL_XLSX_TOKENS))).sheets[0];
     const gated = (await exportSnapshot(keyWithout('xlsx:layout'))).sheets[0];
@@ -458,6 +480,19 @@ describe('Xlsx export license gates', () => {
     });
   });
 
+  it('names xlsx:styles for a class-only cell styled by a stylesheet, with no headers', async() => {
+    await withMockSheet({
+      ...PLAIN_SHEET,
+      cellsMeta: [[{ className: 'bold' }, {}], [{}, {}]],
+    }, async() => {
+      await exportSnapshot(keyWith(STANDARD_TOKENS), { conditionalFormatting: [] });
+
+      expect(exportWarnings()).toEqual([
+        'The xlsx export skipped features your license does not unlock: xlsx:styles.',
+      ]);
+    });
+  });
+
   it('names only xlsx:comments for a grid whose only Pro feature is a comment', async() => {
     await withMockSheet({
       ...PLAIN_SHEET,
@@ -475,6 +510,11 @@ describe('Xlsx export license gates', () => {
     const cases = [
       ['xlsx:styles', { columnHeaders: ['Name', 'Department'] }, {}],
       ['xlsx:styles', { cellsMeta: [[{ className: 'htCenter' }, {}], [{}, {}]] }, {}],
+      // A class only a stylesheet gives a meaning: the probe that would read it is skipped.
+      ['xlsx:styles', { cellsMeta: [[{ className: 'bold' }, {}], [{}, {}]] }, {}],
+      ['xlsx:styles', { cellsMeta: [[{ className: ['htMiddle', 'highlight'] }, {}], [{}, {}]] }, {}],
+      // The row-header column gets a width, which is layout; `headerStyle: null` keeps styles out.
+      ['xlsx:layout', { rowHeaders: [1, 2] }, { headerStyle: null }],
       ['xlsx:number_formats', {
         data: [['Ana García', 4200], ['Li Wei', 3900]],
         cellsMeta: [[{}, { type: 'numeric', numericFormat: { style: 'currency', currency: 'USD' } }], [{}, {}]],
