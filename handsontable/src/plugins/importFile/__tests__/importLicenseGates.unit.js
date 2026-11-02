@@ -14,6 +14,7 @@ import {
   STANDARD_TOKENS,
   keyWith,
   keyWithAll,
+  keyWithout,
   keyWithoutFlag,
 } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 
@@ -161,17 +162,71 @@ describe('ImportFile mapper license gates', () => {
     expect(gated.dropped.list()).toContain('license:xlsx:styles');
   });
 
-  it('names a style loss by its license entry only, with or without importStyles', () => {
+  it('names a style loss by cellStyles without importStyles, and by its license entry with it', () => {
     // The file carries styles: without the option, a full key reports them as `cellStyles`.
     expect(mapRich(UNRESTRICTED_XLSX_ENTITLEMENT).dropped.list()).toContain('cellStyles');
 
-    [true, false].forEach((importStyles) => {
-      const names = mapRich(without('styles', 'xlsx:styles'), { importStyles }).dropped.list();
+    // The caller did not ask for styles, so the license took nothing: the option entry names the loss.
+    const notAsked = mapRich(without('styles', 'xlsx:styles')).dropped.list();
 
-      expect(names).toContain('license:xlsx:styles');
-      expect(names).not.toContain('cellStyles');
-      expect(names).not.toContain('cellStyles:borders');
+    expect(notAsked).toContain('cellStyles');
+    expect(notAsked).not.toContain('license:xlsx:styles');
+
+    const asked = mapRich(without('styles', 'xlsx:styles'), { importStyles: true }).dropped.list();
+
+    expect(asked).toContain('license:xlsx:styles');
+    expect(asked).not.toContain('cellStyles');
+    expect(asked).not.toContain('cellStyles:borders');
+  });
+
+  it('records no license entry for a feature the caller did not ask the import to bring over', () => {
+    const cases = [
+      ['layout', 'xlsx:layout', { importLayout: false }],
+      ['dataValidation', 'xlsx:data_validation', { inferCellTypes: false }],
+    ];
+
+    cases.forEach(([flag, token, options]) => {
+      const asked = mapRich(without(flag, token)).dropped.list();
+      const notAsked = mapRich(without(flag, token), options).dropped.list();
+
+      expect([token, licenseEntriesOf(asked)]).toEqual([token, [`license:${token}`]]);
+      expect([token, licenseEntriesOf(notAsked)]).toEqual([token, []]);
     });
+
+    const workbook = createWorkbookSnapshot();
+    const sheet = new SheetBuilder('Data');
+
+    sheet.cell(1, 1).value = 2;
+    sheet.cell(1, 2).formula = { text: 'A1*2', result: 4 };
+    workbook.sheets.push(sheet.toSnapshot());
+
+    [[true, ['license:xlsx:formulas']], [false, []]].forEach(([importFormulas, expected]) => {
+      const dropped = new DroppedFeatures();
+
+      mapWorkbook(workbook, resolveImportOptions({ importFormulas }), {
+        formulasEnabled: true,
+        commentsEnabled: false,
+        customBordersEnabled: false,
+        entitlement: without('formulas', 'xlsx:formulas'),
+      }, dropped);
+
+      expect([importFormulas, licenseEntriesOf(dropped.list())]).toEqual([importFormulas, expected]);
+    });
+  });
+
+  it('reports comments as comments, not by the license, when the Comments plugin is off', () => {
+    const dropped = new DroppedFeatures();
+
+    mapWorkbook(richWorkbook(), resolveImportOptions({ colHeaders: 'firstRow' }), {
+      formulasEnabled: false,
+      commentsEnabled: false,
+      customBordersEnabled: true,
+      entitlement: without('comments', 'xlsx:comments'),
+    }, dropped);
+
+    expect(dropped.list()).toContain('comments');
+    expect(dropped.list()).toContain('comment:header');
+    expect(licenseEntriesOf(dropped.list())).toEqual([]);
   });
 
   it('withholds conditionalFormatting without xlsx:conditional_formatting', () => {
@@ -357,7 +412,7 @@ describe('ImportFile mapper license gates', () => {
   });
 
   it('records license:<token> for every missing token in dictionary order', () => {
-    const { result, dropped } = mapRich(STANDARD_ENTITLEMENT);
+    const { result, dropped } = mapRich(STANDARD_ENTITLEMENT, { importStyles: true });
 
     expect(licenseEntriesOf(dropped.list())).toEqual(IMPORT_PRO_TOKENS.map(id => `license:${id}`));
     expect(licenseEntriesOf(result.dropped)).toEqual(IMPORT_PRO_TOKENS.map(id => `license:${id}`));
@@ -501,6 +556,24 @@ describe('ImportFile license report', () => {
 
     expect(unflagged).toEqual(legacy);
     expect(warnSpy.mock.calls.filter(([message]) => message.startsWith('The xlsx import skipped'))).toEqual([]);
+  });
+
+  it('neither records nor warns about xlsx:layout when the caller turned importLayout off', async() => {
+    const licenseWarnings = () => warnSpy.mock.calls
+      .map(([message]) => message)
+      .filter(message => message.startsWith('The xlsx import skipped'));
+    const asked = await pluginFor(keyWithout('xlsx:layout')).plugin.importFromArrayBuffer('xlsx', fixture('layout'));
+
+    expect(licenseEntriesOf(asked.dropped)).toEqual(['license:xlsx:layout']);
+    expect(licenseWarnings()).toEqual(['The xlsx import skipped features your license does not unlock: xlsx:layout.']);
+
+    warnSpy.mockClear();
+
+    const notAsked = await pluginFor(keyWithout('xlsx:layout'))
+      .plugin.importFromArrayBuffer('xlsx', fixture('layout'), { importLayout: false });
+
+    expect(licenseEntriesOf(notAsked.dropped)).toEqual([]);
+    expect(licenseWarnings()).toEqual([]);
   });
 
   it('says nothing about the license for a values-only file on a Standard key', async() => {

@@ -301,7 +301,11 @@ export interface ImportResult {
    * Names of the features the file carried and the grid did not take: what the engine could not
    * read, what the plugin could not apply (an unregistered cell type, a missing plugin, a layout
    * direction the grid does not follow), and a feature the license did not unlock, as
-   * `license:xlsx:<token>`. A license entry is listed only when the file carried that feature.
+   * `license:xlsx:<token>`. A license entry is listed only for a feature the file carried, the import
+   * was asked to bring over, and the license did not unlock: with `importStyles`, `importLayout` or
+   * `importFormulas` off, `inferCellTypes` off (for data validation), or the `Comments` plugin off,
+   * the license took nothing, and the entry the option drives (`cellStyles`, `comments`) is listed as
+   * on any key.
    */
   dropped: string[];
 }
@@ -963,7 +967,8 @@ export class ImportFile extends BasePlugin {
   /**
    * Emits the warnings of one import call: the engine's dropped-features warning, and the
    * missing-capabilities warning, only when the import recorded a `license:<token>` entry (a feature
-   * the file carried and the license does not unlock) and the console channel is on. The warning
+   * the file carried, the import was asked to bring over, and the license does not unlock) and the
+   * console channel is on. The warning
    * names exactly those tokens, in the order the mapper recorded them (`XLSX_CAPABILITY_IDS` order).
    *
    * @param {DroppedFeatures} dropped The features recorded during the call.

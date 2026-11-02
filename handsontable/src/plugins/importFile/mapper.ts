@@ -369,7 +369,7 @@ interface CellPass {
   /**
    * Whether any visited cell carried a comment, a list validation, or a formula. With `sawStyle`,
    * these decide which `license:<token>` entries the import records: one only for a feature the
-   * file carried.
+   * file carried and the caller's options asked for.
    */
   sawComment: boolean;
   sawValidation: boolean;
@@ -964,11 +964,13 @@ function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: numbe
 
   pushCellValue(pass, cell, inferred, row, col, scope);
 
-  if (cell.comment !== null && context.entitlement.comments) {
-    if (context.commentsEnabled) {
-      pass.comments.push({ row, col, value: cell.comment });
-    } else {
+  if (cell.comment !== null) {
+    // Without the Comments plugin the comment is lost whatever the license says, so the option entry
+    // names it; with the plugin, a missing `xlsx:comments` is named by its license entry instead.
+    if (!context.commentsEnabled) {
       pass.droppedComments = true;
+    } else if (context.entitlement.comments) {
+      pass.comments.push({ row, col, value: cell.comment });
     }
   }
 
@@ -1609,21 +1611,27 @@ function hasLayout(sheet: SheetSnapshot): boolean {
 }
 
 /**
- * Records a `license:<token>` entry for each token the license leaves out, but only when the file
- * carried the feature it gates, so a plain workbook reports nothing. Recorded in the order of
- * `entitlement.missing`, which is the order `XLSX_CAPABILITY_IDS` declares.
+ * Records a `license:<token>` entry for each token the license leaves out, but only for a feature the
+ * file carried AND the caller asked the import to bring over, so a plain workbook, or a feature the
+ * caller's own options left out, reports nothing. `requestedOptions` are the caller's values, before
+ * a missing token forced any of them off. Recorded in the order of `entitlement.missing`, which is the
+ * order `XLSX_CAPABILITY_IDS` declares.
  */
 function recordMissingLicenses(
-  sheet: SheetSnapshot, window: SheetWindow, options: ResolvedImportOptions, pass: CellPass,
-  entitlement: XlsxEntitlement, dropped: DroppedFeatures
+  sheet: SheetSnapshot, window: SheetWindow, options: ResolvedImportOptions,
+  requestedOptions: ResolvedImportOptions, pass: CellPass, context: MapperContext, dropped: DroppedFeatures
 ): void {
+  const { entitlement } = context;
   const carried: Record<string, () => boolean> = {
-    'xlsx:formulas': () => pass.sawFormula,
-    'xlsx:layout': () => hasLayout(sheet),
-    'xlsx:comments': () => pass.sawComment || hasHeaderBandComment(sheet, window, options),
-    'xlsx:styles': () => pass.sawStyle,
+    'xlsx:formulas': () => requestedOptions.importFormulas && pass.sawFormula,
+    'xlsx:layout': () => requestedOptions.importLayout && hasLayout(sheet),
+    // Without the Comments plugin the comments are reported as `comments`, as for any key.
+    'xlsx:comments': () => context.commentsEnabled
+      && (pass.sawComment || hasHeaderBandComment(sheet, window, options)),
+    'xlsx:styles': () => requestedOptions.importStyles && pass.sawStyle,
     'xlsx:conditional_formatting': () => sheet.conditionalFormatting.length > 0,
-    'xlsx:data_validation': () => pass.sawValidation,
+    // A list validation becomes a dropdown only through type inference.
+    'xlsx:data_validation': () => requestedOptions.inferCellTypes && pass.sawValidation,
     'xlsx:protection': () => sheet.protection?.enabled === true,
   };
 
@@ -1670,8 +1678,9 @@ export function mapWorkbook(
     if (pass.droppedBorders) {
       dropped.record(DROPPED_FEATURES.cellStylesBorders);
     }
-  } else if (pass.sawStyle && entitlement.styles) {
-    // Without `xlsx:styles` the `license:xlsx:styles` entry names the loss, as it does for comments.
+  } else if (pass.sawStyle && !requestedOptions.importStyles) {
+    // The caller left styles out, whatever the license unlocks. When the caller asked for them and the
+    // license took them, the `license:xlsx:styles` entry names the loss instead.
     dropped.record(DROPPED_FEATURES.cellStyles);
   }
 
@@ -1679,7 +1688,8 @@ export function mapWorkbook(
     dropped.record(DROPPED_FEATURES.comments);
   }
 
-  if (entitlement.comments && hasHeaderBandComment(sheet, window, options)) {
+  // A header-band note is lost on every key; the license entry names it only when it replaces this one.
+  if ((entitlement.comments || !context.commentsEnabled) && hasHeaderBandComment(sheet, window, options)) {
     dropped.record(DROPPED_FEATURES.commentHeader);
   }
 
@@ -1687,7 +1697,7 @@ export function mapWorkbook(
     ? mapConditionalFormatting(sheet, window, dropped)
     : undefined;
 
-  recordMissingLicenses(sheet, window, options, pass, entitlement, dropped);
+  recordMissingLicenses(sheet, window, options, requestedOptions, pass, context, dropped);
 
   const result: MappedResult = {
     data: pass.data,
