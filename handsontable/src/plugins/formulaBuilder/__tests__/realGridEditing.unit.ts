@@ -779,6 +779,20 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(hot.getSelectedLast()).toEqual([0, 0, 0, 0]);
     });
 
+    it('is refused when the grid ends up selecting another cell than the one asked for', () => {
+      createGrid();
+      // An application listener that redirects a select of B2 to A1: `selectCell()` still reports success.
+      hot.addHook('afterSelection', (row: number, col: number) => {
+        if (row === 1 && col === 1) {
+          hot.selectCell(0, 0);
+        }
+      });
+      hot.selectCell(4, 4);
+
+      expect(adapter().setActiveCell({ sheet: '', row: 1, col: 1 })).toBe(false);
+      expect(hot.getSelectedLast()).toEqual([0, 0, 0, 0]);
+    });
+
     it('is refused as a range the grid collapses under selectionMode single', () => {
       createGrid({ selectionMode: 'single' });
       hot.selectCell(4, 4);

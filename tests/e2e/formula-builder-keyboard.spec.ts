@@ -20,7 +20,10 @@ test.describe('formulaBuilder keyboard flow', { tag: [THEMES_TAG, BUNDLES_TAG, C
     await expect(grid.addressInput).toHaveValue('A3');
     await page.keyboard.type('99');
     await page.keyboard.press('Enter');
-    await expect.poll(() => grid.dataAt(0, 0)).toBe(1);
+    // The commit landed on A3, the cell that was left (the bar opened on its `5`, with the caret at the
+    // end), and A1 kept its value.
+    await expect.poll(() => grid.sourceAt(2, 0)).toBe('599');
+    expect(await grid.dataAt(0, 0)).toBe(1);
   });
 
   test('Shift+Tab walks out of the grid through the formula bar, and Tab walks back in', async({ page }) => {

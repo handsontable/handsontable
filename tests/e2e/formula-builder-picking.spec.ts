@@ -848,13 +848,25 @@ test.describe('formulaBuilder picking a cell that shows a link', { tag: [THEMES_
       await expect(grid.cell(row, col).locator('a[href]')).toHaveCount(1);
 
       const url = page.url();
-      // A followed link would open a tab (`_blank`) or navigate this page (`_self`).
-      const popupOpened = page.waitForEvent('popup', { timeout: 1000 }).then(() => true, () => false);
+
+      // The browser follows a link only for a `click` whose default nobody prevented. The capture
+      // listener keeps the event object, whose `defaultPrevented` is final once its dispatch ended.
+      await page.evaluate(() => {
+        const clicks: MouseEvent[] = [];
+
+        (window as unknown as { linkClicks: MouseEvent[] }).linkClicks = clicks;
+        window.addEventListener('click', (event) => {
+          if (event.target instanceof Element && event.target.closest('a[href]')) {
+            clicks.push(event);
+          }
+        }, true);
+      });
 
       await grid.cell(row, col).locator('a[href]').click();
       await expect(grid.editorInput).toHaveValue(reference);
 
-      expect(await popupOpened).toBe(false);
+      expect(await page.evaluate(() => (window as unknown as { linkClicks: MouseEvent[] }).linkClicks
+        .map(event => event.defaultPrevented))).toEqual([true]);
       expect(page.url()).toBe(url);
       expect(page.context().pages()).toHaveLength(1);
     });
