@@ -348,8 +348,8 @@ export class CopyPaste extends BasePlugin {
   #pastePlan: [number, number, number, number] | null = null;
   /**
    * The `[startRow, startColumn, endRow, endColumn]` range `onPaste()`'s synchronous selection
-   * actually produced, read back after the selection so it reflects any adjustment a plugin made
-   * through `beforeSetRangeStart` (`mergeCells` snaps a range onto a merged area). It is `null`
+   * actually produced, read back after the selection so it reflects any adjustment the selection
+   * made (it grows a range over the merged cells it touches). It is `null`
    * until that selection runs, which lets `#onAfterChange` tell the synchronous case (the change
    * settles inside `populateFromArray()`, before this is set) from the deferred one, and it is
    * what the deferred correction compares the live selection against, so a selection the user or
@@ -1122,8 +1122,8 @@ export class CopyPaste extends BasePlugin {
     if (startRow !== null && startColumn !== null && endRow !== null && endColumn !== null) {
       this.#selectPastedRange(startRow, startColumn, endRow, endColumn);
 
-      // Read the range back rather than storing what was passed in: `beforeSetRangeStart` can move
-      // it (`mergeCells` snaps onto a merged area), and `#onAfterChange` must compare the live
+      // Read the range back rather than storing what was passed in: the selection can grow it (over
+      // the merged cells it touches), and `#onAfterChange` must compare the live
       // selection against what actually landed, not against the request.
       const appliedRange = this.hot.getSelectedRangeActive();
 

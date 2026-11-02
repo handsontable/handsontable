@@ -43,6 +43,8 @@ import { registerRenderer } from '../../renderers/registry';
 registerRenderer('myRenderer', myRenderer);
 ```
 
+A new built-in renderer also needs its entry in `src/renderers/features.json` (`renderer:<name_in_snake_case>`, `licensing: "none"`; copy a neighbor), and a cell type that uses it lists it in its `requires.allOf`. The unit suite fails until both exist. Run `npm run generate:feature-manifest --prefix handsontable` and commit what it writes. Rules: `src/featureManifest/AGENTS.md`.
+
 ## Reference implementations
 
 - `src/renderers/baseRenderer/baseRenderer.ts`
