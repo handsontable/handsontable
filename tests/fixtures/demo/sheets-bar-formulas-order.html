@@ -31,6 +31,9 @@
       sortedReport: 'sortedReport',
       summary: 'summary',
       sortedSummary: 'sortedSummary',
+      ownRefFirst: 'ownRefFirst',
+      ownRefSecond: 'ownRefSecond',
+      relativeDesc: 'relativeDesc',
       sortedData: 'sortedData',
       movedColumns: 'movedColumns',
       sortedFormulas: 'sortedFormulas',
@@ -53,6 +56,10 @@
     - summary: 'Data' with 10..50 in A1:A5, and 'Summary' with `=Data!A5`.
     - sortedSummary: 'Data' with 10..50 in A1:A5, and 'Summary' (`columnSorting`) with `=Data!$A$5` and
       `=Data!$A$1` in A1:A2, labeled 'b' and 'a' in B1:B2.
+    - ownRefFirst: 'S' (`columnSorting`) first, with 3, 1, 2 in A and `=Main!$A$1+A{n}` beside each, and
+      'Main' with 10, 20, 30. ownRefSecond: the same sheets with 'Main' first.
+    - relativeDesc: 'Main' with 10..60 in A1:A6, and 'S' (`columnSorting`) with 1..6 in A, `=Main!A{n}`
+      beside each, and an empty seventh row.
     - sortedData: 'Data' (`columnSorting`) with 30, 10, 20, and 'Summary' with `=Data!A1`.
     - movedColumns: 'Sheet' (`manualColumnMove`) with `=A1+B1` in C1 and `=A2+B2` in C2, 'Plain' with
       no formulas, and 'Other' bound to the engine.
@@ -108,6 +115,21 @@
       sortedSummary: [
         bound('Data', [[10], [20], [30], [40], [50]]),
         bound('Summary', [['=Data!$A$5', 'b'], ['=Data!$A$1', 'a']], { columnSorting: true }),
+      ],
+      ownRefFirst: [
+        bound('S', [[3, '=Main!$A$1+A1'], [1, '=Main!$A$1+A2'], [2, '=Main!$A$1+A3']], { columnSorting: true }),
+        bound('Main', [[10], [20], [30]]),
+      ],
+      ownRefSecond: [
+        bound('Main', [[10], [20], [30]]),
+        bound('S', [[3, '=Main!$A$1+A1'], [1, '=Main!$A$1+A2'], [2, '=Main!$A$1+A3']], { columnSorting: true }),
+      ],
+      relativeDesc: [
+        bound('Main', [[10], [20], [30], [40], [50], [60]]),
+        bound('S', [
+          ...[1, 2, 3, 4, 5, 6].map(n => [n, `=Main!A${n}`]),
+          [null, null],
+        ], { columnSorting: true }),
       ],
       sortedData: [
         bound('Data', [[30], [10], [20]], { columnSorting: true }),

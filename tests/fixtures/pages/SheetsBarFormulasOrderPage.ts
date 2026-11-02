@@ -2,7 +2,7 @@ import { expect, type Locator, type Page } from '@playwright/test';
 import { awaitBundle, type Bundle } from '../bundle';
 
 export type FormulasOrderWorkbook =
-  'sortedReport' | 'summary' | 'sortedSummary' | 'sortedData' | 'movedColumns' | 'sortedFormulas' | 'sortedSum' | 'showFormulas'
+  'sortedReport' | 'summary' | 'sortedSummary' | 'ownRefFirst' | 'ownRefSecond' | 'relativeDesc' | 'sortedData' | 'movedColumns' | 'sortedFormulas' | 'sortedSum' | 'showFormulas'
   | 'quotedNames';
 
 /**
@@ -91,6 +91,15 @@ export class SheetsBarFormulasOrderPage {
     return this.page.evaluate(([col, order]) => {
       window.hot.getPlugin('columnSorting').sort({ column: col as number, sortOrder: order as 'asc' | 'desc' });
     }, [column, sortOrder]);
+  }
+
+  /**
+   * A sheet's data as `getSheetData()` returns it, without switching to it.
+   */
+  sheetData(name: string): Promise<unknown[][] | null> {
+    return this.page.evaluate(sheetName => (
+      window.hot.getPlugin('sheetsBar').getSheetData(sheetName) as unknown[][] | null
+    ), name);
   }
 
   clearSort(): Promise<void> {

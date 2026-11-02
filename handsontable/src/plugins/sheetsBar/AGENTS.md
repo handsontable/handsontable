@@ -311,12 +311,22 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   undo and redo only after a structural step, `#onAfterUndoRedo`, once the restore is complete, so the
   row hooks of the replay itself are skipped):
   HyperFormula moves `=Data!A5` to `=Data!A6` inside itself, and the Formulas plugin writes the
-  new text back only for the grids it knows. A sheet left sorted or moved is written too, each cell
-  read at the engine position its stored order (`#engineOrders`) gives it (`toEngineIndexes`): skipped,
-  the first return hid the old text by taking the engine sheet over, but after a new order and another
-  round trip the old text loaded again and the references moved back. A sheet whose stored order is no
-  longer taken over (`#engineOrderToAdopt` answers `null`: the host replaced or resized its data) is
-  skipped. Only its formula cells whose text names the active sheet, or holds `#REF!` (an undone
+  new text back only for the grids it knows. A sheet left sorted or moved is written too: skipped, the
+  first return hid the old text by taking the engine sheet over, but after a new order and another round
+  trip the old text loaded again and the references moved back. Three rules make that write right. (1) Each
+  cell is read at the engine position its stored order (`#engineOrders`) gives it, built by
+  `listEngineElements()` (`../formulas/indexSyncer/engineElements.ts`), the same function the axis syncer
+  orders the engine with: the named `sequence`, then `fillSequence`, then every other index ascending. A
+  hand-rolled map treated an empty `sequence` as "no rows" instead of physical order and skipped a row filled
+  after the sort. (2) The text is read through `#physicalFormulaText`, which runs the engine's own fill
+  transform (`getFillRangeData`) from the engine cell to the physical one. HyperFormula moves cells keeping
+  their relative offsets, so the engine's text at another position reads its relative references from there
+  (`=Main!A1..A6` sorted descending came back reversed, an own-sheet `+A1` moved down came back `+A3`); the
+  stored data must hold every formula in physical order, the frame `isHfOrderPhysical` in
+  `../formulas/indexSyncer/axisSyncer.ts` warns about. (3) A sheet whose stored order is no longer taken over
+  (`#engineOrderToAdopt` answers `null`: the host replaced or resized its data) is skipped: the engine no
+  longer holds rows the data has. Pinned by "a sorted sheet the user left, after a structural change on the
+  sheet it reads" in `tests/e2e/sheets-bar-formulas-order.spec.ts`. Only its formula cells whose text names the active sheet, or holds `#REF!` (an undone
   removal brings the reference back), are read, one by one. A cell is written only when its references
   differ: the host's own text (`=sum(data!a1)`) is kept when the engine's normalized text of it is the
   same. Reading cell by cell (`getCellFormula`) replaced serializing every inactive sheet, which made

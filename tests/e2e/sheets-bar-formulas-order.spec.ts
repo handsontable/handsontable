@@ -113,6 +113,68 @@ test.describe('SheetsBar formulas across a sorted or moved sheet', { tag: BUNDLE
     });
   });
 
+  test.describe('a sorted sheet the user left, after a structural change on the sheet it reads', () => {
+    for (const [workbook, first] of [['ownRefFirst', true], ['ownRefSecond', false]] as const) {
+      test(`keeps its own references in its own order (${first ? 'sorted as the first sheet' : 'sorted after a switch'})`, async() => {
+        await grid.goto(workbook);
+
+        if (!first) {
+          expect(await grid.switchTo('S')).toEqual([true]);
+        }
+
+        await grid.sort(0, 'asc');
+
+        expect(await grid.getData()).toEqual([[1, 11], [2, 12], [3, 13]]);
+        expect(await grid.switchTo('Main')).toEqual([true]);
+
+        await grid.alter('insert_row_above', 0);
+
+        expect(await grid.sheetData('S')).toEqual([
+          [3, '=Main!$A$2+A1'], [1, '=Main!$A$2+A2'], [2, '=Main!$A$2+A3'],
+        ]);
+
+        await grid.alter('remove_row', 0);
+
+        expect(await grid.sheetData('S')).toEqual([
+          [3, '=Main!$A$1+A1'], [1, '=Main!$A$1+A2'], [2, '=Main!$A$1+A3'],
+        ]);
+        expect(await grid.switchTo('S')).toEqual([true]);
+
+        await grid.clearSort();
+
+        expect(await grid.switchTo('Main', 'S')).toEqual([true, true]);
+        expect(await grid.getData()).toEqual([[3, 13], [1, 11], [2, 12]]);
+      });
+    }
+
+    test('keeps relative references and a formula typed after the sort in its own order', async() => {
+      await grid.goto('relativeDesc');
+
+      expect(await grid.switchTo('S')).toEqual([true]);
+
+      await grid.sort(0, 'desc');
+      await grid.setDataAtCell(6, 1, '=Main!A3');
+
+      expect(await grid.switchTo('Main')).toEqual([true]);
+
+      await grid.alter('insert_row_above', 0);
+
+      expect(await grid.sheetData('S')).toEqual([
+        ...[1, 2, 3, 4, 5, 6].map(n => [n, `=Main!A${n + 1}`]),
+        [null, '=Main!A4'],
+      ]);
+      expect(await grid.switchTo('S')).toEqual([true]);
+
+      await grid.clearSort();
+
+      expect(await grid.switchTo('Main', 'S')).toEqual([true, true]);
+      expect(await grid.getData()).toEqual([
+        ...[1, 2, 3, 4, 5, 6].map(n => [n, n * 10]),
+        [null, 30],
+      ]);
+    });
+  });
+
   test.describe('round trips', () => {
     test('reads a sorted sheet the same way on the first visit and on a later one', async() => {
       await grid.goto('sortedData');

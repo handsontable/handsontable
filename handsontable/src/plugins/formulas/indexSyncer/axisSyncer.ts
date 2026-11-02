@@ -1,4 +1,5 @@
 import { warn } from '../../../helpers/console';
+import { listEngineElements } from './engineElements';
 import { toUpperCaseFirst } from '../../../helpers/string';
 import { getMoves } from '../../../helpers/moves';
 import { getDecreasedIndexes, getIncreasedIndexes } from '../../../translations/maps/utils/actionsOnIndexes';
@@ -223,24 +224,7 @@ class AxisSyncer {
    * @returns {number[]}
    */
   #getHeldEngineSequence(gridSequence: number[]): number[] {
-    const length = gridSequence.length;
-    const sequence: number[] = [];
-    const held = new Set<number>();
-    const take = (physicalIndex: number) => {
-      if (physicalIndex < length && !held.has(physicalIndex)) {
-        sequence.push(physicalIndex);
-        held.add(physicalIndex);
-      }
-    };
-
-    this.#indexesSequence.forEach(take);
-    this.#fillSequence?.forEach(take);
-
-    for (let physicalIndex = 0; sequence.length < length; physicalIndex += 1) {
-      take(physicalIndex);
-    }
-
-    return sequence;
+    return listEngineElements(this.#indexesSequence, this.#fillSequence, gridSequence.length);
   }
 
   /**

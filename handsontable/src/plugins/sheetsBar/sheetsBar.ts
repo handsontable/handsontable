@@ -72,6 +72,7 @@ import type {
   DataProviderRequestKind,
 } from '../dataProvider/dataProvider';
 import type { FormulasEngineSheetOrder } from '../formulas/formulas';
+import { listEngineElements } from '../formulas/indexSyncer/engineElements';
 
 export const PLUGIN_KEY = 'sheetsBar';
 export const PLUGIN_PRIORITY = 910;
@@ -188,23 +189,29 @@ function isEngineChangingSource(source?: string): boolean {
 type RenameResult = 'renamed' | 'unchanged' | 'taken' | 'refused';
 
 /**
- * Returns a lookup from a physical index to the engine index that holds it, for an engine order's
- * `sequence` (the physical index at each engine index). With no sequence, the engine holds the axis in
- * physical order.
+ * Returns a lookup from a physical index to the engine index that holds it, for one axis of a stored engine
+ * order, built the way the Formulas plugin's axis syncer orders the engine (`listEngineElements()`): an index
+ * the order does not name, such as a row filled after the sort, sits after the named ones. With no order, the
+ * engine holds the axis in physical order.
  *
- * @param {number[]} [sequence] The physical index at each engine index.
+ * @param {object|undefined} order The axis order (`sequence`, `fillSequence`), or `undefined`.
+ * @param {number} length How many elements the axis has.
  * @returns {Function}
  */
-function toEngineIndexes(sequence?: number[]): (physicalIndex: number) => number | undefined {
-  if (!sequence) {
+function toEngineIndexes(
+  order: { sequence: number[], fillSequence: number[] | null } | undefined,
+  length: number,
+): (physicalIndex: number) => number {
+  if (!order) {
     return physicalIndex => physicalIndex;
   }
 
   const engineIndexOf = new Map<number, number>();
 
-  sequence.forEach((physicalIndex, engineIndex) => engineIndexOf.set(physicalIndex, engineIndex));
+  listEngineElements(order.sequence, order.fillSequence, length)
+    .forEach((physicalIndex, engineIndex) => engineIndexOf.set(physicalIndex, engineIndex));
 
-  return physicalIndex => engineIndexOf.get(physicalIndex);
+  return physicalIndex => engineIndexOf.get(physicalIndex) ?? physicalIndex;
 }
 
 /**
@@ -465,6 +472,10 @@ interface SheetFormulas {
     getNamedExpressionValue?: (name: string, scope?: number) => unknown;
     addNamedExpression?: (name: string, expression: unknown, scope?: number, options?: unknown) => void;
     getCellFormula?: (address: { sheet: number, row: number, col: number }) => string | undefined;
+    getFillRangeData?: (
+      source: { start: { sheet: number, row: number, col: number }, end: { sheet: number, row: number, col: number } },
+      target: { start: { sheet: number, row: number, col: number }, end: { sheet: number, row: number, col: number } },
+    ) => unknown[][];
     normalizeFormula?: (formula: string) => string;
     on?: (event: string, listener: (changes: unknown[]) => void) => void;
     off?: (event: string, listener: (changes: unknown[]) => void) => void;
@@ -5641,11 +5652,13 @@ export class SheetsBar extends BasePlugin {
         return;
       }
 
-      const engineRowOf = toEngineIndexes(engineOrder?.rowOrder.sequence);
-      const engineColumnOf = toEngineIndexes(engineOrder?.columnOrder.sequence);
+      const rows = listSheetRows(sheet.data, !!settings.nestedRows);
+      const engineRowOf = toEngineIndexes(engineOrder?.rowOrder, rows.length);
+      const columnCount = rows.reduce((widest, { row }) => Math.max(widest, getEngineCellKeys(row, layout).length), 0);
+      const engineColumnOf = toEngineIndexes(engineOrder?.columnOrder, columnCount);
       const changes: FormulaTextChange[] = [];
 
-      listSheetRows(sheet.data, !!settings.nestedRows).forEach(({ row, path }, physicalRow) => {
+      rows.forEach(({ row, path }, physicalRow) => {
         getEngineCellKeys(row, layout).forEach((key, physicalColumn) => {
           const cell = typeof key === 'number' || typeof key === 'string' ? readCell(row, key) : undefined;
 
@@ -5653,14 +5666,10 @@ export class SheetsBar extends BasePlugin {
             return;
           }
 
-          const engineRow = engineRowOf(physicalRow);
-          const engineColumn = engineColumnOf(physicalColumn);
-
-          if (engineRow === undefined || engineColumn === undefined) {
-            return;
-          }
-
-          const fromEngine = engine.getCellFormula!({ sheet: sheetId, row: engineRow, col: engineColumn });
+          const fromEngine = this.#physicalFormulaText(engine, sheetId, {
+            row: engineRowOf(physicalRow),
+            col: engineColumnOf(physicalColumn),
+          }, { row: physicalRow, col: physicalColumn });
           const text = typeof fromEngine === 'string' ? quoteIfNeeded(fromEngine) : cell;
 
           if (text !== cell && !readsAsEngineText(cell, text)) {
@@ -5673,6 +5682,37 @@ export class SheetsBar extends BasePlugin {
         this.#replaceSheetData(sheet, writeFormulaTextChanges(sheet.data, changes));
       }
     });
+  }
+
+  /**
+   * Returns the formula text of an engine cell as it reads at the cell's physical position. A sort or a move
+   * moves the engine's cells keeping their relative references' offsets, so a formula the engine holds at
+   * another position reads its relative references from there (`=Main!A1` at the top of a sheet sorted
+   * descending is the formula of its last row, `+A1` of a row moved down reads `+A3`). The engine's own fill
+   * transform from the engine cell to the physical one shifts them back and leaves absolute references alone.
+   *
+   * @param {object} engine The engine.
+   * @param {number} sheetId The engine sheet.
+   * @param {object} at The engine cell (`row`, `col`).
+   * @param {object} physical The physical cell (`row`, `col`).
+   * @returns {string|undefined} The formula text, or `undefined` when the engine cell holds none.
+   */
+  #physicalFormulaText(
+    engine: NonNullable<SheetFormulas['engine']>,
+    sheetId: number,
+    at: { row: number, col: number },
+    physical: { row: number, col: number },
+  ): string | undefined {
+    const source = { sheet: sheetId, ...at };
+
+    if ((at.row === physical.row && at.col === physical.col) || !engine.getFillRangeData) {
+      return engine.getCellFormula!(source);
+    }
+
+    const target = { sheet: sheetId, ...physical };
+    const [[content]] = engine.getFillRangeData({ start: source, end: source }, { start: target, end: target });
+
+    return typeof content === 'string' && content.startsWith('=') ? content : undefined;
   }
 
   /**
