@@ -6,7 +6,7 @@ import {
   getLicenseGrants,
   UNRESTRICTED_GRANTS,
 } from '../../entitlementLicenseKey';
-import { XLSX_CAPABILITY_IDS } from '../licenseCapabilities';
+import { XLSX_CAPABILITY_IDS, XLSX_FLAG_BY_ID } from '../licenseCapabilities';
 import {
   UNRESTRICTED_XLSX_ENTITLEMENT,
   resolveXlsxEntitlement,
@@ -38,6 +38,15 @@ const keyOf = (capabilities, flags = [FLAG]) => {
 };
 
 describe('xlsxEngine/xlsxEntitlement', () => {
+  it('drives exactly the XlsxEntitlement flags with the generated flag names', () => {
+    // `XLSX_FLAG_BY_ID` is generated from features.json; the interface is written by hand.
+    const tokenFlags = Object.keys(UNRESTRICTED_XLSX_ENTITLEMENT)
+      .filter(key => key !== 'missing' && key !== 'importReport');
+
+    XLSX_CAPABILITY_IDS.forEach(id => expect(tokenFlags).toContain(XLSX_FLAG_BY_ID[id]));
+    expect(Object.values(XLSX_FLAG_BY_ID).sort()).toEqual(tokenFlags.sort());
+  });
+
   it('is unrestricted for unrestricted grants', () => {
     expect(resolveXlsxEntitlement(null, UNRESTRICTED_GRANTS)).toBe(UNRESTRICTED_XLSX_ENTITLEMENT);
     expect(resolveXlsxEntitlement(keyOf(STANDARD_TOKENS)[0], UNRESTRICTED_GRANTS)).toBe(UNRESTRICTED_XLSX_ENTITLEMENT);

@@ -4,7 +4,12 @@ import {
   hasCapability,
   HANDSONTABLE_PRODUCT,
 } from '../entitlementLicenseKey';
-import { LISTED_CAPABILITIES_FLAG, XLSX_ALL_CAPABILITY, XLSX_CAPABILITY_IDS } from './licenseCapabilities';
+import {
+  LISTED_CAPABILITIES_FLAG,
+  XLSX_ALL_CAPABILITY,
+  XLSX_CAPABILITY_IDS,
+  XLSX_FLAG_BY_ID,
+} from './licenseCapabilities';
 
 /**
  * What the license unlocks of the XLSX engine. One flag per capability token, plus the ids of the
@@ -26,23 +31,11 @@ export interface XlsxEntitlement {
   missing: string[];
 }
 
-type XlsxFlagName = Exclude<keyof XlsxEntitlement, 'missing' | 'importReport'>;
-
 /**
- * The flag each capability token drives.
+ * The flags a capability token drives. `XLSX_FLAG_BY_ID` (generated from `features.json`) names one
+ * of them for each token, and a unit test holds every generated name to a key of this interface.
  */
-const FLAG_BY_ID: Readonly<Record<string, XlsxFlagName>> = Object.freeze({
-  'xlsx:import': 'import',
-  'xlsx:export': 'export',
-  'xlsx:formulas': 'formulas',
-  'xlsx:layout': 'layout',
-  'xlsx:number_formats': 'numberFormats',
-  'xlsx:comments': 'comments',
-  'xlsx:styles': 'styles',
-  'xlsx:conditional_formatting': 'conditionalFormatting',
-  'xlsx:data_validation': 'dataValidation',
-  'xlsx:protection': 'protection',
-});
+type XlsxFlagName = Exclude<keyof XlsxEntitlement, 'missing' | 'importReport'>;
 
 /**
  * The entitlement of a license that does not gate the XLSX engine: every flag is on and nothing is
@@ -110,7 +103,7 @@ export function resolveXlsxEntitlement(
   XLSX_CAPABILITY_IDS.forEach((id) => {
     const granted = hasCapability(grants, HANDSONTABLE_PRODUCT, id);
 
-    flags[FLAG_BY_ID[id]] = granted;
+    flags[XLSX_FLAG_BY_ID[id] as XlsxFlagName] = granted;
 
     if (!granted) {
       missing.push(id);
