@@ -219,4 +219,23 @@ describe('xlsx round trip through exportFile and importFile with HyperFormula', 
     expect(target.getSourceDataAtRow(0)[4]).toBe(SHOWN[0][4]);
     expect(target.getData()).toEqual(SHOWN);
   });
+
+  it('should re-import a formula with nested or partial ARRAYFORMULA calls as a live CSE array (built-in engine)', async() => {
+    // The export strips every ARRAYFORMULA call, which Excel cannot read, and writes a CSE array;
+    // the import wraps a CSE array in one ARRAYFORMULA call again.
+    const hot = createGrid([
+      [1, '=ARRAYFORMULA(ARRAYFORMULA(A1:A3*2))', '=SUM(ARRAYFORMULA(A1:A3*2))'],
+      [2, null, null],
+      [3, null, null],
+    ]);
+    const shown = [[1, 2, 12], [2, 4, null], [3, 6, null]];
+
+    expect(hot.getData().map(row => row.slice(0, 3))).toEqual(shown);
+
+    const result = await importBytes(hot, await exportBytes(hot));
+
+    expect(droppedBesidesStyles(result)).toEqual([]);
+    expect(hot.getSourceDataAtRow(0).slice(1, 3)).toEqual(['=ARRAYFORMULA(A1:A3*2)', '=ARRAYFORMULA(SUM(A1:A3*2))']);
+    expect(hot.getData().map(row => row.slice(0, 3))).toEqual(shown);
+  });
 });

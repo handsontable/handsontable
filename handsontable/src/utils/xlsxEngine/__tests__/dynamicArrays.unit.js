@@ -2,6 +2,7 @@ import {
   EXCEL_DYNAMIC_ARRAY_FUNCTIONS,
   appliesOperatorToRange,
   callsDynamicArrayFunction,
+  stripArrayFormulaCalls,
   unwrapArrayFormula,
 } from '../dynamicArrays';
 
@@ -60,6 +61,49 @@ describe('unwrapArrayFormula', () => {
 
   it('should return null for any other formula', () => {
     expect(unwrapArrayFormula('SUM(A1:A3)')).toBe(null);
+  });
+});
+
+describe('stripArrayFormulaCalls', () => {
+  it('should unwrap a whole ARRAYFORMULA call, case-insensitively', () => {
+    expect(stripArrayFormulaCalls('ARRAYFORMULA(A1:A3*2)')).toBe('A1:A3*2');
+    expect(stripArrayFormulaCalls('arrayformula(SUM(A1:A3))')).toBe('SUM(A1:A3)');
+  });
+
+  it('should strip a nested call', () => {
+    expect(stripArrayFormulaCalls('ARRAYFORMULA(ARRAYFORMULA(A1:A3*2))')).toBe('A1:A3*2');
+  });
+
+  it('should drop the parentheses of a call that is a whole function argument', () => {
+    expect(stripArrayFormulaCalls('SUM(ARRAYFORMULA(A1:A3*2))')).toBe('SUM(A1:A3*2)');
+    expect(stripArrayFormulaCalls('IF(A1, ARRAYFORMULA(B1:B3+1) ,0)')).toBe('IF(A1, B1:B3+1 ,0)');
+  });
+
+  it('should keep the parentheses of a call that is an operand', () => {
+    expect(stripArrayFormulaCalls('ARRAYFORMULA(A1:A3)*2')).toBe('(A1:A3)*2');
+    expect(stripArrayFormulaCalls('-ARRAYFORMULA(A1+1)')).toBe('-(A1+1)');
+    expect(stripArrayFormulaCalls('ARRAYFORMULA(A1)+ARRAYFORMULA(A2)')).toBe('(A1)+(A2)');
+  });
+
+  it('should ignore string literals and quoted sheet names', () => {
+    expect(stripArrayFormulaCalls('ARRAYFORMULA(A1&")")')).toBe('A1&")"');
+    expect(stripArrayFormulaCalls('LEN("ARRAYFORMULA(x)")')).toBe('LEN("ARRAYFORMULA(x)")');
+    expect(stripArrayFormulaCalls('\'ARRAYFORMULA(\'!A1')).toBe('\'ARRAYFORMULA(\'!A1');
+  });
+
+  it('should not strip a longer name that ends in ARRAYFORMULA', () => {
+    expect(stripArrayFormulaCalls('MYARRAYFORMULA(A1)')).toBe('MYARRAYFORMULA(A1)');
+  });
+
+  it('should leave an empty or unclosed call as it is', () => {
+    // An empty inner text was written as an array formula with no formula text.
+    expect(stripArrayFormulaCalls('ARRAYFORMULA()')).toBe('ARRAYFORMULA()');
+    expect(stripArrayFormulaCalls('ARRAYFORMULA(  )')).toBe('ARRAYFORMULA(  )');
+    expect(stripArrayFormulaCalls('ARRAYFORMULA(A1')).toBe('ARRAYFORMULA(A1');
+  });
+
+  it('should return any other formula unchanged', () => {
+    expect(stripArrayFormulaCalls('SUM(A1:A3)')).toBe('SUM(A1:A3)');
   });
 });
 

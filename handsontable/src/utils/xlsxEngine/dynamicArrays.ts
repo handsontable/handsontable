@@ -194,6 +194,105 @@ export function appliesOperatorToRange(formula: string): boolean {
   return false;
 }
 
+const ARRAYFORMULA_NAME = 'ARRAYFORMULA';
+
+/**
+ * The position of the `)` that closes the `(` at `open`, skipping quoted runs, or `-1` when the
+ * formula ends first.
+ *
+ * @param {string} formula The formula.
+ * @param {number} open The position of the `(`.
+ * @returns {number}
+ */
+function findClosingParenthesis(formula: string, open: number): number {
+  let depth = 0;
+  let index = open;
+
+  while (index < formula.length) {
+    const char = formula[index];
+
+    if (char === '"' || char === '\'') {
+      index = skipQuoted(formula, index);
+
+    } else {
+      if (char === '(') {
+        depth += 1;
+      } else if (char === ')') {
+        depth -= 1;
+
+        if (depth === 0) {
+          return index;
+        }
+      }
+
+      index += 1;
+    }
+  }
+
+  return -1;
+}
+
+/**
+ * Strips every `ARRAYFORMULA(…)` call from a formula, nested ones and ones inside other calls
+ * included, since Excel has no such function and opens a call left in the text as `#NAME?`. The
+ * call's parentheses go too where the call is a whole expression (the whole formula or a whole
+ * function argument, `SUM(ARRAYFORMULA(x))` gives `SUM(x)`), and stay where it is an operand
+ * (`ARRAYFORMULA(x)*2` gives `(x)*2`), so the precedence holds. Quoted runs (string literals and
+ * sheet names) are skipped. An empty or unclosed call is left as it is. A formula with no call is
+ * returned unchanged, so a changed result means the formula held one.
+ *
+ * @param {string} formula The formula, without the leading `=`.
+ * @returns {string}
+ */
+export function stripArrayFormulaCalls(formula: string): string {
+  let output = '';
+  let index = 0;
+
+  while (index < formula.length) {
+    const char = formula[index];
+
+    if (char === '"' || char === '\'') {
+      const end = skipQuoted(formula, index);
+
+      output += formula.slice(index, end);
+      index = end;
+
+    } else if (isNameChar(char)) {
+      let end = index + 1;
+
+      while (end < formula.length && isNameChar(formula[end])) {
+        end += 1;
+      }
+
+      const isCall = formula[end] === '(' && formula.slice(index, end).toUpperCase() === ARRAYFORMULA_NAME;
+      const close = isCall ? findClosingParenthesis(formula, end) : -1;
+      const inner = close === -1 ? '' : formula.slice(end + 1, close);
+
+      if (inner.trim() === '') {
+        output += formula.slice(index, end);
+        index = end;
+
+      } else {
+        const trimmedOutput = output.trimEnd();
+        const before = trimmedOutput[trimmedOutput.length - 1];
+        const after = formula.slice(close + 1).trimStart()[0];
+        const isWholeExpression = (before === undefined || before === '(' || before === ',')
+          && (after === undefined || after === ')' || after === ',');
+        const stripped = stripArrayFormulaCalls(inner);
+
+        output += isWholeExpression ? stripped : `(${stripped})`;
+        index = close + 1;
+      }
+
+    } else {
+      output += char;
+      index += 1;
+    }
+  }
+
+  return output;
+}
+
 const ARRAYFORMULA_OPENING = 'ARRAYFORMULA(';
 
 /**

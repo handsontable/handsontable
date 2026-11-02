@@ -880,6 +880,11 @@ directions.
     workbook-scoped name spelled like it (Excel reads the sheet one there).
   - **`unwrapArrayFormula('ARRAYFORMULA()')` is `null`**, as is a whitespace-only call: there is no
     formula to write as an array.
+  - **The export strips EVERY `ARRAYFORMULA(…)` call (`stripArrayFormulaCalls`), not only a
+    whole-formula one.** `unwrapArrayFormula` is for the import (no double wrap); on export it left
+    `ARRAYFORMULA(x)*2` and `SUM(ARRAYFORMULA(x))` in the `<f>` text, which Excel opens as `#NAME?`.
+    The call's parentheses go only where it is a whole expression (the formula, a function
+    argument), so `ARRAYFORMULA(x)*2` gives `(x)*2`. An empty or unclosed call is left alone.
   - **The native writer refuses a workbook with no sheets** (`write.ts`): `CT_Sheets` needs one
     `<sheet>`. ExcelJS wrote a file Excel calls invalid; the refusal is deliberate.
 

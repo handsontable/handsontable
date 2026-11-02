@@ -242,6 +242,38 @@ describe('Xlsx export: array formulas', () => {
     expect(rows[0][4].formula).toEqual({ text: 'A1+1', result: '=A1+1' });
   });
 
+  it('should strip every ARRAYFORMULA call, not only a whole-formula one, and write the formula as a CSE array', async() => {
+    // Excel has no ARRAYFORMULA function: a call left in the text opens as `#NAME?`.
+    const { rows, dropped } = await exportSheet({
+      data: [
+        [1, '=ARRAYFORMULA(ARRAYFORMULA(A1:A3*2))', '=ARRAYFORMULA(A1:A3)*2', '=SUM(ARRAYFORMULA(A1:A3*2))',
+          '=LEN("ARRAYFORMULA(x)")'],
+        [2],
+        [3],
+      ],
+    });
+
+    expect(hot.getDataAtRow(0)).toEqual([1, 2, 2, 12, 15]);
+    expect(rows[0][1].formula).toEqual({ text: 'A1:A3*2', result: 2, array: { ref: 'B1:B3', dynamic: false } });
+    // The parentheses stay where they group an operand.
+    expect(rows[0][2].formula).toEqual({ text: '(A1:A3)*2', result: 2, array: { ref: 'C1:C3', dynamic: false } });
+    expect(rows[0][3].formula).toEqual({ text: 'SUM(A1:A3*2)', result: 12, array: { ref: 'D1', dynamic: false } });
+    expect(rows[0][4].formula).toEqual({ text: 'LEN("ARRAYFORMULA(x)")', result: 15 });
+    expect(dropped).toEqual([]);
+  });
+
+  it('should write a nested ARRAYFORMULA call as a one-cell CSE array when the engine intersects ranges itself', async() => {
+    // Without array arithmetic the engine computes `(A1:A3)*2` as 1*2, which a one-cell array keeps.
+    const { rows } = await exportSheet({
+      data: [[1, '=ARRAYFORMULA(A1:A3)*2', '=SUM(ARRAYFORMULA(A1:A3*2))'], [2], [3]],
+      formulas: { engine: { hyperformula: HyperFormula, useArrayArithmetic: false }, sheetName: 'Sheet1' },
+    });
+
+    expect(hot.getDataAtRow(0)).toEqual([1, 2, 12]);
+    expect(rows[0][1].formula).toEqual({ text: '(A1:A3)*2', result: 2, array: { ref: 'B1', dynamic: false } });
+    expect(rows[0][2].formula).toEqual({ text: 'SUM(A1:A3*2)', result: 12, array: { ref: 'C1', dynamic: false } });
+  });
+
   describe('a spill HyperFormula reserves more room for than its result', () => {
     // HyperFormula reserves room for `FILTER` the size of its input and pads the result with empty
     // values: `=FILTER(A1:A6,A1:A6>3)` answers 3 rows, and its array mapping 6.

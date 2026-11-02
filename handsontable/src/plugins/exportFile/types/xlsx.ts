@@ -39,7 +39,7 @@ import { intlNumFormatToExcelNumFmt } from './xlsx/numeric-utils';
 import { detectXlsxEngine } from '../../../utils/xlsxEngine/detect';
 import { DROPPED_FEATURES, DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
 import {
-  appliesOperatorToRange, callsDynamicArrayFunction, unwrapArrayFormula,
+  appliesOperatorToRange, callsDynamicArrayFunction, stripArrayFormulaCalls,
 } from '../../../utils/xlsxEngine/dynamicArrays';
 import { SheetBuilder } from '../../../utils/xlsxEngine/builder';
 import { colIndexToLetter, toRangeRef } from '../../../utils/xlsxEngine/cellRef';
@@ -325,8 +325,11 @@ function recordArrayExcluded(dropped: DroppedFeatures): void {
 /**
  * Decides whether a formula is written as an array formula, and as which kind.
  *
- * 1. `ARRAYFORMULA(x)` as a whole is HyperFormula's legacy (CSE) array: `x` is written as a CSE
- *    array over the spill, or over the cell itself when the engine reports no spill.
+ * 1. A formula that calls `ARRAYFORMULA(…)` is HyperFormula's legacy (CSE) array: every call is
+ *    stripped (`stripArrayFormulaCalls`; Excel has no such function, and inside an array formula
+ *    the wrapper means nothing) and the rest is written as a CSE array over the spill, or over the
+ *    cell itself when the engine reports no spill. A call nested in the formula
+ *    (`SUM(ARRAYFORMULA(x))`) evaluates its argument as an array, which a one-cell CSE array keeps.
  * 2. A formula the engine spills (`SEQUENCE(3)`) is a dynamic array over the spill.
  * 3. A call to a function Excel evaluates as a dynamic array (`IFS`, `SWITCH`) is a one-cell
  *    dynamic array, so Excel does not add the implicit-intersection `@`.
@@ -349,11 +352,10 @@ function resolveArrayFormula(
   text: string, facts: FormulaCellFacts, target: ArrayFormulaTarget
 ): { text: string; array?: CellFormulaArray } {
   const { arraySize, row, col } = facts;
-  const inner = unwrapArrayFormula(text);
-  const formulaText = inner ?? text;
-  const dynamic = inner === null;
+  const formulaText = stripArrayFormulaCalls(text);
+  const dynamic = formulaText === text;
 
-  if (inner === null && arraySize === null && !callsDynamicArrayFunction(text)
+  if (dynamic && arraySize === null && !callsDynamicArrayFunction(text)
     && !(target.arrayArithmetic && appliesOperatorToRange(text))) {
     return { text };
   }
