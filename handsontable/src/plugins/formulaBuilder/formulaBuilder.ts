@@ -1185,6 +1185,18 @@ export class FormulaBuilder extends BasePlugin {
     (this.#cellPick?.isHeaderPickActive() ? false : undefined);
 
   /**
+   * `beforeColumnMove` and `beforeRowMove` hook listener - blocks the move a header pick drag would
+   * cause. ManualColumnMove and ManualRowMove arm a move on a press on a header of the selected range,
+   * and the claimed press still reaches their `beforeOnCellMouseDown` listener, so a pick dragged across
+   * the headers of a header-selected range moved them on release, which closed the edit and saved the
+   * text typed so far.
+   *
+   * @returns {boolean | undefined}
+   */
+  #onBeforeHeaderMove = (): boolean | undefined =>
+    (this.#cellPick?.isHeaderPickActive() ? false : undefined);
+
+  /**
    * Warns that the plugin cannot enable without the Formulas plugin, once per grid.
    */
   #warnFormulasMissing(): void {
@@ -1993,6 +2005,8 @@ export class FormulaBuilder extends BasePlugin {
     this.addHook('beforeOnCellMouseOver', this.#cellPick.onBeforeMouseOver, CELL_MOUSE_HOOK_ORDER);
     this.addHook('beforeOnCellMouseOverOutside', this.#cellPick.onBeforeMouseOver, CELL_MOUSE_HOOK_ORDER);
     this.addHook('beforeColumnSort', this.#onBeforeColumnSort);
+    this.addHook('beforeColumnMove', this.#onBeforeHeaderMove);
+    this.addHook('beforeRowMove', this.#onBeforeHeaderMove);
     this.addHook('afterColumnResize', this.#onAfterSizeChange);
     this.addHook('afterRowResize', this.#onAfterSizeChange);
 

@@ -74,6 +74,8 @@ interface FixtureWindow {
     addHook(name: string, callback: () => void): void;
     rootElement: HTMLElement;
     rootWrapperElement: HTMLElement;
+    rowIndexMapper: { getIndexesSequence(): number[] };
+    columnIndexMapper: { getIndexesSequence(): number[] };
   };
   FormulaBuilderModule: unknown;
   beginEditingCount?: number;
@@ -432,6 +434,20 @@ export class FormulaBuilderPage {
 
       return hot.getSourceDataAtCell(hot.toPhysicalRow(r) as number, c);
     }, [row, col]);
+  }
+
+  /**
+   * The visual order of the physical rows or columns, as the index mapper holds it.
+   *
+   * @param {'row' | 'col'} axis The axis to read.
+   * @returns {Promise<number[]>}
+   */
+  async indexSequence(axis: 'row' | 'col'): Promise<number[]> {
+    return this.page.evaluate((which) => {
+      const { hot } = window as unknown as FixtureWindow;
+
+      return (which === 'row' ? hot.rowIndexMapper : hot.columnIndexMapper).getIndexesSequence();
+    }, axis);
   }
 
   /**

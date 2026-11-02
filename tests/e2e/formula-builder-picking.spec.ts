@@ -180,6 +180,58 @@ test.describe('formulaBuilder mouse reference picking', { tag: [THEMES_TAG, BUND
   });
 });
 
+// ManualColumnMove and ManualRowMove arm a move on a press on a header of the selected range, and a
+// header pick claims the press after they saw it. Released, the move closed the edit and saved what was
+// typed into the edited cell.
+test.describe('formulaBuilder header picking with manual moves', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  let grid: FormulaBuilderPage;
+
+  test.beforeEach(async({ theme, bundle, page }) => {
+    grid = new FormulaBuilderPage(page, theme, bundle);
+    await grid.goto();
+    await grid.updateGridSettings({ manualColumnMove: true, manualRowMove: true });
+  });
+
+  test('a pick dragged across the headers of a selected column moves no column', async({ page }) => {
+    await grid.columnHeader('A').click();
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+
+    await grid.drag(grid.columnHeader('A'), grid.columnHeader('C'));
+
+    await expect(grid.editorInput).toHaveValue('=A:C');
+    expect(await grid.editorOpened()).toBe(true);
+    expect(await grid.indexSequence('col')).toEqual([0, 1, 2]);
+
+    await page.keyboard.press('Escape');
+    await expect.poll(() => grid.editorOpened()).toBe(false);
+    expect(await grid.sourceAt(0, 0)).toBe(1);
+  });
+
+  test('a pick dragged across the headers of a selected row moves no row', async({ page }) => {
+    await grid.rowHeader('1').click();
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+
+    await grid.drag(grid.rowHeader('1'), grid.rowHeader('3'));
+
+    await expect(grid.editorInput).toHaveValue('=1:3');
+    expect(await grid.editorOpened()).toBe(true);
+    expect(await grid.indexSequence('row')).toEqual([0, 1, 2, 3, 4]);
+
+    await page.keyboard.press('Escape');
+    await expect.poll(() => grid.editorOpened()).toBe(false);
+    expect(await grid.sourceAt(0, 0)).toBe(1);
+  });
+
+  test('a column header drag with no edit open still moves the column', async() => {
+    await grid.columnHeader('A').click();
+    await grid.drag(grid.columnHeader('A'), grid.columnHeader('C'));
+
+    await expect.poll(() => grid.indexSequence('col')).not.toEqual([0, 1, 2]);
+  });
+});
+
 // MergeCells: a range picked through a merged cell grows over the whole merge, as the grid's own
 // selection does, so the inserted reference never cuts a merge.
 test.describe('formulaBuilder picking over merged cells', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {

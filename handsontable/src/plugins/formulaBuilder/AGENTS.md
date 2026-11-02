@@ -58,6 +58,11 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   the span), and disabling DragToScroll for the length of a pick (each re-enable re-registered its hooks at
   the tail of every list).
   The later `beforeOnCellMouseDown` listeners still run too: the hook runner does not stop on the flag.
+  ManualColumnMove and ManualRowMove arm a move from that hook on a press on a header of the selected
+  range, so a pick dragged across the headers of a header-selected column or row moved it on release,
+  which closed the edit and saved the text typed so far. The plugin vetoes `beforeColumnMove` and
+  `beforeRowMove` while a header pick is active (`#onBeforeHeaderMove`, beside `#onBeforeColumnSort`); the
+  move plugins still draw their guideline during the drag.
   A plugin that acts on a press from that hook (CheckboxHeader's "check all", RowSelection's header and
   checkbox cells, NestedRows' collapse button, CollapsibleColumns' indicator) would act AND the pick would
   insert a reference, so a press on such a control is left to its plugin (`HEADER_CONTROL_SELECTOR` and
