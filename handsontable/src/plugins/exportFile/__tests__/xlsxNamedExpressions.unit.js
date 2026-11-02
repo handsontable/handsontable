@@ -481,6 +481,31 @@ describe('Xlsx export: named expressions as defined names', () => {
     expect(dropped.list()).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
   });
 
+  it('should leave out a scoped name whose definition uses a name the file holds in both scopes', async() => {
+    // HyperFormula reads `Rate` inside the scoped `Total` from the workbook (2). Excel may read the
+    // sheet's own `Rate` (4), so the file cannot hold `Total` with a value the engine agrees on: it is
+    // left out, and the cell keeps the engine's value. The sheet's own `Rate` stays, and the cell
+    // over it stays live.
+    const engine = createGrid({ data: [[1], [2], ['=Total'], ['=Rate*10']] });
+    const sheetId = hot.getPlugin('formulas').sheetId;
+
+    engine.addNamedExpression('Rate', '=Sheet1!$A$1');
+    engine.addNamedExpression('Rate', '=Sheet1!$A$2', sheetId);
+    engine.addNamedExpression('Total', '=Rate*2', sheetId);
+
+    const { snapshot, dropped } = await exportWorkbook();
+    const [, , total, scaled] = snapshot.sheets[0].rows.map(row => row[0]);
+
+    expect(snapshot.definedNames).toEqual([
+      { name: 'Rate', formula: 'Sheet1!$A$1', sheetName: null },
+      { name: 'Rate', formula: 'Sheet1!$A$2', sheetName: 'Sheet1' },
+    ]);
+    expect(total.formula).toBeNull();
+    expect(total.value).toBe(2);
+    expect(scaled.formula).toEqual(expect.objectContaining({ text: 'Rate*10', result: 20 }));
+    expect(dropped.list()).toEqual(['definedNames:unsupported', 'formula:definedName']);
+  });
+
   it('should keep the formulas live when one engine scopes `Rate` and another defines it for the workbook', async() => {
     // In the file, `Alpha!Rate` is the first grid's own name, and the workbook `Rate` the second
     // engine's. Each sheet's `Rate` reads the definition its engine reads.

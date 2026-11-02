@@ -1116,7 +1116,9 @@ class Xlsx extends BaseType {
    * not a shape the ExcelJS writer cannot hold), and every name of that engine its definition uses
    * resolves too, followed through any chain of names, as the import does. A name another engine's
    * spelling took the place of, or one over such a name, does not resolve for this engine: kept as
-   * a formula, it read the other engine's definition, or showed `#NAME?` in Excel.
+   * a formula, it read the other engine's definition, or showed `#NAME?` in Excel. Neither does a
+   * sheet-scoped name whose definition uses a name the file holds in both that sheet's scope and the
+   * workbook's: HyperFormula reads the workbook one, Excel may read the sheet's own.
    *
    * A name in the file that resolves for no engine (it uses a name the file does not hold) is taken
    * out of `workbook.definedNames`, and `definedNames:unsupported` is recorded once.
@@ -1149,6 +1151,14 @@ class Xlsx extends BaseType {
 
       return fileScope !== '' && inFile.has(scoped) ? scoped : `\u0000${splitDefinedNameKey(engineKey).name}`;
     };
+    // HyperFormula reads a name inside a sheet-scoped definition from the workbook scope, while
+    // Excel may read the sheet's own name first. A scoped definition over a name the file holds in
+    // both scopes is read one way or the other, so it does not resolve.
+    const readAmbiguously = (fileScope: string, used: string) => {
+      const { name } = splitDefinedNameKey(used);
+
+      return fileScope !== '' && inFile.has(`${fileScope}\u0000${name}`) && inFile.has(`\u0000${name}`);
+    };
     const resolvedByEngine = new Map<object, Set<string>>();
 
     namesByEngine.forEach(({ written, uses }, engine) => {
@@ -1162,7 +1172,8 @@ class Xlsx extends BaseType {
         const fileScope = splitDefinedNameKey(written.get(name) as string).scope;
 
         (uses.get(name) ?? []).forEach((used) => {
-          if (resolved.has(used) && written.get(used) === readInFile(fileScope, used)) {
+          if (resolved.has(used) && written.get(used) === readInFile(fileScope, used)
+            && !readAmbiguously(fileScope, used)) {
             const users = dependents.get(used);
 
             if (users) {
