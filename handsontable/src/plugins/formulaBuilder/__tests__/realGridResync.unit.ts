@@ -312,6 +312,46 @@ describe('FormulaBuilder state that has to follow the grid', () => {
     });
   });
 
+  describe('a popup host remounted under the same selector', () => {
+    it('keeps an open edit and docks the popup into the new element once the edit closes', async() => {
+      const host = document.createElement('div');
+
+      host.id = 'remounted-help';
+      document.body.appendChild(host);
+
+      const formulaBuilder = {
+        builder: core,
+        showFormulaBar: true,
+        popups: { fnHelp: { container: '#remounted-help' } },
+      };
+      const grid = createGrid({ formulaBuilder });
+
+      grid.selectCell(1, 1);
+      openEditor(grid);
+      grid.getPlugin('formulaBuilder').getActiveEditor()?.setValue('=SU');
+
+      expect(grid.getActiveEditor()?.isOpened()).toBe(true);
+
+      // A framework re-keys the host and re-sends equal settings.
+      const remounted = document.createElement('div');
+
+      remounted.id = 'remounted-help';
+      host.replaceWith(remounted);
+      grid.updateSettings({ formulaBuilder: { ...formulaBuilder } } as Handsontable.GridSettings);
+
+      expect(grid.getActiveEditor()?.isOpened()).toBe(true);
+      expect(grid.getPlugin('formulaBuilder').getActiveEditor()?.getValue()).toBe('=SU');
+
+      grid.getActiveEditor()?.finishEditing(true);
+      await settle();
+      await settle();
+
+      expect(remounted.querySelector('.hfe-fn-help')).not.toBeNull();
+
+      remounted.remove();
+    });
+  });
+
   describe('the deferred rebuild', () => {
     it('builds once for a settings update made after an empty-sheet switch during an edit', async() => {
       const engine = HyperFormula.buildFromSheets({ Main: [[1, 2]], Empty: [] }, { licenseKey: 'gpl-v3' });

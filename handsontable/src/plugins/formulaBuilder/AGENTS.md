@@ -160,8 +160,11 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   `formulas`, and the React and Angular wrappers re-send every object prop with a new identity on each
   render, so a full rebuild per render discarded the bar's focus and an open edit. `#isConfigUnchanged()`
   compares the module and engine by identity, `showFormulaBar` and `direction` by value, and `popups` by
-  content (an element in `container` by identity). It also checks the popup hosts the builder was docked into (`#dockedPopupHosts`): a host that
-  left the document, or a selector that now finds another element, forces a rebuild under equal settings.
+  content (an element in `container` by identity). Under equal settings it still checks the popup hosts the builder was docked into
+  (`#dockedPopupHosts`): a host that left the document, or a selector that now finds another element
+  (React re-keying `#help`), rebuilds the BUILDER only, through `#rebuildOrDefer()`, so an open edit is
+  kept and the rebuild runs a task after it closes. Running the full plugin cycle there threw away the
+  formula being typed.
 - **A theme change rebuilds the builder, not the plugin.** The builder applies its theming class once, at
   construction, and the body-mounted popup portal needs it to resolve `light-dark()` against the grid's
   scheme rather than the OS one. String themes leave `themeManager` `null`, so the class comes from
@@ -225,8 +228,10 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   configured in `#resolvePopupContainers()`: reading its `container` threw a `TypeError` from the
   constructor and from every `updateSettings()`.
   `attachSuggestionsHost()` and `attachFnHelpHost()` check their host the same way (`#isPopupHostUsable()`):
-  the package throws for a selector that finds nothing, a detached element, `null` or `undefined`, so the
-  call warns and leaves the popup, and the host kept for rebuilds, where they were.
+  the package throws for a selector that finds nothing or a detached element, so the call warns and
+  leaves the popup where it is, but it still KEEPS the host, and `#reattachPopupHosts()` docks it on the
+  next rebuild once it exists (a framework effect can call the method before the host mounts). Only
+  `null` and `undefined` are dropped and leave the kept host as it was.
 - **Commit, cancel and open go through the grid's own code, not a copy of it.** A commit with a
   direction moves with `EditorManager#moveSelectionAfterEnter()` (`up`/`down`) or the grid's Tab
   commands (`right`/`left`), so `enterMoves`, `tabMoves`, ranges and layers behave as in every other

@@ -1366,7 +1366,7 @@ describe('FormulaBuilder.updatePlugin', () => {
     expect(bundle.plugin.enabled).toBe(true);
   });
 
-  it('rebuilds, with the new element, when the host a selector named was unmounted and re-created', () => {
+  it('rebuilds, with the new element, once the open edit closed, when the host a selector named was unmounted and re-created', async() => {
     const host = document.createElement('div');
 
     host.id = 'popup-host';
@@ -1385,6 +1385,13 @@ describe('FormulaBuilder.updatePlugin', () => {
     document.body.appendChild(replacement);
     update(bundle, { popups: popups() });
 
+    // Only the builder needs the new host, and its rebuild would cancel the open edit.
+    expect(bundle.spied.created).toHaveLength(1);
+    expect(bundle.hostEditor.finishEditing).not.toHaveBeenCalled();
+
+    bundle.plugin.handleInlineEditClose();
+    await new Promise(resolve => setTimeout(resolve, 0));
+
     expect(bundle.spied.created).toHaveLength(2);
     expect(bundle.spied.destroyed).toContain(bundle.spied.created[0].instance);
 
@@ -1396,7 +1403,7 @@ describe('FormulaBuilder.updatePlugin', () => {
     replacement.remove();
   });
 
-  it('rebuilds when a host that was connected at build time was removed', () => {
+  it('rebuilds once the open edit closed when a host that was connected at build time was removed', async() => {
     const host = document.createElement('div');
 
     document.body.appendChild(host);
@@ -1405,6 +1412,11 @@ describe('FormulaBuilder.updatePlugin', () => {
 
     host.remove();
     update(bundle, { popups: { fnHelp: { container: host } } });
+
+    expect(bundle.spied.created).toHaveLength(1);
+
+    bundle.plugin.handleInlineEditClose();
+    await new Promise(resolve => setTimeout(resolve, 0));
 
     expect(bundle.spied.created).toHaveLength(2);
     expect(bundle.spied.created[1].options.popups).toEqual({ fnHelp: {} });

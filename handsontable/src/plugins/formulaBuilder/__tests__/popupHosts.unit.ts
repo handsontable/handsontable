@@ -338,6 +338,31 @@ describe('FormulaBuilder popup hosts given no host', () => {
     warnSpy.mockRestore();
   });
 
+  it('keeps a host attached before its element exists and docks the popup on the next build', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const stub = makePluginHotStub();
+    let themeName = 'ht-theme-main';
+
+    stub.hot.getCurrentThemeName = () => themeName;
+
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+    plugin.attachFnHelpHost('#late-help');
+
+    expect(warnSpy).toHaveBeenCalled();
+
+    const host = makeHost('late-help');
+
+    themeName = 'ht-theme-main-dark';
+    findHook(stub.hot, 'afterSetTheme')();
+
+    expect(popupIn(host, 'hfe-fn-help').classList.contains(HOSTED_CLASS)).toBe(true);
+
+    plugin.disablePlugin();
+    warnSpy.mockRestore();
+  });
+
   it('keeps a host attached while the plugin was disabled and applies it on the next enable', () => {
     const stub = makePluginHotStub();
     const plugin = new FormulaBuilder(stub.instance);

@@ -569,6 +569,12 @@ export class FormulaBuilder extends BasePlugin {
    */
   updatePlugin(): void {
     if (this.enabled && this.#builder !== null && this.#isConfigUnchanged()) {
+      // A framework can remount a popup host under the same selector while equal settings arrive. Only
+      // the builder needs the new host, and its rebuild waits for an open edit to close.
+      if (!this.#dockedPopupHostsStillValid()) {
+        this.#rebuildOrDefer();
+      }
+
       super.updatePlugin();
 
       return;
@@ -608,6 +614,9 @@ export class FormulaBuilder extends BasePlugin {
   attachSuggestionsHost(container: HTMLElement | string): void {
     if (this.#isPopupHostUsable('attachSuggestionsHost', container)) {
       this.#builder?.attachSuggestionsHost(container);
+    }
+
+    if (container !== null && container !== undefined) {
       this.#suggestionsHost = container;
     }
   }
@@ -628,6 +637,9 @@ export class FormulaBuilder extends BasePlugin {
   attachFnHelpHost(container: HTMLElement | string): void {
     if (this.#isPopupHostUsable('attachFnHelpHost', container)) {
       this.#builder?.attachFnHelpHost(container);
+    }
+
+    if (container !== null && container !== undefined) {
       this.#fnHelpHost = container;
     }
   }
@@ -2011,8 +2023,7 @@ export class FormulaBuilder extends BasePlugin {
       this.#builtSheetId === this.#sheetId &&
       applied.showFormulaBar === current.showFormulaBar &&
       applied.direction === current.direction &&
-      isSameSettingValue(applied.popups, current.popups) &&
-      this.#dockedPopupHostsStillValid();
+      isSameSettingValue(applied.popups, current.popups);
   }
 
   /**
@@ -2377,8 +2388,9 @@ export class FormulaBuilder extends BasePlugin {
 
   /**
    * Whether a host passed to `attachSuggestionsHost()` or `attachFnHelpHost()` names an element the popup
-   * can be mounted into. The package throws for one that does not, so the call warns instead, as the
-   * `popups.*.container` option does, and leaves the popup where it is.
+   * can be mounted into now. The package throws for one that does not, so the call warns instead, as the
+   * `popups.*.container` option does, and leaves the popup where it is. The caller still keeps the host,
+   * so a host that mounts later (a framework effect that runs first) is docked by the next rebuild.
    *
    * @param {string} methodName The public method the host was passed to.
    * @param {HTMLElement | string} container The host element or a CSS selector.
@@ -2391,7 +2403,8 @@ export class FormulaBuilder extends BasePlugin {
     }
 
     warnOnce(this.hot, `formulaBuilder.${methodName}.missing`, `The host passed to \`${methodName}()\` names` +
-      ' no element in the grid\'s document or shadow root, so the popup stays where it is.');
+      ' no element in the grid\'s document or shadow root yet, so the popup stays where it is until a' +
+      ' rebuild of the formula builder finds it.');
 
     return false;
   }
