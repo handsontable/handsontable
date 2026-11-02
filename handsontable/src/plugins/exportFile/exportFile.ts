@@ -253,6 +253,12 @@ export interface ExportOptions {
    * A sheet with no read-only cell, or with a ColumnSummary, is never protected. With the `sheets`
    * option, every protected sheet gets the same password. This is a guard against accidental edits,
    * not encryption: the cell values stay readable in the file.
+   *
+   * The built-in engine hashes the password with `crypto.subtle`, which browsers expose only in a
+   * secure context (https or localhost). On a plain `http://` page an export with a password rejects
+   * with `Sheet password hashing needs crypto.subtle, which is only available in a secure context
+   * (https or localhost).` The hash runs 100,000 SHA-512 rounds for every protected sheet, so a
+   * multi-sheet export with a password takes noticeably longer.
    */
   protection?: { password?: string } | null;
   /**
@@ -630,6 +636,8 @@ export class ExportFile extends BasePlugin {
    * @param {SheetOptions[]} [options.sheets=[]] Configuration for multi-sheet export. Each entry defines one worksheet (XLSX only).
    * @param {HeaderStyle|null} [options.headerStyle] Fill and border of the header cells (XLSX only). Defaults to a light-gray fill with a thin border; an object replaces the whole default, `null` writes unstyled headers.
    * @param {object|null} [options.engine] Engine for this call only (XLSX only). `null` or an absent key keeps the engine from the `engines` setting, or the built-in one.
+   * @param {object|null} [options.protection] Sheet protection of read-only cells (XLSX only). Unset protects a sheet that has a read-only cell with no password, and `null` protects no sheet. With the built-in engine, a password needs a secure context (https or localhost), or the export rejects.
+   * @param {string} [options.protection.password] The sheet password, at most 255 characters. An empty one sets no password.
    * @returns {Promise<Blob>}
    * @since 17.1.0
    */
@@ -706,6 +714,8 @@ export class ExportFile extends BasePlugin {
    * @param {SheetOptions[]} [options.sheets=[]] Configuration for multi-sheet export. Each entry defines one worksheet (XLSX only).
    * @param {HeaderStyle|null} [options.headerStyle] Fill and border of the header cells (XLSX only). Defaults to a light-gray fill with a thin border; an object replaces the whole default, `null` writes unstyled headers.
    * @param {object|null} [options.engine] Engine for this call only (XLSX only). `null` or an absent key keeps the engine from the `engines` setting, or the built-in one.
+   * @param {object|null} [options.protection] Sheet protection of read-only cells (XLSX only). Unset protects a sheet that has a read-only cell with no password, and `null` protects no sheet. With the built-in engine, a password needs a secure context (https or localhost), or the export rejects.
+   * @param {string} [options.protection.password] The sheet password, at most 255 characters. An empty one sets no password.
    * @returns {Promise<void>}
    * @since 17.1.0
    */
