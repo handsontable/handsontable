@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:sheets_bar",
+      "kind": "plugin",
+      "module": "SheetsBar",
+      "name": "Sheets bar",
+      "description": "Adds tabs that switch between several sheets in one grid.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}
