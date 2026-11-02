@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import LooseBindsMap from './maps/looseBindsMap';
 import StrictBindsMap from './maps/strictBindsMap';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'bindRowsWithHeaders';
 export const PLUGIN_PRIORITY = 210;
@@ -70,6 +71,14 @@ export class BindRowsWithHeaders extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

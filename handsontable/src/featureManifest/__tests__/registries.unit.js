@@ -5,7 +5,7 @@ import { getRegisteredCellTypeNames } from 'handsontable/cellTypes';
 import { getRegisteredEditorNames } from 'handsontable/editors';
 import { getRegisteredRendererNames } from 'handsontable/renderers';
 import { getRegisteredValidatorNames } from 'handsontable/validators';
-import { indexEntries, loadSources, toPluginDeps } from '../../../scripts/utils/feature-manifest';
+import { indexEntries, loadSources, toPluginDeps, toPluginLicense } from '../../../scripts/utils/feature-manifest';
 
 registerAllModules();
 
@@ -40,5 +40,26 @@ describe('feature manifest against the registries', () => {
       expect({ plugin: entry.module, deps: getPlugin(entry.module).PLUGIN_DEPS })
         .toEqual({ plugin: entry.module, deps: expected });
     });
+  });
+
+  it('should give every plugin class a key can name the LICENSE its entry declares, and no other class one', () => {
+    const byId = new Map(entries.map(entry => [entry.id, entry]));
+
+    entries.filter(entry => entry.kind === 'plugin').forEach((entry) => {
+      const expected = entry.licensing === 'token' ? toPluginLicense(entry, byId) : undefined;
+      const license = getPlugin(entry.module).LICENSE;
+
+      expect({ plugin: entry.module, license }).toEqual({ plugin: entry.module, license: expected });
+
+      if (license !== undefined) {
+        expect(Object.isFrozen(license)).toBe(true);
+        expect(Object.isFrozen(license.implies)).toBe(true);
+      }
+    });
+  });
+
+  it('should give a subclass its own LICENSE, not its parent\'s', () => {
+    expect(getPlugin('MultiColumnSorting').LICENSE.capability).toBe('feat:multi_column_sorting');
+    expect(getPlugin('ColumnSorting').LICENSE.capability).toBe('feat:column_sorting');
   });
 });
