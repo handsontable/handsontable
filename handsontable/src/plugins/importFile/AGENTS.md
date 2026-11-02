@@ -469,9 +469,15 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `formula:arraySpill`; master another error -> left as written (the scratch lacks the engine's other
   sheets, so `#REF!` there proves nothing - the documented weak spot); otherwise an emptied cell not
   `isCellPartOfArray` takes its cached value. One probe, before anything is put back; a probe that
-  throws changes nothing; the scratch is destroyed in `finally`. It runs in the mapper, so
+  throws, while built, set up (`getSheetId`, the name adds) or asked, changes nothing, and the scratch
+  is destroyed either way. A spilled master with no cached value (openpyxl) imports empty and also
+  records `formula:noCachedValue`. HF 3.3 evaluates array arithmetic over a RANGE name
+  (`FILTER(Sales,Sales>1)`) to `#VALUE!` in the grid's engine too, so such a master is "another
+  error" and stays as written. It runs in the mapper, so
   `apply: false` returns the settled data. Cost: one extra HyperFormula build of the sheet, about
   +85 ms on 10,000 rows x 5 columns (10,000 formulas; ~110 ms -> ~200 ms for the whole import).
+  The scratch engine evaluates the sheet again, so volatile functions (`RAND`, `NOW`) and custom
+  functions registered on the HyperFormula class run a second time during the import.
 - **A bare `TRUE`/`FALSE` in a live formula or a name definition is rewritten to `TRUE()`/`FALSE()`** (DEV-3648,
   `rewriteBareBooleans`, called by `readFormulaText`): HyperFormula reads the bare literal as an unknown name
   (`=IF(TRUE,1,2)` is `#NAME?`). `readFormulaText` returns `{ recorded, live }`: `ImportResult.formulas` records
@@ -516,7 +522,8 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   while a flagged name scoped to the imported sheet still wins over a workbook-scoped one. **A flagged
   name records `definedNames:unsupported` only when a formula uses it** (`usesUnresolvedName` checks
   `flaggedNames`): ExcelJS flags every name, so recording it up front warned on every ExcelJS import
-  of a workbook with names. Registered
+  of a workbook with names. The built-in reader still records it on read for the names IT flags (too
+  long, orphan scope; `parseWorkbook`), whether or not a formula uses them. Registered
   names are removed from `CollectContext.unresolvedNames`. The result carries them in
   `ImportResult.namedExpressions` (formula without `=`); `applier.ts#addNamedExpressions` adds them
   FIRST in the batch (before `columns` and `loadData`; after `loadData` the formulas evaluate to

@@ -281,7 +281,8 @@ export interface ImportResult {
    * engine already defines the name alike, and `definedNames:unsupported` is listed. A name the engine
    * already defines is not handed over, and the engine keeps its own definition: when that definition
    * differs from the file's (a re-import of a changed file), the formulas using the name import their
-   * cached values with `formula:definedName`, and `definedNames:unsupported` is listed. A name scoped to another sheet is ignored. A name the engine cannot take (a relative reference, a
+   * cached values with `formula:definedName`, and `definedNames:unsupported` is listed. A name
+   * scoped to another sheet is ignored. A name the engine cannot take (a relative reference, a
    * reference into the dropped header band, a sheet the engine does not hold, or a name over such a
    * name) is listed as `definedNames:unsupported` in `dropped`, and the formulas using it import
    * their cached values with `formula:definedName`. The import is not an undoable step, and neither
@@ -623,17 +624,25 @@ function liveArrayProbe(engine: unknown, sheetName: string | null | undefined): 
       }
     };
 
+    let sheet: number;
+
     try {
-      (typeof held.listNamedExpressions === 'function' ? held.listNamedExpressions() : []).forEach((heldName) => {
-        add(heldName, held.getNamedExpressionFormula?.(heldName) ?? held.getNamedExpressionValue?.(heldName));
-      });
+      try {
+        (typeof held.listNamedExpressions === 'function' ? held.listNamedExpressions() : []).forEach((heldName) => {
+          add(heldName, held.getNamedExpressionFormula?.(heldName) ?? held.getNamedExpressionValue?.(heldName));
+        });
+      } catch {
+        // The engine could not list its names; the masters over them are left as written.
+      }
+
+      namedExpressions.forEach(({ name: added, formula }) => add(added, `=${formula}`));
+      sheet = scratch.getSheetId(name) as number;
     } catch {
-      // The engine could not list its names; the masters over them are left as written.
+      // A scratch engine that fails its setup answers nothing; it is not leaked.
+      scratch.destroy();
+
+      return null;
     }
-
-    namedExpressions.forEach(({ name: added, formula }) => add(added, `=${formula}`));
-
-    const sheet = scratch.getSheetId(name) as number;
 
     return {
       masterState: (row, col) => {

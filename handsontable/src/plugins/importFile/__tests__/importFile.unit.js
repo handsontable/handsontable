@@ -1825,14 +1825,17 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
    *
    * @param {Array[]} rows The sheet's cell snapshots.
    * @param {object} [engine] The ExcelJS module, or `undefined` for the built-in engine.
+   * @param {object} [options] More import options.
+   * @param {object[]} [definedNames] The workbook's defined names.
    * @returns {Promise<{ result: object, hf: HyperFormula }>}
    */
-  async function importArrays(rows, engine) {
+  async function importArrays(rows, engine, options = {}, definedNames = []) {
     const snapshot = createWorkbookSnapshot();
     const sheet = createSheetSnapshot('Sheet1');
 
     sheet.rows = rows;
     snapshot.sheets.push(sheet);
+    snapshot.definedNames = definedNames;
 
     const bytes = toArrayBuffer(await nativeAdapter.write(snapshot, undefined, new DroppedFeatures()));
     const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3', useArrayArithmetic: true });
@@ -1843,7 +1846,7 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
 
     hot.getPlugin = name => ({ formulas: { isEnabled: () => true, sheetName: 'Sheet1', engine: hf } })[name];
 
-    const result = await plugin.importFromArrayBuffer('xlsx', bytes, { apply: false, engine });
+    const result = await plugin.importFromArrayBuffer('xlsx', bytes, { ...options, apply: false, engine });
 
     return { result, hf };
   }
@@ -1900,7 +1903,7 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
       const { result, hf } = await importArrays(rows, engine);
 
       expect([kind, result.data.map(row => row[1])]).toEqual([kind, ['=ARRAYFORMULA(A1*2)', 2, 2]]);
-      expect([kind, result.dropped]).not.toContain('formula:arraySpill');
+      expect([kind, result.dropped.includes('formula:arraySpill')]).toEqual([kind, false]);
 
       hf.setSheetContent(0, result.data);
 
@@ -1960,6 +1963,170 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
       expect(isPartOfArray).not.toHaveBeenCalled();
       expect(destroy).toHaveBeenCalledTimes(1);
     }
+  });
+
+  it('should settle the arrays of a window that does not start at A1 at their window positions', async() => {
+    // The probe holds the mapped data, so it answers in window coordinates: the header row
+    // `colHeaders: 'firstRow'` drops, and the row and column a `range` skips, shift every master.
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const filter = await importArrays([
+      [at({ value: 'n' }), at({ value: 'f' })],
+      [at({ value: 1 }),
+        at({ formula: {
+          text: '_xlfn._xlws.FILTER(A2:A4,A2:A4>1)', result: 2, array: { ref: 'B2:B3', dynamic: true },
+        } })],
+      [at({ value: 2 }), at({ value: 3 })],
+      [at({ value: 3 }), at({ value: 'x' })],
+    ], undefined, { colHeaders: 'firstRow' });
+
+    expect(filter.result.colHeaders).toEqual(['n', 'f']);
+    expect(filter.result.data).toEqual([[1, 2], [2, 3], [3, 'x']]);
+    expect(filter.result.formulas).toEqual([{ row: 0, col: 1, formula: 'FILTER(A2:A4,A2:A4>1)' }]);
+    expect(filter.result.dropped).toContain('formula:arraySpill');
+
+    filter.hf.destroy();
+
+    const legacy = await importArrays([
+      [at({ value: 'skip' }), null, null],
+      [at({ value: 'skip' }), at({ value: 1 }),
+        at({ formula: { text: 'B2*2', result: 2, array: { ref: 'C2:C4', dynamic: false } } })],
+      [null, at({ value: 2 }), at({ value: 2 })],
+      [null, at({ value: 3 }), at({ value: 2 })],
+    ], undefined, { range: [1, 1, 3, 2] });
+
+    expect(legacy.result.data).toEqual([[1, '=ARRAYFORMULA(A1*2)'], [2, 2], [3, 2]]);
+    expect(legacy.result.dropped.includes('formula:arraySpill')).toBe(false);
+
+    legacy.hf.setSheetContent(0, legacy.result.data);
+
+    expect(legacy.hf.getSheetValues(0)).toEqual([[1, 2], [2, 2], [3, 2]]);
+
+    legacy.hf.destroy();
+  });
+
+  it('should settle a master that reads a defined name the import registers', async() => {
+    // The probe adds the names the import hands over; without them `Limit` is `#NAME?` in the
+    // scratch engine, the master is left as written, and B2:B3 lose the 2 the file caches.
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const rows = (formula, dynamic) => [
+      [at({ value: 1 }),
+        at({ formula: { text: formula, result: 2, array: { ref: 'B1:B3', dynamic } } }), at({ value: 1 })],
+      [at({ value: 2 }), at({ value: 2 }), null],
+      [at({ value: 3 }), at({ value: 2 }), null],
+    ];
+    const names = [
+      { name: 'Limit', formula: 'Sheet1!$C$1', sheetName: null },
+      { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null },
+    ];
+    const settled = await importArrays(rows('Limit*2', false), undefined, {}, names);
+
+    expect(settled.result.namedExpressions).toEqual([
+      { name: 'Limit', formula: 'Sheet1!$C$1' },
+      { name: 'Sales', formula: 'Sheet1!$A$1:$A$3' },
+    ]);
+    expect(settled.result.data.map(row => row[1])).toEqual(['=ARRAYFORMULA(Limit*2)', 2, 2]);
+
+    settled.hf.destroy();
+
+    // HyperFormula 3.3 evaluates array arithmetic over a range name (`Sales>1`) to `#VALUE!` ("Cell
+    // range not allowed"), in the grid's engine as in the probe, so this master is another error and
+    // is left as written.
+    const unsettled = await importArrays(rows('_xlfn._xlws.FILTER(Sales,Sales>1)', true), undefined, {}, names);
+
+    expect(unsettled.result.data.map(row => row[1])).toEqual(['=FILTER(Sales,Sales>1)', null, null]);
+    expect(unsettled.result.dropped.includes('formula:arraySpill')).toBe(false);
+
+    unsettled.hf.setSheetContent(0, unsettled.result.data);
+    names.forEach(({ name, formula }) => unsettled.hf.addNamedExpression(name, `=${formula}`));
+
+    expect(unsettled.hf.getCellValue({ sheet: 0, row: 0, col: 1 }).type).toBe('VALUE');
+
+    unsettled.hf.destroy();
+  });
+
+  it('should leave the arrays as written and destroy the scratch engine when the probe setup throws', async() => {
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const build = HyperFormula.buildFromSheets.bind(HyperFormula);
+    const destroy = jest.fn();
+    const buildFromSheets = jest.spyOn(HyperFormula, 'buildFromSheets').mockImplementation((...args) => {
+      const scratch = build(...args);
+      const destroyScratch = scratch.destroy.bind(scratch);
+
+      scratch.getSheetId = () => {
+        throw new Error('setup');
+      };
+      scratch.destroy = () => {
+        destroy();
+        destroyScratch();
+      };
+
+      return scratch;
+    });
+
+    try {
+      const { result, hf } = await importArrays([
+        [at({ value: 1 }),
+          at({ formula: {
+            text: '_xlfn._xlws.FILTER(A1:A3,A1:A3>1)', result: 2, array: { ref: 'B1:B2', dynamic: true },
+          } })],
+        [at({ value: 2 }), at({ value: 3 })],
+        [at({ value: 3 }), at({ value: 'x' })],
+      ]);
+
+      expect(result.data.map(row => row[1])).toEqual(['=FILTER(A1:A3,A1:A3>1)', null, 'x']);
+      expect(result.dropped.includes('formula:arraySpill')).toBe(false);
+      expect(buildFromSheets).toHaveBeenCalledTimes(1);
+      expect(destroy).toHaveBeenCalledTimes(1);
+
+      hf.destroy();
+    } finally {
+      buildFromSheets.mockRestore();
+    }
+  });
+
+  it('should leave the arrays as written when building the probe throws in the mapper', () => {
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const workbook = createWorkbookSnapshot();
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = [
+      [at({ value: 1 }), at({ formula: { text: 'SEQUENCE(2)', result: 1, array: { ref: 'B1:B2', dynamic: true } } })],
+      [at({ value: 2 }), at({ value: 2 })],
+    ];
+    workbook.sheets.push(sheet);
+
+    const dropped = new DroppedFeatures();
+    const mapped = mapWorkbook(workbook, resolveImportOptions({}), {
+      formulasEnabled: true,
+      commentsEnabled: false,
+      customBordersEnabled: false,
+      probeLiveArrays: () => {
+        throw new Error('probe');
+      },
+    }, dropped);
+
+    expect(mapped.data.map(row => row[1])).toEqual(['=SEQUENCE(2)', null]);
+    expect(dropped.list()).not.toContain('formula:arraySpill');
+  });
+
+  it('should report a spilled master the file caches no value for, which imports empty', async() => {
+    // openpyxl writes no cached values: the master moves to `ImportResult.formulas` and imports
+    // empty, which the warning has to explain, as for any formula not imported live.
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const { result, hf } = await importArrays([
+      [at({ value: 1 }),
+        at({ formula: {
+          text: '_xlfn._xlws.FILTER(A1:A3,A1:A3>1)', array: { ref: 'B1:B2', dynamic: true },
+        } })],
+      [at({ value: 2 }), null],
+      [at({ value: 3 }), at({ value: 'x' })],
+    ]);
+
+    expect(result.data.map(row => row[1])).toEqual([null, null, 'x']);
+    expect(result.formulas).toEqual([{ row: 0, col: 1, formula: 'FILTER(A1:A3,A1:A3>1)' }]);
+    expect(result.dropped).toEqual(expect.arrayContaining(['formula:arraySpill', 'formula:noCachedValue']));
+
+    hf.destroy();
   });
 
   it('should build no scratch engine for a file without array formulas', async() => {

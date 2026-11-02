@@ -1121,20 +1121,28 @@ function liveArrayCovering(col: number, scope: CollectContext): LiveArrayRect | 
  * legacy array with a one-value formula (`{=A1*2}` over `B1:B3`) is one cell to it.
  *
  * - A master that evaluates to `#SPILL!` imports its cached value, and so does every cell it
- *   emptied; its formula moves to `ImportResult.formulas`, and `formula:arraySpill` is recorded.
+ *   emptied; its formula moves to `ImportResult.formulas`, and `formula:arraySpill` is recorded
+ *   (with `formula:noCachedValue` when the file caches no value for the master).
  * - A master that evaluates to another error is left as written: the probe may lack what it reads
  *   (another engine sheet), so its emptied cells are not judged.
  * - Otherwise, an emptied cell that no array the engine placed covers gets its cached value back.
  *
- * The probe runs once, over the data before any value is put back. A probe that throws changes
- * nothing, and the scratch engine is destroyed whatever happens.
+ * The probe runs once, over the data before any value is put back. A probe that throws, built or
+ * asked, changes nothing, and the scratch engine is destroyed whatever happens.
  *
  * @param {CellPass} pass The pass, its `data` still holding the emptied cells.
  * @param {CollectContext} scope The pass context.
  */
 function settleLiveArrays(pass: CellPass, scope: CollectContext): void {
   const { recorded, emptied } = scope.liveArrays;
-  const probe = scope.context.probeLiveArrays?.(pass.data, pass.namedExpressions) ?? null;
+  let probe: LiveArrayProbe | null;
+
+  try {
+    probe = scope.context.probeLiveArrays?.(pass.data, pass.namedExpressions) ?? null;
+  } catch {
+    // A probe that cannot be built answers nothing: every array's `ref` is trusted as written.
+    return;
+  }
 
   if (probe === null) {
     return;
@@ -1170,6 +1178,11 @@ function settleLiveArrays(pass: CellPass, scope: CollectContext): void {
       pass.data[rect.startRow][rect.startCol] = rect.cached;
       pass.formulas.push({ row: rect.startRow, col: rect.startCol, formula: rect.recorded });
       spilled = true;
+
+      if (rect.cached === null || rect.cached === undefined) {
+        // The file carries no cached value (openpyxl writes none): the master imports empty.
+        scope.dropped.record(DROPPED_FEATURES.formulaNoCachedValue);
+      }
     }
   });
 
