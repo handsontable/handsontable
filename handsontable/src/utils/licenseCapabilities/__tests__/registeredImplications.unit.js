@@ -23,4 +23,22 @@ describe('license capabilities implied through registered plugins', () => {
     expect(hasLicenseCapability(hot, 'feat:hidden_rows')).toBe(true);
     expect(hasLicenseCapability(hot, 'feat:dropdown_menu')).toBe(true);
   });
+
+  it('should not read the registry again for a key whose result is cached', () => {
+    // eslint-disable-next-line global-require
+    const registry = require('handsontable/plugins/registry');
+    const hot = { getSettings: () => ({ licenseKey: FLAGGED_FILTERS_KEY }) };
+
+    registerAsRootInstance(hot);
+    hasLicenseCapability(hot, 'feat:filters');
+
+    // Every plugin asks on every `updateSettings()`, and the header checkbox on every render.
+    const getPluginsNames = jest.spyOn(registry, 'getPluginsNames');
+
+    hasLicenseCapability(hot, 'feat:filters');
+    hasLicenseCapability(hot, 'feat:hidden_rows');
+
+    expect(getPluginsNames).not.toHaveBeenCalled();
+    getPluginsNames.mockRestore();
+  });
 });

@@ -10,6 +10,7 @@ import { LICENSE, PLUGIN_DEPS } from './feature.generated';
  * Interface for the Dialog plugin used by Loading.
  */
 interface DialogPlugin {
+  enabled: boolean;
   isEnabled(): boolean;
   isVisible(): boolean;
   hide(): void;
@@ -317,7 +318,7 @@ export class Loading extends BasePlugin {
    * @param {string} options.description Custom loading description.
    */
   show(options = {}): void {
-    if (!this.isEnabled() || !this.#dialogPlugin || !this.#dialogPlugin?.isEnabled()) {
+    if (!this.isEnabled() || !this.#dialogPlugin?.enabled) {
       return;
     }
 
@@ -353,7 +354,7 @@ export class Loading extends BasePlugin {
    * Hide loading dialog. A dialog the application shows with its own content stays on screen.
    */
   hide(): void {
-    if (!this.#dialogPlugin || !this.#dialogPlugin?.isEnabled() || !this.isVisible()) {
+    if (!this.#dialogPlugin?.enabled || !this.isVisible()) {
       return;
     }
 
@@ -379,7 +380,7 @@ export class Loading extends BasePlugin {
    * @param {string} options.description Custom loading description.
    */
   update(options?: unknown): void {
-    if (!this.isEnabled() || !this.#dialogPlugin || !this.#dialogPlugin?.isEnabled()) {
+    if (!this.isEnabled() || !this.#dialogPlugin?.enabled) {
       return;
     }
 

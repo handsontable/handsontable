@@ -359,8 +359,9 @@ turns it on through branch 2. Three things follow:
 
 - **`isEnabled()` answers `true` for a blocked plugin**, because it reads the setting. Code that asks whether another
   plugin RUNS reads `plugin.enabled`, never `isEnabled()`: MergeCells has no merged cells collection until it is
-  enabled, so the export read `undefined` and threw. The rules and the list of the remaining `isEnabled()` reads are in
-  `../../utils/entitlementLicenseKey/AGENTS.md`.
+  enabled, so the export read `undefined` and threw. `test/__tests__/crossPluginIsEnabled.unit.js` fails on any
+  `.isEnabled()` call whose receiver is not `this` or `super`; a read that really means the option goes on its
+  allowlist with the reason. The rules are in `../../utils/entitlementLicenseKey/AGENTS.md`.
 - **A direct `getPlugin(name).enablePlugin()` call is not gated.** The only built-in one is Filters turning on
   DropdownMenu, which Filters' own `LICENSE.implies` grants with it.
 - **The message is not written here.** `isLicenseBlocked()` only records the feature; `utils/licenseNotification.ts`

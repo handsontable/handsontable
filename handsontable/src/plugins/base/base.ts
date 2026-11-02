@@ -419,7 +419,12 @@ export class BasePlugin {
       return false;
     }
 
-    reportMissingCapability(this.hot, license);
+    // The feature leaves the list once the option no longer asks for the plugin (or the plugin is gone).
+    reportMissingCapability(
+      this.hot,
+      license,
+      () => Boolean(this.hot) && this.isEnabled?.() === true && !this.enabled,
+    );
 
     return true;
   }

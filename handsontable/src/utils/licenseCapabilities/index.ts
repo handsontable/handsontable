@@ -1,6 +1,6 @@
 import { _getLicenseState } from '../../helpers/mixed';
 import { getProductCapabilities, HANDSONTABLE_PRODUCT } from '../entitlementLicenseKey';
-import { getPlugin, getPluginsNames } from '../../plugins/registry';
+import { countRegisteredPlugins, getPlugin, getPluginsNames } from '../../plugins/registry';
 import { isRootInstance } from '../rootInstance';
 import type { HotInstance } from '../../core/types';
 import type { PluginLicense } from './types';
@@ -21,13 +21,23 @@ export interface MissingCapability {
 }
 
 /**
- * The features each root grid's key left out, in the order they were reported, and the key they were
- * reported for. A new key starts a new list.
+ * One feature a grid's key left out. `isStillMissing` is set for a plugin the key keeps off at enable
+ * (`gate: 'enable'`), which is missing only while its option still asks for it; a feature refused on a
+ * call (`gate: 'call'`) has none and stays missing.
+ */
+interface ReportedFeature {
+  name: string;
+  isStillMissing: (() => boolean) | null;
+}
+
+/**
+ * The features each root grid's key left out, in the order they were reported, the key they were
+ * reported for, and the tokens the last message named. A new key starts a new list.
  */
 interface MissingCapabilitiesRecord {
   key: string;
-  features: Map<string, string>;
-  flushedCount: number;
+  features: Map<string, ReportedFeature>;
+  written: Set<string>;
 }
 
 const ALL: LicenseCapabilities = 'all';
@@ -121,7 +131,7 @@ export function resolveLicenseCapabilities(hot: HotInstance): LicenseCapabilitie
     return ALL;
   }
 
-  const pluginCount = getPluginsNames().length;
+  const pluginCount = countRegisteredPlugins();
   const cached = resolvedByKey.get(key);
 
   if (cached && cached.pluginCount === pluginCount) {
@@ -160,15 +170,21 @@ export function hasLicenseCapability(hot: HotInstance, token: string): boolean {
  *
  * @param {HotInstance} hot The root Handsontable instance.
  * @param {PluginLicense} license The license of the feature.
+ * @param {Function} [isStillMissing] For a plugin the key keeps off at enable: answers whether its option
+ * still asks for it, so the feature leaves the list once the option is off.
  * @returns {boolean} `true` when the feature was not reported for this key before.
  */
-export function reportMissingCapability(hot: HotInstance, license: PluginLicense): boolean {
+export function reportMissingCapability(
+  hot: HotInstance,
+  license: PluginLicense,
+  isStillMissing: (() => boolean) | null = null,
+): boolean {
   const key = hot.getSettings().licenseKey;
   const keyString = typeof key === 'string' ? key : '';
   let record = missingByInstance.get(hot);
 
   if (!record || record.key !== keyString) {
-    record = { key: keyString, features: new Map(), flushedCount: 0 };
+    record = { key: keyString, features: new Map(), written: new Set() };
     missingByInstance.set(hot, record);
   }
 
@@ -176,9 +192,25 @@ export function reportMissingCapability(hot: HotInstance, license: PluginLicense
     return false;
   }
 
-  record.features.set(license.capability, license.name);
+  record.features.set(license.capability, { name: license.name, isStillMissing });
 
   return true;
+}
+
+/**
+ * Drops the features whose plugin is no longer asked for: a plugin the key keeps off stays in the list
+ * only while its option is on. A feature refused on a call stays.
+ *
+ * @param {HotInstance} hot The root Handsontable instance.
+ */
+export function pruneMissingCapabilities(hot: HotInstance): void {
+  const record = missingByInstance.get(hot);
+
+  record?.features.forEach(({ isStillMissing }, capability) => {
+    if (isStillMissing !== null && !isStillMissing()) {
+      record.features.delete(capability);
+    }
+  });
 }
 
 /**
@@ -207,26 +239,34 @@ export function forgetMissingCapabilities(hot: HotInstance): void {
 }
 
 /**
- * Returns the features the license key of a grid left out, sorted by token, when the list grew since
- * the last call. Returns `null` when nothing new was reported.
+ * Returns the features the license key of a grid left out, sorted by token, when the list changed since
+ * the last call, and whether a feature was added to it (a list that only got shorter names nothing new).
+ * Returns `null` when the list is the one the last call returned.
  *
  * @param {HotInstance} hot The root Handsontable instance.
- * @returns {{key: string, features: MissingCapability[]} | null}
+ * @returns {{key: string, features: MissingCapability[], added: boolean} | null}
  */
-export function takeNewMissingCapabilities(
+export function takeChangedMissingCapabilities(
   hot: HotInstance,
-): { key: string; features: MissingCapability[] } | null {
+): { key: string; features: MissingCapability[]; added: boolean } | null {
   const record = missingByInstance.get(hot);
 
-  if (!record || record.features.size === record.flushedCount) {
+  if (!record) {
     return null;
   }
 
-  record.flushedCount = record.features.size;
+  const capabilities = [...record.features.keys()];
+  const added = capabilities.some(capability => !record.written.has(capability));
+
+  if (!added && capabilities.length === record.written.size) {
+    return null;
+  }
+
+  record.written = new Set(capabilities);
 
   const features = [...record.features.entries()]
-    .map(([capability, name]) => ({ capability, name }))
+    .map(([capability, { name }]) => ({ capability, name }))
     .sort((a, b) => (a.capability < b.capability ? -1 : 1));
 
-  return { key: record.key, features };
+  return { key: record.key, features, added };
 }

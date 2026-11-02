@@ -126,6 +126,7 @@ export class ViewState extends BasePlugin {
    *
    * @since 19.0.0
    * @returns {object} The view state. Its `version` property identifies the shape.
+   * @throws {Error} When the license key lists the features it unlocks and leaves out View state.
    */
   getViewState(): GridViewState {
     assertLicensedCall(this.hot, LICENSE);
@@ -221,6 +222,7 @@ export class ViewState extends BasePlugin {
    * @returns {object} An object with an `applied` array of the parts that were restored, a `skipped` array of
    * `{ part, reason, path, message }` for the parts that were not, the `previous` view of the restored parts,
    * and an `error` when the whole state was rejected.
+   * @throws {Error} When the license key lists the features it unlocks and leaves out View state.
    */
   setViewState(state: GridViewStateInput, options?: GridViewStateSetOptions): GridViewStateRestoreResult {
     assertLicensedCall(this.hot, LICENSE);
@@ -248,6 +250,7 @@ export class ViewState extends BasePlugin {
    * @returns {object} An object with `valid` (whether the whole state can be applied), `applicable` (the parts
    * `setViewState()` would apply), `skipped` (the parts it would not, as `{ part, reason, path, message }`), and an
    * `error` when the whole state would be rejected.
+   * @throws {Error} When the license key lists the features it unlocks and leaves out View state.
    */
   validateViewState(state: GridViewStateInput): GridViewStateValidationResult {
     assertLicensedCall(this.hot, LICENSE);

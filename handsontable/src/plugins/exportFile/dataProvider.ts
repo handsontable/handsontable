@@ -233,7 +233,7 @@ class ExportDataProvider {
    */
   getFormulaErrorCodes(): (string | null)[][] {
     const formulasPlugin = this.hot.getPlugin('formulas');
-    const engine = formulasPlugin?.isEnabled() ? formulasPlugin.engine : null;
+    const engine = formulasPlugin?.enabled ? formulasPlugin.engine : null;
     const { sheetId, rowAxisSyncer, columnAxisSyncer } = formulasPlugin ?? {};
 
     if (!engine || sheetId === null || sheetId === undefined || !rowAxisSyncer || !columnAxisSyncer) {
@@ -304,7 +304,7 @@ class ExportDataProvider {
   #getEngineRowAxisSyncer(): { getVisualIndexFromHfIndex(hfIndex: number): number } | null {
     const formulasPlugin = this.hot.getPlugin('formulas');
 
-    if (!formulasPlugin?.isEnabled() || !formulasPlugin.engine) {
+    if (!formulasPlugin?.enabled || !formulasPlugin.engine) {
       return null;
     }
 
@@ -411,7 +411,7 @@ class ExportDataProvider {
   getFormulasSeparator(): string {
     const formulasPlugin = this.hot.getPlugin('formulas');
 
-    if (!formulasPlugin || !formulasPlugin.isEnabled()) {
+    if (!formulasPlugin?.enabled) {
       return ',';
     }
 
@@ -888,7 +888,7 @@ class ExportDataProvider {
   getColumnSummaries() {
     const plugin = this.hot.getPlugin('columnSummary');
 
-    if (!plugin || !plugin.isEnabled()) {
+    if (!plugin?.enabled) {
       return [];
     }
 

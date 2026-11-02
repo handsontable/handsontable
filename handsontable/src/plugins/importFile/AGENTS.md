@@ -640,7 +640,10 @@ used, not at enable (`gate: 'call'` in `feature.json`). `inferColumnTypes()`, `c
 `importFromArrayBuffer()` and `importFromBlob()` call `assertLicensedCall(this.hot, LICENSE)` first, before
 `#assertEnabled()`: a key that does not cover `feat:import_file` writes the license message and throws it (the
 async methods reject). `supportsImportFormat()` is not checked. The SheetsBar calls only the `_`-prefixed members,
-which are not checked. Rules: `../../utils/entitlementLicenseKey/AGENTS.md`.
+which are not checked. The import asks Formulas, Comments and CustomBorders whether they RUN (`.enabled`),
+never whether their option is on: a plugin a license key keeps off keeps its option, and an import that read the
+option wrote live formulas and `'`-escaped text that no plugin would read. Rules:
+`../../utils/entitlementLicenseKey/AGENTS.md`.
 
 ## Where to look next
 

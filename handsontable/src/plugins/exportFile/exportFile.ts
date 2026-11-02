@@ -531,6 +531,7 @@ export class ExportFile extends BasePlugin {
    * @param {number[]} [options.range=[]] Cell range to export: `[startRow, startColumn, endRow, endColumn]` (visual indexes).
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Controls the sanitization of cell values (CSV only).
    * @returns {string}
+   * @throws {Error} When the license key lists the features it unlocks and leaves out Export to file.
    */
   exportAsString(format: string, options: ExportOptions | Record<string, unknown> = {}): string {
     assertLicensedCall(this.hot, LICENSE);
@@ -567,6 +568,7 @@ export class ExportFile extends BasePlugin {
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
    * @returns {Blob}
+   * @throws {Error} When the license key lists the features it unlocks and leaves out Export to file.
    */
   exportAsBlob(format: string, options: ExportOptions | Record<string, unknown> = {}): Blob {
     assertLicensedCall(this.hot, LICENSE);
@@ -613,6 +615,7 @@ export class ExportFile extends BasePlugin {
    * @param {object|null} [options.engine] Engine for this call only (XLSX only). `null` or an absent key keeps the engine from the `engines` setting, or the built-in one.
    * @returns {Promise<Blob>}
    * @since 17.1.0
+   * @throws {Error} The returned promise rejects when the license key lists the features it unlocks and leaves out Export to file.
    */
   async exportAsBlobAsync(format: string, options: ExportOptions | Record<string, unknown> = {}): Promise<Blob> {
     assertLicensedCall(this.hot, LICENSE);
@@ -642,6 +645,7 @@ export class ExportFile extends BasePlugin {
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
    * @returns {void}
+   * @throws {Error} When the license key lists the features it unlocks and leaves out Export to file.
    */
   downloadFile(format: string, options: ExportOptions | Record<string, unknown> = {}): void {
     assertLicensedCall(this.hot, LICENSE);
@@ -693,13 +697,14 @@ export class ExportFile extends BasePlugin {
    * @param {object|null} [options.engine] Engine for this call only (XLSX only). `null` or an absent key keeps the engine from the `engines` setting, or the built-in one.
    * @returns {Promise<void>}
    * @since 17.1.0
+   * @throws {Error} The returned promise rejects when the license key lists the features it unlocks and leaves out Export to file.
    */
   async downloadFileAsync(format: string, options: ExportOptions | Record<string, unknown> = {}) {
     assertLicensedCall(this.hot, LICENSE);
 
     const formatter = this._createTypeFormatter(format, options);
     const dialogPlugin = this.hot.getPlugin('dialog');
-    const hasDialog = dialogPlugin?.isEnabled();
+    const hasDialog = dialogPlugin?.enabled;
     const { rootWindow } = this.hot;
     const name = `${formatter.options.filename}.${formatter.options.fileExtension}`;
 

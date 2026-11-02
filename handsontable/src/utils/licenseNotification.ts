@@ -2,6 +2,8 @@ import {
   _injectProductInfo,
   _getLicenseState,
   _buildMissingFeaturesMessage,
+  _createLicenseBar,
+  _createLicenseBarBlock,
   _renderMessageParts,
 } from '../helpers/mixed';
 import { throwWithCause } from '../helpers/errors';
@@ -16,7 +18,8 @@ import {
   hasMissingCapabilities,
   isPluginLicense,
   reportMissingCapability,
-  takeNewMissingCapabilities,
+  pruneMissingCapabilities,
+  takeChangedMissingCapabilities,
 } from './licenseCapabilities';
 import type { PluginLicense } from './licenseCapabilities';
 import type { MessagePart } from '../helpers/mixed';
@@ -50,6 +53,12 @@ const printedMissingFeatures = new Set<string>();
  * The license bar each grid built for the missing-features message, kept while it is out of the page.
  */
 const ownBars = new WeakMap<HotInstance, HTMLElement>();
+/**
+ * The root grids whose license notification started. A flush waits for it: a gated call made while the
+ * grid is still being built (an `afterLoadData` listener) would otherwise mount a bar and register its
+ * focus scope before the lifecycle bar, which registers the same scope id again and throws.
+ */
+const notifiedGrids = new WeakSet<HotInstance>();
 
 /**
  * Returns the license notification DOM element when present.
@@ -153,6 +162,8 @@ export function mountBottomLicenseBar(hotInstance: HotInstance, barElement: HTML
  * @returns {void}
  */
 export function initLicenseNotification(hotInstance: HotInstance): void {
+  notifiedGrids.add(hotInstance);
+
   const container = hotInstance.rootSlotBottomElement;
 
   if (!container) {
@@ -188,26 +199,32 @@ export function initLicenseNotification(hotInstance: HotInstance): void {
 }
 
 /**
- * Writes the features the license key of a root grid turned off since the last call: one console error
- * and the same text in the license bar. The console message prints once per key and set of features on
- * the page. `no-console-warns` and `no-ui-warns` close the two surfaces; the features stay off either way.
+ * Writes the features the license key of a root grid keeps off, when the list changed since the last call:
+ * the text in the license bar, and one console error when a feature was added. The console message prints
+ * once per key and set of features on the page. `no-console-warns` and `no-ui-warns` close the two
+ * surfaces; the features stay off either way. Does nothing before the grid's license notification started.
  *
  * @param {HotInstance} hotInstance The root Handsontable instance.
  */
 export function flushMissingCapabilities(hotInstance: HotInstance): void {
-  if (hotInstance.isDestroyed || !isRootInstance(hotInstance)) {
+  if (hotInstance.isDestroyed || !isRootInstance(hotInstance) || !notifiedGrids.has(hotInstance)) {
     return;
   }
 
-  const missing = takeNewMissingCapabilities(hotInstance);
+  pruneMissingCapabilities(hotInstance);
+
+  // A key passed later that leaves nothing out, or options turned off until nothing is missing, takes
+  // the message away.
+  if (!hasMissingCapabilities(hotInstance)) {
+    forgetMissingCapabilities(hotInstance);
+    hideMissingFeaturesInBar(hotInstance);
+
+    return;
+  }
+
+  const missing = takeChangedMissingCapabilities(hotInstance);
 
   if (missing === null) {
-    // A key passed later that leaves nothing out takes the previous key's message away.
-    if (!hasMissingCapabilities(hotInstance)) {
-      forgetMissingCapabilities(hotInstance);
-      hideMissingFeaturesInBar(hotInstance);
-    }
-
     return;
   }
 
@@ -215,7 +232,8 @@ export function flushMissingCapabilities(hotInstance: HotInstance): void {
   const { text, parts } = _buildMissingFeaturesMessage(missing.features);
   const printedKey = `${missing.key}\n${missing.features.map(({ capability }) => capability).join(',')}`;
 
-  if (channels.console && !printedMissingFeatures.has(printedKey)) {
+  // A list that only got shorter updates the bar: nothing new is missing, so the console stays quiet.
+  if (channels.console && missing.added && !printedMissingFeatures.has(printedKey)) {
     printedMissingFeatures.add(printedKey);
     error(text);
   }
@@ -291,23 +309,20 @@ function showMissingFeaturesInBar(hotInstance: HotInstance, parts: MessagePart[]
     if (bar) {
       appendBarLast(container, bar);
     } else {
-      bar = ownerDocument.createElement('div');
-      bar.className = `handsontable ${LICENSE_INFO_CLASS}`;
+      bar = _createLicenseBar(ownerDocument, LICENSE_INFO_CLASS);
       mountBottomLicenseBar(hotInstance, bar);
       ownBars.set(hotInstance, bar);
     }
   }
 
-  let block = bar.querySelector<HTMLElement>(`.${MISSING_FEATURES_CLASS}`);
+  const block = bar.querySelector<HTMLElement>(`.${MISSING_FEATURES_CLASS}`);
 
-  if (!block) {
-    block = ownerDocument.createElement('div');
-    block.className = `${LICENSE_INFO_CLASS}_inner ${MISSING_FEATURES_CLASS}`;
-    bar.appendChild(block);
+  if (block) {
+    empty(block);
+    _renderMessageParts(block, parts, ownerDocument);
+  } else {
+    bar.appendChild(_createLicenseBarBlock(ownerDocument, LICENSE_INFO_CLASS, parts, MISSING_FEATURES_CLASS));
   }
-
-  empty(block);
-  _renderMessageParts(block, parts, ownerDocument);
 }
 
 /**

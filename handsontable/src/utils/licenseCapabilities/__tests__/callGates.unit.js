@@ -100,6 +100,12 @@ describe('license gates of the plugins that are on in every grid', () => {
       expect(bar).toBe(printed[0].replace(/ \([a-z]+:[a-z_]+\)/g, ''));
       expect(bar).toContain('Export to file');
       expect(bar).not.toContain('feat:');
+
+      // A feature refused on a call stays in the bar after an update: the key still leaves it out.
+      hot.updateSettings({ colHeaders: false });
+
+      expect(hot.rootSlotBottomElement.querySelector('.hot-display-license-info_missing-features').textContent)
+        .toContain('Export to file');
     });
 
     it('should export when the key covers it, and when the key is not flagged', () => {
@@ -135,6 +141,23 @@ describe('license gates of the plugins that are on in every grid', () => {
 
       expect(hot.getPlugin('mergeCells').enabled).toBe(false);
       expect(provider.getMergeCells()).toEqual([]);
+    });
+
+    it('should read no column summaries from a ColumnSummary plugin the key keeps off', () => {
+      // eslint-disable-next-line global-require
+      const ExportDataProvider = require('handsontable/plugins/exportFile/dataProvider').default;
+      const hot = createGrid({
+        licenseKey: FLAGGED_BASE_KEY,
+        columnSummary: [{ sourceColumn: 0, destinationRow: 1, destinationColumn: 1, type: 'sum' }],
+      });
+      const provider = new ExportDataProvider(hot);
+
+      provider.setOptions({ range: [] });
+
+      // The plugin builds its endpoints when it starts, so an XLSX export that read them threw a TypeError.
+      expect(hot.getPlugin('columnSummary').isEnabled()).toBe(true);
+      expect(hot.getPlugin('columnSummary').enabled).toBe(false);
+      expect(provider.getColumnSummaries()).toEqual([]);
     });
   });
 

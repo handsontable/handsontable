@@ -92,8 +92,7 @@ the main thread. A single rAF shows nothing.
   The `plugin.enabled` gate in front of it is defensive: every disable path clears the state, so
   `enabled` and `isEnabled()` never disagree while there are layers, and swapping it back to
   `isEnabled()` keeps both runtime-disable specs green. Keep the zero-layer guard whatever else changes.
-  The same `isEnabled()` pattern still guards the formulas and mergeCells lookups in `dataProvider.ts`;
-  check it before relying on a runtime-disabled plugin there.
+  The formulas, mergeCells and columnSummary lookups in `dataProvider.ts` read `.enabled` as well.
 
 ## XLSX specifics
 
@@ -402,7 +401,7 @@ every format, CSV included. `supportsExportFormat()` is not checked: it does no 
 the context menu is hidden when the key does not cover the token (`contextMenuItem/exportItem.ts`), silently,
 because a click would only throw. **Read another plugin's state through `.enabled`** in `dataProvider.ts`: a
 plugin the key leaves out keeps its setting, so `isEnabled()` answers `true` while it never ran (MergeCells then
-has no collection). Rules: `../../utils/entitlementLicenseKey/AGENTS.md`.
+has no collection, and ColumnSummary has no endpoints, so an XLSX export threw). Rules: `../../utils/entitlementLicenseKey/AGENTS.md`.
 
 ## Where to look next
 

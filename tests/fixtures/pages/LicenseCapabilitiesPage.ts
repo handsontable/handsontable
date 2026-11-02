@@ -34,24 +34,24 @@ export class LicenseCapabilitiesPage {
     this.columnMenuButtons = page.locator('.ht_clone_top button.changeType');
     this.openColumnMenu = page.locator('.htDropdownMenu:not([class*="htDropdownMenuSub_"]):visible');
     this.valueList = this.openColumnMenu.locator('.htUIMultipleSelectHot');
+
+    // Registered once, from before the first navigation: the license message prints while the grid is
+    // built. A listener added per `goto()` recorded every later error once more for each call.
+    page.on('console', (message) => {
+      if (message.type() === 'error') {
+        this.consoleErrors.push(message.text());
+      }
+    });
   }
 
   /**
    * Opens the fixture with a license key and the options the grid asks for, and waits for the grid.
-   * Collects the console errors from before the navigation, because the license message prints while
-   * the grid is built.
    *
    * @param {object} options The fixture options.
    * @param {string} options.key The license key.
    * @param {string} [options.plugins] The options the grid asks for.
    */
   async goto({ key, plugins = 'filters' }: { key: LicenseKeyName; plugins?: PluginsName }): Promise<void> {
-    this.page.on('console', (message) => {
-      if (message.type() === 'error') {
-        this.consoleErrors.push(message.text());
-      }
-    });
-
     await this.page.goto(
       `/tests/fixtures/demo/license-capabilities.html?theme=${this.theme}&bundle=${this.bundle}` +
       `&key=${key}&plugins=${plugins}`

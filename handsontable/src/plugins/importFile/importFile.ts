@@ -740,6 +740,7 @@ export class ImportFile extends BasePlugin {
    *   data: importFile.convertToInferredTypes(rows, result),
    * });
    * ```
+   * @throws {Error} When the license key lists the features it unlocks and leaves out Import from file.
    */
   inferColumnTypes(data: InferenceData, options: InferColumnTypesOptions | null = {}): InferColumnTypesResult {
     assertLicensedCall(this.hot, LICENSE);
@@ -754,6 +755,7 @@ export class ImportFile extends BasePlugin {
    * local date and time. A value the column cannot read, such as a `Total` row, is kept as it is, so the
    * cell type's validator marks it. When the result found a header row, that row is left out.
    * `data` itself is not changed.
+   * @throws {Error} When the license key lists the features it unlocks and leaves out Import from file.
    */
   convertToInferredTypes<T extends InferenceData>(data: T, result: InferColumnTypesResult): ConvertedData<T> {
     assertLicensedCall(this.hot, LICENSE);
@@ -778,6 +780,7 @@ export class ImportFile extends BasePlugin {
    * @param {ArrayBuffer|ArrayBufferView} buffer The file's bytes.
    * @param {ImportOptions} [options] Import options.
    * @returns {Promise<ImportResult>}
+   * @throws {Error} The returned promise rejects when the license key lists the features it unlocks and leaves out Import from file.
    */
   async importFromArrayBuffer(
     format: string, buffer: ArrayBuffer | ArrayBufferView, options: ImportOptions = {}
@@ -811,6 +814,7 @@ export class ImportFile extends BasePlugin {
    * @param {Blob} blob The file.
    * @param {ImportOptions} [options] Import options.
    * @returns {Promise<ImportResult>}
+   * @throws {Error} The returned promise rejects when the license key lists the features it unlocks and leaves out Import from file.
    */
   async importFromBlob(format: string, blob: Blob, options: ImportOptions = {}): Promise<ImportResult> {
     assertLicensedCall(this.hot, LICENSE);
@@ -854,11 +858,11 @@ export class ImportFile extends BasePlugin {
     const formulasPlugin = this.hot.getPlugin('formulas');
     const commentsPlugin = this.hot.getPlugin('comments');
     const customBordersPlugin = this.hot.getPlugin('customBorders');
-    const formulasEnabled = formulasPlugin?.isEnabled() === true;
+    const formulasEnabled = formulasPlugin?.enabled === true;
     const mapped = mapWorkbook(workbook, resolved, {
       formulasEnabled,
-      commentsEnabled: commentsPlugin?.isEnabled() === true,
-      customBordersEnabled: customBordersPlugin?.isEnabled() === true,
+      commentsEnabled: commentsPlugin?.enabled === true,
+      customBordersEnabled: customBordersPlugin?.enabled === true,
       formulaSheetNames: formulasEnabled ? engineSheetNames(formulasPlugin?.engine) : undefined,
       formulaSheetName: formulasEnabled ? formulasPlugin?.sheetName ?? undefined : undefined,
       formulaNamedExpressions: formulasEnabled ? engineNamedExpressions(formulasPlugin?.engine) : undefined,

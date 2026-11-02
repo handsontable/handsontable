@@ -251,12 +251,6 @@ type EntitlementConsoleNotification = {
 };
 
 /**
- * License sentences the specification repeats verbatim across surfaces - the bottom bar (here), the
- * badge popover, and the hard-stop lock screen (`utils/licenseBranding/content.ts`). Keeping one
- * constant per sentence means a legal or marketing wording change lands on every surface at once,
- * instead of drifting when only one copy is updated.
- */
-/**
  * Builds the message for the features a license key that lists its features leaves out: the console
  * text and the bar parts. One message names every missing feature. The console text, which is also
  * what a refused call throws, names each as `<display name> (<token>)` for the developer; the bar,
@@ -280,6 +274,12 @@ export function _buildMissingFeaturesMessage(
   };
 }
 
+/**
+ * License sentences the specification repeats verbatim across surfaces - the bottom bar (here), the
+ * badge popover, and the hard-stop lock screen (`utils/licenseBranding/content.ts`). Keeping one
+ * constant per sentence means a legal or marketing wording change lands on every surface at once,
+ * instead of drifting when only one copy is updated.
+ */
 export const _LICENSE_EXPIRED_TITLE = 'Your Handsontable license key has expired.';
 export const _PURCHASE_LICENSE_TEXT = 'To continue using Handsontable, you need to purchase a license.';
 
@@ -788,6 +788,45 @@ function _listsCapabilities(entitlement: ProductEntitlement): boolean {
 }
 
 /**
+ * Builds an empty license bar, the element the license messages go in, one block each. The frozen legacy
+ * emitter above builds the same shape inline and stays as it is.
+ *
+ * @param {Document} ownerDocument The document to build the node in.
+ * @param {string} className The bar's class name.
+ * @returns {HTMLElement}
+ */
+export function _createLicenseBar(ownerDocument: Document, className: string): HTMLElement {
+  const bar = ownerDocument.createElement('div');
+
+  bar.className = `handsontable ${className}`;
+
+  return bar;
+}
+
+/**
+ * Builds one message block of a license bar.
+ *
+ * @param {Document} ownerDocument The document to build the nodes in.
+ * @param {string} className The bar's class name; the block takes it with an `_inner` suffix.
+ * @param {Array} parts The message parts.
+ * @param {string} [blockClassName] A class name of the block's own.
+ * @returns {HTMLElement}
+ */
+export function _createLicenseBarBlock(
+  ownerDocument: Document,
+  className: string,
+  parts: MessagePart[],
+  blockClassName?: string,
+): HTMLElement {
+  const block = ownerDocument.createElement('div');
+
+  block.className = blockClassName ? `${className}_inner ${blockClassName}` : `${className}_inner`;
+  _renderMessageParts(block, parts, ownerDocument);
+
+  return block;
+}
+
+/**
  * Emits the console and DOM notifications for an entitlement license key. The console message fires
  * at most once per page and per key (via the entitlement-only `_entitlementNotified` set, kept
  * separate from the legacy `_notified`) and picks warn/error by state; the DOM bottom bar is shown for the
@@ -854,14 +893,10 @@ function _injectEntitlementProductInfo(
   // Use the target element's own document so an iframe-hosted grid builds its bar nodes in the
   // right realm (the global `document` would be the loading window's).
   const ownerDocument = element.ownerDocument;
-  const messageNode = ownerDocument.createElement('div');
-  const innerNode = ownerDocument.createElement('div');
+  const barClassName = String(className);
+  const messageNode = _createLicenseBar(ownerDocument, barClassName);
 
-  messageNode.className = `handsontable ${className}`;
-  innerNode.className = `${className}_inner`;
-  _renderMessageParts(innerNode, buildDomMessage(params), ownerDocument);
-
-  messageNode.appendChild(innerNode);
+  messageNode.appendChild(_createLicenseBarBlock(ownerDocument, barClassName, buildDomMessage(params)));
   element.appendChild(messageNode);
 
   return messageNode;

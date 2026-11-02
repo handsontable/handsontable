@@ -8,6 +8,7 @@ import {
   FLAGGED_NO_CONSOLE_WARNS_KEY,
   FLAGGED_MAINTENANCE_EXPIRED_KEY,
 } from '../../../utils/entitlementLicenseKey/__tests__/fixtures';
+import { buildTestKey } from '../../../utils/entitlementLicenseKey/__tests__/buildTestKey';
 
 const FILTERS_MESSAGE = 'The license key for Handsontable does not include these features: Filters ' +
   '(feat:filters). They are turned off. To add them, contact sales@handsontable.com.';
@@ -299,6 +300,127 @@ describe('BasePlugin license gate', () => {
       expect(hot.getPlugin('filters').enabled).toBe(false);
       expect(hot.getSettings().filters).toBe(true);
       expect(missingFeatureErrors()).toEqual([FILTERS_MESSAGE]);
+    });
+  });
+
+  describe('a plugin that asks another one whether it runs', () => {
+    // Lists Row resizing and leaves Auto row size out. Built at test time: no fixture key has this list.
+    const ROW_RESIZE_KEY = buildTestKey({
+      products: {
+        handsontable: {
+          capabilities: ['core', 'feat:manual_row_resize', 'cell:all'],
+          release_until: '2030-12-31',
+          notice: 60,
+          grace: 90,
+          flags: ['listed-capabilities'],
+        },
+      },
+    });
+
+    it('should let a resized row go below its declared height when the key keeps AutoRowSize off', () => {
+      const hot = createGrid({ licenseKey: ROW_RESIZE_KEY, autoRowSize: true, rowHeights: 40, manualRowResize: true });
+
+      expect(hot.getPlugin('autoRowSize').isEnabled()).toBe(true);
+      expect(hot.getPlugin('autoRowSize').enabled).toBe(false);
+      expect(hot.getPlugin('manualRowResize').enabled).toBe(true);
+
+      hot.getPlugin('manualRowResize').setManualSize(0, 25);
+
+      // A running AutoRowSize keeps a row at least as tall as its content, so a resize only raises it.
+      // One that never started measures nothing, and the resized height stands.
+      expect(hot.getRowHeight(0)).toBe(25);
+    });
+
+    it('should hide the undo and redo items of the context menu when the key keeps UndoRedo off', () => {
+      // eslint-disable-next-line global-require
+      const undoItem = require('handsontable/plugins/contextMenu/predefinedItems/undo').default;
+      // eslint-disable-next-line global-require
+      const redoItem = require('handsontable/plugins/contextMenu/predefinedItems/redo').default;
+      const restricted = createGrid({ licenseKey: FLAGGED_MINIMAL_KEY });
+      const covered = createGrid({ licenseKey: FLAGGED_BASE_KEY });
+
+      expect(restricted.getPlugin('undoRedo').isEnabled()).toBe(true);
+      expect(restricted.getPlugin('undoRedo').enabled).toBe(false);
+      expect(undoItem().hidden.call(restricted)).toBe(true);
+      expect(redoItem().hidden.call(restricted)).toBe(true);
+      expect(undoItem().hidden.call(covered)).toBe(false);
+      expect(redoItem().hidden.call(covered)).toBe(false);
+    });
+  });
+
+  describe('when the options change', () => {
+    it('should take the message away when the option of the only missing feature is turned off', () => {
+      const hot = createGrid({ licenseKey: FLAGGED_BASE_KEY, filters: true });
+
+      expect(licenseBars(hot).length).toBe(1);
+
+      hot.updateSettings({ filters: false });
+
+      expect(licenseBars(hot)).toEqual([]);
+      expect(missingFeatureErrors()).toEqual([FILTERS_MESSAGE]);
+    });
+
+    it('should drop a feature from the bar, and print nothing, when its option is turned off', () => {
+      const hot = createGrid({ licenseKey: FLAGGED_BASE_KEY, filters: true, mergeCells: true });
+
+      expect(missingFeatureErrors().length).toBe(1);
+
+      hot.updateSettings({ mergeCells: false });
+
+      expect(licenseBars(hot)[0].querySelector('.hot-display-license-info_missing-features').textContent)
+        .toBe(FILTERS_BAR_MESSAGE);
+      // A shorter list names nothing new.
+      expect(missingFeatureErrors().length).toBe(1);
+    });
+
+    it('should list a feature turned on by the same update that turns another one off', () => {
+      const hot = createGrid({ licenseKey: FLAGGED_BASE_KEY, filters: true, mergeCells: true });
+
+      hot.updateSettings({ mergeCells: false, comments: true });
+
+      expect(licenseBars(hot)[0].textContent).toContain('these features: Comments, Filters. They are turned off.');
+      expect(missingFeatureErrors().length).toBe(2);
+      expect(missingFeatureErrors()[1]).toContain('Comments (feat:comments), Filters (feat:filters).');
+    });
+  });
+
+  describe('a gated call made while the grid is built', () => {
+    it('should write the message into the one bar the grid builds, after the lifecycle message', () => {
+      // Past its maintenance date (so the grid gets a lifecycle bar) and leaving View state out. Built at test
+      // time: no fixture key has this list.
+      const expiredKey = buildTestKey({
+        products: {
+          handsontable: {
+            capabilities: ['core', 'cell:all'],
+            release_until: '2020-01-01',
+            notice: 60,
+            grace: 90,
+            flags: ['listed-capabilities'],
+          },
+        },
+      });
+      const refused = [];
+      let hot;
+
+      expect(() => {
+        hot = createGrid({
+          licenseKey: expiredKey,
+          afterLoadData() {
+            try {
+              this.getPlugin('viewState').getViewState();
+            } catch (error) {
+              refused.push(error.message);
+            }
+          },
+        });
+      }).not.toThrow();
+
+      const bars = licenseBars(hot);
+
+      expect(refused.length).toBeGreaterThan(0);
+      expect(bars.length).toBe(1);
+      expect(bars[0].querySelectorAll('.hot-display-license-info_inner').length).toBe(2);
+      expect(bars[0].querySelector('.hot-display-license-info_missing-features').textContent).toContain('View state');
     });
   });
 });
