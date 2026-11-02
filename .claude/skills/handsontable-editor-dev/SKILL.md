@@ -20,6 +20,8 @@ src/editors/{editorName}/
 
 Registry: `src/editors/registry.ts`. Factory: `src/editors/factory.ts`.
 
+A new registered editor also needs its entry in `src/editors/features.json` (`editor:<name_in_snake_case>`, `licensing: "none"`; copy a neighbor), and a cell type that uses it lists it in its `requires.allOf`. The unit suite fails until both exist. Run `npm run generate:feature-manifest --prefix handsontable` and commit what it writes. Rules: `src/featureManifest/AGENTS.md`.
+
 ## Lifecycle methods (required overrides)
 
 | Method | Purpose |

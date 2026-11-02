@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:search",
+      "kind": "plugin",
+      "module": "Search",
+      "name": "Search",
+      "description": "Finds the cells that match a query and highlights them.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

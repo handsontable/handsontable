@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:collapsible_columns",
+      "kind": "plugin",
+      "module": "CollapsibleColumns",
+      "name": "Collapsible columns",
+      "description": "Collapses and expands groups of nested column headers.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable",
+      "requires": {
+        "allOf": [
+          "feat:nested_headers"
+        ]
+      },
+      "enforceAtInit": true
+    }
+  ]
+}
