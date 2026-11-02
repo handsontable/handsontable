@@ -258,7 +258,7 @@ The XLSX export reads your license key for the [capabilities](@/guides/getting-s
 - `xlsx:data_validation` - the lists of `dropdown` and `autocomplete` cells.
 - `xlsx:protection` - sheet protection and the `protection` option.
 
-Without `xlsx:export`, `downloadFileAsync('xlsx')` and `exportAsBlobAsync('xlsx')` throw `ExportFile: the license does not unlock "xlsx:export".` Without any other capability, the export writes the rest of the workbook and prints one console warning: `The xlsx export skipped features your license does not unlock: <ids>.` The warning names only the missing capabilities the export reads. The `no-console-warns` flag on a key silences it. The capabilities and their packages are on the [pricing page](https://handsontable.com/pricing).
+Without `xlsx:export`, `downloadFileAsync('xlsx')` and `exportAsBlobAsync('xlsx')` throw `ExportFile: the license does not unlock "xlsx:export".` Without any other capability, the export writes the rest of the workbook and prints one console warning: `The xlsx export skipped features your license does not unlock: <ids>.` The warning names only the capabilities your grid needed for this export, so a plain text grid exports with no license warning. The column headers count toward `xlsx:styles` unless `headerStyle` is `null`, and a column width other than the default counts toward `xlsx:layout`. The `no-console-warns` flag on a key silences it. The capabilities and their packages are on the [pricing page](https://handsontable.com/pricing).
 
 ### Protect read-only cells
 

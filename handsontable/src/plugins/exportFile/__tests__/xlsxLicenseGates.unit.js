@@ -31,6 +31,9 @@ const mockState = {
   ],
   nestedHeaders: null,
   rowHeaders: [],
+  columnHeaders: ['Name', 'Amount', 'Status'],
+  // Overrides of the layout getters below, by method name; `null` keeps the rich sheet's layout.
+  layout: null,
   cellsMeta: [
     [{ readOnly: true }, { type: 'numeric', numericFormat: { style: 'currency', currency: 'USD' } },
       { type: 'dropdown', source: ['a', 'b'] }],
@@ -38,6 +41,17 @@ const mockState = {
     [{ className: 'htRight' }, {}, { type: 'dropdown', source: ['a', 'b'] }],
   ],
 };
+
+/**
+ * Reads one layout getter's value from `mockState.layout`, or the rich sheet's own.
+ *
+ * @param {string} name The getter's name.
+ * @param {*} fallback The rich sheet's value.
+ * @returns {*}
+ */
+function mockLayout(name, fallback) {
+  return mockState.layout && name in mockState.layout ? mockState.layout[name] : fallback;
+}
 
 jest.mock('../dataProvider', () => ({
   __esModule: true,
@@ -61,7 +75,7 @@ jest.mock('../dataProvider', () => ({
     }
 
     getColumnHeaders() {
-      return ['Name', 'Amount', 'Status'];
+      return mockState.columnHeaders;
     }
 
     getColumnHeadersClassNames() {
@@ -73,23 +87,23 @@ jest.mock('../dataProvider', () => ({
     }
 
     getColumnsWidths() {
-      return [80, 120, 90];
+      return mockLayout('getColumnsWidths', [80, 120, 90]);
     }
 
     getRowsHeights() {
-      return [30, 30, 30];
+      return mockLayout('getRowsHeights', [30, 30, 30]);
     }
 
     getMergeCells() {
-      return [{ row: 2, col: 1, rowspan: 1, colspan: 2 }];
+      return mockLayout('getMergeCells', [{ row: 2, col: 1, rowspan: 1, colspan: 2 }]);
     }
 
     getFrozenRows() {
-      return 1;
+      return mockLayout('getFrozenRows', 1);
     }
 
     getFrozenColumns() {
-      return 0;
+      return mockLayout('getFrozenColumns', 0);
     }
 
     getNestedColumnHeaders() {
@@ -97,7 +111,7 @@ jest.mock('../dataProvider', () => ({
     }
 
     getLayoutDirection() {
-      return 'rtl';
+      return mockLayout('getLayoutDirection', 'rtl');
     }
 
     getColumnSummaries() {
@@ -125,11 +139,11 @@ jest.mock('../dataProvider', () => ({
     }
 
     getHiddenRowDataIndices() {
-      return [1];
+      return mockLayout('getHiddenRowDataIndices', [1]);
     }
 
     getHiddenColumnDataIndices() {
-      return [2];
+      return mockLayout('getHiddenColumnDataIndices', [2]);
     }
   },
 }));
@@ -375,6 +389,136 @@ describe('Xlsx export license gates', () => {
     await exportSnapshot('non-commercial-and-evaluation');
 
     expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  /**
+   * Runs `fn` with the mock sheet's state overridden by `overrides`, restoring it afterwards.
+   *
+   * @param {object} overrides The `mockState` keys to replace.
+   * @param {Function} fn The async body.
+   * @returns {Promise<void>}
+   */
+  async function withMockSheet(overrides, fn) {
+    const saved = Object.fromEntries(Object.keys(overrides).map(key => [key, mockState[key]]));
+
+    Object.assign(mockState, overrides);
+
+    try {
+      await fn();
+    } finally {
+      Object.assign(mockState, saved);
+    }
+  }
+
+  const LAYOUT_FREE = {
+    getColumnsWidths: [50, 50],
+    getRowsHeights: [undefined, undefined],
+    getMergeCells: [],
+    getFrozenRows: 0,
+    getFrozenColumns: 0,
+    getLayoutDirection: 'ltr',
+    getHiddenRowDataIndices: [],
+    getHiddenColumnDataIndices: [],
+  };
+  const PLAIN_SHEET = {
+    layout: LAYOUT_FREE,
+    data: [['Ana García', 'Engineering'], ['Li Wei', 'Marketing']],
+    sourceData: [['Ana García', 'Engineering'], ['Li Wei', 'Marketing']],
+    cellsMeta: [[{}, {}], [{}, {}]],
+    columnHeaders: [],
+  };
+  const exportWarnings = () => warnSpy.mock.calls
+    .map(call => call[0])
+    .filter(message => message.startsWith('The xlsx export skipped'));
+
+  it('says nothing about the license for a plain text grid on a Standard key', async() => {
+    await withMockSheet(PLAIN_SHEET, async() => {
+      const sheet = (await exportSnapshot(keyWith(STANDARD_TOKENS), { conditionalFormatting: [] })).sheets[0];
+
+      expect(sheet.rows[0][0].value).toBe('Ana García');
+      expect(exportWarnings()).toEqual([]);
+    });
+  });
+
+  it('names only xlsx:comments for a grid whose only Pro feature is a comment', async() => {
+    await withMockSheet({
+      ...PLAIN_SHEET,
+      cellsMeta: [[{ comment: { value: 'Check' } }, {}], [{}, {}]],
+    }, async() => {
+      await exportSnapshot(keyWith(STANDARD_TOKENS), { conditionalFormatting: [] });
+
+      expect(exportWarnings()).toEqual([
+        'The xlsx export skipped features your license does not unlock: xlsx:comments.',
+      ]);
+    });
+  });
+
+  it('names each export token only for the feature the grid has', async() => {
+    const cases = [
+      ['xlsx:styles', { columnHeaders: ['Name', 'Department'] }, {}],
+      ['xlsx:styles', { cellsMeta: [[{ className: 'htCenter' }, {}], [{}, {}]] }, {}],
+      ['xlsx:number_formats', {
+        data: [['Ana García', 4200], ['Li Wei', 3900]],
+        cellsMeta: [[{}, { type: 'numeric', numericFormat: { style: 'currency', currency: 'USD' } }], [{}, {}]],
+      }, {}],
+      ['xlsx:formulas', { sourceData: [['Ana García', '=1+1'], ['Li Wei', 'Marketing']] }, { exportFormulas: true }],
+      ['xlsx:conditional_formatting', {}, {
+        conditionalFormatting: [{ rules: [{ type: 'cellIs', operator: 'equal', formulae: ['1'], style: {} }] }],
+      }],
+      ['xlsx:data_validation', { cellsMeta: [[{}, { type: 'dropdown', source: ['Engineering'] }], [{}, {}]] }, {}],
+      // A read-only cell is locked, and painted gray too.
+      ['xlsx:styles, xlsx:protection', { cellsMeta: [[{ readOnly: true }, {}], [{}, {}]] }, {}],
+      ['xlsx:protection', {}, { protection: { password: 'q4-budget' } }],
+    ];
+
+    for (const [token, sheetOverrides, options] of cases) {
+      warnSpy.mockClear();
+
+      // eslint-disable-next-line no-await-in-loop
+      await withMockSheet({ ...PLAIN_SHEET, ...sheetOverrides }, async() => {
+        await exportSnapshot(keyWith(['xlsx:export']), {
+          conditionalFormatting: [],
+          exportFormulas: false,
+          ...options,
+        });
+      });
+
+      expect([token, exportWarnings()]).toEqual([
+        token, [`The xlsx export skipped features your license does not unlock: ${token}.`],
+      ]);
+    }
+  });
+
+  it('counts explicit layout only toward xlsx:layout', async() => {
+    await withMockSheet(PLAIN_SHEET, async() => {
+      await exportSnapshot(keyWith(['xlsx:export']), { conditionalFormatting: [], exportFormulas: false });
+    });
+
+    expect(exportWarnings()).toEqual([]);
+
+    const layouts = {
+      getColumnsWidths: [120, 50],
+      getRowsHeights: [40, undefined],
+      getMergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 2 }],
+      getFrozenRows: 1,
+      getFrozenColumns: 1,
+      getLayoutDirection: 'rtl',
+      getHiddenRowDataIndices: [1],
+      getHiddenColumnDataIndices: [1],
+    };
+
+    for (const [name, value] of Object.entries(layouts)) {
+      warnSpy.mockClear();
+
+      // eslint-disable-next-line no-await-in-loop
+      await withMockSheet({ ...PLAIN_SHEET, layout: { ...LAYOUT_FREE, [name]: value } }, async() => {
+        await exportSnapshot(keyWith(['xlsx:export']), { conditionalFormatting: [], exportFormulas: false });
+      });
+
+      expect([name, exportWarnings()]).toEqual([
+        name, ['The xlsx export skipped features your license does not unlock: xlsx:layout.'],
+      ]);
+    }
   });
 
   it('takes the entitlement from its own instance when sheets name another instance', async() => {

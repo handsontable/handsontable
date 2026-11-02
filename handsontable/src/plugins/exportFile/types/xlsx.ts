@@ -68,6 +68,7 @@ import {
   type XlsxEntitlement,
 } from '../../../utils/xlsxEngine/xlsxEntitlement';
 import { warn } from '../../../helpers/console';
+import { DEFAULT_COLUMN_WIDTH } from '../../../3rdparty/walkontable/src/constants';
 
 /**
  * The name used when sanitization leaves nothing behind (a sheet named `"[*]"`, say).
@@ -385,6 +386,46 @@ interface XlsxOptions extends Record<string, unknown> {
 const MAX_PROTECTION_PASSWORD_LENGTH = 255;
 
 /**
+ * What `#populateWorksheet` read of a sheet that decides which gated features it had to write.
+ */
+interface SheetFeatureFacts {
+  wouldProtect: boolean;
+  hasHeaders: boolean;
+  hasSummary: boolean;
+  nestedColumnHeaders: NestedHeaderEntry[][] | null;
+  hasRowHeaders: boolean;
+  columnsWidths: number[];
+  rowsHeights: number[];
+  mergeCells: MergeDescriptor[];
+  frozenRows: number;
+  frozenColumns: number;
+  hiddenRowIndices: number[];
+  hiddenColIndices: number[];
+}
+
+/**
+ * Whether a sheet has layout for `xlsx:layout` to write: a column width other than the default, an
+ * explicit row height, a hidden row or column, a merge (a nested header group included), a frozen
+ * pane, or a right-to-left direction. A default-width grid with none of them has no layout.
+ */
+function hasLayout(facts: SheetFeatureFacts, isRtl: boolean): boolean {
+  const nestedMerges = facts.nestedColumnHeaders !== null && (
+    (facts.hasRowHeaders && facts.nestedColumnHeaders.length > 1)
+    || facts.nestedColumnHeaders.some(layer => layer.some(header => header.colspan > 1))
+  );
+
+  return isRtl
+    || nestedMerges
+    || facts.mergeCells.length > 0
+    || facts.frozenRows > 0
+    || facts.frozenColumns > 0
+    || facts.hiddenRowIndices.length > 0
+    || facts.hiddenColIndices.length > 0
+    || facts.columnsWidths.some(width => isDefined(width) && width !== DEFAULT_COLUMN_WIDTH)
+    || facts.rowsHeights.some(height => isDefined(height));
+}
+
+/**
  * Refuses a `protection` option the export cannot honor: anything but `undefined`, `null` or a plain
  * object, an object whose `password` is neither `undefined`, `null` nor a string, and a password
  * longer than Excel's 255 characters. A number would otherwise reach the engines, which disagree on
@@ -428,6 +469,13 @@ class Xlsx extends BaseType {
    * of every export; the instances named in the `sheets` option never override it.
    */
   #entitlement: XlsxEntitlement = UNRESTRICTED_XLSX_ENTITLEMENT;
+
+  /**
+   * The capability tokens whose feature this export had something to write, collected while the
+   * sheets are populated. The missing-token warning names only the missing tokens found here, so a
+   * plain grid exported on a restricted key says nothing.
+   */
+  #needed = new Set<string>();
 
   /**
    * Marks this formatter as binary (non-stringifiable).
@@ -506,6 +554,7 @@ class Xlsx extends BaseType {
 
     // Scoped to the export's own tokens, so the warning never names `xlsx:import`.
     this.#entitlement = scopeXlsxEntitlement(getXlsxEntitlement(hot), EXPORT_FILE_CAPABILITY_IDS);
+    this.#needed = new Set();
 
     // Clear style caches for all documents involved in this export. In multi-sheet
     // mode each sheet may come from a different Handsontable instance living in a
@@ -557,10 +606,12 @@ class Xlsx extends BaseType {
       this.#populateWorksheet(workbook, name, this.dataProvider, this.options, usedSheetNames);
     }
 
-    const { missing } = this.#entitlement;
+    // `missing` keeps the `XLSX_CAPABILITY_IDS` order, so the warning does too.
+    const missing = this.#entitlement.missing.filter(id => this.#needed.has(id));
 
-    // One warning per export, naming the tokens only. An option the license overrode
-    // (`exportFormulas`, `conditionalFormatting`) is already covered by its token in the list.
+    // One warning per export, naming the tokens only, and only those whose feature the export
+    // actually left out. An option the license overrode (`exportFormulas`, `conditionalFormatting`)
+    // is covered by its token in the list.
     if (missing.length > 0 && getLicenseState(hot).channels.console) {
       warn(formatMissingCapabilitiesWarning('export', missing));
     }
@@ -571,6 +622,41 @@ class Xlsx extends BaseType {
     dropped.warn(detected.kind);
 
     return bytes;
+  }
+
+  /**
+   * Records that the export had something to write for a capability token.
+   *
+   * @param {boolean} condition Whether it had.
+   * @param {string} id The capability token.
+   */
+  #needIf(condition: boolean, id: string): void {
+    if (condition) {
+      this.#needed.add(id);
+    }
+  }
+
+  /**
+   * Records the sheet-level features the export had something to write for, whatever the license
+   * unlocks: the header style, live formulas, layout, conditional formatting, and protection. The
+   * per-cell ones (styles, number formats, validations, comments) are recorded while the cells are
+   * written.
+   *
+   * @param {ExportDataProvider} dataProvider The sheet's data provider.
+   * @param {object} options Merged options for this sheet.
+   * @param {object} facts What `#populateWorksheet` already read of the sheet.
+   */
+  #recordSheetFeatures(dataProvider: ExportDataProvider, options: XlsxOptions, facts: SheetFeatureFacts): void {
+    // The default header fill counts: only `headerStyle: null` writes headers with no style.
+    this.#needIf(facts.hasHeaders && options.headerStyle !== null, 'xlsx:styles');
+    this.#needIf(Boolean(options.conditionalFormatting?.length), 'xlsx:conditional_formatting');
+    this.#needIf(facts.wouldProtect || isObject(options.protection), 'xlsx:protection');
+    this.#needIf(hasLayout(facts, dataProvider.getLayoutDirection() === 'rtl'), 'xlsx:layout');
+
+    if (options.exportFormulas && !this.#needed.has('xlsx:formulas')) {
+      this.#needIf(facts.hasSummary || dataProvider.getSourceData()
+        .some(row => row.some(value => isFormulaValue(value))), 'xlsx:formulas');
+    }
   }
 
   /**
@@ -720,9 +806,25 @@ class Xlsx extends BaseType {
     //    and breaks styling assertions in tests.
     const hasColumnSummary = summaryMap.size > 0;
     const { protection } = options;
-    const hasReadOnlyCells = this.#entitlement.protection && protection !== null && !hasColumnSummary &&
+    const wouldProtect = protection !== null && !hasColumnSummary &&
       cellsMeta.some((row: unknown[]) =>
         row.some((meta: unknown) => (meta as Record<string, unknown>)?.readOnly === true));
+    const hasReadOnlyCells = this.#entitlement.protection && wouldProtect;
+
+    this.#recordSheetFeatures(dataProvider, options, {
+      wouldProtect,
+      hasHeaders: hasColumnHeaders || hasRowHeaders,
+      hasSummary: hasColumnSummary,
+      nestedColumnHeaders: useNestedHeaders ? nestedColumnHeaders : null,
+      hasRowHeaders,
+      columnsWidths,
+      rowsHeights,
+      mergeCells,
+      frozenRows,
+      frozenColumns,
+      hiddenRowIndices,
+      hiddenColIndices,
+    });
 
     const context = {
       exportFormulas,
@@ -850,6 +952,7 @@ class Xlsx extends BaseType {
 
       cell.value = value;
       cell.formula = formula;
+      this.#needIf(numFmt !== null, 'xlsx:number_formats');
       cell.numFmt = this.#entitlement.numberFormats ? numFmt : null;
 
       const cssStyle = getCssStyleFromElement(
@@ -889,7 +992,15 @@ class Xlsx extends BaseType {
       if (alignment || border || font || fill) {
         cell.style = { alignment, border, font, fill };
       }
+    } else if (!this.#needed.has('xlsx:styles')) {
+      // Without the token the computed CSS is never read, so only what the meta describes counts.
+      this.#needIf(Boolean(
+        getAlignmentFromMeta(meta) || getBorderFromMeta(meta) || getFontFromMeta(meta) || getFillFromMeta(meta)
+      ), 'xlsx:styles');
     }
+
+    this.#needIf(meta.type === 'dropdown' || meta.type === 'autocomplete', 'xlsx:data_validation');
+    this.#needIf(Boolean(meta.comment?.value), 'xlsx:comments');
 
     const rangeRef = Array.isArray(meta.source)
       ? (context.validationMap.get(context.sourceLabels(meta.source, meta.sourceLabel).key) ?? null)
@@ -972,9 +1083,15 @@ class Xlsx extends BaseType {
     if (temporalSerial !== null) {
       // A serial means nothing without its number format: without `xlsx:number_formats` the cell
       // goes out as the text the grid renders, so `2024-01-15` does not open as `45306`.
-      return this.#entitlement.numberFormats
-        ? { value: temporalSerial, formula: null, numFmt: resolveMetaNumFmt(meta) }
-        : { value: toDisplayText(cellValue, meta), formula: null, numFmt: null };
+      const numFmt = resolveMetaNumFmt(meta);
+
+      if (this.#entitlement.numberFormats) {
+        return { value: temporalSerial, formula: null, numFmt };
+      }
+
+      this.#needIf(numFmt !== null, 'xlsx:number_formats');
+
+      return { value: toDisplayText(cellValue, meta), formula: null, numFmt: null };
     }
 
     if (meta.type === 'checkbox') {
