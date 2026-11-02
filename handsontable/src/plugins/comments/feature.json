@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:comments",
+      "kind": "plugin",
+      "module": "Comments",
+      "name": "Comments",
+      "description": "Adds notes to cells and shows them in a floating editor.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

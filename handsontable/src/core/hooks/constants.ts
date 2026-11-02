@@ -1178,6 +1178,9 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after the focus position within a selected range is changed.
    *
+   * With merged cells, `row` and `column` name the cell the focus lands on: Enter and Tab stop once on
+   * a merged cell and skip the cells it covers.
+   *
    * @since 14.3.0
    * @event Hooks#afterSelectionFocusSet
    * @param {number} row The focus visual row index position.
@@ -2289,6 +2292,9 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired before setting focus selection.
    *
+   * With merged cells, the coordinates name the cell the focus moves to: Enter and Tab stop once on a
+   * merged cell and skip the cells it covers.
+   *
    * @since 14.3.0
    * @event Hooks#beforeSelectionFocusSet
    * @param {CellCoords} coords CellCoords instance.
@@ -2323,6 +2329,9 @@ export const REGISTERED_HOOKS = [
    * Fired before applying selection coordinates to the renderable coordinates for Walkontable (rendering engine).
    * It occurs even when cell coordinates remain unchanged and activates during cell selection and drag selection.
    * The behavior of <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> differs from <kbd>**←**</kbd> when there's no further movement possible.
+   *
+   * With merged cells, the selected range already covers every merged cell it touches, and its focus
+   * sits on a merged cell's top-left visible cell. A range selected through a header keeps its own extent.
    *
    * @since 14.0.0
    * @event Hooks#beforeSelectionHighlightSet
@@ -4051,6 +4060,9 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired when the focus of the selection is being modified (e.g. Moving the focus with the enter/tab keys).
    *
+   * With merged cells, `delta` is the plain step. Handsontable then moves the focus in the direction the
+   * step leaves, from one merged cell or cell to the next.
+   *
    * @since 14.3.0
    * @event Hooks#modifyTransformFocus
    * @param {CellCoords} delta Cell coords object declaring the delta of the new selection relative to the previous one.
@@ -4060,6 +4072,8 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired when the start of the selection is being modified (e.g. Moving the selection with the arrow keys).
    *
+   * With merged cells, `delta` already steps past the merged cell the selection starts in.
+   *
    * @event Hooks#modifyTransformStart
    * @param {CellCoords} delta Cell coords object declaring the delta of the new selection relative to the previous one.
    */
@@ -4067,6 +4081,8 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired when the end of the selection is being modified (e.g. Moving the selection with the arrow keys).
+   *
+   * With merged cells, `delta` already moves the end past every merged cell it would stop inside.
    *
    * @event Hooks#modifyTransformEnd
    * @param {CellCoords} delta Cell coords object declaring the delta of the new selection relative to the previous one.
