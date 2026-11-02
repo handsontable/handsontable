@@ -264,6 +264,14 @@ test('the run\'s origin and the installed version are masked, so a golden moves 
   assert.equal(maskSnapshot('- text: 18.1.0', {}), '- text: 18.1.0', 'nothing to mask, nothing masked');
 });
 
+test('a live status region\'s message is masked: when the snapshot is taken decides which message it reads', () => {
+  const portal = ['# portal', '- status: Page 1 of 5', '- status', '- text: Page 1 of 5'].join('\n');
+
+  assert.equal(maskSnapshot(portal, {}), ['# portal', '- status: <announcement>', '- status', '- text: Page 1 of 5'].join('\n'),
+    'the announcer\'s message is masked; an empty status and the pager\'s own text are kept');
+  assert.equal(maskSnapshot('  - status "Saved": Row 3 saved', {}), '  - status "Saved": <announcement>');
+});
+
 test('a snapshot that differs from its golden names its first differing line', () => {
   assert.equal(diffSnapshot('- treegrid:\n  - row "A1"', '- treegrid:\n  - row "A1"'), null);
   assert.deepEqual(diffSnapshot('- treegrid:\n  - row "A1"\n  - row "A2"', '- treegrid:\n  - row "A1 changed"\n  - row "A2"'),
