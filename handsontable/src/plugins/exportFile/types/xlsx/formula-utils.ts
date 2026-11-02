@@ -1,6 +1,7 @@
 import { colIndexToLetter, colLetterToIndex } from '../../../../utils/xlsxEngine/cellRef';
 import { mapFormulaReferences, type ReferenceMap } from '../../../../utils/xlsxEngine/formulaRefs';
 import { isNameChar, skipQuoted } from '../../../../utils/xlsxEngine/functionPrefixes';
+import { ILLEGAL_XML_CHAR } from '../../../../utils/xlsxEngine/adapters/native/xml/escapes';
 
 /**
  * The column-letter converters, re-exported from the shared xlsx engine layer so the export's own
@@ -430,11 +431,14 @@ export function toOoxmlErrorCode(cellValue: unknown): string | null {
 const MAX_FORMULA_STRING_LITERAL_LENGTH = 255;
 
 /**
- * The control characters an XML 1.0 file cannot hold. The writers strip them, so a literal holding
- * one would silently change; a tab, a line feed and a carriage return are allowed.
+ * Whether a string literal would change on its way through the file. The writer drops every
+ * character an XML 1.0 file cannot hold (`ILLEGAL_XML_CHAR`, the native writer's own set), and a
+ * carriage return is written raw, so the reader's end-of-line handling turns it into a line feed
+ * (`"a\rb"` read back as `"a\nb"`). A tab and a line feed survive.
  */
-// eslint-disable-next-line no-control-regex
-const XML_FORBIDDEN_CONTROL_CHARACTERS = /[\x00-\x08\x0B\x0C\x0E-\x1F]/;
+function changesInFile(text: string): boolean {
+  return text.includes('\r') || ILLEGAL_XML_CHAR.test(text);
+}
 
 /**
  * Spells the constant value of a HyperFormula named expression (one defined with a value rather
@@ -442,7 +446,7 @@ const XML_FORBIDDEN_CONTROL_CHARACTERS = /[\x00-\x08\x0B\x0C\x0E-\x1F]/;
  * with every `"` doubled, a boolean as `TRUE()` or `FALSE()` (the function form, which every
  * reader parses as a boolean), and an error with an OOXML code as that code. Answers `null` for
  * anything else (an empty value, an error with no code, a string longer than the 255 characters
- * Excel accepts in a literal, a string with a control character the file cannot hold), which no
+ * Excel accepts in a literal, a string with a character the file cannot hold or a carriage return), which no
  * definition can spell.
  *
  * @private
@@ -456,7 +460,7 @@ export function toFormulaLiteral(value: unknown): string | null {
 
   if (typeof value === 'string') {
     // Excel refuses a string literal longer than 255 characters in a formula.
-    if (value.length > MAX_FORMULA_STRING_LITERAL_LENGTH || XML_FORBIDDEN_CONTROL_CHARACTERS.test(value)) {
+    if (value.length > MAX_FORMULA_STRING_LITERAL_LENGTH || changesInFile(value)) {
       return null;
     }
 

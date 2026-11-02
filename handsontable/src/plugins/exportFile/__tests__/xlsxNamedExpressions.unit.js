@@ -323,7 +323,8 @@ describe('Xlsx export: named expressions as defined names', () => {
     expect(dropped.list()).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
   });
 
-  it('should write a text constant holding a quote with the quote doubled, read back as written', async() => {
+  it('should write a text constant holding a quote with the quote doubled in the file text, as the reader reads it', async() => {
+    // This checks the file text and the reader only, not an import of `"a""b"` into HyperFormula.
     writeSpy.mockRestore();
     writeSpy = jest.spyOn(nativeAdapter, 'write');
 
@@ -337,6 +338,27 @@ describe('Xlsx export: named expressions as defined names', () => {
     const read = await nativeAdapter.read(toArrayBuffer(bytes), undefined, new DroppedFeatures());
 
     expect(read.definedNames).toEqual([{ name: 'Quoted', formula: '"a""b"', sheetName: null }]);
+  });
+
+  it('should leave out a text constant holding a carriage return, which the file reads back as a line feed', async() => {
+    writeSpy.mockRestore();
+    writeSpy = jest.spyOn(nativeAdapter, 'write');
+
+    const engine = createGrid({ data: [['=LEN(Cr)']] });
+
+    engine.addNamedExpression('Cr', 'a\rb');
+    engine.addNamedExpression('Lf', 'a\nb');
+
+    await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', { exportFormulas: true });
+
+    const [snapshot] = writeSpy.mock.calls[0];
+    const bytes = await writeSpy.mock.results[0].value;
+    const read = await nativeAdapter.read(toArrayBuffer(bytes), undefined, new DroppedFeatures());
+
+    // Written, `"a\rb"` came back as `"a\nb"`.
+    expect(read.definedNames).toEqual([{ name: 'Lf', formula: '"a\nb"', sheetName: null }]);
+    expect(snapshot.sheets[0].rows[0][0].formula).toBeNull();
+    expect(snapshot.sheets[0].rows[0][0].value).toBe(3);
   });
 
   it('should convert the engine argument separator to a comma', async() => {
