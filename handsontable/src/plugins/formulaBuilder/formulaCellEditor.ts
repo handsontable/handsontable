@@ -80,6 +80,13 @@ export interface FormulaHostEditor {
    */
   _textAtKeyDown?: string;
   /**
+   * The formula editor's text right after it was seeded with the cell's own value, or `undefined` when
+   * the session started from other text (a typed key). The formula editor normalizes some formulas as
+   * it reads them (`=1+N("note")` reads back as `=1+ N("note")`), so this text, not `_original`, is
+   * what an untouched edit holds.
+   */
+  _seededText?: string;
+  /**
    * Removes the `keydown` listener that records `_textAtKeyDown`, `null` between sessions.
    */
   _removeKeyDownSnapshot?: (() => void) | null;
@@ -431,6 +438,7 @@ export function createFormulaCellEditor(): BaseEditorCtor {
       editor._pending = original;
       editor._original = original;
       editor._textAtKeyDown = undefined;
+      editor._seededText = undefined;
       editor._hiddenByFormulaBar = false;
     },
     afterOpen(editor) {
@@ -448,6 +456,10 @@ export function createFormulaCellEditor(): BaseEditorCtor {
         mountFallbackTextarea(editor);
 
         return;
+      }
+
+      if (editor._pending === editor._original) {
+        editor._seededText = plugin.getActiveEditor()?.getValue();
       }
 
       startKeyboardGuard(editor);
@@ -470,8 +482,11 @@ export function createFormulaCellEditor(): BaseEditorCtor {
 
       if (activeEditor) {
         // A plain read: `getValue()` is public through `getActiveEditor()`, so it must not change
-        // the buffer. The parens are closed on the commit path, in `finishEditing()` below.
-        return activeEditor.getValue();
+        // the buffer. The parens are closed on the commit path, in `finishEditing()` below. An
+        // untouched buffer reads as the cell's own value, so `BaseEditor` writes nothing for it.
+        const text = activeEditor.getValue();
+
+        return isUntouchedText(editor, text) ? editor._original ?? text : text;
       }
 
       return editor._original ?? editor._pending ?? '';
@@ -543,7 +558,7 @@ export function createFormulaCellEditor(): BaseEditorCtor {
     // An untouched edit is left as it is, so the unchanged-value guard of `BaseEditor` writes nothing.
     if (
       !restoreOriginalValue && this.state === EDITOR_STATE.EDITING && !this._fallbackInput &&
-      inner && inner.getValue() !== this._original
+      inner && !isUntouchedText(this, inner.getValue())
     ) {
       inner.closeUnbalancedParens();
     }
@@ -560,8 +575,9 @@ export function createFormulaCellEditor(): BaseEditorCtor {
  * Returns the value a commit of the formula editor saves. The formula editor closes unbalanced
  * parentheses before it commits, so the value of an edit the user never changed differs from the
  * cell, and `BaseEditor`'s unchanged-value guard would write it (and fire `afterChange`). When the
- * text before the commit key equals the cell's original value and the commit only appended closing
- * parentheses to it, the original value is saved instead, which the guard recognizes.
+ * text before the commit key is untouched (the cell's original value, or the text the formula editor
+ * normalized it to when it was seeded) and the commit only appended closing parentheses to it, the
+ * original value is saved instead, which the guard recognizes.
  *
  * @param {FormulaHostEditor} editor The editor instance.
  * @param {string} value The value the formula editor commits.
@@ -569,12 +585,26 @@ export function createFormulaCellEditor(): BaseEditorCtor {
  */
 export function resolveCommitValue(editor: FormulaHostEditor, value: string): string {
   const original = editor._original;
+  const before = editor._textAtKeyDown;
 
-  if (original === undefined || editor._textAtKeyDown !== original || !value.startsWith(original)) {
+  if (original === undefined || before === undefined || !isUntouchedText(editor, before) ||
+      !value.startsWith(before)) {
     return value;
   }
 
-  return /^\)+$/.test(value.slice(original.length)) ? original : value;
+  return /^\)*$/.test(value.slice(before.length)) ? original : value;
+}
+
+/**
+ * Checks whether the given text is what the formula editor held before the user changed anything:
+ * the cell's own value, or the text the formula editor normalized it to when it was seeded.
+ *
+ * @param {FormulaHostEditor} editor The editor instance.
+ * @param {string} text The formula editor's text.
+ * @returns {boolean}
+ */
+function isUntouchedText(editor: FormulaHostEditor, text: string): boolean {
+  return text === editor._original || (editor._seededText !== undefined && text === editor._seededText);
 }
 
 let formulaEditorClass: BaseEditorCtor | null = null;

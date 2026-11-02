@@ -45,7 +45,10 @@ describe('FormulaBuilder editing on a real grid', () => {
   });
 
   afterEach(() => {
-    hot?.destroy();
+    if (hot && !hot.isDestroyed) {
+      hot.destroy();
+    }
+
     container.remove();
     removeRealCoreStyles();
   });
@@ -417,6 +420,30 @@ describe('FormulaBuilder editing on a real grid', () => {
       adapter().commit('7', 'down');
       await settle();
 
+      expect(hot.isListening()).toBe(true);
+    });
+
+    it('listens again after a commit without a direction', async() => {
+      createGrid();
+      hot.selectCell(1, 1);
+      adapter().beginEdit({ sheet: '', row: 1, col: 1 });
+      hot.unlisten();
+      adapter().commit('7');
+      await settle();
+
+      expect(hot.getDataAtCell(1, 1)).toBe('7');
+      expect(hot.isListening()).toBe(true);
+    });
+
+    it('listens again after a commit to the whole selection', async() => {
+      createGrid();
+      hot.selectCell(1, 1, 2, 2);
+      adapter().beginEdit({ sheet: '', row: 1, col: 1 });
+      hot.unlisten();
+      adapter().commitFill('7');
+      await settle();
+
+      expect(hot.getDataAtCell(2, 2)).toBe('7');
       expect(hot.isListening()).toBe(true);
     });
   });
@@ -835,6 +862,55 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(afterChange).not.toHaveBeenCalled();
     });
 
+    it('writes nothing on Ctrl/Cmd+Enter', async() => {
+      createGrid({ data: [['=SUM(B1', 1]] });
+      const afterChange = jest.fn();
+
+      hot.addHook('afterChange', afterChange);
+      hot.selectCell(0, 0);
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+      formulaInput().dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'Enter', ctrlKey: true, metaKey: true, bubbles: true, cancelable: true,
+      }));
+      await settle();
+
+      expect(isEditorOpened()).toBe(false);
+      expect(hot.getSourceDataAtCell(0, 0)).toBe('=SUM(B1');
+      expect(afterChange).not.toHaveBeenCalled();
+      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+    });
+
+    it('writes nothing on Enter when the formula editor rewrites the text it was opened with', async() => {
+      // The formula editor reads `=1+N("note")` back as `=1+ N("note")`, so its text never equals the
+      // cell's value, even when the user changed nothing.
+      createGrid({ data: [['=1+N("note")', 1]] });
+      const afterChange = jest.fn();
+
+      hot.addHook('afterChange', afterChange);
+      hot.selectCell(0, 0);
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+      formulaInput().dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+      await settle();
+
+      expect(isEditorOpened()).toBe(false);
+      expect(hot.getSourceDataAtCell(0, 0)).toBe('=1+N("note")');
+      expect(afterChange).not.toHaveBeenCalled();
+    });
+
+    it('writes nothing on a native commit when the formula editor rewrites the text it was opened with', async() => {
+      createGrid({ data: [['=1+N("note")', 1]] });
+      const afterChange = jest.fn();
+
+      hot.addHook('afterChange', afterChange);
+      hot.selectCell(0, 0);
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+      hot.getActiveEditor()?.finishEditing();
+      await settle();
+
+      expect(hot.getSourceDataAtCell(0, 0)).toBe('=1+N("note")');
+      expect(afterChange).not.toHaveBeenCalled();
+    });
+
     it('writes nothing on a native commit (an outside click)', async() => {
       createGrid({ data: [['=SUM(B1', 1]] });
       const afterChange = jest.fn();
@@ -998,7 +1074,9 @@ describe('FormulaBuilder editing on a real grid', () => {
       createGrid({ formulaBuilder: { builder: core, showFormulaBar: true } });
       hot.selectCell(1, 1);
       adapter().beginEdit({ sheet: '', row: 1, col: 1 }, '=1+1');
-      // Focusing the bar unlistens the grid.
+      // The bar hosts the edit: the package hides the in-cell editor, and focusing the bar unlistens
+      // the grid.
+      hot.getPlugin('formulaBuilder').setInlineEditorVisible(false);
       hot.unlisten();
       teardown();
       await settle();
@@ -1006,6 +1084,58 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(isEditorOpened()).toBe(false);
       expect(hot.getDataAtCell(1, 1)).toBe('B2');
       expect(hot.isListening()).toBe(true);
+    });
+  });
+
+  describe('a teardown while another grid holds the keyboard', () => {
+    let otherContainer: HTMLDivElement;
+    let other: Handsontable;
+
+    beforeEach(() => {
+      otherContainer = document.createElement('div');
+      document.body.appendChild(otherContainer);
+      other = new Handsontable(otherContainer, {
+        data: [[1, 2], [3, 4]],
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    });
+
+    afterEach(() => {
+      other.destroy();
+      otherContainer.remove();
+    });
+
+    it.each([
+      ['a settings change rebuilds the plugin', () => {
+        hot.updateSettings({
+          formulaBuilder: { builder: core, showFormulaBar: true, direction: 'rtl' },
+        } as Handsontable.GridSettings);
+      }],
+      ['the grid is destroyed', () => hot.destroy()],
+    ])('leaves the other grid listening when %s under an in-cell edit', async(_, teardown) => {
+      createGrid({ formulaBuilder: { builder: core, showFormulaBar: true } });
+      hot.selectCell(1, 1);
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+      other.selectCell(0, 0);
+      other.listen();
+      teardown();
+      await settle();
+
+      expect(other.isListening()).toBe(true);
+    });
+
+    it('leaves the other grid listening when the grid is destroyed under a bar edit', async() => {
+      createGrid({ formulaBuilder: { builder: core, showFormulaBar: true } });
+      hot.selectCell(1, 1);
+      adapter().beginEdit({ sheet: '', row: 1, col: 1 }, '=1+1');
+      hot.getPlugin('formulaBuilder').setInlineEditorVisible(false);
+      // Focusing the bar unlistens the grid; the user then moves to the other grid.
+      other.selectCell(0, 0);
+      other.listen();
+      hot.destroy();
+      await settle();
+
+      expect(other.isListening()).toBe(true);
     });
   });
 });

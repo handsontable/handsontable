@@ -715,7 +715,7 @@ export class FormulaBuilder extends BasePlugin {
       return;
     }
 
-    editor.setValue?.(value);
+    editor.setValue?.(resolveCommitValue(editor, value));
     editor.finishEditing?.(false, true, (dataSaved?: boolean) => {
       this.#relistenAfterBarExit();
 
@@ -2341,11 +2341,18 @@ export class FormulaBuilder extends BasePlugin {
    */
   #cancelOpenEdit(): void {
     if (this.#activeEditor) {
+      // Only a bar-hosted edit took the keyboard from the grid, so only it gives it back: an in-cell
+      // edit leaves it where it is, which may be another grid.
+      const wasBarHosted = this.#isBarHostedEdit();
+
       // Destroying the builder under an open session would leave Handsontable's editor in the
       // EDITING state over a torn-down mount, and its eventual close would commit the stale
       // original.
       this.#hostEditor()?.finishEditing?.(true);
-      this.#relistenAfterBarExit();
+
+      if (wasBarHosted) {
+        this.#relistenAfterBarExit();
+      }
     }
   }
 
