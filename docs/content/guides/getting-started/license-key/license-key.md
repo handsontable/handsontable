@@ -353,9 +353,12 @@ every key did before.
 When your key lists its features and your grid turns on a plugin the key does not list:
 
 - The plugin stays off. The rest of the grid works, and the grid is not locked.
-- The console shows one error, and the same message appears below the grid, for example:
+- The console shows one error, for example:
   _The license key for Handsontable does not include these features: Filters (feat:filters). They
   are turned off. To add them, contact sales@handsontable.com._
+- The same message appears below the grid, without the token names, because your end users can see
+  it: _The license key for Handsontable does not include these features: Filters. They are turned
+  off. To add them, contact sales@handsontable.com._
 - The option keeps the value you set, so `getSettings()` still returns it. Pass a key that lists the
   feature through [`updateSettings()`](@/api/core.md#updatesettings), and the plugin turns on.
 - The plugin's methods work as they do for a plugin whose option is off. Some of them throw, because
@@ -433,7 +436,8 @@ Shown below the table and in the console:
 
 _The license key for Handsontable does not include these features: `[features]`. They are turned off. To add them, contact `[email]`._
 
-`[features]` lists each missing feature as its name and token, for example `Filters (feat:filters)`.
+In the console, `[features]` lists each missing feature as its name and token, for example
+`Filters (feat:filters)`. Below the table, it lists the names only, for example `Filters`.
 
 ## Get a license key
 

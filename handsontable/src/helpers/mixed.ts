@@ -258,8 +258,10 @@ type EntitlementConsoleNotification = {
  */
 /**
  * Builds the message for the features a license key that lists its features leaves out: the console
- * text and the bar parts. One message names every missing feature, each as `<display name>
- * (<token>)`. Transcribed from the license specification (rev 6, section 10.4).
+ * text and the bar parts. One message names every missing feature. The console text, which is also
+ * what a refused call throws, names each as `<display name> (<token>)` for the developer; the bar,
+ * which the end user can see, names each by its display name only. Transcribed from the license
+ * specification (rev 6, section 10.4).
  *
  * @param {Array<{name: string, capability: string}>} features The missing features, in the order to print.
  * @returns {{text: string, parts: MessagePart[]}}
@@ -267,13 +269,14 @@ type EntitlementConsoleNotification = {
 export function _buildMissingFeaturesMessage(
   features: ReadonlyArray<{ name: string; capability: string }>,
 ): { text: string; parts: MessagePart[] } {
-  const list = features.map(({ name, capability }) => `${name} (${capability})`).join(', ');
-  const lead = `The license key for Handsontable does not include these features: ${list}. ` +
+  const lead = (list: string) => `The license key for Handsontable does not include these features: ${list}. ` +
     'They are turned off. To add them, contact ';
+  const withTokens = features.map(({ name, capability }) => `${name} (${capability})`).join(', ');
+  const namesOnly = features.map(({ name }) => name).join(', ');
 
   return {
-    text: `${lead}sales@handsontable.com.`,
-    parts: [lead, { text: 'sales@handsontable.com', href: 'mailto:sales@handsontable.com' }, '.'],
+    text: `${lead(withTokens)}sales@handsontable.com.`,
+    parts: [lead(namesOnly), { text: 'sales@handsontable.com', href: 'mailto:sales@handsontable.com' }, '.'],
   };
 }
 

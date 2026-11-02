@@ -11,6 +11,9 @@ import {
 
 const FILTERS_MESSAGE = 'The license key for Handsontable does not include these features: Filters ' +
   '(feat:filters). They are turned off. To add them, contact sales@handsontable.com.';
+// The bar can reach the end user, so it names the features without their tokens.
+const FILTERS_BAR_MESSAGE = 'The license key for Handsontable does not include these features: Filters. ' +
+  'They are turned off. To add them, contact sales@handsontable.com.';
 
 /**
  * The license gate keeps a plugin a key does not list off. The console message prints once per page,
@@ -90,7 +93,7 @@ describe('BasePlugin license gate', () => {
 
       expect(bars.length).toBe(1);
       expect(bars[0].querySelector('.hot-display-license-info_missing-features').textContent)
-        .toBe(FILTERS_MESSAGE);
+        .toBe(FILTERS_BAR_MESSAGE);
       expect(bars[0].querySelector('a').getAttribute('href')).toBe('mailto:sales@handsontable.com');
     });
 
@@ -211,7 +214,7 @@ describe('BasePlugin license gate', () => {
       expect(bars.length).toBe(1);
       expect(bars[0].querySelectorAll('.hot-display-license-info_inner').length).toBe(2);
       expect(bars[0].querySelector('.hot-display-license-info_missing-features').textContent)
-        .toBe(FILTERS_MESSAGE);
+        .toBe(FILTERS_BAR_MESSAGE);
     });
   });
 
@@ -242,7 +245,8 @@ describe('BasePlugin license gate', () => {
 
       expect(bars.length).toBe(1);
       expect(bars[0].querySelectorAll('.hot-display-license-info_missing-features').length).toBe(1);
-      expect(bars[0].textContent).toContain('Filters (feat:filters), Merge cells (feat:merge_cells).');
+      expect(bars[0].textContent).toContain('these features: Filters, Merge cells. They are turned off.');
+      expect(missingFeatureErrors()[1]).toContain('Filters (feat:filters), Merge cells (feat:merge_cells).');
       expect(missingFeatureErrors().length).toBe(2);
     });
 
@@ -267,7 +271,7 @@ describe('BasePlugin license gate', () => {
       expect(() => hot.updateSettings({ licenseKey: FLAGGED_BASE_KEY })).not.toThrow();
       expect(hot.getPlugin('filters').enabled).toBe(false);
       expect(licenseBars(hot)).toEqual([bar]);
-      expect(bar.querySelector('.hot-display-license-info_missing-features').textContent).toBe(FILTERS_MESSAGE);
+      expect(bar.querySelector('.hot-display-license-info_missing-features').textContent).toBe(FILTERS_BAR_MESSAGE);
       // The same key and the same features: the console message is not printed twice on a page.
       expect(missingFeatureErrors()).toEqual([FILTERS_MESSAGE]);
     });

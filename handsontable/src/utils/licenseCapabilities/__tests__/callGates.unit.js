@@ -93,8 +93,13 @@ describe('license gates of the plugins that are on in every grid', () => {
 
       expect(printed.length).toBe(1);
       expect(printed[0]).toContain('Export to file (feat:export_file)');
-      expect(hot.rootSlotBottomElement.querySelector('.hot-display-license-info_missing-features').textContent)
-        .toBe(printed[0]);
+
+      // The bar says the same as the console, without the tokens.
+      const bar = hot.rootSlotBottomElement.querySelector('.hot-display-license-info_missing-features').textContent;
+
+      expect(bar).toBe(printed[0].replace(/ \([a-z]+:[a-z_]+\)/g, ''));
+      expect(bar).toContain('Export to file');
+      expect(bar).not.toContain('feat:');
     });
 
     it('should export when the key covers it, and when the key is not flagged', () => {

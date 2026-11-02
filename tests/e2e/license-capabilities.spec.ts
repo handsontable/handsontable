@@ -3,6 +3,9 @@ import { LicenseCapabilitiesPage } from '../fixtures/pages/LicenseCapabilitiesPa
 
 const FILTERS_MESSAGE = 'The license key for Handsontable does not include these features: Filters ' +
   '(feat:filters). They are turned off. To add them, contact sales@handsontable.com.';
+// The bar can reach the end user, so it names the features without their tokens.
+const FILTERS_BAR_MESSAGE = 'The license key for Handsontable does not include these features: Filters. ' +
+  'They are turned off. To add them, contact sales@handsontable.com.';
 
 /**
  * A license key whose Handsontable entry carries the `listed-capabilities` flag unlocks `core`, the
@@ -25,7 +28,7 @@ test.describe('license keys that list their features', { tag: BUNDLES_TAG }, () 
     // The setting is the user's, and stays as written.
     expect(await license.filtersSetting()).toBe(true);
     expect(license.licenseErrors()).toEqual([FILTERS_MESSAGE]);
-    await expect(license.missingFeatures).toHaveText(FILTERS_MESSAGE);
+    await expect(license.missingFeatures).toHaveText(FILTERS_BAR_MESSAGE);
     await expect(license.bar).toHaveCount(1);
   });
 
@@ -62,7 +65,7 @@ test.describe('license keys that list their features', { tag: BUNDLES_TAG }, () 
     await license.updateLicenseKey('flagged-base');
 
     expect(await license.isPluginEnabled('filters')).toBe(false);
-    await expect(license.missingFeatures).toHaveText(FILTERS_MESSAGE);
+    await expect(license.missingFeatures).toHaveText(FILTERS_BAR_MESSAGE);
 
     await license.tabOutOfLastCell();
 
