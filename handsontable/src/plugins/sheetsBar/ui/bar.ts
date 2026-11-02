@@ -280,13 +280,16 @@ export class SheetsBarUI {
    * and scrolls inside the grid's container. The browser's own focus scroll leaves an element that is partly in
    * view where it is, so a control the keyboard reached could stay cut at the bar's edge. The element is measured
    * by its fractional box, and the offset is rounded away from it, because `scrollLeft` snaps to whole pixels.
+   * Only keyboard focus is revealed (`:focus-visible`): the browser does not scroll for a press either, and a
+   * scroll between a press and its release moved the clicked tab away, so the click landed elsewhere.
    *
    * @param {EventTarget|null} target The element that took the focus.
    */
   #revealInBar(target: EventTarget | null): void {
     const container = this.getContainer();
 
-    if (!isHTMLElement(target) || container.scrollWidth <= container.clientWidth) {
+    if (!isHTMLElement(target) || container.scrollWidth <= container.clientWidth
+      || !target.matches(':focus-visible')) {
       return;
     }
 

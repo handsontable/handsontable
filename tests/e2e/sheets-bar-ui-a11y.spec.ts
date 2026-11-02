@@ -396,6 +396,107 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
       expect(wide.scrolls).toBe(false);
     });
 
+    [false, true].forEach((rtl) => {
+      test(`keeps every tab the arrow keys reach wholly in view in a bar that scrolls${rtl ? ' (RTL)' : ''}`, async({
+        page, theme, bundle,
+      }) => {
+        const fixture = new SheetsBarUiPage(page, theme, bundle);
+        const forward = rtl ? 'ArrowLeft' : 'ArrowRight';
+        const backward = rtl ? 'ArrowRight' : 'ArrowLeft';
+        const wholeInBar = (index: number) => page.evaluate((position) => {
+          const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
+          const barBox = bar.getBoundingClientRect();
+          const left = barBox.left + bar.clientLeft;
+          const tab = bar.querySelectorAll('.ht-sheets-bar__tab')[position] as HTMLElement;
+          const box = tab.getBoundingClientRect();
+
+          return box.left >= left - 0.5 && box.right <= left + bar.clientWidth + 0.5;
+        }, index);
+
+        await fixture.goto({
+          sheets: 12,
+          rtl,
+          tabNames: Array.from({ length: 12 }, (_, index) => `S${index + 1}`),
+          columnCounts: Array(12).fill(1),
+          fixedHeight: false,
+        });
+        await expect.poll(() => page.evaluate(() => {
+          const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
+
+          return bar.scrollWidth > bar.clientWidth;
+        })).toBe(true);
+        await fixture.activeTab.focus();
+
+        for (let index = 1; index < 12; index += 1) {
+          await page.keyboard.press(forward);
+          await expect(fixture.tab(index)).toBeFocused();
+          await expect.poll(() => wholeInBar(index), `tab ${index} going forward`).toBe(true);
+        }
+
+        for (let index = 10; index >= 0; index -= 1) {
+          await page.keyboard.press(backward);
+          await expect(fixture.tab(index)).toBeFocused();
+          await expect.poll(() => wholeInBar(index), `tab ${index} going back`).toBe(true);
+        }
+      });
+    });
+
+    test('activates a tab clicked where the bar\'s edge cuts it, and does not scroll the bar', async({
+      page, theme, bundle,
+    }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+      await fixture.goto({
+        sheets: 12,
+        tabNames: Array.from({ length: 12 }, (_, index) => `S${index + 1}`),
+        columnCounts: Array(12).fill(1),
+        fixedHeight: false,
+      });
+
+      const target = await page.evaluate(() => {
+        const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
+        const strip = bar.querySelector('.ht-sheets-bar__tabs') as HTMLElement;
+        const tabs = Array.from(bar.querySelectorAll('.ht-sheets-bar__tab')) as HTMLElement[];
+        const cutTab = () => {
+          const right = bar.getBoundingClientRect().left + bar.clientLeft + bar.clientWidth;
+          const stripBox = strip.getBoundingClientRect();
+
+          return tabs.findIndex((tab) => {
+            const box = tab.getBoundingClientRect();
+
+            return !tab.classList.contains('ht-sheets-bar__tab--active')
+              && box.left >= stripBox.left && box.left < right - 4 && box.right > right;
+          });
+        };
+
+        for (let stripScroll = 0; stripScroll <= strip.scrollWidth; stripScroll += 4) {
+          strip.scrollLeft = stripScroll;
+
+          for (let barScroll = 0; barScroll <= bar.scrollWidth - bar.clientWidth; barScroll += 1) {
+            bar.scrollLeft = barScroll;
+
+            const index = cutTab();
+
+            if (index > -1) {
+              const box = tabs[index].getBoundingClientRect();
+
+              return { index, x: box.left + 2, y: box.top + (box.height / 2), scrollLeft: bar.scrollLeft };
+            }
+          }
+        }
+
+        return { index: -1, x: 0, y: 0, scrollLeft: 0 };
+      });
+
+      expect(target.index).toBeGreaterThan(-1);
+
+      await page.mouse.click(target.x, target.y);
+
+      await expect(fixture.tab(target.index)).toHaveClass(/ht-sheets-bar__tab--active/);
+      expect(await page.evaluate(() => (document.querySelector('.ht-sheets-bar') as HTMLElement).scrollLeft))
+        .toBe(target.scrollLeft);
+    });
+
     test('stays inside a container narrower than its minimum', async({ page, theme, bundle }) => {
       const fixture = new SheetsBarUiPage(page, theme, bundle);
 

@@ -1222,8 +1222,9 @@ export class TabStrip {
   /**
    * Moves the focus along the strip from the tab that holds it. Bound to the arrow, Home and
    * End keys by the plugin. The arrows follow the reading direction: under RTL the next tab is
-   * the one to the left. The strip reveals the tab itself: the browser's focus scroll leaves a tab
-   * that is partly in view where it is.
+   * the one to the left. The strip reveals the tab itself, before the focus moves: the browser's focus
+   * scroll leaves a tab that is partly in view where it is, and the bar's own reveal, which runs on the
+   * focus, must measure the tab where the strip put it.
    *
    * @param {number|'first'|'last'} step `1` or `-1` for the neighbouring tab in reading order,
    *   or an end of the strip.
@@ -1247,8 +1248,8 @@ export class TabStrip {
       index = Math.min(Math.max(index + step, 0), tabs.length - 1);
     }
 
-    tabs[index].focus({ preventScroll: true });
     this.#scrollIntoStrip(tabs[index]);
+    tabs[index].focus({ preventScroll: true });
 
     return true;
   }

@@ -713,7 +713,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     only, not the overflow scrolled into view, so the arrows lost their background after a scroll to the end.
   - **The bar reveals a focused control itself** (`SheetsBarUI#revealInBar`, a `focusin` listener). The
     browser's focus scroll leaves a partly visible element where it is, so + or an arrow reached with Tab
-    stayed cut at the bar's edge. It measures fractional boxes and rounds outward, like the tab reveal.
+    stayed cut at the bar's edge. It measures fractional boxes and rounds outward, like the tab reveal. Two
+    rules keep it from fighting the rest. It reveals keyboard focus only (`:focus-visible`): a scroll between
+    a press and its release moved a clicked tab away, and the click activated nothing. And
+    `TabStrip#focusRelativeTab` reveals the tab in the strip before it moves the focus, or the bar measured
+    the tab where the strip had not put it yet and left it cut by about 50px.
   - **Test fixtures pin the strip with `width`, not `flex`.** `tests/fixtures/demo/sheets-bar.html` forces a
     600px strip so the arrows always show; the strip is a grid item now, so `flex: 0 0 600px` stopped applying.
 
