@@ -614,6 +614,7 @@ function rewriteBareBooleans(formula: string): string {
     const start = match.index ?? 0;
     const lowered = token.toLowerCase();
 
+    // An error literal (`#VALUE!`) lowers to neither.
     if (lowered === 'true' || lowered === 'false') {
       const prev = start > 0 ? formula[start - 1] : '';
       const next = formula[start + token.length];
@@ -687,11 +688,28 @@ function isSheetKnown(name: string, scope: CollectContext): boolean {
 }
 
 /**
- * An identifier in a formula: a name, a function name or a cell reference. A string literal and a
- * quoted sheet name (`'Sales Data'!A1`) are matched whole so their words are never read as names.
- * Linear: one greedy run per match, no backtracking.
+ * An identifier in a formula: a name, a function name or a cell reference. A string literal, a
+ * quoted sheet name (`'Sales Data'!A1`) and an error literal (`#N/A`, any case) are matched whole so
+ * their words are never read as names (`#N/A` was the names `n` and `a`); `isLiteralToken` tells
+ * them apart. Linear: one greedy run per match, no backtracking.
  */
-const FORMULA_IDENTIFIER_REGEX = /"(?:[^"]|"")*"|'(?:[^']|'')*'|[\p{L}_\\][\p{L}\p{N}_.]*/gu;
+const FORMULA_IDENTIFIER_REGEX = new RegExp([
+  '"(?:[^"]|"")*"',
+  '\'(?:[^\']|\'\')*\'',
+  '#(?:NULL!|DIV\\/0!|VALUE!|REF!|NAME\\?|NUM!|N\\/A|SPILL!|CALC!|GETTING_DATA)',
+  '[\\p{L}_\\\\][\\p{L}\\p{N}_.]*',
+].join('|'), 'giu');
+
+/**
+ * Whether a `FORMULA_IDENTIFIER_REGEX` match is a literal that names nothing: a string, a quoted
+ * sheet name or an error.
+ *
+ * @param {string} token The match.
+ * @returns {boolean}
+ */
+function isLiteralToken(token: string): boolean {
+  return token[0] === '"' || token[0] === '\'' || token[0] === '#';
+}
 
 /**
  * Whether a formula uses a name the workbook defines and the Formulas engine does not. HyperFormula
@@ -725,7 +743,7 @@ function usesUnresolvedName(formula: string, scope: CollectContext): boolean {
 
 /**
  * The identifiers of a formula that can be names, lower-cased: neither a string literal, a quoted
- * sheet name, a function (followed by `(`) nor a sheet (followed by `!`).
+ * sheet name, an error literal (`#N/A`), a function (followed by `(`) nor a sheet (followed by `!`).
  *
  * @param {string} formula The formula, without its `=`.
  * @returns {Generator<string>}
@@ -734,9 +752,9 @@ function* namesIn(formula: string): Generator<string> {
   for (const match of formula.matchAll(FORMULA_IDENTIFIER_REGEX)) {
     const [token] = match;
     const next = formula[(match.index ?? 0) + token.length];
-    const isQuoted = token[0] === '"' || token[0] === '\'';
+    const isLiteral = isLiteralToken(token);
 
-    if (!isQuoted && next !== '(' && next !== '!') {
+    if (!isLiteral && next !== '(' && next !== '!') {
       yield token.toLowerCase();
     }
   }
@@ -770,9 +788,9 @@ function callsSpillOperator(formula: string): boolean {
 
   for (const match of formula.matchAll(FORMULA_IDENTIFIER_REGEX)) {
     const [token] = match;
-    const isQuoted = token[0] === '"' || token[0] === '\'';
+    const isLiteral = isLiteralToken(token);
 
-    if (!isQuoted && formula[(match.index ?? 0) + token.length] === '('
+    if (!isLiteral && formula[(match.index ?? 0) + token.length] === '('
       && SPILL_OPERATOR_FUNCTIONS.has(token.toUpperCase())) {
       return true;
     }
@@ -800,9 +818,9 @@ function callsUnregisteredFunction(formula: string, scope: CollectContext): bool
 
   for (const match of formula.matchAll(FORMULA_IDENTIFIER_REGEX)) {
     const [token] = match;
-    const isQuoted = token[0] === '"' || token[0] === '\'';
+    const isLiteral = isLiteralToken(token);
 
-    if (!isQuoted && formula[(match.index ?? 0) + token.length] === '(' && !registers(token.toUpperCase())) {
+    if (!isLiteral && formula[(match.index ?? 0) + token.length] === '(' && !registers(token.toUpperCase())) {
       return true;
     }
   }

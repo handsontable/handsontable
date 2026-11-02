@@ -487,6 +487,11 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   +85 ms on 10,000 rows x 5 columns (10,000 formulas; ~110 ms -> ~200 ms for the whole import).
   The scratch engine evaluates the sheet again, so volatile functions (`RAND`, `NOW`) and custom
   functions registered on the HyperFormula class run a second time during the import.
+- **`FORMULA_IDENTIFIER_REGEX` matches an error literal whole** (`#N/A`, `#DIV/0!`, `#NAME?`, ...,
+  case-insensitive; `isLiteralToken`), like a string or a quoted sheet name: `#N/A` was read as the names
+  `n` and `a`, so a workbook name `N` or `A` the import could not take (one scoped to another sheet) froze
+  every formula spelling `#N/A` to its cached value. `namesIn`, `rewriteBareBooleans`,
+  `callsUnregisteredFunction` and `callsSpillOperator` all skip such a token.
 - **A formula calling `ANCHORARRAY` or `SINGLE` imports its cached value** (DEV-3648, `callsSpillOperator`
   in `pushCellValue`, `formula:spillReference`). Excel stores the spill operator `B1#` as
   `_xlfn.ANCHORARRAY(B1)` and implicit intersection `@A1:A3` as `_xlfn.SINGLE(A1:A3)`; both readers hand
@@ -500,7 +505,7 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   (`=IF(TRUE,1,2)` is `#NAME?`). `readFormulaText` returns `{ recorded, live }`: `ImportResult.formulas` records
   `recorded` (the file's text, prefixes stripped), the engine gets `live`. It rewrites after the prefix strip
   and before `rebaseImportedFormula`, shares the formula's ONE budget charge (a `/true|false/i` hit charges,
-  like the strip and the walks), and skips a quoted token, one followed by `(`, `!` or `]`, or preceded by
+  like the strip and the walks), and skips a quoted token, an error literal, one followed by `(`, `!` or `]`, or preceded by
   `!`, `.`, `[`, `@`, `$` or a name character.
 - **The workbook's defined names are registered as HyperFormula named expressions** (DEV-3648,
   `collectNamedExpressions` in `mapper.ts`), so a formula over one imports live. It runs only with

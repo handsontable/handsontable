@@ -2406,6 +2406,24 @@ describe('mapWorkbook – the workbook\'s defined names as named expressions', (
     expect(result.dropped).not.toContain('definedNames:unsupported');
   });
 
+  it('should read no name in an error literal', () => {
+    // `#N/A` read as the names `n` and `a`: a name `N` the import cannot take (here one scoped to
+    // another sheet) made every formula spelling `#N/A` import its cached value.
+    const { context } = contextOf();
+    const scoped = ['N', 'A', 'Div', 'Name', 'Getting_Data', 'Null']
+      .map(name => ({ name, formula: 'Rates!$A$1', sheetName: 'Rates' }));
+    const errors = 'IF(G2>0,#N/A,IF(G3>0,#div/0!,IFERROR(#NAME?,#GETTING_DATA)))';
+    const { result } = map(salesWorkbook([...scoped, NAMES[0]], [
+      text('r4'), text('x'), cell({ formula: { text: errors, result: '#N/A', resultIsError: true } }),
+      null, null, null, cell({ formula: { text: 'IF(G2>0,N,1)', result: 1 } }),
+    ]), OPTIONS, context);
+
+    expect(result.data[3][1]).toBe('=IF(F1>0,#N/A,IF(F2>0,#div/0!,IFERROR(#NAME?,#GETTING_DATA)))');
+    // A name spelled outside an error literal is still read.
+    expect(result.data[3][5]).toBe(1);
+    expect(result.dropped).toContain('formula:definedName');
+  });
+
   it('should leave out a name the window shift pushes into the dropped header band', () => {
     const { context } = contextOf();
     const names = [{ name: 'Header', formula: 'Data!$A$1', sheetName: null }];
