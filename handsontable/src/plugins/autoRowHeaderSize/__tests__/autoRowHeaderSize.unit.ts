@@ -318,9 +318,7 @@ describe('AutoRowHeaderSize', () => {
       const plugin = hot.getPlugin('autoRowHeaderSize');
 
       // A payload with no `autoRowHeaderSize` key. `SETTING_KEYS` is `true`, so it still reaches
-      // `updatePlugin()` - and `BasePlugin` has by then fed the missing key in as `undefined`,
-      // wiping the stored settings. Without the restore, the re-enable reads the defaults, so
-      // duplicates stop being sampled and this measures 1 label instead of 5.
+      // `updatePlugin()`.
       hot.updateSettings({ colHeaders: true });
 
       expect(plugin.getSetting('allowSampleDuplicates')).toBe(true);

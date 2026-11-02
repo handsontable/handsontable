@@ -218,6 +218,16 @@ Pinned by `__tests__/emptyDataStateLifecycle.unit.js` and `../dataProvider/__tes
 The shortcut behavior is pinned by the Playwright spec, not by `__tests__/keyboardShortcuts/`: it needs a
 real context menu and real key events, and the legacy suite is frozen.
 
+## The overlay first appears in the ready step
+
+At init `enablePlugin()` runs before the view exists, so its own toggle does nothing. `onGridReady()`
+(`../base/AGENTS.md`) toggles once after each enable or update, before the next render, so at init the
+overlay is shown before the `init` hook and drawn by the first render. It replaced an `afterInit` listener
+that showed it after the first render and then rendered a second time. The step toggles only when the enable
+ran without a view (`#toggleOwed`): on a live grid the enable toggles itself (or leaves it to `onDataReady()`),
+and a second toggle there only read the view counts again on every settings update a wrapper sends. Pinned by
+`__tests__/readyStep.unit.js`.
+
 ## The enable-time toggle waits for `onDataReady()` when settings arrive ahead of data
 
 While core's `_applySettingsAndData()` applies settings ahead of their data (`isDataWorkDeferred()`,

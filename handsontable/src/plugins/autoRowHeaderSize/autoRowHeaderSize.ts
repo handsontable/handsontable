@@ -371,15 +371,6 @@ export class AutoRowHeaderSize extends BasePlugin {
    * @param {object} [newSettings] The settings passed to `updateSettings`.
    */
   updatePlugin(newSettings?: Record<string, unknown>): void {
-    // `BasePlugin#onUpdateSettings` feeds `updatePluginSettings()` with `newSettings[PLUGIN_KEY]`,
-    // which an update that does not mention this plugin carries as `undefined` - wiping the stored
-    // settings. The re-enable below then reads the defaults, so `allowSampleDuplicates: true`
-    // silently reverted to `false` on every unrelated `updateSettings` call. Restore the option
-    // from the merged settings first.
-    if (newSettings !== undefined && newSettings[PLUGIN_KEY] === undefined) {
-      this.updatePluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
-    }
-
     this.clearCache();
     this.disablePlugin();
     this.enablePlugin();
