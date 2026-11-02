@@ -1564,8 +1564,10 @@ half judges it (`lib/aria-tree.mjs`, tested in `lib/__tests__/aria-tree.test.mjs
   `ariaSnapshot()` of the grid and the portal. The theme changes which rows are drawn, not the roles or
   names, so one theme keeps the goldens and every theme is judged. A difference is
   `tree-snapshot-changed`, with the first line that differs. What the run decides, not the page, is
-  masked before the comparison (`maskSnapshot()`): the server's origin reads `<origin>` and the installed
-  version `<version>`, so a golden moves for a tree change only, on any port and after a version bump.
+  masked before the comparison (`maskSnapshot()`): the server's origin reads `<origin>`, the installed
+  version `<version>`, and a live status region's message `<announcement>`, so a golden moves for a tree
+  change only, on any port and after a version bump. An announcer's message is transient: when the snapshot
+  is taken decides which one it reads, and what is announced is the screen reader lane's to judge.
   Record with `HOT_A11Y_UPDATE_GOLDENS=1` (the same switch as the tab-order goldens) and read the diff
   before committing.
 

@@ -49,5 +49,5 @@
   - button "Go to next page"
   - button "Go to last page"
 # portal
-- status: Page 1 of 3
+- status: <announcement>
 - status
