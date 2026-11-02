@@ -396,7 +396,16 @@ Other rules:
   `exportFormulas` as its fallback); `#addDefinedNames` returns, per engine, the names written with
   that engine's definition; and the adapter's `selectDefinedNames` (pure, the same selection `write`
   makes: the shared validation, plus the ExcelJS single-range shape and cell budget) says which of
-  them the writer keeps. A noted cell with any name outside both sets is rewritten in place.
+  them the writer keeps. A name of an engine resolves only when it is in both sets AND every name of
+  that engine its definition uses resolves too (`#addDefinedNames` also returns each name's `uses`;
+  `#unlinkLeftOutNames` walks the chain the way `importFile`'s `collectNamedExpressions` does). So
+  `Total = Base*2` with `Base` left out does not resolve, and with two engines that both define
+  `Total = Rate*2` but differ on `Rate`, the file's `Total` (same text, so the second engine's lands in
+  `written`) still reads the FIRST engine's `Rate`: it does not resolve for the second. A noted cell
+  with any unresolved name is rewritten in place, and a file name that resolves for no engine is
+  taken out of `workbook.definedNames` (`definedNames:unsupported`). The fallback keeps the column's
+  number format for a computed number (`intl-date`/`intl-time`/`intl-datetime` cells hold the
+  engine's number, so the value branch alone wrote no format).
 - `headerStyle: null` exports headers with no styling; `headerStyle.border: null` suppresses only the border.
 - **The frozen pane counts EXPORTED indexes, not the raw `fixedColumnsStart`/`fixedRowsTop`.**
   `ExportDataProvider#getFrozenColumns()`/`getFrozenRows()` count the visual indexes of the frozen band

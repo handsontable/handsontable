@@ -6,6 +6,8 @@ import { ExportFile } from '../exportFile';
 import { Formulas } from '../../formulas';
 import { HiddenRows } from '../../hiddenRows';
 import { HiddenColumns } from '../../hiddenColumns';
+import { registerCellType } from '../../../cellTypes/registry';
+import { IntlDateCellType } from '../../../cellTypes/intlDateType';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
 import { excelJsAdapter } from '../../../utils/xlsxEngine/adapters/exceljs';
 
@@ -25,6 +27,7 @@ describe('Xlsx export: named expressions as defined names', () => {
     registerPlugin(ExportFile);
     registerPlugin(HiddenRows);
     registerPlugin(HiddenColumns);
+    registerCellType(IntlDateCellType);
   });
 
   beforeEach(() => {
@@ -161,18 +164,24 @@ describe('Xlsx export: named expressions as defined names', () => {
   });
 
   it('should leave out a name that references an engine sheet the export does not write', async() => {
-    const engine = createGrid();
+    const engine = createGrid({ data: [[1], [2], [3], ['=SUM(Rate)']] });
 
     engine.addSheet('Rates');
+    engine.setCellContents({ sheet: engine.getSheetId('Rates'), row: 0, col: 0 }, [[5, 6]]);
     engine.addNamedExpression('Rate', '=Rates!$A$1:$B$2');
     engine.addNamedExpression('Kept', '=Sheet1!$A$1');
 
     const { snapshot, dropped } = await exportWorkbook({ exportFormulas: true, colHeaders: true });
+    const summed = snapshot.sheets[0].rows[4][0];
 
     expect(snapshot.definedNames).toEqual([
       { name: 'Kept', formula: 'Sheet1!$A$2', sheetName: null },
     ]);
     expect(dropped.count('definedNames:unsupported')).toBe(1);
+    // In the file, `Rate` does not exist, so the formula goes out as its value.
+    expect(summed.formula).toBeNull();
+    expect(summed.value).toBe(11);
+    expect(dropped.count('formula:definedName')).toBe(1);
   });
 
   it('should write each name once, against the sheet of every grid sharing the engine', async() => {
@@ -360,7 +369,7 @@ describe('Xlsx export: named expressions as defined names', () => {
 
   it('should leave out a name whose reference ends on a row or a column the export leaves out', async() => {
     const engine = createGrid({
-      data: [[1, 2], [3, 4], [5, 6]],
+      data: [[1, 2], [3, 4], [5, 6], ['=SUM(From)', null], ['=Kept*2', null]],
       hiddenRows: { rows: [1] },
       hiddenColumns: { columns: [1] },
     });
@@ -375,10 +384,16 @@ describe('Xlsx export: named expressions as defined names', () => {
       exportFormulas: true, exportHiddenRows: false, exportHiddenColumns: false,
     });
 
+    const [summed, doubled] = snapshot.sheets[0].rows.slice(2).map(row => row[0]);
+
     expect(snapshot.definedNames).toEqual([
       { name: 'Kept', formula: 'Sheet1!$A$2', sheetName: null },
     ]);
     expect(dropped.count('definedNames:unsupported')).toBe(1);
+    expect(summed.formula).toBeNull();
+    expect(summed.value).toBe(8);
+    expect(doubled.formula).toEqual(expect.objectContaining({ text: 'Kept*2', result: 10 }));
+    expect(dropped.count('formula:definedName')).toBe(1);
   });
 
   it('should leave `definedNames` unset when the engine defines no name', async() => {
@@ -472,5 +487,106 @@ describe('Xlsx export: named expressions as defined names', () => {
     } finally {
       excelJsWrite.mockRestore();
     }
+  });
+  it('should export a formula over a name the native writer leaves out as its value', async() => {
+    // `R` is a name HyperFormula takes, but Excel reads it as an R1C1 reference, so the native
+    // writer leaves it out (`nativeAdapter.selectDefinedNames`).
+    const engine = createGrid({ data: [[1], ['=R*2'], ['=1/(R-1)']] });
+
+    engine.addNamedExpression('R', '=Sheet1!$A$1');
+
+    const { snapshot, dropped } = await exportWorkbook();
+    const [, doubled, divided] = snapshot.sheets[0].rows.map(row => row[0]);
+
+    expect(nativeAdapter.selectDefinedNames(snapshot)).toEqual([]);
+    expect(doubled.formula).toBeNull();
+    expect(doubled.value).toBe(2);
+    // An error value goes out as its code, typed as an error.
+    expect(divided.formula).toBeNull();
+    expect(divided.value).toBe('#DIV/0!');
+    expect(divided.valueIsError).toBe(true);
+    expect(dropped.count('formula:definedName')).toBe(1);
+  });
+
+  it('should leave out a name over a name the file does not hold, and export the formulas over it as values', async() => {
+    // `Base` points at a sheet the export does not write; `Total` uses `Base`, so in the file it
+    // would show `#NAME?` the same way.
+    const engine = createGrid({ data: [[1], ['=Total'], ['=Kept+1']] });
+
+    engine.addSheet('Rates');
+    engine.setCellContents({ sheet: engine.getSheetId('Rates'), row: 0, col: 0 }, 5);
+    engine.addNamedExpression('Base', '=Rates!$A$1');
+    engine.addNamedExpression('Total', '=Base*2');
+    engine.addNamedExpression('Kept', '=Sheet1!$A$1');
+
+    const { snapshot, dropped } = await exportWorkbook();
+    const [, total, kept] = snapshot.sheets[0].rows.map(row => row[0]);
+
+    expect(snapshot.definedNames).toEqual([{ name: 'Kept', formula: 'Sheet1!$A$1', sheetName: null }]);
+    expect(total.formula).toBeNull();
+    expect(total.value).toBe(10);
+    expect(kept.formula).toEqual(expect.objectContaining({ text: 'Kept+1', result: 2 }));
+    expect(dropped.list()).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+  });
+
+  it('should export a formula over a name whose used name another engine defines differently as its value', async() => {
+    // Both engines define `Total` as `Rate*2`, so the file's one `Total` reads the first engine's
+    // `Rate`. The second grid's `=Total` would read the first grid's cell in Excel (2, not 200).
+    createGrid({ data: [[1], ['=Total']] });
+    hot.getPlugin('formulas').engine.addNamedExpression('Rate', '=Sheet1!$A$1');
+    hot.getPlugin('formulas').engine.addNamedExpression('Total', '=Rate*2');
+
+    const second = document.createElement('div');
+
+    document.body.appendChild(second);
+
+    const hot2 = new Handsontable(second, {
+      data: [[100], ['=Total']],
+      formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    try {
+      hot2.getPlugin('formulas').engine.addNamedExpression('Rate', '=Sheet1!$A$1');
+      hot2.getPlugin('formulas').engine.addNamedExpression('Total', '=Rate*2');
+
+      const { snapshot, dropped } = await exportWorkbook({
+        exportFormulas: true,
+        sheets: [{ instance: hot, name: 'Alpha' }, { instance: hot2, name: 'Beta' }],
+      });
+      const cellOf = name => snapshot.sheets.find(sheet => sheet.name === name).rows[1][0];
+
+      expect(snapshot.definedNames).toHaveLength(2);
+      expect(snapshot.definedNames).toEqual(expect.arrayContaining([
+        { name: 'Rate', formula: 'Alpha!$A$1', sheetName: null },
+        { name: 'Total', formula: 'Rate*2', sheetName: null },
+      ]));
+      expect(cellOf('Alpha').formula).toEqual(expect.objectContaining({ text: 'Total', result: 2 }));
+      expect(cellOf('Beta').formula).toBeNull();
+      expect(cellOf('Beta').value).toBe(200);
+      expect(dropped.list()).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+    } finally {
+      hot2.destroy();
+      second.remove();
+    }
+  });
+
+  it('should give a formula exported as its value over a left-out name its column\'s number format', async() => {
+    const engine = createGrid({
+      data: [['=R+45000']],
+      // The Formulas plugin hands an `intl-date` cell its number, not a date string.
+      columns: [{
+        type: 'intl-date', locale: 'en-US', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' },
+      }],
+    });
+
+    engine.addNamedExpression('R', 5);
+
+    const { snapshot } = await exportWorkbook();
+    const [[dated]] = snapshot.sheets[0].rows;
+
+    expect(dated.formula).toBeNull();
+    expect(dated.value).toBe(45005);
+    expect(dated.numFmt).toBe('mm/dd/yyyy');
   });
 });

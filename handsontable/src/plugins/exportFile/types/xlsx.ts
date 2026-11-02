@@ -44,7 +44,7 @@ import {
 import { SheetBuilder } from '../../../utils/xlsxEngine/builder';
 import { colIndexToLetter, toRangeRef } from '../../../utils/xlsxEngine/cellRef';
 import { DEFAULT_COMPRESSION_LEVEL } from '../../../utils/xlsxEngine/compression';
-import { namesUsedIn, selectWritableDefinedNames } from '../../../utils/xlsxEngine/definedNames';
+import { namesUsedIn } from '../../../utils/xlsxEngine/definedNames';
 import type { XlsxEngineAdapter } from '../../../utils/xlsxEngine/adapters/types';
 import { localeLowerCase } from '../../../helpers/string';
 import {
@@ -467,6 +467,16 @@ interface DefinedNameUse {
   engine: object;
   names: string[];
   fallback: { value: CellValue; numFmt: string | null; valueIsError?: true };
+}
+
+/**
+ * What `#addDefinedNames` tells about one engine's names: the lower-cased names added to the file
+ * with that engine's definition, and, for each of its names, the other names of the engine its
+ * definition uses.
+ */
+interface EngineDefinedNames {
+  written: Set<string>;
+  uses: Map<string, string[]>;
 }
 
 interface XlsxSheetConfig {
@@ -899,12 +909,13 @@ class Xlsx extends BaseType {
    * @param {object} workbook The neutral workbook snapshot.
    * @param {object[]} sources The exported grids bound to a Formulas engine.
    * @param {DroppedFeatures} dropped The export's dropped-feature collector.
-   * @returns {Map<object, Set<string>>} Per engine, the lower-cased names added with that engine's
-   *   own definition.
+   * @returns {Map<object, object>} Per engine, `written`: the lower-cased names added with that
+   *   engine's own definition, and `uses`: for each of its names, the other names of that engine its
+   *   definition uses (`namesUsedIn`), lower-cased.
    */
   #addDefinedNames(
     workbook: WorkbookSnapshot, sources: NamedExpressionSource[], dropped: DroppedFeatures
-  ): Map<object, Set<string>> {
+  ): Map<object, EngineDefinedNames> {
     const byEngine = new Map<object, {
       source: NamedExpressionSource | null; sheets: Map<string, ExportedEngineSheet>;
     }>();
@@ -926,7 +937,7 @@ class Xlsx extends BaseType {
 
     const definedNames: DefinedNameSnapshot[] = [];
     const added = new Map<string, string>();
-    const writtenByEngine = new Map<object, Set<string>>();
+    const writtenByEngine = new Map<object, EngineDefinedNames>();
     const leaveOut = () => {
       if (dropped.count(DROPPED_FEATURES.definedNamesUnsupported) === 0) {
         dropped.record(DROPPED_FEATURES.definedNamesUnsupported);
@@ -939,9 +950,16 @@ class Xlsx extends BaseType {
       }
 
       const written = new Set<string>();
+      const uses = new Map<string, string[]>();
+      const namedExpressions = source.dataProvider.getNamedExpressions();
+      const engineNames = new Set(namedExpressions.map(({ name }) => localeLowerCase(name)));
 
-      writtenByEngine.set(engine, written);
-      source.dataProvider.getNamedExpressions().forEach(({ name, formula: definition }) => {
+      writtenByEngine.set(engine, { written, uses });
+      namedExpressions.forEach(({ name, formula: definition }) => {
+        if (definition !== null) {
+          uses.set(localeLowerCase(name), [...namesUsedIn(definition)].filter(used => engineNames.has(used)));
+        }
+
         const formula = definition === null ? null : normalizeNamedExpression(
           definition, source.separator, sheets, source.decimalSeparator
         );
@@ -970,39 +988,87 @@ class Xlsx extends BaseType {
   }
 
   /**
-   * Writes every formula cell over a name that does not reach the file with its engine's value, and
-   * records `formula:definedName` once. A name does not reach the file when `#addDefinedNames` left
-   * it out (it cannot be expressed, or another engine's name of the same spelling took the place),
-   * or when the writer leaves it out (`XlsxEngineAdapter#selectDefinedNames`: an invalid name, or a
-   * shape the ExcelJS writer cannot hold). Kept as a formula, it showed `#NAME?` in Excel, or read
-   * the other engine's definition.
+   * Settles which engine names the file resolves, leaves the others out of it, and writes every
+   * formula cell over such a name with its engine's value, recording `formula:definedName` once.
+   *
+   * A name of an engine resolves in the file when `#addDefinedNames` added it with that engine's
+   * definition, the writer keeps it (`XlsxEngineAdapter#selectDefinedNames`: not an invalid name,
+   * not a shape the ExcelJS writer cannot hold), and every name of that engine its definition uses
+   * resolves too, followed through any chain of names, as the import does. A name another engine's
+   * spelling took the place of, or one over such a name, does not resolve for this engine: kept as
+   * a formula, it read the other engine's definition, or showed `#NAME?` in Excel.
+   *
+   * A name in the file that resolves for no engine (it uses a name the file does not hold) is taken
+   * out of `workbook.definedNames`, and `definedNames:unsupported` is recorded once.
    *
    * @param {object} workbook The neutral workbook snapshot, its names added.
    * @param {object} adapter The adapter that writes the file.
-   * @param {Map<object, Set<string>>} writtenByEngine Per engine, the names added with its definition.
+   * @param {Map<object, object>} namesByEngine Per engine, what `#addDefinedNames` returned for it.
    * @param {object[]} nameUses The formula cells over engine names.
    * @param {DroppedFeatures} dropped The export's dropped-feature collector.
    */
   #unlinkLeftOutNames(
     workbook: WorkbookSnapshot,
     adapter: XlsxEngineAdapter,
-    writtenByEngine: Map<object, Set<string>>,
+    namesByEngine: Map<object, EngineDefinedNames>,
     nameUses: DefinedNameUse[],
     dropped: DroppedFeatures,
   ): void {
-    if (nameUses.length === 0) {
+    const definedNames = workbook.definedNames ?? [];
+
+    if (definedNames.length === 0 && nameUses.length === 0) {
       return;
     }
 
-    const inFile = new Set((adapter.selectDefinedNames
-      ? adapter.selectDefinedNames(workbook)
-      : selectWritableDefinedNames(workbook.definedNames ?? [], workbook.sheets.map(sheet => sheet.name)).entries
-    ).map(({ name }) => localeLowerCase(name)));
+    const inFile = new Set(adapter.selectDefinedNames(workbook).map(({ name }) => localeLowerCase(name)));
+    const resolvedByEngine = new Map<object, Set<string>>();
+
+    namesByEngine.forEach(({ written, uses }, engine) => {
+      const resolved = new Set([...written].filter(name => inFile.has(name)));
+      // A name over a name that does not resolve does not resolve either. Every name leaves
+      // `resolved` at most once.
+      const dependents = new Map<string, string[]>();
+      const unresolved: string[] = [];
+
+      resolved.forEach((name) => {
+        (uses.get(name) ?? []).forEach((used) => {
+          if (resolved.has(used)) {
+            dependents.set(used, [...(dependents.get(used) ?? []), name]);
+          } else {
+            unresolved.push(name);
+          }
+        });
+      });
+
+      while (unresolved.length > 0) {
+        const name = unresolved.pop() as string;
+
+        if (resolved.delete(name)) {
+          unresolved.push(...(dependents.get(name) ?? []));
+        }
+      }
+
+      resolvedByEngine.set(engine, resolved);
+    });
+
+    const kept = definedNames.filter(({ name }) => {
+      const lowered = localeLowerCase(name);
+
+      return [...resolvedByEngine.values()].some(resolved => resolved.has(lowered));
+    });
+
+    if (kept.length < definedNames.length) {
+      workbook.definedNames = kept.length > 0 ? kept : undefined;
+
+      if (dropped.count(DROPPED_FEATURES.definedNamesUnsupported) === 0) {
+        dropped.record(DROPPED_FEATURES.definedNamesUnsupported);
+      }
+    }
 
     nameUses.forEach(({ cell, engine, names, fallback }) => {
-      const written = writtenByEngine.get(engine);
+      const resolved = resolvedByEngine.get(engine);
 
-      if (names.every(name => inFile.has(name) && written?.has(name) === true)) {
+      if (names.every(name => resolved?.has(name) === true)) {
         return;
       }
 
@@ -1133,9 +1199,13 @@ class Xlsx extends BaseType {
     const { value, numFmt, valueIsError } = this.#resolveCellValue(
       source.cellValue, source.meta, source.sourceValue, source.facts, undefined, { ...context, exportFormulas: false }
     );
+    // A number the engine computed in a column the Formulas plugin does not convert (`intl-date`,
+    // `intl-time`, `intl-datetime`) keeps the format the live formula would have had.
+    const fallbackNumFmt = numFmt
+      ?? (typeof value === 'number' && !valueIsError ? resolveMetaNumFmt(source.meta) : null);
 
     context.nameUses.push({
-      cell, engine: context.engine as object, names, fallback: { value, numFmt, valueIsError },
+      cell, engine: context.engine as object, names, fallback: { value, numFmt: fallbackNumFmt, valueIsError },
     });
   }
 

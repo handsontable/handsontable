@@ -11,8 +11,7 @@ export interface XlsxEngineAdapter {
   /**
    * The defined names of `snapshot` that `write` puts into the file, without writing anything.
    * `exportFile` asks it before the write, so a formula over a name the writer leaves out goes out
-   * as its value instead of showing `#NAME?` (or another engine's definition) in Excel. An adapter
-   * without it is taken to write what `selectWritableDefinedNames` selects.
+   * as its value instead of showing `#NAME?` (or another engine's definition) in Excel.
    */
-  selectDefinedNames?(snapshot: WorkbookSnapshot): DefinedNameSnapshot[];
+  selectDefinedNames(snapshot: WorkbookSnapshot): DefinedNameSnapshot[];
 }
