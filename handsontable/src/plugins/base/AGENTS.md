@@ -31,9 +31,17 @@ option is passed.
 
 Both manual resize plugins list their size option beside their own key, so `updateSettings({ rowHeights })`
 reaches them at all. That changes what `updatePlugin()` must assume, in three ways that have all shipped as
-bugs — the full rules are in `../../utils/manualResize/AGENTS.md`. The one to remember here: `onUpdateSettings` calls
-`updatePluginSettings(newSettings[PLUGIN_KEY])`, and a call that carries only a *foreign* key passes
-`undefined`, which **wipes the stored setting** for the rest of the session.
+bugs — the full rules are in `../../utils/manualResize/AGENTS.md`. The one to remember here: a call that
+carries only a *foreign* key has no `PLUGIN_KEY` in the payload, so `onUpdateSettings` refreshes the plugin
+settings from `getSettings()[PLUGIN_KEY]` instead (branch 4 below). It used to pass `undefined` and wipe the
+stored setting, and five plugins restored it in their own `updatePlugin()`; none needs to now. CopyPaste
+(`fragmentSelection`) never restored it, so a `fragmentSelection` update reset `pasteMode` and the header
+copy options to their defaults until the fallback.
+
+**The fallback reads `PLUGIN_KEY`, so it does nothing for a plugin configured through another key.**
+Autofill reads `fillHandle`, so its stored plugin settings come from that key, never from `PLUGIN_KEY`, and
+its `enablePlugin()` (which `updatePlugin()` calls) re-reads `fillHandle` from `getSettings()`. Pinned by
+`../autofill/__tests__/settingsUpdate.unit.js`, which sends `fillHandle: 'vertical'` and reads the direction back.
 
 ## Lifecycle, in the order it actually runs
 
@@ -168,14 +176,23 @@ outcomes in this order:
    reads `getSetting()`: without it a plugin turned on by an update read the value it held before (the
    default, or the settings it was last disabled with), so `updateSettings({ bindRowsWithHeaders: 'strict' })`
    bound loose, and a SheetsBar turned off and on again rebuilt its old workbook first. Branch 4 then skips its
-   own refresh in that call: a second one logged every validation warning twice, and for a payload carrying
-   only a foreign `SETTING_KEYS` option it passed `undefined` and wiped what branch 2 read. A plugin whose
+   own refresh in that call: a second one logged every validation warning twice. A plugin whose
    `updatePlugin()` compares a value against the one it applied before can no longer see the change there in
    the enabling call, because `enablePlugin()` already applied it: AutoColumnSize and AutoRowSize record a
    sampling change seen in `enablePlugin()` for `updatePlugin()` to act on.
 3. enabled and still enabled but a hard conflict is now active → `disablePlugin()` and **return**
 4. enabled, still enabled, and the payload is relevant per `SETTING_KEYS` → `updatePluginSettings()` then
-   `updatePlugin(newSettings)`
+   `updatePlugin(newSettings)`. The refresh takes `newSettings[PLUGIN_KEY]` when the payload carries the key
+   (`hasOwnProperty`, so an explicit `{ [PLUGIN_KEY]: undefined }` passes `undefined` and clears the setting
+   even when something wrote a value straight on the table meta), and `getSettings()[PLUGIN_KEY]` when it does
+   not (a `SETTING_KEYS: true` plugin on an unrelated update, or a payload with only a foreign key). That
+   **resets** the stored setting to the value declared for the grid; it does not keep what the plugin holds
+   now. Two consequences for a plugin author who lists foreign keys or `true`: a setting the plugin changes at
+   runtime through `updatePluginSettings()` (SheetsBar, Loading, and Dialog do, with `[PLUGIN_KEY]` today) is
+   replaced by the declared value on every update that reaches the plugin, and an invalid declared value logs
+   its `SETTINGS_VALIDATORS` warning again on each of those updates. Each update refreshes the settings once:
+   no plugin restores them again in its own `updatePlugin()`. Pinned by
+   `__tests__/onUpdateSettingsFallback.unit.js`.
 
 Branch 3 exists so a plugin already running gets switched off when a conflicting option appears later, even
 when its own `SETTING_KEYS` do not overlap the payload. `relevantToSettings` is computed **before** those

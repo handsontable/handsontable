@@ -58,17 +58,15 @@ Three rules hold that in place, and all three are load-bearing:
   returns early on an already-enabled plugin, and `BasePlugin` only re-runs the enable/disable pair when the
   plugin's enabled state itself changed — so a plain settings change never reaches it. This is exactly how
   `samplingRatio` came to be silently ignored on every `updateSettings()` call.
-- **Restore the stored settings first when the payload omits this plugin's key.** `SETTING_KEYS` is `true`,
-  so an update that never mentions `autoRowSize` still reaches `updatePlugin()` — and `onUpdateSettings` has
-  already fed `updatePluginSettings()` that missing key as `undefined`, which **wipes** the stored settings
-  (neither auto-size plugin declares `SETTINGS_VALIDATORS`, so the assignment falls straight through). Read
-  them in that state and you get the *defaults*, so re-applying would reset the user's `samplingRatio` and
-  re-measure the whole grid on an unrelated `updateSettings({ colHeaders: true })`. Restore from
-  `hot.getSettings()[PLUGIN_KEY]`, which is untouched — the same repair, for the same base-class reason, that
-  `manualRowResize` does (`../../utils/manualResize/AGENTS.md`, "Listing a foreign option in `SETTING_KEYS`").
-  **This is the common path, not an edge case:** the Vue wrapper omits every settings key whose value is
-  unchanged (`wrappers/vue3/src/helpers.ts`, `simpleEqual`), so a Vue app sends a payload *without*
-  `autoRowSize` on virtually every prop change.
+- **An update that omits this plugin's key keeps the stored settings.** `SETTING_KEYS` is `true`, so an
+  update that never mentions `autoRowSize` still reaches `updatePlugin()`. `BasePlugin#onUpdateSettings`
+  then refreshes the plugin settings from `hot.getSettings()[PLUGIN_KEY]`, not from the payload, so
+  `updatePlugin()` reads the user's `samplingRatio`, not the default, and an unrelated
+  `updateSettings({ colHeaders: true })` drops no measured height. Before that fallback lived in the base
+  class, this plugin restored the settings itself. **This is the common path, not an edge case:** the Vue
+  wrapper omits every settings key whose value is unchanged (`wrappers/vue3/src/helpers.ts`, `simpleEqual`),
+  so a Vue app sends a payload *without* `autoRowSize` on virtually every prop change. Pinned by
+  `__tests__/samplingSettings.unit.ts`.
 - **A sampling change in the call that turns the plugin on again clears the cache too.** `enablePlugin()`
   applies the new settings first (`BasePlugin` refreshes them before it), so it records the change
   (`#samplingChangedOnEnable`) for the `updatePlugin()` of the same call, which would otherwise see none and
