@@ -318,24 +318,32 @@ export function removeImportedStyles(hot: HotInstance): void {
  * one the engine refuses by now (a name defined since the mapper asked). Nothing is added when the
  * plugin is off. Adding a name is not undoable: the `loadData` that follows resets the
  * grid's history anyway.
+ *
+ * The names go in one engine batch. Each `addNamedExpression` outside a batch recalculates the
+ * engine and fires `valuesUpdated`, so a workbook with hundreds of names over volatile formulas
+ * (`RAND()`) took seconds; batched, the engine recalculates once. The batch resumes evaluation when
+ * a call throws, and the check inside it still sees the names added earlier in the same batch.
  */
 function addNamedExpressions(hot: HotInstance, result: ImportResult): void {
   const formulas = hot.getPlugin('formulas');
 
-  if (!result.namedExpressions || formulas?.isEnabled() !== true || !formulas.engine) {
+  if (!result.namedExpressions?.length || formulas?.isEnabled() !== true || !formulas.engine) {
     return;
   }
 
   const { engine } = formulas;
+  const { namedExpressions } = result;
 
-  result.namedExpressions.forEach(({ name, formula }) => {
-    const expression = `=${formula}`;
+  engine.batch(() => {
+    namedExpressions.forEach(({ name, formula }) => {
+      const expression = `=${formula}`;
 
-    // The mapper asked the engine already, but a `beforeImport` handler, or another grid sharing the
-    // engine, may have defined the name since; `addNamedExpression` would then throw mid-batch.
-    if (engine.isItPossibleToAddNamedExpression?.(name, expression) === true) {
-      engine.addNamedExpression(name, expression, undefined, undefined);
-    }
+      // The mapper asked the engine already, but a `beforeImport` handler, or another grid sharing
+      // the engine, may have defined the name since; `addNamedExpression` would then throw mid-batch.
+      if (engine.isItPossibleToAddNamedExpression?.(name, expression) === true) {
+        engine.addNamedExpression(name, expression, undefined, undefined);
+      }
+    });
   });
 }
 

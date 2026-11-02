@@ -491,7 +491,11 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `beforeImport` handler or another grid on a shared engine can define the name after the mapper
   asked, and `addNamedExpression` would throw mid-batch with the grid half-applied. Not undoable:
   `loadData` resets the grid's history, so the import never was an undo step. A name cycle
-  (`A = B`, `B = A`) registers both and evaluates `#CYCLE!`.
+  (`A = B`, `B = A`) registers both and evaluates `#CYCLE!`. The adds run inside ONE
+  `engine.batch()` (none when the list is empty, since an empty batch still pushes an engine undo
+  step): unbatched, every `addNamedExpression` recalculated the engine and fired `valuesUpdated`,
+  and 300 names over `RAND()` rows took ~6 s instead of ~25 ms. Do not route it through the
+  plugin's `registerNamedExpressions` – it takes another input shape and swallows errors.
 - **A live formula is shifted back into grid coordinates, and one that cannot be is dropped.** The export
   prepends a header row and a row-header column and shifts every relative reference forward by them
   (`normalizeFormula` in `../exportFile/types/xlsx/formula-utils.ts`), so the grid's `=B1*0.2` is written

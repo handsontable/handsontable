@@ -678,6 +678,15 @@ describe('applyImportResult – named expressions', () => {
     return {
       isEnabled: () => enabled,
       engine: {
+        batch: (fn) => {
+          calls.push(['engine.batch:start']);
+
+          try {
+            return fn();
+          } finally {
+            calls.push(['engine.batch:end']);
+          }
+        },
         isItPossibleToAddNamedExpression: name => !refused.includes(name),
         addNamedExpression: (name, expression) => {
           if (refused.includes(name)) {
@@ -722,8 +731,10 @@ describe('applyImportResult – named expressions', () => {
 
     expect(order).toEqual([
       ['batch:start'],
+      ['engine.batch:start'],
       ['addNamedExpression', 'Sales', '=Sheet1!$F$1:$F$3'],
       ['addNamedExpression', 'TaxRate', '=0.07'],
+      ['engine.batch:end'],
       ['updateSettings', ['columns']],
       ['loadData', [['=SUM(Sales)']]],
       ['batch:end'],
@@ -740,7 +751,9 @@ describe('applyImportResult – named expressions', () => {
     })).not.toThrow();
     expect(order).toEqual([
       ['batch:start'],
+      ['engine.batch:start'],
       ['addNamedExpression', 'TaxRate', '=0.07'],
+      ['engine.batch:end'],
       ['loadData', [['=SUM(Sales)']]],
       ['batch:end'],
     ]);
@@ -758,11 +771,21 @@ describe('applyImportResult – named expressions', () => {
       data: [['=SUM(Sales)']],
       namedExpressions: [{ name: 'Sales', formula: 'Sheet1!$F$1:$F$3' }],
     })).not.toThrow();
-    expect(order).toEqual([
+    expect(order.filter(([call]) => call === 'addNamedExpression')).toEqual([]);
+    expect(order.filter(([call]) => !call.startsWith('engine.batch'))).toEqual([
       ['batch:start'],
       ['loadData', [['=SUM(Sales)']]],
       ['batch:end'],
     ]);
+  });
+
+  it('should open no engine batch when the result holds no named expression', () => {
+    // An empty engine batch still pushes an engine undo step.
+    const order = [];
+
+    applyImportResult(orderedHot(order), { data: [[1]], namedExpressions: [] });
+
+    expect(order).toEqual([['batch:start'], ['loadData', [[1]]], ['batch:end']]);
   });
 
   it('should not touch the engine when the Formulas plugin is off', () => {
@@ -806,6 +829,39 @@ describe('applyImportResult – named expressions', () => {
       expect(hot.getPlugin('formulas').engine.getNamedExpressionFormula('Sales')).toBe('=Sheet1!$A$1:$A$3');
       // `loadData` resets the grid's history: the import, names included, is not an undoable step.
       expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+    });
+
+    it('should add the names in one engine batch, so the engine recalculates once, not once per name', () => {
+      // A volatile formula recalculates on every engine call: with 300 names over `RAND()` rows,
+      // adding the names one by one took seconds.
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['=RAND()']],
+        formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
+      });
+      const { engine } = hot.getPlugin('formulas');
+      const loadData = hot.loadData.bind(hot);
+      let updatesBeforeData = null;
+      let updates = 0;
+
+      engine.on('valuesUpdated', () => {
+        updates += 1;
+      });
+      jest.spyOn(hot, 'loadData').mockImplementation((...args) => {
+        updatesBeforeData = updates;
+
+        return loadData(...args);
+      });
+
+      applyImportResult(hot, {
+        data: [[1, '=Alpha+Beta+Gamma']],
+        namedExpressions: [
+          { name: 'Alpha', formula: '1' }, { name: 'Beta', formula: '2' }, { name: 'Gamma', formula: '3' },
+        ],
+      });
+
+      expect(updatesBeforeData).toBe(1);
+      expect(hot.getDataAtCell(0, 1)).toBe(6);
     });
 
     it('should load the data when the engine already defines a name of the result', () => {
