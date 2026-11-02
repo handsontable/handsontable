@@ -83,6 +83,23 @@ test.describe('formulaBuilder mouse reference picking', { tag: [THEMES_TAG, BUND
     expect(await grid.selectedLast()).toEqual([3, 0, 3, 0]);
   });
 
+  test('a bar-hosted pick dragged out of the grid and released over the bar leaves the grid not listening', async({ page }) => {
+    await page.keyboard.press('Escape');
+    await expect.poll(() => grid.editorOpened()).toBe(false);
+    await grid.openBarEditor();
+    await page.keyboard.type('=');
+
+    await grid.drag(grid.cell(1, 1), grid.formulaBar);
+    await expect(grid.editorInput).toBeFocused();
+    await expect(grid.editorInput).toHaveValue(/^=B/);
+    // The release is outside the grid, but the keys still go to the bar.
+    await expect.poll(() => grid.isListening()).toBe(false);
+
+    await page.keyboard.press('ArrowDown');
+    expect(await grid.selectedLast()).toEqual([3, 0, 3, 0]);
+    expect(await grid.editorOpened()).toBe(true);
+  });
+
   test('Escape during a pick drag cancels the edit, and the rest of the drag selects nothing', async({ page }) => {
     await grid.cell(0, 1).hover();
     await page.mouse.down();

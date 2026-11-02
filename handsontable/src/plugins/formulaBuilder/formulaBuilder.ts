@@ -2090,7 +2090,6 @@ export class FormulaBuilder extends BasePlugin {
       // Deferred for the same `click`; the grid listened from its own cell `mousedown` handler.
       unlisten: () => this.hot._registerTimeout(() => this.#unlistenUnderBarEdit(), 0),
       isBarHostedEdit: () => this.#isBarHostedEdit(),
-      getRootElement: () => this.hot.rootElement,
       getScrollHolder: () => this.#adapter?.getScrollHolder() ?? null,
       getRootDocument: () => this.hot.rootDocument,
       getColumnHeaderSpan: coords => this.#columnHeaderSpan(coords),

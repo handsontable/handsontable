@@ -124,7 +124,6 @@ function makeHarness(options: HarnessOptions = {}) {
     relisten,
     unlisten,
     isBarHostedEdit: () => barHosted,
-    getRootElement: () => rootElement,
     getScrollHolder: () => holder as unknown as HTMLElement,
     getRootDocument: () => document,
     getColumnHeaderSpan: coords => headerSpans[coords.col] ?? { start: coords.col, end: coords.col },
@@ -672,8 +671,30 @@ describe('CellPickController.onDocMouseUp', () => {
       expect(unlisten).toHaveBeenCalledTimes(1);
     });
 
-    it('relistens after a bar-hosted pick released outside the grid', () => {
+    it('unlistens, and does not relisten, after a bar-hosted pick released outside the grid (over the bar)', () => {
       const { controller, relisten, unlisten, rootElement } = makeHarness({ barHosted: true });
+      const outside = document.createElement('div');
+
+      document.body.append(rootElement, outside);
+      pressCell(controller, { row: 2, col: 3 });
+      releaseOver(controller, outside);
+
+      expect(relisten).not.toHaveBeenCalled();
+      expect(unlisten).toHaveBeenCalledTimes(1);
+    });
+
+    it('unlistens after a bar-hosted pick whose button was released outside the window', () => {
+      const { controller, relisten, unlisten } = makeHarness({ barHosted: true });
+
+      pressCell(controller, { row: 2, col: 3 });
+      document.dispatchEvent(new MouseEvent('mousemove', { buttons: 0 }));
+
+      expect(relisten).not.toHaveBeenCalled();
+      expect(unlisten).toHaveBeenCalledTimes(1);
+    });
+
+    it('relistens after an in-cell pick released outside the grid', () => {
+      const { controller, relisten, unlisten, rootElement } = makeHarness({ barHosted: false });
       const outside = document.createElement('div');
 
       document.body.append(rootElement, outside);
@@ -682,15 +703,6 @@ describe('CellPickController.onDocMouseUp', () => {
 
       expect(relisten).toHaveBeenCalledTimes(1);
       expect(unlisten).not.toHaveBeenCalled();
-    });
-
-    it('relistens after a bar-hosted pick whose button was released outside the window', () => {
-      const { controller, relisten } = makeHarness({ barHosted: true });
-
-      pressCell(controller, { row: 2, col: 3 });
-      document.dispatchEvent(new MouseEvent('mousemove', { buttons: 0 }));
-
-      expect(relisten).toHaveBeenCalledTimes(1);
     });
 
     it('relistens after an in-cell pick released inside the grid', () => {

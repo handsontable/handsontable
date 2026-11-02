@@ -7,7 +7,7 @@ import {
   hasTouchList,
   isLeftClick,
 } from '../../helpers/dom/event';
-import { getComposedEventTargetEl, getDeepActiveElement, isHTMLElement } from '../../helpers/dom/element';
+import { getDeepActiveElement, isHTMLElement } from '../../helpers/dom/element';
 import type { HandsontableAdapter } from './handsontableAdapter';
 import type { CellAddress, CellRange, HeaderAxis, HeaderPick, PickingEditor } from './gridContract';
 
@@ -99,17 +99,17 @@ export interface CellPickControllerDeps {
    */
   getHostActiveEditor(): unknown;
   /**
-   * Hands the keyboard back to the grid after a pick drag that ended outside the grid, or after any
-   * pick of an in-cell edit. A drag released outside the grid leaves the grid unlistened (the `click`
-   * after the release unlistens it), so the implementation must listen after that click. A pick of a
-   * bar-hosted edit released inside the grid does not call it: the focus stays in the bar, and a
-   * listening grid would run its shortcuts on the keys typed there.
+   * Hands the keyboard back to the grid after a pick of an in-cell edit. A drag released outside the
+   * grid leaves the grid unlistened (the `click` after the release unlistens it), so the implementation
+   * must listen after that click. A pick of a bar-hosted edit does not call it, wherever it was
+   * released: the focus stays in the bar, and a listening grid would run its shortcuts on the keys
+   * typed there.
    */
   relisten(): void;
   /**
-   * Takes the keyboard from the grid again after a pick of a bar-hosted edit released inside the grid.
-   * The grid's own cell `mousedown` handler calls `listen()` before the pick claims the press, so
-   * without it the keys typed in the bar would run the grid's shortcuts. The implementation must run
+   * Takes the keyboard from the grid again after a pick of a bar-hosted edit. The grid's own cell
+   * `mousedown` handler calls `listen()` before the pick claims the press, so without it the keys
+   * typed in the bar would run the grid's shortcuts. The implementation must run
    * after the `click` that follows the release.
    */
   unlisten(): void;
@@ -119,12 +119,6 @@ export interface CellPickControllerDeps {
    * @returns {boolean}
    */
   isBarHostedEdit(): boolean;
-  /**
-   * Returns the grid's root element.
-   *
-   * @returns {HTMLElement}
-   */
-  getRootElement(): HTMLElement;
   /**
    * Returns the master overlay scroll holder, or `null`.
    *
@@ -360,12 +354,9 @@ export class CellPickController {
   onWindowBlur = (): void => this.#handleWindowBlur();
 
   /**
-   * Document `mouseup` listener finishing the active drag. Called without an event, the release
-   * counts as outside the grid.
-   *
-   * @param {MouseEvent} [event] The mouse event.
+   * Document `mouseup` listener finishing the active drag.
    */
-  onDocMouseUp = (event?: MouseEvent): void => this.#handleDocMouseUp(!this.#isWithinGrid(event));
+  onDocMouseUp = (): void => this.#handleDocMouseUp();
 
   /**
    * Document `touchend`/`touchcancel` listener finishing a touch pick. On a touch device the press
@@ -377,7 +368,7 @@ export class CellPickController {
   onDocTouchEnd = (event: TouchEvent): void => {
     if (this.#touchId === null || getTouchPointById(event, this.#touchId) === null) {
       // A touch drag ends where it started (`touchend` targets the touched element), inside the grid.
-      this.#handleDocMouseUp(false);
+      this.#handleDocMouseUp();
     }
   };
 
@@ -775,7 +766,7 @@ export class CellPickController {
   #finishTouchPick(): void {
     this.#disarmClickSwallow();
     this.#armTouchEndCancel();
-    this.#handleDocMouseUp(false);
+    this.#handleDocMouseUp();
   }
 
   /**
@@ -881,7 +872,7 @@ export class CellPickController {
 
     // Released outside the window: no `mouseup` reached the document.
     if (event.buttons === 0) {
-      this.#handleDocMouseUp(true);
+      this.#handleDocMouseUp();
 
       return;
     }
@@ -906,41 +897,14 @@ export class CellPickController {
    */
   #handleWindowBlur(): void {
     if (this.#tracker.isActive() || this.#headerTracker.isActive()) {
-      this.#handleDocMouseUp(true);
+      this.#handleDocMouseUp();
     }
-  }
-
-  /**
-   * Whether a `mouseup` was released inside the grid's root. The composed path sees through the shadow
-   * roots between the target and the root; a sandboxed host that filters the path falls back to the
-   * composed target, and a release the check cannot place reads as outside, which hands the keyboard
-   * back.
-   *
-   * @param {MouseEvent} [event] The mouse event.
-   * @returns {boolean}
-   */
-  #isWithinGrid(event: MouseEvent | undefined): boolean {
-    if (event === undefined) {
-      return false;
-    }
-
-    const rootElement = this.#deps.getRootElement();
-
-    if (typeof event.composedPath === 'function' && event.composedPath().includes(rootElement)) {
-      return true;
-    }
-
-    const target = getComposedEventTargetEl(event);
-
-    return target !== null && rootElement.contains(target);
   }
 
   /**
    * Finishes the active drag, emits the pick, and restores focus.
-   *
-   * @param {boolean} endedOutside Whether the drag ended outside the grid (or the window).
    */
-  #handleDocMouseUp(endedOutside: boolean): void {
+  #handleDocMouseUp(): void {
     const wasActive = this.#tracker.isActive() || this.#headerTracker.isActive();
     const cellAnchor = this.#tracker.isActive() ? this.#cellDragAnchor : null;
 
@@ -956,9 +920,10 @@ export class CellPickController {
 
     this.#cellDragAnchor = null;
 
-    // A bar-hosted edit keeps the focus in the bar after a pick inside the grid, so the grid is left
-    // unlistened there: its shortcuts would otherwise run on the keys typed in the bar.
-    if (wasActive && (endedOutside || !this.#deps.isBarHostedEdit())) {
+    // A bar-hosted edit keeps the focus in the bar after a pick, wherever it was released (the bar
+    // itself sits outside the grid), so the grid is left unlistened there: its shortcuts would
+    // otherwise run on the keys typed in the bar.
+    if (wasActive && !this.#deps.isBarHostedEdit()) {
       this.#deps.relisten();
     } else if (wasActive) {
       this.#deps.unlisten();
