@@ -922,6 +922,26 @@ describe('applyImportResult – named expressions', () => {
       expect(hot.getDataAtCell(0, 1)).toBe(6);
     });
 
+    it('should add a string constant with an escaped quote as the text it spells', () => {
+      // `="a""b"` does not parse in HyperFormula, so the name is added as the constant `a"b`.
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [[null]],
+        formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
+      });
+
+      applyImportResult(hot, {
+        data: [['=LEN(Quote)&Quote']],
+        namedExpressions: [{ name: 'Quote', formula: '"a""b"' }, { name: 'Plain', formula: '"ab"' }],
+      });
+
+      const { engine } = hot.getPlugin('formulas');
+
+      expect(hot.getDataAtCell(0, 0)).toBe('3a"b');
+      expect(engine.getNamedExpressionValue('Quote')).toBe('a"b');
+      expect(engine.getNamedExpressionFormula('Plain')).toBe('="ab"');
+    });
+
     it('should load the data when the engine already defines a name of the result', () => {
       hot = new Handsontable(container, {
         licenseKey: 'non-commercial-and-evaluation',

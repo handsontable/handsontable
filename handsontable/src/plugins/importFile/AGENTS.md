@@ -524,7 +524,16 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `undefined`), and the export writes it as a literal (`0.07`): `sameConstant` compares
   `getNamedExpressionValue(name)` with `calculateFormula('=' + rebased, getSheetId(formulaSheetName))`
   (side-effect free; an error value compares by its code; a throw, a range, or no sheet id is unequal).
-  Without it, re-importing your own export froze every formula over a constant name. Equal: the formulas over it stay live.
+  Without it, re-importing your own export froze every formula over a constant name. **A name the
+  engine defines on the grid's own sheet counts too** (QA round 3): `engineNamedExpressions` lists
+  `listNamedExpressions(getSheetId(sheetName))` as well, and the comparison reads the formula and
+  value in that scope (`resolvingScope`), because HyperFormula resolves a sheet-scoped name first -
+  handed over at workbook scope, the file's `Sales` was silently shadowed by the user's. **A string
+  constant with an escaped quote** (`"a""b"`, what the export writes for `a"b`) does not parse in
+  HyperFormula (`validateFormula` is false), so `toNamedExpressionInput` (`applier.ts`) turns it into
+  the apostrophe-prefixed text `'a"b`, a string constant whatever follows the apostrophe; the check,
+  the comparison (compared as that text), the probe and the applier all go through it, while
+  `ImportResult.namedExpressions` keeps the file's `"a""b"`. Equal: the formulas over it stay live.
   Different, or not expressible: the name goes INTO `unresolvedNames`, so its formulas import cached
   values with `formula:definedName`, plus `definedNames:unsupported`. A re-import of a changed file used
   to read the previous import's range silently. Replacing the old definition (`changeNamedExpression`)

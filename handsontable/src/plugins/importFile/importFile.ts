@@ -13,7 +13,9 @@ import {
 import {
   mapWorkbook, resolveImportOptions, type MapperContext, type MappedResult, type ResolvedImportOptions,
 } from './mapper';
-import { applyImportResult, installImportedStyles, removeImportedStyles } from './applier';
+import {
+  applyImportResult, installImportedStyles, removeImportedStyles, toNamedExpressionInput,
+} from './applier';
 import { hasCellType } from '../../cellTypes/registry';
 import {
   convertToInferredTypes,
@@ -382,14 +384,58 @@ function engineSheetNames(engine: { getSheetNames?: () => string[] } | null | un
 }
 
 /**
- * The workbook-scoped named expressions a Formulas engine defines, lower-cased. A formula using a
- * name the file defines and the engine does not shows `#NAME?`, so the mapper imports its cached
- * value.
+ * The named expressions a Formulas engine defines, lower-cased: the workbook-scoped ones and the
+ * ones scoped to the grid's own sheet, which HyperFormula resolves first on that sheet. A formula
+ * using a name the file defines and the engine does not shows `#NAME?`, so the mapper imports its
+ * cached value; a name the engine defines is compared with the file's (`namedExpressionComparison`).
+ *
+ * @param {object|null|undefined} engine The Formulas plugin's engine.
+ * @param {string|null|undefined} sheetName The engine's name for the grid's sheet.
+ * @returns {Set<string>}
  */
-function engineNamedExpressions(engine: { listNamedExpressions?: () => string[] } | null | undefined): Set<string> {
-  const names = typeof engine?.listNamedExpressions === 'function' ? engine.listNamedExpressions() : [];
+function engineNamedExpressions(
+  engine: NamedExpressionEngine | null | undefined, sheetName: string | null | undefined
+): Set<string> {
+  if (typeof engine?.listNamedExpressions !== 'function') {
+    return new Set();
+  }
 
-  return new Set(names.map(name => name.toLowerCase()));
+  const sheetId = sheetIdOf(engine, sheetName);
+  const scoped = sheetId === undefined ? [] : engine.listNamedExpressions(sheetId);
+
+  return new Set([...engine.listNamedExpressions(), ...scoped].map(name => name.toLowerCase()));
+}
+
+/**
+ * The engine's id of the grid's sheet, or `undefined` when it holds none of that name.
+ *
+ * @param {object} engine The Formulas plugin's engine.
+ * @param {string|null|undefined} sheetName The engine's name for the grid's sheet.
+ * @returns {number|undefined}
+ */
+function sheetIdOf(engine: NamedExpressionEngine, sheetName: string | null | undefined): number | undefined {
+  const sheetId = typeof sheetName === 'string' ? engine.getSheetId?.(sheetName) : undefined;
+
+  return typeof sheetId === 'number' ? sheetId : undefined;
+}
+
+/**
+ * The scope HyperFormula resolves a name in on the grid's sheet: the sheet's id when the engine
+ * defines the name there (it shadows a workbook-scoped one), `undefined` (workbook scope) otherwise.
+ *
+ * @param {object} engine The Formulas plugin's engine.
+ * @param {string} name The name.
+ * @param {number|undefined} sheetId The engine's id of the grid's sheet.
+ * @returns {number|undefined}
+ */
+function resolvingScope(engine: NamedExpressionEngine, name: string, sheetId: number | undefined): number | undefined {
+  if (sheetId === undefined || typeof engine.listNamedExpressions !== 'function') {
+    return undefined;
+  }
+
+  const lowered = name.toLowerCase();
+
+  return engine.listNamedExpressions(sheetId).some(listed => listed.toLowerCase() === lowered) ? sheetId : undefined;
 }
 
 /**
@@ -409,12 +455,18 @@ function namedExpressionCheck(engine: NamedExpressionEngine | null | undefined):
   // error, so the formula is validated as well. Both parse the formula, and HyperFormula's parser
   // throws on a deeply nested one: a throw answers no, so the name is left out instead of the whole
   // import failing.
-  return (name, expression) => isValidFormula(engine, expression)
-    && answersTrue(() => check.call(engine, name, expression));
+  return (name, expression) => {
+    const input = toNamedExpressionInput(expression);
+
+    // A string constant HyperFormula's parser refuses (`"a""b"`) is added as the text it spells.
+    return (input !== expression || isValidFormula(engine, expression))
+      && answersTrue(() => check.call(engine, name, input));
+  };
 }
 
 /**
- * Whether a Formulas engine defines a workbook-scoped name with this expression, both read in the
+ * Whether a Formulas engine defines a name with this expression, in the scope HyperFormula resolves
+ * it in on the grid's sheet (that sheet's own name first, else the workbook's), both read in the
  * engine's normalized form (`normalizeFormula` writes exactly what `getNamedExpressionFormula`
  * answers: canonical sheet case, upper-case functions), or `undefined` when the engine cannot answer,
  * so a name it defines is trusted as it is.
@@ -437,54 +489,59 @@ function namedExpressionComparison(
   }
 
   return (name, expression) => {
-    if (!isValidFormula(engine, expression)) {
+    const input = toNamedExpressionInput(expression);
+    const text = input === expression ? undefined : input.slice(1);
+
+    if (text === undefined && !isValidFormula(engine, expression)) {
       return false;
     }
 
-    const stored = engine.getNamedExpressionFormula?.(name);
+    const sheetId = sheetIdOf(engine, sheetName);
+    const scope = resolvingScope(engine, name, sheetId);
+    const stored = engine.getNamedExpressionFormula?.(name, scope);
 
     if (stored === undefined) {
-      return sameConstant(engine, name, expression, sheetName);
+      return sameConstant(engine, { name, scope, expression, text }, sheetId);
     }
 
-    return answersTrue(() => stored === engine.normalizeFormula?.(expression));
+    return text === undefined && answersTrue(() => stored === engine.normalizeFormula?.(expression));
   };
 }
 
 /**
  * Whether a name the engine holds as a constant has the value the file's expression evaluates to.
- * The expression is evaluated by `calculateFormula`, which changes nothing in the engine. A value
- * the engine cannot compute (no sheet to evaluate against, an expression that throws) or a range
- * never matches, so the formulas over the name import their cached values.
+ * The expression is evaluated by `calculateFormula`, which changes nothing in the engine; a string
+ * constant HyperFormula's parser refuses (`"a""b"`) is compared as the text it spells. A value the
+ * engine cannot compute (no sheet to evaluate against, an expression that throws) or a range never
+ * matches, so the formulas over the name import their cached values.
  *
  * @param {NamedExpressionEngine} engine The Formulas plugin's engine.
- * @param {string} name The name.
- * @param {string} expression The file's definition, `=` included.
- * @param {string|null|undefined} sheetName The engine's name for the grid's sheet.
+ * @param {object} definition The name, the scope the engine resolves it in, the file's definition
+ * (`=` included) and, for a string constant, the text it spells.
+ * @param {number|undefined} sheetId The engine's id of the grid's sheet.
  * @returns {boolean}
  */
 function sameConstant(
-  engine: NamedExpressionEngine, name: string, expression: string, sheetName: string | null | undefined
+  engine: NamedExpressionEngine,
+  { name, scope, expression, text }: { name: string; scope?: number; expression: string; text?: string },
+  sheetId: number | undefined,
 ): boolean {
-  if (typeof engine.getNamedExpressionValue !== 'function' || typeof engine.calculateFormula !== 'function') {
+  if (typeof engine.getNamedExpressionValue !== 'function' || typeof engine.calculateFormula !== 'function'
+    || sheetId === undefined) {
     return false;
   }
 
-  const sheetId = typeof sheetName === 'string' ? engine.getSheetId?.(sheetName) : undefined;
+  let computed: unknown = text;
 
-  if (typeof sheetId !== 'number') {
-    return false;
+  if (text === undefined) {
+    try {
+      computed = engine.calculateFormula(expression, sheetId);
+    } catch {
+      return false;
+    }
   }
 
-  let computed: unknown;
-
-  try {
-    computed = engine.calculateFormula(expression, sheetId);
-  } catch {
-    return false;
-  }
-
-  const held = engine.getNamedExpressionValue(name);
+  const held = engine.getNamedExpressionValue(name, scope);
 
   if (held === computed) {
     return true;
@@ -677,7 +734,7 @@ function liveArrayProbe(engine: unknown, sheetName: string | null | undefined): 
         // The engine could not list its names; the masters over them are left as written.
       }
 
-      namedExpressions.forEach(({ name: added, formula }) => add(added, `=${formula}`));
+      namedExpressions.forEach(({ name: added, formula }) => add(added, toNamedExpressionInput(`=${formula}`)));
     };
 
     try {
@@ -745,10 +802,11 @@ function answersTrue(ask: () => unknown): boolean {
  */
 interface NamedExpressionEngine {
   isItPossibleToAddNamedExpression?: (name: string, expression: string) => boolean;
-  getNamedExpressionFormula?: (name: string) => string | undefined;
+  listNamedExpressions?: (scope?: number) => string[];
+  getNamedExpressionFormula?: (name: string, scope?: number) => string | undefined;
   normalizeFormula?: (formula: string) => string;
   validateFormula?: (formula: string) => boolean;
-  getNamedExpressionValue?: (name: string) => unknown;
+  getNamedExpressionValue?: (name: string, scope?: number) => unknown;
   calculateFormula?: (formula: string, sheetId: number) => unknown;
   getSheetId?: (sheetName: string) => number | undefined;
 }
@@ -1235,7 +1293,9 @@ export class ImportFile extends BasePlugin {
       customBordersEnabled: customBordersPlugin?.isEnabled() === true,
       formulaSheetNames: formulasEnabled ? engineSheetNames(formulasPlugin?.engine) : undefined,
       formulaSheetName: formulasEnabled ? formulasPlugin?.sheetName ?? undefined : undefined,
-      formulaNamedExpressions: formulasEnabled ? engineNamedExpressions(formulasPlugin?.engine) : undefined,
+      formulaNamedExpressions: formulasEnabled
+        ? engineNamedExpressions(formulasPlugin?.engine, formulasPlugin?.sheetName)
+        : undefined,
       canAddNamedExpression: formulasEnabled ? namedExpressionCheck(formulasPlugin?.engine) : undefined,
       definesNamedExpression: formulasEnabled
         ? namedExpressionComparison(formulasPlugin?.engine, formulasPlugin?.sheetName)

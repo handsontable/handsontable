@@ -76,8 +76,9 @@ export interface MapperContext {
    */
   canAddNamedExpression?: (name: string, expression: string) => boolean;
   /**
-   * Whether the Formulas plugin's engine already defines this workbook-scoped name with this
-   * expression (`=` included), both compared in the engine's own normalized form. A workbook name the
+   * Whether the Formulas plugin's engine already defines this name with this expression (`=`
+   * included), at workbook scope or on the grid's own sheet, both compared in the engine's own
+   * normalized form. A workbook name the
    * engine defines DIFFERENTLY - a re-import of a file whose name changed - is treated as unresolved:
    * the formulas using it import their cached values instead of reading the old definition. Absent
    * means a name the engine defines is trusted as it is.

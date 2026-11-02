@@ -316,6 +316,33 @@ export function removeImportedStyles(hot: HotInstance): void {
 }
 
 /**
+ * A definition that is one string literal (`="a""b"`, `""` escaping a quote). The two alternatives
+ * never match the same text, so the match is linear.
+ */
+const STRING_LITERAL_DEFINITION = /^="(?:[^"]|"")*"$/;
+
+/**
+ * The input HyperFormula takes for a defined name's definition (`=` included). HyperFormula's
+ * parser refuses an escaped quote inside a string (`validateFormula('="a""b"')` is `false`), so a
+ * definition that is one such string literal is handed over as the text it spells, behind an
+ * apostrophe (`'a"b`), which HyperFormula reads as a string constant whatever follows it (an
+ * unescaped `=1` or `12` would otherwise read as a formula or a number). Every other definition is
+ * returned as it is.
+ *
+ * @param {string} expression The definition, `=` included.
+ * @returns {string}
+ */
+export function toNamedExpressionInput(expression: string): string {
+  const text = expression.slice(2, -1);
+
+  if (!STRING_LITERAL_DEFINITION.test(expression) || !text.includes('""')) {
+    return expression;
+  }
+
+  return `'${text.replace(/""/g, '"')}`;
+}
+
+/**
  * Adds the result's named expressions to the Formulas plugin's engine, at workbook scope, skipping
  * one the engine refuses by now (a name defined since the mapper asked). Nothing is added when the
  * plugin is off. Adding a name is not undoable: the `loadData` that follows resets the
@@ -339,7 +366,8 @@ function addNamedExpressions(hot: HotInstance, result: ImportResult): void {
   // engine, may have defined the name since; `addNamedExpression` would then throw mid-batch.
   const canAdd = (name: string, expression: string) =>
     engine.isItPossibleToAddNamedExpression?.(name, expression) === true;
-  const namedExpressions = result.namedExpressions.map(({ name, formula }) => ({ name, expression: `=${formula}` }));
+  const namedExpressions = result.namedExpressions
+    .map(({ name, formula }) => ({ name, expression: toNamedExpressionInput(`=${formula}`) }));
   const first = namedExpressions.findIndex(({ name, expression }) => canAdd(name, expression));
 
   // An empty engine batch still pushes an engine undo step, so none opens when every name is refused.

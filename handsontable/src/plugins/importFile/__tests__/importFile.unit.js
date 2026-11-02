@@ -1785,6 +1785,107 @@ describe('ImportFile and the workbook\'s defined names in a real HyperFormula en
     expect(result.dropped).toEqual(['definedNames:unsupported', 'formula:definedName']);
   });
 
+  /**
+   * A `Data` workbook with a header row, `C2` holding one formula over the given names.
+   *
+   * @param {string} text The formula, without `=`.
+   * @param {*} cached Its cached value.
+   * @param {object[]} names The workbook's defined names.
+   * @returns {Promise<ArrayBuffer>}
+   */
+  async function formulaBytes(text, cached, names) {
+    const snapshot = createWorkbookSnapshot();
+    const sheet = createSheetSnapshot('Data');
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+
+    sheet.rows = [
+      [at({ value: 'A' }), at({ value: 'B' }), at({ value: 'C' })],
+      [at({ value: 1 }), null, at({ formula: { text, result: cached } })],
+    ];
+    snapshot.sheets.push(sheet);
+    snapshot.definedNames = names;
+
+    return toArrayBuffer(await nativeAdapter.write(snapshot, undefined, new DroppedFeatures()));
+  }
+
+  it('should keep a formula live over an error constant the engine holds too, and cached when the error differs', async() => {
+    const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+
+    hf.addSheet('Sheet1');
+    hf.addNamedExpression('Missing', '#N/A');
+
+    // An error is a fresh object on every read: it is compared by its code.
+    const same = await importInto(hf, await formulaBytes('IFERROR(Missing,5)', 5, [
+      { name: 'Missing', formula: '#N/A', sheetName: null },
+    ]));
+
+    expect(same.data[0][2]).toBe('=IFERROR(Missing,5)');
+    expect(same.dropped).toEqual([]);
+
+    const changed = await importInto(hf, await formulaBytes('IFERROR(Missing,5)', 5, [
+      { name: 'Missing', formula: '#DIV/0!', sheetName: null },
+    ]));
+
+    expect(changed.data[0][2]).toBe(5);
+    expect(changed.dropped).toEqual(['definedNames:unsupported', 'formula:definedName']);
+
+    hf.destroy();
+  });
+
+  it('should compare a name the engine defines on the grid\'s sheet, which shadows the file\'s', async() => {
+    // HyperFormula resolves a sheet-scoped name first, so `=SUM(Sales)` read the engine's `Sales`,
+    // not the file's, and nothing was reported.
+    const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+
+    hf.addSheet('Sheet1');
+    hf.addNamedExpression('Sales', '=Sheet1!$A$1', hf.getSheetId('Sheet1'));
+
+    const names = [{ name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null }];
+    const differs = await importInto(hf, await salesBytes(names));
+
+    expect(differs.namedExpressions).toBeUndefined();
+    expect(differs.data[0][2]).toBe(60);
+    expect(differs.dropped).toEqual(['definedNames:unsupported', 'formula:definedName']);
+
+    hf.changeNamedExpression('Sales', '=Sheet1!$G$1:$G$3', hf.getSheetId('Sheet1'));
+
+    const same = await importInto(hf, await salesBytes(names));
+
+    expect(same.namedExpressions).toBeUndefined();
+    expect(same.data[0][2]).toBe('=SUM(Sales)');
+    expect(same.dropped).toEqual([]);
+
+    hf.destroy();
+  });
+
+  it('should hand over a string constant with an escaped quote, and match it on a re-import', async() => {
+    // Excel writes the text `a"b` as `"a""b"`, which HyperFormula's parser refuses (`validateFormula`
+    // answers false), so the export's own `a"b` name froze its formulas on the way back.
+    const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+
+    hf.addSheet('Sheet1');
+
+    const bytes = await formulaBytes('LEN(Quote)', 3, [{ name: 'Quote', formula: '"a""b"', sheetName: null }]);
+    const first = await importInto(hf, bytes);
+
+    expect(first.namedExpressions).toEqual([{ name: 'Quote', formula: '"a""b"' }]);
+    expect(first.data[0][2]).toBe('=LEN(Quote)');
+    expect(first.dropped).toEqual([]);
+
+    // What the applier adds: the text itself, a constant.
+    hf.addNamedExpression('Quote', '\'a"b');
+
+    expect(hf.getNamedExpressionValue('Quote')).toBe('a"b');
+
+    const again = await importInto(hf, bytes);
+
+    expect(again.namedExpressions).toBeUndefined();
+    expect(again.data[0][2]).toBe('=LEN(Quote)');
+    expect(again.dropped).toEqual([]);
+
+    hf.destroy();
+  });
+
   it('should import the cached value of a formula over a name calling a function HyperFormula lacks', async() => {
     // `=UNIQUE(...)` is common in Excel 365 names. Registered, it made `=SUM(Sales)` show `#NAME?`
     // while the file holds 60, with nothing reported.
