@@ -225,7 +225,7 @@ function valueCellXml(
   strings: SharedStringTable,
   dropped: DroppedFeatures,
 ): string {
-  // A flagged error is `<v>` text of an `e` cell, never a shared string; the code is one of eight
+  // A flagged error is `<v>` text of an `e` cell, never a shared string; the code is one of the seven
   // OOXML literals, so it needs no escaping. A flagged code outside that set (`#SPILL!`) stays text.
   if (valueIsError && isOoxmlErrorCode(value)) {
     return `${cellStartTag(ref, styleAttr, 'e')}><v>${value}</v></c>`;
