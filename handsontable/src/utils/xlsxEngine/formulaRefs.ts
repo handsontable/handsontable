@@ -165,12 +165,13 @@ export type Requalify = (sheetName: string) => { sheetName: string; map?: Refere
 
 /**
  * A sheet name a formula may write without quotes: a letter or `_` first, then letters, digits and
- * `_`, and not something Excel reads as a cell (`A1`) or an R1C1 reference (`R1C1`). A dot forces
- * quotes: HyperFormula's unquoted sheet grammar has none, so `=Data.2024!$A$1` is a parsing error
- * there while `='Data.2024'!$A$1` works, and ExcelJS and LibreOffice quote it too.
+ * `_`, and not something Excel reads as a cell (`A1`), an R1C1 reference (`R1C1`), or a boolean
+ * (`TRUE`, `false`; Excel writes `'TRUE'!A1`). A dot forces quotes: HyperFormula's unquoted sheet
+ * grammar has none, so `=Data.2024!$A$1` is a parsing error there while `='Data.2024'!$A$1` works,
+ * and ExcelJS and LibreOffice quote it too.
  */
 const UNQUOTED_SHEET_NAME_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
-const CELL_LIKE_SHEET_NAME_PATTERN = /^(?:[A-Za-z]{1,3}\d+|[RC]|R\d*C\d*)$/i;
+const CELL_LIKE_SHEET_NAME_PATTERN = /^(?:[A-Za-z]{1,3}\d+|[RC]|R\d*C\d*|TRUE|FALSE)$/i;
 
 /**
  * Spells a sheet name as a formula qualifier, without its `!`: as it is when Excel reads it

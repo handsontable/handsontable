@@ -92,7 +92,9 @@ directions.
   RENAMES a qualifier (`exportFile`'s named expressions move each engine sheet's references and
   name its exported sheet): it gets the unquoted name and answers `{ sheetName, map? }` (the `map`
   moves that sheet's reference part) or `null`. The walker quotes the new name itself
-  (`quoteSheetName`, exported, which also quotes a cell-shaped name such as `A1`, and any name with a
+  (`quoteSheetName`, exported, which also quotes a cell-shaped name such as `A1`, a boolean-shaped
+  name such as `TRUE` or `false` (Excel writes `'TRUE'!A1`; ExcelJS writes a definition over it bare,
+  so `losesQualifierQuotes` leaves that name out), and any name with a
   dot: HyperFormula's unquoted grammar is `[A-Za-z0-9_]`, so a bare `Data.2024!$A$1` is a parse error
   there and `selfAs` handed the engine an imported name it showed as `#ERROR!`). A qualifier
   after `]` (another workbook) is never offered. `rebaseImportedFormula` has the matching `selfAs`

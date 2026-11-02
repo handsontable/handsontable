@@ -265,6 +265,16 @@ describe('mapFormulaReferences', () => {
       expect(renamedTo('v1.2')).toBe('\'v1.2\'!A2');
     });
 
+    it('should quote a new sheet name Excel reads as a boolean, in any case', () => {
+      // Excel writes `'TRUE'!A1`: a bare `TRUE!A1` is the boolean, not a sheet.
+      const renamedTo = name => mapFormulaReferences('Data!A1', down, { requalify: () => ({ sheetName: name }) });
+
+      expect(renamedTo('TRUE')).toBe('\'TRUE\'!A2');
+      expect(renamedTo('false')).toBe('\'false\'!A2');
+      expect(renamedTo('True')).toBe('\'True\'!A2');
+      expect(renamedTo('TRUEX')).toBe('TRUEX!A2');
+    });
+
     it('should map a requalified reference through the map the callback answers with', () => {
       const right = reference => ({ row: reference.row, col: reference.col + 2 });
       const result = mapFormulaReferences('A!A1+B!A1', down, {

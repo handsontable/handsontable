@@ -566,7 +566,7 @@ describe('excelJsAdapter.write', () => {
       // ExcelJS re-serializes it through the same code.
       const snapshot = createWorkbookSnapshot();
 
-      ['2024', 'Q1', 'My Sheet', 'Data'].forEach((name) => {
+      ['2024', 'Q1', 'My Sheet', 'Data', 'TRUE'].forEach((name) => {
         const builder = new SheetBuilder(name);
 
         builder.cell(1, 1).value = 1;
@@ -577,6 +577,8 @@ describe('excelJsAdapter.write', () => {
         { name: 'Quarter', formula: '\'Q1\'!$A$1', sheetName: null },
         { name: 'Spaced', formula: '\'My Sheet\'!$A$1', sheetName: null },
         { name: 'Plain', formula: 'Data!$A$1', sheetName: null },
+        // Excel quotes a sheet named like a boolean; ExcelJS writes `TRUE!$A$1`.
+        { name: 'Flag', formula: '\'TRUE\'!$A$1', sheetName: null },
       ];
 
       const dropped = new DroppedFeatures();
