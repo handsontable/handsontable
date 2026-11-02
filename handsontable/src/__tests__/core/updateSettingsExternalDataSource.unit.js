@@ -1,30 +1,7 @@
 import Handsontable from 'handsontable';
+import { waitUntil as waitFor } from '../../../test/helpers/common';
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-/**
- * Resolves once `condition` holds, polling every 5 ms, and rejects after 2 s.
- *
- * @param {Function} condition The condition to wait for.
- * @returns {Promise<void>}
- */
-function waitFor(condition) {
-  const start = Date.now();
-
-  return new Promise((resolve, reject) => {
-    const check = () => {
-      if (condition()) {
-        resolve();
-      } else if (Date.now() - start > 2000) {
-        reject(new Error('The condition was not met in time.'));
-      } else {
-        setTimeout(check, 5);
-      }
-    };
-
-    check();
-  });
-}
 
 /**
  * Builds a complete DataProvider configuration over `count` products, answering the page and page size it is
