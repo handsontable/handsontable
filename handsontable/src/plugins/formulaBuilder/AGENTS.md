@@ -49,6 +49,11 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   `isImmediatePropagationStopped(event)`: the dropdown/autocomplete arrow (`autocompleteRenderer`) and the
   multiSelect indicator (`multiSelectRenderer/utils/utils.ts`) do, or a pick on the arrow opened the
   cell's own editor (`onCellDblClick`) and, with Cmd/Ctrl held, dropped the open formula edit.
+  `TableView`'s own `rootElement` `mousedown` listener does too: it skips `clearTextSelection()` for a
+  claimed press. WebKit ties a focused text field's caret to the page's selection, so the clear moved
+  the formula editor's caret to 0 and the pick inserted nothing, in an edit started from a range or a
+  header selection (Chromium and Firefox keep the two apart, so only the WebKit leg showed it). Pinned by
+  "formulaBuilder picking in an edit started from a range or a header selection".
   That is what keeps NestedHeaders from selecting a group span under a header pick, and what DragToScroll
   reads to stay out of a drag the pick's own edge auto-scroller drives. Plugin priority (265) is NOT enough: it orders only the
   first `enablePlugin()`, and a later `updatePlugin()` (a theme switch used to trigger one) re-registers the

@@ -197,6 +197,38 @@ test.describe('formulaBuilder mouse reference picking', { tag: [THEMES_TAG, BUND
   });
 });
 
+// Core clears the page's text selection on every press on a cell or header. WebKit ties a focused
+// text field's caret to that selection, so the clear moved the formula editor's caret before the `=`,
+// and a pick of an edit started from a range or a header selection inserted nothing there.
+test.describe('formulaBuilder picking in an edit started from a range or a header selection', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  for (const [start, target, reference] of [
+    ['a range', 'a cell', '=B2'],
+    ['a range', 'a column header', '=B:B'],
+    ['a column header', 'a cell', '=B2'],
+    ['a column header', 'a column header', '=B:B'],
+  ] as const) {
+    test(`a pick of ${target} in an edit started from ${start} inserts the reference`, async({ page, theme, bundle }) => {
+      const grid = new FormulaBuilderPage(page, theme, bundle);
+
+      await grid.goto();
+
+      if (start === 'a range') {
+        await grid.drag(grid.cell(0, 0), grid.cell(2, 0));
+      } else {
+        await grid.columnHeader('A').click();
+      }
+
+      await page.keyboard.press('=');
+      await expect(grid.editorInput).toBeFocused();
+
+      await (target === 'a cell' ? grid.cell(1, 1) : grid.columnHeader('B')).click();
+
+      await expect(grid.editorInput).toHaveValue(reference);
+      await expect(grid.editorInput).toBeFocused();
+    });
+  }
+});
+
 // ManualColumnMove and ManualRowMove arm a move on a press on a header of the selected range, and a
 // header pick claims the press after they saw it. Released, the move closed the edit and saved what was
 // typed into the edited cell.
