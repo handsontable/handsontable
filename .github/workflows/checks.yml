@@ -444,6 +444,27 @@ jobs:
         run: set -o pipefail; node .github/scripts/test-weakening-gate.mjs | tee -a "$GITHUB_STEP_SUMMARY"
         env:
           GATE_BASE: ${{ github.event.pull_request.base.sha }}
+      # The feature manifest's record of released ids only grows: every id the base branch recorded stays, with
+      # every licensing value it had there (handsontable/src/featureManifest/AGENTS.md). One pull request can edit
+      # the manifest and the record together, so only the base branch's copy catches a removed token. Compared
+      # with the refreshed live tip, never `base.sha`, for the same reason as the gate above. A base without the
+      # file yet reads as `{}`. Needs nothing but Node, and runs even when the gate above failed.
+      - name: Check that the released feature ids only grow
+        if: ${{ !cancelled() }}
+        run: |
+          git fetch --no-tags origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}" \
+            || echo "::warning::could not refresh origin/${BASE_REF}; comparing with the checkout's copy"
+          git rev-parse --verify --quiet "origin/${BASE_REF}" > /dev/null \
+            || { echo "::error::origin/${BASE_REF} is missing, so the released feature ids cannot be compared"; exit 1; }
+          RECORD=handsontable/src/featureManifest/released-tokens.json
+          if git cat-file -e "origin/${BASE_REF}:${RECORD}" 2>/dev/null; then
+            git show "origin/${BASE_REF}:${RECORD}" > "$RUNNER_TEMP/released-base.json"
+          else
+            echo '{}' > "$RUNNER_TEMP/released-base.json"
+          fi
+          node handsontable/scripts/generate-feature-manifest.mjs --check-base "$RUNNER_TEMP/released-base.json"
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
 
   changelog:
     name: changelog

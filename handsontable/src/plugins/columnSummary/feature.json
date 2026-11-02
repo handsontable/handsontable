@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:column_summary",
+      "kind": "plugin",
+      "module": "ColumnSummary",
+      "name": "Column summary",
+      "description": "Calculates a sum, minimum, maximum, count, or average over a column range and shows it in a cell.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}
