@@ -241,6 +241,27 @@ async function refuseMissingWorkbook(archive: ZipArchive, workbookPath: string):
 }
 
 /**
+ * The defined names of a workbook, read from its workbook part with this engine's parser and
+ * nothing else: no sheet is read and nothing is recorded. The ExcelJS adapter reads the names this
+ * way because ExcelJS's own model loses every name that is not an `$A$1`-style range.
+ *
+ * @param {ArrayBuffer} buffer The workbook file.
+ * @returns {Promise<DefinedNameSnapshot[]>}
+ */
+export async function readWorkbookDefinedNames(buffer: ArrayBuffer): Promise<DefinedNameSnapshot[]> {
+  const archive = await readZip(buffer);
+
+  try {
+    const rootRels = archive.has('_rels/.rels') ? parseRels(await archive.text('_rels/.rels')) : [];
+    const workbookPath = targetOf(rootRels, REL_TYPES.officeDocument, '') ?? 'xl/workbook.xml';
+
+    return archive.has(workbookPath) ? parseWorkbook(await archive.text(workbookPath)).definedNames : [];
+  } finally {
+    archive.release();
+  }
+}
+
+/**
  * Opens the archive and the workbook-level parts. Any failure here means the bytes are not a
  * workbook this reader understands.
  */

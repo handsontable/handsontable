@@ -32,6 +32,7 @@ import {
 import { noteToComment } from '../threadedComments';
 import { clampCellText, clampColumnWidth, clampRowHeight, MAX_EXCELJS_DEFINED_NAME_CELLS } from '../writeLimits';
 import type { XlsxEngineAdapter } from './types';
+import { readWorkbookDefinedNames } from './native/read';
 
 /**
  * A cell value ExcelJS accepts.
@@ -753,7 +754,7 @@ function readNumFmt(source: ExcelJsCell): string | null {
 
 /**
  * The names an ExcelJS workbook defines, Excel's own `_xlnm.` names left out. ExcelJS keeps only
- * the names whose value is a range, which is what a formula over a named range uses.
+ * the names whose value is an `$A$1`-style range; `withLostDefinedNames` adds the rest.
  *
  * A name ExcelJS lists with several ranges - a name over several areas (`Sheet1!$A$1,Sheet1!$C$1`)
  * - keeps every range, joined with commas, the way the file spells the union. Its first range alone
@@ -792,6 +793,37 @@ function readDefinedNames(workbook: ExcelJsWorkbook): DefinedNameSnapshot[] {
   });
 
   return [...names.values()];
+}
+
+/**
+ * The names ExcelJS read, followed by every name its model lost, read from `xl/workbook.xml` by the
+ * built-in engine's parser (`readWorkbookDefinedNames`). ExcelJS 4.4's `definedNames.model` keeps
+ * only `$A$1`-style ranges, so a whole-column name (`Sheet1!$B:$B`, the usual dynamic-list idiom), a
+ * constant (`0.07`) and a relative reference never reached the import: a formula over one imported
+ * live, showed `#NAME?`, and nothing was reported. Each name is flagged `unsupported`, like every name
+ * this adapter reads, so the formulas over it import their cached values. When the part cannot be
+ * read again (an environment without `DecompressionStream`, a part the built-in parser refuses), the
+ * names ExcelJS read are kept as they are.
+ *
+ * @param {DefinedNameSnapshot[]} read The names ExcelJS's model holds.
+ * @param {ArrayBuffer} buffer The workbook file.
+ * @returns {Promise<DefinedNameSnapshot[]>}
+ */
+async function withLostDefinedNames(read: DefinedNameSnapshot[], buffer: ArrayBuffer): Promise<DefinedNameSnapshot[]> {
+  let all: DefinedNameSnapshot[];
+
+  try {
+    all = await readWorkbookDefinedNames(buffer);
+  } catch {
+    return read;
+  }
+
+  const known = new Set(read.map(({ name }) => name.toLowerCase()));
+  const lost = all
+    .filter(({ name }) => !known.has(name.toLowerCase()))
+    .map(({ name, formula, sheetName }): DefinedNameSnapshot => ({ name, formula, sheetName, unsupported: true }));
+
+  return [...read, ...lost];
 }
 
 /**
@@ -1309,7 +1341,7 @@ export const excelJsAdapter: XlsxEngineAdapter = {
       snapshot.sheets.push(sheet);
     });
 
-    snapshot.definedNames = readDefinedNames(workbook);
+    snapshot.definedNames = await withLostDefinedNames(readDefinedNames(workbook), buffer);
 
     return snapshot;
   },

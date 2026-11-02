@@ -429,10 +429,16 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   and keeps one definition of a name defined in several scopes), so on that engine no name is ever
   registered and none counts as the engine's: a formula over one imports its cached value, even when
   the engine already defines the name with the same text (the reader lost which scope it came from,
-  so the match proves nothing - the 4200-instead-of-100 bug). The ExcelJS reader carries RANGE names only: ExcelJS 4.4's
-  `definedNames.model` drops a name whose value is a constant (`<definedName name="TaxRate">0.07`)
-  and a relative one (`Data!G2`), so a formula over such a name stays live and shows `#NAME?` on that
-  engine, with nothing reported. A multi-area name reaches the mapper from both readers as its areas
+  so the match proves nothing - the 4200-instead-of-100 bug). ExcelJS 4.4's `definedNames.model` keeps only
+  `$A$1`-style ranges: it drops a whole-column name (`Sheet1!$B:$B`), a constant
+  (`<definedName name="TaxRate">0.07`) and a relative one (`Data!G2`), and a formula over such a name
+  used to stay live and show `#NAME?` with nothing reported. The adapter therefore re-reads
+  `xl/workbook.xml` with the built-in engine's zip reader and `parseWorkbook`
+  (`readWorkbookDefinedNames` in `adapters/native/read.ts`, `withLostDefinedNames` in `exceljs.ts`)
+  and appends every name the model lost, flagged like the rest (QA round 3; the ruling is that no
+  ExcelJS-read name is ever registered or matched). Where the part cannot be read again (no
+  `DecompressionStream`), the model's names are kept as they are. No bundle cost: `detect.ts` already
+  imports both adapters. A multi-area name reaches the mapper from both readers as its areas
   joined by commas; HyperFormula refuses the union, so its formulas import cached values with
   `formula:definedName` and `definedNames:unsupported`. Each formula is charged ONCE against `MAX_TRANSLATED_FORMULA_CHARS`, and
   that one charge covers the prefix strip, the reference walk (which also judges each sheet

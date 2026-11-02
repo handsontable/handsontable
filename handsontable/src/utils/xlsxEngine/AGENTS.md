@@ -864,7 +864,9 @@ directions.
     commas. Keeping the first range silently redefined the name, and leaving the name out made
     `importFile` import a formula over it live as `#NAME?`; kept, HyperFormula's `validateFormula`
     refuses the union, so the formula imports its cached value with `formula:definedName`. It loses
-    the sheet scope, drops constants, and cannot see a name defined in several scopes: ExcelJS 4.4's
+    the sheet scope, drops constants, whole-column and relative names (the adapter appends those from
+    `xl/workbook.xml`, read by the built-in parser through `readWorkbookDefinedNames`), and cannot see
+    a name defined in several scopes: ExcelJS 4.4's
     `definedNames.model` setter keys its map by name, so the LAST definition wins with one range.
     **So every name it reads is flagged `unsupported`** and `importFile` registers none: with a
     workbook `Rate` and a `Sheet2` one, only Sheet2's came back, workbook-wide, and registering it made

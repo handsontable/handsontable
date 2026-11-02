@@ -125,16 +125,18 @@ describe('four-way parity: arrays, errors, defined names', () => {
     expect(result.nativeDropped.list()).not.toContain('dynamicArrays');
   });
 
-  it('native write -> ExcelJS read differs only by dynamic:false and the dropped TaxRate constant', () => {
+  it('native write -> ExcelJS read differs only by dynamic:false and the names it flags', () => {
     const [row] = result.ne.sheets[0].rows;
 
     expect(row[3].formula.array).toEqual({ ref: 'D1:D3', dynamic: false });
     expect(strip(result.ne)).toEqual(withDynamic(strip(result.nn), false));
-    // ExcelJS drops the constant and loses the sheet scope: Local comes back workbook-scoped, and
-    // every name it reads is flagged, so `importFile` registers none.
+    // ExcelJS loses the sheet scope (Local comes back workbook-scoped) and drops the constant, which
+    // the adapter reads from the workbook part instead. Every name is flagged, so `importFile`
+    // registers none.
     expect(result.ne.definedNames).toEqual([
       { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null, unsupported: true },
       { name: 'Local', formula: 'Sheet1!$B$1', sheetName: null, unsupported: true },
+      { name: 'TaxRate', formula: '0.07', sheetName: null, unsupported: true },
     ]);
   });
 
@@ -200,11 +202,12 @@ describe('four-way parity: arrays, errors, defined names', () => {
       expect(native.sheets[0].rows[0][3].formula.array).toEqual({ ref: 'D1:D3', dynamic: true });
       expect(exceljs.sheets[0].rows[0][3].formula.array).toEqual({ ref: 'D1:D3', dynamic: false });
       expect(strip(exceljs)).toEqual(withDynamic(strip(native), false));
-      // Names differ by the documented ExcelJS reader losses only (constant dropped, scope lost).
+      // Names differ by the documented ExcelJS reader losses only (scope lost, every name flagged).
       expect(native.definedNames).toEqual(buildSnapshot().definedNames);
       expect(exceljs.definedNames).toEqual([
         { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null, unsupported: true },
         { name: 'Local', formula: 'Sheet1!$B$1', sheetName: null, unsupported: true },
+        { name: 'TaxRate', formula: '0.07', sheetName: null, unsupported: true },
       ]);
       expect(nativeDropped.list()).toEqual([]);
       expect(exceljsDropped.list()).toEqual([]);

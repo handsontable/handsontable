@@ -472,6 +472,64 @@ describe('excelJsAdapter.read on defined names', () => {
     expect(dropped.list()).toEqual([]);
   });
 
+  it('should read the names ExcelJS\'s model loses from the workbook part, flagged', async() => {
+    // ExcelJS 4.4 keeps only `$A$1`-style ranges: a whole column (the usual dynamic-list idiom), a
+    // constant and a relative reference never reached the import, so a formula over one imported
+    // live and showed `#NAME?`, with nothing reported.
+    const workbook = createWorkbookSnapshot();
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = [[{ ...createCellSnapshot(), value: 1 }]];
+    workbook.sheets.push(sheet);
+    workbook.definedNames = [
+      { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null },
+      { name: 'Column', formula: 'Sheet1!$B:$B', sheetName: null },
+      { name: 'TaxRate', formula: '0.07', sheetName: null },
+      { name: 'Relative', formula: 'Sheet1!A1', sheetName: 'Sheet1' },
+    ];
+
+    const bytes = await nativeAdapter.write(workbook, undefined, new DroppedFeatures());
+    const dropped = new DroppedFeatures();
+    const snapshot = await excelJsAdapter.read(
+      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), ExcelJS, dropped,
+    );
+
+    expect(snapshot.definedNames).toEqual([
+      { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null, unsupported: true },
+      { name: 'Column', formula: 'Sheet1!$B:$B', sheetName: null, unsupported: true },
+      { name: 'TaxRate', formula: '0.07', sheetName: null, unsupported: true },
+      { name: 'Relative', formula: 'Sheet1!A1', sheetName: 'Sheet1', unsupported: true },
+    ]);
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should keep the names ExcelJS read when the workbook part cannot be read again', async() => {
+    const workbook = createWorkbookSnapshot();
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = [[{ ...createCellSnapshot(), value: 1 }]];
+    workbook.sheets.push(sheet);
+    workbook.definedNames = [{ name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null }];
+
+    const bytes = await nativeAdapter.write(workbook, undefined, new DroppedFeatures());
+    const { DecompressionStream } = globalThis;
+
+    // The built-in engine's reader needs `DecompressionStream`; without it only ExcelJS's model is left.
+    delete globalThis.DecompressionStream;
+
+    try {
+      const snapshot = await excelJsAdapter.read(
+        bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), ExcelJS, new DroppedFeatures(),
+      );
+
+      expect(snapshot.definedNames).toEqual([
+        { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null, unsupported: true },
+      ]);
+    } finally {
+      globalThis.DecompressionStream = DecompressionStream;
+    }
+  });
+
   it('should flag every name, since a name defined in two scopes keeps one definition without its scope', async() => {
     // ExcelJS 4.4 keys its names by name: of the workbook `Rate` and the `Sheet2` one, only the last
     // survives, read as workbook-wide. Registered, `=Rate*100` on Sheet1 read Sheet2's rate.
