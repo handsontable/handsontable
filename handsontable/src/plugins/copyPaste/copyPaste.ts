@@ -32,6 +32,7 @@ import {
   normalizeRanges,
 } from './copyableRanges';
 import { _dataToHTML, htmlToGridSettings } from '../../utils/parseTable';
+import { LICENSE } from './feature.generated';
 
 const CLIPBOARD_KEYS = new Set(GRID_CLIPBOARD_KEYS.map(keys => normalizeKeys(keys)));
 
@@ -214,6 +215,14 @@ export class CopyPaste extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

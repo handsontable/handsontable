@@ -392,6 +392,18 @@ Other rules:
 the data before the wait keeps the reason the wait exists: the overlay paints before the export blocks the thread.
 Only `loadData()` counts, not `updateData()`. Pinned by `__tests__/exportFile.unit.js`.
 
+## The license check: every export method, and the menu item
+
+The plugin is on in every grid, so a license key that lists its features is checked when an export is asked
+for, not at enable (`gate: 'call'` in `feature.json`). `exportAsString()`, `exportAsBlob()`, `exportAsBlobAsync()`,
+`downloadFile()` and `downloadFileAsync()` call `assertLicensedCall(this.hot, LICENSE)` first: a key that does not
+cover `feat:export_file` writes the license message and throws it (the async methods reject). The token covers
+every format, CSV included. `supportsExportFormat()` is not checked: it does no work. The parent "Export" item of
+the context menu is hidden when the key does not cover the token (`contextMenuItem/exportItem.ts`), silently,
+because a click would only throw. **Read another plugin's state through `.enabled`** in `dataProvider.ts`: a
+plugin the key leaves out keeps its setting, so `isEnabled()` answers `true` while it never ran (MergeCells then
+has no collection). Rules: `../../utils/entitlementLicenseKey/AGENTS.md`.
+
 ## Where to look next
 
 - `../importFile/AGENTS.md` for the read direction — same adapters, same `_HotValidation` sheet, and the

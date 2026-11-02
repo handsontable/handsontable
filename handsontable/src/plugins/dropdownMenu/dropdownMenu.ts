@@ -23,7 +23,7 @@ import {
 
 import { A11Y_HASPOPUP, A11Y_HIDDEN, A11Y_LABEL } from '../../helpers/a11y';
 import { syncIcon } from '../../themes/engine/icons';
-import { PLUGIN_DEPS } from './feature.generated';
+import { LICENSE, PLUGIN_DEPS } from './feature.generated';
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
 Hooks.getSingleton().register('beforeDropdownMenuShow');
@@ -139,6 +139,14 @@ export class DropdownMenu extends BasePlugin {
    */
   static get PLUGIN_DEPS() {
     return [...PLUGIN_DEPS];
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

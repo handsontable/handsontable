@@ -8,6 +8,7 @@ import { command as selectAllCellsCommand } from '../../shortcuts/contexts/comma
 import { hasRenderedCells } from '../../shortcuts/guards';
 import * as C from '../../i18n/constants';
 import type { SelectionState } from '../../selection/types';
+import { LICENSE } from './feature.generated';
 
 /**
  * Local type-guard narrowing `unknown` to `Record<string, unknown>`.
@@ -220,6 +221,14 @@ export class EmptyDataState extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

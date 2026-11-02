@@ -10,6 +10,8 @@ import {
   type GridViewStateSetOptions,
   type GridViewStateValidationResult,
 } from './gridViewState';
+import { LICENSE } from './feature.generated';
+import { assertLicensedCall } from '../../utils/licenseNotification';
 
 export const PLUGIN_KEY = 'viewState';
 export const PLUGIN_PRIORITY = 920;
@@ -57,6 +59,14 @@ export class ViewState extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
@@ -118,6 +128,8 @@ export class ViewState extends BasePlugin {
    * @returns {object} The view state. Its `version` property identifies the shape.
    */
   getViewState(): GridViewState {
+    assertLicensedCall(this.hot, LICENSE);
+
     return getGridViewState(this.hot as HotInstance);
   }
 
@@ -211,6 +223,8 @@ export class ViewState extends BasePlugin {
    * and an `error` when the whole state was rejected.
    */
   setViewState(state: GridViewStateInput, options?: GridViewStateSetOptions): GridViewStateRestoreResult {
+    assertLicensedCall(this.hot, LICENSE);
+
     return setGridViewState(this.hot as HotInstance, state, options);
   }
 
@@ -236,6 +250,8 @@ export class ViewState extends BasePlugin {
    * `error` when the whole state would be rejected.
    */
   validateViewState(state: GridViewStateInput): GridViewStateValidationResult {
+    assertLicensedCall(this.hot, LICENSE);
+
     return validateGridViewState(this.hot as HotInstance, state);
   }
 }

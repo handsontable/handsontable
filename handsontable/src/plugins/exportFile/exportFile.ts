@@ -10,6 +10,8 @@ import exportItem from './contextMenuItem/exportItem';
 import { buildExportDialogContent } from './utils';
 import type { HotInstance } from '../../core/types';
 import type BaseType from './types/_base';
+import { LICENSE } from './feature.generated';
+import { assertLicensedCall } from '../../utils/licenseNotification';
 
 export const PLUGIN_KEY = 'exportFile';
 
@@ -425,6 +427,14 @@ export class ExportFile extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns the setting keys that trigger a plugin update when changed via `updateSettings`.
    */
   static get SETTING_KEYS() {
@@ -523,6 +533,8 @@ export class ExportFile extends BasePlugin {
    * @returns {string}
    */
   exportAsString(format: string, options: ExportOptions | Record<string, unknown> = {}): string {
+    assertLicensedCall(this.hot, LICENSE);
+
     const formatter = this._createTypeFormatter(format, options);
 
     if (formatter.binary) {
@@ -557,6 +569,8 @@ export class ExportFile extends BasePlugin {
    * @returns {Blob}
    */
   exportAsBlob(format: string, options: ExportOptions | Record<string, unknown> = {}): Blob {
+    assertLicensedCall(this.hot, LICENSE);
+
     const formatter = this._createTypeFormatter(format, options);
 
     if (formatter.binary) {
@@ -601,6 +615,8 @@ export class ExportFile extends BasePlugin {
    * @since 17.1.0
    */
   async exportAsBlobAsync(format: string, options: ExportOptions | Record<string, unknown> = {}): Promise<Blob> {
+    assertLicensedCall(this.hot, LICENSE);
+
     return this._createBlob(this._createTypeFormatter(format, options));
   }
 
@@ -628,6 +644,8 @@ export class ExportFile extends BasePlugin {
    * @returns {void}
    */
   downloadFile(format: string, options: ExportOptions | Record<string, unknown> = {}): void {
+    assertLicensedCall(this.hot, LICENSE);
+
     const formatter = this._createTypeFormatter(format, options);
 
     if (formatter.binary) {
@@ -677,6 +695,8 @@ export class ExportFile extends BasePlugin {
    * @since 17.1.0
    */
   async downloadFileAsync(format: string, options: ExportOptions | Record<string, unknown> = {}) {
+    assertLicensedCall(this.hot, LICENSE);
+
     const formatter = this._createTypeFormatter(format, options);
     const dialogPlugin = this.hot.getPlugin('dialog');
     const hasDialog = dialogPlugin?.isEnabled();

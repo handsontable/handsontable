@@ -10,6 +10,7 @@ import {
   pickStorableSizes,
   redeclaresManualSizes,
 } from '../../utils/manualResize/utils';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'manualColumnResize';
 export const PLUGIN_PRIORITY = 130;
@@ -62,6 +63,14 @@ export class ManualColumnResize extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

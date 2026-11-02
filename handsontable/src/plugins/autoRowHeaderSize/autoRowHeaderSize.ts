@@ -6,6 +6,7 @@ import { cancelIdleTask, requestIdleTask } from '../../helpers/feature';
 import { isPercentValue } from '../../helpers/string';
 import { valueAccordingPercent } from '../../helpers/number';
 import { FONT_REMEASURE_ORDER_INDEX } from '../../core/fontLoad';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'autoRowHeaderSize';
 export const PLUGIN_PRIORITY = 45;
@@ -105,6 +106,14 @@ export class AutoRowHeaderSize extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

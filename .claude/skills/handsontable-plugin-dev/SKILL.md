@@ -77,6 +77,20 @@ static get PLUGIN_DEPS() {
 
 To change a dependency, edit `feature.json` and run `generate:feature-manifest`; never edit `feature.generated.ts` by hand. Turn `enforceAtInit` on for every dependency the plugin cannot work without, and add a `__tests__/pluginDependencies.unit.ts` like the others. For a plugin no release has shipped yet that costs nothing. For a released plugin it is a **breaking change** for modular users: add a migration-guide step and a breaking changelog entry (Loading → Dialog, 19.0).
 
+## The license token (`LICENSE`) is generated too
+
+A plugin with `licensing: "token"` (every new one) gets a `LICENSE` export in the same `feature.generated.ts`: its token, display name, `gate` and `implies`. The class returns it, and the unit suite fails until it does:
+
+```ts
+import { LICENSE } from './feature.generated';
+
+static get LICENSE() {
+  return LICENSE;
+}
+```
+
+With it, a license key that lists its features keeps the plugin off when it does not list the token (`BasePlugin#isLicenseBlocked()`, at the same places as a hard conflict, never rewriting the setting). Pick `gate: "enable"` for a plugin turned on by its option. A plugin on in every grid (`isEnabled()` returns `true`) takes `gate: "call"` and checks the token itself at the top of each public method that does work: `assertLicensedCall(this.hot, LICENSE)` from `utils/licenseNotification.ts`, or `isLicensedUse()` where a throw would break a render. And when your plugin asks another plugin whether it runs, read `.enabled`, never `isEnabled()`: a plugin the key leaves out keeps its setting. Rules: `src/utils/entitlementLicenseKey/AGENTS.md`.
+
 ## Focus management
 
 A plugin with UI (buttons, inputs, navigation bars) integrates with `src/focusManager/`. Reference: Pagination (`#registerFocusScope` / `#unregisterFocusScope`). Roles, names, keys and announcements for that UI: the `handsontable-a11y` skill.

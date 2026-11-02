@@ -4,7 +4,7 @@ import { getSanitizer } from '../../utils/sanitizer';
 import * as C from '../../i18n/constants';
 import { isRootInstance } from '../../utils/rootInstance';
 import { LOADING_CLASS_NAME } from '../../helpers/constants';
-import { PLUGIN_DEPS } from './feature.generated';
+import { LICENSE, PLUGIN_DEPS } from './feature.generated';
 
 /**
  * Interface for the Dialog plugin used by Loading.
@@ -199,6 +199,14 @@ export class Loading extends BasePlugin {
    */
   static get PLUGIN_DEPS() {
     return [...PLUGIN_DEPS];
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

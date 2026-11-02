@@ -8,8 +8,14 @@ import {
   getLicenseGrants,
   UNRESTRICTED_GRANTS,
   HANDSONTABLE_PRODUCT,
+  LISTED_CAPABILITIES_FLAG,
 } from '../utils/entitlementLicenseKey';
-import type { LicenseLifecycle, LicenseGrants, LicenseChannels } from '../utils/entitlementLicenseKey';
+import type {
+  LicenseLifecycle,
+  LicenseGrants,
+  LicenseChannels,
+  ProductEntitlement,
+} from '../utils/entitlementLicenseKey';
 
 /**
  * Converts any value to string.
@@ -128,7 +134,7 @@ const consoleMessages: Record<string, (params: { keyValidityDate?: string; hotVe
  * the message as parts and building the nodes touches no sink, and keeps the copy - which is
  * transcribed from the license specification - in exactly one place.
  */
-type MessagePart = string | { text: string; href: string; target?: string };
+export type MessagePart = string | { text: string; href: string; target?: string };
 
 /**
  * Renders license bar message parts into an element.
@@ -137,7 +143,7 @@ type MessagePart = string | { text: string; href: string; target?: string };
  * @param {Array} parts The message parts.
  * @param {Document} ownerDocument The document to build the nodes in.
  */
-function _renderMessageParts(target: HTMLElement, parts: MessagePart[], ownerDocument: Document) {
+export function _renderMessageParts(target: HTMLElement, parts: MessagePart[], ownerDocument: Document) {
   parts.forEach((part) => {
     if (typeof part === 'string') {
       target.appendChild(ownerDocument.createTextNode(part));
@@ -250,6 +256,27 @@ type EntitlementConsoleNotification = {
  * constant per sentence means a legal or marketing wording change lands on every surface at once,
  * instead of drifting when only one copy is updated.
  */
+/**
+ * Builds the message for the features a license key that lists its features leaves out: the console
+ * text and the bar parts. One message names every missing feature, each as `<display name>
+ * (<token>)`. Transcribed from the license specification (rev 6, section 10.4).
+ *
+ * @param {Array<{name: string, capability: string}>} features The missing features, in the order to print.
+ * @returns {{text: string, parts: MessagePart[]}}
+ */
+export function _buildMissingFeaturesMessage(
+  features: ReadonlyArray<{ name: string; capability: string }>,
+): { text: string; parts: MessagePart[] } {
+  const list = features.map(({ name, capability }) => `${name} (${capability})`).join(', ');
+  const lead = `The license key for Handsontable does not include these features: ${list}. ` +
+    'They are turned off. To add them, contact ';
+
+  return {
+    text: `${lead}sales@handsontable.com.`,
+    parts: [lead, { text: 'sales@handsontable.com', href: 'mailto:sales@handsontable.com' }, '.'],
+  };
+}
+
 export const _LICENSE_EXPIRED_TITLE = 'Your Handsontable license key has expired.';
 export const _PURCHASE_LICENSE_TEXT = 'To continue using Handsontable, you need to purchase a license.';
 
@@ -738,8 +765,23 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
   return {
     lifecycle,
     channels: resolveChannels(entitlement),
-    grants: getLicenseGrants(keyData),
+    // The flag rule: only a key whose Handsontable entry carries `listed-capabilities` restricts.
+    // Every key issued before the flag lists only `core`, and the reader answers "not granted" for
+    // every token such a key leaves out - read without this check, it would turn off every paid
+    // feature of every customer.
+    grants: _listsCapabilities(entitlement) ? getLicenseGrants(keyData) : UNRESTRICTED_GRANTS,
   };
+}
+
+/**
+ * Tells whether a product entry says its capability list is complete (the `listed-capabilities`
+ * flag). Without the flag, a Handsontable key unlocks every feature.
+ *
+ * @param {ProductEntitlement} entitlement The Handsontable entry of a verified key.
+ * @returns {boolean}
+ */
+function _listsCapabilities(entitlement: ProductEntitlement): boolean {
+  return entitlement.flags.indexOf(LISTED_CAPABILITIES_FLAG) !== -1;
 }
 
 /**

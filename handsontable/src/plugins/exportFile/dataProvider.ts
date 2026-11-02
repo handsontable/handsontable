@@ -466,7 +466,9 @@ class ExportDataProvider {
     const { startRow, startCol, endRow, endCol } = this._getDataRange();
     const mergeCellsPlugin = this.hot.getPlugin('mergeCells');
 
-    if (!mergeCellsPlugin || !mergeCellsPlugin.isEnabled()) {
+    // `enabled`, not `isEnabled()`: a plugin the license key leaves out keeps its setting but never ran, so it
+    // has no merged cells collection to read.
+    if (!mergeCellsPlugin || !mergeCellsPlugin.enabled) {
       return [];
     }
 

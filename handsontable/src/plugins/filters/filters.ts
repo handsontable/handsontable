@@ -57,7 +57,7 @@ import type { BaseComponent } from './component/_base';
 import type { BaseUI } from './ui/_base';
 import { ColumnDataMap, stampPhysicalCoordinates } from './columnDataMap';
 import type { CellProperties } from '../../settings';
-import { PLUGIN_DEPS } from './feature.generated';
+import { LICENSE, PLUGIN_DEPS } from './feature.generated';
 
 export type OperationType = 'conjunction' | 'disjunction' | 'disjunctionWithExtraCondition';
 
@@ -303,6 +303,14 @@ export class Filters extends BasePlugin {
    */
   static get PLUGIN_DEPS() {
     return [...PLUGIN_DEPS];
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

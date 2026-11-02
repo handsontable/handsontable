@@ -64,6 +64,8 @@ export const A11Y_PAGES = [
     surface: 'a notification toast with a close button and two actions' },
   { id: 'license-bar', fixture: 'license-bar.html', query: 'width=600', state: 'none',
     surface: 'the license notification bar under the grid and its text contrast' },
+  { id: 'license-missing-features', fixture: 'license-capabilities.html', query: 'key=flagged-base&plugins=filters',
+    state: 'none', surface: 'the license bar naming the features a license key leaves out, and its sales link' },
   // Menus, opened from the keyboard.
   { id: 'context-menu', fixture: 'context-menu-checked-items.html', state: 'context-menu',
     surface: 'the context menu opened with Shift+F10: items, checkable items, separators' },

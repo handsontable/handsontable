@@ -46,6 +46,7 @@ import {
 import type { PositionComparatorFactory } from './sortService';
 import type { HotInstance } from '../../core/types';
 import { A11Y_SORT } from '../../helpers/a11y';
+import { LICENSE } from './feature.generated';
 
 /**
  * `HotInstance` augmented with the internal `_getDataAtColumnForRows` method. The method exists on the
@@ -199,6 +200,14 @@ export class ColumnSorting extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

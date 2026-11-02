@@ -23,6 +23,8 @@ import {
 } from '../../utils/columnTypeInference';
 import type { ImportedBorder } from './styles';
 import type { HotInstance } from '../../core/types';
+import { LICENSE } from './feature.generated';
+import { assertLicensedCall } from '../../utils/licenseNotification';
 
 export const PLUGIN_KEY = 'importFile';
 export const PLUGIN_PRIORITY = 245;
@@ -596,6 +598,14 @@ export class ImportFile extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns the setting keys that trigger a plugin update when changed via `updateSettings`.
    */
   static get SETTING_KEYS() {
@@ -732,6 +742,8 @@ export class ImportFile extends BasePlugin {
    * ```
    */
   inferColumnTypes(data: InferenceData, options: InferColumnTypesOptions | null = {}): InferColumnTypesResult {
+    assertLicensedCall(this.hot, LICENSE);
+
     return inferColumnTypes(data, { ...options, locale: options?.locale || this.hot.getSettings().locale });
   }
 
@@ -744,6 +756,8 @@ export class ImportFile extends BasePlugin {
    * `data` itself is not changed.
    */
   convertToInferredTypes<T extends InferenceData>(data: T, result: InferColumnTypesResult): ConvertedData<T> {
+    assertLicensedCall(this.hot, LICENSE);
+
     return convertToInferredTypes(data, result);
   }
 
@@ -768,6 +782,8 @@ export class ImportFile extends BasePlugin {
   async importFromArrayBuffer(
     format: string, buffer: ArrayBuffer | ArrayBufferView, options: ImportOptions = {}
   ): Promise<ImportResult> {
+    assertLicensedCall(this.hot, LICENSE);
+
     this.#assertEnabled();
 
     const detected = requireEngine(this.hot, format, options.engine);
@@ -797,6 +813,8 @@ export class ImportFile extends BasePlugin {
    * @returns {Promise<ImportResult>}
    */
   async importFromBlob(format: string, blob: Blob, options: ImportOptions = {}): Promise<ImportResult> {
+    assertLicensedCall(this.hot, LICENSE);
+
     this.#assertEnabled();
 
     // Detected, validated and ticketed before the first `await`, so a call refused for its format,

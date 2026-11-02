@@ -34,6 +34,7 @@ import { detectSelectionType, normalizeSelectionFactory } from '../../selection'
 import { isDefined } from '../../helpers/mixed';
 import type { HotInstance } from '../../core/types';
 import type VisualSelection from '../../selection/highlight/visualSelection';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'customBorders';
 export const PLUGIN_PRIORITY = 335;
@@ -174,6 +175,14 @@ export class CustomBorders extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

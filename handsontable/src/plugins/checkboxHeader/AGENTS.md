@@ -84,6 +84,15 @@ pressed. Read this before touching `checkboxHeader.ts`, `../../utils/checkboxCol
   `beforeGetCellMeta`/`afterGetCellMeta` listener that calls `setCellMeta()` would otherwise re-enter
   the read of the same row without end.
 
+## The license check lives in `hasHeaderCheckbox()`
+
+The plugin is on in every grid, so a license key that lists its features is checked where a column asks for
+the checkbox (`gate: 'call'` in `feature.json`). `hasHeaderCheckbox()` is the one check every path goes through
+(the header render, the shortcuts, `toggleColumn()`, `setColumnChecked()`), so it answers `false` when the key
+does not cover `feat:checkbox_header`, after the column-meta checks so a grid without the option pays nothing
+more. It must not throw, because it runs inside the header render: `isLicensedUse()` records the feature and
+writes the license message in a microtask, after the render. Rules: `../../utils/entitlementLicenseKey/AGENTS.md`.
+
 ## Where to look next
 
 - **One template matcher for every checkbox surface** (DEV-355). `matchCheckboxTemplate()` in

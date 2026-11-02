@@ -61,6 +61,7 @@ import {
 } from './utils';
 import { registerConflict } from '../base/conflictRegistry';
 import type { NotificationMessageOptions } from '../notification/notification';
+import { LICENSE } from './feature.generated';
 
 registerConflict('dataProvider', [
   'manualRowMove',
@@ -305,6 +306,14 @@ export class DataProvider extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

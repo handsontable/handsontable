@@ -11,6 +11,7 @@ import * as C from '../../i18n/constants';
 import type { SelectionState } from '../../selection/types';
 import { fitSelectionToGrid } from './selectionFit';
 import { isSameDialogDescription } from './description';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'dialog';
 export const PLUGIN_PRIORITY = 360;
@@ -184,6 +185,14 @@ export class Dialog extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
