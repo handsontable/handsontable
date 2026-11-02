@@ -101,8 +101,9 @@ describe('applyImportResult', () => {
 
     const [, settings] = hot.calls.find(([name, value]) => name === 'updateSettings' && value.minRowHeights);
 
-    expect(settings).toEqual({ minRowHeights: [20, undefined] });
-    expect(settings).not.toHaveProperty('rowHeights');
+    // The exact heights the grid held are dropped, or they would win over the imported ones per row.
+    expect(settings).toEqual({ minRowHeights: [20, undefined], rowHeights: undefined });
+    expect(Object.keys(settings)).toContain('rowHeights');
   });
 
   it('should have the data in the grid before a merge is applied, so it is not validated against an empty table', () => {
@@ -412,8 +413,8 @@ describe('applyImportResult – layout across imports', () => {
 
     const [, settings] = hot.calls[3];
 
-    expect(Object.keys(settings).sort()).toEqual(['colWidths', 'minRowHeights']);
-    expect(settings).toEqual({ colWidths: undefined, minRowHeights: undefined });
+    expect(Object.keys(settings).sort()).toEqual(['colWidths', 'minRowHeights', 'rowHeights']);
+    expect(settings).toEqual({ colWidths: undefined, minRowHeights: undefined, rowHeights: undefined });
   });
 
   it('should reset columns even without importLayout, since types are not layout', () => {
