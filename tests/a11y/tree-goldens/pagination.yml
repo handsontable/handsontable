@@ -165,5 +165,5 @@
   - button "Go to next page"
   - button "Go to last page"
 # portal
-- status: Page 1 of 10
+- status: <announcement>
 - status

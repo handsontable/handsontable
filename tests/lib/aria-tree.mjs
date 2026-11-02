@@ -232,8 +232,10 @@ export function diffSnapshot(expected, actual) {
 
 /**
  * The snapshot with what the run decides, not the page, replaced by a token: the fixture server's origin
- * (`<origin>`, in a link a fixture builds from `location.origin`) and the installed Handsontable version
- * (`<version>`, in the license bar's message). A golden then moves for a change to the tree only.
+ * (`<origin>`, in a link a fixture builds from `location.origin`), the installed Handsontable version
+ * (`<version>`, in the license bar's message), and the message of a live status region (`<announcement>`:
+ * an announcer's message is transient, so when the snapshot is taken decides which one it reads, and the
+ * screen reader lane judges what is announced). A golden then moves for a change to the tree only.
  *
  * @param {string} snapshot The snapshot.
  * @param {{origin?: string|null, version?: string|null}} [run] The run's origin and version.
@@ -249,7 +251,7 @@ export function maskSnapshot(snapshot, { origin = null, version = null } = {}) {
     masked = masked.replaceAll(version, '<version>');
   }
 
-  return masked;
+  return masked.replace(/^(\s*- status(?: "[^"\n]*")?): .+$/gm, '$1: <announcement>');
 }
 
 /**
