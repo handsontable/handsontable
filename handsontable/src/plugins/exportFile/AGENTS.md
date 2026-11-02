@@ -353,7 +353,12 @@ Other rules:
   `EmptyValue` symbol. Sized from the reservation, a `FILTER` near the last row was cut and written
   as a plain formula (Excel's `@`), and one with room wrote a padded `ref`. `trimEmptyTail()` drops
   trailing all-symbol rows, then columns (the walk drops trailing all-`null` ones); an error result
-  (`ErroredArray`, no `raw()`) keeps the reserved size. Every `SEQUENCE`-only test missed this, so
+  (`ErroredArray`, no `raw()`) keeps the reserved size. **Only a dynamic array takes the trimmed
+  size.** The symbol also marks an EMPTY REFERENCED cell (`=ARRAYFORMULA(IF(A1:A4>2,B1:B4,B1:B4))`
+  over empty B3:B4 maps 4 rows, 2 of them symbols), and Excel never resizes a CSE ref, so a CSE
+  array (whole-formula `ARRAYFORMULA`) takes `ArrayFormulaSize#untrimmed`, which the data provider
+  sets, with its own `exported`, only when the trim changed the size. A dynamic array whose real
+  last values are empty is trimmed too; Excel recalculates it to the full size. Every `SEQUENCE`-only test missed this, so
   `xlsxArrayFormula.unit.js` pins `FILTER`, `TRANSPOSE(FILTER)` and the no-mapping walk. The walk can over-count next to another array, so the xlsx type
   keeps per-sheet claims (`ArrayRangeClaims` in `types/xlsx/formula-utils.ts`) and writes an overlapping
   array as a plain formula. **The claims rely on row-major order** (masters are claimed row by row, left

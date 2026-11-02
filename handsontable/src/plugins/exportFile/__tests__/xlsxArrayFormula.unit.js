@@ -433,6 +433,43 @@ describe('Xlsx export: array formulas', () => {
       expect(dropped.list()).toEqual([]);
     });
 
+    it('should keep the mapped size of a CSE array whose last values are empty cells', async() => {
+      // Excel never resizes a CSE ref, and the engine marks an empty referenced cell with the same
+      // empty value it pads a reservation with, so only a dynamic array is trimmed.
+      const data = [
+        [1, 'a', '=ARRAYFORMULA(IF(A1:A4>2,B1:B4,B1:B4))'], [2, 'b', null], [3, null, null], [4, null, null],
+      ];
+      const { rows, dropped } = await exportSheet({ data });
+
+      expect(rows[0][2].formula).toEqual({
+        text: 'IF(A1:A4>2,B1:B4,B1:B4)', result: 'a', array: { ref: 'C1:C4', dynamic: false },
+      });
+      expect(dropped).toEqual([]);
+    });
+
+    it('should keep the walked size of a CSE array whose last values are empty cells without an array mapping', async() => {
+      hot = new Handsontable(container, {
+        data: [[1, 'a', '=ARRAYFORMULA(IF(A1:A4>2,B1:B4,B1:B4))'], [2, 'b', null], [3, null, null], [4, null, null]],
+        formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
+        exportFile: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      Object.defineProperty(hot.getPlugin('formulas').engine, 'arrayMapping', { value: undefined, configurable: true });
+
+      await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', { exportFormulas: true });
+
+      const [snapshot] = writeSpy.mock.calls[0];
+
+      expect(snapshot.sheets[0].rows[0][2].formula.array).toEqual({ ref: 'C1:C4', dynamic: false });
+    });
+
+    it('should trim the same empty tail off a formula written as a dynamic array', async() => {
+      const data = [[1, 'a', '=IF(A1:A4>2,B1:B4,B1:B4)'], [2, 'b', null], [3, null, null], [4, null, null]];
+      const { rows } = await exportSheet({ data });
+
+      expect(rows[0][2].formula.array).toEqual({ ref: 'C1:C2', dynamic: true });
+    });
+
     it('should not trim a spill whose last values are empty texts', async() => {
       // `CHOOSE` pads the shorter range with `""`, which is a value, not the engine's empty marker.
       const { rows } = await exportSheet({ data: createFilterData(12, '=CHOOSE(1,A1:A3,A1:A6)') });

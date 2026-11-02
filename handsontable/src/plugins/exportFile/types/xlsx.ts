@@ -331,6 +331,8 @@ function recordArrayExcluded(dropped: DroppedFeatures): void {
  *
  * 1. A formula that is one `ARRAYFORMULA(…)` call as a whole is HyperFormula's legacy (CSE) array,
  *    written as a CSE array over the spill, or over the cell itself when the engine reports no spill.
+ *    The spill is the size the engine mapped (`ArrayFormulaSize#untrimmed`), not the trimmed one a
+ *    dynamic array takes: Excel never resizes a CSE ref.
  * 2. A formula the engine spills (`SEQUENCE(3)`, `ARRAYFORMULA(A1:A3)*2` under array arithmetic) is a
  *    dynamic array over the spill.
  * 3. A call to a function Excel evaluates as a dynamic array (`IFS`, `SWITCH`) is a one-cell
@@ -376,14 +378,17 @@ function resolveArrayFormula(
     return { text: formulaText };
   }
 
-  if (arraySize !== null && !arraySize.exported) {
+  // Excel never resizes a CSE ref, so a CSE array keeps the size the engine mapped.
+  const size = !dynamic && arraySize?.untrimmed ? arraySize.untrimmed : arraySize;
+
+  if (size !== null && !size.exported) {
     recordArrayExcluded(target.dropped);
 
     return { text: formulaText };
   }
 
-  const rows = arraySize?.rows ?? 1;
-  const cols = arraySize?.cols ?? 1;
+  const rows = size?.rows ?? 1;
+  const cols = size?.cols ?? 1;
 
   if (!target.arrayRanges.claim({ top: row, left: col, bottom: row + rows - 1, right: col + cols - 1 })) {
     recordArrayExcluded(target.dropped);

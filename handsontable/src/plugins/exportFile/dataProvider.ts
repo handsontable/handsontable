@@ -41,6 +41,28 @@ export interface ArrayFormulaSize {
   rows: number;
   cols: number;
   exported: boolean;
+  /**
+   * The size before the trailing empty rows and columns were trimmed off, present only when the
+   * trim changed it. A CSE array keeps it: Excel never resizes a CSE ref, and the engine's empty
+   * value also marks an empty cell the formula references.
+   */
+  untrimmed?: { rows: number; cols: number; exported: boolean };
+}
+
+/**
+ * The size of an array, in cells.
+ */
+interface SpillSize {
+  rows: number;
+  cols: number;
+}
+
+/**
+ * An array's size before and after `trimEmptyTail()`.
+ */
+interface SpillSizes {
+  trimmed: SpillSize;
+  untrimmed: SpillSize;
 }
 
 /**
@@ -102,16 +124,19 @@ function trimEmptyTail(
  *
  * The mapping holds the room the engine reserved, which is the exact size for `SEQUENCE`, but the
  * size of the input for `FILTER`: the engine pads the result with its empty value, a symbol
- * (`=FILTER(A1:A6,A1:A6>3)` reserves 6 rows for 3). The trailing rows and columns that hold only
- * that symbol are trimmed off. A result whose real last values are empty cells is trimmed too,
- * which Excel corrects when it recalculates; an error result (`FILTER` that matches nothing) holds
- * no values and keeps the reserved size.
+ * (`=FILTER(A1:A6,A1:A6>3)` reserves 6 rows for 3). Both sizes are answered: the reserved one, and
+ * the one with the trailing rows and columns that hold only that symbol trimmed off. The caller
+ * picks: a dynamic array takes the trimmed size, since a result whose real last values are empty
+ * cells is trimmed too, which Excel corrects when it recalculates. A CSE array keeps the reserved
+ * size, since Excel never resizes a CSE ref and the symbol also marks an empty referenced cell
+ * (`=ARRAYFORMULA(IF(A1:A4>2,B1:B4,B1:B4))` over empty B3:B4). An error result (`FILTER` that
+ * matches nothing) holds no values and keeps the reserved size either way.
  *
  * @param {object} engine The Formulas plugin's engine.
  * @param {object} address The master's engine address.
- * @returns {{ rows: number, cols: number }|null}
+ * @returns {{ trimmed: object, untrimmed: object }|null}
  */
-function readMappedArraySize(engine: object, address: EngineCellAddress): { rows: number; cols: number } | null {
+function readMappedArraySize(engine: object, address: EngineCellAddress): SpillSizes | null {
   const { arrayMapping } = engine as { arrayMapping?: { getArrayByCorner?: unknown } };
 
   if (typeof arrayMapping?.getArrayByCorner !== 'function') {
@@ -127,26 +152,32 @@ function readMappedArraySize(engine: object, address: EngineCellAddress): { rows
 
   const values = typeof array?.raw === 'function' ? (array.raw as () => unknown).call(array) : null;
 
+  const untrimmed = { rows: height, cols: width };
+
   if (!Array.isArray(values)) {
-    return { rows: height, cols: width };
+    return { trimmed: untrimmed, untrimmed };
   }
 
-  return trimEmptyTail(height, width, (row, col) => {
-    const valueRow: unknown = values[row];
+  return {
+    trimmed: trimEmptyTail(height, width, (row, col) => {
+      const valueRow: unknown = values[row];
 
-    return Array.isArray(valueRow) && typeof valueRow[col] === 'symbol';
-  });
+      return Array.isArray(valueRow) && typeof valueRow[col] === 'symbol';
+    }),
+    untrimmed,
+  };
 }
 
 /**
  * Estimates the size of the array whose master sits at `address` by walking right, then down, over
- * the cells the engine types `ARRAY`, then trims the trailing rows and columns whose every value is
- * empty, as `readMappedArraySize()` does with the room the engine reserves. The fallback for
- * `readMappedArraySize()`; it can over-count when another array spills next to the master.
+ * the cells the engine types `ARRAY`, and answers that size and the one with the trailing rows and
+ * columns whose every value is empty trimmed off, as `readMappedArraySize()` does with the room the
+ * engine reserves. The fallback for `readMappedArraySize()`; it can over-count when another array
+ * spills next to the master.
  *
  * @param {object} engine The Formulas plugin's engine.
  * @param {object} address The master's engine address.
- * @returns {{ rows: number, cols: number }}
+ * @returns {{ trimmed: object, untrimmed: object }}
  */
 function walkArraySize(
   engine: {
@@ -155,7 +186,7 @@ function walkArraySize(
     getSheetDimensions(sheetId: number): { width: number; height: number };
   },
   address: EngineCellAddress
-): { rows: number; cols: number } {
+): SpillSizes {
   const { sheet, row, col } = address;
   const { width, height } = engine.getSheetDimensions(sheet);
   const isSpilled = (r: number, c: number) => engine.getCellType({ sheet, row: r, col: c }) === 'ARRAY';
@@ -170,8 +201,11 @@ function walkArraySize(
     rows += 1;
   }
 
-  return trimEmptyTail(rows, cols, (rowOffset, colOffset) => engine
-    .getCellValue({ sheet, row: row + rowOffset, col: col + colOffset }) === null);
+  return {
+    trimmed: trimEmptyTail(rows, cols, (rowOffset, colOffset) => engine
+      .getCellValue({ sheet, row: row + rowOffset, col: col + colOffset }) === null),
+    untrimmed: { rows, cols },
+  };
 }
 
 /**
@@ -473,7 +507,9 @@ class ExportDataProvider {
    * is read from the engine's array mapping (`arrayMapping.getArrayByCorner()`), which holds the
    * room the engine reserved for every array. For `FILTER` that is the size of its input, padded with
    * the engine's empty value, so the trailing rows and columns holding only that value are trimmed
-   * off (`readMappedArraySize()`). That mapping is `@internal` in HyperFormula and may change between
+   * off (`readMappedArraySize()`); when that changes the size, the reserved one is kept as
+   * `untrimmed`, which the XLSX export uses for a CSE array (`ARRAYFORMULA(…)`), whose ref Excel
+   * never resizes. That mapping is `@internal` in HyperFormula and may change between
    * 3.x releases, so it is duck-typed and, when it is missing or answers an unexpected shape, the
    * size is estimated by walking right, then down, from the master over the cells the engine types
    * `ARRAY`, bounded by the sheet's dimensions. The walk is only an estimate: a spilled cell next to
@@ -533,11 +569,17 @@ class ExportDataProvider {
       let arraySize: ArrayFormulaSize | null = null;
 
       if (exportedRows !== null && exportedCols !== null && cellType === 'ARRAYFORMULA') {
-        const { rows, cols } = readMappedArraySize(engine, address) ?? walkArraySize(engine, address);
-        const exported = spillsInPlace(rowAxisSyncer, address.row, rows, exportedRows, row)
-          && spillsInPlace(columnAxisSyncer, address.col, cols, exportedCols, col);
+        const { trimmed, untrimmed } = readMappedArraySize(engine, address) ?? walkArraySize(engine, address);
+        const isExported = ({ rows, cols }: SpillSize) => (
+          spillsInPlace(rowAxisSyncer, address.row, rows, exportedRows, row)
+          && spillsInPlace(columnAxisSyncer, address.col, cols, exportedCols, col)
+        );
 
-        arraySize = { rows, cols, exported };
+        arraySize = { ...trimmed, exported: isExported(trimmed) };
+
+        if (trimmed.rows !== untrimmed.rows || trimmed.cols !== untrimmed.cols) {
+          arraySize.untrimmed = { ...untrimmed, exported: isExported(untrimmed) };
+        }
       }
 
       if (errorCode === null && computedValue === null && arraySize === null) {
