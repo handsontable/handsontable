@@ -2708,3 +2708,80 @@ import { registerPlugin, Dialog, Loading } from 'handsontable/plugins';
 registerPlugin(Dialog);
 registerPlugin(Loading);
 ```
+
+## 49. Plugins apply their settings before the first render
+
+In 18.1, several plugins applied the settings the grid was built with after its first render, and
+then rendered the grid again. In 19.0, they apply them before the [`init`](@/api/hooks.md#init) hook
+and before the first render, so the first render already shows the result, and the grid renders once
+(twice when [`customBorders`](@/api/options.md#customborders) declares borders). The hooks this work
+fires run earlier too:
+
+- [`afterColumnSort`](@/api/hooks.md#aftercolumnsort), for the `initialConfig` sort of
+  [`columnSorting`](@/api/options.md#columnsorting) or `multiColumnSorting`
+- [`afterMergeCells`](@/api/hooks.md#aftermergecells) and the merges' `afterChange` call, for
+  [`mergeCells`](@/api/options.md#mergecells)
+- the summaries' `afterChange` call, for [`columnSummary`](@/api/options.md#columnsummary)
+- [`afterEmptyDataStateShow`](@/api/hooks.md#afteremptydatastateshow), for
+  [`emptyDataState`](@/api/options.md#emptydatastate)
+- [`beforeDataProviderFetch`](@/api/hooks.md#beforedataproviderfetch) and the first `fetchRows` call,
+  for [`dataProvider`](@/api/options.md#dataprovider)
+
+When the grid is built, these hooks now run before it is drawn: [`getCell()`](@/api/core.md#getcell)
+returns `null` inside them, and the merges' and summaries' `afterChange` calls come before the
+`afterChange` call of the initial data load.
+
+Two related changes come with it:
+
+- `enablePlugin()` of one of these plugins, called on a grid that is already drawn, now applies the
+  plugin's settings. For `dataProvider`, it fetches the data from the server.
+- An `updateSettings()` call that changes `columnSummary` writes the summaries after its
+  [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings) listeners. A listener there reads the
+  previous summaries and, when the call also passes `columns`, a summary cell that is not read-only
+  yet. The grid draws the new summaries.
+
+### Who is affected
+
+- A listener of one of the hooks above reads the rendered grid when the grid is built, for example
+  with `getCell()`.
+- Your code relies on these hooks running after the `init` hook, or on the order of the `afterChange`
+  calls when the grid is built.
+- You call `enablePlugin()` on a drawn grid and do not expect it to apply the plugin's settings.
+- An `afterUpdateSettings` listener reads the summaries that the same `updateSettings()` call writes.
+
+### How to migrate
+
+Read the rendered grid in [`afterInit`](@/api/hooks.md#afterinit), which runs after the first
+render, and skip the work in the hook when `getCell()` returns `null`:
+
+**Before:**
+
+```js
+const hot = new Handsontable(container, {
+  columnSorting: { initialConfig: { column: 0, sortOrder: 'asc' } },
+  afterColumnSort() {
+    markFirstRow(this.getCell(0, 0));
+  },
+});
+```
+
+**After:**
+
+```js
+const hot = new Handsontable(container, {
+  columnSorting: { initialConfig: { column: 0, sortOrder: 'asc' } },
+  afterColumnSort() {
+    const cell = this.getCell(0, 0);
+
+    if (cell) {
+      markFirstRow(cell);
+    }
+  },
+  afterInit() {
+    markFirstRow(this.getCell(0, 0));
+  },
+});
+```
+
+Read the new summaries after `updateSettings()` returns, or in an
+[`afterRender`](@/api/hooks.md#afterrender) hook.

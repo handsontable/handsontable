@@ -298,6 +298,14 @@ export class EmptyDataState extends BasePlugin {
   #loadingActive = false;
 
   /**
+   * `true` after an enable that ran without a view (the grid was still being built), so its own toggle did
+   * nothing and the ready step owes it. An enable with a view toggles, or leaves it to `onDataReady()`.
+   *
+   * @type {boolean}
+   */
+  #toggleOwed = false;
+
+  /**
    * Check if the plugin is enabled in the handsontable settings.
    *
    * The empty data state renders into the root grid element and registers a focus scope, and both
@@ -330,7 +338,6 @@ export class EmptyDataState extends BasePlugin {
       this.#registerEvents();
     }
 
-    this.addHook('afterInit', this.#onAfterInit);
     this.addHook('afterRender', this.#onAfterRender);
     this.addHook('afterRowSequenceCacheUpdate', this.#onSequenceCacheUpdate);
     this.addHook('afterColumnSequenceCacheUpdate', this.#onSequenceCacheUpdate);
@@ -347,6 +354,7 @@ export class EmptyDataState extends BasePlugin {
     super.enablePlugin();
 
     this.#onSequenceCacheUpdate();
+    this.#toggleOwed = !this.hot.view;
   }
 
   /**
@@ -354,8 +362,8 @@ export class EmptyDataState extends BasePlugin {
    * `onDataReady()` while core applies settings ahead of their data. The sequence changes several times
    * on the way (the settings pass, the load re-initializing the index maps), and a toggle on one of the
    * intermediate states showed the overlay, and took the keyboard, for a grid about to receive rows.
-   * Without a view (the grid is still being built) the toggle runs as before: it does nothing then, and
-   * the plugin's own `afterInit` shows or hides the overlay.
+   * Without a view (the grid is still being built) the toggle does nothing, and the ready step shows or
+   * hides the overlay.
    */
   #onSequenceCacheUpdate = () => {
     if (this.isDataWorkDeferred() && this.hot.view) {
@@ -377,6 +385,23 @@ export class EmptyDataState extends BasePlugin {
     if (this.takeDeferredDataWork()) {
       this.#toggleEmptyDataState();
     }
+  }
+
+  /**
+   * Shows or hides the empty state when the enable could not: it ran before the view existed, so its own
+   * toggle did nothing. Core runs it once after each enable or update, when the view exists, before the next
+   * render. At init that is where the overlay first appears. An enable or update with a view toggles itself,
+   * or leaves it to `onDataReady()`, so the step does nothing after it.
+   *
+   * @private
+   */
+  onGridReady() {
+    if (!this.#toggleOwed) {
+      return;
+    }
+
+    this.#toggleOwed = false;
+    this.#toggleEmptyDataState();
   }
 
   /**
@@ -787,16 +812,6 @@ export class EmptyDataState extends BasePlugin {
       event.preventDefault();
     }
   }
-
-  /**
-   * Called after the initialization of the table is completed.
-   * It toggles the emptyDataState.
-   */
-  #onAfterInit = () => {
-    this.#toggleEmptyDataState();
-
-    this.hot.render();
-  };
 
   /**
    * Called after the rendering of the table is completed.
