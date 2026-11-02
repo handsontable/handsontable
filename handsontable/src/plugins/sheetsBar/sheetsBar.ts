@@ -1707,8 +1707,7 @@ export class SheetsBar extends BasePlugin {
       const keptImportedKeys = isTeardown && activeSheet ? this.#importedKeys.get(activeSheet) : undefined;
 
       this.#model = null;
-      this.#receivedTopLevelData = null;
-      this.#topLevelDataOwnerId = null;
+      this.#forgetTopLevelData();
       this.#releaseDataProviderContexts(discardedSheets);
       this.#restoreBaselineToGrid(keptColumnSummary, keptImportedKeys);
     }
@@ -2093,7 +2092,19 @@ export class SheetsBar extends BasePlugin {
   destroy() {
     this.hot._removeSettingsFilter(this.#filterGridSettings);
     this.#releaseState();
+    this.#forgetTopLevelData();
     super.destroy();
+  }
+
+  /**
+   * Forgets what the workbook knew about the grid's top-level `data`: the array it received, the sheet it
+   * belongs to, and the arrays already reported as not applied. A workbook built later takes its own owner
+   * and warns again for an array the previous one had reported.
+   */
+  #forgetTopLevelData() {
+    this.#receivedTopLevelData = null;
+    this.#topLevelDataOwnerId = null;
+    this.#unappliedTopLevelData = new WeakSet<unknown[]>();
   }
 
   /**

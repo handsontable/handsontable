@@ -1042,6 +1042,28 @@ describe('SheetsBar settings baseline and lifecycle', () => {
         expect(hot.getData()).toEqual(plainData);
       });
 
+      it('warns again for the same array once the bar was turned off and on', () => {
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const bar = buildWithAddedSheets([['A1']]);
+        const newRows = [['new']];
+
+        bar.setActiveSheet('Second');
+        bar.removeSheet(idOf(bar, 'Sheet1'));
+        hot.updateSettings({ data: newRows, sheetsBar: true });
+
+        expect(notAppliedWarnings(warnSpy)).toHaveLength(1);
+
+        hot.updateSettings({ sheetsBar: false });
+        hot.updateSettings({ sheetsBar: true });
+        bar.addSheet('Other', [['other']]);
+        bar.setActiveSheet('Other');
+        bar.removeSheet(idOf(bar, 'Sheet1'));
+        hot.updateSettings({ data: newRows, sheetsBar: true });
+
+        expect(hot.getDataAtCell(0, 0)).toBe('other');
+        expect(notAppliedWarnings(warnSpy)).toHaveLength(2);
+      });
+
       it('changes nothing when only a copy of the first sheet is left', () => {
         const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
         const bar = buildWithAddedSheets([['A1']]);
