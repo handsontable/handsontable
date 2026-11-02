@@ -13,7 +13,7 @@ tests/
 ├── playwright.a11y-checks.config.ts # the accessibility checks beyond axe: one project per check of EVIDENCE_CHECKS
 ├── playwright.screenreader.config.ts # the screen reader lanes' config: one project per screen reader and browser, through Guidepup
 ├── e2e/                    # functional specs (*.spec.ts)
-├── a11y/                   # the axe scan: axe.spec.ts, pages.mjs (the curated pages), axe-baseline.json; harness.ts (openers and guards shared with the checks beyond axe), evidence.ts; checks/ (the checks beyond axe, one spec each), tab-order-goldens/, tree-goldens/
+├── a11y/                   # the axe scan: axe.spec.ts, pages.mjs (the curated pages), axe-baseline.json; harness.ts (openers and guards shared with the checks beyond axe), evidence.ts; checks/ (the checks beyond axe, one spec each, and discovery-pages.mjs), tab-order-goldens/, tree-goldens/
 ├── screenreader/           # the screen reader lanes: screenreader.spec.ts (the runner), scenarios/*.scenario.json, goldens/<project>/
 ├── visual/                 # visual regression — destination for the current visual-tests/ suite
 ├── fixtures/
