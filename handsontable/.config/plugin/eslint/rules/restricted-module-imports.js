@@ -1,5 +1,5 @@
 const { dirname, resolve } = require('path');
-const minimatch = require('minimatch');
+const { minimatch } = require('minimatch');
 
 const isLocalModule = moduleName => moduleName.startsWith('.');
 
