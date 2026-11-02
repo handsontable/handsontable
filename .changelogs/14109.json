@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an edit being written into a different record when `loadData()` replaced the data before the cell's validator answered. Such an edit is now dropped, also when `loadData()` runs right after the edit.",
+  "type": "fixed",
+  "issueOrPR": 14109,
+  "breaking": false,
+  "framework": "none"
+}
