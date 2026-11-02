@@ -158,6 +158,12 @@ export const EVIDENCE_CHECKS = Object.freeze({
     criteria: ['2.1.1', '2.1.2', '2.1.4', '2.4.3', '3.2.1', '3.2.2'],
     pullRequest: true,
   },
+  'tree-snapshots': {
+    title: 'Accessibility-tree snapshots',
+    spec: 'tree-snapshots.spec.ts',
+    criteria: ['1.3.1', '1.3.2', '4.1.2'],
+    pullRequest: true,
+  },
 });
 /**
  * Which checks a run covers: `pull-request` (the checks with `pullRequest`, next to the axe scan) or
