@@ -98,6 +98,30 @@ describe('appliesOperatorToRange', () => {
     expect(appliesOperatorToRange('Rates!B2:B2*2')).toBe(false);
   });
 
+  it('should find a range wrapped in grouping parentheses that is an operand', () => {
+    expect(appliesOperatorToRange('SUM((A1:A3)*(B1:B3))')).toBe(true);
+    expect(appliesOperatorToRange('SUM((A1:A3)*2)')).toBe(true);
+    expect(appliesOperatorToRange('((A1:A3))+1')).toBe(true);
+    expect(appliesOperatorToRange('SUM(( A1:A3 ) * 2)')).toBe(true);
+  });
+
+  it('should not step out of the parentheses of a function call', () => {
+    expect(appliesOperatorToRange('SUM(A1:A3)*2')).toBe(false);
+    expect(appliesOperatorToRange('(SUM(A1:A3))*2')).toBe(false);
+    expect(appliesOperatorToRange('SUM((A1:A3))')).toBe(false);
+  });
+
+  it('should count a postfix percent sign after a range as an operator', () => {
+    expect(appliesOperatorToRange('SUM(A1:A3%)')).toBe(true);
+    expect(appliesOperatorToRange('SUM((A1:A3)%)')).toBe(true);
+  });
+
+  it('should skip every whitespace character the engine reads between a range and an operator', () => {
+    expect(appliesOperatorToRange('SUM(A1:A3\t*2)')).toBe(true);
+    expect(appliesOperatorToRange('SUM(A1:A3\n*2)')).toBe(true);
+    expect(appliesOperatorToRange('SUM(2*\r\nA1:A3)')).toBe(true);
+  });
+
   it('should skip string literals and leave defined names alone', () => {
     expect(appliesOperatorToRange('"A1:A3*2"')).toBe(false);
     expect(appliesOperatorToRange('SUM(Sales*2)')).toBe(false);

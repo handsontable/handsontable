@@ -267,6 +267,24 @@ describe('Xlsx export: array formulas', () => {
       expect(dropped).toEqual([]);
     });
 
+    it('should find a range in grouping parentheses, and not a range passed to a function call', async() => {
+      // Excel 365 opens the plain `SUM((A1:A3)*(B1:B3))` as `SUM((@A1:A3)*(@B1:B3))`, which is 2, not 20.
+      const { rows } = await exportSheet({
+        data: [
+          [1, 2, '=SUM((A1:A3)*(B1:B3))', '=SUM(A1:A3%)', '=(SUM(A1:A3))*2'],
+          [2, 3],
+          [3, 4],
+        ],
+        formulas: arrayArithmeticEngine,
+      });
+
+      expect(rows[0][2].formula).toEqual({
+        text: 'SUM((A1:A3)*(B1:B3))', result: 20, array: { ref: 'C1', dynamic: true },
+      });
+      expect(rows[0][3].formula.array).toEqual({ ref: 'D1', dynamic: true });
+      expect(rows[0][4].formula).toEqual({ text: '(SUM(A1:A3))*2', result: 12 });
+    });
+
     it('should write it as a plain formula when the engine intersects ranges itself', async() => {
       // With `useArrayArithmetic: false`, HyperFormula computes 1*2 as Excel's `@` does.
       const { rows } = await exportSheet({

@@ -822,13 +822,17 @@ directions.
     `A1+B1` stay a plain `<f>`. No committed fixture backs it yet. Add a function only with a fixture
     saved by Excel; a function missing from the set opens with an `@` in Excel.
   - **`appliesOperatorToRange` (`dynamicArrays.ts`) is a narrow operator rule, not a type checker.**
-    It answers `true` when one of `+ - * / ^ & = <> < > <= >=` (or a unary `-`) sits right next to a
-    multi-cell range (`A1:A3`, `A:A`, `1:1`, qualified or not; `A1:A1` is one cell), at any paren
-    depth. The export writes such a cell as a one-cell dynamic array only when the engine's
+    It answers `true` when one of `+ - * / ^ & = <> < > <= >=` (or a unary `-`, or a postfix `%` on
+    the right) sits right next to a multi-cell range (`A1:A3`, `A:A`, `1:1`, qualified or not;
+    `A1:A1` is one cell), at any paren depth, skipping any `\s` whitespace. It steps out over
+    grouping parentheses (`SUM((A1:A3)*2)`), but never over a call's: a `(` with a name character
+    before it opens a call, and a `)` is skipped only with a grouping `(` on the left, so
+    `SUM(A1:A3)*2` and `(SUM(A1:A3))*2` stay plain. The export writes such a cell as a one-cell dynamic array only when the engine's
     `useArrayArithmetic` is on (`exportFile` gates it). It reuses `REFERENCE_REGEX`, whose unqualified
     alternative matches `A1:A3` as two cells joined by `:`, so the scanner joins them. Known gap:
-    `SUM(ABS(A1:A3))` (a range passed where a function expects one value) is not detected, and a
-    defined name as an operand is skipped (its size is unknown).
+    `SUM(ABS(A1:A3))` (a range passed where a function expects one value) is not detected, a
+    defined name as an operand is skipped (its size is unknown), and a range with both corners
+    sheet-qualified (`Sheet1!A1:Sheet1!A3`) is not recognized as a range.
   - **Parity tests cannot see `@`.** They compare workbook snapshots, which carry no implicit
     intersection. Whether a written formula opens with an `@` is checked only by opening the file
     in Excel (the manual QA step of DEV-3648).
