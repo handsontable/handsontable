@@ -553,7 +553,13 @@ directions.
   `<customSheetViews><customSheetView>`, which froze an unfrozen sheet or overrode the real split.
 - **Reader-side dropped names added in QA round 7**: an error cell with value metadata
   (`<c t="e" vm>`, an Excel 365 "Place in Cell" picture) records `images` and keeps its cached
-  `#VALUE!` (`vm` alone is not enough — OLAP cube cells carry it); an `<x14:cfRule>` inside `<extLst>`
+  `#VALUE!` (`vm` alone is not enough — OLAP cube cells carry it). A FORMULA cell of that shape is a
+  picture only when its formula calls `IMAGE` (`callsImageFunction`, decided in `#finishCell`): Excel
+  Online stores `#SPILL!` and `#CALC!` of any formula as `<v>#VALUE!</v>` with a `vm` pointing at an
+  `_error` rich value, and reporting `images` for them warned about a picture on every blocked spill.
+  The error type itself is not read (that needs `xl/metadata.xml` and `xl/richData`), so such a cell
+  keeps `#VALUE!` as its cached result; a shared-formula slave (no text of its own) never counts as a
+  picture. An `<x14:cfRule>` inside `<extLst>`
   records `conditionalFormatting:<type>` through `recordUnsupported`; `<f t="dataTable">` records
   `formula:dataTable` and keeps the cached values; a `t="s"` index that resolves to nothing records
   `cellValue:sharedString`. A `<conditionalFormatting>` block left with no rule is not pushed, so

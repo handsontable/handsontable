@@ -1737,6 +1737,44 @@ describe('native reader compatibility: an Excel 365 picture placed in a cell', (
 
     expect(dropped.list()).toEqual([]);
   });
+
+  it('should record nothing for a formula error cell carrying value metadata, as Excel Online saves #SPILL! and #CALC!', () => {
+    // Excel Online stores a blocked spill and a `#CALC!` as `<v>#VALUE!</v>` with a `vm` whose rich
+    // value is an `_error` structure, not a picture. The formula is read and recalculated as usual.
+    const { sheet, dropped } = readSheet(worksheetXml(
+      '<row r="1"><c r="A1" t="e" vm="1"><f t="array" ref="A1">_xlfn.SEQUENCE(3)</f><v>#VALUE!</v></c>'
+      + '<c r="B1" t="e" vm="2"><f>_xlfn._xlws.FILTER(C1:C3,C1:C3&gt;5)</f><v>#VALUE!</v></c></row>'
+    ));
+
+    expect(sheet.rows[0][0].formula).toEqual({
+      text: '_xlfn.SEQUENCE(3)', result: '#VALUE!', resultIsError: true, array: { ref: 'A1', dynamic: false },
+    });
+    expect(sheet.rows[0][1].formula).toEqual({
+      text: '_xlfn._xlws.FILTER(C1:C3,C1:C3>5)', result: '#VALUE!', resultIsError: true,
+    });
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should record images for an IMAGE formula carrying value metadata, which holds a picture', () => {
+    const { dropped } = readSheet(worksheetXml(
+      '<row r="1"><c r="A1" t="e" vm="1"><f>_xlfn.IMAGE("https://example.com/a.png")</f><v>#VALUE!</v></c></row>'
+    ));
+
+    expect(dropped.list()).toEqual([DROPPED_FEATURES.images]);
+  });
+
+  it('should record images for a lower-case or nested IMAGE call, and not for a name that only ends in IMAGE', () => {
+    const picture = readSheet(worksheetXml(
+      '<row r="1"><c r="A1" t="e" vm="1"><f>IF(B1,_xlfn.image("https://example.com/a.png"),"")</f>'
+      + '<v>#VALUE!</v></c></row>'
+    ));
+    const notPicture = readSheet(worksheetXml(
+      '<row r="1"><c r="A1" t="e" vm="1"><f>MYIMAGE(1)</f><v>#VALUE!</v></c></row>'
+    ));
+
+    expect(picture.dropped.list()).toEqual([DROPPED_FEATURES.images]);
+    expect(notPicture.dropped.list()).toEqual([]);
+  });
 });
 
 describe('native reader compatibility: a merge past a declared <dimension>', () => {
