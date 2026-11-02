@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture: nested header widths settled at init</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from query params, each mapped through a fixed allowlist to LITERALS so a
+    // crafted param can never be reflected into the document: no XSS. An ABSENT param keeps the
+    // default so the fixture stays browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+    const htPick = (name, allowed, fallback) => {
+      const value = allowed[htParams.get(name) ?? fallback];
+
+      if (value === undefined) {
+        throw new Error(`Unknown ?${name}= value: ${JSON.stringify(htParams.get(name))}`);
+      }
+
+      return value;
+    };
+
+    window.htTheme = htPick('theme', { main: 'main', horizon: 'horizon', classic: 'classic' }, 'main');
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min = handsontable.full.min.js).
+    window.htBundle = htPick('bundle', { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, 'umd');
+  </script>
+</head>
+<body>
+  <!--
+    E2E fixture: collapsible nested headers whose bottom labels are wider than the data, with the default
+    `autoColumnSize`. It records the column widths at every render and counts AutoColumnSize's full
+    measurements, so a spec can tell widths that are final from the first render from widths that change
+    on a later reload.
+  -->
+  <div data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // Counted from before the grid is built, so the measurements made while it initializes are included.
+    window.fullMeasures = 0;
+
+    const autoColumnSize = Handsontable.plugins.AutoColumnSize.prototype;
+    const recalculateAllColumnsWidth = autoColumnSize.recalculateAllColumnsWidth;
+
+    autoColumnSize.recalculateAllColumnsWidth = function(...args) {
+      window.fullMeasures += 1;
+
+      return recalculateAllColumnsWidth.apply(this, args);
+    };
+
+    // One entry per render: every column's width at that render.
+    window.renderedWidths = [];
+    window.data = () => [['1', '2', '3', '4'], ['5', '6', '7', '8']];
+
+    // Fail loud: a constructor that throws must not leave the page looking like a grid that simply
+    // has not rendered yet. `awaitFixtureBuilt()` rethrows the captured message.
+    try {
+      window.hot = new Handsontable(container, {
+        data: window.data(),
+        rowHeaders: true,
+        nestedHeaders: [
+          [{ label: 'Group', colspan: 3 }, 'D'],
+          ['A very long bottom label', 'B', 'Another long bottom label', 'D'],
+        ],
+        collapsibleColumns: true,
+        afterRender() {
+          window.renderedWidths.push(Array.from({ length: this.countCols() }, (_, column) => this.getColWidth(column)));
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htBuildError = String(error && error.stack || error);
+    }
+  </script>
+</body>
+</html>

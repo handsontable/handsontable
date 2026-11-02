@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed when plugins set up their initial state: `columnSorting`, `columnSummary`, `mergeCells`, `customBorders`, `pagination`, `emptyDataState`, `nestedRows` and `dataProvider` now apply their settings before the first render, so columns under nested headers get their final width at once, and the grid renders once at init (twice when `customBorders` declares borders). The hooks that work fires (`afterColumnSort`, `afterMergeCells`, the `afterChange` of merges and summaries, `afterEmptyDataStateShow`, `beforeDataProviderFetch` and the first `fetchRows` call) now run before the `init` hook and the first render, so `getCell()` returns `null` inside them at init. The summaries of an `updateSettings()` call are written after its `afterUpdateSettings` listeners, so a listener there reads the previous summaries and, when the call also passes `columns`, a summary cell that is not read-only yet. Calling `enablePlugin()` on a running grid now applies the plugin's settings, and for `dataProvider` it fetches the data from the server.",
+  "type": "changed",
+  "issueOrPR": 14080,
+  "breaking": true,
+  "framework": "none"
+}

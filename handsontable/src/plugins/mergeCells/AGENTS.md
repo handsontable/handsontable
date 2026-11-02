@@ -82,6 +82,34 @@ rows are trimmed covers no cell on screen, so it does not refuse a merge over it
 Pinned by `tests/e2e/merge-cells-rejected-merge-undo.spec.ts` and the `canAdd` block of
 `__tests__/cellsCollection.unit.ts`.
 
+**The check costs `min(cells of the new merge, merges in the collection)`, never their product (DEV-3657).**
+`isOverlapping()` and the restore's `#restoreAnchoredArea` both go through
+`MergedCellsCollection#overlapsLiveMerge()`. Scanning every merge per add made `n` merges cost `n²/2`
+range checks, twice per merge (`canAdd()` and `add()`), each allocating `CellCoords` through
+`CellRange#overlaps`: 8,000 merges in one `batch()` took 17.6 s in a browser. Three rules keep it linear
+without changing an answer:
+
+- **A merge with no more cells than there are merges reads its own cells from the matrix.** A cell's owner
+  refuses the merge when the matrix holds it at its own top-left (`get(owner.row, owner.col) === owner`) and
+  it is not ignored, which is the filter the scan applies.
+- **Once a merge was written over another one's cell, every check scans the list.** A sort can draw two
+  merges over each other (`relocateInMatrix` has no overlap guard), and so can `add(…, true)`. The matrix then
+  names one merge per cell, and removing the one on top leaves a hole in the one under it, so the cells no
+  longer show every merge an area meets. `#addMergedCellToMatrix` sets `#hasDrawnOver` when it overwrites
+  another merge's entry, and only a full rebuild (`clear()`, `shiftCollections()`,
+  `translateAfterAxisMove()`) resets it. A grid that never had such an overlap never scans.
+- **A merge with more cells than there are merges scans the list with plain arithmetic**
+  (`areMergesOverlapping`, `utils.ts`), not `CellRange#overlaps`. Do not drop this branch: walking every cell
+  of one large merge against a few others undoes #13083 (MergeCells scales with merge count, not grid size).
+
+**Row trimming is not covered.** With a trimmed row between the rows a new merge covers,
+`#fillTrimmedGaps` still reads the anchors of every other merge (`#getRowsOwnedBesides`), so a batch on a
+filtered sheet stays quadratic there.
+
+Pinned by `__tests__/mergeCountScaling.unit.js` (it counts lookups and scan comparisons, not time) and the
+`the overlap check` block of `__tests__/cellsCollection.unit.ts`: the scan pin with one large merge, the reset
+after a rebuild, and the ignored, purged, drawn-over and drawn-over-then-removed cases on both branches.
+
 Undo and redo carry the anchors too: `captureState()` returns every merge with its anchor, and
 `restoreState(state, context)` applies only what the step changed: it removes the live merges listed on
 the other side of the step but not in `state`, adds the ones `state` lists that the other side did not,
@@ -525,7 +553,9 @@ later (`apply: false` builds nothing and writes no cell, but still sets `#initia
 anchors). SheetsBar is the one caller: a pass run against the departing sheet's data validated the
 arriving areas against the departing size and wrote its clearing `null`s into the departing sheet's
 array. The plugin has no `onDataReady()` for this on purpose: only SheetsBar knows whether the sheet
-returns with a stored state, in which case it must build nothing. `#onAfterInit` clears a pending pass, because it builds the merges itself.
+returns with a stored state, in which case it must build nothing. The hold is recorded only on a drawn
+grid (`deferDataWork()` returns whether it was); on a grid still being built the ready step runs the pass,
+and clears any pending one first, because it builds the merges itself.
 The pass has to run before anything calls `mergeRange()` — `afterMergeCells` captures an anchor only
 once `#initialized` is set.
 
@@ -689,23 +719,30 @@ Known limits of the content rule:
 Pinned by `tests/e2e/merge-cells-frozen-columns-content.spec.ts`, `tests/e2e/walkontable/merged-rows-frozen-columns.spec.ts`
 and `__tests__/blockWidthsOutsideBand.unit.ts`.
 
-## The init draw is batched, and four things about it are load-bearing
+## The init pass runs in the ready step, and its draw is batched
 
-`#onAfterInit` applies the declared merges between a `suspendRender()` / `resumeRender()` pair (#5687).
-Before that it drew the grid twice — `generateFromSettings()` clears the cells each area covers through
-`setDataAtCell()`, which renders, and the handler then rendered again. Four rules come out of it, and
-each has a measured reason.
+The settings pass of an enable that `updatePlugin()` did not run (at init, and after a direct
+`enablePlugin()` call) runs in the ready step (`onGridReady()`, `../base/AGENTS.md`). `#settingsPassOwed` is
+set by `enablePlugin()` and cleared by `updatePlugin()` when it runs the pass or hands it to the sheets bar.
+At init the step runs before the `init` hook, and core holds the draws the steps ask for, so the merges are
+on screen with the first draw and the grid draws once (it drew twice from the `afterInit` listener this
+replaced, and three times before #5687). A direct `enablePlugin()` on a live grid used to build nothing and
+left `#initialized` unset.
+
+The step applies the declared merges between a `suspendRender()` / `resumeRender()` pair (#5687).
+`generateFromSettings()` clears the cells each area covers through `setDataAtCell()`, which renders, and the
+step then renders again. Four rules come out of it, and each has a measured reason.
 
 - **Keep the explicit `this.hot.render()` inside the pair.** `resumeRender()` draws through
   `TableView#render`, which picks fast-vs-full from `hot.forceFullRender`, and only `Core#render` sets that
   flag. On the synchronous path the clearing write sets it for you, but with an async `validator` that
-  write lands *after* `afterInit` returns, so nothing has set the flag by the time `resumeRender()` draws —
+  write lands *after* the step returns, so nothing has set the flag by the time `resumeRender()` draws —
   without the explicit call that draw is a *fast* one, it skips the cell renderers, and the spans never
-  appear.
+  appear. At init the call also marks the first draw a full one.
 - **Never gate that render on "the clearing write already rendered."** Same async `validator`, seen from
-  the other side: its deferred draw **reverses** the order of the two init draws, so the handler's render
-  becomes the one that puts the merges on screen. Gating on the write would leave such a grid unmerged
-  until validation resolves.
+  the other side: its deferred draw lands after the merges are built, so the step's render is the one that
+  puts them on screen on a live grid. Gating on the write would leave such a grid unmerged until
+  validation resolves.
 - **Skip the work entirely when no area is declared.** `mergeCells: true` with no `cells` has nothing to
   apply, and the initial render already shows the final grid, so a draw there repaints an identical table.
   `resumeRender()` always draws once the pair is entered, so this has to be a check *around* it, not
@@ -719,9 +756,9 @@ each has a measured reason.
 Note what the guard does **not** do: the throw still propagates, so `#initialized` and the anchor capture
 are skipped either way. That is unchanged by #5687.
 
-Coverage: `tests/e2e/merge-cells-init-renders.spec.ts` pins the counts, both setting shapes (the array
-form and `{ cells: [...] }`, which reach the guard through different `getSetting()` branches) and the
-async-validator ordering.
+Coverage: `tests/e2e/merge-cells-init-renders.spec.ts` pins the counts (one draw at init), both setting
+shapes (the array form and `{ cells: [...] }`, which reach the guard through different `getSetting()`
+branches) and the async-validator ordering; `__tests__/readyStep.unit.js` pins the owner of the pass.
 `updatePlugin()` is a separate path and is deliberately untouched — `updateSettings()` renders at the end
 regardless.
 
