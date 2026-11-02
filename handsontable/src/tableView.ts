@@ -27,7 +27,7 @@ import {
 } from './helpers/dom/element';
 import EventManager from './eventManager';
 import { CellPainter } from './core/incrementalRender/cellPainter';
-import { isAutoRowSizeOn, isExactRowHeight, resolveRowHeightSetting } from './core/rowHeightSetting';
+import { isAutoRowSizeOn } from './core/rowHeightSetting';
 import { RenderSizeProbe } from './renderSizeProbe';
 import GhostTable from './utils/ghostTable';
 import { getRenderedRowHeight } from './core/viewportScroll/scrollStrategies/singleScroll';
@@ -465,6 +465,8 @@ class TableView {
 
       this.#discardSizesMeasuredWithoutStyles();
       this.#reservedSlotHeight = null;
+      // Before the frozen counts are measured: they sum row heights, and those depend on the mode.
+      this.#syncRowHeightMode();
       this.#refreshEffectiveFixed(isFullRender);
 
       this.#drawRenderedCells = false;
@@ -474,7 +476,6 @@ class TableView {
       }
 
       this.#measureContentColumnHeader();
-      this.#syncRowHeightMode();
       this._wt.draw(!isFullRender);
       this.#redrawOnceWhenEffectiveFixedMoved(isFullRender);
       this.#updateScrollbarClassNames();
@@ -3033,7 +3034,7 @@ class TableView {
 
     // A number and a numeric string give every row the same height, so they give every row the same mode.
     if (typeof rowHeights === 'number' || typeof rowHeights === 'string') {
-      return isExactRowHeight(resolveRowHeightSetting(rowHeights, 0)) ? 'exact' : 'min';
+      return this.hot._isRowHeightExact(0) ? 'exact' : 'min';
     }
 
     return this.#rowHeightModeOfRow;
@@ -3049,7 +3050,7 @@ class TableView {
     if (this.#resolvedRowHeightMode !== mode) {
       this.#resolvedRowHeightMode = mode;
       this._wt.wtSettings.update('rowHeightMode', mode);
-      this._wt.wtViewport.invalidateRowHeightCache();
+      this.invalidateRowHeightCache();
     }
   }
 

@@ -2728,7 +2728,7 @@ This makes rows as thin as you want, for example to use empty rows as separators
 | [`minRowHeights`](@/api/options.md#minrowheights) | A minimum, the row grows to fit | The same                              |
 
 The [`minRowHeights`](@/api/options.md#minrowheights) option is not an alias of `rowHeights` any
-more. It keeps the behavior `rowHeights` had before. When you set both options, `rowHeights` wins.
+more. It keeps the behavior `rowHeights` had before. You can set both options: `rowHeights` sets the rows it gives a height, and `minRowHeights` applies to the others.
 
 ### Who is affected
 
@@ -2774,3 +2774,5 @@ To keep the clipping, raise the height to fit your content, or shorten the conte
 The [`ManualRowResize`](@/api/manualRowResize.md) plugin is not part of this change. Dragging a row
 border, or calling [`setManualSize()`](@/api/manualRowResize.md#setmanualsize), still doesn't make
 a row shorter than the default row height.
+
+With [`manualRowResize`](@/api/options.md#manualrowresize) enabled, a row that a `rowHeights` height covers stays at the height the user drags it to and clips its content. A row that `rowHeights` gives no height grows to fit its content, as before.

@@ -98,6 +98,12 @@ test.describe('exact row heights', { tag: THEMES_TAG }, () => {
     await grid.expectMasterRowHeights(new Array(ROWS).fill(THIN));
   });
 
+  test('applies `minRowHeights` to the rows `rowHeights` gives no height', async() => {
+    await grid.goto({ rowHeights: [8, undefined, 0, 8], minRowHeights: 50 });
+
+    await grid.expectMasterRowHeights([8, 50, 50, 8, 50, 50]);
+  });
+
   test('keeps `rowHeights` a minimum when the AutoRowSize plugin is enabled', async() => {
     await grid.goto({ rowHeights: THIN, autoRowSize: true });
 

@@ -5810,20 +5810,6 @@ export default function Core(
   }
 
   /**
-   * Warns when `rowHeights` and `minRowHeights` are both configured.
-   *
-   * @private
-   * @param {object} settings A settings object (see {@link Options}).
-   */
-  function warnAboutBothRowHeightOptions(settings: SettingsUpdate): void {
-    if (isDefined(settings.rowHeights) && isDefined(settings.minRowHeights)) {
-      warn('Both `rowHeights` and `minRowHeights` are defined in your configuration. ' +
-        'Only one of them can be used at a time. ' +
-        '`rowHeights` will be used as the row height configuration.');
-    }
-  }
-
-  /**
    * Writes one option of an `updateSettings()` payload onto the global meta.
    *
    * @private
@@ -6565,8 +6551,6 @@ export default function Core(
 
     // Read before the payload merges into the table meta.
     const { previousMinimumSizes, previousColumnLayout, previousRootSize } = readSettingsBaseline(settings, init);
-
-    warnAboutBothRowHeightOptions(settings);
 
     mergeSettingsIntoMeta(settings, init);
     applyThemeSettings(settings, init);
@@ -8693,15 +8677,19 @@ export default function Core(
    */
   this._getRowHeightFromSettings = function(row: number) {
     const rowHeights = resolveRowHeightSetting(tableMeta.rowHeights, row);
+    const hasOwnHeight = isExactRowHeight(rowHeights);
 
     // Resolved once: a `rowHeights` function runs for every rendered row on every draw.
-    if (!isAutoRowSizeOn(tableMeta.autoRowSize) && isExactRowHeight(rowHeights)) {
+    if (hasOwnHeight && !isAutoRowSizeOn(tableMeta.autoRowSize)) {
       return rowHeights;
     }
 
     const defaultRowHeight = (instance.stylesHandler as StylesHandler).getDefaultRowHeight(row);
-    const height = tableMeta.rowHeights === undefined || tableMeta.rowHeights === null ?
-      resolveRowHeightSetting(tableMeta.minRowHeights, row) : rowHeights;
+    // `minRowHeights` covers the rows `rowHeights` gives no height of their own.
+    const hasRowHeightsOption = tableMeta.rowHeights !== undefined && tableMeta.rowHeights !== null;
+    const fallbackHeight = hasRowHeightsOption ? rowHeights : undefined;
+    const height = hasOwnHeight ?
+      rowHeights : (resolveRowHeightSetting(tableMeta.minRowHeights, row) ?? fallbackHeight);
 
     const numHeight = height;
     const numDefaultRowHeight = defaultRowHeight as number | null;

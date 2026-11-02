@@ -5757,7 +5757,7 @@ export default (): Record<string, unknown> => {
      * A row is never shorter than this value, but it grows to fit taller content. A value smaller than
      * the default row height has no effect, because a row is never shorter than the default. To set a row
      * to an exact height and clip content that does not fit, use [`rowHeights`](#rowHeights) instead.
-     * When both options are set, `rowHeights` wins.
+     * You can set both options: `rowHeights` sets the rows it gives a height, and `minRowHeights` applies to the others.
      *
      * Take the accepted forms (a number, a string, an array, or a function) from the
      * [`rowHeights`](#rowHeights) option description.
@@ -7322,7 +7322,7 @@ export default (): Record<string, unknown> => {
      * keeps the default.
      *
      * To set a minimum that content can grow past, use [`minRowHeights`](#minRowHeights) instead.
-     * When both options are set, `rowHeights` wins.
+     * You can set both options: `rowHeights` sets the rows it gives a height, and `minRowHeights` applies to the others.
      *
      * You can set the `rowHeights` option to one of the following:
      *
