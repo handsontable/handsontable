@@ -1972,8 +1972,11 @@ export class HandsontableAdapter {
       return this.#borderWidth;
     }
 
+    // The root element, not the overlay host: the host is the root wrapper, the root element's parent,
+    // so a value an application declares on `.handsontable` (as the guide says) never reaches it. The
+    // root element still inherits the theme's own value from the wrapper.
     const rawWidth = this.#hot.rootWindow
-      .getComputedStyle(this.#overlayHost)
+      .getComputedStyle(this.#hot.rootElement)
       .getPropertyValue('--hfe-reference-border-width');
     const parsedWidth = Number.parseFloat(rawWidth);
 
