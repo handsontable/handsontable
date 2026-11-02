@@ -955,9 +955,12 @@ class Xlsx extends BaseType {
       this.#needIf(numFmt !== null, 'xlsx:number_formats');
       cell.numFmt = this.#entitlement.numberFormats ? numFmt : null;
 
-      const cssStyle = getCssStyleFromElement(
-        context.cellElements[rowIndex][colIndex], meta.className, context.rootDocument, context.rootWindow
-      );
+      // The computed CSS feeds the cell style only, so without `xlsx:styles` it is never read.
+      const cssStyle = this.#entitlement.styles
+        ? getCssStyleFromElement(
+          context.cellElements[rowIndex][colIndex], meta.className, context.rootDocument, context.rootWindow
+        )
+        : null;
 
       this.#writeCellStyling(cell, meta, cssStyle, context);
 

@@ -6,6 +6,7 @@ import { DateCellType } from '../../../cellTypes/dateType';
 import { TimeCellType } from '../../../cellTypes/timeType';
 import { IntlDateCellType } from '../../../cellTypes/intlDateType';
 import { formatCellValue } from '../../../renderers/renderCell';
+import * as cellStyle from '../types/xlsx/cell-style';
 import {
   ALL_XLSX_TOKENS,
   STANDARD_TOKENS,
@@ -214,6 +215,23 @@ describe('Xlsx export license gates', () => {
     // `htCenter` on the first header: no alignment either, so no style at all.
     expect(headerCells(gated).every(cell => cell.style === null)).toBe(true);
     expect(headerCells(gated).map(cell => cell.value)).toEqual(['Name', 'Amount', 'Status']);
+  });
+
+  it('reads no computed cell style without xlsx:styles', async() => {
+    const probeSpy = jest.spyOn(cellStyle, 'getCssStyleFromElement');
+
+    try {
+      await exportSnapshot(keyWith(ALL_XLSX_TOKENS));
+
+      expect(probeSpy).toHaveBeenCalled();
+
+      probeSpy.mockClear();
+      await exportSnapshot(keyWithout('xlsx:styles'));
+
+      expect(probeSpy).not.toHaveBeenCalled();
+    } finally {
+      probeSpy.mockRestore();
+    }
   });
 
   it('writes no numFmt without xlsx:number_formats', async() => {
