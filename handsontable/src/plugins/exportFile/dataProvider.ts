@@ -66,9 +66,46 @@ interface EngineCellAddress {
 }
 
 /**
- * Reads the exact size of the array whose master sits at `address` from HyperFormula's array
- * mapping. The mapping is `@internal` in HyperFormula (3.3.0 answers an `ArrayFormulaVertex` with
- * `width` and `height`), so every step is duck-typed and anything unexpected answers `null`.
+ * Drops the trailing rows, then the trailing columns, of a `rows` x `cols` array whose every cell
+ * `isEmpty()` answers `true` for, keeping at least one row and one column.
+ *
+ * @param {number} rows The array's height.
+ * @param {number} cols The array's width.
+ * @param {Function} isEmpty Whether the cell at an offset from the master is empty.
+ * @returns {{ rows: number, cols: number }}
+ */
+function trimEmptyTail(
+  rows: number, cols: number, isEmpty: (rowOffset: number, colOffset: number) => boolean
+): { rows: number; cols: number } {
+  let height = rows;
+  let width = cols;
+  const isEmptyRow = (row: number) => Array.from({ length: width }, (_, col) => col).every(col => isEmpty(row, col));
+  // Only the rows that stay count for a column.
+  const isEmptyCol = (col: number) => Array.from({ length: height }, (_, row) => row).every(row => isEmpty(row, col));
+
+  while (height > 1 && isEmptyRow(height - 1)) {
+    height -= 1;
+  }
+
+  while (width > 1 && isEmptyCol(width - 1)) {
+    width -= 1;
+  }
+
+  return { rows: height, cols: width };
+}
+
+/**
+ * Reads the size of the array whose master sits at `address` from HyperFormula's array mapping.
+ * The mapping is `@internal` in HyperFormula (3.3.0 answers an `ArrayFormulaVertex` with `width`,
+ * `height`, and the computed `array`), so every step is duck-typed and anything unexpected answers
+ * `null`.
+ *
+ * The mapping holds the room the engine reserved, which is the exact size for `SEQUENCE`, but the
+ * size of the input for `FILTER`: the engine pads the result with its empty value, a symbol
+ * (`=FILTER(A1:A6,A1:A6>3)` reserves 6 rows for 3). The trailing rows and columns that hold only
+ * that symbol are trimmed off. A result whose real last values are empty cells is trimmed too,
+ * which Excel corrects when it recalculates; an error result (`FILTER` that matches nothing) holds
+ * no values and keeps the reserved size.
  *
  * @param {object} engine The Formulas plugin's engine.
  * @param {object} address The master's engine address.
@@ -82,19 +119,30 @@ function readMappedArraySize(engine: object, address: EngineCellAddress): { rows
   }
 
   const vertex = (arrayMapping.getArrayByCorner as (address: EngineCellAddress) => unknown).call(arrayMapping, address);
-  const { width, height } = (vertex ?? {}) as { width?: unknown; height?: unknown };
+  const { width, height, array } = (vertex ?? {}) as { width?: unknown; height?: unknown; array?: { raw?: unknown } };
 
   if (typeof width !== 'number' || typeof height !== 'number' || width < 1 || height < 1) {
     return null;
   }
 
-  return { rows: height, cols: width };
+  const values = typeof array?.raw === 'function' ? (array.raw as () => unknown).call(array) : null;
+
+  if (!Array.isArray(values)) {
+    return { rows: height, cols: width };
+  }
+
+  return trimEmptyTail(height, width, (row, col) => {
+    const valueRow: unknown = values[row];
+
+    return Array.isArray(valueRow) && typeof valueRow[col] === 'symbol';
+  });
 }
 
 /**
  * Estimates the size of the array whose master sits at `address` by walking right, then down, over
- * the cells the engine types `ARRAY`. The fallback for `readMappedArraySize()`; it can
- * over-count when another array spills next to the master.
+ * the cells the engine types `ARRAY`, then trims the trailing rows and columns whose every value is
+ * empty, as `readMappedArraySize()` does with the room the engine reserves. The fallback for
+ * `readMappedArraySize()`; it can over-count when another array spills next to the master.
  *
  * @param {object} engine The Formulas plugin's engine.
  * @param {object} address The master's engine address.
@@ -103,6 +151,7 @@ function readMappedArraySize(engine: object, address: EngineCellAddress): { rows
 function walkArraySize(
   engine: {
     getCellType(address: EngineCellAddress): unknown;
+    getCellValue(address: EngineCellAddress): unknown;
     getSheetDimensions(sheetId: number): { width: number; height: number };
   },
   address: EngineCellAddress
@@ -121,7 +170,8 @@ function walkArraySize(
     rows += 1;
   }
 
-  return { rows, cols };
+  return trimEmptyTail(rows, cols, (rowOffset, colOffset) => engine
+    .getCellValue({ sheet, row: row + rowOffset, col: col + colOffset }) === null);
 }
 
 /**
@@ -407,7 +457,9 @@ class ExportDataProvider {
    * The array size is read for a cell the engine types `ARRAYFORMULA` (a spilling function such as
    * `SEQUENCE`, or `ARRAYFORMULA(…)`). HyperFormula has no public API for the spill range. The size
    * is read from the engine's array mapping (`arrayMapping.getArrayByCorner()`), which holds the
-   * exact size of every array. That mapping is `@internal` in HyperFormula and may change between
+   * room the engine reserved for every array. For `FILTER` that is the size of its input, padded with
+   * the engine's empty value, so the trailing rows and columns holding only that value are trimmed
+   * off (`readMappedArraySize()`). That mapping is `@internal` in HyperFormula and may change between
    * 3.x releases, so it is duck-typed and, when it is missing or answers an unexpected shape, the
    * size is estimated by walking right, then down, from the master over the cells the engine types
    * `ARRAY`, bounded by the sheet's dimensions. The walk is only an estimate: a spilled cell next to

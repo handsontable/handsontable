@@ -242,6 +242,81 @@ describe('Xlsx export: array formulas', () => {
     expect(rows[0][4].formula).toEqual({ text: 'A1+1', result: '=A1+1' });
   });
 
+  describe('a spill HyperFormula reserves more room for than its result', () => {
+    // HyperFormula reserves room for `FILTER` the size of its input and pads the result with empty
+    // values: `=FILTER(A1:A6,A1:A6>3)` answers 3 rows, and its array mapping 6.
+    const createFilterData = (rowCount, formula = '=FILTER(A1:A6,A1:A6>3)') => Array.from({ length: rowCount },
+      (_, row) => [row < 6 ? row + 1 : null, row === 4 ? formula : null, null]);
+
+    it('should size a FILTER spill near the last row from its result, not from the reservation', async() => {
+      // The reserved B5:B10 runs past the last row (7): sized from the reservation, the spill was
+      // cut, written as a plain formula, and Excel opened it with the `@`.
+      const { rows, dropped } = await exportSheet({ data: createFilterData(7) });
+
+      expect(hot.getDataAtCol(1).slice(4)).toEqual([4, 5, 6]);
+      expect(rows[4][1].formula).toEqual({
+        text: 'FILTER(A1:A6,A1:A6>3)', result: 4, array: { ref: 'B5:B7', dynamic: true },
+      });
+      expect(dropped).toEqual([]);
+    });
+
+    it('should write the ref of a FILTER spill with room to spare over the result only', async() => {
+      const { rows, dropped } = await exportSheet({ data: createFilterData(12) });
+
+      expect(rows[4][1].formula.array).toEqual({ ref: 'B5:B7', dynamic: true });
+      expect(rows.slice(7, 10).map(row => row[1].value)).toEqual([null, null, null]);
+      expect(dropped).toEqual([]);
+    });
+
+    it('should trim the reserved columns of a transposed FILTER', async() => {
+      // The reservation is 1 x 6, wider than the 3 columns of the grid.
+      const { rows, dropped } = await exportSheet({ data: createFilterData(7, '=TRANSPOSE(FILTER(A1:A6,A1:A6>4))') });
+
+      expect(rows[4][1].formula.array).toEqual({ ref: 'B5:C5', dynamic: true });
+      expect(rows[4][2].value).toBe(6);
+      expect(dropped).toEqual([]);
+    });
+
+    it('should trim the result of an operator over a FILTER', async() => {
+      const { rows } = await exportSheet({ data: createFilterData(12, '=FILTER(A1:A6,A1:A6>3)*2') });
+
+      expect(rows[4][1].formula).toEqual({
+        text: 'FILTER(A1:A6,A1:A6>3)*2', result: 8, array: { ref: 'B5:B7', dynamic: true },
+      });
+    });
+
+    it('should keep the reserved size of a FILTER that matches nothing', async() => {
+      // An error result holds no values to trim; Excel recalculates it to one cell.
+      const { rows } = await exportSheet({ data: createFilterData(12, '=FILTER(A1:A6,A1:A6>30)') });
+
+      expect(rows[4][1].formula.array).toEqual({ ref: 'B5:B10', dynamic: true });
+    });
+
+    it('should trim the reserved rows when the engine has no array mapping', async() => {
+      hot = new Handsontable(container, {
+        data: createFilterData(7),
+        formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
+        exportFile: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      Object.defineProperty(hot.getPlugin('formulas').engine, 'arrayMapping', { value: undefined, configurable: true });
+
+      await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', { exportFormulas: true });
+
+      const [snapshot, , dropped] = writeSpy.mock.calls[0];
+
+      expect(snapshot.sheets[0].rows[4][1].formula.array).toEqual({ ref: 'B5:B7', dynamic: true });
+      expect(dropped.list()).toEqual([]);
+    });
+
+    it('should not trim a spill whose last values are empty texts', async() => {
+      // `CHOOSE` pads the shorter range with `""`, which is a value, not the engine's empty marker.
+      const { rows } = await exportSheet({ data: createFilterData(12, '=CHOOSE(1,A1:A3,A1:A6)') });
+
+      expect(rows[4][1].formula.array).toEqual({ ref: 'B5:B10', dynamic: true });
+    });
+  });
+
   describe('range arithmetic', () => {
     // A1:B3 hold the operands; C1:F1 the formulas under test.
     const createArithmeticData = () => [

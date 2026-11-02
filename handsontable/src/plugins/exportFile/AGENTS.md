@@ -341,7 +341,13 @@ Other rules:
   `ArrayFormulaSize { rows, cols, exported }` as `arraySize` per cell, `null` for a non-master. HyperFormula has no
   public spill-range API, so the size comes from the engine's INTERNAL
   `arrayMapping.getArrayByCorner()` (duck-typed; any unexpected shape answers `null`), with a walk over
-  `ARRAY`-typed cells as the fallback. The walk can over-count next to another array, so the xlsx type
+  `ARRAY`-typed cells as the fallback. **The mapping is the room the engine RESERVED, not the result**:
+  `=FILTER(A1:A6,A1:A6>3)` reserves 6 rows for 3 and pads `vertex.array.raw()` with HyperFormula's
+  `EmptyValue` symbol. Sized from the reservation, a `FILTER` near the last row was cut and written
+  as a plain formula (Excel's `@`), and one with room wrote a padded `ref`. `trimEmptyTail()` drops
+  trailing all-symbol rows, then columns (the walk drops trailing all-`null` ones); an error result
+  (`ErroredArray`, no `raw()`) keeps the reserved size. Every `SEQUENCE`-only test missed this, so
+  `xlsxArrayFormula.unit.js` pins `FILTER`, `TRANSPOSE(FILTER)` and the no-mapping walk. The walk can over-count next to another array, so the xlsx type
   keeps per-sheet claims (`ArrayRangeClaims` in `types/xlsx/formula-utils.ts`) and writes an overlapping
   array as a plain formula. **The claims rely on row-major order** (masters are claimed row by row, left
   to right): an overlap is then always on the new range's first row, one-cell claims are never stored,
