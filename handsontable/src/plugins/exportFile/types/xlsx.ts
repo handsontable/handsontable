@@ -349,7 +349,7 @@ interface XlsxOptions extends Record<string, unknown> {
  * (a protected-looking sheet with no real password), and ExcelJS throws a bare `TypeError`. The
  * messages name the option, never its value, because the value may be a password.
  *
- * @param {unknown} protection The `protection` export option.
+ * @param {*} protection The `protection` export option.
  */
 function assertProtectionOption(protection: unknown): void {
   if (protection === undefined || protection === null) {
