@@ -4,12 +4,13 @@ import { getSanitizer } from '../../utils/sanitizer';
 import * as C from '../../i18n/constants';
 import { isRootInstance } from '../../utils/rootInstance';
 import { LOADING_CLASS_NAME } from '../../helpers/constants';
-import { PLUGIN_DEPS } from './feature.generated';
+import { LICENSE, PLUGIN_DEPS } from './feature.generated';
 
 /**
  * Interface for the Dialog plugin used by Loading.
  */
 interface DialogPlugin {
+  enabled: boolean;
   isEnabled(): boolean;
   isVisible(): boolean;
   hide(): void;
@@ -202,6 +203,14 @@ export class Loading extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Dialog instance reference.
    *
    * @type {Dialog|null}
@@ -309,7 +318,7 @@ export class Loading extends BasePlugin {
    * @param {string} options.description Custom loading description.
    */
   show(options = {}): void {
-    if (!this.isEnabled() || !this.#dialogPlugin || !this.#dialogPlugin?.isEnabled()) {
+    if (!this.isEnabled() || !this.#dialogPlugin?.enabled) {
       return;
     }
 
@@ -345,7 +354,7 @@ export class Loading extends BasePlugin {
    * Hide loading dialog. A dialog the application shows with its own content stays on screen.
    */
   hide(): void {
-    if (!this.#dialogPlugin || !this.#dialogPlugin?.isEnabled() || !this.isVisible()) {
+    if (!this.#dialogPlugin?.enabled || !this.isVisible()) {
       return;
     }
 
@@ -371,7 +380,7 @@ export class Loading extends BasePlugin {
    * @param {string} options.description Custom loading description.
    */
   update(options?: unknown): void {
-    if (!this.isEnabled() || !this.#dialogPlugin || !this.#dialogPlugin?.isEnabled()) {
+    if (!this.isEnabled() || !this.#dialogPlugin?.enabled) {
       return;
     }
 

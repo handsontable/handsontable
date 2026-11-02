@@ -23,7 +23,7 @@ import type { NestedHeaders } from '../nestedHeaders/nestedHeaders';
 import type StateManager from '../nestedHeaders/stateManager';
 import type { ColumnVisibility } from '../nestedHeaders/stateManager/columnVisibility';
 import { getEndOverlayHeaders } from '../../utils/endOverlayHeaders';
-import { PLUGIN_DEPS } from './feature.generated';
+import { LICENSE, PLUGIN_DEPS } from './feature.generated';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
@@ -212,6 +212,14 @@ export class CollapsibleColumns extends BasePlugin {
    */
   static get PLUGIN_DEPS() {
     return [...PLUGIN_DEPS];
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

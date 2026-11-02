@@ -181,6 +181,14 @@ any of them.
   parent collapsed now before it collapses the stored ones. On a sheet switch nothing is collapsed
   by then (`loadData()` drops it), so that step is a no-op there.
 
+## The license check: the three public methods
+
+The plugin is on in every grid, so a license key that lists its features is checked when it is used
+(`gate: 'call'` in `feature.json`). `getViewState()`, `setViewState()` and `validateViewState()` call
+`assertLicensedCall(this.hot, LICENSE)` first: a key that does not cover `feat:view_state` writes the license
+message and throws it. The SheetsBar saves and restores sheets through `utils/viewState/` directly, never through
+this plugin, so it is not affected. Rules: `../../utils/entitlementLicenseKey/AGENTS.md`.
+
 ## Where to look next
 
 - `../../utils/viewState/AGENTS.md` for the engine and the order of the restore steps.

@@ -16,6 +16,7 @@ import {
   NESTED_ROWS_ANNOUNCEMENT_COLLAPSED,
   NESTED_ROWS_ANNOUNCEMENT_EXPANDED,
 } from '../../i18n/constants';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'nestedRows';
 export const PLUGIN_PRIORITY = 300;
@@ -77,6 +78,14 @@ export class NestedRows extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

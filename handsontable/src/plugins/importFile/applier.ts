@@ -382,7 +382,7 @@ export function applyImportResult(
 
     const comments = hot.getPlugin('comments');
 
-    if (result.comments && comments?.isEnabled()) {
+    if (result.comments && comments?.enabled) {
       result.comments.forEach(({ row, col, value }) => {
         const target = visual(row, col);
 
