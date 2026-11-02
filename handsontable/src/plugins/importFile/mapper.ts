@@ -110,10 +110,10 @@ export interface MapperContext {
  */
 export interface LiveArrayProbe {
   /**
-   * What the cell's formula evaluates to: `'spill'` for `#SPILL!`, `'error'` for any other error,
-   * `'value'` otherwise.
+   * What the cell's formula evaluates to: the HyperFormula error type of an error (`'SPILL'`,
+   * `'VALUE'`, `'REF'`, ...), `null` for a value.
    */
-  masterState(row: number, col: number): 'spill' | 'error' | 'value';
+  masterState(row: number, col: number): string | null;
   /**
    * Whether an array the engine placed covers the cell.
    */
@@ -951,6 +951,10 @@ interface LiveArrayRect {
    * The master's formula as `ImportResult.formulas` records it (the file's text, prefixes stripped).
    */
   recorded: string;
+  /**
+   * Whether the file caches an error for the master (`t="e"`): Excel could not evaluate it either.
+   */
+  cachedIsError: boolean;
 }
 
 /**
@@ -1056,7 +1060,8 @@ function beginLiveArrayRow(row: number, scope: CollectContext): void {
  * @param {CollectContext} scope The pass context.
  */
 function recordLiveArray(
-  ref: string, row: number, col: number, master: { cached: unknown; recorded: string }, scope: CollectContext
+  ref: string, row: number, col: number, master: Pick<LiveArrayRect, 'cached' | 'recorded' | 'cachedIsError'>,
+  scope: CollectContext
 ): void {
   const range = parseRangeRef(ref);
   const { window, liveArrays } = scope;
@@ -1072,6 +1077,7 @@ function recordLiveArray(
     endCol: Math.min(range.endCol - 1, window.lastCol) - window.firstCol,
     cached: master.cached,
     recorded: master.recorded,
+    cachedIsError: master.cachedIsError,
   };
 
   chargeFormulaWalk(1, scope);
@@ -1115,16 +1121,40 @@ function liveArrayCovering(col: number, scope: CollectContext): LiveArrayRect | 
 }
 
 /**
+ * How `settleLiveArrays` treats a master the probe evaluated: `'cached'` (it and its emptied cells
+ * import their cached values), `'written'` (left as written) or `'value'` (its emptied cells are
+ * judged one by one).
+ *
+ * @param {string|null} error The master's error type in the probe, `null` for a value.
+ * @param {LiveArrayRect} rect The master's rectangle.
+ * @returns {string}
+ */
+function settledState(error: string | null, rect: LiveArrayRect): 'cached' | 'written' | 'value' {
+  if (error === null) {
+    return 'value';
+  }
+
+  if (error === 'SPILL' || (error !== 'REF' && error !== 'NAME' && !rect.cachedIsError)) {
+    return 'cached';
+  }
+
+  return 'written';
+}
+
+/**
  * Asks a scratch copy of the engine (`MapperContext.probeLiveArrays`) where the live array masters
  * recorded in the pass really spill, and puts the file's cached values back where they do not.
  * HyperFormula decides a spill's size, not the file's `ref`: it sizes `FILTER` by its input, and a
- * legacy array with a one-value formula (`{=A1*2}` over `B1:B3`) is one cell to it.
+ * legacy array with a one-value formula (`{=A1*2}` over `B1:B3`) is one cell to it. Some arrays it
+ * cannot evaluate at all: a lone range (`=A1:A3`), a range name and `INDEX(A1:A3,0)` are `#VALUE!`.
  *
- * - A master that evaluates to `#SPILL!` imports its cached value, and so does every cell it
- *   emptied; its formula moves to `ImportResult.formulas`, and `formula:arraySpill` is recorded
- *   (with `formula:noCachedValue` when the file caches no value for the master).
- * - A master that evaluates to another error is left as written: the probe may lack what it reads
- *   (another engine sheet), so its emptied cells are not judged.
+ * - A master that evaluates to `#SPILL!`, or to another error while the file caches a value for it,
+ *   imports its cached value, and so does every cell it emptied; its formula moves to
+ *   `ImportResult.formulas`, and `formula:arraySpill` is recorded (with `formula:noCachedValue` when
+ *   the file caches no value for the master).
+ * - A master that evaluates to `#REF!` or `#NAME?`, or to an error the file caches too, is left as
+ *   written: the probe lacks the engine's other sheets and its sheet-scoped names, so its emptied
+ *   cells are not judged.
  * - Otherwise, an emptied cell that no array the engine placed covers gets its cached value back.
  *
  * The probe runs once, over the data before any value is put back. A probe that throws, built or
@@ -1148,15 +1178,15 @@ function settleLiveArrays(pass: CellPass, scope: CollectContext): void {
     return;
   }
 
-  const states = new Map<LiveArrayRect, 'spill' | 'error' | 'value'>();
+  const states = new Map<LiveArrayRect, 'cached' | 'written' | 'value'>();
   const restored: EmptiedCell[] = [];
 
   try {
-    recorded.forEach(rect => states.set(rect, probe.masterState(rect.startRow, rect.startCol)));
+    recorded.forEach(rect => states.set(rect, settledState(probe.masterState(rect.startRow, rect.startCol), rect)));
     emptied.forEach((cell) => {
       const state = states.get(cell.rect);
 
-      if (state === 'spill' || (state === 'value' && !probe.isPartOfArray(cell.row, cell.col))) {
+      if (state === 'cached' || (state === 'value' && !probe.isPartOfArray(cell.row, cell.col))) {
         restored.push(cell);
       }
     });
@@ -1174,7 +1204,7 @@ function settleLiveArrays(pass: CellPass, scope: CollectContext): void {
   let spilled = false;
 
   states.forEach((state, rect) => {
-    if (state === 'spill') {
+    if (state === 'cached') {
       pass.data[rect.startRow][rect.startCol] = rect.cached;
       pass.formulas.push({ row: rect.startRow, col: rect.startCol, formula: rect.recorded });
       spilled = true;
@@ -1240,6 +1270,7 @@ function pushCellValue(
       recordLiveArray(array.ref, row, col, {
         cached: escapeTextFormula(toGridValue(cell, inferred), scope.context.formulasEnabled),
         recorded: formula as string,
+        cachedIsError: cell.formula?.resultIsError === true,
       }, scope);
     }
 

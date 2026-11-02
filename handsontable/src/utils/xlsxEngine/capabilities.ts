@@ -150,9 +150,11 @@ export const DROPPED_FEATURES = {
   // A formula imported as a value (no live formulas) whose file carries no cached `<v>`: the cell
   // imports empty, and the formula is only in `result.formulas`.
   formulaNoCachedValue: 'formula:noCachedValue',
-  // An array formula HyperFormula cannot spill where the file's `ref` says it does (`#SPILL!`), for
-  // example a `FILTER` it sizes by its input: the master and the cells it covers import their
-  // cached values, and the formula is only in `result.formulas`.
+  // An array formula HyperFormula cannot evaluate the way Excel did: it cannot spill where the
+  // file's `ref` says it does (`#SPILL!`, a `FILTER` it sizes by its input), or it shows an error
+  // Excel did not cache (`#VALUE!` for a lone range `=A1:A3`, a range name, `INDEX(A1:A3,0)`). The
+  // master and the cells it covers import their cached values, and the formula is only in
+  // `result.formulas`.
   formulaArraySpill: 'formula:arraySpill',
   // A note on a cell of the promoted header band: a column header cannot hold one.
   commentHeader: 'comment:header',

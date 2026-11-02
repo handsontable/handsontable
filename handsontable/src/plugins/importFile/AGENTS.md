@@ -466,14 +466,21 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   hyperformula, the base bundle keeps it external) over the mapped `data`, one sheet named like the
   engine's grid sheet, plus the engine's names and `pass.namedExpressions`. Per rectangle: master
   `#SPILL!` -> master and its emptied cells take their cached values, the text goes to `formulas`,
-  `formula:arraySpill`; master another error -> left as written (the scratch lacks the engine's other
-  sheets, so `#REF!` there proves nothing - the documented weak spot); otherwise an emptied cell not
-  `isCellPartOfArray` takes its cached value. One probe, before anything is put back; a probe that
+  `formula:arraySpill`; master another error (`masterState` answers HF's error type) -> the same
+  when the file caches a VALUE for it (`LiveArrayRect.cachedIsError` false): HF 3.3 shows `#VALUE!`
+  for a lone range (`=A1:A3`, `=(A1:A3)`, `=Sheet1!A1:A3`), a range name (`=Sales`,
+  `FILTER(Sales,Sales>1)`), `INDEX(A1:A3,0)` and `ARRAYFORMULA(A1:A3)`, which Excel spills, and
+  their covered cells used to import empty under a `#VALUE!` master. So `formula:arraySpill` means
+  "HF cannot evaluate this array the way Excel did", not only `#SPILL!`. Left as written: `#REF!`
+  (the scratch lacks the engine's other sheets - the documented weak spot), `#NAME?` (it lacks the
+  engine's sheet-scoped names), and an error the file caches too (`settledState`). Do NOT replace
+  this with a check after `loadData` in the applier: `apply: false` must return the settled data.
+  Otherwise an emptied cell not `isCellPartOfArray` takes its cached value. One probe, before anything is put back; a probe that
   throws, while built, set up (`getSheetId`, the name adds) or asked, changes nothing, and the scratch
   is destroyed either way. A spilled master with no cached value (openpyxl) imports empty and also
   records `formula:noCachedValue`. HF 3.3 evaluates array arithmetic over a RANGE name
-  (`FILTER(Sales,Sales>1)`) to `#VALUE!` in the grid's engine too, so such a master is "another
-  error" and stays as written. It runs in the mapper, so
+  (`FILTER(Sales,Sales>1)`) to `#VALUE!` in the grid's engine too, so such a master imports its
+  cached values like the lone range above. It runs in the mapper, so
   `apply: false` returns the settled data. Cost: one extra HyperFormula build of the sheet, about
   +85 ms on 10,000 rows x 5 columns (10,000 formulas; ~110 ms -> ~200 ms for the whole import).
   The scratch engine evaluates the sheet again, so volatile functions (`RAND`, `NOW`) and custom

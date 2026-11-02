@@ -257,7 +257,7 @@ export interface ImportResult {
   /**
    * Formulas that were not imported live, because the Formulas plugin is off, `importFormulas` is
    * `false`, the formula cannot resolve in the grid, or it is an array formula HyperFormula cannot
-   * spill (`formula:arraySpill`). Their cells hold the cached value in `data`.
+   * evaluate the way Excel did (`formula:arraySpill`). Their cells hold the cached value in `data`.
    * Live formulas are in `data` as `=` strings.
    */
   formulas?: Array<{ row: number; col: number; formula: string }>;
@@ -500,7 +500,7 @@ function sameConstant(
  * @param {*} value The value.
  * @returns {boolean}
  */
-function isCellError(value: unknown): value is { value: string } {
+function isCellError(value: unknown): value is { value: string; type: string } {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
     && typeof (value as { value?: unknown }).value === 'string'
     && typeof (value as { type?: unknown }).type === 'string';
@@ -649,10 +649,10 @@ function liveArrayProbe(engine: unknown, sheetName: string | null | undefined): 
         const value = scratch.getCellValue({ sheet, row, col });
 
         if (!isCellError(value)) {
-          return 'value';
+          return null;
         }
 
-        return (value as { type?: unknown }).type === 'SPILL' ? 'spill' : 'error';
+        return value.type;
       },
       isPartOfArray: (row, col) => answersTrue(() => scratch.isCellPartOfArray({ sheet, row, col })),
       destroy: () => scratch.destroy(),
