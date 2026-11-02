@@ -100,7 +100,7 @@ describe('HotTable with a sheets bar', () => {
     act(() => {
       hot.setDataAtCell(0, 0, 'typed');
     });
-    renderHotTableWithProps(props(), false, ref);
+    renderHotTableWithProps(props(), true, ref);
 
     expect(hot.getDataAtCell(0, 0)).toBe('typed');
 
