@@ -371,6 +371,8 @@ The [`ImportFile`](@/api/importFile.md) and [`ExportFile`](@/api/exportFile.md) 
 | `xlsx:protection` | Locked cells and sheet protection, including the `protection` export option. | Yes | Yes |
 | `xlsx:import_report` | The list of dropped features on `result.dropped`. | Always on | - |
 
+A key that lists `xlsx:all` unlocks every capability in this table, the same as a key that lists each one.
+
 `xlsx:import_report` is part of every key, so the import report is always complete. An import always reads number formats to infer cell types, so a missing `xlsx:number_formats` does not restrict it.
 
 ### What happens without a capability

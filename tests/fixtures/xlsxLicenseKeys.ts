@@ -9,6 +9,7 @@ export {
   ALL_XLSX_TOKENS,
   STANDARD_TOKENS,
   keyWith,
+  keyWithAll,
   keyWithout,
   keyWithoutFlag,
 } from '../../handsontable/src/utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';

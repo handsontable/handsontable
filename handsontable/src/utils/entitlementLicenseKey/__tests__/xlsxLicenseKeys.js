@@ -71,3 +71,14 @@ export function keyWithout(token) {
 
   return keyWith(ALL_XLSX_TOKENS.filter(id => id !== token));
 }
+
+/**
+ * Builds a flagged key that lists `xlsx:all`, the grant of the whole xlsx namespace, and no other
+ * xlsx token: it unlocks every xlsx feature.
+ *
+ * @param {string[]} [flags] Further product flags.
+ * @returns {string}
+ */
+export function keyWithAll(flags = []) {
+  return keyWith(['xlsx:all'], flags);
+}

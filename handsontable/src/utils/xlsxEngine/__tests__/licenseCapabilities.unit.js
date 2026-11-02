@@ -3,6 +3,7 @@ import {
   XLSX_CAPABILITY_PREFIX,
   CAPABILITY_TOKEN_PATTERN,
   LISTED_CAPABILITIES_FLAG,
+  XLSX_ALL_CAPABILITY,
   IMPORT_FILE_CAPABILITY_IDS,
   EXPORT_FILE_CAPABILITY_IDS,
 } from '../licenseCapabilities';
@@ -30,6 +31,12 @@ describe('xlsxEngine/licenseCapabilities', () => {
     XLSX_CAPABILITY_IDS.forEach(id => expect(id).toMatch(CAPABILITY_TOKEN_PATTERN));
     expect('xlsx.conditionalFormatting').not.toMatch(CAPABILITY_TOKEN_PATTERN);
     XLSX_CAPABILITY_IDS.forEach(id => expect(id.startsWith(XLSX_CAPABILITY_PREFIX)).toBe(true));
+  });
+
+  it('names the namespace grant the feature manifest reserves, outside the token list', () => {
+    expect(XLSX_ALL_CAPABILITY).toBe('xlsx:all');
+    expect(XLSX_ALL_CAPABILITY).toMatch(CAPABILITY_TOKEN_PATTERN);
+    expect(XLSX_CAPABILITY_IDS).not.toContain(XLSX_ALL_CAPABILITY);
   });
 
   it('names the key flag the feature manifest declares', () => {

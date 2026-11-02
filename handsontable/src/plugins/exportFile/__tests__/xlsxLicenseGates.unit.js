@@ -6,6 +6,7 @@ import {
   ALL_XLSX_TOKENS,
   STANDARD_TOKENS,
   keyWith,
+  keyWithAll,
   keyWithout,
   keyWithoutFlag,
 } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
@@ -328,6 +329,17 @@ describe('Xlsx export license gates', () => {
     const legacy = await exportSnapshot('non-commercial-and-evaluation');
 
     expect(full).toEqual(legacy);
+  });
+
+  it('exports like a full key, and says nothing, for a flagged key that lists xlsx:all', async() => {
+    const full = await exportSnapshot(keyWith(ALL_XLSX_TOKENS));
+    const all = await exportSnapshot(keyWithAll());
+
+    expect(all).toEqual(full);
+
+    await exportSnapshot(keyWithAll(['no-console-warns']));
+
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 
   it('names only the tokens the export gates in its warning', async() => {

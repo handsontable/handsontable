@@ -23,6 +23,14 @@ export const CAPABILITY_TOKEN_PATTERN = /^[a-z][a-z0-9_]*(?::[a-z0-9_]+(?:\.[a-z
 export const LISTED_CAPABILITIES_FLAG = 'listed-capabilities';
 
 /**
+ * The grant of the whole XLSX namespace. The feature manifest reserves `<namespace>:all` for that
+ * (HyperFormula honors `feat:all` and `fun:all` the same way): a key with the `listed-capabilities`
+ * flag that lists it unlocks every XLSX feature. It is not a feature of its own, so it is not one of
+ * the `XLSX_CAPABILITY_IDS` and has no entry in `features.json`.
+ */
+export const XLSX_ALL_CAPABILITY = 'xlsx:all';
+
+/**
  * The XLSX tokens a key must list (`licensing: "token"` in `features.json`), in the order that
  * file declares them. `xlsx:import_report` is `core`, always granted, so it is not one of them.
  */

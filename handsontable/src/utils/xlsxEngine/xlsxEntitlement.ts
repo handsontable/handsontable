@@ -4,7 +4,7 @@ import {
   hasCapability,
   HANDSONTABLE_PRODUCT,
 } from '../entitlementLicenseKey';
-import { LISTED_CAPABILITIES_FLAG, XLSX_CAPABILITY_IDS } from './licenseCapabilities';
+import { LISTED_CAPABILITIES_FLAG, XLSX_ALL_CAPABILITY, XLSX_CAPABILITY_IDS } from './licenseCapabilities';
 
 /**
  * What the license unlocks of the XLSX engine. One flag per capability token, plus the ids of the
@@ -84,7 +84,7 @@ function listsCapabilities(entitlement: ProductEntitlement): boolean {
  * Resolves what the license unlocks of the XLSX engine. A license is unrestricted when it is
  * unrestricted as a whole, has no Handsontable product entry, or its entry does not carry the
  * `listed-capabilities` flag (every key issued before the tokens existed). With the flag, only the
- * listed tokens unlock.
+ * listed tokens unlock, and `xlsx:all` unlocks every one of them.
  *
  * @param {ProductEntitlement|null} entitlement The `handsontable` product entry of the key, or `null`.
  * @param {LicenseGrants} grants The resolved grants.
@@ -95,6 +95,12 @@ export function resolveXlsxEntitlement(
   grants: LicenseGrants,
 ): XlsxEntitlement {
   if (grants.unrestricted || entitlement === null || !listsCapabilities(entitlement)) {
+    return UNRESTRICTED_XLSX_ENTITLEMENT;
+  }
+
+  // A flagged key that lists `xlsx:all` is still restricted by its flag, but the namespace grant
+  // unlocks every xlsx feature, so its flags are the unrestricted ones and nothing is missing.
+  if (hasCapability(grants, HANDSONTABLE_PRODUCT, XLSX_ALL_CAPABILITY)) {
     return UNRESTRICTED_XLSX_ENTITLEMENT;
   }
 

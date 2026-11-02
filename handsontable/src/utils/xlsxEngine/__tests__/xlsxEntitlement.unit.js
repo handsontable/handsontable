@@ -114,6 +114,16 @@ describe('xlsxEngine/xlsxEntitlement', () => {
     expect({ ...e, missing: [] }).toEqual(UNRESTRICTED_XLSX_ENTITLEMENT);
   });
 
+  it('grants every xlsx flag to a flagged key that lists xlsx:all', () => {
+    const e = resolveXlsxEntitlement(...keyOf(['xlsx:all']));
+
+    expect(Object.entries(e).filter(([name, value]) => name !== 'missing' && value !== true)).toEqual([]);
+    expect(e.missing).toEqual([]);
+    expect({ ...e, missing: [] }).toEqual(UNRESTRICTED_XLSX_ENTITLEMENT);
+    expect(Object.isFrozen(e)).toBe(true);
+    expect(resolveXlsxEntitlement(...keyOf(['xlsx:all'], [FLAG, 'no-console-warns'])).missing).toEqual([]);
+  });
+
   it('returns frozen objects and a fresh missing array', () => {
     const e = resolveXlsxEntitlement(...keyOf(['xlsx:import']));
 

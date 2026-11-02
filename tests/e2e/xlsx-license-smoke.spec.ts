@@ -1,7 +1,7 @@
 import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { XlsxLicensePage } from '../fixtures/pages/XlsxLicensePage';
 import {
-  CORE_ONLY_KEY, keyWithoutFlag, LEGACY_KEY, STANDARD_TOKENS,
+  CORE_ONLY_KEY, keyWithAll, keyWithoutFlag, LEGACY_KEY, STANDARD_TOKENS,
 } from '../fixtures/xlsxLicenseKeys';
 
 /**
@@ -24,6 +24,20 @@ test.describe('xlsx license fixture', { tag: BUNDLES_TAG }, () => {
     const legacy = lic.sheetXml(await lic.exportBytes());
 
     await lic.create(CORE_ONLY_KEY);
+
+    expect(lic.sheetXml(await lic.exportBytes())).toBe(legacy);
+    expect(await lic.warnings()).toEqual([]);
+  });
+
+  test('a flagged key listing xlsx:all exports the same sheet as the legacy key', async({ page, theme, bundle }) => {
+    const lic = new XlsxLicensePage(page, theme, bundle);
+
+    await lic.goto();
+    await lic.create(LEGACY_KEY);
+
+    const legacy = lic.sheetXml(await lic.exportBytes());
+
+    await lic.create(keyWithAll());
 
     expect(lic.sheetXml(await lic.exportBytes())).toBe(legacy);
     expect(await lic.warnings()).toEqual([]);

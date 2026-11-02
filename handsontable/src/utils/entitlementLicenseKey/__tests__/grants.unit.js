@@ -117,8 +117,8 @@ describe('entitlementLicenseKey/grants', () => {
   });
 
   describe('the known capability tokens', () => {
-    it('should list core followed by the xlsx tokens', () => {
-      expect(KNOWN_CAPABILITIES).toEqual(['core', ...XLSX_CAPABILITY_IDS]);
+    it('should list core, the xlsx tokens and the xlsx:all namespace grant', () => {
+      expect(KNOWN_CAPABILITIES).toEqual(['core', ...XLSX_CAPABILITY_IDS, 'xlsx:all']);
     });
   });
 });

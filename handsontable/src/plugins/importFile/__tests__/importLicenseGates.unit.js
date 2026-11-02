@@ -13,6 +13,7 @@ import {
   ALL_XLSX_TOKENS,
   STANDARD_TOKENS,
   keyWith,
+  keyWithAll,
   keyWithoutFlag,
 } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 
@@ -360,6 +361,22 @@ describe('ImportFile license report', () => {
       && id !== 'xlsx:export'))).plugin.importFromArrayBuffer('xlsx', fixture('values'));
 
     expect(licenseEntriesOf(exportOnlyMissing.dropped)).toEqual([]);
+    expect(warnSpy.mock.calls.filter(([message]) => message.startsWith('The xlsx import skipped'))).toEqual([]);
+  });
+
+  it('imports like a full key, and says nothing, for a flagged key that lists xlsx:all', async() => {
+    const full = await pluginFor(keyWith(ALL_XLSX_TOKENS)).plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
+
+    warnSpy.mockClear();
+
+    const all = await pluginFor(keyWithAll()).plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
+
+    expect(all).toEqual(full);
+    expect(licenseEntriesOf(all.dropped)).toEqual([]);
+    expect(warnSpy.mock.calls.filter(([message]) => message.startsWith('The xlsx import skipped'))).toEqual([]);
+
+    await pluginFor(keyWithAll(['no-console-warns'])).plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
+
     expect(warnSpy.mock.calls.filter(([message]) => message.startsWith('The xlsx import skipped'))).toEqual([]);
   });
 
