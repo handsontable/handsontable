@@ -14,6 +14,7 @@ import type { HotInstance } from '../../core/types';
 import type BaseType from './types/_base';
 import { LICENSE } from './feature.generated';
 import { assertLicensedCall } from '../../utils/licenseNotification';
+import { hasLicenseCapability } from '../../utils/licenseCapabilities';
 
 export const PLUGIN_KEY = 'exportFile';
 
@@ -859,8 +860,11 @@ export class ExportFile extends BasePlugin {
    * because it needs no engine. `'xlsx'` can through the built-in xlsx engine or through the one
    * configured in `engines`; an engine of unknown shape writes nothing and answers `false`, which
    * is the same answer `ImportFile#supportsImportFormat` gives for that configuration. `'xlsx'` also
-   * answers `false` when the license key carries the `listed-capabilities` flag without listing
-   * `xlsx:export`. A key without that flag, and the evaluation key, are not restricted.
+   * answers `false` whenever an xlsx export would throw for the license: when the license key lists
+   * its features without `feat:export_file`, the plugin's own token, and when it carries the
+   * `listed-capabilities` flag without listing `xlsx:export`. A key without that flag, and the
+   * evaluation key, are not restricted. `'csv'` does not read the license here, although the export
+   * methods still need `feat:export_file` for it.
    *
    * @param {string} format Export format — `'csv'` or `'xlsx'`.
    * @returns {boolean}
@@ -874,7 +878,7 @@ export class ExportFile extends BasePlugin {
       return true;
     }
 
-    if (!getXlsxEntitlement(this.hot).export) {
+    if (!hasLicenseCapability(this.hot, LICENSE.capability) || !getXlsxEntitlement(this.hot).export) {
       return false;
     }
 

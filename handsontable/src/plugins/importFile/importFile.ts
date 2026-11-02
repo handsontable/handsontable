@@ -32,6 +32,7 @@ import type { ImportedBorder } from './styles';
 import type { HotInstance } from '../../core/types';
 import { LICENSE } from './feature.generated';
 import { assertLicensedCall } from '../../utils/licenseNotification';
+import { hasLicenseCapability } from '../../utils/licenseCapabilities';
 
 export const PLUGIN_KEY = 'importFile';
 export const PLUGIN_PRIORITY = 245;
@@ -725,14 +726,19 @@ export class ImportFile extends BasePlugin {
   /**
    * Returns `true` when the format can be read: `xlsx`, through the built-in engine or the one
    * configured in `engines`. An engine of unknown shape reads nothing and answers `false`. `'xlsx'` also
-   * answers `false` when the license key carries the `listed-capabilities` flag without listing
-   * `xlsx:import`. A key without that flag, and the evaluation key, are not restricted.
+   * answers `false` whenever an xlsx import would throw for the license: when the license key lists
+   * its features without `feat:import_file`, the plugin's own token, and when it carries the
+   * `listed-capabilities` flag without listing `xlsx:import`. A key without that flag, and the
+   * evaluation key, are not restricted.
    *
    * @param {string} format The import format, e.g. `'xlsx'`.
    * @returns {boolean}
    */
   supportsImportFormat(format: string): boolean {
-    if (format === 'xlsx' && !getXlsxEntitlement(this.hot).import) {
+    if (
+      format === 'xlsx' &&
+      (!hasLicenseCapability(this.hot, LICENSE.capability) || !getXlsxEntitlement(this.hot).import)
+    ) {
       return false;
     }
 
