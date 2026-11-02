@@ -120,4 +120,22 @@ describe('ManualColumnResize manual-size API', () => {
       expect(plugin.getManualSizes()).toEqual([]);
     });
   });
+
+  describe('the stored setting', () => {
+    it('keeps reporting the declared array after a `colWidths`-only update', () => {
+      const plugin = buildGrid({ manualColumnResize: [55, 65, 75] });
+
+      hot.updateSettings({ colWidths: [100, 120, 140, 160, 180] });
+
+      expect(plugin.getSetting()).toEqual([55, 65, 75]);
+    });
+
+    it('keeps reporting `true` after a `colWidths`-only update', () => {
+      const plugin = buildGrid({ manualColumnResize: true });
+
+      hot.updateSettings({ colWidths: [100, 120, 140, 160, 180] });
+
+      expect(plugin.getSetting()).toBe(true);
+    });
+  });
 });

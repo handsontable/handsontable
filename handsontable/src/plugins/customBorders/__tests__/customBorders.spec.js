@@ -169,8 +169,9 @@ describe('CustomBorders', () => {
       getPlugin('customBorders').disablePlugin();
       getPlugin('customBorders').enablePlugin();
 
-      expect(countVisibleCustomBorders()).toBe(0); // TODO this assertion checks current behavior that looks like a bug. I would expect 3
-      expect(countCustomBorders()).toBe(0);
+      // The ready step applies the declared borders again, as the `updateSettings` re-enable above does.
+      expect(countVisibleCustomBorders()).toBe(3);
+      expect(countCustomBorders()).toBe(5);
     });
 
     it('should throw an error while initialization if the mixed API is used ("start"/"end" and "left"/"right")', async() => {
