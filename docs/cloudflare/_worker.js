@@ -21,7 +21,7 @@
  *   5. /docs/:ver/:page.html               → versioned framework pages (cookie)
  *   6. /docs/(javascript|angular|react)-data-grid/(row-sorting|column-sorting|release-notes)
  *   7. Cross-framework page fixes (angular/react wrong-prefix pages)
- *  7a. Vue 3 legacy page redirects      → /docs/vue-data-grid/*
+ *  7a. Vue 3 and Vue 2 legacy page redirects → /docs/vue-data-grid/*
  *   8. Recipe cell-type slug mismatches
  *   9. Flat /docs/react-data-grid/row-sorting etc.
  *  10. Flat /docs/react-*                  → /docs/react-data-grid/*
@@ -795,6 +795,27 @@ const VUE3_LEGACY_PAGES = {
   'vue3-vuex-example': '/docs/vue-data-grid/vue-vuex/',
 };
 
+// Older names of the pages above: the Vue 2 wrapper's slugs and two Vue 3
+// renames. Read by rule 7a only. `vue-hot-column`, `vue-instance-reference`,
+// `vue-nuxt`, `vue-pinia` and `vue-vuex` are live pages, so none is listed.
+const VUE_LEGACY_ALIASES = {
+  'vue-installation': 'vue3-installation',
+  'vue-basic-example': 'vue3-basic-example',
+  'vue-simple-example': 'vue3-basic-example',
+  'vue-modules': 'vue3-modules',
+  'vue-hot-reference': 'vue3-hot-reference',
+  'vue-custom-renderer-example': 'vue3-custom-renderer-example',
+  'vue-custom-editor-example': 'vue3-custom-editor-example',
+  'vue-custom-context-menu-example': 'vue3-custom-context-menu-example',
+  'vue-formulas-example': 'vue3-formulas-example',
+  'vue-language-change-example': 'vue3-language-change-example',
+  'vue-setting-up-a-translation': 'vue3-setting-up-a-translation',
+  'vue-setting-up-a-language': 'vue3-setting-up-a-translation',
+  'vue-vuex-example': 'vue3-vuex-example',
+  'vue3-simple-example': 'vue3-basic-example',
+  'vue3-setting-up-a-language': 'vue3-setting-up-a-translation',
+};
+
 // ---------------------------------------------------------------------------
 // Main worker
 // ---------------------------------------------------------------------------
@@ -1028,12 +1049,12 @@ async function route(request, env) {
       }
     }
 
-    // -- 7a. Vue 3 legacy pages ---------------------------------------------
+    // -- 7a. Vue 3 and Vue 2 legacy pages -----------------------------------
     {
-      const m = path.match(/^\/docs\/(javascript|react|angular|vue)-data-grid\/(vue3-[^/]+)\/?$/);
+      const m = path.match(/^\/docs\/(javascript|react|angular|vue)-data-grid\/(vue3?-[^/]+)\/?$/);
 
       if (m) {
-        const page = m[2];
+        const page = VUE_LEGACY_ALIASES[m[2]] ?? m[2];
 
         if (Object.prototype.hasOwnProperty.call(VUE3_LEGACY_PAGES, page)) {
           return redirect301(abs(VUE3_LEGACY_PAGES[page], url));
