@@ -547,6 +547,30 @@ describe('Xlsx export license gates', () => {
     }
   });
 
+  it('names xlsx:data_validation only for a dropdown whose source is a list', async() => {
+    const sourceFn = (query, callback) => callback(['Engineering']);
+
+    for (const [type, source, expected] of [
+      ['dropdown', sourceFn, []],
+      ['autocomplete', sourceFn, []],
+      ['dropdown', ['Engineering'], ['xlsx:data_validation']],
+      ['autocomplete', ['Engineering'], ['xlsx:data_validation']],
+    ]) {
+      warnSpy.mockClear();
+
+      // eslint-disable-next-line no-await-in-loop
+      await withMockSheet({ ...PLAIN_SHEET, cellsMeta: [[{}, { type, source }], [{}, {}]] }, async() => {
+        await exportSnapshot(keyWith(['xlsx:export']), { conditionalFormatting: [], exportFormulas: false });
+      });
+
+      expect([type, typeof source, exportWarnings()]).toEqual([
+        type,
+        typeof source,
+        expected.map(token => `The xlsx export skipped features your license does not unlock: ${token}.`),
+      ]);
+    }
+  });
+
   it('counts explicit layout only toward xlsx:layout', async() => {
     await withMockSheet(PLAIN_SHEET, async() => {
       await exportSnapshot(keyWith(['xlsx:export']), { conditionalFormatting: [], exportFormulas: false });

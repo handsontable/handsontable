@@ -1013,7 +1013,11 @@ class Xlsx extends BaseType {
       ), 'xlsx:styles');
     }
 
-    this.#needIf(meta.type === 'dropdown' || meta.type === 'autocomplete', 'xlsx:data_validation');
+    // The same test `getDropdownValidation` makes: a function `source` writes no list.
+    this.#needIf(
+      (meta.type === 'dropdown' || meta.type === 'autocomplete') && Array.isArray(meta.source),
+      'xlsx:data_validation'
+    );
     this.#needIf(Boolean(meta.comment?.value), 'xlsx:comments');
 
     const rangeRef = Array.isArray(meta.source)
