@@ -2208,6 +2208,10 @@ export class SheetsBar extends BasePlugin {
       return null;
     }
 
+    if (this.#isSwitching || this.#loadingSheet !== null) {
+      return sheet.data;
+    }
+
     const loadedId = this.#loadedSheetId ?? model.getActiveSheet()?.id ?? null;
 
     return id === loadedId ? this.#getLiveSourceData() : sheet.data;

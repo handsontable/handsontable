@@ -13,6 +13,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   every array (`sheets[i].data`). `getSheetData()` reads either without a switch: the model's array for a
   hidden sheet (physical order, also for a sorted one, as a switch loads it) and `#getLiveSourceData()` for
   the sheet the grid holds (`#loadedSheetId`, else the active one), since a host `loadData()` replaces it.
+  While a switch runs (`#isSwitching`, `#loadingSheet`) every sheet answers with its own record: the grid's
+  live array is the arriving sheet's before `#loadedSheetId` follows in `afterLoadData`, so a hook fired by
+  the load (`afterCreateRow` from `minSpareRows`) got the arriving rows for the departing sheet.
 - `sheetModel.ts` — the sheet collection (ids, unique clamped names, order). Pure, no
   Handsontable access. Names are compared NFC-normalized and case-insensitively, with plain
   `toLowerCase()` (`isSameName`), the way HyperFormula canonicalizes sheet names: a tab name the

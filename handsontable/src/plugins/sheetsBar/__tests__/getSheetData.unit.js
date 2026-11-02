@@ -128,6 +128,23 @@ describe('SheetsBar#getSheetData()', () => {
     expect(summary.map(row => row[1])).toEqual(['b', 'a']);
   });
 
+  it('returns each sheet\'s own array while a switch loads the arriving sheet', () => {
+    const sheets = [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }];
+    const bar = build({ minSpareRows: 1, sheetsBar: { sheets } });
+    const seen = [];
+
+    hot.addHook('afterCreateRow', () => {
+      seen.push([bar.getSheetData('A'), bar.getSheetData('B')]);
+    });
+    bar.setActiveSheet('B');
+
+    expect(seen.length).toBeGreaterThan(0);
+    seen.forEach(([dataOfA, dataOfB]) => {
+      expect(dataOfA).toBe(sheets[0].data);
+      expect(dataOfB).toBe(sheets[1].data);
+    });
+  });
+
   it('fires no hook and switches nothing', () => {
     const bar = build({ sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] } });
     const hooks = ['beforeSheetTabChange', 'afterSheetTabChange', 'afterSheetTabStateCapture', 'afterLoadData'];
