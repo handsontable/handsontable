@@ -25,6 +25,8 @@ const mockState = {
     ['noted', '=B1+1', 'b'],
     ['right', 3, 'a'],
   ],
+  nestedHeaders: null,
+  rowHeaders: [],
   cellsMeta: [
     [{ readOnly: true }, { type: 'numeric', numericFormat: { style: 'currency', currency: 'USD' } },
       { type: 'dropdown', source: ['a', 'b'] }],
@@ -63,7 +65,7 @@ jest.mock('../dataProvider', () => ({
     }
 
     getRowHeaders() {
-      return [];
+      return mockState.rowHeaders;
     }
 
     getColumnsWidths() {
@@ -87,7 +89,7 @@ jest.mock('../dataProvider', () => ({
     }
 
     getNestedColumnHeaders() {
-      return null;
+      return mockState.nestedHeaders;
     }
 
     getLayoutDirection() {
@@ -224,6 +226,34 @@ describe('Xlsx export license gates', () => {
     expect(gated.hiddenRows).toEqual([]);
     expect(gated.freeze).toBeNull();
     expect(gated.rtl).toBe(false);
+  });
+
+  it('merges no nested header group without xlsx:layout, keeping each label in its first cell', async() => {
+    mockState.nestedHeaders = [
+      [{ label: 'Customer', colspan: 2 }, { label: 'State', colspan: 1 }],
+      [{ label: 'Name', colspan: 1 }, { label: 'Amount', colspan: 1 }, { label: 'Status', colspan: 1 }],
+    ];
+    mockState.rowHeaders = [1, 2, 3];
+
+    try {
+      const full = (await exportSnapshot(keyWith(ALL_XLSX_TOKENS))).sheets[0];
+      const gated = (await exportSnapshot(keyWithout('xlsx:layout'))).sheets[0];
+      // 0-based: the two header rows are rows 0 and 1.
+      const headerMerges = sheet => sheet.merges.filter(merge => merge.row < 2);
+
+      // The corner (A1:A2) and the `Customer` group (B1:C1).
+      expect(headerMerges(full)).toEqual([
+        { row: 0, col: 0, rowspan: 2, colspan: 1 },
+        { row: 0, col: 1, rowspan: 1, colspan: 2 },
+      ]);
+
+      expect(headerMerges(gated)).toEqual([]);
+      expect(gated.rows[0].slice(1).map(cell => cell?.value ?? null)).toEqual(['Customer', null, 'State']);
+      expect(gated.rows[1].slice(1).map(cell => cell?.value ?? null)).toEqual(['Name', 'Amount', 'Status']);
+    } finally {
+      mockState.nestedHeaders = null;
+      mockState.rowHeaders = [];
+    }
   });
 
   it('exports values instead of formulas without xlsx:formulas', async() => {

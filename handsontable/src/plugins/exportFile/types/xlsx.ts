@@ -658,7 +658,12 @@ class Xlsx extends BaseType {
       this.#writeNestedColumnHeaders(
         sheet, nestedColumnHeaders, hasRowHeaders, dataColOffset, headerFill, headerBorder
       );
-      this.#applyNestedHeaderMerges(sheet, nestedColumnHeaders, hasRowHeaders, dataColOffset);
+
+      // Header merges are layout, like data merges: without `xlsx:layout` each group label stays in
+      // the group's first header cell and the other spanned cells stay empty.
+      if (layout) {
+        this.#applyNestedHeaderMerges(sheet, nestedColumnHeaders, hasRowHeaders, dataColOffset);
+      }
     } else if (hasColumnHeaders) {
       this.#writeColumnHeaders(
         sheet, columnHeaders, columnHeadersClassNames, hasRowHeaders, dataColOffset, headerFill, headerBorder

@@ -250,7 +250,7 @@ The XLSX export reads your license key for the [capabilities](@/guides/getting-s
 
 - `xlsx:export` - the export itself, and the **To Excel** context menu item.
 - `xlsx:formulas` - `exportFormulas`.
-- `xlsx:layout` - column widths, row heights, hidden rows and columns, merged cells, frozen panes, and right-to-left direction.
+- `xlsx:layout` - column widths, row heights, hidden rows and columns, merged cells (nested header groups included: without it, a group label sits in the group's first header cell), frozen panes, and right-to-left direction.
 - `xlsx:number_formats` - number formats of cells.
 - `xlsx:comments` - cell comments.
 - `xlsx:styles` - fonts, fills, borders, and alignment, and the `headerStyle` option.
