@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added license capability gating to the XLSX engine: `importFile` and `exportFile` read the `xlsx:*` tokens from a license key that carries the `listed-capabilities` flag and skip the features the key does not unlock, with a console warning and `license:*` entries in the import report; a key without the flag keeps every feature. Added the `protection` option to the XLSX export, so a sheet can be protected with a password.",
+  "type": "added",
+  "issueOrPR": 14098,
+  "breaking": false,
+  "framework": "none"
+}
