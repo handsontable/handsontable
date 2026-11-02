@@ -402,6 +402,48 @@ someone reading that plugin will find it:
 A hard conflict is a blunt instrument: it disables the plugin outright. Use it only for combinations that
 cannot be made to work. Anything softer belongs in the plugin's own logic.
 
+**A setting whose plugin the license key keeps off conflicts with nothing** (`#isKeptOffByLicense()`, passed to
+`getHardConflict()` as `isIgnored`): that plugin does not run, so the combination cannot fail. A key that lists
+Pagination and leaves NestedRows out runs Pagination with `nestedRows: true` set, and does not rewrite
+`pagination` to `false`. A setting no plugin owns (`fixedRowsTop`) still conflicts.
+
+## The license gate: `isLicenseBlocked()`
+
+A plugin's static `LICENSE` (generated from its `feature.json`, see `../../featureManifest/AGENTS.md`) names the
+token a license key must list. When the grid's key lists its features (the `listed-capabilities` flag) and does not
+cover the token, `isLicenseBlocked()` keeps a `gate: 'enable'` plugin off and reports it for the license message.
+It is checked right after `isHardConflictBlocked()`, at the same three places, never before branch 1:
+
+| Site | On a block |
+|---|---|
+| `onInitEnableTurn()` | reports and returns; **the setting is left alone** |
+| `onUpdateSettings` branch 2 | reports and returns |
+| `onUpdateSettings` branch 3 | reports and calls `disablePlugin()` (a key passed later that leaves the plugin out) |
+
+The difference from a hard conflict is deliberate: the license gate **never writes `getSettings()[PLUGIN_KEY] =
+false`**, so the user's setting stays as written and a later `updateSettings({ licenseKey })` that lists the plugin
+turns it on through branch 2. Three things follow:
+
+- **`isEnabled()` answers `true` for a blocked plugin**, because it reads the setting. Code that asks whether another
+  plugin RUNS reads `plugin.enabled`, never `isEnabled()`: MergeCells has no merged cells collection until it is
+  enabled, so the export read `undefined` and threw. `test/__tests__/crossPluginIsEnabled.unit.js` fails on any
+  `.isEnabled()` call whose receiver is not `this` or `super`; a read that really means the option goes on its
+  allowlist with the reason. The rules are in `../../utils/entitlementLicenseKey/AGENTS.md`.
+- **A direct `getPlugin(name).enablePlugin()` call is gated too**, in the lifecycle wrapper
+  (`#routeLifecycleCalls()`), so an app cannot turn on a plugin the key leaves out. The only built-in direct call
+  is Filters turning on DropdownMenu, which Filters' own `LICENSE.implies` grants with it.
+- **A read of another plugin's SETTING has the same trap as `isEnabled()`**, and the guard test does not see it.
+  Asked at run time, read `getPlugin(name)?.enabled` (the "Copy with group headers" menu item asks NestedHeaders
+  that way). At init the other plugin may not have started yet, so the setting is the only answer there:
+  NestedHeaders' ghost table reads `dropdownMenu` and `collapsibleColumns` from the settings on purpose
+  (`../nestedHeaders/AGENTS.md`).
+- **The message is not written here.** `isLicenseBlocked()` only records the feature; `utils/licenseNotification.ts`
+  writes one console error and the bar after the pass (`initLicenseNotification` at init, an `afterUpdateSettings`
+  listener at order index 1000 after that). A plugin with `gate: 'call'` (on in every grid) is never blocked here; it
+  checks the token in its public methods.
+
+Nested grids are never checked. Pinned by `__tests__/licenseGate.unit.js`.
+
 ## `PLUGIN_PRIORITY` — the enable-order table
 
 `registry.ts` returns priority-registered plugins in **ascending** priority, then anything registered

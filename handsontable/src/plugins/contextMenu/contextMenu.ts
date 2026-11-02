@@ -24,7 +24,7 @@ import {
   ALIGNMENT,
   SEPARATOR,
 } from './predefinedItems';
-import { PLUGIN_DEPS } from './feature.generated';
+import { LICENSE, PLUGIN_DEPS } from './feature.generated';
 
 export type PredefinedMenuItemKey =
   | 'row_above' | 'row_below' | 'col_left' | 'col_right'
@@ -110,6 +110,14 @@ export class ContextMenu extends BasePlugin {
    */
   static get PLUGIN_DEPS() {
     return [...PLUGIN_DEPS];
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
