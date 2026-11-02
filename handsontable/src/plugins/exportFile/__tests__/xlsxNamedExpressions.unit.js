@@ -460,11 +460,10 @@ describe('Xlsx export: named expressions as defined names', () => {
     expect(dropped.list()).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
   });
 
-  it('should export a formula over a scoped name whose scoped name was left out as its value', async() => {
-    // The export resolves `Rate` in the scoped `Total` to the sheet's own `Rate` first, the way
-    // Excel reads the file. That one is left out (its range ends on the hidden row), so the file's
-    // `Total` would read another `Rate`: it is left out too, and the cell keeps the engine's value.
-    // (HyperFormula reads a name inside a definition from the workbook, so the value is 2.)
+  it('should keep a scoped name live when the scoped name it would shadow was left out', async() => {
+    // HyperFormula reads `Rate` inside the scoped `Total` from the workbook (1, so 2). The sheet's own
+    // `Rate` is left out (its range ends on the hidden row), so Excel reads the workbook `Rate` in
+    // the file's `Total` too: `Total` is written, and the cell over it stays live.
     const engine = createGrid({ data: [[1], [2], ['=Total']], hiddenRows: { rows: [1] } });
     const sheetId = hot.getPlugin('formulas').sheetId;
 
@@ -475,10 +474,12 @@ describe('Xlsx export: named expressions as defined names', () => {
     const { snapshot, dropped } = await exportWorkbook({ exportFormulas: true, exportHiddenRows: false });
     const total = snapshot.sheets[0].rows[1][0];
 
-    expect(snapshot.definedNames).toEqual([{ name: 'Rate', formula: 'Sheet1!$A$1', sheetName: null }]);
-    expect(total.formula).toBeNull();
-    expect(total.value).toBe(2);
-    expect(dropped.list()).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+    expect(snapshot.definedNames).toEqual([
+      { name: 'Rate', formula: 'Sheet1!$A$1', sheetName: null },
+      { name: 'Total', formula: 'Rate*2', sheetName: 'Sheet1' },
+    ]);
+    expect(total.formula).toEqual(expect.objectContaining({ text: 'Total', result: 2 }));
+    expect(dropped.list()).toEqual(['definedNames:unsupported']);
   });
 
   it('should leave out a scoped name whose definition uses a name the file holds in both scopes', async() => {
@@ -504,6 +505,47 @@ describe('Xlsx export: named expressions as defined names', () => {
     expect(total.value).toBe(2);
     expect(scaled.formula).toEqual(expect.objectContaining({ text: 'Rate*10', result: 20 }));
     expect(dropped.list()).toEqual(['definedNames:unsupported', 'formula:definedName']);
+  });
+
+  it('should leave out a scoped name whose definition reads a workbook name the file does not hold', async() => {
+    // HyperFormula reads `Rate` inside the scoped `Total` from the workbook (`Other!A1`, 7). The
+    // workbook `Rate` cannot reach the file (`Other` is not exported), so Excel would read the
+    // sheet's own `Rate` (1) instead: `Total` is left out, and the cell keeps the engine's value.
+    const engine = createGrid({ data: [[1], [2], ['=Total']] });
+    const sheetId = hot.getPlugin('formulas').sheetId;
+
+    engine.addSheet('Other');
+    engine.setCellContents({ sheet: engine.getSheetId('Other'), row: 0, col: 0 }, [[7]]);
+    engine.addNamedExpression('Rate', '=Other!$A$1');
+    engine.addNamedExpression('Rate', '=Sheet1!$A$1', sheetId);
+    engine.addNamedExpression('Total', '=Rate*2', sheetId);
+
+    const { snapshot, dropped } = await exportWorkbook();
+    const total = snapshot.sheets[0].rows[2][0];
+
+    expect(snapshot.definedNames).toEqual([{ name: 'Rate', formula: 'Sheet1!$A$1', sheetName: 'Sheet1' }]);
+    expect(total.formula).toBeNull();
+    expect(total.value).toBe(14);
+    expect(dropped.list()).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+  });
+
+  it('should leave out a scoped name whose definition reads a name only its own sheet scope holds', async() => {
+    // With no workbook `Rate`, HyperFormula shows `#NAME?` for the scoped `Total`, while Excel would
+    // read the sheet's own `Rate`. `Total` is left out, and the cell keeps the engine's error.
+    const engine = createGrid({ data: [[1], [2], ['=Total']] });
+    const sheetId = hot.getPlugin('formulas').sheetId;
+
+    engine.addNamedExpression('Rate', '=Sheet1!$A$1', sheetId);
+    engine.addNamedExpression('Total', '=Rate*2', sheetId);
+
+    const { snapshot, dropped } = await exportWorkbook();
+    const total = snapshot.sheets[0].rows[2][0];
+
+    expect(snapshot.definedNames).toEqual([{ name: 'Rate', formula: 'Sheet1!$A$1', sheetName: 'Sheet1' }]);
+    expect(total.formula).toBeNull();
+    expect(total.value).toBe('#NAME?');
+    expect(total.valueIsError).toBe(true);
+    expect(dropped.list()).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
   });
 
   it('should keep the formulas live when one engine scopes `Rate` and another defines it for the workbook', async() => {

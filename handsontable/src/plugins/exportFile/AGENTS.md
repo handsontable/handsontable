@@ -406,10 +406,11 @@ Other rules:
   file's names on the exported sheet; `#unlinkLeftOutNames` keeps a cell live only when both sides land
   on the same file name (`readInFile`), so a left-out scoped `Rate` never falls back on the workbook
   `Rate` in Excel. **A name inside a scoped definition is the exception.** HyperFormula 3.3 reads it
-  from the workbook scope (scoped `Total = Rate*2` reads the workbook `Rate`), while
-  `resolveDefinedName` looks in the name's own scope first, and Excel's rule there is unconfirmed. So
-  when a scoped definition uses a name the file holds in BOTH that sheet's scope and the workbook scope
-  (`readAmbiguously` in `#unlinkLeftOutNames`), the scoped name does not resolve: it is left out
+  from the workbook scope only (scoped `Total = Rate*2` reads the workbook `Rate`, and shows `#NAME?`
+  when only the scoped `Rate` exists), so `#addDefinedNames` resolves a definition's words with
+  `resolveDefinedName(engineKeys, '', word)`, and maps a word only the definition's own scope holds to
+  the (unwritten) workbook key. Excel reads the sheet's own name first, so the `readInFile` check then
+  fails whenever the file holds that spelling in the sheet's scope: the scoped name is left out
   (`definedNames:unsupported`), and the formulas over it are written as values (`formula:definedName`).
   Every engine sheet takes ONE scope in the file, the first exported sheet bound to it: when the
   `sheets` option lists the same Handsontable instance twice, its scoped names are written for the first

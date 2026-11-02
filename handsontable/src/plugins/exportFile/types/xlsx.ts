@@ -1001,9 +1001,9 @@ class Xlsx extends BaseType {
    * @param {object[]} sources The exported grids bound to a Formulas engine.
    * @param {DroppedFeatures} dropped The export's dropped-feature collector.
    * @returns {Map<object, object>} Per engine, `written`: each name added with that engine's own
-   *   definition, mapped to the file's name, and `uses`: for each of its names, the names of that
-   *   engine its definition reads (`namesUsedIn`, resolved in the name's own scope first), all as
-   *   `definedNameKey` keys.
+   *   definition, mapped to the file's name, and `uses`: for each of its names, the workbook names
+   *   of that engine its definition reads (`namesUsedIn`; HyperFormula reads no other scope there),
+   *   all as `definedNameKey` keys.
    */
   #addDefinedNames(
     workbook: WorkbookSnapshot, sources: NamedExpressionSource[], dropped: DroppedFeatures
@@ -1074,8 +1074,13 @@ class Xlsx extends BaseType {
         if (definition !== null) {
           const engineScope = splitDefinedNameKey(engineKey).scope;
 
+          // HyperFormula reads a name inside a definition from the workbook scope only, even in a
+          // sheet-scoped definition. A word only the definition's own sheet scope holds still counts
+          // as a use of the workbook name: that name is not written, so the definition does not
+          // resolve (HyperFormula shows `#NAME?`, Excel would read the sheet's own name).
           uses.set(engineKey, [...namesUsedIn(definition)]
-            .map(word => resolveDefinedName(engineKeys, engineScope, word))
+            .map(word => resolveDefinedName(engineKeys, '', word)
+              ?? (engineKeys.has(definedNameKey(engineScope, word)) ? definedNameKey(null, word) : null))
             .filter((used): used is string => used !== null));
         }
 
@@ -1116,9 +1121,10 @@ class Xlsx extends BaseType {
    * not a shape the ExcelJS writer cannot hold), and every name of that engine its definition uses
    * resolves too, followed through any chain of names, as the import does. A name another engine's
    * spelling took the place of, or one over such a name, does not resolve for this engine: kept as
-   * a formula, it read the other engine's definition, or showed `#NAME?` in Excel. Neither does a
-   * sheet-scoped name whose definition uses a name the file holds in both that sheet's scope and the
-   * workbook's: HyperFormula reads the workbook one, Excel may read the sheet's own.
+   * a formula, it read the other engine's definition, or showed `#NAME?` in Excel. A name inside a
+   * definition is the workbook's in HyperFormula, so a sheet-scoped definition resolves only when the
+   * file reads its names as the workbook's too: not when the file holds a name of the same spelling
+   * in that sheet's scope, which Excel reads first.
    *
    * A name in the file that resolves for no engine (it uses a name the file does not hold) is taken
    * out of `workbook.definedNames`, and `definedNames:unsupported` is recorded once.
@@ -1151,14 +1157,6 @@ class Xlsx extends BaseType {
 
       return fileScope !== '' && inFile.has(scoped) ? scoped : `\u0000${splitDefinedNameKey(engineKey).name}`;
     };
-    // HyperFormula reads a name inside a sheet-scoped definition from the workbook scope, while
-    // Excel may read the sheet's own name first. A scoped definition over a name the file holds in
-    // both scopes is read one way or the other, so it does not resolve.
-    const readAmbiguously = (fileScope: string, used: string) => {
-      const { name } = splitDefinedNameKey(used);
-
-      return fileScope !== '' && inFile.has(`${fileScope}\u0000${name}`) && inFile.has(`\u0000${name}`);
-    };
     const resolvedByEngine = new Map<object, Set<string>>();
 
     namesByEngine.forEach(({ written, uses }, engine) => {
@@ -1172,8 +1170,7 @@ class Xlsx extends BaseType {
         const fileScope = splitDefinedNameKey(written.get(name) as string).scope;
 
         (uses.get(name) ?? []).forEach((used) => {
-          if (resolved.has(used) && written.get(used) === readInFile(fileScope, used)
-            && !readAmbiguously(fileScope, used)) {
+          if (resolved.has(used) && written.get(used) === readInFile(fileScope, used)) {
             const users = dependents.get(used);
 
             if (users) {
