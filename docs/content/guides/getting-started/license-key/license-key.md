@@ -498,7 +498,7 @@ There's no built-in method to update all existing instances automatically. You h
   Handsontable.defaults.licenseKey = 'your-new-key';
   ```
 
-- **For instances that already exist:** Handsontable reads the license key once, when it creates an instance. [`updateSettings()`](@/api/core.md#updatesettings) does not apply a new key to a running grid. Destroy each instance and create it again with the new key, looping through them manually. Re-creating an instance resets its UI state, such as sorting, filters, selection, and undo history.
+- **For instances that already exist:** Handsontable checks the license key once, when it creates an instance, so [`updateSettings()`](@/api/core.md#updatesettings) does not change the license status, the notices, or the console messages of a running grid. The features a key lists are the exception: they are read from the current key, so a key passed through `updateSettings()` turns on the plugins it lists and applies to the next XLSX import or export. To apply the whole key, destroy each instance and create it again with the new key, looping through them manually. Re-creating an instance resets its UI state, such as sorting, filters, selection, and undo history.
 
 ::: only-for javascript
 
@@ -516,7 +516,7 @@ hot2 = new Handsontable(container2, { ...settings2, licenseKey: 'your-new-key' }
 
 ::: only-for react angular vue
 
-The wrapper component creates its instance once, when it mounts. A later change to its `licenseKey` goes through `updateSettings()`, so it has no effect. Remount the component instead, for example by changing its `key` in React, toggling `*ngIf` in Angular, or toggling `v-if` in Vue.
+The wrapper component creates its instance once, when it mounts. A later change to its `licenseKey` goes through `updateSettings()`, so it changes only the features the key lists. Remount the component instead, for example by changing its `key` in React, toggling `*ngIf` in Angular, or toggling `v-if` in Vue.
 
 :::
 
