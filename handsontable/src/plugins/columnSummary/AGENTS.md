@@ -173,6 +173,15 @@ render draws the summaries and the grid renders once. A consequence for hook ord
 `afterChange` (`ColumnSummary.set`) now fires before the `init` hook and before the init load's own
 `afterChange`. Pinned by `__tests__/readyStep.unit.js`.
 
+**An `afterUpdateSettings` listener sees the summaries before the update.** The step of an
+`updateSettings()` that changes `columnSummary` runs after the call's `afterUpdateSettings` listeners and
+before its render, so the grid draws the new summaries while such a listener still reads the old ones. When
+the same call also passes `columns`, core has reset the cell meta by then, so the listener also reads a
+summary cell that is not read-only yet (`#onAfterUpdateSettings` re-applies the meta of the endpoints it
+holds, and the update replaced those with endpoints the step has not parsed). Before, `updatePlugin()`
+computed them on a live grid, behind the `this.hot.view` guard this step replaced. Documented as a behavior
+change; not worked around, because the listener runs before any step can.
+
 ## `exportEndpointSettings()` gives back the endpoints where they are now
 
 A row or column alteration moves an endpoint, while `this.settings` keeps the declared positions.
