@@ -21,7 +21,7 @@
  *   5. /docs/:ver/:page.html               → versioned framework pages (cookie)
  *   6. /docs/(javascript|angular|react)-data-grid/(row-sorting|column-sorting|release-notes)
  *   7. Cross-framework page fixes (angular/react wrong-prefix pages)
- *  7a. Vue 3 legacy page redirects      → /docs/vue-data-grid/*
+ *  7a. Vue 3 and Vue 2 legacy page redirects → /docs/vue-data-grid/*
  *   8. Recipe cell-type slug mismatches
  *   9. Flat /docs/react-data-grid/row-sorting etc.
  *  10. Flat /docs/react-*                  → /docs/react-data-grid/*
@@ -29,6 +29,7 @@
  *  12. Framework shorthand redirects       → framework homes
  * 12b. /docs/:ver older than 9.0 (any form) → current framework page or home (cookie, 302)
  *      /docs/:major.:minor.:patch from 9.0 → /docs/:major.:minor (301)
+ * 12c. /docs/pro[/:ver][/:page.html]      → current framework page or home (cookie, 302)
  *  13. /docs/:ver/:page.html               → versioned framework pages (cookie, 302)
  *  14. /docs/:ver{/}                       → version root or framework home (cookie, 302)
  *  15. /docs/(page).html                   → flat framework page (cookie, 302)
@@ -37,7 +38,8 @@
  *  18. Versioned /docs/:ver/react-*        → /docs/:ver/react-data-grid/*
  * 18a. POST /docs/scripts/json/save.json   → mock 200 JSON (saving-data demo)
  * 18b. /docs/_md/**.md, /docs/llms*.txt   → served from assets as text/plain
- *  19. Static asset fallback (env.ASSETS)
+ *  19. Static asset fallback (env.ASSETS); a 404 for an unprefixed
+ *      /docs/:slug retries it under the framework (cookie, 302)
  */
 
 // ---------------------------------------------------------------------------
@@ -499,6 +501,20 @@ function flatHtmlDestination(page, framework) {
   return redirectPath ? `/docs/${framework}/${redirectPath}/` : `/docs/${framework}/`;
 }
 
+/**
+ * Resolves the rest of an undeployed docs URL: a known `{page}.html` slug to
+ * its current framework page, anything else to the framework home.
+ *
+ * @param {string} rest The path after the undeployed version segment.
+ * @param {string} framework The framework read from the `docs_fw` cookie.
+ * @returns {string} The destination path.
+ */
+function undeployedDocsDestination(rest, framework) {
+  const page = rest.match(/^([^/]+)\.html$/)?.[1];
+
+  return (page && flatHtmlDestination(page, framework)) || `/docs/${framework}/`;
+}
+
 // ---------------------------------------------------------------------------
 // Data: flat /docs/{page}[/] redirect map (from redirect_cookie_docs_pages.mts)
 // ---------------------------------------------------------------------------
@@ -700,6 +716,40 @@ function isFlatPageKey(page) {
   return Object.prototype.hasOwnProperty.call(FLAT_PAGES_REMAP, page) || SITEMAP_PASSTHROUGH_SLUGS.has(page);
 }
 
+// A slug the rule 19 retry never looks up under a framework: a framework
+// prefix, a version, or a file.
+const NOT_A_PAGE_SLUG = /^(?:(?:javascript|react|angular|vue)-data-grid|\d+\.\d+)(?:\/|$)|\.(?:html?|m?js|css|json|xml|txt|md|map|png|jpe?g|gif|svg|webp|avif|ico|pdf|woff2?|ttf)$/i;
+
+/**
+ * Finds the page an unprefixed `/docs/{slug}` URL names, under the cookie
+ * framework first and JavaScript second, by asking the static assets.
+ *
+ * @param {Request} request The incoming request.
+ * @param {object} env The Pages environment.
+ * @param {URL} url The parsed request URL.
+ * @returns {Promise<string|null>} The page's path, or `null` when no framework has it.
+ */
+async function findFrameworkPage(request, env, url) {
+  const slug = url.pathname.match(/^\/docs\/(.+?)\/?$/)?.[1];
+
+  if (!slug || NOT_A_PAGE_SLUG.test(slug)) {
+    return null;
+  }
+
+  const preferred = getFrameworkFromCookie(getCookie(request, 'docs_fw'));
+
+  for (const framework of new Set([preferred, 'javascript-data-grid'])) {
+    const candidate = `/docs/${framework}/${slug}/`;
+    const lookup = await env.ASSETS.fetch(new Request(new URL(candidate, url), { method: 'HEAD' }));
+
+    if (lookup.ok) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
 // ---------------------------------------------------------------------------
 // Legacy angular-docs version sets
 // Versions 12.1+ had a real Angular wrapper and redirect to /docs/angular-data-grid/.
@@ -778,6 +828,27 @@ const VUE3_LEGACY_PAGES = {
   'vue3-language-change-example': '/docs/vue-data-grid/language/',
   'vue3-setting-up-a-translation': '/docs/vue-data-grid/language/',
   'vue3-vuex-example': '/docs/vue-data-grid/vue-vuex/',
+};
+
+// Older names of the pages above: the Vue 2 wrapper's slugs and two Vue 3
+// renames. Read by rule 7a only. `vue-hot-column`, `vue-instance-reference`,
+// `vue-nuxt`, `vue-pinia` and `vue-vuex` are live pages, so none is listed.
+const VUE_LEGACY_ALIASES = {
+  'vue-installation': 'vue3-installation',
+  'vue-basic-example': 'vue3-basic-example',
+  'vue-simple-example': 'vue3-basic-example',
+  'vue-modules': 'vue3-modules',
+  'vue-hot-reference': 'vue3-hot-reference',
+  'vue-custom-renderer-example': 'vue3-custom-renderer-example',
+  'vue-custom-editor-example': 'vue3-custom-editor-example',
+  'vue-custom-context-menu-example': 'vue3-custom-context-menu-example',
+  'vue-formulas-example': 'vue3-formulas-example',
+  'vue-language-change-example': 'vue3-language-change-example',
+  'vue-setting-up-a-translation': 'vue3-setting-up-a-translation',
+  'vue-setting-up-a-language': 'vue3-setting-up-a-translation',
+  'vue-vuex-example': 'vue3-vuex-example',
+  'vue3-simple-example': 'vue3-basic-example',
+  'vue3-setting-up-a-language': 'vue3-setting-up-a-translation',
 };
 
 // ---------------------------------------------------------------------------
@@ -1013,12 +1084,12 @@ async function route(request, env) {
       }
     }
 
-    // -- 7a. Vue 3 legacy pages ---------------------------------------------
+    // -- 7a. Vue 3 and Vue 2 legacy pages -----------------------------------
     {
-      const m = path.match(/^\/docs\/(javascript|react|angular|vue)-data-grid\/(vue3-[^/]+)\/?$/);
+      const m = path.match(/^\/docs\/(javascript|react|angular|vue)-data-grid\/(vue3?-[^/]+)\/?$/);
 
       if (m) {
-        const page = m[2];
+        const page = VUE_LEGACY_ALIASES[m[2]] ?? m[2];
 
         if (Object.prototype.hasOwnProperty.call(VUE3_LEGACY_PAGES, page)) {
           return redirect301(abs(VUE3_LEGACY_PAGES[page], url));
@@ -1157,16 +1228,29 @@ async function route(request, env) {
 
       if (m && parseInt(m[1], 10) < OLDEST_DEPLOYED_DOCS_MAJOR) {
         const framework = getFrameworkFromCookie(getCookie(request, 'docs_fw'));
-        const page = (m[5] ?? '').match(/^([^/]+)\.html$/)?.[1];
-        const dest = (page && flatHtmlDestination(page, framework)) || `/docs/${framework}/`;
 
-        return redirect302(abs(dest, url));
+        return redirect302(abs(undeployedDocsDestination(m[5] ?? '', framework), url));
       }
 
       if (m && (m[3] || m[4])) {
         const rest = m[5] === undefined ? '' : `/${m[5]}`;
 
         return redirect301(abs(`/docs/${m[1]}.${m[2]}${rest}${url.search}`, url));
+      }
+    }
+
+    // -- 12c. /docs/pro[/{ver}][/{page}.html] → the old Pro docs ---------------
+    // The Handsontable Pro docs are not deployed at all. Like rule 12b, a
+    // known page goes to the current docs (cookie, 302), anything else to the
+    // framework home.
+    {
+      const m = path.match(/^\/docs\/pro(?:\/(.*))?$/);
+
+      if (m) {
+        const framework = getFrameworkFromCookie(getCookie(request, 'docs_fw'));
+        const rest = (m[1] ?? '').replace(/^\d+\.\d+[^/]*\//, '');
+
+        return redirect302(abs(undeployedDocsDestination(rest, framework), url));
       }
     }
 
@@ -1356,7 +1440,22 @@ async function route(request, env) {
     }
 
     // -- 19. Fallback: serve static assets via env.ASSETS --------------------
-    return env.ASSETS.fetch(request);
+    // A 404 for an unprefixed /docs/{slug} retries the slug under the
+    // framework (cookie, 302). Rule 16 lists slugs by hand, and that list goes
+    // stale; this asks the deployed assets instead.
+    {
+      const response = await env.ASSETS.fetch(request);
+
+      if (response.status === 404 && (request.method === 'GET' || request.method === 'HEAD')) {
+        const dest = await findFrameworkPage(request, env, url);
+
+        if (dest !== null) {
+          return redirect302(abs(dest, url));
+        }
+      }
+
+      return response;
+    }
 }
 
 export default {
