@@ -64,7 +64,7 @@
     "eslint-plugin-jsdoc": "^46.0.0",
     "execa": "^5.0.0",
     "fs-extra": "^4.0.2",
-    "glob": "^7.1.2",
+    "glob": "^14.0.2",
     "global-jsdom": "^24.0.0",
     "inquirer": "^8.2.7",
     "jsdom": "24.0.0",
