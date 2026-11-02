@@ -392,7 +392,7 @@ The default reference colors clear a 4.5:1 contrast ratio on the editor's light 
 }
 ```
 
-Keep the contrast of each color at 4.5:1 or more against the editor background, because the colors are used for text. The plugin reads the border width when it draws the first highlight and keeps that value until the theme changes or the plugin is enabled again - an [`updateSettings()`](@/api/core.md#updatesettings) call that changes a `formulaBuilder` value. A change of the `formulas` value does not re-read it. Highlights drawn before the change keep their width until they are drawn again. So declare it in a stylesheet rather than changing it while the grid is open.
+Keep the contrast of each color at 4.5:1 or more against the editor background, because the colors are used for text. The plugin reads the border width when it draws the first highlight and keeps that value until the theme changes or the plugin is enabled again - an [`updateSettings()`](@/api/core.md#updatesettings) call that changes a `formulaBuilder` value. A `formulas` change that keeps the same engine and sheet does not re-read it. Highlights drawn before the change keep their width until they are drawn again. So declare it in a stylesheet rather than changing it while the grid is open.
 
 ## Language
 
@@ -421,9 +421,9 @@ With the formula bar enabled, these keys work outside the formula editor:
 
 | Windows | macOS | Action |
 |---|---|---|
-| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | <kbd>⇧</kbd>+<kbd>**Tab**</kbd> | From the first column, the key leaves the grid into the formula bar, which starts an edit of the cell you left. Press it again to move to the address box. From any other column, the key moves the selection to the previous cell. |
+| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | <kbd>⇧</kbd>+<kbd>**Tab**</kbd> | From the first column, the key leaves the grid into the formula bar, which starts an edit of the cell you left. Press it again to move to the address box. From any other column, the key moves the selection to the previous cell. With [`autoWrapRow`](@/api/options.md#autowraprow) on, only the first cell leaves the grid: from the first column of another row, the key wraps to the end of the previous row. |
 | <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | In the address box, go to the address or range you typed, such as `B3` or `B2:D4`. |
-| <kbd>**Escape**</kbd> | <kbd>**Escape**</kbd> | In the address box, put back the address of the active cell. |
+| <kbd>**Escape**</kbd> | <kbd>**Escape**</kbd> | In the address box, put back the address of the active cell, or of the selected range. |
 
 The arrow-key shortcuts of [keyboard point mode](#keyboard-point-mode) work in a formula wherever a reference is valid at the caret. The same keys are listed in the [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#formula-builder-keyboard-shortcuts) reference.
 
