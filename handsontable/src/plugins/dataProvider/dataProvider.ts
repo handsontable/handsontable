@@ -16,6 +16,7 @@ import {
   DATA_PROVIDER_ERROR_REMOVE_ROWS_MISSING_ID,
   DATA_PROVIDER_ERROR_UPDATE_ROWS_MISSING_ID,
   INITIAL_QUERY_PARAMETERS,
+  QUERY_PLUGIN_SETTING_KEYS,
 } from './constants';
 import {
   buildManualUpdateRowPayloads,
@@ -58,6 +59,7 @@ import {
   getDataProviderRequestErrorDescription,
   isCompleteDataProviderConfig,
   isDataProviderRequestKind,
+  isSameQueryParameters,
 } from './utils';
 import { registerConflict } from '../base/conflictRegistry';
 import type { NotificationMessageOptions } from '../notification/notification';
@@ -370,12 +372,33 @@ export class DataProvider extends BasePlugin {
    */
   #isPassive = false;
   /**
-   * The `dataProvider` value the plugin was enabled with, `null` while it is disabled. A settings update that sends
-   * the same object again leaves the plugin and its rows alone.
+   * The `dataProvider` value whose rows the plugin fetched or owes, `null` while it is disabled. Recorded on
+   * `afterInit` and after the full `updatePlugin()` cycle, never by `enablePlugin()` alone: an enable through
+   * `updateSettings()` runs `updatePlugin()` in the same pass, and that call must still fetch. A settings update
+   * that sends the same object again leaves the plugin and its rows alone.
    *
    * @type {*}
    */
   #appliedConfig: unknown = null;
+  /**
+   * Whether `#appliedConfig` was a complete configuration when it was recorded. An object completed in place and
+   * sent again turns the grid server-backed, so it is not the same configuration.
+   *
+   * @type {boolean}
+   */
+  #appliedConfigComplete = false;
+  /**
+   * The last response the grid shows, with the context it was shown for. A settings update that re-applies
+   * Pagination, ColumnSorting, or Filters without changing the query replays it, so those plugins get back the
+   * total, sort, and conditions the update reset, with no request.
+   *
+   * @type {object|null}
+   */
+  #shownResponse: {
+    context: object | null,
+    totalRows: number,
+    queryParameters: DataProviderQueryParameters,
+  } | null = null;
   /**
    * `true` while {@link Hooks#afterDataProviderFetch} runs for a response the plugin loads or replays, so the page
    * size Pagination takes from that response is not read as a user's change.
@@ -421,7 +444,6 @@ export class DataProvider extends BasePlugin {
 
     this.#applyQueryParametersFromPlugins();
     this.#adoptPendingQuery();
-    this.#appliedConfig = this.hot.getSettings()[PLUGIN_KEY];
 
     this.addHook('hasExternalDataSource', this.#onHasExternalDataSource);
     this.addHook('afterInit', this.#onAfterInit);
@@ -440,32 +462,41 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Re-applies settings and refetches when the instance is already initialized. Two payloads change nothing: one
-   * whose `dataProvider` is no longer the grid's (an earlier `afterUpdateSettings` listener replaced it with a
-   * nested `updateSettings()` call, which already re-applied the plugin), and one that sends the `dataProvider`
-   * object the plugin already runs with (a framework wrapper re-sends every prop on each render), which would
-   * otherwise abort the running fetch and refetch the same rows.
+   * Re-applies settings and refetches when the instance is already initialized. Two payloads leave the
+   * configuration in place: one whose `dataProvider` is no longer the grid's (an earlier `afterUpdateSettings`
+   * listener replaced it with a nested `updateSettings()` call, which already re-applied the plugin), and one that
+   * sends the `dataProvider` object whose rows the plugin already fetched (a framework wrapper re-sends every prop
+   * on each render), which would otherwise abort the running fetch and refetch the same rows. The second one still
+   * syncs the plugins the query reads when the payload re-applied them.
    *
    * @param {object} [newSettings] The settings passed to `updateSettings()`.
    */
   updatePlugin(newSettings?: Record<string, unknown>): void {
-    if (newSettings && hasOwnProperty(newSettings, PLUGIN_KEY) && this.#leavesConfigInPlace(newSettings[PLUGIN_KEY])) {
-      super.updatePlugin();
+    if (newSettings && hasOwnProperty(newSettings, PLUGIN_KEY)) {
+      const value = newSettings[PLUGIN_KEY];
 
-      return;
+      if (value !== this.hot.getSettings()[PLUGIN_KEY]) {
+        super.updatePlugin();
+
+        return;
+      }
+
+      if (this.#runsAppliedConfig(value)) {
+        this.#syncQueryPlugins(newSettings);
+        super.updatePlugin();
+
+        return;
+      }
     }
 
     this.#disable(false);
     this.enablePlugin();
 
     if (!this.#isPassive && this.hot.view) {
-      if (this.isDataWorkDeferred()) {
-        this.deferDataWork();
-      } else {
-        void this.#fetchDataSilently();
-      }
+      this.#refetchForUpdate();
     }
 
+    this.#recordAppliedConfig();
     super.updatePlugin();
   }
 
@@ -513,24 +544,83 @@ export class DataProvider extends BasePlugin {
 
     this.#queryParameters = { ...INITIAL_QUERY_PARAMETERS };
     this.#appliedConfig = null;
+    this.#appliedConfigComplete = false;
+    this.#shownResponse = null;
 
     super.disablePlugin();
   }
 
   /**
-   * Tells whether an update's `dataProvider` value leaves the running configuration in place: the grid holds
-   * another value by now (a nested update already re-applied the plugin), or the value is the object the plugin
-   * was enabled with. While passive, the owner's context change re-applies the plugin as before.
+   * Starts the fetch a settings update owes, or leaves it to `onDataReady()` while core applies the settings
+   * ahead of their data.
+   */
+  #refetchForUpdate(): void {
+    if (this.isDataWorkDeferred()) {
+      this.deferDataWork();
+    } else {
+      void this.#fetchDataSilently();
+    }
+  }
+
+  /**
+   * Records the `dataProvider` value whose rows the plugin fetched or owes, and whether it was complete.
+   */
+  #recordAppliedConfig(): void {
+    const config = this.hot.getSettings()[PLUGIN_KEY];
+
+    this.#appliedConfig = config;
+    this.#appliedConfigComplete = isCompleteDataProviderConfig(config);
+  }
+
+  /**
+   * Tells whether an update's `dataProvider` value is the configuration the plugin already runs with: the same
+   * object, as complete as when it was recorded. While passive, the owner's context change re-applies the plugin
+   * as before.
    *
    * @param {*} value The `dataProvider` value of the update.
    * @returns {boolean}
    */
-  #leavesConfigInPlace(value: unknown): boolean {
-    if (value !== this.hot.getSettings()[PLUGIN_KEY]) {
-      return true;
+  #runsAppliedConfig(value: unknown): boolean {
+    return !this.#isPassive &&
+      value === this.#appliedConfig &&
+      isCompleteDataProviderConfig(value) === this.#appliedConfigComplete;
+  }
+
+  /**
+   * Brings Pagination, ColumnSorting, and Filters back in line with the query after an update that kept the
+   * configuration but re-applied one of them. Re-applying resets their state: Pagination drops the server total and
+   * takes the page size from its setting, Filters drops its conditions. When the page size, sort, or filters those
+   * plugins describe now differ (a new page size, cleared conditions), the rows are fetched for them, as a full
+   * update cycle did. When they do not, the last response is replayed, which gives them back their page, total,
+   * sort, and conditions with no request; a fetch of the same query still running does that when it lands.
+   * Pagination's page is not compared: without the server total it clamps the page against the rows of one page,
+   * so it reads as page 1 until the replay brings the total back.
+   *
+   * @param {object} newSettings The settings passed to `updateSettings()`.
+   */
+  #syncQueryPlugins(newSettings: Record<string, unknown>): void {
+    if (!this.hot.view || !QUERY_PLUGIN_SETTING_KEYS.some(key => newSettings[key] !== undefined)) {
+      return;
     }
 
-    return !this.#isPassive && value === this.#appliedConfig;
+    const query = this.#queryFromPlugins();
+
+    if (!isSameQueryParameters({ ...query, page: this.#queryParameters.page }, this.#queryParameters)) {
+      this.#queryParameters = query;
+      this.#refetchForUpdate();
+
+      return;
+    }
+
+    const context = this.#currentContext();
+    const shown = this.#shownResponse;
+
+    if (shown && shown.context === context) {
+      this._restoreFetchResult({ totalRows: shown.totalRows, queryParameters: shown.queryParameters });
+
+    } else if (!this.#inFlight.has(context)) {
+      this.#refetchForUpdate();
+    }
   }
 
   /**
@@ -856,6 +946,11 @@ export class DataProvider extends BasePlugin {
     const payload = this.#buildFetchResult({ ...result, rows }, rows, totalRows, this.#snapshotQueryParameters(query));
 
     this.#queryParameters = this.#snapshotQueryParameters(query);
+    this.#shownResponse = {
+      context: this.#currentContext(),
+      totalRows,
+      queryParameters: this.#snapshotQueryParameters(query),
+    };
     this.#runAfterDataProviderFetch({ ...payload, isRestored: true });
 
     this.hot.getPlugin('filters')?._resetDataProviderRollback();
@@ -1227,6 +1322,11 @@ export class DataProvider extends BasePlugin {
   ): void {
     if (this.#isVisible(binding)) {
       this.#queryParameters = persistedParams;
+      this.#shownResponse = {
+        context: binding.context,
+        totalRows,
+        queryParameters: this.#snapshotQueryParameters(persistedParams),
+      };
       this.hot.loadData(rows, PLUGIN_KEY);
 
       if (binding.context !== null) {
@@ -1478,6 +1578,16 @@ export class DataProvider extends BasePlugin {
    * @returns {void}
    */
   #applyQueryParametersFromPlugins(): void {
+    this.#queryParameters = this.#queryFromPlugins();
+  }
+
+  /**
+   * Builds the query Pagination, ColumnSorting, and (when `fetchRows` exists) Filters describe, on top of the
+   * current one, without storing it.
+   *
+   * @returns {DataProviderQueryParameters}
+   */
+  #queryFromPlugins(): DataProviderQueryParameters {
     const queryParameters = { ...this.#queryParameters };
 
     applyPaginationToQueryFromPlugin(this.hot, queryParameters);
@@ -1488,7 +1598,7 @@ export class DataProvider extends BasePlugin {
       () => this.#getFetchFn()
     );
 
-    this.#queryParameters = queryParameters;
+    return queryParameters;
   }
 
   /**
@@ -1876,6 +1986,7 @@ export class DataProvider extends BasePlugin {
    * @returns {void}
    */
   readonly #onAfterInit = () => {
+    this.#recordAppliedConfig();
     void this.#fetchDataSilently();
   };
 

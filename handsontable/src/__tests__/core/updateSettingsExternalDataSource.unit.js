@@ -2,6 +2,53 @@ import Handsontable from 'handsontable';
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+/**
+ * Resolves once `condition` holds, polling every 5 ms, and rejects after 2 s.
+ *
+ * @param {Function} condition The condition to wait for.
+ * @returns {Promise<void>}
+ */
+function waitFor(condition) {
+  const start = Date.now();
+
+  return new Promise((resolve, reject) => {
+    const check = () => {
+      if (condition()) {
+        resolve();
+      } else if (Date.now() - start > 2000) {
+        reject(new Error('The condition was not met in time.'));
+      } else {
+        setTimeout(check, 5);
+      }
+    };
+
+    check();
+  });
+}
+
+/**
+ * Builds a complete DataProvider configuration over `count` products, answering the page and page size it is
+ * asked for.
+ *
+ * @param {number} count The number of rows the server holds.
+ * @returns {object}
+ */
+function createServerConfig(count) {
+  const rows = Array.from({ length: count }, (_, index) => ({ id: index + 1, name: `Product ${index + 1}` }));
+  const noop = () => {};
+
+  return {
+    rowId: 'id',
+    fetchRows: jest.fn(async({ page, pageSize }) => ({
+      rows: rows.slice((page - 1) * pageSize, page * pageSize),
+      totalRows: rows.length,
+    })),
+    onRowsCreate: noop,
+    onRowsUpdate: noop,
+    onRowsRemove: noop,
+  };
+}
+
 describe('Core#updateSettings with external data source', () => {
   let container;
   let hot;
@@ -17,6 +64,7 @@ describe('Core#updateSettings with external data source', () => {
       hot.destroy();
     }
     container.remove();
+    jest.restoreAllMocks();
   });
 
   it('should not clear loaded rows when updateSettings changes an unrelated option', async() => {
@@ -220,5 +268,179 @@ describe('Core#updateSettings with external data source', () => {
     expect(hot.getData()).toEqual([[1, 'A']]);
     expect(fetchRows).toHaveBeenCalledTimes(1);
     expect(afterDataProviderFetchAbort).not.toHaveBeenCalled();
+  });
+
+  it('should fetch when updateSettings turns DataProvider on for a grid built with local data', async() => {
+    const config = createServerConfig(2);
+
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [{ id: 9, name: 'Local row' }],
+      columns: [{ data: 'id' }, { data: 'name' }],
+    });
+
+    await hot.updateSettings({ dataProvider: config });
+    await waitFor(() => hot.countRows() === 2);
+
+    expect(hot.getData()).toEqual([[1, 'Product 1'], [2, 'Product 2']]);
+    expect(config.fetchRows).toHaveBeenCalledTimes(1);
+  });
+
+  it('should fetch when a `dataProvider` object completed in place is sent again', async() => {
+    const config = { rowId: 'id' };
+
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [{ id: 9, name: 'Local row' }],
+      columns: [{ data: 'id' }, { data: 'name' }],
+      dataProvider: config,
+    });
+
+    await delay(20);
+
+    expect(hot.getData()).toEqual([[9, 'Local row']]);
+
+    const server = createServerConfig(2);
+
+    Object.assign(config, server);
+    await hot.updateSettings({ dataProvider: config });
+    await waitFor(() => hot.countRows() === 2 && hot.getDataAtCell(0, 0) === 1);
+
+    expect(server.fetchRows).toHaveBeenCalledTimes(1);
+  });
+
+  it('should fetch with another page size sent beside the same `dataProvider` object', async() => {
+    const config = createServerConfig(20);
+
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      columns: [{ data: 'id' }, { data: 'name' }],
+      pagination: { pageSize: 5 },
+      dataProvider: config,
+    });
+
+    await waitFor(() => hot.countRows() === 5);
+    await hot.updateSettings({ dataProvider: config, pagination: { pageSize: 2 } });
+    await waitFor(() => hot.countRows() === 2);
+
+    expect(config.fetchRows).toHaveBeenLastCalledWith(
+      expect.objectContaining({ page: 1, pageSize: 2 }),
+      expect.anything()
+    );
+    expect(hot.getPlugin('dataProvider').getQueryParameters()).toEqual(expect.objectContaining({ pageSize: 2 }));
+    expect(hot.getPlugin('pagination').getPaginationData()).toEqual(expect.objectContaining({
+      currentPage: 1,
+      pageSize: 2,
+      totalPages: 10,
+    }));
+  });
+
+  it('should keep the page and the pager total when the same `dataProvider` and `pagination` are sent again',
+    async() => {
+      const config = createServerConfig(20);
+      const pagination = { pageSize: 5 };
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        columns: [{ data: 'id' }, { data: 'name' }],
+        pagination,
+        dataProvider: config,
+      });
+
+      await waitFor(() => hot.countRows() === 5);
+
+      hot.getPlugin('pagination').setPage(3);
+      await waitFor(() => hot.getDataAtCell(0, 0) === 11);
+
+      const fetches = config.fetchRows.mock.calls.length;
+
+      await hot.updateSettings({ data: [], dataProvider: config, pagination });
+      await delay(50);
+
+      expect(hot.getDataAtCell(0, 0)).toBe(11);
+      expect(config.fetchRows).toHaveBeenCalledTimes(fetches);
+      expect(hot.getPlugin('pagination').getPaginationData()).toEqual(expect.objectContaining({
+        currentPage: 3,
+        pageSize: 5,
+        totalPages: 4,
+      }));
+    });
+
+  it('should fetch the unfiltered rows when the same `dataProvider` is sent beside a re-applied Filters', async() => {
+    const config = createServerConfig(4);
+
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      columns: [{ data: 'id' }, { data: 'name' }],
+      filters: true,
+      dropdownMenu: true,
+      dataProvider: config,
+    });
+
+    await waitFor(() => hot.countRows() === 4);
+
+    const filters = hot.getPlugin('filters');
+
+    filters.addCondition(1, 'contains', ['Product 2']);
+    filters.filter();
+    await waitFor(() => hot.getPlugin('dataProvider').getQueryParameters().filters !== null);
+
+    const fetches = config.fetchRows.mock.calls.length;
+
+    await hot.updateSettings({ dataProvider: config, filters: true });
+    await waitFor(() => config.fetchRows.mock.calls.length === fetches + 1);
+
+    expect(filters.exportConditions()).toEqual([]);
+    expect(hot.getPlugin('dataProvider').getQueryParameters().filters).toBeNull();
+    expect(config.fetchRows).toHaveBeenLastCalledWith(
+      expect.objectContaining({ filters: null }),
+      expect.anything()
+    );
+  });
+
+  it('should re-apply the plugin for the same `dataProvider` object while passive', async() => {
+    const config = createServerConfig(20);
+
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      columns: [{ data: 'id' }, { data: 'name' }],
+      dataProvider: config,
+    });
+
+    await waitFor(() => hot.countRows() === 10);
+
+    const plugin = hot.getPlugin('dataProvider');
+
+    await plugin.fetchData({ page: 2 });
+
+    plugin._runWithoutFetching(() => hot.updateSettings({ dataProvider: config }));
+
+    expect(plugin.getQueryParameters().page).toBe(1);
+  });
+
+  it('should use members changed in place on the next fetch instead of refetching at once', async() => {
+    const config = createServerConfig(2);
+
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      columns: [{ data: 'id' }, { data: 'name' }],
+      dataProvider: config,
+    });
+
+    await waitFor(() => hot.countRows() === 2);
+
+    const nextFetchRows = jest.fn().mockResolvedValue({ rows: [{ id: 3, name: 'Product 3' }], totalRows: 1 });
+
+    config.fetchRows = nextFetchRows;
+    await hot.updateSettings({ dataProvider: config });
+    await delay(50);
+
+    expect(nextFetchRows).not.toHaveBeenCalled();
+    expect(hot.countRows()).toBe(2);
+
+    await hot.getPlugin('dataProvider').fetchData();
+
+    expect(nextFetchRows).toHaveBeenCalledTimes(1);
+    expect(hot.getData()).toEqual([[3, 'Product 3']]);
   });
 });

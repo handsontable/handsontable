@@ -74,6 +74,14 @@ export const INITIAL_QUERY_PARAMETERS = Object.freeze({
 });
 
 /**
+ * The settings of the plugins whose state the query reads. A payload that carries one of them re-applies that
+ * plugin, which resets the state the last response gave it (Pagination's server total, Filters' conditions).
+ *
+ * @package
+ */
+export const QUERY_PLUGIN_SETTING_KEYS = Object.freeze(['pagination', 'columnSorting', 'filters']);
+
+/**
  * Change sources that batch into one `onRowsUpdate` call. DataProvider also returns `false` from
  * `beforeUndoStackChange` for these sources when `onRowsUpdate` is set, so local undo does not fight server-backed state.
  *

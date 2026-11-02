@@ -5463,7 +5463,8 @@ export default function Core(
    *
    * When {@link Hooks#hasExternalDataSource} is true, Handsontable clears and rebinds the placeholder dataset only during
    * initialization or when `settings` replaces `dataProvider` with another value. A `data` value is ignored with a
-   * warning and keeps the loaded rows, and so does the same `dataProvider` object passed again. Other keys alone
+   * warning and keeps the loaded rows, and so does the same `dataProvider` object passed again; to reload the rows,
+   * call [`fetchData()`](@/api/dataProvider.md#fetchdata). Other keys alone
    * (for example `height`) do not clear loaded rows. If only `columns` changes, the column map is rebuilt without
    * clearing rows.
    *
