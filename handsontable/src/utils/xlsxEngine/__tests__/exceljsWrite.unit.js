@@ -559,6 +559,37 @@ describe('excelJsAdapter.write', () => {
       }
     });
 
+    it('should leave out a name whose sheet ExcelJS would write bare although it needs quotes', async() => {
+      // ExcelJS re-serializes the definition and quotes a sheet only when it fails
+      // `/^[a-zA-Z0-9]*$/`, so `'2024'!$A$1` comes out as `2024!$A$1`, which LibreOffice reads as
+      // `Err:508`. Only the raw `<definedName>` text shows it: reading the name back through
+      // ExcelJS re-serializes it through the same code.
+      const snapshot = createWorkbookSnapshot();
+
+      ['2024', 'Q1', 'My Sheet', 'Data'].forEach((name) => {
+        const builder = new SheetBuilder(name);
+
+        builder.cell(1, 1).value = 1;
+        snapshot.sheets.push(builder.toSnapshot());
+      });
+      snapshot.definedNames = [
+        { name: 'Year', formula: '\'2024\'!$A$1', sheetName: null },
+        { name: 'Quarter', formula: '\'Q1\'!$A$1', sheetName: null },
+        { name: 'Spaced', formula: '\'My Sheet\'!$A$1', sheetName: null },
+        { name: 'Plain', formula: 'Data!$A$1', sheetName: null },
+      ];
+
+      const dropped = new DroppedFeatures();
+      const bytes = await excelJsAdapter.write(snapshot, ExcelJS, dropped);
+      const workbookXml = await (await readZip(toArrayBuffer(bytes))).text('xl/workbook.xml');
+      const written = [...workbookXml.matchAll(/<definedName name="([^"]+)"[^>]*>([^<]*)</g)]
+        .map(([, name, text]) => [name, text.replaceAll('&apos;', '\'')]);
+
+      expect(written).toEqual([['Spaced', '\'My Sheet\'!$A$1'], ['Plain', 'Data!$A$1']]);
+      expect(excelJsAdapter.selectDefinedNames(snapshot).map(({ name }) => name)).toEqual(['Spaced', 'Plain']);
+      expect(dropped.list()).toEqual(['definedNames:unsupported']);
+    });
+
     it('should leave out a whole-sheet name quickly, record it, and still write a normal range', async() => {
       const snapshot = snapshotWith((b) => {
         b.cell(1, 1).value = 1;

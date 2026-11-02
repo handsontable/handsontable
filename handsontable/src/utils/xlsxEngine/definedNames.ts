@@ -19,6 +19,13 @@ const DEFINED_NAME_PATTERN = /^[\p{L}_\\][\p{L}\p{N}_.\\]{0,254}$/u;
 const R1C1_NAME_PATTERN = /^(?:[RC]|R\d*C\d*)$/i;
 
 /**
+ * Names a reader does not keep as written: `TRUE` and `FALSE` (LibreOffice renames them to `_TRUE`
+ * and `_FALSE` on load) and the `_xlnm.` built-ins (`_xlnm.Print_Area`), which LibreOffice renames
+ * when they are workbook-scoped and both readers of this layer skip on import.
+ */
+const RESERVED_NAME_PATTERN = /^(?:TRUE|FALSE|_xlnm\..*)$/i;
+
+/**
  * A defined name a writer will write, with the 0-based index of the sheet it is scoped to
  * (`undefined` for a workbook-scoped name).
  */
@@ -31,7 +38,8 @@ export interface WritableDefinedName {
 
 /**
  * Picks the defined names both writers can write, so the two engines accept the same set. A name is
- * left out when a reader flagged it `unsupported`, is not a valid name, spells a cell reference or an R1C1 reference, is scoped to a
+ * left out when a reader flagged it `unsupported`, is not a valid name, spells a cell reference or an R1C1 reference,
+ * is `TRUE`, `FALSE` or an `_xlnm.` built-in, is scoped to a
  * sheet `sheetNames` does not hold, has an empty definition, or repeats an earlier name of the same
  * scope (names compare case-insensitively).
  *
@@ -59,7 +67,7 @@ export function selectWritableDefinedNames(
     const key = `${localSheetId ?? ''}\u0000${localeLowerCase(name)}`;
 
     if (!DEFINED_NAME_PATTERN.test(name) || parseCellRef(name) !== null || R1C1_NAME_PATTERN.test(name)
-      || localSheetId === -1 || formula.trim() === '' || seen.has(key)) {
+      || RESERVED_NAME_PATTERN.test(name) || localSheetId === -1 || formula.trim() === '' || seen.has(key)) {
       skipped = true;
     } else {
       seen.add(key);

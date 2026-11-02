@@ -92,7 +92,9 @@ directions.
   RENAMES a qualifier (`exportFile`'s named expressions move each engine sheet's references and
   name its exported sheet): it gets the unquoted name and answers `{ sheetName, map? }` (the `map`
   moves that sheet's reference part) or `null`. The walker quotes the new name itself
-  (`quoteSheetName`, exported, which also quotes a cell-shaped name such as `A1`). A qualifier
+  (`quoteSheetName`, exported, which also quotes a cell-shaped name such as `A1`, and any name with a
+  dot: HyperFormula's unquoted grammar is `[A-Za-z0-9_]`, so a bare `Data.2024!$A$1` is a parse error
+  there and `selfAs` handed the engine an imported name it showed as `#ERROR!`). A qualifier
   after `]` (another workbook) is never offered. `rebaseImportedFormula` has the matching `selfAs`
   option: it re-qualifies a reference to the imported sheet with the engine's name for it.
 - **Covered merge cells lose their content on write** and read back `null`; the master keeps it.
@@ -841,7 +843,8 @@ directions.
   - **Defined names share one validator** (`definedNames.ts#selectWritableDefinedNames`): a name must
     match the Excel pattern, must not spell an A1 reference (`ZZZ1`) or an R1C1 one (`R`, `C`, `RC`,
     `R2C3`), must not repeat a name of the same scope case-insensitively, and needs a non-empty
-    definition. A letter is any Unicode letter (`\p{L}` under the `u` flag), as in Excel, so `Umsätze`
+    definition, and must not be `TRUE`, `FALSE` or an `_xlnm.` built-in (LibreOffice renames them on
+    load, and both readers skip `_xlnm.` names). A letter is any Unicode letter (`\p{L}` under the `u` flag), as in Excel, so `Umsätze`
     and `Größe` are written; an ASCII-only class left every formula over them as `#NAME?` in Excel.
     HyperFormula accepts a narrower range (`[A-Za-zÀ-ʯ_]` first, Latin letters only), a subset of
     this class: a CJK name passes here but not in HyperFormula. It refuses a ref-like name outside the grid (`ZZZ1`) and a leading digit
@@ -865,6 +868,10 @@ directions.
     workbook whose names no formula uses warns about nothing. Its
     writer takes workbook-scoped, sheet-qualified single ranges only, with a total area under
     `MAX_EXCELJS_DEFINED_NAME_CELLS` (`writeLimits.ts`, 100,000), and reports `definedNames:unsupported` once for everything else.
+    ExcelJS re-serializes every definition and quotes a sheet only when it fails `/^[a-zA-Z0-9]*$/`,
+    so `'2024'!$A$1` and `'Q1'!$A$1` come out bare (`Err:508` in LibreOffice); `losesQualifierQuotes`
+    leaves such a name out. Only the raw `xl/workbook.xml` shows it: reading the name back through
+    `definedNames.model` re-serializes it through the same code (`exceljsWrite.unit.js` reads the zip).
     That selection is `selectExcelJsDefinedNames`, pure, and both adapters expose theirs as the
     required `XlsxEngineAdapter#selectDefinedNames`: `exportFile` asks it before the write, so a formula
     over a name the writer leaves out goes out as its value. Change the writer's filter there, never

@@ -23,6 +23,18 @@ describe('selectWritableDefinedNames', () => {
     expect(skipped).toBe(true);
   });
 
+  it('should refuse `TRUE`, `FALSE` and any `_xlnm.` name, which readers rename or skip', () => {
+    // LibreOffice renames `TRUE` to `_TRUE` and a workbook-scoped `_xlnm.Print_Area` to
+    // `Excel_BuiltIn_Print_Area` on load, and both readers skip `_xlnm.` names on import.
+    const { entries, skipped } = selectWritableDefinedNames(
+      names(['TRUE', 'false', '_xlnm.Print_Area', '_XLNM._FilterDatabase', 'TrueRate', '_xlnmRate']),
+      ['Data'],
+    );
+
+    expect(entries.map(({ name }) => name)).toEqual(['TrueRate', '_xlnmRate']);
+    expect(skipped).toBe(true);
+  });
+
   it('should compare non-ASCII names of the same scope case-insensitively', () => {
     const { entries, skipped } = selectWritableDefinedNames(names(['Größe', 'GRÖßE', 'Maß']), ['Data']);
 

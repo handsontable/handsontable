@@ -19,6 +19,7 @@ import {
 } from '../model';
 import { parseCellRef, parseRangeRef } from '../cellRef';
 import { selectWritableDefinedNames } from '../definedNames';
+import { quoteSheetName } from '../formulaRefs';
 import { EXCEL_EPOCH_OFFSET, MS_PER_DAY } from '../dates';
 import { isWritableConditionalRule } from '../conditionalRules';
 import { coveredCellFormatting, type CellFormatting } from '../coveredCellFormatting';
@@ -1186,10 +1187,32 @@ function isSingleRangeDefinition(formula: string): boolean {
 }
 
 /**
+ * The sheet names ExcelJS writes without quotes when it re-serializes a defined name
+ * (`Range._serialisedSheetName`).
+ */
+const EXCELJS_BARE_SHEET_NAME_PATTERN = /^[a-zA-Z0-9]*$/;
+
+/**
+ * Tells whether ExcelJS would write the sheet qualifier of a single-range definition bare although
+ * it needs quotes (`'2024'!$A$1` as `2024!$A$1`, `'Q1'!$A$1` as `Q1!$A$1`). LibreOffice reads every
+ * formula over such a name as `Err:508`.
+ *
+ * @param {string} formula A definition `isSingleRangeDefinition` accepts.
+ * @returns {boolean}
+ */
+function losesQualifierQuotes(formula: string): boolean {
+  const qualifier = formula.trim().slice(0, formula.trim().lastIndexOf('!'));
+  const sheetName = qualifier.startsWith('\'') ? qualifier.slice(1, -1).replaceAll('\'\'', '\'') : qualifier;
+
+  return EXCELJS_BARE_SHEET_NAME_PATTERN.test(sheetName) && quoteSheetName(sheetName) !== sheetName;
+}
+
+/**
  * Selects the defined names ExcelJS can hold: the ones the native writer accepts (shared
  * validation), that are workbook-scoped, and whose definition is a single range within the
- * `MAX_EXCELJS_DEFINED_NAME_CELLS` budget. Pure, so `exportFile` can ask before the write which
- * names reach the file.
+ * `MAX_EXCELJS_DEFINED_NAME_CELLS` budget, on a sheet ExcelJS keeps quoted when it needs quotes
+ * (`losesQualifierQuotes`). Pure, so `exportFile` can ask before the write which names reach the
+ * file.
  */
 function selectExcelJsDefinedNames(snapshot: WorkbookSnapshot): { entries: DefinedNameSnapshot[]; skipped: boolean } {
   const selected = selectWritableDefinedNames(
@@ -1201,7 +1224,7 @@ function selectExcelJsDefinedNames(snapshot: WorkbookSnapshot): { entries: Defin
   let coveredCells = 0;
 
   selected.entries.forEach(({ name, formula, sheetName }) => {
-    const range = sheetName === null && isSingleRangeDefinition(formula)
+    const range = sheetName === null && isSingleRangeDefinition(formula) && !losesQualifierQuotes(formula)
       ? parseRangeRef(formula.slice(formula.lastIndexOf('!') + 1))
       : null;
     const area = range === null ? 0 : (range.endRow - range.startRow + 1) * (range.endCol - range.startCol + 1);

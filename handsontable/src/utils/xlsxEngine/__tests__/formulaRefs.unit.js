@@ -256,6 +256,15 @@ describe('mapFormulaReferences', () => {
       expect(renamedTo('Sales_2024')).toBe('Sales_2024!A2');
     });
 
+    it('should quote a new sheet name holding a dot, which HyperFormula cannot read bare', () => {
+      // HyperFormula's unquoted sheet grammar is letters, digits and `_` only: `=Data.2024!$A$1`
+      // is a parsing error, the quoted form works.
+      const renamedTo = name => mapFormulaReferences('Data!A1', down, { requalify: () => ({ sheetName: name }) });
+
+      expect(renamedTo('Data.2024')).toBe('\'Data.2024\'!A2');
+      expect(renamedTo('v1.2')).toBe('\'v1.2\'!A2');
+    });
+
     it('should map a requalified reference through the map the callback answers with', () => {
       const right = reference => ({ row: reference.row, col: reference.col + 2 });
       const result = mapFormulaReferences('A!A1+B!A1', down, {
@@ -389,6 +398,9 @@ describe('rebaseImportedFormula', () => {
     });
     expect(rebaseAs('Data!$A$1', 'Sheet1')).toEqual({ formula: null, unknownSheet: false });
     expect(rebaseAs('B2+1', 'Sheet1')).toEqual({ formula: 'A1+1', unknownSheet: false });
+    expect(rebaseAs('Data!$B$2:$B$4', 'Data.2024')).toEqual({
+      formula: '\'Data.2024\'!$A$1:$A$3', unknownSheet: false,
+    });
   });
 
   it('should reject a self-qualified reference the shift pushes into the dropped band', () => {
