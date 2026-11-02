@@ -1184,28 +1184,48 @@ function isSingleRangeDefinition(formula: string): boolean {
 }
 
 /**
- * Writes the defined names ExcelJS can hold: the ones the native writer accepts (shared validation),
- * that are workbook-scoped, and whose definition is a single range within the
- * `MAX_EXCELJS_DEFINED_NAME_CELLS` budget. Every other name is left out and
- * `DROPPED_FEATURES.definedNamesUnsupported` is recorded once.
+ * Selects the defined names ExcelJS can hold: the ones the native writer accepts (shared
+ * validation), that are workbook-scoped, and whose definition is a single range within the
+ * `MAX_EXCELJS_DEFINED_NAME_CELLS` budget. Pure, so `exportFile` can ask before the write which
+ * names reach the file.
  */
-function writeDefinedNames(workbook: ExcelJsWorkbook, snapshot: WorkbookSnapshot, dropped: DroppedFeatures): void {
-  const { entries, skipped } = selectWritableDefinedNames(
+function selectExcelJsDefinedNames(snapshot: WorkbookSnapshot): { entries: DefinedNameSnapshot[]; skipped: boolean } {
+  const selected = selectWritableDefinedNames(
     snapshot.definedNames ?? [],
     snapshot.sheets.map(sheet => sheet.name),
   );
-  let unsupported = skipped;
+  const entries: DefinedNameSnapshot[] = [];
+  let skipped = selected.skipped;
   let coveredCells = 0;
 
-  entries.forEach(({ name, formula, sheetName }) => {
-    const range = sheetName === null && workbook.definedNames?.add && isSingleRangeDefinition(formula)
+  selected.entries.forEach(({ name, formula, sheetName }) => {
+    const range = sheetName === null && isSingleRangeDefinition(formula)
       ? parseRangeRef(formula.slice(formula.lastIndexOf('!') + 1))
       : null;
     const area = range === null ? 0 : (range.endRow - range.startRow + 1) * (range.endCol - range.startCol + 1);
 
     if (range !== null && coveredCells + area <= MAX_EXCELJS_DEFINED_NAME_CELLS) {
       coveredCells += area;
-      workbook.definedNames?.add?.(formula.trim(), name);
+      entries.push({ name, formula: formula.trim(), sheetName: null });
+    } else {
+      skipped = true;
+    }
+  });
+
+  return { entries, skipped };
+}
+
+/**
+ * Writes the defined names `selectExcelJsDefinedNames` keeps. Every other name is left out and
+ * `DROPPED_FEATURES.definedNamesUnsupported` is recorded once.
+ */
+function writeDefinedNames(workbook: ExcelJsWorkbook, snapshot: WorkbookSnapshot, dropped: DroppedFeatures): void {
+  const { entries, skipped } = selectExcelJsDefinedNames(snapshot);
+  let unsupported = skipped;
+
+  entries.forEach(({ name, formula }) => {
+    if (workbook.definedNames?.add) {
+      workbook.definedNames.add(formula, name);
     } else {
       unsupported = true;
     }
@@ -1299,5 +1319,11 @@ export const excelJsAdapter: XlsxEngineAdapter = {
     }
 
     return workbook.xlsx.writeBuffer(toWriteOptions(snapshot.compression));
+  },
+  /**
+   * The defined names `write` puts into the file (`selectExcelJsDefinedNames`).
+   */
+  selectDefinedNames(snapshot: WorkbookSnapshot): DefinedNameSnapshot[] {
+    return selectExcelJsDefinedNames(snapshot).entries;
   },
 };

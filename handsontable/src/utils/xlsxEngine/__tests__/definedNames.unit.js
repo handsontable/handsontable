@@ -1,4 +1,4 @@
-import { selectWritableDefinedNames } from '../definedNames';
+import { namesUsedIn, selectWritableDefinedNames } from '../definedNames';
 
 const names = list => list.map(name => ({ name, formula: '1', sheetName: null }));
 
@@ -40,5 +40,12 @@ describe('selectWritableDefinedNames', () => {
 
     expect(entries.map(({ name }) => name)).toEqual(['Fine']);
     expect(skipped).toBe(true);
+  });
+});
+
+describe('namesUsedIn', () => {
+  it('should list the bare words, lower-cased, skipping quoted runs, calls and sheet qualifiers', () => {
+    expect([...namesUsedIn('SUM(Rate)+"Sales"+\'Tax Rate\'!A1+Tax!B2+Größe*_x.y')])
+      .toEqual(['rate', 'a1', 'b2', 'größe', '_x.y']);
   });
 });

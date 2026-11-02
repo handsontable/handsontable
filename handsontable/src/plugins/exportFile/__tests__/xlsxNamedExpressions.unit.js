@@ -1,4 +1,5 @@
 import { HyperFormula } from 'hyperformula';
+import ExcelJS from 'exceljs';
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { ExportFile } from '../exportFile';
@@ -6,6 +7,7 @@ import { Formulas } from '../../formulas';
 import { HiddenRows } from '../../hiddenRows';
 import { HiddenColumns } from '../../hiddenColumns';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
+import { excelJsAdapter } from '../../../utils/xlsxEngine/adapters/exceljs';
 
 /**
  * DEV-3648: with `exportFormulas`, the workbook-scoped named expressions of the Formulas plugin's
@@ -363,5 +365,90 @@ describe('Xlsx export: named expressions as defined names', () => {
     const { snapshot } = await exportWorkbook();
 
     expect(snapshot.definedNames).toBeUndefined();
+  });
+
+  it('should export a formula over a name another engine defines differently as its value', async() => {
+    // Two engines both define `Rate`. The file holds one `Rate`, the first engine's, so a live
+    // `=SUM(Rate)` of the second grid would sum the first grid's cells in Excel (3, not 300).
+    createGrid({ data: [[1], [2], ['=SUM(Rate)']] });
+    hot.getPlugin('formulas').engine.addNamedExpression('Rate', '=Sheet1!$A$1:$A$2');
+
+    const second = document.createElement('div');
+
+    document.body.appendChild(second);
+
+    const hot2 = new Handsontable(second, {
+      data: [[100], [200], ['=SUM(Rate)']],
+      formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    try {
+      hot2.getPlugin('formulas').engine.addNamedExpression('Rate', '=Sheet1!$A$1:$A$2');
+
+      const { snapshot, dropped } = await exportWorkbook({
+        exportFormulas: true,
+        sheets: [{ instance: hot, name: 'Alpha' }, { instance: hot2, name: 'Beta' }],
+      });
+      const cellOf = name => snapshot.sheets.find(sheet => sheet.name === name).rows[2][0];
+
+      expect(snapshot.definedNames).toEqual([{ name: 'Rate', formula: 'Alpha!$A$1:$A$2', sheetName: null }]);
+      expect(cellOf('Alpha').formula).toEqual(expect.objectContaining({ text: 'SUM(Rate)', result: 3 }));
+      expect(cellOf('Beta').formula).toBeNull();
+      expect(cellOf('Beta').value).toBe(300);
+      expect(dropped.list()).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+    } finally {
+      hot2.destroy();
+      second.remove();
+    }
+  });
+
+  it('should export a formula over a name the ExcelJS writer leaves out as its value', async() => {
+    // ExcelJS writes no constant name, so `=TaxRate*100` would show `#NAME?` in Excel.
+    const excelJsWrite = jest.spyOn(excelJsAdapter, 'write').mockResolvedValue(new Uint8Array());
+
+    try {
+      const engine = createGrid({ data: [[1], ['=TaxRate*100'], ['=SUM(Sales)']] });
+
+      engine.addNamedExpression('TaxRate', 0.07);
+      engine.addNamedExpression('Sales', '=Sheet1!$A$1');
+
+      await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', { exportFormulas: true, engine: ExcelJS });
+
+      const [snapshot, , dropped] = excelJsWrite.mock.calls[0];
+      const [, taxed, summed] = snapshot.sheets[0].rows.map(row => row[0]);
+
+      expect(taxed.formula).toBeNull();
+      expect(taxed.value).toBe(7);
+      // `Sales` is one sheet-qualified range, which the ExcelJS writer keeps.
+      expect(summed.formula).toEqual(expect.objectContaining({ text: 'SUM(Sales)' }));
+      expect(dropped.list()).toContain('formula:definedName');
+    } finally {
+      excelJsWrite.mockRestore();
+    }
+  });
+
+  it('should keep a formula live when a left-out name is only quoted, a sheet name or a call', async() => {
+    const excelJsWrite = jest.spyOn(excelJsAdapter, 'write').mockResolvedValue(new Uint8Array());
+
+    try {
+      const engine = createGrid({ data: [[1], ['=SUM(Sales)&"TaxRate"&\'TaxRate\'!A1&TaxRate!A1'], ['=TAXRATE(1)']] });
+
+      // `TaxRate` is a constant, which the ExcelJS writer leaves out; here it is never used as a name.
+      engine.addNamedExpression('TaxRate', 0.07);
+      engine.addNamedExpression('Sales', '=Sheet1!$A$1');
+      engine.addSheet('TaxRate');
+
+      await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', { exportFormulas: true, engine: ExcelJS });
+
+      const [snapshot, , dropped] = excelJsWrite.mock.calls[0];
+      const [, joined, called] = snapshot.sheets[0].rows.map(row => row[0]);
+
+      expect(joined.formula).not.toBeNull();
+      expect(called.formula).not.toBeNull();
+      expect(dropped.list()).not.toContain('formula:definedName');
+    } finally {
+      excelJsWrite.mockRestore();
+    }
   });
 });

@@ -184,30 +184,31 @@ describe('xlsx round trip through exportFile and importFile with HyperFormula', 
     const bytes = await exportBytes(hot, ExcelJS);
     const snapshot = await nativeAdapter.read(bytes, undefined, new DroppedFeatures());
 
-    // ExcelJS writes every array as CSE, and leaves the constant name out.
+    // ExcelJS writes every array as CSE, and leaves the constant name out, so `=TaxRate*A1` is
+    // written as its value instead of a formula Excel shows as `#NAME?`.
     expect(snapshot.sheets[0].rows[1][2].formula.array).toEqual({ ref: 'C2:C4', dynamic: false });
     expect(snapshot.definedNames).toEqual([{ name: 'Sales', formula: 'Sheet1!$B$2:$B$4', sheetName: null }]);
+    expect(snapshot.sheets[0].rows[1][7]).toEqual(expect.objectContaining({ value: 0.07, formula: null }));
 
-    // The same grid: ExcelJS reads every array back as CSE (`ARRAYFORMULA`); `TaxRate` is not in
-    // the file, and the engine still defines it.
+    // The same grid: ExcelJS reads every array back as CSE (`ARRAYFORMULA`); the engine still
+    // defines `Sales` with the file's definition.
     const same = await importBytes(hot, bytes, ExcelJS);
 
     expect(droppedBesidesStyles(same)).toEqual([]);
     expect(hot.getSourceDataAtRow(0).slice(1, 7)).toEqual([
       '=ARRAYFORMULA(SEQUENCE(3))', '=ARRAYFORMULA(A1:A3*2)', '=ARRAYFORMULA(IFS(A1>0,"p",TRUE(),"n"))',
-      '=SUM(Sales)', '=1/0', '=TaxRate*A1',
+      '=SUM(Sales)', '=1/0', 0.07,
     ]);
     expect(hot.getData()).toEqual(SHOWN);
 
     // A fresh grid: ExcelJS loses the scope of every name, so none is registered and `=SUM(Sales)`
-    // imports its cached value; a formula over the left-out constant shows `#NAME?`, as documented.
+    // imports its cached value; the cell over the left-out constant holds its value.
     const target = createGrid([[null]]);
     const fresh = await importBytes(target, bytes, ExcelJS);
 
     expect(fresh.namedExpressions).toBeUndefined();
     expect(fresh.dropped).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
     expect(target.getSourceDataAtRow(0)[4]).toBe(SHOWN[0][4]);
-    expect(target.getData()[0][6]).toBe('#NAME?');
-    expect(target.getData().map(row => row.slice(0, 6))).toEqual(SHOWN.map(row => row.slice(0, 6)));
+    expect(target.getData()).toEqual(SHOWN);
   });
 });

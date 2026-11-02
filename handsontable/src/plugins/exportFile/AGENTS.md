@@ -365,6 +365,16 @@ Other rules:
   (`definedNames:unsupported`, recorded once); a left-out index inside a range only shrinks it.
   Names are deduplicated case-insensitively: the first wins, a later one with another definition is
   left out and recorded. Pinned by `xlsxNamedExpressions.unit.js` and `formula-utils.unit.js`.
+  **A formula over a name that does not reach the file is written as its value** (`formula:definedName`,
+  `#unlinkLeftOutNames`). Live, it showed `#NAME?` in Excel, or worse, read ANOTHER engine's `Rate`
+  (two engines, one file: grid B's `=SUM(Rate)` summed grid A's cells, 3 instead of 300). The cells
+  are decided AFTER every sheet is populated, because the names in the file depend on every grid:
+  `#writeRowCells` notes each formula cell whose words (`namesUsedIn`, outside quotes, not followed by
+  `(` or `!`) include a name of its engine (`DefinedNameUse`, with the value the export writes without
+  `exportFormulas` as its fallback); `#addDefinedNames` returns, per engine, the names written with
+  that engine's definition; and the adapter's `selectDefinedNames` (pure, the same selection `write`
+  makes: the shared validation, plus the ExcelJS single-range shape and cell budget) says which of
+  them the writer keeps. A noted cell with any name outside both sets is rewritten in place.
 - `headerStyle: null` exports headers with no styling; `headerStyle.border: null` suppresses only the border.
 - **The frozen pane counts EXPORTED indexes, not the raw `fixedColumnsStart`/`fixedRowsTop`.**
   `ExportDataProvider#getFrozenColumns()`/`getFrozenRows()` count the visual indexes of the frozen band

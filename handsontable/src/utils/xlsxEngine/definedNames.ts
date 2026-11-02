@@ -1,5 +1,6 @@
 import { localeLowerCase } from '../../helpers/string';
 import { parseCellRef } from './cellRef';
+import { isNameChar, skipQuoted } from './functionPrefixes';
 import type { DefinedNameSnapshot } from './model';
 
 /**
@@ -66,4 +67,44 @@ export function selectWritableDefinedNames(
   });
 
   return { entries, skipped };
+}
+
+/**
+ * The words of a formula that can only be defined names, lower-cased: every run of name characters
+ * outside quotes (string literals and quoted sheet names) that is not followed by `(` (a function
+ * call) or `!` (a sheet qualifier). Cell references and numbers come back too; the caller compares
+ * the words with the names it knows.
+ *
+ * @param {string} formula The formula, without the leading `=`.
+ * @returns {Set<string>}
+ */
+export function namesUsedIn(formula: string): Set<string> {
+  const names = new Set<string>();
+  let index = 0;
+
+  while (index < formula.length) {
+    const char = formula[index];
+
+    if (char === '"' || char === '\'') {
+      index = skipQuoted(formula, index);
+
+    } else if (isNameChar(char)) {
+      let end = index + 1;
+
+      while (end < formula.length && isNameChar(formula[end])) {
+        end += 1;
+      }
+
+      if (formula[end] !== '(' && formula[end] !== '!') {
+        names.add(localeLowerCase(formula.slice(index, end)));
+      }
+
+      index = end;
+
+    } else {
+      index += 1;
+    }
+  }
+
+  return names;
 }

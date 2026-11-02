@@ -847,6 +847,10 @@ directions.
     mapper reports `definedNames:unsupported` when a formula's name stays unresolved. Its
     writer takes workbook-scoped, sheet-qualified single ranges only, with a total area under
     `MAX_EXCELJS_DEFINED_NAME_CELLS` (`writeLimits.ts`, 100,000), and reports `definedNames:unsupported` once for everything else.
+    That selection is `selectExcelJsDefinedNames`, pure, and both adapters expose theirs as the
+    optional `XlsxEngineAdapter#selectDefinedNames`: `exportFile` asks it before the write, so a formula
+    over a name the writer leaves out goes out as its value. Change the writer's filter there, never
+    inline in `writeDefinedNames`, or the two disagree and the formula ships as `#NAME?`.
   - **A name the reader cannot trust is KEPT, flagged, never dropped** (`DefinedNameSnapshot.unsupported`).
     The native reader caps a definition at `MAX_FORMULA_LENGTH` (`parseWorkbook`: the text stops
     growing once it crosses the cap) and cannot place a `localSheetId` that names no sheet; both
