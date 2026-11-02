@@ -1,0 +1,356 @@
+{
+  "cell:autocomplete": [
+    "token"
+  ],
+  "cell:checkbox": [
+    "token"
+  ],
+  "cell:date": [
+    "token"
+  ],
+  "cell:dropdown": [
+    "token"
+  ],
+  "cell:handsontable": [
+    "token"
+  ],
+  "cell:intl_date": [
+    "token"
+  ],
+  "cell:intl_datetime": [
+    "token"
+  ],
+  "cell:intl_time": [
+    "token"
+  ],
+  "cell:multiselect": [
+    "token"
+  ],
+  "cell:numeric": [
+    "token"
+  ],
+  "cell:password": [
+    "token"
+  ],
+  "cell:select": [
+    "token"
+  ],
+  "cell:text": [
+    "core"
+  ],
+  "cell:time": [
+    "token"
+  ],
+  "core": [
+    "core"
+  ],
+  "editor:autocomplete": [
+    "none"
+  ],
+  "editor:base": [
+    "none"
+  ],
+  "editor:checkbox": [
+    "none"
+  ],
+  "editor:date": [
+    "none"
+  ],
+  "editor:dropdown": [
+    "none"
+  ],
+  "editor:handsontable": [
+    "none"
+  ],
+  "editor:intl_date": [
+    "none"
+  ],
+  "editor:intl_datetime": [
+    "none"
+  ],
+  "editor:intl_time": [
+    "none"
+  ],
+  "editor:multiselect": [
+    "none"
+  ],
+  "editor:numeric": [
+    "none"
+  ],
+  "editor:password": [
+    "none"
+  ],
+  "editor:select": [
+    "none"
+  ],
+  "editor:text": [
+    "none"
+  ],
+  "editor:time": [
+    "none"
+  ],
+  "feat:async_values": [
+    "token"
+  ],
+  "feat:auto_column_size": [
+    "token"
+  ],
+  "feat:auto_link": [
+    "token"
+  ],
+  "feat:auto_row_header_size": [
+    "token"
+  ],
+  "feat:auto_row_size": [
+    "token"
+  ],
+  "feat:autofill": [
+    "token"
+  ],
+  "feat:bind_rows_with_headers": [
+    "token"
+  ],
+  "feat:checkbox_header": [
+    "token"
+  ],
+  "feat:collapsible_columns": [
+    "token"
+  ],
+  "feat:column_sorting": [
+    "token"
+  ],
+  "feat:column_summary": [
+    "token"
+  ],
+  "feat:comments": [
+    "token"
+  ],
+  "feat:context_menu": [
+    "token"
+  ],
+  "feat:copy_paste": [
+    "token"
+  ],
+  "feat:custom_borders": [
+    "token"
+  ],
+  "feat:data_provider": [
+    "token"
+  ],
+  "feat:dialog": [
+    "token"
+  ],
+  "feat:drag_to_scroll": [
+    "token"
+  ],
+  "feat:dropdown_menu": [
+    "token"
+  ],
+  "feat:empty_data_state": [
+    "token"
+  ],
+  "feat:export_file": [
+    "token"
+  ],
+  "feat:filters": [
+    "token"
+  ],
+  "feat:formula_builder": [
+    "token"
+  ],
+  "feat:formulas": [
+    "token"
+  ],
+  "feat:freeze_bar": [
+    "token"
+  ],
+  "feat:hidden_columns": [
+    "token"
+  ],
+  "feat:hidden_rows": [
+    "token"
+  ],
+  "feat:import_file": [
+    "token"
+  ],
+  "feat:loading": [
+    "token"
+  ],
+  "feat:manual_column_freeze": [
+    "token"
+  ],
+  "feat:manual_column_move": [
+    "token"
+  ],
+  "feat:manual_column_resize": [
+    "token"
+  ],
+  "feat:manual_row_move": [
+    "token"
+  ],
+  "feat:manual_row_resize": [
+    "token"
+  ],
+  "feat:merge_cells": [
+    "token"
+  ],
+  "feat:move_cells": [
+    "token"
+  ],
+  "feat:multi_column_sorting": [
+    "token"
+  ],
+  "feat:multiple_selection_handles": [
+    "none"
+  ],
+  "feat:nested_headers": [
+    "token"
+  ],
+  "feat:nested_rows": [
+    "token"
+  ],
+  "feat:notification": [
+    "token"
+  ],
+  "feat:pagination": [
+    "token"
+  ],
+  "feat:row_selection": [
+    "token"
+  ],
+  "feat:search": [
+    "token"
+  ],
+  "feat:selection_handles": [
+    "token"
+  ],
+  "feat:sheets_bar": [
+    "token"
+  ],
+  "feat:stretch_columns": [
+    "token"
+  ],
+  "feat:touch_scroll": [
+    "none"
+  ],
+  "feat:trim_rows": [
+    "token"
+  ],
+  "feat:undo_redo": [
+    "token"
+  ],
+  "feat:view_state": [
+    "token"
+  ],
+  "renderer:autocomplete": [
+    "none"
+  ],
+  "renderer:base": [
+    "none"
+  ],
+  "renderer:checkbox": [
+    "none"
+  ],
+  "renderer:date": [
+    "none"
+  ],
+  "renderer:dropdown": [
+    "none"
+  ],
+  "renderer:handsontable": [
+    "none"
+  ],
+  "renderer:html": [
+    "none"
+  ],
+  "renderer:intl_date": [
+    "none"
+  ],
+  "renderer:intl_datetime": [
+    "none"
+  ],
+  "renderer:intl_time": [
+    "none"
+  ],
+  "renderer:multiselect": [
+    "none"
+  ],
+  "renderer:numeric": [
+    "none"
+  ],
+  "renderer:password": [
+    "none"
+  ],
+  "renderer:select": [
+    "none"
+  ],
+  "renderer:text": [
+    "none"
+  ],
+  "renderer:time": [
+    "none"
+  ],
+  "validator:autocomplete": [
+    "none"
+  ],
+  "validator:checkbox": [
+    "none"
+  ],
+  "validator:date": [
+    "none"
+  ],
+  "validator:dropdown": [
+    "none"
+  ],
+  "validator:intl_date": [
+    "none"
+  ],
+  "validator:intl_datetime": [
+    "none"
+  ],
+  "validator:intl_time": [
+    "none"
+  ],
+  "validator:multiselect": [
+    "none"
+  ],
+  "validator:numeric": [
+    "none"
+  ],
+  "validator:time": [
+    "none"
+  ],
+  "xlsx:comments": [
+    "token"
+  ],
+  "xlsx:conditional_formatting": [
+    "token"
+  ],
+  "xlsx:data_validation": [
+    "token"
+  ],
+  "xlsx:export": [
+    "token"
+  ],
+  "xlsx:formulas": [
+    "token"
+  ],
+  "xlsx:import": [
+    "token"
+  ],
+  "xlsx:import_report": [
+    "core"
+  ],
+  "xlsx:layout": [
+    "token"
+  ],
+  "xlsx:number_formats": [
+    "token"
+  ],
+  "xlsx:protection": [
+    "token"
+  ],
+  "xlsx:styles": [
+    "token"
+  ]
+}
