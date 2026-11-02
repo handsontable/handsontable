@@ -8,7 +8,7 @@ import { areEquivalentSettingsValue } from './helpers';
  * reference equality so we avoid expensive deep walks and accidental false positives where functions
  * or class instances would not compare meaningfully by keys alone.
  *
- * `rowHeights`, `minRowHeights` (its documented alias) and `colWidths` are here because passing any
+ * `rowHeights`, `minRowHeights` (the row height floor) and `colWidths` are here because passing any
  * of them re-declares the sizes and discards the ones the user produced by dragging
  * (`ManualRowResize` / `ManualColumnResize`). A re-render must not do that, and a React app commonly
  * writes the value inline (`rowHeights={[50, 50]}`), which is a new array on every render and never

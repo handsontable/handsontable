@@ -2,6 +2,7 @@ import type { HotInstance } from './core/types';
 import type { IndexMapper } from './translations';
 import type { WalkontableInstance } from './3rdparty/walkontable/src/types';
 import type { RowsCalculationType, ColumnsCalculationType } from './3rdparty/walkontable/src/calculator/viewportBase';
+import type { RowHeightMode } from './3rdparty/walkontable/src/axisSizing/axisSizeSource';
 import {
   addClass,
   removeClass,
@@ -26,6 +27,7 @@ import {
 } from './helpers/dom/element';
 import EventManager from './eventManager';
 import { CellPainter } from './core/incrementalRender/cellPainter';
+import { isAutoRowSizeOn, isExactRowHeight, resolveRowHeightSetting } from './core/rowHeightSetting';
 import { RenderSizeProbe } from './renderSizeProbe';
 import GhostTable from './utils/ghostTable';
 import { getRenderedRowHeight } from './core/viewportScroll/scrollStrategies/singleScroll';
@@ -472,6 +474,7 @@ class TableView {
       }
 
       this.#measureContentColumnHeader();
+      this.#syncRowHeightMode();
       this._wt.draw(!isFullRender);
       this.#redrawOnceWhenEffectiveFixedMoved(isFullRender);
       this.#updateScrollbarClassNames();
@@ -1856,6 +1859,7 @@ class TableView {
         return isUniformSizeSetting(rowHeights) && isUniformSizeSetting(minRowHeights) &&
           !this.hot.hasHook('modifyRowHeight');
       },
+      rowHeightMode: (this.#resolvedRowHeightMode = this.#resolveRowHeightMode()),
       columnWidthsUniform: () => {
         return isUniformSizeSetting(this.hot.getSettings().colWidths) &&
           !this.hot.hasHook('modifyColWidth');
@@ -2985,6 +2989,67 @@ class TableView {
     if (!isSameEffectiveFixed(this._effectiveFixed, next)) {
       this.#setEffectiveFixed(next);
       this._wt.draw(false);
+    }
+  }
+
+  /**
+   * The row-height mode the options last asked for, as handed to the engine. `#syncRowHeightMode()`
+   * compares the options' answer with this, not with what the engine holds, so a caller that sets the
+   * engine's mode directly (the E2E fixtures do) keeps it until the options ask for a different one.
+   *
+   * @type {RowHeightMode|Function|null}
+   */
+  #resolvedRowHeightMode: RowHeightMode | ((renderedRowIndex: number) => RowHeightMode) | null = null;
+
+  /**
+   * The row-height mode of one row, by the rendered index the engine asks with. Used when the mode can
+   * differ per row, which is the `rowHeights` array and function forms.
+   *
+   * @param {number} renderedRowIndex The rendered row index.
+   * @returns {RowHeightMode}
+   */
+  #rowHeightModeOfRow = (renderedRowIndex: number): RowHeightMode => {
+    const visualIndex = this.hot.rowIndexMapper.getVisualFromRenderableIndex(renderedRowIndex);
+
+    return this.hot._isRowHeightExact(visualIndex === null ? renderedRowIndex : visualIndex) ? 'exact' : 'min';
+  };
+
+  /**
+   * Resolves the engine's `rowHeightMode` setting from the grid's options. The engine takes a literal
+   * when every row shares one mode, which keeps its uniform fast paths (and costs a default grid
+   * nothing), and a function of the row only when the mode can differ per row.
+   *
+   * A row is exact when `rowHeights` gives it a positive height and the AutoRowSize plugin is off; see
+   * `Core#_isRowHeightExact`. `minRowHeights` alone is always the floor.
+   *
+   * @returns {RowHeightMode|Function}
+   */
+  #resolveRowHeightMode(): RowHeightMode | ((renderedRowIndex: number) => RowHeightMode) {
+    const { rowHeights, autoRowSize } = this.hot.getSettings();
+
+    if (isAutoRowSizeOn(autoRowSize) || rowHeights === undefined || rowHeights === null) {
+      return 'min';
+    }
+
+    // A number and a numeric string give every row the same height, so they give every row the same mode.
+    if (typeof rowHeights === 'number' || typeof rowHeights === 'string') {
+      return isExactRowHeight(resolveRowHeightSetting(rowHeights, 0)) ? 'exact' : 'min';
+    }
+
+    return this.#rowHeightModeOfRow;
+  }
+
+  /**
+   * Hands the engine the row-height mode the current options ask for, before a draw. A mode that
+   * changed drops the row-height cache, because the heights it holds were summed under the old one.
+   */
+  #syncRowHeightMode() {
+    const mode = this.#resolveRowHeightMode();
+
+    if (this.#resolvedRowHeightMode !== mode) {
+      this.#resolvedRowHeightMode = mode;
+      this._wt.wtSettings.update('rowHeightMode', mode);
+      this._wt.wtViewport.invalidateRowHeightCache();
     }
   }
 

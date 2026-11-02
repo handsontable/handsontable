@@ -409,6 +409,40 @@ describe('applyRowHeight', () => {
     });
   });
 
+  describe('exact shape with a first cell that spans several rows', () => {
+    it('should write the row\'s own height, not the block\'s total the host handed the spanning cell', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+      const [spanning, carrier] = cellsOf(TR);
+
+      spanning.setAttribute('rowspan', '6');
+      // The host answered 300 (six rows of 50) for the row the block starts on.
+      applyRowHeight(TR, 300, true, true, { getHeight: () => 50, getDefaultHeight: () => 29 }, 0);
+
+      expect(carrier.style.height).toBe('50px');
+      expect(spanning.style.height).toBe('');
+      expect(TR.classList.contains(EXACT_ROW_CLASS)).toBe(true);
+    });
+
+    it('should write the resolved height when the first cell can carry it', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+      const [first] = cellsOf(TR);
+
+      applyRowHeight(TR, 50, true, true, { getHeight: () => 50, getDefaultHeight: () => 29 }, 0);
+
+      expect(first.style.height).toBe('50px');
+    });
+
+    it('should keep the resolved height when the row has no own height to answer', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+      const [spanning, carrier] = cellsOf(TR);
+
+      spanning.setAttribute('rowspan', '2');
+      applyRowHeight(TR, 60, true, true, { getHeight: () => undefined, getDefaultHeight: () => 29 }, 0);
+
+      expect(carrier.style.height).toBe('60px');
+    });
+  });
+
   describe('switching back to the floor shape', () => {
     it('should unmark the row, unwrap the data cells and write the height to the first cell only', () => {
       const TR = createRow(['a', 'b']);

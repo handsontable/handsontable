@@ -233,9 +233,10 @@ ROW_SIZE_OPTIONS    = ['rowHeights', 'minRowHeights']
 COLUMN_SIZE_OPTIONS = ['colWidths']
 ```
 
-`minRowHeights` is a documented alias of `rowHeights` — `Core#_getRowHeightFromSettings` reads
-`rowHeights ?? minRowHeights`, so both state the row heights equally. There is **no** `minColWidths` alias,
-which is why the column list has one entry and the row list two. Do not "symmetrize" them.
+Both row options state the row heights, so passing either one re-declares them. They differ at render time:
+`rowHeights` is exact and `minRowHeights` is a floor (`Core#_isRowHeightExact`), and `minRowHeights` is no longer
+an alias of `rowHeights`. There is **no** `minColWidths` option, which is why the column list has one entry and
+the row list two. Do not "symmetrize" them.
 
 ## Listing a foreign option in `SETTING_KEYS` changes three things
 

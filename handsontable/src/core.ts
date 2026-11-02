@@ -62,6 +62,7 @@ import {
   type MinimumSizes,
 } from './core/minimumSizes';
 import { insertColWidths, removeColWidths } from './core/colWidthsSplice';
+import { isAutoRowSizeOn, isExactRowHeight, resolveRowHeightSetting } from './core/rowHeightSetting';
 import { isSameColumnLayout, type ColumnLayout } from './core/columnLayout';
 import type { HookCallback } from './core/hooks/bucket';
 import type { GridSettings } from './core/settings';
@@ -5809,15 +5810,15 @@ export default function Core(
   }
 
   /**
-   * Warns when `rowHeights` and its alias `minRowHeights` are both configured.
+   * Warns when `rowHeights` and `minRowHeights` are both configured.
    *
    * @private
    * @param {object} settings A settings object (see {@link Options}).
    */
-  function warnAboutRowHeightsAlias(settings: SettingsUpdate): void {
+  function warnAboutBothRowHeightOptions(settings: SettingsUpdate): void {
     if (isDefined(settings.rowHeights) && isDefined(settings.minRowHeights)) {
       warn('Both `rowHeights` and `minRowHeights` are defined in your configuration. ' +
-        'As one is the alias of the other, only one of them can be used at a time. ' +
+        'Only one of them can be used at a time. ' +
         '`rowHeights` will be used as the row height configuration.');
     }
   }
@@ -6565,7 +6566,7 @@ export default function Core(
     // Read before the payload merges into the table meta.
     const { previousMinimumSizes, previousColumnLayout, previousRootSize } = readSettingsBaseline(settings, init);
 
-    warnAboutRowHeightsAlias(settings);
+    warnAboutBothRowHeightOptions(settings);
 
     mergeSettingsIntoMeta(settings, init);
     applyThemeSettings(settings, init);
@@ -8661,6 +8662,27 @@ export default function Core(
   };
 
   /**
+   * Tells whether the row renders at exactly the height the `rowHeights` option gives it, with
+   * taller content clipped, instead of at a minimum the content can grow past. Private use intended.
+   *
+   * A row is exact when `rowHeights` resolves to a positive number for it and the AutoRowSize plugin is
+   * off. The `minRowHeights` option is never exact.
+   *
+   * @private
+   * @memberof Core#
+   * @function _isRowHeightExact
+   * @param {number} row Visual row index.
+   * @returns {boolean}
+   */
+  this._isRowHeightExact = function(row: number) {
+    if (isAutoRowSizeOn(tableMeta.autoRowSize)) {
+      return false;
+    }
+
+    return isExactRowHeight(resolveRowHeightSetting(tableMeta.rowHeights, row));
+  };
+
+  /**
    * Return row height from settings (no guessing). Private use intended.
    *
    * @private
@@ -8670,29 +8692,18 @@ export default function Core(
    * @returns {number}
    */
   this._getRowHeightFromSettings = function(row: number) {
-    const defaultRowHeight = (instance.stylesHandler as StylesHandler).getDefaultRowHeight(row);
-    let height: unknown = tableMeta.rowHeights ?? tableMeta.minRowHeights;
+    const rowHeights = resolveRowHeightSetting(tableMeta.rowHeights, row);
 
-    if (height !== undefined && height !== null) {
-      switch (typeof height) {
-        case 'object': // array
-          height = (height as Record<number, unknown>)[row];
-          break;
-
-        case 'function':
-          height = (height as (row: number) => unknown)(row);
-          break;
-
-        default:
-          break;
-      }
-
-      if (typeof height === 'string') {
-        height = Number.parseInt(height, 10);
-      }
+    // Resolved once: a `rowHeights` function runs for every rendered row on every draw.
+    if (!isAutoRowSizeOn(tableMeta.autoRowSize) && isExactRowHeight(rowHeights)) {
+      return rowHeights;
     }
 
-    const numHeight = height as number | undefined | null;
+    const defaultRowHeight = (instance.stylesHandler as StylesHandler).getDefaultRowHeight(row);
+    const height = tableMeta.rowHeights === undefined || tableMeta.rowHeights === null ?
+      resolveRowHeightSetting(tableMeta.minRowHeights, row) : rowHeights;
+
+    const numHeight = height;
     const numDefaultRowHeight = defaultRowHeight as number | null;
 
     return ((numHeight !== undefined && numHeight !== null &&
@@ -8718,6 +8729,11 @@ export default function Core(
    * Passing [`rowHeights`](@/api/options.md#rowheights) to
    * [`updateSettings()`](@/api/core.md#updatesettings) discards the heights stored by
    * [`ManualRowResize`](@/api/manualRowResize.md), so the option applies again from that point on.
+   *
+   * A height set through [`rowHeights`](@/api/options.md#rowheights) is returned as set, even when it is
+   * smaller than the default row height. A height set through
+   * [`minRowHeights`](@/api/options.md#minrowheights), or through `rowHeights` while
+   * [`AutoRowSize`](@/api/autoRowSize.md) is enabled, is never smaller than the default row height.
    *
    * The height returned includes 1 px of the row's bottom border.
    *
