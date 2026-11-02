@@ -12,6 +12,8 @@ describe('MergeCells adding many merges', () => {
   // Per merge: the anchor lookups, two overlap checks over its four cells, and the anchor capture (about 22).
   // A check that scans every merge costs about `MERGES` lookups per merge instead.
   const LOOKUPS_PER_MERGE = 30;
+  // Per restored merge: one overlap check over its four cells, the top-left lookup and the re-anchor (about 7).
+  const RESTORE_LOOKUPS_PER_MERGE = 10;
   let container;
   let hot;
 
@@ -85,7 +87,7 @@ describe('MergeCells adding many merges', () => {
     mergeCells.restoreMergedAreas(exported);
 
     expect(mergeCells.mergedCellsCollection.mergedCells.length).toBe(MERGES * 2);
-    expect(getSpy.calls.count()).toBeLessThanOrEqual(MERGES * LOOKUPS_PER_MERGE);
+    expect(getSpy.calls.count()).toBeLessThanOrEqual(MERGES * RESTORE_LOOKUPS_PER_MERGE);
     // Only while the collection holds fewer merges than a new merge has cells. A scan per add is MERGES² / 2.
     expect(scanSpy.mock.calls.length).toBeLessThan(MERGES);
   });
@@ -118,11 +120,13 @@ describe('MergeCells adding many merges', () => {
 
     const exported = mergeCells._exportMergedAreas();
 
-    hot.batch(() => mergeCells.clearCollections());
+    hot.batch(() => {
+      mergeCells.clearCollections();
 
-    for (let i = 0; i < MERGES; i++) {
-      mergeCells.merge(i * 2, 2, (i * 2) + 1, 3);
-    }
+      for (let i = 0; i < MERGES; i++) {
+        mergeCells.merge(i * 2, 2, (i * 2) + 1, 3);
+      }
+    });
 
     mergeCells.merge(41, 0, 42, 1); // A42:B43 overlaps the stored merges A41:B42 and A43:B44
     mergeCells.restoreMergedAreas(exported);
