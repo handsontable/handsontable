@@ -561,34 +561,27 @@ class ExportDataProvider {
    * With the Formulas plugin on, a reference names an engine row, and the engine keeps every row,
    * in the grid's order, trimmed and filtered-out ones included. The set then holds the engine
    * index of every row with no visual index (trimmed or filtered out, which the syncer answers with
-   * `-1`), plus the hidden rows when
-   * `exportHiddenRows` is `false`. Without the plugin, a formula is the text the user typed, so
-   * only the hidden rows are left out, by physical index.
+   * `-1`), plus the hidden rows when `exportHiddenRows` is `false`, plus, when `withOutsideRange` is
+   * `true`, every row outside the `range` option (the defined names are moved by it; cell formulas
+   * are not). Without the plugin, a formula is the text the user typed, so only the hidden rows are
+   * left out, by physical index.
    *
+   * @param {boolean} [withOutsideRange=false] Whether to add the engine rows outside `range`.
    * @returns {Set<number>}
    */
-  getExcludedHiddenRows(): Set<number> {
-    const result = new Set<number>();
-    const excludeHidden = this.options.exportHiddenRows === false;
-    const rowAxisSyncer = this.#getEngineRowAxisSyncer();
-
+  getExcludedHiddenRows(withOutsideRange = false): Set<number> {
     const { startRow, endRow } = this._getDataRange();
-    const isExcludedHidden = (visualRow: number) => excludeHidden && visualRow >= startRow && visualRow <= endRow
-      && this._isHiddenRow(visualRow);
+    const excludeHidden = this.options.exportHiddenRows === false;
+    const syncer = this.#getEngineAxisSyncer('row');
 
-    if (rowAxisSyncer) {
-      const engineRows = this.hot.rowIndexMapper.getNumberOfIndexes();
-
-      for (let hfRow = 0; hfRow < engineRows; hfRow++) {
-        const visualRow = rowAxisSyncer.getVisualIndexFromHfIndex(hfRow);
-
-        if (visualRow < 0 || isExcludedHidden(visualRow)) {
-          result.add(hfRow);
-        }
-      }
-
-      return result;
+    if (syncer) {
+      return this.#collectExcludedEngineIndexes(
+        syncer, this.hot.rowIndexMapper.getNumberOfIndexes(), startRow, endRow, withOutsideRange,
+        visualRow => excludeHidden && this._isHiddenRow(visualRow),
+      );
     }
+
+    const result = new Set<number>();
 
     if (!excludeHidden) {
       return result;
@@ -604,41 +597,35 @@ class ExportDataProvider {
   }
 
   /**
-   * Returns the Formulas plugin's row axis syncer when the plugin is on, or `null`.
+   * Returns the columns the exported data matrix leaves out, as the column indexes the formulas'
+   * references use, so the formula normalizer can shift every reference right of them left.
    *
-   * @returns {object|null}
-   */
-  #getEngineRowAxisSyncer(): { getVisualIndexFromHfIndex(hfIndex: number): number } | null {
-    const formulasPlugin = this.hot.getPlugin('formulas');
-
-    if (!formulasPlugin?.isEnabled() || !formulasPlugin.engine) {
-      return null;
-    }
-
-    return formulasPlugin.rowAxisSyncer ?? null;
-  }
-
-  /**
-   * Returns the set of physical HOT column indices that are hidden and excluded from the
-   * exported data matrix (i.e. `exportHiddenColumns` is `false` and the column is hidden).
+   * With the Formulas plugin on, a reference names an engine column, and the engine's column order
+   * follows the visual one (a moved column moves in the engine too). The set then holds the engine
+   * index of every column with no visual index, plus the hidden columns when `exportHiddenColumns`
+   * is `false`, plus, when `withOutsideRange` is `true`, every column outside the `range` option.
+   * Without the plugin, only the hidden columns are left out, by physical index.
    *
-   * Returns an empty set when `exportHiddenColumns` is `true` or `'hide'`, because in
-   * those cases all columns are included in the data matrix and no formula-offset
-   * adjustment is needed.
-   *
-   * Used by the formula normalizer to adjust per-reference column offsets when building
-   * live Excel formulas from HyperFormula formula strings.
-   *
+   * @param {boolean} [withOutsideRange=false] Whether to add the engine columns outside `range`.
    * @returns {Set<number>}
    */
-  getExcludedHiddenColumns(): Set<number> {
-    const result = new Set<number>();
+  getExcludedHiddenColumns(withOutsideRange = false): Set<number> {
+    const { startCol, endCol } = this._getDataRange();
+    const excludeHidden = this.options.exportHiddenColumns === false;
+    const syncer = this.#getEngineAxisSyncer('column');
 
-    if (this.options.exportHiddenColumns !== false) {
-      return result;
+    if (syncer) {
+      return this.#collectExcludedEngineIndexes(
+        syncer, this.hot.columnIndexMapper.getNumberOfIndexes(), startCol, endCol, withOutsideRange,
+        visualColumn => excludeHidden && this._isHiddenColumn(visualColumn),
+      );
     }
 
-    const { startCol, endCol } = this._getDataRange();
+    const result = new Set<number>();
+
+    if (!excludeHidden) {
+      return result;
+    }
 
     for (let colIndex = startCol; colIndex <= endCol; colIndex++) {
       if (this._isHiddenColumn(colIndex)) {
@@ -647,6 +634,57 @@ class ExportDataProvider {
     }
 
     return result;
+  }
+
+  /**
+   * Walks every engine index of one axis and collects the ones the export leaves out: an index
+   * with no visual index, one outside `start`…`end` when `withOutsideRange` is `true`, and one
+   * inside the range that `isHidden` answers `true` for.
+   *
+   * @param {object} syncer The Formulas plugin's axis syncer.
+   * @param {number} count The number of engine indexes of the axis.
+   * @param {number} start The first visual index of the export range.
+   * @param {number} end The last visual index of the export range.
+   * @param {boolean} withOutsideRange Whether an index outside the range is left out.
+   * @param {Function} isHidden Whether a visual index inside the range is a hidden one left out.
+   * @returns {Set<number>}
+   */
+  #collectExcludedEngineIndexes(
+    syncer: { getVisualIndexFromHfIndex(hfIndex: number): number },
+    count: number,
+    start: number,
+    end: number,
+    withOutsideRange: boolean,
+    isHidden: (visualIndex: number) => boolean,
+  ): Set<number> {
+    const result = new Set<number>();
+
+    for (let hfIndex = 0; hfIndex < count; hfIndex++) {
+      const visualIndex = syncer.getVisualIndexFromHfIndex(hfIndex);
+      const inRange = visualIndex >= start && visualIndex <= end;
+
+      if (visualIndex < 0 || (withOutsideRange && !inRange) || (inRange && isHidden(visualIndex))) {
+        result.add(hfIndex);
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Returns the Formulas plugin's row or column axis syncer when the plugin is on, or `null`.
+   *
+   * @param {'row'|'column'} axis The axis.
+   * @returns {object|null}
+   */
+  #getEngineAxisSyncer(axis: 'row' | 'column'): { getVisualIndexFromHfIndex(hfIndex: number): number } | null {
+    const formulasPlugin = this.hot.getPlugin('formulas');
+
+    if (!formulasPlugin?.isEnabled() || !formulasPlugin.engine) {
+      return null;
+    }
+
+    return (axis === 'row' ? formulasPlugin.rowAxisSyncer : formulasPlugin.columnAxisSyncer) ?? null;
   }
 
   /**

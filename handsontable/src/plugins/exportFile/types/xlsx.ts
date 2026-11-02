@@ -840,8 +840,10 @@ class Xlsx extends BaseType {
           exportedName: name,
           rowOffset: dataRowOffset - 1,
           colOffset: dataColOffset - 1,
-          excludedRows: (excludedHiddenRows ?? dataProvider.getExcludedHiddenRows()) ?? undefined,
-          excludedCols: (excludedHiddenCols ?? dataProvider.getExcludedHiddenColumns()) ?? undefined,
+          // A name is moved by the start of `range` too, unlike a cell formula: the rows and
+          // columns outside it are left out, so a name that starts or ends there is refused.
+          excludedRows: dataProvider.getExcludedHiddenRows(true),
+          excludedCols: dataProvider.getExcludedHiddenColumns(true),
         },
       });
     }

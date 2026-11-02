@@ -153,7 +153,13 @@ Other rules:
   Formulas plugin rewrites them on every reorder, and the engine keeps trimmed rows), so
   `getExcludedHiddenRows()` returns engine row indexes when the plugin is on: every row with no visual
   index (the syncer answers `-1`) plus the excluded hidden rows. Without the plugin it keeps the
-  physical hidden rows. Pinned by `__tests__/xlsxFormulaRowOrder.unit.js`.
+  physical hidden rows. Pinned by `__tests__/xlsxFormulaRowOrder.unit.js`. `getExcludedHiddenColumns()`
+  mirrors it through `columnAxisSyncer` (DEV-3648): the engine's column order follows the visual one,
+  so with `manualColumnMove` the physical index of a hidden column named another engine column, and
+  both cell formulas and names were written one column off. Pinned by the moved-and-hidden case in
+  `xlsxNamedExpressions.unit.js`. Both take `withOutsideRange`: `true` adds every engine index outside
+  the `range` option, which only the defined names use (a cell formula is documented as not moved by
+  the start of `range`).
 - **`normalizeFormula` no longer owns the formula walk.** Splitting a formula into string literals, sheet
   names and A1 references lives in `../../utils/xlsxEngine/formulaRefs.ts` (`mapFormulaReferences`), shared
   with the import direction, which shifts the same references the other way. `normalizeFormula` keeps the
@@ -396,7 +402,8 @@ Other rules:
   reference is moved by the grid its sheet belongs to and re-qualified with that grid's exported
   name (`mapFormulaReferences`' `requalify`, whose answer carries the per-sheet map and whose new
   name the walker quotes). A reference to an engine sheet the export does not write, an unqualified
-  one, or one that STARTS or ENDS on a left-out row or column refuses the whole name
+  one, or one that STARTS or ENDS on a left-out row or column (a row or column outside `range`
+  counts as left out for names) refuses the whole name
   (`definedNames:unsupported`, recorded once); a left-out index inside a range only shrinks it.
   Names are deduplicated case-insensitively: the first wins, a later one with another definition is
   left out and recorded. Pinned by `xlsxNamedExpressions.unit.js` and `formula-utils.unit.js`.

@@ -6,6 +6,7 @@ import { ExportFile } from '../exportFile';
 import { Formulas } from '../../formulas';
 import { HiddenRows } from '../../hiddenRows';
 import { HiddenColumns } from '../../hiddenColumns';
+import { ManualColumnMove } from '../../manualColumnMove';
 import { registerCellType } from '../../../cellTypes/registry';
 import { IntlDateCellType } from '../../../cellTypes/intlDateType';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
@@ -29,6 +30,7 @@ describe('Xlsx export: named expressions as defined names', () => {
     registerPlugin(ExportFile);
     registerPlugin(HiddenRows);
     registerPlugin(HiddenColumns);
+    registerPlugin(ManualColumnMove);
     registerCellType(IntlDateCellType);
   });
 
@@ -400,6 +402,65 @@ describe('Xlsx export: named expressions as defined names', () => {
       { name: 'Sales', formula: 'Sheet1!$A$1:$A$2', sheetName: null },
     ]);
     expect(dropped.count('definedNames:unsupported')).toBe(0);
+  });
+
+  it('should leave out the hidden ENGINE column after a column move, for names and cell formulas', async() => {
+    // The engine's column order follows the visual one: the grid shows 4, 1, 2, 3, the hidden
+    // physical column 3 is engine column A (value 4), and the file holds 1, 2, 3. Leaving out the
+    // physical index instead (engine column D) wrote every reference one column too far right.
+    const engine = createGrid({
+      data: [[1, 2, 3, 4], [null, null, null, null]],
+      manualColumnMove: [3, 0, 1, 2],
+      hiddenColumns: { columns: [3] },
+    });
+
+    hot.setDataAtCell(1, 1, '=B1*10+D1');
+    engine.addNamedExpression('First', '=Sheet1!$B$1');
+    engine.addNamedExpression('Last', '=Sheet1!$D$1');
+    engine.addNamedExpression('Pair', '=Sheet1!$A$1:$B$1');
+
+    const { snapshot, dropped } = await exportWorkbook({ exportFormulas: true, exportHiddenColumns: false });
+    // Visual column 0 is the hidden one, so the formula typed at visual column 1 is the first cell.
+    const [values, [formulaCell]] = snapshot.sheets[0].rows;
+
+    expect(values.map(cell => cell.value)).toEqual(['1', '2', '3']);
+    expect(formulaCell.formula).toEqual(expect.objectContaining({ text: 'A1*10+C1', result: 13 }));
+    expect(snapshot.definedNames).toEqual([
+      { name: 'First', formula: 'Sheet1!$A$1', sheetName: null },
+      { name: 'Last', formula: 'Sheet1!$C$1', sheetName: null },
+    ]);
+    expect(dropped.count('definedNames:unsupported')).toBe(1);
+  });
+
+  it('should move a name by the start of `range`, and leave out one that starts or ends outside it', async() => {
+    const engine = createGrid({ data: [[10, 1], [20, 2], [30, 3], [40, 4], [50, 5], [60, 6]] });
+
+    engine.addNamedExpression('Tail', '=Sheet1!$A$3:$A$5');
+    engine.addNamedExpression('Second', '=Sheet1!$B$4');
+    engine.addNamedExpression('FromTop', '=Sheet1!$A$1:$A$4');
+    engine.addNamedExpression('PastEnd', '=Sheet1!$A$5:$A$6');
+    engine.addNamedExpression('LeftColumn', '=Sheet1!$A$4');
+
+    const { snapshot, dropped } = await exportWorkbook({ exportFormulas: true, range: [2, 0, 4, 1] });
+
+    expect(snapshot.definedNames).toEqual([
+      { name: 'Tail', formula: 'Sheet1!$A$1:$A$3', sheetName: null },
+      { name: 'Second', formula: 'Sheet1!$B$2', sheetName: null },
+      { name: 'LeftColumn', formula: 'Sheet1!$A$2', sheetName: null },
+    ]);
+    expect(dropped.count('definedNames:unsupported')).toBe(1);
+
+    hot.destroy();
+    writeSpy.mockClear();
+
+    const shifted = createGrid({ data: [[1, 10], [2, 20]] });
+
+    shifted.addNamedExpression('Right', '=Sheet1!$B$1:$B$2');
+    shifted.addNamedExpression('Left', '=Sheet1!$A$1');
+
+    const columns = await exportWorkbook({ exportFormulas: true, range: [0, 1, 1, 1] });
+
+    expect(columns.snapshot.definedNames).toEqual([{ name: 'Right', formula: 'Sheet1!$A$1:$A$2', sheetName: null }]);
   });
 
   it('should leave out a name whose reference ends on a row or a column the export leaves out', async() => {
