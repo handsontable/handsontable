@@ -67,6 +67,12 @@ column plugin, whose forward a frozen spec calls directly.
 `../autoRowSize/` deliberately leaves its height-recalculation listener bound even when disabled, exactly so
 this plugin's double-click autofit keeps working.
 
+## AutoRowSize is asked whether it RUNS
+
+`#onModifyRowHeight` keeps a resized row at least as tall as the incoming height only while AutoRowSize runs
+(`.enabled`). It read `isEnabled()` before, which answers `true` for an AutoRowSize a license key keeps off, so a
+row dragged below its declared height stayed at that height. Pinned by `../base/__tests__/licenseGate.unit.js`.
+
 ## Where to look next
 
 - The drag, the teardown traps and the along/across model: `../../utils/manualResize/AGENTS.md`.

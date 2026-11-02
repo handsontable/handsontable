@@ -5012,6 +5012,12 @@ export default (): Record<string, unknown> => {
      * | A string with your [entitlement license key](@/guides/getting-started/license-key/license-key.md#entitlement-license-keys) (plain-English text ending with a `[...]` block) | For trial, subscription, or perpetual use |
      * | `'non-commercial-and-evaluation'`                                                                       | For [non-commercial use](@/guides/technical-specification/software-license/software-license.md#non-commercial-use) |
      *
+     * An entitlement license key can list the features it unlocks. A plugin such a key does not list
+     * stays off, and the console and the bar under the grid name it. The plugin's option keeps the
+     * value you set, so passing a key that lists the feature through `updateSettings()` turns the plugin
+     * on. A key that does not list its features unlocks every feature. See
+     * [Keys that list features](@/guides/getting-started/license-key/license-key.md#keys-that-list-features).
+     *
      * Read more:
      * - [License key](@/guides/getting-started/license-key/license-key.md)
      *

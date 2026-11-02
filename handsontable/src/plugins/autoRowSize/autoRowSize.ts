@@ -11,6 +11,7 @@ import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translati
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { FONT_REMEASURE_ROWS_ORDER_INDEX } from '../../core/fontLoad';
 import { isAutoRowSizeOn } from '../../core/rowHeightSetting';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'autoRowSize';
 export const PLUGIN_PRIORITY = 40;
@@ -191,6 +192,14 @@ export class AutoRowSize extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

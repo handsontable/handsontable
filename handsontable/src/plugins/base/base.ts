@@ -1,6 +1,7 @@
 import type { HotInstance } from '../../core/types';
 import type { HookCallback } from '../../core/hooks/bucket';
 import type { Events } from '../../core/settings';
+import type { PluginLicense } from '../../utils/licenseCapabilities/types';
 import {
   defineGetter, objectEach, isObject, isPlainObject, assignObjectDefaults, getProperty, hasOwnProperty,
 } from '../../helpers/object';
@@ -15,6 +16,7 @@ import EventManager from '../../eventManager';
 import { warn } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { getHardConflict } from './conflictRegistry';
+import { hasLicenseCapability, isPluginLicense, reportMissingCapability } from '../../utils/licenseCapabilities';
 
 // eslint-disable-next-line no-spaced-func, func-call-spacing
 const DEPS_TYPE_CHECKERS = new Map<string, (name: string) => boolean>([
@@ -190,6 +192,14 @@ export class BasePlugin {
   static PLUGIN_DEPS?: string[];
 
   /**
+   * The license token of the plugin, generated from its `feature.json`. Only a plugin a license key can name
+   * has one; a plugin without it is never checked against the key.
+   *
+   * @type {PluginLicense | undefined}
+   */
+  static LICENSE?: PluginLicense;
+
+  /**
    * Plugin settings.
    *
    * @type {object|null}
@@ -288,6 +298,11 @@ export class BasePlugin {
   #routeLifecycleCalls(): void {
     // `this.constructor.prototype` is the most derived class's prototype, read on every call.
     defineGetter(this, 'enablePlugin', () => this.#runLifecycleCall(true, () => {
+      // A key that leaves the plugin out keeps it off, also when an app turns it on directly.
+      if (this.hot && this.isLicenseBlocked()) {
+        return undefined;
+      }
+
       return this.constructor.prototype.enablePlugin.call(this);
     }), { enumerable: false });
     defineGetter(this, 'updatePlugin', (...args: Parameters<BasePlugin['updatePlugin']>) => {
@@ -359,6 +374,12 @@ export class BasePlugin {
       return;
     }
 
+    // Unlike a hard conflict, the license gate leaves the setting as the user wrote it, so a later
+    // `updateSettings()` with a key that lists the plugin can still turn it on.
+    if (this.isLicenseBlocked()) {
+      return;
+    }
+
     if (settingsChanged) {
       this.updatePluginSettings(this.hot.getSettings()[this.constructor.PLUGIN_KEY]);
     }
@@ -374,7 +395,8 @@ export class BasePlugin {
    */
   isHardConflictBlocked() {
     const pluginKey = this.constructor.PLUGIN_KEY;
-    const conflict = getHardConflict(this.hot.getSettings(), pluginKey);
+    // A setting whose plugin the license key keeps off conflicts with nothing: that plugin does not run.
+    const conflict = getHardConflict(this.hot.getSettings(), pluginKey, key => this.#isKeptOffByLicense(key));
 
     if (conflict) {
       const { incompatibleSettingKey } = conflict;
@@ -386,6 +408,45 @@ export class BasePlugin {
     }
 
     return false;
+  }
+
+  /**
+   * Whether the license key of the grid keeps off the plugin that a top-level setting turns on.
+   *
+   * @param {string} settingKey The setting key, which is also the plugin key of a plugin's own option.
+   * @returns {boolean}
+   */
+  #isKeptOffByLicense(settingKey: string): boolean {
+    const plugin = this.hot.getPlugin(settingKey) as BasePlugin | undefined;
+    const license: unknown = plugin?.constructor.LICENSE;
+
+    return isPluginLicense(license) && license.gate === 'enable' &&
+      !hasLicenseCapability(this.hot, license.capability);
+  }
+
+  /**
+   * Whether the license key of the grid leaves this plugin out, so it must stay off. Only a plugin with
+   * `gate: 'enable'` in its `LICENSE` is checked here, and only on the root grid; the plugin is reported
+   * for the license message when it is blocked. The setting is never rewritten.
+   *
+   * @private
+   * @returns {boolean} `true` if the plugin must not enable.
+   */
+  isLicenseBlocked(): boolean {
+    const license: unknown = this.constructor.LICENSE;
+
+    if (!isPluginLicense(license) || license.gate !== 'enable' || hasLicenseCapability(this.hot, license.capability)) {
+      return false;
+    }
+
+    // The feature leaves the list once the option no longer asks for the plugin (or the plugin is gone).
+    reportMissingCapability(
+      this.hot,
+      license,
+      () => Boolean(this.hot) && this.isEnabled?.() === true && !this.enabled,
+    );
+
+    return true;
   }
 
   /**
@@ -886,7 +947,7 @@ export class BasePlugin {
     let settingsRefreshed = false;
 
     if (!this.enabled && this.isEnabled()) {
-      if (this.isHardConflictBlocked()) {
+      if (this.isHardConflictBlocked() || this.isLicenseBlocked()) {
         return;
       }
       this.updatePluginSettings(this.hot.getSettings()[this.constructor.PLUGIN_KEY]);
@@ -894,10 +955,11 @@ export class BasePlugin {
       this.enablePlugin();
     }
 
+    // A key passed later that does not list the plugin turns it off, like a hard conflict that appears.
     if (
       this.enabled &&
       this.isEnabled() &&
-      this.isHardConflictBlocked()
+      (this.isHardConflictBlocked() || this.isLicenseBlocked())
     ) {
       this.disablePlugin();
 

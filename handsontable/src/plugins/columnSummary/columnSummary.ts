@@ -6,6 +6,7 @@ import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { holdsNoNumber, isBlank } from './utils';
 import { throwWithCause } from '../../helpers/errors';
 import { normalizeClassNames } from '../../helpers/dom/element';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'columnSummary';
 export const PLUGIN_PRIORITY = 220;
@@ -159,6 +160,14 @@ export class ColumnSummary extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

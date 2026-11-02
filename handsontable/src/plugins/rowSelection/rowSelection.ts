@@ -51,6 +51,7 @@ import {
 import { warn } from '../../helpers/console';
 import { syncIcon } from '../../themes/engine/icons';
 import type { PhysicalIndexToValueMap } from '../../translations';
+import { LICENSE } from './feature.generated';
 
 Hooks.getSingleton().register('beforeRowSelectionChange');
 Hooks.getSingleton().register('afterRowSelectionChange');
@@ -364,6 +365,14 @@ export class RowSelection extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

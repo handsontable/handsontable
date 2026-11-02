@@ -1733,8 +1733,10 @@ class TableView {
       // several grids on one page never cross-reference each other's headers.
       guid: this.hot.guid,
       rtlMode: this.hot.isRtl(),
+      // `enabled`, not `isEnabled()`: a plugin the license key leaves out keeps its setting but measures nothing,
+      // and the engine must then measure the rows itself. Plugins are enabled before the view is built.
       externalRowCalculator: this.hot.getPlugin('autoRowSize') &&
-        this.hot.getPlugin('autoRowSize').isEnabled(),
+        this.hot.getPlugin('autoRowSize').enabled,
       // Single-pass rendering is on by default; the `modifySinglePassLayout` hook lets a plugin or
       // user code force the legacy measure-then-render path by returning `false` (e.g. `mergeCells`,
       // whose virtualized row heights depend on the viewport the layout is computing). Evaluated per

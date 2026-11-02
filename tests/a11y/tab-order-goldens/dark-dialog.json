@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "page": "dark-dialog",
+  "theme": "main",
+  "walks": {
+    "forward": [
+      {
+        "region": "start"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Cancel"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "OK"
+      },
+      {
+        "region": "end"
+      }
+    ],
+    "backward": [
+      {
+        "region": "end"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "OK"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Cancel"
+      },
+      {
+        "region": "start"
+      }
+    ]
+  }
+}
