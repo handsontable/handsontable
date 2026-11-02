@@ -1191,11 +1191,9 @@ export class HandsontableAdapter {
     const endRow = this.#firstVisualIn(range.end.row, range.start.row, rowToVisual);
     const endCol = this.#firstVisualIn(range.end.col, range.start.col, colToVisual);
 
-    const corners: Array<[number, 'row' | 'col']> = [
-      [startRow, 'row'], [endRow, 'row'], [startCol, 'col'], [endCol, 'col'],
-    ];
-
-    if (!corners.every(([index, axis]) => this.#isShownIndex(index, axis))) {
+    // A corner on a hidden index is kept, as `selectCells()` keeps it; only a range with no shown index
+    // between its corners on an axis is refused.
+    if (!this.#hasShownIndexBetween(startRow, endRow, 'row') || !this.#hasShownIndexBetween(startCol, endCol, 'col')) {
       return false;
     }
 
@@ -1346,6 +1344,31 @@ export class HandsontableAdapter {
     }
 
     return { ...cell, row, col };
+  }
+
+  /**
+   * Tells whether the grid shows at least one visual index between two corners of a range, both
+   * included. Both corners must exist (`maxRows` and `maxCols` cap the count); either may sit on a
+   * hidden index.
+   *
+   * @param {number} first One corner's visual index, `-1` for none.
+   * @param {number} last The other corner's visual index, `-1` for none.
+   * @param {'row' | 'col'} axis The axis.
+   * @returns {boolean}
+   */
+  #hasShownIndexBetween(first: number, last: number, axis: 'row' | 'col'): boolean {
+    const low = Math.min(first, last);
+    const high = Math.max(first, last);
+    const count = axis === 'row' ? this.#hot.countRows() : this.#hot.countCols();
+
+    if (low < 0 || high >= count) {
+      return false;
+    }
+
+    const indexMapper = axis === 'row' ? this.#hot.rowIndexMapper : this.#hot.columnIndexMapper;
+    const nearest = indexMapper.getNearestNotHiddenIndex(low, 1);
+
+    return nearest !== null && nearest <= high;
   }
 
   /**

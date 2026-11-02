@@ -14,6 +14,7 @@ export interface PluginIndexMapperStub {
   getRenderableIndexesLength: () => number;
   getNumberOfIndexes: () => number;
   isHidden: (physicalIndex: number) => boolean;
+  getNearestNotHiddenIndex: (fromVisualIndex: number, searchDirection: 1 | -1) => number | null;
 }
 
 /**
@@ -66,6 +67,8 @@ export interface PluginHotStubShape {
   countCols: () => number;
   toPhysicalRow: (visualRow: number) => number;
   toPhysicalColumn: (visualColumn: number) => number;
+  toVisualRow: (physicalRow: number) => number;
+  toVisualColumn: (physicalColumn: number) => number;
   render: jest.Mock;
   getFirstRenderedVisibleRow: () => number;
   getLastRenderedVisibleRow: () => number;
@@ -139,6 +142,8 @@ export function makeIndexMapperStub(length = 0): PluginIndexMapperStub {
     getRenderableIndexesLength: () => length,
     getNumberOfIndexes: () => length,
     isHidden: () => false,
+    // Nothing is hidden, so the nearest shown index is the one asked for.
+    getNearestNotHiddenIndex: fromVisualIndex => fromVisualIndex,
   };
 }
 
@@ -197,6 +202,8 @@ export function makePluginHotStub(
     countCols: () => 0,
     toPhysicalRow: visualRow => visualRow,
     toPhysicalColumn: visualColumn => visualColumn,
+    toVisualRow: physicalRow => physicalRow,
+    toVisualColumn: physicalColumn => physicalColumn,
     render: jest.fn(),
     getFirstRenderedVisibleRow: () => 0,
     getLastRenderedVisibleRow: () => 0,

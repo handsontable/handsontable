@@ -788,6 +788,26 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(adapter().setSelection(range)).toBe(false);
     });
 
+    it('is selected as a range with a corner on a hidden row, as the grid selects it', () => {
+      createGrid({ hiddenRows: { rows: [0] } });
+      hot.selectCell(4, 4);
+
+      const range = { start: { sheet: '', row: 0, col: 0 }, end: { sheet: '', row: 2, col: 1 } };
+
+      expect(adapter().setSelection(range)).not.toBe(false);
+      expect(hot.getSelectedLast()).toEqual([0, 0, 2, 1]);
+    });
+
+    it('is refused as a range whose every row is hidden', () => {
+      createGrid({ hiddenRows: { rows: [0, 1] } });
+      hot.selectCell(4, 4);
+
+      const range = { start: { sheet: '', row: 0, col: 0 }, end: { sheet: '', row: 1, col: 1 } };
+
+      expect(adapter().setSelection(range)).toBe(false);
+      expect(hot.getSelectedLast()).toEqual([4, 4, 4, 4]);
+    });
+
     it('is selected when the grid shows it', () => {
       createGrid({ hiddenRows: { rows: [2] } });
       hot.selectCell(0, 0);
@@ -806,6 +826,30 @@ describe('FormulaBuilder editing on a real grid', () => {
       hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
 
       expect(hot.getSelectedLast()).toEqual([2, 1, 2, 1]);
+    });
+
+    it('prefers the record it focused last after a row was inserted above it', () => {
+      createGrid();
+      hot.selectCell(2, 1);
+      hot.deselectCell();
+      hot.alter('insert_row_above', 0);
+
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([3, 1, 3, 1]);
+      expect(hot.getDataAtCell(3, 1)).toBe('B3');
+    });
+
+    it('prefers the cell the focus moved to inside a selected range', () => {
+      createGrid();
+      hot.selectCell(1, 1, 2, 2);
+      // Tab and Enter move the focus inside a range without ending a selection gesture.
+      hot.selection.setRangeFocus(hot._createCellCoords(2, 2));
+      hot.deselectCell();
+
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([2, 2, 2, 2]);
     });
 
     it('scans for the first formula cell when the remembered cell no longer uses the formula editor', () => {

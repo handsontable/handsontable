@@ -687,6 +687,34 @@ test.describe('formulaBuilder picking onto the headers of a scrolled frozen grid
     await expect(grid.editorInput).toHaveValue(`=B1:B${targetRow + 1}`);
   });
 
+  test('a drag onto the column header skips a hidden first row of the frozen band', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle, 'frozen');
+
+    await grid.goto();
+    await grid.updateGridSettings({ hiddenRows: { rows: [0] } });
+    await grid.selectCellByApi(4, 0);
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+
+    await grid.drag(grid.cell(4, 2), grid.columnHeaderLabel('C'));
+
+    await expect(grid.editorInput).toHaveValue('=C2:C5');
+  });
+
+  test('a drag onto the row header skips a hidden first column of the frozen band', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle, 'frozen');
+
+    await grid.goto();
+    await grid.updateGridSettings({ hiddenColumns: { columns: [0] } });
+    await grid.selectCellByApi(4, 1);
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+
+    await grid.drag(grid.cell(2, 2), grid.rowHeader('3'));
+
+    await expect(grid.editorInput).toHaveValue('=B3:C3');
+  });
+
   test('a drag onto the column header starts at the first visible row when limitFixedToViewport draws no frozen row', async({ page, theme, bundle }) => {
     const grid = new FormulaBuilderPage(page, theme, bundle, 'frozen');
 

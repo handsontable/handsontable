@@ -73,7 +73,8 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   A link (`a[href]`, from a `HYPERLINK` formula or AutoLink) is the same: the claim does not cancel its
   navigation, so a pick that starts on one arms a click swallow for it (`#armAnchorClickSwallow`).
   A drag held on a header clamps only the header's own axis to the first visible track (`firstVisibleRow()`/
-  `firstVisibleCol()`: index 0 when that axis is frozen, else the first fully visible one), not to index 0.
+  `firstVisibleCol()`: the first index a hiding map leaves when that axis is frozen, else the first fully
+  visible one), not to index 0.
   "Frozen" is the band the grid draws (`view.countFixedRowsTop()`/`countFixedColumnsStart()`), never the raw
   option: under `limitFixedToViewport` the drawn band can be 0 while `fixedRowsTop` is set.
   The handoff press (a click on the bar-selected cell, which moves the edit into the cell) is claimed
@@ -292,7 +293,9 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   `maxRows`/`maxCols`, a grid that selected something else (`selectionMode: 'single'` collapses a range),
   and a select the grid refused. `selectFormulaCell(s)` returns `boolean` for that last two: the grid's
   last selection must hold the requested range (a merged cell may widen it). A trimmed index is the
-  exception and is not refused: it still moves to the nearest shown index.
+  exception and is not refused: it still moves to the nearest shown index. A RANGE is refused only when
+  an axis has no shown index between its corners (`#hasShownIndexBetween()`): a corner on a hidden row
+  is kept, as `hot.selectCells()` keeps it, so `A1:B3` with row 1 hidden selects `[0, 0, 2, 1]`.
 - **The reference border width is cached on the adapter, which outlives a theme rebuild.** `afterSetTheme`
   calls `resetBorderWidth()` before the theme class check (a stylesheet swapped in place keeps the class).
 - **Every engine read goes through `#readableSheetId()`.** An application on a shared engine can remove
@@ -358,8 +361,11 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   Shift+Tab moves to the bar's formula editor (an edit session opens), Shift+Tab again to the address box (the
   session closes, the cell keeps its value), and Shift+Tab again out of the grid. Shift+Tab from the first column (`autoWrapRow: false`) drops the grid's
   selection and the focus lands on the editor, where the package asks `selectFirstFormulaCell()` for a cell:
-  it tries `#lastFocusedCoords` (the cell the grid focused last, recorded in `#onAfterSelectionEnd`, never
-  cleared on deselect) first, guarded by range, visibility and `#isFormulaCell`, and scans only otherwise -
+  it tries `#lastFocusedCoords` (the cell the grid focused last, recorded in `#onAfterSelectionEnd` and
+  `#onAfterSelectionFocusSet`, since Tab inside a range moves the focus without ending a gesture, and
+  never cleared on deselect) first. It is kept in PHYSICAL coordinates so a sort or a move keeps the
+  record, and shifted on `afterCreateRow`/`Col` and `afterRemoveRow`/`Col`, because an insert or a
+  removal renumbers the physical indexes after it (forgotten when its own track is removed). It is guarded by range, visibility and `#isFormulaCell`, and scans only otherwise -
   so the bar edits the cell you left, not A1. A data load or a sheet switch (`afterLoadData`/`afterUpdateData`)
   clears it, or the bar would open an edit on the same coordinates of a different record. Tab from the content before
   the grid goes address box, formula editor (the same remembered cell), then back into the grid. There is no keyboard trap, so the bar

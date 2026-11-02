@@ -12,6 +12,7 @@ export interface IndexMapperStub {
   getRenderableFromVisualIndex: (visualIndex: number) => number | null;
   getNumberOfIndexes: () => number;
   isHidden?: (physicalIndex: number) => boolean;
+  getNearestNotHiddenIndex?: (fromVisualIndex: number, searchDirection: 1 | -1) => number | null;
 }
 
 /**
@@ -107,6 +108,30 @@ export interface GridSelectionApiStub {
   selection: { highlight: HighlightStub };
   _createCellCoords: (row: number, col: number) => CoordsStub;
   _createCellRange: (highlight: CoordsStub, from?: CoordsStub, to?: CoordsStub) => RangeStub;
+}
+
+/**
+ * Builds an index mapper's `getNearestNotHiddenIndex()` over a stub's hiding answers.
+ *
+ * @param {object} mapper The index mapper stub.
+ * @param {Function} toPhysical Translates a visual index to a physical one.
+ * @param {Function} count Returns the number of visual indexes.
+ * @returns {Function}
+ */
+function nearestNotHiddenIndex(
+  mapper: { isHidden?: (physicalIndex: number) => boolean },
+  toPhysical: (visualIndex: number) => number,
+  count: () => number,
+): (fromVisualIndex: number, searchDirection: 1 | -1) => number | null {
+  return (fromVisualIndex, searchDirection) => {
+    for (let index = fromVisualIndex; index >= 0 && index < count(); index += searchDirection) {
+      if (!mapper.isHidden?.(toPhysical(index))) {
+        return index;
+      }
+    }
+
+    return null;
+  };
 }
 
 /**
@@ -273,6 +298,17 @@ export function makeHotStub(overrides: Partial<HotStubShape> = {}): HotInstance 
   // An override of a mapper keeps the members it does not name (a hiding map answers `false`).
   stub.rowIndexMapper = { isHidden: () => false, ...stub.rowIndexMapper };
   stub.columnIndexMapper = { isHidden: () => false, ...stub.columnIndexMapper };
+  // The nearest shown index follows whatever the stub's `isHidden` and counts answer.
+  stub.rowIndexMapper = {
+    getNearestNotHiddenIndex: nearestNotHiddenIndex(stub.rowIndexMapper, stub.toPhysicalRow, () => stub.countRows()),
+    ...stub.rowIndexMapper,
+  };
+  stub.columnIndexMapper = {
+    getNearestNotHiddenIndex: nearestNotHiddenIndex(
+      stub.columnIndexMapper, stub.toPhysicalColumn, () => stub.countCols()
+    ),
+    ...stub.columnIndexMapper,
+  };
 
   withLocalHooks(stub.rowIndexMapper);
   withLocalHooks(stub.columnIndexMapper);

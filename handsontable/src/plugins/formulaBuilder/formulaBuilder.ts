@@ -395,10 +395,12 @@ export class FormulaBuilder extends BasePlugin {
    */
   #lastBarCell: { row: number; col: number; text: string; isFormula: boolean } | null = null;
   /**
-   * The visual coordinates of the cell the grid focused last. Not cleared on deselect: Shift+Tab from
+   * The physical coordinates of the cell the grid focused last. Not cleared on deselect: Shift+Tab from
    * the first column drops the selection and moves the focus onto the bar, and the bar then asks
-   * for a cell to edit - the one that was left. Visual coordinates can go stale after a structural
-   * change, so every read checks range, visibility and the editor again.
+   * for a cell to edit - the one that was left. Physical, so a sort or a move keeps the record, and
+   * shifted on an insert or a removal, which renumber the physical indexes after them
+   * (`#onAfterCreateTrack`, `#onAfterRemoveTrack`); every read still checks range, visibility and the
+   * editor again.
    */
   #lastFocusedCoords: { row: number; col: number } | null = null;
   /**
@@ -908,19 +910,84 @@ export class FormulaBuilder extends BasePlugin {
   #selectLastFocusedFormulaCell(): boolean {
     const last = this.#lastFocusedCoords;
 
-    if (last === null || last.row >= this.hot.countRows() || last.col >= this.hot.countCols()) {
+    if (last === null) {
       return false;
     }
 
-    if (this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(last.row) ?? -1) ||
-        this.hot.columnIndexMapper.isHidden(this.hot.toPhysicalColumn(last.col) ?? -1) ||
-        !this.#isFormulaCell(last.row, last.col)) {
+    const row = this.hot.toVisualRow(last.row);
+    const col = this.hot.toVisualColumn(last.col);
+
+    if (row === null || col === null || row >= this.hot.countRows() || col >= this.hot.countCols()) {
       return false;
     }
 
-    this.hot.selectCell(last.row, last.col);
+    if (this.hot.rowIndexMapper.isHidden(last.row) || this.hot.columnIndexMapper.isHidden(last.col) ||
+        !this.#isFormulaCell(row, col)) {
+      return false;
+    }
+
+    this.hot.selectCell(row, col);
 
     return true;
+  }
+
+  /**
+   * Records the physical coordinates of the cell the active selection layer focuses.
+   */
+  #rememberFocusedCell(): void {
+    const focus = this.hot.getSelectedRangeActive()?.highlight;
+
+    if (!focus || typeof focus.row !== 'number' || typeof focus.col !== 'number' || focus.row < 0 || focus.col < 0) {
+      return;
+    }
+
+    const row = this.hot.toPhysicalRow(focus.row);
+    const col = this.hot.toPhysicalColumn(focus.col);
+
+    if (row !== null && col !== null) {
+      this.#lastFocusedCoords = { row, col };
+    }
+  }
+
+  /**
+   * Shifts the remembered cell past the physical indexes an insert added before it.
+   *
+   * @param {'row' | 'col'} axis The axis the tracks were created on.
+   * @param {number} index The visual index of the first created track.
+   * @param {number} amount The number of created tracks.
+   */
+  #shiftRememberedCellOnCreate(axis: 'row' | 'col', index: number, amount: number): void {
+    const last = this.#lastFocusedCoords;
+    const physicalStart = axis === 'row' ? this.hot.toPhysicalRow(index) : this.hot.toPhysicalColumn(index);
+
+    if (last !== null && physicalStart !== null && last[axis] >= physicalStart) {
+      this.#lastFocusedCoords = { ...last, [axis]: last[axis] + amount };
+    }
+  }
+
+  /**
+   * Forgets the remembered cell when its track was removed, and shifts it back past the removed
+   * physical indexes before it otherwise.
+   *
+   * @param {'row' | 'col'} axis The axis the tracks were removed from.
+   * @param {number[]} physicalIndexes The physical indexes the tracks had before the removal.
+   */
+  #shiftRememberedCellOnRemove(axis: 'row' | 'col', physicalIndexes: number[]): void {
+    const last = this.#lastFocusedCoords;
+
+    if (last === null) {
+      return;
+    }
+
+    if (physicalIndexes.includes(last[axis])) {
+      this.#lastFocusedCoords = null;
+
+      return;
+    }
+
+    const removedBefore = physicalIndexes.filter(physicalIndex => physicalIndex < last[axis]).length;
+
+    this.#lastFocusedCoords = { ...last, [axis]: last[axis] - removedBefore };
   }
 
   /**
@@ -1155,11 +1222,7 @@ export class FormulaBuilder extends BasePlugin {
    * @param {number} focusCol The focus visual column index.
    */
   #onAfterSelectionEnd = (): void => {
-    const focus = this.hot.getSelectedRangeLast()?.highlight;
-
-    if (focus && typeof focus.row === 'number' && typeof focus.col === 'number' && focus.row >= 0 && focus.col >= 0) {
-      this.#lastFocusedCoords = { row: focus.row, col: focus.col };
-    }
+    this.#rememberFocusedCell();
 
     if (this.#isEditing()) {
       return;
@@ -1447,10 +1510,55 @@ export class FormulaBuilder extends BasePlugin {
   };
 
   /**
+   * `afterCreateRow` hook listener - keeps the remembered cell on its record (`#lastFocusedCoords`).
+   *
+   * @param {number} index The visual index of the first created row.
+   * @param {number} amount The number of created rows.
+   */
+  #onAfterCreateRowRemembered = (index: number, amount: number): void => {
+    this.#shiftRememberedCellOnCreate('row', index, amount);
+  };
+
+  /**
+   * `afterCreateCol` hook listener - keeps the remembered cell on its record (`#lastFocusedCoords`).
+   *
+   * @param {number} index The visual index of the first created column.
+   * @param {number} amount The number of created columns.
+   */
+  #onAfterCreateColRemembered = (index: number, amount: number): void => {
+    this.#shiftRememberedCellOnCreate('col', index, amount);
+  };
+
+  /**
+   * `afterRemoveRow` hook listener - keeps the remembered cell on its record (`#lastFocusedCoords`).
+   *
+   * @param {number} index The visual index of the first removed row.
+   * @param {number} amount The number of removed rows.
+   * @param {number[]} physicalRows The physical indexes the rows had.
+   */
+  #onAfterRemoveRowRemembered = (index: number, amount: number, physicalRows: number[]): void => {
+    this.#shiftRememberedCellOnRemove('row', physicalRows);
+  };
+
+  /**
+   * `afterRemoveCol` hook listener - keeps the remembered cell on its record (`#lastFocusedCoords`).
+   *
+   * @param {number} index The visual index of the first removed column.
+   * @param {number} amount The number of removed columns.
+   * @param {number[]} physicalColumns The physical indexes the columns had.
+   */
+  #onAfterRemoveColRemembered = (index: number, amount: number, physicalColumns: number[]): void => {
+    this.#shiftRememberedCellOnRemove('col', physicalColumns);
+  };
+
+  /**
    * `afterSelectionFocusSet` hook listener - re-emits the bar selection when only
    * the highlight moved (Tab/Shift+Tab within a range).
    */
   #onAfterSelectionFocusSet = (): void => {
+    // Tab and Enter move the focus inside a selected range without ending a selection gesture.
+    this.#rememberFocusedCell();
+
     if (this.#isEditing()) {
       return;
     }
@@ -1622,19 +1730,27 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
-   * Returns the first visible track of an axis. A frozen band is always on screen, so its first track
-   * (index 0) is the first visible one; otherwise it is the first fully visible index, or the first
-   * rendered one when the viewport shows none in full (`-1`).
+   * Returns the first visible track of an axis. A frozen band is always on screen, so its first shown
+   * track (index 0, or the next one a hiding map leaves) is the first visible one; otherwise it is the
+   * first fully visible index, or the first rendered one when the viewport shows none in full (`-1`).
    *
+   * @param {'row' | 'col'} axis The axis.
    * @param {number | undefined} frozen The number of frozen tracks the grid draws on the axis (the drawn
    * band, which `limitFixedToViewport` can make smaller than the option).
    * @param {number | null} fullyVisible The first fully visible index.
    * @param {number | null} rendered The first rendered visible index.
    * @returns {number}
    */
-  #firstVisible(frozen: number | undefined, fullyVisible: number | null, rendered: number | null): number {
+  #firstVisible(
+    axis: 'row' | 'col',
+    frozen: number | undefined,
+    fullyVisible: number | null,
+    rendered: number | null,
+  ): number {
     if (frozen && frozen > 0) {
-      return 0;
+      const indexMapper = axis === 'row' ? this.hot.rowIndexMapper : this.hot.columnIndexMapper;
+
+      return indexMapper.getNearestNotHiddenIndex(0, 1) ?? 0;
     }
 
     return fullyVisible !== null && fullyVisible >= 0 ? fullyVisible : Math.max(rendered ?? 0, 0);
@@ -1979,11 +2095,13 @@ export class FormulaBuilder extends BasePlugin {
       getRootDocument: () => this.hot.rootDocument,
       getColumnHeaderSpan: coords => this.#columnHeaderSpan(coords),
       firstVisibleRow: () => this.#firstVisible(
+        'row',
         this.hot.view.countFixedRowsTop(),
         this.hot.getFirstFullyVisibleRow(),
         this.hot.getFirstRenderedVisibleRow()
       ),
       firstVisibleCol: () => this.#firstVisible(
+        'col',
         this.hot.view.countFixedColumnsStart(),
         this.hot.getFirstFullyVisibleColumn(),
         this.hot.getFirstRenderedVisibleColumn()
@@ -2012,6 +2130,10 @@ export class FormulaBuilder extends BasePlugin {
     this.addHook('afterUpdateData', this.#onAfterDataLoad);
     this.addHook('afterSelection', this.#onAfterSelection);
     this.addHook('afterSelectionFocusSet', this.#onAfterSelectionFocusSet);
+    this.addHook('afterCreateRow', this.#onAfterCreateRowRemembered);
+    this.addHook('afterCreateCol', this.#onAfterCreateColRemembered);
+    this.addHook('afterRemoveRow', this.#onAfterRemoveRowRemembered);
+    this.addHook('afterRemoveCol', this.#onAfterRemoveColRemembered);
     this.addHook('beforeOnCellMouseDown', this.#cellPick.onBeforeMouseDown, CELL_MOUSE_HOOK_ORDER);
     this.addHook('beforeOnCellMouseOver', this.#cellPick.onBeforeMouseOver, CELL_MOUSE_HOOK_ORDER);
     this.addHook('beforeOnCellMouseOverOutside', this.#cellPick.onBeforeMouseOver, CELL_MOUSE_HOOK_ORDER);

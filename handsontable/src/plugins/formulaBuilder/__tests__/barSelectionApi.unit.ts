@@ -197,7 +197,9 @@ describe('FormulaBuilder selection API used by the formula bar', () => {
 
       const plugin = enabledPlugin(stub);
 
-      stub.hot.getSelectedRangeLast = () => ({ highlight: { row: 3, col: 3 } });
+      stub.hot.getSelectedRangeActive = () => ({
+        highlight: { row: 3, col: 3 }, from: { row: 3, col: 3 }, to: { row: 3, col: 3 },
+      });
       findHook(stub.hot, 'afterSelectionEnd')(3, 3, 3, 3);
 
       // Control: before the load, the remembered cell wins over the scan.
