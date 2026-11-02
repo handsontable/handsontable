@@ -143,7 +143,7 @@ Both engines write a sheet synchronously. A very large grid blocks the tab for a
 | Defined name length (built-in import) | 32,768 characters | `definedNames:unsupported`; the formulas over the name import their cached values, reported as `formula:definedName`. |
 | Defined names (built-in import) | 65,536 | `definedNames:truncated`; a formula over a later name can show `#NAME?`. |
 | Defined name handed to the Formulas engine (import) | 8,192 characters per definition, 262,144 characters per import | `definedNames:unsupported`; the name is not added, and the formulas over it import their cached values, reported as `formula:definedName`. |
-| Cells a defined name covers (import) | 100,000 per name, 1,000,000 per import | Same. A whole column or row, such as `Sheet1!$A:$A`, is not counted: HyperFormula evaluates it over the rows the sheet holds. |
+| Cells a defined name covers (import) | 100,000 per name, 1,000,000 per import | Same. A whole column counts its columns times the rows of the imported sheet, and a whole row its rows times the sheet's columns, so `Sheet1!$A:$A` on a sheet under 100,000 rows is within the cap. A range a function builds, such as `OFFSET`, `SEQUENCE`, or `INDEX`, is not sized by these caps. |
 | Text per cell (export) | 32,767 characters | `cellText:truncated`; the text is cut. |
 | Column width | 260 width units (about 1,820 pixels) | Clamped on export, reported as `columnWidth:clamped`; skipped on import. |
 | Row height | 409.5 points (546 pixels) | Clamped on export, reported as `rowHeight:clamped`; skipped on import. |

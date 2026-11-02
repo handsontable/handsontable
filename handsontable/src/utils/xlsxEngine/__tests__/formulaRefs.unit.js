@@ -449,16 +449,33 @@ describe('rebaseImportedFormula', () => {
 
 describe('closedReferenceArea', () => {
   it('should count every cell a closed reference covers, however the range is spelled', () => {
-    expect(closedReferenceArea('SUM(Data!$A$1:$B$3)')).toBe(6);
-    expect(closedReferenceArea('A1+B2')).toBe(2);
-    expect(closedReferenceArea('SUM(A1:B3)')).toBe(6);
-    expect(closedReferenceArea('SUM(Data!$B$3:Data!A1)')).toBe(6);
-    expect(closedReferenceArea('\'My Data\'!$A$1:$A$10+Data!C5')).toBe(11);
-    expect(closedReferenceArea('SUM(Sheet1!$A$1:$ZZ$10000)')).toBe(7020000);
+    const extent = { rows: 10, cols: 4 };
+
+    expect(closedReferenceArea('SUM(Data!$A$1:$B$3)', extent)).toBe(6);
+    expect(closedReferenceArea('A1+B2', extent)).toBe(2);
+    expect(closedReferenceArea('SUM(A1:B3)', extent)).toBe(6);
+    expect(closedReferenceArea('SUM(Data!$B$3:Data!A1)', extent)).toBe(6);
+    expect(closedReferenceArea('\'My Data\'!$A$1:$A$10+Data!C5', extent)).toBe(11);
+    expect(closedReferenceArea('SUM(Sheet1!$A$1:$ZZ$10000)', extent)).toBe(7020000);
   });
 
-  it('should count nothing for an open span, a string or a name', () => {
-    expect(closedReferenceArea('SUM(Data!$A:$C)+SUM(2:3)')).toBe(0);
-    expect(closedReferenceArea('LEN("A1:B9")&Sales')).toBe(0);
+  it('should count nothing for a string or a name', () => {
+    expect(closedReferenceArea('LEN("A1:B9")&Sales', { rows: 10, cols: 4 })).toBe(0);
+  });
+
+  it('should count a whole column by the sheet\'s rows and a whole row by its columns', () => {
+    // HyperFormula sizes an open span to the sheet's other axis: `$1:$1048576` on a 3x3 sheet took
+    // 1.9 s and 1.3 GB, and `$A:$XFD` on 1,000 rows ran out of memory.
+    const extent = { rows: 10, cols: 4 };
+
+    expect(closedReferenceArea('SUM(Data!$A:$C)+SUM(2:3)', extent)).toBe((3 * 10) + (2 * 4));
+    expect(closedReferenceArea('SUM($C:a)+SUM(Data!$3:1)', extent)).toBe((3 * 10) + (3 * 4));
+    expect(closedReferenceArea('SUM(Sheet1!$1:$1048576)', { rows: 3, cols: 3 })).toBe(1048576 * 3);
+    expect(closedReferenceArea('SUM(Sheet1!$A:$XFD)', { rows: 1000, cols: 3 })).toBe(16384 * 1000);
+    expect(closedReferenceArea('Data!$B:$B+A1', extent)).toBe(11);
+  });
+
+  it('should count an open span as one line when the sheet is empty', () => {
+    expect(closedReferenceArea('SUM(A:B)+SUM(1:3)', { rows: 0, cols: 0 })).toBe(5);
   });
 });

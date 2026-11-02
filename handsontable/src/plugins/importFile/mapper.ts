@@ -898,13 +898,13 @@ function unresolvedDefinedNames(
 
 /**
  * Whether a defined name's definition, rebased, is one the import does not hand to the Formulas
- * engine for its cost or its outcome: its closed ranges cover more than `MAX_DEFINED_NAME_CELLS`
+ * engine for its cost or its outcome: its ranges cover more than `MAX_DEFINED_NAME_CELLS`
  * cells, or bring the import's names past `MAX_DEFINED_NAME_TOTAL_CELLS` (HyperFormula evaluates a
- * definition as soon as it is added), or it calls a function the engine does not register
+ * definition once it is added), or it calls a function the engine does not register
  * (`=UNIQUE(...)`: every formula over the name would show `#NAME?`).
  *
  * @param {string} formula The rebased definition, without its `=`.
- * @param {number} cells The cells its closed ranges cover (`closedReferenceArea`).
+ * @param {number} cells The cells its ranges cover (`closedReferenceArea`, open spans sized by the sheet).
  * @param {number} spent The cells the names handed over so far cover.
  * @param {CollectContext} scope The pass context.
  * @returns {boolean}
@@ -966,6 +966,11 @@ function collectNamedExpressions(scope: CollectContext): NonNullable<ImportResul
   let unsupported = false;
   let definitionChars = 0;
   let definitionCells = 0;
+  // The grid's sheet in the engine, which sizes a whole column or row in a definition.
+  const extent = {
+    rows: scope.window.lastRow - scope.window.firstRow + 1,
+    cols: scope.window.lastCol - scope.window.firstCol + 1,
+  };
 
   ordered.forEach(({ name, formula, unsupported: flagged }) => {
     const lowered = name.toLowerCase();
@@ -991,10 +996,13 @@ function collectNamedExpressions(scope: CollectContext): NonNullable<ImportResul
       return;
     }
 
-    definitionChars += formula.length;
-
     // Past a cap the definition is never read: the engine would parse it (twice, `canAdd`) and
-    // evaluate it on add, and those are what the caps bound.
+    // evaluate it once added, and those are what the caps bound. One over the per-definition cap is
+    // never parsed, so it spends none of the budget.
+    if (formula.length <= MAX_DEFINED_NAME_LENGTH) {
+      definitionChars += formula.length;
+    }
+
     if (formula.length > MAX_DEFINED_NAME_LENGTH || definitionChars > MAX_DEFINED_NAME_CHARS) {
       unresolvedNames.add(lowered);
       unsupported = true;
@@ -1007,18 +1015,20 @@ function collectNamedExpressions(scope: CollectContext): NonNullable<ImportResul
       selfAs: context.formulaSheetName,
       isKnown: candidate => isSheetKnown(candidate, scope),
     });
-    const cells = rebased.formula === null ? 0 : closedReferenceArea(rebased.formula);
+    const cells = rebased.formula === null ? 0 : closedReferenceArea(rebased.formula, extent);
     const expression = rebased.formula === null || rebased.unknownSheet || rebased.formula.trim() === ''
       || isTooCostly(rebased.formula, cells, definitionCells, scope) || callsSpillOperator(rebased.formula)
       ? null : `=${rebased.formula}`;
 
-    if (expression !== null) {
-      definitionCells += cells;
-    }
-
+    // The cells are charged only for a definition the engine evaluates: the comparison with its own
+    // definition does, and so does adding the name; a name `canAdd` refuses is only parsed.
     if (defined) {
       // The engine keeps its own definition. When it is not this file's, the formulas over the name
       // would read the old one, so the name is treated as one the engine does not define.
+      if (expression !== null) {
+        definitionCells += cells;
+      }
+
       if (expression === null || context.definesNamedExpression?.(name, expression) !== true) {
         unresolvedNames.add(lowered);
         unsupported = true;
@@ -1033,6 +1043,7 @@ function collectNamedExpressions(scope: CollectContext): NonNullable<ImportResul
       return;
     }
 
+    definitionCells += cells;
     added.set(lowered, { name, formula: rebased.formula as string });
   });
 

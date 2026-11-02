@@ -604,20 +604,28 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 - **A definition is bounded BEFORE the engine sees it** (QA round 3, `collectNamedExpressions`,
   constants in `utils/xlsxEngine/limits.ts`). HyperFormula parses a definition twice in `canAdd`
   (9-27 ms per 32k characters in Chrome, against 0.6 ms for the import's own walk) and evaluates it
-  on add, used or not (`SUM(Sheet1!$A$1:$ZZ$10000)` took 15-46 s and 2 GB), and the formula budget's
+  when the applier's batch ends, used or not (`SUM(Sheet1!$A$1:$ZZ$10000)` took 15-46 s and 2 GB), and the formula budget's
   figures cover neither. So: a definition over `MAX_DEFINED_NAME_LENGTH` (8,192, Excel's limit), or
-  read once `MAX_DEFINED_NAME_CHARS` (256 Ki per import, every definition read counted) is spent, is
-  not even rebased; a rebased one whose closed ranges cover more than `MAX_DEFINED_NAME_CELLS`
+  read once `MAX_DEFINED_NAME_CHARS` (256 Ki per import, counting every definition within the
+  per-definition cap: one over it is never parsed, so it spends nothing) is spent, is
+  not even rebased; a rebased one whose ranges cover more than `MAX_DEFINED_NAME_CELLS`
   (100,000, `closedReferenceArea` in `formulaRefs.ts`) or bring the handed-over names past
-  `MAX_DEFINED_NAME_TOTAL_CELLS` (1,000,000), or that calls a function the engine does not register
+  `MAX_DEFINED_NAME_TOTAL_CELLS` (1,000,000; charged only for a name the engine evaluates - one
+  `canAdd` accepts, or one the engine already defines, whose comparison evaluates it - never for one
+  `canAdd` refuses), or that calls a function the engine does not register
   (`callsUnregisteredFunction`: `=UNIQUE(...)` names made every formula over them `#NAME?`) is not
   handed over (`isTooCostly`). Each goes into `unresolvedNames` with `definedNames:unsupported`, so
   the formulas over it import cached values with `formula:definedName`. The checks run for a name the
   engine already defines too: `sameConstant` evaluates the file's definition with `calculateFormula`.
-  A whole column or row is NOT counted: HyperFormula sizes `$A:$A` to the rows its sheet holds
-  (4 ms measured), and refusing it would freeze the common dynamic-list idiom. 1,024 names of 32,000
-  characters: 11.7 s -> 0.15 s in the mapper (Node). Not bounded: a range built by a function
-  (`OFFSET(Sheet1!$A$1,0,0,1000000,100)`), which `closedReferenceArea` cannot size.
+  **A whole column or row IS counted, against the grid's sheet**: `closedReferenceArea` takes the
+  window's extent and counts a column span as columns x rows and a row span as rows x columns (each
+  at least 1), because HyperFormula evaluates it over the sheet's other axis -
+  `SUM(Sheet1!$1:$1048576)` took 1.9 s and 1.3 GB on a 3x3 sheet and `SUM(Sheet1!$A:$XFD)` ran out
+  of memory on 1,000 rows while both counted 0. One column (`$B:$B`, the dynamic-list idiom) of a
+  sheet under 100,000 rows stays within the cap. A span to another sheet is sized by the grid's
+  sheet too. 1,024 names of 32,000 characters: 11.7 s -> 0.15 s in the mapper (Node). Not bounded:
+  a range a function builds at any size (`OFFSET(Sheet1!$A$1,0,0,1000000,100)`, `SEQUENCE`,
+  `INDEX`), which `closedReferenceArea` cannot size.
 - **A live formula is shifted back into grid coordinates, and one that cannot be is dropped.** The export
   prepends a header row and a row-header column and shifts every relative reference forward by them
   (`normalizeFormula` in `../exportFile/types/xlsx/formula-utils.ts`), so the grid's `=B1*0.2` is written

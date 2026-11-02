@@ -130,12 +130,16 @@ export const MAX_DEFINED_NAME_LENGTH = 8192;
 export const MAX_DEFINED_NAME_CHARS = 256 * 1024;
 
 /**
- * The most cells one defined name's closed ranges may cover for the import to hand it to the
- * Formulas engine. HyperFormula evaluates a definition as soon as it is added, whether or not a
- * cell uses it: a 2 KB file whose one name summed `$A$1:$ZZ$10000` (7 million cells) took 15-46 s
+ * The most cells one defined name's ranges may cover for the import to hand it to the
+ * Formulas engine. HyperFormula evaluates a definition once it is added (at the end of the
+ * applier's engine batch), whether or not a cell uses it: a 2 KB file whose one name summed `$A$1:$ZZ$10000` (7 million cells) took 15-46 s
  * and about 2 GB in Chrome, and `$A$1:$XFD$1048576` crashed the tab. The value mirrors
- * `MAX_EXCELJS_DEFINED_NAME_CELLS` on the write side. A whole column or row (`$A:$A`, `$1:$1`) is not
- * counted: HyperFormula sizes it to the rows or columns its sheet holds (measured at 4 ms).
+ * `MAX_EXCELJS_DEFINED_NAME_CELLS` on the write side. A whole column counts its columns times the
+ * rows of the grid's sheet, and a whole row its rows times the sheet's columns, because HyperFormula
+ * evaluates it over the sheet's other axis: `SUM(Sheet1!$1:$1048576)` took 1.9 s and 1.3 GB on a 3x3
+ * sheet, and `SUM(Sheet1!$A:$XFD)` ran out of memory on 1,000 rows. One column (`$B:$B`) of a sheet
+ * under 100,000 rows stays within the cap. A range a function builds (`OFFSET`, `INDEX`, `SEQUENCE`)
+ * is not sized.
  */
 export const MAX_DEFINED_NAME_CELLS = 100000;
 

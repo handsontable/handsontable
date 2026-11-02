@@ -404,17 +404,44 @@ function rectangleCells(a: { row: number; col: number }, b: { row: number; col: 
 }
 
 /**
- * How many cells the closed references of a formula cover, summed: a cell counts 1 and a range its
+ * The cells an open span covers on a sheet of `extent`, or `null` when the match is not a span: a
+ * whole column (`A:C`) counts its columns times the sheet's rows, a whole row (`2:3`) its rows times
+ * the sheet's columns, because HyperFormula sizes an open span to the other axis of its sheet. An
+ * empty sheet counts as one row and one column.
+ */
+function openSpanCells(groups: ReferenceGroups, extent: { rows: number; cols: number }): number | null {
+  const [first, second] = groups.qualified?.replace(/\$/g, '').split(':')
+    ?? [groups.c1 ?? groups.r1, groups.c2 ?? groups.r2];
+
+  if (first === undefined || second === undefined) {
+    return null;
+  }
+
+  if (/^\d+$/.test(first) && /^\d+$/.test(second)) {
+    return (Math.abs(Number(first) - Number(second)) + 1) * Math.max(extent.cols, 1);
+  }
+
+  if (/^[A-Z]+$/i.test(first) && /^[A-Z]+$/i.test(second)) {
+    return (Math.abs(colLetterToIndex(first) - colLetterToIndex(second)) + 1) * Math.max(extent.rows, 1);
+  }
+
+  return null;
+}
+
+/**
+ * How many cells the references of a formula cover, summed: a cell counts 1 and a range its
  * rectangle, whether it is written `Data!$A$1:$B$2`, `A1:B2` or `Data!A1:Data!B2` (two references
- * joined by `:`). A whole column or row (`A:A`, `2:3`) counts nothing, and neither does a string
- * literal. Linear: one walk of `REFERENCE_REGEX`.
+ * joined by `:`). A whole column or row (`A:A`, `2:3`) counts what HyperFormula evaluates for it on
+ * a sheet of `extent` (`openSpanCells`), so `$1:$1048576` on a 3x3 sheet counts 3,145,728 cells. A
+ * string literal counts nothing. Linear: one walk of `REFERENCE_REGEX`.
  *
  * The formula is expected without its leading `=`.
  *
  * @param {string} formula The formula.
+ * @param {{ rows: number, cols: number }} extent The rows and columns of the sheet the engine holds.
  * @returns {number}
  */
-export function closedReferenceArea(formula: string): number {
+export function closedReferenceArea(formula: string, extent: { rows: number; cols: number }): number {
   let area = 0;
   let previous: AreaCorner | null = null;
 
@@ -429,7 +456,7 @@ export function closedReferenceArea(formula: string): number {
       const from = first === undefined ? null : parseCellRef(first);
       const to = second === undefined ? null : parseCellRef(second);
 
-      area += from !== null && to !== null ? rectangleCells(from, to) : 0;
+      area += from !== null && to !== null ? rectangleCells(from, to) : (openSpanCells(groups, extent) ?? 0);
       previous = null;
     } else if (previous !== null && previous.end + 1 === start && formula[previous.end] === ':') {
       // The two corners were counted as one cell each: the range replaces the first.

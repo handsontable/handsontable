@@ -1775,6 +1775,19 @@ describe('ImportFile and the workbook\'s defined names in a real HyperFormula en
     expect(result.dropped).toEqual(['definedNames:unsupported', 'formula:definedName']);
   });
 
+  it('should not charge the definition budget for the names over the per-definition cap', async() => {
+    // A definition past `MAX_DEFINED_NAME_LENGTH` is never parsed, so it spends none of the budget:
+    // 40 of them used to leave `Sales`, read after them, out.
+    const filler = Array.from({ length: 40 }, (_, index) => ({
+      name: nameAt('Filler', index), formula: `LEN("${'a'.repeat(8200)}")`, sheetName: null,
+    }));
+    const result = await importSales([...filler, { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null }]);
+
+    expect(result.namedExpressions).toEqual([{ name: 'Sales', formula: 'Sheet1!$G$1:$G$3' }]);
+    expect(result.data[0][2]).toBe('=SUM(Sales)');
+    expect(result.dropped).toEqual(['definedNames:unsupported']);
+  });
+
   it('should import the cached value of a formula over a name covering more cells than the cap', async() => {
     // `addNamedExpression` evaluates the definition at once: a 2 KB file whose one name sums
     // `$A$1:$ZZ$10000` (7 million cells) took 15-46 s and about 2 GB in Chrome.
@@ -1795,10 +1808,59 @@ describe('ImportFile and the workbook\'s defined names in a real HyperFormula en
       expect(over.dropped).toEqual(['definedNames:unsupported', 'formula:definedName']);
     }
 
-    // A whole column costs HyperFormula only the rows its sheet holds, so it is not counted.
-    const column = await importSales([{ name: 'Sales', formula: 'Data!$G:$G', sheetName: null }]);
+    // A whole column costs HyperFormula the rows its sheet holds, so one column of a small sheet
+    // stays well within the cap.
+    for (const formula of ['Data!$G:$G', 'SUM(Data!$B:$B)']) {
+      // eslint-disable-next-line no-await-in-loop -- one engine at a time.
+      const column = await importSales([{ name: 'Sales', formula, sheetName: null }]);
 
-    expect(column.namedExpressions).toEqual([{ name: 'Sales', formula: 'Sheet1!$G:$G' }]);
+      expect([formula, column.namedExpressions.map(({ name }) => name)]).toEqual([formula, ['Sales']]);
+    }
+  });
+
+  it('should import the cached value of a formula over a name spanning every row or column of a sheet', async() => {
+    // HyperFormula sizes a whole row to the sheet's columns and a whole column to its rows:
+    // `SUM(Sheet1!$1:$1048576)` took 1.9 s and 1.3 GB on a 3x3 sheet, and `SUM(Sheet1!$A:$XFD)` ran
+    // out of memory on 1,000 rows, while neither counted against the cap.
+    const snapshot = createWorkbookSnapshot();
+    const sheet = createSheetSnapshot('Data');
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+
+    sheet.rows = [
+      [at({ value: 'Amount' }), null, at({ value: 'Total' })],
+      [at({ value: 1 }), at({ value: 2 }), at({ formula: { text: 'SUM(Sales)', result: 60 } })],
+      ...Array.from({ length: 999 }, (_, index) => [at({ value: index }), at({ value: 1 })]),
+    ];
+    snapshot.sheets.push(sheet);
+
+    const importOver = async(formula) => {
+      const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+
+      hf.addSheet('Sheet1');
+      snapshot.definedNames = [{ name: 'Sales', formula, sheetName: null }];
+
+      const bytes = toArrayBuffer(await nativeAdapter.write(snapshot, undefined, new DroppedFeatures()));
+      const result = await importInto(hf, bytes);
+
+      hf.destroy();
+
+      return result;
+    };
+
+    // `Data!$1:...` reaches into the dropped header row and is left out for that, so the span starts below it.
+    for (const formula of ['SUM(Data!$2:$1048576)', 'SUM(Data!$A:$XFD)']) {
+      // eslint-disable-next-line no-await-in-loop -- one engine at a time.
+      const over = await importOver(formula);
+
+      expect([formula, over.namedExpressions, over.data[0][2]]).toEqual([formula, undefined, 60]);
+      expect(over.dropped).toEqual(['definedNames:unsupported', 'formula:definedName']);
+    }
+
+    // One column of the same 1,000 rows stays well within the cap.
+    const column = await importOver('SUM(Data!$B:$B)');
+
+    expect(column.namedExpressions).toEqual([{ name: 'Sales', formula: 'SUM(Sheet1!$B:$B)' }]);
+    expect(column.data[0][2]).toBe('=SUM(Sales)');
   });
 
   it('should import the cached values of formulas over the names past the workbook\'s cell budget', async() => {
@@ -1811,6 +1873,19 @@ describe('ImportFile and the workbook\'s defined names in a real HyperFormula en
     expect(result.namedExpressions.map(({ name }) => name)).toEqual(names.slice(0, 10).map(({ name }) => name));
     expect(result.data[0][2]).toBe(60);
     expect(result.dropped).toEqual(['definedNames:unsupported', 'formula:definedName']);
+  });
+
+  it('should not charge the workbook\'s cell budget for the names the engine refuses', async() => {
+    // HyperFormula refuses a name that reads like a cell (`Blocka1`) without evaluating it, so it
+    // costs nothing: 11 of them over 100,000 cells each used to leave `Sales` out.
+    const refused = Array.from({ length: 11 }, (_, index) => ({
+      name: `Block${'abcdefghijk'[index]}1`, formula: 'SUM(Data!$A$2:$J$10001)', sheetName: null,
+    }));
+    const result = await importSales([...refused, { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null }]);
+
+    expect(result.namedExpressions).toEqual([{ name: 'Sales', formula: 'Sheet1!$G$1:$G$3' }]);
+    expect(result.data[0][2]).toBe('=SUM(Sales)');
+    expect(result.dropped).toEqual(['definedNames:unsupported']);
   });
 
   /**
