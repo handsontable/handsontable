@@ -2,7 +2,7 @@ import { isDefined, isEmpty, stringify } from '../../../helpers/mixed';
 import { getChoiceLabel, isKeyValueEntry, isListableLabel } from '../../../utils/cellSource';
 import type { SourceLabel } from '../../../utils/cellSource';
 import ExportDataProvider from '../dataProvider';
-import type { ArrayFormulaSize } from '../dataProvider';
+import type { ArrayFormulaSize, EngineCellFacts } from '../dataProvider';
 import BaseType from './_base';
 import { normalizeExportOptions } from '../utils';
 import { matchCheckboxTemplate } from '../../../utils/checkboxColumn';
@@ -400,9 +400,7 @@ interface SheetContext {
   excludedHiddenCols: Set<number> | null;
   summaryMap: Map<string, ColumnSummaryDescriptor>;
   sourceData: unknown[][] | null;
-  formulaErrorCodes: (string | null)[][] | null;
-  arrayFormulaSizes: (ArrayFormulaSize | null)[][] | null;
-  engineComputedValues: (number | boolean | null)[][] | null;
+  engineCellFacts: (EngineCellFacts | null)[][] | null;
   dropped: DroppedFeatures;
   arrayRanges: ArrayRangeClaims;
   hasRowHeaders: boolean;
@@ -661,13 +659,11 @@ class Xlsx extends BaseType {
     });
 
     const sourceData = exportFormulas ? dataProvider.getSourceData() : null;
-    // Read whenever the Formulas plugin is on (every entry is `null` otherwise): a cell whose value
-    // is an error exports as an Excel error whether or not its formula goes out with it.
-    const formulaErrorCodes = dataProvider.getFormulaErrorCodes();
-    const arrayFormulaSizes = exportFormulas ? dataProvider.getArrayFormulaSizes() : null;
-    // Read whenever the Formulas plugin is on, like the error codes: a computed number or boolean
-    // keeps its type, so a text column does not write a spilled `2` as the text `"2"`.
-    const engineComputedValues = dataProvider.getEngineComputedValues();
+    // Read whenever the Formulas plugin is on (every entry is `null` otherwise), in one pass: a cell
+    // whose value is an error exports as an Excel error whether or not its formula goes out with it,
+    // and a computed number or boolean keeps its type, so a text column does not write a spilled `2`
+    // as the text `"2"`. The array sizes are read with `exportFormulas` only.
+    const engineCellFacts = dataProvider.getEngineCellFacts(exportFormulas);
     const formulasSeparator = exportFormulas ? dataProvider.getFormulasSeparator() : ',';
     const hasColumnHeaders = columnHeaders.length > 0;
     const hasRowHeaders = rowHeaders.length > 0;
@@ -738,9 +734,7 @@ class Xlsx extends BaseType {
       excludedHiddenCols,
       summaryMap,
       sourceData,
-      formulaErrorCodes,
-      arrayFormulaSizes,
-      engineComputedValues,
+      engineCellFacts,
       dropped,
       arrayRanges: new ArrayRangeClaims(),
       hasRowHeaders,
@@ -949,10 +943,11 @@ class Xlsx extends BaseType {
       const meta = context.cellsMeta[rowIndex][colIndex];
       const summary = context.summaryMap.get(`${rowIndex}:${colIndex}`);
       const sourceValue = context.sourceData?.[rowIndex][colIndex];
+      const engineFacts = context.engineCellFacts?.[rowIndex][colIndex] ?? null;
       const facts: FormulaCellFacts = {
-        errorCode: context.formulaErrorCodes?.[rowIndex][colIndex] ?? null,
-        arraySize: context.arrayFormulaSizes?.[rowIndex][colIndex] ?? null,
-        computedValue: context.engineComputedValues?.[rowIndex][colIndex] ?? null,
+        errorCode: engineFacts?.errorCode ?? null,
+        arraySize: engineFacts?.arraySize ?? null,
+        computedValue: engineFacts?.computedValue ?? null,
         row: excelRowNumber,
         col: colIndex + context.dataColOffset,
       };
@@ -1034,16 +1029,15 @@ class Xlsx extends BaseType {
    * 6. Checkbox cells (boolean from `checkedTemplate` comparison; an empty value stays empty).
    * 7. Multiselect cells (comma-separated string).
    * 8. Cells whose value the Formulas engine computed as a number or a boolean
-   *    (`ExportDataProvider#getEngineComputedValues`) — written with that type.
+   *    (`EngineCellFacts.computedValue`, `ExportDataProvider#getEngineCellFacts`) — written with that type.
    * 9. All other cells (numeric-aware or stringified).
    *
    * @param {*} cellValue Pre-calculated display value from `getData()`.
    * @param {object} meta Cell meta object.
    * @param {*} sourceValue Raw source value from `getSourceDataAtCell()` (may be a formula string).
    * @param {object} facts What the Formulas engine and the sheet layout tell about the cell: the
-   *   OOXML error code of its value (`ExportDataProvider#getFormulaErrorCodes`, `null` when it is
-   *   not an error), the size of the array it spills (`ExportDataProvider#getArrayFormulaSizes`)
-   *   and its 1-based sheet address.
+   *   OOXML error code of its value (`null` when it is not an error), the size of the array it
+   *   spills (both from `ExportDataProvider#getEngineCellFacts`) and its 1-based sheet address.
    * @param {object|undefined} summary ColumnSummary descriptor, or `undefined` for non-summary cells.
    * @param {object} context Sheet-level context passed through from `#populateWorksheet`.
    * @returns {{ value: *, formula: object|null, numFmt: string|null, valueIsError?: boolean }}

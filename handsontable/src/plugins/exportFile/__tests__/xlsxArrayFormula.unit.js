@@ -79,7 +79,7 @@ describe('Xlsx export: array formulas', () => {
     const { rows } = await exportSheet({ data: createData() });
 
     // The engine computed them, so they keep its number type even in a text column: a reader that
-    // takes cached values without recalculating then sums them (`getEngineComputedValues`).
+    // takes cached values without recalculating then sums them (`getEngineCellFacts`).
     expect(rows[1][0]).toMatchObject({ value: 2, formula: null });
     expect(rows[2][0]).toMatchObject({ value: 3, formula: null });
     expect(rows[1][1]).toMatchObject({ value: 4, formula: null });

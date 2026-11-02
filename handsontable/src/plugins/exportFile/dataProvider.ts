@@ -34,13 +34,26 @@ type NestedHeadersPluginWithSettings = {
 };
 
 /**
- * The size of the array a formula spills, in cells, as `ExportDataProvider#getArrayFormulaSizes()`
+ * The size of the array a formula spills, in cells, as `ExportDataProvider#getEngineCellFacts()`
  * reports it.
  */
 export interface ArrayFormulaSize {
   rows: number;
   cols: number;
   exported: boolean;
+}
+
+/**
+ * What the Formulas plugin's engine holds for one cell, as `ExportDataProvider#getEngineCellFacts()`
+ * reports it: the OOXML error code of its value (`null` when the value is not an error with one),
+ * the finite number or boolean the engine computed for it (`null` for a value the user typed, a
+ * computed text, or an error), and the size of the array it spills (`null` unless it is the master
+ * of an array and the sizes were asked for).
+ */
+export interface EngineCellFacts {
+  errorCode: string | null;
+  computedValue: number | boolean | null;
+  arraySize: ArrayFormulaSize | null;
 }
 
 /**
@@ -329,79 +342,6 @@ class ExportDataProvider {
   }
 
   /**
-   * Gets, for every cell of the export range, the OOXML error code of the value the Formulas
-   * plugin's engine holds for it (`#DIV/0!` for `=1/0`), or `null` when the value is not an error
-   * with such a code. Every entry is `null` when the Formulas plugin is absent or disabled.
-   *
-   * The answer comes from the engine's own cell value, not from the displayed text, which cannot
-   * tell the error `#N/A` from the text a formula such as `="#N/A"` answers, and which the
-   * engine's language translates. The XLSX export reads it with and without `exportFormulas`:
-   * a formula exported live caches the code as its result, and any other cell whose value is an
-   * error (a typed `#N/A`, or a formula exported as its value) is written as the code.
-   *
-   * @returns {Array[]}
-   */
-  getFormulaErrorCodes(): (string | null)[][] {
-    const formulasPlugin = this.hot.getPlugin('formulas');
-    const engine = formulasPlugin?.isEnabled() ? formulasPlugin.engine : null;
-    const { sheetId, rowAxisSyncer, columnAxisSyncer } = formulasPlugin ?? {};
-
-    if (!engine || sheetId === null || sheetId === undefined || !rowAxisSyncer || !columnAxisSyncer) {
-      return this._extractDataMatrix(() => null);
-    }
-
-    return this._extractDataMatrix((row, col) => toOoxmlErrorCode(engine.getCellValue({
-      sheet: sheetId,
-      row: rowAxisSyncer.getHfIndexFromVisualIndex(row),
-      col: columnAxisSyncer.getHfIndexFromVisualIndex(col),
-    })));
-  }
-
-  /**
-   * Gets, for every cell of the export range, the value the Formulas plugin's engine COMPUTED for
-   * it when that value is a finite number or a boolean, or `null` otherwise: a cell the engine
-   * holds as a plain value (`VALUE`) or not at all (`EMPTY`), a computed text, an error, and every
-   * cell when the Formulas plugin is absent or disabled. A formula cell, an array formula and the
-   * cells an array spills (`ARRAY`) are computed.
-   *
-   * The xlsx export writes such a cell with the engine's type, so a computed number in a text
-   * column is not written as text, which a reader that takes cached values without recalculating
-   * would not count (`=SUM()` over a spill).
-   *
-   * @returns {Array[]}
-   */
-  getEngineComputedValues(): (number | boolean | null)[][] {
-    const formulasPlugin = this.hot.getPlugin('formulas');
-    const engine = formulasPlugin?.isEnabled() ? formulasPlugin.engine : null;
-    const { sheetId, rowAxisSyncer, columnAxisSyncer } = formulasPlugin ?? {};
-
-    if (!engine || sheetId === null || sheetId === undefined || !rowAxisSyncer || !columnAxisSyncer) {
-      return this._extractDataMatrix(() => null);
-    }
-
-    return this._extractDataMatrix((row, col) => {
-      const address = {
-        sheet: sheetId,
-        row: rowAxisSyncer.getHfIndexFromVisualIndex(row),
-        col: columnAxisSyncer.getHfIndexFromVisualIndex(col),
-      };
-      const cellType = engine.getCellType(address);
-
-      if (cellType === 'VALUE' || cellType === 'EMPTY') {
-        return null;
-      }
-
-      const value = engine.getCellValue(address);
-
-      if ((typeof value === 'number' && Number.isFinite(value)) || typeof value === 'boolean') {
-        return value;
-      }
-
-      return null;
-    });
-  }
-
-  /**
    * Gets the workbook-scoped named expressions of the Formulas plugin's engine, in the engine's
    * order, each with its definition: the formula text (`=Sheet1!$A$1:$A$3`), or, for a name defined
    * with a constant, that constant spelled as a formula literal (`5`, `"text"`, `TRUE()`). The
@@ -446,29 +386,42 @@ class ExportDataProvider {
   }
 
   /**
-   * Gets, for every cell of the export range, the size of the array the Formulas plugin's engine
-   * spills from it, or `null` when the cell is not the master of an array (the engine types it
-   * `ARRAYFORMULA`: a spilling function such as `SEQUENCE`, or `ARRAYFORMULA(…)`). Every entry is
-   * `null` when the Formulas plugin is absent or disabled.
+   * Gets, for every cell of the export range, what the Formulas plugin's engine holds for it, in ONE
+   * pass that reads each cell's type and value once: the OOXML error code of its value, the number
+   * or boolean the engine computed for it, and, when `withArraySizes` is `true`, the size of the
+   * array it spills. An entry is `null` when the engine holds nothing to report for the cell (an
+   * empty cell, a typed text or number), when the engine has no row or column for it (the syncer
+   * answers `-1`), and for every cell when the Formulas plugin is absent or disabled.
    *
-   * HyperFormula has no public API for the spill range. The size is read from the engine's array
-   * mapping (`arrayMapping.getArrayByCorner()`), which holds the exact size of every array. That
-   * mapping is `@internal` in HyperFormula and may change between 3.x releases, so it is
-   * duck-typed and, when it is missing or answers an unexpected shape, the size is estimated by
-   * walking right, then down, from the master over the cells the engine types `ARRAY`, bounded by
-   * the sheet's dimensions. The walk is only an estimate: a spilled cell next to the master can
-   * belong to another array (a `=SEQUENCE(3)` in B1 spills into B2, right of a master in A2), so
-   * it can over-count, and the export refuses a ref that overlaps an earlier one
-   * (`types/xlsx.ts`). `isCellPartOfArray()` cannot drive the walk: it is `true` for a
-   * neighboring array's master too.
+   * The error code comes from the engine's own cell value, not from the displayed text, which
+   * cannot tell the error `#N/A` from the text a formula such as `="#N/A"` answers, and which the
+   * engine's language translates. It is read for every cell, a typed `#N/A` (`VALUE`) included:
+   * the XLSX export writes a cell whose value is an error as that code, with and without
+   * `exportFormulas`.
    *
-   * `exported` tells whether every spilled row and column lands in the exported matrix right
-   * after the master, so the spill keeps its shape in the file. It is `false` when the spill
-   * crosses a trimmed row, a hidden row or column the export leaves out, or the `range` edge.
+   * The computed value is read for a formula cell, an array formula and the cells an array spills
+   * (`ARRAY`), when the value is a finite number or a boolean. The XLSX export writes such a cell
+   * with the engine's type, so a computed number in a text column is not written as text, which a
+   * reader that takes cached values without recalculating would not count (`=SUM()` over a spill).
    *
+   * The array size is read for a cell the engine types `ARRAYFORMULA` (a spilling function such as
+   * `SEQUENCE`, or `ARRAYFORMULA(…)`). HyperFormula has no public API for the spill range. The size
+   * is read from the engine's array mapping (`arrayMapping.getArrayByCorner()`), which holds the
+   * exact size of every array. That mapping is `@internal` in HyperFormula and may change between
+   * 3.x releases, so it is duck-typed and, when it is missing or answers an unexpected shape, the
+   * size is estimated by walking right, then down, from the master over the cells the engine types
+   * `ARRAY`, bounded by the sheet's dimensions. The walk is only an estimate: a spilled cell next to
+   * the master can belong to another array (a `=SEQUENCE(3)` in B1 spills into B2, right of a master
+   * in A2), so it can over-count, and the export refuses a ref that overlaps an earlier one
+   * (`types/xlsx.ts`). `isCellPartOfArray()` cannot drive the walk: it is `true` for a neighboring
+   * array's master too. `exported` tells whether every spilled row and column lands in the exported
+   * matrix right after the master, so the spill keeps its shape in the file. It is `false` when the
+   * spill crosses a trimmed row, a hidden row or column the export leaves out, or the `range` edge.
+   *
+   * @param {boolean} withArraySizes Whether to read the array sizes (`exportFormulas`).
    * @returns {Array[]}
    */
-  getArrayFormulaSizes(): (ArrayFormulaSize | null)[][] {
+  getEngineCellFacts(withArraySizes: boolean): (EngineCellFacts | null)[][] {
     const formulasPlugin = this.hot.getPlugin('formulas');
     const engine = formulasPlugin?.isEnabled() ? formulasPlugin.engine : null;
     const { sheetId, rowAxisSyncer, columnAxisSyncer } = formulasPlugin ?? {};
@@ -477,30 +430,55 @@ class ExportDataProvider {
       return this._extractDataMatrix(() => null);
     }
 
-    const { startRow, endRow, startCol, endCol } = this._getDataRange();
-    const exportedRows = this.#getExportedPositions(startRow, endRow, this.options.exportHiddenRows === false
-      ? (row: number) => this._isHiddenRow(row) : () => false);
-    const exportedCols = this.#getExportedPositions(startCol, endCol, this.options.exportHiddenColumns === false
-      ? (col: number) => this._isHiddenColumn(col) : () => false);
+    let exportedRows: Map<number, number> | null = null;
+    let exportedCols: Map<number, number> | null = null;
 
-    return this._extractDataMatrix((row, col) => {
+    if (withArraySizes) {
+      const { startRow, endRow, startCol, endCol } = this._getDataRange();
+
+      exportedRows = this.#getExportedPositions(startRow, endRow, this.options.exportHiddenRows === false
+        ? (row: number) => this._isHiddenRow(row) : () => false);
+      exportedCols = this.#getExportedPositions(startCol, endCol, this.options.exportHiddenColumns === false
+        ? (col: number) => this._isHiddenColumn(col) : () => false);
+    }
+
+    return this._extractDataMatrix((row, col): EngineCellFacts | null => {
       const address = {
         sheet: sheetId,
         row: rowAxisSyncer.getHfIndexFromVisualIndex(row),
         col: columnAxisSyncer.getHfIndexFromVisualIndex(col),
       };
 
-      if (address.row < 0 || address.col < 0 || engine.getCellType(address) !== 'ARRAYFORMULA') {
+      // A row or column the engine does not hold (`-1`): asking the engine would throw.
+      if (address.row < 0 || address.col < 0) {
         return null;
       }
 
-      const { rows, cols } = readMappedArraySize(engine, address) ?? walkArraySize(engine, address);
-      const hfRow = address.row;
-      const hfCol = address.col;
-      const exported = spillsInPlace(rowAxisSyncer, hfRow, rows, exportedRows, row)
-        && spillsInPlace(columnAxisSyncer, hfCol, cols, exportedCols, col);
+      const cellType = engine.getCellType(address);
 
-      return { rows, cols, exported };
+      if (cellType === 'EMPTY') {
+        return null;
+      }
+
+      const value = engine.getCellValue(address);
+      const errorCode = toOoxmlErrorCode(value);
+      const computedValue = cellType !== 'VALUE'
+        && ((typeof value === 'number' && Number.isFinite(value)) || typeof value === 'boolean') ? value : null;
+      let arraySize: ArrayFormulaSize | null = null;
+
+      if (exportedRows !== null && exportedCols !== null && cellType === 'ARRAYFORMULA') {
+        const { rows, cols } = readMappedArraySize(engine, address) ?? walkArraySize(engine, address);
+        const exported = spillsInPlace(rowAxisSyncer, address.row, rows, exportedRows, row)
+          && spillsInPlace(columnAxisSyncer, address.col, cols, exportedCols, col);
+
+        arraySize = { rows, cols, exported };
+      }
+
+      if (errorCode === null && computedValue === null && arraySize === null) {
+        return null;
+      }
+
+      return { errorCode, computedValue, arraySize };
     });
   }
 

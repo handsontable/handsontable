@@ -77,14 +77,8 @@ jest.mock('../dataProvider', () => ({
       return mockProviderState.sourceData;
     }
 
-    getFormulaErrorCodes() {
+    getEngineCellFacts() {
       return this.getData().map(row => row.map(() => null));
-    }
-
-    getEngineComputedValues() {
-
-      return this.getData().map(row => row.map(() => null));
-
     }
 
     getFormulasBinding() {

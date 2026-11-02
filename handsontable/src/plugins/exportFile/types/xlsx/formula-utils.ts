@@ -387,7 +387,7 @@ const CLAIM_ROW_STRIDE = 16385;
 /**
  * The ranges a sheet's array formulas claimed. Two overlapping refs are invalid OOXML (Excel
  * repairs the file), and the size of an array can be an over-counting estimate
- * (`ExportDataProvider#getArrayFormulaSizes`), so an array whose range overlaps an earlier one is
+ * (`ExportDataProvider#getEngineCellFacts`), so an array whose range overlaps an earlier one is
  * written without its flag.
  *
  * The export claims master by master in row-major order (row by row, left to right), and every
