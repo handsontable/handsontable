@@ -2067,9 +2067,27 @@ The error is stored under Excel's English code even when a HyperFormula `languag
 grid shows: with `plPL` the grid shows `#DZIEL/0!` and the file stores `#DIV/0!`, where 18.1 stored the
 translated text. A formula that returns the text `"#N/A"` stays a text cell. A HyperFormula error that
 Excel has no code for (`#CYCLE!`, `#ERROR!`, `#LIC!`, or `#SPILL!`) is still stored as the text the grid
-shows. This applies to both engines. Without `exportFormulas`, nothing changed.
+shows. This applies to both engines.
 
-What to do: nothing, unless a tool reads the cached results as text. Such a tool now gets an error value.
+With the Formulas plugin on, a cell whose value is an error is stored as an error cell too, with or
+without `exportFormulas`: an error you typed, such as `#N/A`, and a formula exported as its value. In
+18.1, both were stored as text. Without the Formulas plugin, an error is stored as text, as in 18.1.
+
+What to do: nothing, unless a tool reads the cached results or the values as text. Such a tool now
+gets an error value.
+
+#### A number or `TRUE`/`FALSE` the Formulas plugin computed keeps its type
+
+What changed: with the Formulas plugin on, a number or a `TRUE`/`FALSE` value that the plugin
+computed is now stored as a number or a boolean, even in a `text` column and without
+`exportFormulas`. This covers the cells an array formula spills, such as the cells below
+`=SEQUENCE(3)`, and a formula exported as its value. In 18.1, such a cell in a `text` column was
+stored as text, so an application that reads the stored values without recalculating, such as Apple
+Numbers, left it out of `SUM()`. A value you typed into a `text` column is still stored as text. This
+applies to both engines.
+
+What to do: nothing, unless a tool expects text in those cells. Such a tool now gets a number or a
+boolean.
 
 #### Values past Excel's limits are written at Excel's maximum
 

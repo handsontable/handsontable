@@ -288,7 +288,8 @@ export interface ImportResult {
    * reference into the dropped header band, a sheet the engine does not hold, or a name over such a
    * name) is listed as `definedNames:unsupported` in `dropped`, and the formulas using it import
    * their cached values with `formula:definedName`. The import is not an undoable step, and neither
-   * is adding these names.
+   * is adding these names. The names live only in the engine: turning the Formulas plugin off and on
+   * again builds a new engine without them, so add them back from this list.
    */
   namedExpressions?: Array<{ name: string; formula: string }>;
   /**
