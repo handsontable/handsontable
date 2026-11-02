@@ -7,7 +7,9 @@ import { arrayEach } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import type { MergeCells } from './mergeCells';
 import { findNonIntersectingIndex } from '../../selection/cellBlocks';
+import type { MergeAreaGeometry } from '../../utils/mergeAreas';
 import {
+  areMergesOverlapping,
   getFirstRowOfActiveBottomOverlay,
   getFirstRenderedRowOfOverlay,
   getFirstRenderedColumnOfOverlay,
@@ -450,28 +452,49 @@ class MergedCellsCollection {
    * @returns {boolean} `true` if the provided merged cell overlaps with the others, `false` otherwise.
    */
   isOverlapping(mergedCell: MergedCellCoords, ignoredMergedCells: MergedCellCoords[] = []) {
-    const mergedCellRange = mergedCell.getRange();
+    const ignored = new Set(ignoredMergedCells);
 
-    if (!mergedCellRange) {
-      return false;
+    return this.overlapsLiveMerge(mergedCell, otherMergedCell => ignored.has(otherMergedCell));
+  }
+
+  /**
+   * Checks whether an area shares a cell with a merge the lookup matrix holds at its own top-left (a merge
+   * purged because all of its rows are trimmed does not count, see `isOverlapping()`), leaving out the
+   * ignored ones. The cost is the smaller of the area's cell count and the number of merges: adding many
+   * small merges reads only their own cells, and one large merge is checked against the merge list instead
+   * of every cell it covers.
+   *
+   * @private
+   * @param {MergeAreaGeometry} area The area to check: `row`, `col`, `rowspan` and `colspan`.
+   * @param {Function} isIgnored Tells whether a merge is left out of the check.
+   * @returns {boolean}
+   */
+  overlapsLiveMerge(area: MergeAreaGeometry, isIgnored: (mergedCell: MergedCellCoords) => boolean): boolean {
+    const counts = (mergedCell: MergedCellCoords) => (
+      this.get(mergedCell.row, mergedCell.col) === mergedCell && !isIgnored(mergedCell)
+    );
+    const scan = () => this.mergedCells.some(mergedCell => (
+      areMergesOverlapping(area, mergedCell) && counts(mergedCell)
+    ));
+
+    if (area.rowspan * area.colspan > this.mergedCells.length) {
+      return scan();
     }
 
-    for (let i = 0; i < this.mergedCells.length; i++) {
-      const otherMergedCell = this.mergedCells[i];
+    for (let row = area.row; row < area.row + area.rowspan; row++) {
+      for (let col = area.col; col < area.col + area.colspan; col++) {
+        const mergedCell = this.get(row, col);
 
-      if (
-        ignoredMergedCells.includes(otherMergedCell) ||
-        this.get(otherMergedCell.row, otherMergedCell.col) !== otherMergedCell
-      ) {
-        continue;
-      }
+        if (mergedCell && counts(mergedCell)) {
+          return true;
+        }
 
-      const otherMergedCellRange = otherMergedCell.getRange();
-
-      const overlappingRange = otherMergedCellRange as CellRange & { overlaps(range: CellRange): boolean };
-
-      if (otherMergedCellRange && overlappingRange.overlaps(mergedCellRange)) {
-        return true;
+        // A cell the matrix gives to a merge that does not count can still lie under one that does: a sort
+        // can draw two merges over each other (`relocateInMatrix` has no overlap guard), and the matrix then
+        // names only one of them. The scan sees both by their geometry.
+        if (mergedCell) {
+          return scan();
+        }
       }
     }
 
