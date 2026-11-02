@@ -134,9 +134,11 @@ for (const engine of ['native', 'exceljs'] as const) {
       const workbook = await lic.exportWorkbook(EXPORT_OPTIONS);
       const sheet = workbook.worksheets[0];
 
-      // Values still go out: a date as its serial number, the dropdown cell as its text.
+      // Values still go out: a date as the text the grid shows (a serial means nothing without its
+      // number format), the dropdown cell as its text.
       expect(sheet.getCell('A2').value).toBe('Ana García');
-      expect(sheet.getCell('C2').value).toBe(45306);
+      expect(sheet.getCell('C2').type).toBe(ExcelJS.ValueType.String);
+      expect(sheet.getCell('C2').value).toBe('01/15/2024');
       expect(sheet.getCell('D2').value).toBe('Open');
 
       if (bundle === 'full-min') {

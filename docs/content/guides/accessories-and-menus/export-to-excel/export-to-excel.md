@@ -251,7 +251,7 @@ The XLSX export reads your license key for the [capabilities](@/guides/getting-s
 - `xlsx:export` - the export itself, and the **To Excel** context menu item.
 - `xlsx:formulas` - `exportFormulas`.
 - `xlsx:layout` - column widths, row heights, hidden rows and columns, merged cells (nested header groups included: without it, a group label sits in the group's first header cell), frozen panes, and right-to-left direction.
-- `xlsx:number_formats` - number formats of cells.
+- `xlsx:number_formats` - number formats of cells. Without it, a date, time, or date-time cell exports as the text the grid shows, such as `01/15/2024`, and a numeric cell exports as a plain number.
 - `xlsx:comments` - cell comments.
 - `xlsx:styles` - fonts, fills, borders, and alignment, and the `headerStyle` option.
 - `xlsx:conditional_formatting` - the `conditionalFormatting` option.

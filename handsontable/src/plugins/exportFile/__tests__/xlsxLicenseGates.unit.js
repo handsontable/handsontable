@@ -2,6 +2,10 @@ import Xlsx from '../types/xlsx';
 import ExportDataProvider from '../dataProvider';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
 import * as consoleHelpers from '../../../helpers/console';
+import { DateCellType } from '../../../cellTypes/dateType';
+import { TimeCellType } from '../../../cellTypes/timeType';
+import { IntlDateCellType } from '../../../cellTypes/intlDateType';
+import { formatCellValue } from '../../../renderers/renderCell';
 import {
   ALL_XLSX_TOKENS,
   STANDARD_TOKENS,
@@ -205,6 +209,42 @@ describe('Xlsx export license gates', () => {
     expect(full.rows[1][1].numFmt).not.toBeNull();
     expect(dataCells(gated).every(cell => cell.numFmt === null)).toBe(true);
     expect(gated.rows[1][1].value).toBe(1);
+  });
+
+  it('writes dates and times as the text the grid shows without xlsx:number_formats', async() => {
+    const saved = { data: mockState.data, sourceData: mockState.sourceData, cellsMeta: mockState.cellsMeta };
+    const dateMeta = { ...DateCellType, type: 'date', locale: 'en-US' };
+    const timeMeta = {
+      ...TimeCellType, type: 'time', locale: 'en-US', timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+    };
+    const intlDateMeta = {
+      ...IntlDateCellType,
+      type: 'intl-date',
+      locale: 'de-DE',
+      dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' },
+    };
+
+    mockState.data = [['2024-01-15', '09:30:00', '2024-01-15']];
+    mockState.sourceData = mockState.data;
+    mockState.cellsMeta = [[dateMeta, timeMeta, intlDateMeta]];
+
+    try {
+      const full = (await exportSnapshot(keyWith(ALL_XLSX_TOKENS))).sheets[0];
+      const gated = (await exportSnapshot(keyWithout('xlsx:number_formats'))).sheets[0];
+      const rendered = mockState.cellsMeta[0]
+        .map((meta, col) => formatCellValue(mockState.data[0][col], meta, meta.renderer));
+
+      expect(full.rows[1][0].value).toBe(45306);
+      expect(full.rows[1][0].numFmt).not.toBeNull();
+      expect(full.rows[1][1].value).toBeCloseTo(0.395833, 5);
+      expect(full.rows[1][2].value).toBe(45306);
+
+      expect(rendered).toEqual(['01/15/2024', '09:30', '15.01.2024']);
+      expect(gated.rows[1].slice(0, 3).map(cell => cell.value)).toEqual(rendered);
+      expect(gated.rows[1].slice(0, 3).map(cell => cell.numFmt)).toEqual([null, null, null]);
+    } finally {
+      Object.assign(mockState, saved);
+    }
   });
 
   it('writes no widths, heights, merges, hidden, freeze, rtl without xlsx:layout', async() => {

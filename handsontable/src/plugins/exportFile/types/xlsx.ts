@@ -57,6 +57,8 @@ import {
   type WorkbookSnapshot,
 } from '../../../utils/xlsxEngine/model';
 import type { HotInstance } from '../../../core/types';
+import type { CellProperties } from '../../../settings';
+import { formatCellValue, type RendererWithValueFormatter } from '../../../renderers/renderCell';
 import { getLicenseState, getXlsxEntitlement } from '../../../core/license';
 import { EXPORT_FILE_CAPABILITY_IDS } from '../../../utils/xlsxEngine/licenseCapabilities';
 import {
@@ -243,6 +245,41 @@ function resolveMetaNumFmt(meta: CellMeta): string | null {
     default:
       return null;
   }
+}
+
+/**
+ * Parses the value of a date, time or date-time cell to its Excel serial, or `null` when the cell is
+ * not one of those types or its value does not parse.
+ */
+function parseTemporalSerial(value: unknown, meta: CellMeta): number | null {
+  switch (meta.type) {
+    case 'intl-datetime':
+      return parseIsoDateTimeStringToSerial(value);
+    case 'date':
+    case 'intl-date':
+      return parseIsoStringToSerial(value);
+    case 'time':
+    case 'intl-time':
+      return parseTimeStringToSerial(value);
+    default:
+      return null;
+  }
+}
+
+/**
+ * The text the grid renders for a cell: its value after the cell's `valueFormatter` option or its
+ * renderer's `valueFormatter` static, the same precedence the render path follows
+ * (`formatCellValue()`).
+ */
+function toDisplayText(value: unknown, meta: CellMeta): string {
+  const { renderer } = meta as { renderer?: unknown };
+  const formatted = formatCellValue(
+    value,
+    meta as unknown as CellProperties,
+    (typeof renderer === 'function' ? renderer : undefined) as unknown as RendererWithValueFormatter,
+  );
+
+  return stringify(formatted);
 }
 
 /**
@@ -876,11 +913,11 @@ class Xlsx extends BaseType {
    * 2. HyperFormula formula cells (when `exportFormulas` is `true`) — written with the number
    *    format their column's meta describes and with the pre-calculated value cached as the
    *    formula's `result`.
-   * 3. Date cells (ISO 8601 string → serial number).
-   * 4. Time cells (time string → fractional day serial).
-   * 5. Checkbox cells (boolean from `checkedTemplate` comparison; an empty value stays empty).
-   * 6. Multiselect cells (comma-separated string).
-   * 7. All other cells (numeric-aware or stringified).
+   * 3. Date, time and date-time cells (ISO 8601 string → serial number with its number format, or,
+   *    without `xlsx:number_formats`, the text the grid renders).
+   * 4. Checkbox cells (boolean from `checkedTemplate` comparison; an empty value stays empty).
+   * 5. Multiselect cells (comma-separated string).
+   * 6. All other cells (numeric-aware or stringified).
    *
    * @param {*} cellValue Pre-calculated display value from `getData()`.
    * @param {object} meta Cell meta object.
@@ -930,28 +967,14 @@ class Xlsx extends BaseType {
       };
     }
 
-    if (meta.type === 'intl-datetime') {
-      const serial = parseIsoDateTimeStringToSerial(cellValue);
+    const temporalSerial = parseTemporalSerial(cellValue, meta);
 
-      if (serial !== null) {
-        return { value: serial, formula: null, numFmt: resolveMetaNumFmt(meta) };
-      }
-    }
-
-    if (meta.type === 'date' || meta.type === 'intl-date') {
-      const serial = parseIsoStringToSerial(cellValue);
-
-      if (serial !== null) {
-        return { value: serial, formula: null, numFmt: resolveMetaNumFmt(meta) };
-      }
-    }
-
-    if (meta.type === 'time' || meta.type === 'intl-time') {
-      const serial = parseTimeStringToSerial(cellValue);
-
-      if (serial !== null) {
-        return { value: serial, formula: null, numFmt: resolveMetaNumFmt(meta) };
-      }
+    if (temporalSerial !== null) {
+      // A serial means nothing without its number format: without `xlsx:number_formats` the cell
+      // goes out as the text the grid renders, so `2024-01-15` does not open as `45306`.
+      return this.#entitlement.numberFormats
+        ? { value: temporalSerial, formula: null, numFmt: resolveMetaNumFmt(meta) }
+        : { value: toDisplayText(cellValue, meta), formula: null, numFmt: null };
     }
 
     if (meta.type === 'checkbox') {
