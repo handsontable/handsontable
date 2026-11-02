@@ -75,22 +75,6 @@ describe('LayoutManager', () => {
     expect(ids(bottom)).toEqual(['b']);
   });
 
-  it('register marks an element that fills the wrapper\'s width, and unmarks it when registered again without', () => {
-    const { manager } = setup();
-    const bar = make('bar');
-    const pager = make('pager');
-
-    manager.register('bar', bar, { side: 'bottom', fillsWrapperWidth: true });
-    manager.register('pager', pager, { side: 'bottom' });
-
-    expect(bar.classList.contains('ht-slot-element--fills-wrapper')).toBe(true);
-    expect(pager.classList.contains('ht-slot-element--fills-wrapper')).toBe(false);
-
-    manager.register('bar', bar, { side: 'bottom' });
-
-    expect(bar.classList.contains('ht-slot-element--fills-wrapper')).toBe(false);
-  });
-
   it('register throws for a non-slot side such as the internal overlays layer', () => {
     const { manager } = setup();
 

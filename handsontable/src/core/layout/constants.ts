@@ -28,18 +28,6 @@ export type LayoutSide = LayoutSlotName;
 export const SLOT_ITEM_CLASS = 'ht-slot-element';
 
 /**
- * Class added to a slot element registered with `fillsWrapperWidth`. Core widens a slot holding one to the
- * wrapper's width while the window owns the horizontal axis (`resolveEdgeSlotWidth()`).
- */
-export const SLOT_FILLS_WRAPPER_CLASS = 'ht-slot-element--fills-wrapper';
-
-/**
- * The custom property core writes on a slot widened past the table: the table's width, which the slot's other
- * elements keep (`max-width` in the base stylesheet).
- */
-export const SLOT_ITEM_WIDTH_PROPERTY = '--ht-private-slot-item-width';
-
-/**
  * Returns the class mirrored onto the root wrapper while the given slot holds at least one slot
  * item. The stylesheets select on this class instead of
  * `.ht-root-wrapper:has(> .ht-slot-<name> > .ht-slot-element)` — a `:has()` selector here makes

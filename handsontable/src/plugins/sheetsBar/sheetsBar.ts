@@ -1287,11 +1287,7 @@ export class SheetsBar extends BasePlugin {
     if (!this.getSetting('uiContainer')) {
       this.#registeredSide = this.getSetting('position') === 'top' ? 'top' : 'bottom';
       this.hot.getLayoutManager()
-        .register(PLUGIN_KEY, this.#ui.getContainer(), {
-          side: this.#registeredSide,
-          weight: LAYOUT_WEIGHT,
-          fillsWrapperWidth: true,
-        });
+        .register(PLUGIN_KEY, this.#ui.getContainer(), { side: this.#registeredSide, weight: LAYOUT_WEIGHT });
     }
 
     this.hot.getFocusManager().registerOutsideClickExemptElement(this.#ui.getContainer());

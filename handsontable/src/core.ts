@@ -88,13 +88,7 @@ import { initLicenseBranding } from './utils/licenseBranding';
 import { getValueSetterValue } from './utils/valueAccessors';
 import { clipRemovalRange } from './utils/removalRange';
 import { createThemeManager, isThemeOverrideEmpty } from './themes/engine';
-import {
-  LayoutManager,
-  SLOT_FILLS_WRAPPER_CLASS,
-  SLOT_ITEM_WIDTH_PROPERTY,
-  resolveEdgeSlotWidth,
-  type LayoutConfig,
-} from './core/layout';
+import { LayoutManager, type LayoutConfig } from './core/layout';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
 import type { ThemeBuilder } from './themes/engine/builder';
 import type { ThemeOverridesInput } from './themes/engine/manager';
@@ -2758,7 +2752,7 @@ export default function Core(
 
       // Keep the edge slots (top, bottom) as wide as the table so their content
       // (toolbars, pagination, license notification) aligns with the grid.
-      const lastEdgeWidths = { top: '', bottom: '' };
+      const lastEdgeWidths = { top: -1, bottom: -1 };
       const syncEdgeSlotsWidth = () => {
         if (instance.isDestroyed) {
           return;
@@ -2771,50 +2765,40 @@ export default function Core(
         }
 
         const isWindowAxis = view.isHorizontallyScrollableByWindow();
+        let width = isWindowAxis ? view.getTotalTableWidth() : view.getWorkspaceWidth();
 
-        // The rules live in `resolveEdgeSlotWidth()` (`core/layout/slotWidth.ts`). `clientWidth` is the
-        // wrapper's own box. In a block parent the slot's previous inline width cannot inflate it. In a
-        // shrink-to-fit parent (`inline-block`, a float, a widthless flex item) the wrapper sizes to its
-        // widest child, but the table is one of those children and the slot was written no wider than the
-        // table, so `min(table, wrapper)` still tracks the table downwards – pinned by the
-        // `inline-block-host` case of `bottom-slot-sizing.spec.ts`.
-        const input = {
-          isWindowAxis,
-          tableWidth: isWindowAxis ? view.getTotalTableWidth() : 0,
-          workspaceWidth: isWindowAxis ? 0 : view.getWorkspaceWidth(),
-          wrapperOffsetWidth: instance.rootWrapperElement?.offsetWidth ?? 0,
-          wrapperClientWidth: instance.rootWrapperElement?.clientWidth ?? 0,
-          hasRenderedColumns: instance.countRenderedCols() > 0,
-        };
+        if ((width === 0 || (isWindowAxis && instance.countRenderedCols() <= 0)) && instance.rootWrapperElement) {
+          width = instance.rootWrapperElement.offsetWidth;
+        }
 
-        (['top', 'bottom'] as const).forEach((side) => {
-          const slot = side === 'top' ? instance.rootSlotTopElement : instance.rootSlotBottomElement;
+        // The slot aligns with the TABLE (a narrow table gets a narrow bar), but never past the
+        // wrapper when the WINDOW owns the horizontal axis: the table can then be wider than its
+        // CSS-sized container, and a slot sized to the table ran out of that container – up to the
+        // full page width (DEV-2848). Only that mode is clamped: with a definite `width` option the
+        // root owns the axis and `getWorkspaceWidth()` is the grid's own box, which the slot keeps
+        // following even inside a narrower container (the user sized the grid explicitly).
+        // `clientWidth` is the wrapper's own box. In a block parent the slot's previous inline width
+        // cannot inflate it. In a shrink-to-fit parent (`inline-block`, a float, a widthless flex
+        // item) the wrapper sizes to its widest child, but the table is one of those children and
+        // the slot was written no wider than the table, so `min(table, wrapper)` still tracks the
+        // table downwards – pinned by the `inline-block-host` case of `bottom-slot-sizing.spec.ts`.
+        const wrapperWidth = instance.rootWrapperElement?.clientWidth ?? 0;
 
-          if (!slot) {
-            return;
-          }
+        if (isWindowAxis && wrapperWidth > 0) {
+          width = Math.min(width, wrapperWidth);
+        }
 
-          const { slotWidth, itemWidth } = resolveEdgeSlotWidth({
-            ...input,
-            fillsWrapperWidth: slot.querySelector(`:scope > .${SLOT_FILLS_WRAPPER_CLASS}`) !== null,
-          });
-          const key = `${slotWidth}|${itemWidth}`;
+        // Only write when the value actually changes — avoids a reflow → dimension-refresh
+        // → re-sync feedback loop, and needless layout writes during volatile renders.
+        if (instance.rootSlotBottomElement && width !== lastEdgeWidths.bottom) {
+          lastEdgeWidths.bottom = width;
+          instance.rootSlotBottomElement.style.width = `${width}px`;
+        }
 
-          // Only write when the value actually changes — avoids a reflow → dimension-refresh
-          // → re-sync feedback loop, and needless layout writes during volatile renders.
-          if (key === lastEdgeWidths[side]) {
-            return;
-          }
-
-          lastEdgeWidths[side] = key;
-          slot.style.width = `${slotWidth}px`;
-
-          if (itemWidth === null) {
-            slot.style.removeProperty(SLOT_ITEM_WIDTH_PROPERTY);
-          } else {
-            slot.style.setProperty(SLOT_ITEM_WIDTH_PROPERTY, `${itemWidth}px`);
-          }
-        });
+        if (instance.rootSlotTopElement && width !== lastEdgeWidths.top) {
+          lastEdgeWidths.top = width;
+          instance.rootSlotTopElement.style.width = `${width}px`;
+        }
       };
 
       instance.addHook('afterRender', syncEdgeSlotsWidth);

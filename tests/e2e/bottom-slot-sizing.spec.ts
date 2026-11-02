@@ -225,7 +225,7 @@ test.describe('regression guards around the wrapper and slot sizing', { tag: THE
     expect(Math.abs(after.bottomSlot.width - after.table.width)).toBeLessThanOrEqual(1);
   });
 
-  test('keeps the slot with a sheets bar at the wrapper width, and the pager at the table width', async () => {
+  test('keeps the slot at the wrapper width on a sheet with no columns', async () => {
     await grid.goto('css-fixed', 'sheetsBar');
     await grid.rebuild({
       pagination: { pageSize: 25 },
@@ -242,8 +242,7 @@ test.describe('regression guards around the wrapper and slot sizing', { tag: THE
 
     expect(narrow.horizontalByWindow).toBe(true);
     expect(narrow.table.width).toBeLessThan(narrow.wrapper.width / 2);
-    expect(Math.abs(narrow.bottomSlot.width - narrow.wrapper.width)).toBeLessThanOrEqual(1);
-    expect(Math.abs((await grid.paginationBar.boundingBox())!.width - narrow.table.width)).toBeLessThanOrEqual(1);
+    expect(Math.abs(narrow.bottomSlot.width - narrow.table.width)).toBeLessThanOrEqual(1);
 
     await grid.sheetTab('Empty').click();
     await expect(grid.activeSheetTab()).toHaveText(/Empty/);
@@ -258,11 +257,10 @@ test.describe('regression guards around the wrapper and slot sizing', { tag: THE
     await expect(grid.activeSheetTab()).toHaveText(/Narrow/);
 
     await expect.poll(async() => {
-      const { bottomSlot, table, wrapper } = await grid.geometry();
+      const { bottomSlot, table } = await grid.geometry();
 
-      return Math.abs(bottomSlot.width - wrapper.width) + Math.abs(table.width - narrow.table.width);
+      return Math.abs(bottomSlot.width - narrow.table.width) + Math.abs(table.width - narrow.table.width);
     }).toBeLessThanOrEqual(2);
-    expect(Math.abs((await grid.paginationBar.boundingBox())!.width - narrow.table.width)).toBeLessThanOrEqual(1);
   });
 
   test('keeps the pagination bar at the wrapper width with every column hidden', async () => {

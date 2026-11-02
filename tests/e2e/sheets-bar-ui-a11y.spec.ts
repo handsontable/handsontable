@@ -1,6 +1,6 @@
 import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SheetsBarUiPage } from '../fixtures/pages/SheetsBarUiPage';
-import type { Locator, Page } from '@playwright/test';
+import type { Locator } from '@playwright/test';
 
 /**
  * Reads a one-pixel line along one edge of an element, inset from its corners.
@@ -20,36 +20,6 @@ async function edgePixels(element: Locator, edge: 'top' | 'bottom'): Promise<Buf
     clip: { x: x + 4, y: edge === 'top' ? y : y + height - 1, width: 16, height: 1 },
     animations: 'disabled',
   });
-}
-
-/**
- * Counts how often the paging section is shown or hidden over ten animation frames.
- *
- * @param {Page} page The page.
- * @returns {Promise<number>} The number of `hidden` attribute changes.
- */
-function pagingToggles(page: Page): Promise<number> {
-  return page.evaluate(() => new Promise<number>((resolve) => {
-    const paging = document.querySelector('.ht-sheets-bar__paging') as HTMLElement;
-    let toggles = 0;
-    let frames = 0;
-    const observer = new MutationObserver((records) => {
-      toggles += records.length;
-    });
-    const tick = () => {
-      frames += 1;
-
-      if (frames < 10) {
-        requestAnimationFrame(tick);
-      } else {
-        observer.disconnect();
-        resolve(toggles);
-      }
-    };
-
-    observer.observe(paging, { attributes: true, attributeFilter: ['hidden'] });
-    requestAnimationFrame(tick);
-  }));
 }
 
 test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
@@ -291,93 +261,6 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
   });
 
   test.describe('the tab strip', () => {
-    test('spans the grid\'s container in the top slot too, and stays as it is in a uiContainer', async({
-      page, theme, bundle,
-    }) => {
-      const fixture = new SheetsBarUiPage(page, theme, bundle);
-      const readBar = () => page.evaluate(() => {
-        const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
-
-        return {
-          width: Math.round(bar.getBoundingClientRect().width),
-          containerWidth: bar.parentElement!.clientWidth,
-          wrapperWidth: (document.querySelector('.ht-root-wrapper') as HTMLElement).clientWidth,
-          fillsWrapper: bar.classList.contains('ht-slot-element--fills-wrapper'),
-          inTopSlot: bar.parentElement!.classList.contains('ht-slot-top'),
-        };
-      });
-
-      await fixture.goto({ sheets: 2, columnCounts: [1, 1], fixedHeight: false, position: 'top' });
-
-      expect(await readBar()).toEqual(expect.objectContaining({ inTopSlot: true, fillsWrapper: true }));
-      expect((await readBar()).width).toBe((await readBar()).wrapperWidth);
-
-      await fixture.goto({ sheets: 2, columnCounts: [1, 1], fixedHeight: false, uiContainer: true });
-
-      const inContainer = await readBar();
-
-      expect(inContainer.fillsWrapper).toBe(false);
-      expect(inContainer.width).toBe(inContainer.containerWidth);
-    });
-
-    test('spans the grid\'s container on a sheet narrower than the bar, while Pagination follows the table', async({
-      page, theme, bundle,
-    }) => {
-      const fixture = new SheetsBarUiPage(page, theme, bundle);
-      const tabNames = Array.from({ length: 6 }, (_, index) => `Quarterly report ${index + 1}`);
-      const readLayout = () => page.evaluate(() => {
-        const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
-        const barBox = bar.getBoundingClientRect();
-        const wrapper = document.querySelector('.ht-root-wrapper') as HTMLElement;
-        const visible = Array.from(bar.querySelectorAll<HTMLElement>(
-          '.ht-sheets-bar__controls, .ht-sheets-bar__paging, .ht-sheets-bar__tab--active'
-        )).filter(element => !element.hidden && element.offsetParent !== null);
-        const root = document.scrollingElement as HTMLElement;
-        const pagination = document.querySelector('.ht-pagination') as HTMLElement;
-        const tableWidth = (window as any).hot.view.getTotalTableWidth();
-
-        return {
-          barWidth: Math.round(barBox.width),
-          wrapperWidth: wrapper.clientWidth,
-          tableWidth: Math.round(tableWidth),
-          paginationWidth: Math.round(pagination.getBoundingClientRect().width),
-          insideBar: visible.every((element) => {
-            const box = element.getBoundingClientRect();
-
-            return box.left >= barBox.left && box.right <= barBox.right;
-          }),
-          painted: !['transparent', 'rgba(0, 0, 0, 0)'].includes(getComputedStyle(bar).backgroundColor),
-          pageScrollsSideways: root.scrollWidth > root.clientWidth,
-          slotScrolls: bar.parentElement!.scrollWidth > bar.parentElement!.clientWidth,
-        };
-      });
-
-      await fixture.goto({
-        sheets: 6, tabNames, columnCounts: [1, 3, 25, 4, 4, 4], fixedHeight: false, pagination: true,
-      });
-
-      for (const [index, narrow] of [[0, true], [1, true], [2, false]] as const) {
-        await fixture.setActiveSheet(index);
-        await expect.poll(() => fixture.tabWhollyInStrip(index)).toBe(true);
-
-        const layout = await readLayout();
-
-        expect(await pagingToggles(page)).toBe(0);
-        expect(layout.insideBar).toBe(true);
-        expect(layout.painted).toBe(true);
-        expect(layout.slotScrolls).toBe(false);
-        expect(layout.barWidth).toBe(layout.wrapperWidth);
-
-        if (narrow) {
-          expect(layout.pageScrollsSideways).toBe(false);
-          expect(layout.tableWidth).toBeLessThan(layout.wrapperWidth);
-          expect(Math.abs(layout.paginationWidth - layout.tableWidth)).toBeLessThanOrEqual(1);
-        }
-      }
-
-      await expect(fixture.bar.locator('.ht-sheets-bar__paging')).toBeVisible();
-    });
-
     test('reveals the active tab on first paint', async({ page, theme, bundle }) => {
       const fixture = new SheetsBarUiPage(page, theme, bundle);
 

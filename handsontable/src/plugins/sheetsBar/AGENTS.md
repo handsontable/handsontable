@@ -682,15 +682,6 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 - **The active-tab marker is a `::after` border, not a `box-shadow`**, and the rename edge is an
   `outline`: forced-colors mode drops box shadows and backgrounds, so neither cue showed there. The sliding marker (`.ht-sheets-bar__tab-indicator`) draws its line with a border for the same reason, or no marker showed while it slid.
   Hide the `::after` while the indicator slides and while a tab is renamed, or two markers show.
-- **The bar spans the grid's container on a narrow table.** It registers its slot element with
-  `fillsWrapperWidth: true`, so core writes that slot at the wrapper's width while the window owns the
-  horizontal axis, instead of following the table ("a narrow table gets a narrow bar" still holds for
-  Pagination, which keeps the table's width in the same slot). Before, a one-column sheet left the strip 0px
-  wide. Two earlier attempts went the wrong way: a `min-width` on the strip made the row overflow the bar,
-  so the paging arrows sat past its background, and `min-width: min-content` on the bar made it as wide as
-  all its tabs, so with 30 tabs the arrows and the focused tab ended up thousands of pixels off screen. A bar
-  in a `uiContainer` is not in a slot and is unaffected. Pinned by "spans the grid's container …" in
-  `tests/e2e/sheets-bar-ui-a11y.spec.ts` and `tests/e2e/bottom-slot-sizing.spec.ts`.
 - **The theme class goes on the bar only in a `uiContainer`.** In a layout slot the bar sits under
   the grid's own themed wrapper; a class of its own there broke the theme engine's scope (the
   `colorScheme` and `density` tokens of the grid stopped reaching the bar). In a `uiContainer` the bar
