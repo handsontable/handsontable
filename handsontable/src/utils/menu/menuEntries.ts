@@ -1,5 +1,7 @@
 import type { HookCallback } from '../../core/hooks/bucket';
+import type { HotInstance } from '../../core/types';
 import { arrayEach } from '../../helpers/array';
+import { objectEach } from '../../helpers/object';
 import { SEPARATOR } from './predefinedItems';
 
 export type MenuName = 'contextMenu' | 'dropdownMenu';
@@ -7,8 +9,8 @@ export type MenuName = 'contextMenu' | 'dropdownMenu';
 export interface MenuEntriesPlacement {
   /**
    * Whether the entries join the menu's default item list, the one shown when the menu option is
-   * `true`. With `false`, the entries are available only to a menu configuration that lists their
-   * keys. Defaults to `true`.
+   * `true`. With `false`, an entry reaches the menu only when the menu option lists its key, in the
+   * array form or the object form, and nothing is added otherwise. Defaults to `true`.
    */
   inDefaults?: boolean;
   /**
@@ -20,21 +22,9 @@ export interface MenuEntriesPlacement {
 export type MenuEntriesTargets = Partial<Record<MenuName, MenuEntriesPlacement>>;
 
 interface HookOwner {
+  hot: HotInstance;
   addHook(name: string, callback: HookCallback, orderIndex?: number): void;
 }
-
-/**
- * The keys of the entries a menu build received without joining the menu's default item list, keyed
- * by the options object that build hands to its default-options hook. The keys are recorded per
- * build, not on the entry objects, so a hook listener that copies `options.items` cannot move an
- * entry into the defaults, and the two menus never share a record.
- */
-const keysOutsideDefaults = new WeakMap<object, Set<string>>();
-
-/**
- * An empty record, returned for a build that received no entries outside its defaults.
- */
-const NO_KEYS: ReadonlySet<string> = new Set();
 
 /**
  * Returns the hook through which the given menu collects its plugin entries.
@@ -47,20 +37,34 @@ function getDefaultOptionsHookName(menuName: MenuName) {
 }
 
 /**
- * Records the keys of entries that a menu build receives outside its defaults.
+ * Returns the item keys a menu option lists, read the way `ItemsFactory#getItems()` reads the option:
+ * the `items` of an object, then an array of keys or item objects, or an object keyed by item key.
+ * The `true` option, and any value that falls back to the default list, lists nothing.
  *
- * @param {object} options The options object of the menu build.
- * @param {object[]} entries The entries added outside the defaults.
+ * @param {*} setting The value of the `contextMenu` or `dropdownMenu` option.
+ * @returns {Set<string>}
  */
-function recordKeysOutsideDefaults(options: object, entries: Array<{ key: string }>) {
-  let keys = keysOutsideDefaults.get(options);
+function getListedKeys(setting: unknown) {
+  const keys = new Set<string>();
+  const pattern = typeof setting === 'object' && setting !== null && 'items' in setting && setting.items
+    ? setting.items
+    : setting;
 
-  if (!keys) {
-    keys = new Set();
-    keysOutsideDefaults.set(options, keys);
+  if (Array.isArray(pattern)) {
+    arrayEach(pattern, (entry: unknown) => {
+      if (typeof entry === 'string') {
+        keys.add(entry);
+
+      } else if (typeof entry === 'object' && entry !== null && 'key' in entry && typeof entry.key === 'string') {
+        keys.add(entry.key);
+      }
+    });
+
+  } else if (typeof pattern === 'object' && pattern !== null && pattern !== setting) {
+    objectEach(pattern, (value: unknown, key: string) => keys.add(key));
   }
 
-  arrayEach(entries, entry => keys.add(entry.key));
+  return keys;
 }
 
 /**
@@ -90,32 +94,29 @@ export function registerMenuEntries(
 
     const { inDefaults = true, orderIndex } = placement;
     const onDefaultOptions = (options: { items: unknown[] }) => {
-      const entries = createEntries();
-
-      if (entries.length === 0) {
-        return;
-      }
-
       if (inDefaults) {
-        options.items.push({ name: SEPARATOR }, ...entries);
+        const entries = createEntries();
+
+        if (entries.length > 0) {
+          options.items.push({ name: SEPARATOR }, ...entries);
+        }
 
         return;
       }
 
-      recordKeysOutsideDefaults(options, entries);
-      options.items.push(...entries);
+      const listedKeys = getListedKeys(plugin.hot.getSettings()[menuName]);
+
+      if (listedKeys.size === 0) {
+        return;
+      }
+
+      arrayEach(createEntries(), (entry) => {
+        if (listedKeys.has(entry.key)) {
+          options.items.push(entry);
+        }
+      });
     };
 
     plugin.addHook(getDefaultOptionsHookName(menuName), onDefaultOptions, orderIndex);
   });
-}
-
-/**
- * Returns the keys of the entries a menu build received outside its default item list.
- *
- * @param {object} options The options object the menu build handed to its default-options hook.
- * @returns {Set<string>}
- */
-export function getKeysOutsideMenuDefaults(options: object): ReadonlySet<string> {
-  return keysOutsideDefaults.get(options) ?? NO_KEYS;
 }

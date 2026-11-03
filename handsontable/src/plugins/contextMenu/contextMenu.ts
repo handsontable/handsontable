@@ -4,7 +4,6 @@ import { arrayEach } from '../../helpers/array';
 import { objectEach } from '../../helpers/object';
 import { CommandExecutor } from '../../utils/menu/commandExecutor';
 import { ItemsFactory } from '../../utils/menu/itemsFactory';
-import { getKeysOutsideMenuDefaults } from '../../utils/menu/menuEntries';
 import {
   Menu,
 } from '../../utils/menu/menu';
@@ -406,7 +405,7 @@ export class ContextMenu extends BasePlugin {
 
     this.hot.runHooks('afterContextMenuDefaultOptions', predefinedItems);
 
-    this.itemsFactory.setPredefinedItems(predefinedItems.items, getKeysOutsideMenuDefaults(predefinedItems));
+    this.itemsFactory.setPredefinedItems(predefinedItems.items);
     const menuItems = this.itemsFactory.getItems(settings);
 
     this.hot.runHooks('beforeContextMenuSetItems', menuItems);

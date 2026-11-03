@@ -1,17 +1,23 @@
 import { ItemsFactory } from 'handsontable/utils/menu/itemsFactory';
-import { registerMenuEntries, getKeysOutsideMenuDefaults } from 'handsontable/utils/menu/menuEntries';
+import { registerMenuEntries } from 'handsontable/utils/menu/menuEntries';
 import { SEPARATOR } from 'handsontable/utils/menu/predefinedItems';
 
 /**
- * Records every hook a plugin registers, so a test can run the callbacks the way a menu does.
+ * Records every hook a plugin registers, so a test can run the callbacks the way a menu does, and
+ * answers `hot.getSettings()` with the given menu options.
  *
+ * @param {object} [settings] The `contextMenu` and `dropdownMenu` option values.
  * @returns {object} A plugin stand-in with the registered hooks under `hooks`.
  */
-function pluginMock() {
+function pluginMock(settings = {}) {
   const hooks = [];
 
   return {
     hooks,
+    settings,
+    hot: {
+      getSettings: () => settings,
+    },
     addHook(name, callback, orderIndex) {
       hooks.push({ name, callback, orderIndex });
     },
@@ -51,22 +57,26 @@ function entry(key) {
  * Builds a menu's item list the way `ContextMenu` and `DropdownMenu` do: first pass, hook, second pass.
  *
  * @param {object} plugin The plugin stand-in whose hooks contribute entries.
- * @param {string} hookName The menu's default-options hook.
- * @param {*} settings The menu option value.
+ * @param {string} menuName `contextMenu` or `dropdownMenu`.
+ * @param {*} setting The menu option value, also set on the plugin stand-in.
  * @param {string[]} defaultItems The menu's built-in default keys.
  * @param {Function[]} [appListeners] Listeners that run after the plugin's.
  * @returns {string[]} The keys of the built items, with separators reported as `SEPARATOR`.
  */
-function buildMenu(plugin, hookName, settings, defaultItems, appListeners = []) {
-  const factory = new ItemsFactory({ rootElement: {} }, defaultItems.slice(), hookName);
-  const options = runHook(plugin, hookName, factory.getItems(settings), appListeners);
+function buildMenu(plugin, menuName, setting, defaultItems, appListeners = []) {
+  const hookName = menuName === 'contextMenu' ? 'afterContextMenuDefaultOptions' : 'afterDropdownMenuDefaultOptions';
+  const factory = new ItemsFactory({ rootElement: {} }, defaultItems.slice(), menuName);
 
-  factory.setPredefinedItems(options.items, getKeysOutsideMenuDefaults(options));
+  plugin.settings[menuName] = setting;
 
-  return factory.getItems(settings).map(item => (item.name === SEPARATOR ? SEPARATOR : item.key));
+  const options = runHook(plugin, hookName, factory.getItems(setting), appListeners);
+
+  factory.setPredefinedItems(options.items);
+
+  return factory.getItems(setting).map(item => (item.name === SEPARATOR ? SEPARATOR : item.key));
 }
 
-describe('contextMenu/registerMenuEntries', () => {
+describe('utils/menu/registerMenuEntries', () => {
   let warnSpy;
 
   beforeEach(() => {
@@ -129,14 +139,13 @@ describe('contextMenu/registerMenuEntries', () => {
   });
 
   describe('a build with no entries', () => {
-    it('adds nothing, the separator included', () => {
+    it('adds nothing to the defaults, the separator included', () => {
       const plugin = pluginMock();
 
-      registerMenuEntries(plugin, () => [], { contextMenu: {}, dropdownMenu: { inDefaults: false } });
+      registerMenuEntries(plugin, () => [], { contextMenu: {} });
 
       expect(runHook(plugin, 'afterContextMenuDefaultOptions', [entry('built_in')]).items.map(item => item.key))
         .toEqual(['built_in']);
-      expect(runHook(plugin, 'afterDropdownMenuDefaultOptions').items).toEqual([]);
     });
   });
 
@@ -156,31 +165,18 @@ describe('contextMenu/registerMenuEntries', () => {
 
       registerMenuEntries(plugin, () => [entry('a')], { dropdownMenu: {} });
 
-      expect(buildMenu(plugin, 'afterDropdownMenuDefaultOptions', true, ['col_left']))
-        .toEqual(['col_left', SEPARATOR, 'a']);
-    });
-
-    it('records no keys outside the defaults', () => {
-      const plugin = pluginMock();
-
-      registerMenuEntries(plugin, () => [entry('a')], { dropdownMenu: {} });
-
-      const options = runHook(plugin, 'afterDropdownMenuDefaultOptions');
-
-      expect([...getKeysOutsideMenuDefaults(options)]).toEqual([]);
+      expect(buildMenu(plugin, 'dropdownMenu', true, ['col_left'])).toEqual(['col_left', SEPARATOR, 'a']);
     });
   });
 
   describe('entries kept outside the defaults', () => {
-    it('appends the entries without a separator and records their keys for that build', () => {
-      const plugin = pluginMock();
+    it('adds nothing to the hook items under the `true` option', () => {
+      const plugin = pluginMock({ dropdownMenu: true });
 
-      registerMenuEntries(plugin, () => [entry('a'), entry('b')], { dropdownMenu: { inDefaults: false } });
+      registerMenuEntries(plugin, () => [entry('a')], { dropdownMenu: { inDefaults: false } });
 
-      const options = runHook(plugin, 'afterDropdownMenuDefaultOptions');
-
-      expect(options.items.map(item => item.key)).toEqual(['a', 'b']);
-      expect([...getKeysOutsideMenuDefaults(options)]).toEqual(['a', 'b']);
+      expect(runHook(plugin, 'afterDropdownMenuDefaultOptions', [entry('built_in')]).items.map(item => item.key))
+        .toEqual(['built_in']);
     });
 
     it('leaves the menu built from the `true` option unchanged', () => {
@@ -188,8 +184,18 @@ describe('contextMenu/registerMenuEntries', () => {
 
       registerMenuEntries(plugin, () => [entry('a')], { dropdownMenu: { inDefaults: false } });
 
-      expect(buildMenu(plugin, 'afterDropdownMenuDefaultOptions', true, ['col_left', 'col_right']))
-        .toEqual(['col_left', 'col_right']);
+      expect(buildMenu(plugin, 'dropdownMenu', true, ['col_left', 'col_right'])).toEqual(['col_left', 'col_right']);
+    });
+
+    it('keeps an application item with the same key in the `true` list', () => {
+      const plugin = pluginMock();
+      const addAppItem = (options) => {
+        options.items.push({ key: 'a', name: 'Application item' });
+      };
+
+      registerMenuEntries(plugin, () => [entry('a')], { dropdownMenu: { inDefaults: false } });
+
+      expect(buildMenu(plugin, 'dropdownMenu', true, ['col_left'], [addAppItem])).toEqual(['col_left', 'a']);
     });
 
     it('stays out of the `true` list when a later listener replaces the items with copies', () => {
@@ -200,8 +206,7 @@ describe('contextMenu/registerMenuEntries', () => {
 
       registerMenuEntries(plugin, () => [entry('a')], { dropdownMenu: { inDefaults: false } });
 
-      expect(buildMenu(plugin, 'afterDropdownMenuDefaultOptions', true, ['col_left'], [copyItems]))
-        .toEqual(['col_left']);
+      expect(buildMenu(plugin, 'dropdownMenu', true, ['col_left'], [copyItems])).toEqual(['col_left']);
     });
 
     it('resolves the key when the array form lists it', () => {
@@ -209,9 +214,16 @@ describe('contextMenu/registerMenuEntries', () => {
 
       registerMenuEntries(plugin, () => [entry('a')], { dropdownMenu: { inDefaults: false } });
 
-      expect(buildMenu(plugin, 'afterDropdownMenuDefaultOptions', ['col_left', 'a'], ['col_left']))
-        .toEqual(['col_left', 'a']);
+      expect(buildMenu(plugin, 'dropdownMenu', ['col_left', 'a'], ['col_left'])).toEqual(['col_left', 'a']);
       expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('resolves the key when the array form lists it as an item object', () => {
+      const plugin = pluginMock({ dropdownMenu: [{ key: 'a', name: 'Custom' }] });
+
+      registerMenuEntries(plugin, () => [entry('a'), entry('b')], { dropdownMenu: { inDefaults: false } });
+
+      expect(runHook(plugin, 'afterDropdownMenuDefaultOptions').items.map(item => item.key)).toEqual(['a']);
     });
 
     it('resolves the key when the object form lists it', () => {
@@ -219,8 +231,23 @@ describe('contextMenu/registerMenuEntries', () => {
 
       registerMenuEntries(plugin, () => [entry('a')], { dropdownMenu: { inDefaults: false } });
 
-      expect(buildMenu(plugin, 'afterDropdownMenuDefaultOptions', { items: { a: {} } }, ['col_left']))
-        .toEqual(['a']);
+      expect(buildMenu(plugin, 'dropdownMenu', { items: { a: {} } }, ['col_left'])).toEqual(['a']);
+    });
+
+    it('adds only the entries whose keys the option lists', () => {
+      const plugin = pluginMock({ dropdownMenu: ['col_left', 'b'] });
+
+      registerMenuEntries(plugin, () => [entry('a'), entry('b')], { dropdownMenu: { inDefaults: false } });
+
+      expect(runHook(plugin, 'afterDropdownMenuDefaultOptions').items.map(item => item.key)).toEqual(['b']);
+    });
+
+    it('adds nothing for an object option without `items`', () => {
+      const plugin = pluginMock({ dropdownMenu: { callback() {} } });
+
+      registerMenuEntries(plugin, () => [entry('a')], { dropdownMenu: { inDefaults: false } });
+
+      expect(runHook(plugin, 'afterDropdownMenuDefaultOptions').items).toEqual([]);
     });
 
     it('keeps the other menu showing the entries in its defaults', () => {
@@ -228,16 +255,8 @@ describe('contextMenu/registerMenuEntries', () => {
 
       registerMenuEntries(plugin, () => [entry('a')], { contextMenu: {}, dropdownMenu: { inDefaults: false } });
 
-      expect(buildMenu(plugin, 'afterDropdownMenuDefaultOptions', true, ['col_left']))
-        .toEqual(['col_left']);
-      expect(buildMenu(plugin, 'afterContextMenuDefaultOptions', true, ['row_above']))
-        .toEqual(['row_above', SEPARATOR, 'a']);
-    });
-  });
-
-  describe('getKeysOutsideMenuDefaults()', () => {
-    it('answers an empty set for a build no plugin added entries to', () => {
-      expect([...getKeysOutsideMenuDefaults({ items: [] })]).toEqual([]);
+      expect(buildMenu(plugin, 'dropdownMenu', true, ['col_left'])).toEqual(['col_left']);
+      expect(buildMenu(plugin, 'contextMenu', true, ['row_above'])).toEqual(['row_above', SEPARATOR, 'a']);
     });
   });
 });

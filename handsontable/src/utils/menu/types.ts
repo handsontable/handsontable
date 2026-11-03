@@ -8,7 +8,8 @@ export type PredefinedMenuItemKey =
   | 'unfreeze_column' | 'borders' | 'commentsAddEdit' | 'commentsRemove' | 'commentsReadOnly'
   | 'mergeCells' | 'add_child' | 'detach_from_parent' | 'hidden_columns_hide' | 'hidden_columns_show'
   | 'hidden_rows_hide' | 'hidden_rows_show' | 'filter_by_condition' | 'filter_operators'
-  | 'filter_by_condition2' | 'filter_by_value' | 'filter_action_bar';
+  | 'filter_by_condition2' | 'filter_by_value' | 'filter_action_bar' | 'export_file'
+  | 'row_selection_remove' | 'row_selection_clear';
 
 export interface MenuItemConfig {
   key?: string;

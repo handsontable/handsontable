@@ -2,6 +2,10 @@
 
 This is **not a plugin**, which is why it sits under `src/utils/` and not under `src/plugins/`. It is the menu code that `ContextMenu` and `DropdownMenu` share: the `Menu` class and its helpers (`menu/`), the predefined items (`predefinedItems/`), `ItemsFactory`, `CommandExecutor`, `menuEntries.ts` and the item types (`types.ts`). `MenuItemConfig` and `PredefinedMenuItemKey` are still exported publicly from `plugins/contextMenu`. Read this before touching any of it, or a plugin that contributes menu items. The ContextMenu plugin itself is in `../../plugins/contextMenu/AGENTS.md`.
 
+## The old `plugins/contextMenu/` paths are legacy re-exports
+
+This library used to live in `src/plugins/contextMenu/`. Every module it had there (`utils`, `itemsFactory`, `commandExecutor`, `menu/*`, `predefinedItems/*`) is kept as a one-line re-export of its `src/utils/menu/` twin, default export included. They are not in the `exports` map, but the package ships their declaration files, so a consumer on `moduleResolution: node` (or another resolver that ignores the map) can still import them. Legacy means kept, with no warning. Add code here, never there, and import the library from `utils/menu` in core code. `plugins/contextMenu/__tests__/legacyModulePaths.unit.js` checks that each old path exposes the same bindings as its twin, so a module added to, renamed in or removed from `utils/menu` that had an old path fails there.
+
 ## A plugin contributing menu items registers them through `registerMenuEntries()`
 
 The two menus build their item lists from separate hooks: `afterContextMenuDefaultOptions` and `afterDropdownMenuDefaultOptions`. A plugin that registers on only one is absent from the other, and **nothing raises**. Until DEV-2758 that was actively misleading: `ItemsFactory` turned a key it could not resolve into a bare `{ name, key }` placeholder, so the menu rendered a row labeled with the RAW KEY that did nothing when clicked. That was issue #5429 — `freeze_column` worked in `contextMenu` and rendered a dead row in `dropdownMenu` for seven years.
@@ -14,7 +18,7 @@ Two cases are deliberately outside the skip. A key naming a built-in `ITEMS` mem
 
 Register through `registerMenuEntries(plugin, createEntries, targets)` (`menuEntries.ts`), not through the two hooks by hand. `targets` names each menu the entries go to, and each target takes two optional settings:
 
-- `inDefaults` (default `true`) decides whether the entries join the list shown for the `true` option. With `false` the entries are only *available*: a key listed in the array or object form resolves, and the `true` list stays as it was. The helper records those keys per build, keyed on the options object the menu hands to its `after*DefaultOptions` hook, and both menus pass `getKeysOutsideMenuDefaults(options)` to `ItemsFactory#setPredefinedItems()`, which leaves those keys out of `defaultOrderPattern`. Record keys, never mark the entry objects: a listener that replaces `options.items` with copies (`options.items.map(item => ({ ...item }))`) drops a mark carried on the objects, and the entries then join the `true` list.
+- `inDefaults` (default `true`) decides whether the entries join the list shown for the `true` option. With `false` the entries are only *available*: the hook adds an entry only when the menu's setting lists its key (an array of keys, an array item object with that `key`, or a key of the object form's `items`). Under `true` it adds nothing, so the `true` list and the hook's `options.items` stay as they were, and `ItemsFactory` needs no record of which keys sit outside the defaults. Decide from the settings, never from a mark on the entry objects: a listener that replaces `options.items` with copies (`options.items.map(item => ({ ...item }))`) drops such a mark. An item an application adds through the same hook under one of these keys stays in the `true` list, because the plugin pushes nothing there to replace it.
 - `orderIndex` is the hook's order index, for entries that must land after another plugin's (ManualColumnFreeze places its dropdown entries after Filters this way).
 
 Pick `inDefaults` per menu. Whatever reaches the dropdown hook with `inDefaults: true` is added to every `dropdownMenu: true` grid, which is a visible change for existing users, so a plugin new to the dropdown starts with `inDefaults: false`. An entry that belongs to one menu only (a row action such as `add_child`) targets that menu only. Entries that join the defaults get a separator in front of them. Available-only entries get none, because their position comes from the user's list.
@@ -283,7 +287,7 @@ through `inlineStart`/`inlineEnd`, so the grid Tab commands cannot cover it. Pin
 `arrayEach()` stops iterating the moment a callback returns exactly `false`. The per-range callback
 used to `return result` — `false` while nothing had matched yet — so a range with no match stopped
 the whole walk right there, and a match sitting in a LATER range (a multi-layer selection, e.g. a
-Ctrl+click adding a second block) was never found. `predefinedItems/readOnly.ts` and `predefinedItems/readOnlyComment.ts` both decide
+Ctrl+click adding a second block) was never found. `predefinedItems/readOnly.ts` and `plugins/comments/contextMenuItem/readOnlyComment.ts` (relative to `src/`) both decide
 their toggle from this helper, so a selection shaped that way toggled the wrong way — and, since
 DEV-136, corrupted the read-only toggle's undo snapshot too (its "no match found" fast path trusts
 this helper's `false` to mean every visited cell was proven writable, which a truncated search cannot

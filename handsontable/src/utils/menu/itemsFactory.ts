@@ -53,17 +53,11 @@ export class ItemsFactory {
   }
 
   /**
-   * Set predefined items. Every item becomes resolvable by its key. Every item whose key is not in
-   * `keysOutsideDefaults` also joins the default order.
+   * Set predefined items.
    *
    * @param {Array} predefinedItemsCollection Array of predefined items.
-   * @param {Set<string>} [keysOutsideDefaults] Keys that resolve without joining the default order
-   *                                            (see `registerMenuEntries()`).
    */
-  setPredefinedItems(
-    predefinedItemsCollection: Record<string, unknown>[] | Record<string, Record<string, unknown>>,
-    keysOutsideDefaults: ReadonlySet<string> = new Set(),
-  ) {
+  setPredefinedItems(predefinedItemsCollection: Record<string, unknown>[] | Record<string, Record<string, unknown>>) {
     const items: Record<string, Record<string, unknown>> = {};
 
     this.defaultOrderPattern.length = 0;
@@ -104,9 +98,7 @@ export class ItemsFactory {
         items[itemKey] = value;
         menuItemKey = itemKey;
       }
-      if (!keysOutsideDefaults.has(menuItemKey)) {
-        this.defaultOrderPattern.push(menuItemKey);
-      }
+      this.defaultOrderPattern.push(menuItemKey);
     });
     this.predefinedItems = items;
     this.#predefinedItemsSet = true;

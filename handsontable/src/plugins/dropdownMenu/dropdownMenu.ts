@@ -8,7 +8,6 @@ import {
   addClass, eventTargetEl, hasClass, isBottomMostColumnHeader, isHTMLElement, removeClass, setAttribute
 } from '../../helpers/dom/element';
 import { ItemsFactory } from '../../utils/menu/itemsFactory';
-import { getKeysOutsideMenuDefaults } from '../../utils/menu/menuEntries';
 import { Menu } from '../../utils/menu/menu';
 import type { MenuAnchorRectProvider } from '../../utils/menu/menu';
 import { Hooks } from '../../core/hooks';
@@ -300,7 +299,7 @@ export class DropdownMenu extends BasePlugin {
 
     this.hot.runHooks('afterDropdownMenuDefaultOptions', predefinedItems);
 
-    this.itemsFactory.setPredefinedItems(predefinedItems.items, getKeysOutsideMenuDefaults(predefinedItems));
+    this.itemsFactory.setPredefinedItems(predefinedItems.items);
     const menuItems = this.itemsFactory.getItems(settings, reportUnresolvedKeys);
 
     this.hot.runHooks('beforeDropdownMenuSetItems', menuItems);
