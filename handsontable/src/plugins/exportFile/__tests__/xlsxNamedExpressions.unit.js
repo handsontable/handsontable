@@ -880,6 +880,26 @@ describe('Xlsx export: named expressions as defined names', () => {
     expect(dropped.list()).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
   });
 
+  it('should leave out every name of a chain over a name the file does not hold, however deep', async() => {
+    // `Grand` uses `Total` only, which uses `Base`. Only the chain walk sees that `Grand` needs the
+    // left-out `Base`: the file kept `Grand = Total*2` with no `Total`, and `=Grand` opened as `#NAME?`.
+    const engine = createGrid({ data: [[1], ['=Grand']] });
+
+    engine.addSheet('Rates');
+    engine.setCellContents({ sheet: engine.getSheetId('Rates'), row: 0, col: 0 }, 2);
+    engine.addNamedExpression('Base', '=Rates!$A$1');
+    engine.addNamedExpression('Total', '=Base*2');
+    engine.addNamedExpression('Grand', '=Total*2');
+
+    const { snapshot, dropped } = await exportWorkbook();
+    const [, grand] = snapshot.sheets[0].rows.map(row => row[0]);
+
+    expect(snapshot.definedNames ?? []).toEqual([]);
+    expect(grand.formula).toBeNull();
+    expect(grand.value).toBe(8);
+    expect(dropped.list()).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+  });
+
   it('should export a formula over a name whose used name another engine defines differently as its value', async() => {
     // Both engines define `Total` as `Rate*2`, so the file's one `Total` reads the first engine's
     // `Rate`. The second grid's `=Total` would read the first grid's cell in Excel (2, not 200).
