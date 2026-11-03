@@ -9,6 +9,7 @@ const ScenarioTwoGrid = () => {
       <div id='tableTop'>
         <input type='text' placeholder='Input 1' style={{ margin: '10px' }} />
         <HotTable
+          // licenseKey='your-license-key' // get a key at https://handsontable.com/pricing/
           title='Table Top'
           data={scenarioDataTop}
           themeName={getThemeName()}
@@ -65,12 +66,12 @@ const ScenarioTwoGrid = () => {
           mergeCells={true}
           multiColumnSorting={true}
           contextMenu={true}
-          licenseKey='non-commercial-and-evaluation'
         />
       </div>
       <div id='tableBottom'>
         <input type='text' placeholder='Input 2' style={{ margin: '10px' }} />
         <HotTable
+          // licenseKey='your-license-key' // get a key at https://handsontable.com/pricing/
           title='Table Bottom'
           data={scenarioDataBottom}
           themeName={getThemeName()}
@@ -127,7 +128,6 @@ const ScenarioTwoGrid = () => {
           multiColumnSorting={true}
           contextMenu={true}
           collapsibleColumns={true}
-          licenseKey='non-commercial-and-evaluation'
         />
       </div>
     </div>

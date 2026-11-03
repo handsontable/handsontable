@@ -82,7 +82,7 @@ export default {
           { data: 5, type: "text" },
           { data: 2, type: "text" }
         ],
-        licenseKey: "non-commercial-and-evaluation",
+        // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
       },
       data: getData()
     }

@@ -82,7 +82,10 @@ const MyCustomEditor = () => {
 
 const App = () => {
   return (
-    <HotTable data={data} licenseKey="non-commercial-and-evaluation">
+    <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
+      data={data}
+    >
       <HotColumn editor={MyCustomEditor} />
     </HotTable>
   );

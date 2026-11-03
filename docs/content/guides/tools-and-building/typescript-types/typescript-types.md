@@ -84,7 +84,7 @@ const columns: ColumnSettings[] = [
 const settings: GridSettings = {
   data: myData,
   columns,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 ```
 
@@ -129,7 +129,7 @@ let hot: HotInstance;
 
 hot = new Handsontable(document.querySelector('#grid')!, {
   data: myData,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -238,7 +238,9 @@ import { numericRenderer } from 'handsontable/renderers';
 // No type import needed -- the Handsontable class and its instance methods are already fully typed.
 import Handsontable from 'handsontable';
 
-const hot = new Handsontable(container, { licenseKey: 'non-commercial-and-evaluation' });
+const hot = new Handsontable(container, {
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
+});
 hot.loadData(myData); // IDE autocomplete and type checking work here.
 ```
 
@@ -261,7 +263,7 @@ const settings: GridSettings = {
     { data: 'department' },
     { data: 'hireDate', type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 ```
 
@@ -324,7 +326,7 @@ class RatingEditor extends TextEditor {
 
 const settings: GridSettings = {
   columns: [{ editor: RatingEditor as unknown as string }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 ```
 
@@ -344,7 +346,7 @@ export function Grid() {
 
   const settings: HotTableProps = {
     data: myData,
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   };
 
   const selectFirstCell = () => {
@@ -380,7 +382,7 @@ export class GridComponent {
 
   readonly gridSettings: GridSettings = {
     data: myData,
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   };
 }
 ```
@@ -403,7 +405,7 @@ const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
 
 const settings: GridSettings = {
   data: myData,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 </script>
 

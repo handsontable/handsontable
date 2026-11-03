@@ -36,7 +36,7 @@ const sharedConfig: Handsontable.GridSettings = {
   autoWrapRow: true,
   autoWrapCol: true,
   exportFile: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 const hotQ1 = new Handsontable(document.querySelector('#example2-q1')!, {

@@ -60,7 +60,7 @@ import { HyperFormula } from 'hyperformula';
 import * as formulaBuilder from 'hyperformula-ui';
 
 const hot = new Handsontable(container, {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   editor: 'formula',
   formulas: {
     engine: HyperFormula,

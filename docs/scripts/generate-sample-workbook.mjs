@@ -69,7 +69,7 @@ const base64 = await page.evaluate(async() => {
       { row: 8, col: 3, readOnly: true },
     ],
     exportFile: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   });
   const sheetOptions = { colHeaders: true, exportFormulas: true, exportHiddenColumns: 'hide' };
   const blob = await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', {
@@ -103,7 +103,7 @@ if (verify) {
       mergeCells: true,
       hiddenColumns: true,
       customBorders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
     });
     const result = await hot.getPlugin('importFile').importFromArrayBuffer('xlsx', bytes.buffer, {
       colHeaders: 'firstRow',

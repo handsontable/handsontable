@@ -41,7 +41,7 @@ const createSettings = (sortFixedRows: boolean): GridSettings => ({
   },
   height: 'auto',
   stretchH: 'all',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 const defaultSettings = createSettings(false);

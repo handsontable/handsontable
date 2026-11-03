@@ -75,7 +75,7 @@ const hot = new Handsontable(container, {
   height: 320,
   width: '100%',
   autoWrapRow: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 
   // Capture the new width array after every column resize and persist it.
   afterColumnResize() {

@@ -458,7 +458,7 @@ const hot = new Handsontable(container, {
     { data: 'priority', type: 'radio', options: priorityOptions },
     { data: 'status',   type: 'radio', options: statusOptions   },
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -489,7 +489,12 @@ Where `hotSettings` includes `rowHeights: 96`.
 ```tsx
 registerCellType('radio', { editor: RadioEditor, renderer: radioRenderer });
 
-<HotTable data={data} rowHeights={96} licenseKey="non-commercial-and-evaluation" ...>
+<HotTable
+  // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
+  data={data}
+  rowHeights={96}
+  ...
+>
   <HotColumn data="task"     type="text" />
   <HotColumn data="priority" type="radio" options={priorityOptions} />
   <HotColumn data="status"   type="radio" options={statusOptions}   />

@@ -105,7 +105,7 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   undo: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -174,7 +174,7 @@ const hot = new Handsontable(container, {
   undo: true,
   width: '100%',
   height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 const syncHistoryButtons = () => {

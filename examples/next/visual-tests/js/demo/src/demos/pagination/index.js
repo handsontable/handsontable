@@ -156,7 +156,7 @@ export function init() {
     cell: [
       { row: 2, col: 1, comment: { value: 'Note: To be checked if the name is valid' } }
     ],
-    licenseKey: "non-commercial-and-evaluation",
+    // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
     ...options,
   });
 

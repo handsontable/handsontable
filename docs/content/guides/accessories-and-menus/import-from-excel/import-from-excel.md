@@ -86,7 +86,7 @@ Click **Load sample** to import a workbook the export plugin wrote, or **Import 
 ```javascript
 const hot = new Handsontable(container, {
   importFile: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -96,8 +96,8 @@ const hot = new Handsontable(container, {
 
 ```jsx
 <HotTable
+  // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
   importFile={true}
-  licenseKey="non-commercial-and-evaluation"
 />
 ```
 
@@ -108,7 +108,7 @@ const hot = new Handsontable(container, {
 ```typescript
 readonly hotSettings: GridSettings = {
   importFile: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 ```
 
@@ -119,7 +119,7 @@ readonly hotSettings: GridSettings = {
 ```javascript
 const hotSettings = ref({
   importFile: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -196,7 +196,12 @@ Imported headers are HTML-escaped, so `R&D` is stored as `R&amp;D`. Set the grid
 
   ```jsx
   const Grid = React.memo(({ rows, hotRef }) => (
-    <HotTable ref={hotRef} data={rows} importFile={true} licenseKey="non-commercial-and-evaluation" />
+    <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
+      ref={hotRef}
+      data={rows}
+      importFile={true}
+    />
   ));
   ```
 

@@ -157,6 +157,7 @@ const ExampleComponent = () => {
         <output className={hasError ? 'is-error' : undefined}>{status}</output>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         colHeaders={['ID', 'Name', 'Username', 'Email', 'City', 'Company']}
         columns={[
@@ -173,7 +174,6 @@ const ExampleComponent = () => {
         width="100%"
         stretchH="all"
         autoWrapRow={true}
-        licenseKey="non-commercial-and-evaluation"
       />
     </div>
   );

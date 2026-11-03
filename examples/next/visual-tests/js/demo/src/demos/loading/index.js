@@ -78,7 +78,7 @@ export function init() {
     loading: dialogSettings,
     width: 400,
     height: 400,
-    licenseKey: "non-commercial-and-evaluation",
+    // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
   });
 
   hot.getPlugin('loading').show();

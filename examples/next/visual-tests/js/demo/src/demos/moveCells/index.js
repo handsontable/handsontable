@@ -19,7 +19,7 @@ export function init() {
     width: 500,
     height: 300,
     moveCells: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   });
 
   // Pre-select an interior range so the move zone bands are immediately

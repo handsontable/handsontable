@@ -5,8 +5,8 @@
       "prNumber": 11144,
       "tagline": "New themes: main and horizon",
       "whyItMatters": "Two new built-in themes (main and horizon) ship alongside the classic theme. Opt in by importing the theme CSS and setting themeName - the classic theme stays the default in 15.x.",
-      "codeBefore": "import 'handsontable/dist/handsontable.full.min.css';\n\nconst hot = new Handsontable(container, {\n  data,\n  licenseKey: 'non-commercial-and-evaluation'\n});",
-      "codeAfter": "import 'handsontable/styles/handsontable.css';\nimport 'handsontable/styles/ht-theme-main.css';\n\nconst hot = new Handsontable(container, {\n  data,\n  themeName: 'ht-theme-main',\n  licenseKey: 'non-commercial-and-evaluation'\n});"
+      "codeBefore": "import 'handsontable/dist/handsontable.full.min.css';\n\nconst hot = new Handsontable(container, {\n  data,\n  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/\n});",
+      "codeAfter": "import 'handsontable/styles/handsontable.css';\nimport 'handsontable/styles/ht-theme-main.css';\n\nconst hot = new Handsontable(container, {\n  data,\n  themeName: 'ht-theme-main',\n  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/\n});"
     },
     {
       "prNumber": 11212,

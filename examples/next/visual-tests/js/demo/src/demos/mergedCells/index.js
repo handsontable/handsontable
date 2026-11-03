@@ -84,7 +84,7 @@ export function init() {
     headerClassName: 'htLeft',
     mergeCells: mergedCells,
 
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   });
 
   hot.addHook('afterMergeCells', function (cellRange, mergeParent, auto) {

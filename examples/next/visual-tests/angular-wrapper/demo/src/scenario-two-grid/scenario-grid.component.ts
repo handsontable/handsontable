@@ -55,7 +55,6 @@ export class ScenarioGridComponent {
   hiddenColumns = {
     indicators: true,
   };
-  licenseKey = 'non-commercial-and-evaluation';
   settingsTop = {
     columns: [
       { data: 'product_id', type: 'numeric' },
@@ -89,7 +88,7 @@ export class ScenarioGridComponent {
     autoWrapCol: true,
     autoWrapRow: true,
     fixedRowsBottom: 2,
-    licenseKey: 'non-commercial-and-evaluation'
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   }
   settingsBottom = {
     columns: [
@@ -123,6 +122,6 @@ export class ScenarioGridComponent {
     autoWrapRow: true,
     nestedRows: true,
     bindRowsWithHeaders: true,
-    licenseKey: 'non-commercial-and-evaluation'
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   }
 }

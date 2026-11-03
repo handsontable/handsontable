@@ -91,6 +91,7 @@ async function onRowsRemove(rowIds: string[]): Promise<void> {
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       themeName="ht-theme-main"
       dataProvider={{
         rowId: 'id',
@@ -121,7 +122,6 @@ const ExampleComponent = () => {
       rowHeaders={true}
       height={500}
       stretchH="all"
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };

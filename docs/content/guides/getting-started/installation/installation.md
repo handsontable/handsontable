@@ -317,7 +317,7 @@ const hot = new Handsontable(container, {
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -400,6 +400,7 @@ To set Handsontable's [configuration options](@/guides/configuration/configurati
 
 ```jsx
 <HotTable
+  // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
   data={[
     ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods', 'Drinkware', 'Seattle'],
     ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.', 'Electronics', 'Denver'],
@@ -412,7 +413,6 @@ To set Handsontable's [configuration options](@/guides/configuration/configurati
   height="auto"
   autoWrapRow={true}
   autoWrapCol={true}
-  licenseKey="non-commercial-and-evaluation" // for non-commercial use only
 />
 ```
 
@@ -499,6 +499,7 @@ import { HotTable } from '@handsontable/vue3';
 To set Handsontable's [configuration options](@/guides/configuration/configuration-options/configuration-options.md), use `HotTable`'s props. For example:
 
 ```html
+<!-- license-key="your-license-key" (get a key at https://handsontable.com/pricing/) -->
 <HotTable
   :data="data"
   :row-headers="true"
@@ -506,7 +507,6 @@ To set Handsontable's [configuration options](@/guides/configuration/configurati
   height="auto"
   :auto-wrap-row="true"
   :auto-wrap-col="true"
-  license-key="non-commercial-and-evaluation"
 />
 ```
 

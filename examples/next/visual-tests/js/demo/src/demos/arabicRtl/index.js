@@ -12,7 +12,7 @@ export function init() {
   root.appendChild(container);
 
   new Handsontable(container, {
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
     data: generateArabicData(),
     themeName: getThemeNameFromURL(),
     width: 700,

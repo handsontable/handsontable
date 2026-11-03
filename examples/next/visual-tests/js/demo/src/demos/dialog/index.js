@@ -130,7 +130,7 @@ export function init() {
     dialog: dialogSettings,
     width: 400,
     height: 400,
-    licenseKey: "non-commercial-and-evaluation",
+    // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
   });
 
   if (Boolean(focus)) {

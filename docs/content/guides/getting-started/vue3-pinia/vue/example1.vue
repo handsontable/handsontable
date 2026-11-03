@@ -71,7 +71,7 @@ const hotSettings = ref<GridSettings>({
       store.updateEmployee(row as number, col as number, newValue as string | number);
     }
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 // Store → grid: watch for store mutations and update the grid.

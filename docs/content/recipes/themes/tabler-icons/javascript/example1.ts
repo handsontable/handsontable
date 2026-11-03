@@ -71,5 +71,5 @@ new Handsontable(container, {
   // The hidden Units column puts a caret on the In stock header.
   hiddenColumns: { columns: [3], indicators: true },
   height: 260,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });

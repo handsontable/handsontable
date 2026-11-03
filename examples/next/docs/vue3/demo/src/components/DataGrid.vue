@@ -31,6 +31,7 @@ export default defineComponent({
 <template>
   <div id="example">
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       :data="dataProp"
       :height="450"
       :colWidths="[170, 222, 130, 120, 120, 140, 156]"
@@ -56,7 +57,6 @@ export default defineComponent({
       :manualRowMove="true"
       :autoWrapRow="true"
       :autoWrapCol="true"
-      licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data="companyName" />
       <HotColumn data="name" />

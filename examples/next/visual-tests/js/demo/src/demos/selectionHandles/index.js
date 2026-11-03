@@ -20,7 +20,7 @@ export function init() {
     height: 300,
     selectionHandles: true,
     selectionMode: 'multiple',
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   });
 
   // Pre-select an interior range so handles are immediately available on hover.

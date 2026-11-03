@@ -203,7 +203,7 @@ export class AppComponent {
       { data: 'created_at',   type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } as const, readOnly: true },
     ],
     height:      'auto',
-    licenseKey:  'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   };
 }
 /* end-file */

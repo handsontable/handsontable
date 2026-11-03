@@ -15,11 +15,11 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       height="auto"
       colHeaders={true}
       rowHeaders={rows > 0}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };

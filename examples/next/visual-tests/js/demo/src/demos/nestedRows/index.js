@@ -84,7 +84,7 @@ export function init() {
     autoWrapRow: true,
     nestedRows: true,
     bindRowsWithHeaders: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
     mergeCells: mergeCells,
     cells(row, col, prop) {
       const cellProperties = {};

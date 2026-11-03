@@ -61,7 +61,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     afterDeselect: () => {
       this.updateChart();
     },
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   };
 
   ngAfterViewInit(): void {
