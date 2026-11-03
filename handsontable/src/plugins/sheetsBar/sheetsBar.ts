@@ -472,6 +472,7 @@ interface SheetFormulas {
     getNamedExpressionValue?: (name: string, scope?: number) => unknown;
     addNamedExpression?: (name: string, expression: unknown, scope?: number, options?: unknown) => void;
     getCellFormula?: (address: { sheet: number, row: number, col: number }) => string | undefined;
+    getSheetNames?: () => string[];
     getFillRangeData?: (
       source: { start: { sheet: number, row: number, col: number }, end: { sheet: number, row: number, col: number } },
       target: { start: { sheet: number, row: number, col: number }, end: { sheet: number, row: number, col: number } },
@@ -837,6 +838,15 @@ export class SheetsBar extends BasePlugin {
    * @type {WeakMap<object, object>}
    */
   #engineOrders = new WeakMap<Sheet, { order: FormulasEngineSheetOrder; data: unknown[]; length: number }>();
+  /**
+   * The formula texts the engine gave each hidden sheet's cells in the last sync (`#syncInactiveSheetsFromEngine`).
+   * Such a text is already in the engine's own spelling, so when a cell still holds one and the engine now
+   * gives another, its references moved: the check that keeps a host's own spelling
+   * (`validateFormula` and `normalizeFormula`, a parse per cell) is skipped for it.
+   *
+   * @type {WeakMap<object, Set<string>>}
+   */
+  #engineTexts = new WeakMap<Sheet, Set<string>>();
   /**
    * The sheets the user left with formula text shown (`Formulas#showFormulas()`).
    *
@@ -5644,7 +5654,11 @@ export class SheetsBar extends BasePlugin {
       return;
     }
 
-    const quoteIfNeeded = this.#formulaQuoterFor(engine);
+    const quoter = this.#formulaQuoterFor(engine);
+    const sheetNames = engine.getSheetNames?.() ?? [];
+    const quoteIfNeeded = sheetNames.length > 0 && sheetNames.every(name => quoter(`=${name}!A1`) === `=${name}!A1`)
+      ? (formula: string) => formula
+      : quoter;
     const needles = [activeName, formatSheetName(activeName, true), '#ref!'].map(name => name.toLowerCase());
     const namesActiveSheet = (formula: string) => {
       const text = formula.toLowerCase();
@@ -5689,6 +5703,8 @@ export class SheetsBar extends BasePlugin {
       const columnCount = rows.reduce((widest, { row }) => Math.max(widest, getEngineCellKeys(row, layout).length), 0);
       const engineColumnOf = toEngineIndexes(engineOrder?.columnOrder, columnCount);
       const changes: FormulaTextChange[] = [];
+      const engineTexts = this.#engineTexts.get(sheet);
+      const seenEngineTexts = new Set<string>();
 
       rows.forEach(({ row, path }, physicalRow) => {
         getEngineCellKeys(row, layout).forEach((key, physicalColumn) => {
@@ -5704,11 +5720,17 @@ export class SheetsBar extends BasePlugin {
           }, { row: physicalRow, col: physicalColumn });
           const text = typeof fromEngine === 'string' ? quoteIfNeeded(fromEngine) : cell;
 
-          if (text !== cell && !readsAsEngineText(cell, text)) {
+          if (typeof fromEngine === 'string') {
+            seenEngineTexts.add(text);
+          }
+
+          if (text !== cell && (engineTexts?.has(cell) || !readsAsEngineText(cell, text))) {
             changes.push({ path, key: key as number | string, text });
           }
         });
       });
+
+      this.#engineTexts.set(sheet, seenEngineTexts);
 
       if (changes.length > 0) {
         this.#replaceSheetData(sheet, writeFormulaTextChanges(sheet.data, changes));

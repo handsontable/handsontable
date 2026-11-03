@@ -635,6 +635,14 @@ describe('SheetsBar formula sheets', () => {
       hot.alter('insert_row_above', 3);
 
       expect(summary[0]).toEqual(['=sum(data!a1:a2)', '=Data!A6']);
+
+      hot.alter('insert_row_above', 3);
+
+      expect(summary[0]).toEqual(['=sum(data!a1:a2)', '=Data!A7']);
+
+      hot.alter('remove_row', 3, 2);
+
+      expect(summary[0]).toEqual(['=sum(data!a1:a2)', '=Data!A5']);
     });
 
     it('keeps the text the host wrote for a sheet the engine reads only in quotes when no reference moved', () => {

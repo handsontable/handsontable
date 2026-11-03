@@ -328,7 +328,13 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   stored data must hold every formula in physical order, the frame `isHfOrderPhysical` in
   `../formulas/indexSyncer/axisSyncer.ts` warns about. (3) A sheet whose stored order is no longer taken over
   (`#engineOrderToAdopt` answers `null`: the host replaced or resized its data) is skipped: the engine no
-  longer holds rows the data has. Pinned by "a sorted sheet the user left, after a structural change on the
+  longer holds rows the data has. Two shortcuts keep the cost near the plain path, and both are exact. The
+  per-cell quoting pass (`#formulaQuoterFor`) is skipped when every engine sheet name reads unquoted, because
+  it can change nothing then. And `#engineTexts` remembers, per sheet, the texts the engine gave in the last
+  sync: a cell still holding one is in the engine's own spelling, so the parse that keeps a host's spelling
+  (`validateFormula`, `normalizeFormula`) is skipped for it. The parse and the quoting were most of the
+  cost: one sorted 10,000-row sheet took an `alter` from 34ms to 74ms, and with both shortcuts to 47ms
+  (five such sheets: 115ms, 307ms, 156ms). Pinned by "a sorted sheet the user left, after a structural change on the
   sheet it reads" in `tests/e2e/sheets-bar-formulas-order.spec.ts`. Only its formula cells whose text names the active sheet, or holds `#REF!` (an undone
   removal brings the reference back), are read, one by one. A cell is written only when its references
   differ: the host's own text (`=sum(data!a1)`) is kept when the engine's normalized text of it is the
