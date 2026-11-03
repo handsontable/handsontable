@@ -50,7 +50,7 @@ const gridSettings = {
   columns: [{}, { readOnly: true, reviewer: 'Finance team' }, {}],
   // cell level: one cell in the Department column
   cell: [{ row: 1, col: 1, reviewer: 'Legal team' }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 const ExampleComponent = () => {
