@@ -171,7 +171,7 @@ function createRecordingEngine() {
  * @returns {Promise<{ writeOptions: object, cells: object[] }>}
  */
 async function exportOneCell(typeOptions, meta = { type: 'text' }, value = 'x') {
-  const instance = { rootDocument: document, rootWindow: window };
+  const instance = { rootDocument: document, rootWindow: window, getSettings: () => ({}) };
   const { engine, cells, recorded } = createRecordingEngine();
 
   mockData = [[value]];
@@ -199,7 +199,7 @@ async function exportOneCell(typeOptions, meta = { type: 'text' }, value = 'x') 
  * @returns {Promise<string[]>}
  */
 async function exportSheetsNamed(...names) {
-  const instance = { rootDocument: document, rootWindow: window };
+  const instance = { rootDocument: document, rootWindow: window, getSettings: () => ({}) };
   const { engine, sheetNames } = createRecordingEngine();
   const xlsx = new Xlsx(new ExportDataProvider(instance), {
     engine,
@@ -231,7 +231,7 @@ describe('Xlsx validation helper sheet state', () => {
   it('should write the helper sheet hidden, not very hidden, so Numbers keeps the dropdowns', async() => {
     // Numbers discards a `veryHidden` sheet when it opens the file and keeps no validation that
     // points at it, so every dropdown exported from an array `source` lost its list there.
-    const instance = { rootDocument: document, rootWindow: window };
+    const instance = { rootDocument: document, rootWindow: window, getSettings: () => ({}) };
     const { engine, worksheets } = createRecordingEngine();
     const xlsx = new Xlsx(new ExportDataProvider(instance), { engine, sheets: [{ instance, name: 'Data' }] });
 
@@ -387,7 +387,7 @@ describe('Xlsx validation list labels for a column', () => {
     ];
     const sourceLabel = jest.fn(value => value.name);
     const rows = 50;
-    const instance = { rootDocument: document, rootWindow: window };
+    const instance = { rootDocument: document, rootWindow: window, getSettings: () => ({}) };
     const { engine, cells } = createRecordingEngine();
 
     mockData = Array.from({ length: rows }, () => ['Poland']);

@@ -15,7 +15,7 @@ describe('fixedColumnsEnd prop', () => {
     data: createSpreadsheetData(5, 6),
     width: 300,
     height: 300,
-    rowHeights: 23,
+    minRowHeights: 23,
     colWidths: 50,
     autoRowSize: false,
     autoColumnSize: false,
