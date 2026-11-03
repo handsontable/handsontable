@@ -1324,11 +1324,16 @@ export class FormulaBuilder extends BasePlugin {
 
   /**
    * `beforeViewRender` hook listener - re-reads the bar's cell after an index change, once the
-   * operation that made it has finished and before the grid draws it.
+   * operation that made it has finished and before the grid draws it. The remembered cell is
+   * recorded again too: a sort, a move, or a filter keeps the selection on its visual cell while
+   * the physical record under it changes, so the record remembered before would no longer be the
+   * focused cell. With no selection nothing is recorded, and the insert and remove shifts keep the
+   * remembered record.
    */
   #onBeforeViewRender = (): void => {
     if (this.#barCellStale) {
       this.#barCellStale = false;
+      this.#rememberFocusedCell();
       this.#resyncBarCell();
     }
   };

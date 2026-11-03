@@ -2,7 +2,9 @@ import { HyperFormula } from 'hyperformula';
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { Formulas } from '../../formulas';
+import { ColumnSorting } from '../../columnSorting';
 import { HiddenRows } from '../../hiddenRows';
+import { ManualRowMove } from '../../manualRowMove';
 import { UndoRedo } from '../../undoRedo';
 import { FormulaBuilder } from '../formulaBuilder';
 import { getFormulaBuilderAdapter } from '../handsontableAdapter';
@@ -36,6 +38,8 @@ describe('FormulaBuilder editing on a real grid', () => {
     registerPlugin(Formulas);
     registerPlugin(FormulaBuilder);
     registerPlugin(HiddenRows);
+    registerPlugin(ColumnSorting);
+    registerPlugin(ManualRowMove);
     registerPlugin(UndoRedo);
   });
 
@@ -998,6 +1002,31 @@ describe('FormulaBuilder editing on a real grid', () => {
 
       expect(hot.getSelectedLast()).toEqual([3, 1, 3, 1]);
       expect(hot.getDataAtCell(3, 1)).toBe('B3');
+    });
+
+    it('follows the selection the grid kept on its visual cell through an API sort', () => {
+      createGrid({ data: [[1], [3], [5], [7]], columnSorting: true });
+      hot.selectCell(2, 0);
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+      expect(hot.getDataAtCell(2, 0)).toBe(3);
+
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([2, 0, 2, 0]);
+    });
+
+    it('follows the selection the grid kept on its visual cell through an API row move', () => {
+      createGrid({ data: [['A1'], ['A2'], ['A3'], ['A4']], manualRowMove: true });
+      hot.selectCell(2, 0);
+      hot.getPlugin('manualRowMove').moveRow(0, 3);
+      hot.render();
+
+      expect(hot.getDataAtCell(2, 0)).toBe('A4');
+
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([2, 0, 2, 0]);
     });
 
     it('prefers the cell the focus moved to inside a selected range', () => {
