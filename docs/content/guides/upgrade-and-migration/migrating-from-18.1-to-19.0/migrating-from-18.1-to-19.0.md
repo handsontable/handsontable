@@ -2434,10 +2434,13 @@ hot.updateSettings({ afterChange: null });
   example `afterChange={isTracking ? logChange : null}` in React. The callback is now removed. In
   Angular, this applies to a hook that a new `settings` object sets to `null` or `undefined`, or
   leaves out.
+- You use TypeScript with the React `HotTable` component. Its hook props now also accept `null`, so
+  code that reads a hook prop back must handle `null`.
 
 ### How to migrate
 
-To keep the callback, leave the hook out of the call, or pass the callback again.
+To keep the callback, leave the hook out of the `updateSettings()` call, or pass the callback again.
+In a framework wrapper, keep passing the callback in the prop (in Angular, in the `settings` object).
 
 ## 43. `colWidths: null` sizes columns like `undefined`
 

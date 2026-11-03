@@ -688,12 +688,16 @@ describe('Removing a hook prop', () => {
 
     testWrapper.vm.tracking = false;
     await nextTick();
-    testWrapper.vm.tracking = true;
-    await nextTick();
     hotInstance.setDataAtCell(0, 0, 'a');
 
+    expect(afterChange).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+
+    testWrapper.vm.tracking = true;
+    await nextTick();
+    hotInstance.setDataAtCell(0, 0, 'b');
+
     expect(afterChange.mock.calls.filter(([, source]) => source === 'edit'))
-      .toEqual([[[[0, 0, '0-0', 'a']], 'edit']]);
+      .toEqual([[[[0, 0, 'a', 'b']], 'edit']]);
 
     testWrapper.unmount();
   });

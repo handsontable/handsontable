@@ -110,6 +110,12 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
    * sheet's.
    */
   private _gridColumns: ColumnSettingsInternal[] | undefined;
+  /**
+   * The hooks the last applied `settings` input passed a callback for. A hook in this set that the next
+   * input leaves out is sent as `null`. It is read from what the component sent, not from the previous
+   * input, because an app may delete the key from that object before passing a copy.
+   */
+  private _passedHookKeys = new Set<string>();
 
   constructor(
     private _hotSettingsResolver: HotSettingsResolver,
@@ -160,6 +166,8 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
       this._gridColumns = options.columns;
     }
 
+    this._passedHookKeys = this.collectHookKeys(options);
+
     const negotiatedSettings = this.getNegotiatedSettings(options);
     options = { ...options, ...negotiatedSettings, ...(this.data != null ? { data: this.data } : {}) };
 
@@ -204,7 +212,8 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
         prevColumnsArray
       );
 
-      this.clearRemovedHooks(newOptions, changes.settings.previousValue);
+      this.clearRemovedHooks(newOptions);
+      this._passedHookKeys = this.collectHookKeys(newOptions);
 
       // updateHotTable closes any active editor via HOT.updateSettings before we destroy old refs.
       this.updateHotTable(newOptions);
@@ -288,27 +297,32 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   /**
-   * Sets to `null` each hook the previous `settings` input passed a callback for and the new one does
-   * not, so `updateSettings()` removes that callback. A key missing from the new object is otherwise
-   * left out of the payload, and core keeps the callback.
+   * Sets to `null` each hook the component last passed a callback for and the new settings do not, so
+   * `updateSettings()` removes that callback. A key missing from the new object is otherwise left out of
+   * the payload, and core keeps the callback.
    *
    * @param newOptions The settings about to be applied. Changed in place.
-   * @param previousSettings The previous `settings` input.
    */
-  private clearRemovedHooks(newOptions: Handsontable.GridSettings, previousSettings: GridSettings | undefined): void {
-    if (!previousSettings) {
-      return;
-    }
-
-    Object.keys(previousSettings).forEach((key) => {
-      if (
-        previousSettings[key] != null &&
-        newOptions[key] === undefined &&
-        (Handsontable.hooks.isRegistered(key) || Handsontable.hooks.isDeprecated(key))
-      ) {
+  private clearRemovedHooks(newOptions: Handsontable.GridSettings): void {
+    this._passedHookKeys.forEach((key) => {
+      if (newOptions[key] === undefined) {
         newOptions[key] = null;
       }
     });
+  }
+
+  /**
+   * Lists the hooks the settings pass a callback for. A key counts as a hook by the rule core's
+   * `updateSettings()` uses in `core.ts`: a registered or a deprecated hook name.
+   *
+   * @param settings The settings to read.
+   * @returns The hook names.
+   */
+  private collectHookKeys(settings: Handsontable.GridSettings): Set<string> {
+    return new Set(Object.keys(settings).filter(key => (
+      settings[key] != null &&
+      (Handsontable.hooks.isRegistered(key) || Handsontable.hooks.isDeprecated(key))
+    )));
   }
 
   /**

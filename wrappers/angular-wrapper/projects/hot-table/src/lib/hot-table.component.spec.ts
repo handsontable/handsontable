@@ -184,17 +184,35 @@ describe('HotTableComponent', () => {
         expect(appAfterSetDataAtCell).toHaveBeenCalledWith([[0, 0, 'A1', 'a']]);
       });
 
+      it('should stop running the callback when the key is deleted from the object before a copy is passed', () => {
+        const afterChange = jest.fn();
+        const hot = mountWithHook(afterChange);
+        const appSettings: GridSettings = fixture.componentInstance.settings;
+
+        delete appSettings.afterChange;
+        fixture.componentRef.setInput('settings', { ...appSettings });
+        fixture.detectChanges();
+        hot.setDataAtCell(0, 0, 'a');
+
+        expect(editSourceCalls(afterChange)).toEqual([]);
+        expect(hot.getSettings().afterChange).toBe(null);
+      });
+
       it('should run the callback again when the key is passed back', () => {
         const afterChange = jest.fn();
         const hot = mountWithHook(afterChange);
 
         fixture.componentRef.setInput('settings', { ...settings });
         fixture.detectChanges();
-        fixture.componentRef.setInput('settings', { ...settings, afterChange });
-        fixture.detectChanges();
         hot.setDataAtCell(0, 0, 'a');
 
-        expect(editSourceCalls(afterChange)).toEqual([[[[0, 0, 'A1', 'a']], 'edit']]);
+        expect(editSourceCalls(afterChange)).toEqual([]);
+
+        fixture.componentRef.setInput('settings', { ...settings, afterChange });
+        fixture.detectChanges();
+        hot.setDataAtCell(0, 0, 'b');
+
+        expect(editSourceCalls(afterChange)).toEqual([[[[0, 0, 'a', 'b']], 'edit']]);
       });
     });
 

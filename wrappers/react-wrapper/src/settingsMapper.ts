@@ -29,7 +29,8 @@ const COMPARED_AGAINST_LIVE_SETTINGS: Array<keyof Handsontable.GridSettings> = [
 ];
 
 /**
- * Checks whether a setting is a hook, the way `updateSettings()` does.
+ * Checks whether a setting is a hook, by the rule core's `updateSettings()` uses in `core.ts`: a
+ * registered or a deprecated hook name.
  *
  * @param {string} key The setting name.
  * @returns {boolean}

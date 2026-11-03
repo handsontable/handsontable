@@ -166,7 +166,8 @@ export function filterPassedProps(props) {
 }
 
 /**
- * List the hooks the props pass a callback for, directly or through the `settings` prop.
+ * List the hooks the props pass a callback for, directly or through the `settings` prop. A key counts as
+ * a hook by the rule core's `updateSettings()` uses in `core.ts`: a registered or a deprecated hook name.
  *
  * @param {HotTableProps} props The props passed to the component.
  * @returns {string[]} The hook names.

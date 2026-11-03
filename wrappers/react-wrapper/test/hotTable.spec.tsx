@@ -1504,10 +1504,38 @@ describe('Removing a hook prop', () => {
     const hotInstance = hotTableRef.current!.hotInstance!;
 
     renderHotTableWithProps({ ...baseProps }, false, hotTableRef);
-    renderHotTableWithProps({ ...baseProps, afterChange }, false, hotTableRef);
     editCell(hotInstance, 'a');
 
-    expect(afterChange).toHaveBeenCalledWith([[0, 0, 1, 'a']], 'edit');
-    expect(afterChange.mock.calls.filter(([, source]) => source === 'edit')).toHaveLength(1);
+    expect(afterChange).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+
+    renderHotTableWithProps({ ...baseProps, afterChange }, false, hotTableRef);
+    editCell(hotInstance, 'b');
+
+    expect(afterChange.mock.calls.filter(([, source]) => source === 'edit'))
+      .toEqual([[[[0, 0, 'a', 'b']], 'edit']]);
+  });
+
+  describe('with a hook the app registered', () => {
+    afterEach(() => {
+      Handsontable.hooks.deregister('myHook');
+    });
+
+    it('should stop running the callback when the hook prop is removed', async() => {
+      Handsontable.hooks.register('myHook');
+
+      const myHook = jest.fn();
+      const hotTableRef = renderHotTableWithProps({ ...baseProps, myHook }, false);
+      const hotInstance = hotTableRef.current!.hotInstance!;
+
+      hotInstance.runHooks('myHook');
+
+      expect(myHook).toHaveBeenCalledTimes(1);
+
+      renderHotTableWithProps({ ...baseProps }, false, hotTableRef);
+      hotInstance.runHooks('myHook');
+
+      expect(myHook).toHaveBeenCalledTimes(1);
+      expect(hotInstance.getSettings().myHook).toBe(null);
+    });
   });
 });
