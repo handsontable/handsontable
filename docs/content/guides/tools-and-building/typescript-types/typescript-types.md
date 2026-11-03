@@ -72,6 +72,10 @@ These types describe the settings object you pass to `new Handsontable()` or `up
 | `Events` | All hook callback signatures, keyed by hook name. Use to type individual hook functions. |
 | `SanitizerContext` | The write surfaces the grid passes to the [`sanitizer`](@/api/options.md#sanitizer) option. Annotate the option's second parameter with it to get completion on those values. |
 | `TextExtractorContext` | The consumer surfaces the grid passes to the [`textExtractor`](@/api/options.md#textextractor) option. Annotate the option's second parameter with it to get completion on those values. |
+| `MenuItemConfig` | A custom item in the object form of the [`contextMenu`](@/api/options.md#contextmenu) and [`dropdownMenu`](@/api/options.md#dropdownmenu) options. |
+| `PredefinedMenuItemKey` | A built-in menu item key, such as `'row_above'` or `'hidden_columns_hide'`, for the array form of the same options. |
+
+`MenuItemConfig` and `PredefinedMenuItemKey` are also exported from `handsontable/plugins/contextMenu`, and that import keeps working.
 
 ```typescript
 import type { GridSettings, ColumnSettings } from 'handsontable';
