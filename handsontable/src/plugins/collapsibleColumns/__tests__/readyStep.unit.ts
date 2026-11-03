@@ -4,6 +4,7 @@ import {
   CollapsibleColumns,
   NestedHeaders,
 } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(CollapsibleColumns);
 registerPlugin(NestedHeaders);
@@ -40,7 +41,7 @@ describe('NestedHeaders and CollapsibleColumns ready steps', () => {
       data: [[1, 2, 3], [4, 5, 6]],
       colHeaders: true,
       afterRender: renderSpy,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

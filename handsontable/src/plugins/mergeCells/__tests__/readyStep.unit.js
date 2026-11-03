@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, MergeCells } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(MergeCells);
@@ -39,7 +40,7 @@ describe('MergeCells ready step', () => {
   function buildGrid(settings) {
     hot = new Handsontable(container, {
       data: Array.from({ length: 4 }, (_, row) => Array.from({ length: 4 }, (__, col) => `${row}-${col}`)),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

@@ -2,6 +2,7 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { DataProvider } from '../dataProvider';
 import { Pagination } from '../../pagination/pagination';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 const ALL_ROWS = Array.from({ length: 6 }, (value, index) => ({ id: index + 1, name: `Row ${index + 1}` }));
 
@@ -83,7 +84,7 @@ describe('DataProvider -> refetch after a save while a page change is loading', 
       columns: [{ data: 'id' }, { data: 'name' }],
       dataProvider: { ...provider.config, ...dataProviderOverrides },
       pagination: { pageSize: 2 },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     await settle();

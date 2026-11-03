@@ -4,6 +4,7 @@ import {
   UndoRedo,
 } from 'handsontable/plugins';
 import { registerCellType, CheckboxCellType } from 'handsontable/cellTypes';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(UndoRedo);
 registerPlugin(ColumnSorting);
@@ -59,7 +60,7 @@ describe('Row identity', () => {
    */
   function createGrid(settings) {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: createRecords(6),
       columns: [{ data: 'name' }, { data: 'value' }],
       undo: true,

@@ -3,6 +3,7 @@ import { registerPlugin, ColumnSummary } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
 import { TrimRows } from '../../trimRows';
 import { ManualColumnMove } from '../../manualColumnMove';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(ColumnSummary);
@@ -49,7 +50,7 @@ describe('ColumnSummary read-only lock', () => {
    */
   function buildGrid(options = {}) {
     return new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [[10, 1, 'a'], [20, 2, 'b'], [null, null, 'c']],
       columnSummary: [
         { destinationColumn: 0, destinationRow: 2, ranges: [[0, 1]], type: 'sum' },
@@ -112,7 +113,7 @@ describe('ColumnSummary read-only lock', () => {
 
   it('locks the destination of a summary configured through a function', () => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [[10, 1], [20, 2], [null, null]],
       columnSummary() {
         return [
@@ -134,7 +135,7 @@ describe('ColumnSummary read-only lock', () => {
 
   it('agrees with the cell meta when two endpoints share a destination', () => {
     const build = columnSummary => new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [[10, 1], [20, 2], [null, null]],
       columnSummary,
     });
@@ -173,7 +174,7 @@ describe('ColumnSummary read-only lock', () => {
 
   it('moves the lock with a `reversedRowCoords` destination when a row is appended', async() => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [[10], [20], [null]],
       columnSummary: [
         { destinationColumn: 0, destinationRow: 0, reversedRowCoords: true, ranges: [[0, 1]], type: 'sum' },

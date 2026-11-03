@@ -5,6 +5,7 @@ import { MergeCells } from '../../mergeCells/mergeCells';
 import { HiddenColumns } from '../../hiddenColumns/hiddenColumns';
 import * as consoleHelpers from '../../../helpers/console';
 import { applyImportResult } from '../applier';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(MergeCells);
@@ -30,7 +31,7 @@ describe('applyImportResult into a grid with typed columns', () => {
       data: [['a', '2024-01-15'], ['b', '2024-02-20']],
       columns: [{}, { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } }],
       mergeCells: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     warnSpy.mockClear();
   });

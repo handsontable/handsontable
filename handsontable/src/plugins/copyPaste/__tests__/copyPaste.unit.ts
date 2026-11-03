@@ -2,6 +2,7 @@ import Handsontable from '../../../index';
 import { registerCellType, TextCellType } from '../../../cellTypes';
 import { registerPlugin } from '../../registry';
 import { CopyPaste } from '../copyPaste';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerCellType(TextCellType);
 registerPlugin(CopyPaste);
@@ -21,7 +22,7 @@ function pasteInto(
 ) {
   const hot = new Handsontable(document.createElement('div'), {
     data,
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     ...settings,
   });
 
@@ -70,7 +71,7 @@ describe('CopyPaste ragged clipboard', () => {
   it('should hand the beforePaste hook the same shape the grid is given', () => {
     const hot = new Handsontable(document.createElement('div'), {
       data: [['A1', 'B1', 'C1'], ['A2', 'B2', 'C2']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     let seen: unknown[][] = [];
 
@@ -90,7 +91,7 @@ describe('CopyPaste ragged clipboard', () => {
   it('should hand the hook the same width the grid writes when a cell spans past the table', () => {
     const hot = new Handsontable(document.createElement('div'), {
       data: [['A', 'B', 'C', 'D'], ['E', 'F', 'G', 'H']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     let seen: number[] = [];
 
@@ -113,7 +114,7 @@ describe('CopyPaste ragged clipboard', () => {
   it('should repeat a ragged clipboard across a wider selection on the widest row', () => {
     const hot = new Handsontable(document.createElement('div'), {
       data: [['A1', 'B1', 'C1', 'D1', 'E1', 'F1'], ['A2', 'B2', 'C2', 'D2', 'E2', 'F2']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.selectCell(0, 0, 1, 5);

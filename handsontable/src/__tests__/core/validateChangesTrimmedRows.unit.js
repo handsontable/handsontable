@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 /**
  * A change can name a row that does not exist yet. `applyChanges()` creates it only after the
@@ -31,7 +32,7 @@ describe('Core validation of rows created by a change', () => {
       data: [['ok'], ['ok'], ['ok'], ['ok'], ['ok']],
       columns: [{ validator: (value, callback) => callback(value === 'ok') }],
       allowInsertRow: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

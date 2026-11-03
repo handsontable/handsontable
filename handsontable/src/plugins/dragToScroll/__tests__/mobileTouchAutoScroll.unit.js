@@ -4,6 +4,7 @@ import { DragToScroll } from '../dragToScroll';
 import { MultipleSelectionHandles } from '../../multipleSelectionHandles';
 import { setBrowserMeta } from '../../../helpers/browser';
 import { patchConsoleErrors } from '../../../../test/__mocks__/cssPolyfill';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 const MOBILE_USER_AGENT = 'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 ' +
   '(KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36';
@@ -59,7 +60,7 @@ describe('DragToScroll mobile touch auto-scroll', () => {
     hot = new Handsontable(container, {
       data: Array.from({ length: 50 }, () => Array.from({ length: 10 }, () => 'x')),
       dragToScroll: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.selectCell(2, 2);

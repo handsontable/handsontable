@@ -28,6 +28,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -63,7 +64,7 @@
         renderer: testIdRenderer,
         width: 700,
         height: 500,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       }, settings, {
         afterCustomBordersUpdate: () => {
           window.bordersUpdateCount += 1;

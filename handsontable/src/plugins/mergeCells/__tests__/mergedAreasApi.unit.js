@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * The internal methods another plugin (SheetsBar) uses to capture and restore merges around a
@@ -22,7 +23,7 @@ describe('MergeCells merged areas API', () => {
   function createGrid(settings) {
     hot = new Handsontable(container, {
       data: Handsontable.helper.createSpreadsheetData(6, 4),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

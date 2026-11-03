@@ -5,6 +5,7 @@ import { Formulas } from '../../formulas';
 import { UndoRedo } from '../../undoRedo';
 import { FormulaBuilder } from '../formulaBuilder';
 import { getFormulaBuilderAdapter } from '../handsontableAdapter';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 type CoreModule = typeof import('hyperformula-ui');
 
@@ -59,7 +60,7 @@ describe('FormulaBuilder state that has to follow the grid', () => {
       editor: 'formula',
       formulas: { engine: HyperFormula },
       formulaBuilder: { builder: core, showFormulaBar: true },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     } as Handsontable.GridSettings);
 

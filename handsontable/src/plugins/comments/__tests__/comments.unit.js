@@ -2,6 +2,7 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { Comments, META_COMMENT_VALUE, META_READONLY } from '../comments';
 import DisplaySwitch from '../displaySwitch';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 describe('Comments plugin lifecycle', () => {
   let container;
@@ -26,7 +27,7 @@ describe('Comments plugin lifecycle', () => {
     hot = new Handsontable(container, {
       data: [['a']],
       comments: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     // The plugin owns a shortcut context, and the manager has no way to drop one — so a second
@@ -45,7 +46,7 @@ describe('Comments plugin lifecycle', () => {
     hot = new Handsontable(container, {
       data: [['a']],
       comments: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const context = () => hot.getShortcutManager().getContext('plugin:comments');
@@ -61,7 +62,7 @@ describe('Comments plugin lifecycle', () => {
     hot = new Handsontable(container, {
       data: [['a']],
       comments: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const manager = hot.getShortcutManager();
@@ -80,7 +81,7 @@ describe('Comments plugin lifecycle', () => {
     hot = new Handsontable(container, {
       data: [['a']],
       comments: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.updateSettings({ comments: false });
@@ -100,7 +101,7 @@ describe('Comments plugin lifecycle', () => {
     hot = new Handsontable(container, {
       data: [['a']],
       comments: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.updateSettings({ comments: false });
@@ -119,7 +120,7 @@ describe('Comments plugin lifecycle', () => {
         data: [['a', 'b'], ['c', 'd']],
         comments: true,
         cell: [{ row: 0, col: 0, comment: { value: 'Foo' } }],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
     });
 

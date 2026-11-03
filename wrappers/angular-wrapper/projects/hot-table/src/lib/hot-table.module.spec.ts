@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HotTableModule } from './hot-table.module';
 import { HotTableComponent } from './hot-table.component';
-import { NON_COMMERCIAL_LICENSE } from './services/hot-global-config.service';
+import { TEST_LICENSE_KEY } from './test-helpers/license-key';
 
 describe('HotTableModule', () => {
   it('version should be a non-empty string', () => {
@@ -17,7 +17,7 @@ describe('HotTableModule', () => {
         imports: [HotTableModule],
       });
       fixture = TestBed.createComponent(HotTableComponent);
-      fixture.componentInstance.settings = { licenseKey: NON_COMMERCIAL_LICENSE };
+      fixture.componentInstance.settings = { licenseKey: TEST_LICENSE_KEY };
       fixture.detectChanges();
     });
 

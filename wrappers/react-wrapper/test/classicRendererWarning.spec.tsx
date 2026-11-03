@@ -10,6 +10,7 @@ import {
 } from './_helpers';
 import { HotTableProps, HotTableRef } from '../src/types';
 import { CLASSIC_FUNCTION_RENDERER_WARNING } from '../src/helpers';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 registerAllModules();
 
@@ -30,7 +31,7 @@ function createClassicRenderer() {
 function mountGrid(props: HotTableProps): HotTableRef {
   return mountComponentWithRef<HotTableRef>((
     <HotTable
-      licenseKey="non-commercial-and-evaluation"
+      licenseKey={TEST_LICENSE_KEY}
       id="test-hot"
       data={createSpreadsheetData(2, 2)}
       width={300}

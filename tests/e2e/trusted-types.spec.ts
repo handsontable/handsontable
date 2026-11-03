@@ -238,7 +238,7 @@ test.describe('Trusted Types enforcement', { tag: BUNDLES_TAG }, () => {
         const source = new w.Handsontable(document.createElement('div'), {
           data: [['R&D', 'Budget'], ['Acme Corp', 4200]],
           exportFile: true,
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: window.htTestLicenseKey,
         });
         const blob = await source.getPlugin('exportFile').exportAsBlobAsync('xlsx', {});
 

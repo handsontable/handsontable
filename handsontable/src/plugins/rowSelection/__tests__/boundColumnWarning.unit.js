@@ -1,6 +1,7 @@
 import Handsontable from '../../../index';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
-const LICENSE_KEY = 'non-commercial-and-evaluation';
+const LICENSE_KEY = TEST_LICENSE_KEY;
 const FALLBACK_WARNING = /RowSelection: `checkboxLocation\.column` .* is not a checkbox column/;
 
 describe('RowSelection: the "falls back to the row header" warning', () => {

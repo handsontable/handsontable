@@ -43,6 +43,7 @@
       font-family: serif;
     }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -105,7 +106,7 @@
             ],
           },
         } : {}),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
 
       window.hot = hot;

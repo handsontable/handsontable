@@ -5,6 +5,7 @@ import { HotTable } from '../src/hotTable';
 import { HotColumn } from '../src/hotColumn';
 import { mountComponent, renderHotTableWithProps } from './_helpers';
 import { HotTableProps, HotTableRef } from '../src/types';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 // register Handsontable's modules
 registerAllModules();
@@ -27,7 +28,7 @@ describe('HotTable `rowId` option', () => {
   // `columns`-only update that re-initializes them.
   it('should keep the generated ids when a re-render changes the columns', async() => {
     const settings: HotTableProps = {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: createProducts(),
       columns: [{ data: 'product' }, { data: 'price' }],
       rowId: true,
@@ -70,7 +71,7 @@ describe('HotTable `rowId` option', () => {
       return (
         <HotTable
           ref={hotTableRef}
-          licenseKey="non-commercial-and-evaluation"
+          licenseKey={TEST_LICENSE_KEY}
           data={data}
           rowId={true}
           height={height}

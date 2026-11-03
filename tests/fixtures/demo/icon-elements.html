@@ -32,6 +32,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -269,7 +270,7 @@
       // of this fixture relies on (`container.className` above), so `theme`/`themeName` are left
       // out of the settings entirely rather than passed as `undefined`.
       ...(iconsMode === 'tabler' ? { theme: themeConfig } : {}),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
   </script>
 </body>

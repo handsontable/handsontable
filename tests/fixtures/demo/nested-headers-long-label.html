@@ -25,6 +25,7 @@
     // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min = handsontable.full.min.js).
     window.htBundle = htPick('bundle', { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, 'umd');
   </script>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -121,7 +122,7 @@
         autoWrapRow: true,
         fixedRowsBottom: 2,
         cell: [{ row: 1, col: 1, comment: { value: 'Comments' } }],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
       window.hot.selectColumns(2, 3);
     } catch (error) {

@@ -2,6 +2,7 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { ColumnSorting } from '../columnSorting';
 import { MultiColumnSorting } from '../../multiColumnSorting/multiColumnSorting';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 const DATA = [
   ['Lina', 34],
@@ -56,7 +57,7 @@ describe('ColumnSorting and MultiColumnSorting swapped in one updateSettings cal
     return new Handsontable(container, {
       data: DATA.map(row => [...row]),
       colHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       [pluginKey]: true,
     });
   }

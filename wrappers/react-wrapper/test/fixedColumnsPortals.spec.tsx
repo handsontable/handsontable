@@ -7,6 +7,7 @@ import {
   sleep,
 } from './_helpers';
 import { HotRendererProps, HotTableRef } from '../src/types';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 // Regression tests for issue #9063: Handsontable draws a cell of a fixed column
 // twice — once in the master table and once in the inline-start overlay — and
@@ -36,7 +37,7 @@ describe('Component-based renderers in fixed columns', () => {
 
   it('should render the component into both the master table and the inline-start overlay', async() => {
     mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(5, 4)}
         width={300}
@@ -69,7 +70,7 @@ describe('Component-based renderers in fixed columns', () => {
 
   it('should render the component into both the master table and the top overlay', async() => {
     mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(5, 4)}
         width={300}
@@ -96,7 +97,7 @@ describe('Component-based renderers in fixed columns', () => {
 
   it('should keep both copies of a fixed cell after a re-render', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(5, 4)}
         width={300}

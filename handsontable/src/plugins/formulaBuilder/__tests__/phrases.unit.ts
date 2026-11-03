@@ -5,6 +5,7 @@ import { registerLanguageDictionary } from '../../../i18n/registry';
 import { registerPlugin } from '../../registry';
 import { Formulas } from '../../formulas';
 import { FormulaBuilder } from '../formulaBuilder';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 type CoreModule = typeof import('hyperformula-ui');
 
@@ -60,7 +61,7 @@ describe('FormulaBuilder phrases', () => {
       editor: 'formula',
       formulas: { engine: HyperFormula },
       formulaBuilder: { builder: core, showFormulaBar: true },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     } as Handsontable.GridSettings);
 
     expect(addressBoxLabel()).toBe('Zellbezug');
@@ -74,7 +75,7 @@ describe('FormulaBuilder phrases', () => {
       editor: 'formula',
       formulas: { engine: HyperFormula },
       formulaBuilder: { builder: core, showFormulaBar: true },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     } as Handsontable.GridSettings);
 
     expect(addressBoxLabel()).toBe('Cell address');

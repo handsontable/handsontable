@@ -4,10 +4,10 @@ import Handsontable from 'handsontable/base';
 import { registerPlugin, SheetsBar } from 'handsontable/plugins';
 import { HotTableModule } from './hot-table.module';
 import { HotTableComponent } from './hot-table.component';
-import { NON_COMMERCIAL_LICENSE } from './services/hot-global-config.service';
 import { HotCellRendererComponent } from './renderer/hot-cell-renderer.component';
 import { HotCellEditorComponent } from './editor/hot-cell-editor.component';
 import { GridSettings } from './models/grid-settings';
+import { TEST_LICENSE_KEY } from './test-helpers/license-key';
 
 registerPlugin(SheetsBar);
 
@@ -120,7 +120,7 @@ function firstColumnEditorRef(hot: Handsontable): ComponentRef<unknown> | undefi
 function createGrid(settings: GridSettings): ComponentFixture<HotTableComponent> {
   const fixture = TestBed.createComponent(HotTableComponent);
 
-  fixture.componentInstance.settings = { licenseKey: NON_COMMERCIAL_LICENSE, ...settings };
+  fixture.componentInstance.settings = { licenseKey: TEST_LICENSE_KEY, ...settings };
   fixture.detectChanges();
 
   return fixture;
@@ -146,7 +146,7 @@ describe('HotTableComponent with a sheets bar', () => {
       { name: 'Own', data: [[3, 4]], settings: { colHeaders: ['X', 'Y'] } },
     ];
     const settings = () => ({
-      licenseKey: NON_COMMERCIAL_LICENSE,
+      licenseKey: TEST_LICENSE_KEY,
       colHeaders: ['a', 'b'],
       sheetsBar: { sheets },
     });
@@ -495,7 +495,7 @@ describe('HotTableComponent with a sheets bar', () => {
 
       const sheetDestroy = jest.spyOn(sheetEditor, 'destroy');
       const next = {
-        licenseKey: NON_COMMERCIAL_LICENSE,
+        licenseKey: TEST_LICENSE_KEY,
         columns: [{ editor: GridEditorComponent, data: 'other' }],
         sheetsBar,
       };
@@ -702,7 +702,7 @@ describe('HotTableComponent with a sheets bar', () => {
       fixture = createGrid({ data: [['a']], afterSelection: callback });
 
       const component = fixture.componentInstance;
-      const next = { licenseKey: NON_COMMERCIAL_LICENSE, data: [['a']] };
+      const next = { licenseKey: TEST_LICENSE_KEY, data: [['a']] };
 
       component.settings = next;
       component.ngOnChanges({ settings: new SimpleChange(null, next, false) });
@@ -715,7 +715,7 @@ describe('HotTableComponent with a sheets bar', () => {
       const zones: boolean[] = [];
       const callback = () => zones.push(NgZone.isInAngularZone());
       const settings = {
-        licenseKey: NON_COMMERCIAL_LICENSE,
+        licenseKey: TEST_LICENSE_KEY,
         sheetsBar: { sheets: [{ name: 'Plain', data: [['a']] }] },
       };
 

@@ -10,6 +10,7 @@ import {
   mountComponentWithRef
 } from './_helpers';
 import { HotRendererProps, HotTableRef } from '../src/types';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 describe('Using hooks within HotTable', () => {
   it('should be possible to use hook-enabled components as renderers', async() => {
@@ -27,7 +28,7 @@ describe('Using hooks within HotTable', () => {
     }
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 3)}
         width={300}

@@ -86,6 +86,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 0; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -194,7 +195,7 @@
         colHeaders: true,
         renderer: testIdRenderer,
         ...editorSettings[window.htType],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       container.setAttribute('data-init-error', String(error && error.message));

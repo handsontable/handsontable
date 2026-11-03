@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 const probeLog = [];
 
@@ -120,7 +121,7 @@ describe('Core#_applySettingsAndData', () => {
    * @returns {Handsontable}
    */
   function createGrid(settings) {
-    hot = new Handsontable(container, { licenseKey: 'non-commercial-and-evaluation', ...settings });
+    hot = new Handsontable(container, { licenseKey: TEST_LICENSE_KEY, ...settings });
 
     return hot;
   }
@@ -266,7 +267,7 @@ describe('Core#_applySettingsAndData', () => {
 
   it('runs no onDataReady() step while the grid has no view yet', () => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       dataProbe: true,
       beforeInit() {
         this._applySettingsAndData({ colHeaders: true }, [['new']], 'test');
@@ -384,7 +385,7 @@ describe('Core#_applySettingsAndData', () => {
 
   it('records no owed work while the grid has no view, so the first later call does not run it', () => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       owedWorkProbe: true,
       beforeInit() {
         this._applySettingsAndData({ owedWorkProbe: { pass: 1 } }, [['init']], 'test');
@@ -419,7 +420,7 @@ describe('Core#_applySettingsAndData', () => {
     const sources = [];
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [['a']],
       columns: [{
         sourceDataValidator: (value, cellMeta, source) => {
