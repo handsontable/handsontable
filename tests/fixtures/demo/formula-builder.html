@@ -55,6 +55,7 @@
        root's styles alone, so nothing here is required by the plugin. */
     #grid { height: 320px; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -213,7 +214,7 @@
           builder: FormulaBuilderModule,
           showFormulaBar: true,
         }, variant.formulaBuilder || {}),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       }, variant.settings || {}));
     } catch (error) {
       window.htBuildError = String((error && error.stack) || error);

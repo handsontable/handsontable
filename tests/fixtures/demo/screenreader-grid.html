@@ -20,6 +20,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -53,7 +54,7 @@
         contextMenu: true,
         columnSorting: true,
         navigableHeaders: true,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       // The runner turns a constructor throw into a red test before any step runs.

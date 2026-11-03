@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable/base';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 /**
  * A spare column appended after the last end column would take over the frozen position and unfreeze the column
@@ -27,7 +28,7 @@ describe('`minSpareCols` and the `fixedColumnsEnd` option', () => {
     core = new Handsontable(container, {
       data: [['a', 'b', 'c'], ['d', 'e', 'f']],
       minSpareCols: 1,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, UndoRedo } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(UndoRedo);
@@ -26,7 +27,7 @@ describe('UndoRedo -> RemoveColumn action', () => {
   describe('a removal that removes nothing (#280 / DEV-45)', () => {
     it('should not stack an undo action for a remove_col that took no columns', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [[5]],
         undo: true,
       });
@@ -48,7 +49,7 @@ describe('UndoRedo -> RemoveColumn action', () => {
   describe('a partial removal (more columns requested than exist) (DEV-2936)', () => {
     it('should record the clamped count for indexes/headers/amount, not the raw requested amount', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['a', 'b', 'c']],
         colHeaders: ['H0', 'H1', 'H2'],
         undo: true,

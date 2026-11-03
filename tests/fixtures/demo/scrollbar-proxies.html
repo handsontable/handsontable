@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scrollbars beside the scrolling area only</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+    const htPick = (name, allowed, fallback) => {
+      const value = allowed[htParams.get(name) ?? fallback];
+
+      if (value === undefined) {
+        throw new Error('Unknown ?' + name + '= value: ' + JSON.stringify(htParams.get(name)));
+      }
+
+      return value;
+    };
+
+    window.htTheme = htPick('theme', { main: 'main', horizon: 'horizon', classic: 'classic' }, 'main');
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = htPick('bundle', { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, 'umd');
+
+    // The grid's shape, each from a fixed allowlist too. `mode=element` sizes the grid so its holder
+    // scrolls both axes; `mode=window` leaves it unsized so the page does. `gutter=none` hides the
+    // holder's scrollbars the way an overlay scrollbar would leave them (no gutter), before the grid
+    // reads them; `!important` beats the theme's own `scrollbar-width` on `.wtHolder`.
+    const htCount = { 0: 0, 1: 1, 2: 2, 3: 3 };
+
+    window.htShape = {
+      fixedRowsTop: htPick('ft', htCount, '0'),
+      fixedRowsBottom: htPick('fb', htCount, '0'),
+      fixedColumnsStart: htPick('fs', htCount, '0'),
+      fixedColumnsEnd: htPick('fe', htCount, '0'),
+      headers: htPick('headers', { both: 'both', cols: 'cols', rows: 'rows', none: 'none' }, 'both'),
+      direction: htPick('dir', { ltr: 'ltr', rtl: 'rtl' }, 'ltr'),
+      mode: htPick('mode', { element: 'element', window: 'window' }, 'element'),
+      gutter: htPick('gutter', { classic: 'classic', none: 'none' }, 'classic'),
+      host: htPick('host', { none: 'none', holder: 'holder' }, 'none'),
+      // `menu=filters` adds the column menu with Filters: its "Filter by value" list is a nested grid
+      // whose holder has a classic gutter.
+      menu: htPick('menu', { none: 'none', filters: 'filters' }, 'none'),
+    };
+
+    if (window.htShape.gutter === 'none') {
+      document.write('<style>.wtHolder, .htScrollbarTest { scrollbar-width: none !important; }</style>');
+    }
+
+    // `host=holder` styles the holder's scrollbar alone, as a host page can: wider, with a thumb color no
+    // theme uses. `scrollbar-color: auto` lets Chrome honor the pseudo-elements on the holder. A proxy
+    // cannot copy a pseudo-element rule, so its own bar keeps the theme's width.
+    if (window.htShape.host === 'holder') {
+      document.write('<style>' +
+        '.handsontable .ht_master .wtHolder { scrollbar-color: auto !important; }' +
+        '.handsontable .ht_master .wtHolder::-webkit-scrollbar { width: 30px; height: 30px; }' +
+        '.handsontable .ht_master .wtHolder::-webkit-scrollbar-thumb { background: rgb(0, 136, 255); }' +
+        '</style>');
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    The grid's classic scrollbars run beside the part of each edge that scrolls: below the column
+    headers and the frozen top rows, above the frozen bottom rows, and between the row headers or
+    frozen start columns and the frozen end columns. A proxy scroll container in the holder's gutter
+    shows each bar, filler boxes in the track color cover the rest of the gutter, and a frame element
+    redraws the grid's border over the gutters.
+  -->
+  <h2>Scrollbar proxies</h2>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+    const shape = window.htShape;
+    const sized = shape.mode === 'element' ? { width: 600, height: 400 } : {};
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    try {
+      window.hot = new Handsontable(container, {
+        data: Handsontable.helper.createSpreadsheetData(200, 30),
+        colHeaders: shape.headers === 'both' || shape.headers === 'cols',
+        rowHeaders: shape.headers === 'both' || shape.headers === 'rows',
+        fixedRowsTop: shape.fixedRowsTop,
+        fixedRowsBottom: shape.fixedRowsBottom,
+        fixedColumnsStart: shape.fixedColumnsStart,
+        fixedColumnsEnd: shape.fixedColumnsEnd,
+        layoutDirection: shape.direction,
+        dropdownMenu: shape.menu === 'filters',
+        filters: shape.menu === 'filters',
+        ...sized,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htBuildError = String(error && error.stack || error);
+    }
+  </script>
+</body>
+</html>

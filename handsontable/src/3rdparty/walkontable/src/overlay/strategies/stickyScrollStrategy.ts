@@ -27,6 +27,7 @@ export function createStickyScrollStrategyDeps(ctx: EngineContext, overlays: Ove
     getInlineStartOverlay: ctx.getInlineStartOverlay,
     getInlineEndOverlay: ctx.getInlineEndOverlay,
     getScrollableElement: () => overlays.scrollableElement,
+    isScrollbarProxy: (element: EventTarget | null) => overlays.isScrollbarProxy(element),
     refreshAll: () => overlays.refreshAll(),
     applyToDOM: () => overlays.applyToDOM(),
   };
@@ -396,6 +397,8 @@ export class StickyScrollStrategy {
    * scrollable container itself (the scrollbar is part of the element's
    * rendering but not a child DOM node). Clicks on child elements (cells,
    * headers, etc.) set a descendant as the target, so they are excluded.
+   * A scrollbar proxy counts too: its scrollbar is the one the user drags, and the
+   * drag scrolls the holder through it.
    *
    * @param {MouseEvent} event The mousedown event.
    * @returns {boolean}
@@ -405,7 +408,7 @@ export class StickyScrollStrategy {
       return event.target === this.#deps.rootDocument.documentElement;
     }
 
-    return event.target === this.#deps.getScrollableElement();
+    return event.target === this.#deps.getScrollableElement() || this.#deps.isScrollbarProxy(event.target);
   }
 
   /**

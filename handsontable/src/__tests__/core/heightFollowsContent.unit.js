@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable/base';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 /**
  * `TableView` answers the engine's `heightFollowsContent` setting from the root's inline height,
@@ -30,7 +31,7 @@ describe('The `heightFollowsContent` engine setting', () => {
   function createGrid(settings) {
     core = new Handsontable(container, {
       data: [['a']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

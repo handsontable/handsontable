@@ -9,8 +9,9 @@ import { HOT_DESTROYED_WARNING, HotTableComponent } from './hot-table.component'
 import { GridSettings } from './models/grid-settings';
 import { createSpreadsheetData } from './test-helpers/create-spreadsheet-data';
 import { HotSettingsResolver } from './services/hot-settings-resolver.service';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfigService, NON_COMMERCIAL_LICENSE } from './services/hot-global-config.service';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfigService } from './services/hot-global-config.service';
 import { DynamicComponentService } from './renderer/hot-dynamic-renderer-component.service';
+import { TEST_LICENSE_KEY } from './test-helpers/license-key';
 
 registerPlugin(CopyPaste);
 // The boolean-editor suite needs a cell type that brings its own editor along.
@@ -19,7 +20,7 @@ registerCellType(NumericCellType);
 describe('HotTableComponent', () => {
   let fixture: ComponentFixture<HotTableComponent>;
   const settings = <GridSettings>{
-    licenseKey: NON_COMMERCIAL_LICENSE,
+    licenseKey: TEST_LICENSE_KEY,
   };
 
   beforeEach(() => {
@@ -735,7 +736,7 @@ describe('HotTableComponent', () => {
       TestBed.configureTestingModule({
         imports: [HotTableModule],
         providers: [
-          { provide: HOT_GLOBAL_CONFIG, useValue: { license: NON_COMMERCIAL_LICENSE, theme: 'ht-theme-main' } },
+          { provide: HOT_GLOBAL_CONFIG, useValue: { license: TEST_LICENSE_KEY, theme: 'ht-theme-main' } },
         ],
         schemas: [CUSTOM_ELEMENTS_SCHEMA],
       });
@@ -763,7 +764,7 @@ describe('HotTableComponent', () => {
       fixture.detectChanges();
       const updateSettingsSpy = jest.spyOn(fixture.componentInstance.hotInstance, 'updateSettings');
 
-      TestBed.inject(HotGlobalConfigService).setConfig({ license: NON_COMMERCIAL_LICENSE });
+      TestBed.inject(HotGlobalConfigService).setConfig({ license: TEST_LICENSE_KEY });
 
       expect(updateSettingsSpy).toHaveBeenCalled();
     });
@@ -773,7 +774,7 @@ describe('HotTableComponent', () => {
       TestBed.configureTestingModule({
         imports: [HotTableModule],
         providers: [
-          { provide: HOT_GLOBAL_CONFIG, useValue: { license: NON_COMMERCIAL_LICENSE, language: 'en-US' } },
+          { provide: HOT_GLOBAL_CONFIG, useValue: { license: TEST_LICENSE_KEY, language: 'en-US' } },
         ],
         schemas: [CUSTOM_ELEMENTS_SCHEMA],
       });
@@ -782,7 +783,7 @@ describe('HotTableComponent', () => {
       fixture.detectChanges();
       const updateSettingsSpy = jest.spyOn(fixture.componentInstance.hotInstance, 'updateSettings');
 
-      TestBed.inject(HotGlobalConfigService).setConfig({ license: NON_COMMERCIAL_LICENSE, language: 'en-US' });
+      TestBed.inject(HotGlobalConfigService).setConfig({ license: TEST_LICENSE_KEY, language: 'en-US' });
 
       expect(updateSettingsSpy).toHaveBeenCalled();
       const calledWith = updateSettingsSpy.mock.calls[0][0];
@@ -795,7 +796,7 @@ describe('HotTableComponent', () => {
       fixture.detectChanges();
       const updateSettingsSpy = jest.spyOn(fixture.componentInstance.hotInstance, 'updateSettings');
 
-      TestBed.inject(HotGlobalConfigService).setConfig({ license: NON_COMMERCIAL_LICENSE, layoutDirection: 'rtl' });
+      TestBed.inject(HotGlobalConfigService).setConfig({ license: TEST_LICENSE_KEY, layoutDirection: 'rtl' });
 
       expect(updateSettingsSpy).toHaveBeenCalled();
       const calledWith = updateSettingsSpy.mock.calls[0][0];
@@ -809,7 +810,7 @@ describe('HotTableComponent', () => {
         providers: [
           {
             provide: HOT_GLOBAL_CONFIG,
-            useValue: { license: NON_COMMERCIAL_LICENSE, theme: 'ht-theme-main', themeName: 'ht-theme-horizon' },
+            useValue: { license: TEST_LICENSE_KEY, theme: 'ht-theme-main', themeName: 'ht-theme-horizon' },
           },
         ],
         schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -820,7 +821,7 @@ describe('HotTableComponent', () => {
       const updateSettingsSpy = jest.spyOn(fixture.componentInstance.hotInstance, 'updateSettings');
 
       TestBed.inject(HotGlobalConfigService).setConfig({
-        license: NON_COMMERCIAL_LICENSE,
+        license: TEST_LICENSE_KEY,
         theme: 'ht-theme-main',
         themeName: 'ht-theme-horizon',
       });

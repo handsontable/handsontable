@@ -3,8 +3,9 @@ import { registerPlugin } from '../../registry';
 import { Dialog } from '../../dialog/dialog';
 import { Loading } from '../loading';
 import { ExportFile } from '../../exportFile/exportFile';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
-const LICENSE_KEY = 'non-commercial-and-evaluation';
+const LICENSE_KEY = TEST_LICENSE_KEY;
 
 describe('Loading and a dialog it did not open', () => {
   let container;

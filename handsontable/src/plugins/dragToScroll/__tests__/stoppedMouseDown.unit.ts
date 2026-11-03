@@ -2,6 +2,7 @@ import Handsontable from '../../../base';
 import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import { registerPlugin } from '../../registry';
 import { DragToScroll } from '../dragToScroll';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 describe('DragToScroll and a mousedown another listener claimed', () => {
   let container: HTMLElement;
@@ -17,7 +18,7 @@ describe('DragToScroll and a mousedown another listener claimed', () => {
     hot = new Handsontable(container, {
       data: Array.from({ length: 10 }, () => Array.from({ length: 10 }, () => 'x')),
       dragToScroll: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
   });
 

@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * `_exportMergedAreas()` hands out each merge with the physical rows it owns and its physical left column, and
@@ -29,7 +30,7 @@ describe('MergeCells anchored merged areas', () => {
   function createGrid(settings) {
     hot = new Handsontable(container, {
       data: Handsontable.helper.createSpreadsheetData(6, 4),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       mergeCells: true,
       ...settings,
     });

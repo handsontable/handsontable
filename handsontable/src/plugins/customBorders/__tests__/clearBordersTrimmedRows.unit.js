@@ -1,4 +1,5 @@
 import Handsontable from '../../../index';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 describe('CustomBorders#clearBorders with rows sorted or trimmed', () => {
   let container;
@@ -42,7 +43,7 @@ describe('CustomBorders#clearBorders with rows sorted or trimmed', () => {
       columnSorting: true,
       customBorders: true,
       undo: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const borders = hot.getPlugin('customBorders');
@@ -69,7 +70,7 @@ describe('CustomBorders#clearBorders with rows sorted or trimmed', () => {
       columnSorting: true,
       customBorders: true,
       undo: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const borders = hot.getPlugin('customBorders');
@@ -95,7 +96,7 @@ describe('CustomBorders#clearBorders with rows sorted or trimmed', () => {
       trimRows: [0, 1],
       customBorders: true,
       undo: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const borders = hot.getPlugin('customBorders');
@@ -119,7 +120,7 @@ describe('CustomBorders#clearBorders with rows sorted or trimmed', () => {
       filters: true,
       customBorders: true,
       undo: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const borders = hot.getPlugin('customBorders');
@@ -146,7 +147,7 @@ describe('CustomBorders#clearBorders with rows sorted or trimmed', () => {
       trimRows: true,
       customBorders: true,
       undo: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const borders = hot.getPlugin('customBorders');
@@ -170,7 +171,7 @@ describe('CustomBorders#clearBorders with rows sorted or trimmed', () => {
       columnSorting: true,
       customBorders: true,
       undo: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const borders = hot.getPlugin('customBorders');
@@ -199,7 +200,7 @@ describe('CustomBorders#clearBorders with rows sorted or trimmed', () => {
       data: rows(),
       columnSorting: true,
       customBorders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
@@ -216,7 +217,7 @@ describe('CustomBorders#clearBorders with rows sorted or trimmed', () => {
       data: Array.from({ length: 3 }, (_, row) => Array.from({ length: 10 }, (__, col) => `${row}-${col}`)),
       manualColumnMove: [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
       customBorders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     // Visual column 8 is physical column 1.
@@ -234,7 +235,7 @@ describe('CustomBorders#clearBorders with rows sorted or trimmed', () => {
       data: rows(),
       trimRows: [0, 1],
       customBorders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const borders = hot.getPlugin('customBorders');
@@ -252,7 +253,7 @@ describe('CustomBorders#clearBorders with rows sorted or trimmed', () => {
     hot = new Handsontable(container, {
       data: rows(),
       customBorders: [{ row: 2, col: 0, top: { width: 2, color: '#FF0000' } }],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.addHook('beforeRemoveCellMeta', (row, column, key) => (key === 'borders' && row === 2 ? false : undefined));

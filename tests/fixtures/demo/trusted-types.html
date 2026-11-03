@@ -89,6 +89,7 @@
     document.head.appendChild(bundleScript);
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -130,7 +131,7 @@
       const licenseKey = ({
         expired: 'd0134-95841-770f2-c4f21-3751d',
         invalid: 'not-a-key',
-      })[params.get('license')] ?? 'non-commercial-and-evaluation';
+      })[params.get('license')] ?? window.htTestLicenseKey;
 
       // `?colHeader=markup` and `?colHeader=prose` put content into a HEADER, which is the one
       // surface that still reaches `innerHTML` through `fastInnerHTML`. `markup` is the only one

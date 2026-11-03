@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -27,7 +28,7 @@ describe('Core#updateSettings with external data source', () => {
     });
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       columns: [{ data: 'id' }, { data: 'name' }],
       dataProvider: {
         rowId: 'id',
@@ -64,7 +65,7 @@ describe('Core#updateSettings with external data source', () => {
     };
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       columns: [{ data: 'id' }, { data: 'name' }],
       dataProvider: dp,
     });

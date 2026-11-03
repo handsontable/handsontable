@@ -4,6 +4,7 @@ import { registerPlugin } from '../../registry';
 import { MoveCells } from '../moveCells';
 import { UndoRedo } from '../../undoRedo';
 import { Formulas } from '../../formulas';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * `Hooks.run` threads any non-`undefined` listener return value into the next listener's first
@@ -49,7 +50,7 @@ describe('MoveCells hook argument safety', () => {
       data: Array.from({ length: 10 }, (_, row) => Array.from({ length: 10 }, (__, col) => `${row}-${col}`)),
       moveCells: true,
       undoRedo: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     return hot;
@@ -126,7 +127,7 @@ describe('MoveCells hook argument safety', () => {
         moveCells: true,
         undo: false,
         beforeMoveCells,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
     }
 
@@ -211,7 +212,7 @@ describe('MoveCells hook argument safety with Formulas', () => {
       },
       moveCells: true,
       undoRedo: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     return hot;

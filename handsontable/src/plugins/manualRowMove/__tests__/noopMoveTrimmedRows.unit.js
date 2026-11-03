@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { ManualRowMove, registerPlugin } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(ManualRowMove);
@@ -29,7 +30,7 @@ describe('ManualRowMove – a move that changes nothing, with trimmed rows', () 
    */
   function createGrid(trimmedRows, settings = {}) {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: Array.from({ length: 6 }, (_, index) => [`r${index}`]),
       manualRowMove: true,
       ...settings,

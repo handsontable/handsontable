@@ -2,6 +2,7 @@ import Handsontable from 'handsontable/base';
 import { registerPlugin, ColumnSummary } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
 import Endpoints from 'handsontable/plugins/columnSummary/endpoints';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(ColumnSummary);
@@ -44,7 +45,7 @@ describe('ColumnSummary ready step', () => {
   function buildGrid(settings) {
     hot = new Handsontable(container, {
       data: [[1], [2], [3], [null]],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

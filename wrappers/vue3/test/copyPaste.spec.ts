@@ -22,7 +22,7 @@ describe('copyPaste', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :dataSchema="dataSchema"
           :columns="columns"
           :data="tableData"

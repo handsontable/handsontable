@@ -25,6 +25,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } .grid { margin-bottom: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid-a" class="grid" data-testid="grid-a"></div>
@@ -78,12 +79,12 @@
         data: [[{ secret: 'secret-' + token }], [{ keep: 'keep-' + token }]],
         columns: [{ renderer: testIdRenderer('a-cell'), width: 200 }],
         beforeCopy: hook,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
       hotB = new Handsontable(containerB, {
         data: [[null], [null], [null]],
         columns: [{ renderer: testIdRenderer('b-cell'), width: 200, parsePastedValue: true }],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       containerA.setAttribute('data-init-error', String(error && error.message));

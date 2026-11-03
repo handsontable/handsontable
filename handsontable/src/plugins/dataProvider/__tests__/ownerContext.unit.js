@@ -11,6 +11,7 @@ import { HiddenRows } from '../../hiddenRows/hiddenRows';
 import { AutoColumnSize } from '../../autoColumnSize/autoColumnSize';
 import { registerCellType } from '../../../cellTypes/registry';
 import { CheckboxCellType } from '../../../cellTypes/checkboxType/checkboxType';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 const flush = () => new Promise(resolve => queueMicrotask(resolve));
 
@@ -121,7 +122,7 @@ describe('DataProvider context owner contract', () => {
     hot = new Handsontable(container, {
       columns: [{ data: 'id' }, { data: 'name' }],
       dataProvider: provider.config,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

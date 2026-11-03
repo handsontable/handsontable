@@ -5,6 +5,7 @@ import { Formulas } from '../formulas';
 import { UndoRedo } from '../../undoRedo';
 import { TrimRows } from '../../trimRows';
 import { injectRealCoreStyles, removeRealCoreStyles } from '../../../../test/helpers/realCoreStyles';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * A `setDataAtCell()` on a column with a validator applies its changes in a microtask (the Core
@@ -49,7 +50,7 @@ describe('Formulas write validated in flight across a sheet resync', () => {
       data,
       columns: [{ validator: (value, callback) => callback(true) }, {}],
       formulas: { engine },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 
@@ -197,7 +198,7 @@ describe('Formulas write validated in flight across a sheet resync', () => {
       data: [[1, 'a'], [2, 'b'], [7, 'c']],
       columns: [{ validator: (value, callback) => { answer = () => callback(true); } }, {}],
       formulas: { engine: HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' }) },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const { engine } = hot.getPlugin('formulas');
@@ -261,7 +262,7 @@ describe('Formulas write validated in flight across a sheet resync', () => {
       data: [[1, 'a'], [2, 'b'], [3, 'c']],
       columns: [{ validator: (value, callback) => callback(true) }, {}],
       formulas: { engine },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const first = hot.getPlugin('formulas').sheetId;
@@ -323,13 +324,13 @@ describe('Formulas write validated in flight across a sheet resync', () => {
       data: [[1], [2], [7]],
       columns: [{ validator: (value, callback) => callback(true) }],
       formulas: { engine, sheetName: 'A' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const reader = new Handsontable(container2, {
       data: [['=A!A3*2']],
       formulas: { engine, sheetName: 'B' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const other = engine.getSheetId(engine.addSheet('Other'));
 
@@ -358,7 +359,7 @@ describe('Formulas write validated in flight across a sheet resync', () => {
       data: [[1, 'a'], [2, 'b'], [3, 'c']],
       columns: [{ validator: (value, callback) => callback(true) }, {}],
       formulas: { engine },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const sheet = hot.getPlugin('formulas').sheetId;
@@ -445,13 +446,13 @@ describe('Formulas write validated in flight across a sheet resync', () => {
       data: [[1], [2], [null]],
       columns: [{ validator: (value, callback) => callback(true) }],
       formulas: { engine, sheetName: 'A' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const reader = new Handsontable(container2, {
       data: [['=A!A3*2']],
       formulas: { engine, sheetName: 'B' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     try {

@@ -5,6 +5,7 @@ import { registerPlugin } from '../../registry';
 import { ExportFile } from '../exportFile';
 import { Formulas } from '../../formulas';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * QA round 7 (Q74): a formula whose cached result is an error must reach the workbook snapshot
@@ -39,7 +40,7 @@ describe('Xlsx export: the error flag of a cached formula result', () => {
     hot = new Handsontable(container, {
       formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
       exportFile: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

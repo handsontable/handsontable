@@ -1,5 +1,6 @@
 import { HyperFormula } from 'hyperformula';
 import Handsontable from '../../../index';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 type CoreModule = typeof import('hyperformula-ui');
 
@@ -54,7 +55,7 @@ describe('FormulaBuilder in a SheetsBar workbook with per-sheet formulas', () =>
           { name: 'Costs', data: [[890, '=A1*3']], settings: { formulas: { engine, sheetName: 'Costs' } } },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     } as Handsontable.GridSettings);
 
     return hot;
@@ -100,7 +101,7 @@ describe('FormulaBuilder in a SheetsBar workbook with per-sheet formulas', () =>
       editor: 'formula',
       formulaBuilder: { builder: core },
       sheetsBar: { sheets: [{ name: 'Revenue', data: [[1250]] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     } as Handsontable.GridSettings);
 
     expect(hot.getPlugin('formulaBuilder').enabled).toBe(false);

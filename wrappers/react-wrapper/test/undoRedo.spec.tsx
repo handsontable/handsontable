@@ -7,6 +7,7 @@ import {
   mountComponentWithRef,
   sleep,
 } from './_helpers';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 registerAllModules();
 
@@ -19,7 +20,7 @@ describe('UndoRedo plugin in React wrapper', () => {
         <HotTable
           id="test-hot"
           data={[[0]]}
-          licenseKey="non-commercial-and-evaluation"
+          licenseKey={TEST_LICENSE_KEY}
           beforeChange={(changes) => {
             for (let i = 0; i < changes!.length; i++) {
               if (changes![i] && changes![i]![3] > 5) {

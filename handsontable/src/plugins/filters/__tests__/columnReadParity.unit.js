@@ -10,6 +10,7 @@ import { ManualColumnMove } from 'handsontable/plugins/manualColumnMove';
 import { NestedRows } from 'handsontable/plugins/nestedRows';
 import { conditions, registerCondition } from 'handsontable/plugins/filters/conditionRegisterer';
 import { registerOperation } from 'handsontable/plugins/filters/logicalOperationRegisterer';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerCellType(CheckboxCellType);
 registerCellType(NumericCellType);
@@ -63,7 +64,7 @@ describe('Filters -> column read parity', () => {
       rowHeights: 23,
       autoColumnSize: false,
       autoRowSize: false,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...overrides,
     });
 
@@ -81,7 +82,7 @@ describe('Filters -> column read parity', () => {
     hot = new Handsontable(container, {
       data,
       filters: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...overrides,
     });
 

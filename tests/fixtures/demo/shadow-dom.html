@@ -44,6 +44,7 @@
     document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-'
       + window.htTheme + '.min.css">');
   </script>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -209,7 +210,7 @@
         { row: 1, col: 2, renderer: widgetRenderer },
       ],
       renderer: testIdRenderer,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     // How many times the plugin ran a paste to completion. Every grid now has more than one

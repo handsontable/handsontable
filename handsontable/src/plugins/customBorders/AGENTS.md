@@ -98,7 +98,7 @@ split across batches still merge correctly. A plain synchronous call owns and cl
 
 ## A shrinking `loadData` leaves the model addressing cells that are gone
 
-The plugin registers **no `afterLoadData` hook**, so `loadData` (and `updateSettings({ data })`,
+The plugin never clears its model on `loadData`, so `loadData` (and `updateSettings({ data })`,
 which routes to `updateData`) replaces the dataset while `savedBorders` keeps the previous grid's
 coordinates. Nothing renders them - `#syncViewportSelections` only materializes borders inside the
 rendered range - but `#resetBorderModel` walks the whole model into
@@ -137,16 +137,52 @@ by physical row. So after a shrink through `updateData`, a reset, and a regrow, 
 meta is still on a live cell unless the reset actually clears it, which is the state this file's
 `getBorders()`/`getCellMeta().borders` rule forbids.
 
-**The `afterLoadData` hook was deliberately NOT added.** The core clears cell meta on `loadData` and
-keeps it on `updateData`, so a hook that cleared the model would remove borders the user still sees
-after a same-size `loadData` - a visible behavior change with no ticket behind it. A hook that only
-pruned out-of-range entries would be redundant: `#resetBorderModel` is the single place that clears
-the `borders` meta wholesale, and it covers every caller (`clearBorders()`,
-`changeBorderSettings()`, `updateSettings`). Pinned by `__tests__/shrinkingLoadData.unit.js`, which
-covers the bottom-only, right-only, corner and exact-boundary (`row === countRows()`) shapes, a
-same-size control proving an in-range entry still has its meta removed, and the `updateData`
-shrink -> reset -> regrow regression. The core rule itself is pinned by
-`src/__tests__/core/removeCellMeta.unit.js`.
+**`afterLoadData` writes the model back into the meta, and never clears the model (DEV-3667).** The
+core clears cell meta on `loadData` and keeps it on `updateData`, so clearing the model would remove
+borders the user still sees after a same-size `loadData` - a visible behavior change. Leaving the two
+disagreeing was the defect: the border stayed drawn from the model alone, and the next rebuild from the
+meta (a trim, an untrim, a filter, `resetBorderModel`) found no `borders` meta and emptied the model.
+`#onAfterLoadData` therefore writes the meta of every model entry back. Five rules ride along:
+
+- **The write is a restore, not an edit, so it goes through `_setCellMetaByPhysicalIndex`.** That core
+  method is journaled like `setCellMeta` (`loadData` runs under `operationScope.suppress()`, so there is no
+  undo step) and fires no `beforeSetCellMeta`/`afterSetCellMeta`. Through `setCellMeta` the restore fired
+  both hooks once per bordered cell for a write the application never made, and an app that blocks
+  `borders` edits on locked cells vetoed every one of them, so one `loadData()` of the same data removed
+  the borders it had kept before. It cannot be vetoed, so the hook never changes the model: there is no
+  veto path to drop an entry on, and nothing to splice one at a time. Do not move it back to
+  `#writeBordersMeta`, which is the vetoable path for edits. Undo restores meta the same way, without hooks.
+- **The hook runs at order index `-1` and reads `#savedBorders`, never the `savedBorders` getter.** The
+  getter flushes a pending rebuild from the meta, and an application's own `afterLoadData` listener that
+  trims or filters (to re-apply a saved filter) marks one. Run after that listener, the rebuild would read
+  the meta `loadData` just dropped and empty the model before the restore. `updatePlugin()` disables and
+  enables the plugin and so registers the hook again at the end of the list: only the order index keeps
+  it first. `#onBeforeDataReplacement` has already flushed a rebuild that was pending before the load.
+  Pinned by the "trims first" case in `loadDataMeta.unit.js`.
+- **Entries past the loaded data get their meta too**, at the raw index `setCellMeta` would use for an
+  index outside the grid (the same rule as `toCellMetaPhysicalCoords` in `core.ts`). They are not drawn,
+  and a later `updateData()` that regrows the grid keeps the meta by physical index, so the border comes
+  back with its meta and survives the next rebuild. Leaving them without meta let exactly that rebuild
+  empty the model, the defect this section is about reached by another path.
+- **A `_applySettingsAndData()` call that declares `customBorders` is skipped** (`hasDeferredDataWork()`:
+  `updatePlugin()` recorded the declared array for `onDataReady()`, which resets the model and applies it).
+  Restoring first wrote the old data's borders into the new rows only for `onDataReady()` to remove them
+  again, and a listener that vetoed that removal left them there as real meta. A call that declares no
+  array (`_applySettingsAndData({}, data)`) still restores. The sheets bar empties the model before the
+  load (`clearCustomBorders()`), so it has nothing to write.
+- **The model holds visual coordinates**, and the hook translates them through the index maps as they
+  stand when it runs. Which plugin has re-applied its order by then is not guaranteed: a declared
+  `trimRows` or `hiddenRows` re-applies from the index map `init` hook inside `initIndexMappers()`, before
+  any `afterLoadData` listener, and the manual move plugins put their listener back after their own
+  `updatePlugin()`. The result holds either way, because the move and trim handlers re-derive the model
+  from physical indexes afterwards, so do not rely on the priority (335) for this.
+
+Pinned by `__tests__/loadDataMeta.unit.js` and the `CustomBorders after loadData()` block in
+`tests/e2e/customBorders.spec.ts`. The shrinking-load rules above are pinned by
+`__tests__/shrinkingLoadData.unit.js`, which covers the bottom-only, right-only, corner and
+exact-boundary (`row === countRows()`) shapes, a same-size control proving an in-range entry still has
+its meta removed, and the `updateData` shrink -> reset -> regrow regression. The core rule itself is
+pinned by `src/__tests__/core/removeCellMeta.unit.js`.
 
 ## A filter or a trim rebuilds the model from the meta
 

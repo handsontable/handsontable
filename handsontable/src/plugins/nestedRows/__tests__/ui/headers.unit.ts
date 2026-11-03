@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, NestedRows } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../../../test/helpers/licenseKey';
 
 registerPlugin(NestedRows);
 
@@ -35,7 +36,7 @@ describe('HeadersUI#removeLevelIndicators', () => {
       data: [{ name: 'parent', __children: [{ name: 'child' }] }],
       rowHeaders: true,
       nestedRows: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
   });
 
