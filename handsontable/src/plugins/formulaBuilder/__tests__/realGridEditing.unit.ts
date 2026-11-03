@@ -266,6 +266,19 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(afterChange).not.toHaveBeenCalled();
     });
 
+    it('clears the cell when a fast edit empties the text it typed', async() => {
+      createGrid({ data: [[5, 1]], undo: true });
+      hot.selectCell(0, 0);
+      // Typing a character opens the editor in fast-edit mode, which starts empty.
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'x' }), false);
+      hot.getPlugin('formulaBuilder').getActiveEditor()?.setValue('x');
+      hot.getPlugin('formulaBuilder').getActiveEditor()?.setValue('');
+      hot.getActiveEditor()?.finishEditing();
+      await settle();
+
+      expect(hot.getSourceDataAtCell(0, 0)).toBe('');
+    });
+
     it('still writes when the text changed', async() => {
       createGrid();
       hot.selectCell(0, 0);
@@ -392,8 +405,9 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(isEditorOpened()).toBe(true);
     });
 
-    it('listens again when the validator rejected the value and the editor stays open', async() => {
+    it('keeps the grid unlistened when the validator rejected the value and the editor stays open', async() => {
       createGrid({
+        formulaBuilder: { builder: core, showFormulaBar: true },
         cell: [{
           row: 1,
           col: 1,
@@ -403,19 +417,82 @@ describe('FormulaBuilder editing on a real grid', () => {
       });
       hot.selectCell(1, 1);
       adapter().beginEdit({ sheet: '', row: 1, col: 1 });
-      // Focusing the bar unlistens the grid.
+      // Focusing the bar hides the in-cell editor and unlistens the grid.
+      hot.getPlugin('formulaBuilder').setInlineEditorVisible(false);
       hot.unlisten();
       adapter().commit('bad', 'down');
       await settle();
 
       expect(isEditorOpened()).toBe(true);
-      expect(hot.isListening()).toBe(true);
+      expect(hot.isListening()).toBe(false);
+      expect((hot.getActiveEditor() as unknown as { _hiddenByFormulaBar: boolean })._hiddenByFormulaBar).toBe(true);
+    });
+
+    it('leaves the keyboard with another grid the focus moved to while an async validator ran', async() => {
+      let answer: ((valid: boolean) => void) | undefined;
+
+      createGrid({
+        formulaBuilder: { builder: core, showFormulaBar: true },
+        cell: [{
+          row: 1,
+          col: 1,
+          validator: (value: unknown, callback: (valid: boolean) => void) => {
+            answer = callback;
+          },
+        }],
+      });
+
+      const otherContainer = document.createElement('div');
+
+      document.body.appendChild(otherContainer);
+
+      const other = new Handsontable(otherContainer, {
+        data: [['x']],
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      try {
+        hot.selectCell(1, 1);
+        adapter().beginEdit({ sheet: '', row: 1, col: 1 });
+        hot.getPlugin('formulaBuilder').setInlineEditorVisible(false);
+        hot.unlisten();
+        adapter().commit('7', 'down');
+        await settle();
+
+        // The user clicks into the other grid before the validator answers.
+        other.selectCell(0, 0);
+        other.listen();
+        other.getCell(0, 0)?.setAttribute('tabindex', '-1');
+        other.getCell(0, 0)?.focus();
+        answer?.(true);
+        await settle();
+
+        expect(hot.getDataAtCell(1, 1)).toBe('7');
+        expect(other.isListening()).toBe(true);
+        expect(hot.isListening()).toBe(false);
+      } finally {
+        other.destroy();
+        otherContainer.remove();
+      }
+    });
+
+    it('leaves the keyboard alone after a commit of an in-cell edit', async() => {
+      createGrid();
+      hot.selectCell(1, 1);
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+      hot.unlisten();
+      adapter().commit('7', 'down');
+      await settle();
+
+      expect(hot.getDataAtCell(1, 1)).toBe('7');
+      expect(hot.isListening()).toBe(false);
     });
 
     it('listens again after a commit with a direction', async() => {
-      createGrid();
+      createGrid({ formulaBuilder: { builder: core, showFormulaBar: true } });
       hot.selectCell(1, 1);
       adapter().beginEdit({ sheet: '', row: 1, col: 1 });
+      hot.getPlugin('formulaBuilder').setInlineEditorVisible(false);
       hot.unlisten();
       adapter().commit('7', 'down');
       await settle();
@@ -424,9 +501,10 @@ describe('FormulaBuilder editing on a real grid', () => {
     });
 
     it('listens again after a commit without a direction', async() => {
-      createGrid();
+      createGrid({ formulaBuilder: { builder: core, showFormulaBar: true } });
       hot.selectCell(1, 1);
       adapter().beginEdit({ sheet: '', row: 1, col: 1 });
+      hot.getPlugin('formulaBuilder').setInlineEditorVisible(false);
       hot.unlisten();
       adapter().commit('7');
       await settle();
@@ -436,9 +514,10 @@ describe('FormulaBuilder editing on a real grid', () => {
     });
 
     it('listens again after a commit to the whole selection', async() => {
-      createGrid();
+      createGrid({ formulaBuilder: { builder: core, showFormulaBar: true } });
       hot.selectCell(1, 1, 2, 2);
       adapter().beginEdit({ sheet: '', row: 1, col: 1 });
+      hot.getPlugin('formulaBuilder').setInlineEditorVisible(false);
       hot.unlisten();
       adapter().commitFill('7');
       await settle();

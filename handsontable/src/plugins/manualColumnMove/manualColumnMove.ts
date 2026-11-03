@@ -2,7 +2,7 @@ import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, outerWidth } from '../../helpers/dom/element';
-import { offsetRelativeTo } from '../../helpers/dom/event';
+import { isImmediatePropagationStopped, offsetRelativeTo } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
 import { clampFixedColumnsEnd } from '../../3rdparty/walkontable/src/settings/fixedColumnsEnd';
 import BacklightUI from './ui/backlight';
@@ -794,7 +794,12 @@ export class ManualColumnMove extends BasePlugin {
     const isHeaderSelection = this.hot.selection.isSelectedByColumnHeader();
     const selection = this.hot.getSelectedRangeActive();
 
-    if (!selection || !isHeaderSelection || this.#pressed || event.button !== 0) {
+    // A press an earlier listener claimed (the FormulaBuilder reference pick, which runs first with
+    // order index `-1`) owns the gesture, so it arms no move.
+    if (
+      !selection || !isHeaderSelection || this.#pressed || event.button !== 0 ||
+      isImmediatePropagationStopped(event)
+    ) {
       this.#pressed = false;
       this.#dragged = false;
       this.#columnsToMove.length = 0;

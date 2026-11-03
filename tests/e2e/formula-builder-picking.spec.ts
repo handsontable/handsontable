@@ -229,9 +229,9 @@ test.describe('formulaBuilder picking in an edit started from a range or a heade
   }
 });
 
-// ManualColumnMove and ManualRowMove arm a move on a press on a header of the selected range, and a
-// header pick claims the press after they saw it. Released, the move closed the edit and saved what was
-// typed into the edited cell.
+// ManualColumnMove and ManualRowMove arm a move on a press on a header of the selected range. A header
+// pick claims the press before they see it, so they arm nothing: no guideline, and no move on release,
+// which closed the edit and saved what was typed into the edited cell.
 test.describe('formulaBuilder header picking with manual moves', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
   let grid: FormulaBuilderPage;
 
@@ -271,6 +271,38 @@ test.describe('formulaBuilder header picking with manual moves', { tag: [THEMES_
     await page.keyboard.press('Escape');
     await expect.poll(() => grid.editorOpened()).toBe(false);
     expect(await grid.sourceAt(0, 0)).toBe(1);
+  });
+
+  test('a pick dragged across the headers of a selected column draws no move guideline', async({ page }) => {
+    await grid.columnHeader('A').click();
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+
+    await grid.columnHeader('A').hover();
+    await page.mouse.down();
+    await grid.columnHeader('C').hover();
+
+    // The grid's root element carries the class while ManualColumnMove draws its guideline.
+    expect(await page.evaluate(() => (window as unknown as { hot: { rootElement: HTMLElement } })
+      .hot.rootElement.classList.contains('on-moving--columns'))).toBe(false);
+
+    await page.mouse.up();
+  });
+
+  test('a release after a pick that ended on a window blur moves no column', async({ page }) => {
+    await grid.columnHeader('A').click();
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+
+    await grid.columnHeader('A').hover();
+    await page.mouse.down();
+    await grid.columnHeader('C').hover();
+    // The pick ends without a `mouseup`; the next release on the page must not finish a move.
+    await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+    await page.mouse.up();
+
+    expect(await grid.indexSequence('col')).toEqual([0, 1, 2]);
+    expect(await grid.editorOpened()).toBe(true);
   });
 
   test('a column header drag with no edit open still moves the column', async() => {

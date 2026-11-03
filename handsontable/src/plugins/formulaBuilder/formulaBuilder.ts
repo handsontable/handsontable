@@ -703,19 +703,13 @@ export class FormulaBuilder extends BasePlugin {
       return;
     }
 
+    const wasBarHosted = this.#isBarHostedEdit();
+
     editor.setValue?.(resolveCommitValue(editor, value));
-
-    if (!direction) {
-      editor.finishEditing?.();
-      this.#relistenAfterBarExit();
-
-      return;
-    }
-
     editor.finishEditing?.(false, false, (dataSaved?: boolean) => {
-      this.#relistenAfterBarExit();
+      this.#relistenAfterSavedBarEdit(wasBarHosted, dataSaved);
 
-      if (dataSaved === false || this.hot.isDestroyed) {
+      if (!direction || dataSaved === false || this.hot.isDestroyed) {
         return;
       }
 
@@ -738,9 +732,11 @@ export class FormulaBuilder extends BasePlugin {
       return;
     }
 
+    const wasBarHosted = this.#isBarHostedEdit();
+
     editor.setValue?.(resolveCommitValue(editor, value));
     editor.finishEditing?.(false, true, (dataSaved?: boolean) => {
-      this.#relistenAfterBarExit();
+      this.#relistenAfterSavedBarEdit(wasBarHosted, dataSaved);
 
       if (dataSaved === false || this.hot.isDestroyed) {
         return;
@@ -1266,18 +1262,6 @@ export class FormulaBuilder extends BasePlugin {
    * @returns {boolean | undefined}
    */
   #onBeforeColumnSort = (): boolean | undefined =>
-    (this.#cellPick?.isHeaderPickActive() ? false : undefined);
-
-  /**
-   * `beforeColumnMove` and `beforeRowMove` hook listener - blocks the move a header pick drag would
-   * cause. ManualColumnMove and ManualRowMove arm a move on a press on a header of the selected range,
-   * and the claimed press still reaches their `beforeOnCellMouseDown` listener, so a pick dragged across
-   * the headers of a header-selected range moved them on release, which closed the edit and saved the
-   * text typed so far.
-   *
-   * @returns {boolean | undefined}
-   */
-  #onBeforeHeaderMove = (): boolean | undefined =>
     (this.#cellPick?.isHeaderPickActive() ? false : undefined);
 
   /**
@@ -2148,7 +2132,9 @@ export class FormulaBuilder extends BasePlugin {
 
     this.addHook('afterRenderer', this.#onAfterRenderer);
     this.addHook('afterChange', this.#onAfterChange);
-    this.addHook('afterSetSourceDataAtCell', this.#resyncBarCell);
+    // Order 2: the Formulas plugin pushes the new value into the engine from its own
+    // `afterSetSourceDataAtCell` listener, which moves to the end of the list when it re-enables.
+    this.addHook('afterSetSourceDataAtCell', this.#resyncBarCell, 2);
     this.addHook('beforeViewRender', this.#onBeforeViewRender);
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
     this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
@@ -2171,8 +2157,6 @@ export class FormulaBuilder extends BasePlugin {
     this.addHook('beforeOnCellMouseOver', this.#cellPick.onBeforeMouseOver, CELL_MOUSE_HOOK_ORDER);
     this.addHook('beforeOnCellMouseOverOutside', this.#cellPick.onBeforeMouseOver, CELL_MOUSE_HOOK_ORDER);
     this.addHook('beforeColumnSort', this.#onBeforeColumnSort);
-    this.addHook('beforeColumnMove', this.#onBeforeHeaderMove);
-    this.addHook('beforeRowMove', this.#onBeforeHeaderMove);
     this.addHook('afterColumnResize', this.#onAfterSizeChange);
     this.addHook('afterRowResize', this.#onAfterSizeChange);
 
@@ -2532,6 +2516,47 @@ export class FormulaBuilder extends BasePlugin {
     if (!this.hot.isDestroyed) {
       this.hot.listen();
     }
+  }
+
+  /**
+   * Gives the keyboard back after a bar-hosted commit closed the edit; an in-cell edit never took it.
+   * A rejected save (a validator with `allowInvalid: false`) keeps the edit open in the bar, but core's
+   * `discardEditor()` reselects the cell, which listens and prepares the editor again (the shim's
+   * `beforeOpen` clears `_hiddenByFormulaBar`). So the edit is marked bar-hosted again and the grid
+   * unlistened. An async validator answers late: when the focus moved out of this grid in the meantime
+   * (for example, to another grid), the keyboard stays where it went.
+   *
+   * @param {boolean} wasBarHosted Whether the edit was bar-hosted before the commit.
+   * @param {boolean} [dataSaved] The editor manager's save result.
+   */
+  #relistenAfterSavedBarEdit(wasBarHosted: boolean, dataSaved?: boolean): void {
+    if (!wasBarHosted || this.hot.isDestroyed) {
+      return;
+    }
+
+    if (dataSaved === false) {
+      this.setInlineEditorVisible(false);
+      this.#unlistenUnderBarEdit();
+    } else if (!this.#isFocusOutsideGrid()) {
+      this.#relistenAfterBarExit();
+    }
+  }
+
+  /**
+   * Whether the page focus sits on an element outside this grid and its formula bar.
+   *
+   * @returns {boolean}
+   */
+  #isFocusOutsideGrid(): boolean {
+    const { rootDocument, rootWrapperElement, rootPortalElement } = this.hot;
+    const active = rootDocument.activeElement;
+
+    if (!active || active === rootDocument.body) {
+      return false;
+    }
+
+    return ![rootWrapperElement, rootPortalElement, this.#formulaBarHost]
+      .some(root => root?.contains(active));
   }
 
   /**

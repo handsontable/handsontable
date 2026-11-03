@@ -635,37 +635,6 @@ it('blocks the column sort a header pick mousedown would cause, until the pick e
   expect(findHook(stub.hot, 'beforeColumnSort')()).toBe(undefined);
 });
 
-it('lets column and row moves proceed while no header pick is active', () => {
-  const stub = makeFullHotStub();
-  const plugin = new FormulaBuilder(stub.instance);
-
-  plugin.enablePlugin();
-
-  expect(findHook(stub.hot, 'beforeColumnMove')()).toBe(undefined);
-  expect(findHook(stub.hot, 'beforeRowMove')()).toBe(undefined);
-});
-
-it('blocks the column and row move a header pick drag would cause, until the pick ends', () => {
-  const stub = makeFullHotStub();
-
-  stub.engine.addSheet('Sheet1');
-  const plugin = new FormulaBuilder(stub.instance);
-
-  plugin.enablePlugin();
-  openSession(plugin, '=SUM(');
-
-  findHook(stub.hot, 'beforeOnCellMouseDown')(new MouseEvent('mousedown', { cancelable: true }), { row: -1, col: 0 },
-    undefined, { row: false, column: false, cell: false });
-
-  expect(findHook(stub.hot, 'beforeColumnMove')()).toBe(false);
-  expect(findHook(stub.hot, 'beforeRowMove')()).toBe(false);
-
-  document.dispatchEvent(new MouseEvent('mouseup'));
-
-  expect(findHook(stub.hot, 'beforeColumnMove')()).toBe(undefined);
-  expect(findHook(stub.hot, 'beforeRowMove')()).toBe(undefined);
-});
-
 /**
  * Builds the active selection layer the plugin reads through `getSelectedRangeActive()`.
  *

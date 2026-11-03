@@ -469,7 +469,9 @@ export function createFormulaCellEditor(): BaseEditorCtor {
         return;
       }
 
-      if (editor._pending === editor._original) {
+      // A fast edit (typing opened the editor) starts empty, not with the cell value, so its text is
+      // no normalized copy of the value: an emptied buffer there clears the cell.
+      if (resolveInlineSeed(editor as SeedSourceEditor) === editor._original) {
         editor._seededText = plugin.getActiveEditor()?.getValue();
       }
 

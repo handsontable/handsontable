@@ -142,6 +142,22 @@ describe('FormulaBuilder state that has to follow the grid', () => {
       expect(barText()).toBe('=A1*B1');
     });
 
+    it('shows the new content after a source data write once the Formulas plugin re-enabled', () => {
+      const grid = createGrid({ data: [['=1', 2], [4, 5]] });
+      const formulas = grid.getPlugin('formulas');
+
+      // A re-enable moves the Formulas listeners to the end of each hook's list.
+      formulas.disablePlugin();
+      formulas.enablePlugin();
+      grid.selectCell(0, 0);
+
+      expect(barText()).toBe('=1');
+
+      grid.setSourceDataAtCell(0, 0, '=2');
+
+      expect(barText()).toBe('=2');
+    });
+
     it('shows the new cell after the data was replaced with the selection kept', () => {
       const grid = createGrid({ data: [[1, 2, '=A1+B1'], [4, 5, 6]] });
 
