@@ -285,6 +285,97 @@ describe('Core validation of a change when loadData() replaces the data', () => 
     expect(removedListener).not.toHaveBeenCalled();
   });
 
+  it('should tell the dropped-changes listeners which changes a validator rejected', async() => {
+    createGrid({ allowInvalid: false });
+
+    const heard = [];
+    let written = null;
+
+    hot.addHook('afterSetDataAtCell', (changes) => {
+      written = [...changes];
+    });
+    hot._addDroppedChangesListener((changes, source, rejectedChanges) => {
+      heard.push([[...changes], rejectedChanges]);
+    });
+
+    hot.setDataAtCell([[0, 1, 'kept'], [1, 1, 'rejected']], 'edit');
+    await settle();
+    hot.loadData(otherRecords());
+    answer('rejected', false);
+    answer('kept');
+    await settle();
+
+    expect(heard).toHaveLength(1);
+    expect(heard[0][0]).toEqual([written[0]]);
+    expect(heard[0][1]).toEqual([written[1]]);
+    expect(heard[0][1][0]).toBe(written[1]);
+  });
+
+  /**
+   * Creates a grid whose `name` validator corrects `typed` to `Typed` later than its own run, the way a
+   * validator that asks a server does, and answers once it wrote the correction.
+   *
+   * @param {string[]} calls Collects the values the validator is called with.
+   * @returns {Function[]} The held corrections, each writing its correction and then answering.
+   */
+  function createGridWithLateCorrection(calls) {
+    const corrections = [];
+
+    createGrid({
+      columns: [
+        { data: 'id' },
+        {
+          data: 'name',
+          validator(value, callback) {
+            calls.push(value);
+
+            if (value !== 'typed') {
+              callback(true);
+
+              return;
+            }
+
+            corrections.push(() => {
+              this.instance.setDataAtCell(this.visualRow, this.visualCol, 'Typed', 'nameValidator');
+              callback(true);
+            });
+          },
+        },
+      ],
+    });
+
+    return corrections;
+  }
+
+  it('should drop a correction a validator writes later than its run when loadData() dropped the change', async() => {
+    const calls = [];
+    const corrections = createGridWithLateCorrection(calls);
+
+    hot.setDataAtCell(0, 1, 'typed', 'edit');
+    await settle();
+    hot.loadData(otherRecords());
+    corrections.forEach(correct => correct());
+    await settle();
+
+    expect(hot.getDataAtCol(1)).toEqual(['xavier', 'yolanda']);
+    expect(calls).toEqual(['typed']);
+    expect(edits).toEqual([]);
+  });
+
+  it('should write a correction a validator writes later than its run when no load lands', async() => {
+    const calls = [];
+    const corrections = createGridWithLateCorrection(calls);
+
+    hot.setDataAtCell(0, 1, 'typed', 'edit');
+    await settle();
+    corrections.forEach(correct => correct());
+    await settle();
+
+    expect(hot.getDataAtCell(0, 1)).toBe('Typed');
+    expect(calls).toEqual(['typed', 'Typed']);
+    expect(edits).toHaveLength(1);
+  });
+
   it('should write a change made after the load and drop the one made before it', async() => {
     createGrid();
 

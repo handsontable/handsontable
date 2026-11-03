@@ -119,7 +119,7 @@ import {
 } from './dataMap/dataJournal';
 import DataMap from './dataMap/dataMap';
 import { RowIdentity } from './core/rowIdentity/rowIdentity';
-import { createWriteLedger, getCellWriteKey } from './core/writeLedger';
+import { createWriteLedger, getCellWriteKey, isValidatorCorrection } from './core/writeLedger';
 import type { LedgerCellMeta, WriteLedgerCall } from './core/writeLedger';
 import { TYPE_EDITOR_REQUESTED_KEY } from './dataMap/metaManager/utils';
 import { colToPropOrIndex } from './helpers/columnProp';
@@ -186,16 +186,6 @@ const foreignHotInstances = new Map();
  */
 function isUndoRedoSource(source: string | undefined): boolean {
   return source === 'UndoRedo.undo' || source === 'UndoRedo.redo';
-}
-
-/**
- * Tells whether a change source marks a correction a validator writes through a nested `setDataAtCell()`.
- *
- * @param {*} source The change source.
- * @returns {boolean}
- */
-function isValidatorCorrection(source: unknown): boolean {
-  return typeof source === 'string' && source.endsWith('Validator');
 }
 
 /**
@@ -508,7 +498,15 @@ export default function Core(
    * The functions told about a change set that waited for its validators while `loadData()` replaced the
    * data, and that is therefore never applied (see `_addDroppedChangesListener()`).
    */
-  const droppedChangesListeners: Array<(changes: CellChange[], source: string | undefined) => void> = [];
+  const droppedChangesListeners: Array<
+    (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
+  > = [];
+  /**
+   * The change sets made on the data the grid holds that wait for their validators, with their source (see
+   * `_getWaitingChangeSets()`). A set leaves when its validators have answered, written or dropped, and every
+   * set leaves on `loadData()`, which drops them all; a set whose validator never answers leaves then too.
+   */
+  const waitingChangeSets: Map<CellChange[], string | undefined> = new Map();
   // Guards `init()` so it runs once per instance. Set at the very top of `init()`, before any work, so
   // that a second call is a no-op regardless of how the first one ended (see the `init` method).
   let initialized = false;
@@ -553,19 +551,93 @@ export default function Core(
    * the change was dropped, its correction is dropped with it.
    */
   let runningValidatorLoadGeneration: number | null = null;
+  /**
+   * The `validationLoadGeneration` of every validator call made for a change that has not answered yet, by the
+   * cell it validates (property, then visual row, as the validator's cell meta names them), oldest first. A
+   * validator that writes its correction later than its own synchronous run (after a timer or a request) is no
+   * longer inside `runningValidatorLoadGeneration`, so the correction finds the call it corrects here. An entry
+   * leaves when its call answers or throws; a load leaves the entries in place, because the calls they stand for
+   * are still out and their corrections still belong to the data they were made on.
+   */
+  const unansweredValidatorGenerations: Map<unknown, Map<number, number[]>> = new Map();
+
+  /**
+   * Records an unanswered validator call made for a change, until `releaseValidatorGeneration()`.
+   *
+   * @param {number} row The visual row the validator checks.
+   * @param {*} prop The property the validator checks.
+   * @param {number} generation The `validationLoadGeneration` of the call.
+   */
+  const recordValidatorGeneration = (row: number, prop: unknown, generation: number) => {
+    if (!unansweredValidatorGenerations.has(prop)) {
+      unansweredValidatorGenerations.set(prop, new Map());
+    }
+
+    const rows = unansweredValidatorGenerations.get(prop)!;
+
+    rows.set(row, [...(rows.get(row) ?? []), generation]);
+  };
+
+  /**
+   * Forgets one unanswered validator call `recordValidatorGeneration()` recorded.
+   *
+   * @param {number} row The visual row the validator checks.
+   * @param {*} prop The property the validator checks.
+   * @param {number} generation The `validationLoadGeneration` of the call.
+   */
+  const releaseValidatorGeneration = (row: number, prop: unknown, generation: number) => {
+    const rows = unansweredValidatorGenerations.get(prop);
+    const generations = rows?.get(row);
+    const index = generations?.indexOf(generation) ?? -1;
+
+    if (!rows || !generations || index === -1) {
+      return;
+    }
+
+    generations.splice(index, 1);
+
+    if (generations.length === 0) {
+      rows.delete(row);
+    }
+
+    if (rows.size === 0) {
+      unansweredValidatorGenerations.delete(prop);
+    }
+  };
 
   /**
    * Returns the `validationLoadGeneration` a change set made now addresses: the current one, or, for a
-   * validator's correction (`isValidatorCorrection()`), the one of the validator call that writes it.
+   * validator's correction (`isValidatorCorrection()`), the one of the validator call that writes it. A
+   * correction written while its validator runs takes `runningValidatorLoadGeneration`. One written later takes
+   * the oldest unanswered call on the cells it writes: when calls from before and after a load wait on one cell,
+   * the older one's correction must not land in the loaded rows, and a newer call's correction dropped by mistake
+   * loses a correction, which is the lesser harm. A correction for a cell no call waits on takes the current one.
    *
    * @param {string} [source] The change source.
+   * @param {Array} [changes] The changes, in the form `[row, prop, ...]`.
    * @returns {number}
    */
-  const getChangeLoadGeneration = (source: string | undefined) => (
-    isValidatorCorrection(source) && runningValidatorLoadGeneration !== null
-      ? runningValidatorLoadGeneration
-      : validationLoadGeneration
-  );
+  const getChangeLoadGeneration = (source: string | undefined, changes: CellChange[] = []) => {
+    if (!isValidatorCorrection(source)) {
+      return validationLoadGeneration;
+    }
+
+    if (runningValidatorLoadGeneration !== null) {
+      return runningValidatorLoadGeneration;
+    }
+
+    let generation = validationLoadGeneration;
+
+    changes.forEach(([row, prop]) => {
+      const oldest = unansweredValidatorGenerations.get(prop)?.get(row)?.[0];
+
+      if (oldest !== undefined && oldest < generation) {
+        generation = oldest;
+      }
+    });
+
+    return generation;
+  };
   /**
    * Watches the root wrapper's edge slots for a height change (a bar that mounts after init, wraps
    * after a locale switch, or grows a horizontal scrollbar once its width is clamped). A slot's
@@ -3282,7 +3354,7 @@ export default function Core(
     changes: CellChange[], source: string | undefined, loadGeneration: number, callback: Function
   ) {
     if (!changes.length) {
-      callback();
+      callback([]);
 
       return;
     }
@@ -3290,6 +3362,7 @@ export default function Core(
     const activeEditor = instance.getActiveEditor();
     const waitingForValidator = ValidatorsQueue();
     const pendingRowMetas: Array<{ row?: number, valid?: boolean }> = [];
+    const rejectedChanges: CellChange[] = [];
     // A correction a validator writes through a nested `setDataAtCell()` is part of the write it
     // corrects, so it takes no place in the order of the writes to the cell.
     const ledger = isValidatorCorrection(source) ? null : openWriteLedger();
@@ -3339,7 +3412,7 @@ export default function Core(
           activeEditor.cancelChanges();
         }
 
-        callback(); // called when async validators are resolved and beforeChange was not async
+        callback(rejectedChanges); // called when async validators are resolved and beforeChange was not async
         ledger?.settle(changes);
       } finally {
         ledger?.release();
@@ -3348,8 +3421,9 @@ export default function Core(
     };
 
     try {
-      queueValidators(changes, source, loadGeneration, waitingForValidator, pendingRowMetas, ledger, () => {
+      queueValidators(changes, source, loadGeneration, waitingForValidator, pendingRowMetas, ledger, (change) => {
         shouldBeCanceled = false;
+        rejectedChanges.push(change);
       });
     } catch (error) {
       // A cell that threw before its validator answered never leaves the queue, so the queue never
@@ -3378,7 +3452,7 @@ export default function Core(
    * @param {Array<object>} pendingRowMetas Collects the cell meta of the cells validated in rows that do
    *   not exist yet.
    * @param {object|null} ledger Orders the writes to one cell, or `null` for a validator's correction.
-   * @param {Function} onRejected Called for each rejected change.
+   * @param {Function} onRejected Called with each rejected change, before it is taken out of the list.
    */
   function queueValidators(
     changes: CellChange[],
@@ -3387,7 +3461,7 @@ export default function Core(
     waitingForValidator: ReturnType<typeof ValidatorsQueue>,
     pendingRowMetas: Array<{ row?: number, valid?: boolean }>,
     ledger: WriteLedgerCall | null,
-    onRejected: () => void,
+    onRejected: (change: CellChange) => void,
   ) {
     const visibleRowsCount = instance.countRows();
 
@@ -3443,7 +3517,7 @@ export default function Core(
               }
 
               if (result === false && cellPropertiesReference.allowInvalid === false) {
-                onRejected();
+                onRejected(change);
                 // cancel the change, found by identity because a rejection at a lower index shifts the list.
                 // The change only moves left, so the search runs backwards from where it was registered
                 const position = changes.lastIndexOf(change, index);
@@ -3841,9 +3915,12 @@ export default function Core(
       // sheets bar until a validator of the dropped set answers.
       const isCountedCall = isChangeCall && loadGeneration === validationLoadGeneration;
       let answered = !isCountedCall;
+      const validatedRow = cellProperties.visualRow as number;
+      const validatedProp = cellProperties.prop;
       const countAnswer = () => {
         if (!answered) {
           answered = true;
+          releaseValidatorGeneration(validatedRow, validatedProp, loadGeneration);
 
           if (loadGeneration === validationLoadGeneration) {
             pendingValidatorAnswers -= 1;
@@ -3853,6 +3930,7 @@ export default function Core(
 
       if (isCountedCall) {
         pendingValidatorAnswers += 1;
+        recordValidatorGeneration(validatedRow, validatedProp, loadGeneration);
       }
 
       // To provide consistent behavior, validation should be always asynchronous
@@ -4129,7 +4207,7 @@ export default function Core(
       return;
     }
 
-    const loadGeneration = getChangeLoadGeneration(changeSource);
+    const loadGeneration = getChangeLoadGeneration(changeSource, changes);
     const processedChanges = processChanges(changes, changeSource);
 
     instance.runHooks('afterSetDataAtCell', processedChanges, changeSource);
@@ -4152,7 +4230,8 @@ export default function Core(
    * (`getChangeLoadGeneration()`). The validation hooks still fire for them, `afterChange` does not. `updateData()` does not count as a replacement,
    * because the wrappers call it with the same records in a new array, often while an edit is waiting.
    * The functions `_addDroppedChangesListener()` added are told about a dropped set, in the order they
-   * were added, with the same array the other change hooks received.
+   * were added, with the same array the other change hooks received and the changes a validator rejected
+   * under `allowInvalid: false`, which were taken out of that array.
    *
    * @param {Array} changes The processed changes.
    * @param {string} [source] The change source.
@@ -4161,19 +4240,26 @@ export default function Core(
   function validateAndApplyChanges(changes: CellChange[], source: string | undefined, loadGeneration: number) {
     const hold = operationScope.hold();
 
+    if (loadGeneration === validationLoadGeneration) {
+      waitingChangeSets.set(changes, source);
+    }
+
     try {
-      validateChanges(changes, source, loadGeneration, () => {
+      validateChanges(changes, source, loadGeneration, (rejectedChanges: CellChange[]) => {
+        waitingChangeSets.delete(changes);
+
         try {
           if (loadGeneration === validationLoadGeneration) {
             hold.resume(() => applyChanges(changes, source));
           } else {
-            droppedChangesListeners.slice().forEach(listener => listener(changes, source));
+            droppedChangesListeners.slice().forEach(listener => listener(changes, source, rejectedChanges));
           }
         } finally {
           hold.release();
         }
       });
     } catch (error) {
+      waitingChangeSets.delete(changes);
       hold.release();
       throw error;
     }
@@ -4238,7 +4324,7 @@ export default function Core(
       changeSource = prop as string;
     }
 
-    const loadGeneration = getChangeLoadGeneration(changeSource);
+    const loadGeneration = getChangeLoadGeneration(changeSource, changes);
     const processedChanges = processChanges(changes, changeSource);
 
     instance.runHooks('afterSetDataAtRowProp', processedChanges, changeSource);
@@ -5333,6 +5419,7 @@ export default function Core(
   function applyLoadData(data: unknown[][][] | object[], source: string) {
     pendingValidatorAnswers = 0;
     validationLoadGeneration += 1;
+    waitingChangeSets.clear();
 
     const finishEndedValidationWait = editorManager?.getActiveEditor()?._endValidationWait() ?? null;
 
@@ -5879,10 +5966,26 @@ export default function Core(
   };
 
   /**
+   * Returns the change sets made on the data the grid holds that still wait for their validators, each with its
+   * source, as the arrays the change hooks received. A `loadData()` made now would drop every one of them. A set
+   * whose changes all got rejected, or were all overtaken by a newer write, is not listed once its validators have
+   * answered, even though it fired no `afterChange`. It is for a plugin that replaces the data and writes the
+   * dropped sets again: DataProvider reads them right before the refetch that follows a save loads its rows.
+   *
+   * @private
+   * @returns {Array<{ changes: Array, source: string|undefined }>}
+   */
+  this._getWaitingChangeSets = function() {
+    return [...waitingChangeSets].map(([changes, source]) => ({ changes, source }));
+  };
+
+  /**
    * Adds a function that is told when a change set is dropped: the set waited for its validators while
    * `loadData()` replaced the data, so it is never applied and fires no `beforeChangeRender` and no
    * `afterChange` (see `validateAndApplyChanges()`). The function receives the change array the other
-   * change hooks received and the change source. It is for a plugin that acted on a change before
+   * change hooks received, the change source, and the changes of the set a validator rejected under
+   * `allowInvalid: false` (taken out of that array before the drop, so a listener that writes the set again
+   * can still tell what the user asked for). It is for a plugin that acted on a change before
    * validation and has to take that back: the Formulas plugin writes a change into the engine from
    * `afterSetDataAtCell`. Adding a function that is already there changes nothing.
    *
@@ -5890,7 +5993,7 @@ export default function Core(
    * @param {Function} listener The function to add.
    */
   this._addDroppedChangesListener = function(
-    listener: (changes: CellChange[], source: string | undefined) => void
+    listener: (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
   ) {
     if (!droppedChangesListeners.includes(listener)) {
       droppedChangesListeners.push(listener);
@@ -5905,7 +6008,7 @@ export default function Core(
    * @param {Function} listener The function to remove.
    */
   this._removeDroppedChangesListener = function(
-    listener: (changes: CellChange[], source: string | undefined) => void
+    listener: (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
   ) {
     const index = droppedChangesListeners.indexOf(listener);
 

@@ -2877,6 +2877,9 @@ dropped:
 
 [`updateData()`](@/api/core.md#updatedata) drops nothing.
 
+The [`DataProvider`](@/api/dataProvider.md) plugin is the exception for its own refetch after a save: it writes such an
+edit again into the record that has the same row ID, so the edit is validated and saved as usual.
+
 ### Who is affected
 
 You are affected if your cells have validators and you call `loadData()` right after
