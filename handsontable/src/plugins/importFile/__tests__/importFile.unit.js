@@ -2645,6 +2645,49 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
     single.hf.destroy();
   });
 
+  it('should keep a blocked spill live when the file caches an error for it', async() => {
+    // Excel 365 saves a blocked spill as `<c t="e" cm="1" vm="1"><v>#VALUE!</v>`. Put back, the cell
+    // held a frozen `#VALUE!` and lost its formula; live, it shows `#SPILL!` as Excel does, and spills
+    // once the blocker is cleared.
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const blocked = await importArrays([
+      [at({ value: 1 }), at({
+        formula: {
+          text: '_xlfn.SEQUENCE(3)',
+          result: '#VALUE!',
+          resultIsError: true,
+          array: { ref: 'B1', dynamic: true },
+        },
+      })],
+      [at({ value: 2 }), at({ value: 5 })],
+    ]);
+
+    expect(blocked.result.data).toEqual([[1, '=SEQUENCE(3)'], [2, 5]]);
+    expect(blocked.result.formulas).toBeUndefined();
+    expect(blocked.result.dropped.includes('formula:arraySpill')).toBe(false);
+
+    blocked.hf.destroy();
+
+    // A `FILTER` that matches nothing, blocked by a value in its reserved rows, stays live too.
+    const filter = await importArrays([
+      [at({ value: 1 }), at({
+        formula: {
+          text: '_xlfn._xlws.FILTER(A1:A3,A1:A3>10)',
+          result: '#VALUE!',
+          resultIsError: true,
+          array: { ref: 'B1', dynamic: true },
+        },
+      })],
+      [at({ value: 2 }), at({ value: 5 })],
+      [at({ value: 3 }), null],
+    ]);
+
+    expect(filter.result.data.map(row => row[1])).toEqual(['=FILTER(A1:A3,A1:A3>10)', 5, null]);
+    expect(filter.result.dropped.includes('formula:arraySpill')).toBe(false);
+
+    filter.hf.destroy();
+  });
+
   it('should settle the arrays of a window that does not start at A1 at their window positions', async() => {
     // The probe holds the mapped data, so it answers in window coordinates: the header row
     // `colHeaders: 'firstRow'` drops, and the row and column a `range` skips, shift every master.

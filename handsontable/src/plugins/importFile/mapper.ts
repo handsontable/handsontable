@@ -1377,8 +1377,13 @@ function liveArrayCovering(col: number, scope: CollectContext): LiveArrayRect | 
  *
  * A legacy CSE master the engine spills past its `ref`, or a dynamic one whose error it spills past
  * the `ref` (`spillsPastRef`), settles like `#SPILL!`: Excel shows only the `ref`, so the extra cells
- * would show values the file does not have, and a re-export would write the larger array. Not for a master that reads outside the probe, whose
- * spill there is not the one the engine will place.
+ * would show values the file does not have, and a re-export would write the larger array. Not for a
+ * master that reads outside the probe, whose spill there is not the one the engine will place.
+ *
+ * `#SPILL!` settles only when the file caches a value that is not an error. Excel 365 saves a
+ * blocked spill as a cached `#VALUE!` (the real `#SPILL!` is a rich value): put back, the cell would
+ * hold that frozen error, and nothing would spill once the user clears the blocker. Live, it shows
+ * `#SPILL!` as Excel does.
  *
  * A master that reads outside the probe (`readsOutside`) settles only on `#SPILL!`: HyperFormula
  * turns a sheet it does not hold into a `#REF!` inside the formula, which `IFERROR` or `ISNUMBER`
@@ -1395,7 +1400,7 @@ function liveArrayCovering(col: number, scope: CollectContext): LiveArrayRect | 
 function settledState(
   error: string | null, rect: LiveArrayRect, readsOutside: boolean, spillsPastRef: boolean
 ): 'cached' | 'written' | 'value' {
-  if (error === 'SPILL') {
+  if (error === 'SPILL' && !rect.cachedIsError) {
     return 'cached';
   }
 
