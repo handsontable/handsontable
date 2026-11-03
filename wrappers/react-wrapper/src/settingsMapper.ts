@@ -28,6 +28,65 @@ const COMPARED_AGAINST_LIVE_SETTINGS: Array<keyof Handsontable.GridSettings> = [
   'rowHeights', 'minRowHeights', 'colWidths'
 ];
 
+/**
+ * Checks whether a setting is a hook, by the rule core's `updateSettings()` uses in `core.ts`: a
+ * registered or a deprecated hook name.
+ *
+ * @param {string} key The setting name.
+ * @returns {boolean}
+ */
+function isHookKey(key: string): boolean {
+  return Handsontable.hooks.isRegistered(key) || Handsontable.hooks.isDeprecated(key);
+}
+
+/**
+ * Returns the value that clears a setting whose prop went from a value to `undefined`: `null` for a
+ * hook, which removes its callback, and the option's default for anything else.
+ *
+ * @param {string} key The setting name.
+ * @returns {*} The value to forward to `updateSettings()`.
+ */
+function getClearedValue(key: string): unknown {
+  if (isHookKey(key)) {
+    return null;
+  }
+
+  return (Handsontable.DefaultSettings as any)[key];
+}
+
+/**
+ * Checks whether a hook value holds a callback core registers: a function or an array of them. Core
+ * ignores any other value for a hook, so `false` from `afterChange={on && logChange}` would leave the
+ * previous callback running.
+ *
+ * @param {*} value The hook value.
+ * @returns {boolean}
+ */
+function isHookCallback(value: unknown): boolean {
+  return typeof value === 'function' || Array.isArray(value);
+}
+
+/**
+ * Returns the value to forward for a prop that is passed: the option's cleared value for `undefined`,
+ * `null` for a hook prop that holds no callback on an update, and the prop value otherwise.
+ *
+ * @param {string} key The setting name.
+ * @param {*} value The prop value.
+ * @param {boolean} isInit Whether the grid is being initialized.
+ * @returns {*} The value to forward to `updateSettings()`.
+ */
+function getForwardedValue(key: string, value: unknown, isInit: boolean): unknown {
+  if (value === undefined) {
+    return getClearedValue(key);
+  }
+
+  if (!isInit && isHookKey(key) && !isHookCallback(value)) {
+    return null;
+  }
+
+  return value;
+}
+
 export class SettingsMapper {
   /**
    * Parse component settings into Handsontable-compatible settings.
@@ -37,7 +96,11 @@ export class SettingsMapper {
    * of a prop that had a value in the previous props, the option's default is forwarded instead, so
    * the grid matches a fresh mount with the same props (`height={full ? undefined : 400}` clears the
    * height, `copyPaste={on ? false : undefined}` turns copy and paste back on).
-   * `null` and `false` are real values and are forwarded.
+   * A hook has no default to fall back to, so a hook prop that had a callback and is now `undefined`
+   * is forwarded as `null`, which removes the callback (`afterChange={on ? logChange : undefined}`).
+   * So is a hook prop that had a callback and is no longer passed at all, and, on an update, a hook
+   * prop that holds anything but a callback (`afterChange={on && logChange}` gives `false`).
+   * For an option that is not a hook, `null` and `false` are real values and are forwarded.
    *
    * @param {object} properties Object containing properties from the HotTable object.
    * @param {object} additionalSettings Additional settings.
@@ -93,11 +156,21 @@ export class SettingsMapper {
         !isNotPassed(key as keyof HotTableProps) &&
         !shouldSkipProp(key as keyof Handsontable.GridSettings)
       ) {
-        const value = properties[key as keyof HotTableProps];
-
-        (newSettings as any)[key] = value === undefined ? Handsontable.DefaultSettings[key] : value;
+        (newSettings as any)[key] = getForwardedValue(key, properties[key as keyof HotTableProps], isInit);
       }
     });
+
+    if (!isInit) {
+      Object.keys(prevProps).forEach((key) => {
+        if (
+          !Object.prototype.hasOwnProperty.call(properties, key) &&
+          prevProps[key as keyof HotTableProps] !== undefined &&
+          isHookKey(key)
+        ) {
+          (newSettings as any)[key] = null;
+        }
+      });
+    }
 
     return newSettings;
   }
