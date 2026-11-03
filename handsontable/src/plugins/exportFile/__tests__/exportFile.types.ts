@@ -138,6 +138,17 @@ exportPlugin.downloadFileAsync('xlsx', {
 });
 exportPlugin.downloadFileAsync('xlsx', { headerStyle: null });
 
+// ─── ExportOptions: protection (XLSX) ─────────────────────────────────────
+exportPlugin.downloadFileAsync('xlsx', { protection: { password: 'x' } });
+exportPlugin.exportAsBlobAsync('xlsx', { protection: {} });
+exportPlugin.downloadFileAsync('xlsx', { protection: null });
+const passwordProtection: ExportOptions = { protection: { password: 'x' } };
+const noProtection: ExportOptions = { protection: null };
+const passwordlessProtection: ExportOptions = { protection: {} };
+// The methods also take a plain record, so the password type is pinned on `ExportOptions` itself.
+// @ts-expect-error a password is a string
+const numericPassword: ExportOptions = { protection: { password: 1 } };
+
 // ─── ExportOptions: engine (per-call override) ────────────────────────────
 exportPlugin.downloadFileAsync('xlsx', { engine: {} });
 exportPlugin.exportAsBlobAsync('xlsx', { engine: {} });

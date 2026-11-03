@@ -5,6 +5,7 @@ import { isLimitError, MAX_TRANSLATED_FORMULA_CHARS } from '../../../utils/xlsxE
 import { createCellSnapshot, createSheetSnapshot, createWorkbookSnapshot } from '../../../utils/xlsxEngine/model';
 import { EMPTY_STYLES } from '../../../utils/xlsxEngine/adapters/native/parts/styles';
 import { parseWorksheet } from '../../../utils/xlsxEngine/adapters/native/parts/worksheetReader';
+import { UNRESTRICTED_XLSX_ENTITLEMENT } from '../../../utils/xlsxEngine/xlsxEntitlement';
 
 function cell(overrides) {
   return { ...createCellSnapshot(), ...overrides };
@@ -26,7 +27,9 @@ function map(
   wb, options = {}, context = { formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false }
 ) {
   const dropped = new DroppedFeatures();
-  const result = mapWorkbook(wb, resolveImportOptions(options), context, dropped);
+  const result = mapWorkbook(
+    wb, resolveImportOptions(options), { entitlement: UNRESTRICTED_XLSX_ENTITLEMENT, ...context }, dropped
+  );
 
   return { result, dropped };
 }
@@ -91,7 +94,10 @@ describe('selectSheet', () => {
     dropped.record('chartSheets');
 
     expect(() => mapWorkbook(workbook(), resolveImportOptions({}), {
-      formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false,
+      formulasEnabled: false,
+      commentsEnabled: false,
+      customBordersEnabled: false,
+      entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
     }, dropped)).toThrow('The workbook has no worksheets. It holds only chart sheets, which the import skips.');
   });
 });
@@ -1144,7 +1150,9 @@ describe('mapWorkbook', () => {
     const dropped = new DroppedFeatures();
     const recordUnsupported = jest.spyOn(dropped, 'recordUnsupported');
 
-    mapWorkbook(workbook(sheet), resolveImportOptions({}), { formulasEnabled: false, commentsEnabled: false }, dropped);
+    mapWorkbook(workbook(sheet), resolveImportOptions({}), {
+      formulasEnabled: false, commentsEnabled: false, entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
+    }, dropped);
 
     expect(recordUnsupported).toHaveBeenCalledTimes(1);
     expect(dropped.list()).toEqual(['numFmt:0.00E+00']);

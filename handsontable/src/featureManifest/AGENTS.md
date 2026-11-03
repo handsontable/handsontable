@@ -7,6 +7,10 @@ JSON file next to its code. A build step checks the files against the source and
   license portal reads it to build license keys ("Filters needs Checkbox").
 - the committed `feature.generated.ts` modules the plugins read their `PLUGIN_DEPS` and `LICENSE` from. **Neither
   is ever written by hand.**
+- the committed `src/utils/xlsxEngine/licenseCapabilities.generated.ts`, the XLSX token lists the runtime license
+  check reads (`XLSX_CAPABILITY_IDS`, `IMPORT_FILE_CAPABILITY_IDS`, `EXPORT_FILE_CAPABILITY_IDS`, `XLSX_FLAG_BY_ID`,
+  `LISTED_CAPABILITIES_FLAG`), made from the `token` entries of `src/utils/xlsxEngine/features.json`.
+  `licenseCapabilities.ts` re-exports them; never write those lists by hand.
 - the committed `released-tokens.json`, the record that keeps an id from being removed or sold later.
 
 Code: `scripts/utils/feature-manifest.js` (loader, checks, builders; CommonJS so Jest and node both load it) and
@@ -27,8 +31,12 @@ Jest suite fails until it has one (`needs exactly one "plugin" entry for "<Name>
 | an XLSX sub-feature a key can switch | `src/utils/xlsxEngine/features.json` | `xlsx:<name>` | `token` or `core` |
 
 Then run `npm run generate:feature-manifest --prefix handsontable` and commit what it writes (the record in
-`released-tokens.json`, and the plugin's `feature.generated.ts`). A plugin with `licensing: "token"` also returns the
-generated `LICENSE` from its class, or the Jest suite fails (see "The license check" below).
+`released-tokens.json`, the plugin's `feature.generated.ts`, and, for an XLSX sub-feature, the generated module
+`licenseCapabilities.generated.ts`). A plugin with `licensing: "token"` also returns the generated `LICENSE` from its
+class, or the Jest suite fails (see "The license check" below). A new `xlsx:<name>` token drives the
+`XlsxEntitlement` flag named after its suffix in camelCase (`xlsx:number_formats` → `numberFormats`), so add that
+key to the interface in `src/utils/xlsxEngine/xlsxEntitlement.ts` as well; `xlsxEntitlement.unit.js` fails until
+the two match.
 
 A plugin entry looks like this (`src/plugins/filters/feature.json`):
 
@@ -209,9 +217,11 @@ on the base branch means `{}`.
   Jest suite compares them.
 - **`build:feature-manifest` never writes into `src/`.** It fails when a committed output is stale. Only
   `generate:feature-manifest` (`--write`) rewrites them, and it deletes a `feature.generated.ts` that is no longer
-  needed.
+  needed. The XLSX license module and `released-tokens.json` are always generated, so they are never deleted.
 - **A plugin gets a `feature.generated.ts` when it has `enforceAtInit: true` or `licensing: "token"`** (every
-  plugin but the two unsold ones). The two exports are independent: most modules hold `LICENSE` only.
+  plugin but the two unsold ones). The two exports are independent: most modules hold `LICENSE` only. The XLSX
+  sub-feature tokens are read from their own module (`licenseCapabilities.generated.ts`); `xlsx:all` stays
+  hand-written in `licenseCapabilities.ts`, because `<namespace>:all` is a reserved grant, never a manifest entry.
 - **`dist/manifest.json` takes its `version` from `package.json`** and has no timestamp: the same sources give
   the same bytes.
 

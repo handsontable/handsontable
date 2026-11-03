@@ -134,6 +134,16 @@ function toSettings(hot: HotInstance, result: ImportResult, options: ApplyOption
     }
   });
 
+  if (result.rowHeights !== undefined) {
+    // A workbook's row heights go to `minRowHeights`, not to `rowHeights`: the reader keeps every row's
+    // `ht`, also the height the producing app measured (LibreOffice and Google Sheets write one on every
+    // row, 20 px for the default 15 pt), and exact `rowHeights` would clip those rows below the theme's
+    // row height. The import describes the whole sheet, so it also drops the exact heights the grid held,
+    // which would otherwise win over the imported ones row by row.
+    settings.minRowHeights = result.rowHeights;
+    settings.rowHeights = undefined;
+  }
+
   if (result.colHeaders !== undefined && result.nestedHeaders === undefined && current.nestedHeaders) {
     settings.nestedHeaders = false;
   }
@@ -194,6 +204,18 @@ function importedWidth(result: ImportResult): number {
 }
 
 /**
+ * Whether the grid holds a value for a resettable layout key. The row heights live in two settings,
+ * because an import writes `minRowHeights` and the app may have set either.
+ *
+ * @param {object} current The grid's settings.
+ * @param {string} key A resettable layout key.
+ * @returns {boolean}
+ */
+function hasLayoutSetting(current: Record<string, unknown>, key: ResettableLayoutKey): boolean {
+  return Boolean(current[key]) || (key === 'rowHeights' && Boolean(current.minRowHeights));
+}
+
+/**
  * Clears every resettable layout key the result omits and the grid currently carries. A list
  * setting keeps its options object and empties the list; a count goes to `0`.
  */
@@ -201,7 +223,7 @@ function resetOmittedLayout(
   result: ImportResult, current: Record<string, unknown>, settings: Record<string, unknown>
 ): void {
   RESETTABLE_LAYOUT_KEYS.forEach((key) => {
-    if (result[key] !== undefined || !current[key]) {
+    if (result[key] !== undefined || !hasLayoutSetting(current, key)) {
       return;
     }
 
@@ -219,8 +241,11 @@ function resetOmittedLayout(
         settings.customBorders = [];
         break;
       case 'colWidths':
+        settings.colWidths = undefined;
+        break;
       case 'rowHeights':
-        settings[key] = undefined;
+        settings.rowHeights = undefined;
+        settings.minRowHeights = undefined;
         break;
       default:
         settings[key] = 0;

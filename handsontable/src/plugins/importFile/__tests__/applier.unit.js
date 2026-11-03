@@ -94,6 +94,25 @@ describe('applyImportResult', () => {
     ]);
   });
 
+  it('should apply the row heights of the workbook as a floor (`minRowHeights`), never as exact `rowHeights`', () => {
+    // The reader keeps every row's `ht`, also the height the producing app measured. As exact heights,
+    // a LibreOffice file (20 px on every row) would clip its text below the theme's row height.
+    const hot = fakeHot();
+
+    applyImportResult(hot, {
+      data: [['a'], ['b']],
+      rowHeights: [20, undefined],
+      sheetNames: [],
+      dropped: [],
+    });
+
+    const [, settings] = hot.calls.find(([name, value]) => name === 'updateSettings' && value.minRowHeights);
+
+    // The exact heights the grid held are dropped, or they would win over the imported ones per row.
+    expect(settings).toEqual({ minRowHeights: [20, undefined], rowHeights: undefined });
+    expect(Object.keys(settings)).toContain('rowHeights');
+  });
+
   it('should have the data in the grid before a merge is applied, so it is not validated against an empty table', () => {
     const hot = fakeHot();
 
@@ -403,7 +422,7 @@ describe('applyImportResult – layout across imports', () => {
     // width or height default. `columns` needs a defined value: the column-meta cache reset and
     // `initIndexMappers` run only for one, so an empty setting per imported column is sent instead.
     const hot = fakeHot({
-      gridSettings: { colWidths: [70, 90], rowHeights: [40], columns: [{ type: 'numeric', readOnly: true }] },
+      gridSettings: { colWidths: [70, 90], minRowHeights: [40], columns: [{ type: 'numeric', readOnly: true }] },
     });
 
     applyImportResult(hot, { data: [['a', 'b'], ['c']], sheetNames: ['Plain'], dropped: [] }, { importLayout: true });
@@ -412,8 +431,8 @@ describe('applyImportResult – layout across imports', () => {
 
     const [, settings] = hot.calls[3];
 
-    expect(Object.keys(settings).sort()).toEqual(['colWidths', 'rowHeights']);
-    expect(settings).toEqual({ colWidths: undefined, rowHeights: undefined });
+    expect(Object.keys(settings).sort()).toEqual(['colWidths', 'minRowHeights', 'rowHeights']);
+    expect(settings).toEqual({ colWidths: undefined, minRowHeights: undefined, rowHeights: undefined });
   });
 
   it('should reset columns even without importLayout, since types are not layout', () => {

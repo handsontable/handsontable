@@ -2,7 +2,17 @@ import { readdirSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 
 import {
+  EXPORT_FILE_CAPABILITY_IDS,
+  IMPORT_FILE_CAPABILITY_IDS,
+  LISTED_CAPABILITIES_FLAG,
+  XLSX_CAPABILITY_IDS,
+  XLSX_FLAG_BY_ID,
+} from '../../src/utils/xlsxEngine/licenseCapabilities.generated';
+
+import {
+  KEY_FLAG,
   RELEASED_FILE,
+  XLSX_LICENSE_MODULE_FILE,
   buildCommittedOutputs,
   buildManifest,
   checkRecordAgainstBase,
@@ -13,13 +23,14 @@ import {
   indexEntries,
   listEntries,
   loadSources,
+  renderXlsxLicenseModule,
   toPluginDeps,
 } from '../../scripts/utils/feature-manifest';
 
 /**
  * The feature manifest has three parts that can drift apart: the `feature.json`/`features.json` sources, the
  * source code they describe, and the committed files generated from them (`feature.generated.ts`,
- * `released-tokens.json`). These tests pin all three together. The rules are in
+ * `licenseCapabilities.generated.ts`, `released-tokens.json`). These tests pin all three together. The rules are in
  * `src/featureManifest/AGENTS.md`; regenerate with `npm run generate:feature-manifest --prefix handsontable`.
  */
 
@@ -89,6 +100,15 @@ describe('feature manifest', () => {
     it('should keep the committed generated files in sync with the sources', () => {
       // A stale file means a source changed without `npm run generate:feature-manifest`.
       expect(findStaleOutputs(sources)).toEqual([]);
+    });
+
+    it('should keep the generated xlsx license module byte-identical to what the builder renders', () => {
+      const output = buildCommittedOutputs(sources).find(({ file }) => file === XLSX_LICENSE_MODULE_FILE);
+
+      expect(output).toBeDefined();
+      expect(readPackageFile(XLSX_LICENSE_MODULE_FILE)).toBe(output.content);
+      expect(output.content.startsWith('// Generated from `features.json` by `npm run generate:feature-manifest`. ' +
+        'Do not edit it by hand.\n')).toBe(true);
     });
 
     it('should list the parts each cell type imports, and nothing else', () => {
@@ -304,6 +324,65 @@ describe('feature manifest', () => {
     it('should read a record reformatted by hand as stale', () => {
       expect(findStaleOutputs({ ...sources, releasedText: JSON.stringify(sources.released) }))
         .toEqual([RELEASED_FILE]);
+    });
+  });
+
+  describe('the xlsx license module', () => {
+    const xlsxTokens = listEntries(sources)
+      .filter(({ file, entry }) => file === 'src/utils/xlsxEngine/features.json' && entry.licensing === 'token')
+      .map(({ entry }) => entry);
+
+    it('should list exactly the "token" xlsx ids, in features.json order', () => {
+      expect(XLSX_CAPABILITY_IDS).toEqual(xlsxTokens.map(entry => entry.id));
+      expect(XLSX_CAPABILITY_IDS).toEqual([
+        'xlsx:import', 'xlsx:export', 'xlsx:formulas', 'xlsx:layout', 'xlsx:number_formats', 'xlsx:comments',
+        'xlsx:styles', 'xlsx:conditional_formatting', 'xlsx:data_validation', 'xlsx:protection',
+      ]);
+      // `core` entries are granted to every key, so a key never lists them.
+      expect(XLSX_CAPABILITY_IDS).not.toContain('xlsx:import_report');
+      expect(Object.isFrozen(XLSX_CAPABILITY_IDS)).toBe(true);
+    });
+
+    it('should give each plugin the token ids whose "plugins" name it', () => {
+      const tokensOf = plugin => xlsxTokens.filter(entry => entry.plugins.includes(plugin)).map(entry => entry.id);
+
+      expect(IMPORT_FILE_CAPABILITY_IDS).toEqual(tokensOf('ImportFile'));
+      expect(EXPORT_FILE_CAPABILITY_IDS).toEqual(tokensOf('ExportFile'));
+      // The import always reads number formats to infer cell types, so it never gates them.
+      expect(IMPORT_FILE_CAPABILITY_IDS).not.toContain('xlsx:number_formats');
+      expect(IMPORT_FILE_CAPABILITY_IDS).not.toContain('xlsx:export');
+      expect(EXPORT_FILE_CAPABILITY_IDS).not.toContain('xlsx:import');
+      expect(Object.isFrozen(IMPORT_FILE_CAPABILITY_IDS)).toBe(true);
+      expect(Object.isFrozen(EXPORT_FILE_CAPABILITY_IDS)).toBe(true);
+    });
+
+    it('should name each token\'s flag in camelCase after its suffix', () => {
+      expect(Object.keys(XLSX_FLAG_BY_ID)).toEqual(XLSX_CAPABILITY_IDS);
+      expect(XLSX_FLAG_BY_ID['xlsx:import']).toBe('import');
+      expect(XLSX_FLAG_BY_ID['xlsx:number_formats']).toBe('numberFormats');
+      expect(XLSX_FLAG_BY_ID['xlsx:conditional_formatting']).toBe('conditionalFormatting');
+      expect(XLSX_FLAG_BY_ID['xlsx:data_validation']).toBe('dataValidation');
+      Object.values(XLSX_FLAG_BY_ID).forEach(flag => expect(flag).toMatch(/^[a-z][a-zA-Z0-9]*$/));
+      expect(Object.isFrozen(XLSX_FLAG_BY_ID)).toBe(true);
+    });
+
+    it('should carry the manifest\'s key flag', () => {
+      expect(LISTED_CAPABILITIES_FLAG).toBe(KEY_FLAG);
+    });
+
+    it('should render from the sources, not from a fixed list', () => {
+      const changed = withEntry(sources, 'xlsx:protection', entry => ({ ...entry, licensing: 'core' }));
+      const content = renderXlsxLicenseModule(changed);
+
+      expect(content).not.toContain('\'xlsx:protection\'');
+      expect(content).toContain('\'xlsx:styles\': \'styles\',');
+      expect(renderXlsxLicenseModule(sources)).toBe(readPackageFile(XLSX_LICENSE_MODULE_FILE));
+    });
+
+    it('should read the module as stale when its content changes or it is missing', () => {
+      expect(findStaleOutputs({ ...sources, xlsxLicenseModuleText: `${sources.xlsxLicenseModuleText}// edit\n` }))
+        .toEqual([XLSX_LICENSE_MODULE_FILE]);
+      expect(findStaleOutputs({ ...sources, xlsxLicenseModuleText: null })).toEqual([XLSX_LICENSE_MODULE_FILE]);
     });
   });
 
