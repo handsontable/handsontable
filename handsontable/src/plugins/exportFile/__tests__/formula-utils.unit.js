@@ -169,6 +169,32 @@ describe('normalizeNamedExpression', () => {
       .toBe('SUM(Sheet1!$A$1,1.5,"2,5")');
   });
 
+  it('should count the left-out rows below a reference correctly and fast over a large set', () => {
+    // With a `range`, the set holds every engine row outside it: 500,000 rows here. Walking the set
+    // for every reference corner made a few thousand names cost billions of reads.
+    const exRows = new Set();
+
+    for (let row = 0; row < 500000; row++) {
+      if (row < 10 || row >= 20) {
+        exRows.add(row);
+      }
+    }
+
+    const started = performance.now();
+    const results = new Set();
+
+    for (let index = 0; index < 5000; index++) {
+      results.add(normalize('=Data!$A$11:$A$20', { rows: 1, exRows }));
+    }
+
+    expect(performance.now() - started).toBeLessThan(1000);
+    expect([...results]).toEqual(['Sheet1!$A$2:$A$11']);
+    // A set changed after a call is read again.
+    exRows.delete(0);
+
+    expect(normalize('=Data!$A$11:$A$20', { rows: 1, exRows })).toBe('Sheet1!$A$3:$A$12');
+  });
+
   it('should shift an open span on its own axis only', () => {
     expect(normalize('=Data!$A:$A', { rows: 1, cols: 1 })).toBe('Sheet1!$B:$B');
     expect(normalize('=Data!$2:$3', { rows: 1, cols: 1 })).toBe('Sheet1!$3:$4');

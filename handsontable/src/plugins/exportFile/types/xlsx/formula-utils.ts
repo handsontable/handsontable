@@ -201,7 +201,15 @@ export function toDotDecimalSeparator(formula: string, decimalSeparator: string)
 }
 
 /**
- * Counts how many values in a `Set` are strictly less than `threshold`.
+ * The values of each `Set` `countBelow` was asked about, sorted, with the set's size when they were
+ * read: a set changed since is read again.
+ */
+const sortedSets = new WeakMap<Set<number>, { size: number; values: number[] }>();
+
+/**
+ * Counts how many values in a `Set` are strictly less than `threshold`. The set is sorted once and
+ * then searched, so each call costs O(log n): with a `range` the set holds every engine row outside
+ * it, and walking it for every reference corner of every name was quadratic on a large grid.
  *
  * @private
  * @param {Set<number>} set Set of numbers.
@@ -209,15 +217,28 @@ export function toDotDecimalSeparator(formula: string, decimalSeparator: string)
  * @returns {number}
  */
 function countBelow(set: Set<number>, threshold: number): number {
-  let count = 0;
+  let sorted = sortedSets.get(set);
 
-  set.forEach((value) => {
-    if (value < threshold) {
-      count += 1;
+  if (sorted === undefined || sorted.size !== set.size) {
+    sorted = { size: set.size, values: Array.from(set).sort((a, b) => a - b) };
+    sortedSets.set(set, sorted);
+  }
+
+  const { values } = sorted;
+  let low = 0;
+  let high = values.length;
+
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2);
+
+    if (values[middle] < threshold) {
+      low = middle + 1;
+    } else {
+      high = middle;
     }
-  });
+  }
 
-  return count;
+  return low;
 }
 
 /**
