@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 /**
  * A change that waits for an async validator addresses the data the grid held when it was made. A
@@ -52,7 +53,7 @@ describe('Core validation of a change when loadData() replaces the data', () => 
       afterValidate: (isValid, value) => {
         validated.push([value, isValid]);
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

@@ -417,7 +417,7 @@ describe('Formulas write validated in flight across a sheet resync', () => {
       data: [[1, 'a'], [2, 'b'], [3, 'c']],
       columns: [{ validator: (value, callback) => callback(true) }, {}],
       formulas: { engine },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const sheet = hot.getPlugin('formulas').sheetId;
@@ -451,7 +451,7 @@ describe('Formulas write validated in flight across a sheet resync', () => {
         },
       }, {}],
       formulas: { engine },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const plugin = hot.getPlugin('formulas');

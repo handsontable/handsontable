@@ -4,6 +4,7 @@ import { DataProvider } from '../dataProvider';
 import { Dialog } from '../../dialog/dialog';
 import { EmptyDataState } from '../../emptyDataState/emptyDataState';
 import { TextEditor } from '../../../editors/textEditor';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * Lets the queued microtask chains (validators, mutation queue, fetch landing) run to their end.
@@ -131,7 +132,7 @@ describe('DataProvider -> an edit the refetch that follows a save drops while it
       ],
       dataProvider: server.config,
       renderAllRows: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 
