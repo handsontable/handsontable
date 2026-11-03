@@ -268,9 +268,10 @@ function countBelow(set: Set<number>, threshold: number): number {
  *   Formulas plugin on, the engine rows that are trimmed, filtered out, or hidden and excluded;
  *   without it, the physical rows that are hidden and excluded. When provided, each row reference
  *   is further reduced by the number of excluded rows that precede it.
- * @param {Set<number>} [excludedHiddenCols] Physical HOT column indices that are hidden
- *   and excluded from the exported data matrix. When provided, each column reference is
- *   further reduced by the number of excluded columns that precede it.
+ * @param {Set<number>} [excludedHiddenCols] The columns left out of the exported data matrix, as
+ *   the column indexes the formula's references use (`ExportDataProvider#getExcludedHiddenColumns`):
+ *   with the Formulas plugin on, engine columns; without it, physical columns. When provided, each
+ *   column reference is further reduced by the number of excluded columns that precede it.
  * @param {string} [decimalSeparator='.'] HyperFormula's `decimalSeparator` (`'.'` or `','`).
  * @returns {string}
  */
