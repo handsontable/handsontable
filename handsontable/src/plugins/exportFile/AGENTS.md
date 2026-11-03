@@ -384,8 +384,9 @@ Other rules:
   without `xlsx:layout`, which writes no merge):
   a multi-cell array over a merge, or a CSE array on a merged cell, is refused like an overlap (Excel
   shows a spill into a merge as `#SPILL!` and refuses a CSE array in one); a one-cell DYNAMIC array
-  (`IFS`, range arithmetic) may sit on a merge's first cell, being only a formula to Excel. Never claim out of order, and never go back to comparing every pair: that is quadratic in
-  the number of array formulas. The data provider decides `exported` (every spilled row and column lands
+  (`IFS`, range arithmetic) may sit on a merge's first cell, being only a formula to Excel. Never
+  claim out of order, and never go back to comparing every pair: that is quadratic in the number of
+  array formulas. The data provider decides `exported` (every spilled row and column lands
   right after the master in the matrix): a spill crossing a hidden row with `exportHiddenRows: false`, a
   trimmed or filtered row, or the `range` edge is written as a plain formula and `formula:arrayExcluded`
   is recorded once. Every `ARRAYFORMULA(…)` call is stripped (`stripArrayFormulaCalls`), but **only a
@@ -483,7 +484,8 @@ Other rules:
   decided AFTER every sheet is populated, because the names in the file depend on every grid:
   `#writeRowCells` notes each formula cell whose words (`namesUsedIn`, outside quotes and brackets, not
   followed by `(` or `!`, and not part of a reference: `isReferenceWord` skips the `R` of `$R$1` or of
-  `R:R`, which used to tie every such formula to a left-out one-letter name) include a name of its engine (`DefinedNameUse`, with the value the export
+  `R:R`, so such a formula is not tied to a left-out one-letter name) include a name of its engine
+  (`DefinedNameUse`, with the value the export
   writes without `exportFormulas` as its fallback); `#addDefinedNames` returns, per engine, the names
   written with that engine's definition; and the adapter's `selectDefinedNames` (pure, the same
   selection `write` makes: the shared validation, plus the ExcelJS single-range shape and cell budget)

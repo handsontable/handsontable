@@ -194,6 +194,8 @@ await hot.getPlugin('importFile').importFromBlob('xlsx', file, {
 });
 ```
 
+A multi-sheet export carries its header rows on every sheet. When you import such a workbook sheet by sheet with `colHeaders: 'firstRow'` and `rowHeaders: true`, a defined name that points at another sheet keeps the file's addresses, because the import knows only the headers of the sheet it reads. A formula over that name then reads the wrong cells. Import such a workbook without stripping the header rows, or add the names back yourself from `result.namedExpressions` after you correct them.
+
 A grid with a [`columnSummary`](@/guides/columns/column-summary/column-summary.md) exports the computed total, and the import loads that total back as data, so a summary over the whole column then shows double. Set the summary's `ranges` to stop above the summary row. Before an import with more rows, turn the summary off with `updateSettings({ columnSummary: false })`, and pass your endpoints again after the import. Otherwise the summary keeps writing to the row it computed for the previous data, over an imported value.
 
 Imported headers are HTML-escaped, so `R&D` is stored as `R&amp;D`. Set the grid's [`textExtractor`](@/api/options.md#textextractor) option to `true` to re-export them as the text the workbook held.

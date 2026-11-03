@@ -523,7 +523,7 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   HF does. Only the cell right below the ref and the one right of it are asked, through
   the probe's `spillsValueInto` (part of an array AND not empty): the empty room HF reserves past a
   `FILTER` result is part of the array, and the ExcelJS reader reads every array as CSE, so asking
-  `isCellPartOfArray` alone froze every such `FILTER`. Do NOT replace this with a check after
+  `isCellPartOfArray` alone would settle every such `FILTER` on its cached values. Do NOT replace this with a check after
   `loadData` in the applier: `apply: false` must return the settled data. Otherwise an emptied cell not
   `isCellPartOfArray` takes its cached value. One probe, before anything is put back; a probe that
   throws, while built, set up (`getSheetId`, the name adds) or asked, changes nothing, and the scratch is
@@ -532,7 +532,11 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   to `#VALUE!` in the grid's engine too, so such a master imports its cached values like the lone range
   above. It runs in the mapper, so `apply: false` returns the settled data. Cost: one extra HyperFormula
   build of the sheet, about +85 ms on 10,000 rows x 5 columns (10,000 formulas; ~110 ms -> ~200 ms for
-  the whole import). The scratch engine evaluates the sheet again, so volatile functions (`RAND`, `NOW`)
+  the whole import). The probe runs once ANY rectangle is recorded, a one-cell `cm="1"` master
+  included (Excel 365 saves `=SUM(A1:A3*2)` that way, and so does the export), so 50,000 such cells
+  cost about +0.6 s and 1,000 masters of 16,000 characters about +5 s, which the same formulas without
+  `cm` do not. Kept deliberately: the probe also settles a one-cell master HF evaluates to an error
+  where the file caches a value (`=Sales` over a range). The scratch engine evaluates the sheet again, so volatile functions (`RAND`, `NOW`)
   and custom functions registered on the HyperFormula class run a second time during the import.
 - **`FORMULA_IDENTIFIER_REGEX` matches an error literal whole** (`#N/A`, `#DIV/0!`, `#NAME?`, ...,
   case-insensitive; `isLiteralToken`), like a string or a quoted sheet name. Read as the names `n` and `a`,
@@ -542,8 +546,8 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `callsUnregisteredFunction` and `callsSpillOperator` all skip such a token. `namesIn` also skips a
   word that is part of a reference (`isReferenceWord` in `utils/xlsxEngine/definedNames.ts`, shared with
   the export's `namesUsedIn`): the `G` of `$G$2`, `G$2` or `G:G`. `$` is not a name character, so the
-  regex hands that `G` over as a word, and a one-letter name the ExcelJS reader flagged froze every
-  such formula to its cached value.
+  regex hands that `G` over as a word, and a one-letter name the ExcelJS reader flagged would
+  otherwise send every such formula to its cached value.
 - **A formula calling `ANCHORARRAY` or `SINGLE` imports its cached value** (DEV-3648, `callsSpillOperator`
   in `pushCellValue`, `formula:spillReference`). Excel stores the spill operator `B1#` as
   `_xlfn.ANCHORARRAY(B1)` and implicit intersection `@A1:A3` as `_xlfn.SINGLE(A1:A3)`; both readers hand
