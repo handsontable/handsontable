@@ -715,14 +715,21 @@ describe('applyImportResult – named expressions', () => {
       isEnabled: () => enabled,
       enabled,
       engine: {
-        batch: (fn) => {
-          calls.push(['engine.batch:start']);
-
-          try {
-            return fn();
-          } finally {
-            calls.push(['engine.batch:end']);
-          }
+        // Never used: in HyperFormula 3.3 a batch makes every add walk the batch's undo entry.
+        batch: () => {
+          throw new Error('engine.batch() called');
+        },
+        suspended: false,
+        suspendEvaluation() {
+          calls.push(['engine.suspend']);
+          this.suspended = true;
+        },
+        resumeEvaluation() {
+          calls.push(['engine.resume']);
+          this.suspended = false;
+        },
+        isEvaluationSuspended() {
+          return this.suspended;
         },
         isItPossibleToAddNamedExpression: name => !refused.includes(name),
         addNamedExpression: (name, expression) => {
@@ -757,7 +764,7 @@ describe('applyImportResult – named expressions', () => {
     return hot;
   }
 
-  it('should add every named expression inside the batch, before the column types and the data', () => {
+  it('should add every named expression inside the grid batch, before the column types and the data', () => {
     const order = [];
 
     applyImportResult(orderedHot(order), {
@@ -768,10 +775,10 @@ describe('applyImportResult – named expressions', () => {
 
     expect(order).toEqual([
       ['batch:start'],
-      ['engine.batch:start'],
+      ['engine.suspend'],
       ['addNamedExpression', 'Sales', '=Sheet1!$F$1:$F$3'],
       ['addNamedExpression', 'TaxRate', '=0.07'],
-      ['engine.batch:end'],
+      ['engine.resume'],
       ['updateSettings', ['columns']],
       ['loadData', [['=SUM(Sales)']]],
       ['batch:end'],
@@ -791,9 +798,9 @@ describe('applyImportResult – named expressions', () => {
     expect(() => applyImportResult(orderedHot(order, ['Sales']), result)).not.toThrow();
     expect(order).toEqual([
       ['batch:start'],
-      ['engine.batch:start'],
+      ['engine.suspend'],
       ['addNamedExpression', 'TaxRate', '=0.07'],
-      ['engine.batch:end'],
+      ['engine.resume'],
       ['loadData', [['=SUM(Sales)']]],
       ['batch:end'],
     ]);
@@ -812,9 +819,9 @@ describe('applyImportResult – named expressions', () => {
 
     expect(order).toEqual([
       ['batch:start'],
-      ['engine.batch:start'],
+      ['engine.suspend'],
       ['addNamedExpression', 'TaxRate', '=0.07'],
-      ['engine.batch:end'],
+      ['engine.resume'],
       ['loadData', [['=SUM(Sales)']]],
       ['batch:end'],
     ]);
@@ -885,10 +892,10 @@ describe('applyImportResult – named expressions', () => {
     expect(() => applyImportResult(hot, result)).not.toThrow();
     expect(order).toEqual([
       ['batch:start'],
-      ['engine.batch:start'],
+      ['engine.suspend'],
       ['removeNamedExpression', 'Huge'],
       ['addNamedExpression', 'TaxRate', '=0.07'],
-      ['engine.batch:end'],
+      ['engine.resume'],
       ['loadData', [['=SUM(Huge)']]],
       ['batch:end'],
     ]);
@@ -915,8 +922,7 @@ describe('applyImportResult – named expressions', () => {
     ]);
   });
 
-  it('should open no engine batch, and report the names, when the engine refuses every name', () => {
-    // An empty engine batch still pushes an engine undo step.
+  it('should not suspend the engine, and report the names, when the engine refuses every name', () => {
     const order = [];
     const result = {
       data: [['=SUM(Sales)']],
@@ -934,8 +940,7 @@ describe('applyImportResult – named expressions', () => {
     expect(result.dropped).toEqual(['definedNames:unsupported']);
   });
 
-  it('should open no engine batch when the result holds no named expression', () => {
-    // An empty engine batch still pushes an engine undo step.
+  it('should not suspend the engine when the result holds no named expression', () => {
     const order = [];
 
     applyImportResult(orderedHot(order), { data: [[1]], namedExpressions: [] });
@@ -986,7 +991,7 @@ describe('applyImportResult – named expressions', () => {
       expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
     });
 
-    it('should add the names in one engine batch, so the engine recalculates once, not once per name', () => {
+    it('should add the names with the engine suspended, so it recalculates once, not once per name', () => {
       // A volatile formula recalculates on every engine call: with 300 names over `RAND()` rows,
       // adding the names one by one took seconds.
       hot = new Handsontable(container, {
@@ -1019,10 +1024,29 @@ describe('applyImportResult – named expressions', () => {
       expect(hot.getDataAtCell(0, 1)).toBe(6);
     });
 
-    it('should remove the names and report them when the engine throws evaluating them at the batch end', () => {
-      // Inside `engine.batch()` HyperFormula evaluates nothing until the batch resumes evaluation, so
-      // a `RangeError: Invalid array length` over a huge range left `engine.batch()` itself and
-      // failed the whole import with the names added.
+    it('should add 60,000 names in about the time each add takes, not quadratically', () => {
+      // Inside `engine.batch()`, HyperFormula 3.3 walks the batch's undo entry on every add, so
+      // 60,000 names took about 10 s there; with the engine suspended they take about half a second.
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [[null]],
+        formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
+      });
+
+      const namedExpressions = Array.from({ length: 60000 }, (_, index) => ({ name: `N${index}x`, formula: '1' }));
+      const started = Date.now();
+
+      applyImportResult(hot, { data: [[1, '=N0x+N59999x']], namedExpressions });
+
+      expect(Date.now() - started).toBeLessThan(4000);
+      expect(hot.getPlugin('formulas').engine.listNamedExpressions()).toHaveLength(60000);
+      expect(hot.getDataAtCell(0, 1)).toBe(2);
+    }, 60000);
+
+    it('should remove the names and report them when the engine throws evaluating them as it resumes', () => {
+      // A suspended HyperFormula evaluates nothing until it resumes, so a `RangeError: Invalid array
+      // length` over a huge range leaves `resumeEvaluation()` and failed the whole import with the
+      // names added.
       hot = new Handsontable(container, {
         licenseKey: 'non-commercial-and-evaluation',
         data: [[null]],

@@ -620,29 +620,31 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   would throw mid-batch with the grid half-applied. A refused name is reported as
   `definedNames:unsupported`, like one whose add throws: the formulas over it are already live and
   read `#NAME?` or the engine's other definition. An engine the caller suspended
-  (`isEvaluationSuspended()`) gets the adds with no `engine.batch()`, whose end would resume the
-  caller's suspension too, as `Formulas` does for a restore inside its own batch. Not undoable: `loadData` resets the grid's history,
-  so the import never was an undo step. A name cycle (`A = B`, `B = A`) registers both and evaluates
-  `#CYCLE!`. The adds run inside ONE `engine.batch()` (none when the list is empty, since an empty batch
-  still pushes an engine undo step): unbatched, every `addNamedExpression` recalculates the engine and
-  fires `valuesUpdated`. Do not route it
-  through the plugin's `registerNamedExpressions` – it takes another input shape and swallows errors.
-  **Inside the batch HyperFormula 3.3 evaluates nothing**: `addNamedExpression` only records the name,
-  and the evaluation runs in `resumeEvaluation()` when `engine.batch()` ends, so a
-  `RangeError: Invalid array length` over a huge range leaves `engine.batch()` itself (its
-  `finally`-like path has already
-  reset the suspended flag before it recalculates). `addNamedExpressions` therefore wraps the whole
-  `engine.batch()` call: on a throw it resumes evaluation if the engine is still suspended, removes every
-  name THIS call added (which one threw is unknown), each removal in its own `try` because a removal
-  recalculates and can throw again, and pushes `definedNames:unsupported` onto `result.dropped` (the
-  warning has already been logged by then); the import goes on. Each add is wrapped too (`addOrReport`),
+  (`isEvaluationSuspended()`) gets the adds with no suspension of its own, whose end would resume
+  the caller's suspension too, as `Formulas` does for a restore inside its own batch. Not undoable:
+  `loadData` resets the grid's history, so the import never was an undo step. A name cycle
+  (`A = B`, `B = A`) registers both and evaluates `#CYCLE!`. The adds run between ONE
+  `suspendEvaluation()` and its `resumeEvaluation()` (none when every name is refused): on a running
+  engine every `addNamedExpression` recalculates it and fires `valuesUpdated`. **Never
+  `engine.batch()` here**: in HyperFormula 3.3 every add inside a batch calls `clearRedoStack`, which
+  walks the undo entry the batch has built so far, so the adds are quadratic (54,650 constant names
+  took 18-25 s; suspended, about a second). `applier.unit.js` pins it with 60,000 names under a time
+  bound (0.5 s against 10 s). Do not route it through the plugin's `registerNamedExpressions` – it
+  takes another input shape and swallows errors. **A suspended HyperFormula 3.3 evaluates nothing**:
+  `addNamedExpression` only records the name, and the evaluation runs in `resumeEvaluation()`, so a
+  `RangeError: Invalid array length` over a huge range leaves `resumeEvaluation()` itself.
+  `addNamedExpressions` therefore wraps the suspend, the adds and the resume: on a throw it resumes
+  evaluation if the engine is still suspended, removes every name THIS call added (which one threw is
+  unknown), each removal in its own `try` because a removal recalculates and can throw again, and
+  pushes `definedNames:unsupported` onto `result.dropped` (the warning has already been logged by
+  then); the import goes on. Each add is wrapped too (`addOrReport`),
   for an engine that refuses or evaluates on the add itself. **A name removed this way leaves its
   formulas showing `#NAME?`**: the mapper already put them into the data live, and no cached value is
   available at that point, so the report (`definedNames:unsupported`, without `formula:definedName`) is
   the only trace.
 - **A definition is bounded BEFORE the engine sees it** (`collectNamedExpressions`, constants in
   `utils/xlsxEngine/limits.ts`). HyperFormula parses a definition twice in `canAdd`, far slower than the
-  import's own walk, and evaluates it when the applier's batch ends, used or not, and the formula
+  import's own walk, and evaluates it when the applier resumes the engine, used or not, and the formula
   budget's figures cover neither. So: a definition over `MAX_DEFINED_NAME_LENGTH` (8,192, Excel's limit), or read
   once `MAX_DEFINED_NAME_CHARS` (256 Ki per import, counting every definition within the per-definition
   cap: one over it is never parsed, so it spends nothing) is spent, is not even rebased; a rebased one
@@ -656,8 +658,8 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   The checks run for a name the engine already defines too: `sameConstant` evaluates the file's
   definition with `calculateFormula`. **A whole column or row IS counted, against the engine sheet it is
   on**: `closedReferenceArea` counts a column span as columns x rows and a row span as rows x columns
-  (each at least 1), because HyperFormula evaluates it over the sheet's other axis. The names are added and evaluated when the applier's batch
-  ends, BEFORE `loadData` replaces the grid's sheet, so the sheet is sized as the engine holds it then
+  (each at least 1), because HyperFormula evaluates it over the sheet's other axis. The names are added and evaluated when the applier resumes the
+  engine, BEFORE `loadData` replaces the grid's sheet, so the sheet is sized as the engine holds it then
   (`MapperContext.sheetExtent`, `getSheetDimensions`): an unqualified span or one on the grid's own
   engine sheet by the larger of that and the imported window, a span on another engine sheet by that
   sheet. A 3-row file imported into a 20,000-row grid counts `SUM(Sheet1!$A:$J)` as 200,000 cells. Without

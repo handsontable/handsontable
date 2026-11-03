@@ -373,19 +373,22 @@ export function toNamedExpressionInput(expression: string): string {
  * plugin is off. Adding a name is not undoable: the `loadData` that follows resets the
  * grid's history anyway.
  *
- * The names go in one engine batch. Each `addNamedExpression` outside a batch recalculates the
- * engine and fires `valuesUpdated`, so a workbook with hundreds of names over volatile formulas
- * (`RAND()`) took seconds; batched, the engine recalculates once. The check inside the batch still
- * sees the names added earlier in it. The batch evaluates the names when it ends, and a throw there
- * leaves `engine.batch()` itself: every name this call added is removed again and
- * `definedNames:unsupported` is reported, and the import goes on. No batch opens when the engine
- * refuses every name: an empty batch still pushes an engine undo step. A name the engine refuses
- * here is reported as `definedNames:unsupported` too, the same as one whose add throws: the mapper
- * kept the formulas over it live, so they show `#NAME?` or read the engine's other definition.
+ * The names go in between `suspendEvaluation()` and `resumeEvaluation()`. Each `addNamedExpression`
+ * on a running engine recalculates it and fires `valuesUpdated`, so a workbook with hundreds of
+ * names over volatile formulas (`RAND()`) took seconds; suspended, the engine recalculates once,
+ * when it resumes. Not `engine.batch()`: in HyperFormula 3.3 every add inside a batch walks the
+ * undo entry the batch has built so far (`clearRedoStack`), which made 54,650 names take 18-25 s
+ * where suspending takes about a second, and the import resets the grid's history anyway. The check
+ * between the adds still sees the names added before it. The engine evaluates the names when it
+ * resumes, and a throw there leaves `resumeEvaluation()`: every name this call added is removed
+ * again and `definedNames:unsupported` is reported, and the import goes on. Nothing is suspended
+ * when the engine refuses every name. A name the engine refuses here is reported as
+ * `definedNames:unsupported` too, the same as one whose add throws: the mapper kept the formulas
+ * over it live, so they show `#NAME?` or read the engine's other definition.
  *
- * An engine the caller suspended (`suspendEvaluation()` before the import) gets the names without
- * a batch of its own, whose end would resume the caller's suspension too; the engine evaluates them
- * when the caller resumes. `Formulas` skips its own batch the same way.
+ * An engine the caller suspended (`suspendEvaluation()` before the import) gets the names without a
+ * suspension of its own, whose end would resume the caller's too; the engine evaluates them when the
+ * caller resumes. `Formulas` skips its own batch the same way.
  */
 function addNamedExpressions(hot: HotInstance, result: ImportResult): void {
   const formulas = hot.getPlugin('formulas');
@@ -407,7 +410,6 @@ function addNamedExpressions(hot: HotInstance, result: ImportResult): void {
     reportUnsupported(result);
   }
 
-  // An empty engine batch still pushes an engine undo step, so none opens when every name is refused.
   if (first === -1) {
     return;
   }
@@ -432,10 +434,16 @@ function addNamedExpressions(hot: HotInstance, result: ImportResult): void {
   }
 
   try {
-    engine.batch(addAll);
+    engine.suspendEvaluation();
+
+    try {
+      addAll();
+    } finally {
+      engine.resumeEvaluation();
+    }
   } catch {
-    // The batch evaluates the names only when it resumes evaluation, at its end, and HyperFormula can
-    // throw there (`RangeError: Invalid array length` over a huge range). Which name threw is not
+    // The engine evaluates the names only when it resumes, and HyperFormula can throw there
+    // (`RangeError: Invalid array length` over a huge range). Which name threw is not
     // known, so every name this call added goes, each on its own: a removal recalculates, and may
     // throw again while a name it has not reached yet stays.
     if (engine.isEvaluationSuspended?.() === true) {
@@ -479,9 +487,9 @@ function reportUnsupported(result: ImportResult): void {
 }
 
 /**
- * Adds one named expression the engine said it takes. Outside a batch `addNamedExpression`
- * evaluates the definition at once; inside one (the only way the applier calls it) evaluation waits
- * for the batch's end, which `addNamedExpressions` guards. The add itself can still throw on an
+ * Adds one named expression the engine said it takes. On a running engine
+ * `addNamedExpression` evaluates the definition at once; on a suspended one (the only way the applier
+ * calls it) evaluation waits for the resume, which `addNamedExpressions` guards. The add itself can still throw on an
  * engine that evaluates eagerly or refuses the name late, which failed the whole import with an
  * internal error and left the name half-added. A throw removes the name again when the engine lists
  * it (it did not before: the check passed) and reports `definedNames:unsupported` on the result;

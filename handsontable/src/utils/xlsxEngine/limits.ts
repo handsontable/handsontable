@@ -131,8 +131,9 @@ export const MAX_DEFINED_NAME_CHARS = 256 * 1024;
 
 /**
  * The most cells one defined name's ranges may cover for the import to hand it to the
- * Formulas engine. HyperFormula evaluates a definition once it is added (at the end of the
- * applier's engine batch), whether or not a cell uses it: a 2 KB file whose one name summed `$A$1:$ZZ$10000` (7 million cells) took 15-46 s
+ * Formulas engine. HyperFormula evaluates a definition once it is added (when the applier resumes
+ * the engine), whether or not a cell uses it: a 2 KB file whose one name summed `$A$1:$ZZ$10000`
+ * (7 million cells) took 15-46 s
  * and about 2 GB in Chrome, and `$A$1:$XFD$1048576` crashed the tab. The value mirrors
  * `MAX_EXCELJS_DEFINED_NAME_CELLS` on the write side. A whole column counts its columns times the
  * rows of the grid's sheet, and a whole row its rows times the sheet's columns, because HyperFormula
