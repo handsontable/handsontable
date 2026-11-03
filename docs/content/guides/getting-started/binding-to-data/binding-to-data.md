@@ -711,7 +711,7 @@ To replace the entire data in an already-initialized Handsontable instance, you 
 
 **[`loadData()`](@/api/core.md#loaddata)**
 
-Replaces the data used in Handsontable with the dataset provided as the method argument. **Note:** Since version `12.0.0` this method also resets the state of rows, columns, and cells -- for example sorting, moved and hidden rows and columns, filters, cell metadata, and the undo history -- so some of the work done on the table since its initialization might be lost. It keeps your settings. For the full list, see [What the data-loading methods reset and keep](#what-the-data-loading-methods-reset-and-keep).
+Replaces the data used in Handsontable with the dataset provided as the method argument. **Note:** This method also resets the state of rows, columns, and cells -- for example sorting, moved and hidden rows and columns, filters, cell metadata, and the undo history -- so some of the work done on the table since its initialization might be lost. It keeps your settings, except the cell metadata from the `cell` option. For the full list, see [What the data-loading methods reset and keep](#what-the-data-loading-methods-reset-and-keep).
 
 ```js
 hot.loadData(newDataset);
@@ -771,17 +771,18 @@ To replace the data on purpose, pass a new array, for example through a `useStat
 
 #### What the data-loading methods reset and keep
 
-The table lists what happens to each kind of state when you replace a dataset of the same size. Both methods keep your settings (`columns`, `colHeaders`, plugin options, and hooks) and the selection. If the new dataset has fewer rows or columns, the selection shrinks to fit.
+The table lists what happens to each kind of state when you replace a dataset of the same size. Both methods keep your settings (`columns`, `colHeaders`, plugin options, and hooks) and the selection. The one exception is the `cell` option: `loadData()` drops its cell metadata, although `getSettings().cell` still lists it. If the new dataset has fewer rows or columns, the selection shrinks to fit.
 
 | State | [`loadData()`](@/api/core.md#loaddata) | [`updateData()`](@/api/core.md#updatedata) |
 |---|---|---|
-| Sorting, set through the UI, the API, or `initialConfig` | Cleared -- rows show in source order | Kept -- the rows keep their sorted order and are not sorted again by value. Sort again to order the new values. |
+| Sorting, set through the UI, the API, or `initialConfig` | Cleared -- rows show in source order | Kept -- the rows keep their sorted order and are not sorted again by value. The sort state stays (`getSortConfig()` still returns it), so the column looks sorted when the new values are not. Sort again to order them. |
 | Rows and columns moved at runtime | Reset | Kept |
-| Moves and hidden rows or columns declared in the configuration, such as `manualColumnMove: [2, 0, 1]` or `hiddenRows: { rows: [2] }` | Applied again from the configuration | Kept |
-| Rows and columns hidden through a plugin API | Shown again | Kept |
-| Row heights and column widths set by the user | Reset | Kept |
-| Trimmed rows and filter conditions | Cleared | Kept -- the same rows stay trimmed, and the filters do not run again on the new values. Call `filter()` to apply them. |
+| Moves, hidden rows or columns, and trimmed rows declared in the configuration, such as `manualColumnMove: [2, 0, 1]`, `hiddenRows: { rows: [2] }`, or `trimRows: [1]` | Applied again from the configuration | Kept |
+| Rows and columns hidden or trimmed through a plugin API | Shown again | Kept |
+| Row heights and column widths set by the user | Reset to the default size, or to the sizes in a `manualRowResize` or `manualColumnResize` array | Kept |
+| Filter conditions and the rows they trim | Cleared | Kept -- the same rows stay trimmed, and the filters do not run again on the new values. Call `filter()` to apply them. |
 | Cell metadata set with [`setCellMeta()`](@/api/core.md#setcellmeta), such as `readOnly` and `className`, and comments | Cleared | Kept |
+| Cell metadata from the `cell` option | Cleared, although `getSettings().cell` still lists it. Metadata from `columns` stays. | Kept |
 | Validation results | Cleared | Kept -- a cell can still be marked invalid for a value that is gone |
 | Merged cells | Kept | Kept |
 | Undo and redo history | Cleared | Cleared |
