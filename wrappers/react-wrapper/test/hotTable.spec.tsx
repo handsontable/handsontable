@@ -1399,6 +1399,57 @@ describe('Props set to `undefined`', () => {
     expect(hot.getSettings().colWidths).toBe(undefined);
   });
 
+  it('should remove the root element\'s inline height and overflow when `height` changes to `undefined` on update', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, height: 120 });
+    const { rootElement } = hotTableRef.current!.hotInstance!;
+
+    expect(rootElement.style.height).toBe('120px');
+    expect(rootElement.style.overflowY).toBe('clip');
+
+    renderHotTableWithProps({ ...baseProps, height: undefined }, true, hotTableRef);
+
+    expect(rootElement.style.height).toBe('');
+    expect(rootElement.style.overflowX).toBe('');
+    expect(rootElement.style.overflowY).toBe('');
+  });
+
+  it('should remove the root element\'s inline `height: auto` when `height` changes to `undefined` on update', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, height: 'auto' });
+    const { rootElement } = hotTableRef.current!.hotInstance!;
+
+    expect(rootElement.style.height).toBe('auto');
+
+    renderHotTableWithProps({ ...baseProps, height: undefined }, true, hotTableRef);
+
+    expect(rootElement.style.height).toBe('');
+  });
+
+  it('should remove the root element\'s inline width when `width` changes to `undefined` on update', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, width: 300 });
+    const { rootElement } = hotTableRef.current!.hotInstance!;
+
+    expect(rootElement.style.width).toBe('300px');
+
+    renderHotTableWithProps({ ...baseProps, width: undefined }, true, hotTableRef);
+
+    expect(rootElement.style.width).toBe('');
+  });
+
+  it('should clear only the axis whose prop changes to `undefined`, and apply a new value after the clear', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, height: 120, width: 300 });
+    const { rootElement } = hotTableRef.current!.hotInstance!;
+
+    renderHotTableWithProps({ ...baseProps, height: undefined, width: 300 }, true, hotTableRef);
+
+    expect(rootElement.style.height).toBe('');
+    expect(rootElement.style.width).toBe('300px');
+
+    renderHotTableWithProps({ ...baseProps, height: 200, width: 300 }, true, hotTableRef);
+
+    expect(rootElement.style.height).toBe('200px');
+    expect(rootElement.style.width).toBe('300px');
+  });
+
   it('should restore the default when a prop that had a value changes to `undefined` on update', () => {
     const hotTableRef = renderHotTableWithProps({ ...baseProps, copyPaste: false });
     const hot = hotTableRef.current!.hotInstance!;
