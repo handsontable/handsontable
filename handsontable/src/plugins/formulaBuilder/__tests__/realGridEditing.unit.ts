@@ -1029,6 +1029,17 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(hot.getSelectedLast()).toEqual([2, 0, 2, 0]);
     });
 
+    it.each(['loadData', 'updateData'] as const)('does not reopen the old index after %s() replaced the data', (method) => {
+      createGrid();
+      hot.selectCell(2, 1);
+      hot[method]([['N1', 'N2'], ['N3', 'N4'], ['N5', 'N6'], ['N7', 'N8']]);
+      hot.deselectCell();
+
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([0, 0, 0, 0]);
+    });
+
     it('prefers the cell the focus moved to inside a selected range', () => {
       createGrid();
       hot.selectCell(1, 1, 2, 2);

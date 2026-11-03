@@ -428,6 +428,10 @@ export class FormulaBuilder extends BasePlugin {
    */
   #lastFocusedCoords: { row: number; col: number } | null = null;
   /**
+   * Set by a data load, so the draw after it does not record the kept selection as the remembered cell.
+   */
+  #dataReplaced = false;
+  /**
    * Dedupe key for bar selection emits (anchor + focus + active together).
    */
   #lastEmittedSelectionCoords: {
@@ -1328,12 +1332,21 @@ export class FormulaBuilder extends BasePlugin {
    * recorded again too: a sort, a move, or a filter keeps the selection on its visual cell while
    * the physical record under it changes, so the record remembered before would no longer be the
    * focused cell. With no selection nothing is recorded, and the insert and remove shifts keep the
-   * remembered record.
+   * remembered record. After a data load nothing is recorded either: the load forgot the cell on
+   * purpose, because the kept selection points at a record of the data set it replaced.
    */
   #onBeforeViewRender = (): void => {
+    const dataReplaced = this.#dataReplaced;
+
+    this.#dataReplaced = false;
+
     if (this.#barCellStale) {
       this.#barCellStale = false;
-      this.#rememberFocusedCell();
+
+      if (!dataReplaced) {
+        this.#rememberFocusedCell();
+      }
+
       this.#resyncBarCell();
     }
   };
@@ -1495,8 +1508,10 @@ export class FormulaBuilder extends BasePlugin {
    * last, so the bar never opens an edit on a cell of the data that was replaced.
    */
   #onAfterDataLoad = (): void => {
-    // The remembered coordinates point into the data set the load replaced (or another sheet).
+    // The remembered coordinates point into the data set the load replaced (or another sheet). The
+    // load rebuilt the index maps too, and the draw after it must not record the kept selection again.
     this.#lastFocusedCoords = null;
+    this.#dataReplaced = true;
 
     // Even under an open edit: the load replaced the data the edit was made against, and the rebuild
     // cancels that edit.
