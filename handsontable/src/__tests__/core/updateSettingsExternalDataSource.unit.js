@@ -294,6 +294,25 @@ describe('Core#updateSettings with external data source', () => {
     expect(server.fetchRows).toHaveBeenCalledTimes(1);
   });
 
+  it('should keep the rows when a `dataProvider` object completed in place is followed by an update without it',
+    async() => {
+      const config = { rowId: 'id' };
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [{ id: 9, name: 'Local row' }],
+        columns: [{ data: 'id' }, { data: 'name' }],
+        dataProvider: config,
+      });
+
+      await delay(20);
+
+      Object.assign(config, createServerConfig(2));
+      await hot.updateSettings({ height: 300 });
+
+      expect(hot.getData()).toEqual([[9, 'Local row']]);
+    });
+
   it('should fetch with another page size sent beside the same `dataProvider` object', async() => {
     const config = createServerConfig(20);
 

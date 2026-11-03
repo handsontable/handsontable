@@ -6301,17 +6301,17 @@ export default function Core(
       warn('The "data" setting is ignored when "hasExternalDataSource" returns `true`.');
     }
 
-    // Replace the in-memory placeholder only when DataProvider fetches the rows again: at init, when the update
-    // replaces `dataProvider`, turns the grid server-backed (an object completed in place and sent again), or sends
-    // the same object beside `columns`. A `data` payload, or the same `dataProvider` object sent alone, would
-    // otherwise empty the grid with nothing to refill it. With `columns`, the placeholder also keeps the index maps,
-    // and so the sort the refetch reads, which the `columns` branch below would re-initialize.
-    const sendsDataProvider = hasOwnProperty(settings, 'dataProvider');
-    const shouldSyncExternalPlaceholderData = init ||
+    // Replace the in-memory placeholder only when DataProvider fetches the rows again: at init, or when the update
+    // sends `dataProvider` and replaces it, turns the grid server-backed (an object completed in place and sent
+    // again), or sends the same object beside `columns`. A payload without `dataProvider` does not re-apply the
+    // plugin, and a `data` payload or the same object sent alone does not refetch, so either would empty the grid
+    // with nothing to refill it. With `columns`, the placeholder also keeps the index maps, and so the sort the
+    // refetch reads, which the `columns` branch below would re-initialize.
+    const shouldSyncExternalPlaceholderData = init || (hasOwnProperty(settings, 'dataProvider') && (
       !previousDataSource.isExternal ||
-      (sendsDataProvider && (
-        settings.dataProvider !== previousDataSource.dataProvider || settings.columns !== undefined
-      ));
+      settings.dataProvider !== previousDataSource.dataProvider ||
+      settings.columns !== undefined
+    ));
 
     if (shouldSyncExternalPlaceholderData) {
       dataUpdateFunction([], 'updateSettings');
