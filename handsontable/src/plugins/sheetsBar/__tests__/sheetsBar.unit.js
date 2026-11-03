@@ -532,7 +532,7 @@ describe('SheetsBar plugin', () => {
       nestedRows: true,
       columns: [{ data: 'name' }, { data: 'qty' }],
       sheetsBar: { sheets: [{ name: 'Tree', data: [{ name: 'P', qty: 1, __children: [{ name: 'C', qty: 2 }] }] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const sheetsBar = hot.getPlugin('sheetsBar');
@@ -1288,7 +1288,7 @@ describe('SheetsBar plugin', () => {
         sheetsBar: {
           sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }, { name: 'C', data: [['c']] }],
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const spies = {};
@@ -1758,7 +1758,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
       beforeSheetTabRename: () => false,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const announce = jest.spyOn(SheetsBarUI.prototype, 'announce');
 
@@ -1772,7 +1772,7 @@ describe('SheetsBar plugin', () => {
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [Object.freeze({ name: 'A', data: [['a']] }), { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const announce = jest.spyOn(SheetsBarUI.prototype, 'announce');
 
@@ -1789,7 +1789,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets },
       afterSheetTabRename: afterRename,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(hot.getPlugin('sheetsBar').getSheets()[0].name).toBe('A B');

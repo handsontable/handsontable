@@ -1,7 +1,6 @@
 import HyperFormula from 'hyperformula';
 import Handsontable from '../../../index';
-
-const LICENSE_KEY = 'non-commercial-and-evaluation';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 describe('SheetsBar#getSheetData()', () => {
   let container;
@@ -37,7 +36,7 @@ describe('SheetsBar#getSheetData()', () => {
    * @returns {object} The SheetsBar plugin.
    */
   function build(settings) {
-    hot = new Handsontable(container, { ...settings, licenseKey: LICENSE_KEY });
+    hot = new Handsontable(container, { ...settings, licenseKey: TEST_LICENSE_KEY });
 
     return hot.getPlugin('sheetsBar');
   }

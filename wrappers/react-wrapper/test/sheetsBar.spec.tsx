@@ -84,7 +84,7 @@ describe('HotTable with a sheets bar', () => {
   it('keeps an added sheet\'s rows when the parent re-renders a `sheetsBar: true` grid with its `data` prop', () => {
     const appData = [['A1', 'B1'], ['A2', 'B2']];
     const props = (): HotTableProps => ({
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: appData,
       sheetsBar: true,
     });
@@ -127,7 +127,7 @@ describe('HotTable with a sheets bar', () => {
 
       setRows = setState;
 
-      return <HotTable ref={ref} licenseKey="non-commercial-and-evaluation" data={rows} sheetsBar />;
+      return <HotTable ref={ref} licenseKey={TEST_LICENSE_KEY} data={rows} sheetsBar />;
     };
 
     mountComponent(<App />);
@@ -159,7 +159,7 @@ describe('HotTable with a sheets bar', () => {
   it('keeps the visible sheet\'s rows on a `sheetsBar: true` re-render after the first sheet is removed', () => {
     const appData = [['A1', 'B1']];
     const props = (): HotTableProps => ({
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: appData,
       sheetsBar: true,
     });

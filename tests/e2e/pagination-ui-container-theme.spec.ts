@@ -34,7 +34,7 @@ test.describe('Pagination in a uiContainer with the theme engine', { tag: THEMES
         theme: w.Handsontable.themes.getTheme(themeName),
         colorScheme: 'dark',
         pagination: { uiContainer: pager },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: w.htTestLicenseKey,
       });
     }, theme);
 
