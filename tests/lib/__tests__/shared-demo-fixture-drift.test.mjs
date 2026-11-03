@@ -24,7 +24,7 @@ const NOT_COMPARED = {
   layoutDirection: 'the demo reads the direction from the URL; the fixture is LTR only',
   language: 'the demo reads the direction from the URL; the fixture is LTR only',
   themeName: 'the fixture sets the theme as a class on its container, from the allowlisted ?theme=',
-  licenseKey: 'the demo leaves the key to the host, which supplies its own; the fixture keeps a test key',
+  licenseKey: 'the demo leaves the key to the host, which supplies its own; the fixture keeps the retired NCE key until an internal test key replaces it',
   afterGetRowHeader: 'the fixture stamps test ids on the row headers',
   afterRenderer: 'the fixture stamps test ids on the cells',
   afterGetColHeader: 'the fixture stamps test ids on the headers',

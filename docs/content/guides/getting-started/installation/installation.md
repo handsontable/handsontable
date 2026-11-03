@@ -108,7 +108,6 @@ import { ApplicationConfig, provideZoneChangeDetection } from "@angular/core";
 import {
   HOT_GLOBAL_CONFIG,
   HotGlobalConfig,
-  NON_COMMERCIAL_LICENSE,
 } from "@handsontable/angular-wrapper";
 import { registerAllModules } from "handsontable/registry";
 import { registerLanguageDictionary, enUS } from "handsontable/i18n";
@@ -117,7 +116,7 @@ registerAllModules();
 registerLanguageDictionary(enUS);
 
 const globalHotConfig: HotGlobalConfig = {
-  license: NON_COMMERCIAL_LICENSE,
+  // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
   layoutDirection: "ltr",
   language: enUS.languageCode,
 };

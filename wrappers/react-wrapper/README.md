@@ -222,7 +222,7 @@ For commercial use, a paid license is required. This license includes support an
 
 ## 🔑 License Key
 
-Pass your license key in the `licenseKey` option. The examples above leave that line commented out: uncomment it and add your key. To evaluate Handsontable, get a trial key. For non-commercial use, apply for a sponsored license. Get a key at [handsontable.com/pricing](https://handsontable.com/pricing/).
+Pass your license key in the `licenseKey` option. The examples above leave that line commented out: uncomment it and add your key. To evaluate Handsontable, get a trial key. For non-commercial use, apply for a sponsored license.
 
 If you're using Handsontable in a project that supports commercial activities, you'll need to purchase a license key at [handsontable.com/pricing](https://handsontable.com/pricing). You can find more details in [our documentation](https://handsontable.com/docs/react-data-grid/license-key/).
 

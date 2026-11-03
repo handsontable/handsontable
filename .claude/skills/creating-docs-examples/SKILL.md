@@ -54,7 +54,7 @@ const App = () => {
 ## Angular
 
 - Standalone components (`standalone: true`, `imports: [HotTableModule]`), class named `AppComponent` in every example.
-- `app.config.ts` (not `app.module.ts`) with `ApplicationConfig`, `provideZoneChangeDetection({ eventCoalescing: true })`, and global `HOT_GLOBAL_CONFIG` for the license key. Set the license there only; leave `licenseKey` off individual `<hot-table>` bindings.
+- `app.config.ts` (not `app.module.ts`) with `ApplicationConfig`, `provideZoneChangeDetection({ eventCoalescing: true })`, and global `HOT_GLOBAL_CONFIG`, which carries the commented-out placeholder `// license: 'your-license-key', // get a key at https://handsontable.com/pricing/` (never a key value, never `NON_COMMERCIAL_LICENSE`). Leave `licenseKey` off individual `<hot-table>` bindings.
 - Template control flow: `@if` / `@for (x of list; track x.id)`.
 
 The docs site bootstraps Angular examples with JIT in the browser, which cannot load external files and lacks decorator metadata:
@@ -93,14 +93,19 @@ export class AppComponent {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
-    { provide: HOT_GLOBAL_CONFIG, useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig },
+    {
+      provide: HOT_GLOBAL_CONFIG,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
+    },
   ],
 };
 /* end-file */

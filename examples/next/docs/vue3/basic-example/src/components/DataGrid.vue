@@ -30,8 +30,8 @@ export default defineComponent({
 
 <template>
   <div id="example">
+    <!-- license-key="your-license-key" (get a key at https://handsontable.com/pricing/) -->
     <HotTable
-      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       :data="dataProp"
       :height="450"
       :colWidths="[170, 222, 130, 120, 120, 140, 156]"

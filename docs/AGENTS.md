@@ -330,7 +330,7 @@ Untagged code blocks (```` ``` ````) are not allowed.
 
 - Examples must be self-contained and runnable (or clearly labeled as a snippet).
 - Use `const` and `let`. Never use `var`.
-- Never write a real or special license key in an example. Leave the placeholder comment where the key goes: `// licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/`. In JSX, make it the first attribute of the component (`// licenseKey="your-license-key" // get a key at ...`), because the TypeScript transpile that generates the `.jsx` drops a comment that follows the last attribute. In a Vue or HTML template, put `<!-- license-key="your-license-key" (get a key at ...) -->` above the tag, because a tag cannot hold a comment.
+- Never write a license key value in an example. Leave the placeholder comment where the key goes, in the quote style of the file: `// licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/`. In an Angular `HOT_GLOBAL_CONFIG`, comment out `license` the same way. In JSX, make it the first attribute of the component (`// licenseKey="your-license-key" // get a key at ...`), because the TypeScript transpile that generates the `.jsx` drops a comment that follows the last attribute. In a Vue or HTML template, put `<!-- license-key="your-license-key" (get a key at ...) -->` above the tag, because a tag cannot hold a comment.
 - No inline `// TODO` or `// ...` comments in published examples.
 - Keep examples between 25 and 60 lines. If longer, link to the live sandbox instead.
 - TypeScript is the primary language for new examples. Generate the JavaScript variant: `npm run docs:code-examples:generate-js <path>`.

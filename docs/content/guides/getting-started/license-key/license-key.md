@@ -143,7 +143,7 @@ Or include it in the settings object passed to `:settings`:
 
 ## Placeholder in code examples
 
-The code examples in this documentation and in the Handsontable repositories carry no license key. A commented-out line marks where the key goes:
+The code examples in this documentation carry no license key. A commented-out line marks where the key goes:
 
 ::: only-for javascript
 
