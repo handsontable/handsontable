@@ -566,9 +566,9 @@ export class BasePlugin {
   /**
    * Returns the value every key of the plugin's object setting takes when an object leaves it out, or `null`
    * when the plugin does not merge an object setting into the previous one. An object sent through
-   * `updateSettings()` sets the keys it names and keeps the others, so the SheetsBar plugin sends a sheet's
-   * object over these values: a key the sheet leaves out then takes the default, not the value another sheet
-   * set. The default here covers a plugin with an object of `SETTINGS_VALIDATORS`: each validated key with a
+   * `updateSettings()` sets the keys it names and keeps the others, so a caller that switches the grid between
+   * data sets sends each set's object over these values: a key that object leaves out then takes the default,
+   * not the value an earlier object set. The default here covers a plugin with an object of `SETTINGS_VALIDATORS`: each validated key with a
    * `DEFAULT_SETTINGS` value its validator accepts. A plugin that merges its object in its own way overrides it.
    * Internal; not public API.
    *

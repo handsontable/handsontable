@@ -513,8 +513,8 @@ export class Dialog extends BasePlugin {
 
   /**
    * Returns a copy of the selection the open dialog stashed and restores when it hides, or `null` when no
-   * dialog is open or nothing was selected. The sheets bar reads it when the user leaves a sheet under an
-   * open dialog: the grid shows no selection then, so the sheet's own capture records none.
+   * dialog is open or nothing was selected. A caller that switches the grid between data sets reads it when
+   * the user leaves one under an open dialog: the grid shows no selection then, so its own capture records none.
    *
    * @private
    * @returns {object|null}

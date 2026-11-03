@@ -527,10 +527,10 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
-   * Runs a change of the view the grid shows: the SheetsBar plugin, on a sheet switch. The overlay that hides
-   * during it leaves the selection to the view (`#hide(false)`), as a view change through
+   * Runs a change of the view the grid shows, made by a caller that switches the grid between data sets. The
+   * overlay that hides during it leaves the selection to the view (`#hide(false)`), as a view change through
    * {@link EmptyDataState#_syncDataProviderLoading} does: the selection kept when it appeared belongs to the view
-   * that was left, and with none kept the hide selected the first cell of a sheet the user had not visited. When the
+   * that was left, and with none kept the hide selected the first cell of a view the user had not visited. When the
    * change ends with the overlay shown, it keeps the arriving view's selection for its own hide. Runs `run` as it is
    * while this plugin is disabled. Internal; not public API.
    *

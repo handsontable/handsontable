@@ -1302,8 +1302,8 @@ export class Comments extends BasePlugin {
 
   /**
    * Drops a show still waiting on the display delay when `loadData()` replaces the grid's data. The hover
-   * that armed it rested on a cell of the old data, so the show ran over a cell of the new data (a sheet
-   * switch, a `loadData()` call) and opened an empty editor there. A pending hide stays armed. `updateData()`
+   * that armed it rested on a cell of the old data, so the show ran over a cell of the new data (a switch
+   * to another data set, a `loadData()` call) and opened an empty editor there. A pending hide stays armed. `updateData()`
    * is left alone: the wrappers send it on every re-render with the data the grid already shows.
    */
   #onAfterLoadData = () => {
