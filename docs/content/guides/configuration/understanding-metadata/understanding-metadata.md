@@ -210,6 +210,8 @@ Custom metadata is useful when a renderer, validator, editor, or hook needs info
 
 Choose names that do not collide with built-in options or hooks. A custom key named `type` or `className` changes the grid's behavior. A key named like a hook, such as `afterRender`, registers as a hook and never reaches the cell metadata. A `type` string that is not registered throws when the grid starts. Metadata lives beside your data and not in it, so `getSourceData()` does not return it. If you need it after a reload, save it yourself.
 
+If you check your settings with `validateSettings()`, it reports a custom key as `unknownOption`. For how to filter those reports, see the [known limitations](@/guides/configuration/validate-settings/validate-settings.md#known-limitations) of Validate settings.
+
 ## Trade-offs
 
 - **Reading with `getCellMeta()` keeps an object per cell.** Handsontable creates and stores a metadata object for each cell you read. A loop over a large dataset keeps one object for every cell it visits. For read-only scans, use [`getCellMetaTransient()`](@/api/core.md#getcellmetatransient). It skips that memory, but it runs the `cells` function again on every call.
