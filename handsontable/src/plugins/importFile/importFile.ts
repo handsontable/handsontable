@@ -245,7 +245,9 @@ export interface ImportResult {
   colWidths?: Array<number | undefined>;
   /**
    * Row heights read from the workbook, in pixels. An entry is `undefined` when the sheet says
-   * nothing about that row, so the grid keeps its own height there.
+   * nothing about that row, so the grid keeps its own height there. The plugin applies them as
+   * `minRowHeights`: a workbook stores the height its application measured on every row, and a row
+   * shorter than the grid's default row height keeps the default.
    */
   rowHeights?: Array<number | undefined>;
   /**

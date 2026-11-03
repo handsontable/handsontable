@@ -73,7 +73,7 @@ describe('Renderer configuration using React components', () => {
         data={createSpreadsheetData(100, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         autoRowSize={false}
         autoColumnSize={false}
@@ -109,7 +109,7 @@ describe('Renderer configuration using React components', () => {
         data={createSpreadsheetData(100, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         autoRowSize={false}
         autoColumnSize={false}
@@ -145,7 +145,7 @@ describe('Renderer configuration using React components', () => {
         data={createSpreadsheetData(100, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         autoRowSize={false}
         autoColumnSize={false}
@@ -183,7 +183,7 @@ describe('Renderer configuration using React components', () => {
         data={createSpreadsheetData(100, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         autoRowSize={false}
         autoColumnSize={false}
@@ -212,7 +212,7 @@ describe('Editor configuration using React components', () => {
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
@@ -238,7 +238,7 @@ describe('Editor configuration using React components', () => {
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
@@ -283,7 +283,7 @@ describe('Editor configuration using React components', () => {
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
@@ -328,7 +328,7 @@ describe('Editor configuration using React components', () => {
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
@@ -355,7 +355,7 @@ describe('Editor configuration using React components', () => {
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
@@ -397,7 +397,7 @@ describe('Editor configuration using React components', () => {
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
@@ -421,7 +421,7 @@ describe('Editor configuration using React components', () => {
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
@@ -460,7 +460,7 @@ describe('Editor configuration using React components', () => {
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
@@ -499,7 +499,7 @@ describe('Editor configuration using React components', () => {
       data: createSpreadsheetData(3, 2),
       width: 300,
       height: 300,
-      rowHeights: 23,
+      minRowHeights: 23,
       colWidths: 50,
       autoRowSize: false,
       autoColumnSize: false,
@@ -547,7 +547,7 @@ describe('Editor configuration using React components', () => {
       data: createSpreadsheetData(3, 2),
       width: 300,
       height: 300,
-      rowHeights: 23,
+      minRowHeights: 23,
       colWidths: 50,
       autoRowSize: false,
       autoColumnSize: false,
@@ -594,7 +594,7 @@ describe('Editor configuration using React components', () => {
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
@@ -625,7 +625,7 @@ describe('Editor configuration using React components', () => {
         data={createSpreadsheetData(3, 4)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
@@ -660,7 +660,7 @@ describe('Editor configuration using React components', () => {
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
@@ -688,7 +688,7 @@ describe('Editor configuration using React components', () => {
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         editor={false}
         init={function() {
@@ -734,7 +734,7 @@ describe('Dynamic HotColumn configuration changes', () => {
       data: createSpreadsheetData(3, 2),
       width: 300,
       height: 300,
-      rowHeights: 23,
+      minRowHeights: 23,
       colWidths: 50,
       readOnly: false,
       autoRowSize: false,
@@ -847,7 +847,7 @@ describe('Dynamic HotColumn add/remove', () => {
       data: createSpreadsheetData(2, 3),
       width: 300,
       height: 300,
-      rowHeights: 23,
+      minRowHeights: 23,
       colWidths: 50,
       autoRowSize: false,
       autoColumnSize: false,
@@ -892,7 +892,7 @@ describe('Dynamic HotColumn add/remove', () => {
       data: createSpreadsheetData(2, 3),
       width: 300,
       height: 300,
-      rowHeights: 23,
+      minRowHeights: 23,
       colWidths: 50,
       autoRowSize: false,
       autoColumnSize: false,
@@ -935,7 +935,7 @@ describe('Dynamic HotColumn add/remove', () => {
       data: createSpreadsheetData(2, 3),
       width: 300,
       height: 300,
-      rowHeights: 23,
+      minRowHeights: 23,
       colWidths: 50,
       autoRowSize: false,
       autoColumnSize: false,
@@ -975,7 +975,7 @@ describe('Dynamic HotColumn add/remove', () => {
       data: createSpreadsheetData(2, 3),
       width: 300,
       height: 300,
-      rowHeights: 23,
+      minRowHeights: 23,
       colWidths: 50,
       autoRowSize: false,
       autoColumnSize: false,
@@ -1020,7 +1020,7 @@ describe('Dynamic HotColumn add/remove', () => {
       data: createSpreadsheetData(2, 3),
       width: 300,
       height: 300,
-      rowHeights: 23,
+      minRowHeights: 23,
       colWidths: 50,
       autoRowSize: false,
       autoColumnSize: false,
@@ -1062,7 +1062,7 @@ describe('Dynamic HotColumn add/remove', () => {
       data: createSpreadsheetData(2, 3),
       width: 300,
       height: 300,
-      rowHeights: 23,
+      minRowHeights: 23,
       colWidths: 50,
       autoRowSize: false,
       autoColumnSize: false,
@@ -1161,7 +1161,7 @@ describe('Passing children', () => {
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);

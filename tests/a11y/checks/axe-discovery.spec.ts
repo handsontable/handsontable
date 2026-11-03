@@ -8,6 +8,7 @@ import { A11Y_THEMES } from '../../lib/a11y-baseline.mjs';
 import { pageLines } from '../../lib/a11y-check-run.mjs';
 import { DISCOVERY_TAGS, discoveryFindings, rightToLeftQuery } from '../../lib/axe-discovery.mjs';
 import { DISCOVERY_PAGES } from './discovery-pages.mjs';
+import { installDarkScheme } from './variants';
 
 /**
  * The axe discovery run: axe with the best-practice, AAA and experimental rules beside the WCAG 2.2 A
@@ -161,35 +162,6 @@ async function headerCenter(page: Page, root: string, col: number): Promise<{ x:
   expect(point, `column header ${col} is drawn`).not.toBeNull();
 
   return point!;
-}
-
-/**
- * Builds every theme class the page writes as its dark form, before the fixture runs.
- *
- * @param page The page.
- */
-async function installDarkScheme(page: Page): Promise<void> {
-  await page.addInitScript(() => {
-    const darken = (value: unknown) => (typeof value === 'string'
-      ? value.replace(/\bht-theme-(main|horizon|classic)\b(?!-dark)/g, 'ht-theme-$1-dark')
-      : value);
-    const className = Object.getOwnPropertyDescriptor(Element.prototype, 'className')!;
-    const setAttribute = Element.prototype.setAttribute;
-    const add = DOMTokenList.prototype.add;
-
-    Object.defineProperty(Element.prototype, 'className', {
-      ...className,
-      set(value: string) {
-        className.set!.call(this, darken(value) as string);
-      },
-    });
-    Element.prototype.setAttribute = function(name: string, value: string) {
-      return setAttribute.call(this, name, name === 'class' ? darken(value) as string : value);
-    };
-    DOMTokenList.prototype.add = function(...tokens: string[]) {
-      return add.apply(this, tokens.map(token => darken(token) as string));
-    };
-  });
 }
 
 /**

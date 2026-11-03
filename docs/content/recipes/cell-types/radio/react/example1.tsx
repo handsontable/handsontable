@@ -227,7 +227,7 @@ const ExampleComponent = () => {
       rowHeaders={true}
       height="auto"
       width="100%"
-      rowHeights={96}
+      minRowHeights={96}
       afterInit={afterInit}
     >
       <HotColumn data="task"     type="text"  width={300} />

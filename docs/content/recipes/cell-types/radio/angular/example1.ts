@@ -196,7 +196,7 @@ export class AppComponent {
     rowHeaders: true,
     height: 'auto',
     width: '100%',
-    rowHeights: 96,
+    minRowHeights: 96,
     columns: [
       { data: 'task', type: 'text', width: 300 },
       { data: 'priority', type: 'radio', width: 160, options: priorityOptions } as Handsontable.ColumnSettings,

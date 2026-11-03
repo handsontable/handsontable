@@ -82,7 +82,7 @@ const ExampleComponent = () => {
       id="example1"
       data={data}
       rowHeaders={true}
-      rowHeights={44}
+      minRowHeights={44}
       colHeaders={['Product', 'W1', 'W2', 'W3', 'W4', 'W5', 'Sparkline']}
       height="auto"
       width="100%"

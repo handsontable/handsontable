@@ -185,7 +185,7 @@ const statusOptions = [
 ];
 
 const hotSettings: GridSettings = {
-  rowHeights: 96,
+  minRowHeights: 96,
   rowHeaders: true,
   height: 'auto',
   width: '100%',
