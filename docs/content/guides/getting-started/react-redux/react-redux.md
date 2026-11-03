@@ -129,6 +129,12 @@ When a prop that had a value becomes `undefined`, the grid goes back to the defa
 <HotTable readOnly={locked ? true : undefined} />
 ```
 
+This works for options with a default value, such as [`readOnly`](@/api/options.md#readonly). An option whose default is `undefined` keeps its last value. [`height`](@/api/options.md#height) is one of them: to remove a fixed height, pass `null` or `'auto'` instead of `undefined`.
+
+```jsx
+<HotTable height={fullPage ? null : 400} />
+```
+
 ## What you learned
 
 - You can connect a `HotTable` component to a Redux store using `react-redux`'s `connect()` method.
