@@ -38,7 +38,8 @@ function getDefaultOptionsHookName(menuName: MenuName) {
 
 /**
  * Returns the item keys a menu option lists, read the way `ItemsFactory#getItems()` reads the option:
- * the `items` of an object, then an array of keys or item objects, or an object keyed by item key.
+ * the `items` of an object, then an array of keys or item objects, or an object keyed by item key,
+ * where a string value names an item key too.
  * The `true` option, and any value that falls back to the default list, lists nothing.
  *
  * @param {*} setting The value of the `contextMenu` or `dropdownMenu` option.
@@ -61,7 +62,13 @@ function getListedKeys(setting: unknown) {
     });
 
   } else if (typeof pattern === 'object' && pattern !== null && pattern !== setting) {
-    objectEach(pattern, (value: unknown, key: string) => keys.add(key));
+    objectEach(pattern, (value: unknown, key: string) => {
+      keys.add(key);
+
+      if (typeof value === 'string') {
+        keys.add(value);
+      }
+    });
   }
 
   return keys;

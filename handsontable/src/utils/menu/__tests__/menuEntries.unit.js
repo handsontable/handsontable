@@ -234,6 +234,14 @@ describe('utils/menu/registerMenuEntries', () => {
       expect(buildMenu(plugin, 'dropdownMenu', { items: { a: {} } }, ['col_left'])).toEqual(['a']);
     });
 
+    it('resolves the key when the object form lists it as the value of another key', () => {
+      const plugin = pluginMock();
+
+      registerMenuEntries(plugin, () => [entry('a')], { dropdownMenu: { inDefaults: false } });
+
+      expect(buildMenu(plugin, 'dropdownMenu', { items: { alias: 'a' } }, ['col_left'])).toEqual(['a']);
+    });
+
     it('adds only the entries whose keys the option lists', () => {
       const plugin = pluginMock({ dropdownMenu: ['col_left', 'b'] });
 
