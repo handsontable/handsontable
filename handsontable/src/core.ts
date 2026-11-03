@@ -5076,7 +5076,7 @@ export default function Core(
    * - Keeps cells' states (e.g. cells' [formatting](@/guides/cell-features/formatting-cells/formatting-cells.md) and cells' [`readOnly`](@/api/options.md#readonly) states)
    * - Keeps rows' states (e.g. row order)
    * - Keeps columns' states (e.g. column order)
-   * - Keeps the sorted row order and the trimmed rows. It does not sort or filter the new values again: to apply them, call `sort()` of the sorting plugin or `filter()` of the `Filters` plugin.
+   * - Keeps the sorted row order and the trimmed rows. It does not sort or filter the new values again. To apply them, call `sort(getSortConfig())` of the `ColumnSorting` or `MultiColumnSorting` plugin, or `filter()` of the `Filters` plugin.
    * - Clears the undo and redo history of the `UndoRedo` plugin.
    *
    * To replace Handsontable's [`data`](@/api/options.md#data) and reset states, use the [`loadData()`](#loaddata) method.
@@ -5193,7 +5193,7 @@ export default function Core(
    * - Resets rows' states (e.g. row order)
    * - Resets columns' states (e.g. column order)
    * - Resets sorting, filters, the rows you trimmed, and the rows and columns you moved, hid, or resized at runtime.
-   * - Applies again the state that these options declare: `hiddenRows`, `trimRows`, `manualColumnMove`, `manualColumnResize`, and `manualRowResize` (for example `hiddenRows: { rows: [2] }`). Sorting that `columnSorting.initialConfig` declares is not applied again.
+   * - Applies again the state that these options declare: `hiddenRows`, `hiddenColumns`, `trimRows`, `manualRowMove`, `manualColumnMove`, `manualRowResize`, and `manualColumnResize` (for example `hiddenRows: { rows: [2] }`). Sorting that `initialConfig` of `columnSorting` or `multiColumnSorting` declares is not applied again.
    * - Drops the cell metadata from the `cell` option, although `getSettings().cell` still lists it. Metadata from `columns` stays.
    * - Clears the undo and redo history of the `UndoRedo` plugin.
    * - Keeps the settings, the selection (limited to the size of the new data), and merged cells.
