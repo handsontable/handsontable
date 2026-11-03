@@ -65,7 +65,7 @@
       "browsers": ["Chromium", "Firefox (Playwright)"],
       "howTested": ["automated-nightly"],
       "scenarios": 8,
-      "unsupported": ["read in", "read out"]
+      "unsupported": ["read in"]
     },
     {
       "name": "JAWS",

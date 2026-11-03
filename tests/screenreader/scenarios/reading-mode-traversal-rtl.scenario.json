@@ -26,7 +26,7 @@
       "id": "read-1",
       "action": {"read": "next"},
       "expect": [],
-      "note": "Each read moves one item on: NVDA reads one line of its browse-mode buffer (a cell with its row, column and the headers that changed), VoiceOver one cell of the row it is in, wrapping to the next row. The reads are enough for both to leave the grid; a read past the end repeats the last line (NVDA) or says nothing (VoiceOver)."
+      "note": "Each read moves one item on: NVDA reads one line of its browse-mode buffer (a cell with its row, column and the headers that changed), VoiceOver one cell of the row it is in, wrapping to the next row and on out of the table. The reads are sized for both readers to reach the control after the grid, the overlay clones included. On the grid page the headers are named, so a header letter never stands beside a row number and reads as a cell reference NVDA spells A 1."
     },
     {
       "id": "read-2",
@@ -194,17 +194,20 @@
       "expect": []
     },
     {
-      "id": "leave-grid",
-      "action": {"read": "out"},
-      "expect": [],
-      "unsupported": {"nvda": "NVDA has no interaction level: browse mode reads out of a table without leaving it, so there is nothing to leave."},
-      "note": "VoiceOver stops interacting with the grid (VO-Shift-Up)."
+      "id": "read-35",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-36",
+      "action": {"read": "next"},
+      "expect": []
     },
     {
       "id": "past-grid",
       "action": {"read": "next"},
       "expect": [["after the grid"]],
-      "note": "The reading reaches the control after the grid: the reads before it covered the whole grid, and NVDA, which reads on without entering, repeats the page's last line here."
+      "note": "The last read announces the control after the grid, the page's last item, which both readers repeat once they reach it: the reads before it covered the whole grid, the overlay clones included. VoiceOver reads on out of the table it interacted with, so no read leaves it."
     }
   ]
 }
