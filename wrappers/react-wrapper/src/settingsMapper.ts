@@ -54,6 +54,39 @@ function getClearedValue(key: string): unknown {
   return (Handsontable.DefaultSettings as any)[key];
 }
 
+/**
+ * Checks whether a hook value holds a callback core registers: a function or an array of them. Core
+ * ignores any other value for a hook, so `false` from `afterChange={on && logChange}` would leave the
+ * previous callback running.
+ *
+ * @param {*} value The hook value.
+ * @returns {boolean}
+ */
+function isHookCallback(value: unknown): boolean {
+  return typeof value === 'function' || Array.isArray(value);
+}
+
+/**
+ * Returns the value to forward for a prop that is passed: the option's cleared value for `undefined`,
+ * `null` for a hook prop that holds no callback on an update, and the prop value otherwise.
+ *
+ * @param {string} key The setting name.
+ * @param {*} value The prop value.
+ * @param {boolean} isInit Whether the grid is being initialized.
+ * @returns {*} The value to forward to `updateSettings()`.
+ */
+function getForwardedValue(key: string, value: unknown, isInit: boolean): unknown {
+  if (value === undefined) {
+    return getClearedValue(key);
+  }
+
+  if (!isInit && isHookKey(key) && !isHookCallback(value)) {
+    return null;
+  }
+
+  return value;
+}
+
 export class SettingsMapper {
   /**
    * Parse component settings into Handsontable-compatible settings.
@@ -65,8 +98,9 @@ export class SettingsMapper {
    * height, `copyPaste={on ? false : undefined}` turns copy and paste back on).
    * A hook has no default to fall back to, so a hook prop that had a callback and is now `undefined`
    * is forwarded as `null`, which removes the callback (`afterChange={on ? logChange : undefined}`).
-   * So is a hook prop that had a callback and is no longer passed at all.
-   * `null` and `false` are real values and are forwarded.
+   * So is a hook prop that had a callback and is no longer passed at all, and, on an update, a hook
+   * prop that holds anything but a callback (`afterChange={on && logChange}` gives `false`).
+   * For an option that is not a hook, `null` and `false` are real values and are forwarded.
    *
    * @param {object} properties Object containing properties from the HotTable object.
    * @param {object} additionalSettings Additional settings.
@@ -122,9 +156,7 @@ export class SettingsMapper {
         !isNotPassed(key as keyof HotTableProps) &&
         !shouldSkipProp(key as keyof Handsontable.GridSettings)
       ) {
-        const value = properties[key as keyof HotTableProps];
-
-        (newSettings as any)[key] = value === undefined ? getClearedValue(key) : value;
+        (newSettings as any)[key] = getForwardedValue(key, properties[key as keyof HotTableProps], isInit);
       }
     });
 

@@ -167,6 +167,18 @@ describe('HotTableComponent', () => {
         expect(editSourceCalls(afterChange)).toEqual([]);
       });
 
+      it('should stop running the callback when the key becomes `false`', () => {
+        const afterChange = jest.fn();
+        const hot = mountWithHook(afterChange);
+
+        fixture.componentRef.setInput('settings', { ...settings, afterChange: false });
+        fixture.detectChanges();
+        hot.setDataAtCell(0, 0, 'a');
+
+        expect(editSourceCalls(afterChange)).toEqual([]);
+        expect(hot.getSettings().afterChange).toBe(null);
+      });
+
       it('should keep the callbacks the settings input did not pass', () => {
         const afterChange = jest.fn();
         const addedAfterChange = jest.fn();

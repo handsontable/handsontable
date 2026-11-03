@@ -33,6 +33,16 @@ export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this co
 const SIZE_SETTING_KEYS = new Set<string>(['rowHeights', 'minRowHeights', 'colWidths']);
 
 /**
+ * Checks whether a hook value holds a callback core registers: a function or an array of them.
+ *
+ * @param value The hook value.
+ * @returns `true` for a function or an array.
+ */
+function isHookCallback(value: unknown): boolean {
+  return typeof value === 'function' || Array.isArray(value);
+}
+
+/**
  * Compares two size option values. Both hold a number, a string, a function or an array of numbers
  * or strings, so an element-wise walk is enough - and it is what makes a value written inline in a
  * template, which is a new array on every change detection run, compare as unchanged.
@@ -305,7 +315,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
    */
   private clearRemovedHooks(newOptions: Handsontable.GridSettings): void {
     this._passedHookKeys.forEach((key) => {
-      if (newOptions[key] === undefined) {
+      if (!isHookCallback(newOptions[key])) {
         newOptions[key] = null;
       }
     });
@@ -313,14 +323,15 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   /**
    * Lists the hooks the settings pass a callback for. A key counts as a hook by the rule core's
-   * `updateSettings()` uses in `core.ts`: a registered or a deprecated hook name.
+   * `updateSettings()` uses in `core.ts`: a registered or a deprecated hook name. Only a function or an
+   * array of them counts as a callback: core ignores any other value, such as `false`.
    *
    * @param settings The settings to read.
    * @returns The hook names.
    */
   private collectHookKeys(settings: Handsontable.GridSettings): Set<string> {
     return new Set(Object.keys(settings).filter(key => (
-      settings[key] != null &&
+      isHookCallback(settings[key]) &&
       (Handsontable.hooks.isRegistered(key) || Handsontable.hooks.isDeprecated(key))
     )));
   }

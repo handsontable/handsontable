@@ -168,6 +168,8 @@ export function filterPassedProps(props) {
 /**
  * List the hooks the props pass a callback for, directly or through the `settings` prop. A key counts as
  * a hook by the rule core's `updateSettings()` uses in `core.ts`: a registered or a deprecated hook name.
+ * Only a function or an array of them counts as a callback: core ignores any other value, so a hook prop
+ * that holds `false` (`:afterChange="on && logChange"`) is treated as removed.
  *
  * @param {HotTableProps} props The props passed to the component.
  * @returns {string[]} The hook names.
@@ -176,8 +178,7 @@ export function getPassedHookKeys(props: HotTableProps): string[] {
   const passedProps: VueProps<HotTableProps> = filterPassedProps(props);
 
   return Object.keys(passedProps).filter(key => (
-    passedProps[key] !== undefined &&
-    passedProps[key] !== null &&
+    (typeof passedProps[key] === 'function' || Array.isArray(passedProps[key])) &&
     (Handsontable.hooks.isRegistered(key) || Handsontable.hooks.isDeprecated(key))
   ));
 }

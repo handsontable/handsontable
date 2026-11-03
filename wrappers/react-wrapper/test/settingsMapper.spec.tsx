@@ -347,6 +347,18 @@ describe('Settings mapper unit tests', () => {
       expect(result.afterChange).toBe(null);
     });
 
+    it('should forward `null` on update for a hook prop that holds no callback', () => {
+      const afterChange = jest.fn();
+      const result = SettingsMapper.getSettings(
+        { afterChange: false as any, beforeChange: [afterChange], copyPaste: false },
+        { isInit: false, prevProps: { afterChange, beforeChange: [afterChange], copyPaste: true } }
+      );
+
+      expect(result.afterChange).toBe(null);
+      expect(result.beforeChange).toEqual([afterChange]);
+      expect(result.copyPaste).toBe(false);
+    });
+
     it('should not forward a hook prop that is `undefined` during initialization', () => {
       const result = SettingsMapper.getSettings(
         { afterChange: undefined },

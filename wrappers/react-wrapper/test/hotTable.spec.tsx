@@ -1484,6 +1484,18 @@ describe('Removing a hook prop', () => {
     expect(afterChange).not.toHaveBeenCalledWith(expect.anything(), 'edit');
   });
 
+  it('should stop running the callback when the hook prop becomes `false`', async() => {
+    const afterChange = jest.fn();
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, afterChange }, false);
+    const hotInstance = hotTableRef.current!.hotInstance!;
+
+    renderHotTableWithProps({ ...baseProps, afterChange: false as any }, false, hotTableRef);
+    editCell(hotInstance, 'a');
+
+    expect(afterChange).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+    expect(hotInstance.getSettings().afterChange).toBe(null);
+  });
+
   it('should keep a callback added with `addHook()` when the hook prop is removed', async() => {
     const afterChange = jest.fn();
     const addedAfterChange = jest.fn();

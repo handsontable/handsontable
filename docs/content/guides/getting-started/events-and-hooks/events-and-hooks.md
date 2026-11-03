@@ -219,23 +219,23 @@ const hotSettings = ref({
 
 The first argument may be modified and passed on through the Handsontable hooks that are next in the queue. This characteristic is shared between `before` and `after` hooks but is more common with the former. Before something happens, we can run the data through a pipeline of hooks that may modify or reject the operation. This provides many possibilities to extend the default Handsontable functionality and customize it for your application.
 
-A hook you pass in the settings stays registered until you replace or remove it. To replace it, pass another callback through [`updateSettings()`](@/api/core.md#updatesettings). To remove it, pass `null`: `hot.updateSettings({ afterChange: null })`. Passing `undefined` changes nothing, and neither call touches a listener you added with [`addHook()`](@/api/core.md#addhook). To remove one of those, call [`removeHook()`](@/api/core.md#removehook) with the same callback.
+A hook you pass in the settings stays registered until you replace or remove it. To replace it, pass another callback through [`updateSettings()`](@/api/core.md#updatesettings). To remove it, pass `null`: `hot.updateSettings({ afterChange: null })`. Passing `undefined` to `updateSettings()` changes nothing, and neither call touches a listener you added with [`addHook()`](@/api/core.md#addhook). To remove one of those, call [`removeHook()`](@/api/core.md#removehook) with the same callback.
 
 ::: only-for react
 
-A hook you pass as a prop is removed when the prop stops holding a callback: when you set it to `null` or `undefined`, or stop passing it. For example, `afterChange={isTracking ? logChange : null}` runs `logChange` only while `isTracking` is `true`.
+A hook you pass as a prop is removed when the prop stops holding a callback: when you set it to `null`, `undefined`, or another value that is not a function, such as `false`, or stop passing it. For example, `afterChange={isTracking ? logChange : null}` runs `logChange` only while `isTracking` is `true`.
 
 :::
 
 ::: only-for vue
 
-A hook you pass as a prop is removed when the prop stops holding a callback: when you set it to `null` or `undefined`, or stop passing it. The same applies to a hook in the `settings` prop. For example, `:afterChange="isTracking ? logChange : null"` runs `logChange` only while `isTracking` is `true`.
+A hook you pass as a prop is removed when the prop stops holding a callback: when you set it to `null`, `undefined`, or another value that is not a function, such as `false`, or stop passing it. The same applies to a hook in the `settings` prop. For example, `:afterChange="isTracking ? logChange : null"` runs `logChange` only while `isTracking` is `true`.
 
 :::
 
 ::: only-for angular
 
-A hook in the `settings` input is removed when you pass a new settings object in which the hook is `null`, `undefined`, or missing. A change made inside the same settings object does not reach the grid, so assign a new object, for example `this.gridSettings = { ...this.gridSettings, afterChange: null }`.
+A hook in the `settings` input is removed when you pass a new settings object in which the hook is missing, or holds `null`, `undefined`, or another value that is not a function. A change made inside the same settings object does not reach the grid, so assign a new object, for example `this.gridSettings = { ...this.gridSettings, afterChange: null }`.
 
 :::
 
