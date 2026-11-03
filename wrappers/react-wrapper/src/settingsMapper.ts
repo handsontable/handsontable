@@ -172,7 +172,7 @@ export class SettingsMapper {
     if (!isInit) {
       Object.keys(prevProps).forEach((key) => {
         if (
-          !Object.prototype.hasOwnProperty.call(properties, key) &&
+          !Object.hasOwn(properties, key) &&
           prevProps[key as keyof HotTableProps] !== undefined &&
           isHookKey(key)
         ) {
