@@ -5,7 +5,8 @@
  *   node scripts/run.mjs build:feature-manifest      Checks the sources, fails when a committed output is stale,
  *                                                    and writes `dist/manifest.json`.
  *   node scripts/run.mjs generate:feature-manifest   The same, but rewrites the committed outputs first: the
- *                                                    `feature.generated.ts` modules and `released-tokens.json`.
+ *                                                    `feature.generated.ts` modules,
+ *                                                    `licenseCapabilities.generated.ts`, and `released-tokens.json`.
  *   node scripts/generate-feature-manifest.mjs --check-base <file>
  *                                                    Only compares `released-tokens.json` with the base branch's
  *                                                    copy (CI passes it; `{}` before the file existed there).

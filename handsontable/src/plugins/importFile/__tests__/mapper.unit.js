@@ -5,6 +5,7 @@ import { isLimitError, MAX_TRANSLATED_FORMULA_CHARS } from '../../../utils/xlsxE
 import { createCellSnapshot, createSheetSnapshot, createWorkbookSnapshot } from '../../../utils/xlsxEngine/model';
 import { EMPTY_STYLES } from '../../../utils/xlsxEngine/adapters/native/parts/styles';
 import { parseWorksheet } from '../../../utils/xlsxEngine/adapters/native/parts/worksheetReader';
+import { UNRESTRICTED_XLSX_ENTITLEMENT } from '../../../utils/xlsxEngine/xlsxEntitlement';
 
 function cell(overrides) {
   return { ...createCellSnapshot(), ...overrides };
@@ -26,7 +27,9 @@ function map(
   wb, options = {}, context = { formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false }
 ) {
   const dropped = new DroppedFeatures();
-  const result = mapWorkbook(wb, resolveImportOptions(options), context, dropped);
+  const result = mapWorkbook(
+    wb, resolveImportOptions(options), { entitlement: UNRESTRICTED_XLSX_ENTITLEMENT, ...context }, dropped
+  );
 
   return { result, dropped };
 }
@@ -91,7 +94,10 @@ describe('selectSheet', () => {
     dropped.record('chartSheets');
 
     expect(() => mapWorkbook(workbook(), resolveImportOptions({}), {
-      formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false,
+      formulasEnabled: false,
+      commentsEnabled: false,
+      customBordersEnabled: false,
+      entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
     }, dropped)).toThrow('The workbook has no worksheets. It holds only chart sheets, which the import skips.');
   });
 });
@@ -799,6 +805,29 @@ describe('mapWorkbook', () => {
 
       expect(result.namedExpressions).toEqual([{ name: 'Flag', formula: 'TRUE()' }]);
     });
+
+    it('should hand over no defined name when the license does not unlock xlsx:formulas', () => {
+      const sheet = createSheetSnapshot('Data');
+
+      sheet.rows = [[cell({ value: 1 }), cell({ value: null, formula: { text: 'IF(Flag,1,2)', result: 1 } })]];
+
+      const wb = workbook(sheet);
+
+      wb.definedNames = [{ name: 'Flag', formula: 'TRUE', sheetName: null }];
+
+      const { result } = map(wb, {}, {
+        formulasEnabled: true,
+        commentsEnabled: false,
+        formulaSheetName: 'Data',
+        formulaSheetNames: new Set(['data']),
+        formulaNamedExpressions: new Set(),
+        canAddNamedExpression: () => true,
+        entitlement: { ...UNRESTRICTED_XLSX_ENTITLEMENT, formulas: false },
+      });
+
+      expect(result.namedExpressions).toBeUndefined();
+      expect(result.data[0][1]).toBe(1);
+    });
   });
 
   it('should strip the prefixes on a formula that needs no shift', () => {
@@ -1237,7 +1266,9 @@ describe('mapWorkbook', () => {
     const dropped = new DroppedFeatures();
     const recordUnsupported = jest.spyOn(dropped, 'recordUnsupported');
 
-    mapWorkbook(workbook(sheet), resolveImportOptions({}), { formulasEnabled: false, commentsEnabled: false }, dropped);
+    mapWorkbook(workbook(sheet), resolveImportOptions({}), {
+      formulasEnabled: false, commentsEnabled: false, entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
+    }, dropped);
 
     expect(recordUnsupported).toHaveBeenCalledTimes(1);
     expect(dropped.list()).toEqual(['numFmt:0.00E+00']);

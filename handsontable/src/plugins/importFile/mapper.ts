@@ -4,6 +4,7 @@ import { DROPPED_FEATURES, type DroppedFeatures } from '../../utils/xlsxEngine/c
 import type {
   CellSnapshot, DefinedNameSnapshot, MergeSnapshot, SheetSnapshot, WorkbookSnapshot,
 } from '../../utils/xlsxEngine/model';
+import type { XlsxEntitlement } from '../../utils/xlsxEngine/xlsxEntitlement';
 import { parseMultiRangeRef, parseRangeRef } from '../../utils/xlsxEngine/cellRef';
 import { closedReferenceArea, rebaseImportedFormula } from '../../utils/xlsxEngine/formulaRefs';
 import { stripFunctionPrefixes } from '../../utils/xlsxEngine/functionPrefixes';
@@ -115,6 +116,11 @@ export interface MapperContext {
   probeLiveArrays?: (
     data: unknown[][], namedExpressions: NonNullable<ImportResult['namedExpressions']>
   ) => LiveArrayProbe | null;
+  /**
+   * What the license unlocks of the XLSX engine. A feature it does not unlock is skipped and its
+   * token recorded as `license:<token>`; `xlsx:number_formats` never restricts the import.
+   */
+  entitlement: XlsxEntitlement;
 }
 
 /**
@@ -449,6 +455,14 @@ interface CellPass {
    */
   sawStyle: boolean;
   /**
+   * Whether any visited cell carried a comment, a list validation, or a formula. With `sawStyle`,
+   * these decide which `license:<token>` entries the import records: one only for a feature the
+   * file carried and the caller's options asked for.
+   */
+  sawComment: boolean;
+  sawValidation: boolean;
+  sawFormula: boolean;
+  /**
    * Class names collected when `importStyles` is on, per column as runs of consecutive rows that
    * wear the same classes. One `"row:col"` entry per styled cell let a 101 KB file of 305 x 16 384
    * cells with two fills alternating by row allocate 2.2 GB before the per-cell meta budget saw it.
@@ -518,7 +532,7 @@ function resolveDropdownMeta(cell: CellSnapshot, scope: CollectContext): ImportC
 function resolveCellMeta(cell: CellSnapshot, inferredMeta: InferredMeta, scope: CollectContext): ImportColumn | null {
   const { meta } = inferredMeta;
 
-  if (cell.validation) {
+  if (cell.validation && scope.context.entitlement.dataValidation) {
     const dropdown = resolveDropdownMeta(cell, scope);
 
     if (dropdown) {
@@ -1537,10 +1551,12 @@ function pushCellValue(
   row: number, col: number, scope: CollectContext
 ): void {
   const { shift, dropped } = scope;
+  // Without `xlsx:formulas` no formula is read at all: the cell imports its cached value, nothing
+  // reaches `result.formulas`, and the `license:xlsx:formulas` entry names the loss.
   const array = cell.formula?.array;
   // An array master is also scanned for its functions and the engine's names; the one charge covers
   // those walks.
-  const read = cell.formula
+  const read = cell.formula && scope.context.entitlement.formulas
     ? readFormulaText(cell.formula.text, scope, array !== undefined
       && (scope.context.registersFunction !== undefined || scope.engineNames.size > 0))
     : null;
@@ -1901,6 +1917,14 @@ function recordReadOnly(readOnly: Map<number, Array<[number, number]>>, row: num
 }
 
 /**
+ * Whether the sheet's protection makes its locked cells read-only: the sheet is protected and the
+ * license unlocks `xlsx:protection`.
+ */
+function isProtected(sheet: SheetSnapshot, context: MapperContext): boolean {
+  return context.entitlement.protection && sheet.protection?.enabled === true;
+}
+
+/**
  * Collects one cell into the pass, in the window's own 0-based coordinates.
  */
 function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: number, scope: CollectContext): void {
@@ -1917,17 +1941,23 @@ function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: numbe
     pass.dataCells += 1;
   }
 
+  pass.sawFormula = pass.sawFormula || cell.formula !== null;
+  pass.sawComment = pass.sawComment || cell.comment !== null;
+  pass.sawValidation = pass.sawValidation || cell.validation !== null;
+
   pushCellValue(pass, cell, inferred, row, col, scope);
 
   if (cell.comment !== null) {
-    if (context.commentsEnabled) {
-      pass.comments.push({ row, col, value: cell.comment });
-    } else {
+    // Without the Comments plugin the comment is lost whatever the license says, so the option entry
+    // names it; with the plugin, a missing `xlsx:comments` is named by its license entry instead.
+    if (!context.commentsEnabled) {
       pass.droppedComments = true;
+    } else if (context.entitlement.comments) {
+      pass.comments.push({ row, col, value: cell.comment });
     }
   }
 
-  const readOnly = sheet.protection?.enabled === true && cell.locked !== false;
+  const readOnly = isProtected(sheet, context) && cell.locked !== false;
 
   if (readOnly) {
     recordReadOnly(pass.readOnly, row, col);
@@ -1956,6 +1986,9 @@ function collectCells(
     namedExpressions: [],
     readOnly: new Map(),
     sawStyle: false,
+    sawComment: false,
+    sawValidation: false,
+    sawFormula: false,
     classNames: new Map(),
     chargedClassRuns: 0,
     styles: new Map(),
@@ -2008,7 +2041,7 @@ function collectCells(
 
         // OOXML treats a cell with no explicit `<protection>` as locked, and an empty cell has
         // none, so under sheet protection a blank imports read-only like its filled neighbours.
-        if (sheet.protection?.enabled === true) {
+        if (isProtected(sheet, context)) {
           recordReadOnly(pass.readOnly, row - window.firstRow, col - window.firstCol);
         }
       } else {
@@ -2532,9 +2565,13 @@ function headerLabelAt(sheet: SheetSnapshot, row: number, col: number): string {
  * imported rectangle.
  *
  * Returns `undefined` for a single-row band, which keeps `colHeaders` the answer for the common case.
+ *
+ * Without `xlsx:layout` (`readsMerges` is `false`) the band's merges are not read, the way the export
+ * writes no nested-header merge without it: every header cell becomes its own label with no colspan,
+ * and a blank cell stays `''`.
  */
 function mapNestedHeaders(
-  sheet: SheetSnapshot, window: SheetWindow, options: ResolvedImportOptions
+  sheet: SheetSnapshot, window: SheetWindow, options: ResolvedImportOptions, readsMerges: boolean
 ): ImportedNestedHeader[][] | undefined {
   if (options.colHeaders !== 'firstRow' || options.headerRows < 2) {
     return undefined;
@@ -2542,7 +2579,9 @@ function mapNestedHeaders(
 
   const bandEnd = window.firstRow - 1;
   const bandStart = bandEnd - options.headerRows + 1;
-  const coverage = buildHeaderCoverage(sheet, bandStart, bandEnd, window);
+  const coverage = readsMerges
+    ? buildHeaderCoverage(sheet, bandStart, bandEnd, window)
+    : new Map<string, MergeSnapshot>();
   const layers: ImportedNestedHeader[][] = [];
 
   for (let row = bandStart; row <= bandEnd; row++) {
@@ -2566,6 +2605,78 @@ function mapNestedHeaders(
 }
 
 /**
+ * Whether the header band holds a merge `mapNestedHeaders` would turn into a group: a band of two or
+ * more rows under `colHeaders: 'firstRow'`, with a merge still wider than one column once clamped to
+ * the window. Bounded like `mapNestedHeaders`, by the band's merges.
+ */
+function hasHeaderBandGroup(sheet: SheetSnapshot, window: SheetWindow, options: ResolvedImportOptions): boolean {
+  if (options.colHeaders !== 'firstRow' || options.headerRows < 2) {
+    return false;
+  }
+
+  const bandEnd = window.firstRow - 1;
+  const bandStart = bandEnd - options.headerRows + 1;
+  const coverage = buildHeaderCoverage(sheet, bandStart, bandEnd, window);
+
+  for (const merge of coverage.values()) {
+    if (Math.min(merge.col + merge.colspan - 1, window.lastCol) > Math.max(merge.col, window.firstCol)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Whether the sheet carries any layout the `xlsx:layout` token gates: a merge, a hidden row or
+ * column, a frozen pane, an explicit column width or row height, or a right-to-left direction.
+ */
+function hasLayout(sheet: SheetSnapshot): boolean {
+  return sheet.rtl
+    || sheet.merges.length > 0
+    || sheet.hiddenRows.length > 0
+    || sheet.hiddenCols.length > 0
+    || (sheet.freeze !== null && (sheet.freeze.rows > 0 || sheet.freeze.cols > 0))
+    || sheet.colWidths.some(width => width !== null && width !== undefined)
+    || sheet.rowHeights.some(height => height !== null && height !== undefined);
+}
+
+/**
+ * Records a `license:<token>` entry for each token the license leaves out, but only for a feature the
+ * file carried AND the caller asked the import to bring over, so a plain workbook, or a feature the
+ * caller's own options left out, reports nothing. `requestedOptions` are the caller's values, before
+ * a missing token forced any of them off. Recorded in the order of `entitlement.missing`, which is the
+ * order `XLSX_CAPABILITY_IDS` declares.
+ */
+function recordMissingLicenses(
+  sheet: SheetSnapshot, window: SheetWindow, options: ResolvedImportOptions,
+  requestedOptions: ResolvedImportOptions, pass: CellPass, context: MapperContext, dropped: DroppedFeatures
+): void {
+  const { entitlement } = context;
+  const carried: Record<string, () => boolean> = {
+    'xlsx:formulas': () => requestedOptions.importFormulas && pass.sawFormula,
+    // Header groups follow the license, not `importLayout`, so a group the license dropped counts
+    // whatever the caller's option says.
+    'xlsx:layout': () => (requestedOptions.importLayout && hasLayout(sheet))
+      || hasHeaderBandGroup(sheet, window, options),
+    // Without the Comments plugin the comments are reported as `comments`, as for any key. A note in
+    // the header band is lost on every key (`comment:header`), so it never counts toward the license.
+    'xlsx:comments': () => context.commentsEnabled && pass.sawComment,
+    'xlsx:styles': () => requestedOptions.importStyles && pass.sawStyle,
+    'xlsx:conditional_formatting': () => sheet.conditionalFormatting.length > 0,
+    // A list validation becomes a dropdown only through type inference.
+    'xlsx:data_validation': () => requestedOptions.inferCellTypes && pass.sawValidation,
+    'xlsx:protection': () => sheet.protection?.enabled === true,
+  };
+
+  entitlement.missing.forEach((id) => {
+    if (Object.prototype.hasOwnProperty.call(carried, id) && carried[id]()) {
+      dropped.recordLicense(id);
+    }
+  });
+}
+
+/**
  * Removes every key whose value is `undefined`, so applying the result never overrides a setting
  * the file said nothing about.
  */
@@ -2585,8 +2696,14 @@ function stripUndefined<T extends object>(result: T): T {
 export function mapWorkbook(
   workbook: WorkbookSnapshot, requestedOptions: ResolvedImportOptions, context: MapperContext, dropped: DroppedFeatures
 ): MappedResult {
+  const { entitlement } = context;
   const sheet = selectSheet(workbook, requestedOptions.sheet, dropped);
-  const options = clampToSheet(sheet, requestedOptions);
+  const options = clampToSheet(sheet, {
+    ...requestedOptions,
+    importFormulas: requestedOptions.importFormulas && entitlement.formulas,
+    importLayout: requestedOptions.importLayout && entitlement.layout,
+    importStyles: requestedOptions.importStyles && entitlement.styles,
+  });
   const window = computeWindow(sheet, options);
   const colCount = Math.max(window.lastCol - window.firstCol + 1, 0);
   const pass = collectCells(sheet, workbook, window, options, context, dropped);
@@ -2595,7 +2712,9 @@ export function mapWorkbook(
     if (pass.droppedBorders) {
       dropped.record(DROPPED_FEATURES.cellStylesBorders);
     }
-  } else if (pass.sawStyle) {
+  } else if (pass.sawStyle && !requestedOptions.importStyles) {
+    // The caller left styles out, whatever the license unlocks. When the caller asked for them and the
+    // license took them, the `license:xlsx:styles` entry names the loss instead.
     dropped.record(DROPPED_FEATURES.cellStyles);
   }
 
@@ -2603,21 +2722,28 @@ export function mapWorkbook(
     dropped.record(DROPPED_FEATURES.comments);
   }
 
+  // A header-band note is lost on every key, whatever the license or the Comments plugin.
   if (hasHeaderBandComment(sheet, window, options)) {
     dropped.record(DROPPED_FEATURES.commentHeader);
   }
 
+  const conditionalFormatting = entitlement.conditionalFormatting
+    ? mapConditionalFormatting(sheet, window, dropped)
+    : undefined;
+
+  recordMissingLicenses(sheet, window, options, requestedOptions, pass, context, dropped);
+
   const result: MappedResult = {
     data: pass.data,
     colHeaders: mapHeaders(sheet, window, options),
-    nestedHeaders: mapNestedHeaders(sheet, window, options),
+    nestedHeaders: mapNestedHeaders(sheet, window, options, entitlement.layout),
     rowHeaders: options.rowHeaders ? true : undefined,
     ...placeMeta(pass, pass.data.length, colCount, options.inferCellTypes),
     ...(options.importLayout ? mapLayout(sheet, window) : {}),
     formulas: pass.formulas.length > 0 ? pass.formulas : undefined,
     comments: pass.comments.length > 0 ? pass.comments : undefined,
     namedExpressions: pass.namedExpressions.length > 0 ? pass.namedExpressions : undefined,
-    conditionalFormatting: mapConditionalFormatting(sheet, window, dropped),
+    conditionalFormatting,
     styles: pass.styles.size > 0 ? Object.fromEntries(pass.styles) : undefined,
     customBorders: pass.borders.length > 0 ? pass.borders : undefined,
     sheetNames: workbook.sheets.map(candidate => candidate.name),

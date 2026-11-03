@@ -15,7 +15,7 @@ import { HotRendererProps, HotTableRef } from '../src/types';
 // component-based renderer and never evicted them, so scrolling grew retained
 // DOM as O(rows × cols). The cache must stay bounded to the viewport.
 describe('Portal container cache eviction', () => {
-  const VISIBLE_ROWS = Math.ceil(300 / 23); // height / rowHeights ≈ 14 visible rows
+  const VISIBLE_ROWS = Math.ceil(300 / 23); // height / row height ≈ 14 visible rows
   const COLS = 3;
 
   it('should keep the portal container cache bounded to the viewport while scrolling a tall grid', async() => {
@@ -37,7 +37,7 @@ describe('Portal container cache eviction', () => {
         data={createSpreadsheetData(ROWS, COLS)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         autoRowSize={false}
         autoColumnSize={false}
@@ -99,7 +99,7 @@ describe('Portal container cache eviction', () => {
         data={createSpreadsheetData(ROWS, COLS)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         autoRowSize={false}
         autoColumnSize={false}

@@ -1537,26 +1537,18 @@ class ExportDataProvider {
    *
    * `getRowHeight()` returns 0 for hidden rows because the HiddenRows plugin
    * overrides the `modifyRowHeight` hook. This method reads the configured height
-   * directly from the `rowHeights` setting, bypassing that hook.
+   * from the settings (`rowHeights` and `minRowHeights`), bypassing that hook.
    *
    * @private
    * @param {number} rowIndex Visual row index.
    * @returns {number}
    */
   _getNaturalRowHeight(rowIndex: number): number {
-    const settings = this.hot.getSettings();
-    const { rowHeights, defaultRowHeight } = settings;
+    const { defaultRowHeight } = this.hot.getSettings();
     const fallback: number = (defaultRowHeight as number | undefined) ?? 23;
+    const height = this.hot._getRowHeightFromSettings(rowIndex);
 
-    if (Array.isArray(rowHeights)) {
-      return (rowHeights[rowIndex] as number | undefined) ?? fallback;
-    } else if (typeof rowHeights === 'function') {
-      return (rowHeights(rowIndex) as number | undefined) ?? fallback;
-    } else if (typeof rowHeights === 'number') {
-      return rowHeights;
-    }
-
-    return fallback;
+    return Number.isFinite(height) ? height as number : fallback;
   }
 
   /**

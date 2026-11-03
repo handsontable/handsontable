@@ -4,6 +4,7 @@ import Handsontable from '../../../index';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
 import { excelJsAdapter } from '../../../utils/xlsxEngine/adapters/exceljs';
 import { readZip } from '../../../utils/xlsxEngine/adapters/native/zip/reader';
+import { keyWithout } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 
 /**
  * DEV-3648: a HyperFormula formula whose result spills (`=SEQUENCE(3)`) is exported as an Excel
@@ -111,6 +112,26 @@ describe('Xlsx export: array formulas', () => {
     expect(rows[0][3].formula.array).toEqual({ ref: 'D1:D2', dynamic: true });
     expect(rows[0][4].formula.array).toEqual({ ref: 'E1', dynamic: true });
     expect(dropped).toEqual(['formula:arrayExcluded']);
+  });
+
+  it('should keep the arrays over a merged cell when the license leaves the merges out', async() => {
+    // Without `xlsx:layout` no merge reaches the file, so none blocks a spill or a CSE array.
+    const { rows, dropped } = await exportSheet({
+      data: [
+        ['=SEQUENCE(3)', '=ARRAYFORMULA(SUM(A1:A3*2))', null],
+        [null, null, null],
+        [null, null, null],
+      ],
+      mergeCells: [
+        { row: 1, col: 0, rowspan: 1, colspan: 2 },
+        { row: 0, col: 1, rowspan: 1, colspan: 2 },
+      ],
+      licenseKey: keyWithout('xlsx:layout'),
+    });
+
+    expect(rows[0][0].formula.array).toEqual({ ref: 'A1:A3', dynamic: true });
+    expect(rows[0][1].formula.array).toEqual({ ref: 'B1', dynamic: false });
+    expect(dropped).not.toContain('formula:arrayExcluded');
   });
 
   it('should stop a spill at the next array formula on its right', async() => {

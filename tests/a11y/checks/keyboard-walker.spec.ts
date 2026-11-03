@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { test, expect, type CDPSession, type Page, type TestInfo } from '@playwright/test';
 import { A11Y_PAGES, fixtureUrl, type A11yPage } from '../pages.mjs';
-import { PORTAL_MARK, STATES, emulate, expectEditorOpen, openTarget, reachState, type OpenedTarget } from '../harness';
+import { PORTAL_MARK, STATES, emulate, expectEditorOpen, openTarget, reachState, releaseParkedFetches, type OpenedTarget } from '../harness';
 import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } from '../evidence';
 import {
   diffTabOrder,
@@ -515,6 +515,7 @@ async function walkPage(page: Page, testInfo: TestInfo, entry: A11yPage): Promis
   const opened: OpenedTarget = await openTarget(page, entry, THEME);
 
   await reachState(page, entry, opened);
+  await releaseParkedFetches(page);
 
   const environment = await readEnvironment(page);
   const cdp = await openAxSession(page);
@@ -699,6 +700,7 @@ async function probePage(page: Page, testInfo: TestInfo, entry: A11yPage, probes
     const opened = await openTarget(page, { ...entry, state: 'none' }, THEME, { pageErrors });
 
     await reachState(page, { ...entry, state: 'none' }, opened);
+    await releaseParkedFetches(page);
     await installSentinels(page, opened.root);
     // A popup library's own portal (hyperformula-ui's on the formula builder page) is marked too, so a key
     // that moves the focus into one of its popups reads as a move inside the product.

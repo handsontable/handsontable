@@ -489,6 +489,15 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   review, because every assertion read columns and the top clone's rows, and
   nothing asked the master where its band was. Reference:
   `e2e/iframe-cross-realm-scroll.spec.ts` (`masterRowBand()`).
+- **The xlsx license fixture reaches into the core package's Jest helpers.**
+  `fixtures/xlsxLicenseKeys.ts` imports
+  `handsontable/src/utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys.js`
+  (which uses `__tests__/buildTestKey.js`) and `__tests__/fixtures.js` through
+  Playwright's loader, so the Jest suites and these specs build keys with one
+  builder. Moving or renaming those files breaks the xlsx license specs. And
+  `demo/xlsx-license.html` takes a third fail-loud allowlisted param besides
+  `?theme=`/`?bundle=`: `?engine=` (`native` or `exceljs`); an unknown value
+  throws, like the other two.
 
 ## Two clicks on the same cell are a double click
 
@@ -1621,6 +1630,129 @@ best-practice, AAA and experimental rules beside the WCAG 2.2 A and AA ones (`DI
   `rightToLeftQuery()`). The phone page runs on a Pixel 7 beside the iPhone 13. A variant that did not
   apply (no dark class on the grid, or a grid still left to right) fails its test before axe runs, a
   tooling error the document lists as a target not measured, so it never reads as a clean pass.
+
+### Focus appearance and non-text contrast
+
+`a11y/checks/focus-contrast.spec.ts`, the `focus-contrast` check: 2.4.7, 2.4.11 and 1.4.11 on every
+theme, light and dark (the dark variant is the discovery run's, `a11y/checks/variants.ts`). The spec
+captures pixels; the arithmetic and the verdicts are `lib/contrast.mjs` (tested in
+`lib/__tests__/contrast.test.mjs`). `PLAN` in the spec says which page is measured for what.
+
+- **Each measure starts from the catalog's state, and a record cites only what it measured.** A page
+  whose state is `none` is put back as it loaded before each measure after the first (no selection, no
+  focus, scrolled to the top-left: `resetState()`), because a cell left selected highlights the header the
+  next measure reads, and a control left focused draws its ring over the icon measured next. A menu or
+  editor page keeps its state. A measure that could not be set up (no cell to the right of the start
+  cell, no part matching a selector of the plan) adds its criteria to nothing and its reason to the
+  record's `problems`: a criterion counted as evaluated with nothing measured reads as a pass. A dark
+  record whose `ht-theme-<name>-dark` class never reached the grid measures nothing and says so
+  (`variantApplied: false`, and a problem), as in the discovery run.
+- **Pixels, not computed styles.** The themes paint with translucent colors and `color-mix()`, so the
+  color a user sees is the composited pixel. A capture is a `page.screenshot()` clip decoded by the page's
+  own canvas; the device scale factor is 1, so a clip pixel is a CSS pixel. WCAG 2.2's relative luminance
+  (the 0.04045 threshold) and a strict `< 3`: 2.996:1 fails, and a finding shows its ratio rounded down
+  (`floorRatio()`, 2.99), so a failing ratio never reads as 3:1.
+- **A focus indicator is what changed.** The same area is captured before the focus arrives and after it
+  arrives by the keyboard (an arrow key for a cell; a key press, then the focus, for a control, which is
+  what makes `:focus-visible` match), and the changed pixels are the indicator (`indicatorChange()`).
+  A cell's area is captured before with nothing selected, because the starting cell's ring reaches into
+  the margin and the pixels it gives back would count as a change. Nothing changed is
+  `focus-not-visible` (2.4.7). A ring or an outline is judged against the colors next to it
+  (`adjacentRatio`, the most common unchanged pixel of the margin around the element), because a ring
+  drawn over a grid line would read 1.92:1 against the line and 3.08:1 against the cell beside it, and
+  1.4.11 asks for the second; the margin, not the whole capture, because a filled button fills most of
+  its capture and a ring around it would read against the fill. A highlight that repaints the element
+  itself (a menu item) is judged against what it replaced. Under 3:1 is `focus-indicator-contrast`, and
+  it names the two colors its ratio is between. A control is named by its tag, its class and its label,
+  and a second control with the same name in one target gets an ordinal (`distinctName()`,
+  `button.ht-button "Action" (2)`): a finding's id keys on its element, and two findings that share an id
+  are a problem of the document.
+- **Parts that identify a component or its state**: the selection outline and the grid lines are the
+  strongest pixel against the area's dominant color (`strongestPixel()`). Checkboxes and icons are read
+  from the pixels inside their own box (`partContrast()`), because header text beside an icon reaches
+  into the margin and would pass it: an icon against what it sits on, a checkbox's edge against the cell
+  around it, and a checked box's mark against its fill, the weaker of the two. A part another element
+  covers at its center, a disabled control (1.4.11 exempts it) and a part the browser does not paint
+  (`checkVisibility()`: `visibility: hidden`, opacity 0) are skipped; a painted part is measured however
+  faint, because under 1.05:1 is the worst failure, not nothing. A grid line that draws nothing
+  (`isDrawn()`, a theme that leaves it out) is skipped. A grid line is `moderate`: it identifies a cell
+  only where nothing else does. Measure the element that draws the glyph: the sort arrow is
+  `.ht-sort-indicator`, drawn only while its column is sorted, so the plan sorts a column first (`sort`).
+- **2.4.11 walks the focus.** On the pages with frozen panes and bars, the keyboard moves the focus across
+  the grid and into its far corner and back; after each key 25 points of the focused cell are sampled with
+  `elementFromPoint()`. The cell sampled is the topmost copy (`getCell(row, col, true)`): a frozen row is
+  drawn by an overlay clone above the master, and sampling the master's copy read every frozen cell as
+  hidden. Only the points inside the window are sampled: a point outside it is covered by nothing. A cell
+  covered at every sampled point is `focus-obscured`; a cell with no sampled point inside the window (off
+  screen, or at most a sixth of it at the window's edge) is `focus-off-screen` (2.4.7). Two keys of the
+  walk can land on one cell, so its findings are one per cell.
+
+### Zoom, reflow, text spacing, and hover content
+
+`a11y/checks/reflow.spec.ts`, the `reflow` check: 1.3.4, 1.4.4, 1.4.10, 1.4.12, and 1.4.13 on every
+theme. The spec measures boxes; `lib/reflow.mjs` (tested in `lib/__tests__/reflow.test.mjs`) decides what
+counts as lost content.
+
+- **Three conditions, each a viewport** (`CONDITIONS`): 320 by 256 CSS px for 1.4.10 (a 1280 by 1024
+  window at 400%), 640 by 512 for 1.4.4 (200%), and the WCAG text-spacing override (`TEXT_SPACING_CSS`) for
+  1.4.12, injected as a stylesheet as soon as the document has a head, so the grid measures its rows with
+  it the way it would under a user's stylesheet. Each runs over the plain grid and the pages with a
+  surface of their own around it (`PAGES` in the spec). Left out: the pages whose surfaces lie inside the
+  grid's own box (the freeze bars on the freeze lines and header corners, the selection handles, the
+  links, checkboxes, and pending indicator in cells, and the grid shapes, the right-to-left grid among
+  them), which move with the grid when it scrolls in two dimensions; the editors whose control is a
+  native one in the cell (text, password, select, and the date and time editors); the dropdown and
+  handsontable editors, which open the same one-column `.handsontableEditor` list as the autocomplete
+  editor on that fixture; the dark pages, because a color scheme changes no box; and the right-to-left
+  menu, whose fixture lays several wide grids on one page, so the page would scroll sideways for the
+  fixture's sake.
+- **A grid its fixture pins wider than the viewport is measured at the page's width.** A fixture that
+  sets a pixel `width` wider than the viewport gets `width: '100%'` before the state is reached (`fitted`
+  in the detail). With a pixel width the bars and the overlays follow the grid's own box, so they would
+  reach past the viewport because of the test page: the page's layout, not the grid's reflow.
+- **The grid body is exempt; everything around it is measured.** A data grid may scroll in two
+  dimensions, so the main grid's tables are left out. The menus, the editors' lists, the comment editor,
+  dialogs, notifications, the bars and the overlays are measured for text a clipping container cuts off
+  (`text-clipped`; `text-truncated`, moderate, when the container ends it with an ellipsis), surfaces the
+  viewport cuts off, and controls drawn over each other (`controls-overlap`, judged on the part of each
+  box its clipping ancestors leave on screen, never between a control and one inside it, and only between
+  two controls on the same layer: the page outside every popup is one layer and each popup element is one
+  of its own, because a popup lies over what is under it by design, the page or another popup (a submenu
+  over its menu), and Escape closes it). The formula builder's suggestion list and function help count as popups and its formula bar as a
+  bar. A layer that covers the whole grid (the dialog's, the notification's) has the grid's box, so it is
+  measured by the part a user reads: the dialog's card and each toast. A screen-reader-only box (one pixel
+  square, like the announcer's live regions) is never text cut off: its text is read out, not drawn.
+- **Where a surface is decides what reaching past the viewport means.** A surface positioned against the
+  viewport (`position: fixed`, read from the computed style) that reaches past it cannot be scrolled to
+  (`outside-viewport`). Any other surface is placed in the page's own coordinates (its box plus the scroll
+  offset), and scrolling reaches from the page's origin to its scroll size and no further: a part before
+  the origin (a menu flipped left of or above the page) or past the scroll size is `outside-viewport`
+  too. Within reach, a surface past the right edge needs a sideways scroll (`needs-horizontal-scroll`),
+  the second scroll direction 1.4.10 does not allow outside a data table. That is a finding at 320 px
+  only: 1.4.4 and 1.4.12 ask for no loss of content, and a sideways scroll loses none. Past the bottom
+  edge a surface is a vertical scroll away, which is allowed.
+- **Every finding names its element apart from the others.** A finding's id keys on its selector, and
+  two findings with one id read as one in a compare between runs. The spec names an element by its tag,
+  its first class, and its label, so two items of one measurement can share a name (the context menu and
+  its submenu are both `div.htMenu`): the second and later get an ordinal (`div.htMenu (2)`,
+  `nameApart()`), among the surfaces, the controls, and the clipping containers alike. A
+  `controls-overlap` names both controls (`a × b`), so one control over two neighbors is two findings.
+- **A measurement is taken on a settled page.** The spec measures until two measurements three frames
+  apart agree (`settled` in the detail). Every check calls `releaseParkedFetches()` (the harness) after
+  every `reachState()`, on every page, so a data-provider page added to a check's plan later is measured
+  in the same state: it releases the data-provider fixture's parked fetches until none is left, because
+  the catalog's opener releases the first fetch only, and whether the next one had landed changed what
+  the bars showed between runs. The gating axe scan does not call it, so the state its baseline was taken
+  in is unchanged.
+- **Hover content** (1.4.13) is the comment of a commented cell: it must appear on hover, stay while the
+  pointer moves onto it and while it rests there, and hide on Escape with the pointer still on it. "Stays"
+  is measured on a fake clock (`page.clock`, installed once the comment shows), so the comment's own hide
+  timers run, and ten seconds pass without a wait. Each property is measured from the comment on screen,
+  so one that fails does not decide the next: a comment an earlier step hid is shown again from its cell
+  first. A property that still finds no comment is a problem of the target, never a finding, and a
+  comment that never appeared is a problem that evaluates no criterion (`criteria: []`).
+- **Orientation** (1.3.4): the grid's root must have an area on screen in a 390 by 844 and an 844 by 390
+  viewport.
 
 ### Adding a check
 

@@ -147,7 +147,7 @@ fileInput.addEventListener('change', async () => {
 
 ### 3. Read what was dropped
 
-`result.dropped` lists what the file carried and the grid did not take, and the plugin prints the same list in one console warning per import. An import that a newer import replaced while its file was being read, or that the plugin was disabled during, prints none. The [Dropped features reference](@/guides/import-and-export/dropped-features/dropped-features.md#dropped-on-import) explains every key.
+`result.dropped` lists what the file carried and the grid did not take, and the plugin prints the same list in one console warning per import. An import that a newer import replaced while its file was being read, or that the plugin was disabled during, prints none. The [Dropped features reference](@/guides/import-and-export/dropped-features/dropped-features.md#dropped-on-import) explains every key. A feature the file carries and your license does not unlock is reported as `license:xlsx:<capability>`: see [What your license unlocks](#what-your-license-unlocks).
 
 ### 4. Preview before you apply
 
@@ -222,7 +222,7 @@ Unmounting the grid, or hiding it with `<Activity mode="hidden">`, destroys the 
 
 ### Keep the imported sheet through a settings change
 
-The `hot-table` component passes every key of a new `[settings]` object to `updateSettings`. Keep the settings in one object that nothing replaces, as the demo does. A settings object you bind after an import must leave out `colHeaders`, `columns`, and the layout options the import set (`mergeCells`, `hiddenRows`, `hiddenColumns`, `customBorders`, `fixedRowsTop`, `fixedColumnsStart`, `colWidths`, `rowHeights`). Otherwise they replace the imported headers, column types, and layout.
+The `hot-table` component passes every key of a new `[settings]` object to `updateSettings`. Keep the settings in one object that nothing replaces, as the demo does. A settings object you bind after an import must leave out `colHeaders`, `columns`, and the layout options the import set (`mergeCells`, `hiddenRows`, `hiddenColumns`, `customBorders`, `fixedRowsTop`, `fixedColumnsStart`, `colWidths`, `minRowHeights`). Otherwise they replace the imported headers, column types, and layout.
 
 ### Import outside the Angular zone
 
@@ -278,6 +278,23 @@ Pass these options as the third argument of `importFromArrayBuffer(format, buffe
 | `apply` | `boolean` | `true` | Apply the result to the grid. With `false`, the result comes back and nothing changes, neither hook fires, and the dropped-features warning still prints. Its `dropped` leaves out the names that come from applying (`cellType:<name>`, `mergeCells`, `hiddenRows`, `hiddenColumns`, and `layoutDirection`), so a preview's list can be shorter than the real import's. |
 | `engine` | `object \| null` | - | Engine for this call only. See [Choose the engine](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#choose-the-engine). |
 
+### What your license unlocks
+
+The XLSX import reads your license key for the [capabilities](@/guides/getting-started/license-key/license-key.md#capabilities) it needs. A key issued without the `listed-capabilities` flag (every key issued before 19.0) unlocks all of them. A key with the flag unlocks exactly the ones it lists:
+
+- `xlsx:import` - the import itself.
+- `xlsx:formulas` - `importFormulas`.
+- `xlsx:layout` - `importLayout`, and the column groups of nested headers. Without it, a merged cell in the header band does not become a group: each header cell becomes its own label. The import then lists `license:xlsx:layout`, even with `importLayout: false`.
+- `xlsx:comments` - cell comments.
+- `xlsx:styles` - `importStyles`.
+- `xlsx:conditional_formatting` - `result.conditionalFormatting`.
+- `xlsx:data_validation` - `dropdown` columns made from data validation lists.
+- `xlsx:protection` - `readOnly` cells made from sheet protection.
+
+`xlsx:number_formats` never restricts an import, because the import reads number formats to infer cell types. `xlsx:import_report` is always on, so `result.dropped` is always complete.
+
+Without `xlsx:import`, `importFromBlob()` and `importFromArrayBuffer()` throw `ImportFile: the license does not unlock "xlsx:import".` A key that lists its features also needs `feat:import_file`, the token of the import plugin itself, and the plugin checks it first. Without it, those methods throw the plugin's own license message, which starts with `The license key for Handsontable does not include these features: Import from file (feat:import_file).` In both cases, [`supportsImportFormat('xlsx')`](@/api/importFile.md#supportsimportformat) returns `false`, so you can check it before you offer an Excel upload. Without any other capability, the import skips that part of the file. When the file carries that feature and your options ask the import to bring it over, the import adds a `license:xlsx:<capability>` entry to `result.dropped` and prints one console warning: `The xlsx import skipped features your license does not unlock: <ids>.` The warning names only the capabilities the file needed and your license does not unlock, so a file with values only imports with no license warning. A feature your options leave out gets no license entry: with `importStyles` off, a styled file reports `cellStyles` as on any key, and with `importLayout: false`, `importFormulas: false`, `inferCellTypes: false` (for data validation), or no `Comments` plugin (for comments), the license is not named. Header groups are the exception: they follow the license, not `importLayout`. Without `xlsx:formulas`, each formula cell imports its cached value and `result.formulas` is left out. The `no-console-warns` flag on a key silences it. The capabilities and their packages are on the [pricing page](https://handsontable.com/pricing).
+
 ### Styles
 
 By default, the plugin reads cell styling from the workbook and reports it as `cellStyles` in `result.dropped` instead of applying it. Set `importStyles: true` to apply it:
@@ -306,7 +323,7 @@ Each import method takes the format first (`'xlsx'`), the file second, and an op
 
 - [`importFromBlob(format, blob, options)`](@/api/importFile.md#importfromblob) - imports a `Blob` or a `File`, such as one from an `<input type="file">`. Returns a `Promise` of the result.
 - [`importFromArrayBuffer(format, buffer, options)`](@/api/importFile.md#importfromarraybuffer) - imports an `ArrayBuffer`, or a view over one such as a `Uint8Array`. Returns a `Promise` of the result.
-- [`supportsImportFormat(format)`](@/api/importFile.md#supportsimportformat) - `true` when the format can be read.
+- [`supportsImportFormat(format)`](@/api/importFile.md#supportsimportformat) - `true` when the format can be read. `supportsImportFormat('xlsx')` also returns `false` when the license does not unlock `xlsx:import`.
 
 To type data that doesn't come from a workbook, such as CSV rows, pasted text, or API values, use [`inferColumnTypes()`](@/api/importFile.md#infercolumntypes). See [Infer column types](@/guides/import-and-export/infer-column-types/infer-column-types.md).
 

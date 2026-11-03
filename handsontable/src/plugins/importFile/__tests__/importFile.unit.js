@@ -22,6 +22,15 @@ import {
 } from '../../../utils/xlsxEngine/__tests__/helpers/fixtures';
 import * as consoleHelpers from '../../../helpers/console';
 import { registerCellType } from '../../../cellTypes/registry';
+import {
+  LISTED_CAPABILITIES_FLAG,
+  keyWith,
+  keyWithoutFlag,
+} from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
+import { registerAsRootInstance } from '../../../utils/rootInstance';
+import XLSX_FEATURES from '../../../utils/xlsxEngine/features.json';
+import { SUBSCRIPTION_KEY } from '../../../utils/entitlementLicenseKey/__tests__/fixtures';
+import { UNRESTRICTED_XLSX_ENTITLEMENT } from '../../../utils/xlsxEngine/xlsxEntitlement';
 
 function fakeCtx(importFileSettings) {
   return { hot: { getSettings: () => ({ importFile: importFileSettings }) } };
@@ -74,7 +83,7 @@ function fakeDocument() {
 
 function pluginWithFakeHot(
   importFileSettings,
-  { formulasEnabled = false, formulasRuns = formulasEnabled, rtl = false } = {},
+  { formulasEnabled = false, formulasRuns = formulasEnabled, rtl = false, licenseKey } = {},
 ) {
   const calls = [];
   const hooks = {};
@@ -95,7 +104,7 @@ function pluginWithFakeHot(
     removeHook: (name, callback) => {
       listeners[name] = (listeners[name] ?? []).filter(listener => listener !== callback);
     },
-    getSettings: () => ({ importFile: importFileSettings }),
+    getSettings: () => ({ importFile: importFileSettings, licenseKey }),
     getPlugin: name => ({
       // `isEnabled()` reads the option, `enabled` says whether the plugin runs: a license key
       // can keep a plugin off while its option is on.
@@ -691,7 +700,12 @@ describe('mapWorkbook on a merge whose covered cells were never written', () => 
     return mapWorkbook(
       read,
       resolveImportOptions({ headerRows: 1 }),
-      { formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false },
+      {
+        formulasEnabled: false,
+        commentsEnabled: false,
+        customBordersEnabled: false,
+        entitlement: UNRESTRICTED_XLSX_ENTITLEMENT
+      },
       new DroppedFeatures(),
     );
   }
@@ -737,7 +751,12 @@ describe('mapWorkbook on a protected sheet with an unlocked cell under a merge',
     return mapWorkbook(
       read,
       resolveImportOptions({}),
-      { formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false },
+      {
+        formulasEnabled: false,
+        commentsEnabled: false,
+        customBordersEnabled: false,
+        entitlement: UNRESTRICTED_XLSX_ENTITLEMENT
+      },
       new DroppedFeatures(),
     );
   }
@@ -795,7 +814,12 @@ describe('mapWorkbook on a formula Excel stored with a function prefix', () => {
     return mapWorkbook(
       read,
       resolveImportOptions({}),
-      { formulasEnabled: true, commentsEnabled: false, customBordersEnabled: false },
+      {
+        formulasEnabled: true,
+        commentsEnabled: false,
+        customBordersEnabled: false,
+        entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
+      },
       new DroppedFeatures(),
     );
   }
@@ -841,7 +865,13 @@ async function mapWithBothEngines(build, options = {}, context = {}, writer = 'e
     const result = mapWorkbook(
       read,
       resolveImportOptions(options),
-      { formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false, ...context },
+      {
+        formulasEnabled: false,
+        commentsEnabled: false,
+        customBordersEnabled: false,
+        entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
+        ...context,
+      },
       dropped,
     );
 
@@ -944,7 +974,11 @@ describe('mapWorkbook on number formats a spreadsheet app writes, whichever engi
       expect(read.definedNames.map(({ name }) => name)).toEqual(expect.arrayContaining(['Sales', 'Rate']));
 
       const unknown = mapWorkbook(read, resolveImportOptions({}), {
-        formulasEnabled: true, commentsEnabled: false, customBordersEnabled: false, formulaNamedExpressions: new Set(),
+        formulasEnabled: true,
+        commentsEnabled: false,
+        customBordersEnabled: false,
+        entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
+        formulaNamedExpressions: new Set(),
       }, dropped);
 
       expect(unknown.data.map(row => row[3])).toEqual([null, 60, 7, '=SUM(B2:B4)']);
@@ -955,6 +989,7 @@ describe('mapWorkbook on number formats a spreadsheet app writes, whichever engi
         formulasEnabled: true,
         commentsEnabled: false,
         customBordersEnabled: false,
+        entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
         formulaNamedExpressions: new Set(['sales', 'rate']),
       }, knownDropped);
 
@@ -988,6 +1023,7 @@ describe('mapWorkbook on number formats a spreadsheet app writes, whichever engi
       formulasEnabled: true,
       commentsEnabled: false,
       customBordersEnabled: false,
+      entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
       formulaSheetNames: new Set(['sales data']),
       formulaNamedExpressions: new Set(),
     }, dropped);
@@ -1010,7 +1046,10 @@ describe('mapWorkbook on number formats a spreadsheet app writes, whichever engi
       const read = await adapter.read(fixture('values'), engine, recorder);
 
       mapWorkbook(read, resolveImportOptions({}), {
-        formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false,
+        formulasEnabled: false,
+        commentsEnabled: false,
+        customBordersEnabled: false,
+        entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
       }, recorder);
       dropped[kind] = recorder.list();
     }
@@ -2481,6 +2520,7 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
         formulasEnabled: true,
         commentsEnabled: false,
         customBordersEnabled: false,
+        entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
         probeLiveArrays: () => ({ masterState, isPartOfArray, destroy }),
       }, dropped);
 
@@ -2933,6 +2973,7 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
       formulasEnabled: true,
       commentsEnabled: false,
       customBordersEnabled: false,
+      entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
       probeLiveArrays: () => {
         throw new Error('probe');
       },
@@ -3039,6 +3080,90 @@ describe('selectSheet by index on an export with dropdowns', () => {
     expect(selectSheet(workbook, 2).name).toBe('Archive');
     // By name the helper is still reachable.
     expect(selectSheet(workbook, '_HotValidation').name).toBe('_HotValidation');
+  });
+});
+
+describe('ImportFile license gate', () => {
+  const message = 'ImportFile: the license does not unlock "xlsx:import".';
+
+  it('exposes the license tokens it gates, each one features.json assigns to it', () => {
+    expect(ImportFile.CAPABILITIES).toContain('xlsx:import');
+    expect(ImportFile.CAPABILITIES).not.toContain('xlsx:export');
+    ImportFile.CAPABILITIES.forEach((id) => {
+      const entry = XLSX_FEATURES.capabilities.find(candidate => candidate.id === id);
+
+      expect(entry.licensing).toBe('token');
+      expect(entry.plugins).toContain('ImportFile');
+    });
+  });
+
+  it('refuses an import and reports no xlsx support when the key lacks xlsx:import', async() => {
+    const { plugin, calls } = pluginWithFakeHot(
+      { engines: { xlsx: ExcelJS } },
+      { licenseKey: keyWith(['xlsx:export']) }
+    );
+    const bytes = fixture('values');
+
+    expect(plugin.supportsImportFormat('xlsx')).toBe(false);
+    await expect(plugin.importFromArrayBuffer('xlsx', bytes)).rejects.toThrow(message);
+    await expect(plugin.importFromBlob('xlsx', new Blob([bytes]))).rejects.toThrow(message);
+    expect(calls).toEqual([]);
+  });
+
+  it('does not throw from supportsImportFormat on a disabled plugin', () => {
+    const { plugin } = pluginWithFakeHot(false, { licenseKey: keyWith(['xlsx:export']) });
+
+    expect(plugin.supportsImportFormat('xlsx')).toBe(false);
+  });
+
+  it('imports for a key with xlsx:import, a key with no xlsx token and the legacy key', async() => {
+    for (const licenseKey of [keyWith(['xlsx:import']), SUBSCRIPTION_KEY, 'non-commercial-and-evaluation']) {
+      const { plugin } = pluginWithFakeHot({ engines: { xlsx: ExcelJS } }, { licenseKey });
+
+      expect(plugin.supportsImportFormat('xlsx')).toBe(true);
+      await expect(plugin.importFromArrayBuffer('xlsx', fixture('values'))).resolves.toBeDefined();
+    }
+  });
+
+  describe('on a key that lists its features (no feat:all)', () => {
+    // `keyWith()` always adds `feat:all`, so these keys are built without it: the plugin's own token
+    // (`feat:import_file`) and the xlsx token are then checked one after the other. The plugin token is
+    // checked on a root instance only, so the fake grid is registered as one.
+    const listedKey = tokens => keyWithoutFlag(tokens, [LISTED_CAPABILITIES_FLAG]);
+    const pluginMessage = 'The license key for Handsontable does not include these features: '
+      + 'Import from file (feat:import_file).';
+    const rootPluginFor = (licenseKey) => {
+      const fake = pluginWithFakeHot({ engines: { xlsx: ExcelJS } }, { licenseKey });
+
+      registerAsRootInstance(fake.hot);
+
+      return fake;
+    };
+
+    it('refuses an import with the plugin\'s license message first when the key lacks feat:import_file', async() => {
+      const { plugin, calls } = rootPluginFor(listedKey(['xlsx:import']));
+      const bytes = fixture('values');
+
+      expect(plugin.supportsImportFormat('xlsx')).toBe(false);
+      await expect(plugin.importFromArrayBuffer('xlsx', bytes)).rejects.toThrow(pluginMessage);
+      await expect(plugin.importFromBlob('xlsx', new Blob([bytes]))).rejects.toThrow(pluginMessage);
+      expect(calls).toEqual([]);
+    });
+
+    it('refuses an import with the xlsx:import message when the key has feat:import_file only', async() => {
+      const { plugin, calls } = rootPluginFor(listedKey(['feat:import_file']));
+
+      expect(plugin.supportsImportFormat('xlsx')).toBe(false);
+      await expect(plugin.importFromArrayBuffer('xlsx', fixture('values'))).rejects.toThrow(message);
+      expect(calls).toEqual([]);
+    });
+
+    it('imports when the key has both feat:import_file and xlsx:import', async() => {
+      const { plugin } = rootPluginFor(listedKey(['feat:import_file', 'xlsx:import']));
+
+      expect(plugin.supportsImportFormat('xlsx')).toBe(true);
+      await expect(plugin.importFromArrayBuffer('xlsx', fixture('values'))).resolves.toBeDefined();
+    });
   });
 });
 

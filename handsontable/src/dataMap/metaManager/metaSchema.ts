@@ -5758,9 +5758,15 @@ export default (): Record<string, unknown> => {
     minCols: 0,
 
     /**
-     * Alias for the [`rowHeights`](#rowHeights) option.
+     * The `minRowHeights` option sets the minimum height of rows, in pixels.
      *
-     * See the [`rowHeights`](#rowHeights) option description for more information.
+     * A row is never shorter than this value, but it grows to fit taller content. A value smaller than
+     * the default row height has no effect, because a row is never shorter than the default. To set a row
+     * to an exact height and clip content that does not fit, use [`rowHeights`](#rowHeights) instead.
+     * You can set both options: `rowHeights` sets the rows it gives a height, and `minRowHeights` applies to the others.
+     *
+     * Take the accepted forms (a number, a string, an array, or a function) from the
+     * [`rowHeights`](#rowHeights) option description.
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -7315,8 +7321,16 @@ export default (): Record<string, unknown> => {
     /**
      * The `rowHeights` option sets rows' heights, in pixels.
      *
-     * In the rendering process, the default row height is `classic: 26px`, `main: 29px`, `horizon: 37px` or whatever is defined in the used theme (based on the line height, vertical padding and cell borders).
-     * You can change it to equal or greater than the default value, by setting the `rowHeights` option to one of the following:
+     * A row renders at exactly the height you set. Content taller than the row is clipped, as in Excel,
+     * instead of stretching the row. A row can be shorter than the default row height, which is
+     * `classic: 26px`, `main: 29px`, `horizon: 37px` or whatever the used theme defines (based on the line
+     * height, vertical padding and cell borders). A row with no height of its own, or with a height of `0`,
+     * keeps the default.
+     *
+     * To set a minimum that content can grow past, use [`minRowHeights`](#minRowHeights) instead.
+     * You can set both options: `rowHeights` sets the rows it gives a height, and `minRowHeights` applies to the others.
+     *
+     * You can set the `rowHeights` option to one of the following:
      *
      * | Setting     | Description                                                                                         | Example                                                      |
      * | ----------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
@@ -7330,7 +7344,10 @@ export default (): Record<string, unknown> => {
      * visual row index, so with {@link ManualRowMove} a height stays at its screen position.
      *
      * When the {@link AutoRowSize} plugin is enabled, `rowHeights` sets the minimum row height, so a
-     * row still grows to fit its content.
+     * row still grows to fit its content, and the clipping described above does not apply. The
+     * [`autoRowSize`](#autoRowSize) option alone decides this, not the state of the plugin: with
+     * `autoRowSize` set, `rowHeights` stays a minimum even when the plugin is not registered, or after
+     * you call `disablePlugin()` on it.
      *
      * When {@link AutoRowSize} is disabled, a row resized by dragging keeps its height until the
      * height is re-declared. Passing `rowHeights` or [`minRowHeights`](#minRowHeights) to

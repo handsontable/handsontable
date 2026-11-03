@@ -9,10 +9,12 @@ import { HiddenColumns } from '../../hiddenColumns';
 import { ManualColumnMove } from '../../manualColumnMove';
 import { registerCellType } from '../../../cellTypes/registry';
 import { IntlDateCellType } from '../../../cellTypes/intlDateType';
+import { NumericCellType } from '../../../cellTypes/numericType';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
 import { excelJsAdapter } from '../../../utils/xlsxEngine/adapters/exceljs';
 import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
 import { toArrayBuffer } from '../../../utils/xlsxEngine/__tests__/helpers/fixtures';
+import { keyWithout } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 
 /**
  * DEV-3648: with `exportFormulas`, the workbook-scoped named expressions of the Formulas plugin's
@@ -32,6 +34,7 @@ describe('Xlsx export: named expressions as defined names', () => {
     registerPlugin(HiddenColumns);
     registerPlugin(ManualColumnMove);
     registerCellType(IntlDateCellType);
+    registerCellType(NumericCellType);
   });
 
   beforeEach(() => {
@@ -936,5 +939,22 @@ describe('Xlsx export: named expressions as defined names', () => {
     expect(dated.formula).toBeNull();
     expect(dated.value).toBe(45005);
     expect(dated.numFmt).toBe('mm/dd/yyyy');
+  });
+
+  it('should give a formula exported as its value over a left-out name no number format without xlsx:number_formats', async() => {
+    const engine = createGrid({
+      data: [['=R+0.5']],
+      columns: [{ type: 'numeric', numericFormat: { minimumFractionDigits: 2 } }],
+      licenseKey: keyWithout('xlsx:number_formats'),
+    });
+
+    engine.addNamedExpression('R', 5);
+
+    const { snapshot } = await exportWorkbook();
+    const [[cell]] = snapshot.sheets[0].rows;
+
+    expect(cell.formula).toBeNull();
+    expect(cell.value).toBe(5.5);
+    expect(cell.numFmt).toBeNull();
   });
 });

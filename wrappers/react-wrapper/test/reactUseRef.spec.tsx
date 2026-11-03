@@ -28,7 +28,7 @@ describe('Using useRef hooks within HotTable', () => {
           data={refData}
           width={300}
           height={300}
-          rowHeights={23}
+          minRowHeights={23}
           colWidths={50}
           init={function() {
             mockElementDimensions(this.rootElement, 300, 300);
