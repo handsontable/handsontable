@@ -500,7 +500,8 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   -> master and its emptied cells take their cached values, the text goes to `formulas`,
   `formula:arraySpill`, unless the file caches an ERROR for the master (Excel 365 saves a blocked
   spill as a cached `#VALUE!`): then it stays live and shows `#SPILL!`, or the cell would hold a
-  frozen `#VALUE!` and never spill once the blocker is cleared; master another error (`masterState` answers HF's error type) -> the same when the
+  frozen `#VALUE!` and lose its formula (HF 3.3 re-spills it only when the formula is entered again,
+  not when the blocking cell is cleared: measured on the engine itself); master another error (`masterState` answers HF's error type) -> the same when the
   file caches a VALUE for it (`LiveArrayRect.cachedIsError` false): HF 3.3 shows `#VALUE!` for a lone
   range (`=A1:A3`, `=(A1:A3)`, `=Sheet1!A1:A3`), a range name (`=Sales`, `FILTER(Sales,Sales>1)`),
   `INDEX(A1:A3,0)` and `ARRAYFORMULA(A1:A3)`, which Excel spills, and their covered cells would import

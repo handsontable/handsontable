@@ -2760,8 +2760,8 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
 
   it('should keep a blocked spill live when the file caches an error for it', async() => {
     // Excel 365 saves a blocked spill as `<c t="e" cm="1" vm="1"><v>#VALUE!</v>`. Put back, the cell
-    // held a frozen `#VALUE!` and lost its formula; live, it shows `#SPILL!` as Excel does, and spills
-    // once the blocker is cleared.
+    // held a frozen `#VALUE!` and lost its formula; live, it shows `#SPILL!` as Excel does and keeps
+    // the formula.
     const at = overrides => ({ ...createCellSnapshot(), ...overrides });
     const blocked = await importArrays([
       [at({ value: 1 }), at({

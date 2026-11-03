@@ -1382,8 +1382,9 @@ function liveArrayCovering(col: number, scope: CollectContext): LiveArrayRect | 
  *
  * `#SPILL!` settles only when the file caches a value that is not an error. Excel 365 saves a
  * blocked spill as a cached `#VALUE!` (the real `#SPILL!` is a rich value): put back, the cell would
- * hold that frozen error, and nothing would spill once the user clears the blocker. Live, it shows
- * `#SPILL!` as Excel does.
+ * hold that frozen error and lose its formula. Live, it shows `#SPILL!` as Excel does, and keeps the
+ * formula for the grid and a re-export. HyperFormula 3.3 spills it once the formula is entered
+ * again, not when the blocking cell is cleared.
  *
  * A master that reads outside the probe (`readsOutside`) settles only on `#SPILL!`: HyperFormula
  * turns a sheet it does not hold into a `#REF!` inside the formula, which `IFERROR` or `ISNUMBER`
