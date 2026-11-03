@@ -2,9 +2,9 @@ import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SheetsBarUiPage } from '../fixtures/pages/SheetsBarUiPage';
 
 /**
- * With scrollbars that are always shown (the classic, non-overlay kind), a bar narrower than its minimum
- * painted its own horizontal scrollbar under the tabs and grew taller by its height. The bar scrolls without
- * a scrollbar of its own, the way the tab strip does.
+ * With scrollbars that are always shown (the classic, non-overlay kind), a bar narrower than its minimum shows
+ * its own horizontal scrollbar, the way the pagination bar does, so a user can see that it scrolls. A bar that
+ * fits shows none and keeps its height.
  */
 test.use({
   launchOptions: {
@@ -14,12 +14,19 @@ test.use({
 });
 
 test.describe('sheets bar with scrollbars that are always shown', { tag: THEMES_TAG }, () => {
-  test('keeps its height when it scrolls', async({ page, theme, bundle }) => {
+  test('shows a scrollbar only while it scrolls', async({ page, theme, bundle }) => {
     const fixture = new SheetsBarUiPage(page, theme, bundle);
     const readBar = () => page.evaluate(() => {
       const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
+      const border = bar.offsetHeight - bar.clientHeight;
+      const style = getComputedStyle(bar);
+      const borders = Number.parseFloat(style.borderTopWidth) + Number.parseFloat(style.borderBottomWidth);
 
-      return { height: bar.getBoundingClientRect().height, scrolls: bar.scrollWidth > bar.clientWidth };
+      return {
+        height: bar.getBoundingClientRect().height,
+        scrolls: bar.scrollWidth > bar.clientWidth,
+        showsScrollbar: border - borders > 0,
+      };
     });
 
     await fixture.goto({
@@ -32,9 +39,18 @@ test.describe('sheets bar with scrollbars that are always shown', { tag: THEMES_
     const fits = await readBar();
 
     expect(fits.scrolls).toBe(false);
+    expect(fits.showsScrollbar).toBe(false);
 
     await fixture.setActiveSheet(1);
     await expect.poll(async() => (await readBar()).scrolls).toBe(true);
+
+    const scrolls = await readBar();
+
+    expect(scrolls.showsScrollbar).toBe(true);
+    expect(scrolls.height).toBeGreaterThan(fits.height);
+
+    await fixture.setActiveSheet(0);
+    await expect.poll(async() => (await readBar()).scrolls).toBe(false);
 
     expect((await readBar()).height).toBe(fits.height);
   });

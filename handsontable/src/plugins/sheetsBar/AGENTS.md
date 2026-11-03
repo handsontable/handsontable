@@ -733,10 +733,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     a press and its release moved a clicked tab away, and the click activated nothing. And
     `TabStrip#focusRelativeTab` reveals the tab in the strip before it moves the focus, or the bar measured
     the tab where the strip had not put it yet and left it cut by about 50px.
-  - **The bar hides its own scrollbar** (`scrollbar-width: none !important` and `::-webkit-scrollbar`, as
-    the strip does). Where scrollbars are always shown, the bar painted one under the tabs and grew 15px
-    taller whenever it scrolled. Pinned by `tests/e2e/sheets-bar-classic-scrollbars.spec.ts`, which launches
-    Chromium with `--force-show-scrollbars` and without `--hide-scrollbars`.
+  - **The bar shows its own scrollbar while it scrolls, the way the pagination bar does** (a plain
+    `overflow-x: auto`, no `scrollbar-width` or `::-webkit-scrollbar` hiding), so a user can see the bar
+    scrolls. Where scrollbars are always shown, the bar grows by the scrollbar's height while it overflows;
+    that is accepted, as for Pagination. The strip inside keeps hiding its own scrollbar. Pinned by
+    `tests/e2e/sheets-bar-classic-scrollbars.spec.ts`, which launches Chromium with `--force-show-scrollbars`
+    and without `--hide-scrollbars`.
   - **Test fixtures pin the strip with `width`, not `flex`.** `tests/fixtures/demo/sheets-bar.html` forces a
     600px strip so the arrows always show; the strip is a grid item now, so `flex: 0 0 600px` stopped applying.
 
