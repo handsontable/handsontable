@@ -5,6 +5,10 @@ import { LISTED_CAPABILITIES_FLAG, XLSX_CAPABILITY_IDS } from '../../xlsxEngine/
  * The shared TEST-ONLY license keys for the xlsx capability gates. The Jest suites of `exportFile` and
  * `importFile` import it, and so does the Playwright fixture `tests/fixtures/xlsxLicenseKeys.ts`, which
  * re-exports it - so moving or renaming this file breaks those specs too.
+ *
+ * It deliberately names no product package ("Standard", "Pro", ...): which tokens a product grants is
+ * decided where keys are issued and can change at any time. Tests build keys from single tokens and
+ * arbitrary sets of them, never from a tier.
  */
 
 /**
@@ -22,13 +26,6 @@ export const ALL_XLSX_TOKENS = XLSX_CAPABILITY_IDS;
  * @type {string}
  */
 export { LISTED_CAPABILITIES_FLAG };
-
-/**
- * The tokens of the standard xlsx tier.
- *
- * @type {string[]}
- */
-export const STANDARD_TOKENS = Object.freeze(['xlsx:import', 'xlsx:export', 'xlsx:formulas', 'xlsx:layout']);
 
 /**
  * Builds a current subscription key granting `core` plus `tokens`, without the `listed-capabilities`

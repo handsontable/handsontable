@@ -1,7 +1,7 @@
 import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { XlsxLicensePage } from '../fixtures/pages/XlsxLicensePage';
 import {
-  ALL_XLSX_TOKENS, CORE_ONLY_KEY, keyWith, keyWithout, LEGACY_KEY, STANDARD_TOKENS,
+  ALL_XLSX_TOKENS, CORE_ONLY_KEY, keyWith, keyWithout, LEGACY_KEY,
 } from '../fixtures/xlsxLicenseKeys';
 
 test.describe('xlsx import license gate', { tag: BUNDLES_TAG }, () => {
@@ -35,15 +35,22 @@ test.describe('xlsx import license gate', { tag: BUNDLES_TAG }, () => {
 });
 
 /**
- * The six Pro tokens a Standard key lacks, in declaration order.
+ * An arbitrary subset of the xlsx tokens, chosen so a key both grants some import features and lacks
+ * others. It is not a product package: which tokens a product grants is decided where keys are issued,
+ * never here.
  */
-const PRO_TOKENS = ALL_XLSX_TOKENS.filter(id => !(STANDARD_TOKENS as readonly string[]).includes(id));
+const PARTIAL_TOKENS = ['xlsx:import', 'xlsx:export', 'xlsx:formulas', 'xlsx:layout'];
 
 /**
- * The Pro tokens the import gates, the ones its warning and its `license:` entries name:
+ * The tokens a key listing `PARTIAL_TOKENS` lacks, in declaration order.
+ */
+const MISSING_TOKENS = ALL_XLSX_TOKENS.filter(id => !PARTIAL_TOKENS.includes(id));
+
+/**
+ * Of `MISSING_TOKENS`, the ones the import gates, which its warning and its `license:` entries name:
  * `xlsx:number_formats` restricts the export only.
  */
-const IMPORT_PRO_TOKENS = PRO_TOKENS.filter(id => id !== 'xlsx:number_formats');
+const IMPORT_MISSING_TOKENS = MISSING_TOKENS.filter(id => id !== 'xlsx:number_formats');
 
 /**
  * The tokens that gate a part of an import, every one but the two entry tokens.
@@ -132,7 +139,9 @@ async function fullWorkbook(lic: XlsxLicensePage): Promise<Buffer> {
 
 for (const engine of ['native', 'exceljs'] as const) {
   test.describe(`xlsx import license feature gates (${engine})`, { tag: BUNDLES_TAG }, () => {
-    test('a Standard key imports data with types, formulas and layout only', async({ page, theme, bundle }) => {
+    test('a key listing import, export, formulas and layout only imports data with types, formulas and layout', async({
+      page, theme, bundle,
+    }) => {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
 
       await lic.goto();
@@ -143,14 +152,14 @@ for (const engine of ['native', 'exceljs'] as const) {
 
       const { result: full, features: fullFeatures } = await importAndMeasure(lic, bytes, bundle);
 
-      // Every part is in the file: proven before a Standard key is asserted to drop it.
+      // Every part is in the file: proven before the partial key is asserted to drop it.
       expect(Object.values(fullFeatures).every(Boolean)).toBe(true);
 
-      await lic.create(keyWith(STANDARD_TOKENS));
+      await lic.create(keyWith(PARTIAL_TOKENS));
 
-      const { result: standard, features } = await importAndMeasure(lic, bytes, bundle);
+      const { result: partial, features } = await importAndMeasure(lic, bytes, bundle);
 
-      expect(standard.data.length).toBe(full.data.length);
+      expect(partial.data.length).toBe(full.data.length);
       expect(features['xlsx:layout']).toBe(true);
       expect(features['xlsx:number_formats']).toBe(true);
 
@@ -158,16 +167,16 @@ for (const engine of ['native', 'exceljs'] as const) {
         expect(features['xlsx:formulas']).toBe(true);
       }
 
-      for (const token of PRO_TOKENS.filter(id => id !== 'xlsx:number_formats')) {
+      for (const token of IMPORT_MISSING_TOKENS) {
         expect(features[token], token).toBe(false);
       }
 
       // The report is always on. This workbook is the grid's own export, so the legacy key drops
-      // nothing, and a Standard key reports exactly the `license:` entry of each import token it
+      // nothing, and the partial key reports exactly the `license:` entry of each import token it
       // lacks – never `xlsx:number_formats`, which restricts the export only. (The unit suite pins
       // a lossy file, whose file-driven entries come first.)
       expect(full.dropped).toEqual([]);
-      expect(standard.dropped).toEqual([
+      expect(partial.dropped).toEqual([
         'license:xlsx:comments',
         'license:xlsx:styles',
         'license:xlsx:conditional_formatting',
@@ -178,13 +187,13 @@ for (const engine of ['native', 'exceljs'] as const) {
       const warnings = await lic.warnings();
 
       expect(warnings.filter(message => message.startsWith(LICENSE_WARNING_PREFIX)))
-        .toEqual([`${LICENSE_WARNING_PREFIX}${IMPORT_PRO_TOKENS.join(', ')}.`]);
+        .toEqual([`${LICENSE_WARNING_PREFIX}${IMPORT_MISSING_TOKENS.join(', ')}.`]);
       // The engine's own warning never repeats the license entries.
       expect(warnings.filter(message => message.includes('xlsx engine dropped features') && message.includes('license:')))
         .toEqual([]);
     });
 
-    test('each Pro token removes exactly its part', async({ page, theme, bundle }) => {
+    test('each import feature token removes exactly its part', async({ page, theme, bundle }) => {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
 
       await lic.goto();
@@ -231,7 +240,9 @@ for (const engine of ['native', 'exceljs'] as const) {
       expect((await lic.warnings()).filter(message => message.startsWith(LICENSE_WARNING_PREFIX))).toEqual([]);
     });
 
-    test('importStyles: true on a Standard key yields no styles and a license entry', async({ page, theme, bundle }) => {
+    test('importStyles: true on a key without xlsx:styles yields no styles and a license entry', async({
+      page, theme, bundle,
+    }) => {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
 
       await lic.goto();
@@ -241,7 +252,7 @@ for (const engine of ['native', 'exceljs'] as const) {
       await lic.create(LEGACY_KEY);
       expect((await lic.importBytes(bytes, IMPORT_OPTIONS)).styles).toBeDefined();
 
-      await lic.create(keyWith(STANDARD_TOKENS));
+      await lic.create(keyWith(PARTIAL_TOKENS));
 
       const result = await lic.importBytes(bytes, IMPORT_OPTIONS);
 

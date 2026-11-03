@@ -11,12 +11,18 @@ import { dateRenderer } from '../../../renderers/dateRenderer';
 import * as cellStyle from '../types/xlsx/cell-style';
 import {
   ALL_XLSX_TOKENS,
-  STANDARD_TOKENS,
   keyWith,
   keyWithAll,
   keyWithout,
   keyWithoutFlag,
 } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
+
+/**
+ * An arbitrary subset of the xlsx tokens, chosen so a key both grants some export features and lacks
+ * others. It is not a product package: which tokens a product grants is decided where keys are issued,
+ * never here.
+ */
+const PARTIAL_TOKENS = ['xlsx:import', 'xlsx:export', 'xlsx:formulas', 'xlsx:layout'];
 
 // One rich sheet: headers, a formula, a currency number, a read-only cell, a comment, a dropdown, a
 // right-aligned cell, a merge, a hidden row and column, a frozen row, RTL, widths and heights. Read
@@ -465,9 +471,7 @@ describe('Xlsx export license gates', () => {
   });
 
   it('warns once with every missing export token, unless no-console-warns is set', async() => {
-    const standard = STANDARD_TOKENS;
-
-    await exportSnapshot(keyWith(standard));
+    await exportSnapshot(keyWith(PARTIAL_TOKENS));
 
     expect(warnSpy).toHaveBeenCalledTimes(1);
     expect(warnSpy.mock.calls[0][0]).toBe(
@@ -476,7 +480,7 @@ describe('Xlsx export license gates', () => {
     );
 
     warnSpy.mockClear();
-    const silenced = (await exportSnapshot(keyWith(standard, ['no-console-warns']))).sheets[0];
+    const silenced = (await exportSnapshot(keyWith(PARTIAL_TOKENS, ['no-console-warns']))).sheets[0];
 
     expect(warnSpy).not.toHaveBeenCalled();
     expect(dataCells(silenced).every(cell => cell.style === null)).toBe(true);
@@ -528,9 +532,9 @@ describe('Xlsx export license gates', () => {
     .map(call => call[0])
     .filter(message => message.startsWith('The xlsx export skipped'));
 
-  it('says nothing about the license for a plain text grid on a Standard key', async() => {
+  it('says nothing about the license for a plain text grid on a key that lacks some tokens', async() => {
     await withMockSheet(PLAIN_SHEET, async() => {
-      const sheet = (await exportSnapshot(keyWith(STANDARD_TOKENS), { conditionalFormatting: [] })).sheets[0];
+      const sheet = (await exportSnapshot(keyWith(PARTIAL_TOKENS), { conditionalFormatting: [] })).sheets[0];
 
       expect(sheet.rows[0][0].value).toBe('Ana García');
       expect(exportWarnings()).toEqual([]);
@@ -542,7 +546,7 @@ describe('Xlsx export license gates', () => {
       ...PLAIN_SHEET,
       cellsMeta: [[{ className: 'bold' }, {}], [{}, {}]],
     }, async() => {
-      await exportSnapshot(keyWith(STANDARD_TOKENS), { conditionalFormatting: [] });
+      await exportSnapshot(keyWith(PARTIAL_TOKENS), { conditionalFormatting: [] });
 
       expect(exportWarnings()).toEqual([
         'The xlsx export skipped features your license does not unlock: xlsx:styles.',
@@ -550,12 +554,12 @@ describe('Xlsx export license gates', () => {
     });
   });
 
-  it('names only xlsx:comments for a grid whose only Pro feature is a comment', async() => {
+  it('names only xlsx:comments for a grid whose only ungranted feature is a comment', async() => {
     await withMockSheet({
       ...PLAIN_SHEET,
       cellsMeta: [[{ comment: { value: 'Check' } }, {}], [{}, {}]],
     }, async() => {
-      await exportSnapshot(keyWith(STANDARD_TOKENS), { conditionalFormatting: [] });
+      await exportSnapshot(keyWith(PARTIAL_TOKENS), { conditionalFormatting: [] });
 
       expect(exportWarnings()).toEqual([
         'The xlsx export skipped features your license does not unlock: xlsx:comments.',
@@ -718,7 +722,7 @@ describe('Xlsx export license gates', () => {
   });
 
   it('leaves a key without the listed-capabilities flag unrestricted, whatever it lists', async() => {
-    const unflagged = await exportSnapshot(keyWithoutFlag(STANDARD_TOKENS));
+    const unflagged = await exportSnapshot(keyWithoutFlag(PARTIAL_TOKENS));
     const legacy = await exportSnapshot('non-commercial-and-evaluation');
 
     expect(unflagged).toEqual(legacy);

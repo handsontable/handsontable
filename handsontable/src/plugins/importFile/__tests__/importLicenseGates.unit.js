@@ -11,18 +11,26 @@ import { loadFixture as fixture } from '../../../utils/xlsxEngine/__tests__/help
 import * as consoleHelpers from '../../../helpers/console';
 import {
   ALL_XLSX_TOKENS,
-  STANDARD_TOKENS,
   keyWith,
   keyWithAll,
   keyWithout,
   keyWithoutFlag,
 } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 
-const PRO_TOKENS = ALL_XLSX_TOKENS.filter(id => !STANDARD_TOKENS.includes(id));
 /**
- * The Pro tokens the import gates: `xlsx:number_formats` restricts the export only.
+ * An arbitrary subset of the xlsx tokens, chosen so a key both grants some import features and lacks
+ * others. It is not a product package: which tokens a product grants is decided where keys are issued,
+ * never here.
  */
-const IMPORT_PRO_TOKENS = PRO_TOKENS.filter(id => id !== 'xlsx:number_formats');
+const PARTIAL_TOKENS = ['xlsx:import', 'xlsx:export', 'xlsx:formulas', 'xlsx:layout'];
+/**
+ * The tokens a key listing `PARTIAL_TOKENS` lacks, in declaration order.
+ */
+const MISSING_TOKENS = ALL_XLSX_TOKENS.filter(id => !PARTIAL_TOKENS.includes(id));
+/**
+ * Of `MISSING_TOKENS`, the ones the import gates: `xlsx:number_formats` restricts the export only.
+ */
+const IMPORT_MISSING_TOKENS = MISSING_TOKENS.filter(id => id !== 'xlsx:number_formats');
 
 /**
  * The `license:<token>` entries a dropped-features list holds, in recorded order.
@@ -43,7 +51,10 @@ function without(flag, token) {
   return { ...UNRESTRICTED_XLSX_ENTITLEMENT, [flag]: false, missing: [token] };
 }
 
-const STANDARD_ENTITLEMENT = {
+/**
+ * The entitlement a key listing `PARTIAL_TOKENS` resolves to, scoped to the import.
+ */
+const PARTIAL_ENTITLEMENT = {
   ...UNRESTRICTED_XLSX_ENTITLEMENT,
   numberFormats: false,
   comments: false,
@@ -51,7 +62,7 @@ const STANDARD_ENTITLEMENT = {
   conditionalFormatting: false,
   dataValidation: false,
   protection: false,
-  missing: IMPORT_PRO_TOKENS,
+  missing: IMPORT_MISSING_TOKENS,
 };
 
 /**
@@ -184,12 +195,12 @@ describe('ImportFile mapper license gates', () => {
   it('still infers a date from its number format without xlsx:number_formats', () => {
     const full = mapRich(UNRESTRICTED_XLSX_ENTITLEMENT).result;
     const gated = mapRich(without('numberFormats', 'xlsx:number_formats')).result;
-    const standard = mapRich(STANDARD_ENTITLEMENT).result;
+    const partial = mapRich(PARTIAL_ENTITLEMENT).result;
 
     expect(full.columns[2].type).toBe('date');
     expect(gated.columns[2].type).toBe('date');
     expect(gated.columns[1].type).toBe('numeric');
-    expect(standard.columns[2].type).toBe('date');
+    expect(partial.columns[2].type).toBe('date');
   });
 
   it('withholds styles and customBorders without xlsx:styles even when importStyles is true', () => {
@@ -414,10 +425,10 @@ describe('ImportFile mapper license gates', () => {
       commentsEnabled: true,
       customBordersEnabled: true,
       entitlement: {
-        ...STANDARD_ENTITLEMENT,
+        ...PARTIAL_ENTITLEMENT,
         formulas: false,
         layout: false,
-        missing: ['xlsx:formulas', 'xlsx:layout', ...IMPORT_PRO_TOKENS],
+        missing: ['xlsx:formulas', 'xlsx:layout', ...IMPORT_MISSING_TOKENS],
       },
     }, dropped);
 
@@ -439,7 +450,7 @@ describe('ImportFile mapper license gates', () => {
       formulasEnabled: false,
       commentsEnabled: true,
       customBordersEnabled: true,
-      entitlement: STANDARD_ENTITLEMENT,
+      entitlement: PARTIAL_ENTITLEMENT,
     }, dropped);
 
     expect(dropped.list()).toEqual(['license:xlsx:comments']);
@@ -529,10 +540,10 @@ describe('ImportFile mapper license gates', () => {
   });
 
   it('records license:<token> for every missing token in dictionary order', () => {
-    const { result, dropped } = mapRich(STANDARD_ENTITLEMENT, { importStyles: true });
+    const { result, dropped } = mapRich(PARTIAL_ENTITLEMENT, { importStyles: true });
 
-    expect(licenseEntriesOf(dropped.list())).toEqual(IMPORT_PRO_TOKENS.map(id => `license:${id}`));
-    expect(licenseEntriesOf(result.dropped)).toEqual(IMPORT_PRO_TOKENS.map(id => `license:${id}`));
+    expect(licenseEntriesOf(dropped.list())).toEqual(IMPORT_MISSING_TOKENS.map(id => `license:${id}`));
+    expect(licenseEntriesOf(result.dropped)).toEqual(IMPORT_MISSING_TOKENS.map(id => `license:${id}`));
     expect(licenseEntriesOf(mapRich(UNRESTRICTED_XLSX_ENTITLEMENT).dropped.list())).toEqual([]);
   });
 });
@@ -577,25 +588,25 @@ function pluginFor(licenseKey) {
 }
 
 /**
- * The import tokens a Standard key lacks whose feature the `lossy` fixture carries: of the Pro
- * features, the file has a protected sheet only.
+ * The import tokens a key listing `PARTIAL_TOKENS` lacks whose feature the `lossy` fixture carries: of
+ * the missing ones, the file has a protected sheet only.
  */
-const STANDARD_LOSSY_LICENSE = ['xlsx:protection'];
+const PARTIAL_LOSSY_LICENSE = ['xlsx:protection'];
 
 /**
- * What a Standard key's import of the `lossy` fixture reports, in recorded order: the entries the
+ * What the import of the `lossy` fixture reports on a key listing `PARTIAL_TOKENS`, in recorded order: the entries the
  * read drives, the `license:` entry of each import token the key lacks and the file needs (never
  * `xlsx:number_formats`, which restricts the export only), then the cell types `pluginFor()`'s
  * stand-in instance does not register.
  */
-const STANDARD_LOSSY_DROPPED = [
+const PARTIAL_LOSSY_DROPPED = [
   'richText',
   'sheetProtection:password',
   'autoFilter',
   'hyperlink',
   'images',
   'tables',
-  ...STANDARD_LOSSY_LICENSE.map(id => `license:${id}`),
+  ...PARTIAL_LOSSY_LICENSE.map(id => `license:${id}`),
   'cellType:text',
   'cellType:numeric',
 ];
@@ -611,31 +622,31 @@ describe('ImportFile license report', () => {
     warnSpy.mockRestore();
   });
 
-  it('keeps the full report on a Standard key, with the license entries of the import only', async() => {
+  it('keeps the full report on a key that lacks some tokens, with the license entries of the import only', async() => {
     const full = await pluginFor(keyWith(ALL_XLSX_TOKENS)).plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
 
-    // The file carries lossy content: proven on a full key before the Standard key reports it too.
+    // The file carries lossy content: proven on a full key before the partial key reports it too.
     expect(full.dropped).toContain('richText');
     expect(licenseEntriesOf(full.dropped)).toEqual([]);
 
     warnSpy.mockClear();
 
-    const standard = await pluginFor(keyWith(STANDARD_TOKENS)).plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
+    const partial = await pluginFor(keyWith(PARTIAL_TOKENS)).plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
 
-    expect(standard.dropped).toEqual(STANDARD_LOSSY_DROPPED);
-    expect(standard.dropped).not.toContain('license:xlsx:number_formats');
+    expect(partial.dropped).toEqual(PARTIAL_LOSSY_DROPPED);
+    expect(partial.dropped).not.toContain('license:xlsx:number_formats');
     expect(warnSpy.mock.calls.map(([message]) => message)).toEqual([
       `The built-in xlsx engine dropped features it cannot write or read: ${
-        STANDARD_LOSSY_DROPPED.filter(name => !name.startsWith('license:')).join(', ')}.`,
-      `The xlsx import skipped features your license does not unlock: ${STANDARD_LOSSY_LICENSE.join(', ')}.`,
+        PARTIAL_LOSSY_DROPPED.filter(name => !name.startsWith('license:')).join(', ')}.`,
+      `The xlsx import skipped features your license does not unlock: ${PARTIAL_LOSSY_LICENSE.join(', ')}.`,
     ]);
   });
 
   it('treats an xlsx:import_report token as granting nothing more', async() => {
-    const listed = await pluginFor(keyWith([...STANDARD_TOKENS, 'xlsx:import_report']))
+    const listed = await pluginFor(keyWith([...PARTIAL_TOKENS, 'xlsx:import_report']))
       .plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
 
-    expect(listed.dropped).toEqual(STANDARD_LOSSY_DROPPED);
+    expect(listed.dropped).toEqual(PARTIAL_LOSSY_DROPPED);
   });
 
   it('never names an export-only token on import', async() => {
@@ -668,7 +679,7 @@ describe('ImportFile license report', () => {
 
     warnSpy.mockClear();
 
-    const unflagged = await pluginFor(keyWithoutFlag(STANDARD_TOKENS))
+    const unflagged = await pluginFor(keyWithoutFlag(PARTIAL_TOKENS))
       .plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
 
     expect(unflagged).toEqual(legacy);
@@ -693,15 +704,15 @@ describe('ImportFile license report', () => {
     expect(licenseWarnings()).toEqual([]);
   });
 
-  it('says nothing about the license for a values-only file on a Standard key', async() => {
-    const result = await pluginFor(keyWith(STANDARD_TOKENS)).plugin.importFromArrayBuffer('xlsx', fixture('values'));
+  it('says nothing about the license for a values-only file on a key that lacks some tokens', async() => {
+    const result = await pluginFor(keyWith(PARTIAL_TOKENS)).plugin.importFromArrayBuffer('xlsx', fixture('values'));
 
     expect(licenseEntriesOf(result.dropped)).toEqual([]);
     expect(warnSpy.mock.calls.filter(([message]) => message.startsWith('The xlsx import skipped'))).toEqual([]);
   });
 
   it('warns once with the missing tokens, and stays silent under no-console-warns', async() => {
-    await pluginFor(keyWith(STANDARD_TOKENS)).plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
+    await pluginFor(keyWith(PARTIAL_TOKENS)).plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
 
     const licenseWarnings = () => warnSpy.mock.calls
       .map(([message]) => message)
@@ -713,7 +724,7 @@ describe('ImportFile license report', () => {
 
     warnSpy.mockClear();
 
-    const silenced = await pluginFor(keyWith(STANDARD_TOKENS, ['no-console-warns']))
+    const silenced = await pluginFor(keyWith(PARTIAL_TOKENS, ['no-console-warns']))
       .plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
 
     expect(licenseWarnings()).toEqual([]);

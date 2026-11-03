@@ -2,8 +2,15 @@ import ExcelJS from 'exceljs';
 import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { XlsxLicensePage } from '../fixtures/pages/XlsxLicensePage';
 import {
-  ALL_XLSX_TOKENS, keyWith, keyWithout, LEGACY_KEY, STANDARD_TOKENS,
+  ALL_XLSX_TOKENS, keyWith, keyWithout, LEGACY_KEY,
 } from '../fixtures/xlsxLicenseKeys';
+
+/**
+ * An arbitrary subset of the xlsx tokens, chosen so a key both grants some export features and lacks
+ * others. It is not a product package: which tokens a product grants is decided where keys are issued,
+ * never here.
+ */
+const PARTIAL_TOKENS = ['xlsx:import', 'xlsx:export', 'xlsx:formulas', 'xlsx:layout'];
 
 test.describe('Export entry gate (xlsx:export)', { tag: BUNDLES_TAG }, () => {
   test('hides To Excel and rejects the call without xlsx:export', async({ page, theme, bundle }) => {
@@ -16,12 +23,12 @@ test.describe('Export entry gate (xlsx:export)', { tag: BUNDLES_TAG }, () => {
     await expect(lic.exportBytes()).rejects.toThrow('does not unlock "xlsx:export"');
   });
 
-  test('shows To Excel for the legacy key and for a Standard key', async({ page, theme, bundle }) => {
+  test('shows To Excel for the legacy key and for a key that lists xlsx:export', async({ page, theme, bundle }) => {
     const lic = new XlsxLicensePage(page, theme, bundle);
 
     await lic.goto();
 
-    for (const key of [LEGACY_KEY, keyWith(STANDARD_TOKENS)]) {
+    for (const key of [LEGACY_KEY, keyWith(['xlsx:export']), keyWith(PARTIAL_TOKENS)]) {
       await lic.create(key);
       expect(await lic.exportMenuItems()).toEqual(['To CSV', 'To Excel']);
       expect((await lic.exportBytes()).length).toBeGreaterThan(0);
@@ -30,9 +37,12 @@ test.describe('Export entry gate (xlsx:export)', { tag: BUNDLES_TAG }, () => {
 });
 
 /**
- * The Pro tokens of the export, in declaration order.
+ * The tokens that gate a part of the export (every export token but `xlsx:export`, which gates the
+ * call), in declaration order.
  */
-const PRO_EXPORT_TOKENS = [
+const EXPORT_FEATURE_TOKENS = [
+  'xlsx:formulas',
+  'xlsx:layout',
   'xlsx:number_formats',
   'xlsx:comments',
   'xlsx:styles',
@@ -40,12 +50,6 @@ const PRO_EXPORT_TOKENS = [
   'xlsx:data_validation',
   'xlsx:protection',
 ] as const;
-
-/**
- * The six Pro tokens a Standard key lacks, in declaration order. Every one of them is an export
- * token, so the export's warning names them all.
- */
-const PRO_TOKENS = ALL_XLSX_TOKENS.filter(id => !(STANDARD_TOKENS as readonly string[]).includes(id));
 
 /**
  * Every part a token gates, asked for: the column headers (their fill), the hidden Region column
@@ -67,7 +71,7 @@ const EXPORT_OPTIONS = {
 const PASSWORD = 'q4-budget';
 const PASSWORD_OPTIONS = { protection: { password: PASSWORD } };
 
-type ExportFeature = 'xlsx:formulas' | 'xlsx:layout' | typeof PRO_EXPORT_TOKENS[number];
+type ExportFeature = typeof EXPORT_FEATURE_TOKENS[number];
 
 /**
  * Exports the fixture's source grid and reports, per token, whether the part it unlocks reached the
@@ -128,11 +132,13 @@ async function licenseWarnings(lic: XlsxLicensePage): Promise<string[]> {
 
 for (const engine of ['native', 'exceljs'] as const) {
   test.describe(`xlsx export license gates (${engine})`, { tag: BUNDLES_TAG }, () => {
-    test('a Standard key writes values, formulas and layout only', async({ page, theme, bundle }) => {
+    test('a key listing import, export, formulas and layout only writes values, formulas and layout', async({
+      page, theme, bundle,
+    }) => {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
 
       await lic.goto();
-      await lic.create(keyWith(STANDARD_TOKENS));
+      await lic.create(keyWith(PARTIAL_TOKENS));
 
       const features = await exportedFeatures(lic);
 
@@ -161,7 +167,6 @@ for (const engine of ['native', 'exceljs'] as const) {
         expect(sheet.getCell('B6').formula).toBe('B2+B3');
       }
 
-      expect(PRO_TOKENS).toEqual([...PRO_EXPORT_TOKENS]);
       expect(await licenseWarnings(lic)).toEqual(Array(2).fill(
         'The xlsx export skipped features your license does not unlock: xlsx:number_formats, xlsx:comments, '
         + 'xlsx:styles, xlsx:conditional_formatting, xlsx:data_validation, xlsx:protection.'
@@ -186,7 +191,7 @@ for (const engine of ['native', 'exceljs'] as const) {
       });
     }
 
-    test('each Pro token removes exactly its part', async({ page, theme, bundle }) => {
+    test('each export feature token removes exactly its part', async({ page, theme, bundle }) => {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
 
       await lic.goto();
@@ -197,13 +202,16 @@ for (const engine of ['native', 'exceljs'] as const) {
       expect(Object.entries(full).filter(([, present]) => !present).map(([id]) => id))
         .toEqual(bundle === 'full-min' ? [] : ['xlsx:formulas']);
 
-      for (const token of PRO_EXPORT_TOKENS) {
+      for (const token of EXPORT_FEATURE_TOKENS) {
         await lic.create(keyWithout(token));
 
+        // The umd bundle has no HyperFormula, so its grid holds no formula for the export to drop.
+        const hasPart = token !== 'xlsx:formulas' || bundle === 'full-min';
+
         expect(await exportedFeatures(lic), token).toEqual({ ...full, [token]: false });
-        expect(await licenseWarnings(lic), token).toEqual([
+        expect(await licenseWarnings(lic), token).toEqual(hasPart ? [
           `The xlsx export skipped features your license does not unlock: ${token}.`,
-        ]);
+        ] : []);
       }
     });
 
@@ -253,13 +261,13 @@ for (const engine of ['native', 'exceljs'] as const) {
       expect(error?.message.includes('1234')).toBe(false);
     });
 
-    test('a Standard key writes no sheetProtection despite the option, and the warning has no password', async({
+    test('a key without xlsx:protection writes no sheetProtection despite the option, and the warning has no password', async({
       page, theme, bundle,
     }) => {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
 
       await lic.goto();
-      await lic.create(keyWith(STANDARD_TOKENS));
+      await lic.create(keyWith(PARTIAL_TOKENS));
 
       const xml = lic.sheetXml(await lic.exportBytes(PASSWORD_OPTIONS));
       const warnings = await lic.warnings();
@@ -309,8 +317,8 @@ for (const engine of ['native', 'exceljs'] as const) {
 
       await lic.goto();
 
-      // A Standard key unlocks xlsx:formulas but not xlsx:number_formats.
-      await lic.create(keyWith(STANDARD_TOKENS), dateFormula);
+      // This key unlocks xlsx:formulas but not xlsx:number_formats.
+      await lic.create(keyWith(PARTIAL_TOKENS), dateFormula);
 
       const gated = (await lic.exportWorkbook({ exportFormulas: true })).worksheets[0].getCell('C2');
 
@@ -360,7 +368,7 @@ for (const engine of ['native', 'exceljs'] as const) {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
 
       await lic.goto();
-      await lic.create(keyWith(STANDARD_TOKENS, ['no-console-warns']));
+      await lic.create(keyWith(PARTIAL_TOKENS, ['no-console-warns']));
 
       const features = await exportedFeatures(lic);
 

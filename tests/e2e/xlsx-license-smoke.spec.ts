@@ -1,8 +1,14 @@
 import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { XlsxLicensePage } from '../fixtures/pages/XlsxLicensePage';
 import {
-  CORE_ONLY_KEY, keyWithAll, keyWithoutFlag, LEGACY_KEY, STANDARD_TOKENS,
+  CORE_ONLY_KEY, keyWithAll, keyWithoutFlag, LEGACY_KEY,
 } from '../fixtures/xlsxLicenseKeys';
+
+/**
+ * An arbitrary subset of the xlsx tokens. It is not a product package: which tokens a product grants
+ * is decided where keys are issued, never here.
+ */
+const PARTIAL_TOKENS = ['xlsx:import', 'xlsx:export', 'xlsx:formulas', 'xlsx:layout'];
 
 /**
  * The xlsx license fixture's own proof. The keys come from `fixtures/xlsxLicenseKeys.ts`, which
@@ -10,8 +16,8 @@ import {
  * follows its TypeScript import chain, so no generated JSON key file is needed).
  *
  * A `handsontable` product entry without the `listed-capabilities` flag is unrestricted for the
- * whole family, whatever tokens it lists, so a current core-only key, and a key listing only the
- * Standard tokens without the flag, must write the very same sheet as the legacy evaluation key, and
+ * whole family, whatever tokens it lists, so a current core-only key, and a key listing only some
+ * xlsx tokens without the flag, must write the very same sheet as the legacy evaluation key, and
  * say nothing on the console.
  */
 test.describe('xlsx license fixture', { tag: BUNDLES_TAG }, () => {
@@ -43,7 +49,7 @@ test.describe('xlsx license fixture', { tag: BUNDLES_TAG }, () => {
     expect(await lic.warnings()).toEqual([]);
   });
 
-  test('a Standard key without the listed-capabilities flag exports and imports everything', async({
+  test('a key listing some xlsx tokens without the listed-capabilities flag exports and imports everything', async({
     page, theme, bundle,
   }) => {
     const lic = new XlsxLicensePage(page, theme, bundle);
@@ -64,11 +70,11 @@ test.describe('xlsx license fixture', { tag: BUNDLES_TAG }, () => {
     const legacyBytes = await lic.exportBytes(exportOptions);
     const legacyImport = await lic.importBytes(legacyBytes, importOptions);
 
-    // The legacy result carries the Pro parts: proven before the unflagged key is compared with it.
+    // The legacy result carries the parts the unlisted tokens gate: proven before the unflagged key is compared with it.
     expect(legacyImport.styles).toBeDefined();
     expect(legacyImport.comments).toBeDefined();
 
-    await lic.create(keyWithoutFlag(STANDARD_TOKENS));
+    await lic.create(keyWithoutFlag(PARTIAL_TOKENS));
 
     const bytes = await lic.exportBytes(exportOptions);
 
