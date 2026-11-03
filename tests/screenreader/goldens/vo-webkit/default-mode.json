@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "scenario": "default-mode",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-03T19:25:27.008Z"
+  },
+  "steps": {
+    "tab-into-grid": "alpha a1 table 4 columns",
+    "arrow-right": "bravo b1",
+    "arrow-down": "bravo b2",
+    "to-row-end": "charlie c2",
+    "tab-out-forward": "after the grid button",
+    "shift-tab-back-in": "charlie c2 table 4 columns",
+    "to-row-start": "alpha a2",
+    "tab-out-backward": "before the grid button",
+    "tab-back-in": "alpha a2 table 4 columns"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "grid-core-single-tab-stop",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-03T19:27:08.053Z"
+  },
+  "steps": {
+    "tab-out-forward": "after the grid button",
+    "shift-tab-back-in": "table 28 age row 3 column 3",
+    "arrow-left": "bruno name row 3 column 2",
+    "tab-out-backward": "before the grid button",
+    "tab-back-in": "table bruno selected name row 3 column 2"
+  }
+}

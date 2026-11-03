@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "grid-core-single-tab-stop",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-03T19:27:25.041Z"
+  },
+  "steps": {
+    "tab-out-forward": "after the grid button",
+    "shift-tab-back-in": "table 28 age row 3 name column 3",
+    "arrow-left": "bruno name row 3 column 2",
+    "tab-out-backward": "before the grid button",
+    "tab-back-in": "table bruno name row 3 column 2"
+  }
+}
