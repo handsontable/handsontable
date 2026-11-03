@@ -79,7 +79,8 @@ function createFunctionCallPattern(functionNames: string[]): RegExp {
 
 /**
  * Checks whether every cell a formula reads is on a sheet the engine still holds. HyperFormula throws
- * when it is handed a formula that reads a removed sheet, and such a cell already reads `#REF!`.
+ * when it is handed a formula that reads a removed sheet, and such a cell already reads `#REF!`. A named
+ * expression is reported with a negative sheet, and it is not a sheet the formula reads.
  *
  * @param {object} engine The engine instance.
  * @param {object} address The formula cell.
@@ -89,7 +90,7 @@ function readsExistingSheetsOnly(engine: HyperFormulaEngine, address: FormulasCe
   return engine.getCellPrecedents(address).every((precedent) => {
     const { sheet } = (precedent as FormulasCellRange).start ?? precedent as FormulasCellAddress;
 
-    return engine.getSheetName(sheet) !== undefined;
+    return sheet < 0 || engine.getSheetName(sheet) !== undefined;
   });
 }
 

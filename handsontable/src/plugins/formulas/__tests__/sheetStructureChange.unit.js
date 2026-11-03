@@ -170,6 +170,21 @@ describe('Formulas: adding and removing a sheet on an engine built by the plugin
     expect(hot1.getSourceDataAtCell(0, 0)).toBe('=SHEETS()+Data!A1');
   });
 
+  it('recalculates SHEETS in a formula that also reads a named expression', () => {
+    const hot1 = grid([['=SHEETS()+Rate']], {
+      engine: HyperFormula,
+      sheetName: 'S1',
+      namedExpressions: [{ name: 'Rate', expression: '=10' }],
+    });
+    const engine = hot1.getPlugin('formulas').engine;
+
+    expect(hot1.getDataAtCell(0, 0)).toBe(11);
+
+    engine.addSheet('S2');
+
+    expect(hot1.getDataAtCell(0, 0)).toBe(12);
+  });
+
   it('keeps a reference to a sheet whose name the engine reads only in quotes', () => {
     const hot1 = grid([['=SHEETS()+\'2026\'!A1']], { engine: HyperFormula, sheetName: 'S1' });
     const engine = hot1.getPlugin('formulas').engine;
