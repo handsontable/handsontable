@@ -574,7 +574,8 @@ directions.
   `read.ts` patches them after the sheet; a caller that drives `parseWorksheet` alone passes no
   collector and gets the guess, as before. The ExcelJS adapter cannot see `vm` and keeps `#VALUE!`
   (pinned in `nativeRichValues.unit.js`, the fixture is `excel-online-rich-errors.xlsx`). A
-  shared-formula slave (no text of its own) never counts as a picture. An `<x14:cfRule>` inside `<extLst>`
+  shared-formula follower is judged on its translated text (the decision runs after `#readFormula`),
+  so its own `IMAGE` call counts. An `<x14:cfRule>` inside `<extLst>`
   records `conditionalFormatting:<type>` through `recordUnsupported`; `<f t="dataTable">` records
   `formula:dataTable` and keeps the cached values; a `t="s"` index that resolves to nothing records
   `cellValue:sharedString`. A `<conditionalFormatting>` block left with no rule is not pushed, so
@@ -693,7 +694,7 @@ directions.
   charged ONCE per formula for the prefix strip, the reference shift (with its sheet-qualifier
   check) and the defined-name scan together — see `plugins/importFile/AGENTS.md`. That budget bounds
   regex work only: a defined name's definition costs far more in HyperFormula (two parses, then an
-  evaluation when the applier's batch ends), so the import bounds it on its own with `MAX_DEFINED_NAME_LENGTH`,
+  evaluation when the applier resumes the engine), so the import bounds it on its own with `MAX_DEFINED_NAME_LENGTH`,
   `MAX_DEFINED_NAME_CHARS`, `MAX_DEFINED_NAME_CELLS` and `MAX_DEFINED_NAME_TOTAL_CELLS` (`limits.ts`;
   cells counted by `closedReferenceArea` in `formulaRefs.ts`, a whole column or row sized by the engine sheet it is on). The field is optional on
   `WorkbookBudget` (absent reads as zero) because tests pass `{ declaredCells: 0 }`. Validation and
@@ -872,7 +873,8 @@ directions.
     `useArrayArithmetic` is on (`exportFile` gates it). It reuses `REFERENCE_REGEX`, whose unqualified
     alternative matches `A1:A3` as two cells joined by `:`, so the scanner joins them. Known gap:
     `SUM(ABS(A1:A3))` (a range passed where a function expects one value) is not detected, a defined
-    name as an operand is skipped (its size is unknown), and a range with both corners sheet-qualified
+    name as an operand counts only when the caller's `isRangeName` says it is one multi-cell range
+    (the export decides that from the engine's definition, `isMultiCellRangeDefinition`), and a range with both corners sheet-qualified
     (`Sheet1!A1:Sheet1!A3`) is not recognized as a range.
   - **Parity tests cannot see `@`.** They compare workbook snapshots, which carry no implicit
     intersection. Whether a written formula opens with an `@` is checked only by opening the file

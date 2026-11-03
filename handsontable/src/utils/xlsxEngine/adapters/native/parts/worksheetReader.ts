@@ -1799,21 +1799,6 @@ class WorksheetParser {
       this.#ctx.dropped.record(DROPPED_FEATURES.richText);
     }
 
-    // An Excel 365 "Place in Cell" picture is an error cell carrying value metadata, with the picture
-    // in `xl/richData`: the cached `#VALUE!` is kept, the picture is lost, and it has no drawing part
-    // to report it through. `vm` alone is not enough (OLAP cube cells carry it too), and neither is
-    // `t="e"` with it: Excel Online stores `#SPILL!` and `#CALC!` of a formula the same way, as a rich
-    // error. `read.ts` tells them apart through `xl/richData` (`richValueCells`); where it cannot, a
-    // cell with no formula, or one whose formula calls `IMAGE`, is taken for a picture.
-    const pictureIfUnresolved = state.valueMetadataError
-      && (state.formulaAttrs === null || callsImageFunction(state.formulaText));
-    // The `vm` handed to `read.ts`, or `null` when the cell is judged here.
-    const deferredVm = this.#ctx.richValueCells !== undefined && isError ? state.valueMetadata : null;
-
-    if (pictureIfUnresolved && deferredVm === null) {
-      this.#ctx.dropped.record(DROPPED_FEATURES.images);
-    }
-
     if (state.formulaTooLong) {
       this.#ctx.dropped.record(DROPPED_FEATURES.formulaTooLong);
     } else if (state.formulaAttrs?.t === 'dataTable') {
@@ -1837,6 +1822,23 @@ class WorksheetParser {
 
         value = null;
       }
+    }
+
+    // An Excel 365 "Place in Cell" picture is an error cell carrying value metadata, with the picture
+    // in `xl/richData`: the cached `#VALUE!` is kept, the picture is lost, and it has no drawing part
+    // to report it through. `vm` alone is not enough (OLAP cube cells carry it too), and neither is
+    // `t="e"` with it: Excel Online stores `#SPILL!` and `#CALC!` of a formula the same way, as a rich
+    // error. `read.ts` tells them apart through `xl/richData` (`richValueCells`); where it cannot, a
+    // cell with no formula, or one whose formula calls `IMAGE`, is taken for a picture. The call is
+    // read after a shared formula's follower got its translated text (`<f t="shared" si="0"/>` has
+    // none of its own).
+    const pictureIfUnresolved = state.valueMetadataError
+      && (state.formulaAttrs === null || callsImageFunction(formula?.text ?? state.formulaText));
+    // The `vm` handed to `read.ts`, or `null` when the cell is judged here.
+    const deferredVm = this.#ctx.richValueCells !== undefined && isError ? state.valueMetadata : null;
+
+    if (pictureIfUnresolved && deferredVm === null) {
+      this.#ctx.dropped.record(DROPPED_FEATURES.images);
     }
 
     const hasNoFormat = xf.numFmt === null && xf.style === null && xf.locked === null;

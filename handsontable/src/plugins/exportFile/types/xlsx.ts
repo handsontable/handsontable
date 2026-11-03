@@ -42,7 +42,8 @@ import { intlNumFormatToExcelNumFmt } from './xlsx/numeric-utils';
 import { detectXlsxEngine } from '../../../utils/xlsxEngine/detect';
 import { DROPPED_FEATURES, DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
 import {
-  appliesOperatorToRange, callsArrayFormulaAsOperand, callsDynamicArrayFunction, isWholeArrayFunctionCall,
+  appliesOperatorToRange, callsArrayFormulaAsOperand, callsDynamicArrayFunction, isMultiCellRangeDefinition,
+  isWholeArrayFunctionCall,
   stripArrayFormulaCalls, unwrapArrayFormula,
 } from '../../../utils/xlsxEngine/dynamicArrays';
 import { SheetBuilder } from '../../../utils/xlsxEngine/builder';
@@ -370,6 +371,12 @@ interface ArrayFormulaTarget {
    * (HyperFormula's `useArrayArithmetic`).
    */
   arrayArithmetic: boolean;
+  /**
+   * Whether a word of a formula is a name of the grid's engine defined over a multi-cell range, which
+   * `appliesOperatorToRange` then counts as a range (`SUM(Sales*2)`). `null` when the engine has no
+   * such name.
+   */
+  isRangeName: ((word: string) => boolean) | null;
 }
 
 /**
@@ -432,7 +439,7 @@ function resolveArrayFormula(
     dynamic = false;
 
   } else if (arraySize !== null || callsDynamicArrayFunction(formulaText) || isWholeArrayFunctionCall(formulaText)
-    || (target.arrayArithmetic && appliesOperatorToRange(formulaText))) {
+    || (target.arrayArithmetic && appliesOperatorToRange(formulaText, target.isRangeName ?? undefined))) {
     dynamic = true;
 
   } else if (formulaText !== text && !callsArrayFormulaAsOperand(text)) {
@@ -442,8 +449,12 @@ function resolveArrayFormula(
     return { text: formulaText };
   }
 
-  // Excel never resizes a CSE ref, so a CSE array keeps the size the engine mapped.
-  const size = !dynamic && arraySize?.untrimmed ? arraySize.untrimmed : arraySize;
+  // Excel never resizes a CSE ref, so a CSE array keeps the size the engine mapped. When that room
+  // does not reach the file (`ARRAYFORMULA(FILTER(…))` reserving rows past the last one) and the
+  // values do, the ref covers the values: Excel shows a legacy array's first cells, which hold them,
+  // where a plain formula would open with an `@`.
+  const untrimmed = dynamic ? undefined : arraySize?.untrimmed;
+  const size = untrimmed && (untrimmed.exported || !arraySize?.exported) ? untrimmed : arraySize;
 
   if (size !== null && !size.exported) {
     recordArrayExcluded(target.dropped);
@@ -497,6 +508,7 @@ interface NestedHeaderEntry {
 interface SheetContext {
   exportFormulas: boolean;
   arrayArithmetic: boolean;
+  isRangeName: ((word: string) => boolean) | null;
   formulasSeparator: string;
   formulasDecimalSeparator: string;
   dataRowOffset: number;
@@ -1129,9 +1141,21 @@ class Xlsx extends BaseType {
     // Registered with or without `exportFormulas`: a sheet written as values is still in the file,
     // so a name of another grid on the same engine may point at it.
     const binding = dataProvider.getFormulasBinding();
+    const namedExpressions = exportFormulas && binding ? dataProvider.getNamedExpressions() : [];
     const engineNames = exportFormulas && binding
-      ? new Set(dataProvider.getNamedExpressions()
-        .map(({ name: definedName, scope }) => definedNameKey(scope ?? null, definedName)))
+      ? new Set(namedExpressions.map(({ name: definedName, scope }) => definedNameKey(scope ?? null, definedName)))
+      : null;
+    const engineScope = binding ? localeLowerCase(binding.sheetName) : '';
+    // The names over a multi-cell range, which an operator next to them applies to every cell.
+    const rangeNames = new Set(namedExpressions
+      .filter(({ formula }) => formula !== null && isMultiCellRangeDefinition(formula))
+      .map(({ name: definedName, scope }) => definedNameKey(scope ?? null, definedName)));
+    const isRangeName = engineNames !== null && rangeNames.size > 0
+      ? (word: string) => {
+        const key = resolveDefinedName(engineNames, engineScope, localeLowerCase(word));
+
+        return key !== null && rangeNames.has(key);
+      }
       : null;
     const engineConfig = (binding?.engine as { getConfig?: () => { useArrayArithmetic?: unknown } } | undefined)
       ?.getConfig?.();
@@ -1150,7 +1174,8 @@ class Xlsx extends BaseType {
       engineCellFacts,
       engineNames: engineNames !== null && engineNames.size > 0 ? engineNames : null,
       engine: binding?.engine ?? null,
-      engineScope: binding ? localeLowerCase(binding.sheetName) : '',
+      engineScope,
+      isRangeName,
       fileScope: localeLowerCase(name),
       nameUses,
       dropped,

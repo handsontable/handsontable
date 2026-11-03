@@ -369,7 +369,11 @@ Other rules:
   The symbol also marks an EMPTY REFERENCED cell (`=ARRAYFORMULA(IF(A1:A4>2,B1:B4,B1:B4))` over empty
   B3:B4 maps 4 rows, 2 of them symbols), and Excel never resizes a CSE ref, so a CSE array
   (whole-formula `ARRAYFORMULA`) takes `ArrayFormulaSize#untrimmed`, which the data provider sets, with
-  its own `exported`, only when the trim changed the size. A dynamic array whose real last values are
+  its own `exported`, only when the trim changed the size. When the untrimmed size is not exported
+  and the trimmed one is (`ARRAYFORMULA(FILTER(…))` near the last row), the CSE ref takes the trimmed
+  size: Excel shows a legacy array's first cells, which hold the results, where the plain-formula
+  fallback would open as `=@FILTER(…)`. With room below, the ref still covers the reserved padding
+  (`#N/A` in LibreOffice), which the export guide states. A dynamic array whose real last values are
   empty is trimmed too; Excel recalculates it to the full size. A `SEQUENCE` reserves exactly its size,
   so `xlsxArrayFormula.unit.js` pins `FILTER`, `TRANSPOSE(FILTER)` and the no-mapping walk. The walk can
   over-count next to another array, so the xlsx type keeps per-sheet claims (`ArrayRangeClaims` in
@@ -380,8 +384,9 @@ Other rules:
   without `xlsx:layout`, which writes no merge):
   a multi-cell array over a merge, or a CSE array on a merged cell, is refused like an overlap (Excel
   shows a spill into a merge as `#SPILL!` and refuses a CSE array in one); a one-cell DYNAMIC array
-  (`IFS`, range arithmetic) may sit on a merge's first cell, being only a formula to Excel. Never claim out of order, and never go back to comparing every pair: that is quadratic in
-  the number of array formulas. The data provider decides `exported` (every spilled row and column lands
+  (`IFS`, range arithmetic) may sit on a merge's first cell, being only a formula to Excel. Never
+  claim out of order, and never go back to comparing every pair: that is quadratic in the number of
+  array formulas. The data provider decides `exported` (every spilled row and column lands
   right after the master in the matrix): a spill crossing a hidden row with `exportHiddenRows: false`, a
   trimmed or filtered row, or the `range` edge is written as a plain formula and `formula:arrayExcluded`
   is recorded once. Every `ARRAYFORMULA(…)` call is stripped (`stripArrayFormulaCalls`), but **only a
@@ -417,8 +422,11 @@ Other rules:
   `dynamicArrays` is not recorded. **Known gaps:** a function that takes a range where it expects one
   value (`SUM(ABS(A1:A3))`) has the same `@` problem and is not detected – that needs per-function
   knowledge, deliberately left out. A bare range or range name as the whole formula (`=A1:A3`,
-  `=Sales`) stays plain too. A defined name used as an operand is not detected either (its size
-  is unknown), and neither is a range with both corners sheet-qualified (`Sheet1!A1:Sheet1!A3`).
+  `=Sales`) stays plain too. A defined name used as an operand counts when the engine defines it as
+  one multi-cell range (`SUM(Sales*2)` over `Data!$A$1:$A$6`, `isMultiCellRangeDefinition`; the
+  export hands `appliesOperatorToRange` an `isRangeName` check resolved in the grid's scope); a name
+  over anything else (a formula, a union, one cell) does not, since its size is unknown. A range with
+  both corners sheet-qualified (`Sheet1!A1:Sheet1!A3`) is not recognized either.
 - **Named expressions export as defined names, with `exportFormulas` only** (DEV-3648).
   `getNamedExpressions()` lists the engine's workbook names, then each engine sheet's scoped names
   (`scope`: the engine sheet name, or `null`). A scoped name is written with `sheetName` set to the
@@ -444,7 +452,8 @@ Other rules:
   so its value is spelled as a literal (`toFormulaLiteral`: `"text"` with `""`, at most 255 characters,
   `TRUE()`/`FALSE()`, an error code). A text holding a character the native writer drops
   (`ILLEGAL_XML_CHAR`, shared from `utils/xlsxEngine/adapters/native/xml/escapes.ts`: C0 controls, DEL,
-  U+FFFE, U+FFFF) or a carriage return is refused: the writer would strip the first silently, and the
+  U+FFFE, U+FFFF), a lone surrogate (`isWellFormed()`; `TextEncoder` writes U+FFFD) or a carriage
+  return is refused: the writer would strip the first silently, and the
   reader's end-of-line handling reads `"a\rb"` back as `"a\nb"` (pinned by a write-then-read test). The
   ExcelJS writer keeps no constant name at all. **Names are written ONCE per export, not per grid**:
   grids of a multi-sheet export usually share one engine, and normalizing every name against each grid's
@@ -453,7 +462,11 @@ Other rules:
   name) with its exported name and header offsets; `#addDefinedNames` groups them per engine, reads the
   left-out rows and columns of each sheet
   (`getExcludedHiddenRows(true)`/`getExcludedHiddenColumns(true)`) only for an engine that has names,
-  and runs `normalizeNamedExpression` once per name against that map. **Every bound grid registers, with
+  and runs `normalizeNamedExpression` once per name against that map. It strips every
+  `ARRAYFORMULA(…)` call as a cell formula does, and refuses a definition holding `#ERROR!` outside a
+  string: HyperFormula stores a definition it cannot parse (`=1+`, `="a""b"`) as `=#ERROR!`, which is
+  no OOXML code. `replaceSeparatorOutsideStrings` leaves an array literal (`{1,2;3,4}`) alone, in a
+  definition and in a cell formula: its `;` is OOXML's row separator too. **Every bound grid registers, with
   or without `exportFormulas`**: a sheet written as values is still in the file, and registering only
   the `exportFormulas` grids would drop a name pointing at it. An engine's names are written only when
   one of its grids has `exportFormulas`, read from that grid. The `xlsx*.unit.js` mocks therefore all
@@ -471,7 +484,8 @@ Other rules:
   decided AFTER every sheet is populated, because the names in the file depend on every grid:
   `#writeRowCells` notes each formula cell whose words (`namesUsedIn`, outside quotes and brackets, not
   followed by `(` or `!`, and not part of a reference: `isReferenceWord` skips the `R` of `$R$1` or of
-  `R:R`, which used to tie every such formula to a left-out one-letter name) include a name of its engine (`DefinedNameUse`, with the value the export
+  `R:R`, so such a formula is not tied to a left-out one-letter name) include a name of its engine
+  (`DefinedNameUse`, with the value the export
   writes without `exportFormulas` as its fallback); `#addDefinedNames` returns, per engine, the names
   written with that engine's definition; and the adapter's `selectDefinedNames` (pure, the same
   selection `write` makes: the shared validation, plus the ExcelJS single-range shape and cell budget)

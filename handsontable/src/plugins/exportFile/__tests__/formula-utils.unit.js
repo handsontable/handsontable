@@ -122,6 +122,12 @@ describe('normalizeFormula', () => {
     it('should leave a dot decimal separator as it is', () => {
       expect(normalizeFormula('=SUM(A1,1.5)', ',', 0, 0, undefined, undefined, '.')).toBe('SUM(A1,1.5)');
     });
+
+    it('should keep the row separator of an array literal under a `;` argument separator', () => {
+      // OOXML's array literal separates rows with `;` too: swapping it gave `{1,2,3,4}`, a `#REF!`.
+      expect(normalizeFormula('=INDEX({1,2;3,4};2;1)', ';', 0, 0)).toBe('INDEX({1,2;3,4},2,1)');
+      expect(normalizeFormula('=INDEX({"a;b";"c"};1;1)', ';', 0, 0)).toBe('INDEX({"a;b";"c"},1,1)');
+    });
   });
 });
 
@@ -152,6 +158,22 @@ describe('normalizeNamedExpression', () => {
     expect(normalize('=Other!$A$1+Data!$A$1')).toBeNull();
     expect(normalize('=2026!$A$1')).toBeNull();
     expect(normalize('=$A$1')).toBeNull();
+  });
+
+  it('should strip an ARRAYFORMULA call, which Excel does not have', () => {
+    expect(normalize('=ARRAYFORMULA(Data!$A$1:$A$3*2)')).toBe('Sheet1!$A$1:$A$3*2');
+    expect(normalize('=SUM(ARRAYFORMULA(Data!$A$1:$A$3*2))')).toBe('SUM(Sheet1!$A$1:$A$3*2)');
+  });
+
+  it('should keep the row separator of an array literal under a `;` argument separator', () => {
+    expect(normalize('=INDEX({1,2;3,4};2;1)', { separator: ';' })).toBe('INDEX({1,2;3,4},2,1)');
+  });
+
+  it('should answer null for a definition HyperFormula could not parse', () => {
+    // HyperFormula stores `=1+` and `="a""b"` as `=#ERROR!`, which no reader parses.
+    expect(normalize('=#ERROR!')).toBeNull();
+    expect(normalize('=SUM(#ERROR!)')).toBeNull();
+    expect(normalize('="#ERROR!"')).toBe('"#ERROR!"');
   });
 
   it('should keep a constant as it is', () => {
@@ -245,6 +267,10 @@ describe('toFormulaLiteral', () => {
     // feed. A tab and a line feed are kept.
     expect(toFormulaLiteral('a\rb')).toBeNull();
     expect(toFormulaLiteral('a\tb\nc')).toBe('"a\tb\nc"');
+    // A lone surrogate is written as U+FFFD, a different string.
+    expect(toFormulaLiteral('a\uD800b')).toBeNull();
+    expect(toFormulaLiteral('b\uDC00')).toBeNull();
+    expect(toFormulaLiteral('\uD83D\uDE00')).toBe('"\uD83D\uDE00"');
     expect(toFormulaLiteral(Infinity)).toBeNull();
   });
 });

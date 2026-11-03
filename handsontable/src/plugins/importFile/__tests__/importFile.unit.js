@@ -4,6 +4,7 @@
 import { Blob } from 'node:buffer';
 import ExcelJS from 'exceljs';
 import { HyperFormula } from 'hyperformula';
+import plPL from 'hyperformula/commonjs/i18n/languages/plPL';
 import { ImportFile, PLUGIN_KEY, PLUGIN_PRIORITY } from '../importFile';
 import { installImportedStyles } from '../applier';
 import { mapWorkbook, resolveImportOptions, selectSheet } from '../mapper';
@@ -2300,6 +2301,118 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
     }
   });
 
+  it('should take the cached value of a plain formula that is a whole array call the engine would spill', async() => {
+    // The export writes a spill it cannot keep (`formula:arrayExcluded`) as a plain `<f>`, which Excel
+    // intersects to one value. Live, `=SEQUENCE(3)` spilled over the cached 2 and 3 below it.
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const plain = await importArrays([
+      [at({ value: 1 }), at({ formula: { text: '_xlfn.SEQUENCE(3)', result: 1 } })],
+      [at({ value: 2 }), at({ value: 2 })],
+      [at({ value: 3 }), at({ value: 3 })],
+    ]);
+
+    expect(plain.result.data.map(row => row[1])).toEqual([1, 2, 3]);
+    expect(plain.result.formulas).toEqual([{ row: 0, col: 1, formula: 'SEQUENCE(3)' }]);
+    expect(plain.result.dropped).toContain('formula:arraySpill');
+
+    plain.hf.destroy();
+
+    // One whose result is one cell stays live.
+    const single = await importArrays([
+      [at({ value: 1 }), at({ formula: { text: 'TRANSPOSE(A1)', result: 1 } })],
+      [at({ value: 2 }), null],
+    ]);
+
+    expect(single.result.data.map(row => row[1])).toEqual(['=TRANSPOSE(A1)', null]);
+    expect(single.result.dropped.includes('formula:arraySpill')).toBe(false);
+
+    single.hf.destroy();
+  });
+
+  it('should leave a master over a name on another engine sheet as written, whatever it masks', async() => {
+    // The scratch engine holds no `Rates`, so `Rate` is `#REF!` there and `IFERROR(Rate,0)` made the
+    // master `#DIV/0!`: it imported its cached values while the grid's engine, which holds `Rates`,
+    // evaluates it live.
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const masked = await importArrays([
+      [at({ value: 1 }), at({
+        formula: { text: 'A1:A3/IFERROR(Rate,0)', result: 0.5, array: { ref: 'B1:B3', dynamic: true } },
+      })],
+      [at({ value: 2 }), at({ value: 1 })],
+      [at({ value: 3 }), at({ value: 1.5 })],
+    ], undefined, {}, [{ name: 'Rate', formula: 'Rates!$A$1', sheetName: null }],
+    { sheets: { Sheet1: [], Rates: [[2]] } });
+
+    expect(masked.result.data.map(row => row[1])).toEqual(['=A1:A3/IFERROR(Rate,0)', null, null]);
+    expect(masked.result.dropped.includes('formula:arraySpill')).toBe(false);
+
+    masked.hf.destroy();
+  });
+
+  it('should let a translated OFFSET spill on an engine of another language', async() => {
+    // The engine lists OFFSET under its own name only through the class's translation: with the
+    // English id, a `plPL` master read as calling an unregistered function, kept its covered cells
+    // and showed `#ROZLANIE!`.
+    if (!HyperFormula.getRegisteredLanguagesCodes().includes('plPL')) {
+      HyperFormula.registerLanguage('plPL', plPL);
+    }
+
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const spilled = await importArrays([
+      [at({ value: 1 }), at({
+        formula: { text: 'PRZESUNIĘCIE(A1,0,0,3,1)*2', result: 2, array: { ref: 'B1:B3', dynamic: true } },
+      })],
+      [at({ value: 2 }), at({ value: 4 })],
+      [at({ value: 3 }), at({ value: 6 })],
+    ], undefined, {}, [], { config: { language: 'plPL' } });
+
+    expect(spilled.result.data.map(row => row[1])).toEqual(['=PRZESUNIĘCIE(A1,0,0,3,1)*2', null, null]);
+
+    spilled.hf.destroy();
+  });
+
+  it('should take the cached values of a legacy array the engine spills right of its ref', async() => {
+    // `{=TRANSPOSE(A1:A3)}` entered in B1 alone is one cell in Excel; live, it filled C1:D1 too.
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const legacy = await importArrays([
+      [at({ value: 1 }), at({
+        formula: { text: 'TRANSPOSE(A1:A3)', result: 1, array: { ref: 'B1', dynamic: false } },
+      }), null, null],
+      [at({ value: 2 }), null, null, null],
+      [at({ value: 3 }), null, null, null],
+    ]);
+
+    expect(legacy.result.data[0]).toEqual([1, 1]);
+    expect(legacy.result.formulas).toEqual([{ row: 0, col: 1, formula: 'TRANSPOSE(A1:A3)' }]);
+    expect(legacy.result.dropped).toContain('formula:arraySpill');
+
+    legacy.hf.destroy();
+  });
+
+  it('should take the cached values of a master that shows #SPILL! though it reads another sheet', async() => {
+    // The probe holds no `Other`, so `ISERROR(Other!A1)` is true there and `SEQUENCE(5)` is blocked
+    // by the `x` in B4. `#SPILL!` settles before the read-outside rule, so the master does not stay
+    // live with its covered cells emptied.
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const master = await importArrays([
+      [at({ value: 1 }), at({
+        formula: {
+          text: 'IF(ISERROR(Other!A1),SEQUENCE(5),SEQUENCE(3))',
+          result: 1,
+          array: { ref: 'B1:B3', dynamic: true },
+        },
+      })],
+      [at({ value: 2 }), at({ value: 2 })],
+      [at({ value: 3 }), at({ value: 3 })],
+      [at({ value: 4 }), at({ value: 'x' })],
+    ], undefined, {}, [], { sheets: { Sheet1: [], Other: [[7]] } });
+
+    expect(master.result.data.map(row => row[1])).toEqual([1, 2, 3, 'x']);
+    expect(master.result.dropped).toContain('formula:arraySpill');
+
+    master.hf.destroy();
+  });
+
   it('should keep the cached covered cells of a master calling a function the engine\'s plugins leave out', async() => {
     // An engine built with `functionPlugins` registers only those plugins' functions: FILTER shows
     // `#NAME?` there. The class's static list (every plugin) counted FILTER as registered, so B2 was
@@ -2643,6 +2756,49 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
     expect(single.result.dropped.includes('formula:arraySpill')).toBe(false);
 
     single.hf.destroy();
+  });
+
+  it('should keep a blocked spill live when the file caches an error for it', async() => {
+    // Excel 365 saves a blocked spill as `<c t="e" cm="1" vm="1"><v>#VALUE!</v>`. Put back, the cell
+    // held a frozen `#VALUE!` and lost its formula; live, it shows `#SPILL!` as Excel does and keeps
+    // the formula.
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const blocked = await importArrays([
+      [at({ value: 1 }), at({
+        formula: {
+          text: '_xlfn.SEQUENCE(3)',
+          result: '#VALUE!',
+          resultIsError: true,
+          array: { ref: 'B1', dynamic: true },
+        },
+      })],
+      [at({ value: 2 }), at({ value: 5 })],
+    ]);
+
+    expect(blocked.result.data).toEqual([[1, '=SEQUENCE(3)'], [2, 5]]);
+    expect(blocked.result.formulas).toBeUndefined();
+    expect(blocked.result.dropped.includes('formula:arraySpill')).toBe(false);
+
+    blocked.hf.destroy();
+
+    // A `FILTER` that matches nothing, blocked by a value in its reserved rows, stays live too.
+    const filter = await importArrays([
+      [at({ value: 1 }), at({
+        formula: {
+          text: '_xlfn._xlws.FILTER(A1:A3,A1:A3>10)',
+          result: '#VALUE!',
+          resultIsError: true,
+          array: { ref: 'B1', dynamic: true },
+        },
+      })],
+      [at({ value: 2 }), at({ value: 5 })],
+      [at({ value: 3 }), null],
+    ]);
+
+    expect(filter.result.data.map(row => row[1])).toEqual(['=FILTER(A1:A3,A1:A3>10)', 5, null]);
+    expect(filter.result.dropped.includes('formula:arraySpill')).toBe(false);
+
+    filter.hf.destroy();
   });
 
   it('should settle the arrays of a window that does not start at A1 at their window positions', async() => {

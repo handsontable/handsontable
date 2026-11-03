@@ -1,4 +1,5 @@
 import { parseRangeRef } from './cellRef';
+import { forEachNameUse } from './definedNames';
 import { REFERENCE_REGEX } from './formulaRefs';
 import { isNameChar, skipQuoted } from './functionPrefixes';
 
@@ -83,25 +84,66 @@ const FUNCTION_PREFIXES = /^(?:_xl(?:fn|ws)\.)+/i;
  * @returns {boolean}
  */
 export function isWholeArrayFunctionCall(formula: string): boolean {
-  let text = formula.trim();
+  // Every `(` is matched in one pass, and the grouping layers are peeled by index: rescanning and
+  // slicing the text once per layer made `=((((…SEQUENCE(1)…))))` quadratic in its depth.
+  const closing = matchParentheses(formula);
+  let first = skipWhitespace(formula, 0, 1);
+  let last = skipWhitespace(formula, formula.length - 1, -1);
 
-  while (text[0] === '(' && findClosingParenthesis(text, 0) === text.length - 1) {
-    text = text.slice(1, -1).trim();
+  while (first < last && formula[first] === '(' && closing[first] === last) {
+    first = skipWhitespace(formula, first + 1, 1);
+    last = skipWhitespace(formula, last - 1, -1);
   }
 
-  let end = 0;
+  let end = first;
 
-  while (end < text.length && isNameChar(text[end])) {
+  while (end <= last && isNameChar(formula[end])) {
     end += 1;
   }
 
-  if (end === 0 || text[end] !== '(') {
+  if (end === first || formula[end] !== '(') {
     return false;
   }
 
-  const name = text.slice(0, end).replace(FUNCTION_PREFIXES, '').toUpperCase();
+  const name = formula.slice(first, end).replace(FUNCTION_PREFIXES, '').toUpperCase();
 
-  return ARRAY_RETURNING_FUNCTIONS.has(name) && findClosingParenthesis(text, end) === text.length - 1;
+  return ARRAY_RETURNING_FUNCTIONS.has(name) && closing[end] === last;
+}
+
+/**
+ * The position of the `)` that closes each `(` of a formula, by the position of the `(` (`-1` for
+ * one the formula never closes, and for every other character), in one pass that skips quoted runs.
+ *
+ * @param {string} formula The formula.
+ * @returns {Int32Array}
+ */
+function matchParentheses(formula: string): Int32Array {
+  const closing = new Int32Array(formula.length).fill(-1);
+  const open: number[] = [];
+  let index = 0;
+
+  while (index < formula.length) {
+    const char = formula[index];
+
+    if (char === '"' || char === '\'') {
+      index = skipQuoted(formula, index);
+
+    } else {
+      if (char === '(') {
+        open.push(index);
+      } else if (char === ')') {
+        const opening = open.pop();
+
+        if (opening !== undefined) {
+          closing[opening] = index;
+        }
+      }
+
+      index += 1;
+    }
+  }
+
+  return closing;
 }
 
 /**
@@ -193,6 +235,13 @@ function isMultiCellRange(reference: string): boolean {
 }
 
 /**
+ * {@link REFERENCE_REGEX}'s own copy for `appliesOperatorToRange`, which resets its `lastIndex`
+ * before each walk: the export calls it once per formula cell, and compiling a new copy each time
+ * cost more than the walk itself.
+ */
+const OPERAND_REFERENCE_REGEX = new RegExp(REFERENCE_REGEX.source, REFERENCE_REGEX.flags);
+
+/**
  * Whether a formula applies an operator to a multi-cell range: a range (`A1:A3`, `A:A`, `1:1`,
  * sheet-qualified or not, with two different corners) with an operator of {@link OPERATOR_CHARS}
  * right before or right after it, or a postfix `%` after it, at any parenthesis depth
@@ -204,14 +253,20 @@ function isMultiCellRange(reference: string): boolean {
  *
  * Only the operator next to a range counts. A function that takes a range where it expects one
  * value (`SUM(ABS(A1:A3))`) has the same problem, and is not found: that needs per-function
- * knowledge. A defined name is not a range here, because its size is unknown. String literals are
- * skipped.
+ * knowledge. A defined name counts as a range only when `isRangeName` says it is one
+ * (`SUM(Sales*2)` with `Sales` over `Data!$A$1:$A$6`): the formula alone does not tell its size.
+ * String literals are skipped.
  *
  * @param {string} formula The formula, without the leading `=`.
+ * @param {Function} [isRangeName] Whether a word of the formula is a defined name over a multi-cell
+ *   range.
  * @returns {boolean}
  */
-export function appliesOperatorToRange(formula: string): boolean {
-  const regex = new RegExp(REFERENCE_REGEX.source, REFERENCE_REGEX.flags);
+export function appliesOperatorToRange(formula: string, isRangeName?: (word: string) => boolean): boolean {
+  const regex = OPERAND_REFERENCE_REGEX;
+
+  regex.lastIndex = 0;
+
   let previous: { end: number; cell: string } | null = null;
   let match = regex.exec(formula);
 
@@ -241,7 +296,38 @@ export function appliesOperatorToRange(formula: string): boolean {
     match = regex.exec(formula);
   }
 
-  return false;
+  return isRangeName !== undefined
+    && forEachNameUse(formula, (word, start, end) => isRangeName(word) && isOperandOfOperator(formula, start, end));
+}
+
+/**
+ * Whether a defined name's definition is one multi-cell range (`=Data!$A$1:$A$6`, `=Data!$B:$B`,
+ * sheet-qualified or not): the shape {@link appliesOperatorToRange} counts as a range when the name is
+ * an operand. Anything else (a constant, a single cell, a union, a formula) is not.
+ *
+ * @param {string} definition The definition, with or without the leading `=`.
+ * @returns {boolean}
+ */
+export function isMultiCellRangeDefinition(definition: string): boolean {
+  const text = definition.trim().replace(/^=/, '').trim();
+  let reference = text;
+
+  if (text[0] === '\'') {
+    // A quoted sheet name may hold a comma or a `!` of its own (`'Q1, 2024'!$A$1:$A$6`).
+    const end = skipQuoted(text, 0);
+
+    if (text[end] !== '!') {
+      return false;
+    }
+
+    reference = text.slice(end + 1);
+  } else if (text.includes('!')) {
+    reference = text.slice(text.indexOf('!') + 1);
+  }
+
+  // A comma after the qualifier joins the areas of a union, whose size the last area alone does not
+  // tell.
+  return !reference.includes(',') && isMultiCellRange(reference);
 }
 
 const ARRAYFORMULA_NAME = 'ARRAYFORMULA';

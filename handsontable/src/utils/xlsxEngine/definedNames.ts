@@ -160,6 +160,25 @@ export function isReferenceWord(formula: string, start: number, end: number): bo
  */
 export function namesUsedIn(formula: string): Set<string> {
   const names = new Set<string>();
+
+  forEachNameUse(formula, (word) => {
+    names.add(localeLowerCase(word));
+  });
+
+  return names;
+}
+
+/**
+ * Walks the words {@link namesUsedIn} lists, as they are spelled, with where each starts and ends
+ * (exclusive). The walk stops at the first word `visit` answers `true` for.
+ *
+ * @param {string} formula The formula, without the leading `=`.
+ * @param {Function} visit Called with the word, its start and its end; `true` stops the walk.
+ * @returns {boolean} Whether `visit` stopped the walk.
+ */
+export function forEachNameUse(
+  formula: string, visit: (word: string, start: number, end: number) => boolean | void
+): boolean {
   let index = 0;
 
   while (index < formula.length) {
@@ -188,8 +207,9 @@ export function namesUsedIn(formula: string): Set<string> {
         end += 1;
       }
 
-      if (formula[end] !== '(' && formula[end] !== '!' && !isReferenceWord(formula, index, end)) {
-        names.add(localeLowerCase(formula.slice(index, end)));
+      if (formula[end] !== '(' && formula[end] !== '!' && !isReferenceWord(formula, index, end)
+          && visit(formula.slice(index, end), index, end) === true) {
+        return true;
       }
 
       index = end;
@@ -199,5 +219,5 @@ export function namesUsedIn(formula: string): Set<string> {
     }
   }
 
-  return names;
+  return false;
 }

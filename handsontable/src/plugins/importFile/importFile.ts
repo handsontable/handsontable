@@ -726,6 +726,8 @@ interface ProbeEngine {
   getNamedExpressionFormula(name: string): string | undefined;
   getNamedExpressionValue(name: string): unknown;
   batch?(callback: () => void): unknown;
+  suspendEvaluation?(): void;
+  resumeEvaluation?(): void;
   destroy(): void;
 }
 
@@ -746,8 +748,9 @@ interface ProbeEngineClass {
  * It holds one sheet, named like the engine's sheet for the grid so a reference qualified with it
  * resolves, and the workbook-scoped named expressions the engine defines plus the ones the import
  * adds. A reference to any other engine sheet does not resolve in it, nor does a name the engine
- * scopes to the grid's sheet (`definesName` answers which names it holds): the mapper settles a
- * master reading either only on `#SPILL!`, and otherwise leaves it as written.
+ * scopes to the grid's sheet, nor a name over another engine sheet (`=Rates!$A$1` is `#REF!` there)
+ * (`definesName` answers which names it holds): the mapper settles a master reading any of them
+ * only on `#SPILL!`, and otherwise leaves it as written.
  *
  * @param {object|null|undefined} engine The Formulas plugin's engine.
  * @param {string|null|undefined} sheetName The engine's name for the grid's sheet.
@@ -800,8 +803,17 @@ function liveArrayProbe(engine: unknown, sheetName: string | null | undefined): 
     };
 
     try {
-      // One batch: unbatched, every add re-evaluated the whole scratch sheet.
-      if (typeof scratch.batch === 'function') {
+      // Suspended: on a running engine every add re-evaluated the whole scratch sheet. Not a batch,
+      // where HyperFormula 3.3 walks the batch's undo entry on every add (quadratic in the names).
+      if (typeof scratch.suspendEvaluation === 'function' && typeof scratch.resumeEvaluation === 'function') {
+        scratch.suspendEvaluation();
+
+        try {
+          addAll();
+        } finally {
+          scratch.resumeEvaluation();
+        }
+      } else if (typeof scratch.batch === 'function') {
         scratch.batch(addAll);
       } else {
         addAll();
@@ -829,8 +841,16 @@ function liveArrayProbe(engine: unknown, sheetName: string | null | undefined): 
       spillsValueInto: (row, col) => answersTrue(() => scratch.isCellPartOfArray({ sheet, row, col })
         && (scratch.getCellValue({ sheet, row, col }) ?? null) !== null),
       definesName: (lowered) => {
-        // Read once, on the first question; the scratch engine's names change no more.
-        defined ??= new Set(scratch.listNamedExpressions().map(held => held.toLowerCase()));
+        // Read once, on the first question; the scratch engine's names change no more. A name over a
+        // sheet the scratch engine does not hold is `#REF!` there, so it counts as not defined: a
+        // master over it reads outside the probe, like one that names the sheet itself.
+        defined ??= new Set(scratch.listNamedExpressions()
+          .filter((held) => {
+            const value = scratch.getNamedExpressionValue(held);
+
+            return !isCellError(value) || value.type !== 'REF';
+          })
+          .map(held => held.toLowerCase()));
 
         return defined.has(lowered);
       },

@@ -1775,6 +1775,17 @@ describe('native reader compatibility: an Excel 365 picture placed in a cell', (
     expect(picture.dropped.list()).toEqual([DROPPED_FEATURES.images]);
     expect(notPicture.dropped.list()).toEqual([]);
   });
+
+  it('should record images for a shared-formula follower whose translated IMAGE call holds a picture', () => {
+    // A follower (`<f t="shared" si="0"/>`) has no text of its own; its master here cached a plain
+    // `#VALUE!` with no `vm`, so only the follower's picture is in the file.
+    const { dropped } = readSheet(worksheetXml(
+      '<row r="1"><c r="A1" t="e"><f t="shared" ref="A1:A2" si="0">_xlfn.IMAGE(B1)</f><v>#VALUE!</v></c></row>'
+      + '<row r="2"><c r="A2" t="e" vm="1"><f t="shared" si="0"/><v>#VALUE!</v></c></row>'
+    ));
+
+    expect(dropped.list()).toEqual([DROPPED_FEATURES.images]);
+  });
 });
 
 describe('native reader compatibility: a merge past a declared <dimension>', () => {
