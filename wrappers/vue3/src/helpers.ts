@@ -166,13 +166,39 @@ export function filterPassedProps(props) {
 }
 
 /**
+ * List the hooks the props pass a callback for, directly or through the `settings` prop. A key counts as
+ * a hook by the rule core's `updateSettings()` uses in `core.ts`: a registered or a deprecated hook name.
+ * Only a function or an array of them counts as a callback: core ignores any other value, so a hook prop
+ * that holds `false` (`:afterChange="on && logChange"`) is treated as removed.
+ *
+ * @param {HotTableProps} props The props passed to the component.
+ * @returns {string[]} The hook names.
+ */
+export function getPassedHookKeys(props: HotTableProps): string[] {
+  const passedProps: VueProps<HotTableProps> = filterPassedProps(props);
+
+  return Object.keys(passedProps).filter(key => (
+    (typeof passedProps[key] === 'function' || Array.isArray(passedProps[key])) &&
+    (Handsontable.hooks.isRegistered(key) || Handsontable.hooks.isDeprecated(key))
+  ));
+}
+
+/**
  * Prepare the settings object to be used as the settings for Handsontable, based on the props provided to the component.
+ *
+ * A hook listed in `previousHookKeys` that the props no longer pass a callback for (the prop is removed or
+ * `undefined`) is sent as `null`, which removes the callback the props registered.
  *
  * @param {HotTableProps} props The props passed to the component.
  * @param {Handsontable.GridSettings} currentSettings The current Handsontable settings.
+ * @param {string[]} previousHookKeys The hooks the previous props passed a callback for.
  * @returns {Handsontable.GridSettings} An object containing the properties, ready to be used within Handsontable.
  */
-export function prepareSettings(props: HotTableProps, currentSettings?: Handsontable.GridSettings): HotTableProps {
+export function prepareSettings(
+  props: HotTableProps,
+  currentSettings?: Handsontable.GridSettings,
+  previousHookKeys: string[] = []
+): HotTableProps {
   const assignedProps: VueProps<HotTableProps> = filterPassedProps(props);
   const hotSettingsInProps: Handsontable.GridSettings = props.settings ? props.settings : assignedProps;
   const additionalHotSettingsInProps: Handsontable.GridSettings | null = props.settings ? assignedProps : null;
@@ -206,6 +232,16 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
     ) {
       newSettings[key] = additionalHotSettingsInProps[key];
     }
+  }
+
+  if (previousHookKeys.length > 0) {
+    const passedHookKeys = getPassedHookKeys(props);
+
+    previousHookKeys.forEach((key) => {
+      if (!passedHookKeys.includes(key)) {
+        newSettings[key] = null;
+      }
+    });
   }
 
   return newSettings;

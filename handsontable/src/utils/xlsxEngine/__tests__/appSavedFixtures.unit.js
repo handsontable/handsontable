@@ -27,6 +27,7 @@ import { excelJsAdapter } from '../adapters/exceljs';
 import { DroppedFeatures } from '../capabilities';
 import { mapWorkbook, resolveImportOptions } from '../../../plugins/importFile/mapper';
 import { loadFixture } from './helpers/fixtures';
+import { UNRESTRICTED_XLSX_ENTITLEMENT } from '../xlsxEntitlement';
 
 const ENGINES = [['native', nativeAdapter, undefined], ['exceljs', excelJsAdapter, ExcelJS]];
 
@@ -44,7 +45,11 @@ async function readAndMap(name, adapter, engine, options = {}, context = {}) {
   const dropped = new DroppedFeatures();
   const read = await adapter.read(loadFixture(name), engine, dropped);
   const result = mapWorkbook(read, resolveImportOptions(options), {
-    formulasEnabled: false, commentsEnabled: true, customBordersEnabled: false, ...context,
+    formulasEnabled: false,
+    commentsEnabled: true,
+    customBordersEnabled: false,
+    entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
+    ...context,
   }, dropped);
 
   return { read, result, dropped: dropped.list() };
