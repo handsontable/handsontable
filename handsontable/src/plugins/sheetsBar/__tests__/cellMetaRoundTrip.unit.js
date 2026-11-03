@@ -522,6 +522,20 @@ describe('SheetsBar cell meta round trip', () => {
     expect(borderCells()).toEqual([[2, 1]]);
   });
 
+  it('does not carry the departing sheet\'s borders onto a sheet that has none', () => {
+    const bar = build({ customBorders: true });
+
+    hot.getPlugin('customBorders').setBorders([[0, 0, 0, 0]], redTop);
+    bar.setActiveSheet('Two');
+
+    expect(borderCells()).toEqual([]);
+    expect(hot.getCellMeta(0, 0).borders).toBeUndefined();
+
+    bar.setActiveSheet('One');
+
+    expect(borderCells()).toEqual([[0, 0]]);
+  });
+
   it('keeps a border on a row the filters hid when the user left', () => {
     const bar = build({ customBorders: true, filters: true });
     const filters = hot.getPlugin('filters');

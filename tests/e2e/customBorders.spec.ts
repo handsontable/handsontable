@@ -538,6 +538,76 @@ test.describe('CustomBorders config sent in one updateSettings() call with a row
   });
 });
 
+test.describe('CustomBorders after loadData()', { tag: THEMES_TAG }, () => {
+  const sameData = (rows: number, cols: number) => Array.from({ length: rows }, (_, row) =>
+    Array.from({ length: cols }, (__, col) => `r${row}c${col}`));
+
+  test('keeps the border through a trim of an unrelated row', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({ dataRows: 8, dataCols: 3, trimRows: true, customBorders: [{ row: 0, col: 0, top: RED_BORDER }] });
+    await page.evaluate(data => (window as any).hot.loadData(data), sameData(8, 3));
+
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+    expect((await lab.cellBorders(0, 0))?.top).toEqual(RED_BORDER);
+
+    // The rebuild from the cell meta used to find none after `loadData()` and empty the model.
+    await page.evaluate(() => (window as any).hot.getPlugin('trimRows').trimRow(2));
+
+    expect(await lab.borderCoords()).toEqual([{ row: 0, col: 0 }]);
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+    expect((await lab.cellBorders(0, 0))?.top).toEqual(RED_BORDER);
+  });
+
+  test('keeps the border through a filter that keeps every row', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({ dataRows: 8, dataCols: 3, filters: true, customBorders: [{ row: 0, col: 0, top: RED_BORDER }] });
+    await page.evaluate(data => (window as any).hot.loadData(data), sameData(8, 3));
+
+    await page.evaluate(() => {
+      const filters = (window as any).hot.getPlugin('filters');
+
+      filters.addCondition(0, 'not_empty', []);
+      filters.filter();
+    });
+
+    expect(await lab.borderCoords()).toEqual([{ row: 0, col: 0 }]);
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+    expect((await lab.cellBorders(0, 0))?.top).toEqual(RED_BORDER);
+  });
+
+  test('draws no border for a cell whose meta write a listener vetoes', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({ dataRows: 8, dataCols: 3, customBorders: [{ row: 0, col: 0, top: RED_BORDER }] });
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+
+    await page.evaluate((data) => {
+      const hot = (window as any).hot;
+
+      hot.addHook('beforeSetCellMeta', (_row: number, _col: number, key: string) => (key === 'borders' ? false : undefined));
+      hot.loadData(data);
+    }, sameData(8, 3));
+
+    // The model, the meta and the DOM agree: the vetoed border is gone from all three.
+    expect(await lab.borderCoords()).toEqual([]);
+    expect(await lab.cellBorders(0, 0)).toBeNull();
+    expect(await lab.countVisibleCustomBorders()).toBe(0);
+  });
+
+  test('control: keeps the border through a trim after updateData()', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({ dataRows: 8, dataCols: 3, trimRows: true, customBorders: [{ row: 0, col: 0, top: RED_BORDER }] });
+    await page.evaluate(data => (window as any).hot.updateData(data), sameData(8, 3));
+    await page.evaluate(() => (window as any).hot.getPlugin('trimRows').trimRow(2));
+
+    expect(await lab.borderCoords()).toEqual([{ row: 0, col: 0 }]);
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+  });
+});
+
 test.describe('CustomBorders range with a `border` object (issue #6679)', { tag: THEMES_TAG }, () => {
   test('applies the range-level `border` style to empty sides instead of the default', async ({ page, theme, bundle }) => {
     const lab = await gotoLab(page, theme, bundle);

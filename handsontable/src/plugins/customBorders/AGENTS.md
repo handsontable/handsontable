@@ -98,7 +98,7 @@ split across batches still merge correctly. A plain synchronous call owns and cl
 
 ## A shrinking `loadData` leaves the model addressing cells that are gone
 
-The plugin registers **no `afterLoadData` hook**, so `loadData` (and `updateSettings({ data })`,
+The plugin never clears its model on `loadData`, so `loadData` (and `updateSettings({ data })`,
 which routes to `updateData`) replaces the dataset while `savedBorders` keeps the previous grid's
 coordinates. Nothing renders them - `#syncViewportSelections` only materializes borders inside the
 rendered range - but `#resetBorderModel` walks the whole model into
@@ -137,16 +137,37 @@ by physical row. So after a shrink through `updateData`, a reset, and a regrow, 
 meta is still on a live cell unless the reset actually clears it, which is the state this file's
 `getBorders()`/`getCellMeta().borders` rule forbids.
 
-**The `afterLoadData` hook was deliberately NOT added.** The core clears cell meta on `loadData` and
-keeps it on `updateData`, so a hook that cleared the model would remove borders the user still sees
-after a same-size `loadData` - a visible behavior change with no ticket behind it. A hook that only
-pruned out-of-range entries would be redundant: `#resetBorderModel` is the single place that clears
-the `borders` meta wholesale, and it covers every caller (`clearBorders()`,
-`changeBorderSettings()`, `updateSettings`). Pinned by `__tests__/shrinkingLoadData.unit.js`, which
-covers the bottom-only, right-only, corner and exact-boundary (`row === countRows()`) shapes, a
-same-size control proving an in-range entry still has its meta removed, and the `updateData`
-shrink -> reset -> regrow regression. The core rule itself is pinned by
-`src/__tests__/core/removeCellMeta.unit.js`.
+**`afterLoadData` writes the model back into the meta, and never clears the model (DEV-3667).** The
+core clears cell meta on `loadData` and keeps it on `updateData`, so clearing the model would remove
+borders the user still sees after a same-size `loadData` - a visible behavior change. Leaving the two
+disagreeing was the defect: the border stayed drawn from the model alone, and the next rebuild from the
+meta (a trim, an untrim, a filter, `resetBorderModel`) found no `borders` meta and emptied the model.
+`#onAfterLoadData` therefore restores the meta of every model entry that is still inside the loaded data,
+through `#writeBordersMeta` (meta first, vetoable; `loadData` runs under `operationScope.suppress()`, so no
+undo step). Four rules ride along:
+
+- **A vetoed write drops the model entry**, as everywhere else: the model never gets ahead of the meta.
+- **Entries outside the loaded data stay in the model and get no meta.** They are not drawn, a later
+  `loadData` of a larger dataset still shows them (today's behavior), and `#resetBorderModel` already
+  handles them. Do not prune them here: that would be a visible change with no ticket behind it.
+- **A load made by `_applySettingsAndData()` restores too, and needs no guard.** A declared
+  `customBorders` array replaces the restored meta in the same call (`onDataReady()` ->
+  `changeBorderSettings()` resets the model first), and the sheets bar empties the model before the load
+  (`clearCustomBorders()`), so the hook has nothing to write there. Skipping the call while
+  `isDataWorkDeferred()` answers `true` was tried: no test needed it, and it left a direct
+  `_applySettingsAndData()` load with the original defect.
+- **The model holds visual coordinates**, and `#writeBordersMeta` translates them through the index maps
+  as they stand when the hook runs. `loadData` resets the maps, and the plugins that re-apply a declared
+  order (`manualRowMove`, `manualColumnMove`, a declared `trimRows` or `hiddenRows`) run before this plugin
+  (priority 335), so the border lands on the record it is drawn on. `#onBeforeDataReplacement` has
+  already run a pending rebuild, so the model is where the border was drawn.
+
+Pinned by `__tests__/loadDataMeta.unit.js` and the `CustomBorders after loadData()` block in
+`tests/e2e/customBorders.spec.ts`. The shrinking-load rules above are pinned by
+`__tests__/shrinkingLoadData.unit.js`, which covers the bottom-only, right-only, corner and
+exact-boundary (`row === countRows()`) shapes, a same-size control proving an in-range entry still has
+its meta removed, and the `updateData` shrink -> reset -> regrow regression. The core rule itself is
+pinned by `src/__tests__/core/removeCellMeta.unit.js`.
 
 ## A filter or a trim rebuilds the model from the meta
 

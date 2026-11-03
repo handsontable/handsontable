@@ -415,6 +415,7 @@ export class CustomBorders extends BasePlugin {
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
     this.addHook('beforeLoadData', this.#onBeforeDataReplacement);
     this.addHook('beforeUpdateData', this.#onBeforeDataReplacement);
+    this.addHook('afterLoadData', this.#onAfterLoadData);
 
     this.#declaredBordersOwed = true;
 
@@ -1049,6 +1050,17 @@ export class CustomBorders extends BasePlugin {
       return;
     }
 
+    this.#dropBorderFromModel(row, column);
+  }
+
+  /**
+   * Drops the border of a cell from the model, the row index and the rendered selections. The
+   * meta is not touched: callers have already removed it, or know it is gone.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   */
+  #dropBorderFromModel(row: number, column: number) {
     const borderId = createId(row, column);
 
     this.spliceBorder(borderId);
@@ -2221,6 +2233,31 @@ The border style will be ignored.`);
   };
 
   /**
+   * `afterLoadData` hook callback. `loadData` drops the cell meta and keeps the model, so the border
+   * stays drawn while its `borders` meta is gone, and the next rebuild from the meta (a trim, an
+   * untrim, a filter) found nothing and emptied the model. Writing the model back into the meta
+   * makes the two agree again, so the border survives what it survived before the rebuild existed.
+   *
+   * Entries outside the loaded data keep their place in the model, as they did before. A cell whose
+   * write a listener vetoes is dropped from the model, so the model never gets ahead of the meta.
+   */
+  #onAfterLoadData = () => {
+    const rowCount = this.hot.countRows();
+    const columnCount = this.hot.countCols();
+
+    // A copy: dropping a vetoed entry edits the model while this walks it.
+    [...this.savedBorders].forEach((border) => {
+      if (border.row >= rowCount || border.col >= columnCount) {
+        return;
+      }
+
+      if (!this.#writeBordersMeta(border.row, border.col, denormalizeBorder(border))) {
+        this.#dropBorderFromModel(border.row, border.col);
+      }
+    });
+  };
+
+  /**
    * `afterFilter` hook callback. A filter changes which record sits at each visual row, while the
    * model keeps the visual coordinates a border was set at. Rebuilding from the `borders` meta
    * (stored by physical coordinates) moves every border back onto its record, and gives a border
@@ -2368,13 +2405,7 @@ The border style will be ignored.`);
     }
 
     this.#flushPendingModelRebuild();
-
-    const borderId = createId(row, column);
-
-    this.spliceBorder(borderId);
-    this.#unindexBorderByRow(row, borderId);
-    this.#dropOutgoingBorder(row, borderId);
-    this.#destroyBorderSelection(borderId);
+    this.#dropBorderFromModel(row, column);
   };
 
   /**
