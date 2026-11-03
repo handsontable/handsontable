@@ -8,6 +8,7 @@ import {
   isLeftClick,
 } from '../../helpers/dom/event';
 import { getDeepActiveElement, isHTMLElement } from '../../helpers/dom/element';
+import { keepPageTextSelection } from '../../utils/pageTextSelection';
 import type { HandsontableAdapter } from './handsontableAdapter';
 import type { CellAddress, CellRange, HeaderAxis, HeaderPick, PickingEditor } from './gridContract';
 
@@ -997,6 +998,9 @@ export class CellPickController {
     // `stopImmediatePropagation()` helper also sets `cancelBubble`, so the press would never reach
     // `document`, and a context menu or dropdown menu open at that moment would stay open over the pick.
     (event as MouseEvent & { isImmediatePropagationEnabled: boolean }).isImmediatePropagationEnabled = false;
+    // WebKit ties the formula editor's caret to the page's text selection, which `TableView` would
+    // clear on this press.
+    keepPageTextSelection(event);
   }
 
   /**

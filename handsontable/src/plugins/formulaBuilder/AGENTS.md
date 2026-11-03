@@ -49,8 +49,10 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   `isImmediatePropagationStopped(event)`: the dropdown/autocomplete arrow (`autocompleteRenderer`) and the
   multiSelect indicator (`multiSelectRenderer/utils/utils.ts`) do, or a pick on the arrow opened the
   cell's own editor (`onCellDblClick`) and, with Cmd/Ctrl held, dropped the open formula edit.
-  `TableView`'s own `rootElement` `mousedown` listener does too: it skips `clearTextSelection()` for a
-  claimed press. WebKit ties a focused text field's caret to the page's selection, so the clear moved
+  `TableView`'s own `rootElement` `mousedown` listener skips `clearTextSelection()` for the pick's press,
+  which `#claim()` marks with `keepPageTextSelection()` (`utils/pageTextSelection.ts`). It is a mark of its
+  own, not the claim flag: CheckboxHeader, RowSelection, CollapsibleColumns, SheetsBar and NestedRows set
+  that flag on their presses too, and those still clear the page selection. WebKit ties a focused text field's caret to the page's selection, so the clear moved
   the formula editor's caret to 0 and the pick inserted nothing, in an edit started from a range or a
   header selection (Chromium and Firefox keep the two apart, so only the WebKit leg showed it). Pinned by
   "formulaBuilder picking in an edit started from a range or a header selection".
@@ -65,9 +67,11 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   The later `beforeOnCellMouseDown` listeners still run too: the hook runner does not stop on the flag.
   ManualColumnMove and ManualRowMove arm a move from that hook on a press on a header of the selected
   range, so a pick dragged across the headers of a header-selected column or row moved it on release,
-  which closed the edit and saved the text typed so far. The plugin vetoes `beforeColumnMove` and
-  `beforeRowMove` while a header pick is active (`#onBeforeHeaderMove`, beside `#onBeforeColumnSort`); the
-  move plugins still draw their guideline during the drag.
+  which closed the edit and saved the text typed so far. They skip a press whose
+  `isImmediatePropagationStopped(event)` is set, as DragToScroll does, so they arm nothing for a pick: no
+  guideline, no move, and no stale pressed state after a pick that ended without a `mouseup` (a window
+  blur). A veto on `beforeColumnMove`/`beforeRowMove` was tried and is not enough: it lifts when the pick
+  ends, so that stale state moved the range on the next `mouseup`.
   A plugin that acts on a press from that hook (CheckboxHeader's "check all", RowSelection's header and
   checkbox cells, NestedRows' collapse button, CollapsibleColumns' indicator) would act AND the pick would
   insert a reference, so a press on such a control is left to its plugin (`HEADER_CONTROL_SELECTOR` and
