@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable';
 import exportItem from '../contextMenuItem/exportItem';
-import { isItemHidden } from '../../contextMenu/menu/utils';
+import { isItemHidden } from '../../../utils/menu/menu/utils';
 
 /**
  * Builds a grid with the given `exportFile` settings and returns the "To Excel" sub-item

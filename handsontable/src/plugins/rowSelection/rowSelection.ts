@@ -28,7 +28,7 @@ import {
   ROW_SELECTION_SELECT_ROW,
 } from '../../i18n/constants';
 import { announce } from '../../utils/a11yAnnouncer';
-import { SEPARATOR } from '../contextMenu/predefinedItems';
+import { registerMenuEntries } from '../../utils/menu/menuEntries';
 import type { HotInstance } from '../../core/types';
 import type { PluginTypeMap } from '../types';
 import {
@@ -552,7 +552,7 @@ export class RowSelection extends BasePlugin {
     this.addHook('afterPageChange', this.#invalidateHeaderSummary);
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch);
     this.addHook('afterLanguageChange', this.#onAfterLanguageChange);
-    this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
+    registerMenuEntries(this, () => this.#createMenuEntries(), { contextMenu: {} });
 
     this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', this.#onRootMouseDown);
     this.eventManager.addEventListener(this.hot.rootElement, 'click', this.#onRootClick);
@@ -3220,15 +3220,14 @@ export class RowSelection extends BasePlugin {
    * Adds the bulk actions to the default context menu: remove the selected rows, and clear the
    * selection. Both are hidden while nothing is selected.
    *
-   * @param {object} options The context menu options.
+   * @returns {object[]}
    */
-  #onAfterContextMenuDefaultOptions = (options: Record<string, unknown>) => {
+  #createMenuEntries() {
     // The menu calls an item's callbacks with the Handsontable instance as `this`, so the plugin is
     // captured here instead.
     const plugin = this;
 
-    (options.items as unknown[]).push(
-      { name: SEPARATOR },
+    return [
       {
         key: 'row_selection_remove',
         // The count is what the action removes: the selected rows with a visual index. A selected
@@ -3252,8 +3251,8 @@ export class RowSelection extends BasePlugin {
         },
         hidden: () => plugin.getSelectedCount() === 0,
       },
-    );
-  };
+    ];
+  }
 
   /**
    * Re-renders the translated labels.

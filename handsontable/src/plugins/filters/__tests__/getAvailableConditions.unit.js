@@ -12,7 +12,7 @@ import {
   IntlDateCellType,
   NumericCellType,
 } from '../../../cellTypes';
-import { SEPARATOR } from '../../contextMenu/predefinedItems';
+import { SEPARATOR } from '../../../utils/menu/predefinedItems';
 
 describe('Filters#getAvailableConditions', () => {
   let container;

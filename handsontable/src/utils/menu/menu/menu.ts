@@ -1,6 +1,6 @@
 import type { HotInstance } from '../../../core/types';
 import type { GridSettings } from '../../../core/settings';
-import type { MenuItemConfig } from '../contextMenu';
+import type { MenuItemConfig } from '../types';
 import { Positioner } from './positioner';
 import { createMenuNavigator } from './navigator';
 import { createKeyboardShortcutsCtrl } from './shortcuts';

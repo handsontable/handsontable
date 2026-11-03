@@ -19,6 +19,7 @@ vue:
   metaTitle: Column hiding | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Columns
+menuTag: updated
 ---
 Hide individual columns to reduce screen clutter and improve the grid's performance.
 
@@ -302,6 +303,15 @@ strings to the[ `contextMenu`](@/api/contextMenu.md) parameter:
 :::
 
 :::
+
+The [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md) doesn't add these items on
+its own. To offer them there, list their keys in the [`dropdownMenu`](@/api/options.md#dropdownmenu)
+option:
+
+```javascript
+dropdownMenu: ['hidden_columns_hide', 'hidden_columns_show'],
+hiddenColumns: true,
+```
 
 ### Step 4: Set up copy and paste behavior
 

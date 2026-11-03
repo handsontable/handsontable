@@ -377,7 +377,7 @@ headers to copy.
 
 - The text-extraction contract shared with export: `../exportFile/AGENTS.md`.
 - Menu entries: `contextMenuItem/` (`copy`, `cut`, `copyWithColumnHeaders`, `copyWithColumnGroupHeaders`,
-  `copyColumnHeadersOnly`), wired via `../contextMenu/AGENTS.md`.
+  `copyColumnHeadersOnly`), registered through `registerMenuEntries()` (`../../utils/menu/AGENTS.md`).
 - Clipboard parsing helpers: `../../utils/parseTable.ts`.
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
 

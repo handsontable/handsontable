@@ -5,6 +5,7 @@ import { warn } from '../../helpers/console';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayReduce } from '../../helpers/array';
 import * as C from '../../i18n/constants';
+import { registerMenuEntries } from '../../utils/menu/menuEntries';
 import {
   top as menuItemTop,
   bottom as menuItemBottom,
@@ -386,8 +387,7 @@ export class CustomBorders extends BasePlugin {
       return;
     }
 
-    this.addHook('afterContextMenuDefaultOptions',
-      (options: unknown) => this.#onAfterContextMenuDefaultOptions(options));
+    registerMenuEntries(this, () => this.#createMenuEntries(), { contextMenu: {} });
     this.addHook('beforeCreateRow', this.#onBeforeCreateRow);
     this.addHook('afterCreateRow', this.#onAfterCreateRow);
     this.addHook('beforeRemoveRow', this.#onBeforeRemoveRow);
@@ -2081,29 +2081,16 @@ The border style will be ignored.`);
   }
 
   /**
-   * Add border options to context menu.
+   * Creates the border entries of the context menu. None while the `customBorders` setting is off.
    *
-   * @param {object} defaultOptions Context menu items.
+   * @returns {object[]}
    */
-  #onAfterContextMenuDefaultOptions(rawOptions: unknown) {
+  #createMenuEntries() {
     if (!this.hot.getSettings()[PLUGIN_KEY]) {
-      return;
+      return [];
     }
 
-    if (typeof rawOptions !== 'object' || rawOptions === null) {
-      return;
-    }
-
-    const defaultOptions = rawOptions as Record<string, unknown>;
-    const { items } = defaultOptions;
-
-    if (!Array.isArray(items)) {
-      return;
-    }
-
-    items.push({
-      name: '---------',
-    }, {
+    return [{
       key: 'borders',
       name(this: HotInstance): string {
         return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS);
@@ -2130,7 +2117,7 @@ The border style will be ignored.`);
           menuItemNoBorders(this)
         ]
       }
-    });
+    }];
   }
 
   /**
