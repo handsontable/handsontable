@@ -53,11 +53,15 @@
         colHeaders: true,
         rowHeaders: true,
         height: 240,
+        columns: [
+          { type: 'text' },
+          { type: 'multiselect', width: 200, source: ['Alpha', 'Beta', 'Gamma'] },
+        ],
         sheetsBar: {
           sheets: [
-            { name: 'Alpha', data: [['A1', 'A2'], ['A3', 'A4']] },
-            { name: 'Beta', data: [['B1', 'B2'], ['B3', 'B4']] },
-            { name: 'Gamma', data: [['G1', 'G2'], ['G3', 'G4']] },
+            { name: 'Alpha', data: [['A1', ['Alpha']], ['A3', ['Beta']]] },
+            { name: 'Beta', data: [['B1', ['Beta']], ['B3', ['Gamma']]] },
+            { name: 'Gamma', data: [['G1', ['Gamma']], ['G3', ['Alpha']]] },
           ],
         },
         licenseKey: 'non-commercial-and-evaluation',

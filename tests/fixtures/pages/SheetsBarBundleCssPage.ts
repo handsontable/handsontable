@@ -48,4 +48,34 @@ export class SheetsBarBundleCssPage {
   tabUserSelect(index: number): Promise<string> {
     return this.tab(index).evaluate(tab => getComputedStyle(tab).webkitUserSelect);
   }
+
+  /**
+   * Opens the multi-select editor of a cell through the API.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   */
+  async openMultiSelect(row: number, col: number): Promise<void> {
+    await this.page.evaluate(([r, c]) => {
+      const { hot } = window as unknown as { hot: { selectCell(r: number, c: number): void, getActiveEditor(): { beginEditing(): void } } };
+
+      hot.selectCell(r, c);
+      hot.getActiveEditor().beginEditing();
+    }, [row, col]);
+    await expect(this.multiSelectOption(0)).toBeVisible();
+  }
+
+  multiSelectOption(index: number): Locator {
+    return this.page.locator('.ht-multi-select-editor ul li').nth(index);
+  }
+
+  /**
+   * Reads a multi-select option's computed `-webkit-user-select`.
+   *
+   * @param {number} index The option index.
+   * @returns {Promise<string>} The computed value.
+   */
+  multiSelectOptionUserSelect(index: number): Promise<string> {
+    return this.multiSelectOption(index).evaluate(option => getComputedStyle(option).webkitUserSelect);
+  }
 }
