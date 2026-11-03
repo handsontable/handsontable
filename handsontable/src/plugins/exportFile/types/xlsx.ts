@@ -1,4 +1,6 @@
 import { isDefined, isEmpty, stringify } from '../../../helpers/mixed';
+import { isObject } from '../../../helpers/object';
+import { throwWithCause } from '../../../helpers/errors';
 import { getChoiceLabel, isKeyValueEntry, isListableLabel } from '../../../utils/cellSource';
 import type { SourceLabel } from '../../../utils/cellSource';
 import ExportDataProvider from '../dataProvider';
@@ -20,6 +22,7 @@ import {
   getDropdownValidation,
   cssColorToArgb,
   clearStyleCaches,
+  ALIGNMENT_CLASS_NAMES,
   type CellMeta,
   type CssStyle,
 } from './xlsx/cell-style';
@@ -55,6 +58,20 @@ import {
   type WorkbookSnapshot,
 } from '../../../utils/xlsxEngine/model';
 import type { HotInstance } from '../../../core/types';
+import type { CellProperties } from '../../../settings';
+import { formatCellValue, type RendererWithValueFormatter } from '../../../renderers/renderCell';
+import { getRenderer, hasRenderer } from '../../../renderers/registry';
+import { normalizeClassNames } from '../../../helpers/dom/element';
+import { getLicenseState, getXlsxEntitlement } from '../../../core/license';
+import { EXPORT_FILE_CAPABILITY_IDS } from '../../../utils/xlsxEngine/licenseCapabilities';
+import {
+  formatMissingCapabilitiesWarning,
+  scopeXlsxEntitlement,
+  UNRESTRICTED_XLSX_ENTITLEMENT,
+  type XlsxEntitlement,
+} from '../../../utils/xlsxEngine/xlsxEntitlement';
+import { warn } from '../../../helpers/console';
+import { DEFAULT_COLUMN_WIDTH } from '../../../3rdparty/walkontable/src/constants';
 
 /**
  * The name used when sanitization leaves nothing behind (a sheet named `"[*]"`, say).
@@ -235,6 +252,49 @@ function resolveMetaNumFmt(meta: CellMeta): string | null {
 }
 
 /**
+ * The cell types whose value is a date, a time or a date-time: the ones `parseTemporalSerial` reads
+ * and `toDisplayText` formats when `xlsx:number_formats` is missing.
+ */
+const TEMPORAL_CELL_TYPES = new Set(['date', 'intl-date', 'time', 'intl-time', 'intl-datetime']);
+
+/**
+ * Parses the value of a date, time or date-time cell to its Excel serial, or `null` when the cell is
+ * not one of those types or its value does not parse.
+ */
+function parseTemporalSerial(value: unknown, meta: CellMeta): number | null {
+  switch (meta.type) {
+    case 'intl-datetime':
+      return parseIsoDateTimeStringToSerial(value);
+    case 'date':
+    case 'intl-date':
+      return parseIsoStringToSerial(value);
+    case 'time':
+    case 'intl-time':
+      return parseTimeStringToSerial(value);
+    default:
+      return null;
+  }
+}
+
+/**
+ * The text the grid renders for a cell: its value after the cell's `valueFormatter` option or its
+ * renderer's `valueFormatter` static, the same precedence the render path follows
+ * (`formatCellValue()`).
+ */
+function toDisplayText(value: unknown, meta: CellMeta): string {
+  const { renderer } = meta as { renderer?: unknown };
+  // A renderer named by a string resolves through the registry, as `Core#getCellRenderer` does it.
+  const resolved = typeof renderer === 'string' && hasRenderer(renderer) ? getRenderer(renderer) : renderer;
+  const formatted = formatCellValue(
+    value,
+    meta as unknown as CellProperties,
+    (typeof resolved === 'function' ? resolved : undefined) as unknown as RendererWithValueFormatter,
+  );
+
+  return stringify(formatted);
+}
+
+/**
  * The fill shape a header cell carries in the neutral cell model.
  */
 type HeaderFill = NonNullable<NonNullable<CellSnapshot['style']>['fill']>;
@@ -328,12 +388,108 @@ interface XlsxOptions extends Record<string, unknown> {
   exportFormulas?: boolean;
   headerStyle?: { backgroundColor?: string; border?: { style?: string; color?: string } | null } | null;
   conditionalFormatting?: ConditionalFormattingDescriptor[];
+  protection?: { password?: string } | null;
+}
+
+/**
+ * The longest sheet password Excel accepts, in UTF-16 units.
+ */
+const MAX_PROTECTION_PASSWORD_LENGTH = 255;
+
+/**
+ * What `#populateWorksheet` read of a sheet that decides which gated features it had to write.
+ */
+interface SheetFeatureFacts {
+  wouldProtect: boolean;
+  hasHeaders: boolean;
+  hasSummary: boolean;
+  nestedColumnHeaders: NestedHeaderEntry[][] | null;
+  hasRowHeaders: boolean;
+  columnsWidths: number[];
+  rowsHeights: number[];
+  mergeCells: MergeDescriptor[];
+  frozenRows: number;
+  frozenColumns: number;
+  hiddenRowIndices: number[];
+  hiddenColIndices: number[];
+}
+
+/**
+ * Whether a sheet has layout for `xlsx:layout` to write: a column width other than the default, a
+ * row-header column (it always gets a width), an explicit row height, a hidden row or column, a
+ * merge (a nested header group included), a frozen pane, or a right-to-left direction. A default-width grid with none of them has no layout.
+ */
+function hasLayout(facts: SheetFeatureFacts, isRtl: boolean): boolean {
+  const nestedMerges = facts.nestedColumnHeaders !== null && (
+    (facts.hasRowHeaders && facts.nestedColumnHeaders.length > 1)
+    || facts.nestedColumnHeaders.some(layer => layer.some(header => header.colspan > 1))
+  );
+
+  return isRtl
+    || nestedMerges
+    || facts.mergeCells.length > 0
+    || facts.frozenRows > 0
+    || facts.frozenColumns > 0
+    || facts.hiddenRowIndices.length > 0
+    || facts.hiddenColIndices.length > 0
+    // The row-header column always gets a width of its own.
+    || facts.hasRowHeaders
+    || facts.columnsWidths.some(width => isDefined(width) && width !== DEFAULT_COLUMN_WIDTH)
+    || facts.rowsHeights.some(height => isDefined(height));
+}
+
+/**
+ * Refuses a `protection` option the export cannot honor: anything but `undefined`, `null` or a plain
+ * object, an object whose `password` is neither `undefined`, `null` nor a string, and a password
+ * longer than Excel's 255 characters. A number would otherwise reach the engines, which disagree on
+ * it: the built-in one hashes it as an empty password (a protected-looking sheet with no real
+ * password), and ExcelJS throws a bare `TypeError`. The messages name the option, never its value,
+ * because the value may be a password.
+ *
+ * @param {*} protection The `protection` export option.
+ */
+function assertProtectionOption(protection: unknown): void {
+  if (protection === undefined || protection === null) {
+    return;
+  }
+
+  if (!isObject(protection)) {
+    throwWithCause('ExportFile: the "protection" option has to be an object or null.');
+  }
+
+  const { password } = protection as { password?: unknown };
+
+  if (password !== undefined && password !== null && typeof password !== 'string') {
+    throwWithCause('ExportFile: the "protection.password" option has to be a string.');
+  }
+
+  // Excel accepts a sheet password of at most 255 characters, counted in UTF-16 units, which is what
+  // `length` counts.
+  if (typeof password === 'string' && password.length > MAX_PROTECTION_PASSWORD_LENGTH) {
+    throwWithCause(
+      `ExportFile: the "protection.password" option has to be at most ${MAX_PROTECTION_PASSWORD_LENGTH} `
+      + 'characters long.'
+    );
+  }
 }
 
 /**
  * @private
  */
 class Xlsx extends BaseType {
+  /**
+   * What the license of the plugin's own instance unlocks of the XLSX engine. Resolved at the start
+   * of every export; the instances named in the `sheets` option never override it.
+   */
+  #entitlement: XlsxEntitlement = UNRESTRICTED_XLSX_ENTITLEMENT;
+
+  /**
+   * The capability tokens whose feature this export had something to write, collected while the
+   * sheets are populated. The missing-token warning names only the missing tokens found here, so a
+   * plain grid exported on a restricted key says nothing.
+   */
+  #needed = new Set<string>();
+
   /**
    * Marks this formatter as binary (non-stringifiable).
    *
@@ -364,6 +520,7 @@ class Xlsx extends BaseType {
     conditionalFormatting: ConditionalFormattingDescriptor[];
     exportFormulas: boolean;
     headerStyle: { backgroundColor: string; border: { style: string } } | null;
+    protection: { password?: string } | null | undefined;
     } {
     return {
       mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -383,6 +540,10 @@ class Xlsx extends BaseType {
       // string. `border` sets the border style on all four sides; set to `null` to suppress it.
       // Set the whole option to `null` to export headers with no styling at all.
       headerStyle: { backgroundColor: '#F2F2F2', border: { style: 'thin' } },
+      // Sheet protection of the read-only cells. `undefined` (the default) protects every sheet that
+      // has a read-only cell, with no password. `{ password }` protects them with that password (the
+      // file keeps only its salted SHA-512 hash); `null` never protects and leaves every cell unlocked.
+      protection: undefined,
     };
   }
 
@@ -396,9 +557,17 @@ class Xlsx extends BaseType {
    * @returns {Promise<Uint8Array>}
    */
   async export(): Promise<Uint8Array> {
+    // An invalid option is refused before any engine work, whatever the license unlocks.
+    assertProtectionOption(this.options.protection);
+
     // A nullish `engine` (the option's own default, or a resolved `engines: { xlsx: null }`) is
     // read as the built-in engine by `detectXlsxEngine` itself, so nothing is mapped here.
     const detected = detectXlsxEngine(this.options.engine, 'exportFile');
+    const { hot } = this.dataProvider;
+
+    // Scoped to the export's own tokens, so the warning never names `xlsx:import`.
+    this.#entitlement = scopeXlsxEntitlement(getXlsxEntitlement(hot), EXPORT_FILE_CAPABILITY_IDS);
+    this.#needed = new Set();
 
     // Clear style caches for all documents involved in this export. In multi-sheet
     // mode each sheet may come from a different Handsontable instance living in a
@@ -406,7 +575,7 @@ class Xlsx extends BaseType {
     const sheets = this.options.sheets as unknown as XlsxSheetConfig[] | null | undefined;
     const docsToClear = sheets && sheets.length > 0
       ? new Set(sheets.map(s => s.instance.rootDocument))
-      : new Set([this.dataProvider.hot.rootDocument]);
+      : new Set([hot.rootDocument]);
 
     docsToClear.forEach(doc => clearStyleCaches(doc as Document));
 
@@ -421,11 +590,21 @@ class Xlsx extends BaseType {
 
     if (sheets && sheets.length > 0) {
       // multi-sheet mode
+      // `protection` applies to the whole workbook, so a per-sheet value is dropped below. Said once
+      // per export, and never with the value, which may be a password.
+      if (sheets.some(sheetConfig => Object.prototype.hasOwnProperty.call(sheetConfig, 'protection'))) {
+        warn('ExportFile: the "protection" option applies to the whole workbook; '
+          + 'the value set on a sheet entry was ignored.');
+      }
+
       sheets.forEach((sheetConfig) => {
         const dp = new ExportDataProvider(sheetConfig.instance);
         // Promote the deprecated `columnHeaders` alias on the per-sheet config before it is merged
         // with the already-normalized top-level options, which carry `colHeaders` either way.
-        const sheetOptions = { ...this.options, ...normalizeExportOptions(sheetConfig) };
+        // `protection` is a workbook-wide option: only the top-level value, checked by
+        // `assertProtectionOption()` above, applies, so a per-sheet one is dropped before the merge.
+        const { protection: _ignoredProtection, ...perSheetConfig } = normalizeExportOptions(sheetConfig);
+        const sheetOptions = { ...this.options, ...perSheetConfig };
 
         dp.setOptions(sheetOptions);
 
@@ -440,12 +619,59 @@ class Xlsx extends BaseType {
       this.#populateWorksheet(workbook, name, this.dataProvider, this.options, usedSheetNames);
     }
 
+    // `missing` keeps the `XLSX_CAPABILITY_IDS` order, so the warning does too.
+    const missing = this.#entitlement.missing.filter(id => this.#needed.has(id));
+
+    // One warning per export, naming the tokens only, and only those whose feature the export
+    // actually left out. An option the license overrode (`exportFormulas`, `conditionalFormatting`)
+    // is covered by its token in the list.
+    if (missing.length > 0 && getLicenseState(hot).channels.console) {
+      warn(formatMissingCapabilitiesWarning('export', missing));
+    }
+
     const dropped = new DroppedFeatures();
     const bytes = await detected.adapter.write(workbook, detected.module, dropped);
 
     dropped.warn(detected.kind);
 
     return bytes;
+  }
+
+  /**
+   * Records that the export had something to write for a capability token.
+   *
+   * @param {boolean} condition Whether it had.
+   * @param {string} id The capability token.
+   */
+  #needIf(condition: boolean, id: string): void {
+    if (condition) {
+      this.#needed.add(id);
+    }
+  }
+
+  /**
+   * Records the sheet-level features the export had something to write for, whatever the license
+   * unlocks: the header style, live formulas, layout, conditional formatting, and protection. The
+   * per-cell ones (styles, number formats, validations, comments) are recorded while the cells are
+   * written.
+   *
+   * @param {ExportDataProvider} dataProvider The sheet's data provider.
+   * @param {object} options Merged options for this sheet.
+   * @param {object} facts What `#populateWorksheet` already read of the sheet.
+   */
+  #recordSheetFeatures(dataProvider: ExportDataProvider, options: XlsxOptions, facts: SheetFeatureFacts): void {
+    // The default header fill counts: only `headerStyle: null` writes headers with no style.
+    this.#needIf(facts.hasHeaders && options.headerStyle !== null, 'xlsx:styles');
+    this.#needIf(Boolean(options.conditionalFormatting?.length), 'xlsx:conditional_formatting');
+    this.#needIf(facts.wouldProtect || isObject(options.protection), 'xlsx:protection');
+    this.#needIf(hasLayout(facts, dataProvider.getLayoutDirection() === 'rtl'), 'xlsx:layout');
+
+    // Read only when the token is missing: with it, the flag changes nothing, and the source data
+    // would be read twice.
+    if (options.exportFormulas && !this.#entitlement.formulas && !this.#needed.has('xlsx:formulas')) {
+      this.#needIf(facts.hasSummary || dataProvider.getSourceData()
+        .some(row => row.some(value => isFormulaValue(value))), 'xlsx:formulas');
+    }
   }
 
   /**
@@ -498,8 +724,10 @@ class Xlsx extends BaseType {
     const data = dataProvider.getData();
     const cellsMeta = dataProvider.getCellsMeta();
     const sourceLabels = createSourceLabelsResolver();
-    const { validationMap, sheet: validationSheet } =
-      this.#buildValidationSheet(usedSheetNames, cellsMeta, sourceLabels);
+    // Without `xlsx:data_validation` there is no dropdown list to point at, so no helper sheet either.
+    const { validationMap, sheet: validationSheet } = this.#entitlement.dataValidation
+      ? this.#buildValidationSheet(usedSheetNames, cellsMeta, sourceLabels)
+      : { validationMap: new Map<string, string>(), sheet: null };
     const cellElements = dataProvider.getCellElements();
     const columnHeaders = dataProvider.getColumnHeaders();
     const columnHeadersClassNames = dataProvider.getColumnHeadersClassNames();
@@ -510,8 +738,9 @@ class Xlsx extends BaseType {
     const frozenRows = dataProvider.getFrozenRows();
     const frozenColumns = dataProvider.getFrozenColumns();
     const nestedColumnHeaders = dataProvider.getNestedColumnHeaders();
-    const isRtl = dataProvider.getLayoutDirection() === 'rtl';
-    const exportFormulas: boolean = options.exportFormulas ?? false;
+    const { layout } = this.#entitlement;
+    const isRtl = layout && dataProvider.getLayoutDirection() === 'rtl';
+    const exportFormulas = this.#entitlement.formulas && Boolean(options.exportFormulas);
 
     // Build a fast O(1) lookup: "dataRowIndex:dataColIndex" → summary descriptor.
     // Always built so the protection pre-scan can identify ColumnSummary destination
@@ -551,21 +780,28 @@ class Xlsx extends BaseType {
 
     const { rootDocument, rootWindow } = dataProvider.hot;
 
-    this.#applyColumnWidths(sheet, columnsWidths, hasRowHeaders);
-
-    if (hiddenColIndices.length > 0) {
+    if (layout) {
+      this.#applyColumnWidths(sheet, columnsWidths, hasRowHeaders);
       this.#applyHiddenColumns(sheet, hiddenColIndices, hasRowHeaders);
+      this.#applyWorksheetViews(sheet, frozenRows, frozenColumns, headerRowCount, hasRowHeaders, isRtl);
     }
-    this.#applyWorksheetViews(sheet, frozenRows, frozenColumns, headerRowCount, hasRowHeaders, isRtl);
 
-    const headerFill = this.#buildHeaderFill(options.headerStyle);
-    const headerBorder = this.#buildHeaderBorder(options.headerStyle);
+    // The header fill and border are styles: without `xlsx:styles` headers export as if
+    // `headerStyle` were `null`.
+    const headerStyle = this.#entitlement.styles ? options.headerStyle : null;
+    const headerFill = this.#buildHeaderFill(headerStyle);
+    const headerBorder = this.#buildHeaderBorder(headerStyle);
 
     if (useNestedHeaders) {
       this.#writeNestedColumnHeaders(
         sheet, nestedColumnHeaders, hasRowHeaders, dataColOffset, headerFill, headerBorder
       );
-      this.#applyNestedHeaderMerges(sheet, nestedColumnHeaders, hasRowHeaders, dataColOffset);
+
+      // Header merges are layout, like data merges: without `xlsx:layout` each group label stays in
+      // the group's first header cell and the other spanned cells stay empty.
+      if (layout) {
+        this.#applyNestedHeaderMerges(sheet, nestedColumnHeaders, hasRowHeaders, dataColOffset);
+      }
     } else if (hasColumnHeaders) {
       this.#writeColumnHeaders(
         sheet, columnHeaders, columnHeadersClassNames, hasRowHeaders, dataColOffset, headerFill, headerBorder
@@ -584,9 +820,26 @@ class Xlsx extends BaseType {
     //    initialize font/fill/border to sentinel values, which adds noise to the file
     //    and breaks styling assertions in tests.
     const hasColumnSummary = summaryMap.size > 0;
-    const hasReadOnlyCells = !hasColumnSummary &&
+    const { protection } = options;
+    const wouldProtect = protection !== null && !hasColumnSummary &&
       cellsMeta.some((row: unknown[]) =>
         row.some((meta: unknown) => (meta as Record<string, unknown>)?.readOnly === true));
+    const hasReadOnlyCells = this.#entitlement.protection && wouldProtect;
+
+    this.#recordSheetFeatures(dataProvider, options, {
+      wouldProtect,
+      hasHeaders: hasColumnHeaders || hasRowHeaders,
+      hasSummary: hasColumnSummary,
+      nestedColumnHeaders: useNestedHeaders ? nestedColumnHeaders : null,
+      hasRowHeaders,
+      columnsWidths,
+      rowsHeights,
+      mergeCells,
+      frozenRows,
+      frozenColumns,
+      hiddenRowIndices,
+      hiddenColIndices,
+    });
 
     const context = {
       exportFormulas,
@@ -609,21 +862,22 @@ class Xlsx extends BaseType {
       cellsMeta,
       cellElements,
       rowHeaders,
-      rowsHeights,
+      rowsHeights: layout ? rowsHeights : [],
     };
 
     this.#writeDataRows(sheet, data, context);
 
-    if (hiddenRowIndices.length > 0) {
+    if (layout) {
       this.#applyHiddenRows(sheet, hiddenRowIndices, dataRowOffset);
+      this.#applyMerges(sheet, mergeCells, dataRowOffset, dataColOffset);
     }
 
     if (hasReadOnlyCells) {
-      // Protect the worksheet so that locked cells become read-only in Excel.
-      // No password is set — users can unprotect at any time.
-      // The permissive options keep non-editing actions (select, sort, filter,
+      // Protect the worksheet so that locked cells become read-only in Excel. Without a
+      // `protection.password` (or with an empty one) no password is set, and users can unprotect at
+      // any time. The permissive options keep non-editing actions (select, sort, filter,
       // resize) available so the spreadsheet remains usable.
-      sheet.protect('', {
+      sheet.protect(protection?.password ?? '', {
         selectLockedCells: true,
         selectUnlockedCells: true,
         formatColumns: true,
@@ -633,16 +887,9 @@ class Xlsx extends BaseType {
       });
     }
 
-    mergeCells.forEach((merge: MergeDescriptor) => {
-      const startRow = merge.row + dataRowOffset;
-      const startCol = merge.col + dataColOffset;
-
-      sheet.merge(startRow, startCol, startRow + merge.rowspan - 1, startCol + merge.colspan - 1);
-    });
-
     const { conditionalFormatting } = options;
 
-    if (conditionalFormatting && conditionalFormatting.length > 0) {
+    if (this.#entitlement.conditionalFormatting && conditionalFormatting && conditionalFormatting.length > 0) {
       this.#applyConditionalFormatting(
         sheet,
         conditionalFormatting,
@@ -720,11 +967,15 @@ class Xlsx extends BaseType {
 
       cell.value = value;
       cell.formula = formula;
-      cell.numFmt = numFmt;
+      this.#needIf(numFmt !== null, 'xlsx:number_formats');
+      cell.numFmt = this.#entitlement.numberFormats ? numFmt : null;
 
-      const cssStyle = getCssStyleFromElement(
-        context.cellElements[rowIndex][colIndex], meta.className, context.rootDocument, context.rootWindow
-      );
+      // The computed CSS feeds the cell style only, so without `xlsx:styles` it is never read.
+      const cssStyle = this.#entitlement.styles
+        ? getCssStyleFromElement(
+          context.cellElements[rowIndex][colIndex], meta.className, context.rootDocument, context.rootWindow
+        )
+        : null;
 
       this.#writeCellStyling(cell, meta, cssStyle, context);
 
@@ -750,25 +1001,43 @@ class Xlsx extends BaseType {
   #writeCellStyling(
     cell: CellSnapshot, meta: CellMeta, cssStyle: CssStyle | null, context: SheetContext
   ): void {
-    const alignment = getAlignmentFromMeta(meta);
-    const border = getBorderFromMeta(meta);
-    const font = getFontFromMeta(meta, cssStyle);
-    const fill = getFillFromMeta(meta, cssStyle);
+    if (this.#entitlement.styles) {
+      const alignment = getAlignmentFromMeta(meta);
+      const border = getBorderFromMeta(meta);
+      const font = getFontFromMeta(meta, cssStyle);
+      const fill = getFillFromMeta(meta, cssStyle);
 
-    if (alignment || border || font || fill) {
-      cell.style = { alignment, border, font, fill };
+      if (alignment || border || font || fill) {
+        cell.style = { alignment, border, font, fill };
+      }
+    } else if (!this.#needed.has('xlsx:styles')) {
+      // Without the token the computed CSS is never read, so what the meta describes counts, and so
+      // does any class other than an alignment one: a stylesheet may give it a font or a fill.
+      this.#needIf(Boolean(
+        getAlignmentFromMeta(meta) || getBorderFromMeta(meta) || getFontFromMeta(meta) || getFillFromMeta(meta)
+        || normalizeClassNames(meta.className).some(name => !ALIGNMENT_CLASS_NAMES.has(name))
+      ), 'xlsx:styles');
     }
+
+    // The same test `getDropdownValidation` and `#buildValidationSheet` make: a function `source` and
+    // an empty list write no validation.
+    this.#needIf(
+      (meta.type === 'dropdown' || meta.type === 'autocomplete')
+        && Array.isArray(meta.source) && meta.source.length > 0,
+      'xlsx:data_validation'
+    );
+    this.#needIf(Boolean(meta.comment?.value), 'xlsx:comments');
 
     const rangeRef = Array.isArray(meta.source)
       ? (context.validationMap.get(context.sourceLabels(meta.source, meta.sourceLabel).key) ?? null)
       : null;
     const dropdownValidation = getDropdownValidation(meta, rangeRef);
 
-    if (dropdownValidation) {
+    if (dropdownValidation && this.#entitlement.dataValidation) {
       cell.validation = dropdownValidation;
     }
 
-    if (meta.comment?.value) {
+    if (meta.comment?.value && this.#entitlement.comments) {
       cell.comment = String(meta.comment.value);
     }
   }
@@ -780,12 +1049,13 @@ class Xlsx extends BaseType {
    * 1. ColumnSummary formula destinations (when `exportFormulas` is `true`).
    * 2. HyperFormula formula cells (when `exportFormulas` is `true`) — written with the number
    *    format their column's meta describes and with the pre-calculated value cached as the
-   *    formula's `result`.
-   * 3. Date cells (ISO 8601 string → serial number).
-   * 4. Time cells (time string → fractional day serial).
-   * 5. Checkbox cells (boolean from `checkedTemplate` comparison; an empty value stays empty).
-   * 6. Multiselect cells (comma-separated string).
-   * 7. All other cells (numeric-aware or stringified).
+   *    formula's `result`. Without `xlsx:number_formats`, a date, time or date-time formula cell is
+   *    written as the text the grid renders instead, with no formula.
+   * 3. Date, time and date-time cells (ISO 8601 string → serial number with its number format, or,
+   *    without `xlsx:number_formats`, the text the grid renders).
+   * 4. Checkbox cells (boolean from `checkedTemplate` comparison; an empty value stays empty).
+   * 5. Multiselect cells (comma-separated string).
+   * 6. All other cells (numeric-aware or stringified).
    *
    * @param {*} cellValue Pre-calculated display value from `getData()`.
    * @param {object} meta Cell meta object.
@@ -819,6 +1089,14 @@ class Xlsx extends BaseType {
     }
 
     if (exportFormulas && isFormulaValue(sourceValue)) {
+      if (!this.#entitlement.numberFormats && TEMPORAL_CELL_TYPES.has(meta.type as string)) {
+        // A temporal formula opens as a bare serial without its number format (`=C2+30` as `45336`),
+        // so without `xlsx:number_formats` it goes out as the text the grid shows, like a literal date.
+        this.#needIf(resolveMetaNumFmt(meta) !== null, 'xlsx:number_formats');
+
+        return { value: toDisplayText(cellValue, meta), formula: null, numFmt: null };
+      }
+
       const text = normalizeFormula(
         sourceValue, formulasSeparator, dataRowOffset - 1, dataColOffset - 1,
         excludedHiddenRows ?? undefined, excludedHiddenCols ?? undefined
@@ -835,28 +1113,20 @@ class Xlsx extends BaseType {
       };
     }
 
-    if (meta.type === 'intl-datetime') {
-      const serial = parseIsoDateTimeStringToSerial(cellValue);
+    const temporalSerial = parseTemporalSerial(cellValue, meta);
 
-      if (serial !== null) {
-        return { value: serial, formula: null, numFmt: resolveMetaNumFmt(meta) };
+    if (temporalSerial !== null) {
+      // A serial means nothing without its number format: without `xlsx:number_formats` the cell
+      // goes out as the text the grid renders, so `2024-01-15` does not open as `45306`.
+      const numFmt = resolveMetaNumFmt(meta);
+
+      if (this.#entitlement.numberFormats) {
+        return { value: temporalSerial, formula: null, numFmt };
       }
-    }
 
-    if (meta.type === 'date' || meta.type === 'intl-date') {
-      const serial = parseIsoStringToSerial(cellValue);
+      this.#needIf(numFmt !== null, 'xlsx:number_formats');
 
-      if (serial !== null) {
-        return { value: serial, formula: null, numFmt: resolveMetaNumFmt(meta) };
-      }
-    }
-
-    if (meta.type === 'time' || meta.type === 'intl-time') {
-      const serial = parseTimeStringToSerial(cellValue);
-
-      if (serial !== null) {
-        return { value: serial, formula: null, numFmt: resolveMetaNumFmt(meta) };
-      }
+      return { value: toDisplayText(cellValue, meta), formula: null, numFmt: null };
     }
 
     if (meta.type === 'checkbox') {
@@ -1006,17 +1276,21 @@ class Xlsx extends BaseType {
   }
 
   /**
-   * Applies the header fill, border and optional alignment to a header cell.
+   * Applies the header fill, border and optional alignment to a header cell. Every header cell
+   * (column, nested, row header, corner) goes through here, so the alignment is gated on
+   * `xlsx:styles` in this one place; the fill and border already arrive `null` without the token.
    */
   #applyHeaderStyle(
     cell: CellSnapshot, alignment: CellStyleSnapshot['alignment'],
     fill: HeaderFill | null, border: HeaderBorder | null
   ): void {
-    if (!alignment && !fill && !border) {
+    const headerAlignment = this.#entitlement.styles ? alignment : null;
+
+    if (!headerAlignment && !fill && !border) {
       return;
     }
 
-    cell.style = { alignment: alignment ?? null, font: null, fill, border };
+    cell.style = { alignment: headerAlignment ?? null, font: null, fill, border };
   }
 
   /**
@@ -1112,6 +1386,25 @@ class Xlsx extends BaseType {
 
     hiddenColIndices.forEach((dataColIndex) => {
       sheet.hideCol(dataColIndex + 1 + offset);
+    });
+  }
+
+  /**
+   * Merges the ranges the MergeCells plugin describes, shifted by the header offsets.
+   *
+   * @param {object} sheet The sheet builder.
+   * @param {Array} mergeCells The merge descriptors, in data coordinates.
+   * @param {number} dataRowOffset 1-based Excel row number where data row 0 starts.
+   * @param {number} dataColOffset 1-based Excel column number where data column 0 starts.
+   */
+  #applyMerges(
+    sheet: SheetBuilder, mergeCells: MergeDescriptor[], dataRowOffset: number, dataColOffset: number
+  ): void {
+    mergeCells.forEach((merge) => {
+      const startRow = merge.row + dataRowOffset;
+      const startCol = merge.col + dataColOffset;
+
+      sheet.merge(startRow, startCol, startRow + merge.rowspan - 1, startCol + merge.colspan - 1);
     });
   }
 

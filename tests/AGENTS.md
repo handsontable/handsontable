@@ -489,6 +489,15 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   review, because every assertion read columns and the top clone's rows, and
   nothing asked the master where its band was. Reference:
   `e2e/iframe-cross-realm-scroll.spec.ts` (`masterRowBand()`).
+- **The xlsx license fixture reaches into the core package's Jest helpers.**
+  `fixtures/xlsxLicenseKeys.ts` imports
+  `handsontable/src/utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys.js`
+  (which uses `__tests__/buildTestKey.js`) and `__tests__/fixtures.js` through
+  Playwright's loader, so the Jest suites and these specs build keys with one
+  builder. Moving or renaming those files breaks the xlsx license specs. And
+  `demo/xlsx-license.html` takes a third fail-loud allowlisted param besides
+  `?theme=`/`?bundle=`: `?engine=` (`native` or `exceljs`); an unknown value
+  throws, like the other two.
 
 ## Two clicks on the same cell are a double click
 
@@ -1677,6 +1686,123 @@ captures pixels; the arithmetic and the verdicts are `lib/contrast.mjs` (tested 
   covered at every sampled point is `focus-obscured`; a cell with no sampled point inside the window (off
   screen, or at most a sixth of it at the window's edge) is `focus-off-screen` (2.4.7). Two keys of the
   walk can land on one cell, so its findings are one per cell.
+
+### Zoom, reflow, text spacing, and hover content
+
+`a11y/checks/reflow.spec.ts`, the `reflow` check: 1.3.4, 1.4.4, 1.4.10, 1.4.12, and 1.4.13 on every
+theme. The spec measures boxes; `lib/reflow.mjs` (tested in `lib/__tests__/reflow.test.mjs`) decides what
+counts as lost content.
+
+- **Three conditions, each a viewport** (`CONDITIONS`): 320 by 256 CSS px for 1.4.10 (a 1280 by 1024
+  window at 400%), 640 by 512 for 1.4.4 (200%), and the WCAG text-spacing override (`TEXT_SPACING_CSS`) for
+  1.4.12, injected as a stylesheet as soon as the document has a head, so the grid measures its rows with
+  it the way it would under a user's stylesheet. Each runs over the plain grid and the pages with a
+  surface of their own around it (`PAGES` in the spec). Left out: the pages whose surfaces lie inside the
+  grid's own box (the freeze bars on the freeze lines and header corners, the selection handles, the
+  links, checkboxes, and pending indicator in cells, and the grid shapes, the right-to-left grid among
+  them), which move with the grid when it scrolls in two dimensions; the editors whose control is a
+  native one in the cell (text, password, select, and the date and time editors); the dropdown and
+  handsontable editors, which open the same one-column `.handsontableEditor` list as the autocomplete
+  editor on that fixture; the dark pages, because a color scheme changes no box; and the right-to-left
+  menu, whose fixture lays several wide grids on one page, so the page would scroll sideways for the
+  fixture's sake.
+- **A grid its fixture pins wider than the viewport is measured at the page's width.** A fixture that
+  sets a pixel `width` wider than the viewport gets `width: '100%'` before the state is reached (`fitted`
+  in the detail). With a pixel width the bars and the overlays follow the grid's own box, so they would
+  reach past the viewport because of the test page: the page's layout, not the grid's reflow.
+- **The grid body is exempt; everything around it is measured.** A data grid may scroll in two
+  dimensions, so the main grid's tables are left out. The menus, the editors' lists, the comment editor,
+  dialogs, notifications, the bars and the overlays are measured for text a clipping container cuts off
+  (`text-clipped`; `text-truncated`, moderate, when the container ends it with an ellipsis), surfaces the
+  viewport cuts off, and controls drawn over each other (`controls-overlap`, judged on the part of each
+  box its clipping ancestors leave on screen, never between a control and one inside it, and only between
+  two controls on the same layer: the page outside every popup is one layer and each popup element is one
+  of its own, because a popup lies over what is under it by design, the page or another popup (a submenu
+  over its menu), and Escape closes it). The formula builder's suggestion list and function help count as popups and its formula bar as a
+  bar. A layer that covers the whole grid (the dialog's, the notification's) has the grid's box, so it is
+  measured by the part a user reads: the dialog's card and each toast. A screen-reader-only box (one pixel
+  square, like the announcer's live regions) is never text cut off: its text is read out, not drawn.
+- **Where a surface is decides what reaching past the viewport means.** A surface positioned against the
+  viewport (`position: fixed`, read from the computed style) that reaches past it cannot be scrolled to
+  (`outside-viewport`). Any other surface is placed in the page's own coordinates (its box plus the scroll
+  offset), and scrolling reaches from the page's origin to its scroll size and no further: a part before
+  the origin (a menu flipped left of or above the page) or past the scroll size is `outside-viewport`
+  too. Within reach, a surface past the right edge needs a sideways scroll (`needs-horizontal-scroll`),
+  the second scroll direction 1.4.10 does not allow outside a data table. That is a finding at 320 px
+  only: 1.4.4 and 1.4.12 ask for no loss of content, and a sideways scroll loses none. Past the bottom
+  edge a surface is a vertical scroll away, which is allowed.
+- **Every finding names its element apart from the others.** A finding's id keys on its selector, and
+  two findings with one id read as one in a compare between runs. The spec names an element by its tag,
+  its first class, and its label, so two items of one measurement can share a name (the context menu and
+  its submenu are both `div.htMenu`): the second and later get an ordinal (`div.htMenu (2)`,
+  `nameApart()`), among the surfaces, the controls, and the clipping containers alike. A
+  `controls-overlap` names both controls (`a × b`), so one control over two neighbors is two findings.
+- **A measurement is taken on a settled page.** The spec measures until two measurements three frames
+  apart agree (`settled` in the detail). Every check calls `releaseParkedFetches()` (the harness) after
+  every `reachState()`, on every page, so a data-provider page added to a check's plan later is measured
+  in the same state: it releases the data-provider fixture's parked fetches until none is left, because
+  the catalog's opener releases the first fetch only, and whether the next one had landed changed what
+  the bars showed between runs. The gating axe scan does not call it, so the state its baseline was taken
+  in is unchanged.
+- **Hover content** (1.4.13) is the comment of a commented cell: it must appear on hover, stay while the
+  pointer moves onto it and while it rests there, and hide on Escape with the pointer still on it. "Stays"
+  is measured on a fake clock (`page.clock`, installed once the comment shows), so the comment's own hide
+  timers run, and ten seconds pass without a wait. Each property is measured from the comment on screen,
+  so one that fails does not decide the next: a comment an earlier step hid is shown again from its cell
+  first. A property that still finds no comment is a problem of the target, never a finding, and a
+  comment that never appeared is a problem that evaluates no criterion (`criteria: []`).
+- **Orientation** (1.3.4): the grid's root must have an area on screen in a 390 by 844 and an 844 by 390
+  viewport.
+
+### Forced colors and reduced motion
+
+`a11y/checks/forced-colors-motion.spec.ts`, the `forced-colors-motion` check, nightly only (every page is
+watched for five seconds): 2.2.2, 2.3.3 and the forced-colors support of 1.4.1, 1.4.11 and 2.4.7, on
+every theme. The spec watches and captures; the verdicts are `lib/motion.mjs` (tested in
+`lib/__tests__/motion.test.mjs`).
+
+- **Motion is read from `document.getAnimations()`, frame by frame.** One `requestAnimationFrame` loop in
+  the page records every animation it sees running: CSS transitions, CSS animations and script
+  animations alike, with the properties they animate, their duration, iterations and target, and when
+  they were first and last seen, and when the watch's own first and last frames ran. An endless
+  animation's `iterations` is recorded as the string `'Infinity'`: the record goes to the detail as JSON,
+  which writes the number as `null`. `page.clock` drives none of them (the trap in "The matrix" above), so
+  the watch runs on real time. Motion is a change of position, size or transform for longer than 1 ms
+  (`isMotion()`); an opacity or color fade is not, and a duration a reduced-motion rule shrinks to
+  (0.01 ms) moves nothing.
+- **Every catalog state is watched at rest for five seconds, without the reduced-motion preference**
+  (`emulateMedia({ reducedMotion: 'no-preference' })`, the variant `at-rest`). 2.2.2 asks for a way to
+  pause what moves on its own, and a theme's `prefers-reduced-motion` rule is not one: a user who never
+  set the preference sees the spinner it stops. An animation seen running from the watch's first frame
+  to its last, longer than 1 ms, that repeats without end or lasts five seconds or more is
+  `moves-over-five-seconds` (2.2.2), moving or blinking alike. The bounds are the watch's frames, never
+  its nominal length, so a late first frame hides nothing. The watch at rest evaluates no 2.3.3: that
+  criterion is motion an interaction starts, and the interaction runs below own it.
+- **An interaction is watched with the preference and without it.** A sheet switch, a dialog shown, a
+  notification shown and a context menu opened, each watched for 1.5 seconds under the variants
+  `interaction-reduced-motion` and `interaction-motion-allowed` (never `at-rest`, which the watch at rest
+  owns, and a target is keyed by its variant). 2.3.3 is AAA, so its findings are `moderate`. The watch
+  starts once every animation the load started that ends has ended (`expect.poll` on
+  `document.getAnimations()`), so a finite animation the page started on its own, such as a toast a
+  fixture shows on load, is never counted as the interaction's. An animation that repeats without end
+  never ends and the watch would count it, so an interaction's page must have none. Without the
+  preference is the positive control: an interaction that moves there and not under the preference
+  proves both that the watch sees motion and that the product honors the preference. The control
+  evaluates no criterion, and a control that should move and saw none is a problem of its target
+  (`controlProblems()`), never a clean result. An interaction marked `moves` (the sheet switch, the
+  notification) should move on a theme whose `--ht-table-transition` is not `0s`; the dialog only fades
+  and the context menu appears at once, so neither is expected to. The dialog and notification fixtures
+  turn animation off so their states are reached at once, so the check turns it back on (the dialog's
+  `animation` setting, the notification's `?animation=1`).
+- **Forced colors is a capture, before and after.** With `forcedColors: 'active'` on the shared demo, the
+  cell focus, a selected range and a menu item's highlight are captured before and after the keyboard
+  reaches them, and the grid lines and the header menu icons at rest. A state that changes no pixel, or a
+  part that draws nothing (`isDrawn()`, from `lib/contrast.mjs`), is a finding (`focus-`, `selection-`,
+  `menu-highlight-`, `icon-` or `gridlines-lost-in-forced-colors`), and the target evaluates every
+  criterion those findings name (`FORCED_COLORS_CRITERIA`: 1.4.1, 1.4.11 and 2.4.7), so a criterion never
+  shows a finding with no target evaluating it. Every capture is attached as a PNG to the test, for the
+  person who reads the report. Chromium's emulation applies the system colors the way Windows High
+  Contrast does; the colors themselves are the emulation's, not a Windows theme's.
 
 ### Adding a check
 

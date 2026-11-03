@@ -18,6 +18,7 @@ const gettingStartedItems = [
 const configurationItems = [
   { path: 'guides/configuration/configuration-options/configuration-options' },
   { path: 'guides/configuration/configuration-option-levels/configuration-option-levels' },
+  { path: 'guides/configuration/understanding-metadata/understanding-metadata' },
   { path: 'guides/configuration/validate-settings/validate-settings' },
 ];
 

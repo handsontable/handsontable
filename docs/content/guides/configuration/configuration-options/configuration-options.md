@@ -194,7 +194,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
 
 :::
 
-For more details on Handsontable's cascading configuration, see the [MetaManager class](https://github.com/handsontable/handsontable/blob/master/handsontable/src/dataMap/metaManager/index.js).
+For how a cell inherits values from the levels above it, and where each value comes from, see [Understanding metadata and inheritance](@/guides/configuration/understanding-metadata/understanding-metadata.md). For the implementation, see the [MetaManager class](https://github.com/handsontable/handsontable/blob/{{$currentMinorVersion}}/handsontable/src/dataMap/metaManager/index.ts).
 
 To read configuration at runtime, use the method that matches the level you need:
 
