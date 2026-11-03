@@ -558,8 +558,8 @@ directions.
   Online stores `#SPILL!` and `#CALC!` of any formula as `<v>#VALUE!</v>` with a `vm` pointing at an
   `_error` rich value, and reporting `images` for them warned about a picture on every blocked spill.
   The error type itself is not read (that needs `xl/metadata.xml` and `xl/richData`), so such a cell
-  keeps `#VALUE!` as its cached result; a shared-formula slave (no text of its own) never counts as a
-  picture. An `<x14:cfRule>` inside `<extLst>`
+  keeps `#VALUE!` as its cached result. A shared-formula follower is judged on its translated text
+  (the decision runs after `#readFormula`), so its own `IMAGE` call counts. An `<x14:cfRule>` inside `<extLst>`
   records `conditionalFormatting:<type>` through `recordUnsupported`; `<f t="dataTable">` records
   `formula:dataTable` and keeps the cached values; a `t="s"` index that resolves to nothing records
   `cellValue:sharedString`. A `<conditionalFormatting>` block left with no rule is not pushed, so

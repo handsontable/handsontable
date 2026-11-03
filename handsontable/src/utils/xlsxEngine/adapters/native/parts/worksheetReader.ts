@@ -1753,16 +1753,6 @@ class WorksheetParser {
       this.#ctx.dropped.record(DROPPED_FEATURES.richText);
     }
 
-    // An Excel 365 "Place in Cell" picture is an error cell carrying value metadata, with the picture
-    // in `xl/richData`: the cached `#VALUE!` is kept, the picture is lost, and it has no drawing part
-    // to report it through. `vm` alone is not enough (OLAP cube cells carry it too), and neither is
-    // `t="e"` with it: Excel Online stores `#SPILL!` and `#CALC!` of a formula the same way, as a rich
-    // error. A formula cell is a picture only when it calls `IMAGE`.
-    if (state.valueMetadataError
-        && (state.formulaAttrs === null || callsImageFunction(state.formulaText))) {
-      this.#ctx.dropped.record(DROPPED_FEATURES.images);
-    }
-
     if (state.formulaTooLong) {
       this.#ctx.dropped.record(DROPPED_FEATURES.formulaTooLong);
     } else if (state.formulaAttrs?.t === 'dataTable') {
@@ -1786,6 +1776,17 @@ class WorksheetParser {
 
         value = null;
       }
+    }
+
+    // An Excel 365 "Place in Cell" picture is an error cell carrying value metadata, with the picture
+    // in `xl/richData`: the cached `#VALUE!` is kept, the picture is lost, and it has no drawing part
+    // to report it through. `vm` alone is not enough (OLAP cube cells carry it too), and neither is
+    // `t="e"` with it: Excel Online stores `#SPILL!` and `#CALC!` of a formula the same way, as a rich
+    // error. A formula cell is a picture only when it calls `IMAGE`, read after a shared formula's
+    // follower got its translated text (`<f t="shared" si="0"/>` has none of its own).
+    if (state.valueMetadataError
+        && (state.formulaAttrs === null || callsImageFunction(formula?.text ?? state.formulaText))) {
+      this.#ctx.dropped.record(DROPPED_FEATURES.images);
     }
 
     const hasNoFormat = xf.numFmt === null && xf.style === null && xf.locked === null;
