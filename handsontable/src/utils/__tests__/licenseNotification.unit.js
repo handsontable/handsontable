@@ -23,6 +23,7 @@ function createMockHotInstance(overrides = {}) {
     getLayoutManager: jest.fn(() => ({
       register: jest.fn(),
     })),
+    addHook: jest.fn(),
     ...overrides,
   };
 }
@@ -53,6 +54,18 @@ describe('licenseNotification', () => {
 
       expect(_injectProductInfo).not.toHaveBeenCalled();
       expect(hotInstance.getFocusScopeManager).not.toHaveBeenCalled();
+    });
+
+    it('should write the license message of a later settings pass after every plugin has handled it', () => {
+      const hotInstance = createMockHotInstance();
+
+      initLicenseNotification(hotInstance);
+
+      // Plugins handle `afterUpdateSettings` at the default order index (0), so the message listener,
+      // which writes one message for every feature a pass turned off, has to run after them.
+      expect(hotInstance.addHook).toHaveBeenCalledTimes(1);
+      expect(hotInstance.addHook).toHaveBeenCalledWith('afterUpdateSettings', expect.any(Function), expect.any(Number));
+      expect(hotInstance.addHook.mock.calls[0][2]).toBeGreaterThan(0);
     });
 
     it('should call _injectProductInfo with correct parameters when container exists', () => {

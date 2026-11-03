@@ -456,6 +456,14 @@ When the [`autoColumnSize`](@/api/options.md#autocolumnsize) option sizes the co
 
 A spanned column with a fixed [`width`](@/api/options.md#width) or a width you dragged keeps it, and a hidden spanned column counts as zero.
 
+## Row heights
+
+A merged cell with long text can make the rows it spans taller. When the wrapped text needs more room than all the spanned rows give together, those rows grow. The rows then end up taller than your [`rowHeights`](@/api/options.md#rowheights). A cell that is not merged grows the same way.
+
+When the [`autoRowSize`](@/api/options.md#autorowsize) option is on, the plugin measures a merged cell on a single row. It gives the first spanned row the full height of the text, so the block grows even when the text fits the spanned rows together.
+
+To keep the configured heights, set [`textEllipsis`](@/api/options.md#textellipsis) or [`wordWrap`](@/api/options.md#wordwrap) for the column or the cell where the merged cell starts (its top-left cell). Settings on the other cells of the block have no effect. With `textEllipsis: true`, the text stays on one line and ends with an ellipsis. With `wordWrap: false`, it stays on one line and is cut off at the cell edge. To show a few lines instead of one, see [Limit the number of lines in a cell](@/guides/rows/row-height/row-height.md#limit-the-number-of-lines-in-a-cell).
+
 ## Effect on viewport getter methods
 
 With merged cells, the rendered range extends to fit any merged cell that crosses the viewport edge. This is the same expansion that the `virtualized` option turns off. As a result, the rendered-range getters can return indexes beyond what you see on the screen:

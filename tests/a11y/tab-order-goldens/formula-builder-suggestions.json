@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "page": "formula-builder-suggestions",
+  "theme": "main",
+  "walks": {
+    "popup": [
+      {
+        "region": "grid",
+        "role": "combobox",
+        "name": "Formula editor"
+      },
+      {
+        "region": "grid",
+        "role": "combobox",
+        "name": "Formula editor"
+      }
+    ]
+  }
+}

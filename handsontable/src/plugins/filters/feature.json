@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:filters",
+      "kind": "plugin",
+      "module": "Filters",
+      "name": "Filters",
+      "description": "Filters rows by condition or by value from the column menu.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable",
+      "requires": {
+        "allOf": [
+          "feat:dropdown_menu",
+          "feat:hidden_rows",
+          "cell:checkbox"
+        ]
+      },
+      "enforceAtInit": true
+    }
+  ]
+}

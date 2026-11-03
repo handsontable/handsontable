@@ -10,6 +10,7 @@ import {
   pickStorableSizes,
   redeclaresManualSizes,
 } from '../../utils/manualResize/utils';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'manualColumnResize';
 export const PLUGIN_PRIORITY = 130;
@@ -62,6 +63,14 @@ export class ManualColumnResize extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
@@ -167,12 +176,6 @@ export class ManualColumnResize extends BasePlugin {
     if (newSettings === undefined || newSettings[PLUGIN_KEY] !== undefined) {
       this.disablePlugin();
       this.enablePlugin();
-
-    } else {
-      // `BasePlugin#onUpdateSettings` feeds `updatePluginSettings()` with `newSettings[PLUGIN_KEY]`,
-      // which a `colWidths`-only update does not carry. Restore the option from the merged settings
-      // so `getSetting()` keeps reporting it.
-      this.updatePluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
     }
 
     // Runs after the re-initialization, so that the widths replayed on the map's `init` hook are

@@ -1,0 +1,36 @@
+# grid
+- treegrid:
+  - rowgroup:
+    - row "A-100 Old A Loading... 30":
+      - gridcell "A-100"
+      - gridcell "Old A Loading..."
+      - gridcell "30"
+    - row "B-200 Old B 10":
+      - gridcell "B-200"
+      - gridcell "Old B"
+      - gridcell "10"
+    - row "C-300 Old C 20":
+      - gridcell "C-300"
+      - gridcell "Old C"
+      - gridcell "20"
+  - rowgroup:
+    - row "Select whole grid SKU Name Price":
+      - gridcell "Select whole grid"
+      - columnheader "SKU"
+      - columnheader "Name"
+      - columnheader "Price"
+  - rowgroup
+  - rowgroup:
+    - row "1":
+      - rowheader "1"
+    - row "2":
+      - rowheader "2"
+    - row "3":
+      - rowheader "3"
+  - rowgroup:
+    - row "Select whole grid":
+      - gridcell "Select whole grid"
+  - rowgroup
+# portal
+- status
+- status

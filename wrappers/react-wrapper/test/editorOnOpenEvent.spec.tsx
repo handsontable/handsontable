@@ -75,7 +75,7 @@ function mountEditor(surface: OpenSurface, opened: Array<Event | undefined>) {
       data={createSpreadsheetData(3, 3)}
       width={300}
       height={300}
-      rowHeights={23}
+      minRowHeights={23}
       colWidths={50}
       init={function() {
         mockElementDimensions(this.rootElement, 300, 300);
@@ -181,7 +181,7 @@ describe('EditorComponent onOpen position', () => {
         data={createSpreadsheetData(3, 3)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);

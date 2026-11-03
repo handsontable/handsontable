@@ -88,10 +88,11 @@ test("the seed's build fallback stays in step with build.yml, or the baseline dr
   // The seed downloads no Build artifact, so it ALWAYS takes visual.yml's inline
   // fallback, while pull requests and master take build.yml's artifacts. A task
   // that only one list runs makes `base/develop` describe a tree no pull request
-  // ever renders — a permanent diff with nothing to blame it on. The one accepted
-  // difference is the theme UMD pair: it emits `dist/themes/**` for the published
-  // package, and the demos load a theme as a stylesheet from `styles/`.
-  const KNOWN_OMISSIONS = ['build:themes-umd', 'build:themes-umd.min'];
+  // ever renders — a permanent diff with nothing to blame it on. The accepted
+  // differences: the theme UMD pair emits `dist/themes/**` for the published
+  // package, and the demos load a theme as a stylesheet from `styles/`; the
+  // feature manifest emits `dist/manifest.json`, a JSON file no page loads.
+  const KNOWN_OMISSIONS = ['build:feature-manifest', 'build:themes-umd', 'build:themes-umd.min'];
   const tasksIn = (source, from, to) => {
     const block = source.slice(source.indexOf(from), to ? source.indexOf(to) : undefined);
 

@@ -248,6 +248,7 @@ export interface HotInstance {
   getRowHeight(row: number, source?: string): number;
   _getColWidthFromSettings(col: number): number | undefined;
   _getRowHeightFromSettings(row: number): number | undefined;
+  _isRowHeightExact(row: number): boolean;
   getColHeader(column?: number, headerLevel?: number): string | string[];
   getRowHeader(row?: number): string | string[];
   hasColHeaders(): boolean;
@@ -339,6 +340,7 @@ export interface HotInstance {
   _isDataLoadPending(): boolean;
   _runInPluginLifecyclePass<T>(callback: () => T): T;
   _isHeldMetaPhaseRunning(): boolean;
+  _isRunningInitReadySteps(): boolean;
   _replaceInitPassSettings(settings: Record<string, unknown>): Record<string, unknown> | null;
   _addSettingsFilter(filter: (settings: SettingsUpdate) => SettingsUpdate): void;
   _removeSettingsFilter(filter: (settings: SettingsUpdate) => SettingsUpdate): void;

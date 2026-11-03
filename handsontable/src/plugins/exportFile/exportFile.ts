@@ -4,12 +4,17 @@ import { isObject } from '../../helpers/object';
 import { LOADING_CLASS_NAME } from '../../helpers/constants';
 import { EXPORT_FILE_DIALOG_TITLE } from '../../i18n/constants';
 import { resolveEngineOverride, tryDetectXlsxEngine } from '../../utils/xlsxEngine/detect';
+import { EXPORT_FILE_CAPABILITY_IDS } from '../../utils/xlsxEngine/licenseCapabilities';
+import { getXlsxEntitlement } from '../../core/license';
 import ExportDataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
 import exportItem from './contextMenuItem/exportItem';
 import { buildExportDialogContent } from './utils';
 import type { HotInstance } from '../../core/types';
 import type BaseType from './types/_base';
+import { LICENSE } from './feature.generated';
+import { assertLicensedCall } from '../../utils/licenseNotification';
+import { hasLicenseCapability } from '../../utils/licenseCapabilities';
 
 export const PLUGIN_KEY = 'exportFile';
 
@@ -233,6 +238,33 @@ export interface ExportOptions {
    */
   headerStyle?: HeaderStyle | null;
   /**
+   * Sheet protection of read-only cells (XLSX only). A sheet that has a read-only cell is protected,
+   * and its read-only cells are locked, so Excel does not let users edit them.
+   *
+   * - Unset (`undefined`, the default): such a sheet is protected with no password, so anyone can
+   *   unprotect it.
+   * - `{ password: '...' }`: such a sheet is protected with this password. The file keeps only a salted
+   *   SHA-512 hash of it, never the password itself. An empty or missing `password` sets no password.
+   *   Excel accepts at most 255 characters, so a longer password is refused.
+   * - `null`: no sheet is protected and no cell is locked.
+   *
+   * Any other value is refused: the export rejects when `protection` is not an object or `null`, or
+   * when `password` is set to something other than a string or is longer than 255 characters. The
+   * error names the option, never its value. A `protection` key on a `sheets` entry is ignored, with a
+   * console warning.
+   *
+   * A sheet with no read-only cell, or with a ColumnSummary, is never protected. With the `sheets`
+   * option, every protected sheet gets the same password. This is a guard against accidental edits,
+   * not encryption: the cell values stay readable in the file.
+   *
+   * The built-in engine hashes the password with `crypto.subtle`, which browsers expose only in a
+   * secure context (https or localhost). On a plain `http://` page an export that protects a sheet
+   * with a password rejects with `Sheet password hashing needs crypto.subtle, which is only
+   * available in a secure context (https or localhost).` The hash runs 100,000 SHA-512 rounds for
+   * every protected sheet, so a multi-sheet export with a password takes noticeably longer.
+   */
+  protection?: { password?: string } | null;
+  /**
    * An xlsx engine module for this export only. `null`/absent uses the plugin's `engines` entry, or
    * the built-in engine.
    */
@@ -425,6 +457,24 @@ export class ExportFile extends BasePlugin {
   }
 
   /**
+   * Returns the ids of the license capability tokens this plugin gates.
+   *
+   * @private
+   * @returns {string[]}
+   */
+  static get CAPABILITIES(): readonly string[] {
+    return EXPORT_FILE_CAPABILITY_IDS;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns the setting keys that trigger a plugin update when changed via `updateSettings`.
    */
   static get SETTING_KEYS() {
@@ -521,8 +571,11 @@ export class ExportFile extends BasePlugin {
    * @param {number[]} [options.range=[]] Cell range to export: `[startRow, startColumn, endRow, endColumn]` (visual indexes).
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Controls the sanitization of cell values (CSV only).
    * @returns {string}
+   * @throws {Error} When the license key lists the features it unlocks and leaves out Export to file.
    */
   exportAsString(format: string, options: ExportOptions | Record<string, unknown> = {}): string {
+    assertLicensedCall(this.hot, LICENSE);
+
     const formatter = this._createTypeFormatter(format, options);
 
     if (formatter.binary) {
@@ -555,8 +608,11 @@ export class ExportFile extends BasePlugin {
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
    * @returns {Blob}
+   * @throws {Error} When the license key lists the features it unlocks and leaves out Export to file.
    */
   exportAsBlob(format: string, options: ExportOptions | Record<string, unknown> = {}): Blob {
+    assertLicensedCall(this.hot, LICENSE);
+
     const formatter = this._createTypeFormatter(format, options);
 
     if (formatter.binary) {
@@ -597,10 +653,15 @@ export class ExportFile extends BasePlugin {
    * @param {SheetOptions[]} [options.sheets=[]] Configuration for multi-sheet export. Each entry defines one worksheet (XLSX only).
    * @param {HeaderStyle|null} [options.headerStyle] Fill and border of the header cells (XLSX only). Defaults to a light-gray fill with a thin border; an object replaces the whole default, `null` writes unstyled headers.
    * @param {object|null} [options.engine] Engine for this call only (XLSX only). `null` or an absent key keeps the engine from the `engines` setting, or the built-in one.
+   * @param {object|null} [options.protection] Sheet protection of read-only cells (XLSX only). Unset protects a sheet that has a read-only cell with no password, and `null` protects no sheet. With the built-in engine, an export that protects a sheet with a password needs a secure context (https or localhost), or it rejects.
+   * @param {string} [options.protection.password] The sheet password, at most 255 characters. An empty one sets no password.
    * @returns {Promise<Blob>}
    * @since 17.1.0
+   * @throws {Error} The returned promise rejects when the license key lists the features it unlocks and leaves out Export to file.
    */
   async exportAsBlobAsync(format: string, options: ExportOptions | Record<string, unknown> = {}): Promise<Blob> {
+    assertLicensedCall(this.hot, LICENSE);
+
     return this._createBlob(this._createTypeFormatter(format, options));
   }
 
@@ -626,8 +687,11 @@ export class ExportFile extends BasePlugin {
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
    * @returns {void}
+   * @throws {Error} When the license key lists the features it unlocks and leaves out Export to file.
    */
   downloadFile(format: string, options: ExportOptions | Record<string, unknown> = {}): void {
+    assertLicensedCall(this.hot, LICENSE);
+
     const formatter = this._createTypeFormatter(format, options);
 
     if (formatter.binary) {
@@ -673,13 +737,18 @@ export class ExportFile extends BasePlugin {
    * @param {SheetOptions[]} [options.sheets=[]] Configuration for multi-sheet export. Each entry defines one worksheet (XLSX only).
    * @param {HeaderStyle|null} [options.headerStyle] Fill and border of the header cells (XLSX only). Defaults to a light-gray fill with a thin border; an object replaces the whole default, `null` writes unstyled headers.
    * @param {object|null} [options.engine] Engine for this call only (XLSX only). `null` or an absent key keeps the engine from the `engines` setting, or the built-in one.
+   * @param {object|null} [options.protection] Sheet protection of read-only cells (XLSX only). Unset protects a sheet that has a read-only cell with no password, and `null` protects no sheet. With the built-in engine, an export that protects a sheet with a password needs a secure context (https or localhost), or it rejects.
+   * @param {string} [options.protection.password] The sheet password, at most 255 characters. An empty one sets no password.
    * @returns {Promise<void>}
    * @since 17.1.0
+   * @throws {Error} The returned promise rejects when the license key lists the features it unlocks and leaves out Export to file.
    */
   async downloadFileAsync(format: string, options: ExportOptions | Record<string, unknown> = {}) {
+    assertLicensedCall(this.hot, LICENSE);
+
     const formatter = this._createTypeFormatter(format, options);
     const dialogPlugin = this.hot.getPlugin('dialog');
-    const hasDialog = dialogPlugin?.isEnabled();
+    const hasDialog = dialogPlugin?.enabled;
     const { rootWindow } = this.hot;
     const name = `${formatter.options.filename}.${formatter.options.fileExtension}`;
 
@@ -790,7 +859,12 @@ export class ExportFile extends BasePlugin {
    * Returns `true` when the plugin can produce an export in the given format. `'csv'` always can,
    * because it needs no engine. `'xlsx'` can through the built-in xlsx engine or through the one
    * configured in `engines`; an engine of unknown shape writes nothing and answers `false`, which
-   * is the same answer `ImportFile#supportsImportFormat` gives for that configuration.
+   * is the same answer `ImportFile#supportsImportFormat` gives for that configuration. `'xlsx'` also
+   * answers `false` whenever an xlsx export would throw for the license: when the license key lists
+   * its features without `feat:export_file`, the plugin's own token, and when it carries the
+   * `listed-capabilities` flag without listing `xlsx:export`. A key without that flag, and the
+   * evaluation key, are not restricted. `'csv'` does not read the license here, although the export
+   * methods still need `feat:export_file` for it.
    *
    * @param {string} format Export format — `'csv'` or `'xlsx'`.
    * @returns {boolean}
@@ -802,6 +876,10 @@ export class ExportFile extends BasePlugin {
 
     if (format !== 'xlsx') {
       return true;
+    }
+
+    if (!hasLicenseCapability(this.hot, LICENSE.capability) || !getXlsxEntitlement(this.hot).export) {
+      return false;
     }
 
     const pluginSettings = getPluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
@@ -832,6 +910,10 @@ export class ExportFile extends BasePlugin {
 
     if (!EXPORT_TYPES[format]) {
       throwWithCause(`Export format type "${format}" is not supported.`);
+    }
+
+    if (format === 'xlsx' && !getXlsxEntitlement(this.hot).export) {
+      throwWithCause('ExportFile: the license does not unlock "xlsx:export".');
     }
 
     const pluginSettings = getPluginSettings(this.hot.getSettings()[PLUGIN_KEY]);

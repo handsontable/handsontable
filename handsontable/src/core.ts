@@ -62,6 +62,7 @@ import {
   type MinimumSizes,
 } from './core/minimumSizes';
 import { insertColWidths, removeColWidths } from './core/colWidthsSplice';
+import { isAutoRowSizeOn, isExactRowHeight, resolveRowHeightSetting } from './core/rowHeightSetting';
 import { isSameColumnLayout, type ColumnLayout } from './core/columnLayout';
 import type { HookCallback } from './core/hooks/bucket';
 import type { GridSettings } from './core/settings';
@@ -475,6 +476,11 @@ export default function Core(
    * skips the steps without looking at any plugin.
    */
   let readyStepsMayBeOwed = false;
+  /**
+   * `true` while the grid's init pass runs the ready steps: before the `init` hook and the first render, with
+   * the renders they ask for held.
+   */
+  let initReadyStepsRunning = false;
   /**
    * Set when `destroy()` starts, so no ready step runs against a grid being torn down.
    */
@@ -2836,8 +2842,30 @@ export default function Core(
     }
 
     // The data is loaded and the view, the editor manager and the focus manager exist: the plugins enabled
-    // while the grid was built run their ready steps before the `init` hook and the first render.
-    runOwedReadySteps();
+    // while the grid was built run their ready steps before the `init` hook and the first render. Rendering
+    // is held while they run, so a step that renders (a sort, a cell write) cannot draw the grid before a
+    // later step builds its state; the counter is put back without a render, because the first one follows.
+    const renderState = instance as HotInstance & CoreInternals;
+    const suspendedBefore = renderState.renderSuspendedCounter;
+
+    renderState.renderSuspendedCounter = suspendedBefore + 1;
+    initReadyStepsRunning = true;
+
+    try {
+      runOwedReadySteps();
+    } finally {
+      initReadyStepsRunning = false;
+      // Never below the saved value: a step that resumed rendering once more than it suspended would leave
+      // the counter below zero, and the next `suspendRender()` would not hold. A suspension a step made on
+      // its own is kept for its own `resumeRender()`.
+      renderState.renderSuspendedCounter = Math.max(renderState.renderSuspendedCounter - 1, suspendedBefore);
+    }
+
+    // A held render also skipped the start of a full render, which makes each stored cell meta run its
+    // dynamic extension again. Without it the `init` listeners (the AutoColumnSize sweep) read the meta of
+    // a cell as it was before a step changed it: a merge's first cell without its `colspan`. Only here, not
+    // on every held `render()`: inside `batch()` that doubled the cost of reading meta after each `render()`.
+    metaManager.invalidateMetaExtensions();
 
     instance.runHooks('init');
 
@@ -5762,6 +5790,18 @@ export default function Core(
   };
 
   /**
+   * Tells a plugin whether its ready step runs in the grid's init pass: before the `init` hook and the first
+   * render, with the renders the steps ask for held. A step that needs a drawn grid leaves that work to the
+   * first render then.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  this._isRunningInitReadySteps = function() {
+    return initReadyStepsRunning;
+  };
+
+  /**
    * Reads what decides the columns of a grid without a `columns` option: the number of columns the schema or the
    * data resolves to, and the property each one reads.
    *
@@ -5806,20 +5846,6 @@ export default function Core(
     }
 
     warnAboutRemovedOptions(settings as Record<string, unknown>);
-  }
-
-  /**
-   * Warns when `rowHeights` and its alias `minRowHeights` are both configured.
-   *
-   * @private
-   * @param {object} settings A settings object (see {@link Options}).
-   */
-  function warnAboutRowHeightsAlias(settings: SettingsUpdate): void {
-    if (isDefined(settings.rowHeights) && isDefined(settings.minRowHeights)) {
-      warn('Both `rowHeights` and `minRowHeights` are defined in your configuration. ' +
-        'As one is the alias of the other, only one of them can be used at a time. ' +
-        '`rowHeights` will be used as the row height configuration.');
-    }
   }
 
   /**
@@ -6494,6 +6520,9 @@ export default function Core(
       instance.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
       instance.view._wt.exportSettingsAsClassNames();
       instance.view.invalidateIndexSizesCache();
+      // `_getRowHeightFromSettings` answers from the new settings at once, so the engine has to follow
+      // before a scroll draw that a suspended render does not stop.
+      instance.view.syncRowHeightMode();
     }
 
     selection.updateHighlightClassNames();
@@ -6564,8 +6593,6 @@ export default function Core(
 
     // Read before the payload merges into the table meta.
     const { previousMinimumSizes, previousColumnLayout, previousRootSize } = readSettingsBaseline(settings, init);
-
-    warnAboutRowHeightsAlias(settings);
 
     mergeSettingsIntoMeta(settings, init);
     applyThemeSettings(settings, init);
@@ -8661,6 +8688,27 @@ export default function Core(
   };
 
   /**
+   * Tells whether the row renders at exactly the height the `rowHeights` option gives it, with
+   * taller content clipped, instead of at a minimum the content can grow past. Private use intended.
+   *
+   * A row is exact when `rowHeights` resolves to a positive number for it and the AutoRowSize plugin is
+   * off. The `minRowHeights` option is never exact.
+   *
+   * @private
+   * @memberof Core#
+   * @function _isRowHeightExact
+   * @param {number} row Visual row index.
+   * @returns {boolean}
+   */
+  this._isRowHeightExact = function(row: number) {
+    if (isAutoRowSizeOn(tableMeta.autoRowSize)) {
+      return false;
+    }
+
+    return isExactRowHeight(resolveRowHeightSetting(tableMeta.rowHeights, row));
+  };
+
+  /**
    * Return row height from settings (no guessing). Private use intended.
    *
    * @private
@@ -8670,29 +8718,22 @@ export default function Core(
    * @returns {number}
    */
   this._getRowHeightFromSettings = function(row: number) {
-    const defaultRowHeight = (instance.stylesHandler as StylesHandler).getDefaultRowHeight(row);
-    let height: unknown = tableMeta.rowHeights ?? tableMeta.minRowHeights;
+    const rowHeights = resolveRowHeightSetting(tableMeta.rowHeights, row);
+    const hasOwnHeight = isExactRowHeight(rowHeights);
 
-    if (height !== undefined && height !== null) {
-      switch (typeof height) {
-        case 'object': // array
-          height = (height as Record<number, unknown>)[row];
-          break;
-
-        case 'function':
-          height = (height as (row: number) => unknown)(row);
-          break;
-
-        default:
-          break;
-      }
-
-      if (typeof height === 'string') {
-        height = Number.parseInt(height, 10);
-      }
+    // Resolved once: a `rowHeights` function runs for every rendered row on every draw.
+    if (hasOwnHeight && !isAutoRowSizeOn(tableMeta.autoRowSize)) {
+      return rowHeights;
     }
 
-    const numHeight = height as number | undefined | null;
+    const defaultRowHeight = (instance.stylesHandler as StylesHandler).getDefaultRowHeight(row);
+    // `minRowHeights` covers the rows `rowHeights` gives no height of their own.
+    const hasRowHeightsOption = tableMeta.rowHeights !== undefined && tableMeta.rowHeights !== null;
+    const fallbackHeight = hasRowHeightsOption ? rowHeights : undefined;
+    const height = hasOwnHeight ?
+      rowHeights : (resolveRowHeightSetting(tableMeta.minRowHeights, row) ?? fallbackHeight);
+
+    const numHeight = height;
     const numDefaultRowHeight = defaultRowHeight as number | null;
 
     return ((numHeight !== undefined && numHeight !== null &&
@@ -8718,6 +8759,11 @@ export default function Core(
    * Passing [`rowHeights`](@/api/options.md#rowheights) to
    * [`updateSettings()`](@/api/core.md#updatesettings) discards the heights stored by
    * [`ManualRowResize`](@/api/manualRowResize.md), so the option applies again from that point on.
+   *
+   * A height set through [`rowHeights`](@/api/options.md#rowheights) is returned as set, even when it is
+   * smaller than the default row height. A height set through
+   * [`minRowHeights`](@/api/options.md#minrowheights), or through `rowHeights` while
+   * [`AutoRowSize`](@/api/autoRowSize.md) is enabled, is never smaller than the default row height.
    *
    * The height returned includes 1 px of the row's bottom border.
    *

@@ -176,6 +176,16 @@ for (const packagesLocation of workspacePackages) {
   }
 }
 
+// The feature manifest names the release it ships with (one is kept per version), and it takes that
+// version from `handsontable/package.json`, not from the bundles above.
+const featureManifest = JSON.parse(readFileSync(
+  resolve(dirname(fileURLToPath(import.meta.url)), '../handsontable/tmp/dist/manifest.json'), 'utf8'
+));
+
+if (featureManifest.version !== hotConfig.HOT_VERSION) {
+  mismatchedVersions.push(`handsontable (dist/manifest.json) - ${featureManifest.version}`);
+}
+
 if (mismatchedVersions.length > 0 || brokenTypePointers.length > 0) {
   mismatchedVersions.forEach((mismatch) => {
     displayErrorMessage(`\nMismatched versions in ${mismatch}.`);

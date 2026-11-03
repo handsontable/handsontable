@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:auto_row_header_size",
+      "kind": "plugin",
+      "module": "AutoRowHeaderSize",
+      "name": "Auto row header size",
+      "description": "Widens the row header to fit its labels.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

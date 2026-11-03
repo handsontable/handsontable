@@ -181,6 +181,33 @@ test('redirects legacy Vue 3 pages under every framework prefix', async() => {
   }
 });
 
+test('redirects the old Vue 2 page names to the Vue data grid pages (PRO-1371)', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(worker, '/docs/javascript-data-grid/vue-installation/', '/docs/vue-data-grid/installation/');
+  await assertRedirect(worker, '/docs/angular-data-grid/vue-vuex-example/', '/docs/vue-data-grid/vue-vuex/');
+  await assertRedirect(worker, '/docs/angular-data-grid/vue-setting-up-a-translation/', '/docs/vue-data-grid/language/');
+  await assertRedirect(worker, '/docs/javascript-data-grid/vue-hot-reference/', '/docs/vue-data-grid/vue-instance-reference/');
+  await assertRedirect(worker, '/docs/angular-data-grid/vue-modules/', '/docs/vue-data-grid/modules/');
+  await assertRedirect(worker, '/docs/react-data-grid/vue-basic-example/', '/docs/vue-data-grid/installation/');
+  await assertRedirect(worker, '/docs/javascript-data-grid/vue-custom-editor-example', '/docs/vue-data-grid/cell-editor/');
+  await assertRedirect(worker, '/docs/javascript-data-grid/vue3-simple-example/', '/docs/vue-data-grid/installation/');
+});
+
+test('the live vue- pages are not redirected by the Vue legacy rule', async() => {
+  const worker = loadWorker();
+
+  // These slugs are live pages under every framework prefix.
+  for (const page of ['vue-hot-column', 'vue-instance-reference', 'vue-nuxt', 'vue-pinia', 'vue-vuex']) {
+    for (const framework of ['javascript', 'react', 'angular', 'vue']) {
+      const response = await worker.fetch(request(`/docs/${framework}-data-grid/${page}/`), env);
+
+      assert.equal(response.status, 200, `${framework}/${page} must not redirect`);
+      assert.equal(await response.text(), 'static-asset-passthrough');
+    }
+  }
+});
+
 test('redirects versioned legacy Vue 3 pages to versioned Vue data grid pages', async() => {
   const worker = loadWorker();
 
@@ -411,6 +438,50 @@ test('a flat page link with a sentence\'s punctuation glued to it still redirect
   await assertRedirect(worker, '/docs/i18n/missing-language-code.', language, 302);
   await assertRedirect(worker, '/docs/i18n/missing-language-code.\'', language, 302);
   await assertRedirect(worker, '/docs/api/core.', '/docs/javascript-data-grid/api/core/', 302);
+});
+
+test('a page of the old Handsontable Pro docs redirects to its current page (PRO-1371)', async() => {
+  const worker = loadWorker();
+
+  // The Pro docs are not deployed, so every /docs/pro/ URL answered 404.
+  await assertRedirect(worker, '/docs/pro/Comments.html', '/docs/javascript-data-grid/api/comments/', 302);
+  await assertRedirect(worker, '/docs/pro/1.15.1/Hooks.html', '/docs/javascript-data-grid/api/hooks/', 302);
+  await assertRedirect(worker, '/docs/pro/6.0.1/ColumnSorting.html', '/docs/javascript-data-grid/api/column-sorting/', 302);
+  await assertRedirect(worker, '/docs/pro/2.0.0/demo-merged-cells.html', '/docs/javascript-data-grid/merge-cells/', 302);
+  await assertRedirect(worker, '/docs/pro/1.15.0/tutorial-internationalization.html', '/docs/javascript-data-grid/language/', 302);
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/pro/demo-date.html', 'react'),
+    'https://handsontable.com/docs/react-data-grid/date-cell-type/',
+  );
+});
+
+test('the root, or an unknown page, of the old Pro docs lands on the framework home', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(worker, '/docs/pro', '/docs/javascript-data-grid/', 302);
+  await assertRedirect(worker, '/docs/pro/', '/docs/javascript-data-grid/', 302);
+  await assertRedirect(worker, '/docs/pro/react', '/docs/javascript-data-grid/', 302);
+  await assertRedirect(worker, '/docs/pro/1.13.0/demo-paginating.html', '/docs/javascript-data-grid/', 302);
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/pro/1.13.0/', 'react'),
+    'https://handsontable.com/docs/react-data-grid/',
+  );
+});
+
+test('a path that only starts with "pro" is not caught by the Pro docs rule', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(request('/docs/products/'), env);
+
+  assert.equal(response.status, 200);
+  assert.equal(await response.text(), 'static-asset-passthrough');
+});
+
+test('the old Pro docs on the legacy host take one 301 to the canonical host first', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(requestOn('docs.handsontable.com', '/docs/pro/Core.html'), env);
+
+  assert.equal(response.status, 301);
+  assert.equal(response.headers.get('location'), 'https://handsontable.com/docs/pro/Core.html');
 });
 
 test('answers POST to the saving-data demo\'s save.json mock instead of 405ing (regression for DEV-2034)', async() => {
@@ -1640,5 +1711,102 @@ test('other methods on the date endpoint fall through to assets (rule 18c)', asy
 
     assert.equal(await response.text(), 'static-asset-passthrough', method);
     assert.equal(env.calls.length, 0, `${method} must not reach Figma`);
+  }
+});
+
+/**
+ * An `env` whose static assets hold only the given paths. Every other path
+ * answers 404, the way Cloudflare Pages does, and each lookup is recorded.
+ *
+ * @param {string[]} existing The asset paths that exist.
+ * @returns {{ASSETS: {fetch: Function}, lookups: string[]}}
+ */
+function envWithPages(existing) {
+  const lookups = [];
+
+  return {
+    lookups,
+    ASSETS: {
+      fetch: async(target) => {
+        const { pathname } = new URL(typeof target === 'string' ? target : target.url);
+
+        lookups.push(pathname);
+
+        return existing.includes(pathname)
+          ? new Response('static-asset-passthrough')
+          : new Response('not found', { status: 404 });
+      },
+    },
+  };
+}
+
+test('an unprefixed page that 404s redirects to the same page under the framework (PRO-1371)', async() => {
+  const worker = loadWorker();
+  const pagesEnv = envWithPages([
+    '/docs/javascript-data-grid/long-term-support/',
+    '/docs/javascript-data-grid/migration-from-16.2-to-17.0/',
+    '/docs/javascript-data-grid/recipes/',
+  ]);
+
+  for (const [path, destination] of [
+    ['/docs/long-term-support/', '/docs/javascript-data-grid/long-term-support/'],
+    ['/docs/migration-from-16.2-to-17.0', '/docs/javascript-data-grid/migration-from-16.2-to-17.0/'],
+    ['/docs/recipes', '/docs/javascript-data-grid/recipes/'],
+  ]) {
+    const response = await worker.fetch(request(path), pagesEnv);
+
+    assert.equal(response.status, 302, path);
+    assert.equal(response.headers.get('location'), `https://handsontable.com${destination}`);
+  }
+});
+
+test('the unprefixed fallback prefers the cookie framework and falls back to JavaScript', async() => {
+  const worker = loadWorker();
+  const pagesEnv = envWithPages([
+    '/docs/react-data-grid/long-term-support/',
+    '/docs/javascript-data-grid/long-term-support/',
+    '/docs/javascript-data-grid/javascript-only/',
+  ]);
+
+  const react = await worker.fetch(request('/docs/long-term-support/', 'react'), pagesEnv);
+
+  assert.equal(react.headers.get('location'), 'https://handsontable.com/docs/react-data-grid/long-term-support/');
+
+  const fallback = await worker.fetch(request('/docs/javascript-only/', 'react'), pagesEnv);
+
+  assert.equal(fallback.headers.get('location'), 'https://handsontable.com/docs/javascript-data-grid/javascript-only/');
+});
+
+test('the unprefixed fallback keeps the 404 when no framework has the page', async() => {
+  const worker = loadWorker();
+  const pagesEnv = envWithPages([]);
+  const response = await worker.fetch(request('/docs/dHV0b3JpYW'), pagesEnv);
+
+  assert.equal(response.status, 404);
+  assert.deepEqual(pagesEnv.lookups, [
+    '/docs/dHV0b3JpYW',
+    '/docs/javascript-data-grid/dHV0b3JpYW/',
+  ]);
+});
+
+test('the unprefixed fallback leaves existing assets, prefixed paths, versions, and files alone', async() => {
+  const worker = loadWorker();
+  const pagesEnv = envWithPages(['/docs/sitemap-index.xml']);
+  const asset = await worker.fetch(request('/docs/sitemap-index.xml'), pagesEnv);
+
+  assert.equal(asset.status, 200);
+
+  for (const path of [
+    '/docs/react-data-grid/no-such-page/',
+    '/docs/16.2/javascript-data-grid/no-such-page/',
+    '/docs/img/missing.png',
+    '/docs/scripts/missing.js',
+  ]) {
+    pagesEnv.lookups.length = 0;
+
+    const response = await worker.fetch(request(path), pagesEnv);
+
+    assert.equal(response.status, 404, path);
+    assert.deepEqual(pagesEnv.lookups, [path], `${path} must not be retried`);
   }
 });

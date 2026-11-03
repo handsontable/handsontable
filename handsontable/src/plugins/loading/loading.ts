@@ -4,11 +4,13 @@ import { getSanitizer } from '../../utils/sanitizer';
 import * as C from '../../i18n/constants';
 import { isRootInstance } from '../../utils/rootInstance';
 import { LOADING_CLASS_NAME } from '../../helpers/constants';
+import { LICENSE, PLUGIN_DEPS } from './feature.generated';
 
 /**
  * Interface for the Dialog plugin used by Loading.
  */
 interface DialogPlugin {
+  enabled: boolean;
   isEnabled(): boolean;
   isVisible(): boolean;
   hide(): void;
@@ -61,6 +63,9 @@ export { LOADING_CLASS_NAME };
  * The loading overlay is a dialog, so enabling this plugin also enables the Dialog plugin
  * ({@link Options#dialog}). The Dialog plugin stays enabled after you turn `loading` off, and while
  * `loading` is on, setting `dialog: false` does not turn the Dialog plugin off.
+ *
+ * If you register modules one by one, register the Dialog plugin too: `new Handsontable()` throws an error
+ * when the Loading plugin is registered without it.
  *
  * Calling `updateSettings()` with new `loading` options updates a visible loading overlay in place,
  * without hiding it.
@@ -191,6 +196,21 @@ export class Loading extends BasePlugin {
   }
 
   /**
+   * Returns the list of plugin dependencies required before this plugin can be initialized.
+   */
+  static get PLUGIN_DEPS() {
+    return [...PLUGIN_DEPS];
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Dialog instance reference.
    *
    * @type {Dialog|null}
@@ -298,7 +318,7 @@ export class Loading extends BasePlugin {
    * @param {string} options.description Custom loading description.
    */
   show(options = {}): void {
-    if (!this.isEnabled() || !this.#dialogPlugin || !this.#dialogPlugin?.isEnabled()) {
+    if (!this.isEnabled() || !this.#dialogPlugin?.enabled) {
       return;
     }
 
@@ -334,7 +354,7 @@ export class Loading extends BasePlugin {
    * Hide loading dialog. A dialog the application shows with its own content stays on screen.
    */
   hide(): void {
-    if (!this.#dialogPlugin || !this.#dialogPlugin?.isEnabled() || !this.isVisible()) {
+    if (!this.#dialogPlugin?.enabled || !this.isVisible()) {
       return;
     }
 
@@ -360,7 +380,7 @@ export class Loading extends BasePlugin {
    * @param {string} options.description Custom loading description.
    */
   update(options?: unknown): void {
-    if (!this.isEnabled() || !this.#dialogPlugin || !this.#dialogPlugin?.isEnabled()) {
+    if (!this.isEnabled() || !this.#dialogPlugin?.enabled) {
       return;
     }
 

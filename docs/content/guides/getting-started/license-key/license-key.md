@@ -13,6 +13,7 @@ vue:
   metaTitle: License key | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Getting started
+menuTag: updated
 ---
 Activate Handsontable DataGrid, passing your license key in the configuration object. Use a special key for non-commercial and evaluation purposes.
 
@@ -342,6 +343,82 @@ against the build date of your Handsontable version, never against the current d
 versions released on or before that date indefinitely, including offline. On a newer version, the
 console reports an error and the grid shows a notice below the table.
 
+## Capabilities
+
+An entitlement key can list the capabilities it unlocks. A capability is a named part of a feature, such as `xlsx:export`. Handsontable reads the list from the current `licenseKey` and gates the matching features. A new key you pass through [`updateSettings()`](@/api/core.md#updatesettings) applies to the next import or export.
+
+- A key issued without the `listed-capabilities` flag unlocks every feature. Every key issued before 19.0 works this way, so nothing changes for you when you update Handsontable.
+- A key with the `listed-capabilities` flag unlocks exactly the capabilities it lists. A feature you did not license is skipped, and the grid tells you so in the console.
+- The `non-commercial-and-evaluation` key and the 25-character keys unlock every feature.
+
+Which capabilities your key lists depends on the package you bought. See the [pricing page](https://handsontable.com/pricing) for the packages. The full list of features and the modules each one needs is in the manifest that ships with every release, at `https://cdn.jsdelivr.net/npm/handsontable@{{$currentVersion}}/dist/manifest.json`.
+
+### Keys that list features
+
+An entitlement key can list the features it unlocks. Such a key unlocks the grid itself, the
+features it lists, and the features those need. For example, a key that lists Filters also unlocks
+the column menu, which Filters uses. A key that does not list its features unlocks every feature, as
+every key did before.
+
+When your key lists its features and your grid turns on a plugin the key does not list:
+
+- The plugin stays off. The rest of the grid works, and the grid is not locked.
+- The console shows one error, for example:
+  _The license key for Handsontable does not include these features: Filters (feat:filters). They
+  are turned off. To add them, contact sales@handsontable.com._
+- The same message appears below the grid, without the token names, because your end users can see
+  it: _The license key for Handsontable does not include these features: Filters. They are turned
+  off. To add them, contact sales@handsontable.com._
+- The option keeps the value you set, so `getSettings()` still returns it. Pass a key that lists the
+  feature through [`updateSettings()`](@/api/core.md#updatesettings), and the plugin turns on.
+- The plugin's methods work as they do for a plugin whose option is off. Some of them throw, because
+  the plugin never started, so do not call the methods of a plugin your key does not list.
+
+A key that lists its features also turns off the plugins that are on by default, unless it lists
+them: [`CopyPaste`](@/api/copyPaste.md), [`UndoRedo`](@/api/undoRedo.md),
+[`Autofill`](@/api/autofill.md), [`AutoColumnSize`](@/api/autoColumnSize.md), and
+[`DragToScroll`](@/api/dragToScroll.md).
+
+Four plugins are on in every grid: [`ExportFile`](@/api/exportFile.md),
+[`ImportFile`](@/api/importFile.md), [`ViewState`](@/api/viewState.md), and
+[`CheckboxHeader`](@/api/checkboxHeader.md). They check the key when you use them. A method of
+`ExportFile`, `ImportFile`, or `ViewState` that your key does not cover throws an error with the
+same message, and a header checkbox your key does not cover is not drawn.
+
+A key issued for use in an application for external users silences the console and the bar, so on
+such a key a missing feature is off with no message.
+
+The `handsontable` package lists every feature a key can name, with its token and the features it
+needs, in `dist/manifest.json`.
+
+### XLSX capabilities
+
+The [`ImportFile`](@/api/importFile.md) and [`ExportFile`](@/api/exportFile.md) plugins read these capabilities. They apply on top of the plugin itself: a key that lists its features needs `feat:import_file` to import and `feat:export_file` to export, and then the capabilities below decide which parts of the file it reads or writes.
+
+| Capability | What it covers | Import | Export |
+|---|---|---|---|
+| `xlsx:import` | Reading an `.xlsx` file into the grid. | Yes | - |
+| `xlsx:export` | Writing the grid to an `.xlsx` file, and the **To Excel** context menu item. | - | Yes |
+| `xlsx:formulas` | Importing formulas into the `Formulas` plugin, and exporting live formulas. | Yes | Yes |
+| `xlsx:layout` | Column widths, row heights, hidden rows and columns, merged cells, frozen panes, and right-to-left direction. | Yes | Yes |
+| `xlsx:number_formats` | Date, time, currency, percentage, and custom number formats. Without it, an export writes a date or time cell as the text the grid shows, a date formula included. | Always on | Yes |
+| `xlsx:comments` | Cell comments. | Yes | Yes |
+| `xlsx:styles` | Font, fill, borders, and alignment of cells and headers. | Yes | Yes |
+| `xlsx:conditional_formatting` | Conditional formatting rules. | Yes | Yes |
+| `xlsx:data_validation` | Dropdown lists from data validation rules. | Yes | Yes |
+| `xlsx:protection` | Locked cells and sheet protection, including the `protection` export option. | Yes | Yes |
+| `xlsx:import_report` | The list of dropped features on `result.dropped`. | Always on | - |
+
+A key that lists `xlsx:all` unlocks every capability in this table, the same as a key that lists each one.
+
+`xlsx:import_report` is part of every key, so the import report is always complete. An import always reads number formats to infer cell types, so a missing `xlsx:number_formats` does not restrict it.
+
+### What happens without a capability
+
+- **`xlsx:import` or `xlsx:export`:** the call throws `ImportFile: the license does not unlock "xlsx:import".` or `ExportFile: the license does not unlock "xlsx:export".` The plugin checks its own token first: on a key that lists its features and leaves out `feat:import_file` or `feat:export_file`, the call throws the plugin's license message instead, which names that token. In both cases, [`supportsImportFormat('xlsx')`](@/api/importFile.md#supportsimportformat) and [`supportsExportFormat('xlsx')`](@/api/exportFile.md#supportsexportformat) return `false`, and the **To Excel** context menu item is hidden. Without `feat:export_file`, the whole **Export** item is hidden.
+- **Any other capability:** the plugin skips that part of the file and does the rest. It prints one console warning, `The xlsx export skipped features your license does not unlock: <ids>.` or `The xlsx import skipped features your license does not unlock: <ids>.` The warning names only the capabilities the grid or the file needed: the export names a capability only when the grid had something to write for it, and the import only when the file carried that feature and your import options asked for it. A grid or file without such features gets no warning. The `no-console-warns` flag on a key silences the warning.
+- **Import report:** an import adds a `license:xlsx:<capability>` entry to `result.dropped` for each missing capability whose feature the file carries and the import was asked to bring over. A file without that feature gets no entry and no warning, and so does a feature your options leave out, such as styles with `importStyles` off. With `importStyles: true` and without `xlsx:styles`, the report names `license:xlsx:styles` instead of `cellStyles`. With the `Comments` plugin on and without `xlsx:comments`, it names `license:xlsx:comments` instead of `comments`. A note in the header band is lost on every key, so it is always reported as `comment:header`. See the [Dropped features reference](@/guides/import-and-export/dropped-features/dropped-features.md).
+
 ## Result
 
 Your grid is now licensed. A valid commercial key removes the license notice from the grid header.
@@ -374,6 +451,8 @@ The modal covers only the grid. The rest of your page keeps working. The modal d
 
 An **expired key** does not block anything. Its message appears below the table and in the console, and every feature keeps working.
 
+A **key that does not include a feature** your grid uses blocks nothing either. The feature stays off, and its message appears below the table and in the console. See [Keys that list features](#keys-that-list-features).
+
 The messages are as follows:
 
 ### Missing license key
@@ -394,6 +473,15 @@ Shown below the table and in the console:
 
 _The license key for Handsontable expired on `[expiration_date]`, and is not valid for the installed version `[handsontable_version]`.  Renew your license key or downgrade to a version released prior to `[expiration_dates]`. If you need any help, contact us at `[email]`._
 
+### Feature not included in the license key
+
+Shown below the table and in the console:
+
+_The license key for Handsontable does not include these features: `[features]`. They are turned off. To add them, contact `[email]`._
+
+In the console, `[features]` lists each missing feature as its name and token, for example
+`Filters (feat:filters)`. Below the table, it lists the names only, for example `Filters`.
+
 ## Get a license key
 
 To get a commercial license key for your Handsontable copy, contact our [Sales Team](https://handsontable.com/get-a-quote).
@@ -410,7 +498,7 @@ There's no built-in method to update all existing instances automatically. You h
   Handsontable.defaults.licenseKey = 'your-new-key';
   ```
 
-- **For instances that already exist:** Handsontable reads the license key once, when it creates an instance. [`updateSettings()`](@/api/core.md#updatesettings) does not apply a new key to a running grid. Destroy each instance and create it again with the new key, looping through them manually. Re-creating an instance resets its UI state, such as sorting, filters, selection, and undo history.
+- **For instances that already exist:** Handsontable checks the license key once, when it creates an instance, so [`updateSettings()`](@/api/core.md#updatesettings) does not change the license status, the notices, or the console messages of a running grid. The features a key lists are the exception: they are read from the current key, so a key passed through `updateSettings()` turns on the plugins it lists and applies to the next XLSX import or export. To apply the whole key, destroy each instance and create it again with the new key, looping through them manually. Re-creating an instance resets its UI state, such as sorting, filters, selection, and undo history.
 
 ::: only-for javascript
 
@@ -428,7 +516,7 @@ hot2 = new Handsontable(container2, { ...settings2, licenseKey: 'your-new-key' }
 
 ::: only-for react angular vue
 
-The wrapper component creates its instance once, when it mounts. A later change to its `licenseKey` goes through `updateSettings()`, so it has no effect. Remount the component instead, for example by changing its `key` in React, toggling `*ngIf` in Angular, or toggling `v-if` in Vue.
+The wrapper component creates its instance once, when it mounts. A later change to its `licenseKey` goes through `updateSettings()`, so it changes only the features the key lists. Remount the component instead, for example by changing its `key` in React, toggling `*ngIf` in Angular, or toggling `v-if` in Vue.
 
 :::
 
@@ -457,6 +545,8 @@ All features still work, but you're not entitled to use that version under an ex
 <div class="boxes-list gray">
 
 - [Software license](@/guides/technical-specification/software-license/software-license.md)
+- [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md#what-your-license-unlocks)
+- [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md#what-your-license-unlocks)
 
 </div>
 
@@ -468,3 +558,9 @@ All features still work, but you're not entitled to use that version under an ex
   - [`licenseKey`](@/api/options.md#licensekey)
 
 </div>
+
+---
+
+::: tip Trademark notice
+Microsoft® and Excel® are registered trademarks of Microsoft Corporation.
+:::

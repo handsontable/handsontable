@@ -10,6 +10,7 @@ import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { isPlainObject } from '../../helpers/object';
 import { registerConflict } from '../base/conflictRegistry';
+import { LICENSE } from './feature.generated';
 
 // Hard conflicts: Pagination stays off while any of these top-level settings is truthy.
 registerConflict('pagination', [
@@ -170,6 +171,14 @@ export class Pagination extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns the default settings applied when the plugin is enabled without explicit configuration.
    */
   static get DEFAULT_SETTINGS() {
@@ -220,6 +229,13 @@ export class Pagination extends BasePlugin {
    * @type {boolean}
    */
   #isUpdatingPlugin = false;
+  /**
+   * `true` from an `enablePlugin()` until the page state is computed. `updatePlugin()` and `onDataReady()`
+   * compute it themselves; otherwise the ready step does (at init, and after a direct `enablePlugin()` call).
+   *
+   * @type {boolean}
+   */
+  #stateOwed = false;
   /**
    * Page size setup by the user. It can be a number or 'auto' (in which case the plugin will
    * calculate the page size based on the viewport size and row heights).
@@ -352,9 +368,6 @@ export class Pagination extends BasePlugin {
         .register(PLUGIN_KEY, this.#ui.getContainer(), { side: 'bottom', weight: LAYOUT_WEIGHT });
     }
 
-    // Place the onInit hook before others to make sure that the pagination state is computed
-    // and applied to the index mapper before AutoColumnSize plugin begins calculate the column sizes.
-    this.addHook('init', this.#onInit, -1);
     this.addHook('beforeSelectAll', this.#onBeforeSelectAllRows);
     this.addHook('beforeSelectColumns', this.#onBeforeSelectAllRows);
     this.addHook('beforeSetRangeEnd', this.#onBeforeSetRangeEnd);
@@ -368,6 +381,8 @@ export class Pagination extends BasePlugin {
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
     this.#registerFocusScope();
+
+    this.#stateOwed = true;
 
     super.enablePlugin();
   }
@@ -538,7 +553,37 @@ export class Pagination extends BasePlugin {
       return;
     }
 
+    this.#stateOwed = false;
     this.#refreshUI();
+  }
+
+  /**
+   * Computes the page state when no `updatePlugin()` or `onDataReady()` computed it: at init, and after a
+   * direct `enablePlugin()` call. Core runs it once after each enable or update, when the data is loaded and
+   * the view exists.
+   *
+   * At init it runs before the `init` hook and the first render, so the page is applied to the index mapper
+   * before AutoColumnSize and AutoRowSize measure from their `init` listeners. It does not render then, and
+   * leaves an `'auto'` page size to the render, which measures the rows it needs. On a grid already drawn it
+   * computes and renders.
+   *
+   * @private
+   */
+  onGridReady() {
+    if (!this.#stateOwed) {
+      return;
+    }
+
+    this.#stateOwed = false;
+
+    // Whether the grid can measure, not whether this is the init pass: a grid that never drew (at init, or
+    // built hidden) cannot size an `'auto'` page and shows nothing a render would change. Its first render
+    // measures the `'auto'` page, as every render does.
+    if (this.hot.view._wt.drawn) {
+      this.#refreshUI();
+    } else if (this.#pageSize !== 'auto') {
+      this.#computeAndApplyState();
+    }
   }
 
   /**
@@ -557,6 +602,7 @@ export class Pagination extends BasePlugin {
     if (this.isDataWorkDeferred()) {
       this.deferDataWork();
     } else {
+      this.#stateOwed = false;
       this.#refreshUI();
     }
 
@@ -1252,17 +1298,6 @@ export class Pagination extends BasePlugin {
 
     this.#internalRenderCall = true;
     this.#refreshUI();
-  };
-
-  /**
-   * Called after the initialization of the plugin. It computes the initial state of the pagination.
-   */
-  #onInit = () => {
-    if (this.#pageSize === 'auto') {
-      return;
-    }
-
-    this.#computeAndApplyState();
   };
 
   /**

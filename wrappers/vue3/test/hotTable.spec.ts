@@ -573,3 +573,153 @@ describe('Root size options', () => {
     testWrapper.unmount();
   });
 });
+
+describe('Removing a hook prop', () => {
+  const mountApp = (template: string, data: Record<string, unknown>) => {
+    const testWrapper = mount({
+      components: { HotTable },
+      template,
+      data(): Record<string, any> {
+        return {
+          gridData: createSampleData(2, 2),
+          ...data,
+        };
+      },
+    }, {
+      attachTo: document.getElementById('app')
+    });
+
+    return {
+      testWrapper,
+      hotInstance: testWrapper.getComponent(HotTable).vm.hotInstance,
+    };
+  };
+
+  it('should stop running the callback when the hook prop becomes `undefined`', async() => {
+    const afterChange = jest.fn();
+    const { testWrapper, hotInstance } = mountApp(`
+      <HotTable
+        licenseKey="non-commercial-and-evaluation"
+        :data="gridData"
+        :afterChange="tracking ? afterChange : undefined"
+      ></HotTable>`, { tracking: true, afterChange });
+
+    hotInstance.setDataAtCell(0, 0, 'a');
+
+    expect(afterChange).toHaveBeenCalledWith([[0, 0, '0-0', 'a']], 'edit');
+
+    testWrapper.vm.tracking = false;
+    await nextTick();
+    hotInstance.setDataAtCell(0, 0, 'b');
+
+    expect(afterChange).not.toHaveBeenCalledWith([[0, 0, 'a', 'b']], 'edit');
+    expect(hotInstance.getSettings().afterChange).toBe(null);
+
+    testWrapper.unmount();
+  });
+
+  it('should stop running the callback when the hook prop is removed', async() => {
+    const afterChange = jest.fn();
+    const { testWrapper, hotInstance } = mountApp(`
+      <HotTable
+        licenseKey="non-commercial-and-evaluation"
+        :data="gridData"
+        v-bind="hookProps"
+      ></HotTable>`, { hookProps: { afterChange } });
+
+    testWrapper.vm.hookProps = {};
+    await nextTick();
+    hotInstance.setDataAtCell(0, 0, 'a');
+
+    expect(afterChange).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+    expect(hotInstance.getSettings().afterChange).toBe(null);
+
+    testWrapper.unmount();
+  });
+
+  it('should stop running the callback when the hook is removed from the `settings` prop', async() => {
+    const afterChange = jest.fn();
+    const { testWrapper, hotInstance } = mountApp(`
+      <HotTable
+        :data="gridData"
+        :settings="settings"
+      ></HotTable>`, { settings: { licenseKey: 'non-commercial-and-evaluation', afterChange } });
+
+    testWrapper.vm.settings = { licenseKey: 'non-commercial-and-evaluation' };
+    await nextTick();
+    hotInstance.setDataAtCell(0, 0, 'a');
+
+    expect(afterChange).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+    expect(hotInstance.getSettings().afterChange).toBe(null);
+
+    testWrapper.unmount();
+  });
+
+  it('should stop running the callback when the hook prop becomes `false`', async() => {
+    const afterChange = jest.fn();
+    const { testWrapper, hotInstance } = mountApp(`
+      <HotTable
+        licenseKey="non-commercial-and-evaluation"
+        :data="gridData"
+        :afterChange="tracking && afterChange"
+      ></HotTable>`, { tracking: true, afterChange });
+
+    testWrapper.vm.tracking = false;
+    await nextTick();
+    hotInstance.setDataAtCell(0, 0, 'a');
+
+    expect(afterChange).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+    expect(hotInstance.getSettings().afterChange).toBe(null);
+
+    testWrapper.unmount();
+  });
+
+  it('should keep the callbacks the props did not pass when a hook prop is removed', async() => {
+    const afterChange = jest.fn();
+    const addedAfterChange = jest.fn();
+    const settingsAfterSetDataAtCell = jest.fn();
+    const { testWrapper, hotInstance } = mountApp(`
+      <HotTable
+        licenseKey="non-commercial-and-evaluation"
+        :data="gridData"
+        :afterChange="tracking ? afterChange : undefined"
+      ></HotTable>`, { tracking: true, afterChange });
+
+    hotInstance.addHook('afterChange', addedAfterChange);
+    hotInstance.updateSettings({ afterSetDataAtCell: settingsAfterSetDataAtCell });
+    testWrapper.vm.tracking = false;
+    await nextTick();
+    hotInstance.setDataAtCell(0, 0, 'a');
+
+    expect(afterChange).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+    expect(addedAfterChange).toHaveBeenCalledWith([[0, 0, '0-0', 'a']], 'edit');
+    expect(settingsAfterSetDataAtCell).toHaveBeenCalledWith([[0, 0, '0-0', 'a']]);
+
+    testWrapper.unmount();
+  });
+
+  it('should run the callback again when the hook prop is passed back', async() => {
+    const afterChange = jest.fn();
+    const { testWrapper, hotInstance } = mountApp(`
+      <HotTable
+        licenseKey="non-commercial-and-evaluation"
+        :data="gridData"
+        :afterChange="tracking ? afterChange : undefined"
+      ></HotTable>`, { tracking: true, afterChange });
+
+    testWrapper.vm.tracking = false;
+    await nextTick();
+    hotInstance.setDataAtCell(0, 0, 'a');
+
+    expect(afterChange).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+
+    testWrapper.vm.tracking = true;
+    await nextTick();
+    hotInstance.setDataAtCell(0, 0, 'b');
+
+    expect(afterChange.mock.calls.filter(([, source]) => source === 'edit'))
+      .toEqual([[[[0, 0, 'a', 'b']], 'edit']]);
+
+    testWrapper.unmount();
+  });
+});

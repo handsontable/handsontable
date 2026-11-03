@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "page": "license-missing-features",
+  "theme": "main",
+  "walks": {
+    "forward": [
+      {
+        "region": "start"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "Alpha",
+        "cell": [
+          0,
+          0
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "10",
+        "cell": [
+          0,
+          1
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "link",
+        "name": "sales@handsontable.com"
+      },
+      {
+        "region": "end"
+      }
+    ],
+    "backward": [
+      {
+        "region": "end"
+      },
+      {
+        "region": "grid",
+        "role": "link",
+        "name": "sales@handsontable.com"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "10",
+        "cell": [
+          0,
+          1
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "Alpha",
+        "cell": [
+          0,
+          0
+        ]
+      },
+      {
+        "region": "start"
+      }
+    ]
+  }
+}

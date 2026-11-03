@@ -8,6 +8,7 @@ import {
 import { getParentWindow } from '../../helpers/dom/element';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
 import { AutoScroller } from './autoScroller';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'dragToScroll';
 export const PLUGIN_PRIORITY = 100;
@@ -45,6 +46,14 @@ export class DragToScroll extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

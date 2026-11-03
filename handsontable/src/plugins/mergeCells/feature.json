@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:merge_cells",
+      "kind": "plugin",
+      "module": "MergeCells",
+      "name": "Merge cells",
+      "description": "Merges a range of cells into one cell.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

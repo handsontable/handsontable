@@ -19,11 +19,11 @@ src/plugins/{pluginName}/
 
 ## Contract
 
-Statics (`PLUGIN_KEY`, `PLUGIN_PRIORITY`, `SETTING_KEYS`, `PLUGIN_DEPS`, `DEFAULT_SETTINGS`, `SETTINGS_VALIDATORS`), lifecycle order, `onUpdateSettings`, hard conflicts, and the `PLUGIN_PRIORITY` table: `src/plugins/base/AGENTS.md`. Pick a free priority number from that table and add your row to it.
+Statics (`PLUGIN_KEY`, `PLUGIN_PRIORITY`, `SETTING_KEYS`, `PLUGIN_DEPS` – generated from `feature.json`, see "Plugin dependencies" below, `DEFAULT_SETTINGS`, `SETTINGS_VALIDATORS`), lifecycle order, `onUpdateSettings`, hard conflicts, and the `PLUGIN_PRIORITY` table: `src/plugins/base/AGENTS.md`. Pick a free priority number from that table and add your row to it.
 
 ## Key patterns (gold standard: `src/plugins/pagination/pagination.ts`)
 
-- **Configure in `enablePlugin()`, touch the grid in `onGridReady()`:** `enablePlugin()`/`updatePlugin()` register hooks and index maps and read settings only. Work that reads the rows, `hot.view`, the DOM or the editor manager goes in the optional `onGridReady()`, which core runs once after every enable or update, when all of them exist. Never write `if (this.hot.view)` in enable/update, and never park that work on an `init`/`afterInit` listener (`src/plugins/base/AGENTS.md`, "The ready step").
+- **Configure in `enablePlugin()`, touch the grid in `onGridReady()`:** `enablePlugin()`/`updatePlugin()` register hooks and index maps and read settings only. Work that reads the rows, `hot.view`, the DOM or the editor manager goes in the optional `onGridReady()`, which core runs once after every enable or update, when all of them exist. Never write `if (this.hot.view)` in enable/update, and never park that work on an `init`/`afterInit` listener (`src/plugins/base/AGENTS.md`, "The ready step"). The step runs after every update too, so when `updatePlugin()` or `onDataReady()` already does the same work, keep a private `#...Owed` flag set in `enablePlugin()` and cleared by whichever path does it, or the work runs twice per update (CustomBorders, Pagination and MergeCells are worked examples). At init core holds the renders a step asks for, so the step may sort or write cells; the first render draws the result.
 - **Private fields:** `#` prefix for all internal state, no `@private` JSDoc.
 - **Hook callbacks (required for new code):** pass `#on*` handlers to `addHook` as arrow function class fields, directly: `this.addHook('afterLoadData', this.#onAfterLoadData)` (priority stays the 3rd arg). `.bind(this)` builds a new function per call, so the registered reference can never be removed. Existing inline-wrapper sites work; leave them as they are.
 - **Hook registration:** `this.addHook()` auto-cleans on `disablePlugin()`; `this.hot.addHook()` does not. Register new hook names at module level: `Hooks.getSingleton().register('beforeMyAction');` (import `Hooks` from `'../../core/hooks'`).
@@ -61,6 +61,35 @@ Statics (`PLUGIN_KEY`, `PLUGIN_PRIORITY`, `SETTING_KEYS`, `PLUGIN_DEPS`, `DEFAUL
    Git stores it as mode `120000`; a regular file in `git status` means you copied.
 6. **Add your `PLUGIN_PRIORITY` row to the table in `src/plugins/base/AGENTS.md`**, in the same change: nothing enforces it, so it drifts silently.
 7. **Add the plugin to `tests/a11y/coverage.mjs`**: the pages that scan it, why it draws nothing, or a counted gap. The root `test:tooling` fails until you do. A plugin with UI adds a page to `tests/a11y/pages.mjs` and follows the `handsontable-a11y` skill (plan, build rules, proof).
+8. **Write `feature.json` in the plugin folder** – its feature manifest entry (`feat:<plugin_key_in_snake_case>`, `licensing: "token"`, a `gate`, a plain-English `name` and `description`, and `requires` – only what the plugin cannot work without). Then run `npm run generate:feature-manifest --prefix handsontable` and commit what it writes. The unit suite fails until the entry exists. Copy an existing one (`src/plugins/filters/feature.json`); the fields and rules are in `src/featureManifest/AGENTS.md`.
+
+## Plugin dependencies (`PLUGIN_DEPS`) are generated
+
+Never write a `PLUGIN_DEPS` array in the class. Declare what the plugin needs in `requires.allOf` of its `feature.json`. Add `"enforceAtInit": true` only when `new Handsontable()` must throw if the module is not registered: the generator then writes the `'type:Name'` list to `feature.generated.ts` in the folder, and the class returns a copy of it:
+
+```ts
+import { PLUGIN_DEPS } from './feature.generated';
+
+static get PLUGIN_DEPS() {
+  return [...PLUGIN_DEPS];
+}
+```
+
+To change a dependency, edit `feature.json` and run `generate:feature-manifest`; never edit `feature.generated.ts` by hand. Turn `enforceAtInit` on for every dependency the plugin cannot work without, and add a `__tests__/pluginDependencies.unit.ts` like the others. For a plugin no release has shipped yet that costs nothing. For a released plugin it is a **breaking change** for modular users: add a migration-guide step and a breaking changelog entry (Loading → Dialog, 19.0).
+
+## The license token (`LICENSE`) is generated too
+
+A plugin with `licensing: "token"` (every new one) gets a `LICENSE` export in the same `feature.generated.ts`: its token, display name, `gate` and `implies`. The class returns it, and the unit suite fails until it does:
+
+```ts
+import { LICENSE } from './feature.generated';
+
+static get LICENSE() {
+  return LICENSE;
+}
+```
+
+With it, a license key that lists its features keeps the plugin off when it does not list the token (`BasePlugin#isLicenseBlocked()`, at the same places as a hard conflict, never rewriting the setting). Pick `gate: "enable"` for a plugin turned on by its option. A plugin on in every grid (`isEnabled()` returns `true`) takes `gate: "call"` and checks the token itself at the top of each public method that does work: `assertLicensedCall(this.hot, LICENSE)` from `utils/licenseNotification.ts`, or `isLicensedUse()` where a throw would break a render. And when your plugin asks another plugin whether it runs, read `.enabled`, never `isEnabled()`: a plugin the key leaves out keeps its setting. Rules: `src/utils/entitlementLicenseKey/AGENTS.md`.
 
 ## Focus management
 
