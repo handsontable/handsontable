@@ -160,6 +160,63 @@ describe('Settings mapper unit tests', () => {
       expect(settings.rowHeights).toBeUndefined();
     });
 
+    it('should skip a setting whose value equals the live grid settings, compared by content', () => {
+      const props: HotTableProps = {
+        columnSorting: { indicator: true },
+        pagination: { pageSize: 5 },
+        readOnly: false,
+      };
+
+      const settings = SettingsMapper.getSettings(props, {
+        prevProps: props,
+        isInit: false,
+        currentSettings: { columnSorting: { indicator: true }, pagination: { pageSize: 5 }, readOnly: false },
+      });
+
+      expect(settings).toEqual({});
+    });
+
+    it('should forward a setting the grid holds with another value', () => {
+      const props: HotTableProps = { columnSorting: { indicator: true }, readOnly: false };
+
+      const settings = SettingsMapper.getSettings(props, {
+        prevProps: props,
+        isInit: false,
+        currentSettings: { columnSorting: { indicator: false }, readOnly: true },
+      });
+
+      expect(settings).toEqual({ columnSorting: { indicator: true }, readOnly: false });
+    });
+
+    it('should forward a function setting that is a new function, and skip the same one', () => {
+      const cells = () => ({});
+      const props: HotTableProps = { cells };
+
+      expect(SettingsMapper.getSettings(props, {
+        prevProps: props,
+        isInit: false,
+        currentSettings: { cells },
+      })).toEqual({});
+      expect(SettingsMapper.getSettings(props, {
+        prevProps: props,
+        isInit: false,
+        currentSettings: { cells: () => ({}) },
+      })).toEqual({ cells });
+    });
+
+    it('should always forward `data`, even when the grid holds the same array', () => {
+      const data = [{ id: 1 }];
+      const props: HotTableProps = { data };
+
+      const settings = SettingsMapper.getSettings(props, {
+        prevProps: props,
+        isInit: false,
+        currentSettings: { data },
+      });
+
+      expect(settings.data).toBe(data);
+    });
+
     it('should keep `rowHeights` and `colWidths` when initializing', () => {
       const props: HotTableProps = {
         rowHeights: [50, 50, 50],

@@ -212,6 +212,20 @@ const ALTER_OPERATION_NAMES: Readonly<Record<string, string>> = Object.freeze({
 });
 
 /**
+ * The external data source a settings update starts from, read before the payload merges.
+ */
+interface PreviousDataSource {
+  /**
+   * The `dataProvider` value before the payload merged.
+   */
+  dataProvider: unknown;
+  /**
+   * Whether `hasExternalDataSource` answered `true` at the end of the last settings update. Always `false` at init.
+   */
+  isExternal: boolean;
+}
+
+/**
  * A configuration option removed from the public API.
  */
 interface RemovedOption {
@@ -6272,13 +6286,14 @@ export default function Core(
    * @private
    * @param {object} settings A settings object (see {@link Options}).
    * @param {boolean} init `true` while the grid initializes.
-   * @param {*} previousDataProvider The `dataProvider` value before the payload merged.
+   * @param {object} previousDataSource The `dataProvider` value before the payload merged, and whether the grid
+   * was server-backed then.
    * @param {Function} dataUpdateFunction `loadData()` on the first run, `updateData()` after it.
    */
   function applyExternalDataPhase(
     settings: SettingsUpdate,
     init: boolean,
-    previousDataProvider: unknown,
+    previousDataSource: PreviousDataSource,
     dataUpdateFunction: (data: unknown[], source: string) => void
   ): void {
     // When dataProvider is a complete server-backed config, ignore static data, the plugin loads rows.
@@ -6286,11 +6301,17 @@ export default function Core(
       warn('The "data" setting is ignored when "hasExternalDataSource" returns `true`.');
     }
 
-    // Replace the in-memory placeholder only at init or when the update replaces `dataProvider`, because only then
-    // does DataProvider fetch the rows again. A `data` payload, or the same `dataProvider` object sent again (a
-    // wrapper re-sends every prop on each render), would otherwise empty the grid with nothing to refill it.
+    // Replace the in-memory placeholder only when DataProvider fetches the rows again: at init, when the update
+    // replaces `dataProvider`, turns the grid server-backed (an object completed in place and sent again), or sends
+    // the same object beside `columns`. A `data` payload, or the same `dataProvider` object sent alone, would
+    // otherwise empty the grid with nothing to refill it. With `columns`, the placeholder also keeps the index maps,
+    // and so the sort the refetch reads, which the `columns` branch below would re-initialize.
+    const sendsDataProvider = hasOwnProperty(settings, 'dataProvider');
     const shouldSyncExternalPlaceholderData = init ||
-      (hasOwnProperty(settings, 'dataProvider') && settings.dataProvider !== previousDataProvider);
+      !previousDataSource.isExternal ||
+      (sendsDataProvider && (
+        settings.dataProvider !== previousDataSource.dataProvider || settings.columns !== undefined
+      ));
 
     if (shouldSyncExternalPlaceholderData) {
       dataUpdateFunction([], 'updateSettings');
@@ -6309,19 +6330,20 @@ export default function Core(
    * @param {boolean} init `true` while the grid initializes.
    * @param {ColumnLayout|null} previousColumnLayout The column layout read before the payload merged, `null`
    * when the payload could not change it.
-   * @param {*} previousDataProvider The `dataProvider` value before the payload merged.
+   * @param {object} previousDataSource The `dataProvider` value before the payload merged, and whether the grid
+   * was server-backed then.
    * @param {Function} dataUpdateFunction `loadData()` on the first run, `updateData()` after it.
    */
   function applyDataPhase(
     settings: SettingsUpdate,
     init: boolean,
     previousColumnLayout: ColumnLayout | null,
-    previousDataProvider: unknown,
+    previousDataSource: PreviousDataSource,
     dataUpdateFunction: (data: unknown[], source: string) => void
   ): void {
     // Load data or create data map
     if (instance.runHooks('hasExternalDataSource') === true) {
-      applyExternalDataPhase(settings, init, previousDataProvider, dataUpdateFunction);
+      applyExternalDataPhase(settings, init, previousDataSource, dataUpdateFunction);
 
     } else if (settings.data === undefined && tableMeta.data === undefined) {
       dataUpdateFunction(null as unknown as unknown[], 'updateSettings'); // data source created just now
@@ -6440,7 +6462,7 @@ export default function Core(
    * @param {object} settings A settings object (see {@link Options}).
    * @param {boolean} init `true` while the grid initializes.
    * @returns {object} The `min*` sizes, the column layout (`null` when the payload cannot change it), the root
-   * `height` and `width`, and the `dataProvider` value as they stand.
+   * `height` and `width`, and the `dataProvider` value and whether the grid is server-backed, as they stand.
    */
   function readSettingsBaseline(settings: SettingsUpdate, init: boolean) {
     return {
@@ -6464,7 +6486,10 @@ export default function Core(
         height: init ? undefined : tableMeta.height,
         width: init ? undefined : tableMeta.width,
       },
-      previousDataProvider: tableMeta.dataProvider,
+      previousDataSource: {
+        dataProvider: tableMeta.dataProvider,
+        isExternal: !init && hadExternalDataSource,
+      },
     };
   }
 
@@ -6602,7 +6627,7 @@ export default function Core(
 
     // Read before the payload merges into the table meta.
     const {
-      previousMinimumSizes, previousColumnLayout, previousRootSize, previousDataProvider,
+      previousMinimumSizes, previousColumnLayout, previousRootSize, previousDataSource,
     } = readSettingsBaseline(settings, init);
 
     mergeSettingsIntoMeta(settings, init);
@@ -6625,7 +6650,7 @@ export default function Core(
     const columnPhase = applyColumnMetaBeforeLoad(settings, isCellOptionRestated, defersDataWork);
 
     if (!defersDataWork) {
-      applyDataPhase(settings, init, previousColumnLayout, previousDataProvider, dataUpdateFunction);
+      applyDataPhase(settings, init, previousColumnLayout, previousDataSource, dataUpdateFunction);
     }
 
     if (!firstRun && settings.language) {
@@ -6657,6 +6682,8 @@ export default function Core(
     }
 
     finishSettingsUpdate(init, themeOverridesChanged, rootSize.scrollOwnerChanged);
+
+    hadExternalDataSource = instance.runHooks('hasExternalDataSource') === true;
 
     return defersDataWork ? metaPhase : null;
   }
@@ -8496,6 +8523,13 @@ export default function Core(
 
     return false;
   };
+
+  /**
+   * What `hasExternalDataSource` answered at the end of the last settings update. A settings update compares it with the answer
+   * for its own payload, because a `dataProvider` object completed in place answers `true` even before the payload
+   * merges, and only the earlier answer shows that the grid was not server-backed yet.
+   */
+  let hadExternalDataSource = false;
 
   /**
    * Caches the index translation that `getColHeader` derives from the `columns` option when that

@@ -18,6 +18,7 @@ import { HotEditorHooks, HotTableProps, HotTableRef } from './types';
 import {
   HOT_DESTROYED_WARNING,
   AUTOSIZE_WARNING,
+  areEquivalentSettingsValue,
   EDITOR_PORTAL_HOST_CLASSNAME,
   MISSING_ROOT_PORTAL_WARNING,
   createEditorPortal,
@@ -69,6 +70,12 @@ const HotTableInner = forwardRef<
    * Reference to the previous props object.
    */
   const prevProps = useRef<HotTableProps>();
+
+  /**
+   * A copy of the `HotColumn` settings last passed to the grid. The children write their settings
+   * into one array that the grid also holds, so the array itself cannot tell whether they changed.
+   */
+  const forwardedColumnsSettings = useRef<Handsontable.ColumnSettings[] | null>(null);
 
   /**
    * HotTable context exposing helper functions.
@@ -160,8 +167,12 @@ const HotTableInner = forwardRef<
       }
     );
 
-    if (context.columnsSettings.length) {
+    if (
+      context.columnsSettings.length &&
+      (init || !areEquivalentSettingsValue(forwardedColumnsSettings.current, context.columnsSettings))
+    ) {
       newSettings.columns = context.columnsSettings;
+      forwardedColumnsSettings.current = [...context.columnsSettings];
     }
 
     if (props.renderer) {

@@ -1,5 +1,5 @@
 import { DEFAULT_PAGE_SIZE, REQUIRED_CONFIG_KEYS, SETTINGS_VALIDATORS } from './constants';
-import type { DataProviderQueryParameters, DataProviderRequestKind } from './dataProvider';
+import type { DataProviderRequestKind } from './dataProvider';
 
 /**
  * Whether `dataProvider` settings are complete enough for the DataProvider plugin to run.
@@ -147,20 +147,4 @@ export function clampDataProviderPageToTotalRows(page: number, pageSize: number,
   const totalPages = Math.max(1, Math.ceil(totalRows / ps));
 
   return Math.max(1, Math.min(page, totalPages));
-}
-
-/**
- * Tells whether two queries ask the server for the same rows: the same page, page size, sort, and filters.
- * `sort` and `filters` are compared as JSON, so the same members in another key order read as different and
- * cost one refetch. The queries compared here are built by the same code, which writes the keys in one order.
- *
- * @param {DataProviderQueryParameters} a The first query.
- * @param {DataProviderQueryParameters} b The second query.
- * @returns {boolean}
- */
-export function isSameQueryParameters(a: DataProviderQueryParameters, b: DataProviderQueryParameters): boolean {
-  return a.page === b.page &&
-    a.pageSize === b.pageSize &&
-    JSON.stringify(a.sort ?? null) === JSON.stringify(b.sort ?? null) &&
-    JSON.stringify(a.filters ?? null) === JSON.stringify(b.filters ?? null);
 }

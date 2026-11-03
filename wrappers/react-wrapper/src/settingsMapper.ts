@@ -3,10 +3,9 @@ import { HotTableProps } from './types';
 import { areEquivalentSettingsValue } from './helpers';
 
 /**
- * Only these settings use deep comparison when diffing props for `updateSettings(false)`. Other
- * object settings (for example `mergeCells`, `cell`, `nestedHeaders`, hooks) stay on strict
- * reference equality so we avoid expensive deep walks and accidental false positives where functions
- * or class instances would not compare meaningfully by keys alone.
+ * These settings are compared with the previous props, or for the size settings with the grid's live
+ * value, by the rules below. Every other setting but `data` is compared with the grid's live value
+ * (`isSameAsLiveSetting()`).
  *
  * `rowHeights`, `minRowHeights` (the row height floor) and `colWidths` are here because passing any
  * of them re-declares the sizes and discards the ones the user produced by dragging
@@ -27,6 +26,38 @@ const DEEP_COMPARABLE_SETTINGS: Array<keyof Handsontable.GridSettings> = [
 const COMPARED_AGAINST_LIVE_SETTINGS: Array<keyof Handsontable.GridSettings> = [
   'rowHeights', 'minRowHeights', 'colWidths'
 ];
+
+/**
+ * Settings forwarded on every update even when they hold the grid's live value. An app may change
+ * the rows of its `data` array in place and re-render to show them, and passing the array again is
+ * what reloads them.
+ */
+const ALWAYS_FORWARDED_SETTINGS: Array<keyof Handsontable.GridSettings> = ['data'];
+
+/**
+ * Checks whether an update would pass a setting the grid already holds. Passing it again is not a
+ * no-op: core re-applies the plugins it names, and a plugin re-applied with its own settings drops
+ * the state the user gave it (ColumnSorting's sort, Filters' conditions, Pagination's page, the
+ * server total of a `dataProvider` grid). A React app passes every prop on each render, often as
+ * an inline object, so such a value is compared by content (`areEquivalentSettingsValue()`:
+ * functions and class instances by reference). The Vue wrapper skips unchanged keys the same way.
+ * The comparison is with the grid's live value, not the previous props, so a prop is passed again
+ * when the app changed the setting through the instance in between.
+ *
+ * @param {string} key The setting name.
+ * @param {*} value The value the update would pass.
+ * @param {Handsontable.GridSettings} [currentSettings] The grid's current live settings.
+ * @returns {boolean}
+ */
+function isSameAsLiveSetting(
+  key: keyof Handsontable.GridSettings,
+  value: unknown,
+  currentSettings?: Handsontable.GridSettings,
+): boolean {
+  return currentSettings !== undefined &&
+    !ALWAYS_FORWARDED_SETTINGS.includes(key) &&
+    areEquivalentSettingsValue(currentSettings[key], value);
+}
 
 /**
  * Checks whether a setting is a hook, by the rule core's `updateSettings()` uses in `core.ts`: a
@@ -156,7 +187,15 @@ export class SettingsMapper {
         !isNotPassed(key as keyof HotTableProps) &&
         !shouldSkipProp(key as keyof Handsontable.GridSettings)
       ) {
-        (newSettings as any)[key] = getForwardedValue(key, properties[key as keyof HotTableProps], isInit);
+        const value = getForwardedValue(key, properties[key as keyof HotTableProps], isInit);
+
+        if (
+          isInit ||
+          DEEP_COMPARABLE_SETTINGS.includes(key as keyof Handsontable.GridSettings) ||
+          !isSameAsLiveSetting(key as keyof Handsontable.GridSettings, value, currentSettings)
+        ) {
+          (newSettings as any)[key] = value;
+        }
       }
     });
 

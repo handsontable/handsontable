@@ -2,7 +2,6 @@ import {
   clampDataProviderPageToTotalRows,
   getDataProviderRequestErrorDescription,
   isCompleteDataProviderConfig,
-  isSameQueryParameters,
 } from '../utils';
 
 describe('dataProvider utils', () => {
@@ -112,31 +111,6 @@ describe('dataProvider utils', () => {
 
     it('should treat totalRows 0 as a single page', () => {
       expect(clampDataProviderPageToTotalRows(3, 10, 0)).toBe(1);
-    });
-  });
-
-  describe('isSameQueryParameters', () => {
-    const query = {
-      page: 2,
-      pageSize: 10,
-      sort: { prop: 'name', order: 'asc' },
-      filters: [{ prop: 'name', condition: 'contains', value: ['Mouse'] }],
-    };
-
-    it('should return true for queries that ask for the same rows, built as separate objects', () => {
-      expect(isSameQueryParameters(query, JSON.parse(JSON.stringify(query)))).toBe(true);
-      expect(isSameQueryParameters(
-        { page: 1, pageSize: 10, sort: null, filters: null },
-        { page: 1, pageSize: 10, sort: null, filters: null },
-      )).toBe(true);
-    });
-
-    it('should return false when the page, page size, sort, or filters differ', () => {
-      expect(isSameQueryParameters(query, { ...query, page: 3 })).toBe(false);
-      expect(isSameQueryParameters(query, { ...query, pageSize: 20 })).toBe(false);
-      expect(isSameQueryParameters(query, { ...query, sort: { prop: 'name', order: 'desc' } })).toBe(false);
-      expect(isSameQueryParameters(query, { ...query, sort: null })).toBe(false);
-      expect(isSameQueryParameters(query, { ...query, filters: null })).toBe(false);
     });
   });
 });

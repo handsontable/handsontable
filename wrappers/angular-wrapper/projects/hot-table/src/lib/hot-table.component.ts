@@ -68,6 +68,56 @@ function isSameSizeSetting(currentValue: unknown, newValue: unknown): boolean {
 }
 
 /**
+ * Compares a setting the grid holds with the value a `settings` change passes. Plain objects and
+ * arrays are walked; functions, class instances (an editor component reference), and any other value
+ * are compared by reference, and a `RegExp` by its source and flags.
+ *
+ * @param currentValue The value the grid currently holds.
+ * @param newValue The value coming from the `settings` input.
+ * @returns `true` when passing the new value would change nothing.
+ */
+function isSameSettingValue(currentValue: unknown, newValue: unknown): boolean {
+  if (currentValue === newValue) {
+    return true;
+  }
+
+  if (currentValue instanceof RegExp && newValue instanceof RegExp) {
+    return currentValue.source === newValue.source && currentValue.flags === newValue.flags;
+  }
+
+  if (Array.isArray(currentValue) && Array.isArray(newValue)) {
+    return currentValue.length === newValue.length &&
+      currentValue.every((value, index) => isSameSettingValue(value, newValue[index]));
+  }
+
+  if (!isPlainObject(currentValue) || !isPlainObject(newValue)) {
+    return false;
+  }
+
+  const currentKeys = Object.keys(currentValue);
+
+  return currentKeys.length === Object.keys(newValue).length &&
+    currentKeys.every(key => Object.prototype.hasOwnProperty.call(newValue, key) &&
+      isSameSettingValue(currentValue[key], newValue[key]));
+}
+
+/**
+ * Checks whether a value is an object literal or an object without a prototype.
+ *
+ * @param value The value to check.
+ * @returns `true` for a plain object.
+ */
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (value === null || typeof value !== 'object') {
+    return false;
+  }
+
+  const prototype = Object.getPrototypeOf(value);
+
+  return prototype === Object.prototype || prototype === null;
+}
+
+/**
  * The class that makes the container and the host fill their parent. The component styles below
  * spell the same name, because decorator metadata must stay statically analyzable.
  */
@@ -226,15 +276,15 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
       this._passedHookKeys = this.collectHookKeys(newOptions);
 
       // updateHotTable closes any active editor via HOT.updateSettings before we destroy old refs.
-      this.updateHotTable(newOptions);
+      const appliedOptions = this.updateHotTable(newOptions);
 
-      // Only destroy old editor refs when new settings actually replace columns.
-      // If newOptions has no columns, HOT keeps the old column objects active — destroying
+      // Only destroy old editor refs when the grid actually received new columns.
+      // If it did not, HOT keeps the old column objects active — destroying
       // their refs would crash FactoryEditorAdapter / BaseEditorAdapter on next edit.
-      if (prevColumnsArray && Array.isArray(newOptions.columns)) {
+      if (prevColumnsArray && Array.isArray(appliedOptions.columns)) {
         // Refs recycled into the new columns must survive — destroy only the ones left behind.
         const reusedRefs = new Set(
-          newOptions.columns
+          appliedOptions.columns
             .map((column) => column._editorComponentReference)
             .filter((ref): ref is NonNullable<typeof ref> => !!ref)
         );
@@ -246,8 +296,8 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
         });
       }
 
-      if (Array.isArray(newOptions.columns)) {
-        this._gridColumns = newOptions.columns;
+      if (Array.isArray(appliedOptions.columns)) {
+        this._gridColumns = appliedOptions.columns;
       }
     }
 
@@ -337,12 +387,18 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   /**
-   * Updates the Handsontable instance with new settings.
+   * Updates the Handsontable instance with new settings. A setting the grid already holds with the
+   * same value is left out: passing it again re-applies the plugin it names, and a plugin re-applied
+   * with its own settings drops the state the user gave it (ColumnSorting's sort, Filters' conditions,
+   * Pagination's page, the server total of a `dataProvider` grid). `ngOnChanges` passes every key of
+   * a new `settings` object, so without the check one changed key re-applied all the others.
+   *
    * @param newSettings The new settings to apply to the Handsontable instance.
+   * @returns The settings passed to `updateSettings()`.
    */
-  private updateHotTable(newSettings: Handsontable.GridSettings): void {
+  private updateHotTable(newSettings: Handsontable.GridSettings): Handsontable.GridSettings {
     if (!this.hotInstance) {
-      return;
+      return {};
     }
 
     const currentSettings = this.hotInstance.getSettings();
@@ -366,12 +422,18 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
         continue;
       }
 
+      if (isSameSettingValue((currentSettings as any)?.[key], (newSettings as any)[key])) {
+        continue;
+      }
+
       (filteredSettings as any)[key] = (newSettings as any)[key];
     }
 
     this.ngZone.runOutsideAngular(() => {
       this.hotInstance?.updateSettings(filteredSettings, false);
     });
+
+    return filteredSettings;
   }
 
   /**

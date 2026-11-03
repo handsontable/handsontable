@@ -278,9 +278,17 @@ describe('Core#updateSettings with external data source', () => {
     expect(hot.getData()).toEqual([[9, 'Local row']]);
 
     const server = createServerConfig(2);
+    let resolveFetch;
 
+    server.fetchRows = jest.fn(() => new Promise((resolve) => {
+      resolveFetch = resolve;
+    }));
     Object.assign(config, server);
-    await hot.updateSettings({ dataProvider: config });
+    hot.updateSettings({ dataProvider: config });
+
+    expect(hot.countRows()).toBe(0);
+
+    resolveFetch({ rows: [{ id: 1, name: 'Product 1' }, { id: 2, name: 'Product 2' }], totalRows: 2 });
     await waitFor(() => hot.countRows() === 2 && hot.getDataAtCell(0, 0) === 1);
 
     expect(server.fetchRows).toHaveBeenCalledTimes(1);
@@ -312,7 +320,7 @@ describe('Core#updateSettings with external data source', () => {
     }));
   });
 
-  it('should keep the page and the pager total when the same `dataProvider` and `pagination` are sent again',
+  it('should refetch from the declared page when the same `dataProvider` and `pagination` are sent again',
     async() => {
       const config = createServerConfig(20);
       const pagination = { pageSize: 5 };
@@ -332,12 +340,14 @@ describe('Core#updateSettings with external data source', () => {
       const fetches = config.fetchRows.mock.calls.length;
 
       await hot.updateSettings({ data: [], dataProvider: config, pagination });
-      await delay(50);
+      await waitFor(() => config.fetchRows.mock.calls.length === fetches + 1 && hot.getDataAtCell(0, 0) === 1);
 
-      expect(hot.getDataAtCell(0, 0)).toBe(11);
-      expect(config.fetchRows).toHaveBeenCalledTimes(fetches);
+      expect(config.fetchRows).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 1, pageSize: 5 }),
+        expect.anything()
+      );
       expect(hot.getPlugin('pagination').getPaginationData()).toEqual(expect.objectContaining({
-        currentPage: 3,
+        currentPage: 1,
         pageSize: 5,
         totalPages: 4,
       }));
@@ -395,7 +405,7 @@ describe('Core#updateSettings with external data source', () => {
     expect(plugin.getQueryParameters().page).toBe(1);
   });
 
-  describe('a server sort and a payload that re-sends `columns`', () => {
+  describe('a server sort and a payload that re-applies a plugin the query reads', () => {
     /**
      * Builds a sortable server-backed grid and sorts its second column descending on the server.
      *
@@ -420,33 +430,38 @@ describe('Core#updateSettings with external data source', () => {
       return config;
     }
 
-    it('should keep the sort when the same `dataProvider` is sent with `columns` and `columnSorting`', async() => {
+    it('should refetch with the sort when the same `dataProvider` is sent with `columns` and `columnSorting`',
+      async() => {
+        const config = await buildSortedGrid();
+
+        await hot.updateSettings({
+          dataProvider: config,
+          columns: [{ data: 'id' }, { data: 'name' }],
+          columnSorting: true,
+        });
+        await waitFor(() => config.fetchRows.mock.calls.length === 3 && hot.countRows() === 4);
+
+        expect(config.fetchRows).toHaveBeenLastCalledWith(
+          expect.objectContaining({ sort: { prop: 'name', order: 'desc' } }),
+          expect.anything()
+        );
+        expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 1, sortOrder: 'desc' }]);
+      });
+
+    it('should refetch with the sort when the same `dataProvider` is sent with `columns` only', async() => {
       const config = await buildSortedGrid();
 
       await hot.updateSettings({
         dataProvider: config,
         columns: [{ data: 'id' }, { data: 'name' }],
-        columnSorting: true,
       });
-      await delay(50);
+      await waitFor(() => config.fetchRows.mock.calls.length === 3 && hot.countRows() === 4);
 
-      expect(hot.getPlugin('dataProvider').getQueryParameters().sort).toEqual({ prop: 'name', order: 'desc' });
+      expect(config.fetchRows).toHaveBeenLastCalledWith(
+        expect.objectContaining({ sort: { prop: 'name', order: 'desc' } }),
+        expect.anything()
+      );
       expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 1, sortOrder: 'desc' }]);
-      expect(config.fetchRows).toHaveBeenCalledTimes(2);
-    });
-
-    it('should keep the sort indicator when the same `dataProvider` is sent with `columns` only', async() => {
-      const config = await buildSortedGrid();
-
-      await hot.updateSettings({
-        dataProvider: config,
-        columns: [{ data: 'id' }, { data: 'name' }],
-      });
-      await delay(50);
-
-      expect(hot.getPlugin('dataProvider').getQueryParameters().sort).toEqual({ prop: 'name', order: 'desc' });
-      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 1, sortOrder: 'desc' }]);
-      expect(config.fetchRows).toHaveBeenCalledTimes(2);
     });
 
     it('should fetch with the sort a new `columnSorting.initialConfig` declares', async() => {
@@ -456,13 +471,127 @@ describe('Core#updateSettings with external data source', () => {
         dataProvider: config,
         columnSorting: { initialConfig: { column: 0, sortOrder: 'asc' } },
       });
-      await waitFor(() => config.fetchRows.mock.calls.length === 3);
+      await waitFor(() => config.fetchRows.mock.calls.length >= 3);
 
       expect(config.fetchRows).toHaveBeenLastCalledWith(
         expect.objectContaining({ sort: { prop: 'id', order: 'asc' } }),
         expect.anything()
       );
     });
+
+    it('should refetch unsorted when the same `dataProvider` is sent with an empty `initialConfig`', async() => {
+      const config = await buildSortedGrid();
+
+      await hot.updateSettings({ dataProvider: config, columnSorting: { initialConfig: [] } });
+      await waitFor(() => config.fetchRows.mock.calls.length >= 3);
+
+      expect(config.fetchRows).toHaveBeenLastCalledWith(expect.objectContaining({ sort: null }), expect.anything());
+      expect(hot.getPlugin('dataProvider').getQueryParameters().sort).toBeNull();
+    });
+
+    it('should refetch unsorted when the same `dataProvider` is sent with ColumnSorting turned off', async() => {
+      const config = await buildSortedGrid();
+
+      await hot.updateSettings({ dataProvider: config, columnSorting: false });
+      await waitFor(() => config.fetchRows.mock.calls.length === 3);
+
+      expect(config.fetchRows).toHaveBeenLastCalledWith(expect.objectContaining({ sort: null }), expect.anything());
+
+      hot.getPlugin('dataProvider').fetchData();
+      await waitFor(() => config.fetchRows.mock.calls.length === 4);
+
+      expect(config.fetchRows).toHaveBeenLastCalledWith(expect.objectContaining({ sort: null }), expect.anything());
+    });
+  });
+
+  describe('a payload that re-applies a plugin the query reads without `dataProvider`', () => {
+    it('should refetch with the page size `pagination` declares', async() => {
+      const config = createServerConfig(20);
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        columns: [{ data: 'id' }, { data: 'name' }],
+        pagination: { pageSize: 5 },
+        dataProvider: config,
+      });
+
+      await waitFor(() => hot.countRows() === 5);
+      await hot.updateSettings({ pagination: { pageSize: 2 } });
+      await waitFor(() => hot.countRows() === 2);
+
+      expect(config.fetchRows).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 1, pageSize: 2 }),
+        expect.anything()
+      );
+    });
+
+    it('should refetch unsorted when ColumnSorting is turned off', async() => {
+      const config = createServerConfig(4);
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        columns: [{ data: 'id' }, { data: 'name' }],
+        columnSorting: true,
+        dataProvider: config,
+      });
+
+      await waitFor(() => hot.countRows() === 4);
+
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+      await waitFor(() => config.fetchRows.mock.calls.length === 2);
+      await hot.updateSettings({ columnSorting: false });
+      await waitFor(() => config.fetchRows.mock.calls.length === 3);
+
+      expect(config.fetchRows).toHaveBeenLastCalledWith(expect.objectContaining({ sort: null }), expect.anything());
+    });
+
+    it('should refetch with the sort and the header in line when `columns` changes', async() => {
+      const config = createServerConfig(4);
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        columns: [{ data: 'id' }, { data: 'name' }],
+        columnSorting: true,
+        dataProvider: config,
+      });
+
+      await waitFor(() => hot.countRows() === 4);
+
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+      await waitFor(() => config.fetchRows.mock.calls.length === 2);
+      await hot.updateSettings({ columns: [{ data: 'id' }, { data: 'name', readOnly: true }] });
+      await waitFor(() => config.fetchRows.mock.calls.length === 3 && hot.countRows() === 4);
+
+      expect(config.fetchRows).toHaveBeenLastCalledWith(expect.objectContaining({ sort: null }), expect.anything());
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([]);
+    });
+  });
+
+  it('should refetch unfiltered when the same `dataProvider` is sent with Filters turned off', async() => {
+    const config = createServerConfig(4);
+
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      columns: [{ data: 'id' }, { data: 'name' }],
+      filters: true,
+      dataProvider: config,
+    });
+
+    await waitFor(() => hot.countRows() === 4);
+
+    const filters = hot.getPlugin('filters');
+
+    filters.addCondition(1, 'eq', ['Product 2']);
+    filters.filter();
+    await waitFor(() => config.fetchRows.mock.calls.length === 2);
+
+    expect(hot.getPlugin('dataProvider').getQueryParameters().filters).toHaveLength(1);
+
+    await hot.updateSettings({ dataProvider: config, filters: false });
+    await waitFor(() => config.fetchRows.mock.calls.length === 3);
+
+    expect(config.fetchRows).toHaveBeenLastCalledWith(expect.objectContaining({ filters: null }), expect.anything());
+    expect(hot.getPlugin('dataProvider').getQueryParameters().filters).toBeNull();
   });
 
   it('should use members changed in place on the next fetch instead of refetching at once', async() => {

@@ -81,7 +81,7 @@ describe('HotTable `dataProvider` option', () => {
     expect(dataProvider.fetchRows).toHaveBeenCalledTimes(fetchesAfterMount);
   });
 
-  it('should keep the server sort when a re-render with `HotColumn` children sends `columns` again', async() => {
+  it('should keep the server sort with no request when a re-render passes the same `HotColumn` children', async() => {
     const hotTableRef = React.createRef<HotTableRef>();
     const dataProvider = createDataProvider();
     let setHeight: (height: number) => void = () => {};
@@ -129,5 +129,70 @@ describe('HotTable `dataProvider` option', () => {
     expect(hot?.getPlugin('dataProvider').getQueryParameters().sort).toEqual({ prop: 'product', order: 'desc' });
     expect(hot?.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 1, sortOrder: 'desc' }]);
     expect(dataProvider.fetchRows).toHaveBeenCalledTimes(fetchesAfterSort);
+  });
+
+  it('should keep the page and the sort with no request when a re-render passes the same inline settings', async() => {
+    const hotTableRef = React.createRef<HotTableRef>();
+    const rows = Array.from({ length: 12 }, (_, index) => ({ id: index + 1, product: `Product ${index + 1}` }));
+    const dataProvider = {
+      ...createDataProvider(),
+      fetchRows: jest.fn(async({ page, pageSize }: { page: number; pageSize: number }) => ({
+        rows: rows.slice((page - 1) * pageSize, page * pageSize),
+        totalRows: rows.length,
+      })),
+    };
+    let setHeight: (height: number) => void = () => {};
+    const Grid = () => {
+      const [height, setGridHeight] = React.useState(200);
+
+      setHeight = setGridHeight;
+
+      return (
+        <HotTable
+          ref={hotTableRef}
+          licenseKey="non-commercial-and-evaluation"
+          data={[]}
+          dataProvider={dataProvider}
+          pagination={{ pageSize: 5 }}
+          columnSorting={{ indicator: true }}
+          filters
+          height={height}
+          autoRowSize={false}
+          autoColumnSize={false}
+        >
+          <HotColumn data="id" />
+          <HotColumn data="product" />
+        </HotTable>
+      );
+    };
+
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    mountComponent(<Grid />);
+    await settle();
+
+    const hot = hotTableRef.current?.hotInstance;
+
+    act(() => {
+      hot?.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+    });
+    await settle();
+    act(() => {
+      hot?.getPlugin('pagination').setPage(2);
+    });
+    await settle();
+
+    const fetchesBefore = dataProvider.fetchRows.mock.calls.length;
+
+    act(() => {
+      setHeight(300);
+    });
+    await settle();
+
+    expect(hot?.getPlugin('pagination').getPaginationData()).toEqual(expect.objectContaining({
+      currentPage: 2,
+      totalPages: 3,
+    }));
+    expect(hot?.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 1, sortOrder: 'desc' }]);
+    expect(dataProvider.fetchRows).toHaveBeenCalledTimes(fetchesBefore);
   });
 });
