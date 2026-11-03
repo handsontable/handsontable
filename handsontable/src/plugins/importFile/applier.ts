@@ -354,7 +354,13 @@ export function toNamedExpressionInput(expression: string): string {
  * sees the names added earlier in it. The batch evaluates the names when it ends, and a throw there
  * leaves `engine.batch()` itself: every name this call added is removed again and
  * `definedNames:unsupported` is reported, and the import goes on. No batch opens when the engine
- * refuses every name: an empty batch still pushes an engine undo step.
+ * refuses every name: an empty batch still pushes an engine undo step. A name the engine refuses
+ * here is reported as `definedNames:unsupported` too, the same as one whose add throws: the mapper
+ * kept the formulas over it live, so they show `#NAME?` or read the engine's other definition.
+ *
+ * An engine the caller suspended (`suspendEvaluation()` before the import) gets the names without
+ * a batch of its own, whose end would resume the caller's suspension too; the engine evaluates them
+ * when the caller resumes. `Formulas` skips its own batch the same way.
  */
 function addNamedExpressions(hot: HotInstance, result: ImportResult): void {
   const formulas = hot.getPlugin('formulas');
@@ -372,23 +378,36 @@ function addNamedExpressions(hot: HotInstance, result: ImportResult): void {
     .map(({ name, formula }) => ({ name, expression: toNamedExpressionInput(`=${formula}`) }));
   const first = namedExpressions.findIndex(({ name, expression }) => canAdd(name, expression));
 
+  if (first !== 0) {
+    reportUnsupported(result);
+  }
+
   // An empty engine batch still pushes an engine undo step, so none opens when every name is refused.
   if (first === -1) {
     return;
   }
 
   const added: string[] = [];
+  const addAll = () => {
+    namedExpressions.slice(first).forEach(({ name, expression }, index) => {
+      // The first name passed the check above; the rest are checked here, where the check sees the
+      // names added before them.
+      if (index > 0 && !canAdd(name, expression)) {
+        reportUnsupported(result);
+      } else if (addOrReport(engine, name, expression, result)) {
+        added.push(name);
+      }
+    });
+  };
+
+  if (engine.isEvaluationSuspended?.() === true) {
+    addAll();
+
+    return;
+  }
 
   try {
-    engine.batch(() => {
-      namedExpressions.slice(first).forEach(({ name, expression }, index) => {
-        // The first name passed the check above; the rest are checked inside the batch, where the
-        // check sees the names added before them.
-        if ((index === 0 || canAdd(name, expression)) && addOrReport(engine, name, expression, result)) {
-          added.push(name);
-        }
-      });
-    });
+    engine.batch(addAll);
   } catch {
     // The batch evaluates the names only when it resumes evaluation, at its end, and HyperFormula can
     // throw there (`RangeError: Invalid array length` over a huge range). Which name threw is not

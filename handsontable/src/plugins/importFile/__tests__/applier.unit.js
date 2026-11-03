@@ -759,19 +759,76 @@ describe('applyImportResult – named expressions', () => {
     ]);
   });
 
-  it('should skip a name the engine defined since the mapper asked, instead of throwing mid-batch', () => {
-    // A `beforeImport` handler, or another grid on a shared engine, defined `Sales` in between.
+  it('should skip and report a name the engine defined since the mapper asked, instead of throwing mid-batch', () => {
+    // A `beforeImport` handler, or another grid on a shared engine, defined `Sales` in between. The
+    // formula over it stays live, so the report says why it does not read the file's `Sales`.
     const order = [];
-
-    expect(() => applyImportResult(orderedHot(order, ['Sales']), {
+    const result = {
       data: [['=SUM(Sales)']],
       namedExpressions: [{ name: 'Sales', formula: 'Sheet1!$F$1:$F$3' }, { name: 'TaxRate', formula: '0.07' }],
-    })).not.toThrow();
+      dropped: [],
+    };
+
+    expect(() => applyImportResult(orderedHot(order, ['Sales']), result)).not.toThrow();
     expect(order).toEqual([
       ['batch:start'],
       ['engine.batch:start'],
       ['addNamedExpression', 'TaxRate', '=0.07'],
       ['engine.batch:end'],
+      ['loadData', [['=SUM(Sales)']]],
+      ['batch:end'],
+    ]);
+    expect(result.dropped).toEqual(['definedNames:unsupported']);
+  });
+
+  it('should report a name the engine refuses inside the batch, after an earlier name went in', () => {
+    const order = [];
+    const result = {
+      data: [['=SUM(Sales)']],
+      namedExpressions: [{ name: 'TaxRate', formula: '0.07' }, { name: 'Sales', formula: 'Sheet1!$F$1:$F$3' }],
+      dropped: [],
+    };
+
+    applyImportResult(orderedHot(order, ['Sales']), result);
+
+    expect(order).toEqual([
+      ['batch:start'],
+      ['engine.batch:start'],
+      ['addNamedExpression', 'TaxRate', '=0.07'],
+      ['engine.batch:end'],
+      ['loadData', [['=SUM(Sales)']]],
+      ['batch:end'],
+    ]);
+    expect(result.dropped).toEqual(['definedNames:unsupported']);
+  });
+
+  it('should report nothing when the engine takes every name', () => {
+    const result = {
+      data: [['=SUM(Sales)']],
+      namedExpressions: [{ name: 'Sales', formula: 'Sheet1!$F$1:$F$3' }, { name: 'TaxRate', formula: '0.07' }],
+      dropped: [],
+    };
+
+    applyImportResult(orderedHot([]), result);
+
+    expect(result.dropped).toEqual([]);
+  });
+
+  it('should add the names without a batch of its own to an engine the caller suspended', () => {
+    // The end of a batch resumes evaluation, which would end the caller's suspension too.
+    const order = [];
+    const hot = orderedHot(order);
+
+    hot.getPlugin('formulas').engine.isEvaluationSuspended = () => true;
+
+    applyImportResult(hot, {
+      data: [['=SUM(Sales)']],
+      namedExpressions: [{ name: 'Sales', formula: 'Sheet1!$F$1:$F$3' }],
+    });
+
+    expect(order).toEqual([
+      ['batch:start'],
+      ['addNamedExpression', 'Sales', '=Sheet1!$F$1:$F$3'],
       ['loadData', [['=SUM(Sales)']]],
       ['batch:end'],
     ]);
@@ -839,20 +896,23 @@ describe('applyImportResult – named expressions', () => {
     ]);
   });
 
-  it('should open no engine batch when the engine refuses every name', () => {
+  it('should open no engine batch, and report the names, when the engine refuses every name', () => {
     // An empty engine batch still pushes an engine undo step.
     const order = [];
-
-    applyImportResult(orderedHot(order, ['Sales', 'TaxRate']), {
+    const result = {
       data: [['=SUM(Sales)']],
       namedExpressions: [{ name: 'Sales', formula: 'Sheet1!$F$1:$F$3' }, { name: 'TaxRate', formula: '0.07' }],
-    });
+      dropped: [],
+    };
+
+    applyImportResult(orderedHot(order, ['Sales', 'TaxRate']), result);
 
     expect(order).toEqual([
       ['batch:start'],
       ['loadData', [['=SUM(Sales)']]],
       ['batch:end'],
     ]);
+    expect(result.dropped).toEqual(['definedNames:unsupported']);
   });
 
   it('should open no engine batch when the result holds no named expression', () => {
