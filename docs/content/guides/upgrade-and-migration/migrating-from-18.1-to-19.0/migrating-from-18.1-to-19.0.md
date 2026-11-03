@@ -2100,6 +2100,51 @@ applies to both engines.
 What to do: nothing, unless a tool expects text in those cells. Such a tool now gets a number or a
 boolean.
 
+#### An array formula is written as an array
+
+What changed: with `exportFormulas: true`, a formula whose result spills, such as `=SEQUENCE(3)`,
+and a formula that is one `ARRAYFORMULA` call, such as `=ARRAYFORMULA(A1:A2*2)`, are now written
+as array formulas over the cells of the result. The built-in engine writes a spilling formula as a
+dynamic array, which Excel spills and resizes as it recalculates. The ExcelJS engine writes both as
+legacy arrays: Excel shows them in braces, and the range stays fixed. In 18.1, both went out as plain
+formulas, which Excel opened with an `@` (`=@SEQUENCE(3)`) and showed as one value.
+
+What to do: nothing with the built-in engine. With ExcelJS, re-enter such a formula in Excel to make
+it a dynamic array, or export with the built-in engine.
+
+#### Range arithmetic is written as a one-cell array
+
+What changed: with `exportFormulas: true` and HyperFormula's `useArrayArithmetic` on, which is the
+Formulas plugin's default, a formula that applies an operator to a range, such as
+`=SUM(A1:A2*B1:B2)`, is now written as a one-cell array. So is a formula that is one call to a
+function that can return an array, such as `=SEQUENCE(1)`. In 18.1, both went out as plain
+formulas, and Excel opened them with an `@`, so `=SUM(@A1:A2*@B1:B2)` computed one row instead of
+the whole range. The built-in engine writes a one-cell dynamic array, and ExcelJS a one-cell legacy
+array. Excel computes the same value from both.
+
+What to do: nothing.
+
+#### A decimal comma is written as a dot
+
+What changed: with `exportFormulas: true` and a HyperFormula `decimalSeparator` of `,`, the decimal
+separator of a number in a formula is now written as `.`. A formula typed as `=SUM(A1;1,5)` goes out
+as `SUM(A1,1.5)`. In 18.1, only the argument separator was changed, so the file held `SUM(A1,1,5)`,
+which Excel and LibreOffice read as three arguments (`7` instead of `2.5` when A1 holds 1). This
+applies to both engines.
+
+What to do: nothing.
+
+#### A formula over a name the file cannot hold is written as its value
+
+What changed: with `exportFormulas: true`, the Formulas plugin's named expressions are now written as
+defined names. A name the engine cannot write is left out, and a formula over it is written as its
+value instead. With the ExcelJS engine, that is every name that is not one workbook-scoped range,
+such as a constant: `=TaxRate*100` over `TaxRate = 0.07` goes out as the value `7`. In 18.1, no name
+was written, and the formula went out as it was, so Excel and LibreOffice showed `#NAME?`.
+
+What to do: nothing, unless the formula must stay live. Export with the built-in engine, which writes
+constants, sheet-scoped names, and names over several ranges.
+
 #### Values past Excel's limits are written at Excel's maximum
 
 What changed: a column wider than Excel stores is written 260 units wide, a row taller than Excel
