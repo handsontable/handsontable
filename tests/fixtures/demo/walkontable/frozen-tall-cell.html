@@ -27,6 +27,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -125,7 +126,7 @@
         mergeCells: [{ row: MERGE_ROW, col: 0, rowspan: 3, colspan: 1 }],
       } : {}),
       renderer,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     // Drives the "content shrank back" case from the spec.

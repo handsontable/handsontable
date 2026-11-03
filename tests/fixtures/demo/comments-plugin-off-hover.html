@@ -22,6 +22,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -69,7 +70,7 @@
           td.setAttribute('data-testid', `cell-${row}-${col}`);
         },
         ...layouts[window.htLayout],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       window.htBuildError = String((error && error.stack) || error);

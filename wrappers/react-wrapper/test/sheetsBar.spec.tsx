@@ -5,6 +5,7 @@ import { textRenderer } from 'handsontable/renderers';
 import { mountComponent, renderHotTableWithProps } from './_helpers';
 import { HotTable } from '../src/hotTable';
 import { HotTableProps, HotTableRef } from '../src/types';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 registerAllModules();
 
@@ -23,7 +24,7 @@ describe('HotTable with a sheets bar', () => {
       { name: 'Own', data: [[3, 4]], settings: { colHeaders: ['X', 'Y'], renderer: ownRenderer } },
     ];
     const props = (): HotTableProps => ({
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       colHeaders: ['a', 'b'],
       sheetsBar: { sheets },
     });
@@ -50,7 +51,7 @@ describe('HotTable with a sheets bar', () => {
     const dataB = [[5, 6]];
     const sheets = [{ name: 'A', data: [[1, 2]] }, { name: 'B', data: dataB }];
     const props = (): HotTableProps => ({
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: appData,
       sheetsBar: { sheets },
     });
@@ -193,7 +194,7 @@ describe('HotTable with a sheets bar', () => {
       return (
         <HotTable
           ref={ref}
-          licenseKey="non-commercial-and-evaluation"
+          licenseKey={TEST_LICENSE_KEY}
           sheetsBar={{ sheets, activeSheet: active }}
           afterSheetTabChange={(oldId: number, newId: number) => {
             changes += 1;
@@ -229,7 +230,7 @@ describe('HotTable with a sheets bar', () => {
   it('keeps the active sheet when the parent re-renders with the same `activeSheet` after a removal', () => {
     const sheets = [{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }, { name: 'C', data: [[3]] }];
     const props = (): HotTableProps => ({
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       sheetsBar: { sheets, activeSheet: 1 },
     });
     const ref = renderHotTableWithProps(props(), false);
@@ -261,7 +262,7 @@ describe('HotTable with a sheets bar', () => {
       return (
         <HotTable
           ref={ref}
-          licenseKey="non-commercial-and-evaluation"
+          licenseKey={TEST_LICENSE_KEY}
           sheetsBar={{ sheets }}
         />
       );

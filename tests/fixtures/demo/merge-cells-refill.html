@@ -28,6 +28,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } #toolbar { margin-bottom: .8rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -74,7 +75,7 @@
       manualColumnResize: [undefined, undefined, 40],
       mergeCells: [{ row: 1, col: 3, rowspan: 3, colspan: 1 }],
       renderer: testIdRenderer,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     window.hot = hot;

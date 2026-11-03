@@ -30,6 +30,7 @@ import { SheetsBarUI } from '../ui/bar';
 import { TabStrip } from '../ui/tabStrip';
 import { TabDrag } from '../ui/tabDrag';
 import EventManager from '../../../eventManager';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 // No `themeManager` on the stub `hot` - `syncIcon()` falls back to plain glyph classes, exactly
 // like a grid built without a `theme` config object (the common case).
@@ -152,7 +153,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       data: [['a', 'b']],
       sheetsBar: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const sheets = hot.getPlugin('sheetsBar').getSheets();
@@ -171,7 +172,7 @@ describe('SheetsBar plugin', () => {
         ],
         activeSheet: 1,
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(hot.getPlugin('sheetsBar').getSheets().map(s => s.name)).toEqual(['One', 'Two']);
@@ -187,7 +188,7 @@ describe('SheetsBar plugin', () => {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
       beforeSheetTabChange: before,
       afterSheetTabChange: after,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(hot.getPlugin('sheetsBar').setActiveSheet('B')).toBe(true);
@@ -200,7 +201,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
       beforeSheetTabChange: () => false,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(hot.getPlugin('sheetsBar').setActiveSheet('B')).toBe(false);
@@ -214,7 +215,7 @@ describe('SheetsBar plugin', () => {
       data: [['x']],
       sheetsBar: true,
       afterSheetTabAdd: after,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('sheetsBar').addSheet();
@@ -233,7 +234,7 @@ describe('SheetsBar plugin', () => {
           { name: 'B', data: [['b']], settings: { readOnly: true } },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('sheetsBar').setActiveSheet('B');
@@ -250,7 +251,7 @@ describe('SheetsBar plugin', () => {
           { name: 'Wide', data: [['a', 'b', 'c', 'd']] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(hot.countCols()).toBe(2);
@@ -279,7 +280,7 @@ describe('SheetsBar plugin', () => {
           { name: 'Plain', data: [['b']] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
@@ -302,7 +303,7 @@ describe('SheetsBar plugin', () => {
           { name: 'Plain', data: [['b']] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const comments = () => hot.getPlugin('comments');
@@ -333,7 +334,7 @@ describe('SheetsBar plugin', () => {
           { name: 'B', data: [['e', 'f'], ['g', 'h']] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     // Give sheet A a view state worth restoring, so the switch back has a selection and a
@@ -367,7 +368,7 @@ describe('SheetsBar plugin', () => {
           { name: 'Moved', data: [['x'], ['y'], ['z']] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -396,7 +397,7 @@ describe('SheetsBar plugin', () => {
           { name: 'Other', data: [['x']] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -420,7 +421,7 @@ describe('SheetsBar plugin', () => {
           { name: 'Other', data: [['x', 'y']] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const sorting = hot.getPlugin('columnSorting');
@@ -449,7 +450,7 @@ describe('SheetsBar plugin', () => {
           { name: 'B', data: [['x']] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -477,7 +478,7 @@ describe('SheetsBar plugin', () => {
           { name: 'B', data: [['x']] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -509,7 +510,7 @@ describe('SheetsBar plugin', () => {
           },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const nestedRows = hot.getPlugin('nestedRows');
 
@@ -555,7 +556,7 @@ describe('SheetsBar plugin', () => {
           { name: 'Tree', data: [{ a: 'x', __children: [{ a: 'x1' }] }] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const nestedRows = hot.getPlugin('nestedRows');
 
@@ -593,7 +594,7 @@ describe('SheetsBar plugin', () => {
           },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const nestedRows = hot.getPlugin('nestedRows');
@@ -635,7 +636,7 @@ describe('SheetsBar plugin', () => {
           { name: 'Other', data: [{ a: 'x' }] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const nestedRows = hot.getPlugin('nestedRows');
@@ -669,7 +670,7 @@ describe('SheetsBar plugin', () => {
           { name: 'Other', data: [{ a: 'x' }] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const nestedRows = hot.getPlugin('nestedRows');
@@ -688,7 +689,7 @@ describe('SheetsBar plugin', () => {
 
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data }, { name: 'B', data: [['x']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -704,7 +705,7 @@ describe('SheetsBar plugin', () => {
   it('restores the selection and scroll position only once the arriving sheet has rendered', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a', 'b'], ['c', 'd']] }, { name: 'B', data: [['x']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const rendersBeforeScroll = [];
@@ -736,7 +737,7 @@ describe('SheetsBar plugin', () => {
   it('keeps one entry per cell property however often it is written', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     let captured = null;
 
@@ -756,7 +757,7 @@ describe('SheetsBar plugin', () => {
   it('keeps a `valid: false` and drops a `valid: true` the user set', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a', 'b']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     let captured = null;
 
@@ -787,7 +788,7 @@ describe('SheetsBar plugin', () => {
   it('does not bring back a property removeCellMeta dropped', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -815,7 +816,7 @@ describe('SheetsBar plugin', () => {
       },
       manualRowResize: true,
       trimRows: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const rowResize = hot.getPlugin('manualRowResize');
@@ -841,7 +842,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a0'], ['a1']] }] },
       hiddenRows: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('hiddenRows').hideRow(0);
@@ -873,7 +874,7 @@ describe('SheetsBar plugin', () => {
         ],
       },
       trimRows: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const ratesId = sheetsBar.getSheets()[1].id;
@@ -897,7 +898,7 @@ describe('SheetsBar plugin', () => {
 
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data }, { name: 'B', data: [['x']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -926,7 +927,7 @@ describe('SheetsBar plugin', () => {
       const data = Array.from({ length: rows }, (_, r) => Array.from({ length: cols }, (__, c) => `${r}:${c}`));
       const instance = new Handsontable(container, {
         sheetsBar: { sheets: [{ name: 'A', data }, { name: 'B', data: [['x']] }] },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       cells.forEach(([row, col]) => instance.setCellMeta(row, col, 'readOnly', true));
@@ -1091,7 +1092,7 @@ describe('SheetsBar plugin', () => {
             { name: 'C', data: paddedData, settings: { minRows: 12 } },
           ],
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
       const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -1173,7 +1174,7 @@ describe('SheetsBar plugin', () => {
           ],
         },
         columnSorting: true,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
@@ -1198,7 +1199,7 @@ describe('SheetsBar plugin', () => {
           ],
         },
         columnSorting: true,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
@@ -1222,7 +1223,7 @@ describe('SheetsBar plugin', () => {
           { name: 'Wide', data: [['a', 'b', 'c', 'd']] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -1242,7 +1243,7 @@ describe('SheetsBar plugin', () => {
   it('reports the clamped name to the rename hooks and rejects bad input before them', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const before = jest.fn();
@@ -1395,7 +1396,7 @@ describe('SheetsBar plugin', () => {
           { name: 'B', data: [['b']], settings: { sheetsBar: { sheets: [{ name: 'Z' }] }, readOnly: true } },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -1408,7 +1409,7 @@ describe('SheetsBar plugin', () => {
   it('builds each menu once and refills it on every opening', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const filledMenus = new Set();
 
@@ -1432,7 +1433,7 @@ describe('SheetsBar plugin', () => {
   it('opens the tab menu with an item selected when the context menu comes from the keyboard', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const opened = jest.spyOn(SheetsBarMenus.prototype, 'openTabMenu').mockImplementation(() => {});
 
@@ -1446,7 +1447,7 @@ describe('SheetsBar plugin', () => {
   it('closes the hand on pointer-down, before the drag threshold', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
     const tab = bar.querySelector('.ht-sheets-bar__tab--active');
@@ -1463,7 +1464,7 @@ describe('SheetsBar plugin', () => {
   it('marks the bar scrolled once the strip moves away from its start', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
     const strip = bar.querySelector('.ht-sheets-bar__tabs');
@@ -1484,7 +1485,7 @@ describe('SheetsBar plugin', () => {
 
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name, data: [['a']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const label = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab-label');
 
@@ -1495,7 +1496,7 @@ describe('SheetsBar plugin', () => {
   it('does not preselect an item when a button-0 context menu follows a pointer press', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const opened = jest.spyOn(SheetsBarMenus.prototype, 'openTabMenu').mockImplementation(() => {});
     const tab = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab--active');
@@ -1511,7 +1512,7 @@ describe('SheetsBar plugin', () => {
   it('preselects an item when a keyboard context menu follows a press released off the strip', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const opened = jest.spyOn(SheetsBarMenus.prototype, 'openTabMenu').mockImplementation(() => {});
     const tab = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab--active');
@@ -1527,7 +1528,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
       ariaTags: false,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
 
@@ -1549,7 +1550,7 @@ describe('SheetsBar plugin', () => {
   it('marks the menu anchor expanded on opening when ariaTags is on', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
 
@@ -1566,7 +1567,7 @@ describe('SheetsBar plugin', () => {
   it('registers a focus scope that walks the focus into the bar from either side', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
 
@@ -1590,7 +1591,7 @@ describe('SheetsBar plugin', () => {
       sheetsBar: {
         sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }, { name: 'C', data: [['c']] }],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const opened = jest.spyOn(SheetsBarMenus.prototype, 'openTabMenu').mockImplementation(() => {});
     const press = (key) => {
@@ -1640,7 +1641,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       layoutDirection: 'rtl',
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const tabs = hot.rootWrapperElement.querySelectorAll('.ht-sheets-bar__tab');
 
@@ -1655,7 +1656,7 @@ describe('SheetsBar plugin', () => {
   it('keeps the focus on a paging arrow that has just run out of strip', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
     const strip = bar.querySelector('.ht-sheets-bar__tabs');
@@ -1682,7 +1683,7 @@ describe('SheetsBar plugin', () => {
       sheetsBar: {
         sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }, { name: 'C', data: [['c']] }],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const tabs = () => hot.rootWrapperElement.querySelectorAll('.ht-sheets-bar__tab');
@@ -1702,7 +1703,7 @@ describe('SheetsBar plugin', () => {
   it('announces a switch made from the bar, not one made through the API', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const announce = jest.spyOn(SheetsBarUI.prototype, 'announce');
 
@@ -1718,7 +1719,7 @@ describe('SheetsBar plugin', () => {
   it('announces a rename the model refused', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const announce = jest.spyOn(SheetsBarUI.prototype, 'announce');
     const tab = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab--active');
@@ -1806,7 +1807,7 @@ describe('SheetsBar plugin', () => {
   it('leaves Enter and Escape to the IME while a character is being composed', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const tab = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab--active');
 
@@ -1827,7 +1828,7 @@ describe('SheetsBar plugin', () => {
   it('counts the rename length in characters a reader sees', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const tab = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab--active');
 
@@ -1847,7 +1848,7 @@ describe('SheetsBar plugin', () => {
   it('lists the sheets as radio menu items with the active one checked', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.rootWrapperElement.querySelector('.ht-sheets-bar__all').click();
@@ -1869,7 +1870,7 @@ describe('SheetsBar plugin', () => {
   it('advertises the menu on the active tab only, and nothing when ariaTags is off', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     let tabs = hot.rootWrapperElement.querySelectorAll('.ht-sheets-bar__tab');
 
@@ -1906,7 +1907,7 @@ describe('SheetsBar plugin', () => {
           },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(engine.getSheetNames()).toEqual(['Budget', 'Rates']);
@@ -1935,7 +1936,7 @@ describe('SheetsBar plugin', () => {
       afterLoadData(sourceData, initialLoad, source) {
         loadSources.push(source);
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const formulas = hot.getPlugin('formulas');
@@ -1975,7 +1976,7 @@ describe('SheetsBar plugin', () => {
           },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -2005,7 +2006,7 @@ describe('SheetsBar plugin', () => {
       afterLoadData(sourceData, initialLoad, source) {
         loadSources.push(source);
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     loadSources.length = 0;
@@ -2038,7 +2039,7 @@ describe('SheetsBar plugin', () => {
       afterLoadData(sourceData, initialLoad, source) {
         loadSources.push(source);
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -2066,7 +2067,7 @@ describe('SheetsBar plugin', () => {
           { name: 'Second', data: [['x']], settings: { minRows: 10, minSpareCols: 2 } },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -2101,7 +2102,7 @@ describe('SheetsBar plugin', () => {
           },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -2145,7 +2146,7 @@ describe('SheetsBar plugin', () => {
       afterLoadData(sourceData, initialLoad, source) {
         loadSources.push(source);
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const formulas = hot.getPlugin('formulas');
 
@@ -2186,7 +2187,7 @@ describe('SheetsBar plugin', () => {
           },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -2220,7 +2221,7 @@ describe('SheetsBar plugin', () => {
           rowsAtLoad = sourceData.length;
         }
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -2244,7 +2245,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       data: [[100]],
       formulas: { engine, sheetName: 'Budget' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const formulas = hot.getPlugin('formulas');
 
@@ -2271,7 +2272,7 @@ describe('SheetsBar plugin', () => {
           },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -2303,7 +2304,7 @@ describe('SheetsBar plugin', () => {
           },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const added = sheetsBar.addSheet();
@@ -2335,7 +2336,7 @@ describe('SheetsBar plugin', () => {
           },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('sheetsBar').addSheet('Rates', [[1]]);
@@ -2363,7 +2364,7 @@ describe('SheetsBar plugin', () => {
         ],
       },
       undo: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const ratesId = sheetsBar.getSheets()[1].id;
@@ -2395,7 +2396,7 @@ describe('SheetsBar plugin', () => {
       },
       columnSorting: true,
       undo: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [alpha, beta] = sheetsBar.getSheets();
@@ -2422,7 +2423,7 @@ describe('SheetsBar plugin', () => {
       },
       columnSorting: true,
       undo: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [alpha, beta] = sheetsBar.getSheets();
@@ -2453,7 +2454,7 @@ describe('SheetsBar plugin', () => {
       filters: true,
       mergeCells: true,
       undo: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [alpha, beta] = sheetsBar.getSheets();
@@ -2482,7 +2483,7 @@ describe('SheetsBar plugin', () => {
         ],
       },
       mergeCells: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [big, small] = sheetsBar.getSheets();
@@ -2512,7 +2513,7 @@ describe('SheetsBar plugin', () => {
         ],
       },
       mergeCells: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [alpha, beta] = sheetsBar.getSheets();
@@ -2547,7 +2548,7 @@ describe('SheetsBar plugin', () => {
         ],
       },
       mergeCells: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [alpha, beta] = sheetsBar.getSheets();
@@ -2584,7 +2585,7 @@ describe('SheetsBar plugin', () => {
       },
       mergeCells: true,
       trimRows: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [alpha, beta] = sheetsBar.getSheets();
@@ -2611,7 +2612,7 @@ describe('SheetsBar plugin', () => {
         ],
       },
       mergeCells: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [plain, declared] = sheetsBar.getSheets();
@@ -2655,7 +2656,7 @@ describe('SheetsBar plugin', () => {
         ],
       },
       mergeCells: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [plain, declared] = sheetsBar.getSheets();
@@ -2689,7 +2690,7 @@ describe('SheetsBar plugin', () => {
         ],
       },
       mergeCells: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [plain, declared] = sheetsBar.getSheets();
@@ -2718,7 +2719,7 @@ describe('SheetsBar plugin', () => {
         ],
       },
       mergeCells: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [, tall] = sheetsBar.getSheets();
@@ -2741,7 +2742,7 @@ describe('SheetsBar plugin', () => {
           { name: 'Plain', data: grid() },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(hot.getCellMeta(0, 0).rowspan).toBe(2);
@@ -2762,7 +2763,7 @@ describe('SheetsBar plugin', () => {
       },
       mergeCells: true,
       trimRows: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [alpha, beta] = sheetsBar.getSheets();
@@ -2797,7 +2798,7 @@ describe('SheetsBar plugin', () => {
       },
       mergeCells: true,
       trimRows: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [alpha, beta] = sheetsBar.getSheets();
@@ -2832,7 +2833,7 @@ describe('SheetsBar plugin', () => {
       },
       mergeCells: true,
       trimRows: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [alpha, beta] = sheetsBar.getSheets();
@@ -2861,7 +2862,7 @@ describe('SheetsBar plugin', () => {
         ],
       },
       filters: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [alpha, beta] = sheetsBar.getSheets();
@@ -2883,7 +2884,7 @@ describe('SheetsBar plugin', () => {
         ],
       },
       filters: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [alpha, beta] = sheetsBar.getSheets();
@@ -2914,7 +2915,7 @@ describe('SheetsBar plugin', () => {
       },
       filters: true,
       beforeFilter: () => (vetoFilter ? false : undefined),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [alpha, beta] = sheetsBar.getSheets();
@@ -2946,7 +2947,7 @@ describe('SheetsBar plugin', () => {
       },
       filters: true,
       beforeFilter: () => (vetoFilter ? false : undefined),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [alpha, beta] = sheetsBar.getSheets();
@@ -2980,7 +2981,7 @@ describe('SheetsBar plugin', () => {
       },
       columnSorting: true,
       beforeColumnSort: () => (vetoSort ? false : undefined),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [alpha, beta] = sheetsBar.getSheets();
@@ -3018,7 +3019,7 @@ describe('SheetsBar plugin', () => {
 
         return false;
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [alpha, beta] = sheetsBar.getSheets();
@@ -3044,7 +3045,7 @@ describe('SheetsBar plugin', () => {
       },
       columnSorting: true,
       beforeColumnSort: () => (vetoSort ? false : undefined),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [alpha, beta] = sheetsBar.getSheets();
@@ -3074,7 +3075,7 @@ describe('SheetsBar plugin', () => {
       },
       filters: true,
       beforeFilter: () => (vetoFilter ? false : undefined),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [alpha, beta] = sheetsBar.getSheets();
@@ -3102,7 +3103,7 @@ describe('SheetsBar plugin', () => {
       },
       filters: true,
       undo: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [alpha, beta] = sheetsBar.getSheets();
@@ -3138,7 +3139,7 @@ describe('SheetsBar plugin', () => {
           this.getPlugin('filters').clearConditions();
         }
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [alpha, beta] = sheetsBar.getSheets();
@@ -3166,7 +3167,7 @@ describe('SheetsBar plugin', () => {
       },
       columnSorting: true,
       beforeColumnSort: () => (vetoSort ? false : undefined),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [alpha, beta] = sheetsBar.getSheets();
@@ -3194,7 +3195,7 @@ describe('SheetsBar plugin', () => {
       },
       multiColumnSorting: true,
       beforeColumnSort: () => (vetoSort ? false : undefined),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [alpha, beta] = sheetsBar.getSheets();
@@ -3219,7 +3220,7 @@ describe('SheetsBar plugin', () => {
         ],
       },
       filters: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const [alpha, beta] = sheetsBar.getSheets();
@@ -3261,7 +3262,7 @@ describe('SheetsBar plugin', () => {
           },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const ratesId = sheetsBar.getSheets()[1].id;
@@ -3292,7 +3293,7 @@ describe('SheetsBar plugin', () => {
           { name: 'Other', data: [['x']] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const copy = sheetsBar.duplicateSheet(sheetsBar.getSheets()[0].id);
@@ -3320,7 +3321,7 @@ describe('SheetsBar plugin', () => {
           },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(warned.mock.calls.some(call => String(call[0]).includes('shared engine instance'))).toBe(true);
@@ -3329,7 +3330,7 @@ describe('SheetsBar plugin', () => {
   it('re-feeds the engine when a rebuilt workbook reuses its sheet names', () => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
     const build = rate => new Handsontable(document.body.appendChild(document.createElement('div')), {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       sheetsBar: {
         sheets: [
           {
@@ -3367,7 +3368,7 @@ describe('SheetsBar plugin', () => {
           { name: 'Other', data: [['x']] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -3383,7 +3384,7 @@ describe('SheetsBar plugin', () => {
 
     hot = new Handsontable(container, {
       sheetsBar: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const labels = () => {
       const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
@@ -3424,7 +3425,7 @@ describe('SheetsBar plugin', () => {
           { name: 'B', data: [['x', 'y', 'z']] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -3446,7 +3447,7 @@ describe('SheetsBar plugin', () => {
           { name: 'B', data: [['x', 'y', 'z']] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -3469,7 +3470,7 @@ describe('SheetsBar plugin', () => {
             { name: 'B', data: [['x', 'y', 'z'], ['u', 'v', 'w'], ['p', 'q', 'r']] },
           ],
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       return hot.getPlugin('sheetsBar');
@@ -3484,7 +3485,7 @@ describe('SheetsBar plugin', () => {
             { name: 'B', data: [['x', 'y', 'z'], ['u', 'v', 'w'], ['p', 'q', 'r']] },
           ],
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const sheetsBar = hot.getPlugin('sheetsBar');
@@ -3577,7 +3578,7 @@ describe('SheetsBar plugin', () => {
             { name: 'B', data: [['x', 'y'], ['z', 'w'], ['u', 'v']], settings: { fixedRowsTop: 1 } },
           ],
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const sheetsBar = hot.getPlugin('sheetsBar');
@@ -3600,7 +3601,7 @@ describe('SheetsBar plugin', () => {
             { name: 'B', data: [['x', 'y'], ['z', 'w'], ['u', 'v']] },
           ],
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.getSettings().fixedRowsTop = 2;
@@ -3619,7 +3620,7 @@ describe('SheetsBar plugin', () => {
           { name: 'B', data: [['x', 'y', 'z']], settings: { fixedColumnsStart: 1 } },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('sheetsBar').setActiveSheet('B');
@@ -3635,7 +3636,7 @@ describe('SheetsBar plugin', () => {
           { name: 'B', data: [['x', 'y', 'z']], settings: { fixedColumnsEnd: 1 } },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -3665,7 +3666,7 @@ describe('SheetsBar plugin', () => {
           },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -3686,7 +3687,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       data: [['a']],
       sheetsBar: { position: 'top' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const slotOf = () => hot.rootWrapperElement.querySelector('.ht-sheets-bar').parentElement.className;
 
@@ -3705,7 +3706,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       manualRowResize: true,
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('manualRowResize').setManualSize(0, 60);
@@ -3722,7 +3723,7 @@ describe('SheetsBar plugin', () => {
           { name: 'B', data: [['b']] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(hot.getSettings().readOnly).toBe(true);
@@ -3733,7 +3734,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       data: [['x']],
       sheetsBar: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
@@ -3751,7 +3752,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       data: [['x']],
       sheetsBar: { uiContainer: uiHost },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(uiHost.querySelector('.ht-sheets-bar')).not.toBe(null);
@@ -3772,7 +3773,7 @@ describe('SheetsBar plugin', () => {
     it('leaves no selection behind on a sheet that was never visited', () => {
       hot = new Handsontable(container, {
         sheetsBar: { sheets: twoSheets() },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.selectCell(1, 0);
@@ -3788,7 +3789,7 @@ describe('SheetsBar plugin', () => {
     it('saves an editor left open by an API switch into the sheet it leaves', () => {
       hot = new Handsontable(container, {
         sheetsBar: { sheets: twoSheets() },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const sheetsBar = hot.getPlugin('sheetsBar');
@@ -3818,7 +3819,7 @@ describe('SheetsBar plugin', () => {
       document.body.append(uiHost, outside);
       hot = new Handsontable(container, {
         sheetsBar: { sheets: twoSheets(), uiContainer: uiHost },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.selectCell(1, 1);
@@ -3836,7 +3837,7 @@ describe('SheetsBar plugin', () => {
     it('stops exempting the bar from outside clicks once the plugin is disabled', () => {
       hot = new Handsontable(container, {
         sheetsBar: { sheets: twoSheets() },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
@@ -3851,7 +3852,7 @@ describe('SheetsBar plugin', () => {
     it('keeps a key typed in the bar from opening the cell editor', () => {
       hot = new Handsontable(container, {
         sheetsBar: { sheets: twoSheets() },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const keyDown = element => element.dispatchEvent(
@@ -3884,7 +3885,7 @@ describe('SheetsBar plugin', () => {
       hot = new Handsontable(container, {
         outsideClickDeselects,
         sheetsBar: { sheets: twoSheets() },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.selectCell(1, 1);
@@ -3910,7 +3911,7 @@ describe('SheetsBar plugin', () => {
             { name: 'B', data: [['b1'], ['b2'], ['b3'], ['b4']] },
           ],
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const sheetsBar = hot.getPlugin('sheetsBar');
@@ -3930,7 +3931,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       data: [['x']],
       sheetsBar: { controls: false },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
@@ -3941,7 +3942,7 @@ describe('SheetsBar plugin', () => {
   it('renders one tab per sheet, marks the active one, and switches on click', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const tabs = hot.rootWrapperElement.querySelectorAll('.ht-sheets-bar__tab');
@@ -3964,7 +3965,7 @@ describe('SheetsBar plugin', () => {
   it('activates the sheet when clicking the tab surface outside the label button', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.rootWrapperElement.querySelectorAll('.ht-sheets-bar__tab')[1].click();
@@ -3975,7 +3976,7 @@ describe('SheetsBar plugin', () => {
   it('leaves the sheet alone when the menu trigger of the active tab is clicked', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.rootWrapperElement
@@ -3989,7 +3990,7 @@ describe('SheetsBar plugin', () => {
   it('only moves to the sheet when the menu trigger of another tab is clicked', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const opened = jest.spyOn(SheetsBarMenus.prototype, 'openTabMenu').mockImplementation(() => {});
@@ -4015,7 +4016,7 @@ describe('SheetsBar plugin', () => {
   it('starts rename when double-clicking the tab surface outside the label button', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.rootWrapperElement
@@ -4028,7 +4029,7 @@ describe('SheetsBar plugin', () => {
   it('opens the tab menu on right-click, anchored to the tab it belongs to', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const opened = jest.spyOn(SheetsBarMenus.prototype, 'openTabMenu').mockImplementation(() => {});
@@ -4058,7 +4059,7 @@ describe('SheetsBar plugin', () => {
 
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: hostile, data: [['a']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     let items = null;
@@ -4092,7 +4093,7 @@ describe('SheetsBar plugin', () => {
   it('switches to the sheet the add button just created', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.rootWrapperElement.querySelector('.ht-sheets-bar__add').click();
@@ -4108,7 +4109,7 @@ describe('SheetsBar plugin', () => {
   it('leaves the active sheet alone when a sheet is added through the API', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     // A script building a workbook must not drag the grid through every sheet it creates.
@@ -4125,7 +4126,7 @@ describe('SheetsBar plugin', () => {
       sheetsBar: {
         sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }, { name: 'C', data: [['c']] }],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const middleId = hot.getPlugin('sheetsBar').getSheets()[1].id;
@@ -4141,7 +4142,7 @@ describe('SheetsBar plugin', () => {
   it('offers both move items as disabled when a lone sheet has nowhere to go', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'Only', data: [['a']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const opened = jest.spyOn(SheetsBarMenus.prototype, 'openTabMenu').mockImplementation(() => {});
@@ -4157,7 +4158,7 @@ describe('SheetsBar plugin', () => {
       sheetsBar: {
         sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }, { name: 'C', data: [['c']] }],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const opened = jest.spyOn(SheetsBarMenus.prototype, 'openTabMenu').mockImplementation(() => {});
@@ -4181,7 +4182,7 @@ describe('SheetsBar plugin', () => {
       sheetsBar: {
         sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }, { name: 'C', data: [['c']] }],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const opened = jest.spyOn(SheetsBarMenus.prototype, 'openTabMenu').mockImplementation(() => {});
@@ -4204,7 +4205,7 @@ describe('SheetsBar plugin', () => {
   it('leaves the rename input its own context menu', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.rootWrapperElement
@@ -4223,7 +4224,7 @@ describe('SheetsBar plugin', () => {
   it('hides the tab menu trigger while the tab is being renamed', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const tab = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab');
@@ -4239,7 +4240,7 @@ describe('SheetsBar plugin', () => {
   it('restores the tab menu trigger once the rename ends', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.rootWrapperElement
@@ -4260,7 +4261,7 @@ describe('SheetsBar plugin', () => {
   it('sizes the rename input from a mirror that tracks what is typed', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.rootWrapperElement
@@ -4286,7 +4287,7 @@ describe('SheetsBar plugin', () => {
   it('waits with the length cap until an IME composition ends, so the session is not cancelled', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.rootWrapperElement
@@ -4311,7 +4312,7 @@ describe('SheetsBar plugin', () => {
   it('keeps the rename input alive when it is clicked or double-clicked', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.rootWrapperElement
@@ -4330,7 +4331,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       data: [['x']],
       sheetsBar: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('sheetsBar').addSheet();
@@ -4344,7 +4345,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
       afterSheetTabRename: after,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const label = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab-label');
@@ -4364,7 +4365,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
       beforeSheetTabRename: () => false,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const label = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab-label');
@@ -4387,7 +4388,7 @@ describe('SheetsBar plugin', () => {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
       beforeSheetTabRename: before,
       afterSheetTabRename: after,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const label = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab-label');
@@ -4407,7 +4408,7 @@ describe('SheetsBar plugin', () => {
   it('rename is rejected when the name collides with another sheet, keeping the old name', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const label = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab-label');
@@ -4428,7 +4429,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
       afterSheetTabRemove: after,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const id = hot.getPlugin('sheetsBar').getSheets()[0].id;
@@ -4446,7 +4447,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
       afterSheetTabRemove: after,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const activeId = hot.getPlugin('sheetsBar').getSheets()[0].id;
@@ -4466,7 +4467,7 @@ describe('SheetsBar plugin', () => {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
       beforeSheetTabChange: () => false,
       afterSheetTabRemove: afterRemoved,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const activeId = hot.getPlugin('sheetsBar').getSheets()[0].id;
@@ -4486,7 +4487,7 @@ describe('SheetsBar plugin', () => {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
       beforeSheetTabRemove: () => false,
       afterSheetTabRemove: afterRemoved,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const targetId = hot.getPlugin('sheetsBar').getSheets()[1].id;
@@ -4504,7 +4505,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
       afterSheetTabMove: afterMoved,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const firstId = hot.getPlugin('sheetsBar').getSheets()[0].id;
@@ -4522,7 +4523,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
       afterSheetTabMove: afterMoved,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const lastId = hot.getPlugin('sheetsBar').getSheets()[1].id;
@@ -4540,7 +4541,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
       afterSheetTabMove: afterMoved,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const firstId = hot.getPlugin('sheetsBar').getSheets()[0].id;
@@ -4559,7 +4560,7 @@ describe('SheetsBar plugin', () => {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
       beforeSheetTabMove: () => false,
       afterSheetTabMove: afterMoved,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const firstId = hot.getPlugin('sheetsBar').getSheets()[0].id;
@@ -4581,7 +4582,7 @@ describe('SheetsBar plugin', () => {
       },
       beforeSheetTabMove: before,
       afterSheetTabMove: after,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const plugin = hot.getPlugin('sheetsBar');
@@ -4600,7 +4601,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
       beforeSheetTabMove: () => false,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const plugin = hot.getPlugin('sheetsBar');
@@ -4612,7 +4613,7 @@ describe('SheetsBar plugin', () => {
   it('rejects an index that is out of range or unchanged', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const plugin = hot.getPlugin('sheetsBar');
@@ -4628,7 +4629,7 @@ describe('SheetsBar plugin', () => {
       sheetsBar: {
         sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }, { name: 'C', data: [['c']] }],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const plugin = hot.getPlugin('sheetsBar');
@@ -4647,7 +4648,7 @@ describe('SheetsBar plugin', () => {
         sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }, { name: 'C', data: [['c']] }],
       },
       beforeSheetTabMove: () => false,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const plugin = hot.getPlugin('sheetsBar');
@@ -4927,7 +4928,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
       afterSheetTabAdd: afterAdded,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const id = hot.getPlugin('sheetsBar').getSheets()[0].id;
@@ -4942,7 +4943,7 @@ describe('SheetsBar plugin', () => {
   it('duplicating the active sheet copies its unsaved edits', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const plugin = hot.getPlugin('sheetsBar');
@@ -4962,7 +4963,7 @@ describe('SheetsBar plugin', () => {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
       beforeSheetTabAdd: () => false,
       afterSheetTabAdd: afterAdded,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const id = hot.getPlugin('sheetsBar').getSheets()[0].id;
@@ -4978,7 +4979,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       data: [['x']],
       sheetsBar: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
@@ -4999,7 +5000,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       data: [['x']],
       sheetsBar: { paging: false },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
@@ -5016,7 +5017,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       data: [['x']],
       sheetsBar: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
@@ -5029,7 +5030,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       data: [['x']],
       sheetsBar: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
@@ -5059,7 +5060,7 @@ describe('SheetsBar plugin', () => {
       data: [['x']],
       sheetsBar: true,
       layoutDirection: 'rtl',
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
@@ -5078,7 +5079,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
       layoutDirection: 'rtl',
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const sheets = hot.getPlugin('sheetsBar').getSheets();
@@ -5093,7 +5094,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       data: [['a', 'b']],
       sheetsBar: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const plugin = hot.getPlugin('sheetsBar');
@@ -5115,7 +5116,7 @@ describe('SheetsBar plugin', () => {
   it('keeps edits made to a declared sheet across a switch round-trip', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const plugin = hot.getPlugin('sheetsBar');
@@ -5132,7 +5133,7 @@ describe('SheetsBar plugin', () => {
       sheetsBar: {
         sheets: [{ name: '<img src=x onerror="window.sheetsBarXss = true">', data: [['a']] }],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.rootWrapperElement.querySelector('.ht-sheets-bar__all').click();
@@ -5154,7 +5155,7 @@ describe('SheetsBar plugin', () => {
           { name: 'C', data: [['c']] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const plugin = hot.getPlugin('sheetsBar');
@@ -5177,7 +5178,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       data: [['a']],
       sheetsBar: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.setCellMeta(0, 0, 'readOnly', true);
@@ -5197,7 +5198,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       data: [['x']],
       sheetsBar: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
@@ -5219,7 +5220,7 @@ describe('SheetsBar plugin', () => {
   it('exposes menu popup semantics on the all-sheets button and on the tab itself', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'Alpha', data: [['a']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
@@ -5249,7 +5250,7 @@ describe('SheetsBar plugin', () => {
   it('sets `aria-expanded` back to `false` on the anchor when its menu closes', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const openSpy = jest.spyOn(Menu.prototype, 'open');
@@ -5284,7 +5285,7 @@ describe('SheetsBar plugin', () => {
         sheets: [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }],
         uiContainer: uiHost,
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const bar = uiHost.querySelector('.ht-sheets-bar');
@@ -5315,7 +5316,7 @@ describe('SheetsBar plugin', () => {
   it('labels the rename input and restores focus to the tab on Enter and Escape', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'Alpha', data: [['a']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
@@ -5349,7 +5350,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       data: [['a']],
       sheetsBar: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('sheetsBar').addSheet('Extra');
@@ -5363,7 +5364,7 @@ describe('SheetsBar plugin', () => {
 
     hot = new Handsontable(container, {
       sheetsBar: { sheets },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('sheetsBar').addSheet('Extra');
@@ -5383,7 +5384,7 @@ describe('SheetsBar plugin', () => {
           { name: 'B', data: dataB },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('sheetsBar').addSheet('Extra');
@@ -5408,7 +5409,7 @@ describe('SheetsBar plugin', () => {
 
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: dataA, settings: { readOnly: true } }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('sheetsBar').addSheet('Extra');
@@ -5431,7 +5432,7 @@ describe('SheetsBar plugin', () => {
         ],
         activeSheet: 0,
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(hot.getDataAtCell(0, 0)).toBe('A-0-0');
@@ -5457,7 +5458,7 @@ describe('SheetsBar plugin', () => {
 
     hot = new Handsontable(container, {
       sheetsBar: { sheets },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const idB = sheetsBar.getSheets()[1].id;
@@ -5475,7 +5476,7 @@ describe('SheetsBar plugin', () => {
           { name: 'B', data: [['x', 'y', 'z']] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(hot.getSettings().fixedColumnsStart).toBe(2);
@@ -5489,7 +5490,7 @@ describe('SheetsBar plugin', () => {
   it('does not carry a runtime freeze into a rebuilt workbook', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a', 'b', 'c']] }, { name: 'B', data: [['x', 'y', 'z']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.updateSettings({ fixedColumnsStart: 2 });
@@ -5507,7 +5508,7 @@ describe('SheetsBar plugin', () => {
   it('switches back to a previously requested activeSheet through a partial payload', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
@@ -5521,7 +5522,7 @@ describe('SheetsBar plugin', () => {
   it('keeps the workbook when a partial updateSettings payload only touches a UI key', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('sheetsBar').addSheet('Extra');
@@ -5533,7 +5534,7 @@ describe('SheetsBar plugin', () => {
   it('switches the active sheet without a rebuild when a payload only changes activeSheet', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('sheetsBar').addSheet('Extra');
@@ -5549,7 +5550,7 @@ describe('SheetsBar plugin', () => {
   it('keeps the active sheet by name across a genuine rebuild', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('sheetsBar').setActiveSheet('B');
@@ -5569,7 +5570,7 @@ describe('SheetsBar plugin', () => {
           { name: 'B', data: [['x', 'y', 'z']] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(hot.getSettings().fixedColumnsStart).toBe(2);
@@ -5591,7 +5592,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       data: [['a']],
       sheetsBar: { sheets: ['Budget', 'Notes'] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('"sheets" option is not valid'));
@@ -5608,7 +5609,7 @@ describe('SheetsBar plugin', () => {
       sheetsBar: {
         sheets: [{ name: 'Data', data: [[1]], settings: { formulas: { engine, sheetName: 'Data' } } }],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
     const id = sheetsBar.getSheets()[0].id;
@@ -5622,7 +5623,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       data: [['a']],
       sheetsBar: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('sheetsBar').addSheet('Extra');
@@ -5637,7 +5638,7 @@ describe('SheetsBar plugin', () => {
     hot = new Handsontable(container, {
       data: [['a']],
       sheetsBar: { sheets: 'nope', paging: 'yes' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const warnings = warnSpy.mock.calls.map(args => String(args[0]));
@@ -5683,7 +5684,7 @@ describe('SheetsBar plugin', () => {
       hot = new Handsontable(container, {
         dataProvider: makeProvider(),
         sheetsBar: { sheets: [{ name: 'Notes', data: [[1]] }, { name: 'Other', data: [[2]] }] },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -5709,7 +5710,7 @@ describe('SheetsBar plugin', () => {
             { name: 'Notes', data: [[1]] },
           ],
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -5732,7 +5733,7 @@ describe('SheetsBar plugin', () => {
             { name: 'Notes', data: [[1]] },
           ],
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -5755,7 +5756,7 @@ describe('SheetsBar plugin', () => {
             { name: 'Notes', data: [[1]] },
           ],
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -5777,7 +5778,7 @@ describe('SheetsBar plugin', () => {
             { name: 'Orders', data: [] },
           ],
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -5801,7 +5802,7 @@ describe('SheetsBar plugin', () => {
             { name: 'Notes', data: [[1]] },
           ],
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -5835,7 +5836,7 @@ describe('SheetsBar plugin', () => {
         afterUpdateSettings(settings) {
           payloads.push(Object.keys(settings));
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -5864,7 +5865,7 @@ describe('SheetsBar plugin', () => {
 
       hot = new Handsontable(container, {
         sheetsBar: { sheets: buildSheets() },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.updateSettings({ sheetsBar: { sheets: buildSheets() } });
@@ -5888,7 +5889,7 @@ describe('SheetsBar plugin', () => {
       hot = new Handsontable(container, {
         data: [[1]],
         sheetsBar: true,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.addHook('afterUpdateSettings', settings => payloads.push(Object.keys(settings)));
@@ -5919,7 +5920,7 @@ describe('SheetsBar plugin', () => {
             { name: 'Customers', data: [], settings: { dataProvider: makeProvider() } },
           ],
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -5939,7 +5940,7 @@ describe('SheetsBar plugin', () => {
       hot = new Handsontable(container, {
         dataProvider: makeProvider(),
         sheetsBar: true,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const gateWarnings = warnSpy.mock.calls.filter(args => String(args[0]).includes('grid-level `dataProvider`'));
@@ -5977,7 +5978,7 @@ describe('SheetsBar plugin', () => {
 
       hot = new Handsontable(container, {
         sheetsBar: { sheets: [{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }] },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -6011,7 +6012,7 @@ describe('SheetsBar plugin', () => {
             contexts.push(owner.current()?.getContext() ?? null);
           }
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       contexts.length = 0;
@@ -6026,7 +6027,7 @@ describe('SheetsBar plugin', () => {
 
       hot = new Handsontable(container, {
         sheetsBar: { sheets },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -6060,7 +6061,7 @@ describe('SheetsBar plugin', () => {
 
       hot = new Handsontable(container, {
         sheetsBar: { sheets: [{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }, { name: 'C', data: [[3]] }] },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -6085,7 +6086,7 @@ describe('SheetsBar plugin', () => {
 
       hot = new Handsontable(container, {
         sheetsBar: { sheets: [{ name: 'A', data: [[1, 2]] }, { name: 'B', data: [[3, 4]] }] },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -6117,7 +6118,7 @@ describe('SheetsBar plugin', () => {
             { name: 'Notes', data: [[1]] },
           ],
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
       await new Promise(resolve => queueMicrotask(resolve));
 
@@ -6136,7 +6137,7 @@ describe('SheetsBar plugin', () => {
 
       hot = new Handsontable(container, {
         sheetsBar: { sheets: [{ name: 'Orders', data: [[1]] }] },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -6158,7 +6159,7 @@ describe('SheetsBar plugin', () => {
             { name: 'Notes', data: [[1]] },
           ],
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');

@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable';
 import exportItem from '../contextMenuItem/exportItem';
 import { isItemHidden } from '../../contextMenu/menu/utils';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * Builds a grid with the given `exportFile` settings and returns the "To Excel" sub-item
@@ -17,7 +18,7 @@ function setup(exportFileSettings) {
   const hot = new Handsontable(container, {
     data: [[1, 2], [3, 4]],
     exportFile: exportFileSettings,
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
   });
   const descriptor = exportItem(hot.getPlugin('exportFile'));
   const [csvItem, xlsxItem] = descriptor.submenu.items;
@@ -107,7 +108,7 @@ describe('ExportFile context menu: removing only the "To Excel" sub-item', () =>
       data: [[1, 2], [3, 4]],
       contextMenu: true,
       exportFile: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...extraSettings,
     });
 

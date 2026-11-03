@@ -50,6 +50,7 @@
       width: 600px !important;
     }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -111,7 +112,7 @@
         }
       },
       layoutDirection: htParams.get('rtl') ? 'rtl' : 'ltr',
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     window.hot = hot;

@@ -3,6 +3,7 @@ import Handsontable from 'handsontable';
 import { Component, EnvironmentInjector } from '@angular/core';
 import { BaseEditorAdapter } from './base-editor-adapter';
 import { HotCellEditorComponent } from './hot-cell-editor.component';
+import { TEST_LICENSE_KEY } from '../test-helpers/license-key';
 
 /**
  * A component editor whose focusable control is a plain `<input>`. The adapter appends its
@@ -48,7 +49,7 @@ describe('An Angular component editor whose input takes the browser focus', () =
     document.body.appendChild(container);
 
     instance = new Handsontable(container, <Handsontable.GridSettings>{
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       columns: [column],
       data: [['A1'], ['A2']],
     });

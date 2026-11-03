@@ -4,6 +4,7 @@ import { Component, EnvironmentInjector } from '@angular/core';
 import { BaseEditorAdapter } from './base-editor-adapter';
 type CellProperties = Handsontable.CellProperties;
 import { HotCellEditorComponent } from './hot-cell-editor.component';
+import { TEST_LICENSE_KEY } from '../test-helpers/license-key';
 
 @Component({
   selector: 'hot-mock-custom-editor',
@@ -38,7 +39,7 @@ describe('BaseEditorAdapter', () => {
     };
 
     const settings = <Handsontable.GridSettings>{
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       columns: [column],
       data: [[1]],
     };

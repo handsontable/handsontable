@@ -3,6 +3,7 @@ import { createTheme } from 'handsontable/themes/engine/builder';
 import mainIcons from 'handsontable/themes/static/variables/icons/main';
 import mainColors from 'handsontable/themes/static/variables/colors/main';
 import mainTokens from 'handsontable/themes/static/variables/tokens/main';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 /**
  * `hot.useTheme('<class name>')` on a grid that runs a theme object must tear the theme manager
@@ -49,7 +50,7 @@ describe('Core.useTheme() after a theme object', () => {
     hot = new Handsontable(container, {
       data: [['a']],
       theme,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     return hot;

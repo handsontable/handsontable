@@ -2,6 +2,7 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { ColumnSorting } from '../columnSorting';
 import { MultiColumnSorting } from '../../multiColumnSorting/multiColumnSorting';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 const DATA = [['Banana'], ['Apple'], ['Cherry']];
 
@@ -41,7 +42,7 @@ describe.each([
   function buildGrid(settings) {
     hot = new Handsontable(container, {
       data: DATA.map(row => [...row]),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

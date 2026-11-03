@@ -1,6 +1,7 @@
 import HyperFormula from 'hyperformula';
 import Handsontable from '../../../../base';
 import { registerAllModules } from '../../../../registry';
+import { TEST_LICENSE_KEY } from '../../../../../test/helpers/licenseKey';
 
 registerAllModules();
 
@@ -29,7 +30,7 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
       data: [[3, 'c'], [1, 'a'], [2, 'b'], [null, null], [null, null]],
       formulas: { engine, sheetName: 'Sheet1' },
       columnSorting: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const sheetId = engine.getSheetId('Sheet1');
@@ -51,7 +52,7 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
       data: [[3, 'c'], [1, 'a'], [2, 'b'], [null, null]],
       formulas: { engine, sheetName: 'Sheet1' },
       columnSorting: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const sheetId = engine.getSheetId('Sheet1');
@@ -70,7 +71,7 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
     hot = new Handsontable(container, {
       data: [['10', '=A1*2'], ['20', '=A2*2'], [null, null]],
       formulas: { engine, sheetName: 'Sheet1' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.rowIndexMapper.setIndexesSequence([2, 1, 0]);
@@ -86,7 +87,7 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
     hot = new Handsontable(container, {
       data: [['10', null, '=A1*2'], ['20', null, '=A2*2'], ['30', null, '=A3*2']],
       formulas: { engine, sheetName: 'Sheet1' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.alter('insert_row_below', hot.countRows() - 1);
@@ -112,7 +113,7 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
     hot = new Handsontable(container, {
       data: [['10', '=A1*2', null], ['20', '=A2*2', null]],
       formulas: { engine, sheetName: 'Sheet1' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.columnIndexMapper.setIndexesSequence([2, 0, 1]);
@@ -127,7 +128,7 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
     hot = new Handsontable(container, {
       data: [['10', null, '=A1*2'], ['20', null, '=A2*2'], ['30', null, '=A3*2']],
       formulas: { engine, sheetName: 'Sheet1' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.alter('insert_col_end');
@@ -154,7 +155,7 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
         formulas: { engine, sheetName: 'Sheet1' },
         manualRowMove: true,
         columnSorting: true,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.rowIndexMapper.setIndexesSequence([2, 1, 0]);
@@ -214,7 +215,7 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
       hot = new Handsontable(container, {
         data: [['10', '=A1*2', null], ['20', '=A2*2', null]],
         formulas: { engine, sheetName: 'Sheet1' },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.columnIndexMapper.setIndexesSequence([2, 0, 1]);
@@ -247,7 +248,7 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
     hot = new Handsontable(container, {
       data: [[1, '=A1*2', null], [2, '=A2*2', null], [3, '=A3*2', null], [null, null, null], [null, null, null]],
       formulas: { engine, sheetName: 'Sheet1' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.rowIndexMapper.setIndexesSequence([2, 1, 0, 4, 3]);
@@ -270,7 +271,7 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
       hot = new Handsontable(container, {
         data,
         formulas: { engine, sheetName: 'Sheet1' },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       return engine;
@@ -323,7 +324,7 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
     hot = new Handsontable(container, {
       data: [row, row.slice()],
       formulas: { engine, sheetName: 'Sheet1' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const sheetId = engine.getSheetId('Sheet1');
@@ -346,7 +347,7 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
       hot = new Handsontable(container, {
         data,
         formulas: { engine, sheetName: 'Sheet1' },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       return engine;
@@ -383,7 +384,7 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
       data: [['10', '=A1*2'], ['20', '=A2*2'], [null, null]],
       formulas: { engine, sheetName: 'Sheet1' },
       manualRowMove: [2, 0, 1],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(hot.getData()).toEqual([[null, null], ['10', 20], ['20', 40]]);
@@ -401,7 +402,7 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
       hot = new Handsontable(container, {
         data: [['10', '=A1*2'], ['20', '=A2*2'], [null, null]],
         formulas: { engine, sheetName: 'Sheet1' },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       return engine;
@@ -455,7 +456,7 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
       hot = new Handsontable(container, {
         data: [['10', '=A1*2'], ['20', '=A2*2'], [null, null]],
         formulas: { engine, sheetName: 'Sheet1' },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const sheetId = engine.getSheetId('Sheet1');
@@ -481,7 +482,7 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
       hot = new Handsontable(container, {
         data: [['10', '=A1*2', null], ['20', '=A2*2', null]],
         formulas: { engine, sheetName: 'Sheet1' },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const sheetId = engine.getSheetId('Sheet1');
@@ -518,7 +519,7 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
       hot = new Handsontable(container, {
         data: [[1, '=ARRAYFORMULA(A1:A2*2)'], [2, null], [null, null]],
         formulas: { engine, sheetName: 'Sheet1' },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const sheetId = engine.getSheetId('Sheet1');
@@ -542,7 +543,7 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
       hot = new Handsontable(container, {
         data: [[1, 2, '=ARRAYFORMULA(A1:B1*2)', null, null]],
         formulas: { engine, sheetName: 'Sheet1' },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const sheetId = engine.getSheetId('Sheet1');
@@ -561,7 +562,7 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
       hot = new Handsontable(container, {
         data: [[1, '=ARRAYFORMULA(A1:A2*2)'], [2, null], [3, null]],
         formulas: { engine, sheetName: 'Sheet1' },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       expect(() => hot.rowIndexMapper.setIndexesSequence([2, 1, 0])).not.toThrow();
@@ -574,7 +575,7 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
       hot = new Handsontable(container, {
         data: [[1, '=ARRAYFORMULA(A1:A2*2)'], [2, null], [3, null], [4, null], [null, null]],
         formulas: { engine, sheetName: 'Sheet1' },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.rowIndexMapper.setIndexesSequence([0, 1, 3, 2, 4]);

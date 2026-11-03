@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 /**
  * The grid width comes from the first row, so a later row can be longer than the grid. The columns `minSpareCols`
@@ -28,7 +29,7 @@ describe('Creating columns in a grid with rows of different length', () => {
    */
   function createGrid(settings) {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

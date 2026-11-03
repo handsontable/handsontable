@@ -11,6 +11,7 @@ import {
   UndoRedo,
 } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(ColumnSummary);
@@ -65,7 +66,7 @@ describe('ColumnSummary with moved columns and rows', () => {
    */
   function createGrid(settings) {
     return new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
   }

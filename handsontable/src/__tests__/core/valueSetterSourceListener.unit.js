@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 registerAllModules();
 
@@ -17,7 +18,7 @@ describe('setSourceDataAtCell with an `afterSetSourceDataAtCell` listener', () =
       afterSetSourceDataAtCell,
       autoRowSize: false,
       autoColumnSize: false,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     valueSetter.mockClear();
@@ -50,7 +51,7 @@ describe('setSourceDataAtCell with an `afterSetSourceDataAtCell` listener', () =
           { valueSetter: value => `${value}+${hot.getSourceDataAtCell(0, 0)}` },
         ],
         autoRowSize: false,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         ...extra,
       });
 

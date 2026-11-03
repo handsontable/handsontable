@@ -5,7 +5,7 @@ import { registerCellType, CheckboxCellType } from 'handsontable/cellTypes';
 import { HotTableModule } from './hot-table.module';
 import { HotTableComponent } from './hot-table.component';
 import { GridSettings } from './models/grid-settings';
-import { NON_COMMERCIAL_LICENSE } from './services/hot-global-config.service';
+import { TEST_LICENSE_KEY } from './test-helpers/license-key';
 
 registerPlugin(RowSelection);
 registerPlugin(CheckboxHeader);
@@ -35,7 +35,7 @@ describe('HotTableComponent with row selection', () => {
    */
   function render(settings: GridSettings) {
     fixture = TestBed.createComponent(HotTableComponent);
-    fixture.componentInstance.settings = { licenseKey: NON_COMMERCIAL_LICENSE, ...settings };
+    fixture.componentInstance.settings = { licenseKey: TEST_LICENSE_KEY, ...settings };
     fixture.componentInstance.data = data.map(row => ({ ...row }));
     fixture.detectChanges();
 

@@ -3,6 +3,7 @@ import { registerCellType, TextCellType } from '../../../cellTypes';
 import { registerPlugin } from '../../registry';
 import { CopyPaste } from '../copyPaste';
 import type { PasteClipboardData } from '../../../core/settings';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerCellType(TextCellType);
 registerPlugin(CopyPaste);
@@ -53,7 +54,7 @@ function createGrid(settings: Record<string, unknown> = {}) {
 
   const hot = new Handsontable(container, {
     data: [['A1', 'B1'], ['A2', 'B2']],
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     ...settings,
   });
 

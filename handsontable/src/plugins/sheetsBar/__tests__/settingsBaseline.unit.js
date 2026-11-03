@@ -2,8 +2,9 @@ import Handsontable from '../../../index';
 import ExportDataProvider from '../../exportFile/dataProvider';
 import BaseType from '../../exportFile/types/_base';
 import { loadFixture } from '../../../utils/xlsxEngine/__tests__/helpers/fixtures';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
-const LICENSE_KEY = 'non-commercial-and-evaluation';
+const LICENSE_KEY = TEST_LICENSE_KEY;
 
 /**
  * Builds a DataProvider configuration whose fetch answers with no rows.

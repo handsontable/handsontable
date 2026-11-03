@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../../test/helpers/licenseKey';
 
 const DEFAULT_ROW_HEIGHT = 29;
 const BORDER_WIDTH = 1;
@@ -36,7 +37,7 @@ describe('TableView: column-header heights dropped on a full render', () => {
     hot = new Handsontable(container, {
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       colHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const probe = hot.view.renderSizeProbe;

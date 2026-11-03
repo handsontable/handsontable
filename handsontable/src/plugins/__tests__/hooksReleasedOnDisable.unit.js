@@ -7,6 +7,7 @@ import { Dialog } from '../dialog/dialog';
 import { Formulas } from '../formulas/formulas';
 import { Loading } from '../loading/loading';
 import { SheetsBar } from '../sheetsBar/sheetsBar';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 describe('Plugin hooks released on disable', () => {
   let container;
@@ -48,7 +49,7 @@ describe('Plugin hooks released on disable', () => {
   ])('releases the hooks the %s plugin owns on disable and registers them again', (pluginKey, settings, hookName) => {
     hot = new Handsontable(container, {
       data: [['1', '2']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const before = hookCount(hookName);
@@ -99,7 +100,7 @@ describe('Plugin hooks released on disable', () => {
     hot = new Handsontable(container, {
       ...initialSettings,
       data: [['1', '2']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const before = totalHookCount();

@@ -40,6 +40,13 @@ const SIZE_SETTING_KEYS = new Set<string>(['rowHeights', 'minRowHeights', 'colWi
 export const DATA_BINDING_SOURCE = 'dataBinding';
 
 /**
+ * Settings that core resets only on `null`. Core reads `undefined` as "leave the current size", so a
+ * `height` or `width` that goes from a value to `undefined` is forwarded as `null`, which restores the
+ * root element's initial inline size.
+ */
+const CLEARED_BY_NULL_SETTINGS = ['height', 'width'] as const;
+
+/**
  * Checks whether a hook value holds a callback core registers: a function or an array of them.
  *
  * @param value The hook value.
@@ -133,6 +140,13 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
    * input, because an app may delete the key from that object before passing a copy.
    */
   private _passedHookKeys = new Set<string>();
+  /**
+   * The `height` and `width` keys whose size the grid holds from a `settings` input: passed a value, and
+   * not cleared since (a key left out of a later input keeps its size, so it stays listed). Only these
+   * are sent as `null` when an input sets them to `undefined`, so a size the app set through
+   * `hotInstance.updateSettings()` stays when the input never passed one.
+   */
+  private _passedClearedByNullKeys = new Set<string>();
 
   constructor(
     private _hotSettingsResolver: HotSettingsResolver,
@@ -184,6 +198,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
     }
 
     this._passedHookKeys = this.collectHookKeys(options);
+    this._passedClearedByNullKeys = this.collectClearedByNullKeys(options);
 
     const negotiatedSettings = this.getNegotiatedSettings(options);
     options = { ...options, ...negotiatedSettings, ...(this.data != null ? { data: this.data } : {}) };
@@ -231,6 +246,8 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
 
       this.clearRemovedHooks(newOptions);
       this._passedHookKeys = this.collectHookKeys(newOptions);
+      this.clearUnsetSizes(newOptions);
+      this._passedClearedByNullKeys = this.collectClearedByNullKeys(newOptions, this._passedClearedByNullKeys);
 
       // updateHotTable closes any active editor via HOT.updateSettings before we destroy old refs.
       this.updateHotTable(newOptions);
@@ -326,6 +343,40 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
         newOptions[key] = null;
       }
     });
+  }
+
+  /**
+   * Sets to `null` each of `height` and `width` that the component last passed a value for and the new
+   * settings set to `undefined`, so `updateSettings()` resets the root element's size. A key missing from
+   * the new object is left out of the payload, and the grid keeps its size.
+   *
+   * @param newOptions The settings about to be applied. Changed in place.
+   */
+  private clearUnsetSizes(newOptions: Handsontable.GridSettings): void {
+    Object.keys(newOptions).forEach((key) => {
+      if (this._passedClearedByNullKeys.has(key) && newOptions[key] === undefined) {
+        newOptions[key] = null;
+      }
+    });
+  }
+
+  /**
+   * Lists which of `height` and `width` hold a size the component applied: the keys the settings pass a
+   * value for, and the previously listed keys the settings leave out, because the grid keeps that size.
+   *
+   * @param settings The settings to read.
+   * @param previousKeys The keys listed for the previous settings.
+   * @returns The setting names.
+   */
+  private collectClearedByNullKeys(
+    settings: Handsontable.GridSettings,
+    previousKeys: Set<string> = new Set()
+  ): Set<string> {
+    const ownKeys = new Set(Object.keys(settings));
+
+    return new Set(CLEARED_BY_NULL_SETTINGS.filter(key => (
+      ownKeys.has(key) ? settings[key] !== undefined && settings[key] !== null : previousKeys.has(key)
+    )));
   }
 
   /**

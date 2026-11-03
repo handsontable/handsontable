@@ -3,6 +3,7 @@ import { validateSettings, settingsSchema } from 'handsontable/settingsSchema';
 import { BasePlugin } from 'handsontable/plugins/base';
 import { registerPlugin } from 'handsontable/plugins/registry';
 import { Hooks } from 'handsontable/core/hooks';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 /**
  * Reduces the problems to their path and code, for the cases that do not pin the wording.
@@ -23,7 +24,7 @@ describe('validateSettings', () => {
       stretchH: 'all',
       height: 'auto',
       width: 400,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       columns: [
         { type: 'text' },
         { type: 'numeric', numericFormat: { pattern: '0,0.00' }, readOnly: true },
@@ -502,7 +503,7 @@ describe('validateSettings', () => {
 
   it('should accept the internal keys of a settings object and the license key', () => {
     expect(validateSettings({
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       preventWheel: false,
       _userDefinedMetaProps: new Set(),
     }).problems).toEqual([]);
@@ -596,7 +597,7 @@ describe('validateSettings', () => {
     const hot = new Handsontable(container, {
       data: [{ name: 'A', age: 1 }],
       filters: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(validateSettings({ columns: [{ data: 'name' }, { data: 'agee' }] }, { hot }).problems).toEqual([
@@ -623,7 +624,7 @@ describe('validateSettings', () => {
       colHeaders: true,
       rowHeaders: true,
       columns: [{}, { type: 'numeric' }, { type: 'checkbox' }],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const settings = hot.getSettings();
     const ownSettings = {};
@@ -661,7 +662,7 @@ describe('validateSettings', () => {
       ...(option === 'sheetsBar' ? {} : { data: Handsontable.helper.createSpreadsheetData(30, 3) }),
       colHeaders: true,
       [option]: value,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const ownSettings = {};
 
@@ -936,7 +937,7 @@ describe('validateSettings', () => {
 
     document.body.appendChild(container);
 
-    const hot = new Handsontable(container, { data: [{ name: 'A' }], licenseKey: 'non-commercial-and-evaluation' });
+    const hot = new Handsontable(container, { data: [{ name: 'A' }], licenseKey: TEST_LICENSE_KEY });
 
     hot.destroy();
     container.remove();

@@ -47,11 +47,12 @@ export type { BorderSettings, BorderObject };
 type BorderSide = 'top' | 'bottom' | 'start' | 'end';
 
 /**
- * `HotInstance` with the `_removeCellMetaByPhysicalIndex` method, which exists on the Core runtime
- * object but is not part of the `HotInstance` type.
+ * `HotInstance` with the `_removeCellMetaByPhysicalIndex` and `_setCellMetaByPhysicalIndex` methods,
+ * which exist on the Core runtime object but are not part of the `HotInstance` type.
  */
 type HotInstanceInternal = HotInstance & {
   _removeCellMetaByPhysicalIndex(physicalRow: number, physicalColumn: number, key: string): void;
+  _setCellMetaByPhysicalIndex(physicalRow: number, physicalColumn: number, key: string, value: unknown): void;
 };
 
 /**
@@ -415,6 +416,10 @@ export class CustomBorders extends BasePlugin {
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
     this.addHook('beforeLoadData', this.#onBeforeDataReplacement);
     this.addHook('beforeUpdateData', this.#onBeforeDataReplacement);
+    // Ahead of the application's own `afterLoadData` listeners: one that trims or filters (to re-apply a
+    // saved filter) marks a model rebuild from the meta, and that rebuild must not see the meta
+    // `loadData` just dropped. The registration order moves on `updatePlugin()`, the order index does not.
+    this.addHook('afterLoadData', this.#onAfterLoadData, -1);
 
     this.#declaredBordersOwed = true;
 
@@ -1049,6 +1054,17 @@ export class CustomBorders extends BasePlugin {
       return;
     }
 
+    this.#dropBorderFromModel(row, column);
+  }
+
+  /**
+   * Drops the border of a cell from the model, the row index and the rendered selections. The
+   * meta is not touched: callers have already removed it, or know it is gone.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   */
+  #dropBorderFromModel(row: number, column: number) {
     const borderId = createId(row, column);
 
     this.spliceBorder(borderId);
@@ -2221,6 +2237,40 @@ The border style will be ignored.`);
   };
 
   /**
+   * `afterLoadData` hook callback. `loadData` drops the cell meta and keeps the model, so the border
+   * stays drawn while its `borders` meta is gone, and the next rebuild from the meta (a trim, an
+   * untrim, a filter) found nothing and emptied the model. Writing the model back into the meta
+   * makes the two agree again, so the border survives what it survived before the rebuild existed.
+   *
+   * This is a restore, not an edit, so it writes through `_setCellMetaByPhysicalIndex`: no
+   * `beforeSetCellMeta`/`afterSetCellMeta` hook fires (an application that blocks `borders` edits on locked
+   * cells, or marks a document dirty on a meta write, sees nothing), nothing can be vetoed, and the model
+   * is never changed here. An entry past the loaded data gets its meta too, at the raw index `setCellMeta`
+   * would use, so a later `updateData()` that regrows the grid finds model and meta in agreement.
+   *
+   * The model is read without flushing a pending rebuild: one made after `#onBeforeDataReplacement`
+   * would read the meta `loadData` just dropped, and this hook runs ahead of the listeners that can
+   * make one. A `_applySettingsAndData()` call that declares `customBorders` replaces the model in its own
+   * `onDataReady()`, so there is nothing to restore.
+   */
+  #onAfterLoadData = () => {
+    if (this.hasDeferredDataWork()) {
+      return;
+    }
+
+    const rowCount = this.hot.countRows();
+    const columnCount = this.hot.countCols();
+    const hot = this.hot as HotInstanceInternal;
+
+    arrayEach(this.#savedBorders, (border) => {
+      const physicalRow = border.row < rowCount ? hot.toPhysicalRow(border.row) : border.row;
+      const physicalColumn = border.col < columnCount ? hot.toPhysicalColumn(border.col) : border.col;
+
+      hot._setCellMetaByPhysicalIndex(physicalRow, physicalColumn, 'borders', denormalizeBorder(border));
+    });
+  };
+
+  /**
    * `afterFilter` hook callback. A filter changes which record sits at each visual row, while the
    * model keeps the visual coordinates a border was set at. Rebuilding from the `borders` meta
    * (stored by physical coordinates) moves every border back onto its record, and gives a border
@@ -2368,13 +2418,7 @@ The border style will be ignored.`);
     }
 
     this.#flushPendingModelRebuild();
-
-    const borderId = createId(row, column);
-
-    this.spliceBorder(borderId);
-    this.#unindexBorderByRow(row, borderId);
-    this.#dropOutgoingBorder(row, borderId);
-    this.#destroyBorderSelection(borderId);
+    this.#dropBorderFromModel(row, column);
   };
 
   /**

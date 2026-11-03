@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, BasePlugin, UndoRedo } from 'handsontable/plugins';
 import { registerAllModules } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 const EARLY_KEY = 'initSequenceEarlyProbe';
 const LATE_KEY = 'initSequenceLateProbe';
@@ -143,7 +144,7 @@ describe('BasePlugin init sequence', () => {
   it('should run a `beforeInit` listener a plugin adds in its constructor after the plugins are enabled', () => {
     const hot = new Handsontable(createRoot(), {
       [LATE_KEY]: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     grids.push(hot);
@@ -157,7 +158,7 @@ describe('BasePlugin init sequence', () => {
      '`orderIndex`', () => {
     const hot = new Handsontable.Core(createRoot(), {
       [LATE_KEY]: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const seen = [];
 
@@ -179,7 +180,7 @@ describe('BasePlugin init sequence', () => {
       columnSorting: true,
       multiColumnSorting: true,
       [LATE_KEY]: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     grids.push(hot);
@@ -192,7 +193,7 @@ describe('BasePlugin init sequence', () => {
     const hot = new Handsontable(createRoot(), {
       [EARLY_KEY]: { enableLateDirectly: true, updateOnEnable: { [LATE_KEY]: false } },
       [LATE_KEY]: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     grids.push(hot);
@@ -205,7 +206,7 @@ describe('BasePlugin init sequence', () => {
     const hot = new Handsontable(createRoot(), {
       [EARLY_KEY]: { enableLateDirectly: true, updateOnEnable: { [LATE_KEY]: { mode: 'changed' } } },
       [LATE_KEY]: { mode: 'declared' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     grids.push(hot);
@@ -218,7 +219,7 @@ describe('BasePlugin init sequence', () => {
   it('should initialize a grid whose plugin was destroyed before `init()`', () => {
     const hot = new Handsontable.Core(createRoot(), {
       [LATE_KEY]: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin(LATE_KEY).destroy();
@@ -233,7 +234,7 @@ describe('BasePlugin init sequence', () => {
     const settings = {
       [EARLY_KEY]: true,
       [LATE_KEY]: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     };
     const first = new Handsontable.Core(createRoot(), settings);
     const second = new Handsontable.Core(createRoot(), settings);
@@ -270,7 +271,7 @@ describe('BasePlugin init sequence', () => {
         activeSheet: 1,
       },
       [LATE_KEY]: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     grids.push(hot);
@@ -286,7 +287,7 @@ describe('BasePlugin init sequence', () => {
     const hot = new Handsontable(createRoot(), {
       [EARLY_KEY]: { updateOnEnable: { [LATE_KEY]: { mode: 'changed' } } },
       [LATE_KEY]: { mode: 'declared' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     grids.push(hot);
@@ -310,7 +311,7 @@ describe('BasePlugin init sequence', () => {
     try {
       hot = new Handsontable(createRoot(), {
         [LATE_KEY]: true,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         beforeInit() {
           log.push([this.guid, 'beforeInit', 'settings', this.getPlugin(LATE_KEY).enabled]);
         },
@@ -337,7 +338,7 @@ describe('BasePlugin init sequence', () => {
     const hot = new Handsontable(createRoot(), {
       [EARLY_KEY]: { updateOnEnable: { [LATE_KEY]: false } },
       [LATE_KEY]: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     grids.push(hot);

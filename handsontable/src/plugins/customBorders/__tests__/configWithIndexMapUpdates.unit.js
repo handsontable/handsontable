@@ -1,4 +1,5 @@
 import Handsontable from '../../../index';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 describe('CustomBorders config applied in the same updateSettings() call as a row or column order change', () => {
   const border = row => ({ row, col: 0, top: { width: 2, color: '#FF0000' } });
@@ -43,7 +44,7 @@ describe('CustomBorders config applied in the same updateSettings() call as a ro
       data: rows(),
       width: 400,
       height: 400,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
   }

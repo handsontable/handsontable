@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, EmptyDataState } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(EmptyDataState);
 
@@ -33,7 +34,7 @@ describe('EmptyDataState ready step', () => {
     hot = new Handsontable(container, {
       colHeaders: true,
       emptyDataState: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

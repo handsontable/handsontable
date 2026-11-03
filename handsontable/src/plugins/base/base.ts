@@ -901,6 +901,18 @@ export class BasePlugin {
   }
 
   /**
+   * Answers whether the plugin owes work to `onDataReady()` (see `deferDataWork()`), and keeps the record.
+   * A listener that runs during the call's load reads it to tell that `onDataReady()` will replace what
+   * the load left, without taking the work away from it.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  hasDeferredDataWork(): boolean {
+    return this.#deferredDataWork;
+  }
+
+  /**
    * Answers whether the plugin owes work to `onDataReady()` (see `deferDataWork()`), and clears the record.
    *
    * @private

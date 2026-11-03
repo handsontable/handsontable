@@ -43,6 +43,7 @@
   <style>
     body { font-family: sans-serif; margin: 1rem; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -119,7 +120,7 @@
         td.setAttribute('data-testid', `cell-${row}-${col}`);
       },
       height: 'auto',
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     // Two sheets on ONE engine instance, of different heights, both three columns wide - while the
@@ -154,7 +155,7 @@
           td.setAttribute('data-testid', `cell-${row}-${col}`);
         },
         height: 'auto',
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     };
 

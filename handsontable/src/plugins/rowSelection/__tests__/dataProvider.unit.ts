@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllModules();
 
@@ -53,7 +54,7 @@ async function createServerGrid(rowSelection: Record<string, unknown> | boolean 
       resolveFetch = null;
       resolve?.();
     },
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
   });
 
   await firstFetch;
@@ -329,7 +330,7 @@ describe('RowSelection with DataProvider', () => {
     const hot = new Handsontable(container, {
       data: [[1], [2]],
       rowSelection: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const plugin = hot.getPlugin('rowSelection');
 

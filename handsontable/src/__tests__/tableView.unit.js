@@ -5,6 +5,7 @@ import { TextCellType } from '../cellTypes/textType/textType';
 import { baseRenderer } from '../renderers/baseRenderer/baseRenderer';
 import { registerRenderer } from '../renderers/registry';
 import { textRenderer } from '../renderers/textRenderer/textRenderer';
+import { TEST_LICENSE_KEY } from '../../test/helpers/licenseKey';
 
 registerCellType(TextCellType);
 registerRenderer(baseRenderer);
@@ -176,7 +177,7 @@ describe('Theme measurements cached against unresolved styles', () => {
       width: 300,
       height: 200,
       colHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     core.init();
 

@@ -1,4 +1,5 @@
 import Handsontable from '../../src/base';
+import { TEST_LICENSE_KEY } from '../helpers/licenseKey';
 
 /**
  * Pins the Jest-only `window.scrollTo` stub (see `test/jsdomWindowScroll.js`).
@@ -27,7 +28,7 @@ describe('jsdom window.scrollTo stub', () => {
 
     const hot = new Handsontable(container, {
       data: Array.from({ length: 50 }, (_, row) => Array.from({ length: 20 }, (__, col) => `${row}-${col}`)),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.selectCell(40, 15);

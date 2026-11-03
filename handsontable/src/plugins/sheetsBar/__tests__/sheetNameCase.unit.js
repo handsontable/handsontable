@@ -1,4 +1,5 @@
 import HyperFormula from 'hyperformula';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 describe('SheetsBar sheet name matching on a host whose locale tailors lower case', () => {
   let container;
@@ -32,7 +33,7 @@ describe('SheetsBar sheet name matching on a host whose locale tailors lower cas
 
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [bound('Report', report), bound('items', [[7]])] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const bar = hot.getPlugin('sheetsBar');

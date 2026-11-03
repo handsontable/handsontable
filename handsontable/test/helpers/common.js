@@ -1,5 +1,6 @@
 import { waitOnScroll } from './utils';
 import { E2E_REGISTERED_THEME_KEYS, themeLayoutFromTokens } from './themeLayoutFromTokens';
+import { TEST_LICENSE_KEY } from './licenseKey';
 /**
  * When `true` the test suite will not scroll to the top of the page before each test and
  * the spec will be not cleared which allows calling test helpers (`selectCell()` etc.) from
@@ -251,6 +252,8 @@ export function getThemeLayout() {
 }
 
 export { E2E_REGISTERED_THEME_KEYS };
+// Re-exported so the Jasmine specs read it as a global (`helpers/index.js` puts this module on `window`).
+export { TEST_LICENSE_KEY };
 
 /**
  * Absolute URL for `lib/normalize.css` (E2E iframe `doc.write` shells; `about:blank` needs this).
@@ -889,7 +892,7 @@ export function handsontable(options, explicitOptions = false, container = spec(
       options = {};
     }
 
-    options.licenseKey = 'non-commercial-and-evaluation';
+    options.licenseKey = TEST_LICENSE_KEY;
   }
 
   container.handsontable(options);

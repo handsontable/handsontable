@@ -1,10 +1,11 @@
 import HyperFormula from 'hyperformula';
 import Handsontable from '../../../../index';
 import AxisSyncer from '../../indexSyncer/axisSyncer';
+import { TEST_LICENSE_KEY } from '../../../../../test/helpers/licenseKey';
 
 const ROWS = 2000;
 const CONTENT_ROWS = 10;
-const LICENSE_KEY = 'non-commercial-and-evaluation';
+const LICENSE_KEY = TEST_LICENSE_KEY;
 
 const buildData = (rows = ROWS) => {
   const data = [];

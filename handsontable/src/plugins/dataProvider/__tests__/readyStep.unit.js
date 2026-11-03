@@ -1,6 +1,7 @@
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { DataProvider } from '../dataProvider';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 const flush = () => new Promise(resolve => queueMicrotask(resolve));
 
@@ -60,7 +61,7 @@ describe('DataProvider ready step', () => {
    */
   function buildGrid(settings) {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       columns: [{ data: 'id' }, { data: 'name' }],
       ...settings,
     });

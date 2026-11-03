@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 /**
  * Two writes to one cell that wait on an async validator land in the order the writes were made,
@@ -49,7 +50,7 @@ describe('Core validation of writes to the same cell', () => {
           edits.push(changes);
         }
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

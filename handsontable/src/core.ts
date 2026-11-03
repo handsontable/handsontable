@@ -4178,7 +4178,9 @@ export default function Core(
    * @fires Hooks#afterListen
    */
   this.listen = function() {
-    if (instance && !instance.isListening()) {
+    // `destroy()` takes the instance out of the registry before it destroys the plugins, and a plugin
+    // that hands the keyboard back while it tears down must not take it from another grid.
+    if (instance && !instance.isListening() && foreignHotInstances.has(instance.guid)) {
       foreignHotInstances.forEach((foreignHot) => {
         if (instance !== foreignHot) {
           foreignHot.unlisten();
@@ -5076,6 +5078,8 @@ export default function Core(
    * - Keeps cells' states (e.g. cells' [formatting](@/guides/cell-features/formatting-cells/formatting-cells.md) and cells' [`readOnly`](@/api/options.md#readonly) states)
    * - Keeps rows' states (e.g. row order)
    * - Keeps columns' states (e.g. column order)
+   * - Keeps the sorted row order and the trimmed rows. It does not sort or filter the new values again. To apply them, call `sort(getSortConfig())` of the `ColumnSorting` or `MultiColumnSorting` plugin, or `filter()` of the `Filters` plugin.
+   * - Clears the undo and redo history of the `UndoRedo` plugin.
    *
    * To replace Handsontable's [`data`](@/api/options.md#data) and reset states, use the [`loadData()`](#loaddata) method.
    *
@@ -5190,6 +5194,11 @@ export default function Core(
    * - Resets cells' states (e.g. cells' [formatting](@/guides/cell-features/formatting-cells/formatting-cells.md) and cells' [`readOnly`](@/api/options.md#readonly) states)
    * - Resets rows' states (e.g. row order)
    * - Resets columns' states (e.g. column order)
+   * - Resets sorting, filters, the rows you trimmed, and the rows and columns you moved, hid, or resized at runtime.
+   * - Applies again the state that these options declare: `hiddenRows`, `hiddenColumns`, `trimRows`, `manualRowMove`, `manualColumnMove`, `manualRowResize`, and `manualColumnResize` (for example `hiddenRows: { rows: [2] }`). Sorting that `initialConfig` of `columnSorting` or `multiColumnSorting` declares is not applied again.
+   * - Drops the cell metadata from the `cell` option, although `getSettings().cell` still lists it. Metadata from `columns` stays.
+   * - Clears the undo and redo history of the `UndoRedo` plugin.
+   * - Keeps the settings, the selection (limited to the size of the new data), and merged cells.
    *
    * To replace Handsontable's [`data`](@/api/options.md#data) without resetting states, use the [`updateData()`](#updatedata) method.
    *
@@ -7975,6 +7984,34 @@ export default function Core(
     operationScope.run('remove_cell_meta', undefined, () => {
       writeCellMetaChange(physicalRow, physicalColumn, key, () => {
         metaManager.removeCellMeta(physicalRow, physicalColumn, key);
+      });
+    });
+  };
+
+  /**
+   * Writes a cell meta key by the PHYSICAL coordinates it is stored under, journaled for undo like
+   * {@link Core#setCellMeta}, and fires no `beforeSetCellMeta`/`afterSetCellMeta` hook, so it cannot be
+   * vetoed. It exists for a plugin that puts back meta it already owns, where the write is not an edit
+   * the application made: the plugin writes the same record the model already describes, and a listener
+   * that marks a document dirty or blocks edits on locked cells has nothing to act on.
+   *
+   * Internal API: deliberately NOT declared on the public `HotInstance` type, the same way
+   * `_removeCellMetaByPhysicalIndex` is not.
+   *
+   * @private
+   * @memberof Core#
+   * @function _setCellMetaByPhysicalIndex
+   * @param {number} physicalRow Physical row index.
+   * @param {number} physicalColumn Physical column index.
+   * @param {string} key The property name to set.
+   * @param {*} value The value to write.
+   */
+  this._setCellMetaByPhysicalIndex = function(
+    physicalRow: number, physicalColumn: number, key: string, value: unknown
+  ) {
+    operationScope.run('set_cell_meta', undefined, () => {
+      writeCellMetaChange(physicalRow, physicalColumn, key, () => {
+        metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
       });
     });
   };

@@ -56,6 +56,7 @@
     .ht_clone_top thead th { background-color: #00ff00 !important; }
     .ht_clone_bottom tbody td { background-color: #ff8000 !important; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -115,7 +116,7 @@
       manualRowResize: true,
       manualColumnResize: true,
       renderer: testIdRenderer,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
   </script>
 </body>
