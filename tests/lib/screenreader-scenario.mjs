@@ -71,6 +71,15 @@ export const LANE_PRIMITIVES = Object.freeze({
  */
 export const STARTS = ['grid', 'page'];
 /**
+ * The scenario groups a lane job runs one of. Guidepup runs one scenario at a time per machine, so a
+ * project's scenarios run in series; once a project's run passes 15 minutes its scenarios split into
+ * groups, each a matrix entry of `.github/workflows/screenreader.yml` with its own job, check run and
+ * artifacts (`tests/AGENTS.md`, "Screen readers"). `keyboard`: what a keyboard user does in the grid and
+ * its surfaces. `reading`: the reading-mode traversals, minutes each on VoiceOver. A new group joins
+ * this list and the workflow's matrix together; the workflow test keeps the two equal.
+ */
+export const SCENARIO_GROUPS = ['keyboard', 'reading'];
+/**
  * The modifiers a `press` chord may start with, joined to the key by `+` (`Shift+F10`,
  * `Control+Alt+M`), as Playwright names them.
  */
@@ -119,7 +128,7 @@ const REASON_MINIMUM = 10;
  * The fields a variant (`variantOf`) may set: it is its base's steps on another theme, query or setup, so
  * the steps, the page and the traversal come from the base and stay one copy.
  */
-const VARIANT_FIELDS = new Set(['schema', 'id', 'surface', 'variantOf', 'query', 'setup', 'criteria']);
+const VARIANT_FIELDS = new Set(['schema', 'id', 'surface', 'variantOf', 'query', 'setup', 'criteria', 'group']);
 const PAGE_IDS = new Set(A11Y_PAGES.map(page => page.id));
 
 /**
@@ -214,7 +223,7 @@ export function validateScenario(doc, { fixtures, fileName } = {}) {
   const variant = doc.variantOf !== undefined;
   const known = variant
     ? VARIANT_FIELDS
-    : new Set(['schema', 'id', 'surface', 'page', 'fixture', 'query', 'start', 'criteria', 'setup', 'steps', 'traversal']);
+    : new Set(['schema', 'id', 'surface', 'group', 'page', 'fixture', 'query', 'start', 'criteria', 'setup', 'steps', 'traversal']);
 
   Object.keys(doc).filter(key => !known.has(key)).forEach(key => problems.push(variant
     ? `field "${key}" is not allowed in a variant: a variant takes its base's ${key}, and sets only ${[...VARIANT_FIELDS].join(', ')}`
@@ -240,6 +249,9 @@ export function validateScenario(doc, { fixtures, fileName } = {}) {
     if (new Set(doc.criteria).size !== doc.criteria.length) {
       problems.push('criteria lists a criterion twice');
     }
+  }
+  if (!(variant && doc.group === undefined) && !SCENARIO_GROUPS.includes(doc.group)) {
+    problems.push(`group must be one of ${SCENARIO_GROUPS.join(', ')}, the job that runs the scenario, got ${JSON.stringify(doc.group)}`);
   }
   problems.push(...queryProblems(doc.query));
   if (doc.setup !== undefined) {
@@ -495,11 +507,17 @@ function traversalProblems(traversal, steps) {
   if (ids.indexOf(traversal.from) > ids.indexOf(traversal.to)) {
     problems.push('traversal.from comes after traversal.to');
   }
+  const synonyms = Array.isArray(traversal.items) ? traversal.items.map(item => (Array.isArray(item) ? item : [item])) : [];
+
   if (!Array.isArray(traversal.items) || traversal.items.length === 0
-    || traversal.items.some(item => typeof item !== 'string' || normalizeAnnouncement(item) === '')) {
-    problems.push('traversal.items must be a non-empty array of items, each a string with a fact in it');
-  } else if (new Set(traversal.items.map(item => normalizeAnnouncement(item))).size !== traversal.items.length) {
-    problems.push('traversal.items lists an item twice: each must be announced exactly once, so each is distinct');
+    || synonyms.some(group => group.length === 0 || group.some(item => typeof item !== 'string' || normalizeAnnouncement(item) === ''))) {
+    problems.push('traversal.items must be a non-empty array of items, each a string with a fact in it, or a list of synonyms for one');
+  } else {
+    const all = synonyms.flat().map(item => normalizeAnnouncement(item));
+
+    if (new Set(all).size !== all.length) {
+      problems.push('traversal.items lists an item twice: each must be announced exactly once, so each, and each synonym, is distinct');
+    }
   }
 
   return problems;
@@ -507,7 +525,7 @@ function traversalProblems(traversal, steps) {
 
 /**
  * Resolves the variants of a loaded set: a variant takes its base's page or fixture, start, steps and
- * traversal, and its own id, surface, criteria, query and setup (the base's when it sets none). A variant
+ * traversal, and its own id, surface, criteria, query, setup and group (the base's when it sets none). A variant
  * whose base is missing, or is itself a variant, gets a problem and stays unresolved.
  *
  * @param {{fileName: string, scenario: object|null, problems: string[]}[]} loaded The loaded files.
@@ -530,12 +548,13 @@ export function resolveVariants(loaded) {
       return { ...entry, problems: [`variantOf "${base.id}" is a variant itself: a variant varies a scenario with steps`] };
     }
 
-    const { query, setup } = entry.scenario;
+    const { query, setup, group } = entry.scenario;
     const resolved = {
       ...base,
       ...entry.scenario,
       query: query ?? base.query,
       setup: setup ?? base.setup,
+      group: group ?? base.group,
     };
 
     return { ...entry, scenario: Object.fromEntries(Object.entries(resolved).filter(([, value]) => value !== undefined)) };

@@ -8,7 +8,8 @@
  * `GITHUB_STEP_SUMMARY` is set. It writes the evidence document in the shared shape of the accessibility
  * checks (`lib/screenreader-evidence.mjs`) to `test-results/screenreader/evidence/screen-reader.json`,
  * with a detail file per scenario beside it (every step's record), which the transcripts artifact
- * uploads; a document that does not validate is a tooling problem of the report. With `--check-run` it also posts the check run through the Checks API
+ * uploads; a document that does not validate is a tooling problem of the report. With `--check-run` it
+ * also posts the check run through the Checks API
  * (`lib/github-check-run.mjs`), behind the fork guard in `.github/workflows/screenreader.yml`, with
  * `continue-on-error`: the check run reports, it never decides the job. `--dry-run` prints the
  * payload instead of posting and needs no token.
@@ -16,7 +17,8 @@
  * Environment for the post: `GITHUB_TOKEN` (with `checks: write`), `GITHUB_REPOSITORY`,
  * `SCREENREADER_HEAD_SHA` (the pull request's head on a pull request, `github.sha` otherwise), and
  * optionally `SCREENREADER_REPORT_URL`, `GITHUB_API_URL`, `GITHUB_SERVER_URL` and `GITHUB_RUN_ID`.
- * `SCREENREADER_PROJECT` names the project when the run left no transcript at all.
+ * `SCREENREADER_PROJECT` names the project when the run left no transcript at all, and `SCREENREADER_GROUP`
+ * the scenario group the job ran (the check run's name, the scenarios a transcript is expected for).
  */
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -57,7 +59,10 @@ const lines = new Map(scenarioFiles.map(name => [
   name.slice(0, -SCENARIO_FILE_SUFFIX.length),
   stepLines(readFileSync(path.join(SCENARIOS_DIR, name), 'utf8')),
 ]));
-const scenarios = loadScenarios(SCENARIOS_DIR).filter(entry => entry.scenario && entry.problems.length === 0).map(entry => entry.scenario);
+// The job ran one scenario group (`SCREENREADER_GROUP`, its matrix entry), or every scenario without it.
+const group = env.SCREENREADER_GROUP || undefined;
+const scenarios = loadScenarios(SCENARIOS_DIR).filter(entry => entry.scenario && entry.problems.length === 0).map(entry => entry.scenario)
+  .filter(scenario => group === undefined || scenario.group === group);
 const files = new Map();
 
 // A variant's steps are its base's, so its annotations go on the base's lines.
@@ -86,8 +91,9 @@ evidence.problems.forEach(problem => problems.push(`the evidence document does n
 
 const report = buildReport({
   transcripts,
-  expectedScenarios: [...lines.keys()],
+  expectedScenarios: group === undefined ? [...lines.keys()] : scenarios.map(scenario => scenario.id),
   project: env.SCREENREADER_PROJECT || undefined,
+  group,
   problems,
   reportUrl: env.SCREENREADER_REPORT_URL || undefined,
   runUrl,

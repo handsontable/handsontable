@@ -4,7 +4,7 @@ name: Screen reader nightly
 # on macOS over the scenarios of tests/screenreader/scenarios/; tests/AGENTS.md, "Screen readers: the
 # NVDA and VoiceOver lanes").
 # Report-only: nothing here gates a pull request, the called jobs carry `continue-on-error`, and the
-# verdict is each job's `Screen reader / <project> report` check run and summary. The transcripts
+# verdict is each job's `Screen reader / <project> <group> report` check run and summary. The transcripts
 # this run leaves are the evidence a future version of the Accessibility Conformance Report can cite
 # for what a screen reader announces. It runs on its own schedule rather than inside the pull-request
 # pipeline because a real screen reader on a headed Windows or macOS runner is minutes per browser,
@@ -73,7 +73,7 @@ jobs:
   # purpose: the channel that triages one nightly triages the other. The lane's jobs carry job-level
   # `continue-on-error`, so they report success to this caller whatever happened inside them, and
   # `failure()` here fires only when the UMD build failed or the called workflow could not start. A red
-  # lane job never reaches Slack: its verdict is the `Screen reader / <project> report` check runs.
+  # lane job never reaches Slack: its verdict is the `Screen reader / <project> <group> report` check runs.
   notify:
     name: Notify Slack
     needs: [ screenreader ]

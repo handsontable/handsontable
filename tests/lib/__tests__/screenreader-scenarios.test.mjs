@@ -9,6 +9,7 @@ import {
   LANE_PRIMITIVES,
   PRESS_PATTERN,
   SCENARIO_FILE_SUFFIX,
+  SCENARIO_GROUPS,
   SCREENREADER_LANES,
   SETUP_ACTIONS,
   laneDrives,
@@ -35,6 +36,7 @@ const valid = () => ({
   schema: 1,
   id: 'sample',
   surface: 'A sample surface for the validator.',
+  group: 'keyboard',
   fixture: 'screenreader-grid.html',
   criteria: ['4.1.2'],
   setup: [{ selectCell: [0, 0] }],
@@ -189,6 +191,23 @@ test('a scenario opens exactly one place, names its criteria, and says where the
   assert.match(problems({ query: 'theme=main&theme=horizon' }), /sets theme more than once/);
 });
 
+test('a scenario runs in one group, the job of the lane workflow that runs it, and a variant may move to another', () => {
+  const problems = shape => validateScenario({ ...valid(), ...shape }, { fixtures: FIXTURES, fileName: 'sample.scenario.json' }).join('\n');
+
+  assert.deepEqual([...SCENARIO_GROUPS], ['keyboard', 'reading']);
+  assert.match(problems({ group: undefined }), /group must be one of keyboard, reading/);
+  assert.match(problems({ group: 'slow' }), /group must be one of keyboard, reading/);
+  assert.equal(problems({ group: 'reading' }), '');
+
+  const variant = { schema: 1, id: 'v', surface: 'A variant of the sample.', variantOf: 'sample' };
+  const [, inherited] = resolveVariants([{ fileName: 'sample.scenario.json', scenario: valid(), problems: [] }, { fileName: 'v.scenario.json', scenario: variant, problems: [] }]);
+  const [, moved] = resolveVariants([{ fileName: 'sample.scenario.json', scenario: valid(), problems: [] }, { fileName: 'v.scenario.json', scenario: { ...variant, group: 'reading' }, problems: [] }]);
+
+  assert.deepEqual(validateScenario(variant, { fileName: 'v.scenario.json' }), [], 'a variant without a group runs in its base\'s');
+  assert.equal(inherited.scenario.group, 'keyboard');
+  assert.equal(moved.scenario.group, 'reading');
+});
+
 test('the setup sets the scene: settings, sentinels and a focus, and never a reader command', () => {
   const setup = actions => validateScenario({ ...valid(), setup: actions }, { fixtures: FIXTURES, fileName: 'sample.scenario.json' }).join('\n');
 
@@ -249,6 +268,9 @@ test('a traversal names read steps and items that are each distinct', () => {
   assert.match(traversal({ items: [] }), /items must be a non-empty array/);
   assert.match(traversal({ items: ['A1', 'a1'] }), /lists an item twice/, 'items compare normalized');
   assert.match(traversal({ items: ['.'] }), /each a string with a fact in it/);
+  assert.equal(traversal({ items: [['A1', 'A 1'], 'B1'] }), '', 'an item may be the synonyms of one fact');
+  assert.match(traversal({ items: [['A1', 'A 1'], ['a 1']] }), /each, and each synonym, is distinct/);
+  assert.match(traversal({ items: [[]] }), /or a list of synonyms for one/);
   assert.match(traversal({ every: true }), /traversal: unknown field "every"/);
 });
 

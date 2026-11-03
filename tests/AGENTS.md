@@ -1891,9 +1891,10 @@ optional recording helper depends on a GPL-licensed ffmpeg build, which the depe
 of the lockfile) over the scenarios of `screenreader/scenarios/`, one Playwright project per screen
 reader and browser (`playwright.screenreader.config.ts`: `nvda-chromium`, `nvda-firefox`, `vo-webkit`,
 `vo-chromium`). It writes a transcript per scenario, and `scripts/screenreader-report.mjs` turns the
-transcripts into the job summary and the `Screen reader / <project> report` check run. CI runs it on its
-own nightly (`.github/workflows/screenreader-nightly.yml` calling `screenreader.yml`: NVDA on
-`windows-2025` and VoiceOver on `macos-26`, one job per screen reader and browser), never in the
+transcripts into the job summary, the evidence document and the `Screen reader / <project> <group> report`
+check run. CI runs it on its own nightly (`.github/workflows/screenreader-nightly.yml` calling
+`screenreader.yml`: NVDA on `windows-2025` and VoiceOver on `macos-26`, one job per screen reader,
+browser and scenario group), never in the
 pull-request Tests pipeline. It is the evidence a future version of the Accessibility
 Conformance Report can cite for what a cell, a header, a state and a status message announce (WCAG 1.3.1,
 4.1.2, 4.1.3): the axe scan reads the accessibility tree, this lane reads what a screen reader makes of
@@ -2002,7 +2003,7 @@ screen readers (`docs/AGENTS.md` 2.20).
   (`gh workflow run screenreader-nightly.yml --ref <branch> -f update-goldens=true`): the run records
   every project's goldens on its runner (`HOT_SR_UPDATE_GOLDENS=1`, or Playwright's
   `--update-snapshots` through `npm run test:screenreader:update-goldens`) and uploads them as
-  `screenreader-goldens-<project>`; download, commit under `screenreader/goldens/<project>/`, done.
+  `screenreader-goldens-<project>-<group>`; download, commit under `screenreader/goldens/<project>/`, done.
   The dispatch runs every job, so it records the NVDA goldens too: commit only the projects the change
   is about. A run with `update-goldens` compares nothing and reports `recorded`. A golden pins the wording
   as recorded, a finding included: a step NVDA stays silent on is an empty string in it, and a wrong
@@ -2028,8 +2029,8 @@ screen readers (`docs/AGENTS.md` 2.20).
   nothing from it), and the test stays red; the report reads it as a tooling problem ("scenario <id>
   stopped at step <step>") and still shows the captured steps. Each attempt deletes the scenario's
   transcript before it starts, so a retry never leaves the previous attempt's file behind. CI uploads
-  the directory as `screenreader-transcripts-<project>` and the Playwright report as
-  `screenreader-playwright-report-<project>`, both outside the `playwright-report-*` glob the
+  the directory as `screenreader-transcripts-<project>-<group>` and the Playwright report as
+  `screenreader-playwright-report-<project>-<group>`, both outside the `playwright-report-*` glob the
   flake ledger reads, and the config has no JSON reporter, so nothing here becomes a flake record.
 - **The NVDA reader enters the page the way a user does, and its mode follows the primitive.** The NVDA
   reader calls `navigateToWebContent()` (the browser window focused, the reader at the top of the
@@ -2108,6 +2109,20 @@ screen readers (`docs/AGENTS.md` 2.20).
   osascript and the recorder running. A setup still red after all three is the runner: re-run that job
   from its page. Slack never hears of it (the job carries `continue-on-error`); Slack hears only of a
   nightly whose build never reached the lanes. The workflow test pins the three attempts.
+- **A project's scenarios split into groups once its run passes 15 minutes.** Guidepup runs one scenario
+  at a time per machine, so a project's run grows with every scenario: a step costs about a second and a
+  half on NVDA and four to five seconds on VoiceOver, a silent one on VoiceOver about thirteen. Each
+  scenario names its `group` (`SCENARIO_GROUPS` in `lib/screenreader-scenario.mjs`: `keyboard` for what a
+  keyboard user does in the grid and its surfaces, `reading` for the reading-mode traversals), each group is
+  a matrix entry of both jobs in `.github/workflows/screenreader.yml` with its own job, `HOT_SR_GROUP`,
+  artifacts (`screenreader-transcripts-<project>-<group>`, `screenreader-goldens-<project>-<group>`) and
+  check run (`Screen reader / <project> <group> report`), and a run without `HOT_SR_GROUP` (a local one)
+  runs every group. When a group's job passes 15 minutes on any project, split it: a new group joins the
+  list and both `group:` matrix lines together (the workflow test reads the list), and the scenarios move
+  in the same change. Keep each scenario under the config's five-minute test timeout too: size a
+  traversal's reads to what the readers need, because VoiceOver's reads past the end of a table are
+  silent and each costs a whole silence window. Bound a slow step with a step timeout, never a job
+  timeout (below).
 - **A screen reader is one per machine, so the lane is serial and headed.** `withGuidepup()` pins one
   worker, no parallelism and `headless: false` on every project; the matrix gives each browser its own
   job. The spec adds no serial mode on top: it would skip every scenario after a red one and re-run the

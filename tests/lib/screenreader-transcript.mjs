@@ -153,7 +153,8 @@ function occurrences(normalized, item) {
  * `steps`, so the verdict reads what the lane read.
  *
  * @param {{id: string, normalized: string}[]} steps The steps the run captured, in order.
- * @param {{from: string, to: string, items: string[]}} traversal The scenario's traversal.
+ * @param {{from: string, to: string, items: (string|string[])[]}} traversal The scenario's traversal: each item a
+ * string, or the synonyms of one item (`["A1", "A 1"]`), which a reader may say in either way.
  * @returns {{passed: boolean, steps: string[], items: {item: string, count: number, firstStep: string|null}[], outOfOrder: string[]}} The verdict.
  */
 export function matchTraversal(steps, traversal) {
@@ -172,8 +173,12 @@ export function matchTraversal(steps, traversal) {
     return { id: step.id, at };
   });
   const text = read.map(step => step.normalized).join(' | ');
-  const items = traversal.items.map((item) => {
-    const found = occurrences(text, normalizeAnnouncement(item));
+  const items = traversal.items.map((entry) => {
+    // An item is one fact, said in one of its synonyms (`["A1", "A 1"]`: NVDA spells a cell reference
+    // apart): every synonym's occurrences count, and the first synonym names the item.
+    const synonyms = Array.isArray(entry) ? entry : [entry];
+    const item = synonyms[0];
+    const found = [...new Set(synonyms.flatMap(synonym => occurrences(text, normalizeAnnouncement(synonym))))].sort((a, b) => a - b);
     const first = found.length > 0 ? found[0] : null;
 
     return {

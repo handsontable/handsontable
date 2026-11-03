@@ -2,6 +2,7 @@
   "schema": 1,
   "id": "grid-core-single-tab-stop",
   "surface": "The grid as one tab stop (tabNavigation: false): Tab leaves the grid from any cell, Shift+Tab returns to the cell it left, and the arrows still move inside.",
+  "group": "keyboard",
   "fixture": "screenreader-grid.html",
   "criteria": ["2.1.1", "2.1.2", "2.4.3", "4.1.2"],
   "setup": [{"sentinels": true}, {"updateSettings": {"tabNavigation": false}}, {"selectCell": [1, 1]}],
@@ -9,31 +10,31 @@
     {
       "id": "tab-out-forward",
       "action": {"press": "Tab"},
-      "expect": [["after the grid"]],
-      "note": "With tabNavigation off, Tab from a cell in the middle of the grid leaves it for the page's next control."
+      "expect": [["after the grid"], ["button"]],
+      "note": "With tabNavigation off, Tab from a cell in the middle of the grid leaves it for the page's next control. Finding: VoiceOver says nothing here on both browsers (the recording), where it names the same button when Tab leaves the grid from a row's last cell (default-mode); NVDA names it."
     },
     {
       "id": "shift-tab-back-in",
       "action": {"press": "Shift+Tab"},
-      "expect": [["28"]],
-      "note": "Shift+Tab from the page returns into the grid on the cell it left."
+      "expect": [["28"], ["age"]],
+      "note": "Shift+Tab from the page returns into the grid on the cell it left: its value and its column header."
     },
     {
       "id": "arrow-left",
       "action": {"press": "ArrowLeft"},
-      "expect": [["bruno"]],
+      "expect": [["bruno"], ["name"]],
       "note": "The arrows still move between cells."
     },
     {
       "id": "tab-out-backward",
       "action": {"press": "Shift+Tab"},
-      "expect": [["before the grid"]],
+      "expect": [["before the grid"], ["button"]],
       "note": "Shift+Tab leaves the grid for the page's previous control, whichever cell has the focus."
     },
     {
       "id": "tab-back-in",
       "action": {"press": "Tab"},
-      "expect": [["bruno"]],
+      "expect": [["bruno"], ["name"]],
       "note": "Tab from the page returns into the grid on the cell it left."
     }
   ]

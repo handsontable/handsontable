@@ -175,6 +175,12 @@ test('a reading traversal that read an item twice is neutral, and the summary na
     /Reading traversal \(arrow-right to open-editor\): ✔ each of the 1 items read once, in order\./);
 });
 
+test('a job that ran one scenario group names its check run after the group too', () => {
+  assert.equal(checkRunName('nvda-chromium'), 'Screen reader / nvda-chromium report');
+  assert.equal(checkRunName('vo-webkit', 'reading'), 'Screen reader / vo-webkit reading report');
+  assert.equal(build([transcript()], { group: 'keyboard' }).name, 'Screen reader / nvda-chromium keyboard report');
+});
+
 test('a variant\'s annotations go on its base\'s file and lines', () => {
   const variant = transcript({ scenario: 'grid-core-horizon', steps: [step('arrow-right', 'age', [['34']])] });
   const report = buildReport({

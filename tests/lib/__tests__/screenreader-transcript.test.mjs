@@ -162,6 +162,11 @@ test('a traversal reads every item once and in order, and names the twice, the n
   assert.deepEqual(off.outOfOrder, ['C1'], 'C1 was first read before B1, which is listed ahead of it');
   assert.equal(matchTraversal([step('b', 'a10 b1'), step('d', 'c1 2')], traversal).items[0].count, 0, 'a whole word: A1 is not inside A10');
   assert.equal(matchTraversal([step('b', 'a1 b1')], { from: 'b', to: 'b', items: ['A1.', 'B1'] }).passed, true, 'items normalize as tokens do');
+
+  const spelled = matchTraversal([step('b', 'a 1 b1'), step('c', 'row 2 a a column 2 a 1')], { from: 'b', to: 'c', items: [['A1', 'A 1'], ['B1', 'B 1']] });
+
+  assert.deepEqual(spelled.items, [{ item: 'A1', count: 2, firstStep: 'b' }, { item: 'B1', count: 1, firstStep: 'b' }],
+    'every synonym of an item counts (NVDA spells A1 as "A 1"), and the first names it');
 });
 
 test('the log of a run that stopped at a step names the step and the error above the steps it captured', () => {

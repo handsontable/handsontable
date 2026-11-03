@@ -22,13 +22,14 @@ export const SCENARIOS_DIR = 'tests/screenreader/scenarios';
 const SUMMARY_LIMIT = 65000;
 
 /**
- * The check run's name for a project.
+ * The check run's name for a project and the scenario group its job ran.
  *
  * @param {string} project The Playwright project (`nvda-chromium`).
- * @returns {string} The name.
+ * @param {string} [group] The scenario group (`keyboard`), when the job ran one.
+ * @returns {string} The name (`Screen reader / nvda-chromium keyboard report`).
  */
-export function checkRunName(project) {
-  return `${CHECK_RUN_PREFIX}${project} report`;
+export function checkRunName(project, group) {
+  return `${CHECK_RUN_PREFIX}${project}${group ? ` ${group}` : ''} report`;
 }
 
 /**
@@ -60,6 +61,7 @@ export function stepLines(source) {
  * @param {object[]} input.transcripts The transcripts found.
  * @param {string[]} [input.expectedScenarios] The scenario ids the run should have produced.
  * @param {string} [input.project] The project the job ran; defaults to the transcripts' project.
+ * @param {string} [input.group] The scenario group the job ran, for the check run's name.
  * @param {string} [input.mode] The mode; defaults to `SCREENREADER_MODE`.
  * @param {string[]} [input.problems] Tooling problems found while reading.
  * @param {string} [input.reportUrl] The Playwright report's URL.
@@ -70,10 +72,10 @@ export function stepLines(source) {
  * @returns {{name: string, conclusion: string, title: string, headline: string, summary: string, annotations: object[], counts: object}} The report.
  */
 export function buildReport({
-  transcripts, expectedScenarios = [], project, mode = SCREENREADER_MODE, problems = [], reportUrl, runUrl, lines = new Map(), files = new Map(),
+  transcripts, expectedScenarios = [], project, group, mode = SCREENREADER_MODE, problems = [], reportUrl, runUrl, lines = new Map(), files = new Map(),
 }) {
   const sorted = [...transcripts].sort((a, b) => a.scenario.localeCompare(b.scenario));
-  const name = checkRunName(project ?? sorted[0]?.project ?? 'unknown');
+  const name = checkRunName(project ?? sorted[0]?.project ?? 'unknown', group);
   const found = new Set(sorted.map(item => item.scenario));
   const missing = expectedScenarios.filter(id => !found.has(id));
   const tooling = [

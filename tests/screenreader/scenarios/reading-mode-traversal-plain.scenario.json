@@ -1,13 +1,140 @@
 {
   "schema": 1,
   "id": "reading-mode-traversal-plain",
-  "surface": "Reading mode through the same grid without frozen panes: the control for the frozen traversal.",
-  "variantOf": "reading-mode-traversal",
-  "setup": [
+  "surface": "Reading mode through the same grid without frozen panes, the control for the frozen traversal: every cell read once, in row-major order.",
+  "group": "reading",
+  "page": "grid",
+  "start": "page",
+  "criteria": ["1.3.1", "1.3.2", "4.1.2"],
+  "setup": [{"updateSettings": {"maxRows": 3}}, {"sentinels": true}, {"focus": "[data-sr-sentinel=\"before\"]"}],
+  "traversal": {"from": "to-grid", "to": "past-grid", "items": [["A1", "A 1"], ["B1", "B 1"], ["C1", "C 1"], ["A2", "A 2"], ["B2", "B 2"], ["C2", "C 2"], ["A3", "A 3"], ["B3", "B 3"], ["C3", "C 3"]]},
+  "steps": [
     {
-      "updateSettings": {
-        "maxRows": 3
-      }
+      "id": "to-grid",
+      "action": {"read": "next"},
+      "expect": [["table", "tree grid", "grid"]],
+      "note": "From the control before the grid, the reading cursor moves on to the grid, which a reader announces by its role."
+    },
+    {
+      "id": "enter-grid",
+      "action": {"read": "in"},
+      "expect": [],
+      "unsupported": {"nvda": "NVDA has no interaction level: browse mode reads into a table without entering it, so there is nothing to enter."},
+      "note": "VoiceOver interacts with the grid (VO-Shift-Down), the way its user reads a table cell by cell."
+    },
+    {
+      "id": "read-1",
+      "action": {"read": "next"},
+      "expect": [],
+      "note": "Each read moves one item on: NVDA reads one line of its browse-mode buffer (a cell with its row, column and the headers that changed), VoiceOver one cell of the row it is in, wrapping to the next row. The reads are enough for both to leave the grid; a read past the end repeats the last line (NVDA) or says nothing (VoiceOver)."
+    },
+    {
+      "id": "read-2",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-3",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-4",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-5",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-6",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-7",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-8",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-9",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-10",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-11",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-12",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-13",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-14",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-15",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-16",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-17",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-18",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-19",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-20",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "leave-grid",
+      "action": {"read": "out"},
+      "expect": [],
+      "unsupported": {"nvda": "NVDA has no interaction level: browse mode reads out of a table without leaving it, so there is nothing to leave."},
+      "note": "VoiceOver stops interacting with the grid (VO-Shift-Up)."
+    },
+    {
+      "id": "past-grid",
+      "action": {"read": "next"},
+      "expect": [["after the grid"]],
+      "note": "The reading reaches the control after the grid: the reads before it covered the whole grid, and NVDA, which reads on without entering, repeats the page's last line here."
     }
   ]
 }

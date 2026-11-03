@@ -8,6 +8,7 @@ import { screenReaderTest, type ScreenReaderPlaywright } from '@guidepup/playwri
 import { NVDAKeyCodeCommands } from '@guidepup/guidepup';
 import { BUNDLE_POLLING_MS, awaitBundle } from '../fixtures/bundle';
 import {
+  SCENARIO_GROUPS,
   laneOfProject,
   loadScenarios,
   scenarioPageId,
@@ -408,7 +409,8 @@ function macOSVersion(): string {
  *   so VoiceOver hears the page react and never the keystroke, on NVDA's terms.
  * - **Reading** (`read`): VO-Right and VO-Left move VoiceOver's cursor to the next and previous item,
  *   VO-Shift-Down and VO-Shift-Up interact with the item and stop interacting (`in`, `out`), and VO-Space
- *   activates it (`activate`), each through Guidepup with its own capture, after the same boundary.
+ *   activates it (`activate`), each through Guidepup with its own capture, after the same boundary. A
+ *   silent read is not listened to a second time (below).
  * - **Out of the grid**: `leave()` stops interacting (VO-Shift-Up) after the last step.
  *
  * @param screenReader Guidepup's screen reader, VoiceOver.
@@ -428,12 +430,17 @@ function voiceOverReader(screenReader: ScreenReaderPlaywright): Reader {
     return { spoken: stripStepBoundary(late.spokenPhrase), preparing: [] };
   };
   // A reader command carries its own capture: Guidepup queues it, so it cannot run inside `capture()`,
-  // whose action holds the queue. Its phrase is the last of the log.
-  const command = async(perform: () => Promise<unknown>): Promise<Captured> => {
+  // whose action holds the queue. Its phrase is the last of the log. A cursor move (`read`) is not listened
+  // to twice: VoiceOver speaks the item it lands on at once, and a silent one (past the end of a table)
+  // costs a whole silence window, about 13 s, which a second listen would double. An activation can open
+  // something that speaks late, as a key can, so it is.
+  const command = async(perform: () => Promise<unknown>, listenAgain: boolean): Promise<Captured> => {
     await markStepBoundary();
     await perform();
 
-    return lateListen(stripStepBoundary(await screenReader.lastSpokenPhrase()));
+    const spoken = stripStepBoundary(await screenReader.lastSpokenPhrase());
+
+    return listenAgain ? lateListen(spoken) : { spoken, preparing: [] };
   };
 
   return {
@@ -468,10 +475,10 @@ function voiceOverReader(screenReader: ScreenReaderPlaywright): Reader {
         out: () => screenReader.stopInteracting({ capture: true }),
       };
 
-      return command(commands[direction]);
+      return command(commands[direction], false);
     },
     activate() {
-      return command(() => screenReader.act({ capture: true }));
+      return command(() => screenReader.act({ capture: true }), true);
     },
     async leave() {
       await screenReader.stopInteracting({ capture: false });
@@ -619,7 +626,7 @@ function nvdaReader(screenReader: ScreenReaderPlaywright): Reader {
  * (the focus settles a frame after some keys). A page action echoes the focused element; `read` moves a
  * virtual cursor over the page's readable items (cells, headers and controls, in document order, skipping
  * what is hidden or `aria-hidden`), starting from the focused element, and echoes the item it lands on
- * (`in` and `out` echo the item again: the echo has no interaction level); `activate` clicks the item
+ * (`in` and `out` are silent: the echo has no interaction level); `activate` clicks the item
  * under the cursor and echoes the focused element. It always announces something, so a step a screen
  * reader stays silent on announces here: it proves the fixture, the keys, the `after` states, the reading
  * steps' plumbing and the report, never the wording, and never what a virtual buffer holds.
@@ -686,8 +693,9 @@ function domEchoReader(page: Page): Reader {
         index = items.findIndex(item => (from.compareDocumentPosition(item) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0) - 1;
       }
       // Past either end of the page the cursor stays on the last item it read, and the step is silent,
-      // as a reader at the end of the document says nothing new.
-      const moved = { next: index + 1, previous: index - 1, in: index, out: index }[read];
+      // as a reader at the end of the document says nothing new. The echo has no interaction level, so
+      // `in` and `out` move nothing and say nothing.
+      const moved = { next: index + 1, previous: index - 1, in: -1, out: -1 }[read];
 
       if (moved < 0 || moved >= items.length) {
         resolve({ spoken: '', preparing: [] });
@@ -930,7 +938,20 @@ async function runScenario(page: Page, reader: Reader, scenario: Scenario, testI
   }
 }
 
-const scenarios = loadScenarios(SCENARIOS_DIR, { fixtures: FIXTURES });
+/**
+ * The scenario group this run takes (`HOT_SR_GROUP`, one matrix entry of the lane workflow), or every
+ * scenario when it is unset, as a local run is. An unknown group throws: a typo would run nothing and
+ * report a clean, empty job.
+ */
+const GROUP = process.env.HOT_SR_GROUP || undefined;
+
+if (GROUP !== undefined && !SCENARIO_GROUPS.includes(GROUP)) {
+  throw new Error(`HOT_SR_GROUP must be one of ${SCENARIO_GROUPS.join(', ')}, received "${GROUP}".`);
+}
+
+// A file that does not validate stays in the list in every group, so its red test is never filtered out.
+const scenarios = loadScenarios(SCENARIOS_DIR, { fixtures: FIXTURES })
+  .filter(({ scenario, problems }) => GROUP === undefined || problems.length > 0 || scenario?.group === GROUP);
 
 // One scenario at a time on a screen reader lane comes from the config: `withGuidepup` pins one worker
 // and no parallelism, because a screen reader is one per machine. The dom-echo lane drives no screen

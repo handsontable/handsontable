@@ -25,13 +25,14 @@ export interface ScenarioStep {
 export interface ScenarioTraversal {
   from: string;
   to: string;
-  items: string[];
+  items: (string | string[])[];
 }
 
 export interface Scenario {
   schema: number;
   id: string;
   surface: string;
+  group: 'keyboard' | 'reading';
   page?: string;
   fixture?: string;
   query?: string;
@@ -51,6 +52,7 @@ export const READ_DIRECTIONS: readonly ReadDirection[];
 export const SCREENREADER_LANES: readonly string[];
 export const LANE_PRIMITIVES: Readonly<Record<string, { read: ReadDirection[]; activate: boolean }>>;
 export const STARTS: readonly string[];
+export const SCENARIO_GROUPS: readonly string[];
 export const PRESS_MODIFIERS: readonly string[];
 export const PRESS_KEYS: readonly string[];
 export const PRESS_PATTERN: RegExp;

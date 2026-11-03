@@ -2,6 +2,7 @@
   "schema": 1,
   "id": "grid-core",
   "surface": "The grid body and its headers, the cell editor, the context menu, a range and a sort, through the keyboard alone.",
+  "group": "keyboard",
   "fixture": "screenreader-grid.html",
   "criteria": ["1.3.1", "4.1.2"],
   "setup": [

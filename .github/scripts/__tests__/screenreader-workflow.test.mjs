@@ -4,6 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
 import { job, jobIds, steps } from '../lib/workflow-text.mjs';
+import { SCENARIO_GROUPS } from '../../../tests/lib/screenreader-scenario.mjs';
 
 // tests/AGENTS.md ("Screen readers: the NVDA and VoiceOver lanes"): the screen reader lanes are report-only and run on
 // their own nightly, never in the pull-request Tests pipeline. Every link in that chain fails silently
@@ -57,6 +58,8 @@ test('the NVDA job: Windows, one browser per job, report-only, running the scree
   assert.match(nvda, /^ {4}runs-on: windows-2025$/m, `${LANE}: NVDA runs on the pinned Windows image Guidepup's own suite is green on. ${DOC}`);
   assert.match(nvda, /^ {4}continue-on-error: true$/m, `${LANE}: the lane is report-only; a red job must never fail the nightly. ${DOC}`);
   assert.match(nvda, /^ {8}browser: \[ chromium, firefox \]$/m, `${LANE}: one browser per job, the two NVDA browsers. ${DOC}`);
+  assert.match(nvda, new RegExp(`^ {8}group: \\[ ${SCENARIO_GROUPS.join(', ')} \\]$`, 'm'),
+    `${LANE}: one job per scenario group, every group of SCENARIO_GROUPS (tests/lib/screenreader-scenario.mjs), so no scenario is left out of the nightly. ${DOC}`);
   assert.match(nvda, /^ {6}fail-fast: false$/m, `${LANE}: one browser's failure never cancels the other's transcript.`);
   assert.deepEqual(permissions(nvda), ['contents: read', 'checks: write'],
     `${LANE}: the job's token reads the repository and writes the report check run, nothing else; a grant added here reaches the npx-resolved setup CLI too.`);
@@ -72,6 +75,10 @@ test('the NVDA job: Windows, one browser per job, report-only, running the scree
     `${LANE}: the run step runs the screen reader config on the job's browser and nothing else. ${DOC}`);
   assert.match(step('Run the scenarios'), /^ {10}HOT_SR_UPDATE_GOLDENS: \$\{\{ inputs\.update-goldens && '1' \|\| '' \}\}$/m,
     `${LANE}: the update-goldens input reaches the spec as HOT_SR_UPDATE_GOLDENS, '1' or empty: the spec records on '1' only. ${DOC}`);
+  assert.match(step('Run the scenarios'), /^ {10}HOT_SR_GROUP: \$\{\{ matrix\.group \}\}$/m,
+    `${LANE}: the job's scenario group reaches the spec as HOT_SR_GROUP, which runs that group's scenarios only. ${DOC}`);
+  assert.match(nvda, /^ {6}SCREENREADER_GROUP: \$\{\{ matrix\.group \}\}$/m,
+    `${LANE}: the report names the check run after the group and expects that group's transcripts. ${DOC}`);
   assert.match(step('Run the scenarios'), /^ {8}timeout-minutes: 25$/m,
     `${LANE}: the run step times out before the job does: a step timeout is a step failure, so the transcripts, the summary and the check run still come, where the job's 30-minute timeout would cancel them. ${DOC}`);
 
@@ -79,16 +86,16 @@ test('the NVDA job: Windows, one browser per job, report-only, running the scree
 
   assert.match(goldens, /^ {8}if: \$\{\{ !cancelled\(\) && inputs\.update-goldens \}\}$/m,
     `${LANE}: the recorded goldens upload on an update-goldens run only, red or green. ${DOC}`);
-  assert.match(goldens, /^ {10}name: screenreader-goldens-nvda-\$\{\{ matrix\.browser \}\}$/m,
-    `${LANE}: one goldens artifact per browser, the name tests/AGENTS.md tells you to download. ${DOC}`);
+  assert.match(goldens, /^ {10}name: screenreader-goldens-nvda-\$\{\{ matrix\.browser \}\}-\$\{\{ matrix\.group \}\}$/m,
+    `${LANE}: one goldens artifact per browser and group, the names tests/AGENTS.md tells you to download. ${DOC}`);
 
   const transcripts = step('Upload the transcripts');
 
   assert.match(transcripts, /^ {8}if: \$\{\{ !cancelled\(\) \}\}$/m, `${LANE}: the transcripts upload on a red run too; they are the evidence. ${DOC}`);
-  assert.match(transcripts, /^ {10}name: screenreader-transcripts-nvda-\$\{\{ matrix\.browser \}\}$/m,
+  assert.match(transcripts, /^ {10}name: screenreader-transcripts-nvda-\$\{\{ matrix\.browser \}\}-\$\{\{ matrix\.group \}\}$/m,
     `${LANE}: the artifact name stays outside the playwright-report-* glob test-health.yml reads, or a transcript becomes a flake record. ${DOC}`);
   assert.match(transcripts, /^ {10}path: tests\/test-results\/screenreader$/m, `${LANE}: the upload is the config's outputDir. ${DOC}`);
-  assert.match(step('Upload the Playwright report'), /^ {10}name: screenreader-playwright-report-nvda-\$\{\{ matrix\.browser \}\}$/m,
+  assert.match(step('Upload the Playwright report'), /^ {10}name: screenreader-playwright-report-nvda-\$\{\{ matrix\.browser \}\}-\$\{\{ matrix\.group \}\}$/m,
     `${LANE}: the Playwright report's artifact name stays outside the playwright-report-* glob too.`);
   assert.match(step('Upload the Playwright report'), /^ {8}if: \$\{\{ !cancelled\(\) \}\}$/m, `${LANE}: the Playwright report uploads on a red run too; it holds the traces.`);
   assert.match(step('Write the job summary'), /^ {8}run: node tests\/scripts\/screenreader-report\.mjs$/m, `${LANE}: the summary comes from the report script.`);
@@ -114,6 +121,9 @@ test('the VoiceOver job: macOS, two browsers at most two at a time, report-only,
   assert.match(voiceover, /^ {4}runs-on: macos-26$/m, `${LANE}: VoiceOver runs on the pinned macOS image. ${DOC}`);
   assert.match(voiceover, /^ {4}continue-on-error: true$/m, `${LANE}: the lane is report-only; a red job must never fail the nightly. ${DOC}`);
   assert.match(voiceover, /^ {8}browser: \[ webkit, chromium \]$/m, `${LANE}: one browser per job: Playwright's WebKit and Chromium. ${DOC}`);
+  assert.match(voiceover, new RegExp(`^ {8}group: \\[ ${SCENARIO_GROUPS.join(', ')} \\]$`, 'm'),
+    `${LANE}: one job per scenario group, every group of SCENARIO_GROUPS, as in the NVDA job. ${DOC}`);
+  assert.match(voiceover, /^ {6}SCREENREADER_GROUP: \$\{\{ matrix\.group \}\}$/m);
   assert.match(voiceover, /^ {6}max-parallel: 2$/m, `${LANE}: the organization runs at most five macOS jobs at once; the lane takes two. ${DOC}`);
   assert.match(voiceover, /^ {6}fail-fast: false$/m, `${LANE}: one browser's failure never cancels the other's transcript.`);
   assert.deepEqual(permissions(voiceover), ['contents: read', 'checks: write'],
@@ -144,6 +154,7 @@ test('the VoiceOver job: macOS, two browsers at most two at a time, report-only,
     `${LANE}: the run step runs the screen reader config on the job's VoiceOver project and nothing else. ${DOC}`);
   assert.match(step('Run the scenarios'), /^ {10}HOT_SR_UPDATE_GOLDENS: \$\{\{ inputs\.update-goldens && '1' \|\| '' \}\}$/m,
     `${LANE}: the update-goldens input reaches the spec as HOT_SR_UPDATE_GOLDENS, '1' or empty. ${DOC}`);
+  assert.match(step('Run the scenarios'), /^ {10}HOT_SR_GROUP: \$\{\{ matrix\.group \}\}$/m);
   assert.match(step('Run the scenarios'), /^ {8}timeout-minutes: 25$/m,
     `${LANE}: the run step times out on its own: a step timeout is a step failure, so the transcripts, the recording, the summary and the check run still come. ${DOC}`);
 
@@ -155,8 +166,8 @@ test('the VoiceOver job: macOS, two browsers at most two at a time, report-only,
     const upload = step(name);
 
     assert.match(upload, /^ {8}if: \$\{\{ !cancelled\(\) \}\}$/m, `${LANE}: "${name}" runs on a red run too; it is the evidence. ${DOC}`);
-    assert.match(upload, new RegExp(`^ {10}name: ${artifact}\\$\\{\\{ matrix\\.browser \\}\\}$`, 'm'),
-      `${LANE}: "${name}" is named per browser and outside the playwright-report-* glob test-health.yml reads. ${DOC}`);
+    assert.match(upload, new RegExp(`^ {10}name: ${artifact}\\$\\{\\{ matrix\\.browser \\}\\}-\\$\\{\\{ matrix\\.group \\}\\}$`, 'm'),
+      `${LANE}: "${name}" is named per browser and group, and outside the playwright-report-* glob test-health.yml reads. ${DOC}`);
     assert.match(upload, new RegExp(`^ {10}path: ${dir}$`, 'm'), `${LANE}: "${name}" uploads ${dir.replaceAll('\\', '')}.`);
   });
 
@@ -164,8 +175,8 @@ test('the VoiceOver job: macOS, two browsers at most two at a time, report-only,
 
   assert.match(goldens, /^ {8}if: \$\{\{ !cancelled\(\) && inputs\.update-goldens \}\}$/m,
     `${LANE}: the recorded goldens upload on an update-goldens run only, red or green. ${DOC}`);
-  assert.match(goldens, /^ {10}name: screenreader-goldens-vo-\$\{\{ matrix\.browser \}\}$/m,
-    `${LANE}: one goldens artifact per browser, the name tests/AGENTS.md tells you to download. ${DOC}`);
+  assert.match(goldens, /^ {10}name: screenreader-goldens-vo-\$\{\{ matrix\.browser \}\}-\$\{\{ matrix\.group \}\}$/m,
+    `${LANE}: one goldens artifact per browser and group, the names tests/AGENTS.md tells you to download. ${DOC}`);
   assert.match(step('Write the job summary'), /^ {8}run: node tests\/scripts\/screenreader-report\.mjs$/m);
   assert.match(step('Write the job summary'), /^ {8}if: \$\{\{ !cancelled\(\) \}\}$/m);
 
