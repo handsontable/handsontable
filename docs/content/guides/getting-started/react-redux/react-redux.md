@@ -133,7 +133,7 @@ Two cases do not clear:
 - You can connect a `HotTable` component to a Redux store using `react-redux`'s `connect()` method.
 - The `beforeChange` hook dispatches Redux actions whenever a cell changes, keeping global state in sync.
 - A reducer that returns the previous state when nothing changed keeps plugin writes from looping with re-renders.
-- Every render applies all your props again, so keep `data` stable and leave out the props of options that users change, such as `mergeCells`.
+- Every render applies your props again, so keep `data` stable and leave out the props of options that users change, such as `mergeCells`.
 - Custom editor and renderer components can read from and write to the Redux store, enabling grid cells to reflect shared application state.
 
 ## Next steps
