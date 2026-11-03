@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import type { TrimmingMap } from '../../translations';
 import { arrayEach, arrayReduce } from '../../helpers/array';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'trimRows';
 export const PLUGIN_PRIORITY = 330;
@@ -164,6 +165,14 @@ export class TrimRows extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

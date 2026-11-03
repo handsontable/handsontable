@@ -42,6 +42,8 @@
     is tried on a grid that has the feature on. 60 rows by 12 columns, so Page Up, Page Down and the
     jumps to an edge move the selection and scroll; row 1 column 1 carries a comment. The walker also
     counts copies, cuts and pastes (`window.__a11yClipboard`) and opened links (`window.__a11yLinks`).
+    `?menu=nested` gives the context menu an item with a submenu inside a submenu, the second level the
+    axe discovery run scans (tests/a11y/checks/axe-discovery.spec.ts).
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -54,6 +56,26 @@
     container.className = `ht-theme-${window.htTheme}${window.htScheme}`;
     window.__a11yClipboard = 0;
 
+    // Allowlisted like ?theme=: an unknown value throws instead of silently building the default menu.
+    const menu = ({ default: true, nested: {
+      items: {
+        row_above: {},
+        nested: {
+          name: 'Level one',
+          submenu: {
+            items: [
+              { key: 'nested:first', name: 'First option' },
+              { key: 'nested:deeper', name: 'Level two', submenu: { items: [{ key: 'nested:deeper:leaf', name: 'Leaf option' }] } },
+            ],
+          },
+        },
+      },
+    } })[htParams.get('menu') ?? 'default'];
+
+    if (menu === undefined) {
+      throw new Error('Unknown ?menu= value: ' + JSON.stringify(htParams.get('menu')));
+    }
+
     try {
       window.hot = new Handsontable(container, {
         data: Handsontable.helper.createSpreadsheetData(60, 12),
@@ -62,7 +84,7 @@
         height: 360,
         width: 720,
         navigableHeaders: true,
-        contextMenu: true,
+        contextMenu: menu,
         dropdownMenu: true,
         filters: true,
         multiColumnSorting: true,

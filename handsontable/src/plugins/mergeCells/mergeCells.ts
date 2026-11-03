@@ -27,6 +27,7 @@ import {
 import { toMergeAreaRange, type MergeAreaGeometry } from '../../utils/mergeAreas';
 import type { CellChange } from '../../settings';
 import { canAccessCellContent } from '../../shortcuts/guards';
+import { LICENSE } from './feature.generated';
 
 Hooks.getSingleton().register('beforeMergeCells');
 Hooks.getSingleton().register('afterMergeCells');
@@ -248,6 +249,14 @@ export class MergeCells extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

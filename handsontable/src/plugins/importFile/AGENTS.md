@@ -839,6 +839,18 @@ The plugin only exposes it. The rules and traps live in `../../utils/columnTypeI
   `sanitizeSheetName`) and shifts by THAT sheet's offsets. Decision on #13551: not for now, no ticket; documented as a
   limitation in the export guide's multi-sheet section.
 
+## The license check: every public method that does work
+
+The plugin is on unless `importFile: false`, so a license key that lists its features is checked when it is
+used, not at enable (`gate: 'call'` in `feature.json`). `inferColumnTypes()`, `convertToInferredTypes()`,
+`importFromArrayBuffer()` and `importFromBlob()` call `assertLicensedCall(this.hot, LICENSE)` first, before
+`#assertEnabled()`: a key that does not cover `feat:import_file` writes the license message and throws it (the
+async methods reject). `supportsImportFormat()` is not checked. The SheetsBar calls only the `_`-prefixed members,
+which are not checked. The import asks Formulas, Comments and CustomBorders whether they RUN (`.enabled`),
+never whether their option is on: a plugin a license key keeps off keeps its option, and an import that read the
+option wrote live formulas and `'`-escaped text that no plugin would read. Rules:
+`../../utils/entitlementLicenseKey/AGENTS.md`.
+
 ## Where to look next
 
 - `../exportFile/AGENTS.md` for the write direction and the `_HotValidation` sheet.

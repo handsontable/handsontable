@@ -367,6 +367,12 @@ data lands relative to the selection.
 In the header path, the `row` argument doubles as the **header level** — a signature quirk worth knowing
 before reading `copyableRanges.ts`.
 
+## "Copy with group headers" asks NestedHeaders whether it runs
+
+The item's `disabled()` reads `getPlugin('nestedHeaders')?.enabled`, not the `nestedHeaders` setting, because a
+license key can keep NestedHeaders off while the setting stays on, and the item would then copy with no group
+headers to copy.
+
 ## Where to look next
 
 - The text-extraction contract shared with export: `../exportFile/AGENTS.md`.

@@ -14,6 +14,7 @@ import type { CellChange } from '../../settings';
 import type CellRange from '../../3rdparty/walkontable/src/cell/range';
 import { MergedCellsWidths, isMultiColumnMerge } from './mergedCellsWidths';
 import { FONT_REMEASURE_ORDER_INDEX } from '../../core/fontLoad';
+import { LICENSE } from './feature.generated';
 
 Hooks.getSingleton().register('modifyAutoColumnSizeSeed');
 
@@ -208,6 +209,14 @@ export class AutoColumnSize extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

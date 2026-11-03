@@ -438,7 +438,7 @@ class ExportDataProvider {
    */
   getNamedExpressions(): Array<{ name: string; formula: string | null; scope: string | null }> {
     const formulasPlugin = this.hot.getPlugin('formulas');
-    const engine = formulasPlugin?.isEnabled() ? formulasPlugin.engine : null;
+    const engine = formulasPlugin?.enabled ? formulasPlugin.engine : null;
 
     if (!engine) {
       return [];
@@ -476,7 +476,7 @@ class ExportDataProvider {
   getFormulasBinding(): { engine: object; sheetName: string } | null {
     const formulasPlugin = this.hot.getPlugin('formulas');
 
-    if (!formulasPlugin?.isEnabled() || !formulasPlugin.engine || formulasPlugin.sheetName === null) {
+    if (!formulasPlugin?.enabled || !formulasPlugin.engine || formulasPlugin.sheetName === null) {
       return null;
     }
 
@@ -525,7 +525,7 @@ class ExportDataProvider {
    */
   getEngineCellFacts(withArraySizes: boolean): (EngineCellFacts | null)[][] {
     const formulasPlugin = this.hot.getPlugin('formulas');
-    const engine = formulasPlugin?.isEnabled() ? formulasPlugin.engine : null;
+    const engine = formulasPlugin?.enabled ? formulasPlugin.engine : null;
     const { sheetId, rowAxisSyncer, columnAxisSyncer } = formulasPlugin ?? {};
 
     if (!engine || sheetId === null || sheetId === undefined || !rowAxisSyncer || !columnAxisSyncer) {
@@ -736,7 +736,7 @@ class ExportDataProvider {
   #getEngineAxisSyncer(axis: 'row' | 'column'): { getVisualIndexFromHfIndex(hfIndex: number): number } | null {
     const formulasPlugin = this.hot.getPlugin('formulas');
 
-    if (!formulasPlugin?.isEnabled() || !formulasPlugin.engine) {
+    if (!formulasPlugin?.enabled || !formulasPlugin.engine) {
       return null;
     }
 
@@ -812,7 +812,7 @@ class ExportDataProvider {
   getFormulasSeparator(): string {
     const formulasPlugin = this.hot.getPlugin('formulas');
 
-    if (!formulasPlugin || !formulasPlugin.isEnabled()) {
+    if (!formulasPlugin?.enabled) {
       return ',';
     }
 
@@ -830,7 +830,7 @@ class ExportDataProvider {
   getFormulasDecimalSeparator(): string {
     const formulasPlugin = this.hot.getPlugin('formulas');
 
-    if (!formulasPlugin || !formulasPlugin.isEnabled()) {
+    if (!formulasPlugin?.enabled) {
       return '.';
     }
 
@@ -885,7 +885,9 @@ class ExportDataProvider {
     const { startRow, startCol, endRow, endCol } = this._getDataRange();
     const mergeCellsPlugin = this.hot.getPlugin('mergeCells');
 
-    if (!mergeCellsPlugin || !mergeCellsPlugin.isEnabled()) {
+    // `enabled`, not `isEnabled()`: a plugin the license key leaves out keeps its setting but never ran, so it
+    // has no merged cells collection to read.
+    if (!mergeCellsPlugin || !mergeCellsPlugin.enabled) {
       return [];
     }
 
@@ -1305,7 +1307,7 @@ class ExportDataProvider {
   getColumnSummaries() {
     const plugin = this.hot.getPlugin('columnSummary');
 
-    if (!plugin || !plugin.isEnabled()) {
+    if (!plugin?.enabled) {
       return [];
     }
 

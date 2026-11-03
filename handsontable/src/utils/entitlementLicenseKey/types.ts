@@ -102,6 +102,10 @@ export interface LicenseChannels {
  * every query answers "granted" for it, so the same API serves legacy keys
  * (unlock everything) and entitlement keys (unlock exactly the tokens the
  * payload lists) without the caller branching on the key family.
+ *
+ * An entitlement entry lists its tokens whether or not it carries the
+ * `listed-capabilities` flag. What an entry without the flag unlocks is the
+ * product's decision - see `LISTED_CAPABILITIES_FLAG` in `./constants`.
  */
 export interface LicenseGrants {
   unrestricted: boolean;

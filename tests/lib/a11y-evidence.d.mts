@@ -7,7 +7,7 @@ export const SEVERITIES: readonly string[];
 export const TARGET_STATUSES: readonly string[];
 export const PAGES_FILE: string;
 export const WCAG_CRITERIA: Readonly<Record<string, { name: string; level: 'A' | 'AA' | 'AAA' }>>;
-export const EVIDENCE_CHECKS: Readonly<Record<string, { title: string; spec: string; criteria: string[]; pullRequest: boolean }>>;
+export const EVIDENCE_CHECKS: Readonly<Record<string, { title: string; spec: string; criteria: string[]; pullRequest: boolean; triage?: boolean }>>;
 export const CHECK_SUITES: readonly string[];
 export function checksForSuite(suite: string | undefined, checks?: Record<string, { pullRequest?: boolean }>): string[];
 
@@ -16,6 +16,7 @@ export interface EvidenceDocument {
   check: string;
   title: string;
   mode: string;
+  triage: boolean;
   criteria: string[];
   run: Record<string, unknown>;
   targets: Array<Record<string, unknown>>;
@@ -27,6 +28,7 @@ export interface EvidenceDocument {
     errors: number;
     flaky: number;
     findings: number;
+    withoutCriterion: number;
     bySeverity: Record<string, number>;
     byKind: Record<string, number>;
     byCriterion: Record<string, { name: string | null; level: string | null; evaluated: number; findings: number; pages: string[] }>;
@@ -40,14 +42,15 @@ export function checkRunName(check: string): string;
 export function targetFileName(target: { page: string; theme: string; variant?: string | null }): string;
 export function targetKey(target: { page: string; theme: string; variant?: string | null }): string;
 export function findingId(check: string, finding: object): string;
-export function validatePart(part: unknown): string[];
+export function isTriageCheck(check: string, checks?: Record<string, { triage?: boolean }>): boolean;
+export function validatePart(part: unknown, options?: { triage?: boolean }): string[];
 export function mergeEvidence(input: {
   check: string;
   parts: object[];
   failures?: Array<{ title: string; target: object | null; error: string; flaky?: boolean }>;
   run?: Record<string, unknown>;
   problems?: string[];
-  checks?: Record<string, { title: string; criteria: string[] }>;
+  checks?: Record<string, { title: string; criteria: string[]; triage?: boolean }>;
 }): EvidenceDocument;
 export function validateEvidence(doc: unknown, options?: { checks?: Record<string, object> }): string[];
 export function evidenceHeadline(doc: EvidenceDocument): string;
