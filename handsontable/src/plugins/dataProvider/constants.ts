@@ -74,12 +74,14 @@ export const INITIAL_QUERY_PARAMETERS = Object.freeze({
 });
 
 /**
- * The settings of the plugins whose state the query reads. A payload that carries one of them re-applies that
- * plugin, which resets the state the last response gave it (Pagination's server total, Filters' conditions).
+ * The settings that reset the state of the plugins the query reads. A payload that carries `pagination`,
+ * `columnSorting`, or `filters` re-applies that plugin, which drops the state the last response gave it
+ * (Pagination's server total, Filters' conditions); one that carries `columns` re-initializes the index maps,
+ * which clears ColumnSorting's sort.
  *
  * @package
  */
-export const QUERY_PLUGIN_SETTING_KEYS = Object.freeze(['pagination', 'columnSorting', 'filters']);
+export const QUERY_PLUGIN_SETTING_KEYS = Object.freeze(['pagination', 'columnSorting', 'filters', 'columns']);
 
 /**
  * Change sources that batch into one `onRowsUpdate` call. DataProvider also returns `false` from

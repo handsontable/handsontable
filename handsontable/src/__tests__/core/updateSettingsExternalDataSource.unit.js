@@ -395,6 +395,76 @@ describe('Core#updateSettings with external data source', () => {
     expect(plugin.getQueryParameters().page).toBe(1);
   });
 
+  describe('a server sort and a payload that re-sends `columns`', () => {
+    /**
+     * Builds a sortable server-backed grid and sorts its second column descending on the server.
+     *
+     * @returns {Promise<object>} The DataProvider configuration.
+     */
+    async function buildSortedGrid() {
+      const config = createServerConfig(4);
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        columns: [{ data: 'id' }, { data: 'name' }],
+        columnSorting: true,
+        dataProvider: config,
+      });
+
+      await waitFor(() => hot.countRows() === 4);
+
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+      await waitFor(() => config.fetchRows.mock.calls.length === 2 &&
+        hot.getPlugin('columnSorting').getSortConfig().length === 1);
+
+      return config;
+    }
+
+    it('should keep the sort when the same `dataProvider` is sent with `columns` and `columnSorting`', async() => {
+      const config = await buildSortedGrid();
+
+      await hot.updateSettings({
+        dataProvider: config,
+        columns: [{ data: 'id' }, { data: 'name' }],
+        columnSorting: true,
+      });
+      await delay(50);
+
+      expect(hot.getPlugin('dataProvider').getQueryParameters().sort).toEqual({ prop: 'name', order: 'desc' });
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 1, sortOrder: 'desc' }]);
+      expect(config.fetchRows).toHaveBeenCalledTimes(2);
+    });
+
+    it('should keep the sort indicator when the same `dataProvider` is sent with `columns` only', async() => {
+      const config = await buildSortedGrid();
+
+      await hot.updateSettings({
+        dataProvider: config,
+        columns: [{ data: 'id' }, { data: 'name' }],
+      });
+      await delay(50);
+
+      expect(hot.getPlugin('dataProvider').getQueryParameters().sort).toEqual({ prop: 'name', order: 'desc' });
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 1, sortOrder: 'desc' }]);
+      expect(config.fetchRows).toHaveBeenCalledTimes(2);
+    });
+
+    it('should fetch with the sort a new `columnSorting.initialConfig` declares', async() => {
+      const config = await buildSortedGrid();
+
+      await hot.updateSettings({
+        dataProvider: config,
+        columnSorting: { initialConfig: { column: 0, sortOrder: 'asc' } },
+      });
+      await waitFor(() => config.fetchRows.mock.calls.length === 3);
+
+      expect(config.fetchRows).toHaveBeenLastCalledWith(
+        expect.objectContaining({ sort: { prop: 'id', order: 'asc' } }),
+        expect.anything()
+      );
+    });
+  });
+
   it('should use members changed in place on the next fetch instead of refetching at once', async() => {
     const config = createServerConfig(2);
 

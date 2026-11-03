@@ -644,7 +644,7 @@ export class DataProvider extends BasePlugin {
       return;
     }
 
-    const query = this.#queryFromPlugins();
+    const query = this.#keepResetSort(this.#queryFromPlugins());
 
     if (!isSameQueryParameters({ ...query, page: this.#queryParameters.page }, this.#queryParameters)) {
       this.#queryParameters = query;
@@ -662,6 +662,27 @@ export class DataProvider extends BasePlugin {
     } else if (!this.#inFlight.has(context)) {
       this.#refetchForUpdate();
     }
+  }
+
+  /**
+   * Puts the current sort back into a query rebuilt after a settings update that kept the configuration. A
+   * `columns` payload re-initializes the index maps, which clears ColumnSorting's sort, so the rebuilt query reads
+   * no sort although the rows on screen and the header the replay restores are sorted. The sort is kept only while
+   * ColumnSorting stays on and its column still exists; a sort the update declares (`initialConfig`) wins.
+   *
+   * @param {DataProviderQueryParameters} query The query rebuilt from the plugins.
+   * @returns {DataProviderQueryParameters}
+   */
+  #keepResetSort(query: DataProviderQueryParameters): DataProviderQueryParameters {
+    const { sort } = this.#queryParameters;
+
+    if (query.sort !== null || sort === null || !this.hot.getPlugin('columnSorting')?.enabled) {
+      return query;
+    }
+
+    const column = this.hot.propToCol(sort.prop);
+
+    return typeof column === 'number' && column >= 0 ? { ...query, sort: { ...sort } } : query;
   }
 
   /**
