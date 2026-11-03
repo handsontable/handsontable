@@ -449,8 +449,12 @@ function resolveArrayFormula(
     return { text: formulaText };
   }
 
-  // Excel never resizes a CSE ref, so a CSE array keeps the size the engine mapped.
-  const size = !dynamic && arraySize?.untrimmed ? arraySize.untrimmed : arraySize;
+  // Excel never resizes a CSE ref, so a CSE array keeps the size the engine mapped. When that room
+  // does not reach the file (`ARRAYFORMULA(FILTER(…))` reserving rows past the last one) and the
+  // values do, the ref covers the values: Excel shows a legacy array's first cells, which hold them,
+  // where a plain formula would open with an `@`.
+  const untrimmed = dynamic ? undefined : arraySize?.untrimmed;
+  const size = untrimmed && (untrimmed.exported || !arraySize?.exported) ? untrimmed : arraySize;
 
   if (size !== null && !size.exported) {
     recordArrayExcluded(target.dropped);

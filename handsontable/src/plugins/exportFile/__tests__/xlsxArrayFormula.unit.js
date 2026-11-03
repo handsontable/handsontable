@@ -372,6 +372,20 @@ describe('Xlsx export: array formulas', () => {
     expect(dropped).toEqual([]);
   });
 
+  it('should write a legacy FILTER near the last row over its values when its reserved room does not fit', async() => {
+    // `ARRAYFORMULA(FILTER(…))` in B4 of a 6-row grid reserves 6 rows. Sized from that, it went out as
+    // a plain formula, which Excel opens as `=@FILTER(…)`; its 3 values fit, so the ref covers them.
+    const { rows, dropped } = await exportSheet({
+      data: [[1, null], [2, null], [3, null], [4, '=ARRAYFORMULA(FILTER(A1:A6,A1:A6>3))'], [5, null], [6, null]],
+    });
+
+    expect(hot.getDataAtCol(1).slice(3)).toEqual([4, 5, 6]);
+    expect(rows[3][1].formula).toEqual({
+      text: 'FILTER(A1:A6,A1:A6>3)', result: 4, array: { ref: 'B4:B6', dynamic: false },
+    });
+    expect(dropped).toEqual([]);
+  });
+
   it('should flag an operator next to a name over a multi-cell range as range arithmetic', async() => {
     // Excel opened `=SUM(Sales*2)` as `=SUM(@Sales*2)` and computed one row of `Sales` (10, not 42).
     hot = new Handsontable(container, {
