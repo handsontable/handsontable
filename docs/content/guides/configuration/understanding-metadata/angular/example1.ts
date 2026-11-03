@@ -57,9 +57,12 @@ export class AppComponent {
   private selectedCell(): { row: number; col: number } | null {
     const highlight = this.hotTable?.hotInstance?.getSelectedRangeLast()?.highlight;
 
-    return highlight && highlight.row !== null && highlight.col !== null
-      ? { row: highlight.row, col: highlight.col }
-      : null;
+    // with `navigableHeaders`, the highlight can sit on a header, which has a negative index
+    if (!highlight || highlight.row === null || highlight.col === null || highlight.row < 0 || highlight.col < 0) {
+      return null;
+    }
+
+    return { row: highlight.row, col: highlight.col };
   }
 
   private levelOf(row: number, col: number, key: string): string {

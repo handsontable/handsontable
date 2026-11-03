@@ -46,7 +46,11 @@ To learn how to set options on each level, see [Setting options](@/guides/config
 
 A cell does not hold a copy of the grid and column values. Its metadata is an object linked to its column's metadata object, which is linked to the grid's metadata object:
 
+<span class="img-invert">
+
 ![The inheritance chain: a read starts at the cell metadata, then moves to the column metadata, then to the grid metadata](/img/metadata-inheritance.svg)
+
+</span>
 
 When you read a key from a cell, Handsontable looks for it on the cell. If the cell does not have its own value, the lookup moves to the column, then to the grid. The first level that has the key wins.
 

@@ -10,9 +10,12 @@ const has = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
 const selectedCell = (hot) => {
   const highlight = hot.getSelectedRangeLast()?.highlight;
 
-  return highlight && highlight.row !== null && highlight.col !== null
-    ? { row: highlight.row, col: highlight.col }
-    : null;
+  // with `navigableHeaders`, the highlight can sit on a header, which has a negative index
+  if (!highlight || highlight.row === null || highlight.col === null || highlight.row < 0 || highlight.col < 0) {
+    return null;
+  }
+
+  return { row: highlight.row, col: highlight.col };
 };
 
 const levelOf = (hot, row, col, key) => {
