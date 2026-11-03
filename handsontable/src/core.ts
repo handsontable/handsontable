@@ -3348,7 +3348,7 @@ export default function Core(
     };
 
     try {
-      queueValidators(changes, source, waitingForValidator, pendingRowMetas, ledger, () => {
+      queueValidators(changes, source, loadGeneration, waitingForValidator, pendingRowMetas, ledger, () => {
         shouldBeCanceled = false;
       });
     } catch (error) {
@@ -3365,12 +3365,15 @@ export default function Core(
 
   /**
    * Starts the validator of every change that has one, and queues each until it answers. A change the
-   * validator rejects under `allowInvalid: false` is taken out of the list. The loop stops when a
-   * `loadData()` lands in it (a `beforeValidate` listener can run one): the set is dropped then, and the
-   * changes still to validate would read the loaded records' meta and mark them for values never written.
+   * validator rejects under `allowInvalid: false` is taken out of the list. Nothing is validated once the
+   * set's load generation is not the current one: a `loadData()` landed in the loop (a `beforeValidate`
+   * listener can run one), or the set is a validator's correction made after a load overtook the change it
+   * corrects. The set is dropped then, and validating it would read the loaded records' meta, mark them
+   * for values never written, and count the call in `_hasPendingValidation()` under the new load.
    *
    * @param {Array} changes The changes, in the form `[row, prop, oldValue, newValue]`.
    * @param {string} [source] The change source.
+   * @param {number} loadGeneration The load generation the set was made on.
    * @param {object} waitingForValidator The queue.
    * @param {Array<object>} pendingRowMetas Collects the cell meta of the cells validated in rows that do
    *   not exist yet.
@@ -3380,13 +3383,13 @@ export default function Core(
   function queueValidators(
     changes: CellChange[],
     source: string | undefined,
+    loadGeneration: number,
     waitingForValidator: ReturnType<typeof ValidatorsQueue>,
     pendingRowMetas: Array<{ row?: number, valid?: boolean }>,
     ledger: WriteLedgerCall | null,
     onRejected: () => void,
   ) {
     const visibleRowsCount = instance.countRows();
-    const loadGeneration = validationLoadGeneration;
 
     for (let i = changes.length - 1; i >= 0 && loadGeneration === validationLoadGeneration; i--) {
       const [row, prop,, newValue] = changes[i];

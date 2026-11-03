@@ -188,10 +188,11 @@ describe('Core validation of a change when loadData() replaces the data', () => 
 
       hot.setDataAtCell(0, 1, 'typed');
       await settle();
-      answer('typed', true);
 
+      expect(pending).toEqual([]);
       expect(loaded).toEqual(otherRecords());
       expect(edits).toEqual([]);
+      expect(hot._hasPendingValidation()).toBe(false);
     });
 
   it('should drop the correction a validator writes for a change that loadData() dropped', async() => {
@@ -224,6 +225,37 @@ describe('Core validation of a change when loadData() replaces the data', () => 
 
     expect(hot.getSourceData()).toEqual(otherRecords());
     expect(corrections).toEqual([]);
+  });
+
+  it('should not validate the correction of a dropped change against the loaded record', async() => {
+    const asked = [];
+
+    createGrid({
+      columns: [
+        { data: 'id' },
+        {
+          data: 'name',
+          validator(value, callback) {
+            asked.push(value);
+
+            if (value === 'hello') {
+              this.instance.setDataAtCell(this.visualRow, this.visualCol, 'HELLO', 'upperCaseValidator');
+              callback(true);
+            } else {
+              callback(false);
+            }
+          },
+        },
+      ],
+    });
+
+    hot.setDataAtCell(0, 1, 'hello');
+    hot.loadData(otherRecords());
+    await settle();
+
+    expect(asked).toEqual(['hello']);
+    expect(hot.getCellMeta(0, 1).valid).not.toBe(false);
+    expect(hot._hasPendingValidation()).toBe(false);
   });
 
   it('should tell the dropped-changes listeners about the dropped set, once each', async() => {
@@ -433,8 +465,8 @@ describe('Core validation of a change when loadData() replaces the data', () => 
       });
 
       await confirmEdit('typed');
-      answer('typed', false);
 
+      expect(pending).toEqual([]);
       expect(hot.getActiveEditor().state).toBe('STATE_VIRGIN');
       expect(hot.getActiveEditor().isOpened()).toBe(false);
     });
