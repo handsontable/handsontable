@@ -205,6 +205,30 @@ describe('SheetsBar: a plugin option object stays on its own sheet', () => {
       warnSpy.mockRestore();
     });
 
+    it('merges an `updateSheetSettings()` object into the visible sheet\'s own, as `updateSettings()` does', () => {
+      const plugin = buildWorkbook('columnSorting', { headerAction: false });
+
+      plugin.updateSheetSettings('Custom', { columnSorting: { indicator: false } });
+
+      const merged = hot.getPlugin('columnSorting').getMergedPluginSettings(0);
+
+      expect(merged.indicator).toBe(false);
+      expect(merged.headerAction).toBe(false);
+    });
+
+    it('merges an `updateSheetSettings()` object into a hidden sheet\'s own, applied on its next visit', () => {
+      const plugin = buildWorkbook('columnSorting', { headerAction: false });
+
+      plugin.setActiveSheet('Plain');
+      plugin.updateSheetSettings('Custom', { columnSorting: { indicator: false } });
+      plugin.setActiveSheet('Custom');
+
+      const merged = hot.getPlugin('columnSorting').getMergedPluginSettings(0);
+
+      expect(merged.indicator).toBe(false);
+      expect(merged.headerAction).toBe(false);
+    });
+
     it('keeps a plain `updateSettings()` object merging into the previous one', () => {
       hot = new Handsontable(container, {
         autoLink: { target: '_self', className: 'x' },

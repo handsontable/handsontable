@@ -223,7 +223,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   merge theirs the same way, so a key one sheet set stayed on every later sheet that left it out, over the
   grid-level value too. The bar sends the plugin's defaults (`_getObjectSettingDefaults()`, `@private` on
   BasePlugin, overridden by ColumnSorting and Search), then the grid-level object when the sheet declares the
-  option, then the sheet's object. Plain `updateSettings()` keeps merging. The `SELF_BASELINED_KEYS` are
+  option, then the sheet's object. Plain `updateSettings()` keeps merging, and so does `updateSheetSettings()`
+  into the sheet's own object (`#mergedOptionObjects`, before the completion above): replacing it reset a key
+  the sheet declared and the call left out (`columnSorting: { headerAction: false }` lost it on a call that
+  set only `indicator`). The `SELF_BASELINED_KEYS` are
   left as sent: a `dataProvider` is told apart by its identity, and a completed copy read as a new provider.
   A new plugin that merges its object option in its own way overrides `_getObjectSettingDefaults()`, or its
   keys leak across sheets again. Pinned by `__tests__/pluginOptionReset.unit.js` and

@@ -2330,9 +2330,10 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Updates a sheet's own settings, the way {@link Core#updateSettings} updates the grid's: the keys you
-   * pass are merged into the settings the sheet already has. A key passed as `undefined` is left out, as
-   * {@link Core#updateSettings} leaves it out, so a key a sheet declares cannot be removed from it, only
-   * given another value. On the visible sheet the change applies at once; on any other sheet it applies
+   * pass are merged into the settings the sheet already has, and an options object such as `columnSorting`
+   * is merged into the one the sheet sets, as {@link Core#updateSettings} merges it. A key passed as
+   * `undefined` is left out, as {@link Core#updateSettings} leaves it out, so a key a sheet declares cannot
+   * be removed from it, only given another value. On the visible sheet the change applies at once; on any other sheet it applies
    * when the sheet is shown next, in place of what the sheet kept from your last visit for that key, such
    * as its sort, filters, or hidden columns. The rest of what it kept, such as the selection and the scroll
    * position, comes back as usual. The entry in your `sheets` array keeps the `settings` you declared.
@@ -2357,15 +2358,16 @@ export class SheetsBar extends BasePlugin {
       return false;
     }
 
-    const changes = normalizeFixedColumnsAlias(Object.fromEntries(
+    const ownSettings = renameFixedColumnsLeft(sheet.settings ?? {});
+    const changes = this.#mergedOptionObjects(normalizeFixedColumnsAlias(Object.fromEntries(
       Object.entries(settings).filter(([key, value]) => !UNSETTABLE_SHEET_KEYS.has(key) && value !== undefined)
-    ), this.hot.isRtl());
+    ), this.hot.isRtl()), ownSettings);
 
     if (Object.keys(changes).length === 0) {
       return false;
     }
 
-    sheet.settings = { ...renameFixedColumnsLeft(sheet.settings ?? {}), ...changes };
+    sheet.settings = { ...ownSettings, ...changes };
 
     if (model?.getActiveSheet()?.id === id) {
       if ('importFile' in changes) {
@@ -4005,6 +4007,37 @@ export class SheetsBar extends BasePlugin {
       }
 
       result[key] = { ...defaults, ...underneath, ...(value as Record<string, unknown>) };
+    });
+
+    return result;
+  }
+
+  /**
+   * Merges each plugin option object of `changes` into the object the sheet already sets for it, the way
+   * {@link Core#updateSettings} merges it into the plugin's previous one, for the plugins that merge an
+   * object setting (`#objectSettingDefaultsOf`). Without it, `updateSheetSettings()` replaced the sheet's
+   * object, so a key the sheet declared and the call left out took its default.
+   *
+   * @param {object} changes The settings `updateSheetSettings()` got.
+   * @param {object} ownSettings The sheet's own settings before the call.
+   * @returns {object} `changes`, or a copy with the objects merged.
+   */
+  #mergedOptionObjects(changes: Record<string, unknown>, ownSettings: Record<string, unknown>) {
+    let result = changes;
+
+    Object.keys(changes).forEach((key) => {
+      const value = changes[key];
+      const previous = ownSettings[key];
+
+      if (!isPlainObject(value) || !isPlainObject(previous) || this.#objectSettingDefaultsOf(key) === null) {
+        return;
+      }
+
+      if (result === changes) {
+        result = { ...changes };
+      }
+
+      result[key] = { ...(previous as Record<string, unknown>), ...(value as Record<string, unknown>) };
     });
 
     return result;
