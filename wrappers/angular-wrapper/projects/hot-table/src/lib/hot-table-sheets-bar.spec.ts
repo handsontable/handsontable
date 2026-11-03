@@ -852,7 +852,7 @@ describe('HotTableComponent with a sheets bar', () => {
 
       fixture = TestBed.createComponent(HotTableComponent);
       fixture.componentInstance.data = firstRows;
-      fixture.componentInstance.settings = { licenseKey: NON_COMMERCIAL_LICENSE, sheetsBar: true };
+      fixture.componentInstance.settings = { licenseKey: TEST_LICENSE_KEY, sheetsBar: true };
       fixture.detectChanges();
 
       const component = fixture.componentInstance;
