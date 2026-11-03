@@ -384,8 +384,43 @@ Both keys nonetheless stay in `SETTING_KEYS` alongside `language`, because `upda
 switches the sheet, and dropping them would skip that.
 
 `engine/register.ts` accepts three shapes: an engine class, an engine instance, or
-`{ hyperformula: engineClass }`. Cross-sheet referencing hooks are registered on the shared instance
-registry.
+`{ hyperformula: engineClass }`.
+
+**A sheet added to or removed from an engine the plugin built is handled by version
+(`engine/sheetStructureChange.ts`).** `rebuildAndRecalculate()` rebuilds from `getSheetSerialized()`,
+which writes a spilled array's values as plain data, so every spill on every sheet of the engine turns
+into `#SPILL!`: a second grid binding to the engine adds a sheet and broke the first grid's spills that
+way. Three rules.
+
+- **From HyperFormula 3.1.1 on, no rebuild.** That version recalculates references to a sheet added or
+  removed later by itself (`#REF!`, then the value, then `#REF!` again; HyperFormula issue #1116). Below
+  it (`recalculatesSheetReferences()` reads the class's `version` static; an unreadable one counts as
+  old), the rebuild stays, because without it those references stay `#REF!`; spills still break there.
+  The `TODO` at the gate in `register.ts` goes when the supported floor reaches 3.1.1, which is a
+  support drop and therefore a major-release change.
+- **`SHEET()` and `SHEETS()` are re-written instead.** HyperFormula does not mark them as depending on
+  the sheet list, so only the rebuild used to refresh them. `recalculateSheetListFormulas()` scans every
+  sheet's formulas for a call to either one, in the engine's language (`getLanguage()`), and sets each
+  such cell to its own formula again. It is one `engine.batch()`, or direct writes while the host has the
+  evaluation suspended, because `batch()` resumes it. The cost is one `getSheetFormulas()` per sheet per
+  sheet change, far below the rebuild it replaces. Two guards are load-bearing, each with a test that
+  goes red without it. **A formula that reads a removed sheet is skipped** (`getCellPrecedents()` names
+  a sheet `getSheetName()` no longer knows): HyperFormula throws `NoSheetWithIdError` for such a
+  `setCellContents`, inside the `sheetRemoved` emit, which skipped every grid's own listener and left
+  the engine unusable for the next `addSheet`; the cell reads `#REF!` either way. **The text goes
+  through `quoteUnreadableSheetNames()`**, because `getSheetFormulas()` hands back `'2026'!A1` unquoted
+  and writing that back turns the cell into `#ERROR!` (see "Sheet names the engine reads only in
+  quotes"). A function its language does not translate is written in English, so the lookup falls
+  back per name. Anything that still throws is caught and reported with `warn`, so the emit reaches
+  the grids. Not covered: a named expression that calls them.
+- **`SHEET()` answers the sheet id plus one, not the sheet's position.** The rebuild renumbered sheet
+  ids after a removal, and a grid bound to a later sheet then held an id `getSheetName()` no longer
+  knew. Without it, surviving sheets keep their ids, so `SHEET("S3")` stays 3 after S2 is removed
+  while `SHEETS()` drops to 2. HyperFormula gives the next added sheet the highest free id, which can
+  be the removed one.
+
+An engine instance the host passes in gets none of these listeners, as before, so `SHEET()`/`SHEETS()`
+stay stale there. Pinned by `__tests__/sheetStructureChange.unit.js`.
 
 ## `updateSettings()` resyncs the sheet ONCE, after the plugins update
 

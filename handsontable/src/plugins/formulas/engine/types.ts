@@ -93,7 +93,9 @@ export interface HyperFormulaEngine {
  * Describes only the static methods used during engine registration.
  */
 export interface HyperFormulaClass {
+  version?: string;
   buildEmpty(settings: Record<string, unknown>): HyperFormulaEngine;
   registerFunction(name: unknown, plugin: unknown, translations: unknown): void;
   registerLanguage(langCode: unknown, language: unknown): void;
+  getLanguage?(languageCode: string): { getFunctionTranslations(functionIds: string[]): string[] };
 }

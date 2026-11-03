@@ -1365,6 +1365,7 @@ const hotSettings = ref({
 - Formulas don't support nested data, i.e., when Handsontable's [`data`](@/api/options.md#data) is set to an [array of nested objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects).
 - [`preserveTextValue`](@/api/options.md#preservetextvalue) works only with the built-in [`text`](@/guides/cell-types/cell-type/cell-type.md) cell type. Custom cell types are not supported, even when they reuse the text editor or renderer.
 - Sorting a column that contains formulas can produce `#REF!`. Handsontable does not rewrite formula references to follow sorted rows. See [Sorting formula cells](#sorting-formula-cells).
+- With HyperFormula older than 3.1.1, adding or removing a sheet in an engine that the [`Formulas`](@/api/formulas.md) plugin created turns spilled arrays into `#SPILL!`. This also happens when a second Handsontable instance connects to that engine. Use HyperFormula 3.1.1 or later.
 
 ### Sorting formula cells
 
