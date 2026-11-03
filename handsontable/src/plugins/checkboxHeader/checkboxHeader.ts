@@ -31,7 +31,8 @@ import {
   writeCheckboxColumn,
   type CheckboxMeta,
 } from '../../utils/checkboxColumn';
-import { PLUGIN_DEPS } from './feature.generated';
+import { LICENSE, PLUGIN_DEPS } from './feature.generated';
+import { isLicensedUse } from '../../utils/licenseNotification';
 
 export const PLUGIN_KEY = 'checkboxHeader';
 export const PLUGIN_PRIORITY = 390;
@@ -178,6 +179,14 @@ export class CheckboxHeader extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * The memoized header state per visual column. A data or meta change re-reads only the rows it
    * touched; a change to the scope (indexes, pages, settings, a data load) drops the whole cache.
    */
@@ -269,11 +278,12 @@ export class CheckboxHeader extends BasePlugin {
 
     const meta = this.hot.getColumnMeta(column);
 
-    if (!meta.headerCheckbox || !isCheckboxMeta(meta as CheckboxMeta)) {
+    if (!meta.headerCheckbox || !isCheckboxMeta(meta as CheckboxMeta) || this.#isRowSelectionColumn(column)) {
       return false;
     }
 
-    return !this.#isRowSelectionColumn(column);
+    // The plugin is on in every grid, so the license is checked where a column asks for the checkbox.
+    return isLicensedUse(this.hot, LICENSE);
   }
 
   /**

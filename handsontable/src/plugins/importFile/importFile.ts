@@ -1,6 +1,13 @@
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
+import { IMPORT_FILE_CAPABILITY_IDS } from '../../utils/xlsxEngine/licenseCapabilities';
+import { getLicenseState, getXlsxEntitlement } from '../../core/license';
+import {
+  formatMissingCapabilitiesWarning,
+  scopeXlsxEntitlement,
+} from '../../utils/xlsxEngine/xlsxEntitlement';
+import { warn } from '../../helpers/console';
 import {
   detectXlsxEngine, resolveEngineOverride, tryDetectXlsxEngine, type DetectedXlsxEngine,
 } from '../../utils/xlsxEngine/detect';
@@ -23,6 +30,9 @@ import {
 } from '../../utils/columnTypeInference';
 import type { ImportedBorder } from './styles';
 import type { HotInstance } from '../../core/types';
+import { LICENSE } from './feature.generated';
+import { assertLicensedCall } from '../../utils/licenseNotification';
+import { hasLicenseCapability } from '../../utils/licenseCapabilities';
 
 export const PLUGIN_KEY = 'importFile';
 export const PLUGIN_PRIORITY = 245;
@@ -243,7 +253,9 @@ export interface ImportResult {
   colWidths?: Array<number | undefined>;
   /**
    * Row heights read from the workbook, in pixels. An entry is `undefined` when the sheet says
-   * nothing about that row, so the grid keeps its own height there.
+   * nothing about that row, so the grid keeps its own height there. The plugin applies them as
+   * `minRowHeights`: a workbook stores the height its application measured on every row, and a row
+   * shorter than the grid's default row height keeps the default.
    */
   rowHeights?: Array<number | undefined>;
   /**
@@ -255,7 +267,9 @@ export interface ImportResult {
   /**
    * Formulas that were not imported live, because the Formulas plugin is off, `importFormulas` is
    * `false`, or the formula cannot resolve in the grid. Their cells hold the cached value in `data`.
-   * Live formulas are in `data` as `=` strings.
+   * Live formulas are in `data` as `=` strings. Left out when the license does not unlock
+   * `xlsx:formulas`: the formula cells then hold their cached values, and `dropped` lists
+   * `license:xlsx:formulas`.
    */
   formulas?: Array<{ row: number; col: number; formula: string }>;
   /**
@@ -290,8 +304,13 @@ export interface ImportResult {
   engine: { kind: XlsxEngineKind; version: string | null };
   /**
    * Names of the features the file carried and the grid did not take: what the engine could not
-   * read, and what the plugin could not apply (an unregistered cell type, a missing plugin, a
-   * layout direction the grid does not follow).
+   * read, what the plugin could not apply (an unregistered cell type, a missing plugin, a layout
+   * direction the grid does not follow), and a feature the license did not unlock, as
+   * `license:xlsx:<token>`. A license entry is listed only for a feature the file carried, the import
+   * was asked to bring over, and the license did not unlock: with `importStyles`, `importLayout` or
+   * `importFormulas` off, `inferCellTypes` off (for data validation), or the `Comments` plugin off,
+   * the license took nothing, and the entry the option drives (`cellStyles`, `comments`) is listed as
+   * on any key.
    */
   dropped: string[];
 }
@@ -596,6 +615,24 @@ export class ImportFile extends BasePlugin {
   }
 
   /**
+   * Returns the ids of the license capability tokens this plugin gates.
+   *
+   * @private
+   * @returns {string[]}
+   */
+  static get CAPABILITIES(): readonly string[] {
+    return IMPORT_FILE_CAPABILITY_IDS;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns the setting keys that trigger a plugin update when changed via `updateSettings`.
    */
   static get SETTING_KEYS() {
@@ -690,12 +727,23 @@ export class ImportFile extends BasePlugin {
 
   /**
    * Returns `true` when the format can be read: `xlsx`, through the built-in engine or the one
-   * configured in `engines`. An engine of unknown shape reads nothing and answers `false`.
+   * configured in `engines`. An engine of unknown shape reads nothing and answers `false`. `'xlsx'` also
+   * answers `false` whenever an xlsx import would throw for the license: when the license key lists
+   * its features without `feat:import_file`, the plugin's own token, and when it carries the
+   * `listed-capabilities` flag without listing `xlsx:import`. A key without that flag, and the
+   * evaluation key, are not restricted.
    *
    * @param {string} format The import format, e.g. `'xlsx'`.
    * @returns {boolean}
    */
   supportsImportFormat(format: string): boolean {
+    if (
+      format === 'xlsx' &&
+      (!hasLicenseCapability(this.hot, LICENSE.capability) || !getXlsxEntitlement(this.hot).import)
+    ) {
+      return false;
+    }
+
     const detected = tryDetectEngine(this.hot, undefined, format);
 
     return detected !== null && detected.capabilities.readFormats.includes(format);
@@ -730,8 +778,11 @@ export class ImportFile extends BasePlugin {
    *   data: importFile.convertToInferredTypes(rows, result),
    * });
    * ```
+   * @throws {Error} When the license key lists the features it unlocks and leaves out Import from file.
    */
   inferColumnTypes(data: InferenceData, options: InferColumnTypesOptions | null = {}): InferColumnTypesResult {
+    assertLicensedCall(this.hot, LICENSE);
+
     return inferColumnTypes(data, { ...options, locale: options?.locale || this.hot.getSettings().locale });
   }
 
@@ -742,8 +793,11 @@ export class ImportFile extends BasePlugin {
    * local date and time. A value the column cannot read, such as a `Total` row, is kept as it is, so the
    * cell type's validator marks it. When the result found a header row, that row is left out.
    * `data` itself is not changed.
+   * @throws {Error} When the license key lists the features it unlocks and leaves out Import from file.
    */
   convertToInferredTypes<T extends InferenceData>(data: T, result: InferColumnTypesResult): ConvertedData<T> {
+    assertLicensedCall(this.hot, LICENSE);
+
     return convertToInferredTypes(data, result);
   }
 
@@ -764,11 +818,15 @@ export class ImportFile extends BasePlugin {
    * @param {ArrayBuffer|ArrayBufferView} buffer The file's bytes.
    * @param {ImportOptions} [options] Import options.
    * @returns {Promise<ImportResult>}
+   * @throws {Error} The returned promise rejects when the license key lists the features it unlocks and leaves out Import from file.
    */
   async importFromArrayBuffer(
     format: string, buffer: ArrayBuffer | ArrayBufferView, options: ImportOptions = {}
   ): Promise<ImportResult> {
+    assertLicensedCall(this.hot, LICENSE);
+
     this.#assertEnabled();
+    this.#assertLicensed(format);
 
     const detected = requireEngine(this.hot, format, options.engine);
     // Validated before the ticket is taken, so a call refused for an option never cancels an import
@@ -795,9 +853,13 @@ export class ImportFile extends BasePlugin {
    * @param {Blob} blob The file.
    * @param {ImportOptions} [options] Import options.
    * @returns {Promise<ImportResult>}
+   * @throws {Error} The returned promise rejects when the license key lists the features it unlocks and leaves out Import from file.
    */
   async importFromBlob(format: string, blob: Blob, options: ImportOptions = {}): Promise<ImportResult> {
+    assertLicensedCall(this.hot, LICENSE);
+
     this.#assertEnabled();
+    this.#assertLicensed(format);
 
     // Detected, validated and ticketed before the first `await`, so a call refused for its format,
     // its engine or an option never cancels an import in flight, and the order of the tickets is the
@@ -836,14 +898,18 @@ export class ImportFile extends BasePlugin {
     const formulasPlugin = this.hot.getPlugin('formulas');
     const commentsPlugin = this.hot.getPlugin('comments');
     const customBordersPlugin = this.hot.getPlugin('customBorders');
-    const formulasEnabled = formulasPlugin?.isEnabled() === true;
+    const formulasEnabled = formulasPlugin?.enabled === true;
+    // Scoped to the import's own tokens, so the warning and the `license:` entries never name an
+    // export-only token (`xlsx:export`, `xlsx:number_formats`).
+    const entitlement = scopeXlsxEntitlement(getXlsxEntitlement(this.hot), IMPORT_FILE_CAPABILITY_IDS);
     const mapped = mapWorkbook(workbook, resolved, {
       formulasEnabled,
-      commentsEnabled: commentsPlugin?.isEnabled() === true,
-      customBordersEnabled: customBordersPlugin?.isEnabled() === true,
+      commentsEnabled: commentsPlugin?.enabled === true,
+      customBordersEnabled: customBordersPlugin?.enabled === true,
       formulaSheetNames: formulasEnabled ? engineSheetNames(formulasPlugin?.engine) : undefined,
       formulaSheetName: formulasEnabled ? formulasPlugin?.sheetName ?? undefined : undefined,
       formulaNamedExpressions: formulasEnabled ? engineNamedExpressions(formulasPlugin?.engine) : undefined,
+      entitlement,
     }, dropped);
 
     recordLayoutDirectionMismatch(this.hot, mapped, resolved.apply, dropped);
@@ -860,7 +926,7 @@ export class ImportFile extends BasePlugin {
     };
 
     if (!resolved.apply) {
-      dropped.warn(detected.kind);
+      this.#warnDropped(dropped, detected.kind);
 
       return result;
     }
@@ -871,7 +937,7 @@ export class ImportFile extends BasePlugin {
     this.#assertAlive('before the import was applied');
     // Warned only once the guards passed, so an import they reject logs nothing about data that never
     // reached the grid (review round 12).
-    dropped.warn(detected.kind);
+    this.#warnDropped(dropped, detected.kind);
 
     this.#isApplying = true;
 
@@ -896,7 +962,7 @@ export class ImportFile extends BasePlugin {
 
     try {
       applyImportResult(this.hot, result, {
-        importLayout: resolved.importLayout,
+        importLayout: resolved.importLayout && entitlement.layout,
         updateSettings: this.#applyImportSettings,
         onStylesInstalled: (styles) => {
           this.#installedStyles = styles;
@@ -927,6 +993,37 @@ export class ImportFile extends BasePlugin {
       this.#importSettings = null;
     }
   };
+
+  /**
+   * Emits the warnings of one import call: the engine's dropped-features warning, and the
+   * missing-capabilities warning, only when the import recorded a `license:<token>` entry (a feature
+   * the file carried, the import was asked to bring over, and the license does not unlock) and the
+   * console channel is on. The warning
+   * names exactly those tokens, in the order the mapper recorded them (`XLSX_CAPABILITY_IDS` order).
+   *
+   * @param {DroppedFeatures} dropped The features recorded during the call.
+   * @param {XlsxEngineKind} kind The engine that read the file.
+   */
+  #warnDropped(dropped: DroppedFeatures, kind: XlsxEngineKind): void {
+    dropped.warn(kind);
+
+    const tokens = dropped.licenseTokens();
+
+    if (tokens.length > 0 && getLicenseState(this.hot).channels.console) {
+      warn(formatMissingCapabilitiesWarning('import', tokens));
+    }
+  }
+
+  /**
+   * Rejects an xlsx import when the license key carries the `listed-capabilities` flag without
+   * listing `xlsx:import`.
+   * Runs right after `#assertEnabled()`, before any engine detection or file read.
+   */
+  #assertLicensed(format: string): void {
+    if (format === 'xlsx' && !getXlsxEntitlement(this.hot).import) {
+      throwWithCause('ImportFile: the license does not unlock "xlsx:import".');
+    }
+  }
 
   /**
    * Rejects a public call on a disabled plugin (`importFile: false`), the way every other plugin's

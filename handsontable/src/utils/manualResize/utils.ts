@@ -75,9 +75,9 @@ export function shouldRefreshHandleAfterAutoResize(
 }
 
 /**
- * The size options the row resize plugin answers to. `minRowHeights` is documented as an alias for
- * `rowHeights`, and `Core#_getRowHeightFromSettings` reads `rowHeights ?? minRowHeights`, so the two
- * state the row heights equally.
+ * The size options the row resize plugin answers to. Both state the row heights, so passing either one
+ * re-declares them. They differ at render time (`rowHeights` is exact, `minRowHeights` is a floor), which
+ * does not matter here.
  */
 export const ROW_SIZE_OPTIONS = ['rowHeights', 'minRowHeights'];
 

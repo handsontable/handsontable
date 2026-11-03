@@ -10,6 +10,7 @@ import {
   pickStorableSizes,
   redeclaresManualSizes,
 } from '../../utils/manualResize/utils';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'manualRowResize';
 export const PLUGIN_PRIORITY = 30;
@@ -38,6 +39,14 @@ export class ManualRowResize extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
@@ -151,12 +160,6 @@ export class ManualRowResize extends BasePlugin {
     if (newSettings === undefined || newSettings[PLUGIN_KEY] !== undefined) {
       this.disablePlugin();
       this.enablePlugin();
-
-    } else {
-      // `BasePlugin#onUpdateSettings` feeds `updatePluginSettings()` with `newSettings[PLUGIN_KEY]`,
-      // which a `rowHeights`-only update does not carry. Restore the option from the merged settings
-      // so `getSetting()` keeps reporting it.
-      this.updatePluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
     }
 
     // Runs after the re-initialization, so that the heights replayed on the map's `init` hook are
@@ -457,7 +460,7 @@ export class ManualRowResize extends BasePlugin {
       const rowHeight = this.#rowHeightsMap.getValueAtIndex<number>(physicalRow);
 
       if (this.hot.getSettings()[PLUGIN_KEY] && rowHeight) {
-        if (this.hot.getPlugin('autoRowSize')?.isEnabled()) {
+        if (this.hot.getPlugin('autoRowSize')?.enabled) {
           newHeight = Math.max(rowHeight, newHeight ?? 0);
 
         } else {

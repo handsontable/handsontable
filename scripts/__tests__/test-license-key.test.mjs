@@ -42,6 +42,21 @@ const ALLOWED = {
   'tests/fixtures/pages/LicenseBrandingPage.ts': 'a comment on the lock text, which names the key',
   'tests/e2e/license-branding.spec.ts': 'asserts the lock text, which names the key',
   'wrappers/vue3/test/types/vue3.types.ts': 'a type test; it builds no grid',
+  // The capability gate: these pass the non-commercial key as the legacy key a gate must not restrict.
+  'handsontable/src/core/__tests__/license.unit.js': 'keeps a legacy-key instance apart from a listed one',
+  'handsontable/src/plugins/base/__tests__/licenseGate.unit.js': 'the non-commercial key unlocks every plugin',
+  'handsontable/src/utils/licenseCapabilities/__tests__/resolveLicenseCapabilities.unit.js':
+    'the non-commercial key resolves to unrestricted grants',
+  'handsontable/src/plugins/exportFile/__tests__/exportFile.unit.js': 'a legacy key supports the xlsx export',
+  'handsontable/src/plugins/exportFile/__tests__/xlsxLicenseGates.unit.js':
+    'compares a legacy export with a listed one',
+  'handsontable/src/plugins/exportFile/__tests__/xlsxProtectionOption.unit.js':
+    'compares a legacy export with a listed one',
+  'handsontable/src/plugins/importFile/__tests__/importFile.unit.js': 'a legacy key supports the xlsx import',
+  'handsontable/src/plugins/importFile/__tests__/importLicenseGates.unit.js':
+    'compares a legacy import with a listed one',
+  'tests/fixtures/demo/license-capabilities.html': 'builds a grid per license key, the non-commercial one included',
+  'tests/fixtures/xlsxLicenseKeys.ts': 'exports the legacy key the xlsx license specs compare against',
 };
 
 /**

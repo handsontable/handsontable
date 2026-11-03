@@ -46,6 +46,7 @@ import {
 import type { PositionComparatorFactory } from './sortService';
 import type { HotInstance } from '../../core/types';
 import { A11Y_SORT } from '../../helpers/a11y';
+import { LICENSE } from './feature.generated';
 
 /**
  * `HotInstance` augmented with the internal `_getDataAtColumnForRows` method. The method exists on the
@@ -202,6 +203,14 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Instance of column state manager.
    *
    * @private
@@ -219,6 +228,11 @@ export class ColumnSorting extends BasePlugin {
    * Sort queued by a header press, applied on mouse up unless the press became a column drag.
    */
   #pendingHeaderSort: HeaderSortPress | null = null;
+  /**
+   * `true` from an `enablePlugin()` until the settings sort of that enable runs in the ready step.
+   * `onDataReady()` sorts itself, so it clears it too.
+   */
+  #settingsSortOwed = false;
   /**
    * `syncIcon()` for the sort arrow, remembering which headers ever got one. The header hook clears
    * the slot on every unsorted column, so a header that never held an arrow skips the subtree
@@ -317,13 +331,10 @@ export class ColumnSorting extends BasePlugin {
     this.addHook('afterColumnMove', this.#onAfterColumnMove);
     this.addHook('afterColumnSequenceChange', this.#onAfterColumnSequenceChange);
 
-    this.addHook('afterInit', this.#loadOrSortBySettings);
+    this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch, -1);
 
-    // TODO: Workaround? It should be refactored / described.
-    if (this.hot.view) {
-      this.#sortBySettingsOnceDataIsReady();
-    }
+    this.#settingsSortOwed = true;
 
     this.registerShortcuts();
     super.enablePlugin();
@@ -1271,8 +1282,8 @@ export class ColumnSorting extends BasePlugin {
    */
   onUpdateSettings(newSettings: Record<string, unknown>) {
     // Captured before `super` may flip the plugin from disabled to enabled: a fresh `enablePlugin()`
-    // already runs `#loadOrSortBySettings()` (the #6806 `this.hot.view` workaround), so re-running the
-    // settings sort below on that same pass would run the comparator twice for no reason (DEV-187).
+    // leaves the settings sort to its ready step, so running it below on that same pass would run the
+    // comparator twice for no reason (DEV-187).
     const wasEnabled = this.enabled;
     const previousPluginSettings = this.getSetting();
 
@@ -1311,21 +1322,41 @@ export class ColumnSorting extends BasePlugin {
    */
   onDataReady() {
     if (this.takeDeferredDataWork()) {
+      this.#settingsSortOwed = false;
       this.#loadOrSortBySettings();
     }
   }
 
   /**
-   * Runs the settings sort of an enable on a live grid, or holds it for `onDataReady()` while the
-   * settings are applied ahead of their data.
+   * Sorts by the settings after an enable. Core runs it once after each enable or update, when the data the
+   * settings describe is loaded: at init before the `init` hook, with the render held for the first one, so
+   * the first render draws sorted rows; on a settings switch after the load. An update of a plugin that was
+   * already enabled sorts in `onUpdateSettings()`, so the step does nothing then.
+   *
+   * @private
    */
-  #sortBySettingsOnceDataIsReady() {
-    if (this.isDataWorkDeferred()) {
-      this.deferDataWork();
-    } else {
+  onGridReady() {
+    if (!this.#settingsSortOwed) {
+      return;
+    }
+
+    this.#settingsSortOwed = false;
+    this.#loadOrSortBySettings();
+  }
+
+  /**
+   * Callback for the `afterLoadData` hook. Sorts the rows an `init` listener loads: that load replaces the rows
+   * the ready step sorted, and it skips the load's own ready step pass. Only that load has a truthy
+   * `initialLoad` while the view exists; the load made before the view and every load after init pass by.
+   *
+   * @param {Array} sourceData The loaded data.
+   * @param {boolean|Array} initialLoad Whether the load is made during init.
+   */
+  #onAfterLoadData = (sourceData: unknown[], initialLoad: unknown) => {
+    if (initialLoad && this.hot.view) {
       this.#loadOrSortBySettings();
     }
-  }
+  };
 
   /**
    * Callback for the `afterDataProviderFetch` hook.

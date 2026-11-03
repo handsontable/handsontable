@@ -26,7 +26,7 @@ export default function copyWithColumnGroupHeadersItem(copyPastePlugin: CopyPast
       copyPastePlugin.copyWithAllColumnHeaders();
     },
     disabled(this: HotInstance) {
-      if (!this.hasColHeaders() || !this.getSettings().nestedHeaders) {
+      if (!this.hasColHeaders() || !this.getPlugin('nestedHeaders')?.enabled) {
         return true;
       }
 

@@ -33,6 +33,16 @@ export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this co
 const SIZE_SETTING_KEYS = new Set<string>(['rowHeights', 'minRowHeights', 'colWidths']);
 
 /**
+ * Checks whether a hook value holds a callback core registers: a function or an array of them.
+ *
+ * @param value The hook value.
+ * @returns `true` for a function or an array.
+ */
+function isHookCallback(value: unknown): boolean {
+  return typeof value === 'function' || Array.isArray(value);
+}
+
+/**
  * Compares two size option values. Both hold a number, a string, a function or an array of numbers
  * or strings, so an element-wise walk is enough - and it is what makes a value written inline in a
  * template, which is a new array on every change detection run, compare as unchanged.
@@ -110,6 +120,12 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
    * sheet's.
    */
   private _gridColumns: ColumnSettingsInternal[] | undefined;
+  /**
+   * The hooks the last applied `settings` input passed a callback for. A hook in this set that the next
+   * input leaves out is sent as `null`. It is read from what the component sent, not from the previous
+   * input, because an app may delete the key from that object before passing a copy.
+   */
+  private _passedHookKeys = new Set<string>();
 
   constructor(
     private _hotSettingsResolver: HotSettingsResolver,
@@ -160,6 +176,8 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
       this._gridColumns = options.columns;
     }
 
+    this._passedHookKeys = this.collectHookKeys(options);
+
     const negotiatedSettings = this.getNegotiatedSettings(options);
     options = { ...options, ...negotiatedSettings, ...(this.data != null ? { data: this.data } : {}) };
 
@@ -203,6 +221,9 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
         changes.settings.currentValue,
         prevColumnsArray
       );
+
+      this.clearRemovedHooks(newOptions);
+      this._passedHookKeys = this.collectHookKeys(newOptions);
 
       // updateHotTable closes any active editor via HOT.updateSettings before we destroy old refs.
       this.updateHotTable(newOptions);
@@ -283,6 +304,36 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
 
     this.container.nativeElement.classList.toggle(FILL_HEIGHT_CLASS_NAME, fillHeight);
     this._host.nativeElement.classList.toggle(FILL_HEIGHT_CLASS_NAME, fillHeight);
+  }
+
+  /**
+   * Sets to `null` each hook the component last passed a callback for and the new settings do not, so
+   * `updateSettings()` removes that callback. A key missing from the new object is otherwise left out of
+   * the payload, and core keeps the callback.
+   *
+   * @param newOptions The settings about to be applied. Changed in place.
+   */
+  private clearRemovedHooks(newOptions: Handsontable.GridSettings): void {
+    this._passedHookKeys.forEach((key) => {
+      if (!isHookCallback(newOptions[key])) {
+        newOptions[key] = null;
+      }
+    });
+  }
+
+  /**
+   * Lists the hooks the settings pass a callback for. A key counts as a hook by the rule core's
+   * `updateSettings()` uses in `core.ts`: a registered or a deprecated hook name. Only a function or an
+   * array of them counts as a callback: core ignores any other value, such as `false`.
+   *
+   * @param settings The settings to read.
+   * @returns The hook names.
+   */
+  private collectHookKeys(settings: Handsontable.GridSettings): Set<string> {
+    return new Set(Object.keys(settings).filter(key => (
+      isHookCallback(settings[key]) &&
+      (Handsontable.hooks.isRegistered(key) || Handsontable.hooks.isDeprecated(key))
+    )));
   }
 
   /**

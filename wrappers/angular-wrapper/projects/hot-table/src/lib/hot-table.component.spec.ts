@@ -127,6 +127,108 @@ describe('HotTableComponent', () => {
       expect(updateHotTableSpy).toHaveBeenCalledWith(newSettings, false);
     });
 
+    describe('removing a hook from the settings input', () => {
+      const mountWithHook = (afterChange: jest.Mock) => {
+        fixture = TestBed.createComponent(HotTableComponent);
+        fixture.componentRef.setInput('settings', {
+          ...settings,
+          data: createSpreadsheetData(2, 2),
+          afterChange,
+        });
+        fixture.detectChanges();
+
+        return fixture.componentInstance.hotInstance;
+      };
+      const editSourceCalls = (callback: jest.Mock) => callback.mock.calls.filter(([, source]) => source === 'edit');
+
+      it('should stop running the callback when the key is removed', () => {
+        const afterChange = jest.fn();
+        const hot = mountWithHook(afterChange);
+
+        hot.setDataAtCell(0, 0, 'a');
+
+        expect(editSourceCalls(afterChange)).toEqual([[[[0, 0, 'A1', 'a']], 'edit']]);
+
+        fixture.componentRef.setInput('settings', { ...settings });
+        fixture.detectChanges();
+        hot.setDataAtCell(0, 0, 'b');
+
+        expect(editSourceCalls(afterChange)).toHaveLength(1);
+        expect(hot.getSettings().afterChange).toBe(null);
+      });
+
+      it('should stop running the callback when the key becomes `undefined`', () => {
+        const afterChange = jest.fn();
+        const hot = mountWithHook(afterChange);
+
+        fixture.componentRef.setInput('settings', { ...settings, afterChange: undefined });
+        fixture.detectChanges();
+        hot.setDataAtCell(0, 0, 'a');
+
+        expect(editSourceCalls(afterChange)).toEqual([]);
+      });
+
+      it('should stop running the callback when the key becomes `false`', () => {
+        const afterChange = jest.fn();
+        const hot = mountWithHook(afterChange);
+
+        fixture.componentRef.setInput('settings', { ...settings, afterChange: false });
+        fixture.detectChanges();
+        hot.setDataAtCell(0, 0, 'a');
+
+        expect(editSourceCalls(afterChange)).toEqual([]);
+        expect(hot.getSettings().afterChange).toBe(null);
+      });
+
+      it('should keep the callbacks the settings input did not pass', () => {
+        const afterChange = jest.fn();
+        const addedAfterChange = jest.fn();
+        const appAfterSetDataAtCell = jest.fn();
+        const hot = mountWithHook(afterChange);
+
+        hot.addHook('afterChange', addedAfterChange);
+        hot.updateSettings({ afterSetDataAtCell: appAfterSetDataAtCell });
+        fixture.componentRef.setInput('settings', { ...settings });
+        fixture.detectChanges();
+        hot.setDataAtCell(0, 0, 'a');
+
+        expect(editSourceCalls(afterChange)).toEqual([]);
+        expect(editSourceCalls(addedAfterChange)).toEqual([[[[0, 0, 'A1', 'a']], 'edit']]);
+        expect(appAfterSetDataAtCell).toHaveBeenCalledWith([[0, 0, 'A1', 'a']]);
+      });
+
+      it('should stop running the callback when the key is deleted from the object before a copy is passed', () => {
+        const afterChange = jest.fn();
+        const hot = mountWithHook(afterChange);
+        const appSettings: GridSettings = fixture.componentInstance.settings;
+
+        delete appSettings.afterChange;
+        fixture.componentRef.setInput('settings', { ...appSettings });
+        fixture.detectChanges();
+        hot.setDataAtCell(0, 0, 'a');
+
+        expect(editSourceCalls(afterChange)).toEqual([]);
+        expect(hot.getSettings().afterChange).toBe(null);
+      });
+
+      it('should run the callback again when the key is passed back', () => {
+        const afterChange = jest.fn();
+        const hot = mountWithHook(afterChange);
+
+        fixture.componentRef.setInput('settings', { ...settings });
+        fixture.detectChanges();
+        hot.setDataAtCell(0, 0, 'a');
+
+        expect(editSourceCalls(afterChange)).toEqual([]);
+
+        fixture.componentRef.setInput('settings', { ...settings, afterChange });
+        fixture.detectChanges();
+        hot.setDataAtCell(0, 0, 'b');
+
+        expect(editSourceCalls(afterChange)).toEqual([[[[0, 0, 'a', 'b']], 'edit']]);
+      });
+    });
+
     it('should not update Handsontable settings if it is the first change', () => {
       const newSettings = { data: [[1, 2, 3]] };
       fixture = TestBed.createComponent(HotTableComponent);

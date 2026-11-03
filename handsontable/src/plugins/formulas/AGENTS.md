@@ -497,6 +497,16 @@ Rules that keep it correct:
   `updateSettings(settings, true)`, so it is absent during the construction-time `afterCellMetaReset`
   and present for every later one; `collapsibleColumns` and `emptyDataState` read the same signal. Covered
   by `fills the sheet before the first draw at construction`.
+- **The plugin postpones no index sync, so its postpone callback does nothing.** `AxisSyncer` postpones the
+  initial order (`#syncInitialOrder()` through `IndexSyncer#getPostponeAction()`) only while the engine or the
+  sheet id is `null`, and it runs only from `IndexSyncer#setupSyncEndpoint()`, which the plugin calls with a
+  sheet it has just written or bound. Each setup sends the grid's order itself. `calculateAndSyncMoves()`
+  passes its move to `getPostponeAction()` as an argument, which is ignored, so a move made with no sheet
+  bound (ManualColumnMove's array at init) is never queued either; the setup sends that order. The one-off
+  `init` listener the callback used to add, and the ready-step queue that replaced it, replayed nothing. Do not
+  add a queue back: a replay after a setup sent the order a second time, the double transform that rewrote
+  `=A1+10` to `=B1+10` (below). Pinned by `__tests__/noPostponedIndexSync.unit.js`, whose control shows the
+  only path that postpones (a setup with no sheet) reaching the callback.
 - **The incremental alternative was considered and rejected.** Replacing the late full scan with
   `addRows` / `removeRows` for the row delta does not work: flattening inserts rows in the INTERIOR of the
   sheet, not at the end, so the delta is not an append and the insert positions would have to be derived

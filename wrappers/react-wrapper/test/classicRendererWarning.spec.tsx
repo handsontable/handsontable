@@ -36,7 +36,7 @@ function mountGrid(props: HotTableProps): HotTableRef {
       data={createSpreadsheetData(2, 2)}
       width={300}
       height={300}
-      rowHeights={23}
+      minRowHeights={23}
       colWidths={50}
       autoRowSize={false}
       autoColumnSize={false}

@@ -6,6 +6,7 @@ import { hasPointerTraveled } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
+import { LICENSE } from './feature.generated';
 
 Hooks.getSingleton().register('beforeRowMove');
 Hooks.getSingleton().register('afterRowMove');
@@ -53,6 +54,14 @@ export class ManualRowMove extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the multi-select editor's option labels being selectable while dragging in Safari, when Handsontable is loaded from the non-minified `handsontable.js` or `handsontable.css`.",
+  "type": "fixed",
+  "issueOrPR": 14106,
+  "breaking": false,
+  "framework": "none"
+}

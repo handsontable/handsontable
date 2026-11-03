@@ -9,6 +9,7 @@ import hideRowItem from './contextMenuItem/hideRow';
 import showRowItem from './contextMenuItem/showRow';
 import type { HidingMap } from '../../translations';
 import type { CellProperties } from '../../settings';
+import { LICENSE } from './feature.generated';
 
 Hooks.getSingleton().register('beforeHideRows');
 Hooks.getSingleton().register('afterHideRows');
@@ -214,6 +215,14 @@ export class HiddenRows extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
