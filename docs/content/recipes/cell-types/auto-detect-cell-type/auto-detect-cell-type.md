@@ -135,17 +135,14 @@ To change what counts as a number or a date, edit the two patterns. To stop a ty
 
 ## Step 2 -- Switch a cell's type
 
-Setting `type` through `setCellMeta()` copies the type's renderer, editor, and other type-specific settings into that cell's meta. A new type does not remove the settings it does not define. A date cell that turns into text would keep its date validator and its date formatter, and show `#bad-value#` for any text. The recipe clears those keys first, then applies the new type.
+Setting `type` through `setCellMeta()` copies the type's renderer, editor, and other type-specific settings into that cell's meta. A new type does not remove the settings that only the previous type defined. A date cell that turns into text would keep its date validator and its date formatter, and show `#bad-value#` for any text. After the recipe sets a type, it removes the leftovers with [`removeCellMeta()`](@/api/core.md#removecellmeta).
 
 ```ts
-const TYPE_SPECIFIC_KEYS = [
-  'validator',
-  'valueFormatter',
-  'valueSetter',
-  'dataType',
-  'sourceDataValidator',
-  'sourceDataWarningMessage',
-];
+const LEFTOVER_KEYS: Record<DetectedType, string[]> = {
+  text: ['validator', 'valueFormatter', 'valueSetter', 'dataType', 'sourceDataValidator', 'sourceDataWarningMessage'],
+  numeric: ['sourceDataValidator', 'sourceDataWarningMessage'],
+  date: ['valueSetter', 'dataType'],
+};
 
 const typeSettings: Record<DetectedType, Partial<CellProperties>> = {
   text: { type: 'text' },

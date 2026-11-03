@@ -60,17 +60,14 @@ function detectCellType(value, skipTypes) {
   return 'text';
 }
 
-// Setting a type copies the type's renderer, editor, and other type-specific settings into the cell's
-// meta. A later type does not overwrite the ones it does not define, so a date cell that turns into
-// text would keep its date validator and date formatter. Clear these before applying a type.
-const TYPE_SPECIFIC_KEYS = [
-  'validator',
-  'valueFormatter',
-  'valueSetter',
-  'dataType',
-  'sourceDataValidator',
-  'sourceDataWarningMessage',
-];
+// Setting a type copies that type's renderer, editor, and other settings into the cell's meta. It
+// does not remove the settings that only the previous type defined, so a date cell that turns into
+// text would keep its date validator and formatter. These lists name what each type must not keep.
+const LEFTOVER_KEYS = {
+  text: ['validator', 'valueFormatter', 'valueSetter', 'dataType', 'sourceDataValidator', 'sourceDataWarningMessage'],
+  numeric: ['sourceDataValidator', 'sourceDataWarningMessage'],
+  date: ['valueSetter', 'dataType'],
+};
 
 const typeSettings = {
   text: { type: 'text' },
@@ -111,8 +108,8 @@ function clearNumericResidue(hot, row, col) {
 
 // Switches a cell to one of the detected types.
 function applyType(hot, row, col, type) {
-  TYPE_SPECIFIC_KEYS.forEach((key) => hot.setCellMeta(row, col, key, undefined));
   Object.entries(typeSettings[type]).forEach(([key, setting]) => hot.setCellMeta(row, col, key, setting));
+  LEFTOVER_KEYS[type].forEach((key) => hot.removeCellMeta(row, col, key));
 }
 
 // Detects the type of one cell. Returns `true` when the cell changed.
