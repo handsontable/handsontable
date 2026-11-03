@@ -762,7 +762,7 @@ export class HandsontableAdapter {
   expandRangeOverMerges(range: CellRange): CellRange {
     const mergeCells = this.#hot.getPlugin('mergeCells');
     // The same read ExportFile makes: the plugin keeps its merges, in visual coordinates, there.
-    const merges = mergeCells?.isEnabled() ? mergeCells.mergedCellsCollection?.mergedCells ?? [] : [];
+    const merges = mergeCells?.enabled ? mergeCells.mergedCellsCollection?.mergedCells ?? [] : [];
 
     if (merges.length === 0) {
       return range;
