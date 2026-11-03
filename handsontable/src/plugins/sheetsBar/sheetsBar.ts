@@ -4253,6 +4253,7 @@ export class SheetsBar extends BasePlugin {
    * paging arrow visibility.
    */
   #refreshUI() {
+    this.#ui?.setTabLabels(this.getSheets().map(sheet => sheet.name));
     this.#tabStrip?.render(this.getSheets());
     this.#overflow?.refresh();
     this.#tabStrip?.settleReveal();

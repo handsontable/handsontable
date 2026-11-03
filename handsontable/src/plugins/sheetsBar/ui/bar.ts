@@ -46,6 +46,7 @@ const TEMPLATE: TemplateSpec = {
         ],
       },
       { tag: 'div', ref: 'tabStrip', className: 'ht-sheets-bar__tabs' },
+      { tag: 'div', ref: 'tabsSizer', className: 'ht-sheets-bar__tabs-sizer', attrs: { 'aria-hidden': 'true' } },
       {
         tag: 'div',
         ref: 'pagingSection',
@@ -79,6 +80,7 @@ export interface SheetsBarRefs {
   addButton: HTMLButtonElement;
   allButton: HTMLButtonElement;
   tabStrip: HTMLDivElement;
+  tabsSizer: HTMLDivElement;
   pagingSection: HTMLDivElement;
   pagePrev: HTMLButtonElement;
   pageNext: HTMLButtonElement;
@@ -303,6 +305,37 @@ export class SheetsBarUI {
     } else if (end > container.clientWidth) {
       container.scrollLeft = Math.ceil(container.scrollLeft + end - container.clientWidth);
     }
+  }
+
+  /**
+   * Gives the tabs pane the minimum width of the widest tab. A hidden, zero-height sizer in the bar's row spans
+   * the tabs pane and the paging arrows and holds one line per sheet name, with a tab's padding, gap and
+   * chevron plus the arrows' width around it, so the browser sizes the pane to the widest name in the tab's own
+   * font, whatever the theme, density or loaded font, with nothing measured in script. The lines are rebuilt
+   * only when the names change.
+   *
+   * @param {string[]} names The sheet names, in tab order.
+   */
+  setTabLabels(names: string[]): void {
+    const sizer = this.#refs?.tabsSizer;
+
+    if (!sizer) {
+      return;
+    }
+
+    const current = Array.from(sizer.children).map(line => line.textContent);
+
+    if (current.length === names.length && current.every((name, index) => name === names[index])) {
+      return;
+    }
+
+    sizer.replaceChildren(...names.map((name) => {
+      const line = this.#rootDocument.createElement('div');
+
+      line.textContent = name;
+
+      return line;
+    }));
   }
 
   /**

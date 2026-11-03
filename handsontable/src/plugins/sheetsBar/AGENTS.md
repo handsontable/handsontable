@@ -710,17 +710,22 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 - **On a table narrower than the bar's minimum, the whole bar scrolls inside itself.** The bar stays exactly
   as wide as its slot (core sizes the slot to the table, "a narrow table gets a narrow bar") and is a horizontal
   scroll box (`overflow-x: auto`); it never sticks out past the table. Its inner row is a grid (controls, tabs
-  pane, arrows) with `min-width: min-content`, and that minimum is one English "Sheet1" tab plus the controls
-  and the arrows. Five parts hold it together:
-  - **The "Sheet1" width comes from a sizer, not from `ch`.** A hidden, zero-height `::after` on the inner row
-    carries the text "Sheet1" with the tab's font and the tab's padding, gap and chevron, so the browser
-    measures the real text. `5ch` missed it by a fraction of a pixel either way depending on the theme's font,
-    which clipped the label. The sizer spans the tabs and arrows columns, and its padding includes the arrows'
-    width, so the minimum is the same whether the arrows show or not: hiding them gives the strip exactly
-    their width, and `OverflowController#refresh()`'s plain measure stays right (no flicker). It needs
-    `min-width: max-content`: an item spanning a flexible track gets no content-based minimum, and without it
-    only the padding counted. It must not be `overflow: hidden`, which makes it a scroll container whose
-    minimum is 0. The text is a CSS literal, so the grid's language does not change it.
+  pane, arrows) with `min-width: min-content`, and that minimum is the widest tab plus the controls and the
+  arrows, so every tab fits whole in the strip when it is revealed. Five parts hold it together:
+  - **The widest tab's width comes from a sizer, not from script or `ch`.** `.ht-sheets-bar__tabs-sizer` is a
+    hidden (`visibility: hidden`, `aria-hidden`), zero-height grid item in the inner row, holding one line per
+    sheet name (`SheetsBarUI#setTabLabels`, called from `#refreshUI`, rebuilt only when the names change), each
+    with a tab's padding, gap and chevron. The browser sizes it to the widest name in the tab's own font, so a
+    theme, density or font change follows with nothing measured: no measure-then-write loop, nothing read
+    while the bar is hidden. `ch` missed a real label by a fraction of a pixel and clipped it. The sizer spans
+    the tabs and arrows columns, and its padding includes the arrows' width, so the minimum is the same
+    whether the arrows show or not: hiding them gives the strip exactly their width, and
+    `OverflowController#refresh()`'s plain measure stays right (no flicker). It reserves 2px beside the widest
+    tab: the strip's 1px end allowance, and 1px for the reveal rounding its offset outward, which at 1px of
+    slack cut the widest tab by a fraction at the start. It needs `min-width: max-content`: an item spanning a
+    flexible track gets no content-based minimum, and without it only the padding counted. It must not be
+    `overflow: hidden`, which makes it a scroll container whose minimum is 0. On a table narrower than the
+    widest tab, the bar's visible width cannot hold that tab whole; the bar scrolls to it instead.
   - **The strip has `contain: inline-size`.** Without it the strip's intrinsic width is its tabs' width, so
     any `min-content` above it grew the bar to all its tabs (3972px with 30 long tabs, the arrows and the
     focused tab thousands of pixels off screen).

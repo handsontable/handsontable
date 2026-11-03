@@ -497,6 +497,92 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
         .toBe(target.scrollLeft);
     });
 
+    test.describe('the tabs pane\'s minimum is the widest tab', () => {
+      const tabNames = ['Regional breakdown', 'Q1', 'Summary of the whole year', 'North', 'Budget 2026', 'East'];
+      const readMinimum = (page: Page) => page.evaluate(() => {
+        const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
+        const strip = bar.querySelector('.ht-sheets-bar__tabs') as HTMLElement;
+        const tabs = Array.from(strip.querySelectorAll('.ht-sheets-bar__tab')) as HTMLElement[];
+
+        return {
+          minimum: (bar.querySelector('.ht-sheets-bar__inner') as HTMLElement).scrollWidth,
+          strip: strip.clientWidth,
+          widestTab: Math.max(...tabs.map(tab => tab.getBoundingClientRect().width)),
+        };
+      });
+
+      [false, true].forEach((rtl) => {
+        test(`keeps every tab whole in the strip and in a bar that scrolls${rtl ? ' (RTL)' : ''}`, async({
+          page, theme, bundle,
+        }) => {
+          const fixture = new SheetsBarUiPage(page, theme, bundle);
+          const forward = rtl ? 'ArrowLeft' : 'ArrowRight';
+          const backward = rtl ? 'ArrowRight' : 'ArrowLeft';
+          const wholeInBar = (index: number) => page.evaluate((position) => {
+            const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
+            const left = bar.getBoundingClientRect().left + bar.clientLeft;
+            const box = (bar.querySelectorAll('.ht-sheets-bar__tab')[position] as HTMLElement).getBoundingClientRect();
+
+            return box.left >= left - 0.5 && box.right <= left + bar.clientWidth + 0.5;
+          }, index);
+
+          await fixture.goto({ sheets: 6, rtl, tabNames, columnCounts: Array(6).fill(4), fixedHeight: false });
+
+          const layout = await readMinimum(page);
+
+          expect(layout.strip).toBeGreaterThanOrEqual(Math.floor(layout.widestTab));
+          expect(await page.evaluate(() => {
+            const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
+
+            return bar.scrollWidth > bar.clientWidth && bar.clientWidth > 250;
+          })).toBe(true);
+
+          await fixture.activeTab.focus();
+
+          for (let index = 1; index < 6; index += 1) {
+            await page.keyboard.press(forward);
+            await expect(fixture.tab(index)).toBeFocused();
+            await expect.poll(() => fixture.tabWhollyInStrip(index), `tab ${index} in the strip`).toBe(true);
+            await expect.poll(() => wholeInBar(index), `tab ${index} in the bar`).toBe(true);
+          }
+
+          for (let index = 4; index >= 0; index -= 1) {
+            await page.keyboard.press(backward);
+            await expect(fixture.tab(index)).toBeFocused();
+            await expect.poll(() => fixture.tabWhollyInStrip(index), `tab ${index} in the strip`).toBe(true);
+            await expect.poll(() => wholeInBar(index), `tab ${index} in the bar`).toBe(true);
+          }
+        });
+      });
+
+      test('grows with a longer name and shrinks when the widest tab goes', async({ page, theme, bundle }) => {
+        const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+        await fixture.goto({ sheets: 6, tabNames, columnCounts: Array(6).fill(1), fixedHeight: false });
+
+        const before = await readMinimum(page);
+
+        await page.evaluate(() => {
+          const plugin = (window as any).hot.getPlugin('sheetsBar');
+
+          plugin.renameSheet(plugin.getSheets()[1].id, 'A much longer name than any other tab here');
+        });
+
+        const grown = await readMinimum(page);
+
+        expect(grown.minimum).toBeGreaterThan(before.minimum);
+        expect(grown.strip).toBeGreaterThanOrEqual(Math.floor(grown.widestTab));
+
+        await page.evaluate(() => {
+          const plugin = (window as any).hot.getPlugin('sheetsBar');
+
+          plugin.removeSheet(plugin.getSheets()[1].id);
+        });
+
+        expect((await readMinimum(page)).minimum).toBe(before.minimum);
+      });
+    });
+
     test('stays inside a container narrower than its minimum', async({ page, theme, bundle }) => {
       const fixture = new SheetsBarUiPage(page, theme, bundle);
 

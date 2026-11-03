@@ -136,18 +136,22 @@ $all-sheets-visible-items: 8;
         padding-inline: var(--ht-sheets-bar-horizontal-padding);
         background: var(--ht-sheets-bar-background-color);
 
-        &::after {
-          content: "Sheet1";
-          grid-row: 1;
-          grid-column: 2 / 4;
-          min-width: max-content;
-          height: 0;
-          visibility: hidden;
+      }
+
+      .ht-sheets-bar__tabs-sizer {
+        display: grid;
+        grid-row: 1;
+        grid-column: 2 / 4;
+        min-width: max-content;
+        height: 0;
+        visibility: hidden;
+        pointer-events: none;
+
+        > div {
           white-space: nowrap;
-          pointer-events: none;
           padding-inline: var(--ht-sheets-bar-tab-horizontal-padding) calc(
             var(--ht-sheets-bar-tab-horizontal-padding) + var(--ht-sizing-size-1) + var(--ht-icon-size) +
-            var(--ht-gap-size) + 1px +
+            var(--ht-gap-size) + 2px +
             (2 * var(--ht-private-sheets-bar-button-width)) + 1px + (2 * var(--ht-gap-size))
           );
         }
