@@ -95,10 +95,28 @@ export function parseValueMetadata(xml: string): number[] {
   let section: 'types' | 'richFuture' | 'otherFuture' | 'value' | null = null;
   let inBlock = false;
   let blockRecorded = false;
+  // A block with no `rvb` or `rc` still takes its place in the list.
+  const finishBlock = () => {
+    if (!blockRecorded) {
+      if (section === 'richFuture') {
+        richValueBlocks.push(-1);
+      } else if (section === 'value') {
+        valueBlocks.push(null);
+      }
+    }
 
+    inBlock = false;
+  };
+
+  // The tokenizer fires no `close` for a self-closing element, so `<bk/>` and an empty
+  // `<valueMetadata/>` are finished from `open`: a skipped `<bk/>` shifted every later `vm` index.
   tokenizeXml(xml, {
-    open(rawName, attrs) {
+    open(rawName, attrs, selfClosing) {
       const name = localName(rawName);
+
+      if (selfClosing && (name === 'metadataTypes' || name === 'futureMetadata' || name === 'valueMetadata')) {
+        return;
+      }
 
       if (name === 'metadataTypes') {
         section = 'types';
@@ -112,6 +130,10 @@ export function parseValueMetadata(xml: string): number[] {
       } else if (name === 'bk' && (section === 'richFuture' || section === 'value')) {
         inBlock = true;
         blockRecorded = false;
+
+        if (selfClosing) {
+          finishBlock();
+        }
       } else if (name === 'rvb' && section === 'richFuture' && inBlock && !blockRecorded) {
         assertEntryCount(richValueBlocks.length, 'metadata part');
         richValueBlocks.push(toIndex(attrs.i) ?? -1);
@@ -129,16 +151,7 @@ export function parseValueMetadata(xml: string): number[] {
       const name = localName(rawName);
 
       if (name === 'bk' && inBlock) {
-        // A block with no `rvb` or `rc` still takes its place in the list.
-        if (!blockRecorded) {
-          if (section === 'richFuture') {
-            richValueBlocks.push(-1);
-          } else if (section === 'value') {
-            valueBlocks.push(null);
-          }
-        }
-
-        inBlock = false;
+        finishBlock();
       } else if (name === 'metadataTypes' || name === 'futureMetadata' || name === 'valueMetadata') {
         section = null;
       }

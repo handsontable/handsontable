@@ -210,6 +210,24 @@ describe('rich value parts', () => {
     expect(richValues.parseValueMetadata(metadata)).toEqual([5, -1, -1]);
   });
 
+  it('should keep the place of a self-closing block, so later indexes do not shift', () => {
+    // `<bk/>` fires no close event; skipping it read `vm` 2 as the block of `vm` 3.
+    const metadata = '<metadata xmlns:xlrd="x">'
+      + '<metadataTypes count="1"><metadataType name="XLRICHVALUE"/></metadataTypes>'
+      + '<futureMetadata name="XLRICHVALUE" count="3"><bk/>'
+      + '<bk><extLst><ext><xlrd:rvb i="4"/></ext></extLst></bk>'
+      + '<bk><extLst><ext><xlrd:rvb i="6"/></ext></extLst></bk></futureMetadata>'
+      + '<valueMetadata count="3"><bk><rc t="1" v="2"/></bk><bk/><bk><rc t="1" v="1"/></bk></valueMetadata>'
+      + '</metadata>';
+
+    expect(richValues.parseValueMetadata(metadata)).toEqual([6, -1, 4]);
+  });
+
+  it('should read no blocks from a self-closing section', () => {
+    expect(richValues.parseValueMetadata('<metadata><valueMetadata/><futureMetadata name="XLRICHVALUE"/>'
+      + '<metadataTypes/></metadata>')).toEqual([]);
+  });
+
   it('should resolve an error, a picture, an unknown error type and an unknown structure', () => {
     const structures = richValues.parseRichValueStructures('<rvStructures>'
       + '<s t="_error"><k n="errorType" t="i"/><k n="subType" t="i"/></s>'
