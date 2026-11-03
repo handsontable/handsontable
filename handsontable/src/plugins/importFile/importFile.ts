@@ -809,6 +809,8 @@ function liveArrayProbe(engine: unknown, sheetName: string | null | undefined): 
         return value.type;
       },
       isPartOfArray: (row, col) => answersTrue(() => scratch.isCellPartOfArray({ sheet, row, col })),
+      spillsValueInto: (row, col) => answersTrue(() => scratch.isCellPartOfArray({ sheet, row, col })
+        && (scratch.getCellValue({ sheet, row, col }) ?? null) !== null),
       definesName: (lowered) => {
         // Read once, on the first question; the scratch engine's names change no more.
         defined ??= new Set(scratch.listNamedExpressions().map(held => held.toLowerCase()));

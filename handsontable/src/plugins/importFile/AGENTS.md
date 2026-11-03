@@ -496,7 +496,13 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   the grid's sheet is not copied). The error code cannot tell those apart: HF turns an unknown sheet into
   a REF node INSIDE the AST, so `FILTER(A1:A3,ISNUMBER(Other!A1:A3))` is `#N/A` and
   `A1:A3/IFERROR(Other!B1,0)` is `#DIV/0!` in the scratch while the real engine evaluates both; settling
-  on them would freeze a live array to its cached values. Do NOT replace this with a check after
+  on them would freeze a live array to its cached values. A legacy CSE master (`array.dynamic` false)
+  that the probe spills a VALUE past its `ref` settles like `#SPILL!` too (`spillsPastRef`, after the
+  read-outside check): Excel never resizes a CSE ref, so `{=A1:A3*2}` with `ref` C1 shows one cell, and
+  live it filled C2:C3. Only the cell right below the ref and the one right of it are asked, through
+  the probe's `spillsValueInto` (part of an array AND not empty): the empty room HF reserves past a
+  `FILTER` result is part of the array, and the ExcelJS reader reads every array as CSE, so asking
+  `isCellPartOfArray` alone froze every such `FILTER`. Do NOT replace this with a check after
   `loadData` in the applier: `apply: false` must return the settled data. Otherwise an emptied cell not
   `isCellPartOfArray` takes its cached value. One probe, before anything is put back; a probe that
   throws, while built, set up (`getSheetId`, the name adds) or asked, changes nothing, and the scratch is

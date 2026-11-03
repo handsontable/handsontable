@@ -2492,6 +2492,76 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
     }
   });
 
+  it('should import the cached value of a CSE master the engine spills past its ref', async() => {
+    // Excel never resizes a CSE ref: `{=A1:A3*2}` with `ref="B1"` shows one cell, A1*2. Wrapped in
+    // `ARRAYFORMULA`, HyperFormula spills it into the empty B2:B3, values the file does not have.
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const past = await importArrays([
+      [at({ value: 1 }), at({ formula: { text: 'A1:A3*2', result: 2, array: { ref: 'B1', dynamic: false } } })],
+      [at({ value: 2 }), null],
+      [at({ value: 3 }), null],
+    ]);
+
+    expect(past.result.data).toEqual([[1, 2], [2, null], [3, null]]);
+    expect(past.result.formulas).toEqual([{ row: 0, col: 1, formula: 'A1:A3*2' }]);
+    expect(past.result.dropped).toContain('formula:arraySpill');
+
+    past.hf.destroy();
+
+    // The same formula over its whole spill stays live.
+    const whole = await importArrays([
+      [at({ value: 1 }), at({ formula: { text: 'A1:A3*2', result: 2, array: { ref: 'B1:B3', dynamic: false } } })],
+      [at({ value: 2 }), at({ value: 4 })],
+      [at({ value: 3 }), at({ value: 6 })],
+    ]);
+
+    expect(whole.result.data).toEqual([[1, '=ARRAYFORMULA(A1:A3*2)'], [2, null], [3, null]]);
+    expect(whole.result.dropped.includes('formula:arraySpill')).toBe(false);
+
+    whole.hf.destroy();
+
+    // A `range` that cuts the ref short is not a spill past it: the ref goes on below the window.
+    const cut = await importArrays([
+      [at({ value: 1 }), at({ formula: { text: 'A1:A3*2', result: 2, array: { ref: 'B1:B3', dynamic: false } } })],
+      [at({ value: 2 }), at({ value: 4 })],
+      [at({ value: 3 }), at({ value: 6 })],
+    ], undefined, { range: [0, 0, 1, 1] });
+
+    expect(cut.result.data).toEqual([[1, '=ARRAYFORMULA(A1:A3*2)'], [2, null]]);
+    expect(cut.result.dropped.includes('formula:arraySpill')).toBe(false);
+
+    cut.hf.destroy();
+
+    // The ExcelJS reader reads every array as CSE. The empty room HyperFormula reserves past a
+    // `FILTER` result (4 rows for 2) is not a spill past the ref Excel saved.
+    const filter = await importArrays([
+      [at({ value: 1 }), at({
+        formula: { text: '_xlfn._xlws.FILTER(A1:A4,A1:A4>2)', result: 3, array: { ref: 'B1:B2', dynamic: false } },
+      })],
+      [at({ value: 2 }), at({ value: 4 })],
+      [at({ value: 3 }), null],
+      [at({ value: 4 }), null],
+    ]);
+
+    expect(filter.result.data.map(row => row[1]))
+      .toEqual(['=ARRAYFORMULA(FILTER(A1:A4,A1:A4>2))', null, null, null]);
+    expect(filter.result.dropped.includes('formula:arraySpill')).toBe(false);
+
+    filter.hf.destroy();
+
+    // A dynamic master is resized by Excel too, so it spills past its ref live.
+    const dynamic = await importArrays([
+      [at({ value: 1 }), at({ formula: { text: 'A1:A3*2', result: 2, array: { ref: 'B1', dynamic: true } } })],
+      [at({ value: 2 }), null],
+      [at({ value: 3 }), null],
+    ]);
+
+    expect(dynamic.result.data).toEqual([[1, '=A1:A3*2'], [2, null], [3, null]]);
+    expect(dynamic.result.dropped.includes('formula:arraySpill')).toBe(false);
+
+    dynamic.hf.destroy();
+  });
+
   it('should settle the arrays of a window that does not start at A1 at their window positions', async() => {
     // The probe holds the mapped data, so it answers in window coordinates: the header row
     // `colHeaders: 'firstRow'` drops, and the row and column a `range` skips, shift every master.
