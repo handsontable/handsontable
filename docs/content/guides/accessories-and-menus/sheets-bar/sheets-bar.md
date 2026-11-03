@@ -83,7 +83,7 @@ A sheet's options object never keeps values another sheet set. Keys it leaves ou
 
 When `sheets` declares a workbook, the grid-level [`data`](@/api/options.md#data) option is ignored, with a console warning. To change the active sheet's data, call [`loadData()`](@/api/core.md#loaddata). A `sheets` array that describes other sheets rebuilds the workbook.
 
-With `sheetsBar: true`, a new [`data`](@/api/options.md#data) array replaces the data of the sheet created from it, even when that sheet is hidden. After that sheet is removed, a new `data` is ignored with a console warning.
+With `sheetsBar: true`, a new [`data`](@/api/options.md#data) array replaces the data of the sheet created from it, even when that sheet is hidden. After that sheet is removed, a new `data` is ignored with a console warning. Sheets a user adds exist only in the plugin. Read them with [`getSheetData()`](@/api/sheetsBar.md#getsheetdata).
 
 ```javascript
 const configurationOptions = {
@@ -205,19 +205,6 @@ sheetsBar.updateSheetSettings('Budget', { readOnly: true });
 ```
 
 A sheet's id never changes, and no other sheet gets it later, even after you pass a new `sheets` value.
-
-### Read the data of every sheet
-
-With `sheetsBar: true`, the first sheet uses the grid's `data`, but the sheets you add exist only in the plugin. To read any sheet's data without switching to it, call [`getSheetData()`](@/api/sheetsBar.md#getsheetdata).
-
-To save the whole workbook:
-
-```js
-const sheetsBar = hot.getPlugin('sheetsBar');
-const workbook = sheetsBar.getSheets().map(({ id, name }) => ({ name, data: sheetsBar.getSheetData(id) }));
-```
-
-It returns the sheet's current array, which the plugin can replace, so call it again each time instead of keeping it. For details, see the [`getSheetData()`](@/api/sheetsBar.md#getsheetdata) API reference.
 
 ## Work with tabs
 
