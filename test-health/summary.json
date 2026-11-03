@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-03T02:15:27.005Z",
+  "generatedAt": "2026-11-03T10:38:34.655Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -2638,7 +2638,7 @@
       "file": "handsontable/src/plugins/formulas/__tests__/initialization.spec.js",
       "line": null,
       "title": "Formulas general Multiple Handsontable setup with separate HF instances should render only related sheets when the dependent cells are updated",
-      "count7": 1,
+      "count7": 0,
       "count30": 1,
       "countAll": 1,
       "runs30": 1,
