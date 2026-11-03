@@ -1,8 +1,9 @@
-import { _getLicenseState } from '../../helpers/mixed';
+import { getLicenseState } from '../../core/license';
 import { LOCK_CONTENT } from './content';
 import { mountLicenseBadge } from './badge';
 import { mountLicenseLock } from './lockScreen';
 import type { HotInstance } from '../../core/types';
+import type { LicenseStateDescriptor } from '../../helpers/mixed';
 
 /**
  * Mounts the branding surface for one resolved license state:
@@ -43,7 +44,7 @@ import type { HotInstance } from '../../core/types';
  */
 function mountBrandingSurface(
   hotInstance: HotInstance,
-  descriptor: ReturnType<typeof _getLicenseState>,
+  descriptor: LicenseStateDescriptor,
 ): void {
   const { lifecycle, channels } = descriptor;
   const buildLockContent = LOCK_CONTENT[lifecycle.state];
@@ -74,11 +75,5 @@ function mountBrandingSurface(
  * @returns {void}
  */
 export function initLicenseBranding(hotInstance: HotInstance): void {
-  // DO NOT add a `typeof process` guard here - see the matching comment in `initLicenseNotification`.
-  // The bundler inlines `process.env.HOT_RELEASE_DATE` to a string literal (the bare read cannot
-  // crash); a guard is left un-inlined and compiles to `false` in browser bundles, blanking the date
-  // and silently killing expired-key detection.
-  const releaseDate = process.env.HOT_RELEASE_DATE || '';
-
-  mountBrandingSurface(hotInstance, _getLicenseState(hotInstance.getSettings().licenseKey, releaseDate));
+  mountBrandingSurface(hotInstance, getLicenseState(hotInstance));
 }

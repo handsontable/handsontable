@@ -2,6 +2,7 @@ import { mapWorkbook, resolveImportOptions } from '../mapper';
 import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
 import { isLimitError, MAX_TRANSLATED_FORMULA_CHARS } from '../../../utils/xlsxEngine/limits';
 import { createCellSnapshot, createSheetSnapshot, createWorkbookSnapshot } from '../../../utils/xlsxEngine/model';
+import { UNRESTRICTED_XLSX_ENTITLEMENT } from '../../../utils/xlsxEngine/xlsxEntitlement';
 
 // The real budget is 32 Mi characters; filling it takes thousands of long formulas, so it is lowered
 // here and the arithmetic is the same.
@@ -55,6 +56,7 @@ function mapFormulas(formula, count, { header = false, names = [], readerChars }
     formulasEnabled: true,
     commentsEnabled: false,
     customBordersEnabled: false,
+    entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
     formulaSheetNames: new Set(['sheet1', 'rates']),
   }, new DroppedFeatures());
 }

@@ -1,3 +1,5 @@
+import { XLSX_ALL_CAPABILITY, XLSX_CAPABILITY_IDS } from '../xlsxEngine/licenseCapabilities';
+
 /**
  * The length of the checksum that closes the machine-readable
  * block of every entitlement license key.
@@ -43,11 +45,11 @@ export const HANDSONTABLE_PRODUCT = 'handsontable';
  * The capability tokens this build understands. The key asserts an entitlement;
  * what a token unlocks is defined here, never in the key. Unknown tokens are
  * ignored, so a token added on the issuing side cannot break a build already in
- * the field.
+ * the field. `xlsx:all` grants the whole xlsx namespace.
  *
  * @type {string[]}
  */
-export const KNOWN_CAPABILITIES = ['core'];
+export const KNOWN_CAPABILITIES = ['core', ...XLSX_CAPABILITY_IDS, XLSX_ALL_CAPABILITY];
 
 /**
  * Marks a license as an evaluation one. A flag is present or absent - there is
