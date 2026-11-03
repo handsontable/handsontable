@@ -417,8 +417,11 @@ Other rules:
   `dynamicArrays` is not recorded. **Known gaps:** a function that takes a range where it expects one
   value (`SUM(ABS(A1:A3))`) has the same `@` problem and is not detected – that needs per-function
   knowledge, deliberately left out. A bare range or range name as the whole formula (`=A1:A3`,
-  `=Sales`) stays plain too. A defined name used as an operand is not detected either (its size
-  is unknown), and neither is a range with both corners sheet-qualified (`Sheet1!A1:Sheet1!A3`).
+  `=Sales`) stays plain too. A defined name used as an operand counts when the engine defines it as
+  one multi-cell range (`SUM(Sales*2)` over `Data!$A$1:$A$6`, `isMultiCellRangeDefinition`; the
+  export hands `appliesOperatorToRange` an `isRangeName` check resolved in the grid's scope); a name
+  over anything else (a formula, a union, one cell) does not, since its size is unknown. A range with
+  both corners sheet-qualified (`Sheet1!A1:Sheet1!A3`) is not recognized either.
 - **Named expressions export as defined names, with `exportFormulas` only** (DEV-3648).
   `getNamedExpressions()` lists the engine's workbook names, then each engine sheet's scoped names
   (`scope`: the engine sheet name, or `null`). A scoped name is written with `sheetName` set to the

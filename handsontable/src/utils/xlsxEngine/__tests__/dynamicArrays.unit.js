@@ -4,6 +4,7 @@ import {
   appliesOperatorToRange,
   callsDynamicArrayFunction,
   callsArrayFormulaAsOperand,
+  isMultiCellRangeDefinition,
   isWholeArrayFunctionCall,
   stripArrayFormulaCalls,
   unwrapArrayFormula,
@@ -214,6 +215,19 @@ describe('stripArrayFormulaCalls', () => {
 });
 
 describe('appliesOperatorToRange', () => {
+  it('should count a defined name as a range only when the caller says it is one', () => {
+    const isRangeName = word => word.toLowerCase() === 'sales';
+
+    expect(appliesOperatorToRange('SUM(Sales*2)', isRangeName)).toBe(true);
+    expect(appliesOperatorToRange('SUM((Sales)*2)', isRangeName)).toBe(true);
+    expect(appliesOperatorToRange('SUM(-SALES)', isRangeName)).toBe(true);
+    expect(appliesOperatorToRange('SUM(Sales*2)')).toBe(false);
+    expect(appliesOperatorToRange('SUM(Rate*2)', isRangeName)).toBe(false);
+    expect(appliesOperatorToRange('SUM(Sales)', isRangeName)).toBe(false);
+    expect(appliesOperatorToRange('Sales', isRangeName)).toBe(false);
+    expect(appliesOperatorToRange('SUM("Sales"&1)', isRangeName)).toBe(false);
+  });
+
   it('should find a multi-cell range that is an operand of an operator', () => {
     expect(appliesOperatorToRange('SUM(A1:A3*B1:B3)')).toBe(true);
     expect(appliesOperatorToRange('SUM(2^$A$1:$A$3)')).toBe(true);
@@ -275,5 +289,23 @@ describe('appliesOperatorToRange', () => {
   it('should skip string literals and leave defined names alone', () => {
     expect(appliesOperatorToRange('"A1:A3*2"')).toBe(false);
     expect(appliesOperatorToRange('SUM(Sales*2)')).toBe(false);
+  });
+});
+
+describe('isMultiCellRangeDefinition', () => {
+  it('should find a definition that is one multi-cell range', () => {
+    expect(isMultiCellRangeDefinition('=Data!$A$1:$A$6')).toBe(true);
+    expect(isMultiCellRangeDefinition('=\'My Data\'!$A$1:$B$2')).toBe(true);
+    expect(isMultiCellRangeDefinition('=Data!$B:$B')).toBe(true);
+    expect(isMultiCellRangeDefinition('Data!$1:$2')).toBe(true);
+  });
+
+  it('should not find a single cell, a constant, a union, or a formula', () => {
+    expect(isMultiCellRangeDefinition('=Data!$A$1')).toBe(false);
+    expect(isMultiCellRangeDefinition('=Data!$A$1:$A$1')).toBe(false);
+    expect(isMultiCellRangeDefinition('=0.07')).toBe(false);
+    expect(isMultiCellRangeDefinition('=Data!$A$1:$A$3,Data!$C$1:$C$3')).toBe(false);
+    expect(isMultiCellRangeDefinition('=Data!$A$1:$A$3*2')).toBe(false);
+    expect(isMultiCellRangeDefinition('=SUM(Data!$A$1:$A$3)')).toBe(false);
   });
 });

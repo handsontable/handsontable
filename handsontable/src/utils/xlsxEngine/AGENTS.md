@@ -857,7 +857,8 @@ directions.
     `useArrayArithmetic` is on (`exportFile` gates it). It reuses `REFERENCE_REGEX`, whose unqualified
     alternative matches `A1:A3` as two cells joined by `:`, so the scanner joins them. Known gap:
     `SUM(ABS(A1:A3))` (a range passed where a function expects one value) is not detected, a defined
-    name as an operand is skipped (its size is unknown), and a range with both corners sheet-qualified
+    name as an operand counts only when the caller's `isRangeName` says it is one multi-cell range
+    (the export decides that from the engine's definition, `isMultiCellRangeDefinition`), and a range with both corners sheet-qualified
     (`Sheet1!A1:Sheet1!A3`) is not recognized as a range.
   - **Parity tests cannot see `@`.** They compare workbook snapshots, which carry no implicit
     intersection. Whether a written formula opens with an `@` is checked only by opening the file

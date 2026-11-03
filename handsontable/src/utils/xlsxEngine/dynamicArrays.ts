@@ -1,4 +1,5 @@
 import { parseRangeRef } from './cellRef';
+import { forEachNameUse } from './definedNames';
 import { REFERENCE_REGEX } from './formulaRefs';
 import { isNameChar, skipQuoted } from './functionPrefixes';
 
@@ -252,13 +253,16 @@ const OPERAND_REFERENCE_REGEX = new RegExp(REFERENCE_REGEX.source, REFERENCE_REG
  *
  * Only the operator next to a range counts. A function that takes a range where it expects one
  * value (`SUM(ABS(A1:A3))`) has the same problem, and is not found: that needs per-function
- * knowledge. A defined name is not a range here, because its size is unknown. String literals are
- * skipped.
+ * knowledge. A defined name counts as a range only when `isRangeName` says it is one
+ * (`SUM(Sales*2)` with `Sales` over `Data!$A$1:$A$6`): the formula alone does not tell its size.
+ * String literals are skipped.
  *
  * @param {string} formula The formula, without the leading `=`.
+ * @param {Function} [isRangeName] Whether a word of the formula is a defined name over a multi-cell
+ *   range.
  * @returns {boolean}
  */
-export function appliesOperatorToRange(formula: string): boolean {
+export function appliesOperatorToRange(formula: string, isRangeName?: (word: string) => boolean): boolean {
   const regex = OPERAND_REFERENCE_REGEX;
 
   regex.lastIndex = 0;
@@ -292,7 +296,24 @@ export function appliesOperatorToRange(formula: string): boolean {
     match = regex.exec(formula);
   }
 
-  return false;
+  return isRangeName !== undefined
+    && forEachNameUse(formula, (word, start, end) => isRangeName(word) && isOperandOfOperator(formula, start, end));
+}
+
+/**
+ * Whether a defined name's definition is one multi-cell range (`=Data!$A$1:$A$6`, `=Data!$B:$B`,
+ * sheet-qualified or not): the shape {@link appliesOperatorToRange} counts as a range when the name is
+ * an operand. Anything else (a constant, a single cell, a union, a formula) is not.
+ *
+ * @param {string} definition The definition, with or without the leading `=`.
+ * @returns {boolean}
+ */
+export function isMultiCellRangeDefinition(definition: string): boolean {
+  const text = definition.trim().replace(/^=/, '').trim();
+  const bang = text.lastIndexOf('!');
+
+  // A comma joins the areas of a union, whose size the last area alone does not tell.
+  return !text.includes(',') && isMultiCellRange(bang === -1 ? text : text.slice(bang + 1));
 }
 
 const ARRAYFORMULA_NAME = 'ARRAYFORMULA';

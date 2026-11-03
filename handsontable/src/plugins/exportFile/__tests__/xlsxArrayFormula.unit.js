@@ -372,6 +372,28 @@ describe('Xlsx export: array formulas', () => {
     expect(dropped).toEqual([]);
   });
 
+  it('should flag an operator next to a name over a multi-cell range as range arithmetic', async() => {
+    // Excel opened `=SUM(Sales*2)` as `=SUM(@Sales*2)` and computed one row of `Sales` (10, not 42).
+    hot = new Handsontable(container, {
+      data: [[1, '=SUM(Sales*2)', '=SUM(Sales)', '=SUM(One*2)'], [2], [3], [4], [5], [6]],
+      formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
+      exportFile: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    hot.getPlugin('formulas').engine.addNamedExpression('Sales', '=Sheet1!$A$1:$A$6');
+    hot.getPlugin('formulas').engine.addNamedExpression('One', '=Sheet1!$A$1');
+
+    await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', { exportFormulas: true });
+
+    const [snapshot] = writeSpy.mock.calls[0];
+    const [row] = snapshot.sheets[0].rows;
+
+    expect(hot.getDataAtRow(0)).toEqual([1, 42, 21, 2]);
+    expect(row[1].formula).toEqual({ text: 'SUM(Sales*2)', result: 42, array: { ref: 'B1', dynamic: true } });
+    expect(row[2].formula).toEqual({ text: 'SUM(Sales)', result: 21 });
+    expect(row[3].formula).toEqual({ text: 'SUM(One*2)', result: 2 });
+  });
+
   it('should keep a FILTER over an ARRAYFORMULA argument a dynamic array', async() => {
     const { rows, dropped } = await exportSheet({
       data: [[1, '=FILTER(A1:A6, ARRAYFORMULA(A1:A6>3))'], [2], [3], [4], [5], [6]],
