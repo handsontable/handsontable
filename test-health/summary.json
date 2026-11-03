@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-03T10:38:34.655Z",
+  "generatedAt": "2026-11-03T14:59:39.295Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 429,
+    "tests": 430,
     "needsTicket": 30,
     "quarantined": 0,
-    "entries": 2240
+    "entries": 2241
   },
   "rows": [
     {
@@ -2496,6 +2496,39 @@
         "leg": "e2e-firefox",
         "status": "failed",
         "error": "Error: browserType.launch: Failed to launch the browser process.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/walkontable/window-scroll-pinned-overlays.spec.ts|walkontable window-scroll pinned overlays › scrolling the page up and down › frozen rows and both corners stay pinned on every painted frame",
+      "tier": "playwright",
+      "file": "e2e/walkontable/window-scroll-pinned-overlays.spec.ts",
+      "line": 172,
+      "title": "walkontable window-scroll pinned overlays › scrolling the page up and down › frozen rows and both corners stay pinned on every painted frame",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-horizon"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-03T14:58:44Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/41652746871",
+        "branch": "feature/DEV-3665_Xlsx-rich-value-errors-pictures",
+        "leg": "e2e-horizon",
+        "status": "flaky",
+        "error": "Error: top must be painted on the resting frame",
         "source": "ci"
       },
       "needsTicket": false
