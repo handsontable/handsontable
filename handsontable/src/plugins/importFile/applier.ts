@@ -359,7 +359,7 @@ export function toNamedExpressionInput(expression: string): string {
 function addNamedExpressions(hot: HotInstance, result: ImportResult): void {
   const formulas = hot.getPlugin('formulas');
 
-  if (!result.namedExpressions?.length || formulas?.isEnabled() !== true || !formulas.engine) {
+  if (!result.namedExpressions?.length || formulas?.enabled !== true || !formulas.engine) {
     return;
   }
 

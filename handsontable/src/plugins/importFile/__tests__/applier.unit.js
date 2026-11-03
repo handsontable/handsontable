@@ -694,6 +694,7 @@ describe('applyImportResult – named expressions', () => {
   function formulasPlugin(calls, enabled, refused = []) {
     return {
       isEnabled: () => enabled,
+      enabled,
       engine: {
         batch: (fn) => {
           calls.push(['engine.batch:start']);
