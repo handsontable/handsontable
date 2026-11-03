@@ -21,6 +21,7 @@ Route to the lowest correct scope. `AGENTS.md` answers "what must I never get wr
 | Core grid internals (`handsontable/src/`) | `handsontable/AGENTS.md`; `handsontable/.ai/` |
 | One specific plugin (`handsontable/src/plugins/<name>/`) | that plugin's own `AGENTS.md` — every plugin has one; `handsontable/src/plugins/base/AGENTS.md` for the plugin contract and the `PLUGIN_PRIORITY` table |
 | Feature manifest: `feature.json`/`features.json`, `PLUGIN_DEPS`, license tokens, `dist/manifest.json` | `handsontable/src/featureManifest/AGENTS.md` |
+| Shared menu library (`handsontable/src/utils/menu/`: `Menu`, `registerMenuEntries()`, predefined items) | `handsontable/src/utils/menu/AGENTS.md` |
 | Rendering engine (`handsontable/src/3rdparty/walkontable/`) | `handsontable/src/3rdparty/walkontable/AGENTS.md`; `handsontable/src/3rdparty/walkontable/.ai/` |
 | Documentation site (`docs/`) | `docs/AGENTS.md` |
 | React wrapper | `wrappers/react-wrapper/AGENTS.md` |

@@ -2,7 +2,7 @@ import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import freezeColumnItem from './contextMenuItem/freezeColumn';
 import unfreezeColumnItem from './contextMenuItem/unfreezeColumn';
-import { SEPARATOR } from '../contextMenu/predefinedItems';
+import { registerMenuEntries } from '../../utils/menu/menuEntries';
 import {
   canFreezeFit,
   getConfiguredStartBandCount,
@@ -126,15 +126,10 @@ export class ManualColumnFreeze extends BasePlugin {
       return;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', this.#onAfterMenuDefaultOptions);
-    // The dropdown menu builds its items from a separate hook, so the entries have to be added
-    // twice. Without this the `freeze_column` / `unfreeze_column` keys resolve to inert
-    // placeholder rows there. See issue #5429.
-    //
-    // `AFTER_FILTERS_ORDER_INDEX` runs this after the callbacks registered at the default index,
-    // which keeps the entries below the Filters interface (`filters.ts` registers this hook at the
-    // default index and makes up the bulk of the column menu).
-    this.addHook('afterDropdownMenuDefaultOptions', this.#onAfterMenuDefaultOptions, AFTER_FILTERS_ORDER_INDEX);
+    registerMenuEntries(this, () => [freezeColumnItem(this), unfreezeColumnItem(this)], {
+      contextMenu: {},
+      dropdownMenu: { orderIndex: AFTER_FILTERS_ORDER_INDEX },
+    });
 
     super.enablePlugin();
   }
@@ -291,30 +286,5 @@ export class ManualColumnFreeze extends BasePlugin {
     }
 
     return freezeLineAfterUnfreeze;
-  }
-
-  /**
-   * Collects this plugin's entries for a menu that is building its default options. Registered on
-   * both the context menu and the dropdown menu hooks.
-   *
-   * @private
-   * @param {object} options Menu options.
-   */
-  #onAfterMenuDefaultOptions = (options: unknown) => {
-    this.#addMenuEntries(options as Record<string, unknown>);
-  };
-
-  /**
-   * Adds the manualColumnFreeze entries to a menu. Shared by the context menu and the dropdown menu.
-   *
-   * @private
-   * @param {object} options Menu options.
-   */
-  #addMenuEntries(options: Record<string, unknown>) {
-    (options.items as unknown[]).push(
-      { name: SEPARATOR },
-      freezeColumnItem(this),
-      unfreezeColumnItem(this)
-    );
   }
 }

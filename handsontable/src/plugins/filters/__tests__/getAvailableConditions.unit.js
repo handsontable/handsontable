@@ -12,7 +12,7 @@ import {
   IntlDateCellType,
   NumericCellType,
 } from '../../../cellTypes';
-import { SEPARATOR } from '../../contextMenu/predefinedItems';
+import { SEPARATOR } from '../../../utils/menu/predefinedItems';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 describe('Filters#getAvailableConditions', () => {

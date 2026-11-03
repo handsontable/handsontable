@@ -1,4 +1,5 @@
 import Handsontable from '../../../index';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * Builds a square dataset.
@@ -35,7 +36,7 @@ describe('CustomBorders after loadData', () => {
     hot = new Handsontable(container, {
       data: square(6),
       customBorders: [{ row: 0, col: 0, top: { width: 2, color: 'red' } }],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

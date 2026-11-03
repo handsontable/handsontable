@@ -97,7 +97,7 @@
 
 **Limited requestAnimationFrame Batching:**
 - Problem: `requestAnimationFrame` is used in only a handful of source files: the helpers, two Walkontable overlay modules, and a few plugin UIs. Scroll events and resize operations in other areas may not be batched.
-- Files: `handsontable/src/helpers/feature.ts`, `handsontable/src/utils/interval.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/resizeMonitor.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/scroll/nativeScrollInput.ts`, `handsontable/src/plugins/contextMenu/menu/menu.ts`, `handsontable/src/plugins/stretchColumns/stretchColumns.ts`
+- Files: `handsontable/src/helpers/feature.ts`, `handsontable/src/utils/interval.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/resizeMonitor.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/scroll/nativeScrollInput.ts`, `handsontable/src/utils/menu/menu/menu.ts`, `handsontable/src/plugins/stretchColumns/stretchColumns.ts`
 - Cause: Not all rendering-triggering events are routed through a rAF-based scheduler.
 - Improvement path: Introduce a central render scheduler that batches all render-triggering events through `requestAnimationFrame`.
 

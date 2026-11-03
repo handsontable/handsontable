@@ -26,13 +26,11 @@ the breaking-changes policy forbids.
 
 That is documented on the method. A caller freezing several columns should render once at the end.
 
-## The menu items are registered on TWO hooks
+## The menu items go to BOTH menus, both in their defaults
 
-`afterContextMenuDefaultOptions` **and** `afterDropdownMenuDefaultOptions`. The dropdown menu builds its
-items from a separate hook, so without the second registration the `freeze_column` / `unfreeze_column` keys
-resolve to inert placeholder rows there (issue #5429).
+The entries are registered through `registerMenuEntries()` (see `../../utils/menu/AGENTS.md`) with both menus as targets and `inDefaults` left at `true`. Without the dropdown target the `freeze_column` / `unfreeze_column` keys do not resolve there (issue #5429). Keeping them in the dropdown defaults is deliberate: `dropdownMenu: true` has shown them since that fix.
 
-The dropdown registration uses `AFTER_FILTERS_ORDER_INDEX`, which runs it **after** the callbacks at the
+The dropdown target passes `AFTER_FILTERS_ORDER_INDEX`, which runs its hook **after** the callbacks at the
 default index — keeping the entries below the Filters interface, which registers at the default index and
 makes up the bulk of the column menu.
 
@@ -138,7 +136,7 @@ Which readers use which count is in `handsontable/AGENTS.md`, under "Raw versus 
 ## Where to look next
 
 - The plugin that moves columns across the freeze line: `../manualColumnMove/AGENTS.md`.
-- The two menus it registers into: `../contextMenu/AGENTS.md`, `../dropdownMenu/AGENTS.md`.
+- The two menus it registers into: `../contextMenu/AGENTS.md`, `../dropdownMenu/AGENTS.md`. The helper that registers: `../../utils/menu/AGENTS.md`.
 - The overlay that renders the frozen area: `../../3rdparty/walkontable/AGENTS.md`.
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
 

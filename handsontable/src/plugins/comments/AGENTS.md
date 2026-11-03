@@ -56,7 +56,7 @@ looks at the highlighted cell only, through `plugin.getCommentAtCell()`, which d
 The `META_*` keys and `CommentObject` live in `constants.ts`, so `utils.ts` and the items do not import
 `comments.ts` (which imports them). `comments.ts` re-exports them, and that stays the public path.
 
-The menu renderer (`../contextMenu/menu/menuItemRenderer.ts`) calls `isItemDisabled()` once per render,
+The menu renderer (`../../utils/menu/menu/menuItemRenderer.ts`) calls `isItemDisabled()` once per render,
 because these callbacks walk the whole range: a column selected from its header on a 100k-row grid with no
 comment is a full walk on every call.
 
@@ -350,7 +350,7 @@ another cell, and the save wrote one cell's comment over another's. Pinned by `t
 
 ## Where to look next
 
-- The menu the items land in: `../contextMenu/AGENTS.md`.
+- The menu the items land in and the registration helper: `../../utils/menu/AGENTS.md`, `../contextMenu/AGENTS.md`.
 - Theme reaction: this plugin listens on `afterSetTheme` — `useTheme()` does not go through
   `updateSettings`, so nothing else would notice. The hook is re-registered on every enable; see
   [What survives a disable](#what-survives-a-disable-and-what-has-to-be-registered-again).
