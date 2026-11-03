@@ -54,4 +54,26 @@ test.describe('sheets bar with scrollbars that are always shown', { tag: THEMES_
 
     expect((await readBar()).height).toBe(fits.height);
   });
+
+  test('never scrolls vertically on a narrow table', async({ page, theme, bundle }) => {
+    const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+    await fixture.goto({
+      sheets: 6,
+      tabNames: Array.from({ length: 6 }, (_, index) => `Quarterly report ${index + 1}`),
+      columnCounts: Array(6).fill(1),
+      fixedHeight: false,
+    });
+
+    expect(await page.evaluate(() => {
+      const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
+
+      return {
+        scrollsSideways: bar.scrollWidth > bar.clientWidth,
+        overflowsDown: bar.scrollHeight > bar.clientHeight,
+        overflowY: getComputedStyle(bar).overflowY,
+      };
+    })).toEqual({ scrollsSideways: true, overflowsDown: false, overflowY: 'hidden' });
+  });
 });
+

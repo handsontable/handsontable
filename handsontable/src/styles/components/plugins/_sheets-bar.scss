@@ -103,6 +103,7 @@ $all-sheets-visible-items: 8;
 
       width: 100%;
       overflow-x: auto;
+      overflow-y: hidden;
       color: var(--ht-bar-foreground-color);
       background: var(--ht-sheets-bar-background-color);
       font-size: var(--ht-font-size);
@@ -144,10 +145,12 @@ $all-sheets-visible-items: 8;
         grid-column: 2 / 4;
         min-width: max-content;
         height: 0;
+        overflow: clip;
         visibility: hidden;
         pointer-events: none;
 
         > div {
+          grid-area: 1 / 1;
           white-space: nowrap;
           padding-inline: var(--ht-sheets-bar-tab-horizontal-padding) calc(
             var(--ht-sheets-bar-tab-horizontal-padding) + var(--ht-sizing-size-1) + var(--ht-icon-size) +

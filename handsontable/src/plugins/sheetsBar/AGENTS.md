@@ -724,8 +724,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     tab: the strip's 1px end allowance, and 1px for the reveal rounding its offset outward, which at 1px of
     slack cut the widest tab by a fraction at the start. It needs `min-width: max-content`: an item spanning a
     flexible track gets no content-based minimum, and without it only the padding counted. It must not be
-    `overflow: hidden`, which makes it a scroll container whose minimum is 0. On a table narrower than the
-    widest tab, the bar's visible width cannot hold that tab whole; the bar scrolls to it instead.
+    `overflow: hidden`, which makes it a scroll container whose minimum is 0; it is `overflow: clip`, which
+    is not one. Every label line sits in the same grid cell (`grid-area: 1 / 1`), and the clip keeps them
+    from overflowing the zero-height sizer: stacked, they ran below the bar, and since `overflow-x: auto`
+    makes `overflow-y` compute to `auto`, the bar showed a vertical scrollbar. The bar also sets
+    `overflow-y: hidden`, so that axis can never scroll. On a table narrower than the widest tab, the bar's
+    visible width cannot hold that tab whole; the bar scrolls to it instead.
   - **The strip has `contain: inline-size`.** Without it the strip's intrinsic width is its tabs' width, so
     any `min-content` above it grew the bar to all its tabs (3972px with 30 long tabs, the arrows and the
     focused tab thousands of pixels off screen).

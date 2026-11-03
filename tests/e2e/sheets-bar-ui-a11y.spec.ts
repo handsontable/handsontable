@@ -363,6 +363,11 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
         expect(layout.barWidth).toBe(layout.slotWidth);
         expect(layout.barRightPastTable).toBeLessThanOrEqual(0);
         expect(layout.scrolls).toBe(layout.clientWidth < minimum);
+        expect(await page.evaluate(() => {
+          const bar = document.querySelector('.ht-sheets-bar') as HTMLElement;
+
+          return { overflowsDown: bar.scrollHeight > bar.clientHeight, overflowY: getComputedStyle(bar).overflowY };
+        })).toEqual({ overflowsDown: false, overflowY: 'hidden' });
         expect(layout.stripWidth).toBeGreaterThanOrEqual(Math.floor(layout.sheet1Width));
         expect(layout.pageScrollsSideways).toBe(false);
         expect(Math.abs(layout.paginationWidth - layout.slotWidth)).toBeLessThanOrEqual(1);
