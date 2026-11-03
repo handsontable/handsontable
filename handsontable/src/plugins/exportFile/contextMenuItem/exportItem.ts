@@ -26,7 +26,7 @@ import { hasLicenseCapability } from '../../../utils/licenseCapabilities';
  * @param {ExportFile} exportFilePlugin The plugin instance.
  * @returns {object}
  */
-export default function exportItem(exportFilePlugin: ExportFile): object {
+export default function exportItem(exportFilePlugin: ExportFile) {
   return {
     key: 'export_file',
     name(this: HotInstance): string {

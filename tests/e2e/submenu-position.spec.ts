@@ -11,7 +11,7 @@ import { SubmenuPositionPage, type Layout } from '../fixtures/pages/SubmenuPosit
  * in LTR, left in RTL), and on the other side when it does not fit. It opens downward from its row
  * when it fits there, so its first row lines up with that row, even when it would fit above as
  * well. When it does not fit below, it flips upward, so its last row lines up with the row. It never
- * leaves the viewport. `Positioner` in `handsontable/src/plugins/contextMenu/menu/positioner.ts`
+ * leaves the viewport. `Positioner` in `handsontable/src/utils/menu/menu/positioner.ts`
  * does all of it, for both menus.
  *
  * #11505 moved this coverage out of the Jasmine positioning specs and into visual captures, which
