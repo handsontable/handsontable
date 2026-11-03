@@ -34,6 +34,7 @@
   <style>
     body { font-family: sans-serif; margin: 1rem; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -149,7 +150,7 @@
       undo: true,
       renderer: testIdRenderer,
       height: 'auto',
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
       afterGetRowHeader(row, TH) {
         TH.setAttribute('data-testid', `row-header-${row}`);
       },

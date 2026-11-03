@@ -16,6 +16,7 @@
       throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
     }
   </script>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -72,7 +73,7 @@
         th.setAttribute('data-testid', `col-header-${column}`);
       },
       ...selectionHookHandlers,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
   </script>
 </body>

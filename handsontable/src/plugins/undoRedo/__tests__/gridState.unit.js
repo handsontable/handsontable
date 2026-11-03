@@ -10,6 +10,7 @@ import {
 } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
 import { GridStateTracker } from '../snapshot/gridState';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 
@@ -89,7 +90,7 @@ describe('GridStateTracker', () => {
    */
   function createGrid(settings = {}) {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [0, 1, 2, 3, 4].map(row => [0, 1, 2, 3, 4].map(column => `${row}:${column}`)),
       ...settings,
     });

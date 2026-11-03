@@ -22,6 +22,7 @@ import { registerRenderer, baseRenderer, textRenderer } from 'handsontable/rende
 import { _resetDeprecationWarnings } from 'handsontable/helpers/console';
 import { staticRegister, resolveWithInstance } from '../../utils/staticRegister';
 import { rootInstanceSymbol } from '../../utils/rootInstance';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 registerCellType(CheckboxCellType);
 registerCellType(TextCellType);
@@ -94,7 +95,7 @@ describe('Core', () => {
       // what sets up the edge-slot `ResizeObserver` the ticket calls out as being orphaned on a re-init.
       const core = new Core(container, {
         data: [['a', 'b'], ['c', 'd']],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       }, rootInstanceSymbol);
       let beforeInitCount = 0;
 
@@ -612,7 +613,7 @@ describe('Core.setDataAtCell past the last column', () => {
    * @returns {object} The initialized instance.
    */
   function build(settings) {
-    const core = new Core(container, { licenseKey: 'non-commercial-and-evaluation', ...settings });
+    const core = new Core(container, { licenseKey: TEST_LICENSE_KEY, ...settings });
 
     core.init();
 
@@ -788,7 +789,7 @@ describe('Core.spliceCol / Core.spliceRow deprecation', () => {
    * @returns {object} The initialized instance.
    */
   function build(settings) {
-    const core = new Core(container, { licenseKey: 'non-commercial-and-evaluation', ...settings });
+    const core = new Core(container, { licenseKey: TEST_LICENSE_KEY, ...settings });
 
     core.init();
 

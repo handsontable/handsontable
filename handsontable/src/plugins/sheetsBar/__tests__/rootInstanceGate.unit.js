@@ -1,5 +1,6 @@
 import '../../../index';
 import Core from '../../../core';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 describe('SheetsBar on a grid that is not a root instance', () => {
   it('stays disabled and builds no bar', () => {
@@ -8,7 +9,7 @@ describe('SheetsBar on a grid that is not a root instance', () => {
     document.body.appendChild(container);
 
     const nested = new Core(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       themeName: 'ht-theme-main',
       sheetsBar: { sheets: [{ name: 'One', data: [[1]] }, { name: 'Two', data: [[2]] }] },
     });

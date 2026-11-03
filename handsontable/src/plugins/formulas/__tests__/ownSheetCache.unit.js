@@ -4,6 +4,7 @@ import { registerPlugin } from '../../registry';
 import { Formulas } from '../formulas';
 import { UndoRedo } from '../../undoRedo';
 import { ColumnSorting } from '../../columnSorting';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * The `modifyData` hook runs once per cell of every bulk read, and it used to ask the engine whether
@@ -51,7 +52,7 @@ describe('Formulas own-sheet cache', () => {
         sheetName: 'Sheet1',
       },
       undoRedo: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     return hot;

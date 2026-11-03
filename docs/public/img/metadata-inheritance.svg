@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="210" viewBox="0 0 900 210" role="img" aria-labelledby="title desc">
+  <title id="title">The metadata inheritance chain</title>
+  <desc id="desc">A read of a key on a cell starts at the cell metadata. If the cell has no value of its own, the lookup moves to the column metadata, and then to the grid metadata.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6b6b6b"/>
+    </marker>
+  </defs>
+  <g font-family="Roboto, Helvetica, Arial, sans-serif" fill="#1f1f1f" text-anchor="middle">
+    <rect x="10" y="30" width="250" height="150" rx="10" fill="#f4f4f4" stroke="#9a9a9a" stroke-width="2"/>
+    <text x="135" y="68" font-size="22" font-weight="600">Cell metadata</text>
+    <text x="135" y="103" font-size="16">One object per cell</text>
+    <text x="135" y="128" font-size="16">Values set with</text>
+    <text x="135" y="150" font-size="16">cell, setCellMeta(), cells</text>
+
+    <rect x="325" y="30" width="250" height="150" rx="10" fill="#e9e9e9" stroke="#9a9a9a" stroke-width="2"/>
+    <text x="450" y="68" font-size="22" font-weight="600">Column metadata</text>
+    <text x="450" y="103" font-size="16">One object per column</text>
+    <text x="450" y="128" font-size="16">Values set with</text>
+    <text x="450" y="150" font-size="16">the columns option</text>
+
+    <rect x="640" y="30" width="250" height="150" rx="10" fill="#dedede" stroke="#9a9a9a" stroke-width="2"/>
+    <text x="765" y="68" font-size="22" font-weight="600">Grid metadata</text>
+    <text x="765" y="103" font-size="16">Built-in defaults</text>
+    <text x="765" y="128" font-size="16">and your grid settings</text>
+    <text x="765" y="150" font-size="16">from the constructor</text>
+  </g>
+  <line x1="266" y1="105" x2="319" y2="105" stroke="#6b6b6b" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="581" y1="105" x2="634" y2="105" stroke="#6b6b6b" stroke-width="3" marker-end="url(#arrow)"/>
+</svg>

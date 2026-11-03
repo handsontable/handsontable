@@ -10,6 +10,7 @@ import { dropdownValidator } from '../../../validators/dropdownValidator/dropdow
 import { resolveLocale } from '../locale';
 import { DETECTORS, getDetectors } from '../detectors';
 import { compileDateFormat } from '../values';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * Builds array-of-arrays data from one value list per column.
@@ -1766,7 +1767,7 @@ describe('inferColumnTypes', () => {
       document.body.appendChild(container);
 
       const hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: convertToInferredTypes(rows, result),
         columns: result.columns.map(column => column.settings),
       });

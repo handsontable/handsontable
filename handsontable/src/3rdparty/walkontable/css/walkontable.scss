@@ -280,6 +280,42 @@
   overflow: auto;
 }
 
+// Mirrors the scrollbar-proxy rules in `src/styles/base/_base.scss`, without the theme tokens. Keep the
+// two in sync.
+.htScrollbarProxy {
+  position: absolute;
+  z-index: 1;
+  background: #f7f7f9;
+
+  > div {
+    width: 1px;
+    height: 1px;
+  }
+}
+
+.htScrollbarProxy-vertical {
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+
+.htScrollbarProxy-horizontal {
+  overflow-x: scroll;
+  overflow-y: hidden;
+}
+
+.htScrollbarProxyFiller,
+.htScrollbarCorner {
+  position: absolute;
+  z-index: 1;
+  background: #f7f7f9;
+}
+
+.htScrollbarFrame {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+}
+
 .handsontable .ht_master table.htCore > thead,
 .handsontable .ht_master table.htCore > tbody > tr > th,
 .handsontable .ht_clone_inline_start table.htCore > thead,

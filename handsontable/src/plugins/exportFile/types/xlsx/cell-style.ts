@@ -68,9 +68,11 @@ export function clearStyleCaches(doc: Document): void {
   cssStyleProbeByDoc.delete(doc);
 }
 
-// Handsontable alignment class names — cells that carry only these classes have no
-// custom CSS color, so reading `color` from them would yield only the inherited default.
-const ALIGNMENT_CLASS_NAMES = new Set([
+/**
+ * Handsontable alignment class names. Cells that carry only these classes have no custom CSS color,
+ * so reading `color` from them would yield only the inherited default.
+ */
+export const ALIGNMENT_CLASS_NAMES: ReadonlySet<string> = new Set([
   'htLeft', 'htRight', 'htCenter', 'htJustify', 'htTop', 'htMiddle', 'htBottom',
 ]);
 

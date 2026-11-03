@@ -9,7 +9,7 @@ import { isObject } from '../../helpers/object';
 import * as C from '../../i18n/constants';
 import { isRootInstance } from '../../utils/rootInstance';
 import { A11Y_DESCRIPTION, A11Y_INVALID } from '../../helpers/a11y';
-import { isShadowRoot, removeAttribute, setAttribute } from '../../helpers/dom/element';
+import { getDeepActiveElement, isShadowRoot, removeAttribute, setAttribute } from '../../helpers/dom/element';
 import type { HotInstance } from '../../core/types';
 import type { PluginTypeMap } from '../types';
 import type { CellProperties } from '../../settings';
@@ -22,6 +22,7 @@ import {
   isFormulaAliasForeign,
   isFormulaEditor,
   registerFormulaEditor,
+  resolveCommitValue,
   type FormulaHostEditor,
 } from './formulaCellEditor';
 import { HandsontableAdapter, setFormulaBuilderAdapter } from './handsontableAdapter';
@@ -62,9 +63,28 @@ const CELL_MOUSE_HOOK_ORDER = -1;
  */
 const CELL_ERROR_ATTRIBUTE = 'data-hfe-error';
 /**
+ * The longest error message, in characters, the plugin puts in a cell's description or an
+ * announcement. A screen reader reads a description in full each time the cell gets the focus, and a
+ * HyperFormula parse error lists every token it expected (about 300 characters over 14 lines). 120
+ * keeps the error code and a sentence of explanation, about one line of speech.
+ */
+const MAX_SPOKEN_ERROR_LENGTH = 120;
+/**
+ * The separator `hyperformula-ui` puts between an error code and its message (`#ERROR! — Parsing error.`).
+ */
+const ERROR_CODE_SEPARATOR = ' — ';
+/**
  * The class of the text field `hyperformula-ui` edits a formula in.
  */
 const EDITOR_INPUT_SELECTOR = '.hfe-editor__input';
+/**
+ * The events that tell a pending bar commit the user moved out of the grid (`#watchMoveAway()`).
+ */
+const MOVE_AWAY_EVENTS = ['mousedown', 'pointerdown', 'touchstart', 'focusin'];
+/**
+ * The class of the formula bar's address box input `hyperformula-ui` renders.
+ */
+const ADDRESS_INPUT_SELECTOR = '.hfe-formula-bar__address-input';
 /**
  * The attribute that carries a cell's error message to assistive technology.
  */
@@ -197,6 +217,34 @@ function copySettingValue<T>(value: T): T {
   });
 
   return copy as T;
+}
+
+/**
+ * Shortens an error message for speech: its first line, up to the end of the first sentence after the
+ * error code, capped at `MAX_SPOKEN_ERROR_LENGTH` at a word boundary. The error popup reads the full
+ * message from the cell's mark, so nothing is lost visually.
+ *
+ * @param {string} message The message `hyperformula-ui` built (`#CODE — message`, or a bare code).
+ * @returns {string}
+ */
+export function toSpokenErrorMessage(message: string): string {
+  const firstLine = message.split('\n', 1)[0].trim();
+  const separatorIndex = firstLine.indexOf(ERROR_CODE_SEPARATOR);
+  // The sentence search starts after the code, which itself ends in `!` (`#ERROR!`, `#DIV/0!`).
+  const bodyStart = separatorIndex === -1 ? 0 : separatorIndex + ERROR_CODE_SEPARATOR.length;
+  const sentenceEnd = /[.!?](?=\s|$)/.exec(firstLine.slice(bodyStart));
+  const sentence = sentenceEnd ? firstLine.slice(0, bodyStart + sentenceEnd.index + 1) : firstLine;
+
+  if (sentence.length <= MAX_SPOKEN_ERROR_LENGTH) {
+    return sentence;
+  }
+
+  const cut = sentence.slice(0, MAX_SPOKEN_ERROR_LENGTH);
+  const lastSpace = cut.lastIndexOf(' ');
+
+  // A space inside the code prefix is no word boundary of the message: a long run without spaces (CJK
+  // text) is cut at the limit instead.
+  return `${(lastSpace > bodyStart ? cut.slice(0, lastSpace) : cut).trimEnd()}…`;
 }
 
 /**
@@ -353,6 +401,10 @@ export class FormulaBuilder extends BasePlugin {
    */
   #formulaBarHost: HTMLElement | null = null;
   /**
+   * Stops the watch a pending bar commit runs for a move out of the grid (see `#watchMoveAway()`).
+   */
+  #stopMoveAwayWatch: (() => void) | null = null;
+  /**
    * The live formula editor, or `null` when not editing.
    */
   #activeEditor: FormulaEditor | null = null;
@@ -360,6 +412,25 @@ export class FormulaBuilder extends BasePlugin {
    * The active cell the formula bar edits, in visual coordinates.
    */
   #barSelected: { row: number; col: number } | null = null;
+  /**
+   * The active cell, its raw text, and whether it uses the formula editor, as the bar last showed them,
+   * for `#resyncBarCell()`. A settings change can move the cell to or from the formula editor with
+   * the same text.
+   */
+  #lastBarCell: { row: number; col: number; text: string; isFormula: boolean } | null = null;
+  /**
+   * The physical coordinates of the cell the grid focused last. Not cleared on deselect: Shift+Tab from
+   * the first column drops the selection and moves the focus onto the bar, and the bar then asks
+   * for a cell to edit - the one that was left. Physical, so a sort or a move keeps the record, and
+   * shifted on an insert or a removal, which renumber the physical indexes after them
+   * (`#onAfterCreateTrack`, `#onAfterRemoveTrack`); every read still checks range, visibility and the
+   * editor again.
+   */
+  #lastFocusedCoords: { row: number; col: number } | null = null;
+  /**
+   * Set by a data load, so the draw after it does not record the kept selection as the remembered cell.
+   */
+  #dataReplaced = false;
   /**
    * Dedupe key for bar selection emits (anchor + focus + active together).
    */
@@ -403,6 +474,17 @@ export class FormulaBuilder extends BasePlugin {
    * The theme class name the builder was constructed with (compared in `afterSetTheme`).
    */
   #currentThemeClassName: string | undefined;
+
+  /**
+   * The language code the current builder took its phrases from, or `null` before the first build.
+   */
+  #builtLanguageCode: string | null = null;
+
+  /**
+   * The popup host elements the current builder was docked into, with the selector each was found by
+   * (`undefined` for an element passed in the settings). A rebuild is due once one is gone or replaced.
+   */
+  #dockedPopupHosts: Array<{ element: Element; selector: string | undefined }> = [];
   /**
    * The suggestions host set through `attachSuggestionsHost()`, re-applied to every rebuilt builder.
    */
@@ -433,6 +515,16 @@ export class FormulaBuilder extends BasePlugin {
    * Whether a theme or language change arrived during an edit, so the builder is rebuilt when it closes.
    */
   #rebuildAfterEdit = false;
+  /**
+   * Whether the Formulas plugin detached its engine under the enabled plugin, so the builder is built
+   * again once an engine is back (`Formulas#enablePlugin()` called directly fires no hook).
+   */
+  #engineDetached = false;
+  /**
+   * Whether an index change may have put another record under the bar's cell since the bar last read
+   * it (`#onIndexCacheUpdated`).
+   */
+  #barCellStale = false;
 
   /**
    * @param {HotInstance} hotInstance The Handsontable instance.
@@ -505,13 +597,22 @@ export class FormulaBuilder extends BasePlugin {
    */
   updatePlugin(): void {
     if (this.enabled && this.#builder !== null && this.#isConfigUnchanged()) {
+      // A framework can remount a popup host under the same selector while equal settings arrive. Only
+      // the builder needs the new host, and its rebuild waits for an open edit to close.
+      if (!this.#dockedPopupHostsStillValid()) {
+        this.#rebuildOrDefer();
+      }
+
       super.updatePlugin();
 
       return;
     }
 
+    const addressBox = this.#captureFocusedAddressBox();
+
     this.disablePlugin();
     this.enablePlugin();
+    this.#restoreAddressBox(addressBox);
 
     super.updatePlugin();
   }
@@ -539,8 +640,13 @@ export class FormulaBuilder extends BasePlugin {
    * @param {HTMLElement | string} container The host element or a CSS selector.
    */
   attachSuggestionsHost(container: HTMLElement | string): void {
-    this.#builder?.attachSuggestionsHost(container);
-    this.#suggestionsHost = container;
+    if (this.#isPopupHostUsable('attachSuggestionsHost', container)) {
+      this.#builder?.attachSuggestionsHost(container);
+    }
+
+    if (container !== null && container !== undefined) {
+      this.#suggestionsHost = container;
+    }
   }
 
   /**
@@ -557,8 +663,13 @@ export class FormulaBuilder extends BasePlugin {
    * @param {HTMLElement | string} container The host element or a CSS selector.
    */
   attachFnHelpHost(container: HTMLElement | string): void {
-    this.#builder?.attachFnHelpHost(container);
-    this.#fnHelpHost = container;
+    if (this.#isPopupHostUsable('attachFnHelpHost', container)) {
+      this.#builder?.attachFnHelpHost(container);
+    }
+
+    if (container !== null && container !== undefined) {
+      this.#fnHelpHost = container;
+    }
   }
 
   /**
@@ -579,6 +690,7 @@ export class FormulaBuilder extends BasePlugin {
    * or the Formulas plugin detached the engine) the shim mounts a plain textarea instead.
    */
   handleInlineEditStart(mount: HTMLElement, seed: string): boolean {
+    this.#followEngineReattach();
     this.#followSheetBinding();
 
     if (this.#builder === null) {
@@ -619,16 +731,14 @@ export class FormulaBuilder extends BasePlugin {
       return;
     }
 
-    editor.setValue?.(value);
+    const wasBarHosted = this.#isBarHostedEdit();
+    const movedAway = this.#watchMoveAway(wasBarHosted);
 
-    if (!direction) {
-      editor.finishEditing?.();
-
-      return;
-    }
-
+    editor.setValue?.(resolveCommitValue(editor, value));
     editor.finishEditing?.(false, false, (dataSaved?: boolean) => {
-      if (dataSaved === false || this.hot.isDestroyed) {
+      this.#relistenAfterSavedBarEdit(wasBarHosted, dataSaved, movedAway());
+
+      if (!direction || dataSaved === false || this.hot.isDestroyed) {
         return;
       }
 
@@ -651,8 +761,13 @@ export class FormulaBuilder extends BasePlugin {
       return;
     }
 
-    editor.setValue?.(value);
+    const wasBarHosted = this.#isBarHostedEdit();
+    const movedAway = this.#watchMoveAway(wasBarHosted);
+
+    editor.setValue?.(resolveCommitValue(editor, value));
     editor.finishEditing?.(false, true, (dataSaved?: boolean) => {
+      this.#relistenAfterSavedBarEdit(wasBarHosted, dataSaved, movedAway());
+
       if (dataSaved === false || this.hot.isDestroyed) {
         return;
       }
@@ -663,6 +778,10 @@ export class FormulaBuilder extends BasePlugin {
       const isMac = isMacOS();
       const event = new KeyboardEventClass('keydown', { key: 'Enter', ctrlKey: !isMac, metaKey: isMac });
 
+      // The shortcut recorder still holds the chord's modifier, and `setRangeStart()` reads it to add a
+      // layer. The grid's own command runs under `captureCtrl`, which this plugin cannot set. The
+      // recorder re-syncs from the next key event, so releasing the held keys is safe.
+      this.hot.getShortcutManager().releasePressedKeys();
       this.hot._getEditorManager().moveSelectionAfterEnter(event);
     });
   }
@@ -683,7 +802,7 @@ export class FormulaBuilder extends BasePlugin {
 
     const focusManager = this.hot.getFocusManager();
 
-    this.hot.listen();
+    this.#relistenAfterBarExit();
     focusManager.focusOnHighlightedCell();
     focusManager.refocusToEditorTextarea();
   }
@@ -703,7 +822,10 @@ export class FormulaBuilder extends BasePlugin {
     this.#editorCloseListeners.emit();
     // The selection hooks are ignored while an edit is open, and an edit with a validator closes a
     // microtask after the deselect or the `selectCell()` that ended it, so the bar would keep
-    // showing the old cell. Re-read the selection now that the edit is over.
+    // showing the old cell. Re-read the selection now that the edit is over. Always emitted: the
+    // package's own close resets the address box to the active cell alone, and an unchanged range
+    // would otherwise be deduped, leaving a selected range shown as one cell.
+    this.#lastEmittedSelectionCoords = null;
     this.#emitBarSelection();
 
     // The grid was bound to another sheet without a data load while the edit was open
@@ -774,7 +896,8 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
-   * Selects the first cell using the formula editor: the rendered viewport is
+   * Selects a cell using the formula editor. The cell the grid focused last comes first, when it
+   * is still in range, shown, and uses the formula editor. Otherwise the rendered viewport is
    * scanned first, then the rest of the grid up to a fixed cell budget - an
    * uncapped scan would resolve cell meta for every cell of a large grid on the
    * UI thread before giving up.
@@ -782,6 +905,10 @@ export class FormulaBuilder extends BasePlugin {
    * @private
    */
   selectFirstFormulaCell(): void {
+    if (this.#selectLastFocusedFormulaCell()) {
+      return;
+    }
+
     const firstRow = Math.max(this.hot.getFirstRenderedVisibleRow(), 0);
     const lastRow = this.hot.getLastRenderedVisibleRow();
     const firstCol = Math.max(this.hot.getFirstRenderedVisibleColumn(), 0);
@@ -819,14 +946,103 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
+   * Selects the cell the grid focused last, when it can still be edited by the formula editor.
+   *
+   * @returns {boolean} `true` when the cell was selected.
+   */
+  #selectLastFocusedFormulaCell(): boolean {
+    const last = this.#lastFocusedCoords;
+
+    if (last === null) {
+      return false;
+    }
+
+    const row = this.hot.toVisualRow(last.row);
+    const col = this.hot.toVisualColumn(last.col);
+
+    if (row === null || col === null || row >= this.hot.countRows() || col >= this.hot.countCols()) {
+      return false;
+    }
+
+    if (this.hot.rowIndexMapper.isHidden(last.row) || this.hot.columnIndexMapper.isHidden(last.col) ||
+        !this.#isFormulaCell(row, col)) {
+      return false;
+    }
+
+    this.hot.selectCell(row, col);
+
+    return true;
+  }
+
+  /**
+   * Records the physical coordinates of the cell the active selection layer focuses.
+   */
+  #rememberFocusedCell(): void {
+    const focus = this.hot.getSelectedRangeActive()?.highlight;
+
+    if (!focus || typeof focus.row !== 'number' || typeof focus.col !== 'number' || focus.row < 0 || focus.col < 0) {
+      return;
+    }
+
+    const row = this.hot.toPhysicalRow(focus.row);
+    const col = this.hot.toPhysicalColumn(focus.col);
+
+    if (row !== null && col !== null) {
+      this.#lastFocusedCoords = { row, col };
+    }
+  }
+
+  /**
+   * Shifts the remembered cell past the physical indexes an insert added before it.
+   *
+   * @param {'row' | 'col'} axis The axis the tracks were created on.
+   * @param {number} index The visual index of the first created track.
+   * @param {number} amount The number of created tracks.
+   */
+  #shiftRememberedCellOnCreate(axis: 'row' | 'col', index: number, amount: number): void {
+    const last = this.#lastFocusedCoords;
+    const physicalStart = axis === 'row' ? this.hot.toPhysicalRow(index) : this.hot.toPhysicalColumn(index);
+
+    if (last !== null && physicalStart !== null && last[axis] >= physicalStart) {
+      this.#lastFocusedCoords = { ...last, [axis]: last[axis] + amount };
+    }
+  }
+
+  /**
+   * Forgets the remembered cell when its track was removed, and shifts it back past the removed
+   * physical indexes before it otherwise.
+   *
+   * @param {'row' | 'col'} axis The axis the tracks were removed from.
+   * @param {number[]} physicalIndexes The physical indexes the tracks had before the removal.
+   */
+  #shiftRememberedCellOnRemove(axis: 'row' | 'col', physicalIndexes: number[]): void {
+    const last = this.#lastFocusedCoords;
+
+    if (last === null) {
+      return;
+    }
+
+    if (physicalIndexes.includes(last[axis])) {
+      this.#lastFocusedCoords = null;
+
+      return;
+    }
+
+    const removedBefore = physicalIndexes.filter(physicalIndex => physicalIndex < last[axis]).length;
+
+    this.#lastFocusedCoords = { ...last, [axis]: last[axis] - removedBefore };
+  }
+
+  /**
    * Selects a single cell in visual coordinates.
    *
    * @private
    * @param {number} row The visual row index.
    * @param {number} col The visual column index.
+   * @returns {boolean} `false` when the grid did not select the cell.
    */
-  selectFormulaCell(row: number, col: number): void {
-    this.hot.selectCell(row, col);
+  selectFormulaCell(row: number, col: number): boolean {
+    return this.hot.selectCell(row, col) && this.#selectionCovers(row, col, row, col);
   }
 
   /**
@@ -837,9 +1053,36 @@ export class FormulaBuilder extends BasePlugin {
    * @param {number} startCol The visual start column index.
    * @param {number} endRow The visual end row index.
    * @param {number} endCol The visual end column index.
+   * @returns {boolean} `false` when the grid did not select the range.
    */
-  selectFormulaCells(startRow: number, startCol: number, endRow: number, endCol: number): void {
-    this.hot.selectCells([[startRow, startCol, endRow, endCol]]);
+  selectFormulaCells(startRow: number, startCol: number, endRow: number, endCol: number): boolean {
+    return this.hot.selectCells([[startRow, startCol, endRow, endCol]]) &&
+      this.#selectionCovers(startRow, startCol, endRow, endCol);
+  }
+
+  /**
+   * Tells whether the grid's last selection holds the whole requested range. A merged cell widens
+   * the selection, so it holds more; `selectionMode: 'single'` collapses a range, so it holds less.
+   *
+   * @param {number} startRow The visual start row index.
+   * @param {number} startCol The visual start column index.
+   * @param {number} endRow The visual end row index.
+   * @param {number} endCol The visual end column index.
+   * @returns {boolean}
+   */
+  #selectionCovers(startRow: number, startCol: number, endRow: number, endCol: number): boolean {
+    const selected = this.hot.getSelectedLast();
+
+    if (!selected) {
+      return false;
+    }
+
+    const [row1, col1, row2, col2] = selected;
+
+    return Math.min(row1, row2) <= Math.min(startRow, endRow) &&
+      Math.max(row1, row2) >= Math.max(startRow, endRow) &&
+      Math.min(col1, col2) <= Math.min(startCol, endCol) &&
+      Math.max(col1, col2) >= Math.max(startCol, endCol);
   }
 
   /**
@@ -991,8 +1234,10 @@ export class FormulaBuilder extends BasePlugin {
     const message = cellEl.getAttribute(CELL_ERROR_ATTRIBUTE);
 
     if (message && this.hot.getSettings().ariaTags) {
-      setAttribute(cellEl, [A11Y_DESCRIPTION(message)]);
-      this.#describedCells.set(cellEl, message);
+      const description = toSpokenErrorMessage(message);
+
+      setAttribute(cellEl, [A11Y_DESCRIPTION(description)]);
+      this.#describedCells.set(cellEl, description);
 
       return;
     }
@@ -1020,6 +1265,8 @@ export class FormulaBuilder extends BasePlugin {
    * @param {number} focusCol The focus visual column index.
    */
   #onAfterSelectionEnd = (): void => {
+    this.#rememberFocusedCell();
+
     if (this.#isEditing()) {
       return;
     }
@@ -1070,6 +1317,89 @@ export class FormulaBuilder extends BasePlugin {
   };
 
   /**
+   * Index mapper `cacheUpdated` listener - marks the bar's cell stale. Every change of which record
+   * sits under a visual cell rebuilds a cache (an insert or removal, a sort, a move, hiding, trimming:
+   * Filters, TrimRows, a NestedRows collapse), and it can run in the middle of an operation, before
+   * `alter()` shifts the selection, so the bar re-reads before the next draw (`#onBeforeViewRender`).
+   */
+  #onIndexCacheUpdated = (): void => {
+    this.#barCellStale = true;
+  };
+
+  /**
+   * `beforeViewRender` hook listener - re-reads the bar's cell after an index change, once the
+   * operation that made it has finished and before the grid draws it. The remembered cell is
+   * recorded again too: a sort, a move, or a filter keeps the selection on its visual cell while
+   * the physical record under it changes, so the record remembered before would no longer be the
+   * focused cell. With no selection nothing is recorded, and the insert and remove shifts keep the
+   * remembered record. After a data load nothing is recorded either: the load forgot the cell on
+   * purpose, because the kept selection points at a record of the data set it replaced.
+   */
+  #onBeforeViewRender = (): void => {
+    const dataReplaced = this.#dataReplaced;
+
+    this.#dataReplaced = false;
+
+    if (this.#barCellStale) {
+      this.#barCellStale = false;
+
+      if (!dataReplaced) {
+        this.#rememberFocusedCell();
+      }
+
+      this.#resyncBarCell();
+    }
+  };
+
+  /**
+   * Re-reads the active cell into the bar. The source-data and load hooks register it directly and
+   * ignore their arguments, and an index change runs it through `#onBeforeViewRender`: none of them
+   * has to move the selection, and a change that keeps the coordinates (a sort, a data replace, a trim
+   * above the cell) left the previous cell's formula in the bar. It runs after the Formulas plugin
+   * resynced the engine (it enables first, at a lower priority value, and its load listeners carry
+   * order -1). An open edit is left alone: its close re-reads.
+   */
+  #resyncBarCell = (): void => {
+    if (this.#builder === null || this.#isEditing()) {
+      return;
+    }
+
+    const current = this.#readActiveCell();
+    const last = this.#lastBarCell;
+
+    // Nothing the bar shows changed (a re-render re-sending the settings or the same data): an emit
+    // would make the package rewrite the address box and drop the text typed there.
+    if (current?.row === last?.row && current?.col === last?.col && current?.text === last?.text &&
+        current?.isFormula === last?.isFormula) {
+      return;
+    }
+
+    this.#lastEmittedSelectionCoords = null;
+    this.#emitBarSelection();
+  };
+
+  /**
+   * Reads the active cell, its raw text, and whether it uses the formula editor.
+   *
+   * @returns {{ row: number, col: number, text: string, isFormula: boolean } | null} `null` without an
+   * active cell.
+   */
+  #readActiveCell(): { row: number; col: number; text: string; isFormula: boolean } | null {
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
+
+    if (!highlight || highlight.row === null || highlight.col === null || highlight.row < 0 || highlight.col < 0) {
+      return null;
+    }
+
+    return {
+      row: highlight.row,
+      col: highlight.col,
+      text: this.getRawCellText(highlight.row, highlight.col),
+      isFormula: this.#isFormulaCell(highlight.row, highlight.col),
+    };
+  }
+
+  /**
    * `afterChange` hook listener - re-syncs the bar when the selected cell's content changed without
    * a selection move (Delete, paste, undo, or `setDataAtCell()`). The bar learns about a cell through
    * the selection hooks only, and their emit is deduped on the coordinates. An open edit is left
@@ -1093,8 +1423,7 @@ export class FormulaBuilder extends BasePlugin {
       changes.some(([row, prop]) => row === highlight.row && prop === activeProp);
 
     if (touchesActiveCell) {
-      this.#lastEmittedSelectionCoords = null;
-      this.#emitBarSelection();
+      this.#resyncBarCell();
     }
   };
 
@@ -1115,11 +1444,15 @@ export class FormulaBuilder extends BasePlugin {
   };
 
   /**
-   * `afterLanguageChange` hook listener - rebuilds the builder, because it takes its phrases once,
-   * at construction.
+   * `afterLanguageChange` hook listener - rebuilds the builder when the language code actually changed,
+   * because it takes its phrases once, at construction.
+   *
+   * @param {string} languageCode The normalized language code the grid now uses.
    */
-  #onAfterLanguageChange = (): void => {
-    if (this.#builder !== null) {
+  #onAfterLanguageChange = (languageCode: string): void => {
+    // `updateSettings({ language })` fires the hook for every payload that carries the key, also for the
+    // code already in use, and the phrases of the same code are the ones the builder already has.
+    if (this.#builder !== null && languageCode !== this.#builtLanguageCode) {
       this.#rebuildOrDefer();
     }
   };
@@ -1161,6 +1494,7 @@ export class FormulaBuilder extends BasePlugin {
    */
   #onEngineDetach = (): void => {
     this.#destroyBuilder();
+    this.#engineDetached = true;
     // No builder renders the marks from now on, so the ones on screen would stay until each element
     // is reused for a formula cell again.
     this.#clearCellErrorMarks();
@@ -1168,16 +1502,47 @@ export class FormulaBuilder extends BasePlugin {
 
   /**
    * `afterLoadData`/`afterUpdateData` hook listener - rebuilds the builder when the data load
-   * bound the grid to another engine sheet. The plugin enables before the first data load, while
-   * the Formulas plugin has no sheet id yet, and `Formulas#switchSheet()` reloads the data too.
+   * bound the grid to another engine sheet, then re-reads the active cell into the bar when its text
+   * changed. The plugin enables before the first data load, while the Formulas plugin has no sheet id
+   * yet, and `Formulas#switchSheet()` reloads the data too. It also forgets the cell the grid focused
+   * last, so the bar never opens an edit on a cell of the data that was replaced.
    */
   #onAfterDataLoad = (): void => {
+    // The remembered coordinates point into the data set the load replaced (or another sheet). The
+    // load rebuilt the index maps too, and the draw after it must not record the kept selection again.
+    this.#lastFocusedCoords = null;
+    this.#dataReplaced = true;
+
     // Even under an open edit: the load replaced the data the edit was made against, and the rebuild
     // cancels that edit.
     if (this.#builder !== null && this.#sheetId !== this.#builtSheetId) {
       this.#rebuildBuilder();
     }
+
+    this.#resyncBarCell();
   };
+
+  /**
+   * Builds the builder again when the Formulas plugin detached its engine and has one again. The
+   * Formulas plugin re-enabled through its own API (`getPlugin('formulas').enablePlugin()`) runs no
+   * `updatePlugin()` here and fires no hook, so the selection and edit-start paths ask.
+   */
+  #followEngineReattach(): void {
+    if (this.#engineDetached && this.#builder === null && this.#engine !== null) {
+      // Cleared first: a builder that fails to build is not retried on every selection.
+      this.#engineDetached = false;
+
+      // The Formulas plugin built a new engine. Record it, or the next settings update finds the engine
+      // changed and runs the full cycle, which cancels an open edit.
+      if (this.#appliedConfig !== null) {
+        this.#appliedConfig = { ...this.#appliedConfig, engine: this.#engine };
+      }
+
+      this.#createBuilder();
+      // The bar is new and empty, so the selection is emitted again even for the same cell.
+      this.#lastEmittedSelectionCoords = null;
+    }
+  }
 
   /**
    * Rebuilds the builder when the grid is bound to another engine sheet than the one it was built
@@ -1208,8 +1573,51 @@ export class FormulaBuilder extends BasePlugin {
       return;
     }
 
+    this.#followEngineReattach();
     this.#followSheetBinding();
     this.#emitBarSelection();
+  };
+
+  /**
+   * `afterCreateRow` hook listener - keeps the remembered cell on its record (`#lastFocusedCoords`).
+   *
+   * @param {number} index The visual index of the first created row.
+   * @param {number} amount The number of created rows.
+   */
+  #onAfterCreateRowRemembered = (index: number, amount: number): void => {
+    this.#shiftRememberedCellOnCreate('row', index, amount);
+  };
+
+  /**
+   * `afterCreateCol` hook listener - keeps the remembered cell on its record (`#lastFocusedCoords`).
+   *
+   * @param {number} index The visual index of the first created column.
+   * @param {number} amount The number of created columns.
+   */
+  #onAfterCreateColRemembered = (index: number, amount: number): void => {
+    this.#shiftRememberedCellOnCreate('col', index, amount);
+  };
+
+  /**
+   * `afterRemoveRow` hook listener - keeps the remembered cell on its record (`#lastFocusedCoords`).
+   *
+   * @param {number} index The visual index of the first removed row.
+   * @param {number} amount The number of removed rows.
+   * @param {number[]} physicalRows The physical indexes the rows had.
+   */
+  #onAfterRemoveRowRemembered = (index: number, amount: number, physicalRows: number[]): void => {
+    this.#shiftRememberedCellOnRemove('row', physicalRows);
+  };
+
+  /**
+   * `afterRemoveCol` hook listener - keeps the remembered cell on its record (`#lastFocusedCoords`).
+   *
+   * @param {number} index The visual index of the first removed column.
+   * @param {number} amount The number of removed columns.
+   * @param {number[]} physicalColumns The physical indexes the columns had.
+   */
+  #onAfterRemoveColRemembered = (index: number, amount: number, physicalColumns: number[]): void => {
+    this.#shiftRememberedCellOnRemove('col', physicalColumns);
   };
 
   /**
@@ -1217,6 +1625,9 @@ export class FormulaBuilder extends BasePlugin {
    * the highlight moved (Tab/Shift+Tab within a range).
    */
   #onAfterSelectionFocusSet = (): void => {
+    // Tab and Enter move the focus inside a selected range without ending a selection gesture.
+    this.#rememberFocusedCell();
+
     if (this.#isEditing()) {
       return;
     }
@@ -1267,6 +1678,7 @@ export class FormulaBuilder extends BasePlugin {
     }
 
     this.#lastEmittedSelectionCoords = null;
+    this.#lastBarCell = null;
     this.#barSelected = null;
     this.#barSelectionListeners.emit(null);
   }
@@ -1314,6 +1726,7 @@ export class FormulaBuilder extends BasePlugin {
     }
 
     this.#lastEmittedSelectionCoords = { anchorRow, anchorCol, focusRow, focusCol, activeRow, activeCol };
+    this.#lastBarCell = this.#readActiveCell();
     this.#barSelected = formulaCell ? { row: activeRow, col: activeCol } : null;
 
     const barSelectedRange = formulaCell ?
@@ -1383,6 +1796,33 @@ export class FormulaBuilder extends BasePlugin {
         input.setAttribute('data-hot-input', '');
       });
     });
+  }
+
+  /**
+   * Returns the first visible track of an axis. A frozen band is always on screen, so its first shown
+   * track (index 0, or the next one a hiding map leaves) is the first visible one; otherwise it is the
+   * first fully visible index, or the first rendered one when the viewport shows none in full (`-1`).
+   *
+   * @param {'row' | 'col'} axis The axis.
+   * @param {number | undefined} frozen The number of frozen tracks the grid draws on the axis (the drawn
+   * band, which `limitFixedToViewport` can make smaller than the option).
+   * @param {number | null} fullyVisible The first fully visible index.
+   * @param {number | null} rendered The first rendered visible index.
+   * @returns {number}
+   */
+  #firstVisible(
+    axis: 'row' | 'col',
+    frozen: number | undefined,
+    fullyVisible: number | null,
+    rendered: number | null,
+  ): number {
+    if (frozen && frozen > 0) {
+      const indexMapper = axis === 'row' ? this.hot.rowIndexMapper : this.hot.columnIndexMapper;
+
+      return indexMapper.getNearestNotHiddenIndex(0, 1) ?? 0;
+    }
+
+    return fullyVisible !== null && fullyVisible >= 0 ? fullyVisible : Math.max(rendered ?? 0, 0);
   }
 
   /**
@@ -1617,6 +2057,39 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
+   * Whether every popup host the builder was docked into is still in a document and, for one named by
+   * a selector, is still the element that selector finds. A framework can unmount a host and mount
+   * another one under the same selector, which equal settings do not show.
+   *
+   * @returns {boolean}
+   */
+  #dockedPopupHostsStillValid(): boolean {
+    return this.#dockedPopupHosts.every(({ element, selector }) => element.isConnected &&
+      (selector === undefined || this.#findContainerBySelector(selector) === element));
+  }
+
+  /**
+   * Records the hosts the `popups` options dock the builder into.
+   *
+   * @param {FormulaBuilderPopupsOptions | undefined} popups The resolved `popups` options.
+   */
+  #recordDockedPopupHosts(popups: FormulaBuilderPopupsOptions | undefined): void {
+    this.#dockedPopupHosts = [];
+
+    (['suggestions', 'fnHelp'] as const).forEach((popupName) => {
+      const container = popups?.[popupName]?.container;
+      const element = typeof container === 'string' ? this.#findContainerBySelector(container) : container;
+
+      if (element) {
+        this.#dockedPopupHosts.push({
+          element,
+          selector: typeof container === 'string' ? container : undefined,
+        });
+      }
+    });
+  }
+
+  /**
    * Validates dependencies and builds the enable-time object graph.
    *
    * @returns {boolean} Whether the plugin set up successfully.
@@ -1679,13 +2152,41 @@ export class FormulaBuilder extends BasePlugin {
       toHfCoords: coords => ({ row: this.#visualToHfRow(coords.row), col: this.#visualToHfCol(coords.col) }),
       emitSwitchToInline: () => this.#switchToInlineListeners.emit(),
       getHostActiveEditor: () => this.hot.getActiveEditor(),
+      // After the `click` that follows a release outside the grid: the focus scope manager's click
+      // handler unlistens the grid there, so a synchronous `listen()` would be undone.
+      relisten: () => this.hot._registerTimeout(() => this.#relistenAfterBarExit(), 0),
+      // Deferred for the same `click`; the grid listened from its own cell `mousedown` handler.
+      unlisten: () => this.hot._registerTimeout(() => this.#unlistenUnderBarEdit(), 0),
+      isBarHostedEdit: () => this.#isBarHostedEdit(),
       getScrollHolder: () => this.#adapter?.getScrollHolder() ?? null,
       getRootDocument: () => this.hot.rootDocument,
       getColumnHeaderSpan: coords => this.#columnHeaderSpan(coords),
+      firstVisibleRow: () => this.#firstVisible(
+        'row',
+        this.hot.view.countFixedRowsTop(),
+        this.hot.getFirstFullyVisibleRow(),
+        this.hot.getFirstRenderedVisibleRow()
+      ),
+      firstVisibleCol: () => this.#firstVisible(
+        'col',
+        this.hot.view.countFixedColumnsStart(),
+        this.hot.getFirstFullyVisibleColumn(),
+        this.hot.getFirstRenderedVisibleColumn()
+      ),
+      deferTask: callback => this.hot._registerTimeout(callback, 0),
     });
 
     this.addHook('afterRenderer', this.#onAfterRenderer);
     this.addHook('afterChange', this.#onAfterChange);
+    // Order 2: the Formulas plugin pushes the new value into the engine from its own
+    // `afterSetSourceDataAtCell` listener, which moves to the end of the list when it re-enables.
+    this.addHook('afterSetSourceDataAtCell', this.#resyncBarCell, 2);
+    this.addHook('beforeViewRender', this.#onBeforeViewRender);
+    this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
+    this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
+    // Order 2: the Formulas plugin loads a settings-update's data into the engine from its own
+    // `afterUpdateSettings` listener (order 1), after `afterUpdateData` already fired.
+    this.addHook('afterUpdateSettings', this.#resyncBarCell, 2);
     this.addHook('afterSelectionEnd', this.#onAfterSelectionEnd);
     this.addHook('afterDeselect', this.#onAfterDeselect);
     this.addHook('afterSetTheme', this.#onAfterSetTheme);
@@ -1694,6 +2195,10 @@ export class FormulaBuilder extends BasePlugin {
     this.addHook('afterUpdateData', this.#onAfterDataLoad);
     this.addHook('afterSelection', this.#onAfterSelection);
     this.addHook('afterSelectionFocusSet', this.#onAfterSelectionFocusSet);
+    this.addHook('afterCreateRow', this.#onAfterCreateRowRemembered);
+    this.addHook('afterCreateCol', this.#onAfterCreateColRemembered);
+    this.addHook('afterRemoveRow', this.#onAfterRemoveRowRemembered);
+    this.addHook('afterRemoveCol', this.#onAfterRemoveColRemembered);
     this.addHook('beforeOnCellMouseDown', this.#cellPick.onBeforeMouseDown, CELL_MOUSE_HOOK_ORDER);
     this.addHook('beforeOnCellMouseOver', this.#cellPick.onBeforeMouseOver, CELL_MOUSE_HOOK_ORDER);
     this.addHook('beforeOnCellMouseOverOutside', this.#cellPick.onBeforeMouseOver, CELL_MOUSE_HOOK_ORDER);
@@ -1714,7 +2219,11 @@ export class FormulaBuilder extends BasePlugin {
     return new HandsontableAdapter(
       {
         hot: this.hot,
-        overlayHost: this.hot.rootElement,
+        // The root wrapper already carries the theme class (core puts it there). The root element
+        // must not: under the wrapper it matches the theme's own token block, which wins over the
+        // `colorScheme` and `density` overrides the theme engine scopes to the wrapper, and keeps
+        // the old theme's tokens after a theme change. A nested grid has no wrapper.
+        overlayHost: this.hot.rootWrapperElement ?? this.hot.rootElement,
         sheetName: '',
         core,
         indexMapping: {
@@ -1750,7 +2259,9 @@ export class FormulaBuilder extends BasePlugin {
     const popups = this.#resolvePopupContainers(config.popups);
     const shadowRoot = this.#gridShadowRoot();
 
+    this.#recordDockedPopupHosts(popups);
     this.#currentThemeClassName = themeClassName;
+    this.#builtLanguageCode = this.hot.getSettings().language ?? null;
     this.#builtSheetId = this.#sheetId;
 
     try {
@@ -1809,7 +2320,8 @@ export class FormulaBuilder extends BasePlugin {
       close: phrase(C.FORMULA_BUILDER_CLOSE),
       invalidCellAddress: (text: string) => phrase(C.FORMULA_BUILDER_INVALID_ADDRESS, { text }),
       cellUnavailable: (text: string) => phrase(C.FORMULA_BUILDER_CELL_UNAVAILABLE, { text }),
-      cellError: (cell: string, message: string) => phrase(C.FORMULA_BUILDER_CELL_ERROR, { cell, message }),
+      cellError: (cell: string, message: string) =>
+        phrase(C.FORMULA_BUILDER_CELL_ERROR, { cell, message: toSpokenErrorMessage(message) }),
       // One key per form: the dictionary cannot pick a plural form and fill in a variable at once.
       dependentCellErrors: (count: number) =>
         phrase(count === 1 ? C.FORMULA_BUILDER_DEPENDENT_ERROR : C.FORMULA_BUILDER_DEPENDENT_ERRORS, { count }),
@@ -1847,7 +2359,15 @@ export class FormulaBuilder extends BasePlugin {
     (['suggestions', 'fnHelp'] as const).forEach((popupName) => {
       const popup = resolved[popupName];
 
-      if (popup !== undefined && !this.#isContainerAvailable(popup.container)) {
+      // `null` (a framework that clears an option rather than omitting it) means "not configured",
+      // the same as an omitted key. The package reads the entry's members and would throw.
+      if (popup === null || popup === undefined) {
+        delete resolved[popupName];
+
+        return;
+      }
+
+      if (!this.#isContainerAvailable(popup.container)) {
         warnOnce(this.hot, `formulaBuilder.popups.${popupName}.container`, `The \`popups.${popupName}` +
           '.container` option of the FormulaBuilder plugin names no element in the grid\'s document or' +
           ' shadow root, so the popup floats next to the editor instead.');
@@ -1877,14 +2397,46 @@ export class FormulaBuilder extends BasePlugin {
       return container !== null && container.isConnected;
     }
 
+    return this.#findContainerBySelector(container) !== null;
+  }
+
+  /**
+   * Looks a popup `container` selector up the way the package does: in the grid's shadow root first, then
+   * in the document.
+   *
+   * @param {string} selector The CSS selector.
+   * @returns {Element | null} The element, or `null` for no match or an invalid selector.
+   */
+  #findContainerBySelector(selector: string): Element | null {
     try {
-      // The package looks a selector up in the grid's shadow root first, then in the document.
-      return (this.#gridShadowRoot() ?? this.hot.rootDocument).querySelector(container) !== null ||
-        this.hot.rootDocument.querySelector(container) !== null;
+      return this.#gridShadowRoot()?.querySelector(selector) ?? this.hot.rootDocument.querySelector(selector);
     } catch {
       // An invalid selector.
-      return false;
+      return null;
     }
+  }
+
+  /**
+   * Whether a host passed to `attachSuggestionsHost()` or `attachFnHelpHost()` names an element the popup
+   * can be mounted into now. The package throws for one that does not, so the call warns instead, as the
+   * `popups.*.container` option does, and leaves the popup where it is. The caller still keeps the host,
+   * so a host that mounts later (a framework effect that runs first) is docked by the next rebuild.
+   *
+   * @param {string} methodName The public method the host was passed to.
+   * @param {HTMLElement | string} container The host element or a CSS selector.
+   * @returns {boolean}
+   */
+  #isPopupHostUsable(methodName: string, container: HTMLElement | string): boolean {
+    // `undefined` means "float" for the option, but the method needs a host.
+    if (container !== undefined && this.#isContainerAvailable(container)) {
+      return true;
+    }
+
+    warnOnce(this.hot, `formulaBuilder.${methodName}.missing`, `The host passed to \`${methodName}()\` names` +
+      ' no element in the grid\'s document or shadow root yet, so the popup stays where it is until a' +
+      ' rebuild of the formula builder finds it.');
+
+    return false;
   }
 
   /**
@@ -1926,13 +2478,51 @@ export class FormulaBuilder extends BasePlugin {
    * is cancelled first, while the old builder still exists - see `#teardownPluginState()`.
    */
   #rebuildBuilder(): void {
+    const addressBox = this.#captureFocusedAddressBox();
+
     this.#destroyBuilder();
     this.#createBuilder();
+    this.#restoreAddressBox(addressBox);
     // Any rebuild takes the current theme, language and sheet, so one held back for an edit is
     // done too. Cleared after the build, not before: the destroy above cancels an open edit, and
     // that edit's close asks for a rebuild when it finds the sheet id still differs from the one
     // the old builder was built for. This rebuild is that rebuild.
     this.#rebuildAfterEdit = false;
+  }
+
+  /**
+   * Reads the formula bar's address box while it has the focus: a rebuild replaces the whole bar, and
+   * the focus would fall to the document body with the address the user was typing.
+   *
+   * @returns {{ value: string, start: number | null, end: number | null } | null} `null` when the
+   * address box does not have the focus.
+   */
+  #captureFocusedAddressBox(): { value: string; start: number | null; end: number | null } | null {
+    const input = this.#formulaBarHost?.querySelector<HTMLInputElement>(ADDRESS_INPUT_SELECTOR);
+
+    if (!input || getDeepActiveElement(this.hot.rootDocument) !== input) {
+      return null;
+    }
+
+    return { value: input.value, start: input.selectionStart, end: input.selectionEnd };
+  }
+
+  /**
+   * Gives the rebuilt formula bar's address box the focus, the text and the caret it had before.
+   *
+   * @param {{ value: string, start: number | null, end: number | null } | null} state What
+   * `#captureFocusedAddressBox()` read, or `null` to do nothing.
+   */
+  #restoreAddressBox(state: { value: string; start: number | null; end: number | null } | null): void {
+    const input = state && this.#formulaBarHost?.querySelector<HTMLInputElement>(ADDRESS_INPUT_SELECTOR);
+
+    if (!state || !input) {
+      return;
+    }
+
+    input.value = state.value;
+    input.focus();
+    input.setSelectionRange(state.start ?? state.value.length, state.end ?? state.value.length);
   }
 
   /**
@@ -1949,10 +2539,117 @@ export class FormulaBuilder extends BasePlugin {
    */
   #cancelOpenEdit(): void {
     if (this.#activeEditor) {
+      // Only a bar-hosted edit took the keyboard from the grid, so only it gives it back: an in-cell
+      // edit leaves it where it is, which may be another grid.
+      const wasBarHosted = this.#isBarHostedEdit();
+
       // Destroying the builder under an open session would leave Handsontable's editor in the
       // EDITING state over a torn-down mount, and its eventual close would commit the stale
       // original.
       this.#hostEditor()?.finishEditing?.(true);
+
+      if (wasBarHosted) {
+        this.#relistenAfterBarExit();
+      }
+    }
+  }
+
+  /**
+   * Focusing the bar makes the focus scope manager `unlisten()` the grid, so every path that hands
+   * the keyboard back (commit, cancel, teardown under an open edit) listens again.
+   */
+  #relistenAfterBarExit(): void {
+    if (!this.hot.isDestroyed) {
+      this.hot.listen();
+    }
+  }
+
+  /**
+   * Gives the keyboard back after a bar-hosted commit closed the edit; an in-cell edit never took it.
+   * A rejected save (a validator with `allowInvalid: false`) keeps the edit open in the bar, but core's
+   * `discardEditor()` reselects the cell, which listens and prepares the editor again (the shim's
+   * `beforeOpen` clears `_hiddenByFormulaBar`). So the edit is marked bar-hosted again and the grid
+   * unlistened. An async validator answers late: when the user pressed or focused something outside
+   * this grid and its bar in the meantime (for example, another grid), the keyboard stays where it went.
+   *
+   * @param {boolean} wasBarHosted Whether the edit was bar-hosted before the commit.
+   * @param {boolean} [dataSaved] The editor manager's save result.
+   * @param {boolean} [movedAway] Whether the user moved out of this grid while the save was pending.
+   */
+  #relistenAfterSavedBarEdit(wasBarHosted: boolean, dataSaved?: boolean, movedAway = false): void {
+    if (!wasBarHosted || this.hot.isDestroyed) {
+      return;
+    }
+
+    if (dataSaved === false) {
+      this.setInlineEditorVisible(false);
+      this.#unlistenUnderBarEdit();
+    } else if (!movedAway) {
+      this.#relistenAfterBarExit();
+    }
+  }
+
+  /**
+   * Watches, from a bar commit until its save answers, for a press or a focus outside this grid and
+   * its formula bar. The page focus cannot tell: a press another grid claims with `preventDefault()`
+   * leaves the focus in this grid's bar while that grid listens. The event path (`composedPath()`)
+   * also sees through shadow roots, where `document.activeElement` names the host. A synchronous save
+   * answers before any event, so it always counts as staying.
+   *
+   * @param {boolean} enabled Whether to watch (only a bar-hosted edit gives the keyboard back).
+   * @returns {Function} Stops the watch and returns whether the user moved away.
+   */
+  #watchMoveAway(enabled: boolean): () => boolean {
+    this.#stopMoveAwayWatch?.();
+
+    if (!enabled) {
+      return () => false;
+    }
+
+    const doc = this.hot.rootDocument;
+    let movedAway = false;
+    const onEvent = (event: Event) => {
+      const path = event.composedPath();
+      const roots = [this.hot.rootWrapperElement, this.hot.rootPortalElement, this.#formulaBarHost];
+
+      if (!roots.some(root => root !== null && path.includes(root))) {
+        movedAway = true;
+      }
+    };
+    const stop = () => {
+      MOVE_AWAY_EVENTS.forEach(type => doc.removeEventListener(type, onEvent, true));
+
+      if (this.#stopMoveAwayWatch === stop) {
+        this.#stopMoveAwayWatch = null;
+      }
+    };
+
+    MOVE_AWAY_EVENTS.forEach(type => doc.addEventListener(type, onEvent, true));
+    this.#stopMoveAwayWatch = stop;
+
+    return () => {
+      stop();
+
+      return movedAway;
+    };
+  }
+
+  /**
+   * Whether the open edit is hosted by the formula bar (the in-cell editor is hidden).
+   *
+   * @returns {boolean}
+   */
+  #isBarHostedEdit(): boolean {
+    return this.#activeEditor !== null && this.#hostEditor()?._hiddenByFormulaBar === true;
+  }
+
+  /**
+   * Takes the keyboard from the grid while a bar-hosted edit is still open, so the keys typed in the
+   * bar never reach the grid's shortcuts.
+   */
+  #unlistenUnderBarEdit(): void {
+    if (!this.hot.isDestroyed && this.#isBarHostedEdit()) {
+      this.hot.unlisten();
     }
   }
 
@@ -1960,10 +2657,15 @@ export class FormulaBuilder extends BasePlugin {
    * Releases every enable-time resource.
    */
   #teardownPluginState(): void {
+    this.#stopMoveAwayWatch?.();
+    this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
+    this.hot.columnIndexMapper.removeLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
+    this.#barCellStale = false;
     this.#clearCellErrorMarks();
     this.#removeEngineDetachListener?.();
     this.#removeEngineDetachListener = null;
     this.#destroyBuilder();
+    this.#engineDetached = false;
     // After the destroy, not before: the edit cancel inside it runs `handleInlineEditClose()`, which can
     // ask for a deferred rebuild again (same order as `#rebuildBuilder()`).
     this.#rebuildAfterEdit = false;
@@ -1986,6 +2688,8 @@ export class FormulaBuilder extends BasePlugin {
     this.#cellPick = null;
     this.#barSelected = null;
     this.#lastEmittedSelectionCoords = null;
+    this.#lastBarCell = null;
+    this.#lastFocusedCoords = null;
   }
 
   /**

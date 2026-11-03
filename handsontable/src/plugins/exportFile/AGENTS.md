@@ -167,6 +167,20 @@ Other rules:
   `"dataRow:dataCol" → descriptor` map.
 - **`cell.protection` is written only when the sheet actually has cells to lock in Excel.** The pre-scan
   exists to skip it — writing it unconditionally bloats the file and changes Excel's behavior.
+- **The `protection` option only chooses the password, never whether a sheet is protected.** `undefined` (the
+  default) keeps the pre-scan's verdict with no password; `{ password }` passes the password to
+  `sheet.protect()` (empty means none, the builder stores `null`); `null` forces `hasReadOnlyCells` off, so
+  nothing is locked. A password on a sheet with no read-only cell, or with a ColumnSummary, still writes
+  nothing, and without `xlsx:protection` the whole option is ignored. The password must never reach a log,
+  a warning, `dropped` or an error: the missing-token warning names the token only. A `protection` that is
+  not a plain object or `null`, or a `password` that is not a string (`null` and `undefined` mean none) or is longer than 255 UTF-16 units (Excel's limit), is
+  refused by `assertProtectionOption()` at the top of `Xlsx#export()`, before any engine work and whatever
+  the license unlocks: the built-in engine hashed a number as an empty password and ExcelJS threw a bare
+  `TypeError`, so letting it through made the two engines disagree. The option is workbook-wide: the
+  multi-sheet loop drops a `protection` key from each `sheets` entry before merging it over the top-level
+  options, so a per-sheet value can neither bypass that check nor set another password. A `sheets` entry that carries a `protection` key (any value, `null` included) makes the export `warn()` once (`the "protection" option applies to the whole workbook; the value set on a sheet entry was ignored.`), never with the value. The engines hash it
+  (salted SHA-512, `crypto.getRandomValues` salt in `parts/protection.ts`; ExcelJS's own `protect()`).
+  Pinned by `__tests__/xlsxProtectionOption.unit.js` and `tests/e2e/xlsx-export-license.spec.ts`.
 - **Clear the style caches for *every* document involved.** In multi-sheet mode each sheet may come from a
   different Handsontable instance in a different document (an iframe), so one document's cache is not
   enough.
@@ -378,6 +392,8 @@ Other rules:
   `workbook.worksheets[1].state === 'hidden'` for the validation sheet, and "should write the rows
   before merging, so a merged range keeps its master value" is the row-before-merge regression test —
   run it before reordering `writeColumnLayout`/`writeRows`/`writeSheetFeatures` in `exceljs.ts`.
+- **The missing-token warning names only tokens whose feature the export left out.** `Xlsx#needed` (a `Set`, reset per export) collects what each sheet had to write, whatever the license unlocks: `#recordSheetFeatures` records the sheet-level ones (headers while `headerStyle` is not `null` → `styles`; `exportFormulas` plus a formula or summary cell → `formulas`; a width other than `DEFAULT_COLUMN_WIDTH`, a row-header column (it always gets a width), a row height, hidden, merge (nested header groups included), freeze or RTL → `layout`; a non-empty `conditionalFormatting`; the pre-gate read-only scan or a `protection` object → `protection`), and the cell loop records `number_formats` (a non-null `numFmt`), `styles` (without the token `#writeRowCells` never calls `getCssStyleFromElement()`, so it counts what the meta describes plus any class outside `ALIGNMENT_CLASS_NAMES` from `cell-style.ts`), `data_validation` (a dropdown/autocomplete whose `source` is a non-empty array, the same test `getDropdownValidation` and `#buildValidationSheet` make; a function `source` and `[]` write no list) and `comments`. The warning is `missing ∩ needed` in `missing` order. Known gap: a style a renderer writes inline with no class name is not counted. An autosized column counts as layout, because its width differs from the default and the file would carry it: AutoColumnSize is on by default, so a plain grid on DEFAULT settings warns `xlsx:layout` on a key without it. That is deliberate (review round 2 kept the detection and made the export guide say so); only a grid whose widths all stay `DEFAULT_COLUMN_WIDTH` (`autoColumnSize: false`, no `colWidths`) warns nothing. Pinned on the real data provider by `tests/e2e/xlsx-export-license.spec.ts` ("a grid on default settings warns about xlsx:layout …").
+- **The license entitlement is read from `dataProvider.hot`, never from `options`.** A user can pass any option, so `Xlsx#export()` calls `getXlsxEntitlement(hot)` and scopes it with `EXPORT_FILE_CAPABILITY_IDS` before the gates (`numFmt`, layout, header style, validations, formulas, protection) read it. `supportsExportFormat('xlsx')` is also the predicate the "To Excel" context menu item reads, so a missing `xlsx:export` (or a missing `feat:export_file`, checked first) hides the item and throws from `exportAsBlobAsync`; keep the two answers the same. Header alignment is gated in `#applyHeaderStyle`, the one place every header cell passes through. Without `xlsx:number_formats` a date, time, `intl-date`, `intl-time` or `intl-datetime` cell is written as its DISPLAY text (`toDisplayText` in `types/xlsx.ts`, through `formatCellValue()`), never as a bare serial: a serial with no format opens as `45306`. The same holds for a FORMULA in such a cell under `exportFormulas` (`TEMPORAL_CELL_TYPES`, checked at the top of the formula branch of `#resolveCellValue`): without the token the gate would clear the formula's `numFmt` and `=C2+30` would open as `45336`, so the cell goes out as its displayed text with no formula. With the token it stays a live formula with its `numFmt`. Numeric cells stay numbers. Nested-header merges (and the row-header corner merge `#applyNestedHeaderMerges` writes) are gated under `xlsx:layout`, like data merges: without it each group label stays in the group's first header cell. The `protection` password never appears in a message. Token rules: `utils/xlsxEngine/AGENTS.md` "License gating".
 
 ## Column widths come from `_getColWidthFromSettings()`
 
@@ -397,7 +413,13 @@ The plugin is on in every grid, so a license key that lists its features is chec
 for, not at enable (`gate: 'call'` in `feature.json`). `exportAsString()`, `exportAsBlob()`, `exportAsBlobAsync()`,
 `downloadFile()` and `downloadFileAsync()` call `assertLicensedCall(this.hot, LICENSE)` first: a key that does not
 cover `feat:export_file` writes the license message and throws it (the async methods reject). The token covers
-every format, CSV included. `supportsExportFormat()` is not checked: it does no work. The parent "Export" item of
+every format, CSV included. `supportsExportFormat()` does no work and writes no message, but for `'xlsx'` it reads
+the same token with `hasLicenseCapability(this.hot, LICENSE.capability)` before the `xlsx:export` entitlement, so it
+answers `false` whenever an xlsx call would throw, for either token, and the "To Excel" sub-item hides with it. For
+`'csv'` and every other format it does not read the token, on purpose: the predicate answers "can this format
+be produced", and the parent item already hides for the token). Pinned by "on a key that lists its features" in
+`__tests__/exportFile.unit.js`, which builds keys without `feat:all` (`keyWithoutFlag(tokens,
+[LISTED_CAPABILITIES_FLAG])`): `keyWith()` always adds it. The parent "Export" item of
 the context menu is hidden when the key does not cover the token (`contextMenuItem/exportItem.ts`), silently,
 because a click would only throw. **Read another plugin's state through `.enabled`** in `dataProvider.ts`: a
 plugin the key leaves out keeps its setting, so `isEnabled()` answers `true` while it never ran (MergeCells then

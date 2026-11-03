@@ -23,6 +23,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -69,7 +70,7 @@
       colWidths: 120,
       contextMenu: ['row_above', 'row_below', 'remove_row'],
       renderer: testIdRenderer,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
       beforeOnCellMouseDown() { window.hookCounts.beforeOnCellMouseDown += 1; },
       beforeOnCellMouseUp() { window.hookCounts.beforeOnCellMouseUp += 1; },
       afterBeginEditing() { window.hookCounts.afterBeginEditing += 1; },

@@ -489,6 +489,15 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   review, because every assertion read columns and the top clone's rows, and
   nothing asked the master where its band was. Reference:
   `e2e/iframe-cross-realm-scroll.spec.ts` (`masterRowBand()`).
+- **The xlsx license fixture reaches into the core package's Jest helpers.**
+  `fixtures/xlsxLicenseKeys.ts` imports
+  `handsontable/src/utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys.js`
+  (which uses `__tests__/buildTestKey.js`) and `__tests__/fixtures.js` through
+  Playwright's loader, so the Jest suites and these specs build keys with one
+  builder. Moving or renaming those files breaks the xlsx license specs. And
+  `demo/xlsx-license.html` takes a third fail-loud allowlisted param besides
+  `?theme=`/`?bundle=`: `?engine=` (`native` or `exceljs`); an unknown value
+  throws, like the other two.
 
 ## Two clicks on the same cell are a double click
 
@@ -1677,6 +1686,190 @@ captures pixels; the arithmetic and the verdicts are `lib/contrast.mjs` (tested 
   covered at every sampled point is `focus-obscured`; a cell with no sampled point inside the window (off
   screen, or at most a sixth of it at the window's edge) is `focus-off-screen` (2.4.7). Two keys of the
   walk can land on one cell, so its findings are one per cell.
+
+### Zoom, reflow, text spacing, and hover content
+
+`a11y/checks/reflow.spec.ts`, the `reflow` check: 1.3.4, 1.4.4, 1.4.10, 1.4.12, and 1.4.13 on every
+theme. The spec measures boxes; `lib/reflow.mjs` (tested in `lib/__tests__/reflow.test.mjs`) decides what
+counts as lost content.
+
+- **Three conditions, each a viewport** (`CONDITIONS`): 320 by 256 CSS px for 1.4.10 (a 1280 by 1024
+  window at 400%), 640 by 512 for 1.4.4 (200%), and the WCAG text-spacing override (`TEXT_SPACING_CSS`) for
+  1.4.12, injected as a stylesheet as soon as the document has a head, so the grid measures its rows with
+  it the way it would under a user's stylesheet. Each runs over the plain grid and the pages with a
+  surface of their own around it (`PAGES` in the spec). Left out: the pages whose surfaces lie inside the
+  grid's own box (the freeze bars on the freeze lines and header corners, the selection handles, the
+  links, checkboxes, and pending indicator in cells, and the grid shapes, the right-to-left grid among
+  them), which move with the grid when it scrolls in two dimensions; the editors whose control is a
+  native one in the cell (text, password, select, and the date and time editors); the dropdown and
+  handsontable editors, which open the same one-column `.handsontableEditor` list as the autocomplete
+  editor on that fixture; the dark pages, because a color scheme changes no box; and the right-to-left
+  menu, whose fixture lays several wide grids on one page, so the page would scroll sideways for the
+  fixture's sake.
+- **A grid its fixture pins wider than the viewport is measured at the page's width.** A fixture that
+  sets a pixel `width` wider than the viewport gets `width: '100%'` before the state is reached (`fitted`
+  in the detail). With a pixel width the bars and the overlays follow the grid's own box, so they would
+  reach past the viewport because of the test page: the page's layout, not the grid's reflow.
+- **The grid body is exempt; everything around it is measured.** A data grid may scroll in two
+  dimensions, so the main grid's tables are left out. The menus, the editors' lists, the comment editor,
+  dialogs, notifications, the bars and the overlays are measured for text a clipping container cuts off
+  (`text-clipped`; `text-truncated`, moderate, when the container ends it with an ellipsis), surfaces the
+  viewport cuts off, and controls drawn over each other (`controls-overlap`, judged on the part of each
+  box its clipping ancestors leave on screen, never between a control and one inside it, and only between
+  two controls on the same layer: the page outside every popup is one layer and each popup element is one
+  of its own, because a popup lies over what is under it by design, the page or another popup (a submenu
+  over its menu), and Escape closes it). The formula builder's suggestion list and function help count as popups and its formula bar as a
+  bar. A layer that covers the whole grid (the dialog's, the notification's) has the grid's box, so it is
+  measured by the part a user reads: the dialog's card and each toast. A screen-reader-only box (one pixel
+  square, like the announcer's live regions) is never text cut off: its text is read out, not drawn.
+- **Where a surface is decides what reaching past the viewport means.** A surface positioned against the
+  viewport (`position: fixed`, read from the computed style) that reaches past it cannot be scrolled to
+  (`outside-viewport`). Any other surface is placed in the page's own coordinates (its box plus the scroll
+  offset), and scrolling reaches from the page's origin to its scroll size and no further: a part before
+  the origin (a menu flipped left of or above the page) or past the scroll size is `outside-viewport`
+  too. Within reach, a surface past the right edge needs a sideways scroll (`needs-horizontal-scroll`),
+  the second scroll direction 1.4.10 does not allow outside a data table. That is a finding at 320 px
+  only: 1.4.4 and 1.4.12 ask for no loss of content, and a sideways scroll loses none. Past the bottom
+  edge a surface is a vertical scroll away, which is allowed.
+- **Every finding names its element apart from the others.** A finding's id keys on its selector, and
+  two findings with one id read as one in a compare between runs. The spec names an element by its tag,
+  its first class, and its label, so two items of one measurement can share a name (the context menu and
+  its submenu are both `div.htMenu`): the second and later get an ordinal (`div.htMenu (2)`,
+  `nameApart()`), among the surfaces, the controls, and the clipping containers alike. A
+  `controls-overlap` names both controls (`a × b`), so one control over two neighbors is two findings.
+- **A measurement is taken on a settled page.** The spec measures until two measurements three frames
+  apart agree (`settled` in the detail). Every check calls `releaseParkedFetches()` (the harness) after
+  every `reachState()`, on every page, so a data-provider page added to a check's plan later is measured
+  in the same state: it releases the data-provider fixture's parked fetches until none is left, because
+  the catalog's opener releases the first fetch only, and whether the next one had landed changed what
+  the bars showed between runs. The gating axe scan does not call it, so the state its baseline was taken
+  in is unchanged.
+- **Hover content** (1.4.13) is the comment of a commented cell: it must appear on hover, stay while the
+  pointer moves onto it and while it rests there, and hide on Escape with the pointer still on it. "Stays"
+  is measured on a fake clock (`page.clock`, installed once the comment shows), so the comment's own hide
+  timers run, and ten seconds pass without a wait. Each property is measured from the comment on screen,
+  so one that fails does not decide the next: a comment an earlier step hid is shown again from its cell
+  first. A property that still finds no comment is a problem of the target, never a finding, and a
+  comment that never appeared is a problem that evaluates no criterion (`criteria: []`).
+- **Orientation** (1.3.4): the grid's root must have an area on screen in a 390 by 844 and an 844 by 390
+  viewport.
+
+### Forced colors and reduced motion
+
+`a11y/checks/forced-colors-motion.spec.ts`, the `forced-colors-motion` check, nightly only (every page is
+watched for five seconds): 2.2.2, 2.3.3 and the forced-colors support of 1.4.1, 1.4.11 and 2.4.7, on
+every theme. The spec watches and captures; the verdicts are `lib/motion.mjs` (tested in
+`lib/__tests__/motion.test.mjs`).
+
+- **Motion is read from `document.getAnimations()`, frame by frame.** One `requestAnimationFrame` loop in
+  the page records every animation it sees running: CSS transitions, CSS animations and script
+  animations alike, with the properties they animate, their duration, iterations and target, and when
+  they were first and last seen, and when the watch's own first and last frames ran. An endless
+  animation's `iterations` is recorded as the string `'Infinity'`: the record goes to the detail as JSON,
+  which writes the number as `null`. `page.clock` drives none of them (the trap in "The matrix" above), so
+  the watch runs on real time. Motion is a change of position, size or transform for longer than 1 ms
+  (`isMotion()`); an opacity or color fade is not, and a duration a reduced-motion rule shrinks to
+  (0.01 ms) moves nothing.
+- **Every catalog state is watched at rest for five seconds, without the reduced-motion preference**
+  (`emulateMedia({ reducedMotion: 'no-preference' })`, the variant `at-rest`). 2.2.2 asks for a way to
+  pause what moves on its own, and a theme's `prefers-reduced-motion` rule is not one: a user who never
+  set the preference sees the spinner it stops. An animation seen running from the watch's first frame
+  to its last, longer than 1 ms, that repeats without end or lasts five seconds or more is
+  `moves-over-five-seconds` (2.2.2), moving or blinking alike. The bounds are the watch's frames, never
+  its nominal length, so a late first frame hides nothing. The watch at rest evaluates no 2.3.3: that
+  criterion is motion an interaction starts, and the interaction runs below own it.
+- **An interaction is watched with the preference and without it.** A sheet switch, a dialog shown, a
+  notification shown and a context menu opened, each watched for 1.5 seconds under the variants
+  `interaction-reduced-motion` and `interaction-motion-allowed` (never `at-rest`, which the watch at rest
+  owns, and a target is keyed by its variant). 2.3.3 is AAA, so its findings are `moderate`. The watch
+  starts once every animation the load started that ends has ended (`expect.poll` on
+  `document.getAnimations()`), so a finite animation the page started on its own, such as a toast a
+  fixture shows on load, is never counted as the interaction's. An animation that repeats without end
+  never ends and the watch would count it, so an interaction's page must have none. Without the
+  preference is the positive control: an interaction that moves there and not under the preference
+  proves both that the watch sees motion and that the product honors the preference. The control
+  evaluates no criterion, and a control that should move and saw none is a problem of its target
+  (`controlProblems()`), never a clean result. An interaction marked `moves` (the sheet switch, the
+  notification) should move on a theme whose `--ht-table-transition` is not `0s`; the dialog only fades
+  and the context menu appears at once, so neither is expected to. The dialog and notification fixtures
+  turn animation off so their states are reached at once, so the check turns it back on (the dialog's
+  `animation` setting, the notification's `?animation=1`).
+- **Forced colors is a capture, before and after.** With `forcedColors: 'active'` on the shared demo, the
+  cell focus, a selected range and a menu item's highlight are captured before and after the keyboard
+  reaches them, and the grid lines and the header menu icons at rest. A state that changes no pixel, or a
+  part that draws nothing (`isDrawn()`, from `lib/contrast.mjs`), is a finding (`focus-`, `selection-`,
+  `menu-highlight-`, `icon-` or `gridlines-lost-in-forced-colors`), and the target evaluates every
+  criterion those findings name (`FORCED_COLORS_CRITERIA`: 1.4.1, 1.4.11 and 2.4.7), so a criterion never
+  shows a finding with no target evaluating it. Every capture is attached as a PNG to the test, for the
+  person who reads the report. Chromium's emulation applies the system colors the way Windows High
+  Contrast does; the colors themselves are the emulation's, not a Windows theme's.
+
+### Pointer and drag alternatives
+
+`a11y/checks/pointer.spec.ts`, the `pointer` check: 2.5.1, 2.5.2 and 2.5.7, and 2.1.1 for every drag (a
+key path must do all it does), on the main theme: a pointer works the same on every theme. The browser
+half presses and drags (`pointer-state.ts`, `drag-runner.ts`); the verdicts are `lib/pointer.mjs` (tested in
+`lib/__tests__/pointer.test.mjs`).
+
+- **Pointer cancellation is the press compared with the click.** On every catalog page in its state,
+  one control of each kind the grid and its portal draw (tag, first class and role; at most twelve) is
+  clicked on a page as it loads, which is the positive control: a control whose click changes nothing
+  the state reads is not measured, unless its press acts. Then, on another page as it loads, it is pressed, the pointer moves
+  to a corner away from the grid and is released. What the press alone did is `activates-on-press`
+  (advisory when all it did is show a popup, which Escape takes back); doing what the click does after
+  the pointer left is `completes-after-pointer-left`. A selection, a focus move or a hover highlight is
+  never an action: a press on a cell selects it by design. The state before the press, and before the
+  click, is read once the hover has held still (`settledPointerState()`): a hovered menu item opens its
+  submenu on a 300 ms timer, and a state read the moment the pointer arrives blamed the press for it
+  whenever the run was slow. The controls in the grid's own cells and
+  headers are judged through the data, the sort and the collapsed groups, never through their drawn
+  `checked` or `aria-*` states: a press dragged off a cell scrolls the grid, and the scroll redraws
+  other rows into the same nodes. A reload parks the pointer off the grid first, and a control is
+  measured on a reload only when the reload marked the same control under its id: an id is a place in
+  the marking order, so one control more or less hands it to another. A control is not measured either
+  when the grid or its portal covers every corner of the viewport, since no release is away from it.
+  Every load of a test writes to one page error list, which is checked once each click or release is done:
+  the test passes it to every `openTarget()`, so an error between two loads is never lost.
+- **With a menu, a dialog or an editor open, only the controls inside it are measured.** A press
+  anywhere else dismisses what is open (and commits an editor) on the press, by design, and those
+  controls are measured on the pages where nothing is open. A link counts its click instead of
+  navigating (`installSentinels()`).
+- **Every drag the product does is in `a11y/checks/drag-operations.mjs`**, with every way to do it
+  without a drag that the product has today: its input (`single-pointer`, `keyboard`, or
+  `pointer-modifier`, a click with a key held, which is neither), whether it covers the whole drag or a
+  part, and the steps that perform it. The spec performs the drag first, and a drag that does not have
+  the effect the entry names is a red test: the inventory is wrong. Each alternative then runs on a page
+  as it loads and is proven when it has the same effect and, for one that covers the whole drag, leaves
+  the compared field (the data, the selection, the sheet order, the open editor's text) exactly as the drag left it. 2.5.7 needs
+  a proven single-pointer alternative that covers the whole drag, and 2.1.1 a proven keyboard one that
+  covers it too: a key path that does part of it (cut and paste for a move that carries cell meta) is
+  not all of the function. A listed alternative that did not work is `alternative-does-not-work`,
+  advisory for a click with a key held, which meets neither criterion anyway. So is one whose steps
+  could not run: the throw is caught, its cause goes in the detail and the problems, and the drag's own
+  findings stand, so a person tells a stale inventory from a broken product. A page that threw is not
+  caught: each load's errors are checked once its steps are done, and the test fails, as
+  `attachEvidence()` fails a page that threw. An operation with no alternative lists none, and that
+  absence is the finding. A drag target evaluates 2.1.1 and 2.5.7, a path-based or multipoint one 2.5.1
+  (`operationCriteria()`), and a drag finding is annotated on its entry's line in the inventory.
+- **The tooling test keeps the inventory complete.** It reads `handsontable/src/plugins/`, and a plugin
+  that follows the pointer must be in the inventory or in `NOT_DRAG` with its reason: one that listens
+  to `mousemove`, `pointermove` or `touchmove`, registers a cell mouse-over hook (a drag across cells or
+  headers, like the nested-header column selection), or imports a module under `src/utils/` that
+  listens (the resize drags live in `utils/manualResize/resizeGesture.ts`). A reason for a plugin that
+  no longer follows the pointer fails as stale. `inventoryProblems()` refuses a `compare` that is not a
+  field of the drag state (`DRAG_FIELDS`): a misspelled one reads `undefined` after the drag and after
+  the alternative alike, and every full alternative would pass on its effect alone. A new drag
+  is accounted for in the change that adds it. A path-based or multipoint gesture goes in with its
+  `gesture`, and 2.5.1 judges it like 2.5.7 judges a drag; the product has none today (a long press and
+  a double tap are time-based, single-point gestures). The inventory is a target of its own for 2.5.1
+  (`gestureInventory()`): since the tooling test keeps it complete, its count of path-based and
+  multipoint gestures is the evidence for the product as a whole.
+- **A step that acts on a timer is read until it lands.** The double-click autofit runs from a 500 ms
+  timer and a sheet tab settles after its transition, so the state after the last step is read until the
+  effect shows, for two seconds at most; a read that throws is a tooling error with its cause, never a
+  missing effect. Every step but the last sets up, and an alternative's `prepare`
+  sets up what a partial alternative undoes (a wide column for the autofit, empty cells for the
+  copy-down) through the API, never with a drag.
 
 ### Adding a check
 

@@ -2,7 +2,7 @@ import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, getTrimmingContainer } from '../../helpers/dom/element';
-import { hasPointerTraveled } from '../../helpers/dom/event';
+import { hasPointerTraveled, isImmediatePropagationStopped } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
@@ -558,7 +558,12 @@ export class ManualRowMove extends BasePlugin {
     const isHeaderSelection = this.hot.selection.isSelectedByRowHeader();
     const selection = this.hot.getSelectedRangeActive();
 
-    if (!selection || !isHeaderSelection || this.#pressed || event.button !== 0) {
+    // A press an earlier listener claimed (the FormulaBuilder reference pick, which runs first with
+    // order index `-1`) owns the gesture, so it arms no move.
+    if (
+      !selection || !isHeaderSelection || this.#pressed || event.button !== 0 ||
+      isImmediatePropagationStopped(event)
+    ) {
       this.#pressed = false;
       this.#dragged = false;
       this.#rowsToMove.length = 0;

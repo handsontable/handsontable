@@ -35,6 +35,7 @@
     window.htFocus = htPick('focus', { 0: false, 1: true }, '0');
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } input { margin: 10px; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -111,7 +112,7 @@
           content,
           template,
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
 
       if (window.htFocus) {

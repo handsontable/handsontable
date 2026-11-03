@@ -3,7 +3,7 @@ import { CUSTOM_ELEMENTS_SCHEMA, SimpleChange } from '@angular/core';
 import { registerPlugin, AsyncValues } from 'handsontable/plugins';
 import { HotTableModule } from './hot-table.module';
 import { HotTableComponent } from './hot-table.component';
-import { NON_COMMERCIAL_LICENSE } from './services/hot-global-config.service';
+import { TEST_LICENSE_KEY } from './test-helpers/license-key';
 
 registerPlugin(AsyncValues);
 
@@ -47,7 +47,7 @@ describe('HotTableComponent with async values', () => {
   it('should keep a pending request on its record when the `data` input changes order', async() => {
     fixture = TestBed.createComponent(HotTableComponent);
     fixture.componentInstance.settings = {
-      licenseKey: NON_COMMERCIAL_LICENSE,
+      licenseKey: TEST_LICENSE_KEY,
       columns: [{ data: 'sku' }, { data: 'name' }],
       rowId: 'id',
       asyncValues: true,

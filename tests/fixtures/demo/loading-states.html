@@ -37,6 +37,7 @@
     /* The visual demo stops the spinner too, so a capture and a measurement see one frame of it. */
     .ht-loading__icon-svg { animation: none; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -90,7 +91,7 @@
         // synchronously. The visual fixture switches the transitions off for the same reason.
         dialog: { animation: false },
         loading,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
 
       window.hot.getPlugin('loading').show();

@@ -295,6 +295,124 @@ describe('FormulaBuilder popup hosts', () => {
   });
 });
 
+describe('FormulaBuilder popup hosts given no host', () => {
+  afterEach(() => {
+    document.body.replaceChildren();
+  });
+
+  it.each(['suggestions', 'fnHelp'])('treats `popups.%s: null` as not configured on enable and on update', (name) => {
+    const stub = makePluginHotStub({ popups: { [name]: null } });
+    const plugin = new FormulaBuilder(stub.instance);
+
+    expect(() => plugin.enablePlugin()).not.toThrow();
+    expect(plugin.enabled).toBe(true);
+    expect(popupIn(latestPortal(), 'hfe-suggestions')).toBeDefined();
+    expect(popupIn(latestPortal(), 'hfe-fn-help')).toBeDefined();
+    expect(() => plugin.updatePlugin()).not.toThrow();
+    expect(plugin.enabled).toBe(true);
+
+    plugin.disablePlugin();
+  });
+
+  it.each([
+    ['attachSuggestionsHost', 'hfe-suggestions'],
+    ['attachFnHelpHost', 'hfe-fn-help'],
+  ] as const)('%s() warns and leaves the popup floating for a host that names no element', (method, popupClass) => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const stub = makePluginHotStub();
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+
+    const portal = latestPortal();
+    const detached = document.createElement('div');
+
+    expect(() => plugin[method]('#no-such-host')).not.toThrow();
+    expect(() => plugin[method](detached)).not.toThrow();
+    expect(() => plugin[method](null as unknown as HTMLElement)).not.toThrow();
+    expect(() => plugin[method](undefined as unknown as HTMLElement)).not.toThrow();
+    expect(popupIn(portal, popupClass).classList.contains(HOSTED_CLASS)).toBe(false);
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining(`\`${method}()\``));
+
+    plugin.disablePlugin();
+    warnSpy.mockRestore();
+  });
+
+  it('keeps a host attached before its element exists and docks the popup on the next build', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const stub = makePluginHotStub();
+    let themeName = 'ht-theme-main';
+
+    stub.hot.getCurrentThemeName = () => themeName;
+
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+    plugin.attachFnHelpHost('#late-help');
+
+    expect(warnSpy).toHaveBeenCalled();
+
+    const host = makeHost('late-help');
+
+    themeName = 'ht-theme-main-dark';
+    findHook(stub.hot, 'afterSetTheme')();
+
+    expect(popupIn(host, 'hfe-fn-help').classList.contains(HOSTED_CLASS)).toBe(true);
+
+    plugin.disablePlugin();
+    warnSpy.mockRestore();
+  });
+
+  it('keeps a suggestions host attached before its element exists and docks the popup on the next build', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const stub = makePluginHotStub();
+    let themeName = 'ht-theme-main';
+
+    stub.hot.getCurrentThemeName = () => themeName;
+
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+    plugin.attachSuggestionsHost('#late-suggestions');
+
+    expect(warnSpy).toHaveBeenCalled();
+
+    const host = makeHost('late-suggestions');
+
+    themeName = 'ht-theme-main-dark';
+    findHook(stub.hot, 'afterSetTheme')();
+
+    expect(popupIn(host, 'hfe-suggestions').classList.contains(HOSTED_CLASS)).toBe(true);
+
+    plugin.disablePlugin();
+    warnSpy.mockRestore();
+  });
+
+  it('keeps a host attached while the plugin was disabled and applies it on the next enable', () => {
+    const stub = makePluginHotStub();
+    const plugin = new FormulaBuilder(stub.instance);
+    const host = makeHost();
+
+    plugin.attachFnHelpHost(host);
+    plugin.enablePlugin();
+
+    expect(popupIn(host, 'hfe-fn-help').classList.contains(HOSTED_CLASS)).toBe(true);
+
+    plugin.disablePlugin();
+    plugin.enablePlugin();
+
+    expect(popupIn(host, 'hfe-fn-help').classList.contains(HOSTED_CLASS)).toBe(true);
+
+    plugin.detachFnHelpHost();
+    plugin.disablePlugin();
+    plugin.enablePlugin();
+
+    expect(host.childElementCount).toBe(0);
+
+    plugin.disablePlugin();
+  });
+});
+
 describe('FormulaBuilder popup hosts in a shadow root', () => {
   it('docks a popup into a host its selector finds in the grid\'s shadow root', () => {
     const shadowHost = document.createElement('div');

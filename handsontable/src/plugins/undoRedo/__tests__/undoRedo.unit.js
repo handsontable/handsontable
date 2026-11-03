@@ -3,6 +3,7 @@ import {
   ColumnSorting, HiddenColumns, HiddenRows, ManualRowMove, MergeCells, NestedRows, registerPlugin, TrimRows, UndoRedo,
 } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(UndoRedo);
@@ -51,7 +52,7 @@ describe('UndoRedo plugin', () => {
       hot = new Handsontable(container, {
         data: [['A1', 'B1', 'C1', 'D1', 'E1']],
         undo: { maxHistory: 3 },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('undoRedo');
@@ -79,7 +80,7 @@ describe('UndoRedo plugin', () => {
       hot = new Handsontable(container, {
         data: [[1]],
         undo: true,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       for (let value = 2; value <= 60; value++) {
@@ -93,7 +94,7 @@ describe('UndoRedo plugin', () => {
       hot = new Handsontable(container, {
         data: [['A1']],
         undo: { maxHistory: 0 },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.setDataAtCell(0, 0, 'x');
@@ -107,7 +108,7 @@ describe('UndoRedo plugin', () => {
       hot = new Handsontable(container, {
         data: [['A1', 'B1', 'C1']],
         undo: { maxHistory: 2 },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
       hot.updateSettings({ undo: { maxHistory: value } });
 
@@ -125,7 +126,7 @@ describe('UndoRedo plugin', () => {
       hot = new Handsontable(container, {
         data: [['A1', 'B1', 'C1', 'D1', 'E1']],
         undo: { maxHistory: 5 },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
       const plugin = hot.getPlugin('undoRedo');
 
@@ -147,7 +148,7 @@ describe('UndoRedo plugin', () => {
       hot = new Handsontable(container, {
         data: [['A1', 'B1', 'C1']],
         undo: { maxHistory: 2 },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.updateSettings({ colHeaders: true });
@@ -160,7 +161,7 @@ describe('UndoRedo plugin', () => {
       hot = new Handsontable(container, {
         data: [['A1', 'B1', 'C1']],
         undo: { maxHistory: 3 },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
       const plugin = hot.getPlugin('undoRedo');
 
@@ -178,7 +179,7 @@ describe('UndoRedo plugin', () => {
 
   it('should keep recording new actions after an action throws during undo', () => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [['A1'], ['A2'], ['A3']],
       undo: true,
     });
@@ -203,7 +204,7 @@ describe('UndoRedo plugin', () => {
 
   it('should keep recording new actions after an action throws during redo', () => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [['A1'], ['A2'], ['A3']],
       undo: true,
     });
@@ -230,7 +231,7 @@ describe('UndoRedo plugin', () => {
   // `undo()` on a disabled grid has nothing to undo.
   it('should record nothing while `undo` is `false`', () => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [['A1', 'B1']],
       undo: false,
     });
@@ -248,7 +249,7 @@ describe('UndoRedo plugin', () => {
     const seen = [];
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [['A1']],
       undo: true,
       beforeUndo(action) {
@@ -272,7 +273,7 @@ describe('UndoRedo plugin', () => {
       let veto = true;
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1'], ['A2']],
         undo: true,
         beforeUndo: () => !veto,
@@ -303,7 +304,7 @@ describe('UndoRedo plugin', () => {
       const undoAction = jest.fn((instance, callback) => callback());
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1']],
         undo: true,
       });
@@ -326,7 +327,7 @@ describe('UndoRedo plugin', () => {
   describe('an undo or redo whose grid changed or whose replay is vetoed', () => {
     it('should take back the rows of a restored insertion that landed only in part', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1'], ['A2'], ['A3'], ['A4'], ['A5']],
         undo: true,
       });
@@ -350,7 +351,7 @@ describe('UndoRedo plugin', () => {
       const afterUndo = jest.fn();
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1'], ['A2'], ['A3'], ['A4'], ['A5']],
         undo: true,
         beforeUndo,
@@ -382,7 +383,7 @@ describe('UndoRedo plugin', () => {
       const beforeUndo = jest.fn();
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1', 'B1', 'C1']],
         undo: true,
         beforeUndo,
@@ -409,7 +410,7 @@ describe('UndoRedo plugin', () => {
       const beforeRedo = jest.fn();
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1', 'B1', 'C1', 'D1', 'E1']],
         undo: true,
         beforeRedo,
@@ -437,7 +438,7 @@ describe('UndoRedo plugin', () => {
       const beforeRedo = jest.fn();
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1'], ['A2'], ['A3'], ['A4'], ['A5']],
         undo: true,
         trimRows: true,
@@ -465,7 +466,7 @@ describe('UndoRedo plugin', () => {
       const afterUndo = jest.fn();
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1'], ['A2'], ['A3']],
         undo: true,
         afterUndo,
@@ -495,7 +496,7 @@ describe('UndoRedo plugin', () => {
 
     it('should settle a vetoed row removal redo late, and keep recording', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1'], ['A2'], ['A3']],
         undo: true,
       });
@@ -530,7 +531,7 @@ describe('UndoRedo plugin', () => {
       const veto = () => false;
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1'], ['A2'], ['A3']],
         undo: true,
         afterUndoStackChange,
@@ -560,7 +561,7 @@ describe('UndoRedo plugin', () => {
       const afterRedoStackChange = jest.fn();
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1']],
         undo: true,
         afterRedo,
@@ -583,7 +584,7 @@ describe('UndoRedo plugin', () => {
 
     it('should not leave the settle listener armed when the removal throws', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1'], ['A2'], ['A3']],
         undo: true,
       });
@@ -618,7 +619,7 @@ describe('UndoRedo plugin', () => {
      */
     function createGrid(settings = {}) {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1'], ['A2'], ['A3'], ['A4']],
         undo: true,
         ...settings,
@@ -689,7 +690,7 @@ describe('UndoRedo plugin', () => {
      */
     function createGrid(settings = {}) {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3'], ['A4', 'B4']],
         undo: true,
         ...settings,
@@ -947,7 +948,7 @@ describe('UndoRedo plugin', () => {
 
     it('should record an edit and the meta its `afterValidate` listener writes as one step', async() => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1', 'B1'], ['A2', 'B2']],
         columns: [{ validator: (value, callback) => callback(value !== 'bad') }, {}],
         undo: true,
@@ -979,7 +980,7 @@ describe('UndoRedo plugin', () => {
     // at the wrong row, so it is recorded in the batch's step.
     it('should record a step made while a step that removes a row waits for its validator in that step', async() => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3'], ['A4', 'B4'], ['A5', 'B5']],
         columns: [{ validator: (value, callback) => callback(true) }, {}],
         undo: true,
@@ -1020,7 +1021,7 @@ describe('UndoRedo plugin', () => {
     // first and the edit's second.
     it('should undo and redo a joined step in the order its changes were made', async() => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
         columns: [{ validator: (value, callback) => callback(true) }, {}],
         undo: true,
@@ -1060,7 +1061,7 @@ describe('UndoRedo plugin', () => {
        */
       function createGrid() {
         hot = new Handsontable(container, {
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: TEST_LICENSE_KEY,
           data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3'], ['A4', 'B4'], ['A5', 'B5']],
           columns: [{}, { validator: (value, callback) => { release = () => callback(true); } }],
           undo: true,
@@ -1147,7 +1148,7 @@ describe('UndoRedo plugin', () => {
        */
       function createGrid() {
         hot = new Handsontable(container, {
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: TEST_LICENSE_KEY,
           data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
           columns: [{ validator: (value, callback) => { release = () => callback(true); } }, {}],
           undo: true,
@@ -1241,7 +1242,7 @@ describe('UndoRedo plugin', () => {
       const answers = new Map();
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1'], ['A2']],
         columns: [{ validator: (value, callback) => answers.set(value, callback) }],
         undo: true,
@@ -1273,7 +1274,7 @@ describe('UndoRedo plugin', () => {
 
       window.addEventListener('error', onError);
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['a', 'b'], ['c', 'd']],
         columns: [{
           validator() {
@@ -1306,7 +1307,7 @@ describe('UndoRedo plugin', () => {
 
     it('should ignore an undo made while a step that removes a row waits for its validator', async() => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
         columns: [{ validator: (value, callback) => callback(true) }, {}],
         undo: true,
@@ -1341,7 +1342,7 @@ describe('UndoRedo plugin', () => {
 
     it('should not let an edit whose validator never answers block the undo of an earlier step', async() => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1', 'B1']],
         columns: [{ validator: () => {} }, {}],
         undo: true,
@@ -1361,7 +1362,7 @@ describe('UndoRedo plugin', () => {
       let shouldThrow = true;
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
         columns: [{ validator: (value, callback) => callback(true) }, {}],
         undo: true,
@@ -1395,7 +1396,7 @@ describe('UndoRedo plugin', () => {
 
     it('should record an edit and the value its validator corrects as one step', async() => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1']],
         columns: [{
           validator(value, callback) {
@@ -1425,7 +1426,7 @@ describe('UndoRedo plugin', () => {
   describe('`spliceCellsMeta()`', () => {
     it('should record a meta row insertion as one step that one undo reverts', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1', 'B1'], ['A2', 'B2']],
         undo: true,
       });
@@ -1443,7 +1444,7 @@ describe('UndoRedo plugin', () => {
 
     it('should keep an older meta step on its row after a meta row removal', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1'], ['A2'], ['A3'], ['A4'], ['A5'], ['A6']],
         undo: true,
       });
@@ -1471,7 +1472,7 @@ describe('UndoRedo plugin', () => {
       const afterRedoStackChange = jest.fn();
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1', 'B1']],
         undo: true,
       });
@@ -1496,7 +1497,7 @@ describe('UndoRedo plugin', () => {
       const stackHooks = jest.fn();
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1']],
         undo: true,
       });
@@ -1511,7 +1512,7 @@ describe('UndoRedo plugin', () => {
       const afterUndoStackChange = jest.fn();
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1'], ['A2']],
         undo: true,
       });
@@ -1549,7 +1550,7 @@ describe('UndoRedo plugin', () => {
      */
     function createPeopleGrid(data, settings) {
       return new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data,
         undo: true,
         ...settings,
@@ -1846,7 +1847,7 @@ describe('UndoRedo plugin', () => {
       }
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [{ name: 'good' }],
         columns: [{ data: name, validator: (value, callback) => callback(value !== 'bad') }],
         undo: true,
@@ -1868,7 +1869,7 @@ describe('UndoRedo plugin', () => {
   describe('a row or column count that changes outside a step', () => {
     it('should keep a row the grid appended by itself when an earlier step is undone', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
         minSpareRows: 1,
         undo: true,
@@ -1904,7 +1905,7 @@ describe('UndoRedo plugin', () => {
        */
       function startPendingRemoval() {
         hot = new Handsontable(container, {
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: TEST_LICENSE_KEY,
           data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3'], ['A4', 'B4']],
           columns: [{ validator: (value, callback) => callback(true) }, {}],
           undo: true,
@@ -1948,7 +1949,7 @@ describe('UndoRedo plugin', () => {
     ].forEach(([change, makeChange, keepsHistory]) => {
       it(`should ${keepsHistory ? 'keep' : 'drop'} the history when an unrecorded change ${change}`, () => {
         hot = new Handsontable(container, {
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: TEST_LICENSE_KEY,
           data: [['A1', 'B1', 'C1'], ['A2', 'B2', 'C2'], ['A3', 'B3', 'C3']],
           undo: true,
         });
@@ -1963,7 +1964,7 @@ describe('UndoRedo plugin', () => {
 
     it('should keep a column a settings update added inside the step when the step is undone', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1', 'B1', 'C1'], ['A2', 'B2', 'C2']],
         columns: [{}, {}],
         undo: true,
@@ -1991,7 +1992,7 @@ describe('UndoRedo plugin', () => {
 
     it('should keep rows a settings update added from a change listener when the step is undone', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1'], ['A2'], ['A3']],
         undo: true,
       });
@@ -2021,7 +2022,7 @@ describe('UndoRedo plugin', () => {
 
     it('should drop the history when an unrecorded change inserts a row before the last one', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1'], ['A2'], ['A3'], ['A4'], ['A5']],
         hiddenRows: true,
         undo: true,
@@ -2059,7 +2060,7 @@ describe('UndoRedo plugin', () => {
   describe('the unsorted order a sorting plugin keeps', () => {
     it('should put the unsorted order back when a row removal on a sorted grid is undone', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['a'], ['b'], ['c'], ['d'], ['e']],
         columnSorting: true,
         manualRowMove: true,
@@ -2086,7 +2087,7 @@ describe('UndoRedo plugin', () => {
   describe('merges restored while rows are trimmed', () => {
     it('should keep a visible merge that sits where a fully trimmed merge was drawn', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: Array.from({ length: 10 }, (_, row) => [`A${row + 1}`, `B${row + 1}`]),
         mergeCells: [
           { row: 2, col: 0, rowspan: 2, colspan: 1 },
@@ -2151,7 +2152,7 @@ describe('UndoRedo plugin', () => {
     // survives it.
     it('should keep a merge a settings update made after the step when the step is undone and redone', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: sheet(6, 4),
         mergeCells: true,
         undo: true,
@@ -2180,7 +2181,7 @@ describe('UndoRedo plugin', () => {
     // makes the undo rebuild the whole list instead of stacking the two.
     it('should not put a merge back over one a settings update made on its cells', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: sheet(6, 4),
         mergeCells: true,
         undo: true,
@@ -2202,7 +2203,7 @@ describe('UndoRedo plugin', () => {
 
     it('should be one step, and one undo should bring back the merges it replaced', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: sheet(5, 5),
         mergeCells: true,
         undo: true,
@@ -2235,7 +2236,7 @@ describe('UndoRedo plugin', () => {
 
     it('should bring back a merge declared at initialization with one undo', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: sheet(6, 6),
         mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 3 }],
         undo: true,
@@ -2257,7 +2258,7 @@ describe('UndoRedo plugin', () => {
 
     it('should describe the step with the merged range and the values it collapses', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: sheet(3, 3),
         mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 1 }],
         undo: true,
@@ -2281,7 +2282,7 @@ describe('UndoRedo plugin', () => {
     // The undo adds back only the merge the step removed, and keeps the list in the order it had.
     it('should put a merge an undo brings back in its place in the list', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: Array.from({ length: 6 }, (_, row) => [`A${row + 1}`]),
         mergeCells: [
           { row: 0, col: 0, rowspan: 2, colspan: 1 },
@@ -2302,7 +2303,7 @@ describe('UndoRedo plugin', () => {
   describe('a step that replaces the data', () => {
     it('should not record a step whose transaction spans `updateData()`', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1'], ['A2']],
         undo: true,
       });
@@ -2328,7 +2329,7 @@ describe('UndoRedo plugin', () => {
       const valueSetter = jest.fn(value => `${value}+`);
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
         columns: [{ valueSetter }, {}],
         undo: true,
@@ -2360,7 +2361,7 @@ describe('UndoRedo plugin', () => {
       const sourceDataValidator = jest.fn(value => value !== 'y');
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1', 'B1'], ['A2', 'B2']],
         columns: [{ valueSetter }, { sourceDataValidator, allowInvalid: false }],
         undo: true,
@@ -2385,7 +2386,7 @@ describe('UndoRedo plugin', () => {
       const data = [{ 'a.b': 1, c: 2 }, { 'a.b': 3, c: 4 }, { 'a.b': 5, c: 6 }];
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data,
         dataDotNotation: false,
         columns: [{ data: 'a.b' }, { data: 'c' }],
@@ -2416,7 +2417,7 @@ describe('UndoRedo plugin', () => {
       const data = [{ 'a.b': 1 }, { 'a.b': 2 }];
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data,
         columns: [{ data: 'a.b' }],
         undo: true,
@@ -2441,7 +2442,7 @@ describe('UndoRedo plugin', () => {
     // NestedRows expands the collapsed parents before a removal and collapses them again a tick later.
     it('should record a row removal next to a collapsed parent as one step that keeps it collapsed', async() => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [
           { name: 'Root A', __children: [{ name: 'A-1' }, { name: 'A-2' }] },
           { name: 'Root B', __children: [{ name: 'B-1' }, { name: 'B-2' }] },
@@ -2479,7 +2480,7 @@ describe('UndoRedo plugin', () => {
 
     it('should write a cell edited after a parent removal in the same step to the row it named', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [
           { name: 'Root A', __children: [{ name: 'A-1' }, { name: 'A-2' }] },
           { name: 'Root B', __children: [{ name: 'B-1' }] },
@@ -2517,7 +2518,7 @@ describe('UndoRedo plugin', () => {
 
     it('should skip, on undo, a cell edited in a row the same step added', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [
           { name: 'Root A', __children: [{ name: 'A-1' }] },
           { name: 'After' },

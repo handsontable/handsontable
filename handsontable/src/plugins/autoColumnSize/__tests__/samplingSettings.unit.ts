@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, AutoColumnSize } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(AutoColumnSize);
 
@@ -13,7 +14,7 @@ function buildGrid(settings: Record<string, unknown> = {}) {
   return new Handsontable(document.createElement('div'), {
     data: [['a', 'b'], ['c', 'd']],
     autoColumnSize: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     ...settings,
   });
 }

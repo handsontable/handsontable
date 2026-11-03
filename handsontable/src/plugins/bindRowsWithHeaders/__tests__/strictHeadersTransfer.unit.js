@@ -2,6 +2,7 @@ import Handsontable from 'handsontable/base';
 import { registerPlugin } from 'handsontable/plugins';
 import { BindRowsWithHeaders } from 'handsontable/plugins/bindRowsWithHeaders';
 import { ManualRowMove } from 'handsontable/plugins/manualRowMove';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(BindRowsWithHeaders);
 registerPlugin(ManualRowMove);
@@ -38,7 +39,7 @@ describe('BindRowsWithHeaders -> strict header numbers across a data load', () =
       rowHeaders: true,
       manualRowMove: true,
       bindRowsWithHeaders: strategy,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     return hot.getPlugin('bindRowsWithHeaders');

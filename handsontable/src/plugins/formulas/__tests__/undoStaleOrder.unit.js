@@ -1,6 +1,7 @@
 import HyperFormula from 'hyperformula';
 import Handsontable from '../../../base';
 import { registerAllModules } from '../../../registry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllModules();
 
@@ -14,7 +15,7 @@ describe('Formulas undo and redo of an edit followed by a reorder', () => {
     hot = new Handsontable(container, {
       formulas: { engine, sheetName: 'Sheet1' },
       undoRedo: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
   };
@@ -62,7 +63,7 @@ describe('Formulas undo and redo of an edit followed by a reorder', () => {
     const hot2 = new Handsontable(container2, {
       formulas: { engine, sheetName: 'Sheet2' },
       data: [['=Sheet1!A1'], ['=Sheet1!A2'], ['=SUM(Sheet1!A1:A2)']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.rowIndexMapper.setIndexesSequence([2, 0, 1]);

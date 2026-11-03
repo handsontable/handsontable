@@ -34,6 +34,7 @@
     /* A class a test sets on the body while the font re-measure runs: it widens every cell, ghost tables included. */
     body.ht-wide-cells td { padding-left: 100px !important; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -154,7 +155,7 @@
           ...(withMerge ? [{ row: 4, col: 2, className: 'ht-late-font', wordWrap: false }] : []),
         ],
         ...(withMerge ? { mergeCells: [{ row: 4, col: 2, rowspan: 1, colspan: 2 }] } : {}),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     };
 

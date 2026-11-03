@@ -3,6 +3,7 @@ import { registerPlugin } from '../../registry';
 import { registerAllCellTypes } from '../../../registry';
 import { ColumnSummary } from '../../columnSummary/columnSummary';
 import { applyImportResult } from '../applier';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 
@@ -37,7 +38,7 @@ describe('ImportFile with a reversedRowCoords ColumnSummary', () => {
     hot = new Handsontable(container, {
       data: [['1'], ['2'], ['3'], ['4'], ['5']],
       columnSummary: endpoints(),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
   });
 
@@ -67,7 +68,7 @@ describe('ImportFile with a reversedRowCoords ColumnSummary', () => {
     const fresh = new Handsontable(freshContainer, {
       data: sixRows().data,
       columnSummary: endpoints(),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const expected = fresh.getDataAtCol(0);
 

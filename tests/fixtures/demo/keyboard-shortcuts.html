@@ -34,6 +34,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } #toolbar { margin-bottom: .8rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -95,7 +96,7 @@
         afterCopy: () => { window.__a11yClipboard += 1; },
         afterCut: () => { window.__a11yClipboard += 1; },
         afterPaste: () => { window.__a11yClipboard += 1; },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       window.htBuildError = String(error && error.message);

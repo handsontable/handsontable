@@ -6,8 +6,9 @@ import { ColumnSorting } from '../../columnSorting';
 import { ManualRowMove } from '../../manualRowMove';
 import { NestedRows } from '../../nestedRows';
 import { Formulas } from '../formulas';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
-const LICENSE_KEY = 'non-commercial-and-evaluation';
+const LICENSE_KEY = TEST_LICENSE_KEY;
 
 /**
  * Builds a grid bound to an existing engine and counts `afterRender` after init.

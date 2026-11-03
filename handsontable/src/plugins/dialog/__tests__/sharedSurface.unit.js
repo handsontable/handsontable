@@ -2,8 +2,9 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { Dialog } from '../dialog';
 import { Loading } from '../../loading/loading';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
-const LICENSE_KEY = 'non-commercial-and-evaluation';
+const LICENSE_KEY = TEST_LICENSE_KEY;
 
 /**
  * Builds a data set of the given size.
