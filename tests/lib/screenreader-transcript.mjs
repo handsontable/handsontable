@@ -128,6 +128,83 @@ export function matchTokenGroups(normalized, groups) {
 }
 
 /**
+ * Every position at which a normalized item occurs in a normalized text, by the same whole-phrase rule as
+ * a token (`containsToken()`): a digits-only item is a value and never part of a position phrase.
+ *
+ * @param {string} normalized The normalized text.
+ * @param {string} item The normalized item.
+ * @returns {number[]} The character offsets.
+ */
+function occurrences(normalized, item) {
+  const pattern = /^\d+$/.test(item)
+    ? new RegExp(`(?<!\\S)${POSITION_BEFORE}${item}${POSITION_AFTER}(?!\\S)`, 'g')
+    : new RegExp(`(?<!\\S)${item.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?!\\S)`, 'g');
+
+  return [...normalized.matchAll(pattern)].map(match => match.index);
+}
+
+/**
+ * The traversal verdict of a reading-mode scenario: across the read steps from `from` to `to`, every item
+ * must be announced exactly once and in the listed order. An item announced twice is the finding the
+ * check exists for (a frozen pane's overlay clone read as a second copy of its cells), an item never
+ * announced is content the reading mode skipped, and an item first announced before one listed ahead of
+ * it is read out of order. Matched as a token is: whole phrases of the normalized announcements, a
+ * digits-only item never inside a position phrase. A step the lane did not run (`unsupported`) is not in
+ * `steps`, so the verdict reads what the lane read.
+ *
+ * @param {{id: string, normalized: string}[]} steps The steps the run captured, in order.
+ * @param {{from: string, to: string, items: string[]}} traversal The scenario's traversal.
+ * @returns {{passed: boolean, steps: string[], items: {item: string, count: number, firstStep: string|null}[], outOfOrder: string[]}} The verdict.
+ */
+export function matchTraversal(steps, traversal) {
+  const ids = steps.map(step => step.id);
+  const start = ids.indexOf(traversal.from);
+  const endIndex = ids.indexOf(traversal.to);
+  const read = steps.slice(start === -1 ? 0 : start, endIndex === -1 ? steps.length : endIndex + 1);
+  // One text with a separator no item can span, and the offset each step starts at, so an item names the
+  // step it was first read in.
+  let offset = 0;
+  const starts = read.map((step) => {
+    const at = offset;
+
+    offset += step.normalized.length + 3;
+
+    return { id: step.id, at };
+  });
+  const text = read.map(step => step.normalized).join(' | ');
+  const items = traversal.items.map((item) => {
+    const found = occurrences(text, normalizeAnnouncement(item));
+    const first = found.length > 0 ? found[0] : null;
+
+    return {
+      item,
+      count: found.length,
+      first,
+      firstStep: first === null ? null : starts.filter(entry => entry.at <= first).at(-1)?.id ?? null,
+    };
+  });
+  const outOfOrder = [];
+  let last = -1;
+
+  items.forEach((entry) => {
+    if (entry.first === null) {
+      return;
+    }
+    if (entry.first < last) {
+      outOfOrder.push(entry.item);
+    }
+    last = Math.max(last, entry.first);
+  });
+
+  return {
+    passed: items.every(entry => entry.count === 1) && outOfOrder.length === 0,
+    steps: read.map(step => step.id),
+    items: items.map(({ item, count, firstStep }) => ({ item, count, firstStep })),
+    outOfOrder,
+  };
+}
+
+/**
  * A golden document built from a transcript: the normalized announcement per step, with what recorded it.
  *
  * @param {object} transcript The transcript.
@@ -184,12 +261,14 @@ export function compareWithGolden(golden, steps) {
  * The counts a transcript's summary and the report read.
  *
  * @param {object} transcript The transcript.
- * @returns {{steps: number, tokenFailures: number, goldenStatus: string, goldenDifferences: number, durationMs: number}} The counts.
+ * @returns {{steps: number, tokenFailures: number, unsupported: number, traversalFailed: boolean, goldenStatus: string, goldenDifferences: number, durationMs: number}} The counts.
  */
 export function transcriptCounts(transcript) {
   return {
     steps: transcript.steps.length,
     tokenFailures: transcript.steps.filter(step => !step.tokens.passed).length,
+    unsupported: (transcript.unsupported ?? []).length,
+    traversalFailed: transcript.traversal ? !transcript.traversal.passed : false,
     goldenStatus: transcript.golden.status,
     goldenDifferences: transcript.golden.differences.length,
     durationMs: transcript.durationMs,
@@ -223,10 +302,18 @@ export function renderTranscriptLog(transcript) {
       ? ''
       : ` | golden ${transcript.golden.differences.some(item => item.id === step.id) ? 'DIFF' : 'same'}`;
 
-    return `[${step.id}] ${describeAction(step.action)} (${step.durationMs} ms)\n  spoken: ${JSON.stringify(step.spoken)}\n  ${tokens}${golden}`;
-  });
+    const preparing = step.preparing?.length ? `\n  preparing: ${JSON.stringify(step.preparing)}` : '';
 
-  return `${[...header, ...lines].join('\n')}\n`;
+    return `[${step.id}] ${describeAction(step.action)} (${step.durationMs} ms)${preparing}\n  spoken: ${JSON.stringify(step.spoken)}\n  ${tokens}${golden}`;
+  });
+  const unsupported = (transcript.unsupported ?? []).map(step => `[${step.id}] ${describeAction(step.action)}: not run on this lane (${step.reason})`);
+  const traversal = transcript.traversal
+    ? [`# traversal ${transcript.traversal.passed ? 'PASS' : 'FAIL'} over ${transcript.traversal.steps.join(', ')}: `
+      + `${transcript.traversal.items.map(entry => `${entry.item}×${entry.count}`).join(' ')}`
+      + `${transcript.traversal.outOfOrder.length ? `; out of order: ${transcript.traversal.outOfOrder.join(', ')}` : ''}`]
+    : [];
+
+  return `${[...header, ...lines, ...unsupported, ...traversal].join('\n')}\n`;
 }
 
 /**
@@ -238,6 +325,10 @@ export function renderTranscriptLog(transcript) {
 export function describeAction(action) {
   const [name] = Object.keys(action);
   const value = action[name];
+
+  if (value === true) {
+    return name;
+  }
 
   return `${name} ${Array.isArray(value) ? `[${value.join(', ')}]` : String(value)}`;
 }

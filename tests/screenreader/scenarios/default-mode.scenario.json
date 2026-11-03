@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "id": "default-mode",
+  "surface": "The grid in its default navigation mode (headers not navigable, Tab moving between cells): Tab in from the page, arrows across cells with their headers, Tab out at both ends and back in.",
+  "page": "grid",
+  "start": "page",
+  "criteria": ["1.3.1", "2.1.1", "2.1.2", "2.4.3", "4.1.2"],
+  "setup": [{"sentinels": true}, {"focus": "[data-sr-sentinel=\"before\"]"}],
+  "steps": [
+    {
+      "id": "tab-into-grid",
+      "action": {"press": "Tab"},
+      "expect": [["a1"]],
+      "note": "Tab from the page's control before the grid enters the grid on its first cell."
+    },
+    {
+      "id": "arrow-right",
+      "action": {"press": "ArrowRight"},
+      "expect": [["b1"]],
+      "note": "The cell to the right, which the column header names: with headers not navigable, a reader hears the header only through the cell."
+    },
+    {
+      "id": "arrow-down",
+      "action": {"press": "ArrowDown"},
+      "expect": [["b2"]]
+    },
+    {
+      "id": "to-row-end",
+      "action": {"press": "End"},
+      "expect": [["c2"]],
+      "note": "End moves to the last cell of the row, where Tab leaves the grid."
+    },
+    {
+      "id": "tab-out-forward",
+      "action": {"press": "Tab"},
+      "expect": [["after the grid"]],
+      "note": "Tab from a row's last cell leaves the grid for the page's next control: no trap at the grid's end."
+    },
+    {
+      "id": "shift-tab-back-in",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["c2"]],
+      "note": "Shift+Tab from the page returns into the grid on the cell it left."
+    },
+    {
+      "id": "to-row-start",
+      "action": {"press": "Home"},
+      "expect": [["a2"]],
+      "note": "Home moves to the first cell of the row, where Shift+Tab leaves the grid."
+    },
+    {
+      "id": "tab-out-backward",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["before the grid"]],
+      "note": "Shift+Tab from a row's first cell leaves the grid for the page's previous control: no trap at the grid's start."
+    },
+    {
+      "id": "tab-back-in",
+      "action": {"press": "Tab"},
+      "expect": [["a2"]],
+      "note": "Tab from the page returns into the grid on the cell it left."
+    }
+  ]
+}

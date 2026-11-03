@@ -1,10 +1,14 @@
 /**
- * Writes the screen reader job summary and posts the `Screen reader / <project> report` check run.
+ * Writes the screen reader job summary and the evidence document, and posts the
+ * `Screen reader / <project> report` check run.
  *
  * Reads every transcript the spec left in `test-results/screenreader/transcripts/` and the scenario
  * files, builds the report through `lib/screenreader-report.mjs`, writes it to
  * `test-results/screenreader/summary.md` and appends it to the GitHub job summary when
- * `GITHUB_STEP_SUMMARY` is set. With `--check-run` it also posts the check run through the Checks API
+ * `GITHUB_STEP_SUMMARY` is set. It writes the evidence document in the shared shape of the accessibility
+ * checks (`lib/screenreader-evidence.mjs`) to `test-results/screenreader/evidence/screen-reader.json`,
+ * with a detail file per scenario beside it (every step's record), which the transcripts artifact
+ * uploads; a document that does not validate is a tooling problem of the report. With `--check-run` it also posts the check run through the Checks API
  * (`lib/github-check-run.mjs`), behind the fork guard in `.github/workflows/screenreader.yml`, with
  * `continue-on-error`: the check run reports, it never decides the job. `--dry-run` prints the
  * payload instead of posting and needs no token.
@@ -19,12 +23,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { escapeMarkdownText } from '../lib/a11y-baseline.mjs';
 import { postCheckRun } from '../lib/github-check-run.mjs';
+import { buildScreenreaderEvidence, SCREENREADER_CHECK } from '../lib/screenreader-evidence.mjs';
 import { buildReport, stepLines } from '../lib/screenreader-report.mjs';
-import { SCENARIO_FILE_SUFFIX } from '../lib/screenreader-scenario.mjs';
+import { SCENARIO_FILE_SUFFIX, laneOfProject, loadScenarios } from '../lib/screenreader-scenario.mjs';
 
 const TESTS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUTPUT_DIR = path.join(TESTS_ROOT, 'test-results/screenreader');
 const TRANSCRIPTS_DIR = path.join(OUTPUT_DIR, 'transcripts');
+const EVIDENCE_DIR = path.join(OUTPUT_DIR, 'evidence');
 const SCENARIOS_DIR = path.join(TESTS_ROOT, 'screenreader/scenarios');
 const env = process.env;
 const args = new Set(process.argv.slice(2));
@@ -51,6 +57,33 @@ const lines = new Map(scenarioFiles.map(name => [
   name.slice(0, -SCENARIO_FILE_SUFFIX.length),
   stepLines(readFileSync(path.join(SCENARIOS_DIR, name), 'utf8')),
 ]));
+const scenarios = loadScenarios(SCENARIOS_DIR).filter(entry => entry.scenario && entry.problems.length === 0).map(entry => entry.scenario);
+const files = new Map();
+
+// A variant's steps are its base's, so its annotations go on the base's lines.
+scenarios.filter(scenario => scenario.variantOf).forEach((scenario) => {
+  lines.set(scenario.id, lines.get(scenario.variantOf) ?? new Map());
+  files.set(scenario.id, `${scenario.variantOf}${SCENARIO_FILE_SUFFIX}`);
+});
+
+const project = env.SCREENREADER_PROJECT || transcripts[0]?.project || 'unknown';
+const evidence = buildScreenreaderEvidence({
+  project,
+  lane: laneOfProject(project),
+  transcripts,
+  scenarios,
+  run: {
+    commit: env.SCREENREADER_HEAD_SHA || env.GITHUB_SHA || null,
+    ref: env.GITHUB_REF || null,
+    runUrl: runUrl ?? null,
+  },
+});
+
+mkdirSync(path.join(EVIDENCE_DIR, SCREENREADER_CHECK), { recursive: true });
+writeFileSync(path.join(EVIDENCE_DIR, `${SCREENREADER_CHECK}.json`), `${JSON.stringify(evidence.doc, null, 2)}\n`);
+evidence.details.forEach(({ file, detail }) => writeFileSync(path.join(EVIDENCE_DIR, file), `${JSON.stringify(detail, null, 2)}\n`));
+evidence.problems.forEach(problem => problems.push(`the evidence document does not validate: ${problem}`));
+
 const report = buildReport({
   transcripts,
   expectedScenarios: [...lines.keys()],
@@ -59,6 +92,7 @@ const report = buildReport({
   reportUrl: env.SCREENREADER_REPORT_URL || undefined,
   runUrl,
   lines,
+  files,
 });
 // The title is escaped like every value in the summary: a tooling failure's title carries raw error text.
 const summary = `## ${escapeMarkdownText(report.title)}\n\n${report.summary}`;

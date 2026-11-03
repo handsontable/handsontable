@@ -1,0 +1,7 @@
+{
+  "schema": 1,
+  "id": "grid-core-horizon",
+  "surface": "The grid-core steps on the horizon theme: announcements come from the accessibility tree, not the theme, and this one run proves it.",
+  "variantOf": "grid-core",
+  "query": "theme=horizon"
+}

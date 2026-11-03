@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "id": "reading-mode-traversal-plain",
+  "surface": "Reading mode through the same grid without frozen panes: the control for the frozen traversal.",
+  "variantOf": "reading-mode-traversal",
+  "setup": [
+    {
+      "updateSettings": {
+        "maxRows": 3
+      }
+    }
+  ]
+}

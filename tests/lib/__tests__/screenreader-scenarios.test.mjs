@@ -4,7 +4,23 @@ import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'n
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ACTIONS, PRESS_PATTERN, SCENARIO_FILE_SUFFIX, loadScenarios, scenarioUrl, validateScenario } from '../screenreader-scenario.mjs';
+import {
+  ACTIONS,
+  LANE_PRIMITIVES,
+  PRESS_PATTERN,
+  SCENARIO_FILE_SUFFIX,
+  SCREENREADER_LANES,
+  SETUP_ACTIONS,
+  laneDrives,
+  laneOfProject,
+  laneUnsupported,
+  loadScenarios,
+  resolveVariants,
+  scenarioPageId,
+  scenarioUrl,
+  unsupportedReason,
+  validateScenario,
+} from '../screenreader-scenario.mjs';
 import { stepLines } from '../screenreader-report.mjs';
 import { SCREENREADER_MODE, SCREENREADER_MODES } from '../screenreader-transcript.mjs';
 
@@ -20,6 +36,7 @@ const valid = () => ({
   id: 'sample',
   surface: 'A sample surface for the validator.',
   fixture: 'screenreader-grid.html',
+  criteria: ['4.1.2'],
   setup: [{ selectCell: [0, 0] }],
   steps: [
     { id: 'right', action: { press: 'ArrowRight' }, expect: [['34'], ['age', 'column 3']] },
@@ -40,7 +57,8 @@ test('every step of every committed scenario has a line the check run can annota
     const source = readFileSync(path.join(SCENARIOS_DIR, name), 'utf8');
     const lines = stepLines(source);
 
-    JSON.parse(source).steps.forEach((step) => {
+    // A variant has no steps of its own: its annotations go on its base's lines.
+    (JSON.parse(source).steps ?? []).forEach((step) => {
       assert.ok(lines.has(step.id), `${name}: step "${step.id}" opens with "id": "…" on its own line`);
     });
   });
@@ -133,14 +151,138 @@ test('a press is a Playwright key name or chord, checked on the pull request', (
   ['ArrowUp', 'Escape', 'Tab', 'PageDown', 'Space', 'F1', 'F12', 'Digit0', 'KeyZ', 'Shift+ArrowRight', 'Alt+Shift+ArrowDown', '/'].forEach(key => assert.equal(PRESS_PATTERN.test(key), true, key));
 });
 
-test('the action vocabulary is the three the runner implements', () => {
-  assert.deepEqual([...ACTIONS], ['press', 'type', 'selectCell']);
+test('the action vocabulary is the five primitives the runner implements, and the setup has its own', () => {
+  assert.deepEqual([...ACTIONS], ['press', 'type', 'selectCell', 'read', 'activate']);
+  assert.deepEqual([...SETUP_ACTIONS], ['press', 'type', 'selectCell', 'updateSettings', 'sentinels', 'focus']);
 });
 
 test('the fixture URL carries the project theme and bundle first, then the scenario query', () => {
   assert.equal(scenarioUrl({ fixture: 'screenreader-grid.html' }), '/tests/fixtures/demo/screenreader-grid.html?theme=main&bundle=umd');
   assert.equal(scenarioUrl({ fixture: 'x.html', query: 'aria=off' }, { theme: 'horizon', bundle: 'full-min' }),
     '/tests/fixtures/demo/x.html?theme=horizon&bundle=full-min&aria=off');
+});
+
+test('a scenario on a catalog page opens its fixture and query; its own theme takes the project\'s place', () => {
+  assert.equal(scenarioUrl({ page: 'rtl-grid' }), '/tests/fixtures/demo/grid-layouts.html?theme=main&bundle=umd&layout=rtl-nested-headers');
+  assert.equal(scenarioUrl({ fixture: 'screenreader-grid.html', query: 'theme=horizon' }),
+    '/tests/fixtures/demo/screenreader-grid.html?theme=horizon&bundle=umd', 'a fixture reads the first value of a repeated parameter, so the scenario\'s replaces the project\'s');
+  assert.equal(scenarioUrl({ page: 'dialog', query: 'bundle=full-min&x=1' }),
+    '/tests/fixtures/demo/dialog-states.html?theme=main&bundle=full-min&template=confirm&x=1');
+  assert.equal(scenarioPageId({ page: 'grid' }), 'grid');
+  assert.equal(scenarioPageId({ fixture: 'screenreader-grid.html' }), 'screenreader-grid');
+});
+
+test('a scenario opens exactly one place, names its criteria, and says where the reader starts', () => {
+  const problems = shape => validateScenario({ ...valid(), ...shape }, { fixtures: FIXTURES, fileName: 'sample.scenario.json' }).join('\n');
+
+  assert.match(problems({ page: 'grid' }), /exactly one of page/);
+  assert.match(problems({ fixture: undefined }), /exactly one of page/);
+  assert.equal(problems({ fixture: undefined, page: 'grid' }), '');
+  assert.match(problems({ fixture: undefined, page: 'no-such-page' }), /page "no-such-page" is not a page of tests\/a11y\/pages\.mjs/);
+  assert.match(problems({ criteria: undefined }), /criteria must name/);
+  assert.match(problems({ criteria: [] }), /criteria must name/);
+  assert.match(problems({ criteria: ['4.1.1'] }), /"4\.1\.1" is not a WCAG 2\.2 success criterion/, 'Parsing is obsolete in 2.2');
+  assert.match(problems({ criteria: ['4.1.2', '4.1.2'] }), /twice/);
+  assert.match(problems({ start: 'table' }), /start must be one of grid, page/);
+  assert.equal(problems({ start: 'page' }), '');
+  assert.match(problems({ query: 'theme=dark' }), /theme=dark is not one of main, horizon, classic/);
+  assert.match(problems({ query: 'theme=main&theme=horizon' }), /sets theme more than once/);
+});
+
+test('the setup sets the scene: settings, sentinels and a focus, and never a reader command', () => {
+  const setup = actions => validateScenario({ ...valid(), setup: actions }, { fixtures: FIXTURES, fileName: 'sample.scenario.json' }).join('\n');
+
+  assert.equal(setup([{ updateSettings: { fixedRowsTop: 1 } }, { sentinels: true }, { focus: '[data-sr-sentinel="before"]' }]), '');
+  assert.match(setup([{ updateSettings: {} }]), /updateSettings takes an object of settings/);
+  assert.match(setup([{ sentinels: 'yes' }]), /sentinels takes true/);
+  assert.match(setup([{ focus: '' }]), /focus takes the selector/);
+  assert.match(setup([{ read: 'next' }]), /unknown action "read"/, 'a lane that cannot drive a reader command has no way to declare it in the setup');
+  assert.match(setup([{ activate: true }]), /unknown action "activate"/);
+});
+
+test('a reader primitive is read or activate, and a lane that cannot drive one is declared, with a reason', () => {
+  const step = shape => validateScenario({ ...valid(), steps: [{ id: 'a', expect: [], ...shape }] }, { fixtures: FIXTURES, fileName: 'sample.scenario.json' }).join('\n');
+
+  assert.equal(step({ action: { read: 'next' } }), '');
+  assert.equal(step({ action: { activate: true } }), '');
+  assert.match(step({ action: { read: 'down' } }), /read takes one of next, previous, in, out/);
+  assert.match(step({ action: { activate: 'yes' } }), /activate takes true/);
+  assert.match(step({ action: { read: 'in' } }), /the nvda lane cannot drive \{"read":"in"\} \(LANE_PRIMITIVES\), so the step declares unsupported\.nvda/,
+    'NVDA has no interaction level: a step that needs one names the gap');
+  assert.equal(step({ action: { read: 'in' }, unsupported: { nvda: 'NVDA has no interaction level.' } }), '');
+  assert.match(step({ action: { read: 'in' }, unsupported: { nvda: 'no' } }), /unsupported\.nvda must say why/);
+  assert.match(step({ action: { press: 'a' }, unsupported: { talkback: 'not yet a lane at all' } }), /names "talkback", not a lane/);
+  assert.match(step({ action: { press: 'a' }, unsupported: {} }), /unsupported must be an object of lane to reason/);
+  assert.equal(step({ action: { press: 'a' }, unsupported: { voiceover: 'VoiceOver steals this key from the page.' } }), '',
+    'a lane may declare a primitive it drives in general unsupported for a reason of its own');
+});
+
+test('each lane drives the primitives LANE_PRIMITIVES lists; dom-echo drives every one', () => {
+  assert.deepEqual([...SCREENREADER_LANES], ['nvda', 'voiceover']);
+  assert.deepEqual(Object.keys(LANE_PRIMITIVES), [...SCREENREADER_LANES]);
+  assert.equal(laneDrives('nvda', { read: 'next' }), true);
+  assert.equal(laneDrives('nvda', { read: 'out' }), false);
+  assert.equal(laneDrives('voiceover', { read: 'in' }), true);
+  assert.equal(laneDrives('voiceover', { activate: true }), true);
+  assert.equal(laneDrives('nvda', { press: 'Tab' }), true, 'the page drives a key the same way on every lane');
+  assert.equal(laneDrives('dom-echo', { read: 'in' }), true);
+  assert.equal(laneOfProject('nvda-firefox'), 'nvda');
+  assert.equal(laneOfProject('vo-webkit'), 'voiceover');
+  assert.equal(laneOfProject('dom-echo-chromium'), 'dom-echo');
+  assert.equal(unsupportedReason({ unsupported: { nvda: 'why' } }, 'nvda'), 'why');
+  assert.equal(unsupportedReason({ unsupported: { nvda: 'why' } }, 'voiceover'), null);
+  assert.equal(unsupportedReason({}, 'nvda'), null);
+  assert.deepEqual(laneUnsupported([
+    { steps: [{ action: { read: 'in' }, unsupported: { nvda: 'why' } }, { action: { read: 'out' }, unsupported: { nvda: 'why' } }] },
+    { steps: [{ action: { read: 'in' }, unsupported: { nvda: 'why' } }, { action: { press: 'a' } }] },
+  ], 'nvda'), ['read in', 'read out'], 'each primitive once, sorted');
+});
+
+test('a traversal names read steps and items that are each distinct', () => {
+  const steps = [{ id: 'a', action: { read: 'next' }, expect: [] }, { id: 'b', action: { read: 'next' }, expect: [] }];
+  const traversal = shape => validateScenario({ ...valid(), steps, traversal: { from: 'a', to: 'b', items: ['A1', 'B1'], ...shape } },
+    { fixtures: FIXTURES, fileName: 'sample.scenario.json' }).join('\n');
+
+  assert.equal(traversal({}), '');
+  assert.match(traversal({ from: 'z' }), /traversal\.from must be a step id/);
+  assert.match(traversal({ from: 'b', to: 'a' }), /from comes after traversal\.to/);
+  assert.match(traversal({ items: [] }), /items must be a non-empty array/);
+  assert.match(traversal({ items: ['A1', 'a1'] }), /lists an item twice/, 'items compare normalized');
+  assert.match(traversal({ items: ['.'] }), /each a string with a fact in it/);
+  assert.match(traversal({ every: true }), /traversal: unknown field "every"/);
+});
+
+test('a variant takes its base\'s steps and sets only its own id, surface, query, setup and criteria', () => {
+  const base = { ...valid(), id: 'base', traversal: undefined };
+  const variant = { schema: 1, id: 'base-horizon', surface: 'The base on the horizon theme.', variantOf: 'base', query: 'theme=horizon' };
+
+  assert.deepEqual(validateScenario(variant, { fixtures: FIXTURES, fileName: 'base-horizon.scenario.json' }), []);
+  assert.match(validateScenario({ ...variant, steps: [] }).join('\n'), /field "steps" is not allowed in a variant/);
+  assert.match(validateScenario({ ...variant, variantOf: 'base-horizon' }).join('\n'), /variantOf names the scenario itself/);
+
+  const [, resolved] = resolveVariants([
+    { fileName: 'base.scenario.json', scenario: base, problems: [] },
+    { fileName: 'base-horizon.scenario.json', scenario: variant, problems: [] },
+  ]);
+
+  assert.deepEqual(resolved.problems, []);
+  assert.equal(resolved.scenario.id, 'base-horizon');
+  assert.equal(resolved.scenario.query, 'theme=horizon');
+  assert.deepEqual(resolved.scenario.steps, base.steps, 'the steps are the base\'s, one copy');
+  assert.deepEqual(resolved.scenario.setup, base.setup, 'a variant without a setup takes the base\'s');
+  assert.deepEqual(resolved.scenario.criteria, base.criteria, 'a variant without criteria evidences what its base does');
+
+  const [, orphan] = resolveVariants([{ fileName: 'x.scenario.json', scenario: { ...base, id: 'x' }, problems: [] }, { fileName: 'v.scenario.json', scenario: { ...variant, variantOf: 'missing' }, problems: [] }]);
+
+  assert.match(orphan.problems.join('\n'), /variantOf "missing" is not a committed scenario/);
+
+  const [, , chained] = resolveVariants([
+    { fileName: 'base.scenario.json', scenario: base, problems: [] },
+    { fileName: 'base-horizon.scenario.json', scenario: variant, problems: [] },
+    { fileName: 'c.scenario.json', scenario: { ...variant, id: 'c', variantOf: 'base-horizon' }, problems: [] },
+  ]);
+
+  assert.match(chained.problems.join('\n'), /is a variant itself/);
 });
 
 test('the lane is report-only: the mode constant is `report`, and the flip is the one other value', () => {
