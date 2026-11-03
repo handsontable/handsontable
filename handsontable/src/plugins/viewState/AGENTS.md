@@ -99,9 +99,10 @@ any of them.
   a `columns[].data` can be a function, a property can be shared, and array data has none. The row parts
   and `columnOrder` take integers only.
 - **The public sort carries no pre-sort order.** The sorting plugin takes its pre-sort cache from the row
-  order it finds whenever sort states go onto an unsorted grid (a `sort()` from empty states, or a
-  `setSortConfig()` there once the cache exists). The restore clears a sort that is on first, so the plugin
-  takes the current order, and `rowOrder` restores the exact sequence when the state carries it.
+  order it finds whenever sort states go onto an unsorted grid (a `sort()` while the cache is missing or
+  from empty states, or a `setSortConfig()` there once the cache exists). The restore clears a sort that is
+  on first, so the plugin takes the current order, and `rowOrder` restores the exact sequence when the state
+  carries it.
 - **By default the restore records no undo step, and keeps the earlier ones.** Unlike a sheet switch there
   is no `loadData()` to empty the stacks, so a later undo of an older sort or filter step acts on the
   restored view. `ViewState#setViewState()`'s JSDoc says so, and `undo: 'record'` is the way out (below).
@@ -179,6 +180,14 @@ any of them.
 - **The NestedRows collapse is replaced, not merged.** `restoreCollapsedParents()` expands every
   parent collapsed now before it collapses the stored ones. On a sheet switch nothing is collapsed
   by then (`loadData()` drops it), so that step is a no-op there.
+
+## The license check: the three public methods
+
+The plugin is on in every grid, so a license key that lists its features is checked when it is used
+(`gate: 'call'` in `feature.json`). `getViewState()`, `setViewState()` and `validateViewState()` call
+`assertLicensedCall(this.hot, LICENSE)` first: a key that does not cover `feat:view_state` writes the license
+message and throws it. The SheetsBar saves and restores sheets through `utils/viewState/` directly, never through
+this plugin, so it is not affected. Rules: `../../utils/entitlementLicenseKey/AGENTS.md`.
 
 ## Where to look next
 

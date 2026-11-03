@@ -44,8 +44,9 @@ export interface ResizeGestureOwner {
    */
   clampSize(size: number): number;
   /**
-   * Stores a size for a visual index and returns the size actually stored. The gesture records its
-   * own undo step, so this must not open one.
+   * Stores a size for a visual index and returns it after the minimum is applied. Nothing is stored
+   * while the owner is disabled, for an index that does not exist, or for a size that is not finite; the
+   * clamped size is returned all the same. The gesture records its own undo step, so this must not open one.
    */
   setManualSize(index: number, size: number): number;
   /**

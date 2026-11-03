@@ -106,7 +106,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: 'O',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: 'Seleccionar todo',
-  [C.FILTERS_BUTTONS_CLEAR]: 'Borrar',
+  [C.FILTERS_BUTTONS_CLEAR]: 'Deseleccionar todo',
   [C.FILTERS_BUTTONS_OK]: 'OK',
   [C.FILTERS_BUTTONS_CANCEL]: 'Cancelar',
 
@@ -138,6 +138,8 @@ const dictionary = {
   [C.SHEETS_BAR_PAGE_NEXT]: 'Desplazar hojas hacia adelante',
   [C.SHEETS_BAR_SHEET_CHANGED]: 'Hoja [name] activada',
   [C.SHEETS_BAR_RENAME_REJECTED]: 'Nombre de hoja sin cambios: [name] ya está en uso',
+  [C.SHEETS_BAR_SHEET_DUPLICATED]: 'Hoja [name] duplicada como [copy]',
+  [C.SHEETS_BAR_SHEET_MOVED]: 'Hoja [name] movida a la posición [position] de [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Hoja',
 
   [C.LOADING_TITLE]: 'Cargando...',

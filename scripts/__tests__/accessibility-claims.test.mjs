@@ -9,6 +9,7 @@ import {
 import {
   loadAccessibilityData, validateAccessibilityData, accessibilityTemplateValues, allowedScreenReaderNames,
   untestedScreenReaderNames, screenReadersSentence, browsersSentence, joinList, websiteStringsJson,
+  matrixList, matrixTable,
 } from '../../docs/src/plugins/accessibility-data.mjs';
 import { compareWebsiteStrings } from '../../docs/scripts/export-accessibility-strings.mjs';
 import { DOCS_PREFIX, READMES } from '../readme-check.mjs';
@@ -81,6 +82,53 @@ test('the validator requires a version for a tested screen reader and rejects in
 
   assert.ok(validateAccessibilityData(arrayNotes).some(e => e.startsWith('notes must be')),
     'an array is not an object');
+});
+
+test('a matrix entry tested in its own browsers names them, and only a tested entry may', () => {
+  const nightly = name => data.matrix
+    .find(entry => entry.name === name && entry.howTested.includes('automated-nightly'));
+
+  // tests/AGENTS.md, "Screen readers": both lanes run on the screen reader nightly, each in
+  // Playwright's own browser builds rather than the audit's Chrome and Firefox.
+  assert.deepEqual(nightly('VoiceOver')?.browsers, ['WebKit (Playwright)', 'Chromium'],
+    'the VoiceOver nightly runs in Playwright\'s WebKit and Chromium, not in the audit\'s browsers');
+  assert.deepEqual(nightly('NVDA')?.browsers, ['Chromium', 'Firefox (Playwright)'],
+    'the NVDA nightly runs in Chromium and Playwright\'s Firefox, not in the audit\'s browsers');
+  assert.match(matrixList(data),
+    /^- VoiceOver on macOS 26, in WebKit \(Playwright\) and Chromium: automated nightly run\.$/m,
+    'the list says which browsers the nightly ran in, so it never reads as the audit\'s Chrome and Firefox');
+  assert.match(matrixList(data),
+    /^- NVDA 2026\.2 on Windows Server 2025, in Chromium and Firefox \(Playwright\): automated nightly run\.$/m);
+  assert.match(matrixTable(data),
+    /^\| VoiceOver \| macOS 26 \| macOS \(WebKit \(Playwright\) and Chromium\) \| Automated nightly run \|$/m);
+  assert.match(matrixList(data), /^- NVDA 2025\.3 on Windows 11: external audit/m,
+    'an entry without browsers renders as before');
+  assert.equal(screenReadersSentence(data), 'VoiceOver (macOS and iOS) and NVDA (Windows)',
+    'a nightly on a platform family the audit already covers adds nothing to the sentence the website reads');
+
+  const auditList = accessibilityTemplateValues(data)['matrix.auditList'];
+
+  assert.doesNotMatch(auditList, /automated nightly/,
+    'the report\'s list keeps the audited entries only, so a nightly never reads as a source of its verdicts');
+  assert.equal(auditList.split('\n').length,
+    data.matrix.filter(entry => entry.howTested.includes('audit')).length, 'every audited entry, one line each');
+
+  [[], [''], 'Chromium', [3]].forEach((browsers) => {
+    const broken = structuredClone(data);
+
+    broken.matrix[0].browsers = browsers;
+
+    assert.ok(validateAccessibilityData(broken).some(e => e.includes('matrix[0].browsers')),
+      `browsers ${JSON.stringify(browsers)} is rejected: a non-empty array of names, or nothing`);
+  });
+
+  const untested = structuredClone(data);
+  const jaws = untested.matrix.findIndex(entry => entry.howTested.includes('not-tested'));
+
+  untested.matrix[jaws].browsers = ['Chrome'];
+
+  assert.ok(validateAccessibilityData(untested).some(e => e.includes(`matrix[${jaws}].browsers names browsers`)),
+    'a not-tested entry is never rendered, so it names no browsers');
 });
 
 test('report.next.sentence is empty when no next version is planned, and limitations cite the report ref', () => {
@@ -305,7 +353,7 @@ test('the guide and the report page read the target, the report version and the 
     'report.next.sentence',
   ];
   const reportKeys = [
-    'report.version', 'report.date', 'matrix.list', 'browsers.list', 'notes.mobile', 'report.next.sentence',
+    'report.version', 'report.date', 'matrix.auditList', 'browsers.list', 'notes.mobile', 'report.next.sentence',
   ];
 
   for (const key of guideKeys) {
@@ -314,6 +362,10 @@ test('the guide and the report page read the target, the report version and the 
   for (const key of reportKeys) {
     assert.ok(report.includes(`{{$a11y.${key}}}`), `${REPORT} must render {{$a11y.${key}}}`);
   }
+  // The report's evaluation methods name the sources of its verdicts, the audit; an automated run is
+  // not one until a report version cites it, so the report lists the audited entries only.
+  assert.ok(!report.includes('{{$a11y.matrix.list}}'),
+    `${REPORT}: the evaluation methods list {{$a11y.matrix.auditList}}, never the full matrix`);
 
   // A literal copy of a value the variable carries is the drift this file exists to stop.
   for (const [file, text] of [[GUIDE, guide], [REPORT, report]]) {

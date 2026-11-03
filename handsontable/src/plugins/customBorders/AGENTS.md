@@ -172,10 +172,32 @@ its queued VISUAL rows landed on the records the trim had shifted into those pos
 
 Three more entry points, all from review round 12:
 
-- **`updateSettings({ trimRows })` defers the rebuild too** (`#onAfterUpdateSettings`). `TrimRows#updatePlugin`
-  writes the trimming map inside `batchExecution` and fires no `afterTrimRow`, so the model kept the
-  visual row a border was drawn at while its record moved. There is no `beforeUpdateSettings` hook, so
-  on this path only a progressive load still in flight completes after the map changed.
+- **`updateSettings({ trimRows })` defers the rebuild too, but only when the visible rows changed**
+  (`#onAfterUpdateSettings`). `TrimRows#updatePlugin` writes the trimming map inside `batchExecution` and
+  fires no `afterTrimRow`, so the model kept the visual row a border was drawn at while its record moved.
+  There is no `beforeUpdateSettings` hook, so on this path only a progressive load still in flight
+  completes after the map changed. The React wrapper re-sends `trimRows` on every render (only
+  `columns`, `dataSchema` and the size options are compared, `settingsMapper.ts`), the Angular wrapper on
+  every `settings` change, and the Vue wrapper drops an unchanged value (`prepareSettings()` with
+  `simpleEqual()`). The rebuild walks every bordered cell, so the handler compares
+  `rowIndexMapper.getNotTrimmedIndexes()` with the array `#onUpdateSettingsStart` held before the update and
+  skips the rebuild when the two match (DEV-3553; about 4x faster for an unchanged `trimRows` at 50,000
+  borders, measured in jsdom with a stubbed layout, median of 5 runs; the rest is the `updateSettings()`
+  render itself). **`#onUpdateSettingsStart` is an
+  `afterUpdateSettings` listener at `orderIndex` -1**, not an `after*` hook that reads state late: every
+  plugin's own `updatePlugin()` runs from an `orderIndex` 0 listener registered in its constructor, so only a
+  negative index reads the rows before `TrimRows#updatePlugin()` writes the map. The mapper replaces its
+  not-trimmed array on every cache update and never mutates it, so holding the reference is the snapshot.
+  Do **not** key this on the mapper's cache update instead: an insert or a remove raises the same flags, and
+  the plugin already shifts its model for them in its `before*` hooks, so a rebuild there moves the borders
+  twice. Pinned by `__tests__/unchangedTrimRowsSettings.unit.js`. Two guards ride along. **The comparison is
+  skipped while `hot.rowIndexMapper.isBatched`**: a `trimRows: false` only unregisters the map, and the mapper
+  does not rebuild its cache until the batch ends, so inside `hot.batch()`, or a bare
+  `rowIndexMapper.suspendOperations()`, the array is the very same one and would read as "unchanged"; the
+  rebuild is then deferred as it always was. Key it on the mapper's flag (the one `updateCache()` checks), not
+  on `hot.isExecutionSuspended()`, which a bare mapper suspension does not set. **`updatePlugin()` keeps the
+  snapshot across its disable/enable cycle** (the listener it re-registers can still run in that pass), while
+  `disablePlugin()` nulls it, so a plugin switched off in one update never compares against rows from before.
 - **A pending rebuild runs in `beforeLoadData`/`beforeUpdateData`** (`#onBeforeDataReplacement`).
   `loadData` drops the cell meta and keeps the model (the section above), so a rebuild left for the next
   read found no meta and emptied the model: `trimRow(0); loadData(same)` lost the border that
@@ -204,6 +226,39 @@ explicit render - kills a deleted `#scheduleMetaSyncRender()`; a 100-call `trimR
 meta once; an insert right after a trim shifts once), and by the filter, untrim and sort-plus-filter
 cases in `__tests__/clearBordersTrimmedRows.unit.js`. That file's only trim case ends with `untrimAll()`,
 so it pins `afterUntrimRow`, not `afterTrimRow`.
+
+## The priority is 335: enable after every plugin that rewrites an index map
+
+`updatePlugin()` runs from the plugin's own `afterUpdateSettings` listener, in `PLUGIN_PRIORITY` order, and
+`changeBorderSettings()` -> `setCellMeta()` converts the configured visual coordinates to physical ones through
+whichever row and column maps are active at that moment. At the old priority 90 it ran before `ManualColumnMove`
+(120), `ManualRowMove` (140), `MultiColumnSorting` (170), `Filters` (250), `NestedRows` (300) and `TrimRows` (330)
+rewrote their maps in the same `updateSettings()` call. The border was drawn on the right cell, but its `borders`
+meta sat on the record the previous maps put there, and the next rebuild from meta (`trimRow`, untrim, a filter,
+`loadData`) moved it. 335 is the free slot after the last such plugin and before the overlay plugins (DEV-3640).
+
+- **Do not lower it, and do not fix a new case with a hook.** A first attempt applied the config from a listener
+  registered at `Number.MAX_SAFE_INTEGER` and failed in four ways, all measured: an application listener that
+  returns a value hands the next listener that value instead of the settings payload, so a payload check dropped
+  the config; a throwing listener skipped it; a `setBorders()` call in an application `afterUpdateSettings`
+  listener was wiped by the late reset; and a last-in-list listener lets a listener added mid-pass run in that
+  pass for every plugin on the grid. A priority has none of those effects, because it changes only the order of
+  the plugin's own update.
+- **The order of the plugin's other hooks moves with it.** `enablePlugin()` registers them, so they now land after
+  the hooks of the plugins between 90 and 335 at the same `orderIndex`. Nothing depended on the old position (the
+  broad E2E run over every plugin that shares a hook with this one was clean), but a hook added here that must run
+  before another plugin's listener should say so with an explicit `orderIndex`, as `#onUpdateSettingsStart` does.
+- **A new plugin that rewrites a row or column map from `updatePlugin()` must take a priority below 335**, or sit
+  above it with the same check against this plugin. The unit test lists the plugins that must stay below.
+- **Not covered:** a plugin that rewrites a map outside `updateSettings()` (sorting, moving and trimming through
+  their own APIs) is handled by the rebuild from meta in the section above, not by the priority. And a call
+  made inside `hot.batch()` (or between `suspendOperations()` and `resumeOperations()`) that turns `trimRows` off
+  or sends `manualRowMove`: the index mapper does not rebuild its cache until the batch ends, so `setCellMeta()`
+  still reads the maps from before the call. A `trimRows` array is fine, because `TrimRows#updatePlugin()` forces
+  the flush. The same limit applies to any caller that translates coordinates inside a batch.
+- Pinned by `__tests__/configWithIndexMapUpdates.unit.js` (an init-time oracle for each plugin, the priority
+  order, and the application-listener cases) and by the registration order lists in
+  `../__tests__/builtInPlugins.unit.ts` and `../../__tests__/registry/registerAllPlugins.unit.js`.
 
 ## A progressive load is never an undo step
 
@@ -300,6 +355,26 @@ breaks** — that is expected; update the assertion and reference the issue.
 read through `hot.view.countFixedColumnsEnd()`, so the start columns keep the priority). The end clone renders the last
 columns even when the master range is far from them, exactly like the start clone, so a border on an end column
 has to be in the working set or it is never drawn. Pinned by `tests/e2e/fixed-columns-end-plugins.spec.ts`.
+
+## The declared borders have one owner per enable
+
+The borders the settings declare are applied once per enable, by whichever path gets there:
+`updatePlugin()` (a `customBorders` update, including the off-to-on one, which runs `enablePlugin()` and
+then `updatePlugin()`), `onDataReady()` (the same update made ahead of its data), or the ready step
+(`onGridReady()`, `../base/AGENTS.md`) when neither ran: at init, and after a direct `enablePlugin()` call.
+`#declaredBordersOwed` is set by `enablePlugin()` and cleared by whichever applies them, so the step skips
+the pass after the other two and no border is written twice.
+
+At init the step runs before the `init` hook and the first render, and it does not render: that render
+syncs the master table's borders, and a render from the step would paint before later-priority plugins
+(NestedHeaders) build their state (#11031). The overlay clones that first render builds still need one
+more selection pass, so the step schedules a render for `afterInit` (`#onAfterInitRender`) when any border
+exists. Outside the init pass the step renders once itself. It replaced an `init` listener, which never
+fired again after init, so a direct `enablePlugin()` on a live grid used to apply nothing. **The step asks
+core whether it runs in the init pass (`isInitReadyStep()`), never whether the view has drawn.** A grid built
+inside a hidden container skips its draws, so `view._wt.drawn` stays `false` until it is first shown: read as
+"init", a direct `enablePlugin()` there rendered nothing and left an `afterInit` listener that never fires.
+Pinned by `__tests__/readyStep.unit.js`.
 
 ## Declared borders applied ahead of their data wait for `onDataReady()`
 

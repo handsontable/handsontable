@@ -99,7 +99,7 @@ const ExampleComponent = () => {
     <>
       <HotTable
         ref={hotRef}
-        data={INITIAL_DATA}
+        data={loadedData.current}
         colHeaders={['Task Title', 'Status', 'Assignee']}
         columns={[
           { data: 'title', type: 'text', width: 400 },

@@ -12,11 +12,13 @@
  * - `root` is the selector of the grid container the scan includes (the fixture's
  *   `data-testid="grid"` unless the page has several grids). That grid's own portal
  *   (`rootPortalElement`, where menus and the comment editor render) is always included
- *   too; the rest of the fixture page is not the product and is left out.
- * - `state` names what the spec does before it scans (`STATES` in the spec): a menu
+ *   too, and so is a popup portal the state marks (hyperformula-ui's, on the formula
+ *   states); the rest of the fixture page is not the product and is left out.
+ * - `state` names what the spec does before it scans (`STATES` in `harness.ts`): a menu
  *   or an editor opened from the keyboard on `cell`, the comment editor opened with
- *   Ctrl+Alt+M, a selection laid, a parked data-provider fetch released, or a cell left
- *   pending.
+ *   Ctrl+Alt+M, a selection laid, a parked data-provider fetch released, a cell left
+ *   pending, or the formula editor opened and typed into to show its suggestions or its
+ *   function help.
  * - `device` names a Playwright device to emulate from the first load, for a surface that
  *   exists on a phone only.
  * - `surface` says what the page covers, for the reader of the baseline and of the
@@ -64,6 +66,8 @@ export const A11Y_PAGES = [
     surface: 'a notification toast with a close button and two actions' },
   { id: 'license-bar', fixture: 'license-bar.html', query: 'width=600', state: 'none',
     surface: 'the license notification bar under the grid and its text contrast' },
+  { id: 'license-missing-features', fixture: 'license-capabilities.html', query: 'key=flagged-base&plugins=filters',
+    state: 'none', surface: 'the license bar naming the features a license key leaves out, and its sales link' },
   // Menus, opened from the keyboard.
   { id: 'context-menu', fixture: 'context-menu-checked-items.html', state: 'context-menu',
     surface: 'the context menu opened with Shift+F10: items, checkable items, separators' },
@@ -148,7 +152,7 @@ export function fixtureUrl(page, theme) {
 }
 
 /**
- * How to reach the state a page is scanned in, in words: the steps `STATES` in `axe.spec.ts`
+ * How to reach the state a page is scanned in, in words: the steps `STATES` in `harness.ts`
  * performs, for a person or an agent who opens the fixture by hand.
  *
  * @param {{state: string, cell?: [number, number]}} page The page.

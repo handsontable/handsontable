@@ -34,9 +34,10 @@ import { detectSelectionType, normalizeSelectionFactory } from '../../selection'
 import { isDefined } from '../../helpers/mixed';
 import type { HotInstance } from '../../core/types';
 import type VisualSelection from '../../selection/highlight/visualSelection';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'customBorders';
-export const PLUGIN_PRIORITY = 90;
+export const PLUGIN_PRIORITY = 335;
 
 export type { BorderSettings, BorderObject };
 
@@ -46,8 +47,8 @@ export type { BorderSettings, BorderObject };
 type BorderSide = 'top' | 'bottom' | 'start' | 'end';
 
 /**
- * `HotInstance` with the internal `_removeCellMetaByPhysicalIndex` method, which exists on the Core
- * runtime object but is deliberately not part of the public `HotInstance` type.
+ * `HotInstance` with the `_removeCellMetaByPhysicalIndex` method, which exists on the Core runtime
+ * object but is not part of the `HotInstance` type.
  */
 type HotInstanceInternal = HotInstance & {
   _removeCellMetaByPhysicalIndex(physicalRow: number, physicalColumn: number, key: string): void;
@@ -177,6 +178,14 @@ export class CustomBorders extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns the settings keys that trigger the plugin update on `updateSettings()`. Beside the
    * plugin key itself this covers `customBordersProgressive`, which changes how the very same
    * configuration is applied - without it, switching only that option would stay inert until some
@@ -198,6 +207,12 @@ export class CustomBorders extends BasePlugin {
    * structural change), instead of once per `trimRow()` call.
    */
   #isModelRebuildPending: boolean = false;
+  /**
+   * The visible rows (physical indexes in visual order) as they were when the running
+   * `updateSettings()` call started. The index mapper replaces the array on every cache update and
+   * never mutates it, so holding the reference is a free snapshot. `null` outside an update.
+   */
+  #visibleRowsBeforeUpdate: number[] | null = null;
 
   /**
    * Positions of the saved borders in the `savedBorders` array, keyed by the border id.
@@ -244,6 +259,13 @@ export class CustomBorders extends BasePlugin {
    * `changeBorderSettings()` once the model reset is done. `null` when the update is not one.
    */
   #carriedBorders: BorderObject[] | null = null;
+
+  /**
+   * `true` from an `enablePlugin()` until the borders the settings declare are applied. `updatePlugin()`
+   * and `onDataReady()` apply them themselves; otherwise the ready step does (at init, and after a direct
+   * `enablePlugin()` call).
+   */
+  #declaredBordersOwed = false;
 
   /**
    * During a `createCustomBorders` pass, holds the `row,col` keys already written in this pass, so a
@@ -366,7 +388,6 @@ export class CustomBorders extends BasePlugin {
 
     this.addHook('afterContextMenuDefaultOptions',
       (options: unknown) => this.#onAfterContextMenuDefaultOptions(options));
-    this.addHook('init', () => this.#onAfterInit());
     this.addHook('beforeCreateRow', this.#onBeforeCreateRow);
     this.addHook('afterCreateRow', this.#onAfterCreateRow);
     this.addHook('beforeRemoveRow', this.#onBeforeRemoveRow);
@@ -388,9 +409,14 @@ export class CustomBorders extends BasePlugin {
     this.addHook('beforeUntrimRow', this.#onBeforeTrimmingChange);
     this.addHook('afterTrimRow', this.#onAfterTrimmingChange);
     this.addHook('afterUntrimRow', this.#onAfterTrimmingChange);
+    // Ahead of the `afterUpdateSettings` listener that runs `TrimRows#updatePlugin()`, so it reads the
+    // visible rows from before the update.
+    this.addHook('afterUpdateSettings', this.#onUpdateSettingsStart, -1);
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
     this.addHook('beforeLoadData', this.#onBeforeDataReplacement);
     this.addHook('beforeUpdateData', this.#onBeforeDataReplacement);
+
+    this.#declaredBordersOwed = true;
 
     super.enablePlugin();
   }
@@ -400,6 +426,7 @@ export class CustomBorders extends BasePlugin {
    */
   disablePlugin() {
     this.#cancelProgressiveApply();
+    this.#visibleRowsBeforeUpdate = null;
     this.hideBorders();
 
     super.disablePlugin();
@@ -418,13 +445,19 @@ export class CustomBorders extends BasePlugin {
       // Disabling the plugin destroys every rendered border. A progressive replace keeps them drawn
       // until the new ones land, so it swaps the model in place and leaves the hooks registered.
       if (this.#carriedBorders === null) {
+        // The `afterUpdateSettings` listener the cycle re-registers can still run in this pass, and the
+        // snapshot belongs to it: `disablePlugin()` alone would hand it `null` and force a rebuild.
+        const visibleRowsBefore = this.#visibleRowsBeforeUpdate;
+
         this.disablePlugin();
         this.enablePlugin();
+        this.#visibleRowsBeforeUpdate = visibleRowsBefore;
       }
 
       if (this.isDataWorkDeferred()) {
         this.deferDataWork();
       } else {
+        this.#declaredBordersOwed = false;
         this.changeBorderSettings();
       }
     } finally {
@@ -444,9 +477,44 @@ export class CustomBorders extends BasePlugin {
    */
   onDataReady() {
     if (this.takeDeferredDataWork()) {
+      this.#declaredBordersOwed = false;
       this.changeBorderSettings(false);
     }
   }
+
+  /**
+   * Applies the borders the settings declare when no `updatePlugin()` or `onDataReady()` applied them: at
+   * init, and after a direct `enablePlugin()` call. Core runs it once after each enable or update, when the
+   * data is loaded and the view exists.
+   *
+   * At init it runs before the `init` hook and the first render, so it does not render: that render syncs
+   * the master table's borders, and the overlay clones it builds get theirs from one more render, scheduled
+   * for `afterInit`. On a grid already drawn, it renders once.
+   *
+   * @private
+   */
+  onGridReady() {
+    if (!this.#declaredBordersOwed) {
+      return;
+    }
+
+    const isInitPass = this.isInitReadyStep();
+
+    this.#declaredBordersOwed = false;
+    this.changeBorderSettings(!isInitPass);
+
+    if (isInitPass && this.savedBorders.length > 0) {
+      this.hot.addHookOnce('afterInit', this.#onAfterInitRender);
+    }
+  }
+
+  /**
+   * Renders once more after the first render of the grid, which builds the overlay clones that still need a
+   * selection pass for the declared borders.
+   */
+  #onAfterInitRender = () => {
+    this.hot.render();
+  };
 
   /**
    * Set custom borders.
@@ -1588,10 +1656,10 @@ export class CustomBorders extends BasePlugin {
    *
    * @private
    * @param {boolean} [render=true] If `true`, a render is forced after the border model is rebuilt
-   * so `#syncViewportSelections` materializes the visible selections. Pass `false` on the `init`
-   * path: the `init` hook fires before the core's own first render, so that render performs the
-   * sync - and rendering here would paint the grid before later-priority plugins (e.g.
-   * NestedHeaders) finish their `init` setup, leaving corrupted header DOM behind.
+   * so `#syncViewportSelections` materializes the visible selections. Pass `false` from the ready step
+   * at init: the core's first render follows and performs the sync, and rendering here would paint the
+   * grid before later-priority plugins (e.g. NestedHeaders) build their state, leaving corrupted header
+   * DOM behind (#11031).
    */
   changeBorderSettings(render = true) {
     const customBorders = this.hot.getSettings()[PLUGIN_KEY];
@@ -2066,23 +2134,6 @@ The border style will be ignored.`);
   }
 
   /**
-   * `init` hook callback. Builds the border model without forcing a render: the `init` hook fires
-   * right before the core's first render, and a render forced from here would paint the grid
-   * before later-priority plugins (e.g. NestedHeaders) run their own `init` setup, leaving
-   * corrupted header DOM behind (#11031 regression). The core's first render syncs and draws the
-   * master overlay's borders; the freshly-bootstrapped overlay clones need one more selection
-   * pass, so that render is scheduled for `afterInit` - still inside the same synchronous init
-   * sequence, but after every plugin finished its initialization.
-   */
-  #onAfterInit() {
-    this.changeBorderSettings(false);
-
-    if (this.savedBorders.length > 0) {
-      this.hot.addHookOnce('afterInit', () => this.hot.render());
-    }
-  }
-
-  /**
    * `beforeViewRender` hook callback. Synchronizes the rendered custom-border selections with the
    * current viewport so only visible borders are materialized and drawn.
    *
@@ -2108,19 +2159,55 @@ The border style will be ignored.`);
   };
 
   /**
+   * `afterUpdateSettings` hook callback, registered ahead of every plugin's own update. It stands in
+   * for a `beforeUpdateSettings` hook, which the core does not have, and records the visible rows
+   * before `TrimRows#updatePlugin()` writes the trimming map.
+   */
+  #onUpdateSettingsStart = () => {
+    this.#visibleRowsBeforeUpdate = this.hot.rowIndexMapper.getNotTrimmedIndexes();
+  };
+
+  /**
    * `afterUpdateSettings` hook callback. `updateSettings({ trimRows })` writes the trimming map in
    * `TrimRows#updatePlugin` without firing `afterTrimRow`, so the model kept the visual rows the
-   * borders were drawn at while their records moved (review round 12). There is no
-   * `beforeUpdateSettings` hook, so a progressive load still in flight completes after the map
-   * changed on this path only.
+   * borders were drawn at while their records moved (review round 12). The rebuild is skipped when
+   * the visible rows did not change: the React and Angular wrappers re-send `trimRows` on every
+   * render or settings change (the Vue wrapper drops an unchanged value), and the rebuild walks every
+   * bordered cell (DEV-3553). A progressive load still in flight completes
+   * after the map changed on this path only.
    *
    * @param {object} settings The settings passed to `updateSettings()`.
    */
   #onAfterUpdateSettings = (settings: Record<string, unknown>) => {
-    if (settings && hasOwnProperty(settings, 'trimRows')) {
-      this.#deferRebuildAfterIndexChange();
-      this.#scheduleMetaSyncRender();
+    const visibleRowsBefore = this.#visibleRowsBeforeUpdate;
+
+    this.#visibleRowsBeforeUpdate = null;
+
+    if (!settings || !hasOwnProperty(settings, 'trimRows')) {
+      return;
     }
+
+    const visibleRows = this.hot.rowIndexMapper.getNotTrimmedIndexes();
+
+    // While the mapper batches operations (`hot.batch()`, or a bare `suspendOperations()`) it does not
+    // rebuild its cache, so `trimRows: false` (which only unregisters the map) leaves the very same
+    // array behind and the comparison would pass.
+    if (
+      !this.hot.rowIndexMapper.isBatched &&
+      (
+        visibleRowsBefore === visibleRows ||
+        (
+          visibleRowsBefore !== null &&
+          visibleRowsBefore.length === visibleRows.length &&
+          visibleRowsBefore.every((physicalRow, visualRow) => physicalRow === visibleRows[visualRow])
+        )
+      )
+    ) {
+      return;
+    }
+
+    this.#deferRebuildAfterIndexChange();
+    this.#scheduleMetaSyncRender();
   };
 
   /**

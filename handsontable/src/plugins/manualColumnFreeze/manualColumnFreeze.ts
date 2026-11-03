@@ -11,6 +11,7 @@ import {
   isInEndBand,
   unfreezeWouldShiftEndBand,
 } from './endBand';
+import { LICENSE } from './feature.generated';
 
 Hooks.getSingleton().register('beforeColumnFreeze');
 Hooks.getSingleton().register('afterColumnFreeze');
@@ -79,6 +80,14 @@ export class ManualColumnFreeze extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
@@ -187,7 +196,7 @@ export class ManualColumnFreeze extends BasePlugin {
       this.hot.columnIndexMapper.moveIndexes(column, fixedStart);
 
       // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
-      // However, keeping the old name still in effect. When both option names are used together,
+      // However, keeping the old name still in effect. When one settings object carries both names,
       // the error is thrown. To prevent that, the plugin needs to modify the original option key
       // to bypass the validation.
       (settings as { _fixedColumnsStart: number })._fixedColumnsStart = fixedStart + 1;
@@ -234,7 +243,7 @@ export class ManualColumnFreeze extends BasePlugin {
 
     if (unfreezePerformed) {
       // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
-      // However, keeping the old name still in effect. When both option names are used together,
+      // However, keeping the old name still in effect. When one settings object carries both names,
       // the error is thrown. To prevent that, the plugin needs to modify the original option key
       // to bypass the validation.
       (settings as { _fixedColumnsStart: number })._fixedColumnsStart = fixedStart - 1;

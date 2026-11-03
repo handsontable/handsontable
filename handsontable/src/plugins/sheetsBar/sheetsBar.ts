@@ -42,9 +42,11 @@ import {
 } from '../../utils/viewState/viewState';
 import { withoutUndoEntry } from '../../utils/viewState/withoutUndoEntry';
 import * as C from '../../i18n/constants';
-import { announce } from '../../utils/a11yAnnouncer';
+import { announce, type AnnouncementPoliteness } from '../../utils/a11yAnnouncer';
 import { isRootInstance } from '../../utils/rootInstance';
+import { getTabReentryCoords, wasLeftByTab } from '../../focusManager/tabReentry';
 import { deepClone, isPlainObject } from '../../helpers/object';
+import { normalizeFixedColumnsAlias, renameFixedColumnsLeft } from '../../core/fixedColumnsAlias';
 import {
   formatSheetName, isUnquotedSheetName, quoteUnreadableSheetNames, rewriteSheetReferences,
 } from '../../utils/formulaReferences';
@@ -54,7 +56,8 @@ import {
 } from './formulaSheetData';
 import type { FormulaTextChange, SheetLayoutSettings } from './formulaSheetData';
 import { error as logError, warn, warnOnce } from '../../helpers/console';
-import { isHTMLElement } from '../../helpers/dom/element';
+import { isHTMLElement, removeAttribute, setAttribute } from '../../helpers/dom/element';
+import { A11Y_LABELED_BY } from '../../helpers/a11y';
 import { syncIcon } from '../../themes/engine/icons';
 import type { CellOptionMetaEntry, HotInstance, KeptCellMetas } from '../../core/types';
 import type { GridSettings } from '../../core/settings';
@@ -67,6 +70,7 @@ import type {
   DataProviderRequestKind,
 } from '../dataProvider/dataProvider';
 import type { FormulasEngineSheetOrder } from '../formulas/formulas';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'sheetsBar';
 export const PLUGIN_PRIORITY = 910;
@@ -114,6 +118,10 @@ const SHEETS_NOT_WRITABLE_ERROR = 'The sheets bar writes renamed, added and remo
  * A sheet definition accepted by the `sheets` setting.
  */
 export interface SheetsBarSheetConfig {
+  /**
+   * The tab name. A name another sheet already has (compared case-insensitively) or a name that is too
+   * long is changed on the tab, not in this entry, so read the names the tabs show with `getSheets()`.
+   */
   name?: string;
   data?: unknown[];
   settings?: Record<string, unknown>;
@@ -364,6 +372,26 @@ function isSameSheetsList(a: unknown, b: unknown): boolean {
 }
 
 /**
+ * Tells whether a `sheets` entry can be built: an object whose `name` is a string, `null` or absent,
+ * whose `data` is an array, `null` or absent, and whose `settings` is an object, `null` or absent. A
+ * `sheets` value with any other entry is refused as a whole, so it never tears down the workbook shown.
+ *
+ * @param {*} entry The entry.
+ * @returns {boolean}
+ */
+function isValidSheetEntry(entry: unknown): boolean {
+  if (!isPlainObject(entry)) {
+    return false;
+  }
+
+  const { name, data, settings } = entry as Record<string, unknown>;
+
+  return (name === undefined || name === null || typeof name === 'string')
+    && (data === undefined || data === null || Array.isArray(data))
+    && (settings === undefined || settings === null || isPlainObject(settings));
+}
+
+/**
  * Takes a snapshot of a `sheets` value for {@link isSameSheetsList}: the array and each entry are copied,
  * each entry's `settings` level by level, and its `data` is kept by reference. A host that edits its own
  * array or a sheet's settings object in place and sends it again otherwise compares it with itself, and
@@ -496,6 +524,61 @@ interface PreservedState {
  *
  * While the plugin is enabled, change a sheet's settings with {@link SheetsBar#updateSheetSettings},
  * not with {@link Core#updateSettings}.
+ *
+ * @example
+ *
+ * ::: only-for javascript
+ * ```js
+ * const hot = new Handsontable(document.getElementById('example'), {
+ *   sheetsBar: {
+ *     sheets: [
+ *       { name: 'Q1 2025', data: [['Acme Corp', 4200000]] },
+ *       { name: 'Q2 2025', data: [['Acme Corp', 4700000]] },
+ *     ],
+ *     activeSheet: 0,
+ *   },
+ *   afterSheetTabChange(oldSheetId, newSheetId, source) {
+ *     console.log(`Switched to sheet ${newSheetId} (${source})`);
+ *   },
+ * });
+ *
+ * hot.getPlugin('sheetsBar').setActiveSheet('Q2 2025');
+ * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * <HotTable
+ *   sheetsBar={{
+ *     sheets: [
+ *       { name: 'Q1 2025', data: [['Acme Corp', 4200000]] },
+ *       { name: 'Q2 2025', data: [['Acme Corp', 4700000]] },
+ *     ],
+ *     activeSheet: 0,
+ *   }}
+ *   afterSheetTabChange={(oldSheetId, newSheetId, source) => {
+ *     console.log(`Switched to sheet ${newSheetId} (${source})`);
+ *   }}
+ * />
+ * ```
+ * :::
+ *
+ * ::: only-for angular
+ * ```ts
+ * settings = {
+ *   sheetsBar: {
+ *     sheets: [
+ *       { name: 'Q1 2025', data: [['Acme Corp', 4200000]] },
+ *       { name: 'Q2 2025', data: [['Acme Corp', 4700000]] },
+ *     ],
+ *     activeSheet: 0,
+ *   },
+ *   afterSheetTabChange: (oldSheetId, newSheetId, source) => {
+ *     console.log(`Switched to sheet ${newSheetId} (${source})`);
+ *   },
+ * };
+ * ```
+ * :::
  */
 export class SheetsBar extends BasePlugin {
   /**
@@ -510,6 +593,14 @@ export class SheetsBar extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
@@ -533,7 +624,7 @@ export class SheetsBar extends BasePlugin {
   static get SETTINGS_VALIDATORS() {
     return {
       sheets: (value: unknown) => value === null || value === undefined
-        || (Array.isArray(value) && value.every(isPlainObject)),
+        || (Array.isArray(value) && value.every(isValidSheetEntry)),
       activeSheet: (value: unknown) => typeof value === 'number',
       controls: (value: unknown) => typeof value === 'boolean',
       paging: (value: unknown) => typeof value === 'boolean',
@@ -549,6 +640,24 @@ export class SheetsBar extends BasePlugin {
    * @type {SheetModel}
    */
   #model: SheetModel | null = null;
+  /**
+   * The last sheet id handed out. It lives on the plugin, not the model, so a rebuilt workbook (a new
+   * `sheets` value, or the bar turned off and on) never gives a new sheet an id a host may still hold
+   * for a sheet of the previous one.
+   *
+   * @type {number}
+   */
+  #lastSheetId = 0;
+  /**
+   * Hands out the next sheet id.
+   *
+   * @returns {number}
+   */
+  #allocateSheetId = (): number => {
+    this.#lastSheetId += 1;
+
+    return this.#lastSheetId;
+  };
   /**
    * Guards against re-entrant switches while a switch is applying settings/data.
    *
@@ -638,6 +747,19 @@ export class SheetsBar extends BasePlugin {
    * @type {WeakMap<object, object[]>}
    */
   #cellOptionStates = new WeakMap<Sheet, CellOptionMetaEntry[]>();
+  /**
+   * The imported cell style rules of each sheet the user left, by class name (`#captureImportedStyles`).
+   *
+   * @type {WeakMap<object, object>}
+   */
+  #importedStyles = new WeakMap<Sheet, Record<string, string>>();
+  /**
+   * The settings keys an import wrote on each sheet (`#keepImportedSettings`). A `sheetsBar: false` teardown
+   * leaves the active sheet's on the grid, which keeps that sheet's rows.
+   *
+   * @type {WeakMap<object, Set<string>>}
+   */
+  #importedKeys = new WeakMap<Sheet, Set<string>>();
   /**
    * The sheets whose `mergeCells` `updateSheetSettings()` changed while they were hidden: their next visit
    * builds the declared merges instead of restoring the ones the user left with.
@@ -883,6 +1005,17 @@ export class SheetsBar extends BasePlugin {
    */
   #hasFocusScope = false;
   /**
+   * The label id the bar wrote into the grid root's `aria-labelledby`, or `null` when the bar
+   * named nothing (`#syncGridName()`).
+   */
+  #gridNameId: string | null = null;
+  /**
+   * Watches the grid root's `aria-label` and `aria-labelledby`, so a name the host gives the grid
+   * after it was built takes over from the bar's at once (`#syncGridName()`), or `null` while the
+   * bar names nothing.
+   */
+  #gridNameObserver: MutationObserver | null = null;
+  /**
    * The layout side the bar was registered on, so teardown unregisters the same slot the
    * setup filled — the `position` setting may already read differently by then.
    *
@@ -959,7 +1092,10 @@ export class SheetsBar extends BasePlugin {
       try {
         this.#isInitializing = true;
         this.#releaseDataProviderContexts([]);
-        this.#model = new SheetModel(() => this.hot.getTranslatedPhrase(C.SHEETS_BAR_DEFAULT_SHEET_NAME) as string);
+        this.#model = new SheetModel(
+          () => this.hot.getTranslatedPhrase(C.SHEETS_BAR_DEFAULT_SHEET_NAME) as string,
+          this.#allocateSheetId,
+        );
         this.#captureGridDataProvider();
         this.#captureGridColumnSummary();
         this.#gridCellOption = this.hot.getSettings().cell;
@@ -993,7 +1129,9 @@ export class SheetsBar extends BasePlugin {
         isRtl: this.hot.isRtl(),
         themeName: this.hot.getCurrentThemeName(),
         phraseTranslator: (key: string, args?: unknown) => this.hot.getTranslatedPhrase(key, args),
-        a11yAnnouncer: (message: unknown) => announce(String(message ?? '')),
+        a11yAnnouncer: (message: unknown, politeness?: AnnouncementPoliteness) => (
+          announce(String(message ?? ''), politeness)
+        ),
         ariaTags: this.hot.getSettings().ariaTags,
         syncIcon: syncIconForHot,
       });
@@ -1026,6 +1164,7 @@ export class SheetsBar extends BasePlugin {
         isRtl: this.hot.isRtl(),
         syncIcon: syncIconForHot,
         rootWindow: this.hot.rootWindow,
+        labelIdPrefix: `${this.hot.guid}-sheet-tab-label`,
       });
       this.#tabStrip.setDragSlide(this.#animation().move);
       this.#tabStrip
@@ -1076,6 +1215,10 @@ export class SheetsBar extends BasePlugin {
         pagingEnabled: this.getSetting<boolean>('paging') !== false,
         isRtl: this.hot.isRtl(),
         ariaTags: this.hot.getSettings().ariaTags !== false,
+        onResize: () => {
+          this.#tabStrip?.revealPendingActiveTab();
+          this.#tabStrip?.settleReveal();
+        },
       });
       this.#overflow.attach();
     }
@@ -1490,13 +1633,14 @@ export class SheetsBar extends BasePlugin {
   disablePlugin() {
     if (this.#preservedState === null && this.#model !== null) {
       const discardedSheets = this.#sheetRecords();
-      const keptColumnSummary = this.#rebuildGridDataProvider === null
-        ? this.#getActiveSheetGridColumnSummary()
-        : undefined;
+      const isTeardown = this.#rebuildGridDataProvider === null;
+      const keptColumnSummary = isTeardown ? this.#getActiveSheetGridColumnSummary() : undefined;
+      const activeSheet = this.#activeSheetRecord();
+      const keptImportedKeys = isTeardown && activeSheet ? this.#importedKeys.get(activeSheet) : undefined;
 
       this.#model = null;
       this.#releaseDataProviderContexts(discardedSheets);
-      this.#restoreBaselineToGrid(keptColumnSummary);
+      this.#restoreBaselineToGrid(keptColumnSummary, keptImportedKeys);
     }
 
     super.disablePlugin();
@@ -1524,10 +1668,15 @@ export class SheetsBar extends BasePlugin {
    * endpoints hold on that sheet now (`keptColumnSummary`), because the grid keeps that sheet's rows:
    * the declared positions would write the summary over a data cell a row insert moved into them.
    *
+   * A `sheetsBar: false` teardown also leaves out the keys an import wrote on the active sheet
+   * (`keptImportedKeys`): the grid keeps that sheet's rows, so it keeps the layout the file gave them, as a
+   * grid without the bar does after an import.
+   *
    * @param {Array} [keptColumnSummary] The active sheet's current endpoints, when they replace the
    * captured grid-level value.
+   * @param {Set<string>} [keptImportedKeys] The keys an import wrote on the active sheet, kept on the grid.
    */
-  #restoreBaselineToGrid(keptColumnSummary?: unknown[]) {
+  #restoreBaselineToGrid(keptColumnSummary?: unknown[], keptImportedKeys?: Set<string>) {
     if (this.hot.isDestroyed) {
       return;
     }
@@ -1535,7 +1684,7 @@ export class SheetsBar extends BasePlugin {
     const restored: Record<string, unknown> = {};
 
     this.#settingsBaseline.forEach((value, key) => {
-      if (key !== 'dataProvider' || this.#rebuildGridDataProvider === null) {
+      if ((key !== 'dataProvider' || this.#rebuildGridDataProvider === null) && !keptImportedKeys?.has(key)) {
         restored[key] = value === undefined ? null : value;
       }
     });
@@ -1549,7 +1698,8 @@ export class SheetsBar extends BasePlugin {
     const neutral = this.#getNeutralFrozenCounts();
 
     FROZEN_COUNT_KEYS.forEach((key) => {
-      if (!(key in restored) && (this.hot.getSettings()[key] ?? 0) !== (neutral[key] ?? 0)) {
+      if (!(key in restored) && !keptImportedKeys?.has(key)
+        && (this.hot.getSettings()[key] ?? 0) !== (neutral[key] ?? 0)) {
         restored[key] = neutral[key] ?? 0;
       }
     });
@@ -1737,7 +1887,8 @@ export class SheetsBar extends BasePlugin {
       return;
     }
 
-    const ownSettings = this.#activeSheetRecord()?.settings;
+    const declared = this.#activeSheetRecord()?.settings;
+    const ownSettings = isPlainObject(declared) ? renameFixedColumnsLeft(declared) : declared;
     const restatesGrid = PLUGIN_KEY in newSettings;
 
     Object.keys(newSettings).forEach((key) => {
@@ -1769,7 +1920,14 @@ export class SheetsBar extends BasePlugin {
   #filterGridSettings = (settings: Record<string, unknown>): Record<string, unknown> => {
     this.#runPendingHookSync(settings);
 
-    const own = this.#activeSheetRecord()?.settings;
+    if (this.#model !== null && this.hot.getPlugin('importFile')?._isImportSettings(settings)) {
+      this.#keepImportedSettings(settings);
+
+      return settings;
+    }
+
+    const declared = this.#activeSheetRecord()?.settings;
+    const own = isPlainObject(declared) ? renameFixedColumnsLeft(declared) : declared;
 
     if (!isPlainObject(own) || !this.#filtersGridSettings(settings)) {
       return settings;
@@ -1909,6 +2067,10 @@ export class SheetsBar extends BasePlugin {
       this.#motionGate.close();
     }
 
+    if (this.#preservedState === null) {
+      this.#clearGridName();
+    }
+
     this.#tabStrip?.destroy();
     this.#tabStrip = null;
     this.#menus?.destroy();
@@ -1931,8 +2093,8 @@ export class SheetsBar extends BasePlugin {
   /**
    * Renames a sheet.
    *
-   * Returns `false` when the id is unknown, the name is blank or unchanged, another sheet
-   * already uses the name (in the bar or in the sheet's formula engine), a
+   * Returns `false` when the bar is off, the id is unknown, the name has no visible character or is
+   * unchanged, another sheet already uses the name (in the bar or in the sheet's formula engine), a
    * `beforeSheetTabRename` listener cancels the rename, the sheet's entry in your `sheets` array is frozen
    * (with a console warning), or it is called from a listener of a workbook change's before-hook. A name
    * that changes only the case of the letters is a rename.
@@ -1941,9 +2103,11 @@ export class SheetsBar extends BasePlugin {
    * that shares its formula engine, and the rename is one undo step.
    *
    * @param {number} id The sheet's id.
-   * @param {string} name The new name. Trimmed, and cut to the name length limit.
+   * @param {string} name The new name. Trimmed, and cut to 50 characters.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
    * @returns {boolean} `true` when the sheet was renamed.
+   * @fires Hooks#beforeSheetTabRename
+   * @fires Hooks#afterSheetTabRename
    */
   renameSheet(id: number, name: string, source: string = SOURCE_API): boolean {
     return this.#commitRename(id, name, source);
@@ -1953,17 +2117,20 @@ export class SheetsBar extends BasePlugin {
    * Duplicates a sheet, placing the copy directly after the original.
    *
    * The copy gets a deep clone of the sheet's data and settings, and a name based on the
-   * original's. The `formulas` setting is not cloned: the copy shares the original's engine,
-   * under a sheet name of its own. Returns `null` when the id is unknown, a `beforeSheetTabAdd` listener
-   * cancels the copy, your `sheets` array is frozen (with a console warning), or it is called from a
-   * listener of a workbook change's before-hook.
+   * original's. An instance of your own class stored in a cell is shared with the original. The
+   * `formulas` setting is not cloned: the copy shares the original's engine, under a sheet name of its
+   * own. Returns `null` when the bar is off, the id is unknown, a `beforeSheetTabAdd` listener cancels the
+   * copy, your `sheets` array is frozen (with a console warning), or it is called from a listener of a
+   * workbook change's before-hook.
    *
    * A copy of a server sheet (one with its own `dataProvider`) starts with a copy of the original's rows.
    * When the original has already loaded rows, the copy doesn't fetch on its first visit.
    *
    * @param {number} id The sheet to copy.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
-   * @returns {object|null} A descriptor for the copy, or `null`.
+   * @returns {object|null} The copy's `{ id, name, isActive }` descriptor, or `null`.
+   * @fires Hooks#beforeSheetTabAdd
+   * @fires Hooks#afterSheetTabAdd
    */
   duplicateSheet(id: number, source: string = SOURCE_API): SheetDescriptor | null {
     return this.#duplicateSheet(id, source);
@@ -1972,15 +2139,17 @@ export class SheetsBar extends BasePlugin {
   /**
    * Removes a sheet.
    *
-   * Removing the active sheet first switches to its nearest neighbor. Returns `false` when the
-   * id is unknown, the sheet is the last one, a `beforeSheetTabRemove` listener cancels the
-   * removal, the switch to the neighbor is rejected, your `sheets` array is frozen (with a console
-   * warning), or it is called from a listener of a workbook change's before-hook, such as
-   * `beforeSheetTabChange`.
+   * Removing the active sheet first switches to its nearest neighbor, which fires the switch hooks.
+   * Returns `false` when the bar is off, the id is unknown, the sheet is the last one, a
+   * `beforeSheetTabRemove` listener cancels the removal, the switch to the neighbor is rejected, your
+   * `sheets` array is frozen (with a console warning), or it is called from a listener of a workbook
+   * change's before-hook, such as `beforeSheetTabChange`.
    *
    * @param {number} id The sheet to remove.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
    * @returns {boolean} `true` when the sheet was removed.
+   * @fires Hooks#beforeSheetTabRemove
+   * @fires Hooks#afterSheetTabRemove
    */
   removeSheet(id: number, source: string = SOURCE_API): boolean {
     return this.#removeSheet(id, source);
@@ -2015,18 +2184,26 @@ export class SheetsBar extends BasePlugin {
       return false;
     }
 
-    const changes = Object.fromEntries(
+    const changes = normalizeFixedColumnsAlias(Object.fromEntries(
       Object.entries(settings).filter(([key, value]) => !UNSETTABLE_SHEET_KEYS.has(key) && value !== undefined)
-    );
+    ), this.hot.isRtl());
 
     if (Object.keys(changes).length === 0) {
       return false;
     }
 
-    sheet.settings = { ...(sheet.settings ?? {}), ...changes };
+    sheet.settings = { ...renameFixedColumnsLeft(sheet.settings ?? {}), ...changes };
 
     if (model?.getActiveSheet()?.id === id) {
+      if ('importFile' in changes) {
+        this.#captureImportedStyles(sheet);
+      }
+
       this.#applyToVisibleSheet(changes, sheet.settings);
+
+      if ('importFile' in changes) {
+        this.#restoreImportedStyles(sheet);
+      }
     } else {
       this.#dropKeptStateFor(sheet, changes);
     }
@@ -2035,9 +2212,8 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Activates a sheet by id or name. Returns `false` when the sheet doesn't exist, is
-   * already active, another switch is in progress, or a `beforeSheetTabChange` listener
-   * cancels the switch.
+   * Activates a sheet by id or name. Returns `false` when the bar is off, the sheet doesn't exist, is
+   * already active, another switch is in progress, or a `beforeSheetTabChange` listener cancels the switch.
    *
    * The switch first saves the cell editor and the comment editor on the sheet you leave. It
    * returns `false`, and switches nothing, while a cell value waits for its validator, or while
@@ -2050,6 +2226,10 @@ export class SheetsBar extends BasePlugin {
    * @param {number|string} idOrName The sheet's id, or its name.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
    * @returns {boolean} `true` when the sheet was activated.
+   * @fires Hooks#beforeSheetTabChange
+   * @fires Hooks#afterSheetTabStateCapture
+   * @fires Hooks#afterSheetTabStateRestore
+   * @fires Hooks#afterSheetTabChange
    */
   setActiveSheet(idOrName: number | string, source: string = SOURCE_API): boolean {
     const model = this.#model;
@@ -2085,10 +2265,11 @@ export class SheetsBar extends BasePlugin {
 
         if (oldSheet) {
           this.#syncActiveSheetData();
-          oldSheet.viewState = captureViewState(this.hot, this.#captureCellMeta()) as
+          oldSheet.viewState = this.#withTabReentryCell(captureViewState(this.hot, this.#captureCellMeta())) as
             unknown as Record<string, unknown>;
           this.#captureColumnSummary(oldSheet);
           this.#captureCellOption(oldSheet);
+          this.#captureImportedStyles(oldSheet);
           this.#runBeforeChangeHook(() => {
             this.hot.runHooks('afterSheetTabStateCapture', oldId, oldSheet.viewState, source);
           });
@@ -2312,23 +2493,25 @@ export class SheetsBar extends BasePlugin {
    * Moves a sheet to a position in the tab order.
    *
    * The index counts sheets in tab order, not on screen, so it is the same under RTL.
-   * Returns `false` when the id is unknown, the index is out of range or is the sheet's
-   * current one, a `beforeSheetTabMove` listener cancels the move, or it is called from a listener
-   * of a workbook change's before-hook.
+   * Returns `false` when the bar is off, the id is unknown, the index is not an integer, is out of range
+   * or is the sheet's current one, a `beforeSheetTabMove` listener cancels the move, or it is called from
+   * a listener of a workbook change's before-hook.
    *
    * @param {number} id The sheet id.
    * @param {number} to The target index.
    * @param {string} [source='SheetsBar.api'] The operation source reported to the hooks.
    * @returns {boolean} `true` when the sheet moved.
+   * @fires Hooks#beforeSheetTabMove
+   * @fires Hooks#afterSheetTabMove
    */
   moveSheetToIndex(id: number, to: number, source: string = SOURCE_API): boolean {
     return this.#moveSheetToIndex(id, to, source);
   }
 
   /**
-   * Appends a sheet and returns its descriptor, or `null` when a `beforeSheetTabAdd`
-   * listener cancels it, your `sheets` array is frozen (with a console warning), or it is called from a
-   * listener of a workbook change's before-hook.
+   * Appends a sheet and returns its descriptor, or `null` when the bar is off, `data` is not an array,
+   * `settings` is not an object, a `beforeSheetTabAdd` listener cancels it, your `sheets` array is frozen
+   * (with a console warning), or it is called from a listener of a workbook change's before-hook.
    *
    * Without `settings`, the new sheet joins the workbook's shared formula engine, if there is
    * one, under its own name. Formulas and cross-sheet references then work on it right away.
@@ -2338,7 +2521,9 @@ export class SheetsBar extends BasePlugin {
    * @param {object} [settings] The sheet's settings. Omitted, the sheet inherits the
    * workbook's shared formula engine when one is configured.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
-   * @returns {object|null} A descriptor for the new sheet, or `null`.
+   * @returns {object|null} The new sheet's `{ id, name, isActive }` descriptor, or `null`.
+   * @fires Hooks#beforeSheetTabAdd
+   * @fires Hooks#afterSheetTabAdd
    */
   addSheet(
     name?: string,
@@ -2348,15 +2533,15 @@ export class SheetsBar extends BasePlugin {
   ): SheetDescriptor | null {
     const model = this.#model;
 
-    if (model === null || !this.#canWriteSheetArrays()) {
+    if (model === null || !isValidSheetEntry({ name, data, settings }) || !this.#canWriteSheetArrays()) {
       return null;
     }
 
     const sheet = this.#commit(
       'beforeSheetTabAdd',
-      [name ?? null],
+      [name ?? null, null],
       () => {
-        const added = model.addSheet(name ?? null, data, settings);
+        const added = model.addSheet(name ?? null, data ?? undefined, settings ?? undefined);
 
         if (!added.settings) {
           const inherited = this.#inheritedFormulaSettings(added.name);
@@ -2374,11 +2559,24 @@ export class SheetsBar extends BasePlugin {
         return added;
       },
       'afterSheetTabAdd',
-      (added: Sheet) => [added.id, added.name],
+      (added: Sheet) => [added.id, added.name, null],
       source,
     );
 
-    return sheet === false ? null : { id: sheet.id, name: sheet.name, isActive: false };
+    return sheet === false ? null : this.#describe(sheet);
+  }
+
+  /**
+   * Returns the current descriptor of an added sheet, read from the model after the after-hook ran, so it
+   * reports a switch an `afterSheetTabAdd` listener made. When a listener already removed the sheet or
+   * turned the bar off, the add still happened, so the descriptor is built from the record, inactive.
+   *
+   * @param {object} sheet The added sheet.
+   * @returns {object}
+   */
+  #describe(sheet: Sheet): SheetDescriptor {
+    return this.#model?.getSheets().find(descriptor => descriptor.id === sheet.id)
+      ?? { id: sheet.id, name: sheet.name, isActive: false };
   }
 
   /**
@@ -2834,7 +3032,7 @@ export class SheetsBar extends BasePlugin {
       this.#physicalOrder = [];
 
       sheetsSetting.forEach((entry) => {
-        const sheet = model.addSheet(entry.name ?? null, entry.data, entry.settings);
+        const sheet = model.addSheet(entry.name ?? null, entry.data ?? undefined, entry.settings);
 
         this.#declaredEntries.set(sheet.id, entry);
         this.#physicalOrder.push(sheet.id);
@@ -2844,7 +3042,7 @@ export class SheetsBar extends BasePlugin {
       const descriptors = model.getSheets();
       const retained = this.#retainActiveName === null
         ? undefined
-        : descriptors.find(descriptor => descriptor.name === this.#retainActiveName);
+        : descriptors.find(descriptor => descriptor.id === model.resolveId(this.#retainActiveName));
       const target = retained
         ?? descriptors.find(descriptor => descriptor.id === this.#physicalOrder[activeIndex])
         ?? descriptors[0];
@@ -3120,6 +3318,98 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
+   * Stores the imported cell style rules of a sheet, when the user leaves it or before `updateSheetSettings()`
+   * changes `importFile` on the visible one. Its cells carry the classes of the file
+   * imported into it, in their cell meta, while the grid has one imported stylesheet, so a later import into
+   * another sheet replaced the rules those classes needed, and a sheet that turns ImportFile off removed them.
+   * The arriving sheet gets its own rules back (`#restoreImportedStyles`). A sheet that leaves with no rules
+   * has its entry removed. While ImportFile is off on the sheet (`importFile: false`), the entry is kept as it
+   * is: the plugin holds nothing then, and the rules come back once the sheet turns it on again.
+   *
+   * @param {object} sheet The departing or visible sheet.
+   */
+  #captureImportedStyles(sheet: Sheet) {
+    if (!this.hot.getPlugin('importFile')?.enabled) {
+      return;
+    }
+
+    const styles = this.#exportImportedStyles();
+
+    if (styles) {
+      this.#importedStyles.set(sheet, styles);
+    } else {
+      this.#importedStyles.delete(sheet);
+    }
+  }
+
+  /**
+   * Returns the imported cell style rules the grid holds, or `null` while ImportFile is off or holds none.
+   *
+   * @returns {object|null}
+   */
+  #exportImportedStyles(): Record<string, string> | null {
+    const importFile = this.hot.getPlugin('importFile');
+    const styles = importFile?.enabled ? importFile._exportImportedStyles() : null;
+
+    return styles && Object.keys(styles).length > 0 ? styles : null;
+  }
+
+  /**
+   * Puts a sheet's imported cell style rules in the grid's stylesheet, or removes the stylesheet when the
+   * sheet kept none. Runs when the sheet's rows load (`#onAfterSheetLoad`), and when `updateSheetSettings()`
+   * turns ImportFile on for the visible sheet; while ImportFile is off there is no stylesheet to fill.
+   *
+   * @param {object} sheet The arriving sheet.
+   */
+  #restoreImportedStyles(sheet: Sheet) {
+    const importFile = this.hot.getPlugin('importFile');
+
+    if (importFile?.enabled) {
+      importFile._restoreImportedStyles(this.#importedStyles.get(sheet) ?? {});
+    }
+  }
+
+  /**
+   * Returns a sheet's imported cell style rules as they stand now: ImportFile's live rules while the sheet is
+   * shown with the plugin on, otherwise the rules the bar stored for it (`#captureImportedStyles`), which a
+   * visible sheet that turned the plugin off still has.
+   *
+   * @param {object} sheet The sheet.
+   * @returns {object|null}
+   */
+  #importedStylesOf(sheet: Sheet): Record<string, string> | null {
+    const isShown = this.#model?.getActiveSheet()?.id === sheet.id;
+
+    if (isShown && this.hot.getPlugin('importFile')?.enabled) {
+      return this.#exportImportedStyles();
+    }
+
+    return this.#importedStyles.get(sheet) ?? null;
+  }
+
+  /**
+   * Gives a duplicated sheet what an import left on its original: the imported cell style rules, as the
+   * original holds them now (the copy's data carries the same classes), and the keys the import wrote, which
+   * the copy's settings carry too, so a `sheetsBar: false` teardown on the copy keeps that layout on the grid
+   * as it does on the original.
+   *
+   * @param {object} original The sheet that was duplicated.
+   * @param {object} copy The duplicate.
+   */
+  #copyImportedState(original: Sheet, copy: Sheet) {
+    const styles = this.#importedStylesOf(original);
+    const keys = this.#importedKeys.get(original);
+
+    if (styles) {
+      this.#importedStyles.set(copy, { ...styles });
+    }
+
+    if (keys) {
+      this.#importedKeys.set(copy, new Set(keys));
+    }
+  }
+
+  /**
    * Gives a duplicated sheet the `cell`-option meta of its original as the original holds it now. The copy's
    * data is a copy of the original's rows, in the same physical order, so the copy's first visit puts that
    * meta back by physical index like a return does, for the reason `#copyColumnSummaryEndpoints` gives the
@@ -3307,6 +3597,21 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
+   * Gives a duplicate of the sheet the grid shows the values its ColumnSummary destination cells held
+   * before the summary results. The grid's data holds the results, and a deep copy of it would sum them
+   * again on its first visit (a total of 6 came back as 12). A hidden sheet's data already holds the
+   * original values: the switch away gave them back.
+   *
+   * @param {object} original The sheet that was duplicated.
+   * @param {object} copy The duplicate.
+   */
+  #restoreSummaryValuesInCopy(original: Sheet, copy: Sheet) {
+    if (this.#model?.getActiveSheet()?.id === original.id) {
+      this.hot.getPlugin('columnSummary')?.restoreDestinationValuesInCopy(original.data, copy.data);
+    }
+  }
+
+  /**
    * Gives a duplicated sheet the ColumnSummary endpoints its original holds now, written into the copy's
    * own settings. The copy's data is a copy of the original's, with every summary at the position a row
    * or column alteration moved it to, and the copy opens as a first visit, so the declared positions
@@ -3442,9 +3747,10 @@ export class SheetsBar extends BasePlugin {
   #withBaselineFor(sheetSettings: Record<string, unknown> | undefined): Record<string, unknown> | null {
     // A sheet cannot reconfigure the bar it is a part of: applying `sheetsBar` from inside a
     // switch would rebuild the workbook that is mid-switch.
-    const settings = sheetSettings && PLUGIN_KEY in sheetSettings
+    const ownSettings = sheetSettings && PLUGIN_KEY in sheetSettings
       ? Object.fromEntries(Object.entries(sheetSettings).filter(([key]) => key !== PLUGIN_KEY))
       : sheetSettings;
+    const settings = ownSettings && normalizeFixedColumnsAlias(ownSettings, this.hot.isRtl());
 
     Object.keys(settings ?? {}).forEach((key) => {
       if (!this.#settingsBaseline.has(key)) {
@@ -3487,14 +3793,7 @@ export class SheetsBar extends BasePlugin {
    * @param {object} ownSettings The visible sheet's own settings, the changes included.
    */
   #applyToVisibleSheet(changes: Record<string, unknown>, ownSettings: Record<string, unknown>) {
-    Object.keys(changes).forEach((key) => {
-      if (!this.#settingsBaseline.has(key)) {
-        this.#settingsBaseline.set(
-          key,
-          key === 'dataProvider' ? undefined : (this.hot.getSettings() as Record<string, unknown>)[key]
-        );
-      }
-    });
+    this.#recordBaselineFor(Object.keys(changes));
 
     try {
       this.#isApplyingOwnSettings = true;
@@ -3504,6 +3803,51 @@ export class SheetsBar extends BasePlugin {
       this.#isApplyingOwnSettings = false;
       this.#pendingHookSync = null;
     }
+  }
+
+  /**
+   * Records the grid-level value of each key no sheet set before, as `#withBaselineFor` does on a switch, so
+   * the sheets that do not declare the key get that value back.
+   *
+   * @param {string[]} keys The keys about to become the visible sheet's own.
+   */
+  #recordBaselineFor(keys: string[]) {
+    keys.forEach((key) => {
+      if (!this.#settingsBaseline.has(key)) {
+        this.#settingsBaseline.set(
+          key,
+          key === 'dataProvider' ? undefined : (this.hot.getSettings() as Record<string, unknown>)[key]
+        );
+      }
+    });
+  }
+
+  /**
+   * Makes the settings an import applies the visible sheet's own, the way `updateSheetSettings()` does: an
+   * import lays the file out on the sheet shown. Before, they stayed grid-level values, so the imported
+   * columns, locks, sizes, hidden indexes and headers reached every sheet that does not declare the key,
+   * and a sheet that declares it got its declared value back on its next return. The grid-level value of a
+   * key no sheet set before goes into the baseline first, while core has not applied the payload yet. A
+   * value the import resets with `undefined` is kept as `null`, the value that clears on a switch. The
+   * sheet's record gets a new `settings` object, so the entry in the host's `sheets` array keeps the one
+   * it declared.
+   *
+   * @param {object} settings The payload ImportFile passed to `updateSettings()`.
+   */
+  #keepImportedSettings(settings: Record<string, unknown>) {
+    const sheet = this.#activeSheetRecord();
+    const keys = Object.keys(settings).filter(key => !UNSETTABLE_SHEET_KEYS.has(key) && key !== 'dataProvider');
+
+    if (!sheet || keys.length === 0) {
+      return;
+    }
+
+    this.#recordBaselineFor(keys);
+    this.#importedKeys.set(sheet, new Set([...(this.#importedKeys.get(sheet) ?? []), ...keys]));
+    sheet.settings = {
+      ...(sheet.settings ?? {}),
+      ...Object.fromEntries(keys.map(key => [key, settings[key] === undefined ? null : settings[key]])),
+    };
   }
 
   /**
@@ -3543,10 +3887,9 @@ export class SheetsBar extends BasePlugin {
 
     keys.forEach((key) => {
       const value = changes[key];
-      const frozenKey = key === 'fixedColumnsLeft' ? 'fixedColumnsStart' : key;
 
-      if (isFrozenCountKey(frozenKey)) {
-        sheet.viewState = { ...sheet.viewState, [frozenKey]: typeof value === 'number' ? value : undefined };
+      if (isFrozenCountKey(key)) {
+        sheet.viewState = { ...sheet.viewState, [key]: typeof value === 'number' ? value : undefined };
       }
 
       if (key === 'pagination') {
@@ -3687,6 +4030,111 @@ export class SheetsBar extends BasePlugin {
   #refreshUI() {
     this.#tabStrip?.render(this.getSheets());
     this.#overflow?.refresh();
+    this.#tabStrip?.settleReveal();
+    this.#syncGridName();
+  }
+
+  /**
+   * Keeps the cell a keyboard user left the grid on as the sheet's selection. A <kbd>Tab</kbd>
+   * out of the grid into the bar deselects the cell and leaves it only as the grid's re-entry
+   * cell, which the arriving sheet's load drops, while a press on the bar keeps the selection
+   * (the bar is exempt from the outside-click deselect). Without this, a keyboard user came back
+   * to a sheet with no selection where a pointer user found their cell. Only a <kbd>Tab</kbd> out
+   * counts: a selection the user or the host cleared on purpose (an outside click, `deselectCell()`)
+   * stays cleared.
+   *
+   * @param {object} viewState The view state captured from the departing sheet.
+   * @returns {object} The same view state, with the re-entry cell as its selection when it had none.
+   */
+  #withTabReentryCell(viewState: ViewState): ViewState {
+    const coords = getTabReentryCoords(this.hot);
+    const hasSelection = Array.isArray(viewState.selection) && viewState.selection.length > 0;
+
+    if (
+      hasSelection || coords === undefined || !wasLeftByTab(this.hot) ||
+      !(coords.row >= 0 && coords.row < this.hot.countRows() && coords.col >= 0 && coords.col < this.hot.countCols())
+    ) {
+      return viewState;
+    }
+
+    return {
+      ...viewState,
+      selection: [[coords.row, coords.col, coords.row, coords.col]],
+      selectionState: null,
+    };
+  }
+
+  /**
+   * Names the grid after the sheet it shows: the grid's root (the `treegrid`) points at the
+   * active tab's label through `aria-labelledby`, so a screen reader entering the grid hears
+   * which sheet it is in, and a rename or a switch updates the name with no write of its own.
+   * A name the host gave the grid (an `aria-label` or an `aria-labelledby` the bar did not
+   * write) is left alone, and nothing is written while `ariaTags` is off.
+   */
+  #syncGridName() {
+    const root = this.hot.rootElement;
+    const labelId = this.#tabStrip?.getActiveLabelId() ?? null;
+
+    if (!this.hot.getSettings().ariaTags || labelId === null || this.#hostNamesGrid(root)) {
+      this.#clearGridName();
+
+      return;
+    }
+
+    if (root.getAttribute('aria-labelledby') !== labelId) {
+      setAttribute(root, [A11Y_LABELED_BY(labelId)]);
+    }
+
+    this.#gridNameId = labelId;
+    this.#watchHostGridName(root);
+  }
+
+  /**
+   * Starts watching the grid root for a name the host writes later. Without it the bar's
+   * `aria-labelledby`, which wins over an `aria-label`, kept naming the grid after the sheet until
+   * the next repaint of the bar.
+   *
+   * @param {HTMLElement} root The grid's root element.
+   */
+  #watchHostGridName(root: HTMLElement) {
+    if (this.#gridNameObserver !== null) {
+      return;
+    }
+
+    this.#gridNameObserver = new this.hot.rootWindow.MutationObserver(() => {
+      if (this.#gridNameId !== null && this.#hostNamesGrid(root)) {
+        this.#clearGridName();
+      }
+    });
+    this.#gridNameObserver.observe(root, { attributes: true, attributeFilter: ['aria-label', 'aria-labelledby'] });
+  }
+
+  /**
+   * Whether the host named the grid itself.
+   *
+   * @param {HTMLElement} root The grid's root element.
+   * @returns {boolean} `true` when the root carries a name the bar did not write.
+   */
+  #hostNamesGrid(root: HTMLElement): boolean {
+    const labelledBy = root.getAttribute('aria-labelledby');
+
+    return root.hasAttribute('aria-label') || (labelledBy !== null && labelledBy !== this.#gridNameId);
+  }
+
+  /**
+   * Takes the name the bar gave the grid off again, when the bar is turned off.
+   */
+  #clearGridName() {
+    const root = this.hot.rootElement;
+
+    this.#gridNameObserver?.disconnect();
+    this.#gridNameObserver = null;
+
+    if (this.#gridNameId !== null && root?.getAttribute('aria-labelledby') === this.#gridNameId) {
+      removeAttribute(root, 'aria-labelledby');
+    }
+
+    this.#gridNameId = null;
   }
 
   /**
@@ -3821,6 +4269,7 @@ export class SheetsBar extends BasePlugin {
     const oldName = sheet.name;
     const trimmed = clampSheetName(newName);
     const canAttempt = trimmed !== '' && trimmed !== oldName
+      && !model.isNameTaken(trimmed, id)
       && !this.#renameCollidesInEngine(sheet, oldName, trimmed)
       && this.#canWriteDeclaredName(id);
 
@@ -3925,7 +4374,12 @@ export class SheetsBar extends BasePlugin {
    * start while the tabs after it slide to close the gap.
    */
   #removeSheet(id: number, source: string = SOURCE_UI): boolean {
-    const model = this.#model as SheetModel;
+    const model = this.#model;
+
+    if (!model) {
+      return false;
+    }
+
     const sheets = model.getSheets();
 
     if (sheets.length <= 1 || !sheets.some(sheet => sheet.id === id) || !this.#canWriteSheetArrays()) {
@@ -4018,8 +4472,7 @@ export class SheetsBar extends BasePlugin {
    * index, so the direction is mirrored before it is applied to the model.
    */
   #moveSheet(id: number, direction: 1 | -1, source: string = SOURCE_UI): boolean {
-    const model = this.#model as SheetModel;
-    const order = model.getSheets();
+    const order = this.#model?.getSheets() ?? [];
     const from = order.findIndex(sheet => sheet.id === id);
 
     if (from === -1) {
@@ -4044,11 +4497,16 @@ export class SheetsBar extends BasePlugin {
    * @returns {boolean} `true` when the sheet moved.
    */
   #moveSheetToIndex(id: number, to: number, source: string, slide: boolean = true): boolean {
-    const model = this.#model as SheetModel;
+    const model = this.#model;
+
+    if (!model) {
+      return false;
+    }
+
     const order = model.getSheets();
     const from = order.findIndex(sheet => sheet.id === id);
 
-    if (from === -1 || to === from || to < 0 || to >= order.length) {
+    if (from === -1 || !Number.isInteger(to) || to === from || to < 0 || to >= order.length) {
       return false;
     }
 
@@ -4076,6 +4534,14 @@ export class SheetsBar extends BasePlugin {
       source,
     );
 
+    if (moved !== false && source === SOURCE_UI) {
+      this.#ui?.announce(this.#ui.translate(C.SHEETS_BAR_SHEET_MOVED, {
+        name: model.getSheetById(id)?.name ?? '',
+        position: to + 1,
+        count: order.length,
+      }), 'polite');
+    }
+
     return moved !== false;
   }
 
@@ -4084,11 +4550,10 @@ export class SheetsBar extends BasePlugin {
    * so it fires the same `beforeSheetTabAdd`/`afterSheetTabAdd` hooks as `addSheet`.
    */
   #duplicateSheet(id: number, source: string = SOURCE_UI): SheetDescriptor | null {
-    const model = this.#model as SheetModel;
+    const model = this.#model;
+    const original = model?.getSheetById(id) ?? null;
 
-    const original = model.getSheetById(id);
-
-    if (!original) {
+    if (!model || !original) {
       return null;
     }
 
@@ -4100,7 +4565,7 @@ export class SheetsBar extends BasePlugin {
 
     const duplicated = this.#commit(
       'beforeSheetTabAdd',
-      [original.name],
+      [model.getDuplicateName(id), id],
       () => {
         const sheet = model.duplicateSheet(id);
 
@@ -4109,9 +4574,11 @@ export class SheetsBar extends BasePlugin {
         }
 
         this.#copyServerView(original, sheet);
+        this.#restoreSummaryValuesInCopy(original, sheet);
         this.#copyColumnSummaryEndpoints(original, sheet);
         this.#copyCellOption(original, sheet);
         this.#copyViewState(original, sheet);
+        this.#copyImportedState(original, sheet);
 
         // The copy cannot share the original's engine sheet — two tabs writing into one set of
         // cells — so it gets an engine sheet of its own, named like the copy, seeded with the
@@ -4134,11 +4601,22 @@ export class SheetsBar extends BasePlugin {
         return sheet;
       },
       'afterSheetTabAdd',
-      (sheet: Sheet) => [sheet.id, sheet.name],
+      (sheet: Sheet) => [sheet.id, sheet.name, id],
       source,
     );
 
-    return duplicated === false ? null : { id: duplicated.id, name: duplicated.name, isActive: false };
+    if (duplicated === false) {
+      return null;
+    }
+
+    if (source === SOURCE_UI) {
+      this.#ui?.announce(this.#ui.translate(C.SHEETS_BAR_SHEET_DUPLICATED, {
+        name: original.name,
+        copy: duplicated.name,
+      }), 'polite');
+    }
+
+    return this.#describe(duplicated);
   }
 
   /**
@@ -4768,12 +5246,14 @@ export class SheetsBar extends BasePlugin {
   #onAfterSetTheme = (themeName: unknown) => {
     this.#ui?.updateTheme(themeName as string | undefined);
     // The icons are refreshed in place, never through `#refreshUI()`: `TabStrip#render()` aborts
-    // a tab drag and cancels an open rename, and this hook also fires for a color-scheme or
-    // density switch (a ThemeBuilder `params()` or `setColorScheme()` included), so a user typing
-    // a sheet name would lose it when the app toggled dark mode. `syncIcon()` re-applies a
-    // class-list or renderer mapping only when the theme's icons revision moved.
+    // a tab drag in progress, and this hook also fires for a color-scheme or density switch (a
+    // ThemeBuilder `params()` or `setColorScheme()` included), so a user dragging a tab would drop
+    // it when the app toggled dark mode. `syncIcon()` re-applies a class-list or renderer mapping
+    // only when the theme's icons revision moved.
     this.#ui?.refreshIcons();
     this.#tabStrip?.refreshIcons();
+    this.#overflow?.refresh();
+    this.#tabStrip?.settleReveal();
   };
 
   /**
@@ -4785,13 +5265,17 @@ export class SheetsBar extends BasePlugin {
   };
 
   /**
-   * Records which sheet's rows the grid holds once `#applySheet` has loaded them. Registered first
-   * (`orderIndex` -1), so a later `afterLoadData` listener that throws cannot hide a load that
-   * happened.
+   * Records which sheet's rows the grid holds once `#applySheet` has loaded them, and installs that sheet's
+   * imported cell style rules (`#restoreImportedStyles`): the rows that carry the classes arrive here, and
+   * ImportFile is on or off as the sheet declares by now. Registered first (`orderIndex` -1), so a later
+   * `afterLoadData` listener that throws cannot hide a load that happened, or leave the departing sheet's
+   * rules on the arriving one. A workbook built on a live grid loads its opening sheet here too, so the
+   * previous workbook's rules go with it.
    */
   #onAfterSheetLoad = () => {
     if (this.#loadingSheet !== null) {
       this.#loadedSheetId = this.#loadingSheet.id;
+      this.#restoreImportedStyles(this.#loadingSheet);
     }
   };
 
@@ -5149,7 +5633,7 @@ export class SheetsBar extends BasePlugin {
    * @param {object} newSettings The settings passed to `updateSettings()`.
    */
   #onAfterUpdateSettings = (newSettings: Record<string, unknown>) => {
-    this.#refreshSettingsBaseline(newSettings);
+    this.#refreshSettingsBaseline(renameFixedColumnsLeft(newSettings));
     this.#refreshGridColumnSummary(newSettings);
     this.#refreshGridCellOption(newSettings);
 

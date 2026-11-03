@@ -55,12 +55,20 @@ order. Stamping the tracker from the new declared number while applying a stale
 `getSetting()` result would skip the later `updatePlugin()` pass and leave the
 wrong page. The grid settings object is already merged when `enablePlugin()` runs.
 
-## `PLUGIN_PRIORITY = 900`, and the `init` hook is pinned early
+## `PLUGIN_PRIORITY = 900`, and the first page is applied in the ready step
 
-Priority 900 puts it after every ordinary plugin. Separately, **the `init` hook callback is placed before
-the others**, so the pagination state is computed and applied to the index mapper *before* AutoColumnSize
-starts calculating column sizes. Those are two different mechanisms — see the priority-versus-hook-order
-note in `../base/AGENTS.md`.
+Priority 900 puts it after every ordinary plugin. The first page state is computed in the ready step
+(`onGridReady()`, `../base/AGENTS.md`), which core runs before the `init` hook, so the page is applied to
+the index mapper *before* AutoColumnSize and AutoRowSize measure from their `init` listeners. That used to
+take an `init` listener at order index `-1`; the step keeps the same order without one. The two auto-size
+plugins stay on `init` on purpose: a ready step of theirs would run at priority 10 and 40, before this one
+and before NestedHeaders builds its labels.
+
+The step computes the state only when nothing else did (`#stateOwed`): `updatePlugin()` and `onDataReady()`
+compute it themselves, so after them it does nothing. At init it does not render and leaves an `'auto'`
+page size to the first render, as the listener did. On a grid already drawn (a direct `enablePlugin()`
+call) it computes and renders; before, that enable showed every row until the next index cache update.
+Pinned by `__tests__/readyStep.unit.js`.
 
 ## The layout manager owns the pager's placement, unless `uiContainer` is set
 
@@ -81,6 +89,13 @@ source comment at `pagination.ts:312` says "always false in practice", meaning t
 arises — read it that way, it is easy to take backwards.) A direct `enablePlugin()` call on a non-root
 instance dies earlier, in the UI, which reads `rootGridElement`. The same guard is mirrored later in the
 file with a comment pointing back — keep both, and keep the comments.
+
+## `PaginationUI#destroy()` takes `htPagination` off the root wrapper
+
+Without a custom `uiContainer`, the UI marks the root wrapper with `htPagination` while a section is
+visible (the bar's corner styling). `destroy()`, which `disablePlugin()` runs, removes it, or the class
+stayed after `pagination: false` and on a later sheet without pagination. Pinned by `__tests__/ui.unit.js`
+and `tests/e2e/plugin-ui-teardown.spec.ts`.
 
 ## Two page-size strategies
 

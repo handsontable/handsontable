@@ -1015,12 +1015,14 @@ deletes its entry. Locally: `npm --prefix tests run test:a11y`, after `build:umd
 `build:styles.min` and `build:themes-css.min` (an unstyled grid gives wrong contrast results;
 `README.md`).
 
-- **The scan includes the grid's root container and that grid's own portal, nothing else.**
-  `.include(root)` plus the instance's `rootPortalElement`, the `body`-level element the core
-  appends for menus and the comment editor. The spec marks that element with a data attribute
-  before the scan (`markPortal()`) and includes the attribute, never the `.ht-portal` class:
-  every instance appends a portal, so on a page with several grids the class would scan the other
-  grids' menus too and key their findings to this page. The fixture page's own buttons, inputs
+- **The scan includes the grid's root container, that grid's own portal, and a popup portal its state
+  marks, nothing else.** `.include(root)` plus the instance's `rootPortalElement`, the `body`-level
+  element the core appends for menus and the comment editor. The spec marks that element with a data
+  attribute before the scan (`markPortal()` in `a11y/harness.ts`) and includes the attribute, never the
+  `.ht-portal` class: every instance appends a portal, so on a page with several grids the class would
+  scan the other grids' menus too and key their findings to this page. A state whose popups mount in a
+  portal of their own marks it with the same attribute: the formula states mark hyperformula-ui's
+  `.hfe-popup-portal` (`markFormulaPopups()` in the harness). The fixture page's own buttons, inputs
   and headings are not the product, and a finding on them would be baselined forever. A page
   whose fixture holds several grids names its `root` (`nested-headers`, `read-only`); the default
   is `[data-testid="grid"]`.
@@ -1036,7 +1038,8 @@ deletes its entry. Locally: `npm --prefix tests run test:a11y`, after `build:umd
   `wcag21aa` and `wcag22aa`, the target level; the published conformance report
   (`docs/content/guides/accessibility/accessibility-conformance-report/`) states conformance per
   criterion. Best-practice rules are
-  not in it, on purpose. An `incomplete` result (axe could not decide, most often a contrast it
+  not in it, on purpose; the nightly axe discovery run (below, "A11y: the checks beyond axe") runs them
+  for triage. An `incomplete` result (axe could not decide, most often a contrast it
   could not compute) is counted in the raw scan JSON and the report, and is never a finding.
 - **One bundle, three themes, and the variants on pages of their own.** The scan runs on the plain
   UMD bundle: the minified full bundle renders the same DOM. It runs on `main`, `horizon` and
@@ -1156,7 +1159,7 @@ sorts a run into six sets, each with a one-line remedy:
 Add an entry to `a11y/pages.mjs`: `id` (a kebab-case slug that names the surface, not the
 fixture; one fixture can be scanned in several states), `fixture` (under `fixtures/demo/`),
 `query` (appended after the theme), `root` (when the fixture has several grids), `cell` (where a
-menu or an editor opens; `[1, 1]` when absent), `state` (one of `STATES` in the spec: add a new
+menu or an editor opens; `[1, 1]` when absent), `state` (one of `STATES` in `a11y/harness.ts`: add a new
 opener there for a new kind of surface, keyboard first), `device` (a Playwright device to emulate,
 for a surface that exists on a phone only) and `surface` (what it covers). Keep
 `{ id: '…'` at the start of the entry's first line: the check run annotates a new finding on that
@@ -1293,22 +1296,360 @@ tooling problem prints as one escaped annotation. Every workflow command the a11
 through `workflowCommand()` in `lib/a11y-baseline.mjs`: a problem quotes the baseline, and an
 unescaped newline or `%` would cut the one line that explains a red job.
 
-## Screen readers: the NVDA lane
+## A11y: the checks beyond axe
+
+The axe scan reads the accessibility tree against axe's rules. It never presses a key, measures a
+focus ring, zooms the page, turns on forced colors or drags anything, and the published conformance
+report still marks criteria "Not Evaluated" for want of that evidence. The checks in `a11y/checks/`
+measure those. Each check is one Playwright project of `playwright.a11y-checks.config.ts`, named by its
+id, and each test of a check measures one target: a page of the catalog (`a11y/pages.mjs`) in a theme
+and a state, or a variant the check makes of it (dark, right to left, a phone). What a check measured
+lands in one evidence document per check, which the conformance report generator cites per
+criterion.
+
+- **Report-only, and the rule is one constant.** `EVIDENCE_MODE` in `lib/a11y-evidence.mjs` is
+  `report`, and `lib/__tests__/a11y-evidence.test.mjs` pins it. A finding is a row in the job summary,
+  an annotation and a `neutral` `A11y / <check> report` check run; `buildEvidenceCheckRun()` never
+  returns `failure`, so no check turns a pull request red. A test fails for tooling only (a fixture that
+  does not load, a state the keyboard did not reach), and the document records that test as a target
+  with `status: 'error'` and its error as a problem. So does a test that did not run (the run stopped
+  before it, or a failure before it skipped it: a `beforeAll` hook, an earlier test of a serial group, the
+  worker) and one whose part is not readable
+  JSON or does not validate: only a test that asked to be skipped is left out, so `summary.byCriterion`
+  never reads a partial run as a full one. A test that measured only on a retry is flagged
+  (`flaky`) and listed as a problem too. Flakiness is a finding against the check, not the product: fix
+  the measurement, never quarantine it. A check that starts gating changes the constant, its test and
+  this section together, after its findings have proven precise.
+- **One document per check, in one shape.** `test-results/a11y-checks/<check>.json` (`mergeEvidence()`):
+  `check`, `title`, `mode`, `triage` (whether the check's records are for sorting rather than evidence; a
+  triage document's `summary.byCriterion` is empty), `criteria` (what the check evidences, from
+  `EVIDENCE_CHECKS`), `run` (the commit the run tested, the head on a pull request and never the merge
+  commit, so `null` on a pull request run without `A11Y_HEAD_SHA`; the ref, the run URL, the browser
+  and its version, the Handsontable version and build date),
+  `targets` (every target, measured or not, with the criteria it evaluated and the path of its detail
+  file), `findings`, `problems` and `summary`. A target is its page, theme and variant: a check that
+  measures one page two ways (a scheme, a state, an interaction) gives each its own variant, because a
+  second part for the same target is dropped as a problem (it would count the target twice and
+  overwrite its detail file). A finding has a stable `id` (check, kind, the axe `rule` and the
+  needs-review `cause` when it names them, page, theme, variant, and the element, the step or both, so
+  two runs give the same finding the same id; never the `reason`, whose text can carry per-node values;
+  two findings that share one are a problem), `kind`, `criteria`, `severity`, its target (`page`,
+  `theme`, `state`, `variant`, `url`), a `selector` or a `step` or both, `measured` (flat values),
+  optionally `expected`, and a one-sentence `reason`. What a target measured in full (every focus stop,
+  every ratio) goes to `<check>/<page>--<theme>[--<variant>].json` beside the document, so the document
+  stays small enough to read. `summary.byCriterion` counts, per criterion, the targets that evaluated it
+  and the findings against it: a criterion evaluated on many targets with no finding is the evidence of
+  a pass, and that count is what the generator cites. A target whose test could not take a step (the
+  part's `problems`, counted as the target's `problems`) stays measured and keeps its findings, but
+  evaluates no criterion: a step that did not run found nothing, which is not a pass. `schema`
+  (`EVIDENCE_SCHEMA`) changes when a field is removed or renamed; `validateEvidence()` is what a reader
+  can rely on, and it checks every field the summary and the check run read, so a document that
+  validates never crashes the report script before it posts.
+- **Criteria are WCAG 2.2 ids from one table.** `WCAG_CRITERIA` lists every 2.2 success criterion with
+  its name and level, without the obsolete 4.1.1, and a finding naming any other id is refused. A
+  finding may name a criterion outside its check's list when the measurement shows it (a focus stop
+  with no name is a 4.1.2 fact the keyboard walker sees); it is then counted under that criterion with
+  no target evaluating it, because the check does not evaluate it everywhere.
+- **Severity is axe's scale plus one.** `critical`, `serious`, `moderate`, `minor`, as axe rates
+  impact, so a finding reads the same in every report, and `advisory` for a difference to review that
+  is not a failure on its own (a tab-order golden that moved). An advisory finding still makes the
+  check run neutral: someone has to look at it.
+- **The same pages, states and guards as the scan.** Every check opens its targets through
+  `a11y/harness.ts`: `openTarget()` loads the fixture and turns an uncaught page error, a missing theme
+  stylesheet or a constructor throw into a red test, and `reachState()` reaches the catalog state with
+  the keyboard (`STATES`) and marks the grid's own portal (`PORTAL`). A check therefore measures the DOM
+  a keyboard user reaches, the one the axe scan reads. A state a check needs and the catalog lacks gets
+  an opener in `STATES`, keyboard first. The axe discovery run's extra states are the one exception: no
+  other check scans their pages, so their openers sit beside them in its spec (`DISCOVERY_STATES`), and
+  one moves to `STATES` when a catalog page needs it. A state whose popups mount in a portal of their own
+  marks that one too (see the scan's own rule above), and it comes after the grid's in `body`, so a check
+  reads the marked portals with `querySelectorAll()`: a `querySelector()` sees the grid's portal only and
+  measures the page without the popup the state opened. The `test()` calls stay in the spec, never in a
+  helper: a test declared from a helper reports the helper as its location.
+- **A test declares its target first and attaches its part last.** `declareTarget()` (`a11y/evidence.ts`)
+  writes the target as a test annotation before anything can fail, so the reporter can name a test that
+  failed before it measured; `attachEvidence()` attaches the part, with `readEnvironment()`'s browser
+  and build. It takes the page errors `openTarget()` collected (`opened.pageErrors`) and fails the test
+  when the page threw while it was measured, so a page that crashed halfway is a target not measured,
+  never a clean one. The documented-shortcuts test is the one exception: it reloads its page between
+  probes, so it records an error the page threw during a probe as a problem of that probe, and the
+  target, measured with a problem, evaluates no criterion. A test that loads the page more than once
+  owns that list: it passes one list to every `openTarget()` as `pageErrors` and drains it in place,
+  and the page writes to it from before the navigation, so the test holds the live list even when a
+  load throws. An empty `findings` list is evidence too: the target was measured and nothing was found.
+- **Findings on the product are recorded, never fixed in the check's change.** A check lands with what
+  it finds listed in its pull request; the product tasks are filed apart, and a fix later clears the
+  finding. A finding the check gets wrong is fixed in the check.
+- **Every report value is escaped.** The summary and the check run render values from the fixture DOM
+  (selectors, accessible names), so `renderEvidenceSummary()` escapes them with the scan's own
+  `escapeMarkdownText()` and links a URL only when the scan's `isSafeLink()` passes it (both from
+  `lib/a11y-baseline.mjs`: one copy to fix), and puts a selector in a `<code>` element.
+- **Every check gets its check run.** A summary lists twenty tooling problems at most and is cut to the
+  Checks API's limit (a longer one is refused with a 422), and the report script posts each check run
+  on its own: one the API refuses does not cost the checks after it theirs; the step still ends red.
+
+The merge, the validation, the summary and the check run are pure (`lib/a11y-evidence.mjs`, tested
+in `lib/__tests__/a11y-evidence.test.mjs` through the root `test:tooling`). The reporter
+(`reporters/a11y-checks.ts`) reads the last attempt of every test of each project that ran and writes
+the documents, the detail files and a `summary.md`; it never changes the run's status. It validates
+each part the way `mergeEvidence()` does, with the check's `triage` flag from `isTriageCheck()`, so a
+part the merge would keep is never dropped before it. `e2e/a11y-checks-reporter.spec.ts` (no browser,
+a few seconds) proves it on synthetic projects: the last attempt read, a failed test recorded as an
+error target, a retried one flagged, a triage check's part read as triage, a detail written to its own
+file. `scripts/a11y-evidence-report.mjs` reads the documents and writes the job summary,
+or posts one check run per check with `--check-run` (`--dry-run` prints the payloads); a check of the
+suite the job ran (`HOT_A11Y_CHECKS_SUITE`, or the comma-separated `A11Y_CHECKS` when it is set) that
+left no document gets a neutral tooling check run instead of none.
+
+- **Where they run.** `a11y.yml` has a second job, `checks`, beside `axe`: the same Playwright
+  container and UMD artifact, `continue-on-error` on the job only (a tooling failure turns the job red,
+  as it does the axe job, and never the Tests pipeline), and one
+  `A11y / <check> report` check run per check on the pull request's head commit (behind the canonical
+  fork guard). `HOT_A11Y_CHECKS_SUITE` picks the checks: a pull request runs the ones with
+  `pullRequest: true` in `EVIDENCE_CHECKS` (a check earns it by finishing in under two minutes), and the
+  `A11y nightly` (`a11y-nightly.yml`, weeknights on develop, and a dispatch from any branch) runs them
+  all with `nightly: true`. The evidence goes up as `a11y-checks-evidence`, outside the
+  `playwright-report-*` glob the flake ledger reads, for 30 days from the nightly (what the report
+  cites) and 7 from a pull request. `EVIDENCE_CHECKS` is the one list: the config builds its projects
+  from it (`checksForSuite()`), and the report script posts a neutral tooling check run for a check of
+  the suite that left no document. Locally: `npm --prefix tests run test:a11y-checks`, every check, or
+  `-- --project=<check>`; the reporter writes the documents only when the config's reporters run, so do
+  not pass `--reporter` on the command line.
+
+### The keyboard walker
+
+`a11y/checks/keyboard-walker.spec.ts`, the `keyboard-walker` check: 2.1.1, 2.1.2, 2.1.4, 2.4.3, 3.2.1
+and 3.2.2, measured with real keys. The browser half records (`a11y/checks/walker.ts`), the pure half
+judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test.mjs`).
+
+- **Every catalog page, on the main theme.** A theme is CSS: it moves no tab stop and changes no key,
+  so the walker runs each page of `a11y/pages.mjs` once, in its state, on `main`. The dark and
+  right-to-left pages are in the catalog already.
+- **A walk covers the grid and nothing else.** A focusable sentinel goes right before and right after the
+  grid's root container, and a walk presses Tab from the first until the focus reaches the second
+  (Shift+Tab back). The fixture page's own buttons are not the product and are never walked. Each stop
+  records its region (`grid`, `portal` for any element the harness marked as a portal, the grid's own or
+  a popup library's, a sentinel, `outside`, or `body` when no element has the focus), the role and name Chromium's accessibility tree gives the focused element (read over CDP
+  with `Accessibility.getPartialAXTree`, because the DOM cannot say what a screen reader gets), and its
+  cell. **A stop is keyed by its cell, never by its element**: Walkontable reuses a `<td>` for another
+  cell after a scroll, so keying by element would read a scroll as a cycle.
+- **A trap is a walk that never gets out, and a long walk is not a trap.** With `tabNavigation` (the
+  default) every cell is a tab stop and Tab leaves the grid from a row's last cell; with `autoWrapRow`
+  Tab wraps rows and leaves from the last cell of the grid, so a walk can run out of presses (the
+  column count plus 40) with nothing wrong. The walker then tries the way out the shortcut guide
+  documents, Ctrl+End then Tab (Ctrl+Home then Shift+Tab back): a walk that gets out that way is an
+  advisory `tab-walk-needs-shortcut`, one that does not is a `keyboard-trap`. A way out whose press from
+  inside the grid's container leaves no element focused is also `focus-lost`, as in a walk: the focus left
+  the grid, so it is no trap, but a screen reader has nothing focused. A walk that comes back to a
+  stop outside the product (the sentinel it started on) without reaching the other one is neither an exit
+  nor a trap held in the grid, and is an advisory `tab-walk-incomplete`. A modal dialog holds the
+  focus by design: a cycle inside one is a trap only when neither Escape nor a button in it lets the
+  keyboard out, and a Tab that walks out of an open modal to the content behind it is a
+  `focus-leaves-modal` finding.
+- **A popup is judged by Escape.** On a menu, an editor, the comment editor or the formula editor's popups
+  (`POPUP_STATES`), Escape (pressed up to three times: a submenu takes two, and so does a formula popup,
+  which closes before the edit does) must close it and give the focus back to the cell it opened on: to
+  that cell's own element, or, on a grid in mixed focus mode (`imeFastEdit`), to the editor input that
+  mode keeps the focus on by design. Another element of the grid (a header, a button, the hidden editor
+  input of a grid in cell focus mode) is not back, though the cell stays highlighted. A
+  popup state walked like a grid at rest reads a Tab the editor keeps (the formula editor accepts a
+  suggestion with it) as a trap, so a state that opens a popup belongs on that list. Then the
+  popup opens again and Tab walks inside it, judged per stop, and its stops are keyed by cell like a Tab
+  walk's: on an editor Tab commits and moves from cell to cell. A Tab that leaves the focus on the element
+  it was on (the one the popup put it on, for the first) is an advisory `tab-keeps-focus`, with whether
+  the editor stayed open: the walk cannot tell a date input moving between its fields, a suggestion
+  accepted and a Tab that did nothing apart, and the guide says Tab completes the entry and moves on. A
+  focus that lands on `body` after the
+  popup closed is `focus-not-returned`: the grid often still listens, so the next arrow key brings the
+  focus back, but a screen reader has nothing focused until then.
+- **Per stop:** a product stop the accessibility tree gives no role is `focus-stop-without-role`, one whose
+  role needs a name (a button, a menu item, a text field, a native date or time input, a header) and has none is
+  `focus-stop-unnamed` (both 4.1.2: the walker sees them, the tree snapshots own the criterion); a grid
+  cell needs no name, because an empty cell's empty name is its value. A press that also opened a menu,
+  a dialog or an editor, or navigated, is `context-change-on-focus` (3.2.1). A press from a stop inside the
+  grid's container that leaves no element focused is `focus-lost` (2.4.3): the sentinels bracket the
+  container, so the focused element went away. A `body` stop after a portal stop is not judged, because the
+  portal can be the last focusable element of the page, and Playwright emulates page focus, so
+  `document.hasFocus()` cannot tell leaving the page from losing the focus. A stop both walks pass gets
+  one role or name finding (the walks share one `reported` set): its role and name do not depend on the
+  walk that reached it, so a second finding would count one defect twice. A focus loss, a Tab out of a
+  modal and a change of context on focus depend on the key, so each walk keeps its own: Tab and Shift+Tab
+  losing the focus from one cell are two defects, and fixing one leaves the other. Every form control a walk
+  stopped on then gets an input (Space, ArrowDown, a letter), and an input that navigates, opens a popup
+  or moves the focus away is `context-change-on-input` (3.2.2).
+- **The APG grid keys** (arrows, Home, End, Page Up, Page Down, Ctrl+Home, Enter, F2, Escape) are pressed
+  on every grid at rest, each from the page's cell. A key that moves the focus out of the grid is a
+  finding; one that does nothing is advisory, because an edge cell, a frozen band or a hidden column can
+  make that right. A key the start cell is already at the edge for is skipped, and so are Enter and F2
+  on a cell that is read-only, has no editor, or is a checkbox (which toggles instead), and Enter alone
+  on a grid with `enterBeginsEditing: false`, which changes Enter and leaves F2 opening the editor.
+- **Every documented shortcut is accounted for.** `a11y/checks/keyboard-shortcuts.mjs` has one entry per
+  row of the keyboard shortcuts guide, by section, Windows keys and ordinal (what `parseShortcutTables()`
+  reads from the page): a `probe` (the page, where the focus starts, the steps before, the keys, the
+  effect the guide describes) or a `notProbed` reason. The tooling test fails on a documented row with no
+  entry and on an entry whose row is gone, so a shortcut added to the guide is probed, or its reason
+  written, in the same change. The probes run on `fixtures/demo/keyboard-shortcuts.html` (one grid with
+  menus, filters, comments, merging, undo, clipboard, multi-column sorting and navigable headers) or on
+  the catalog page that draws the feature. The verdict compares two snapshots of the grid
+  (`effectsBetween()`): nothing changed is `shortcut-does-nothing` (2.1.1), the focus leaving the grid is
+  `shortcut-moves-focus-out` (2.4.3), another effect is advisory, and so is an effect the guide rules out,
+  which the probe lists in `forbid` (Escape on an editor or the comment editor must close it without
+  saving what was typed): a probe passes on any one expected effect, so a key that also does the wrong
+  thing passes unless the probe forbids it. **Every probe starts from the page as it
+  loaded**: a probe that changed the data, the merges, the sort, the filters, the collapsed groups, the
+  frozen counts or the row selection makes the walker load the page again, because a cleared cell or a
+  collapsed row made the next probe report a shortcut as dead. Write a probe from a cell the key can
+  move from (the start cell of an arrow is not on the edge it moves toward), and read the fixture first:
+  a read-only cell, a list that keeps the focus on its input (`aria-activedescendant`, which the
+  snapshot counts as a move), a freeze bar that takes one arrow axis only, an editor the grid moves
+  between the cell and the formula bar (the focus key carries the part of the root wrapper, so F6 is a
+  move), the text of the focused text field (`focusedText`, counted as a text change only while the focus
+  stays on the same element: a key that also moves the focus reads as a focus move), and a key that only
+  switches a mode (`then` presses the key that shows the mode). The column menu's Filter by value list
+  is a grid of its own: the snapshot reads its highlighted item and its checked values while the menu is
+  open, because its keys change only those. The editor's text, caret and list read
+  `null` while it is closed, so they count as changed only while the editor stays open: a key that
+  closes the editor closed it, and a probe that expects an edit reads that as another effect.
+- **A probe's step is its id.** A probe finding has a step and no selector (`probeStep()`): the
+  documented keys, the key with the steps of its own (`F6 after F6`), the steps after it, and where the
+  focus starts. No two presses of one page share a step (a tooling test checks it), because two findings
+  that share an id read as one in a diff between runs.
+- **A probe that could not run is a problem, never a pass.** A probe whose setup fails, one the page threw
+  on (the error explains what the probe saw), and one skipped because the test is close to its timeout
+  are tooling problems of that probe, and the others keep their findings; the target then evaluates no
+  criterion. The probes stop early enough for the evidence to be attached: a setup that waits its full
+  timeout on every probe would otherwise run the test out of time and lose everything.
+- **2.1.4 is measured, not assumed.** With the grid holding a selection and the focus on the sentinel
+  outside it, printable keys must change nothing (a key that changed nothing on a grid with no selection
+  would prove nothing, so a setup that fails is a problem and 2.1.4 is not credited); and a documented
+  shortcut that is a single character with no modifier
+  (`singleCharacterShortcuts()`; none today) is listed as advisory, because it must work only while the
+  grid has the focus.
+- **The tab order has goldens, advisory.** `a11y/tab-order-goldens/<page>.json` holds every walk's stops as
+  a reviewer reads them (region, role, name, cell). A difference is `tab-order-changed` (advisory, 2.4.3),
+  a page without one `tab-order-golden-missing`. Record them with `HOT_A11Y_UPDATE_GOLDENS=1` and read
+  the diff before committing: a golden pins what the grid does, findings included.
+
+### The accessibility-tree snapshots
+
+`a11y/checks/tree-snapshots.spec.ts`, the `tree-snapshots` check: 1.3.1, 1.3.2 and 4.1.2, read from
+Chromium's accessibility tree of the grid's root container and its portal, on every page of the catalog
+in its state and on every theme. A state whose popups mount in a portal of their own marks that portal
+too (hyperformula-ui's `.hfe-popup-portal`), so the check reads every marked portal, in document order,
+never only the first. The browser half flattens the tree (`a11y/checks/ax-tree.ts`), the pure
+half judges it (`lib/aria-tree.mjs`, tested in `lib/__tests__/aria-tree.test.mjs`).
+
+- **The tree as a screen reader gets it, in reading order.** `Accessibility.getFullAXTree` gives the roles,
+  names and order; one `DOMSnapshot.captureSnapshot` gives each node's tag and attributes
+  (`aria-rowindex`, `aria-colindex`, `tabindex`, the class), joined by backend node id. An ignored node is
+  dropped and its children are read in its place. The axe scan reads the same tree against axe's rules;
+  this check reads its order and structure, which no axe rule does. A grid root the tree does not hold
+  throws in `flattenAxTree()`: with no node read, the page would pass 1.3.1, 1.3.2 and 4.1.2 with no
+  finding, so it is a tooling failure, never a clean target. A portal stays optional.
+- **Structure** (`structureFindings()`): the column headers read after the data rows
+  (`headers-after-data`, 1.3.2), data rows without their row header while the row headers sit in rows of
+  their own (`row-headers-apart`, 1.3.1), one row index exposed by several rows (`row-exposed-twice`,
+  1.3.1), cells or rows read out of their index order (1.3.2), a grid role with no row (1.3.1). Today the
+  first three show on every grid with headers: the overlay clones put the header row after the master
+  table and repeat each row in the row-header clone. They are one root cause, reported per page and
+  theme, because the evidence is per page. Each grid is judged on its own rows (a row belongs to its
+  nearest grid, treegrid or table ancestor). A list inside the page (the handsontable editor's list, the
+  filters' value list) therefore neither adds rows without a header to the grid nor shares its row
+  indexes. A grid after the first is named by its place among the grids with rows (`grid 2 in reading
+  order`). A row whose own rowgroup is a table head (`thead`) is never a data row: the corner clone
+  repeats the head row with its corner cell alone.
+- **Names and roles** (`nameFindings()`): a widget role with no name (`unnamed-control`), a column or row
+  header with no name (`unnamed-header`), and a tab stop (any node the tree marks focusable, an editable
+  region too) the tree gives no role (`focusable-without-role`). An empty grid cell needs no name; an
+  element focusable by script only (`tabindex="-1"`, every cell) is not a tab stop. One finding per kind,
+  role and element, with its node count. The element is the portal mark for a node in the portal, the tag
+  (`unknown` without a DOM element), the first class and the `role` attribute; a cell or a header carries
+  no class there, because its classes are rendering state (the selection, the last visible header) and
+  would split one finding across themes and runs. A closed cell editor stays in the DOM and in the tree,
+  so its input is judged on every page.
+- **Goldens, advisory, on the main theme.** `a11y/tree-goldens/<page>.yml` holds Playwright's
+  `ariaSnapshot()` of the grid and the portal. The theme changes which rows are drawn, not the roles or
+  names, so one theme keeps the goldens and every theme is judged. A difference is
+  `tree-snapshot-changed`, with the first line that differs. What the run decides, not the page, is
+  masked before the comparison (`maskSnapshot()`): the server's origin reads `<origin>`, the installed
+  version `<version>`, and a live status region's message `<announcement>`, so a golden moves for a tree
+  change only, on any port and after a version bump. An announcer's message is transient: when the snapshot
+  is taken decides which one it reads, and what is announced is the screen reader lane's to judge.
+  Record with `HOT_A11Y_UPDATE_GOLDENS=1` (the same switch as the tab-order goldens) and read the diff
+  before committing.
+
+### The axe discovery run
+
+`a11y/checks/axe-discovery.spec.ts`, the `axe-discovery` check, nightly only: axe with the
+best-practice, AAA and experimental rules beside the WCAG 2.2 A and AA ones (`DISCOVERY_TAGS` in
+`lib/axe-discovery.mjs`, tested in `lib/__tests__/axe-discovery.test.mjs`).
+
+- **Triage, never the gate.** It reads and writes nothing of `a11y/axe-baseline.json` and never posts to
+  `A11y / axe report`; its verdict is `A11y / axe-discovery report`. Its registry entry is `triage: true`
+  with no criteria, and its document says `triage: true` with an empty `summary.byCriterion`, because what
+  it lists is for a person or the agent grader to sort, not for the conformance report to cite as it
+  stands. Its records keep the criteria axe tags them with, for sorting. A rule the gating scan already
+  runs shows here too (on states and variants the scan does not reach), and each record names its family
+  (`wcag-a-aa`, `wcag-aaa`, `best-practice`, `experimental`).
+- **Every "needs review" result is listed with axe's reason.** `incomplete` is what axe could not decide;
+  the gating scan only counts it. Here each one is an advisory `axe-needs-review` record per rule,
+  element shape and cause (`nodeCause()`: the axe check behind its first message, and that check's
+  message key), with the node count, an example selector and the first node's message in its `reason`.
+  The message is never part of the key: axe writes per-node values into some (a size in px, an
+  `aria-controls` id that carries the instance's random guid), which would split one finding per node and
+  change its id every run. A violation is an `axe-violation` record per rule and element shape, at axe's
+  impact. The summary counts the records by rule and kind, so what axe decided stays apart from what it
+  could not. A best-practice rule maps to no WCAG criterion, so its record carries an empty `criteria`
+  list, which the evidence shape allows on a triage check's record only and counts as
+  `summary.withoutCriterion`; on any other check such a finding is malformed.
+- **More states, in a list of its own.** `a11y/checks/discovery-pages.mjs` adds what no catalog page
+  holds still: a cell focused from the keyboard, a hovered header button, the column menu of a sortable
+  grid, a focused option of the filter value list, two selected ranges, a submenu inside a submenu
+  (`keyboard-shortcuts.html?menu=nested`), a sheet tab being renamed, a modal dialog holding the focus,
+  and a column move and a column resize mid-drag, scanned with the pointer still held because their
+  guides exist only then. A page added there never reaches the gating scan's baseline, and its records
+  name its entry there (`file`, `line`), so the check run annotates them on it rather than on
+  `a11y/pages.mjs`. The openers are `DISCOVERY_STATES` in the spec; the catalog's come from the harness.
+  They press keys where a key reaches the state, and use the API or the pointer where the surface, not
+  the path to it, is what the scan needs: a hover, a drag, a second range, a renamed sheet tab, a dialog
+  holding the focus.
+- **Every page in the dark scheme, right to left, and on a second phone.** Dark runs on every theme: a
+  script installed before the fixture loads turns each `ht-theme-<name>` class the page or the grid writes
+  into its dark form, so the grid and its portal are built dark (`?scheme=dark` reaches only the fixtures
+  that read it). Right to left runs on the main theme: the fixture is served with `dir="rtl"` on `<html>`
+  and with the query it reads (`?dir=rtl`, `?rtl=1`, `?direction=rtl`, found in its source by
+  `rightToLeftQuery()`). The phone page runs on a Pixel 7 beside the iPhone 13. A variant that did not
+  apply (no dark class on the grid, or a grid still left to right) fails its test before axe runs, a
+  tooling error the document lists as a target not measured, so it never reads as a clean pass.
+
+### Adding a check
+
+Add its entry to `EVIDENCE_CHECKS` in `lib/a11y-evidence.mjs`, keyed by the check's id: its `title`,
+its `spec` (the file name under `a11y/checks/`), the `criteria` it evidences, and `pullRequest` (whether
+pull requests run it, which it earns by finishing in under two minutes). The config builds one project
+per entry from that list (`checksForSuite()`), so never add a project by hand: it would run the check
+twice. Then add its spec to `a11y/checks/`. Write the measurer or matcher as a pure function with a tooling test that is red
+before the function exists. Prove the check on the product with a planted defect (a fixture hook that
+removes a focus ring or a name), shown in the check run of its pull request, then reverted. Document
+its rules here, its line in `handsontable/.ai/TESTING.md` and its job in `.ai/CI.md`.
+
+## Screen readers: the NVDA and VoiceOver lanes
 
 `screenreader/screenreader.spec.ts` drives a real screen reader through Guidepup
 (`@guidepup/playwright` and `@guidepup/guidepup`, MIT, devDependencies of this package only; the
 `@guidepup/setup` CLI, pinned at 0.29.3, runs through `npx -y` and is never installed, because its
 optional recording helper depends on a GPL-licensed ffmpeg build, which the dependency rule keeps out
 of the lockfile) over the scenarios of `screenreader/scenarios/`, one Playwright project per screen
-reader and browser (`playwright.screenreader.config.ts`: `nvda-chromium`, `nvda-firefox`; the VoiceOver
-projects `vo-webkit` and `vo-chromium` are named for the next lane). It writes a transcript per
-scenario, and `scripts/screenreader-report.mjs` turns the transcripts into the job summary and the
-`Screen reader / <project> report` check run. CI runs it on its own nightly
-(`.github/workflows/screenreader-nightly.yml` calling `screenreader.yml`, NVDA on `windows-2025`, one
-browser per job), never in the pull-request Tests pipeline. This is the evidence the Accessibility
-Conformance Report cites for what a cell, a header, a state and a status message announce (WCAG 1.3.1,
+reader and browser (`playwright.screenreader.config.ts`: `nvda-chromium`, `nvda-firefox`, `vo-webkit`,
+`vo-chromium`). It writes a transcript per scenario, and `scripts/screenreader-report.mjs` turns the
+transcripts into the job summary and the `Screen reader / <project> report` check run. CI runs it on its
+own nightly (`.github/workflows/screenreader-nightly.yml` calling `screenreader.yml`: NVDA on
+`windows-2025` and VoiceOver on `macos-26`, one job per screen reader and browser), never in the
+pull-request Tests pipeline. It is the evidence a future version of the Accessibility
+Conformance Report can cite for what a cell, a header, a state and a status message announce (WCAG 1.3.1,
 4.1.2, 4.1.3): the axe scan reads the accessibility tree, this lane reads what a screen reader makes of
-it.
+it. No verdict of the current report comes from it, which is why the report page lists only the audited
+screen readers (`docs/AGENTS.md` 2.20).
 
 - **Report-only, and the rule is one constant.** `SCREENREADER_MODE` in `lib/screenreader-transcript.mjs`
   is `report`: a missing token group or a golden difference is a row in the summary, a line in the
@@ -1327,7 +1668,7 @@ it.
   awaited inside the capture so the state's announcement is in it, and a red test when it never comes)
   and a `note`. The schema is `lib/screenreader-scenario.mjs`, and
   `lib/__tests__/screenreader-scenarios.test.mjs` (root `test:tooling`) validates every committed file,
-  so a mistake fails on the pull request and not inside a 30-minute Windows job. That includes every
+  so a mistake fails on the pull request and not inside a Windows or macOS job. That includes every
   `press` value, checked against Playwright's key names (`PRESS_PATTERN`: an optional chord of `Shift`,
   `Control`, `Alt`, `Meta` or `ControlOrMeta` joined by `+`, then a named key such as `ArrowRight`,
   `F10` or `KeyA`, or one printable character), so a misspelled `ArrowRigth` is refused there. Keys go
@@ -1346,27 +1687,34 @@ it.
   reader. **One fact per group**: the synonyms of a group are the ways to say that one fact (`"level 1"`
   or `"1 of 2"`, `"edit"` or `"multi line"`), never two facts, because a group passes on any one of
   them: `["row 1", "column 2"]` passed on a header NVDA placed in row 7. This tier is what gates later.
-  The **goldens** (`screenreader/goldens/<project>/<scenario>.json`) are the exact normalized
-  announcement per step, advisory only: a wording change in NVDA, the browser or the core shows as a
+  A group widens only when a screen reader says the same fact in other words, and the step's note says
+  so: VoiceOver calls the text editor a `text entry area`, which joined the editable-role group of
+  `open-editor`. The **goldens** (`screenreader/goldens/<project>/<scenario>.json`) are the exact
+  normalized announcement per step, advisory only: a wording change in NVDA, the browser or the core shows as a
   golden difference in the summary, and the fix is to re-record once the new wording is right. The
   normalizer (`normalizeAnnouncement()`) lowercases, folds Unicode, drops punctuation, collapses
   whitespace and removes the screen reader's own chatter (`CHATTER`: the mode switch, `clickable`).
-- **Recording goldens is a CI job, because nobody has NVDA on a Mac.** Dispatch the nightly from the
-  branch with the `update-goldens` input: the run records every project's goldens on the runner
-  (`HOT_SR_UPDATE_GOLDENS=1`, or Playwright's `--update-snapshots` through
-  `npm run test:screenreader:update-goldens`) and uploads them as
-  `screenreader-goldens-nvda-<browser>`; download, commit under `screenreader/goldens/<project>/`,
-  done. A run with `update-goldens` compares nothing and reports `recorded`. A golden pins the wording
+- **Recording goldens is a CI job, because nobody has NVDA on a Mac or a VoiceOver set up for
+  automation on their own.** Dispatch the nightly from the branch with the `update-goldens` input
+  (`gh workflow run screenreader-nightly.yml --ref <branch> -f update-goldens=true`): the run records
+  every project's goldens on its runner (`HOT_SR_UPDATE_GOLDENS=1`, or Playwright's
+  `--update-snapshots` through `npm run test:screenreader:update-goldens`) and uploads them as
+  `screenreader-goldens-<project>`; download, commit under `screenreader/goldens/<project>/`, done.
+  The dispatch runs every job, so it records the NVDA goldens too: commit only the projects the change
+  is about. A run with `update-goldens` compares nothing and reports `recorded`. A golden pins the wording
   as recorded, a finding included: a step NVDA stays silent on is an empty string in it, and a wrong
   row is the wrong row. The scenario's `note` says which steps record a finding (`Finding: …`), so a
   golden difference on such a step can be the fix; re-record the golden when the finding is fixed.
   `lib/__tests__/screenreader-goldens.test.mjs` (root `test:tooling`) reads every committed golden: it
   parses, has `schema` 1, names its file as its scenario and its directory as its project (a project of
-  the config, never `dom-echo-chromium`, and an `nvda-*` golden was recorded by NVDA), lists the
+  the config, never `dom-echo-chromium`; an `nvda-*` golden was recorded by NVDA, a `vo-*` golden by
+  VoiceOver on macOS), lists the
   scenario's step ids in order, and holds each step as a normalized string (what the update mode
   writes; a hand-edited raw text would differ on every run). A step renamed, added, removed or moved
-  therefore fails that test until the golden is re-recorded. A step id starts with a letter, because
-  `JSON.parse` moves an integer-like key (`"2"`) ahead of the others.
+  therefore fails that test until the golden is re-recorded. The same test fails a screen reader project
+  of the config without a golden for every scenario, so a new scenario or a new project lands with its
+  goldens. A step id starts with a letter, because `JSON.parse` moves an integer-like key (`"2"`) ahead
+  of the others.
 - **Where the transcripts go.** `test-results/screenreader/transcripts/<project>--<scenario>.json`
   (the steps with the spoken text, the normalized text, the token verdict, the golden verdict and the
   timing, plus what the screen reader said while entering the page) and `.log` beside it, readable
@@ -1377,10 +1725,10 @@ it.
   nothing from it), and the test stays red; the report reads it as a tooling problem ("scenario <id>
   stopped at step <step>") and still shows the captured steps. Each attempt deletes the scenario's
   transcript before it starts, so a retry never leaves the previous attempt's file behind. CI uploads
-  the directory as `screenreader-transcripts-nvda-<browser>` and the Playwright report as
-  `screenreader-playwright-report-nvda-<browser>`, both outside the `playwright-report-*` glob the
+  the directory as `screenreader-transcripts-<project>` and the Playwright report as
+  `screenreader-playwright-report-<project>`, both outside the `playwright-report-*` glob the
   flake ledger reads, and the config has no JSON reporter, so nothing here becomes a flake record.
-- **The runner enters the grid the way a user does, then pins the mode.** The Guidepup reader calls
+- **The NVDA reader enters the grid the way a user does, then pins the mode.** The NVDA reader calls
   `navigateToWebContent()` (the browser window focused, the reader at the top of the document), the
   setup selects a cell through the API, and `ready()` reads the mode NVDA last announced (a mode switch
   is spoken, not played, through the `virtualBuffers.passThroughAudioIndication` setting the start
@@ -1395,22 +1743,75 @@ it.
   Guidepup discards speech that arrives while it stops the previous utterance, so the second listen
   reduces late phrases in the next step, it does not remove them. A step therefore costs a second and
   more, and a scenario is minutes: the config's test timeout is five minutes with two retries,
-  Guidepup's own mitigations. The run step's `timeout-minutes` is 25 and the job's 30: a step timeout
-  is a step failure, so the transcripts, the summary and the check run still come, where a job timeout
-  cancels them.
+  Guidepup's own mitigations. The run step's `timeout-minutes` is 25, every step that downloads (the
+  setup CLI, the browser, the screen reader) has its own, and each job's timeout sits above the sum of
+  its steps' (45 for NVDA, 55 for VoiceOver): a step timeout is a step failure, so the transcripts, the
+  summary and the check run still come, where a job timeout cancels them. The workflow test pins that
+  rule for both jobs.
+- **The VoiceOver reader enters the grid before the focus does.** `enter()` calls Guidepup's
+  `navigateToWebContent()` (the browser activated by its bundle id, "web content" picked in VoiceOver's
+  item chooser and interacted with, the cursor on the page's first item, the grid) and then
+  `interact()` (VO-Shift-Down) on the grid, the way a VoiceOver user enters a table. The setup then puts
+  the focus on a cell, and VoiceOver's cursor follows the keyboard focus from there on; keys still go
+  to the page through Playwright, so VoiceOver hears the page react, never the keystroke. The order is
+  the rule: an `interact()` after the setup, with the focus already on a cell, took VoiceOver into the
+  cell's text, and on Chromium it then announced no cell move at all (only the editor and an API
+  reselection, 2 of 20 steps). A run with
+  no `interact()` read the same as the run with it, step for step, on both browsers, because the
+  announcements come from the focus. After the last step of a complete run, `leave()` stops interacting
+  (VO-Shift-Up). The transcript is written by then, so a failure there is a `warning` annotation in the
+  Playwright report and a line in the log, never a red test: a retry would rerun the scenario for minutes
+  and overwrite the complete transcript. VoiceOver starts with two preferences off, merged into the bundle
+  `install voiceover` installs: usage hints ("You are currently on a cell, inside of a table…" a
+  second after every move, about VoiceOver and not the grid, which doubled each step's time), and the
+  mouse pointer following VoiceOver's cursor. With the pointer following, an opened context menu put
+  the pointer in the menu's middle, the hover selected the item under it, and every ArrowDown after
+  that started from `Remove column`; a keyboard user's pointer stays put.
+- **VoiceOver keeps its last phrase, so every VoiceOver step starts from a step boundary.** Guidepup's
+  VoiceOver capture polls `content of last phrase` until it holds still (1.25 s), and takes a phrase
+  that has not changed for about 600 ms as new: a step VoiceOver says nothing on would read as the
+  previous step's phrase. Before each capture the reader has VoiceOver speak `Step boundary`
+  (AppleScript `output`) and waits until it is the last phrase; `stripStepBoundary()` in
+  `lib/screenreader-voiceover.mjs` removes it from what the capture read, so a silent step is an empty
+  string, as on NVDA, and the boundary never reaches a transcript. A boundary that never reads back
+  fails the run as tooling, because silence would then be indistinguishable from a repeat. A step that
+  captured only the boundary is listened to once more, like NVDA's. A step costs about 4 s on
+  VoiceOver (grid-core about 140 s on either browser, nested-rows 35 to 45 s).
+- **The VoiceOver job is macOS: `macos-26`, `setup --ci --macos-record`, two jobs at most.**
+  `npx -y @guidepup/setup@0.29.3 setup --ci --macos-record` writes the automation permissions into the
+  TCC database, enables VoiceOver's AppleScript control and turns on Do Not Disturb, and screen-records
+  itself into `tests/recordings/`, uploaded as `screenreader-recordings-vo-<browser>` red or green;
+  `install voiceover` fetches Guidepup's VoiceOver preferences bundle for the runner's macOS. `vo-webkit`
+  is Playwright's own WebKit build (Playwright.app) with the Desktop Safari descriptor, not Safari.app;
+  `vo-chromium` is Chrome for Testing. The job carries `max-parallel: 2`, because the organization runs
+  at most five macOS jobs at once, step timeouts of 12 minutes on the setup, 5 on each install and 25
+  on the run, and a 55-minute job backstop above their sum. A job is about 5 to 6 minutes, 4 to 5 of them the run.
+- **The VoiceOver setup recovers on the same runner.** The CLI turns on Do Not Disturb by driving the
+  Control Center UI through AppleScript, and about one job in a hundred fails there ("Failed to enable
+  Do not disturb mode") once the CLI's own five tries are spent, about 3.5 minutes; the first develop
+  nightly lost its Chromium transcripts that way. The step therefore runs `setup --ci` once more after
+  relaunching Control Center (`killall ControlCenter`; launchd restarts it), and then `setup` without
+  `--ci`, which grants the same automation permissions without Do Not Disturb, so the night still
+  records a transcript; a workflow warning says each fallback ran, and the last one that a notification
+  could be spoken into a transcript. Every attempt is screen-recorded. No attempt is cut short: a good
+  setup takes 32 to 42 s, the CLI bounds a failing one itself, and killing it mid-run could leave
+  osascript and the recorder running. A setup still red after all three is the runner: re-run that job
+  from its page. Slack never hears of it (the job carries `continue-on-error`); Slack hears only of a
+  nightly whose build never reached the lanes. The workflow test pins the three attempts.
 - **A screen reader is one per machine, so the lane is serial and headed.** `withGuidepup()` pins one
   worker, no parallelism and `headless: false` on every project; the matrix gives each browser its own
   job. The spec adds no serial mode on top: it would skip every scenario after a red one and re-run the
-  passed ones on a retry. Two things follow. A second Guidepup lane (VoiceOver) is a second job, never
-  a second project in the same job. And the reader is behind the spec's `Reader` interface (`enter`,
-  `ready`, `capture`), so a lane adds its reader and leaves the scenarios alone: VoiceOver needs its
-  own way into the grid (`interact()`), which is the next pull request.
+  passed ones on a retry. Two things follow. Each Guidepup lane is its own job (`nvda`, `voiceover`),
+  never a second project in the same job. And the reader is behind the spec's `Reader` interface
+  (`enter`, `ready`, `capture`, and an optional `leave`), so a lane adds its reader and leaves the
+  scenarios alone: the scenarios, the token groups and the report are shared, and only the goldens are
+  per project.
 - **`HOT_SR_LANE=dom-echo` proves the runner without a screen reader.** On any platform,
   `HOT_SR_LANE=dom-echo npm run test:screenreader` runs every scenario in headless Chromium against a
   reader that echoes the focused element's accessible name, role (in the words a screen reader speaks:
   `column header`, `menu item`, `edit`), grid position and states two frames after the action. The
   echo checks the fixture, the keys, the `after` states and the report plumbing, locally, before the
-  Windows job does. Its wording rows are not evidence: it always announces the focused element, so a
+  Windows and macOS jobs do. Its wording rows are not evidence: it always announces the focused element, so a
   step a screen reader stays silent on (`close-editor`) announces on the echo, and a token row there
   says nothing about NVDA. Its transcripts carry `dom-echo-chromium`, it never runs in CI, and its
   goldens are never committed.
@@ -1419,7 +1820,17 @@ it.
   lacks the fact is a defect to fix in the core (the lane's purpose) and stays listed until it is, with
   a `Finding: …` sentence in the step's `note`. A group a step cannot satisfy today records the gap:
   `extend-range` in `grid-core` asks for the new end cell and its selected state, a range extension
-  moves no focus, and a miss there is the finding. Never delete a group to turn a row green.
+  moves no focus, and a miss there is the finding. Never delete a group to turn a row green. **Before
+  calling a miss the grid's, run the same keys over a well-formed ARIA grid**: a throwaway fixture in
+  the APG data grid shape (one `role="grid"` table, the same data and `aria-*index` values, a roving
+  focus, `window.hot.selectCell()` and a `window.Handsontable` marker for the runner) with a scenario of
+  the same steps, dispatched from an experiment branch. A miss there too is the screen reader's own
+  behavior, and the step's note says so without a `Finding (the grid's)`; a miss on the grid alone is
+  the grid's. The first such control showed that VoiceOver names no header role and no row number on a
+  focus move even on a correct grid, and with WebKit no column number either, while every position and
+  header Chromium derives from the tree is the grid's: the overlay clones hold the header row and the
+  row headers in rows of their own in Chromium's accessibility tree. Read that tree with CDP's
+  `Accessibility.getFullAXTree` on the fixture, which needs no screen reader.
 - **Adding a scenario**: a fixture under `fixtures/demo/` that keeps the fixture contract (the
   `?theme=`/`?bundle=` block, `window.hot`, a constructor throw captured as `htBuildError`), small
   enough that every step's target is rendered; the file `screenreader/scenarios/<surface>.scenario.json`
@@ -1427,13 +1838,14 @@ it.
   the announcements; a nightly dispatch from the branch for the real ones; the goldens from an
   `update-goldens` dispatch, read before they are committed. Keep every step's `"id"` on its own line:
   the check run annotates that line.
-- **Locally on Windows**: `npx -y @guidepup/setup@0.29.3 install nvda` in `tests/` once (the portable
-  NVDA build the installed `@guidepup/guidepup` names, with the Guidepup add-on), the UMD build with
-  the minified stylesheets, then `npm run test:screenreader`. The lane follows the platform: NVDA on
-  Windows, and `HOT_SR_LANE` to pick one explicitly. macOS has no default lane yet: the config throws
-  unless `HOT_SR_LANE` is set, because the VoiceOver runner lands in the next pull request, and a
-  default would start VoiceOver only for the spec to throw. On a Mac, `HOT_SR_LANE=dom-echo` runs the
-  scenarios without a screen reader.
+- **Locally**: the UMD build with the minified stylesheets, then `npm run test:screenreader`. The lane
+  follows the platform, and `HOT_SR_LANE` (`nvda`, `voiceover`, `dom-echo`) picks one explicitly. On
+  Windows, `npx -y @guidepup/setup@0.29.3 install nvda` in `tests/` once (the portable NVDA build the
+  installed `@guidepup/guidepup` names, with the Guidepup add-on). On a Mac the default is VoiceOver,
+  which needs `npx -y @guidepup/setup@0.29.3 setup` and `install voiceover` in `tests/` once; the setup
+  writes the Mac's automation permissions, so run it only on a machine you mean to automate, and expect
+  VoiceOver to speak and move its cursor for the whole run. `HOT_SR_LANE=dom-echo` runs the scenarios
+  without a screen reader on any machine.
 
 The chain from the nightly to the config is pinned by `.github/scripts/__tests__/screenreader-workflow.test.mjs`;
 the normalizer, the matcher, the golden diff, the report and the check-run poster by the

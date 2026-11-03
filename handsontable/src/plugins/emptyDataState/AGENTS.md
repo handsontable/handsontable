@@ -167,6 +167,29 @@ Only when nothing was captured — no ranges — does it fall back to selecting 
 is suppressed**. That is deliberate: a scroll-into-view on an arriving dataset would jump the viewport.
 Either way, `afterEmptyDataStateHide` fires last.
 
+**A `loadData()` drops the captured selection** (`#onBeforeLoadData`). The coordinates addressed the
+replaced rows, and restoring them put a selection on unrelated cells of the new data; under the sheets bar
+a sheet the user never visited opened with the departing sheet's selection. When a selection was captured,
+the drop also sets `#isSelectionDataReplaced`, and the hide after it then leaves the selection alone, as
+`#hide(false)` does for a view change: neither the old cells nor the first cell belong to the new data, and
+a sheet switch opens a never-visited sheet with nothing selected. Only a hide with nothing captured (a grid
+built empty) still takes the `(0, 0)` fallback. Two loads keep it, on purpose. One made while `hasExternalDataSource`
+answers `true`: a server-backed grid replaces its rows with `loadData()` on every page, sort and filter,
+and restoring the selection is how the user keeps it there. Ask the core hook, never the plugin behind it
+(`releasedPluginsViewAgnostic.unit.js`). And `updateData()`, which keeps the dataset's state by design
+(the wrappers send it on re-render), is not listened to at all.
+
+**`disablePlugin()` forgets the overlay**: `#isVisible` goes to `false` and the captured selection to
+`null`, like `destroy()`, and no hide hook fires. Left as they were, `isVisible()` answered `true` for a
+disabled plugin, and the next enable over rows ran `#hide()`: a phantom `afterEmptyDataStateHide` and a
+forced `selectCell(0, 0)`. `updatePlugin()` saves that state before its own disable and puts it back before
+the enable, so an update of the options keeps a visible overlay visible without a hide or show hook.
+**`#loadingActive` is part of that state.** `disablePlugin()` clears it, and an update that did not put it
+back dropped the loading overlay mid-fetch: "No data" over 0 rows, nothing over rows, and the fetch's
+`afterDataProviderFetch` then had no loading state left to clear. A sheet switch that re-sends an
+`emptyDataState` object took the same path. A new piece of overlay state belongs in that save and restore.
+Pinned by `__tests__/emptyDataStateLifecycle.unit.js` and `../dataProvider/__tests__/dataProviderLoadingSettle.unit.js`.
+
 ## Where to look next
 
 - Sibling overlay surfaces and the shared button-type rule: `../dialog/AGENTS.md`,
@@ -194,6 +217,16 @@ Either way, `afterEmptyDataStateHide` fires last.
 
 The shortcut behavior is pinned by the Playwright spec, not by `__tests__/keyboardShortcuts/`: it needs a
 real context menu and real key events, and the legacy suite is frozen.
+
+## The overlay first appears in the ready step
+
+At init `enablePlugin()` runs before the view exists, so its own toggle does nothing. `onGridReady()`
+(`../base/AGENTS.md`) toggles once after each enable or update, before the next render, so at init the
+overlay is shown before the `init` hook and drawn by the first render. It replaced an `afterInit` listener
+that showed it after the first render and then rendered a second time. The step toggles only when the enable
+ran without a view (`#toggleOwed`): on a live grid the enable toggles itself (or leaves it to `onDataReady()`),
+and a second toggle there only read the view counts again on every settings update a wrapper sends. Pinned by
+`__tests__/readyStep.unit.js`.
 
 ## The enable-time toggle waits for `onDataReady()` when settings arrive ahead of data
 

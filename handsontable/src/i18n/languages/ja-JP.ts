@@ -106,7 +106,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: 'もしくは',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: 'すべて選択',
-  [C.FILTERS_BUTTONS_CLEAR]: 'クリア',
+  [C.FILTERS_BUTTONS_CLEAR]: 'すべて選択解除',
   [C.FILTERS_BUTTONS_OK]: 'OK',
   [C.FILTERS_BUTTONS_CANCEL]: 'キャンセル',
 
@@ -138,6 +138,8 @@ const dictionary = {
   [C.SHEETS_BAR_PAGE_NEXT]: 'シートを前方にスクロール',
   [C.SHEETS_BAR_SHEET_CHANGED]: 'シート [name] が有効になりました',
   [C.SHEETS_BAR_RENAME_REJECTED]: 'シート名は変更されませんでした: [name] は既に使用されています',
+  [C.SHEETS_BAR_SHEET_DUPLICATED]: 'シート [name] を [copy] として複製しました',
+  [C.SHEETS_BAR_SHEET_MOVED]: 'シート [name] を [count] 中 [position] 番目に移動しました',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'シート',
 
   [C.LOADING_TITLE]: '読み込み中...',

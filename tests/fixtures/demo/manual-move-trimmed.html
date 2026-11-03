@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - manual row and column move next to trimmed indexes</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright
+    // projects, mapped through fixed allowlists to LITERALS so a crafted param can never be
+    // reflected into the document. An ABSENT param keeps the default (main / plain UMD) so the
+    // fixture stays browsable by hand; an unknown value THROWS rather than falling back: a typo
+    // in the project config must be one red leg, never a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    // `Object.hasOwn`, not a bare lookup: a plain object inherits `constructor`, `toString` and
+    // `__proto__`, so `?theme=constructor` would resolve to a truthy inherited value, sail past the
+    // guard below and be written into the document. Only the map's own keys are allowed.
+    const htPick = (map, value, fallback, label) => {
+      const key = value ?? fallback;
+
+      if (!Object.hasOwn(map, key)) {
+        throw new Error('Unknown ?' + label + '= value: ' + JSON.stringify(value));
+      }
+
+      return map[key];
+    };
+
+    window.htTheme = htPick(
+      { main: 'main', horizon: 'horizon', classic: 'classic' }, htParams.get('theme'), 'main', 'theme');
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = htPick(
+      { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, htParams.get('bundle'), 'umd', 'bundle');
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    Fixture for a drop that changes nothing, on a grid with a trimmed row (TrimRows) and a trimmed column
+    (an index map registered through the API). The grid is 6x6 and cell (row, col) reads "r<row>c<col>" by
+    PHYSICAL position, so the visible order shows how the index mappers are arranged. Every row and
+    column move hook call is recorded on window.moveLog. Cells carry data-testid="cell-<row>-<col>" by
+    visual position.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    window.moveLog = [];
+    // Set by the page object: untrim everything from the row hook, as an application would.
+    window.untrimRowsAfterRowMove = false;
+
+    window.hot = new Handsontable(container, {
+      data: Array.from({ length: 6 }, (_, row) => Array.from({ length: 6 }, (_, col) => `r${row}c${col}`)),
+      rowHeaders: true,
+      colHeaders: true,
+      manualRowMove: true,
+      manualColumnMove: true,
+      trimRows: [1],
+      height: 420,
+      renderer: testIdRenderer,
+      licenseKey: 'non-commercial-and-evaluation',
+      beforeRowMove(movedRows, finalIndex, dropIndex, movePossible) {
+        window.moveLog.push({ hook: 'beforeRowMove', movedRows, finalIndex, movePossible });
+      },
+      afterRowMove(movedRows, finalIndex, dropIndex, movePossible, orderChanged) {
+        window.moveLog.push({ hook: 'afterRowMove', movedRows, finalIndex, movePossible, orderChanged });
+
+        if (window.untrimRowsAfterRowMove) {
+          this.getPlugin('trimRows').untrimAll();
+          this.render();
+        }
+      },
+      beforeColumnMove(movedColumns, finalIndex, dropIndex, movePossible) {
+        window.moveLog.push({ hook: 'beforeColumnMove', movedColumns, finalIndex, movePossible });
+      },
+      afterColumnMove(movedColumns, finalIndex, dropIndex, movePossible, orderChanged) {
+        window.moveLog.push({ hook: 'afterColumnMove', movedColumns, finalIndex, movePossible, orderChanged });
+      },
+    });
+
+    window.hot.columnIndexMapper.createAndRegisterIndexMap('fixture-trim', 'trimming').setValueAtIndex(1, true);
+    window.hot.render();
+  </script>
+</body>
+</html>

@@ -263,6 +263,119 @@ describe('ColumnSorting -> the pre-sort row order', () => {
 
         expect(hot.getDataAtCol(0)).toEqual([4, 1, 2, 3]);
       });
+
+      describe('when sort states are written by setSortConfig()', () => {
+        [
+          { name: 'never sorted', warmUp: () => {} },
+          {
+            name: 'sorted and cleared once',
+            warmUp: (sorting) => {
+              sorting.sort({ column: 2, sortOrder: 'asc' });
+              sorting.clearSort();
+            },
+          },
+          {
+            name: 'with the sorting plugin disabled and enabled again',
+            warmUp: (sorting) => {
+              sorting.disablePlugin();
+              sorting.enablePlugin();
+            },
+          },
+        ].forEach(({ name, warmUp }) => {
+          describe(`on a grid ${name}`, () => {
+            it('clears the states without throwing and keeps the rows in place', () => {
+              const sorting = buildGrid(pluginKey);
+
+              warmUp(sorting);
+              sorting.setSortConfig([{ column: 2, sortOrder: 'asc' }]);
+
+              expect(() => sorting.clearSort()).not.toThrow();
+              expect(sorting.getSortConfig()).toEqual([]);
+              expect(hot.getDataAtCol(0)).toEqual([1, 2, 3, 4]);
+            });
+
+            it('puts the rows back in their original order when a later sort is cleared', () => {
+              const sorting = buildGrid(pluginKey);
+
+              warmUp(sorting);
+              sorting.setSortConfig([{ column: 2, sortOrder: 'asc' }]);
+              sorting.sort({ column: 2, sortOrder: 'desc' });
+
+              expect(hot.getDataAtCol(0)).toEqual([3, 1, 4, 2]);
+
+              sorting.clearSort();
+
+              expect(hot.getDataAtCol(0)).toEqual([1, 2, 3, 4]);
+            });
+
+            it('keeps a row inserted after the states were written when a sort is cleared', () => {
+              const sorting = buildGrid(pluginKey);
+
+              warmUp(sorting);
+              sorting.setSortConfig([{ column: 2, sortOrder: 'asc' }]);
+              hot.alter('insert_row_above', 1);
+              sorting.sort({ column: 2, sortOrder: 'desc' });
+              sorting.clearSort();
+
+              expect(hot.getDataAtCol(0)).toEqual([1, null, 2, 3, 4]);
+            });
+
+            it('puts the original order back after the states were emptied and the rows sorted again', () => {
+              const sorting = buildGrid(pluginKey);
+
+              warmUp(sorting);
+              sorting.setSortConfig([{ column: 2, sortOrder: 'asc' }]);
+              sorting.sort({ column: 2, sortOrder: 'desc' });
+              sorting.setSortConfig([]);
+              sorting.sort({ column: 2, sortOrder: 'asc' });
+              sorting.clearSort();
+
+              expect(hot.getDataAtCol(0)).toEqual([1, 2, 3, 4]);
+            });
+          });
+        });
+
+        it('keeps a row moved after the states were written when a sort is cleared', () => {
+          const sorting = buildGrid(pluginKey);
+
+          sorting.setSortConfig([{ column: 2, sortOrder: 'asc' }]);
+          hot.getPlugin('manualRowMove').moveRow(3, 0);
+          hot.render();
+          sorting.sort({ column: 2, sortOrder: 'desc' });
+          sorting.clearSort();
+
+          expect(hot.getDataAtCol(0)).toEqual([4, 1, 2, 3]);
+        });
+
+        it('keeps the undo history when the first sort after the states were written is undone', () => {
+          const sorting = buildGrid(pluginKey, { undo: true });
+          const undoRedo = hot.getPlugin('undoRedo');
+
+          hot.setDataAtCell(0, 1, 'e');
+          sorting.setSortConfig([{ column: 2, sortOrder: 'asc' }]);
+          sorting.sort({ column: 2, sortOrder: 'desc' });
+          undoRedo.undo();
+
+          expect(hot.getDataAtCol(0)).toEqual([1, 2, 3, 4]);
+          expect(undoRedo.isRedoAvailable()).toBe(true);
+          expect(undoRedo.isUndoAvailable()).toBe(true);
+
+          sorting.sort({ column: 2, sortOrder: 'asc' });
+          sorting.clearSort();
+
+          expect(hot.getDataAtCol(0)).toEqual([1, 2, 3, 4]);
+
+          undoRedo.undo();
+
+          expect(hot.getDataAtCol(0)).toEqual([2, 4, 1, 3]);
+
+          undoRedo.undo();
+
+          expect(hot.getDataAtCol(0)).toEqual([1, 2, 3, 4]);
+          expect(hot.getDataAtCell(0, 1)).toBe('e');
+          expect(undoRedo.isUndoAvailable()).toBe(true);
+        });
+      });
     });
   });
 });

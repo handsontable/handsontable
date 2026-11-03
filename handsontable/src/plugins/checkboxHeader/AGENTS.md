@@ -15,6 +15,10 @@ pressed. Read this before touching `checkboxHeader.ts`, `../../utils/checkboxCol
 
 ## The traps
 
+- **The `checkbox` cell type must be registered.** `PLUGIN_DEPS` names `cell-type:checkbox` (`feature.json`,
+  `enforceAtInit`), so `new Handsontable()` throws when the plugin is registered without it. The plugin finds
+  its columns by `type: 'checkbox'` and has nothing to work on otherwise. Pinned by
+  `__tests__/pluginDependencies.unit.ts`.
 - **The plugin is always on** (`isEnabled()` returns `true`, `SETTING_KEYS` is `false`): the option is
   column-level, and no grid-level key could switch a plugin on for it. Everything it does is gated on
   `hasHeaderCheckbox(column)`, so a grid without the option pays one column meta read per header draw.
@@ -79,6 +83,15 @@ pressed. Read this before touching `checkboxHeader.ts`, `../../utils/checkboxCol
 - **Meta changes made while the plugin reads meta are ignored** (`#isReadingMeta`): a
   `beforeGetCellMeta`/`afterGetCellMeta` listener that calls `setCellMeta()` would otherwise re-enter
   the read of the same row without end.
+
+## The license check lives in `hasHeaderCheckbox()`
+
+The plugin is on in every grid, so a license key that lists its features is checked where a column asks for
+the checkbox (`gate: 'call'` in `feature.json`). `hasHeaderCheckbox()` is the one check every path goes through
+(the header render, the shortcuts, `toggleColumn()`, `setColumnChecked()`), so it answers `false` when the key
+does not cover `feat:checkbox_header`, after the column-meta checks so a grid without the option pays nothing
+more. It must not throw, because it runs inside the header render: `isLicensedUse()` records the feature and
+writes the license message in a microtask, after the render. Rules: `../../utils/entitlementLicenseKey/AGENTS.md`.
 
 ## Where to look next
 

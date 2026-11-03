@@ -1,6 +1,8 @@
 import * as C from '../../../i18n/constants';
 import type { Comments } from '../comments';
 import type { HotInstance } from '../../../core/types';
+import { checkSelectionConsistency } from '../../contextMenu/utils';
+import { hasCommentAtCell } from '../utils';
 
 /**
  * @param {Comments} plugin The Comments plugin instance.
@@ -19,9 +21,11 @@ export default function removeCommentItem(plugin: Comments) {
         return;
       }
 
-      // Every cell's removal is one undo step together.
+      // Every cell's removal is one undo step together. A cell without a comment, or hidden under a
+      // merged block, is skipped – the same cells `disabled()` ignores – so the click writes no
+      // `comment: undefined` meta and no undo entry for it (DEV-263).
       plugin.runOperation('comment', () => range.forAll((row: number, column: number) => {
-        if (row >= 0 && column >= 0) {
+        if (row >= 0 && column >= 0 && hasCommentAtCell(this, row, column)) {
           plugin.removeCommentAtCell(row, column, false);
         }
       }));
@@ -40,7 +44,9 @@ export default function removeCommentItem(plugin: Comments) {
         return true;
       }
 
-      return false;
+      // The callback removes every comment in the range, so the item stays available while any cell
+      // in it has one, and is disabled when there is nothing to remove (DEV-263).
+      return !checkSelectionConsistency([range], (row: number, col: number) => hasCommentAtCell(this, row, col));
     }
   };
 }

@@ -51,7 +51,7 @@
     - loading: 'Alpha' and 'Beta', with `loading`.
     - drags: 'Alpha' and 'Beta', with every drag gesture on: `moveCells`, `manualRowMove`,
       `manualColumnResize`, `manualRowResize`, `fillHandle` and `freezeBar`.
-    - wideSheet: 'Alpha' (300 rows by 150 columns) and 'Beta' (3 rows by 2 columns), with
+    - wideSheet: 'Alpha' (300 rows by 250 columns) and 'Beta' (3 rows by 2 columns), with
       `autoColumnSize`, so measuring Alpha's columns takes several idle tasks.
   -->
   <div id="grid" data-testid="grid"></div>
@@ -124,7 +124,7 @@
         sheets: [
           {
             name: 'Alpha',
-            data: Array.from({ length: 300 }, (_, row) => Array.from({ length: 150 }, (__, col) => `r${row}c${col}`)),
+            data: Array.from({ length: 300 }, (_, row) => Array.from({ length: 250 }, (__, col) => `r${row}c${col}`)),
           },
           sheet('Beta', 'b'),
         ],

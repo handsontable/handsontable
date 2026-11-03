@@ -3946,6 +3946,8 @@ export default (): Record<string, unknown> => {
      *
      * If your grid's [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL, using `fixedColumnsLeft` throws an error.
      *
+     * Don't set `fixedColumnsLeft` and [`fixedColumnsStart`](#fixedColumnsStart) in one settings object: that throws an error. When you set them in separate [`updateSettings()`](@/api/core.md#updatesettings) calls, the later value applies.
+     *
      * Use [`fixedColumnsStart`](#fixedColumnsStart), which works in any layout direction.
      *
      * Read more:
@@ -5011,6 +5013,12 @@ export default (): Record<string, unknown> => {
      * | A string with your [commercial license key](@/guides/getting-started/license-key/license-key.md#commercial-license) | For [commercial use](@/guides/technical-specification/software-license/software-license.md#commercial-use)         |
      * | A string with your [entitlement license key](@/guides/getting-started/license-key/license-key.md#entitlement-license-keys) (plain-English text ending with a `[...]` block) | For trial, subscription, or perpetual use |
      * | `'non-commercial-and-evaluation'`                                                                       | For [non-commercial use](@/guides/technical-specification/software-license/software-license.md#non-commercial-use) |
+     *
+     * An entitlement license key can list the features it unlocks. A plugin such a key does not list
+     * stays off, and the console and the bar under the grid name it. The plugin's option keeps the
+     * value you set, so passing a key that lists the feature through `updateSettings()` turns the plugin
+     * on. A key that does not list its features unlocks every feature. See
+     * [Keys that list features](@/guides/getting-started/license-key/license-key.md#keys-that-list-features).
      *
      * Read more:
      * - [License key](@/guides/getting-started/license-key/license-key.md)
@@ -7645,13 +7653,13 @@ export default (): Record<string, unknown> => {
      * | `controls`    | Boolean (default: `true`)                            | Controls visibility of the add-sheet and all-sheets menu controls                             |
      * | `paging`      | Boolean (default: `true`)                            | Controls visibility of the tab-scrolling controls, shown when tabs overflow the bar's width    |
      * | `position`    | `'top'` \| `'bottom'` (default: `'bottom'`)          | The edge of the grid the bar renders on                                                        |
-     * | `uiContainer` | An HTML element (default: `null`)                    | The container element where the sheets bar UI will be installed. If not provided, the bar renders on the edge of the grid that `position` names |
+     * | `uiContainer` | An HTML element (default: `null`)                    | An element of your page to render the bar in, instead of the grid's edge. `position` and the [`layout`](#layout) option then don't apply to the bar. If not provided, the bar renders on the edge of the grid that `position` names |
      * | `animation`   | Boolean, or an object of booleans (default: `true`) | Turns the tab animations on or off. `false` makes every tab change instant. An object turns single animations off: `switch` (the active tab marker's slide), `add` (a new or duplicated tab's entrance), `remove` (a removed tab's exit and the tabs closing the gap), and `move` (the tabs sliding to new places after a move, and the tabs a drag pushes aside). A key you leave out stays on. Reduced motion and a theme with `--ht-table-transition: 0s` make every tab change instant whatever this option says. The hover color fade is CSS only and is not affected. An invalid value is ignored with a console warning, and the previous value stays in force |
      *
      * Read more:
      * - [Plugins: `SheetsBar`](@/api/sheetsBar.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 19.0.0

@@ -35,15 +35,16 @@ describe('SheetsBar -> view state round trip', () => {
    * @param {object} settings Grid settings.
    * @param {Array[]} alphaData The first sheet's data.
    * @param {Array[]} [betaData] The second sheet's data.
+   * @param {object} [betaSettings] The second sheet's own settings.
    * @returns {object} The SheetsBar plugin.
    */
-  function build(settings, alphaData, betaData = [[0, 0, 0, 0]]) {
+  function build(settings, alphaData, betaData = [[0, 0, 0, 0]], betaSettings = {}) {
     hot = new Handsontable(container, {
       ...settings,
       sheetsBar: {
         sheets: [
           { name: 'Alpha', data: alphaData },
-          { name: 'Beta', data: betaData },
+          { name: 'Beta', data: betaData, settings: betaSettings },
         ],
       },
       licenseKey: LICENSE_KEY,
@@ -121,6 +122,31 @@ describe('SheetsBar -> view state round trip', () => {
       expect(hot.getDataAtCol(0)).toEqual(unsorted);
     });
 
+    it('keeps the sort states of a sheet whose sort a listener canceled after the sorting plugin was disabled', () => {
+      const bar = build({ manualRowMove: true, columnSorting: true }, createData(), [[0, 0, 0, 0]],
+        { columnSorting: false });
+
+      hot.getPlugin('manualRowMove').moveRow(3, 0);
+      hot.render();
+      hot.getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      const sorted = hot.getDataAtCol(0);
+      const veto = () => false;
+
+      bar.setActiveSheet('Beta');
+      hot.addHook('beforeColumnSort', veto);
+      bar.setActiveSheet('Alpha');
+      hot.removeHook('beforeColumnSort', veto);
+
+      const sorting = hot.getPlugin('columnSorting');
+
+      expect(hot.getDataAtCol(0)).toEqual(sorted);
+      expect(sorting.getSortConfig()).toEqual([{ column: 2, sortOrder: 'asc' }]);
+      expect(() => sorting.clearSort()).not.toThrow();
+      expect(sorting.getSortConfig()).toEqual([]);
+      expect(hot.getDataAtCol(0)).toEqual(sorted);
+    });
+
     it('fires no sort hooks on a switch when no sheet is sorted', () => {
       const bar = build({ columnSorting: true }, createData());
       const before = jest.fn();
@@ -169,6 +195,56 @@ describe('SheetsBar -> view state round trip', () => {
       roundTrip(bar);
 
       expect(moveHooks).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('column order and hidden columns', () => {
+    it('brings back a moved column on its sheet only', () => {
+      const bar = build({ manualColumnMove: true }, createData(), createData());
+
+      hot.getPlugin('manualColumnMove').moveColumn(3, 0);
+      hot.render();
+
+      const moved = hot.getDataAtRow(0);
+
+      bar.setActiveSheet('Beta');
+
+      expect(hot.getDataAtRow(0)).toEqual([1, 'd', 30, 'x']);
+
+      bar.setActiveSheet('Alpha');
+
+      expect(moved).toEqual(['x', 1, 'd', 30]);
+      expect(hot.getDataAtRow(0)).toEqual(moved);
+      expect(hot.toPhysicalColumn(0)).toBe(3);
+    });
+
+    it('brings back the columns hidden on a sheet after a round trip, and hides none on the other', () => {
+      const bar = build({ hiddenColumns: true }, createData(), createData());
+      const hiddenColumns = hot.getPlugin('hiddenColumns');
+
+      hiddenColumns.hideColumns([1, 3]);
+      hot.render();
+      bar.setActiveSheet('Beta');
+
+      expect(hiddenColumns.getHiddenColumns()).toEqual([]);
+
+      bar.setActiveSheet('Alpha');
+
+      expect(hiddenColumns.getHiddenColumns()).toEqual([1, 3]);
+      expect(hot.countRenderedCols()).toBe(2);
+    });
+
+    it('brings back a hidden column on its own record after the columns were moved', () => {
+      const bar = build({ hiddenColumns: true, manualColumnMove: true }, createData());
+
+      hot.getPlugin('manualColumnMove').moveColumn(3, 0);
+      hot.getPlugin('hiddenColumns').hideColumn(0);
+      hot.render();
+      roundTrip(bar);
+
+      expect(hot.columnIndexMapper.isHidden(3)).toBe(true);
+      expect(hot.columnIndexMapper.isHidden(0)).toBe(false);
+      expect(hot.getPlugin('hiddenColumns').isHidden(0)).toBe(true);
     });
   });
 

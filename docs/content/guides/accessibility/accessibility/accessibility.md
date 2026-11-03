@@ -118,7 +118,7 @@ For filter-menu-specific navigation details, including <kbd>**Tab**</kbd> traver
 
 Although semantic HTML doesn't need any additional attributes to be properly interpreted by assistive technologies, some of Handsontable's complex features are not fully covered by the HTML specification. That's why Handsontable provides support for screen readers with ARIA attributes (Accessible Rich Internet Applications) applied to its HTML markup.
 
-Handsontable is tested with the screen readers below. The list is the tested matrix of the {{$a11y.report.link}}; it changes only when an audit or an automated run adds to it.
+Handsontable is tested with the screen readers below: the ones the audit behind the {{$a11y.report.link}} covered, and the ones an automated nightly run checks. The list changes only when an audit or an automated run adds to it.
 
 {{$a11y.matrix.list}}
 

@@ -2,11 +2,11 @@
 
 ## Tech Debt
 
-**Broken Plugin Initialization Abstraction (#6806):**
-- Issue: Multiple plugins contain explicit workarounds for a broken plugin initialization order. Plugins must guard against uninitialized state (`!this.hot.view`) and force `updatePlugin()` calls during `enablePlugin()`.
-- Files: `handsontable/src/plugins/nestedHeaders/nestedHeaders.ts`, `handsontable/src/plugins/collapsibleColumns/collapsibleColumns.ts`
-- Impact: Every new plugin that depends on rendering state risks hitting the same initialization timing bug. The workarounds obscure the actual plugin lifecycle and make the code fragile.
-- Fix approach: Refactor the plugin initialization sequence in `handsontable/src/plugins/base/base.ts` and the core plugin registry to guarantee that `this.hot.view` is available before `enablePlugin()` is called. Remove all `#6806` workarounds once fixed.
+**Plugin Initialization Order (#6806) – migrated to the ready step:**
+- Issue: `enablePlugin()` runs before the data and the view exist at init, and after them on `updateSettings()`. Plugins used to guard against the first state (`!this.hot.view`), force `updatePlugin()` calls during `enablePlugin()`, or park work on `init`/`afterInit` listeners that never fired again for a later enable.
+- Status: every parking site uses the ready step `BasePlugin#onGridReady()` now – NestedHeaders, CollapsibleColumns, Filters, NestedRows, EmptyDataState, CustomBorders, Pagination, ColumnSorting (and MultiColumnSorting), ColumnSummary, MergeCells, DataProvider, and Formulas' postponed index syncs. Core holds the renders the steps ask for at init, so their work is drawn by the first render.
+- Kept on purpose: the `init` listeners of AutoColumnSize and AutoRowSize (their steps would run at priority 10 and 40, before NestedHeaders, MergeCells and Pagination build what they measure), FormulaBuilder's `afterInit` (a failed enable owes no step), Formulas' `this.hot.view` init detection, and the `!this.hot.view` guards on the disable path. The list and the reasons are in `handsontable/src/plugins/base/AGENTS.md`, "#6806".
+- Remaining risk: a ready step runs after every enable AND every update. A plugin whose `updatePlugin()` already does the same work needs the one-owner flag the base `AGENTS.md` describes, or the work runs twice per update.
 
 **EventManager Shared Listener Array:**
 - Issue: `EventManager` mutates an external object's `eventListeners` array, and all `EventManager` instances sharing the same context share the same listener list.
@@ -104,16 +104,16 @@
 ## Fragile Areas
 
 **Selection + MergeCells Interaction:**
-- Files: `handsontable/src/selection/highlight/visualSelection.ts`, `handsontable/src/selection/selection.ts`, `handsontable/src/plugins/mergeCells/mergeCells.ts`
-- Why fragile: Visual selection coordinate adjustments interact with MergeCells coordinate adjustments in overlapping ways. TODO comments indicate uncertainty about the correct responsibility boundary. The `selection.clear()` method has a TODO noting that `selectedByColumnHeader` and `selectedByRowHeader` collections should be cleared but are not.
+- Files: `handsontable/src/selection/highlight/visualSelection.ts`, `handsontable/src/selection/selection.ts`, `handsontable/src/selection/cellBlocks.ts`, `handsontable/src/selection/focusOrder.ts`, `handsontable/src/plugins/mergeCells/mergeCells.ts`
+- Why fragile: Selection grows ranges over merged cells, snaps the highlight, steps arrow keys over them and walks Enter/Tab through them itself, through a cell block provider that MergeCells registers (`Selection#setCellBlockProvider()`, contract in `cellBlocks.ts`; the Enter/Tab walk is `focusOrder.ts`, driven by `Selection#transformFocus`). Two steps move the highlight, in this order: `Selection#applyCellBlocks` onto a block's top-left, then `VisualSelection#syncWith()` off a hidden cell. `syncWith()` moves a hidden corner to the range's first visible cell, which can lie outside the block, so an Enter/Tab move places the focus on the block's first visible cell itself and `#applyCellBlocks` leaves it there. The rules a selection follows over merged cells are listed in `handsontable/src/plugins/mergeCells/AGENTS.md` ("The selection rules"). The `selection.clear()` method has a TODO noting that `selectedByColumnHeader` and `selectedByRowHeader` collections should be cleared but are not.
 - Safe modification: When modifying selection logic, test all combinations of: merged cells, hidden rows/columns, frozen rows/columns, and navigable headers. Run both `selectAll` and `selectCells` spec suites.
 - Test coverage: Extensive E2E tests exist but the visual selection highlight logic is under-tested at the unit level.
 
 **NestedHeaders + CollapsibleColumns:**
 - Files: `handsontable/src/plugins/nestedHeaders/nestedHeaders.ts`, `handsontable/src/plugins/collapsibleColumns/collapsibleColumns.ts`
-- Why fragile: Both plugins contain workarounds for the broken plugin initialization abstraction (#6806). `NestedHeaders` has 4 workaround sites, `CollapsibleColumns` has 3. These workarounds involve conditional state checks and forced `updatePlugin()` calls that mask timing issues.
+- Why fragile: The two plugins share one `StateManager`, and CollapsibleColumns re-derives its hidden set from the tree NestedHeaders builds. Both build their state in the ready step (`onGridReady()`), and the tree must be built first: NestedHeaders (280) runs its step before CollapsibleColumns (290), pinned by `collapsibleColumns/__tests__/readyStep.unit.ts`.
 - Safe modification: Always test with both plugins enabled simultaneously. Verify expand/collapse behavior with hidden columns. Run the full `collapsibleColumns.spec.js` and `hidingColumns.spec.js` in nested headers.
-- Test coverage: Good E2E coverage exists but the workarounds themselves are not directly tested.
+- Test coverage: Good E2E coverage; the build order and the once-per-update rule are pinned in the unit test above.
 
 **Overlay System (Walkontable):**
 - Files: `handsontable/src/3rdparty/walkontable/src/overlay/overlays.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/regions/topOverlay.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/regions/inlineStartOverlay.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/regions/bottomOverlay.ts`
@@ -143,7 +143,7 @@
 
 **No Plugin Integration Testing Framework:**
 - Problem: Plugin interactions (e.g., `MergeCells` + `HiddenColumns` + `NestedHeaders`) are tested via E2E specs but lack a structured integration test approach. Each combination must be manually tested.
-- Blocks: Confident refactoring of plugin initialization. The broken initialization abstraction (#6806) persists partly because testing all combinations is expensive.
+- Blocks: Confident refactoring of plugin initialization. The #6806 workarounds moved to the ready step one plugin at a time, each pinned by its own `readyStep.unit.*` file, because testing every combination is expensive.
 
 ## Test Coverage Gaps
 

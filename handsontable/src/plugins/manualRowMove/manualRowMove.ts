@@ -2,10 +2,11 @@ import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, getTrimmingContainer } from '../../helpers/dom/element';
-import { isImmediatePropagationStopped } from '../../helpers/dom/event';
+import { hasPointerTraveled, isImmediatePropagationStopped } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
+import { LICENSE } from './feature.generated';
 
 Hooks.getSingleton().register('beforeRowMove');
 Hooks.getSingleton().register('afterRowMove');
@@ -56,6 +57,14 @@ export class ManualRowMove extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns the list of settings keys observed by the plugin for configuration changes.
    */
   static get SETTING_KEYS() {
@@ -82,6 +91,18 @@ export class ManualRowMove extends BasePlugin {
    * @type {boolean}
    */
   #pressed: boolean | undefined;
+  /**
+   * Whether the pointer has traveled beyond the drag tolerance since the header was pressed.
+   *
+   * @type {boolean}
+   */
+  #dragged = false;
+  /**
+   * The pointer position at the press, in client coordinates.
+   *
+   * @type {object}
+   */
+  #pressOrigin = { x: 0, y: 0 };
   /**
    * @type {object}
    */
@@ -201,11 +222,13 @@ export class ManualRowMove extends BasePlugin {
         return false;
       }
 
-      if (movePossible) {
+      const movePerformed = movePossible && this.isRowOrderChanged(rows, finalIndex);
+
+      // A move that leaves the order as it is must not reach the mapper: `moveIndexes()` ignores
+      // trimmed indexes, so it would put the rows on the far side of any trimmed one next to them.
+      if (movePerformed) {
         this.hot.rowIndexMapper.moveIndexes(rows, finalIndex);
       }
-
-      const movePerformed = movePossible && this.isRowOrderChanged(rows, finalIndex);
 
       this.hot.runHooks('afterRowMove', rows, finalIndex, dropIndex, movePossible, movePerformed);
 
@@ -542,6 +565,7 @@ export class ManualRowMove extends BasePlugin {
       isImmediatePropagationStopped(event)
     ) {
       this.#pressed = false;
+      this.#dragged = false;
       this.#rowsToMove.length = 0;
       removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
 
@@ -563,6 +587,8 @@ export class ManualRowMove extends BasePlugin {
     if (coords.col < 0 && (coords.row >= start && coords.row <= end)) {
       controller.row = true;
       this.#pressed = true;
+      this.#dragged = false;
+      this.#pressOrigin = { x: event.clientX, y: event.clientY };
 
       this.#target.eventPageY = event.pageY;
       this.#target.coords = coords;
@@ -583,6 +609,7 @@ export class ManualRowMove extends BasePlugin {
     } else {
       removeClass(this.hot.rootElement, CSS_AFTER_SELECTION);
       this.#pressed = false;
+      this.#dragged = false;
       this.#rowsToMove.length = 0;
     }
   };
@@ -595,6 +622,11 @@ export class ManualRowMove extends BasePlugin {
   #onMouseMove(event: MouseEvent) {
     if (!this.#pressed) {
       return;
+    }
+
+    // A pointer that jitters a pixel or two during a click does not fire the move hooks.
+    if (hasPointerTraveled(this.#pressOrigin, event)) {
+      this.#dragged = true;
     }
 
     this.#target.eventPageY = event.pageY;
@@ -656,8 +688,10 @@ export class ManualRowMove extends BasePlugin {
   #onMouseUp() {
     const target = this.#target.row;
     const rowsLen = this.#rowsToMove.length;
+    const wasDragged = this.#dragged;
 
     this.#pressed = false;
+    this.#dragged = false;
 
     removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
 
@@ -665,7 +699,10 @@ export class ManualRowMove extends BasePlugin {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
 
-    if (rowsLen < 1 || target === undefined) {
+    // A press that never traveled is a click, not a move, so it fires no move hook.
+    if (!wasDragged || rowsLen < 1 || target === undefined) {
+      this.#rowsToMove.length = 0;
+
       return;
     }
 
@@ -719,6 +756,7 @@ export class ManualRowMove extends BasePlugin {
     }
 
     this.#pressed = false;
+    this.#dragged = false;
     this.#rowsToMove.length = 0;
     removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
   };

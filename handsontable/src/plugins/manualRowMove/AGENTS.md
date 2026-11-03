@@ -24,6 +24,22 @@ runs again. The manual *resize* plugins hit the same class of problem and docume
 
 `#onBeforeOnCellMouseDown` skips a press whose `isImmediatePropagationStopped(event)` is set, the way DragToScroll does: that listener owns the gesture. The FormulaBuilder header pick is the case it was added for. A pick dragged across the headers of a header-selected row armed a move, drew the guideline, scrolled the viewport on each `mousemove` next to the pick's own auto-scroller, and moved the range on release, which closed the edit. A pick that ended without a `mouseup` (a window blur) also left the move pressed for the next release on the page. The check depends on the claiming listener running first in the same hook: FormulaBuilder registers with order index `-1`. The other in-tree claimers (CheckboxHeader, RowSelection, CollapsibleColumns) register after this plugin, so their presses arm as before, until an `updatePlugin()` of this plugin moves its hook to the tail of the list.
 
+## A move that changes nothing never reaches the index mapper
+
+`moveRows()` computes `movePerformed` (`isMovePossible()` and `isRowOrderChanged()`) **before** it calls
+`rowIndexMapper.moveIndexes()`, and calls it only when that is true. `moveIndexes()` places the moved rows
+before the next NOT-trimmed row, so it does not see a trimmed row sitting between. Run for a drop onto the
+row's own position, it moved the row to the far side of the trimmed row, and untrimming (for example from
+`afterRowMove`) then showed an order nobody asked for. The hooks still fire for such a drop, with
+`movePossible: true` and `orderChanged: false`; firing them is by design and suppressing them would be
+breaking. Because the mapper is not touched, a drop onto the same position no longer fires
+`afterRowSequenceChange` and `afterRowSequenceCacheUpdate` (source `move`), no longer forces a full render, and
+no longer runs the selection repair of the cache update: nothing moved, so there is nothing to react to. Do not
+move the computation back below the mapper call. A move that does change the order still
+lands on the same side of a trimmed row as before: that placement is a separate, open design question.
+`../manualColumnMove/` has the identical guard. NestedRows moves rows by its own path and is not covered.
+Pinned by `__tests__/noopMoveTrimmedRows.unit.js` and `tests/e2e/manual-move-trimmed.spec.ts`.
+
 ## Row heights are read defensively
 
 The drag measurement sums Walkontable row heights and falls back per row to
@@ -52,6 +68,20 @@ There are also clamps for the backlight below the table and the guideline below 
 `fixedRowsBottom` behaves differently as a drop target. Both are checked — a fix aimed at only the top
 band misses the bottom one.
 
+## A press that never traveled is a click and fires no move hook
+
+`#onMouseUp` calls `dragRows()` only when the pointer traveled farther than `POINTER_DRAG_TOLERANCE` (3 px) from
+the press. `#onMouseMove` tracks it in `#dragged` through `hasPointerTraveled()`, both from `helpers/dom/event.ts`,
+exactly as `ManualColumnMove` does. Before that guard a header pressed and released in place fired
+`beforeRowMove` and `afterRowMove` for a move that changed nothing. The guard is about the gesture, not the
+order: a drag that goes out and returns to its start still fires both hooks, with `orderChanged: false`, and that
+is deliberate, since suppressing it would be a breaking change (see "A move that changes nothing never reaches
+the index mapper" above). The tolerance is measured in client coordinates, so a row dropped by wheel-scrolling
+under a motionless pointer reads as a click, as it does in the column plugin. A test that simulates a move must
+send a `mousemove` that travels past the tolerance from the `mousedown` position, or the release reads as a
+click: `tests/e2e/manual-move-trimmed.spec.ts` moves the pointer inside the header for that reason. Pinned by
+`tests/e2e/manual-row-move-noop-hooks.spec.ts`.
+
 ## NestedRows reimplements this plugin
 
 `../nestedRows/utils/rowMoveController.ts` carries three TODO comments about "mocking real work" of this
@@ -71,7 +101,8 @@ configuration, **DataProvider** is the plugin that stays disabled. See `../base/
 `beforeLoadData` cancels a held header drag (`#onBeforeDataReplace`: the pressed flag, the
 rows to move and the moving classes), so the `mouseup` takes its early return. The rows a drag holds are visual
 indexes of the data it started on, and the release moved the rows of the data that replaced it (a sheets bar switch).
-Not on `updateData()`: the React wrapper sends `data` on every re-render, so a parent re-render would cancel the gesture. ManualColumnMove has the same shape and is not covered yet (open). Pinned by
+Not on `updateData()`: the React wrapper sends `data` on every re-render, so a parent re-render would cancel the gesture. ManualColumnMove cancels on every column order reset instead, `updateSettings()` with `columns` included
+(`../manualColumnMove/AGENTS.md`); this plugin still covers `loadData()` only. Pinned by
 `tests/e2e/sheets-bar-in-flight-drags.spec.ts`.
 
 ## Where to look next

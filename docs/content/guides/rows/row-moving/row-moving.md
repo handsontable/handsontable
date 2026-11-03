@@ -301,6 +301,8 @@ There are significant differences between the plugin's [`dragRows`](@/api/manual
 
 Both of these methods trigger the [`beforeRowMove`](@/api/hooks.md#beforerowmove) and [`afterRowMove`](@/api/hooks.md#afterrowmove) hooks, but only [`dragRows`](@/api/manualRowMove.md#dragrows) passes the `dropIndex` argument to them.
 
+Pressing a row header with the mouse and releasing it without moving the pointer more than a few pixels is the exception. That click moves nothing, and neither hook fires. Calling [`moveRows`](@/api/manualRowMove.md#moverows) or [`dragRows`](@/api/manualRowMove.md#dragrows) from your code always fires both hooks.
+
 The [`dragRows`](@/api/manualRowMove.md#dragrows) method has a `dropIndex` parameter, which points to where the elements are being dropped.
 
 <span class="img-invert">
@@ -319,6 +321,8 @@ The [`moveRows`](@/api/manualRowMove.md#moverows) method has a `finalIndex` para
 </span>
 
 The [`moveRows`](@/api/manualRowMove.md#moverows) function cannot perform some actions, e.g., more than one element can't be moved to the last position. In this scenario, the move will be canceled. The Plugin's [`isMovePossible`](@/api/manualRowMove.md#ismovepossible) API method and the `movePossible` parameters `beforeRowMove` and `afterRowMove` hooks help in determine such situations.
+
+The `beforeRowMove` and `afterRowMove` hooks also fire when a move leaves the order unchanged, for example when you grab a row header and drop the row back where it was. In that case, `movePossible` is `true` and the `orderChanged` parameter of `afterRowMove` is `false`. Check `orderChanged` to ignore such moves. The order of the rows stays as it was, even when some rows are trimmed.
 
 The [`moveRows`](@/api/manualRowMove.md#moverows) method is also inactive when the [`NestedRows`](@/api/nestedRows.md) plugin is enabled - see [Row parent-child known limitations](@/guides/rows/row-parent-child/row-parent-child.md#known-limitations).
 

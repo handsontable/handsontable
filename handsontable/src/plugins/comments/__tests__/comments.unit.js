@@ -1,6 +1,6 @@
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
-import { Comments } from '../comments';
+import { Comments, META_COMMENT_VALUE, META_READONLY } from '../comments';
 import DisplaySwitch from '../displaySwitch';
 
 describe('Comments plugin lifecycle', () => {
@@ -111,5 +111,75 @@ describe('Comments plugin lifecycle', () => {
     hot.runHooks('afterSetTheme', 'ht-theme-main', false);
 
     expect(hide).toHaveBeenCalledTimes(1);
+  });
+
+  describe('reading comments at header coordinates', () => {
+    beforeEach(() => {
+      hot = new Handsontable(container, {
+        data: [['a', 'b'], ['c', 'd']],
+        comments: true,
+        cell: [{ row: 0, col: 0, comment: { value: 'Foo' } }],
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    });
+
+    it('returns undefined from getCommentAtCell() for a negative row or column', () => {
+      const plugin = hot.getPlugin('comments');
+
+      expect(() => plugin.getCommentAtCell(-1, 0)).not.toThrow();
+      expect(plugin.getCommentAtCell(-1, 0)).toBeUndefined();
+      expect(plugin.getCommentAtCell(0, -1)).toBeUndefined();
+      expect(plugin.getCommentAtCell(-1, -1)).toBeUndefined();
+    });
+
+    it('returns undefined from getCommentMeta() for a negative row or column', () => {
+      const plugin = hot.getPlugin('comments');
+
+      expect(plugin.getCommentMeta(-1, 0, META_COMMENT_VALUE)).toBeUndefined();
+      expect(plugin.getCommentMeta(0, -1, META_READONLY)).toBeUndefined();
+    });
+
+    it('returns undefined from getComment() when the range points at a header', () => {
+      const plugin = hot.getPlugin('comments');
+
+      plugin.setRange({ from: hot._createCellCoords(-1, 0) });
+
+      expect(plugin.getComment()).toBeUndefined();
+
+      plugin.setRange({ from: hot._createCellCoords(0, -1) });
+
+      expect(plugin.getComment()).toBeUndefined();
+    });
+
+    it('keeps throwing from the write side for a header', () => {
+      const plugin = hot.getPlugin('comments');
+
+      expect(() => plugin.setCommentAtCell(-1, 0, 'x')).toThrow();
+      expect(() => plugin.updateCommentMeta(0, -1, { [META_READONLY]: true })).toThrow();
+      expect(() => plugin.removeCommentAtCell(-1, -1)).toThrow();
+    });
+
+    it('does not switch the shortcut context when the editor is focused on a header range', () => {
+      const plugin = hot.getPlugin('comments');
+
+      plugin.setRange({ from: hot._createCellCoords(-1, 0) });
+      plugin.getEditorInputElement().dispatchEvent(new Event('focus'));
+
+      expect(hot.getShortcutManager().getActiveContextName()).toBe('grid');
+    });
+
+    it('hides the open editor on undo when the range points at a header', () => {
+      const plugin = hot.getPlugin('comments');
+
+      plugin.showAtCell(0, 0);
+      plugin.setRange({ from: hot._createCellCoords(-1, 0) });
+
+      expect(() => hot.runHooks('afterUndo', {})).not.toThrow();
+      expect(plugin.getEditorInputElement().parentNode.style.display).toBe('none');
+    });
+
+    it('still returns the comment of a regular cell', () => {
+      expect(hot.getPlugin('comments').getCommentAtCell(0, 0)).toBe('Foo');
+    });
   });
 });

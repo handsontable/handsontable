@@ -11,7 +11,7 @@ import {
   type XlsxEngineKind,
 } from '../../utils/xlsxEngine/capabilities';
 import { mapWorkbook, resolveImportOptions, type MappedResult, type ResolvedImportOptions } from './mapper';
-import { applyImportResult, removeImportedStyles } from './applier';
+import { applyImportResult, installImportedStyles, removeImportedStyles } from './applier';
 import { hasCellType } from '../../cellTypes/registry';
 import {
   convertToInferredTypes,
@@ -23,6 +23,8 @@ import {
 } from '../../utils/columnTypeInference';
 import type { ImportedBorder } from './styles';
 import type { HotInstance } from '../../core/types';
+import { LICENSE } from './feature.generated';
+import { assertLicensedCall } from '../../utils/licenseNotification';
 
 export const PLUGIN_KEY = 'importFile';
 export const PLUGIN_PRIORITY = 245;
@@ -570,6 +572,18 @@ export class ImportFile extends BasePlugin {
   #isApplyingResult = false;
 
   /**
+   * The style rules the stylesheet holds now, by class name: the ones the last import installed, or the
+   * ones `_restoreImportedStyles()` put back.
+   */
+  #installedStyles: Record<string, string> = {};
+
+  /**
+   * The settings payload the plugin is passing to `updateSettings()` while it applies an import's result, or
+   * `null`. A payload a listener passes in the meantime is another object (`_isImportSettings()`).
+   */
+  #importSettings: Record<string, unknown> | null = null;
+
+  /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.
    */
   static get PLUGIN_KEY() {
@@ -584,6 +598,14 @@ export class ImportFile extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns the setting keys that trigger a plugin update when changed via `updateSettings`.
    */
   static get SETTING_KEYS() {
@@ -591,16 +613,54 @@ export class ImportFile extends BasePlugin {
   }
 
   /**
-   * Tells whether the plugin is loading an import's result into the grid. The `updateSettings()` calls an
-   * import makes then carry the imported file's layout for the grid it lands on, not a grid-level
-   * configuration, so the sheets bar does not take them as one. It answers `false` while the `beforeImport`
-   * listeners run: a setting a listener changes is the host's own.
+   * Tells whether the plugin is loading an import's result into the grid. The sheets bar does not take the
+   * settings written then as grid-level values, and records the import's own payloads as the visible sheet's
+   * settings (`_isImportSettings()`). It answers `false` while the `beforeImport` listeners run: a setting a
+   * listener changes is the host's own.
    *
    * @private
    * @returns {boolean}
    */
   _isApplyingImport(): boolean {
     return this.#isApplyingResult;
+  }
+
+  /**
+   * Tells whether a settings payload is one the plugin itself passes to `updateSettings()` while it applies
+   * an import's result. The sheets bar records those as the visible sheet's own settings. A payload a
+   * listener passes during the import, from `afterLoadData` or `afterUpdateSettings` for example, is the
+   * host's own, so it answers `false` for it.
+   *
+   * @private
+   * @param {object} settings The payload `updateSettings()` received.
+   * @returns {boolean}
+   */
+  _isImportSettings(settings: Record<string, unknown>): boolean {
+    return this.#importSettings !== null && settings === this.#importSettings;
+  }
+
+  /**
+   * Returns a copy of the style rules the imported stylesheet holds, by class name. The sheets bar keeps
+   * them per sheet: the cells of each sheet carry the classes of the file imported into that sheet, while
+   * the grid has one stylesheet.
+   *
+   * @private
+   * @returns {object}
+   */
+  _exportImportedStyles(): Record<string, string> {
+    return { ...this.#installedStyles };
+  }
+
+  /**
+   * Replaces the imported stylesheet with the given rules, by class name, the way an import installs
+   * them. Empty rules remove the stylesheet. The sheets bar calls it when a sheet arrives, with the rules
+   * that sheet kept (`_exportImportedStyles()`).
+   *
+   * @private
+   * @param {object} styles The rules, by class name.
+   */
+  _restoreImportedStyles(styles: Record<string, string>): void {
+    this.#installedStyles = installImportedStyles(this.hot, styles);
   }
 
   /**
@@ -633,6 +693,7 @@ export class ImportFile extends BasePlugin {
   disablePlugin() {
     super.disablePlugin();
     removeImportedStyles(this.hot);
+    this.#installedStyles = {};
     this.#latestApplyTicket += 1;
     this.#disabledAtTicket = this.#latestApplyTicket;
   }
@@ -679,8 +740,11 @@ export class ImportFile extends BasePlugin {
    *   data: importFile.convertToInferredTypes(rows, result),
    * });
    * ```
+   * @throws {Error} When the license key lists the features it unlocks and leaves out Import from file.
    */
   inferColumnTypes(data: InferenceData, options: InferColumnTypesOptions | null = {}): InferColumnTypesResult {
+    assertLicensedCall(this.hot, LICENSE);
+
     return inferColumnTypes(data, { ...options, locale: options?.locale || this.hot.getSettings().locale });
   }
 
@@ -691,8 +755,11 @@ export class ImportFile extends BasePlugin {
    * local date and time. A value the column cannot read, such as a `Total` row, is kept as it is, so the
    * cell type's validator marks it. When the result found a header row, that row is left out.
    * `data` itself is not changed.
+   * @throws {Error} When the license key lists the features it unlocks and leaves out Import from file.
    */
   convertToInferredTypes<T extends InferenceData>(data: T, result: InferColumnTypesResult): ConvertedData<T> {
+    assertLicensedCall(this.hot, LICENSE);
+
     return convertToInferredTypes(data, result);
   }
 
@@ -713,10 +780,13 @@ export class ImportFile extends BasePlugin {
    * @param {ArrayBuffer|ArrayBufferView} buffer The file's bytes.
    * @param {ImportOptions} [options] Import options.
    * @returns {Promise<ImportResult>}
+   * @throws {Error} The returned promise rejects when the license key lists the features it unlocks and leaves out Import from file.
    */
   async importFromArrayBuffer(
     format: string, buffer: ArrayBuffer | ArrayBufferView, options: ImportOptions = {}
   ): Promise<ImportResult> {
+    assertLicensedCall(this.hot, LICENSE);
+
     this.#assertEnabled();
 
     const detected = requireEngine(this.hot, format, options.engine);
@@ -744,8 +814,11 @@ export class ImportFile extends BasePlugin {
    * @param {Blob} blob The file.
    * @param {ImportOptions} [options] Import options.
    * @returns {Promise<ImportResult>}
+   * @throws {Error} The returned promise rejects when the license key lists the features it unlocks and leaves out Import from file.
    */
   async importFromBlob(format: string, blob: Blob, options: ImportOptions = {}): Promise<ImportResult> {
+    assertLicensedCall(this.hot, LICENSE);
+
     this.#assertEnabled();
 
     // Detected, validated and ticketed before the first `await`, so a call refused for its format,
@@ -785,11 +858,11 @@ export class ImportFile extends BasePlugin {
     const formulasPlugin = this.hot.getPlugin('formulas');
     const commentsPlugin = this.hot.getPlugin('comments');
     const customBordersPlugin = this.hot.getPlugin('customBorders');
-    const formulasEnabled = formulasPlugin?.isEnabled() === true;
+    const formulasEnabled = formulasPlugin?.enabled === true;
     const mapped = mapWorkbook(workbook, resolved, {
       formulasEnabled,
-      commentsEnabled: commentsPlugin?.isEnabled() === true,
-      customBordersEnabled: customBordersPlugin?.isEnabled() === true,
+      commentsEnabled: commentsPlugin?.enabled === true,
+      customBordersEnabled: customBordersPlugin?.enabled === true,
       formulaSheetNames: formulasEnabled ? engineSheetNames(formulasPlugin?.engine) : undefined,
       formulaSheetName: formulasEnabled ? formulasPlugin?.sheetName ?? undefined : undefined,
       formulaNamedExpressions: formulasEnabled ? engineNamedExpressions(formulasPlugin?.engine) : undefined,
@@ -844,7 +917,13 @@ export class ImportFile extends BasePlugin {
     this.#isApplyingResult = true;
 
     try {
-      applyImportResult(this.hot, result, { importLayout: resolved.importLayout });
+      applyImportResult(this.hot, result, {
+        importLayout: resolved.importLayout,
+        updateSettings: this.#applyImportSettings,
+        onStylesInstalled: (styles) => {
+          this.#installedStyles = styles;
+        },
+      });
     } finally {
       this.#isApplying = false;
       this.#isApplyingResult = false;
@@ -854,6 +933,22 @@ export class ImportFile extends BasePlugin {
 
     return result;
   }
+
+  /**
+   * Passes one settings payload of an import's result to `updateSettings()`, marked as the plugin's own
+   * (`_isImportSettings()`) for as long as the call runs.
+   *
+   * @param {object} settings The payload.
+   */
+  #applyImportSettings = (settings: Record<string, unknown>) => {
+    this.#importSettings = settings;
+
+    try {
+      this.hot.updateSettings(settings);
+    } finally {
+      this.#importSettings = null;
+    }
+  };
 
   /**
    * Rejects a public call on a disabled plugin (`importFile: false`), the way every other plugin's

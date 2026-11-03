@@ -105,7 +105,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: 'یا',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: 'انتخاب همه',
-  [C.FILTERS_BUTTONS_CLEAR]: 'پاک کردن',
+  [C.FILTERS_BUTTONS_CLEAR]: 'لغو انتخاب همه',
   [C.FILTERS_BUTTONS_OK]: 'تایید',
   [C.FILTERS_BUTTONS_CANCEL]: 'لغو',
 
@@ -137,6 +137,8 @@ const dictionary = {
   [C.SHEETS_BAR_PAGE_NEXT]: 'پیمایش برگه‌ها به جلو',
   [C.SHEETS_BAR_SHEET_CHANGED]: 'برگه [name] فعال شد',
   [C.SHEETS_BAR_RENAME_REJECTED]: 'نام برگه تغییر نکرد: [name] قبلاً استفاده شده است',
+  [C.SHEETS_BAR_SHEET_DUPLICATED]: 'برگه [name] با نام [copy] تکثیر شد',
+  [C.SHEETS_BAR_SHEET_MOVED]: 'برگه [name] به موقعیت [position] از [count] منتقل شد',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'برگه',
 
   [C.CHECKBOX_CHECKED]: 'چک شده',

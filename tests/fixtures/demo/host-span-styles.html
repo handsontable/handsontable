@@ -31,9 +31,11 @@
      * shipped theme token can coincide with them (main/horizon/classic use 12-14px sizes, 20-22px
      * line heights, weight 400, letter-spacing 0, and a `--ht-font-family` stack). The spec asserts
      * the grid's own spans do NOT compute to these. Keep these values in sync with HOST_SPAN_STYLES in
-     * tests/fixtures/pages/HostSpanStylesPage.ts.
+     * tests/fixtures/pages/HostSpanStylesPage.ts. Bare <input> elements get the same rule: the
+     * sheets bar's rename field is an <input> that a host rule matches the same way.
      */
-    span {
+    span,
+    input {
       font-size: 23px;
       line-height: 41px;
       font-weight: 700;
@@ -95,6 +97,14 @@
           showNavigation: true,
         },
         layoutDirection: 'ltr',
+        ...(htParams.has('sheetsBar') ? {
+          sheetsBar: {
+            sheets: [
+              { name: 'Alpha', data },
+              { name: 'Beta', data: data.map(row => row.slice()) },
+            ],
+          },
+        } : {}),
         licenseKey: 'non-commercial-and-evaluation',
       });
 

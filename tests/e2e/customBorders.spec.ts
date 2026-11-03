@@ -483,6 +483,61 @@ test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', 
   });
 });
 
+test.describe('CustomBorders config sent in one updateSettings() call with a row order change', { tag: THEMES_TAG }, () => {
+  test('keeps the border on its record after a trim when the config shares a call with trimRows', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({ dataRows: 8, dataCols: 3, trimRows: true });
+
+    // Trimming visual row 0 moves the record now at visual row 6 up to visual row 5.
+    const expectedValue = await lab.dataAtCell(6, 0);
+
+    await page.evaluate((border) => {
+      (window as any).hot.updateSettings({ customBorders: [border], trimRows: [0] });
+    }, { row: 5, col: 0, top: GREEN_BORDER });
+
+    expect(await lab.dataAtCell(5, 0)).toBe(expectedValue);
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+
+    // A rebuild from the cell meta puts the border where the meta says its record is.
+    await page.evaluate(() => (window as any).hot.getPlugin('trimRows').trimRow(1));
+
+    const [border] = await lab.borderCoords();
+
+    expect(await lab.dataAtCell(border.row, 0)).toBe(expectedValue);
+    expect((await lab.cellBorders(border.row, 0))?.top).toEqual(GREEN_BORDER);
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+  });
+
+  test('keeps the border on its record after a trim when the config shares a call with manualRowMove', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({ dataRows: 8, dataCols: 3, trimRows: true });
+
+    // After the move, visual row 1 shows the record that sits at physical row 5.
+    const expectedValue = await lab.dataAtCell(5, 0);
+
+    await page.evaluate((border) => {
+      (window as any).hot.updateSettings({
+        customBorders: [border],
+        manualRowMove: [4, 5, 6, 7, 0, 1, 2, 3],
+      });
+    }, { row: 1, col: 0, top: GREEN_BORDER });
+
+    expect(await lab.dataAtCell(1, 0)).toBe(expectedValue);
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+
+    // Trimming the first visual row rebuilds the model from the cell meta.
+    await page.evaluate(() => (window as any).hot.getPlugin('trimRows').trimRow(4));
+
+    const [border] = await lab.borderCoords();
+
+    expect(await lab.dataAtCell(border.row, 0)).toBe(expectedValue);
+    expect((await lab.cellBorders(border.row, 0))?.top).toEqual(GREEN_BORDER);
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+  });
+});
+
 test.describe('CustomBorders range with a `border` object (issue #6679)', { tag: THEMES_TAG }, () => {
   test('applies the range-level `border` style to empty sides instead of the default', async ({ page, theme, bundle }) => {
     const lab = await gotoLab(page, theme, bundle);

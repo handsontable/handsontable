@@ -11,6 +11,7 @@ tags:
   - pagination
 searchCategory: Guides
 category: Accessories and menus
+menuTag: updated
 addedIn: "18.0.0"
 ---
 
@@ -123,6 +124,7 @@ Use these keys in the `layout` setting to order the built-in UI:
 | Key | Slot | Provided by |
 |---|---|---|
 | `pagination` | `bottom` | The [`Pagination`](@/api/pagination.md) plugin |
+| `sheetsBar` | `bottom` | The [`SheetsBar`](@/api/sheetsBar.md) plugin |
 
 The license notification renders at the bottom but is not a slot contributor: it always stays last in the `bottom` slot and ignores any `layout` entry. The [`Dialog`](@/api/dialog.md) plugin renders in the overlays layer, which is not user-orderable through the `layout` setting.
 

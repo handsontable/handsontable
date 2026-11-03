@@ -62,9 +62,8 @@ interface OpenMenuState {
  * component (auto keyboard navigation, viewport-aware positioning).
  *
  * Each menu is one `Menu` instance for the life of the plugin, refilled on every opening. The
- * shared component registers a host hook when it is built and does not remove it when it is
- * destroyed, so building a fresh instance per opening would leave one dead menu behind per
- * click.
+ * shared component adds an `afterSetTheme` hook to the grid when it is built and removes it in
+ * `destroy()`.
  */
 export class SheetsBarMenus {
   /**
@@ -160,14 +159,21 @@ export class SheetsBarMenus {
 
     this.#allSheetsMenu = menu;
 
+    if (this.#hot.getSettings().ariaTags) {
+      setAttribute(menu.container, [
+        A11Y_LABEL(this.#hot.getTranslatedPhrase(C.SHEETS_BAR_ALL_SHEETS) as string),
+      ]);
+    }
+
     // A checkable item is what tells a screen reader which sheet is the one in front of the
-    // user: the row is a `menuitemcheckbox` named by the sheet and checked for the active one.
+    // user: the row is a `menuitemradio` named by the sheet and checked for the active one.
     this.#openMenu(menu, {
       anchor,
       items: sheets.map(sheet => ({
         key: `sheet_${sheet.id}`,
         name: () => sheet.name,
         checkable: true,
+        radio: true,
         ariaLabel: sheet.name,
         ariaChecked: sheet.isActive,
         renderer: (_menuHot: unknown, wrapper: HTMLElement) =>
@@ -302,6 +308,8 @@ export class SheetsBarMenus {
     // the menu at its real height.
     menu.setOffset('below', 3);
     menu.setOffset('above', Math.max(-(rect.height + 4), (menu.container?.offsetHeight ?? 0) - rect.bottom));
+    menu.setOffset('left', rect.width);
+    menu.setOffset('right', 0);
     menu.setPosition(
       { left: rect.left + offset.left, top: rect.bottom + offset.top },
       () => (positionTarget.isConnected ? positionTarget.getBoundingClientRect() : null),
@@ -399,7 +407,7 @@ export class SheetsBarMenus {
     // The same mark the context menu puts against a chosen option, and the shared menu styles
     // already draw it for this menu's class — a list of sheets is worth nothing if it does not
     // say which one you are on. The glyph is decoration: the row itself is a checked
-    // `menuitemcheckbox`, which is what carries "this is the one" to a screen reader.
+    // `menuitemradio`, which is what carries "this is the one" to a screen reader.
     const mark = wrapper.ownerDocument.createElement('span');
 
     mark.className = 'selected';

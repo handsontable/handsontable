@@ -23,6 +23,7 @@ import {
 
 import { A11Y_HASPOPUP, A11Y_HIDDEN, A11Y_LABEL } from '../../helpers/a11y';
 import { syncIcon } from '../../themes/engine/icons';
+import { LICENSE, PLUGIN_DEPS } from './feature.generated';
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
 Hooks.getSingleton().register('beforeDropdownMenuShow');
@@ -137,9 +138,15 @@ export class DropdownMenu extends BasePlugin {
    * Returns the list of plugin dependencies required before this plugin can be initialized.
    */
   static get PLUGIN_DEPS() {
-    return [
-      'plugin:AutoColumnSize',
-    ];
+    return [...PLUGIN_DEPS];
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
@@ -722,6 +729,10 @@ export class DropdownMenu extends BasePlugin {
   /**
    * On after get column header listener.
    *
+   * The header cell is reused between renders and core strips every `aria-*` attribute off it each
+   * time, while the button survives. So `aria-haspopup="menu"` is set again on every call while the
+   * plugin is on, not only when the button is created.
+   *
    * @private
    * @param {number} col Visual column index.
    * @param {HTMLTableCellElement} TH Header's TH element.
@@ -746,6 +757,12 @@ export class DropdownMenu extends BasePlugin {
       // here as well - `syncIcon()` re-applies the mapping only when the theme's icons revision
       // moved, so on an ordinary redraw this is one class check per header.
       syncIcon(this.hot, existingButton as HTMLElement, BUTTON_ICON_CLASS_NAME, 'menu');
+
+      if (this.hot.getSettings().ariaTags) {
+        setAttribute(TH, [
+          A11Y_HASPOPUP('menu'),
+        ]);
+      }
 
       return;
     }

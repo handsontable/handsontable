@@ -53,7 +53,7 @@ describe('StretchColumns cooperation with ManualColumnResize', () => {
       colHeaders: true,
       rowHeaders: true,
       width: 500,
-      height: 200,
+      height: containerHeightForRows(5),
       stretchH: 'all',
       manualColumnResize: [10, 11, 12, 13, 14],
     });

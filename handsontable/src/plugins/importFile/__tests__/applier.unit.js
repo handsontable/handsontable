@@ -5,13 +5,20 @@ import * as consoleHelpers from '../../../helpers/console';
 
 const STYLE_SELECTOR = 'style[data-hot-imported-styles="hot-1"]';
 
-function fakeHot({ commentsEnabled = false, nestedHeaders, gridSettings = {}, toVisualRow = row => row } = {}) {
+function fakeHot({
+  commentsEnabled = false,
+  commentsRuns = commentsEnabled,
+  nestedHeaders,
+  gridSettings = {},
+  toVisualRow = row => row,
+} = {}) {
   const calls = [];
   const rootWrapperElement = document.createElement('div');
 
   document.body.appendChild(rootWrapperElement);
   const commentsPlugin = {
     isEnabled: () => commentsEnabled,
+    enabled: commentsRuns,
     setCommentAtCell: (row, col, value) => calls.push(['setCommentAtCell', row, col, value]),
   };
 
@@ -148,6 +155,17 @@ describe('applyImportResult', () => {
 
   it('should skip comments when the comments plugin is disabled', () => {
     const hot = fakeHot({ commentsEnabled: false });
+
+    applyImportResult(
+      hot, { data: [['a']], comments: [{ row: 0, col: 0, value: 'note' }], sheetNames: [], dropped: [] }
+    );
+
+    expect(hot.calls.some(call => call[0] === 'setCommentAtCell')).toBe(false);
+  });
+
+  it('should skip comments when the comments option is on but the plugin does not run', () => {
+    // A license key can keep the plugin off while its option stays on.
+    const hot = fakeHot({ commentsEnabled: true, commentsRuns: false });
 
     applyImportResult(
       hot, { data: [['a']], comments: [{ row: 0, col: 0, value: 'note' }], sheetNames: [], dropped: [] }
@@ -334,6 +352,21 @@ describe('installImportedStyles / removeImportedStyles', () => {
 
     expect(document.querySelector(STYLE_SELECTOR)).toBeNull();
     expect(warnSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should return the rules it installed without the rejected ones, so installing them again warns about nothing', () => {
+    const hot = fakeHot();
+    const installed = installImportedStyles(hot, {
+      'htImported-a': 'font-weight:bold',
+      'htImported-b': 'background-image:url("https://attacker.example/x")',
+    });
+
+    expect(installed).toEqual({ 'htImported-a': 'font-weight:bold' });
+
+    warnSpy.mockClear();
+
+    expect(installImportedStyles(hot, installed)).toEqual(installed);
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 
 });

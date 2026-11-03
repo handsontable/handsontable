@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where the `beforeRowMove` and `afterRowMove` hooks fired when a row header was pressed and released without moving the pointer.",
+  "type": "fixed",
+  "issueOrPR": 14082,
+  "breaking": false,
+  "framework": "none"
+}
