@@ -3,7 +3,7 @@ import { awaitBundle, type Bundle } from '../bundle';
 
 export type FormulasOrderWorkbook =
   'sortedReport' | 'summary' | 'sortedSummary' | 'ownRefFirst' | 'ownRefSecond' | 'relativeDesc' | 'sortedData' | 'movedColumns' | 'sortedFormulas' | 'sortedSum' | 'showFormulas'
-  | 'quotedNames';
+  | 'quotedNames' | 'movedRows' | 'movedColumnRefs';
 
 /**
  * Page object for the sheets-bar-formulas-order fixture (fixtures/demo/sheets-bar-formulas-order.html):
@@ -122,7 +122,7 @@ export class SheetsBarFormulasOrderPage {
     }, [row, target]);
   }
 
-  alter(action: 'insert_row_above' | 'remove_row', index: number, amount = 1): Promise<void> {
+  alter(action: 'insert_row_above' | 'remove_row' | 'insert_col_start', index: number, amount = 1): Promise<void> {
     return this.page.evaluate(([name, at, count]) => {
       window.hot.alter(name as 'insert_row_above', at as number, count as number);
     }, [action, index, amount]);

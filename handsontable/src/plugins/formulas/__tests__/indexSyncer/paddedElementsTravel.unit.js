@@ -263,7 +263,9 @@ describe('AxisSyncer: the padded blanks of the engine order', () => {
 
       axisSyncer.adoptEngineOrder({ sequence: [2, 0, 1], fillSequence: null, paddedElements: [2] });
 
-      expect(axisSyncer.getEngineOrder()).toEqual({ sequence: [2, 0, 1], fillSequence: null, paddedElements: [2] });
+      expect(axisSyncer.getEngineOrder()).toEqual({
+        sequence: [2, 0, 1], fillSequence: null, paddedElements: [2], orderShifts: [],
+      });
     });
 
     it('should drop a padded element the adopted sequence does not hold', () => {

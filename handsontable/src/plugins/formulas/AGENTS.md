@@ -887,6 +887,13 @@ These rules ride along.
   the next order count it as content and pad the sheet by one line per insert-and-undo. A stale entry
   only ever sits on an empty line, which the plan frees anyway. Any other change that is not a move clears
   it. Pinned in `paddedElementsTravel.unit.js` (2,000 rows: height 11 after each).
+- **The syncer records how far each order moved a line (`#orderShifts`, `getOrderShift()`).** An order
+  (`set*Order`) keeps a moved formula's relative offsets, a move, an insert, and a removal keep its
+  references on their cells, so a caller reading the engine's text back into the data (the sheets bar's
+  write-back) shifts back only the order's part. The shifts add up per physical line, re-key on an insert
+  or a removal like `#paddedElements` (a removed line's entry is dropped), travel in
+  `EngineOrder.orderShifts`, and clear once the order is physical again, where the engine's text is the
+  data's. Pinned in `axisSyncerOrderShifts.unit.js`.
 - **An order that moves a line an array formula spans is refused before anything is written.** The engine
   throws `SourceLocationHasArrayError` for it, and the padding write precedes the order, so a throw left the
   sheet one line taller. `#isOrderAllowed()` asks the engine first (`isItPossibleToSetRowOrder` /

@@ -216,6 +216,21 @@ function toEngineIndexes(
 }
 
 /**
+ * Returns a lookup from a physical index to how far the orders the engine was handed moved that line, for one
+ * axis of a stored engine order (`AxisSyncer#getOrderShift()`). With no order, nothing moved.
+ *
+ * @param {object|undefined} order The axis order (`orderShifts`), or `undefined`.
+ * @returns {Function}
+ */
+function toOrderShifts(
+  order: { orderShifts?: Array<[number, number]> } | undefined,
+): (physicalIndex: number) => number {
+  const shifts = new Map(order?.orderShifts ?? []);
+
+  return physicalIndex => shifts.get(physicalIndex) ?? 0;
+}
+
+/**
  * Baseline keys a later grid-level `updateSettings()` does not refresh through the generic rule, because
  * each has a rule of its own: the bar blocks a grid-level `dataProvider`, and the grid-level `columnSummary`
  * and `cell` also drop the state each sheet stored for the previous value.
@@ -5711,6 +5726,8 @@ export class SheetsBar extends BasePlugin {
       const engineRowOf = toEngineIndexes(engineOrder?.rowOrder, rows.length);
       const columnCount = rows.reduce((widest, { row }) => Math.max(widest, getEngineCellKeys(row, layout).length), 0);
       const engineColumnOf = toEngineIndexes(engineOrder?.columnOrder, columnCount);
+      const rowShiftOf = toOrderShifts(engineOrder?.rowOrder);
+      const columnShiftOf = toOrderShifts(engineOrder?.columnOrder);
       const changes: FormulaTextChange[] = [];
       const engineTexts = this.#engineTexts.get(sheet);
       const seenEngineTexts = new Set<string>();
@@ -5726,7 +5743,7 @@ export class SheetsBar extends BasePlugin {
           const fromEngine = this.#physicalFormulaText(engine, sheetId, {
             row: engineRowOf(physicalRow),
             col: engineColumnOf(physicalColumn),
-          }, { row: physicalRow, col: physicalColumn });
+          }, { row: rowShiftOf(physicalRow), col: columnShiftOf(physicalColumn) });
           const text = typeof fromEngine === 'string' ? quoteIfNeeded(fromEngine) : cell;
 
           if (typeof fromEngine === 'string') {
@@ -5748,31 +5765,33 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Returns the formula text of an engine cell as it reads at the cell's physical position. A sort or a move
-   * moves the engine's cells keeping their relative references' offsets, so a formula the engine holds at
-   * another position reads its relative references from there (`=Main!A1` at the top of a sheet sorted
-   * descending is the formula of its last row, `+A1` of a row moved down reads `+A3`). The engine's own fill
-   * transform from the engine cell to the physical one shifts them back and leaves absolute references alone.
+   * Returns the formula text of an engine cell as the sheet's data holds it. An order the engine is handed (a
+   * sort, the order a hold sends when it ends) moves the engine's cells keeping their relative references'
+   * offsets, so a formula it moved reads its relative references from its new place (`=Main!A1` at the top
+   * of a sheet sorted descending is the formula of its last row). A move, an insert, and a removal keep every
+   * reference on its cell, and so does a manual row or column move, which reaches the engine as a move. The
+   * engine's own fill transform shifts back only the lines the orders moved (`shift`), and leaves absolute
+   * references alone.
    *
    * @param {object} engine The engine.
    * @param {number} sheetId The engine sheet.
    * @param {object} at The engine cell (`row`, `col`).
-   * @param {object} physical The physical cell (`row`, `col`).
+   * @param {object} shift How far the engine's orders moved the cell's row and column (`row`, `col`).
    * @returns {string|undefined} The formula text, or `undefined` when the engine cell holds none.
    */
   #physicalFormulaText(
     engine: NonNullable<SheetFormulas['engine']>,
     sheetId: number,
     at: { row: number, col: number },
-    physical: { row: number, col: number },
+    shift: { row: number, col: number },
   ): string | undefined {
     const source = { sheet: sheetId, ...at };
 
-    if ((at.row === physical.row && at.col === physical.col) || !engine.getFillRangeData) {
+    if ((shift.row === 0 && shift.col === 0) || !engine.getFillRangeData) {
       return engine.getCellFormula!(source);
     }
 
-    const target = { sheet: sheetId, ...physical };
+    const target = { sheet: sheetId, row: at.row - shift.row, col: at.col - shift.col };
     const [[content]] = engine.getFillRangeData({ start: source, end: source }, { start: target, end: target });
 
     return typeof content === 'string' && content.startsWith('=') ? content : undefined;

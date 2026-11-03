@@ -334,12 +334,16 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `listEngineElements()` (`../formulas/indexSyncer/engineElements.ts`), the same function the axis syncer
   orders the engine with: the named `sequence`, then `fillSequence`, then every other index ascending. A
   hand-rolled map treated an empty `sequence` as "no rows" instead of physical order and skipped a row filled
-  after the sort. (2) The text is read through `#physicalFormulaText`, which runs the engine's own fill
-  transform (`getFillRangeData`) from the engine cell to the physical one. HyperFormula moves cells keeping
-  their relative offsets, so the engine's text at another position reads its relative references from there
-  (`=Main!A1..A6` sorted descending came back reversed, an own-sheet `+A1` moved down came back `+A3`); the
-  stored data must hold every formula in physical order, the frame `isHfOrderPhysical` in
-  `../formulas/indexSyncer/axisSyncer.ts` warns about. (3) A sheet whose stored order is no longer taken over
+  after the sort. (2) The text is read through `#physicalFormulaText`, which shifts back only what an
+  order moved. HyperFormula treats the two ways an order reaches it differently: `setRowOrder` /
+  `setColumnOrder` (a sort, the order a hold sends when it ends) moves cells keeping their relative offsets,
+  so the text reads its relative references from the new place (`=Main!A1..A6` sorted descending came back
+  reversed), while `moveRows` / `moveColumns` (a manual row or column move) keeps every reference on its
+  cell. The axis syncer records, per physical line, how far the `set*Order` calls moved it since the order
+  was last physical (`AxisSyncer#getOrderShift()`, exported as `orderShifts` in the engine order), and the
+  engine's fill transform (`getFillRangeData`) shifts the text back by that much. Running the fill from the
+  engine cell to the physical one for every order wrote `=Main!A8` for a row moved to the top, and
+  `=Main!#REF!` for one moved down; a sheet moved and then sorted shifts back the sort's part only. (3) A sheet whose stored order is no longer taken over
   (`#engineOrderToAdopt` answers `null`: the host replaced or resized its data) is skipped: the engine no
   longer holds rows the data has. Two shortcuts keep the cost near the plain path, and both are exact. The
   per-cell quoting pass (`#formulaQuoterFor`) is skipped when every engine sheet name reads unquoted, because
