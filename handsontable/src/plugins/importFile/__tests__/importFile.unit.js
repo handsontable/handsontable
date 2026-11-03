@@ -2301,6 +2301,26 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
     }
   });
 
+  it('should leave a master over a name on another engine sheet as written, whatever it masks', async() => {
+    // The scratch engine holds no `Rates`, so `Rate` is `#REF!` there and `IFERROR(Rate,0)` made the
+    // master `#DIV/0!`: it imported its cached values while the grid's engine, which holds `Rates`,
+    // evaluates it live.
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const masked = await importArrays([
+      [at({ value: 1 }), at({
+        formula: { text: 'A1:A3/IFERROR(Rate,0)', result: 0.5, array: { ref: 'B1:B3', dynamic: true } },
+      })],
+      [at({ value: 2 }), at({ value: 1 })],
+      [at({ value: 3 }), at({ value: 1.5 })],
+    ], undefined, {}, [{ name: 'Rate', formula: 'Rates!$A$1', sheetName: null }],
+    { sheets: { Sheet1: [], Rates: [[2]] } });
+
+    expect(masked.result.data.map(row => row[1])).toEqual(['=A1:A3/IFERROR(Rate,0)', null, null]);
+    expect(masked.result.dropped.includes('formula:arraySpill')).toBe(false);
+
+    masked.hf.destroy();
+  });
+
   it('should let a translated OFFSET spill on an engine of another language', async() => {
     // The engine lists OFFSET under its own name only through the class's translation: with the
     // English id, a `plPL` master read as calling an unregistered function, kept its covered cells

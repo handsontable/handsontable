@@ -488,7 +488,11 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   (`importFile.ts` `liveArrayProbe`: `engine.constructor.buildFromSheets` with `engine.getConfig()` - no
   import of hyperformula, the base bundle keeps it external) over the mapped `data`, one sheet named like
   the engine's grid sheet, plus the engine's names and `pass.namedExpressions`, added inside ONE
-  `scratch.batch()` (unbatched, each add re-evaluated the scratch sheet). Per rectangle: master `#SPILL!`
+  `suspendEvaluation()`/`resumeEvaluation()` pair (unsuspended, each add re-evaluated the scratch
+  sheet; a `batch()` makes the adds quadratic, as on the applier's side). A name the scratch engine
+  evaluates to `#REF!` (one over an engine sheet it does not hold, `=Rates!$A$1`) does not count as
+  defined (`definesName`), so a master over it reads outside the probe and `IFERROR(Rate,0)` cannot
+  turn the probe's `#REF!` into a settling `#DIV/0!`. Per rectangle: master `#SPILL!`
   -> master and its emptied cells take their cached values, the text goes to `formulas`,
   `formula:arraySpill`, unless the file caches an ERROR for the master (Excel 365 saves a blocked
   spill as a cached `#VALUE!`): then it stays live and shows `#SPILL!`, or the cell would hold a
