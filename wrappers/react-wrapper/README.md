@@ -100,6 +100,7 @@ registerAllModules();
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={[
         { company: 'Tagcat', country: 'United Kingdom', rating: 4.4 },
         { company: 'Zoomzone', country: 'Japan', rating: 4.5 },
@@ -111,7 +112,6 @@ const ExampleComponent = () => {
       tabNavigation={true}
       multiColumnSorting={true}
       headerClassName="htLeft"
-      licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn title="Company" data="company" width="100"></HotColumn>
       <HotColumn title="Country" data="country" width="170" type="dropdown" source={['United Kingdom', 'Japan', 'United States']}></HotColumn>
@@ -222,7 +222,7 @@ For commercial use, a paid license is required. This license includes support an
 
 ## 🔑 License Key
 
-For projects covered by the free non-commercial license, simply use the phrase `'non-commercial-and-evaluation'` as your license key.
+Pass your license key in the `licenseKey` option. The examples above leave that line commented out: uncomment it and add your key. To evaluate Handsontable, get a trial key. For non-commercial use, apply for a sponsored license. Get a key at [handsontable.com/pricing](https://handsontable.com/pricing/).
 
 If you're using Handsontable in a project that supports commercial activities, you'll need to purchase a license key at [handsontable.com/pricing](https://handsontable.com/pricing). You can find more details in [our documentation](https://handsontable.com/docs/react-data-grid/license-key/).
 

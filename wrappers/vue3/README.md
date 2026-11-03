@@ -91,6 +91,7 @@ Use this data grid as you would any other component in your application. [Option
 **Vue 3 Component**
 ```vue
 <template>
+  <!-- license-key="your-license-key" (get a key at https://handsontable.com/pricing/) -->
   <hot-table
     :data="data"
     :row-headers=true
@@ -99,7 +100,6 @@ Use this data grid as you would any other component in your application. [Option
     :tab-navigation=true
     :multi-column-sorting=true
     header-class-name="htLeft"
-    license-key="non-commercial-and-evaluation"
   >
     <hot-column title="Company" data="company" width=100></hot-column>
     <hot-column title="Country" data="country" width=170 type="dropdown" :source="['United Kingdom', 'Japan', 'United States']"></hot-column>
@@ -236,7 +236,7 @@ For commercial use, a paid license is required. This license includes support an
 
 ## 🔑 License Key
 
-For projects covered by the free non-commercial license, simply use the phrase `'non-commercial-and-evaluation'` as your license key.
+Pass your license key in the `licenseKey` option. The examples above leave that line commented out: uncomment it and add your key. To evaluate Handsontable, get a trial key. For non-commercial use, apply for a sponsored license. Get a key at [handsontable.com/pricing](https://handsontable.com/pricing/).
 
 If you're using Handsontable in a project that supports commercial activities, you'll need to purchase a license key at [handsontable.com/pricing](https://handsontable.com/pricing). You can find more details in [our documentation](https://handsontable.com/docs/vue-data-grid/license-key/).
 

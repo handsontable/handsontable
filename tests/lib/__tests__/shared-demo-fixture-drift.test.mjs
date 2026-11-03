@@ -24,6 +24,7 @@ const NOT_COMPARED = {
   layoutDirection: 'the demo reads the direction from the URL; the fixture is LTR only',
   language: 'the demo reads the direction from the URL; the fixture is LTR only',
   themeName: 'the fixture sets the theme as a class on its container, from the allowlisted ?theme=',
+  licenseKey: 'the demo leaves the key to the host, which supplies its own; the fixture keeps a test key',
   afterGetRowHeader: 'the fixture stamps test ids on the row headers',
   afterRenderer: 'the fixture stamps test ids on the cells',
   afterGetColHeader: 'the fixture stamps test ids on the headers',
@@ -199,7 +200,7 @@ test('the comparison catches a hook the demo gains, inline or under a skipped ke
   const fixture = comparable(evaluate(objectLiteralAfter(FIXTURE, 'window.hot = new Handsontable(container, '), {
     sourceRow: () => [],
   }, FIXTURE));
-  const withHook = hook => literal.replace('licenseKey:', `${hook}() {},\n    licenseKey:`);
+  const withHook = hook => literal.replace('colHeaders:', `${hook}() {},\n    colHeaders:`);
 
   ['beforeRenderer', 'afterOnCellMouseDown'].forEach((hook) => {
     const changed = withHook(hook);

@@ -31,7 +31,7 @@ docs/content/guides/category/feature/
    import { registerAllModules } from 'handsontable/registry';
    registerAllModules();
    ```
-2. `licenseKey: 'non-commercial-and-evaluation'`
+2. The license key stays a commented-out placeholder, never a key value: `// licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/`. In JSX it is the first attribute (`// licenseKey="your-license-key" // get a key at ...`), because the generated `.jsx` loses a comment that follows the last attribute; in a Vue or HTML template it is an `<!-- license-key="your-license-key" (get a key at ...) -->` comment above the tag.
 3. Container, typed in the `.ts` and `.tsx` files: `const container = document.querySelector<HTMLElement>('#example1')!;`. An untyped `querySelector` returns `Element | null`, which fails with `TS2345` in a new file, and it also hides every later error in the settings object from the type check (see `docs/AGENTS.md`, "Type-checking the examples"). The generated `.js` file keeps the plain `document.querySelector('#example1')`.
 
 ## React (TSX/JSX)
@@ -42,7 +42,12 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const App = () => {
-  return <HotTable data={data} licenseKey="non-commercial-and-evaluation" />;
+  return (
+    <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
+      data={data}
+    />
+  );
 };
 ```
 
@@ -132,7 +137,7 @@ const hotSettings = ref<GridSettings>({
   ],
   colHeaders: true,
   height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -183,7 +188,7 @@ Embed the files with `@[code]` inside an `::: example` container; syntax in the 
 ## Checklist
 
 - [ ] TypeScript source written (`.ts`/`.tsx`, or `.vue` with `lang="ts"`); JS variant generated, not hand-written.
-- [ ] `licenseKey: 'non-commercial-and-evaluation'`, `handsontable/base` import plus registration.
+- [ ] The commented-out `licenseKey` placeholder (no key value), `handsontable/base` import plus registration.
 - [ ] 25-60 lines, one concept, realistic data.
 - [ ] Every framework variant rendered and looked at: open the page in the docs dev server (`npm --prefix docs run dev`, not a full docs build) and check each variant for console load errors, grid width, and styling. A variant you did not open counts as untested.
 - [ ] Angular variants type-check: `SKIP_LATEST=1 npm run typecheck --prefix docs/angular-type-check` (as CI runs it; without `SKIP_LATEST` it also checks against `handsontable@latest`, so an API added on the branch fails locally) (needs `handsontable` and `wrappers/angular-wrapper` built first). This is the `Docs Angular Type Check` CI job, which fails most often after an example edit.
