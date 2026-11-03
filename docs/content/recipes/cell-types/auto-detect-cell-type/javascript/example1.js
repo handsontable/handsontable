@@ -36,7 +36,10 @@ function isDate(value) {
   }
 
   const [, year, month, day] = match.map(Number);
-  const date = new Date(year, month - 1, day);
+  // `setFullYear()` takes years 0 to 99 as they are. `new Date(year, ...)` would map them to 1900 to 1999.
+  const date = new Date(2000, 0, 1);
+
+  date.setFullYear(year, month - 1, day);
 
   return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }
@@ -71,38 +74,30 @@ const LEFTOVER_KEYS = {
 const typeSettings = {
   text: { type: 'text' },
   numeric: { type: 'numeric' },
-  date: { type: 'date', dateFormat: { dateStyle: 'short' } },
+  date: { type: 'date' },
 };
 
-// The numeric renderer writes `htRight` and `htNumeric` into the cell's `className` meta, and a
+// The numeric renderer writes `htRight` and `htNumeric` into the cell's own `className` meta, and a
 // failed numeric validation marks the cell invalid. Neither goes away when the cell stops being
-// numeric, for example after an undo, so remove them here. Returns `true` when it changed something.
+// numeric, for example after an undo, so remove them here. Removing the cell's own `className`
+// brings back the class names of the column and the table. Returns `true` when it changed something.
 function clearNumericResidue(hot, row, col) {
   const cellMeta = hot.getCellMetaTransient(row, col);
-  let changed = false;
+  const classNames = Array.isArray(cellMeta.className) ? cellMeta.className : (cellMeta.className ?? '').split(/\s+/);
 
-  if (cellMeta.type === 'numeric') {
+  if (cellMeta.type === 'numeric' || !classNames.includes('htNumeric')) {
     return false;
   }
 
-  const classNames = Array.isArray(cellMeta.className) ? cellMeta.className : (cellMeta.className ?? '').split(/\s+/);
+  hot.removeCellMeta(row, col, 'className');
 
-  if (classNames.includes('htNumeric')) {
-    hot.setCellMeta(
-      row,
-      col,
-      'className',
-      classNames.filter((name) => name && !['htNumeric', 'htRight'].includes(name)).join(' '),
-    );
-    changed = true;
-  }
-
+  // The invalid mark is cleared only for a cell that just left the numeric type. A validator that
+  // you set on the column or the table keeps its mark.
   if (cellMeta.type === 'text' && cellMeta.valid === false) {
     hot.setCellMeta(row, col, 'valid', true);
-    changed = true;
   }
 
-  return changed;
+  return true;
 }
 
 // Switches a cell to one of the detected types.
@@ -169,13 +164,15 @@ function detectChanged(hot, changes, source) {
 }
 
 function detectAll(hot) {
-  // `batch()` renders once, when the loop ends.
+  // `batch()` does not render on its own, so render inside the callback.
   hot.batch(() => {
     for (let row = 0; row < hot.countRows(); row++) {
       for (let col = 0; col < hot.countCols(); col++) {
         detectCell(hot, row, col);
       }
     }
+
+    hot.render();
   });
 }
 
@@ -183,15 +180,21 @@ function resetTypes(hot) {
   hot.batch(() => {
     for (let row = 0; row < hot.countRows(); row++) {
       for (let col = 0; col < hot.countCols(); col++) {
-        const type = hot.getCellMetaTransient(row, col).type ?? 'text';
+        const cellMeta = hot.getCellMetaTransient(row, col);
+        const type = cellMeta.type ?? 'text';
 
-        if (type !== 'text' && type in typeSettings) {
-          applyType(hot, row, col, 'text');
+        // Cells that opted out of detection keep their type.
+        if (cellMeta.autoDetect !== false) {
+          if (type !== 'text' && type in typeSettings) {
+            applyType(hot, row, col, 'text');
+          }
+
+          clearNumericResidue(hot, row, col);
         }
-
-        clearNumericResidue(hot, row, col);
       }
     }
+
+    hot.render();
   });
 }
 
