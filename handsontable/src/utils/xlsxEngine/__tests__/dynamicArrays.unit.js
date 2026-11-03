@@ -298,6 +298,10 @@ describe('isMultiCellRangeDefinition', () => {
     expect(isMultiCellRangeDefinition('=\'My Data\'!$A$1:$B$2')).toBe(true);
     expect(isMultiCellRangeDefinition('=Data!$B:$B')).toBe(true);
     expect(isMultiCellRangeDefinition('Data!$1:$2')).toBe(true);
+    // A comma or a `!` inside a quoted sheet name is part of the name.
+    expect(isMultiCellRangeDefinition('=\'Q1, 2024\'!$A$1:$A$6')).toBe(true);
+    expect(isMultiCellRangeDefinition('=\'Q1!x\'!$A$1:$A$6')).toBe(true);
+    expect(isMultiCellRangeDefinition('=\'O\'\'Brien, Ltd\'!$A$1:$B$2')).toBe(true);
   });
 
   it('should not find a single cell, a constant, a union, or a formula', () => {
@@ -305,6 +309,9 @@ describe('isMultiCellRangeDefinition', () => {
     expect(isMultiCellRangeDefinition('=Data!$A$1:$A$1')).toBe(false);
     expect(isMultiCellRangeDefinition('=0.07')).toBe(false);
     expect(isMultiCellRangeDefinition('=Data!$A$1:$A$3,Data!$C$1:$C$3')).toBe(false);
+    expect(isMultiCellRangeDefinition('=\'Q1, 2024\'!$A$1:$A$3,\'Q1, 2024\'!$C$1:$C$3')).toBe(false);
+    expect(isMultiCellRangeDefinition('=\'Q1, 2024\'!$A$1')).toBe(false);
+    expect(isMultiCellRangeDefinition('=\'Q1, 2024\'')).toBe(false);
     expect(isMultiCellRangeDefinition('=Data!$A$1:$A$3*2')).toBe(false);
     expect(isMultiCellRangeDefinition('=SUM(Data!$A$1:$A$3)')).toBe(false);
   });

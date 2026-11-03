@@ -310,10 +310,24 @@ export function appliesOperatorToRange(formula: string, isRangeName?: (word: str
  */
 export function isMultiCellRangeDefinition(definition: string): boolean {
   const text = definition.trim().replace(/^=/, '').trim();
-  const bang = text.lastIndexOf('!');
+  let reference = text;
 
-  // A comma joins the areas of a union, whose size the last area alone does not tell.
-  return !text.includes(',') && isMultiCellRange(bang === -1 ? text : text.slice(bang + 1));
+  if (text[0] === '\'') {
+    // A quoted sheet name may hold a comma or a `!` of its own (`'Q1, 2024'!$A$1:$A$6`).
+    const end = skipQuoted(text, 0);
+
+    if (text[end] !== '!') {
+      return false;
+    }
+
+    reference = text.slice(end + 1);
+  } else if (text.includes('!')) {
+    reference = text.slice(text.indexOf('!') + 1);
+  }
+
+  // A comma after the qualifier joins the areas of a union, whose size the last area alone does not
+  // tell.
+  return !reference.includes(',') && isMultiCellRange(reference);
 }
 
 const ARRAYFORMULA_NAME = 'ARRAYFORMULA';
