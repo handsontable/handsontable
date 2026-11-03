@@ -83,25 +83,66 @@ const FUNCTION_PREFIXES = /^(?:_xl(?:fn|ws)\.)+/i;
  * @returns {boolean}
  */
 export function isWholeArrayFunctionCall(formula: string): boolean {
-  let text = formula.trim();
+  // Every `(` is matched in one pass, and the grouping layers are peeled by index: rescanning and
+  // slicing the text once per layer made `=((((…SEQUENCE(1)…))))` quadratic in its depth.
+  const closing = matchParentheses(formula);
+  let first = skipWhitespace(formula, 0, 1);
+  let last = skipWhitespace(formula, formula.length - 1, -1);
 
-  while (text[0] === '(' && findClosingParenthesis(text, 0) === text.length - 1) {
-    text = text.slice(1, -1).trim();
+  while (first < last && formula[first] === '(' && closing[first] === last) {
+    first = skipWhitespace(formula, first + 1, 1);
+    last = skipWhitespace(formula, last - 1, -1);
   }
 
-  let end = 0;
+  let end = first;
 
-  while (end < text.length && isNameChar(text[end])) {
+  while (end <= last && isNameChar(formula[end])) {
     end += 1;
   }
 
-  if (end === 0 || text[end] !== '(') {
+  if (end === first || formula[end] !== '(') {
     return false;
   }
 
-  const name = text.slice(0, end).replace(FUNCTION_PREFIXES, '').toUpperCase();
+  const name = formula.slice(first, end).replace(FUNCTION_PREFIXES, '').toUpperCase();
 
-  return ARRAY_RETURNING_FUNCTIONS.has(name) && findClosingParenthesis(text, end) === text.length - 1;
+  return ARRAY_RETURNING_FUNCTIONS.has(name) && closing[end] === last;
+}
+
+/**
+ * The position of the `)` that closes each `(` of a formula, by the position of the `(` (`-1` for
+ * one the formula never closes, and for every other character), in one pass that skips quoted runs.
+ *
+ * @param {string} formula The formula.
+ * @returns {Int32Array}
+ */
+function matchParentheses(formula: string): Int32Array {
+  const closing = new Int32Array(formula.length).fill(-1);
+  const open: number[] = [];
+  let index = 0;
+
+  while (index < formula.length) {
+    const char = formula[index];
+
+    if (char === '"' || char === '\'') {
+      index = skipQuoted(formula, index);
+
+    } else {
+      if (char === '(') {
+        open.push(index);
+      } else if (char === ')') {
+        const opening = open.pop();
+
+        if (opening !== undefined) {
+          closing[opening] = index;
+        }
+      }
+
+      index += 1;
+    }
+  }
+
+  return closing;
 }
 
 /**
@@ -193,6 +234,13 @@ function isMultiCellRange(reference: string): boolean {
 }
 
 /**
+ * {@link REFERENCE_REGEX}'s own copy for `appliesOperatorToRange`, which resets its `lastIndex`
+ * before each walk: the export calls it once per formula cell, and compiling a new copy each time
+ * cost more than the walk itself.
+ */
+const OPERAND_REFERENCE_REGEX = new RegExp(REFERENCE_REGEX.source, REFERENCE_REGEX.flags);
+
+/**
  * Whether a formula applies an operator to a multi-cell range: a range (`A1:A3`, `A:A`, `1:1`,
  * sheet-qualified or not, with two different corners) with an operator of {@link OPERATOR_CHARS}
  * right before or right after it, or a postfix `%` after it, at any parenthesis depth
@@ -211,7 +259,10 @@ function isMultiCellRange(reference: string): boolean {
  * @returns {boolean}
  */
 export function appliesOperatorToRange(formula: string): boolean {
-  const regex = new RegExp(REFERENCE_REGEX.source, REFERENCE_REGEX.flags);
+  const regex = OPERAND_REFERENCE_REGEX;
+
+  regex.lastIndex = 0;
+
   let previous: { end: number; cell: string } | null = null;
   let match = regex.exec(formula);
 

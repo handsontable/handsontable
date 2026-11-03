@@ -77,6 +77,18 @@ describe('isWholeArrayFunctionCall', () => {
     expect(isWholeArrayFunctionCall('( SEQUENCE(1) )')).toBe(true);
   });
 
+  it('should stay linear in the depth of the grouping parentheses', () => {
+    // A text cell needs no parse to reach the export: peeling one layer per pass rescanned and
+    // copied the text each time, and 50,000 layers took about 10 s.
+    const depth = 50000;
+    const started = Date.now();
+
+    expect(isWholeArrayFunctionCall(`${'('.repeat(depth)}SEQUENCE(1)${')'.repeat(depth)}`)).toBe(true);
+    expect(isWholeArrayFunctionCall(`${'('.repeat(depth)}SUM(1)${')'.repeat(depth)}`)).toBe(false);
+    expect(isWholeArrayFunctionCall(`${'('.repeat(depth)}SEQUENCE(1)${')'.repeat(depth - 1)}`)).toBe(false);
+    expect(Date.now() - started).toBeLessThan(1000);
+  });
+
   it('should not find a formula Excel Online saves plain', () => {
     expect(isWholeArrayFunctionCall('SUM(A1:A3)')).toBe(false);
     expect(isWholeArrayFunctionCall('MAX(A1:A3)')).toBe(false);
