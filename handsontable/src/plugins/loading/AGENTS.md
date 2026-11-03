@@ -7,14 +7,21 @@ plugin.
 
 ## It force-enables the Dialog plugin
 
+**Dialog must be registered, and `new Handsontable()` throws without it (since 19.0).** `PLUGIN_DEPS` names
+`plugin:Dialog` (`feature.json`, `enforceAtInit`; generated into `feature.generated.ts`). Before 19.0 a modular
+build that registered Loading alone got a working grid where `show()` showed nothing and nothing said why,
+because every method below returns early without a dialog. This was a breaking change, with a step in the
+18.1 → 19.0 migration guide. Pinned by `__tests__/pluginDependencies.unit.ts`.
+
 `enablePlugin()` resolves `getPlugin('dialog')` and, if that plugin is not enabled, sets
 `getSettings().dialog = true` directly. Four things follow:
 
 - **This is the exception to "no direct cross-plugin coupling"**, and it is deliberate. Everything visible —
   `isVisible()`, `show()`, `hide()`, `update()` — delegates to the dialog, while the dialog is this plugin's
-  (see "Loading owns the dialog" below). Every one of those methods
-  re-checks `this.#dialogPlugin?.isEnabled()` before acting; keep those checks as guards, but do not read
-  them as "the user can turn Dialog off".
+  (see "Loading owns the dialog" below). `show()`, `hide()` and `update()` re-check
+  `this.#dialogPlugin?.enabled` (Dialog runs) before acting; keep those checks as guards, but do not read them as
+  "the user can turn Dialog off". Only `enablePlugin()` reads `isEnabled()`, the option, to switch it on: Dialog
+  may not have started yet there. It is the one allowlisted read in `test/__tests__/crossPluginIsEnabled.unit.js`.
 - **Dialog stays on, by design.** The direct settings write is never undone: after `loading: false` the
   Dialog plugin is still enabled and `getSettings().dialog` is still `true`. And while `loading` is on,
   `updateSettings({ dialog: false })` does not turn Dialog off either (measured: the plugin stays enabled

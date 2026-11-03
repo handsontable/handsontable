@@ -22,7 +22,7 @@ mis-prioritized, it lands in the un-prioritized registration-order bucket.
 | `SETTING_KEYS` | which `updateSettings()` calls reach `updatePlugin()` | `true` = every call, `false` = never, array = only when one of those keys is present |
 | `DEFAULT_SETTINGS` | the fallback `getSetting()` merges under the user value | `defaultMainSettingSymbol` names the key an array/primitive setting maps onto |
 | `SETTINGS_VALIDATORS` | per-key (object) or whole-value (function) validation | only the validator's **own** keys are checked — unknown keys inside a settings object pass untouched |
-| `PLUGIN_DEPS` | required modules, as `'type:Name'` | types are `plugin`, `cell-type`, `editor`, `renderer`, `validator`; a wrong type **throws** |
+| `PLUGIN_DEPS` | required modules, as `'type:Name'` | **generated, never hand-written**: declared as `requires.allOf` with `"enforceAtInit": true` in the plugin's `feature.json`, written to `feature.generated.ts` by `npm run generate:feature-manifest`, returned as `[...PLUGIN_DEPS]` (`../../featureManifest/AGENTS.md`); types are `plugin`, `cell-type`, `editor`, `renderer`, `validator`; a wrong type **throws** |
 
 `SETTING_KEYS` defaults to `[this.PLUGIN_KEY]`, so a plugin that says nothing updates only when its own
 option is passed.
@@ -31,9 +31,17 @@ option is passed.
 
 Both manual resize plugins list their size option beside their own key, so `updateSettings({ rowHeights })`
 reaches them at all. That changes what `updatePlugin()` must assume, in three ways that have all shipped as
-bugs — the full rules are in `../../utils/manualResize/AGENTS.md`. The one to remember here: `onUpdateSettings` calls
-`updatePluginSettings(newSettings[PLUGIN_KEY])`, and a call that carries only a *foreign* key passes
-`undefined`, which **wipes the stored setting** for the rest of the session.
+bugs — the full rules are in `../../utils/manualResize/AGENTS.md`. The one to remember here: a call that
+carries only a *foreign* key has no `PLUGIN_KEY` in the payload, so `onUpdateSettings` refreshes the plugin
+settings from `getSettings()[PLUGIN_KEY]` instead (branch 4 below). It used to pass `undefined` and wipe the
+stored setting, and five plugins restored it in their own `updatePlugin()`; none needs to now. CopyPaste
+(`fragmentSelection`) never restored it, so a `fragmentSelection` update reset `pasteMode` and the header
+copy options to their defaults until the fallback.
+
+**The fallback reads `PLUGIN_KEY`, so it does nothing for a plugin configured through another key.**
+Autofill reads `fillHandle`, so its stored plugin settings come from that key, never from `PLUGIN_KEY`, and
+its `enablePlugin()` (which `updatePlugin()` calls) re-reads `fillHandle` from `getSettings()`. Pinned by
+`../autofill/__tests__/settingsUpdate.unit.js`, which sends `fillHandle: 'vertical'` and reads the direction back.
 
 ## Lifecycle, in the order it actually runs
 
@@ -168,14 +176,23 @@ outcomes in this order:
    reads `getSetting()`: without it a plugin turned on by an update read the value it held before (the
    default, or the settings it was last disabled with), so `updateSettings({ bindRowsWithHeaders: 'strict' })`
    bound loose, and a SheetsBar turned off and on again rebuilt its old workbook first. Branch 4 then skips its
-   own refresh in that call: a second one logged every validation warning twice, and for a payload carrying
-   only a foreign `SETTING_KEYS` option it passed `undefined` and wiped what branch 2 read. A plugin whose
+   own refresh in that call: a second one logged every validation warning twice. A plugin whose
    `updatePlugin()` compares a value against the one it applied before can no longer see the change there in
    the enabling call, because `enablePlugin()` already applied it: AutoColumnSize and AutoRowSize record a
    sampling change seen in `enablePlugin()` for `updatePlugin()` to act on.
 3. enabled and still enabled but a hard conflict is now active → `disablePlugin()` and **return**
 4. enabled, still enabled, and the payload is relevant per `SETTING_KEYS` → `updatePluginSettings()` then
-   `updatePlugin(newSettings)`
+   `updatePlugin(newSettings)`. The refresh takes `newSettings[PLUGIN_KEY]` when the payload carries the key
+   (`hasOwnProperty`, so an explicit `{ [PLUGIN_KEY]: undefined }` passes `undefined` and clears the setting
+   even when something wrote a value straight on the table meta), and `getSettings()[PLUGIN_KEY]` when it does
+   not (a `SETTING_KEYS: true` plugin on an unrelated update, or a payload with only a foreign key). That
+   **resets** the stored setting to the value declared for the grid; it does not keep what the plugin holds
+   now. Two consequences for a plugin author who lists foreign keys or `true`: a setting the plugin changes at
+   runtime through `updatePluginSettings()` (SheetsBar, Loading, and Dialog do, with `[PLUGIN_KEY]` today) is
+   replaced by the declared value on every update that reaches the plugin, and an invalid declared value logs
+   its `SETTINGS_VALIDATORS` warning again on each of those updates. Each update refreshes the settings once:
+   no plugin restores them again in its own `updatePlugin()`. Pinned by
+   `__tests__/onUpdateSettingsFallback.unit.js`.
 
 Branch 3 exists so a plugin already running gets switched off when a conflicting option appears later, even
 when its own `SETTING_KEYS` do not overlap the payload. `relevantToSettings` is computed **before** those
@@ -197,9 +214,15 @@ The contract:
 - **When everything exists, before the next render.** Core runs the owed steps, in `PLUGIN_PRIORITY`
   order: at init right after the view, the editor manager and the focus manager (before the `init` hook and
   the first render); in `updateSettings()` after the `min*` sizing, before its render; in `loadData()` and
-  `updateData()` before the render that ends them (`beforeRender` in `replaceData()`), and in `alter()` before
-  the closing render of `runAlter()`, for a step one of their hooks made a plugin owe; in
-  `_applySettingsAndData()` after the `onDataReady()` pass, against the loaded data.
+  `updateData()` after the `afterLoadData`/`afterUpdateData` hook, before `afterChange` and the render that ends
+  them (`beforeRender` in `replaceData()`), and in `alter()` before the closing render of `runAlter()`, for a step
+  one of their hooks made a plugin owe; in `_applySettingsAndData()` after the `onDataReady()` pass, against the
+  loaded data. Without the load and `alter()` points, a plugin that rebuilds from its `afterLoadData` listener
+  (NestedHeaders, CollapsibleColumns) ran its step after the load had already rendered, and nothing rendered the
+  new state. The load's step runs before `afterChange`, so an `afterChange` listener that renders draws the
+  rebuilt state. The load runs the owed steps once more after `afterChange`, right before its render: an
+  `updateSettings()` made from that listener is nested in the load's pass, so its step cannot run until the
+  pass closes, which is after the render, and nothing drew it.
 - **After the whole pass.** Core counts open lifecycle passes (`lifecyclePassDepth` in `core.ts`):
   `updateSettings()`, `_applySettingsAndData()`, `loadData()`, `updateData()`, `alter()`, every plugin
   lifecycle call, and a ready-step run. Steps run only when the outermost pass closes (or at its pre-render
@@ -227,6 +250,39 @@ The contract:
   failing does not throw on every later pass; its throw ends the pass like any throwing hook. A step that
   keeps re-enabling plugins is cut off after one round per plugin, and core warns only when a step is still
   owed after the last round.
+- **At init core holds the renders the steps ask for.** The steps run inside a raised render-suspend
+  counter, and core puts the counter back without rendering, because the first render follows the `init`
+  hook. A step that renders (a sort, a cell write through `setDataAtCell()`, an explicit `hot.render()`)
+  would otherwise draw the grid before the steps of the later plugins built their state, the early paint
+  CustomBorders documents as #11031. The work is drawn by the first render, so the grid renders once at
+  init, except with declared custom borders: the overlay clones that first render builds need one more
+  selection pass, which CustomBorders schedules for `afterInit`. Outside init a step renders as it asks, on a
+  grid that is already drawn. A held render also skips
+  what a full render does first: forget which stored cell meta already ran its dynamic extension (the `cells`
+  function and the meta hooks). So core calls `metaManager.invalidateMetaExtensions()` after the steps.
+  Without it the `init` listeners read a meta as it was before a step changed it: AutoColumnSize's sweep
+  read a merge's first cell (stored during the init load) without its `colspan`, and sized its column for
+  the merge's text. **Only there, not on every held `Core#render()`.** Clearing on each held render would let
+  a read inside `batch()` see what a `render()` call changed, but it re-runs the `cells` function and the meta
+  hooks for every cell read after each such call: a `batch()` of 1,000 `render()` calls with 50 meta reads
+  after each took 30.4 ms against 14.3 ms (medians of 10, Chromium), and batched `setDataAtCell()` writes do
+  not go through `Core#render()` at all. A stale extension inside a batch is the older behavior and has no
+  report behind it, so the read speed wins. The counter is decremented but never below its value from
+  before the steps: a step that resumed rendering once more than it suspended left it below zero, and the
+  next `suspendRender()` held nothing. A suspension a step makes on its own stays for its own
+  `resumeRender()`; writing the saved value back dropped it, and that `resumeRender()` then drew nothing.
+  **A step that needs to know it runs in the init pass asks `isInitReadyStep()`, never `view._wt.drawn`**: a
+  grid built hidden is never drawn, so the view answer is wrong for every later enable on it (CustomBorders
+  left an `afterInit` listener there that never fired). A step that needs to know whether the grid can
+  measure yet asks the other question and reads `view._wt.drawn` (Pagination, for an `'auto'` page size).
+- **One owner per enable for work that `updatePlugin()` or `onDataReady()` also does.** The step runs after
+  every enable AND every update, and many plugins already do their data work in `updatePlugin()` (a settings
+  sort, the declared borders, the page state). Such a plugin sets a private `#...Owed` flag in
+  `enablePlugin()` and clears it in whichever path does the work, so the step does it only when nothing else
+  did: at init, after a direct `enablePlugin()` call, and on a grid still being built where
+  `deferDataWork()` recorded nothing. CustomBorders, Pagination, ColumnSorting, ColumnSummary, MergeCells and
+  DataProvider follow it; DataProvider captures "owed" at enable time, because a passive enable
+  (`_runWithoutFetching()`) must not fetch even when the step runs after the passive scope ended.
 - **Known limit: the steps run before the end of `updateSettings()`.** They run before its render, which
   comes before the theme hook and the layout config (`finishSettingsUpdate()`), so a step sees the state
   that render draws. A step a plugin comes to owe during a render or that finishing work (a lifecycle call
@@ -242,7 +298,12 @@ refreshes every endpoint when nothing was deferred (`refreshAllEndpoints()`, whi
 `setDataAtCell`). Called at the new points it would write the summaries twice per `updateSettings()` and fire
 an extra `afterChange`. Load hooks are not covered either: an `afterLoadData` listener still fires during
 the init pass with no view, so a plugin that needs the view there skips `initialLoad` and leaves the work to
-the step. No built-in plugin implements `onGridReady()` yet; the migration list is the #6806 section below.
+the step. **A load an `init` listener makes gets no step pass.** It runs after the init steps, with a truthy
+`initialLoad` (`[null, 'loadData']`) and the view in place, and `replaceData()` skips `beforeRender` for it.
+A plugin whose step built state from the rows redoes it from `afterLoadData` for exactly that value: a truthy
+`initialLoad` while `this.hot.view` exists (ColumnSorting does, pinned by
+`tests/e2e/column-sorting-init-load.spec.ts`). Which plugins implement `onGridReady()`, and which init listeners stay on purpose, is in the #6806
+section below.
 
 Pinned by `__tests__/readyStep.unit.js`.
 
@@ -270,7 +331,7 @@ data the grid still holds. The call has three phases:
    column meta only now, and validating during the load blanked a value under the previous sheet's rules),
    then every **enabled** plugin's optional `onDataReady()` in `PLUGIN_PRIORITY` order, then one render
    (rendering is suspended for the whole call and resumed in a `finally`). A grid without a view skips the
-   `onDataReady()` loop: its plugins do that work from their own `afterInit`.
+   `onDataReady()` loop: its plugins do that work from their ready step (`onGridReady()`).
 
 The rule for a plugin: **work in `enablePlugin()`, `updatePlugin()` or a load hook that reads or writes the
 loaded rows checks `isDataWorkDeferred()` and, while it is `true`, records it with `deferDataWork()` and does
@@ -292,9 +353,10 @@ ColumnSummary (endpoints), ColumnSorting and MultiColumnSorting (the `initialCon
 (the declared borders), MergeCells (the settings pass, run by SheetsBar), NestedRows (the data check),
 Formulas (bind only, no sheet fill), Pagination (the page state), EmptyDataState (the overlay toggle) and
 DataProvider (the fetch). The public `updateSettings()` and `loadData()` never set the flag. Core skips the
-`onDataReady()` pass on a grid still being built and the plugin's own `afterInit` does the work there, which
-is why `deferDataWork()` records nothing without a view (a record made then would fire on a later, unrelated
-switch: ColumnSorting ran its settings sort on the first switch, with its sort hooks). Declare `onDataReady()` as an ordinary method;
+`onDataReady()` pass on a grid still being built and the plugin's ready step does the work there, which
+is why `deferDataWork()` records nothing without a view: a record made then would fire on a later, unrelated
+switch (ColumnSorting ran its settings sort on the first switch, with its sort hooks). It returns whether it
+recorded, so a plugin can tell which of the two owns the work. Declare `onDataReady()` as an ordinary method;
 BasePlugin declares the optional signature. MergeCells is the one plugin whose owed pass is run by its caller
 (SheetsBar's `runDeferredSettingsPass(apply)`), not by `onDataReady()`, because only the bar knows whether the
 sheet returns with a stored state that must build no declared merges; it still keeps the record in
@@ -339,6 +401,48 @@ someone reading that plugin will find it:
 
 A hard conflict is a blunt instrument: it disables the plugin outright. Use it only for combinations that
 cannot be made to work. Anything softer belongs in the plugin's own logic.
+
+**A setting whose plugin the license key keeps off conflicts with nothing** (`#isKeptOffByLicense()`, passed to
+`getHardConflict()` as `isIgnored`): that plugin does not run, so the combination cannot fail. A key that lists
+Pagination and leaves NestedRows out runs Pagination with `nestedRows: true` set, and does not rewrite
+`pagination` to `false`. A setting no plugin owns (`fixedRowsTop`) still conflicts.
+
+## The license gate: `isLicenseBlocked()`
+
+A plugin's static `LICENSE` (generated from its `feature.json`, see `../../featureManifest/AGENTS.md`) names the
+token a license key must list. When the grid's key lists its features (the `listed-capabilities` flag) and does not
+cover the token, `isLicenseBlocked()` keeps a `gate: 'enable'` plugin off and reports it for the license message.
+It is checked right after `isHardConflictBlocked()`, at the same three places, never before branch 1:
+
+| Site | On a block |
+|---|---|
+| `onInitEnableTurn()` | reports and returns; **the setting is left alone** |
+| `onUpdateSettings` branch 2 | reports and returns |
+| `onUpdateSettings` branch 3 | reports and calls `disablePlugin()` (a key passed later that leaves the plugin out) |
+
+The difference from a hard conflict is deliberate: the license gate **never writes `getSettings()[PLUGIN_KEY] =
+false`**, so the user's setting stays as written and a later `updateSettings({ licenseKey })` that lists the plugin
+turns it on through branch 2. Three things follow:
+
+- **`isEnabled()` answers `true` for a blocked plugin**, because it reads the setting. Code that asks whether another
+  plugin RUNS reads `plugin.enabled`, never `isEnabled()`: MergeCells has no merged cells collection until it is
+  enabled, so the export read `undefined` and threw. `test/__tests__/crossPluginIsEnabled.unit.js` fails on any
+  `.isEnabled()` call whose receiver is not `this` or `super`; a read that really means the option goes on its
+  allowlist with the reason. The rules are in `../../utils/entitlementLicenseKey/AGENTS.md`.
+- **A direct `getPlugin(name).enablePlugin()` call is gated too**, in the lifecycle wrapper
+  (`#routeLifecycleCalls()`), so an app cannot turn on a plugin the key leaves out. The only built-in direct call
+  is Filters turning on DropdownMenu, which Filters' own `LICENSE.implies` grants with it.
+- **A read of another plugin's SETTING has the same trap as `isEnabled()`**, and the guard test does not see it.
+  Asked at run time, read `getPlugin(name)?.enabled` (the "Copy with group headers" menu item asks NestedHeaders
+  that way). At init the other plugin may not have started yet, so the setting is the only answer there:
+  NestedHeaders' ghost table reads `dropdownMenu` and `collapsibleColumns` from the settings on purpose
+  (`../nestedHeaders/AGENTS.md`).
+- **The message is not written here.** `isLicenseBlocked()` only records the feature; `utils/licenseNotification.ts`
+  writes one console error and the bar after the pass (`initLicenseNotification` at init, an `afterUpdateSettings`
+  listener at order index 1000 after that). A plugin with `gate: 'call'` (on in every grid) is never blocked here; it
+  checks the token in its public methods.
+
+Nested grids are never checked. Pinned by `__tests__/licenseGate.unit.js`.
 
 ## `PLUGIN_PRIORITY` — the enable-order table
 
@@ -413,22 +517,50 @@ distinction.
 
 ## #6806: the initialization-order workarounds
 
-Because `enablePlugin()` fires during `beforeInit`, before the data and the view exist, a plugin that
-needs rendering state has to guard on `!this.hot.view` and sometimes force an `updatePlugin()` call from
-inside `enablePlugin()` or an `init`/`afterInit` listener. **Only CollapsibleColumns' three sites are
-actually marked `#6806`** (`collapsibleColumns.ts`); grep for that number and NestedHeaders looks clean. It
-is not — it carries an unnumbered `// @TODO: Workaround for broken plugin initialization abstraction.`
-(`nestedHeaders.ts`) plus its `this.hot.view` guards. About 15 plugins park work on `init`/`afterInit` for
-the same reason. `../../../.ai/CONCERNS.md` has the list; do not trust a grep alone.
+Because `enablePlugin()` fires during `beforeInit`, before the data and the view exist, plugins used to guard
+on `!this.hot.view` and park the work that needs them on an `init` or `afterInit` listener, which never fired
+again for a later enable. **The fix is the ready step** (above), and these plugins use it:
 
-**The fix is the ready step** (above): move the guarded work into `onGridReady()` and drop the guard and the
-`init`/`afterInit` replay. Do not move `enablePlugin()` itself later: plugins add their hooks there, before
-the init settings pass adds the hooks declared in the settings, so a later enable would run every user
-callback ahead of the plugin's on a shared hook (pinned by the `beforeInit` order test in
-`__tests__/initSequence.unit.js`), and index maps and load hooks must be in place before the first load.
-Never copy the old workaround into a new plugin. Migrate one plugin per change, with a test for the order it
-relies on: priority now orders the ready steps too, which puts AutoColumnSize (10) ahead of Pagination (900),
-the opposite of their `init` listeners today.
+| Plugin | Work in `onGridReady()` | Replaced |
+|---|---|---|
+| NestedHeaders, CollapsibleColumns | the header tree and the collapsed set | `init` replay of `updatePlugin()` |
+| Filters | the per-column settings scan | `afterInit` on the first enable |
+| NestedRows | the row header width | `afterInit` (with a second render) |
+| EmptyDataState | the overlay toggle | `afterInit` (with a second render) |
+| CustomBorders | the declared borders, when no update applied them | `init` |
+| Pagination | the page state, when no update computed it | `init` at order index `-1` |
+| ColumnSorting, MultiColumnSorting | the settings sort of an enable | `afterInit`, the `this.hot.view` branch, a dead `afterLoadData` branch |
+| ColumnSummary | the endpoints | `afterInit` and the `this.hot.view` guard in `updatePlugin()` |
+| MergeCells | the settings pass, when no update ran or handed it over | `afterInit` |
+| DataProvider | the fetch of an enable or update | `afterInit` and the `this.hot.view` guard in `updatePlugin()` |
+
+Every replaced listener ran after the first render (`afterInit`) or between the `init` hook and it; the steps
+run before both, with the renders held (above), so these plugins' work is drawn by the first render and the
+grid renders once at init (with declared custom borders, twice: see above). A direct `enablePlugin()` on a
+live grid now does the work too, which only
+ColumnSorting's `this.hot.view` branch did before. Each plugin's `AGENTS.md` has its details, and its `__tests__/readyStep.unit.*` pins them.
+
+What stays, on purpose:
+
+- **AutoColumnSize and AutoRowSize keep their `init` listener.** The steps run in `PLUGIN_PRIORITY` order, so
+  their steps would run at 10 and 40, before NestedHeaders, MergeCells and Pagination build what they
+  measure. Since every step now runs before the `init` hook, `init` is where that state is in place and the
+  first render has not run. `tests/e2e/nested-headers-autosize-init.spec.ts` fails if they move.
+- **FormulaBuilder's `afterInit` listener** decides when to warn about a failed enable (Formulas off), and a
+  plugin that did not enable owes no step.
+- **Formulas' `this.hot.view` checks** tell construction from a later settings update for its eager first
+  resync, which the step does not answer (`../formulas/AGENTS.md`). Formulas has no step: its one-off
+  `init` listener replayed index syncs that nothing postpones, so it was removed, not moved.
+- **`!this.hot.view` guards on the disable path** (NestedHeaders' `clearColspans()`, CollapsibleColumns'
+  `clearButtons()`): `disablePlugin()` can run before the view exists and has no step.
+- **A nested grid's own `afterInit`** (the context menu's `hotMenu`) belongs to that grid, not to a plugin of
+  this one.
+
+Do not move `enablePlugin()` itself later: plugins add their hooks there, before the init settings pass adds
+the hooks declared in the settings, so a later enable would run every user callback ahead of the plugin's on
+a shared hook (pinned by the `beforeInit` order test in `__tests__/initSequence.unit.js`), and index maps and
+load hooks must be in place before the first load. Never copy the old workaround into a new plugin: put the
+work in `onGridReady()`, and use the one-owner flag above when `updatePlugin()` does the same work.
 
 ## Undo/redo: `runOperation()` and the snapshot contract
 

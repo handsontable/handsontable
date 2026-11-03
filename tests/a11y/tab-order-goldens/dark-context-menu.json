@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "page": "dark-context-menu",
+  "theme": "main",
+  "walks": {
+    "popup": [
+      {
+        "region": "portal",
+        "role": "menuitem",
+        "name": "Insert row above"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "C2",
+        "cell": [
+          1,
+          2
+        ]
+      },
+      {
+        "region": "end"
+      }
+    ]
+  }
+}

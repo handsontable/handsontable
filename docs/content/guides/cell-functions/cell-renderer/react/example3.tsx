@@ -34,7 +34,7 @@ const ExampleComponent = () => {
         },
       ]}
       colHeaders={true}
-      rowHeights={55}
+      minRowHeights={55}
       height="auto"
       autoWrapRow={true}
       autoWrapCol={true}

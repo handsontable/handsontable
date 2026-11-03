@@ -47,7 +47,10 @@ describe('MergeCells', () => {
         afterChange,
       });
 
-      expect(afterChange.calls.mostRecent().args[0]).toEqual([
+      // The merges are built in the plugin's ready step, before the init load's own `afterChange`, which
+      // core sends after the first render.
+      expect(afterChange.calls.allArgs().map(([, source]) => source)).toEqual(['MergeCells', 'loadData']);
+      expect(afterChange.calls.argsFor(0)[0]).toEqual([
         [0, 4, null, null],
         [1, 3, null, null],
         [1, 4, null, null],
@@ -87,7 +90,8 @@ describe('MergeCells', () => {
       });
 
       expect(beforeChange.calls.mostRecent().args[1]).toEqual('MergeCells');
-      expect(afterChange.calls.mostRecent().args[1]).toEqual('MergeCells');
+      // The init load's own `afterChange` comes after the merges' one, see the spec above.
+      expect(afterChange.calls.allArgs().map(([, source]) => source)).toEqual(['MergeCells', 'loadData']);
 
       getPlugin('mergeCells').merge(2, 2, 3, 3);
 

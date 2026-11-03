@@ -56,6 +56,7 @@ import type { RangeType } from '../../core/types';
 import type CellRange from '../../3rdparty/walkontable/src/cell/range';
 import { isCellRangeLike } from '../../3rdparty/walkontable/src/cell/range';
 import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
+import { LICENSE } from './feature.generated';
 
 /**
  * Represents a cell change from the HyperFormula engine.
@@ -403,6 +404,14 @@ export class Formulas extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
@@ -1129,12 +1138,9 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveCol', this.#onAfterRemoveCol);
 
     this.indexSyncer = new IndexSyncer(
-      this.hot.rowIndexMapper, this.hot.columnIndexMapper, (postponedAction: Function) => {
-        this.hot.addHookOnce('init', () => {
-          // Engine is initialized after executing callback to `afterLoadData` hook. Thus, some actions on indexes should
-          // be postponed.
-          postponedAction();
-        });
+      this.hot.rowIndexMapper, this.hot.columnIndexMapper, () => {
+        // Nothing is postponed: the axis syncers postpone the initial order only while no sheet is bound, and
+        // the plugin sets the sync endpoint up with a bound sheet only. Each setup sends the order itself.
       }, <T>(engine: HyperFormulaEngine, fn: () => T) => this.#writeOwnSheet(engine, fn));
 
     this.rowAxisSyncer = this.indexSyncer.getForAxis('row');

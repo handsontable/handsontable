@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "page": "select-editor",
+  "theme": "main",
+  "walks": {
+    "popup": [
+      {
+        "region": "grid",
+        "role": "combobox",
+        "name": ""
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "",
+        "cell": [
+          0,
+          3
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "combobox",
+        "name": "Page size"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Go to next page"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Go to last page"
+      },
+      {
+        "region": "end"
+      }
+    ]
+  }
+}

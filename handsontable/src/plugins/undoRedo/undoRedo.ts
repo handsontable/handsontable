@@ -11,6 +11,7 @@ import { isStructural, restoreStep, type RestoreDirection } from './restore';
 import { collectRestoredCells, toCellChanges, toVisibleCells, type RestoredCell } from './restoredCells';
 import { addressesChangedColumn, type ColumnChangeTest } from './stepColumns';
 import { haveSameIndexMaps } from '../../translations/indexMapperSnapshot';
+import { LICENSE } from './feature.generated';
 
 const SHORTCUTS_GROUP = 'undoRedo';
 
@@ -148,6 +149,14 @@ export class UndoRedo extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

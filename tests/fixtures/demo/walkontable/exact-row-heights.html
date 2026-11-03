@@ -35,7 +35,8 @@
     In the `min` mode (the default) the height is a floor and the rows render at their content
     height; in the `exact` mode they render at the provided height and the content is clipped.
 
-    The mode is flipped on the engine directly — Handsontable itself does not expose it yet.
+    The mode is flipped on the engine directly. Handsontable derives it from the `rowHeights` option on
+    its own, and keeps the flipped value until the options ask for another mode.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -53,8 +54,7 @@
     // The provided height of every row. Deliberately below every theme's default row height.
     const ROW_HEIGHT = Number(params.get('rowHeight') ?? 10);
     // `?hook=0&rowHeights=40` provides the height through the `rowHeights` OPTION instead of the
-    // hook. The option is clamped to the theme default by Handsontable, so it has to sit above every
-    // theme's default (37px in `horizon`), but it is the UNIFORM source: `rowHeightsUniform` is
+    // hook. The option is the UNIFORM source: `rowHeightsUniform` is
     // true only with the option and no hook, and that is what engages the uniform-band shortcut in
     // `markOversizedRows` and the uniform strategy of the row-height cache.
     const USE_HOOK = params.get('hook') !== '0';

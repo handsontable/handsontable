@@ -25,6 +25,7 @@ import GhostTable from './utils/ghostTable';
 import { resolveRowspanNavigationContextRow } from './utils/navigation';
 import { getEndOverlayHeaders } from '../../utils/endOverlayHeaders';
 import { FONT_REMEASURE_ORDER_INDEX } from '../../core/fontLoad';
+import { LICENSE } from './feature.generated';
 
 /**
  * A single configured nested header. Declares the header label and how it spans and behaves.
@@ -212,6 +213,14 @@ export class NestedHeaders extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
@@ -498,6 +507,11 @@ export class NestedHeaders extends BasePlugin {
    * Determines if the current nested headers state contains headers with `rowspan`.
    */
   #hasRowspanHeaders = false;
+  /**
+   * `true` from an enable or update until the header state is built. A data load builds it at once, so the
+   * ready step of a call whose load already built it builds nothing.
+   */
+  #stateOwed = false;
 
   /**
    * Returns whether the plugin is enabled based on the presence of the `nestedHeaders` settings key.
@@ -521,7 +535,6 @@ export class NestedHeaders extends BasePlugin {
                         passed as an array of arrays e.q. [['A1', { label: 'A2', colspan: 2 }]]`);
     }
 
-    this.addHook('init', this.#onInit);
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('afterCreateCol', this.#onAfterCreateCol);
@@ -555,20 +568,39 @@ export class NestedHeaders extends BasePlugin {
     this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
 
+    this.#stateOwed = true;
     super.enablePlugin();
-    this.updatePlugin();
   }
 
   /**
    * Updates the plugin state when Handsontable settings change, rebuilding the header tree and refreshing column widths.
+   * The rebuild runs in the plugin's ready step, once the call returns and the data is loaded.
    */
   updatePlugin() {
-    if (!this.hot.view) {
-      return;
-    }
+    this.#stateOwed = true;
+    super.updatePlugin();
+  }
 
+  /**
+   * Builds the header tree after an enable or update, unless the call's data load built it already. Core runs it
+   * once after each enable or update, when the data is loaded.
+   *
+   * @private
+   */
+  onGridReady() {
+    if (this.#stateOwed) {
+      this.#buildHeaderState();
+    }
+  }
+
+  /**
+   * Builds the header tree from the `nestedHeaders` setting against the loaded columns, and marks the column widths
+   * for a rebuild.
+   */
+  #buildHeaderState() {
     const { nestedHeaders } = this.hot.getSettings();
 
+    this.#stateOwed = false;
     this.#rowspanHeaderNavigationContextRow = null;
     this.#expectedNextKeyboardHighlightCoords = null;
     this.#stateManager.setColumnsLimit(this.hot.countCols());
@@ -595,18 +627,14 @@ export class NestedHeaders extends BasePlugin {
                         is currently not supported.`);
     }
 
-    if (this.enabled) {
-      // Derive tree colspan / isHidden state from the current hiding map. This covers columns
-      // that were already hidden before the plugin initialized (e.g. HiddenColumns configured
-      // together with nestedHeaders). Future changes are handled by #onColumnIndexMapperCacheUpdated.
-      this.#stateManager.syncVisibility(createColumnVisibilityAdapter(this.hot));
-    }
+    // Derive tree colspan / isHidden state from the current hiding map. This covers columns
+    // that were already hidden before the plugin initialized (e.g. HiddenColumns configured
+    // together with nestedHeaders). Future changes are handled by #onColumnIndexMapperCacheUpdated.
+    this.#stateManager.syncVisibility(createColumnVisibilityAdapter(this.hot));
 
     this.#updateWidthsMap = true;
 
-    super.updatePlugin();
-
-    if (this.enabled && Array.isArray(nestedHeaders)) {
+    if (Array.isArray(nestedHeaders)) {
       this.runLocalHooks('afterHeaderStateRebuild');
     }
   }
@@ -2069,28 +2097,21 @@ export class NestedHeaders extends BasePlugin {
   };
 
   /**
-   * Updates the plugin state after HoT initialization.
-   */
-  // @TODO: Workaround for broken plugin initialization abstraction.
-  #onInit = () => {
-    this.updatePlugin();
-  };
-
-  /**
    * Forgets the column order the header tree was derived against before a data load re-initializes the
-   * column index mapper. The re-initialization is not a reorder: the `afterLoadData` derive covers it, so
-   * the cache update it fires must not re-derive the tree first.
+   * column index mapper. The re-initialization is not a reorder: the derive of the load's ready step covers it,
+   * so the cache update it fires must not re-derive the tree first.
    */
   #onBeforeLoadData = () => {
     this.#derivedColumnSequence = null;
   };
 
   /**
-   * Re-initializes the plugin state after new data is loaded, unless this is the initial data load.
+   * Builds the header state for the loaded data at once, unless this is the initial data load (the ready step of
+   * the enable covers it), so a later `afterLoadData` listener reads, and collapses, the rebuilt tree.
    */
   #onAfterLoadData = (sourceData: unknown[], initialLoad: boolean) => {
     if (!initialLoad) {
-      this.updatePlugin();
+      this.#buildHeaderState();
     }
   };
 
