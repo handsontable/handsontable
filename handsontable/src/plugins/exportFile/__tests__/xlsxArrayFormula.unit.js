@@ -89,6 +89,30 @@ describe('Xlsx export: array formulas', () => {
     expect(rows[2][1]).toMatchObject({ value: 6, formula: null });
   });
 
+  it('should write an array over a merged cell as a plain formula and report it', async() => {
+    // Excel opens a dynamic array spilling into a merge as `#SPILL!`, and takes no CSE array in a
+    // merged cell. A one-cell dynamic array is only a formula to Excel, so IFS keeps its flag on one.
+    const { rows, dropped } = await exportSheet({
+      data: [
+        ['=SEQUENCE(3)', '=ARRAYFORMULA(SUM(A1:A3*2))', null, '=SEQUENCE(2)', '=IFS(A1>0,"p",A1<=0,"n")', null],
+        [null, null, null, null, null, null],
+        [null, null, null, null, null, null],
+      ],
+      // A2:B2 lies in the SEQUENCE(3) spill, B1:C1 holds the CSE array, E1:F1 the IFS.
+      mergeCells: [
+        { row: 1, col: 0, rowspan: 1, colspan: 2 },
+        { row: 0, col: 1, rowspan: 1, colspan: 2 },
+        { row: 0, col: 4, rowspan: 1, colspan: 2 },
+      ],
+    });
+
+    expect(rows[0][0].formula).toEqual({ text: 'SEQUENCE(3)', result: 1 });
+    expect(rows[0][1].formula).toEqual({ text: 'SUM(A1:A3*2)', result: 12 });
+    expect(rows[0][3].formula.array).toEqual({ ref: 'D1:D2', dynamic: true });
+    expect(rows[0][4].formula.array).toEqual({ ref: 'E1', dynamic: true });
+    expect(dropped).toEqual(['formula:arrayExcluded']);
+  });
+
   it('should stop a spill at the next array formula on its right', async() => {
     const { rows } = await exportSheet({ data: [['=SEQUENCE(2)', '=SEQUENCE(2)'], []] });
 

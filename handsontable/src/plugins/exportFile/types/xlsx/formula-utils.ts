@@ -503,6 +503,10 @@ const CLAIM_ROW_STRIDE = 16385;
  * O(1) - an `IFS` column of 100,000 rows used to cost a comparison with every earlier claim. The
  * kept cells never exceed the sheet's exported cells, because the claims do not overlap.
  *
+ * A claim is refused over a merged cell too: Excel shows a dynamic array that spills into a merge as
+ * `#SPILL!`, and does not take a CSE array in a merged cell at all. A one-cell dynamic array (`IFS`,
+ * range arithmetic) is only a formula to Excel, so it may sit on a merge's first cell.
+ *
  * @private
  */
 export class ArrayRangeClaims {
@@ -510,15 +514,34 @@ export class ArrayRangeClaims {
    * The cells the multi-cell claims cover, keyed `row * CLAIM_ROW_STRIDE + col`.
    */
   #cells = new Set<number>();
+  /**
+   * The cells the sheet's merges cover, keyed like `#cells`.
+   */
+  #merged = new Set<number>();
+
+  /**
+   * @param {SheetRange[]} [merges] The sheet's merged ranges, 1-based like the claims.
+   */
+  constructor(merges: SheetRange[] = []) {
+    merges.forEach(({ top, left, bottom, right }) => {
+      for (let row = top; row <= bottom; row++) {
+        for (let col = left; col <= right; col++) {
+          this.#merged.add((row * CLAIM_ROW_STRIDE) + col);
+        }
+      }
+    });
+  }
 
   /**
    * Claims the range of an array formula, or answers `false` when it overlaps a range claimed
-   * earlier. Ranges must be claimed in row-major order of their top-left corner.
+   * earlier or a merged cell. Ranges must be claimed in row-major order of their top-left corner.
    *
    * @param {object} range The range to claim.
+   * @param {boolean} [dynamic=true] Whether the array is a dynamic one, which may sit on a merged
+   *   cell when it is one cell.
    * @returns {boolean}
    */
-  claim(range: SheetRange): boolean {
+  claim(range: SheetRange, dynamic = true): boolean {
     const { top, left, bottom, right } = range;
     const firstRow = top * CLAIM_ROW_STRIDE;
 
@@ -529,14 +552,24 @@ export class ArrayRangeClaims {
     }
 
     if (top === bottom && left === right) {
-      return true;
+      return dynamic || !this.#merged.has(firstRow + left);
     }
+
+    const keys: number[] = [];
 
     for (let row = top; row <= bottom; row++) {
       for (let col = left; col <= right; col++) {
-        this.#cells.add((row * CLAIM_ROW_STRIDE) + col);
+        const key = (row * CLAIM_ROW_STRIDE) + col;
+
+        if (this.#merged.has(key)) {
+          return false;
+        }
+
+        keys.push(key);
       }
     }
+
+    keys.forEach(key => this.#cells.add(key));
 
     return true;
   }

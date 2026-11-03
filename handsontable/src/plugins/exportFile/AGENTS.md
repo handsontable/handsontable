@@ -362,7 +362,10 @@ Other rules:
   `types/xlsx/formula-utils.ts`) and writes an overlapping array as a plain formula. **The claims rely
   on row-major order** (masters are claimed row by row, left to right): an overlap is then always on the
   new range's first row, one-cell claims are never stored, and only multi-cell spills keep their cells
-  in a `Set`. Never claim out of order, and never go back to comparing every pair: that is quadratic in
+  in a `Set`. The claims also hold the sheet's merged cells (sheet coordinates, built from `getMergeCells()`):
+  a multi-cell array over a merge, or a CSE array on a merged cell, is refused like an overlap (Excel
+  shows a spill into a merge as `#SPILL!` and refuses a CSE array in one); a one-cell DYNAMIC array
+  (`IFS`, range arithmetic) may sit on a merge's first cell, being only a formula to Excel. Never claim out of order, and never go back to comparing every pair: that is quadratic in
   the number of array formulas. The data provider decides `exported` (every spilled row and column lands
   right after the master in the matrix): a spill crossing a hidden row with `exportHiddenRows: false`, a
   trimmed or filtered row, or the `range` edge is written as a plain formula and `formula:arrayExcluded`

@@ -241,6 +241,20 @@ describe('ArrayRangeClaims', () => {
     expect(claims.claim(range(7, 3, 7, 3))).toBe(true); // C7, below C4:C6
   });
 
+  it('should refuse a range over a merged cell, and a CSE array on one, but not a one-cell dynamic array', () => {
+    // Excel shows a dynamic array spilling into a merge as `#SPILL!`, and takes no CSE array in a
+    // merged cell.
+    const claims = new ArrayRangeClaims([range(2, 2, 2, 3), range(5, 1, 6, 1)]); // B2:C2, A5:A6
+
+    expect(claims.claim(range(1, 2, 3, 2))).toBe(false); // B1:B3 crosses B2
+    expect(claims.claim(range(1, 4, 3, 4))).toBe(true); // D1:D3 passes right of the merge
+    expect(claims.claim(range(2, 2, 2, 2))).toBe(true); // B2, a one-cell dynamic array
+    expect(claims.claim(range(2, 2, 2, 2), false)).toBe(false); // B2, a one-cell CSE array
+    expect(claims.claim(range(3, 1, 4, 1), false)).toBe(true); // A3:A4 stops above A5
+    expect(claims.claim(range(4, 2, 6, 2))).toBe(true); // B4:B6 passes right of A5:A6
+    expect(claims.claim(range(7, 1, 7, 1), false)).toBe(true); // A7, below the merge
+  });
+
   it('should not let a refused claim block a later range', () => {
     const claims = new ArrayRangeClaims();
 

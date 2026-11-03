@@ -351,9 +351,10 @@ function recordArrayExcluded(dropped: DroppedFeatures): void {
  *    array arithmetic (A2*2 on row 2), as Excel's `@` does, so it is a plain formula: a one-cell CSE
  *    array would compute A1*2.
  *
- * A spill the export does not keep in shape (an excluded row or column, the `range` edge), and an
- * array whose range overlaps an earlier array formula of the sheet, are written as plain formulas
- * and reported once per export as `formula:arrayExcluded`.
+ * A spill the export does not keep in shape (an excluded row or column, the `range` edge), an
+ * array whose range overlaps an earlier array formula of the sheet, and an array over a merged cell
+ * (`ArrayRangeClaims`; a one-cell dynamic array may sit on one) are written as plain formulas and
+ * reported once per export as `formula:arrayExcluded`.
  *
  * @param {string} text The normalized formula, without the leading `=`.
  * @param {object} facts The cell's facts.
@@ -393,7 +394,7 @@ function resolveArrayFormula(
   const rows = size?.rows ?? 1;
   const cols = size?.cols ?? 1;
 
-  if (!target.arrayRanges.claim({ top: row, left: col, bottom: row + rows - 1, right: col + cols - 1 })) {
+  if (!target.arrayRanges.claim({ top: row, left: col, bottom: row + rows - 1, right: col + cols - 1 }, dynamic)) {
     recordArrayExcluded(target.dropped);
 
     return { text: formulaText };
@@ -900,7 +901,12 @@ class Xlsx extends BaseType {
       fileScope: localeLowerCase(name),
       nameUses,
       dropped,
-      arrayRanges: new ArrayRangeClaims(),
+      arrayRanges: new ArrayRangeClaims(mergeCells.map((merge: MergeDescriptor) => ({
+        top: merge.row + dataRowOffset,
+        left: merge.col + dataColOffset,
+        bottom: merge.row + dataRowOffset + merge.rowspan - 1,
+        right: merge.col + dataColOffset + merge.colspan - 1,
+      }))),
       hasRowHeaders,
       headerFill,
       headerBorder,
