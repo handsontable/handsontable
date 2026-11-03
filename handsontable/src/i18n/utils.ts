@@ -79,6 +79,7 @@ export function normalizeLanguageCode(languageCode: string) {
 export function warnUserAboutLanguageRegistration(languageCode: string) {
   if (isDefined(languageCode)) {
     error(toSingleLine`Language with code "${languageCode}" was not found. You should register particular language\x20
-    before using it. Read more about this issue at: https://docs.handsontable.com/i18n/missing-language-code.`);
+    before using it. Read more about this issue at:\x20
+    https://handsontable.com/docs/javascript-data-grid/language/#load-the-prepared-language-files`);
   }
 }
