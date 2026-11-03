@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed an edit being written into a different record when `loadData()` replaced the data before the cell's validator answered. Such an edit is now dropped, also when `loadData()` runs right after the edit.",
-  "type": "fixed",
+  "title": "Changed `loadData()` to drop a change that still waits for its cell's validator, instead of writing it into the new data at the same coordinates, usually a different record. This also applies when `loadData()` runs right after `setDataAtCell()` and when the new data holds the same records. `afterChange` doesn't fire for a dropped change. See the migration guide.",
+  "type": "changed",
   "issueOrPR": 14109,
-  "breaking": false,
+  "breaking": true,
   "framework": "none"
 }

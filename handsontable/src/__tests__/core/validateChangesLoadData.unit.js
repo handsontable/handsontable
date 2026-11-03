@@ -173,6 +173,59 @@ describe('Core validation of a change when loadData() replaces the data', () => 
     expect(edits).toEqual([]);
   });
 
+  it.each(['beforeChange', 'afterSetDataAtCell'])(
+    'should drop an accepted change when loadData() runs from a %s listener of the change', async(hookName) => {
+      let loaded = null;
+
+      createGrid({
+        [hookName]() {
+          if (!loaded) {
+            loaded = otherRecords();
+            hot.loadData(loaded);
+          }
+        },
+      });
+
+      hot.setDataAtCell(0, 1, 'typed');
+      await settle();
+      answer('typed', true);
+
+      expect(loaded).toEqual(otherRecords());
+      expect(edits).toEqual([]);
+    });
+
+  it('should drop the correction a validator writes for a change that loadData() dropped', async() => {
+    const corrections = [];
+
+    createGrid({
+      columns: [
+        { data: 'id' },
+        {
+          data: 'name',
+          validator(value, callback) {
+            if (typeof value === 'string' && value !== value.toUpperCase()) {
+              this.instance.setDataAtCell(this.visualRow, this.visualCol, value.toUpperCase(), 'upperCaseValidator');
+            }
+
+            callback(true);
+          },
+        },
+      ],
+      afterChange(changes, source) {
+        if (source === 'upperCaseValidator') {
+          corrections.push(changes);
+        }
+      },
+    });
+
+    hot.setDataAtCell(0, 1, 'hello');
+    hot.loadData(otherRecords());
+    await settle();
+
+    expect(hot.getSourceData()).toEqual(otherRecords());
+    expect(corrections).toEqual([]);
+  });
+
   it('should tell the dropped-changes listeners about the dropped set, once each', async() => {
     createGrid();
 
@@ -292,6 +345,60 @@ describe('Core validation of a change when loadData() replaces the data', () => 
 
       expect(hot.getActiveEditor().isOpened()).toBe(false);
       expect(hot.getDataAtCell(1, 1)).toBe('second');
+    });
+
+    it('should keep an editor opened on the same cell after the load when the dropped edit is answered', async() => {
+      createGrid();
+      await confirmEdit('typed');
+      hot.loadData(otherRecords());
+      hot.selectCell(0, 1);
+      hot.getActiveEditor().beginEditing();
+      hot.getActiveEditor().setValue('again');
+      answer('typed', true);
+
+      expect(hot.getActiveEditor().isOpened()).toBe(true);
+      expect(hot.getActiveEditor().getValue()).toBe('again');
+      expect(hot.getDataAtCell(0, 1)).toBe('xavier');
+    });
+
+    it('should not take an answer of a set dropped from beforeValidate as the next edit\'s answer', async() => {
+      let loaded = null;
+
+      createGrid({
+        allowInvalid: false,
+        beforeValidate() {
+          if (!loaded) {
+            loaded = otherRecords();
+            hot.loadData(loaded);
+          }
+        },
+      });
+
+      hot.setDataAtCell(0, 1, 'dropped');
+      await settle();
+
+      expect(hot._hasPendingValidation()).toBe(false);
+
+      await confirmEdit('second', 1);
+      answer('dropped', false);
+
+      expect(hot.getActiveEditor().isWaiting()).toBe(true);
+
+      answer('second', true);
+
+      expect(hot.getActiveEditor().isOpened()).toBe(false);
+      expect(hot.getDataAtCell(1, 1)).toBe('second');
+    });
+
+    it('should remove its validation listener when the load ends the wait', async() => {
+      createGrid();
+      await confirmEdit('typed');
+
+      expect(hot.hasHook('postAfterValidate')).toBe(true);
+
+      hot.loadData(otherRecords());
+
+      expect(hot.hasHook('postAfterValidate')).toBe(false);
     });
 
     it('should prepare the editor against the loaded data after the load closed a waiting one', async() => {

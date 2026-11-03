@@ -171,6 +171,13 @@ export class BaseEditor {
   #validationWait: object | null = null;
 
   /**
+   * The `postAfterValidate` listener of the current wait, removed with the wait. It removes itself on its
+   * first answer that is not stale, and the answer of a dropped call is stale, so a wait ended early would
+   * keep it until another validation in the grid answers.
+   */
+  #validationWaitListener: ((result: boolean) => void) | null = null;
+
+  /**
    * Re-arms the unchanged-edit guard after the editor's content has been reloaded from the data
    * source, so the baseline describes what the editor shows now rather than what it showed when it
    * opened. Does nothing while the guard is disarmed.
@@ -607,12 +614,25 @@ export class BaseEditor {
       }
 
       this.#validationWait = null;
+      this.#validationWaitListener = null;
       this.state = EDITOR_STATE.FINISHED;
       onAnswer(result);
     };
 
+    this.#removeValidationWaitListener();
     this.#validationWait = wait;
+    this.#validationWaitListener = onPostAfterValidate;
     this.hot.addHook('postAfterValidate', onPostAfterValidate);
+  }
+
+  /**
+   * Removes the `postAfterValidate` listener of the current wait, if there is one.
+   */
+  #removeValidationWaitListener(): void {
+    if (this.#validationWaitListener) {
+      this.hot.removeHook('postAfterValidate', this.#validationWaitListener);
+      this.#validationWaitListener = null;
+    }
   }
 
   /**
@@ -637,6 +657,7 @@ export class BaseEditor {
 
     this._closeCallback = null;
     this.#validationWait = null;
+    this.#removeValidationWaitListener();
     this.cancelChanges();
 
     return closeCallback ? () => closeCallback(false) : null;

@@ -3371,18 +3371,27 @@ export class AsyncValues extends BasePlugin {
    * Called by the Core for a change set it dropped: the set waited for its validators while `loadData()`
    * replaced the data, so it never lands, and neither `afterChange` nor a spliced-out tuple tells the
    * plugin so. Ends the flight of every tuple the plugin wrote as failed, like a rejected one, so its call
-   * can finalize and its row state is released.
+   * can finalize and its row state is released. A tuple a validator rejected was spliced out of the array
+   * before the drop, and `#onPostAfterValidate` finds its flight by the visual row the validation started
+   * with, which a load that reorders the rows hands to another record. So every flight that holds this
+   * array (`flight.changes`) is ended, not only the flights of the tuples still in it.
    *
    * @param {Array[]} changes The dropped change array.
    */
   readonly #onChangesDropped = (changes: CellChange[]): void => {
-    changes.forEach((change) => {
-      const flight = this.#flightByChange.get(change);
+    const dropped: Flight[] = [];
 
-      if (flight) {
-        this.#endFlight(flight.state, flight.prop, flight, true);
-      }
+    this.#states.forEach((state) => {
+      state.flights.forEach((flights) => {
+        flights.forEach((flight) => {
+          if (flight.changes === changes) {
+            dropped.push(flight);
+          }
+        });
+      });
     });
+
+    dropped.forEach(flight => this.#endFlight(flight.state, flight.prop, flight, true));
   };
 
   /**

@@ -137,6 +137,10 @@ interface MoveCellsRect {
  */
 interface ChangeSetAwaitingApply {
   writeCount: number;
+  /**
+   * The number of loads the plugin did not make itself (`#foreignLoadCount`) when the set was written.
+   */
+  foreignLoadCount: number;
   sheetId: number | null;
   writtenBack: boolean;
   /**
@@ -159,6 +163,12 @@ interface WrittenCell {
   visualRow: number;
   visualColumn: number;
   oldValue: unknown;
+  /**
+   * What the engine held in the cell right after the first write (`getCellSerialized()`), or `undefined`
+   * when it could not be read. A restore skips a cell that holds anything else by then: a newer write
+   * reached it.
+   */
+  writtenContent: unknown;
 }
 
 /**
@@ -552,6 +562,17 @@ export class Formulas extends BasePlugin {
    * @type {number}
    */
   #sheetWriteCount = 0;
+
+  /**
+   * Counts the `loadData()` / `updateData()` calls the plugin did not make itself (`switchSheet()` loads
+   * the grid from the sheet with its own source). A change set records it when it is written, and
+   * `#onChangesDropped` puts the grid data back only while it has not moved: any other load replaced
+   * the grid's data with data that never held the dropped value, also a load the engine refused, which
+   * leaves `#sheetWriteCount` where it was.
+   *
+   * @type {number}
+   */
+  #foreignLoadCount = 0;
 
   /**
    * The `setDataAtCell()` / `setDataAtRowProp()` change sets written into the engine that the Core
@@ -3994,6 +4015,8 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    this.#foreignLoadCount += 1;
+
     if (!this.engine) {
       return;
     }
@@ -4401,6 +4424,7 @@ export class Formulas extends BasePlugin {
     const { dependentCells, changedCells, outOfBoundsChanges, writtenCells } = this.#writeChangesToEngine(changes);
     const awaitingApply: ChangeSetAwaitingApply = {
       writeCount: this.#sheetWriteCount,
+      foreignLoadCount: this.#foreignLoadCount,
       sheetId: this.sheetId,
       writtenBack: false,
       writtenCells,
@@ -4490,7 +4514,9 @@ export class Formulas extends BasePlugin {
 
         if (physicalRow !== null && physicalColumn !== null) {
           this.syncChangeWithEngine(visualRow, visualColumn, newValue);
-          writtenCells.push({ address, physicalRow, physicalColumn, visualRow, visualColumn, oldValue });
+          writtenCells.push({
+            address, physicalRow, physicalColumn, visualRow, visualColumn, oldValue, writtenContent: undefined,
+          });
 
         } else {
           outOfBoundsChanges.push([visualRow, visualColumn, newValue]);
@@ -4499,6 +4525,10 @@ export class Formulas extends BasePlugin {
         changedCells.push({ address });
       });
     }));
+
+    writtenCells.forEach((cell) => {
+      cell.writtenContent = this.#readEngineContent(cell.address);
+    });
 
     return { dependentCells, changedCells, outOfBoundsChanges, writtenCells };
   }
@@ -4565,11 +4595,14 @@ export class Formulas extends BasePlugin {
    * to the values the set replaced. Without this, the switched-away sheet kept a value its grid data
    * never received, and showed it on a switch back.
    *
-   * While the grid still shows the sheet the set was written into, two cases differ. When the load wrote
-   * the loaded data over the whole sheet (`#sheetWriteCount` moved), the sheet holds the loaded values and
-   * nothing is put back. When it did not, the grid was loaded FROM that sheet (`switchSheet()` away and
-   * back within the window), so the grid's data holds the dropped value too, and both are put back
-   * (`#restoreReloadedCells`).
+   * While the grid still shows the sheet the set was written into, two cases differ. When a load the
+   * plugin did not make ran since the set was written (`#foreignLoadCount` moved), the grid holds that
+   * load's data, which never had the dropped value, and nothing is put back. That includes a load the
+   * engine refused, which empties the sheet without counting a sheet write. Otherwise every load was the
+   * plugin's own `switchSheet()` (away and back within the window), which loads the grid FROM the sheet,
+   * so the grid's data holds the dropped value too, and both are put back (`#restoreReloadedCells`), cell
+   * by cell only where the engine still holds what the first write put there: a newer edit of the cell
+   * keeps its value.
    *
    * The restore runs in a plugin write that paints this grid as well: the Core renders nothing for a
    * dropped set, so a cell of the sheet shown that reads a restored cell kept the value computed from the
@@ -4588,7 +4621,7 @@ export class Formulas extends BasePlugin {
 
     this.#changesAwaitingApply.delete(changes);
 
-    const { sheetId, writtenCells, writeCount } = awaitingApply;
+    const { sheetId, writtenCells, foreignLoadCount } = awaitingApply;
 
     if (!this.engine || sheetId === null) {
       return;
@@ -4597,7 +4630,7 @@ export class Formulas extends BasePlugin {
     if (sheetId !== this.sheetId) {
       withPluginEngineWrite(this.engine, () => this.#restoreSwitchedAwaySheet(writtenCells, sheetId));
 
-    } else if (writeCount === this.#sheetWriteCount) {
+    } else if (foreignLoadCount === this.#foreignLoadCount) {
       this.#restoreReloadedCells(writtenCells);
     }
   };
@@ -4607,15 +4640,21 @@ export class Formulas extends BasePlugin {
    * sheet the set was written into, and into that sheet. The grid's data and the engine both hold the
    * dropped value then. The values go through `setSourceDataAtCell()`, whose `afterSetSourceDataAtCell`
    * writes the engine, at the cells the first write reached, translated from engine indexes, because the
-   * load built the grid's rows from the engine sheet. The write is not an undo step: the user never made
-   * the change it reverts.
+   * load built the grid's rows from the engine sheet. A cell whose engine content is no longer what the
+   * first write left (`WrittenCell#writtenContent`) is skipped. All cells go in one `setSourceDataAtCell()`
+   * call, so a dropped paste renders and writes the engine once. The write is not an undo step: the user
+   * never made the change it reverts.
    *
    * @param {Array} writtenCells The cells the first write reached.
    */
   #restoreReloadedCells(writtenCells: WrittenCell[]) {
     const restores: [number, string | number, unknown][] = [];
 
-    writtenCells.forEach(({ address, oldValue }) => {
+    writtenCells.forEach(({ address, oldValue, writtenContent }) => {
+      if (writtenContent === undefined || this.#readEngineContent(address) !== writtenContent) {
+        return;
+      }
+
       const visualRow = this.rowAxisSyncer?.getVisualIndexFromHfIndex(address.row) ?? -1;
       const visualColumn = this.columnAxisSyncer?.getVisualIndexFromHfIndex(address.col) ?? -1;
       const physicalRow = visualRow < 0 ? null : this.hot.toPhysicalRow(visualRow);
@@ -4625,11 +4664,31 @@ export class Formulas extends BasePlugin {
       }
     });
 
+    if (restores.length === 0) {
+      return;
+    }
+
     this.hot._getOperationScope().suppress(() => {
-      restores.forEach(([physicalRow, prop, oldValue]) => {
-        this.hot.setSourceDataAtCell(physicalRow, prop, oldValue, 'Formulas.restoreDroppedChange');
-      });
+      this.hot.setSourceDataAtCell(
+        restores, undefined as unknown as string, undefined, 'Formulas.restoreDroppedChange',
+      );
     });
+  }
+
+  /**
+   * Reads what the engine holds in a cell (`getCellSerialized()`), or `undefined` when the address is
+   * outside what the engine can read (a sheet removed since, an index the engine refused).
+   *
+   * @param {object} address The engine address.
+   * @returns {*}
+   */
+  #readEngineContent(address: WrittenCell['address']): unknown {
+    if (!this.engine || address.sheet === null || address.row < 0 || address.col < 0
+      || this.engine.getSheetName(address.sheet) === undefined) {
+      return undefined;
+    }
+
+    return this.engine.getCellSerialized(address as { row: number; col: number; sheet: number });
   }
 
   /**

@@ -331,6 +331,49 @@ describe('AsyncValues: progress, retry, and request options', () => {
       destroy();
     });
 
+    it('should record a call whose dropped write lost a rejected tuple after a load reordered the rows', async() => {
+      const heldAnswers: Map<unknown, (valid: boolean) => void> = new Map();
+      const { hot, plugin, destroy } = createGrid({
+        rowId: 'id',
+        undo: true,
+        allowInvalid: false,
+        columns: [{ data: 'sku' }, {
+          data: 'name',
+          validator(value: unknown, callback: (valid: boolean) => void) {
+            if (value === 'new A' || value === 'bad') {
+              heldAnswers.set(value, callback);
+            } else {
+              callback(true);
+            }
+          },
+        }, { data: 'price' }],
+      });
+      const undoRedo = hot.getPlugin('undoRedo');
+      const requests = [deferred(), deferred(), deferred()];
+      const results = plugin.setAsyncValues(0, 1, 2, 1, ({ row }) => requests[row!].promise, { undo: 'record' });
+
+      requests[0].resolve('new A');
+      requests[1].resolve('bad');
+      await settle();
+      hot.loadData(products().reverse());
+      const answer = (value: string, valid: boolean) => heldAnswers.get(value)?.(valid);
+
+      answer('bad', false);
+      answer('new A', true);
+      requests[2].resolve('new C');
+      await results;
+      await settle();
+
+      expect(hot.getDataAtCol(1)).toEqual(['old D', 'new C', 'old B', 'old A']);
+      expect(undoRedo.isUndoAvailable()).toBe(true);
+
+      undoRedo.undo();
+
+      expect(hot.getDataAtCol(1)).toEqual(['old D', 'old C', 'old B', 'old A']);
+
+      destroy();
+    });
+
     it('should keep a user\'s edit made during the call out of the call\'s step', async() => {
       const { hot, plugin, destroy } = createGrid({ undo: true });
       const undoRedo = hot.getPlugin('undoRedo');

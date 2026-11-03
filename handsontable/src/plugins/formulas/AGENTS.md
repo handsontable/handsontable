@@ -568,14 +568,23 @@ again. The rules:
   grid too: the Core renders nothing for a dropped set, and `#writeOwnSheet()` left a cell of the sheet shown
   that reads the restored cell painting the value computed from the dropped one (pinned by `repaints this grid
   when the restore changes a cell its current sheet reads`). **While the grid still shows that sheet, the
-  sheet write count decides.** When it moved, the load wrote the loaded data over the whole sheet, and a
-  restore would write the old value over the loaded one, so nothing is put back (pinned by `keeps the loaded
-  values when loadData() on the same sheet drops the change`). When it did not, the grid was loaded FROM that
-  sheet (`switchSheet()` away and back within the window), so the grid's data holds the dropped value as
-  well, and `#restoreReloadedCells()` writes the old values through `setSourceDataAtCell()` under
-  `suppress()`: its `afterSetSourceDataAtCell` puts the engine back, at the cells the first write recorded,
-  translated from engine indexes, because the load built the rows from the engine sheet (pinned by `takes
-  the dropped change out of the grid data when the grid switched away and back`). **It restores the cells the first write
+  count of loads the plugin did not make decides (`#foreignLoadCount`, raised in `#onAfterLoadData` past
+  its own-source return).** When it moved, the grid holds that load's data, and a restore would write the
+  old value over it, so nothing is put back (pinned by `keeps the loaded values when loadData() on the same
+  sheet drops the change`). Do not key this on `#sheetWriteCount`: a load the engine refuses
+  (`#clearRejectedSheet()`) empties the sheet without counting a write, and the restore then wrote the old
+  row's value into the loaded data (pinned by `keeps the loaded data when the engine refused the load that
+  dropped the change`). When it did not move, every load was the plugin's own `switchSheet()` away and back,
+  which loads the grid FROM the sheet, so the grid's data holds the dropped value as well, and
+  `#restoreReloadedCells()` writes the old values in one `setSourceDataAtCell()` call under `suppress()`:
+  its `afterSetSourceDataAtCell` puts the engine back, at the cells the first write recorded, translated
+  from engine indexes, because the load built the rows from the engine sheet (pinned by `takes the dropped
+  change out of the grid data when the grid switched away and back` and `puts every cell of a dropped set
+  back in one source write`). A cell is restored only while the engine still holds what the first write
+  left there (`WrittenCell#writtenContent`, read with `getCellSerialized()` after the write's batch): a cell
+  write moves neither count, so a newer edit of the cell made after the switch back was overwritten with
+  the dropped set's old value (pinned by `keeps a newer edit of the cell when a change dropped after a
+  switch away and back answers`). **It restores the cells the first write
   RECORDED (`ChangeSetAwaitingApply#writtenCells`: engine address, grid coordinates, old value), never
   a fresh mapping.** The index mapping DOES move on a switch: the switch's `loadData` clears runtime
   trims, so with row 0 trimmed a change to visual row 0 was written to sheet row 1, while a mapping

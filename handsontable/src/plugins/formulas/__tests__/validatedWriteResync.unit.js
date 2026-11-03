@@ -408,6 +408,91 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     expect(engine.getCellValue({ sheet: first, row: 2, col: 0 })).toBeNull();
   });
 
+  it('keeps the loaded data when the engine refused the load that dropped the change', async() => {
+    const warnings = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable', maxRows: 3 });
+
+    hot = new Handsontable(container, {
+      data: [[1, 'a'], [2, 'b'], [3, 'c']],
+      columns: [{ validator: (value, callback) => callback(true) }, {}],
+      formulas: { engine },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const sheet = hot.getPlugin('formulas').sheetId;
+
+    hot.setDataAtCell(0, 0, '=1+1');
+    hot.loadData([[5, 'w'], [6, 'x'], [7, 'y'], [8, 'z']]);
+
+    expect(warnings).toHaveBeenCalledWith(expect.stringContaining('maxRows'));
+
+    await waitForValidation();
+
+    expect(hot.getSourceDataAtCell(0, 0)).toBe(5);
+    expect(engine.getSheetSerialized(sheet)).toEqual([]);
+
+    warnings.mockRestore();
+  });
+
+  it('keeps a newer edit of the cell when a change dropped after a switch away and back answers', async() => {
+    let answerHeld = null;
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hot = new Handsontable(container, {
+      data: [[1, 'a'], [2, 'b'], [null, 'c']],
+      columns: [{
+        validator(value, callback) {
+          if (value === 'held') {
+            answerHeld = () => callback(true);
+          } else {
+            callback(true);
+          }
+        },
+      }, {}],
+      formulas: { engine },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const plugin = hot.getPlugin('formulas');
+    const first = plugin.sheetId;
+    const firstName = plugin.sheetName;
+
+    engine.setSheetContent(engine.getSheetId(engine.addSheet('Other')), [[10, 'x'], [20, 'y'], [null, 'z']]);
+
+    hot.setDataAtCell(0, 0, 'held');
+    plugin.switchSheet('Other');
+    plugin.switchSheet(firstName);
+    hot.setDataAtCell(0, 0, 'newer');
+
+    await waitForValidation();
+
+    answerHeld();
+
+    await waitForValidation();
+
+    expect(hot.getSourceDataAtCell(0, 0)).toBe('newer');
+    expect(engine.getCellValue({ sheet: first, row: 0, col: 0 })).toBe('newer');
+  });
+
+  it('puts every cell of a dropped set back in one source write', async() => {
+    const engine = buildGrid([[1, 'a'], [2, 'b'], [3, 'c']]);
+    const plugin = hot.getPlugin('formulas');
+    const firstName = plugin.sheetName;
+    const sourceWrites = [];
+
+    engine.setSheetContent(engine.getSheetId(engine.addSheet('Other')), [[10, 'x']]);
+
+    hot.setDataAtCell([[0, 0, 7], [1, 0, 8], [2, 0, 9]]);
+    plugin.switchSheet('Other');
+    plugin.switchSheet(firstName);
+    hot.addHook('afterSetSourceDataAtCell', (changes, source) => sourceWrites.push([changes.length, source]));
+
+    await waitForValidation();
+
+    expect(hot.getSourceDataAtCol(0)).toEqual([1, 2, 3]);
+    expect(sourceWrites).toEqual([[3, 'Formulas.restoreDroppedChange']]);
+  });
+
   it('does not write a dropped change past the last row into the loaded data', async() => {
     const engine = buildGrid([[1, 'a'], [2, 'b'], [3, 'c']]);
     const sheet = hot.getPlugin('formulas').sheetId;
