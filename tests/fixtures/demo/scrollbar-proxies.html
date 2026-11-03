@@ -64,6 +64,7 @@
   <style>
     body { font-family: sans-serif; margin: 1rem; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -101,7 +102,7 @@
         dropdownMenu: shape.menu === 'filters',
         filters: shape.menu === 'filters',
         ...sized,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       window.htBuildError = String(error && error.stack || error);
