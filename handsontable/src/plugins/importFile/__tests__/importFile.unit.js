@@ -4,6 +4,7 @@
 import { Blob } from 'node:buffer';
 import ExcelJS from 'exceljs';
 import { HyperFormula } from 'hyperformula';
+import plPL from 'hyperformula/commonjs/i18n/languages/plPL';
 import { ImportFile, PLUGIN_KEY, PLUGIN_PRIORITY } from '../importFile';
 import { installImportedStyles } from '../applier';
 import { mapWorkbook, resolveImportOptions, selectSheet } from '../mapper';
@@ -2298,6 +2299,70 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
 
       cached.hf.destroy();
     }
+  });
+
+  it('should let a translated OFFSET spill on an engine of another language', async() => {
+    // The engine lists OFFSET under its own name only through the class's translation: with the
+    // English id, a `plPL` master read as calling an unregistered function, kept its covered cells
+    // and showed `#ROZLANIE!`.
+    if (!HyperFormula.getRegisteredLanguagesCodes().includes('plPL')) {
+      HyperFormula.registerLanguage('plPL', plPL);
+    }
+
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const spilled = await importArrays([
+      [at({ value: 1 }), at({
+        formula: { text: 'PRZESUNIĘCIE(A1,0,0,3,1)*2', result: 2, array: { ref: 'B1:B3', dynamic: true } },
+      })],
+      [at({ value: 2 }), at({ value: 4 })],
+      [at({ value: 3 }), at({ value: 6 })],
+    ], undefined, {}, [], { config: { language: 'plPL' } });
+
+    expect(spilled.result.data.map(row => row[1])).toEqual(['=PRZESUNIĘCIE(A1,0,0,3,1)*2', null, null]);
+
+    spilled.hf.destroy();
+  });
+
+  it('should take the cached values of a legacy array the engine spills right of its ref', async() => {
+    // `{=TRANSPOSE(A1:A3)}` entered in B1 alone is one cell in Excel; live, it filled C1:D1 too.
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const legacy = await importArrays([
+      [at({ value: 1 }), at({
+        formula: { text: 'TRANSPOSE(A1:A3)', result: 1, array: { ref: 'B1', dynamic: false } },
+      }), null, null],
+      [at({ value: 2 }), null, null, null],
+      [at({ value: 3 }), null, null, null],
+    ]);
+
+    expect(legacy.result.data[0]).toEqual([1, 1]);
+    expect(legacy.result.formulas).toEqual([{ row: 0, col: 1, formula: 'TRANSPOSE(A1:A3)' }]);
+    expect(legacy.result.dropped).toContain('formula:arraySpill');
+
+    legacy.hf.destroy();
+  });
+
+  it('should take the cached values of a master that shows #SPILL! though it reads another sheet', async() => {
+    // The probe holds no `Other`, so `ISERROR(Other!A1)` is true there and `SEQUENCE(5)` is blocked
+    // by the `x` in B4. `#SPILL!` settles before the read-outside rule, so the master does not stay
+    // live with its covered cells emptied.
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const master = await importArrays([
+      [at({ value: 1 }), at({
+        formula: {
+          text: 'IF(ISERROR(Other!A1),SEQUENCE(5),SEQUENCE(3))',
+          result: 1,
+          array: { ref: 'B1:B3', dynamic: true },
+        },
+      })],
+      [at({ value: 2 }), at({ value: 2 })],
+      [at({ value: 3 }), at({ value: 3 })],
+      [at({ value: 4 }), at({ value: 'x' })],
+    ], undefined, {}, [], { sheets: { Sheet1: [], Other: [[7]] } });
+
+    expect(master.result.data.map(row => row[1])).toEqual([1, 2, 3, 'x']);
+    expect(master.result.dropped).toContain('formula:arraySpill');
+
+    master.hf.destroy();
   });
 
   it('should keep the cached covered cells of a master calling a function the engine\'s plugins leave out', async() => {
