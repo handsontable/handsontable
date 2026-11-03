@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "renderer:base",
+      "kind": "renderer",
+      "module": "base",
+      "name": "Base renderer",
+      "description": "The renderer every other renderer calls first.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "renderer:text",
+      "kind": "renderer",
+      "module": "text",
+      "name": "Text renderer",
+      "description": "The renderer of the text cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "renderer:numeric",
+      "kind": "renderer",
+      "module": "numeric",
+      "name": "Numeric renderer",
+      "description": "The renderer of the numeric cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "renderer:date",
+      "kind": "renderer",
+      "module": "date",
+      "name": "Date renderer",
+      "description": "The renderer of the date cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "renderer:time",
+      "kind": "renderer",
+      "module": "time",
+      "name": "Time renderer",
+      "description": "The renderer of the time cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "renderer:intl_date",
+      "kind": "renderer",
+      "module": "intl-date",
+      "name": "Date (Intl) renderer",
+      "description": "The renderer of the intl-date cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "renderer:intl_time",
+      "kind": "renderer",
+      "module": "intl-time",
+      "name": "Time (Intl) renderer",
+      "description": "The renderer of the intl-time cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "renderer:intl_datetime",
+      "kind": "renderer",
+      "module": "intl-datetime",
+      "name": "Date and time (Intl) renderer",
+      "description": "The renderer of the intl-datetime cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "renderer:checkbox",
+      "kind": "renderer",
+      "module": "checkbox",
+      "name": "Checkbox renderer",
+      "description": "The renderer of the checkbox cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "renderer:select",
+      "kind": "renderer",
+      "module": "select",
+      "name": "Select renderer",
+      "description": "The renderer of the select cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "renderer:dropdown",
+      "kind": "renderer",
+      "module": "dropdown",
+      "name": "Dropdown renderer",
+      "description": "The renderer of the dropdown cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "renderer:autocomplete",
+      "kind": "renderer",
+      "module": "autocomplete",
+      "name": "Autocomplete renderer",
+      "description": "The renderer of the autocomplete cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "renderer:handsontable",
+      "kind": "renderer",
+      "module": "handsontable",
+      "name": "Handsontable renderer",
+      "description": "The renderer of the handsontable cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "renderer:password",
+      "kind": "renderer",
+      "module": "password",
+      "name": "Password renderer",
+      "description": "The renderer of the password cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "renderer:multiselect",
+      "kind": "renderer",
+      "module": "multiselect",
+      "name": "Multiselect renderer",
+      "description": "The renderer of the multiselect cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "renderer:html",
+      "kind": "renderer",
+      "module": "html",
+      "name": "HTML renderer",
+      "description": "Renders the cell value as HTML.",
+      "status": "stable",
+      "licensing": "none"
+    }
+  ]
+}

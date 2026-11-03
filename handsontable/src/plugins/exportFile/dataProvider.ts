@@ -233,7 +233,7 @@ class ExportDataProvider {
    */
   getFormulaErrorCodes(): (string | null)[][] {
     const formulasPlugin = this.hot.getPlugin('formulas');
-    const engine = formulasPlugin?.isEnabled() ? formulasPlugin.engine : null;
+    const engine = formulasPlugin?.enabled ? formulasPlugin.engine : null;
     const { sheetId, rowAxisSyncer, columnAxisSyncer } = formulasPlugin ?? {};
 
     if (!engine || sheetId === null || sheetId === undefined || !rowAxisSyncer || !columnAxisSyncer) {
@@ -304,7 +304,7 @@ class ExportDataProvider {
   #getEngineRowAxisSyncer(): { getVisualIndexFromHfIndex(hfIndex: number): number } | null {
     const formulasPlugin = this.hot.getPlugin('formulas');
 
-    if (!formulasPlugin?.isEnabled() || !formulasPlugin.engine) {
+    if (!formulasPlugin?.enabled || !formulasPlugin.engine) {
       return null;
     }
 
@@ -411,7 +411,7 @@ class ExportDataProvider {
   getFormulasSeparator(): string {
     const formulasPlugin = this.hot.getPlugin('formulas');
 
-    if (!formulasPlugin || !formulasPlugin.isEnabled()) {
+    if (!formulasPlugin?.enabled) {
       return ',';
     }
 
@@ -466,7 +466,9 @@ class ExportDataProvider {
     const { startRow, startCol, endRow, endCol } = this._getDataRange();
     const mergeCellsPlugin = this.hot.getPlugin('mergeCells');
 
-    if (!mergeCellsPlugin || !mergeCellsPlugin.isEnabled()) {
+    // `enabled`, not `isEnabled()`: a plugin the license key leaves out keeps its setting but never ran, so it
+    // has no merged cells collection to read.
+    if (!mergeCellsPlugin || !mergeCellsPlugin.enabled) {
       return [];
     }
 
@@ -886,7 +888,7 @@ class ExportDataProvider {
   getColumnSummaries() {
     const plugin = this.hot.getPlugin('columnSummary');
 
-    if (!plugin || !plugin.isEnabled()) {
+    if (!plugin?.enabled) {
       return [];
     }
 
@@ -1115,26 +1117,18 @@ class ExportDataProvider {
    *
    * `getRowHeight()` returns 0 for hidden rows because the HiddenRows plugin
    * overrides the `modifyRowHeight` hook. This method reads the configured height
-   * directly from the `rowHeights` setting, bypassing that hook.
+   * from the settings (`rowHeights` and `minRowHeights`), bypassing that hook.
    *
    * @private
    * @param {number} rowIndex Visual row index.
    * @returns {number}
    */
   _getNaturalRowHeight(rowIndex: number): number {
-    const settings = this.hot.getSettings();
-    const { rowHeights, defaultRowHeight } = settings;
+    const { defaultRowHeight } = this.hot.getSettings();
     const fallback: number = (defaultRowHeight as number | undefined) ?? 23;
+    const height = this.hot._getRowHeightFromSettings(rowIndex);
 
-    if (Array.isArray(rowHeights)) {
-      return (rowHeights[rowIndex] as number | undefined) ?? fallback;
-    } else if (typeof rowHeights === 'function') {
-      return (rowHeights(rowIndex) as number | undefined) ?? fallback;
-    } else if (typeof rowHeights === 'number') {
-      return rowHeights;
-    }
-
-    return fallback;
+    return Number.isFinite(height) ? height as number : fallback;
   }
 
   /**

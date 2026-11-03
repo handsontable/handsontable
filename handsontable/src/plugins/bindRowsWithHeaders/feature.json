@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:bind_rows_with_headers",
+      "kind": "plugin",
+      "module": "BindRowsWithHeaders",
+      "name": "Bind rows with headers",
+      "description": "Keeps each row header label with its row when rows are moved or hidden.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

@@ -311,6 +311,14 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   result does carry is merged into an existing options object (`{ indicators: true }` on `hiddenRows`,
   `{ virtualized: true }` on `mergeCells`) rather than replacing it. `hiddenRows`/`hiddenColumns` are
   ALWAYS the object shape; only `mergeCells` may be a bare array.
+- **`result.rowHeights` lands in `minRowHeights`, never in `rowHeights` (`toSettings` in `applier.ts`).**
+  The reader keeps every row's `ht`, also the height the producing app measured and not one a user set
+  (no `customHeight` in the model): LibreOffice and Google Sheets write one on every row, 20 px for the
+  default 15 pt. The core `rowHeights` option is exact since 19.0 and clips, so those rows would render
+  below the theme's row height with their text cut. As a floor they keep the behavior they had. The
+  import also clears an exact `rowHeights` the grid held (it would win per row over the
+  imported heights), and the reset of an earlier import clears both settings. Applying only the user-set heights as
+  exact needs a `customHeight` flag on `SheetSnapshot`, in both adapters.
 - **The result is in sheet coordinates; the grid API takes visual ones.** `applyImportResult` runs every
   `cellsMeta` and comment coordinate through `toVisualRow`/`toVisualColumn`, because a `manualRowMove`
   array reorders rows inside `loadData`. Both return `null` for a trimmed index (`trimRows`,
@@ -632,6 +640,18 @@ The plugin only exposes it. The rules and traps live in `../../utils/columnTypeI
   because that sheet's data moved too. The fix resolves the qualifier against the export's sheet list (after
   `sanitizeSheetName`) and shifts by THAT sheet's offsets. Decision on #13551: not for now, no ticket; documented as a
   limitation in the export guide's multi-sheet section.
+
+## The license check: every public method that does work
+
+The plugin is on unless `importFile: false`, so a license key that lists its features is checked when it is
+used, not at enable (`gate: 'call'` in `feature.json`). `inferColumnTypes()`, `convertToInferredTypes()`,
+`importFromArrayBuffer()` and `importFromBlob()` call `assertLicensedCall(this.hot, LICENSE)` first, before
+`#assertEnabled()`: a key that does not cover `feat:import_file` writes the license message and throws it (the
+async methods reject). `supportsImportFormat()` is not checked. The SheetsBar calls only the `_`-prefixed members,
+which are not checked. The import asks Formulas, Comments and CustomBorders whether they RUN (`.enabled`),
+never whether their option is on: a plugin a license key keeps off keeps its option, and an import that read the
+option wrote live formulas and `'`-escaped text that no plugin would read. Rules:
+`../../utils/entitlementLicenseKey/AGENTS.md`.
 
 ## Where to look next
 

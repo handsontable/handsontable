@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "The `Loading` plugin now needs the `Dialog` plugin registered: `new Handsontable()` throws an error without it, where the loading overlay used to show nothing. Register `Dialog` alongside `Loading`. Added `dist/manifest.json` to the package: a list of every feature, the license token that names it, and the features it needs.",
+  "type": "added",
+  "issueOrPR": 14094,
+  "breaking": true,
+  "framework": "none"
+}

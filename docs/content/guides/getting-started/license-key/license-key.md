@@ -13,6 +13,7 @@ vue:
   metaTitle: License key | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Getting started
+menuTag: updated
 ---
 Activate Handsontable DataGrid, passing your license key in the configuration object. Use a special key for non-commercial and evaluation purposes.
 
@@ -342,6 +343,44 @@ against the build date of your Handsontable version, never against the current d
 versions released on or before that date indefinitely, including offline. On a newer version, the
 console reports an error and the grid shows a notice below the table.
 
+### Keys that list features
+
+An entitlement key can list the features it unlocks. Such a key unlocks the grid itself, the
+features it lists, and the features those need. For example, a key that lists Filters also unlocks
+the column menu, which Filters uses. A key that does not list its features unlocks every feature, as
+every key did before.
+
+When your key lists its features and your grid turns on a plugin the key does not list:
+
+- The plugin stays off. The rest of the grid works, and the grid is not locked.
+- The console shows one error, for example:
+  _The license key for Handsontable does not include these features: Filters (feat:filters). They
+  are turned off. To add them, contact sales@handsontable.com._
+- The same message appears below the grid, without the token names, because your end users can see
+  it: _The license key for Handsontable does not include these features: Filters. They are turned
+  off. To add them, contact sales@handsontable.com._
+- The option keeps the value you set, so `getSettings()` still returns it. Pass a key that lists the
+  feature through [`updateSettings()`](@/api/core.md#updatesettings), and the plugin turns on.
+- The plugin's methods work as they do for a plugin whose option is off. Some of them throw, because
+  the plugin never started, so do not call the methods of a plugin your key does not list.
+
+A key that lists its features also turns off the plugins that are on by default, unless it lists
+them: [`CopyPaste`](@/api/copyPaste.md), [`UndoRedo`](@/api/undoRedo.md),
+[`Autofill`](@/api/autofill.md), [`AutoColumnSize`](@/api/autoColumnSize.md), and
+[`DragToScroll`](@/api/dragToScroll.md).
+
+Four plugins are on in every grid: [`ExportFile`](@/api/exportFile.md),
+[`ImportFile`](@/api/importFile.md), [`ViewState`](@/api/viewState.md), and
+[`CheckboxHeader`](@/api/checkboxHeader.md). They check the key when you use them. A method of
+`ExportFile`, `ImportFile`, or `ViewState` that your key does not cover throws an error with the
+same message, and a header checkbox your key does not cover is not drawn.
+
+A key issued for use in an application for external users silences the console and the bar, so on
+such a key a missing feature is off with no message.
+
+The `handsontable` package lists every feature a key can name, with its token and the features it
+needs, in `dist/manifest.json`.
+
 ## Result
 
 Your grid is now licensed. A valid commercial key removes the license notice from the grid header.
@@ -374,6 +413,8 @@ The modal covers only the grid. The rest of your page keeps working. The modal d
 
 An **expired key** does not block anything. Its message appears below the table and in the console, and every feature keeps working.
 
+A **key that does not include a feature** your grid uses blocks nothing either. The feature stays off, and its message appears below the table and in the console. See [Keys that list features](#keys-that-list-features).
+
 The messages are as follows:
 
 ### Missing license key
@@ -393,6 +434,15 @@ _The license key for Handsontable is invalid.  Read more on how to install it pr
 Shown below the table and in the console:
 
 _The license key for Handsontable expired on `[expiration_date]`, and is not valid for the installed version `[handsontable_version]`.  Renew your license key or downgrade to a version released prior to `[expiration_dates]`. If you need any help, contact us at `[email]`._
+
+### Feature not included in the license key
+
+Shown below the table and in the console:
+
+_The license key for Handsontable does not include these features: `[features]`. They are turned off. To add them, contact `[email]`._
+
+In the console, `[features]` lists each missing feature as its name and token, for example
+`Filters (feat:filters)`. Below the table, it lists the names only, for example `Filters`.
 
 ## Get a license key
 

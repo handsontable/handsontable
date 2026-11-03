@@ -356,6 +356,26 @@ read through `hot.view.countFixedColumnsEnd()`, so the start columns keep the pr
 columns even when the master range is far from them, exactly like the start clone, so a border on an end column
 has to be in the working set or it is never drawn. Pinned by `tests/e2e/fixed-columns-end-plugins.spec.ts`.
 
+## The declared borders have one owner per enable
+
+The borders the settings declare are applied once per enable, by whichever path gets there:
+`updatePlugin()` (a `customBorders` update, including the off-to-on one, which runs `enablePlugin()` and
+then `updatePlugin()`), `onDataReady()` (the same update made ahead of its data), or the ready step
+(`onGridReady()`, `../base/AGENTS.md`) when neither ran: at init, and after a direct `enablePlugin()` call.
+`#declaredBordersOwed` is set by `enablePlugin()` and cleared by whichever applies them, so the step skips
+the pass after the other two and no border is written twice.
+
+At init the step runs before the `init` hook and the first render, and it does not render: that render
+syncs the master table's borders, and a render from the step would paint before later-priority plugins
+(NestedHeaders) build their state (#11031). The overlay clones that first render builds still need one
+more selection pass, so the step schedules a render for `afterInit` (`#onAfterInitRender`) when any border
+exists. Outside the init pass the step renders once itself. It replaced an `init` listener, which never
+fired again after init, so a direct `enablePlugin()` on a live grid used to apply nothing. **The step asks
+core whether it runs in the init pass (`isInitReadyStep()`), never whether the view has drawn.** A grid built
+inside a hidden container skips its draws, so `view._wt.drawn` stays `false` until it is first shown: read as
+"init", a direct `enablePlugin()` there rendered nothing and left an `afterInit` listener that never fires.
+Pinned by `__tests__/readyStep.unit.js`.
+
 ## Declared borders applied ahead of their data wait for `onDataReady()`
 
 While core's `_applySettingsAndData()` applies settings ahead of their data (`isDataWorkDeferred()`,

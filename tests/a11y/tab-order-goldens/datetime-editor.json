@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "page": "datetime-editor",
+  "theme": "main",
+  "walks": {
+    "popup": [
+      {
+        "region": "grid",
+        "role": "DateTime",
+        "name": ""
+      },
+      {
+        "region": "grid",
+        "role": "DateTime",
+        "name": ""
+      }
+    ]
+  }
+}

@@ -6,6 +6,7 @@ import { cancelIdleTask, requestIdleTask } from '../../helpers/feature';
 import { isPercentValue } from '../../helpers/string';
 import { valueAccordingPercent } from '../../helpers/number';
 import { FONT_REMEASURE_ORDER_INDEX } from '../../core/fontLoad';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'autoRowHeaderSize';
 export const PLUGIN_PRIORITY = 45;
@@ -105,6 +106,14 @@ export class AutoRowHeaderSize extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
@@ -371,15 +380,6 @@ export class AutoRowHeaderSize extends BasePlugin {
    * @param {object} [newSettings] The settings passed to `updateSettings`.
    */
   updatePlugin(newSettings?: Record<string, unknown>): void {
-    // `BasePlugin#onUpdateSettings` feeds `updatePluginSettings()` with `newSettings[PLUGIN_KEY]`,
-    // which an update that does not mention this plugin carries as `undefined` - wiping the stored
-    // settings. The re-enable below then reads the defaults, so `allowSampleDuplicates: true`
-    // silently reverted to `false` on every unrelated `updateSettings` call. Restore the option
-    // from the merged settings first.
-    if (newSettings !== undefined && newSettings[PLUGIN_KEY] === undefined) {
-      this.updatePluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
-    }
-
     this.clearCache();
     this.disablePlugin();
     this.enablePlugin();

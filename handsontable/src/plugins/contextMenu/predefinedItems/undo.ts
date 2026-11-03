@@ -20,7 +20,7 @@ export default function undoItem() {
     hidden(this: HotInstance) {
       const undoRedoPlugin = this.getPlugin('undoRedo');
 
-      return !undoRedoPlugin || !undoRedoPlugin.isEnabled();
+      return !undoRedoPlugin?.enabled;
     },
     disabled(this: HotInstance) {
       return !this.getPlugin('undoRedo').isUndoAvailable();

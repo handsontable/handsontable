@@ -233,9 +233,10 @@ ROW_SIZE_OPTIONS    = ['rowHeights', 'minRowHeights']
 COLUMN_SIZE_OPTIONS = ['colWidths']
 ```
 
-`minRowHeights` is a documented alias of `rowHeights` — `Core#_getRowHeightFromSettings` reads
-`rowHeights ?? minRowHeights`, so both state the row heights equally. There is **no** `minColWidths` alias,
-which is why the column list has one entry and the row list two. Do not "symmetrize" them.
+Both row options state the row heights, so passing either one re-declares them. They differ at render time:
+`rowHeights` is exact and `minRowHeights` is a floor (`Core#_isRowHeightExact`), and `minRowHeights` is no longer
+an alias of `rowHeights`. There is **no** `minColWidths` option, which is why the column list has one entry and
+the row list two. Do not "symmetrize" them.
 
 ## Listing a foreign option in `SETTING_KEYS` changes three things
 
@@ -243,9 +244,10 @@ Both plugins put their size option in `SETTING_KEYS` next to their own key, so t
 `updateSettings({ rowHeights })` reaches them at all (issue [#4371](https://github.com/handsontable/handsontable/issues/4371)).
 Each consequence below has already shipped as a bug:
 
-1. **The stored setting gets wiped.** `BasePlugin#onUpdateSettings` feeds `updatePluginSettings()` with
-   `newSettings[PLUGIN_KEY]`, and a `{ rowHeights }` call does not carry that key — it is `undefined`.
-   Restore it from the merged settings, or `getSetting()` starts lying for the rest of the session.
+1. **The stored setting used to get wiped.** A `{ rowHeights }` call does not carry the plugin's own key.
+   `BasePlugin#onUpdateSettings` now refreshes the plugin settings from the merged settings when the payload
+   omits that key, so `getSetting()` keeps reporting the declared value. The plugins no longer restore it
+   themselves; do not add a restore back.
 2. **Do not run the usual `disablePlugin(); enablePlugin();` cycle on such an update.** `#onMapInit` replays
    the declared `manualRowResize` array, so a grid configured with an array reverts a row the user had since
    dragged — to neither the dragged height nor the requested one. Re-initialize only when the plugin's own

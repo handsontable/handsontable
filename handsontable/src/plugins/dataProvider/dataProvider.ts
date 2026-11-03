@@ -61,6 +61,7 @@ import {
 } from './utils';
 import { registerConflict } from '../base/conflictRegistry';
 import type { NotificationMessageOptions } from '../notification/notification';
+import { LICENSE } from './feature.generated';
 
 registerConflict('dataProvider', [
   'manualRowMove',
@@ -308,6 +309,14 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns the setting keys that trigger a plugin update when changed via `updateSettings`.
    */
   static get SETTING_KEYS() {
@@ -370,6 +379,14 @@ export class DataProvider extends BasePlugin {
    */
   #isPassive = false;
   /**
+   * `true` from an `enablePlugin()` made outside `_runWithoutFetching()` until the fetch of that enable
+   * starts. The ready step starts it (at init, and after a direct `enablePlugin()` call); `onDataReady()`
+   * starts it when core applies the settings ahead of their data, and a passive update owes none.
+   *
+   * @type {boolean}
+   */
+  #fetchOwed = false;
+  /**
    * `true` while {@link Hooks#afterDataProviderFetch} runs for a response the plugin loads or replays, so the page
    * size Pagination takes from that response is not read as a user's change.
    *
@@ -416,7 +433,6 @@ export class DataProvider extends BasePlugin {
     this.#adoptPendingQuery();
 
     this.addHook('hasExternalDataSource', this.#onHasExternalDataSource);
-    this.addHook('afterInit', this.#onAfterInit);
     this.addHook('modifyRowHeader', this.#onModifyRowHeader);
     this.addHook('beforeColumnSort', this.#onBeforeColumnSort);
     this.addHook('beforeUndoStackChange', this.#onBeforeUndoStackChange);
@@ -427,6 +443,8 @@ export class DataProvider extends BasePlugin {
     this.addHook('beforeFilter', this.#onBeforeFilter);
     this.addHook('afterNotificationHide', this.#onAfterNotificationHide);
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings, 1);
+
+    this.#fetchOwed = !this.#isPassive;
 
     super.enablePlugin();
   }
@@ -449,12 +467,10 @@ export class DataProvider extends BasePlugin {
     this.#disable(false);
     this.enablePlugin();
 
-    if (!this.#isPassive && this.hot.view) {
-      if (this.isDataWorkDeferred()) {
-        this.deferDataWork();
-      } else {
-        void this.#fetchDataSilently();
-      }
+    // The ready step starts the fetch once the call returns. While core applies the settings ahead of their
+    // data, `onDataReady()` starts it, on a grid already drawn; on one still being built the step does.
+    if (!this.#isPassive && this.isDataWorkDeferred() && this.deferDataWork()) {
+      this.#fetchOwed = false;
     }
 
     super.updatePlugin();
@@ -469,6 +485,26 @@ export class DataProvider extends BasePlugin {
    */
   onDataReady() {
     if (this.takeDeferredDataWork() && !this.#isPassive) {
+      this.#fetchOwed = false;
+      void this.#fetchDataSilently();
+    }
+  }
+
+  /**
+   * Starts the fetch of an enable or update. Core runs it once the call returns, when the grid exists: at init
+   * before the `init` hook, and on a live grid before the render that ends the call. An enable or update made
+   * inside `_runWithoutFetching()` owes no fetch, even when the step runs after that scope has ended.
+   *
+   * @private
+   */
+  onGridReady() {
+    if (!this.#fetchOwed) {
+      return;
+    }
+
+    this.#fetchOwed = false;
+
+    if (!this.#isPassive) {
       void this.#fetchDataSilently();
     }
   }
@@ -1845,13 +1881,6 @@ export class DataProvider extends BasePlugin {
    * @returns {boolean}
    */
   readonly #onHasExternalDataSource = () => isCompleteDataProviderConfig(this.hot.getSettings().dataProvider);
-
-  /**
-   * @returns {void}
-   */
-  readonly #onAfterInit = () => {
-    void this.#fetchDataSilently();
-  };
 
   /**
    * Loads the requested page when Pagination runs in external paged mode.

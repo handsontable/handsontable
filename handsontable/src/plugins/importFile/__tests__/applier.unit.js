@@ -5,13 +5,20 @@ import * as consoleHelpers from '../../../helpers/console';
 
 const STYLE_SELECTOR = 'style[data-hot-imported-styles="hot-1"]';
 
-function fakeHot({ commentsEnabled = false, nestedHeaders, gridSettings = {}, toVisualRow = row => row } = {}) {
+function fakeHot({
+  commentsEnabled = false,
+  commentsRuns = commentsEnabled,
+  nestedHeaders,
+  gridSettings = {},
+  toVisualRow = row => row,
+} = {}) {
   const calls = [];
   const rootWrapperElement = document.createElement('div');
 
   document.body.appendChild(rootWrapperElement);
   const commentsPlugin = {
     isEnabled: () => commentsEnabled,
+    enabled: commentsRuns,
     setCommentAtCell: (row, col, value) => calls.push(['setCommentAtCell', row, col, value]),
   };
 
@@ -87,6 +94,25 @@ describe('applyImportResult', () => {
     ]);
   });
 
+  it('should apply the row heights of the workbook as a floor (`minRowHeights`), never as exact `rowHeights`', () => {
+    // The reader keeps every row's `ht`, also the height the producing app measured. As exact heights,
+    // a LibreOffice file (20 px on every row) would clip its text below the theme's row height.
+    const hot = fakeHot();
+
+    applyImportResult(hot, {
+      data: [['a'], ['b']],
+      rowHeights: [20, undefined],
+      sheetNames: [],
+      dropped: [],
+    });
+
+    const [, settings] = hot.calls.find(([name, value]) => name === 'updateSettings' && value.minRowHeights);
+
+    // The exact heights the grid held are dropped, or they would win over the imported ones per row.
+    expect(settings).toEqual({ minRowHeights: [20, undefined], rowHeights: undefined });
+    expect(Object.keys(settings)).toContain('rowHeights');
+  });
+
   it('should have the data in the grid before a merge is applied, so it is not validated against an empty table', () => {
     const hot = fakeHot();
 
@@ -148,6 +174,17 @@ describe('applyImportResult', () => {
 
   it('should skip comments when the comments plugin is disabled', () => {
     const hot = fakeHot({ commentsEnabled: false });
+
+    applyImportResult(
+      hot, { data: [['a']], comments: [{ row: 0, col: 0, value: 'note' }], sheetNames: [], dropped: [] }
+    );
+
+    expect(hot.calls.some(call => call[0] === 'setCommentAtCell')).toBe(false);
+  });
+
+  it('should skip comments when the comments option is on but the plugin does not run', () => {
+    // A license key can keep the plugin off while its option stays on.
+    const hot = fakeHot({ commentsEnabled: true, commentsRuns: false });
 
     applyImportResult(
       hot, { data: [['a']], comments: [{ row: 0, col: 0, value: 'note' }], sheetNames: [], dropped: [] }
@@ -385,7 +422,7 @@ describe('applyImportResult – layout across imports', () => {
     // width or height default. `columns` needs a defined value: the column-meta cache reset and
     // `initIndexMappers` run only for one, so an empty setting per imported column is sent instead.
     const hot = fakeHot({
-      gridSettings: { colWidths: [70, 90], rowHeights: [40], columns: [{ type: 'numeric', readOnly: true }] },
+      gridSettings: { colWidths: [70, 90], minRowHeights: [40], columns: [{ type: 'numeric', readOnly: true }] },
     });
 
     applyImportResult(hot, { data: [['a', 'b'], ['c']], sheetNames: ['Plain'], dropped: [] }, { importLayout: true });
@@ -394,8 +431,8 @@ describe('applyImportResult – layout across imports', () => {
 
     const [, settings] = hot.calls[3];
 
-    expect(Object.keys(settings).sort()).toEqual(['colWidths', 'rowHeights']);
-    expect(settings).toEqual({ colWidths: undefined, rowHeights: undefined });
+    expect(Object.keys(settings).sort()).toEqual(['colWidths', 'minRowHeights', 'rowHeights']);
+    expect(settings).toEqual({ colWidths: undefined, minRowHeights: undefined, rowHeights: undefined });
   });
 
   it('should reset columns even without importLayout, since types are not layout', () => {

@@ -10,6 +10,8 @@ import { formatCellValue } from '../../renderers/renderCell';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { FONT_REMEASURE_ROWS_ORDER_INDEX } from '../../core/fontLoad';
+import { isAutoRowSizeOn } from '../../core/rowHeightSetting';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'autoRowSize';
 export const PLUGIN_PRIORITY = 40;
@@ -190,6 +192,14 @@ export class AutoRowSize extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
@@ -398,9 +408,7 @@ export class AutoRowSize extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    const settings = this.hot.getSettings()[PLUGIN_KEY];
-
-    return settings === true || isObject(settings);
+    return isAutoRowSizeOn(this.hot.getSettings()[PLUGIN_KEY]);
   }
 
   /**
@@ -463,15 +471,6 @@ export class AutoRowSize extends BasePlugin {
    * @param {object} [newSettings] The settings passed to `updateSettings`.
    */
   updatePlugin(newSettings?: Record<string, unknown>): void {
-    // `SETTING_KEYS` is `true`, so an update that never mentions this plugin still arrives here -
-    // and `BasePlugin#onUpdateSettings` has already fed `updatePluginSettings()` the missing key as
-    // `undefined`, wiping the stored settings. Restore them from the merged settings before reading
-    // them, or an unrelated `updateSettings({ colHeaders: true })` would read the defaults, reset
-    // the user's `samplingRatio`, and drop every measured height.
-    if (newSettings !== undefined && newSettings[PLUGIN_KEY] === undefined) {
-      this.updatePluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
-    }
-
     if (this.#applySamplingSettings() || this.#samplingChangedOnEnable) {
       this.clearCache();
     }

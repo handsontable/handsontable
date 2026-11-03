@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:async_values",
+      "kind": "plugin",
+      "module": "AsyncValues",
+      "name": "Async values",
+      "description": "Fills cells from promises, one source per cell or a batch source for many cells.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}
