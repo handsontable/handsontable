@@ -185,6 +185,12 @@ export const EVIDENCE_CHECKS = Object.freeze({
     criteria: ['1.4.1', '1.4.11', '2.2.2', '2.3.3', '2.4.7'],
     pullRequest: false,
   },
+  pointer: {
+    title: 'Pointer and drag alternatives',
+    spec: 'pointer.spec.ts',
+    criteria: ['2.1.1', '2.5.1', '2.5.2', '2.5.7'],
+    pullRequest: true,
+  },
   // Triage, not evidence: its records list what axe's wider rules found and could not decide, for a
   // person or the agent grader to sort, and the conformance report cites none of them as they stand.
   'axe-discovery': {
