@@ -135,7 +135,7 @@ To change what counts as a number or a date, edit the two patterns. To stop a ty
 
 ## Step 2 -- Switch a cell's type
 
-Setting `type` through `setCellMeta()` copies the type's renderer, editor, and other type-specific settings into that cell's meta. A new type does not remove the settings that only the previous type defined. A date cell that turns into text would keep its date validator and its date formatter, and show `#bad-value#` for any text. After the recipe sets a type, it removes the leftovers with [`removeCellMeta()`](@/api/core.md#removecellmeta).
+Setting `type` through `setCellMeta()` copies the type's renderer, editor, and other type-specific settings into that cell's meta. A new type does not remove the settings that only the previous type defined. A date cell that turns into text would keep its date validator and its date formatter, and show `#bad-value#` for any text. After the recipe sets a type, it removes the leftovers with [`removeCellMeta()`](@/api/core.md#removecellmeta). Because `removeCellMeta()` drops only the settings that the cell owns, this works when the recipe set the type. It does not work when a column or the grid sets the type, because the column's validator and formatter still reach the cell through the cascade. Use the recipe on untyped columns, and set `autoDetect: false` on a column that has its own `type`, `validator`, or `valueFormatter`.
 
 ```ts
 const LEFTOVER_KEYS: Record<DetectedType, string[]> = {
@@ -147,7 +147,7 @@ const LEFTOVER_KEYS: Record<DetectedType, string[]> = {
 const typeSettings: Record<DetectedType, Partial<CellProperties>> = {
   text: { type: 'text' },
   numeric: { type: 'numeric' },
-  date: { type: 'date', dateFormat: { dateStyle: 'short' } },
+  date: { type: 'date' },
 };
 ```
 
@@ -158,7 +158,7 @@ const typeSettings: Record<DetectedType, Partial<CellProperties>> = {
 3. Asks `beforeTypeChange()` for permission when the type would change.
 4. Applies the new type's settings.
 
-The numeric renderer also writes `htRight` and `htNumeric` into the cell's `className` meta, and a failed numeric validation marks the cell invalid. Neither goes away when the cell stops being numeric, so `clearNumericResidue()` removes them. A `htRight` class that you set on a cell yourself is removed with them when the cell leaves the numeric type.
+The numeric renderer also writes `htRight` and `htNumeric` into the cell's own `className` meta, and a failed numeric validation marks the cell invalid. Neither goes away when the cell stops being numeric, so `clearNumericResidue()` removes the cell's own `className`, which brings back the class names of the column and the grid, and clears the invalid mark of a cell that just left the numeric type. A class name that you set on the cell itself, such as `htRight`, is removed with it. Set class names on the column, or from a `cells` function.
 
 ## Step 3 -- Run it from the `afterChange` hook
 
@@ -227,21 +227,23 @@ const hotSettings: GridSettings = {
 
 :::
 
-Undo and redo need a note. UndoRedo puts back a cell's `type`, but not the renderer, editor, and validator that came with it. When `source` starts with `UndoRedo`, `detectCell()` applies the restored type's settings again, so the cell renders and validates as the type says.
+Undo and redo need a note. UndoRedo puts back a cell's `type`, but not the renderer, editor, and validator that came with it. When `source` starts with `UndoRedo`, `detectCell()` applies the restored type's settings again, so the cell renders and validates as the type says. This covers the cells an edit, paste, or cut changed. **Detect types** and **Reset to text** change only cell meta, so no `afterChange` fires when you undo them. The cells get their old `type` back but keep the renderer, validator, and class names of the type they had. A re-sync from `afterUndo` is no fix, because the meta writes it makes clear the redo stack.
 
 ## Step 4 -- Detect on demand
 
-`detectAll()` runs `detectCell()` over every cell inside [`batch()`](@/api/core.md#batch). The **Detect types** button calls it. Call it yourself after you load untyped data. `detectCell()` reads cell meta with `getCellMetaTransient()`, so a cell that does not change stores no meta.
+`detectAll()` runs `detectCell()` over every cell inside [`batch()`](@/api/core.md#batch). The **Detect types** button calls it. Call it yourself after you load untyped data. `batch()` does not render on its own, and `setCellMeta()` never renders, so the callback ends with one [`render()`](@/api/core.md#render). `detectCell()` reads cell meta with `getCellMetaTransient()`, so a cell that does not change stores no meta.
 
 ```ts
 function detectAll(hot: Handsontable): void {
-  // `batch()` renders once, when the loop ends.
+  // `batch()` does not render on its own, so render inside the callback.
   hot.batch(() => {
     for (let row = 0; row < hot.countRows(); row++) {
       for (let col = 0; col < hot.countCols(); col++) {
         detectCell(hot, row, col);
       }
     }
+
+    hot.render();
   });
 }
 ```
@@ -282,6 +284,10 @@ const autoDetectConfig = {
 - **Percent signs stay text.** `50%` does not match the numeric pattern.
 - **Detection runs after validation.** The cell's current validator checks a new value first, so a type switch happens after the edit is already in the grid.
 - **Password cells.** Set `autoDetect: false` on a password column. Otherwise the hook replaces the type of a cell that holds a numeric-looking password.
+- **Detect types and Reset to text skip hidden rows.** The loops walk visual rows, so rows that Filters or TrimRows hide keep their type. Run **Detect types** again after you clear the filter.
+- **Undo does not fully revert Detect types.** See the note after the hook snippets. Reload the data, or run **Reset to text**, to start over.
+- **Sorting follows the first row.** ColumnSorting picks its comparator from the cell meta of row 0, so a column with mixed detected types sorts by the type of that cell. A **Quantity** column with `12` on top sorts as numbers. With a text cell on top, it sorts `12`, `3.5e2`, and `8` as strings.
+- **Class names.** The recipe removes the cell's own `className` when a cell stops being numeric. Set class names on the column, or from a `cells` function.
 
 ## What you learned
 
