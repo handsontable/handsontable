@@ -2301,6 +2301,34 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
     }
   });
 
+  it('should take the cached value of a plain formula that is a whole array call the engine would spill', async() => {
+    // The export writes a spill it cannot keep (`formula:arrayExcluded`) as a plain `<f>`, which Excel
+    // intersects to one value. Live, `=SEQUENCE(3)` spilled over the cached 2 and 3 below it.
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const plain = await importArrays([
+      [at({ value: 1 }), at({ formula: { text: '_xlfn.SEQUENCE(3)', result: 1 } })],
+      [at({ value: 2 }), at({ value: 2 })],
+      [at({ value: 3 }), at({ value: 3 })],
+    ]);
+
+    expect(plain.result.data.map(row => row[1])).toEqual([1, 2, 3]);
+    expect(plain.result.formulas).toEqual([{ row: 0, col: 1, formula: 'SEQUENCE(3)' }]);
+    expect(plain.result.dropped).toContain('formula:arraySpill');
+
+    plain.hf.destroy();
+
+    // One whose result is one cell stays live.
+    const single = await importArrays([
+      [at({ value: 1 }), at({ formula: { text: 'TRANSPOSE(A1)', result: 1 } })],
+      [at({ value: 2 }), null],
+    ]);
+
+    expect(single.result.data.map(row => row[1])).toEqual(['=TRANSPOSE(A1)', null]);
+    expect(single.result.dropped.includes('formula:arraySpill')).toBe(false);
+
+    single.hf.destroy();
+  });
+
   it('should leave a master over a name on another engine sheet as written, whatever it masks', async() => {
     // The scratch engine holds no `Rates`, so `Rate` is `#REF!` there and `IFERROR(Rate,0)` made the
     // master `#DIV/0!`: it imported its cached values while the grid's engine, which holds `Rates`,

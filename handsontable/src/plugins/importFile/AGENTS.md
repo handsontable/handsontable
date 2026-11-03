@@ -456,7 +456,11 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   defined-name scan and the bare `TRUE`/`FALSE` walk. Charging every check separately refused files that
   imported at 1a59dedd71.
 - **Array formulas import live; their spilled cells import empty** (DEV-3648, `pushCellValue`,
-  `recordLiveArray`). A dynamic array (`cm` on the master) goes in as written and spills. A legacy CSE
+  `recordLiveArray`). A PLAIN `<f>` that is one whole array-function call (`isWholeArrayFunctionCall`:
+  `=SEQUENCE(3)` with no `t="array"`, which is the export's own `formula:arrayExcluded` fallback)
+  records a one-cell legacy rectangle at its own address, so `spillsPastRef` settles it on its cached
+  value when the probe spills it (Excel intersects it to one value); one with a one-cell result stays
+  live. A dynamic array (`cm` on the master) goes in as written and spills. A legacy CSE
   array goes in as `=ARRAYFORMULA(...)`, never double-wrapped (`unwrapArrayFormula`). So does a dynamic
   one when the engine's `useArrayArithmetic` is off (`MapperContext.arrayArithmetic`, from `getConfig()`;
   `HyperFormula.buildEmpty` defaults it off): such an engine evaluates `=A1:A3*2` as one value. The cost

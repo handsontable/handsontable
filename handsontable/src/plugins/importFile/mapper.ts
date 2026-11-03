@@ -5,10 +5,10 @@ import type {
   CellSnapshot, DefinedNameSnapshot, MergeSnapshot, SheetSnapshot, WorkbookSnapshot,
 } from '../../utils/xlsxEngine/model';
 import type { XlsxEntitlement } from '../../utils/xlsxEngine/xlsxEntitlement';
-import { parseMultiRangeRef, parseRangeRef } from '../../utils/xlsxEngine/cellRef';
+import { colIndexToLetter, parseMultiRangeRef, parseRangeRef } from '../../utils/xlsxEngine/cellRef';
 import { closedReferenceArea, rebaseImportedFormula } from '../../utils/xlsxEngine/formulaRefs';
 import { stripFunctionPrefixes } from '../../utils/xlsxEngine/functionPrefixes';
-import { unwrapArrayFormula } from '../../utils/xlsxEngine/dynamicArrays';
+import { isWholeArrayFunctionCall, unwrapArrayFormula } from '../../utils/xlsxEngine/dynamicArrays';
 import { isReferenceWord } from '../../utils/xlsxEngine/definedNames';
 import {
   MAX_DEFINED_NAME_CELLS, MAX_DEFINED_NAME_CHARS, MAX_DEFINED_NAME_LENGTH, MAX_DEFINED_NAME_TOTAL_CELLS,
@@ -1606,16 +1606,24 @@ function pushCellValue(
 
     pass.data[pass.data.length - 1].push(wrap ? `=ARRAYFORMULA(${live})` : `=${live}`);
 
+    // A plain formula that is one whole call to an array function (`=SEQUENCE(3)` with no `t="array"`,
+    // the export's own `formula:arrayExcluded` fallback) is intersected by Excel to its own cell, as a
+    // one-cell legacy array is: the probe settles it on its cached value when the engine would spill it.
+    const ownRef = array === undefined && isWholeArrayFunctionCall(live)
+      ? `${colIndexToLetter(col + scope.window.firstCol + 1)}${row + scope.window.firstRow + 1}`
+      : null;
+    const ref = array?.ref ?? ownRef;
+
     // A master calling a function the engine lacks shows `#NAME?` and spills nothing: its covered
     // cells keep the values the file caches.
-    if (array && !callsUnregisteredFunction(live, scope)) {
-      recordLiveArray(array.ref, row, col, {
+    if (ref !== null && !callsUnregisteredFunction(live, scope)) {
+      recordLiveArray(ref, row, col, {
         cached: escapeTextFormula(toGridValue(cell, inferred), scope.context.formulasEnabled),
         recorded: formula as string,
         cachedIsError: cell.formula?.resultIsError === true,
         readsOtherSheet,
         names: engineNamesIn(live, scope),
-        dynamic: array.dynamic === true,
+        dynamic: array?.dynamic === true,
       }, scope);
     }
 
