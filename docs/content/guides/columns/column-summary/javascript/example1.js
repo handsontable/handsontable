@@ -7,7 +7,7 @@ registerAllModules();
 const container = document.querySelector('#example1');
 
 new Handsontable(container, {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: [[1, 2, 3, 4, 5], [6, 7, 8, 9, 12.345], [11, 12, 13, null, 15], [null]],
   colHeaders: ['sum', 'min', 'max', 'count', 'average'],
   rowHeaders: true,

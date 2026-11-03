@@ -33,6 +33,7 @@ const ExampleComponent = () => {
     <>
       <h3 className="demo-preview">Sheet 1</h3>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         data={data1}
         colHeaders={true}
         rowHeaders={true}
@@ -43,10 +44,10 @@ const ExampleComponent = () => {
         }}
         autoWrapRow={true}
         autoWrapCol={true}
-        licenseKey="non-commercial-and-evaluation"
       />
       <h3 className="demo-preview">Sheet 2</h3>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         data={data2}
         colHeaders={true}
         rowHeaders={true}
@@ -57,7 +58,6 @@ const ExampleComponent = () => {
         }}
         autoWrapRow={true}
         autoWrapCol={true}
-        licenseKey="non-commercial-and-evaluation"
       />
     </>
   );

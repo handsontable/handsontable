@@ -15,7 +15,7 @@ const hot = new Handsontable(container, {
     colHeaders: ['SKU', 'Product', 'Quantity', 'Category'],
     columns: [{}, {}, { type: 'numeric' }, {}],
     height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 // get the `grid` context from the `ShortcutManager` API
 const gridContext = hot.getShortcutManager().getContext('grid');

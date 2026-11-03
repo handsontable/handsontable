@@ -23,7 +23,7 @@ const container = document.querySelector('#example1');
 
 new Handsontable(container, {
   height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: [
     ['SKU-4821', 'Stainless Steel Water Bottle', 'Drinkware', 'Seattle'],
     ['SKU-0093', 'Wireless Mouse', 'Electronics', 'Denver'],

@@ -22,7 +22,7 @@ const hot = new Handsontable(container, {
   manualColumnResize: true,
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 // Demonstrates ManualColumnResize#clearManualSizes(): drag a column header
