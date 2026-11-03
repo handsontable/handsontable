@@ -3,6 +3,7 @@ export const A11Y_MODE: 'warn' | 'block';
 export const A11Y_THEMES: readonly ['main', 'horizon', 'classic'];
 export const BASELINE_FILE: string;
 export const ACTION_SETS: readonly ['newViolations', 'grown', 'improved', 'stale'];
+export const VOLATILE_CLASSES: ReadonlySet<string>;
 
 export type A11yMode = 'warn' | 'block';
 export type A11yTheme = 'main' | 'horizon' | 'classic';

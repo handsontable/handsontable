@@ -383,7 +383,7 @@ test('renderPage inlines the summary and survives a `</script>` inside a title',
   assert.ok(html.includes(`Generated ${NOW.toISOString()}`));
   assert.ok(html.includes('renders \\u003c/script>\\u003cb>bold\\u003c/b> safely'),
     'every `<` is escaped inside the JSON');
-  assert.equal((html.match(/<\/script>/g) ?? []).length, 3,
+  assert.equal((html.match(/<\/script>/g) ?? []).length, 4,
     'only the template\'s own three script elements close (the summary, the durations, the code)');
 });
 
@@ -421,7 +421,7 @@ test('the ledger chains on the orchestrators and the visual nightly, takes a run
   // legs, where a spec that runs on an axis it did not declare first turns red, and the frozen Jasmine
   // suite on six, where a theme- or bundle-only red first shows (e2e-legs.test.mjs pins the workflow). `Visual seed`
   // must stay out – its differences are the merge's own.
-  assert.match(workflow, /workflows: \['Tests', 'Develop', 'Publish', 'Visual nightly', 'E2E nightly'\]/);
+  assert.match(workflow, /workflows: \['Tests', 'Develop', 'Publish', 'Visual nightly', 'E2E nightly', 'A11y nightly', 'Screen reader nightly'\]/);
   // The visual ticket line counts runs of this workflow by name, so the name must be the real one.
   assert.ok(workflow.includes(`'${VISUAL_NIGHTLY_WORKFLOW}'`));
   assert.match(readFileSync(path.join(repoRoot(), '.github/workflows/visual-nightly.yml'), 'utf8'),
@@ -1225,7 +1225,7 @@ test('renderPage draws the "Where the time goes" section from the inlined durati
   assert.ok(html.includes('stalls \\u003c/script>\\u003cb>bold\\u003c/b> forever'),
     'a title cannot close the data element');
   assert.ok(html.includes('fix/x\\u003c!--\\u003cscript>y'), 'nor can a branch open a comment in it');
-  assert.equal((html.match(/<\/script>/g) ?? []).length, 3);
+  assert.equal((html.match(/<\/script>/g) ?? []).length, 4);
 
   const dataOf = (id) => {
     const open = `<script id="${id}" type="application/json">`;
