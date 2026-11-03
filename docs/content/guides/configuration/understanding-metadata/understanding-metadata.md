@@ -46,10 +46,7 @@ To learn how to set options on each level, see [Setting options](@/guides/config
 
 A cell does not hold a copy of the grid and column values. Its metadata is an object linked to its column's metadata object, which is linked to the grid's metadata object:
 
-```text
-cell metadata  ->  column metadata  ->  grid metadata
-(own values)       (own values)         (defaults and your grid settings)
-```
+![The inheritance chain: a read starts at the cell metadata, then moves to the column metadata, then to the grid metadata](/img/metadata-inheritance.svg)
 
 When you read a key from a cell, Handsontable looks for it on the cell. If the cell does not have its own value, the lookup moves to the column, then to the grid. The first level that has the key wins.
 
@@ -110,9 +107,11 @@ The example sets `readOnly` and `reviewer` on the grid, `readOnly` and `reviewer
 
 The [`cells`](@/api/options.md#cells) function overrides all three levels. Handsontable calls it for each cell when the grid renders, and merges the object it returns into that cell's own metadata. The own-property check in the example above therefore reports such a value as coming from the cell level.
 
-The function runs once per cell for each full render, not on every read. Reading a cell with [`getCellMeta()`](@/api/core.md#getcellmeta) between two renders returns the result of the last run. The `row` and `col` arguments of `cells` are physical indexes.
+The merge only adds keys. If `cells` returns `{ readOnly: true }` for a cell once, and `{}` on a later render, the cell keeps `readOnly: true`. Return the key in every branch, for example `{ readOnly: false }`.
 
-Use the `cells` function only when no other level fits, because it runs for every rendered cell.
+The function runs once per cell for each full render, not on every cached read. Reading a cell with [`getCellMeta()`](@/api/core.md#getcellmeta) between two renders returns the result of the last run. [`getCellMetaTransient()`](@/api/core.md#getcellmetatransient) has no such cache: it runs the function again on every call for a cell with no stored metadata. Bulk reads such as `validateCells()` go through it. On a grid of 2000 rows and 3 columns, the function ran about 6,000 times during initialization and again about 6,000 times in `validateCells()`.
+
+The `row` and `col` arguments of `cells` are physical indexes. Use the `cells` function only when no other level fits.
 
 ### Reading metadata
 
@@ -123,13 +122,15 @@ Each method reads a different part of the chain:
 | [`getSettings()`](@/api/core.md#getsettings) | The grid-level settings only. | None |
 | [`getColumnMeta()`](@/api/core.md#getcolumnmeta) | The metadata of one column, with the grid values it inherits. | Visual column |
 | [`getCellMeta()`](@/api/core.md#getcellmeta) | The effective metadata of one cell, after all levels. | Visual row and column |
-| [`getCellMetaTransient()`](@/api/core.md#getcellmetatransient) | The same as `getCellMeta()`, without keeping a metadata object for the cell. | Visual row and column |
-| [`getCellsMeta()`](@/api/core.md#getcellsmeta) | The cell metadata objects Handsontable currently holds, grouped by row. | None |
+| [`getCellMetaTransient()`](@/api/core.md#getcellmetatransient) | The same as `getCellMeta()`, without keeping a metadata object for the cell. It runs the `cells` function on every call for a cell with no stored metadata. | Visual row and column |
+| [`getCellsMeta()`](@/api/core.md#getcellsmeta) | A flat array of the cell metadata objects Handsontable currently holds. | None |
 | [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow) | The cell metadata objects of one row. | Physical row |
 
 `getSettings()` does not reflect values you set on a column or a cell. After `setCellMeta(0, 0, 'reviewer', 'Legal team')`, `getSettings().reviewer` still returns the grid value, and `getCellMeta(0, 0).reviewer` returns `Legal team`. To get the value a cell uses, always read it with `getCellMeta()`.
 
 To find which level a value comes from, check the own properties of the objects in the chain. The example above does this with `Object.prototype.hasOwnProperty.call()` on the objects that `getCellMeta()` and `getColumnMeta()` return.
+
+The check works for keys you set yourself, such as custom keys and options you pass in a settings object. It does not work for keys Handsontable adds. A cell metadata object owns `row`, `col`, `visualRow`, `visualCol`, and `prop`, and a numeric cell owns a `className`. Column metadata owns `data` and `width`, and the keys that its `type` expands to. For those keys, the check reports a level where you set nothing.
 
 ### Indexes and persistence
 
@@ -146,7 +147,7 @@ These methods change metadata while the grid runs:
 - [`setCellMeta()`](@/api/core.md#setcellmeta) sets one key on one cell.
 - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject) sets several keys on one cell with an object.
 - [`removeCellMeta()`](@/api/core.md#removecellmeta) removes a key from a cell, so the cell inherits the value again.
-- [`updateSettings()`](@/api/core.md#updatesettings) changes grid-level or column-level values.
+- [`updateSettings()`](@/api/core.md#updatesettings) changes grid-level values. With the `columns` or `cell` option, it also sets column-level or cell-level values.
 
 For example:
 
@@ -162,23 +163,28 @@ For the steps to set and read options on each level, see [Change cell options](@
 
 ### Why a metadata change does not repaint the grid
 
-`setCellMeta()` changes the metadata and does nothing else. The grid shows a new value of a key that changes what the user sees, such as `className`, `readOnly`, or `type`, after the next render. The [`render()`](@/api/core.md#render) method triggers it:
+`setCellMeta()` changes the metadata but does not render the grid. It also runs the [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta) hook, which can veto the write, and the [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta) hook, and it records an undo step.
+
+The grid shows a new value of a key that changes what the user sees, such as `className` or `type`, after the next render. The [`render()`](@/api/core.md#render) method triggers it:
 
 ```javascript
 hot.setCellMeta(2, 0, 'className', 'needs-review');
 hot.render();
 ```
 
-Several `setCellMeta()` calls followed by one `render()` cost a single render. The [`batch()`](@/api/core.md#batch) method does not repaint on its own: it suppresses the renders that other operations would trigger, so a `render()` call still belongs inside its callback. A custom key that no renderer reads, such as `reviewer`, needs no render. For more on when the grid repaints, see [Understanding rendering](@/guides/optimization/rendering/rendering.md).
+Several `setCellMeta()` calls followed by one `render()` cost a single render. The [`batch()`](@/api/core.md#batch) method ends with a fast render that does not redraw the cells, so a `className` set inside it is not painted. Call `render()` inside its callback.
 
-### What survives a data reload
+A change to `readOnly` blocks editing at once. Only the dimmed styling waits for the render. A custom key that no renderer reads, such as `reviewer`, needs no render. For more on when the grid repaints, see [Understanding rendering](@/guides/optimization/rendering/rendering.md).
 
-Handsontable stores the metadata you set at runtime on the cell metadata objects, keyed by physical index. The two ways to replace data treat those objects differently:
+### What replaces or keeps cell metadata
+
+Handsontable stores the metadata you set at runtime on the cell metadata objects, keyed by physical index. These calls treat those objects differently:
 
 - [`loadData()`](@/api/core.md#loaddata) clears the stored cell metadata. Cells fall back to their column and grid values. The values you set with `setCellMeta()` are gone, and so are the values from the `cell` option. The example above would lose its `Legal team` cell.
 - [`updateData()`](@/api/core.md#updatedata), and [`updateSettings()`](@/api/core.md#updatesettings) with a new `data` value, keep the stored cell metadata.
+- [`updateSettings()`](@/api/core.md#updatesettings) with the `cell` option applies the entries again, even when you pass the same array. A value you set with `setCellMeta()` on one of those cells reverts to the `cell` entry. A different `cell` array replaces the earlier entries. This matters in a wrapper that sends the settings again on every render.
 
-`updateData()` keeps the metadata by physical position, not by record. If the new dataset puts different records at the same rows, the old metadata now describes the new records. It suits datasets whose rows stay the same records.
+`updateData()` keeps the metadata by physical position, not by record. If the new dataset puts different records at the same rows, the old metadata now describes the new records. Metadata of rows past the end of a shorter dataset stays stored too: after `updateData()` with fewer rows and then with more, the metadata of the extra rows is back. `updateData()` suits datasets whose rows stay the same records.
 
 ### Custom metadata
 
@@ -198,12 +204,12 @@ hot.getCellMeta(0, 1).reviewer; // 'Finance team'
 
 Custom metadata is useful when a renderer, validator, editor, or hook needs information about a cell that is not part of its value. A renderer receives the cell metadata as its `cellProperties` argument, so it reads a custom key the same way it reads a built-in one.
 
-Choose names that do not collide with built-in options. A custom key named `type` or `className` changes the grid's behavior. Metadata lives beside your data and not in it, so `getSourceData()` does not return it. If you need it after a reload, save it yourself.
+Choose names that do not collide with built-in options or hooks. A custom key named `type` or `className` changes the grid's behavior. A key named like a hook, such as `afterRender`, registers as a hook and never reaches the cell metadata. A `type` string that is not registered throws when the grid starts. Metadata lives beside your data and not in it, so `getSourceData()` does not return it. If you need it after a reload, save it yourself.
 
 ## Trade-offs
 
-- **Reading with `getCellMeta()` keeps an object per cell.** Handsontable creates and stores a metadata object for each cell you read. A loop over a large dataset keeps one object for every cell it visits. For read-only scans, use [`getCellMetaTransient()`](@/api/core.md#getcellmetatransient).
-- **The `cells` function costs time on every render.** It runs for each rendered cell, so keep its body small, or use the `columns` and `cell` options instead.
+- **Reading with `getCellMeta()` keeps an object per cell.** Handsontable creates and stores a metadata object for each cell you read. A loop over a large dataset keeps one object for every cell it visits. For read-only scans, use [`getCellMetaTransient()`](@/api/core.md#getcellmetatransient). It skips that memory, but it runs the `cells` function again on every call.
+- **The `cells` function costs time on every render and on bulk reads.** It runs for each rendered cell, and again for each cell that a read such as `validateCells()` visits. Keep its body small, or use the `columns` and `cell` options instead.
 - **A value can come from three places.** When a cell behaves in a way you did not expect, read the value with `getCellMeta()` and check the level that holds it before you change the grid settings.
 
 ## Related

@@ -6,6 +6,7 @@ registerAllModules();
 
 const container = document.querySelector('#example1');
 const output = document.querySelector('#example1-output');
+const status = document.querySelector('#example1-status');
 const button = document.querySelector('#example1-set-reviewer');
 
 const hot = new Handsontable(container, {
@@ -21,7 +22,9 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   width: 'auto',
   height: 'auto',
+  // keep the selection when you click the button below the grid
   outsideClickDeselects: false,
+  // let the Tab key move the focus out of the grid, to the button
   tabNavigation: false,
   // grid level
   readOnly: false,
@@ -42,7 +45,22 @@ const levelOf = (row, col, key) => {
   return has(hot.getColumnMeta(col), key) ? 'column' : 'grid';
 };
 
-const show = (row, col) => {
+const selectedCell = () => {
+  const highlight = hot.getSelectedRangeLast()?.highlight;
+
+  return highlight && highlight.row !== null && highlight.col !== null
+    ? { row: highlight.row, col: highlight.col }
+    : null;
+};
+
+const show = () => {
+  const cell = selectedCell();
+
+  if (!cell) {
+    return;
+  }
+
+  const { row, col } = cell;
   const meta = hot.getCellMeta(row, col);
 
   output.textContent = [
@@ -52,23 +70,20 @@ const show = (row, col) => {
   ].join('\n');
 };
 
-hot.addHook('afterSelection', (row, col) => {
-  if (row >= 0 && col >= 0) {
-    show(row, col);
-  }
-});
+hot.addHook('afterSelection', show);
 
 button.addEventListener('click', () => {
-  const selected = hot.getSelectedLast();
+  const cell = selectedCell();
 
-  if (!selected || selected[0] < 0 || selected[1] < 0) {
-    output.textContent = 'Select a cell first.';
+  if (!cell) {
+    status.textContent = 'Select a cell first.';
 
     return;
   }
 
-  hot.setCellMeta(selected[0], selected[1], 'reviewer', 'Audit team');
-  show(selected[0], selected[1]);
+  hot.setCellMeta(cell.row, cell.col, 'reviewer', 'Audit team');
+  show();
+  status.textContent = `The reviewer of cell (${cell.row}, ${cell.col}) is now Audit team.`;
 });
 
 output.textContent = 'Select a cell to see where its values come from.';

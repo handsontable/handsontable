@@ -14,7 +14,8 @@ const has = (object: object, key: string) => Object.prototype.hasOwnProperty.cal
       <p>
         <button type="button" (click)="setReviewer()">Give the selected cell its own reviewer</button>
       </p>
-      <pre role="status" aria-label="Metadata of the selected cell">{{ output }}</pre>
+      <p role="status">{{ status }}</p>
+      <pre>{{ output }}</pre>
     </div>
   `,
 })
@@ -24,6 +25,8 @@ export class AppComponent {
   private readonly cdr = inject(ChangeDetectorRef);
 
   output = 'Select a cell to see where its values come from.';
+
+  status = '';
 
   readonly gridSettings: GridSettings = {
     data: [
@@ -37,7 +40,9 @@ export class AppComponent {
     rowHeaders: true,
     width: 'auto',
     height: 'auto',
+    // keep the selection when you click the button below the grid
     outsideClickDeselects: false,
+    // let the Tab key move the focus out of the grid, to the button
     tabNavigation: false,
     // grid level
     readOnly: false,
@@ -46,8 +51,16 @@ export class AppComponent {
     columns: [{}, { readOnly: true, reviewer: 'Finance team' }, {}],
     // cell level: one cell in the Department column
     cell: [{ row: 1, col: 1, reviewer: 'Legal team' }],
-    afterSelection: (row: number, col: number) => this.show(row, col),
+    afterSelection: () => this.show(),
   };
+
+  private selectedCell(): { row: number; col: number } | null {
+    const highlight = this.hotTable?.hotInstance?.getSelectedRangeLast()?.highlight;
+
+    return highlight && highlight.row !== null && highlight.col !== null
+      ? { row: highlight.row, col: highlight.col }
+      : null;
+  }
 
   private levelOf(row: number, col: number, key: string): string {
     const hot = this.hotTable.hotInstance!;
@@ -59,12 +72,16 @@ export class AppComponent {
     return has(hot.getColumnMeta(col), key) ? 'column' : 'grid';
   }
 
-  private show(row: number, col: number): void {
-    if (!this.hotTable?.hotInstance || row < 0 || col < 0) {
+  private show(): void {
+    const hot = this.hotTable?.hotInstance;
+    const cell = this.selectedCell();
+
+    if (!hot || !cell) {
       return;
     }
 
-    const meta = this.hotTable.hotInstance.getCellMeta(row, col);
+    const { row, col } = cell;
+    const meta = hot.getCellMeta(row, col);
 
     this.output = [
       `Cell (${row}, ${col})`,
@@ -76,16 +93,17 @@ export class AppComponent {
 
   setReviewer(): void {
     const hot = this.hotTable.hotInstance;
-    const selected = hot?.getSelectedLast();
+    const cell = this.selectedCell();
 
-    if (!hot || !selected || selected[0] < 0 || selected[1] < 0) {
-      this.output = 'Select a cell first.';
+    if (!hot || !cell) {
+      this.status = 'Select a cell first.';
 
       return;
     }
 
-    hot.setCellMeta(selected[0], selected[1], 'reviewer', 'Audit team');
-    this.show(selected[0], selected[1]);
+    hot.setCellMeta(cell.row, cell.col, 'reviewer', 'Audit team');
+    this.show();
+    this.status = `The reviewer of cell (${cell.row}, ${cell.col}) is now Audit team.`;
   }
 }
 /* end-file */

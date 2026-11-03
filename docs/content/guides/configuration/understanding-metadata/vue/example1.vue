@@ -8,8 +8,17 @@ registerAllModules();
 
 const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 const output = ref('Select a cell to see where its values come from.');
+const status = ref('');
 
 const has = (object: object, key: string) => Object.prototype.hasOwnProperty.call(object, key);
+
+const selectedCell = () => {
+  const highlight = hotRef.value?.hotInstance?.getSelectedRangeLast()?.highlight;
+
+  return highlight && highlight.row !== null && highlight.col !== null
+    ? { row: highlight.row, col: highlight.col }
+    : null;
+};
 
 const levelOf = (row: number, col: number, key: string) => {
   const hot = hotRef.value!.hotInstance!;
@@ -21,13 +30,15 @@ const levelOf = (row: number, col: number, key: string) => {
   return has(hot.getColumnMeta(col), key) ? 'column' : 'grid';
 };
 
-const show = (row: number, col: number) => {
+const show = () => {
   const hot = hotRef.value?.hotInstance;
+  const cell = selectedCell();
 
-  if (!hot || row < 0 || col < 0) {
+  if (!hot || !cell) {
     return;
   }
 
+  const { row, col } = cell;
   const meta = hot.getCellMeta(row, col);
 
   output.value = [
@@ -39,16 +50,17 @@ const show = (row: number, col: number) => {
 
 const setReviewer = () => {
   const hot = hotRef.value?.hotInstance;
-  const selected = hot?.getSelectedLast();
+  const cell = selectedCell();
 
-  if (!hot || !selected || selected[0] < 0 || selected[1] < 0) {
-    output.value = 'Select a cell first.';
+  if (!hot || !cell) {
+    status.value = 'Select a cell first.';
 
     return;
   }
 
-  hot.setCellMeta(selected[0], selected[1], 'reviewer', 'Audit team');
-  show(selected[0], selected[1]);
+  hot.setCellMeta(cell.row, cell.col, 'reviewer', 'Audit team');
+  show();
+  status.value = `The reviewer of cell (${cell.row}, ${cell.col}) is now Audit team.`;
 };
 
 const hotSettings: GridSettings = {
@@ -63,7 +75,9 @@ const hotSettings: GridSettings = {
   rowHeaders: true,
   width: 'auto',
   height: 'auto',
+  // keep the selection when you click the button below the grid
   outsideClickDeselects: false,
+  // let the Tab key move the focus out of the grid, to the button
   tabNavigation: false,
   // grid level
   readOnly: false,
@@ -72,7 +86,7 @@ const hotSettings: GridSettings = {
   columns: [{}, { readOnly: true, reviewer: 'Finance team' }, {}],
   // cell level: one cell in the Department column
   cell: [{ row: 1, col: 1, reviewer: 'Legal team' }],
-  afterSelection: (row, col) => show(row, col),
+  afterSelection: () => show(),
   licenseKey: 'non-commercial-and-evaluation',
 };
 </script>
@@ -83,6 +97,7 @@ const hotSettings: GridSettings = {
     <p>
       <button type="button" @click="setReviewer">Give the selected cell its own reviewer</button>
     </p>
-    <pre role="status" aria-label="Metadata of the selected cell">{{ output }}</pre>
+    <p role="status">{{ status }}</p>
+    <pre>{{ output }}</pre>
   </div>
 </template>
