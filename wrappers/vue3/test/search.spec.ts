@@ -20,7 +20,7 @@ describe('HotTable `search` options across re-renders', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :data="data"
           :search="search"
           :height="height"

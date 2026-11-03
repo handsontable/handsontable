@@ -1335,6 +1335,62 @@ describe('FormulaBuilder.updatePlugin', () => {
     expect(bundle.plugin.enabled).toBe(true);
   });
 
+  it('rebuilds, with the new element, once the open edit closed, when the host a selector named was unmounted and re-created', async() => {
+    const host = document.createElement('div');
+
+    host.id = 'popup-host';
+    document.body.appendChild(host);
+
+    const popups = () => ({ suggestions: { container: '#popup-host' } });
+    const bundle = makeEditingPlugin({ popups: popups() });
+
+    expect(bundle.spied.created[0].options.popups).toEqual(popups());
+
+    host.remove();
+
+    const replacement = document.createElement('div');
+
+    replacement.id = 'popup-host';
+    document.body.appendChild(replacement);
+    update(bundle, { popups: popups() });
+
+    // Only the builder needs the new host, and its rebuild would cancel the open edit.
+    expect(bundle.spied.created).toHaveLength(1);
+    expect(bundle.hostEditor.finishEditing).not.toHaveBeenCalled();
+
+    bundle.plugin.handleInlineEditClose();
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(bundle.spied.created).toHaveLength(2);
+    expect(bundle.spied.destroyed).toContain(bundle.spied.created[0].instance);
+
+    // The new builder was docked into the replacement, so equal settings keep it from now on.
+    update(bundle, { popups: popups() });
+
+    expect(bundle.spied.created).toHaveLength(2);
+
+    replacement.remove();
+  });
+
+  it('rebuilds once the open edit closed when a host that was connected at build time was removed', async() => {
+    const host = document.createElement('div');
+
+    document.body.appendChild(host);
+
+    const bundle = makeEditingPlugin({ popups: { fnHelp: { container: host } } });
+
+    host.remove();
+    update(bundle, { popups: { fnHelp: { container: host } } });
+
+    expect(bundle.spied.created).toHaveLength(1);
+
+    bundle.plugin.handleInlineEditClose();
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(bundle.spied.created).toHaveLength(2);
+    expect(bundle.spied.created[1].options.popups).toEqual({ fnHelp: {} });
+  });
+
   it('rebuilds when the Formulas plugin hands over another engine', () => {
     const bundle = makeEditingPlugin();
     const nextEngine = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });

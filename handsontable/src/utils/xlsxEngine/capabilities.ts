@@ -188,6 +188,12 @@ const MAX_UNSUPPORTED_NAMES = 32;
 const OTHER_UNSUPPORTED_VALUE = 'other';
 
 /**
+ * The prefix of a dropped-feature name that records a license capability token the license does
+ * not unlock, such as `license:xlsx:styles`.
+ */
+const LICENSE_PREFIX = 'license:';
+
+/**
  * Whether a UTF-16 code unit is a control character a dropped-feature name must not carry: C0, DEL,
  * C1, or a bidi embedding, override or isolate control.
  */
@@ -280,6 +286,26 @@ export class DroppedFeatures {
   }
 
   /**
+   * Records a feature the license does not unlock, as `license:<token>`. The token comes from the
+   * license capability dictionary, never from the file, so it is neither bounded nor counted
+   * against the budget the file-driven names share.
+   */
+  recordLicense(token: string): void {
+    const name = `${LICENSE_PREFIX}${token}`;
+
+    this.#counts.set(name, (this.#counts.get(name) ?? 0) + 1);
+  }
+
+  /**
+   * The tokens recorded through `recordLicense`, in recorded order, without the `license:` prefix.
+   */
+  licenseTokens(): string[] {
+    return this.list()
+      .filter(name => name.startsWith(LICENSE_PREFIX))
+      .map(name => name.slice(LICENSE_PREFIX.length));
+  }
+
+  /**
    * How many times a feature was dropped.
    */
   count(feature: string): number {
@@ -295,9 +321,11 @@ export class DroppedFeatures {
 
   /**
    * Emits one warning naming the engine and every dropped feature. Silent when nothing was dropped.
+   * The `license:<token>` entries are left out: the plugin's own missing-token warning already
+   * names them, and the engine did not drop them.
    */
   warn(kind: XlsxEngineKind): void {
-    const features = this.list();
+    const features = this.list().filter(name => !name.startsWith(LICENSE_PREFIX));
 
     if (features.length === 0) {
       return;

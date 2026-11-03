@@ -31,6 +31,7 @@
     /* A class a case gives a merge's first cell through the settings or the cell meta. */
     .handsontable td.big-text { font-size: 24px; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -58,7 +59,7 @@
         colHeaders: true,
         rowHeaders: true,
         height: 'auto',
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
         ...settings,
       });
     };

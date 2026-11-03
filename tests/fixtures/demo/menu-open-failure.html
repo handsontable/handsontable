@@ -28,6 +28,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } #spacer { height: 120px; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -286,7 +287,7 @@
         beforeContextMenuShow: () => logHook('contextMenu', 'beforeShow'),
         afterContextMenuShow: () => logHook('contextMenu', 'afterShow'),
         afterContextMenuHide: () => logHook('contextMenu', 'afterHide'),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       container.setAttribute('data-init-error', String(error && error.message));

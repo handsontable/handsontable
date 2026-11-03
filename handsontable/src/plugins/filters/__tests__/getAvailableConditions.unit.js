@@ -13,6 +13,7 @@ import {
   NumericCellType,
 } from '../../../cellTypes';
 import { SEPARATOR } from '../../../utils/menu/predefinedItems';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 describe('Filters#getAvailableConditions', () => {
   let container;
@@ -47,7 +48,7 @@ describe('Filters#getAvailableConditions', () => {
       data: [['a', 1, '2026-01-02'], ['b', 2, '2026-03-04']],
       columns: [{}, { type: 'numeric' }, { type: 'date' }],
       filters: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

@@ -2,6 +2,7 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { ColumnSorting } from '../columnSorting';
 import { MultiColumnSorting } from '../../multiColumnSorting/multiColumnSorting';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 const DATA = [
   ['Banana', 3],
@@ -66,7 +67,7 @@ describe.each([
 
     hot = new Handsontable(container, {
       data: DATA.map(row => [...row]),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       [pluginKey]: {
         initialConfig: { column: 1, sortOrder: 'asc' },
         compareFunctionFactory: baseline.compareFunctionFactory,
@@ -87,7 +88,7 @@ describe.each([
 
     hot = new Handsontable(container, {
       data: DATA.map(row => [...row]),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.updateSettings({
@@ -107,7 +108,7 @@ describe.each([
 
     hot = new Handsontable(container, {
       data: DATA.map(row => [...row]),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       [pluginKey]: {
         initialConfig: { column: 1, sortOrder: 'asc' },
         compareFunctionFactory: first.compareFunctionFactory,

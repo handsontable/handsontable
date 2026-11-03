@@ -3,6 +3,7 @@ import Handsontable from 'handsontable';
 import { Component, EnvironmentInjector } from '@angular/core';
 import { FactoryEditorAdapter } from './editor-factory-adapter';
 import { HotCellEditorAdvancedComponent } from './hot-cell-editor-advanced.component';
+import { TEST_LICENSE_KEY } from '../test-helpers/license-key';
 
 @Component({
   selector: 'hot-mock-custom-editor',
@@ -38,7 +39,7 @@ describe('FactoryEditorAdapter', () => {
     const EditorClass = FactoryEditorAdapter(customEditor.componentRef);
 
     const settings = <Handsontable.GridSettings>{
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       columns: [{ editor: EditorClass }],
       data: [[1]],
     };
@@ -73,7 +74,7 @@ describe('FactoryEditorAdapter', () => {
     const EditorClass = FactoryEditorAdapter(shortcutEditor.componentRef);
     const container = document.createElement('div');
     const shortcutInstance = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       columns: [{ editor: EditorClass }],
       data: [[1]],
     });
@@ -124,7 +125,7 @@ describe('FactoryEditorAdapter', () => {
       document.body.appendChild(container);
       const EditorClass = FactoryEditorAdapter(customEditor.componentRef);
       const testInstance = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         columns: [{ editor: EditorClass }],
         data: [[1]],
       });

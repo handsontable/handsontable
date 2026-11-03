@@ -4,6 +4,7 @@ import { registerAllModules } from 'handsontable/registry';
 import { HotTable } from '../src/hotTable';
 import { mountComponent } from './_helpers';
 import { HotTableRef } from '../src/types';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 // register Handsontable's modules
 registerAllModules();
@@ -57,7 +58,7 @@ function mountGrid({ rowId = false } = {}) {
     return (
       <HotTable
         ref={hotTableRef}
-        licenseKey="non-commercial-and-evaluation"
+        licenseKey={TEST_LICENSE_KEY}
         data={data}
         columns={[{ data: 'sku' }, { data: 'name' }]}
         rowId={rowId ? 'id' : undefined}

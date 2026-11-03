@@ -179,6 +179,8 @@ describe('HandsontableAdapter address-box navigation on trimmed indexes', () => 
   it('selects the next shown row for an address on a trimmed row', () => {
     const selectFormulaCell = jest.fn();
     const { adapter } = makeAdapter({
+      countRows: () => 5,
+      countCols: () => 5,
       rowIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => 5 },
     }, { hfToVisualRow: trimmedRowTwo }, { selectFormulaCell });
 
@@ -190,6 +192,8 @@ describe('HandsontableAdapter address-box navigation on trimmed indexes', () => 
   it('moves a range corner on a trimmed row inward', () => {
     const selectFormulaCells = jest.fn();
     const { adapter } = makeAdapter({
+      countRows: () => 5,
+      countCols: () => 5,
       rowIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => 5 },
     }, { hfToVisualRow: trimmedRowTwo }, { selectFormulaCells });
 
@@ -201,6 +205,8 @@ describe('HandsontableAdapter address-box navigation on trimmed indexes', () => 
   it('selects nothing for a range that covers only trimmed rows', () => {
     const selectFormulaCells = jest.fn();
     const { adapter } = makeAdapter({
+      countRows: () => 5,
+      countCols: () => 5,
       rowIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => 5 },
     }, { hfToVisualRow: trimmedRowTwo }, { selectFormulaCells });
 
@@ -212,6 +218,8 @@ describe('HandsontableAdapter address-box navigation on trimmed indexes', () => 
   it('reports an address past the last index as unavailable', () => {
     const selectFormulaCell = jest.fn();
     const { adapter } = makeAdapter({
+      countRows: () => 5,
+      countCols: () => 5,
       rowIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => 5 },
     }, { hfToVisualRow: trimmedRowTwo }, { selectFormulaCell });
 
@@ -219,12 +227,14 @@ describe('HandsontableAdapter address-box navigation on trimmed indexes', () => 
     expect(selectFormulaCell).not.toHaveBeenCalled();
   });
 
-  it('reports nothing for an address it selects', () => {
+  it('reports the selection of an address on a trimmed row as accepted', () => {
     const { adapter } = makeAdapter({
+      countRows: () => 5,
+      countCols: () => 5,
       rowIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => 5 },
-    }, { hfToVisualRow: trimmedRowTwo }, { selectFormulaCell: jest.fn() });
+    }, { hfToVisualRow: trimmedRowTwo }, { selectFormulaCell: jest.fn(() => true) });
 
-    expect(adapter.setActiveCell({ sheet: '', row: 2, col: 0 })).not.toBe(false);
+    expect(adapter.setActiveCell({ sheet: '', row: 2, col: 0 })).toBe(true);
   });
 });
 

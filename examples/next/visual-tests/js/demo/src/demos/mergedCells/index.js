@@ -76,7 +76,7 @@ export function init() {
     rowHeaders: true,
     manualRowMove: true,
     manualRowResize: true,
-    rowHeights(visualRowIndex) {
+    minRowHeights(visualRowIndex) {
       return visualRowIndex * 1;
     },
     autoWrapCol: true,

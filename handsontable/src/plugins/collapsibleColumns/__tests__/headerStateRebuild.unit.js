@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
-const LICENSE_KEY = 'non-commercial-and-evaluation';
+const LICENSE_KEY = TEST_LICENSE_KEY;
 const NESTED_HEADERS = [[{ label: 'G', colspan: 3 }], ['a', 'b', 'c']];
 
 /**

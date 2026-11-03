@@ -60,6 +60,7 @@
       padding: 4px;
     }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -123,7 +124,7 @@
       // Defeat row virtualization: without the last row in the DOM there is nothing to
       // compare the container's bottom edge against.
       viewportRowRenderingOffset: ROWS + 10,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     window.htRowCount = ROWS;

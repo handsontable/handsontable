@@ -6,6 +6,7 @@ import { ColumnSorting } from 'handsontable/plugins/columnSorting';
 import HotTable from '../src/HotTable.vue';
 import HotColumn from '../src/HotColumn.vue';
 import './_helpers';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 config.renderStubDefaultSlot = true;
 
@@ -22,7 +23,7 @@ describe('cooperation with the SheetsBar plugin', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :colHeaders="colHeaders"
           :height="height"
           :sheetsBar="{ sheets }"
@@ -63,7 +64,7 @@ describe('cooperation with the SheetsBar plugin', () => {
         <div>
           <span id="sheet-names">{{ sheets.map(sheet => sheet.name).join(',') }}</span>
           <HotTable
-            licenseKey="non-commercial-and-evaluation"
+            :licenseKey="testLicenseKey"
             :sheetsBar="{ sheets }"
             ></HotTable>
         </div>`,
@@ -103,7 +104,7 @@ describe('cooperation with the SheetsBar plugin', () => {
             ],
           },
           colHeaders: true,
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: TEST_LICENSE_KEY,
         });
 
         return { hotSettings };
@@ -130,7 +131,7 @@ describe('cooperation with the SheetsBar plugin', () => {
       components: { HotTable, HotColumn },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :sheetsBar="{ sheets }"
           >
           <HotColumn :title="title"></HotColumn>
@@ -180,7 +181,7 @@ describe('cooperation with the SheetsBar plugin', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :sheetsBar="{ sheets }"
           ></HotTable>`,
       data() {
@@ -211,7 +212,7 @@ describe('cooperation with the SheetsBar plugin', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :height="height"
           :sheetsBar="{ sheets }"
           ></HotTable>`,
@@ -246,7 +247,7 @@ describe('cooperation with the SheetsBar plugin', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :height="height"
           :sheetsBar="{ sheets, position: 'top' }"
           ></HotTable>`,
@@ -278,7 +279,7 @@ describe('cooperation with the SheetsBar plugin', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :sheetsBar="{ sheets, activeSheet }"
           ></HotTable>`,
       data() {
@@ -307,7 +308,7 @@ describe('cooperation with the SheetsBar plugin', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :height="height"
           :sheetsBar="{ sheets, animation: { switch: false } }"
           ></HotTable>`,
@@ -341,7 +342,7 @@ describe('cooperation with the SheetsBar plugin', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :height="height"
           :columnSorting="true"
           :sheetsBar="{ sheets: [{ name: 'A', data: alphaRows }, { name: 'B', data: betaRows }] }"
@@ -375,7 +376,7 @@ describe('cooperation with the SheetsBar plugin', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :height="height"
           :columnSorting="true"
           :sheetsBar="{ sheets: [{ name: 'A', data: [[2], [1]] }, { name: 'B', data: [[3]] }] }"
@@ -409,7 +410,7 @@ describe('cooperation with the SheetsBar plugin', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :sheetsBar="{ sheets, animation: { switch: animate } }"
           ></HotTable>`,
       data() {
@@ -441,7 +442,7 @@ describe('cooperation with the SheetsBar plugin', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :sheetsBar="enabled ? { sheets } : false"
           ></HotTable>`,
       data() {

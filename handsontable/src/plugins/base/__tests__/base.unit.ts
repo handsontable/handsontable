@@ -4,6 +4,7 @@ import {
   registerPlugin,
   BasePlugin,
 } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 describe('BasePlugin', () => {
   describe('`destroy()` method', () => {
@@ -29,7 +30,7 @@ describe('BasePlugin', () => {
 
       const hot = new Handsontable(document.createElement('div'), {
         destroyAheadPlugin: true,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
       const plugin = hot.getPlugin('DestroyAheadPlugin');
 
@@ -79,7 +80,7 @@ describe('BasePlugin', () => {
 
       const hot = new Handsontable(document.createElement('div'), {
         afterDestroy: afterDestroySpy,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.getPlugin('OwnTeardownPlugin').destroy();

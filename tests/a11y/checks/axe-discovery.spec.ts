@@ -2,12 +2,13 @@ import { readFileSync } from 'node:fs';
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { A11Y_PAGES, fixtureUrl, type A11yPage, type A11yState } from '../pages.mjs';
-import { PORTAL, STATES, emulate, highlightMenuItem, markPortal, openTarget, selectCell, type RootWrapper } from '../harness';
+import { PORTAL, STATES, emulate, highlightMenuItem, markPortal, openTarget, releaseParkedFetches, selectCell, type RootWrapper } from '../harness';
 import { attachEvidence, declareTarget, readEnvironment } from '../evidence';
 import { A11Y_THEMES } from '../../lib/a11y-baseline.mjs';
 import { pageLines } from '../../lib/a11y-check-run.mjs';
 import { DISCOVERY_TAGS, discoveryFindings, rightToLeftQuery } from '../../lib/axe-discovery.mjs';
 import { DISCOVERY_PAGES } from './discovery-pages.mjs';
+import { installDarkScheme } from './variants';
 
 /**
  * The axe discovery run: axe with the best-practice, AAA and experimental rules beside the WCAG 2.2 A
@@ -164,35 +165,6 @@ async function headerCenter(page: Page, root: string, col: number): Promise<{ x:
 }
 
 /**
- * Builds every theme class the page writes as its dark form, before the fixture runs.
- *
- * @param page The page.
- */
-async function installDarkScheme(page: Page): Promise<void> {
-  await page.addInitScript(() => {
-    const darken = (value: unknown) => (typeof value === 'string'
-      ? value.replace(/\bht-theme-(main|horizon|classic)\b(?!-dark)/g, 'ht-theme-$1-dark')
-      : value);
-    const className = Object.getOwnPropertyDescriptor(Element.prototype, 'className')!;
-    const setAttribute = Element.prototype.setAttribute;
-    const add = DOMTokenList.prototype.add;
-
-    Object.defineProperty(Element.prototype, 'className', {
-      ...className,
-      set(value: string) {
-        className.set!.call(this, darken(value) as string);
-      },
-    });
-    Element.prototype.setAttribute = function(name: string, value: string) {
-      return setAttribute.call(this, name, name === 'class' ? darken(value) as string : value);
-    };
-    DOMTokenList.prototype.add = function(...tokens: string[]) {
-      return add.apply(this, tokens.map(token => darken(token) as string));
-    };
-  });
-}
-
-/**
  * Serves the fixture with `dir="rtl"` on its `<html>`.
  *
  * @param page The page.
@@ -243,6 +215,7 @@ async function discover(page: Page, testInfo: TestInfo, entry: DiscoveryPage, th
   const opener = DISCOVERY_STATES[entry.state] ?? STATES[entry.state as A11yState];
 
   await opener(page, entry, root, cell);
+  await releaseParkedFetches(page);
   await markPortal(page, root);
 
   const applied = await page.evaluate(([selector, kind]) => {

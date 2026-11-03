@@ -226,7 +226,7 @@ describe('Hooks', () => {
 
     // This is the path every framework wrapper uses, so it has to keep working.
     const hotInstance = new Handsontable.Core(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     try {

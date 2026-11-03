@@ -5,6 +5,7 @@ import { Formulas } from '../formulas';
 import { UndoRedo } from '../../undoRedo';
 import { ManualRowMove } from '../../manualRowMove';
 import { MoveCells } from '../../moveCells';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * The Formulas plugin observes undo and redo instead of driving them: the grid restores its own
@@ -47,7 +48,7 @@ describe('Formulas as an undo/redo observer', () => {
         engine: HyperFormula,
       },
       undoRedo: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

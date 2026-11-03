@@ -178,7 +178,7 @@ export interface GridSettings {
   rowHeights?: number | number[] | string | ((row: number) => number | string) | Array<number | string>;
   rowHeaderWidth?: number | number[] | string | Array<number | string>;
   columnHeaderHeight?: number | number[] | string | Array<number | string>;
-  minRowHeights?: number | string | number[] | ((index: number) => number);
+  minRowHeights?: number | number[] | string | ((row: number) => number | string) | Array<number | string>;
   maxRows?: number;
   maxCols?: number;
   minRows?: number;

@@ -159,7 +159,7 @@ function createRecordingEngine() {
  * @returns {Promise<Map<string, object>>}
  */
 async function exportSummaryCell(cellValue) {
-  const instance = { rootDocument: document, rootWindow: window };
+  const instance = { rootDocument: document, rootWindow: window, getSettings: () => ({}) };
   const { engine, cells } = createRecordingEngine();
 
   mockProviderState.data = [[cellValue]];

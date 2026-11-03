@@ -7,6 +7,14 @@ import BaseType from '../types/_base';
 import { normalizeExportOptions } from '../utils';
 import { detectXlsxEngine } from '../../../utils/xlsxEngine/detect';
 import { _resetDeprecationWarnings } from '../../../helpers/console';
+import {
+  LISTED_CAPABILITIES_FLAG,
+  keyWith,
+  keyWithoutFlag,
+} from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
+import XLSX_FEATURES from '../../../utils/xlsxEngine/features.json';
+import { SUBSCRIPTION_KEY } from '../../../utils/entitlementLicenseKey/__tests__/fixtures';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 beforeEach(() => {
   // `deprecatedWarnOnce` records printed warnings module-globally, so without this the
@@ -126,7 +134,7 @@ describe('ExportFile export with a null engine entry', () => {
     hot = new Handsontable(container, {
       data: [['a', 1]],
       exportFile: { engines: { xlsx: null } },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const plugin = hot.getPlugin('exportFile');
@@ -146,7 +154,7 @@ describe('ExportFile export with a null engine entry', () => {
     hot = new Handsontable(container, {
       data: [['a', 1]],
       exportFile: { engines: { xlsx: {} } },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const plugin = hot.getPlugin('exportFile');
@@ -326,7 +334,7 @@ describe('ExportFile downloads and the grid lifecycle', () => {
     hot = new Handsontable(container, {
       data: [['a', 1], ['b', 2]],
       exportFile: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
   });
 
@@ -390,7 +398,7 @@ describe('ExportFile downloads and the grid lifecycle', () => {
       data: [['a', 1], ['b', 2]],
       exportFile: true,
       dialog: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const frames = [];
@@ -421,7 +429,7 @@ describe('ExportFile downloads and the grid lifecycle', () => {
       data: [['a', 1], ['b', 2]],
       exportFile: true,
       dialog: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const frames = [];
@@ -471,5 +479,115 @@ describe('ExportDataProvider#getLayoutDirection', () => {
 
     expect(provider(true).getLayoutDirection()).toBe('rtl');
     expect(provider(false).getLayoutDirection()).toBe('ltr');
+  });
+});
+
+describe('ExportFile license capabilities', () => {
+  let container;
+  let hot;
+
+  beforeAll(() => {
+    // Registered here too, so the block also runs on its own (`-t`).
+    registerPlugin(ExportFile);
+  });
+
+  const createGrid = (licenseKey) => {
+    hot = new Handsontable(container, { data: [['a', 1]], exportFile: true, licenseKey });
+
+    return hot.getPlugin('exportFile');
+  };
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    hot?.destroy();
+    hot = null;
+    container.remove();
+  });
+
+  it('exposes the license tokens it gates, each one features.json assigns to it', () => {
+    expect(ExportFile.CAPABILITIES).toContain('xlsx:export');
+    expect(ExportFile.CAPABILITIES).not.toContain('xlsx:import');
+    ExportFile.CAPABILITIES.forEach((id) => {
+      const entry = XLSX_FEATURES.capabilities.find(candidate => candidate.id === id);
+
+      expect(entry.licensing).toBe('token');
+      expect(entry.plugins).toContain('ExportFile');
+    });
+  });
+
+  it('refuses an xlsx export and reports no xlsx support when the key lacks xlsx:export', async() => {
+    const plugin = createGrid(keyWith(['xlsx:import']));
+    const message = 'ExportFile: the license does not unlock "xlsx:export".';
+
+    expect(plugin.supportsExportFormat('xlsx')).toBe(false);
+    expect(plugin.supportsExportFormat('csv')).toBe(true);
+    expect(() => plugin.exportAsString('csv')).not.toThrow();
+    expect(() => plugin.exportAsString('xlsx')).toThrow(message);
+    expect(() => plugin.exportAsBlob('xlsx')).toThrow(message);
+    await expect(plugin.exportAsBlobAsync('xlsx')).rejects.toThrow(message);
+    await expect(plugin.downloadFileAsync('xlsx')).rejects.toThrow(message);
+    expect(() => plugin.downloadFile('xlsx')).toThrow(message);
+  });
+
+  it('keeps xlsx support for a key with xlsx:export, a key with no xlsx token and the legacy key', () => {
+    expect(createGrid(keyWith(['xlsx:export'])).supportsExportFormat('xlsx')).toBe(true);
+    hot.destroy();
+    expect(createGrid(SUBSCRIPTION_KEY).supportsExportFormat('xlsx')).toBe(true);
+    hot.destroy();
+    expect(createGrid('non-commercial-and-evaluation').supportsExportFormat('xlsx')).toBe(true);
+  });
+
+  describe('on a key that lists its features (no feat:all)', () => {
+    // `keyWith()` always adds `feat:all`, so these keys are built without it: the plugin's own token
+    // (`feat:export_file`) and the xlsx token are then checked one after the other.
+    const listedKey = tokens => keyWithoutFlag(tokens, [LISTED_CAPABILITIES_FLAG]);
+    const pluginMessage = 'The license key for Handsontable does not include these features: '
+      + 'Export to file (feat:export_file).';
+    const xlsxMessage = 'ExportFile: the license does not unlock "xlsx:export".';
+
+    beforeEach(() => {
+      // The plugin's license message is also printed to the console.
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('refuses an xlsx export with the plugin\'s license message first when the key lacks feat:export_file', async() => {
+      const plugin = createGrid(listedKey(['xlsx:export']));
+
+      expect(plugin.supportsExportFormat('xlsx')).toBe(false);
+      expect(() => plugin.exportAsString('xlsx')).toThrow(pluginMessage);
+      expect(() => plugin.exportAsBlob('xlsx')).toThrow(pluginMessage);
+      await expect(plugin.exportAsBlobAsync('xlsx')).rejects.toThrow(pluginMessage);
+    });
+
+    it('refuses an xlsx export with the xlsx:export message when the key has feat:export_file only', async() => {
+      const plugin = createGrid(listedKey(['feat:export_file']));
+
+      expect(plugin.supportsExportFormat('xlsx')).toBe(false);
+      expect(() => plugin.exportAsBlob('xlsx')).toThrow(xlsxMessage);
+      await expect(plugin.exportAsBlobAsync('xlsx')).rejects.toThrow(xlsxMessage);
+    });
+
+    it('exports xlsx when the key has both feat:export_file and xlsx:export', async() => {
+      const plugin = createGrid(listedKey(['feat:export_file', 'xlsx:export']));
+
+      expect(plugin.supportsExportFormat('xlsx')).toBe(true);
+      await expect(plugin.exportAsBlobAsync('xlsx')).resolves.toBeInstanceOf(Blob);
+    });
+
+    it('keeps CSV for a key with feat:export_file and no xlsx token', () => {
+      const plugin = createGrid(listedKey(['feat:export_file']));
+
+      expect(plugin.supportsExportFormat('csv')).toBe(true);
+      // The CSV carries a byte order mark by default (`bom: true`).
+      expect(plugin.exportAsString('csv')).toBe('\uFEFFa,1');
+    });
   });
 });

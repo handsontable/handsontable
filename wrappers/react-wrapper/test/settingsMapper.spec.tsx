@@ -314,14 +314,74 @@ describe('Settings mapper unit tests', () => {
 
     it('should forward the option default on update only for a prop that had a value before', () => {
       const result = SettingsMapper.getSettings(
-        { height: undefined, colWidths: undefined, copyPaste: undefined, undo: undefined },
-        { isInit: false, prevProps: { height: 300, colWidths: [50, 60], copyPaste: false } }
+        { colWidths: undefined, copyPaste: undefined, undo: undefined },
+        { isInit: false, prevProps: { colWidths: [50, 60], copyPaste: false } }
       );
 
-      expect(Object.keys(result)).toEqual(['height', 'colWidths', 'copyPaste']);
-      expect(result.height).toBe(undefined);
+      expect(Object.keys(result)).toEqual(['colWidths', 'copyPaste']);
       expect(result.colWidths).toBe(undefined);
       expect(result.copyPaste).toBe(true);
+    });
+
+    it('should forward `null` on update for `height` and `width` props that had a value before', () => {
+      const result = SettingsMapper.getSettings(
+        { height: undefined, width: undefined, colWidths: undefined },
+        { isInit: false, prevProps: { height: 300, width: 500, colWidths: [50, 60] } }
+      );
+      const notPassedBefore = SettingsMapper.getSettings(
+        { height: undefined, width: undefined },
+        { isInit: false, prevProps: {} }
+      );
+
+      expect(Object.keys(notPassedBefore)).toEqual([]);
+      expect(Object.keys(result)).toEqual(['height', 'width', 'colWidths']);
+      expect(result.height).toBe(null);
+      expect(result.width).toBe(null);
+      expect(result.colWidths).toBe(undefined);
+    });
+
+    it('should forward `null` on update for a hook prop that had a callback before', () => {
+      const afterChange = () => {};
+      const beforeChange = () => {};
+      const result = SettingsMapper.getSettings(
+        { afterChange: undefined, beforeChange: undefined, afterSelection: undefined },
+        { isInit: false, prevProps: { afterChange, beforeChange: [beforeChange] } }
+      );
+
+      expect(Object.keys(result)).toEqual(['afterChange', 'beforeChange']);
+      expect(result.afterChange).toBe(null);
+      expect(result.beforeChange).toBe(null);
+    });
+
+    it('should forward `null` on update for a hook prop that is no longer passed', () => {
+      const result = SettingsMapper.getSettings(
+        { width: 300 },
+        { isInit: false, prevProps: { width: 300, height: 200, afterChange: () => {}, afterSelection: undefined } }
+      );
+
+      expect(Object.keys(result)).toEqual(['width', 'afterChange']);
+      expect(result.afterChange).toBe(null);
+    });
+
+    it('should forward `null` on update for a hook prop that holds no callback', () => {
+      const afterChange = jest.fn();
+      const result = SettingsMapper.getSettings(
+        { afterChange: false as any, beforeChange: [afterChange], copyPaste: false },
+        { isInit: false, prevProps: { afterChange, beforeChange: [afterChange], copyPaste: true } }
+      );
+
+      expect(result.afterChange).toBe(null);
+      expect(result.beforeChange).toEqual([afterChange]);
+      expect(result.copyPaste).toBe(false);
+    });
+
+    it('should not forward a hook prop that is `undefined` during initialization', () => {
+      const result = SettingsMapper.getSettings(
+        { afterChange: undefined },
+        { isInit: true, prevProps: { afterChange: () => {} } }
+      );
+
+      expect(Object.keys(result)).toEqual([]);
     });
 
     it('should not forward `undefined` during initialization even when previous props are given', () => {

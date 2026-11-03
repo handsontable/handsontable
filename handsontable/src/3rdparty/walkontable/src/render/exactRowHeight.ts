@@ -236,6 +236,39 @@ function releaseExactShape(TR: HTMLElement): void {
 }
 
 /**
+ * Returns the height the exact shape writes on the row, as a CSS length.
+ *
+ * Normally that is the resolved height the caller passed. A row whose first cell spans several rows
+ * (or is covered by a merge) is the exception: the host hands that cell the height of every row it
+ * spans (MergeCells does, through `modifyRowHeightByOverlayName`), and a spanning cell never carries
+ * the height in the exact shape. The cell that does carry it is another one in the same row, and the
+ * block's total on it would stretch this row by every row the block spans. The row gets its own
+ * height instead, as the floor shape pins it, and the span sizes itself from the rows it covers.
+ *
+ * @param {HTMLElement} firstChild The row's first cell.
+ * @param {string} pixelHeight The resolved height, as a CSS length.
+ * @param {boolean} isBorderBox Whether the cells use `box-sizing: border-box`.
+ * @param {object} [ownHeights] Answers a row's own height by its source index.
+ * @param {number} [sourceIndex] The row's source index, for `ownHeights`.
+ * @returns {string}
+ */
+function getExactCarrierHeight(
+  firstChild: HTMLElement,
+  pixelHeight: string,
+  isBorderBox: boolean,
+  ownHeights?: OwnRowHeights,
+  sourceIndex?: number,
+): string {
+  if (canCarryHeight(firstChild) || ownHeights === undefined || sourceIndex === undefined) {
+    return pixelHeight;
+  }
+
+  const ownHeight = ownHeights.getHeight(sourceIndex);
+
+  return ownHeight !== undefined && ownHeight > 0 ? toRowElementHeight(ownHeight, isBorderBox) : pixelHeight;
+}
+
+/**
  * Applies the resolved height of one rendered row to its DOM. Runs after the cells rendered, on
  * every draw, and again whenever the engine re-applies heights out of a render (the frozen-column
  * row sync).
@@ -273,7 +306,7 @@ export function applyRowHeight(
   const pixelHeight = rowHeight ? `${getBoxAdjustedRowHeight(rowHeight, isBorderBox)}px` : '';
 
   if (isExact && rowHeight) {
-    applyExactShape(TR, pixelHeight);
+    applyExactShape(TR, getExactCarrierHeight(firstChild, pixelHeight, isBorderBox, ownHeights, sourceIndex));
 
     return;
   }

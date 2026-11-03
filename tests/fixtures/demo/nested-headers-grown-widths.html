@@ -25,6 +25,7 @@
     // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min = handsontable.full.min.js).
     window.htBundle = htPick('bundle', { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, 'umd');
   </script>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -60,7 +61,7 @@
           Array.from({ length: columnCount / 2 }, (_, index) => ({ label: `Group ${index}`, colspan: 2 })),
           Array.from({ length: columnCount }, (_, index) => longLabel(index)),
         ],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       window.htBuildError = String(error && error.stack || error);

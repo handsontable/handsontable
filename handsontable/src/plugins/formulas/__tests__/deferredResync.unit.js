@@ -3,6 +3,7 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { Formulas } from '../formulas';
 import { NestedRows } from '../../nestedRows';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * DEV-3006: `updateSettings()` used to rebuild the HyperFormula sheet twice when a setting moved
@@ -57,7 +58,7 @@ describe('Formulas deferred resync', () => {
       columns: [{ data: 'name' }, { data: 'calc' }],
       nestedRows: false,
       formulas: { engine },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 
@@ -80,7 +81,7 @@ describe('Formulas deferred resync', () => {
         [2, '=A2+10'],
       ],
       formulas: { engine },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 
@@ -264,7 +265,7 @@ describe('Formulas deferred resync', () => {
     hot = new Handsontable(container, {
       data: [[1, '=A1+10'], [2, '=A2+10']],
       formulas: { engine },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     writes.mockClear();
@@ -362,7 +363,7 @@ describe('Formulas deferred resync', () => {
     hot = new Handsontable(container, {
       data: [[1, '=A1+10']],
       formulas: { engine },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       beforeViewRender() {
         if (seen.length === 0) {
           seen.push(engine.getSheetSerialized(this.getPlugin('formulas').sheetId));
@@ -415,7 +416,7 @@ describe('Formulas deferred resync', () => {
     const otherHot = new Handsontable(otherContainer, {
       data: [['=Sheet1!A1']],
       formulas: { engine, sheetName: 'other' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       afterRender() {
         if (shouldThrow.current) {
           throw new Error('dependent grid render failed');
@@ -426,7 +427,7 @@ describe('Formulas deferred resync', () => {
     hot = new Handsontable(container, {
       data: [[1, '=A1+10']],
       formulas: { engine, sheetName: 'Sheet1' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     shouldThrow.current = true;
@@ -483,7 +484,7 @@ describe('Formulas deferred resync', () => {
       data: [['q1-a', 'q1-b', 'q1-c'], ['q1-d', 'q1-e', 'q1-f']],
       columns: [{ data: 0 }],
       formulas: { engine, sheetName: 'Q1' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.updateSettings({ formulas: { engine, sheetName: 'Q2' } });

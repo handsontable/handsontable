@@ -46,6 +46,7 @@
   <style>
     body { font-family: sans-serif; margin: 0; padding: 1rem; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -122,7 +123,7 @@
           indicators: window.htIndicators,
         },
         renderer: testIdRenderer,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       window.htBuildError = String((error && error.stack) || error);

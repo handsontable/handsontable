@@ -66,6 +66,7 @@
        In window mode (`?height=none`) the wrapper is fluid instead and the spec resizes the viewport. */
     #wrap { width: 1200px; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -132,7 +133,7 @@
       // the root's own growth triggers the draw that clears it. A one-frame transient the spec could
       // read in between — a separate, pre-existing auto-height concern, not this defect.
       wordWrap: false,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     // Counts the engine column-width cache drops the grid performs, so the spec can pin the

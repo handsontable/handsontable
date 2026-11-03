@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable/base';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 /**
  * An explicit insert does not move the end band. `fixedColumnsEnd` counts the LAST columns, so a column inserted
@@ -30,7 +31,7 @@ describe('alter("insert_col_*") and the `fixedColumnsEnd` option', () => {
   function createGrid(settings) {
     core = new Handsontable(container, {
       data: Array.from({ length: 5 }, (_, r) => Array.from({ length: 5 }, (__, c) => `${r}-${c}`)),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

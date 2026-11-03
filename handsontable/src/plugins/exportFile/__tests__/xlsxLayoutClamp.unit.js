@@ -112,7 +112,7 @@ jest.mock('../dataProvider', () => ({
  * @returns {Promise<object>} The first sheet read back.
  */
 async function roundTrip(width, height) {
-  const instance = { rootDocument: document, rootWindow: window };
+  const instance = { rootDocument: document, rootWindow: window, getSettings: () => ({}) };
 
   mockProviderState.widths = [width];
   mockProviderState.heights = [height];

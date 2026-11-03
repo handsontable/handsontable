@@ -62,6 +62,7 @@ import {
   type MinimumSizes,
 } from './core/minimumSizes';
 import { insertColWidths, removeColWidths } from './core/colWidthsSplice';
+import { isAutoRowSizeOn, isExactRowHeight, resolveRowHeightSetting } from './core/rowHeightSetting';
 import { isSameColumnLayout, type ColumnLayout } from './core/columnLayout';
 import type { HookCallback } from './core/hooks/bucket';
 import type { GridSettings } from './core/settings';
@@ -4177,7 +4178,9 @@ export default function Core(
    * @fires Hooks#afterListen
    */
   this.listen = function() {
-    if (instance && !instance.isListening()) {
+    // `destroy()` takes the instance out of the registry before it destroys the plugins, and a plugin
+    // that hands the keyboard back while it tears down must not take it from another grid.
+    if (instance && !instance.isListening() && foreignHotInstances.has(instance.guid)) {
       foreignHotInstances.forEach((foreignHot) => {
         if (instance !== foreignHot) {
           foreignHot.unlisten();
@@ -5075,6 +5078,8 @@ export default function Core(
    * - Keeps cells' states (e.g. cells' [formatting](@/guides/cell-features/formatting-cells/formatting-cells.md) and cells' [`readOnly`](@/api/options.md#readonly) states)
    * - Keeps rows' states (e.g. row order)
    * - Keeps columns' states (e.g. column order)
+   * - Keeps the sorted row order and the trimmed rows. It does not sort or filter the new values again. To apply them, call `sort(getSortConfig())` of the `ColumnSorting` or `MultiColumnSorting` plugin, or `filter()` of the `Filters` plugin.
+   * - Clears the undo and redo history of the `UndoRedo` plugin.
    *
    * To replace Handsontable's [`data`](@/api/options.md#data) and reset states, use the [`loadData()`](#loaddata) method.
    *
@@ -5189,6 +5194,11 @@ export default function Core(
    * - Resets cells' states (e.g. cells' [formatting](@/guides/cell-features/formatting-cells/formatting-cells.md) and cells' [`readOnly`](@/api/options.md#readonly) states)
    * - Resets rows' states (e.g. row order)
    * - Resets columns' states (e.g. column order)
+   * - Resets sorting, filters, the rows you trimmed, and the rows and columns you moved, hid, or resized at runtime.
+   * - Applies again the state that these options declare: `hiddenRows`, `hiddenColumns`, `trimRows`, `manualRowMove`, `manualColumnMove`, `manualRowResize`, and `manualColumnResize` (for example `hiddenRows: { rows: [2] }`). Sorting that `initialConfig` of `columnSorting` or `multiColumnSorting` declares is not applied again.
+   * - Drops the cell metadata from the `cell` option, although `getSettings().cell` still lists it. Metadata from `columns` stays.
+   * - Clears the undo and redo history of the `UndoRedo` plugin.
+   * - Keeps the settings, the selection (limited to the size of the new data), and merged cells.
    *
    * To replace Handsontable's [`data`](@/api/options.md#data) without resetting states, use the [`updateData()`](#updatedata) method.
    *
@@ -5845,20 +5855,6 @@ export default function Core(
     }
 
     warnAboutRemovedOptions(settings as Record<string, unknown>);
-  }
-
-  /**
-   * Warns when `rowHeights` and its alias `minRowHeights` are both configured.
-   *
-   * @private
-   * @param {object} settings A settings object (see {@link Options}).
-   */
-  function warnAboutRowHeightsAlias(settings: SettingsUpdate): void {
-    if (isDefined(settings.rowHeights) && isDefined(settings.minRowHeights)) {
-      warn('Both `rowHeights` and `minRowHeights` are defined in your configuration. ' +
-        'As one is the alias of the other, only one of them can be used at a time. ' +
-        '`rowHeights` will be used as the row height configuration.');
-    }
   }
 
   /**
@@ -6533,6 +6529,9 @@ export default function Core(
       instance.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
       instance.view._wt.exportSettingsAsClassNames();
       instance.view.invalidateIndexSizesCache();
+      // `_getRowHeightFromSettings` answers from the new settings at once, so the engine has to follow
+      // before a scroll draw that a suspended render does not stop.
+      instance.view.syncRowHeightMode();
     }
 
     selection.updateHighlightClassNames();
@@ -6603,8 +6602,6 @@ export default function Core(
 
     // Read before the payload merges into the table meta.
     const { previousMinimumSizes, previousColumnLayout, previousRootSize } = readSettingsBaseline(settings, init);
-
-    warnAboutRowHeightsAlias(settings);
 
     mergeSettingsIntoMeta(settings, init);
     applyThemeSettings(settings, init);
@@ -7992,6 +7989,34 @@ export default function Core(
   };
 
   /**
+   * Writes a cell meta key by the PHYSICAL coordinates it is stored under, journaled for undo like
+   * {@link Core#setCellMeta}, and fires no `beforeSetCellMeta`/`afterSetCellMeta` hook, so it cannot be
+   * vetoed. It exists for a plugin that puts back meta it already owns, where the write is not an edit
+   * the application made: the plugin writes the same record the model already describes, and a listener
+   * that marks a document dirty or blocks edits on locked cells has nothing to act on.
+   *
+   * Internal API: deliberately NOT declared on the public `HotInstance` type, the same way
+   * `_removeCellMetaByPhysicalIndex` is not.
+   *
+   * @private
+   * @memberof Core#
+   * @function _setCellMetaByPhysicalIndex
+   * @param {number} physicalRow Physical row index.
+   * @param {number} physicalColumn Physical column index.
+   * @param {string} key The property name to set.
+   * @param {*} value The value to write.
+   */
+  this._setCellMetaByPhysicalIndex = function(
+    physicalRow: number, physicalColumn: number, key: string, value: unknown
+  ) {
+    operationScope.run('set_cell_meta', undefined, () => {
+      writeCellMetaChange(physicalRow, physicalColumn, key, () => {
+        metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
+      });
+    });
+  };
+
+  /**
    * Sets a property defined by the `key` property to the meta object of a cell corresponding to params `row` and `column`.
    *
    * This method updates internal cell metadata only. It does not repaint the grid. To reflect visual changes (such as
@@ -8700,6 +8725,27 @@ export default function Core(
   };
 
   /**
+   * Tells whether the row renders at exactly the height the `rowHeights` option gives it, with
+   * taller content clipped, instead of at a minimum the content can grow past. Private use intended.
+   *
+   * A row is exact when `rowHeights` resolves to a positive number for it and the AutoRowSize plugin is
+   * off. The `minRowHeights` option is never exact.
+   *
+   * @private
+   * @memberof Core#
+   * @function _isRowHeightExact
+   * @param {number} row Visual row index.
+   * @returns {boolean}
+   */
+  this._isRowHeightExact = function(row: number) {
+    if (isAutoRowSizeOn(tableMeta.autoRowSize)) {
+      return false;
+    }
+
+    return isExactRowHeight(resolveRowHeightSetting(tableMeta.rowHeights, row));
+  };
+
+  /**
    * Return row height from settings (no guessing). Private use intended.
    *
    * @private
@@ -8709,29 +8755,22 @@ export default function Core(
    * @returns {number}
    */
   this._getRowHeightFromSettings = function(row: number) {
-    const defaultRowHeight = (instance.stylesHandler as StylesHandler).getDefaultRowHeight(row);
-    let height: unknown = tableMeta.rowHeights ?? tableMeta.minRowHeights;
+    const rowHeights = resolveRowHeightSetting(tableMeta.rowHeights, row);
+    const hasOwnHeight = isExactRowHeight(rowHeights);
 
-    if (height !== undefined && height !== null) {
-      switch (typeof height) {
-        case 'object': // array
-          height = (height as Record<number, unknown>)[row];
-          break;
-
-        case 'function':
-          height = (height as (row: number) => unknown)(row);
-          break;
-
-        default:
-          break;
-      }
-
-      if (typeof height === 'string') {
-        height = Number.parseInt(height, 10);
-      }
+    // Resolved once: a `rowHeights` function runs for every rendered row on every draw.
+    if (hasOwnHeight && !isAutoRowSizeOn(tableMeta.autoRowSize)) {
+      return rowHeights;
     }
 
-    const numHeight = height as number | undefined | null;
+    const defaultRowHeight = (instance.stylesHandler as StylesHandler).getDefaultRowHeight(row);
+    // `minRowHeights` covers the rows `rowHeights` gives no height of their own.
+    const hasRowHeightsOption = tableMeta.rowHeights !== undefined && tableMeta.rowHeights !== null;
+    const fallbackHeight = hasRowHeightsOption ? rowHeights : undefined;
+    const height = hasOwnHeight ?
+      rowHeights : (resolveRowHeightSetting(tableMeta.minRowHeights, row) ?? fallbackHeight);
+
+    const numHeight = height;
     const numDefaultRowHeight = defaultRowHeight as number | null;
 
     return ((numHeight !== undefined && numHeight !== null &&
@@ -8757,6 +8796,11 @@ export default function Core(
    * Passing [`rowHeights`](@/api/options.md#rowheights) to
    * [`updateSettings()`](@/api/core.md#updatesettings) discards the heights stored by
    * [`ManualRowResize`](@/api/manualRowResize.md), so the option applies again from that point on.
+   *
+   * A height set through [`rowHeights`](@/api/options.md#rowheights) is returned as set, even when it is
+   * smaller than the default row height. A height set through
+   * [`minRowHeights`](@/api/options.md#minrowheights), or through `rowHeights` while
+   * [`AutoRowSize`](@/api/autoRowSize.md) is enabled, is never smaller than the default row height.
    *
    * The height returned includes 1 px of the row's bottom border.
    *

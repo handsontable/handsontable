@@ -11,6 +11,7 @@ import {
 } from './_helpers';
 import { HOT_DESTROYED_WARNING } from '../src/helpers';
 import { HotTableProps, HotRendererProps, HotTableRef } from '../src/types';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 describe('Component lifecyle', () => {
   it('renderer components should trigger their lifecycle methods', async() => {
@@ -38,12 +39,12 @@ describe('Component lifecyle', () => {
     const rendererCounters = new Map();
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         autoRowSize={false}
         autoColumnSize={false}
@@ -96,12 +97,12 @@ describe('Component lifecyle', () => {
     };
 
     const props: HotTableProps = {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       id: 'test-hot',
       data: createSpreadsheetData(3, 2),
       width: 300,
       height: 300,
-      rowHeights: 23,
+      minRowHeights: 23,
       colWidths: 50,
       init() {
         mockElementDimensions(this.rootElement, 300, 300);
@@ -130,7 +131,7 @@ describe('Component lifecyle', () => {
       <HotTable
         id="test-hot"
         data={[[2]]}
-        licenseKey="non-commercial-and-evaluation"
+        licenseKey={TEST_LICENSE_KEY}
       />
     ));
 
@@ -163,12 +164,12 @@ describe('Component lifecyle', () => {
     }
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(4, 3)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         autoRowSize={false}
         autoColumnSize={false}
@@ -217,6 +218,69 @@ describe('Component lifecyle', () => {
     expect(detachedTdCount).toEqual(0);
   });
 
+  it('should not detach the portal container DIV when the rows are exact (`rowHeights`) and a cell is edited', async() => {
+    function StableCell(props: HotRendererProps) {
+      return (
+        <span data-cell={`${props.row}-${props.col}`}>{String(props.value)}</span>
+      );
+    }
+
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey={TEST_LICENSE_KEY}
+        id="test-hot"
+        data={createSpreadsheetData(4, 3)}
+        width={300}
+        height={300}
+        rowHeights={30}
+        colWidths={50}
+        autoRowSize={false}
+        autoColumnSize={false}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}
+        renderer={props => <StableCell {...props} />}
+      />
+    ), false).hotInstance!;
+
+    await sleep(100);
+
+    // The grid keeps the content of an exact row in a clipping wrapper, and the container sits in it.
+    const cell = hotInstance.getCell(1, 1) as HTMLElement;
+
+    expect(cell.firstElementChild?.className).toBe('htCellClip');
+    expect(cell.firstElementChild?.firstElementChild?.querySelector('[data-cell="1-1"]')).not.toBeNull();
+
+    const portalContainer = cell.firstElementChild?.firstElementChild;
+    let detachedCount = 0;
+    const observer = new MutationObserver((records) => {
+      records.forEach((rec) => {
+        if (rec.type === 'childList' && rec.target instanceof HTMLElement &&
+            (rec.target instanceof HTMLTableCellElement || rec.target.className === 'htCellClip')) {
+          detachedCount += rec.removedNodes.length;
+        }
+      });
+    });
+
+    observer.observe(hotInstance.rootElement, { childList: true, subtree: true });
+
+    await act(async() => {
+      hotInstance.setDataAtCell(0, 0, 'edited');
+    });
+
+    await sleep(50);
+
+    observer.takeRecords().forEach((rec) => {
+      if (rec.type === 'childList' && rec.target instanceof HTMLElement &&
+          (rec.target instanceof HTMLTableCellElement || rec.target.className === 'htCellClip')) {
+        detachedCount += rec.removedNodes.length;
+      }
+    });
+    observer.disconnect();
+
+    expect(detachedCount).toEqual(0);
+    expect((hotInstance.getCell(1, 1) as HTMLElement).firstElementChild?.firstElementChild).toBe(portalContainer);
+  });
+
   it('should preserve renderer component state across grid renders (#10800)', async() => {
     let nextSeed = 0;
 
@@ -237,12 +301,12 @@ describe('Component lifecyle', () => {
     }
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(4, 3)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         autoRowSize={false}
         autoColumnSize={false}

@@ -1,8 +1,9 @@
 import HyperFormula from 'hyperformula';
 import Handsontable from '../../../index';
 import IndexSyncer from '../indexSyncer';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
-const LICENSE_KEY = 'non-commercial-and-evaluation';
+const LICENSE_KEY = TEST_LICENSE_KEY;
 
 /**
  * The axis syncers postpone the initial order only while no engine sheet is bound, and Formulas sets the

@@ -2,6 +2,7 @@ import Handsontable from '../../../index';
 import { registerCellType, TextCellType } from '../../../cellTypes';
 import { registerPlugin } from '../../registry';
 import { CopyPaste } from '../copyPaste';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerCellType(TextCellType);
 registerPlugin(CopyPaste);
@@ -26,7 +27,7 @@ function createGrid(settings: Record<string, unknown>) {
   containers.push(container);
 
   const hot = new Handsontable(container, {
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     ...settings,
   });
 

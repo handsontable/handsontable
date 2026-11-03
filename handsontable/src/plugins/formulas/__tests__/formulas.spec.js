@@ -4373,7 +4373,7 @@ describe('Formulas general', () => {
         // renders it from inside the span `#internalOperationPending` is open across.
         const otherHot = new Handsontable($other[0], {
           data: [['=Sheet1!A1']],
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: TEST_LICENSE_KEY,
           formulas: { engine, sheetName: 'other' },
           afterRender() {
             if (shouldThrow.current) {

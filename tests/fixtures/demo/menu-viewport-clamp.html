@@ -60,6 +60,7 @@
     body.wide { width: 3000px; height: 3000px; }
     body.wide [data-testid="grid"] { margin-inline-start: 1000px; margin-block-start: 1000px; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -101,7 +102,7 @@
         filters: true,
         contextMenu: true,
         dropdownMenu: ['filter_by_condition', 'filter_action_bar'],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       container.setAttribute('data-init-error', String(error && error.message));

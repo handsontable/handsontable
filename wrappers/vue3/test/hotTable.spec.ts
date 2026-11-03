@@ -6,6 +6,7 @@ import { HOT_DESTROYED_WARNING } from '../src/helpers';
 import {
   createSampleData,
 } from './_helpers';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 config.renderStubDefaultSlot = true;
 
@@ -20,7 +21,7 @@ describe('hotInit', () => {
     const testWrapper = mount(HotTable, {
       props: {
         data: createSampleData(1, 1),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       },
     });
 
@@ -36,7 +37,7 @@ describe('hotInit', () => {
     const testWrapper = mount(HotTable, {
       props: {
         data: createSampleData(1, 1),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       },
     });
 
@@ -54,7 +55,7 @@ describe('Updating the Handsontable settings', () => {
     const testWrapper = mount(HotTable, {
       props: {
         data: createSampleData(1, 1),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         rowHeaders: true,
         afterUpdateSettings() {
           updateSettingsCalls += 1;
@@ -83,7 +84,7 @@ describe('Updating the Handsontable settings', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :rowHeaders="rowHeaders"
           :colHeaders="colHeaders"
           :readOnly="readOnly"
@@ -141,7 +142,7 @@ describe('Updating the Handsontable settings', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :rowHeaders="rowHeaders"
           :colHeaders="colHeaders"
           :readOnly="readOnly"
@@ -184,7 +185,7 @@ describe('Updating the Handsontable settings', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :data="data"
           :afterUpdateSettings="(newSettings) => { this.newSettings = newSettings }"
           ></HotTable>`,
@@ -249,7 +250,7 @@ describe('Updating the Handsontable settings', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :data="data"
           :afterUpdateSettings="(newSettings) => { this.newSettings = newSettings }"
           ></HotTable>`,
@@ -298,7 +299,7 @@ describe('Updating the Handsontable settings', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :data="data"
           :afterUpdateSettings="(newSettings) => { this.newSettings = newSettings }"
           ></HotTable>`,
@@ -348,7 +349,7 @@ it('should be possible to access the `hotInstance` property of the HotTable inst
     template: `
       <HotTable
         ref="grid"
-        licenseKey="non-commercial-and-evaluation"
+        :licenseKey="testLicenseKey"
         :data="data"
         :autoRowSize="false"
         :autoColumnSize="false"
@@ -385,7 +386,7 @@ it('should display a warning and not throw any errors, when the underlying Hands
     components: { HotTable },
     template: `
       <HotTable
-        licenseKey="non-commercial-and-evaluation"
+        :licenseKey="testLicenseKey"
         :data="data"
         ></HotTable>`,
     data() {
@@ -427,7 +428,7 @@ describe('HOT-based CRUD actions', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :rowHeaders="true"
           :colHeaders="true"
           :data="data"
@@ -476,7 +477,7 @@ describe('Non-HOT based CRUD actions', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :rowHeaders="true"
           :colHeaders="true"
           :data="data"
@@ -528,7 +529,7 @@ describe('Root size options', () => {
       props: {
         data: createSampleData(3, 3),
         height: 'auto',
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       },
     });
 
@@ -547,7 +548,7 @@ describe('Root size options', () => {
       props: {
         data: createSampleData(3, 3),
         height: 300,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       },
     });
     const { hotInstance } = testWrapper.getComponent(HotTable).vm;
@@ -570,6 +571,156 @@ describe('Root size options', () => {
     expect(sizeWarnings).toHaveLength(1);
 
     warnSpy.mockRestore();
+    testWrapper.unmount();
+  });
+});
+
+describe('Removing a hook prop', () => {
+  const mountApp = (template: string, data: Record<string, unknown>) => {
+    const testWrapper = mount({
+      components: { HotTable },
+      template,
+      data(): Record<string, any> {
+        return {
+          gridData: createSampleData(2, 2),
+          ...data,
+        };
+      },
+    }, {
+      attachTo: document.getElementById('app')
+    });
+
+    return {
+      testWrapper,
+      hotInstance: testWrapper.getComponent(HotTable).vm.hotInstance,
+    };
+  };
+
+  it('should stop running the callback when the hook prop becomes `undefined`', async() => {
+    const afterChange = jest.fn();
+    const { testWrapper, hotInstance } = mountApp(`
+      <HotTable
+        :licenseKey="testLicenseKey"
+        :data="gridData"
+        :afterChange="tracking ? afterChange : undefined"
+      ></HotTable>`, { tracking: true, afterChange });
+
+    hotInstance.setDataAtCell(0, 0, 'a');
+
+    expect(afterChange).toHaveBeenCalledWith([[0, 0, '0-0', 'a']], 'edit');
+
+    testWrapper.vm.tracking = false;
+    await nextTick();
+    hotInstance.setDataAtCell(0, 0, 'b');
+
+    expect(afterChange).not.toHaveBeenCalledWith([[0, 0, 'a', 'b']], 'edit');
+    expect(hotInstance.getSettings().afterChange).toBe(null);
+
+    testWrapper.unmount();
+  });
+
+  it('should stop running the callback when the hook prop is removed', async() => {
+    const afterChange = jest.fn();
+    const { testWrapper, hotInstance } = mountApp(`
+      <HotTable
+        :licenseKey="testLicenseKey"
+        :data="gridData"
+        v-bind="hookProps"
+      ></HotTable>`, { hookProps: { afterChange } });
+
+    testWrapper.vm.hookProps = {};
+    await nextTick();
+    hotInstance.setDataAtCell(0, 0, 'a');
+
+    expect(afterChange).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+    expect(hotInstance.getSettings().afterChange).toBe(null);
+
+    testWrapper.unmount();
+  });
+
+  it('should stop running the callback when the hook is removed from the `settings` prop', async() => {
+    const afterChange = jest.fn();
+    const { testWrapper, hotInstance } = mountApp(`
+      <HotTable
+        :data="gridData"
+        :settings="settings"
+      ></HotTable>`, { settings: { licenseKey: TEST_LICENSE_KEY, afterChange } });
+
+    testWrapper.vm.settings = { licenseKey: TEST_LICENSE_KEY };
+    await nextTick();
+    hotInstance.setDataAtCell(0, 0, 'a');
+
+    expect(afterChange).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+    expect(hotInstance.getSettings().afterChange).toBe(null);
+
+    testWrapper.unmount();
+  });
+
+  it('should stop running the callback when the hook prop becomes `false`', async() => {
+    const afterChange = jest.fn();
+    const { testWrapper, hotInstance } = mountApp(`
+      <HotTable
+        :licenseKey="testLicenseKey"
+        :data="gridData"
+        :afterChange="tracking && afterChange"
+      ></HotTable>`, { tracking: true, afterChange });
+
+    testWrapper.vm.tracking = false;
+    await nextTick();
+    hotInstance.setDataAtCell(0, 0, 'a');
+
+    expect(afterChange).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+    expect(hotInstance.getSettings().afterChange).toBe(null);
+
+    testWrapper.unmount();
+  });
+
+  it('should keep the callbacks the props did not pass when a hook prop is removed', async() => {
+    const afterChange = jest.fn();
+    const addedAfterChange = jest.fn();
+    const settingsAfterSetDataAtCell = jest.fn();
+    const { testWrapper, hotInstance } = mountApp(`
+      <HotTable
+        :licenseKey="testLicenseKey"
+        :data="gridData"
+        :afterChange="tracking ? afterChange : undefined"
+      ></HotTable>`, { tracking: true, afterChange });
+
+    hotInstance.addHook('afterChange', addedAfterChange);
+    hotInstance.updateSettings({ afterSetDataAtCell: settingsAfterSetDataAtCell });
+    testWrapper.vm.tracking = false;
+    await nextTick();
+    hotInstance.setDataAtCell(0, 0, 'a');
+
+    expect(afterChange).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+    expect(addedAfterChange).toHaveBeenCalledWith([[0, 0, '0-0', 'a']], 'edit');
+    expect(settingsAfterSetDataAtCell).toHaveBeenCalledWith([[0, 0, '0-0', 'a']]);
+
+    testWrapper.unmount();
+  });
+
+  it('should run the callback again when the hook prop is passed back', async() => {
+    const afterChange = jest.fn();
+    const { testWrapper, hotInstance } = mountApp(`
+      <HotTable
+        :licenseKey="testLicenseKey"
+        :data="gridData"
+        :afterChange="tracking ? afterChange : undefined"
+      ></HotTable>`, { tracking: true, afterChange });
+
+    testWrapper.vm.tracking = false;
+    await nextTick();
+    hotInstance.setDataAtCell(0, 0, 'a');
+
+    expect(afterChange).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+
+    testWrapper.vm.tracking = true;
+    await nextTick();
+    hotInstance.setDataAtCell(0, 0, 'b');
+
+    expect(afterChange.mock.calls.filter(([, source]) => source === 'edit'))
+      .toEqual([[[[0, 0, 'a', 'b']], 'edit']]);
+
     testWrapper.unmount();
   });
 });

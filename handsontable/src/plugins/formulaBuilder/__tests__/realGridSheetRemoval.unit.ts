@@ -3,6 +3,7 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { Formulas } from '../../formulas';
 import { FormulaBuilder } from '../formulaBuilder';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 type CoreModule = typeof import('hyperformula-ui');
 
@@ -48,7 +49,7 @@ describe('FormulaBuilder after the engine removes the grid sheet', () => {
       editor: 'formula',
       formulas: { engine, sheetName },
       formulaBuilder: { builder: core, showFormulaBar: true },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
   }
 

@@ -467,6 +467,37 @@ describe('HandsontableAdapter custom-selection highlights', () => {
     adapter.destroy();
   });
 
+  it('reads the border width from the grid\'s root element, where the guide tells an application to set it', () => {
+    const rootElement = document.createElement('div');
+    const hot = makeHotStub({
+      rootElement,
+      rootWindow: {
+        ...window,
+        // The overlay host is the root WRAPPER, the root element's parent: a value set on
+        // `.handsontable` never reaches it.
+        getComputedStyle: (element: Element) => ({
+          getPropertyValue: () => (element === rootElement ? '3px' : '1px'),
+        }),
+      } as unknown as Window & typeof globalThis,
+    } as Parameters<typeof makeHotStub>[0]);
+    const overlayHost = document.createElement('div');
+
+    overlayHost.appendChild(rootElement);
+    document.body.appendChild(overlayHost);
+
+    const adapter = new HandsontableAdapter(
+      makeAdapterOptions(hot, overlayHost),
+      makePluginStub(),
+    );
+
+    adapter.setHighlights([{ range: range(0, 0, 0, 0), color: 'red' }]);
+
+    expect((customSelectionsOf(hot)[0].settings.border as { width: number }).width).toBe(3);
+
+    adapter.destroy();
+    overlayHost.remove();
+  });
+
   it('reads the border width again after `resetBorderWidth()`', () => {
     let cssValue = '1px';
     const hot = makeHotStub({

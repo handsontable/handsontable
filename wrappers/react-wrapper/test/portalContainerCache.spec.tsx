@@ -9,13 +9,14 @@ import {
   sleep,
 } from './_helpers';
 import { HotRendererProps, HotTableRef } from '../src/types';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 // Regression tests for the portal-container cache leak (PLAN A4): the wrapper
 // kept one detached container DIV per (row, col) ever rendered with a
 // component-based renderer and never evicted them, so scrolling grew retained
 // DOM as O(rows × cols). The cache must stay bounded to the viewport.
 describe('Portal container cache eviction', () => {
-  const VISIBLE_ROWS = Math.ceil(300 / 23); // height / rowHeights ≈ 14 visible rows
+  const VISIBLE_ROWS = Math.ceil(300 / 23); // height / row height ≈ 14 visible rows
   const COLS = 3;
 
   it('should keep the portal container cache bounded to the viewport while scrolling a tall grid', async() => {
@@ -32,12 +33,12 @@ describe('Portal container cache eviction', () => {
     const ROWS = 1000;
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(ROWS, COLS)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         autoRowSize={false}
         autoColumnSize={false}
@@ -94,12 +95,12 @@ describe('Portal container cache eviction', () => {
     const ROWS = 1000;
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(ROWS, COLS)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         autoRowSize={false}
         autoColumnSize={false}

@@ -4,6 +4,7 @@ import { ColumnSorting } from 'handsontable/plugins/columnSorting';
 import { MultiColumnSorting } from 'handsontable/plugins/multiColumnSorting';
 import { ManualRowMove } from 'handsontable/plugins/manualRowMove';
 import { UndoRedo } from 'handsontable/plugins/undoRedo';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(ColumnSorting);
 registerPlugin(MultiColumnSorting);
@@ -51,7 +52,7 @@ describe('ColumnSorting -> the pre-sort row order', () => {
       data: createData(),
       manualRowMove: true,
       [pluginKey]: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...overrides,
     });
 

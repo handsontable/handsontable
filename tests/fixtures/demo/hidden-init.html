@@ -28,6 +28,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -75,7 +76,7 @@
     window.runHiddenInitDestroyRace = () => {
       const hot = new Handsontable(container, {
         data: [['A1', 'B1'], ['A2', 'B2']],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
 
       window.htHiddenAtInit = hot.rootElement.offsetParent === null;

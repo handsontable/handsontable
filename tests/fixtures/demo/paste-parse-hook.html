@@ -49,6 +49,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } .grid-slot { margin-bottom: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" class="grid-slot" data-testid="grid"></div>
@@ -160,7 +161,7 @@
       beforePasteParse: beforePasteParseA,
       beforePaste: () => { window.htPasteHooks.beforePaste += 1; },
       afterPaste: () => { window.htPasteHooks.afterPaste += 1; },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     const hotB = new Handsontable(containerB, {
@@ -173,7 +174,7 @@
       renderer: makeRenderer('b-'),
       outsideClickDeselects: false,
       beforePasteParse: (clipboardData, event) => { record('b', clipboardData, event); },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     if (window.htBehavior === 'two-callbacks') {

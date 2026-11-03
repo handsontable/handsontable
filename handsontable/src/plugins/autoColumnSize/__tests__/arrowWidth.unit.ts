@@ -2,6 +2,7 @@ import Handsontable from 'handsontable/base';
 import { registerPlugin, AutoColumnSize } from 'handsontable/plugins';
 import { registerCellType } from 'handsontable/cellTypes/registry';
 import { AutocompleteCellType } from 'handsontable/cellTypes/autocompleteType';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(AutoColumnSize);
 registerCellType(AutocompleteCellType);
@@ -12,7 +13,7 @@ describe('AutoColumnSize autocomplete arrow (DEV-348)', () => {
       data: [['Long value']],
       columns: [{ type: 'autocomplete', source: ['Long value'] }],
       autoColumnSize: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const plugin = hot.getPlugin('autoColumnSize');
     const sampled: HTMLTableCellElement[] = [];

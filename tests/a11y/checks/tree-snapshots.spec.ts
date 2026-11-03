@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { test, type Page, type TestInfo } from '@playwright/test';
 import { A11Y_PAGES, fixtureUrl, type A11yPage } from '../pages.mjs';
-import { emulate, openTarget, reachState } from '../harness';
+import { emulate, openTarget, reachState, releaseParkedFetches } from '../harness';
 import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } from '../evidence';
 import { A11Y_THEMES } from '../../lib/a11y-baseline.mjs';
 import { TREE_CRITERIA, diffSnapshot, maskSnapshot, nameFindings, structureFindings } from '../../lib/aria-tree.mjs';
@@ -82,6 +82,7 @@ async function readTree(page: Page, testInfo: TestInfo, entry: A11yPage, theme: 
   const opened = await openTarget(page, entry, theme);
 
   await reachState(page, entry, opened);
+  await releaseParkedFetches(page);
 
   const environment = await readEnvironment(page);
   const cdp = await page.context().newCDPSession(page);

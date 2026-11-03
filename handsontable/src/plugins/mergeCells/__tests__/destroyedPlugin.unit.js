@@ -1,6 +1,7 @@
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { MergeCells } from '../mergeCells';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 describe('MergeCells destroyed ahead of the grid', () => {
   let container;
@@ -16,7 +17,7 @@ describe('MergeCells destroyed ahead of the grid', () => {
     hot = new Handsontable(container, {
       data: Array.from({ length: 6 }, (_, row) => Array.from({ length: 6 }, (__, col) => `${row}-${col}`)),
       mergeCells: [{ row: 1, col: 1, rowspan: 2, colspan: 2 }], // B2:C3
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
   });
 

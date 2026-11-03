@@ -4,6 +4,7 @@ import { registerCellType, CheckboxCellType } from 'handsontable/cellTypes';
 import { AutoColumnSize } from 'handsontable/plugins/autoColumnSize';
 import { DropdownMenu } from 'handsontable/plugins/dropdownMenu';
 import { HiddenRows } from 'handsontable/plugins/hiddenRows';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerCellType(CheckboxCellType);
 registerPlugin(AutoColumnSize);
@@ -33,7 +34,7 @@ describe('Filters -> importBaselineConditions', () => {
       data: [[1], [2], [3], [4]],
       filters: true,
       beforeFilter: () => (vetoFilter ? false : undefined),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
   });
 

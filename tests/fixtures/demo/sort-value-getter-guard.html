@@ -32,6 +32,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } #grid { height: 300px; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -86,7 +87,7 @@
       columnSorting: true,
       autoRowSize: false,
       autoColumnSize: false,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
       // Stamped from the hook, not from a `renderer` setting: a `type` puts its own renderer on the
       // column layer, so a global `renderer` would be overridden in exactly the modes under test.
       afterRenderer(td, row, col) {

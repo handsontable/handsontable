@@ -23,6 +23,12 @@ const EXPECTED_PROBLEMS = {
   // The first column binds a property no row has, on purpose: it is an empty column that holds
   // only the row-selection checkboxes.
   'rows/row-selection/javascript/example3.js columns[0].data (unknownDataProperty)': true,
+  // The custom metadata example sets a `reviewer` key on the grid, on a column, and on a cell, on
+  // purpose. A custom key is not an option, so `validateSettings()` reports it as `unknownOption`,
+  // as the guide's known limitations say.
+  'configuration/understanding-metadata/javascript/example1.js reviewer (unknownOption)': true,
+  'configuration/understanding-metadata/javascript/example1.js columns[1].reviewer (unknownOption)': true,
+  'configuration/understanding-metadata/javascript/example1.js cell[0].reviewer (unknownOption)': true,
 };
 
 /**
