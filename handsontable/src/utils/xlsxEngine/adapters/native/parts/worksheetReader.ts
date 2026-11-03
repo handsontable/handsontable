@@ -72,9 +72,36 @@ export interface WorksheetReadContext {
    * alone), every `<drawing>` records `images`, as the parser cannot see the part.
    */
   imageDrawings?: ReadonlySet<string>;
+  /**
+   * Collects the error cells that carry value metadata (`<c t="e" vm>`), for `read.ts` to resolve
+   * through `xl/metadata.xml` and `xl/richData` once the sheet is read. Left out (a caller driving
+   * the parser alone), such a cell is judged here: it records `images` when it has no formula or
+   * its formula calls `IMAGE`.
+   */
+  richValueCells?: RichValueCell[];
   date1904: boolean;
   dropped: DroppedFeatures;
   budget: WorkbookBudget;
+}
+
+/**
+ * An error cell carrying value metadata, as the parser collects it into
+ * `WorksheetReadContext.richValueCells`.
+ */
+export interface RichValueCell {
+  /**
+   * The cell, its cached error (`#VALUE!`) in `formula.result` or in `value`.
+   */
+  cell: CellSnapshot;
+  /**
+   * The `vm` index, 1-based.
+   */
+  vm: number;
+  /**
+   * Whether the cell is a picture when its value metadata cannot be resolved: it has no formula, or
+   * its formula calls `IMAGE`.
+   */
+  pictureIfUnresolved: boolean;
 }
 
 /**
@@ -205,6 +232,11 @@ interface CellState {
    */
   valueMetadataError: boolean;
   /**
+   * The `vm` index of an error cell (`valueMetadataError`), `null` when it is not a positive whole
+   * number.
+   */
+  valueMetadata: number | null;
+  /**
    * Whether the `<c>` carries a `cm` (cell metadata) attribute, which Excel writes on the master of
    * a dynamic-array formula.
    */
@@ -286,6 +318,19 @@ const ZONED_DATE_TIME = /(?:Z|[+-]\d{2}:?\d{2})$/i;
  * different value per zone; such a value is refused instead (`DROPPED_FEATURES.cellValueDate`).
  */
 const ISO_DATE_VALUE = /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:[Zz]|[+-]\d{2}:?\d{2})?)?$/;
+
+/**
+ * Reads a `vm` attribute: a positive whole number (`xsd:unsignedInt`, value metadata is 1-based), or
+ * `null`.
+ *
+ * @param {string|undefined} value The attribute value.
+ * @returns {number|null}
+ */
+function positiveIndexOf(value: string | undefined): number | null {
+  const index = parseUnsignedIntAttr(value);
+
+  return index !== null && index > 0 ? index : null;
+}
 
 /**
  * The `_xlfn.` prefix Excel writes on `IMAGE`, upper case.
@@ -1253,6 +1298,7 @@ class WorksheetParser {
       formulaAttrs: null,
       formulaText: '',
       valueMetadataError: attrs.t === 'e' && attrs.vm !== undefined,
+      valueMetadata: attrs.t === 'e' ? positiveIndexOf(attrs.vm) : null,
       dynamic: attrs.cm !== undefined,
       formulaTooLong: false,
       valueText: null,
@@ -1757,9 +1803,14 @@ class WorksheetParser {
     // in `xl/richData`: the cached `#VALUE!` is kept, the picture is lost, and it has no drawing part
     // to report it through. `vm` alone is not enough (OLAP cube cells carry it too), and neither is
     // `t="e"` with it: Excel Online stores `#SPILL!` and `#CALC!` of a formula the same way, as a rich
-    // error. A formula cell is a picture only when it calls `IMAGE`.
-    if (state.valueMetadataError
-        && (state.formulaAttrs === null || callsImageFunction(state.formulaText))) {
+    // error. `read.ts` tells them apart through `xl/richData` (`richValueCells`); where it cannot, a
+    // cell with no formula, or one whose formula calls `IMAGE`, is taken for a picture.
+    const pictureIfUnresolved = state.valueMetadataError
+      && (state.formulaAttrs === null || callsImageFunction(state.formulaText));
+    // The `vm` handed to `read.ts`, or `null` when the cell is judged here.
+    const deferredVm = this.#ctx.richValueCells !== undefined && isError ? state.valueMetadata : null;
+
+    if (pictureIfUnresolved && deferredVm === null) {
       this.#ctx.dropped.record(DROPPED_FEATURES.images);
     }
 
@@ -1817,6 +1868,10 @@ class WorksheetParser {
 
     if (isError && formula === null) {
       target.valueIsError = true;
+    }
+
+    if (deferredVm !== null) {
+      this.#ctx.richValueCells?.push({ cell: target, vm: deferredVm, pictureIfUnresolved });
     }
 
     target.numFmt = xf.numFmt;

@@ -557,9 +557,24 @@ directions.
   picture only when its formula calls `IMAGE` (`callsImageFunction`, decided in `#finishCell`): Excel
   Online stores `#SPILL!` and `#CALC!` of any formula as `<v>#VALUE!</v>` with a `vm` pointing at an
   `_error` rich value, and reporting `images` for them warned about a picture on every blocked spill.
-  The error type itself is not read (that needs `xl/metadata.xml` and `xl/richData`), so such a cell
-  keeps `#VALUE!` as its cached result; a shared-formula slave (no text of its own) never counts as a
-  picture. An `<x14:cfRule>` inside `<extLst>`
+  That guess is only the FALLBACK (DEV-3665): `read.ts` resolves each such `vm` through
+  `xl/metadata.xml` (`valueMetadata` -> `XLRICHVALUE` future metadata -> `rvb i`) and the rich-value
+  parts (`parts/richValues.ts`). An `_error` structure writes its code over the cached `#VALUE!`
+  (`formula.result` or `value`; `errorType` 8 `#SPILL!`, 11 `#UNKNOWN!`, 12 `#FIELD!`, 13 `#CALC!`
+  from MS-XLSX 2.3.6.1.3, plus 9, 10 and 14 from Excel's `ERROR.TYPE` numbering, which is one
+  higher); a `_localImage` or `_webimage` structure records `images`; any other structure (a linked
+  data type, an unknown error type) records nothing and keeps `#VALUE!`. Only when the parts are
+  missing, do not parse, or do not resolve the `vm` does the cell fall back to the guess above. Three
+  rules: the parts are read only for a sheet that has such a cell, and once per read
+  (`OpenedPackage.richValues`, a memoized promise), so a workbook that never uses them never
+  inflates them; each list is capped at `MAX_WORKBOOK_CELLS` entries like the shared strings
+  (`throwLimitExceeded`); and a part that does not parse answers `null`, never an error, so a
+  damaged rich-value part costs the codes, not the import. The worksheet parser is synchronous, so it
+  only COLLECTS the cells (`WorksheetReadContext.richValueCells`, the cell snapshot by reference) and
+  `read.ts` patches them after the sheet; a caller that drives `parseWorksheet` alone passes no
+  collector and gets the guess, as before. The ExcelJS adapter cannot see `vm` and keeps `#VALUE!`
+  (pinned in `nativeRichValues.unit.js`, the fixture is `excel-online-rich-errors.xlsx`). A
+  shared-formula slave (no text of its own) never counts as a picture. An `<x14:cfRule>` inside `<extLst>`
   records `conditionalFormatting:<type>` through `recordUnsupported`; `<f t="dataTable">` records
   `formula:dataTable` and keeps the cached values; a `t="s"` index that resolves to nothing records
   `cellValue:sharedString`. A `<conditionalFormatting>` block left with no rule is not pushed, so
