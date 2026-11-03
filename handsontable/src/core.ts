@@ -4178,7 +4178,9 @@ export default function Core(
    * @fires Hooks#afterListen
    */
   this.listen = function() {
-    if (instance && !instance.isListening()) {
+    // `destroy()` takes the instance out of the registry before it destroys the plugins, and a plugin
+    // that hands the keyboard back while it tears down must not take it from another grid.
+    if (instance && !instance.isListening() && foreignHotInstances.has(instance.guid)) {
       foreignHotInstances.forEach((foreignHot) => {
         if (instance !== foreignHot) {
           foreignHot.unlisten();

@@ -203,6 +203,14 @@ export interface PickingEditor {
    */
   closeUnbalancedParens(): void;
   /**
+   * The editor text, in storage form.
+   */
+  getValue(): string;
+  /**
+   * The caret offset in the editor text.
+   */
+  getCaretOffset(): number;
+  /**
    * The color the reference about to be inserted gets.
    */
   getRefPreviewColor(range: CellRange, append: boolean, wholeAxis?: HeaderAxis): string;
