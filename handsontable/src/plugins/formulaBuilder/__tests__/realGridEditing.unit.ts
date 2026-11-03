@@ -476,6 +476,73 @@ describe('FormulaBuilder editing on a real grid', () => {
       }
     });
 
+    it('listens again after a bar commit in a grid inside a shadow root', async() => {
+      const shadowHost = document.createElement('div');
+
+      document.body.appendChild(shadowHost);
+
+      const shadowContainer = document.createElement('div');
+
+      shadowHost.attachShadow({ mode: 'open' }).appendChild(shadowContainer);
+
+      const shadowHot = new Handsontable(shadowContainer, {
+        data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
+        editor: 'formula',
+        formulas: { engine: HyperFormula },
+        formulaBuilder: { builder: core, showFormulaBar: true },
+        licenseKey: 'non-commercial-and-evaluation',
+      } as Handsontable.GridSettings);
+
+      try {
+        const shadowAdapter = getFormulaBuilderAdapter(shadowHot.getPlugin('formulaBuilder'));
+
+        shadowHot.selectCell(1, 1);
+        shadowAdapter?.beginEdit({ sheet: '', row: 1, col: 1 });
+        shadowHot.getPlugin('formulaBuilder').setInlineEditorVisible(false);
+        // The bar holds the focus, which `document.activeElement` reports as the shadow host.
+        shadowHost.shadowRoot?.querySelector<HTMLElement>('.hfe-formula-bar .hfe-editor__input')?.focus();
+        shadowHot.unlisten();
+        shadowAdapter?.commit('7', 'down');
+        await settle();
+
+        expect(shadowHot.getDataAtCell(1, 1)).toBe('7');
+        expect(shadowHot.isListening()).toBe(true);
+      } finally {
+        shadowHot.destroy();
+        shadowHost.remove();
+      }
+    });
+
+    it('listens again when the presses during an async validator stayed in the grid', async() => {
+      let answer: ((valid: boolean) => void) | undefined;
+
+      createGrid({
+        formulaBuilder: { builder: core, showFormulaBar: true },
+        cell: [{
+          row: 1,
+          col: 1,
+          validator: (value: unknown, callback: (valid: boolean) => void) => {
+            answer = callback;
+          },
+        }],
+      });
+      hot.selectCell(1, 1);
+      adapter().beginEdit({ sheet: '', row: 1, col: 1 });
+      hot.getPlugin('formulaBuilder').setInlineEditorVisible(false);
+      hot.unlisten();
+      adapter().commit('7', 'down');
+      await settle();
+
+      container.querySelector('.ht-formula-builder__formula-bar')
+        ?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+      hot.rootElement.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+      answer?.(true);
+      await settle();
+
+      expect(hot.getDataAtCell(1, 1)).toBe('7');
+      expect(hot.isListening()).toBe(true);
+    });
+
     it('leaves the keyboard alone after a commit of an in-cell edit', async() => {
       createGrid();
       hot.selectCell(1, 1);

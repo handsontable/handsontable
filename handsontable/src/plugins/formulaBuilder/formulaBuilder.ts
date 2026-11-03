@@ -78,6 +78,10 @@ const ERROR_CODE_SEPARATOR = ' — ';
  */
 const EDITOR_INPUT_SELECTOR = '.hfe-editor__input';
 /**
+ * The events that tell a pending bar commit the user moved out of the grid (`#watchMoveAway()`).
+ */
+const MOVE_AWAY_EVENTS = ['mousedown', 'pointerdown', 'touchstart', 'focusin'];
+/**
  * The class of the formula bar's address box input `hyperformula-ui` renders.
  */
 const ADDRESS_INPUT_SELECTOR = '.hfe-formula-bar__address-input';
@@ -396,6 +400,10 @@ export class FormulaBuilder extends BasePlugin {
    * The formula bar host element registered in the top layout slot, or `null`.
    */
   #formulaBarHost: HTMLElement | null = null;
+  /**
+   * Stops the watch a pending bar commit runs for a move out of the grid (see `#watchMoveAway()`).
+   */
+  #stopMoveAwayWatch: (() => void) | null = null;
   /**
    * The live formula editor, or `null` when not editing.
    */
@@ -720,10 +728,11 @@ export class FormulaBuilder extends BasePlugin {
     }
 
     const wasBarHosted = this.#isBarHostedEdit();
+    const movedAway = this.#watchMoveAway(wasBarHosted);
 
     editor.setValue?.(resolveCommitValue(editor, value));
     editor.finishEditing?.(false, false, (dataSaved?: boolean) => {
-      this.#relistenAfterSavedBarEdit(wasBarHosted, dataSaved);
+      this.#relistenAfterSavedBarEdit(wasBarHosted, dataSaved, movedAway());
 
       if (!direction || dataSaved === false || this.hot.isDestroyed) {
         return;
@@ -749,10 +758,11 @@ export class FormulaBuilder extends BasePlugin {
     }
 
     const wasBarHosted = this.#isBarHostedEdit();
+    const movedAway = this.#watchMoveAway(wasBarHosted);
 
     editor.setValue?.(resolveCommitValue(editor, value));
     editor.finishEditing?.(false, true, (dataSaved?: boolean) => {
-      this.#relistenAfterSavedBarEdit(wasBarHosted, dataSaved);
+      this.#relistenAfterSavedBarEdit(wasBarHosted, dataSaved, movedAway());
 
       if (dataSaved === false || this.hot.isDestroyed) {
         return;
@@ -2539,13 +2549,14 @@ export class FormulaBuilder extends BasePlugin {
    * A rejected save (a validator with `allowInvalid: false`) keeps the edit open in the bar, but core's
    * `discardEditor()` reselects the cell, which listens and prepares the editor again (the shim's
    * `beforeOpen` clears `_hiddenByFormulaBar`). So the edit is marked bar-hosted again and the grid
-   * unlistened. An async validator answers late: when the focus moved out of this grid in the meantime
-   * (for example, to another grid), the keyboard stays where it went.
+   * unlistened. An async validator answers late: when the user pressed or focused something outside
+   * this grid and its bar in the meantime (for example, another grid), the keyboard stays where it went.
    *
    * @param {boolean} wasBarHosted Whether the edit was bar-hosted before the commit.
    * @param {boolean} [dataSaved] The editor manager's save result.
+   * @param {boolean} [movedAway] Whether the user moved out of this grid while the save was pending.
    */
-  #relistenAfterSavedBarEdit(wasBarHosted: boolean, dataSaved?: boolean): void {
+  #relistenAfterSavedBarEdit(wasBarHosted: boolean, dataSaved?: boolean, movedAway = false): void {
     if (!wasBarHosted || this.hot.isDestroyed) {
       return;
     }
@@ -2553,26 +2564,54 @@ export class FormulaBuilder extends BasePlugin {
     if (dataSaved === false) {
       this.setInlineEditorVisible(false);
       this.#unlistenUnderBarEdit();
-    } else if (!this.#isFocusOutsideGrid()) {
+    } else if (!movedAway) {
       this.#relistenAfterBarExit();
     }
   }
 
   /**
-   * Whether the page focus sits on an element outside this grid and its formula bar.
+   * Watches, from a bar commit until its save answers, for a press or a focus outside this grid and
+   * its formula bar. The page focus cannot tell: a press another grid claims with `preventDefault()`
+   * leaves the focus in this grid's bar while that grid listens. The event path (`composedPath()`)
+   * also sees through shadow roots, where `document.activeElement` names the host. A synchronous save
+   * answers before any event, so it always counts as staying.
    *
-   * @returns {boolean}
+   * @param {boolean} enabled Whether to watch (only a bar-hosted edit gives the keyboard back).
+   * @returns {Function} Stops the watch and returns whether the user moved away.
    */
-  #isFocusOutsideGrid(): boolean {
-    const { rootDocument, rootWrapperElement, rootPortalElement } = this.hot;
-    const active = rootDocument.activeElement;
+  #watchMoveAway(enabled: boolean): () => boolean {
+    this.#stopMoveAwayWatch?.();
 
-    if (!active || active === rootDocument.body) {
-      return false;
+    if (!enabled) {
+      return () => false;
     }
 
-    return ![rootWrapperElement, rootPortalElement, this.#formulaBarHost]
-      .some(root => root?.contains(active));
+    const doc = this.hot.rootDocument;
+    let movedAway = false;
+    const onEvent = (event: Event) => {
+      const path = event.composedPath();
+      const roots = [this.hot.rootWrapperElement, this.hot.rootPortalElement, this.#formulaBarHost];
+
+      if (!roots.some(root => root !== null && path.includes(root))) {
+        movedAway = true;
+      }
+    };
+    const stop = () => {
+      MOVE_AWAY_EVENTS.forEach(type => doc.removeEventListener(type, onEvent, true));
+
+      if (this.#stopMoveAwayWatch === stop) {
+        this.#stopMoveAwayWatch = null;
+      }
+    };
+
+    MOVE_AWAY_EVENTS.forEach(type => doc.addEventListener(type, onEvent, true));
+    this.#stopMoveAwayWatch = stop;
+
+    return () => {
+      stop();
+
+      return movedAway;
+    };
   }
 
   /**
@@ -2598,6 +2637,7 @@ export class FormulaBuilder extends BasePlugin {
    * Releases every enable-time resource.
    */
   #teardownPluginState(): void {
+    this.#stopMoveAwayWatch?.();
     this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
     this.hot.columnIndexMapper.removeLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
     this.#barCellStale = false;
