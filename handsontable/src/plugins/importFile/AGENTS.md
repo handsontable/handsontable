@@ -604,7 +604,11 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `loadData`; after `loadData` the formulas evaluate to `#NAME?`) and re-asks
   `isItPossibleToAddNamedExpression` per name, skipping a refused one: a `beforeImport` handler or
   another grid on a shared engine can define the name after the mapper asked, and `addNamedExpression`
-  would throw mid-batch with the grid half-applied. Not undoable: `loadData` resets the grid's history,
+  would throw mid-batch with the grid half-applied. A refused name is reported as
+  `definedNames:unsupported`, like one whose add throws: the formulas over it are already live and
+  read `#NAME?` or the engine's other definition. An engine the caller suspended
+  (`isEvaluationSuspended()`) gets the adds with no `engine.batch()`, whose end would resume the
+  caller's suspension too, as `Formulas` does for a restore inside its own batch. Not undoable: `loadData` resets the grid's history,
   so the import never was an undo step. A name cycle (`A = B`, `B = A`) registers both and evaluates
   `#CYCLE!`. The adds run inside ONE `engine.batch()` (none when the list is empty, since an empty batch
   still pushes an engine undo step): unbatched, every `addNamedExpression` recalculates the engine and
