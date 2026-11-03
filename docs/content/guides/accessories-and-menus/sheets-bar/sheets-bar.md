@@ -77,13 +77,13 @@ Each tab of the [`SheetsBar`](@/api/sheetsBar.md) plugin is one sheet with its o
 
 Set [`sheetsBar`](@/api/options.md#sheetsbar) to `true` for one sheet with the grid's data, or pass an object to define the workbook, pick the sheet that opens first, and show or hide the bar's controls.
 
-With `sheetsBar: true`, a new [`data`](@/api/options.md#data) array that reaches the grid, through [`updateSettings()`](@/api/core.md#updatesettings) or [`updateData()`](@/api/core.md#updatedata), replaces the data of the sheet created from the grid's data, whether or not that sheet is visible. Once that sheet is removed, a new `data` is ignored with a console warning. The React and Angular wrappers pass a new `data` prop or input on this way. The Vue wrapper keeps working on the array it got first, as it does without the sheets bar.
-
 Each entry in `sheets` is one sheet: a tab label, the source data, and optional grid settings that apply while the sheet is active.
 
-Some plugins merge a new options object into the one they already have, such as [`autoLink`](@/api/options.md#autolink), [`search`](@/api/options.md#search), [`columnSorting`](@/api/options.md#columnsorting), [`dialog`](@/api/options.md#dialog), and [`loading`](@/api/options.md#loading). When a sheet sets such an option as an object, the keys it leaves out take the grid-level object's values, and then the plugin's defaults. They never keep the values another sheet set.
+A sheet's options object never keeps values another sheet set. Keys it leaves out take the grid-level value or the default, depending on the option.
 
 When `sheets` declares a workbook, the grid-level [`data`](@/api/options.md#data) option is ignored, with a console warning. To change the active sheet's data, call [`loadData()`](@/api/core.md#loaddata). A `sheets` array that describes other sheets rebuilds the workbook.
+
+With `sheetsBar: true`, a new [`data`](@/api/options.md#data) array replaces the data of the sheet created from it, even when that sheet is hidden. After that sheet is removed, a new `data` is ignored with a console warning.
 
 ```javascript
 const configurationOptions = {
@@ -208,7 +208,7 @@ A sheet's id never changes, and no other sheet gets it later, even after you pas
 
 ### Read the data of every sheet
 
-With `sheetsBar: true`, the first sheet uses the grid's `data`, but the sheets you add exist only in the plugin. To read any sheet's data without switching to it, call [`getSheetData()`](@/api/sheetsBar.md#getsheetdata). It works the same way with a `sheets` array, where it returns the array of that sheet's `data`.
+With `sheetsBar: true`, the first sheet uses the grid's `data`, but the sheets you add exist only in the plugin. To read any sheet's data without switching to it, call [`getSheetData()`](@/api/sheetsBar.md#getsheetdata).
 
 To save the whole workbook:
 
@@ -217,9 +217,7 @@ const sheetsBar = hot.getPlugin('sheetsBar');
 const workbook = sheetsBar.getSheets().map(({ id, name }) => ({ name, data: sheetsBar.getSheetData(id) }));
 ```
 
-The method returns the sheet's current array, not a copy. The plugin can replace that array later, for example with a server response, with a copy of an array your app froze, or with a new top-level `data`, so call `getSheetData()` again each time you need the data instead of keeping the array. A sheet that loads its rows from a server returns only the page it has loaded.
-
-To change the data of the active sheet, use [`setDataAtCell()`](@/api/core.md#setdataatcell) or [`loadData()`](@/api/core.md#loaddata), not the array itself. Don't add or remove rows of a hidden sheet's array in place either: pass a new array in a new `sheets` value instead.
+It returns the sheet's current array, which the plugin can replace, so call it again each time instead of keeping it. For details, see the [`getSheetData()`](@/api/sheetsBar.md#getsheetdata) API reference.
 
 ## Work with tabs
 
