@@ -69,11 +69,72 @@ The editor component changes the behavior of the renderer component, by passing 
 
 :::
 
+## Pass props from state
+
+The React wrapper sends your props to the grid through [`updateSettings()`](@/api/core.md#updatesettings) on every render. Treat every prop as applied again each time the parent component re-renders. The wrapper skips only a few options whose value did not change: `columns`, `dataSchema`, `colWidths`, `rowHeights`, and `minRowHeights`.
+
+A state change in the parent component -- a toggle, a counter, a Redux action -- therefore applies your props again. Three rules keep that harmless.
+
+### Pass `data` by reference
+
+A new `data` array replaces the grid's data and discards the user's edits. Keep the array in a constant, `useState`, or `useMemo`. For the full explanation, see [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md#understand-binding-as-a-reference).
+
+### Let the grid own what users change
+
+Some options hold state that the grid changes while users work. [`mergeCells`](@/api/options.md#mergecells) is one of them: users merge cells through the context menu or the API. Every render applies the `mergeCells` prop again, so the merge areas users created disappear on the next state change. This happens even when the array is a constant.
+
+Choose one of two fixes:
+
+- Leave the `mergeCells` prop out. Enable the plugin with `updateSettings({ mergeCells: true })` on the [instance](@/guides/getting-started/react-methods/react-methods.md). The wrapper no longer sends `mergeCells`, so the merges users create stay.
+- Keep the merge areas in state, and update that state from the [`afterMergeCells`](@/api/hooks.md#aftermergecells) and [`afterUnmergeCells`](@/api/hooks.md#afterunmergecells) hooks:
+
+```jsx
+const overlaps = (area, range) =>
+  area.row <= Math.max(range.from.row, range.to.row) &&
+  area.row + area.rowspan - 1 >= Math.min(range.from.row, range.to.row) &&
+  area.col <= Math.max(range.from.col, range.to.col) &&
+  area.col + area.colspan - 1 >= Math.min(range.from.col, range.to.col);
+
+function InventoryGrid() {
+  const [mergeCells, setMergeCells] = useState([{ row: 0, col: 0, rowspan: 1, colspan: 2 }]);
+
+  return (
+    <HotTable
+      mergeCells={mergeCells}
+      afterMergeCells={(range, { row, col, rowspan, colspan }, auto) => {
+        if (auto) return;
+
+        setMergeCells((areas) => [
+          ...areas.filter((area) => !(area.row === row && area.col === col)),
+          { row, col, rowspan, colspan },
+        ]);
+      }}
+      afterUnmergeCells={(range, auto) => {
+        if (auto) return;
+
+        setMergeCells((areas) => areas.filter((area) => !overlaps(area, range)));
+      }}
+    />
+  );
+}
+```
+
+The plugin calls both hooks with `auto` set to `true` when it applies the `mergeCells` prop. Skip those calls. If you update state for them, every render sends a new array, and the plugin and React keep triggering each other.
+
+### Clear a prop with `undefined`
+
+When a prop that had a value becomes `undefined`, the grid goes back to the default for that option. `null` and `false` are real values, and the grid applies them as they are.
+
+```jsx
+<HotTable readOnly={locked ? true : undefined} />
+```
+
 ## What you learned
 
 - You can connect a `HotTable` component to a Redux store using `react-redux`'s `connect()` method.
 - The `beforeChange` hook dispatches Redux actions whenever a cell changes, keeping global state in sync.
 - A reducer that returns the previous state when nothing changed keeps plugin writes from looping with re-renders.
+- Every render applies all your props again, so keep `data` stable and let the grid own options that users change, such as `mergeCells`.
 - Custom editor and renderer components can read from and write to the Redux store, enabling grid cells to reflect shared application state.
 
 ## Next steps

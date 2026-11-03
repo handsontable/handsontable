@@ -767,6 +767,8 @@ const data = [['Rent', 1200]];
 
 To replace the data on purpose, pass a new array, for example through a `useState` setter.
 
+The same re-render applies your other props as well. To see which ones, and how to keep user changes such as merged cells, read [Pass props from state](@/guides/getting-started/react-redux/react-redux.md#pass-props-from-state).
+
 :::
 
 ### The data-modifying API methods
