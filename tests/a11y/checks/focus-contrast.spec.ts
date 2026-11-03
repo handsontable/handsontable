@@ -1,6 +1,6 @@
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
 import { A11Y_PAGES, fixtureUrl, type A11yPage } from '../pages.mjs';
-import { emulate, openTarget, reachState, selectCell, type RootWrapper } from '../harness';
+import { emulate, openTarget, reachState, releaseParkedFetches, selectCell, type RootWrapper } from '../harness';
 import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } from '../evidence';
 import { A11Y_THEMES } from '../../lib/a11y-baseline.mjs';
 import {
@@ -604,6 +604,7 @@ async function measure(page: Page, testInfo: TestInfo, entry: A11yPage, plan: Pl
   const opened = await openTarget(page, entry, theme);
 
   await reachState(page, entry, opened);
+  await releaseParkedFetches(page);
   // The pointer rests outside the grid, so no hover state is captured.
   await page.mouse.move(0, 0);
 
