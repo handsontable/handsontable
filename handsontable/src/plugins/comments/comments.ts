@@ -26,8 +26,6 @@ import {
   type CommentMeta,
 } from './constants';
 import { shrinkSizeToViewport, clampPositionToViewport } from './viewport';
-import { SEPARATOR } from '../../utils/menu/predefinedItems';
-import type { PredefinedMenuItemKey, MenuItemConfig } from '../../utils/menu/types';
 import addEditCommentItem from './contextMenuItem/addEditComment';
 import removeCommentItem from './contextMenuItem/removeComment';
 import readOnlyCommentItem from './contextMenuItem/readOnlyComment';
@@ -1383,19 +1381,6 @@ export class Comments extends BasePlugin {
     }
 
     this.#closeEditorWithoutSave();
-  }
-
-  /**
-   * Add Comments plugin options to the Context Menu.
-   *
-   * @private
-   * @param {object} options The menu options.
-   */
-  addToContextMenu(options: Record<string, unknown>) {
-    (options.items as Array<PredefinedMenuItemKey | MenuItemConfig>).push(
-      { name: SEPARATOR },
-      ...this.#createMenuEntries(),
-    );
   }
 
   /**

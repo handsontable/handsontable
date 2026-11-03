@@ -1,5 +1,6 @@
 import { type Page, type Locator, expect } from '@playwright/test';
-import { ConsoleWarnings } from '../consoleWarnings';
+import { type ConsoleWarnings } from '../consoleWarnings';
+import * as menuItems from './menuItems';
 import { awaitBundle, type Bundle } from '../bundle';
 
 type HotHandle = {
@@ -18,7 +19,7 @@ type HotsWindow = { hots: Record<string, HotHandle> };
 /**
  * Page Object for the "hidden_columns_hide / hidden_columns_show as dropdown menu keys" fixture.
  *
- * The fixture holds five grids, addressed by the ids below. The page object exposes what the
+ * The fixture holds seven grids, addressed by the ids below. The page object exposes what the
  * dropdown menu renders for the two HiddenColumns keys, which columns the grid hides, and the
  * console warning an unresolved menu key raises.
  */
@@ -150,7 +151,7 @@ export class DropdownMenuHiddenColumnsPage {
    * the `:visible` filter resolves to the single open one.
    */
   openMenu(menuSelector: '.htDropdownMenu' | '.htContextMenu'): Locator {
-    return this.page.locator(`${menuSelector} > .ht_master:visible`);
+    return menuItems.openMenu(this.page, menuSelector);
   }
 
   /**
@@ -176,47 +177,28 @@ export class DropdownMenuHiddenColumnsPage {
   }
 
   private async visibleItemsOf(menuSelector: string): Promise<string[]> {
-    return this.page.evaluate((selector) => {
-      const ownTable = document.querySelector(`${selector} > .ht_master table.htCore`);
-
-      if (!ownTable) {
-        return [];
-      }
-
-      return Array.from(ownTable.querySelectorAll(':scope > tbody > tr > td'))
-        .filter(cell => cell.getBoundingClientRect().height > 0)
-        .map(cell => (cell.textContent ?? '').trim())
-        .filter(label => label.length > 0);
-    }, menuSelector);
+    return menuItems.visibleItemsOf(this.page, menuSelector);
   }
 
   /**
    * Starts collecting the unresolved-key console warnings and returns the collector.
    */
   collectUnresolvedKeyWarnings(): ConsoleWarnings {
-    return new ConsoleWarnings(this.page, 'does not match any available');
+    return menuItems.collectUnresolvedKeyWarnings(this.page);
   }
 
   /**
    * Picks one entry from the open dropdown menu by its whole label and waits for the menu to close.
    */
   async clickDropdownMenuItem(label: string): Promise<void> {
-    await this.menuItem('.htDropdownMenu', label).click();
-    await expect(this.openMenu('.htDropdownMenu')).toBeHidden();
+    await menuItems.clickMenuItem(this.page, '.htDropdownMenu', label);
   }
 
   /**
    * Picks one entry from the open context menu by its whole label and waits for the menu to close.
    */
   async clickContextMenuItem(label: string): Promise<void> {
-    await this.menuItem('.htContextMenu', label).click();
-    await expect(this.openMenu('.htContextMenu')).toBeHidden();
-  }
-
-  private menuItem(menuSelector: string, label: string): Locator {
-    const exact = new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`);
-
-    return this.page.locator(`${menuSelector} td:visible`).filter({ hasText: exact }).first();
+    await menuItems.clickMenuItem(this.page, '.htContextMenu', label);
   }
 
   /**

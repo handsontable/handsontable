@@ -3217,7 +3217,7 @@ export class RowSelection extends BasePlugin {
   };
 
   /**
-   * Adds the bulk actions to the default context menu: remove the selected rows, and clear the
+   * Returns the bulk actions for the default context menu: remove the selected rows, and clear the
    * selection. Both are hidden while nothing is selected.
    *
    * @returns {object[]}

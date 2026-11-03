@@ -306,7 +306,7 @@ strings to the[ `contextMenu`](@/api/contextMenu.md) parameter:
 
 The [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md) doesn't add these items on
 its own. To offer them there, list their keys in the [`dropdownMenu`](@/api/options.md#dropdownmenu)
-option:
+option. The snippet shows only the option values; set them where you set the other options in the examples above:
 
 ```javascript
 dropdownMenu: ['hidden_columns_hide', 'hidden_columns_show'],

@@ -728,11 +728,6 @@ export class HiddenRows extends BasePlugin {
   };
 
   /**
-   * Add Show-hide rows to context menu.
-   *
-   * @param {object} options An array of objects containing information about the pre-defined Context Menu items.
-   */
-  /**
    * On map initialized hook callback.
    */
   #onMapInit() {
