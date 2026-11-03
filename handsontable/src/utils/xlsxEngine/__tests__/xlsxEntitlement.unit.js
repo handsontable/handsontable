@@ -10,7 +10,11 @@ import {
   formatMissingCapabilitiesWarning,
 } from '../xlsxEntitlement';
 
-const STANDARD_TOKENS = ['xlsx:import', 'xlsx:export', 'xlsx:formulas', 'xlsx:layout'];
+/**
+ * An arbitrary subset of the xlsx tokens, chosen so a key both grants some tokens and lacks others. It
+ * is not a product package: which tokens a product grants is decided where keys are issued, never here.
+ */
+const PARTIAL_TOKENS = ['xlsx:import', 'xlsx:export', 'xlsx:formulas', 'xlsx:layout'];
 const FLAG = 'listed-capabilities';
 
 /**
@@ -46,9 +50,9 @@ describe('xlsxEngine/xlsxEntitlement', () => {
   });
 
   it('is unrestricted for a key without the listed-capabilities flag, whatever it lists', () => {
-    expect(resolveXlsxEntitlement(keyOf(STANDARD_TOKENS, []))).toBe(UNRESTRICTED_XLSX_ENTITLEMENT);
+    expect(resolveXlsxEntitlement(keyOf(PARTIAL_TOKENS, []))).toBe(UNRESTRICTED_XLSX_ENTITLEMENT);
     expect(resolveXlsxEntitlement(keyOf([], []))).toBe(UNRESTRICTED_XLSX_ENTITLEMENT);
-    expect(resolveXlsxEntitlement(keyOf(STANDARD_TOKENS, ['no-console-warns']))).toBe(UNRESTRICTED_XLSX_ENTITLEMENT);
+    expect(resolveXlsxEntitlement(keyOf(PARTIAL_TOKENS, ['no-console-warns']))).toBe(UNRESTRICTED_XLSX_ENTITLEMENT);
   });
 
   it('is unrestricted for a generator-issued key (no flag)', () => {
@@ -68,7 +72,7 @@ describe('xlsxEngine/xlsxEntitlement', () => {
   });
 
   it('gates on exactly the listed tokens of a flagged key', () => {
-    const e = resolveXlsxEntitlement(keyOf(STANDARD_TOKENS));
+    const e = resolveXlsxEntitlement(keyOf(PARTIAL_TOKENS));
 
     expect(e).toMatchObject({
       import: true,
@@ -87,6 +91,24 @@ describe('xlsxEngine/xlsxEntitlement', () => {
       'xlsx:number_formats', 'xlsx:comments', 'xlsx:styles',
       'xlsx:conditional_formatting', 'xlsx:data_validation', 'xlsx:protection',
     ]);
+  });
+
+  XLSX_CAPABILITY_IDS.forEach((token) => {
+    it(`turns off only the ${token} flag for a flagged key that lists every other token`, () => {
+      const e = resolveXlsxEntitlement(keyOf(XLSX_CAPABILITY_IDS.filter(id => id !== token)));
+
+      expect(Object.entries(e).filter(([name, value]) => name !== 'missing' && value !== true).map(([name]) => name))
+        .toEqual([XLSX_FLAG_BY_ID[token]]);
+      expect(e.missing).toEqual([token]);
+    });
+
+    it(`turns on only the ${token} flag (and the report) for a flagged key that lists it alone`, () => {
+      const e = resolveXlsxEntitlement(keyOf([token]));
+
+      expect(Object.entries(e).filter(([name, value]) => name !== 'missing' && value === true).map(([name]) => name)
+        .sort()).toEqual(['importReport', XLSX_FLAG_BY_ID[token]].sort());
+      expect(e.missing).toEqual(XLSX_CAPABILITY_IDS.filter(id => id !== token));
+    });
   });
 
   it('grants nothing for a flagged key with only an unknown xlsx token', () => {
