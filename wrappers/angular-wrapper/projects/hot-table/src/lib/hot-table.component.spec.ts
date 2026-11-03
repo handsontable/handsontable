@@ -228,6 +228,89 @@ describe('HotTableComponent', () => {
       });
     });
 
+    describe('changing `height` or `width` to `undefined`', () => {
+      const mount = (initialSettings: GridSettings) => {
+        fixture = TestBed.createComponent(HotTableComponent);
+        fixture.componentRef.setInput('settings', { ...settings, ...initialSettings });
+        fixture.detectChanges();
+
+        return fixture.componentInstance.hotInstance;
+      };
+      const changeSettings = (newSettings: GridSettings) => {
+        fixture.componentRef.setInput('settings', { ...settings, ...newSettings });
+        fixture.detectChanges();
+      };
+
+      it('should remove the root element\'s inline height and overflow', () => {
+        const { rootElement } = mount({ height: 120 });
+
+        expect(rootElement.style.height).toBe('120px');
+        expect(rootElement.style.overflowY).toBe('clip');
+
+        changeSettings({ height: undefined });
+
+        expect(rootElement.style.height).toBe('');
+        expect(rootElement.style.overflowX).toBe('');
+        expect(rootElement.style.overflowY).toBe('');
+      });
+
+      it('should remove the root element\'s inline width', () => {
+        const { rootElement } = mount({ width: 300 });
+
+        expect(rootElement.style.width).toBe('300px');
+
+        changeSettings({ width: undefined });
+
+        expect(rootElement.style.width).toBe('');
+      });
+
+      it('should clear only the axis that changes, and apply a new value after the clear', () => {
+        const { rootElement } = mount({ height: 120, width: 300 });
+
+        changeSettings({ height: undefined, width: 300 });
+
+        expect(rootElement.style.height).toBe('');
+        expect(rootElement.style.width).toBe('300px');
+
+        changeSettings({ height: 200, width: 300 });
+
+        expect(rootElement.style.height).toBe('200px');
+      });
+
+      it('should stop filling the parent when a relative `height` changes to `undefined`', () => {
+        mount({ height: '100%' });
+
+        const container: HTMLElement = fixture.componentInstance.container.nativeElement;
+
+        expect(container.classList.contains('ht-fill-height')).toBe(true);
+
+        changeSettings({ height: undefined });
+
+        expect(container.classList.contains('ht-fill-height')).toBe(false);
+      });
+
+      it('should keep the height while the key is left out, and clear it when the key comes back as `undefined`', () => {
+        const { rootElement } = mount({ height: 120 });
+
+        changeSettings({ readOnly: true });
+
+        expect(rootElement.style.height).toBe('120px');
+
+        changeSettings({ height: undefined });
+
+        expect(rootElement.style.height).toBe('');
+      });
+
+      it('should keep a height set through `hotInstance.updateSettings()` when the input never passed one', () => {
+        const hot = mount({ height: undefined });
+
+        hot.updateSettings({ height: 200 });
+        changeSettings({ height: undefined, readOnly: true });
+
+        expect(hot.rootElement.style.height).toBe('200px');
+      });
+    });
+
     it('should not update Handsontable settings if it is the first change', () => {
       const newSettings = { data: [[1, 2, 3]] };
       fixture = TestBed.createComponent(HotTableComponent);
