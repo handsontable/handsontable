@@ -85,8 +85,9 @@ const COLUMN_LETTERS_PATTERN = /^[A-Za-z]{1,3}$/;
 
 /**
  * Whether the column letters read from `start`, one character at a time in `step` direction, form a
- * whole word: one to three letters with no name character past them. A `$` right before the letters
- * (or after them, read backwards) is skipped, as in `$A:$B`.
+ * whole word: one to three letters with no name character past them. A `$` marking the column
+ * absolute is skipped in both directions: the one at `start` reading forward (`A:$B`), and the one past
+ * the letters reading backward (`$A:B`).
  *
  * @param {string} formula The formula.
  * @param {number} start The first character to read.
@@ -106,11 +107,14 @@ function isColumnLettersAt(formula: string, start: number, step: 1 | -1): boolea
     return false;
   }
 
-  const past = formula[index];
-
   if (step === -1) {
-    return past === undefined || (!isNameChar(past) && past !== '$');
+    // Read backward, a `$` before the letters makes the column absolute (`$A:B`); the word ends past it.
+    const past = formula[index] === '$' ? formula[index - 1] : formula[index];
+
+    return past === undefined || !isNameChar(past);
   }
+
+  const past = formula[index];
 
   return past === undefined || (!isNameChar(past) && past !== '(');
 }

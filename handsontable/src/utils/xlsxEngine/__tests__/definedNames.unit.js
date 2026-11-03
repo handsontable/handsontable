@@ -76,6 +76,8 @@ describe('namesUsedIn', () => {
 
   it('should not list the columns of a whole-column span as words', () => {
     expect([...namesUsedIn('SUM(A:A)+SUM($B:$C)+SUM(d:XFD)+SUM(AB:$AC)')]).toEqual([]);
+    // Mixed spans: the right-hand column follows an absolute left-hand one.
+    expect([...namesUsedIn('SUM($A:B)+SUM($AB:CD)+SUM(E:$F)')]).toEqual([]);
   });
 
   it('should still list names on either side of a colon that are not column letters', () => {
