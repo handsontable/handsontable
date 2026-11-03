@@ -1184,12 +1184,16 @@ interface LiveArrayRect {
    */
   names: string[];
   /**
-   * For a legacy CSE array (`{=A1:A3*2}`), the last row and column of its `ref` in window
-   * coordinates, not clipped to the window: Excel never resizes a CSE ref, so a CSE master the engine
-   * spills past them shows cells the file does not have. `null` for a dynamic array, which Excel
-   * resizes on recalculation as the engine does.
+   * The last row and column of the master's `ref` in window coordinates, not clipped to the window.
+   * Excel never resizes a CSE ref, so a CSE master the engine spills past them shows cells the file
+   * does not have. A dynamic array is resized by Excel on recalculation as the engine does, unless it
+   * evaluates to an error: Excel shows that in one cell, and HyperFormula fills the room it reserved.
    */
-  legacyEnd: { row: number; col: number } | null;
+  refEnd: { row: number; col: number };
+  /**
+   * Whether the master is a dynamic array (`cm` in the file), not a legacy CSE one.
+   */
+  dynamic: boolean;
 }
 
 /**
@@ -1319,10 +1323,11 @@ function recordLiveArray(
     cachedIsError: master.cachedIsError,
     readsOtherSheet: master.readsOtherSheet,
     names: master.names,
-    legacyEnd: master.dynamic ? null : {
+    refEnd: {
       row: range.endRow - 1 - window.firstRow,
       col: range.endCol - 1 - window.firstCol,
     },
+    dynamic: master.dynamic,
   };
 
   chargeFormulaWalk(1, scope);
@@ -1370,9 +1375,9 @@ function liveArrayCovering(col: number, scope: CollectContext): LiveArrayRect | 
  * import their cached values), `'written'` (left as written) or `'value'` (its emptied cells are
  * judged one by one).
  *
- * A legacy CSE master the engine spills past its `ref` (`spillsPastRef`) settles like `#SPILL!`:
- * Excel shows only the `ref`, so the extra cells would show values the file does not have, and a
- * re-export would write the larger array. Not for a master that reads outside the probe, whose
+ * A legacy CSE master the engine spills past its `ref`, or a dynamic one whose error it spills past
+ * the `ref` (`spillsPastRef`), settles like `#SPILL!`: Excel shows only the `ref`, so the extra cells
+ * would show values the file does not have, and a re-export would write the larger array. Not for a master that reads outside the probe, whose
  * spill there is not the one the engine will place.
  *
  * A master that reads outside the probe (`readsOutside`) settles only on `#SPILL!`: HyperFormula
@@ -1383,7 +1388,8 @@ function liveArrayCovering(col: number, scope: CollectContext): LiveArrayRect | 
  * @param {string|null} error The master's error type in the probe, `null` for a value.
  * @param {LiveArrayRect} rect The master's rectangle.
  * @param {boolean} readsOutside Whether the master reads a sheet or a name the probe lacks.
- * @param {boolean} spillsPastRef Whether the engine spills a CSE master past its `ref`.
+ * @param {boolean} spillsPastRef Whether the engine spills a CSE master, or a dynamic master's
+ *   error, past its `ref`.
  * @returns {string}
  */
 function settledState(
@@ -1424,7 +1430,11 @@ function readsOutsideProbe(rect: LiveArrayRect, probe: LiveArrayProbe): boolean 
 
 /**
  * Whether the engine spills a legacy CSE master past its `ref` (`{=A1:A3*2}` with `ref="C1"`, which
- * Excel shows as one cell). Arrays spill right and down from the master, so the spill reaches past
+ * Excel shows as one cell), or a dynamic master that evaluates to an error: a `FILTER` that matches
+ * nothing is `#CALC!` in one cell in Excel, while HyperFormula fills the rows it reserved for the input
+ * with `#N/A`. A dynamic master with a value is never asked: Excel resizes it as the engine does.
+ * Neither is one that is `#REF!` or `#NAME?`, which `settledState` leaves as written.
+ * Arrays spill right and down from the master, so the spill reaches past
  * the `ref` exactly when the engine spills a value into the empty cell right below the `ref`'s last
  * row, or right of its last column. A cell holding data is not asked: an array the engine placed
  * there would have shown `#SPILL!` instead, and a formula there is its own master. The empty room
@@ -1434,19 +1444,20 @@ function readsOutsideProbe(rect: LiveArrayRect, probe: LiveArrayProbe): boolean 
  * @param {LiveArrayRect} rect The master's rectangle.
  * @param {LiveArrayProbe} probe The probe.
  * @param {unknown[][]} data The pass's data, before any value is put back.
+ * @param {string|null} error The master's error type in the probe, `null` for a value.
  * @returns {boolean}
  */
-function spillsPastRef(rect: LiveArrayRect, probe: LiveArrayProbe, data: unknown[][]): boolean {
-  const { legacyEnd } = rect;
+function spillsPastRef(rect: LiveArrayRect, probe: LiveArrayProbe, data: unknown[][], error: string | null): boolean {
+  const { refEnd } = rect;
 
-  if (legacyEnd === null) {
+  if (rect.dynamic && (error === null || error === 'REF' || error === 'NAME')) {
     return false;
   }
 
   const spillsInto = (row: number, col: number) => (data[row]?.[col] ?? null) === null
     && (probe.spillsValueInto?.(row, col) ?? probe.isPartOfArray(row, col));
 
-  return spillsInto(legacyEnd.row + 1, rect.startCol) || spillsInto(rect.startRow, legacyEnd.col + 1);
+  return spillsInto(refEnd.row + 1, rect.startCol) || spillsInto(rect.startRow, refEnd.col + 1);
 }
 
 /**
@@ -1456,8 +1467,8 @@ function spillsPastRef(rect: LiveArrayRect, probe: LiveArrayProbe, data: unknown
  * legacy array with a one-value formula (`{=A1*2}` over `B1:B3`) is one cell to it. Some arrays it
  * cannot evaluate at all: a lone range (`=A1:A3`), a range name and `INDEX(A1:A3,0)` are `#VALUE!`.
  *
- * - A master that evaluates to `#SPILL!`, a legacy CSE master the engine spills past its `ref`
- *   (`spillsPastRef`), or a master that evaluates to another error while the file caches a value (not an
+ * - A master that evaluates to `#SPILL!`, a legacy CSE master the engine spills past its `ref` or a
+ *   dynamic one whose error it spills past the `ref` (`spillsPastRef`), or a master that evaluates to another error while the file caches a value (not an
  *   error) for it, imports its cached value, and so does every cell it emptied; its formula moves to
  *   `ImportResult.formulas`, and `formula:arraySpill` is recorded (with `formula:noCachedValue` when
  *   the file caches no value for a `#SPILL!` master).
@@ -1491,10 +1502,13 @@ function settleLiveArrays(pass: CellPass, scope: CollectContext): void {
   const restored: EmptiedCell[] = [];
 
   try {
-    recorded.forEach(rect => states.set(rect, settledState(
-      probe.masterState(rect.startRow, rect.startCol), rect, readsOutsideProbe(rect, probe),
-      spillsPastRef(rect, probe, pass.data)
-    )));
+    recorded.forEach((rect) => {
+      const error = probe.masterState(rect.startRow, rect.startCol);
+
+      states.set(rect, settledState(
+        error, rect, readsOutsideProbe(rect, probe), spillsPastRef(rect, probe, pass.data, error)
+      ));
+    });
     emptied.forEach((cell) => {
       const state = states.get(cell.rect);
 

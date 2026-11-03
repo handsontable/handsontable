@@ -507,7 +507,10 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   on them would freeze a live array to its cached values. A legacy CSE master (`array.dynamic` false)
   that the probe spills a VALUE past its `ref` settles like `#SPILL!` too (`spillsPastRef`, after the
   read-outside check): Excel never resizes a CSE ref, so `{=A1:A3*2}` with `ref` C1 shows one cell, and
-  live it filled C2:C3. Only the cell right below the ref and the one right of it are asked, through
+  live it filled C2:C3. A DYNAMIC master that is an error other than `#REF!`/`#NAME?` is asked the
+  same: a `FILTER` matching nothing is one `#CALC!` cell in Excel (cached as `#VALUE!`), while HF fills
+  every row it reserved with `#N/A`; a dynamic master with a value never is, since Excel resizes it as
+  HF does. Only the cell right below the ref and the one right of it are asked, through
   the probe's `spillsValueInto` (part of an array AND not empty): the empty room HF reserves past a
   `FILTER` result is part of the array, and the ExcelJS reader reads every array as CSE, so asking
   `isCellPartOfArray` alone froze every such `FILTER`. Do NOT replace this with a check after

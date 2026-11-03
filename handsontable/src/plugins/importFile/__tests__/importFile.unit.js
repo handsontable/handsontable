@@ -2602,6 +2602,49 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
     dynamic.hf.destroy();
   });
 
+  it('should import the cached value of a dynamic master whose error the engine spills past its ref', async() => {
+    // A `FILTER` that matches nothing, as Excel Online saves it: one `#CALC!` cell, cached as
+    // `#VALUE!` (the rich-value error code is not read yet). HyperFormula fills the 3 rows it
+    // reserved for the input with `#N/A`, two cells Excel shows empty.
+    const at = overrides => ({ ...createCellSnapshot(), ...overrides });
+    const empty = await importArrays([
+      [at({ value: 1 }), at({
+        formula: {
+          text: '_xlfn._xlws.FILTER(A1:A3,A1:A3>10)',
+          result: '#VALUE!',
+          resultIsError: true,
+          array: { ref: 'B1', dynamic: true },
+        },
+      })],
+      [at({ value: 2 }), null],
+      [at({ value: 3 }), null],
+    ]);
+
+    expect(empty.result.data).toEqual([[1, '#VALUE!'], [2, null], [3, null]]);
+    expect(empty.result.formulas).toEqual([{ row: 0, col: 1, formula: 'FILTER(A1:A3,A1:A3>10)' }]);
+    expect(empty.result.dropped).toContain('formula:arraySpill');
+
+    empty.hf.destroy();
+
+    // A one-cell error stays live: nothing reaches past the ref.
+    const single = await importArrays([
+      [at({ value: 1 }), at({
+        formula: {
+          text: '1/0',
+          result: '#DIV/0!',
+          resultIsError: true,
+          array: { ref: 'B1', dynamic: true },
+        },
+      })],
+      [at({ value: 2 }), null],
+    ]);
+
+    expect(single.result.data).toEqual([[1, '=1/0'], [2, null]]);
+    expect(single.result.dropped.includes('formula:arraySpill')).toBe(false);
+
+    single.hf.destroy();
+  });
+
   it('should settle the arrays of a window that does not start at A1 at their window positions', async() => {
     // The probe holds the mapped data, so it answers in window coordinates: the header row
     // `colHeaders: 'firstRow'` drops, and the row and column a `range` skips, shift every master.
