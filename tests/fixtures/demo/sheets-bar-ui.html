@@ -25,6 +25,7 @@
     #host.hidden { display: none; }
     #outside-bar { margin-top: 1rem; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="host" data-testid="host">
@@ -102,7 +103,7 @@
             activeSheet,
             ...(uiContainer ? { uiContainer: document.querySelector('[data-testid="outside-bar"]') } : {}),
           },
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: window.htTestLicenseKey,
         });
 
         if (hostLabel !== undefined) {

@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable/base';
+import { TEST_LICENSE_KEY } from '../../../../../test/helpers/licenseKey';
 
 /**
  * A promise with its settle functions exposed.
@@ -45,7 +46,7 @@ export function createGrid(settings: Record<string, unknown> = {}) {
     data: products(),
     columns: [{ data: 'sku' }, { data: 'name' }, { data: 'price' }],
     asyncValues: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     ...settings,
   });
 

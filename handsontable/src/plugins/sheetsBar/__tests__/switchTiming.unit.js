@@ -6,6 +6,7 @@ import {
   resolveSwitchTransition,
   tabSlideDurationMs,
 } from '../ui/switchTiming';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * Builds a minimal grid stand-in whose root element carries the given transition token.
@@ -169,7 +170,7 @@ describe('switchTiming', () => {
 
       const hot = new Handsontable(container, {
         data: [[1]],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       expect(resolveSwitchTransition(hot)).toBe(0);

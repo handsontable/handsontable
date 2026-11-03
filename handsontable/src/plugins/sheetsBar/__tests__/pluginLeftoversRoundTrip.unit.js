@@ -1,7 +1,8 @@
 import Handsontable from '../../../index';
 import { injectRealCoreStyles, removeRealCoreStyles } from '../../../../test/helpers/realCoreStyles';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
-const LICENSE_KEY = 'non-commercial-and-evaluation';
+const LICENSE_KEY = TEST_LICENSE_KEY;
 const NESTED_HEADERS = [[{ label: 'G', colspan: 3 }, 'd'], ['a', 'b', 'c', 'd']];
 
 /**

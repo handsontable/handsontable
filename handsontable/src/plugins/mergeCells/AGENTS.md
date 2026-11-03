@@ -477,7 +477,8 @@ and every UndoRedo merge action).
 
 **The `afterLoadData` hook was deliberately NOT added**, for two reasons beyond the CustomBorders one
 (the core clears cell meta on `loadData` and keeps it on `updateData`, so a hook that cleared the
-collection would drop merges the user still sees after a same-size `loadData`). First, a hook that
+collection would drop merges the user still sees after a same-size `loadData`; CustomBorders has since
+added a hook that restores its meta from the model and clears nothing, see its `AGENTS.md`). First, a hook that
 pruned only *out-of-range* merges would have to read the bound off `mergedCells` — the list this
 file's second section says is **not** the authority on visibility, whose entries are deliberately
 kept with stale visual coordinates while their rows are trimmed, and which is restored whole once

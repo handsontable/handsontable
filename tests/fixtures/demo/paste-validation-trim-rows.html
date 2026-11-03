@@ -25,6 +25,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -60,7 +61,7 @@
         cells: (physicalRow) => (query.get('readonlyTrimmed') === 'on' && [1, 3].includes(physicalRow) ?
           { readOnly: true } : {}),
         allowInsertRow: true,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       // Fail loud, see the determinism rules in `tests/AGENTS.md`.

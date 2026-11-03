@@ -254,6 +254,105 @@ describe('HandsontableAdapter host delegation', () => {
 
     expect(adapter.getScrollHolder()).toBe(holder);
   });
+
+  it('auto-scrolls the scroll holder when it owns both axes', () => {
+    const holder = document.createElement('div');
+    const view = {
+      _wt: {
+        wtOverlays: {
+          topOverlay: { mainTableScrollableElement: holder },
+          inlineStartOverlay: { mainTableScrollableElement: holder },
+        },
+      },
+    };
+    const { adapter } = makeMappedAdapter({ view } as Parameters<typeof makeMappedAdapter>[0]);
+
+    expect(adapter.getAutoScrollTarget()).toBe(holder);
+  });
+
+  it('auto-scrolls the window\'s viewport vertically and the holder horizontally when they split the axes', () => {
+    const holder = document.createElement('div');
+    const view = {
+      _wt: {
+        wtOverlays: {
+          topOverlay: { mainTableScrollableElement: window },
+          inlineStartOverlay: { mainTableScrollableElement: holder },
+        },
+      },
+    };
+    const { adapter } = makeMappedAdapter({ view } as Parameters<typeof makeMappedAdapter>[0]);
+    const viewport = document.documentElement;
+    const scroller = document.scrollingElement ?? viewport;
+
+    jest.spyOn(viewport, 'clientHeight', 'get').mockReturnValue(600);
+    jest.spyOn(viewport, 'clientWidth', 'get').mockReturnValue(800);
+    // The holder is as tall as the table: a pointer below the window would still sit inside it.
+    jest.spyOn(holder, 'getBoundingClientRect').mockReturnValue({
+      left: 20, top: 40, right: 320, bottom: 2400,
+    } as DOMRect);
+    jest.spyOn(holder, 'clientWidth', 'get').mockReturnValue(300);
+    jest.spyOn(holder, 'clientHeight', 'get').mockReturnValue(2360);
+
+    const target = adapter.getAutoScrollTarget();
+
+    expect(target?.getBoundingClientRect()).toEqual({ left: 20, top: 0, right: 320, bottom: 600 });
+    expect([target?.clientWidth, target?.clientHeight]).toEqual([300, 600]);
+
+    scroller.scrollTop = 0;
+    holder.scrollLeft = 0;
+    (target as NonNullable<typeof target>).scrollTop = 24;
+    (target as NonNullable<typeof target>).scrollLeft = 12;
+
+    expect(scroller.scrollTop).toBe(24);
+    expect(holder.scrollLeft).toBe(12);
+    expect(scroller.scrollLeft).toBe(0);
+
+    scroller.scrollTop = 0;
+    jest.restoreAllMocks();
+  });
+
+  it('auto-scrolls the window\'s viewport when the window scrolls both axes', () => {
+    const view = {
+      _wt: {
+        wtOverlays: {
+          topOverlay: { mainTableScrollableElement: window },
+          inlineStartOverlay: { mainTableScrollableElement: window },
+        },
+      },
+    };
+    const { adapter } = makeMappedAdapter({ view } as Parameters<typeof makeMappedAdapter>[0]);
+    const viewport = document.documentElement;
+    const scroller = document.scrollingElement ?? viewport;
+
+    jest.spyOn(viewport, 'clientWidth', 'get').mockReturnValue(800);
+    jest.spyOn(viewport, 'clientHeight', 'get').mockReturnValue(600);
+    // The document's own rectangle spans the whole page, which is what the stand-in must not report.
+    jest.spyOn(viewport, 'getBoundingClientRect').mockReturnValue({
+      left: 0, top: -300, right: 800, bottom: 1700,
+    } as DOMRect);
+
+    const target = adapter.getAutoScrollTarget();
+
+    expect(target).not.toBeNull();
+    expect(target).not.toBe(viewport);
+    expect(target?.getBoundingClientRect()).toEqual({ left: 0, top: 0, right: 800, bottom: 600 });
+    expect([target?.clientLeft, target?.clientTop, target?.clientWidth, target?.clientHeight])
+      .toEqual([0, 0, 800, 600]);
+
+    scroller.scrollTop = 0;
+    scroller.scrollLeft = 0;
+    (target as NonNullable<typeof target>).scrollTop = 24;
+    (target as NonNullable<typeof target>).scrollLeft = 12;
+
+    expect(scroller.scrollTop).toBe(24);
+    expect(scroller.scrollLeft).toBe(12);
+    expect(target?.scrollTop).toBe(24);
+    expect(target?.scrollLeft).toBe(12);
+
+    scroller.scrollTop = 0;
+    scroller.scrollLeft = 0;
+    jest.restoreAllMocks();
+  });
 });
 
 describe('stepCell over hidden columns', () => {

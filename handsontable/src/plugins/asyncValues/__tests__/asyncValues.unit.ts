@@ -3,6 +3,7 @@ import { HyperFormula } from 'hyperformula';
 import { registerAllModules } from 'handsontable/registry';
 import * as announcer from '../../../utils/a11yAnnouncer';
 import type { AsyncValueContext } from '../types';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllModules();
 
@@ -44,7 +45,7 @@ function createGrid(settings: Record<string, unknown> = {}) {
     ],
     columns: [{ data: 'sku' }, { data: 'name' }, { data: 'price' }],
     asyncValues: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     ...settings,
   });
 

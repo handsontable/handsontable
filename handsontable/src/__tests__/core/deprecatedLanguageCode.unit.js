@@ -2,6 +2,7 @@ import Handsontable from 'handsontable';
 import srLatnRS from 'handsontable/i18n/languages/sr-Latn-RS';
 import srSP from 'handsontable/i18n/languages/sr-SP';
 import { _resetDeprecationWarnings } from 'handsontable/helpers/console';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 /**
  * The deprecated `sr-SP` language code keeps working and warns once, whether it is passed on
@@ -34,21 +35,21 @@ describe('Core deprecated language code', () => {
   const deprecationWarnings = () => warn.mock.calls.filter(([message]) => String(message).includes('sr-SP'));
 
   it('should not warn for `sr-Latn-RS`', () => {
-    hot = new Handsontable(container, { language: 'sr-Latn-RS', licenseKey: 'non-commercial-and-evaluation' });
+    hot = new Handsontable(container, { language: 'sr-Latn-RS', licenseKey: TEST_LICENSE_KEY });
     hot.updateSettings({ language: 'sr-Latn-RS' });
 
     expect(deprecationWarnings()).toHaveLength(0);
   });
 
   it('should warn once when `sr-SP` is passed on construction', () => {
-    hot = new Handsontable(container, { language: 'sr-SP', licenseKey: 'non-commercial-and-evaluation' });
+    hot = new Handsontable(container, { language: 'sr-SP', licenseKey: TEST_LICENSE_KEY });
 
     expect(hot.getSettings().language).toBe('sr-SP');
     expect(deprecationWarnings()).toHaveLength(1);
   });
 
   it('should warn once when the grid is switched to `sr-SP` with `updateSettings()`', () => {
-    hot = new Handsontable(container, { language: 'sr-Latn-RS', licenseKey: 'non-commercial-and-evaluation' });
+    hot = new Handsontable(container, { language: 'sr-Latn-RS', licenseKey: TEST_LICENSE_KEY });
     hot.updateSettings({ language: 'sr-SP' });
     hot.updateSettings({ language: 'sr-SP' });
 

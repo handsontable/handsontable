@@ -5,6 +5,7 @@ import { HotTable } from '../src/hotTable';
 import { HotColumn } from '../src/hotColumn';
 import { mountComponent, sleep } from './_helpers';
 import { HotTableRef } from '../src/types';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 registerAllModules();
 
@@ -50,7 +51,7 @@ describe('HotTable `dataProvider` option', () => {
       return (
         <HotTable
           ref={hotTableRef}
-          licenseKey="non-commercial-and-evaluation"
+          licenseKey={TEST_LICENSE_KEY}
           data={[]}
           dataProvider={dataProvider}
           columns={[{ data: 'id' }, { data: 'product' }]}
@@ -93,7 +94,7 @@ describe('HotTable `dataProvider` option', () => {
       return (
         <HotTable
           ref={hotTableRef}
-          licenseKey="non-commercial-and-evaluation"
+          licenseKey={TEST_LICENSE_KEY}
           data={[]}
           dataProvider={dataProvider}
           columnSorting
@@ -150,7 +151,7 @@ describe('HotTable `dataProvider` option', () => {
       return (
         <HotTable
           ref={hotTableRef}
-          licenseKey="non-commercial-and-evaluation"
+          licenseKey={TEST_LICENSE_KEY}
           data={[]}
           dataProvider={dataProvider}
           pagination={{ pageSize: 5 }}

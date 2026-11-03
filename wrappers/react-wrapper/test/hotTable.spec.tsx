@@ -28,6 +28,7 @@ import {
 } from '../src/helpers';
 import { HotTableProps, HotTableRef } from '../src/types';
 import { HotColumn } from '../src/hotColumn';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 // register Handsontable's modules
 registerAllModules();
@@ -38,7 +39,7 @@ describe('Handsontable initialization', () => {
       <HotTable
         id="test-hot"
         data={[[2]]}
-        licenseKey="non-commercial-and-evaluation"
+        licenseKey={TEST_LICENSE_KEY}
       />
     )).hotInstance!;
 
@@ -55,13 +56,13 @@ describe('Handsontable initialization', () => {
     const hotTableRef = renderHotTableWithProps({
       id: 'test-hot',
       data: [[2]],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(() => {
       renderHotTableWithProps({
         data: [[2]],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       }, true, hotTableRef);
     }).not.toThrow();
 
@@ -76,7 +77,7 @@ describe('Handsontable initialization', () => {
         rowHeaders={true}
         colHeaders={true}
         data={[[2]]}
-        licenseKey="non-commercial-and-evaluation"/>
+        licenseKey={TEST_LICENSE_KEY}/>
     )).hotInstance!;
 
     expect(hotInstance.rootContainer.id).toBe('test-hot');
@@ -90,7 +91,7 @@ describe('Handsontable initialization', () => {
 describe('Updating the Handsontable settings', () => {
   it('should call the updateSettings method of Handsontable, when the component properties get updated', async() => {
     const hotSettings: HotTableProps = {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       id: 'hot',
       autoRowSize: false,
       autoColumnSize: false,
@@ -120,7 +121,7 @@ describe('Updating the Handsontable settings', () => {
 
   it('should update the Handsontable options, when the component properties get updated', async() => {
     const hotSettings: HotTableProps = {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       id: 'hot',
       autoRowSize: false,
       autoColumnSize: false,
@@ -176,7 +177,7 @@ describe('Updating the Handsontable settings', () => {
 
       return (
         <>
-          <HotTable licenseKey="non-commercial-and-evaluation"
+          <HotTable licenseKey={TEST_LICENSE_KEY}
             id="test-hot"
             data={[[1]]}
             renderAllRows={renderAllRows}
@@ -225,7 +226,7 @@ describe('Updating the Handsontable settings', () => {
 
       return (
         <>
-          <HotTable licenseKey="non-commercial-and-evaluation"
+          <HotTable licenseKey={TEST_LICENSE_KEY}
             id="test-hot"
             data={[[1]]}
             rowHeaders={rowHeaders}
@@ -268,7 +269,7 @@ describe('Updating the Handsontable settings', () => {
     function ExampleComponent() {
       return (
         <>
-          <HotTable licenseKey="non-commercial-and-evaluation"
+          <HotTable licenseKey={TEST_LICENSE_KEY}
             id="test-hot"
             data={[[1]]}
             renderAllRows={true}
@@ -337,7 +338,7 @@ describe('Updating the Handsontable settings', () => {
 
             setTotalAmount(totalAmount);
           }}
-          licenseKey="non-commercial-and-evaluation"
+          licenseKey={TEST_LICENSE_KEY}
         />
       );
     }
@@ -377,7 +378,7 @@ describe('Updating the Handsontable settings', () => {
 describe('Renderer configuration using React components', () => {
   it('should use the renderer component as Handsontable renderer, when it\'s passed as component to HotTable renderer prop', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(100, 100)}
         width={300}
@@ -423,7 +424,7 @@ describe('Renderer configuration using React components', () => {
 
   it('should use the renderer component as Handsontable renderer, when it\'s passed inline to HotTable renderer prop', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(100, 100)}
         width={300}
@@ -469,7 +470,7 @@ describe('Renderer configuration using React components', () => {
 
   it('should use the renderer function as native Handsontable renderer, when it\'s passed to HotTable hotRenderer prop', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(100, 100)}
         width={300}
@@ -517,7 +518,7 @@ describe('Renderer configuration using React components', () => {
     console.warn = jest.fn();
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(100, 100)}
         width={300}
@@ -543,7 +544,7 @@ describe('Renderer configuration using React components', () => {
 describe('Editor configuration using React components', () => {
   it('should mount the editor component inside the Handsontable root portal', async() => {
     const hotTableComponent = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 3)}
         width={300}
@@ -567,7 +568,7 @@ describe('Editor configuration using React components', () => {
 
   it('should commit setValue after a real pointer sequence on the editor control', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 3)}
         width={300}
@@ -606,7 +607,7 @@ describe('Editor configuration using React components', () => {
     // the state has already healed itself by the time a full gesture returns. The hook is what
     // still sees the call - and a listener on it is the shape of user code this defect reaches.
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 3)}
         width={300}
@@ -658,7 +659,7 @@ describe('Editor configuration using React components', () => {
     // Documents the public `useHotEditor().value` contract after dropping
     // `useDeferredValue`. This does not cover the GH-13374 commit path.
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 3)}
         width={300}
@@ -686,7 +687,7 @@ describe('Editor configuration using React components', () => {
   it('should not fire afterChange when a useHotEditor confirms a number or null without typing', async() => {
     const edits: unknown[] = [];
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={[[12345], [null]]}
         width={300}
@@ -737,7 +738,7 @@ describe('Editor configuration using React components', () => {
 
   it('should use the editor component as Handsontable editor, when it\'s passed as component to HotTable editor prop', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 3)}
         width={300}
@@ -775,7 +776,7 @@ describe('Editor configuration using React components', () => {
 
   it('should use the editor component as Handsontable editor, when it\'s passed inline to HotTable editor prop', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 3)}
         width={300}
@@ -813,7 +814,7 @@ describe('Editor configuration using React components', () => {
 
   it('should use the editor class as native Handsontable editor, when it\'s passed to HotTable hotEditor prop', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 3)}
         width={300}
@@ -840,7 +841,7 @@ describe('Editor configuration using React components', () => {
     const hotTableInstanceRef = React.createRef<HotTableRef>();
 
     const hotSettings: HotTableProps = {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       id: 'test-hot',
       data: createSpreadsheetData(3, 3),
       width: 300,
@@ -911,7 +912,7 @@ describe('Editor configuration using React components', () => {
     const hotTableInstanceRef = React.createRef<HotTableRef>();
 
     const hotSettings: HotTableProps = {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       id: 'test-hot',
       width: 300,
       height: 300,
@@ -975,7 +976,7 @@ describe('Editor configuration using React components', () => {
     console.warn = jest.fn();
 
     mountComponentWithRef((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
@@ -996,7 +997,7 @@ describe('Editor configuration using React components', () => {
 
   it('should disable editing when the HotTable `editor` prop is set to `false`', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
@@ -1034,7 +1035,7 @@ describe('Editor configuration using React components', () => {
 
   it('should disable editing when the HotTable `hotEditor` prop is set to `false`', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
@@ -1072,7 +1073,7 @@ describe('Editor configuration using React components', () => {
   it('should apply and revert a dynamic switch of the `editor` prop to `false`', async() => {
     const hotTableRef = React.createRef<HotTableRef>();
     const hotSettings: HotTableProps = {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       id: 'test-hot',
       data: createSpreadsheetData(3, 2),
       width: 300,
@@ -1117,7 +1118,7 @@ describe('Editor configuration using React components', () => {
 
   it('should let a `hotEditor` editor win over an `editor` prop set to `false`', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
@@ -1147,7 +1148,7 @@ describe('Editor configuration using React components', () => {
 
   it('should fall back to the default editor when the `editor` prop is set to `true`', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
@@ -1174,7 +1175,7 @@ describe('Editor configuration using React components', () => {
 
   it('should fall back to the default editor when the `hotEditor` prop is set to `true`', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
@@ -1202,7 +1203,7 @@ describe('Editor configuration using React components', () => {
   it('should keep opening the editor passed by an `editor={condition && Editor}` prop', async() => {
     const withEditor = true;
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
@@ -1228,7 +1229,7 @@ describe('Editor configuration using React components', () => {
   it('should disable editing when an `editor={condition && Editor}` prop resolves to `false`', async() => {
     const withEditor = false;
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
@@ -1260,7 +1261,7 @@ describe('Passing children', () => {
     console.warn = jest.fn();
 
     mountComponentWithRef((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
@@ -1282,7 +1283,7 @@ describe('Passing children', () => {
     console.warn = jest.fn();
 
     mountComponentWithRef((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
@@ -1318,7 +1319,7 @@ describe('Root size options', () => {
     const hotTableRef = renderHotTableWithProps({
       data: createSpreadsheetData(3, 3),
       height: 'auto',
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const { rootElement } = hotTableRef.current!.hotInstance!;
 
@@ -1332,13 +1333,13 @@ describe('Root size options', () => {
     const hotTableRef = renderHotTableWithProps({
       data: createSpreadsheetData(3, 3),
       height: 300,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const badProps: HotTableProps = {
       data: createSpreadsheetData(3, 3),
       height: 'abc',
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     };
 
     renderHotTableWithProps(badProps, true, hotTableRef);
@@ -1358,7 +1359,7 @@ describe('Root size options', () => {
 describe('Props set to `undefined`', () => {
   const baseProps: HotTableProps = {
     data: createSpreadsheetData(3, 3),
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
   };
   const pluginProps: Array<[keyof HotTableProps, string]> = [
     ['copyPaste', 'copyPaste'],
@@ -1399,6 +1400,57 @@ describe('Props set to `undefined`', () => {
     expect(hot.getSettings().colWidths).toBe(undefined);
   });
 
+  it('should remove the root element\'s inline height and overflow when `height` changes to `undefined` on update', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, height: 120 });
+    const { rootElement } = hotTableRef.current!.hotInstance!;
+
+    expect(rootElement.style.height).toBe('120px');
+    expect(rootElement.style.overflowY).toBe('clip');
+
+    renderHotTableWithProps({ ...baseProps, height: undefined }, true, hotTableRef);
+
+    expect(rootElement.style.height).toBe('');
+    expect(rootElement.style.overflowX).toBe('');
+    expect(rootElement.style.overflowY).toBe('');
+  });
+
+  it('should remove the root element\'s inline `height: auto` when `height` changes to `undefined` on update', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, height: 'auto' });
+    const { rootElement } = hotTableRef.current!.hotInstance!;
+
+    expect(rootElement.style.height).toBe('auto');
+
+    renderHotTableWithProps({ ...baseProps, height: undefined }, true, hotTableRef);
+
+    expect(rootElement.style.height).toBe('');
+  });
+
+  it('should remove the root element\'s inline width when `width` changes to `undefined` on update', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, width: 300 });
+    const { rootElement } = hotTableRef.current!.hotInstance!;
+
+    expect(rootElement.style.width).toBe('300px');
+
+    renderHotTableWithProps({ ...baseProps, width: undefined }, true, hotTableRef);
+
+    expect(rootElement.style.width).toBe('');
+  });
+
+  it('should clear only the axis whose prop changes to `undefined`, and apply a new value after the clear', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, height: 120, width: 300 });
+    const { rootElement } = hotTableRef.current!.hotInstance!;
+
+    renderHotTableWithProps({ ...baseProps, height: undefined, width: 300 }, true, hotTableRef);
+
+    expect(rootElement.style.height).toBe('');
+    expect(rootElement.style.width).toBe('300px');
+
+    renderHotTableWithProps({ ...baseProps, height: 200, width: 300 }, true, hotTableRef);
+
+    expect(rootElement.style.height).toBe('200px');
+    expect(rootElement.style.width).toBe('300px');
+  });
+
   it('should restore the default when a prop that had a value changes to `undefined` on update', () => {
     const hotTableRef = renderHotTableWithProps({ ...baseProps, copyPaste: false });
     const hot = hotTableRef.current!.hotInstance!;
@@ -1433,7 +1485,7 @@ describe('Removing a hook prop', () => {
   const data = [[1, 2], [3, 4]];
   const baseProps: HotTableProps = {
     data,
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
   };
   const editCell = (hotInstance: Handsontable, value: string) => {
     act(() => {

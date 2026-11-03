@@ -1,4 +1,5 @@
 import { test, expect, THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG } from '../fixtures/test';
+import type { Locator } from '@playwright/test';
 import { FormulaBuilderPage } from '../fixtures/pages/FormulaBuilderPage';
 
 // The autocomplete and function help popups, and the error indicator. Themes: the popups are
@@ -172,3 +173,144 @@ test.describe('formulaBuilder error message by keyboard', { tag: [THEMES_TAG, BU
   });
 });
 
+
+/**
+ * The WCAG contrast ratio of an element's text (or another color it paints, such as its focus outline)
+ * against what is painted under it: the background colors and the `::before` tints (the grid draws a
+ * selected range as one) of the element and its ancestors, composited down to the first opaque layer.
+ *
+ * @param {Locator} locator The element holding the text.
+ * @param {'color' | 'outlineColor'} [property] The color to measure.
+ * @returns {Promise<number>} The ratio, or `0` while a color cannot be read (poll it).
+ */
+function textContrast(locator: Locator, property: 'color' | 'outlineColor' = 'color'): Promise<number> {
+  return locator.evaluate((element, colorProperty) => {
+    type Rgba = [number, number, number, number];
+    const parse = (value: string): Rgba | null => {
+      const srgb = value.match(/color\(srgb ([^)]+)\)/);
+      const rgb = value.match(/rgba?\(([^)]+)\)/);
+      const parts = (srgb ?? rgb)?.[1].split(/[\s,/]+/).filter(Boolean).map(Number);
+
+      if (!parts) {
+        return null;
+      }
+
+      const scale = srgb ? 255 : 1;
+
+      return [parts[0] * scale, parts[1] * scale, parts[2] * scale, parts[3] ?? 1];
+    };
+    const layers: Rgba[] = [];
+
+    for (let node: Element | null = element; node; node = node.parentElement) {
+      const before = getComputedStyle(node, '::before');
+      const tint = parse(before.backgroundColor);
+      const background = parse(getComputedStyle(node).backgroundColor);
+
+      if (tint && before.content !== 'none') {
+        layers.push([tint[0], tint[1], tint[2], tint[3] * Number(before.opacity)]);
+      }
+
+      if (background && background[3] > 0) {
+        layers.push(background);
+      }
+
+      if (background?.[3] === 1) {
+        break;
+      }
+    }
+
+    const backdrop = layers.reduceRight<Rgba>((under, top) => [
+      top[0] * top[3] + under[0] * (1 - top[3]),
+      top[1] * top[3] + under[1] * (1 - top[3]),
+      top[2] * top[3] + under[2] * (1 - top[3]),
+      1,
+    ], [255, 255, 255, 1]);
+    const luminance = (color: Rgba) => {
+      const channel = (value: number) => {
+        const unit = value / 255;
+
+        return unit <= 0.03928 ? unit / 12.92 : ((unit + 0.055) / 1.055) ** 2.4;
+      };
+
+      return (0.2126 * channel(color[0])) + (0.7152 * channel(color[1])) + (0.0722 * channel(color[2]));
+    };
+    const text = parse(getComputedStyle(element)[colorProperty]);
+
+    if (!text) {
+      return 0;
+    }
+
+    const [lighter, darker] = [luminance(text), luminance(backdrop)].sort((first, second) => second - first);
+
+    return (lighter + 0.05) / (darker + 0.05);
+  }, property);
+}
+
+// WCAG 1.4.3: the two text colors the plugin's tokens set that measured below 4.5:1 on the light
+// themes (named expressions on the active suggestion row, error text inside a selected range).
+test.describe('formulaBuilder text contrast', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
+  test('a named expression on the active suggestion row reaches 4.5:1', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle);
+
+    await grid.goto();
+    await page.evaluate(() => (window as unknown as {
+      hot: { getPlugin(name: 'formulas'): { engine: { addNamedExpression(name: string, expression: string): void } } };
+    }).hot.getPlugin('formulas').engine.addNamedExpression('SUMMARY', '=1'));
+    await grid.selectCellByApi(3, 1);
+    await page.keyboard.type('=SUMM');
+
+    const named = page.locator('.hfe-suggestions__item--active.hfe-suggestions__item--named .hfe-suggestions__item-label > span:last-child');
+
+    await expect(named).toHaveText('SUMMARY');
+    await expect.poll(() => textContrast(named)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  test('error text in a cell of a selected range reaches 4.5:1', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.setDataAt(3, 0, '=1/0');
+    await page.evaluate(() => (window as unknown as {
+      hot: { selectCell(row: number, col: number, toRow: number, toCol: number): void };
+    }).hot.selectCell(1, 0, 3, 2));
+
+    const cell = grid.cell(3, 0);
+
+    await expect(cell).toHaveClass(/\barea\b/);
+    await expect(cell).toHaveAttribute('data-hfe-error', '#DIV/0!');
+    await expect.poll(() => textContrast(cell)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  // WCAG 1.4.11: horizon's accent measured 2.45:1 as the ring. The ring is inset, so the text must also
+  // start past it rather than under it.
+  test('the bar editor\'s focus ring reaches 3:1 and leaves the text clear', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.selectCellByApi(0, 2);
+    await grid.openBarEditor();
+    await expect(grid.editorInput).toBeFocused();
+
+    await expect.poll(() => textContrast(grid.barEditor, 'outlineColor')).toBeGreaterThanOrEqual(3);
+
+    const layout = await grid.barEditor.evaluate((editor) => {
+      const style = getComputedStyle(editor);
+      const text = editor.querySelector('.hfe-overlay')!;
+      const walker = editor.ownerDocument.createTreeWalker(text, NodeFilter.SHOW_TEXT);
+      const range = editor.ownerDocument.createRange();
+      const node = walker.nextNode()!;
+
+      range.setStart(node, 0);
+      range.setEnd(node, 1);
+
+      return {
+        ringInnerEdge: editor.getBoundingClientRect().left - parseFloat(style.outlineOffset),
+        ringWidth: parseFloat(style.outlineWidth),
+        textStart: range.getBoundingClientRect().left,
+      };
+    });
+
+    expect(layout.textStart).toBeGreaterThanOrEqual(layout.ringInnerEdge);
+    expect(layout.ringWidth).toBeGreaterThan(0);
+  });
+});

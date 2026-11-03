@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the link in the console warning about a missing language, which opened a page that does not exist.",
+  "type": "fixed",
+  "issueOrPR": 14078,
+  "breaking": false,
+  "framework": "none"
+}

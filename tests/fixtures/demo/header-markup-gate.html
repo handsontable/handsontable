@@ -28,6 +28,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -115,7 +116,7 @@
       data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
       rowHeaders: true,
       colHeaders: colHeaderLabel === null ? ['A', 'B'] : [colHeaderLabel, 'B'],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     };
 
     if (nestedLabel !== null) {

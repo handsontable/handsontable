@@ -711,7 +711,7 @@ To replace the entire data in an already-initialized Handsontable instance, you 
 
 **[`loadData()`](@/api/core.md#loaddata)**
 
-Replaces the data used in Handsontable with the dataset provided as the method argument. **Note:** Since version `12.0.0` this method causes the table to reset its configuration options and index mapper information, so some of the work done on the table since its initialization might be lost.
+Replaces the data used in Handsontable with the dataset provided as the method argument. **Note:** This method also resets the state of rows, columns, and cells -- for example sorting, moved and hidden rows and columns, filters, cell metadata, and the undo history -- so some of the work done on the table since its initialization might be lost. It keeps your settings, except the cell metadata from the `cell` option. For the full list, see [What the data-loading methods reset and keep](#what-the-data-loading-methods-reset-and-keep).
 
 ```js
 hot.loadData(newDataset);
@@ -722,7 +722,7 @@ hot.loadData(newDataset);
 
 **[`updateData()`](@/api/core.md#updatedata)**
 
-Replaces the data used in Handsontable with the dataset provided as the method argument. Unlike [`loadData()`](@/api/core.md#loaddata), [`updateData()`](@/api/core.md#updatedata) does NOT reset the configuration options and/or index mapper information, so it can be safely used to replace just the data, leaving the rest of the table intact.
+Replaces the data used in Handsontable with the dataset provided as the method argument. Unlike [`loadData()`](@/api/core.md#loaddata), [`updateData()`](@/api/core.md#updatedata) keeps the state of rows, columns, and cells -- for example row order, moved and hidden rows and columns, filters, and cell metadata -- so you can use it to replace just the data and leave the rest of the table intact. It also clears the undo and redo history.
 
 ```js
 hot.updateData(newDataset);
@@ -767,7 +767,29 @@ const data = [['Rent', 1200]];
 
 To replace the data on purpose, pass a new array, for example through a `useState` setter.
 
+The same re-render applies your other props as well. To see which ones, and how to keep user changes such as merged cells, read [Pass props from state](@/guides/getting-started/react-redux/react-redux.md#pass-props-from-state).
+
 :::
+
+#### What the data-loading methods reset and keep
+
+The table lists what happens to each kind of state when you replace a dataset of the same size. Both methods keep your settings (`columns`, `colHeaders`, plugin options, and hooks) and the selection. The one exception is the `cell` option: `loadData()` drops its cell metadata, although `getSettings().cell` still lists it. If the new dataset has fewer rows or columns, the selection shrinks to fit.
+
+| State | [`loadData()`](@/api/core.md#loaddata) | [`updateData()`](@/api/core.md#updatedata) |
+|---|---|---|
+| Sorting, set through the UI, the API, or `initialConfig` | Cleared -- rows show in source order | Kept -- the rows keep their sorted order and are not sorted again by value. The sort state stays (`getSortConfig()` still returns it), so the column looks sorted when the new values are not. Sort again to order them. |
+| Rows and columns moved at runtime | Reset | Kept |
+| Moves, hidden rows or columns, and trimmed rows declared in the configuration, such as `manualColumnMove: [2, 0, 1]`, `hiddenRows: { rows: [2] }`, or `trimRows: [1]` | Applied again from the configuration | Kept |
+| Rows and columns hidden or trimmed through a plugin API | Shown again | Kept |
+| Row heights and column widths set by the user | Reset to the default size, or to the sizes in a `manualRowResize` or `manualColumnResize` array | Kept |
+| Filter conditions and the rows they trim | Cleared | Kept -- the same rows stay trimmed, and the filters do not run again on the new values. Call `filter()` to apply them. |
+| Cell metadata set with [`setCellMeta()`](@/api/core.md#setcellmeta), such as `readOnly` and `className`, and comments | Cleared | Kept |
+| Cell metadata from the `cell` option | Cleared, although `getSettings().cell` still lists it. Metadata from `columns` stays. | Kept |
+| Validation results | Cleared | Kept -- a cell can still be marked invalid for a value that is gone |
+| Merged cells | Kept | Kept |
+| Undo and redo history | Cleared | Cleared |
+
+After `updateData()`, call [`validateCells()`](@/api/core.md#validatecells) if you need the validation results to match the new data.
 
 ### The data-modifying API methods
 
@@ -1080,7 +1102,7 @@ When the full dataset lives on a server, use [`dataProvider`](@/api/options.md#d
 
 - Handsontable accepts three main data structures: arrays of arrays, arrays of objects, and function-based data sources.
 - You can pass an initial dataset through the `data` option or via the `HotTable` component's props.
-- Use `loadData()` to replace data and reset configuration, `updateData()` to replace data without resetting settings, and `updateSettings({ data })` to update data alongside other options.
+- Use `loadData()` to replace data and reset the state of rows, columns, and cells, `updateData()` to replace data and keep that state, and `updateSettings({ data })` to update data alongside other options.
 - Handsontable binds to your data by reference. Copy the dataset before passing it in to avoid unintended mutations.
 - For large datasets that live on a server, use `dataProvider` instead of a local array.
 

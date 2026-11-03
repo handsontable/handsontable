@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
 import { waitUntil as waitFor } from '../../../test/helpers/common';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -52,7 +53,7 @@ describe('Core#updateSettings with external data source', () => {
     });
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       columns: [{ data: 'id' }, { data: 'name' }],
       dataProvider: {
         rowId: 'id',
@@ -89,7 +90,7 @@ describe('Core#updateSettings with external data source', () => {
     };
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       columns: [{ data: 'id' }, { data: 'name' }],
       dataProvider: dp,
     });
@@ -131,7 +132,7 @@ describe('Core#updateSettings with external data source', () => {
         onRowsRemove: noop,
       };
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [],
         columns: [{ data: 'id' }, { data: 'name' }],
         dataProvider: config,
@@ -192,7 +193,7 @@ describe('Core#updateSettings with external data source', () => {
     });
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       columns: [{ data: 'id' }, { data: 'name' }],
       dataProvider: config,
     });
@@ -227,7 +228,7 @@ describe('Core#updateSettings with external data source', () => {
     const afterDataProviderFetchAbort = jest.fn();
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       columns: [{ data: 'id' }, { data: 'name' }],
       dataProvider: config,
       afterDataProviderFetchAbort,
@@ -251,7 +252,7 @@ describe('Core#updateSettings with external data source', () => {
     const config = createServerConfig(2);
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [{ id: 9, name: 'Local row' }],
       columns: [{ data: 'id' }, { data: 'name' }],
     });
@@ -267,7 +268,7 @@ describe('Core#updateSettings with external data source', () => {
     const config = { rowId: 'id' };
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [{ id: 9, name: 'Local row' }],
       columns: [{ data: 'id' }, { data: 'name' }],
       dataProvider: config,
@@ -299,7 +300,7 @@ describe('Core#updateSettings with external data source', () => {
       const config = { rowId: 'id' };
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [{ id: 9, name: 'Local row' }],
         columns: [{ data: 'id' }, { data: 'name' }],
         dataProvider: config,
@@ -317,7 +318,7 @@ describe('Core#updateSettings with external data source', () => {
     const config = createServerConfig(20);
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       columns: [{ data: 'id' }, { data: 'name' }],
       pagination: { pageSize: 5 },
       dataProvider: config,
@@ -345,7 +346,7 @@ describe('Core#updateSettings with external data source', () => {
       const pagination = { pageSize: 5 };
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         columns: [{ data: 'id' }, { data: 'name' }],
         pagination,
         dataProvider: config,
@@ -376,7 +377,7 @@ describe('Core#updateSettings with external data source', () => {
     const config = createServerConfig(4);
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       columns: [{ data: 'id' }, { data: 'name' }],
       filters: true,
       dropdownMenu: true,
@@ -408,7 +409,7 @@ describe('Core#updateSettings with external data source', () => {
     const config = createServerConfig(20);
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       columns: [{ data: 'id' }, { data: 'name' }],
       dataProvider: config,
     });
@@ -434,7 +435,7 @@ describe('Core#updateSettings with external data source', () => {
       const config = createServerConfig(4);
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         columns: [{ data: 'id' }, { data: 'name' }],
         columnSorting: true,
         dataProvider: config,
@@ -528,7 +529,7 @@ describe('Core#updateSettings with external data source', () => {
       const config = createServerConfig(20);
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         columns: [{ data: 'id' }, { data: 'name' }],
         pagination: { pageSize: 5 },
         dataProvider: config,
@@ -548,7 +549,7 @@ describe('Core#updateSettings with external data source', () => {
       const config = createServerConfig(4);
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         columns: [{ data: 'id' }, { data: 'name' }],
         columnSorting: true,
         dataProvider: config,
@@ -568,7 +569,7 @@ describe('Core#updateSettings with external data source', () => {
       const config = createServerConfig(4);
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         columns: [{ data: 'id' }, { data: 'name' }],
         columnSorting: true,
         dataProvider: config,
@@ -590,7 +591,7 @@ describe('Core#updateSettings with external data source', () => {
     const config = createServerConfig(4);
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       columns: [{ data: 'id' }, { data: 'name' }],
       filters: true,
       dataProvider: config,
@@ -617,7 +618,7 @@ describe('Core#updateSettings with external data source', () => {
     const config = createServerConfig(2);
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       columns: [{ data: 'id' }, { data: 'name' }],
       dataProvider: config,
     });

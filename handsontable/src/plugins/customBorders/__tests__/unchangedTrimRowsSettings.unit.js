@@ -1,4 +1,5 @@
 import Handsontable from '../../../index';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 describe('CustomBorders and updateSettings({ trimRows })', () => {
   let container;
@@ -54,7 +55,7 @@ describe('CustomBorders and updateSettings({ trimRows })', () => {
       customBorders: true,
       width: 400,
       height: 400,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const visualRow = hot.toVisualRow(physicalRow);
@@ -233,7 +234,7 @@ describe('CustomBorders and updateSettings({ trimRows })', () => {
         customBorders: borderSettings,
         width: 400,
         height: 400,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       // Re-enabling puts the plugin's listeners last in the hook list: a listener the plugin re-registers

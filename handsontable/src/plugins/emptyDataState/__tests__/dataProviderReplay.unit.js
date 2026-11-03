@@ -1,4 +1,5 @@
 import Handsontable from '../../../index';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 
@@ -34,7 +35,7 @@ describe('EmptyDataState loading overlay and a replayed DataProvider response', 
         onRowsUpdate: async() => {},
         onRowsRemove: async() => {},
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     await flush();
 

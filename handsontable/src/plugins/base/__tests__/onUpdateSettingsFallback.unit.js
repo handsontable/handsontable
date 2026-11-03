@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, BasePlugin } from 'handsontable/plugins';
 import { registerAllModules } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 const ALWAYS_SETTING = 'settingsFallbackAlwaysTest';
 const FOREIGN_SETTING = 'settingsFallbackForeignTest';
@@ -57,7 +58,7 @@ describe('BasePlugin#onUpdateSettings on an update without the plugin key', () =
   it('should keep the stored setting of a `SETTING_KEYS: true` plugin after an unrelated update', () => {
     hot = new Handsontable(document.createElement('div'), {
       [ALWAYS_SETTING]: { mode: 'kept' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const plugin = hot.getPlugin(ALWAYS_SETTING);
 
@@ -69,7 +70,7 @@ describe('BasePlugin#onUpdateSettings on an update without the plugin key', () =
   it('should take the setting from the payload when the payload carries the plugin key', () => {
     hot = new Handsontable(document.createElement('div'), {
       [ALWAYS_SETTING]: { mode: 'first' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const plugin = hot.getPlugin(ALWAYS_SETTING);
 
@@ -81,7 +82,7 @@ describe('BasePlugin#onUpdateSettings on an update without the plugin key', () =
   it('should pass an explicit `undefined` as given even when the table meta holds an own value for the key', () => {
     hot = new Handsontable(document.createElement('div'), {
       [ALWAYS_SETTING]: { mode: 'kept' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const plugin = hot.getPlugin(ALWAYS_SETTING);
     const updatePluginSettings = jest.spyOn(plugin, 'updatePluginSettings');
@@ -97,7 +98,7 @@ describe('BasePlugin#onUpdateSettings on an update without the plugin key', () =
   it('should clear the stored setting on an explicit `undefined` for the plugin key', () => {
     hot = new Handsontable(document.createElement('div'), {
       [ALWAYS_SETTING]: { mode: 'kept' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const plugin = hot.getPlugin(ALWAYS_SETTING);
 
@@ -110,7 +111,7 @@ describe('BasePlugin#onUpdateSettings on an update without the plugin key', () =
   it('should not refresh the settings a second time before `updatePlugin()` in the call that turns the plugin on', () => {
     hot = new Handsontable(document.createElement('div'), {
       [FOREIGN_SETTING]: { mode: 'kept' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const plugin = hot.getPlugin(FOREIGN_SETTING);
     const updatePluginSettings = jest.spyOn(plugin, 'updatePluginSettings');
@@ -126,7 +127,7 @@ describe('BasePlugin#onUpdateSettings on an update without the plugin key', () =
     hot = new Handsontable(document.createElement('div'), {
       [FOREIGN_SETTING]: { mode: 'kept' },
       [FOREIGN_SWITCH]: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const plugin = hot.getPlugin(FOREIGN_SETTING);
 
@@ -158,7 +159,7 @@ describe('BasePlugin#onUpdateSettings refreshes the settings of a built-in plugi
       data: [[1, 2], [3, 4]],
       rowHeaders: true,
       colHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
     const plugin = hot.getPlugin(pluginName);

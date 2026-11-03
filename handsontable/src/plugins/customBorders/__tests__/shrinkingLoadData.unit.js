@@ -1,6 +1,7 @@
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { CustomBorders } from '../customBorders';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * Builds a square dataset.
@@ -42,7 +43,7 @@ describe('CustomBorders after a shrinking loadData', () => {
     hot = new Handsontable(container, {
       data: square(8),
       customBorders: [{ ...entry, top: { width: 2, color: 'red' } }],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.loadData(square(size));
@@ -64,8 +65,9 @@ describe('CustomBorders after a shrinking loadData', () => {
   shapes.forEach(({ name, entry, size }) => {
     describe(`a border past ${name}`, () => {
       it('should not throw when the customBorders setting is emptied', () => {
-        // The plugin registers no `afterLoadData` hook, so `savedBorders` still holds the previous
-        // grid's coordinates. Clearing the model then asked `removeCellMeta` about a cell outside
+        // The plugin keeps out-of-range entries in `savedBorders` after a load (its `afterLoadData`
+        // hook writes meta only for in-range ones), so the model still holds the previous grid's
+        // coordinates. Clearing the model then asked `removeCellMeta` about a cell outside
         // the current range, and the meta manager's index assertion took the whole call down with
         // "Expecting an unsigned number".
         shrink(entry, size);
@@ -103,7 +105,7 @@ describe('CustomBorders after a shrinking loadData', () => {
     hot = new Handsontable(container, {
       data: square(8),
       customBorders: [{ row: 1, col: 1, top: { width: 2, color: 'red' } }],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.loadData(square(8));
@@ -121,7 +123,7 @@ describe('CustomBorders after a shrinking loadData', () => {
       hot = new Handsontable(container, {
         data: square(8),
         customBorders: [{ ...entry, top: { width: 2, color: 'red' } }],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.updateData(square(size));

@@ -2,12 +2,13 @@ import { act } from '@testing-library/react';
 import { registerAllModules } from 'handsontable/registry';
 import { renderHotTableWithProps } from './_helpers';
 import { HotTableProps } from '../src/types';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 registerAllModules();
 
 describe('HotTable `search` options across re-renders', () => {
   const baseProps: HotTableProps = {
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     id: 'hot',
     data: [['apple'], ['plum']],
     height: 200,

@@ -23,6 +23,7 @@
       throw new Error('Unknown ?cellType= value: ' + JSON.stringify(htParams.get('cellType')));
     }
   </script>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -112,7 +113,7 @@
       afterRenderer(td, row, col) {
         td.setAttribute('data-testid', `cell-${row}-${col}`);
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
   </script>
 </body>

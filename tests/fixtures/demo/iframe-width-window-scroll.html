@@ -29,6 +29,7 @@
     /* The iframe is the grid's realm. Its own page scrolls the rows. */
     #frame { width: 900px; height: 400px; border: 0; display: block; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -118,7 +119,7 @@
         rowHeaders: true,
         colHeaders: true,
         renderer: testIdRenderer,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
         // These fire from the engine's per-frame scroll-direction flags, which come straight from
         // the scroll offsets read off each axis' owner. An owner the engine cannot read reports a
         // motionless axis, so the hook simply never fires.

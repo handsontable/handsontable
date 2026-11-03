@@ -2,6 +2,7 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { ColumnSorting } from '../columnSorting';
 import { MultiColumnSorting } from '../../multiColumnSorting/multiColumnSorting';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 // `sortByPresetSortStates()` must read the upper bound of the sortable band through
 // `this.getNumberOfRowsToSort()`, so a subclass that overrides it decides where the sort stops. A
@@ -56,7 +57,7 @@ describe.each([
       ],
       fixedRowsTop: 1,
       [pluginKey]: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin(pluginKey).sort({ column: 1, sortOrder: 'asc' });

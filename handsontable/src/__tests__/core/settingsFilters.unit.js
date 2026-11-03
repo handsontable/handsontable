@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 /**
  * `Core#_addSettingsFilter()` keeps a list of functions that read each settings payload before core applies
@@ -26,7 +27,7 @@ describe('Core#_addSettingsFilter', () => {
    * @returns {Handsontable}
    */
   function createGrid(settings) {
-    hot = new Handsontable(container, { licenseKey: 'non-commercial-and-evaluation', ...settings });
+    hot = new Handsontable(container, { licenseKey: TEST_LICENSE_KEY, ...settings });
 
     return hot;
   }
@@ -96,7 +97,7 @@ describe('Core#_addSettingsFilter', () => {
     const calls = [];
     const filtered = () => calls.push('filtered');
 
-    hot = new Handsontable.Core(container, { licenseKey: 'non-commercial-and-evaluation', data: [['a']] });
+    hot = new Handsontable.Core(container, { licenseKey: TEST_LICENSE_KEY, data: [['a']] });
     hot._addSettingsFilter(settings => ({ ...settings, afterSelection: filtered }));
     hot.addHook('beforeInit', () => {
       hot._replaceInitPassSettings({ afterSelection: () => calls.push('raw') });
@@ -110,7 +111,7 @@ describe('Core#_addSettingsFilter', () => {
   it('does not filter the settings the grid is created with', () => {
     const seen = [];
 
-    hot = new Handsontable.Core(container, { licenseKey: 'non-commercial-and-evaluation', first: true });
+    hot = new Handsontable.Core(container, { licenseKey: TEST_LICENSE_KEY, first: true });
     hot._addSettingsFilter(renamingFilter('first', 'readOnly', seen));
     hot.init();
 

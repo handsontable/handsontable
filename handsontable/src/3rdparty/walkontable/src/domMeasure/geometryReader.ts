@@ -32,6 +32,15 @@ export interface GeometryReader {
   clientHeight(element: HTMLElement): number;
 
   /**
+   * Reads `element.clientLeft`: the start border plus a vertical scrollbar the browser draws on the
+   * left.
+   *
+   * @param {HTMLElement} element The element to measure.
+   * @returns {number}
+   */
+  clientLeft(element: HTMLElement): number;
+
+  /**
    * Reads `element.offsetWidth`.
    *
    * @param {HTMLElement} element The element to measure.

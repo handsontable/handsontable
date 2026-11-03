@@ -2,6 +2,7 @@ import { nextTick, ref } from 'vue';
 import { mount, config } from '@vue/test-utils';
 import HotTable from '../src/HotTable.vue';
 import './_helpers';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 config.renderStubDefaultSlot = true;
 
@@ -23,7 +24,7 @@ describe('themeName prop', () => {
     const hotSettings = ref({
       data: [['a', 'b'], ['c', 'd']],
       themeName,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const App = {
       components: { HotTable },

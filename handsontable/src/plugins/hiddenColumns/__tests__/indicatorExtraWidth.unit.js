@@ -1,6 +1,7 @@
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { HiddenColumns } from '../hiddenColumns';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 describe('HiddenColumns#getIndicatorExtraWidth', () => {
   let container;
@@ -25,7 +26,7 @@ describe('HiddenColumns#getIndicatorExtraWidth', () => {
     hot = new Handsontable(container, {
       data: [['a', 'b', 'c', 'd', 'e', 'f']],
       colHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

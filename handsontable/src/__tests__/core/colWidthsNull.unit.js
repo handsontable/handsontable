@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 describe('a `null` column width', () => {
   let hot;
@@ -17,7 +18,7 @@ describe('a `null` column width', () => {
   function build(settings) {
     hot = new Handsontable(document.createElement('div'), {
       data: [['a', 'b']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
     jest.spyOn(hot.getPlugin('autoColumnSize').columnWidthsMap, 'getValueAtIndex').mockReturnValue(87);

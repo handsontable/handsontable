@@ -74,6 +74,23 @@ export interface FormulaHostEditor {
    */
   _original?: string;
   /**
+   * The formula editor's text when the latest `keydown` of the session started, before the formula
+   * editor handled it. Every commit key of the formula editor is a `keydown`, so on a commit this is
+   * the text before the commit closed its unbalanced parentheses.
+   */
+  _textAtKeyDown?: string;
+  /**
+   * The formula editor's text right after it was seeded with the cell's own value, or `undefined` when
+   * the session started from other text (a typed key). The formula editor normalizes some formulas as
+   * it reads them (`=1+N("note")` reads back as `=1+ N("note")`), so this text, not `_original`, is
+   * what an untouched edit holds.
+   */
+  _seededText?: string;
+  /**
+   * Removes the `keydown` listener that records `_textAtKeyDown`, `null` between sessions.
+   */
+  _removeKeyDownSnapshot?: (() => void) | null;
+  /**
    * Hides the inline editor while the formula bar edits the cell.
    */
   _hiddenByFormulaBar?: boolean;
@@ -145,7 +162,10 @@ export interface FormulaEditorPluginSurface {
 interface EditorHost {
   hot: {
     getPlugin(name: string): unknown;
+    isDestroyed: boolean;
     rootDocument: Document;
+    addHook(key: 'afterDestroy', callback: () => void): void;
+    removeHook(key: 'afterDestroy', callback: () => void): void;
   };
 }
 
@@ -327,6 +347,8 @@ function refreshFormulaEditorDimensions(
  * the grid's document-level shortcut recorder never handles it a second time. Every other key goes on
  * to the grid, the way it does from the grid's own editors: `beforeKeyDown` and
  * `afterDocumentKeyDown` fire, and an arrow key commits a quick edit and moves the selection.
+ * The package's point-mode toggle (F2, mod+E) emits no event, so a handled F2 or mod+E keydown
+ * enters full edit mode here: the arrows then move the caret instead of committing the quick edit.
  *
  * @param {FormulaHostEditor} editor The editor instance.
  */
@@ -347,6 +369,10 @@ function startKeyboardGuard(editor: FormulaHostEditor): void {
 
     if (stoppedKey !== null) {
       event.stopPropagation();
+
+      if (event.key === 'F2' || ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'e')) {
+        editor.enableFullEditMode?.();
+      }
     }
   };
   const stopFollowUp = (event: KeyboardEvent) => {
@@ -359,6 +385,37 @@ function startKeyboardGuard(editor: FormulaHostEditor): void {
   guard.addEventListener(editor.input, 'keyup', stopFollowUp);
   guard.addEventListener(editor.input, 'keypress', stopFollowUp);
   editor._keyboardGuard = guard;
+}
+
+/**
+ * Records the formula editor's text at every `keydown` of an edit session, before the formula editor
+ * handles the key (see `resolveCommitValue()`). The listener captures on the document, so it runs
+ * first wherever the formula editor is mounted (the cell or the formula bar). It is removed in
+ * `afterClose`: unlike the keyboard guard, nothing needs it after the session.
+ *
+ * @param {FormulaHostEditor} editor The editor instance.
+ */
+function startKeyDownSnapshot(editor: FormulaHostEditor): void {
+  const { hot } = editor as unknown as EditorHost;
+  const rootDocument = hot.rootDocument;
+  const snapshot = (): void => {
+    if (!hot.isDestroyed) {
+      editor._textAtKeyDown = resolvePlugin(editor)?.getActiveEditor()?.getValue();
+    }
+  };
+
+  // `afterClose` never runs when the grid is destroyed while an async validator holds the edit
+  // (`finishEditing()` returns early while the editor waits), so the destroy removes the listener too.
+  const remove = (): void => {
+    rootDocument.removeEventListener('keydown', snapshot, true);
+    hot.removeHook('afterDestroy', remove);
+    editor._removeKeyDownSnapshot = null;
+  };
+
+  editor._removeKeyDownSnapshot?.();
+  rootDocument.addEventListener('keydown', snapshot, true);
+  hot.addHook('afterDestroy', remove);
+  editor._removeKeyDownSnapshot = remove;
 }
 
 /**
@@ -391,6 +448,8 @@ export function createFormulaCellEditor(): BaseEditorCtor {
 
       editor._pending = original;
       editor._original = original;
+      editor._textAtKeyDown = undefined;
+      editor._seededText = undefined;
       editor._hiddenByFormulaBar = false;
     },
     afterOpen(editor) {
@@ -410,7 +469,14 @@ export function createFormulaCellEditor(): BaseEditorCtor {
         return;
       }
 
+      // A fast edit (typing opened the editor) starts empty, not with the cell value, so its text is
+      // no normalized copy of the value: an emptied buffer there clears the cell.
+      if (resolveInlineSeed(editor as SeedSourceEditor) === editor._original) {
+        editor._seededText = plugin.getActiveEditor()?.getValue();
+      }
+
       startKeyboardGuard(editor);
+      startKeyDownSnapshot(editor);
     },
     onFocus(editor) {
       if (editor._fallbackInput) {
@@ -429,8 +495,11 @@ export function createFormulaCellEditor(): BaseEditorCtor {
 
       if (activeEditor) {
         // A plain read: `getValue()` is public through `getActiveEditor()`, so it must not change
-        // the buffer. The parens are closed on the commit path, in `finishEditing()` below.
-        return activeEditor.getValue();
+        // the buffer. The parens are closed on the commit path, in `finishEditing()` below. An
+        // untouched buffer reads as the cell's own value, so `BaseEditor` writes nothing for it.
+        const text = activeEditor.getValue();
+
+        return isUntouchedText(editor, text) ? editor._original ?? text : text;
       }
 
       return editor._original ?? editor._pending ?? '';
@@ -462,6 +531,8 @@ export function createFormulaCellEditor(): BaseEditorCtor {
         editor.hot._registerTimeout(() => guard.destroy());
       }
 
+      editor._removeKeyDownSnapshot?.();
+      editor._removeKeyDownSnapshot = null;
       editor._fallbackInput = undefined;
       removeClass(editor.container, TEXT_EDITOR_HOLDER_CLASS);
       editor.input.replaceChildren();
@@ -495,8 +566,14 @@ export function createFormulaCellEditor(): BaseEditorCtor {
     restoreOriginalValue?: boolean,
     ...rest: unknown[]
   ): void {
-    if (!restoreOriginalValue && this.state === EDITOR_STATE.EDITING && !this._fallbackInput) {
-      resolvePlugin(this)?.getActiveEditor()?.closeUnbalancedParens();
+    const inner = resolvePlugin(this)?.getActiveEditor();
+
+    // An untouched edit is left as it is, so the unchanged-value guard of `BaseEditor` writes nothing.
+    if (
+      !restoreOriginalValue && this.state === EDITOR_STATE.EDITING && !this._fallbackInput &&
+      inner && !isUntouchedText(this, inner.getValue())
+    ) {
+      inner.closeUnbalancedParens();
     }
 
     baseFinishEditing.call(this, restoreOriginalValue, ...rest);
@@ -505,6 +582,42 @@ export function createFormulaCellEditor(): BaseEditorCtor {
   (EditorClass as unknown as Record<symbol, boolean>)[FORMULA_SHIM_MARK] = true;
 
   return EditorClass as unknown as BaseEditorCtor;
+}
+
+/**
+ * Returns the value a commit of the formula editor saves. The formula editor closes unbalanced
+ * parentheses before it commits, so the value of an edit the user never changed differs from the
+ * cell, and `BaseEditor`'s unchanged-value guard would write it (and fire `afterChange`). When the
+ * text before the commit key is untouched (the cell's original value, or the text the formula editor
+ * normalized it to when it was seeded) and the commit only appended closing parentheses to it, the
+ * original value is saved instead, which the guard recognizes.
+ *
+ * @param {FormulaHostEditor} editor The editor instance.
+ * @param {string} value The value the formula editor commits.
+ * @returns {string}
+ */
+export function resolveCommitValue(editor: FormulaHostEditor, value: string): string {
+  const original = editor._original;
+  const before = editor._textAtKeyDown;
+
+  if (original === undefined || before === undefined || !isUntouchedText(editor, before) ||
+      !value.startsWith(before)) {
+    return value;
+  }
+
+  return /^\)*$/.test(value.slice(before.length)) ? original : value;
+}
+
+/**
+ * Checks whether the given text is what the formula editor held before the user changed anything:
+ * the cell's own value, or the text the formula editor normalized it to when it was seeded.
+ *
+ * @param {FormulaHostEditor} editor The editor instance.
+ * @param {string} text The formula editor's text.
+ * @returns {boolean}
+ */
+function isUntouchedText(editor: FormulaHostEditor, text: string): boolean {
+  return text === editor._original || (editor._seededText !== undefined && text === editor._seededText);
 }
 
 let formulaEditorClass: BaseEditorCtor | null = null;

@@ -10,6 +10,7 @@ import {
   mountComponentWithRef,
   simulateKeyboardEvent,
 } from './_helpers';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 registerAllModules();
 
@@ -71,7 +72,7 @@ function editorFor(surface: OpenSurface, opened: Array<Event | undefined>): Reac
 function mountEditor(surface: OpenSurface, opened: Array<Event | undefined>) {
   return mountComponentWithRef<HotTableRef>((
     <HotTable
-      licenseKey="non-commercial-and-evaluation"
+      licenseKey={TEST_LICENSE_KEY}
       data={createSpreadsheetData(3, 3)}
       width={300}
       height={300}
@@ -177,7 +178,7 @@ describe('EditorComponent onOpen position', () => {
 
     const hot = mountComponentWithRef<HotTableRef>((
       <HotTable
-        licenseKey="non-commercial-and-evaluation"
+        licenseKey={TEST_LICENSE_KEY}
         data={createSpreadsheetData(3, 3)}
         width={300}
         height={300}

@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable/base';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 /**
  * A filler column appended after the last end column would take over the frozen position and slide the column
@@ -27,7 +28,7 @@ describe('`minCols` and the `fixedColumnsEnd` option', () => {
     core = new Handsontable(container, {
       data: [['a', 'b', 'c', 'Total'], ['d', 'e', 'f', 'Sum']],
       minCols: 4,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

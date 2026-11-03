@@ -25,6 +25,7 @@
   <style>
     body { font-family: sans-serif; margin: 1rem; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -77,7 +78,7 @@
           rowHeaders: true,
           colHeaders: true,
           manualColumnMove: true,
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: window.htTestLicenseKey,
         }, extraSettings));
       } catch (error) {
         window.htBuildError = String((error && error.stack) || error);

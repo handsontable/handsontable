@@ -4,8 +4,9 @@ import { renderToString } from 'vue/server-renderer';
 import { mount } from '@vue/test-utils';
 import HotTable from '../src/HotTable.vue';
 import { createSampleData } from './_helpers';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
-const licenseKey = 'non-commercial-and-evaluation';
+const licenseKey = TEST_LICENSE_KEY;
 
 /**
  * Loads a separate copy of the `HotTable` component, the way the server and the browser

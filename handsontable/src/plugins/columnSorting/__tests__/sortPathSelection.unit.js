@@ -6,6 +6,7 @@ import { rootComparator } from '../rootComparator';
 import { rootComparator as multiRootComparator } from '../../multiColumnSorting/rootComparator';
 import { markBuiltInRootComparator, registerRootComparator } from '../sortService';
 import { compareFunctionFactory as defaultCompareFunctionFactory } from '../sortFunction/default';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 // `sortByPresetSortStates()` sorts a plain positions array against parallel value arrays whenever the
 // root comparator registered under the plugin's key is still the built-in one. A custom root
@@ -62,7 +63,7 @@ describe.each([
     hot = new Handsontable(container, {
       data: DATA.map(row => [...row]),
       [pluginKey]: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin(pluginKey).sort({ column: 1, sortOrder: 'asc' });
@@ -81,7 +82,7 @@ describe.each([
     hot = new Handsontable(container, {
       data: DATA.map(row => [...row]),
       [pluginKey]: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin(pluginKey).sort({ column: 1, sortOrder: 'asc' });
@@ -122,7 +123,7 @@ describe('sorting rows tied on every sorted column', () => {
         ['a', 2], ['b', 1], ['c', 2], ['d', 1], ['e', 2], ['f', 1],
       ],
       columnSorting: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
@@ -138,7 +139,7 @@ describe('sorting rows tied on every sorted column', () => {
         ['a', 2, 5, 1], ['b', 1, 9, 1], ['c', 2, 5, 0], ['d', 2, 3, 7], ['e', 1, 9, 0],
       ],
       multiColumnSorting: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('multiColumnSorting').sort([
@@ -194,7 +195,7 @@ describe('the parallel-value-arrays path', () => {
     hot = new Handsontable(container, {
       data: [['a', 30], ['b', 10], ['c', 20]],
       columnSorting: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
@@ -219,7 +220,7 @@ describe('the parallel-value-arrays path', () => {
     hot = new Handsontable(container, {
       data: [['a', 1, 30], ['b', 1, 10], ['c', 1, 20]],
       multiColumnSorting: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('multiColumnSorting').sort([
@@ -250,7 +251,7 @@ describe('the parallel-value-arrays path', () => {
       data: [['a', 30], ['b', 10], ['c', 20]],
       columns: [{}, { columnSorting: { compareFunctionFactory } }],
       columnSorting: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });

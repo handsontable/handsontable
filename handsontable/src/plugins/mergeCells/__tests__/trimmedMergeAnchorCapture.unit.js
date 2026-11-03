@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * A merge made while rows are trimmed has to own the trimmed rows that sit between the rows it
@@ -23,7 +24,7 @@ describe('MergeCells anchor captured while rows are trimmed', () => {
   function createGrid(settings) {
     hot = new Handsontable(container, {
       data: Handsontable.helper.createSpreadsheetData(8, 3),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       mergeCells: true,
       width: 400,
       height: 300,

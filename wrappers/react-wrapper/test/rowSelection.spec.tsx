@@ -9,6 +9,7 @@ import {
   renderHotTableWithProps,
 } from './_helpers';
 import { HotTableProps, HotTableRef } from '../src/types';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 // register Handsontable's modules
 registerAllModules();
@@ -28,7 +29,7 @@ function getRowHeaderCheckbox(hotTableRef: HotTableRef, row: number): HTMLInputE
 
 describe('HotTable `rowSelection` option', () => {
   const baseSettings: HotTableProps = {
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     id: 'hot',
     data: createSpreadsheetData(5, 3),
     rowHeaders: true,
@@ -109,7 +110,7 @@ describe('HotTable `headerCheckbox` column option', () => {
   it('should render the header checkbox for a checkbox column configured through HotColumn', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable
-        licenseKey="non-commercial-and-evaluation"
+        licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={[{ name: 'A', active: true }, { name: 'B', active: false }]}
         colHeaders={true}
@@ -131,7 +132,7 @@ describe('HotTable `headerCheckbox` column option', () => {
 
   it('should render the header checkbox for a checkbox column configured through the `columns` prop', async() => {
     const hotTableRef = renderHotTableWithProps({
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       id: 'hot',
       data: [{ active: true }, { active: true }],
       colHeaders: true,
