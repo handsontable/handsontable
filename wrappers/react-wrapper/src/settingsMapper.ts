@@ -29,6 +29,13 @@ const COMPARED_AGAINST_LIVE_SETTINGS: Array<keyof Handsontable.GridSettings> = [
 ];
 
 /**
+ * Settings that core resets only on `null`. For these, core reads `undefined` as "leave the current
+ * value", so forwarding the `undefined` default would keep the old size on the root element. `null`
+ * restores the root element's initial inline size, which is what a fresh mount without the prop gives.
+ */
+const CLEARED_BY_NULL_SETTINGS = new Set<string>(['height', 'width']);
+
+/**
  * Checks whether a setting is a hook, by the rule core's `updateSettings()` uses in `core.ts`: a
  * registered or a deprecated hook name.
  *
@@ -41,13 +48,14 @@ function isHookKey(key: string): boolean {
 
 /**
  * Returns the value that clears a setting whose prop went from a value to `undefined`: `null` for a
- * hook, which removes its callback, and the option's default for anything else.
+ * hook (it removes the callback) and for `height` and `width` (it resets the root element's size),
+ * and the option's default for anything else.
  *
  * @param {string} key The setting name.
  * @returns {*} The value to forward to `updateSettings()`.
  */
 function getClearedValue(key: string): unknown {
-  if (isHookKey(key)) {
+  if (isHookKey(key) || CLEARED_BY_NULL_SETTINGS.has(key)) {
     return null;
   }
 
@@ -94,8 +102,9 @@ export class SettingsMapper {
    * A prop whose value is `undefined` counts as not passed and is left out, so the option keeps its
    * default. An own `undefined` key would shadow that default in the settings cascade. On an update
    * of a prop that had a value in the previous props, the option's default is forwarded instead, so
-   * the grid matches a fresh mount with the same props (`height={full ? undefined : 400}` clears the
-   * height, `copyPaste={on ? false : undefined}` turns copy and paste back on).
+   * the grid matches a fresh mount with the same props (`copyPaste={on ? false : undefined}` turns
+   * copy and paste back on). `height` and `width` are forwarded as `null`, because core leaves the
+   * size in place for `undefined` (`height={full ? undefined : 400}` clears the height).
    * A hook has no default to fall back to, so a hook prop that had a callback and is now `undefined`
    * is forwarded as `null`, which removes the callback (`afterChange={on ? logChange : undefined}`).
    * So is a hook prop that had a callback and is no longer passed at all, and, on an update, a hook
@@ -163,7 +172,7 @@ export class SettingsMapper {
     if (!isInit) {
       Object.keys(prevProps).forEach((key) => {
         if (
-          !Object.prototype.hasOwnProperty.call(properties, key) &&
+          !Object.hasOwn(properties, key) &&
           prevProps[key as keyof HotTableProps] !== undefined &&
           isHookKey(key)
         ) {
