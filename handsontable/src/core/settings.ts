@@ -14,7 +14,8 @@ import type {
 import type { ColumnConditions, FiltersSettings } from '../plugins/filters';
 import type { FormulaBuilderPluginSettings } from '../plugins/formulaBuilder';
 import type { LayoutConfig } from './layout';
-import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
+import type { PredefinedMenuItemKey, MenuItemConfig } from '../utils/menu/types';
+import type { ContextMenu } from '../plugins/contextMenu';
 import type { DropdownMenu } from '../plugins/dropdownMenu';
 import type { NotificationConfig } from '../plugins/notification';
 import type { ThemeBuilder } from '../themes/engine/builder';
