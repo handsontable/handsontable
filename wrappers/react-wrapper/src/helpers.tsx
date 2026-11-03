@@ -454,3 +454,25 @@ export function useUpdateEffect(effect: EffectCallback, deps?: DependencyList): 
     }
   }, deps);
 }
+
+/**
+ * The class of the wrapper the grid puts around a cell's content in a row rendered at an exact height.
+ */
+const CELL_CLIP_CLASS = 'htCellClip';
+
+/**
+ * Returns the element a cell's content belongs in: the grid's clipping wrapper when the cell holds
+ * exactly that wrapper, and the cell itself otherwise.
+ *
+ * @param {HTMLElement} TD The table cell.
+ * @returns {Element}
+ */
+export function getCellContentRoot(TD: HTMLElement): Element {
+  const firstChild = TD.firstElementChild;
+
+  if (firstChild !== null && TD.childNodes.length === 1 && firstChild.classList.contains(CELL_CLIP_CLASS)) {
+    return firstChild;
+  }
+
+  return TD;
+}

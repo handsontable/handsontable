@@ -10,6 +10,7 @@ import { formatCellValue } from '../../renderers/renderCell';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { FONT_REMEASURE_ROWS_ORDER_INDEX } from '../../core/fontLoad';
+import { isAutoRowSizeOn } from '../../core/rowHeightSetting';
 import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'autoRowSize';
@@ -407,9 +408,7 @@ export class AutoRowSize extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    const settings = this.hot.getSettings()[PLUGIN_KEY];
-
-    return settings === true || isObject(settings);
+    return isAutoRowSizeOn(this.hot.getSettings()[PLUGIN_KEY]);
   }
 
   /**

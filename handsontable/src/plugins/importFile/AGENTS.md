@@ -311,6 +311,14 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   result does carry is merged into an existing options object (`{ indicators: true }` on `hiddenRows`,
   `{ virtualized: true }` on `mergeCells`) rather than replacing it. `hiddenRows`/`hiddenColumns` are
   ALWAYS the object shape; only `mergeCells` may be a bare array.
+- **`result.rowHeights` lands in `minRowHeights`, never in `rowHeights` (`toSettings` in `applier.ts`).**
+  The reader keeps every row's `ht`, also the height the producing app measured and not one a user set
+  (no `customHeight` in the model): LibreOffice and Google Sheets write one on every row, 20 px for the
+  default 15 pt. The core `rowHeights` option is exact since 19.0 and clips, so those rows would render
+  below the theme's row height with their text cut. As a floor they keep the behavior they had. The
+  import also clears an exact `rowHeights` the grid held (it would win per row over the
+  imported heights), and the reset of an earlier import clears both settings. Applying only the user-set heights as
+  exact needs a `customHeight` flag on `SheetSnapshot`, in both adapters.
 - **The result is in sheet coordinates; the grid API takes visual ones.** `applyImportResult` runs every
   `cellsMeta` and comment coordinate through `toVisualRow`/`toVisualColumn`, because a `manualRowMove`
   array reorders rows inside `loadData`. Both return `null` for a trimmed index (`trimRows`,
