@@ -7980,6 +7980,34 @@ export default function Core(
   };
 
   /**
+   * Writes a cell meta key by the PHYSICAL coordinates it is stored under, journaled for undo like
+   * {@link Core#setCellMeta}, and fires no `beforeSetCellMeta`/`afterSetCellMeta` hook, so it cannot be
+   * vetoed. It exists for a plugin that puts back meta it already owns, where the write is not an edit
+   * the application made: the plugin writes the same record the model already describes, and a listener
+   * that marks a document dirty or blocks edits on locked cells has nothing to act on.
+   *
+   * Internal API: deliberately NOT declared on the public `HotInstance` type, the same way
+   * `_removeCellMetaByPhysicalIndex` is not.
+   *
+   * @private
+   * @memberof Core#
+   * @function _setCellMetaByPhysicalIndex
+   * @param {number} physicalRow Physical row index.
+   * @param {number} physicalColumn Physical column index.
+   * @param {string} key The property name to set.
+   * @param {*} value The value to write.
+   */
+  this._setCellMetaByPhysicalIndex = function(
+    physicalRow: number, physicalColumn: number, key: string, value: unknown
+  ) {
+    operationScope.run('set_cell_meta', undefined, () => {
+      writeCellMetaChange(physicalRow, physicalColumn, key, () => {
+        metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
+      });
+    });
+  };
+
+  /**
    * Sets a property defined by the `key` property to the meta object of a cell corresponding to params `row` and `column`.
    *
    * This method updates internal cell metadata only. It does not repaint the grid. To reflect visual changes (such as

@@ -142,25 +142,40 @@ core clears cell meta on `loadData` and keeps it on `updateData`, so clearing th
 borders the user still sees after a same-size `loadData` - a visible behavior change. Leaving the two
 disagreeing was the defect: the border stayed drawn from the model alone, and the next rebuild from the
 meta (a trim, an untrim, a filter, `resetBorderModel`) found no `borders` meta and emptied the model.
-`#onAfterLoadData` therefore restores the meta of every model entry that is still inside the loaded data,
-through `#writeBordersMeta` (meta first, vetoable; `loadData` runs under `operationScope.suppress()`, so no
-undo step). Four rules ride along:
+`#onAfterLoadData` therefore writes the meta of every model entry back. Five rules ride along:
 
-- **A vetoed write drops the model entry**, as everywhere else: the model never gets ahead of the meta.
-- **Entries outside the loaded data stay in the model and get no meta.** They are not drawn, a later
-  `loadData` of a larger dataset still shows them (today's behavior), and `#resetBorderModel` already
-  handles them. Do not prune them here: that would be a visible change with no ticket behind it.
-- **A load made by `_applySettingsAndData()` restores too, and needs no guard.** A declared
-  `customBorders` array replaces the restored meta in the same call (`onDataReady()` ->
-  `changeBorderSettings()` resets the model first), and the sheets bar empties the model before the load
-  (`clearCustomBorders()`), so the hook has nothing to write there. Skipping the call while
-  `isDataWorkDeferred()` answers `true` was tried: no test needed it, and it left a direct
-  `_applySettingsAndData()` load with the original defect.
-- **The model holds visual coordinates**, and `#writeBordersMeta` translates them through the index maps
-  as they stand when the hook runs. `loadData` resets the maps, and the plugins that re-apply a declared
-  order (`manualRowMove`, `manualColumnMove`, a declared `trimRows` or `hiddenRows`) run before this plugin
-  (priority 335), so the border lands on the record it is drawn on. `#onBeforeDataReplacement` has
-  already run a pending rebuild, so the model is where the border was drawn.
+- **The write is a restore, not an edit, so it goes through `_setCellMetaByPhysicalIndex`.** That core
+  method is journaled like `setCellMeta` (`loadData` runs under `operationScope.suppress()`, so there is no
+  undo step) and fires no `beforeSetCellMeta`/`afterSetCellMeta`. Through `setCellMeta` the restore fired
+  both hooks once per bordered cell for a write the application never made, and an app that blocks
+  `borders` edits on locked cells vetoed every one of them, so one `loadData()` of the same data removed
+  the borders it had kept before. It cannot be vetoed, so the hook never changes the model: there is no
+  veto path to drop an entry on, and nothing to splice one at a time. Do not move it back to
+  `#writeBordersMeta`, which is the vetoable path for edits. Undo restores meta the same way, without hooks.
+- **The hook runs at order index `-1` and reads `#savedBorders`, never the `savedBorders` getter.** The
+  getter flushes a pending rebuild from the meta, and an application's own `afterLoadData` listener that
+  trims or filters (to re-apply a saved filter) marks one. Run after that listener, the rebuild would read
+  the meta `loadData` just dropped and empty the model before the restore. `updatePlugin()` disables and
+  enables the plugin and so registers the hook again at the end of the list: only the order index keeps
+  it first. `#onBeforeDataReplacement` has already flushed a rebuild that was pending before the load.
+  Pinned by the "trims first" case in `loadDataMeta.unit.js`.
+- **Entries past the loaded data get their meta too**, at the raw index `setCellMeta` would use for an
+  index outside the grid (the same rule as `toCellMetaPhysicalCoords` in `core.ts`). They are not drawn,
+  and a later `updateData()` that regrows the grid keeps the meta by physical index, so the border comes
+  back with its meta and survives the next rebuild. Leaving them without meta let exactly that rebuild
+  empty the model, the defect this section is about reached by another path.
+- **A `_applySettingsAndData()` call that declares `customBorders` is skipped** (`hasDeferredDataWork()`:
+  `updatePlugin()` recorded the declared array for `onDataReady()`, which resets the model and applies it).
+  Restoring first wrote the old data's borders into the new rows only for `onDataReady()` to remove them
+  again, and a listener that vetoed that removal left them there as real meta. A call that declares no
+  array (`_applySettingsAndData({}, data)`) still restores. The sheets bar empties the model before the
+  load (`clearCustomBorders()`), so it has nothing to write.
+- **The model holds visual coordinates**, and the hook translates them through the index maps as they
+  stand when it runs. Which plugin has re-applied its order by then is not guaranteed: a declared
+  `trimRows` or `hiddenRows` re-applies from the index map `init` hook inside `initIndexMappers()`, before
+  any `afterLoadData` listener, and the manual move plugins put their listener back after their own
+  `updatePlugin()`. The result holds either way, because the move and trim handlers re-derive the model
+  from physical indexes afterwards, so do not rely on the priority (335) for this.
 
 Pinned by `__tests__/loadDataMeta.unit.js` and the `CustomBorders after loadData()` block in
 `tests/e2e/customBorders.spec.ts`. The shrinking-load rules above are pinned by

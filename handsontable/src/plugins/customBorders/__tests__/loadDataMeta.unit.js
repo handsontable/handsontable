@@ -109,30 +109,65 @@ describe('CustomBorders after loadData', () => {
   ];
 
   shapes.forEach(({ name, entry }) => {
-    it(`should write no meta beyond the loaded data and keep the model entry (${name})`, () => {
+    it(`should keep model and meta in agreement for an entry beyond the loaded data (${name})`, () => {
       create({
         data: square(8),
+        trimRows: true,
         customBorders: [{ ...entry, top: { width: 2, color: 'red' } }],
       });
       hot.loadData(square(3));
 
       expect(hot.getPlugin('customBorders').getBorders()).toHaveLength(1);
 
-      // A regrow through `updateData()` keeps the meta by physical index, so a stray write shows here.
+      // A regrow through `updateData()` keeps the meta by physical index, so the border is back with its
+      // meta, and the next rebuild from the meta (a trim) keeps it.
       hot.updateData(square(8));
 
-      expect(hot.getCellMeta(entry.row, entry.col).borders).toBeFalsy();
+      expect(hot.getCellMeta(entry.row, entry.col).borders).toBeTruthy();
+
+      hot.getPlugin('trimRows').trimRow(1);
+
+      expect(hot.getPlugin('customBorders').getBorders()).toHaveLength(1);
       expect(() => hot.getPlugin('customBorders').clearBorders()).not.toThrow();
     });
   });
 
-  it('should drop the model entry of a cell whose meta write a listener vetoed', () => {
+  it('should restore the meta without firing the cell meta hooks', () => {
+    create();
+
+    const before = jest.fn();
+    const after = jest.fn();
+
+    hot.addHook('beforeSetCellMeta', before);
+    hot.addHook('afterSetCellMeta', after);
+    hot.loadData(square(6));
+
+    expect(hot.getCellMeta(0, 0).borders).toBeTruthy();
+    expect(before).not.toHaveBeenCalled();
+    expect(after).not.toHaveBeenCalled();
+  });
+
+  it('should keep the border when a `beforeSetCellMeta` listener blocks `borders` edits', () => {
     create();
     hot.addHook('beforeSetCellMeta', (row, column, key) => (key === 'borders' ? false : undefined));
     hot.loadData(square(6));
 
-    expect(hot.getCellMeta(0, 0).borders).toBeFalsy();
-    expect(hot.getPlugin('customBorders').getBorders()).toHaveLength(0);
+    expect(hot.getCellMeta(0, 0).borders).toBeTruthy();
+    expect(hot.getPlugin('customBorders').getBorders()).toHaveLength(1);
+  });
+
+  it('should keep the border when an `afterLoadData` listener of the app trims first', () => {
+    create({ trimRows: true });
+    // Registered before the `updateSettings()` below, which re-adds the plugin's own listener after it.
+    hot.addHook('afterLoadData', () => {
+      hot.getPlugin('trimRows').trimRow(2);
+      hot.getPlugin('customBorders').getBorders();
+    });
+    hot.updateSettings({ customBorders: [{ row: 0, col: 0, top: { width: 2, color: 'red' } }] });
+    hot.loadData(square(6));
+
+    expect(hot.getPlugin('customBorders').getBorders()).toHaveLength(1);
+    expect(hot.getCellMeta(0, 0).borders).toBeTruthy();
   });
 
   it('should restore the meta for a load made by `_applySettingsAndData()` that declares no borders', () => {
@@ -145,6 +180,9 @@ describe('CustomBorders after loadData', () => {
 
   it('should let a `customBorders` declared in the same `_applySettingsAndData()` call replace the old borders', () => {
     create();
+
+    // A listener that blocks the removal would keep an old border the restore had written into the new data.
+    hot.addHook('beforeRemoveCellMeta', (row, column, key) => (key === 'borders' ? false : undefined));
     hot._applySettingsAndData(
       { customBorders: [{ row: 1, col: 1, top: { width: 2, color: 'blue' } }] },
       square(6),

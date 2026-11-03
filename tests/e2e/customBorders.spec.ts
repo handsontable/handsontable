@@ -577,23 +577,32 @@ test.describe('CustomBorders after loadData()', { tag: THEMES_TAG }, () => {
     expect((await lab.cellBorders(0, 0))?.top).toEqual(RED_BORDER);
   });
 
-  test('draws no border for a cell whose meta write a listener vetoes', async ({ page, theme, bundle }) => {
+  test('keeps the border when a listener blocks `borders` meta edits on loadData()', async ({ page, theme, bundle }) => {
     const lab = await gotoLab(page, theme, bundle);
 
-    await lab.createGrid({ dataRows: 8, dataCols: 3, customBorders: [{ row: 0, col: 0, top: RED_BORDER }] });
+    await lab.createGrid({ dataRows: 8, dataCols: 3, trimRows: true, customBorders: [{ row: 0, col: 0, top: RED_BORDER }] });
     expect(await lab.countVisibleCustomBorders()).toBe(1);
 
-    await page.evaluate((data) => {
+    // The restore is not an edit: a listener that locks `borders` neither sees nor vetoes it.
+    const hookCalls = await page.evaluate((data) => {
       const hot = (window as any).hot;
+      let calls = 0;
 
-      hot.addHook('beforeSetCellMeta', (_row: number, _col: number, key: string) => (key === 'borders' ? false : undefined));
+      hot.addHook('beforeSetCellMeta', (_row: number, _col: number, key: string) => {
+        calls += key === 'borders' ? 1 : 0;
+
+        return key === 'borders' ? false : undefined;
+      });
       hot.loadData(data);
+      hot.getPlugin('trimRows').trimRow(2);
+
+      return calls;
     }, sameData(8, 3));
 
-    // The model, the meta and the DOM agree: the vetoed border is gone from all three.
-    expect(await lab.borderCoords()).toEqual([]);
-    expect(await lab.cellBorders(0, 0)).toBeNull();
-    expect(await lab.countVisibleCustomBorders()).toBe(0);
+    expect(hookCalls).toBe(0);
+    expect(await lab.borderCoords()).toEqual([{ row: 0, col: 0 }]);
+    expect((await lab.cellBorders(0, 0))?.top).toEqual(RED_BORDER);
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
   });
 
   test('control: keeps the border through a trim after updateData()', async ({ page, theme, bundle }) => {
