@@ -305,6 +305,16 @@ const TOP_LEVEL_DATA_WARNING = 'The `data` setting is ignored when `sheetsBar.sh
   'each sheet declares its own data.';
 
 /**
+ * The `updateData()` source a framework wrapper passes when it sends its `data` binding on its own rather than
+ * inside `updateSettings()` (the Angular wrapper's `data` input). The bar treats it as the `data` of an
+ * `updateSettings()` call, the way the React and Vue wrappers send it, so a re-sent or new array follows the
+ * top-level `data` rule. A plain `updateData()` call acts on the visible sheet, as `loadData()` does.
+ *
+ * @type {string}
+ */
+const DATA_BINDING_SOURCE = 'dataBinding';
+
+/**
  * The warning logged when a `sheetsBar: true` workbook gets a new top-level `data` after the sheet built from
  * the grid's data was removed.
  *
@@ -1009,13 +1019,6 @@ export class SheetsBar extends BasePlugin {
    * @type {WeakSet<Array>}
    */
   #unappliedTopLevelData = new WeakSet<unknown[]>();
-  /**
-   * Whether the bar itself is replacing the visible sheet's data through `updateData()` (a rename that had to
-   * copy a frozen array), which the top-level `data` rule leaves alone.
-   *
-   * @type {boolean}
-   */
-  #isUpdatingOwnData = false;
   /**
    * The tab name to re-activate after a workbook rebuild, or `null` when the rebuild should
    * follow the `activeSheet` setting. Set by `updatePlugin` for the window of one rebuild.
@@ -5480,14 +5483,7 @@ export class SheetsBar extends BasePlugin {
       return;
     }
 
-    const load = () => this.#withoutUndoEntry(() => {
-      try {
-        this.#isUpdatingOwnData = true;
-        this.hot.updateData(data as unknown[][], `${source}.rename`);
-      } finally {
-        this.#isUpdatingOwnData = false;
-      }
-    });
+    const load = () => this.#withoutUndoEntry(() => this.hot.updateData(data as unknown[][], `${source}.rename`));
 
     if (formulas?.enabled) {
       formulas.runWithEngineOrderHeld(load, formulas.exportEngineOrder());
@@ -5934,9 +5930,9 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * A host's own `updateData()` call (the Angular wrapper's `data` input) goes through the same top-level `data`
-   * rule as `updateSettings({ data })` in a workbook that declares no sheets (`#keepUndeclaredSheetRows`), so
-   * a new array reaches the sheet built from the grid's data, whichever sheet is shown.
+   * A wrapper's `data` binding sent through `updateData()` (`DATA_BINDING_SOURCE`, the Angular wrapper's `data`
+   * input) goes through the same rules as the `data` of an `updateSettings()` call. Any other `updateData()`
+   * call acts on the visible sheet, as `loadData()` does.
    *
    * Keeps the visible sheet's rows when a later `updateSettings()` call sets a grid-level
    * `dataProvider`. Core applies the new setting before this plugin can block it, sees a complete
@@ -5953,12 +5949,8 @@ export class SheetsBar extends BasePlugin {
    * @returns {Array|undefined} The grid's current rows while a blocked `dataProvider` is applied.
    */
   #onBeforeUpdateData = (sourceData: unknown[], initialLoad: boolean, source: string) => {
-    if (source !== 'updateSettings') {
-      if (this.#isSwitching || this.#isUpdatingOwnData || this.hot.runHooks('hasExternalDataSource') === true) {
-        return;
-      }
-
-      return this.#keepUndeclaredSheetRows(sourceData, this.#getLiveSourceData());
+    if (source !== 'updateSettings' && source !== DATA_BINDING_SOURCE) {
+      return;
     }
 
     const { dataProvider } = this.hot.getSettings();

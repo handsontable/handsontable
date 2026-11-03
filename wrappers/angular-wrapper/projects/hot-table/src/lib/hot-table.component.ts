@@ -33,6 +33,13 @@ export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this co
 const SIZE_SETTING_KEYS = new Set<string>(['rowHeights', 'minRowHeights', 'colWidths']);
 
 /**
+ * The `updateData()` source the `data` input is sent with. It tells core that the array is the component's
+ * `data` binding, which the React and Vue wrappers send as the `data` of `updateSettings()`: with the sheets
+ * bar on, it then follows the top-level `data` rule instead of replacing the visible sheet's rows.
+ */
+export const DATA_BINDING_SOURCE = 'dataBinding';
+
+/**
  * Checks whether a hook value holds a callback core registers: a function or an array of them.
  *
  * @param value The hook value.
@@ -252,7 +259,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
     }
 
     if (changes.data && !changes.data.firstChange) {
-      this.hotInstance?.updateData(changes.data.currentValue);
+      this.hotInstance?.updateData(changes.data.currentValue, DATA_BINDING_SOURCE);
     }
   }
 

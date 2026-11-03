@@ -1092,6 +1092,30 @@ describe('SheetsBar settings baseline and lifecycle', () => {
         expect(hot.getDataAtCell(0, 0)).toBe('other');
         expect(bar.getSheetData('Sheet1')).toBe(newRows);
       });
+
+      it('leaves a plain updateData() call acting on the visible sheet, as loadData() does', () => {
+        const bar = buildWithAddedSheets([['A1']]);
+        const newRows = [['new']];
+
+        bar.setActiveSheet('Second');
+        hot.updateData(newRows);
+
+        expect(hot.getDataAtCell(0, 0)).toBe('new');
+        expect(bar.getSheetData('Second')).toBe(newRows);
+        expect(bar.getSheetData('Sheet1')).toEqual([['A1']]);
+      });
+
+      it('leaves a plain updateData() call acting on the visible sheet after the first sheet is removed', () => {
+        const bar = buildWithAddedSheets([['A1']]);
+        const newRows = [['new']];
+
+        bar.setActiveSheet('Second');
+        bar.removeSheet(idOf(bar, 'Sheet1'));
+        hot.updateData(newRows);
+
+        expect(hot.getDataAtCell(0, 0)).toBe('new');
+        expect(bar.getSheetData('Second')).toBe(newRows);
+      });
     });
 
     it('does not change how a grid-level `dataProvider` set later keeps the shown rows', async() => {

@@ -533,10 +533,13 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   drops what the sheet kept from its last visit, as a `loadData()` would, and feeds its engine sheet), and
   ignored with one warning per array (`REMOVED_DATA_OWNER_WARNING`) once it was removed. Turning the bar off
   and on or rebuilding picks a new owner. A payload that turns a declared workbook into `sheetsBar: true` loads
-  its `data` (`#declaredEntries` is not empty yet). A host's own `updateData()` call follows the same rule
-  (`#onBeforeUpdateData`), because the Angular wrapper sends a changed `data` input that way: before, it
-  skipped the rule and replaced whichever sheet was shown. The bar's own `updateData()` (a rename that copied
-  a frozen array) is marked with `#isUpdatingOwnData` and left alone.
+  its `data` (`#declaredEntries` is not empty yet). The rule covers the `data` of `updateSettings()` and an
+  `updateData()` with source `DATA_BINDING_SOURCE` (`'dataBinding'`), which the Angular wrapper sends its
+  `data` input with (React and Vue send `updateSettings({ data })`). Any other `updateData()` call acts on
+  the visible sheet, as `loadData()` does: routing every host `updateData()` through the rule made a plain
+  call update a hidden sheet, and a no-op once the first sheet was removed. The Angular wrapper keeps
+  `updateData()` instead of `updateSettings({ data })` because the latter also fires the settings hooks and
+  every plugin's settings update.
 - **A sheet added without data starts with `NEW_NESTED_SHEET_ROW_COUNT` empty object rows (`createEmptyObjectRows()`, each its own object) while it would show with NestedRows on**
   (`#blankSheetData`: its own `nestedRows`, else the grid-level value). NestedRows answers an array of
   arrays by writing `nestedRows = false` into the grid settings and disabling itself, a released path
@@ -566,8 +569,8 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   (`#declaresWorkbookNow`: `false`, `true`, or `sheets: null`/`[]`): core loads a payload's `data` before
   `afterUpdateSettings`, where the bar is turned off or rebuilt, so `{ sheetsBar: false, data }` reached the
   redirect while the old workbook was still built and lost its rows. Keep the DataProvider redirects ahead
-  of it in `#onBeforeUpdateData`. The Angular wrapper's `[data]` input calls `updateData()` directly
-  (source `'updateData'`), which this rule does not cover.
+  of it in `#onBeforeUpdateData`. The Angular wrapper's `[data]` input calls `updateData()` with source
+  `'dataBinding'`, which goes through this rule like `updateSettings({ data })`.
 - **Known and accepted:** a truthy grid-level `dataProvider` triggers the gate warning even when it is not a complete configuration (the gate does not validate it); and a genuine teardown drops the model before it restores the grid-level settings, so listeners of the restore's `updateSettings()` already see a grid without sheets (`getSheets()` is empty).
 - **`sheets` works like `data`: the bar writes into the host's array.** A rename writes `entry.name`
   (`#writeDeclaredName`), an add or a duplicate pushes `{ name, data, settings? }` with the sheet's own data
