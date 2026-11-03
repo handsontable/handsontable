@@ -447,7 +447,8 @@ Other rules:
   so its value is spelled as a literal (`toFormulaLiteral`: `"text"` with `""`, at most 255 characters,
   `TRUE()`/`FALSE()`, an error code). A text holding a character the native writer drops
   (`ILLEGAL_XML_CHAR`, shared from `utils/xlsxEngine/adapters/native/xml/escapes.ts`: C0 controls, DEL,
-  U+FFFE, U+FFFF) or a carriage return is refused: the writer would strip the first silently, and the
+  U+FFFE, U+FFFF), a lone surrogate (`isWellFormed()`; `TextEncoder` writes U+FFFD) or a carriage
+  return is refused: the writer would strip the first silently, and the
   reader's end-of-line handling reads `"a\rb"` back as `"a\nb"` (pinned by a write-then-read test). The
   ExcelJS writer keeps no constant name at all. **Names are written ONCE per export, not per grid**:
   grids of a multi-sheet export usually share one engine, and normalizing every name against each grid's
@@ -456,7 +457,11 @@ Other rules:
   name) with its exported name and header offsets; `#addDefinedNames` groups them per engine, reads the
   left-out rows and columns of each sheet
   (`getExcludedHiddenRows(true)`/`getExcludedHiddenColumns(true)`) only for an engine that has names,
-  and runs `normalizeNamedExpression` once per name against that map. **Every bound grid registers, with
+  and runs `normalizeNamedExpression` once per name against that map. It strips every
+  `ARRAYFORMULA(…)` call as a cell formula does, and refuses a definition holding `#ERROR!` outside a
+  string: HyperFormula stores a definition it cannot parse (`=1+`, `="a""b"`) as `=#ERROR!`, which is
+  no OOXML code. `replaceSeparatorOutsideStrings` leaves an array literal (`{1,2;3,4}`) alone, in a
+  definition and in a cell formula: its `;` is OOXML's row separator too. **Every bound grid registers, with
   or without `exportFormulas`**: a sheet written as values is still in the file, and registering only
   the `exportFormulas` grids would drop a name pointing at it. An engine's names are written only when
   one of its grids has `exportFormulas`, read from that grid. The `xlsx*.unit.js` mocks therefore all

@@ -880,6 +880,21 @@ describe('Xlsx export: named expressions as defined names', () => {
     expect(dropped.list()).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
   });
 
+  it('should leave out a name HyperFormula could not parse, and export the cells over it as values', async() => {
+    // HyperFormula stores `=1+` as `=#ERROR!`, which no reader parses as a definition.
+    const engine = createGrid({ data: [[1], ['=IFERROR(Bad,7)']] });
+
+    engine.addNamedExpression('Bad', '=1+');
+
+    const { snapshot, dropped } = await exportWorkbook();
+    const [, cell] = snapshot.sheets[0].rows.map(row => row[0]);
+
+    expect(snapshot.definedNames ?? []).toEqual([]);
+    expect(cell.formula).toBeNull();
+    expect(cell.value).toBe(7);
+    expect(dropped.list()).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+  });
+
   it('should leave out every name of a chain over a name the file does not hold, however deep', async() => {
     // `Grand` uses `Total` only, which uses `Base`. Only the chain walk sees that `Grand` needs the
     // left-out `Base`: the file kept `Grand = Total*2` with no `Total`, and `=Grand` opened as `#NAME?`.

@@ -2,6 +2,7 @@ import { colIndexToLetter, colLetterToIndex } from '../../../../utils/xlsxEngine
 import { mapFormulaReferences, type ReferenceMap } from '../../../../utils/xlsxEngine/formulaRefs';
 import { isNameChar, skipQuoted } from '../../../../utils/xlsxEngine/functionPrefixes';
 import { ILLEGAL_XML_CHAR } from '../../../../utils/xlsxEngine/adapters/native/xml/escapes';
+import { stripArrayFormulaCalls } from '../../../../utils/xlsxEngine/dynamicArrays';
 
 /**
  * The column-letter converters, re-exported from the shared xlsx engine layer so the export's own
@@ -77,7 +78,9 @@ export function buildSummaryFormula(
 
 /**
  * Replaces all occurrences of `from` with `to` in `str`, skipping characters
- * inside single-quoted or double-quoted string literals.
+ * inside single-quoted or double-quoted string literals and inside an array literal
+ * (`{1,2;3,4}`): its `;` separates rows in OOXML as it does in HyperFormula, so swapping a `;`
+ * argument separator there turned `INDEX({1,2;3,4};2;1)` into `INDEX({1,2,3,4},2,1)`.
  *
  * @private
  * @param {string} str Input string.
@@ -89,6 +92,7 @@ export function replaceSeparatorOutsideStrings(str: string, from: string, to: st
   let result = '';
   let inString = false;
   let stringChar = '';
+  let arrayDepth = 0;
 
   for (let i = 0; i < str.length; i++) {
     const ch = str[i];
@@ -110,7 +114,10 @@ export function replaceSeparatorOutsideStrings(str: string, from: string, to: st
       inString = true;
       stringChar = ch;
       result += ch;
-    } else if (str.startsWith(from, i)) {
+    } else if (ch === '{' || (ch === '}' && arrayDepth > 0)) {
+      arrayDepth += ch === '{' ? 1 : -1;
+      result += ch;
+    } else if (arrayDepth === 0 && str.startsWith(from, i)) {
       result += to;
       i += from.length - 1;
     } else {
@@ -375,7 +382,9 @@ function exportedSheetMap(sheet: ExportedEngineSheet): ReferenceMap {
  * when a reference names a sheet the export does not write (the file has no such sheet), has no
  * sheet at all, or ends on a left-out row or column. A left-out row or column INSIDE a range
  * only shrinks it, the way a cell formula's range shrinks. The argument separator becomes `,` and
- * the decimal separator of a number literal `.`, as in a cell formula.
+ * the decimal separator of a number literal `.`, and every `ARRAYFORMULA(…)` call is stripped, as in
+ * a cell formula (Excel has no such function). A definition HyperFormula could not parse is stored
+ * as `=#ERROR!`, which is no OOXML error code: it cannot be expressed either.
  *
  * @private
  * @param {string} formula The definition (with or without its leading `=`).
@@ -390,7 +399,13 @@ export function normalizeNamedExpression(
   sheets: Map<string, ExportedEngineSheet>,
   decimalSeparator = '.'
 ): string | null {
-  const definition = toDotDecimalSeparator(formula.startsWith('=') ? formula.slice(1) : formula, decimalSeparator);
+  const text = formula.startsWith('=') ? formula.slice(1) : formula;
+
+  if (/#ERROR!/i.test(text.replace(/"(?:[^"]|"")*"/g, '""'))) {
+    return null;
+  }
+
+  const definition = toDotDecimalSeparator(stripArrayFormulaCalls(text), decimalSeparator);
   let unknownSheet = false;
   const mapped = mapFormulaReferences(definition, () => null, {
     requalify: (sheetName) => {
@@ -456,10 +471,11 @@ const MAX_FORMULA_STRING_LITERAL_LENGTH = 255;
  * Whether a string literal would change on its way through the file. The writer drops every
  * character an XML 1.0 file cannot hold (`ILLEGAL_XML_CHAR`, the native writer's own set), and a
  * carriage return is written raw, so the reader's end-of-line handling turns it into a line feed
- * (`"a\rb"` read back as `"a\nb"`). A tab and a line feed survive.
+ * (`"a\rb"` read back as `"a\nb"`). A tab and a line feed survive. A lone surrogate is not a
+ * character at all: `TextEncoder` writes U+FFFD in its place.
  */
 function changesInFile(text: string): boolean {
-  return text.includes('\r') || ILLEGAL_XML_CHAR.test(text);
+  return text.includes('\r') || ILLEGAL_XML_CHAR.test(text) || !text.isWellFormed();
 }
 
 /**
