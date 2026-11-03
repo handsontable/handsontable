@@ -1038,7 +1038,8 @@ deletes its entry. Locally: `npm --prefix tests run test:a11y`, after `build:umd
   `wcag21aa` and `wcag22aa`, the target level; the published conformance report
   (`docs/content/guides/accessibility/accessibility-conformance-report/`) states conformance per
   criterion. Best-practice rules are
-  not in it, on purpose. An `incomplete` result (axe could not decide, most often a contrast it
+  not in it, on purpose; the nightly axe discovery run (below, "A11y: the checks beyond axe") runs them
+  for triage. An `incomplete` result (axe could not decide, most often a contrast it
   could not compute) is counted in the raw scan JSON and the report, and is never a finding.
 - **One bundle, three themes, and the variants on pages of their own.** The scan runs on the plain
   UMD bundle: the minified full bundle renders the same DOM. It runs on `main`, `horizon` and
@@ -1319,8 +1320,9 @@ criterion.
   (`flaky`) and listed as a problem too. Flakiness is a finding against the check, not the product: fix
   the measurement, never quarantine it. A check that starts gating changes the constant, its test and
   this section together, after its findings have proven precise.
-- **One document per check, in one shape.** `test-results/a11y-checks/<check>.json`
-  (`mergeEvidence()`): `check`, `title`, `mode`, `criteria` (what the check evidences, from
+- **One document per check, in one shape.** `test-results/a11y-checks/<check>.json` (`mergeEvidence()`):
+  `check`, `title`, `mode`, `triage` (whether the check's records are for sorting rather than evidence; a
+  triage document's `summary.byCriterion` is empty), `criteria` (what the check evidences, from
   `EVIDENCE_CHECKS`), `run` (the commit the run tested, the head on a pull request and never the merge
   commit, so `null` on a pull request run without `A11Y_HEAD_SHA`; the ref, the run URL, the browser
   and its version, the Handsontable version and build date),
@@ -1328,20 +1330,21 @@ criterion.
   file), `findings`, `problems` and `summary`. A target is its page, theme and variant: a check that
   measures one page two ways (a scheme, a state, an interaction) gives each its own variant, because a
   second part for the same target is dropped as a problem (it would count the target twice and
-  overwrite its detail file). A finding has a stable `id` (check, kind, page, theme, variant, and the
-  element, the step or both, so two runs give the same finding the same id; two findings that share one
-  are a problem), `kind`, `criteria`,
-  `severity`, its target (`page`, `theme`, `state`, `variant`, `url`), a `selector` or a `step` or
-  both, `measured` (flat values), optionally `expected`, and a one-sentence `reason`. What a target
-  measured in full (every focus stop, every ratio) goes to `<check>/<page>--<theme>[--<variant>].json`
-  beside the document, so the document stays small enough to read. `summary.byCriterion` counts, per
-  criterion, the targets that evaluated it and the findings against it: a criterion evaluated on many
-  targets with no finding is the evidence of a pass, and that count is what the generator cites. A
-  target whose test could not take a step (the part's `problems`, counted as the target's `problems`)
-  stays measured and keeps its findings, but evaluates no criterion: a step that did not run found
-  nothing, which is not a pass. `schema` (`EVIDENCE_SCHEMA`) changes when a field is removed or renamed; `validateEvidence()` is what
-  a reader can rely on, and it checks every field the summary and the check run read, so a document
-  that validates never crashes the report script before it posts.
+  overwrite its detail file). A finding has a stable `id` (check, kind, the axe `rule` and the
+  needs-review `cause` when it names them, page, theme, variant, and the element, the step or both, so
+  two runs give the same finding the same id; never the `reason`, whose text can carry per-node values;
+  two findings that share one are a problem), `kind`, `criteria`, `severity`, its target (`page`,
+  `theme`, `state`, `variant`, `url`), a `selector` or a `step` or both, `measured` (flat values),
+  optionally `expected`, and a one-sentence `reason`. What a target measured in full (every focus stop,
+  every ratio) goes to `<check>/<page>--<theme>[--<variant>].json` beside the document, so the document
+  stays small enough to read. `summary.byCriterion` counts, per criterion, the targets that evaluated it
+  and the findings against it: a criterion evaluated on many targets with no finding is the evidence of
+  a pass, and that count is what the generator cites. A target whose test could not take a step (the
+  part's `problems`, counted as the target's `problems`) stays measured and keeps its findings, but
+  evaluates no criterion: a step that did not run found nothing, which is not a pass. `schema`
+  (`EVIDENCE_SCHEMA`) changes when a field is removed or renamed; `validateEvidence()` is what a reader
+  can rely on, and it checks every field the summary and the check run read, so a document that
+  validates never crashes the report script before it posts.
 - **Criteria are WCAG 2.2 ids from one table.** `WCAG_CRITERIA` lists every 2.2 success criterion with
   its name and level, without the obsolete 4.1.1, and a finding naming any other id is refused. A
   finding may name a criterion outside its check's list when the measurement shows it (a focus stop
@@ -1356,11 +1359,13 @@ criterion.
   stylesheet or a constructor throw into a red test, and `reachState()` reaches the catalog state with
   the keyboard (`STATES`) and marks the grid's own portal (`PORTAL`). A check therefore measures the DOM
   a keyboard user reaches, the one the axe scan reads. A state a check needs and the catalog lacks gets
-  an opener in `STATES`, keyboard first. A state whose popups mount in a portal of their own marks that
-  one too (see the scan's own rule above), and it comes after the grid's in `body`, so a check reads the
-  marked portals with `querySelectorAll()`: a `querySelector()` sees the grid's portal only and measures
-  the page without the popup the state opened. The `test()` calls stay in the spec, never in a helper: a test
-  declared from a helper reports the helper as its location.
+  an opener in `STATES`, keyboard first. The axe discovery run's extra states are the one exception: no
+  other check scans their pages, so their openers sit beside them in its spec (`DISCOVERY_STATES`), and
+  one moves to `STATES` when a catalog page needs it. A state whose popups mount in a portal of their own
+  marks that one too (see the scan's own rule above), and it comes after the grid's in `body`, so a check
+  reads the marked portals with `querySelectorAll()`: a `querySelector()` sees the grid's portal only and
+  measures the page without the popup the state opened. The `test()` calls stay in the spec, never in a
+  helper: a test declared from a helper reports the helper as its location.
 - **A test declares its target first and attaches its part last.** `declareTarget()` (`a11y/evidence.ts`)
   writes the target as a test annotation before anything can fail, so the reporter can name a test that
   failed before it measured; `attachEvidence()` attaches the part, with `readEnvironment()`'s browser
@@ -1386,10 +1391,12 @@ criterion.
 The merge, the validation, the summary and the check run are pure (`lib/a11y-evidence.mjs`, tested
 in `lib/__tests__/a11y-evidence.test.mjs` through the root `test:tooling`). The reporter
 (`reporters/a11y-checks.ts`) reads the last attempt of every test of each project that ran and writes
-the documents, the detail files and a `summary.md`; it never changes the run's status.
-`e2e/a11y-checks-reporter.spec.ts` (no browser, a few seconds) proves it on synthetic projects: the
-last attempt read, a failed test recorded as an error target, a retried one flagged, a detail written
-to its own file. `scripts/a11y-evidence-report.mjs` reads the documents and writes the job summary,
+the documents, the detail files and a `summary.md`; it never changes the run's status. It validates
+each part the way `mergeEvidence()` does, with the check's `triage` flag from `isTriageCheck()`, so a
+part the merge would keep is never dropped before it. `e2e/a11y-checks-reporter.spec.ts` (no browser,
+a few seconds) proves it on synthetic projects: the last attempt read, a failed test recorded as an
+error target, a retried one flagged, a triage check's part read as triage, a detail written to its own
+file. `scripts/a11y-evidence-report.mjs` reads the documents and writes the job summary,
 or posts one check run per check with `--check-run` (`--dry-run` prints the payloads); a check of the
 suite the job ran (`HOT_A11Y_CHECKS_SUITE`, or the comma-separated `A11Y_CHECKS` when it is set) that
 left no document gets a neutral tooling check run instead of none.
@@ -1570,6 +1577,106 @@ half judges it (`lib/aria-tree.mjs`, tested in `lib/__tests__/aria-tree.test.mjs
   is taken decides which one it reads, and what is announced is the screen reader lane's to judge.
   Record with `HOT_A11Y_UPDATE_GOLDENS=1` (the same switch as the tab-order goldens) and read the diff
   before committing.
+
+### The axe discovery run
+
+`a11y/checks/axe-discovery.spec.ts`, the `axe-discovery` check, nightly only: axe with the
+best-practice, AAA and experimental rules beside the WCAG 2.2 A and AA ones (`DISCOVERY_TAGS` in
+`lib/axe-discovery.mjs`, tested in `lib/__tests__/axe-discovery.test.mjs`).
+
+- **Triage, never the gate.** It reads and writes nothing of `a11y/axe-baseline.json` and never posts to
+  `A11y / axe report`; its verdict is `A11y / axe-discovery report`. Its registry entry is `triage: true`
+  with no criteria, and its document says `triage: true` with an empty `summary.byCriterion`, because what
+  it lists is for a person or the agent grader to sort, not for the conformance report to cite as it
+  stands. Its records keep the criteria axe tags them with, for sorting. A rule the gating scan already
+  runs shows here too (on states and variants the scan does not reach), and each record names its family
+  (`wcag-a-aa`, `wcag-aaa`, `best-practice`, `experimental`).
+- **Every "needs review" result is listed with axe's reason.** `incomplete` is what axe could not decide;
+  the gating scan only counts it. Here each one is an advisory `axe-needs-review` record per rule,
+  element shape and cause (`nodeCause()`: the axe check behind its first message, and that check's
+  message key), with the node count, an example selector and the first node's message in its `reason`.
+  The message is never part of the key: axe writes per-node values into some (a size in px, an
+  `aria-controls` id that carries the instance's random guid), which would split one finding per node and
+  change its id every run. A violation is an `axe-violation` record per rule and element shape, at axe's
+  impact. The summary counts the records by rule and kind, so what axe decided stays apart from what it
+  could not. A best-practice rule maps to no WCAG criterion, so its record carries an empty `criteria`
+  list, which the evidence shape allows on a triage check's record only and counts as
+  `summary.withoutCriterion`; on any other check such a finding is malformed.
+- **More states, in a list of its own.** `a11y/checks/discovery-pages.mjs` adds what no catalog page
+  holds still: a cell focused from the keyboard, a hovered header button, the column menu of a sortable
+  grid, a focused option of the filter value list, two selected ranges, a submenu inside a submenu
+  (`keyboard-shortcuts.html?menu=nested`), a sheet tab being renamed, a modal dialog holding the focus,
+  and a column move and a column resize mid-drag, scanned with the pointer still held because their
+  guides exist only then. A page added there never reaches the gating scan's baseline, and its records
+  name its entry there (`file`, `line`), so the check run annotates them on it rather than on
+  `a11y/pages.mjs`. The openers are `DISCOVERY_STATES` in the spec; the catalog's come from the harness.
+  They press keys where a key reaches the state, and use the API or the pointer where the surface, not
+  the path to it, is what the scan needs: a hover, a drag, a second range, a renamed sheet tab, a dialog
+  holding the focus.
+- **Every page in the dark scheme, right to left, and on a second phone.** Dark runs on every theme: a
+  script installed before the fixture loads turns each `ht-theme-<name>` class the page or the grid writes
+  into its dark form, so the grid and its portal are built dark (`?scheme=dark` reaches only the fixtures
+  that read it). Right to left runs on the main theme: the fixture is served with `dir="rtl"` on `<html>`
+  and with the query it reads (`?dir=rtl`, `?rtl=1`, `?direction=rtl`, found in its source by
+  `rightToLeftQuery()`). The phone page runs on a Pixel 7 beside the iPhone 13. A variant that did not
+  apply (no dark class on the grid, or a grid still left to right) fails its test before axe runs, a
+  tooling error the document lists as a target not measured, so it never reads as a clean pass.
+
+### Focus appearance and non-text contrast
+
+`a11y/checks/focus-contrast.spec.ts`, the `focus-contrast` check: 2.4.7, 2.4.11 and 1.4.11 on every
+theme, light and dark (the dark variant is the discovery run's, `a11y/checks/variants.ts`). The spec
+captures pixels; the arithmetic and the verdicts are `lib/contrast.mjs` (tested in
+`lib/__tests__/contrast.test.mjs`). `PLAN` in the spec says which page is measured for what.
+
+- **Each measure starts from the catalog's state, and a record cites only what it measured.** A page
+  whose state is `none` is put back as it loaded before each measure after the first (no selection, no
+  focus, scrolled to the top-left: `resetState()`), because a cell left selected highlights the header the
+  next measure reads, and a control left focused draws its ring over the icon measured next. A menu or
+  editor page keeps its state. A measure that could not be set up (no cell to the right of the start
+  cell, no part matching a selector of the plan) adds its criteria to nothing and its reason to the
+  record's `problems`: a criterion counted as evaluated with nothing measured reads as a pass. A dark
+  record whose `ht-theme-<name>-dark` class never reached the grid measures nothing and says so
+  (`variantApplied: false`, and a problem), as in the discovery run.
+- **Pixels, not computed styles.** The themes paint with translucent colors and `color-mix()`, so the
+  color a user sees is the composited pixel. A capture is a `page.screenshot()` clip decoded by the page's
+  own canvas; the device scale factor is 1, so a clip pixel is a CSS pixel. WCAG 2.2's relative luminance
+  (the 0.04045 threshold) and a strict `< 3`: 2.996:1 fails, and a finding shows its ratio rounded down
+  (`floorRatio()`, 2.99), so a failing ratio never reads as 3:1.
+- **A focus indicator is what changed.** The same area is captured before the focus arrives and after it
+  arrives by the keyboard (an arrow key for a cell; a key press, then the focus, for a control, which is
+  what makes `:focus-visible` match), and the changed pixels are the indicator (`indicatorChange()`).
+  A cell's area is captured before with nothing selected, because the starting cell's ring reaches into
+  the margin and the pixels it gives back would count as a change. Nothing changed is
+  `focus-not-visible` (2.4.7). A ring or an outline is judged against the colors next to it
+  (`adjacentRatio`, the most common unchanged pixel of the margin around the element), because a ring
+  drawn over a grid line would read 1.92:1 against the line and 3.08:1 against the cell beside it, and
+  1.4.11 asks for the second; the margin, not the whole capture, because a filled button fills most of
+  its capture and a ring around it would read against the fill. A highlight that repaints the element
+  itself (a menu item) is judged against what it replaced. Under 3:1 is `focus-indicator-contrast`, and
+  it names the two colors its ratio is between. A control is named by its tag, its class and its label,
+  and a second control with the same name in one target gets an ordinal (`distinctName()`,
+  `button.ht-button "Action" (2)`): a finding's id keys on its element, and two findings that share an id
+  are a problem of the document.
+- **Parts that identify a component or its state**: the selection outline and the grid lines are the
+  strongest pixel against the area's dominant color (`strongestPixel()`). Checkboxes and icons are read
+  from the pixels inside their own box (`partContrast()`), because header text beside an icon reaches
+  into the margin and would pass it: an icon against what it sits on, a checkbox's edge against the cell
+  around it, and a checked box's mark against its fill, the weaker of the two. A part another element
+  covers at its center, a disabled control (1.4.11 exempts it) and a part the browser does not paint
+  (`checkVisibility()`: `visibility: hidden`, opacity 0) are skipped; a painted part is measured however
+  faint, because under 1.05:1 is the worst failure, not nothing. A grid line that draws nothing
+  (`isDrawn()`, a theme that leaves it out) is skipped. A grid line is `moderate`: it identifies a cell
+  only where nothing else does. Measure the element that draws the glyph: the sort arrow is
+  `.ht-sort-indicator`, drawn only while its column is sorted, so the plan sorts a column first (`sort`).
+- **2.4.11 walks the focus.** On the pages with frozen panes and bars, the keyboard moves the focus across
+  the grid and into its far corner and back; after each key 25 points of the focused cell are sampled with
+  `elementFromPoint()`. The cell sampled is the topmost copy (`getCell(row, col, true)`): a frozen row is
+  drawn by an overlay clone above the master, and sampling the master's copy read every frozen cell as
+  hidden. Only the points inside the window are sampled: a point outside it is covered by nothing. A cell
+  covered at every sampled point is `focus-obscured`; a cell with no sampled point inside the window (off
+  screen, or at most a sixth of it at the window's edge) is `focus-off-screen` (2.4.7). Two keys of the
+  walk can land on one cell, so its findings are one per cell.
 
 ### Adding a check
 

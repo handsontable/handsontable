@@ -210,7 +210,7 @@ Unmounting the grid, or hiding it with `<Activity mode="hidden">`, destroys the 
 
 ### Keep the imported sheet through a settings change
 
-The `hot-table` component passes every key of a new `[settings]` object to `updateSettings`. Keep the settings in one object that nothing replaces, as the demo does. A settings object you bind after an import must leave out `colHeaders`, `columns`, and the layout options the import set (`mergeCells`, `hiddenRows`, `hiddenColumns`, `customBorders`, `fixedRowsTop`, `fixedColumnsStart`, `colWidths`, `rowHeights`). Otherwise they replace the imported headers, column types, and layout.
+The `hot-table` component passes every key of a new `[settings]` object to `updateSettings`. Keep the settings in one object that nothing replaces, as the demo does. A settings object you bind after an import must leave out `colHeaders`, `columns`, and the layout options the import set (`mergeCells`, `hiddenRows`, `hiddenColumns`, `customBorders`, `fixedRowsTop`, `fixedColumnsStart`, `colWidths`, `minRowHeights`). Otherwise they replace the imported headers, column types, and layout.
 
 ### Import outside the Angular zone
 
