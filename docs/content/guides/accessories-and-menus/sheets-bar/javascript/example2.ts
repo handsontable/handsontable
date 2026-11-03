@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { HyperFormula } from 'hyperformula';
+import * as formulaBuilder from 'hyperformula-ui';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -52,5 +53,10 @@ new Handsontable(container, {
   colHeaders: true,
   stretchH: 'all',
   height: 240,
+  editor: 'formula',
+  formulaBuilder: {
+    builder: formulaBuilder,
+    showFormulaBar: true,
+  },
   licenseKey: 'non-commercial-and-evaluation',
 });
