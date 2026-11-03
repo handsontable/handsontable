@@ -67,4 +67,19 @@ describe('namesUsedIn', () => {
     expect([...namesUsedIn('SUM(Sales[[#This Row],[Rate]])+[1]Book!A1+LET(x,1,x)')])
       .toEqual(['sales', 'a1', 'x', '1']);
   });
+
+  it('should not list the column of an absolute or mixed reference as a word', () => {
+    // `$` is not a name character, so `$A$1` used to yield `a`, and a one-letter name (`A`, the reserved
+    // `R` and `C`) then claimed every formula with such a reference.
+    expect([...namesUsedIn('$A$1+A$2+$R$3*$C1+Rate')]).toEqual(['rate']);
+  });
+
+  it('should not list the columns of a whole-column span as words', () => {
+    expect([...namesUsedIn('SUM(A:A)+SUM($B:$C)+SUM(d:XFD)+SUM(AB:$AC)')]).toEqual([]);
+  });
+
+  it('should still list names on either side of a colon that are not column letters', () => {
+    expect([...namesUsedIn('SUM(Start:Finish)+SUM(A:Total)+SUM(Total:A)+A')])
+      .toEqual(['start', 'finish', 'a', 'total']);
+  });
 });

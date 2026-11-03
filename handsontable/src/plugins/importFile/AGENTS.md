@@ -512,7 +512,11 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `#N/A` let a workbook name `N` or `A` the import could not take (one scoped to another sheet) freeze
   every formula spelling `#N/A` to its cached value. The newer literals (`#FIELD!`, `#BLOCKED!`, `#UNKNOWN!`,
   `#CONNECT!`, `#BUSY!`, `#EXTERNAL!`, `#PYTHON!`) are listed too. `namesIn`, `rewriteBareBooleans`,
-  `callsUnregisteredFunction` and `callsSpillOperator` all skip such a token.
+  `callsUnregisteredFunction` and `callsSpillOperator` all skip such a token. `namesIn` also skips a
+  word that is part of a reference (`isReferenceWord` in `utils/xlsxEngine/definedNames.ts`, shared with
+  the export's `namesUsedIn`): the `G` of `$G$2`, `G$2` or `G:G`. `$` is not a name character, so the
+  regex hands that `G` over as a word, and a one-letter name the ExcelJS reader flagged froze every
+  such formula to its cached value.
 - **A formula calling `ANCHORARRAY` or `SINGLE` imports its cached value** (DEV-3648, `callsSpillOperator`
   in `pushCellValue`, `formula:spillReference`). Excel stores the spill operator `B1#` as
   `_xlfn.ANCHORARRAY(B1)` and implicit intersection `@A1:A3` as `_xlfn.SINGLE(A1:A3)`; both readers hand

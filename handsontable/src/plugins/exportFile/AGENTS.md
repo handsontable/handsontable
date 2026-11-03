@@ -452,7 +452,8 @@ Other rules:
   engines, one file: grid B's `=SUM(Rate)` summed grid A's cells, 3 instead of 300). The cells are
   decided AFTER every sheet is populated, because the names in the file depend on every grid:
   `#writeRowCells` notes each formula cell whose words (`namesUsedIn`, outside quotes and brackets, not
-  followed by `(` or `!`) include a name of its engine (`DefinedNameUse`, with the value the export
+  followed by `(` or `!`, and not part of a reference: `isReferenceWord` skips the `R` of `$R$1` or of
+  `R:R`, which used to tie every such formula to a left-out one-letter name) include a name of its engine (`DefinedNameUse`, with the value the export
   writes without `exportFormulas` as its fallback); `#addDefinedNames` returns, per engine, the names
   written with that engine's definition; and the adapter's `selectDefinedNames` (pure, the same
   selection `write` makes: the shared validation, plus the ExcelJS single-range shape and cell budget)

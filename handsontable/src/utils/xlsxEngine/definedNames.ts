@@ -79,11 +79,73 @@ export function selectWritableDefinedNames(
 }
 
 /**
+ * One to three column letters, the column part of a reference.
+ */
+const COLUMN_LETTERS_PATTERN = /^[A-Za-z]{1,3}$/;
+
+/**
+ * Whether the column letters read from `start`, one character at a time in `step` direction, form a
+ * whole word: one to three letters with no name character past them. A `$` right before the letters
+ * (or after them, read backwards) is skipped, as in `$A:$B`.
+ *
+ * @param {string} formula The formula.
+ * @param {number} start The first character to read.
+ * @param {number} step `1` to read forward, `-1` to read backward.
+ * @returns {boolean}
+ */
+function isColumnLettersAt(formula: string, start: number, step: 1 | -1): boolean {
+  let index = formula[start] === '$' ? start + step : start;
+  let count = 0;
+
+  while (count < 4 && index >= 0 && index < formula.length && /[A-Za-z]/.test(formula[index])) {
+    index += step;
+    count += 1;
+  }
+
+  if (count === 0 || count > 3) {
+    return false;
+  }
+
+  const past = formula[index];
+
+  if (step === -1) {
+    return past === undefined || (!isNameChar(past) && past !== '$');
+  }
+
+  return past === undefined || (!isNameChar(past) && past !== '(');
+}
+
+/**
+ * Whether the word `formula.slice(start, end)` is part of a cell reference rather than a name: it
+ * touches a `$` (`$A$1`, `A$1`, `$A1`; a name never does), or it is column letters on one side of a `:`
+ * whose other side is column letters too (`A:A`, `$B:$C`), a whole-column span. A word scan that misses
+ * this reads the `A` of `$A$1` as a name, so a one-letter name claims every formula with such a
+ * reference.
+ *
+ * @param {string} formula The formula.
+ * @param {number} start The index of the word's first character.
+ * @param {number} end The index right past the word.
+ * @returns {boolean}
+ */
+export function isReferenceWord(formula: string, start: number, end: number): boolean {
+  if (formula[start - 1] === '$' || formula[end] === '$') {
+    return true;
+  }
+
+  if (!COLUMN_LETTERS_PATTERN.test(formula.slice(start, end))) {
+    return false;
+  }
+
+  return (formula[end] === ':' && isColumnLettersAt(formula, end + 1, 1))
+    || (formula[start - 1] === ':' && isColumnLettersAt(formula, start - 2, -1));
+}
+
+/**
  * The words of a formula that can only be defined names, lower-cased: every run of name characters
  * outside quotes (string literals and quoted sheet names) and brackets (a structured reference's
  * column, an external workbook index) that is not followed by `(` (a function call) or `!` (a sheet
- * qualifier). Cell references and numbers come back too; the caller compares the words with the
- * names it knows.
+ * qualifier), nor part of a reference (`isReferenceWord`: the `A` of `$A$1` or of `A:A`). Relative cell
+ * references and numbers come back too; the caller compares the words with the names it knows.
  *
  * The scan is lexical, so it errs one way only: a `LET` or `LAMBDA` parameter spelled like a defined
  * name is listed as that name. The cost is a formula exported as its value when the name does not
@@ -122,7 +184,7 @@ export function namesUsedIn(formula: string): Set<string> {
         end += 1;
       }
 
-      if (formula[end] !== '(' && formula[end] !== '!') {
+      if (formula[end] !== '(' && formula[end] !== '!' && !isReferenceWord(formula, index, end)) {
         names.add(localeLowerCase(formula.slice(index, end)));
       }
 

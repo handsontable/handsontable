@@ -8,6 +8,7 @@ import { parseMultiRangeRef, parseRangeRef } from '../../utils/xlsxEngine/cellRe
 import { closedReferenceArea, rebaseImportedFormula } from '../../utils/xlsxEngine/formulaRefs';
 import { stripFunctionPrefixes } from '../../utils/xlsxEngine/functionPrefixes';
 import { unwrapArrayFormula } from '../../utils/xlsxEngine/dynamicArrays';
+import { isReferenceWord } from '../../utils/xlsxEngine/definedNames';
 import {
   MAX_DEFINED_NAME_CELLS, MAX_DEFINED_NAME_CHARS, MAX_DEFINED_NAME_LENGTH, MAX_DEFINED_NAME_TOTAL_CELLS,
   MAX_TRANSLATED_FORMULA_CHARS, MIN_CELL_META_BUDGET, throwLimitExceeded
@@ -765,7 +766,8 @@ function usesUnresolvedName(formula: string, scope: CollectContext): boolean {
 
 /**
  * The identifiers of a formula that can be names, lower-cased: neither a string literal, a quoted
- * sheet name, an error literal (`#N/A`), a function (followed by `(`) nor a sheet (followed by `!`).
+ * sheet name, an error literal (`#N/A`), a function (followed by `(`), a sheet (followed by `!`) nor
+ * part of a reference (`isReferenceWord`: the `G` of `$G$2` or of `G:G`).
  *
  * @param {string} formula The formula, without its `=`.
  * @returns {Generator<string>}
@@ -773,10 +775,11 @@ function usesUnresolvedName(formula: string, scope: CollectContext): boolean {
 function* namesIn(formula: string): Generator<string> {
   for (const match of formula.matchAll(FORMULA_IDENTIFIER_REGEX)) {
     const [token] = match;
-    const next = formula[(match.index ?? 0) + token.length];
+    const start = match.index ?? 0;
+    const next = formula[start + token.length];
     const isLiteral = isLiteralToken(token);
 
-    if (!isLiteral && next !== '(' && next !== '!') {
+    if (!isLiteral && next !== '(' && next !== '!' && !isReferenceWord(formula, start, start + token.length)) {
       yield token.toLowerCase();
     }
   }

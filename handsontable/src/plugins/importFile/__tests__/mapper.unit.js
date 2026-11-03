@@ -2361,6 +2361,24 @@ describe('mapWorkbook – the workbook\'s defined names as named expressions', (
       .toContain('definedNames:unsupported');
   });
 
+  it('should keep a formula over absolute references and column spans live beside a flagged one-letter name', () => {
+    // The ExcelJS reader flags every name. `$G$2` and `G:G` hold no name, but the scan used to read
+    // their `G` as one and import the formula as its cached value.
+    const flagged = { name: 'G', formula: 'Data!$G$2', sheetName: null, unsupported: true };
+    const refs = [text('r4'), text('x'), cell({ formula: { text: 'SUM($G$2:$G$4)+G$2+COUNT(G:G)', result: 73 } })];
+    const named = [text('r5'), text('x'), cell({ formula: { text: 'G*2', result: 20 } })];
+    const wb = salesWorkbook([flagged], refs);
+
+    wb.sheets[0].rows.push(named);
+
+    const { result } = map(wb, OPTIONS, contextOf().context);
+
+    expect(result.data[3][1]).toBe('=SUM($F$1:$F$3)+F$1+COUNT(F:F)');
+    // A formula that reads the name itself still imports its cached value.
+    expect(result.data[4][1]).toBe(20);
+    expect(result.dropped).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+  });
+
   it('should report a flagged name only when a formula uses it', () => {
     // Every name the ExcelJS reader returns is flagged, so reporting the unused ones warned on every
     // ExcelJS import of a workbook with names.
