@@ -552,8 +552,10 @@ export default function Core(
    */
   let runningValidatorLoadGeneration: number | null = null;
   /**
-   * The `validationLoadGeneration` of every validator call made for a change that has not answered yet, by the
-   * cell it validates (property, then visual row, as the validator's cell meta names them), oldest first. A
+   * The `validationLoadGeneration` of every validator call made for a change that has not answered yet, counted
+   * in `_hasPendingValidation()` or not (a call a `beforeValidate` load overtook is not counted, but its validator
+   * still runs and can still correct), by the cell it validates (property, then visual row, as the validator's
+   * cell meta names them), oldest first. A
    * validator that writes its correction later than its own synchronous run (after a timer or a request) is no
    * longer inside `runningValidatorLoadGeneration`, so the correction finds the call it corrects here. An entry
    * leaves when its call answers or throws; a load leaves the entries in place, because the calls they stand for
@@ -3915,12 +3917,17 @@ export default function Core(
       // sheets bar until a validator of the dropped set answers.
       const isCountedCall = isChangeCall && loadGeneration === validationLoadGeneration;
       let answered = !isCountedCall;
+      let isGenerationReleased = !isChangeCall;
       const validatedRow = cellProperties.visualRow as number;
       const validatedProp = cellProperties.prop;
       const countAnswer = () => {
+        if (!isGenerationReleased) {
+          isGenerationReleased = true;
+          releaseValidatorGeneration(validatedRow, validatedProp, loadGeneration);
+        }
+
         if (!answered) {
           answered = true;
-          releaseValidatorGeneration(validatedRow, validatedProp, loadGeneration);
 
           if (loadGeneration === validationLoadGeneration) {
             pendingValidatorAnswers -= 1;
@@ -3928,9 +3935,12 @@ export default function Core(
         }
       };
 
+      if (isChangeCall) {
+        recordValidatorGeneration(validatedRow, validatedProp, loadGeneration);
+      }
+
       if (isCountedCall) {
         pendingValidatorAnswers += 1;
-        recordValidatorGeneration(validatedRow, validatedProp, loadGeneration);
       }
 
       // To provide consistent behavior, validation should be always asynchronous

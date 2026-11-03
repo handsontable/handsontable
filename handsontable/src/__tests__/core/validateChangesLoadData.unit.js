@@ -316,12 +316,14 @@ describe('Core validation of a change when loadData() replaces the data', () => 
    * validator that asks a server does, and answers once it wrote the correction.
    *
    * @param {string[]} calls Collects the values the validator is called with.
+   * @param {object} [settings] Extra grid settings.
    * @returns {Function[]} The held corrections, each writing its correction and then answering.
    */
-  function createGridWithLateCorrection(calls) {
+  function createGridWithLateCorrection(calls, settings = {}) {
     const corrections = [];
 
     createGrid({
+      ...settings,
       columns: [
         { data: 'id' },
         {
@@ -360,6 +362,29 @@ describe('Core validation of a change when loadData() replaces the data', () => 
     expect(hot.getDataAtCol(1)).toEqual(['xavier', 'yolanda']);
     expect(calls).toEqual(['typed']);
     expect(edits).toEqual([]);
+  });
+
+  it('should drop a late correction of a change that loadData() from beforeValidate dropped', async() => {
+    const calls = [];
+    let loaded = null;
+    const corrections = createGridWithLateCorrection(calls, {
+      beforeValidate() {
+        if (!loaded) {
+          loaded = otherRecords();
+          hot.loadData(loaded);
+        }
+      },
+    });
+
+    hot.setDataAtCell(0, 1, 'typed', 'edit');
+    await settle();
+    corrections.forEach(correct => correct());
+    await settle();
+
+    expect(loaded).toEqual(otherRecords());
+    expect(calls).toEqual(['typed']);
+    expect(edits).toEqual([]);
+    expect(hot._hasPendingValidation()).toBe(false);
   });
 
   it('should write a correction a validator writes later than its run when no load lands', async() => {
