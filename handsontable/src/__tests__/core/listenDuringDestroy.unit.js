@@ -1,5 +1,8 @@
 import Handsontable from 'handsontable/base';
 
+const containers = [];
+const grids = [];
+
 /**
  * Builds a grid in a new container.
  *
@@ -9,14 +12,28 @@ function createGrid() {
   const container = document.createElement('div');
 
   document.body.appendChild(container);
+  containers.push(container);
 
-  return new Handsontable(container, {
+  const hot = new Handsontable(container, {
     data: [['A1', 'B1'], ['A2', 'B2']],
     licenseKey: 'non-commercial-and-evaluation',
   });
+
+  grids.push(hot);
+
+  return hot;
 }
 
 describe('listen() on a grid that is being destroyed', () => {
+  afterEach(() => {
+    grids.splice(0).forEach((hot) => {
+      if (!hot.isDestroyed) {
+        hot.destroy();
+      }
+    });
+    containers.splice(0).forEach(container => container.remove());
+  });
+
   it('should leave another grid listening', () => {
     const destroyed = createGrid();
     const other = createGrid();
@@ -27,9 +44,6 @@ describe('listen() on a grid that is being destroyed', () => {
     destroyed.destroy();
 
     expect(other.isListening()).toBe(true);
-
-    other.rootElement.parentElement.remove();
-    other.destroy();
   });
 
   it('should still hand the keyboard between grids that are not being destroyed', () => {
@@ -41,8 +55,5 @@ describe('listen() on a grid that is being destroyed', () => {
 
     expect(first.isListening()).toBe(true);
     expect(second.isListening()).toBe(false);
-
-    first.destroy();
-    second.destroy();
   });
 });
