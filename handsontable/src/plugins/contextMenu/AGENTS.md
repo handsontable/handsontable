@@ -1,6 +1,6 @@
 # ContextMenu plugin
 
-`ContextMenu` (`'contextMenu'`) provides the right-click menu over cells and headers. The shared `Menu` class, `ItemsFactory`, `CommandExecutor`, the predefined items and `registerMenuEntries()` live in `src/utils/menu/` – see `../../utils/menu/AGENTS.md` before touching them. Read this before touching `contextMenu.ts`.
+`ContextMenu` (`'contextMenu'`) provides the right-click menu over cells and headers. The shared `Menu` class, `ItemsFactory`, `CommandExecutor`, the predefined items and `registerMenuEntries()` live in `src/utils/menu/` – see `../../utils/menu/AGENTS.md` before touching them. The `.ts` files under `menu/`, `predefinedItems/` and beside this file (other than `contextMenu.ts`, `index.ts` and `feature.generated.ts`) are legacy re-exports of those modules; never add code to them. Read this before touching `contextMenu.ts`.
 
 ## Context Menu vs Column Menu
 
