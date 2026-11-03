@@ -489,7 +489,8 @@ class ExportDataProvider {
    * or boolean the engine computed for it, and, when `withArraySizes` is `true`, the size of the
    * array it spills. An entry is `null` when the engine holds nothing to report for the cell (an
    * empty cell, a typed text or number), when the engine has no row or column for it (the syncer
-   * answers `-1`), and for every cell when the Formulas plugin is absent or disabled.
+   * answers `-1`). Without the Formulas plugin, or with it disabled, the answer is `null` itself:
+   * no matrix is built.
    *
    * The error code comes from the engine's own cell value, not from the displayed text, which
    * cannot tell the error `#N/A` from the text a formula such as `="#N/A"` answers, and which the
@@ -521,15 +522,15 @@ class ExportDataProvider {
    * spill crosses a trimmed row, a hidden row or column the export leaves out, or the `range` edge.
    *
    * @param {boolean} withArraySizes Whether to read the array sizes (`exportFormulas`).
-   * @returns {Array[]}
+   * @returns {Array[]|null}
    */
-  getEngineCellFacts(withArraySizes: boolean): (EngineCellFacts | null)[][] {
+  getEngineCellFacts(withArraySizes: boolean): (EngineCellFacts | null)[][] | null {
     const formulasPlugin = this.hot.getPlugin('formulas');
     const engine = formulasPlugin?.enabled ? formulasPlugin.engine : null;
     const { sheetId, rowAxisSyncer, columnAxisSyncer } = formulasPlugin ?? {};
 
     if (!engine || sheetId === null || sheetId === undefined || !rowAxisSyncer || !columnAxisSyncer) {
-      return this._extractDataMatrix(() => null);
+      return null;
     }
 
     let exportedRows: Map<number, number> | null = null;

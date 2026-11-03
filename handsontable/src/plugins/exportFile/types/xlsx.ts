@@ -806,7 +806,7 @@ class Xlsx extends BaseType {
     });
 
     const sourceData = exportFormulas ? dataProvider.getSourceData() : null;
-    // Read whenever the Formulas plugin is on (every entry is `null` otherwise), in one pass: a cell
+    // Read whenever the Formulas plugin is on (`null` otherwise), in one pass: a cell
     // whose value is an error exports as an Excel error whether or not its formula goes out with it,
     // and a computed number or boolean keeps its type, so a text column does not write a spilled `2`
     // as the text `"2"`. The array sizes are read with `exportFormulas` only.

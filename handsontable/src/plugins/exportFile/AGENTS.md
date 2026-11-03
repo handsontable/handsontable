@@ -313,8 +313,8 @@ Other rules:
   refuses `#SPILL!` in a `t="e"` cell) and keep the display text, typed `str`. Pinned by
   `xlsxFormulaErrorResult.unit.js`.
 - **A cell whose VALUE is an error exports as an Excel error too, with or without `exportFormulas`**
-  (DEV-3648). `getEngineCellFacts()` is read on every export (every entry is `null` without the Formulas
-  plugin), and `#resolveCellValue` writes `{ value: code, valueIsError: true }` for any cell the formula
+  (DEV-3648). `getEngineCellFacts()` is read on every export (it answers `null` without the Formulas
+  plugin, so an export without it builds no matrix), and `#resolveCellValue` writes `{ value: code, valueIsError: true }` for any cell the formula
   branch did not take: a typed `#N/A`, and a formula exported as its value. The check runs BEFORE the
   type branches, so an error in a numeric column is not converted. Known gap: an error typed into a date
   column is not flagged as an error. Without the plugin a typed `#N/A` stays a string. Every

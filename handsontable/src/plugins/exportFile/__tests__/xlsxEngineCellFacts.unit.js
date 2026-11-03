@@ -149,4 +149,24 @@ describe('Xlsx export: the engine facts of a cell', () => {
 
       expect(rows[0][0].formula).toEqual(expect.objectContaining({ text: '1/0', result: '#DIV/0!' }));
     });
+
+  it('should build no matrix without the Formulas plugin, and still export the values', async() => {
+    // Every export without the plugin used to build a matrix of `null`s, one callback per cell.
+    hot = new Handsontable(container, {
+      data: [[1, '#N/A'], [2, 'b']],
+      exportFile: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const facts = jest.spyOn(ExportDataProvider.prototype, 'getEngineCellFacts');
+
+    await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx');
+
+    expect(facts).toHaveBeenCalledTimes(1);
+    expect(facts.mock.results[0].value).toBeNull();
+
+    const [snapshot] = writeSpy.mock.calls[0];
+
+    expect(snapshot.sheets[0].rows[0][1].value).toBe('#N/A');
+    expect(snapshot.sheets[0].rows[1][1].value).toBe('b');
+  });
 });
