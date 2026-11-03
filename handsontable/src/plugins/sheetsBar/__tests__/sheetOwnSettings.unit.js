@@ -1,7 +1,8 @@
 import Handsontable from '../../../index';
 import { textRenderer } from '../../../renderers/textRenderer';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
-const LICENSE_KEY = 'non-commercial-and-evaluation';
+const LICENSE_KEY = TEST_LICENSE_KEY;
 
 /**
  * A renderer only the second sheet declares, so a test can tell it from the grid-level one.

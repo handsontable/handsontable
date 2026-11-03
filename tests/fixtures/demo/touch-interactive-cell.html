@@ -48,6 +48,7 @@
       line-height: 10px;
     }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -214,7 +215,7 @@
       width: 380,
       height: 480,
       outsideClickDeselects: false,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
       beforeOnCellMouseDown(event, coords) {
         // Column 5 keeps visual selection on, but this hook stops the selection.
         // The tap must reach the button whether or not another cell was focused.

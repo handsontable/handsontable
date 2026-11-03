@@ -48,6 +48,7 @@
     document.documentElement.dir = window.htLayout.dir ?? 'ltr';
   </script>
   <style> body { font-family: sans-serif; margin: 0; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -95,7 +96,7 @@
         preventOverflow,
         layoutDirection: dir,
         renderer: testIdRenderer,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       window.htBuildError = String(error && error.message);

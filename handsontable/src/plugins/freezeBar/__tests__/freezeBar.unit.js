@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, FreezeBar, Pagination, HiddenColumns } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(FreezeBar);
@@ -13,7 +14,7 @@ describe('FreezeBar', () => {
 
   const createGrid = (settings = {}) => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: Array.from({ length: 10 }, (rowValue, row) => {
         return Array.from({ length: 10 }, (colValue, col) => `${row}:${col}`);
       }),
@@ -43,7 +44,7 @@ describe('FreezeBar', () => {
   });
 
   it('should be disabled by default', () => {
-    hot = new Handsontable(container, { licenseKey: 'non-commercial-and-evaluation', data: [[1]] });
+    hot = new Handsontable(container, { licenseKey: TEST_LICENSE_KEY, data: [[1]] });
 
     expect(hot.getPlugin('freezeBar').isEnabled()).toBe(false);
   });
@@ -642,7 +643,7 @@ describe('FreezeBar', () => {
 
   it('should render nothing when the option is not set', () => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [[1, 2]],
       fixedColumnsStart: 1,
     });

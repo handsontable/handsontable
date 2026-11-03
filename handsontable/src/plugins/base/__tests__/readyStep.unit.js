@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, BasePlugin, getPluginsNames } from 'handsontable/plugins';
 import { registerAllModules } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 const PROBE = 'readyStepProbe';
 const PARENT = 'readyStepParentProbe';
@@ -189,7 +190,7 @@ const createGrid = (settings) => {
 
   return new Handsontable(root, {
     data: [[1, 2], [3, 4]],
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     afterRender() {
       log.push(['render']);
     },

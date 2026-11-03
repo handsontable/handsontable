@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * A merge declared in the `mergeCells` option while a row inside its span is trimmed has to own that
@@ -23,7 +24,7 @@ describe('MergeCells declared in the settings while a row inside its span is tri
   function createGrid(settings) {
     hot = new Handsontable(container, {
       data: Handsontable.helper.createSpreadsheetData(10, 5),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       width: 600,
       height: 400,
       ...settings,

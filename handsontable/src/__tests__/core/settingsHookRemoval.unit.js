@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 describe('updateSettings() with a hook set to `null`', () => {
   let hot;
@@ -17,7 +18,7 @@ describe('updateSettings() with a hook set to `null`', () => {
   function build(settings = {}) {
     hot = new Handsontable(document.createElement('div'), {
       data: [['a', 'b']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
     jest.clearAllMocks();

@@ -1,6 +1,7 @@
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { CustomBorders } from '../customBorders';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * Builds a square dataset.
@@ -42,7 +43,7 @@ describe('CustomBorders after a shrinking loadData', () => {
     hot = new Handsontable(container, {
       data: square(8),
       customBorders: [{ ...entry, top: { width: 2, color: 'red' } }],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.loadData(square(size));
@@ -103,7 +104,7 @@ describe('CustomBorders after a shrinking loadData', () => {
     hot = new Handsontable(container, {
       data: square(8),
       customBorders: [{ row: 1, col: 1, top: { width: 2, color: 'red' } }],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.loadData(square(8));
@@ -121,7 +122,7 @@ describe('CustomBorders after a shrinking loadData', () => {
       hot = new Handsontable(container, {
         data: square(8),
         customBorders: [{ ...entry, top: { width: 2, color: 'red' } }],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.updateData(square(size));

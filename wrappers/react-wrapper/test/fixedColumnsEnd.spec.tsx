@@ -6,12 +6,13 @@ import {
   renderHotTableWithProps,
   sleep,
 } from './_helpers';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 // The `fixedColumnsEnd` option is a core setting. The wrapper forwards every prop to the core without a
 // whitelist, so the option must reach the instance on mount and on a later prop change.
 describe('fixedColumnsEnd prop', () => {
   const props = {
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     data: createSpreadsheetData(5, 6),
     width: 300,
     height: 300,

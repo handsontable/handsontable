@@ -1,6 +1,7 @@
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { NestedRows } from '../nestedRows';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 describe('NestedRows data hooks', () => {
   let container;
@@ -31,7 +32,7 @@ describe('NestedRows data hooks', () => {
       beforeLoadData(sourceData, initialLoad) {
         return initialLoad ? [{ a: 'Root', __children: [{ a: 'Leaf' }] }] : sourceData;
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const nestedRows = hot.getPlugin('nestedRows');
 

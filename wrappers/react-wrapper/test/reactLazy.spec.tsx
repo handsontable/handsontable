@@ -8,6 +8,7 @@ import {
   sleep,
 } from './_helpers';
 import { HotRendererProps, HotTableRef } from '../src/types';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 describe('React.lazy', () => {
   it('should be possible to lazy-load components and utilize Suspend', async() => {
@@ -37,7 +38,7 @@ describe('React.lazy', () => {
     }
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(1, 1)}
         width={300}

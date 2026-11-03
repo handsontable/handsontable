@@ -11,6 +11,7 @@ import {
 } from './_helpers';
 import { HOT_DESTROYED_WARNING } from '../src/helpers';
 import { HotTableProps, HotRendererProps, HotTableRef } from '../src/types';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 describe('Component lifecyle', () => {
   it('renderer components should trigger their lifecycle methods', async() => {
@@ -38,7 +39,7 @@ describe('Component lifecyle', () => {
     const rendererCounters = new Map();
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
@@ -96,7 +97,7 @@ describe('Component lifecyle', () => {
     };
 
     const props: HotTableProps = {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       id: 'test-hot',
       data: createSpreadsheetData(3, 2),
       width: 300,
@@ -130,7 +131,7 @@ describe('Component lifecyle', () => {
       <HotTable
         id="test-hot"
         data={[[2]]}
-        licenseKey="non-commercial-and-evaluation"
+        licenseKey={TEST_LICENSE_KEY}
       />
     ));
 
@@ -163,7 +164,7 @@ describe('Component lifecyle', () => {
     }
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(4, 3)}
         width={300}
@@ -237,7 +238,7 @@ describe('Component lifecyle', () => {
     }
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(4, 3)}
         width={300}

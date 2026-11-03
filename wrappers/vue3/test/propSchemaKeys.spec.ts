@@ -95,7 +95,7 @@ describe('props schema', () => {
 
   it('should pass the `handsontable` option of a column to the grid', async() => {
     const { wrapper, hot } = await mountGrid(`
-      <HotTable :data="data" :init="init" licenseKey="non-commercial-and-evaluation">
+      <HotTable :data="data" :init="init" :licenseKey="testLicenseKey">
         <HotColumn title="A" :handsontable="nested" />
       </HotTable>
     `, { nested: { colHeaders: true } });
@@ -109,7 +109,7 @@ describe('props schema', () => {
     const getValue = () => 'value';
     const { wrapper, hot } = await mountGrid(`
       <HotTable :data="data" :init="init" :handsontable="nested" :getValue="getValue"
-                licenseKey="non-commercial-and-evaluation" />
+                :licenseKey="testLicenseKey" />
     `, { nested: { colHeaders: true }, getValue });
 
     expect(hot.getSettings().handsontable).toEqual({ colHeaders: true });

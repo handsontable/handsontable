@@ -7,6 +7,7 @@ import BaseType from '../types/_base';
 import { normalizeExportOptions } from '../utils';
 import { detectXlsxEngine } from '../../../utils/xlsxEngine/detect';
 import { _resetDeprecationWarnings } from '../../../helpers/console';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 beforeEach(() => {
   // `deprecatedWarnOnce` records printed warnings module-globally, so without this the
@@ -126,7 +127,7 @@ describe('ExportFile export with a null engine entry', () => {
     hot = new Handsontable(container, {
       data: [['a', 1]],
       exportFile: { engines: { xlsx: null } },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const plugin = hot.getPlugin('exportFile');
@@ -146,7 +147,7 @@ describe('ExportFile export with a null engine entry', () => {
     hot = new Handsontable(container, {
       data: [['a', 1]],
       exportFile: { engines: { xlsx: {} } },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const plugin = hot.getPlugin('exportFile');
@@ -326,7 +327,7 @@ describe('ExportFile downloads and the grid lifecycle', () => {
     hot = new Handsontable(container, {
       data: [['a', 1], ['b', 2]],
       exportFile: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
   });
 
@@ -390,7 +391,7 @@ describe('ExportFile downloads and the grid lifecycle', () => {
       data: [['a', 1], ['b', 2]],
       exportFile: true,
       dialog: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const frames = [];
@@ -421,7 +422,7 @@ describe('ExportFile downloads and the grid lifecycle', () => {
       data: [['a', 1], ['b', 2]],
       exportFile: true,
       dialog: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const frames = [];

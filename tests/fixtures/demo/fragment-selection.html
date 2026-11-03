@@ -35,6 +35,7 @@
     /* Wide enough that a drag across a cell's text stays inside one cell on every theme. */
     #grid { width: 620px; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -84,7 +85,7 @@
         rowHeights: 40,
         height: 300,
         renderer: testIdRenderer,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       }, overrides));
 
       window.hot = hot;

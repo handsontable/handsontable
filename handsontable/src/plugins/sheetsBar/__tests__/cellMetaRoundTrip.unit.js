@@ -14,6 +14,7 @@ import { ManualRowMove } from '../../manualRowMove/manualRowMove';
 import { TrimRows } from '../../trimRows/trimRows';
 import { registerCellType } from '../../../cellTypes/registry';
 import { CheckboxCellType } from '../../../cellTypes/checkboxType/checkboxType';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * The cell meta a user sets on a sheet lives in core's cell meta only. A switch away keeps a snapshot
@@ -65,7 +66,7 @@ describe('SheetsBar cell meta round trip', () => {
         ],
       },
       undo: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 
@@ -227,7 +228,7 @@ describe('SheetsBar cell meta round trip', () => {
           { name: 'Two', data: [['x']] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const bar = hot.getPlugin('sheetsBar');
@@ -250,7 +251,7 @@ describe('SheetsBar cell meta round trip', () => {
           { name: 'Two', data: [['x']] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const bar = hot.getPlugin('sheetsBar');
@@ -269,7 +270,7 @@ describe('SheetsBar cell meta round trip', () => {
     hot = new Handsontable(container, {
       data: [['a', 'b']],
       undo: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const withoutBar = hookNames.filter(hookName => hot.hasHook(hookName));
@@ -313,7 +314,7 @@ describe('SheetsBar cell meta round trip', () => {
 
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'One', data }, { name: 'Two', data: [['x', 'y']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const bar = hot.getPlugin('sheetsBar');
@@ -337,7 +338,7 @@ describe('SheetsBar cell meta round trip', () => {
     hot = new Handsontable(container, {
       minRows: 5,
       sheetsBar: { sheets: [{ name: 'One', data }, { name: 'Two', data: [['x', 'y']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const bar = hot.getPlugin('sheetsBar');
@@ -359,7 +360,7 @@ describe('SheetsBar cell meta round trip', () => {
     hot = new Handsontable(container, {
       minCols: 4,
       sheetsBar: { sheets: [{ name: 'One', data }, { name: 'Two', data: [['x', 'y']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const bar = hot.getPlugin('sheetsBar');
@@ -382,7 +383,7 @@ describe('SheetsBar cell meta round trip', () => {
       minRows: 5,
       validator: (value, callback) => callback(value !== 'bad'),
       sheetsBar: { sheets: [{ name: 'One', data }, { name: 'Two', data: [['x', 'y']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const bar = hot.getPlugin('sheetsBar');
@@ -415,7 +416,7 @@ describe('SheetsBar cell meta round trip', () => {
     hot = new Handsontable(container, {
       minRows: 5,
       sheetsBar: { sheets: [{ name: 'One', data: [['a', 'b']] }, { name: 'Two', data: [['x', 'y']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const bar = hot.getPlugin('sheetsBar');
@@ -502,7 +503,7 @@ describe('SheetsBar cell meta round trip', () => {
           { name: 'Two', data: [['x', 'y'], ['z', 'w'], ['v', 'u']], settings: { customBorders: true } },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const bar = hot.getPlugin('sheetsBar');
@@ -548,7 +549,7 @@ describe('SheetsBar cell meta round trip', () => {
           { name: 'Two', data: [[false, 'x']] },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const bar = hot.getPlugin('sheetsBar');

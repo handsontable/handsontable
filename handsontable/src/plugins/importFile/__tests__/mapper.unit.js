@@ -5,6 +5,7 @@ import { isLimitError, MAX_TRANSLATED_FORMULA_CHARS } from '../../../utils/xlsxE
 import { createCellSnapshot, createSheetSnapshot, createWorkbookSnapshot } from '../../../utils/xlsxEngine/model';
 import { EMPTY_STYLES } from '../../../utils/xlsxEngine/adapters/native/parts/styles';
 import { parseWorksheet } from '../../../utils/xlsxEngine/adapters/native/parts/worksheetReader';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 function cell(overrides) {
   return { ...createCellSnapshot(), ...overrides };
@@ -1620,7 +1621,7 @@ describe('mapWorkbook - date-time cells', () => {
     const { result } = map(workbook(sheet));
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: result.data,
       columns: result.columns,
       locale: 'en-US',

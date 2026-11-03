@@ -20,6 +20,7 @@ const ALLOWED_E2E_MODULES = [
   './htmlNormalize',
   './focusNavigator',
   './common',
+  './licenseKey',
   './utils',
   './mouseEvents',
   './keyboardEvents',

@@ -1,7 +1,8 @@
 import Handsontable from '../../../index';
 import { SheetsBarMenus } from '../ui/menus';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
-const LICENSE_KEY = 'non-commercial-and-evaluation';
+const LICENSE_KEY = TEST_LICENSE_KEY;
 
 /**
  * The tab strip binds its tab listeners once, on the strip, when it is built. A listener is bound to the

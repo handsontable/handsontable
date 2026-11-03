@@ -28,6 +28,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -68,7 +69,7 @@
             top: { width: 3, color: 'rgb(255, 0, 255)' }, bottom: { width: 3, color: 'rgb(255, 0, 255)' },
             left: { width: 3, color: 'rgb(255, 0, 255)' }, right: { width: 3, color: 'rgb(255, 0, 255)' } },
         ],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       window.__hotInitError = String((error && error.stack) || error);

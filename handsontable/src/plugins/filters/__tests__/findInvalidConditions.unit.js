@@ -8,6 +8,7 @@ import { HiddenRows } from '../../hiddenRows';
 import { HiddenColumns } from '../../hiddenColumns';
 import { TrimRows } from '../../trimRows';
 import { registerCellType, CheckboxCellType, DateCellType, NumericCellType } from '../../../cellTypes';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 describe('Filters#_findInvalidConditions', () => {
   let container;
@@ -33,7 +34,7 @@ describe('Filters#_findInvalidConditions', () => {
     hot = new Handsontable(container, {
       data: [['a', 'b'], ['c', 'd']],
       filters: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     filters = hot.getPlugin('filters');
   });

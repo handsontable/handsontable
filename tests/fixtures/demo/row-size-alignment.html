@@ -30,6 +30,7 @@
     window.htCells = htPick('cells', { normal: 100, small: 40 }, 'normal');
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -66,7 +67,7 @@
         autoWrapRow: true,
         autoWrapCol: true,
         autoRowSize: true,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       window.htBuildError = String(error && error.stack || error);

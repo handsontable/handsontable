@@ -27,6 +27,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -121,7 +122,7 @@
       // The hook reaches the engine unclamped, unlike the `rowHeights` option.
       ...(USE_HOOK ? { modifyRowHeight: () => ROW_HEIGHT } : {}),
       ...(ROW_HEIGHTS_OPTION ? { rowHeights: ROW_HEIGHTS_OPTION } : {}),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     // Flips the engine's row-height mode. Overlay clones share the master's settings object, so

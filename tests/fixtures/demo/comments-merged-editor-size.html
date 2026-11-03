@@ -21,6 +21,7 @@
     body { font-family: sans-serif; margin: 0; padding: 8px; }
     #grid { width: 420px; height: 360px; overflow: hidden; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div data-testid="grid" id="grid"></div>
@@ -80,7 +81,7 @@
             row: 6, col: 4, comment: { value: 'A merged range with a saved size.', style: { width: 200, height: 140 } },
           },
         ],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       window.htBuildError = String((error && error.stack) || error);

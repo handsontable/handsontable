@@ -1,6 +1,7 @@
 import DataMap from 'handsontable/dataMap/dataMap';
 import Handsontable from 'handsontable/base';
 import { registerAllCellTypes } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 
@@ -72,7 +73,7 @@ describe('DataMap.get with function column accessors', () => {
     const accessor = jest.fn(row => row.value);
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [{ value: 'A1' }, { value: 'A2' }],
       dataSchema: () => ({ value: null }),
       columns: [{ data: accessor }],
@@ -110,7 +111,7 @@ describe('DataMap.get/set with function column accessors and `modifyRowData`', (
     const swappedRow = { value: 'swapped' };
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [{ value: 'A1' }, { value: 'A2' }],
       columns: [{ data: row => row.value }],
       modifyRowData(physicalRow) {
@@ -127,7 +128,7 @@ describe('DataMap.get/set with function column accessors and `modifyRowData`', (
     const sourceRows = [{ value: 'A1' }, { value: 'A2' }];
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: sourceRows,
       columns: [{
         data: (row, value) => {
@@ -159,7 +160,7 @@ describe('DataMap.get/set with function column accessors and `modifyRowData`', (
     });
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [{ value: 'A1' }, { value: 'A2' }],
       dataSchema: () => ({ value: null }),
       columns: [{ data: accessor }],
@@ -362,7 +363,7 @@ describe('DataMap duck columns for nested object data without `columns`', () => 
    * @returns {Handsontable} A grid with no `columns` option.
    */
   function createGrid(data) {
-    return new Handsontable(container, { licenseKey: 'non-commercial-and-evaluation', data });
+    return new Handsontable(container, { licenseKey: TEST_LICENSE_KEY, data });
   }
 
   it('should name a column nested two levels deep by its full path', () => {
@@ -409,7 +410,7 @@ describe('DataMap duck columns for nested object data without `columns`', () => 
 
   it('should keep resolving a nested path declared in `columns`', () => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [{ a: { b: { c: 'deep0' } } }],
       columns: [{ data: 'a.b.c' }],
     });
@@ -429,7 +430,7 @@ describe('DataMap duck columns for nested object data without `columns`', () => 
 
   it('should name columns nested two levels deep by full path when they come from `dataSchema`', () => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [],
       dataSchema: { a: { b: { c: null } }, id: null },
       minSpareRows: 1,
@@ -487,7 +488,7 @@ describe('DataMap with a `dataSchema` and no `columns` option', () => {
    */
   function build(dataSchema, data, settings = {}) {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data,
       dataSchema,
       ...settings,
@@ -568,7 +569,7 @@ describe('DataMap with a `dataSchema` and no `columns` option', () => {
 
     hot.destroy();
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [{ id: 1, nested: { name: 'a' } }],
     });
 

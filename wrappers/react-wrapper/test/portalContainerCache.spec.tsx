@@ -9,6 +9,7 @@ import {
   sleep,
 } from './_helpers';
 import { HotRendererProps, HotTableRef } from '../src/types';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 // Regression tests for the portal-container cache leak (PLAN A4): the wrapper
 // kept one detached container DIV per (row, col) ever rendered with a
@@ -32,7 +33,7 @@ describe('Portal container cache eviction', () => {
     const ROWS = 1000;
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(ROWS, COLS)}
         width={300}
@@ -94,7 +95,7 @@ describe('Portal container cache eviction', () => {
     const ROWS = 1000;
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(ROWS, COLS)}
         width={300}

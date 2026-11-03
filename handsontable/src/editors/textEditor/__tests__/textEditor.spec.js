@@ -1341,7 +1341,7 @@ describe('TextEditor', () => {
 
       // A grid with no key is blocked by the license modal, which deselects and takes the keyboard.
       // The shared `handsontable()` helper injects this key; this local one has to do it too.
-      container.handsontable({ licenseKey: 'non-commercial-and-evaluation', ...options });
+      container.handsontable({ licenseKey: TEST_LICENSE_KEY, ...options });
       container[0].focus(); // otherwise TextEditor tests do not pass in IE8
 
       return container.data('handsontable');

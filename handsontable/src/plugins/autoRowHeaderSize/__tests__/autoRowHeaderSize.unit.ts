@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, AutoRowHeaderSize } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(AutoRowHeaderSize);
 
@@ -15,7 +16,7 @@ function buildGrid(settings: Record<string, unknown> = {}) {
   const hot = new Handsontable(document.createElement('div'), {
     data: Array.from({ length: 100 }, (_, i) => [i]),
     rowHeaders: labelSpy,
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     ...settings,
   });
 
@@ -244,7 +245,7 @@ describe('AutoRowHeaderSize', () => {
         data: Array.from({ length: 20 }, (_, i) => [i]),
         rowHeaders: labelSpy,
         autoRowHeaderSize: true,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         ...settings,
       });
 
@@ -525,7 +526,7 @@ describe('AutoRowHeaderSize', () => {
         // Level one reads "1".."100", so bucketing by label length picks only rows near 0, 9 and 99.
         rowHeaders: true,
         autoRowHeaderSize: true,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         afterGetRowHeaderRenderers: (renderers: Array<(row: number, TH: HTMLElement) => void>) => {
           renderers.push((renderableRow: number, TH: HTMLElement) => {
             // Only the ghost table stamps this attribute, so this counts real measurements and not
@@ -574,7 +575,7 @@ describe('AutoRowHeaderSize', () => {
         data: Array.from({ length: 20 }, (_, i) => [i]),
         rowHeaders: labels,
         autoRowHeaderSize: true,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
       const hidingMap = hot.rowIndexMapper.createAndRegisterIndexMap('test-hide', 'hiding', false);
 
@@ -631,7 +632,7 @@ describe('AutoRowHeaderSize', () => {
       const hot = new Handsontable(document.createElement('div'), {
         data: Array.from({ length: 1500 }, (_, i) => [i]),
         rowHeaders: labelSpy,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         ...settings,
       });
 
@@ -848,7 +849,7 @@ describe('AutoRowHeaderSize', () => {
         // The label comes from the data, so editing the cell does change the header.
         rowHeaders: (visualRow: number) => (data[visualRow] ? data[visualRow][0] : ''),
         autoRowHeaderSize: true,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
       const plugin = hot.getPlugin('autoRowHeaderSize');
 
@@ -943,7 +944,7 @@ describe('AutoRowHeaderSize', () => {
 
           return renderers;
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       // The read is what asks for the measurement. In a browser the first draw does it and the
@@ -1024,7 +1025,7 @@ describe('AutoRowHeaderSize', () => {
         data: [['c'], ['a'], ['b']],
         rowHeaders: labelSpy,
         autoRowHeaderSize: true,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
       const plugin = hot.getPlugin('autoRowHeaderSize');
 

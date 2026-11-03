@@ -2,6 +2,7 @@ import Core from 'handsontable/core';
 import { registerCellType, TextCellType } from 'handsontable/cellTypes';
 import { registerRenderer, baseRenderer, textRenderer } from 'handsontable/renderers';
 import { registerPlugin, AutoColumnSize } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(AutoColumnSize);
 registerCellType(TextCellType);
@@ -30,7 +31,7 @@ describe('AutoColumnSize and a pinned column width after a column move', () => {
    */
   function createMovedGrid() {
     hot = new Core(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [['a', 'b', 'c']],
       columns: [{ width: 200 }, {}, {}],
     });

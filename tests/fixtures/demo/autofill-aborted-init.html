@@ -25,6 +25,7 @@
   <style>
     body { font-family: sans-serif; margin: 1rem; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -84,7 +85,7 @@
       fillHandle: true,
       width: 500,
       height: 300,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     /**
@@ -108,7 +109,7 @@
         new Handsontable(doomed, {
           data: [['a', 'b']],
           rows: 5,
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: window.htTestLicenseKey,
         });
       } catch (error) {
         return error.message;

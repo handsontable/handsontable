@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { CollapsibleColumns, NestedHeaders, registerPlugin } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(NestedHeaders);
@@ -34,7 +35,7 @@ describe('CollapsibleColumns – a column order written without a move', () => {
    */
   function createCollapsedGrid() {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [['a1', 'b1', 'c1', 'd1', 'e1']],
       collapsibleColumns: true,
       nestedHeaders: [

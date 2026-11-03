@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable/base';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 /**
  * `alter('remove_col')` lowers `fixedColumnsEnd` by the number of removed columns that belonged to the
@@ -32,7 +33,7 @@ describe('alter("remove_col") and the `fixedColumnsEnd` option', () => {
       startRows: 2,
       startCols,
       ...(fixedColumnsEnd === undefined ? {} : { fixedColumnsEnd }),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     return core;
@@ -115,7 +116,7 @@ describe('alter("remove_col") and the `fixedColumnsEnd` option', () => {
       startCols: 6,
       fixedColumnsStart: 2,
       fixedColumnsEnd: 2,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     core.alter('remove_col', 5, 1);

@@ -7,6 +7,7 @@ import { FormulaBuilder } from '../formulaBuilder';
 import { getFormulaBuilderAdapter } from '../handsontableAdapter';
 import type { HandsontableAdapter } from '../handsontableAdapter';
 import { injectRealCoreStyles, removeRealCoreStyles } from '../../../../test/helpers/realCoreStyles';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 type CoreModule = typeof import('hyperformula-ui');
 
@@ -66,7 +67,7 @@ describe('FormulaBuilder editing on a real grid', () => {
       editor: 'formula',
       formulas: { engine: HyperFormula },
       formulaBuilder: { builder: core },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     } as Handsontable.GridSettings);
 

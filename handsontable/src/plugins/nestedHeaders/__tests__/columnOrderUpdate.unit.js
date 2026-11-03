@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { NestedHeaders, ManualColumnMove, UndoRedo, registerPlugin } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(NestedHeaders);
@@ -34,7 +35,7 @@ describe('NestedHeaders – headers follow a column order written without a move
    */
   function createGrid(settings = {}) {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [['id1', 'name1', 'qty1', 'done1'], ['id2', 'name2', 'qty2', 'done2']],
       manualColumnMove: true,
       ...settings,

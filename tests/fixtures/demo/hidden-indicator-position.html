@@ -41,6 +41,7 @@
   <style>
     body { font-family: sans-serif; margin: 0; padding: 1rem; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -93,7 +94,7 @@
         hiddenColumns: { columns: [2, 3, 9, 10, 11], indicators: true },
         // Rows: `3` before [3,4], `6` after it, `11` before the trailing [11,12,13].
         hiddenRows: { rows: [3, 4, 11, 12, 13], indicators: true },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       window.htBuildError = String((error && error.stack) || error);

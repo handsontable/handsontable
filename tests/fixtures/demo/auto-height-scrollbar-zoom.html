@@ -64,6 +64,7 @@
        scrollbar drags a horizontal one in behind it. */
     #wrap { width: 100%; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -125,7 +126,7 @@
       // Defeat row virtualization so the whole table is in the DOM and its real height can be
       // compared against the scroll box in one shot.
       viewportRowRenderingOffset: window.htRowCount + 10,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
   </script>
 </body>

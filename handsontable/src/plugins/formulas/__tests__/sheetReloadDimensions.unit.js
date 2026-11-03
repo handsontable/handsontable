@@ -2,6 +2,7 @@ import { HyperFormula } from 'hyperformula';
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { Formulas } from '../formulas';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * A grid built without `data` reloads itself from the engine sheet on every `updateSettings()`. The
@@ -41,7 +42,7 @@ describe('Formulas sheet reload dimensions', () => {
   function buildAndFillSheetThroughEngine() {
     const settings = {
       formulas: { engine, sheetName: 'Sheet1' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     };
 
     hot = new Handsontable(container, settings);
@@ -98,7 +99,7 @@ describe('Formulas sheet reload dimensions', () => {
       data: [[1, 2, 3], [4, 5, 6]],
       columns: [{}, {}, {}],
       formulas: { engine, sheetName: 'Sheet1' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     engine.addSheet('Other');
@@ -113,7 +114,7 @@ describe('Formulas sheet reload dimensions', () => {
     const settings = {
       formulas: { engine, sheetName: 'Sheet1' },
       columns: () => ({}),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     };
 
     hot = new Handsontable(container, settings);
@@ -140,7 +141,7 @@ describe('Formulas sheet reload dimensions', () => {
       data: [[1, 2, 3], [4, 5, 6]],
       columns: index => (index < 3 ? {} : null),
       formulas: { engine, sheetName: 'Sheet1' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     engine.addSheet('Other');
@@ -158,7 +159,7 @@ describe('Formulas sheet reload dimensions', () => {
       data: [[1, 2, 3], [4, 5, 6]],
       dataSchema: [null, null, null],
       formulas: { engine, sheetName: 'Sheet1' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     engine.addSheet('Other');
@@ -176,7 +177,7 @@ describe('Formulas sheet reload dimensions', () => {
       data: [[1, 2, 3], [4, 5, 6]],
       maxCols: 3,
       formulas: { engine, sheetName: 'Sheet1' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     engine.addSheet('Other');
@@ -193,7 +194,7 @@ describe('Formulas sheet reload dimensions', () => {
     hot = new Handsontable(container, {
       data: [[1], [2]],
       formulas: { engine, sheetName: 'Sheet1' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     engine.addSheet('Other');

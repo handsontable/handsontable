@@ -3,6 +3,7 @@ import { registerCellType, TextCellType } from 'handsontable/cellTypes';
 import { registerRenderer, baseRenderer, textRenderer } from 'handsontable/renderers';
 import { TrimmingMap } from 'handsontable/translations/maps/trimmingMap';
 import { _resetDeprecationWarnings } from 'handsontable/helpers/console';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 registerCellType(TextCellType);
 registerRenderer(baseRenderer);
@@ -29,7 +30,7 @@ describe('Core#updateSettings', () => {
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
       const core = new Core(container, {
         data: [['a']],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         persistentState: true,
       });
 
@@ -53,7 +54,7 @@ describe('Core#updateSettings', () => {
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
       const core = new Core(container, {
         data: [['a']],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       core.init();
@@ -71,7 +72,7 @@ describe('Core#updateSettings', () => {
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
       const core = new Core(container, {
         data: [['a']],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       core.init();
@@ -91,7 +92,7 @@ describe('Core#updateSettings', () => {
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
       const core = new Core(container, {
         data: [['a', 'b']],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       core.init();
@@ -116,7 +117,7 @@ describe('Core#updateSettings', () => {
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
       const core = new Core(container, {
         data: [['a', 'b']],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       core.init();
@@ -134,7 +135,7 @@ describe('Core#updateSettings', () => {
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
       const core = new Core(container, {
         data: [['a']],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       core.init();
@@ -152,7 +153,7 @@ describe('Core#updateSettings', () => {
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
       const core = new Core(container, {
         data: [['a']],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         persistentState: true,
         correctFormat: true,
       });
@@ -178,7 +179,7 @@ describe('Core#updateSettings', () => {
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
       const core = new Core(container, {
         data: [['a']],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         datePickerConfig: { firstDay: 1 },
       });
 
@@ -218,7 +219,7 @@ describe('Core#updateSettings', () => {
       const core = new Core(container, {
         theme: 'ht-theme-main',
         data: buildData(),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         columns: [
           { data: 'number', renderer: numberRenderer },
           { data: 'string', renderer: stringRenderer },
@@ -252,7 +253,7 @@ describe('Core#updateSettings', () => {
       const core = new Core(container, {
         theme: 'ht-theme-main',
         data: buildData(),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         allowInvalid: false,
         columns: [
           { data: 'number', sourceDataValidator: rejectEverything },
@@ -281,7 +282,7 @@ describe('Core#updateSettings', () => {
       const core = new Core(container, {
         theme: 'ht-theme-main',
         data: buildData(),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         columns: [
           { data: 'number', renderer: numberRenderer },
           { data: 'string', renderer: stringRenderer },
@@ -306,7 +307,7 @@ describe('Core#updateSettings', () => {
       const core = new Core(container, {
         theme: 'ht-theme-main',
         data: buildData(),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         columns: [
           { data: 'number' },
           { data: 'string' },
@@ -340,7 +341,7 @@ describe('Core#updateSettings', () => {
       const core = new Core(container, {
         theme: 'ht-theme-main',
         data: [{ a: 1, b: 2, c: 3 }],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         columns: buildColumns(),
       });
 
@@ -390,7 +391,7 @@ describe('Core#updateSettings', () => {
       const core = new Core(container, {
         theme: 'ht-theme-main',
         data: [{ a: 1, b: 2, c: 3 }],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         maxCols: 2,
         columns: buildColumns(),
       });
@@ -431,7 +432,7 @@ describe('Core#updateSettings', () => {
       const core = new Core(container, {
         theme: 'ht-theme-main',
         data: [['a']],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         columns: () => ({ renderer: currentRenderer }),
       });
 

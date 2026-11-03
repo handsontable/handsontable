@@ -6,6 +6,7 @@ import { HOT_DESTROYED_WARNING } from '../src/helpers';
 import {
   createSampleData,
 } from './_helpers';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 config.renderStubDefaultSlot = true;
 
@@ -20,7 +21,7 @@ describe('hotInit', () => {
     const testWrapper = mount(HotTable, {
       props: {
         data: createSampleData(1, 1),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       },
     });
 
@@ -36,7 +37,7 @@ describe('hotInit', () => {
     const testWrapper = mount(HotTable, {
       props: {
         data: createSampleData(1, 1),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       },
     });
 
@@ -54,7 +55,7 @@ describe('Updating the Handsontable settings', () => {
     const testWrapper = mount(HotTable, {
       props: {
         data: createSampleData(1, 1),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         rowHeaders: true,
         afterUpdateSettings() {
           updateSettingsCalls += 1;
@@ -83,7 +84,7 @@ describe('Updating the Handsontable settings', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :rowHeaders="rowHeaders"
           :colHeaders="colHeaders"
           :readOnly="readOnly"
@@ -141,7 +142,7 @@ describe('Updating the Handsontable settings', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :rowHeaders="rowHeaders"
           :colHeaders="colHeaders"
           :readOnly="readOnly"
@@ -184,7 +185,7 @@ describe('Updating the Handsontable settings', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :data="data"
           :afterUpdateSettings="(newSettings) => { this.newSettings = newSettings }"
           ></HotTable>`,
@@ -249,7 +250,7 @@ describe('Updating the Handsontable settings', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :data="data"
           :afterUpdateSettings="(newSettings) => { this.newSettings = newSettings }"
           ></HotTable>`,
@@ -298,7 +299,7 @@ describe('Updating the Handsontable settings', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :data="data"
           :afterUpdateSettings="(newSettings) => { this.newSettings = newSettings }"
           ></HotTable>`,
@@ -348,7 +349,7 @@ it('should be possible to access the `hotInstance` property of the HotTable inst
     template: `
       <HotTable
         ref="grid"
-        licenseKey="non-commercial-and-evaluation"
+        :licenseKey="testLicenseKey"
         :data="data"
         :autoRowSize="false"
         :autoColumnSize="false"
@@ -385,7 +386,7 @@ it('should display a warning and not throw any errors, when the underlying Hands
     components: { HotTable },
     template: `
       <HotTable
-        licenseKey="non-commercial-and-evaluation"
+        :licenseKey="testLicenseKey"
         :data="data"
         ></HotTable>`,
     data() {
@@ -427,7 +428,7 @@ describe('HOT-based CRUD actions', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :rowHeaders="true"
           :colHeaders="true"
           :data="data"
@@ -476,7 +477,7 @@ describe('Non-HOT based CRUD actions', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :rowHeaders="true"
           :colHeaders="true"
           :data="data"
@@ -528,7 +529,7 @@ describe('Root size options', () => {
       props: {
         data: createSampleData(3, 3),
         height: 'auto',
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       },
     });
 
@@ -547,7 +548,7 @@ describe('Root size options', () => {
       props: {
         data: createSampleData(3, 3),
         height: 300,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       },
     });
     const { hotInstance } = testWrapper.getComponent(HotTable).vm;
