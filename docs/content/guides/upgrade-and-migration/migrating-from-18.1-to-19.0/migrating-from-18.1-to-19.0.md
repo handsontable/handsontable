@@ -2058,6 +2058,17 @@ This applies to both engines.
 
 What to do: nothing.
 
+#### A formula keeps its references when columns are moved and hidden
+
+What changed: with `exportFormulas: true` and `exportHiddenColumns: false`, a formula's references
+now point at the columns they name in the file when columns were moved with `manualColumnMove`. In
+18.1, the export left out the wrong column when it moved the references past the hidden ones, so a
+formula was written one column off, next to the right cached value. Excel and LibreOffice recalculate
+on open, so the file showed wrong numbers with no warning.
+This applies to both engines.
+
+What to do: nothing.
+
 #### A formula error is stored as an error cell
 
 What changed: with `exportFormulas: true`, a formula whose result is an error (`#DIV/0!`, `#N/A`, `#NAME?`,
@@ -2067,9 +2078,72 @@ The error is stored under Excel's English code even when a HyperFormula `languag
 grid shows: with `plPL` the grid shows `#DZIEL/0!` and the file stores `#DIV/0!`, where 18.1 stored the
 translated text. A formula that returns the text `"#N/A"` stays a text cell. A HyperFormula error that
 Excel has no code for (`#CYCLE!`, `#ERROR!`, `#LIC!`, or `#SPILL!`) is still stored as the text the grid
-shows. This applies to both engines. Without `exportFormulas`, nothing changed.
+shows. This applies to both engines.
 
-What to do: nothing, unless a tool reads the cached results as text. Such a tool now gets an error value.
+With the Formulas plugin on, a cell whose value is an error is stored as an error cell too, with or
+without `exportFormulas`: an error you typed, such as `#N/A`, and a formula exported as its value. In
+18.1, both were stored as text. Without the Formulas plugin, an error is stored as text, as in 18.1.
+
+What to do: nothing, unless a tool reads the cached results or the values as text. Such a tool now
+gets an error value.
+
+#### A number or `TRUE`/`FALSE` the Formulas plugin computed keeps its type
+
+What changed: with the Formulas plugin on, a number or a `TRUE`/`FALSE` value that the plugin
+computed is now stored as a number or a boolean, even in a `text` column and without
+`exportFormulas`. This covers the cells an array formula spills, such as the cells below
+`=SEQUENCE(3)`, and a formula exported as its value. In 18.1, such a cell in a `text` column was
+stored as text, so an application that reads the stored values without recalculating, such as Apple
+Numbers, left it out of `SUM()`. A value you typed into a `text` column is still stored as text. This
+applies to both engines.
+
+What to do: nothing, unless a tool expects text in those cells. Such a tool now gets a number or a
+boolean.
+
+#### An array formula is written as an array
+
+What changed: with `exportFormulas: true`, a formula whose result spills, such as `=SEQUENCE(3)`,
+and a formula that is one `ARRAYFORMULA` call, such as `=ARRAYFORMULA(A1:A2*2)`, are now written
+as array formulas over the cells of the result. The built-in engine writes a spilling formula as a
+dynamic array, which Excel spills and resizes as it recalculates. The ExcelJS engine writes both as
+legacy arrays: Excel shows them in braces, and the range stays fixed. In 18.1, both went out as plain
+formulas, which Excel opened with an `@` (`=@SEQUENCE(3)`) and showed as one value.
+
+What to do: nothing with the built-in engine. With ExcelJS, re-enter such a formula in Excel to make
+it a dynamic array, or export with the built-in engine.
+
+#### Range arithmetic is written as a one-cell array
+
+What changed: with `exportFormulas: true` and HyperFormula's `useArrayArithmetic` on, which is the
+Formulas plugin's default, a formula that applies an operator to a range, such as
+`=SUM(A1:A2*B1:B2)`, is now written as a one-cell array. So is a formula that is one call to a
+function that can return an array, such as `=SEQUENCE(1)`. In 18.1, both went out as plain
+formulas, and Excel opened them with an `@`, so `=SUM(@A1:A2*@B1:B2)` computed one row instead of
+the whole range. The built-in engine writes a one-cell dynamic array, and ExcelJS a one-cell legacy
+array. Excel computes the same value from both.
+
+What to do: nothing.
+
+#### A decimal comma is written as a dot
+
+What changed: with `exportFormulas: true` and a HyperFormula `decimalSeparator` of `,`, the decimal
+separator of a number in a formula is now written as `.`. A formula typed as `=SUM(A1;1,5)` goes out
+as `SUM(A1,1.5)`. In 18.1, only the argument separator was changed, so the file held `SUM(A1,1,5)`,
+which Excel and LibreOffice read as three arguments (`7` instead of `2.5` when A1 holds 1). This
+applies to both engines.
+
+What to do: nothing.
+
+#### A formula over a name the file cannot hold is written as its value
+
+What changed: with `exportFormulas: true`, the Formulas plugin's named expressions are now written as
+defined names. A name the engine cannot write is left out, and a formula over it is written as its
+value instead. With the ExcelJS engine, that is every name that is not one workbook-scoped range,
+such as a constant: `=TaxRate*100` over `TaxRate = 0.07` goes out as the value `7`. In 18.1, no name
+was written, and the formula went out as it was, so Excel and LibreOffice showed `#NAME?`.
+
+What to do: nothing, unless the formula must stay live. Export with the built-in engine, which writes
+constants, sheet-scoped names, and names over several ranges.
 
 #### Values past Excel's limits are written at Excel's maximum
 

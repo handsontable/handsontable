@@ -1,5 +1,6 @@
 import type { DroppedFeatures } from '../../capabilities';
-import type { WorkbookSnapshot } from '../../model';
+import type { DefinedNameSnapshot, WorkbookSnapshot } from '../../model';
+import { selectWritableDefinedNames } from '../../definedNames';
 import type { XlsxEngineAdapter } from '../types';
 import { readWorkbook } from './read';
 import { writeWorkbook } from './write';
@@ -22,5 +23,11 @@ export const nativeAdapter: XlsxEngineAdapter = {
    */
   write(snapshot: WorkbookSnapshot, _module: unknown, dropped: DroppedFeatures): Promise<Uint8Array> {
     return writeWorkbook(snapshot, dropped);
+  },
+  /**
+   * The defined names `write` puts into the file: the ones the shared validation keeps.
+   */
+  selectDefinedNames(snapshot: WorkbookSnapshot): DefinedNameSnapshot[] {
+    return selectWritableDefinedNames(snapshot.definedNames ?? [], snapshot.sheets.map(sheet => sheet.name)).entries;
   },
 };

@@ -221,28 +221,32 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   disabled while the file was being read`. Only a real `importFile: false` reaches `disablePlugin()`: the
   plugin has no `updatePlugin()`, so a wrapper re-sending its settings mid-read cancels nothing.
 - **A `loadData()` that is not the import's own takes an apply ticket as well** (`#onBeforeLoadData`,
-  recorded as `#dataReplacedAtTicket`), so an import still reading when the grid loads other data is rejected
-  with `the grid's data was replaced while the file was being read`. A sheets bar switch is that load: the
-  result would otherwise land in the arriving sheet. The import's own `applyImportResult()` runs under
-  `#isApplying` and takes no ticket, so a newer import that applies first still rejects an older one as
-  stale, not as replaced. Only `loadData()` counts, not `updateData()`. Two loads take no ticket: a
-  DataProvider fetch (source `'dataProvider'`, compared as a string, because the plugin may not import
-  DataProvider), which reloads the data the import was started on, and a load a `beforeImport` listener
-  makes (`#isApplying` covers the hook too), the usual way to clear the grid before the result lands. The sheets bar reads a narrower flag, `#isApplyingResult` (through `_isApplyingImport()`), set around `applyImportResult()` only: a setting a `beforeImport` listener changes is the host's own, and the bar keeps it as the grid-level value. Pinned by `importFile.unit.js` ›
-  "ImportFile overlapping imports".
+  recorded as `#dataReplacedAtTicket`), so an import still reading when the grid loads other data is
+  rejected with `the grid's data was replaced while the file was being read`. A sheets bar switch is that
+  load: the result would otherwise land in the arriving sheet. The import's own `applyImportResult()`
+  runs under `#isApplying` and takes no ticket, so a newer import that applies first still rejects an
+  older one as stale, not as replaced. Only `loadData()` counts, not `updateData()`. Two loads take no
+  ticket: a DataProvider fetch (source `'dataProvider'`, compared as a string, because the plugin may not
+  import DataProvider), which reloads the data the import was started on, and a load a `beforeImport`
+  listener makes (`#isApplying` covers the hook too), the usual way to clear the grid before the result
+  lands. The sheets bar reads a narrower flag, `#isApplyingResult` (through `_isApplyingImport()`), set
+  around `applyImportResult()` only: a setting a `beforeImport` listener changes is the host's own, and
+  the bar keeps it as the grid-level value. Pinned by `importFile.unit.js` › "ImportFile overlapping
+  imports".
 - **Overlapping applying imports are ordered by when they STARTED, not when they finish (T90).** Each
   `apply: true` call takes a ticket from `#latestApplyTicket` before its first `await` (in
   `importFromBlob` that is before `blob.arrayBuffer()`, so the two entry points share one sequence), and
-  `#assertLatest(ticket)` rejects with `a newer import started before this one finished` after the read and
-  again after `beforeImport` (a handler can start a newer import). A rejected import applies nothing and
-  fires no `afterImport`. Three rules: the ticket is taken AFTER `#assertEnabled()`, `requireEngine()` and
-  `resolveImportOptions()`, so a call refused for its format, its engine or an invalid option
-  (`headerRows: 0`, a short `range`) never cancels one in flight (which is why both entry points resolve
-  the engine and the options before the read and hand `#importBuffer` the RESOLVED options);
-  `apply: false` takes no ticket, so a preview neither cancels nor is cancelled; and an older import is rejected even when it finishes FIRST, because the grid would
-  otherwise flash the file the caller already replaced. A newer import that later fails its parse still
-  cancelled the older one. Pinned by `importFile.unit.js` › "ImportFile overlapping imports"; the import
-  guide's "Several imports at once" states the contract.
+  `#assertLatest(ticket)` rejects with `a newer import started before this one finished` after the read
+  and again after `beforeImport` (a handler can start a newer import). A rejected import applies nothing
+  and fires no `afterImport`. Three rules: the ticket is taken AFTER `#assertEnabled()`,
+  `requireEngine()` and `resolveImportOptions()`, so a call refused for its format, its engine or an
+  invalid option (`headerRows: 0`, a short `range`) never cancels one in flight (which is why both entry
+  points resolve the engine and the options before the read and hand `#importBuffer` the RESOLVED
+  options); `apply: false` takes no ticket, so a preview neither cancels nor is cancelled; and an older
+  import is rejected even when it finishes FIRST, because the grid would otherwise flash the file the
+  caller already replaced. A newer import that later fails its parse still cancelled the older one.
+  Pinned by `importFile.unit.js` › "ImportFile overlapping imports"; the import guide's "Several imports
+  at once" states the contract.
 - **ColumnSummary endpoints are not re-derived by an import.** A `reversedRowCoords` endpoint keeps the
   destination row it computed for the previous data (`loadData` does the same), so the summary overwrites
   an imported value. ColumnSummary is deliberately not changed; the guide documents turning `columnSummary`
@@ -419,27 +423,263 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   without `comments: true` gets no comments and no `result.comments` key; the mapper reports the loss as
   `comments` in `dropped` so the console warning names it. The first demo target grid shipped without the
   option and the comment vanished silently before the `dropped` entry existed.
-- **A live formula that cannot RESOLVE in the grid imports its cached value.** A reference to a sheet
-  the Formulas engine does not hold (`Rates!A1`) shows `#REF!`, and a name the workbook defines but
-  the engine does not (`=SUM(Sales)`) shows `#NAME?` - and so does every formula depending on it -
-  while the file carries the value it evaluated to. `pushCellValue` therefore imports the cached
-  value, lists the formula in `result.formulas` and records `formula:otherSheet` /
-  `formula:definedName`, the way `formula:outOfRange` already worked. The plugin hands the mapper
-  what the engine holds (`MapperContext.formulaSheetNames`, `formulaNamedExpressions`, both
-  lower-cased, and `formulaSheetName`, the engine's name for the grid's OWN sheet). **The grid's own
-  sheet name is not "held" for a qualifier that also names another sheet of the workbook**
-  (`isSheetKnown`): the import replaces that engine sheet with the imported one, so importing `Sheet2` of
-  a default-named workbook left `=Sheet1!A1*2` live, reading the grid's own A1 instead of the workbook's
-  `Sheet1`. Such a qualifier imports the cached value with `formula:otherSheet`; a qualifier spelled like
-  the grid's sheet that names no workbook sheet stays live, and so does a sheet another grid holds in a
-  shared engine. Both readers carry the workbook's names (`WorkbookSnapshot.definedNames`, Excel's
-  `_xlnm.` names left out). The ExcelJS reader carries RANGE names only: ExcelJS 4.4's
-  `definedNames.model` drops a name whose value is a constant (`<definedName name="TaxRate">0.07`),
-  so a formula over such a name stays live and shows `#NAME?` on that engine, with nothing reported. Each formula is charged ONCE against `MAX_TRANSLATED_FORMULA_CHARS`, and
-  that one charge covers the prefix strip, the reference walk (which also judges each sheet
-  qualifier, through the walk's own `qualifier` group) and the defined-name scan. Charging every
-  check separately refused files that imported at 1a59dedd71. Registering the file's names in HyperFormula would make them round-trip; it is a feature
-  of its own, not done here.
+- **A live formula that cannot RESOLVE in the grid imports its cached value.** A reference to a sheet the
+  Formulas engine does not hold (`Rates!A1`) shows `#REF!`, and a name the workbook defines but the
+  engine does not (`=SUM(Sales)`) shows `#NAME?` - and so does every formula depending on it - while the
+  file carries the value it evaluated to. `pushCellValue` therefore imports the cached value, lists the
+  formula in `result.formulas` and records `formula:otherSheet` / `formula:definedName`, the way
+  `formula:outOfRange` already worked. The plugin hands the mapper what the engine holds
+  (`MapperContext.formulaSheetNames`, `formulaNamedExpressions`, both lower-cased, and
+  `formulaSheetName`, the engine's name for the grid's OWN sheet). **The grid's own sheet name is not
+  "held" for a qualifier that also names another sheet of the workbook** (`isSheetKnown`): the import
+  replaces that engine sheet with the imported one, so importing `Sheet2` of a default-named workbook
+  left `=Sheet1!A1*2` live, reading the grid's own A1 instead of the workbook's `Sheet1`. Such a
+  qualifier imports the cached value with `formula:otherSheet`; a qualifier spelled like the grid's sheet
+  that names no workbook sheet stays live, and so does a sheet another grid holds in a shared engine.
+  Both readers carry the workbook's names (`WorkbookSnapshot.definedNames`, Excel's `_xlnm.` names left
+  out). **The ExcelJS reader flags every name `unsupported`** (it loses the scope and keeps one
+  definition of a name defined in several scopes), so on that engine no name is ever registered and none
+  counts as the engine's: a formula over one imports its cached value, even when the engine already
+  defines the name with the same text (the reader lost which scope it came from, so the match proves
+  nothing). ExcelJS 4.4's `definedNames.model` keeps only `$A$1`-style ranges: it drops a whole-column
+  name (`Sheet1!$B:$B`), a constant (`<definedName name="TaxRate">0.07`) and a relative one (`Data!G2`),
+  and a formula over such a name would stay live and show `#NAME?` with nothing reported. The adapter
+  therefore re-reads `xl/workbook.xml` with the built-in engine's zip reader and `parseWorkbook`
+  (`readWorkbookDefinedNames` in `adapters/native/read.ts`, `withLostDefinedNames` in `exceljs.ts`) and
+  appends every name the model lost, flagged like the rest (no ExcelJS-read name is ever registered or
+  matched). Where the part cannot be read again (no `DecompressionStream`), the model's names are kept as
+  they are. No bundle cost: `detect.ts` already imports both adapters. A multi-area name reaches the
+  mapper from both readers as its areas joined by commas; HyperFormula refuses the union, so its formulas
+  import cached values with `formula:definedName` and `definedNames:unsupported`. Each formula is charged
+  ONCE against `MAX_TRANSLATED_FORMULA_CHARS`, and that one charge covers the prefix strip, the reference
+  walk (which also judges each sheet qualifier, through the walk's own `qualifier` group), the
+  defined-name scan and the bare `TRUE`/`FALSE` walk. Charging every check separately refused files that
+  imported at 1a59dedd71.
+- **Array formulas import live; their spilled cells import empty** (DEV-3648, `pushCellValue`,
+  `recordLiveArray`). A PLAIN `<f>` that is one whole array-function call (`isWholeArrayFunctionCall`:
+  `=SEQUENCE(3)` with no `t="array"`, which is the export's own `formula:arrayExcluded` fallback)
+  records a one-cell legacy rectangle at its own address, so `spillsPastRef` settles it on its cached
+  value when the probe spills it (Excel intersects it to one value); one with a one-cell result stays
+  live. A dynamic array (`cm` on the master) goes in as written and spills. A legacy CSE
+  array goes in as `=ARRAYFORMULA(...)`, never double-wrapped (`unwrapArrayFormula`). So does a dynamic
+  one when the engine's `useArrayArithmetic` is off (`MapperContext.arrayArithmetic`, from `getConfig()`;
+  `HyperFormula.buildEmpty` defaults it off): such an engine evaluates `=A1:A3*2` as one value. The cost
+  is that the grid re-exports it as CSE. The ExcelJS engine cannot read `cm`, so it imports every array
+  as CSE. While the master is live, the cells its `ref` covers are pushed `null` (still typed from the
+  cached value): a cached value there would make the spill `#SPILL!`. The rectangle is recorded only when
+  the `ref` starts at the master, and is clipped to the window. A master that cannot go live (other
+  sheet, unresolved name, Formulas off) imports its cached values, spilled cells included, as before. **A
+  live master calling a function the engine does not register** (`MapperContext.registersFunction`, wired
+  to the engine's `getRegisteredFunctionNames()` - its own language, custom functions included - PLUS
+  `OFFSET` translated for the engine's language (`protectedFunctionNames`,
+  `engine.constructor.getLanguage(language).getFunctionTranslation('OFFSET')`): the instance list leaves
+  out `OFFSET`, which HF parses into a reference, and an `OFFSET(...)*2` master read as unregistered kept
+  its covered cells and showed `#SPILL!`. Never add the class's whole static
+  `getRegisteredFunctionNames(language)` list: it holds every plugin registered on the class, so an
+  engine built with `functionPlugins` (no FILTER) had its FILTER master judged registered, its covered
+  cells emptied and its spill `#NAME?`; HF 3.3 lacks UNIQUE, SORT, SORTBY, LET, VSTACK, TEXTSPLIT,
+  RANDARRAY) **records no rectangle** (`callsUnregisteredFunction`): it shows `#NAME?` and spills
+  nothing, so its covered cells keep their cached values instead of importing empty. The scan walks every
+  identifier followed by `(`, upper-cased, and shares the formula's one charge
+  (`readFormulaText(..., scansFunctions)`). The sweep over the rectangles charges the formula budget
+  (`beginLiveArrayRow`), so
+  many narrow arrays cannot make the walk quadratic. **HyperFormula, not the file's `ref`, decides the
+  spill** (`settleLiveArrays`): it sizes `FILTER` by its INPUT (`FILTER(A1:A3,A1:A3>1)` with `ref` B1:B2
+  and text in B3 is `#SPILL!`), and a one-value CSE array (`{=A1*2}` over B1:B3) is one cell. So each
+  rectangle keeps its master's cached value and recorded text, and every cell it empties keeps its cached
+  value (`LiveArraySweep.emptied`, owner = the span reaching furthest, `liveArrayCovering`). After the
+  walk, ONLY when a rectangle was recorded, `MapperContext.probeLiveArrays` builds a scratch engine
+  (`importFile.ts` `liveArrayProbe`: `engine.constructor.buildFromSheets` with `engine.getConfig()` - no
+  import of hyperformula, the base bundle keeps it external) over the mapped `data`, one sheet named like
+  the engine's grid sheet, plus the engine's names and `pass.namedExpressions`, added inside ONE
+  `suspendEvaluation()`/`resumeEvaluation()` pair (unsuspended, each add re-evaluated the scratch
+  sheet; a `batch()` makes the adds quadratic, as on the applier's side). A name the scratch engine
+  evaluates to `#REF!` (one over an engine sheet it does not hold, `=Rates!$A$1`) does not count as
+  defined (`definesName`), so a master over it reads outside the probe and `IFERROR(Rate,0)` cannot
+  turn the probe's `#REF!` into a settling `#DIV/0!`. Per rectangle: master `#SPILL!`
+  -> master and its emptied cells take their cached values, the text goes to `formulas`,
+  `formula:arraySpill`, unless the file caches an ERROR for the master (Excel 365 saves a blocked
+  spill as a cached `#VALUE!`): then it stays live and shows `#SPILL!`, or the cell would hold a
+  frozen `#VALUE!` and lose its formula (HF 3.3 re-spills it only when the formula is entered again,
+  not when the blocking cell is cleared: measured on the engine itself); master another error (`masterState` answers HF's error type) -> the same when the
+  file caches a VALUE for it (`LiveArrayRect.cachedIsError` false): HF 3.3 shows `#VALUE!` for a lone
+  range (`=A1:A3`, `=(A1:A3)`, `=Sheet1!A1:A3`), a range name (`=Sales`, `FILTER(Sales,Sales>1)`),
+  `INDEX(A1:A3,0)` and `ARRAYFORMULA(A1:A3)`, which Excel spills, and their covered cells would import
+  empty under a `#VALUE!` master. So `formula:arraySpill` means "HF cannot evaluate this array the way
+  Excel did", not only `#SPILL!`. Left as written: `#REF!`, `#NAME?`, an error the file caches too or
+  caches NO value for (openpyxl: the error proves nothing a cached value could replace), and - unless it
+  is `#SPILL!` - any master that reads OUTSIDE the probe (`settledState`, `readsOutsideProbe`): another
+  engine sheet (`LiveArrayRect.readsOtherSheet`, set when `rebaseImportedFormula` asks `isKnown` about a
+  qualifier) or an engine name the scratch lacks (`LiveArrayRect.names` from `engineNamesIn` over
+  `CollectContext.engineNames`, checked against the probe's `definesName`; a name the engine scopes to
+  the grid's sheet is not copied). The error code cannot tell those apart: HF turns an unknown sheet into
+  a REF node INSIDE the AST, so `FILTER(A1:A3,ISNUMBER(Other!A1:A3))` is `#N/A` and
+  `A1:A3/IFERROR(Other!B1,0)` is `#DIV/0!` in the scratch while the real engine evaluates both; settling
+  on them would freeze a live array to its cached values. A legacy CSE master (`array.dynamic` false)
+  that the probe spills a VALUE past its `ref` settles like `#SPILL!` too (`spillsPastRef`, after the
+  read-outside check): Excel never resizes a CSE ref, so `{=A1:A3*2}` with `ref` C1 shows one cell, and
+  live it filled C2:C3. A DYNAMIC master that is an error other than `#REF!`/`#NAME?` is asked the
+  same: a `FILTER` matching nothing is one `#CALC!` cell in Excel (cached as `#VALUE!`), while HF fills
+  every row it reserved with `#N/A`; a dynamic master with a value never is, since Excel resizes it as
+  HF does. Only the cell right below the ref and the one right of it are asked, through
+  the probe's `spillsValueInto` (part of an array AND not empty): the empty room HF reserves past a
+  `FILTER` result is part of the array, and the ExcelJS reader reads every array as CSE, so asking
+  `isCellPartOfArray` alone would settle every such `FILTER` on its cached values. Do NOT replace this with a check after
+  `loadData` in the applier: `apply: false` must return the settled data. Otherwise an emptied cell not
+  `isCellPartOfArray` takes its cached value. One probe, before anything is put back; a probe that
+  throws, while built, set up (`getSheetId`, the name adds) or asked, changes nothing, and the scratch is
+  destroyed either way. A spilled master with no cached value (openpyxl) imports empty and also records
+  `formula:noCachedValue`. HF 3.3 evaluates array arithmetic over a RANGE name (`FILTER(Sales,Sales>1)`)
+  to `#VALUE!` in the grid's engine too, so such a master imports its cached values like the lone range
+  above. It runs in the mapper, so `apply: false` returns the settled data. Cost: one extra HyperFormula
+  build of the sheet, about +85 ms on 10,000 rows x 5 columns (10,000 formulas; ~110 ms -> ~200 ms for
+  the whole import). The probe runs once ANY rectangle is recorded, a one-cell `cm="1"` master
+  included (Excel 365 saves `=SUM(A1:A3*2)` that way, and so does the export), so 50,000 such cells
+  cost about +0.6 s and 1,000 masters of 16,000 characters about +5 s, which the same formulas without
+  `cm` do not. Kept deliberately: the probe also settles a one-cell master HF evaluates to an error
+  where the file caches a value (`=Sales` over a range). The scratch engine evaluates the sheet again, so volatile functions (`RAND`, `NOW`)
+  and custom functions registered on the HyperFormula class run a second time during the import.
+- **`FORMULA_IDENTIFIER_REGEX` matches an error literal whole** (`#N/A`, `#DIV/0!`, `#NAME?`, ...,
+  case-insensitive; `isLiteralToken`), like a string or a quoted sheet name. Read as the names `n` and `a`,
+  `#N/A` let a workbook name `N` or `A` the import could not take (one scoped to another sheet) freeze
+  every formula spelling `#N/A` to its cached value. The newer literals (`#FIELD!`, `#BLOCKED!`, `#UNKNOWN!`,
+  `#CONNECT!`, `#BUSY!`, `#EXTERNAL!`, `#PYTHON!`) are listed too. `namesIn`, `rewriteBareBooleans`,
+  `callsUnregisteredFunction` and `callsSpillOperator` all skip such a token. `namesIn` also skips a
+  word that is part of a reference (`isReferenceWord` in `utils/xlsxEngine/definedNames.ts`, shared with
+  the export's `namesUsedIn`): the `G` of `$G$2`, `G$2` or `G:G`. `$` is not a name character, so the
+  regex hands that `G` over as a word, and a one-letter name the ExcelJS reader flagged would
+  otherwise send every such formula to its cached value.
+- **A formula calling `ANCHORARRAY` or `SINGLE` imports its cached value** (DEV-3648, `callsSpillOperator`
+  in `pushCellValue`, `formula:spillReference`). Excel stores the spill operator `B1#` as
+  `_xlfn.ANCHORARRAY(B1)` and implicit intersection `@A1:A3` as `_xlfn.SINGLE(A1:A3)`; both readers hand
+  the text over verbatim and the prefix strip leaves `ANCHORARRAY(...)`/`SINGLE(...)`, which HF 3.3 lacks
+  (`#NAME?`, and `COUNTA(ANCHORARRAY(B1))` silently answered 1). The check runs on every live formula, not
+  only array masters, and is charged with the formula's one walk (`SPILL_OPERATOR_HINT` in
+  `readFormulaText`). Deferred, not built: rewriting `ANCHORARRAY(B1)` to the master's recorded `ref`
+  (`B1:B3`) when that master imports live, which would keep such formulas live. A DEFINED NAME over the
+  spill operator (`Spill = _xlfn.ANCHORARRAY(Sheet1!$B$1)`, Excel's `Sheet1!$B$1#`) is left out with
+  `definedNames:unsupported` (`callsSpillOperator` in `collectNamedExpressions`), also on an engine that
+  cannot list its functions, where `callsUnregisteredFunction` answers nothing.
+- **A bare `TRUE`/`FALSE` in a live formula or a name definition is rewritten to `TRUE()`/`FALSE()`**
+  (DEV-3648, `rewriteBareBooleans`, called by `readFormulaText`): HyperFormula reads the bare literal as
+  an unknown name (`=IF(TRUE,1,2)` is `#NAME?`). `readFormulaText` returns `{ recorded, live }`:
+  `ImportResult.formulas` records `recorded` (the file's text, prefixes stripped), the engine gets
+  `live`. It rewrites after the prefix strip and before `rebaseImportedFormula`, shares the formula's ONE
+  budget charge (a `/true|false/i` hit charges, like the strip and the walks), and skips a quoted token,
+  an error literal, one followed by `(`, `!` or `]`, or preceded by `!`, `.`, `[`, `@`, `$` or a digit. A
+  letter or `_` before it never reaches that check: `FORMULA_IDENTIFIER_REGEX` takes it into the token
+  (`MYTRUE`). The `]` rule is what catches `Tbl[ TRUE]`; `Tbl[TRUE]` and `[@TRUE]` are caught by `[`/`@`
+  already. Pinned in `mapper.unit.js`, including the `recorded`/`live` split on a cached-value import
+  (`IF(TRUE,Other!A1,2)`).
+- **The workbook's defined names are registered as HyperFormula named expressions** (DEV-3648,
+  `collectNamedExpressions` in `mapper.ts`), so a formula over one imports live. It runs only with live
+  formulas on AND `MapperContext.canAddNamedExpression` given (`importFile.ts` wires it to the engine's
+  `validateFormula` AND `isItPossibleToAddNamedExpression` - the latter accepts a definition that does
+  not parse, `=A1:` or `=SUM(`, which would register an erroring name; every engine question in these
+  checks goes through `answersTrue`, because HF 3.3's parser throws `RangeError` on ~100-deep nesting and
+  an uncaught throw failed the whole import; an engine without that method registers nothing and the old
+  cached-value path applies). Rules: a name scoped to ANOTHER sheet is ignored, unreported; one scoped to
+  the imported sheet is registered at WORKBOOK scope (the grid owns one engine sheet), ahead of a
+  workbook-scoped name spelled like it. **A name the engine already lists (`formulaNamedExpressions`) is
+  never re-registered, and is trusted only when its definition is the file's**
+  (`MapperContext.definesNamedExpression`: `getNamedExpressionFormula(name)` ===
+  `normalizeFormula('=' + rebased)` - HF's normal form, canonical sheet case and upper-case functions, is what
+  `getNamedExpressionFormula` answers). **A name the engine holds as a CONSTANT
+  (`addNamedExpression('TaxRate', 0.07)`) has no stored formula** (`getNamedExpressionFormula` answers
+  `undefined`), and the export writes it as a literal (`0.07`): `sameConstant` compares
+  `getNamedExpressionValue(name)` with `calculateFormula('=' + rebased, getSheetId(formulaSheetName))`
+  (side-effect free; an error value compares by its code; a throw, a range, or no sheet id is unequal).
+  Without it, re-importing your own export would freeze every formula over a constant name. **A name the
+  engine defines on the grid's own sheet counts too**: `engineNamedExpressions` lists
+  `listNamedExpressions(getSheetId(sheetName))` as well, and the comparison reads the formula and value
+  in that scope (`resolvingScope`), because HyperFormula resolves a sheet-scoped name first, so the
+  user's scoped `Sales` would shadow the file's handed over at workbook scope. **A string constant with an
+  escaped quote** (`"a""b"`, what the export writes for `a"b`) does not parse in HyperFormula
+  (`validateFormula` is false), so `toNamedExpressionInput` (`applier.ts`) turns it into the
+  apostrophe-prefixed text `'a"b`, a string constant whatever follows the apostrophe; the check, the
+  comparison (compared as that text), the probe and the applier all go through it, while
+  `ImportResult.namedExpressions` keeps the file's `"a""b"`. Equal: the formulas over it stay live.
+  Different, or not expressible: the name goes INTO `unresolvedNames`, so its formulas import cached
+  values with `formula:definedName`, plus `definedNames:unsupported`, so a re-import of a changed file
+  never reads the previous import's range. Replacing the old definition (`changeNamedExpression`) is
+  deliberately not done: the engine may be shared and nothing tags a name as the import's. A definition
+  goes through `readFormulaText` (prefix strip, budget charge) and `rebaseImportedFormula` with the
+  cell's shift, and **a reference to the imported sheet is re-qualified with the grid's sheet name**
+  (`selfAs` = `formulaSheetName`) instead of dropped: HyperFormula 3 reads an unqualified `$F$1:$F$3` in
+  a named expression as relative and refuses it (`NoRelativeAddressesAllowedError`; `isItPossible...`
+  answers false). A definition that is rejected by the shift, names an unknown sheet, is refused by the
+  engine (relative references), or uses a left-out name (followed transitively through `namesIn`) is left
+  out with ONE `definedNames:unsupported`, and the formulas over it keep `formula:definedName`. **A name
+  a reader flagged `unsupported`** (every ExcelJS name; a native definition too long to read, a scope
+  that names no sheet) **is never registered and never matches an engine name**: it goes into
+  `unresolvedNames` and `flaggedNames` even when the engine lists the name, before the
+  `definesNamedExpression` comparison (and `unresolvedDefinedNames` puts it there when
+  `collectNamedExpressions` does not run, `canAddNamedExpression` absent). It sorts after a valid name of
+  its scope (an orphan scope reads as workbook scope and must not hide the real workbook name), while a
+  flagged name scoped to the imported sheet still wins over a workbook-scoped one. **A workbook-scoped
+  definition over a name the imported sheet scopes too is left out** (`shadowed` in
+  `collectNamedExpressions`): the sheet's one is handed over at workbook scope, so the engine would read
+  it where the file reads the workbook one (`Triple = Rate*3`). It goes into `unresolvedNames` with
+  `definedNames:unsupported`, and the names over it follow through the left-out chain. **A flagged name
+  records `definedNames:unsupported` only when a formula uses it** (`usesUnresolvedName` checks
+  `flaggedNames`): ExcelJS flags every name, so recording it up front warned on every ExcelJS import of a
+  workbook with names. The built-in reader still records it on read for the names IT flags (too long,
+  orphan scope; `parseWorkbook`), whether or not a formula uses them. Registered names are removed from
+  `CollectContext.unresolvedNames`. The result carries them in `ImportResult.namedExpressions` (formula
+  without `=`); `applier.ts#addNamedExpressions` adds them FIRST in the batch (before `columns` and
+  `loadData`; after `loadData` the formulas evaluate to `#NAME?`) and re-asks
+  `isItPossibleToAddNamedExpression` per name, skipping a refused one: a `beforeImport` handler or
+  another grid on a shared engine can define the name after the mapper asked, and `addNamedExpression`
+  would throw mid-batch with the grid half-applied. A refused name is reported as
+  `definedNames:unsupported`, like one whose add throws: the formulas over it are already live and
+  read `#NAME?` or the engine's other definition. An engine the caller suspended
+  (`isEvaluationSuspended()`) gets the adds with no suspension of its own, whose end would resume
+  the caller's suspension too, as `Formulas` does for a restore inside its own batch. Not undoable:
+  `loadData` resets the grid's history, so the import never was an undo step. A name cycle
+  (`A = B`, `B = A`) registers both and evaluates `#CYCLE!`. The adds run between ONE
+  `suspendEvaluation()` and its `resumeEvaluation()` (none when every name is refused): on a running
+  engine every `addNamedExpression` recalculates it and fires `valuesUpdated`. **Never
+  `engine.batch()` here**: in HyperFormula 3.3 every add inside a batch calls `clearRedoStack`, which
+  walks the undo entry the batch has built so far, so the adds are quadratic (54,650 constant names
+  took 18-25 s; suspended, about a second). `applier.unit.js` pins it with 60,000 names under a time
+  bound (0.5 s against 10 s). Do not route it through the plugin's `registerNamedExpressions` – it
+  takes another input shape and swallows errors. **A suspended HyperFormula 3.3 evaluates nothing**:
+  `addNamedExpression` only records the name, and the evaluation runs in `resumeEvaluation()`, so a
+  `RangeError: Invalid array length` over a huge range leaves `resumeEvaluation()` itself.
+  `addNamedExpressions` therefore wraps the suspend, the adds and the resume: on a throw it resumes
+  evaluation if the engine is still suspended, removes every name THIS call added (which one threw is
+  unknown), each removal in its own `try` because a removal recalculates and can throw again, and
+  pushes `definedNames:unsupported` onto `result.dropped` (the warning has already been logged by
+  then); the import goes on. Each add is wrapped too (`addOrReport`),
+  for an engine that refuses or evaluates on the add itself. **A name removed this way leaves its
+  formulas showing `#NAME?`**: the mapper already put them into the data live, and no cached value is
+  available at that point, so the report (`definedNames:unsupported`, without `formula:definedName`) is
+  the only trace.
+- **A definition is bounded BEFORE the engine sees it** (`collectNamedExpressions`, constants in
+  `utils/xlsxEngine/limits.ts`). HyperFormula parses a definition twice in `canAdd`, far slower than the
+  import's own walk, and evaluates it when the applier resumes the engine, used or not, and the formula
+  budget's figures cover neither. So: a definition over `MAX_DEFINED_NAME_LENGTH` (8,192, Excel's limit), or read
+  once `MAX_DEFINED_NAME_CHARS` (256 Ki per import, counting every definition within the per-definition
+  cap: one over it is never parsed, so it spends nothing) is spent, is not even rebased; a rebased one
+  whose ranges cover more than `MAX_DEFINED_NAME_CELLS` (100,000, `closedReferenceArea` in
+  `formulaRefs.ts`) or bring the handed-over names past `MAX_DEFINED_NAME_TOTAL_CELLS` (1,000,000;
+  charged only for a name the engine evaluates - one `canAdd` accepts, or one the engine already defines,
+  whose comparison evaluates it - never for one `canAdd` refuses), or that calls a function the engine
+  does not register (`callsUnregisteredFunction`: every formula over a `=UNIQUE(...)` name shows
+  `#NAME?`) is not handed over (`isTooCostly`). Each goes into `unresolvedNames` with
+  `definedNames:unsupported`, so the formulas over it import cached values with `formula:definedName`.
+  The checks run for a name the engine already defines too: `sameConstant` evaluates the file's
+  definition with `calculateFormula`. **A whole column or row IS counted, against the engine sheet it is
+  on**: `closedReferenceArea` counts a column span as columns x rows and a row span as rows x columns
+  (each at least 1), because HyperFormula evaluates it over the sheet's other axis. The names are added and evaluated when the applier resumes the
+  engine, BEFORE `loadData` replaces the grid's sheet, so the sheet is sized as the engine holds it then
+  (`MapperContext.sheetExtent`, `getSheetDimensions`): an unqualified span or one on the grid's own
+  engine sheet by the larger of that and the imported window, a span on another engine sheet by that
+  sheet. A 3-row file imported into a 20,000-row grid counts `SUM(Sheet1!$A:$J)` as 200,000 cells. Without
+  `getSheetDimensions` on the engine, every span is sized by the window. One column (`$B:$B`, the
+  dynamic-list idiom) of a sheet under 100,000 rows stays within the cap. Not bounded: a range a
+  function builds at any size (`OFFSET(Sheet1!$A$1,0,0,1000000,100)`, `SEQUENCE`, `INDEX`), which
+  `closedReferenceArea` cannot size.
 - **A live formula is shifted back into grid coordinates, and one that cannot be is dropped.** The export
   prepends a header row and a row-header column and shifts every relative reference forward by them
   (`normalizeFormula` in `../exportFile/types/xlsx/formula-utils.ts`), so the grid's `=B1*0.2` is written
