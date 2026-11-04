@@ -1299,13 +1299,20 @@ export class Comments extends BasePlugin {
   };
 
   /**
-   * Drops a show still waiting on the display delay when `loadData()` replaces the grid's data. The hover
-   * that armed it rested on a cell of the old data, so the show ran over a cell of the new data (a switch
-   * to another data set, a `loadData()` call) and opened an empty editor there. A pending hide stays armed. `updateData()`
-   * is left alone: the wrappers send it on every re-render with the data the grid already shows.
+   * Drops a show still waiting on the display delay when `loadData()` leaves its cell without a comment. The
+   * hover that armed it rested on a cell of the old data, so the show ran over a cell of the new data (a
+   * switch to another data set) and opened an empty editor there. A cell that still has a comment keeps its
+   * show: an app that reloads the same data more often than the delay never let a hovered comment open. A
+   * pending hide stays armed. `updateData()` is left alone: the wrappers send it on every re-render with the
+   * data the grid already shows.
    */
   #onAfterLoadData = () => {
-    this.#displaySwitch?.cancelShow();
+    const cell = this.#displaySwitch?.getPendingShowCell() ?? null;
+    const comment = cell ? this.getCommentAtCell(cell.row, cell.col) : undefined;
+
+    if (cell && (comment === undefined || comment === null)) {
+      this.#displaySwitch?.cancelShow();
+    }
   };
 
   /**

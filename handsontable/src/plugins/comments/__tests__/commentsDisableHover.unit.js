@@ -246,9 +246,17 @@ describe('Comments hover armed before the grid\'s data changes', () => {
     expect(plugin.getEditorInputElement().parentElement.style.display).not.toBe('block');
   });
 
-  it('drops the show when `loadData()` replaces the data during the delay', () => {
-    const plugin = build([['a', 'b'], ['c', 'd']]);
+  it('drops the show when `loadData()` leaves the hovered cell without a comment', () => {
+    hot = new Handsontable(container, {
+      data: [['a', 'b'], ['c', 'd']],
+      comments: { displayDelay: 300 },
+      licenseKey: LICENSE_KEY,
+    });
+
+    const plugin = hot.getPlugin('comments');
     const showAtCell = jest.spyOn(plugin, 'showAtCell');
+
+    plugin.setCommentAtCell(0, 0, 'Hello');
 
     jest.useFakeTimers();
     hover(hot.getCell(0, 0));
@@ -256,7 +264,46 @@ describe('Comments hover armed before the grid\'s data changes', () => {
     hot.loadData([['e', 'f'], ['g', 'h']]);
     jest.advanceTimersByTime(600);
 
+    expect(plugin.getCommentAtCell(0, 0)).toBeUndefined();
     expect(showAtCell).not.toHaveBeenCalled();
+  });
+
+  it('still shows the comment when `loadData()` keeps a comment on the hovered cell', () => {
+    const data = [['a', 'b'], ['c', 'd']];
+
+    hot = new Handsontable(container, {
+      data,
+      comments: { displayDelay: 300 },
+      cells: (row, col) => (row === 0 && col === 0 ? { comment: { value: 'Hello' } } : {}),
+      licenseKey: LICENSE_KEY,
+    });
+
+    const plugin = hot.getPlugin('comments');
+    const showAtCell = jest.spyOn(plugin, 'showAtCell');
+
+    jest.useFakeTimers();
+    hover(hot.getCell(0, 0));
+    jest.advanceTimersByTime(50);
+    hot.loadData(data);
+    jest.advanceTimersByTime(600);
+
+    expect(showAtCell).toHaveBeenCalledWith(0, 0);
+  });
+
+  it('still hides the open comment when `loadData()` runs during the hide delay', () => {
+    const plugin = build([['a', 'b'], ['c', 'd']]);
+
+    plugin.showAtCell(0, 0);
+
+    expect(plugin.getEditorInputElement().parentElement.style.display).toBe('block');
+
+    jest.useFakeTimers();
+    hover(hot.getCell(1, 1));
+    jest.advanceTimersByTime(50);
+    hot.loadData([['e', 'f'], ['g', 'h']]);
+    jest.advanceTimersByTime(600);
+
+    expect(plugin.getEditorInputElement().parentElement.style.display).not.toBe('block');
   });
 });
 

@@ -123,6 +123,17 @@ class DisplaySwitch {
   }
 
   /**
+   * Returns the cell a delayed show waits to open (`row`, `col`), or `null` when no show is pending.
+   *
+   * @returns {object|null}
+   */
+  getPendingShowCell(): { row: number; col: number } | null {
+    const range = this.#pendingShowRange as { from?: { row: number; col: number } } | null;
+
+    return range?.from ? { row: range.from.row, col: range.from.col } : null;
+  }
+
+  /**
    * Drops the delayed show only, and the range it waits on. A pending hide and the last-action flag
    * stay as they are, so a comment on screen still hides when its hide was already armed.
    */
