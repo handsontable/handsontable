@@ -8,13 +8,15 @@ interface FixtureWindow {
     getSourceDataAtCell(row: number, col: number): unknown;
     getSelected(): number[][] | undefined;
     setCellMeta(row: number, col: number, key: string, value: unknown): void;
+    render(): void;
   };
 }
 
 /**
  * Page Object for `multiselect-chip-remove.html`: one multiselect column per way a cell can refuse
- * edits (column `readOnly`, `cells()` `readOnly`, `editor: false`), beside an editable control in
- * column 0. Every cell starts as `['a', 'b', 'c']`.
+ * edits (column `readOnly`, `cells()` `readOnly`, `editor: false`, and column `readOnly` with
+ * `readOnlyStyling: false`), beside an editable control in column 0. Every cell starts as
+ * `['a', 'b', 'c']`.
  */
 export class MultiselectChipRemovePage {
   readonly page: Page;
@@ -79,6 +81,18 @@ export class MultiselectChipRemovePage {
   async setCellMetaWithoutRender(row: number, col: number, key: string, value: unknown): Promise<void> {
     await this.page.evaluate(([r, c, k, v]) => {
       (window as unknown as FixtureWindow).hot.setCellMeta(r as number, c as number, k as string, v);
+    }, [row, col, key, value]);
+  }
+
+  /**
+   * Changes one cell meta value and re-renders the grid, the way an application toggles a cell.
+   */
+  async setCellMetaAndRender(row: number, col: number, key: string, value: unknown): Promise<void> {
+    await this.page.evaluate(([r, c, k, v]) => {
+      const { hot } = window as unknown as FixtureWindow;
+
+      hot.setCellMeta(r as number, c as number, k as string, v);
+      hot.render();
     }, [row, col, key, value]);
   }
 

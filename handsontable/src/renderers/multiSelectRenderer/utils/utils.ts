@@ -23,7 +23,7 @@ const arrowEventManagers = new WeakMap<object, EventManager>();
  * Checks whether the user may remove chips from a cell.
  *
  * The remove button writes through `setDataAtCell`, which does not check `readOnly` itself, so the
- * button has to. A cell that names NO editor (`editor: false` or `null`) refuses edits as well,
+ * button has to. A cell that names no editor (`editor: false` or `null`) refuses edits as well,
  * matching the checkbox renderer. The `editor` meta is read directly rather than resolved through
  * `Core#getCellEditor()`, which throws on an unknown editor name and would turn a misconfigured
  * column into a render-time failure.
@@ -38,36 +38,57 @@ export function isChipRemovable(cellProperties: CellProperties): boolean {
 }
 
 /**
- * Returns the chip whose remove button a pointer event targets, when that chip may be removed.
+ * Checks whether the chips of a cell are drawn with a remove button.
+ *
+ * A cell that refuses edits draws none, unless `readOnlyStyling` is `false`: the cell must then look
+ * exactly like an editable one, so the button stays, and the press-time check keeps it inert. The
+ * checkbox renderer splits its look from its behavior the same way.
+ *
+ * @param {CellProperties} cellProperties The cell meta object.
+ * @returns {boolean} `true` when the chips get a remove button.
+ */
+export function hasChipRemoveButton(cellProperties: CellProperties): boolean {
+  return isChipRemovable(cellProperties) || cellProperties.readOnlyStyling === false;
+}
+
+/**
+ * Returns the chip whose remove button a pointer event targets.
  *
  * The button is found by ancestor, not by the target's own class: it hosts a real icon element
- * whose markup a theme `icons` renderer may extend, and the press may then target that. The cell
- * meta is read at press time rather than taken from the render, so a button still drawn after the
- * cell stopped accepting edits (`setCellMeta` does not re-render) stays inert.
+ * whose markup a theme `icons` renderer may extend, and the press may then target that.
  *
- * @param {HotInstance} hotInstance The Handsontable instance.
  * @param {Event} event The pointer event.
- * @returns {HTMLElement | null} The chip, or `null` when the event does not remove one.
+ * @returns {HTMLElement | null} The chip, or `null` when the event does not target a remove button.
  */
-function getRemovableChip(hotInstance: HotInstance, event: Event): HTMLElement | null {
+function getChipOfRemoveButton(event: Event): HTMLElement | null {
   const target = eventTargetEl(event);
 
   if (!target || target.closest(`.${CHIP_REMOVE_CLASS}`) === null) {
     return null;
   }
 
-  const chip = target.closest<HTMLElement>(`.${CHIP_CLASS}`);
+  return target.closest<HTMLElement>(`.${CHIP_CLASS}`);
+}
 
-  if (!chip) {
-    return null;
+/**
+ * Checks, at press time, whether the cell a chip belongs to accepts the removal.
+ *
+ * The meta is read when the user presses rather than taken from the render, so a button still drawn
+ * after `setCellMeta` made the cell refuse edits (it does not re-render), or one drawn because
+ * `readOnlyStyling` is `false`, stays inert. A chip that does not name its cell removes nothing.
+ *
+ * @param {HotInstance} hotInstance The Handsontable instance.
+ * @param {HTMLElement} chip The chip element, carrying its cell's visual coordinates.
+ * @returns {boolean} `true` when the chip can be removed.
+ */
+function canRemoveChip(hotInstance: HotInstance, chip: HTMLElement): boolean {
+  const { row, col } = chip.dataset;
+
+  if (row === undefined || col === undefined) {
+    return false;
   }
 
-  const cellProperties = hotInstance.getCellMetaTransient(
-    Number(chip.dataset.row ?? 0),
-    Number(chip.dataset.col ?? 0)
-  );
-
-  return isChipRemovable(cellProperties) ? chip : null;
+  return isChipRemovable(hotInstance.getCellMetaTransient(Number(row), Number(col)));
 }
 
 /**
@@ -105,7 +126,17 @@ export function parseValue(value: unknown): (string | Record<string, string>)[] 
 }
 
 /**
+ * Creates the chip element for one selected item.
  *
+ * @param {Document} rootDocument The document that owns the grid.
+ * @param {string|object} item The selected item: a plain value, or a `key` and `value` object.
+ * @param {boolean} isAriaEnabled `true` when the `ariaTags` option is enabled.
+ * @param {number} row The visual row index.
+ * @param {number} col The visual column index.
+ * @param {string|number} prop The column property.
+ * @param {HotInstance} hotInstance The Handsontable instance, used to render the remove icon.
+ * @param {boolean} [hasRemoveButton=true] `false` to draw the chip without its remove button.
+ * @returns {HTMLElement} The chip element.
  */
 export function createChipElement(
   rootDocument: Document,
@@ -115,7 +146,7 @@ export function createChipElement(
   col: number,
   prop: string | number,
   hotInstance: HotInstance,
-  isRemovable = true
+  hasRemoveButton = true
 ): HTMLElement {
   const chip = rootDocument.createElement('span');
   const textContent = getItemProperty(item, 'value');
@@ -135,7 +166,7 @@ export function createChipElement(
 
   // A cell that refuses edits draws no remove button: a button that does nothing would still offer
   // the action, with its pointer cursor and hover state.
-  if (!isRemovable) {
+  if (!hasRemoveButton) {
     return chip;
   }
 
@@ -290,16 +321,21 @@ export function registerChipRemovingEvents(
   const eventManager = chipsEventManagers.get(hotInstance)!;
 
   eventManager.addEventListener(hotInstance.rootElement, 'click', (event: Event) => {
-    const chip = getRemovableChip(hotInstance, event);
+    const chip = getChipOfRemoveButton(event);
 
-    // A press on a cell that refuses edits is left alone, so it behaves like a press anywhere else
-    // in the cell.
     if (!chip) {
       return;
     }
 
+    // Stopped even when the removal is refused: a grid nested inside another grid's root element
+    // must not hand the click to the outer grid's listener, which would read this chip's
+    // coordinates against its own cells.
     event.preventDefault();
     event.stopPropagation();
+
+    if (!canRemoveChip(hotInstance, chip)) {
+      return;
+    }
 
     const visualRow = Number(chip.dataset.row ?? 0);
     const visualColumn = Number(chip.dataset.col ?? 0);
@@ -317,8 +353,11 @@ export function registerChipRemovingEvents(
   });
 
   hotInstance.addHook('beforeOnCellMouseDown', (event: MouseEvent) => {
-    // Only a press that removes a chip keeps the cell from being selected.
-    if (getRemovableChip(hotInstance, event) !== null) {
+    const chip = getChipOfRemoveButton(event);
+
+    // Only a press that removes a chip keeps the cell from being selected. A press on a button the
+    // cell refuses selects the cell like a press anywhere else in it.
+    if (chip !== null && canRemoveChip(hotInstance, chip)) {
       stopImmediatePropagation(event);
     }
   });

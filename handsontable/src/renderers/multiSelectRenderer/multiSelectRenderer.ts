@@ -7,7 +7,7 @@ import {
   parseValue,
   createChipElement,
   createDropdownIndicator,
-  isChipRemovable,
+  hasChipRemoveButton,
   registerChipRemovingEvents,
   registerDropdownIndicatorEvents,
   cacheColumnWidthAndRegisterResizeHook,
@@ -105,12 +105,13 @@ export function multiSelectRenderer(
 
   chipsContainer.className = CHIPS_CONTAINER_CLASS;
 
-  // A cell that refuses edits (`readOnly`, or no editor) draws its chips without remove buttons.
-  const isRemovable = isChipRemovable(cellProperties);
+  // A cell that refuses edits (`readOnly`, or no editor) draws its chips without remove buttons,
+  // unless `readOnlyStyling: false` asks it to look editable.
+  const hasRemoveButton = hasChipRemoveButton(cellProperties);
 
   values.forEach((item) => {
     const chip = createChipElement(
-      rootDocument, item, isAriaEnabled, row, col, prop, hotInstance, isRemovable
+      rootDocument, item, isAriaEnabled, row, col, prop, hotInstance, hasRemoveButton
     );
 
     chipsContainer.appendChild(chip);

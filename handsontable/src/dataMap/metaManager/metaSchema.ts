@@ -6771,6 +6771,11 @@ export default (): Record<string, unknown> => {
      * cell with no [`editor`](#editor): when `readOnlyStyling` is `false`, its checkbox is not rendered
      * disabled, but a click still doesn't change its value.
      *
+     * A [`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) cell
+     * works the same way: a cell that refuses edits normally draws its chips without the remove
+     * button, but when `readOnlyStyling` is `false` the button stays, and a click on it doesn't
+     * change the value.
+     *
      * Read more:
      * - [`readOnly`](#readOnly)
      * - [`readOnlyCellClassName`](#readOnlyCellClassName)

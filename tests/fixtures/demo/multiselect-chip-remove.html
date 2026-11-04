@@ -38,25 +38,27 @@
     //   0 - editable,
     //   1 - `readOnly` on the column,
     //   2 - `readOnly` from `cells()`,
-    //   3 - `editor: false` on the column.
+    //   3 - `editor: false` on the column,
+    //   4 - `readOnly` on the column with `readOnlyStyling: false`, which must look editable.
     // `?tableReadOnly=1` sets `readOnly` on the whole table instead, which reaches column 0 as well.
     const tableReadOnly = htParams.get('tableReadOnly') === '1';
 
     window.hot = new Handsontable(container, {
       // A fresh array per cell: a shared one would let a removal in one cell show up in the others.
-      data: [0, 1].map(() => [0, 1, 2, 3].map(() => SOURCE.slice())),
+      data: [0, 1].map(() => [0, 1, 2, 3, 4].map(() => SOURCE.slice())),
       columns: [
         { type: 'multiselect', source: SOURCE },
         { type: 'multiselect', source: SOURCE, readOnly: true },
         { type: 'multiselect', source: SOURCE },
         { type: 'multiselect', source: SOURCE, editor: false },
+        { type: 'multiselect', source: SOURCE, readOnly: true, readOnlyStyling: false },
       ],
       cells(row, col) {
         return col === 2 ? { readOnly: true } : {};
       },
       readOnly: tableReadOnly,
       // Wide enough for all three chips, so none hides behind the `+N` badge.
-      colWidths: 220,
+      colWidths: 200,
       colHeaders: true,
       rowHeaders: true,
       afterRenderer(td, row, col) {

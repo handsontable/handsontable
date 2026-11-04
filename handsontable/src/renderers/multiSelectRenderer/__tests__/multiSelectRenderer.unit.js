@@ -13,6 +13,7 @@ import {
 } from '../../../cellTypes';
 import {
   createChipElement,
+  hasChipRemoveButton,
   isChipRemovable,
   removeValueByKey,
 } from '../utils/utils';
@@ -92,6 +93,23 @@ describe('multiSelectRenderer', () => {
     it('should refuse removing chips from a cell with no editor', () => {
       expect(isChipRemovable({ editor: false })).toBe(false);
       expect(isChipRemovable({ editor: null })).toBe(false);
+    });
+  });
+
+  describe('hasChipRemoveButton', () => {
+    it('should draw the button on a cell that accepts edits', () => {
+      expect(hasChipRemoveButton({})).toBe(true);
+    });
+
+    it('should not draw the button on a cell that refuses edits', () => {
+      expect(hasChipRemoveButton({ readOnly: true })).toBe(false);
+      expect(hasChipRemoveButton({ editor: false })).toBe(false);
+      expect(hasChipRemoveButton({ readOnly: true, readOnlyStyling: true })).toBe(false);
+    });
+
+    it('should keep the button when `readOnlyStyling` is `false`, so the cell looks editable', () => {
+      expect(hasChipRemoveButton({ readOnly: true, readOnlyStyling: false })).toBe(true);
+      expect(hasChipRemoveButton({ editor: false, readOnlyStyling: false })).toBe(true);
     });
   });
 
