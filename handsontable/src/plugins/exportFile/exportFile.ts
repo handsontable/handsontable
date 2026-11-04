@@ -76,8 +76,9 @@ export interface HeaderStyleBorder {
    */
   style?: string;
   /**
-   * Border color, as a CSS color: hex (`'#000000'`), `rgb()`, `hsl()`, or a named color (`'black'`).
-   * The alpha component is dropped. A value the exporter cannot read writes a black border.
+   * Border color, as a CSS color: hex (`'#000000'` or `'#000'`), `rgb()`, `hsl()`, or a named color
+   * (`'black'`). The alpha component is dropped. An eight-digit hex value is read as Excel ARGB
+   * (`AARRGGBB`), not as CSS `#RRGGBBAA`. A value the exporter cannot read writes a black border.
    */
   color?: string;
   /**
@@ -91,9 +92,10 @@ export interface HeaderStyleBorder {
  */
 export interface HeaderStyle {
   /**
-   * Background fill color, as a CSS color: hex (`'#f2f2f2'`), `rgb()`, `hsl()`, or a named color
-   * (`'whitesmoke'`). The alpha component is dropped. A value the exporter cannot read writes a black
-   * fill.
+   * Background fill color, as a CSS color: hex (`'#f2f2f2'` or `'#eee'`), `rgb()`, `hsl()`, or a named
+   * color (`'whitesmoke'`). The alpha component is dropped. An eight-digit hex value is read as Excel
+   * ARGB (`AARRGGBB`), not as CSS `#RRGGBBAA`. A value the exporter cannot read, `'transparent'`
+   * included, writes a black fill; leave `backgroundColor` out for no fill.
    */
   backgroundColor?: string;
   /**

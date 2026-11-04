@@ -44,7 +44,9 @@ const NAMED_COLORS = new Map<string, string>([
   ['yellow', 'FFFF00'], ['yellowgreen', '9ACD32'],
 ]);
 
-const NUMBER = '[+-]?(?:\\d+\\.?\\d*|\\.\\d+)(?:e[+-]?\\d+)?';
+// The two alternatives cannot match the same digits, so a long malformed string fails fast. A looser
+// `\d+\.?\d*` splits a run of digits in many ways, and 300-digit arguments then took seconds.
+const NUMBER = '[+-]?(?:\\d+(?:\\.\\d+)?|\\.\\d+)(?:e[+-]?\\d+)?';
 const ARG = `(${NUMBER})(%|deg|grad|rad|turn)?`;
 const ALPHA = `(?:${NUMBER})%?`;
 // `name(a, b, c[, alpha])` or `name(a b c[ / alpha])`, with each of the three arguments captured as a
@@ -96,8 +98,8 @@ function rgbToHex(args: Array<[number, string | undefined]>): string | null {
 
 /**
  * Converts the arguments of an `hsl()` color to `RRGGBB`. The hue is a number of degrees or an
- * angle with a unit; saturation and lightness are percentages (the `%` may be left out, as the
- * space-separated syntax allows).
+ * angle with a unit; saturation and lightness are percentages. The `%` may be left out in both the
+ * comma and the space syntax, although browsers accept that only in the space syntax.
  *
  * @param {Array<[number, string|undefined]>} args The three arguments as value and unit pairs.
  * @returns {string|null}
@@ -111,8 +113,14 @@ function hslToHex(args: Array<[number, string | undefined]>): string | null {
     return null;
   }
 
+  const degrees = hueValue * HUE_UNIT_TO_DEGREES[hueUnit ?? 'deg'];
+
+  if (!Number.isFinite(degrees)) {
+    return null;
+  }
+
   // The CSS Color 4 reference conversion (`hslToRgb` in the specification's sample code).
-  const hue = (((hueValue * HUE_UNIT_TO_DEGREES[hueUnit ?? 'deg']) % 360) + 360) % 360;
+  const hue = ((degrees % 360) + 360) % 360;
   const saturation = clamp(saturationValue, 0, 100) / 100;
   const lightness = clamp(lightnessValue, 0, 100) / 100;
   const chroma = saturation * Math.min(lightness, 1 - lightness);
@@ -127,7 +135,8 @@ function hslToHex(args: Array<[number, string | undefined]>): string | null {
 
 /**
  * Converts a CSS color written as `rgb()`, `rgba()`, `hsl()`, `hsla()`, or a named color to an
- * opaque `RRGGBB` string. The alpha component is dropped. Hex colors are not handled here.
+ * opaque `RRGGBB` string. The alpha component is dropped. Hex colors are read by the caller,
+ * `cssColorToArgb()`.
  *
  * Returns `null` for anything else, including `var(...)`, `transparent`, and `currentcolor`: the
  * value is never resolved through the page, so a theme variable cannot leak a theme-specific color
@@ -137,7 +146,7 @@ function hslToHex(args: Array<[number, string | undefined]>): string | null {
  * @param {string} color A trimmed, lowercased CSS color string.
  * @returns {string|null}
  */
-export function cssColorToHex(color: string): string | null {
+export function namedOrFunctionalColorToRgb(color: string): string | null {
   const named = NAMED_COLORS.get(color);
 
   if (named !== undefined) {

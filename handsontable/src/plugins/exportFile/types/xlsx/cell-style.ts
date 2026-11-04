@@ -2,7 +2,7 @@ import { isDefined } from '../../../../helpers/mixed';
 import type { CellStyleSnapshot, CellValidationSnapshot } from '../../../../utils/xlsxEngine/model';
 import { normalizeClassNames } from '../../../../helpers/dom/element';
 import { READ_ONLY_FILL_ARGB, READ_ONLY_TEXT_ARGB } from '../../../../utils/xlsxEngine/readOnlyStyle';
-import { cssColorToHex } from './css-color';
+import { namedOrFunctionalColorToRgb } from './css-color';
 import type { SourceLabel } from '../../../../utils/cellSource';
 
 export interface CssStyle {
@@ -355,9 +355,9 @@ export function getCssStyleFromElement(
  * Converts a CSS color string to an ARGB hex string, in an ExcelJS-compatible shape.
  *
  * Accepts hex (`#RGB`, `#RRGGBB`, with or without `#`), `rgb()`, `rgba()`, `hsl()`, `hsla()`, and the
- * CSS named colors, in any case. The alpha component is dropped, so the result is always opaque. An
- * eight-digit hex value is read as ARGB and passed through. Anything else (`var(...)`, `transparent`,
- * an unknown name) becomes black.
+ * CSS named colors, in any case. The alpha component of a CSS color is dropped. An eight-digit hex
+ * value is read as ARGB (`AARRGGBB`), not as CSS `#RRGGBBAA`, and passed through. Anything else
+ * (`var(...)`, `transparent`, an unknown name) becomes black.
  *
  * @private
  * @param {string} color CSS color string.
@@ -385,7 +385,7 @@ export function cssColorToArgb(color: string): string {
     }
   }
 
-  const rgb = cssColorToHex(normalized);
+  const rgb = namedOrFunctionalColorToRgb(normalized);
 
   return rgb === null ? 'FF000000' : `FF${rgb}`;
 }

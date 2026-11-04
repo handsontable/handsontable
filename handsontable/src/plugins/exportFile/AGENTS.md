@@ -505,14 +505,17 @@ Other rules:
   without the page.** Custom border colors and the two `headerStyle` colors arrive as the string the user
   wrote, so the function reads hex (`#RGB`, `#RRGGBB`, with or without `#`), `rgb()`/`rgba()`,
   `hsl()`/`hsla()` and the 148 CSS named colors (`types/xlsx/css-color.ts`, a `Map`, so `constructor`
-  finds nothing), drops the alpha, and writes black for anything else. Three rules. (1) **No canvas and no
+  finds nothing), drops the alpha, and writes black for anything else, a non-finite hue included. Four
+  rules. (1) **No canvas and no
   `getComputedStyle` probe**: a border added from the context menu stores
   `var(--ht-custom-borders-default-color, #000)`, which must export as black (`../customBorders/AGENTS.md`),
   and resolving it through the page would write the dark theme's light foreground instead; jsdom has no
   canvas either. (2) **Hashless hex is taken only when the whole string is hex digits**, so `F2F2F2` keeps
   its old output while `tomato` and `yellow` (six letters) reach the name lookup instead of being written as
   `FFTOMATO`. (3) **An eight-digit hex is ARGB and passes through unchanged**, as it always did, not CSS
-  `#RRGGBBAA`. The font color and cell fill never reach the parser with a user string: they are computed
+  `#RRGGBBAA`. (4) **Keep the `NUMBER` alternatives disjoint** (`\d+(?:\.\d+)?|\.\d+`): the first cut,
+  `\d+\.?\d*`, split a digit run in many ways, and a 300-digit malformed `rgb()` took over 15 s per call
+  on the main thread; the unit suite pins a time budget. The font color and cell fill never reach the parser with a user string: they are computed
   styles, turned into `#RRGGBB` by `rgbComputedToHex()` first. The named table and the `rgb()`/`hsl()` math
   were checked against Chrome's canvas parser; a few `hsl()` values at an exact `.5` channel round one unit
   apart from Chrome. Pinned by the `cssColorToArgb` cases in `__tests__/cell-style.unit.js` and by

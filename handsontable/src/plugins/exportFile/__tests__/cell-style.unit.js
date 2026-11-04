@@ -75,6 +75,7 @@ describe('cssColorToArgb', () => {
     ['#FF3366CC', 'FF3366CC'],
     ['F2F2F2', 'FFF2F2F2'],
     ['fff', 'FFFFFFFF'],
+    [' #fff ', 'FFFFFFFF'],
     ['FFF2F2F2', 'FFF2F2F2'],
   ])('should keep the hex form %s as before', (color, argb) => {
     expect(cssColorToArgb(color)).toBe(argb);
@@ -92,6 +93,7 @@ describe('cssColorToArgb', () => {
     ['grey', 'FF808080'],
     ['rebeccapurple', 'FF663399'],
     ['lightgoldenrodyellow', 'FFFAFAD2'],
+    ['darkblue', 'FF00008B'],
   ])('should convert the named color %p', (color, argb) => {
     expect(cssColorToArgb(color)).toBe(argb);
   });
@@ -116,6 +118,10 @@ describe('cssColorToArgb', () => {
     ['hsl(0.5turn 100% 50%)', 'FF00FFFF'],
     ['hsl(-120, 100%, 50%)', 'FF0000FF'],
     ['hsl(0, 0%, 100%)', 'FFFFFFFF'],
+    ['hsl(180, 50%, 50%)', 'FF40BFBF'],
+    ['hsl(200grad 100% 50%)', 'FF00FFFF'],
+    ['hsl(3.14159265rad 100% 50%)', 'FF00FFFF'],
+    ['hsl(0 100 50)', 'FFFF0000'],
   ])('should convert the hsl() color %p', (color, argb) => {
     expect(cssColorToArgb(color)).toBe(argb);
   });
@@ -130,12 +136,27 @@ describe('cssColorToArgb', () => {
     '#12',
     'rgb(1, 2)',
     'hsl(red, 1%, 1%)',
+    'rgb(1deg, 2, 3)',
+    'hsl(50%, 100%, 50%)',
+    'hsl(0, 100deg, 50%)',
+    'hsl(1e999, 100%, 50%)',
+    'hsl(1e308turn 100% 50%)',
     '',
     null,
     undefined,
     42,
   ])('should fall back to black for %p', (color) => {
     expect(cssColorToArgb(color)).toBe('FF000000');
+  });
+
+  it('should fall back to black for a long malformed function color without backtracking', () => {
+    const digits = '1'.repeat(300);
+    const startedAt = Date.now();
+
+    expect(cssColorToArgb(`rgb(${digits} ${digits} ${digits}x`)).toBe('FF000000');
+    expect(cssColorToArgb(`hsl(${digits}, ${digits}, ${digits}x`)).toBe('FF000000');
+    // A backtracking pattern takes tens of seconds on these two strings; a linear one, well under 1 ms.
+    expect(Date.now() - startedAt).toBeLessThan(1000);
   });
 });
 
