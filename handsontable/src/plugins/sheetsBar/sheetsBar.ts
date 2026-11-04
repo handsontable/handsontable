@@ -5585,8 +5585,9 @@ export class SheetsBar extends BasePlugin {
    * re-sends its `data` prop on a re-render, which is how this happens without the host asking for it.
    * A `sheetsBar: true` workbook declares no sheets, so its only sheet is the grid's own data and still
    * follows the update. While the active sheet has an external data source, the incoming array is core's
-   * own placeholder for DataProvider (a `dataProvider` the user re-configured on the visible server sheet),
-   * and it goes through.
+   * own placeholder for DataProvider, which core writes only for a payload that replaces `dataProvider` (a
+   * `dataProvider` the user re-configured on the visible server sheet), and it goes through. A top-level
+   * `data` beside a server sheet never reaches this: core ignores it and keeps the rows.
    *
    * @param {Array} sourceData The rows about to be loaded.
    * @returns {Array|undefined} The rows the grid shows, when the incoming ones are ignored.

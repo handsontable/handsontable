@@ -24,10 +24,10 @@ const fetchOrders = async({ page, pageSize }: DataProviderQueryParameters) => ({
   totalRows: serverOrders.length,
 });
 
-// The React wrapper calls `updateSettings` after every HotTable render. With
-// `dataProvider`, each call refetches the current page. Keep this object
-// stable, and write the selection status through a DOM ref so a checkbox
-// click does not re-render HotTable.
+// The React wrapper calls `updateSettings` after every HotTable render. This
+// object is defined once, so a render passes the same object again and
+// nothing is fetched. The selection status is written through a DOM ref so a
+// checkbox click does not re-render HotTable.
 const dataProvider = {
   // the row selection keeps rows by this id, so it survives page changes
   rowId: 'id',
