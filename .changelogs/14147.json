@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a `type` set on `HotTable` being ignored, so its cells now get that type's editor and renderer instead of the text ones.",
+  "type": "fixed",
+  "issueOrPR": 14147,
+  "breaking": false,
+  "framework": "react"
+}
