@@ -3104,7 +3104,9 @@ invalid key: a lock screen covers the grid, and the console shows "The license k
 is invalid." The `'ht68e-1f2b7-47158-70b05-0842f'` key, which 18.1 treated the same way, is invalid
 too. Handsontable 18.1 and older keep accepting both keys.
 
-The Angular wrapper no longer exports the `NON_COMMERCIAL_LICENSE` constant, which held that key.
+The Angular wrapper's `NON_COMMERCIAL_LICENSE` constant, which holds that key, is deprecated and
+will be removed in 20.0. An import of it still compiles, but a grid configured with it shows the lock
+screen.
 
 ### Who is affected
 
@@ -3137,7 +3139,7 @@ const hot = new Handsontable(container, {
 });
 ```
 
-In the Angular wrapper, remove the `NON_COMMERCIAL_LICENSE` import and pass your key in
+In the Angular wrapper, stop using the deprecated `NON_COMMERCIAL_LICENSE` constant and pass your key in
 `HOT_GLOBAL_CONFIG`:
 
 ```typescript

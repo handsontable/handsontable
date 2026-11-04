@@ -88,6 +88,8 @@ const ALLOWED = {
   'handsontable/src/plugins/importFile/__tests__/importLicenseGates.unit.js':
     'compares a legacy import with a listed one',
   'tests/fixtures/xlsxLicenseKeys.ts': 'exports the invalid key the xlsx license specs compare against',
+  'wrappers/angular-wrapper/projects/hot-table/src/lib/services/hot-global-config.service.spec.ts':
+    'asserts the deprecated NON_COMMERCIAL_LICENSE constant still holds the retired key',
 };
 
 /**
@@ -174,6 +176,12 @@ function codeLinesWithRetiredKey(text) {
 const productFiles = PRODUCT_TREES.flatMap(tree => walk(join(ROOT, tree)))
   .filter(path => /\.(m?js|jsx|ts|tsx|vue)$/.test(path) && !isTestFile(path) && !/\/__tests__\//.test(path));
 
+// Product files that may hold a retired key in code, with the reason. None of them compares a key.
+const PRODUCT_ALLOWED = {
+  'wrappers/angular-wrapper/projects/hot-table/src/lib/services/hot-global-config.service.ts':
+    'the deprecated NON_COMMERCIAL_LICENSE export, removed in 20.0',
+};
+
 test('no test writes the license key out; every suite reads its shared constant', () => {
   const offenders = filesWithLiteral(testFiles, readFromRoot).filter(path => !(path in ALLOWED));
 
@@ -228,10 +236,13 @@ test('every file the guard allows still holds a literal key', () => {
 test('no product code compares a key with the retired non-commercial key', () => {
   // Handsontable 19.0 reads the non-commercial key as invalid. A literal comparison added back to the
   // key reader or the legacy path would bring the key back without any test noticing.
-  const offenders = productFiles.filter(path => codeLinesWithRetiredKey(readFromRoot(path)).length > 0);
+  const holding = productFiles.filter(path => codeLinesWithRetiredKey(readFromRoot(path)).length > 0);
+  const offenders = holding.filter(path => !(path in PRODUCT_ALLOWED));
+  const stale = Object.keys(PRODUCT_ALLOWED).filter(path => !holding.includes(path));
 
   assert.deepEqual(offenders, [], 'These product files name the retired non-commercial key in code. '
     + 'Handsontable reads it as an invalid key since 19.0: do not recognize it again.');
+  assert.deepEqual(stale, [], 'PRODUCT_ALLOWED names files that no longer hold the key. Remove them.');
   assert.ok(productFiles.length > 500,
     `The scan found only ${productFiles.length} product files; check PRODUCT_TREES.`);
 });

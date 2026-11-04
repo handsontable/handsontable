@@ -72,7 +72,7 @@ export const appConfig: ApplicationConfig = {
 ```
 
 - `provideZoneChangeDetection({ eventCoalescing: true })` goes in every `app.config.ts`.
-- The license key is a placeholder, never a key value. The wrapper no longer exports `NON_COMMERCIAL_LICENSE` (removed in 19.0), and the key it held reads as invalid.
+- The license key is a placeholder, never a key value. Never use `NON_COMMERCIAL_LICENSE`: it is deprecated since 19.0 (removed in 20.0), and the key it holds reads as invalid.
 - The global `HOT_GLOBAL_CONFIG` license replaces per-table `licenseKey` on every `<hot-table>`; set `licenseKey` nowhere in component settings.
 - Standalone components need no `CommonModule` or `BrowserModule`.
 

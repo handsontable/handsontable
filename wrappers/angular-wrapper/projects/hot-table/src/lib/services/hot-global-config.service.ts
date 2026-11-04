@@ -2,6 +2,14 @@ import {Injectable, InjectionToken, Inject} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 
 /**
+ * The `non-commercial-and-evaluation` license key.
+ *
+ * @deprecated Since 19.0.0. Handsontable 19.0 reads this key as invalid, so a grid configured with it
+ * shows the lock screen. It will be removed in 20.0. Pass your own license key instead.
+ */
+export const NON_COMMERCIAL_LICENSE = 'non-commercial-and-evaluation';
+
+/**
  * Type representing a theme name.
  * Possible values include predefined themes and any custom string.
  */
