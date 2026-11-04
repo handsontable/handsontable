@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "date-editor",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-04T14:03:15.724Z"
+  },
+  "steps": {
+    "open-editor": "",
+    "type-date": "",
+    "commit-date": "",
+    "back-to-committed": "",
+    "reopen-editor": "",
+    "cancel-edit": ""
+  }
+}

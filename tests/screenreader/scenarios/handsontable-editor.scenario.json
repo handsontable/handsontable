@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "id": "handsontable-editor",
-  "surface": "The handsontable editor, a grid of choices inside the editor: opening it, arrowing through its rows, and Enter committing the highlighted row.",
+  "surface": "The handsontable editor, a grid of choices under a text field: opening it, arrowing down its rows, and Enter committing the highlighted row.",
   "group": "editors",
   "page": "handsontable-editor",
   "criteria": ["1.3.1", "2.1.1", "4.1.2"],
@@ -10,14 +10,14 @@
     {
       "id": "open-editor",
       "action": {"press": "Enter"},
-      "expect": [["al"], ["edit", "edit text", "text field", "text entry", "textbox"]],
-      "note": "Enter opens the editor on the cell holding `Al`: a text field with a small grid under it that lists Alpha, Alfa and Alto. Unlike the autocomplete editor, the text field has no combobox role (the tree golden says textbox) and no list role is set on the inner grid. Required: the text and a field role."
+      "expect": [["al"], ["edit", "text entry area"]],
+      "note": "Enter opens the editor on the cell holding `Al`: a text field over a one-column grid of Alpha, Alfa and Alto. The editor moves through that grid with ArrowUp and ArrowDown only; ArrowLeft and ArrowRight move the caret in the text field, so no key crosses the inner grid's columns. Required: the text and the field's role (NVDA `edit`, VoiceOver with Chromium `text entry area`). VoiceOver with WebKit names no role for an editor (grid-core)."
     },
     {
       "id": "arrow-down-first",
       "action": {"press": "ArrowDown"},
       "expect": [["alpha"]],
-      "note": "ArrowDown highlights the first row of the inner grid while the focus stays in the text field. Finding candidate: only the autocomplete editor sets aria-activedescendant (this editor sets none), so the highlighted row is likely not announced on this step or the next two. The required group states what a user needs to hear."
+      "note": "ArrowDown highlights the inner grid's first row while the focus stays in the text field. Finding: nothing is said on any reader, on this step or the next two: the editor sets no aria-activedescendant and the inner grid is built with ariaTags off, so the highlighted row is never exposed."
     },
     {
       "id": "arrow-down-second",
@@ -32,14 +32,14 @@
     {
       "id": "commit-row",
       "action": {"press": "Enter"},
-      "expect": [["al"]],
-      "note": "Enter commits the highlighted row and moves the selection one row down (enterMoves), so the cell announced is the next row's, which holds `Al`."
+      "expect": [["al"], ["row 3"]],
+      "note": "Enter commits the highlighted row and moves the selection one row down (enterMoves); the focus reaches the next row's cell, `Al`, and every reader reads it. VoiceOver names no row (its behavior)."
     },
     {
       "id": "back-to-committed",
       "action": {"press": "ArrowUp"},
       "expect": [["alto"]],
-      "note": "ArrowUp returns to the edited cell, which now holds the committed row's value, `Alto`."
+      "note": "ArrowUp moves to the edited cell, which now holds the committed row's value, `Alto`."
     }
   ]
 }

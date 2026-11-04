@@ -1,53 +1,53 @@
 {
   "schema": 1,
   "id": "checkbox-cell",
-  "surface": "A checkbox column with a check-all header: the checked and unchecked states of its cells, Space toggling one, and the header's count.",
+  "surface": "A checkbox column: the checked and unchecked state of its cells, Space toggling one, and a read-only cell.",
   "group": "editors",
   "page": "checkbox",
   "criteria": ["1.3.1", "2.1.1", "4.1.2"],
-  "setup": [{"selectCell": [1, 1]}],
+  "setup": [{"updateSettings": {"columns": [{"data": "name"}, {"data": "done", "type": "checkbox"}]}}, {"selectCell": [1, 1]}],
   "steps": [
     {
       "id": "arrow-up-unchecked",
       "action": {"press": "ArrowUp"},
       "expect": [["unchecked", "not checked"], ["done"]],
-      "note": "Task 0's Done cell: the checkbox's name and state say `Unchecked`, and the column header is `Done`. The grid starts on Task 1's checked cell, the only one checked."
+      "note": "The setup turns the header checkbox off: its name, `Check all (2 of 5 checked)`, is read as the column's name on every cell by NVDA with Chromium and VoiceOver, so its word `checked` would satisfy every state group below. The header checkbox is the row selection scenarios' surface. The grid starts on Task 1's cell, the only checked one; ArrowUp reads Task 0's, unchecked. Each cell's checkbox carries its state in its name (`Checked`, `Unchecked`)."
     },
     {
       "id": "space-check",
       "action": {"press": "Space"},
       "expect": [["checked"]],
-      "note": "Space toggles the focused cell's checkbox and the focus stays on the cell; its name becomes `Checked`. Only the state is required: a reader that announces a state change says `checked` without repeating the name. Unsure that the change is announced at all, because the focus is on the cell, not on the checkbox inside it."
-    },
-    {
-      "id": "arrow-up-to-header",
-      "action": {"press": "ArrowUp"},
-      "expect": [["check all"], ["2 of 5"], ["mixed", "partially checked", "indeterminate"]],
-      "note": "Navigable headers let ArrowUp enter the column header, which holds the check-all checkbox. Its name carries the count, `Check all (2 of 5 checked)` (the read-only row is not counted), and its state is mixed while some rows are checked. Unsure how each reader words a mixed state."
-    },
-    {
-      "id": "arrow-down-back",
-      "action": {"press": "ArrowDown"},
-      "expect": [["checked"], ["done"]],
-      "note": "Back on Task 0's cell, which now reads checked."
+      "note": "Space toggles the focused cell's checkbox and the focus stays on the cell. Only the state is required: a reader that announces a state change does not repeat the cell. `checked` is also inside `not checked`, so this group proves the state is spoken, not which state; the golden pins the words."
     },
     {
       "id": "space-uncheck",
       "action": {"press": "Space"},
       "expect": [["unchecked", "not checked"]],
-      "note": "Space again unchecks the cell: the state is spoken the other way."
+      "note": "Space again unchecks the cell."
     },
     {
       "id": "arrow-down-checked",
       "action": {"press": "ArrowDown"},
       "expect": [["checked"], ["done"]],
-      "note": "Task 1's cell, the one checked from the start."
+      "note": "Task 1's cell, checked from the start."
     },
     {
       "id": "arrow-down-read-only",
       "action": {"press": "ArrowDown"},
-      "expect": [["unchecked", "not checked"], ["done"]],
-      "note": "Task 2's cell is read only and unchecked. The tree golden carries no read-only state for it, so none is required; Finding candidate: nothing tells a reader that Space will not toggle this checkbox."
+      "expect": [["unchecked", "not checked"], ["read only"]],
+      "note": "Task 2's cell is read only and unchecked; the cell carries aria-readonly, so a reader should say it before a user presses Space for nothing."
+    },
+    {
+      "id": "space-on-read-only",
+      "action": {"press": "Space"},
+      "expect": [],
+      "note": "Space on the read-only cell changes nothing. Nothing is required: the transcript records what a reader says when nothing happens."
+    },
+    {
+      "id": "arrow-up-checked",
+      "action": {"press": "ArrowUp"},
+      "expect": [["checked"], ["done"]],
+      "note": "Back on Task 1's cell, which is still checked: the grid answers keys after Space on a read-only cell."
     }
   ]
 }

@@ -10,14 +10,14 @@
     {
       "id": "open-editor",
       "action": {"press": "Enter"},
-      "expect": [["al"], ["combo box", "combobox", "edit"]],
-      "note": "Enter opens the editor on the cell holding `Al`: a text field with the combobox role over a list of Alpha, Alfa and Alto. The dropdown never filters, and it highlights Alpha on open (the tree golden marks that option selected). Unsure whether a reader names the highlighted option on open, so only the text and the role are required."
+      "expect": [["al"], ["combo box", "list box pop up"], ["expanded"], ["alpha"]],
+      "note": "Enter opens the editor on the cell holding `Al`: a combobox over the list Alpha, Alfa and Alto. The dropdown never filters, and it highlights the best match, Alpha, on open: the choice Enter would commit, so it is required beside the text, the role and the open list. The field's role, a combo box: VoiceOver with Chromium calls it a `text entry area` with a `list box pop up`, its words for a field that opens a list. Finding: VoiceOver with WebKit names no role. Finding: only NVDA with Firefox reads the highlighted choice on open (`Alpha, 1 of 3`)."
     },
     {
       "id": "arrow-down-second",
       "action": {"press": "ArrowDown"},
       "expect": [["alfa"]],
-      "note": "Alpha is already highlighted when the editor opens, so the first ArrowDown reaches the second choice, Alfa. The focus stays in the text field and aria-activedescendant names the option."
+      "note": "Alpha is highlighted from the open, so the first ArrowDown reaches the second choice, Alfa. Finding: with Chromium neither reader names the option (NVDA `section`, VoiceOver the field's group), as in the autocomplete editor."
     },
     {
       "id": "arrow-down-third",
@@ -27,14 +27,14 @@
     {
       "id": "commit-choice",
       "action": {"press": "Enter"},
-      "expect": [["al"]],
-      "note": "Enter commits Alto and moves the selection one row down (enterMoves), so the cell announced is the next row's, which holds `Al`."
+      "expect": [["al"], ["row 3"]],
+      "note": "Enter commits Alto and moves the selection one row down (enterMoves), to the next row's cell, which holds `Al`. Finding: the focus stays on the closed editor's field, still a combo box, now collapsed and holding the next cell's value, so a reader hears `combo box, collapsed, Al` and no reader says the row the selection moved to (NVDA and VoiceOver). The text and handsontable editors give the focus to the cell. "
     },
     {
       "id": "back-to-committed",
       "action": {"press": "ArrowUp"},
       "expect": [["alto"]],
-      "note": "ArrowUp returns to the edited cell, which now holds the committed choice, `Alto`."
+      "note": "ArrowUp moves to the edited cell, which now holds the committed choice, `Alto`."
     }
   ]
 }

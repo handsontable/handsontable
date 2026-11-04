@@ -10,14 +10,14 @@
     {
       "id": "open-editor",
       "action": {"press": "Enter"},
-      "expect": [["combo box", "combobox", "pop up button", "popup button", "list box"]],
-      "note": "Enter opens the editor on the cell holding `D1`, a native select with the options Option A and Option B. `D1` is not an option, so the select shows nothing chosen and no value is required: only the control's role, which each reader words its own way (NVDA `combo box`, VoiceOver `pop up button`). Unsure: the role words of Firefox and WebKit."
+      "expect": [["combo box"]],
+      "note": "Enter opens the editor on the cell holding `D1`, a native select with Option A and Option B. `D1` is not an option, so nothing is chosen yet and only the role is required. NVDA reads `combo box, collapsed` with no name: the select has none (the axe baseline's `editor-input-names`). Finding: VoiceOver says nothing when the select editor opens, on both browsers."
     },
     {
       "id": "arrow-down-first",
       "action": {"press": "ArrowDown"},
       "expect": [["option a"]],
-      "note": "The editor answers ArrowDown itself and chooses the next option (a script sets it, so the native popup does not open on macOS). Unsure: a change made by script on a focused select may be announced late, or not at all."
+      "note": "The editor answers ArrowDown itself and chooses the next option, so the native popup never opens. Finding: VoiceOver with WebKit says nothing on this step or the next; with Chromium it reads the option."
     },
     {
       "id": "arrow-down-second",
@@ -27,14 +27,14 @@
     {
       "id": "commit-option",
       "action": {"press": "Enter"},
-      "expect": [["d2"]],
-      "note": "Enter commits Option B and moves the selection one row down (enterMoves), so the cell announced is the next row's, which holds `D2`. The first page of the paginated grid holds both rows."
+      "expect": [["d2", "d 2"], ["row 3"]],
+      "note": "Enter commits Option B and moves the selection one row down (enterMoves), to the next row's cell, `D2`, which NVDA spells `D 2`. Required: the value and the row. The focus reaches the cell: every reader reads it. VoiceOver names no row (its behavior)."
     },
     {
       "id": "back-to-committed",
       "action": {"press": "ArrowUp"},
       "expect": [["option b"]],
-      "note": "ArrowUp returns to the edited cell, which now holds the committed option, `Option B`."
+      "note": "ArrowUp moves to the edited cell, which now holds the committed option, `Option B`."
     }
   ]
 }
