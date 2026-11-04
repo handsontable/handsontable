@@ -1091,7 +1091,13 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     neighbor from inside its own commit, and an `afterSheetTabChange` listener may still switch
     again; `#removeSheet` then checks that the sheet it removes is no longer the active one.
   - **A listener that destroys the grid, turns the bar off, or rebuilds the workbook stops the
-    change** (`#isLive`, checked after the before-hook and after `afterSheetTabStateCapture`).
+    change** (`#isLive`, checked after the before-hook, after `afterSheetTabStateCapture`, and after
+    `#switchTo` returns, which covers `afterSheetTabStateRestore`). The last check comes before
+    `_adoptViewSelection()`, `#refreshUI()` and `#showServerSheet()`, which read the instance; and
+    DataProvider's `_runContextChange()` skips its after-steps once its plugin is destroyed, since the
+    restore hook fires inside that callback. Pinned by `__tests__/inFlightSwitch.unit.js`,
+    `__tests__/restoreHookDestroy.unit.js` (the full build, local and server sheet) and the tab-click case
+    in `tests/e2e/sheets-bar-ui-a11y.spec.ts`.
   - **The `activeSheet` setting is recorded once its switch reaches the listeners**
     (`#applyActiveSheetSetting`). A switch a `beforeSheetTabChange` listener cancels stays recorded:
     otherwise every wrapper re-render sent the value again, saved the cell the user was typing in, and

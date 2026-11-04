@@ -122,6 +122,26 @@ export class SheetsBarUiPage {
   }
 
   /**
+   * Makes an `afterSheetTabStateRestore` listener destroy the grid.
+   */
+  async destroyGridOnStateRestore(): Promise<void> {
+    await this.page.evaluate(() => {
+      const hot = (window as any).hot;
+
+      hot.addHook('afterSheetTabStateRestore', () => hot.destroy());
+    });
+  }
+
+  /**
+   * Whether the grid has been destroyed.
+   *
+   * @returns {Promise<boolean>} `true` once `destroy()` ran.
+   */
+  isDestroyed(): Promise<boolean> {
+    return this.page.evaluate(() => (window as any).hot.isDestroyed === true);
+  }
+
+  /**
    * Whether a tab lies wholly inside the strip's visible part.
    *
    * @param {number} index The tab's position.

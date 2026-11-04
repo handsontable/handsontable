@@ -2300,6 +2300,10 @@ export class SheetsBar extends BasePlugin {
           this.#isSwitching = false;
         }
 
+        if (!this.#isLive(model)) {
+          return false;
+        }
+
         if (isDialogOpen) {
           dialog?._adoptViewSelection();
         }

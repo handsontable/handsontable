@@ -331,6 +331,26 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
       await expect(fixture.tab(1)).toHaveClass(/ht-sheets-bar__tab--active/);
     });
 
+    test('a tab click whose afterSheetTabStateRestore listener destroys the grid throws nothing', async({
+      page, theme, bundle,
+    }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+      const errors: string[] = [];
+
+      page.on('pageerror', error => errors.push(error.message));
+      await fixture.goto();
+      await fixture.tab(1).click();
+      await expect(fixture.tab(1)).toHaveClass(/ht-sheets-bar__tab--active/);
+      await fixture.tab(0).click();
+      await expect(fixture.tab(0)).toHaveClass(/ht-sheets-bar__tab--active/);
+      await fixture.destroyGridOnStateRestore();
+      await fixture.tab(1).click();
+
+      await expect.poll(() => fixture.isDestroyed()).toBe(true);
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      expect(errors).toEqual([]);
+    });
+
     test('a repaint the rename did not cause keeps the name being typed', async({ page, theme, bundle }) => {
       const fixture = new SheetsBarUiPage(page, theme, bundle);
 
