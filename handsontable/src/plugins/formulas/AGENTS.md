@@ -578,6 +578,13 @@ Rules that keep it correct:
   (it reads the engine sheet as its data), and a load core is about to make (`isDataLoadPending()`,
   the sheets bar's switch), which feeds the sheet itself. Pinned by `__tests__/reenableSharedEngine.unit.js`
   and "writes the new data when a listener disables and re-enables the plugin mid-update".
+- **An enable while a load is pending never adds back the sheet it was bound to.** `disablePlugin()` keeps
+  `sheetName`, and an enable whose sheet the engine no longer holds adds it again from the grid's data. In the
+  sheets bar's switch that data is the departing sheet's: a workbook whose bound sheet was removed while a sheet
+  without formulas was shown got that sheet's rows back under the removed name on the next formulas sheet, so
+  its references read them instead of `#REF!`. The switch's load binds the sheet the new settings name, so the
+  enable leaves it alone (`isDataLoadPending()`). Pinned by "shows #REF! where formulas read a removed sheet
+  when …" in `../sheetsBar/__tests__/formulaSheets.unit.js`.
 - **At construction, a sheet a load in the same build already wrote is not scanned again** when the
   row count is the same and the meta phase cannot change what the engine reads
   (`#metaPhaseMayChangeEngineValues()`): the sheets bar loads its opening sheet itself, and the eager

@@ -904,6 +904,26 @@ describe('SheetsBar formula sheets', () => {
       other.destroy();
       otherContainer.remove();
     });
+
+    it.each([
+      ['the removed sheet', []],
+      ['a sheet without formulas', ['Plain']],
+      ['the sheet that reads it', ['Sum']],
+    ])('shows #REF! where formulas read a removed sheet when %s is active at the removal', (_, opened) => {
+      const engine = buildEngine();
+
+      hot = build([
+        boundSheet(engine, 'Data', [[10], [20], [30]]),
+        { name: 'Plain', data: [['p1'], ['p2'], ['p3']] },
+        boundSheet(engine, 'Sum', [['=SUM(Data!A1:A3)'], ['=Data!A1'], ['=Data!A2*2']]),
+      ]);
+      opened.forEach(name => sheetsBar().setActiveSheet(idOf(name)));
+      sheetsBar().removeSheet(idOf('Data'));
+      sheetsBar().setActiveSheet(idOf('Sum'));
+
+      expect(hot.getDataAtCol(0)).toEqual(['#REF!', '#REF!', '#REF!']);
+      expect(engine.getSheetNames()).toEqual(['Sum']);
+    });
   });
 
   describe('engine binding', () => {
