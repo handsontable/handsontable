@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed borders added from the context menu being invisible in dark color schemes: they now use the new `--ht-custom-borders-default-color` theme variable (black in light schemes), and `getBorders()` reports their color as `var(--ht-custom-borders-default-color, #000)`.",
+  "type": "fixed",
+  "issueOrPR": 14129,
+  "breaking": false,
+  "framework": "none"
+}
