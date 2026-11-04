@@ -1,9 +1,9 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle, awaitFixtureBuilt, type Bundle } from '../bundle';
 
-type LicenseKeyName = 'flagged-base' | 'flagged-column-menu' | 'flagged-filters' | 'flagged-no-ui' | 'unflagged' |
-  'non-commercial';
-type PluginsName = 'filters' | 'column-menu';
+type LicenseKeyName = 'flagged-base' | 'flagged-column-menu' | 'flagged-filters' | 'flagged-no-ui' |
+  'flagged-minimal' | 'unflagged' | 'non-commercial';
+type PluginsName = 'filters' | 'column-menu' | 'header-checkbox';
 
 /**
  * Page Object for the license capabilities fixture: a grid built with a license key that lists the

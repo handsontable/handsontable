@@ -32,6 +32,22 @@ test.describe('license keys that list their features', { tag: BUNDLES_TAG }, () 
     await expect(license.bar).toHaveCount(1);
   });
 
+  test('names every missing feature in one console error and one bar line, the header checkbox included',
+    async() => {
+      // The header checkbox is checked while the grid renders, after the plugins the key keeps off are known.
+      await license.goto({ key: 'flagged-minimal', plugins: 'header-checkbox' });
+
+      await expect(license.grid.locator('.htCheckboxHeaderInput')).toHaveCount(0);
+      await expect(license.missingFeatures).toHaveCount(1);
+      await expect(license.missingFeatures).toContainText('Checkbox header');
+      await expect(license.missingFeatures).toContainText('Copy and paste');
+      // Console messages reach the test in order, so once the one naming the header checkbox is here, an earlier
+      // message without it would be here too.
+      await expect.poll(() => license.licenseErrors().some(text => text.includes('feat:checkbox_header'))).toBe(true);
+      expect(license.licenseErrors()).toHaveLength(1);
+      expect(license.licenseErrors()[0]).toContain('Copy and paste (feat:copy_paste)');
+    });
+
   test('shows no Filters items in a column menu the key does list', async() => {
     await license.goto({ key: 'flagged-column-menu', plugins: 'column-menu' });
 

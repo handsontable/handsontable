@@ -192,9 +192,11 @@ export function initLicenseNotification(hotInstance: HotInstance): void {
     mountBottomLicenseBar(hotInstance, notificationElement);
   }
 
-  // The plugins had their init turn before this call, so the features the key turned off at init are
-  // known now. Later passes (`updateSettings()`) write theirs once every plugin has handled the pass.
-  flushMissingCapabilities(hotInstance);
+  // The first write waits for the first render, still inside the constructor: the plugins the key turned
+  // off are known at init, but a feature checked while the grid renders (the header checkbox) only then,
+  // and one message must name them all. Later passes (`updateSettings()`) write theirs once every plugin
+  // has handled the pass.
+  hotInstance.addHookOnce('afterInit', () => flushMissingCapabilities(hotInstance));
   hotInstance.addHook('afterUpdateSettings', () => flushMissingCapabilities(hotInstance), FLUSH_ORDER_INDEX);
 }
 

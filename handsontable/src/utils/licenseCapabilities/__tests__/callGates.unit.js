@@ -215,33 +215,41 @@ describe('license gates of the plugins that are on in every grid', () => {
       columns: [{ type: 'checkbox', headerCheckbox: true }, {}],
     };
 
-    it('should draw no header checkbox the key does not cover, and report it after the render', async() => {
+    it('should draw no header checkbox the key does not cover, and name it in the one message of the grid', async() => {
       const hot = createGrid({ licenseKey: FLAGGED_MINIMAL_KEY, ...settings });
-      const printedAtInit = missingFeatureErrors().length;
+      // The header checkbox is checked while the grid renders, after the plugins the key keeps off are known.
+      // The grid still prints one message, before the constructor returns, that names both.
+      const printedAtInit = missingFeatureErrors();
 
       expect(hot.getPlugin('checkboxHeader').hasHeaderCheckbox(0)).toBe(false);
       expect(hot.rootElement.querySelector('.htCheckboxHeaderInput')).toBeNull();
       expect(hot.getPlugin('checkboxHeader').toggleColumn(0)).toBe(false);
       expect(hot.getDataAtCol(0)).toEqual([true, false]);
+      expect(printedAtInit.length).toBe(1);
+      expect(printedAtInit[0]).toContain('Checkbox header (feat:checkbox_header)');
+      expect(printedAtInit[0]).toContain('Copy and paste (feat:copy_paste)');
 
       await Promise.resolve();
 
-      const printed = missingFeatureErrors().slice(printedAtInit);
+      const barLines = hot.rootSlotBottomElement.querySelectorAll('.hot-display-license-info_missing-features');
 
-      expect(printed.length).toBe(1);
-      expect(printed[0]).toContain('Checkbox header (feat:checkbox_header)');
+      expect(missingFeatureErrors()).toEqual(printedAtInit);
+      expect(barLines.length).toBe(1);
+      expect(barLines[0].textContent).toContain('Checkbox header');
+      expect(barLines[0].textContent).toContain('Copy and paste');
     });
 
-    it('should write nothing for a refused header checkbox when a key that covers it arrives first', async() => {
-      // The first render refuses the header checkbox and leaves its message to a microtask; the key below is
-      // passed before that microtask runs.
+    it('should write nothing more for a refused header checkbox when a key that covers it arrives', async() => {
+      // The first render refuses the header checkbox and leaves a write to a microtask; the key below is passed
+      // before that microtask runs, so the write finds nothing missing.
       const hot = createGrid({ licenseKey: FLAGGED_MINIMAL_KEY, ...settings });
+      const printedAtInit = missingFeatureErrors();
 
       hot.updateSettings({ licenseKey: SUBSCRIPTION_KEY });
 
       await Promise.resolve();
 
-      expect(missingFeatureErrors().filter(text => text.includes('Checkbox header'))).toEqual([]);
+      expect(missingFeatureErrors()).toEqual(printedAtInit);
       expect(hot.rootSlotBottomElement.querySelector('.hot-display-license-info_missing-features')).toBeNull();
     });
 

@@ -24,6 +24,7 @@ function createMockHotInstance(overrides = {}) {
       register: jest.fn(),
     })),
     addHook: jest.fn(),
+    addHookOnce: jest.fn(),
     ...overrides,
   };
 }
@@ -66,6 +67,17 @@ describe('licenseNotification', () => {
       expect(hotInstance.addHook).toHaveBeenCalledTimes(1);
       expect(hotInstance.addHook).toHaveBeenCalledWith('afterUpdateSettings', expect.any(Function), expect.any(Number));
       expect(hotInstance.addHook.mock.calls[0][2]).toBeGreaterThan(0);
+    });
+
+    it('should write the first license message after the first render, not while the grid is built', () => {
+      const hotInstance = createMockHotInstance();
+
+      initLicenseNotification(hotInstance);
+
+      // A feature checked while the grid renders (the header checkbox) is known only after the first render,
+      // so the first message waits for `afterInit` and names it with the rest.
+      expect(hotInstance.addHookOnce).toHaveBeenCalledTimes(1);
+      expect(hotInstance.addHookOnce).toHaveBeenCalledWith('afterInit', expect.any(Function));
     });
 
     it('should call _injectProductInfo with correct parameters when container exists', () => {
