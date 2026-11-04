@@ -50,7 +50,11 @@ import { getTabReentryCoords, wasLeftByTab } from '../../focusManager/tabReentry
 import { deepClone, isPlainObject } from '../../helpers/object';
 import { normalizeFixedColumnsAlias, renameFixedColumnsLeft } from '../../core/fixedColumnsAlias';
 import {
-  formatSheetName, isUnquotedSheetName, quoteUnreadableSheetNames, rewriteSheetReferences,
+  formatSheetName,
+  isUnquotedSheetName,
+  quoteUnreadableSheetNames,
+  rewriteSheetReferences,
+  canReadSheetNameUnquoted,
 } from '../../utils/formulaReferences';
 import {
   collectFormulaTextChanges, getEngineCellKeys, getEngineColumnLayout, isChangeTargetFrozen, listSheetRows, readCell,
@@ -5478,7 +5482,7 @@ export class SheetsBar extends BasePlugin {
    * @returns {string}
    */
   #sheetNameText(engine: NonNullable<SheetFormulas['engine']>, name: string): string {
-    const readable = isUnquotedSheetName(name) && engine.validateFormula?.(`=${name}!A1`) !== false;
+    const readable = canReadSheetNameUnquoted(engine, name);
 
     return formatSheetName(name, !readable);
   }
@@ -6066,8 +6070,10 @@ export class SheetsBar extends BasePlugin {
    * sheet's rows, and the next switch away stored the host's array as that sheet's data. A framework wrapper
    * re-sends its `data` prop on a re-render, which is how this happens without the host asking for it.
    * A `sheetsBar: true` workbook declares no sheets; see `#keepUndeclaredSheetRows`. While the active sheet
-   * has an external data source, the incoming array is core's own placeholder for DataProvider (a
-   * `dataProvider` the user re-configured on the visible server sheet), and it goes through.
+   * has an external data source, the incoming array is core's own placeholder for DataProvider, which core
+   * writes only for a payload that replaces `dataProvider` (a `dataProvider` the user re-configured on the
+   * visible server sheet), and it goes through. A top-level `data` beside a server sheet never reaches this:
+   * core ignores it and keeps the rows.
    *
    * @param {Array} sourceData The rows about to be loaded.
    * @returns {Array|undefined} The rows the grid shows, when the incoming ones are ignored.

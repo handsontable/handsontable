@@ -207,6 +207,7 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         key={themeName}
         ref={hotRef}
         theme={getTheme(themeName.split('-')[0]).setColorScheme(themeName.split('-')[1] || 'auto')}
@@ -281,7 +282,6 @@ const ExampleComponent = () => {
         manualRowResize={true}
         manualColumnResize={true}
         navigableHeaders={true}
-        licenseKey="non-commercial-and-evaluation"
       />
     </>
   );

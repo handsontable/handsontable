@@ -192,7 +192,7 @@ registerAllModules();
 const hotSettings = ref({
   theme: mainTheme,
   // ... other options
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -319,7 +319,7 @@ const theme = markRaw(
 const hotSettings = ref({
   theme: theme,
   // ... other options
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -415,7 +415,7 @@ const hot = new Handsontable(container, {
 const hotSettings = ref({
   theme: 'ht-theme-main',
   // ... other options
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -562,7 +562,7 @@ import { markRaw, ref } from 'vue';
 const hotSettings = ref({
   theme: markRaw(customTheme),
   // ... other options
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -936,7 +936,7 @@ const hotSettings = ref({
   colorScheme: 'dark',
   density: 'compact',
   // ... other options
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 

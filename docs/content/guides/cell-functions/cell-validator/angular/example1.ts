@@ -143,7 +143,7 @@ export class AppComponent implements OnInit {
       },
       colHeaders: ['ID', 'First name', 'Last name', 'IP', 'E-mail'],
       height: 'auto',
-      licenseKey: 'non-commercial-and-evaluation',
+      // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
       columns: [
         { data: 'id', type: 'numeric' },
         { data: 'name.first' },
@@ -163,7 +163,7 @@ export class AppComponent implements OnInit {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
@@ -173,7 +173,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

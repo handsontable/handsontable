@@ -21,7 +21,7 @@ const hot = new Handsontable(container, {
     selectionHandles: true,
     autoWrapRow: true,
     autoWrapCol: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 // Pre-select an interior range so the handles are immediately visible.
 hot.selectCell(1, 1, 4, 3);

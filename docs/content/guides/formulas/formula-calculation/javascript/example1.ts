@@ -41,7 +41,7 @@ new Handsontable(container1, {
   },
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 const container2 = document.querySelector('#example-basic-multi-sheet-2')!;
@@ -57,5 +57,5 @@ new Handsontable(container2, {
   },
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });

@@ -2,7 +2,7 @@ import { throwWithCause } from '../../../../helpers/errors';
 import { localeLowerCase } from '../../../../helpers/string';
 import { DROPPED_FEATURES, type DroppedFeatureName, type DroppedFeatures } from '../../capabilities';
 import { isLimitError, MAX_INPUT_BYTES, throwLimitExceeded } from '../../limits';
-import { createWorkbookSnapshot, type WorkbookSnapshot } from '../../model';
+import { createWorkbookSnapshot, type DefinedNameSnapshot, type WorkbookSnapshot } from '../../model';
 import { noteToComment } from '../../threadedComments';
 import { parseComments } from './parts/comments';
 import {
@@ -119,7 +119,7 @@ interface OpenedPackage {
   workbookRels: Relationship[];
   sheets: ReturnType<typeof parseWorkbook>['sheets'];
   date1904: boolean;
-  definedNames: string[];
+  definedNames: DefinedNameSnapshot[];
   styles: ParsedStyles;
   sharedStrings: ParsedSharedStrings;
   contentTypes: ContentTypes;
@@ -238,6 +238,27 @@ async function refuseMissingWorkbook(archive: ZipArchive, workbookPath: string):
   }
 
   throwWithCause(`The archive has no workbook part at "${workbookPath}".`);
+}
+
+/**
+ * The defined names of a workbook, read from its workbook part with this engine's parser and
+ * nothing else: no sheet is read and nothing is recorded. The ExcelJS adapter reads the names this
+ * way because ExcelJS's own model loses every name that is not an `$A$1`-style range.
+ *
+ * @param {ArrayBuffer} buffer The workbook file.
+ * @returns {Promise<DefinedNameSnapshot[]>}
+ */
+export async function readWorkbookDefinedNames(buffer: ArrayBuffer): Promise<DefinedNameSnapshot[]> {
+  const archive = await readZip(buffer);
+
+  try {
+    const rootRels = archive.has('_rels/.rels') ? parseRels(await archive.text('_rels/.rels')) : [];
+    const workbookPath = targetOf(rootRels, REL_TYPES.officeDocument, '') ?? 'xl/workbook.xml';
+
+    return archive.has(workbookPath) ? parseWorkbook(await archive.text(workbookPath)).definedNames : [];
+  } finally {
+    archive.release();
+  }
 }
 
 /**

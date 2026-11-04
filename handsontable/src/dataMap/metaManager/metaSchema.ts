@@ -2290,6 +2290,14 @@ export default (): Record<string, unknown> => {
      * Set it to `null` to turn server-backed loading off again, for example through
      * [`updateSettings()`](@/api/core.md#updatesettings).
      *
+     * Passing another `dataProvider` object through [`updateSettings()`](@/api/core.md#updatesettings) reloads the
+     * rows. Passing the same object again keeps the rows and sends no request, unless the same call also passes
+     * [`pagination`](#pagination), [`columnSorting`](#columnsorting), [`filters`](#filters), or
+     * [`columns`](#columns): those reset the page, sort, or filters, so the rows are fetched again. The React and
+     * Angular wrappers pass only the settings that changed, so in React keep the object stable (create it with
+     * `useMemo`). A change made inside the same object is used by the next request; to load the rows right away,
+     * call [`fetchData()`](@/api/dataProvider.md#fetchdata).
+     *
      * While the [`sheetsBar`](#sheetsbar) option is enabled, a grid-level `dataProvider` is ignored (with one console
      * warning), and the grid gets it back when you turn the sheets bar off. Declare `dataProvider` in the `settings` of
      * each sheet that loads from a server instead, and change it with

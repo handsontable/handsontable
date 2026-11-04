@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { getDirectionFromURL, getThemeNameFromURL } from '../../utils';
+import { TEST_LICENSE_KEY } from '../../test-license-key';
 
 export function init() {
   registerAllModules();
@@ -19,7 +20,7 @@ export function init() {
     width: 500,
     height: 300,
     moveCells: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
   });
 
   // Pre-select an interior range so the move zone bands are immediately

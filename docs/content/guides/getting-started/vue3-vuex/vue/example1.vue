@@ -56,7 +56,7 @@ const hotSettings = ref<GridSettings>({
       store.commit('updateData', wrapper.value.hotInstance.getSourceData() as string[][]);
     }
   },
-  licenseKey: 'non-commercial-and-evaluation'
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 function toggleReadOnly(event: Event) {

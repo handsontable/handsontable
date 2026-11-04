@@ -111,6 +111,7 @@ export function Table() {
 
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       ref={hotRef}
       data={data}
       hotRenderer={renderDataCell}
@@ -121,7 +122,6 @@ export function Table() {
       rowHeaders={true}
       height={400}
       width={600}
-      licenseKey="non-commercial-and-evaluation"
       autoWrapRow={true}
       autoWrapCol={true}
     />

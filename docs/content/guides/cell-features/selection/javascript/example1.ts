@@ -26,7 +26,7 @@ const hot = new Handsontable(container, {
   selectionMode: 'multiple', // 'single', 'range' or 'multiple',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 const dropdown = document.querySelector('#selectionDropdown')!;

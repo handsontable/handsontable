@@ -82,6 +82,7 @@ const ExampleComponent = () => {
   return (
     <>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         data={employees}
         colHeaders={['Name', 'Department', 'Role', 'Salary', 'Start Date']}
@@ -96,7 +97,6 @@ const ExampleComponent = () => {
         height="auto"
         width="100%"
         autoWrapRow={true}
-        licenseKey="non-commercial-and-evaluation"
       />
       <strong>Shortcut log:</strong>
       <table className="debug-table">

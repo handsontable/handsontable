@@ -205,6 +205,7 @@ function AntLikeGrid() {
 
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       theme={antTableTheme}
       data={data}
       colHeaders={['Name', 'Age', 'Address', 'Tags', 'Action']}
@@ -212,7 +213,6 @@ function AntLikeGrid() {
       stretchH="all"
       height="auto"
       autoRowSize={false}
-      licenseKey="non-commercial-and-evaluation"
       cells={readOnlyCell}
     >
       <HotColumn data="name" width={160} renderer={NameCell} />

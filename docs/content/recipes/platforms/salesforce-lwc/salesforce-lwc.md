@@ -189,7 +189,7 @@ export default class HotGrid extends LightningElement {
             contextMenu: true,
             copyPaste: true,
             fillHandle: true,
-            licenseKey: 'non-commercial-and-evaluation',
+            // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
             afterChange: (changes, source) => {
                 if (!changes || source === 'loadData') {
                     return;

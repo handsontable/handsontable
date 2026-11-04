@@ -87,7 +87,7 @@ const hot = new Handsontable(container, {
   data: getData(),
   // freeze the last two rows as a footer
   fixedRowsBottom: 2,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 

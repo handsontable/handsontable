@@ -23,7 +23,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 19.0 also adds the [`ImportFile`](@/api/importFile.md) plugin, which reads `.xlsx` files with the built-in XLSX engine that section 38 describes; see [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md). It is new, so nothing to migrate.
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them. Section 17 concerns the [`width`](@/api/options.md#width) and [`height`](@/api/options.md#height) options, and applies if you set `height: 'auto'`, or pass a CSS keyword, a `var()`, or a container-query unit to either option. Section 18 concerns what [`getCopyableData()`](@/api/core.md#getcopyabledata) returns, and applies only if you call it or [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) yourself. Section 19 concerns where the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), and [`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editors open their lists, and applies if you use one of those cell types. Section 20 concerns two deprecated [`Core`](@/api/core.md) methods, [`spliceCol()`](@/api/core.md#splicecol) and [`spliceRow()`](@/api/core.md#splicerow), and applies only if you call either of them. Section 21 concerns the right-alignment and `htNumeric` class name of a [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) cell, and applies only if such a cell can hold a non-numeric value. Section 22 concerns what [`colToProp()`](@/api/core.md#coltoprop) and [`propToCol()`](@/api/core.md#proptocol) return for a column that does not exist, and applies if you call either of them, call [`getDataAtProp()`](@/api/core.md#getdataatprop) with an index, or add a [`modifyData`](@/api/hooks.md#modifydata) hook. Section 23 concerns the TypeScript types of the [`filters`](@/api/options.md#filters) option, and applies only if you use TypeScript and set `filters` to an object. Section 24 concerns how undo and redo work, and applies if you keep the default [`undo`](@/api/options.md#undo) setting. Section 25 concerns the new [`maxLength`](@/api/options.md#maxlength) option, and applies only if you already keep a `maxLength` key in your cell settings. Section 26 concerns the narrowest width a column can be resized to, and applies if you enable [`dropdownMenu`](@/api/options.md#dropdownmenu) and let users resize columns with [`manualColumnResize`](@/api/options.md#manualcolumnresize), or call [`setManualSize()`](@/api/manualColumnResize.md#setmanualsize) or [`setManualSizes()`](@/api/manualColumnResize.md#setmanualsizes). Section 27 concerns icons rendering as `<i>` elements instead of CSS pseudo-elements, and applies if you style a built-in icon, query for one in a test, or use the [`icons`](@/guides/styling/themes/themes.md#icons) theme parameter. Section 28 concerns moving columns across the freeze line, and applies if you use [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) together with [`manualColumnMove`](@/api/options.md#manualcolumnmove), or if you listen to the column freeze and unfreeze hooks. Section 29 concerns entitlement license keys, and applies only if you pass one in another form than the one you received. Section 30 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + <kbd>**←**</kbd> and <kbd>**→**</kbd> do on a row header, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin with [`navigableHeaders`](@/api/options.md#navigableheaders) enabled. Section 31 concerns the TypeScript props of the React `HotColumn` component, and applies only if you use TypeScript and pass a hook, such as `afterChange`, to `HotColumn`. Section 32 concerns [`editor: false`](@/api/options.md#editor), and applies only if you set it together with a column [`type`](@/api/options.md#type), or on a [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) column. Section 33 concerns changing [`dataSchema`](@/api/options.md#dataschema) with [`updateSettings()`](@/api/core.md#updatesettings), and applies only if you change it after the grid is created without setting [`columns`](@/api/options.md#columns). Section 34 concerns the [`colWidths`](@/api/options.md#colwidths) option, and applies only if you set it to an array or a function and your columns can be moved. Section 35 concerns how wide an auto-sized column can get, and applies only if you leave [`autoColumnSize`](@/api/autoColumnSize.md) on and a column holds text wider than the grid. Section 36 concerns what `setValue()` receives in a custom editor that extends [`BaseEditor`](@/guides/cell-functions/cell-editor/cell-editor.md) directly, and applies only if you write one, or build one with the editor factory. Section 37 concerns how a string `rowId` in the [`dataProvider`](@/api/options.md#dataprovider) option reads a property with a dot in its name, and applies only if your rows have such a property, you rewrite the id with a `modifySourceData` hook, or you use TypeScript and read `dataProvider.rowId` back as a string. Section 38 concerns the XLSX format of the [`ExportFile`](@/api/exportFile.md) plugin, which no longer needs ExcelJS, and applies if you set the [`exportFile`](@/api/options.md#exportfile) option, call `supportsExportFormat('xlsx')`, or export to XLSX. Section 39 concerns [`removeCellMeta()`](@/api/core.md#removecellmeta) with an index outside the grid's range, and applies only if you make such a call. Section 40 concerns which columns a [`dataSchema`](@/api/options.md#dataschema) with non-`null` values creates, and applies only if you set `dataSchema` with such values and don't set [`columns`](@/api/options.md#columns). Section 41 concerns the TypeScript types of ten options, and applies only if you use TypeScript and set, read, or call one of them. Section 42 concerns a hook set to `null` through [`updateSettings()`](@/api/core.md#updatesettings), and applies only if you pass `null` for a hook, or clear or drop a hook prop in a framework wrapper, and expect the earlier callback to keep running. Section 43 concerns a `null` column width, and applies only if you set [`colWidths`](@/api/options.md#colwidths) or a column `width` to `null`, or check for `null` in a [`modifyColWidth`](@/api/hooks.md#modifycolwidth) callback. Section 44 concerns an [`afterRender`](@/api/hooks.md#afterrender) hook that writes to the HyperFormula engine, and applies only if you use the [`Formulas`](@/api/formulas.md) plugin and write to the engine from such a hook. Section 45 concerns the copy, cut, and paste shortcuts, which the `grid` shortcut context now lists, and applies only if you read or remove the <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>, <kbd>**X**</kbd>, or <kbd>**V**</kbd> shortcut through the [`ShortcutManager`](@/api/shortcutManager.md). Section 46 concerns the Vue 3 wrapper's props. It applies if you type-check the props you pass to `HotTable` or `HotColumn`, and if you pass `handsontable` or `getValue` to either component. Section 47 concerns four deprecated [`MergedCellsCollection`](@/api/mergedCellsCollection.md) methods, and applies only if you call one of them. Section 48 concerns the [`Loading`](@/api/loading.md) plugin, and applies only if you register modules one by one and register `Loading` without the [`Dialog`](@/api/dialog.md) plugin. Section 49 concerns when plugins apply the settings the grid is built with, and applies only if a listener of a hook that work fires, such as [`afterColumnSort`](@/api/hooks.md#aftercolumnsort) or [`afterMergeCells`](@/api/hooks.md#aftermergecells), reads the drawn grid. Section 50 concerns the [`rowHeights`](@/api/options.md#rowheights) option, and applies if you set it to a height that is smaller than your cell content or smaller than the default row height, and you do not enable [`autoRowSize`](@/api/options.md#autorowsize). Section 51 concerns a change that waits for its cell's [`validator`](@/api/options.md#validator) when you call [`loadData()`](@/api/core.md#loaddata), and applies if your cells have validators, including `numeric`, `date`, and [`maxLength`](@/api/options.md#maxlength) cells, and you call `loadData()` while the user edits or right after your own `setDataAtCell()`.
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them. Section 17 concerns the [`width`](@/api/options.md#width) and [`height`](@/api/options.md#height) options, and applies if you set `height: 'auto'`, or pass a CSS keyword, a `var()`, or a container-query unit to either option. Section 18 concerns what [`getCopyableData()`](@/api/core.md#getcopyabledata) returns, and applies only if you call it or [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) yourself. Section 19 concerns where the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), and [`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editors open their lists, and applies if you use one of those cell types. Section 20 concerns two deprecated [`Core`](@/api/core.md) methods, [`spliceCol()`](@/api/core.md#splicecol) and [`spliceRow()`](@/api/core.md#splicerow), and applies only if you call either of them. Section 21 concerns the right-alignment and `htNumeric` class name of a [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) cell, and applies only if such a cell can hold a non-numeric value. Section 22 concerns what [`colToProp()`](@/api/core.md#coltoprop) and [`propToCol()`](@/api/core.md#proptocol) return for a column that does not exist, and applies if you call either of them, call [`getDataAtProp()`](@/api/core.md#getdataatprop) with an index, or add a [`modifyData`](@/api/hooks.md#modifydata) hook. Section 23 concerns the TypeScript types of the [`filters`](@/api/options.md#filters) option, and applies only if you use TypeScript and set `filters` to an object. Section 24 concerns how undo and redo work, and applies if you keep the default [`undo`](@/api/options.md#undo) setting. Section 25 concerns the new [`maxLength`](@/api/options.md#maxlength) option, and applies only if you already keep a `maxLength` key in your cell settings. Section 26 concerns the narrowest width a column can be resized to, and applies if you enable [`dropdownMenu`](@/api/options.md#dropdownmenu) and let users resize columns with [`manualColumnResize`](@/api/options.md#manualcolumnresize), or call [`setManualSize()`](@/api/manualColumnResize.md#setmanualsize) or [`setManualSizes()`](@/api/manualColumnResize.md#setmanualsizes). Section 27 concerns icons rendering as `<i>` elements instead of CSS pseudo-elements, and applies if you style a built-in icon, query for one in a test, or use the [`icons`](@/guides/styling/themes/themes.md#icons) theme parameter. Section 28 concerns moving columns across the freeze line, and applies if you use [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) together with [`manualColumnMove`](@/api/options.md#manualcolumnmove), or if you listen to the column freeze and unfreeze hooks. Section 29 concerns entitlement license keys, and applies only if you pass one in another form than the one you received. Section 30 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + <kbd>**←**</kbd> and <kbd>**→**</kbd> do on a row header, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin with [`navigableHeaders`](@/api/options.md#navigableheaders) enabled. Section 31 concerns the TypeScript props of the React `HotColumn` component, and applies only if you use TypeScript and pass a hook, such as `afterChange`, to `HotColumn`. Section 32 concerns [`editor: false`](@/api/options.md#editor), and applies only if you set it together with a column [`type`](@/api/options.md#type), or on a [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) column. Section 33 concerns changing [`dataSchema`](@/api/options.md#dataschema) with [`updateSettings()`](@/api/core.md#updatesettings), and applies only if you change it after the grid is created without setting [`columns`](@/api/options.md#columns). Section 34 concerns the [`colWidths`](@/api/options.md#colwidths) option, and applies only if you set it to an array or a function and your columns can be moved. Section 35 concerns how wide an auto-sized column can get, and applies only if you leave [`autoColumnSize`](@/api/autoColumnSize.md) on and a column holds text wider than the grid. Section 36 concerns what `setValue()` receives in a custom editor that extends [`BaseEditor`](@/guides/cell-functions/cell-editor/cell-editor.md) directly, and applies only if you write one, or build one with the editor factory. Section 37 concerns how a string `rowId` in the [`dataProvider`](@/api/options.md#dataprovider) option reads a property with a dot in its name, and applies only if your rows have such a property, you rewrite the id with a `modifySourceData` hook, or you use TypeScript and read `dataProvider.rowId` back as a string. Section 38 concerns the XLSX format of the [`ExportFile`](@/api/exportFile.md) plugin, which no longer needs ExcelJS, and applies if you set the [`exportFile`](@/api/options.md#exportfile) option, call `supportsExportFormat('xlsx')`, or export to XLSX. Section 39 concerns [`removeCellMeta()`](@/api/core.md#removecellmeta) with an index outside the grid's range, and applies only if you make such a call. Section 40 concerns which columns a [`dataSchema`](@/api/options.md#dataschema) with non-`null` values creates, and applies only if you set `dataSchema` with such values and don't set [`columns`](@/api/options.md#columns). Section 41 concerns the TypeScript types of ten options, and applies only if you use TypeScript and set, read, or call one of them. Section 42 concerns a hook set to `null` through [`updateSettings()`](@/api/core.md#updatesettings), and applies only if you pass `null` for a hook, or clear or drop a hook prop in a framework wrapper, and expect the earlier callback to keep running. Section 43 concerns a `null` column width, and applies only if you set [`colWidths`](@/api/options.md#colwidths) or a column `width` to `null`, or check for `null` in a [`modifyColWidth`](@/api/hooks.md#modifycolwidth) callback. Section 44 concerns an [`afterRender`](@/api/hooks.md#afterrender) hook that writes to the HyperFormula engine, and applies only if you use the [`Formulas`](@/api/formulas.md) plugin and write to the engine from such a hook. Section 45 concerns the copy, cut, and paste shortcuts, which the `grid` shortcut context now lists, and applies only if you read or remove the <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>, <kbd>**X**</kbd>, or <kbd>**V**</kbd> shortcut through the [`ShortcutManager`](@/api/shortcutManager.md). Section 46 concerns the Vue 3 wrapper's props. It applies if you type-check the props you pass to `HotTable` or `HotColumn`, and if you pass `handsontable` or `getValue` to either component. Section 47 concerns four deprecated [`MergedCellsCollection`](@/api/mergedCellsCollection.md) methods, and applies only if you call one of them. Section 48 concerns the [`Loading`](@/api/loading.md) plugin, and applies only if you register modules one by one and register `Loading` without the [`Dialog`](@/api/dialog.md) plugin. Section 49 concerns when plugins apply the settings the grid is built with, and applies only if a listener of a hook that work fires, such as [`afterColumnSort`](@/api/hooks.md#aftercolumnsort) or [`afterMergeCells`](@/api/hooks.md#aftermergecells), reads the drawn grid. Section 50 concerns the [`rowHeights`](@/api/options.md#rowheights) option, and applies if you set it to a height that is smaller than your cell content or smaller than the default row height, and you do not enable [`autoRowSize`](@/api/options.md#autorowsize). Section 51 concerns a change that waits for its cell's [`validator`](@/api/options.md#validator) when you call [`loadData()`](@/api/core.md#loaddata), and applies if your cells have validators, including `numeric`, `date`, and [`maxLength`](@/api/options.md#maxlength) cells, and you call `loadData()` while the user edits or right after your own `setDataAtCell()`. Section 52 concerns what the `SHEET()` formula function returns after a sheet is removed, and applies only if you use the [`Formulas`](@/api/formulas.md) plugin with an engine it creates, remove sheets, and read `SHEET()` results as positions. Section 53 concerns what [`updateSettings()`](@/api/core.md#updatesettings) does to the rows of a grid with a [`dataProvider`](@/api/options.md#dataprovider), and applies only if you pass it `data`, pass the same `dataProvider` object again to load the rows, or pass `pagination`, `columnSorting`, `filters`, or `columns` to a grid with a `dataProvider`. Section 54 concerns which settings the React and Angular wrappers pass to [`updateSettings()`](@/api/core.md#updatesettings), and applies only if you rely on a render or a `settings` change to reset a sort, filter, or page, or to put back a setting you changed through the instance.
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -2058,6 +2058,17 @@ This applies to both engines.
 
 What to do: nothing.
 
+#### A formula keeps its references when columns are moved and hidden
+
+What changed: with `exportFormulas: true` and `exportHiddenColumns: false`, a formula's references
+now point at the columns they name in the file when columns were moved with `manualColumnMove`. In
+18.1, the export left out the wrong column when it moved the references past the hidden ones, so a
+formula was written one column off, next to the right cached value. Excel and LibreOffice recalculate
+on open, so the file showed wrong numbers with no warning.
+This applies to both engines.
+
+What to do: nothing.
+
 #### A formula error is stored as an error cell
 
 What changed: with `exportFormulas: true`, a formula whose result is an error (`#DIV/0!`, `#N/A`, `#NAME?`,
@@ -2067,9 +2078,72 @@ The error is stored under Excel's English code even when a HyperFormula `languag
 grid shows: with `plPL` the grid shows `#DZIEL/0!` and the file stores `#DIV/0!`, where 18.1 stored the
 translated text. A formula that returns the text `"#N/A"` stays a text cell. A HyperFormula error that
 Excel has no code for (`#CYCLE!`, `#ERROR!`, `#LIC!`, or `#SPILL!`) is still stored as the text the grid
-shows. This applies to both engines. Without `exportFormulas`, nothing changed.
+shows. This applies to both engines.
 
-What to do: nothing, unless a tool reads the cached results as text. Such a tool now gets an error value.
+With the Formulas plugin on, a cell whose value is an error is stored as an error cell too, with or
+without `exportFormulas`: an error you typed, such as `#N/A`, and a formula exported as its value. In
+18.1, both were stored as text. Without the Formulas plugin, an error is stored as text, as in 18.1.
+
+What to do: nothing, unless a tool reads the cached results or the values as text. Such a tool now
+gets an error value.
+
+#### A number or `TRUE`/`FALSE` the Formulas plugin computed keeps its type
+
+What changed: with the Formulas plugin on, a number or a `TRUE`/`FALSE` value that the plugin
+computed is now stored as a number or a boolean, even in a `text` column and without
+`exportFormulas`. This covers the cells an array formula spills, such as the cells below
+`=SEQUENCE(3)`, and a formula exported as its value. In 18.1, such a cell in a `text` column was
+stored as text, so an application that reads the stored values without recalculating, such as Apple
+Numbers, left it out of `SUM()`. A value you typed into a `text` column is still stored as text. This
+applies to both engines.
+
+What to do: nothing, unless a tool expects text in those cells. Such a tool now gets a number or a
+boolean.
+
+#### An array formula is written as an array
+
+What changed: with `exportFormulas: true`, a formula whose result spills, such as `=SEQUENCE(3)`,
+and a formula that is one `ARRAYFORMULA` call, such as `=ARRAYFORMULA(A1:A2*2)`, are now written
+as array formulas over the cells of the result. The built-in engine writes a spilling formula as a
+dynamic array, which Excel spills and resizes as it recalculates. The ExcelJS engine writes both as
+legacy arrays: Excel shows them in braces, and the range stays fixed. In 18.1, both went out as plain
+formulas, which Excel opened with an `@` (`=@SEQUENCE(3)`) and showed as one value.
+
+What to do: nothing with the built-in engine. With ExcelJS, re-enter such a formula in Excel to make
+it a dynamic array, or export with the built-in engine.
+
+#### Range arithmetic is written as a one-cell array
+
+What changed: with `exportFormulas: true` and HyperFormula's `useArrayArithmetic` on, which is the
+Formulas plugin's default, a formula that applies an operator to a range, such as
+`=SUM(A1:A2*B1:B2)`, is now written as a one-cell array. So is a formula that is one call to a
+function that can return an array, such as `=SEQUENCE(1)`. In 18.1, both went out as plain
+formulas, and Excel opened them with an `@`, so `=SUM(@A1:A2*@B1:B2)` computed one row instead of
+the whole range. The built-in engine writes a one-cell dynamic array, and ExcelJS a one-cell legacy
+array. Excel computes the same value from both.
+
+What to do: nothing.
+
+#### A decimal comma is written as a dot
+
+What changed: with `exportFormulas: true` and a HyperFormula `decimalSeparator` of `,`, the decimal
+separator of a number in a formula is now written as `.`. A formula typed as `=SUM(A1;1,5)` goes out
+as `SUM(A1,1.5)`. In 18.1, only the argument separator was changed, so the file held `SUM(A1,1,5)`,
+which Excel and LibreOffice read as three arguments (`7` instead of `2.5` when A1 holds 1). This
+applies to both engines.
+
+What to do: nothing.
+
+#### A formula over a name the file cannot hold is written as its value
+
+What changed: with `exportFormulas: true`, the Formulas plugin's named expressions are now written as
+defined names. A name the engine cannot write is left out, and a formula over it is written as its
+value instead. With the ExcelJS engine, that is every name that is not one workbook-scoped range,
+such as a constant: `=TaxRate*100` over `TaxRate = 0.07` goes out as the value `7`. In 18.1, no name
+was written, and the formula went out as it was, so Excel and LibreOffice showed `#NAME?`.
+
+What to do: nothing, unless the formula must stay live. Export with the built-in engine, which writes
+constants, sheet-scoped names, and names over several ranges.
 
 #### Values past Excel's limits are written at Excel's maximum
 
@@ -2908,3 +2982,117 @@ hot.loadData(rows);
 hot.setDataAtCell(0, 0, 42);
 hot.updateData(rows);
 ```
+
+## 52. `SHEET()` keeps a sheet's number after an earlier sheet is removed
+
+When the [`Formulas`](@/api/formulas.md) plugin creates the HyperFormula engine (you pass the
+`HyperFormula` class in the `engine` option), `SHEET()` now returns the sheet's number in the engine.
+Before, removing a sheet renumbered the sheets after it, so `SHEET()` returned the sheet's position.
+
+The plugin used to rebuild the whole engine whenever a sheet was added or removed. That rebuild
+turned every spilled array, such as the result of `=SEQUENCE(3)`, into `#SPILL!`, for example when a
+second Handsontable instance connected to the same engine. With HyperFormula 3.1.1 or later the
+plugin no longer rebuilds the engine, so spilled arrays keep their values, and sheets keep their
+numbers.
+
+For a workbook with the sheets `S1`, `S2`, and `S3`, after you remove `S2`:
+
+| Formula         | Before | Now |
+| --------------- | ------ | --- |
+| `=SHEET("S3")`  | `2`    | `3` |
+| `=SHEETS()`     | `2`    | `2` |
+
+An engine instance that you create and pass to the plugin already numbered sheets this way, and it is
+not affected.
+
+### Who is affected
+
+You are affected if you use HyperFormula 3.1.1 or later, let the plugin create the engine, remove a
+sheet that is not the last one, and use `SHEET()` as a position, for example as an index in `INDEX()`
+or `CHOOSE()`.
+
+### How to migrate
+
+To get a sheet's position, count the sheets before it yourself, or keep the sheets you remove at the
+end of the workbook. To keep the old numbering, call `rebuildAndRecalculate()` on the engine after you
+remove a sheet. That also turns spilled arrays into `#SPILL!`, as before.
+
+```js
+const engine = hot.getPlugin('formulas').engine;
+
+engine.removeSheet(engine.getSheetId('S2'));
+// Before: SHEET("S3") returns 2. Now: SHEET("S3") returns 3.
+```
+
+## 53. `updateSettings()` keeps the rows of a server-backed grid
+
+This applies only if you set the [`dataProvider`](@/api/options.md#dataprovider) option.
+
+In 18.1, [`updateSettings()`](@/api/core.md#updatesettings) emptied a server-backed grid whenever its
+payload included `data`, and nothing fetched the rows again. Passing the same `dataProvider` object
+again also emptied the grid and fetched the rows anew, so a React app did that on every render.
+
+In 19.0, `data` is ignored with the console warning it already printed, and the grid keeps its rows.
+The same `dataProvider` object passed again keeps the rows and sends no request, even when you
+changed a member inside that object or the last fetch failed. Passing another `dataProvider` object
+still reloads the rows, and so does a call that also passes `pagination`, `columnSorting`, `filters`,
+or `columns`.
+
+A call that passes `pagination`, `columnSorting`, `filters`, or `columns` without `dataProvider` now
+fetches the rows again too. In 18.1 it sent no request, so the pager, the sort, or the filters it reset
+no longer matched the rows on screen. A new `columns` value clears the sort, as it does on a grid
+without `dataProvider`.
+
+```js
+// 18.1: the grid is empty until something else fetches
+// 19.0: the rows stay
+hot.updateSettings({ data: [] });
+
+dataProvider.fetchRows = fetchFromNewEndpoint;
+
+// 18.1: the rows are fetched again with `fetchFromNewEndpoint`
+// 19.0: nothing is fetched; the next request uses `fetchFromNewEndpoint`
+hot.updateSettings({ dataProvider });
+```
+
+### Who is affected
+
+- You call `updateSettings({ data: [] })` to clear a server-backed grid.
+- You change a member of your `dataProvider` object and pass the same object to `updateSettings()`
+  to load the rows again, or pass it again to retry a failed fetch.
+- You call `updateSettings()` with `pagination`, `columnSorting`, `filters`, or `columns` on a grid
+  with a `dataProvider` and expect no request.
+
+### How to migrate
+
+To load the rows again, call [`fetchData()`](@/api/dataProvider.md#fetchdata):
+`hot.getPlugin('dataProvider').fetchData()`. To leave server-backed loading, set `dataProvider` to
+`null`.
+
+## 54. The React and Angular wrappers pass only the settings that changed
+
+This applies only if you use `@handsontable/react-wrapper` or `@handsontable/angular-wrapper`.
+
+In 18.1, the React wrapper passed every prop to [`updateSettings()`](@/api/core.md#updatesettings) on
+each render, and the Angular wrapper passed every key of the `settings` input whenever it changed. A
+setting passed again re-applied the plugin it names, which could reset the state the user gave that
+plugin, such as the filter conditions or the page.
+
+In 19.0, both wrappers leave out a setting whose value is the same as the value they passed last
+time. Objects and arrays are compared by content with a copy of that value, so an object or array you
+change in place is still passed. Functions are compared by reference, and `sheetsBar` too. `data` is
+passed every time, as before: React's `data` prop, a `data` key in Angular's `settings` input, and
+Angular's `data` input, which still calls `updateData()` when it changes.
+
+### Who is affected
+
+- You rely on a render or a `settings` change to reset a sort, filter, or page that the grid's
+  settings did not change.
+- You change a setting through the instance (`hot.updateSettings()`) and rely on the next render to
+  put the prop's unchanged value back. The wrapper now leaves that prop out.
+
+### How to migrate
+
+Reset the state through the plugin, for example `hot.getPlugin('columnSorting').clearSort()`, or pass
+a setting with another value. To put a prop's value back after a change made through the instance,
+call `hot.updateSettings()` with that value.

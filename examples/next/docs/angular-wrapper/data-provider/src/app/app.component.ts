@@ -27,7 +27,7 @@ export class AppComponent {
     colHeaders: true,
     width: '100%',
     height: 420,
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
     columnSorting: true,
     pagination: { pageSize: 15 },
     dropdownMenu: true,
@@ -59,7 +59,7 @@ export class AppComponent {
     colHeaders: true,
     width: '100%',
     height: 420,
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
     columnSorting: true,
     pagination: { pageSize: 12 },
     dropdownMenu: true,

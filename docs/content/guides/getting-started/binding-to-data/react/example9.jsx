@@ -5,7 +5,12 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => (
-  <HotTable autoWrapRow={true} autoWrapCol={true} height="auto" licenseKey="non-commercial-and-evaluation" />
+  <HotTable
+    // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
+    autoWrapRow={true}
+    autoWrapCol={true}
+    height="auto"
+  />
 );
 
 export default ExampleComponent;

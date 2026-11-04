@@ -2,6 +2,7 @@ import Handsontable from "handsontable/base";
 import { registerAllModules } from "handsontable/registry";
 import { getDirectionFromURL, getThemeNameFromURL, getFromURL } from "../../utils";
 import { registerLanguageDictionary, arAR } from "handsontable/i18n";
+import { TEST_LICENSE_KEY } from "../../test-license-key";
 
 export function init() {
   registerAllModules();
@@ -68,7 +69,7 @@ export function init() {
     colHeaders: true,
     navigableHeaders: true,
     contextMenu: true,
-    licenseKey: "non-commercial-and-evaluation",
+    licenseKey: TEST_LICENSE_KEY,
     ...editorSettings,
     ...sizeSettings,
   });

@@ -5,6 +5,7 @@
   <title>Row Selection Select All</title>
   <link rel="stylesheet" href="../../fixtures/handsontable.css">
   <script src="../../fixtures/handsontable.full.js"></script>
+  <script src="../../fixtures/test-license-key.js"></script>
 </head>
 <body>
   <div id="hot"></div>
@@ -19,7 +20,7 @@
       autoColumnSize: false,
       // Defaults: checkboxes in a row header column, "select all" in the corner, scope 'all'.
       rowSelection: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
     window.__hot = hot;
   </script>

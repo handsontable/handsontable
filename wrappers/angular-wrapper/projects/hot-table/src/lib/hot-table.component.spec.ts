@@ -4,6 +4,7 @@ import Handsontable from 'handsontable';
 import { registerPlugin, CopyPaste } from 'handsontable/plugins';
 import { NumericEditor, TextEditor } from 'handsontable/editors';
 import { registerCellType, NumericCellType } from 'handsontable/cellTypes';
+import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
 import { HotTableModule } from './hot-table.module';
 import { DATA_BINDING_SOURCE, HOT_DESTROYED_WARNING, HotTableComponent } from './hot-table.component';
 import { GridSettings } from './models/grid-settings';
@@ -770,6 +771,7 @@ describe('HotTableComponent', () => {
     });
 
     it('should pass language from global config when settings does not specify it', () => {
+      registerLanguageDictionary(deDE);
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
         imports: [HotTableModule],
@@ -783,11 +785,11 @@ describe('HotTableComponent', () => {
       fixture.detectChanges();
       const updateSettingsSpy = jest.spyOn(fixture.componentInstance.hotInstance, 'updateSettings');
 
-      TestBed.inject(HotGlobalConfigService).setConfig({ license: TEST_LICENSE_KEY, language: 'en-US' });
+      TestBed.inject(HotGlobalConfigService).setConfig({ license: TEST_LICENSE_KEY, language: 'de-DE' });
 
       expect(updateSettingsSpy).toHaveBeenCalled();
       const calledWith = updateSettingsSpy.mock.calls[0][0];
-      expect(calledWith.language).toBe('en-US');
+      expect(calledWith.language).toBe('de-DE');
     });
 
     it('should not pass layoutDirection from global config when triggered after initialization', () => {
@@ -810,7 +812,7 @@ describe('HotTableComponent', () => {
         providers: [
           {
             provide: HOT_GLOBAL_CONFIG,
-            useValue: { license: TEST_LICENSE_KEY, theme: 'ht-theme-main', themeName: 'ht-theme-horizon' },
+            useValue: { license: TEST_LICENSE_KEY, theme: 'ht-theme-horizon' },
           },
         ],
         schemas: [CUSTOM_ELEMENTS_SCHEMA],
