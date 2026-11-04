@@ -103,7 +103,7 @@ registerAllModules();
 const hotSettings = ref({
   theme: classicTheme,
   // ... other options
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -174,7 +174,7 @@ const hot = new Handsontable(container, {
 const hotSettings = ref({
   theme: 'ht-theme-classic',
   // ... other options
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 

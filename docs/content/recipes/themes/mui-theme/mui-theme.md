@@ -168,6 +168,7 @@ export default function MuiHotTable() {
 
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       theme={hotTheme}
       data={data}
       colHeaders={['Name', 'Age', 'Country', 'Active']}
@@ -175,7 +176,6 @@ export default function MuiHotTable() {
       autoWrapRow={true}
       width="100%"
       height="auto"
-      licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data="name" width={160} />
       <HotColumn data="age" type="numeric" width={100} />

@@ -15,6 +15,7 @@ import { excelJsAdapter } from '../../../utils/xlsxEngine/adapters/exceljs';
 import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
 import { toArrayBuffer } from '../../../utils/xlsxEngine/__tests__/helpers/fixtures';
 import { keyWithout } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * DEV-3648: with `exportFormulas`, the workbook-scoped named expressions of the Formulas plugin's
@@ -56,7 +57,7 @@ describe('Xlsx export: named expressions as defined names', () => {
       data: [[1], [2], [3], [4]],
       formulas: { engine: HyperFormula, sheetName },
       exportFile: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 
@@ -200,7 +201,7 @@ describe('Xlsx export: named expressions as defined names', () => {
     const hot2 = new Handsontable(second, {
       data: [[10], [20]],
       formulas: { engine, sheetName: 'Sheet2' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     try {
@@ -237,7 +238,7 @@ describe('Xlsx export: named expressions as defined names', () => {
     const hot2 = new Handsontable(second, {
       data: [[10], [20]],
       formulas: { engine, sheetName: 'Sheet2' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     try {
@@ -266,7 +267,7 @@ describe('Xlsx export: named expressions as defined names', () => {
     const hot2 = new Handsontable(second, {
       data: [[10], [20]],
       formulas: { engine, sheetName: 'Sheet2' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     try {
@@ -369,7 +370,7 @@ describe('Xlsx export: named expressions as defined names', () => {
       data: [[1], [2]],
       formulas: { engine: { hyperformula: HyperFormula, functionArgSeparator: ';' }, sheetName: 'Sheet1' },
       exportFile: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     hot.getPlugin('formulas').engine.addNamedExpression('Total', '=SUM(Sheet1!$A$1;Sheet1!$A$2)');
 
@@ -388,7 +389,7 @@ describe('Xlsx export: named expressions as defined names', () => {
         sheetName: 'Sheet1',
       },
       exportFile: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     hot.getPlugin('formulas').engine.addNamedExpression('Half', '=Sheet1!$A$1*0,5');
 
@@ -564,7 +565,7 @@ describe('Xlsx export: named expressions as defined names', () => {
     const hot2 = new Handsontable(second, {
       data: [[100], [200], ['=Rate*10']],
       formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     try {
@@ -768,7 +769,7 @@ describe('Xlsx export: named expressions as defined names', () => {
     const hot2 = new Handsontable(second, {
       data: [[100], [200], ['=SUM(Rate)']],
       formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     try {
@@ -929,7 +930,7 @@ describe('Xlsx export: named expressions as defined names', () => {
     const hot2 = new Handsontable(second, {
       data: [[100], ['=Total']],
       formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     try {

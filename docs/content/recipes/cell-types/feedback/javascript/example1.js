@@ -93,7 +93,7 @@ const hotOptions = {
     { data: 'votes', type: 'numeric', width: 60 },
     { data: 'status', type: 'text', width: 120 },
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 // Initialize the Handsontable instance with the specified configuration options

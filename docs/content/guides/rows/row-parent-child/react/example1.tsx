@@ -150,6 +150,7 @@ const sourceDataObject = [
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={sourceDataObject}
       preventOverflow="horizontal"
       rowHeaders={true}
@@ -160,7 +161,6 @@ const ExampleComponent = () => {
       autoWrapRow={true}
       autoWrapCol={true}
       height="auto"
-      licenseKey="non-commercial-and-evaluation"
       afterInit={function (this: Handsontable) {
         this.getPlugin('nestedRows').collapseParent(8);
       }}

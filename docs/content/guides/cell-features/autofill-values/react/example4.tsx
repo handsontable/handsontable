@@ -23,6 +23,7 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       colHeaders={['Quantity', 'Unit price', 'Total', 'Total with tax', 'Tax rate (E1 only)']}
       rowHeaders={true}
@@ -35,7 +36,6 @@ const ExampleComponent = () => {
       height="auto"
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };

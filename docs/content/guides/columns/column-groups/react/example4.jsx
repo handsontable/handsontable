@@ -15,6 +15,7 @@ const data = [
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       colHeaders={true}
       rowHeaders={['North America', 'Europe', 'Asia Pacific', 'Latin America', 'Middle East']}
@@ -31,7 +32,6 @@ const ExampleComponent = () => {
       ]}
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };

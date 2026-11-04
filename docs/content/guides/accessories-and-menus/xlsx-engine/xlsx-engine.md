@@ -71,7 +71,7 @@ import ExcelJS from 'exceljs';
 // every export of this grid uses ExcelJS
 const hot = new Handsontable(container, {
   exportFile: { engines: { xlsx: ExcelJS } },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 // this import alone uses ExcelJS

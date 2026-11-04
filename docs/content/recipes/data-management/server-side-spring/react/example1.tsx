@@ -152,6 +152,7 @@ const ExampleComponent = () => {
     <div>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         dataProvider={dataProvider}
         beforeRowsMutation={beforeRowsMutation as any}
@@ -181,7 +182,6 @@ const ExampleComponent = () => {
         pagination={{ pageSize: 10 }}
         emptyDataState={true}
         notification={true}
-        licenseKey="non-commercial-and-evaluation"
       />
     </div>
   );

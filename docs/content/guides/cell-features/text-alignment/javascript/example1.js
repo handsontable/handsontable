@@ -22,7 +22,7 @@ new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   contextMenu: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   mergeCells: [
     { row: 1, col: 1, rowspan: 3, colspan: 3 },
     { row: 3, col: 4, rowspan: 2, colspan: 2 },

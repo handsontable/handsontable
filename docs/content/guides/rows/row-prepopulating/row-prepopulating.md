@@ -193,7 +193,7 @@ const hot = new Handsontable(container, {
       });
     }
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -212,7 +212,7 @@ const hot = new Handsontable(container, {
         hot.setDataAtRow(index, [defaults.name, defaults.quantity, defaults.status]);
       });
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 

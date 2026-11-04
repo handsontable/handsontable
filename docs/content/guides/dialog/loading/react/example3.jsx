@@ -9,6 +9,7 @@ const Table = ({ hotTableRef, data }) => {
   return (
     <>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotTableRef}
         data={data}
         width="100%"
@@ -21,7 +22,6 @@ const Table = ({ hotTableRef, data }) => {
         autoWrapCol={true}
         autoRowSize={true}
         loading={true}
-        licenseKey="non-commercial-and-evaluation"
       >
         <HotColumn title="Model" type="text" data="model" width={150} headerClassName="htLeft" />
         <HotColumn

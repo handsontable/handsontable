@@ -49,6 +49,7 @@ const sheets = [
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       sheetsBar={{
         sheets,
         activeSheet: 0,
@@ -62,7 +63,6 @@ const ExampleComponent = () => {
         builder: formulaBuilder,
         showFormulaBar: true,
       }}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };

@@ -215,6 +215,7 @@ const data: InventoryItem[] = [
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       colHeaders={['Item Name', 'Category', 'Lead Engineer', 'Restock Date', 'Cost']}
       autoRowSize={true}
@@ -224,7 +225,6 @@ const ExampleComponent = () => {
       autoWrapRow={true}
       headerClassName="htLeft"
       beforeChange={correctDatesBeforeChange}
-      licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data="itemName" type="text" width={130} />
       <HotColumn data="category" type="text" width={120} />
