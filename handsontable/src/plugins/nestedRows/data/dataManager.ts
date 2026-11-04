@@ -675,7 +675,8 @@ class DataManager {
    * Gets the rows a filter keeps for the provided matching rows, so the tree stays whole: each
    * matching row, every ancestor of it, and every descendant of it (DEV-512). Both walks read the
    * flatten cache, never the live `__children` arrays, so a source changed without a re-cache cannot
-   * stretch a subtree over its next sibling. A row the cache does not know is skipped.
+   * stretch a subtree over its next sibling. A matching row the cache has no level for stays, but
+   * its subtree and ancestors are not walked.
    *
    * @private
    * @param {number[]} matchedRows Physical indexes of the matching rows.
@@ -689,13 +690,19 @@ class DataManager {
     const isSubtreeKept = new Uint8Array(rowCount);
 
     matchedRows.forEach((matchedRow) => {
-      const level = this.getRowLevel(matchedRow);
-
-      if (level === null || isSubtreeKept[matchedRow] === 1) {
+      if (matchedRow < 0 || matchedRow >= rowCount || isSubtreeKept[matchedRow] === 1) {
         return;
       }
 
+      // A match always stays, whatever the cache knows about it.
       isKept[matchedRow] = 1;
+
+      const level = this.getRowLevel(matchedRow);
+
+      if (level === null) {
+        return;
+      }
+
       isSubtreeKept[matchedRow] = 1;
 
       // The cache is flattened depth-first, so the descendants are the rows right after the match

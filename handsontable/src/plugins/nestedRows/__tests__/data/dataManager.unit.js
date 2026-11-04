@@ -243,4 +243,27 @@ describe('DataManager#getRowSetPosition', () => {
 
     expect(dataManager.getRowSetPosition(99)).toBeNull();
   });
+
+  describe('getRowsToKeepForMatches', () => {
+    it('should keep a matched row whose level the cache does not know', () => {
+      const dataManager = dataManagerWith(sampleTree());
+
+      // The cache lists the rows, but has lost what it knows about them.
+      dataManager.cache.nodeInfo = new WeakMap();
+
+      expect(dataManager.getRowsToKeepForMatches([1, 5])).toEqual([1, 5]);
+    });
+
+    it('should still keep the subtree and the ancestors of a matched row the cache knows', () => {
+      const dataManager = dataManagerWith(sampleTree());
+
+      expect(dataManager.getRowsToKeepForMatches([2])).toEqual([0, 2, 3, 4]);
+    });
+
+    it('should ignore a matched row that is out of range', () => {
+      const dataManager = dataManagerWith(sampleTree());
+
+      expect(dataManager.getRowsToKeepForMatches([99, -1])).toEqual([]);
+    });
+  });
 });

@@ -2926,7 +2926,8 @@ export class Filters extends BasePlugin {
     const scopeRows = this.#getRowsInValueListScope();
     // `getDataAtCol()` reads one `null` from a grid with no rows, which is not a value to list.
     const visibleValues = this.hot.countRows() === 0 ? [] : this.hot.getDataAtCol(column);
-    const foldedRows = scopeRows.filter(physicalRow => this.hot.toVisualRow(physicalRow) === null);
+    const visualRows = scopeRows.map(physicalRow => this.hot.toVisualRow(physicalRow));
+    const foldedRows = scopeRows.filter((physicalRow, index) => visualRows[index] === null);
     const foldedEntries = new Map<number, Record<string, unknown>>();
 
     if (foldedRows.length > 0) {
@@ -2942,8 +2943,8 @@ export class Filters extends BasePlugin {
 
     const entries: Record<string, unknown>[] = [];
 
-    scopeRows.forEach((physicalRow) => {
-      const visualRow = this.hot.toVisualRow(physicalRow);
+    scopeRows.forEach((physicalRow, index) => {
+      const visualRow = visualRows[index];
 
       if (visualRow === null) {
         const entry = foldedEntries.get(physicalRow);

@@ -2439,7 +2439,7 @@ export const REGISTERED_HOOKS = [
    * ascending order, without duplicates.
    *
    * @private
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#modifyFiltersMatchedRows
    * @param {number[]} matchedRows Physical indexes of the rows that match every condition, ascending.
    * @returns {number[]|undefined} The physical rows to keep, or `undefined` to keep `matchedRows`.

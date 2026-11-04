@@ -11,7 +11,9 @@ and several methods that look usable but are not.
 `collapsedRowsMap` is a `TrimmingMap`, created in `enablePlugin()`:
 
 ```ts
-this.collapsedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap('nestedRows', 'trimming');
+this.collapsedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap('nestedRows', 'trimming', false, {
+  keepsRowsInFilterScope: true,
+});
 ```
 
 A trimmed row is dropped from the DataMap and from `countRows()`, so **it has no visual index at

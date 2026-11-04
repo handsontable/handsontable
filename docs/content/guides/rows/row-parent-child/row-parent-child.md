@@ -420,7 +420,7 @@ Filtering keeps the tree intact:
 - A parent row that matches the filter is shown together with all its child rows, at every level, whether the children match or not.
 - Kept parent and child rows look like any other row. Nothing marks them as kept.
 
-The **Filter by value** list shows every value in the tree: parents and children at every level, including rows inside collapsed parents.
+The **Filter by value** list shows the values of every row that the other columns' filters keep: parents and children at every level, including rows inside collapsed parents.
 
 Because a filter keeps parents and children that don't match, the list can show a value that belongs only to a kept row. Clearing that value's checkbox may not hide the row, because the row stays as the parent of a match or as part of a matching parent's subtree.
 
