@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed editor lists, menus, and the Filters value list injecting the core stylesheet when `injectCoreCss` is set to `false`.",
+  "type": "fixed",
+  "issueOrPR": 14140,
+  "breaking": false,
+  "framework": "none"
+}
