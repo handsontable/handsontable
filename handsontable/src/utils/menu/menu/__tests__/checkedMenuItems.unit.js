@@ -3,8 +3,8 @@ import {
   isItemChecked,
   isItemCheckable,
   MENU_ITEM_MIXED,
-} from 'handsontable/plugins/contextMenu/menu/utils';
-import readOnlyItem from 'handsontable/plugins/contextMenu/predefinedItems/readOnly';
+} from 'handsontable/utils/menu/menu/utils';
+import readOnlyItem from 'handsontable/utils/menu/predefinedItems/readOnly';
 import readOnlyCommentItem from 'handsontable/plugins/comments/contextMenuItem/readOnlyComment';
 import topItem from 'handsontable/plugins/customBorders/contextMenuItem/top';
 import bottomItem from 'handsontable/plugins/customBorders/contextMenuItem/bottom';

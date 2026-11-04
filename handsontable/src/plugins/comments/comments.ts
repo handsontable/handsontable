@@ -26,11 +26,10 @@ import {
   type CommentMeta,
 } from './constants';
 import { shrinkSizeToViewport, clampPositionToViewport } from './viewport';
-import { SEPARATOR } from '../contextMenu/predefinedItems';
-import type { PredefinedMenuItemKey, MenuItemConfig } from '../contextMenu/contextMenu';
 import addEditCommentItem from './contextMenuItem/addEditComment';
 import removeCommentItem from './contextMenuItem/removeComment';
 import readOnlyCommentItem from './contextMenuItem/readOnlyComment';
+import { registerMenuEntries } from '../../utils/menu/menuEntries';
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import { LICENSE } from './feature.generated';
 
@@ -351,8 +350,7 @@ export class Comments extends BasePlugin {
       this.#displaySwitch.addLocalHook('show', (row: number, col: number) => this.showAtCell(row, col));
     }
 
-    this.addHook('afterContextMenuDefaultOptions',
-      (options: Record<string, unknown>) => this.addToContextMenu(options));
+    registerMenuEntries(this, () => this.#createMenuEntries(), { contextMenu: {} });
     this.addHook('afterRenderer',
       (TD: HTMLTableCellElement, row: number, col: number, prop: string | number,
        value: unknown, cellProperties: Record<string, unknown>) =>
@@ -1386,18 +1384,16 @@ export class Comments extends BasePlugin {
   }
 
   /**
-   * Add Comments plugin options to the Context Menu.
+   * Creates the comment entries of the context menu.
    *
-   * @private
-   * @param {object} options The menu options.
+   * @returns {object[]}
    */
-  addToContextMenu(options: Record<string, unknown>) {
-    (options.items as Array<PredefinedMenuItemKey | MenuItemConfig>).push(
-      { name: SEPARATOR },
+  #createMenuEntries() {
+    return [
       addEditCommentItem(this),
       removeCommentItem(this),
       readOnlyCommentItem(this),
-    );
+    ];
   }
 
   /**

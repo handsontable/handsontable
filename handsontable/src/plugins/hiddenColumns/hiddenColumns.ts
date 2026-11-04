@@ -2,7 +2,7 @@ import { BasePlugin } from '../base';
 import { addClass, isBottomMostColumnHeader, normalizeClassNames } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
-import { SEPARATOR } from '../contextMenu/predefinedItems';
+import { registerMenuEntries } from '../../utils/menu/menuEntries';
 import { Hooks } from '../../core/hooks';
 import { createTrackedIconSync } from '../../themes/engine/icons';
 import hideColumnItem from './contextMenuItem/hideColumn';
@@ -285,7 +285,13 @@ export class HiddenColumns extends BasePlugin {
       this.#onMapInit();
     }
 
-    this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
+    registerMenuEntries(this, () => [
+      hideColumnItem(this as unknown as Record<string, Function>),
+      showColumnItem(this as unknown as Record<string, Function>),
+    ], {
+      contextMenu: {},
+      dropdownMenu: { inDefaults: false },
+    });
     this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
     this.addHook('modifyColWidth', this.#onModifyColWidth, 2);
     this.addHook('afterGetColHeader', this.#onAfterGetColHeader);
@@ -706,21 +712,6 @@ export class HiddenColumns extends BasePlugin {
       reachesCells && classList.includes('afterHiddenColumn') ? 'caretHiddenRight' : null);
     this.#syncIcon(this.hot, TH, HIDDEN_INDICATOR_END_SLOT_CLASS,
       reachesCells && classList.includes('beforeHiddenColumn') ? 'caretHiddenLeft' : null);
-  };
-
-  /**
-   * Add Show-hide columns to context menu.
-   *
-   * @param {object} options An array of objects containing information about the pre-defined Context Menu items.
-   */
-  #onAfterContextMenuDefaultOptions = (options: Record<string, unknown>) => {
-    (options.items as Record<string, unknown>[]).push(
-      {
-        name: SEPARATOR
-      },
-      hideColumnItem(this as unknown as Record<string, Function>),
-      showColumnItem(this as unknown as Record<string, Function>)
-    );
   };
 
   /**

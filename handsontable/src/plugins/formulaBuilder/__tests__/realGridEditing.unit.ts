@@ -453,7 +453,7 @@ describe('FormulaBuilder editing on a real grid', () => {
 
       const other = new Handsontable(otherContainer, {
         data: [['x']],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       try {
@@ -495,7 +495,7 @@ describe('FormulaBuilder editing on a real grid', () => {
         editor: 'formula',
         formulas: { engine: HyperFormula },
         formulaBuilder: { builder: core, showFormulaBar: true },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       } as Handsontable.GridSettings);
 
       try {
@@ -1370,7 +1370,7 @@ describe('FormulaBuilder editing on a real grid', () => {
       document.body.appendChild(otherContainer);
       other = new Handsontable(otherContainer, {
         data: [[1, 2], [3, 4]],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
     });
 

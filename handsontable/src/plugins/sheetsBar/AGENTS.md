@@ -1047,8 +1047,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     comment editor (Comments' `@private` `_saveAndCloseEditor()`: an editor the API focused is not
     blurred by an API switch; an unfocused one holds nothing new and is closed unsaved), then refuses the switch while core's `@private`
     `_hasPendingValidation()` answers `true` or the editor is still open (a value rejected under
-    `allowInvalid: false`). Core applies a validated change to the data loaded when the last
-    validator answers, so a switch in that window wrote the edit into the arriving sheet. A
+    `allowInvalid: false`). A switch in that window used to write the edit into the arriving sheet;
+    core now drops a change whose data a load replaced, so the refusal is what keeps the user's
+    edit instead of losing it. A
     refused click shows nothing: the editor stays open over its own cell. Do not "defer" the switch
     until the validator answers instead – that was rejected for this bar. Core counts each
     validator call made for a change (`validateCell` from `validateChanges`, never `validateCells()`)
@@ -1065,7 +1066,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     refused for coming from a before-hook listener returns before `#finishEditing`, so it closes no
     editor. A `loadData()` restarts core's count, so a validator that never answers blocks switching
     only until other data loads. The workbook rebuild (`updateSettings` with a new `sheets` value)
-    replaces the data without asking: a known gap.
+    replaces the data without asking, so core drops an edit still waiting for its validator there.
     Every UI entry point that switches checks the same rule first: the add button adds nothing,
     and the tab menu of a sheet the switch did not reach does not open (`#openMenuFor` in
     `ui/tabStrip.ts` checks the tab became active), or its Rename and Delete would act on a sheet

@@ -6,6 +6,7 @@ import { TrimRows } from '../../trimRows';
 import { FormulaBuilder } from '../formulaBuilder';
 import { getFormulaBuilderAdapter } from '../handsontableAdapter';
 import { removeRealCoreStyles } from '../../../../test/helpers/realCoreStyles';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 type CoreModule = typeof import('hyperformula-ui');
 
@@ -45,7 +46,7 @@ describe('FormulaBuilder on a real grid with a trimmed row', () => {
       formulas: { engine: HyperFormula },
       formulaBuilder: { builder: core },
       trimRows: [0],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     } as Handsontable.GridSettings);
 
     // Visual row 0 is physical row 1, which HyperFormula calls row 2 (A2).

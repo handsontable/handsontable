@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, TrimRows, UndoRedo } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 registerPlugin(TrimRows);
 registerPlugin(UndoRedo);
@@ -15,7 +16,7 @@ describe('Core#_setCellMetaByPhysicalIndex', () => {
       data: Array.from({ length: 4 }, (_, row) => Array.from({ length: 4 }, (__, col) => `${row}-${col}`)),
       trimRows: true,
       undo: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
   });
 

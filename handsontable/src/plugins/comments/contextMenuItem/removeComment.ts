@@ -1,7 +1,7 @@
 import * as C from '../../../i18n/constants';
 import type { Comments } from '../comments';
 import type { HotInstance } from '../../../core/types';
-import { checkSelectionConsistency } from '../../contextMenu/utils';
+import { checkSelectionConsistency } from '../../../utils/menu/utils';
 import { hasCommentAtCell } from '../utils';
 
 /**

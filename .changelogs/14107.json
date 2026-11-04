@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `hidden_columns_hide` and `hidden_columns_show` keys to the column menu. List them in the `dropdownMenu` option to show the items. `dropdownMenu: true` is unchanged. A custom column menu item under one of these keys now uses the built-in action and visibility rule unless you set your own. The `MenuItemConfig` and `PredefinedMenuItemKey` types are now also exported from `handsontable`.",
+  "type": "added",
+  "issueOrPR": 14107,
+  "breaking": false,
+  "framework": "none"
+}
