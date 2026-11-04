@@ -73,7 +73,6 @@ const ALLOWED = {
   'handsontable/src/utils/entitlementLicenseKey/__tests__/extractKeyData.unit.js': 'tests key format detection',
   'tests/fixtures/demo/license-branding.html': 'builds a grid per license state',
   'tests/e2e/license-branding.spec.ts': 'asserts the license states, and that the lock text does not name the key',
-  'wrappers/vue3/test/types/vue3.types.ts': 'a type test; it builds no grid',
   // The capability gate: these pass the non-commercial key as a key that restricts nothing (an invalid
   // key since 19.0), which a gate must not restrict.
   'handsontable/src/core/__tests__/license.unit.js': 'keeps an invalid-key instance apart from a listed one',
