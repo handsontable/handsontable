@@ -12,19 +12,19 @@
       "action": {"press": "Shift+Alt+ArrowDown"},
       "after": {"visible": ".htDropdownMenu .ht_master .htCore tbody td"},
       "expect": [["insert column left"], ["menu"]],
-      "note": "The menu of the Color column opens with its first item highlighted. The value list of this column holds Blue, Green and Red, sorted by label."
+      "note": "The menu of the Color column opens with its first item highlighted. The value list of this column holds Blue, Green and Red, sorted by label. Finding: VoiceOver says nothing when the menu opens, on both browsers; NVDA with Chromium never says menu."
     },
     {
       "id": "tab-to-condition",
       "action": {"press": "Tab"},
       "expect": [["none"]],
-      "note": "The first Tab leaves the menu's own highlight for the first component, the Filter by condition select: a listbox that shows its current option, `None`. The tree golden gives that listbox no name of its own (the `Filter by condition:` label is the menu item's), so only the option is required. Unsure what role word each reader speaks for it."
+      "note": "The first Tab leaves the menu's own highlight for the first component, the Filter by condition select: a listbox that shows its current option, `None`. The tree golden gives that listbox no name of its own (the `Filter by condition:` label is the menu item's), so only the option is required. Unsure what role word each reader speaks for it. Finding: the condition select is read as `list` (NVDA, both browsers) or `list box` (VoiceOver with Chromium), with neither its name nor its current option; only VoiceOver with WebKit reads the option."
     },
     {
       "id": "tab-to-search",
       "action": {"press": "Tab"},
       "expect": [["search"], ["edit", "edit text", "text field", "text entry", "textbox"]],
-      "note": "With no condition chosen the operators and the second condition are hidden, so the next Tab stop is the value list's search input (filters-menu-focus-order.spec.ts: select, search input, Select all, Select none, OK, Cancel). Its name is its `Search` placeholder (tree golden: textbox Search); the role words are NVDA's `edit` and VoiceOver's `text field`."
+      "note": "With no condition chosen the operators and the second condition are hidden, so the next Tab stop is the value list's search input (filters-menu-focus-order.spec.ts: select, search input, Select all, Select none, OK, Cancel). Its name is its `Search` placeholder (tree golden: textbox Search); the role words are NVDA's `edit` and VoiceOver's `text field`. VoiceOver with WebKit reads the field's name without its role, as it does for the cell editor in grid-core."
     },
     {
       "id": "type-search",
@@ -48,7 +48,7 @@
       "id": "space-uncheck",
       "action": {"press": "Space"},
       "expect": [["unchecked", "not checked"]],
-      "note": "Space toggles the focused value and the focus stays on it; the row's name becomes `Unchecked Red`. Only the state is required: a reader that announces a state change says `not checked` without repeating the name. Unsure that the change is announced at all, because the focus is on the list's grid cell and the checkbox inside it changes."
+      "note": "Space toggles the focused value and the focus stays on it; the row's name becomes `Unchecked Red`. Only the state is required: a reader that announces a state change says `not checked` without repeating the name. Unsure that the change is announced at all, because the focus is on the list's grid cell and the checkbox inside it changes. Finding: with Chromium, NVDA and VoiceOver say nothing when Space unchecks the value; with Firefox and WebKit they read `Unchecked Red`."
     },
     {
       "id": "tab-to-ok",

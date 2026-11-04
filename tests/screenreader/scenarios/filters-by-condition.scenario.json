@@ -12,13 +12,13 @@
       "action": {"press": "Shift+Alt+ArrowDown"},
       "after": {"visible": ".htDropdownMenu .ht_master .htCore tbody td"},
       "expect": [["clear column"], ["menu"]],
-      "note": "The menu of the Price column opens. In this fixture `columns` is set, so Insert column left and right and Remove column are disabled and the keyboard skips them: the first highlighted item is `Clear column` (tree golden of this page). Unsure of that first item until a run records it."
+      "note": "The menu of the Price column opens. In this fixture `columns` is set, so Insert column left and right and Remove column are disabled and the keyboard skips them: the first highlighted item is `Clear column` (tree golden of this page). Unsure of that first item until a run records it. Finding: VoiceOver says nothing when the menu opens, on both browsers; NVDA with Chromium never says menu."
     },
     {
       "id": "tab-to-condition",
       "action": {"press": "Tab"},
       "expect": [["none"]],
-      "note": "The first Tab moves from the menu to the Filter by condition select, a listbox showing its current option, `None`. It has no accessible name of its own in the tree golden, so only the option is required."
+      "note": "The first Tab moves from the menu to the Filter by condition select, a listbox showing its current option, `None`. It has no accessible name of its own in the tree golden, so only the option is required. Finding: the condition select is read as `list` (NVDA, both browsers) or `list box` (VoiceOver with Chromium), with neither its name nor its current option; only VoiceOver with WebKit reads the option."
     },
     {
       "id": "open-conditions",
@@ -49,7 +49,7 @@
       "action": {"press": "Enter"},
       "after": {"hidden": ".htFiltersConditionsMenu .ht_master .htCore tbody td"},
       "expect": [["value"], ["edit", "edit text", "text field", "text entry", "textbox"]],
-      "note": "Enter chooses Is equal to, closes the option list and, on a 10 ms timer, moves the focus to the value input, whose name is its `Value` placeholder. Unsure: the capture may hold only the select's new caption, `Is equal to`, if the reader settles before the timer fires."
+      "note": "Enter chooses Is equal to, closes the option list and, on a 10 ms timer, moves the focus to the value input, whose name is its `Value` placeholder. Unsure: the capture may hold only the select's new caption, `Is equal to`, if the reader settles before the timer fires. VoiceOver with WebKit reads the field's name without its role."
     },
     {
       "id": "type-value",
@@ -61,7 +61,7 @@
       "id": "shift-tab-to-select",
       "action": {"press": "Shift+Tab"},
       "expect": [["is equal to"]],
-      "note": "The way to OK goes backwards on purpose: the forward Tab walk from here is seven stops (And, Or, the second select, search, Select all, Select none, OK) and this scenario stays within its step budget. Shift+Tab returns to the select, which now shows its chosen option."
+      "note": "The way to OK goes backwards on purpose: the forward Tab walk from here is seven stops (And, Or, the second select, search, Select all, Select none, OK) and this scenario stays within its step budget. Shift+Tab returns to the select, which now shows its chosen option. Finding: the condition select is read as `list` (NVDA, both browsers) or `list box` (VoiceOver with Chromium), with neither its name nor its chosen option; only VoiceOver with WebKit reads the option."
     },
     {
       "id": "shift-tab-to-menu",

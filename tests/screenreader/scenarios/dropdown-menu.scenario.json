@@ -12,7 +12,7 @@
       "action": {"press": "Shift+Alt+ArrowDown"},
       "after": {"visible": ".htDropdownMenu .ht_master .htCore tbody td"},
       "expect": [["insert column left"], ["menu"]],
-      "note": "Shift+Alt+ArrowDown on the selected cell opens the menu of its column (Color) with the first item highlighted, which is what keeps Escape working for a screen reader. Required: the highlighted item's label and the menu role (NVDA says `menu item`, which holds the word). Unsure: with Chromium, NVDA may name the table the menu is built from before the item, as it does for the context menu in grid-core."
+      "note": "Shift+Alt+ArrowDown on the selected cell opens the menu of its column (Color) with the first item highlighted, which is what keeps Escape working for a screen reader. Required: the highlighted item's label and the menu role (NVDA says `menu item`, which holds the word). Unsure: with Chromium, NVDA may name the table the menu is built from before the item, as it does for the context menu in grid-core. Finding: VoiceOver says nothing when the column menu opens, on both browsers (the context menu in grid-core is announced); NVDA with Chromium names the menu as a table and never says menu."
     },
     {
       "id": "arrow-down-insert-right",
@@ -35,14 +35,14 @@
       "id": "arrow-down-read-only",
       "action": {"press": "ArrowDown"},
       "expect": [["read only"], ["not checked", "unchecked"]],
-      "note": "Read only is a checkable item (`menuitemcheckbox`, aria-checked false while no column is read only): its label and its state are each required. Unsure of the role word each reader adds (`check box menu item`, `menu item checkbox`): the role is not required here."
+      "note": "Read only is a checkable item (`menuitemcheckbox`, aria-checked false while no column is read only): its label and its state are each required. Unsure of the role word each reader adds (`check box menu item`, `menu item checkbox`): the role is not required here. Finding: VoiceOver reads `Read only menu item` with no checked state, on both browsers."
     },
     {
       "id": "close-menu",
       "action": {"press": "Escape"},
       "after": {"hidden": ".htDropdownMenu .ht_master .htCore tbody td"},
       "expect": [["red"]],
-      "note": "Escape closes the menu and the focus should return to the grid. Opening the menu from the keyboard selects the whole column and clamps the focus cell to row 0 (filters-menu-focus-order.spec.ts), so the cell that holds the focus is Alice's Color, `Red`, not Bob's `Green` the scenario selected. Finding candidate: grid-core records that NVDA and VoiceOver announce the document instead after the context menu closes, so the focus may leave the grid here too."
+      "note": "Escape closes the menu and the focus should return to the grid. Opening the menu from the keyboard selects the whole column and clamps the focus cell to row 0 (filters-menu-focus-order.spec.ts), so the cell that holds the focus is Alice's Color, `Red`, not Bob's `Green` the scenario selected. Finding candidate: grid-core records that NVDA and VoiceOver announce the document instead after the context menu closes, so the focus may leave the grid here too. Finding: NVDA and VoiceOver announce the document on every browser (the recording), as after the context menu: the focus leaves the grid."
     },
     {
       "id": "arrow-down-in-grid",
