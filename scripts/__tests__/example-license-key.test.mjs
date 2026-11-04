@@ -31,12 +31,33 @@ const ALLOWED = [
     'quotes the missing-key message the core prints today',
   ],
   [/^docs\/scripts\/generate-sample-workbook\.mjs$/, 'a headless tool, not an example, that needs a working grid'],
-  [/^docs\/scripts\/__tests__\//, 'tests for the docs scripts'],
 ];
 
 const files = execFileSync('git', ['ls-files', '-z', '--', ...SCANNED], { cwd: ROOT, encoding: 'utf8' })
   .split('\0')
   .filter(file => file && !/\.(png|jpe?g|gif|webp|svg|ico|woff2?|xlsx|pdf)$/i.test(file));
+
+test('the scan reads files under every scanned root and spots the retired key', () => {
+  // Without this control a scan that read nothing, for example after a root is renamed, would pass the tests below.
+  SCANNED.forEach((root) => {
+    assert.ok(files.some(file => file === root || file.startsWith(`${root}/`)),
+      `The scan found no file under ${root}; check SCANNED.`);
+  });
+  assert.ok(files.some(file => file.startsWith('examples/next/visual-tests/')),
+    'The scan found no visual-test demo.');
+  assert.ok(RETIRED_KEY.test('licenseKey: \'non-commercial-and-evaluation\''));
+  assert.ok(RETIRED_KEY.test('useValue: { license: NON_COMMERCIAL_LICENSE }'));
+});
+
+test('every file the guard allows still names the retired key', () => {
+  // A stale entry would let the key come back into that path unnoticed.
+  const holdsKey = file => RETIRED_KEY.test(readFileSync(join(ROOT, file), 'utf8'));
+  const stale = ALLOWED
+    .filter(([pattern]) => !files.some(file => pattern.test(file) && holdsKey(file)))
+    .map(([pattern]) => String(pattern));
+
+  assert.deepEqual(stale, [], 'ALLOWED names paths that no longer hold the retired key. Remove them.');
+});
 
 test('no example or README names the retired non-commercial key', () => {
   const offenders = files
