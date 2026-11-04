@@ -12,7 +12,7 @@
       "action": {"press": "Shift+Alt+ArrowDown"},
       "after": {"visible": ".htDropdownMenu .ht_master .htCore tbody td"},
       "expect": [["insert column left"], ["menu"]],
-      "note": "The menu of the Color column opens with its first item highlighted. The value list of this column holds Blue, Green and Red, sorted by label. Finding: VoiceOver says nothing when the menu opens, on both browsers; NVDA with Chromium never says menu."
+      "note": "The menu of the Color column opens with its first item highlighted. The value list of this column holds Blue, Green and Red, sorted by label. Finding: VoiceOver says nothing when the column menu opens: 6 of 6 opens on Chromium and 5 of 6 on WebKit over the two recordings, where the context menu in grid-core is announced. NVDA with Chromium names the menu as a table and never says menu."
     },
     {
       "id": "tab-to-condition",

@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "scenario": "filters-by-value",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-04T10:52:12.397Z"
+  },
+  "steps": {
+    "open-menu": "table insert column left row 1 column 1 menu",
+    "tab-to-condition": "list",
+    "tab-to-search": "search edit has auto complete blank",
+    "type-search": "",
+    "arrow-into-list": "checked green green row 1 column 1",
+    "arrow-down-next": "checked red red row 2",
+    "space-uncheck": "unchecked red red",
+    "tab-to-ok": "ok button",
+    "apply-filter": "table green color row 2 column 3",
+    "arrow-down-filtered": "blue color row 3 column 3"
+  }
+}

@@ -12,7 +12,7 @@
       "action": {"press": "Shift+Alt+ArrowDown"},
       "after": {"visible": ".htDropdownMenu .ht_master .htCore tbody td"},
       "expect": [["insert column left"], ["menu"]],
-      "note": "Shift+Alt+ArrowDown on the selected cell opens the menu of its column (Color) with the first item highlighted, which is what keeps Escape working for a screen reader. Required: the highlighted item's label and the menu role (NVDA says `menu item`, which holds the word). Unsure: with Chromium, NVDA may name the table the menu is built from before the item, as it does for the context menu in grid-core. Finding: VoiceOver says nothing when the column menu opens, on both browsers (the context menu in grid-core is announced); NVDA with Chromium names the menu as a table and never says menu."
+      "note": "Shift+Alt+ArrowDown on the selected cell opens the menu of its column (Color) with the first item highlighted, which is what keeps Escape working for a screen reader. Required: the highlighted item's label and the menu role (NVDA says `menu item`, which holds the word). Unsure: with Chromium, NVDA may name the table the menu is built from before the item, as it does for the context menu in grid-core. Finding: VoiceOver says nothing when the column menu opens: 6 of 6 opens on Chromium and 5 of 6 on WebKit over the two recordings, where the context menu in grid-core is announced. NVDA with Chromium names the menu as a table and never says menu."
     },
     {
       "id": "arrow-down-insert-right",

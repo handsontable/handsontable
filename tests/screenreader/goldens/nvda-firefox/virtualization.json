@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "scenario": "virtualization",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-04T10:53:59.887Z"
+  },
+  "steps": {
+    "page-down": "a 4 alpha row 5 column 2",
+    "page-down-again": "a 7 alpha row 8 column 2",
+    "to-last-row": "a 200 alpha row 201 column 2",
+    "arrow-up": "a 199 alpha row 200 column 2",
+    "to-first-row": "a 1 alpha row 2 column 2",
+    "read-1": "row 2 column 3 b 1",
+    "read-2": "column 4 c 1",
+    "read-3": "blank",
+    "read-4": "row 3 column 2 a 2",
+    "read-5": "column 3 b 2",
+    "read-6": "column 4 c 2",
+    "read-7": "blank",
+    "read-8": "row 4 column 2 a 3",
+    "read-9": "column 3 b 3",
+    "read-10": "column 4 c 3",
+    "read-11": "blank",
+    "read-12": "row 5 column 2 a 4 a 6 not selected alpha row 7 column 2",
+    "read-13": "row 7 column 3 b 6",
+    "read-14": "column 4 c 6",
+    "read-15": "row 8 column 2 a 7",
+    "read-16": "column 3 b 7",
+    "read-17": "column 4 c 7",
+    "read-18": "row 9 column 2 a 8",
+    "read-19": "column 3 b 8",
+    "read-20": "column 4 c 8",
+    "read-21": "row 10 column 2 a 9",
+    "read-22": "column 3 b 9"
+  }
+}
