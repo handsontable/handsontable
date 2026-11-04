@@ -228,9 +228,9 @@ is part of the undo, and a recorded step there would empty the redo stack the un
   (`formulas/__tests__/validation.spec.js`, #dev-2036). It also keeps the second render a structural
   undo needs - with no cell to validate, `#revalidateChangedCells` returned before it, and
   AutoColumnSize never measured the column the undo brought back. The cost is one validator call per
-  restored visible cell that has a validator. Each one validates the STORED value (`hot._getStoredDataAtCell()`), never `getDataAtCell()`:
-  the `valueGetter` output of a key/value or multiselect cell fails its own validator, so every undo and redo
-  marked such a valid cell invalid (`__tests__/revalidation.unit.js`).
+  restored visible cell that has a validator. Each one validates the value bulk validation does (`_getValueToValidate()`, through a local
+  internal type), never `getDataAtCell()` alone: the `valueGetter` output of a key/value or multiselect cell
+  fails its own validator, so every undo and redo marked such a valid cell invalid (`__tests__/revalidation.unit.js`).
 - **`maxHistory` is validated by the plugin itself** (`#readMaxHistory`, `warnOnce`), not through
   `SETTINGS_VALIDATORS`: `PLUGIN_KEY` is `undoRedo` while the setting is `undo`, so BasePlugin never
   hands the value to a validator. `updatePlugin()` re-reads it only when the payload has an `undo`

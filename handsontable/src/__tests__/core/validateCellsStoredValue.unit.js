@@ -2,11 +2,12 @@ import Handsontable from 'handsontable';
 import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 /**
- * `validateCells()`, `validateRows()` and `validateColumns()` validate the value the cell STORES,
- * the same value an edit validates. A cell type's `valueGetter` turns that value into the text the
- * cell shows - a key/value entry into its label, a multiselect array into a joined string - and the
- * validators of those types check the stored form, so validating the getter's output marked every
- * such cell invalid, while an edit of the same cell left it valid.
+ * `validateCells()`, `validateRows()` and `validateColumns()` validate a choice cell on the value it
+ * STORES, the form an edit validates. A choice type's own `valueGetter` turns that value into the text
+ * the cell shows - a key/value entry into its label, a multiselect array into a joined string - and the
+ * validators of those types check the stored form, so validating the getter's output marked every such
+ * cell invalid, while an edit of the same cell left it valid. A `valueGetter` a column configures itself
+ * keeps its output validated, as before.
  */
 describe('Core bulk validation of the stored value', () => {
   const KEY_VALUE_SOURCE = [{ key: 'a', value: 'Alpha' }, { key: 'b', value: 'Beta' }];
@@ -127,13 +128,14 @@ describe('Core bulk validation of the stored value', () => {
     await expect(validate('validateCells')).resolves.toEqual({ valid: true, cellValid: true });
   });
 
-  it('hands a custom validator the stored value, not the valueGetter output', async() => {
+  it('hands a validator the output of a valueGetter the column configures itself', async() => {
     const received = [];
 
     createGrid({
       data: [[{ amount: 5 }]],
       columns: [{
         valueGetter: value => `${value.amount} pcs`,
+        valueSetter: value => ({ amount: parseInt(value, 10) }),
         validator(value, callback) {
           received.push(value);
           callback(true);
@@ -143,7 +145,22 @@ describe('Core bulk validation of the stored value', () => {
 
     await validate('validateCells');
 
-    expect(received).toEqual([{ amount: 5 }]);
+    expect(received).toEqual(['5 pcs']);
+  });
+
+  it('keeps a numeric cell valid when its own valueGetter shows a number the cell stores in an object', async() => {
+    // The validator was written against what the getter shows: an edit of the cell validates the
+    // number the user typed, not the object the cell stores. The numeric type brings a `valueSetter`
+    // of its own, so the presence of a setter cannot decide this.
+    createGrid({
+      data: [[{ amount: 5 }]],
+      columns: [{
+        type: 'numeric',
+        valueGetter: value => value.amount,
+      }],
+    });
+
+    await expect(validate('validateCells')).resolves.toEqual({ valid: true, cellValid: true });
   });
 
   it('still validates the value a modifyData listener reads', async() => {
