@@ -4,7 +4,10 @@
  *
  * Extends the default header with framework-aware navigation links (Guides,
  * Recipes, API, Changelog), a Support dropdown, a versions dropdown, a
- * Headway changelog widget, and a GitHub stars badge.
+ * Headway changelog bell, and a GitHub stars badge.
+ *
+ * Headway bell: one button, moved between the desktop and the mobile slot by
+ * `src/lib/headway-bell.mjs`, which also initializes the widget once.
  *
  * Mobile: two-row header (main bar + sub-bar) with separate overlay for
  * main nav, sidebar toggle (delegates to Starlight), and ToC panel.
@@ -123,6 +126,20 @@ function getMobileFrameworkHref(fw: { id: string }): string {
         </svg>
         <span class="github-stars__count" id="github-stars-count" aria-live="polite"></span>
       </a>
+      <!-- Headway changelog bell: hidden until the widget is ready -->
+      <span class="headway-bell-slot" data-headway-desktop-slot>
+        <button
+          type="button"
+          class="headway-bell"
+          id="headway-bell"
+          aria-label="Product updates"
+          aria-expanded="false"
+          title="Product updates"
+          hidden
+        >
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"/><path d="M9 17v1a3 3 0 0 0 6 0v-1"/></svg>
+        </button>
+      </span>
       <ThemeSelect />
       <LanguageSelect />
     </div>
@@ -147,6 +164,7 @@ function getMobileFrameworkHref(fw: { id: string }): string {
       <div class="mobile-theme-toggle">
         <ThemeSelect />
       </div>
+      <span class="headway-bell-slot" data-headway-mobile-slot></span>
       <button
         type="button"
         class="header-assistant-btn mobile-assistant-btn"
@@ -295,6 +313,22 @@ function getMobileFrameworkHref(fw: { id: string }): string {
       // Network unavailable — badge stays empty
     }
   })();
+</script>
+
+<!-- Headway changelog bell: initialize the widget once, move the bell with the layout -->
+<script>
+  import { initHeadwayBell } from '../lib/headway-bell.mjs';
+
+  initHeadwayBell({
+    win: window,
+    doc: document,
+    bell: document.getElementById('headway-bell') as HTMLButtonElement | null,
+    desktopSlot: document.querySelector<HTMLElement>('[data-headway-desktop-slot]'),
+    mobileSlot: document.querySelector<HTMLElement>('[data-headway-mobile-slot]'),
+    // Starlight's `md:` breakpoint, which switches .right-group and .mobile-controls.
+    mediaQuery: window.matchMedia('(min-width: 50rem)'),
+    script: document.getElementById('Headwayapp') as HTMLScriptElement | null,
+  });
 </script>
 
 <!-- Mobile navigation: overlay, sidebar delegation, ToC panel, breadcrumbs -->
@@ -766,6 +800,72 @@ function getMobileFrameworkHref(fw: { id: string }): string {
     /* Reserve space with a transparent placeholder to prevent layout shift */
     content: '\00a0\00a0\00a0';
     visibility: hidden;
+  }
+
+  /* Headway changelog bell. The slot only marks a position in the flex row. */
+  .headway-bell-slot {
+    display: contents;
+  }
+
+  .headway-bell {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 0.25rem;
+    background: none;
+    border: none;
+    color: var(--sl-color-gray-1);
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+
+  .headway-bell[hidden] {
+    display: none;
+  }
+
+  .headway-bell:hover {
+    color: var(--sl-color-white);
+  }
+
+  .mobile-controls .headway-bell {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Headway injects its badge into the bell; let it cover the whole button. */
+  .headway-bell :global(#HW_badge_cont) {
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+  }
+
+  /*
+   * Headway's default red (#CD4B5B) is 4.42:1 against the white count; the accent passes. The
+   * soft-hidden state is Headway's gray "nothing new" dot, so it keeps Headway's color.
+   */
+  .headway-bell :global(.HW_badge:not(.HW_softHidden)) {
+    background: var(--sl-color-accent);
+    color: #fff;
+  }
+
+  .headway-bell :global(.HW_badge) {
+    top: 2px;
+    right: 2px;
+    left: auto;
+    width: 14px;
+    height: 14px;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 14px;
+  }
+
+  .mobile-controls .headway-bell :global(.HW_badge) {
+    top: 8px;
+    right: 8px;
   }
 
   /* ── Mobile controls (search + theme + hamburger) ──────────────────── */

@@ -1,0 +1,8 @@
+/*
+ * Headway changelog panel (`#HW_frame_cont`, appended to <body> by Headway's widget.js).
+ * The panel is a cross-origin iframe with a light theme only, so the dark theme inverts it,
+ * as the VuePress docs did. The bell itself is styled in `components/Header.astro`.
+ */
+:root[data-theme='dark'] .HW_frame {
+  filter: invert(0.86) hue-rotate(195deg);
+}
