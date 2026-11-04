@@ -23,7 +23,7 @@
 
 /** @type {Record<string, ScreenReaderCoverage>} */
 export const SR_PAGE_COVERAGE = {
-  grid: { scenarios: ['reading-mode-traversal', 'reading-mode-traversal-plain', 'default-mode', 'grid-core', 'grid-core-horizon', 'grid-core-single-tab-stop'] },
+  grid: { scenarios: ['reading-mode-traversal', 'reading-mode-traversal-plain', 'default-mode', 'virtualization', 'grid-core', 'grid-core-horizon', 'grid-core-single-tab-stop'] },
   'shared-demo': { gap: 'the demo-shaped grid as a whole (merged cells, hidden-column indicators, sorting, filters, comments) is read by no scenario' },
   'complex-demo': { gap: 'four nested header levels over nested rows, merged cells and frozen panes at once: no scenario reads them together' },
   'read-only': { gap: 'a read-only cell\'s state is a fact a reader announces, and no scenario reads a read-only cell' },
@@ -45,8 +45,8 @@ export const SR_PAGE_COVERAGE = {
   'license-missing-features': { gap: 'the notice naming the features a license key leaves out, and its link, are read by no scenario' },
   'context-menu': { gap: 'checkable menu items and separators are read by no scenario; grid-core reads a context menu without them, on its own fixture' },
   'context-menu-submenu': { gap: 'a submenu opened from the context menu, and the way back, are read by no scenario' },
-  'dropdown-menu': { gap: 'the column dropdown menu and the filters by value in it are read by no scenario' },
-  'filters-conditions': { gap: 'the condition select, its inputs and applying a filter by condition are read by no scenario' },
+  'dropdown-menu': { scenarios: ['dropdown-menu', 'filters-by-value'] },
+  'filters-conditions': { scenarios: ['filters-by-condition'] },
   'text-editor': { scenarios: ['grid-core'] },
   'formula-builder': { gap: 'the formula bar (address box, formula input) and the formula editor are read by no scenario' },
   'formula-builder-suggestions': { gap: 'the formula editor\'s function suggestions list is read by no scenario' },
@@ -103,10 +103,10 @@ export const SR_FEATURE_COVERAGE = {
   dataProvider: { gap: 'the fetch, its loading state and its notifications are read by no scenario' },
   dialog: { gap: 'a modal dialog is read by no scenario' },
   dragToScroll: { none: 'scrolls the grid while a pointer drags and draws nothing a reader meets' },
-  dropdownMenu: { gap: 'the column dropdown menu is read by no scenario' },
+  dropdownMenu: { scenarios: ['dropdown-menu', 'filters-by-value', 'filters-by-condition'] },
   emptyDataState: { gap: 'the empty-data message is read by no scenario' },
   exportFile: { none: 'writes data to a file and draws nothing a reader meets' },
-  filters: { gap: 'the filters by value and by condition are read by no scenario' },
+  filters: { scenarios: ['filters-by-value', 'filters-by-condition'] },
   formulaBuilder: { gap: 'the formula bar and the formula editor are read by no scenario' },
   formulas: { gap: 'a cell showing a formula result reads like a typed value (a known limitation), and no scenario reads one' },
   freezeBar: { gap: 'the freeze bars are read by no scenario' },
@@ -157,4 +157,4 @@ export const SR_FEATURE_COVERAGE = {
  * The number of `gap` entries in both maps. It only goes down: closing a gap lowers it in the same
  * change, and a new gap fails the coverage test until another gap is closed.
  */
-export const SR_GAP_LIMIT = 79;
+export const SR_GAP_LIMIT = 75;

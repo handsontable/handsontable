@@ -54,7 +54,7 @@ jobs:
       fail-fast: false
       matrix:
         browser: [ chromium, firefox ]
-        group: [ keyboard, reading ]
+        group: [ keyboard, reading, menus ]
     # Job-level, like a11y.yml: `checks: write` posts the report check run. Kept off the workflow level
     # so nothing else in the run inherits it.
     permissions:
@@ -169,12 +169,12 @@ jobs:
     continue-on-error: true
     strategy:
       fail-fast: false
-      # The organization runs at most five macOS jobs at once: this lane takes two of them, and its four
+      # The organization runs at most five macOS jobs at once: this lane takes two of them, and its six
       # jobs run two at a time.
       max-parallel: 2
       matrix:
         browser: [ webkit, chromium ]
-        group: [ keyboard, reading ]
+        group: [ keyboard, reading, menus ]
     # Job-level, like the NVDA job: `checks: write` posts the report check run.
     permissions:
       contents: read

@@ -10,6 +10,7 @@ export type SetupAction =
   | { type: string }
   | { selectCell: [number, number] }
   | { updateSettings: Record<string, unknown> }
+  | { spreadsheetData: [number, number] }
   | { sentinels: true }
   | { focus: string };
 
@@ -32,7 +33,7 @@ export interface Scenario {
   schema: number;
   id: string;
   surface: string;
-  group: 'keyboard' | 'reading';
+  group: 'keyboard' | 'reading' | 'menus';
   page?: string;
   fixture?: string;
   query?: string;
@@ -48,6 +49,7 @@ export const SCENARIO_SCHEMA: number;
 export const SCENARIO_FILE_SUFFIX: string;
 export const ACTIONS: readonly string[];
 export const SETUP_ACTIONS: readonly string[];
+export const SPREADSHEET_LIMITS: Readonly<{ rows: number; columns: number }>;
 export const READ_DIRECTIONS: readonly ReadDirection[];
 export const SCREENREADER_LANES: readonly string[];
 export const LANE_PRIMITIVES: Readonly<Record<string, { read: ReadDirection[]; activate: boolean }>>;

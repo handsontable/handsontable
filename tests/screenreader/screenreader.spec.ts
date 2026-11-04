@@ -122,8 +122,16 @@ interface Captured {
   preparing: string[];
 }
 
-type HotInstance = { selectCell(row: number, col: number): boolean; updateSettings(settings: Record<string, unknown>): void };
-type HotWindow = Window & { hot?: HotInstance; htBuildError?: string };
+type HotInstance = {
+  selectCell(row: number, col: number): boolean;
+  updateSettings(settings: Record<string, unknown>): void;
+  loadData(data: unknown[][]): void;
+};
+type HotWindow = Window & {
+  hot?: HotInstance;
+  htBuildError?: string;
+  Handsontable?: { helper: { createSpreadsheetData(rows: number, columns: number): unknown[][] } };
+};
 type RootWrapper = HTMLElement & { __hotInstance?: HotInstance };
 
 const TESTS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -268,6 +276,21 @@ async function runAction(page: Page, root: string, action: ScenarioAction | Setu
     }, [root, action.updateSettings] as const);
 
     expect(updated, `updateSettings() through the instance of ${root}`).toBe(true);
+  } else if ('spreadsheetData' in action) {
+    const loaded = await page.evaluate(([selector, [rows, columns]]) => {
+      const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as RootWrapper | null)?.__hotInstance ?? (window as HotWindow).hot;
+      const helper = (window as HotWindow).Handsontable?.helper;
+
+      if (!hot || !helper) {
+        return false;
+      }
+
+      hot.loadData(helper.createSpreadsheetData(rows, columns));
+
+      return true;
+    }, [root, action.spreadsheetData] as const);
+
+    expect(loaded, `loadData() of ${action.spreadsheetData.join(' x ')} spreadsheet data through the instance of ${root}`).toBe(true);
   } else if ('sentinels' in action) {
     const inserted = await page.evaluate(([selector, labels]) => {
       const container = document.querySelector(selector);

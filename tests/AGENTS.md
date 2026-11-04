@@ -1921,6 +1921,8 @@ screen readers (`docs/AGENTS.md` 2.20).
   grid as a user arriving does), a `setup` and ordered `steps`. The setup sets the scene before the reader
   settles: `selectCell`, `press` and `type`, plus `updateSettings` (an object, to give a catalog page the
   shape a scenario needs: frozen panes, a navigation mode, `maxRows` to keep a traversal short),
+  `spreadsheetData` (`[rows, columns]`, loaded through `loadData()` as `A1`-style values, for a grid
+  larger than its viewport),
   `sentinels` (`true`: a button named `Before the grid` before the root container and one named `After
   the grid` after it, so a Tab out of the grid lands on the page instead of leaving the document, as the
   keyboard walker brackets a grid) and `focus` (a selector). A step has an `id`, exactly one primitive as
@@ -2116,7 +2118,8 @@ screen readers (`docs/AGENTS.md` 2.20).
   at a time per machine, so a project's run grows with every scenario: a step costs about a second and a
   half on NVDA and four to five seconds on VoiceOver, a silent one on VoiceOver about thirteen. Each
   scenario names its `group` (`SCENARIO_GROUPS` in `lib/screenreader-scenario.mjs`: `keyboard` for what a
-  keyboard user does in the grid and its surfaces, `reading` for the reading-mode traversals), each group is
+  keyboard user does in the grid itself, `reading` for the reading-mode traversals, `menus` for the menus
+  and the filters inside them), each group is
   a matrix entry of both jobs in `.github/workflows/screenreader.yml` with its own job, `HOT_SR_GROUP`,
   artifacts (`screenreader-transcripts-<project>-<group>`, `screenreader-goldens-<project>-<group>`) and
   check run (`Screen reader / <project> <group> report`), and a run without `HOT_SR_GROUP` (a local one)
