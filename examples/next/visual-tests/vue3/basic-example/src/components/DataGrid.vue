@@ -6,6 +6,7 @@ import { registerAllModules } from 'handsontable/registry';
 import { data } from '../constants';
 
 import { alignHeaders } from '../hooks-callbacks';
+import { TEST_LICENSE_KEY } from '../test-license-key';
 
 // register Handsontable's modules
 registerAllModules();
@@ -23,6 +24,10 @@ export default defineComponent({
 
     dataProp() {
       return data;
+    },
+
+    licenseKeyProp() {
+      return TEST_LICENSE_KEY;
     },
   },
 });
@@ -56,7 +61,7 @@ export default defineComponent({
       :manualRowMove="true"
       :autoWrapRow="true"
       :autoWrapCol="true"
-      licenseKey="non-commercial-and-evaluation"
+      :licenseKey="licenseKeyProp"
     >
       <HotColumn data="companyName" />
       <HotColumn data="name" />

@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
 import { getThemeNameFromURL } from '../../utils';
+import { TEST_LICENSE_KEY } from '../../test-license-key';
 
 export function init() {
   const root = document.getElementById('root');
@@ -17,7 +18,7 @@ export function init() {
     height: 500,
     width: 500,
     contextMenu: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
   });
   console.log(
     `Handsontable: v${Handsontable.version} (${Handsontable.buildDate})`
