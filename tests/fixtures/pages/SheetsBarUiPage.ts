@@ -122,6 +122,39 @@ export class SheetsBarUiPage {
   }
 
   /**
+   * The label of a tab, the text a user presses to switch to its sheet.
+   *
+   * @param {number} index The tab's position.
+   * @returns {Locator} The label.
+   */
+  label(index: number): Locator {
+    return this.tab(index).locator('.ht-sheets-bar__tab-label');
+  }
+
+  /**
+   * Renames every sheet through the API, in tab order.
+   *
+   * @param {string[]} names The new names.
+   */
+  async renameSheets(names: string[]): Promise<void> {
+    await this.page.evaluate((newNames) => {
+      const plugin = (window as any).hot.getPlugin('sheetsBar');
+
+      plugin.getSheets().forEach((sheet: any, index: number) => plugin.renameSheet(sheet.id, newNames[index]));
+    }, names);
+  }
+
+  /**
+   * The sheet names in tab order, the active one marked with a trailing `*`.
+   *
+   * @returns {Promise<string[]>} The names.
+   */
+  sheetStates(): Promise<string[]> {
+    return this.page.evaluate(() => (window as any).hot.getPlugin('sheetsBar').getSheets()
+      .map((sheet: any) => `${sheet.name}${sheet.isActive ? '*' : ''}`));
+  }
+
+  /**
    * Makes an `afterSheetTabStateRestore` listener destroy the grid.
    */
   async destroyGridOnStateRestore(): Promise<void> {

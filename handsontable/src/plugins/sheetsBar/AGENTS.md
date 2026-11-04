@@ -98,6 +98,16 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   press moves the focus on its own; a touch press does not, and the rename input's blur-driven
   commit used to repaint the strip in the middle of `#moveAround`, which then threw
   `NotFoundError`. Pinned by the rename case in `tests/e2e/sheets-bar-touch-drag.spec.ts`.
+- **A tab being renamed is as wide as its committed name will make it** (`#syncRenameWidth` in
+  `ui/tabStrip.ts`: the input gets the text's width plus the room the gap and the chevron take after
+  the edit; a blank value is measured as the saved name, which a blank commit keeps). A press on
+  another tab commits the rename on the input's blur, before the release, and the repaint then showed
+  the chevron again. When that changed the tab's width, the tabs after it moved, the release landed on
+  another element than the press, and the browser sent the `click` to the strip, so the sheet did not
+  switch (a press on the chevron still switched, because the shift kept it inside its own tab). Do not
+  bring back a width floor held for the whole edit: a narrower committed name moves the tabs the other
+  way. The CSS `min-width` still holds a one- or two-character name wider. Pinned by the "during a
+  rename that widens/narrows the tab" cases in `tests/e2e/sheets-bar-ui-a11y.spec.ts`.
 - **A drag's Escape listener sits on the window in the capture phase** (`TabDrag#start`). While a
   drag started with a fresh press runs, the bar's focus scope is inactive: the focus manager skips
   `focusin` while the mouse is down and activates scopes on the `click` that follows. That click

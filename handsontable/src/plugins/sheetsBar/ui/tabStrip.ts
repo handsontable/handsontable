@@ -1530,8 +1530,10 @@ export class TabStrip {
     const input = this.#host.ownerDocument.createElement('input');
     const mirror = this.#host.ownerDocument.createElement('span');
     const tabWidthBeforeEdit = tab.getBoundingClientRect().width;
+    const labelWidthBeforeEdit = label.getBoundingClientRect().width;
+    const savedText = label.textContent ?? '';
     let finished = false;
-    let widthFloor = 0;
+    let reserve = 0;
     const finish = (commit: boolean, restoreFocus: boolean, silent = false) => {
       if (finished) {
         return;
@@ -1585,7 +1587,7 @@ export class TabStrip {
         input.value = limited;
       }
 
-      this.#syncRenameWidth(input, mirror, widthFloor);
+      this.#syncRenameWidth(input, mirror, savedText, reserve);
     };
 
     input.addEventListener('blur', () => finish(true, false));
@@ -1594,7 +1596,7 @@ export class TabStrip {
       // session, committing or dropping the candidate instead of leaving it in the composition
       // window. The cap waits for `compositionend`; only the width tracks the interim text.
       if ((event as InputEvent).isComposing) {
-        this.#syncRenameWidth(input, mirror, widthFloor);
+        this.#syncRenameWidth(input, mirror, savedText, reserve);
 
         return;
       }
@@ -1624,23 +1626,21 @@ export class TabStrip {
     label.replaceWith(input);
     tab.appendChild(mirror);
     tab.appendChild(savedName);
-    this.#syncRenameWidth(input, mirror, 0);
+    this.#syncRenameWidth(input, mirror, savedText, 0);
 
-    // Entering the edit removes the label, the gap, and the chevron from the tab, which would
-    // otherwise make it visibly narrower the moment it is double-clicked. Whatever width that
-    // frees is handed to the input, so the tab keeps its size and the field simply flows into
-    // the space the trigger left behind. It stays the floor for the rest of the edit, so
-    // clearing the name does not collapse the tab either.
-    //
-    // The deficit is added to the width the input actually renders at, not to the width just
-    // asked for: the CSS `min-width` can be holding it wider than its text, and adding to the
-    // narrower number would leave the tab short by that difference.
-    const deficit = tabWidthBeforeEdit - tab.getBoundingClientRect().width;
+    // Entering the edit hides the gap and the chevron next to the label. The room they take is
+    // handed to the input for the whole edit, on top of the text it holds, so the tab is as wide
+    // as it will be once the name is committed and the chevron is back, and the double-click
+    // does not make it narrower. The commit runs on the blur of a press on another tab; a tab
+    // that changed width there moved the pressed tab away from the pointer before the release,
+    // and the browser sent the `click` to the strip instead of the tab, so the sheet did not
+    // switch. The room is the tab's width around its label before the edit, less its width
+    // around the input's content now (the paddings both have). The CSS `min-width` still holds
+    // the input wider for a name of one or two characters.
+    const editChrome = tab.getBoundingClientRect().width - this.#contentWidthOf(input);
 
-    if (deficit > 0) {
-      widthFloor = this.#contentWidthOf(input) + deficit;
-      this.#syncRenameWidth(input, mirror, widthFloor);
-    }
+    reserve = Math.max(0, tabWidthBeforeEdit - labelWidthBeforeEdit - editChrome);
+    this.#syncRenameWidth(input, mirror, savedText, reserve);
 
     // The rename always starts from something the user just clicked, so the field is on
     // screen already; letting focus scroll to it only jerks the page under them.
@@ -1649,20 +1649,24 @@ export class TabStrip {
   }
 
   /**
-   * Grows the rename input to fit the text it holds, the way a spreadsheet tab does.
+   * Sizes the rename input to the text it holds plus the room the label's neighbors take once
+   * the edit ends, so the tab keeps the width the committed name gives it.
    *
    * The value is measured on a mirror element that sits inside the same tab and therefore
    * inherits the input's typography, so the width follows the rendered text rather than a
-   * character count — proportional fonts make those two disagree. The absolute bounds stay
-   * in CSS as `min-width`/`max-width`, leaving only the measured value here.
+   * character count — proportional fonts make those two disagree. A blank value is measured as
+   * the saved name, because committing it keeps that name, so clearing the field does not
+   * collapse the tab. The absolute bounds stay in CSS as `min-width`/`max-width`, leaving only
+   * the measured value here.
    *
    * @param {HTMLInputElement} input The rename input being edited.
    * @param {HTMLElement} mirror The hidden element the value is measured on.
-   * @param {number} floor Width the input keeps even when its text is narrower, in pixels.
+   * @param {string} savedText The name the tab showed when the edit started.
+   * @param {number} reserve The room the gap and the chevron take after the edit, in pixels.
    */
-  #syncRenameWidth(input: HTMLInputElement, mirror: HTMLElement, floor: number): void {
-    mirror.textContent = input.value;
-    input.style.width = `${Math.max(mirror.getBoundingClientRect().width, floor)}px`;
+  #syncRenameWidth(input: HTMLInputElement, mirror: HTMLElement, savedText: string, reserve: number): void {
+    mirror.textContent = input.value.trim() === '' ? savedText : input.value;
+    input.style.width = `${mirror.getBoundingClientRect().width + reserve}px`;
   }
 
   /**

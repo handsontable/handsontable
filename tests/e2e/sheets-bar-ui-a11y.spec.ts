@@ -331,6 +331,36 @@ test.describe('sheets bar UI and accessibility', { tag: THEMES_TAG }, () => {
       await expect(fixture.tab(1)).toHaveClass(/ht-sheets-bar__tab--active/);
     });
 
+    test('a press on another tab\'s label during a rename that widens the tab commits the name and switches', async({
+      page, theme, bundle,
+    }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+      await fixture.goto();
+      await fixture.renameSheets(['S0', 'S1', 'S2']);
+      await fixture.label(0).dblclick();
+      await fixture.renameInput.fill('Budget');
+      await fixture.label(2).click();
+
+      await expect(fixture.tab(2)).toHaveClass(/ht-sheets-bar__tab--active/);
+      expect(await fixture.sheetStates()).toEqual(['Budget', 'S1', 'S2*']);
+    });
+
+    test('a press on another tab\'s label during a rename that narrows the tab commits the name and switches', async({
+      page, theme, bundle,
+    }) => {
+      const fixture = new SheetsBarUiPage(page, theme, bundle);
+
+      await fixture.goto();
+      await fixture.renameSheets(['Quarterly budget', 'S1', 'S2']);
+      await fixture.label(0).dblclick();
+      await fixture.renameInput.fill('Q');
+      await fixture.label(2).click();
+
+      await expect(fixture.tab(2)).toHaveClass(/ht-sheets-bar__tab--active/);
+      expect(await fixture.sheetStates()).toEqual(['Q', 'S1', 'S2*']);
+    });
+
     test('a tab click whose afterSheetTabStateRestore listener destroys the grid throws nothing', async({
       page, theme, bundle,
     }) => {
