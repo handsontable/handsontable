@@ -241,6 +241,54 @@ test.describe('SheetsBar formulas across a sorted or moved sheet', { tag: BUNDLE
     });
   });
 
+  test.describe('a moved sheet\'s references to its own cells, after a structural change on the sheet it reads', () => {
+    test('keeps a moved column\'s own references on the cells they read', async() => {
+      await grid.goto('ownRefColumns');
+      await grid.moveColumn(2, 0);
+
+      expect(await grid.switchTo('Main')).toEqual([true]);
+
+      await grid.alter('insert_row_above', 0);
+
+      expect(await grid.sheetData('S')).toEqual([
+        [1, 2, '=Main!A2+B1', '=C1*2'],
+        [3, 4, '=Main!A3+B2', '=C2*2'],
+      ]);
+      expect(await grid.switchTo('S')).toEqual([true]);
+
+      await grid.moveColumn(0, 2);
+
+      expect(await grid.switchTo('Main', 'S')).toEqual([true, true]);
+      expect(await grid.getData()).toEqual([[1, 2, 12, 24], [3, 4, 24, 48]]);
+    });
+
+    test('keeps a moved row\'s own references on the cells they read', async() => {
+      await grid.goto('ownRefRows');
+      await grid.moveRow(0, 3);
+
+      expect(await grid.switchTo('Main')).toEqual([true]);
+
+      await grid.alter('insert_row_above', 0);
+
+      expect(await grid.sheetData('S')).toEqual(
+        [1, 2, 3, 4, 5].map(n => [n, `=SUM(Main!A${n + 1}:A${n + 2})`, `=Main!B${n + 1}*A${n}`]),
+      );
+    });
+
+    test('keeps the own references of a sheet moved and then sorted on the cells they read', async() => {
+      await grid.goto('ownRefSorted');
+      await grid.moveRow(3, 0);
+      await grid.sort(0, 'desc');
+
+      expect(await grid.switchTo('Main')).toEqual([true]);
+
+      await grid.alter('insert_row_above', 0);
+
+      expect(await grid.sheetData('S')).toEqual([1, 2, 3, 4].map(n => [n, `=Main!A${n + 1}+A${n}`]));
+      expect(await grid.consoleMessages()).toEqual([]);
+    });
+  });
+
   test.describe('round trips', () => {
     test('reads a sorted sheet the same way on the first visit and on a later one', async() => {
       await grid.goto('sortedData');

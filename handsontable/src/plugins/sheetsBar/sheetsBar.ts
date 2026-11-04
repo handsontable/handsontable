@@ -57,6 +57,7 @@ import {
   toEngineContent, writeFormulaTextChanges,
 } from './formulaSheetData';
 import type { FormulaTextChange, SheetLayoutSettings } from './formulaSheetData';
+import { remapOwnSheetReferences } from './formulaReferences';
 import { error as logError, warn, warnOnce } from '../../helpers/console';
 import { isHTMLElement, removeAttribute, setAttribute } from '../../helpers/dom/element';
 import { A11Y_LABELED_BY } from '../../helpers/a11y';
@@ -213,6 +214,39 @@ function toEngineIndexes(
     .forEach((physicalIndex, engineIndex) => engineIndexOf.set(physicalIndex, engineIndex));
 
   return physicalIndex => engineIndexOf.get(physicalIndex) ?? physicalIndex;
+}
+
+/**
+ * Returns the map from a moved index to the physical one, for one axis of a sheet whose lines the engine holds at
+ * `engineIndexOf(physical) - shiftOf(physical)` once the orders it was handed are undone: the place the moves
+ * alone left each line at. `null` when the moves left every line in place, or when those places do not make an
+ * order (the axis was moved while an order was on), where the references cannot be told apart.
+ *
+ * @param {number} length How many lines the axis has.
+ * @param {Function} engineIndexOf Maps a physical index to the engine index that holds it.
+ * @param {Function} shiftOf Maps a physical index to how far the engine's orders moved it.
+ * @returns {Function|null}
+ */
+function toMovedToPhysical(
+  length: number,
+  engineIndexOf: (physicalIndex: number) => number,
+  shiftOf: (physicalIndex: number) => number,
+): ((movedIndex: number) => number) | null {
+  const physicalOf = new Array<number | undefined>(length);
+  let moved = false;
+
+  for (let physicalIndex = 0; physicalIndex < length; physicalIndex += 1) {
+    const movedIndex = engineIndexOf(physicalIndex) - shiftOf(physicalIndex);
+
+    if (movedIndex < 0 || movedIndex >= length || physicalOf[movedIndex] !== undefined) {
+      return null;
+    }
+
+    physicalOf[movedIndex] = physicalIndex;
+    moved = moved || movedIndex !== physicalIndex;
+  }
+
+  return moved ? movedIndex => physicalOf[movedIndex] ?? movedIndex : null;
 }
 
 /**
@@ -5757,6 +5791,15 @@ export class SheetsBar extends BasePlugin {
       const engineColumnOf = toEngineIndexes(engineOrder?.columnOrder, columnCount);
       const rowShiftOf = toOrderShifts(engineOrder?.rowOrder);
       const columnShiftOf = toOrderShifts(engineOrder?.columnOrder);
+      const rowOfMoved = toMovedToPhysical(rows.length, engineRowOf, rowShiftOf);
+      const columnOfMoved = toMovedToPhysical(columnCount, engineColumnOf, columnShiftOf);
+      const ownName = (formulas!.sheetName as string).toLowerCase();
+      const isOwnSheet = (name: string) => name.toLowerCase() === ownName;
+      const toPhysicalFrame = rowOfMoved === null && columnOfMoved === null
+        ? (formula: string) => formula
+        : (formula: string) => remapOwnSheetReferences(
+          formula, isOwnSheet, rowOfMoved ?? (index => index), columnOfMoved ?? (index => index),
+        );
       const changes: FormulaTextChange[] = [];
       const engineTexts = this.#engineTexts.get(sheet);
       const seenEngineTexts = new Set<string>();
@@ -5773,7 +5816,7 @@ export class SheetsBar extends BasePlugin {
             row: engineRowOf(physicalRow),
             col: engineColumnOf(physicalColumn),
           }, { row: rowShiftOf(physicalRow), col: columnShiftOf(physicalColumn) });
-          const text = typeof fromEngine === 'string' ? quoteIfNeeded(fromEngine) : cell;
+          const text = typeof fromEngine === 'string' ? quoteIfNeeded(toPhysicalFrame(fromEngine)) : cell;
 
           if (typeof fromEngine === 'string') {
             seenEngineTexts.add(text);
@@ -5800,7 +5843,8 @@ export class SheetsBar extends BasePlugin {
    * of a sheet sorted descending is the formula of its last row). A move, an insert, and a removal keep every
    * reference on its cell, and so does a manual row or column move, which reaches the engine as a move. The
    * engine's own fill transform shifts back only the lines the orders moved (`shift`), and leaves absolute
-   * references alone.
+   * references alone. References to the sheet's own cells still name engine cells after a move; the caller
+   * rewrites them to physical ones (`remapOwnSheetReferences()`).
    *
    * @param {object} engine The engine.
    * @param {number} sheetId The engine sheet.

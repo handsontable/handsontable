@@ -3,7 +3,7 @@ import { awaitBundle, type Bundle } from '../bundle';
 
 export type FormulasOrderWorkbook =
   'sortedReport' | 'summary' | 'sortedSummary' | 'ownRefFirst' | 'ownRefSecond' | 'relativeDesc' | 'sortedData' | 'movedColumns' | 'sortedFormulas' | 'sortedSum' | 'showFormulas'
-  | 'quotedNames' | 'movedRows' | 'movedColumnRefs';
+  | 'quotedNames' | 'movedRows' | 'movedColumnRefs' | 'ownRefColumns' | 'ownRefRows' | 'ownRefSorted';
 
 /**
  * Page object for the sheets-bar-formulas-order fixture (fixtures/demo/sheets-bar-formulas-order.html):

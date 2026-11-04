@@ -346,7 +346,13 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   was last physical (`AxisSyncer#getOrderShift()`, exported as `orderShifts` in the engine order), and the
   engine's fill transform (`getFillRangeData`) shifts the text back by that much. Running the fill from the
   engine cell to the physical one for every order wrote `=Main!A8` for a row moved to the top, and
-  `=Main!#REF!` for one moved down; a sheet moved and then sorted shifts back the sort's part only. (3) A sheet whose stored order is no longer taken over
+  `=Main!#REF!` for one moved down; a sheet moved and then sorted shifts back the sort's part only. A move
+  also moves every reference to the cells it moves, so the text's references to its own sheet name engine
+  cells: they are rewritten through the map from the moved place (`engine index - order shift`) to the
+  physical one (`remapOwnSheetReferences()` in `formulaReferences.ts`, which leaves other sheets, strings,
+  error literals and function names alone). Without it, a moved column's `=Main!A1+B1` came back `+C1`, a
+  reference to itself (`#CYCLE!` once the column moved back). A sheet moved while an order was on has no
+  such map (the moved places collide), and its own references are left as the engine has them. (3) A sheet whose stored order is no longer taken over
   (`#engineOrderToAdopt` answers `null`: the host replaced or resized its data) is skipped: the engine no
   longer holds rows the data has. Two shortcuts keep the cost near the plain path, and both are exact. The
   per-cell quoting pass (`#formulaQuoterFor`) is skipped when every engine sheet name reads unquoted, because
