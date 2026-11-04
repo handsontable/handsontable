@@ -292,14 +292,20 @@ export class FiltersValueListPage {
 
       return { checked: checkbox.checked, label: label.innerText.trim() };
     }));
-    const viewportCovered = () => holder.evaluate((el) => {
+    // A render-state wait, not an assertion: the rows only have to cover the viewport, which says
+    // nothing about the theme's row heights.
+    const waitForViewportCovered = async() => this.page.waitForFunction((el) => {
+      if (!el) {
+        return false;
+      }
+
       const rows = el.querySelectorAll('.htCore tbody tr');
       const first = rows[0]?.getBoundingClientRect();
       const last = rows[rows.length - 1]?.getBoundingClientRect();
       const box = el.getBoundingClientRect();
 
       return !!first && !!last && first.top <= box.top + 1 && box.bottom - last.bottom < last.height;
-    });
+    }, await holder.elementHandle(), { polling: 50 });
     const scrollTo = (top: number) => holder.evaluate((el, value) => {
       el.scrollTop = value;
 
@@ -334,7 +340,7 @@ export class FiltersValueListPage {
       }
 
       // Settled once the repaint has filled the viewport.
-      await expect.poll(viewportCovered).toBe(true);
+      await waitForViewportCovered();
     }
 
     await scrollTo(0);
