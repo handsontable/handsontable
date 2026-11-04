@@ -48,7 +48,11 @@ import { getTabReentryCoords, wasLeftByTab } from '../../focusManager/tabReentry
 import { deepClone, isPlainObject } from '../../helpers/object';
 import { normalizeFixedColumnsAlias, renameFixedColumnsLeft } from '../../core/fixedColumnsAlias';
 import {
-  formatSheetName, isUnquotedSheetName, quoteUnreadableSheetNames, rewriteSheetReferences,
+  formatSheetName,
+  isUnquotedSheetName,
+  quoteUnreadableSheetNames,
+  rewriteSheetReferences,
+  canReadSheetNameUnquoted,
 } from '../../utils/formulaReferences';
 import {
   collectFormulaTextChanges, getEngineCellKeys, getEngineColumnLayout, isChangeTargetFrozen, listSheetRows, readCell,
@@ -5081,7 +5085,7 @@ export class SheetsBar extends BasePlugin {
    * @returns {string}
    */
   #sheetNameText(engine: NonNullable<SheetFormulas['engine']>, name: string): string {
-    const readable = isUnquotedSheetName(name) && engine.validateFormula?.(`=${name}!A1`) !== false;
+    const readable = canReadSheetNameUnquoted(engine, name);
 
     return formatSheetName(name, !readable);
   }
