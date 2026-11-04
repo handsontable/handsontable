@@ -103,6 +103,8 @@ The JavaScript and React examples load the same URL on demand when `window.Papa`
 
 Use `accept` on the file input and check `file.name` to route `.csv` and `.xlsx` to the right parser. Reject everything else with a short message.
 
+::: only-for javascript vue
+
 ### The file input and drop zone (HTML)
 
 ```html
@@ -125,6 +127,92 @@ Use `accept` on the file input and check `file.name` to route `.csv` and `.xlsx`
 - **Load sample data** parses a bundled CSV string so users can try the grid without having to upload a file first.
 - The drop zone has `tabindex="0"` and `role="button"`, so keyboard users can focus it. It has no key handler; keyboard users open the file picker with **Choose file**.
 
+:::
+
+::: only-for react
+
+### The file input and drop zone (JSX)
+
+```tsx
+<div
+  className={`import-dropzone${dropzoneActive ? ' import-dropzone--active' : ''}`}
+  tabIndex={0}
+  role="button"
+  aria-label="Drop a CSV or Excel file here"
+  onDragOver={handleDragOver}
+  onDragLeave={handleDragLeave}
+  onDrop={handleDrop}
+>
+  <p>
+    Drop a <code>.csv</code> or <code>.xlsx</code> file here, or pick a source.
+  </p>
+  <div className="import-actions">
+    <label className="import-file-label">
+      <span>Choose file</span>
+      <input
+        type="file"
+        accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
+        onChange={handleFileInputChange}
+      />
+    </label>
+    <button type="button" className="import-sample-btn" onClick={handleLoadSample}>
+      Load sample data
+    </button>
+  </div>
+</div>
+```
+
+**What's happening:**
+- The `accept` attribute restricts the system file picker to `.csv` and `.xlsx`. This is a hint to the browser only -- you must validate the extension in code as well.
+- The real `<input>` is visually hidden (a 1 px, absolutely positioned element with `opacity: 0`) and activated via the wrapping `<label>`. Clicking **Choose file** triggers the file picker without requiring a separate button.
+- **Load sample data** calls `handleLoadSample`, which parses a bundled CSV string so users can try the grid without having to upload a file first.
+- The drop zone has `tabIndex={0}` and `role="button"`, so keyboard users can focus it. It has no key handler; keyboard users open the file picker with **Choose file**.
+- The `import-dropzone--active` class follows the `dropzoneActive` state, which the drag handlers below set.
+
+:::
+
+::: only-for angular
+
+### The file input and drop zone (template)
+
+The drop zone is part of the component's inline `template`:
+
+```html
+<div
+  class="import-dropzone"
+  [class.import-dropzone--active]="isDragOver"
+  tabindex="0"
+  role="button"
+  aria-label="Drop a CSV or Excel file here"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave()"
+  (drop)="onDrop($event)"
+>
+  <p>Drop a <code>.csv</code> or <code>.xlsx</code> file here, or pick a source.</p>
+  <div class="import-actions">
+    <label class="import-file-label">
+      <span>Choose file</span>
+      <input
+        type="file"
+        accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
+        (change)="onFileChange($event)"
+        #fileInput
+      />
+    </label>
+    <button type="button" class="import-sample-btn" (click)="loadSampleData()">Load sample data</button>
+  </div>
+</div>
+```
+
+**What's happening:**
+- The `accept` attribute restricts the system file picker to `.csv` and `.xlsx`. This is a hint to the browser only -- you must validate the extension in code as well.
+- The real `<input>` is visually hidden (a 1 px, absolutely positioned element with `opacity: 0`) and activated via the wrapping `<label>`. Clicking **Choose file** triggers the file picker without requiring a separate button.
+- **Load sample data** calls `loadSampleData()`, which parses a bundled CSV string so users can try the grid without having to upload a file first.
+- The drop zone has `tabindex="0"` and `role="button"`, so keyboard users can focus it. It has no key handler; keyboard users open the file picker with **Choose file**.
+- `[class.import-dropzone--active]` follows the `isDragOver` field, which the drag handlers below set.
+
+:::
+
 ### Extension detection
 
 ```javascript
@@ -138,6 +226,8 @@ function extensionOf(name) {
 - Takes the file name and returns the lowercase extension (`"csv"`, `"xlsx"`, or `""` if there is none).
 - `lastIndexOf('.')` handles names like `report.v2.csv` correctly by taking the final dot.
 - The result is compared in `parseFile` and an error is thrown for anything that is not `.csv` or `.xlsx`.
+
+::: only-for javascript vue
 
 ### Wiring up file events
 
@@ -170,6 +260,97 @@ dropzone?.addEventListener('drop', (ev) => {
 - `ev.preventDefault()` on `dragover` is required -- without it the browser opens the file instead of passing it to the drop handler.
 - Adding/removing `import-dropzone--active` gives visual feedback while a file is dragged over the zone.
 - Resetting `fileInput.value = ''` after processing allows the user to import the same file a second time.
+
+:::
+
+::: only-for react
+
+### Wiring up file events
+
+The handlers live inside the component, next to its state:
+
+```tsx
+const [dropzoneActive, setDropzoneActive] = useState<boolean>(false);
+
+const handleFileInputChange = (ev: React.ChangeEvent<HTMLInputElement>): void => {
+  const f = ev.target.files?.[0];
+
+  handleFile(f);
+  ev.target.value = '';
+};
+
+const handleDragOver = (ev: React.DragEvent<HTMLDivElement>): void => {
+  ev.preventDefault();
+  setDropzoneActive(true);
+};
+
+const handleDragLeave = (): void => {
+  setDropzoneActive(false);
+};
+
+const handleDrop = (ev: React.DragEvent<HTMLDivElement>): void => {
+  ev.preventDefault();
+  setDropzoneActive(false);
+  const f = ev.dataTransfer?.files?.[0];
+
+  handleFile(f);
+};
+```
+
+**What's happening:**
+- Both code paths (file input `onChange` and drop zone `onDrop`) hand the `File` object to the same `handleFile` function.
+- `ev.preventDefault()` on `dragover` is required -- without it the browser opens the file instead of passing it to the drop handler.
+- `setDropzoneActive` toggles the `import-dropzone--active` class, which gives visual feedback while a file is dragged over the zone.
+- Resetting `ev.target.value = ''` after processing allows the user to import the same file a second time.
+
+:::
+
+::: only-for angular
+
+### Wiring up file events
+
+The template event bindings call these `AppComponent` methods:
+
+```typescript
+isDragOver = false;
+
+onDragOver(event: DragEvent): void {
+  event.preventDefault();
+  this.isDragOver = true;
+}
+
+onDragLeave(): void {
+  this.isDragOver = false;
+}
+
+onDrop(event: DragEvent): void {
+  event.preventDefault();
+  this.isDragOver = false;
+  const file = event.dataTransfer?.files?.[0];
+  if (file) {
+    this.handleFile(file);
+  }
+}
+
+onFileChange(event: Event): void {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (file) {
+    this.handleFile(file);
+  }
+  input.value = '';
+}
+```
+
+**What's happening:**
+- Both code paths (file input `change` and drop zone `drop`) hand the `File` object to the same `handleFile` method.
+- `event.preventDefault()` on `dragover` is required -- without it the browser opens the file instead of passing it to the drop handler.
+- Setting `isDragOver` toggles the `import-dropzone--active` class, which gives visual feedback while a file is dragged over the zone.
+- Resetting `input.value = ''` after processing allows the user to import the same file a second time.
+
+:::
+
+::: only-for javascript vue react
 
 ## Step 2: Parse CSV with PapaParse
 
@@ -273,6 +454,78 @@ function parseCsvText(text, PapaRef) {
 - PapaParse's synchronous `parse(string, opts)` overload is used here (no `complete` callback needed).
 - Used when the user clicks **Load sample data** to parse a CSV string embedded in the script and feed it into the grid.
 
+:::
+
+::: only-for angular
+
+## Step 2: Parse CSV with PapaParse
+
+### Import PapaParse from npm
+
+```typescript
+import Papa from 'papaparse';
+```
+
+**What's happening:**
+- The Angular example installs `papaparse` from npm and imports it at the top of `app.component.ts`, so the parser is part of the bundle and no script is loaded at runtime.
+- The parse functions call `Papa` directly instead of receiving it as an argument.
+
+### Parse a CSV file
+
+```typescript
+async function parseCsvFile(file: File): Promise<ParsedPayload> {
+  return new Promise((resolve, reject) => {
+    Papa.parse<Record<string, unknown>>(file, {
+      header: true,
+      dynamicTyping: true,
+      skipEmptyLines: 'greedy',
+      transformHeader: (h: string) => h.trim(),
+      complete: (results: Papa.ParseResult<Record<string, unknown>>) => {
+        try {
+          resolve(processPapaResults(results));
+        } catch (e) {
+          reject(e instanceof Error ? e : new Error(String(e)));
+        }
+      },
+      error: (err: Error) => reject(err instanceof Error ? err : new Error(String(err))),
+    });
+  });
+}
+```
+
+**What's happening:**
+- `header: true` tells PapaParse to treat the first row as column names and return each subsequent row as a plain object keyed by those names. `results.meta.fields` contains the ordered list of column names.
+- `skipEmptyLines: 'greedy'` drops rows that are entirely whitespace -- handy for files with trailing newlines.
+- `transformHeader: (h) => h.trim()` removes accidental leading/trailing spaces from column names.
+- After parsing, empty or missing cell values are normalized to `null` so Handsontable displays a blank cell rather than the string `"undefined"` or `"null"`.
+- `dynamicTyping: true` lets PapaParse return native numbers and booleans where possible.
+- Numeric and boolean values are preserved as-is; string values are trimmed, and empty strings are normalized to `null`.
+
+### Parse a CSV text string (for the bundled sample)
+
+```typescript
+function parseCsvText(text: string): ParsedPayload {
+  const trimmed = text.trim();
+  if (!trimmed) {
+    throw new Error('The input is empty.');
+  }
+  const parsed = Papa.parse<Record<string, unknown>>(trimmed, {
+    header: true,
+    dynamicTyping: true,
+    skipEmptyLines: 'greedy',
+    transformHeader: (h) => h.trim(),
+  });
+  return processPapaResults(parsed);
+}
+```
+
+**What's happening:**
+- Works identically to `parseCsvFile` but accepts a raw CSV string instead of a `File` object.
+- PapaParse's synchronous `parse(string, opts)` overload is used here (no `complete` callback needed).
+- Used when the user clicks **Load sample data** to parse a CSV string embedded in the component and feed it into the grid.
+
+:::
+
 ## Step 3: Parse Excel with the ImportFile plugin
 
 ### Read the workbook without a library
@@ -342,6 +595,8 @@ async function parseXlsxFile(file) {
 4. `normalizeCellValue` keeps numbers and booleans, keeps the `YYYY-MM-DD` strings the plugin derives for date cells, trims other text, and turns blank cells into `null`.
 5. The throwaway grid is destroyed in `finally`, so a rejected file does not leak it. To import straight into a visible grid, with cell types, merges, and formulas (formulas need the `Formulas` plugin), call the same method on that grid without `apply: false`.
 
+::: only-for javascript vue react
+
 ### Route to the right parser
 
 ```javascript
@@ -362,6 +617,32 @@ async function parseFile(file) {
 - `extensionOf` extracts the lowercase extension. Only `.csv` and `.xlsx` are handled; anything else throws immediately before any network request is made.
 - PapaParse is loaded on demand for CSV. Excel goes through the built-in plugin, so nothing is downloaded for it.
 - Both parsers return the same shape: `{ headers: string[], rows: object[] }` -- the rest of the code does not need to know which parser ran.
+
+:::
+
+::: only-for angular
+
+### Route to the right parser
+
+```typescript
+async function parseFile(file: File): Promise<ParsedPayload> {
+  const ext = extensionOf(file.name);
+  if (ext === 'csv') {
+    return parseCsvFile(file);
+  }
+  if (ext === 'xlsx') {
+    return parseXlsxFile(file);
+  }
+  throw new Error('Unsupported file type. Use a .csv or .xlsx file.');
+}
+```
+
+**What's happening:**
+- `extensionOf` extracts the lowercase extension. Only `.csv` and `.xlsx` are handled; anything else throws immediately.
+- PapaParse is already bundled for CSV, and Excel goes through the built-in plugin, so nothing is downloaded at runtime.
+- Both parsers return the same shape: `{ headers: string[], rows: object[] }` -- the rest of the code does not need to know which parser ran.
+
+:::
 
 ## Step 4: Load parsed data into the grid
 
@@ -388,6 +669,8 @@ function columnsFromHeaders(headers, rows) {
 **What's happening:**
 - Handsontable's `columns` option expects an array of column descriptors. Each descriptor's `data` property is the key used to read from the row objects.
 - The helper infers `numeric` and `checkbox` columns when all non-empty values in that column are numbers or booleans. Mixed columns stay as `'text'`.
+
+::: only-for javascript vue
 
 ### Lazy-init the grid on the first load
 
@@ -422,6 +705,8 @@ function loadIntoGrid({ headers, rows }) {
 - On the first call: hide the empty state, reveal the grid container, and instantiate Handsontable with the parsed data, columns, and headers.
 - On subsequent calls: reuse the existing instance -- `updateSettings({ colHeaders, columns })` reconfigures the grid's column shape, then `loadData(rows)` replaces the data and triggers a full re-render. `updateSettings` must run before `loadData` so Handsontable knows which keys to read from the row objects.
 
+:::
+
 ::: only-for vue
 
 In the Vue example, `loadIntoGrid` stores the parsed payload in a `shallowRef` and increments a counter that is bound to `:key` on `HotTable`:
@@ -435,6 +720,97 @@ A new `key` makes Vue mount a fresh grid for every import. You need it because `
 The built-in engine reads the workbook asynchronously, so the result arrives in a later task. Vue picks up a ref that changes after an `await` without extra code.
 
 :::
+
+::: only-for react
+
+### Keep the parsed data in state
+
+```tsx
+const [gridData, setGridData] = useState<Record<string, CellValue>[]>([]);
+const [gridColHeaders, setGridColHeaders] = useState<string[]>([]);
+const [gridColumns, setGridColumns] = useState<ColumnDef[]>([]);
+
+const loadIntoGrid = ({ headers, rows }: ParsedPayload): void => {
+  setErrorMessage('');
+  setGridColHeaders(headers);
+  setGridColumns(columnsFromHeaders(headers, rows));
+  setGridData(rows);
+};
+```
+
+Render the grid only once there is data:
+
+```tsx
+{gridData.length === 0 ? (
+  <div className="import-empty">
+    <p className="import-empty-title">No data loaded yet</p>
+  </div>
+) : (
+  <HotTable
+    // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
+    data={gridData}
+    columns={gridColumns}
+    colHeaders={gridColHeaders}
+    rowHeaders={true}
+    height="auto"
+    width="100%"
+  />
+)}
+```
+
+**What's happening:**
+- `loadIntoGrid` stores the rows, the header names, and the inferred column definitions in state. React re-renders `HotTable` with the new props, so you don't call `updateSettings` or `loadData` yourself.
+- Until the first import, `gridData` is empty and the component shows the empty-state panel instead of a grid with a single blank cell. The example's panel also holds an icon and a help text, left out here.
+- The same function clears any previous error, so a successful import removes an old message.
+
+:::
+
+::: only-for angular
+
+### Update the grid settings and data
+
+```typescript
+gridData: Record<string, unknown>[] = [];
+
+gridSettings: GridSettings = {
+  colHeaders: [],
+  columns: [],
+  rowHeaders: true,
+  height: 'auto',
+  width: '100%',
+};
+
+private loadIntoGrid(payload: ParsedPayload): void {
+  const { headers, rows } = payload;
+  this.gridSettings = {
+    ...this.gridSettings,
+    colHeaders: headers,
+    columns: this.columnsFromHeaders(headers, rows),
+  };
+  this.gridData = [...rows];
+}
+```
+
+The template shows the grid only once there is data:
+
+```html
+@if (gridData.length === 0) {
+  <div class="import-empty">
+    <p class="import-empty-title">No data loaded yet</p>
+  </div>
+} @else {
+  <hot-table [data]="gridData" [settings]="gridSettings"></hot-table>
+}
+```
+
+**What's happening:**
+- `loadIntoGrid` assigns a new `gridSettings` object with the header names and the inferred column definitions, and a new `gridData` array. The `<hot-table>` bindings pass both to the grid, so you don't call `updateSettings` or `loadData` yourself.
+- In the example, `columnsFromHeaders` is a private method of `AppComponent` with the same logic as the function above.
+- Until the first import, `gridData` is empty and `@if` shows the empty-state panel instead of a grid with a single blank cell. The example's panel also holds an icon and a help text, left out here.
+
+:::
+
+::: only-for javascript vue
 
 ### Load the bundled sample
 
@@ -459,9 +835,72 @@ sampleBtn?.addEventListener('click', async () => {
 **What's happening:**
 - `SAMPLE_CSV` is a small CSV string embedded in the script -- enough to demonstrate the grid without forcing the user to upload anything.
 - The handler ensures PapaParse is available, parses the sample synchronously, and hands the result straight to `loadIntoGrid` -- no preview step in between.
-- File uploads use the same `loadIntoGrid` function (see `handleFile` in [Step 5](#step-5-handle-errors)), so both code paths converge on a single grid-population helper.
+- File uploads use the same `loadIntoGrid` function (see `handleFile` in [Step 5](#handle-errors)), so both code paths converge on a single grid-population helper.
+
+:::
+
+::: only-for react
+
+### Load the bundled sample
+
+```tsx
+const SAMPLE_CSV = `Product,Category,In stock,Price
+Widget A,Hardware,true,19.99
+Widget B,Hardware,false,24.5
+Service Pack,Services,true,0`;
+
+const handleLoadSample = async (): Promise<void> => {
+  setErrorMessage('');
+
+  try {
+    const PapaRef = await ensurePapa();
+    const payload = parseCsvText(SAMPLE_CSV, PapaRef);
+
+    loadIntoGrid(payload);
+  } catch (e) {
+    handleError(e);
+  }
+};
+```
+
+**What's happening:**
+- `SAMPLE_CSV` is a small CSV string defined at module level -- enough to demonstrate the grid without forcing the user to upload anything.
+- The handler ensures PapaParse is available, parses the sample synchronously, and hands the result straight to `loadIntoGrid` -- no preview step in between.
+- File uploads use the same `loadIntoGrid` function (see `handleFile` in [Step 5](#handle-errors)), so both code paths converge on a single grid-population helper.
+
+:::
+
+::: only-for angular
+
+### Load the bundled sample
+
+```typescript
+private readonly SAMPLE_CSV = `Product,Category,In stock,Price
+Widget A,Hardware,true,19.99
+Widget B,Hardware,false,24.5
+Service Pack,Services,true,0`;
+
+async loadSampleData(): Promise<void> {
+  this.errorMessage = '';
+  try {
+    const payload = parseCsvText(this.SAMPLE_CSV);
+    this.loadIntoGrid(payload);
+  } catch (e) {
+    this.errorMessage = e instanceof Error ? e.message : String(e);
+  }
+}
+```
+
+**What's happening:**
+- `SAMPLE_CSV` is a small CSV string stored on the component -- enough to demonstrate the grid without forcing the user to upload anything.
+- PapaParse is already imported, so the method parses the sample synchronously and hands the result straight to `loadIntoGrid` -- no preview step in between.
+- File uploads use the same `loadIntoGrid` method (see `handleFile` in [Step 5](#handle-errors)), so both code paths converge on a single grid-population helper.
+
+:::
 
 ## Step 5: Handle errors
+
+::: only-for javascript vue
 
 ### Error display helpers
 
@@ -484,6 +923,52 @@ function clearError(el) {
 - `hidden` is toggled so the error area takes no space when empty -- no flickering or layout shift.
 - `textContent` is used to prevent XSS in error messages that might echo user-provided input.
 
+:::
+
+::: only-for react
+
+### Error state
+
+```tsx
+const [errorMessage, setErrorMessage] = useState<string>('');
+
+const handleError = (e: unknown): void => {
+  setErrorMessage(e instanceof Error ? e.message : String(e));
+};
+```
+
+```tsx
+{errorMessage && (
+  <div className="import-msg import-msg--error">{errorMessage}</div>
+)}
+```
+
+**What's happening:**
+- The message lives in state, and the error panel renders only while it is non-empty -- no empty box and no layout shift.
+- React escapes text inside `{errorMessage}`, so an error that echoes user-provided input cannot inject markup.
+
+:::
+
+::: only-for angular
+
+### Error state
+
+```typescript
+errorMessage = '';
+```
+
+```html
+@if (errorMessage) {
+  <div class="import-msg import-msg--error">{{ errorMessage }}</div>
+}
+```
+
+**What's happening:**
+- The message is a component field, and `@if` renders the error panel only while it is non-empty -- no empty box and no layout shift.
+- Angular escapes text in `{{ errorMessage }}`, so an error that echoes user-provided input cannot inject markup.
+
+:::
+
 ### All error conditions covered
 
 | Condition | Message |
@@ -496,6 +981,8 @@ function clearError(el) {
 | Excel workbook refused (an `.xls`, a password-protected or damaged file, a workbook past the import limits) | The `ImportFile` plugin's own message |
 | Excel sheet is empty | `"No header row found in the Excel sheet."` |
 | Excel has no data rows | `"No data rows after the header."` |
+
+::: only-for javascript vue
 
 The `handleFile` async function is the single place where all parse errors are caught and forwarded to `showError`:
 
@@ -522,6 +1009,77 @@ async function handleFile(file) {
 - On success, the parsed `{ headers, rows }` payload goes straight to `loadIntoGrid` -- no intermediate state to reset on failure.
 - The **Load sample data** handler uses the same try/catch shape, so sample-parse errors surface in the same error panel.
 
+:::
+
+::: only-for react
+
+The `handleFile` function is the single place where all file parse errors are caught and forwarded to `handleError`:
+
+```tsx
+const handleFile = async (file: File | undefined): Promise<void> => {
+  setErrorMessage('');
+
+  if (!file) {
+    return;
+  }
+
+  if (file.size === 0) {
+    setErrorMessage('The file is empty.');
+
+    return;
+  }
+
+  try {
+    const payload = await parseFile(file);
+
+    loadIntoGrid(payload);
+  } catch (e) {
+    handleError(e);
+  }
+};
+```
+
+**What's happening:**
+- `file.size === 0` is checked before any async work to give an instant response for empty files.
+- Any error thrown by the parsers bubbles up here and is shown to the user.
+- On success, the parsed `{ headers, rows }` payload goes straight to `loadIntoGrid` -- no intermediate state to reset on failure.
+- The **Load sample data** handler uses the same try/catch shape, so sample-parse errors surface in the same error panel.
+
+:::
+
+::: only-for angular
+
+The `handleFile` method is the single place where all file parse errors are caught and written to `errorMessage`:
+
+```typescript
+private readonly cdr = inject(ChangeDetectorRef);
+
+private async handleFile(file: File): Promise<void> {
+  this.errorMessage = '';
+  if (file.size === 0) {
+    this.errorMessage = 'The file is empty.';
+    return;
+  }
+  try {
+    const payload = await parseFile(file);
+    this.loadIntoGrid(payload);
+  } catch (e) {
+    this.errorMessage = e instanceof Error ? e.message : String(e);
+  } finally {
+    this.cdr.markForCheck();
+  }
+}
+```
+
+**What's happening:**
+- `file.size === 0` is checked before any async work to give an instant response for empty files.
+- Any error thrown by the parsers bubbles up here and is shown to the user.
+- On success, the parsed `{ headers, rows }` payload goes straight to `loadIntoGrid` -- no intermediate state to reset on failure.
+- `markForCheck()` in `finally` makes Angular render the new grid or the error after the `await`. Angular 22 components are `OnPush` by default, and nothing else marks the component dirty at that point.
+- The **Load sample data** method uses the same try/catch shape, so sample-parse errors surface in the same error panel.
+
+:::
+
 ## Try it quickly
 
 Click **Load sample data** in the example to populate the grid from the bundled CSV string, or save the snippet from [Step 4](#load-the-bundled-sample) as `sample.csv` and drop it on the zone.
@@ -530,10 +1088,10 @@ Click **Load sample data** in the example to populate the grid from the bundled 
 
 1. **User picks or drops a file (or clicks Load sample data)** -- the `change`, `drop`, or sample button event fires and reaches `handleFile` / the sample handler.
 2. **File size check** -- zero-byte files are rejected immediately (file path only).
-3. **Extension routing** -- `parseFile` reads the extension, loads PapaParse on demand for `.csv`, and sends `.xlsx` to the `ImportFile` plugin. The sample path always uses PapaParse via `parseCsvText`.
+3. **Extension routing** -- `parseFile` reads the extension, sends `.csv` to PapaParse, and sends `.xlsx` to the `ImportFile` plugin. The sample path always uses PapaParse via `parseCsvText`.
 4. **Parsing** -- CSV goes through PapaParse with `header: true`; Excel goes through the built-in `ImportFile` plugin with `apply: false`, which returns the promoted header row and the rows below it.
 5. **Normalization** -- empty cells become `null`, and native numbers/booleans are preserved for CSV and Excel.
-6. **Grid population** -- `loadIntoGrid` creates the Handsontable instance on the first call (hiding the empty-state panel) or updates `colHeaders`, `columns`, and data on subsequent calls.
+6. **Grid population** -- `loadIntoGrid` replaces `colHeaders`, `columns`, and the data. The first load swaps the empty-state panel for the grid.
 7. **Grid renders** -- Handsontable re-renders with the new columns and data.
 8. **Errors at any step** -- caught by `handleFile` or the sample-parse handler and shown in the error panel.
 
@@ -541,7 +1099,7 @@ Click **Load sample data** in the example to populate the grid from the bundled 
 
 - How to detect the file type by extension and route CSV files through PapaParse and Excel files through the built-in `ImportFile` plugin with a single handler function.
 - How to ship a bundled CSV sample so users can demo the grid without uploading a file first.
-- How to call `hot.updateSettings({ colHeaders, columns })` followed by `hot.loadData(rows)` to replace both the column configuration and the data in one step, and how to lazy-instantiate Handsontable behind an empty-state panel.
+- How to replace the column configuration and the data on every import, and how to keep the grid behind an empty-state panel until the first import.
 - How to handle errors at each stage -- file size, parsing, and grid load -- and surface them in a dedicated error panel.
 
 ## Next steps
