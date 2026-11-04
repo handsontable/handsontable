@@ -2,7 +2,7 @@ import ExcelJS from 'exceljs';
 import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { XlsxLicensePage } from '../fixtures/pages/XlsxLicensePage';
 import {
-  ALL_XLSX_TOKENS, keyWith, keyWithout, LEGACY_KEY,
+  ALL_XLSX_TOKENS, CORE_ONLY_KEY, keyWith, keyWithout, LEGACY_KEY,
 } from '../fixtures/xlsxLicenseKeys';
 
 /**
@@ -23,12 +23,14 @@ test.describe('Export entry gate (xlsx:export)', { tag: BUNDLES_TAG }, () => {
     await expect(lic.exportBytes()).rejects.toThrow('does not unlock "xlsx:export"');
   });
 
-  test('shows To Excel for the legacy key and for a key that lists xlsx:export', async({ page, theme, bundle }) => {
+  test('shows To Excel for an unrestricted key and for a key that lists xlsx:export', async({ page, theme, bundle }) => {
     const lic = new XlsxLicensePage(page, theme, bundle);
 
     await lic.goto();
 
-    for (const key of [LEGACY_KEY, keyWith(['xlsx:export']), keyWith(PARTIAL_TOKENS)]) {
+    // The menu is opened with a right click, so the key must not lock the grid: the non-commercial key
+    // (LEGACY_KEY) restricts nothing either, but reads as invalid since 19.0 and is covered by the lock.
+    for (const key of [CORE_ONLY_KEY, keyWith(['xlsx:export']), keyWith(PARTIAL_TOKENS)]) {
       await lic.create(key);
       expect(await lic.exportMenuItems()).toEqual(['To CSV', 'To Excel']);
       expect((await lic.exportBytes()).length).toBeGreaterThan(0);

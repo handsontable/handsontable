@@ -126,7 +126,12 @@ describe('Mixed helper', () => {
   describe('_injectProductInfo', () => {
     const LICENSE_INFO_CLASS = 'hot-display-license-info';
     const LICENSE_TEST_KEY = 'd0134-95841-770f2-c4f21-3751d'; // expired on 23/05/2011
-    const TRIAL_TEST_KEY = 'ht68e-1f2b7-47158-70b05-0842f'; // works as "non-commercial-and-evaluation"
+    // The non-commercial key and its second form. Handsontable 19.0 reads both as invalid (PRO-1356).
+    const NON_COMMERCIAL_KEYS = [
+      'non-commercial-and-evaluation',
+      'NON-COMMERCIAL-AND-EVALUATION',
+      'ht68e-1f2b7-47158-70b05-0842f',
+    ];
     let _injectProductInfo;
 
     beforeEach(() => {
@@ -156,7 +161,7 @@ describe('Mixed helper', () => {
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
       const result = _injectProductInfo({
-        className: LICENSE_INFO_CLASS, key: TRIAL_TEST_KEY, element, releaseDate: '24/05/2011'
+        className: LICENSE_INFO_CLASS, key: LICENSE_TEST_KEY, element, releaseDate: '22/05/2011'
       });
 
       expect(result).toBe(null);
@@ -388,7 +393,7 @@ describe('Mixed helper', () => {
       expect(console.warn).toHaveBeenCalledTimes(1);
     });
 
-    it('should not print any information if non-commercial key is used', () => {
+    it.each(NON_COMMERCIAL_KEYS)('should print the invalid key message for the non-commercial key "%s"', (key) => {
       spyOn(console, 'warn');
       spyOn(console, 'info');
       spyOn(console, 'log');
@@ -396,35 +401,17 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo({
-        className: LICENSE_INFO_CLASS,
-        key: 'non-commercial-and-evaluation',
-        element,
-        releaseDate: '23/05/2010'
-      });
+      _injectProductInfo({ className: LICENSE_INFO_CLASS, key, element, releaseDate: '23/05/2010' });
 
+      // An invalid key shows the blocking modal instead of a bar (DEV-2562).
       expect(element.parentNode.querySelector('.hot-display-license-info')).toBe(null);
       expect(console.error).not.toHaveBeenCalled();
       expect(console.info).not.toHaveBeenCalled();
       expect(console.log).not.toHaveBeenCalled();
-      expect(console.warn).not.toHaveBeenCalled();
-    });
-
-    it('should not print any information if trial key is used', () => {
-      spyOn(console, 'warn');
-      spyOn(console, 'info');
-      spyOn(console, 'log');
-      spyOn(console, 'error');
-
-      const element = document.createElement('div').appendChild(document.createElement('div'));
-
-      _injectProductInfo({ className: LICENSE_INFO_CLASS, key: TRIAL_TEST_KEY, element, releaseDate: '23/05/2010' });
-
-      expect(element.parentNode.querySelector('.hot-display-license-info')).toBe(null);
-      expect(console.error).not.toHaveBeenCalled();
-      expect(console.info).not.toHaveBeenCalled();
-      expect(console.log).not.toHaveBeenCalled();
-      expect(console.warn).not.toHaveBeenCalled();
+      expect(console.warn).toHaveBeenCalledWith([
+        'The license key for Handsontable is invalid. ',
+        'If you need any help, contact us at support@handsontable.com.',
+      ].join(''));
     });
   });
 });

@@ -15,7 +15,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 // generate-internal-test-key` in the private `license-key` package). It names its holder in capitals.
 const TEST_KEY_MARKER = 'HANDSONTABLE INTERNAL TEST KEY';
 
-// Both spellings the core accepts for the non-commercial key (`helpers/mixed.ts`), and the test key.
+// Both spellings of the non-commercial key, which the core reads as invalid since 19.0, and the test key.
 const LITERALS = ['non-commercial-and-evaluation', 'ht68e-1f2b7-47158-70b05-0842f', TEST_KEY_MARKER];
 
 // One constant per suite, per visual-test demo app, and one for the docs previews. They must hold the
@@ -74,8 +74,9 @@ const ALLOWED = {
   'tests/fixtures/demo/license-branding.html': 'builds a grid per license state',
   'tests/e2e/license-branding.spec.ts': 'asserts the license states, and that the lock text does not name the key',
   'wrappers/vue3/test/types/vue3.types.ts': 'a type test; it builds no grid',
-  // The capability gate: these pass the non-commercial key as the legacy key a gate must not restrict.
-  'handsontable/src/core/__tests__/license.unit.js': 'keeps a legacy-key instance apart from a listed one',
+  // The capability gate: these pass the non-commercial key as a key that restricts nothing (an invalid
+  // key since 19.0), which a gate must not restrict.
+  'handsontable/src/core/__tests__/license.unit.js': 'keeps an invalid-key instance apart from a listed one',
   'handsontable/src/plugins/base/__tests__/licenseGate.unit.js': 'the non-commercial key unlocks every plugin',
   'handsontable/src/utils/licenseCapabilities/__tests__/resolveLicenseCapabilities.unit.js':
     'the non-commercial key resolves to unrestricted grants',

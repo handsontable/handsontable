@@ -2,10 +2,10 @@ import { TestBed } from '@angular/core/testing';
 import {
   HotGlobalConfigService,
   HotGlobalConfig,
-  NON_COMMERCIAL_LICENSE,
   PredefinedTheme,
   ThemeName, HOT_GLOBAL_CONFIG,
 } from './hot-global-config.service';
+import * as publicApi from '../../public-api';
 import { take } from 'rxjs/operators';
 
 describe('HotGlobalConfigService', () => {
@@ -28,8 +28,14 @@ describe('HotGlobalConfigService', () => {
     expect(config.themeName).toBeUndefined();
   });
 
+  it('should no longer export the NON_COMMERCIAL_LICENSE constant (removed in 19.0)', () => {
+    // The non-commercial key reads as invalid from Handsontable 19.0 on, so the constant would only
+    // hand an app a key that locks the grid.
+    expect('NON_COMMERCIAL_LICENSE' in publicApi).toBe(false);
+  });
+
   it('should update license when provided', () => {
-    const license = NON_COMMERCIAL_LICENSE;
+    const license = 'your-license-key';
     service.setConfig({ license });
     const config = service.getConfig();
     expect(config.license).toEqual(license);

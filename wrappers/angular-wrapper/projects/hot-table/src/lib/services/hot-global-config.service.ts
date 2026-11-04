@@ -2,11 +2,6 @@ import {Injectable, InjectionToken, Inject} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 
 /**
- * A constant representing the non-commercial and evaluation license.
- * */
-export const NON_COMMERCIAL_LICENSE = 'non-commercial-and-evaluation';
-
-/**
  * Type representing a theme name.
  * Possible values include predefined themes and any custom string.
  */

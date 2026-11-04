@@ -320,8 +320,7 @@ console reports an error and the grid shows a notice below the table.
 An entitlement key can list the features it unlocks. Such a key unlocks the grid itself, the
 features it lists, and the features those need. For example, a key that lists Filters also unlocks
 the column menu, which Filters uses. A key that does not list its features unlocks every feature, as
-every key did before. The `non-commercial-and-evaluation` key and the 25-character keys also unlock
-every feature.
+every key did before. The 25-character keys also unlock every feature.
 
 When your key lists its features and your grid turns on a plugin the key does not list:
 
@@ -415,6 +414,9 @@ _The license key for Handsontable is missing. Use your purchased key to activate
 Shown in a blocking modal and in the console:
 
 _The license key for Handsontable is invalid.  Read more on how to install it properly or contact us at `[email]`._
+
+Since Handsontable 19.0, the `non-commercial-and-evaluation` key shows this message too. To keep
+using Handsontable, pass a key from [Get a license key](#get-a-license-key).
 
 ### Expired license key
 

@@ -15,7 +15,9 @@ export {
 } from '../../handsontable/src/utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 
 /**
- * The legacy evaluation key: unrestricted for the whole xlsx family.
+ * The non-commercial key: unrestricted for the whole xlsx family. Since 19.0 it reads as an invalid
+ * key, which restricts nothing but shows the lock screen over the grid, so use it only where a spec
+ * calls the API. A spec that clicks the grid uses `CORE_ONLY_KEY`.
  */
 export const LEGACY_KEY = 'non-commercial-and-evaluation';
 

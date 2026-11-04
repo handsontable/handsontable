@@ -325,6 +325,9 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
       // A current key protects its text, so a key whose text was edited is an unreadable key as well.
       { key: 'edited-prose', title: 'The license key for Handsontable is invalid.' },
       { key: 'missing', title: 'The license key for Handsontable is missing.' },
+      // PRO-1356: Handsontable 19.0 no longer recognizes the non-commercial key, so it locks the
+      // grid as an invalid key does.
+      { key: 'non-commercial', title: 'The license key for Handsontable is invalid.' },
     ] as const;
 
     for (const { key, title } of FAULTS) {
@@ -388,11 +391,11 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
     });
 
     test('does not lock a licensed grid whose key arrived with whitespace around it', async () => {
-      await license.goto(INSTANT.duringTrial, { key: 'non-commercial-padded' });
+      await license.goto(INSTANT.duringTrial, { key: 'subscription-padded' });
 
-      // A key pasted out of an email or a chat window commonly carries a trailing newline. The
-      // 25-character alphabet has no whitespace in it, so an untrimmed key fails its checksum and
-      // reads as an install fault — which now BLOCKS. A licensed grid must survive the paste.
+      // A key pasted out of an email or a chat window commonly carries spaces and a trailing
+      // newline around it. Untrimmed, the key reads as an install fault — which BLOCKS. A
+      // licensed grid must survive the paste.
       await expect(license.lock).toHaveCount(0);
       await expect(license.bar).toHaveCount(0);
       await expect(license.outsideField).toBeFocused();
