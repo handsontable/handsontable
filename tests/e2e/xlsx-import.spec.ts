@@ -264,31 +264,103 @@ for (const engine of ['exceljs', 'native'] as const) {
       // 12:00 is a time; 25:30 does not fit a clock, so it stays the number of days it is.
       await expect(grids.targetCell(0, 4)).toHaveText('12:00');
       await expect(grids.targetCell(1, 4)).toHaveText('1.0625');
-      // The target's Formulas engine does not define `Sales`, so `=SUM(Sales)` shows its cached value.
+      // The built-in engine registers the workbook's `Sales` in the target's Formulas engine, so
+      // `=SUM(Sales)` stays a live formula and evaluates to 60. ExcelJS loses the name's scope, so the
+      // name is not registered and the formula imports its cached 60.
       await expect(grids.targetCell(0, 6)).toHaveText('60');
 
       const result = await grids.lastImport();
 
       expect((result.engine as { kind: string }).kind).toBe(engine);
-      expect(result.dropped).toEqual(expect.arrayContaining(['numFmt:[h]:mm', 'formula:definedName']));
+      expect(result.dropped).toContain('numFmt:[h]:mm');
+
+      if (engine === 'native') {
+        expect(result.dropped).not.toContain('formula:definedName');
+      } else {
+        expect(result.dropped).toEqual(expect.arrayContaining(['formula:definedName', 'definedNames:unsupported']));
+      }
     });
 
-    test('keeps a formula over defined names live when the Formulas engine defines them', async () => {
-      const outcome = await grids.importDefinedNamesWorkbook(true);
+    if (engine === 'native') {
+      test('keeps a formula over defined names live when the Formulas engine defines them', async () => {
+        const outcome = await grids.importDefinedNamesWorkbook(true);
 
-      await expect(grids.targetCell(1, 3)).toHaveText('60');
-      await expect(grids.targetCell(2, 3)).toHaveText('7');
-      expect(outcome.sources).toEqual(['=SUM(Sales)', '=Rate*100']);
-      expect(outcome.dropped).not.toContain('formula:definedName');
-    });
+        await expect(grids.targetCell(1, 3)).toHaveText('60');
+        await expect(grids.targetCell(2, 3)).toHaveText('7');
+        expect(outcome.sources).toEqual(['=SUM(Sales)', '=Rate*100']);
+        expect(outcome.dropped).not.toContain('formula:definedName');
+      });
 
-    test('imports the cached value of a formula over defined names the Formulas engine lacks', async () => {
-      const outcome = await grids.importDefinedNamesWorkbook(false);
+      test('registers the defined names the Formulas engine lacks, and keeps the formulas over them live', async () => {
+        const outcome = await grids.importDefinedNamesWorkbook(false);
+
+        await expect(grids.targetCell(1, 3)).toHaveText('60');
+        await expect(grids.targetCell(2, 3)).toHaveText('7');
+        expect(outcome.sources).toEqual(['=SUM(Sales)', '=Rate*100']);
+        expect(outcome.names).toEqual(expect.arrayContaining(['Sales', 'Rate']));
+        expect(outcome.dropped).not.toContain('formula:definedName');
+      });
+    } else {
+      // ExcelJS loses every name's scope, so no name is registered, and a name the Formulas engine
+      // defines alike does not count as the file's either: the formulas import their cached values.
+      test('imports the cached values of the formulas over names the Formulas engine defines alike', async () => {
+        const outcome = await grids.importDefinedNamesWorkbook(true);
+
+        await expect(grids.targetCell(1, 3)).toHaveText('60');
+        await expect(grids.targetCell(2, 3)).toHaveText('7');
+        expect(outcome.sources).toEqual([60, 7]);
+        expect(outcome.dropped).toEqual(expect.arrayContaining(['formula:definedName', 'definedNames:unsupported']));
+      });
+
+      test('registers no defined name, and imports the cached values of the formulas over them', async () => {
+        const outcome = await grids.importDefinedNamesWorkbook(false);
+
+        await expect(grids.targetCell(1, 3)).toHaveText('60');
+        await expect(grids.targetCell(2, 3)).toHaveText('7');
+        expect(outcome.sources).toEqual([60, 7]);
+        expect(outcome.names).toEqual([]);
+        expect(outcome.dropped).toEqual(expect.arrayContaining(['formula:definedName', 'definedNames:unsupported']));
+      });
+    }
+
+    test('imports the cached value of a formula over a name the Formulas engine defines differently', async () => {
+      const outcome = await grids.importDefinedNamesWorkbook('differently');
 
       await expect(grids.targetCell(1, 3)).toHaveText('60');
       await expect(grids.targetCell(2, 3)).toHaveText('7');
       expect(outcome.sources).toEqual([60, 7]);
-      expect(outcome.dropped).toContain('formula:definedName');
+      expect(outcome.dropped).toEqual(expect.arrayContaining(['formula:definedName', 'definedNames:unsupported']));
+    });
+
+    test('round-trips spilling array formulas and error cells', async () => {
+      const outcome = await grids.roundTripArraysAndErrors();
+      // The built-in engine writes a dynamic array and reads it back as one; ExcelJS cannot hold the
+      // dynamic flag, so it writes and reads every array as a legacy one.
+      const asImported = (formula: string) => (engine === 'native' ? `=${formula}` : `=ARRAYFORMULA(${formula})`);
+
+      expect(outcome.sources[0][1]).toBe(asImported('SEQUENCE(3)'));
+      expect(outcome.sources[1][2]).toBe(asImported('FILTER(A1:A4,A1:A4>1)'));
+      expect(outcome.sources[0][3]).toBe('=1/0');
+      // Both spills come back live and whole: `SEQUENCE` down B1:B3, and `FILTER` down C2:C4, to
+      // the last row and no further (the engine reserves four rows for its three values).
+      expect(outcome.values.map(row => row[1])).toEqual([1, 2, 3, null]);
+      expect(outcome.values.map(row => row[2])).toEqual([null, 3, 2, 5]);
+      // The computed error and the typed one come back as errors, not as text.
+      expect(outcome.values[0][3]).toBe('#DIV/0!');
+      expect(outcome.values[0][4]).toBe('#N/A');
+      expect(outcome.dropped).toEqual([]);
+      await expect(grids.targetCell(2, 1)).toHaveText('3');
+      await expect(grids.targetCell(3, 2)).toHaveText('5');
+      await expect(grids.targetCell(0, 3)).toHaveText('#DIV/0!');
+      await expect(grids.targetCell(0, 4)).toHaveText('#N/A');
+    });
+
+    test('imports the cached values of an array over a lone range the Formulas engine cannot spill', async () => {
+      const outcome = await grids.importBareRangeArray();
+
+      expect(outcome.sources).toEqual([3, 1, 2]);
+      expect(outcome.dropped).toEqual(['formula:arraySpill']);
+      await expect(grids.targetCell(2, 1)).toHaveText('2');
     });
 
     test('round-trips a text cell that starts with an apostrophe and "=" the documented way', async ({ page }) => {

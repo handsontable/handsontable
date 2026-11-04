@@ -41,6 +41,14 @@ describe('DROPPED_FEATURES', () => {
   });
 });
 
+describe('DROPPED_FEATURES array and defined-name keys', () => {
+  it('should name the dynamic-array, unsupported-name and excluded-array features', () => {
+    expect(DROPPED_FEATURES.dynamicArrays).toBe('dynamicArrays');
+    expect(DROPPED_FEATURES.definedNamesUnsupported).toBe('definedNames:unsupported');
+    expect(DROPPED_FEATURES.formulaArrayExcluded).toBe('formula:arrayExcluded');
+  });
+});
+
 describe('DroppedFeatures', () => {
   let warnSpy;
 

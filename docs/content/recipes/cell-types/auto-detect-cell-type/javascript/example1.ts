@@ -266,7 +266,7 @@ const hotOptions: Handsontable.GridSettings = {
   afterChange(this: Handsontable, changes, source) {
     detectChanged(this, changes, source);
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 // Initialize the Handsontable instance with the specified configuration options

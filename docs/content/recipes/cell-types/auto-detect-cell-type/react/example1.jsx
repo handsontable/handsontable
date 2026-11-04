@@ -260,6 +260,7 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         data={data}
         colHeaders={['Part', 'Part no.', 'Quantity', 'Unit cost', 'Restock date', 'Notes']}
@@ -269,7 +270,6 @@ const ExampleComponent = () => {
         autoWrapRow={true}
         headerClassName="htLeft"
         afterChange={handleAfterChange}
-        licenseKey="non-commercial-and-evaluation"
       >
         <HotColumn data="part" width={140} />
         {/* Part numbers keep their leading zeros, so this column opts out of detection. */}

@@ -4,6 +4,7 @@ import { HotTableModule } from "@handsontable/angular-wrapper";
 import { getData } from "./utils/constants";
 import { starsRenderer } from "./renderers/stars";
 import { progressBarRenderer } from "./renderers/progressBar";
+import { TEST_LICENSE_KEY } from "../test-license-key";
 
 @Component({
   standalone: true,
@@ -33,7 +34,7 @@ export class DataGridComponent {
     indicators: true
   };
   headerClassNameValue = document.documentElement.getAttribute("dir") === "rtl" ? "htRight" : "htLeft";
-  licenseKey = "non-commercial-and-evaluation";
+  licenseKey = TEST_LICENSE_KEY;
   themeName: string | undefined = undefined;
   htSettings = {
     columns: [

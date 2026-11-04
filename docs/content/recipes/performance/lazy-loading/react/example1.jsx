@@ -91,6 +91,7 @@ const ExampleComponent = () => {
   return (
     <>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         data={loadedData.current}
         colHeaders={['Task Title', 'Status', 'Assignee']}
@@ -113,7 +114,6 @@ const ExampleComponent = () => {
             fetchNextPage();
           }
         }}
-        licenseKey="non-commercial-and-evaluation"
       />
       <div style={{ padding: '8px', textAlign: 'center', color: '#666', fontSize: '13px' }}>
         {statusText}

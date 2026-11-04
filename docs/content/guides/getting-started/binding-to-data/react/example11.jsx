@@ -16,11 +16,11 @@ const clonedData = structuredClone(data);
 
 const ExampleComponent = () => (
   <HotTable
+    // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
     data={clonedData}
     height="auto"
     autoWrapRow={true}
     autoWrapCol={true}
-    licenseKey="non-commercial-and-evaluation"
   />
 );
 

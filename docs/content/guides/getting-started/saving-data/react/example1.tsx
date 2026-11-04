@@ -73,6 +73,7 @@ const ExampleComponent: React.FC = () => {
         </output>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         startRows={8}
         startCols={6}
@@ -81,7 +82,6 @@ const ExampleComponent: React.FC = () => {
         height="auto"
         autoWrapRow={true}
         autoWrapCol={true}
-        licenseKey="non-commercial-and-evaluation"
         afterChange={function (change: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) {
           if (source === 'loadData') {
             return; // don't save this change

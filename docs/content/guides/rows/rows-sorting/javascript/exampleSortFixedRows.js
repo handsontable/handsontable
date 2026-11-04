@@ -36,7 +36,7 @@ const createGrid = (container, sortFixedRows) => new Handsontable(container, {
     },
     height: 'auto',
     stretchH: 'all',
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 createGrid(document.querySelector('#exampleSortFixedRows1'), false);
 createGrid(document.querySelector('#exampleSortFixedRows2'), true);

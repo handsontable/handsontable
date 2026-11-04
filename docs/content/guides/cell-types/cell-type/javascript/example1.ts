@@ -29,7 +29,7 @@ new Handsontable(container, {
     { id: 4, name: 'Ben', isActive: false, color: 'blue', date: null },
   ],
   colHeaders: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   columns: [
     { data: 'id', type: 'text' },
     // 'text' is default, you don't actually need to declare it

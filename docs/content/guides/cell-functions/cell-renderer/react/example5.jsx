@@ -64,6 +64,7 @@ const ExampleComponent = () => {
   return (
     <div id="exampleContainer5" onMouseUp={(...args) => exampleContainerMouseupCallback(...args)}>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         height="auto"
         columns={[{}, { renderer: customRenderer }]}
@@ -80,7 +81,6 @@ const ExampleComponent = () => {
         autoWrapRow={true}
         autoWrapCol={true}
         sanitizer={sanitizeHeader}
-        licenseKey="non-commercial-and-evaluation"
       />
     </div>
   );

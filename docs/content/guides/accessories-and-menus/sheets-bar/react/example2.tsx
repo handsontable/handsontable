@@ -1,6 +1,7 @@
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { HyperFormula } from 'hyperformula';
+import * as formulaBuilder from 'hyperformula-ui';
 
 // register Handsontable's modules
 registerAllModules();
@@ -48,6 +49,7 @@ const sheets = [
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       sheetsBar={{
         sheets,
         activeSheet: 0,
@@ -56,7 +58,11 @@ const ExampleComponent = () => {
       colHeaders={true}
       stretchH="all"
       height={240}
-      licenseKey="non-commercial-and-evaluation"
+      hotEditor="formula"
+      formulaBuilder={{
+        builder: formulaBuilder,
+        showFormulaBar: true,
+      }}
     />
   );
 };

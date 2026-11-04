@@ -15,7 +15,7 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   afterChange(change, source) {
     if (source === 'loadData') {
       return; // don't save this change

@@ -40,7 +40,7 @@ import { getEngineSettingsWithOverrides, haveEngineSettingsChanged } from './eng
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
 import { getValueGetterValue } from '../../utils/valueAccessors';
-import { quoteUnreadableSheetNames } from '../../utils/formulaReferences';
+import { quoteUnreadableSheetNames, canReadSheetNameUnquoted } from '../../utils/formulaReferences';
 import { Hooks } from '../../core/hooks';
 import IndexSyncer from './indexSyncer';
 import {
@@ -138,11 +138,15 @@ interface MoveCellsRect {
  */
 interface ChangeSetAwaitingApply {
   writeCount: number;
+  /**
+   * The number of loads the plugin did not make itself (`#foreignLoadCount`) when the set was written.
+   */
+  foreignLoadCount: number;
   sheetId: number | null;
   writtenBack: boolean;
   /**
    * The cells the first write really reached, with the value each held before it. A sheet switch
-   * before the Core applies the set restores exactly these (`#restoreSwitchedAwaySheet`): by then the
+   * before the Core applies the set drops it and restores exactly these (`#restoreSwitchedAwaySheet`): by then the
    * grid maps its indexes onto the switched-to sheet's data, so mapping the changes again names
    * other cells.
    */
@@ -160,6 +164,12 @@ interface WrittenCell {
   visualRow: number;
   visualColumn: number;
   oldValue: unknown;
+  /**
+   * What the engine held in the cell right after the first write (`getCellSerialized()`), or `undefined`
+   * when it could not be read. A restore skips a cell that holds anything else by then: a newer write
+   * reached it.
+   */
+  writtenContent: unknown;
 }
 
 /**
@@ -563,6 +573,17 @@ export class Formulas extends BasePlugin {
   #sheetWriteCount = 0;
 
   /**
+   * Counts the `loadData()` / `updateData()` calls the plugin did not make itself (`switchSheet()` loads
+   * the grid from the sheet with its own source). A change set records it when it is written, and
+   * `#onChangesDropped` puts the grid data back only while it has not moved: any other load replaced
+   * the grid's data with data that never held the dropped value, also a load the engine refused, which
+   * leaves `#sheetWriteCount` where it was.
+   *
+   * @type {number}
+   */
+  #foreignLoadCount = 0;
+
+  /**
    * The `setDataAtCell()` / `setDataAtRowProp()` change sets written into the engine that the Core
    * has not applied to the source data yet, keyed by the change array itself (the Core hands the
    * same array to `afterSetDataAtCell` and to `beforeChangeRender`). Each one records the sheet write
@@ -571,14 +592,30 @@ export class Formulas extends BasePlugin {
    * The plugin writes a change into the engine from `afterSetDataAtCell`, before validation, while
    * the Core applies a validated change to the source data only after its validators resolve, in a
    * microtask. A full sheet write in between - an `updateSettings()` in the same task - scans source
-   * data that does not hold the change yet and drops it from the engine, and a sheet switch in
-   * between hands the grid another sheet's data, which the change then lands in;
-   * `#onBeforeChangeRender` writes it back into the current sheet. A `WeakMap`, so a change set that never reaches `beforeChangeRender` holds
-   * nothing alive.
+   * data that does not hold the change yet and drops it from the engine; `#onBeforeChangeRender`
+   * writes it back. A sheet switch in between is a `loadData()`, so the Core drops the set instead of
+   * applying it, and `#onChangesDropped` takes the first write back. A `WeakMap`, so a change set that
+   * never reaches either holds nothing alive.
    *
    * @type {WeakMap<CellChange[], ChangeSetAwaitingApply>}
    */
   #changesAwaitingApply = new WeakMap<CellChange[], ChangeSetAwaitingApply>();
+
+  /**
+   * The changes of a set that `afterSetDataAtCell` could not write because their row or column did not
+   * exist yet, keyed by the set's change array. `afterChange` reports that same array once the Core
+   * applied the set and created the rows, and `#onAfterChangeWriteOutOfBounds` writes them then. Keyed by
+   * the array, never taken by the next `afterChange` of any kind: a `loadData()` fires one with `null`, and
+   * the first cut wrote the changes of a set the load was about to drop into the loaded sheet. A dropped
+   * set's entry is deleted, and a `WeakMap` keeps a set that never applies (every change rejected) from
+   * holding anything alive.
+   *
+   * @type {WeakMap<CellChange[], object>}
+   */
+  #outOfBoundsWrites = new WeakMap<CellChange[], {
+    awaitingApply: ChangeSetAwaitingApply;
+    changes: [number, number, unknown][];
+  }>();
 
   /**
    * Stores the HyperFormula source range and destination address prepared in `beforeMoveCells` so that
@@ -1124,6 +1161,8 @@ export class Formulas extends BasePlugin {
     this.addHook('afterSetDataAtCell', this.#onAfterSetDataAtCell);
     this.addHook('afterSetDataAtRowProp', this.#onAfterSetDataAtCell);
     this.addHook('beforeChangeRender', this.#onBeforeChangeRender);
+    this.addHook('afterChange', this.#onAfterChangeWriteOutOfBounds);
+    this.hot._addDroppedChangesListener(this.#onChangesDropped);
 
     this.addHook('beforeCreateRow', this.#onBeforeCreateRow);
     this.addHook('beforeCreateCol', this.#onBeforeCreateCol);
@@ -1265,6 +1304,7 @@ export class Formulas extends BasePlugin {
     // plugin does), and that edit's render runs this plugin's `afterRenderer`, which would wrap the
     // `HYPERLINK` anchors again after the cleanup below. The engine is still set here too.
     this.#notifyEngineDetach();
+    this.hot._removeDroppedChangesListener(this.#onChangesDropped);
     this.#unregisterToggleFormulasShortcut();
     this.#showFormulasFlag = false;
     this.#unwrapRenderedHyperlinks();
@@ -1445,7 +1485,7 @@ export class Formulas extends BasePlugin {
     let readable = this.#unquotedSheetNames.get(name);
 
     if (readable === undefined) {
-      readable = this.engine?.validateFormula(`=${name}!A1`) !== false;
+      readable = canReadSheetNameUnquoted(this.engine, name);
       this.#unquotedSheetNames.set(name, readable);
     }
 
@@ -1565,6 +1605,7 @@ export class Formulas extends BasePlugin {
   destroy() {
     this.#notifyEngineDetach();
     this.#engineDetachListeners.clear();
+    this.hot._removeDroppedChangesListener(this.#onChangesDropped);
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
     this.#engineListeners = null;
 
@@ -3980,6 +4021,8 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    this.#foreignLoadCount += 1;
+
     if (!this.engine) {
       return;
     }
@@ -4387,6 +4430,7 @@ export class Formulas extends BasePlugin {
     const { dependentCells, changedCells, outOfBoundsChanges, writtenCells } = this.#writeChangesToEngine(changes);
     const awaitingApply: ChangeSetAwaitingApply = {
       writeCount: this.#sheetWriteCount,
+      foreignLoadCount: this.#foreignLoadCount,
       sheetId: this.sheetId,
       writtenBack: false,
       writtenCells,
@@ -4395,27 +4439,43 @@ export class Formulas extends BasePlugin {
     this.#changesAwaitingApply.set(changes, awaitingApply);
 
     if (outOfBoundsChanges.length) {
-      // Workaround for rows/columns being created two times (by HOT and the engine).
-      // (unfortunately, this requires an extra re-render)
-      this.hot.addHookOnce('afterChange', () => {
-        // A write-back in `beforeChangeRender` already wrote the whole set, these changes included,
-        // once the Core had created their rows and columns. A second write would be redundant and
-        // would add an entry to the engine's own undo stack (a grid undo never uses that stack,
-        // but an app calling `engine.undo()` directly would revert only that entry).
-        if (awaitingApply.writtenBack) {
-          return;
-        }
-
-        // The Core painted before it created these rows, so this grid paints too.
-        withPluginEngineWrite(this.engine!, () => this.engine!.batch(() => {
-          outOfBoundsChanges.forEach(([row, column, newValue]) => {
-            this.syncChangeWithEngine(row, column, newValue);
-          });
-        }));
-      });
+      this.#outOfBoundsWrites.set(changes, { awaitingApply, changes: outOfBoundsChanges });
     }
 
     this.validateDependentCells(dependentCells, changedCells);
+  };
+
+  /**
+   * `afterChange` hook callback. Writes the changes of a set that reached past the last row or column
+   * (`#outOfBoundsWrites`), once the Core applied the set and created those rows and columns: the engine
+   * would otherwise create them a second time. Only the set's own `afterChange` writes them.
+   *
+   * A write-back in `beforeChangeRender` already wrote the whole set, these changes included, once the
+   * Core had created their rows and columns. A second write would be redundant and would add an entry to
+   * the engine's own undo stack (a grid undo never uses that stack, but an app calling `engine.undo()`
+   * directly would revert only that entry). The Core painted before it created these rows, so this grid
+   * paints too.
+   *
+   * @param {Array[]|null} changes The applied change array.
+   */
+  #onAfterChangeWriteOutOfBounds = (changes: CellChange[] | null) => {
+    const pending = changes ? this.#outOfBoundsWrites.get(changes) : undefined;
+
+    if (!changes || !pending) {
+      return;
+    }
+
+    this.#outOfBoundsWrites.delete(changes);
+
+    if (pending.awaitingApply.writtenBack || !this.engine) {
+      return;
+    }
+
+    withPluginEngineWrite(this.engine, () => this.engine!.batch(() => {
+      pending.changes.forEach(([row, column, newValue]) => {
+        this.syncChangeWithEngine(row, column, newValue);
+      });
+    }));
   };
 
   /**
@@ -4460,7 +4520,9 @@ export class Formulas extends BasePlugin {
 
         if (physicalRow !== null && physicalColumn !== null) {
           this.syncChangeWithEngine(visualRow, visualColumn, newValue);
-          writtenCells.push({ address, physicalRow, physicalColumn, visualRow, visualColumn, oldValue });
+          writtenCells.push({
+            address, physicalRow, physicalColumn, visualRow, visualColumn, oldValue, writtenContent: undefined,
+          });
 
         } else {
           outOfBoundsChanges.push([visualRow, visualColumn, newValue]);
@@ -4469,6 +4531,10 @@ export class Formulas extends BasePlugin {
         changedCells.push({ address });
       });
     }));
+
+    writtenCells.forEach((cell) => {
+      cell.writtenContent = this.#readEngineContent(cell.address);
+    });
 
     return { dependentCells, changedCells, outOfBoundsChanges, writtenCells };
   }
@@ -4484,10 +4550,11 @@ export class Formulas extends BasePlugin {
    * `adjustRowsAndCols`, when a change lies out of bounds). It runs before the render that follows, so
    * the cell never paints its raw formula text. That window
    * is open while the Core validates a change, which it does in a microtask, so an `updateSettings()`
-   * in the same task rebuilds the sheet from source data that does not hold the change yet. After a
-   * sheet switch, the Core applies the change to the data of the sheet the grid shows now, so the
-   * set is written into that sheet - the current `sheetId` - for the engine to hold what the grid
-   * holds. A switch alone writes no sheet, so the sheet id, not the write count, detects it.
+   * in the same task rebuilds the sheet from source data that does not hold the change yet. A sheet
+   * switch loads data, so the Core drops a set that waited across one and this listener never sees it
+   * (`#onChangesDropped` handles it). The sheet id is still compared, so a set that does reach the
+   * render after the binding moved to another sheet is written into the current one, where the grid
+   * holds it.
    *
    * By now the Core has created the rows and columns an out-of-bounds change needed, so the whole set
    * is written in one batch - one engine undo entry for one grid action - and the deferred
@@ -4528,14 +4595,115 @@ export class Formulas extends BasePlugin {
   };
 
   /**
-   * Puts a sheet the grid switched away from back to the values a change set replaced in it. It runs
-   * inside the plugin write of the change set, which paints the grids that read the sheet.
-   *
-   * `afterSetDataAtCell` writes a change into the sheet the grid shows at that moment. When the grid
-   * switches to another sheet before the Core applies the (validated) change, the Core applies it to
-   * the data the grid shows NOW, and `#onBeforeChangeRender` writes it into that sheet. Without this,
-   * one `setDataAtCell()` ended up in both sheets: the switched-away sheet kept a value its grid data
+   * Called by the Core for a change set it dropped: the set waited for its validators while
+   * `loadData()` replaced the data, so it is never applied. `afterSetDataAtCell` already wrote it into
+   * the sheet the grid showed then, so when the grid now shows another sheet, that sheet is put back
+   * to the values the set replaced. Without this, the switched-away sheet kept a value its grid data
    * never received, and showed it on a switch back.
+   *
+   * While the grid still shows the sheet the set was written into, two cases differ. When a load the
+   * plugin did not make ran since the set was written (`#foreignLoadCount` moved), the grid holds that
+   * load's data, which never had the dropped value, and nothing is put back. That includes a load the
+   * engine refused, which empties the sheet without counting a sheet write. Otherwise every load was the
+   * plugin's own `switchSheet()` (away and back within the window), which loads the grid FROM the sheet,
+   * so the grid's data holds the dropped value too, and both are put back (`#restoreReloadedCells`), cell
+   * by cell only where the engine still holds what the first write put there: a newer edit of the cell
+   * keeps its value.
+   *
+   * The restore runs in a plugin write that paints this grid as well: the Core renders nothing for a
+   * dropped set, so a cell of the sheet shown that reads a restored cell kept the value computed from the
+   * dropped one. The set's pending out-of-bounds write is dropped with it.
+   *
+   * @param {Array[]} changes The dropped change array, the one `afterSetDataAtCell` received.
+   */
+  #onChangesDropped = (changes: CellChange[]) => {
+    const awaitingApply = this.#changesAwaitingApply.get(changes);
+
+    this.#outOfBoundsWrites.delete(changes);
+
+    if (!awaitingApply) {
+      return;
+    }
+
+    this.#changesAwaitingApply.delete(changes);
+
+    const { sheetId, writtenCells, foreignLoadCount } = awaitingApply;
+
+    if (!this.engine || sheetId === null) {
+      return;
+    }
+
+    if (sheetId !== this.sheetId) {
+      withPluginEngineWrite(this.engine, () => this.#restoreSwitchedAwaySheet(writtenCells, sheetId));
+
+    } else if (foreignLoadCount === this.#foreignLoadCount) {
+      this.#restoreReloadedCells(writtenCells);
+    }
+  };
+
+  /**
+   * Puts the old values of a dropped change set back into a grid that loaded its data from the engine
+   * sheet the set was written into, and into that sheet. The grid's data and the engine both hold the
+   * dropped value then. The values go through `setSourceDataAtCell()`, whose `afterSetSourceDataAtCell`
+   * writes the engine, at the cells the first write reached, translated from engine indexes, because the
+   * load built the grid's rows from the engine sheet. A cell whose engine content is no longer what the
+   * first write left (`WrittenCell#writtenContent`) is skipped. All cells go in one `setSourceDataAtCell()`
+   * call, so a dropped paste renders and writes the engine once. The write is not an undo step: the user
+   * never made the change it reverts.
+   *
+   * @param {Array} writtenCells The cells the first write reached.
+   */
+  #restoreReloadedCells(writtenCells: WrittenCell[]) {
+    const restores: [number, string | number, unknown][] = [];
+
+    writtenCells.forEach(({ address, oldValue, writtenContent }) => {
+      if (writtenContent === undefined || this.#readEngineContent(address) !== writtenContent) {
+        return;
+      }
+
+      const visualRow = this.rowAxisSyncer?.getVisualIndexFromHfIndex(address.row) ?? -1;
+      const visualColumn = this.columnAxisSyncer?.getVisualIndexFromHfIndex(address.col) ?? -1;
+      const physicalRow = visualRow < 0 ? null : this.hot.toPhysicalRow(visualRow);
+
+      if (physicalRow !== null && visualColumn >= 0) {
+        restores.push([physicalRow, this.hot.colToProp(visualColumn) as string | number, oldValue]);
+      }
+    });
+
+    if (restores.length === 0) {
+      return;
+    }
+
+    this.hot._getOperationScope().suppress(() => {
+      this.hot.setSourceDataAtCell(
+        restores, undefined as unknown as string, undefined, 'Formulas.restoreDroppedChange',
+      );
+    });
+  }
+
+  /**
+   * Reads what the engine holds in a cell (`getCellSerialized()`), or `undefined` when the address is
+   * outside what the engine can read (a sheet removed since, an index the engine refused).
+   *
+   * @param {object} address The engine address.
+   * @returns {*}
+   */
+  #readEngineContent(address: WrittenCell['address']): unknown {
+    if (!this.engine || address.sheet === null || address.row < 0 || address.col < 0
+      || this.engine.getSheetName(address.sheet) === undefined) {
+      return undefined;
+    }
+
+    return this.engine.getCellSerialized(address as { row: number; col: number; sheet: number });
+  }
+
+  /**
+   * Puts a sheet the grid switched away from back to the values a change set replaced in it. It runs
+   * inside a plugin write, which paints the grids that read the sheet.
+   *
+   * `afterSetDataAtCell` writes a change into the sheet the grid shows at that moment, before the Core
+   * validates it. When the grid shows another sheet by the time the set is dropped or applied, the
+   * sheet it was written into must not keep it.
    *
    * The cells come from the record the FIRST write kept (`ChangeSetAwaitingApply#writtenCells`), not
    * from mapping the changes again: by now the grid's indexes describe the switched-to sheet's data -

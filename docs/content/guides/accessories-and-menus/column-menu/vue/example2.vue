@@ -18,7 +18,7 @@ const hotSettings = ref<GridSettings>({
   autoWrapCol: true,
   height: 'auto',
   dropdownMenu: ['remove_col', '---------', 'make_read_only', '---------', 'alignment'],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 

@@ -352,7 +352,7 @@ class EditorManager {
    * @param {boolean} [enableFullEditMode=false] When true, an editor works in full editing mode. Mode disallows closing an editor
    *                                             when arrow keys are pressed.
    */
-  openEditor(newInitialValue: string | null, event: Event, enableFullEditMode = false) {
+  openEditor(newInitialValue: string | null, event?: Event, enableFullEditMode = false) {
     // The stored prepare belongs to the highlight and the meta it was built from. `loadData`
     // clears the meta cache and leaves both in place, so refresh before the editability check
     // unless an edit is already on screen.

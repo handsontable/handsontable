@@ -62,7 +62,7 @@ registerCellType(NumericCellType);
 ## Sample data, license, container
 
 - Put realistic sample data (company names, dates, currencies, countries; 20-50+ rows) in a data module (`src/data.js` is shared; a route can carry its own `data.js`).
-- Include `licenseKey: 'non-commercial-and-evaluation'`.
+- Pass `licenseKey: TEST_LICENSE_KEY`, imported from the app's `src/test-license-key` (the internal test key). Never write a key out: `scripts/__tests__/test-license-key.test.mjs` fails on a literal key in a demo, and checks that every test-key constant holds the same key.
 - Mount inside `#root`; a route module appends its own container to it.
 
 ## Smoke test

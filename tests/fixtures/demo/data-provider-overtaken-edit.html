@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - an edit waiting for its validator when the refetch after a save loads</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    /**
+     * The records the server holds. A save writes into them, and every fetch returns copies.
+     */
+    window.htRecords = [
+      { id: 'EMP-104', name: 'James Okafor' },
+      { id: 'EMP-221', name: 'Li Wei' },
+      { id: 'EMP-307', name: 'Priya Nair' },
+    ];
+    window.htSaves = [];
+    window.htPendingFetches = [];
+    window.htGates = new Map();
+
+    /**
+     * Answers a value the spec gated only when the spec releases it, the way a server-side uniqueness
+     * check answers later. Any other value is valid at once.
+     */
+    const gatedValidator = function(value, callback) {
+      const waiting = window.htGates.get(value);
+
+      if (waiting) {
+        waiting.push(callback);
+      } else {
+        callback(true);
+      }
+    };
+
+    let fetchCount = 0;
+    let hot;
+
+    try {
+      hot = new Handsontable(container, {
+        columns: [
+          { data: 'id', readOnly: true, renderer: testIdRenderer },
+          { data: 'name', validator: gatedValidator, allowInvalid: false, renderer: testIdRenderer },
+        ],
+        colHeaders: ['ID', 'Name'],
+        rowHeaders: true,
+        width: 500,
+        height: 'auto',
+        dataProvider: {
+          rowId: 'id',
+          fetchRows() {
+            fetchCount += 1;
+
+            return new Promise((resolve) => {
+              const respond = () => resolve({
+                rows: window.htRecords.map(record => ({ ...record })),
+                totalRows: window.htRecords.length,
+              });
+
+              if (fetchCount === 1) {
+                respond();
+              } else {
+                window.htPendingFetches.push(respond);
+              }
+            });
+          },
+          onRowsUpdate(rows) {
+            rows.forEach(({ id, changes }) => {
+              window.htSaves.push([id, changes.name]);
+              Object.assign(window.htRecords.find(record => record.id === id), changes);
+            });
+
+            return Promise.resolve();
+          },
+          onRowsCreate: () => Promise.resolve(),
+          onRowsRemove: () => Promise.resolve(),
+        },
+        licenseKey: window.htTestLicenseKey,
+      });
+    } catch (error) {
+      container.setAttribute('data-init-error', String(error && error.message));
+
+      throw error;
+    }
+
+    window.hot = hot;
+
+    /**
+     * Makes the validator hold its answer for a value until `htAnswer()`.
+     */
+    window.htGate = function(value) {
+      window.htGates.set(value, []);
+    };
+
+    /**
+     * Answers the held validator calls of a value and reports whether one was waiting.
+     */
+    window.htAnswer = function(value, result) {
+      const waiting = window.htGates.get(value) ?? [];
+
+      window.htGates.delete(value);
+      waiting.forEach(callback => callback(result));
+
+      return waiting.length > 0;
+    };
+
+    /**
+     * Adds a record at the top, so the next fetch puts every record one row lower.
+     */
+    window.htPrependRecord = function() {
+      window.htRecords.unshift({ id: 'EMP-512', name: 'Sofia Rossi' });
+    };
+
+    /**
+     * Answers every fetch the server holds and reports how many there were.
+     */
+    window.htReleaseFetches = function() {
+      const pending = window.htPendingFetches.splice(0);
+
+      pending.forEach(respond => respond());
+
+      return pending.length;
+    };
+
+    /**
+     * Reports the active editor's state and where it is open.
+     */
+    window.htEditorState = function() {
+      const editor = hot.getActiveEditor();
+
+      return {
+        opened: Boolean(editor && editor.isOpened()),
+        waiting: Boolean(editor && editor.isWaiting()),
+        row: editor ? editor.row : null,
+        col: editor ? editor.col : null,
+        value: editor && editor.isOpened() ? editor.getValue() : null,
+      };
+    };
+  </script>
+</body>
+</html>

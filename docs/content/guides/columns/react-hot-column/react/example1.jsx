@@ -25,11 +25,11 @@ const secondColumnSettings = {
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={hotData}
       autoWrapRow={true}
       autoWrapCol={true}
       height="auto"
-      licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn title="First column header" />
       <HotColumn settings={secondColumnSettings} />

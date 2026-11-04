@@ -39,9 +39,9 @@ const data = generateArabicData();
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey="non-commercial-and-evaluation"
       data={data}
       colHeaders={true}
       rowHeaders={true}

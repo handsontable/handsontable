@@ -179,6 +179,7 @@ const data = [
 export default function BaseThemeExample() {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       theme={baseDataGridTheme}
       data={data}
       width="100%"
@@ -191,7 +192,6 @@ export default function BaseThemeExample() {
         { data: 'location' },
         { data: 'active', type: 'checkbox' },
       ]}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 }

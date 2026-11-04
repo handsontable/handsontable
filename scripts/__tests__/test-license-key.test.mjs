@@ -11,8 +11,33 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
-// Both spellings the core accepts for the non-commercial key (`helpers/mixed.ts`).
-const LITERALS = ['non-commercial-and-evaluation', 'ht68e-1f2b7-47158-70b05-0842f'];
+// The text of the internal test key every constant holds (issued with `npm run
+// generate-internal-test-key` in the private `license-key` package). It names its holder in capitals.
+const TEST_KEY_MARKER = 'HANDSONTABLE INTERNAL TEST KEY';
+
+// Both spellings the core accepts for the non-commercial key (`helpers/mixed.ts`), and the test key.
+const LITERALS = ['non-commercial-and-evaluation', 'ht68e-1f2b7-47158-70b05-0842f', TEST_KEY_MARKER];
+
+// One constant per suite and per visual-test demo app. They must hold the same key, so renewing it
+// means pasting one new key into each of them.
+const CONSTANTS = [
+  'handsontable/test/helpers/licenseKey.js',
+  'tests/fixtures/demo/test-license-key.js',
+  'wrappers/react-wrapper/test/licenseKey.ts',
+  'wrappers/vue3/test/licenseKey.ts',
+  'wrappers/angular-wrapper/projects/hot-table/src/lib/test-helpers/license-key.ts',
+  'performance-tests/fixtures/test-license-key.js',
+  'examples/next/visual-tests/js/demo/src/test-license-key.js',
+  'examples/next/visual-tests/js/basic-example/src/test-license-key.js',
+  'examples/next/visual-tests/react-wrapper/demo/src/test-license-key.ts',
+  'examples/next/visual-tests/react-wrapper/basic-example/src/test-license-key.js',
+  'examples/next/visual-tests/vue3/demo/src/test-license-key.ts',
+  'examples/next/visual-tests/vue3/basic-example/src/test-license-key.ts',
+  'examples/next/visual-tests/angular-wrapper/demo/src/test-license-key.ts',
+  'examples/next/visual-tests/angular-wrapper/basic-example/src/test-license-key.ts',
+];
+
+const VISUAL_DEMOS = 'examples/next/visual-tests';
 
 const TEST_TREES = [
   'handsontable/src',
@@ -21,6 +46,11 @@ const TEST_TREES = [
   'wrappers/react-wrapper/test',
   'wrappers/vue3/test',
   'wrappers/angular-wrapper/projects',
+  // Not `performance-tests/fixtures`: `scripts/run.mjs` copies the built bundles there, and they
+  // name the key. Its one tracked file is the constant itself.
+  'performance-tests/scenarios',
+  // The demos the visual regression suite photographs.
+  VISUAL_DEMOS,
 ];
 
 const SKIPPED_DIRS = new Set(['node_modules', 'dist', 'tmp', 'test-results', 'playwright-report']);
@@ -33,6 +63,8 @@ const ALLOWED = {
   'wrappers/vue3/test/licenseKey.ts': 'the constant itself (Vue tests)',
   'wrappers/angular-wrapper/projects/hot-table/src/lib/test-helpers/license-key.ts':
     'the constant itself (Angular tests)',
+  ...Object.fromEntries(CONSTANTS.filter(path => path.startsWith(`${VISUAL_DEMOS}/`))
+    .map(path => [path, 'the constant itself (a visual-test demo app)'])),
   'handsontable/src/__tests__/settings/licenseKey.spec.js': 'tests how the key is read',
   'handsontable/src/helpers/__tests__/mixed.unit.ts': 'tests the legacy key checks',
   'handsontable/src/helpers/__tests__/entitlementLicenseInfo.unit.js': 'tests the license state of each key',
@@ -67,7 +99,7 @@ const ALLOWED = {
  * @returns {boolean}
  */
 function isTestFile(path) {
-  if (!/\.(m?js|ts|tsx|html)$/.test(path)) {
+  if (!/\.(m?js|jsx|ts|tsx|vue|html)$/.test(path)) {
     return false;
   }
 
@@ -123,8 +155,39 @@ test('no test writes the license key out; every suite reads its shared constant'
     'These tests write the license key out. Use the suite\'s constant instead: `TEST_LICENSE_KEY` '
     + '(handsontable/test/helpers/licenseKey.js, a global in Jasmine specs; licenseKey.ts in the React '
     + 'and Vue tests; test-helpers/license-key.ts in the Angular tests), `window.htTestLicenseKey` in a '
-    + 'Playwright fixture (load /tests/fixtures/demo/test-license-key.js), or `:licenseKey="testLicenseKey"` '
-    + 'in a Vue template. A test of the license behavior itself goes in ALLOWED, with the reason.');
+    + 'Playwright fixture (load /tests/fixtures/demo/test-license-key.js) or a performance fixture (load '
+    + '../../fixtures/test-license-key.js), `:licenseKey="testLicenseKey"` in a Vue template, or '
+    + '`TEST_LICENSE_KEY` from `src/test-license-key` in a visual-test demo app. A test of the license '
+    + 'behavior itself goes in ALLOWED, with the reason.');
+});
+
+test('every test-key constant holds the same internal test key', () => {
+  // Renewing the key means pasting it into each constant; one left behind would lock its suite's grids
+  // once the old key stops working.
+  const assignment = /^(?:export const TEST_LICENSE_KEY|window\.htTestLicenseKey) = '([^']+)';$/m;
+  const keys = CONSTANTS.map((path) => {
+    const match = readFromRoot(path).match(assignment);
+
+    assert.ok(match, `${path} assigns no single-line key.`);
+
+    return match[1];
+  });
+
+  assert.ok(keys[0].includes(TEST_KEY_MARKER), `The key in ${CONSTANTS[0]} is not the internal test key.`);
+  assert.deepEqual(CONSTANTS.filter((path, index) => keys[index] !== keys[0]), [],
+    `These constants hold another key than ${CONSTANTS[0]}. Paste the same key into each.`);
+});
+
+test('no Vue template passes the key in JSX braces', () => {
+  // In a Vue template `licenseKey={TEST_LICENSE_KEY}` is a static attribute: the grid gets the text
+  // `{TEST_LICENSE_KEY}` and shows the lock screen. Bind it (`:licenseKey="..."`) instead.
+  const jsxBraces = /(?<![:\w-])licenseKey=\{/;
+  const offenders = testFiles.filter(path => path.endsWith('.vue') && jsxBraces.test(readFromRoot(path)));
+
+  assert.deepEqual(offenders, [], 'These Vue templates pass the key as the literal text in braces. Bind it with '
+    + '`:licenseKey="..."` to a value the component exposes.');
+  assert.ok(jsxBraces.test('licenseKey={TEST_LICENSE_KEY}') && !jsxBraces.test(':licenseKey="licenseKeyProp"'),
+    'The JSX-brace check must catch the JSX form and pass a binding.');
 });
 
 test('every file the guard allows still holds a literal key', () => {
@@ -136,15 +199,17 @@ test('every file the guard allows still holds a literal key', () => {
   assert.deepEqual(stale, [], 'ALLOWED names files that no longer hold a literal key. Remove them.');
 });
 
-test('the scan finds a literal key it is given, in either spelling', () => {
+test('the scan finds a literal key it is given, in every spelling', () => {
   // The guard's own control: without it, a scan that read no file would pass the first test.
+  const demo = `${VISUAL_DEMOS}/js/demo/src/demos/new/index.js`;
   const fake = {
     'tests/fixtures/demo/new.html': `licenseKey: '${LITERALS[0]}',`,
     'wrappers/vue3/test/new.spec.ts': `licenseKey="${LITERALS[1]}"`,
+    [demo]: `licenseKey: 'This is a key for ${TEST_KEY_MARKER}'`,
     'tests/e2e/clean.spec.ts': 'licenseKey: window.htTestLicenseKey,',
   };
 
   assert.deepEqual(filesWithLiteral(Object.keys(fake), path => fake[path]),
-    ['tests/fixtures/demo/new.html', 'wrappers/vue3/test/new.spec.ts']);
+    ['tests/fixtures/demo/new.html', 'wrappers/vue3/test/new.spec.ts', demo]);
   assert.ok(testFiles.length > 500, `The scan found only ${testFiles.length} test files; check TEST_TREES.`);
 });
