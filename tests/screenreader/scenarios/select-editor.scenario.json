@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "id": "select-editor",
+  "surface": "The select editor, a native select over the cell: opening it, choosing an option with the arrow keys, and Enter committing it.",
+  "group": "editors",
+  "page": "select-editor",
+  "criteria": ["2.1.1", "4.1.2"],
+  "setup": [{"selectCell": [0, 3]}],
+  "steps": [
+    {
+      "id": "open-editor",
+      "action": {"press": "Enter"},
+      "expect": [["combo box", "combobox", "pop up button", "popup button", "list box"]],
+      "note": "Enter opens the editor on the cell holding `D1`, a native select with the options Option A and Option B. `D1` is not an option, so the select shows nothing chosen and no value is required: only the control's role, which each reader words its own way (NVDA `combo box`, VoiceOver `pop up button`). Unsure: the role words of Firefox and WebKit."
+    },
+    {
+      "id": "arrow-down-first",
+      "action": {"press": "ArrowDown"},
+      "expect": [["option a"]],
+      "note": "The editor answers ArrowDown itself and chooses the next option (a script sets it, so the native popup does not open on macOS). Unsure: a change made by script on a focused select may be announced late, or not at all."
+    },
+    {
+      "id": "arrow-down-second",
+      "action": {"press": "ArrowDown"},
+      "expect": [["option b"]]
+    },
+    {
+      "id": "commit-option",
+      "action": {"press": "Enter"},
+      "expect": [["d2"]],
+      "note": "Enter commits Option B and moves the selection one row down (enterMoves), so the cell announced is the next row's, which holds `D2`. The first page of the paginated grid holds both rows."
+    },
+    {
+      "id": "back-to-committed",
+      "action": {"press": "ArrowUp"},
+      "expect": [["option b"]],
+      "note": "ArrowUp returns to the edited cell, which now holds the committed option, `Option B`."
+    }
+  ]
+}

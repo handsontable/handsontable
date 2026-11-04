@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "id": "autocomplete-editor",
+  "surface": "The autocomplete editor: opening it on a cell, arrowing through its choices, typing to narrow the list, and Enter committing the choice.",
+  "group": "editors",
+  "page": "autocomplete-editor",
+  "criteria": ["1.3.1", "2.1.1", "4.1.2", "4.1.3"],
+  "setup": [{"selectCell": [0, 0]}],
+  "steps": [
+    {
+      "id": "open-editor",
+      "action": {"press": "Enter"},
+      "expect": [["al"], ["combo box", "combobox", "edit"]],
+      "note": "Enter opens the editor on the cell holding `Al`: a text field with the combobox role (aria-expanded true, a listbox of choices). The choices are Alpha, Alfa and Alto, all matching the prefix `Al`. Required: the editor's text and its role."
+    },
+    {
+      "id": "arrow-down-first",
+      "action": {"press": "ArrowDown"},
+      "expect": [["alpha"]],
+      "note": "ArrowDown highlights the first choice. The focus stays in the text field and aria-activedescendant names the option, so a reader should announce the option. The prefix is drawn in bold inside the option, which does not change its name."
+    },
+    {
+      "id": "arrow-down-second",
+      "action": {"press": "ArrowDown"},
+      "expect": [["alfa"]]
+    },
+    {
+      "id": "arrow-down-third",
+      "action": {"press": "ArrowDown"},
+      "expect": [["alto"]]
+    },
+    {
+      "id": "type-narrow",
+      "action": {"type": "f"},
+      "expect": [["alfa"]],
+      "note": "Typing `f` after `Al` narrows the list to the one choice that matches `Alf`, Alfa. The list is a polite live region (aria-live polite, aria-relevant text), so the change should be spoken without a focus move (4.1.3). Unsure: a reader may echo only the typed character, and that would be a finding."
+    },
+    {
+      "id": "arrow-down-narrowed",
+      "action": {"press": "ArrowDown"},
+      "expect": [["alfa"]],
+      "note": "Typing cleared the earlier pick, so ArrowDown highlights the first row of the narrowed list. Unsure: a reader that already announced `Alfa` on the previous step may say nothing new here."
+    },
+    {
+      "id": "commit-choice",
+      "action": {"press": "Enter"},
+      "expect": [["al"]],
+      "note": "Enter commits the highlighted choice and, as it does for every editor, moves the selection one row down (enterMoves), so the cell announced is the next row's, which holds `Al`. Silence here would mean the focus left the grid when the editor closed."
+    },
+    {
+      "id": "back-to-committed",
+      "action": {"press": "ArrowUp"},
+      "expect": [["alfa"]],
+      "note": "ArrowUp returns to the edited cell, which now holds the committed choice, `Alfa`."
+    }
+  ]
+}

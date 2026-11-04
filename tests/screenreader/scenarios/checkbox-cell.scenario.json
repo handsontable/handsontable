@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "id": "checkbox-cell",
+  "surface": "A checkbox column with a check-all header: the checked and unchecked states of its cells, Space toggling one, and the header's count.",
+  "group": "editors",
+  "page": "checkbox",
+  "criteria": ["1.3.1", "2.1.1", "4.1.2"],
+  "setup": [{"selectCell": [1, 1]}],
+  "steps": [
+    {
+      "id": "arrow-up-unchecked",
+      "action": {"press": "ArrowUp"},
+      "expect": [["unchecked", "not checked"], ["done"]],
+      "note": "Task 0's Done cell: the checkbox's name and state say `Unchecked`, and the column header is `Done`. The grid starts on Task 1's checked cell, the only one checked."
+    },
+    {
+      "id": "space-check",
+      "action": {"press": "Space"},
+      "expect": [["checked"]],
+      "note": "Space toggles the focused cell's checkbox and the focus stays on the cell; its name becomes `Checked`. Only the state is required: a reader that announces a state change says `checked` without repeating the name. Unsure that the change is announced at all, because the focus is on the cell, not on the checkbox inside it."
+    },
+    {
+      "id": "arrow-up-to-header",
+      "action": {"press": "ArrowUp"},
+      "expect": [["check all"], ["2 of 5"], ["mixed", "partially checked", "indeterminate"]],
+      "note": "Navigable headers let ArrowUp enter the column header, which holds the check-all checkbox. Its name carries the count, `Check all (2 of 5 checked)` (the read-only row is not counted), and its state is mixed while some rows are checked. Unsure how each reader words a mixed state."
+    },
+    {
+      "id": "arrow-down-back",
+      "action": {"press": "ArrowDown"},
+      "expect": [["checked"], ["done"]],
+      "note": "Back on Task 0's cell, which now reads checked."
+    },
+    {
+      "id": "space-uncheck",
+      "action": {"press": "Space"},
+      "expect": [["unchecked", "not checked"]],
+      "note": "Space again unchecks the cell: the state is spoken the other way."
+    },
+    {
+      "id": "arrow-down-checked",
+      "action": {"press": "ArrowDown"},
+      "expect": [["checked"], ["done"]],
+      "note": "Task 1's cell, the one checked from the start."
+    },
+    {
+      "id": "arrow-down-read-only",
+      "action": {"press": "ArrowDown"},
+      "expect": [["unchecked", "not checked"], ["done"]],
+      "note": "Task 2's cell is read only and unchecked. The tree golden carries no read-only state for it, so none is required; Finding candidate: nothing tells a reader that Space will not toggle this checkbox."
+    }
+  ]
+}

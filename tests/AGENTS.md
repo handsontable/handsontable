@@ -2119,11 +2119,12 @@ screen readers (`docs/AGENTS.md` 2.20).
   half on NVDA and four to five seconds on VoiceOver, a silent one on VoiceOver about thirteen. Each
   scenario names its `group` (`SCENARIO_GROUPS` in `lib/screenreader-scenario.mjs`: `keyboard` for what a
   keyboard user does in the grid itself, `reading` for the reading-mode traversals, `menus` for the menus
-  and the filters inside them), each group is
+  and the filters inside them, `editors` for the cell editors and the checkbox cell), each group is
   a matrix entry of both jobs in `.github/workflows/screenreader.yml` with its own job, `HOT_SR_GROUP`,
   artifacts (`screenreader-transcripts-<project>-<group>`, `screenreader-goldens-<project>-<group>`) and
   check run (`Screen reader / <project> <group> report`), and a run without `HOT_SR_GROUP` (a local one)
-  runs every group. When a group's job passes 15 minutes on any project, split it: a new group joins the
+  runs every group. When a group's job passes 15 minutes on any project, or the scenarios a change adds
+  would take it there, split it: a new group joins the
   list and both `group:` matrix lines together (the workflow test reads the list), and the scenarios move
   in the same change. A scenario's test timeout is the config's five minutes or 60 s plus 12 s per step,
   whichever is longer (`scenarioTimeout()` in the spec): a busy macOS runner made every VoiceOver step
