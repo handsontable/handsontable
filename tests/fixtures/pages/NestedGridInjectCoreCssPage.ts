@@ -1,7 +1,7 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle, awaitFixtureBuilt } from '../bundle';
 
-export type NestedGridSurface = 'editor' | 'contextMenu' | 'dropdownMenu';
+export type NestedGridSurface = 'editor' | 'contextMenu' | 'dropdownMenu' | 'contextMenuInFrame';
 export type InjectCoreCssMode = 'off' | 'default';
 
 /**
@@ -30,7 +30,12 @@ export class NestedGridInjectCoreCssPage {
     );
     await awaitBundle(this.page);
     await awaitFixtureBuilt(this.page);
-    await expect(this.cell(0, 0)).toBeVisible();
+
+    const firstCell = surface === 'contextMenuInFrame'
+      ? this.page.frameLocator('#grid-frame').locator('.ht_master tbody tr').first().locator('td').first()
+      : this.cell(0, 0);
+
+    await expect(firstCell).toBeVisible();
   }
 
   /**
@@ -52,6 +57,26 @@ export class NestedGridInjectCoreCssPage {
    */
   async injectedCoreStylesCount(): Promise<number> {
     return this.page.locator('head style#handsontable-core-styles').count();
+  }
+
+  /**
+   * How many core stylesheets Handsontable has injected into the head of the frame that holds the grid (the
+   * `contextMenuInFrame` surface).
+   */
+  async injectedCoreStylesCountInGridFrame(): Promise<number> {
+    return this.page.frameLocator('#grid-frame').locator('head style#handsontable-core-styles').count();
+  }
+
+  /**
+   * Open the context menu on a cell of the grid in the frame. The menu renders into this page through
+   * `uiContainer`, so it is found among the page's own elements.
+   */
+  async openContextMenuOfGridInFrame(row: number, col: number): Promise<void> {
+    await this.page.frameLocator('#grid-frame').locator('.ht_master tbody tr').nth(row).locator('td').nth(col)
+      .click({ button: 'right' });
+    await expect.poll(() => this.page.evaluate(
+      () => (window as any).hot.getPlugin('contextMenu').menu?.isOpened() ?? false
+    )).toBe(true);
   }
 
   /**

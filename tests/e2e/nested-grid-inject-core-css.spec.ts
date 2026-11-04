@@ -49,6 +49,26 @@ test.describe('nested grids follow the parent grid\'s injectCoreCss', { tag: BUN
     expect(await grid.injectedCoreStylesCount()).toBe(0);
   });
 
+  test('a context menu in another document gets the core stylesheet there when the grid injects', async () => {
+    await grid.goto('contextMenuInFrame', 'default');
+    // The grid injected into its own document, the frame; the page holding the menu has no copy yet.
+    expect(await grid.injectedCoreStylesCountInGridFrame()).toBe(1);
+    expect(await grid.injectedCoreStylesCount()).toBe(0);
+
+    await grid.openContextMenuOfGridInFrame(0, 3);
+
+    expect(await grid.injectedCoreStylesCount()).toBe(1);
+  });
+
+  test('a context menu in another document injects nothing when the grid has injectCoreCss off', async () => {
+    await grid.goto('contextMenuInFrame');
+
+    await grid.openContextMenuOfGridInFrame(0, 3);
+
+    expect(await grid.injectedCoreStylesCount()).toBe(0);
+    expect(await grid.injectedCoreStylesCountInGridFrame()).toBe(0);
+  });
+
   test('turning injectCoreCss on after the grid was built does not make a list inject', async () => {
     await grid.goto('editor');
     await grid.updateInjectCoreCss(true);

@@ -70,6 +70,13 @@ export class StylesHandler {
   readonly #rootDocument: Document;
 
   /**
+   * Whether this instance was told to inject the core styles, decided once at construction.
+   *
+   * @type {boolean}
+   */
+  readonly #injectCoreCss: boolean;
+
+  /**
    * An object to store CSS variable values.
    *
    * @type {object}
@@ -127,10 +134,22 @@ export class StylesHandler {
     this.#rootElement = rootElement;
     this.#rootDocument = rootDocument;
     this.#onThemeChange = onThemeChange;
+    this.#injectCoreCss = injectCoreCss;
 
     if (injectCoreCss) {
       this.#injectCoreStyles();
     }
+  }
+
+  /**
+   * Tells whether this instance was told to inject the core styles when it was created. A grid that renders into
+   * another document (a menu in a `uiContainer` of an iframe's parent) passes this value on, so the core styles reach
+   * that document exactly when the grid that owns it injects them.
+   *
+   * @returns {boolean}
+   */
+  isCoreCssInjectionEnabled(): boolean {
+    return this.#injectCoreCss;
   }
 
   /**

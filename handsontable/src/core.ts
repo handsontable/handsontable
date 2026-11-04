@@ -917,9 +917,11 @@ export default function Core(
       }
     },
     // A grid Handsontable builds internally (an editor list, a menu, the Filters value list) is never a root
-    // instance and never injects: its root grid has already injected the stylesheet, or was told not to.
-    injectCoreCss: isRootInstance(this) &&
-      (typeof userSettings?.injectCoreCss === 'boolean' ? userSettings.injectCoreCss : true),
+    // instance. It injects only when its builder asks for it explicitly: `Menu` does, with its host's value,
+    // because a `uiContainer` can put the menu in another document, which the host's injection never reached.
+    injectCoreCss: isRootInstance(this)
+      ? userSettings?.injectCoreCss !== false
+      : userSettings?.injectCoreCss === true,
   });
 
   /**

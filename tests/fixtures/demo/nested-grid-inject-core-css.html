@@ -25,7 +25,12 @@
     }
     // One nested-grid surface per page. The core stylesheet is injected once per document, so a
     // second surface on the same page could hide the first one's injection.
-    window.htSurface = ({ editor: 'editor', contextMenu: 'contextMenu', dropdownMenu: 'dropdownMenu' })[htParams.get('surface') ?? 'editor'];
+    window.htSurface = ({
+      editor: 'editor',
+      contextMenu: 'contextMenu',
+      dropdownMenu: 'dropdownMenu',
+      contextMenuInFrame: 'contextMenuInFrame',
+    })[htParams.get('surface') ?? 'editor'];
     if (!window.htSurface) {
       throw new Error('Unknown ?surface= value: ' + JSON.stringify(htParams.get('surface')));
     }
@@ -78,6 +83,26 @@
     if (window.htSurface === 'contextMenu') {
       settings.contextMenu = true;
     }
+    let gridContainer = container;
+
+    if (window.htSurface === 'contextMenuInFrame') {
+      // The grid lives in a same-origin frame and its menu renders into this page through `uiContainer`, so the
+      // menu sits in a document the grid's own injection (into the frame) never reaches. The menu's grid has to
+      // inject here itself when the grid injects.
+      const frame = document.createElement('iframe');
+
+      frame.id = 'grid-frame';
+      frame.style.cssText = 'width: 600px; height: 300px; border: 0;';
+      container.appendChild(frame);
+
+      const frameDocument = frame.contentDocument;
+      const uiContainer = document.createElement('div');
+
+      document.body.appendChild(uiContainer);
+      gridContainer = frameDocument.createElement('div');
+      frameDocument.body.appendChild(gridContainer);
+      settings.contextMenu = { uiContainer };
+    }
     if (window.htSurface === 'dropdownMenu') {
       settings.dropdownMenu = true;
       settings.filters = true;
@@ -89,7 +114,7 @@
     container.className = `ht-theme-${window.htTheme}`;
 
     try {
-      window.hot = new Handsontable(container, settings);
+      window.hot = new Handsontable(gridContainer, settings);
     } catch (error) {
       // The shared fixture contract: `awaitFixtureBuilt()` rethrows this with the constructor's stack.
       window.htBuildError = String((error && error.stack) || error);

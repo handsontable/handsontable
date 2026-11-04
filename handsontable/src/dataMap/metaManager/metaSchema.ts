@@ -8550,9 +8550,10 @@ export default (): Record<string, unknown> => {
      * Handsontable reads this option once, when it creates the grid. Changing it with
      * [`updateSettings()`](@/api/core.md#updatesettings) has no effect.
      *
-     * Grids that Handsontable builds inside a grid never inject the core styles. These include the lists of the
+     * Grids that Handsontable builds inside a grid follow the grid's setting. These include the lists of the
      * `autocomplete`, `dropdown`, and `handsontable` editors, the context menu, the dropdown menu, and the
-     * [`Filters`](@/api/filters.md) menus.
+     * [`Filters`](@/api/filters.md) menus. With `false`, none of them injects the core styles. A menu that renders
+     * into another document through the `uiContainer` option injects them there only when the grid injects them.
      *
      * Read more:
      * - [Themes](@/guides/styling/themes/themes.md)
