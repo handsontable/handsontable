@@ -5219,8 +5219,15 @@ export default function Core(
   const getValueToValidate = (row: number, column: number, cellMeta?: CellProperties): unknown => {
     const meta = cellMeta ?? instance.getCellMetaTransient(row, column);
     const { type, valueGetter } = meta;
-    const isCellTypeGetter = typeof valueGetter === 'function' && typeof type === 'string' &&
-      hasCellType(type) && getCellType(type).valueGetter === valueGetter;
+    // `type` is a registered name or the cell type object itself, as `extendByMetaType()` reads it.
+    let cellType: unknown = isObject(type) ? type : null;
+
+    if (typeof type === 'string' && hasCellType(type)) {
+      cellType = getCellType(type);
+    }
+
+    const isCellTypeGetter = typeof valueGetter === 'function' && isObject(cellType) &&
+      (cellType as { valueGetter?: unknown }).valueGetter === valueGetter;
 
     return datamap.get(row, colToPropOrIndex(instance, column), { skipValueGetter: isCellTypeGetter });
   };

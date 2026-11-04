@@ -63,6 +63,13 @@ describe('Core bulk validation of the stored value', () => {
 
   const VALID_CELLS = [
     {
+      name: 'a key/value entry in a column whose type is the autocomplete cell type object',
+      settings: {
+        data: [[{ key: 'a', value: 'Alpha' }]],
+        columns: [{ type: Handsontable.cellTypes.getCellType('autocomplete'), source: KEY_VALUE_SOURCE, strict: true }],
+      },
+    },
+    {
       name: 'a key/value entry in a strict autocomplete column',
       settings: {
         data: [[{ key: 'a', value: 'Alpha' }]],
