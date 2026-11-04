@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Removed the `non-commercial-and-evaluation` license key. Handsontable now reads it, and its second form, as an invalid key, which locks the grid. The Angular wrapper no longer exports `NON_COMMERCIAL_LICENSE`.",
+  "type": "removed",
+  "issueOrPR": 14144,
+  "breaking": true,
+  "framework": "none"
+}
