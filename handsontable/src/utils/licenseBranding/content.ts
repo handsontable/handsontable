@@ -109,9 +109,7 @@ export const LOCK_CONTENT: Partial<Record<LicenseStateKey, (lifecycle: LicenseLi
   }),
   missing: () => ({
     title: 'The license key for Handsontable is missing.',
-    description: 'Use your purchased key to activate the product. Alternatively, you can activate ' +
-      'Handsontable to use for non-commercial purposes by passing the key: ' +
-      '\'non-commercial-and-evaluation\'. ',
+    description: 'Use your purchased key to activate the product. ',
     action: { text: 'Contact Support', href: SUPPORT_MAILTO },
     docsLink: {
       text: 'Read more',

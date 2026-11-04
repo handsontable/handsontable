@@ -349,6 +349,29 @@ cache has resumed. It replaced a `clearBorders()` plus `setBorders()` replay of 
 which lost every border on a filtered row. Pinned by the sorted-sheet and moved-column cases in
 `../sheetsBar/__tests__/cellMetaRoundTrip.unit.js`. The bar's side of it is in `../sheetsBar/AGENTS.md`.
 
+## A border added from the context menu stores a `var()` color
+
+`setBorder()` (the menu path) writes `createContextMenuCustomBorder()`: width 1 and `color:
+'var(--ht-custom-borders-default-color, #000)'` (`CONTEXT_MENU_BORDER_COLOR`). Walkontable paints a border
+with an inline `background-color`, so a stylesheet rule can never recolor it: the theme token has to travel
+inside the stored value. The token's light branch is `#000` in every theme, so light grids look as before,
+and the `#000` fallback covers a grid with no theme loaded.
+
+- **Only the menu path uses it.** A configured side given as `true` (`createDefaultCustomBorder()`) or `{}`
+  (which falls back to the cell's `border.color` from `createDefaultHtBorder()`) keeps `#000`: that is the
+  documented default of the `customBorders` option, and changing a default is a breaking change.
+- **`getBorders()` and `getCellMeta().borders` return the `var()` string** for a menu border. The XLSX
+  export maps this string to black (`FF000000`, `cssColorToArgb`), which is the right Excel value.
+- **The token lives in Figma too:** `component/cell/custom-borders-default-color` in the `themes` collection,
+  aliasing `<theme>/custom/custom-borders-default` in the `mode` collection (light is the theme's black, dark
+  is its foreground step). `npm run generate:themes` reproduces it from the export. If an export ever lacks
+  it, the generator drops the key silently, the `#000` fallback takes over, and the menu border turns
+  invisible in dark schemes again. The guard is `src/themes/__tests__/customBordersDefaultColor.unit.js` and
+  the dark-scheme case of `CustomBorders added from the context menu` in `tests/e2e/customBorders.spec.ts`.
+- **The name says "default" on purpose:** it is the color a border gets when nobody picked one. Today only
+  the menu path reads it; moving the configured default (`top: true`) onto it would change a documented
+  default, so it waits for a major release.
+
 ## `width: 0` is a real value
 
 Walkontable honors an explicit `width: 0` (DEV-1137). See `../../3rdparty/walkontable/AGENTS.md`

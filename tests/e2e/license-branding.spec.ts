@@ -380,7 +380,10 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
       await license.goto(INSTANT.duringTrial, { key: 'missing', variant: 'narrow' });
 
       await expect(license.lock).toBeVisible();
-      await expect(license.lock).toContainText('non-commercial-and-evaluation');
+      // The e-mail address is the longest unbreakable token left in the missing-key copy.
+      await expect(license.lock).toContainText('support@handsontable.com');
+      // PRO-1357: the lock no longer suggests the key the next major reads as invalid.
+      await expect(license.lock).not.toContainText('non-commercial-and-evaluation');
       expect(await license.lockContentOverflowPx()).toBe(0);
     });
 

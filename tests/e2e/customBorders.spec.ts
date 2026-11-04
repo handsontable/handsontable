@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test';
 import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { CustomBordersLabPage } from '../fixtures/pages/CustomBordersLabPage';
 import { CustomBordersDemoPage } from '../fixtures/pages/CustomBordersDemoPage';
+import { contrastRatio, NON_TEXT_RATIO } from '../lib/contrast.mjs';
 
 const GREEN_BORDER = { color: 'green', width: 1 };
 const RED_BORDER = { color: 'red', width: 2 };
@@ -1913,5 +1914,58 @@ test.describe('CustomBorders cleared while rows are sorted and filtered', { tag:
     expect(await lab.visibleBorderColors()).not.toContain('rgb(0, 0, 255)');
     expect(await page.evaluate(() => (window as any).hot.getCellMeta(7, 0).borders ?? null)).toBeNull();
     expect(await lab.borderCoords()).toEqual([]);
+  });
+});
+
+/**
+ * Parse an `rgb()`/`rgba()` color string into `[r, g, b, a]`.
+ */
+function parseRgba(color: string): [number, number, number, number] {
+  const match = color.match(/rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,\s/]+([\d.]+))?/);
+
+  if (!match) {
+    throw new Error(`Not an rgb() color: ${color}`);
+  }
+
+  return [Number(match[1]), Number(match[2]), Number(match[3]), match[4] === undefined ? 1 : Number(match[4])];
+}
+
+test.describe('CustomBorders added from the context menu', { tag: THEMES_TAG }, () => {
+  test('paints a black border in the light color scheme', async ({ page, theme, bundle }) => {
+    const lab = new CustomBordersLabPage(page, theme, bundle);
+
+    await lab.goto('light');
+    await lab.createGrid({ dataRows: 5, dataCols: 5, contextMenu: true, customBorders: true });
+
+    await lab.addBorderViaContextMenu(1, 1, 'Bottom');
+
+    await expect.poll(() => lab.visibleBorderComputedColors()).toEqual(['rgb(0, 0, 0)']);
+  });
+
+  test('paints a border that stays visible in the dark color scheme', async ({ page, theme, bundle }) => {
+    const lab = new CustomBordersLabPage(page, theme, bundle);
+
+    await lab.goto('dark');
+    await lab.createGrid({ dataRows: 5, dataCols: 5, contextMenu: true, customBorders: true });
+
+    await lab.addBorderViaContextMenu(1, 1, 'Bottom');
+
+    await expect.poll(async() => (await lab.visibleBorderComputedColors()).length).toBe(1);
+
+    const [border] = (await lab.visibleBorderComputedColors()).map(parseRgba);
+    // A bottom edge sits between row 1 and row 2, which can differ (striped rows).
+    const backgrounds = [
+      parseRgba(await lab.cellBackgroundColor(1, 1)),
+      parseRgba(await lab.cellBackgroundColor(2, 1)),
+    ];
+
+    // The ratio is only meaningful against an opaque painted background.
+    expect(backgrounds.map(([, , , alpha]) => alpha)).toEqual([1, 1]);
+    expect(border[3]).toBe(1);
+
+    // A non-text UI component needs 3:1 against what it sits on (WCAG 2.2, 1.4.11).
+    const ratio = Math.min(...backgrounds.map(background => contrastRatio(border.slice(0, 3), background.slice(0, 3))));
+
+    expect(ratio).toBeGreaterThanOrEqual(NON_TEXT_RATIO);
   });
 });

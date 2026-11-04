@@ -121,9 +121,7 @@ const consoleMessages: Record<string, (params: { keyValidityDate?: string; hotVe
     to ${keyValidityDate}. If you need any help, contact us at sales@handsontable.com.`,
   missing: () => toSingleLine`
     The license key for Handsontable is missing. Use your purchased key to activate the product.\x20
-    Alternatively, you can activate Handsontable to use for non-commercial purposes by\x20
-    passing the key: 'non-commercial-and-evaluation'. If you need any help, contact\x20
-    us at support@handsontable.com.`,
+    If you need any help, contact us at support@handsontable.com.`,
   non_commercial: () => '',
 };
 
@@ -183,9 +181,7 @@ const domMessages: Record<string, (params: { keyValidityDate?: string; hotVersio
     '.',
   ],
   missing: () => [
-    'The license key for Handsontable is missing. Use your purchased key to activate the product. ' +
-      'Alternatively, you can activate Handsontable to use for non-commercial purposes by ' +
-      'passing the key: \'non-commercial-and-evaluation\'. ',
+    'The license key for Handsontable is missing. Use your purchased key to activate the product. ',
     { text: 'Read more', href: 'https://handsontable.com/docs/tutorial-license-key.html', target: '_blank' },
     ' about it in the documentation or contact us at ',
     { text: 'support@handsontable.com', href: 'mailto:support@handsontable.com' },

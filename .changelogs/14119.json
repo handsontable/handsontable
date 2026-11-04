@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the import of the errors Excel stores as rich values, such as #SPILL! and #CALC!, to the built-in XLSX engine. Such cells used to import as #VALUE!. A cell holding a linked data type, such as Stocks, is now reported in result.dropped.",
+  "type": "added",
+  "issueOrPR": 14119,
+  "breaking": false,
+  "framework": "none"
+}

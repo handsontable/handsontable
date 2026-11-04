@@ -421,7 +421,7 @@ export class LicenseBrandingPage {
   /**
    * How far the lock's own content sticks out past the lock box, in pixels. The sentences moved here
    * from the bottom bar, which needed a minimum width and a scrolling slot for exactly this reason
-   * (DEV-2192): they hold unbreakable tokens ('non-commercial-and-evaluation', e-mail addresses) and
+   * (DEV-2192): they hold unbreakable tokens (e-mail addresses) and
    * the lock is only as wide as the grid, so on a narrow grid they used to push straight out of it.
    */
   async lockContentOverflowPx(): Promise<number> {

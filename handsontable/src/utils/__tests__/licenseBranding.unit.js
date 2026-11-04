@@ -877,7 +877,9 @@ describe('licenseBranding', () => {
         .querySelector('.ht-dialog__description').textContent;
 
       expect(description).toContain('Use your purchased key to activate the product.');
-      expect(description).toContain('passing the key: \'non-commercial-and-evaluation\'');
+      // PRO-1357: the next major reads that key as invalid, so the lock must not suggest it.
+      expect(description).not.toContain('non-commercial');
+      expect(description).not.toContain('Alternatively');
     });
 
     it.each(['invalid', 'missing'])(
