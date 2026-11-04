@@ -52,7 +52,7 @@ import getOptionsList, {
   TYPES,
   getConditionListType,
 } from './constants';
-import type { IndexMap, TrimmingMap } from '../../translations';
+import type { TrimmingMap } from '../../translations';
 import type { BaseComponent } from './component/_base';
 import type { BaseUI } from './ui/_base';
 import { ColumnDataMap, stampPhysicalCoordinates } from './columnDataMap';
@@ -164,6 +164,18 @@ interface AppliedConditionsState {
  */
 function isAppliedConditionsState(value: unknown): value is AppliedConditionsState {
   return typeof value === 'object' && value !== null && 'conditions' in value && Array.isArray(value.conditions);
+}
+
+/**
+ * Tells whether a value a `modifyFiltersMatchedRows` listener returned is a physical row index
+ * within `0..countSourceRows - 1`.
+ *
+ * @param {*} value The value to test.
+ * @param {number} countSourceRows The number of source rows.
+ * @returns {boolean}
+ */
+function isPhysicalRowInRange(value: unknown, countSourceRows: number): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value < countSourceRows;
 }
 
 /**
@@ -564,22 +576,36 @@ export class Filters extends BasePlugin {
 
     // Visual order, so the two overlays freeze the rows the user actually sees. `getIndexesSequence()`
     // carries the sort permutation, and the rows another plugin trims are dropped from it here.
-    const rowOrder = this.hot.rowIndexMapper.getIndexesSequence();
-    const visibleRows = rowOrder.filter(physicalRow => !this.#isTrimmedByAnotherPlugin(physicalRow));
+    const visibleRows = this.#getRowSequenceUntrimmedBy(map => map !== this.filtersRowsMap);
     const resolved = getPinnedPhysicalRows(visibleRows, top, bottom);
 
     return resolved.size > 0 ? resolved : null;
   }
 
   /**
-   * Whether a row is trimmed by a map other than this plugin's own.
+   * Returns the physical rows of `getIndexesSequence()` (visual order, sort and row moves included)
+   * that none of the selected trimming maps trims. The maps are read once per call, not per row.
    *
-   * @private
+   * @param {Function} isCountedMap Decides whether a trimming map's trimmed rows are dropped.
+   * @returns {number[]}
    */
-  #isTrimmedByAnotherPlugin(physicalRow: number): boolean {
-    const trimmingMaps = this.hot.rowIndexMapper.trimmingMapsCollection.get() as IndexMap[];
+  #getRowSequenceUntrimmedBy(isCountedMap: (map: TrimmingMap) => boolean): number[] {
+    const countedMaps = (this.hot.rowIndexMapper.trimmingMapsCollection.get() as TrimmingMap[])
+      .filter(isCountedMap);
 
-    return trimmingMaps.some(map => map !== this.filtersRowsMap && map.getValueAtIndex(physicalRow) === true);
+    return this.hot.rowIndexMapper.getIndexesSequence()
+      .filter(physicalRow => !countedMaps.some(map => map.getValueAtIndex(physicalRow) === true));
+  }
+
+  /**
+   * Whether a trimming map flagged `keepsRowsInFilterScope` currently trims at least one row - a
+   * collapsed nested parent. Only then can a row in the value list's scope lack a visual index.
+   *
+   * @returns {boolean}
+   */
+  #hasRowsFoldedInFilterScope(): boolean {
+    return (this.hot.rowIndexMapper.trimmingMapsCollection.get() as TrimmingMap[])
+      .some(map => map.keepsRowsInFilterScope && map.getValues().includes(true));
   }
 
   /**
@@ -595,17 +621,14 @@ export class Filters extends BasePlugin {
    * @private
    */
   #getRowsInValueListScope(): number[] {
-    const scopeTrimmingMaps = (this.hot.rowIndexMapper.trimmingMapsCollection.get() as TrimmingMap[])
-      .filter(map => !map.keepsRowsInFilterScope);
+    const scopeRows = this.#getRowSequenceUntrimmedBy(map => !map.keepsRowsInFilterScope);
     const pinnedRows = this.#getPinnedRows();
 
-    return this.hot.rowIndexMapper.getIndexesSequence().filter((physicalRow) => {
-      if (pinnedRows !== null && pinnedRows.has(physicalRow)) {
-        return false;
-      }
+    if (pinnedRows === null) {
+      return scopeRows;
+    }
 
-      return !scopeTrimmingMaps.some(map => map.getValueAtIndex(physicalRow) === true);
-    });
+    return scopeRows.filter(physicalRow => !pinnedRows.has(physicalRow));
   }
 
   /**
@@ -775,8 +798,8 @@ export class Filters extends BasePlugin {
     const isKept = new Uint8Array(countSourceRows);
 
     modifiedRows.forEach((physicalRow: unknown) => {
-      if (Number.isInteger(physicalRow) && (physicalRow as number) >= 0 && (physicalRow as number) < countSourceRows) {
-        isKept[physicalRow as number] = 1;
+      if (isPhysicalRowInRange(physicalRow, countSourceRows)) {
+        isKept[physicalRow] = 1;
       }
     });
 
@@ -2923,9 +2946,14 @@ export class Filters extends BasePlugin {
    * @returns {Array<{value: *, meta: CellProperties}>}
    */
   #getUnconditionedValueList(column: number, physicalColumn: number): Record<string, unknown>[] {
-    const scopeRows = this.#getRowsInValueListScope();
     // `getDataAtCol()` reads one `null` from a grid with no rows, which is not a value to list.
     const visibleValues = this.hot.countRows() === 0 ? [] : this.hot.getDataAtCol(column);
+
+    if (!this.#hasRowsFoldedInFilterScope()) {
+      return this.#getVisibleValueList(column, visibleValues);
+    }
+
+    const scopeRows = this.#getRowsInValueListScope();
     const visualRows = scopeRows.map(physicalRow => this.hot.toVisualRow(physicalRow));
     const foldedRows = scopeRows.filter((physicalRow, index) => visualRows[index] === null);
     const foldedEntries = new Map<number, Record<string, unknown>>();
@@ -2956,11 +2984,47 @@ export class Filters extends BasePlugin {
         return;
       }
 
+      // `maxRows` trims nothing in the index mapper, so a row past the cap keeps a visual index
+      // while `getDataAtCol()` stops at `countRows()`. It is not a row the grid has.
+      if (visualRow >= visibleValues.length) {
+        return;
+      }
+
       entries.push({
         value: toEmptyString(visibleValues[visualRow]),
         meta: this.hot.getCellMetaTransient(visualRow, column),
       });
     });
+
+    return entries;
+  }
+
+  /**
+   * Builds the value list from the rows the grid shows, exactly as before DEV-512: the values
+   * `getDataAtCol()` read (it stops at `countRows()`, so `maxRows` is respected) with the meta of
+   * `getCellMetaTransient()`, minus the pinned rows. Used whenever no `keepsRowsInFilterScope` map
+   * folds a row away, because the rows in scope are then exactly the visible ones.
+   *
+   * @param {number} column Visual column index.
+   * @param {Array} visibleValues The column's values from `getDataAtCol()`.
+   * @returns {Array<{value: *, meta: CellProperties}>}
+   */
+  #getVisibleValueList(column: number, visibleValues: unknown[]): Record<string, unknown>[] {
+    // The SAME physical set the has-conditions branch uses, translated per row rather than dropped
+    // by position, so a column's list does not change the moment it gets a condition of its own.
+    const pinnedRows = this.#getPinnedRows();
+    const entries: Record<string, unknown>[] = [];
+
+    for (let visualRow = 0; visualRow < visibleValues.length; visualRow++) {
+      if (pinnedRows !== null && pinnedRows.has(this.hot.toPhysicalRow(visualRow))) {
+        continue; // eslint-disable-line no-continue
+      }
+
+      entries.push({
+        value: toEmptyString(visibleValues[visualRow]),
+        meta: this.hot.getCellMetaTransient(visualRow, column),
+      });
+    }
 
     return entries;
   }

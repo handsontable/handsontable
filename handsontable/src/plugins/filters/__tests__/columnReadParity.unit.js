@@ -469,6 +469,32 @@ describe('Filters -> column read parity', () => {
         ]);
       });
 
+      it('should list no row past `maxRows` while a parent is collapsed', () => {
+        const filters = buildGrid([
+          {
+            name: 'Parent A',
+            __children: [{ name: 'Child A1' }, { name: 'Child A2' }],
+          },
+          {
+            name: 'Parent B',
+            __children: [{ name: 'Child B1', __children: [{ name: 'Grandchild B1a' }] }],
+          },
+        ], {
+          nestedRows: true,
+          maxRows: 3,
+          columns: [{ data: 'name' }],
+        }).getPlugin('filters');
+
+        hot.getPlugin('nestedRows').collapseParent(0);
+
+        expect(hot.getDataAtCol(0)).toEqual(['Parent A', 'Parent B', 'Child B1']);
+        // The folded children of Parent A stay listed; Grandchild B1a sits past the cap, so it is
+        // not a row the grid has and is not listed as a blank either.
+        expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toEqual([
+          'Parent A', 'Child A1', 'Child A2', 'Parent B', 'Child B1',
+        ]);
+      });
+
       it('should not list collapsed rows that an earlier column filtered out', () => {
         const filters = buildGrid([
           {
@@ -602,6 +628,26 @@ describe('Filters -> column read parity', () => {
 
       expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toEqual(expected);
       expect(expected[0]).toBe('got-10');
+    });
+
+    it('should list only the rows below `maxRows` for a column with no condition', () => {
+      const filters = buildGrid([['a'], ['b'], ['c'], ['d'], ['e']], {
+        maxRows: 2,
+      }).getPlugin('filters');
+
+      // `maxRows` trims nothing in the index mapper, so the rows past the cap keep a visual index
+      // while the grid reads no value for them. They are not rows, and must not list as blanks.
+      expect(hot.countRows()).toBe(2);
+      expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toEqual(['a', 'b']);
+    });
+
+    it('should build the list of a grid with no folded rows without walking the row sequence', () => {
+      const filters = buildGrid([['a'], ['b'], ['c']]).getPlugin('filters');
+      const sequenceSpy = jest.spyOn(hot.rowIndexMapper, 'getIndexesSequence');
+
+      expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toEqual(['a', 'b', 'c']);
+      // Only a row folded away by a `keepsRowsInFilterScope` map needs the physical walk.
+      expect(sequenceSpy).not.toHaveBeenCalled();
     });
 
     it('should keep rows trimmed by trimRows out of the list', () => {
