@@ -475,6 +475,7 @@ $all-sheets-visible-items: 8;
         font-family: inherit;
         cursor: pointer;
         padding: 0;
+        margin: 0;
       }
 
       // The tab is the focus stop, so the ring belongs to the whole of it. Drawn inside, so a
@@ -575,6 +576,10 @@ $all-sheets-visible-items: 8;
         box-shadow: none;
         border-radius: 0;
         padding: 0;
+        margin: 0;
+        height: auto;
+        min-height: 0;
+        max-height: none;
         // The tab's accent border is the focus indication, exactly like the cell editor it
         // borrows its tokens from — the browser's own focus ring drew a second, rounded
         // outline around the field (UX review: "like the design system").
@@ -600,6 +605,7 @@ $all-sheets-visible-items: 8;
         letter-spacing: inherit;
         font-family: inherit;
         padding: 0;
+        margin: 0;
         border: none;
       }
 

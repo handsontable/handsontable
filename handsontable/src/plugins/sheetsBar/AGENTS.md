@@ -85,6 +85,15 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `@layer` (important declarations reverse layer order), so do not claim the strip is immune to host
   CSS. Chrome 121+ ignores `::-webkit-scrollbar` once `scrollbar-width` is not `auto`, so that rule
   only backs up older engines.
+- **Every bare `<span>` and `<input>` the bar or its menus render resets its own box.** A host
+  `span {}` or `input {}` rule (specificity 0,0,1) reaches them: `input { height: 40px }` grew the
+  rename field from 20 to 40 px and the bar with it, and `span { padding: 12px; border: 2px solid }`
+  grew the all-sheets rows from 29 to 56 px through the name span and the `span.selected` mark. Reset
+  `padding`, `margin`, `border` (and `height`/`min-height`/`max-height` on the input) next to the
+  text-metric `inherit`s. The menu resets sit under `.handsontable.htSheetsBarMenu` in
+  `_dropdown-menu.scss`, so the context and dropdown menus that share `span.selected` keep their
+  rules. A new span or input needs the same resets and a case in
+  `tests/e2e/sheets-bar-host-element-css.spec.ts`.
 - **The keyboard lives in a shortcut context** (`plugin:sheetsBar`) behind a focus scope, like
   Pagination. The scope's `runOnlyIf` stands aside while one of the bar's menus is open — the
   click that opens a menu reaches the scope manager after the menu has taken the keyboard, and
