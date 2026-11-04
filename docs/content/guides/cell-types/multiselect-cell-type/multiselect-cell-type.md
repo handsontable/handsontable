@@ -233,7 +233,7 @@ When working with object-based MultiSelect data, you can use methods like [`getS
 
 ## Result
 
-After configuring the multiselect cell type, cells display a dropdown that allows selecting multiple items. Each selected value appears as a removable chip inside the cell. The underlying data source stores the selections as an array. This also applies when you use the Formulas plugin: only the copy passed to HyperFormula is a comma-separated string.
+After configuring the multiselect cell type, cells display a dropdown that allows selecting multiple items. Each selected value appears as a removable chip inside the cell. A cell that doesn't accept edits ([`readOnly`](@/api/options.md#readonly) set to `true`, or [`editor`](@/api/options.md#editor) set to `false`) shows its chips without the remove button. The underlying data source stores the selections as an array. This also applies when you use the Formulas plugin: only the copy passed to HyperFormula is a comma-separated string.
 
 ## Related articles
 

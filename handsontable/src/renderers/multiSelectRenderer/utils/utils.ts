@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../../core/types';
+import type { CellProperties } from '../../../settings';
 import { isKeyValueObject } from '../../../helpers/object';
 import { A11Y_HIDDEN } from '../../../helpers/a11y';
 import { addClass, eventTargetEl, hasClass, isHTMLElement } from '../../../helpers/dom/element';
@@ -17,6 +18,57 @@ const beforeColumnResizeHookRegistered = new WeakSet<object>();
 const latestColumnWidthCache = new WeakMap<object, Record<number, { width: number }>>();
 const chipsEventManagers = new WeakMap<object, EventManager>();
 const arrowEventManagers = new WeakMap<object, EventManager>();
+
+/**
+ * Checks whether the user may remove chips from a cell.
+ *
+ * The remove button writes through `setDataAtCell`, which does not check `readOnly` itself, so the
+ * button has to. A cell that names NO editor (`editor: false` or `null`) refuses edits as well,
+ * matching the checkbox renderer. The `editor` meta is read directly rather than resolved through
+ * `Core#getCellEditor()`, which throws on an unknown editor name and would turn a misconfigured
+ * column into a render-time failure.
+ *
+ * @param {CellProperties} cellProperties The cell meta object.
+ * @returns {boolean} `true` when the chips can be removed.
+ */
+export function isChipRemovable(cellProperties: CellProperties): boolean {
+  return !cellProperties.readOnly
+    && cellProperties.editor !== false
+    && cellProperties.editor !== null;
+}
+
+/**
+ * Returns the chip whose remove button a pointer event targets, when that chip may be removed.
+ *
+ * The button is found by ancestor, not by the target's own class: it hosts a real icon element
+ * whose markup a theme `icons` renderer may extend, and the press may then target that. The cell
+ * meta is read at press time rather than taken from the render, so a button still drawn after the
+ * cell stopped accepting edits (`setCellMeta` does not re-render) stays inert.
+ *
+ * @param {HotInstance} hotInstance The Handsontable instance.
+ * @param {Event} event The pointer event.
+ * @returns {HTMLElement | null} The chip, or `null` when the event does not remove one.
+ */
+function getRemovableChip(hotInstance: HotInstance, event: Event): HTMLElement | null {
+  const target = eventTargetEl(event);
+
+  if (!target || target.closest(`.${CHIP_REMOVE_CLASS}`) === null) {
+    return null;
+  }
+
+  const chip = target.closest<HTMLElement>(`.${CHIP_CLASS}`);
+
+  if (!chip) {
+    return null;
+  }
+
+  const cellProperties = hotInstance.getCellMetaTransient(
+    Number(chip.dataset.row ?? 0),
+    Number(chip.dataset.col ?? 0)
+  );
+
+  return isChipRemovable(cellProperties) ? chip : null;
+}
 
 /**
  *
@@ -62,7 +114,8 @@ export function createChipElement(
   row: number,
   col: number,
   prop: string | number,
-  hotInstance: HotInstance
+  hotInstance: HotInstance,
+  isRemovable = true
 ): HTMLElement {
   const chip = rootDocument.createElement('span');
   const textContent = getItemProperty(item, 'value');
@@ -78,6 +131,13 @@ export function createChipElement(
   addClass(label, CHIP_LABEL_CLASS);
   label.textContent = textContent;
   chip.appendChild(label);
+  chip.dataset.key = getItemProperty(item, 'key');
+
+  // A cell that refuses edits draws no remove button: a button that does nothing would still offer
+  // the action, with its pointer cursor and hover state.
+  if (!isRemovable) {
+    return chip;
+  }
 
   const removeBtn = rootDocument.createElement('span');
 
@@ -92,8 +152,6 @@ export function createChipElement(
   // on the glyph still land on this span rather than being intercepted by the icon - same reasoning
   // as the dropdown indicator's arrow below.
   removeBtn.appendChild(createIcon(hotInstance, 'chipClose'));
-
-  chip.dataset.key = getItemProperty(item, 'key');
   chip.appendChild(removeBtn);
 
   return chip;
@@ -232,20 +290,16 @@ export function registerChipRemovingEvents(
   const eventManager = chipsEventManagers.get(hotInstance)!;
 
   eventManager.addEventListener(hotInstance.rootElement, 'click', (event: Event) => {
-    // By ancestor, not by the target's own class: the remove button hosts a real icon element
-    // whose markup a theme `icons` renderer may extend, and the press may then target that.
-    if (eventTargetEl(event)!.closest(`.${CHIP_REMOVE_CLASS}`) === null) {
+    const chip = getRemovableChip(hotInstance, event);
+
+    // A press on a cell that refuses edits is left alone, so it behaves like a press anywhere else
+    // in the cell.
+    if (!chip) {
       return;
     }
 
     event.preventDefault();
     event.stopPropagation();
-
-    const chip = eventTargetEl(event)!.closest(`.${CHIP_CLASS}`) as HTMLElement | null;
-
-    if (!chip) {
-      return;
-    }
 
     const visualRow = Number(chip.dataset.row ?? 0);
     const visualColumn = Number(chip.dataset.col ?? 0);
@@ -262,11 +316,10 @@ export function registerChipRemovingEvents(
     hotInstance.setDataAtCell(visualRow, visualColumn, newData, `${rendererType}-renderer`);
   });
 
-  hotInstance.addHook('beforeOnCellMouseDown', (...args: unknown[]) => {
-    const event = args[0] as Event;
-
-    if (eventTargetEl(event)!.closest(`.${CHIP_REMOVE_CLASS}`) !== null) {
-      stopImmediatePropagation(event as MouseEvent);
+  hotInstance.addHook('beforeOnCellMouseDown', (event: MouseEvent) => {
+    // Only a press that removes a chip keeps the cell from being selected.
+    if (getRemovableChip(hotInstance, event) !== null) {
+      stopImmediatePropagation(event);
     }
   });
 }
