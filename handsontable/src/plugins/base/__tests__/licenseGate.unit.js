@@ -334,9 +334,9 @@ describe('BasePlugin license gate', () => {
 
     it('should hide the undo and redo items of the context menu when the key keeps UndoRedo off', () => {
       // eslint-disable-next-line global-require
-      const undoItem = require('handsontable/plugins/contextMenu/predefinedItems/undo').default;
+      const undoItem = require('handsontable/utils/menu/predefinedItems/undo').default;
       // eslint-disable-next-line global-require
-      const redoItem = require('handsontable/plugins/contextMenu/predefinedItems/redo').default;
+      const redoItem = require('handsontable/utils/menu/predefinedItems/redo').default;
       const restricted = createGrid({ licenseKey: FLAGGED_MINIMAL_KEY });
       const covered = createGrid({ licenseKey: FLAGGED_BASE_KEY });
 

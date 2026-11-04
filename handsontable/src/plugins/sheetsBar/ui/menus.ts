@@ -1,6 +1,6 @@
-import { Menu } from '../../contextMenu/menu';
-import { SEPARATOR } from '../../contextMenu/predefinedItems';
-import { getDocumentOffsetByElement } from '../../contextMenu/utils';
+import { Menu } from '../../../utils/menu/menu';
+import { SEPARATOR } from '../../../utils/menu/predefinedItems';
+import { getDocumentOffsetByElement } from '../../../utils/menu/utils';
 import { setAttribute, getDeepActiveElement } from '../../../helpers/dom/element';
 import { A11Y_LABEL } from '../../../helpers/a11y';
 import * as C from '../../../i18n/constants';

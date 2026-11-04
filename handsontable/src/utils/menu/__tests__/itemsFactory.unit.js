@@ -1,4 +1,4 @@
-import { ItemsFactory } from 'handsontable/plugins/contextMenu/itemsFactory';
+import { ItemsFactory } from 'handsontable/utils/menu/itemsFactory';
 
 /**
  * `ItemsFactory` only needs `hot.rootElement` — it is the scope the "warn once" state binds to.

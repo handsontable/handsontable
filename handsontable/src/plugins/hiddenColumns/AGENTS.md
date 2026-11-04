@@ -292,7 +292,7 @@ decides for itself now — see "The engine decides for itself when the overlays 
 
 - The row mirror: `../hiddenRows/AGENTS.md`. Trimming instead of hiding: `../trimRows/AGENTS.md`.
 - Consumers of `skipColumnOnPaste`: `../copyPaste/AGENTS.md`, `../autofill/AGENTS.md`.
-- Menu entries: `contextMenuItem/`, wired via `../contextMenu/AGENTS.md`.
+- Menu entries: `contextMenuItem/`, registered through `registerMenuEntries()` (`../../utils/menu/AGENTS.md`). The context menu shows them by default. The dropdown menu has them available only (`inDefaults: false`): `hidden_columns_hide` / `hidden_columns_show` resolve when the user lists them, and `dropdownMenu: true` does not show them, so its default list stays what it was.
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
 
 ## Testing

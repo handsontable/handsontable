@@ -13,6 +13,8 @@ export interface PluginIndexMapperStub {
   getVisualFromRenderableIndex: (renderableIndex: number) => number | null;
   getRenderableIndexesLength: () => number;
   getNumberOfIndexes: () => number;
+  isHidden: (physicalIndex: number) => boolean;
+  getNearestNotHiddenIndex: (fromVisualIndex: number, searchDirection: 1 | -1) => number | null;
 }
 
 /**
@@ -63,6 +65,10 @@ export interface PluginHotStubShape {
   getCoords: () => unknown;
   countRows: () => number;
   countCols: () => number;
+  toPhysicalRow: (visualRow: number) => number;
+  toPhysicalColumn: (visualColumn: number) => number;
+  toVisualRow: (physicalRow: number) => number;
+  toVisualColumn: (physicalColumn: number) => number;
   render: jest.Mock;
   getFirstRenderedVisibleRow: () => number;
   getLastRenderedVisibleRow: () => number;
@@ -81,6 +87,7 @@ export interface PluginHotStubShape {
   getCellMetaTransient: jest.Mock<Record<string, unknown>, [number, number]>;
   selectCell: jest.Mock;
   selectCells: jest.Mock;
+  listen: jest.Mock;
   getLayoutManager: () => { register: jest.Mock; unregister: jest.Mock };
   getCurrentThemeName: () => string | null;
   isRtl: () => boolean;
@@ -134,6 +141,9 @@ export function makeIndexMapperStub(length = 0): PluginIndexMapperStub {
     getVisualFromRenderableIndex: renderableIndex => renderableIndex,
     getRenderableIndexesLength: () => length,
     getNumberOfIndexes: () => length,
+    isHidden: () => false,
+    // Nothing is hidden, so the nearest shown index is the one asked for.
+    getNearestNotHiddenIndex: fromVisualIndex => fromVisualIndex,
   };
 }
 
@@ -190,6 +200,10 @@ export function makePluginHotStub(
     getCoords: () => null,
     countRows: () => 0,
     countCols: () => 0,
+    toPhysicalRow: visualRow => visualRow,
+    toPhysicalColumn: visualColumn => visualColumn,
+    toVisualRow: physicalRow => physicalRow,
+    toVisualColumn: physicalColumn => physicalColumn,
     render: jest.fn(),
     getFirstRenderedVisibleRow: () => 0,
     getLastRenderedVisibleRow: () => 0,
@@ -208,6 +222,7 @@ export function makePluginHotStub(
     getCellMetaTransient: jest.fn(() => ({})),
     selectCell: jest.fn(),
     selectCells: jest.fn(),
+    listen: jest.fn(),
     ...makeGridSelectionApiStub(),
     getLayoutManager: () => layoutManager,
     getCurrentThemeName: () => null,

@@ -6,7 +6,7 @@ import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
 import { isHTMLElement } from '../../helpers/dom/element';
 import type { HotInstance } from '../../core/types';
 import type { default as VisualSelection } from '../../selection/highlight/visualSelection';
-import type { VisualHfIndexMapping } from './internalTypes';
+import type { AutoScrollTarget, VisualHfIndexMapping } from './internalTypes';
 import type {
   CellAddress,
   CellPick,
@@ -72,6 +72,70 @@ const BORDER_DASH_MASK = 'repeating-linear-gradient(45deg, #000 0 2px, transpare
  * `color-mix(in srgb, ...)`.
  */
 const SAFE_COLOR_PATTERN = /^[\w#%(),./*+\s-]+$/;
+
+/**
+ * A rectangle of visual rows and columns, inclusive on every side.
+ */
+interface VisualBox {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+}
+
+/**
+ * A merged cell, in visual coordinates.
+ */
+interface MergeArea {
+  row: number;
+  col: number;
+  rowspan: number;
+  colspan: number;
+}
+
+/**
+ * Grows the box, in place, over a merge it overlaps without covering it.
+ *
+ * @param {VisualBox} box The box to grow.
+ * @param {MergeArea} merge The merged cell.
+ * @returns {boolean} Whether the box grew.
+ */
+function growBoxOverMerge(box: VisualBox, { row, col, rowspan, colspan }: MergeArea): boolean {
+  const bottom = row + rowspan - 1;
+  const right = col + colspan - 1;
+  const overlaps = row <= box.bottom && bottom >= box.top && col <= box.right && right >= box.left;
+  const covered = row >= box.top && col >= box.left && bottom <= box.bottom && right <= box.right;
+
+  if (!overlaps || covered) {
+    return false;
+  }
+
+  box.top = Math.min(box.top, row);
+  box.left = Math.min(box.left, col);
+  box.bottom = Math.max(box.bottom, bottom);
+  box.right = Math.max(box.right, right);
+
+  return true;
+}
+
+/**
+ * Grows the box, in place, until it covers every merged cell it touches. A merge the box grows over
+ * can reach another one, so it repeats until nothing grows.
+ *
+ * @param {VisualBox} box The box to grow.
+ * @param {MergeArea[]} merges The merged cells.
+ * @returns {boolean} Whether the box grew at all.
+ */
+function growBoxOverMerges(box: VisualBox, merges: readonly MergeArea[]): boolean {
+  let grewAtAll = false;
+
+  for (let grown = true; grown;) {
+    grown = merges.reduce((grew, merge) => growBoxOverMerge(box, merge) || grew, false);
+    grewAtAll ||= grown;
+  }
+
+  return grewAtAll;
+}
 
 /**
  * The visual (grid-space) cell range type produced by the Handsontable coordinate factory.
@@ -247,8 +311,9 @@ export interface FormulaBuilderPluginLike {
    *
    * @param {number} row The visual row index.
    * @param {number} col The visual column index.
+   * @returns {boolean} `false` when the grid did not select the cell.
    */
-  selectFormulaCell(row: number, col: number): void;
+  selectFormulaCell(row: number, col: number): boolean;
   /**
    * Selects a cell range in visual coordinates.
    *
@@ -256,8 +321,9 @@ export interface FormulaBuilderPluginLike {
    * @param {number} startCol The visual start column index.
    * @param {number} endRow The visual end row index.
    * @param {number} endCol The visual end column index.
+   * @returns {boolean} `false` when the grid did not select the range.
    */
-  selectFormulaCells(startRow: number, startCol: number, endRow: number, endCol: number): void;
+  selectFormulaCells(startRow: number, startCol: number, endRow: number, endCol: number): boolean;
 }
 
 /**
@@ -375,6 +441,11 @@ export class HandsontableAdapter {
    */
   #overlayClassName: string | null = null;
   /**
+   * Whether the adapter added `#overlayClassName` to the overlay host itself. A host that already
+   * carried it (core keeps the grid theme class on the root wrapper) keeps it on removal.
+   */
+  #addedOverlayClassName = false;
+  /**
    * The resolved reference-highlight border width, probed lazily from the
    * `--hfe-reference-border-width` theme variable.
    */
@@ -491,7 +562,8 @@ export class HandsontableAdapter {
    * Returns the element that scrolls the grid: the master holder, or a scrolling ancestor of the
    * grid. The element that scrolls the rows wins; with the window scrolling the rows, the element
    * that scrolls the columns. Returns `null` when the window owns both axes, because a page scroll
-   * needs no element to follow: the editor moves with the page.
+   * needs no element to follow: the editor moves with the page. The reference drag scrolls the
+   * page through `getAutoScrollTarget()`.
    *
    * @returns {HTMLElement | null}
    */
@@ -507,6 +579,113 @@ export class HandsontableAdapter {
     // `isHTMLElement()` rather than `instanceof HTMLElement`: a grid in an iframe driven from the
     // parent page has elements of the iframe's realm.
     return isHTMLElement(scrollable) ? scrollable : null;
+  }
+
+  /**
+   * Returns what the reference drag's edge auto-scroller scrolls, per axis: the element that owns the
+   * axis, or a stand-in for the window's viewport when the window owns it. With one owner for both
+   * axes that owner is returned; with a pixel `width` and no `height` the window scrolls the rows and
+   * the holder the columns, so the target takes its vertical members from the viewport and its
+   * horizontal ones from the holder. The holder alone spans every row there, so a pointer below the
+   * window still sat inside it and the page never scrolled.
+   *
+   * @returns {AutoScrollTarget | null}
+   */
+  getAutoScrollTarget(): AutoScrollTarget | null {
+    const overlays = this.#hot.view?._wt?.wtOverlays;
+    const verticalOwner = overlays?.topOverlay?.mainTableScrollableElement;
+    const horizontalOwner = overlays?.inlineStartOverlay?.mainTableScrollableElement;
+    const viewport = this.#viewportScrollTarget();
+    const vertical = isHTMLElement(verticalOwner) ? verticalOwner : viewport;
+    const horizontal = isHTMLElement(horizontalOwner) ? horizontalOwner : viewport;
+
+    if (vertical === null || horizontal === null) {
+      return vertical ?? horizontal;
+    }
+
+    if (vertical === horizontal) {
+      return vertical;
+    }
+
+    return {
+      getBoundingClientRect: () => {
+        const verticalBox = vertical.getBoundingClientRect();
+        const horizontalBox = horizontal.getBoundingClientRect();
+
+        return {
+          left: horizontalBox.left,
+          right: horizontalBox.right,
+          top: verticalBox.top,
+          bottom: verticalBox.bottom,
+        };
+      },
+      get scrollLeft() {
+        return horizontal.scrollLeft;
+      },
+      set scrollLeft(value: number) {
+        horizontal.scrollLeft = value;
+      },
+      get scrollTop() {
+        return vertical.scrollTop;
+      },
+      set scrollTop(value: number) {
+        vertical.scrollTop = value;
+      },
+      get clientLeft() {
+        return horizontal.clientLeft;
+      },
+      get clientTop() {
+        return vertical.clientTop;
+      },
+      get clientWidth() {
+        return horizontal.clientWidth;
+      },
+      get clientHeight() {
+        return vertical.clientHeight;
+      },
+    };
+  }
+
+  /**
+   * Returns a stand-in for the window's viewport. It cannot be the document's scrolling element itself:
+   * its rectangle is the whole page, so a pointer below the window would still sit inside it and the
+   * page would never scroll. The stand-in reports the viewport's box and steps the page.
+   *
+   * @returns {AutoScrollTarget | null}
+   */
+  #viewportScrollTarget(): AutoScrollTarget | null {
+    const rootDocument = this.#hot.rootDocument;
+    const viewport = rootDocument.documentElement;
+    // The root element in standards mode; an environment without `scrollingElement` scrolls it too.
+    const scroller = rootDocument.scrollingElement ?? viewport;
+
+    if (!scroller || !viewport) {
+      return null;
+    }
+
+    return {
+      getBoundingClientRect: () => ({ left: 0, top: 0, right: viewport.clientWidth, bottom: viewport.clientHeight }),
+      get scrollLeft() {
+        return scroller.scrollLeft;
+      },
+      set scrollLeft(value: number) {
+        scroller.scrollLeft = value;
+      },
+      get scrollTop() {
+        return scroller.scrollTop;
+      },
+      set scrollTop(value: number) {
+        scroller.scrollTop = value;
+      },
+      clientLeft: 0,
+      clientTop: 0,
+      get clientWidth() {
+        return viewport.clientWidth;
+      },
+      get clientHeight() {
+        return viewport.clientHeight;
+      },
+    };
   }
 
   /**
@@ -572,6 +751,48 @@ export class HandsontableAdapter {
   }
 
   /**
+   * Grows a picked range to cover every merged cell it touches, the way the grid's own selection
+   * grows over a merge (MergeCells expands it in `beforeSelectionHighlightSet`). Without it a drag
+   * from A3 onto a merged A1:B2 inserted `A1:A3`, a range that cuts the merge. The range is read in
+   * HyperFormula space and returned in it; a corner that has no visual index leaves it as it is.
+   *
+   * @param {CellRange} range The picked range, in HyperFormula coordinates.
+   * @returns {CellRange} The range covering every merge it touches.
+   */
+  expandRangeOverMerges(range: CellRange): CellRange {
+    const mergeCells = this.#hot.getPlugin('mergeCells');
+    // The same read ExportFile makes: the plugin keeps its merges, in visual coordinates, there.
+    const merges = mergeCells?.enabled ? mergeCells.mergedCellsCollection?.mergedCells ?? [] : [];
+
+    if (merges.length === 0) {
+      return range;
+    }
+
+    const rows = [range.start.row, range.end.row].map(row => this.#mapping.hfToVisualRow(row));
+    const cols = [range.start.col, range.end.col].map(col => this.#mapping.hfToVisualCol(col));
+
+    if (rows.some(row => row < 0) || cols.some(col => col < 0)) {
+      return range;
+    }
+
+    const box = {
+      top: Math.min(...rows), bottom: Math.max(...rows), left: Math.min(...cols), right: Math.max(...cols),
+    };
+
+    if (!growBoxOverMerges(box, merges)) {
+      return range;
+    }
+
+    const start = this.#toHfAddress(box.top, box.left);
+    const end = this.#toHfAddress(box.bottom, box.right);
+
+    return start && end ? {
+      start: { ...start, sheet: range.start.sheet },
+      end: { ...end, sheet: range.end.sheet },
+    } : range;
+  }
+
+  /**
    * Renders the ephemeral (drag preview) highlight.
    *
    * @param {CellRange} range The range to highlight.
@@ -612,9 +833,11 @@ export class HandsontableAdapter {
   }
 
   /**
-   * Applies the consumer's theming class to the grid root element so CSS variables
-   * scoped under it (e.g. reference palette overrides) cascade to the highlighted
-   * cells and their selection borders.
+   * Applies the consumer's theming class to the overlay host (the grid's root wrapper) so CSS
+   * variables scoped under it (e.g. reference palette overrides) cascade to the highlighted cells
+   * and their selection borders. A class the host already carries is left alone, and only a class
+   * the adapter added is removed: the plugin passes the grid theme class, which core owns on the
+   * wrapper and swaps on a theme change.
    *
    * @param {string | null} className The class name, or `null` to remove it.
    */
@@ -623,13 +846,19 @@ export class HandsontableAdapter {
       return;
     }
 
-    if (this.#overlayClassName !== null) {
-      this.#overlayHost.classList.remove(this.#overlayClassName);
+    const { classList } = this.#overlayHost;
+
+    if (this.#overlayClassName !== null && this.#addedOverlayClassName) {
+      classList.remove(this.#overlayClassName);
     }
 
-    if (className !== null) {
-      this.#overlayHost.classList.add(className);
+    const addsClass = className !== null && !classList.contains(className);
+
+    if (addsClass) {
+      classList.add(className);
     }
+
+    this.#addedOverlayClassName = addsClass;
 
     this.#overlayClassName = className;
   }
@@ -936,14 +1165,42 @@ export class HandsontableAdapter {
    * @returns {boolean} Whether the editor opened.
    */
   beginEdit(_address: CellAddress, seed?: string): boolean {
-    // `openEditor()` takes the event that opened the editor and passes it to `beforeBeginEditing`.
-    // The formula bar opens it from its own focus or click, which the grid never saw, so there is
-    // no grid event to pass.
-    this.#hot._getEditorManager().openEditor(seed ?? null, undefined as unknown as Event, true);
+    // `openEditor()` passes the event that opened the editor to `beforeBeginEditing`, whose
+    // listeners read it. The formula bar opens it from its own focus or click, which the grid never
+    // saw, so it gets a synthetic `focus` event from the grid's window. Not a `MouseEvent`:
+    // `openEditor()` refuses a mouse-opened edit over a range or a second layer, and the bar edits
+    // the active cell of any selection.
+    const FocusEventClass = this.#hot.rootWindow.FocusEvent;
+
+    this.#hot._getEditorManager().openEditor(
+      this.#editorSeed(seed),
+      new FocusEventClass('focus'),
+      true,
+    );
 
     const editor = this.#hot.getActiveEditor() as { isOpened?(): boolean } | undefined;
 
     return editor?.isOpened?.() === true;
+  }
+
+  /**
+   * Decides what the editor is opened with. `BaseEditor#beginEditing()` treats a string seed as typed
+   * text, so its unchanged-value guard never arms and an untouched commit would write the string
+   * form of the cell (`5` becomes `"5"`, `null` becomes `""`) and record an undo step. A seed equal
+   * to the active cell's raw text is therefore replaced with `null`, which makes the editor read
+   * the cell itself and arms that guard.
+   *
+   * @param {string} [seed] The text the formula bar holds.
+   * @returns {string | null} The seed to open the editor with, or `null` to seed from the cell.
+   */
+  #editorSeed(seed?: string): string | null {
+    if (seed === undefined) {
+      return null;
+    }
+
+    const active = this.getActiveCell();
+
+    return active && this.getCellFormula(active) === seed ? null : seed;
   }
 
   /**
@@ -957,8 +1214,9 @@ export class HandsontableAdapter {
    * Moves the grid selection to a single cell.
    *
    * @param {CellAddress} address The target address in HyperFormula coordinates.
-   * @returns {boolean | void} `false` when the grid shows no row or column to move to, which the
-   * address box announces as unavailable.
+   * @returns {boolean | void} `false` when the grid shows no row or column to move to, hides it
+   * (HiddenRows, HiddenColumns, another Pagination page), caps it away (`maxRows`), or does not select
+   * it, which the address box announces as unavailable.
    */
   setActiveCell(address: CellAddress): boolean | void {
     // A trimmed row (Filters, TrimRows) has no visual index. The address box already accepted the
@@ -967,11 +1225,11 @@ export class HandsontableAdapter {
     const visualRow = this.#nearestVisual(address.row, 'row');
     const visualCol = this.#nearestVisual(address.col, 'col');
 
-    if (visualRow < 0 || visualCol < 0) {
+    if (!this.#isShownIndex(visualRow, 'row') || !this.#isShownIndex(visualCol, 'col')) {
       return false;
     }
 
-    this.#plugin.selectFormulaCell(visualRow, visualCol);
+    return this.#plugin.selectFormulaCell(visualRow, visualCol);
   }
 
   /**
@@ -991,11 +1249,13 @@ export class HandsontableAdapter {
     const endRow = this.#firstVisualIn(range.end.row, range.start.row, rowToVisual);
     const endCol = this.#firstVisualIn(range.end.col, range.start.col, colToVisual);
 
-    if (startRow < 0 || startCol < 0 || endRow < 0 || endCol < 0) {
+    // A corner on a hidden index is kept, as `selectCells()` keeps it; only a range with no shown index
+    // between its corners on an axis is refused.
+    if (!this.#hasShownIndexBetween(startRow, endRow, 'row') || !this.#hasShownIndexBetween(startCol, endCol, 'col')) {
       return false;
     }
 
-    this.#plugin.selectFormulaCells(startRow, startCol, endRow, endCol);
+    return this.#plugin.selectFormulaCells(startRow, startCol, endRow, endCol);
   }
 
   /**
@@ -1142,6 +1402,53 @@ export class HandsontableAdapter {
     }
 
     return { ...cell, row, col };
+  }
+
+  /**
+   * Tells whether the grid shows at least one visual index between two corners of a range, both
+   * included. Both corners must exist (`maxRows` and `maxCols` cap the count); either may sit on a
+   * hidden index.
+   *
+   * @param {number} first One corner's visual index, `-1` for none.
+   * @param {number} last The other corner's visual index, `-1` for none.
+   * @param {'row' | 'col'} axis The axis.
+   * @returns {boolean}
+   */
+  #hasShownIndexBetween(first: number, last: number, axis: 'row' | 'col'): boolean {
+    const low = Math.min(first, last);
+    const high = Math.max(first, last);
+    const count = axis === 'row' ? this.#hot.countRows() : this.#hot.countCols();
+
+    if (low < 0 || high >= count) {
+      return false;
+    }
+
+    const indexMapper = axis === 'row' ? this.#hot.rowIndexMapper : this.#hot.columnIndexMapper;
+    const nearest = indexMapper.getNearestNotHiddenIndex(low, 1);
+
+    return nearest !== null && nearest <= high;
+  }
+
+  /**
+   * Tells whether a visual index is one the grid draws and can select: it exists (`maxRows` and
+   * `maxCols` cap the count), and no HiddenRows, HiddenColumns, or Pagination hiding map hides it.
+   *
+   * @param {number} visualIndex The visual index, `-1` for none.
+   * @param {'row' | 'col'} axis The axis.
+   * @returns {boolean}
+   */
+  #isShownIndex(visualIndex: number, axis: 'row' | 'col'): boolean {
+    if (visualIndex < 0) {
+      return false;
+    }
+
+    if (axis === 'row') {
+      return visualIndex < this.#hot.countRows() &&
+        !this.#hot.rowIndexMapper.isHidden(this.#hot.toPhysicalRow(visualIndex));
+    }
+
+    return visualIndex < this.#hot.countCols() &&
+      !this.#hot.columnIndexMapper.isHidden(this.#hot.toPhysicalColumn(visualIndex));
   }
 
   /**
@@ -1665,8 +1972,11 @@ export class HandsontableAdapter {
       return this.#borderWidth;
     }
 
+    // The root element, not the overlay host: the host is the root wrapper, the root element's parent,
+    // so a value an application declares on `.handsontable` (as the guide says) never reaches it. The
+    // root element still inherits the theme's own value from the wrapper.
     const rawWidth = this.#hot.rootWindow
-      .getComputedStyle(this.#overlayHost)
+      .getComputedStyle(this.#hot.rootElement)
       .getPropertyValue('--hfe-reference-border-width');
     const parsedWidth = Number.parseFloat(rawWidth);
 
