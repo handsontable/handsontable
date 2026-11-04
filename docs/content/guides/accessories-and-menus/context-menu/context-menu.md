@@ -220,7 +220,7 @@ want. The items you keep carry their own actions, so they keep working:
 const verticalKeys = ['alignment:top', 'alignment:middle', 'alignment:bottom'];
 
 const hot = new Handsontable(container, {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   contextMenu: true,
   afterContextMenuDefaultOptions(options) {
     const alignment = options.items.find(item => item.key === 'alignment');
@@ -252,7 +252,7 @@ const trimAlignment = (options) => {
 };
 
 <HotTable
-  licenseKey="non-commercial-and-evaluation"
+  // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
   contextMenu={true}
   afterContextMenuDefaultOptions={trimAlignment}
 />
@@ -264,7 +264,7 @@ const trimAlignment = (options) => {
 const verticalKeys = ['alignment:top', 'alignment:middle', 'alignment:bottom'];
 
 readonly gridSettings: GridSettings = {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   contextMenu: true,
   afterContextMenuDefaultOptions(options) {
     const alignment = options.items.find(item => item.key === 'alignment');
@@ -285,7 +285,7 @@ readonly gridSettings: GridSettings = {
 const verticalKeys = ['alignment:top', 'alignment:middle', 'alignment:bottom'];
 
 const settings = {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   contextMenu: true,
   afterContextMenuDefaultOptions(options) {
     const alignment = options.items.find(item => item.key === 'alignment');

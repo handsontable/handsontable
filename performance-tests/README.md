@@ -373,6 +373,7 @@ export default {
   <title>My Scenario</title>
   <link rel="stylesheet" href="../../fixtures/handsontable.css">
   <script src="../../fixtures/handsontable.full.js"></script>
+  <script src="../../fixtures/test-license-key.js"></script>
 </head>
 <body>
   <div id="hot"></div>
@@ -385,7 +386,7 @@ export default {
       height: 600,
       autoRowSize: false,
       autoColumnSize: false,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
     window.__hot = hot;
   </script>
@@ -397,6 +398,7 @@ Important:
 - Always set `autoRowSize: false` and `autoColumnSize: false` -- these async plugins interfere with trace measurements.
 - The CSS file is `handsontable.css` (not `handsontable.full.css`).
 - Always expose the instance as `window.__hot`.
+- Read the license key from `window.htTestLicenseKey`, which `fixtures/test-license-key.js` sets, never write it out. A grid without a valid key gets the lock screen, so a new test key must be a one-line change; `scripts/__tests__/test-license-key.test.mjs` fails on a literal key in a fixture.
 - Every `waitForFunction()` passes an explicit `{ polling }` (the tier's lint enforces it): the default polls on `requestAnimationFrame`, which a loaded machine starves, so a healthy page can time out.
 
 ### 3. `<name>.spec.ts`

@@ -91,7 +91,7 @@ const hot = new Handsontable(container, {
     title: 'Processing Data...',
     description: 'Please wait while we load your inventory data...',
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 // Show loading dialog after initialization

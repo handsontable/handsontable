@@ -28,6 +28,7 @@ import {
   Pagination,
   UndoRedo,
 } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from "../../test-license-key";
 
 export function init() {
   // register imported cell types and plugins
@@ -156,7 +157,7 @@ export function init() {
     cell: [
       { row: 2, col: 1, comment: { value: 'Note: To be checked if the name is valid' } }
     ],
-    licenseKey: "non-commercial-and-evaluation",
+    licenseKey: TEST_LICENSE_KEY,
     ...options,
   });
 

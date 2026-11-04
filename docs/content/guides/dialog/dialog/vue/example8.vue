@@ -46,7 +46,7 @@ const hotSettings = ref<GridSettings>({
     content: 'This dialog can be controlled programmatically.',
     closable: true,
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 function showDialog(): void {

@@ -16,6 +16,7 @@ const data: string[][] = [
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       colHeaders={['Company', 'Website']}
       rowHeaders={true}
@@ -24,7 +25,6 @@ const ExampleComponent = () => {
       formulas={{ engine: HyperFormula, hyperlinks: true }}
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };

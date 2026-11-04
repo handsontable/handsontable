@@ -59,7 +59,7 @@ const hotSettings: GridSettings = {
   nestedRows: true,
   contextMenu: true,
   height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 const getPlugin = () => hotRef.value?.hotInstance?.getPlugin('nestedRows');

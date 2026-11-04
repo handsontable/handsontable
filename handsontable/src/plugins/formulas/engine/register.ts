@@ -5,6 +5,7 @@ import { warn } from '../../../helpers/console';
 import { isObjectEqual } from '../../../helpers/object';
 import { PLUGIN_KEY } from '../formulas';
 import { DEFAULT_LICENSE_KEY, DEFAULT_SETTINGS, getEngineSettingsWithDefaultsAndOverrides } from './settings';
+import { recalculateSheetListFormulas, recalculatesSheetReferences } from './sheetStructureChange';
 import type { HyperFormulaEngine, HyperFormulaClass } from './types';
 import type { HotInstance } from '../../../core/types';
 
@@ -139,14 +140,22 @@ export function registerEngine(
 
   registerNamedExpressions(engineInstance, pluginSettings.namedExpressions as Record<string, unknown>[]);
 
-  // Add hooks needed for cross-referencing sheets
-  engineInstance.on('sheetAdded', () => {
-    engineInstance.rebuildAndRecalculate();
-  });
+  // A rebuild reads spilled values back as plain data and turns every spill into `#SPILL!`, so it is
+  // used only where the engine leaves references to an added or removed sheet stale.
+  // TODO: drop the rebuild branch once the supported HyperFormula version is 3.1.1 or later.
+  if (recalculatesSheetReferences(engineClass.version)) {
+    const onSheetListChange = () => recalculateSheetListFormulas(engineClass, engineInstance);
 
-  engineInstance.on('sheetRemoved', () => {
-    engineInstance.rebuildAndRecalculate();
-  });
+    engineInstance.on('sheetAdded', onSheetListChange);
+    engineInstance.on('sheetRemoved', onSheetListChange);
+    engineInstance.on('sheetRenamed', onSheetListChange);
+
+  } else {
+    const rebuild = () => engineInstance.rebuildAndRecalculate();
+
+    engineInstance.on('sheetAdded', rebuild);
+    engineInstance.on('sheetRemoved', rebuild);
+  }
 
   return engineInstance;
 }

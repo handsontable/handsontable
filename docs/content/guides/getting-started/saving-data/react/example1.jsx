@@ -70,6 +70,7 @@ const ExampleComponent = () => {
         </output>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         startRows={8}
         startCols={6}
@@ -78,7 +79,6 @@ const ExampleComponent = () => {
         height="auto"
         autoWrapRow={true}
         autoWrapCol={true}
-        licenseKey="non-commercial-and-evaluation"
         afterChange={function (change, source) {
           if (source === 'loadData') {
             return; // don't save this change

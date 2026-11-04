@@ -193,6 +193,7 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={rows}
       manualRowMove={true}
       beforeRowMove={(movedRows, finalIndex, dropIndex, movePossible) => {
@@ -205,7 +206,6 @@ const ExampleComponent = () => {
         // cancel the grid's own move -- the state update above already applied it
         return false;
       }}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };

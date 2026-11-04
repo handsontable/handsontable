@@ -157,7 +157,7 @@ class HotGridElement extends HTMLElement {
     const instance = new Handsontable(this.#container, {
       themeName: 'ht-theme-main',
       rowHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
       afterChange: (changes, source) => {
         if (!changes || source === 'loadData') {
           return;
@@ -273,7 +273,7 @@ class HotGridElement extends HTMLElement {
     const instance = new Handsontable(this.#container, {
       themeName: 'ht-theme-main',
       rowHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
       afterChange: (changes, source) => {
         if (!changes || source === 'loadData') {
           return;

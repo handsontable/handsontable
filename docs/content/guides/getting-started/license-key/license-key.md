@@ -2,7 +2,7 @@
 type: how-to
 title: License key
 metaTitle: License key | Handsontable DataGrid for JavaScript
-description: Activate Handsontable DataGrid, passing your license key in the configuration object. Use a special key for non-commercial and evaluation purposes.
+description: Activate Handsontable DataGrid by passing your license key in the configuration object. Get a trial key, a sponsored license for non-commercial use, or a commercial license.
 permalink: /license-key
 canonicalUrl: /license-key
 react:
@@ -15,13 +15,13 @@ searchCategory: Guides
 category: Getting started
 menuTag: updated
 ---
-Activate Handsontable DataGrid, passing your license key in the configuration object. Use a special key for non-commercial and evaluation purposes.
+Activate Handsontable DataGrid by passing your license key in the configuration object. Get a trial key, a sponsored license for non-commercial use, or a commercial license.
 
 [[toc]]
 
 ## Overview
 
-Handsontable is available under Commercial and Free licenses, depending on your usage.
+Handsontable needs a license key. The key you need depends on how you use the grid: evaluation, non-commercial use, or commercial use.
 
 We require you to specify which terms apply to your usage, by passing a license key in Handsontable's [`licenseKey`](@/api/options.md#licensekey) configuration option.
 
@@ -141,17 +141,15 @@ Or include it in the settings object passed to `:settings`:
 
 :::
 
-## Non-commercial license
+## Placeholder in code examples
 
-If you use Handsontable for purposes not intended toward monetary compensation such as, but not limited to, teaching, academic research, evaluation, testing and experimentation, pass the string  `'non-commercial-and-evaluation'`.
-
-With this key, the grid displays no notification of any kind, and the console stays silent, because the Non-Commercial and Evaluation License permits your usage.
+The code examples in this documentation carry no license key. A commented-out line marks where the key goes:
 
 ::: only-for javascript
 
 ```js
 const settings = {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   //... other options
 }
 ```
@@ -162,50 +160,19 @@ const settings = {
 
 ```jsx
 <HotTable
+  // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
   autoWrapRow={true}
   autoWrapCol={true}
-  licenseKey="non-commercial-and-evaluation" />
+/>
 ```
 
 :::
 
 ::: only-for angular
 
-Pass the license key through `GridSettings` in your component:
-
 ```ts
-import {
-  GridSettings,
-  NON_COMMERCIAL_LICENSE,
-} from "@handsontable/angular-wrapper";
-
 readonly gridSettings: GridSettings = {
-  licenseKey: NON_COMMERCIAL_LICENSE,
-};
-```
-
-```html
-<hot-table [settings]="gridSettings" />
-```
-
-Or set it globally for all tables via `HOT_GLOBAL_CONFIG` in `app.config.ts`:
-
-```ts
-import { ApplicationConfig, provideZoneChangeDetection } from "@angular/core";
-import {
-  HOT_GLOBAL_CONFIG,
-  HotGlobalConfig,
-  NON_COMMERCIAL_LICENSE,
-} from "@handsontable/angular-wrapper";
-
-export const appConfig: ApplicationConfig = {
-  providers: [
-    provideZoneChangeDetection({ eventCoalescing: true }),
-    {
-      provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
-    },
-  ],
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 ```
 
@@ -214,10 +181,15 @@ export const appConfig: ApplicationConfig = {
 ::: only-for vue
 
 ```html
-<HotTable licenseKey="non-commercial-and-evaluation" />
+<!-- license-key="your-license-key" (get a key at https://handsontable.com/pricing/) -->
+<HotTable />
 ```
 
 :::
+
+To use an example in your own project, uncomment the line and replace `your-license-key` with your key. Without a key, the grid shows a [blocking screen](#notifications).
+
+The live examples on handsontable.com run without a key, so the commented-out line changes nothing there.
 
 ## Entitlement license keys
 
@@ -461,7 +433,9 @@ In the console, `[features]` lists each missing feature as its name and token, f
 
 ## Get a license key
 
-To get a commercial license key for your Handsontable copy, contact our [Sales Team](https://handsontable.com/get-a-quote).
+- **Evaluation:** get a trial key. Request one at [handsontable.com/pricing](https://handsontable.com/pricing/).
+- **Non-commercial use** (education, research, study, and personal projects): apply for a sponsored license. A sponsored license is a regular license key that we issue free of charge, at our discretion. Contact our [Sales Team](https://handsontable.com/get-a-quote) to apply.
+- **Commercial use:** buy a commercial license. Contact our [Sales Team](https://handsontable.com/get-a-quote).
 
 ## FAQ
 

@@ -33,7 +33,7 @@ const hot = new Handsontable(container, {
   height: 'auto',
   width: '100%',
   stretchH: 'all',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 // Flash a cell to draw attention when its value changes.

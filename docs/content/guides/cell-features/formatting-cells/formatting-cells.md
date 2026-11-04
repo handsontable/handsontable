@@ -216,7 +216,7 @@ const hot = new Handsontable(container, {
   data,
   customBorders: largeBorderConfig,
   customBordersProgressive: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -235,7 +235,7 @@ const hot = new Handsontable(container, {
   data,
   customBorders: largeBorderConfig,
   customBordersProgressive: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   afterCustomBordersUpdate() {
     // every custom border is now applied
   },

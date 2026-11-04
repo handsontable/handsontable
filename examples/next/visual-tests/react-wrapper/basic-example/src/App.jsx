@@ -1,6 +1,7 @@
 import React from 'react';
 import Handsontable from 'handsontable';
 import { HotTable } from '@handsontable/react-wrapper';
+import { TEST_LICENSE_KEY } from './test-license-key';
 
 function App() {
   const data = [
@@ -18,7 +19,7 @@ function App() {
         height="auto"
         colHeaders={true}
         rowHeaders={true}
-        licenseKey="non-commercial-and-evaluation"
+        licenseKey={TEST_LICENSE_KEY}
       />
     </div>
   );

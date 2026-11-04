@@ -179,6 +179,22 @@ export function isUnquotedSheetName(name: string): boolean {
 }
 
 /**
+ * Tells whether a formula engine reads a sheet name written without quotes. The engine is asked only
+ * about a name made of name characters (`isUnquotedSheetName()`): it parses `=Sales-EU!A1` as a
+ * subtraction, so it would answer yes for a name that needs quotes. With no engine, the name is
+ * taken as readable.
+ *
+ * @param {object} engine The formula engine, which may be missing.
+ * @param {string} name The sheet name.
+ * @returns {boolean}
+ */
+export function canReadSheetNameUnquoted(
+  engine: { validateFormula?(formula: string): boolean } | null | undefined, name: string
+): boolean {
+  return isUnquotedSheetName(name) && engine?.validateFormula?.(`=${name}!A1`) !== false;
+}
+
+/**
  * Writes a sheet name as a formula references it: as it is, or in quotes with every `'` doubled.
  *
  * @param {string} name The sheet name.

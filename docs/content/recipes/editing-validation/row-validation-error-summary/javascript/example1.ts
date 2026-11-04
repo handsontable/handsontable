@@ -130,7 +130,7 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   height: "auto",
   width: "100%",
-  licenseKey: "non-commercial-and-evaluation",
+  // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
   afterRenderer(TD, row, col) {
     TD.style.backgroundColor = invalidCells.has(cellKey(row, col))
       ? "var(--ht-cell-error-background-color, #ffe4e4)"

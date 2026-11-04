@@ -24,7 +24,6 @@ const NOT_COMPARED = {
   layoutDirection: 'the demo reads the direction from the URL; the fixture is LTR only',
   language: 'the demo reads the direction from the URL; the fixture is LTR only',
   themeName: 'the fixture sets the theme as a class on its container, from the allowlisted ?theme=',
-  licenseKey: 'the demo leaves the key to the host, which supplies its own; the fixture keeps the retired NCE key until an internal test key replaces it',
   afterGetRowHeader: 'the fixture stamps test ids on the row headers',
   afterRenderer: 'the fixture stamps test ids on the cells',
   afterGetColHeader: 'the fixture stamps test ids on the headers',
@@ -137,6 +136,10 @@ function comparable(options) {
 
 const stub = name => Object.defineProperty(() => {}, 'name', { value: name });
 
+// Both files read the internal test key from a constant of their own, which the test-key guard
+// (`scripts/__tests__/test-license-key.test.mjs`) keeps equal; one stand-in for both compares that they read it.
+const TEST_KEY = 'test-license-key';
+
 // The demo's helpers and imports, stubbed for the left-to-right `/` route the captures photographed.
 const DEMO_GLOBALS = {
   generateExampleData: () => [],
@@ -145,12 +148,13 @@ const DEMO_GLOBALS = {
   arAR: { languageCode: 'ar-AR' },
   progressBarRenderer: stub('progressBarRenderer'),
   starRenderer: stub('starRenderer'),
+  TEST_LICENSE_KEY: TEST_KEY,
 };
 
 // The fixture's own globals: its row builder, and the key `test-license-key.js` puts on `window`.
 const FIXTURE_GLOBALS = {
   sourceRow: () => [],
-  window: { htTestLicenseKey: 'test-license-key' },
+  window: { htTestLicenseKey: TEST_KEY },
 };
 
 test('the shared-demo fixture builds the grid the visual suite\'s / route builds', () => {

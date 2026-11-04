@@ -82,7 +82,7 @@ const gridSettings = ref<GridSettings>({
   ],
   colHeaders: ['Brand', 'Country', 'Since', 'Until'],
   rowHeaders: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 ```
@@ -140,7 +140,7 @@ const gridSettings = ref<GridSettings>({
   ],
   colHeaders: ['Brand', 'Country', 'Since', 'Until'],
   rowHeaders: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 ```

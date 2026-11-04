@@ -19,12 +19,12 @@ export function CollaborativeApp() {
   return (
     <CellThreadProvider>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         data={ROW_DATA}
         colHeaders={["Name", "Price"]}
         rowHeaders={false}
         height={200}
         width={500}
-        licenseKey="non-commercial-and-evaluation"
         autoWrapRow={true}
         autoWrapCol={true}
         stretchH="all"

@@ -215,6 +215,7 @@ const ExampleComponent = () => {
       </div>
       <div id="example1">
         <HotTable
+          // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
           ref={hotRef}
           dataProvider={dataProvider}
           // beforeRowsMutation fires before any create, update, or remove operation.
@@ -253,7 +254,6 @@ const ExampleComponent = () => {
             { data: 'price', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 } },
             { data: 'stock', type: 'numeric' },
           ]}
-          licenseKey="non-commercial-and-evaluation"
         />
       </div>
     </div>

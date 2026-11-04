@@ -77,7 +77,7 @@ const container = document.querySelector('#example2');
 
 new Handsontable(container, {
   height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   sanitizer: sanitizeHeader,
   data: [
     ['Harbor Goods', 'SKU-4821', 'Seattle', 'Stainless Steel Water Bottle'],
