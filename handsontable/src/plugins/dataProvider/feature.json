@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:data_provider",
+      "kind": "plugin",
+      "module": "DataProvider",
+      "name": "Data provider",
+      "description": "Loads rows page by page from a server and sends changes back through callbacks.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

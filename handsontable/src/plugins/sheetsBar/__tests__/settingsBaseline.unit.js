@@ -2,8 +2,9 @@ import Handsontable from '../../../index';
 import ExportDataProvider from '../../exportFile/dataProvider';
 import BaseType from '../../exportFile/types/_base';
 import { loadFixture } from '../../../utils/xlsxEngine/__tests__/helpers/fixtures';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
-const LICENSE_KEY = 'non-commercial-and-evaluation';
+const LICENSE_KEY = TEST_LICENSE_KEY;
 
 /**
  * Builds a DataProvider configuration whose fetch answers with no rows.
@@ -805,6 +806,30 @@ describe('SheetsBar settings baseline and lifecycle', () => {
       expect(hot.getDataAtCell(0, 0)).toBe('Ann');
       expect(hot.getSettings().dataProvider).toBe(own);
       expect(gridLevel.fetchRows).not.toHaveBeenCalled();
+    });
+
+    it('keeps a server sheet\'s rows without a refetch when an update sends a top-level `data`', async() => {
+      const own = makeProvider();
+      const sheets = [
+        { name: 'Server', data: [], settings: { dataProvider: own, columns: [{ data: 'name' }] } },
+        { name: 'Local', data: [['b']] },
+      ];
+
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      own.fetchRows.mockImplementation(async() => ({ rows: [{ id: 1, name: 'Ann' }], totalRows: 1 }));
+      buildWorkbook(sheets);
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      hot.updateSettings({ data: [['x']] });
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(hot.getDataAtCell(0, 0)).toBe('Ann');
+
+      hot.updateSettings({ sheetsBar: { sheets }, data: [] });
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(hot.getDataAtCell(0, 0)).toBe('Ann');
+      expect(own.fetchRows).toHaveBeenCalledTimes(1);
     });
   });
 

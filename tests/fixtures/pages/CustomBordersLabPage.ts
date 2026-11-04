@@ -36,9 +36,9 @@ export class CustomBordersLabPage {
    * bundle travel as query params so the fixture loads the matching stylesheet and Handsontable
    * build — miss either and the leg silently tests something other than what its name says.
    */
-  async goto(): Promise<void> {
+  async goto(scheme: 'light' | 'dark' = 'light'): Promise<void> {
     await this.page.goto(
-      `/tests/fixtures/demo/custom-borders-lab.html?theme=${this.theme}&bundle=${this.bundle}`);
+      `/tests/fixtures/demo/custom-borders-lab.html?theme=${this.theme}&bundle=${this.bundle}&scheme=${scheme}`);
     await expect(this.grid).toBeAttached();
   }
 
@@ -284,20 +284,48 @@ export class CustomBordersLabPage {
   }
 
   /**
+   * Add one border side to a cell through the context menu's Borders submenu (`Top`, `Bottom`,
+   * `Left`, or `Right`), then deselect so the built-in selection borders cannot mask the result.
+   */
+  async addBorderViaContextMenu(row: number, col: number, side: 'Top' | 'Bottom' | 'Left' | 'Right'): Promise<void> {
+    await this.#pickBordersSubmenuItem(row, col, side);
+  }
+
+  /**
+   * The painted (computed) background colors of all visible custom-border edges. Unlike
+   * `visibleBorderColors()`, which reads the inline value, this resolves CSS variables and
+   * `light-dark()` to the color the user sees.
+   */
+  async visibleBorderComputedColors(): Promise<string[]> {
+    return this.page.evaluate(() => (window as any).borderUtils.visibleBorderComputedColors());
+  }
+
+  /**
+   * The computed background color of a cell.
+   */
+  async cellBackgroundColor(row: number, col: number): Promise<string> {
+    return this.cellInMaster(row, col).evaluate(td => getComputedStyle(td).backgroundColor);
+  }
+
+  /**
    * Remove the border of a cell through the real context menu ("Borders" → "Remove
    * border(s)") — the user path that regressed with orphaned border ids.
    */
   async removeBorderViaContextMenu(row: number, col: number): Promise<void> {
+    await this.#pickBordersSubmenuItem(row, col, 'Remove border(s)');
+  }
+
+  /**
+   * Right-click a cell, open the context menu's Borders submenu, and click `label` in it. Then
+   * deselect so the built-in selection borders cannot mask the caller's border assertions.
+   */
+  async #pickBordersSubmenuItem(row: number, col: number, label: string): Promise<void> {
     await this.cellInMaster(row, col).click({ button: 'right' });
 
     const menu = this.page.locator('.htContextMenu:visible').last();
 
     await menu.getByText('Borders', { exact: true }).hover();
-
-    const submenu = this.page.locator('.htContextMenuSub_Borders');
-
-    await submenu.getByText('Remove border(s)', { exact: true }).click();
-    // Deselect so the built-in selection borders cannot mask the caller's border assertions.
+    await this.page.locator('.htContextMenuSub_Borders').getByText(label, { exact: true }).click();
     await this.page.evaluate(() => (window as any).hot.deselectCell());
   }
 }

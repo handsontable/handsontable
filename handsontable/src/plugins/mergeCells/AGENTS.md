@@ -1,7 +1,7 @@
 # MergeCells plugin — spanning cells across rows and columns
 
 The `mergeCells` plugin merges a rectangular range into one visible cell. Read this before touching
-`mergeCells.ts` (2.1k lines), `cellsCollection.ts`, `focusOrder.ts`, `cellCoords.ts`, `renderer.ts`,
+`mergeCells.ts`, `cellsCollection.ts`, `cellCoords.ts`, `renderer.ts`,
 `utils.ts` or anything in `calculations/` and `contextMenuItem/`.
 
 ## Read `colspan` / `rowspan` from cell meta, never from the DOM
@@ -34,7 +34,8 @@ band once per slave. The reference scans measure against a column or row that no
 
 Reading visibility off `mergedCells` is the bug this split exists to prevent.
 
-Two line-scan helpers encode the rest of that logic: the first merge-touched line (in scan order) whose
+The Shift+Arrow line scan, `findNonIntersectingIndex()` in `../../selection/cellBlocks.ts`, encodes the rest
+of that logic, over the merges that are not trimmed away (`getVisibleMergedCells()`): the first merge-touched line (in scan order) whose
 cells all agree on a single index at or past `visualIndex`, and the first merge-**free** line at or past it
 (which always emits its own index — cells covered by no merge contribute their line's own index).
 
@@ -80,6 +81,34 @@ rows are trimmed covers no cell on screen, so it does not refuse a merge over it
 
 Pinned by `tests/e2e/merge-cells-rejected-merge-undo.spec.ts` and the `canAdd` block of
 `__tests__/cellsCollection.unit.ts`.
+
+**The check costs `min(cells of the new merge, merges in the collection)`, never their product (DEV-3657).**
+`isOverlapping()` and the restore's `#restoreAnchoredArea` both go through
+`MergedCellsCollection#overlapsLiveMerge()`. Scanning every merge per add made `n` merges cost `n²/2`
+range checks, twice per merge (`canAdd()` and `add()`), each allocating `CellCoords` through
+`CellRange#overlaps`: 8,000 merges in one `batch()` took 17.6 s in a browser. Three rules keep it linear
+without changing an answer:
+
+- **A merge with no more cells than there are merges reads its own cells from the matrix.** A cell's owner
+  refuses the merge when the matrix holds it at its own top-left (`get(owner.row, owner.col) === owner`) and
+  it is not ignored, which is the filter the scan applies.
+- **Once a merge was written over another one's cell, every check scans the list.** A sort can draw two
+  merges over each other (`relocateInMatrix` has no overlap guard), and so can `add(…, true)`. The matrix then
+  names one merge per cell, and removing the one on top leaves a hole in the one under it, so the cells no
+  longer show every merge an area meets. `#addMergedCellToMatrix` sets `#hasDrawnOver` when it overwrites
+  another merge's entry, and only a full rebuild (`clear()`, `shiftCollections()`,
+  `translateAfterAxisMove()`) resets it. A grid that never had such an overlap never scans.
+- **A merge with more cells than there are merges scans the list with plain arithmetic**
+  (`areMergesOverlapping`, `utils.ts`), not `CellRange#overlaps`. Do not drop this branch: walking every cell
+  of one large merge against a few others undoes #13083 (MergeCells scales with merge count, not grid size).
+
+**Row trimming is not covered.** With a trimmed row between the rows a new merge covers,
+`#fillTrimmedGaps` still reads the anchors of every other merge (`#getRowsOwnedBesides`), so a batch on a
+filtered sheet stays quadratic there.
+
+Pinned by `__tests__/mergeCountScaling.unit.js` (it counts lookups and scan comparisons, not time) and the
+`the overlap check` block of `__tests__/cellsCollection.unit.ts`: the scan pin with one large merge, the reset
+after a rebuild, and the ignored, purged, drawn-over and drawn-over-then-removed cases on both branches.
 
 Undo and redo carry the anchors too: `captureState()` returns every merge with its anchor, and
 `restoreState(state, context)` applies only what the step changed: it removes the live merges listed on
@@ -448,7 +477,8 @@ and every UndoRedo merge action).
 
 **The `afterLoadData` hook was deliberately NOT added**, for two reasons beyond the CustomBorders one
 (the core clears cell meta on `loadData` and keeps it on `updateData`, so a hook that cleared the
-collection would drop merges the user still sees after a same-size `loadData`). First, a hook that
+collection would drop merges the user still sees after a same-size `loadData`; CustomBorders has since
+added a hook that restores its meta from the model and clears nothing, see its `AGENTS.md`). First, a hook that
 pruned only *out-of-range* merges would have to read the bound off `mergedCells` — the list this
 file's second section says is **not** the authority on visibility, whose entries are deliberately
 kept with stale visual coordinates while their rows are trimmed, and which is restored whole once
@@ -465,11 +495,40 @@ the cell values). The core rule itself is pinned by
 ## SheetsBar goes through members MergeCells owns, never the collection
 
 A sheet switch captures and restores merges around its `loadData()`. It calls
-`getVisibleMergedAreas()`, `clearCollections()`, `restoreMergedAreas()` and
+`_exportMergedAreas()`, `clearCollections()`, `restoreMergedAreas()` and
 `runDeferredSettingsPass()` through the typed `getPlugin('mergeCells')`, so changing their
-names or signatures breaks the type check instead of the switch. Keep the capture reading the lookup matrix
-and the restore on the automatic path (`mergeRange(range, true, true)`): SheetsBar relies on both.
-Pinned by `__tests__/mergedAreasApi.unit.js`.
+names or signatures breaks the type check instead of the switch. Pinned by `__tests__/mergedAreasApi.unit.js`
+and `__tests__/anchoredMergedAreas.unit.js`.
+
+**The capture carries each merge's anchor, and the restore puts the merge back the way the grid held it.**
+`_exportMergedAreas()` lists every merge with an anchor, with `physicalRows` and `physicalColumn` (a
+`PhysicalRowMergeSnapshot`; a copy of the anchor), including one whose rows are all trimmed: the anchor still
+names its cells. A merge with no anchor is listed only while the lookup matrix holds it, by its visual geometry,
+since its stale coordinates would name unrelated rows. `restoreMergedAreas()` adds an anchored entry the way the
+undo path (`#addRecordedMerge`) does, never through `mergeRange()`: `add(geometry, true)` at the block the anchor
+draws under the index cache in force (`#placeAnchoredArea`: the first visible row, the count of visible rows, the
+column's visual index), or `addOutsideMatrix()` when no row is visible; then it sets the stored anchor and runs
+`#reanchorMergesToVisibleRows()` once. `mergeRange()` refused three shapes the live grid holds: a merge a sort drew
+past the last row (its row bounds), one a filter left with a single visible cell (the auto path's single-cell
+rule), and one with every row hidden (no top-left). Each was gone after a round trip. Setting the stored anchor
+matters for a merge whose rows a sort scattered too: its drawn block covers other records' rows, and an anchor
+captured from that block would hand it those rows for good. A drawn entry still fires
+`beforeMergeCells`/`afterMergeCells` with `auto: true` and writes no cell; one kept outside the matrix fires none.
+An anchor that names a row or column past the data, or a merge whose columns now run past the last one (the host
+shrank a sheet's data while it was away), is skipped, and so is a drawn entry that overlaps a merge that was in the
+matrix before the call or that a listener made during it. **Entries of the same call never block each other.** A
+sort draws each anchored merge from its first visible row, so two merges whose rows it interleaves are drawn over
+each other on the live grid (`relocateInMatrix` has no overlap guard) and both are exported; checked against each
+other, the second was refused and gone for good, even after the sort was cleared. An entry whose top-left a merge
+of the same call holds goes in with `addOutsideMatrix()` and a `#purgedMerges` flag (`add()` refuses a taken
+top-left even with `auto`), and the trailing re-anchor writes it over the shared cells as the live relocation did,
+so the lookup matrix matches the grid that never switched. Pinned by `brings back two merges a sort drew over each
+other after a round trip, as the grid without one does` (sheetsBar) and the overlap cases in
+`__tests__/anchoredMergedAreas.unit.js`.
+**The caller must run it with the restored order in the cache**, not inside a batch that wrote that order: the
+cache keeps the order from before the batch, and an area placed there, by visual coordinates or by anchor, lands
+on other cells (`../../utils/viewState/AGENTS.md`). An entry without an anchor (one a listener built) is merged by
+its visual geometry on the automatic path (`mergeRange(range, true, true)`), skipped when it does not fit the grid. `getVisibleMergedAreas()` keeps its plain shape for AutoColumnSize.
 
 AutoColumnSize is the second consumer of `getVisibleMergedAreas()`: it sizes the column a merge spanning
 several columns is drawn from (`../autoColumnSize/mergedCellsWidths.ts`), and it listens to
@@ -495,13 +554,16 @@ later (`apply: false` builds nothing and writes no cell, but still sets `#initia
 anchors). SheetsBar is the one caller: a pass run against the departing sheet's data validated the
 arriving areas against the departing size and wrote its clearing `null`s into the departing sheet's
 array. The plugin has no `onDataReady()` for this on purpose: only SheetsBar knows whether the sheet
-returns with a stored state, in which case it must build nothing. `#onAfterInit` clears a pending pass, because it builds the merges itself.
+returns with a stored state, in which case it must build nothing. The hold is recorded only on a drawn
+grid (`deferDataWork()` returns whether it was); on a grid still being built the ready step runs the pass,
+and clears any pending one first, because it builds the merges itself.
 The pass has to run before anything calls `mergeRange()` — `afterMergeCells` captures an anchor only
 once `#initialized` is set.
 
 ## Focus order is a scan, not a linked list
 
-`focusOrder.ts` replaced a linked-list implementation, and several methods keep a cast with the note *"with
+The Enter/Tab focus order lives in Selection now (`../../selection/focusOrder.ts`, DEV-161), fed by the
+cell block provider. It replaced a linked-list implementation, and several methods keep a cast with the note *"with
 no current node the method returns `undefined` at runtime and the callers rely on that behavior."* The
 layer lookups (`#getNodeAt`, `#findNodeInLayer`) likewise keep "without a layer index no node can match",
 mirroring the old comparison against `undefined`.
@@ -658,23 +720,30 @@ Known limits of the content rule:
 Pinned by `tests/e2e/merge-cells-frozen-columns-content.spec.ts`, `tests/e2e/walkontable/merged-rows-frozen-columns.spec.ts`
 and `__tests__/blockWidthsOutsideBand.unit.ts`.
 
-## The init draw is batched, and four things about it are load-bearing
+## The init pass runs in the ready step, and its draw is batched
 
-`#onAfterInit` applies the declared merges between a `suspendRender()` / `resumeRender()` pair (#5687).
-Before that it drew the grid twice — `generateFromSettings()` clears the cells each area covers through
-`setDataAtCell()`, which renders, and the handler then rendered again. Four rules come out of it, and
-each has a measured reason.
+The settings pass of an enable that `updatePlugin()` did not run (at init, and after a direct
+`enablePlugin()` call) runs in the ready step (`onGridReady()`, `../base/AGENTS.md`). `#settingsPassOwed` is
+set by `enablePlugin()` and cleared by `updatePlugin()` when it runs the pass or hands it to the sheets bar.
+At init the step runs before the `init` hook, and core holds the draws the steps ask for, so the merges are
+on screen with the first draw and the grid draws once (it drew twice from the `afterInit` listener this
+replaced, and three times before #5687). A direct `enablePlugin()` on a live grid used to build nothing and
+left `#initialized` unset.
+
+The step applies the declared merges between a `suspendRender()` / `resumeRender()` pair (#5687).
+`generateFromSettings()` clears the cells each area covers through `setDataAtCell()`, which renders, and the
+step then renders again. Four rules come out of it, and each has a measured reason.
 
 - **Keep the explicit `this.hot.render()` inside the pair.** `resumeRender()` draws through
   `TableView#render`, which picks fast-vs-full from `hot.forceFullRender`, and only `Core#render` sets that
   flag. On the synchronous path the clearing write sets it for you, but with an async `validator` that
-  write lands *after* `afterInit` returns, so nothing has set the flag by the time `resumeRender()` draws —
+  write lands *after* the step returns, so nothing has set the flag by the time `resumeRender()` draws —
   without the explicit call that draw is a *fast* one, it skips the cell renderers, and the spans never
-  appear.
+  appear. At init the call also marks the first draw a full one.
 - **Never gate that render on "the clearing write already rendered."** Same async `validator`, seen from
-  the other side: its deferred draw **reverses** the order of the two init draws, so the handler's render
-  becomes the one that puts the merges on screen. Gating on the write would leave such a grid unmerged
-  until validation resolves.
+  the other side: its deferred draw lands after the merges are built, so the step's render is the one that
+  puts them on screen on a live grid. Gating on the write would leave such a grid unmerged until
+  validation resolves.
 - **Skip the work entirely when no area is declared.** `mergeCells: true` with no `cells` has nothing to
   apply, and the initial render already shows the final grid, so a draw there repaints an identical table.
   `resumeRender()` always draws once the pair is entered, so this has to be a check *around* it, not
@@ -688,9 +757,9 @@ each has a measured reason.
 Note what the guard does **not** do: the throw still propagates, so `#initialized` and the anchor capture
 are skipped either way. That is unchanged by #5687.
 
-Coverage: `tests/e2e/merge-cells-init-renders.spec.ts` pins the counts, both setting shapes (the array
-form and `{ cells: [...] }`, which reach the guard through different `getSetting()` branches) and the
-async-validator ordering.
+Coverage: `tests/e2e/merge-cells-init-renders.spec.ts` pins the counts (one draw at init), both setting
+shapes (the array form and `{ cells: [...] }`, which reach the guard through different `getSetting()`
+branches) and the async-validator ordering; `__tests__/readyStep.unit.js` pins the owner of the pass.
 `updatePlugin()` is a separate path and is deliberately untouched — `updateSettings()` renders at the end
 regardless.
 
@@ -702,34 +771,104 @@ is almost always a missing branch rather than wrong arithmetic — check all six
 
 ## Fragile area: selection + merged cells
 
-`../../../.ai/CONCERNS.md` flags this: visual-selection coordinate adjustment and MergeCells coordinate
-adjustment overlap, with TODO comments admitting uncertainty about the responsibility boundary.
+`../../../.ai/CONCERNS.md` flags this. **Selection owns the selection geometry over merges; this plugin
+only tells it where the merges are.** It registers a cell block provider (`#cellBlockProvider`:
+`getBlocks()` returns the merges that are not trimmed away, `getBlockAt()` looks one up in the matrix) through
+`Selection#setCellBlockProvider()` on enable, and unregisters it on disable. The provider contract is in
+`../../selection/cellBlocks.ts`. Two steps move the highlight, and each owns one case: Selection moves it
+onto a merge's top-left (`Selection#applyCellBlocks`, right before `beforeSelectionHighlightSet`), then
+`VisualSelection#syncWith()` moves a highlight that sits on a hidden cell to the nearest visible one.
 `selection.clear()` has a TODO noting that `selectedByColumnHeader` / `selectedByRowHeader` should be
-cleared and are not. E2E coverage is extensive; the unit-level highlight logic is under-tested.
+cleared and are not.
+
+**What still lives here** is the drawing side (`modifyGetCellCoords`, `beforeDrawBorders`,
+`afterDrawSelection`, `modifyAutofillRange`, `beforeBeginEditing`). The plugin registers no hook that
+changes the selection (its range, highlight, focus, or active layer): Enter and Tab inside a range moved
+to Selection too.
+
+### The selection rules (DEV-161)
+
+These are the decided rules. A change that breaks one is a bug, whatever a spec says.
+
+- **R1. A cell range never cuts a merge.** A range that touches a merge grows to cover it whole. Covering
+  one merge can make the range touch another, so it keeps growing until it cuts none. The range is a
+  rectangle, so it may take in plain cells that no merge covers.
+- **R2. Only merges that are not trimmed away count.** A merge whose rows are all trimmed is purged from
+  the lookup matrix and keeps stale visual coordinates in the list; it takes no part in selection. A merge
+  whose rows are only hidden still counts, because hidden rows keep their visual index.
+- **R3. The highlight inside a merge sits on its top-left visible cell.**
+- **R4. A header selection is never grown.** A column, row or corner selection keeps its own extent and
+  may cut a merge (see below).
+- **R5. Arrows out of a merge:** a horizontal arrow lands on the merge's top row (DEV-102), a vertical
+  one keeps the entry column, and Tab keeps its row.
+- **R6. A range equal to one merge is one cell:** no area fill, and a double-click opens the editor.
+- **R7. Growing keeps the direction.** The corner the selection started from moves out to the edge of
+  the grown rectangle; it is never swapped to the other side.
+- **R8. Merge to merge:** a selection from one merge into another covers both whole, plus every merge
+  the rectangle between them cuts (R1).
+
+The rules live in Selection, fed by the provider, and the pure parts in `../../selection/cellBlocks.ts`:
+
+| Rule | Where |
+|---|---|
+| R1, R2, R3, R4, R7 | `Selection#applyCellBlocks` – grows the range being changed with `expandRangeToBlocks()` and snaps its highlight, right before `beforeSelectionHighlightSet` (in `setRangeEnd()`, and in `setRangeFocus()` outside a drag) |
+| R5 | `Selection#stepOverCellBlock` – changes an arrow-key step right before `modifyTransformStart` |
+| R1 for Shift+Arrow | `Selection#stepEndOverCellBlocks` – changes the step right before `modifyTransformEnd`, using `findNonIntersectingIndex()` and a grown scratch copy of the range (`changeDirection: true`) |
+| R6 | `Selection#isOneCellBlock` – one `getBlockAt()` lookup, inside `isMultiple()`, before `afterIsMultipleSelection` |
+| Enter and Tab inside a range | `Selection#transformFocus` – walks the focus order (`../../selection/focusOrder.ts`): one stop on each merge the layer covers whole, none on a cell a merge covers, and the focus on the merge's first visible cell, before `beforeSelectionFocusSet` |
+
+All of them run before the public hook, so a listener of `beforeSelectionHighlightSet`,
+`modifyTransformStart`, `modifyTransformEnd`, `beforeSelectionFocusSet` or `afterSelectionFocusSet`
+sees the range, the step or the focus already adjusted for merges. Before, only listeners that ran after
+this plugin did. `modifyTransformFocus` still gets the plain step, and the walk goes the way its listeners
+leave it. `isMultiple()` runs several times per selection, so R6 must stay a lookup,
+never a scan of `getBlocks()`. The growth repeats until a whole pass
+adds nothing. It used to be exactly two passes, so three merges in a staircase declared top-down were
+cut in half while the same merges declared bottom-up were not. And it used to read the `mergedCells`
+list, so a merge whose rows a filter hid pulled the selection onto the records that took its place:
+Delete on one plain cell emptied four. Pinned by `tests/e2e/merge-cells-selection-rules.spec.ts`,
+`../../selection/__tests__/cellBlocks.unit.ts`, the `cell block provider` block of
+`../../selection/__tests__/selection.unit.ts`, and the `getVisibleMergedCells` / `getByRange` /
+`findNonIntersectingIndex` blocks of `__tests__/cellsCollection.unit.ts` (the last one with a randomized
+check against a cell-by-cell reference); R7 also by the direction spec in `__tests__/mergeCells.spec.js`.
+
+**Enter and Tab place the focus themselves.** `VisualSelection#syncWith()` moves a hidden corner to the
+range's first visible cell, which can lie outside the merge. So the walk puts the focus on the merge's
+first visible cell, and `#applyCellBlocks` leaves it there (the `placedEntry` that only `transformFocus`
+passes through the private `#setRangeFocus`, so a selection a hook starts from inside is snapped as usual), in a header selection
+too. A click still snaps to the corner, and `syncWith()` picks the visible cell in the range's direction:
+`hiddenRows.spec.js` and `hiddenColumns.spec.js` pin both. The entry cell is the cell the cell-by-cell move
+reached when it lies in the merge, so an arrow key leaves the merge from the side the focus came from.
+When the walk skipped that cell, the entry is the focused cell: an arrow key after Tab passed a merge
+starts from the focus. A layer the focus leaves keeps its last focus stop, as it does without merges.
+Pinned by `keyboardShortcuts/{enter,shiftEnter,tab,shiftTab}.spec.js` and the Tab-then-arrow case of
+`tests/e2e/merge-cells-selection-rules.spec.ts`.
+
+E2E coverage is extensive; the unit-level highlight logic is under-tested.
 
 **When changing selection logic, test all combinations of: merged cells, hidden rows/columns, frozen
 rows/columns, and navigable headers.** Run both the `selectAll` and `selectCells` suites.
 
-**A header selection is never snapped to merged cells, in both hooks.** `#onBeforeSelectionHighlightSet`
-and `#onModifyTransformEnd` return early when the selection is made from a column or row header.
-Without the early return in the second, `expandCloneRange` absorbed every merge that a full-length
+**A header selection is never snapped to merged cells.** `Selection#applyCellBlocks` and
+`Selection#stepEndOverCellBlocks` return early when the layer was made from a column or row header.
+Without the early return in the second, the scratch range absorbed every merge that a full-length
 column (or row) range crosses, so Shift+Arrow on a header selection jumped to the far edge of the
 farthest merge instead of adding one line, in all four directions. The result must equal the
 `mergeCells: false` one, and the header flag still skips the hidden columns through the core's own
 delta. Pinned by `tests/e2e/header-range-merge-keyboard.spec.ts`.
 
-Both hooks decide through `#isSelectedByHeader()`, and they ask about **different layers**.
-`#onBeforeSelectionHighlightSet` works on the last range, so it reads the last layer's flags (the
-default). `#onModifyTransformEnd` changes the range `getSelectedRangeActive()` returns, which Enter or Tab
-can move back to an earlier layer, so it passes `getActiveSelectionLayerIndex()`. Reading the last
-layer there made header, Ctrl+click a cell, Enter, Shift+ArrowRight jump to the merge edge again. Known
-limits: `isSelectedByCorner()` inside the flag getters still looks at the last layer, and the flags
-follow `selection.clear()` and the `removeLayers` plus `refresh()` path in `mouseEventHandler.ts`, which
-can leave them on a layer index they no longer describe. A flag is set only when a header is rendered,
-so Ctrl+A on a grid with column headers but no row headers sets one flag and is skipped by both hooks,
-while the same grid with no headers snaps. No spec pins the cell-layer side of this: the highlight hook
-snaps a cell range to the same result whether or not the transform hook runs, so only the header side
-can fail.
+**Everything works on the active layer, the one the selection is changing.** Selection takes the range
+from `getActiveSelectedRange()` and the header flags from `getActiveSelectionLayerIndex()`
+(`Selection#isActiveLayerSelectedByHeader`). The active layer is the last one unless Enter or Tab moved
+the focus back to an earlier layer; Shift+Arrow then changes that earlier layer. Reading the last layer
+there made header, Ctrl+click a cell, Enter, Shift+ArrowRight jump to the merge edge, and grew the wrong
+layer, so the active one cut a merge: A2, Ctrl+click F6, Enter, Shift+ArrowRight left A2:B2 over the
+merge B1:B2 (DEV-161, pinned by `tests/e2e/merge-cells-selection-rules.spec.ts`). Known limits:
+`isSelectedByCorner()` inside the flag getters still looks at the last layer, and the flags follow
+`selection.clear()` and the `removeLayers` plus `refresh()` path in `mouseEventHandler.ts`, which can
+leave them on a layer index they no longer describe. A flag is set only when a header is rendered, so
+Ctrl+A on a grid with column headers but no row headers sets one flag and is skipped, while the same grid
+with no headers snaps.
 
 ### `fullySelectedMergedCell-N` is an overlap count (DEV-542)
 
@@ -764,11 +903,12 @@ recompute reads the same ranges.
 
 ### An arrow-key horizontal exit is addressed by the merge's top row (DEV-102)
 
-`#onModifyTransformStart` snaps the highlight to the merge's top-left while stashing the entered cell
-in `#lastSelectedFocus`, and restores that focus before the next move — that entry-row/entry-column
-memory is what PR #10732's range navigation relies on. A **non-Tab horizontal** move that leaves the
-merge onto the adjacent cell is the one exception: it re-snaps the result to the merge's topmost
-**visible** row (`getNearestNotHiddenIndex(mergedParent.row, 1)`, bounded to the span — assigning a
+This lives in Selection now (DEV-161). `Selection#applyCellBlocks` snaps the highlight to the merge's
+top-left while stashing the entered cell in `#blockEntryFocus`, and `Selection#stepOverCellBlock`
+restores that focus before the next move — that entry-row/entry-column memory is what PR #10732's range
+navigation relies on. A **non-Tab horizontal** move that leaves the merge onto the adjacent cell is the
+one exception: it re-snaps the result to the merge's topmost
+**visible** row (`getNearestNotHiddenIndex(block.row, 1)`, bounded to the span — assigning a
 hidden top row throws `Renderable coords are not visible` from the transform). So a merge is always
 addressed by its top-left corner however it was entered; before this, entering B2:B4 from below (B5
 up) then leaving left landed on A4, from above (B1 down) on A2.
@@ -790,9 +930,9 @@ if you drop it:
   branch found a not-hidden neighbor), never on the mere presence of a merge.
 - **Vertical and diagonal moves** keep the entry column (the tested column memory) — gate on
   `delta.row === 0`.
-- **Tab / Shift+Tab**, which cycles keeping the row it moves along, reaches this hook through
+- **Tab / Shift+Tab**, which cycles keeping the row it moves along, reaches this step through
   `transformStart` with the **same `(0, ±1)` delta as an arrow** (single-range case; the multi-range
-  case goes through `modifyTransformFocus` and never reaches here). There is no delta or source that
+  case goes through `Selection#transformFocus` and never reaches here). There is no delta or source that
   tells them apart — both mark source `'keyboard'`. `inlineStart`/`inlineEnd` therefore call
   `selection.markTabNavigation()` **after** `markSource()`, and the context-menu Tab shortcut calls
   `markTabNavigation()` on its own (it never goes through those commands). The override reads
@@ -901,7 +1041,9 @@ Do not "fix" `#getStoredValueAt` back to a physical column.
 `__tests__/` is one of the largest in the repo — dedicated specs for `hiddenColumns`, `hiddenRows`,
 `autofill`, `undoRedo`, `scrolling`, `selection`, `openEditor`, `secondClickDeselects`,
 `pluginCompatibility`, plus `keyboardShortcuts/`, `methods/` and `rtl/`. Unit coverage exists for
-`cellCoords`, `cellsCollection`, `focusOrder`, `selection` and `autofillCalculations`; prefer adding there.
+`cellCoords`, `cellsCollection`, `selection` and `autofillCalculations`; prefer adding there. The Enter/Tab
+focus order is tested in `../../selection/__tests__/focusOrder.unit.ts` and the `cell block provider` block of
+`../../selection/__tests__/selection.unit.ts`.
 
 ## Rendering under `renderMode: 'onChange'`
 

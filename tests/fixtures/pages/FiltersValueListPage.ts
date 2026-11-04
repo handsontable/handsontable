@@ -33,6 +33,9 @@ export class FiltersValueListPage {
   readonly conditionsMenu: Locator;
   readonly okButton: Locator;
   readonly cancelButton: Locator;
+  readonly valueActionLinks: Locator;
+  readonly selectAllLink: Locator;
+  readonly clearAllLink: Locator;
 
   /**
    * Builds the page object for one fixture, theme and bundle.
@@ -61,6 +64,11 @@ export class FiltersValueListPage {
     this.conditionsMenu = page.locator('.htFiltersConditionsMenu:visible');
     this.okButton = this.menu.locator('.htUIButtonOK input');
     this.cancelButton = this.menu.locator('.htUIButtonCancel input');
+    // The two links above the list, found by the plugin's class names and not by their text, which
+    // follows the language and the default label.
+    this.valueActionLinks = this.menu.locator('.htUIMultipleSelect a');
+    this.selectAllLink = this.menu.locator('.htUIMultipleSelect .htUISelectAll a');
+    this.clearAllLink = this.menu.locator('.htUIMultipleSelect .htUIClearAll a');
   }
 
 
@@ -293,20 +301,64 @@ export class FiltersValueListPage {
 
   /** Click the "Select all" link, which checks every value the filter holds. */
   async selectAllValues(): Promise<void> {
-    await this.menu.locator('.htUIMultipleSelect a', { hasText: /^Select all$/ }).click();
+    await this.selectAllLink.click();
 
     await expect(this.valueList.first().locator('input[type="checkbox"]')).toBeChecked();
   }
 
   /**
-   * Click the "Clear" link, which unchecks every value the filter holds.
+   * Switch the grid to a dictionary that gives the two links above the list these labels. The menu
+   * has to be opened (again) afterwards to show them.
+   *
+   * @param {string} languageCode A code for the throwaway dictionary, e.g. `x-es-MX`.
+   * @param {string} selectAll The label of the "Select all" link.
+   * @param {string} clear The label of the link that unchecks every value.
+   */
+  async useLinkLabels(languageCode: string, selectAll: string, clear: string): Promise<void> {
+    await this.page.evaluate(({ code, selectAllLabel, clearLabel }) => {
+      const { Handsontable, hot } = window as unknown as {
+        Handsontable: { languages: {
+          getLanguageDictionary(code: string): Record<string, unknown>;
+          registerLanguageDictionary(dictionary: Record<string, unknown>): void;
+        } };
+        hot: { updateSettings(settings: object): void };
+      };
+
+      Handsontable.languages.registerLanguageDictionary({
+        ...Handsontable.languages.getLanguageDictionary('en-US'),
+        languageCode: code,
+        'Filters:buttons.selectAll': selectAllLabel,
+        'Filters:buttons.clear': clearLabel,
+      });
+      hot.updateSettings({ language: code });
+    }, { code: languageCode, selectAllLabel: selectAll, clearLabel: clear });
+  }
+
+  /**
+   * How far the link that unchecks every value runs past the right edge of the row that holds the
+   * two links, in pixels. Zero or less means it fits. Both boxes are read in one evaluation, so a
+   * redraw cannot land between them.
+   *
+   * @returns {Promise<number>} The overflow in pixels, rounded.
+   */
+  async clearLinkOverflow(): Promise<number> {
+    return this.menu.locator('.htUISelectionControls').evaluate((row) => {
+      const link = row.querySelector('.htUIClearAll a') as HTMLElement;
+
+      return Math.round(link.getBoundingClientRect().right - row.getBoundingClientRect().right);
+    });
+  }
+
+  /**
+   * Click the "Select none" link, which unchecks every value the filter holds. The link is found by
+   * its class, so a change of the default label or of the language does not break the helper.
    *
    * @param {object} [options] Options.
    * @param {boolean} [options.expectEmptyList] Set when the list holds no values, so there are no
    *   checkboxes to wait for.
    */
   async clearAllValues({ expectEmptyList = false } = {}): Promise<void> {
-    await this.menu.locator('.htUIMultipleSelect a', { hasText: /^Clear$/ }).click();
+    await this.clearAllLink.click();
 
     if (expectEmptyList) {
       return;

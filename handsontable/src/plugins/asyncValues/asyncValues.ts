@@ -28,6 +28,7 @@ import type {
   AsyncValueStatus,
   AsyncValuesSettings,
 } from './types';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'asyncValues';
 export const PLUGIN_PRIORITY = 340;
@@ -353,6 +354,14 @@ export class AsyncValues extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns the default settings applied when the plugin is enabled without explicit configuration.
    */
   static get DEFAULT_SETTINGS() {
@@ -557,6 +566,7 @@ export class AsyncValues extends BasePlugin {
     this.addHook('afterSetDataAtRowProp', this.#onAfterSetDataAtRowProp);
     this.addHook('beforeValidate', this.#onBeforeValidate);
     this.addHook('postAfterValidate', this.#onPostAfterValidate);
+    this.hot._addDroppedChangesListener(this.#onChangesDropped);
     // Before the application's listeners, so a listener that cancels or writes a cell there already sees
     // every row state on its current physical row.
     this.addHook('afterCreateRow', this.#syncRows, -1);
@@ -627,6 +637,7 @@ export class AsyncValues extends BasePlugin {
     this.#replacedRows = [];
     this.hot.rowIndexMapper.removeLocalHook('init', this.#onRowIndexInit);
     this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
+    this.hot._removeDroppedChangesListener(this.#onChangesDropped);
     this.#releaseRender();
     this.#clearReportedMeta();
 
@@ -1048,6 +1059,7 @@ export class AsyncValues extends BasePlugin {
     // Local hooks are not tracked by `BasePlugin`, and core's own teardown updates the index cache.
     this.hot.rowIndexMapper.removeLocalHook('init', this.#onRowIndexInit);
     this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
+    this.hot._removeDroppedChangesListener(this.#onChangesDropped);
     this.#cancelFlush?.();
     this.#cancelFlush = null;
     this.#entries.clear();
@@ -3362,6 +3374,33 @@ export class AsyncValues extends BasePlugin {
     state?.flights.get(prop)
       ?.filter(flight => flight.change && !flight.changes?.includes(flight.change))
       .forEach(flight => this.#endFlight(state, prop, flight, true));
+  };
+
+  /**
+   * Called by the Core for a change set it dropped: the set waited for its validators while `loadData()`
+   * replaced the data, so it never lands, and neither `afterChange` nor a spliced-out tuple tells the
+   * plugin so. Ends the flight of every tuple the plugin wrote as failed, like a rejected one, so its call
+   * can finalize and its row state is released. A tuple a validator rejected was spliced out of the array
+   * before the drop, and `#onPostAfterValidate` finds its flight by the visual row the validation started
+   * with, which a load that reorders the rows hands to another record. So every flight that holds this
+   * array (`flight.changes`) is ended, not only the flights of the tuples still in it.
+   *
+   * @param {Array[]} changes The dropped change array.
+   */
+  readonly #onChangesDropped = (changes: CellChange[]): void => {
+    const dropped: Flight[] = [];
+
+    this.#states.forEach((state) => {
+      state.flights.forEach((flights) => {
+        flights.forEach((flight) => {
+          if (flight.changes === changes) {
+            dropped.push(flight);
+          }
+        });
+      });
+    });
+
+    dropped.forEach(flight => this.#endFlight(flight.state, flight.prop, flight, true));
   };
 
   /**

@@ -40,8 +40,8 @@
     if (!window.htAlign) {
       throw new Error('Unknown ?align= value: ' + JSON.stringify(htParams.get('align')));
     }
-    // Handsontable does not expose `rowHeightMode` yet; the engine is flipped after init, matching
-    // `exact-row-heights.html`. `exact` zeros TD padding and clips through `.htCellClip`.
+    // `exact` zeros TD padding and clips through `.htCellClip`. Handsontable derives the engine's mode from
+    // `rowHeights` (exact) and `minRowHeights` (floor); a grid with neither is flipped to `exact` after init.
     window.htRowHeightMode = ({ min: 'min', exact: 'exact' })[htParams.get('rowHeightMode') ?? 'min'];
     if (!window.htRowHeightMode) {
       throw new Error('Unknown ?rowHeightMode= value: ' + JSON.stringify(htParams.get('rowHeightMode')));
@@ -60,6 +60,7 @@
       throw new Error('Unknown ?sideColumn= value: ' + JSON.stringify(htParams.get('sideColumn')));
     }
   </script>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -120,7 +121,8 @@
         data: [withSide([value]), withSide([SHORT]), withSide([null])],
         columns,
         colWidths: 100,
-        ...(window.htMode === 'tall' ? { rowHeights: 90 } : {}),
+        // `rowHeights` is exact and `minRowHeights` is the floor, so each mode gets its own option.
+        ...(window.htMode === 'tall' ? (window.htRowHeightMode === 'exact' ? { rowHeights: 90 } : { minRowHeights: 90 }) : {}),
       };
 
     window.hot = new Handsontable(container, {
@@ -134,7 +136,7 @@
       afterRenderer(td, row, col) {
         td.setAttribute('data-testid', `cell-${row}-${col}`);
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     // Overlay clones share the master's settings object, so one update reaches every table.

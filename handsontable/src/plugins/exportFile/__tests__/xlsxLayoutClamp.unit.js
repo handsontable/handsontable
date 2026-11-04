@@ -81,8 +81,22 @@ jest.mock('../dataProvider', () => ({
       return mockProviderState.sourceData;
     }
 
+    getEngineCellFacts() {
+      return this.getData().map(row => row.map(() => null));
+    }
+
+    getFormulasBinding() {
+
+      return null;
+
+    }
+
     getFormulasSeparator() {
       return ',';
+    }
+
+    getFormulasDecimalSeparator() {
+      return '.';
     }
 
     getExcludedHiddenRows() {
@@ -112,7 +126,7 @@ jest.mock('../dataProvider', () => ({
  * @returns {Promise<object>} The first sheet read back.
  */
 async function roundTrip(width, height) {
-  const instance = { rootDocument: document, rootWindow: window };
+  const instance = { rootDocument: document, rootWindow: window, getSettings: () => ({}) };
 
   mockProviderState.widths = [width];
   mockProviderState.heights = [height];

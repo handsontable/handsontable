@@ -14,7 +14,7 @@ const sharedGridProps = {
   colHeaders: true,
   width: '100%',
   height: 420,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   columnSorting: true,
   dropdownMenu: true,
   filters: true,

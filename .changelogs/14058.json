@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an unchanged `themeName` being re-sent to `updateSettings()` on every reactive change, which slowed each cell edit.",
+  "type": "fixed",
+  "issueOrPR": 14058,
+  "breaking": false,
+  "framework": "vue"
+}

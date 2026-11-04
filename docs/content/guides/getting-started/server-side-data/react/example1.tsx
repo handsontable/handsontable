@@ -493,10 +493,10 @@ type InventoryServerTableProps = {
 };
 
 /**
- * Renders HotTable in isolation to avoid a fetch loop.
- * The React wrapper calls `updateSettings` after every HotTable render. With `dataProvider`,
- * each `updateSettings` call re-triggers a fetch. Status is therefore updated via a DOM ref
- * rather than React state so that status changes never cause HotTable to re-render.
+ * Renders HotTable in isolation.
+ * The React wrapper calls `updateSettings` after every HotTable render. The `dataProvider` object
+ * comes from `useMemo`, so a render passes the same object again and nothing is fetched. Status is
+ * updated via a DOM ref rather than React state so that status changes never re-render HotTable.
  */
 const InventoryServerTable = memo(function InventoryServerTable({
   statusRef,
@@ -556,6 +556,7 @@ const InventoryServerTable = memo(function InventoryServerTable({
       </div>
       <div id="example1">
         <HotTable
+          // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
           ref={hotRef}
           dataProvider={dataProvider}
           columns={columns}
@@ -563,7 +564,6 @@ const InventoryServerTable = memo(function InventoryServerTable({
           colHeaders={colHeaders}
           width="100%"
           height="300px"
-          licenseKey="non-commercial-and-evaluation"
           columnSorting
           pagination
           dropdownMenu

@@ -10,7 +10,7 @@ import { isKey } from '../../helpers/unicode';
 import { getValueGetterValue } from '../../utils/valueAccessors';
 import { createObjectPropListener, deepClone, hasOwnProperty, isObject } from '../../helpers/object';
 import type { ObjectPropListener } from '../../helpers/object';
-import { SEPARATOR } from '../contextMenu/predefinedItems';
+import { SEPARATOR } from '../../utils/menu/predefinedItems';
 import * as constants from '../../i18n/constants';
 import { ConditionComponent } from './component/condition';
 import { OperatorsComponent } from './component/operators';
@@ -41,7 +41,7 @@ import {
   resolveAvailableConditionsRule,
 } from './availableConditions';
 import { createMenuFocusController } from './menu/focusController';
-import type { Menu } from '../contextMenu/menu/menu';
+import type { Menu } from '../../utils/menu/menu/menu';
 import type { DropdownMenu } from '../dropdownMenu/dropdownMenu';
 import getOptionsList, {
   CONDITION_NONE,
@@ -57,6 +57,7 @@ import type { BaseComponent } from './component/_base';
 import type { BaseUI } from './ui/_base';
 import { ColumnDataMap, stampPhysicalCoordinates } from './columnDataMap';
 import type { CellProperties } from '../../settings';
+import { LICENSE, PLUGIN_DEPS } from './feature.generated';
 
 export type OperationType = 'conjunction' | 'disjunction' | 'disjunctionWithExtraCondition';
 
@@ -301,11 +302,15 @@ export class Filters extends BasePlugin {
    * Returns the list of plugin dependencies required before this plugin can be initialized.
    */
   static get PLUGIN_DEPS() {
-    return [
-      'plugin:DropdownMenu',
-      'plugin:HiddenRows',
-      'cell-type:checkbox',
-    ];
+    return [...PLUGIN_DEPS];
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
@@ -1048,15 +1053,6 @@ export class Filters extends BasePlugin {
         ?.addLocalHook('selectTabKeydown', forwardToFocusNavigation);
     }
 
-    // On the first enable this runs on `afterPluginsInitialized`, before the view exists, where the
-    // column meta layer is not resolvable yet and every column reads as carrying nothing - so the scan
-    // waits for `afterInit`. Any later enable (`updatePlugin()`, a direct `enablePlugin()` call, the
-    // off-to-on `updateSettings()` path) comes after `afterInit` has fired, so it scans right away.
-    if (this.hot.view) {
-      this.#warnAboutPerColumnSettingsObjects();
-    } else {
-      this.addHook('afterInit', this.#warnAboutPerColumnSettingsObjects);
-    }
     this.registerShortcuts();
     super.enablePlugin();
   }
@@ -1069,6 +1065,17 @@ export class Filters extends BasePlugin {
     this.enablePlugin();
 
     super.updatePlugin();
+  }
+
+  /**
+   * Scans the columns for per-column settings that do nothing. Core runs it once after each enable or
+   * update, when the column meta is resolvable: the first enable runs before the data loads, where every
+   * column reads as carrying nothing.
+   *
+   * @private
+   */
+  onGridReady() {
+    this.#warnAboutPerColumnSettingsObjects();
   }
 
   /**

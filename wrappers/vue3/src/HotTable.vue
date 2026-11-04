@@ -19,6 +19,7 @@ import Handsontable from 'handsontable/base';
 import {
   HOT_DESTROYED_WARNING,
   generateContainerId,
+  getPassedHookKeys,
   prepareSettings,
   propFactory,
 } from './helpers';
@@ -48,11 +49,17 @@ const HotTable = defineComponent({
     },
     $props: {
       handler(props) {
-        const settings = prepareSettings(props, this.hotInstance ? this.hotInstance.getSettings() : undefined);
+        const settings = prepareSettings(
+          props,
+          this.hotInstance ? this.hotInstance.getSettings() : undefined,
+          this.miscCache.hookKeys
+        );
 
         if (!this.hotInstance || settings === undefined) {
           return;
         }
+
+        this.miscCache.hookKeys = getPassedHookKeys(props);
 
         if (settings.data) {
           if (
@@ -92,6 +99,7 @@ const HotTable = defineComponent({
       miscCache: {
         currentSourceColumns: null,
         generatedId: '',
+        hookKeys: [] as string[],
       },
       columnSettings: null as HotTableProps[] | null,
       columnsCache: new Map<VNode, HotTableProps>(),
@@ -140,6 +148,7 @@ const HotTable = defineComponent({
       this.hotInstance.init();
 
       this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();
+      this.miscCache.hookKeys = getPassedHookKeys(this.$props);
     },
 
     matchHotMappersSize(): void {

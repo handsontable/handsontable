@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test';
 import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { CustomBordersLabPage } from '../fixtures/pages/CustomBordersLabPage';
 import { CustomBordersDemoPage } from '../fixtures/pages/CustomBordersDemoPage';
+import { contrastRatio, NON_TEXT_RATIO } from '../lib/contrast.mjs';
 
 const GREEN_BORDER = { color: 'green', width: 1 };
 const RED_BORDER = { color: 'red', width: 2 };
@@ -479,6 +480,140 @@ test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', 
 
     expect(await lab.dataAtCell(border.row, 0)).toBe(borderedValue);
     expect((await lab.cellBorders(border.row, 0))?.top).toEqual(GREEN_BORDER);
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+  });
+});
+
+test.describe('CustomBorders config sent in one updateSettings() call with a row order change', { tag: THEMES_TAG }, () => {
+  test('keeps the border on its record after a trim when the config shares a call with trimRows', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({ dataRows: 8, dataCols: 3, trimRows: true });
+
+    // Trimming visual row 0 moves the record now at visual row 6 up to visual row 5.
+    const expectedValue = await lab.dataAtCell(6, 0);
+
+    await page.evaluate((border) => {
+      (window as any).hot.updateSettings({ customBorders: [border], trimRows: [0] });
+    }, { row: 5, col: 0, top: GREEN_BORDER });
+
+    expect(await lab.dataAtCell(5, 0)).toBe(expectedValue);
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+
+    // A rebuild from the cell meta puts the border where the meta says its record is.
+    await page.evaluate(() => (window as any).hot.getPlugin('trimRows').trimRow(1));
+
+    const [border] = await lab.borderCoords();
+
+    expect(await lab.dataAtCell(border.row, 0)).toBe(expectedValue);
+    expect((await lab.cellBorders(border.row, 0))?.top).toEqual(GREEN_BORDER);
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+  });
+
+  test('keeps the border on its record after a trim when the config shares a call with manualRowMove', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({ dataRows: 8, dataCols: 3, trimRows: true });
+
+    // After the move, visual row 1 shows the record that sits at physical row 5.
+    const expectedValue = await lab.dataAtCell(5, 0);
+
+    await page.evaluate((border) => {
+      (window as any).hot.updateSettings({
+        customBorders: [border],
+        manualRowMove: [4, 5, 6, 7, 0, 1, 2, 3],
+      });
+    }, { row: 1, col: 0, top: GREEN_BORDER });
+
+    expect(await lab.dataAtCell(1, 0)).toBe(expectedValue);
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+
+    // Trimming the first visual row rebuilds the model from the cell meta.
+    await page.evaluate(() => (window as any).hot.getPlugin('trimRows').trimRow(4));
+
+    const [border] = await lab.borderCoords();
+
+    expect(await lab.dataAtCell(border.row, 0)).toBe(expectedValue);
+    expect((await lab.cellBorders(border.row, 0))?.top).toEqual(GREEN_BORDER);
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+  });
+});
+
+test.describe('CustomBorders after loadData()', { tag: THEMES_TAG }, () => {
+  const sameData = (rows: number, cols: number) => Array.from({ length: rows }, (_, row) =>
+    Array.from({ length: cols }, (__, col) => `r${row}c${col}`));
+
+  test('keeps the border through a trim of an unrelated row', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({ dataRows: 8, dataCols: 3, trimRows: true, customBorders: [{ row: 0, col: 0, top: RED_BORDER }] });
+    await page.evaluate(data => (window as any).hot.loadData(data), sameData(8, 3));
+
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+    expect((await lab.cellBorders(0, 0))?.top).toEqual(RED_BORDER);
+
+    // The rebuild from the cell meta used to find none after `loadData()` and empty the model.
+    await page.evaluate(() => (window as any).hot.getPlugin('trimRows').trimRow(2));
+
+    expect(await lab.borderCoords()).toEqual([{ row: 0, col: 0 }]);
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+    expect((await lab.cellBorders(0, 0))?.top).toEqual(RED_BORDER);
+  });
+
+  test('keeps the border through a filter that keeps every row', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({ dataRows: 8, dataCols: 3, filters: true, customBorders: [{ row: 0, col: 0, top: RED_BORDER }] });
+    await page.evaluate(data => (window as any).hot.loadData(data), sameData(8, 3));
+
+    await page.evaluate(() => {
+      const filters = (window as any).hot.getPlugin('filters');
+
+      filters.addCondition(0, 'not_empty', []);
+      filters.filter();
+    });
+
+    expect(await lab.borderCoords()).toEqual([{ row: 0, col: 0 }]);
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+    expect((await lab.cellBorders(0, 0))?.top).toEqual(RED_BORDER);
+  });
+
+  test('keeps the border when a listener blocks `borders` meta edits on loadData()', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({ dataRows: 8, dataCols: 3, trimRows: true, customBorders: [{ row: 0, col: 0, top: RED_BORDER }] });
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+
+    // The restore is not an edit: a listener that locks `borders` neither sees nor vetoes it.
+    const hookCalls = await page.evaluate((data) => {
+      const hot = (window as any).hot;
+      let calls = 0;
+
+      hot.addHook('beforeSetCellMeta', (_row: number, _col: number, key: string) => {
+        calls += key === 'borders' ? 1 : 0;
+
+        return key === 'borders' ? false : undefined;
+      });
+      hot.loadData(data);
+      hot.getPlugin('trimRows').trimRow(2);
+
+      return calls;
+    }, sameData(8, 3));
+
+    expect(hookCalls).toBe(0);
+    expect(await lab.borderCoords()).toEqual([{ row: 0, col: 0 }]);
+    expect((await lab.cellBorders(0, 0))?.top).toEqual(RED_BORDER);
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+  });
+
+  test('control: keeps the border through a trim after updateData()', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({ dataRows: 8, dataCols: 3, trimRows: true, customBorders: [{ row: 0, col: 0, top: RED_BORDER }] });
+    await page.evaluate(data => (window as any).hot.updateData(data), sameData(8, 3));
+    await page.evaluate(() => (window as any).hot.getPlugin('trimRows').trimRow(2));
+
+    expect(await lab.borderCoords()).toEqual([{ row: 0, col: 0 }]);
     expect(await lab.countVisibleCustomBorders()).toBe(1);
   });
 });
@@ -1779,5 +1914,58 @@ test.describe('CustomBorders cleared while rows are sorted and filtered', { tag:
     expect(await lab.visibleBorderColors()).not.toContain('rgb(0, 0, 255)');
     expect(await page.evaluate(() => (window as any).hot.getCellMeta(7, 0).borders ?? null)).toBeNull();
     expect(await lab.borderCoords()).toEqual([]);
+  });
+});
+
+/**
+ * Parse an `rgb()`/`rgba()` color string into `[r, g, b, a]`.
+ */
+function parseRgba(color: string): [number, number, number, number] {
+  const match = color.match(/rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,\s/]+([\d.]+))?/);
+
+  if (!match) {
+    throw new Error(`Not an rgb() color: ${color}`);
+  }
+
+  return [Number(match[1]), Number(match[2]), Number(match[3]), match[4] === undefined ? 1 : Number(match[4])];
+}
+
+test.describe('CustomBorders added from the context menu', { tag: THEMES_TAG }, () => {
+  test('paints a black border in the light color scheme', async ({ page, theme, bundle }) => {
+    const lab = new CustomBordersLabPage(page, theme, bundle);
+
+    await lab.goto('light');
+    await lab.createGrid({ dataRows: 5, dataCols: 5, contextMenu: true, customBorders: true });
+
+    await lab.addBorderViaContextMenu(1, 1, 'Bottom');
+
+    await expect.poll(() => lab.visibleBorderComputedColors()).toEqual(['rgb(0, 0, 0)']);
+  });
+
+  test('paints a border that stays visible in the dark color scheme', async ({ page, theme, bundle }) => {
+    const lab = new CustomBordersLabPage(page, theme, bundle);
+
+    await lab.goto('dark');
+    await lab.createGrid({ dataRows: 5, dataCols: 5, contextMenu: true, customBorders: true });
+
+    await lab.addBorderViaContextMenu(1, 1, 'Bottom');
+
+    await expect.poll(async() => (await lab.visibleBorderComputedColors()).length).toBe(1);
+
+    const [border] = (await lab.visibleBorderComputedColors()).map(parseRgba);
+    // A bottom edge sits between row 1 and row 2, which can differ (striped rows).
+    const backgrounds = [
+      parseRgba(await lab.cellBackgroundColor(1, 1)),
+      parseRgba(await lab.cellBackgroundColor(2, 1)),
+    ];
+
+    // The ratio is only meaningful against an opaque painted background.
+    expect(backgrounds.map(([, , , alpha]) => alpha)).toEqual([1, 1]);
+    expect(border[3]).toBe(1);
+
+    // A non-text UI component needs 3:1 against what it sits on (WCAG 2.2, 1.4.11).
+    const ratio = Math.min(...backgrounds.map(background => contrastRatio(border.slice(0, 3), background.slice(0, 3))));
+
+    expect(ratio).toBeGreaterThanOrEqual(NON_TEXT_RATIO);
   });
 });

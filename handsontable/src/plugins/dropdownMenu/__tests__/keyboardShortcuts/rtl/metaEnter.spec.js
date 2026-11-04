@@ -77,7 +77,12 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
         const expectedMenuTop = buttonOffset.top + buttonWidth + 4;
 
         expect(menuOffset.top).toBeAroundValue(expectedMenuTop, 1);
-        expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
+        // The menu opens at the button, but never past the viewport's left edge, which is the window's scroll
+        // offset: with the grid in an LTR page the last column's button can sit left of the page, where the menu
+        // would not be visible.
+        expect(menuOffset.left).toBeCloseTo(Math.max(buttonOffset.left, window.scrollX), 0);
+        expect(menuOffset.left + $dropdownMenu.outerWidth())
+          .toBeLessThanOrEqual(window.scrollX + document.documentElement.clientWidth);
         expect(getSelectedRange()).toEqualCellRange([
           `highlight: -1,${lastColumn} from: -1,${lastColumn} to: 3,${lastColumn}`
         ]);

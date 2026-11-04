@@ -166,7 +166,7 @@ test.describe('empty data state layout', { tag: THEMES_TAG }, () => {
     await page.keyboard.press('Alt+Shift+ArrowDown');
     await expect(menu).toBeVisible();
 
-    // The condition select, the search input, Select all, Clear.
+    // The condition select, the search input, Select all, Select none.
     await page.keyboard.press('Tab');
     await expect(menu.locator('.htFiltersMenuCondition .htUISelect')).toBeFocused();
     await page.keyboard.press('Tab');

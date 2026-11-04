@@ -250,6 +250,37 @@ describe('HandsontableAdapter header highlights', () => {
     overlayHost.remove();
   });
 
+  it('setOverlayClassName leaves a class the overlay host already carries, and never removes it', () => {
+    const { hot } = makeHot();
+    const overlayHost = document.createElement('div');
+
+    // Core keeps the grid theme class on the root wrapper and swaps it on a theme change.
+    overlayHost.classList.add('ht-theme-main');
+    document.body.appendChild(overlayHost);
+
+    const adapter = new HandsontableAdapter(makeAdapterOptions(hot, overlayHost), makePluginStub());
+
+    adapter.setOverlayClassName('ht-theme-main');
+
+    expect(overlayHost.className).toBe('ht-theme-main');
+
+    adapter.setOverlayClassName('my-theme');
+
+    expect(overlayHost.classList.contains('ht-theme-main')).toBe(true);
+    expect(overlayHost.classList.contains('my-theme')).toBe(true);
+
+    adapter.setOverlayClassName('ht-theme-main');
+
+    expect(overlayHost.className).toBe('ht-theme-main');
+
+    adapter.setOverlayClassName(null);
+    adapter.destroy();
+
+    expect(overlayHost.className).toBe('ht-theme-main');
+
+    overlayHost.remove();
+  });
+
   it('destroy removes the applied theming class from the overlay host', () => {
     const { hot } = makeHot();
     const overlayHost = document.createElement('div');

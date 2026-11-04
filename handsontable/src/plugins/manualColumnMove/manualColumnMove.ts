@@ -2,11 +2,12 @@ import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, outerWidth } from '../../helpers/dom/element';
-import { offsetRelativeTo } from '../../helpers/dom/event';
+import { hasPointerTraveled, isImmediatePropagationStopped, offsetRelativeTo } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
 import { clampFixedColumnsEnd } from '../../3rdparty/walkontable/src/settings/fixedColumnsEnd';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
+import { LICENSE } from './feature.generated';
 
 Hooks.getSingleton().register('beforeColumnMove');
 Hooks.getSingleton().register('afterColumnMove');
@@ -17,9 +18,6 @@ const CSS_PLUGIN = 'ht__manualColumnMove';
 const CSS_SHOW_UI = 'show-ui';
 const CSS_ON_MOVING = 'on-moving--columns';
 const CSS_AFTER_SELECTION = 'after-selection--columns';
-// Matches ColumnSorting's tolerance. Kept as a local constant rather than imported - plugins do not
-// import each other.
-const POINTER_DRAG_TOLERANCE = 3;
 
 /**
  * @plugin ManualColumnMove
@@ -61,6 +59,14 @@ export class ManualColumnMove extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Backlight UI object.
    *
    * @type {object}
@@ -84,6 +90,11 @@ export class ManualColumnMove extends BasePlugin {
    * @type {boolean}
    */
   #pressed = false;
+  /**
+   * Whether `updatePlugin()` is restarting the plugin. A restart keeps a held drag: the framework wrappers
+   * send the settings again on every render.
+   */
+  #restarting = false;
   /**
    * Whether the pointer traveled far enough since the header was pressed to count as a drag. A
    * press that stayed put is a click to sort, so no columns move and the move hooks stay quiet.
@@ -153,6 +164,7 @@ export class ManualColumnMove extends BasePlugin {
         this.#onBeforeOnCellMouseOverOutside(controller));
     this.addHook('afterScrollVertically', this.#onAfterScrollVertically);
     this.addHook('afterLoadData', this.#onAfterLoadData);
+    this.addHook('afterColumnSequenceChange', this.#onAfterColumnSequenceChange);
 
     this.buildPluginUI();
     this.registerEvents();
@@ -170,7 +182,9 @@ export class ManualColumnMove extends BasePlugin {
    *  - [`manualColumnMove`](@/api/options.md#manualcolumnmove)
    */
   updatePlugin() {
+    this.#restarting = true;
     this.disablePlugin();
+    this.#restarting = false;
     this.enablePlugin();
 
     this.moveBySettingsOrLoad();
@@ -182,6 +196,10 @@ export class ManualColumnMove extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    if (!this.#restarting && this.#pressed) {
+      this.#cancelDrag();
+    }
+
     removeClass(this.hot.rootElement, CSS_PLUGIN);
 
     this.unregisterEvents();
@@ -227,11 +245,13 @@ export class ManualColumnMove extends BasePlugin {
         return false;
       }
 
-      if (movePossible) {
+      const movePerformed = movePossible && this.isColumnOrderChanged(columns, finalIndex);
+
+      // A move that leaves the order as it is must not reach the mapper: `moveIndexes()` ignores
+      // trimmed indexes, so it would put the columns on the far side of any trimmed one next to them.
+      if (movePerformed) {
         this.hot.columnIndexMapper.moveIndexes(columns, finalIndex);
       }
-
-      const movePerformed = movePossible && this.isColumnOrderChanged(columns, finalIndex);
 
       this.hot.runHooks('afterColumnMove', columns, finalIndex, dropIndex, movePossible, movePerformed);
 
@@ -794,11 +814,13 @@ export class ManualColumnMove extends BasePlugin {
     const isHeaderSelection = this.hot.selection.isSelectedByColumnHeader();
     const selection = this.hot.getSelectedRangeActive();
 
-    if (!selection || !isHeaderSelection || this.#pressed || event.button !== 0) {
-      this.#pressed = false;
-      this.#dragged = false;
-      this.#columnsToMove.length = 0;
-      removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
+    // A press an earlier listener claimed (the FormulaBuilder reference pick, which runs first with
+    // order index `-1`) owns the gesture, so it arms no move.
+    if (
+      !selection || !isHeaderSelection || this.#pressed || event.button !== 0 ||
+      isImmediatePropagationStopped(event)
+    ) {
+      this.#cancelDrag();
 
       return;
     }
@@ -857,9 +879,7 @@ export class ManualColumnMove extends BasePlugin {
 
     } else {
       removeClass(this.hot.rootElement, CSS_AFTER_SELECTION);
-      this.#pressed = false;
-      this.#dragged = false;
-      this.#columnsToMove.length = 0;
+      this.#cancelDrag();
     }
   };
 
@@ -875,8 +895,7 @@ export class ManualColumnMove extends BasePlugin {
 
     // Same tolerance ColumnSorting uses to tell a click from a drag, so a pointer that jitters a
     // pixel or two does not both sort and fire the move hooks.
-    if (Math.abs(event.clientX - this.#pressOrigin.x) > POINTER_DRAG_TOLERANCE ||
-        Math.abs(event.clientY - this.#pressOrigin.y) > POINTER_DRAG_TOLERANCE) {
+    if (hasPointerTraveled(this.#pressOrigin, event)) {
       this.#dragged = true;
     }
 
@@ -941,14 +960,8 @@ export class ManualColumnMove extends BasePlugin {
     const columnsLen = this.#columnsToMove.length;
     const wasDragged = this.#dragged;
 
-    this.#hoveredColumn = undefined;
-    this.#pressed = false;
-    this.#dragged = false;
-
-    // The next drag starts with the guideline in the master table, where `onMouseDown` expects it.
-    this.#attachGuideline(this.hot.view._wt.wtTable.hider);
-
-    removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
+    this.#endDrag();
+    removeClass(this.hot.rootElement, CSS_AFTER_SELECTION);
 
     if (this.hot.selection.isSelectedByColumnHeader()) {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
@@ -977,6 +990,42 @@ export class ManualColumnMove extends BasePlugin {
       this.hot.selectColumns(selectionStart, selectionEnd);
     }
   }
+
+  /**
+   * Ends the drag state shared by a release and a cancel. The next drag starts with the guideline in
+   * the master table, where `onMouseDown` expects it.
+   */
+  #endDrag() {
+    this.#hoveredColumn = undefined;
+    this.#pressed = false;
+    this.#dragged = false;
+
+    this.#attachGuideline(this.hot.view._wt.wtTable.hider);
+
+    removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
+  }
+
+  /**
+   * Ends the drag state and forgets the columns it holds, so no release can move them.
+   */
+  #cancelDrag() {
+    this.#endDrag();
+    this.#columnsToMove.length = 0;
+  }
+
+  /**
+   * Cancels a column drag held while the column order starts over (`loadData()`, `updateSettings()` with
+   * `columns`, or new data with another column layout). The columns it holds are indexes of the order it
+   * started on, and the release would move other columns. A same-shape `updateData()` keeps the order and
+   * the drag.
+   *
+   * @param {string} source The source of the sequence change.
+   */
+  #onAfterColumnSequenceChange = (source: string) => {
+    if (source === 'init' && this.#pressed) {
+      this.#cancelDrag();
+    }
+  };
 
   /**
    * `afterScrollHorizontally` hook callback. Fired the table was scrolled horizontally.

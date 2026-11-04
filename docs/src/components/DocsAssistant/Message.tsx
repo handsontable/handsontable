@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AGENT_LABEL } from './constants';
 import type { ChatMessage } from './useAssistant';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { IconCheck, IconCopy, IconRetry, IconThumbDown, IconThumbUp, LoaderBoxes } from './icons';
@@ -28,6 +29,19 @@ export function Message({ message, isLastAssistant, streaming, onRetry, onFeedba
     return (
       <div className="da-msg da-msg-user">
         <div className="da-bubble">{message.content}</div>
+      </div>
+    );
+  }
+
+  // A reply a teammate wrote from Slack: its own background and a label, so a reader can tell a
+  // person from the bot. No copy, rating or retry actions: it is not an answer the bot can redo.
+  if (message.role === 'agent') {
+    return (
+      <div className="da-msg da-msg-agent">
+        <div className="da-agent-label">{AGENT_LABEL}</div>
+        <div className="da-assistant-body da-agent-body">
+          <MarkdownRenderer content={message.content} />
+        </div>
       </div>
     );
   }

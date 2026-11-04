@@ -68,6 +68,45 @@ test.describe('host-page span styles do not leak into grid UI spans', { tag: THE
     }
   });
 
+  test('sheets bar tab labels and the rename field keep the tab text metrics', async({ page, theme, bundle }) => {
+    const fixture = new HostSpanStylesPage(page, theme, bundle);
+
+    await fixture.goto({ sheetsBar: true });
+
+    const expected = await fixture.textMetrics(fixture.activeTab);
+
+    expectNotHostValues(expected);
+
+    for (const span of [fixture.tabLabel, fixture.tabChevron]) {
+      for (const property of TEXT_PROPERTIES) {
+        await expect(span).toHaveCSS(property, expected[property]);
+      }
+    }
+
+    await fixture.startRename();
+
+    for (const element of [fixture.renameInput, fixture.renameMirror]) {
+      for (const property of TEXT_PROPERTIES) {
+        await expect(element).toHaveCSS(property, expected[property]);
+      }
+    }
+  });
+
+  test('sheet names in the all-sheets menu keep the menu row text metrics', async({ page, theme, bundle }) => {
+    const fixture = new HostSpanStylesPage(page, theme, bundle);
+
+    await fixture.goto({ sheetsBar: true });
+    await fixture.openAllSheetsMenu();
+
+    const expected = await fixture.textMetrics(fixture.menuItemWrapper);
+
+    expectNotHostValues(expected);
+
+    for (const property of TEXT_PROPERTIES) {
+      await expect(fixture.menuItemName).toHaveCSS(property, expected[property]);
+    }
+  });
+
   // A user override the parent-follow tests apply. Every value differs from the themes' tokens and
   // from the host rule, which the tests re-check against the live page before asserting.
   const USER_OVERRIDE: TextMetrics = {

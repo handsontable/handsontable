@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, Pagination } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(Pagination);
@@ -33,7 +34,7 @@ describe('Pagination -> Core.clear()', () => {
 
   it('should empty the rows of every page, not only the rows of the current page', () => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: Array.from({ length: 20 }, (rowValue, row) => [`A${row + 1}`, `B${row + 1}`]),
       pagination: {
         pageSize: 5,
@@ -47,7 +48,7 @@ describe('Pagination -> Core.clear()', () => {
 
   it('should empty the rows of every page when the current page is not the first one', () => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: Array.from({ length: 20 }, (rowValue, row) => [`A${row + 1}`, `B${row + 1}`]),
       pagination: {
         pageSize: 5,
@@ -66,7 +67,7 @@ describe('Pagination -> Core.clear()', () => {
 
   it('should keep read-only cells intact while emptying the other pages', () => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: Array.from({ length: 20 }, (rowValue, row) => [`A${row + 1}`, `B${row + 1}`]),
       pagination: {
         pageSize: 5,

@@ -8,8 +8,14 @@ import {
   getLicenseGrants,
   UNRESTRICTED_GRANTS,
   HANDSONTABLE_PRODUCT,
+  LISTED_CAPABILITIES_FLAG,
 } from '../utils/entitlementLicenseKey';
-import type { LicenseLifecycle, LicenseGrants, LicenseChannels } from '../utils/entitlementLicenseKey';
+import type {
+  LicenseLifecycle,
+  LicenseGrants,
+  LicenseChannels,
+  ProductEntitlement,
+} from '../utils/entitlementLicenseKey';
 
 /**
  * Converts any value to string.
@@ -114,9 +120,7 @@ const consoleMessages: Record<string, (params: { keyValidityDate?: string; hotVe
     to ${keyValidityDate}. If you need any help, contact us at sales@handsontable.com.`,
   missing: () => toSingleLine`
     The license key for Handsontable is missing. Use your purchased key to activate the product.\x20
-    Alternatively, you can activate Handsontable to use for non-commercial purposes by\x20
-    passing the key: 'non-commercial-and-evaluation'. If you need any help, contact\x20
-    us at support@handsontable.com.`,
+    If you need any help, contact us at support@handsontable.com.`,
   non_commercial: () => '',
 };
 
@@ -128,7 +132,7 @@ const consoleMessages: Record<string, (params: { keyValidityDate?: string; hotVe
  * the message as parts and building the nodes touches no sink, and keeps the copy - which is
  * transcribed from the license specification - in exactly one place.
  */
-type MessagePart = string | { text: string; href: string; target?: string };
+export type MessagePart = string | { text: string; href: string; target?: string };
 
 /**
  * Renders license bar message parts into an element.
@@ -137,7 +141,7 @@ type MessagePart = string | { text: string; href: string; target?: string };
  * @param {Array} parts The message parts.
  * @param {Document} ownerDocument The document to build the nodes in.
  */
-function _renderMessageParts(target: HTMLElement, parts: MessagePart[], ownerDocument: Document) {
+export function _renderMessageParts(target: HTMLElement, parts: MessagePart[], ownerDocument: Document) {
   parts.forEach((part) => {
     if (typeof part === 'string') {
       target.appendChild(ownerDocument.createTextNode(part));
@@ -176,9 +180,7 @@ const domMessages: Record<string, (params: { keyValidityDate?: string; hotVersio
     '.',
   ],
   missing: () => [
-    'The license key for Handsontable is missing. Use your purchased key to activate the product. ' +
-      'Alternatively, you can activate Handsontable to use for non-commercial purposes by ' +
-      'passing the key: \'non-commercial-and-evaluation\'. ',
+    'The license key for Handsontable is missing. Use your purchased key to activate the product. ',
     { text: 'Read more', href: 'https://handsontable.com/docs/tutorial-license-key.html', target: '_blank' },
     ' about it in the documentation or contact us at ',
     { text: 'support@handsontable.com', href: 'mailto:support@handsontable.com' },
@@ -243,6 +245,30 @@ type EntitlementConsoleNotification = {
   severity: 'warn' | 'error';
   message: (params: EntitlementMessageParams) => string;
 };
+
+/**
+ * Builds the message for the features a license key that lists its features leaves out: the console
+ * text and the bar parts. One message names every missing feature. The console text, which is also
+ * what a refused call throws, names each as `<display name> (<token>)` for the developer; the bar,
+ * which the end user can see, names each by its display name only. Transcribed from the license
+ * specification (rev 6, section 10.4).
+ *
+ * @param {Array<{name: string, capability: string}>} features The missing features, in the order to print.
+ * @returns {{text: string, parts: MessagePart[]}}
+ */
+export function _buildMissingFeaturesMessage(
+  features: ReadonlyArray<{ name: string; capability: string }>,
+): { text: string; parts: MessagePart[] } {
+  const lead = (list: string) => `The license key for Handsontable does not include these features: ${list}. ` +
+    'They are turned off. To add them, contact ';
+  const withTokens = features.map(({ name, capability }) => `${name} (${capability})`).join(', ');
+  const namesOnly = features.map(({ name }) => name).join(', ');
+
+  return {
+    text: `${lead(withTokens)}sales@handsontable.com.`,
+    parts: [lead(namesOnly), { text: 'sales@handsontable.com', href: 'mailto:sales@handsontable.com' }, '.'],
+  };
+}
 
 /**
  * License sentences the specification repeats verbatim across surfaces - the bottom bar (here), the
@@ -738,8 +764,62 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
   return {
     lifecycle,
     channels: resolveChannels(entitlement),
-    grants: getLicenseGrants(keyData),
+    // The flag rule: only a key whose Handsontable entry carries `listed-capabilities` restricts.
+    // Every key issued before the flag lists only `core`, and the reader answers "not granted" for
+    // every token such a key leaves out - read without this check, it would turn off every paid
+    // feature of every customer.
+    grants: _listsCapabilities(entitlement) ? getLicenseGrants(keyData) : UNRESTRICTED_GRANTS,
   };
+}
+
+/**
+ * Tells whether a product entry says its capability list is complete (the `listed-capabilities`
+ * flag). Without the flag, a Handsontable key unlocks every feature.
+ *
+ * @param {ProductEntitlement} entitlement The Handsontable entry of a verified key.
+ * @returns {boolean}
+ */
+function _listsCapabilities(entitlement: ProductEntitlement): boolean {
+  return entitlement.flags.indexOf(LISTED_CAPABILITIES_FLAG) !== -1;
+}
+
+/**
+ * Builds an empty license bar, the element the license messages go in, one block each. The frozen legacy
+ * emitter above builds the same shape inline and stays as it is.
+ *
+ * @param {Document} ownerDocument The document to build the node in.
+ * @param {string} className The bar's class name.
+ * @returns {HTMLElement}
+ */
+export function _createLicenseBar(ownerDocument: Document, className: string): HTMLElement {
+  const bar = ownerDocument.createElement('div');
+
+  bar.className = `handsontable ${className}`;
+
+  return bar;
+}
+
+/**
+ * Builds one message block of a license bar.
+ *
+ * @param {Document} ownerDocument The document to build the nodes in.
+ * @param {string} className The bar's class name; the block takes it with an `_inner` suffix.
+ * @param {Array} parts The message parts.
+ * @param {string} [blockClassName] A class name of the block's own.
+ * @returns {HTMLElement}
+ */
+export function _createLicenseBarBlock(
+  ownerDocument: Document,
+  className: string,
+  parts: MessagePart[],
+  blockClassName?: string,
+): HTMLElement {
+  const block = ownerDocument.createElement('div');
+
+  block.className = blockClassName ? `${className}_inner ${blockClassName}` : `${className}_inner`;
+  _renderMessageParts(block, parts, ownerDocument);
+
+  return block;
 }
 
 /**
@@ -809,14 +889,10 @@ function _injectEntitlementProductInfo(
   // Use the target element's own document so an iframe-hosted grid builds its bar nodes in the
   // right realm (the global `document` would be the loading window's).
   const ownerDocument = element.ownerDocument;
-  const messageNode = ownerDocument.createElement('div');
-  const innerNode = ownerDocument.createElement('div');
+  const barClassName = String(className);
+  const messageNode = _createLicenseBar(ownerDocument, barClassName);
 
-  messageNode.className = `handsontable ${className}`;
-  innerNode.className = `${className}_inner`;
-  _renderMessageParts(innerNode, buildDomMessage(params), ownerDocument);
-
-  messageNode.appendChild(innerNode);
+  messageNode.appendChild(_createLicenseBarBlock(ownerDocument, barClassName, buildDomMessage(params)));
   element.appendChild(messageNode);
 
   return messageNode;

@@ -1,5 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
-import { ConsoleWarnings } from '../consoleWarnings';
+import * as menuItems from './menuItems';
 
 /**
  * Page Object for the "freeze_column / unfreeze_column as dropdown menu keys" fixture
@@ -130,7 +130,7 @@ export class DropdownMenuFreezeColumnPage {
    * match finds that nested grid's table too and trips Playwright's strict mode.
    */
   private openMenu(menuSelector: string): Locator {
-    return this.page.locator(`${menuSelector} > .ht_master:visible`);
+    return menuItems.openMenu(this.page, menuSelector);
   }
 
   /**
@@ -156,18 +156,7 @@ export class DropdownMenuFreezeColumnPage {
    * The child chain stops at the menu's own table.
    */
   private async visibleItemsOf(menuSelector: string): Promise<string[]> {
-    return this.page.evaluate((selector) => {
-      const ownTable = document.querySelector(`${selector} > .ht_master table.htCore`);
-
-      if (!ownTable) {
-        return [];
-      }
-
-      return Array.from(ownTable.querySelectorAll(':scope > tbody > tr > td'))
-        .filter(cell => cell.getBoundingClientRect().height > 0)
-        .map(cell => (cell.textContent ?? '').trim())
-        .filter(label => label.length > 0);
-    }, menuSelector);
+    return menuItems.visibleItemsOf(this.page, menuSelector);
   }
 
   /**
@@ -178,32 +167,21 @@ export class DropdownMenuFreezeColumnPage {
    * cannot outlive the spec that asked for it.
    */
   collectUnresolvedKeyWarnings(): string[] {
-    return new ConsoleWarnings(this.page, 'does not match any available').matching;
-  }
-
-  /** Pick one entry from the open column header menu. */
-  async clickDropdownMenuItem(label: string): Promise<void> {
-    await this.menuItem('.htDropdownMenu', label).click();
-    await expect(this.openMenu('.htDropdownMenu')).toBeHidden();
-  }
-
-  /** Pick one entry from the open context menu. */
-  async clickContextMenuItem(label: string): Promise<void> {
-    await this.menuItem('.htContextMenu', label).click();
-    await expect(this.openMenu('.htContextMenu')).toBeHidden();
+    return menuItems.collectUnresolvedKeyWarnings(this.page).matching;
   }
 
   /**
-   * One visible menu row, matched on its whole label.
-   *
-   * The match is anchored because Playwright's `hasText` string form is a case-insensitive
-   * SUBSTRING match, and "Unfreeze column" contains "freeze column" — so the plain form would
-   * happily click unfreeze when asked for freeze.
+   * Pick one entry from the open column header menu.
    */
-  private menuItem(menuSelector: string, label: string): Locator {
-    const exact = new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`);
+  async clickDropdownMenuItem(label: string): Promise<void> {
+    await menuItems.clickMenuItem(this.page, '.htDropdownMenu', label);
+  }
 
-    return this.page.locator(`${menuSelector} td:visible`).filter({ hasText: exact }).first();
+  /**
+   * Pick one entry from the open context menu.
+   */
+  async clickContextMenuItem(label: string): Promise<void> {
+    await menuItems.clickMenuItem(this.page, '.htContextMenu', label);
   }
 
   /** How many columns the grid currently holds in its frozen (inline start) area. */

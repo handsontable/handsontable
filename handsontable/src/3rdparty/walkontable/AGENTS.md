@@ -927,6 +927,17 @@ row. The paint value stays the ghost number: putting the pixel into `style.heigh
 every nested level after the first 1px taller. An explicit `columnHeaderHeight` and the
 first-draw content probe already include the gridline, so they do not get another pixel.
 
+`adjustColumnHeaderHeights` writes a raised level's height on its first header cell, and those cells are
+reused across draws, so it clears that inline height once the level is back at the default. Otherwise a
+header row that once held multi-line labels stayed tall: the render-size probe measured the written height
+back into the funnel on every draw. `TableView` drops a stored header height above one line at the start
+of each full render for the same reason (`#dropRaisedColumnHeaderHeights`), so the pre-measure takes the new
+content. "One line" is the default row height PLUS the header's bottom gridline (`#hasRaisedColumnHeader`,
+shared with the post-draw overlay re-sync): the probe measures a border-box height, so against the default
+height alone every one-line header read as raised and each full render re-measured and re-synced for
+nothing. Pinned by `test/unit/axisSizing/columnHeaderHeights.unit.ts`,
+`src/__tests__/columnHeaderHeightReset.unit.js` and `tests/e2e/sheets-bar-header-height.spec.ts`.
+
 ## Border ownership: the header owns its gridline, on both axes
 
 Both axes are settled, and they are now symmetric. On the column axis a row header `th` carries its
@@ -1017,10 +1028,30 @@ Consequences worth knowing:
 - **Reading the border is not enough for anything the overlays paint over.** The shared pixel in front
   of column 0 belongs to the inline-start overlay, which is z-index 120 against the selection border
   layer's 10, so an affordance centred on that gridline is *geometrically* right and *invisible*.
-  `Border#appear` therefore shifts the edge onto the cell's own boundary when the cell either owns an
-  inline-start border **or** has a row-header `th` as its previous sibling. That second test is what
-  keeps a selection on column 0 visible; without it the edge lands at `rowHeaderWidth - 1` and
-  disappears behind the row header. The `customBorders` specs cannot catch it — they count visible
+  `Border#appear` therefore shifts the edge onto the cell's own boundary when the cell owns an
+  inline-start border, has a row-header `th` as its previous sibling, **or** stands where an inline-start
+  overlay ends (`Border#isStartGridlineCoveredByOverlay`). The row-header test is what keeps a selection
+  on column 0 visible; without it the edge lands at `rowHeaderWidth - 1` and disappears behind the row
+  header. It is not enough on its own: with the default overscan the cell after the row header is a
+  hidden column, so the first fully visible column of a scrolled grid has a data cell as its previous
+  sibling, and so has the first column past `fixedColumnsStart`. Both showed 1px of their 2px edge.
+  The rectangle test (`isStartGapCovered` in `helpers/dom/element.ts`, the rule
+  `BaseEditor#isStartPixelCovered` shares) asks the overlay that is painted over the layer the border
+  lives in: the inline-start clone for the master table, the top start corner for the `top` clone, the
+  bottom start corner for the `bottom` clone. The top edge has the same blind spot and the same answer
+  (`isTopGapCovered`, `Border#isTopGridlineCoveredByOverlay`): `standsBelowColumnHeader` keys on the
+  first row of the body, so the first visible row of a scrolled grid and the first row after
+  `fixedRowsTop` kept 1px of their 2px edge. The covering overlay is the top clone for the master
+  table and the top corner on the clone's own side for the inline-start and inline-end clones. Neither test applies to an
+  edge that lands exactly on a freeze line (`isFrozenBoundaryEdge`): the master and the frozen overlay
+  draw its two halves around the line, and `frozenBoundaryEdge.spec.js` pins that a shift would break it. A cell of the inline-start clone and of the corners is in
+  the overlay's own layer and draws its edge itself. The decision is made on each draw, so a scroll that
+  brings a column next to the overlay moves its edge too. Pinned by
+  `tests/e2e/selection-start-edge-row-header.spec.ts`, which measures how much of the edge lies inside
+  the overlay's table. Hit-testing cannot do it: the clone's `.wtHolder` is wider than its table and
+  answers `elementFromPoint` over the cell.
+
+  The `customBorders` specs cannot catch the covered edge either. They count visible
   elements, and the element is there, just covered. The editor is the second such affordance, with a
   split rule by the layer its holder is in. The holder of a cell the MASTER table draws is at z-index 100,
   under the inline-start overlay (120); that of a frozen top row is at 160, under the top start corner
@@ -1108,6 +1139,8 @@ Four things hold a row up, and exactness has to defeat each of them:
 2. **The cells the height is not written to.** The floor shape writes the height to `TR.firstChild` only. That is enough for a floor, and it is why the stylesheet's default `height` on every `td`/`th` holds an exact row up even when the cells are empty. The exact shape (`render/exactRowHeight.ts`, used by both the render loop and `applyRowHeightsToRenderedRows`) marks the **row** with `htExactRow`, and the stylesheet releases the cells' minimum height through that class (`tr.htExactRow > td { height: auto }`), so the height still goes on one cell only — the first that spans a single row and is rendered; a cell spanning several rows (a merged cell) never carries it, the span sizes it, and a cell MergeCells covers is `display: none` with its `rowspan` removed, so a height on it would hold nothing up. When no cell can carry it at all (every cell covered or spanning) the height goes on the `tr` instead, or the row would collapse to its borders now that the stylesheet released the cells' minimum. **The marker must stay on the row, not the cells.** The cell renderers reset every cell's class and inline style on each draw, and a per-cell marker was measured at +2.2 ms of style recalculation per draw on 462 cells (the browser recomputed the whole band); the row renderer leaves the row's class alone, so re-asserting the row marker each draw costs nothing (adding a present class is a no-op) and heals a hook that rewrote `className`. The release clears every cell's inline height, because the carrier need not be the first cell and the out-of-render path has no renderer to reset it.
 3. **CSS table layout.** A table cell's `height` is a minimum, full stop: `overflow: hidden` on the cell does not shrink it, and a `height: 100%` child resolves to the content height (measured, not guessed). The only thing that works is taking the content out of flow: each data cell's content is moved into `div.htCellClip`, which the stylesheet positions absolutely over the cell's padding box and clips; the cell drops its own padding through the row class (a border-box cell cannot be shorter than its padding plus border — 17px in `horizon`), while the wrapper's insets carry the same padding so the text does not move. Row headers keep their `.relative` wrapper (taken out of flow the same way; it must stay `TH.firstChild` or `appendRowHeader` rebuilds it every draw) and the header's own `span.rowHeader` clips — never `.relative` and never the `th`: the active-row accent bar is a `.relative::after` inset by -1px on three sides to meet the gridlines, and a clip on either box cuts it off (a body-row `th` has `padding: 0`, so its padding box is its content box). A custom row-header renderer that builds no `.rowHeader` is simply unclipped; it can never grow the row, because `.relative` is out of flow. Vertical alignment (`htMiddle`/`htBottom`) maps onto the wrapper through `align-content` on the block box, never `display: flex` — `.ht-multi-select-arrow` and the select-editor overlay's `.htAutocompleteArrow` still float, and a flex container ignores floats. In-cell `.htAutocompleteArrow` is absolutely positioned (DEV-348) and would survive flex, but the remaining floats would not.
 4. **The renderers.** The cell renderer resets a painted cell's class and inline style, so the one inline height is re-applied on every draw (the reason the height pass must stay after `cells.render()`). The pass runs for every rendered row whatever the cell painter decided, which is what keeps it correct under `renderMode: 'onChange'`: a cell the diffing pass skips keeps its wrapper and its height, and re-applying them is idempotent. The painter reads its own stamps and never inspects cell DOM, so the wrapper is invisible to it. The wrapper is the expensive part: `fastInnerText`'s fast lane needs `firstChild` to be a text node, and `empty(TD)`/`innerHTML` wipe it. Every built-in renderer therefore writes through `getCellContentRoot(TD)` (`helpers/dom/element.ts`), which returns the wrapper when it is the cell's only child, and `fastInnerText`/`fastInnerHTML` do the same — so the wrapper survives a redraw and the row-height pass sees "already wrapped" and does nothing. A custom renderer that wipes the cell costs one re-wrap per draw, on exact rows only; that is the accepted cost, and it is the exception to the "no structural DOM mutation per draw" rule in `tableRenderer.ts`. A renderer that inserts a node **next to** the wrapper (the old `TD.insertBefore(ARROW, TD.firstChild)` shape) grows the row back — in-flow content outside the wrapper counts — which is why the arrow renderers went through the content root too.
+
+**The host sets the mode (DEV-361).** Handsontable passes `rowHeightMode` from `TableView#resolveRowHeightMode()` (see `handsontable/AGENTS.md`, "`rowHeights` is exact"): `rowHeights` is exact, `minRowHeights` and any `AutoRowSize` row are the floor. **A row whose first cell spans several rows (or a merge covers it) is written at its OWN height in the exact shape**, not the height the overlay listener answered (`getExactCarrierHeight` in `render/exactRowHeight.ts`). MergeCells answers the whole block's height for the row a block starts on, for the spanning cell's benefit; the exact shape gives that cell no height, so the block's total landed on the carrier cell beside it and stretched the row by every row the block spans (a 6-row block of `rowHeights: 50` rendered 550px, not 300). It is the exact twin of the floor shape's "the pin is the row's own height" rule above. Pinned by the merged-block case in `tests/e2e/row-heights-exact.spec.ts` and the `first cell that spans several rows` block of `test/unit/renderer/exactRowHeight.unit.ts`.
 
 Switching a row back to the floor shape unwraps it once (a `WeakSet` of exact rows, so floor rows are never inspected). Column headers are out of scope on purpose: `adjustColumnHeaderHeights` writes a minimum by design.
 
@@ -1492,6 +1525,7 @@ Never guess a container from an empty style read, and never cache a layout decis
 - **Cancel `touchend` when a tap moved focus onto the cell, and when the gesture was not a tap on a cell that was not selected at `touchstart`.** A non-tap never runs the deferred mousedown, so the focus range does not include that cell. The cancel stops a compatibility mousedown inside the browser's tap slop from selecting it (#11659). A drift that ends on the already-selected cell is not cancelled (DEV-2687). `disableVisualSelection` of `true`, `'current'`, or an array containing `'current'` never commits a range (`Highlight#isEnabledFor` skips `add().commit()`), so a tap there is not cancelled. A hook that stops selection leaves the previous range where it was, so a tap is not cancelled either. A checkbox stays exempt. On iOS Chrome and iOS Firefox, `preventDefault` also runs for a non-interactive target whether or not a range was committed, because those engines drop the second tap otherwise. `A`, `BUTTON`, `INPUT`, and a label whose control is a file input stay exempt. Read the range, not the Handsontable setting.
 
 - **Drop only the first synthesized pair after a tap, gated veto → pending pair → ceiling.** `#isTouchSynthesizedMouseEvent()` gates both `mousedown` and `mouseup` in that order: an engine that reports the origin and says "not touch" wins first (Blink's `sourceCapabilities.firesTouchEvents === false` means a real mouse or pen click, always processed, even right after a tap); otherwise the event is synthesized only if a touch-driven `onMouseUp` just armed `#synthesizedPairPending` AND the `TOUCH_SYNTHESIZED_MOUSE_WINDOW` (500 ms) ceiling since `#lastTouchMouseUpAt` has not passed — a tap that drifted past the move threshold is classified as a scroll by the touch path (no `onMouseDown`/`onMouseUp`, no stamp, pair never armed) — a drift ending over the already-selected cell gets its compatibility pair processed on every engine alike (DEV-2687); a drift over an unselected cell is `preventDefault`-ed and synthesizes nothing — provided no tap armed the pair inside the ceiling; a scroll-classified gesture clears the flag at its `touchend`, before its own compatibility pair arrives. The `mouseup` half consumes the pair (`#synthesizedPairPending = false`), so any later real mouse event inside the ceiling is treated as real — a fill-handle grab, a drag-selection, or a right-click started with a mouse right after a tap works on engines that do not report the input origin (WebKit, Firefox), where the residual gap is only the FIRST synthesized pair itself. Dropping only `mouseup` (the original #12804 fix) fired `onCellMouseDown` twice per tap and re-armed the pairing slot and made iPad double-tap-to-edit nondeterministic. `TOUCH_SYNTHESIZED_MOUSE_WINDOW` lives in `helpers/dom/inputOrigin.ts`, alongside `getMouseEventTouchOrigin()`, and is shared with `tableView.ts` (its `#recentTouchEndTimeout` uses the same constant), so both layers use the same fallback window. `tableView.ts`'s own gate (`#isSyntheticMouseEvent()`) deliberately keeps its older `reported ?? #recentTouchEnd` policy instead of adopting `event.ts`'s consume-once order: a Blink-flagged pair (`firesTouchEvents === true`) must never be allowed to close the editor through the outside-click handler, so the two gates are not to be "harmonized".
+- **The long-press timer is the shared `LongPressDetector`** (`helpers/dom/longPress.ts`: `LONG_PRESS_DELAY` 500 ms, `LONG_PRESS_MOVE_THRESHOLD` 10 px). `event.ts` keeps what a long press does on a cell (`#onLongPress`: the mouse-down, the double-click reset, the synthetic `contextmenu`); the detector only times the press. The sheets bar's tabs use the same detector, so a change to the delay or the drift changes both surfaces, which is the point: one touch rule across the grid's UI.
 - **Touch double-taps are paired independently of the mouse double-click slots.** `#handleTouchTap()` tracks `#lastTapCoords`/`#lastTapAt` and fires the double-click callbacks when a second tap lands on the same coordinates within `TOUCH_DBLTAP_TIMEOUT` (1000 ms); a long-press, a tap outside the cells, or a tap on different coordinates resets the detector. Coordinates, not the resolved TD, because Walkontable recycles TD elements across scrolls and re-renders (DEV-2687 review). Touch taps never arm `#dblClickOrigin` — only a mouse `mousedown` with `button === 0` does — so a real mouse click right after a tap cannot complete a double-click by pairing with it. Mouse double-click timing (`DBLCLICK_MOUSEDOWN_TIMEOUT` 1000 ms / `DBLCLICK_MOUSEUP_TIMEOUT` 500 ms) is unchanged. `touchcancel` resets the per-gesture state (`onTouchCancel`) — `touchApplied`, the mouse-down flag, the long-press timer, and the pending synthesized pair — so a cancelled gesture cannot leave `touchApplied` stuck and route real mouse events into the tap detector, leave drag-selection armed with no `mouseup` coming, or leave an earlier tap's pending flag dropping the next real mouse pair inside the ceiling.
 - **Before 18.1, a tap on an already-selected cell opened the editor** on these devices (the unsuppressed synthesized pair completed a second double-click match). A first tap that commits a focus range is `preventDefault`-ed and synthesizes nothing. A first tap that does not commit a range (visual selection off, or a hook that blocks selection) is not cancelled, except on iOS Chrome and iOS Firefox, where a non-interactive target still is. The pre-18.1 editor-on-first-tap behavior was a side effect. Do not restore it.
 - Test it in Playwright with `test.use({ ...devices['Desktop Chrome'], hasTouch: true, browserName: 'chromium' })` (`tests/e2e/touch-tap-to-edit.spec.ts`); Chromium synthesizes the same mouse sequence after `locator.tap()`. Use `page.clock` to drive the pairing timers. Script-dispatched `MouseEvent`s have `sourceCapabilities === null` and exercise the WebKit fallback.
@@ -1641,6 +1675,140 @@ for field, match, and keep showing row 60. Pinned in `core/incrementalRender/__t
 `getScrollbarWidth()` measures one throw-away div on `document.body` and caches it. That number is not the master holder's scrollbar, and the two axes are not the same number. The theme sets `scrollbar-color` on `.wtHolder`, so Chrome 121+ ignores a page `::-webkit-scrollbar` rule there while the probe (outside the theme, so its `scrollbar-color` variables do not resolve) follows the rule. A rule on the holder alone does the reverse.
 
 The layout input carries `scrollbarWidth` (vertical bar, consumes width) and `scrollbarHeight` (horizontal bar, consumes height). `scrollbarAxisThickness` in `overlay/scrollbarClearance.ts` uses the holder's gutter (`offset` minus `client`, the same read as `reservedScrollbarSpace`) when it is above zero, and the probe only when there is no holder or that axis has no gutter yet. Window scroll keeps the probe: the document owns those scrollbars and the calculators do not read the snapshot. `gatherLayoutInput` reads one offset/client pair per axis. On the snapshot path a full draw reads that pair again in `syncVisibleCalculatorsToHolderScrollbars`, after `adjustElementsSize`, because the first read runs before the hider exists. The second read rebuilds the visible range only when the gutter disagrees. Neither read is per cell. `.wtHolder` has no border, so the gutter is the scrollbar.
+
+## A classic scrollbar runs beside the scrolling part of its edge only (DEV-3629)
+
+The master holder's native scrollbars run the whole edge: the vertical one beside the column headers
+and the frozen rows too, the horizontal one under the row headers and the frozen columns.
+`overlay/scrollbarProxies.ts` moves each bar onto the part of the edge that scrolls. The holder keeps
+scrolling the grid and keeps its gutters, so no size the viewport is computed from changes. In each
+gutter it adds:
+
+- **a proxy**: an empty `overflow: scroll` div beside the scrolling part only. Its spacer gives it the
+  holder's scroll range (`proxy length + content - view`), and its native scrollbar is the one the user
+  sees and drags.
+- **two fillers** in `--ht-scrollbar-track-color`, over the rest of the gutter.
+- **a corner square** (`.htScrollbarCorner`) in the same color where the two gutters meet, whenever the
+  holder reserves both. The holder paints that corner itself, and Safari paints it white once
+  `scrollbar-color` applies, because it then ignores `::-webkit-scrollbar-corner`. Playwright's WebKit
+  uses overlay scrollbars on macOS, so only a real Safari shows it.
+- **the frame** (`.htScrollbarFrame`), described below.
+
+A piece that shares an outer corner of the holder takes the holder's radius on that corner
+(`resolveOuterCorners`): the holder's own scrollbar is clipped to its rounded box, and a square piece
+there stuck a few track-colored pixels out past the rounded frame.
+
+Everything is a sibling after the holder in `.ht_master`: the proxies and the fillers at z-index 1, the
+frame last at z-index 2. `.ht_master` is `overflow: hidden` and the stacking context the clones sit
+above, so nothing reaches past the grid or over a clone. The CSS is duplicated in `_base.scss` and
+`css/walkontable.scss`; keep them in sync.
+
+An axis gets a proxy only when the holder owns it (`mainTableScrollableElement === holder`), the holder
+reserves a CLASSIC gutter for it, and a header or a frozen band is rendered along it. An overlay
+scrollbar takes no space and keeps the clearance band (`scrollbarClearance.ts`), so a browser with
+overlay scrollbars gets no element at all, and neither does a grid the window scrolls.
+`#scrollbarProxyCandidates` answers from flags, so such a grid pays no DOM read either, and a holder
+with no gutter stops after four size reads. `ScrollbarProxies#update()` runs once per draw, in
+`Overlays#afterDraw`: after every full draw, and after a scroll draw that resized the overlays (the
+postponed resize changes the scroll range). `adjustElementsSize` is reached several times inside one
+draw, before the clones have their final sizes, so there it only marks the proxies stale; called
+outside a draw (`hot.view.adjustElementsSize()`), it places them at once. The insets are the clone
+TABLES' outer sizes, not their holders': the top clone's holder grows by half a fill handle when a
+frozen cell is selected.
+
+Eight rules, each from a measured defect:
+
+- **Compare an offset with the ledger, never with the other element.** The two offsets are copied both
+  ways. A proxy scroll is the user's only when it differs from the last value copied INTO the proxy
+  (`#copied`). Comparing with the holder fails while the proxy's range lags the holder's (rows added
+  before the next layout): the browser clamps the copy, the clamped value reads as a user scroll, and
+  the grid is pulled back. A holder scroll is the copy's own echo when it equals the last value copied
+  FROM the proxy (`#written`). That echo can arrive after the proxy has moved on, and copying it back
+  jumps the thumb backwards. `#written` is spent on the first holder scroll after it, echo or not: kept,
+  it swallowed a later real scroll back to the same offset, and the thumb stayed a wheel notch off the
+  grid until the next full draw.
+- **Never write to a proxy while the pointer is down on it.** The browser moves a dragged thumb ahead of
+  the page's script, so any write, even of a value the proxy held a frame ago, pulls the thumb back
+  under the pointer; the next pointer move pushes it forward again (measured in Firefox: a 528px jump
+  mid-drag). `#dragging` is set on the proxy's `pointerdown` for the primary button only (a right-click's
+  release can be taken by a native menu, which left the flag set) and cleared on the document's
+  `pointerup`, `pointercancel` and `mouseup` (a drag can end anywhere). The release first sends the
+  holder a thumb move whose scroll event is still pending, then copies the holder's offset in once, in
+  case the grid moved during the drag; the other order snapped the thumb back by its last move.
+- **Measure the vertical bar's side, never take it from the layout direction.** The holder's
+  `clientLeft` is the bar's width when the browser draws it on the left, so the layout and the frame
+  clip read it (`viewX`). Chromium and Firefox put the bar on the left of an RTL scroll container, but
+  Safari follows the system's direction and can keep it on the right. `rtlMode` still decides which end
+  of the horizontal edge is the start.
+- **The proxies' holder `scroll` listener must run before the engine's.** `Overlays` builds
+  `ScrollbarProxies` before `ScrollSync` and `NativeScrollInput`, so the copy into the proxy runs while
+  the layout is still clean, before the draw that the engine's listener starts writes to the DOM.
+- **A press on a proxy is a scrollbar press.** `StickyScrollStrategy#isScrollbarTarget` asks
+  `Overlays#isScrollbarProxy`. Without it a thumb drag never turns on sticky mode, the spreader
+  positioning the engine uses for every native scrollbar drag.
+- **The frame's `box-shadow` comes from the stylesheet, never from the holder's computed style.** The
+  theme frames the grid with an inset `box-shadow` on the holder, and a browser paints a scroll
+  container's scrollbars ABOVE its own `box-shadow`. So wherever a classic bar runs, the inline-end and
+  bottom frame (the inline-start one in RTL) were hidden, on develop too. The frame element takes the
+  holder's box and `border-radius` and is clipped to the gutters (`resolveScrollbarFrameClip`, an
+  L-shaped `clip-path`), so a selection outline on the grid's edge is never covered; it takes no
+  pointer events. Its shadow is declared next to BOTH holder-frame rules in `_base.scss` (the
+  `ht-slot-*-filled` one and the `htHasScrollX`/`htHasScrollY` one): core sets those root classes only
+  after the draw this runs in, so a copy of the computed shadow read `none`. A surface that drops the
+  holder's frame on purpose must drop this one in the same rule: the Filters "Filter by value" list
+  (`_dropdown-menu.scss`) and the sheets bar menu (`_sheets-bar.scss`) do, and without it the list drew
+  a 1px line that doubles the menu separator below it.
+- **Copy the holder's computed `scrollbar-width` and thumb color onto each proxy, with a transparent
+  track** (`resolveProxyScrollbarColor`), so a host rule on `.wtHolder` (a thinner bar, another thumb)
+  shapes the proxy too and its bar keeps filling the gutter. The track is left to the proxy's
+  background, which the fillers share. Firefox draws a classic track it colors itself with a 1px darker
+  line and a 1px shadow along its content side (it derives them from the track color, alpha included),
+  so with the track copied the line ran beside the bar only, stopped where the fillers began, and read
+  as a border over the bar under the last row. Chromium draws nothing there either way (0 pixels
+  differ). The split point is the first space outside parentheses, since each color can hold spaces;
+  `auto` is kept as it is. A host track color on `.wtHolder` therefore reaches neither the proxy nor the
+  fillers; `--ht-scrollbar-track-color` is the way to change it.
+  A host `::-webkit-scrollbar` rule scoped to `.wtHolder` cannot be copied (a pseudo-element's style is
+  not readable onto another element): the holder's gutter widens and the proxy's own bar keeps the
+  theme's width. The proxy therefore carries the track color as its background, which its own bar
+  normally covers whole; without it the holder's thumb showed through beside the proxy's (two thumbs,
+  378–504 thumb-colored pixels in a 30px gutter). A page-wide `::-webkit-scrollbar` rule styles both
+  bars alike, because the two carry the same rules at the same specificity. The proxy and the fillers
+  paint the track color over `--ht-background-color`, as the holder's own track sits on its
+  background, so a see-through track color in a custom theme still covers the holder's bar.
+- **Destroy with `destroyWithOwnEventsOnly()`.** The engine's modules share one listener context, and
+  `EventManager#destroy()` clears all of it, the scroll, wheel and mouse listeners of the other modules
+  included.
+
+The proxies carry `tabindex="-1"` (an empty scroll container is a tab stop in Chrome 127+) and every
+added element `aria-hidden="true"`: the holder's own scroll range and the keyboard already cover what
+they do.
+
+Testing traps:
+
+- **Playwright launches Chromium with `--hide-scrollbars`**, which makes every gutter 0, so no proxy is
+  ever created. The spec drops that flag (`ignoreDefaultArgs`). It simulates an overlay scrollbar with
+  `.wtHolder, .htScrollbarTest { scrollbar-width: none !important; }` before the grid loads. Headless
+  Firefox reads every gutter as 0 too, so the spec has no engine tag; check Firefox headed, with
+  `firefoxUserPrefs: { 'ui.useOverlayScrollbars': 0 }` on macOS. The spec pins the transparent track
+  through the computed `scrollbar-color`, because Chromium draws no track line to see.
+- **A thumb drag alone cannot catch a broken drag guard.** While the user drags, the holder only echoes
+  the proxy, and the echo check already skips that. The guard matters when the GRID scrolls during the
+  drag (an API call, a resize), so the drag test scrolls the holder mid-drag. It counts the script's
+  writes to the proxy: a property write, which the browser's own thumb scroll is not.
+- **Wait for the offsets to stop moving before scrolling from script mid-drag.** The last pointer move
+  lands a frame later. If the script scrolls first, that move is the user's and correctly scrolls the
+  grid back (2 of 5 runs on horizon). And the thumb returns within about one pointer pixel's worth of
+  scroll of where it was pressed, not exactly there (7–8px measured under load).
+
+Pinned by `test/unit/overlay/scrollbarProxies.unit.ts` (the layout, the frame clip, and the class over
+stub elements: both ledgers, the drag guard, no DOM read for a window-scrolled grid, destroy) and
+`tests/e2e/scrollbar-proxies.spec.ts` (headers, frozen bands on all four sides, RTL, no gutter, window
+scroll, the scroll range after rows are added, sync both ways, the wheel over a bar, a real thumb drag
+that keeps the selection, the frame, the Filters list without it, a host rule that widens the holder's
+bar alone (pixels sampled through a canvas, since the suite has no PNG decoder), hit tests, and the ARIA
+attributes). The unit file's stub event manager shares one listener list, as the engine's context does,
+so a `destroy()` that clears the neighbors' listeners fails there.
 
 ## Row recycling: a scroll keeps a row's TR
 

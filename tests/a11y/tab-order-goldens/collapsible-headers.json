@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "page": "collapsible-headers",
+  "theme": "main",
+  "walks": {
+    "forward": [
+      {
+        "region": "start"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "A1",
+        "cell": [
+          0,
+          0
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "B1",
+        "cell": [
+          0,
+          1
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "C1",
+        "cell": [
+          0,
+          2
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "D1",
+        "cell": [
+          0,
+          3
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "E1",
+        "cell": [
+          0,
+          4
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "F1",
+        "cell": [
+          0,
+          5
+        ]
+      },
+      {
+        "region": "end"
+      }
+    ],
+    "backward": [
+      {
+        "region": "end"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "F1",
+        "cell": [
+          0,
+          5
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "E1",
+        "cell": [
+          0,
+          4
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "D1",
+        "cell": [
+          0,
+          3
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "C1",
+        "cell": [
+          0,
+          2
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "B1",
+        "cell": [
+          0,
+          1
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "A1",
+        "cell": [
+          0,
+          0
+        ]
+      },
+      {
+        "region": "start"
+      }
+    ]
+  }
+}

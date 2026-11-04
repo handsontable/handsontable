@@ -32,7 +32,7 @@
  *   5. Exact versioned HTML redirects      → framework-specific pages
  *   6. Cross-framework page fixes (angular/react wrong-prefix pages)
  *   7. /docs/(javascript|angular|react)-data-grid/(row-sorting|column-sorting|release-notes)
- *  7a. Vue 3 legacy page redirects         → /docs/vue-data-grid/*
+ *  7a. Vue 3 and Vue 2 legacy page redirects → /docs/vue-data-grid/*
  *  7b. Versioned Vue 3 legacy pages        → /docs/:ver/vue-data-grid/*
  *   8. Recipe cell-type slug mismatches
  *   9. Flat /docs/react-data-grid/row-sorting etc.
@@ -40,6 +40,9 @@
  *  11. Tutorial flat redirects             → /docs/javascript-data-grid/*
  *  12. Framework shorthand redirects       → framework homes
  * 12a. Legacy hostname (GET/HEAD)          → same path on handsontable.com (301)
+ * 12b. /docs/:ver older than 9.0 (any form) → current framework page or home (cookie, 302)
+ *      /docs/:major.:minor.:patch from 9.0 → /docs/:major.:minor (301)
+ * 12c. /docs/pro[/:ver][/:page.html]      → current framework page or home (cookie, 302)
  *  13. /docs/:ver/:page.html               → versioned framework pages (cookie, 302)
  *  14. /docs/:ver{/}                       → version root or framework home (cookie, 302)
  *  15. /docs/(page).html                   → flat framework page (cookie, 302)
@@ -49,7 +52,8 @@
  * 18a. POST /docs/scripts/json/save.json   → mock 200 JSON (saving-data demo)
  * 18b. /docs/_md/**.md, /docs/llms*.txt   → served from assets as text/plain
  * 18c. GET /docs/api/design-system-updated.json → Figma last-update date (JSON)
- *  19. Static asset fallback (env.ASSETS)
+ *  19. Static asset fallback (env.ASSETS); a 404 for an unprefixed
+ *      /docs/:slug retries it under the framework (cookie, 302)
  */
 
 // ---------------------------------------------------------------------------
@@ -186,6 +190,11 @@ function abs(path, base) {
 // unreplaced (for example, on staging previews that have no versioned docs),
 // the `\d+\.\d+` guard in rule 1b makes the latest-version redirect a no-op.
 const LATEST_VERSION = '__LATEST_DOCS_VERSION__';
+
+// The oldest major whose docs are deployed. Keep in step with MIN_DOCS_VERSION
+// in deploy/getListOrPreviousVersions.mjs. Rule 12b sends older versions to
+// the current docs.
+const OLDEST_DEPLOYED_DOCS_MAJOR = 9;
 
 // ---------------------------------------------------------------------------
 // Data: versioned HTML redirect map (used by /docs/{ver}/{page}.html)
@@ -402,6 +411,9 @@ const FLAT_HTML_MAP = {
   'tutorial-release-notes': 'release-notes',
   'tutorial-migration-guide': 'migration-from-7.4-to-8.0',
   'tutorial-known-limitations': '/third-party-licenses/',
+  'tutorial-changelog': '/changelog/',
+  'demo-using-callbacks': '/events-and-hooks/',
+  'demo-react-simple-examples': 'binding-to-data',
   'demo-scrolling': 'row-virtualization',
   'demo-fixing': 'column-freezing',
   'demo-resizing': 'column-width',
@@ -521,6 +533,51 @@ const FLAT_HTML_MAP = {
   'column-sorting': '/rows-sorting/',
 };
 
+/**
+ * Resolves a legacy flat `{page}.html` slug to its current framework page.
+ *
+ * @param {string} page The slug, without `.html`.
+ * @param {string} framework The framework read from the `docs_fw` cookie.
+ * @returns {string|null} The destination path, or `null` for an unknown slug.
+ */
+function flatHtmlDestination(page, framework) {
+  if (!Object.prototype.hasOwnProperty.call(FLAT_HTML_MAP, page)) {
+    return null;
+  }
+
+  const redirectPath = FLAT_HTML_MAP[page];
+
+  // Framework override based on page prefix.
+  if (page.startsWith('frameworks-wrapper-for-react') || page.startsWith('demo-react-')) {
+    framework = 'react-data-grid';
+  } else if (page.startsWith('frameworks-wrapper-for-vue') || page.startsWith('frameworks-wrapper-for-angular')) {
+    framework = 'javascript-data-grid';
+  }
+
+  // redirectPath may be an absolute path (starts with /) or a relative slug.
+  // An empty redirectPath (e.g. FLAT_HTML_MAP['tutorial-introduction'] === '')
+  // must not produce a double-slash like `/docs/javascript-data-grid//`.
+  if (redirectPath.startsWith('/')) {
+    return `/docs/${framework}${redirectPath}`;
+  }
+
+  return redirectPath ? `/docs/${framework}/${redirectPath}/` : `/docs/${framework}/`;
+}
+
+/**
+ * Resolves the rest of an undeployed docs URL: a known `{page}.html` slug to
+ * its current framework page, anything else to the framework home.
+ *
+ * @param {string} rest The path after the undeployed version segment.
+ * @param {string} framework The framework read from the `docs_fw` cookie.
+ * @returns {string} The destination path.
+ */
+function undeployedDocsDestination(rest, framework) {
+  const page = rest.match(/^([^/]+)\.html$/)?.[1];
+
+  return (page && flatHtmlDestination(page, framework)) || `/docs/${framework}/`;
+}
+
 // ---------------------------------------------------------------------------
 // Data: flat /docs/{page}[/] redirect map (from redirect_cookie_docs_pages.mts)
 // ---------------------------------------------------------------------------
@@ -533,7 +590,7 @@ const FLAT_PAGES_REMAP = {
   examples: '/',
   'hello-world': '/demo/',
   'setting-options': '/configuration-options/',
-  'i18n/missing-language-code': '/language/#loading-the-prepared-language-files',
+  'i18n/missing-language-code': '/language/#load-the-prepared-language-files',
   'angular-simple-example': '/angular-basic-example/',
   'angular-setting-up-a-language': '/angular-setting-up-a-translation/',
   'vue-simple-example': '/vue-basic-example/',
@@ -712,6 +769,50 @@ const SITEMAP_PASSTHROUGH_SLUGS = new Set([
   'migration-from-7.4-to-8.0',
 ]);
 
+/**
+ * Tells whether rule 16 knows a flat `/docs/{page}` slug.
+ *
+ * @param {string} page The slug, without the `/docs/` prefix.
+ * @returns {boolean}
+ */
+function isFlatPageKey(page) {
+  return Object.prototype.hasOwnProperty.call(FLAT_PAGES_REMAP, page) || SITEMAP_PASSTHROUGH_SLUGS.has(page);
+}
+
+// A slug the rule 19 retry never looks up under a framework: a framework
+// prefix, a version, or a file.
+const NOT_A_PAGE_SLUG = /^(?:(?:javascript|react|angular|vue)-data-grid|\d+\.\d+)(?:\/|$)|\.(?:html?|m?js|css|json|xml|txt|md|map|png|jpe?g|gif|svg|webp|avif|ico|pdf|woff2?|ttf)$/i;
+
+/**
+ * Finds the page an unprefixed `/docs/{slug}` URL names, under the cookie
+ * framework first and JavaScript second, by asking the static assets.
+ *
+ * @param {Request} request The incoming request.
+ * @param {object} env The Pages environment.
+ * @param {URL} url The parsed request URL.
+ * @returns {Promise<string|null>} The page's path, or `null` when no framework has it.
+ */
+async function findFrameworkPage(request, env, url) {
+  const slug = url.pathname.match(/^\/docs\/(.+?)\/?$/)?.[1];
+
+  if (!slug || NOT_A_PAGE_SLUG.test(slug)) {
+    return null;
+  }
+
+  const preferred = getFrameworkFromCookie(getCookie(request, 'docs_fw'));
+
+  for (const framework of new Set([preferred, 'javascript-data-grid'])) {
+    const candidate = `/docs/${framework}/${slug}/`;
+    const lookup = await env.ASSETS.fetch(new Request(new URL(candidate, url), { method: 'HEAD' }));
+
+    if (lookup.ok) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
 // ---------------------------------------------------------------------------
 // Legacy angular-docs version sets
 // Versions 12.1+ had a real Angular wrapper and redirect to /docs/angular-data-grid/.
@@ -790,6 +891,27 @@ const VUE3_LEGACY_PAGES = {
   'vue3-language-change-example': '/docs/vue-data-grid/language/',
   'vue3-setting-up-a-translation': '/docs/vue-data-grid/language/',
   'vue3-vuex-example': '/docs/vue-data-grid/vue-vuex/',
+};
+
+// Older names of the pages above: the Vue 2 wrapper's slugs and two Vue 3
+// renames. Read by rule 7a only. `vue-hot-column`, `vue-instance-reference`,
+// `vue-nuxt`, `vue-pinia` and `vue-vuex` are live pages, so none is listed.
+const VUE_LEGACY_ALIASES = {
+  'vue-installation': 'vue3-installation',
+  'vue-basic-example': 'vue3-basic-example',
+  'vue-simple-example': 'vue3-basic-example',
+  'vue-modules': 'vue3-modules',
+  'vue-hot-reference': 'vue3-hot-reference',
+  'vue-custom-renderer-example': 'vue3-custom-renderer-example',
+  'vue-custom-editor-example': 'vue3-custom-editor-example',
+  'vue-custom-context-menu-example': 'vue3-custom-context-menu-example',
+  'vue-formulas-example': 'vue3-formulas-example',
+  'vue-language-change-example': 'vue3-language-change-example',
+  'vue-setting-up-a-translation': 'vue3-setting-up-a-translation',
+  'vue-setting-up-a-language': 'vue3-setting-up-a-translation',
+  'vue-vuex-example': 'vue3-vuex-example',
+  'vue3-simple-example': 'vue3-basic-example',
+  'vue3-setting-up-a-language': 'vue3-setting-up-a-translation',
 };
 
 // ---------------------------------------------------------------------------
@@ -1385,12 +1507,12 @@ async function route(request, env, ctx) {
       }
     }
 
-    // -- 7a. Vue 3 legacy pages ---------------------------------------------
+    // -- 7a. Vue 3 and Vue 2 legacy pages -----------------------------------
     {
-      const m = path.match(/^\/docs\/(javascript|react|angular|vue)-data-grid\/(vue3-[^/]+)\/?$/);
+      const m = path.match(/^\/docs\/(javascript|react|angular|vue)-data-grid\/(vue3?-[^/]+)\/?$/);
 
       if (m) {
-        const page = m[2];
+        const page = VUE_LEGACY_ALIASES[m[2]] ?? m[2];
 
         if (Object.prototype.hasOwnProperty.call(VUE3_LEGACY_PAGES, page)) {
           return redirect301(abs(VUE3_LEGACY_PAGES[page], url));
@@ -1522,7 +1644,7 @@ async function route(request, env, ctx) {
     // The cut lands here, immediately before the first cookie-reading rule,
     // for two reasons.
     //
-    // Rules 13-17 answer with a 302, because their destination depends on the
+    // Rules 12b-17 answer with a 302, because their destination depends on the
     // `docs_fw` cookie and must not be cached as permanent. A 302 is not a
     // canonicalisation signal, so a legacy URL answered by one would never
     // leave the search index - which is the entire point of this collapse.
@@ -1548,6 +1670,43 @@ async function route(request, env, ctx) {
     // is never indexed, so there is nothing to canonicalise.
     if (isLegacyDocsHost(url) && (request.method === 'GET' || request.method === 'HEAD')) {
       return redirect301(abs(`${path}${url.search}`, url));
+    }
+
+    // -- 12b. /docs/{ver}[.patch][-tag]/... → a version that is not deployed --
+    // Only versions from OLDEST_DEPLOYED_DOCS_MAJOR up are deployed, and only
+    // as MAJOR.MINOR. An older version goes to the current docs (cookie, 302):
+    // a known flat slug to its page, anything else to the framework home. A
+    // deployed version written with a patch or a tag goes to its MAJOR.MINOR
+    // docs (301), where rules 13 and 14 take over.
+    {
+      const m = path.match(/^\/docs\/(\d+)\.(\d+)(\.\d+)?(-[0-9A-Za-z.]+)?(?:\/(.*))?$/);
+
+      if (m && parseInt(m[1], 10) < OLDEST_DEPLOYED_DOCS_MAJOR) {
+        const framework = getFrameworkFromCookie(getCookie(request, 'docs_fw'));
+
+        return redirect302(abs(undeployedDocsDestination(m[5] ?? '', framework), url));
+      }
+
+      if (m && (m[3] || m[4])) {
+        const rest = m[5] === undefined ? '' : `/${m[5]}`;
+
+        return redirect301(abs(`/docs/${m[1]}.${m[2]}${rest}${url.search}`, url));
+      }
+    }
+
+    // -- 12c. /docs/pro[/{ver}][/{page}.html] → the old Pro docs ---------------
+    // The Handsontable Pro docs are not deployed at all. Like rule 12b, a
+    // known page goes to the current docs (cookie, 302), anything else to the
+    // framework home.
+    {
+      const m = path.match(/^\/docs\/pro(?:\/(.*))?$/);
+
+      if (m) {
+        const framework = getFrameworkFromCookie(getCookie(request, 'docs_fw'));
+        const rest = (m[1] ?? '').replace(/^\d+\.\d+[^/]*\//, '');
+
+        return redirect302(abs(undeployedDocsDestination(rest, framework), url));
+      }
     }
 
     // -- 13. /docs/{ver}/{page}.html → versioned framework page (cookie) -----
@@ -1628,29 +1787,9 @@ async function route(request, env, ctx) {
       const m = path.match(/^\/docs\/([^/]+)\.html$/);
 
       if (m) {
-        const page = m[1];
+        const dest = flatHtmlDestination(m[1], getFrameworkFromCookie(getCookie(request, 'docs_fw')));
 
-        if (Object.prototype.hasOwnProperty.call(FLAT_HTML_MAP, page)) {
-          const cookieValue = getCookie(request, 'docs_fw');
-          let framework = getFrameworkFromCookie(cookieValue);
-          let redirectPath = FLAT_HTML_MAP[page];
-
-          // Framework override based on page prefix.
-          if (page.startsWith('frameworks-wrapper-for-react')) {
-            framework = 'react-data-grid';
-          } else if (page.startsWith('frameworks-wrapper-for-vue') || page.startsWith('frameworks-wrapper-for-angular')) {
-            framework = 'javascript-data-grid';
-          }
-
-          // redirectPath may be an absolute path (starts with /) or a relative slug.
-          // An empty redirectPath (e.g. FLAT_HTML_MAP['tutorial-introduction'] === '')
-          // must not produce a double-slash like `/docs/javascript-data-grid//`.
-          const dest = redirectPath.startsWith('/')
-            ? `/docs/${framework}${redirectPath}`
-            : redirectPath
-              ? `/docs/${framework}/${redirectPath}/`
-              : `/docs/${framework}/`;
-
+        if (dest !== null) {
           return redirect302(abs(dest, url));
         }
       }
@@ -1664,7 +1803,9 @@ async function route(request, env, ctx) {
       const m = stripped.match(/^\/docs\/(.+)$/);
 
       if (m) {
-        const page = m[1];
+        // A link at the end of a sentence can carry its punctuation in.
+        const trimmed = m[1].replace(/[.,;:!'")\]]+$/, '');
+        const page = isFlatPageKey(m[1]) || !isFlatPageKey(trimmed) ? m[1] : trimmed;
 
         // Check special remaps first.
         if (Object.prototype.hasOwnProperty.call(FLAT_PAGES_REMAP, page)) {
@@ -1820,7 +1961,22 @@ async function route(request, env, ctx) {
     }
 
     // -- 19. Fallback: serve static assets via env.ASSETS --------------------
-    return env.ASSETS.fetch(request);
+    // A 404 for an unprefixed /docs/{slug} retries the slug under the
+    // framework (cookie, 302). Rule 16 lists slugs by hand, and that list goes
+    // stale; this asks the deployed assets instead.
+    {
+      const response = await env.ASSETS.fetch(request);
+
+      if (response.status === 404 && (request.method === 'GET' || request.method === 'HEAD')) {
+        const dest = await findFrameworkPage(request, env, url);
+
+        if (dest !== null) {
+          return redirect302(abs(dest, url));
+        }
+      }
+
+      return response;
+    }
 }
 
 export default {

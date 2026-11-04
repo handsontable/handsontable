@@ -503,7 +503,7 @@ const hotOptions: GridSettings = {
   filters: true,
   rowHeaders: true,
   manualRowMove: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 const toggleableOptions = ref({

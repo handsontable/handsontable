@@ -89,6 +89,13 @@ describe('buildHtmlReport -- run shift', () => {
     const data = payloadOf(buildHtmlReport(results, snapshot, {}));
 
     assert.ok(Math.abs(data.runShift - -20) < 1e-9);
+    // After a confirm re-run the teardown passes the first pass's shift, and the "vs shift" figures use it.
+    const rerun = payloadOf(buildHtmlReport(results, snapshot, { runShift: 5 }));
+
+    assert.equal(rerun.runShift, 5);
+    const rerunFlat = rerun.scenarios.find(s => s.name === 'a');
+
+    assert.ok(Math.abs(rerunFlat.totalChangeVsShift - (((0.8 / 1.05) - 1) * 100)) < 1e-9);
 
     const flat = data.scenarios.find(s => s.name === 'a');
     const moved = data.scenarios.find(s => s.name === 'c');
@@ -103,6 +110,11 @@ describe('buildHtmlReport -- run shift', () => {
     const { results, snapshot } = run(0.8);
 
     assert.equal(payloadOf(buildHtmlReport(results, { ...snapshot, isSelfCompare: true }, {})).runShift, null);
+    // A self-comparison has no shift, even when the caller passes one.
+    assert.equal(
+      payloadOf(buildHtmlReport(results, { ...snapshot, isSelfCompare: true }, { runShift: 9 })).runShift,
+      null
+    );
 
     const few = payloadOf(buildHtmlReport(
       { a: results.a, b: results.b },

@@ -83,7 +83,7 @@ registerAllModules();
 
 const hotSettings = ref({
   columns: [{ type: 'password' }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -152,7 +152,7 @@ const hotSettings = ref({
     renderer: Handsontable.renderers.PasswordRenderer,
     copyable: false,
   }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -231,7 +231,7 @@ const hotSettings = ref({
     readOnly: true,
     myCustomProperty: 'foo',
   }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -379,7 +379,7 @@ registerAllModules();
 
 const hotSettings = ref({
   columns: [{ type: 'my.custom' }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -458,7 +458,7 @@ const hotSettings = ref({
     // validator function defined elsewhere
     validator: customValidator,
   }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -535,7 +535,7 @@ const hotSettings = ref({
     editor: Handsontable.editors.TextEditor,
     validator: customValidator,
   }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -609,7 +609,7 @@ registerAllModules();
 const hotSettings = ref({
   validator: customValidator,
   columns: [{ type: 'my.custom' }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -729,7 +729,7 @@ const hotSettings = ref({
     editor: Handsontable.editors.TextEditor,
     validator: customValidator,
   }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -807,11 +807,9 @@ The example below shows some of the built-in cell types, i.e. combinations of ce
 
 It's worth to mention that values such as `''` (empty string), `null` and `undefined` are considered empty values. Cells with empty values are displayed in a similar way for most of the data types (see below).
 
-::: tip
+The value of a cleared cell depends on how you cleared it. For every case, see [Empty cell values](@/guides/getting-started/binding-to-data/binding-to-data.md#empty-cell-values).
 
-Please keep in mind that opening a cell with `undefined` and `null` values results in overwriting the original value with an empty string. Moreover, copying and pasting that values will result in pasting the empty string.
-
-:::
+A cell that you never filled in keeps the value it was loaded with, so it can differ from a cell you filled in and then cleared. To store one kind of empty value for every way of clearing a cell, set the [`emptyValue`](@/api/options.md#emptyvalue) option.
 
 ::: only-for javascript
 

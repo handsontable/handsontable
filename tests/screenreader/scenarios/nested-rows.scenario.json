@@ -22,13 +22,13 @@
       "id": "into-parent-cell",
       "action": { "press": "ArrowRight" },
       "expect": [["root a"], ["level 1", "1 of 2"], ["row 2"], ["column 2"]],
-      "note": "aria-level, aria-posinset and aria-setsize sit on the row, so the level or the set position is required beside the cell's place. Finding: NVDA announces neither for a cell on both browsers (the committed goldens)."
+      "note": "aria-level, aria-posinset and aria-setsize sit on the row, so the level or the set position is required beside the cell's place. Finding: NVDA and VoiceOver announce neither for a cell on every browser (the committed goldens), and VoiceOver no row index either; VoiceOver with Chromium says `column 1` for the second column."
     },
     {
       "id": "down-to-child",
       "action": { "press": "ArrowDown" },
       "expect": [["a 1"], ["level 2", "1 of 3"], ["row 3"], ["column 2"]],
-      "note": "The parent's first child, one level down. Finding: NVDA announces no level or set position for a cell on both browsers (the committed goldens)."
+      "note": "The parent's first child, one level down. Finding: NVDA and VoiceOver announce no level or set position for a cell on every browser (the committed goldens)."
     }
   ]
 }

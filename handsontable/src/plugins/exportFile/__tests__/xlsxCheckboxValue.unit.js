@@ -77,8 +77,22 @@ jest.mock('../dataProvider', () => ({
       return mockProviderState.sourceData;
     }
 
+    getEngineCellFacts() {
+      return this.getData().map(row => row.map(() => null));
+    }
+
+    getFormulasBinding() {
+
+      return null;
+
+    }
+
     getFormulasSeparator() {
       return ',';
+    }
+
+    getFormulasDecimalSeparator() {
+      return '.';
     }
 
     getExcludedHiddenRows() {
@@ -159,7 +173,7 @@ function createRecordingEngine() {
  * @returns {Promise<Map<string, object>>}
  */
 async function exportRow(data, sourceData, cellsMeta, options = {}) {
-  const instance = { rootDocument: document, rootWindow: window };
+  const instance = { rootDocument: document, rootWindow: window, getSettings: () => ({}) };
   const { engine, cells } = createRecordingEngine();
 
   mockProviderState.data = data;

@@ -11,7 +11,9 @@ import {
 } from '../../../helpers/dom/element';
 import { A11Y_LABEL } from '../../../helpers/a11y';
 import { stopImmediatePropagation } from '../../../helpers/dom/event';
+import { getMouseEventTouchOrigin } from '../../../helpers/dom/inputOrigin';
 import type EventManager from '../../../eventManager';
+import type { LongPressTimers } from '../../../helpers/dom/longPress';
 import { TabDrag, translationOf } from './tabDrag';
 import { truncateSheetName } from '../sheetModel';
 import type { SheetDescriptor } from '../sheetModel';
@@ -229,6 +231,11 @@ export interface TabStripOptions {
    * the grid, where a cleared handle would stay listed for the grid's whole life.
    */
   rootWindow: Window;
+  /**
+   * Starts the `id` of each tab label, so the grid can be named after the label of the sheet it
+   * shows (`aria-labelledby`). Unique per grid.
+   */
+  labelIdPrefix: string;
 }
 
 /**
@@ -295,18 +302,36 @@ export class TabStrip {
   #revealedId = -1;
   /**
    * Ends the rename in progress without committing it, or `null` when none is in progress. A
-   * repaint that replaces the tabs would otherwise take the input away silently. The `silent`
+   * repaint that drops the renamed sheet would otherwise take the input away silently. The `silent`
    * flag skips the `tabRenameCancel` dispatch for the cancel `render()` itself performs — the
    * hook's handler repaints the strip, and re-entering `render()` from inside a render pass
    * leaves the outer pass restoring focus and scroll against tabs the inner pass has replaced.
    */
   #cancelRename: ((silent?: boolean) => void) | null = null;
   /**
-   * Whether a pointer went down on a tab and has not been lifted, so a `contextmenu` raised by
-   * a touch long-press or a macOS Ctrl+click — both reporting `button: 0`, like the keyboard —
-   * is not read as a keyboard opening.
+   * The sheet whose tab holds an open rename input, or `null`.
    */
-  #pointerHeldOnTab = false;
+  #renamingId: number | null = null;
+  /**
+   * The strip's `scrollLeft` right after the last reveal of the active tab, or `null` before the
+   * first one. While the strip still sits there, the user has not paged it since, so a layout
+   * change may repeat the reveal (`settleReveal()`).
+   */
+  #revealedScrollLeft: number | null = null;
+  /**
+   * The sheet whose tab holds the strip's one Tab stop while the focus moves along the strip, or
+   * `null` when the active tab holds it. The arrow keys move the stop with the focus; once the
+   * focus leaves the strip, the stop goes back to the active tab.
+   */
+  #rovingId: number | null = null;
+  /**
+   * Starts the `id` of each tab label (`TabStripOptions.labelIdPrefix`).
+   */
+  readonly #labelIdPrefix: string;
+  /**
+   * The sheets the tabs show, by id, as the last `render()` received them.
+   */
+  readonly #sheets = new Map<number, SheetDescriptor>();
   /**
    * The grid's window, which runs the timeouts that end the strip's motion.
    */
@@ -329,8 +354,9 @@ export class TabStrip {
    */
   #indicatorEndsAt = 0;
   /**
-   * The tabs sliding into the strip, by sheet id. A repaint rebuilds every tab, so the entry is
-   * what lets the rebuilt tab continue the slide instead of restarting it.
+   * The tabs sliding into the strip, by sheet id. A repaint keeps a tab and its slide; the entry is
+   * what lets a tab built again (a rename that ended) or handed to a rebuilt strip continue the slide
+   * instead of restarting it.
    */
   readonly #entering = new Map<number, EnteringTab>();
   /**
@@ -348,8 +374,8 @@ export class TabStrip {
    */
   #restingSlideDuration: string | null = null;
   /**
-   * The copies of removed tabs still leaving the strip. A repaint clears the strip, so the entry
-   * is what puts each copy back at the point its exit reached.
+   * The copies of removed tabs still leaving the strip. A repaint removes every node it does not
+   * keep as a tab, so the entry is what puts each copy back at the point its exit reached.
    */
   #leaving: LeavingTab[] = [];
 
@@ -363,6 +389,7 @@ export class TabStrip {
     this.#isRtl = options.isRtl;
     this.#syncIcon = options.syncIcon;
     this.#rootWindow = options.rootWindow;
+    this.#labelIdPrefix = options.labelIdPrefix;
     this.#drag = new TabDrag(
       {
         host: options.host,
@@ -374,32 +401,69 @@ export class TabStrip {
           this.finishSlide();
           this.finishLeaving();
         },
+        timers: options.rootWindow as unknown as LongPressTimers,
+        onHoldRelease: (id: number) => {
+          const sheet = this.#sheets.get(id);
+
+          if (sheet !== undefined) {
+            this.#openMenuFor(sheet, false);
+          }
+        },
       },
       (id, toIndex) => this.runLocalHooks('tabDragCommit', id, toIndex),
     );
+
+    this.#listenToTabs(true);
   }
 
   /**
-   * Rebuilds all tab elements from the sheet descriptors. Sheet names render via
-   * `textContent` only (XSS-safe).
+   * Brings the tabs in step with the sheet descriptors. A tab whose sheet is still in the strip
+   * is kept and updated in place; only the tabs of new sheets are built, and a kept tab is moved
+   * only when its place changed. A press that has not become a drag (a touch press timing its hold
+   * included) survives a repaint that keeps its tab where it was, and is canceled otherwise; a drag
+   * in progress is always canceled, because its tabs are out of their places. An open rename
+   * survives too: its tab is never moved, the others move around it, and it is canceled, silently,
+   * only when its sheet is gone. Sheet names render via `textContent` only (XSS-safe).
+   *
+   * @param {object[]} sheets The sheets in tab order.
    */
   render(sheets: SheetDescriptor[]): void {
-    this.#drag.abort();
-    this.#cancelRename?.(true);
-    // A repaint can replace the pressed tab before its `pointerup` arrives — a right-click on
-    // an inactive tab switches sheets mid-press — and the flag would then stick and misread
-    // the next keyboard-raised `contextmenu` as a pointer one.
-    this.#pointerHeldOnTab = false;
+    if (this.#drag.isDragging()) {
+      this.#drag.abort();
+    }
+
+    if (this.#renamingId !== null && !sheets.some(sheet => sheet.id === this.#renamingId)) {
+      this.#cancelRename?.(true);
+    }
 
     const focused = this.#capturedFocus();
     const indicatorBox = this.#indicator === null ? null : this.captureActiveTabBox();
     const slide = this.#takeSlide();
+    const previous = new Map(this.#tabs().map(tab => [Number(tab.dataset.sheetId), tab]));
 
-    this.#host.textContent = '';
+    this.#sheets.clear();
+    sheets.forEach(sheet => this.#sheets.set(sheet.id, sheet));
 
-    sheets.forEach((sheet) => {
-      this.#host.appendChild(this.#buildTab(sheet));
+    const tabs = sheets.map((sheet) => {
+      const kept = previous.get(sheet.id);
+
+      return kept !== undefined && this.#canReuseTab(kept, sheet)
+        ? this.#updateTab(kept, sheet)
+        : this.#buildTab(sheet);
     });
+    const keep = new Set<Node>(tabs);
+    const held = this.#drag.heldTab();
+
+    if (held !== null && tabs.indexOf(held) !== this.#tabs().indexOf(held)) {
+      this.#drag.abort();
+    }
+
+    Array.from(this.#host.childNodes).forEach((node) => {
+      if (!keep.has(node)) {
+        node.parentNode?.removeChild(node);
+      }
+    });
+    this.#placeTabs(tabs);
 
     if (slide !== null) {
       this.#startSlide(slide.from, slide.endsAt - this.#now(), slide.leadId);
@@ -413,6 +477,52 @@ export class TabStrip {
 
     this.#restoreFocus(focused);
     this.#revealActiveTab(sheets.find(sheet => sheet.isActive)?.id ?? -1);
+  }
+
+  /**
+   * Puts the kept and new tabs in the given order. A tab holding an open rename is never moved:
+   * moving a node takes the focus off the input inside it, which left the rename open and unfocused,
+   * or committed it from a `blur` in the middle of this pass. Its neighbors are moved around it
+   * instead, as the drag does with the tab it holds.
+   *
+   * @param {HTMLElement[]} tabs The tabs in their new order, already the only tabs in the host.
+   */
+  #placeTabs(tabs: HTMLElement[]): void {
+    const pinnedIndex = tabs.findIndex(tab => Number(tab.dataset.sheetId) === this.#renamingId);
+
+    if (pinnedIndex === -1) {
+      tabs.forEach((tab, index) => {
+        const current = this.#host.children[index] ?? null;
+
+        if (current !== tab) {
+          this.#host.insertBefore(tab, current);
+        }
+      });
+
+      return;
+    }
+
+    const pinned = tabs[pinnedIndex];
+
+    let following = pinned;
+
+    tabs.slice(0, pinnedIndex).reverse().forEach((tab) => {
+      if (tab.nextSibling !== following) {
+        this.#host.insertBefore(tab, following);
+      }
+
+      following = tab;
+    });
+
+    let previous = pinned;
+
+    tabs.slice(pinnedIndex + 1).forEach((tab) => {
+      if (previous.nextSibling !== tab) {
+        this.#host.insertBefore(tab, previous.nextSibling);
+      }
+
+      previous = tab;
+    });
   }
 
   /**
@@ -662,14 +772,15 @@ export class TabStrip {
     this.#host.getBoundingClientRect();
     tabs.forEach((tab) => {
       tab.style.removeProperty('transition');
-      removeClass(tab, SLIDE_LEAD_CLASS);
     });
   }
 
   /**
    * Forgets the running slide of the tabs, cancels its timeout, and takes its styles off the
-   * strip, leaving the tabs untouched. Returns the slide it forgot, with every tab's position
-   * read from the screen first, or `null` when none runs.
+   * strip and the lead mark off the tabs, leaving their transforms untouched. A slide that goes
+   * on marks its lead again; one that stops here, because no tab is left to shift, must not leave
+   * a tab raised above its neighbors. Returns the slide it forgot, with every tab's position read
+   * from the screen first, or `null` when none runs.
    */
   #takeSlide(): TabSlide | null {
     if (this.#slide === null) {
@@ -685,6 +796,7 @@ export class TabStrip {
 
     this.#slide = null;
     removeClass(this.#host, SLIDING_CLASS);
+    this.#tabs().forEach(tab => removeClass(tab, SLIDE_LEAD_CLASS));
     this.#applyRestingSlideDuration();
 
     return slide;
@@ -798,9 +910,9 @@ export class TabStrip {
   }
 
   /**
-   * Slides the tab of a newly created sheet into the strip over `durationMs`. Every repaint
-   * within that time rebuilds the tab mid-slide, at the point the slide has reached. A zero
-   * duration marks nothing.
+   * Slides the tab of a newly created sheet into the strip over `durationMs`. A repaint within
+   * that time keeps the tab sliding; a tab built again (a rename that ended) resumes the slide at
+   * the point it has reached. A zero duration marks nothing.
    */
   markEntering(id: number, durationMs: number): void {
     if (durationMs <= 0) {
@@ -936,12 +1048,64 @@ export class TabStrip {
   }
 
   /**
+   * Returns the `id` of the active tab's label, which names the grid while the sheet is shown.
+   *
+   * @returns {string|null} The id, or `null` when no tab is active.
+   */
+  getActiveLabelId(): string | null {
+    const active = [...this.#sheets.values()].find(sheet => sheet.isActive);
+
+    return active === undefined ? null : this.#labelId(active.id);
+  }
+
+  /**
+   * Builds the `id` of a tab's label.
+   *
+   * @param {number} sheetId The sheet the tab represents.
+   * @returns {string} The id.
+   */
+  #labelId(sheetId: number): string {
+    return `${this.#labelIdPrefix}-${sheetId}`;
+  }
+
+  /**
+   * Whether a tab holds the strip's one Tab stop: the tab the arrow keys last moved the focus
+   * to, while the focus is in the strip, and the active tab otherwise.
+   *
+   * @param {object} sheet The sheet the tab represents.
+   * @returns {boolean} `true` for the tab that takes the focus on Tab.
+   */
+  #holdsTabStop(sheet: SheetDescriptor): boolean {
+    if (this.#rovingId !== null && this.#sheets.has(this.#rovingId)) {
+      return sheet.id === this.#rovingId;
+    }
+
+    return sheet.isActive;
+  }
+
+  /**
+   * Gives the strip's Tab stop to one tab and takes it from the others.
+   *
+   * @param {number|null} id The sheet whose tab takes the stop, or `null` for the active tab.
+   */
+  #moveTabStop(id: number | null): void {
+    this.#rovingId = id;
+
+    this.#tabs().forEach((tab) => {
+      const sheet = this.#sheets.get(Number(tab.dataset.sheetId));
+
+      tab.tabIndex = sheet !== undefined && this.#holdsTabStop(sheet) ? 0 : -1;
+    });
+  }
+
+  /**
    * Builds one tab: the control, its label, and its menu trigger.
    *
-   * The tab is one stop in the tab order, and the whole of it is the control: its label and
-   * its menu trigger are decoration inside it rather than controls of their own. That is
-   * what lets the two activations mean different things, and it keeps a strip of twenty
-   * sheets from costing forty stops on the way past.
+   * The whole tab is the control: its label and its menu trigger are decoration inside it
+   * rather than controls of their own, which is what lets the two activations mean different
+   * things. The strip is one stop in the tab order (a roving tab stop, `#holdsTabStop()`), and
+   * the arrow, Home and End keys move along it, so a strip of thirty sheets does not cost thirty
+   * presses on the way past.
    *
    * @param {object} sheet The sheet the tab represents.
    * @returns {HTMLElement} The tab element.
@@ -953,7 +1117,7 @@ export class TabStrip {
 
     tab.className = `ht-sheets-bar__tab${sheet.isActive ? ' ht-sheets-bar__tab--active' : ''}`;
     tab.dataset.sheetId = String(sheet.id);
-    tab.tabIndex = 0;
+    tab.tabIndex = this.#holdsTabStop(sheet) ? 0 : -1;
 
     // Only the active tab advertises the popup: on any other tab an activation moves to that
     // sheet, and a "menu button" that navigates instead would promise the wrong thing.
@@ -963,6 +1127,7 @@ export class TabStrip {
     ]);
 
     label.className = 'ht-sheets-bar__tab-label';
+    label.id = this.#labelId(sheet.id);
     label.textContent = sheet.name;
     // The menus ellipsize long names and the strip can scroll a tab half out of view, so the
     // full name stays reachable on hover.
@@ -977,71 +1142,53 @@ export class TabStrip {
     // The tab around it is what advertises the popup and takes the focus back.
     this.#setAria(chevron, [['aria-hidden', 'true']]);
 
-    tab.addEventListener('click', (event) => {
-      if (this.#isWithinRenameInput(event)) {
-        return;
-      }
-
-      // The trigger is on every tab, but it only opens a menu for the sheet you are already
-      // on. On any other tab the first click means "come here", and the second — now on the
-      // active tab — opens the menu. A menu acts on a sheet, so it waits until that sheet is
-      // the one in front of you.
-      if (sheet.isActive && this.#isWithinChevron(event)) {
-        this.#openMenuFor(sheet, false);
-
-        return;
-      }
-
-      this.runLocalHooks('tabClick', sheet.id);
-    });
-    tab.addEventListener('dblclick', (event) => {
-      if (!this.#isWithinRenameInput(event) && !this.#isWithinChevron(event)) {
-        this.startRename(sheet.id);
-      }
-    });
-    tab.addEventListener('pointerdown', (event) => {
-      this.#pointerHeldOnTab = true;
-
-      if (event.button === 0 && !this.#isWithinRenameInput(event)) {
-        if (this.#cancelRename) {
-          tab.focus({ preventScroll: true });
-        }
-
-        this.#drag.start(event, tab, sheet.id);
-      }
-    });
-    tab.addEventListener('pointerup', () => {
-      this.#pointerHeldOnTab = false;
-    });
-    tab.addEventListener('pointercancel', () => {
-      this.#pointerHeldOnTab = false;
-    });
-
-    // Right-clicking a tab opens the same menu, which is what a spreadsheet user expects.
-    // On another sheet it moves there first — the menu acts on a sheet, so it has to be the
-    // sheet in front of you. The rename input keeps the browser's own menu; that one is for
-    // editing text, not for the sheet. The keyboard raises the same event — Shift+F10, the
-    // Menu key — and only then does the menu open with an item preselected. `button` alone
-    // cannot tell those apart: a touch long-press and a macOS Ctrl+click both report
-    // `button: 0`, so the keyboard is recognized by no button being held and no pointer
-    // having gone down on the tab. The long-press half is pinned by a Playwright touch test;
-    // a genuine macOS Ctrl+click cannot be synthesized from Playwright, so that half rides on
-    // the same flag untested.
-    tab.addEventListener('contextmenu', (event) => {
-      if (this.#isWithinRenameInput(event)) {
-        return;
-      }
-
-      const fromKeyboard = event.button === 0 && event.buttons === 0 && !this.#pointerHeldOnTab;
-
-      event.preventDefault();
-      event.stopPropagation();
-      this.#openMenuFor(sheet, fromKeyboard);
-    });
-
     tab.appendChild(label);
     tab.appendChild(chevron);
     this.#applyEntrance(tab, sheet.id);
+
+    return tab;
+  }
+
+  /**
+   * Whether a tab from the previous paint can show a sheet again. A tab that still holds the
+   * input of a rename that ended has no label any more, so it is built anew.
+   *
+   * @param {HTMLElement} tab The tab from the previous paint.
+   * @param {object} sheet The sheet it showed.
+   * @returns {boolean} `true` when the tab can be updated in place.
+   */
+  #canReuseTab(tab: HTMLElement, sheet: SheetDescriptor): boolean {
+    return sheet.id === this.#renamingId || tab.querySelector('.ht-sheets-bar__tab-label') !== null;
+  }
+
+  /**
+   * Updates a tab from the previous paint in place to show a sheet: its active state, its Tab
+   * stop, its ARIA and its label. The tab under an open rename keeps its input, and its ARIA
+   * stays as the rename set it. The motion a tab is in (an entrance, a slide, the marker's path)
+   * is left as it is: it runs on, on the same element, with no restart.
+   *
+   * @param {HTMLElement} tab The tab from the previous paint.
+   * @param {object} sheet The sheet the tab represents.
+   * @returns {HTMLElement} The same tab.
+   */
+  #updateTab(tab: HTMLElement, sheet: SheetDescriptor): HTMLElement {
+    const isRenaming = sheet.id === this.#renamingId;
+
+    tab.classList.toggle('ht-sheets-bar__tab--active', sheet.isActive);
+    tab.classList.toggle('ht-sheets-bar__tab--renaming', isRenaming);
+    tab.tabIndex = this.#holdsTabStop(sheet) ? 0 : -1;
+
+    if (!isRenaming) {
+      const label = tab.querySelector('.ht-sheets-bar__tab-label') as HTMLElement;
+
+      removeAttribute(tab, ['aria-current', 'aria-haspopup', 'aria-expanded']);
+      this.#setAria(tab, [
+        ['role', 'button'],
+        ...(sheet.isActive ? [['aria-current', 'true'], ['aria-haspopup', 'menu'], ['aria-expanded', 'false']] : []),
+      ]);
+      label.textContent = sheet.name;
+      label.title = sheet.name;
+    }
 
     return tab;
   }
@@ -1135,7 +1282,7 @@ export class TabStrip {
 
   /**
    * Brings every tab's chevron icon in step with the theme after a theme change, in place. Unlike
-   * `render()`, it neither rebuilds the tabs nor aborts a drag or an open rename: `afterSetTheme`
+   * `render()`, which aborts a drag in progress, it touches nothing but the icons: `afterSetTheme`
    * also fires for a color-scheme or density switch, which must not cost the user what they were
    * typing. `syncIcon()` leaves an icon whose mapping did not move untouched.
    */
@@ -1207,9 +1354,10 @@ export class TabStrip {
   /**
    * Records which tab inside the strip holds the focus, so a repaint can hand it back.
    *
-   * A repaint replaces every tab node, which drops the focus to the document body — activating
-   * a sheet from the keyboard would otherwise cost the user their place in the tab order.
-   * Focus outside the strip is left alone: a repaint must never pull it in.
+   * A repaint removes the tab of a sheet that is gone and builds the tab of a sheet that is new,
+   * which drops the focus to the document body when it sat on a removed tab — the user would
+   * otherwise lose their place in the tab order. Focus outside the strip is left alone: a
+   * repaint must never pull it in.
    *
    * @returns {object|null} The sheet id and the tab's position, or `null`.
    */
@@ -1230,14 +1378,17 @@ export class TabStrip {
   }
 
   /**
-   * Puts the focus back on the rebuilt tab that held it — or, when that sheet is gone, on the
+   * Puts the focus back on the tab that held it, when a repaint built that tab again (a rename that
+   * ended) — or, when that sheet is gone, on the
    * tab that took its place, and on the last tab when it was the last one. The focus must land
    * somewhere in the strip either way; the document body is not a place to leave a user.
    *
    * @param {object|null} focused What `#capturedFocus()` recorded.
    */
   #restoreFocus(focused: CapturedFocus | null): void {
-    if (focused === null) {
+    const active = getDeepActiveElement(this.#host.ownerDocument);
+
+    if (focused === null || (isHTMLElement(active) && this.#host.contains(active))) {
       return;
     }
 
@@ -1266,13 +1417,66 @@ export class TabStrip {
       return;
     }
 
+    const tab = this.#host.querySelector('.ht-sheets-bar__tab--active');
+
+    if (activeId !== -1 && (!isHTMLElement(tab) || this.#host.clientWidth === 0)) {
+      return;
+    }
+
     this.#revealedId = activeId;
+
+    if (isHTMLElement(tab)) {
+      this.#scrollIntoStrip(tab);
+      this.#revealedScrollLeft = this.#host.scrollLeft;
+    }
+  }
+
+  /**
+   * Repeats the last reveal of the active tab after the strip's layout changed under it: the
+   * paging arrows took or gave back their room, the strip was resized, or the theme changed the
+   * size of the tabs (the bar is built before the grid's theme is applied, so the first reveal
+   * measures unthemed tabs). The reveal is repeated only while the strip still sits where that
+   * reveal left it, so a strip the user paged by hand stays put.
+   */
+  settleReveal(): void {
+    if (this.#revealedScrollLeft === null || !this.#sitsWhereRevealLeftIt(this.#revealedScrollLeft)) {
+      return;
+    }
 
     const tab = this.#host.querySelector('.ht-sheets-bar__tab--active');
 
     if (isHTMLElement(tab)) {
       this.#scrollIntoStrip(tab);
+      this.#revealedScrollLeft = this.#host.scrollLeft;
     }
+  }
+
+  /**
+   * Tells whether the strip still sits where the last reveal left it. Tabs that shrank leave a
+   * shorter scroll range, and the browser then clamps `scrollLeft` to its new end, which is not a
+   * page the user made, so the reveal's offset is compared after the same clamp. The range runs to
+   * negative values under RTL.
+   *
+   * @param {number} revealed The `scrollLeft` the reveal left.
+   * @returns {boolean} `true` when the user has not paged the strip since.
+   */
+  #sitsWhereRevealLeftIt(revealed: number): boolean {
+    const range = Math.max(0, this.#host.scrollWidth - this.#host.clientWidth);
+    const expected = Math.max(-range, Math.min(revealed, range));
+
+    return Math.abs(this.#host.scrollLeft - expected) < 1;
+  }
+
+  /**
+   * Brings the active tab into view when no reveal has been measured for it yet. A strip with
+   * no width (a grid built or switched inside a hidden container, or the first paint before
+   * the bar is laid out) cannot be scrolled, so the reveal waits for the strip to get a size;
+   * the plugin calls this when the strip is resized.
+   */
+  revealPendingActiveTab(): void {
+    const active = [...this.#sheets.values()].find(sheet => sheet.isActive);
+
+    this.#revealActiveTab(active?.id ?? -1);
   }
 
   /**
@@ -1334,6 +1538,7 @@ export class TabStrip {
       }
       finished = true;
       this.#cancelRename = null;
+      this.#renamingId = null;
       mirror.remove();
       removeClass(tab, 'ht-sheets-bar__tab--renaming');
 
@@ -1345,6 +1550,7 @@ export class TabStrip {
     };
 
     this.#cancelRename = (silent = false) => finish(false, false, silent);
+    this.#renamingId = id;
 
     input.className = 'ht-sheets-bar__tab-rename';
     input.value = label.textContent ?? '';
@@ -1400,6 +1606,15 @@ export class TabStrip {
     mirror.className = 'ht-sheets-bar__tab-rename-mirror';
     mirror.setAttribute('aria-hidden', 'true');
 
+    const savedName = this.#host.ownerDocument.createElement('span');
+
+    savedName.hidden = true;
+    savedName.textContent = label.textContent;
+
+    if (label.id !== '') {
+      savedName.id = label.id;
+    }
+
     // The renaming class hides the menu chevron for the duration of the edit: the tab is a
     // text field at that point, and the trigger would open a menu acting on a name the user
     // is still typing. The button role goes with it — a button's children are presentational
@@ -1408,6 +1623,7 @@ export class TabStrip {
     removeAttribute(tab, ['role', 'aria-haspopup', 'aria-expanded']);
     label.replaceWith(input);
     tab.appendChild(mirror);
+    tab.appendChild(savedName);
     this.#syncRenameWidth(input, mirror, 0);
 
     // Entering the edit removes the label, the gap, and the chevron from the tab, which would
@@ -1535,8 +1751,183 @@ export class TabStrip {
     this.finishLeaving();
     this.#drag.destroy();
     this.clearLocalHooks();
+    this.#listenToTabs(false);
     this.#host.textContent = '';
+    this.#sheets.clear();
   }
+
+  /**
+   * Adds or removes the listeners the strip host carries for every tab inside it. They are added once, when
+   * the strip is built, and not to each tab on every repaint: a listener is bound to the context of the call
+   * that adds it (Angular's zone, for one), and a repaint the host's own code triggers would otherwise bind
+   * the tabs' listeners to that code's context.
+   *
+   * @param {boolean} listen `true` to add the listeners, `false` to remove them.
+   */
+  #listenToTabs(listen: boolean): void {
+    const host = this.#host;
+    const toggle = <K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (event: HTMLElementEventMap[K]) => void,
+    ) => {
+      if (listen) {
+        host.addEventListener(type, listener);
+      } else {
+        host.removeEventListener(type, listener);
+      }
+    };
+
+    toggle('click', this.#onTabClick);
+    toggle('dblclick', this.#onTabDoubleClick);
+    toggle('pointerdown', this.#onTabPointerDown);
+    toggle('contextmenu', this.#onTabContextMenu);
+    toggle('focusin', this.#onTabFocusIn);
+    toggle('focusout', this.#onTabFocusOut);
+  }
+
+  /**
+   * Gives the Tab stop to the tab that took the focus, so <kbd>Shift</kbd>+<kbd>Tab</kbd> back into
+   * the strip returns to it.
+   *
+   * @param {FocusEvent} event The `focusin` event.
+   */
+  #onTabFocusIn = (event: FocusEvent): void => {
+    const target = this.#tabOfEvent(event);
+
+    if (target !== null && target.sheet.id !== this.#rovingId) {
+      this.#moveTabStop(target.sheet.id);
+    }
+  };
+
+  /**
+   * Gives the Tab stop back to the active tab once the focus leaves the strip.
+   *
+   * @param {FocusEvent} event The `focusout` event.
+   */
+  #onTabFocusOut = (event: FocusEvent): void => {
+    const next = event.relatedTarget;
+
+    if (this.#rovingId !== null && !(isHTMLElement(next) && this.#host.contains(next))) {
+      this.#moveTabStop(null);
+    }
+  };
+
+  /**
+   * Returns the tab an event landed in, and the sheet it shows.
+   *
+   * @param {Event} event The event.
+   * @returns {object|null} The tab and its sheet, or `null` outside a tab.
+   */
+  #tabOfEvent(event: Event): { tab: HTMLElement, sheet: SheetDescriptor } | null {
+    const target = event.target;
+    const tab = isHTMLElement(target) ? target.closest('.ht-sheets-bar__tab') : null;
+
+    if (!isHTMLElement(tab) || tab.parentElement !== this.#host) {
+      return null;
+    }
+
+    const sheet = this.#sheets.get(Number(tab.dataset.sheetId));
+
+    return sheet ? { tab, sheet } : null;
+  }
+
+  /**
+   * Switches to the clicked tab's sheet, or opens the active sheet's menu from its chevron.
+   *
+   * @param {Event} event The `click` event.
+   */
+  #onTabClick = (event: MouseEvent) => {
+    const target = this.#tabOfEvent(event);
+
+    if (target === null || this.#isWithinRenameInput(event)) {
+      return;
+    }
+
+    // The trigger is on every tab, but it only opens a menu for the sheet you are already
+    // on. On any other tab the first click means "come here", and the second — now on the
+    // active tab — opens the menu. A menu acts on a sheet, so it waits until that sheet is
+    // the one in front of you.
+    if (target.sheet.isActive && this.#isWithinChevron(event)) {
+      this.#openMenuFor(target.sheet, false);
+
+      return;
+    }
+
+    this.runLocalHooks('tabClick', target.sheet.id);
+  };
+
+  /**
+   * Starts renaming the double-clicked tab's sheet.
+   *
+   * @param {Event} event The `dblclick` event.
+   */
+  #onTabDoubleClick = (event: MouseEvent) => {
+    const target = this.#tabOfEvent(event);
+
+    if (target !== null && !this.#isWithinRenameInput(event) && !this.#isWithinChevron(event)) {
+      this.startRename(target.sheet.id);
+    }
+  };
+
+  /**
+   * Starts a drag of the pressed tab.
+   *
+   * @param {Event} event The `pointerdown` event.
+   */
+  #onTabPointerDown = (event: PointerEvent) => {
+    const target = this.#tabOfEvent(event);
+
+    if (target === null) {
+      return;
+    }
+
+    if (event.button === 0 && !this.#isWithinRenameInput(event)) {
+      if (this.#cancelRename) {
+        target.tab.focus({ preventScroll: true });
+      }
+
+      this.#drag.start(event, target.tab, target.sheet.id);
+    }
+  };
+
+  /**
+   * Opens the sheet menu of the tab the context menu was raised on.
+   *
+   * Right-clicking a tab opens the same menu, which is what a spreadsheet user expects.
+   * On another sheet it moves there first — the menu acts on a sheet, so it has to be the
+   * sheet in front of you. The rename input keeps the browser's own menu; that one is for
+   * editing text, not for the sheet. The keyboard raises the same event — Shift+F10, the
+   * Menu key — and only then does the menu open with an item preselected. `button` alone
+   * cannot tell those apart: a touch long-press and a macOS Ctrl+click both report
+   * `button: 0`, so the keyboard is recognized by no button being held, no pointer
+   * having gone down on the tab, and no touch origin reported by the browser
+   * (`sourceCapabilities.firesTouchEvents`): a repaint can end the press a long-press began
+   * before the browser raises its `contextmenu`. The long-press half is pinned by a Playwright touch test;
+   * a genuine macOS Ctrl+click cannot be synthesized from Playwright, so that half rides on
+   * the same flag untested.
+   *
+   * @param {Event} event The `contextmenu` event.
+   */
+  #onTabContextMenu = (event: MouseEvent) => {
+    const target = this.#tabOfEvent(event);
+
+    if (target === null || this.#isWithinRenameInput(event)) {
+      return;
+    }
+
+    if (this.#drag.isTouchPressing()) {
+      event.preventDefault();
+
+      return;
+    }
+
+    const fromKeyboard = event.button === 0 && event.buttons === 0 && !this.#drag.isPressing() &&
+      getMouseEventTouchOrigin(event) !== true;
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.#openMenuFor(target.sheet, fromKeyboard);
+  };
 }
 
 mixin(TabStrip, localHooks);

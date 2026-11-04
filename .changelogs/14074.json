@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed dropping a row or column onto its own position reordering the index sequence around a trimmed row or column. The sequence change hooks no longer fire for such a drop.",
+  "type": "fixed",
+  "issueOrPR": 14074,
+  "breaking": false,
+  "framework": "none"
+}

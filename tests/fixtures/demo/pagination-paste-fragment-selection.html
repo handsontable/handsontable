@@ -25,6 +25,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -62,7 +63,7 @@
         copyPaste: true,
         // With `fragmentSelection` CopyPaste stops refreshing `copyableRanges` on selection end.
         fragmentSelection,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       // Fail loud, see the determinism rules in `tests/AGENTS.md`.

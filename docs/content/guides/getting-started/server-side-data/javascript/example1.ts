@@ -510,7 +510,7 @@ const hot = new Handsontable(container, {
   colHeaders: ['Product', 'SKU', 'Category', 'Unit price', 'In stock'],
   width: '100%',
   height: '300px',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   columnSorting: true,
   pagination: true,
   dropdownMenu: true,

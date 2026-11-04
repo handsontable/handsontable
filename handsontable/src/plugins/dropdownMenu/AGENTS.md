@@ -1,6 +1,6 @@
 # DropdownMenu plugin — column header menu
 
-`DropdownMenu` (`'dropdownMenu'`) provides the column-header dropdown menu. It is **built on the shared `Menu` class from `contextMenu`** but configured and triggered independently — do not duplicate that Menu logic here.
+`DropdownMenu` (`'dropdownMenu'`) provides the column-header dropdown menu. It is **built on the shared `Menu` class from `utils/menu`** (the same one `ContextMenu` uses) but configured and triggered independently — do not duplicate that Menu logic here.
 
 ## Specifics
 
@@ -33,11 +33,12 @@ tolerance to widen. `__tests__/helpers/helpers.js`'s `getDropdownMenuButtonIconO
 - **Keep the build at enable time, and keep it from running later.** It registers the commands, so `executeCommand()` works before the first open and still refuses a command of a plugin that was turned off. Moving it to `afterInit` runs the public `beforeDropdownMenuSetItems` and `afterDropdownMenuDefaultOptions` listeners passed in the grid settings with no menu open and no selection: those listeners are attached by the init-pass `updateSettings()` after the plugins enable, so the enable-time build never reached them, and one that reads `getSelectedLast()` would throw at init. Removing the build instead makes the first `executeCommand()` rebuild, and a command of a plugin turned off then throws as unknown instead of being refused. `tests/e2e/dropdown-menu-freeze-column.spec.ts` pins both.
 - `ContextMenu` never built at enable time, which is why it did not have this bug.
 
-Pinned by `tests/e2e/menu-unresolved-key-warning.spec.ts` and `contextMenu/__tests__/itemsFactory.unit.js`.
+Pinned by `tests/e2e/menu-unresolved-key-warning.spec.ts` and `utils/menu/__tests__/itemsFactory.unit.js`.
 
 ## Where to look next
 
-- Full ContextMenu vs Column Menu comparison and the shared `Menu` class: `handsontable/src/plugins/contextMenu/AGENTS.md`.
+- Full ContextMenu vs Column Menu comparison: `handsontable/src/plugins/contextMenu/AGENTS.md`.
+- The shared `Menu` class and `registerMenuEntries()`: `handsontable/src/utils/menu/AGENTS.md`.
 - Plugin contract, hooks, settings validation, lifecycle: `handsontable-plugin-dev` skill.
 
 ## The button icon goes through `syncIcon()` on every header render, on purpose
@@ -52,6 +53,14 @@ per header. The mousedown gate in `#onBeforeOnCellMouseDown` matches the button 
 (`closest`), not by the target's own class - a renderer callback may put its own markup inside the icon.
 Pinned by "a runtime icons remap reaches the reused header button, filters select, and select editor
 icons" in `tests/e2e/icon-elements.spec.ts`.
+
+## `aria-haspopup` is set on every header render, not only with the button
+
+Core strips every `aria-*` attribute off a column header cell on each render (`columnHeaders.ts`), and
+the button survives, so the reuse path of `#onAfterGetColHeader` sets `aria-haspopup="menu"` on the cell
+again (with `ariaTags` on). Set only where the button was created, it was gone after the first
+`render()`, `updateSettings()`, `loadData()` or sheet switch. Pinned by
+`tests/e2e/plugin-ui-teardown.spec.ts`.
 
 ## `DropdownMenuSettings` lists the keys `validateSettings()` accepts
 

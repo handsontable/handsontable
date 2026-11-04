@@ -1,6 +1,7 @@
 import Core from 'handsontable/core';
 import { registerCellType, TextCellType } from 'handsontable/cellTypes';
 import { registerRenderer, baseRenderer, textRenderer } from 'handsontable/renderers';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 registerCellType(TextCellType);
 registerRenderer(baseRenderer);
@@ -18,7 +19,7 @@ describe('colWidths addressed by physical column index', () => {
    */
   function createGrid(settings) {
     hot = new Core(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [['a', 'b', 'c']],
       autoColumnSize: false,
       ...settings,

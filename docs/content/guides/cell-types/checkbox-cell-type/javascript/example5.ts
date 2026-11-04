@@ -7,7 +7,7 @@ registerAllModules();
 const container = document.querySelector('#example5')!;
 
 new Handsontable(container, {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: [
     { task: 'Update API docs', assignee: 'Ana García', done: true },
     { task: 'Deploy hotfix', assignee: 'James Okafor', done: false },

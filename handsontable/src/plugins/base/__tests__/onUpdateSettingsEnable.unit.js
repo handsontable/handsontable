@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, BasePlugin } from 'handsontable/plugins';
 import { registerAllModules } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 const PLUGIN_SETTING = 'enableReadsSettingsTest';
 
@@ -42,7 +43,7 @@ describe('BasePlugin#onUpdateSettings enabling a plugin', () => {
 
   it('should hand the new settings to `enablePlugin()` when an update turns the plugin on', () => {
     hot = new Handsontable(document.createElement('div'), {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const plugin = hot.getPlugin(PLUGIN_SETTING);
 
@@ -54,7 +55,7 @@ describe('BasePlugin#onUpdateSettings enabling a plugin', () => {
   it('should hand the new settings to `enablePlugin()` when an update turns the plugin on again', () => {
     hot = new Handsontable(document.createElement('div'), {
       [PLUGIN_SETTING]: { mode: 'first' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const plugin = hot.getPlugin(PLUGIN_SETTING);
 
@@ -68,7 +69,7 @@ describe('BasePlugin#onUpdateSettings enabling a plugin', () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
     hot = new Handsontable(document.createElement('div'), {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     hot.updateSettings({ filters: { searchMode: 'bad' } });
 
@@ -80,7 +81,7 @@ describe('BasePlugin#onUpdateSettings enabling a plugin', () => {
 
   it('should still update the plugin in the call that turns it on', () => {
     hot = new Handsontable(document.createElement('div'), {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const plugin = hot.getPlugin(PLUGIN_SETTING);
@@ -96,7 +97,7 @@ describe('BasePlugin#onUpdateSettings enabling a plugin', () => {
     hot = new Handsontable(document.createElement('div'), {
       data: [['a'], ['b']],
       rowHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.updateSettings({ bindRowsWithHeaders: 'strict' });

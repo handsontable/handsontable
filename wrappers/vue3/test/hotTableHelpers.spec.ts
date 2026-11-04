@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import {
+  getPassedHookKeys,
   prepareSettings,
   propFactory
 } from '../src/helpers';
@@ -17,7 +18,7 @@ describe('propFactory', () => {
     expect(typeof props.afterCreateRow).toBe('object');
     expect(typeof props.afterGetCellMeta).toBe('object');
     expect(typeof props.beforeInit).toBe('object');
-    expect(typeof props.randomProp).toBe('undefined');
+    expect(typeof (props as Record<string, unknown>).randomProp).toBe('undefined');
   });
 
   it('should expose the NestedRows collapse and expand hooks as props', () => {
@@ -27,6 +28,21 @@ describe('propFactory', () => {
     expect(typeof props.afterRowCollapse).toBe('object');
     expect(typeof props.beforeRowExpand).toBe('object');
     expect(typeof props.afterRowExpand).toBe('object');
+  });
+});
+
+describe('getPassedHookKeys', () => {
+  it('should list the hooks passed a callback, directly or through the `settings` prop', () => {
+    const callback = jest.fn();
+
+    expect(getPassedHookKeys({
+      afterChange: callback,
+      beforeChange: callback,
+      afterSelection: undefined,
+      afterScroll: null,
+      width: 300,
+      settings: { afterLoadData: callback },
+    })).toEqual(['afterLoadData', 'afterChange', 'beforeChange']);
   });
 });
 
@@ -84,6 +100,36 @@ describe('prepareSettings', () => {
     expect(Object.keys(preparedSettings).length).toBe(0);
   });
 
+  describe('themeName', () => {
+    // Core moves `themeName` into `theme` and keeps `getSettings().themeName` empty.
+    const currentSettings = { theme: 'ht-theme-main', themeName: undefined } as GridSettings;
+
+    it('should not send a `themeName` the grid already uses as its `theme`', () => {
+      expect(prepareSettings({ themeName: 'ht-theme-main' }, currentSettings)).toEqual({});
+      expect(prepareSettings({ settings: { themeName: 'ht-theme-main' } }, currentSettings)).toEqual({});
+      expect(prepareSettings({ settings: { colHeaders: true }, themeName: 'ht-theme-main' }, currentSettings))
+        .toEqual({ colHeaders: true });
+    });
+
+    it('should send a `themeName` that differs from the grid\'s `theme`', () => {
+      expect(prepareSettings({ themeName: 'ht-theme-horizon' }, currentSettings))
+        .toEqual({ themeName: 'ht-theme-horizon' });
+      expect(prepareSettings({ settings: { colHeaders: true }, themeName: 'ht-theme-horizon' }, currentSettings))
+        .toEqual({ colHeaders: true, themeName: 'ht-theme-horizon' });
+    });
+
+    it('should send `themeName` when the grid\'s `theme` is not a name', () => {
+      const themeObjectSettings = { theme: { name: 'custom' }, themeName: undefined } as unknown as GridSettings;
+
+      expect(prepareSettings({ themeName: 'ht-theme-main' }, themeObjectSettings))
+        .toEqual({ themeName: 'ht-theme-main' });
+    });
+
+    it('should send `themeName` when there are no current settings', () => {
+      expect(prepareSettings({ themeName: 'ht-theme-main' })).toEqual({ themeName: 'ht-theme-main' });
+    });
+  });
+
   it('should skip init-only settings when current settings contain _initOnlySettings', () => {
     const currentSettings = {
       renderAllRows: false,
@@ -108,6 +154,24 @@ describe('prepareSettings', () => {
     expect(preparedSettings.layoutDirection).toBe(undefined);
     expect(preparedSettings.ariaTags).toBe(undefined);
     expect(preparedSettings.width).toBe(500);
+  });
+
+  it('should send `null` for a hook the previous props passed and the current props do not', () => {
+    const afterChange = jest.fn();
+    const beforeChange = jest.fn();
+    const currentSettings = { afterChange, beforeChange, afterSelection: afterChange };
+
+    expect(prepareSettings(
+      { beforeChange, afterChange: undefined },
+      currentSettings,
+      ['afterChange', 'beforeChange']
+    )).toEqual({ afterChange: null });
+    expect(prepareSettings(
+      { settings: { beforeChange } },
+      currentSettings,
+      ['afterChange', 'beforeChange']
+    )).toEqual({ afterChange: null });
+    expect(prepareSettings({ width: 300 }, currentSettings)).toEqual({ width: 300 });
   });
 
   it('should include init-only settings during initial call (no currentSettings)', () => {

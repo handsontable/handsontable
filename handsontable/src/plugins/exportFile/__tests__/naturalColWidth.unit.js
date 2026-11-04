@@ -2,6 +2,7 @@ import Core from 'handsontable/core';
 import { registerCellType, TextCellType } from 'handsontable/cellTypes';
 import { registerRenderer, baseRenderer, textRenderer } from 'handsontable/renderers';
 import DataProvider from '../dataProvider';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerCellType(TextCellType);
 registerRenderer(baseRenderer);
@@ -19,7 +20,7 @@ describe('DataProvider#_getNaturalColWidth', () => {
    */
   function createProvider(settings) {
     hot = new Core(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [['a', 'b', 'c']],
       autoColumnSize: false,
       ...settings,

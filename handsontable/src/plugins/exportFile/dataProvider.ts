@@ -1,7 +1,7 @@
 import type { HotInstance } from '../../core/types';
 import { extractText } from '../../utils/textExtractor';
 import { normalizeExportOptions, expandNestedHeaderLayers } from './utils';
-import { toOoxmlErrorCode } from './types/xlsx/formula-utils';
+import { toFormulaLiteral, toOoxmlErrorCode } from './types/xlsx/formula-utils';
 import type { SummaryEndpoint } from '../columnSummary/columnSummary';
 
 interface MergeCellDescriptor {
@@ -32,6 +32,211 @@ type NestedHeadersPluginWithState = {
 type NestedHeadersPluginWithSettings = {
   getHeaderSettings(layer: number, col: number): NestedHeaderSettings | null | undefined;
 };
+
+/**
+ * The size of the array a formula spills, in cells, as `ExportDataProvider#getEngineCellFacts()`
+ * reports it.
+ */
+export interface ArrayFormulaSize {
+  rows: number;
+  cols: number;
+  exported: boolean;
+  /**
+   * The size before the trailing empty rows and columns were trimmed off, present only when the
+   * trim changed it. A CSE array keeps it: Excel never resizes a CSE ref, and the engine's empty
+   * value also marks an empty cell the formula references.
+   */
+  untrimmed?: { rows: number; cols: number; exported: boolean };
+}
+
+/**
+ * The size of an array, in cells.
+ */
+interface SpillSize {
+  rows: number;
+  cols: number;
+}
+
+/**
+ * An array's size before and after `trimEmptyTail()`.
+ */
+interface SpillSizes {
+  trimmed: SpillSize;
+  untrimmed: SpillSize;
+}
+
+/**
+ * What the Formulas plugin's engine holds for one cell, as `ExportDataProvider#getEngineCellFacts()`
+ * reports it: the OOXML error code of its value (`null` when the value is not an error with one),
+ * the finite number or boolean the engine computed for it (`null` for a value the user typed, a
+ * computed text, or an error), and the size of the array it spills (`null` unless it is the master
+ * of an array and the sizes were asked for).
+ */
+export interface EngineCellFacts {
+  errorCode: string | null;
+  computedValue: number | boolean | null;
+  arraySize: ArrayFormulaSize | null;
+}
+
+/**
+ * The cell address HyperFormula takes.
+ */
+interface EngineCellAddress {
+  sheet: number;
+  row: number;
+  col: number;
+}
+
+/**
+ * Drops the trailing rows, then the trailing columns, of a `rows` x `cols` array whose every cell
+ * `isEmpty()` answers `true` for, keeping at least one row and one column.
+ *
+ * @param {number} rows The array's height.
+ * @param {number} cols The array's width.
+ * @param {Function} isEmpty Whether the cell at an offset from the master is empty.
+ * @returns {{ rows: number, cols: number }}
+ */
+function trimEmptyTail(
+  rows: number, cols: number, isEmpty: (rowOffset: number, colOffset: number) => boolean
+): { rows: number; cols: number } {
+  let height = rows;
+  let width = cols;
+  const isEmptyRow = (row: number) => Array.from({ length: width }, (_, col) => col).every(col => isEmpty(row, col));
+  // Only the rows that stay count for a column.
+  const isEmptyCol = (col: number) => Array.from({ length: height }, (_, row) => row).every(row => isEmpty(row, col));
+
+  while (height > 1 && isEmptyRow(height - 1)) {
+    height -= 1;
+  }
+
+  while (width > 1 && isEmptyCol(width - 1)) {
+    width -= 1;
+  }
+
+  return { rows: height, cols: width };
+}
+
+/**
+ * Reads the size of the array whose master sits at `address` from HyperFormula's array mapping.
+ * The mapping is `@internal` in HyperFormula (3.3.0 answers an `ArrayFormulaVertex` with `width`,
+ * `height`, and the computed `array`), so every step is duck-typed and anything unexpected answers
+ * `null`.
+ *
+ * The mapping holds the room the engine reserved, which is the exact size for `SEQUENCE`, but the
+ * size of the input for `FILTER`: the engine pads the result with its empty value, a symbol
+ * (`=FILTER(A1:A6,A1:A6>3)` reserves 6 rows for 3). Both sizes are answered: the reserved one, and
+ * the one with the trailing rows and columns that hold only that symbol trimmed off. The caller
+ * picks: a dynamic array takes the trimmed size, since a result whose real last values are empty
+ * cells is trimmed too, which Excel corrects when it recalculates. A CSE array keeps the reserved
+ * size, since Excel never resizes a CSE ref and the symbol also marks an empty referenced cell
+ * (`=ARRAYFORMULA(IF(A1:A4>2,B1:B4,B1:B4))` over empty B3:B4). An error result (`FILTER` that
+ * matches nothing) holds no values and keeps the reserved size either way.
+ *
+ * @param {object} engine The Formulas plugin's engine.
+ * @param {object} address The master's engine address.
+ * @returns {{ trimmed: object, untrimmed: object }|null}
+ */
+function readMappedArraySize(engine: object, address: EngineCellAddress): SpillSizes | null {
+  const { arrayMapping } = engine as { arrayMapping?: { getArrayByCorner?: unknown } };
+
+  if (typeof arrayMapping?.getArrayByCorner !== 'function') {
+    return null;
+  }
+
+  const vertex = (arrayMapping.getArrayByCorner as (address: EngineCellAddress) => unknown).call(arrayMapping, address);
+  const { width, height, array } = (vertex ?? {}) as { width?: unknown; height?: unknown; array?: { raw?: unknown } };
+
+  if (typeof width !== 'number' || typeof height !== 'number' || width < 1 || height < 1) {
+    return null;
+  }
+
+  const values = typeof array?.raw === 'function' ? (array.raw as () => unknown).call(array) : null;
+
+  const untrimmed = { rows: height, cols: width };
+
+  if (!Array.isArray(values)) {
+    return { trimmed: untrimmed, untrimmed };
+  }
+
+  return {
+    trimmed: trimEmptyTail(height, width, (row, col) => {
+      const valueRow: unknown = values[row];
+
+      return Array.isArray(valueRow) && typeof valueRow[col] === 'symbol';
+    }),
+    untrimmed,
+  };
+}
+
+/**
+ * Estimates the size of the array whose master sits at `address` by walking right, then down, over
+ * the cells the engine types `ARRAY`, and answers that size and the one with the trailing rows and
+ * columns whose every value is empty trimmed off, as `readMappedArraySize()` does with the room the
+ * engine reserves. The fallback for `readMappedArraySize()`; it can over-count when another array
+ * spills next to the master.
+ *
+ * @param {object} engine The Formulas plugin's engine.
+ * @param {object} address The master's engine address.
+ * @returns {{ trimmed: object, untrimmed: object }}
+ */
+function walkArraySize(
+  engine: {
+    getCellType(address: EngineCellAddress): unknown;
+    getCellValue(address: EngineCellAddress): unknown;
+    getSheetDimensions(sheetId: number): { width: number; height: number };
+  },
+  address: EngineCellAddress
+): SpillSizes {
+  const { sheet, row, col } = address;
+  const { width, height } = engine.getSheetDimensions(sheet);
+  const isSpilled = (r: number, c: number) => engine.getCellType({ sheet, row: r, col: c }) === 'ARRAY';
+  let cols = 1;
+  let rows = 1;
+
+  while (col + cols < width && isSpilled(row, col + cols)) {
+    cols += 1;
+  }
+
+  while (row + rows < height && isSpilled(row + rows, col)) {
+    rows += 1;
+  }
+
+  return {
+    trimmed: trimEmptyTail(rows, cols, (rowOffset, colOffset) => engine
+      .getCellValue({ sheet, row: row + rowOffset, col: col + colOffset }) === null),
+    untrimmed: { rows, cols },
+  };
+}
+
+/**
+ * Whether the engine indexes `hfStart … hfStart + length - 1` of one axis land, in that order, on
+ * consecutive positions of the exported matrix, starting at the master's own position.
+ *
+ * @param {object} syncer The Formulas plugin's syncer of the axis.
+ * @param {number} hfStart The master's engine index.
+ * @param {number} length The spill length along the axis.
+ * @param {Map<number, number>} positions Visual index to exported position.
+ * @param {number} visualStart The master's visual index.
+ * @returns {boolean}
+ */
+function spillsInPlace(
+  syncer: { getVisualIndexFromHfIndex(hfIndex: number): number },
+  hfStart: number, length: number, positions: Map<number, number>, visualStart: number
+): boolean {
+  const start = positions.get(visualStart);
+
+  if (start === undefined) {
+    return false;
+  }
+
+  for (let offset = 1; offset < length; offset++) {
+    if (positions.get(syncer.getVisualIndexFromHfIndex(hfStart + offset)) !== start + offset) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 /**
  * @private
@@ -221,30 +426,189 @@ class ExportDataProvider {
   }
 
   /**
-   * Gets, for every cell of the export range, the OOXML error code of the value the Formulas
-   * plugin's engine holds for it (`#DIV/0!` for `=1/0`), or `null` when the value is not an error
-   * with such a code. Every entry is `null` when the Formulas plugin is absent or disabled.
+   * Gets the named expressions of the Formulas plugin's engine, each with its definition: the
+   * formula text (`=Sheet1!$A$1:$A$3`), or, for a name defined with a constant, that constant
+   * spelled as a formula literal (`5`, `"text"`, `TRUE()`). The definition is `null` when the
+   * constant cannot be spelled. `scope` is `null` for a workbook-scoped name and the engine sheet
+   * name for a name scoped to a sheet; the workbook names come first, in the engine's order, then
+   * each sheet's names, in the engine's sheet order. Empty when the Formulas plugin is absent or
+   * disabled.
    *
-   * The answer comes from the engine's own cell value, not from the displayed text, which cannot
-   * tell the error `#N/A` from the text a formula such as `="#N/A"` answers, and which the
-   * engine's language translates.
-   *
-   * @returns {Array[]}
+   * @returns {Array<{ name: string, formula: string|null, scope: string|null }>}
    */
-  getFormulaErrorCodes(): (string | null)[][] {
+  getNamedExpressions(): Array<{ name: string; formula: string | null; scope: string | null }> {
     const formulasPlugin = this.hot.getPlugin('formulas');
-    const engine = formulasPlugin?.isEnabled() ? formulasPlugin.engine : null;
+    const engine = formulasPlugin?.enabled ? formulasPlugin.engine : null;
+
+    if (!engine) {
+      return [];
+    }
+
+    const read = (scope: string | null, sheetId?: number) => (name: string) => {
+      const formula = engine.getNamedExpressionFormula(name, sheetId);
+
+      return {
+        name,
+        formula: formula === undefined ? toFormulaLiteral(engine.getNamedExpressionValue?.(name, sheetId)) : formula,
+        scope,
+      };
+    };
+    const names = engine.listNamedExpressions().map(read(null));
+
+    (engine.getSheetNames?.() ?? []).forEach((sheetName: string) => {
+      const sheetId = engine.getSheetId(sheetName);
+
+      if (sheetId !== undefined) {
+        engine.listNamedExpressions(sheetId).forEach((name: string) => names.push(read(sheetName, sheetId)(name)));
+      }
+    });
+
+    return names;
+  }
+
+  /**
+   * Gets the Formulas plugin's engine and the name of the engine sheet it binds this grid to, or
+   * `null` when the plugin is absent or disabled. Grids of one export may share an engine; the
+   * engine object tells them apart.
+   *
+   * @returns {{ engine: object, sheetName: string }|null}
+   */
+  getFormulasBinding(): { engine: object; sheetName: string } | null {
+    const formulasPlugin = this.hot.getPlugin('formulas');
+
+    if (!formulasPlugin?.enabled || !formulasPlugin.engine || formulasPlugin.sheetName === null) {
+      return null;
+    }
+
+    return { engine: formulasPlugin.engine, sheetName: formulasPlugin.sheetName };
+  }
+
+  /**
+   * Gets, for every cell of the export range, what the Formulas plugin's engine holds for it, in ONE
+   * pass that reads each cell's type and value once: the OOXML error code of its value, the number
+   * or boolean the engine computed for it, and, when `withArraySizes` is `true`, the size of the
+   * array it spills. An entry is `null` when the engine holds nothing to report for the cell (an
+   * empty cell, a typed text or number), when the engine has no row or column for it (the syncer
+   * answers `-1`). Without the Formulas plugin, or with it disabled, the answer is `null` itself:
+   * no matrix is built.
+   *
+   * The error code comes from the engine's own cell value, not from the displayed text, which
+   * cannot tell the error `#N/A` from the text a formula such as `="#N/A"` answers, and which the
+   * engine's language translates. It is read for every cell, a typed `#N/A` (`VALUE`) included:
+   * the XLSX export writes a cell whose value is an error as that code, with and without
+   * `exportFormulas`.
+   *
+   * The computed value is read for a formula cell, an array formula and the cells an array spills
+   * (`ARRAY`), when the value is a finite number or a boolean. The XLSX export writes such a cell
+   * with the engine's type, so a computed number in a text column is not written as text, which a
+   * reader that takes cached values without recalculating would not count (`=SUM()` over a spill).
+   *
+   * The array size is read for a cell the engine types `ARRAYFORMULA` (a spilling function such as
+   * `SEQUENCE`, or `ARRAYFORMULA(…)`). HyperFormula has no public API for the spill range. The size
+   * is read from the engine's array mapping (`arrayMapping.getArrayByCorner()`), which holds the
+   * room the engine reserved for every array. For `FILTER` that is the size of its input, padded with
+   * the engine's empty value, so the trailing rows and columns holding only that value are trimmed
+   * off (`readMappedArraySize()`); when that changes the size, the reserved one is kept as
+   * `untrimmed`, which the XLSX export uses for a CSE array (`ARRAYFORMULA(…)`), whose ref Excel
+   * never resizes. That mapping is `@internal` in HyperFormula and may change between
+   * 3.x releases, so it is duck-typed and, when it is missing or answers an unexpected shape, the
+   * size is estimated by walking right, then down, from the master over the cells the engine types
+   * `ARRAY`, bounded by the sheet's dimensions. The walk is only an estimate: a spilled cell next to
+   * the master can belong to another array (a `=SEQUENCE(3)` in B1 spills into B2, right of a master
+   * in A2), so it can over-count, and the export refuses a ref that overlaps an earlier one
+   * (`types/xlsx.ts`). `isCellPartOfArray()` cannot drive the walk: it is `true` for a neighboring
+   * array's master too. `exported` tells whether every spilled row and column lands in the exported
+   * matrix right after the master, so the spill keeps its shape in the file. It is `false` when the
+   * spill crosses a trimmed row, a hidden row or column the export leaves out, or the `range` edge.
+   *
+   * @param {boolean} withArraySizes Whether to read the array sizes (`exportFormulas`).
+   * @returns {Array[]|null}
+   */
+  getEngineCellFacts(withArraySizes: boolean): (EngineCellFacts | null)[][] | null {
+    const formulasPlugin = this.hot.getPlugin('formulas');
+    const engine = formulasPlugin?.enabled ? formulasPlugin.engine : null;
     const { sheetId, rowAxisSyncer, columnAxisSyncer } = formulasPlugin ?? {};
 
     if (!engine || sheetId === null || sheetId === undefined || !rowAxisSyncer || !columnAxisSyncer) {
-      return this._extractDataMatrix(() => null);
+      return null;
     }
 
-    return this._extractDataMatrix((row, col) => toOoxmlErrorCode(engine.getCellValue({
-      sheet: sheetId,
-      row: rowAxisSyncer.getHfIndexFromVisualIndex(row),
-      col: columnAxisSyncer.getHfIndexFromVisualIndex(col),
-    })));
+    let exportedRows: Map<number, number> | null = null;
+    let exportedCols: Map<number, number> | null = null;
+
+    if (withArraySizes) {
+      const { startRow, endRow, startCol, endCol } = this._getDataRange();
+
+      exportedRows = this.#getExportedPositions(startRow, endRow, this.options.exportHiddenRows === false
+        ? (row: number) => this._isHiddenRow(row) : () => false);
+      exportedCols = this.#getExportedPositions(startCol, endCol, this.options.exportHiddenColumns === false
+        ? (col: number) => this._isHiddenColumn(col) : () => false);
+    }
+
+    return this._extractDataMatrix((row, col): EngineCellFacts | null => {
+      const address = {
+        sheet: sheetId,
+        row: rowAxisSyncer.getHfIndexFromVisualIndex(row),
+        col: columnAxisSyncer.getHfIndexFromVisualIndex(col),
+      };
+
+      // A row or column the engine does not hold (`-1`): asking the engine would throw.
+      if (address.row < 0 || address.col < 0) {
+        return null;
+      }
+
+      const cellType = engine.getCellType(address);
+
+      if (cellType === 'EMPTY') {
+        return null;
+      }
+
+      const value = engine.getCellValue(address);
+      const errorCode = toOoxmlErrorCode(value);
+      const computedValue = cellType !== 'VALUE'
+        && ((typeof value === 'number' && Number.isFinite(value)) || typeof value === 'boolean') ? value : null;
+      let arraySize: ArrayFormulaSize | null = null;
+
+      if (exportedRows !== null && exportedCols !== null && cellType === 'ARRAYFORMULA') {
+        const { trimmed, untrimmed } = readMappedArraySize(engine, address) ?? walkArraySize(engine, address);
+        const isExported = ({ rows, cols }: SpillSize) => (
+          spillsInPlace(rowAxisSyncer, address.row, rows, exportedRows, row)
+          && spillsInPlace(columnAxisSyncer, address.col, cols, exportedCols, col)
+        );
+
+        arraySize = { ...trimmed, exported: isExported(trimmed) };
+
+        if (trimmed.rows !== untrimmed.rows || trimmed.cols !== untrimmed.cols) {
+          arraySize.untrimmed = { ...untrimmed, exported: isExported(untrimmed) };
+        }
+      }
+
+      if (errorCode === null && computedValue === null && arraySize === null) {
+        return null;
+      }
+
+      return { errorCode, computedValue, arraySize };
+    });
+  }
+
+  /**
+   * Maps every visual index of one axis the exported matrix holds to its position in the matrix.
+   *
+   * @param {number} start The first visual index of the export range.
+   * @param {number} end The last visual index of the export range.
+   * @param {Function} isLeftOut Whether the export leaves a visual index out.
+   * @returns {Map<number, number>}
+   */
+  #getExportedPositions(start: number, end: number, isLeftOut: (index: number) => boolean): Map<number, number> {
+    const positions = new Map<number, number>();
+
+    for (let index = start; index <= end; index++) {
+      if (!isLeftOut(index)) {
+        positions.set(index, positions.size);
+      }
+    }
+
+    return positions;
   }
 
   /**
@@ -254,34 +618,27 @@ class ExportDataProvider {
    * With the Formulas plugin on, a reference names an engine row, and the engine keeps every row,
    * in the grid's order, trimmed and filtered-out ones included. The set then holds the engine
    * index of every row with no visual index (trimmed or filtered out, which the syncer answers with
-   * `-1`), plus the hidden rows when
-   * `exportHiddenRows` is `false`. Without the plugin, a formula is the text the user typed, so
-   * only the hidden rows are left out, by physical index.
+   * `-1`), plus the hidden rows when `exportHiddenRows` is `false`, plus, when `withOutsideRange` is
+   * `true`, every row outside the `range` option (the defined names are moved by it; cell formulas
+   * are not). Without the plugin, a formula is the text the user typed, so only the hidden rows are
+   * left out, by physical index.
    *
+   * @param {boolean} [withOutsideRange=false] Whether to add the engine rows outside `range`.
    * @returns {Set<number>}
    */
-  getExcludedHiddenRows(): Set<number> {
-    const result = new Set<number>();
-    const excludeHidden = this.options.exportHiddenRows === false;
-    const rowAxisSyncer = this.#getEngineRowAxisSyncer();
-
+  getExcludedHiddenRows(withOutsideRange = false): Set<number> {
     const { startRow, endRow } = this._getDataRange();
-    const isExcludedHidden = (visualRow: number) => excludeHidden && visualRow >= startRow && visualRow <= endRow
-      && this._isHiddenRow(visualRow);
+    const excludeHidden = this.options.exportHiddenRows === false;
+    const syncer = this.#getEngineAxisSyncer('row');
 
-    if (rowAxisSyncer) {
-      const engineRows = this.hot.rowIndexMapper.getNumberOfIndexes();
-
-      for (let hfRow = 0; hfRow < engineRows; hfRow++) {
-        const visualRow = rowAxisSyncer.getVisualIndexFromHfIndex(hfRow);
-
-        if (visualRow < 0 || isExcludedHidden(visualRow)) {
-          result.add(hfRow);
-        }
-      }
-
-      return result;
+    if (syncer) {
+      return this.#collectExcludedEngineIndexes(
+        syncer, this.hot.rowIndexMapper.getNumberOfIndexes(), startRow, endRow, withOutsideRange,
+        visualRow => excludeHidden && this._isHiddenRow(visualRow),
+      );
     }
+
+    const result = new Set<number>();
 
     if (!excludeHidden) {
       return result;
@@ -297,41 +654,35 @@ class ExportDataProvider {
   }
 
   /**
-   * Returns the Formulas plugin's row axis syncer when the plugin is on, or `null`.
+   * Returns the columns the exported data matrix leaves out, as the column indexes the formulas'
+   * references use, so the formula normalizer can shift every reference right of them left.
    *
-   * @returns {object|null}
-   */
-  #getEngineRowAxisSyncer(): { getVisualIndexFromHfIndex(hfIndex: number): number } | null {
-    const formulasPlugin = this.hot.getPlugin('formulas');
-
-    if (!formulasPlugin?.isEnabled() || !formulasPlugin.engine) {
-      return null;
-    }
-
-    return formulasPlugin.rowAxisSyncer ?? null;
-  }
-
-  /**
-   * Returns the set of physical HOT column indices that are hidden and excluded from the
-   * exported data matrix (i.e. `exportHiddenColumns` is `false` and the column is hidden).
+   * With the Formulas plugin on, a reference names an engine column, and the engine's column order
+   * follows the visual one (a moved column moves in the engine too). The set then holds the engine
+   * index of every column with no visual index, plus the hidden columns when `exportHiddenColumns`
+   * is `false`, plus, when `withOutsideRange` is `true`, every column outside the `range` option.
+   * Without the plugin, only the hidden columns are left out, by physical index.
    *
-   * Returns an empty set when `exportHiddenColumns` is `true` or `'hide'`, because in
-   * those cases all columns are included in the data matrix and no formula-offset
-   * adjustment is needed.
-   *
-   * Used by the formula normalizer to adjust per-reference column offsets when building
-   * live Excel formulas from HyperFormula formula strings.
-   *
+   * @param {boolean} [withOutsideRange=false] Whether to add the engine columns outside `range`.
    * @returns {Set<number>}
    */
-  getExcludedHiddenColumns(): Set<number> {
-    const result = new Set<number>();
+  getExcludedHiddenColumns(withOutsideRange = false): Set<number> {
+    const { startCol, endCol } = this._getDataRange();
+    const excludeHidden = this.options.exportHiddenColumns === false;
+    const syncer = this.#getEngineAxisSyncer('column');
 
-    if (this.options.exportHiddenColumns !== false) {
-      return result;
+    if (syncer) {
+      return this.#collectExcludedEngineIndexes(
+        syncer, this.hot.columnIndexMapper.getNumberOfIndexes(), startCol, endCol, withOutsideRange,
+        visualColumn => excludeHidden && this._isHiddenColumn(visualColumn),
+      );
     }
 
-    const { startCol, endCol } = this._getDataRange();
+    const result = new Set<number>();
+
+    if (!excludeHidden) {
+      return result;
+    }
 
     for (let colIndex = startCol; colIndex <= endCol; colIndex++) {
       if (this._isHiddenColumn(colIndex)) {
@@ -340,6 +691,57 @@ class ExportDataProvider {
     }
 
     return result;
+  }
+
+  /**
+   * Walks every engine index of one axis and collects the ones the export leaves out: an index
+   * with no visual index, one outside `start`…`end` when `withOutsideRange` is `true`, and one
+   * inside the range that `isHidden` answers `true` for.
+   *
+   * @param {object} syncer The Formulas plugin's axis syncer.
+   * @param {number} count The number of engine indexes of the axis.
+   * @param {number} start The first visual index of the export range.
+   * @param {number} end The last visual index of the export range.
+   * @param {boolean} withOutsideRange Whether an index outside the range is left out.
+   * @param {Function} isHidden Whether a visual index inside the range is a hidden one left out.
+   * @returns {Set<number>}
+   */
+  #collectExcludedEngineIndexes(
+    syncer: { getVisualIndexFromHfIndex(hfIndex: number): number },
+    count: number,
+    start: number,
+    end: number,
+    withOutsideRange: boolean,
+    isHidden: (visualIndex: number) => boolean,
+  ): Set<number> {
+    const result = new Set<number>();
+
+    for (let hfIndex = 0; hfIndex < count; hfIndex++) {
+      const visualIndex = syncer.getVisualIndexFromHfIndex(hfIndex);
+      const inRange = visualIndex >= start && visualIndex <= end;
+
+      if (visualIndex < 0 || (withOutsideRange && !inRange) || (inRange && isHidden(visualIndex))) {
+        result.add(hfIndex);
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Returns the Formulas plugin's row or column axis syncer when the plugin is on, or `null`.
+   *
+   * @param {'row'|'column'} axis The axis.
+   * @returns {object|null}
+   */
+  #getEngineAxisSyncer(axis: 'row' | 'column'): { getVisualIndexFromHfIndex(hfIndex: number): number } | null {
+    const formulasPlugin = this.hot.getPlugin('formulas');
+
+    if (!formulasPlugin?.enabled || !formulasPlugin.engine) {
+      return null;
+    }
+
+    return (axis === 'row' ? formulasPlugin.rowAxisSyncer : formulasPlugin.columnAxisSyncer) ?? null;
   }
 
   /**
@@ -411,11 +813,29 @@ class ExportDataProvider {
   getFormulasSeparator(): string {
     const formulasPlugin = this.hot.getPlugin('formulas');
 
-    if (!formulasPlugin || !formulasPlugin.isEnabled()) {
+    if (!formulasPlugin?.enabled) {
       return ',';
     }
 
     return (formulasPlugin.engine?.getConfig()?.functionArgSeparator as string | undefined) ?? ',';
+  }
+
+  /**
+   * Gets the decimal separator of the HyperFormula engine's number literals, if active.
+   *
+   * Returns `'.'` when the Formulas plugin is absent or disabled, since that is the
+   * separator OOXML (Excel) always expects.
+   *
+   * @returns {string}
+   */
+  getFormulasDecimalSeparator(): string {
+    const formulasPlugin = this.hot.getPlugin('formulas');
+
+    if (!formulasPlugin?.enabled) {
+      return '.';
+    }
+
+    return (formulasPlugin.engine?.getConfig()?.decimalSeparator as string | undefined) ?? '.';
   }
 
   /**
@@ -466,7 +886,9 @@ class ExportDataProvider {
     const { startRow, startCol, endRow, endCol } = this._getDataRange();
     const mergeCellsPlugin = this.hot.getPlugin('mergeCells');
 
-    if (!mergeCellsPlugin || !mergeCellsPlugin.isEnabled()) {
+    // `enabled`, not `isEnabled()`: a plugin the license key leaves out keeps its setting but never ran, so it
+    // has no merged cells collection to read.
+    if (!mergeCellsPlugin || !mergeCellsPlugin.enabled) {
       return [];
     }
 
@@ -886,7 +1308,7 @@ class ExportDataProvider {
   getColumnSummaries() {
     const plugin = this.hot.getPlugin('columnSummary');
 
-    if (!plugin || !plugin.isEnabled()) {
+    if (!plugin?.enabled) {
       return [];
     }
 
@@ -1115,26 +1537,18 @@ class ExportDataProvider {
    *
    * `getRowHeight()` returns 0 for hidden rows because the HiddenRows plugin
    * overrides the `modifyRowHeight` hook. This method reads the configured height
-   * directly from the `rowHeights` setting, bypassing that hook.
+   * from the settings (`rowHeights` and `minRowHeights`), bypassing that hook.
    *
    * @private
    * @param {number} rowIndex Visual row index.
    * @returns {number}
    */
   _getNaturalRowHeight(rowIndex: number): number {
-    const settings = this.hot.getSettings();
-    const { rowHeights, defaultRowHeight } = settings;
+    const { defaultRowHeight } = this.hot.getSettings();
     const fallback: number = (defaultRowHeight as number | undefined) ?? 23;
+    const height = this.hot._getRowHeightFromSettings(rowIndex);
 
-    if (Array.isArray(rowHeights)) {
-      return (rowHeights[rowIndex] as number | undefined) ?? fallback;
-    } else if (typeof rowHeights === 'function') {
-      return (rowHeights(rowIndex) as number | undefined) ?? fallback;
-    } else if (typeof rowHeights === 'number') {
-      return rowHeights;
-    }
-
-    return fallback;
+    return Number.isFinite(height) ? height as number : fallback;
   }
 
   /**

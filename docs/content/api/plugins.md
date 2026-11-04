@@ -47,5 +47,6 @@ vue:
 |[NestedRows](@/api/nestedRows.md) | Enable editable views of data sources with nested (tree/parent-child) structures.|
 |[Pagination](@/api/pagination.md)| Display data in pages and navigate through them using pagination controls.|
 |[Search](@/api/search.md) | Search for specific values in the displayed data across the table.|
+|[SheetsBar](@/api/sheetsBar.md) | Show several sheets in one data grid, and switch, add, rename, duplicate, move, and remove them from a tab bar.|
 |[TrimRows](@/api/trimRows.md) | Exclude the specific rows from being rendered and calculated by the data grid. This feature is mainly used internally, for example, in the filter plugin.|
 |[UndoRedo](@/api/undoRedo.md)| Undo or redo changes made by the user.|

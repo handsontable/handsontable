@@ -91,13 +91,14 @@ test.describe('touch tap-to-edit on a device with touch and mouse listeners', ()
     await grid.openContextMenu(1, 1);
 
     await grid.tapContextMenuItem('Insert row above');
+    await grid.tapOutsideGrid();
 
     // Click trace with the document-wide counter: the first tap lands on an unselected cell and
     // is preventDefault-ed, synthesizing nothing (0); the right-click that opens the context menu
     // never fires a `click` event at all — Chromium fires `click` only for the primary button (0);
-    // the menu item's `.tap()` synthesizes one click on the ContextMenu's own Handsontable root,
-    // which the document-wide listener now covers (1). Total: 1 — the settle barrier for the
-    // duplicate-command guard this test exists for (#12803).
+    // the menu runs the tapped item on `touchend` and cancels it, so the item's tap synthesizes no
+    // mouse events and no click either (0); the tap on the page margin synthesizes one (1). That
+    // last click is the settle barrier for the duplicate-command guard this test exists for (#12803).
     await grid.settleOnClicks(1);
     await grid.expectHookCountExactly('afterCreateRow', 1);
     expect(await grid.rowCount()).toBe(6);

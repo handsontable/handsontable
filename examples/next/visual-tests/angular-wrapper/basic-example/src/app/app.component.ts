@@ -1,6 +1,7 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HotTableModule } from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../test-license-key';
 
 @Component({
   standalone: true,
@@ -23,6 +24,6 @@ export class AppComponent {
     rowHeaders: true,
     width: '100%',
     height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
+    licenseKey: TEST_LICENSE_KEY
   };
 }

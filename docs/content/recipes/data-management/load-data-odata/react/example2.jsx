@@ -37,6 +37,7 @@ const data = [
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       colHeaders={['Order', 'Product', 'Quantity']}
       columns={[
@@ -54,7 +55,6 @@ const ExampleComponent = () => {
         { data: 'quantity', type: 'numeric' },
       ]}
       height="auto"
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };

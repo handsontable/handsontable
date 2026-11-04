@@ -197,13 +197,13 @@ const hotOptions: Handsontable.GridSettings = {
   rowHeaders: true,
   height: 'auto',
   width: '100%',
-  rowHeights: 96,
+  minRowHeights: 96,
   columns: [
     { data: 'task',     type: 'text',  width: 300 },
     { data: 'priority', type: 'radio', options: priorityOptions, width: 160 } as Handsontable.ColumnSettings,
     { data: 'status',   type: 'radio', options: statusOptions,   width: 170 } as Handsontable.ColumnSettings,
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 // Initialize the Handsontable instance with the specified configuration options

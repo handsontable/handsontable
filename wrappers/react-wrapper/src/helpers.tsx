@@ -380,13 +380,21 @@ function isArray(value: unknown): value is unknown[] {
 }
 
 /**
- * Deep-compare plain objects and arrays used by wrapper settings.
+ * Deep-compare plain objects and arrays used by wrapper settings. Functions, class instances and any
+ * other value are compared by reference, and a `RegExp` by its source and flags. A pair of objects
+ * already being compared higher up reads as equal, so a value with a cycle (tree rows with a `parent`
+ * link) ends instead of overflowing the stack.
  *
  * @param {unknown} previousValue Previous value.
  * @param {unknown} currentValue Current value.
+ * @param {WeakMap<object, WeakSet<object>>} [visited] The object pairs on the current comparison path.
  * @returns {boolean} `true` if values are equivalent.
  */
-export function areEquivalentSettingsValue(previousValue: unknown, currentValue: unknown): boolean {
+export function areEquivalentSettingsValue(
+  previousValue: unknown,
+  currentValue: unknown,
+  visited: WeakMap<object, WeakSet<object>> = new WeakMap(),
+): boolean {
   if (previousValue === currentValue) {
     return true;
   }
@@ -400,41 +408,72 @@ export function areEquivalentSettingsValue(previousValue: unknown, currentValue:
       previousValue.flags === currentValue.flags;
   }
 
-  if (isArray(previousValue) && isArray(currentValue)) {
-    if (previousValue.length !== currentValue.length) {
-      return false;
-    }
+  const bothArrays = isArray(previousValue) && isArray(currentValue);
+  const bothPlainObjects = !isArray(previousValue) && !isArray(currentValue) &&
+    isPlainObject(previousValue) && isPlainObject(currentValue);
 
-    for (let index = 0; index < previousValue.length; index++) {
-      if (!areEquivalentSettingsValue(previousValue[index], currentValue[index])) {
-        return false;
-      }
-    }
+  if (!bothArrays && !bothPlainObjects) {
+    return false;
+  }
 
+  const previousObject = previousValue as Record<string, unknown>;
+  const currentObject = currentValue as Record<string, unknown>;
+  const comparedWith = visited.get(previousObject);
+
+  if (comparedWith?.has(currentObject)) {
     return true;
   }
 
-  if (isArray(previousValue) || isArray(currentValue)) {
-    return false;
+  if (comparedWith) {
+    comparedWith.add(currentObject);
+  } else {
+    visited.set(previousObject, new WeakSet([currentObject]));
   }
 
-  if (!isObjectLike(previousValue) || !isObjectLike(currentValue)) {
-    return false;
+  const previousKeys = Object.keys(previousObject);
+
+  return previousKeys.length === Object.keys(currentObject).length &&
+    previousKeys.every(key => Object.prototype.hasOwnProperty.call(currentObject, key) &&
+      areEquivalentSettingsValue(previousObject[key], currentObject[key], visited));
+}
+
+/**
+ * Copies the plain objects and arrays of a settings value, keeping every other value (functions, class
+ * instances) by reference. The copy is what an update compares the next value with, so a value the app
+ * changes in place reads as changed. A value with a cycle is copied with the same cycle.
+ *
+ * @param {unknown} value The value to copy.
+ * @param {WeakMap<object, unknown>} [copies] The copies made so far, by original.
+ * @returns {unknown} The copy.
+ */
+export function copySettingsValue(value: unknown, copies: WeakMap<object, unknown> = new WeakMap()): unknown {
+  if (!isArray(value) && !isPlainObject(value)) {
+    return value;
   }
 
-  if (!isPlainObject(previousValue) || !isPlainObject(currentValue)) {
-    return false;
+  if (copies.has(value)) {
+    return copies.get(value);
   }
 
-  const previousKeys = Object.keys(previousValue);
-  const currentKeys = Object.keys(currentValue);
+  if (isArray(value)) {
+    const copy: unknown[] = [];
 
-  if (previousKeys.length !== currentKeys.length) {
-    return false;
+    copies.set(value, copy);
+    value.forEach((item) => {
+      copy.push(copySettingsValue(item, copies));
+    });
+
+    return copy;
   }
 
-  return previousKeys.every(key => Object.prototype.hasOwnProperty.call(currentValue, key) &&
-    areEquivalentSettingsValue(previousValue[key], currentValue[key]));
+  const copy: Record<string, unknown> = {};
+
+  copies.set(value, copy);
+  Object.keys(value).forEach((key) => {
+    copy[key] = copySettingsValue(value[key], copies);
+  });
+
+  return copy;
 }
 
 /**
@@ -453,4 +492,26 @@ export function useUpdateEffect(effect: EffectCallback, deps?: DependencyList): 
       notInitialRender.current = true;
     }
   }, deps);
+}
+
+/**
+ * The class of the wrapper the grid puts around a cell's content in a row rendered at an exact height.
+ */
+const CELL_CLIP_CLASS = 'htCellClip';
+
+/**
+ * Returns the element a cell's content belongs in: the grid's clipping wrapper when the cell holds
+ * exactly that wrapper, and the cell itself otherwise.
+ *
+ * @param {HTMLElement} TD The table cell.
+ * @returns {Element}
+ */
+export function getCellContentRoot(TD: HTMLElement): Element {
+  const firstChild = TD.firstElementChild;
+
+  if (firstChild !== null && TD.childNodes.length === 1 && firstChild.classList.contains(CELL_CLIP_CLASS)) {
+    return firstChild;
+  }
+
+  return TD;
 }

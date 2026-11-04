@@ -1,14 +1,14 @@
 /**
  * The screen reader scenarios: the shape of a `screenreader/scenarios/<surface>.scenario.json` file,
  * and the validator that `lib/__tests__/screenreader-scenarios.test.mjs` (root `test:tooling`) runs
- * every committed file through, so a scenario that would fail inside a 30-minute Windows job fails on
+ * every committed file through, so a scenario that would fail inside a Windows or macOS job fails on
  * a pull request instead.
  *
  * A scenario is data, not code: the fixture page, the setup that puts the focus in the grid, and the
  * ordered steps a keyboard user takes, each with the phrase groups its announcement must carry. The
- * same file drives every screen reader lane (NVDA now, VoiceOver next), because what differs per
+ * same file drives every screen reader lane (NVDA and VoiceOver), because what differs per
  * screen reader is the wording, which the goldens hold per project, not the path or the required
- * tokens (`tests/AGENTS.md`, "Screen readers: the NVDA lane").
+ * tokens (`tests/AGENTS.md`, "Screen readers: the NVDA and VoiceOver lanes").
  *
  * No I/O in here except `loadScenarios()`, which the spec and the tooling test share.
  */
@@ -42,7 +42,7 @@ export const PRESS_KEYS = [
 /**
  * A `press` value Playwright accepts: an optional chord of `PRESS_MODIFIERS` joined by `+`, then one of
  * `PRESS_KEYS` or a single printable character. A misspelled key (`ArrowRigth`) is refused on the pull
- * request: `page.keyboard.press()` would throw only inside the Windows job, or, for an unknown single
+ * request: `page.keyboard.press()` would throw only inside a lane job, or, for an unknown single
  * word, type nothing a user could.
  */
 export const PRESS_PATTERN = new RegExp(

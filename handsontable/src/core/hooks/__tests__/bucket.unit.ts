@@ -395,4 +395,143 @@ describe('Bucket', () => {
       expect(bucket.getHooks('afterChange')[0].fromSettings).toBe(false);
     });
   });
+
+  describe('a function that forwards to a callback', () => {
+    const FORWARDED_HOOK_CALLBACK = Symbol.for('handsontable.forwardedHookCallback');
+    const forwardingTo = (callback: () => void) => Object.assign(() => callback(), {
+      [FORWARDED_HOOK_CALLBACK]: callback,
+    });
+
+    it('should take the place of the callback it forwards to, not be added beside it', () => {
+      const bucket = new HooksBucket();
+      const callback = function() {};
+      const forwarding = forwardingTo(callback);
+
+      bucket.add('afterChange', callback);
+      bucket.add('afterChange', forwarding, { initialHook: true, fromSettings: true });
+
+      expect(bucket.getHooks('afterChange').map(entry => entry.callback)).toEqual([forwarding]);
+      expect(bucket.getHooks('afterChange')[0].fromSettings).toBe(false);
+    });
+
+    it('should keep the forwarding function when the callback is added after it', () => {
+      const bucket = new HooksBucket();
+      const callback = function() {};
+      const forwarding = forwardingTo(callback);
+
+      bucket.add('afterChange', forwarding, { initialHook: true, fromSettings: true });
+      bucket.add('afterChange', callback);
+
+      expect(bucket.getHooks('afterChange').map(entry => entry.callback)).toEqual([forwarding]);
+    });
+
+    it('should be removed with the callback it forwards to', () => {
+      const bucket = new HooksBucket();
+      const callback = function() {};
+
+      bucket.add('afterChange', forwardingTo(callback), { initialHook: true, fromSettings: true });
+
+      expect(bucket.remove('afterChange', callback)).toBe(true);
+      expect(bucket.getHooks('afterChange')).toEqual([]);
+    });
+
+    it('should count as the callback when the settings replace their callbacks', () => {
+      const bucket = new HooksBucket();
+      const callback = function() {};
+
+      const forwarding = forwardingTo(callback);
+
+      bucket.add('afterChange', callback);
+      bucket.replaceFromSettings('afterChange', forwarding);
+
+      expect(bucket.getHooks('afterChange').map(entry => entry.callback)).toEqual([forwarding]);
+    });
+
+    it('should leave no earlier settings function running when the settings pass one already added', () => {
+      const bucket = new HooksBucket();
+      const first = function() {};
+      const second = function() {};
+
+      bucket.add('afterChange', forwardingTo(first), { initialHook: true, fromSettings: true });
+      bucket.add('afterChange', second);
+      bucket.add('afterChange', forwardingTo(second), { initialHook: true, fromSettings: true });
+
+      expect(bucket.getHooks('afterChange').map(entry => entry.callback === second || entry.identity === second))
+        .toEqual([true]);
+    });
+  });
+
+  describe('a settings function already added through `addHook()`', () => {
+    it('should stop the earlier settings function', () => {
+      const bucket = new HooksBucket();
+      const first = function() {};
+      const second = function() {};
+
+      bucket.add('afterChange', first, { initialHook: true, fromSettings: true });
+      bucket.add('afterChange', second);
+      bucket.add('afterChange', second, { initialHook: true, fromSettings: true });
+
+      expect(bucket.getHooks('afterChange').map(entry => entry.callback)).toEqual([second]);
+    });
+  });
+
+  describe('a lasting registration of a callback first added with `addHookOnce()`', () => {
+    const FORWARDED_HOOK_CALLBACK = Symbol.for('handsontable.forwardedHookCallback');
+    const forwardingTo = (callback: () => void) => Object.assign(() => callback(), {
+      [FORWARDED_HOOK_CALLBACK]: callback,
+    });
+
+    it('should keep the settings function running after the first call', () => {
+      const bucket = new HooksBucket();
+      const callback = function() {};
+      const forwarding = forwardingTo(callback);
+
+      bucket.add('afterChange', callback, { runOnce: true });
+      bucket.add('afterChange', forwarding, { initialHook: true, fromSettings: true });
+
+      expect(shapes(bucket.getHooks('afterChange'))).toEqual([
+        { callback: forwarding, orderIndex: 0, runOnce: false, initialHook: true },
+      ]);
+      expect(bucket.getHooks('afterChange')[0].fromSettings).toBe(true);
+    });
+
+    it('should replace the earlier settings function and leave one fixed entry', () => {
+      const bucket = new HooksBucket();
+      const earlier = function() {};
+      const callback = function() {};
+
+      bucket.add('afterChange', earlier, { initialHook: true, fromSettings: true });
+      bucket.add('afterChange', callback, { runOnce: true });
+      bucket.add('afterChange', callback, { initialHook: true, fromSettings: true });
+
+      expect(shapes(bucket.getHooks('afterChange'))).toEqual([
+        { callback, orderIndex: 0, runOnce: false, initialHook: true },
+      ]);
+    });
+
+    it('should keep a callback the app adds again with `addHook()` running after the first call', () => {
+      const bucket = new HooksBucket();
+      const callback = function() {};
+
+      bucket.add('afterChange', callback, { runOnce: true });
+      bucket.add('afterChange', callback);
+
+      expect(shapes(bucket.getHooks('afterChange'))).toEqual([
+        { callback, orderIndex: 0, runOnce: false, initialHook: false },
+      ]);
+      expect(bucket.getHooks('afterChange')[0].fromSettings).toBe(false);
+    });
+
+    it('should leave a callback added twice with `addHookOnce()` running once', () => {
+      const bucket = new HooksBucket();
+      const callback = function() {};
+
+      bucket.add('afterChange', callback, { runOnce: true });
+      bucket.add('afterChange', callback, { runOnce: true });
+
+      expect(shapes(bucket.getHooks('afterChange'))).toEqual([
+        { callback, orderIndex: 0, runOnce: true, initialHook: false },
+      ]);
+    });
+  });
 });

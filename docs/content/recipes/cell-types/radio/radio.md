@@ -452,13 +452,13 @@ const hot = new Handsontable(container, {
   data,
   colHeaders: ['Task', 'Priority', 'Status'],
   rowHeaders: true,
-  rowHeights: 96, // accommodate 3 stacked options
+  minRowHeights: 96, // accommodate 3 stacked options
   columns: [
     { data: 'task',     type: 'text'  },
     { data: 'priority', type: 'radio', options: priorityOptions },
     { data: 'status',   type: 'radio', options: statusOptions   },
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -480,7 +480,7 @@ registerCellType('radio', { editor: RadioEditor, renderer: radioRenderer });
 </HotTable>
 ```
 
-Where `hotSettings` includes `rowHeights: 96`.
+Where `hotSettings` includes `minRowHeights: 96`.
 
 :::
 
@@ -489,7 +489,12 @@ Where `hotSettings` includes `rowHeights: 96`.
 ```tsx
 registerCellType('radio', { editor: RadioEditor, renderer: radioRenderer });
 
-<HotTable data={data} rowHeights={96} licenseKey="non-commercial-and-evaluation" ...>
+<HotTable
+  // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
+  data={data}
+  minRowHeights={96}
+  ...
+>
   <HotColumn data="task"     type="text" />
   <HotColumn data="priority" type="radio" options={priorityOptions} />
   <HotColumn data="status"   type="radio" options={statusOptions}   />
@@ -506,7 +511,7 @@ Register the cell type and use `type: 'radio'` in the column config. Add the Ent
 registerCellType('radio', { editor: RadioEditor, renderer: radioRenderer });
 
 readonly gridSettings: GridSettings = {
-  rowHeights: 96,
+  minRowHeights: 96,
   columns: [
     { data: 'task',     type: 'text' },
     { data: 'priority', type: 'radio', options: priorityOptions },
@@ -522,9 +527,9 @@ readonly gridSettings: GridSettings = {
 
 :::
 
-**Why `rowHeights: 96`?**
+**Why `minRowHeights: 96`?**
 
-The default row height (~28 px) is too short to display three stacked options with padding. Setting a fixed height ensures the radio group fits without overflowing.
+The default row height (~28 px) is too short to display three stacked options with padding. Setting a minimum height ensures the radio group fits without overflowing, and the row still grows if the options need more room.
 
 ## How It Works - Complete Flow
 

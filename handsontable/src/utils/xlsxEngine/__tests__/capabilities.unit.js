@@ -41,6 +41,14 @@ describe('DROPPED_FEATURES', () => {
   });
 });
 
+describe('DROPPED_FEATURES array and defined-name keys', () => {
+  it('should name the dynamic-array, unsupported-name and excluded-array features', () => {
+    expect(DROPPED_FEATURES.dynamicArrays).toBe('dynamicArrays');
+    expect(DROPPED_FEATURES.definedNamesUnsupported).toBe('definedNames:unsupported');
+    expect(DROPPED_FEATURES.formulaArrayExcluded).toBe('formula:arrayExcluded');
+  });
+});
+
 describe('DroppedFeatures', () => {
   let warnSpy;
 
@@ -74,6 +82,28 @@ describe('DroppedFeatures', () => {
     expect(warnSpy.mock.calls[0][0]).toBe(
       'The ExcelJS xlsx engine dropped features it cannot write or read: cellStyles, conditionalFormatting.'
     );
+  });
+
+  it('should leave the license entries out of the engine warning', () => {
+    const dropped = new DroppedFeatures();
+
+    dropped.record('cellStyles');
+    dropped.recordLicense('xlsx:comments');
+    dropped.warn('native');
+
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy.mock.calls[0][0]).toBe(
+      'The built-in xlsx engine dropped features it cannot write or read: cellStyles.'
+    );
+  });
+
+  it('should stay silent when only license entries were recorded', () => {
+    const dropped = new DroppedFeatures();
+
+    dropped.recordLicense('xlsx:comments');
+    dropped.warn('native');
+
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 
   it('should stay silent when nothing was dropped', () => {
@@ -157,5 +187,46 @@ describe('DroppedFeatures', () => {
 
     expect(dropped.count('numFmt:pattern-0')).toBe(2);
     expect(dropped.count('numFmt:other')).toBe(8);
+  });
+
+  it('should record a license token as `license:<token>`, apart from the file-driven cap', () => {
+    const dropped = new DroppedFeatures();
+
+    for (let i = 0; i < 40; i++) {
+      dropped.recordUnsupported('numFmt', `pattern-${i}`);
+    }
+
+    dropped.recordLicense('xlsx:styles');
+    dropped.recordLicense('xlsx:protection');
+
+    expect(dropped.count('license:xlsx:styles')).toBe(1);
+    expect(dropped.count('license:xlsx:protection')).toBe(1);
+    // The file-driven budget was spent, and the license names still got their own keys.
+    expect(dropped.count('numFmt:other')).toBe(8);
+    expect(dropped.list().slice(-2)).toEqual(['license:xlsx:styles', 'license:xlsx:protection']);
+  });
+
+  it('should not let license names eat into the file-driven budget', () => {
+    const dropped = new DroppedFeatures();
+
+    dropped.recordLicense('xlsx:styles');
+
+    for (let i = 0; i < 32; i++) {
+      dropped.recordUnsupported('numFmt', `pattern-${i}`);
+    }
+
+    expect(dropped.count('numFmt:pattern-31')).toBe(1);
+    expect(dropped.count('numFmt:other')).toBe(0);
+  });
+
+  it('should keep the license entries in list(), in recorded order', () => {
+    const dropped = new DroppedFeatures();
+
+    dropped.record('cellStyles');
+    dropped.recordLicense('xlsx:comments');
+    dropped.recordUnsupported('numFmt', 'x');
+    dropped.recordLicense('xlsx:styles');
+
+    expect(dropped.list()).toEqual(['cellStyles', 'license:xlsx:comments', 'numFmt:x', 'license:xlsx:styles']);
   });
 });

@@ -150,6 +150,69 @@ function medianScenario(entries) {
 }
 
 /**
+ * The goldens a median draws on: marks-valid, of the run's compatibility key when one is given,
+ * newest first, capped at the window. Shared by the median and by `newestMedianSource`, so the
+ * newest golden the gate reads is always one the median was built from.
+ *
+ * @param {Array<object>} snapshots
+ * @param {number} windowSize
+ * @param {{ key: object } | null} compatibleWith
+ * @returns {{ marksValid: Array<object>, compatible: Array<object>, valid: Array<object> }}
+ */
+function selectMedianSources(snapshots, windowSize, compatibleWith) {
+  const marksValid = (snapshots || []).filter(isValidForMedian);
+  const compatible = compatibleWith
+    ? marksValid.filter(snapshot => isCompatibleBaseline(snapshot, compatibleWith.key))
+    : marksValid;
+  const valid = [...compatible]
+    // isValidForMedian already rejected anything with an unparseable timestamp, so
+    // this subtraction is never NaN here.
+    .sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp))
+    .slice(0, windowSize);
+
+  return { marksValid, compatible, valid };
+}
+
+/**
+ * @param {string} name -- scenario name
+ * @param {object | undefined} newestEntry -- the newest windowed golden's entry for it
+ * @param {{ scenarioVersions?: Record<string, number> } | null} compatibleWith
+ * @returns {number} the measurementVersion a median of this scenario is taken at
+ */
+function wantedVersion(name, newestEntry, compatibleWith) {
+  return compatibleWith?.scenarioVersions?.[name]
+    ?? newestEntry?.measurementVersion
+    ?? DEFAULT_MEASUREMENT_VERSION;
+}
+
+/**
+ * The newest golden a median over the same arguments draws on, reduced to the scenarios it
+ * measures at the version the median is taken at. The gate compares it against the median to tell
+ * a level develop already shows from one the pull request introduced.
+ *
+ * @param {Array<object>} snapshots
+ * @param {object} [options] -- as for computeMedianSnapshot
+ * @param {number} [options.windowSize]
+ * @param {{ key: object, scenarioVersions?: Record<string, number> } | null} [options.compatibleWith]
+ * @returns {object | null} null whenever computeMedianSnapshot would have too few goldens
+ */
+export function newestMedianSource(
+  snapshots, { windowSize = MEDIAN_WINDOW_SIZE, compatibleWith = null } = {}
+) {
+  const { valid } = selectMedianSources(snapshots, windowSize, compatibleWith);
+
+  if (valid.length < MIN_VALID_SNAPSHOTS) {
+    return null;
+  }
+
+  const [newest] = valid;
+  const scenarios = Object.fromEntries(Object.entries(newest.scenarios).filter(([name, entry]) =>
+    (entry.measurementVersion ?? DEFAULT_MEASUREMENT_VERSION) === wantedVersion(name, entry, compatibleWith)));
+
+  return { ...newest, scenarios };
+}
+
+/**
  * @param {Array<object>} snapshots -- already-parsed golden snapshot JSON objects, any order
  * @param {object} [options]
  * @param {number} [options.windowSize]
@@ -165,15 +228,7 @@ function medianScenario(entries) {
 export function computeMedianSnapshot(
   snapshots, { windowSize = MEDIAN_WINDOW_SIZE, compatibleWith = null } = {}
 ) {
-  const marksValid = (snapshots || []).filter(isValidForMedian);
-  const compatible = compatibleWith
-    ? marksValid.filter(snapshot => isCompatibleBaseline(snapshot, compatibleWith.key))
-    : marksValid;
-  const valid = compatible
-    // isValidForMedian already rejected anything with an unparseable timestamp, so
-    // this subtraction is never NaN here.
-    .sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp))
-    .slice(0, windowSize);
+  const { marksValid, compatible, valid } = selectMedianSources(snapshots, windowSize, compatibleWith);
 
   if (valid.length < MIN_VALID_SNAPSHOTS) {
     return null;
@@ -190,9 +245,7 @@ export function computeMedianSnapshot(
     // The version this median measures: the current run's when a key was given, otherwise the
     // newest golden's (`valid` is newest first). Either way a median is never a mix of two
     // definitions of the scenario, so the teardown can trust the version it reads off it.
-    const wanted = compatibleWith?.scenarioVersions?.[name]
-      ?? present[0]?.measurementVersion
-      ?? DEFAULT_MEASUREMENT_VERSION;
+    const wanted = wantedVersion(name, present[0], compatibleWith);
     // A scenario redefined since a golden was recorded (its spec moved work in or out of the
     // window) measures a different quantity under the same name. Its old entries are dropped
     // here; the snapshot they came from still serves the scenarios that did not change.

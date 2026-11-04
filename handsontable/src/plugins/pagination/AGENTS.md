@@ -55,12 +55,20 @@ order. Stamping the tracker from the new declared number while applying a stale
 `getSetting()` result would skip the later `updatePlugin()` pass and leave the
 wrong page. The grid settings object is already merged when `enablePlugin()` runs.
 
-## `PLUGIN_PRIORITY = 900`, and the `init` hook is pinned early
+## `PLUGIN_PRIORITY = 900`, and the first page is applied in the ready step
 
-Priority 900 puts it after every ordinary plugin. Separately, **the `init` hook callback is placed before
-the others**, so the pagination state is computed and applied to the index mapper *before* AutoColumnSize
-starts calculating column sizes. Those are two different mechanisms — see the priority-versus-hook-order
-note in `../base/AGENTS.md`.
+Priority 900 puts it after every ordinary plugin. The first page state is computed in the ready step
+(`onGridReady()`, `../base/AGENTS.md`), which core runs before the `init` hook, so the page is applied to
+the index mapper *before* AutoColumnSize and AutoRowSize measure from their `init` listeners. That used to
+take an `init` listener at order index `-1`; the step keeps the same order without one. The two auto-size
+plugins stay on `init` on purpose: a ready step of theirs would run at priority 10 and 40, before this one
+and before NestedHeaders builds its labels.
+
+The step computes the state only when nothing else did (`#stateOwed`): `updatePlugin()` and `onDataReady()`
+compute it themselves, so after them it does nothing. At init it does not render and leaves an `'auto'`
+page size to the first render, as the listener did. On a grid already drawn (a direct `enablePlugin()`
+call) it computes and renders; before, that enable showed every row until the next index cache update.
+Pinned by `__tests__/readyStep.unit.js`.
 
 ## The layout manager owns the pager's placement, unless `uiContainer` is set
 
@@ -81,6 +89,13 @@ source comment at `pagination.ts:312` says "always false in practice", meaning t
 arises — read it that way, it is easy to take backwards.) A direct `enablePlugin()` call on a non-root
 instance dies earlier, in the UI, which reads `rootGridElement`. The same guard is mirrored later in the
 file with a comment pointing back — keep both, and keep the comments.
+
+## `PaginationUI#destroy()` takes `htPagination` off the root wrapper
+
+Without a custom `uiContainer`, the UI marks the root wrapper with `htPagination` while a section is
+visible (the bar's corner styling). `destroy()`, which `disablePlugin()` runs, removes it, or the class
+stayed after `pagination: false` and on a later sheet without pagination. Pinned by `__tests__/ui.unit.js`
+and `tests/e2e/plugin-ui-teardown.spec.ts`.
 
 ## Two page-size strategies
 
@@ -204,6 +219,8 @@ For the same reason, `#computeAndApplyState()` drops `#serverSideTotalCount` whe
 ## The server total belongs to the view it came from
 
 DataProvider calls the internal `_resetDataProviderTotal()` (`@private`, not API; a no-op while this plugin is disabled) before its owner changes the view the grid shows, which drops `#serverSideTotalCount`. It has to happen before the change, not after: the change itself renders, and the pager must not show the previous view's total for that frame. A view shown again replays its own total through `afterDataProviderFetch`; one fetching for the first time, or showing a failed first fetch, has no response yet and would otherwise page by the previous view's total. This plugin never listens to an owner plugin's hooks; `test/__tests__/releasedPluginsViewAgnostic.unit.js` fails if its source names the owner plugin or its hooks.
+
+The page and page size describe a view too. After a view change to a view that has no response yet, DataProvider calls the internal `_resetDataProviderPage()` (`@private`, a no-op while disabled), which puts `#currentPage` and `#pageSize` back on the configured `initialPage` and `pageSize` so the view's first fetch asks for those. It fires no page hook (`afterPageChange`/`afterPageSizeChange` would make DataProvider fetch at once with the query of the view that was left), and it recomputes the pages: `#setPageSizeValue()` replaces the strategy, and an uncalculated one reports 0 pages. The recompute clamps the page against the rows the grid holds before the response (none, so page 1 of 1), which is why it returns the configured `initialPage` and DataProvider puts that page into the query itself, the same split a plain grid's first fetch has (its query is derived before Pagination's `init` recompute clamps the pager). The response then brings the page, page size, and total in through `afterDataProviderFetch`.
 
 ## Where to look next
 

@@ -39,3 +39,10 @@ What each app wrote, as read from the parts:
 - Excel: `"$"#,##0.00` kept quoted, typed booleans as plain `t="b"` cells, the BOOLEAN-format column
   as the numbers 1 and 0, `hidden="1"`, and `xl/calcChain.xml`.
 - Neither wrote a threaded comment or an `x14` validation for this content.
+
+`excel-online-rich-errors.xlsx` was saved by Excel for the web, with the author fields of
+`docProps/core.xml` and the revision pointer of `xl/workbook.xml` removed by hand. Sheet `Data`
+holds 1, 2, 3 in A1:A3, `=SEQUENCE(3)` in C1 blocked by the text `block` in C2 (`#SPILL!`), and
+`=FILTER(A1:A3,A1:A3>10)` in E1, which matches nothing (`#CALC!`). Both errors are stored as
+`<c t="e" vm="N">` with a cached `#VALUE!`, and their `_error` rich values in
+`xl/richData/rdrichvalue.xml` hold `errorType` 8 and 13. `nativeRichValues.unit.js` reads it.

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `minSpareCols`, `minCols`, and inserting a column at the end of the grid placing the new `null` values at inconsistent positions in a row that is longer than the grid, and undo removing the values of such a row. The new columns are now empty, so a value past the grid width no longer shows up in them.",
+  "type": "fixed",
+  "issueOrPR": 14103,
+  "breaking": false,
+  "framework": "none"
+}

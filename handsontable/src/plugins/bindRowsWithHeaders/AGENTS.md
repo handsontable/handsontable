@@ -36,6 +36,16 @@ Two consequences:
   from `enablePlugin()` without registering anything or calling `super.enablePlugin()` — so `enabled` stays
   `false`. That is the intended failure mode, not an oversight.
 
+## A data load renumbers strict headers, so a caller that reloads carries them
+
+`loadData()` re-initializes every registered row map, this one included, to its identity initializer, so a
+strict grid that loads other data and comes back numbers every row by its physical index again, and an
+inserted row loses the number past the maximum it had. The `@private` `_exportStrictHeaders()` (a copy of the
+values, `null` for the loose strategy, whose values always equal the physical indexes) and
+`_importStrictHeaders(headers)` (refused, returning `false`, when the strategy is not strict or the length
+differs from the map's) let the view state engine carry the numbers across a SheetsBar switch
+(`ViewState.rowHeaders`, part of `rowOrder`). Pinned by `__tests__/strictHeadersTransfer.unit.js`.
+
 ## `registerMap`, not `createAndRegisterIndexMap`
 
 Because the plugin supplies its **own** map subclass, it calls

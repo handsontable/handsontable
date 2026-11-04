@@ -35,11 +35,11 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       colHeaders={true}
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey="non-commercial-and-evaluation"
       columns={[
         { data: 'id', type: 'text' },
         // 'text' is default, you don't actually need to declare it

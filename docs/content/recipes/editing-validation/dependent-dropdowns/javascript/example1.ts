@@ -38,7 +38,7 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   height: 200,
   width: "100%",
-  licenseKey: "non-commercial-and-evaluation",
+  // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
   afterInit() {
     for (let row = 0; row < this.countRows(); row++) {
       const category = String(this.getDataAtCell(row, CATEGORY_COL) ?? "");

@@ -135,7 +135,7 @@ new Handsontable(gridContainer, {
   width: '100%',
   stretchH: 'all',
   autoWrapRow: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 
   // Step 8: Use fetch hooks to update the status label.
   // skipLoading is true for internal refetches (after sort) -- skip the "Loading..." message

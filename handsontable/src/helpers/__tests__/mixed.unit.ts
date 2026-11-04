@@ -327,8 +327,6 @@ describe('Mixed helper', () => {
       expect(console.log).not.toHaveBeenCalled();
       expect(console.warn).toHaveBeenCalledWith([
         'The license key for Handsontable is missing. Use your purchased key to activate the product. ',
-        'Alternatively, you can activate Handsontable to use for non-commercial purposes ',
-        'by passing the key: \'non-commercial-and-evaluation\'. ',
         'If you need any help, contact us at support@handsontable.com.',
       ].join(''));
     });

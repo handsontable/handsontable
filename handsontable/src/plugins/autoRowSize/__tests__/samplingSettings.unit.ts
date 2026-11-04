@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, AutoRowSize } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(AutoRowSize);
 
@@ -13,7 +14,7 @@ function buildGrid(settings: Record<string, unknown> = {}) {
   return new Handsontable(document.createElement('div'), {
     data: [['a'], ['b'], ['c']],
     autoRowSize: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     ...settings,
   });
 }
@@ -95,10 +96,6 @@ describe('AutoRowSize sampling settings', () => {
 
   it('should keep the sampling settings when an update does not mention this plugin', () => {
     // The path that matters most, and the one the "re-sent unchanged" test above cannot reach.
-    // `BasePlugin#onUpdateSettings` feeds `updatePluginSettings()` with `newSettings[PLUGIN_KEY]`,
-    // which is `undefined` here - it wipes the stored settings, so reading them back gives the
-    // defaults. Without the restore in `updatePlugin`, this reset `samplingRatio` from 6 to 3,
-    // flipped `allowSampleDuplicates` back to `false`, and dropped every measured height.
     //
     // The Vue wrapper makes this the normal case rather than an edge case: it omits every settings
     // key whose value has not changed, so `autoRowSize` is absent from nearly every payload it

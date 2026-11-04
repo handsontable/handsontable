@@ -342,6 +342,8 @@ declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
+    /** The license key every fixture grid is built with (`fixtures/demo/test-license-key.js`). */
+    htTestLicenseKey: string;
     /**
      * DEV-775: a reference to the Autofill plugin kept after `destroy()`, the way an application that
      * cached `getPlugin('autofill')` still holds it.

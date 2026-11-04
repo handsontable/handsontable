@@ -33,7 +33,7 @@ const hotSettings = ref<GridSettings>({
     {}, // Warehouse is a default text column
     {}, // Product is a default text column
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 

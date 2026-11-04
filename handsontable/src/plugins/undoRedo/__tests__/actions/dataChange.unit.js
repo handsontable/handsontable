@@ -6,6 +6,7 @@ import {
   UndoRedo,
 } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(NestedRows);
@@ -73,7 +74,7 @@ describe('UndoRedo -> DataChange action', () => {
     const data = base.map((row, rowIndex) => [...row, rowIndex % 2 === 0]);
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data,
       columns: [{}, {}, {}, {}, { type: 'checkbox' }],
       undo: true,
@@ -93,7 +94,7 @@ describe('UndoRedo -> DataChange action', () => {
 
   it('should batch layered ctrl/cmd+A-like delete into one setDataAtCell (checkbox shortcut path)', () => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [
         ['Nissan', 2016, false],
         ['Volvo', 2019, true],
@@ -131,7 +132,7 @@ describe('UndoRedo -> DataChange action', () => {
 
   it('should not register header coordinates when clearing a ctrl/cmd+A-like selection', async() => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [
         { car: 'Nissan', year: 2016, available: false },
         { car: 'Volvo', year: 2019, available: true },
@@ -183,7 +184,7 @@ describe('UndoRedo -> DataChange action', () => {
      */
     function buildTrimmableGrid() {
       return new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1'], ['A2'], ['A3'], ['A4'], ['A5']],
         trimRows: true,
         undo: true,
@@ -268,7 +269,7 @@ describe('UndoRedo -> DataChange action', () => {
 
     it('should keep the rows a lifted trim revealed when it removes the created ones', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1'], ['A2'], ['A3'], ['A4'], ['A5']],
         trimRows: true,
         undo: true,
@@ -292,7 +293,7 @@ describe('UndoRedo -> DataChange action', () => {
 
     it('should remove the row the change created even when it is trimmed, and leave the others alone', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1'], ['A2'], ['A3']],
         trimRows: true,
         undo: true,
@@ -313,7 +314,7 @@ describe('UndoRedo -> DataChange action', () => {
 
     it('should not blank a pre-existing record the stale visual index slid onto', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1'], ['A2'], ['A3'], ['A4'], ['A5']],
         trimRows: true,
         undo: true,
@@ -340,7 +341,7 @@ describe('UndoRedo -> DataChange action', () => {
 
     it('should remove the created row by its physical index when every row is trimmed', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1'], ['A2'], ['A3']],
         trimRows: true,
         undo: true,
@@ -366,7 +367,7 @@ describe('UndoRedo -> DataChange action', () => {
 
     it('should remove the created rows measured in source rows, not visible ones', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['A1'], ['A2'], ['A3']],
         minSpareRows: 1,
         trimRows: true,
@@ -397,7 +398,7 @@ describe('UndoRedo -> DataChange action', () => {
   // the plain case of the row removal the undo performs, which the DEV-2665 cases above rewrote.
   it('should remove the rows that a write past the last row created', () => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [['A1'], ['A2'], ['A3']],
       undo: true,
     });
@@ -420,7 +421,7 @@ describe('UndoRedo -> DataChange action', () => {
       const data = [{ id: 1, name: 'Ted Right' }];
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data,
         dataSchema: { id: null, name: null },
         undo: true,
@@ -449,7 +450,7 @@ describe('UndoRedo -> DataChange action', () => {
       const data = [{ id: 1, name: 'Ted Right', address: 'Main St' }];
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data,
         undo: true,
       });
@@ -472,7 +473,7 @@ describe('UndoRedo -> DataChange action', () => {
       const data = [{ id: 1, name: 'Ted Right', city: null }];
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data,
         dataSchema: { id: null, name: null, city: null },
         columns: [{ data: 'id' }, { data: 'name' }],
@@ -491,7 +492,7 @@ describe('UndoRedo -> DataChange action', () => {
       const data = [{ id: 1, name: 'Ted Right' }];
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data,
         dataSchema: { id: null, name: null },
         undo: true,
@@ -517,7 +518,7 @@ describe('UndoRedo -> DataChange action', () => {
       const data = [{ id: 1, name: 'Ted Right' }];
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data,
         dataSchema: { id: null, name: null },
         undo: true,
@@ -542,7 +543,7 @@ describe('UndoRedo -> DataChange action', () => {
       const data = [{ id: 1, name: 'Ted Right' }];
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data,
         dataSchema: { id: null, name: null },
         undo: true,
@@ -569,7 +570,7 @@ describe('UndoRedo -> DataChange action', () => {
       ];
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data,
         trimRows: true,
         undo: true,
@@ -606,7 +607,7 @@ describe('UndoRedo -> DataChange action', () => {
       const data = nestedData();
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data,
         columns: [{ data: 'name' }, { data: 'value' }],
         nestedRows: true,

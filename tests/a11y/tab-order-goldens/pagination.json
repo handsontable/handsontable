@@ -1,0 +1,215 @@
+{
+  "schema": 1,
+  "page": "pagination",
+  "theme": "main",
+  "walks": {
+    "forward": [
+      {
+        "region": "start"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "Tagcat",
+        "cell": [
+          0,
+          0
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "Classic Vest",
+        "cell": [
+          0,
+          1
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "10/11/20",
+        "cell": [
+          0,
+          2
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "Checked",
+        "cell": [
+          0,
+          3
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "172",
+        "cell": [
+          0,
+          4
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "",
+        "cell": [
+          0,
+          5
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "★★",
+        "cell": [
+          0,
+          6
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "01-2331942",
+        "cell": [
+          0,
+          7
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "United Kingdom",
+        "cell": [
+          0,
+          8
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "combobox",
+        "name": "Page size"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Go to next page"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Go to last page"
+      },
+      {
+        "region": "end"
+      }
+    ],
+    "backward": [
+      {
+        "region": "end"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Go to last page"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Go to next page"
+      },
+      {
+        "region": "grid",
+        "role": "combobox",
+        "name": "Page size"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "United Kingdom",
+        "cell": [
+          0,
+          8
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "01-2331942",
+        "cell": [
+          0,
+          7
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "★★",
+        "cell": [
+          0,
+          6
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "",
+        "cell": [
+          0,
+          5
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "172",
+        "cell": [
+          0,
+          4
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "Checked",
+        "cell": [
+          0,
+          3
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "10/11/20",
+        "cell": [
+          0,
+          2
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "Classic Vest",
+        "cell": [
+          0,
+          1
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "Tagcat",
+        "cell": [
+          0,
+          0
+        ]
+      },
+      {
+        "region": "start"
+      }
+    ]
+  }
+}

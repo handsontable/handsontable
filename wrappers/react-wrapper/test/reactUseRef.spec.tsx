@@ -6,6 +6,7 @@ import {
   mountComponent
 } from './_helpers';
 import { HotTableRef } from '../src/types';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 describe('Using useRef hooks within HotTable', () => {
   it('should be possible the get Handsontable instance', async() => {
@@ -22,13 +23,13 @@ describe('Using useRef hooks within HotTable', () => {
       });
 
       return (
-        <HotTable licenseKey="non-commercial-and-evaluation"
+        <HotTable licenseKey={TEST_LICENSE_KEY}
           ref={hotRef}
           id="test-hot"
           data={refData}
           width={300}
           height={300}
-          rowHeights={23}
+          minRowHeights={23}
           colWidths={50}
           init={function() {
             mockElementDimensions(this.rootElement, 300, 300);

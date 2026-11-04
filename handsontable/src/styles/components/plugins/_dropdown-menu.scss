@@ -322,6 +322,11 @@
         box-shadow: none;
       }
     }
+
+    // The same frame, redrawn over the list's scrollbar gutter (`overlay/scrollbarProxies.ts`).
+    .htUIMultipleSelect .ht_master .htScrollbarFrame {
+      box-shadow: none !important;
+    }
   }
 
   // The submenu arrow and the check/mixed marks are positioned with `inset-inline-end` above, but
@@ -358,5 +363,10 @@
     overflow: hidden;
     text-overflow: ellipsis;
     vertical-align: top;
+    font-size: inherit;
+    line-height: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    font-family: inherit;
   }
 }

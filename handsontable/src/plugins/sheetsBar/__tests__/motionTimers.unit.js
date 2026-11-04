@@ -1,6 +1,7 @@
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { SheetsBar } from '../sheetsBar';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(SheetsBar);
 
@@ -76,7 +77,7 @@ function createAnimatedGrid() {
   document.body.appendChild(container);
 
   const hot = new Handsontable(container, {
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     sheetsBar: { sheets: createSheets() },
   });
 

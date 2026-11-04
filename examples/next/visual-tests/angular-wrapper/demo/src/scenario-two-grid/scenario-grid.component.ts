@@ -3,6 +3,7 @@ import { HotTableModule } from '@handsontable/angular-wrapper';
 import { getScenarioDataTop, getScenarioDataBottom } from './utils/constants';
 import { starsRenderer } from './renderers/stars';
 import { progressBarRenderer } from './renderers/progressBar';
+import { TEST_LICENSE_KEY } from '../test-license-key';
 
 @Component({
   standalone: true,
@@ -55,7 +56,7 @@ export class ScenarioGridComponent {
   hiddenColumns = {
     indicators: true,
   };
-  licenseKey = 'non-commercial-and-evaluation';
+  licenseKey = TEST_LICENSE_KEY;
   settingsTop = {
     columns: [
       { data: 'product_id', type: 'numeric' },
@@ -89,7 +90,7 @@ export class ScenarioGridComponent {
     autoWrapCol: true,
     autoWrapRow: true,
     fixedRowsBottom: 2,
-    licenseKey: 'non-commercial-and-evaluation'
+    licenseKey: TEST_LICENSE_KEY
   }
   settingsBottom = {
     columns: [
@@ -123,6 +124,6 @@ export class ScenarioGridComponent {
     autoWrapRow: true,
     nestedRows: true,
     bindRowsWithHeaders: true,
-    licenseKey: 'non-commercial-and-evaluation'
+    licenseKey: TEST_LICENSE_KEY
   }
 }

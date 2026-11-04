@@ -69,7 +69,7 @@ test.describe('frozen bottom rows over a space-taking scrollbar', { tag: THEMES_
         colHeaders: true,
         fixedColumnsStart: 3,
         fixedRowsBottom: 2,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     });
 

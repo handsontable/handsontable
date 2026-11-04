@@ -120,6 +120,28 @@ test.describe('sheets bar tab motion – move', { tag: [THEMES_TAG, MOTION_TAG] 
     expectSameLeft((await bar.tabBox(1)).left, movedStart.restLeft);
   });
 
+  test('a repaint at the end of a slide leaves no tab raised above its neighbors', async ({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await openPaused(bar);
+    await runTabMenuCommand(bar, 'Alpha', 'Move right');
+    await expect(bar.tabByName('Alpha')).toHaveClass(/ht-sheets-bar__tab--slide-lead/);
+
+    await bar.stripMotionAt('Alpha', 0.999);
+    await bar.stripMotionAt('Beta', 0.999);
+    await page.evaluate(() => {
+      const plugin = (window as any).hot.getPlugin('sheetsBar');
+      const gamma = plugin.getSheets().find((sheet: { name: string }) => sheet.name === 'Gamma');
+
+      plugin.renameSheet(gamma.id, 'Delta');
+    });
+
+    await expect(bar.tabByName('Delta')).toBeVisible();
+    await expect(bar.tabByName('Alpha')).not.toHaveClass(/ht-sheets-bar__tab--slide-lead/);
+  });
+
   test('the moved active tab carries its own marker the whole way', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 
@@ -143,15 +165,21 @@ test.describe('sheets bar tab motion – move', { tag: [THEMES_TAG, MOTION_TAG] 
       const style = getComputedStyle(tab);
       const inactive = getComputedStyle(document.querySelector('.ht-sheets-bar__tab:not(.ht-sheets-bar__tab--active)')!);
 
+      const marker = getComputedStyle(tab, '::after');
+
       return {
-        shadow: style.boxShadow,
+        markerContent: marker.content,
+        markerStyle: marker.borderBottomStyle,
+        markerWidth: marker.borderBottomWidth,
         background: style.backgroundColor,
         inactiveBackground: inactive.backgroundColor,
         zIndex: style.zIndex,
       };
     });
 
-    expect(marker.shadow).not.toBe('none');
+    expect(marker.markerContent).not.toBe('none');
+    expect(marker.markerStyle).toBe('solid');
+    expect(marker.markerWidth).not.toBe('0px');
     expect(marker.background).not.toBe(marker.inactiveBackground);
     expect(marker.zIndex).toBe('1');
   });

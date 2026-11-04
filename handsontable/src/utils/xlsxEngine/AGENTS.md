@@ -88,7 +88,17 @@ directions.
   copy rule moves a QUALIFIED reference too (`=Data!B2` filled down is `=Data!B3`, as in Excel and
   ExcelJS's `slideFormula`), so `translateSharedFormula` calls `mapFormulaReferences(…, { qualified:
   true })` (`formulaRefs.ts`), which re-walks only the reference part with `QUALIFIED_PART_REGEX`;
-  `shiftFormulaReferences` keeps skipping qualified references.
+  `shiftFormulaReferences` keeps skipping qualified references. A third option, `requalify(name)`,
+  RENAMES a qualifier (`exportFile`'s named expressions move each engine sheet's references and
+  name its exported sheet): it gets the unquoted name and answers `{ sheetName, map? }` (the `map`
+  moves that sheet's reference part) or `null`. The walker quotes the new name itself
+  (`quoteSheetName`, exported, which also quotes a cell-shaped name such as `A1`, a boolean-shaped
+  name such as `TRUE` or `false` (Excel writes `'TRUE'!A1`; ExcelJS writes a definition over it bare,
+  so `losesQualifierQuotes` leaves that name out), and any name with a
+  dot: HyperFormula's unquoted grammar is `[A-Za-z0-9_]`, so a bare `Data.2024!$A$1` is a parse error
+  there and `selfAs` handed the engine an imported name it showed as `#ERROR!`). A qualifier
+  after `]` (another workbook) is never offered. `rebaseImportedFormula` has the matching `selfAs`
+  option: it re-qualifies a reference to the imported sheet with the engine's name for it.
 - **Covered merge cells lose their content on write** and read back `null`; the master keeps it.
 - **The worksheet reader is a CLASS, and its traps below name private methods.** `parseWorksheet` is
   a one-line wrapper over `WorksheetParser` in `parts/worksheetReader.ts`: the tokenizer is
@@ -543,7 +553,37 @@ directions.
   `<customSheetViews><customSheetView>`, which froze an unfrozen sheet or overrode the real split.
 - **Reader-side dropped names added in QA round 7**: an error cell with value metadata
   (`<c t="e" vm>`, an Excel 365 "Place in Cell" picture) records `images` and keeps its cached
-  `#VALUE!` (`vm` alone is not enough — OLAP cube cells carry it); an `<x14:cfRule>` inside `<extLst>`
+  `#VALUE!` (`vm` alone is not enough — OLAP cube cells carry it). A FORMULA cell of that shape is a
+  picture only when its formula calls `IMAGE` (`callsImageFunction`, decided in `#finishCell`): Excel
+  Online stores `#SPILL!` and `#CALC!` of any formula as `<v>#VALUE!</v>` with a `vm` pointing at an
+  `_error` rich value, and reporting `images` for them warned about a picture on every blocked spill.
+  That guess is only the FALLBACK (DEV-3665): `read.ts` resolves each such `vm` through
+  `xl/metadata.xml` (`valueMetadata` -> `XLRICHVALUE` future metadata -> `rvb i`) and the rich-value
+  parts (`parts/richValues.ts`). An `_error` structure writes its code over the cached `#VALUE!`
+  (`formula.result` or `value`; `errorType` is Excel's `ERROR.TYPE` number minus one: 0-6 the
+  classic codes, 8-13 `#SPILL!` to `#CALC!`. Never map `#BUSY!`: `ERROR.TYPE` gives it no number,
+  and the 14 one third-party source gives it is unverified, so a guess would import a wrong code); a
+  `_localImage` or `_webimage` structure records `images`; any other structure (a linked data type)
+  or an `errorType` with no code records `cellValue:richValue` and keeps `#VALUE!`. Only when the
+  parts are missing, do not parse, or do not resolve the `vm` does the cell fall back to the guess
+  above. Indexes go through `parseUnsignedIntAttr`, the parser the sheet reads `vm` with, so one
+  index is never accepted on one side and refused on the other. Four rules: the parts are read only
+  for a sheet that has such a cell, and once per read (`OpenedPackage.richValues`, a memoized
+  promise), so a workbook that never uses them never inflates them; a workbook that declares no
+  rich-value parts passes no collector, so the parser judges its cells in place; each list is capped
+  at `MAX_WORKBOOK_CELLS` entries like the shared strings (`throwLimitExceeded`); and a part that does
+  not parse OR passes a limit answers `null`, never an error, so a damaged or huge rich-value part
+  costs the codes, not the import (the parts are optional: a workbook that read before DEV-3665 must
+  still read). That last rule needs `zip/reader.ts` `text()` to GIVE BACK a refused entry's charge
+  to the archive budget: the charge is made before the refusal, and left standing it refused the
+  next sheet over bytes no one held. The mapper puts a code HyperFormula does not know back to
+  `#VALUE!` when the Formulas plugin is on (`importFile/AGENTS.md`). The worksheet parser is synchronous, so it
+  only COLLECTS the cells (`WorksheetReadContext.richValueCells`, the cell snapshot by reference) and
+  `read.ts` patches them after the sheet; a caller that drives `parseWorksheet` alone passes no
+  collector and gets the guess, as before. The ExcelJS adapter cannot see `vm` and keeps `#VALUE!`
+  (pinned in `nativeRichValues.unit.js`, the fixture is `excel-online-rich-errors.xlsx`). A
+  shared-formula follower is judged on its translated text (the decision runs after `#readFormula`),
+  so its own `IMAGE` call counts. An `<x14:cfRule>` inside `<extLst>`
   records `conditionalFormatting:<type>` through `recordUnsupported`; `<f t="dataTable">` records
   `formula:dataTable` and keeps the cached values; a `t="s"` index that resolves to nothing records
   `cellValue:sharedString`. A `<conditionalFormatting>` block left with no rule is not pushed, so
@@ -660,7 +700,11 @@ directions.
   that number. The import's own walks are budgeted too, against the same
   `MAX_TRANSLATED_FORMULA_CHARS` (`CollectContext.walkedFormulaChars` in `importFile/mapper.ts`),
   charged ONCE per formula for the prefix strip, the reference shift (with its sheet-qualifier
-  check) and the defined-name scan together — see `plugins/importFile/AGENTS.md`. The field is optional on
+  check) and the defined-name scan together — see `plugins/importFile/AGENTS.md`. That budget bounds
+  regex work only: a defined name's definition costs far more in HyperFormula (two parses, then an
+  evaluation when the applier resumes the engine), so the import bounds it on its own with `MAX_DEFINED_NAME_LENGTH`,
+  `MAX_DEFINED_NAME_CHARS`, `MAX_DEFINED_NAME_CELLS` and `MAX_DEFINED_NAME_TOTAL_CELLS` (`limits.ts`;
+  cells counted by `closedReferenceArea` in `formulaRefs.ts`, a whole column or row sized by the engine sheet it is on). The field is optional on
   `WorkbookBudget` (absent reads as zero) because tests pass `{ declaredCells: 0 }`. Validation and
   conditional-formatting formulae are not capped: nothing runs that regex over them.
 - **The `date1904` shift asks `isTemporalFormatCode` (`numFmtCode.ts`), the import's own
@@ -794,10 +838,115 @@ directions.
   (`formulaResultValue`), which writes `t="e"` too. Both also require the code to be one of
   `OOXML_ERROR_CODES` (the seven ECMA-376 lists), so a flagged `#CYCLE!` or a hand-built snapshot
   still goes out as `str`. NEVER infer the flag from the string: `="#N/A"` answers the text `#N/A`
-  and must stay `str`. Before this every error result was `t="str"`, so POI, ClosedXML, openpyxl and
-  SheetJS read text. The readers do not set the flag: both hand a `t="e"` result back as its code
-  text in `formula.result`, exactly as before, so the import is unchanged. Pinned by
-  `formulaErrorResult.unit.js`.
+  and must stay `str`. Written `t="str"`, an error result reads as text in POI, ClosedXML, openpyxl
+  and SheetJS. Both readers set it too: `resultIsError` on a `t="e"` formula
+  cell and `valueIsError` on a plain `t="e"` cell (any non-empty code), while `result` / `value`
+  stay the code text. The writers mirror that: a plain cell is typed `e` only when `valueIsError`
+  is set and the code is in `OOXML_ERROR_CODES`. Pinned by `formulaErrorResult.unit.js`.
+- **Array formulas, error cells and defined names (DEV-3648).** Traps:
+  - **`cm` presence alone means "dynamic" on read** (`CellFormulaArray.dynamic`, from
+    `attrs.cm !== undefined`). There is no `xl/metadata.xml` lookup. The ExcelJS reader cannot see
+    `cm`, so every array reads `dynamic: false` there (pinned in the parity tests).
+  - **The dynamic-array metadata is FOUR pieces or Excel repairs the file**: `cm="1"` on the master
+    (`worksheetWriter.ts`), `xl/metadata.xml` (`package.ts#METADATA_PART`), the `sheetMetadata`
+    relationship in the workbook rels, and the content-type override. Drop any one and Excel opens
+    a "repair" dialog. A CSE array carries no `cm` and needs none of them. The ExcelJS adapter
+    writes only CSE arrays, and records `dynamicArrays` for a dynamic one whose `ref` spans more
+    than one cell. A one-cell CSE array (`IFS`, range arithmetic) gives Excel the same value, so it
+    is lossless and not recorded; do not "fix" that back.
+  - **`#SPILL!` and `#CALC!` are flagged on read but never typed `e` on write.** POI refuses them in
+    a `t="e"` cell, so `isOoxmlErrorCode` gates the write and they go out as text.
+  - **`EXCEL_DYNAMIC_ARRAY_FUNCTIONS` (`dynamicArrays.ts`) is observed behavior, not a spec**: the
+    set (`IFS`, `SWITCH`) is observed Excel behavior: Excel saves them as single-cell dynamic arrays
+    (`t="array"` + `cm="1"`), while a scalar `XLOOKUP` and `A1+B1` stay a plain `<f>`. No committed
+    fixture pins the set. Add a function only after checking a file Excel saved; a function missing
+    from the set opens with an `@` in Excel.
+  - **`ARRAY_RETURNING_FUNCTIONS` / `isWholeArrayFunctionCall` (`dynamicArrays.ts`) is a separate,
+    whole-formula rule, also observed in files Excel Online saved**: a formula that is, apart from
+    whitespace and grouping parentheses, ONE call to `SEQUENCE`, `FILTER`, `TRANSPOSE`, `MMULT`,
+    `ARRAY_CONSTRAIN`, `SORT`, `SORTBY`, `UNIQUE`, `RANDARRAY`, `INDIRECT`, `LET` or `LAMBDA` (any
+    `_xlfn.`/`_xlws.` prefix, any case) is saved with `cm="1"` even when the result is one cell
+    (`SEQUENCE(1)`, `INDIRECT("A1")`, `LET(x,1,x)`). Excel saves `SUM(SEQUENCE(3))`, `INDEX(A1:A3,2)`,
+    `OFFSET(A1,1,0)`, `CHOOSE(1,A1,A2)`, `VLOOKUP(...)` and `IF(...)` plain, so a nested call or an
+    operand (`SEQUENCE(1)+1`) does not count – unlike `EXCEL_DYNAMIC_ARRAY_FUNCTIONS`, which matches a
+    call anywhere. Do not merge the two sets. Known gaps, kept plain: `SUM(ABS(A1:A3))`, and a bare
+    range or range name as the whole formula (`=A1:A3`, `=Sales`).
+  - **`appliesOperatorToRange` (`dynamicArrays.ts`) is a narrow operator rule, not a type checker.** It
+    answers `true` when one of `+ - * / ^ & = <> < > <= >=` (or a unary `-`, or a postfix `%` on the
+    right) sits right next to a multi-cell range (`A1:A3`, `A:A`, `1:1`, qualified or not; `A1:A1` is
+    one cell), at any paren depth, skipping any `\s` whitespace. It steps out over grouping parentheses
+    (`SUM((A1:A3)*2)`), but never over a call's: a `(` with a name character before it opens a call, and
+    a `)` is skipped only with a grouping `(` on the left, so `SUM(A1:A3)*2` and `(SUM(A1:A3))*2` stay
+    plain. The export writes such a cell as a one-cell dynamic array only when the engine's
+    `useArrayArithmetic` is on (`exportFile` gates it). It reuses `REFERENCE_REGEX`, whose unqualified
+    alternative matches `A1:A3` as two cells joined by `:`, so the scanner joins them. Known gap:
+    `SUM(ABS(A1:A3))` (a range passed where a function expects one value) is not detected, a defined
+    name as an operand counts only when the caller's `isRangeName` says it is one multi-cell range
+    (the export decides that from the engine's definition, `isMultiCellRangeDefinition`), and a range with both corners sheet-qualified
+    (`Sheet1!A1:Sheet1!A3`) is not recognized as a range.
+  - **Parity tests cannot see `@`.** They compare workbook snapshots, which carry no implicit
+    intersection. Whether a written formula opens with an `@` is checked only by opening the file
+    in Excel.
+  - **Defined names share one validator** (`definedNames.ts#selectWritableDefinedNames`): a name must
+    match the Excel pattern, must not spell an A1 reference (`ZZZ1`) or an R1C1 one (`R`, `C`, `RC`,
+    `R2C3`), must not repeat a name of the same scope case-insensitively, and needs a non-empty
+    definition, and must not be `TRUE`, `FALSE` or an `_xlnm.` built-in (LibreOffice renames them on
+    load, and both readers skip `_xlnm.` names). A letter is any Unicode letter (`\p{L}` under the `u`
+    flag), as in Excel, so `Umsätze` and `Größe` are written; an ASCII-only class left every formula
+    over them as `#NAME?` in Excel. HyperFormula accepts a narrower range (`[A-Za-zÀ-ʯ_]` first, Latin
+    letters only), a subset of this class: a CJK name passes here but not in HyperFormula. It refuses a
+    ref-like name outside the grid (`ZZZ1`) and a leading digit (`1abc`). That is deliberate data loss,
+    reported as `definedNames:unsupported`, instead of a file Excel repairs.
+    `DefinedNameSnapshot` is `{ name, formula, sheetName, unsupported? }` (`sheetName: null` is workbook scope).
+    `selectWritableDefinedNames` skips an `unsupported` entry (see below).
+  - **The ExcelJS name adapters are narrower than the native ones.** Its reader (`readDefinedNames`)
+    keeps a name ExcelJS lists with more than one range (a multi-area name) with its ranges joined by
+    commas. Keeping the first range silently redefined the name, and leaving the name out made
+    `importFile` import a formula over it live as `#NAME?`; kept, HyperFormula's `validateFormula`
+    refuses the union, so the formula imports its cached value with `formula:definedName`. It loses the
+    sheet scope, drops constants, whole-column and relative names (the adapter appends those from
+    `xl/workbook.xml`, read by the built-in parser through `readWorkbookDefinedNames`), and cannot see a
+    name defined in several scopes: ExcelJS 4.4's `definedNames.model` setter keys its map by name, so
+    the LAST definition wins with one range. **So every name it reads is flagged `unsupported`** and
+    `importFile` registers none: with a workbook `Rate` and a `Sheet2` one, only Sheet2's came back,
+    workbook-wide, and registering it made `=Rate*100` on Sheet1 read 42 instead of 1 (4200, not 100). A
+    flagged name never matches a name the engine already defines either, even with the same text: the
+    match cannot tell which scope the text came from. The reader records nothing itself; the mapper
+    reports `definedNames:unsupported` only when a formula uses a flagged name
+    (`CollectContext.flaggedNames`), so an ExcelJS import of a workbook whose names no formula uses
+    warns about nothing. Its writer takes workbook-scoped, sheet-qualified single ranges only, with a
+    total area under `MAX_EXCELJS_DEFINED_NAME_CELLS` (`writeLimits.ts`, 100,000), and reports
+    `definedNames:unsupported` once for everything else. ExcelJS re-serializes every definition and
+    quotes a sheet only when it fails `/^[a-zA-Z0-9]*$/`, so `'2024'!$A$1` and `'Q1'!$A$1` come out bare
+    (`Err:508` in LibreOffice); `losesQualifierQuotes` leaves such a name out. Only the raw
+    `xl/workbook.xml` shows it: reading the name back through `definedNames.model` re-serializes it
+    through the same code (`exceljsWrite.unit.js` reads the zip). That selection is
+    `selectExcelJsDefinedNames`, pure, and both adapters expose theirs as the required
+    `XlsxEngineAdapter#selectDefinedNames`: `exportFile` asks it before the write, so a formula over a
+    name the writer leaves out goes out as its value. Change the writer's filter there, never inline in
+    `writeDefinedNames`, or the two disagree and the formula ships as `#NAME?`.
+  - **A name the reader cannot trust is KEPT, flagged, never dropped**
+    (`DefinedNameSnapshot.unsupported`). The native reader caps a definition at `MAX_FORMULA_LENGTH`
+    (`parseWorkbook`: the text stops growing once it crosses the cap) and cannot place a `localSheetId`
+    that names no sheet; both keep `{ name, formula: '', sheetName, unsupported: true }` with ONE
+    `definedNames:unsupported`. Dropping them would make `importFile` treat `=SUM(Big)` as
+    an ordinary formula: it would import live as `#NAME?` and lose the cached value. A flagged entry
+    has its own map key, so a valid name of the same scope still lands beside it. `importFile` never
+    registers a flagged name, never takes an engine name spelled like it as a match, ranks it after a
+    valid one of its scope, and lets one scoped to the imported sheet hide the workbook-scoped name
+    spelled like it (Excel reads the sheet one there).
+  - **`unwrapArrayFormula('ARRAYFORMULA()')` is `null`**, as is a whitespace-only call: there is no
+    formula to write as an array.
+  - **The export strips EVERY `ARRAYFORMULA(…)` call (`stripArrayFormulaCalls`), not only a
+    whole-formula one.** `unwrapArrayFormula` is for the import (no double wrap); on export it left
+    `ARRAYFORMULA(x)*2` and `SUM(ARRAYFORMULA(x))` in the `<f>` text, which Excel opens as `#NAME?`.
+    The call's parentheses go only where it is a whole expression (the formula, a function
+    argument), so `ARRAYFORMULA(x)*2` gives `(x)*2`. An empty or unclosed call is left alone.
+    `callsArrayFormulaAsOperand` answers whether a call outside another call is such an operand;
+    `exportFile` writes that formula plain without array arithmetic.
+  - **The native writer refuses a workbook with no sheets** (`write.ts`): `CT_Sheets` needs one
+    `<sheet>`. ExcelJS wrote a file Excel calls invalid; the refusal is deliberate.
+
 - **The `_xHHHH_` lookalike escape is a LOOKAHEAD.** `escapeXmlText` rewrites the underscore of
   every `_(?=x[0-9A-Fa-f]{4}_)` as `_x005F_` (`OOXML_ESCAPE_LOOKALIKE`, `xml/escapes.ts`). A
   pattern that consumed the trailing underscore escaped only the first of `_x0041_x0042_`, which
@@ -920,6 +1069,14 @@ directions.
   separators (such as "…"), which the ZIP format does not allow.` A `mimetype` entry starting with
   `application/vnd.oasis.opendocument.spreadsheet` is refused as
   `the file is an OpenDocument spreadsheet (.ods), not an Excel workbook. Save it as .xlsx.`
+## License gating
+
+- **Two tables, two jobs.** `capabilities.ts` is the engine feature table and `DroppedFeatures`; `licenseCapabilities.ts` holds only the runtime license constants. The id lists (`XLSX_CAPABILITY_IDS`, `IMPORT_FILE_CAPABILITY_IDS`, `EXPORT_FILE_CAPABILITY_IDS`), the flag each token drives (`XLSX_FLAG_BY_ID`), and `LISTED_CAPABILITIES_FLAG` are generated from `features.json` into `licenseCapabilities.generated.ts` by `npm run generate:feature-manifest` and re-exported; never edit them by hand (rules in `src/featureManifest/AGENTS.md`). Only `XLSX_CAPABILITY_PREFIX`, `CAPABILITY_TOKEN_PATTERN` (held equal to the manifest's `TOKEN_RULE` by a unit test), and `XLSX_ALL_CAPABILITY` are written by hand. A new token's flag name is its suffix in camelCase, and it must be a key of `XlsxEntitlement`; `xlsxEntitlement.unit.js` checks that.
+- **Gates sit on the snapshot (`XlsxEntitlement`, `xlsxEntitlement.ts`), never in an adapter.** A gate in the native adapter would let the ExcelJS adapter bypass it. The plugin resolves the entitlement once per call and strips the feature from the snapshot or the options before any engine runs. `xlsx:number_formats` never restricts an import, because the import reads number formats to infer cell types, and `xlsx:import_report` is `core`, always on.
+- **The entitlement follows the CURRENT `licenseKey`.** `getXlsxEntitlement(hot)` and `getLicenseState(hot)` (`src/core/license.ts`) read `hot.getSettings().licenseKey` on every call, the way `resolveLicenseCapabilities()` does for the plugin tokens, so `updateSettings({ licenseKey })` applies to the next import or export. The entitlement is cached by key string (a non-string key is unrestricted); the license state is kept per instance while its key stays the same. Freezing the first key per instance made `assertLicensedCall` and the xlsx gate read two different keys after an `updateSettings()`. Pinned by `src/core/__tests__/license.unit.js` and "follows a license key passed later" in `exportFile/__tests__/xlsxLicenseGates.unit.js`.
+- **`xlsx:all` grants the whole namespace.** The feature manifest reserves `<namespace>:all` (HyperFormula honors `feat:all`/`fun:all`). `XLSX_ALL_CAPABILITY` is in `KNOWN_CAPABILITIES` but NOT in `XLSX_CAPABILITY_IDS` (that list mirrors the `token` entries of `features.json`, and `xlsx:all` is not a feature). A flagged key that lists it resolves to the unrestricted flags with nothing missing (`resolveXlsxEntitlement`).
+- **The flag rule is not here.** `resolveXlsxEntitlement(grants)` takes the grants `_getLicenseState` (`helpers/mixed.ts`) resolved and maps them to the switches; `grants.unrestricted` already covers a legacy, missing or invalid key, a key that does not grant Handsontable, and an entry without `listed-capabilities` (`_listsCapabilities()`). Do not re-read the flag from the product entry here: two readers of one rule drift.
+- **`DroppedFeatures#recordLicense` is the only writer of `license:<token>` entries.** The import records one only for a feature the file carried and the caller's options asked for (the caller's values, before a missing token forced any off), and its warning names exactly the recorded tokens (`licenseTokens()`). The token comes from the dictionary, never from the file, so it skips the 32-name cap. `warn()` leaves those entries out: the plugin's own missing-token warning names them. Scope the entitlement per plugin (`scopeXlsxEntitlement`) before use, or the export warns about `xlsx:import`.
 
 ## Testing
 

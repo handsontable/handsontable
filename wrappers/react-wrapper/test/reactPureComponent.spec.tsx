@@ -6,6 +6,7 @@ import {
   mountComponentWithRef
 } from './_helpers';
 import { HotTableRef } from '../src/types';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 /**
  * Worth noting, that although it's possible to use React's Pure Components on renderer components, it doesn't do much, as currently they're recreated on every
@@ -24,12 +25,12 @@ describe('React PureComponents', () => {
     }
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 3)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         autoRowSize={false}
         autoColumnSize={false}

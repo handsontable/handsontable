@@ -1,8 +1,8 @@
 # View state engine
 
 Capture and restore of the grid's runtime view: row and column order, sort, filters, hidden and
-trimmed indexes, collapsed NestedRows parents, manual sizes, frozen counts, pagination, selection,
-and scroll. Read this before touching `viewState.ts`. Two callers share it, and core does not
+trimmed indexes, collapsed NestedRows parents, collapsed CollapsibleColumns groups, RowSelection checks,
+manual sizes, frozen counts, pagination, selection, and scroll. Read this before touching `viewState.ts`. Two callers share it, and core does not
 import it, so it stays out of a `handsontable/base` build:
 
 - SheetsBar (`plugins/sheetsBar/`) uses it on every sheet switch, with no part filter, so every step
@@ -34,7 +34,9 @@ pay for. A new consumer lives in a plugin.
   whole grid and clamps it on every load, so a switch through a shorter sheet moves it, and a
   selection or scroll aimed at a row on another page lands on a hidden row and does nothing. A
   never-visited sheet gets `resetViewport()` instead — the configured `initialPage` and
-  `pageSize`. Both go through the public API, so the page hooks fire on a switch that changes
+  `pageSize`, and a scroll to row 0 and column 0 with the same snaps the restore uses: `loadData`
+  keeps the holder's scroll offset, so without it a new or never-visited sheet opened at the
+  departing sheet's offset. Both go through the public API, so the page hooks fire on a switch that changes
   the page. With an external data source (`hasExternalDataSource`) the page is neither captured
   nor restored: DataProvider answers a page change with a fetch, and the result would load into
   whichever sheet is active when it resolves. After that batch `keepSelectionOnPage()` checks the
@@ -43,6 +45,9 @@ pay for. A new consumer lives in a plugin.
   `beforePageChange` veto keeps the clamped page. A restored selection is followed to its page —
   one `setPage()` to the estimated page (the number page size as the page length, the shown
   span for `'auto'`), so a gap of many pages fires the page hooks once, then a one-page walk.
+  A jump that does not land on the estimate was vetoed, and the follow stops there and the
+  selection is deselected: walking on from the vetoed page fired the page hooks for every page in
+  between. The walk is only for a jump that landed but missed the row.
   Never re-estimate from each page reached: a short last page or `'auto'` pages of other
   lengths make repeated estimates bounce past the row; a selection that was not restored (one
   a plugin or a listener made during the switch), or one the follow could not reach, is
@@ -88,6 +93,32 @@ pay for. A new consumer lives in a plugin.
   indicator on another column), and translating ahead of the call, against the order being restored,
   is wrong for the same reason. Translate against whatever cache the plugin reads at that moment, which
   `hot.toVisualColumn()` does. The public layer relies on this: its `sort` part is physical too.
+- **A sort is cleared only when one is on, and a canceled re-apply gets its states back before the live order
+  is written.** `restoreAxisState()` and `resetViewState()` clear through `clearActiveSort()`, so a switch
+  between unsorted sheets fires no `beforeColumnSort`/`afterColumnSort`. The re-apply starts from empty
+  states, so the sorting plugin takes the unsorted order just written as its pre-sort cache.
+  `restoreCanceledSortStates()` runs right after a canceled `sort()`, while the rows are still in that
+  unsorted order, for the same reason: `setSortConfig()` takes the cache from the order it finds. Run after
+  the sorted `rowSequence` is written, a later clear left the rows sorted.
+- **The strict row header numbers ride with the row order** (`rowHeaders`, optional). A data load sets the
+  BindRowsWithHeaders map back to the physical indexes, so `captureAxisState()` keeps the `'strict'`
+  strategy's numbers (`_exportStrictHeaders()`, through the typed `getPlugin()`) under the `rowOrder` part, and
+  `restoreAxisState()` writes them back right after the row order, only when that order was written (a sheet
+  whose data changed size keeps the physical numbers). The loose strategy needs nothing: its numbers are the
+  physical indexes. The public layer does not serialize the field, so its `rowOrder` leaves the numbers alone.
+- **Merges are captured with their physical anchors and restored AFTER the batch.** `mergedCells` keeps each
+  area's visual geometry, for a listener, plus the `physicalRows` and `physicalColumn` MergeCells owns
+  (`_exportMergedAreas()`). `restoreViewState()` restores them in a second `safeBatch()` once the first one has
+  resumed the index cache with the restored row and column order, and MergeCells places each area from its anchor
+  against that cache. Inside the first batch the cache still held the order from before the restore (the loaded
+  sheet's identity order), so a merge on a sheet with a row move, a column move or a sort came back over other
+  cells: the same stale-cache trap as the sort above. Translating ahead of the batch would not help, because the
+  merge has to be made, and its anchor captured, through the cache MergeCells reads. An area a listener built
+  without the anchor fields is placed by its visual geometry. A merge whose rows a filter hides, all of them
+  or all but one, or that a sort draws past the last row, is captured and comes back as the grid held it,
+  so clearing the filter or the sort after a switch draws it whole, as it does without one. The stored merges
+  never block each other: two that a sort drew over each other (their rows interleaved) both come back, and only
+  a merge that was on screen before the restore, or that a listener made during it, turns a stored one away.
 - **`resetViewState()` runs no filter pass, and it clears the sizes of a DISABLED resize plugin too.** Its
   only caller is the sheets bar, which loads the arriving sheet's data right after it, and that load empties
   the condition collection and the Filters trimming map; the reset only drops the Filters fallback
@@ -97,6 +128,28 @@ pay for. A new consumer lives in a plugin.
   reaches it through `getPlugin()`, not `getEnabledPlugin()`. A new caller that does not load data after
   the reset needs the filter pass back. With `parts` given, `resetViewState()` and `resetViewport()` touch
   only those parts, the way the restore does.
+
+- **`collapsedColumns` and `checkedRows` are the sheets bar's own parts.** The `ViewState` plugin never passes
+  them, so a public restore leaves the CollapsibleColumns groups and the RowSelection checks alone, and a public
+  capture leaves both `null`. Both go through the plugins' `@private` `_exportViewState()`/`_importViewState()`,
+  which run no hook: a switch replays a state the user chose on that sheet. Both run after the restore batch
+  (`restorePluginStates()`), because importing the collapsed groups re-derives the header tree through the
+  column index cache, which the batch holds at the order from before the restore. `resetViewState()` clears
+  both, before the arriving sheet's load. RowSelection's state carries the selection by row id and the server
+  row count of a DataProvider grid, which belong to that sheet's server: the plugin kept one of each for the
+  whole grid, so a load re-projected the departing sheet's ids onto the arriving one.
+- **`columnMembership` rides on the `collapsedColumns` part.** It is the NestedHeaders membership overrides
+  (the group a moved column joined), through the same `@private` `_exportViewState()`/`_importViewState()`
+  pair on NestedHeaders. A load re-derives the headers from the authored groups, so without it a column
+  moved into another group came back splitting that group. `restorePluginStates()` imports it before the
+  collapsed groups, which collapse by authored identity on the tree it derives, and only when the
+  `columnOrder` part was restored too: the overrides name the group a column sits inside in that order,
+  and against another one (a `manualColumnMove` redeclared through `updateSheetSettings()`, or a stored
+  sequence of another length) the column would join a group it is not next to. The import re-derives only
+  when the overrides differ from the current ones, so a sheet without an adoption pays nothing. The
+  collapsed groups are restored either way, and carry no hidden columns: CollapsibleColumns derives them
+  from the groups on the headers the sheet came back with, so a collapse captured under another order or
+  membership never hides a column of a group that is not collapsed.
 
 Tests: `__tests__/viewState.unit.js` (the engine), plus SheetsBar's own suites and
 `plugins/viewState/__tests__/viewState.unit.js` (the public layer through the engine).

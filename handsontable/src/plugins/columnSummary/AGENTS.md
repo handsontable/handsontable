@@ -157,15 +157,30 @@ Known residuals, both identical to what the visual comparison gave before:
   the summary silently moves to (or sums) the previous column.
 - Removing the destination row makes the reset clear, and the refresh overwrite, the preceding row's cell.
 
-## A settings update before the grid has a view computes nothing
+## The endpoints are computed in the ready step
 
-`updatePlugin()` runs `initEndpoints()` only once the grid has a view. The sheets bar applies its
-opening sheet's settings through `updateSettings()` while the grid is still being built, and the
-endpoints were then checked against the data the grid held before the sheet loaded (an
-out-of-bounds warning for a summary that fits the sheet). The `afterInit` listener computes them
-against the loaded data anyway. Do not move the computation after the load from the caller's side
-instead: before the view exists, the `setDataAtCell()` it writes through throws on the missing
-editor manager.
+`enablePlugin()` and `updatePlugin()` compute nothing. The ready step (`onGridReady()`,
+`../base/AGENTS.md`) parses the endpoints and writes the summaries once after each enable or update, when
+the data is loaded and the editor manager exists (`setDataAtCell()` throws without one). `#endpointsOwed`
+is set by `enablePlugin()` and cleared by whichever path computes them, so `onDataReady()` and the step
+never both run `initEndpoints()`. That covers what used to take three paths: the `afterInit` listener at
+init, `updatePlugin()` on a live grid, and its `this.hot.view` guard for a settings update made while the
+grid is still being built (the sheets bar applying its opening sheet), which checked the endpoints against
+the data the grid held before the sheet loaded. A direct `enablePlugin()` call used to compute nothing.
+
+At init the step runs before the `init` hook, and core holds the renders the writes ask for, so the first
+render draws the summaries and the grid renders once. A consequence for hook order: the summaries'
+`afterChange` (`ColumnSummary.set`) now fires before the `init` hook and before the init load's own
+`afterChange`. Pinned by `__tests__/readyStep.unit.js`.
+
+**An `afterUpdateSettings` listener sees the summaries before the update.** The step of an
+`updateSettings()` that changes `columnSummary` runs after the call's `afterUpdateSettings` listeners and
+before its render, so the grid draws the new summaries while such a listener still reads the old ones. When
+the same call also passes `columns`, core has reset the cell meta by then, so the listener also reads a
+summary cell that is not read-only yet (`#onAfterUpdateSettings` re-applies the meta of the endpoints it
+holds, and the update replaced those with endpoints the step has not parsed). Before, `updatePlugin()`
+computed them on a live grid, behind the `this.hot.view` guard this step replaced. Documented as a behavior
+change; not worked around, because the listener runs before any step can.
 
 ## `exportEndpointSettings()` gives back the endpoints where they are now
 
@@ -177,9 +192,8 @@ position. A `reversedRowCoords` destination is given back as the offset from the
 (`countAddressableRows() - destinationRow - 1`), not the declared `reversedRowOffset`: a removal that
 leaves the summary parked above a data row, or a `minSpareRows` row that an `auto` insert adds below it,
 changes that offset, and re-applying the declared one wrote the total over the data row. A whole-table
-default range is left out so it keeps following the table. An explicit `ranges: []` is exported as `[]`:
-`assignSetting()` leaves `ranges` unset for it and sets no `rangesFromDefault`, so leaving the key out made the
-return parse it as the whole-table default.
+default range is left out so it keeps following the table. An explicit `ranges: []` is exported as `[]`,
+because leaving the key out would make the return parse it as the whole-table default.
 The function form answers `null`, because it reads its settings again on every pass.
 
 ## Styling uses `_setCellMetaDeclarative`, not `setCellMeta`
@@ -244,12 +258,12 @@ Three rules the lock follows:
   `destinationColumn` when they write the meta. Do not "fix" it to a physical column in the predicate
   alone, or the lock and the meta it protects land on different cells.
 
-The "Read only" menu item (`contextMenu/predefinedItems/readOnly.ts`) asks
+The "Read only" menu item (`utils/menu/predefinedItems/readOnly.ts`) asks
 `getPlugin('columnSummary').isLockedSummaryCell()` too. It leaves locked cells out of its mark, its
 direction check, and its write loop, and it hides itself when nothing in the selection can be toggled.
 Its "make writable" undo snapshot records a locked cell as it really is (read-only), so that undo
 writes `true` back; the "make read-only" snapshot is empty, and undo's `false` for the summary is what
-the veto stops. The veto is the safety net for everything the item itself cannot reach. See `../contextMenu/AGENTS.md`.
+the veto stops. The veto is the safety net for everything the item itself cannot reach. See `../../utils/menu/AGENTS.md`.
 
 ## A `reversedRowCoords` endpoint is anchored to the bottom and must be re-derived on alteration (DEV-144)
 
@@ -310,7 +324,13 @@ the internal `rangesFromDefault` flag (not on `EndpointConfig`, never copied by 
 `#rederiveDefaultRanges()`.
 
 - **Only the flag decides.** An explicit range names records and must not auto-grow, so it is never re-derived.
-  `ranges: []` leaves `ranges` unset and carries no flag.
+  `ranges: []` is an explicit range too: it summarizes no rows, the same result as an empty table, and
+  carries no flag. It used to leave `ranges` unset. In 17.x `objectEach` skipped the unset value, so `[]`
+  already summarized nothing; from 18.0.0 the built-in types loop with `for...of` and threw `endpoint.ranges
+  is not iterable`, at build and on `updateSettings()`. A `custom` function never threw, and it now gets
+  `[]` instead of `undefined`. Do not read `[]` as the whole-table default: a caller that builds `ranges` in
+  code and filters it down to nothing would then get a total over every row. Any other non-array value
+  (`null`) takes the default, so every stored `ranges` is an array. `emptyRanges.unit.js` pins it.
 - **The default means the whole table**, so a row inserted above row 0 is included, and a removal under
   `maxRows` pulls in the row the cap used to hide. The shift alone would have moved the start to 1 and
   shortened the end.
@@ -363,6 +383,42 @@ its rows back that way (`grid.removeSurplusRowsAndCols()`, see the DEV-2206 bull
 `handsontable/AGENTS.md`), and the endpoints must follow such a removal like any other — a `reversedRowCoords`
 summary otherwise stays put while the rows below it go, and ends up at the wrong offset from the bottom. Do
 not widen the skip back to every `auto` action. `reversedRowCoordsAlter.unit.js` pins it.
+
+## A replaced data array gets its destination values back
+
+The plugin writes its results into the data array, so an array loaded again used to sum the previous result
+as input: a sheets bar round trip grew a total 3, 6, 9, and stored the grown total in the sheet's data.
+`DestinationWrites` (`destinationWrites.ts`) records, per source row object and cell property, what a
+destination cell held before the first result (`beforeChange` with the plugin's own sources) and what it holds
+after the last one, read back from the cell (`afterChange`), so two summaries writing one cell in one batch
+leave the value that landed. Right before the array is replaced (`beforeLoadData`, and `beforeUpdateData` with
+another array) the outgoing array gets the original values back, written straight into its rows: no hooks, no
+undo step, no render. Six rules:
+
+- **Never throw from the restore.** `replaceData()` destroys the `DataMap` before those hooks run, so a throw
+  there leaves a grid that cannot read, render or destroy. A row frozen after the result was written
+  (`Object.freeze`, Immer) is skipped through a writability test (`canAssign`, `removeKey`), never a try/catch.
+- **A key the write created is removed, not set to `undefined`.** The record keeps the first segment of the
+  path that held no object (a dot path whose parent was missing) and whether it was an own key, so the row
+  gets its shape back; an array element the write appended is taken off by shortening the array.
+- **A `columns[].data` function is followed through the function**, read with `fn(row)` and restored with
+  `fn(row, value)`, skipped on a frozen row.
+- **A cell that no longer holds the last result** (the user or the host replaced it) and a row no longer in
+  the array are left alone. `updateData()` with the array the grid holds restores nothing, because the kept
+  cell meta still keeps the result out of its range (a wrapper re-render must not churn the cell).
+- **The records outlive `updatePlugin()`**, because a switch re-enables the plugin before its data loads. A
+  grid with a `modifyRowData` listener (NestedRows) records nothing, because its physical rows are not array
+  indexes.
+- **A real disable restores too.** When the settings turn the plugin off (`!this.isEnabled()` in
+  `disablePlugin()`, the way `search.ts` tells it apart from the `updatePlugin()` cycle), the data the grid
+  holds gets its original values back and the records are dropped. Otherwise the disabled plugin's later
+  loads never restore, and the array sums its old total again when the plugin returns (a summary in one
+  sheet's own settings, switched away from and back).
+
+A duplicate of the sheet the grid shows is a deep copy of rows that hold the results, so the sheets bar asks
+`restoreDestinationValuesInCopy()` (`@private`) to put the original values into the copy, row for row, or the
+copy sums the copied result again on its first visit. Pinned by `__tests__/replacedDataDestination.unit.js`
+and `tests/e2e/sheets-bar-column-summary-round-trip.spec.ts`.
 
 ## Where to look next
 

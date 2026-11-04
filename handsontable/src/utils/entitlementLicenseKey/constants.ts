@@ -1,3 +1,5 @@
+import { XLSX_ALL_CAPABILITY, XLSX_CAPABILITY_IDS } from '../xlsxEngine/licenseCapabilities';
+
 /**
  * The length of the checksum that closes the machine-readable
  * block of every entitlement license key.
@@ -43,11 +45,11 @@ export const HANDSONTABLE_PRODUCT = 'handsontable';
  * The capability tokens this build understands. The key asserts an entitlement;
  * what a token unlocks is defined here, never in the key. Unknown tokens are
  * ignored, so a token added on the issuing side cannot break a build already in
- * the field.
+ * the field. `xlsx:all` grants the whole xlsx namespace.
  *
  * @type {string[]}
  */
-export const KNOWN_CAPABILITIES = ['core'];
+export const KNOWN_CAPABILITIES = ['core', ...XLSX_CAPABILITY_IDS, XLSX_ALL_CAPABILITY];
 
 /**
  * Marks a license as an evaluation one. A flag is present or absent - there is
@@ -66,9 +68,10 @@ export const TRIAL_FLAG = 'trial';
 export const NO_CONSOLE_WARNS_FLAG = 'no-console-warns';
 
 /**
- * Closes the UI WARNING surfaces: no badge, no popover, no bottom bar. Both
- * this flag and the one above are the default for a key issued for external,
- * end-user-facing use.
+ * Closes the UI WARNING surfaces: no corner badge, no popover, no bottom bar.
+ * Both this flag and the one above are the default for a key issued for
+ * external, end-user-facing use. It does not close the "Powered by" bar a
+ * `badge` key asks for - see `BADGE_FLAG`.
  *
  * It does NOT close the hard-stop lock screen. The lock is enforcement rather
  * than a warning, so `mountBrandingSurface` (`utils/licenseBranding/index.ts`)
@@ -79,6 +82,36 @@ export const NO_CONSOLE_WARNS_FLAG = 'no-console-warns';
  * @type {string}
  */
 export const NO_UI_WARNS_FLAG = 'no-ui-warns';
+
+/**
+ * Says the entry's `capabilities` list is complete: the license grants the
+ * tokens it lists and nothing else. The issuer sets it per product entry; no
+ * contract type or mode implies it.
+ *
+ * The reader does not act on it - `getLicenseGrants` lists the tokens either
+ * way. The product decides what an entry WITHOUT it means. A product that
+ * gated no feature when its first keys were issued reads such an entry as
+ * granting everything, so a new gate never takes a feature away from a key
+ * already in the field. A product that has always gated on its tokens ignores
+ * the flag.
+ *
+ * @type {string}
+ */
+export const LISTED_CAPABILITIES_FLAG = 'listed-capabilities';
+
+/**
+ * Says the licensee agreed to show the product's "Powered by" bar - usually
+ * the term of a sponsored license. The issuer sets it per product entry; no
+ * contract type or mode implies it.
+ *
+ * It is not a channel, and no channel closes it: the bar is branding, not a
+ * warning, so a product renders it outside the `ui` channel gate, with or
+ * without `no-ui-warns`. The reader does not act on it - the product checks
+ * the entry's flags. A product with no bar ignores it.
+ *
+ * @type {string}
+ */
+export const BADGE_FLAG = 'badge';
 
 /**
  * The number of milliseconds in a day, used to walk from one UTC midnight to

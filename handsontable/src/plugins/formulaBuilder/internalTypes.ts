@@ -64,3 +64,21 @@ export interface VisualHfIndexMapping {
    */
   hfToVisualCol(hfCol: number): number;
 }
+
+/**
+ * The members of a scroll container the package's edge auto-scroller reads: its rectangle for the
+ * edge zones, its client box to clamp the pointer, and its scroll offsets to step. An `HTMLElement`
+ * has them all; the window's viewport stands in through an object with the same members.
+ */
+export interface AutoScrollTarget {
+  /**
+   * The container's box in viewport coordinates.
+   */
+  getBoundingClientRect(): { left: number; top: number; right: number; bottom: number };
+  scrollLeft: number;
+  scrollTop: number;
+  readonly clientLeft: number;
+  readonly clientTop: number;
+  readonly clientWidth: number;
+  readonly clientHeight: number;
+}

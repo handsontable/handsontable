@@ -1,10 +1,12 @@
 import { BasePlugin } from '../base';
 import { objectEach } from '../../helpers/object';
+import { DestinationWrites, isDataRow, type CellProp, type DataRow } from './destinationWrites';
 import Endpoints, { type EndpointConfig } from './endpoints';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { holdsNoNumber, isBlank } from './utils';
 import { throwWithCause } from '../../helpers/errors';
 import { normalizeClassNames } from '../../helpers/dom/element';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'columnSummary';
 export const PLUGIN_PRIORITY = 220;
@@ -161,6 +163,14 @@ export class ColumnSummary extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * The Endpoints class instance. Used to make all endpoint-related operations.
    *
    * @private
@@ -177,6 +187,12 @@ export class ColumnSummary extends BasePlugin {
   declare currentEndpoint: unknown;
 
   /**
+   * `true` from an `enablePlugin()` until the endpoints are parsed and computed. The ready step computes them;
+   * `onDataReady()` does when core applies the settings ahead of their data.
+   */
+  #endpointsOwed = false;
+
+  /**
    * Re-entry guard for the `afterFormulasValuesUpdate` hook so that the summary
    * recalculation triggered by writing the summary result does not start
    * another refresh.
@@ -184,6 +200,19 @@ export class ColumnSummary extends BasePlugin {
    * @type {boolean}
    */
   #refreshingFromFormulas = false;
+
+  /**
+   * What each destination cell held before the plugin first wrote a summary result there, and the
+   * value it holds since, keyed by the source row object and the cell's property. The results are
+   * written into the data array itself, so when the grid replaces that array (`loadData()`,
+   * `updateData()`, a sheets bar switch) the array the grid leaves gets its own values back. Loaded
+   * again, it then sums what the first load summed, instead of counting the previous result as input.
+   * It lives as long as the plugin instance, because a settings update re-enables the plugin
+   * (`updatePlugin()`) before the data it describes is loaded.
+   *
+   * @type {DestinationWrites}
+   */
+  #destinationWrites = new DestinationWrites();
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -208,11 +237,14 @@ export class ColumnSummary extends BasePlugin {
       this, this.settings as unknown as EndpointConfig[] | ((...args: unknown[]) => EndpointConfig[])
     );
 
-    this.addHook('afterInit', this.#onAfterInit);
     this.addHook('afterChange', this.#onAfterChange);
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('afterUpdateData', this.#onAfterUpdateData);
+    this.addHook('beforeChange', this.#onBeforeChangeTrackWrites);
+    this.addHook('afterChange', this.#onAfterChangeTrackWrites);
+    this.addHook('beforeLoadData', this.#onBeforeLoadData);
+    this.addHook('beforeUpdateData', this.#onBeforeUpdateData);
 
     this.addHook('beforeCreateRow', (index: number, amount: number) => {
       this.endpoints!.resetSetupBeforeStructureAlteration('insert_row', index, amount);
@@ -242,13 +274,22 @@ export class ColumnSummary extends BasePlugin {
     this.addHook('beforeSetCellMeta', this.#onBeforeSetCellMeta);
     this.addHook('beforeRemoveCellMeta', this.#onBeforeRemoveCellMeta);
 
+    this.#endpointsOwed = true;
+
     super.enablePlugin();
   }
 
   /**
    * Disables the plugin functionality for this Handsontable instance.
+   *
+   * When the settings turn the plugin off (not the disable step of `updatePlugin()`), the data the grid
+   * holds gets its destination values back, so it sums the same input when the plugin comes back.
    */
   disablePlugin(): void {
+    if (!this.isEnabled()) {
+      this.#restoreDestinationOriginals();
+    }
+
     this.endpoints = null;
     this.settings = null;
     this.currentEndpoint = null;
@@ -262,21 +303,15 @@ export class ColumnSummary extends BasePlugin {
    * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
    *  - [`columnSummary`](@/api/options.md#columnsummary)
    *
-   * Before the grid has a view (a settings update made while the grid is still being built, such as
-   * the sheets bar applying its opening sheet), the endpoints are left to the `afterInit` listener,
-   * which computes them against the data the grid starts with. While core applies the settings ahead
-   * of their data (`isDataWorkDeferred()`), they are left to `onDataReady()`.
+   * The endpoints are computed in the ready step, once the call returns and the data is loaded. While
+   * core applies the settings ahead of their data (`isDataWorkDeferred()`), `onDataReady()` computes them.
    */
   updatePlugin(): void {
     this.disablePlugin();
     this.enablePlugin();
 
-    if (this.hot.view) {
-      if (this.isDataWorkDeferred()) {
-        this.deferDataWork();
-      } else {
-        this.endpoints!.initEndpoints();
-      }
+    if (this.isDataWorkDeferred()) {
+      this.deferDataWork();
     }
 
     super.updatePlugin();
@@ -293,9 +328,44 @@ export class ColumnSummary extends BasePlugin {
    */
   onDataReady() {
     if (this.takeDeferredDataWork()) {
+      this.#endpointsOwed = false;
       this.endpoints!.initEndpoints();
     } else {
       this.endpoints?.refreshAllEndpoints();
+    }
+  }
+
+  /**
+   * Parses the endpoints and computes the summaries after an enable or update. Core runs it once the call
+   * returns, when the data is loaded and the editor manager exists: the results are written through
+   * `setDataAtCell()`. At init that is before the `init` hook, with the render held for the first one.
+   *
+   * @private
+   */
+  onGridReady() {
+    if (!this.#endpointsOwed) {
+      return;
+    }
+
+    this.#endpointsOwed = false;
+    this.endpoints!.initEndpoints();
+  }
+
+  /**
+   * Puts into a copy of the grid's data the values its destination cells held before the summary
+   * results, row for row, so the copy sums its own rows when it is loaded rather than the copied
+   * results. The sheets bar calls it on a duplicate of the sheet the grid shows. A copy of other data
+   * is left as it is.
+   *
+   * @private
+   * @param {Array} source The data the copy was made from.
+   * @param {Array} copy The copy, with the same row order.
+   */
+  restoreDestinationValuesInCopy(source: unknown[], copy: unknown[]): void {
+    const { data, dataDotNotation } = this.hot.getSettings();
+
+    if (source === data) {
+      this.#destinationWrites.restoreInCopy(source, copy, !!dataDotNotation);
     }
   }
 
@@ -687,13 +757,6 @@ export class ColumnSummary extends BasePlugin {
   };
 
   /**
-   * `afterInit` hook callback.
-   */
-  #onAfterInit = () => {
-    this.endpoints!.initEndpoints();
-  };
-
-  /**
    * Called after the settings were updated. There is a need to refresh cell metas after the settings update with
    * the `columns` property as the Core resets the cell metas to their initial state.
    *
@@ -728,6 +791,112 @@ export class ColumnSummary extends BasePlugin {
       this.endpoints!.refreshAllEndpoints();
     }
   };
+
+  /**
+   * Resolves the data row object and the cell property a change of the plugin's own writes into. A grid
+   * with a `modifyRowData` listener (NestedRows) does not keep its rows at their physical indexes in the
+   * data array, so its writes are not followed.
+   *
+   * @param {Array[]|null} changes The changes.
+   * @param {string} source The source of the changes.
+   * @returns {Array} The row and the property of each change the plugin writes.
+   */
+  #resolveDestinationCells(changes: unknown[][] | null, source: string): [DataRow, CellProp][] {
+    if (!changes || (source !== 'ColumnSummary.set' && source !== 'ColumnSummary.reset')
+      || this.hot.hasHook('modifyRowData')) {
+      return [];
+    }
+
+    const data = this.hot.getSettings().data as unknown[] | undefined;
+    const cells: [DataRow, CellProp][] = [];
+
+    if (!Array.isArray(data)) {
+      return cells;
+    }
+
+    changes.forEach((change) => {
+      if (!change) {
+        return;
+      }
+
+      const [visualRow, prop] = change;
+      const physicalRow = this.hot.toPhysicalRow(visualRow as number);
+      const row = physicalRow === null ? undefined : data[physicalRow];
+
+      if (isDataRow(row) && (typeof prop === 'string' || typeof prop === 'number' || typeof prop === 'function')) {
+        cells.push([row, prop as CellProp]);
+      }
+    });
+
+    return cells;
+  }
+
+  /**
+   * Records what each destination cell holds right before the plugin's first result is written there.
+   *
+   * @param {Array[]} changes The changes the plugin is about to make.
+   * @param {string} source The source of the changes.
+   */
+  #onBeforeChangeTrackWrites = (changes: unknown[][] | null, source: string) => {
+    const dataDotNotation = !!this.hot.getSettings().dataDotNotation;
+
+    this.#resolveDestinationCells(changes, source).forEach(([row, prop]) => {
+      this.#destinationWrites.recordBefore(row, prop, dataDotNotation);
+    });
+  };
+
+  /**
+   * Records the value each destination cell holds once the plugin's result is written, read back from the
+   * cell.
+   *
+   * @param {Array[]} changes The changes the plugin made.
+   * @param {string} source The source of the changes.
+   */
+  #onAfterChangeTrackWrites = (changes: unknown[][] | null, source: string) => {
+    const dataDotNotation = !!this.hot.getSettings().dataDotNotation;
+
+    this.#resolveDestinationCells(changes, source).forEach(([row, prop]) => {
+      this.#destinationWrites.recordAfter(row, prop, dataDotNotation);
+    });
+  };
+
+  /**
+   * `beforeLoadData` hook callback. A load clears the cell meta that keeps a summary result out of
+   * its own range, so the outgoing array gets its values back even when it is loaded again.
+   */
+  #onBeforeLoadData = () => {
+    this.#restoreDestinationOriginals();
+  };
+
+  /**
+   * `beforeUpdateData` hook callback. An update with the array the grid already holds (a wrapper
+   * re-render) keeps the cell meta of the results and writes nothing back, so the results stay in
+   * place and are not summed. Any other array gets its values back.
+   *
+   * @param {Array} data The incoming data.
+   */
+  #onBeforeUpdateData = (data: unknown) => {
+    if (data !== this.hot.getSettings().data) {
+      this.#restoreDestinationOriginals();
+    }
+  };
+
+  /**
+   * Writes back into the data the grid is about to replace the values its destination cells held
+   * before the first summary result, straight into the row objects: no hooks, no undo step, no
+   * render. A cell whose value is no longer the result the plugin wrote last (the user or the host
+   * replaced it), a row that is no longer in the data, and a cell the row does not let be written (a
+   * frozen row) keep their values.
+   */
+  #restoreDestinationOriginals() {
+    const { data, dataDotNotation } = this.hot.getSettings();
+
+    if (Array.isArray(data)) {
+      this.#destinationWrites.restore(data, !!dataDotNotation);
+    } else {
+      this.#destinationWrites.clear();
+    }
+  }
 
   /**
    * `afterUpdateData` hook callback.

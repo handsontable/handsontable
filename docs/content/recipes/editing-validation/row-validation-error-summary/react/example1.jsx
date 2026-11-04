@@ -150,6 +150,7 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         data={initialData}
         colHeaders={COLUMN_LABELS}
@@ -163,7 +164,6 @@ const ExampleComponent = () => {
         width="100%"
         afterRenderer={afterRenderer}
         afterChange={afterChange}
-        licenseKey="non-commercial-and-evaluation"
       />
       <div className="example-controls-container validation-summary" aria-live="polite">
         <p className="validation-summary__title">Validation issues</p>

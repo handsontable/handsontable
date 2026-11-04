@@ -9,6 +9,8 @@ import {
   getTrimmingContainer,
   isHTMLElement,
   standsBehindRowHeader,
+  isStartGapCovered,
+  isTopGapCovered,
 } from '../../../../../helpers/dom/element';
 import { stopImmediatePropagation, isRightClick } from '../../../../../helpers/dom/event';
 import { isMobileBrowser, isMobileOrIpadOS } from '../../../../../helpers/browser';
@@ -23,6 +25,7 @@ import {
   standsBelowColumnHeader,
 } from './utils';
 import type { InteriorEdges, RenderedBand } from './utils';
+import type { Overlay } from '../../overlay/regions/_base';
 import { CUSTOM_SELECTION_TYPE } from '../constants';
 import { INLINE_END_CLONE_TYPES } from '../../overlay/constants';
 import { getSpreaderOffset } from '../../overlay/spreaderOffset';
@@ -2093,7 +2096,15 @@ class Border {
     // left centered on it loses half its thickness behind the column header, so both cases put the
     // visible edge at the cell's own top boundary. The row axis's twin of the inline-start case
     // below; `standsBelowColumnHeader` explains why it is read from the DOM.
-    if (parseFloat(style.borderTopWidth) > 0 || standsBelowColumnHeader(fromTDEl)) {
+    //
+    // The column header test is not enough for the master table's own cells either. With the default
+    // overscan the first visible row is not the first row of the body, and the first row after
+    // `fixedRowsTop` is not either, yet the top overlay ends where such a cell starts. The rectangles
+    // are asked, as they are for the inline-start edge below. An edge that lands exactly on a freeze line
+    // is left alone: the master and the frozen overlay draw its two halves around the line (see
+    // `drawFrozenBoundaryEdge`), and a shift would take the master's half off it.
+    if (parseFloat(style.borderTopWidth) > 0 || standsBelowColumnHeader(fromTDEl) ||
+        (!this.isFrozenBoundaryEdge('row', originalFromRow) && this.isTopGridlineCoveredByOverlay(fromTDEl))) {
       top += 1;
       height = height > 0 ? height - 1 : 0;
     }
@@ -2107,7 +2118,15 @@ class Border {
     // too.
     const ownsInlineStartBorder = parseFloat(style[isRtl ? 'borderRightWidth' : 'borderLeftWidth']) > 0;
 
-    if (ownsInlineStartBorder || standsBehindRowHeader(fromTDEl)) {
+    // The row header test is not enough for the master table's own cells. With the default overscan
+    // the cell after the row header is a hidden column, so the first visible column of a scrolled grid
+    // has a data cell as its previous sibling, and the first column past `fixedColumnsStart` has
+    // another one, and the same holds for the top and bottom clones under the start corners. The overlay
+    // that ends where such a cell starts covers its gridline all the same, so the rectangles are asked,
+    // except for an edge on the freeze line itself, which the frozen overlay draws.
+    if (ownsInlineStartBorder || standsBehindRowHeader(fromTDEl) ||
+        (!this.isFrozenBoundaryEdge('column', originalFromColumn) &&
+          this.isStartGridlineCoveredByOverlay(fromTDEl, isRtl))) {
       inlineStartPos += 1;
       width = width > 0 ? width - 1 : 0;
     }
@@ -2155,6 +2174,67 @@ class Border {
         corners, mergedBlockEdges.checkRow, mergedBlockEdges.checkCol,
       ),
     };
+  }
+
+  /**
+   * Whether an inline-start overlay is painted over the gridline in front of a cell of this table,
+   * because its table ends where the cell starts. The master table's cells sit under the inline-start
+   * clone, those of the top and bottom clones under the start corners. A cell of the inline-start
+   * clone and of the corners is in the overlay's own layer, which draws the edge itself.
+   *
+   * @param {HTMLElement} cell The cell the border starts on.
+   * @param {boolean} isRtl `true` when the grid is laid out right to left.
+   * @returns {boolean}
+   */
+  isStartGridlineCoveredByOverlay(cell: HTMLElement, isRtl: boolean): boolean {
+    const { wtOverlays } = this.wot.cloneSource ?? this.wot;
+    const overlayRect = this.getCoveringOverlayRect({
+      master: wtOverlays.inlineStartOverlay,
+      top: wtOverlays.topInlineStartCornerOverlay,
+      bottom: wtOverlays.bottomInlineStartCornerOverlay,
+    });
+
+    return overlayRect !== null &&
+      isStartGapCovered(this.wot.domBindings.geometryReader.getBoundingClientRect(cell), overlayRect, isRtl);
+  }
+
+  /**
+   * Whether the top overlay is painted over the gridline above a cell of this table, because its table
+   * ends where the cell starts. The master table's cells sit under the top clone, those of the
+   * inline-start and inline-end clones under the top corners. A cell of the top clone and of the corners
+   * is in the overlay's own layer, which draws the edge itself.
+   *
+   * @param {HTMLElement} cell The cell the border starts on.
+   * @returns {boolean}
+   */
+  isTopGridlineCoveredByOverlay(cell: HTMLElement): boolean {
+    const { wtOverlays } = this.wot.cloneSource ?? this.wot;
+    const overlayRect = this.getCoveringOverlayRect({
+      master: wtOverlays.topOverlay,
+      inline_start: wtOverlays.topInlineStartCornerOverlay,
+      inline_end: wtOverlays.topInlineEndCornerOverlay,
+    });
+
+    return overlayRect !== null &&
+      isTopGapCovered(this.wot.domBindings.geometryReader.getBoundingClientRect(cell), overlayRect);
+  }
+
+  /**
+   * Reads the rectangle of the table of the overlay that covers this table, when that overlay renders.
+   * A grid with nothing frozen on that side has no overlay there to paint over anything.
+   *
+   * @param {object} overlaysByTable The covering overlay by the name of the table it covers.
+   * @returns {DOMRect|null}
+   */
+  getCoveringOverlayRect(overlaysByTable: Record<string, Overlay | undefined>): DOMRect | null {
+    const { wtTable } = this.wot;
+    const coveringOverlay = overlaysByTable[wtTable.isMaster ? 'master' : wtTable.name];
+
+    if (!coveringOverlay?.needFullRender || !coveringOverlay.clone) {
+      return null;
+    }
+
+    return this.wot.domBindings.geometryReader.getBoundingClientRect(coveringOverlay.clone.wtTable.TABLE);
   }
 
   /**

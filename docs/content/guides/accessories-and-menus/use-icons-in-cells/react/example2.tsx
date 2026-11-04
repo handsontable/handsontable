@@ -54,12 +54,12 @@ const FlagCell = ({ instance, row, value }: HotRendererProps) => {
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       colHeaders={['Task', 'Assignee', 'Due date', 'Flagged']}
       height="auto"
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data="task" />
       <HotColumn data="assignee" />

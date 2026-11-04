@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 registerAllModules();
 
@@ -23,7 +24,7 @@ describe('setSourceDataAtCell with a prop name', () => {
       data: [{ id: 1, name: 'ok' }, { id: 2, name: 'ok' }],
       autoRowSize: false,
       autoColumnSize: false,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

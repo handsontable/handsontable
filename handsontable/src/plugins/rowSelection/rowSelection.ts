@@ -28,7 +28,7 @@ import {
   ROW_SELECTION_SELECT_ROW,
 } from '../../i18n/constants';
 import { announce } from '../../utils/a11yAnnouncer';
-import { SEPARATOR } from '../contextMenu/predefinedItems';
+import { registerMenuEntries } from '../../utils/menu/menuEntries';
 import type { HotInstance } from '../../core/types';
 import type { PluginTypeMap } from '../types';
 import {
@@ -51,6 +51,7 @@ import {
 import { warn } from '../../helpers/console';
 import { syncIcon } from '../../themes/engine/icons';
 import type { PhysicalIndexToValueMap } from '../../translations';
+import { LICENSE } from './feature.generated';
 
 Hooks.getSingleton().register('beforeRowSelectionChange');
 Hooks.getSingleton().register('afterRowSelectionChange');
@@ -68,6 +69,7 @@ const CORNER_CELL_CLASS = 'htRowSelectionCorner';
 const CHECKBOX_ONLY_CELL_CLASS = 'htRowSelectionCheckboxOnly';
 const SELECTED_ROW_CLASS = 'htRowSelected';
 const HIDDEN_CHECKBOX_CLASS = 'htRowSelectionCheckboxHidden';
+const ROW_HEADER_CONTAINER_CLASS = 'htRowSelectionRowHeaderContainer';
 const DEFAULT_CHECKBOX_SIZE = 16;
 const DEFAULT_CELL_PADDING = 8;
 const BOUND_WRITE_SOURCE = 'RowSelection.change';
@@ -77,6 +79,24 @@ const BOUND_WRITE_SOURCE = 'RowSelection.change';
  * `afterRowSelectionChange` hooks.
  */
 export type RowSelectionSource = 'checkbox' | 'headerCheckbox' | 'click' | 'keyboard' | 'api' | 'dataChange';
+
+/**
+ * The checked rows of one dataset, as {@link RowSelection#_exportViewState} returns them.
+ */
+export interface RowSelectionViewState {
+  /**
+   * The physical rows checked in the selection map.
+   */
+  rows: number[];
+  /**
+   * The selection by row id of a server-backed grid, or `null` for a grid that holds its own rows.
+   */
+  server: ServerRowSelection | null;
+  /**
+   * The number of rows matching the server query.
+   */
+  serverTotalRows: number;
+}
 
 /**
  * A checkbox column whose values are the row selection: its `data` property, or its physical index.
@@ -348,6 +368,14 @@ export class RowSelection extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns the default settings applied when the plugin is enabled without explicit configuration.
    */
   static get DEFAULT_SETTINGS() {
@@ -524,7 +552,7 @@ export class RowSelection extends BasePlugin {
     this.addHook('afterPageChange', this.#invalidateHeaderSummary);
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch);
     this.addHook('afterLanguageChange', this.#onAfterLanguageChange);
-    this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
+    registerMenuEntries(this, () => this.#createMenuEntries(), { contextMenu: {} });
 
     this.eventManager.addEventListener(this.hot.rootElement, 'mousedown', this.#onRootMouseDown);
     this.eventManager.addEventListener(this.hot.rootElement, 'click', this.#onRootClick);
@@ -907,6 +935,10 @@ export class RowSelection extends BasePlugin {
    * Resolves the bound column (`checkboxLocation: { column }`). {@link RowSelection#getBoundColumn}
    * keeps the result until the settings, the data, or the columns change.
    *
+   * The fallback warning is skipped once the grid settings no longer turn the plugin on: an update
+   * that turns it off and drops the column renders the new columns before the plugin is disabled,
+   * and the warning would then describe a configuration that is already gone.
+   *
    * @returns {number|null}
    */
   #resolveBoundColumn(): number | null {
@@ -922,7 +954,7 @@ export class RowSelection extends BasePlugin {
 
     if (typeof visualColumn !== 'number' || visualColumn < 0 || visualColumn >= this.hot.countCols() ||
       !isCheckboxMeta(this.hot.getColumnMeta(visualColumn) as CheckboxMeta)) {
-      if (!this.#boundColumnWarningShown) {
+      if (!this.#boundColumnWarningShown && this.isEnabled()) {
         this.#boundColumnWarningShown = true;
         warn(`RowSelection: \`checkboxLocation.column\` (${String(column)}) is not a checkbox column. ` +
           'The selection falls back to the row header location.');
@@ -983,6 +1015,82 @@ export class RowSelection extends BasePlugin {
     next.import(selection);
 
     return this.#replaceServerSelection(next, 'api');
+  }
+
+  /**
+   * Returns the checked rows of the loaded dataset, for the sheets bar to keep with a sheet the user
+   * leaves: the physical rows checked in the selection map, and with a server-backed grid the selection
+   * by row id and the row count of the server query, which belong to that sheet's server. `null` when
+   * the plugin is off or the selection lives in a bound checkbox column, whose values travel with the
+   * data.
+   *
+   * @private
+   * @returns {object|null}
+   */
+  _exportViewState(): RowSelectionViewState | null {
+    if (!this.enabled || this.getBoundColumn() !== null) {
+      return null;
+    }
+
+    const values = this.#selectedRowsMap?.getValues() ?? [];
+    const rows: number[] = [];
+
+    for (let physicalRow = 0; physicalRow < values.length; physicalRow++) {
+      if (values[physicalRow] === true) {
+        rows.push(physicalRow);
+      }
+    }
+
+    return {
+      rows,
+      server: this.#isServerMode() ? this.#rowIdSelection.export() : null,
+      serverTotalRows: this.#serverTotalRows,
+    };
+  }
+
+  /**
+   * Puts back the checked rows {@link RowSelection#_exportViewState} returned, or clears them for
+   * `null`. The sheets bar calls it on a switch, so it runs no selection hook and announces nothing:
+   * the user checked those rows on that sheet before. The selection by row id and the server row count
+   * are replaced too, so the rows a server-backed sheet checked never show, or get removed, on another
+   * sheet. A physical row past the end of the data is dropped. A bound checkbox column is left alone.
+   * In the `'singleRow'` mode at most one row stays selected, by the rule a switch to that mode follows,
+   * because the mode may have changed while the sheet was hidden.
+   *
+   * @private
+   * @param {object|null} state The checked rows.
+   */
+  _importViewState(state: RowSelectionViewState | null) {
+    const map = this.#selectedRowsMap;
+
+    if (!this.enabled || !map || this.getBoundColumn() !== null) {
+      return;
+    }
+
+    const rowIdSelection = new RowIdSelection();
+
+    rowIdSelection.import(state?.server ?? { selectAll: false, toggledRowIds: [] });
+    this.#rowIdSelection = rowIdSelection;
+    this.#serverTotalRows = state?.serverTotalRows ?? 0;
+    this.#anchorPhysicalRow = null;
+
+    if (this.#isServerMode()) {
+      this.#hydrateFromRowIds();
+    } else {
+      const values = new Array<boolean>(this.hot.rowIndexMapper.getNumberOfIndexes()).fill(false);
+
+      (state?.rows ?? []).forEach((physicalRow) => {
+        if (physicalRow < values.length) {
+          values[physicalRow] = true;
+        }
+      });
+
+      this.#writeSilently(() => map.setValues(values));
+    }
+
+    if (this.#getSettings().mode === 'singleRow') {
+      this.#reduceImportedToSingleRow();
+    }
   }
 
   /**
@@ -1082,41 +1190,95 @@ export class RowSelection extends BasePlugin {
       return;
     }
 
+    const keep = this.#getSingleRowToKeep();
+
+    if (keep !== null) {
+      this.#selectOnly(keep, 'api');
+    } else {
+      this.#replaceServerSelection(this.#getSingleRowIdSelection(), 'api');
+    }
+  }
+
+  /**
+   * Keeps at most one row selected after an import in the `'singleRow'` mode, by the rule
+   * `#reduceToSingleRow()` follows, but silently: the sheets bar imports the checked rows
+   * a sheet left with, and a sheet whose mode changed while it was hidden must not come back with
+   * several rows selected. It writes the map and the selection by row id directly, so no selection hook
+   * runs on the switch.
+   */
+  #reduceImportedToSingleRow() {
+    if (this.getBoundColumn() !== null || this.getSelectedCount() <= 1) {
+      return;
+    }
+
+    const keep = this.#getSingleRowToKeep();
+    const rowId = keep !== null && this.#isServerMode() ? this.#getRowId(keep) : undefined;
+
+    if (keep !== null && rowId === undefined) {
+      const values = new Array<boolean>(this.hot.rowIndexMapper.getNumberOfIndexes()).fill(false);
+
+      values[keep] = true;
+      this.#writeSilently(() => this.#selectedRowsMap!.setValues(values));
+
+      return;
+    }
+
+    const next = rowId === undefined ? this.#getSingleRowIdSelection() : new RowIdSelection();
+
+    if (rowId !== undefined) {
+      next.set(rowId, true);
+    }
+
+    this.#rowIdSelection = next;
+    this.#hydrateFromRowIds();
+  }
+
+  /**
+   * Returns the physical row the `'singleRow'` mode keeps from a larger selection: the anchor when it is
+   * selected, else the last selected row in visual order, else, when every selected row is filtered out,
+   * the last selected physical row. `null` for a server-backed grid with no selected row loaded, which
+   * keeps a row id instead (`#getSingleRowIdSelection()`).
+   *
+   * @returns {number|null}
+   */
+  #getSingleRowToKeep(): number | null {
     const { isSelected } = this.#createRowChecks();
     const anchor = this.#anchorPhysicalRow;
     const selectedVisualRows = this.getSelectedRows();
     const lastVisualRow = selectedVisualRows[selectedVisualRows.length - 1];
-    let keep: number | null = null;
 
     if (anchor !== null && this.hot.toVisualRow(anchor) !== null && isSelected(anchor)) {
-      keep = anchor;
-    } else if (lastVisualRow !== undefined) {
-      keep = this.hot.toPhysicalRow(lastVisualRow);
+      return anchor;
     }
 
-    if (keep !== null) {
-      this.#selectOnly(keep, 'api');
-
-      return;
+    if (lastVisualRow !== undefined) {
+      return this.hot.toPhysicalRow(lastVisualRow);
     }
 
     if (this.#isServerMode()) {
-      const { selectAll, toggledRowIds } = this.#rowIdSelection.export();
-      const next = new RowIdSelection();
-
-      if (!selectAll && toggledRowIds.length > 0) {
-        next.set(toggledRowIds[toggledRowIds.length - 1], true);
-      }
-
-      this.#replaceServerSelection(next, 'api');
-
-      return;
+      return null;
     }
 
-    // Every selected row is filtered out, so none has a visual index: keep the last physical one.
     const selectedPhysicalRows = this.getSelectedPhysicalRows();
 
-    this.#selectOnly(selectedPhysicalRows[selectedPhysicalRows.length - 1], 'api');
+    return selectedPhysicalRows[selectedPhysicalRows.length - 1];
+  }
+
+  /**
+   * Returns the selection by row id the `'singleRow'` mode keeps when no selected row is loaded: the row
+   * id toggled last, or nothing for a "select all", which names no single row.
+   *
+   * @returns {RowIdSelection}
+   */
+  #getSingleRowIdSelection(): RowIdSelection {
+    const { selectAll, toggledRowIds } = this.#rowIdSelection.export();
+    const next = new RowIdSelection();
+
+    if (!selectAll && toggledRowIds.length > 0) {
+      next.set(toggledRowIds[toggledRowIds.length - 1], true);
+    }
+
+    return next;
   }
 
   /**
@@ -1350,12 +1512,17 @@ export class RowSelection extends BasePlugin {
    * Tells whether the grid is backed by a server through the DataProvider plugin. Its rows then
    * come one page at a time, and every page replaces the data.
    *
+   * The bound column is resolved last: resolving it warns when the column is not a checkbox column,
+   * and this check runs while settings and data change together (a sheet switch, an update that
+   * turns the plugin off and drops the column), when the column is not final yet. A grid without
+   * DataProvider never needs the answer.
+   *
    * @returns {boolean}
    */
   #isServerMode(): boolean {
     // A bound column keeps the selection in the data, which the server already persists.
-    return this.getBoundColumn() === null && this.hot.getPlugin('dataProvider')?.enabled === true &&
-      this.hot.runHooks('hasExternalDataSource') === true;
+    return this.hot.getPlugin('dataProvider')?.enabled === true &&
+      this.hot.runHooks('hasExternalDataSource') === true && this.getBoundColumn() === null;
   }
 
   /**
@@ -2467,16 +2634,22 @@ export class RowSelection extends BasePlugin {
   /**
    * Renders one cell of the plugin's row header column.
    *
+   * Walkontable reuses header cells across renders, so the cell may still hold core's row header
+   * (a `.relative` container with the `.rowHeader` label) or another column's content. Only a
+   * container this plugin built, marked with its own class, is kept; anything else is emptied, so
+   * no stale row number shows in this column, and core rebuilds its own label in a cell this plugin
+   * left (core's `appendRowHeader()` empties a container without `.rowHeader`).
+   *
    * @param {number|null} visualRow Visual row index.
    * @param {HTMLTableCellElement} TH The header cell.
    */
   #renderRowHeaderCell(visualRow: number | null, TH: HTMLTableCellElement) {
     let container = TH.firstChild as HTMLElement | null;
 
-    if (!container || !hasClass(container, 'relative')) {
+    if (!container || !hasClass(container, ROW_HEADER_CONTAINER_CLASS)) {
       empty(TH);
       container = this.hot.rootDocument.createElement('div');
-      container.className = 'relative';
+      container.className = `relative ${ROW_HEADER_CONTAINER_CLASS}`;
       TH.appendChild(container);
     }
 
@@ -3044,18 +3217,17 @@ export class RowSelection extends BasePlugin {
   };
 
   /**
-   * Adds the bulk actions to the default context menu: remove the selected rows, and clear the
+   * Returns the bulk actions for the default context menu: remove the selected rows, and clear the
    * selection. Both are hidden while nothing is selected.
    *
-   * @param {object} options The context menu options.
+   * @returns {object[]}
    */
-  #onAfterContextMenuDefaultOptions = (options: Record<string, unknown>) => {
+  #createMenuEntries() {
     // The menu calls an item's callbacks with the Handsontable instance as `this`, so the plugin is
     // captured here instead.
     const plugin = this;
 
-    (options.items as unknown[]).push(
-      { name: SEPARATOR },
+    return [
       {
         key: 'row_selection_remove',
         // The count is what the action removes: the selected rows with a visual index. A selected
@@ -3079,8 +3251,8 @@ export class RowSelection extends BasePlugin {
         },
         hidden: () => plugin.getSelectedCount() === 0,
       },
-    );
-  };
+    ];
+  }
 
   /**
    * Re-renders the translated labels.

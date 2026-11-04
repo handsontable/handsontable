@@ -122,8 +122,11 @@ type ColumnGridSettings = Omit<OmitHooks<RemoveIndexSignature<Handsontable.GridS
 /**
  * Interface for the `prop` of the HotTable component - extending the default Handsontable settings with additional,
  * component-related properties.
+ *
+ * The props are built from `SettingsUpdate`, the settings `updateSettings()` takes, so a hook prop may be
+ * `null`, which removes its callback (`afterChange={isTracking ? logChange : null}`).
  */
-export interface HotTableProps extends ReplaceRenderersEditors<Handsontable.GridSettings> {
+export interface HotTableProps extends ReplaceRenderersEditors<Handsontable.SettingsUpdate> {
   id?: string,
   className?: string,
   style?: CSSProperties,

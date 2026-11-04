@@ -64,6 +64,22 @@ export class HostSpanStylesPage {
   readonly columnHeaderCell: Locator;
   readonly columnHeaderSpan: Locator;
 
+  /**
+   * The active sheet tab (a div, the cascade parent of its label, chevron and rename field), and
+   * the spans and the input inside it. Present only with `goto({ sheetsBar: true })`.
+   */
+  readonly activeTab: Locator;
+  readonly tabLabel: Locator;
+  readonly tabChevron: Locator;
+  readonly renameInput: Locator;
+  readonly renameMirror: Locator;
+
+  /**
+   * The all-sheets menu's first row wrapper (a div) and the sheet name span inside it.
+   */
+  readonly menuItemWrapper: Locator;
+  readonly menuItemName: Locator;
+
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
@@ -85,14 +101,30 @@ export class HostSpanStylesPage {
 
     this.columnHeaderCell = page.locator('.ht_clone_top thead tr').first().locator('th').nth(1);
     this.columnHeaderSpan = this.columnHeaderCell.locator('span.colHeader');
+
+    this.activeTab = page.locator('.ht-sheets-bar__tab--active');
+    this.tabLabel = this.activeTab.locator('.ht-sheets-bar__tab-label');
+    this.tabChevron = this.activeTab.locator('.ht-sheets-bar__tab-chevron');
+    this.renameInput = this.activeTab.locator('.ht-sheets-bar__tab-rename');
+    this.renameMirror = this.activeTab.locator('.ht-sheets-bar__tab-rename-mirror');
+    this.menuItemWrapper = page.locator('.htSheetsBarMenu .htItemWrapper').first();
+    this.menuItemName = this.menuItemWrapper.locator('.ht-sheets-bar__menu-item-name');
   }
 
-  async goto(): Promise<void> {
+  /**
+   * Opens the fixture.
+   *
+   * @param {object} [options] Fixture options.
+   * @param {boolean} [options.sheetsBar] Adds the sheets bar to the grid.
+   */
+  async goto({ sheetsBar = false }: { sheetsBar?: boolean } = {}): Promise<void> {
     const pageErrors: string[] = [];
 
     this.page.on('pageerror', error => pageErrors.push(error.message));
 
-    await this.page.goto(`/tests/fixtures/demo/host-span-styles.html?theme=${this.theme}&bundle=${this.bundle}`);
+    const query = sheetsBar ? '&sheetsBar=1' : '';
+
+    await this.page.goto(`/tests/fixtures/demo/host-span-styles.html?theme=${this.theme}&bundle=${this.bundle}${query}`);
     await awaitBundle(this.page);
 
     const errorMessage = pageErrors.length > 0 ? `the fixture page threw: ${pageErrors.join(' | ')}` : undefined;
@@ -108,6 +140,22 @@ export class HostSpanStylesPage {
     // The overflow indicator only renders when the chips do not fit; its presence pins the fixture
     // geometry (column 200px, four values) so a later width change cannot silently drop it.
     await expect(this.overflow, errorMessage).toBeVisible();
+  }
+
+  /**
+   * Starts a rename of the active sheet tab with a double click on its label.
+   */
+  async startRename(): Promise<void> {
+    await this.tabLabel.dblclick();
+    await expect(this.renameInput).toBeFocused();
+  }
+
+  /**
+   * Opens the all-sheets menu.
+   */
+  async openAllSheetsMenu(): Promise<void> {
+    await this.page.locator('.ht-sheets-bar__all').click();
+    await expect(this.menuItemName).toBeVisible();
   }
 
   /**

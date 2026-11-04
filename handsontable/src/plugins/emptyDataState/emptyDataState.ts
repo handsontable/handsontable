@@ -8,6 +8,7 @@ import { command as selectAllCellsCommand } from '../../shortcuts/contexts/comma
 import { hasRenderedCells } from '../../shortcuts/guards';
 import * as C from '../../i18n/constants';
 import type { SelectionState } from '../../selection/types';
+import { LICENSE } from './feature.generated';
 
 /**
  * Local type-guard narrowing `unknown` to `Record<string, unknown>`.
@@ -223,6 +224,14 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns the default settings applied when the plugin is enabled without explicit configuration.
    */
   static get DEFAULT_SETTINGS() {
@@ -284,6 +293,11 @@ export class EmptyDataState extends BasePlugin {
    * @type {SelectionState | null}
    */
   #selectionState: SelectionState | null = null;
+  /**
+   * Whether a `loadData()` replaced the data the kept selection addressed. The next hide then leaves the
+   * selection alone, as a view change does, instead of selecting the first cell.
+   */
+  #isSelectionDataReplaced = false;
 
   /**
    * Whether the DataProvider-driven loading branch of the overlay is active.
@@ -291,6 +305,14 @@ export class EmptyDataState extends BasePlugin {
    * @type {boolean}
    */
   #loadingActive = false;
+
+  /**
+   * `true` after an enable that ran without a view (the grid was still being built), so its own toggle did
+   * nothing and the ready step owes it. An enable with a view toggles, or leaves it to `onDataReady()`.
+   *
+   * @type {boolean}
+   */
+  #toggleOwed = false;
 
   /**
    * Check if the plugin is enabled in the handsontable settings.
@@ -325,22 +347,23 @@ export class EmptyDataState extends BasePlugin {
       this.#registerEvents();
     }
 
-    this.addHook('afterInit', this.#onAfterInit);
     this.addHook('afterRender', this.#onAfterRender);
     this.addHook('afterRowSequenceCacheUpdate', this.#onSequenceCacheUpdate);
     this.addHook('afterColumnSequenceCacheUpdate', this.#onSequenceCacheUpdate);
     this.addHook('beforeFilter', this.#onBeforeFilter);
+    this.addHook('beforeLoadData', this.#onBeforeLoadData);
     this.addHook('beforeDataProviderFetch', (queryParameters: Record<string, unknown>) => {
       if (!queryParameters.skipLoading) {
         this.#setLoadingActive();
       }
     });
-    this.addHook('afterDataProviderFetch', () => this.#clearLoadingActive());
+    this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch);
     this.addHook('afterDataProviderFetchError', this.#onAfterDataProviderFetchError);
 
     super.enablePlugin();
 
     this.#onSequenceCacheUpdate();
+    this.#toggleOwed = !this.hot.view;
   }
 
   /**
@@ -348,8 +371,8 @@ export class EmptyDataState extends BasePlugin {
    * `onDataReady()` while core applies settings ahead of their data. The sequence changes several times
    * on the way (the settings pass, the load re-initializing the index maps), and a toggle on one of the
    * intermediate states showed the overlay, and took the keyboard, for a grid about to receive rows.
-   * Without a view (the grid is still being built) the toggle runs as before: it does nothing then, and
-   * the plugin's own `afterInit` shows or hides the overlay.
+   * Without a view (the grid is still being built) the toggle does nothing, and the ready step shows or
+   * hides the overlay.
    */
   #onSequenceCacheUpdate = () => {
     if (this.isDataWorkDeferred() && this.hot.view) {
@@ -374,6 +397,23 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
+   * Shows or hides the empty state when the enable could not: it ran before the view existed, so its own
+   * toggle did nothing. Core runs it once after each enable or update, when the view exists, before the next
+   * render. At init that is where the overlay first appears. An enable or update with a view toggles itself,
+   * or leaves it to `onDataReady()`, so the step does nothing after it.
+   *
+   * @private
+   */
+  onGridReady() {
+    if (!this.#toggleOwed) {
+      return;
+    }
+
+    this.#toggleOwed = false;
+    this.#toggleEmptyDataState();
+  }
+
+  /**
    * Update plugin state after Handsontable settings update.
    */
   updatePlugin() {
@@ -384,8 +424,16 @@ export class EmptyDataState extends BasePlugin {
     // scope on the way.
     const hadActiveScope = isRootInstance(this.hot) &&
       this.hot.getFocusScopeManager().getActiveScopeId() === PLUGIN_KEY;
+    const wasVisible = this.#isVisible;
+    const selectionState = this.#selectionState;
+    const isSelectionDataReplaced = this.#isSelectionDataReplaced;
+    const wasLoading = this.#loadingActive;
 
     this.disablePlugin();
+    this.#isVisible = wasVisible;
+    this.#selectionState = selectionState;
+    this.#isSelectionDataReplaced = isSelectionDataReplaced;
+    this.#loadingActive = wasLoading;
     this.enablePlugin();
     this.#update();
 
@@ -401,10 +449,18 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disable plugin for this Handsontable instance. The overlay goes away with the plugin's UI, so the
+   * plugin stops reporting it as visible and forgets the selection it kept for the hide. A later enable
+   * then starts from a hidden overlay, and a grid with rows fires no `afterEmptyDataStateHide` and gets
+   * no selection it did not ask for. `updatePlugin()` keeps that state across its own disable and enable,
+   * the loading flag included, so an update of the options made while a fetch runs keeps the loading
+   * overlay up.
    */
   disablePlugin() {
     this.#loadingActive = false;
+    this.#isVisible = false;
+    this.#selectionState = null;
+    this.#isSelectionDataReplaced = false;
 
     this.#unregisterShortcuts();
     this.#unregisterFocusScope();
@@ -453,6 +509,7 @@ export class EmptyDataState extends BasePlugin {
 
     if (isViewChange && this.#isVisible) {
       this.#selectionState = this.hot.selection.exportSelection();
+      this.#isSelectionDataReplaced = false;
     }
 
     if (isLoading) {
@@ -674,6 +731,7 @@ export class EmptyDataState extends BasePlugin {
     this.#updateLayout();
 
     this.#selectionState = this.hot.selection.exportSelection();
+    this.#isSelectionDataReplaced = false;
     this.hot.getFocusScopeManager().activateScope(PLUGIN_KEY);
 
     this.hot.runHooks('afterEmptyDataStateShow');
@@ -712,7 +770,8 @@ export class EmptyDataState extends BasePlugin {
    * Hides the emptyDataState overlay.
    *
    * @param {boolean} [restoresSelection=true] Whether to restore the selection kept when the overlay appeared,
-   * or select the first cell when none was kept. With `false`, the selection is left as it is.
+   * or select the first cell when none was kept. With `false`, the selection is left as it is, and so it is
+   * after a `loadData()` replaced the data the kept selection addressed.
    */
   #hide(restoresSelection = true) {
     if (!this.#isVisible) {
@@ -728,8 +787,9 @@ export class EmptyDataState extends BasePlugin {
     // here as well - two rollbacks eventually disagree, and this one cannot know what it displaced.
     this.hot.getFocusScopeManager().deactivateScope(PLUGIN_KEY);
 
-    if (!restoresSelection) {
+    if (!restoresSelection || this.#isSelectionDataReplaced) {
       this.#selectionState = null;
+      this.#isSelectionDataReplaced = false;
     } else if (this.#selectionState && this.#selectionState.ranges.length > 0) {
       this.hot.selection.importSelection({
         ...this.#selectionState,
@@ -763,16 +823,6 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
-   * Called after the initialization of the table is completed.
-   * It toggles the emptyDataState.
-   */
-  #onAfterInit = () => {
-    this.#toggleEmptyDataState();
-
-    this.hot.render();
-  };
-
-  /**
    * Called after the rendering of the table is completed.
    * It updates the height and class names of the emptyDataState element.
    */
@@ -791,6 +841,41 @@ export class EmptyDataState extends BasePlugin {
 
     if (this.isVisible()) {
       this.#update();
+    }
+  };
+
+  /**
+   * Forgets the selection kept for the hide when `loadData()` replaces the data. The kept coordinates
+   * address the replaced rows, so restoring them put a selection on unrelated cells of the new data. When a
+   * selection was kept, the hide then leaves the selection alone, as a view change does: the user selected
+   * cells of other data, so neither those cells nor the first cell is theirs. When none was kept, the hide
+   * still selects the first cell. A grid with an external data source keeps the selection: its loads bring
+   * another page or order of the same records, and restoring the selection is how the user keeps it across
+   * them. `updateData()` keeps the dataset's state by design, so it keeps the selection too.
+   */
+  #onBeforeLoadData = () => {
+    if (this.hot.runHooks('hasExternalDataSource') === true) {
+      return;
+    }
+
+    if (this.#selectionState && this.#selectionState.ranges.length > 0) {
+      this.#isSelectionDataReplaced = true;
+    }
+
+    this.#selectionState = null;
+  };
+
+  /**
+   * Hides the loading overlay when the fetch it waits for loads. A replayed response (`isRestored`) is not the end
+   * of a fetch: it brings back rows the grid already shows, and a fetch replayed over may still be running, so the
+   * overlay stays as it is. When no fetch runs, the overlay is already hidden by then.
+   *
+   * @param {object} [result] The {@link Hooks#afterDataProviderFetch} payload.
+   * @returns {void}
+   */
+  readonly #onAfterDataProviderFetch = (result?: { isRestored?: true }) => {
+    if (result?.isRestored !== true) {
+      this.#clearLoadingActive();
     }
   };
 
@@ -820,6 +905,7 @@ export class EmptyDataState extends BasePlugin {
     this.#ui = null;
     this.#hasFilterConditions = false;
     this.#selectionState = null;
+    this.#isSelectionDataReplaced = false;
 
     super.destroy();
   }

@@ -3,6 +3,7 @@ import { registerAllModules } from 'handsontable/registry';
 import HotTable from '../src/HotTable.vue';
 import HotColumn from '../src/HotColumn.vue';
 import { createSampleData } from './_helpers';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 config.renderStubDefaultSlot = true;
 
@@ -18,7 +19,7 @@ describe('`rowSelection` option', () => {
   it('should enable the plugin from the `settings` prop and expose its API through `hotInstance`', () => {
     const testWrapper = mount(HotTable, {
       props: {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         settings: {
           data: createSampleData(5, 3),
           rowHeaders: true,
@@ -45,7 +46,7 @@ describe('`rowSelection` option', () => {
     let updateSettingsCalls = 0;
     const testWrapper = mount(HotTable, {
       props: {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         afterUpdateSettings() {
           updateSettingsCalls += 1;
         },
@@ -82,7 +83,7 @@ describe('`rowSelection` option', () => {
   it('should disable the plugin when the `settings` prop turns `rowSelection` off', async() => {
     const testWrapper = mount(HotTable, {
       props: {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         settings: {
           data: createSampleData(5, 3),
           rowHeaders: true,
@@ -114,7 +115,7 @@ describe('`headerCheckbox` column option', () => {
       components: { HotTable, HotColumn },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :data="data"
           :colHeaders="true"
         >

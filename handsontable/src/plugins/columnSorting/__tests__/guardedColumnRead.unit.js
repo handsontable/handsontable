@@ -3,6 +3,7 @@ import { registerAllCellTypes } from '../../../registry';
 import { registerPlugin } from '../../registry';
 import { ColumnSorting } from '../columnSorting';
 import { HiddenRows } from '../../hiddenRows/hiddenRows';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 // The sort gather loop reads its input through `Core#_getDataAtColumnForRows()`, which resolves the
 // column coordinates once and then reads the source rows directly. That fast loop runs no user code,
@@ -45,7 +46,7 @@ describe('the guarded bulk column read behind the sort gather loop', () => {
    */
   function build(settings) {
     return new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       columnSorting: true,
       ...settings,
     });

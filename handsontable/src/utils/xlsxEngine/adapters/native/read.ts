@@ -2,7 +2,7 @@ import { throwWithCause } from '../../../../helpers/errors';
 import { localeLowerCase } from '../../../../helpers/string';
 import { DROPPED_FEATURES, type DroppedFeatureName, type DroppedFeatures } from '../../capabilities';
 import { isLimitError, MAX_INPUT_BYTES, throwLimitExceeded } from '../../limits';
-import { createWorkbookSnapshot, type WorkbookSnapshot } from '../../model';
+import { createWorkbookSnapshot, type DefinedNameSnapshot, type WorkbookSnapshot } from '../../model';
 import { noteToComment } from '../../threadedComments';
 import { parseComments } from './parts/comments';
 import {
@@ -11,9 +11,12 @@ import {
   parseWorkbook, resolvePartPath, REL_TYPES, type Relationship, SPREADSHEET_MAIN_CONTENT_TYPES,
   type WorkbookSheetEntry,
 } from './parts/package';
+import {
+  createRichValueLookup, parseRichValues, parseRichValueStructures, parseValueMetadata, type RichValueLookup,
+} from './parts/richValues';
 import { parseSharedStrings, type ParsedSharedStrings } from './parts/sharedStrings';
 import { EMPTY_STYLES, parseStyles, type ParsedStyles } from './parts/styles';
-import { parseWorksheet, type WorkbookBudget } from './parts/worksheetReader';
+import { parseWorksheet, type RichValueCell, type WorkbookBudget } from './parts/worksheetReader';
 import { foldPartName, readZip, type ZipArchive } from './zip/reader';
 import { assertNativeEngineGlobals } from './zip/streams';
 
@@ -119,7 +122,7 @@ interface OpenedPackage {
   workbookRels: Relationship[];
   sheets: ReturnType<typeof parseWorkbook>['sheets'];
   date1904: boolean;
-  definedNames: string[];
+  definedNames: DefinedNameSnapshot[];
   styles: ParsedStyles;
   sharedStrings: ParsedSharedStrings;
   contentTypes: ContentTypes;
@@ -128,6 +131,16 @@ interface OpenedPackage {
    */
   packageParts: Set<string>;
   hasVbaProject: boolean;
+  /**
+   * The parts a cell's value metadata (`vm`) resolves through: `xl/metadata.xml`, the rich values
+   * and their structures. `null` when the workbook declares any of them missing. They are read only
+   * when a sheet holds an error cell carrying `vm` (`richValuesOf`).
+   */
+  richValueParts: { metadata: string; values: string; structures: string } | null;
+  /**
+   * The lookup built from `richValueParts`, once a sheet asked for it.
+   */
+  richValues?: Promise<RichValueLookup | null>;
 }
 
 /**
@@ -241,6 +254,27 @@ async function refuseMissingWorkbook(archive: ZipArchive, workbookPath: string):
 }
 
 /**
+ * The defined names of a workbook, read from its workbook part with this engine's parser and
+ * nothing else: no sheet is read and nothing is recorded. The ExcelJS adapter reads the names this
+ * way because ExcelJS's own model loses every name that is not an `$A$1`-style range.
+ *
+ * @param {ArrayBuffer} buffer The workbook file.
+ * @returns {Promise<DefinedNameSnapshot[]>}
+ */
+export async function readWorkbookDefinedNames(buffer: ArrayBuffer): Promise<DefinedNameSnapshot[]> {
+  const archive = await readZip(buffer);
+
+  try {
+    const rootRels = archive.has('_rels/.rels') ? parseRels(await archive.text('_rels/.rels')) : [];
+    const workbookPath = targetOf(rootRels, REL_TYPES.officeDocument, '') ?? 'xl/workbook.xml';
+
+    return archive.has(workbookPath) ? parseWorkbook(await archive.text(workbookPath)).definedNames : [];
+  } finally {
+    archive.release();
+  }
+}
+
+/**
  * Opens the archive and the workbook-level parts. Any failure here means the bytes are not a
  * workbook this reader understands.
  */
@@ -262,9 +296,12 @@ async function openPackage(buffer: ArrayBuffer, dropped: DroppedFeatures): Promi
   const workbookRels = await relsOf(archive, workbookPath);
   const stylesPath = targetOf(workbookRels, REL_TYPES.styles, workbookPath);
   const stringsPath = targetOf(workbookRels, REL_TYPES.sharedStrings, workbookPath);
+  const metadataPath = targetOf(workbookRels, REL_TYPES.sheetMetadata, workbookPath);
+  const richValuesPath = targetOf(workbookRels, REL_TYPES.richValue, workbookPath);
+  const structuresPath = targetOf(workbookRels, REL_TYPES.richValueStructure, workbookPath);
   const packageParts = new Set([CONTENT_TYPES_PART, workbookPath].map(foldPartName));
 
-  [stylesPath, stringsPath].forEach((path) => {
+  [stylesPath, stringsPath, metadataPath, richValuesPath, structuresPath].forEach((path) => {
     if (path !== null) {
       packageParts.add(foldPartName(path));
     }
@@ -281,6 +318,9 @@ async function openPackage(buffer: ArrayBuffer, dropped: DroppedFeatures): Promi
     contentTypes,
     // Detected from the package's own index only: the project is binary and is never inflated.
     hasVbaProject: workbookRels.some(rel => rel.type === REL_TYPES.vbaProject) || archive.has(VBA_PROJECT_PART),
+    richValueParts: metadataPath !== null && richValuesPath !== null && structuresPath !== null
+      ? { metadata: metadataPath, values: richValuesPath, structures: structuresPath }
+      : null,
     styles: stylesPath && archive.has(stylesPath)
       ? parseStyles(await archive.text(stylesPath), dropped)
       : EMPTY_STYLES,
@@ -395,6 +435,63 @@ async function imageDrawingIds(
 }
 
 /**
+ * The lookup a sheet's value-metadata cells resolve through, built once per read from the parts
+ * `OpenedPackage.richValueParts` names, or `null` when the workbook lacks one of them, one does not
+ * parse, or one passes a limit. The parts are read only for a sheet that asks, so a workbook whose
+ * sheets hold no such cell never inflates them. They are optional: a workbook that imported before
+ * the reader knew them must not be refused over them, so a limit refusal costs only the error codes,
+ * and the archive budget gives back what the refused part was charged (`zip/reader.ts`).
+ */
+function richValuesOf(opened: OpenedPackage, ledger: TokenizeLedger): Promise<RichValueLookup | null> {
+  const parts = opened.richValueParts;
+
+  opened.richValues ??= (async() => {
+    if (parts === null || !opened.archive.has(parts.metadata) || !opened.archive.has(parts.values)
+        || !opened.archive.has(parts.structures)) {
+      return null;
+    }
+
+    try {
+      const valueMetadata = parseValueMetadata(await partToTokenize(opened.archive, parts.metadata, ledger));
+      const structures = parseRichValueStructures(await partToTokenize(opened.archive, parts.structures, ledger));
+      const richValues = parseRichValues(await partToTokenize(opened.archive, parts.values, ledger));
+
+      return createRichValueLookup(valueMetadata, structures, richValues);
+    } catch {
+      return null;
+    }
+  })();
+
+  return opened.richValues;
+}
+
+/**
+ * Settles the error cells of a sheet that carry value metadata. A rich error writes its own code
+ * (`#SPILL!`, `#CALC!`, ...) over the cached `#VALUE!` Excel stores for it; a picture records
+ * `images`; another rich value (a linked data type, an error type with no code) records
+ * `cellValue:richValue`. A cell the parts
+ * do not resolve keeps its cached value, and is taken for a picture when it has no formula or calls
+ * `IMAGE`.
+ */
+function settleRichValueCells(cells: RichValueCell[], lookup: RichValueLookup | null, dropped: DroppedFeatures): void {
+  cells.forEach(({ cell, vm, pictureIfUnresolved }) => {
+    const resolved = lookup?.resolve(vm) ?? null;
+
+    if (resolved === null ? pictureIfUnresolved : resolved.kind === 'picture') {
+      dropped.record(DROPPED_FEATURES.images);
+    } else if (resolved?.kind === 'other') {
+      dropped.record(DROPPED_FEATURES.cellValueRichValue);
+    } else if (resolved?.kind === 'error') {
+      if (cell.formula === null) {
+        cell.value = resolved.code;
+      } else {
+        cell.formula.result = resolved.code;
+      }
+    }
+  });
+}
+
+/**
  * Reads one worksheet into the snapshot. The sheet's relationship is the one its `r:id` resolved
  * to, or `undefined` when the workbook declares none — which is refused here, as is a part the
  * archive does not hold.
@@ -434,6 +531,8 @@ async function readSheet(
     });
     const imageDrawings = await imageDrawingIds(opened.archive, sheetRels, sheetPath, ledger);
     const xml = await partToTokenize(opened.archive, sheetPath, ledger);
+    // A workbook with no rich-value parts leaves the cells to the parser, which judges them in place.
+    const richValueCells: RichValueCell[] | undefined = opened.richValueParts === null ? undefined : [];
 
     snapshot.sheets.push(parseWorksheet(xml, {
       name: entry.name,
@@ -442,10 +541,15 @@ async function readSheet(
       sharedStrings: opened.sharedStrings,
       comments,
       imageDrawings,
+      richValueCells,
       date1904: opened.date1904,
       dropped,
       budget,
     }));
+
+    if (richValueCells !== undefined && richValueCells.length > 0) {
+      settleRichValueCells(richValueCells, await richValuesOf(opened, ledger), dropped);
+    }
   } catch (error) {
     if (isLimitError(error)) {
       throw error;

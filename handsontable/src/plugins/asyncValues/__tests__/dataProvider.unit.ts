@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { products, settle } from './helpers/grid';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllModules();
 
@@ -30,7 +31,7 @@ async function createServerGrid(
       onRowsUpdate,
       onRowsRemove: async() => {},
     },
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     ...extra,
   });
 
@@ -269,7 +270,7 @@ describe('AsyncValues: saveToDataProvider', () => {
       columns: [{ data: 'sku' }, { data: 'name' }],
       rowId: 'id',
       asyncValues: { saveToDataProvider: true },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     await hot.getPlugin('asyncValues').setAsyncValueAt({ rowId: 'a', prop: 'name' }, Promise.resolve('new A'));

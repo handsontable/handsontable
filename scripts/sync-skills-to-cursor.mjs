@@ -47,7 +47,7 @@ const GLOB_MAP = {
   'handsontable-css-dev': ['handsontable/src/styles/**', 'handsontable/src/themes/**'],
   'handsontable-a11y': [
     'handsontable/src/helpers/a11y.ts', 'handsontable/src/utils/a11yAnnouncer.ts',
-    'handsontable/src/focusManager/**', 'handsontable/src/plugins/contextMenu/**',
+    'handsontable/src/focusManager/**', 'handsontable/src/plugins/contextMenu/**', 'handsontable/src/utils/menu/**',
     'handsontable/src/plugins/dropdownMenu/**', 'handsontable/src/plugins/*/ui/**',
     'handsontable/src/editors/**', 'tests/a11y/**',
   ],

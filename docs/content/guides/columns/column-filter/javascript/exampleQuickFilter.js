@@ -130,7 +130,7 @@ const hot = new Handsontable(container, {
   className: 'exampleQuickFilter',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 // add a filter input listener

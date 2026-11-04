@@ -3,6 +3,7 @@ import { registerCellType, TextCellType } from '../../../cellTypes';
 import { registerPlugin } from '../../registry';
 import { CopyPaste } from '../copyPaste';
 import PasteEvent from '../pasteEvent';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerCellType(TextCellType);
 registerPlugin(CopyPaste);
@@ -44,7 +45,7 @@ describe('CopyPaste clipboard parse fallback', () => {
   function pasteInto(textPlain: string, textHTML: string) {
     const hot = new Handsontable(document.createElement('div'), {
       data: [['A1', 'B1'], ['A2', 'B2']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.selectCell(0, 0);
@@ -82,7 +83,7 @@ describe('CopyPaste clipboard parse fallback', () => {
   it('should leave the target cell alone when there is no plain-text flavour to fall back to', () => {
     const hot = new Handsontable(document.createElement('div'), {
       data: [['A1', 'B1'], ['A2', 'B2']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const event = new PasteEvent();
 
@@ -103,7 +104,7 @@ describe('CopyPaste clipboard parse fallback', () => {
   it('should hand the sanitizer the raw payload, not a rewritten one', () => {
     const hot = new Handsontable(document.createElement('div'), {
       data: [['A1', 'B1'], ['A2', 'B2']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       sanitizer: jest.fn(content => content) as never,
     });
     const sanitizer = hot.getSettings().sanitizer as unknown as jest.Mock;
@@ -126,7 +127,7 @@ describe('CopyPaste clipboard parse fallback', () => {
   it('should flatten markup a lenient sanitizer let through', () => {
     const hot = new Handsontable(document.createElement('div'), {
       data: [['A1', 'B1'], ['A2', 'B2']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       // a sanitizer that permits `<b>`, which the `html` cell type would then execute
       sanitizer: (content: string) => content,
     });
@@ -146,7 +147,7 @@ describe('CopyPaste clipboard parse fallback', () => {
   it('should not flatten when the sanitizer returns a non-string, which cannot be rewritten', () => {
     const hot = new Handsontable(document.createElement('div'), {
       data: [['A1', 'B1'], ['A2', 'B2']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       // stands in for a `TrustedHTML`: an object the parser accepts and a string rewrite destroys
       sanitizer: ((content: string) => ({ toString: () => content })) as never,
     });
@@ -166,7 +167,7 @@ describe('CopyPaste clipboard parse fallback', () => {
   it('should let a sanitizer that strips the table fall back to plain text', () => {
     const hot = new Handsontable(document.createElement('div'), {
       data: [['A1', 'B1'], ['A2', 'B2']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       sanitizer: (content: string) => content.replace(/<\/?table[^>]*>/gi, ''),
     });
 
@@ -200,7 +201,7 @@ describe('CopyPaste clipboard parse fallback', () => {
   it('should still paste when only the source-data flavour is refused', () => {
     const hot = new Handsontable(document.createElement('div'), {
       data: [['A1', 'B1'], ['A2', 'B2']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const event = new PasteEvent();
     let calls = 0;

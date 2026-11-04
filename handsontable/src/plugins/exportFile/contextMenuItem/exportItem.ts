@@ -8,28 +8,32 @@ import type { HotInstance } from '../../../core/types';
 import type { ExportFile } from '../exportFile';
 import { PLUGIN_KEY } from '../exportFile';
 import { getExportOptions } from './utils';
+import { LICENSE } from '../feature.generated';
+import { hasLicenseCapability } from '../../../utils/licenseCapabilities';
 
 /**
  * Returns the ExportFile context menu item descriptor with a submenu
  * containing "To CSV" and "To Excel" sub-items.
  *
  * The parent item is hidden when `exportFile` is not explicitly configured
- * in the Handsontable settings. The "To Excel" sub-item is hidden when
- * {@link ExportFile#supportsExportFormat} answers `false` for `'xlsx'`, which happens only
- * when `engines.xlsx` holds a module that is not a recognized engine. The default setup
- * exports through the built-in engine, so the sub-item shows there.
+ * in the Handsontable settings, and when the license key does not include the
+ * export (a click would only report it). The "To Excel" sub-item is hidden when
+ * {@link ExportFile#supportsExportFormat} answers `false` for `'xlsx'`, which happens when
+ * `engines.xlsx` holds a module that is not a recognized engine, or when the license key
+ * does not unlock the `xlsx:export` capability. The default setup with a key that unlocks
+ * it exports through the built-in engine, so the sub-item shows there.
  *
  * @param {ExportFile} exportFilePlugin The plugin instance.
  * @returns {object}
  */
-export default function exportItem(exportFilePlugin: ExportFile): object {
+export default function exportItem(exportFilePlugin: ExportFile) {
   return {
     key: 'export_file',
     name(this: HotInstance): string {
       return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_EXPORT);
     },
     hidden(this: HotInstance) {
-      return this.getSettings()[PLUGIN_KEY] === undefined;
+      return this.getSettings()[PLUGIN_KEY] === undefined || !hasLicenseCapability(this, LICENSE.capability);
     },
     submenu: {
       items: [

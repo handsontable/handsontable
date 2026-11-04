@@ -72,7 +72,7 @@ if (rootContainer instanceof HTMLElement) {
     ],
     stretchH: 'all',
     height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
     afterChange(changes, source) {
       if (!changes || source === 'loadData') {
         return;

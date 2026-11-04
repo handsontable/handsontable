@@ -83,7 +83,7 @@ Click **Export XLSX** to download the Q1 report: nested headers, a dropdown with
 ```javascript
 const hot = new Handsontable(container, {
   exportFile: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -93,8 +93,8 @@ const hot = new Handsontable(container, {
 
 ```jsx
 <HotTable
+  // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
   exportFile={true}
-  licenseKey="non-commercial-and-evaluation"
 />
 ```
 
@@ -105,7 +105,7 @@ const hot = new Handsontable(container, {
 ```typescript
 readonly hotSettings: GridSettings = {
   exportFile: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 ```
 
@@ -116,7 +116,7 @@ readonly hotSettings: GridSettings = {
 ```javascript
 const hotSettings = ref({
   exportFile: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -211,15 +211,15 @@ The export covers the selected range, or the whole grid when a single cell is se
 | `checkbox` | `TRUE` or `FALSE`. An empty value stays empty. |
 | `dropdown`, `autocomplete` | Text, plus a list validation when `source` is an array. The lists live in a hidden `_HotValidation` sheet, which Excel lists under **Unhide**; do not delete it. A function `source` gets no list. |
 | `multiselect` | The values joined with `, `. |
-| Everything else | Text. A number in a `text` column is text too. |
+| Everything else | Text. A number you typed into a `text` column is text too. A number or `TRUE`/`FALSE` the Formulas plugin computed keeps its type. |
 
 Bold, italic, and underline come from the rendered cell, or from the cell's custom class for a cell outside the rendered viewport. Font color and background are written only for a cell whose `className` holds a class other than the alignment classes. The font color is the rendered cell's own, written when it differs from what a plain cell in the same grid shows, so a color the cell inherits from its container is not. The background comes from the CSS rules that match the class on a `.handsontable td`, so a background a renderer sets inline, or one from a rule scoped to an element outside the grid (such as `#orders td.overdue`), is not written. Alignment comes from the `htLeft`, `htCenter`, `htRight`, `htJustify`, `htTop`, `htMiddle`, and `htBottom` classes, and borders from the [`CustomBorders`](@/api/customBorders.md) plugin (1 px thin, 2 px medium, 3 px and up thick). Font size and family are not written.
 
-Read-only cells get a gray fill unless their class sets a background, and gray text unless their class sets a font color. The sheet is protected without a password and only read-only cells are locked, unless the export includes a `columnSummary` destination cell: then the sheet is not protected, because those cells are read-only only to stop edits in the grid. The grid's `readOnlyStyling` option does not change the file.
+Read-only cells get a gray fill unless their class sets a background, and gray text unless their class sets a font color. The sheet is protected without a password and only read-only cells are locked, unless the export includes a `columnSummary` destination cell: then the sheet is not protected, because those cells are read-only only to stop edits in the grid. The grid's `readOnlyStyling` option does not change the file. Header cells get the `headerStyle` fill and border. If your license does not include styles from the [XLSX add-on](@/guides/getting-started/license-key/license-key.md#xlsx-add-on), header cells are written with no fill, border, or alignment.
 
 Frozen panes: `fixedRowsTop` and `fixedColumnsStart` are written; `fixedRowsBottom` and `fixedColumnsEnd` are not. A right-to-left grid, through [`layoutDirection`](@/api/options.md#layoutdirection) or a right-to-left page, exports a right-to-left sheet. Comments are written from each cell's `comment` meta. `password` cells are written as text.
 
-Details on number formats, dates, and error cells: [XLSX engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#dates-times-and-number-formats).
+Details on number formats and dates: [XLSX engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#dates-times-and-number-formats). Details on formulas and error cells: [Formulas, arrays, errors, and defined names](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#formulas-arrays-errors-and-defined-names).
 
 ### Dropped features
 
@@ -236,16 +236,44 @@ Pass these options as the second argument of `downloadFileAsync('xlsx', options)
 | `rowHeaders` | `boolean` | `false` | Write the row headers as the first column. The column is frozen only when the export includes a row from `fixedRowsTop` or a column from `fixedColumnsStart`. |
 | `exportHiddenRows`, `exportHiddenColumns` | `boolean \| 'hide'` | `false` | `false` leaves hidden rows or columns out, `true` writes them visible, `'hide'` writes them hidden in the sheet. |
 | `range` | `number[]` | whole grid | `[startRow, startColumn, endRow, endColumn]` in visual indexes. |
-| `exportFormulas` | `boolean` | `false` | Write [Formulas](@/guides/formulas/formula-calculation/formula-calculation.md) cells and [ColumnSummary](@/guides/columns/column-summary/column-summary.md) destination cells (every summary type except `custom`, which is written as its value) as live Excel formulas instead of their values. A `range` that does not start at row 0 and column 0 makes references point at the wrong cells. Give the columns they read `type: 'numeric'`: a number in a `text` column is written as text and sums to `0`. Without the Formulas plugin, any text that starts with `=` becomes a live formula, so keep this off for a grid that holds text you did not write. Error cells, array formulas, and named expressions: see [XLSX engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#dates-times-and-number-formats). |
+| `exportFormulas` | `boolean` | `false` | Write [Formulas](@/guides/formulas/formula-calculation/formula-calculation.md) cells and [ColumnSummary](@/guides/columns/column-summary/column-summary.md) destination cells (every summary type except `custom`, which is written as its value) as live Excel formulas instead of their values. A `range` that does not start at row 0 and column 0 makes references point at the wrong cells. Give the columns they read `type: 'numeric'`: a number in a `text` column is written as text and sums to `0`. Without the Formulas plugin, any text that starts with `=` becomes a live formula, so keep this off for a grid that holds text you did not write. Array formulas are written as Excel dynamic arrays, and named expressions as defined names. Error cells are written as Excel errors with or without this option, when the Formulas plugin is on. Details and limits: [XLSX engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#formulas-arrays-errors-and-defined-names). |
 | `sheets` | `object[]` | - | Export several grids into one workbook: `[{ instance, name, ...options }]`. Only the listed grids are written, and each entry inherits the top-level options and can override `colHeaders`, `rowHeaders`, `exportHiddenRows`, `exportHiddenColumns`, `range`, `exportFormulas`, `headerStyle`, and `conditionalFormatting` (the `SheetOptions` type does not declare the last two yet). `filename`, `compression`, and `engine` apply to the whole workbook. See [Multi-sheet export](#multi-sheet-export). |
 | `headerStyle` | `object \| null` | `{ backgroundColor: '#F2F2F2', border: { style: 'thin' } }` | Fill and border of the header cells. An object replaces the whole default, so pass both keys to keep one; `null` writes unstyled headers. Set a border color with `border: { color: '#RRGGBB' }` (the `HeaderStyleBorder` type does not declare `color` yet); `fontColor` and `border.argb` are not applied. `headerStyle` also styles the row headers and the corner cell. |
 | `conditionalFormatting` | `object[]` | `[]` | `[{ rows: [first, last], cols: [first, last], rules }]`. `rows` and `cols` are offsets into the exported data, after `range` and hidden-row or hidden-column exclusion, and `rules` are ExcelJS-compatible rule objects ([shape](https://github.com/exceljs/exceljs#conditional-formatting)). Put a rule's formatting in its `style` key; a `format` key is ignored. Which rule kinds each engine writes: [Compare the engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#compare-the-engines). |
+| `protection` | `object \| null` | `undefined` | Sheet protection of read-only cells. Unset protects a sheet that has a read-only cell, with no password. `{ password: 'q4-budget' }` protects it with that password. `null` protects no sheet, and read-only cells export unlocked. An empty `password` sets none. See [Protect read-only cells](#protect-read-only-cells). |
 | `compression` | `boolean \| 1-9` | compressed | Unset or `true` compresses the entries with DEFLATE; `false` stores them uncompressed. A number from 1 to 9 sets the DEFLATE level on an engine that supports it: see [Compare the engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#compare-the-engines). |
 | `engine` | `object \| null` | - | Engine for this call only. See [Choose the engine](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#choose-the-engine). |
+
+### What your license unlocks
+
+Formulas, styles, layout, number formats, comments, conditional formatting, data validation, and sheet protection in the exported file are available as a bundle: the [XLSX add-on](@/guides/getting-started/license-key/license-key.md#xlsx-add-on). Every key issued before 19.0 includes all of it.
+
+When your key leaves out part of the add-on, the export writes the rest of the workbook and prints one console warning that names what it skipped. Without number formats, for example, a date cell exports as the text the grid shows, such as `01/15/2024`. When your key does not include Excel export at all, the export methods throw, [`supportsExportFormat('xlsx')`](@/api/exportFile.md#supportsexportformat) returns `false` and the **To Excel** context menu item is hidden, so check it before you offer an Excel download.
+
+### Protect read-only cells
+
+An export protects a sheet that has a read-only cell and locks those cells, so Excel does not let users edit them. By default the sheet has no password, so anyone can unprotect it. Pass `protection` to set a password or turn protection off:
+
+```js
+hot.getPlugin('exportFile').downloadFileAsync('xlsx', {
+  filename: 'q4-budget',
+  protection: { password: 'q4-budget' },
+});
+```
+
+- `protection: { password: '...' }` protects the sheet with that password. With the [`sheets`](#multi-sheet-export) option, every protected sheet gets the same password. A `protection` key on a `sheets` entry is ignored, and the export prints one console warning: `ExportFile: the "protection" option applies to the whole workbook; the value set on a sheet entry was ignored.`
+- `protection: null` protects no sheet, and read-only cells export unlocked.
+- An empty `password` sets no password.
+- A sheet with no read-only cell is not protected, so a password writes nothing. A sheet with a `columnSummary` destination cell is not protected either.
+- A `protection` value that is not an object or `null` rejects the export with `ExportFile: the "protection" option has to be an object or null.` A `password` that is not a string rejects it with `ExportFile: the "protection.password" option has to be a string.` Excel accepts a password of at most 255 characters, so a longer one rejects the export with `ExportFile: the "protection.password" option has to be at most 255 characters long.` The messages never contain the value.
+
+The password is stored as a salted SHA-512 hash, and Excel asks for it when a user unprotects the sheet. The built-in engine computes the hash with `crypto.subtle`, which the browser exposes only in a secure context (https or localhost). On a plain `http://` page, an export that protects a sheet with a password rejects with `Sheet password hashing needs crypto.subtle, which is only available in a secure context (https or localhost).` The hash runs 100,000 SHA-512 rounds for every protected sheet, so a multi-sheet export with a password takes noticeably longer. This is a guard against accidental edits, not encryption: the cell values stay readable in the file. If your license does not include sheet protection from the [XLSX add-on](#what-your-license-unlocks), the option is ignored.
 
 ### Multi-sheet export
 
 Pass the `sheets` option to write several grids into one workbook, one per entry, each with its `instance` and the `name` of its tab. A sheet name is cut to 31 characters and stripped of the characters Excel forbids. With `exportFormulas`, a same-sheet reference is shifted by the header rows and the row-header column, but not by the start of `range`: with a `range` that does not start at row 0 and column 0, references point at the wrong cells. A formula that names another sheet in the same export is written as typed, so it points as many rows up as that sheet has header rows, and one column left when that sheet has row headers.
+
+With the [sheets bar](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md#import-and-export), an export writes the active sheet only. To name its worksheet after the tab, list the grid in `sheets` with the tab's name.
 
 ::: only-for javascript
 ::: example #example2 :hot-excel --html 1 --js 2 --ts 3
@@ -292,7 +320,7 @@ Each export method takes the format first, `'csv'` or `'xlsx'`, and an options o
 - [`downloadFileAsync(format, options)`](@/api/exportFile.md#downloadfileasync) - starts a download and returns a `Promise`. CSV and XLSX. With the [`Dialog`](@/api/dialog.md) plugin, an XLSX export reads the data after its progress overlay is shown, so a [`loadData()`](@/api/core.md#loaddata) call in between, such as a [sheets bar](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md) tab switch, rejects the `Promise` and downloads nothing.
 - [`exportAsBlobAsync(format, options)`](@/api/exportFile.md#exportasblobasync) - returns a `Promise` of a `Blob`. CSV and XLSX.
 - [`downloadFile(format, options)`](@/api/exportFile.md#downloadfile), [`exportAsBlob(format, options)`](@/api/exportFile.md#exportasblob), and [`exportAsString(format, options)`](@/api/exportFile.md#exportasstring) - synchronous, CSV only. They throw for `'xlsx'`.
-- [`supportsExportFormat(format)`](@/api/exportFile.md#supportsexportformat) - `true` when the format can be written.
+- [`supportsExportFormat(format)`](@/api/exportFile.md#supportsexportformat) - `true` when the format can be written. `supportsExportFormat('xlsx')` also returns `false` when your license key does not include Excel export.
 
 ## Hooks
 

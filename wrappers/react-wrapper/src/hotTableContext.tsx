@@ -11,7 +11,7 @@ import React, {
   useContext,
 } from 'react';
 import { ScopeIdentifier, HotRendererProps } from './types';
-import { createPortal, warnAboutClassicFunctionRenderer } from './helpers';
+import { createPortal, getCellContentRoot, warnAboutClassicFunctionRenderer } from './helpers';
 import { RenderersPortalManagerRef } from './renderersPortalManager';
 
 export interface HotTableContextImpl {
@@ -101,6 +101,15 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
   const clearRenderedCellCache = useCallback(() => renderedCellCache.current.clear(), []);
   const portalCache = useRef<Map<string, ReactPortal>>(new Map());
   const portalContainerCache = useRef<Map<string, HTMLElement>>(new Map());
+
+  /**
+   * The renderer function made for each renderer component. It reads everything else through refs, so
+   * one function serves every render, and an update that passes the same `<HotColumn>` settings again
+   * finds them unchanged and leaves `columns` out.
+   */
+  const rendererWrappers = useRef<WeakMap<ComponentType<HotRendererProps>, typeof Handsontable.renderers.BaseRenderer>>(
+    new WeakMap()
+  );
   // Keys of the portal containers rendered in the current view-render pass.
   // Reset every `beforeViewRender` and used after the render to evict
   // containers whose cells left the viewport (see pushCellPortalsIntoPortalManager).
@@ -148,9 +157,15 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
   const getRendererWrapper = useCallback((
     Renderer: ComponentType<HotRendererProps>
   ): typeof Handsontable.renderers.BaseRenderer => {
+    const cachedWrapper = rendererWrappers.current.get(Renderer);
+
+    if (cachedWrapper) {
+      return cachedWrapper;
+    }
+
     warnAboutClassicFunctionRenderer(Renderer);
 
-    return function __internalRenderer(instance, TD, row, col, prop, value, cellProperties) {
+    const wrapper = function __internalRenderer(instance, TD, row, col, prop, value, cellProperties) {
       const key = `${row}-${col}`;
 
       // Handsontable.Core type is missing guid
@@ -172,7 +187,11 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
         // not be wiped. Wiping detaches the React-managed children, which
         // forces a full remount of the renderer component on every grid
         // render (see issue #10800).
-        const containerInPlace = !!cachedPortalContainer && cachedPortalContainer.parentNode === TD;
+        // A row rendered at an exact height (the `rowHeights` option) keeps the cell's content inside a
+        // `div.htCellClip` wrapper that the grid adds after this renderer ran. The container then sits in
+        // the wrapper, and wiping the cell on the next render would detach it all over again.
+        const contentRoot = getCellContentRoot(TD);
+        const containerInPlace = !!cachedPortalContainer && cachedPortalContainer.parentNode === contentRoot;
 
         const rendererElement = (
           <Renderer instance={instance}
@@ -189,10 +208,10 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
         );
 
         if (!containerInPlace) {
-          while (TD.firstChild) {
-            TD.removeChild(TD.firstChild);
+          while (contentRoot.firstChild) {
+            contentRoot.removeChild(contentRoot.firstChild);
           }
-          TD.appendChild(portalContainer);
+          contentRoot.appendChild(portalContainer);
         }
 
         portalContainerCache.current.set(portalContainerKey, portalContainer);
@@ -204,6 +223,10 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
 
       return TD;
     };
+
+    rendererWrappers.current.set(Renderer, wrapper);
+
+    return wrapper;
   }, [getTableId]);
 
   const renderersPortalManager = useRef<RenderersPortalManagerRef>(() => undefined);

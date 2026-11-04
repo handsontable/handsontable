@@ -1,4 +1,5 @@
 import Handsontable from '../../../index';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * Review round 12 (PR #13634): the model rebuild that a trim or a filter defers, and the progressive
@@ -72,7 +73,7 @@ describe('CustomBorders and the timing of index changes', () => {
       data: rows(10),
       trimRows: true,
       customBorders: [{ row: 2, col: 0, top: TOP }],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const drawnRows = () => hot.getPlugin('customBorders').getBorders().map(({ row }) => row);
 
@@ -98,7 +99,7 @@ describe('CustomBorders and the timing of index changes', () => {
       trimRows: true,
       customBorders: Array.from({ length: 10 }, (_, row) => ({ row, col: 0, top: TOP })),
       customBordersProgressive: { chunkSize: 2 },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     await new Promise(resolve => setTimeout(resolve, 0));
@@ -114,7 +115,7 @@ describe('CustomBorders and the timing of index changes', () => {
       data: rows(10),
       trimRows: true,
       customBorders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('customBorders').setBorders([[8, 0, 8, 0]], { top: TOP });

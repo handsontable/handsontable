@@ -132,7 +132,7 @@ test.describe('filters menu — keyboard focus order', { tag: THEMES_TAG }, () =
   test('while a component is focused, the arrow keys are its own and move no menu highlight', async({ page }) => {
     await grid.openMenuWithKeyboard(0, 0);
 
-    // The select, the search input, "Select all", "Clear", then "OK".
+    // The select, the search input, "Select all", "Select none", then "OK".
     await grid.pressTab(5);
     await expect(grid.okButton).toBeFocused();
     await expect(grid.highlightedItem).toHaveCount(0);
@@ -211,7 +211,7 @@ test.describe('filters menu — keyboard focus order', { tag: THEMES_TAG }, () =
     await page.keyboard.press('Enter');
     await expect(grid.menu).toBeVisible();
 
-    // "Select all", "Clear", then "OK".
+    // "Select all", "Select none", then "OK".
     await grid.pressTab(3);
     await expect(grid.okButton).toBeFocused();
     await page.keyboard.press('Enter');
@@ -234,7 +234,7 @@ test.describe('filters menu — keyboard focus order', { tag: THEMES_TAG }, () =
     await expect(grid.conditionInput(0)).toBeFocused();
     await page.keyboard.type('li');
 
-    // "And", "Or", the second select, the search input, "Select all", "Clear", then "OK".
+    // "And", "Or", the second select, the search input, "Select all", "Select none", then "OK".
     await grid.pressTab(7);
     await expect(grid.okButton).toBeFocused();
     await page.keyboard.press('Enter');
@@ -265,8 +265,8 @@ test.describe('filters menu — keyboard focus order', { tag: THEMES_TAG }, () =
     await expect(grid.okButton).toBeFocused();
     await expect(grid.focusedListItems()).toHaveCount(0);
 
-    // Back in through the search input ("Clear", "Select all", then the input); Shift+Tab leaves the
-    // list backwards, to "Clear".
+    // Back in through the search input ("Select none", "Select all", then the input); Shift+Tab leaves the
+    // list backwards, to "Select none".
     await grid.pressTab(3, true);
     await expect(grid.searchInput).toBeFocused();
     await page.keyboard.press('ArrowDown');
@@ -322,7 +322,7 @@ test.describe('filters menu — keyboard focus order', { tag: THEMES_TAG }, () =
 
   test('hovering a plain menu row moves neither the focus nor the next Tab stop', async({ page }) => {
     // Hovering a menu row arms the submenu timers and re-bases the menu's page cursor
-    // (`beforeOnCellMouseOver` in `handsontable/src/plugins/contextMenu/menu/menu.ts`); it never moves
+    // (`beforeOnCellMouseOver` in `handsontable/src/utils/menu/menu/menu.ts`); it never moves
     // the highlight, which follows the keyboard only (a mouseover selects a cell only while the button
     // is down). So the focused component and the next Tab stop stay where they were. The cursor shows
     // once: the next Tab records it as the item the loop restores (#10603), so the loop ends on the

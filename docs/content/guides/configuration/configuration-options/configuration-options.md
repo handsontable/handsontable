@@ -35,7 +35,7 @@ import Handsontable from "handsontable";
 const container = document.querySelector('#example');
 const hot = new Handsontable(container, {
   // configuration options, in the object literal notation
-  licenseKey: "non-commercial-and-evaluation",
+  // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
   data: [
     ['A1', 'B1', 'C1', 'D1'],
     ['A2', 'B2', 'C2', 'D2'],
@@ -61,9 +61,9 @@ To apply configuration options, pass them as individual props of the [`HotTable`
 
 ```jsx
 <HotTable
+  // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
   autoWrapRow={true}
   autoWrapCol={true}
-  licenseKey="non-commercial-and-evaluation"
   data={[
     ['A1', 'B1', 'C1', 'D1'],
     ['A2', 'B2', 'C2', 'D2'],
@@ -129,7 +129,7 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const hotSettings = ref({
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: [
     ['A1', 'B1', 'C1', 'D1'],
     ['A2', 'B2', 'C2', 'D2'],
@@ -194,7 +194,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
 
 :::
 
-For more details on Handsontable's cascading configuration, see the [MetaManager class](https://github.com/handsontable/handsontable/blob/master/handsontable/src/dataMap/metaManager/index.js).
+For how a cell inherits values from the levels above it, and where each value comes from, see [Understanding metadata and inheritance](@/guides/configuration/understanding-metadata/understanding-metadata.md). For the implementation, see the [MetaManager class](https://github.com/handsontable/handsontable/blob/{{$currentMinorVersion}}/handsontable/src/dataMap/metaManager/index.ts).
 
 To read configuration at runtime, use the method that matches the level you need:
 
@@ -844,7 +844,7 @@ const hot = new Handsontable(container, {
     ['A2', 'B2', 'C2', 'D2'],
     ['A3', 'B3', 'C3', 'D3'],
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   width: 'auto',
   height: 'auto',
   rowHeaders: true,
@@ -967,7 +967,7 @@ const hot = new Handsontable(container, {
     ['A2', 'B2', 'C2', 'D2'],
     ['A3', 'B3', 'C3', 'D3'],
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   width: 'auto',
   height: 'auto',
   rowHeaders: true,
@@ -1285,9 +1285,9 @@ const ExampleComponent = () => {
     <>
       <button onClick={() => setState(state + 1)}>{state}</button>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         manualColumnMove={[1, 0]}  // Columns keep swapping!
         data={[['A', 'B'], [0, 1]]}
-        licenseKey="non-commercial-and-evaluation"
       />
     </>
   );
@@ -1300,13 +1300,13 @@ Use [`initialState`](@/api/options.md#initialstate) to apply these options only 
 
 ```jsx
 <HotTable
+  // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
   initialState={{
     manualColumnMove: [1, 0]  // Applied only once
   }}
   data={[['A', 'B'], [0, 1]]}
   rowHeaders={true}
   colHeaders={true}
-  licenseKey="non-commercial-and-evaluation"
 />
 ```
 

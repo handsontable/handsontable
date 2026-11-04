@@ -10,7 +10,7 @@ registerAllModules();
 const hotSettings = ref<GridSettings>({
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: [[0.5, 0.5], [0.5, 0.5], [1, 1], [], []],
   colHeaders: true,
   rowHeaders: true,

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `height` and `width` settings keeping the old size after they changed to `undefined` in the React and Angular wrappers.",
+  "type": "fixed",
+  "issueOrPR": 14120,
+  "breaking": false,
+  "framework": "none"
+}

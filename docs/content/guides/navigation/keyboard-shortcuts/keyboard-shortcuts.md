@@ -201,6 +201,8 @@ These keyboard shortcuts work when the [`CopyPaste`](@/api/copyPaste.md) plugin 
 | <kbd>**Ctrl**</kbd>+<kbd>**C**</kbd> | <kbd>⌘</kbd>+<kbd>**C**</kbd> | Copy the contents of the selected cells to the system clipboard | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**V**</kbd> | <kbd>⌘</kbd>+<kbd>**V**</kbd> | Paste from the system clipboard                                 | &check; | &check; |
 
+To turn off these keyboard shortcuts, see [Remove the copy, cut, and paste shortcuts](@/guides/navigation/custom-shortcuts/custom-shortcuts.md#remove-the-copy-cut-and-paste-shortcuts).
+
 ### Cell merging keyboard shortcuts
 
 These keyboard shortcuts work when the [`MergeCells`](@/api/mergeCells.md) plugin is enabled.
@@ -295,7 +297,7 @@ These keyboard shortcuts work with the [column filter](@/guides/columns/column-f
 | <kbd>**Tab**</kbd> | <kbd>**Tab**</kbd> | Move focus to the next filtering component in the open filter menu. | &cross; | &cross; |
 | <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | <kbd>⇧</kbd>+<kbd>**Tab**</kbd> | Move focus to the previous filtering component in the open filter menu. | &cross; | &cross; |
 | <kbd>**↑**</kbd> / <kbd>**↓**</kbd> | <kbd>**↑**</kbd> / <kbd>**↓**</kbd> | When the filter search input is focused, move through the **Filter by value** list. | &cross; | &cross; |
-| <kbd>**Enter**</kbd> / <kbd>**Space**</kbd> | <kbd>**Enter**</kbd> / <kbd>**Space**</kbd> | When **Select all** or **Clear all** is focused, run the action. | &cross; | &cross; |
+| <kbd>**Enter**</kbd> / <kbd>**Space**</kbd> | <kbd>**Enter**</kbd> / <kbd>**Space**</kbd> | When **Select all** or **Select none** is focused, run the action. | &cross; | &cross; |
 
 ### Comments keyboard shortcuts
 
@@ -362,9 +364,9 @@ These keyboard shortcuts work in the formula editor of the [`FormulaBuilder`](@/
 | <kbd>**F2**</kbd> or <kbd>**Ctrl**</kbd>+<kbd>**E**</kbd>                  | <kbd>**F2**</kbd> or <kbd>⌃</kbd>/<kbd>⌘</kbd>+<kbd>**E**</kbd>      | Switch point mode on or off                                                                                             | &check; | &cross; |
 | <kbd>**F4**</kbd>                                                          | <kbd>**F4**</kbd>                                                    | Cycle the reference at the caret between relative and absolute forms                                                   | &check; | &check; |
 | <kbd>**F6**</kbd> / <kbd>**Shift**</kbd>+<kbd>**F6**</kbd>                 | <kbd>**F6**</kbd> / <kbd>⇧</kbd>+<kbd>**F6**</kbd>                   | While you edit a cell, move the editor between the formula bar and the cell. With the function help popup open, move the focus into it. | &cross; | &cross; |
-| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>                                    | <kbd>⇧</kbd>+<kbd>**Tab**</kbd>                                      | From the first cell, leave the grid through the formula bar (the formula area first, then the address box)              | &cross; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>                                    | <kbd>⇧</kbd>+<kbd>**Tab**</kbd>                                      | From the first column (from the first cell with `autoWrapRow` on), leave the grid through the formula bar (the formula area first, then the address box) | &cross; | &cross; |
 | <kbd>**Enter**</kbd>                                                       | <kbd>**Enter**</kbd>                                                 | In the formula bar's address box, go to the typed address or range                                                      | &check; | &check; |
-| <kbd>**Escape**</kbd>                                                      | <kbd>**Escape**</kbd>                                                | In the formula bar's address box, put back the address of the active cell                                               | &check; | &check; |
+| <kbd>**Escape**</kbd>                                                      | <kbd>**Escape**</kbd>                                                | In the formula bar's address box, put back the address of the active cell or the selected range                        | &check; | &check; |
 
 Point mode is on in a formula when a reference is valid at the caret, for example right after `=`, an operator, an argument separator, or an opening parenthesis.
 

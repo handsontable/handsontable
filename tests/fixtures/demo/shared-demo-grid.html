@@ -41,6 +41,7 @@
   <style>
     body { font-family: sans-serif; margin: 0; padding: 1rem; transform-origin: 0 0; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -144,7 +145,7 @@
             th.setAttribute('data-testid', `row-header-${row}`);
           }
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       container.setAttribute('data-init-error', String(error && error.message));

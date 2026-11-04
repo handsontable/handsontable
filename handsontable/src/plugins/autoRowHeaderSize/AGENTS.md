@@ -37,10 +37,14 @@ A row header renderer that draws through the grid can bring the draw back around
 `modifyRowHeaderWidth`. Answering with what is already known is what keeps that from recursing — do not
 replace the early answer with a fresh measurement.
 
-## Two re-measure triggers nothing else would notice
+## Three re-measure triggers nothing else would notice
 
 - **`useTheme()`.** A theme carries its own font and cell padding, so every measured width is wrong under a
   new one — and `useTheme()` does not go through `updateSettings`, so no other mechanism reacts.
+- **`afterFontsLoad` (DEV-199).** A web font that loads after the labels were measured changes their width
+  without changing the container, so no resize observer sees it. The listener invalidates the widths the
+  same way as on `afterSetTheme`, with `FONT_REMEASURE_ORDER_INDEX` (`core/fontLoad.ts`), so the
+  application's listeners run first. Core fires the hook only on a visible grid, and renders after it.
 - **`afterFormulasValuesUpdate`.** Recalculated formulas can feed a label with no cell write being reported,
   and the payload describes engine addresses rather than rows, so the whole thing is measured again rather
   than diffed.
@@ -72,20 +76,18 @@ measurement still stands — laying samples out is the expensive half, and this 
 
 A row with no renderable index is hidden, so no header of it is drawn and none is measured.
 
-## `updatePlugin()` restores the stored settings before it re-enables
+## `updatePlugin()` re-enables with the stored settings
 
 `updatePlugin()` runs `disablePlugin(); enablePlugin();`, which is what makes this plugin re-read its
 sampling settings for free — unlike `AutoRowSize` and `AutoColumnSize`, whose `enablePlugin()` early return
 made those settings inert on an update (DEV-2850).
 
-It still needs one repair first. `BasePlugin#onUpdateSettings` feeds `updatePluginSettings()` with
-`newSettings[PLUGIN_KEY]`, and an update that never mentions `autoRowHeaderSize` carries that as `undefined`,
-which **wipes** the stored settings (this plugin declares no `SETTINGS_VALIDATORS`, so the assignment falls
-straight through). The re-enable then reads the *defaults*, so `allowSampleDuplicates: true` silently
-reverted to `false` on every unrelated `updateSettings()` call. `updatePlugin()` therefore restores the
-option from `hot.getSettings()[PLUGIN_KEY]` when the payload omits the key — the same repair
-`manualRowResize` makes for the same reason (`../../utils/manualResize/AGENTS.md`). The Vue wrapper makes this the
-common path: it omits every settings key whose value is unchanged.
+An update that never mentions `autoRowHeaderSize` still reaches `updatePlugin()`. `BasePlugin#onUpdateSettings`
+refreshes the plugin settings from `hot.getSettings()[PLUGIN_KEY]` when the payload omits the key, so the
+re-enable reads the user's `allowSampleDuplicates`, not the default. Before that fallback lived in the base
+class, `allowSampleDuplicates: true` silently reverted to `false` on every unrelated `updateSettings()` call,
+and this plugin restored the option itself. The Vue wrapper makes this the common path: it omits every
+settings key whose value is unchanged. Pinned by `__tests__/autoRowHeaderSize.unit.ts`.
 
 `samplingRatio` and `allowSampleDuplicates` go through the shared
 `SamplesGenerator#applySamplingOptions()`, so this plugin resolves the option exactly as the other two do.

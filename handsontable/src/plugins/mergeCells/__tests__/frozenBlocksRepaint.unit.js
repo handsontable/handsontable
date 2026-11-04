@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * Under `renderMode: 'onChange'` the plugin marks the merged blocks that cross a freeze line as changed when the
@@ -22,7 +23,7 @@ describe('MergeCells blocks that cross a frozen start line', () => {
   function createGrid(drawnStart) {
     hot = new Handsontable(container, {
       data: Handsontable.helper.createSpreadsheetData(6, 10),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       renderMode: 'onChange',
       fixedColumnsStart: 6,
       limitFixedToViewport: true,

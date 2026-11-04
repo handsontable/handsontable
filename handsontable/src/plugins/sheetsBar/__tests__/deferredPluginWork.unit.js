@@ -1,7 +1,8 @@
 import { HyperFormula } from 'hyperformula';
 import Handsontable from '../../../index';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
-const LICENSE_KEY = 'non-commercial-and-evaluation';
+const LICENSE_KEY = TEST_LICENSE_KEY;
 
 /**
  * Plugins whose data-dependent work `Core#_applySettingsAndData()` holds back for their
@@ -174,8 +175,7 @@ describe('plugins applied ahead of their data', () => {
         sourceColumn: 0,
         destinationRow: 3,
         destinationColumn: 0,
-        type: 'custom',
-        customFunction: () => 0,
+        type: 'sum',
         ranges: [],
       }]);
 

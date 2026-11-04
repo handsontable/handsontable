@@ -26,6 +26,8 @@ import type {
   SourceRowData,
   RowIdKey,
   RowIdSetting,
+  MenuItemConfig,
+  PredefinedMenuItemKey,
   SettingsUpdate,
   ThemeBuilder,
   ThemeColorScheme,
@@ -42,6 +44,10 @@ import type {
   ValidatorType,
   HotInstance,
 } from 'handsontable';
+import type {
+  MenuItemConfig as PluginMenuItemConfig,
+  PredefinedMenuItemKey as PluginPredefinedMenuItemKey,
+} from 'handsontable/plugins/contextMenu';
 import {
   AutocompleteEditor,
   BaseEditor,
@@ -306,6 +312,11 @@ const _sameIndexMapper: Same<Handsontable.IndexMapper, IndexMapper> = true;
 const _sameSourceRowData: Same<Handsontable.SourceRowData, SourceRowData> = true;
 const _sameRowIdSetting: Same<Handsontable.RowIdSetting, RowIdSetting> = true;
 const _sameRowIdKey: Same<Handsontable.RowIdKey, RowIdKey> = true;
+const _sameMenuItemConfig: Same<Handsontable.MenuItemConfig, MenuItemConfig> = true;
+const _samePredefinedMenuItemKey: Same<Handsontable.PredefinedMenuItemKey, PredefinedMenuItemKey> = true;
+const _sameLegacyMenuItemConfig: Same<PluginMenuItemConfig, MenuItemConfig> = true;
+const _sameLegacyPredefinedMenuItemKey: Same<PluginPredefinedMenuItemKey, PredefinedMenuItemKey> = true;
+const _sameLegacyNamespaceMenuItemConfig: Same<Handsontable.plugins.ContextMenu.MenuItemConfig, MenuItemConfig> = true;
 const _sameSettingsUpdate: Same<Handsontable.SettingsUpdate, SettingsUpdate> = true;
 const _sameColumnDataGetterSetterFunction: Same<
   Handsontable.ColumnDataGetterSetterFunction, ColumnDataGetterSetterFunction

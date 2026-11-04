@@ -1,12 +1,13 @@
 import type { HotInstance } from '../../core/types';
 import type { HookCallback } from '../../core/hooks/bucket';
 import type { Events } from '../../core/settings';
+import type { PluginLicense } from '../../utils/licenseCapabilities/types';
 import {
-  defineGetter, objectEach, isObject, isPlainObject, assignObjectDefaults, getProperty,
+  defineGetter, objectEach, isObject, isPlainObject, assignObjectDefaults, getProperty, hasOwnProperty,
 } from '../../helpers/object';
 import { throwWithCause } from '../../helpers/errors';
 import { arrayEach } from '../../helpers/array';
-import { getPluginsNames, hasPlugin } from '../registry';
+import { hasPlugin } from '../registry';
 import { hasCellType } from '../../cellTypes/registry';
 import { hasEditor } from '../../editors/registry';
 import { hasRenderer } from '../../renderers/registry';
@@ -15,6 +16,7 @@ import EventManager from '../../eventManager';
 import { warn } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { getHardConflict } from './conflictRegistry';
+import { hasLicenseCapability, isPluginLicense, reportMissingCapability } from '../../utils/licenseCapabilities';
 
 // eslint-disable-next-line no-spaced-func, func-call-spacing
 const DEPS_TYPE_CHECKERS = new Map<string, (name: string) => boolean>([
@@ -46,8 +48,77 @@ export interface PluginRestoreContext {
    */
   reordered?: boolean;
 }
-const missingDepsMsgs: string[] = [];
-let initializedPlugins: string[] | null = null;
+
+/**
+ * Returns the error message line for every module a plugin declares in `PLUGIN_DEPS` that is not registered.
+ *
+ * @param {BasePlugin} plugin The plugin to check.
+ * @returns {string|null} The message, or `null` when every dependency is registered.
+ */
+function getMissingDependenciesMessage(plugin: BasePlugin): string | null {
+  const pluginDeps = plugin.constructor.PLUGIN_DEPS;
+  const deps = Array.isArray(pluginDeps) ? pluginDeps : [];
+  const missingDependencies: string[] = [];
+
+  deps.forEach((dependency) => {
+    const [type, moduleName] = dependency.split(':');
+
+    if (!DEPS_TYPE_CHECKERS.has(type)) {
+      throwWithCause(`Unknown plugin dependency type "${type}" was found.`);
+    }
+
+    if (!DEPS_TYPE_CHECKERS.get(type)!(moduleName)) {
+      missingDependencies.push(` - ${moduleName} (${type})`);
+    }
+  });
+
+  if (missingDependencies.length === 0) {
+    return null;
+  }
+
+  return [
+    `The ${plugin.pluginName} plugin requires the following modules:\n`,
+    `${missingDependencies.join('\n')}\n`,
+  ].join('');
+}
+
+/**
+ * Runs the init sequence of one grid's plugins. Core calls it once, while `beforeInit` is dispatched,
+ * with the plugins in `PLUGIN_PRIORITY` order: every plugin's `init()`, one error for all missing
+ * dependencies, then one `afterPluginsInitialized`, during which each enabled plugin is enabled once, in
+ * the same order. The state lives in this call, so grids built side by side cannot share it.
+ *
+ * @param {HotInstance} hot The Handsontable instance the plugins belong to.
+ * @param {BasePlugin[]} allPlugins The grid's plugins, in priority order.
+ */
+export function initializePlugins(hot: HotInstance, allPlugins: BasePlugin[]): void {
+  // A plugin destroyed before `init()` (`getPlugin(name).destroy()`) has no `hot` left and takes no part.
+  const plugins = allPlugins.filter(plugin => plugin.hot);
+  const missingDepsMsgs: string[] = [];
+
+  plugins.forEach((plugin) => {
+    plugin.init();
+
+    const missingDepsMsg = getMissingDependenciesMessage(plugin);
+
+    if (missingDepsMsg !== null) {
+      missingDepsMsgs.push(missingDepsMsg);
+    }
+  });
+
+  if (missingDepsMsgs.length > 0) {
+    throwWithCause([
+      `${missingDepsMsgs.join('\n')}\n`,
+      'You have to import and register them manually.',
+    ].join(''));
+  }
+
+  // A listener of the dispatch at the default order index, so a listener at a positive one sees the plugins enabled.
+  hot.addHookOnce('afterPluginsInitialized', () => {
+    plugins.forEach(plugin => plugin.onInitEnableTurn());
+  });
+  hot.runHooks('afterPluginsInitialized');
+}
 
 /**
  * @util
@@ -121,6 +192,14 @@ export class BasePlugin {
   static PLUGIN_DEPS?: string[];
 
   /**
+   * The license token of the plugin, generated from its `feature.json`. Only a plugin a license key can name
+   * has one; a plugin without it is never checked against the key.
+   *
+   * @type {PluginLicense | undefined}
+   */
+  static LICENSE?: PluginLicense;
+
+  /**
    * Plugin settings.
    *
    * @type {object|null}
@@ -162,13 +241,30 @@ export class BasePlugin {
    */
   #deferredDataWork = false;
   /**
+   * Whether the plugin waits for its turn in the grid's init sequence (see `initializePlugins()`). Set by
+   * `init()`, cleared by `onInitEnableTurn()`. While it is set, a settings pass started by an earlier
+   * plugin does not enable the plugin, so every plugin enables once, in priority order.
+   */
+  #awaitsInitEnableTurn = false;
+  /**
+   * Whether a settings pass that carried the plugin's own option ran while the plugin waited for its
+   * turn, so `onInitEnableTurn()` reads the plugin settings again before it enables the plugin.
+   */
+  #settingsChangedBeforeInitEnable = false;
+  /**
+   * Whether the plugin owes its ready step (`onGridReady()`). Set when an `enablePlugin()` or
+   * `updatePlugin()` call returns with the plugin enabled, cleared by `disablePlugin()` and when the step
+   * runs (see `runOwedReadyStep()`).
+   */
+  #readyStepOwed = false;
+  /**
    * The lifecycle listeners the constructor registers directly on the Handsontable instance. They
-   * bypass `addHook()`, so `clearHooks()` never removes them - `destroy()` does.
+   * bypass `addHook()`, so `clearHooks()` never removes them - `destroy()` does. The init sequence
+   * itself is run by core (`initializePlugins()`), not by a listener of each plugin.
    */
   #lifecycleHooks: Record<string, HookCallback> = {
     afterPluginsInitialized: () => this.onAfterPluginsInitialized(),
     afterUpdateSettings: (newSettings: Record<string, unknown>) => this.onUpdateSettings(newSettings),
-    beforeInit: () => this.init(),
   };
 
   /**
@@ -184,85 +280,111 @@ export class BasePlugin {
       writable: false
     });
 
-    initializedPlugins = null;
-
     objectEach(this.#lifecycleHooks, (callback: HookCallback, name: string) => {
       this.hot.addHook(name, callback);
+    });
+
+    this.#routeLifecycleCalls();
+  }
+
+  /**
+   * Routes every call of the plugin's `enablePlugin()`, `updatePlugin()` and `disablePlugin()` through
+   * core's lifecycle pass, so the ready step an enable or an update owes runs once the outermost call
+   * returns, whoever made it. Each method is replaced on the instance by a wrapper that calls the method
+   * the plugin's class resolves at that moment, so an override and a spy on a prototype still run.
+   * The wrappers are not enumerable, so `destroy()`, which nulls the enumerable own properties, keeps
+   * them, and a call on a destroyed plugin still reaches the method's own guard.
+   */
+  #routeLifecycleCalls(): void {
+    // `this.constructor.prototype` is the most derived class's prototype, read on every call.
+    defineGetter(this, 'enablePlugin', () => this.#runLifecycleCall(true, () => {
+      // A key that leaves the plugin out keeps it off, also when an app turns it on directly.
+      if (this.hot && this.isLicenseBlocked()) {
+        return undefined;
+      }
+
+      return this.constructor.prototype.enablePlugin.call(this);
+    }), { enumerable: false });
+    defineGetter(this, 'updatePlugin', (...args: Parameters<BasePlugin['updatePlugin']>) => {
+      return this.#runLifecycleCall(true, () => this.constructor.prototype.updatePlugin.apply(this, args));
+    }, { enumerable: false });
+    defineGetter(this, 'disablePlugin', () => this.#runLifecycleCall(false, () => {
+      return this.constructor.prototype.disablePlugin.call(this);
+    }), { enumerable: false });
+  }
+
+  /**
+   * Runs one lifecycle call of the plugin as a core lifecycle pass. An enable or an update that leaves
+   * the plugin enabled makes it owe its ready step.
+   *
+   * @param {boolean} owesReadyStep Whether the call is an enable or an update.
+   * @param {Function} call The lifecycle call.
+   * @returns {*} What the call returns.
+   */
+  #runLifecycleCall<T>(owesReadyStep: boolean, call: () => T): T {
+    // A destroyed plugin has no grid to run a pass on, and a host that is not a Handsontable instance
+    // (a test double built around the plugin) runs no passes. The method then runs as it always did.
+    if (!this.hot || typeof this.hot._runInPluginLifecyclePass !== 'function') {
+      return call();
+    }
+
+    return this.hot._runInPluginLifecyclePass(() => {
+      const result = call();
+
+      if (owesReadyStep && this.enabled) {
+        this.#readyStepOwed = true;
+      }
+
+      return result;
     });
   }
 
   /**
-   * Initializes the plugin by resolving its name, applying settings, and checking required dependencies.
+   * Initializes the plugin by resolving its name and applying its settings. Core calls it once per grid,
+   * from `initializePlugins()`, which also checks the plugin's `PLUGIN_DEPS`.
    */
   init(): void {
     this.pluginName = this.hot.getPluginName(this);
     this.updatePluginSettings(this.hot.getSettings()[this.constructor.PLUGIN_KEY]);
-
-    const pluginDeps = this.constructor.PLUGIN_DEPS;
-    const deps = Array.isArray(pluginDeps) ? pluginDeps : [];
-
-    if (deps.length > 0) {
-      const missingDependencies: string[] = [];
-
-      deps.forEach((dependency) => {
-        const [type, moduleName] = dependency.split(':');
-
-        if (!DEPS_TYPE_CHECKERS.has(type)) {
-          throwWithCause(`Unknown plugin dependency type "${type}" was found.`);
-        }
-
-        if (!DEPS_TYPE_CHECKERS.get(type)!(moduleName)) {
-          missingDependencies.push(` - ${moduleName} (${type})`);
-        }
-      });
-
-      if (missingDependencies.length > 0) {
-        const errorMsg = [
-          `The ${this.pluginName} plugin requires the following modules:\n`,
-          `${missingDependencies.join('\n')}\n`,
-        ].join('');
-
-        missingDepsMsgs.push(errorMsg);
-      }
-    }
-
-    if (!initializedPlugins) {
-      initializedPlugins = getPluginsNames();
-    }
-
-    if (initializedPlugins.indexOf(this.pluginName) >= 0) {
-      initializedPlugins.splice(initializedPlugins.indexOf(this.pluginName), 1);
-    }
-
-    this.hot.addHookOnce('afterPluginsInitialized', () => {
-      if (this.isEnabled && this.isEnabled()) {
-        if (this.isHardConflictBlocked()) {
-          this.hot.getSettings()[this.constructor.PLUGIN_KEY] = false;
-
-          return;
-        }
-        this.enablePlugin();
-      }
-    });
-
-    const isAllPluginsAreInitialized = initializedPlugins.length === 0;
-
-    if (isAllPluginsAreInitialized) {
-      if (missingDepsMsgs.length > 0) {
-        const errorMsg = [
-          `${missingDepsMsgs.join('\n')}\n`,
-          'You have to import and register them manually.',
-        ].join('');
-
-        missingDepsMsgs.length = 0;
-
-        throwWithCause(errorMsg);
-      }
-
-      this.hot.runHooks('afterPluginsInitialized');
-    }
-
+    this.#awaitsInitEnableTurn = true;
     this.initialized = true;
+  }
+
+  /**
+   * Enables the plugin when its turn in the grid's init sequence comes (see `initializePlugins()`), if
+   * its settings ask for it and no hard conflict blocks it. A plugin another plugin enabled directly
+   * before its turn is not enabled again.
+   *
+   * @private
+   */
+  onInitEnableTurn(): void {
+    const awaitedTurn = this.#awaitsInitEnableTurn;
+    const settingsChanged = this.#settingsChangedBeforeInitEnable;
+
+    this.#awaitsInitEnableTurn = false;
+    this.#settingsChangedBeforeInitEnable = false;
+
+    if (!awaitedTurn || this.enabled || !this.isEnabled?.()) {
+      return;
+    }
+
+    if (this.isHardConflictBlocked()) {
+      this.hot.getSettings()[this.constructor.PLUGIN_KEY] = false;
+
+      return;
+    }
+
+    // Unlike a hard conflict, the license gate leaves the setting as the user wrote it, so a later
+    // `updateSettings()` with a key that lists the plugin can still turn it on.
+    if (this.isLicenseBlocked()) {
+      return;
+    }
+
+    if (settingsChanged) {
+      this.updatePluginSettings(this.hot.getSettings()[this.constructor.PLUGIN_KEY]);
+    }
+
+    this.enablePlugin();
   }
 
   /**
@@ -273,7 +395,8 @@ export class BasePlugin {
    */
   isHardConflictBlocked() {
     const pluginKey = this.constructor.PLUGIN_KEY;
-    const conflict = getHardConflict(this.hot.getSettings(), pluginKey);
+    // A setting whose plugin the license key keeps off conflicts with nothing: that plugin does not run.
+    const conflict = getHardConflict(this.hot.getSettings(), pluginKey, key => this.#isKeptOffByLicense(key));
 
     if (conflict) {
       const { incompatibleSettingKey } = conflict;
@@ -288,6 +411,45 @@ export class BasePlugin {
   }
 
   /**
+   * Whether the license key of the grid keeps off the plugin that a top-level setting turns on.
+   *
+   * @param {string} settingKey The setting key, which is also the plugin key of a plugin's own option.
+   * @returns {boolean}
+   */
+  #isKeptOffByLicense(settingKey: string): boolean {
+    const plugin = this.hot.getPlugin(settingKey) as BasePlugin | undefined;
+    const license: unknown = plugin?.constructor.LICENSE;
+
+    return isPluginLicense(license) && license.gate === 'enable' &&
+      !hasLicenseCapability(this.hot, license.capability);
+  }
+
+  /**
+   * Whether the license key of the grid leaves this plugin out, so it must stay off. Only a plugin with
+   * `gate: 'enable'` in its `LICENSE` is checked here, and only on the root grid; the plugin is reported
+   * for the license message when it is blocked. The setting is never rewritten.
+   *
+   * @private
+   * @returns {boolean} `true` if the plugin must not enable.
+   */
+  isLicenseBlocked(): boolean {
+    const license: unknown = this.constructor.LICENSE;
+
+    if (!isPluginLicense(license) || license.gate !== 'enable' || hasLicenseCapability(this.hot, license.capability)) {
+      return false;
+    }
+
+    // The feature leaves the list once the option no longer asks for the plugin (or the plugin is gone).
+    reportMissingCapability(
+      this.hot,
+      license,
+      () => Boolean(this.hot) && this.isEnabled?.() === true && !this.enabled,
+    );
+
+    return true;
+  }
+
+  /**
    * Enable plugin for this Handsontable instance.
    */
   enablePlugin(): void {
@@ -299,6 +461,7 @@ export class BasePlugin {
    */
   disablePlugin(): void {
     this.#deferredDataWork = false;
+    this.#readyStepOwed = false;
     this.eventManager?.clear();
     this.clearHooks();
     this.enabled = false;
@@ -563,12 +726,83 @@ export class BasePlugin {
   }
 
   /**
+   * Records that a settings pass made before the plugin's init enable turn carried the plugin's own option,
+   * so the turn reads the settings again.
+   *
+   * @param {object} newSettings The config object passed to updateSettings.
+   */
+  #recordSettingsChangeBeforeInitEnable(newSettings: Record<string, unknown>) {
+    if (newSettings[this.constructor.PLUGIN_KEY] !== undefined) {
+      this.#settingsChangedBeforeInitEnable = true;
+    }
+  }
+
+  /**
+   * Returns the plugin setting an update applies to a plugin that stays enabled: the payload's `PLUGIN_KEY`
+   * value when the payload carries the key (an explicit `undefined` included), otherwise the value declared
+   * in the merged grid settings.
+   *
+   * @param {object} newSettings The config object passed to updateSettings.
+   * @returns {*}
+   */
+  #getUpdatedPluginSetting(newSettings: Record<string, unknown>): unknown {
+    const pluginKey = this.constructor.PLUGIN_KEY;
+
+    return hasOwnProperty(newSettings, pluginKey) ? newSettings[pluginKey] : this.hot.getSettings()[pluginKey];
+  }
+
+  /**
    * Optional step core's `_applySettingsAndData()` calls once the data the settings describe is loaded,
    * for every enabled plugin that defines it, in plugin priority order (see `isDataWorkDeferred()`).
    *
    * @private
    */
   onDataReady?(): void;
+
+  /**
+   * Optional ready step: the part of enabling or updating the plugin that reads the loaded rows, the
+   * view (`hot.view`), the DOM or the editor manager. Core calls it once after every `enablePlugin()` or
+   * `updatePlugin()` call that leaves the plugin enabled, as soon as all of these exist, and before the
+   * next render: at init after the view is built (before the `init` hook), at the end of
+   * `updateSettings()`, `loadData()`, `updateData()` or `alter()` when a hook of theirs made the call, and
+   * once a direct call returns. Calls nested in one pass get one step, in
+   * plugin priority order, after every plugin of the pass is enabled. `enablePlugin()` and
+   * `updatePlugin()` then only configure the plugin (hooks, index maps, settings, own state), so none of
+   * them needs to check whether `hot.view` exists. Nothing the step does is journaled by UndoRedo.
+   *
+   * @private
+   */
+  onGridReady?(): void;
+
+  /**
+   * Runs the plugin's ready step (`onGridReady()`) if the plugin owes one, and clears the debt. Only an
+   * enabled plugin owes it: `disablePlugin()` clears it. Core calls it, in plugin priority order. The debt
+   * is cleared before the call, so a step that throws is not run again: one that keeps failing would
+   * otherwise throw on every later pass.
+   *
+   * @private
+   * @returns {boolean} `true` if the plugin owed the step.
+   */
+  runOwedReadyStep(): boolean {
+    if (!this.#readyStepOwed) {
+      return false;
+    }
+
+    this.#readyStepOwed = false;
+    this.onGridReady?.();
+
+    return true;
+  }
+
+  /**
+   * Whether the plugin owes its ready step (`onGridReady()`).
+   *
+   * @private
+   * @returns {boolean}
+   */
+  isReadyStepOwed(): boolean {
+    return this.#readyStepOwed;
+  }
 
   /**
    * Whether the settings this plugin is applying describe data the grid has not loaded yet. Core's
@@ -603,17 +837,46 @@ export class BasePlugin {
   }
 
   /**
-   * Records that the plugin owes work to core's `onDataReady()` pass, which runs once the data the settings
-   * describe is loaded. Nothing is recorded while the grid has no view: core skips that pass on a grid still
-   * being built, and the plugin's own `afterInit` does the work there. The record is dropped when the plugin
-   * is disabled, and when the call fails before the pass, so it can never run against another call's data.
+   * Whether the ready step (`onGridReady()`) runs in the grid's init pass: before the `init` hook and the first
+   * render, with the renders it asks for held. A step that needs a drawn grid leaves that work to the first
+   * render then. Ask this, not whether the view has drawn: a grid built hidden is never drawn, and a step run
+   * by a later enable on it is not the init pass.
    *
    * @private
+   * @returns {boolean}
    */
-  deferDataWork(): void {
+  isInitReadyStep(): boolean {
+    return this.hot._isRunningInitReadySteps();
+  }
+
+  /**
+   * Records that the plugin owes work to core's `onDataReady()` pass, which runs once the data the settings
+   * describe is loaded. Nothing is recorded while the grid has no view: core skips that pass on a grid still
+   * being built, and the plugin's ready step (`onGridReady()`) does the work there. The record is dropped when
+   * the plugin is disabled, and when the call fails before the pass, so it can never run against another
+   * call's data.
+   *
+   * @private
+   * @returns {boolean} `true` when the work was recorded.
+   */
+  deferDataWork(): boolean {
     if (this.hot.view) {
       this.#deferredDataWork = true;
     }
+
+    return this.#deferredDataWork;
+  }
+
+  /**
+   * Answers whether the plugin owes work to `onDataReady()` (see `deferDataWork()`), and keeps the record.
+   * A listener that runs during the call's load reads it to tell that `onDataReady()` will replace what
+   * the load left, without taking the work away from it.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  hasDeferredDataWork(): boolean {
+    return this.#deferredDataWork;
   }
 
   /**
@@ -658,14 +921,32 @@ export class BasePlugin {
    *
    * A call that turns the plugin on refreshes the plugin settings from the merged grid settings before
    * `enablePlugin()`, which reads them, and does not refresh them again before `updatePlugin()`: a second
-   * refresh logged every validation warning twice, and, for a payload carrying only a foreign `SETTING_KEYS`
-   * option, wiped what the first one read.
+   * refresh logged every validation warning twice.
+   *
+   * A call that keeps the plugin on refreshes the plugin settings from the payload's `PLUGIN_KEY` value, an explicit
+   * `undefined` included. When the payload does not carry that key (a plugin with `SETTING_KEYS: true`, or one
+   * listing foreign keys), the refresh reads the merged grid settings instead, so the stored setting is reset to
+   * the value declared for the grid, not kept as the plugin holds it now. Two consequences follow for such a
+   * plugin: a setting it changed at runtime through `updatePluginSettings()` is replaced by the declared value on
+   * every update that reaches it, and an invalid declared value logs its `SETTINGS_VALIDATORS` warning again on
+   * each of those updates.
    *
    * @private
    * @param {object} newSettings New set of settings passed to the updateSettings method.
    */
   onUpdateSettings(newSettings: Record<string, unknown>) {
     if (!this.isEnabled) {
+      return;
+    }
+
+    // A settings pass that runs inside the grid's init sequence (SheetsBar builds its first sheet from
+    // its `enablePlugin()`) must not enable a plugin that still waits for its turn: core enables it
+    // there, once and in priority order, reading the settings again when this pass carried its option.
+    // A plugin another plugin already enabled directly takes the pass as usual, so it can be disabled
+    // or updated by it.
+    if (this.#awaitsInitEnableTurn && !this.enabled) {
+      this.#recordSettingsChangeBeforeInitEnable(newSettings);
+
       return;
     }
 
@@ -678,7 +959,7 @@ export class BasePlugin {
     let settingsRefreshed = false;
 
     if (!this.enabled && this.isEnabled()) {
-      if (this.isHardConflictBlocked()) {
+      if (this.isHardConflictBlocked() || this.isLicenseBlocked()) {
         return;
       }
       this.updatePluginSettings(this.hot.getSettings()[this.constructor.PLUGIN_KEY]);
@@ -686,10 +967,11 @@ export class BasePlugin {
       this.enablePlugin();
     }
 
+    // A key passed later that does not list the plugin turns it off, like a hard conflict that appears.
     if (
       this.enabled &&
       this.isEnabled() &&
-      this.isHardConflictBlocked()
+      (this.isHardConflictBlocked() || this.isLicenseBlocked())
     ) {
       this.disablePlugin();
 
@@ -702,7 +984,7 @@ export class BasePlugin {
       relevantToSettings
     ) {
       if (!settingsRefreshed) {
-        this.updatePluginSettings(newSettings[this.constructor.PLUGIN_KEY]);
+        this.updatePluginSettings(this.#getUpdatedPluginSetting(newSettings));
       }
 
       this.updatePlugin(newSettings);
@@ -823,6 +1105,7 @@ export class BasePlugin {
     }
 
     this.#pluginSettings = null;
+    this.#readyStepOwed = false;
     this.eventManager?.destroy();
     this.clearHooks();
 

@@ -40,7 +40,15 @@ const MethodsMap: Partial<
 };
 
 /**
- * Create a class to be passed to the Handsontable's settings.
+ * The editor class made for each component's hooks reference. The class reads the hooks and the instance
+ * through those references when it runs, so one class serves every render of the component, and an
+ * update that passes the same class is left out like any other unchanged setting.
+ */
+const editorClasses = new WeakMap<MutableRefObject<HotEditorHooks | null>, typeof Handsontable.editors.BaseEditor>();
+
+/**
+ * Create a class to be passed to the Handsontable's settings, or return the one made for the same hooks
+ * reference.
  *
  * @param {RefObject<HotEditorHooks>} hooksRef Reference to component-based editor overridden hooks object.
  * @param {RefObject} instanceRef Reference to Handsontable-native custom editor class instance.
@@ -50,7 +58,13 @@ export function makeEditorClass(
   hooksRef: MutableRefObject<HotEditorHooks | null>,
   instanceRef: MutableRefObject<Handsontable.editors.BaseEditor | null>
 ): typeof Handsontable.editors.BaseEditor {
-  return class CustomEditor
+  const cachedEditorClass = editorClasses.get(hooksRef);
+
+  if (cachedEditorClass) {
+    return cachedEditorClass;
+  }
+
+  const EditorClass = class CustomEditor
     extends Handsontable.editors.BaseEditor
     implements Handsontable.editors.BaseEditor {
     private value: any;
@@ -109,6 +123,10 @@ export function makeEditorClass(
 
     close() { }
   };
+
+  editorClasses.set(hooksRef, EditorClass);
+
+  return EditorClass;
 }
 
 interface EditorContextType {

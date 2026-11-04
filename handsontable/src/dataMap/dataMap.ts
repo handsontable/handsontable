@@ -548,7 +548,9 @@ class DataMap {
 
     const dataSource = this.dataSource ?? [];
     const maxCols = this.tableMeta.maxCols;
-    const numberOfSourceCols = this.hot!.countSourceCols();
+    // The index mapper holds the physical end of the grid. `countSourceCols()` is the first row's length, which is
+    // shorter than the grid when `dataSchema` or `minCols` made it wider, and 0 once every row was removed.
+    const numberOfSourceCols = this.hot!.columnIndexMapper.getNumberOfIndexes();
     const numberOfVisualCols = this.hot!.countCols();
     const numberOfSourceRows = this.hot!.countSourceRows();
     const visualColumnIndex = (typeof index === 'number' && index <= numberOfSourceCols) ? index : numberOfVisualCols;
@@ -612,13 +614,11 @@ class DataMap {
   }
 
   /**
-   * Inserts the given amount of null columns into the data source in at most two passes over
-   * the rows, instead of one full pass per created column. The previous per-column loop chose
-   * between an append and a middle splice per iteration, based on the visual index against the
-   * growing column count; the same sequence collapses into two batched phases: the first
-   * `appendCount` iterations (while the visual index is at or past the current count) are
-   * end-of-row pushes, and the remaining iterations are single splices at consecutive ascending
-   * positions - which is exactly one block insert at the first of those positions.
+   * Inserts the given amount of null columns into the data source, in one pass over the rows, as a block at
+   * the physical column the insertion is recorded at (the undo journal replays it by that index). The
+   * insertion index clamps to the row length inside `insertValuesInPlace`, so a row shorter than the
+   * insertion point gets the nulls at its end. A row longer than the grid keeps its values in order, and the
+   * nulls go in front of the values past the grid.
    *
    * @param {Array} dataSource The data source array.
    * @param {number} firstColumn The physical column index at which the first column is inserted.
@@ -639,39 +639,24 @@ class DataMap {
       return;
     }
 
-    let appendCount = amount;
+    if (numberOfSourceRows === 0) {
+      // A grid without rows gets one row per column created at its end, to hold the new columns.
+      const appendCount = typeof visualColumnIndex === 'number' ?
+        Math.max(0, Math.min(amount, visualColumnIndex - numberOfVisualCols + 1)) : amount;
 
-    if (typeof visualColumnIndex === 'number') {
-      appendCount = Math.max(0, Math.min(amount, visualColumnIndex - numberOfVisualCols + 1));
+      for (let i = 0; i < appendCount; i++) {
+        dataSource.push([null]);
+      }
+
+      return;
     }
 
-    const middleCount = amount - appendCount;
-
-    if (appendCount > 0) {
-      if (numberOfSourceRows > 0) {
-        for (let row = 0; row < numberOfSourceRows; row++) {
-          if (typeof dataSource[row] === 'undefined') {
-            dataSource[row] = [];
-          }
-
-          for (let i = 0; i < appendCount; i++) {
-            (dataSource[row] as unknown[]).push(null);
-          }
-        }
-      } else {
-        for (let i = 0; i < appendCount; i++) {
-          dataSource.push([null]);
-        }
+    for (let row = 0; row < numberOfSourceRows; row++) {
+      if (typeof dataSource[row] === 'undefined') {
+        dataSource[row] = [];
       }
-    }
 
-    if (middleCount > 0) {
-      // The insertion index clamps to the row length inside `insertValuesInPlace`, so rows
-      // shorter than the insertion point get the nulls appended at their end - matching what
-      // the previous repeated clamped `splice` calls did.
-      for (let row = 0; row < numberOfSourceRows; row++) {
-        insertValuesInPlace(dataSource[row] as unknown[], firstColumn + appendCount, middleCount, null);
-      }
+      insertValuesInPlace(dataSource[row] as unknown[], firstColumn, amount, null);
     }
   }
 

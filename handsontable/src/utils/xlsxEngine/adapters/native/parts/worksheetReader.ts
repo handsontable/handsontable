@@ -3,6 +3,7 @@ import { DROPPED_FEATURES, type DroppedFeatureName, type DroppedFeatures } from 
 import { parseCellRef, parseMultiRangeRef, parseRangeRef } from '../../../cellRef';
 import { EXCEL_EPOCH_OFFSET, MS_PER_DAY } from '../../../dates';
 import { translateSharedFormula } from '../../../formulaRefs';
+import { isNameChar, skipQuoted } from '../../../functionPrefixes';
 import { classifyTemporalFormat } from '../../../numFmtCode';
 import {
   MAX_FORMULA_LENGTH, MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_SHEET_ROWS, MAX_TRANSLATED_FORMULA_CHARS,
@@ -71,9 +72,36 @@ export interface WorksheetReadContext {
    * alone), every `<drawing>` records `images`, as the parser cannot see the part.
    */
   imageDrawings?: ReadonlySet<string>;
+  /**
+   * Collects the error cells that carry value metadata (`<c t="e" vm>`), for `read.ts` to resolve
+   * through `xl/metadata.xml` and `xl/richData` once the sheet is read. Left out (a caller driving
+   * the parser alone), such a cell is judged here: it records `images` when it has no formula or
+   * its formula calls `IMAGE`.
+   */
+  richValueCells?: RichValueCell[];
   date1904: boolean;
   dropped: DroppedFeatures;
   budget: WorkbookBudget;
+}
+
+/**
+ * An error cell carrying value metadata, as the parser collects it into
+ * `WorksheetReadContext.richValueCells`.
+ */
+export interface RichValueCell {
+  /**
+   * The cell, its cached error (`#VALUE!`) in `formula.result` or in `value`.
+   */
+  cell: CellSnapshot;
+  /**
+   * The `vm` index, 1-based.
+   */
+  vm: number;
+  /**
+   * Whether the cell is a picture when its value metadata cannot be resolved: it has no formula, or
+   * its formula calls `IMAGE`.
+   */
+  pictureIfUnresolved: boolean;
 }
 
 /**
@@ -199,6 +227,21 @@ interface CellState {
   formulaAttrs: XmlAttributes | null;
   formulaText: string;
   /**
+   * Whether the `<c>` is an error cell (`t="e"`) carrying value metadata (`vm`): a picture placed in
+   * the cell, or an error Excel stores as a rich value (`#SPILL!`, `#CALC!`).
+   */
+  valueMetadataError: boolean;
+  /**
+   * The `vm` index of an error cell (`valueMetadataError`), `null` when it is not a positive whole
+   * number.
+   */
+  valueMetadata: number | null;
+  /**
+   * Whether the `<c>` carries a `cm` (cell metadata) attribute, which Excel writes on the master of
+   * a dynamic-array formula.
+   */
+  dynamic: boolean;
+  /**
    * Whether the `<f>` text crossed `MAX_FORMULA_LENGTH`. The text collected so far is discarded
    * and nothing more is appended, so the formula is dropped and the cached value kept.
    */
@@ -275,6 +318,63 @@ const ZONED_DATE_TIME = /(?:Z|[+-]\d{2}:?\d{2})$/i;
  * different value per zone; such a value is refused instead (`DROPPED_FEATURES.cellValueDate`).
  */
 const ISO_DATE_VALUE = /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:[Zz]|[+-]\d{2}:?\d{2})?)?$/;
+
+/**
+ * Reads a `vm` attribute: a positive whole number (`xsd:unsignedInt`, value metadata is 1-based), or
+ * `null`.
+ *
+ * @param {string|undefined} value The attribute value.
+ * @returns {number|null}
+ */
+function positiveIndexOf(value: string | undefined): number | null {
+  const index = parseUnsignedIntAttr(value);
+
+  return index !== null && index > 0 ? index : null;
+}
+
+/**
+ * The `_xlfn.` prefix Excel writes on `IMAGE`, upper case.
+ */
+const XLFN_PREFIX = '_XLFN.';
+
+/**
+ * Whether a formula calls `IMAGE` (any case, with or without the `_xlfn.` prefix), outside quoted
+ * text. Such a cell holds a picture, as a "Place in Cell" picture does.
+ *
+ * @param {string} formula The formula text.
+ * @returns {boolean}
+ */
+function callsImageFunction(formula: string): boolean {
+  let index = 0;
+
+  while (index < formula.length) {
+    const char = formula[index];
+
+    if (char === '"' || char === '\'') {
+      index = skipQuoted(formula, index);
+
+    } else if (isNameChar(char)) {
+      let end = index + 1;
+
+      while (end < formula.length && isNameChar(formula[end])) {
+        end += 1;
+      }
+
+      const name = formula.slice(index, end).toUpperCase();
+
+      if (formula[end] === '(' && (name === 'IMAGE' || name === `${XLFN_PREFIX}IMAGE`)) {
+        return true;
+      }
+
+      index = end;
+
+    } else {
+      index += 1;
+    }
+  }
+
+  return false;
+}
 
 /**
  * The elements the conditional-formatting state machine owns.
@@ -1189,13 +1289,6 @@ class WorksheetParser {
       return;
     }
 
-    // An Excel 365 "Place in Cell" picture: an error cell carrying value metadata, with the picture
-    // in `xl/richData`. The cached `#VALUE!` is kept, but the picture is lost, and it has no drawing
-    // part to report it through. `vm` alone is not enough: OLAP cube cells carry it too.
-    if (attrs.t === 'e' && attrs.vm !== undefined) {
-      this.#ctx.dropped.record(DROPPED_FEATURES.images);
-    }
-
     const cell: CellState = {
       row: address.row,
       col: address.col,
@@ -1204,6 +1297,9 @@ class WorksheetParser {
       styleIndex: parseUnsignedIntAttr(attrs.s) ?? 0,
       formulaAttrs: null,
       formulaText: '',
+      valueMetadataError: attrs.t === 'e' && attrs.vm !== undefined,
+      valueMetadata: attrs.t === 'e' ? positiveIndexOf(attrs.vm) : null,
+      dynamic: attrs.cm !== undefined,
       formulaTooLong: false,
       valueText: null,
       inlineText: null,
@@ -1696,6 +1792,8 @@ class WorksheetParser {
     const rawText = state.type === 'inlineStr' ? state.inlineText : state.valueText;
     let value: CellValue = rawText === null ? null : this.#decodeValue(state, rawText, xf.numFmt);
     let formula: CellSnapshot['formula'] = null;
+    // A `t="e"` cell with a value: the file says it is an error, whatever the code.
+    const isError = state.type === 'e' && typeof value === 'string' && value !== '';
 
     if (state.inlineRich) {
       this.#ctx.dropped.record(DROPPED_FEATURES.richText);
@@ -1712,8 +1810,35 @@ class WorksheetParser {
 
       if (text !== null && text !== '') {
         formula = value === null ? { text } : { text, result: value };
+
+        if (isError) {
+          formula.resultIsError = true;
+        }
+
+        if (state.formulaAttrs.t === 'array' && state.formulaAttrs.ref !== undefined
+            && parseRangeRef(state.formulaAttrs.ref)) {
+          formula.array = { ref: state.formulaAttrs.ref, dynamic: state.dynamic };
+        }
+
         value = null;
       }
+    }
+
+    // An Excel 365 "Place in Cell" picture is an error cell carrying value metadata, with the picture
+    // in `xl/richData`: the cached `#VALUE!` is kept, the picture is lost, and it has no drawing part
+    // to report it through. `vm` alone is not enough (OLAP cube cells carry it too), and neither is
+    // `t="e"` with it: Excel Online stores `#SPILL!` and `#CALC!` of a formula the same way, as a rich
+    // error. `read.ts` tells them apart through `xl/richData` (`richValueCells`); where it cannot, a
+    // cell with no formula, or one whose formula calls `IMAGE`, is taken for a picture. The call is
+    // read after a shared formula's follower got its translated text (`<f t="shared" si="0"/>` has
+    // none of its own).
+    const pictureIfUnresolved = state.valueMetadataError
+      && (state.formulaAttrs === null || callsImageFunction(formula?.text ?? state.formulaText));
+    // The `vm` handed to `read.ts`, or `null` when the cell is judged here.
+    const deferredVm = this.#ctx.richValueCells !== undefined && isError ? state.valueMetadata : null;
+
+    if (pictureIfUnresolved && deferredVm === null) {
+      this.#ctx.dropped.record(DROPPED_FEATURES.images);
     }
 
     const hasNoFormat = xf.numFmt === null && xf.style === null && xf.locked === null;
@@ -1742,6 +1867,15 @@ class WorksheetParser {
 
     target.value = value;
     target.formula = formula;
+
+    if (isError && formula === null) {
+      target.valueIsError = true;
+    }
+
+    if (deferredVm !== null) {
+      this.#ctx.richValueCells?.push({ cell: target, vm: deferredVm, pictureIfUnresolved });
+    }
+
     target.numFmt = xf.numFmt;
     target.style = xf.style;
     target.locked = xf.locked;

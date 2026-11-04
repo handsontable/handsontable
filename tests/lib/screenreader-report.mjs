@@ -232,7 +232,7 @@ function renderGoldenDifferences(transcripts) {
 
   const rows = items.map(item => `| ${escapeMarkdownText(item.scenario)} | ${escapeMarkdownText(item.id)} | ${item.expected === null ? '*(no recorded step)*' : escapeMarkdownText(item.expected)} | ${item.actual === null ? '*(the scenario no longer has this step)*' : escapeMarkdownText(item.actual)} |`);
 
-  return `### Golden differences (advisory)\n\nRe-record with the update mode when the new wording is right (\`tests/AGENTS.md\`, "Screen readers: the NVDA lane").\n\n| Scenario | Step | Recorded | Spoken |\n|---|---|---|---|\n${rows.join('\n')}\n\n`;
+  return `### Golden differences (advisory)\n\nRe-record with the update mode when the new wording is right (\`tests/AGENTS.md\`, "Screen readers: the NVDA and VoiceOver lanes").\n\n| Scenario | Step | Recorded | Spoken |\n|---|---|---|---|\n${rows.join('\n')}\n\n`;
 }
 
 /**
