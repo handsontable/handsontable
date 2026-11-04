@@ -556,4 +556,22 @@ export class FiltersValueListPage {
 
     await expect.poll(() => this.visibleRowCount()).toBeLessThan(rowsBefore);
   }
+
+  /**
+   * Expand a collapsed nested parent by clicking the expand button in its row header, then wait
+   * until the grid shows more rows.
+   *
+   * @param {number} row The parent's visual row index.
+   */
+  async expandNestedParent(row: number): Promise<void> {
+    const rowsBefore = await this.visibleRowCount();
+
+    await this.page
+      .locator('.ht_clone_inline_start tbody tr')
+      .nth(row)
+      .locator('.ht_nestingExpand')
+      .click();
+
+    await expect.poll(() => this.visibleRowCount()).toBeGreaterThan(rowsBefore);
+  }
 }

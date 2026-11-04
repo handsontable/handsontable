@@ -2431,6 +2431,22 @@ export const REGISTERED_HOOKS = [
   'modifyFiltersMultiSelectValue',
 
   /**
+   * Fired by the Filters plugin after it finds the rows that match every condition, before it trims
+   * the rows that did not match. It fires once per filter pass, never per column. It also fires when
+   * the "Filter by value" list of a column reads the rows the earlier columns' conditions leave.
+   * A listener can return a replacement list of rows to keep, for example to keep the parents of a
+   * matching nested row. The plugin keeps only the integers within the source row range, in
+   * ascending order, without duplicates.
+   *
+   * @private
+   * @since 18.2.0
+   * @event Hooks#modifyFiltersMatchedRows
+   * @param {number[]} matchedRows Physical indexes of the rows that match every condition, ascending.
+   * @returns {number[]|undefined} The physical rows to keep, or `undefined` to keep `matchedRows`.
+   */
+  'modifyFiltersMatchedRows',
+
+  /**
    * Fired when focusing a cell or a header element. Allows replacing the element to be focused by returning a
    * different HTML element.
    *

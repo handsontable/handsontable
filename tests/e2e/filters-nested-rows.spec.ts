@@ -45,3 +45,64 @@ test.describe('Filters — "filter by value" list with nested rows', () => {
     ]);
   });
 });
+
+test.describe('Filters — the parent-child tree of a filtered nested grid', () => {
+  test('keeps the parent chain of a matching nominee', async({ page, theme, bundle }) => {
+    const grid = new FiltersValueListPage(page, theme, bundle, 'filters-nested-rows.html');
+
+    await grid.goto();
+    await grid.openMenu('Artist');
+    await grid.applyCondition('Is equal to', 'Alabama Shakes');
+    await grid.confirmMenu();
+
+    // Each match keeps every ancestor: its release group and category under "Best Rock
+    // Performance", and its category for "Best Rock Song".
+    await expect.poll(() => grid.visibleRowCount()).toBe(5);
+    expect(await grid.columnValues(0)).toEqual([
+      'Best Rock Performance', 'Major label releases', '', 'Best Rock Song', '',
+    ]);
+    expect(await grid.columnValues(1)).toEqual(['', '', 'Alabama Shakes', '', 'Alabama Shakes']);
+  });
+
+  test('keeps every nominee of a kept category', async({ page, theme, bundle }) => {
+    const grid = new FiltersValueListPage(page, theme, bundle, 'filters-nested-rows.html');
+
+    await grid.goto();
+    await grid.openMenu('Category');
+    await grid.clearAllValues();
+    // The list is virtualized, so narrow it to bring the value into the rendered rows.
+    await grid.searchValues('Best Rock Song');
+    await expect(grid.valueLabels).toHaveText(['Best Rock Song']);
+    await grid.checkValue('Best Rock Song');
+    await grid.confirmMenu();
+
+    // The nominees have no category, so the list's "(Blank cells)" is unchecked; they stay
+    // because their category matches.
+    await expect.poll(() => grid.visibleRowCount()).toBe(6);
+    expect(await grid.columnValues(0)).toEqual(['Best Rock Song', '', '', '', '', '']);
+    expect(await grid.columnValues(1)).toEqual([
+      '', 'Alabama Shakes', 'Elle King', 'James Bay', 'Highly Suspect', 'Florence & The Machine',
+    ]);
+  });
+
+  test('collapses and expands a filtered tree', async({ page, theme, bundle }) => {
+    const grid = new FiltersValueListPage(page, theme, bundle, 'filters-nested-rows.html');
+
+    await grid.goto();
+    await grid.openMenu('Artist');
+    await grid.applyCondition('Is equal to', 'Alabama Shakes');
+    await grid.confirmMenu();
+    await expect.poll(() => grid.visibleRowCount()).toBe(5);
+
+    await grid.collapseNestedParent(0);
+
+    expect(await grid.columnValues(0)).toEqual(['Best Rock Performance', 'Best Rock Song', '']);
+
+    await grid.expandNestedParent(0);
+
+    expect(await grid.columnValues(0)).toEqual([
+      'Best Rock Performance', 'Major label releases', '', 'Best Rock Song', '',
+    ]);
+    expect(await grid.columnValues(1)).toEqual(['', '', 'Alabama Shakes', '', 'Alabama Shakes']);
+  });
+});

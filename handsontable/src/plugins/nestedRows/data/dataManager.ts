@@ -665,6 +665,66 @@ class DataManager {
   }
 
   /**
+   * Gets the rows a filter keeps for the provided matching rows, so the tree stays whole: each
+   * matching row, every ancestor of it, and every descendant of it (DEV-512). Both walks read the
+   * flatten cache, never the live `__children` arrays, so a source changed without a re-cache cannot
+   * stretch a subtree over its next sibling. A row the cache does not know is skipped.
+   *
+   * @private
+   * @param {number[]} matchedRows Physical indexes of the matching rows.
+   * @returns {number[]} Physical indexes of the rows to keep, ascending.
+   */
+  getRowsToKeepForMatches(matchedRows: number[]): number[] {
+    const rowCount = this.cache.rows.length;
+    const isKept = new Uint8Array(rowCount);
+    // Set for a match and its descendants, whose subtrees are kept already. An ancestor is only in
+    // `isKept`, because its other children are not kept with it.
+    const isSubtreeKept = new Uint8Array(rowCount);
+
+    matchedRows.forEach((matchedRow) => {
+      const level = this.getRowLevel(matchedRow);
+
+      if (level === null || isSubtreeKept[matchedRow] === 1) {
+        return;
+      }
+
+      isKept[matchedRow] = 1;
+      isSubtreeKept[matchedRow] = 1;
+
+      // The cache is flattened depth-first, so the descendants are the rows right after the match
+      // that sit deeper than it.
+      for (let row = matchedRow + 1; row < rowCount; row++) {
+        const rowLevel = this.getRowLevel(row);
+
+        if (rowLevel === null || rowLevel <= level) {
+          break;
+        }
+
+        isKept[row] = 1;
+        isSubtreeKept[row] = 1;
+      }
+
+      let parentRow = this.getRowIndex(this.getRowParent(matchedRow));
+
+      // An ancestor already kept had its own ancestors kept with it.
+      while (parentRow !== null && isKept[parentRow] !== 1) {
+        isKept[parentRow] = 1;
+        parentRow = this.getRowIndex(this.getRowParent(parentRow));
+      }
+    });
+
+    const rowsToKeep: number[] = [];
+
+    for (let row = 0; row < rowCount; row++) {
+      if (isKept[row] === 1) {
+        rowsToKeep.push(row);
+      }
+    }
+
+    return rowsToKeep;
+  }
+
+  /**
    * Gets where the row with the provided physical index sits among its siblings.
    *
    * @private

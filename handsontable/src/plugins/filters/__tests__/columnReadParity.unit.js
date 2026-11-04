@@ -412,7 +412,8 @@ describe('Filters -> column read parity', () => {
       filters.addCondition(0, 'contains', ['child a']);
       filters.filter();
 
-      expect(hot.getDataAtCol(0)).toEqual(['Child A1', 'Child A2']);
+      // A matching child keeps its parent (DEV-512).
+      expect(hot.getDataAtCol(0)).toEqual(['Parent A', 'Child A1', 'Child A2']);
     });
 
     describe('with the filter-by-value list', () => {
@@ -471,8 +472,10 @@ describe('Filters -> column read parity', () => {
       it('should not list collapsed rows that an earlier column filtered out', () => {
         const filters = buildGrid([
           {
+            // Parent A does not match: a matching parent keeps its whole subtree (DEV-512), which
+            // would bring Child A2 back. It stays as the ancestor of Child A1.
             name: 'Parent A',
-            kind: 'keep',
+            kind: 'group',
             __children: [{ name: 'Child A1', kind: 'keep' }, { name: 'Child A2', kind: 'drop' }],
           },
           {

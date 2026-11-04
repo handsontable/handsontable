@@ -944,6 +944,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
 
     return _copyableRanges;
   },
+  modifyFiltersMatchedRows: matchedRows => matchedRows.slice(),
   modifyFiltersMultiSelectValue: (value, meta) => '123',
   modifyFocusedElement: (row, column, focusedElement) => document.createElement('TD'),
   modifyData: () => {},

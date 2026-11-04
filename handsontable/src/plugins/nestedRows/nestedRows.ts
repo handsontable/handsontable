@@ -223,6 +223,7 @@ export class NestedRows extends BasePlugin {
     this.addHook('modifySourceLength', this.onModifySourceLength.bind(this));
     this.addHook('beforeDataSplice', this.onBeforeDataSplice.bind(this));
     this.addHook('filterData', this.#onFilterData);
+    this.addHook('modifyFiltersMatchedRows', this.#onModifyFiltersMatchedRows);
     this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
     this.addHook('afterGetRowHeader', this.#onAfterGetRowHeader);
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
@@ -1229,6 +1230,19 @@ export class NestedRows extends BasePlugin {
 
     return false;
   }
+
+  /**
+   * `modifyFiltersMatchedRows` hook callback. Keeps the tree whole while the Filters plugin filters:
+   * a matching row keeps its ancestors, so it is never shown without its parents (and a collapse
+   * cannot leave the grid empty), and its descendants, so a matching parent shows its whole subtree
+   * (DEV-512).
+   *
+   * @param {number[]} matchedRows Physical indexes of the rows that match every condition.
+   * @returns {number[]}
+   */
+  #onModifyFiltersMatchedRows = (matchedRows: number[]) => {
+    return this.dataManager!.getRowsToKeepForMatches(matchedRows);
+  };
 
   /**
    * Provide custom source data filtering. It's handled by core method and replaces the native filtering.

@@ -716,7 +716,7 @@ export class Filters extends BasePlugin {
    */
   #writeTrimmedRows(): boolean {
     const dataFilter = this._createDataFilter();
-    const rowIndexesToShow = dataFilter.filter();
+    const rowIndexesToShow = this.#modifyMatchedRows(dataFilter.filter());
     const rowIndexesToShowAssertion = createArrayAssertion(rowIndexesToShow);
     const countSourceRows = this.hot.countSourceRows();
     // `getDataMapAtColumn()` never handed the pinned rows to the conditions, so they are absent
@@ -748,6 +748,47 @@ export class Filters extends BasePlugin {
     // The visible rows are the matches plus the pinned rows, so an empty match list no longer
     // means an empty grid.
     return rowIndexesToShow.length > 0 || pinnedRows !== null;
+  }
+
+  /**
+   * Passes the rows that match every condition through the `modifyFiltersMatchedRows` hook, once per
+   * filter pass, and normalizes what the listeners return: only integers within the source row
+   * range are kept, ascending and without duplicates, so a listener cannot corrupt the trimming map.
+   * A listener that returns no array leaves the matches as they are. A grid with no listener skips
+   * the hook and keeps the matches unchanged.
+   *
+   * @param {number[]} matchedRows Physical indexes of the matching rows, ascending.
+   * @returns {number[]} Physical indexes of the rows to keep, ascending.
+   */
+  #modifyMatchedRows(matchedRows: number[]): number[] {
+    if (!this.hot.hasHook('modifyFiltersMatchedRows')) {
+      return matchedRows;
+    }
+
+    const modifiedRows: unknown = this.hot.runHooks('modifyFiltersMatchedRows', matchedRows.slice());
+
+    if (!Array.isArray(modifiedRows)) {
+      return matchedRows;
+    }
+
+    const countSourceRows = this.hot.countSourceRows();
+    const isKept = new Uint8Array(countSourceRows);
+
+    modifiedRows.forEach((physicalRow: unknown) => {
+      if (Number.isInteger(physicalRow) && (physicalRow as number) >= 0 && (physicalRow as number) < countSourceRows) {
+        isKept[physicalRow as number] = 1;
+      }
+    });
+
+    const rowsToKeep: number[] = [];
+
+    for (let physicalRow = 0; physicalRow < countSourceRows; physicalRow++) {
+      if (isKept[physicalRow] === 1) {
+        rowsToKeep.push(physicalRow);
+      }
+    }
+
+    return rowsToKeep;
   }
 
   /**
@@ -2855,7 +2896,9 @@ export class Filters extends BasePlugin {
     // Rows are correlated through their physical index, which `DataFilter.filter()` returns
     // directly - the coordinate stamps on `meta` are shared with every other meta reader and may
     // have been overwritten since.
-    const survivingRows = this._createDataFilter(splitConditionCollection).filter();
+    // Widened the same way as the trimming pass, so the list offers the values of the rows the
+    // earlier columns keep - the ancestors of a matching nested row among them (DEV-512).
+    const survivingRows = this.#modifyMatchedRows(this._createDataFilter(splitConditionCollection).filter());
     const survivingRowsAssertion = createArrayAssertion(survivingRows);
 
     splitConditionCollection.destroy();
