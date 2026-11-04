@@ -243,6 +243,36 @@ describe('Component renderers under renderMode: \'onChange\'', () => {
     expect(getCellSeed(hotInstance, 5, 0)).toBe(seedBefore);
   });
 
+  it('should keep a component cell mounted after a full draw moved it to another cell element', async() => {
+    const hotInstance = await mountGrid();
+
+    // A full draw that shifts the rendered band repaints the rows into other cell elements.
+    await act(async() => {
+      hotInstance!.scrollViewportTo({ row: 60, col: 0, verticalSnap: 'top' });
+      hotInstance!.render();
+    });
+    await sleep(50);
+    await act(async() => {
+      hotInstance!.scrollViewportTo({ row: 64, col: 0, verticalSnap: 'top' });
+      hotInstance!.render();
+    });
+    await sleep(50);
+
+    const seedBefore = getCellSeed(hotInstance, 70, 0);
+
+    expect(seedBefore).not.toBeNull();
+
+    // Cell (74, 0) now sits in the element that held cell (70, 0) before the last draw.
+    await act(async() => {
+      hotInstance!.setDataAtCell(74, 0, 'changed');
+    });
+    await sleep(50);
+
+    expect(getCellSeed(hotInstance, 70, 0)).toBe(seedBefore);
+    expect(hotInstance!.getCell(70, 0)?.textContent).toBe('A71');
+    expectCacheToMatchMountedComponents(hotInstance);
+  });
+
   it('should still drop the components of the cells that scrolled out of the rendered area', async() => {
     const hotInstance = await mountGrid();
 
@@ -292,6 +322,33 @@ describe('Component renderers under renderMode: \'onChange\'', () => {
     });
 
   (['always', 'onChange'] as const).forEach((renderMode) => {
+    it(`should keep the component cells of the bottom fixed rows across a vertical scroll (renderMode: '${
+      renderMode}')`, async() => {
+      const hotInstance = await mountGrid(false, { renderMode, fixedRowsBottom: 2 });
+      const holder = hotInstance!.rootElement.querySelector('.ht_master .wtHolder') as HTMLElement;
+      const bottomCell = () => hotInstance!.rootElement.querySelector('.ht_clone_bottom tbody tr td .seeded-cell');
+      const seedBefore = bottomCell()?.getAttribute('data-seed');
+
+      expect(seedBefore).toBeDefined();
+
+      // A vertical scroll draws the bottom overlay without painting its cells.
+      const scrollTo = async(scrollTop: number) => {
+        await act(async() => {
+          holder.scrollTop = scrollTop;
+          holder.dispatchEvent(new Event('scroll'));
+        });
+        await sleep(80);
+      };
+
+      await scrollTo(23 * 15);
+      await scrollTo(23 * 40);
+      await scrollTo(23 * 80);
+
+      expect(bottomCell()?.getAttribute('data-seed')).toBe(seedBefore);
+      expect(bottomCell()?.textContent).toBe(`A${ROWS - 1}`);
+      expectCacheToMatchMountedComponents(hotInstance);
+    });
+
     it(`should drop the component of a cell whose element a non-clearing renderer reuses (renderMode: '${
       renderMode}')`, async() => {
       // A renderer that only styles the cell leaves the element's content as it was.
