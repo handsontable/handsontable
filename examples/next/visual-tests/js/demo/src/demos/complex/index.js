@@ -171,7 +171,7 @@ export function init() {
     autoWrapRow: true,
     rowHeaders: true,
     navigableHeaders: true,
-    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
+    licenseKey: 'non-commercial-and-evaluation',
   });
 
   console.log(

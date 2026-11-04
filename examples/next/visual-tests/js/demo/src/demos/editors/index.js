@@ -68,7 +68,7 @@ export function init() {
     colHeaders: true,
     navigableHeaders: true,
     contextMenu: true,
-    // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
+    licenseKey: "non-commercial-and-evaluation",
     ...editorSettings,
     ...sizeSettings,
   });

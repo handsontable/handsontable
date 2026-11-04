@@ -100,7 +100,7 @@ export function init() {
 
       return cellProperties;
     },
-    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
+    licenseKey: 'non-commercial-and-evaluation',
   });
 
   // Custom renderer function

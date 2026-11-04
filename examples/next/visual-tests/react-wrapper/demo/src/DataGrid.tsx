@@ -10,7 +10,6 @@ const DataGrid = () => {
 
   return (
     <HotTable
-      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       themeName={getThemeName()}
       height={450}
@@ -41,6 +40,7 @@ const DataGrid = () => {
       comments={true}
       manualColumnMove={true}
       customBorders={true}
+      licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data={1} />
       <HotColumn data={3} />

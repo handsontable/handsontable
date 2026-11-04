@@ -32,13 +32,13 @@ export function init() {
   new Handsontable(example1, {
     data: Handsontable.helper.createSpreadsheetData(5, 5),
     height: 'auto',
-    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
+    licenseKey: 'non-commercial-and-evaluation',
   });
 
   new Handsontable(example2, {
     data: Handsontable.helper.createSpreadsheetData(30, 5),
     height: '200px',
-    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
+    licenseKey: 'non-commercial-and-evaluation',
   });
 
   console.log(

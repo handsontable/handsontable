@@ -74,7 +74,7 @@ export function init() {
     autoWrapRow: true,
     fixedRowsBottom: 2,
     cell: [{ row: 1, col: 1, comment: { value: 'Comments' } }],
-    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
+    licenseKey: 'non-commercial-and-evaluation',
   });
   hot.selectColumns(2, 3);
 

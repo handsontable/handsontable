@@ -139,7 +139,7 @@ export function init() {
         manualColumnMove: true,
         customBorders: true,
         headerClassName: getDirectionFromURL() === 'rtl' ? 'htRight' : 'htLeft',
-        // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
+        licenseKey: 'non-commercial-and-evaluation'
       });
     }
   }

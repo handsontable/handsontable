@@ -33,6 +33,7 @@ export class DataGridComponent {
     indicators: true
   };
   headerClassNameValue = document.documentElement.getAttribute("dir") === "rtl" ? "htRight" : "htLeft";
+  licenseKey = "non-commercial-and-evaluation";
   themeName: string | undefined = undefined;
   htSettings = {
     columns: [
@@ -74,7 +75,7 @@ export class DataGridComponent {
     manualColumnMove: true,
     customBorders: true,
     themeName: this.themeName,
-    // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
+    licenseKey: this.licenseKey,
   };
 
   constructor(private route: ActivatedRoute) {}

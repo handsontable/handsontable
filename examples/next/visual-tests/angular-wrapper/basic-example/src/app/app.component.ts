@@ -23,6 +23,6 @@ export class AppComponent {
     rowHeaders: true,
     width: '100%',
     height: 'auto',
-    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
+    licenseKey: 'non-commercial-and-evaluation'
   };
 }

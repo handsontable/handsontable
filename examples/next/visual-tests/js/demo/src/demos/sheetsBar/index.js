@@ -24,7 +24,7 @@ export function init() {
         { name: 'Sheet3', data: [['C1', 'C2'], ['C3', 'C4']] },
       ],
     },
-    // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
+    licenseKey: "non-commercial-and-evaluation",
   });
 
   console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate})`);

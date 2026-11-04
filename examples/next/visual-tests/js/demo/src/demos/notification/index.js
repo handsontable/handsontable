@@ -75,7 +75,7 @@ export function init() {
     },
     width: 400,
     height: 400,
-    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
+    licenseKey: 'non-commercial-and-evaluation',
   });
 
   hot.getPlugin('notification').showMessage({

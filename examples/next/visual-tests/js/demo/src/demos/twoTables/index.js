@@ -138,7 +138,7 @@ export function init() {
     fixedRowsBottom: 2,
     viewportRowRenderingOffset: 10,
     viewportColumnRenderingOffset: 10,
-    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
+    licenseKey: 'non-commercial-and-evaluation',
   });
 
   new Handsontable(example2, {
@@ -176,7 +176,7 @@ export function init() {
     bindRowsWithHeaders: true,
     viewportRowRenderingOffset: 10,
     viewportColumnRenderingOffset: 10,
-    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
+    licenseKey: 'non-commercial-and-evaluation',
   });
 
   console.log(

@@ -16,7 +16,7 @@ const hot = new Handsontable(container, {
     height: 'auto',
     rowHeaders: true,
     colHeaders: true,
-    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
+    licenseKey: 'non-commercial-and-evaluation'
 });
 
 console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate})`);

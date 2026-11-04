@@ -32,6 +32,10 @@ const ALLOWED = [
   ],
   [/^docs\/scripts\/generate-sample-workbook\.mjs$/, 'a headless tool, not an example, that needs a working grid'],
   [/^docs\/scripts\/__tests__\//, 'tests for the docs scripts'],
+  [
+    /^examples\/next\/visual-tests\//,
+    'the visual suite renders these demos off handsontable.com; they move to the internal test key',
+  ],
 ];
 
 const files = execFileSync('git', ['ls-files', '-z', '--', ...SCANNED], { cwd: ROOT, encoding: 'utf8' })

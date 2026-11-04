@@ -202,7 +202,7 @@ test('the comparison catches a hook the demo gains, inline or under a skipped ke
   // so no unstubbed import gives it away.
   const literal = objectLiteralAfter(DEMO, 'new Handsontable(example, ');
   const fixture = comparable(evaluate(objectLiteralAfter(FIXTURE, 'window.hot = new Handsontable(container, '), FIXTURE_GLOBALS, FIXTURE));
-  const withHook = hook => literal.replace('colHeaders:', `${hook}() {},\n    colHeaders:`);
+  const withHook = hook => literal.replace('licenseKey:', `${hook}() {},\n    licenseKey:`);
 
   ['beforeRenderer', 'afterOnCellMouseDown'].forEach((hook) => {
     const changed = withHook(hook);

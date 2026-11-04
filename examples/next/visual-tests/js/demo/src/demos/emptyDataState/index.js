@@ -56,7 +56,7 @@ export function init() {
     navigableHeaders: true,
     emptyDataState: true,
     ...settings,
-    // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
+    licenseKey: "non-commercial-and-evaluation",
   });
 
   console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate})`);
