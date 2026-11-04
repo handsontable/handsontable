@@ -27,6 +27,12 @@ row keeps its visual index. That single difference explains the whole public API
 `trimRows` is physical throughout for the same reason. When you add anything to this plugin, decide
 the index type from *whether the row can be trimmed*, not from the house rule alone.
 
+The map is created with `keepsRowsInFilterScope: true` (the internal fourth argument of
+`createAndRegisterIndexMap()`). A collapse only folds rows away, and Filters still evaluates them, so
+the Filters plugin keeps their values in its "Filter by value" list; it reads the flag off the map and
+never names this plugin (DEV-512, `filters/AGENTS.md`). Drop the flag and a collapsed child's value
+vanishes from that list while it still filters.
+
 ## Files
 
 | File | Role |

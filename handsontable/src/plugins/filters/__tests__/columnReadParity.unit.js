@@ -443,6 +443,57 @@ describe('Filters -> column read parity', () => {
 
         expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toContain('Grandchild B1a');
       });
+
+      it('should list the values of the children of a collapsed parent', () => {
+        const filters = buildTree();
+
+        hot.getPlugin('nestedRows').collapseParent(0);
+
+        expect(hot.getDataAtCol(0)).toEqual(['Parent A', 'Parent B', 'Child B1', 'Grandchild B1a']);
+        expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toEqual([
+          'Parent A', 'Child A1', 'Child A2', 'Parent B', 'Child B1', 'Grandchild B1a',
+        ]);
+      });
+
+      it('should list the values of a child collapsed inside a collapsed parent', () => {
+        const filters = buildTree();
+        const nestedRows = hot.getPlugin('nestedRows');
+
+        nestedRows.collapseParent(4); // Child B1
+        nestedRows.collapseParent(3); // Parent B
+
+        expect(hot.getDataAtCol(0)).toEqual(['Parent A', 'Child A1', 'Child A2', 'Parent B']);
+        expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toEqual([
+          'Parent A', 'Child A1', 'Child A2', 'Parent B', 'Child B1', 'Grandchild B1a',
+        ]);
+      });
+
+      it('should not list collapsed rows that an earlier column filtered out', () => {
+        const filters = buildGrid([
+          {
+            name: 'Parent A',
+            kind: 'keep',
+            __children: [{ name: 'Child A1', kind: 'keep' }, { name: 'Child A2', kind: 'drop' }],
+          },
+          {
+            name: 'Parent B',
+            kind: 'keep',
+            __children: [{ name: 'Child B1', kind: 'keep' }],
+          },
+        ], {
+          nestedRows: true,
+          columns: [{ data: 'name' }, { data: 'kind' }],
+        }).getPlugin('filters');
+
+        filters.addCondition(1, 'eq', ['keep']);
+        filters.filter();
+        hot.getPlugin('nestedRows').collapseParent(0);
+
+        expect(hot.getDataAtCol(0)).toEqual(['Parent A', 'Parent B', 'Child B1']);
+        expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toEqual([
+          'Parent A', 'Child A1', 'Parent B', 'Child B1',
+        ]);
+      });
     });
   });
 
@@ -499,6 +550,32 @@ describe('Filters -> column read parity', () => {
 
       expect(hot.countRows()).toBe(0);
       expect(filters._getValueListDataAtColumn(0)).toEqual([]);
+    });
+
+    it('should keep rows trimmed by trimRows out of the list', () => {
+      const filters = buildGrid([
+        ['Apple'], ['Banana'], ['Cherry'], ['Date'], ['Elderberry'],
+      ], {
+        trimRows: [1, 3],
+      }).getPlugin('filters');
+
+      expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toEqual([
+        'Apple', 'Cherry', 'Elderberry',
+      ]);
+    });
+
+    it('should list the values in the visual row order', () => {
+      const filters = buildGrid([
+        ['Apple'], ['Banana'], ['Cherry'],
+      ], {
+        manualRowMove: true,
+      }).getPlugin('filters');
+
+      hot.getPlugin('manualRowMove').moveRow(2, 0);
+
+      expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toEqual([
+        'Cherry', 'Apple', 'Banana',
+      ]);
     });
 
     it('should publish one meta object per entry', () => {

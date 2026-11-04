@@ -204,7 +204,11 @@ export class NestedRows extends BasePlugin {
       return;
     }
 
-    this.collapsedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap('nestedRows', 'trimming');
+    // A collapse only folds the children away: the filter still evaluates them, so their values
+    // must stay in the Filters plugin's "Filter by value" list (DEV-512).
+    this.collapsedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap('nestedRows', 'trimming', false, {
+      keepsRowsInFilterScope: true,
+    });
 
     this.dataManager = new DataManager(this, this.hot);
     this.collapsingUI = new CollapsingUI(this, this.hot);

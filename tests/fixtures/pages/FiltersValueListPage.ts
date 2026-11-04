@@ -538,4 +538,22 @@ export class FiltersValueListPage {
   async visibleRowCount(): Promise<number> {
     return this.page.evaluate(() => window.hot.countRows());
   }
+
+  /**
+   * Collapse a nested parent by clicking the collapse button in its row header (the inline-start
+   * clone paints the headers the user sees), then wait until the grid shows fewer rows.
+   *
+   * @param {number} row The parent's visual row index.
+   */
+  async collapseNestedParent(row: number): Promise<void> {
+    const rowsBefore = await this.visibleRowCount();
+
+    await this.page
+      .locator('.ht_clone_inline_start tbody tr')
+      .nth(row)
+      .locator('.ht_nestingCollapse')
+      .click();
+
+    await expect.poll(() => this.visibleRowCount()).toBeLessThan(rowsBefore);
+  }
 }

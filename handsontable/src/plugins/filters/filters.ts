@@ -583,6 +583,32 @@ export class Filters extends BasePlugin {
   }
 
   /**
+   * Returns the physical rows a column with no conditions of its own lists in its "Filter by value"
+   * list, in visual order (`getIndexesSequence()` carries the sort permutation and row moves).
+   *
+   * A row is left out when any trimming map trims it, except a map that declares
+   * `keepsRowsInFilterScope` - a collapsed nested parent only folds its children away, and the
+   * filter still evaluates them. This plugin's own map counts as trimming on purpose: it holds the
+   * other columns' result, so the rows they filtered out stay off this column's list. The pinned rows
+   * stay out too, resolved through the same set `_readColumn()` excludes.
+   *
+   * @private
+   */
+  #getRowsInValueListScope(): number[] {
+    const scopeTrimmingMaps = (this.hot.rowIndexMapper.trimmingMapsCollection.get() as TrimmingMap[])
+      .filter(map => !map.keepsRowsInFilterScope);
+    const pinnedRows = this.#getPinnedRows();
+
+    return this.hot.rowIndexMapper.getIndexesSequence().filter((physicalRow) => {
+      if (pinnedRows !== null && pinnedRows.has(physicalRow)) {
+        return false;
+      }
+
+      return !scopeTrimmingMaps.some(map => map.getValueAtIndex(physicalRow) === true);
+    });
+  }
+
+  /**
    * Tells the plugin that the rows pinned by `fixedRowsTop` and `fixedRowsBottom` changed without an
    * `updateSettings()` call (the freeze bar writes the counts straight on the table meta), so the
    * next full render re-checks which rows `filterFixedRows: false` exempts. Does nothing while this plugin is
@@ -2797,12 +2823,14 @@ export class Filters extends BasePlugin {
    * columns defined BEFORE it in the filter stack. Its own conditions are deliberately skipped - a
    * column's filter must not narrow down its own value list, or the values it filters out drop off
    * the list and become impossible to select again (issue #12226). A column with no conditions of
-   * its own reads the currently visible data, which the other columns' filters already narrowed
-   * down.
+   * its own reads the rows the other columns' filters left, in visual order, including the rows a
+   * trimming map flagged `keepsRowsInFilterScope` folds away (a collapsed nested parent's children),
+   * because the filter still evaluates those.
    *
    * @private
    * @param {number} column Visual column index.
-   * @returns {Array<{value: *, meta: CellProperties}>} Array of objects with `value` and `meta`, one per row.
+   * @returns {Array<{row: number, value: *, meta: CellProperties}>} Array of objects with `row` (the
+   * physical row index), `value`, and `meta`, one per row.
    */
   _getValueListDataAtColumn(column: number): Record<string, unknown>[] {
     const physicalColumn = this.hot.toPhysicalColumn(column);
@@ -2811,27 +2839,11 @@ export class Filters extends BasePlugin {
     // A data provider filters server-side and the list is hidden anyway, so re-running the
     // conditions locally would filter data that is already filtered.
     if (stackPosition === -1 || this.#isDataProviderActive()) {
-      // `getDataAtCol()` reads one `null` from a grid with no rows, which is not a value to list.
-      const visibleValues = this.hot.countRows() === 0 ? [] : this.hot.getDataAtCol(column);
-      // The SAME physical set the has-conditions branch below uses, translated per row rather than
-      // dropped by position. Two different ways of deciding "pinned" made the two branches disagree
-      // whenever another plugin trimmed a row, so a column's value list changed the moment it got a
-      // condition of its own.
-      const pinnedRows = this.#getPinnedRows();
-      const rows: Record<string, unknown>[] = [];
-
-      for (let rowIndex = 0; rowIndex < visibleValues.length; rowIndex++) {
-        if (pinnedRows !== null && pinnedRows.has(this.hot.toPhysicalRow(rowIndex))) {
-          continue; // eslint-disable-line no-continue
-        }
-
-        rows.push({
-          value: toEmptyString(visibleValues[rowIndex]),
-          meta: this.hot.getCellMetaTransient(rowIndex, column),
-        });
-      }
-
-      return rows;
+      // Read physically, so the rows a collapsed nested parent folds away are listed too: they are
+      // trimmed, so `getDataAtCol()` cannot reach them, yet the filter still evaluates them (DEV-512).
+      // `getDataMapAtColumn()` is the same read the has-conditions branch below uses, so a
+      // `valueGetter` or `modifyData` shapes both lists alike.
+      return this.getDataMapAtColumn(physicalColumn, this.#getRowsInValueListScope());
     }
 
     const allRows = this.getDataMapAtColumn(physicalColumn);
