@@ -410,6 +410,24 @@ hot.batchExecution(() => {
 }, true);
 ```
 
+## Filtering
+
+You can use the [`Filters`](@/api/filters.md) plugin together with the `NestedRows` plugin. Enable both the [`nestedRows`](@/api/options.md#nestedrows) and [`filters`](@/api/options.md#filters) options, and add the [`dropdownMenu`](@/api/options.md#dropdownmenu) option so users can open the filter menu.
+
+Filtering keeps the tree intact:
+
+- A row that matches the filter is shown together with all its parent rows.
+- A parent row that matches the filter is shown together with all its child rows, at every level, whether the children match or not.
+- Kept parent and child rows look like any other row. Nothing marks them as kept.
+
+The **Filter by value** list shows every value in the tree: parents and children at every level, including rows inside collapsed parents.
+
+Because a filter keeps parents and children that don't match, the list can show a value that belongs only to a kept row. Clearing that value's checkbox may not hide the row, because the row stays as the parent of a match or as part of a matching parent's subtree.
+
+Collapsing and expanding rows work while a filter is on. When you collapse all rows, the kept top-level parents stay visible.
+
+For how screen readers count rows in a filtered tree, see [Screen readers](#screen-readers).
+
 ## Notes
 
 ### Known limitations
@@ -417,7 +435,6 @@ hot.batchExecution(() => {
 When you use the parent-child row structure, the following Handsontable features are not supported:
 
 - [Data source as an array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays)
-- [Column filter](@/guides/columns/column-filter/column-filter.md)
 - [Rows sorting](@/guides/rows/rows-sorting/rows-sorting.md)
 - [Manual row moving via `moveRows()`](@/api/manualRowMove.md#moverows) - use [`dragRows()`](@/api/manualRowMove.md#dragrows) instead
 
