@@ -2,6 +2,7 @@ import Handsontable from "handsontable/base";
 
 import { getDirectionFromURL, getThemeNameFromURL } from "../../utils";
 import { registerPlugin, SheetsBar } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from "../../test-license-key";
 
 export function init() {
   registerPlugin(SheetsBar);
@@ -24,7 +25,7 @@ export function init() {
         { name: 'Sheet3', data: [['C1', 'C2'], ['C3', 'C4']] },
       ],
     },
-    licenseKey: "non-commercial-and-evaluation",
+    licenseKey: TEST_LICENSE_KEY,
   });
 
   console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate})`);

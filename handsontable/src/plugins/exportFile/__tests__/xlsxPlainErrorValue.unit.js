@@ -6,6 +6,7 @@ import { registerPlugin } from '../../registry';
 import { ExportFile } from '../exportFile';
 import { Formulas } from '../../formulas';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * DEV-3648: a cell whose engine value is an error exports as an Excel error (`t="e"`) whenever the
@@ -42,7 +43,7 @@ describe('Xlsx export: a plain cell holding an error value', () => {
     hot = new Handsontable(container, {
       formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
       exportFile: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

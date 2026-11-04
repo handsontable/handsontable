@@ -5,6 +5,7 @@ import { ExportFile } from '../exportFile';
 import { Formulas } from '../../formulas';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
 import ExportDataProvider from '../dataProvider';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * DEV-3648: the xlsx export reads what the Formulas engine holds for a cell (its error code, its
@@ -41,7 +42,7 @@ describe('Xlsx export: the engine facts of a cell', () => {
       data,
       formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
       exportFile: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     return hot.getPlugin('formulas');
@@ -155,7 +156,7 @@ describe('Xlsx export: the engine facts of a cell', () => {
     hot = new Handsontable(container, {
       data: [[1, '#N/A'], [2, 'b']],
       exportFile: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const facts = jest.spyOn(ExportDataProvider.prototype, 'getEngineCellFacts');
 

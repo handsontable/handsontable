@@ -5,6 +5,7 @@ import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
 import { excelJsAdapter } from '../../../utils/xlsxEngine/adapters/exceljs';
 import { readZip } from '../../../utils/xlsxEngine/adapters/native/zip/reader';
 import { keyWithout } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * DEV-3648: a HyperFormula formula whose result spills (`=SEQUENCE(3)`) is exported as an Excel
@@ -42,7 +43,7 @@ describe('Xlsx export: array formulas', () => {
     hot = new Handsontable(container, {
       formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
       exportFile: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 
@@ -162,7 +163,7 @@ describe('Xlsx export: array formulas', () => {
       data: [[null, '=SEQUENCE(3)'], ['=SEQUENCE(2)', null], []],
       formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
       exportFile: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     // The mapping is internal to HyperFormula; without it the size comes from the walk, which
@@ -207,7 +208,7 @@ describe('Xlsx export: array formulas', () => {
       formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
       manualColumnMove: true,
       exportFile: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     hot.getPlugin('manualColumnMove').moveColumn(2, 0);
     hot.render();
@@ -290,7 +291,7 @@ describe('Xlsx export: array formulas', () => {
       data: [[null], [null], [null]],
       formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
       exportFile: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const second = document.createElement('div');
@@ -300,7 +301,7 @@ describe('Xlsx export: array formulas', () => {
     const hot2 = new Handsontable(second, {
       data: [[null, null], [null, null]],
       formulas: { engine: hot.getPlugin('formulas').engine, sheetName: 'Sheet2' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     try {
@@ -392,7 +393,7 @@ describe('Xlsx export: array formulas', () => {
       data: [[1, '=SUM(Sales*2)', '=SUM(Sales)', '=SUM(One*2)'], [2], [3], [4], [5], [6]],
       formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
       exportFile: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     hot.getPlugin('formulas').engine.addNamedExpression('Sales', '=Sheet1!$A$1:$A$6');
     hot.getPlugin('formulas').engine.addNamedExpression('One', '=Sheet1!$A$1');
@@ -473,7 +474,7 @@ describe('Xlsx export: array formulas', () => {
           data: createCallData(),
           formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
           exportFile: true,
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: TEST_LICENSE_KEY,
         });
 
         await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', { exportFormulas: true, engine: ExcelJS });
@@ -578,7 +579,7 @@ describe('Xlsx export: array formulas', () => {
         data: createFilterData(7),
         formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
         exportFile: true,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
       Object.defineProperty(hot.getPlugin('formulas').engine, 'arrayMapping', { value: undefined, configurable: true });
 
@@ -609,7 +610,7 @@ describe('Xlsx export: array formulas', () => {
         data: [[1, 'a', '=ARRAYFORMULA(IF(A1:A4>2,B1:B4,B1:B4))'], [2, 'b', null], [3, null, null], [4, null, null]],
         formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
         exportFile: true,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
       Object.defineProperty(hot.getPlugin('formulas').engine, 'arrayMapping', { value: undefined, configurable: true });
 
@@ -697,7 +698,7 @@ describe('Xlsx export: array formulas', () => {
           data: createArithmeticData(),
           formulas: arrayArithmeticEngine,
           exportFile: true,
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: TEST_LICENSE_KEY,
         });
 
         await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', { exportFormulas: true, engine: ExcelJS });
@@ -729,7 +730,7 @@ describe('Xlsx export: array formulas', () => {
           ],
           formulas: arrayArithmeticEngine,
           exportFile: true,
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: TEST_LICENSE_KEY,
         });
 
         await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', { exportFormulas: true, engine: ExcelJS });
