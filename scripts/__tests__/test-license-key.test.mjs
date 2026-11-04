@@ -68,11 +68,9 @@ const ALLOWED = {
   'handsontable/src/__tests__/settings/licenseKey.spec.js': 'tests how the key is read',
   'handsontable/src/helpers/__tests__/mixed.unit.ts': 'tests the legacy key checks',
   'handsontable/src/helpers/__tests__/entitlementLicenseInfo.unit.js': 'tests the license state of each key',
-  'handsontable/src/utils/__tests__/licenseBranding.unit.js': 'tests the lock screen text, which names the key',
   'handsontable/src/utils/entitlementLicenseKey/__tests__/extractKeyData.unit.js': 'tests key format detection',
   'tests/fixtures/demo/license-branding.html': 'builds a grid per license state',
-  'tests/fixtures/pages/LicenseBrandingPage.ts': 'a comment on the lock text, which names the key',
-  'tests/e2e/license-branding.spec.ts': 'asserts the lock text, which names the key',
+  'tests/e2e/license-branding.spec.ts': 'asserts the license states, and that the lock text does not name the key',
   'wrappers/vue3/test/types/vue3.types.ts': 'a type test; it builds no grid',
   // The capability gate: these pass the non-commercial key as the legacy key a gate must not restrict.
   'handsontable/src/core/__tests__/license.unit.js': 'keeps a legacy-key instance apart from a listed one',
