@@ -101,6 +101,16 @@ export class DataProviderSameObjectUpdatePage {
   }
 
   /**
+   * Wait two animation frames, so a fetch a microtask, a timer of the frame, or a render started is
+   * recorded. A bounded settle: a spec that reads a negative after it pairs it with a positive control.
+   */
+  async settleFrames(): Promise<void> {
+    await this.page.evaluate(() => new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    }));
+  }
+
+  /**
    * The clickable sorting label of a column header, in the top overlay (the one users click).
    */
   sortLabel(col: number): Locator {

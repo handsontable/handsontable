@@ -5727,9 +5727,10 @@ export default function Core(
    * When {@link Hooks#hasExternalDataSource} is true, Handsontable clears and rebinds the placeholder dataset only during
    * initialization or when `settings` replaces `dataProvider` with another value. A `data` value is ignored with a
    * warning and keeps the loaded rows, and so does the same `dataProvider` object passed again; to reload the rows,
-   * call [`fetchData()`](@/api/dataProvider.md#fetchdata). Other keys alone
-   * (for example `height`) do not clear loaded rows. If only `columns` changes, the column map is rebuilt without
-   * clearing rows.
+   * call [`fetchData()`](@/api/dataProvider.md#fetchdata). Other keys alone (for example `height`) keep the loaded
+   * rows and send no request. `pagination`, `columnSorting`, `filters`, or `columns`, with or without
+   * `dataProvider`, reset the page, sort, or filters they hold, so the rows are fetched again; a `columns` value
+   * sent without `dataProvider` also clears the sort.
    *
    * @memberof Core#
    * @function updateSettings
@@ -6956,7 +6957,9 @@ export default function Core(
 
     finishSettingsUpdate(init, themeOverridesChanged, rootSize.scrollOwnerChanged);
 
-    hadExternalDataSource = instance.runHooks('hasExternalDataSource') === true;
+    if (init || hasOwnProperty(settings, 'dataProvider')) {
+      hadExternalDataSource = instance.runHooks('hasExternalDataSource') === true;
+    }
 
     return defersDataWork ? metaPhase : null;
   }
@@ -8826,7 +8829,10 @@ export default function Core(
   };
 
   /**
-   * What `hasExternalDataSource` answered at the end of the last settings update. A settings update compares it with the answer
+   * What `hasExternalDataSource` answered at the end of the last settings update that sent `dataProvider` (or
+   * at init). A payload without `dataProvider` does not re-apply the plugin, so an object completed in place
+   * and followed by such an update has not been fetched yet, and recording that answer would skip the
+   * placeholder when the object is sent again. A settings update compares it with the answer
    * for its own payload, because a `dataProvider` object completed in place answers `true` even before the payload
    * merges, and only the earlier answer shows that the grid was not server-backed yet.
    */

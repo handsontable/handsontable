@@ -314,6 +314,40 @@ describe('Core#updateSettings with external data source', () => {
       expect(hot.getData()).toEqual([[9, 'Local row']]);
     });
 
+  it('should drop the local rows when a `dataProvider` object completed in place is sent after another update',
+    async() => {
+      const config = { rowId: 'id' };
+
+      hot = new Handsontable(container, {
+        licenseKey: TEST_LICENSE_KEY,
+        data: [{ id: 9, name: 'Local row' }],
+        columns: [{ data: 'id' }, { data: 'name' }],
+        dataProvider: config,
+      });
+
+      await delay(20);
+
+      const server = createServerConfig(2);
+      let resolveFetch;
+
+      server.fetchRows = jest.fn(() => new Promise((resolve) => {
+        resolveFetch = resolve;
+      }));
+      Object.assign(config, server);
+      await hot.updateSettings({ height: 300 });
+
+      expect(hot.getData()).toEqual([[9, 'Local row']]);
+      expect(server.fetchRows).not.toHaveBeenCalled();
+
+      hot.updateSettings({ dataProvider: config });
+
+      expect(hot.countRows()).toBe(0);
+      expect(server.fetchRows).toHaveBeenCalledTimes(1);
+
+      resolveFetch({ rows: [{ id: 1, name: 'Product 1' }, { id: 2, name: 'Product 2' }], totalRows: 2 });
+      await waitFor(() => hot.countRows() === 2 && hot.getDataAtCell(0, 0) === 1);
+    });
+
   it('should fetch with another page size sent beside the same `dataProvider` object', async() => {
     const config = createServerConfig(20);
 

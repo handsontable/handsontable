@@ -25,6 +25,15 @@ test.describe('a settings update that sends the same dataProvider object again',
     await expect(grid.pageCounter).toHaveText('11 - 20 of 50');
     await expect(grid.firstIdCell()).toHaveText('40');
     await expect(grid.sortLabel(0)).toHaveClass(/descending/);
+
+    await grid.settleFrames();
+
+    expect(await grid.fetchCalls()).toHaveLength(fetchesBefore);
+
+    await grid.sendSameProvider({ pagination: { pageSize: 20, pageSizeList: [10, 20] } });
+    await grid.settleFrames();
+
+    expect(await grid.fetchCalls()).toHaveLength(fetchesBefore + 1);
   });
 
   test('refetches with the sort kept when it also sends another page size', async() => {

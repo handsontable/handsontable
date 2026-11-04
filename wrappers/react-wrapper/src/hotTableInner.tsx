@@ -11,7 +11,7 @@ import Handsontable from 'handsontable/base';
 import PropTypes from 'prop-types';
 import { getRenderer } from 'handsontable/renderers/registry';
 import { getEditor } from 'handsontable/editors/registry';
-import { SettingsMapper } from './settingsMapper';
+import { ForwardedSettings, SettingsMapper } from './settingsMapper';
 import { RenderersPortalManager } from './renderersPortalManager';
 import { HotColumn, isHotColumn } from './hotColumn';
 import { HotEditorHooks, HotTableProps, HotTableRef } from './types';
@@ -19,6 +19,7 @@ import {
   HOT_DESTROYED_WARNING,
   AUTOSIZE_WARNING,
   areEquivalentSettingsValue,
+  copySettingsValue,
   EDITOR_PORTAL_HOST_CLASSNAME,
   MISSING_ROOT_PORTAL_WARNING,
   createEditorPortal,
@@ -75,7 +76,13 @@ const HotTableInner = forwardRef<
    * A copy of the `HotColumn` settings last passed to the grid. The children write their settings
    * into one array that the grid also holds, so the array itself cannot tell whether they changed.
    */
-  const forwardedColumnsSettings = useRef<Handsontable.ColumnSettings[] | null>(null);
+  const forwardedColumnsSettings = useRef<unknown>(null);
+
+  /**
+   * Copies of the settings last passed to the grid, compared with on every update so an unchanged prop
+   * is left out (`SettingsMapper.getSettings()`). Started again for every new instance.
+   */
+  const forwardedSettings = useRef<ForwardedSettings>(new Map());
 
   /**
    * HotTable context exposing helper functions.
@@ -158,21 +165,28 @@ const HotTableInner = forwardRef<
   const createNewGlobalSettings = (init = false, previousProps: HotTableProps = {}): Handsontable.GridSettings => {
     const liveSettings = !isHotInstanceDestroyed() ? getHotInstance()?.getSettings() : undefined;
     const initOnlySettingKeys = (liveSettings as any)?._initOnlySettings || [];
+
+    if (init) {
+      forwardedSettings.current = new Map();
+    }
+
     const newSettings = SettingsMapper.getSettings(
       props, {
         prevProps: previousProps,
         isInit: init,
         initOnlySettingKeys,
-        currentSettings: liveSettings
+        currentSettings: liveSettings,
+        forwardedSettings: forwardedSettings.current,
       }
     );
 
-    if (
-      context.columnsSettings.length &&
-      (init || !areEquivalentSettingsValue(forwardedColumnsSettings.current, context.columnsSettings))
-    ) {
-      newSettings.columns = context.columnsSettings;
-      forwardedColumnsSettings.current = [...context.columnsSettings];
+    if (context.columnsSettings.length) {
+      if (init || !areEquivalentSettingsValue(forwardedColumnsSettings.current, context.columnsSettings)) {
+        newSettings.columns = context.columnsSettings;
+        forwardedColumnsSettings.current = copySettingsValue(context.columnsSettings);
+      } else {
+        delete newSettings.columns;
+      }
     }
 
     if (props.renderer) {

@@ -160,61 +160,100 @@ describe('Settings mapper unit tests', () => {
       expect(settings.rowHeights).toBeUndefined();
     });
 
-    it('should skip a setting whose value equals the live grid settings, compared by content', () => {
-      const props: HotTableProps = {
+    it('should skip a setting equal by content to the value it passed last, and pass a changed one', () => {
+      const forwardedSettings = new Map();
+      const props: HotTableProps = { columnSorting: { indicator: true }, pagination: { pageSize: 5 }, readOnly: false };
+
+      SettingsMapper.getSettings(props, { isInit: true, forwardedSettings });
+
+      const unchanged: HotTableProps = {
         columnSorting: { indicator: true },
         pagination: { pageSize: 5 },
         readOnly: false,
       };
 
-      const settings = SettingsMapper.getSettings(props, {
-        prevProps: props,
-        isInit: false,
-        currentSettings: { columnSorting: { indicator: true }, pagination: { pageSize: 5 }, readOnly: false },
-      });
+      expect(SettingsMapper.getSettings(unchanged, { prevProps: props, isInit: false, forwardedSettings })).toEqual({});
 
-      expect(settings).toEqual({});
+      const changed: HotTableProps = {
+        columnSorting: { indicator: false },
+        pagination: { pageSize: 5 },
+        readOnly: true,
+      };
+
+      expect(SettingsMapper.getSettings(changed, { prevProps: unchanged, isInit: false, forwardedSettings }))
+        .toEqual({ columnSorting: { indicator: false }, readOnly: true });
     });
 
-    it('should forward a setting the grid holds with another value', () => {
-      const props: HotTableProps = { columnSorting: { indicator: true }, readOnly: false };
+    it('should pass a setting the app changed in place, though the grid holds the same object', () => {
+      const forwardedSettings = new Map();
+      const mergeCells = [{ row: 0, col: 0, rowspan: 2, colspan: 2 }];
+      const props: HotTableProps = { mergeCells };
+
+      SettingsMapper.getSettings(props, { isInit: true, forwardedSettings });
+      mergeCells.push({ row: 2, col: 2, rowspan: 2, colspan: 2 });
 
       const settings = SettingsMapper.getSettings(props, {
         prevProps: props,
         isInit: false,
-        currentSettings: { columnSorting: { indicator: false }, readOnly: true },
+        currentSettings: { mergeCells },
+        forwardedSettings,
       });
 
-      expect(settings).toEqual({ columnSorting: { indicator: true }, readOnly: false });
+      expect(settings.mergeCells).toBe(mergeCells);
     });
 
     it('should forward a function setting that is a new function, and skip the same one', () => {
+      const forwardedSettings = new Map();
       const cells = () => ({});
-      const props: HotTableProps = { cells };
 
-      expect(SettingsMapper.getSettings(props, {
-        prevProps: props,
-        isInit: false,
-        currentSettings: { cells },
-      })).toEqual({});
-      expect(SettingsMapper.getSettings(props, {
-        prevProps: props,
-        isInit: false,
-        currentSettings: { cells: () => ({}) },
-      })).toEqual({ cells });
+      SettingsMapper.getSettings({ cells }, { isInit: true, forwardedSettings });
+
+      expect(SettingsMapper.getSettings({ cells }, { isInit: false, forwardedSettings })).toEqual({});
+
+      const nextCells = () => ({});
+
+      expect(SettingsMapper.getSettings({ cells: nextCells }, { isInit: false, forwardedSettings }))
+        .toEqual({ cells: nextCells });
     });
 
-    it('should always forward `data`, even when the grid holds the same array', () => {
+    it('should always forward `data`, even when it passed the same array last time', () => {
+      const forwardedSettings = new Map();
       const data = [{ id: 1 }];
-      const props: HotTableProps = { data };
 
-      const settings = SettingsMapper.getSettings(props, {
-        prevProps: props,
-        isInit: false,
-        currentSettings: { data },
-      });
+      SettingsMapper.getSettings({ data }, { isInit: true, forwardedSettings });
 
-      expect(settings.data).toBe(data);
+      expect(SettingsMapper.getSettings({ data }, { isInit: false, forwardedSettings }).data).toBe(data);
+    });
+
+    it('should compare `sheetsBar` by reference, so a new value with the same content is passed', () => {
+      const forwardedSettings = new Map();
+      const sheetsBar = { sheets: [{ name: 'Sheet1', data: [[1]] }] };
+
+      SettingsMapper.getSettings({ sheetsBar }, { isInit: true, forwardedSettings });
+
+      expect(SettingsMapper.getSettings({ sheetsBar }, { isInit: false, forwardedSettings })).toEqual({});
+
+      const nextSheetsBar = { sheets: [{ name: 'Sheet1', data: [[1]] }] };
+
+      expect(SettingsMapper.getSettings({ sheetsBar: nextSheetsBar }, { isInit: false, forwardedSettings }).sheetsBar)
+        .toBe(nextSheetsBar);
+    });
+
+    it('should compare a value with a cycle without overflowing the stack', () => {
+      const forwardedSettings = new Map();
+      const makeTree = () => {
+        const parent: Record<string, unknown> = { id: 1 };
+        const child: Record<string, unknown> = { id: 2, parent };
+
+        parent.__children = [child];
+
+        return { rows: [parent] };
+      };
+
+      SettingsMapper.getSettings({ treeOption: makeTree() }, { isInit: true, forwardedSettings });
+
+      expect(SettingsMapper.getSettings({ treeOption: makeTree() }, { isInit: false, forwardedSettings }))
+        .toEqual({});
     });
 
     it('should keep `rowHeights` and `colWidths` when initializing', () => {
