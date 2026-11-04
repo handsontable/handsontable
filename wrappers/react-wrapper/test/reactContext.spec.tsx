@@ -7,6 +7,7 @@ import {
   mountComponentWithRef
 } from './_helpers';
 import { HotRendererProps, HotTableRef } from '../src/types';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 describe('React Context', () => {
   it('should be possible to declare a context and use it inside both renderers and editors', async() => {
@@ -57,7 +58,7 @@ describe('React Context', () => {
 
     mountComponentWithRef<HotTableRef>((
       <TestContext.Provider value={'testContextValue'}>
-        <HotTable licenseKey="non-commercial-and-evaluation"
+        <HotTable licenseKey={TEST_LICENSE_KEY}
           id="test-hot"
           data={createSpreadsheetData(3, 2)}
           width={300}

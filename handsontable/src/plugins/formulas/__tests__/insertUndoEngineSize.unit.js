@@ -1,7 +1,8 @@
 import HyperFormula from 'hyperformula';
 import Handsontable from '../../../index';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
-const LICENSE_KEY = 'non-commercial-and-evaluation';
+const LICENSE_KEY = TEST_LICENSE_KEY;
 const CYCLES = 3;
 const SIZE = 7;
 const CONTENT = 2;

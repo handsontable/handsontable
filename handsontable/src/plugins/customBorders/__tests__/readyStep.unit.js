@@ -1,6 +1,7 @@
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { CustomBorders } from '../customBorders';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * CustomBorders applies the borders its settings declare in the ready step (`onGridReady()`) when nothing
@@ -40,7 +41,7 @@ describe('CustomBorders ready step', () => {
   function buildGrid(settings) {
     hot = new Handsontable(container, {
       data: [['A1', 'B1', 'C1'], ['A2', 'B2', 'C2'], ['A3', 'B3', 'C3']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

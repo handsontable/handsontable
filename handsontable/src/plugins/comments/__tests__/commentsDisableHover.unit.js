@@ -1,7 +1,8 @@
 import Handsontable from '../../../index';
 import DisplaySwitch from '../displaySwitch';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
-const LICENSE_KEY = 'non-commercial-and-evaluation';
+const LICENSE_KEY = TEST_LICENSE_KEY;
 
 /**
  * Moves the pointer onto an element the way a browser reports it to the Comments plugin.

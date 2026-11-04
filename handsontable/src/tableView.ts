@@ -55,6 +55,7 @@ import {
 } from './helpers/a11y';
 import { parsePixelSize } from './utils/pixelSize';
 import { describeValue } from './utils/describeValue';
+import { isPageTextSelectionKept } from './utils/pageTextSelection';
 import { warnOnce } from './helpers/console';
 
 /**
@@ -820,7 +821,12 @@ class TableView {
         : null;
 
       if (!this.isTextSelectionAllowed(mouseDownTarget)) {
-        clearTextSelection(rootWindow);
+        // A press marked by `keepPageTextSelection()` (the FormulaBuilder reference pick) keeps the page
+        // selection: WebKit ties a focused text field's caret to it, so clearing it moved the formula
+        // editor's caret. Other claimed presses (`isImmediatePropagationStopped()`) still clear it.
+        if (!isPageTextSelectionKept(event)) {
+          clearTextSelection(rootWindow);
+        }
         event.preventDefault();
         rootWindow.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
       }

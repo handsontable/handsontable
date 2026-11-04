@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, AutoColumnSize, Pagination } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(AutoColumnSize);
 registerPlugin(Pagination);
@@ -34,7 +35,7 @@ describe('Pagination ready step', () => {
   function buildGrid(settings) {
     hot = new Handsontable(container, {
       data: Array.from({ length: 20 }, (_, row) => [`A${row + 1}`, `B${row + 1}`]),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

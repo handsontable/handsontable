@@ -10,6 +10,7 @@ import { ColumnSorting } from 'handsontable/plugins/columnSorting';
 import { MultiColumnSorting } from 'handsontable/plugins/multiColumnSorting';
 import { rootComparator } from 'handsontable/plugins/columnSorting/rootComparator';
 import { registerRootComparator } from 'handsontable/plugins/columnSorting/sortService';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 // `Filters` refuses to start without `DropdownMenu` and the `checkbox` cell type.
 registerCellType(CheckboxCellType);
@@ -87,7 +88,7 @@ describe('ColumnSorting -> physical index remap sizing', () => {
     hot = new Handsontable(container, {
       data: buildData(),
       colHeaders: ['Label', 'Key', 'Parity'],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...overrides,
     });
 

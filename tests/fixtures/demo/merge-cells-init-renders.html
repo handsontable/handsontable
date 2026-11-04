@@ -29,6 +29,7 @@
       throw new Error('Unknown ?scenario= value: ' + JSON.stringify(htParams.get('scenario')));
     }
   </script>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -81,7 +82,7 @@
         window.htRenderCounts.afterRenderer += 1;
         td.setAttribute('data-testid', `cell-${row}-${col}`);
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     };
 
     if (MERGE_CELLS !== undefined) {

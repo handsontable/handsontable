@@ -1,6 +1,7 @@
 import Core from 'handsontable/core';
 import { registerCellType, TextCellType, CheckboxCellType } from 'handsontable/cellTypes';
 import { registerRenderer, baseRenderer, textRenderer } from 'handsontable/renderers';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 registerCellType(TextCellType);
 registerCellType(CheckboxCellType);
@@ -21,7 +22,7 @@ describe('replaceData', () => {
    */
   function createGrid(settings) {
     const core = new Core(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

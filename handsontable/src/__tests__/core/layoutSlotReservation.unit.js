@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable/base';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 /**
  * The root wrapper's edge slots (pagination bar, sheets bar, license notification) share their box
@@ -46,7 +47,7 @@ describe('Layout slot height reservation', () => {
   function createGrid(settings) {
     core = new Handsontable(container, {
       data: [['a']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

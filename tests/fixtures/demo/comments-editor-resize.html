@@ -33,6 +33,7 @@
     body { font-family: sans-serif; margin: 0; padding: 8px; }
     #grid { width: 420px; height: 260px; overflow: hidden; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -71,7 +72,7 @@
         // it scrolls the grid and unrenders the rows the rest of the spec needs.
         { row: 3, col: 0, comment: { value: 'SECOND comment, on another cell.' } },
       ],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     window.hot = hot;

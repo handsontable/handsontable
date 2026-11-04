@@ -35,6 +35,7 @@
       transform-origin: center;
     }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -52,7 +53,7 @@
       rowHeaders: true,
       colHeaders: true,
       fixedColumnsStart: 2,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
   </script>
 </body>

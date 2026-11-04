@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, AutoRowSize } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(AutoRowSize);
 
@@ -13,7 +14,7 @@ function buildGrid(settings: Record<string, unknown> = {}) {
   return new Handsontable(document.createElement('div'), {
     data: [['a'], ['b'], ['c']],
     autoRowSize: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     ...settings,
   });
 }
@@ -89,7 +90,7 @@ describe('AutoRowSize#clearCache', () => {
     const hot = new Handsontable(container, {
       data: [['a'], ['b'], ['c']],
       autoRowSize: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const plugin = hot.getPlugin('autoRowSize');
 
@@ -126,7 +127,7 @@ describe('AutoRowSize selective cache clearing', () => {
     const hot = new Handsontable(container, {
       data: Array.from({ length: rows }, (_, row) => [`r${row}`]),
       autoRowSize: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     return { hot, container };
@@ -177,7 +178,7 @@ describe('AutoRowSize selective cache clearing', () => {
     const hot = new Handsontable(container, {
       data: Array.from({ length: 600 }, (_, row) => [`r${row}`]),
       autoRowSize: { syncLimit: 3 },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const plugin = hot.getPlugin('autoRowSize');
     const measure = plugin.calculateRowsHeight.bind(plugin);
@@ -252,7 +253,7 @@ describe('AutoRowSize selective cache clearing', () => {
 
         td.textContent = String(rest[2] ?? '');
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const plugin = hot.getPlugin('autoRowSize');
 

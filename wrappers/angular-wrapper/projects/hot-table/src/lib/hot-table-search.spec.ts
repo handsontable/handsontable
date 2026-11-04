@@ -4,7 +4,7 @@ import { registerPlugin, Search } from 'handsontable/plugins';
 import { HotTableModule } from './hot-table.module';
 import { HotTableComponent } from './hot-table.component';
 import { GridSettings } from './models/grid-settings';
-import { NON_COMMERCIAL_LICENSE } from './services/hot-global-config.service';
+import { TEST_LICENSE_KEY } from './test-helpers/license-key';
 
 registerPlugin(Search);
 
@@ -56,7 +56,7 @@ describe('HotTableComponent with `search`', () => {
   it('should keep a query method set through the plugin API when an unrelated setting changes', () => {
     const queryMethod = jest.fn(() => false);
     const settings = (): GridSettings => ({
-      licenseKey: NON_COMMERCIAL_LICENSE,
+      licenseKey: TEST_LICENSE_KEY,
       data: [['apple'], ['plum']],
       search: true,
     });
@@ -72,13 +72,13 @@ describe('HotTableComponent with `search`', () => {
   it('should drop the object options once `search` changes to `true`', () => {
     const queryMethod = jest.fn(() => true);
     const plugin = createGrid({
-      licenseKey: NON_COMMERCIAL_LICENSE,
+      licenseKey: TEST_LICENSE_KEY,
       data: [['apple'], ['plum']],
       search: { queryMethod, searchResultClass: 'my-hit' },
     });
 
     changeSettings({
-      licenseKey: NON_COMMERCIAL_LICENSE,
+      licenseKey: TEST_LICENSE_KEY,
       data: [['apple'], ['plum']],
       search: true,
     });

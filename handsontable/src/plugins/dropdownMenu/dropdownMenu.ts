@@ -2,14 +2,14 @@ import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
 import { arrayEach } from '../../helpers/array';
 import { objectEach } from '../../helpers/object';
-import { CommandExecutor } from '../contextMenu/commandExecutor';
-import { getDocumentOffsetByElement } from '../contextMenu/utils';
+import { CommandExecutor } from '../../utils/menu/commandExecutor';
+import { getDocumentOffsetByElement } from '../../utils/menu/utils';
 import {
   addClass, eventTargetEl, hasClass, isBottomMostColumnHeader, isHTMLElement, removeClass, setAttribute
 } from '../../helpers/dom/element';
-import { ItemsFactory } from '../contextMenu/itemsFactory';
-import { Menu } from '../contextMenu/menu';
-import type { MenuAnchorRectProvider } from '../contextMenu/menu';
+import { ItemsFactory } from '../../utils/menu/itemsFactory';
+import { Menu } from '../../utils/menu/menu';
+import type { MenuAnchorRectProvider } from '../../utils/menu/menu';
 import { Hooks } from '../../core/hooks';
 import {
   COLUMN_LEFT,
@@ -19,7 +19,7 @@ import {
   READ_ONLY,
   ALIGNMENT,
   SEPARATOR
-} from '../contextMenu/predefinedItems';
+} from '../../utils/menu/predefinedItems';
 
 import { A11Y_HASPOPUP, A11Y_HIDDEN, A11Y_LABEL } from '../../helpers/a11y';
 import { syncIcon } from '../../themes/engine/icons';
@@ -32,7 +32,7 @@ Hooks.getSingleton().register('afterDropdownMenuHide');
 Hooks.getSingleton().register('afterDropdownMenuExecute');
 
 // Re-exported because this plugin's public `open()` accepts a `MenuAnchorRectProvider`
-// (defined alongside the shared `Menu` class in `contextMenu/menu`) as its third parameter.
+// (defined alongside the shared `Menu` class in `utils/menu/menu`) as its third parameter.
 export type { MenuAnchorRectProvider };
 
 export const PLUGIN_KEY = 'dropdownMenu';

@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, NestedRows } from 'handsontable/plugins';
 import HeadersUI from 'handsontable/plugins/nestedRows/ui/headers';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(NestedRows);
 
@@ -50,7 +51,7 @@ describe('NestedRows ready step', () => {
     hot = new Handsontable(container, {
       data: nestedData(),
       rowHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

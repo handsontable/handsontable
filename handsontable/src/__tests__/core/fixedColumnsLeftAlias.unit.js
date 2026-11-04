@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
-const LICENSE_KEY = 'non-commercial-and-evaluation';
+const LICENSE_KEY = TEST_LICENSE_KEY;
 const TOGETHER_ERROR = 'The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together.';
 const RTL_ERROR = 'The `fixedColumnsLeft` is not supported for RTL.';
 

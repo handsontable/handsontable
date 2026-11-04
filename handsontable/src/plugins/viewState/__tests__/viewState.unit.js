@@ -16,6 +16,7 @@ import { DropdownMenu } from '../../../plugins/dropdownMenu';
 import { AutoColumnSize } from '../../../plugins/autoColumnSize';
 import { registerCellType, CheckboxCellType } from '../../../cellTypes';
 import * as consoleHelpers from '../../../helpers/console';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * Builds a 6x4 data set whose cells name their own source position.
@@ -90,7 +91,7 @@ describe('ViewState plugin', () => {
 
     const hot = new Handsontable(container, {
       data: createData(),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

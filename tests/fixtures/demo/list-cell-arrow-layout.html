@@ -60,6 +60,7 @@
       throw new Error('Unknown ?sideColumn= value: ' + JSON.stringify(htParams.get('sideColumn')));
     }
   </script>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -135,7 +136,7 @@
       afterRenderer(td, row, col) {
         td.setAttribute('data-testid', `cell-${row}-${col}`);
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     // Overlay clones share the master's settings object, so one update reaches every table.

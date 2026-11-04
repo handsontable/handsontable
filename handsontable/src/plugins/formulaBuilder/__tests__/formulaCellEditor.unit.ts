@@ -592,6 +592,42 @@ describe('keyboard guard lifecycle', () => {
     editor.close();
   });
 
+  it.each([
+    ['F2', { key: 'F2' }, true],
+    ['Ctrl+E', { key: 'e', ctrlKey: true }, true],
+    ['Cmd+E', { key: 'E', metaKey: true }, true],
+    ['a plain e', { key: 'e' }, false],
+    ['Enter', { key: 'Enter' }, false],
+  ])('enters full edit mode on a handled %s keydown: %s', (_name, init, expected) => {
+    const { editor } = makeGuardHarness();
+    const enableFullEditMode = jest.fn();
+
+    (editor as unknown as { enableFullEditMode: () => void }).enableFullEditMode = enableFullEditMode;
+    editor.open();
+
+    const event = new KeyboardEvent('keydown', { ...init, bubbles: true, cancelable: true });
+
+    event.preventDefault();
+    editor.input.dispatchEvent(event);
+
+    expect(enableFullEditMode).toHaveBeenCalledTimes(expected ? 1 : 0);
+
+    editor.close();
+  });
+
+  it('does not enter full edit mode on an F2 the formula editor did not handle', () => {
+    const { editor } = makeGuardHarness();
+    const enableFullEditMode = jest.fn();
+
+    (editor as unknown as { enableFullEditMode: () => void }).enableFullEditMode = enableFullEditMode;
+    editor.open();
+    editor.input.dispatchEvent(new KeyboardEvent('keydown', { key: 'F2', bubbles: true, cancelable: true }));
+
+    expect(enableFullEditMode).not.toHaveBeenCalled();
+
+    editor.close();
+  });
+
   it('lets keys through before the session opens', () => {
     const { editor } = makeGuardHarness();
 

@@ -43,6 +43,7 @@
     .handsontable td.bold-red { font-weight: bold; color: #ff0000; }
     .handsontable td.green-bg { background-color: #00ff00; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -134,7 +135,7 @@
       ],
       exportFile: engineSetting,
       afterRenderer: stamp('source'),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     // A second, small source grid, so the nested-header round trip does not change what the first
@@ -153,7 +154,7 @@
       ],
       exportFile: engineSetting,
       afterRenderer: stamp('source2'),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     window.__source2 = source2;
@@ -189,7 +190,7 @@
       // Used only by the styles round trip, to re-export the target and read the styling back.
       exportFile: engineSetting,
       afterRenderer: stamp('target'),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     window.__source = source;

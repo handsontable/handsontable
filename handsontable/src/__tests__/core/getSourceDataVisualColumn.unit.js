@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, HiddenColumns } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 registerPlugin(HiddenColumns);
 
@@ -13,7 +14,7 @@ registerPlugin(HiddenColumns);
 function buildGrid(data, settings = {}) {
   return new Handsontable(document.createElement('div'), {
     data,
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     ...settings,
   });
 }

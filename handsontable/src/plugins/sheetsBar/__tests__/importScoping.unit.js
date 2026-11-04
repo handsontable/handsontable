@@ -1,7 +1,8 @@
 import Handsontable from '../../../index';
 import { loadFixture } from '../../../utils/xlsxEngine/__tests__/helpers/fixtures';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
-const LICENSE_KEY = 'non-commercial-and-evaluation';
+const LICENSE_KEY = TEST_LICENSE_KEY;
 const STYLE_SELECTOR = 'style[data-hot-imported-styles]';
 
 /**

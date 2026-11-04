@@ -627,7 +627,7 @@ has no collection, and ColumnSummary has no endpoints, so an XLSX export threw).
 - `../../utils/xlsxEngine/AGENTS.md` for the engine contract and the native adapter's traps.
 - Sources of exported values: `../formulas/AGENTS.md`, `../columnSummary/AGENTS.md`,
   `../nestedHeaders/AGENTS.md`.
-- Menu entry: `contextMenuItem/`, wired via `../contextMenu/AGENTS.md`.
+- Menu entry: `contextMenuItem/`, registered through `registerMenuEntries()` (`../../utils/menu/AGENTS.md`).
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
 
 ## Testing

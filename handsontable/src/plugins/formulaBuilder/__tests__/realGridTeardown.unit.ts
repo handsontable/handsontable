@@ -3,6 +3,7 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { Formulas } from '../../formulas';
 import { FormulaBuilder } from '../formulaBuilder';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 type CoreModule = typeof import('hyperformula-ui');
 
@@ -57,7 +58,7 @@ describe('FormulaBuilder teardown on a real grid', () => {
       editor: 'formula',
       formulas: { engine: HyperFormula },
       formulaBuilder: { builder: core },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     } as Handsontable.GridSettings);
   }
 
@@ -94,7 +95,7 @@ describe('FormulaBuilder teardown on a real grid', () => {
       editor: 'formula',
       formulas: { engine: HyperFormula },
       formulaBuilder: { builder: core },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     } as Handsontable.GridSettings);
 
     expect(hot.getCell(0, 0)?.getAttribute('data-hfe-error')).toBe('#DIV/0!');
@@ -136,5 +137,76 @@ describe('FormulaBuilder teardown on a real grid', () => {
     engine.destroy();
 
     expect(countBodyNodes()).toEqual(before);
+  });
+
+  it('builds the bar and the formula editor again when the Formulas plugin is re-enabled through its own API', () => {
+    const before = countBodyNodes();
+    const hot = new Handsontable(container, {
+      data: [['=1+1', 2]],
+      editor: 'formula',
+      formulas: { engine: HyperFormula },
+      formulaBuilder: { builder: core, showFormulaBar: true },
+      licenseKey: TEST_LICENSE_KEY,
+    } as Handsontable.GridSettings);
+    const formulas = hot.getPlugin('formulas');
+    const formulaBuilder = hot.getPlugin('formulaBuilder');
+
+    expect(hot.rootWrapperElement.querySelector('.hfe-formula-bar__address-input')).not.toBeNull();
+
+    formulas.disablePlugin();
+
+    expect(hot.rootWrapperElement.querySelector('.hfe-formula-bar__address-input')).toBeNull();
+
+    formulas.enablePlugin();
+    hot.selectCell(0, 0);
+
+    expect(formulaBuilder.enabled).toBe(true);
+    expect(hot.rootWrapperElement.querySelector('.hfe-formula-bar__address-input'))
+      .not.toBeNull();
+    expect(countBodyNodes()).toEqual({ portals: before.portals + 1, liveRegions: before.liveRegions + 1 });
+
+    hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }));
+
+    expect(container.querySelector('.ht-formula-builder__inline-editor .hfe-editor__input')).not.toBeNull();
+
+    hot.getActiveEditor()?.finishEditing(true);
+    hot.destroy();
+
+    expect(countBodyNodes()).toEqual(before);
+  });
+
+  it.each([
+    ['an empty settings update', () => ({})],
+    ['a re-render that re-sends the same plugin settings', () => ({
+      formulaBuilder: { builder: core, showFormulaBar: true },
+    })],
+  ])('keeps an open edit through %s after the Formulas plugin was re-enabled through its own API', (_, payload) => {
+    const hot = new Handsontable(container, {
+      data: [['=1+1', 2]],
+      editor: 'formula',
+      formulas: { engine: HyperFormula },
+      formulaBuilder: { builder: core, showFormulaBar: true },
+      licenseKey: TEST_LICENSE_KEY,
+    } as Handsontable.GridSettings);
+    const formulas = hot.getPlugin('formulas');
+
+    formulas.disablePlugin();
+    formulas.enablePlugin();
+    hot.selectCell(0, 0);
+
+    const portal = document.querySelectorAll(POPUP_PORTAL_SELECTOR)[0];
+
+    hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }));
+
+    expect((hot.getActiveEditor() as { isOpened(): boolean }).isOpened()).toBe(true);
+
+    hot.updateSettings(payload() as Handsontable.GridSettings);
+
+    expect((hot.getActiveEditor() as { isOpened(): boolean }).isOpened()).toBe(true);
+    expect(document.querySelectorAll(POPUP_PORTAL_SELECTOR)).toHaveLength(1);
+    expect(document.querySelectorAll(POPUP_PORTAL_SELECTOR)[0]).toBe(portal);
+
+    hot.getActiveEditor()?.finishEditing(true);
+    hot.destroy();
   });
 });

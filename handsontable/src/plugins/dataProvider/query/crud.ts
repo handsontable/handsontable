@@ -110,7 +110,7 @@ export function getRowIdByVisualRow(
  * @param {number} visualRow Visual row index.
  * @returns {*|undefined}
  */
-function readRowIdOrUndefined(hot: HotInstance, rowIdOption: RowIdOption, visualRow: number): unknown {
+export function readRowIdOrUndefined(hot: HotInstance, rowIdOption: RowIdOption, visualRow: number): unknown {
   try {
     return getRowIdByVisualRow(hot, rowIdOption, visualRow);
 

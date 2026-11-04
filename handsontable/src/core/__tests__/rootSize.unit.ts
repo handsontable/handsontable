@@ -1,5 +1,6 @@
 import Handsontable from '../../index';
 import Core from '../../core';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 /**
  * The root's inline `height`, `width` and `overflow*` are written by `core/rootSize.ts` only.
@@ -18,7 +19,7 @@ describe('root size options', () => {
    */
   function buildGrid(settings: Record<string, unknown>): Handsontable {
     hot = new Handsontable(document.createElement('div'), {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [[1, 2], [3, 4]],
       ...settings,
     });
@@ -444,7 +445,7 @@ describe('root size options', () => {
       // A nested grid's `rootElement` is the container the host handed it, so only a root instance
       // gets the clip. A `Core` built without the root symbol is how the editors' inner grids are made.
       const nested = new Core(document.createElement('div'), {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [[1, 2], [3, 4]],
         preventOverflow: 'horizontal',
       });

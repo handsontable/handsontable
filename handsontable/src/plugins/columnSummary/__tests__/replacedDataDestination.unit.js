@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
-const LICENSE_KEY = 'non-commercial-and-evaluation';
+const LICENSE_KEY = TEST_LICENSE_KEY;
 const SUMMARY = [{ sourceColumn: 0, destinationRow: 3, destinationColumn: 0, type: 'sum', forceNumeric: true }];
 
 /**

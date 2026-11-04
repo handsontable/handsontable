@@ -258,12 +258,12 @@ Three rules the lock follows:
   `destinationColumn` when they write the meta. Do not "fix" it to a physical column in the predicate
   alone, or the lock and the meta it protects land on different cells.
 
-The "Read only" menu item (`contextMenu/predefinedItems/readOnly.ts`) asks
+The "Read only" menu item (`utils/menu/predefinedItems/readOnly.ts`) asks
 `getPlugin('columnSummary').isLockedSummaryCell()` too. It leaves locked cells out of its mark, its
 direction check, and its write loop, and it hides itself when nothing in the selection can be toggled.
 Its "make writable" undo snapshot records a locked cell as it really is (read-only), so that undo
 writes `true` back; the "make read-only" snapshot is empty, and undo's `false` for the summary is what
-the veto stops. The veto is the safety net for everything the item itself cannot reach. See `../contextMenu/AGENTS.md`.
+the veto stops. The veto is the safety net for everything the item itself cannot reach. See `../../utils/menu/AGENTS.md`.
 
 ## A `reversedRowCoords` endpoint is anchored to the bottom and must be re-derived on alteration (DEV-144)
 

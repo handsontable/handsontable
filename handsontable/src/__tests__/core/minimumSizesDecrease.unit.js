@@ -1,6 +1,7 @@
 import { HyperFormula } from 'hyperformula';
 import Handsontable from 'handsontable';
 import { injectRealCoreStyles, removeRealCoreStyles } from '../../../test/helpers/realCoreStyles';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 /**
  * Lowering `minRows`, `minSpareRows`, `minCols` or `minSpareCols` through `updateSettings()` gives back the empty
@@ -30,7 +31,7 @@ describe('Core#updateSettings lowering the minimum sizes', () => {
    */
   function createGrid(settings) {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

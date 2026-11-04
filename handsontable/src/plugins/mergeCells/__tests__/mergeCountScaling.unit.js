@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
 import * as mergeCellsUtils from '../utils';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * Adding a merge checks it for an overlap with the merges already in the lookup matrix. The check reads the
@@ -37,7 +38,7 @@ describe('MergeCells adding many merges', () => {
   function createGrid() {
     hot = new Handsontable(container, {
       data: Handsontable.helper.createSpreadsheetData(MERGES * 2, 4),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       mergeCells: true,
     });
 

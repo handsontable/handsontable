@@ -3,6 +3,7 @@ import { registerPlugin } from '../../registry';
 import { Dialog } from '../dialog';
 import { DIALOG_CLASS_NAME } from '../constants';
 import * as consoleHelpers from '../../../helpers/console';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 // A grid inside an iframe builds its DOM from `hot.rootDocument`, the iframe's document, so the nodes
 // it hands the dialog belong to the iframe's realm. An `instanceof DocumentFragment` test against the
@@ -30,7 +31,7 @@ describe('Dialog content from another realm', () => {
     hot = new Handsontable(container, {
       data: [[1, 2], [3, 4]],
       dialog: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
   });
 
