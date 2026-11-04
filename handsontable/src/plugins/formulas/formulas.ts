@@ -40,7 +40,7 @@ import { getEngineSettingsWithOverrides, haveEngineSettingsChanged } from './eng
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
 import { getValueGetterValue } from '../../utils/valueAccessors';
-import { quoteUnreadableSheetNames } from '../../utils/formulaReferences';
+import { quoteUnreadableSheetNames, canReadSheetNameUnquoted } from '../../utils/formulaReferences';
 import { Hooks } from '../../core/hooks';
 import IndexSyncer from './indexSyncer';
 import {
@@ -1445,7 +1445,7 @@ export class Formulas extends BasePlugin {
     let readable = this.#unquotedSheetNames.get(name);
 
     if (readable === undefined) {
-      readable = this.engine?.validateFormula(`=${name}!A1`) !== false;
+      readable = canReadSheetNameUnquoted(this.engine, name);
       this.#unquotedSheetNames.set(name, readable);
     }
 

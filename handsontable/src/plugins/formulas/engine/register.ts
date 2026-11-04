@@ -143,12 +143,19 @@ export function registerEngine(
   // A rebuild reads spilled values back as plain data and turns every spill into `#SPILL!`, so it is
   // used only where the engine leaves references to an added or removed sheet stale.
   // TODO: drop the rebuild branch once the supported HyperFormula version is 3.1.1 or later.
-  const onSheetListChange = recalculatesSheetReferences(engineClass.version)
-    ? () => recalculateSheetListFormulas(engineClass, engineInstance)
-    : () => engineInstance.rebuildAndRecalculate();
+  if (recalculatesSheetReferences(engineClass.version)) {
+    const onSheetListChange = () => recalculateSheetListFormulas(engineClass, engineInstance);
 
-  engineInstance.on('sheetAdded', onSheetListChange);
-  engineInstance.on('sheetRemoved', onSheetListChange);
+    engineInstance.on('sheetAdded', onSheetListChange);
+    engineInstance.on('sheetRemoved', onSheetListChange);
+    engineInstance.on('sheetRenamed', onSheetListChange);
+
+  } else {
+    const rebuild = () => engineInstance.rebuildAndRecalculate();
+
+    engineInstance.on('sheetAdded', rebuild);
+    engineInstance.on('sheetRemoved', rebuild);
+  }
 
   return engineInstance;
 }

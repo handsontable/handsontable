@@ -84,6 +84,7 @@ export interface HyperFormulaEngine {
   redo(): void;
   destroy(): void;
   rebuildAndRecalculate(): void;
+  clearUndoStack(): void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }

@@ -185,6 +185,45 @@ describe('Formulas: adding and removing a sheet on an engine built by the plugin
     expect(hot1.getDataAtCell(0, 0)).toBe(12);
   });
 
+  it('recalculates a named expression that calls SHEETS, keeping its options', () => {
+    const hot1 = grid([['=Count']], {
+      engine: HyperFormula,
+      sheetName: 'S1',
+      namedExpressions: [{ name: 'Count', expression: '=SHEETS()', options: { comment: 'Sheet count' } }],
+    });
+    const engine = hot1.getPlugin('formulas').engine;
+
+    expect(hot1.getDataAtCell(0, 0)).toBe(1);
+
+    engine.addSheet('S2');
+
+    expect(hot1.getDataAtCell(0, 0)).toBe(2);
+    expect(engine.getNamedExpression('Count').options).toEqual({ comment: 'Sheet count' });
+  });
+
+  it('recalculates SHEET when a sheet is renamed', () => {
+    const hot1 = grid([['=SHEET("Old")', '=SHEET("New")']], { engine: HyperFormula, sheetName: 'S1' });
+    const engine = hot1.getPlugin('formulas').engine;
+
+    engine.addSheet('Old');
+
+    expect(hot1.getDataAtRow(0)).toEqual([2, '#N/A']);
+
+    engine.renameSheet(engine.getSheetId('Old'), 'New');
+
+    expect(hot1.getDataAtRow(0)).toEqual(['#N/A', 2]);
+  });
+
+  it('leaves no engine undo step for the recalculation', () => {
+    const hot1 = grid([['=SHEETS()']], { engine: HyperFormula, sheetName: 'S1' });
+    const engine = hot1.getPlugin('formulas').engine;
+
+    engine.addSheet('S2');
+
+    expect(hot1.getDataAtCell(0, 0)).toBe(2);
+    expect(engine.isThereSomethingToUndo()).toBe(false);
+  });
+
   it('keeps a reference to a sheet whose name the engine reads only in quotes', () => {
     const hot1 = grid([['=SHEETS()+\'2026\'!A1']], { engine: HyperFormula, sheetName: 'S1' });
     const engine = hot1.getPlugin('formulas').engine;

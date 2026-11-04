@@ -1,5 +1,9 @@
 import { warn } from '../../../helpers/console';
-import { quoteUnreadableSheetNames } from '../../../utils/formulaReferences';
+import {
+  canReadSheetNameUnquoted,
+  quoteUnreadableSheetNames,
+  rewriteSheetReferences,
+} from '../../../utils/formulaReferences';
 import type { FormulasCellAddress, FormulasCellRange, HyperFormulaEngine, HyperFormulaClass } from './types';
 
 /**
@@ -9,7 +13,7 @@ const SHEET_REFERENCES_RECALCULATED_SINCE = [3, 1, 1];
 
 /**
  * The functions whose result depends on the list of sheets. HyperFormula does not recalculate them
- * when a sheet is added or removed.
+ * when a sheet is added, removed, or renamed.
  */
 const SHEET_LIST_FUNCTIONS = ['SHEET', 'SHEETS'];
 
@@ -78,9 +82,9 @@ function createFunctionCallPattern(functionNames: string[]): RegExp {
 }
 
 /**
- * Checks whether every cell a formula reads is on a sheet the engine still holds. HyperFormula throws
- * when it is handed a formula that reads a removed sheet, and such a cell already reads `#REF!`. A named
- * expression is reported with a negative sheet, and it is not a sheet the formula reads.
+ * Checks whether every cell a formula reads is on a sheet the engine holds. HyperFormula throws when
+ * it is handed again a formula that reads a missing sheet. A named expression is reported with a
+ * negative sheet, and it is not a sheet the formula reads.
  *
  * @param {object} engine The engine instance.
  * @param {object} address The formula cell.
@@ -95,70 +99,123 @@ function readsExistingSheetsOnly(engine: HyperFormulaEngine, address: FormulasCe
 }
 
 /**
- * Finds the formula cells that call `SHEET` or `SHEETS`, with formula text the engine can parse again.
+ * Checks whether every sheet a formula text names exists in the engine. The engine lists no
+ * precedents for a named expression, so its text is read instead.
+ *
+ * @param {object} engine The engine instance.
+ * @param {string} formula The formula text.
+ * @returns {boolean}
+ */
+function namesExistingSheetsOnly(engine: HyperFormulaEngine, formula: string): boolean {
+  let allExist = true;
+
+  rewriteSheetReferences(formula, (reference) => {
+    allExist = allExist && engine.doesSheetExist(reference.name);
+
+    return null;
+  });
+
+  return allExist;
+}
+
+/**
+ * Finds the formula cells and the named expressions that call `SHEET` or `SHEETS`, and returns a write
+ * for each that sets it to its own formula again, with sheet names quoted where the engine needs it.
+ * A formula that reads a missing sheet is left out, because the engine throws when it is written.
  *
  * @param {Function} engineClass The engine class.
  * @param {object} engine The engine instance.
- * @returns {Array}
+ * @returns {Function[]}
  */
-function findSheetListFormulas(engineClass: HyperFormulaClass, engine: HyperFormulaEngine) {
+function findSheetListFormulaWrites(engineClass: HyperFormulaClass, engine: HyperFormulaEngine): (() => void)[] {
   const pattern = createFunctionCallPattern(getSheetListFunctionNames(engineClass, engine));
   const readableNames = new Map<string, boolean>();
-  const canReadUnquoted = (name: string) => {
+  const quote = (formula: string) => quoteUnreadableSheetNames(formula, (name) => {
     if (!readableNames.has(name)) {
-      readableNames.set(name, engine.validateFormula(`=${name}!A1`) !== false);
+      readableNames.set(name, canReadSheetNameUnquoted(engine, name));
     }
 
     return readableNames.get(name)!;
-  };
-  const cells: { address: FormulasCellAddress; formula: string }[] = [];
+  });
+  const writes: (() => void)[] = [];
+  const sheets = engine.getSheetNames().map(sheetName => engine.getSheetId(sheetName));
 
-  engine.getSheetNames().forEach((sheetName) => {
-    const sheet = engine.getSheetId(sheetName);
-
+  sheets.forEach((sheet) => {
     engine.getSheetFormulas(sheet).forEach((rowFormulas, row) => {
       rowFormulas.forEach((formula, col) => {
         const address = { sheet, row, col };
 
         if (formula !== undefined && pattern.test(formula) && readsExistingSheetsOnly(engine, address)) {
-          cells.push({ address, formula: quoteUnreadableSheetNames(formula, canReadUnquoted) });
+          writes.push(() => engine.setCellContents(address, quote(formula)));
         }
       });
     });
   });
 
-  return cells;
+  [undefined, ...sheets].forEach((scope) => {
+    engine.listNamedExpressions(scope).forEach((name) => {
+      const formula = engine.getNamedExpressionFormula(name, scope);
+
+      if (formula !== undefined && pattern.test(formula) && namesExistingSheetsOnly(engine, formula)) {
+        const options = engine.getNamedExpression(name, scope)?.options;
+
+        writes.push(() => engine.changeNamedExpression(name, quote(formula), scope, options));
+      }
+    });
+  });
+
+  return writes;
 }
 
 /**
- * Writes every formula that calls `SHEET` or `SHEETS` into the engine again, so that it is
- * recalculated against the current list of sheets. A sheet name the engine reads only in quotes is
- * quoted, and a formula that reads a removed sheet is skipped, because it reads `#REF!` either way.
+ * Writes every formula and named expression that calls `SHEET` or `SHEETS` into the engine again, so
+ * that it is recalculated against the current list of sheets.
+ *
+ * The writes run with the evaluation suspended, and the engine's own undo stack is cleared before it
+ * resumes, as the rebuild this replaces did, so an `engine.undo()` right after a sheet change does not
+ * land on these writes. Inside a batch the host started, the writes join that batch and nothing is
+ * cleared. Only a failing read or write is caught: the `valuesUpdated` emit that the resume makes
+ * runs outside it, so an error from a hook listening to it reaches the caller.
  *
  * @param {Function} engineClass The engine class.
  * @param {object} engine The engine instance.
  */
 export function recalculateSheetListFormulas(engineClass: HyperFormulaClass, engine: HyperFormulaEngine) {
+  const reportFailure = (error: unknown) => {
+    warn(`Formulas: the SHEET and SHEETS formulas were not recalculated after a sheet change: ${
+      error instanceof Error ? error.message : String(error)}`);
+  };
+  let writes: (() => void)[];
+
   try {
-    const cells = findSheetListFormulas(engineClass, engine);
-
-    if (cells.length === 0) {
-      return;
-    }
-
-    const write = () => {
-      cells.forEach(({ address, formula }) => engine.setCellContents(address, formula));
-    };
-
-    // `batch()` resumes the evaluation when it ends, so it must not run inside the host's own batch.
-    if (engine.isEvaluationSuspended()) {
-      write();
-    } else {
-      engine.batch(write);
-    }
+    writes = findSheetListFormulaWrites(engineClass, engine);
 
   } catch (error) {
-    // A throw here would stop the engine's sheet event before the grids' own listeners run.
-    warn(error instanceof Error ? error.message : String(error));
+    reportFailure(error);
+
+    return;
+  }
+
+  if (writes.length === 0) {
+    return;
+  }
+
+  const ownSuspension = !engine.isEvaluationSuspended();
+
+  if (ownSuspension) {
+    engine.suspendEvaluation();
+  }
+
+  try {
+    writes.forEach(write => write());
+
+  } catch (error) {
+    reportFailure(error);
+
+  } finally {
+    if (ownSuspension) {
+      engine.clearUndoStack();
+      engine.resumeEvaluation();
+    }
   }
 }
