@@ -65,6 +65,9 @@ const isProduction = buildMode === 'production';
 // off handsontable.com, where a grid without a key shows the lock screen. The code a
 // page shows keeps the placeholder: framework-loader.mjs reads the source from disk.
 const previewLicenseKey = resolvePreviewLicenseKey(process.env);
+// The example module ids the transform rewrote; the build check compares them
+// with every executed example that holds a placeholder.
+const licenseKeyRewrittenIds = new Set();
 
 // Absolute path to the handsontable package root (used to resolve styles and
 // other non-tmp/ files like `handsontable/styles/ht-theme-main.css`).
@@ -187,6 +190,10 @@ function resolveMonorepoPackages() {
       const code = previewLicenseKey && isExecutedExampleId(id)
         ? injectLicenseKey(source, previewLicenseKey)
         : source;
+
+      if (code !== source) {
+        licenseKeyRewrittenIds.add(id);
+      }
 
       if (id.endsWith('.jsx')) {
         return transformWithEsbuild(code, id, {
@@ -1159,7 +1166,11 @@ export default defineConfig({
     // Checks where the internal test license key landed. Keep it last:
     // astro:build:done hooks run in this order, and the check must see the
     // files the integrations above write (_md twins, llms*.txt).
-    previewLicenseKeyCheck({ injected: Boolean(previewLicenseKey) }),
+    previewLicenseKeyCheck({
+      injected: Boolean(previewLicenseKey),
+      rewritten: licenseKeyRewrittenIds,
+      contentDir: resolve(__dirname, 'content'),
+    }),
   ],
 
   markdown: {

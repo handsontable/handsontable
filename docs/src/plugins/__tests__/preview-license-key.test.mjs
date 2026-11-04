@@ -8,9 +8,11 @@ import ts from 'typescript';
 import { parse as parseSfc } from '@vue/compiler-sfc';
 import {
   TEST_KEY_MARKER,
+  checkEveryExampleRewritten,
   checkKeyInOutput,
   injectLicenseKey,
   isExecutedExampleId,
+  listExamplesWithPlaceholder,
   resolvePreviewLicenseKey,
 } from '../preview-license-key.mjs';
 import { TEST_LICENSE_KEY } from '../../test-license-key.mjs';
@@ -93,6 +95,8 @@ test('matches only the example modules the runner executes, never a displayed or
   assert.equal(isExecutedExampleId(`${base}/javascript/example1.js?raw`), false);
   assert.equal(isExecutedExampleId(`${base}/vue/example1.vue?vue&type=script&setup=true&lang.ts`), false);
   assert.equal(isExecutedExampleId(`${base}/javascript/example1.html`), false);
+  // The runner globs `.vue` only in a `vue/` folder.
+  assert.equal(isExecutedExampleId(`${base}/javascript/example1.vue`), false);
   assert.equal(isExecutedExampleId('/repo/docs/src/scripts/example-runner.ts'), false);
   assert.equal(isExecutedExampleId('/repo/docs/content/guides/rows/row-moving/helpers.js'), false);
 });
@@ -159,6 +163,8 @@ test('every executed example gets the key, and still parses', () => {
   const examples = walk(CONTENT_DIR).filter(file => isExecutedExampleId(file));
   let replaced = 0;
   const leftover = [];
+  const keyless = [];
+  const misplacedLicense = [];
   const broken = [];
   const stripped = [];
 
@@ -166,10 +172,22 @@ test('every executed example gets the key, and still parses', () => {
     const code = readFileSync(file, 'utf8');
     const out = injectLicenseKey(code, TEST_LICENSE_KEY);
 
-    replaced += out.split(KEY_JSON).length - 1;
+    const count = out.split(KEY_JSON).length - 1;
+
+    replaced += count;
 
     if (out.includes('your-license-key')) {
       leftover.push(relative(DOCS_DIR, file));
+    }
+
+    // An example without a placeholder builds without a key and shows the lock screen on previews.
+    if (count === 0) {
+      keyless.push(relative(DOCS_DIR, file));
+    }
+
+    // `license` is the Angular `HOT_GLOBAL_CONFIG` option. Anywhere else the grid ignores it.
+    if (!file.includes('/angular/') && out.includes(`license: ${KEY_JSON}`)) {
+      misplacedLicense.push(relative(DOCS_DIR, file));
     }
 
     // Compare with the source: an example may already carry an error of its own, and the rewrite
@@ -188,10 +206,16 @@ test('every executed example gets the key, and still parses', () => {
 
   assert.deepEqual(leftover, [], 'These examples hold a placeholder the rewrite does not know. Use a form from '
     + 'docs/AGENTS.md, 2.5, or teach `injectLicenseKey()` the new one.');
+  assert.deepEqual(keyless, [], 'These executed examples hold no license key placeholder, so their grids show the '
+    + 'lock screen on the previews. Add the placeholder from docs/AGENTS.md, 2.5.');
+  assert.deepEqual(misplacedLicense, [], 'These examples use the Angular `license` placeholder, which only an '
+    + 'Angular `HOT_GLOBAL_CONFIG` reads. Use `licenseKey`.');
   assert.deepEqual(broken, [], 'The rewrite breaks the syntax of these examples.');
   assert.deepEqual(stripped, [], 'These Angular examples hold the placeholder inside a skip-in-compilation block, '
     + 'which the build drops. Move it out of the block.');
   assert.ok(examples.length > 1500, `Only ${examples.length} executed examples found; check isExecutedExampleId().`);
+  // The build check's list of examples to rewrite is the same set.
+  assert.equal(listExamplesWithPlaceholder(CONTENT_DIR).length, examples.length);
   assert.ok(replaced >= examples.length, `Only ${replaced} placeholders replaced in ${examples.length} examples.`);
 });
 
@@ -215,6 +239,10 @@ test('the build check fails on a key in displayed output, on a key missing from 
     assert.doesNotThrow(() => checkKeyInOutput(dist, { injected: true }));
     assert.throws(() => checkKeyInOutput(dist, { injected: false }), /_astro\/example1\.js/);
 
+    writeFileSync(join(dist, 'javascript-data-grid', 'index.html'), `<pre>licenseKey: ${KEY_JSON}</pre>`);
+    assert.throws(() => checkKeyInOutput(dist, { injected: true }), /javascript-data-grid\/index\.html/);
+    writeFileSync(join(dist, 'javascript-data-grid', 'index.html'), '<pre>// licenseKey: your-license-key</pre>');
+
     writeFileSync(join(dist, 'llms-full.txt'), `licenseKey: ${KEY_JSON}`);
     assert.throws(() => checkKeyInOutput(dist, { injected: true }), /llms-full\.txt/);
     rmSync(join(dist, 'llms-full.txt'));
@@ -224,4 +252,14 @@ test('the build check fails on a key in displayed output, on a key missing from 
   } finally {
     rmSync(dist, { recursive: true, force: true });
   }
+});
+
+test('the build check fails when an executed example never reached the rewrite', () => {
+  const expected = ['/repo/docs/content/a/javascript/example1.js', '/repo/docs/content/a/vue/example1.vue'];
+
+  assert.doesNotThrow(() => checkEveryExampleRewritten(expected, new Set(expected)));
+  // The JS chunk holds the key, but the Vue example was skipped (for example, its id gained a query).
+  assert.throws(() => checkEveryExampleRewritten(expected, new Set([expected[0]])), /1 executed examples .*vue\/example1\.vue/);
+  assert.doesNotThrow(() => checkEveryExampleRewritten(['C:\\repo\\docs\\content\\a\\react\\example1.jsx'],
+    new Set(['C:/repo/docs/content/a/react/example1.jsx'])));
 });

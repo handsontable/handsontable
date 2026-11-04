@@ -9,11 +9,12 @@ import { TEST_LICENSE_KEY } from '../test-license-key.mjs';
 export const TEST_KEY_MARKER = 'HANDSONTABLE INTERNAL TEST KEY';
 
 /**
- * The example modules `src/scripts/example-runner.ts` executes: the `import.meta.glob` patterns there
- * take `example*.{js,jsx,vue,ts}` under `content/`. A `.tsx` example is shown only, and so is every
- * other file under `content/` (the `content/data/` snippets among them).
+ * The example modules `src/scripts/example-runner.ts` executes, the same set as its `import.meta.glob`
+ * patterns: `example*.{js,jsx,ts}` anywhere under `content/`, and `example*.vue` in a `vue/` folder. A
+ * `.tsx` example is shown only, and so is every other file under `content/` (the `content/data/` snippets
+ * among them).
  */
-const EXECUTED_EXAMPLE_ID = /\/content\/(?:.+\/)?example[^/]*\.(?:js|jsx|vue|ts)$/;
+const EXECUTED_EXAMPLE_ID = /\/content\/(?:.+\/)?(?:example[^/]*\.(?:js|jsx|ts)|vue\/example[^/]*\.vue)$/;
 
 /**
  * One placeholder line of `docs/AGENTS.md`, 2.5, with its trailing comment:
@@ -36,7 +37,31 @@ const PLACEHOLDER_LINE = /^([ \t]*)\/\/ ?(licenseKey|license)(: ?|=)(['"])your-l
  * @returns {boolean}
  */
 export function isExecutedExampleId(id) {
-  return !id.includes('?') && EXECUTED_EXAMPLE_ID.test(id.split('\\').join('/'));
+  return !id.includes('?') && EXECUTED_EXAMPLE_ID.test(toPosix(id));
+}
+
+/**
+ * Converts a path to forward slashes, the form Vite gives module ids in.
+ *
+ * @param {string} path A file path.
+ * @returns {string}
+ */
+function toPosix(path) {
+  return path.split('\\').join('/');
+}
+
+/**
+ * Lists the executed examples that hold a placeholder line: the modules a build with the key must
+ * rewrite.
+ *
+ * @param {string} contentDir The absolute path of `docs/content`.
+ * @returns {string[]} Absolute file paths, with forward slashes.
+ */
+export function listExamplesWithPlaceholder(contentDir) {
+  return listFiles(contentDir, () => true)
+    .map(toPosix)
+    .filter(path => isExecutedExampleId(path))
+    .filter(path => new RegExp(PLACEHOLDER_LINE.source, 'm').test(readFileSync(path, 'utf8')));
 }
 
 /**
@@ -79,20 +104,21 @@ export function resolvePreviewLicenseKey(env) {
 const TEXT_EXTENSIONS = new Set(['.html', '.md', '.txt', '.json', '.xml', '.js', '.mjs', '.css']);
 
 /**
- * Lists the text files under a directory.
+ * Lists the files under a directory.
  *
  * @param {string} dir An absolute directory path.
+ * @param {(name: string) => boolean} accept Whether to list a file, by its name.
  * @returns {string[]} Absolute file paths.
  */
-function listTextFiles(dir) {
+function listFiles(dir, accept) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const path = join(dir, entry.name);
 
     if (entry.isDirectory()) {
-      return listTextFiles(path);
+      return listFiles(path, accept);
     }
 
-    return TEXT_EXTENSIONS.has(extname(entry.name)) ? [path] : [];
+    return accept(entry.name) ? [path] : [];
   });
 }
 
@@ -111,9 +137,9 @@ function listTextFiles(dir) {
  */
 export function checkKeyInOutput(distDir, { injected }) {
   const isScript = path => ['.js', '.mjs'].includes(extname(path));
-  const holding = listTextFiles(distDir)
+  const holding = listFiles(distDir, name => TEXT_EXTENSIONS.has(extname(name)))
     .filter(path => readFileSync(path, 'utf8').includes(TEST_KEY_MARKER))
-    .map(path => relative(distDir, path).split('\\').join('/'));
+    .map(path => toPosix(relative(distDir, path)));
   const offenders = holding.filter(path => !(injected && isScript(path)));
 
   if (offenders.length > 0) {
@@ -128,16 +154,43 @@ export function checkKeyInOutput(distDir, { injected }) {
 }
 
 /**
- * Astro integration that runs `checkKeyInOutput()` once the build is written. Register it last.
+ * Fails when an executed example that holds a placeholder never went through the rewrite. A script chunk
+ * that holds the key proves only that one example got it: if a framework's modules stop reaching the
+ * transform (a Vite or plugin upgrade puts a query on their ids), every grid of that framework is locked
+ * again while the other chunks still hold the key.
  *
- * @param {{ injected: boolean }} options Whether this build injects the key.
+ * @param {string[]} expected The examples that must be rewritten, from `listExamplesWithPlaceholder()`.
+ * @param {Set<string>} rewritten The module ids the transform rewrote.
+ */
+export function checkEveryExampleRewritten(expected, rewritten) {
+  const done = new Set([...rewritten].map(toPosix));
+  const missing = expected.filter(path => !done.has(toPosix(path)));
+
+  if (missing.length > 0) {
+    throw new Error(`DOCS_TEST_LICENSE_KEY is on, but ${missing.length} executed examples never reached the `
+      + `license key rewrite, so their grids show the lock screen: ${missing.slice(0, 10).join(', ')}`
+      + `${missing.length > 10 ? ', ...' : ''}. Check the transform in astro.config.mjs (resolveMonorepoPackages).`);
+  }
+}
+
+/**
+ * Astro integration that checks where the key landed once the build is written. Register it last.
+ *
+ * @param {object} options The check's inputs.
+ * @param {boolean} options.injected Whether this build injects the key.
+ * @param {Set<string>} options.rewritten The module ids the transform rewrote, filled during the build.
+ * @param {string} options.contentDir The absolute path of `docs/content`.
  * @returns {import('astro').AstroIntegration}
  */
-export function previewLicenseKeyCheck({ injected }) {
+export function previewLicenseKeyCheck({ injected, rewritten, contentDir }) {
   return {
     name: 'preview-license-key-check',
     hooks: {
       'astro:build:done': ({ dir }) => {
+        if (injected) {
+          checkEveryExampleRewritten(listExamplesWithPlaceholder(contentDir), rewritten);
+        }
+
         checkKeyInOutput(fileURLToPath(dir), { injected });
       },
     },
