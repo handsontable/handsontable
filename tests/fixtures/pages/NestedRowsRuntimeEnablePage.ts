@@ -299,6 +299,11 @@ export class NestedRowsRuntimeEnablePage {
     }, data);
   }
 
+  /** Passes a settings object to `updateSettings()`, the way an app or a wrapper re-render does. */
+  async updateSettings(settings: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate(next => window.hot.updateSettings(next), settings);
+  }
+
   /** How many rows the grid currently holds. */
   countRows(): Promise<number> {
     return this.page.evaluate(() => window.hot.countRows());

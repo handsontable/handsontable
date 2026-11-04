@@ -550,9 +550,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   every plugin's settings update.
 - **A sheet added without data starts with `NEW_NESTED_SHEET_ROW_COUNT` empty object rows (`createEmptyObjectRows()`, each its own object) while it would show with NestedRows on**
   (`#blankSheetData`: its own `nestedRows`, else the grid-level value). NestedRows answers an array of
-  arrays by writing `nestedRows = false` into the grid settings and disabling itself, a released path
-  that stays as it is, so the add button's `createEmptySheetData()` turned a grid-level tree view off for
-  the session. Pinned by `tests/e2e/sheets-bar-data-bound-settings.spec.ts` ("NestedRows on the whole grid").
+  arrays by logging an error and turning itself off until the next sheet with object rows, so the add
+  button's `createEmptySheetData()` showed a new sheet with the tree view off and an error in the console.
+  Pinned by `tests/e2e/sheets-bar-data-bound-settings.spec.ts` ("NestedRows on the whole grid").
   When neither `columns` nor `dataSchema` names the columns, each blank row gets the keys of the grid's
   first row with `null` values (no `__children`): core reads object rows' columns from the first row, so
   empty objects gave the new sheet 0 columns and a "no columns" warning.
