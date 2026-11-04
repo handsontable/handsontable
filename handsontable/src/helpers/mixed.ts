@@ -99,9 +99,9 @@ let _notified = false;
 // The entitlement-key console message is deduplicated PER KEY, and deliberately SEPARATE from the
 // legacy `_notified` flag above - do NOT merge them. Two reasons for each half:
 //
-// Separate from `_notified`, because the frozen legacy path sets it once per page whatever the key,
-// so a shared flag would let a legacy grid initialized first suppress a later entitlement key's
-// warning.
+// Separate from `_notified`, because the frozen legacy path sets it the first time it prints, for
+// any key, so a shared flag would let a legacy grid initialized first suppress a later entitlement
+// key's warning.
 //
 // Keyed by the key string rather than a single boolean, because these messages have severity tiers
 // the legacy path never had: a notice window prints `warn`, every stop prints `error`. With one flag,
@@ -505,14 +505,10 @@ export function _injectProductInfo(
   }
 
   if (!_notified && consoleMessageState !== 'valid') {
-    const message = consoleMessages[consoleMessageState]({
+    console.warn(consoleMessages[consoleMessageState]({
       keyValidityDate,
       hotVersion,
-    });
-
-    if (message) {
-      console.warn(message);
-    }
+    }));
     _notified = true;
   }
 

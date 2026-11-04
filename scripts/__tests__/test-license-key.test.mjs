@@ -87,13 +87,12 @@ const ALLOWED = {
   'handsontable/src/plugins/importFile/__tests__/importFile.unit.js': 'a legacy key supports the xlsx import',
   'handsontable/src/plugins/importFile/__tests__/importLicenseGates.unit.js':
     'compares a legacy import with a listed one',
-  'tests/fixtures/demo/license-capabilities.html': 'builds a grid per license key, the non-commercial one included',
-  'tests/fixtures/xlsxLicenseKeys.ts': 'exports the legacy key the xlsx license specs compare against',
+  'tests/fixtures/xlsxLicenseKeys.ts': 'exports the invalid key the xlsx license specs compare against',
 };
 
 /**
- * Whether a path is test code. Product code may name the key (the key reader, its docs) until the
- * key is removed, so only test files are scanned.
+ * Whether a path is test code. Only test files are scanned for a literal here; product code is
+ * scanned by the retired-key test below, which lets comments and docs name the key.
  *
  * @param {string} path The path, relative to the repository root.
  * @returns {boolean}
@@ -148,6 +147,33 @@ function filesWithLiteral(paths, read) {
 const readFromRoot = path => readFileSync(join(ROOT, path), 'utf8');
 const testFiles = TEST_TREES.flatMap(tree => walk(join(ROOT, tree))).filter(isTestFile);
 
+// The two spellings of the non-commercial key. Since 19.0 no product code compares a key with them.
+const RETIRED_KEYS = LITERALS.slice(0, 2);
+
+// The product source of the core and the wrappers. Their tests are scanned by the tests above.
+const PRODUCT_TREES = [
+  'handsontable/src',
+  'wrappers/react-wrapper/src',
+  'wrappers/vue3/src',
+  'wrappers/angular-wrapper/projects/hot-table/src',
+];
+
+/**
+ * Finds the code lines that name a retired key. A comment line, or the comment at the end of a
+ * line, may name it: the docs say the key reads as invalid.
+ *
+ * @param {string} text A file's text.
+ * @returns {string[]} The code lines that name a retired key.
+ */
+function codeLinesWithRetiredKey(text) {
+  return text.split('\n')
+    .filter(line => !/^\s*(\*|\/\/|\/\*)/.test(line))
+    .filter(line => RETIRED_KEYS.some(key => line.replace(/\s\/\/.*$/, '').toLowerCase().includes(key)));
+}
+
+const productFiles = PRODUCT_TREES.flatMap(tree => walk(join(ROOT, tree)))
+  .filter(path => /\.(m?js|jsx|ts|tsx|vue)$/.test(path) && !isTestFile(path) && !/\/__tests__\//.test(path));
+
 test('no test writes the license key out; every suite reads its shared constant', () => {
   const offenders = filesWithLiteral(testFiles, readFromRoot).filter(path => !(path in ALLOWED));
 
@@ -197,6 +223,32 @@ test('every file the guard allows still holds a literal key', () => {
   const stale = Object.keys(ALLOWED).filter(path => !holding.has(path));
 
   assert.deepEqual(stale, [], 'ALLOWED names files that no longer hold a literal key. Remove them.');
+});
+
+test('no product code compares a key with the retired non-commercial key', () => {
+  // Handsontable 19.0 reads the non-commercial key as invalid. A literal comparison added back to the
+  // key reader or the legacy path would bring the key back without any test noticing.
+  const offenders = productFiles.filter(path => codeLinesWithRetiredKey(readFromRoot(path)).length > 0);
+
+  assert.deepEqual(offenders, [], 'These product files name the retired non-commercial key in code. '
+    + 'Handsontable reads it as an invalid key since 19.0: do not recognize it again.');
+  assert.ok(productFiles.length > 500,
+    `The scan found only ${productFiles.length} product files; check PRODUCT_TREES.`);
+});
+
+test('the retired-key scan catches a code line and passes a comment', () => {
+  // The control of the test above: without it, a check that matched nothing would pass.
+  const code = '  if (key.toLowerCase() === \'non-commercial-and-evaluation\') {';
+  const upperCase = '  const KEYS = [\'HT68E-1F2B7-47158-70B05-0842F\'];';
+  const text = [
+    code,
+    upperCase,
+    ' * Since 19.0, the `\'non-commercial-and-evaluation\'` key is not a valid key.',
+    '  // \'ht68e-1f2b7-47158-70b05-0842f\' reads as invalid.',
+    '  return state; // was \'non-commercial-and-evaluation\'',
+  ].join('\n');
+
+  assert.deepEqual(codeLinesWithRetiredKey(text), [code, upperCase]);
 });
 
 test('the scan finds a literal key it is given, in every spelling', () => {

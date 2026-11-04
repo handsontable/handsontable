@@ -15,12 +15,12 @@ export {
 } from '../../handsontable/src/utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 
 /**
- * The non-commercial key: unrestricted for the whole xlsx family. Since 19.0 it reads as an invalid
- * key, which restricts nothing but shows the lock screen over the grid, so use it only where a spec
- * calls the API. A spec that clicks the grid uses `CORE_ONLY_KEY`.
+ * An invalid key: unrestricted for the whole xlsx family, like every invalid key, but it shows the
+ * lock screen over the grid, so use it only where a spec calls the API. A spec that clicks the grid
+ * uses `CORE_ONLY_KEY`. It is the retired non-commercial key, which reads as invalid since 19.0, so
+ * these specs also prove that key restricts nothing.
  */
-export const LEGACY_KEY = 'non-commercial-and-evaluation';
-
+export const INVALID_KEY = 'non-commercial-and-evaluation';
 
 /**
  * A current subscription key with the `core` capability only, as the real generator issued it. It

@@ -845,9 +845,9 @@ export class ExportFile extends BasePlugin {
    * is the same answer `ImportFile#supportsImportFormat` gives for that configuration. `'xlsx'` also
    * answers `false` whenever an xlsx export would throw for the license: when the license key lists
    * its features without `feat:export_file`, the plugin's own token, and when it carries the
-   * `listed-capabilities` flag without listing `xlsx:export`. A key without that flag, and the
-   * evaluation key, are not restricted. `'csv'` does not read the license here, although the export
-   * methods still need `feat:export_file` for it.
+   * `listed-capabilities` flag without listing `xlsx:export`. A key without that flag is not
+   * restricted. `'csv'` does not read the license here, although the export methods still need
+   * `feat:export_file` for it.
    *
    * @param {string} format Export format — `'csv'` or `'xlsx'`.
    * @returns {boolean}

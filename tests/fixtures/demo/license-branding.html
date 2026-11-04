@@ -95,9 +95,11 @@
     LICENSE_KEYS['edited-prose'] = LICENSE_KEYS.subscription.replace('valid until 2027-08-12', 'valid until 2099-08-12');
     LICENSE_KEYS['subscription-pasted'] = `${LICENSE_KEYS.subscription.replace(/ /g, '\r\n')}\\n`;
     // The subscription key with the spaces and the trailing newline an email or a chat window
-    // leaves around a pasted key. It is a LICENSED grid: the whitespace around the key must be
-    // trimmed before the key is classified, or the key reads as invalid and the grid locks.
+    // leaves around a pasted key. It is a LICENSED grid and must stay one.
     LICENSE_KEYS['subscription-padded'] = `  ${LICENSE_KEYS.subscription}\n`;
+    // The lapsed legacy key with the same padding. The 25-character alphabet has no whitespace, so
+    // the key must be trimmed before its checksum runs, or it reads as invalid and the grid locks.
+    LICENSE_KEYS['legacy-expired-padded'] = `  ${LICENSE_KEYS['legacy-expired']}\n`;
     LICENSE_KEYS['subscription-wrapped'] = LICENSE_KEYS.subscription.slice(0, LICENSE_KEYS.subscription.lastIndexOf('[')) +
       LICENSE_KEYS.subscription.slice(LICENSE_KEYS.subscription.lastIndexOf('[')).match(/.{1,60}/g).join('\n');
 
@@ -111,9 +113,8 @@
       'no-headers-frozen': { rowHeaders: false, colHeaders: false, fixedRowsTop: 2, fixedColumnsStart: 2 },
       'narrow-corner': { rowHeaders: true, colHeaders: true, rowHeaderWidth: 16 },
       dialog: { rowHeaders: true, colHeaders: true, dialog: true },
-      // A grid narrower than the modal's longest unbreakable token
-      // ('non-commercial-and-evaluation', 29 chars). `width` comes after the shared default below,
-      // so the variant wins.
+      // A grid narrower than the modal's longest unbreakable token (support@handsontable.com, 24
+      // chars). `width` comes after the shared default below, so the variant wins.
       narrow: { rowHeaders: true, colHeaders: true, width: 150 },
       nested: {
         rowHeaders: true,

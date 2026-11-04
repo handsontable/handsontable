@@ -2,7 +2,7 @@ import ExcelJS from 'exceljs';
 import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { XlsxLicensePage } from '../fixtures/pages/XlsxLicensePage';
 import {
-  ALL_XLSX_TOKENS, CORE_ONLY_KEY, keyWith, keyWithout, LEGACY_KEY,
+  ALL_XLSX_TOKENS, CORE_ONLY_KEY, keyWith, keyWithout, INVALID_KEY,
 } from '../fixtures/xlsxLicenseKeys';
 
 /**
@@ -28,8 +28,8 @@ test.describe('Export entry gate (xlsx:export)', { tag: BUNDLES_TAG }, () => {
 
     await lic.goto();
 
-    // The menu is opened with a right click, so the key must not lock the grid: the non-commercial key
-    // (LEGACY_KEY) restricts nothing either, but reads as invalid since 19.0 and is covered by the lock.
+    // The menu is opened with a right click, so the key must not lock the grid: INVALID_KEY restricts
+    // nothing either, but its lock screen covers the cell.
     for (const key of [CORE_ONLY_KEY, keyWith(['xlsx:export']), keyWith(PARTIAL_TOKENS)]) {
       await lic.create(key);
       expect(await lic.exportMenuItems()).toEqual(['To CSV', 'To Excel']);
@@ -177,7 +177,7 @@ for (const engine of ['native', 'exceljs'] as const) {
 
     // Compared on the built-in engine only, whose output carries nothing but the content.
     if (engine === 'native') {
-      test('a full key writes the same sheet as the legacy key', async({ page, theme, bundle }) => {
+      test('a full key writes the same sheet as an invalid key', async({ page, theme, bundle }) => {
         const lic = new XlsxLicensePage(page, theme, bundle, engine);
 
         await lic.goto();
@@ -187,7 +187,7 @@ for (const engine of ['native', 'exceljs'] as const) {
 
         expect(await licenseWarnings(lic)).toEqual([]);
 
-        await lic.create(LEGACY_KEY);
+        await lic.create(INVALID_KEY);
 
         expect(lic.sheetXml(await lic.exportBytes(EXPORT_OPTIONS))).toBe(full);
       });

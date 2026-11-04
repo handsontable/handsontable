@@ -394,8 +394,8 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
       await license.goto(INSTANT.duringTrial, { key: 'subscription-padded' });
 
       // A key pasted out of an email or a chat window commonly carries spaces and a trailing
-      // newline around it. Untrimmed, the key reads as an install fault — which BLOCKS. A
-      // licensed grid must survive the paste.
+      // newline around it. A licensed grid must survive the paste. The legacy form of this case is
+      // the padded legacy key test below.
       await expect(license.lock).toHaveCount(0);
       await expect(license.bar).toHaveCount(0);
       await expect(license.outsideField).toBeFocused();
@@ -406,6 +406,15 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
 
       // Only the two install faults block. A key that was valid and merely lapsed keeps the bar it
       // has always had, so an application out of maintenance is never taken off the air.
+      await expect(license.bar).toContainText('expired on');
+      await expect(license.lock).toHaveCount(0);
+    });
+
+    test('trims the whitespace around a legacy key before its checksum runs', async () => {
+      await license.goto(INSTANT.duringTrial, { key: 'legacy-expired-padded' });
+
+      // The 25-character alphabet has no whitespace, so an untrimmed key fails its checksum and
+      // reads as an install fault, which BLOCKS. Trimmed, it is the lapsed key above: bar, no lock.
       await expect(license.bar).toContainText('expired on');
       await expect(license.lock).toHaveCount(0);
     });

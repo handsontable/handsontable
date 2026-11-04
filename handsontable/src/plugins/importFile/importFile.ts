@@ -1294,8 +1294,8 @@ export class ImportFile extends BasePlugin {
    * configured in `engines`. An engine of unknown shape reads nothing and answers `false`. `'xlsx'` also
    * answers `false` whenever an xlsx import would throw for the license: when the license key lists
    * its features without `feat:import_file`, the plugin's own token, and when it carries the
-   * `listed-capabilities` flag without listing `xlsx:import`. A key without that flag, and the
-   * evaluation key, are not restricted.
+   * `listed-capabilities` flag without listing `xlsx:import`. A key without that flag is not
+   * restricted.
    *
    * @param {string} format The import format, e.g. `'xlsx'`.
    * @returns {boolean}

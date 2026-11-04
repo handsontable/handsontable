@@ -304,7 +304,7 @@ $license-badge-dot: "data:image/svg+xml;charset=utf-8,%3Csvg width='11.1415' hei
       padding-block-start: calc(var(--ht-line-height, 20px) + var(--ht-density-cell-vertical, 4px) * 2);
     }
 
-    // The copy holds unbreakable tokens (e-mail addresses, a long key quoted by a translation) and the
+    // The copy holds unbreakable tokens (e-mail addresses such as support@handsontable.com) and the
     // lock is only as wide as the grid, so on a narrow grid they push the text past the box - the
     // same overflow the bottom bar had to solve (DEV-2192).
     // Two rules are needed, and `overflow-wrap` alone is not enough: the content column is a FLEX
