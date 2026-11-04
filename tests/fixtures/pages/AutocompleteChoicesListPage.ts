@@ -7,10 +7,14 @@ import { awaitBundle, awaitFixtureBuilt } from '../bundle';
  */
 interface ListEditor {
   query: string | null;
+  TEXTAREA: HTMLTextAreaElement;
+  beginEditing(): void;
   htEditor: {
     rootElement: HTMLElement;
     getData(): unknown[][];
     countRows(): number;
+    getSelectedActive(): unknown;
+    getValue(): unknown;
   };
 }
 
@@ -23,12 +27,16 @@ interface FixtureWindow {
   hot: {
     selectCell(row: number, col: number): boolean;
     getDataAtCell(row: number, col: number): unknown;
+    getSourceDataAtCell(row: number, col: number): unknown;
+    setSourceDataAtCell(row: number, col: number, value: unknown): void;
+    addHook(name: string, callback: () => void): void;
     getActiveEditor(): ListEditor | undefined;
   };
   initGrid(overrides?: Record<string, unknown>): boolean;
   useFilteringSource(list: string[]): boolean;
   htBuildError?: string;
   __xssTestInjection?: boolean;
+  __afterChangeCount?: number;
 }
 
 /**
@@ -248,6 +256,122 @@ export class AutocompleteChoicesListPage {
       ({ r, c }) => (window as unknown as FixtureWindow).hot.getDataAtCell(r, c),
       { r: row, c: col }
     );
+  }
+
+  /**
+   * The value the cell stores, before the column's `valueGetter`: a key/value entry stays an object.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @returns {Promise<unknown>}
+   */
+  async sourceDataAt(row: number, col: number): Promise<unknown> {
+    return this.page.evaluate(
+      ({ r, c }) => (window as unknown as FixtureWindow).hot.getSourceDataAtCell(r, c),
+      { r: row, c: col }
+    );
+  }
+
+  /**
+   * What the open list highlights, read in one evaluation: the highlighted choice as the list shows
+   * it (`null` when nothing is highlighted), the query the list last answered, and the text of the
+   * option the editor input names in `aria-activedescendant` (`null` when it names none, or names an
+   * element that is not on the page). Meant for `expect.poll()`, which waits out the deferred query.
+   *
+   * @returns {Promise<{ query: string | null, highlighted: unknown, activeDescendant: string | null }>}
+   */
+  async highlightState(): Promise<{ query: string | null, highlighted: unknown, activeDescendant: string | null }> {
+    return this.page.evaluate(() => {
+      const editor = (window as unknown as FixtureWindow).hot.getActiveEditor();
+
+      if (!editor || !editor.htEditor) {
+        return { query: null, highlighted: null, activeDescendant: null };
+      }
+
+      const descendantId = editor.TEXTAREA.getAttribute('aria-activedescendant');
+      const descendant = descendantId ? document.getElementById(descendantId) : null;
+
+      return {
+        query: editor.query,
+        highlighted: editor.htEditor.getSelectedActive() ? editor.htEditor.getValue() : null,
+        activeDescendant: descendant ? descendant.textContent : null,
+      };
+    });
+  }
+
+  /**
+   * Selects a cell through the API without opening its editor, so the next printable key opens it
+   * with that key (a fast edit).
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   */
+  async selectCell(row: number, col: number): Promise<void> {
+    await this.page.evaluate(
+      ({ r, c }) => (window as unknown as FixtureWindow).hot.selectCell(r, c),
+      { r: row, c: col }
+    );
+  }
+
+  /**
+   * Writes a value into a cell's source data through the API, the way an application changes the
+   * cell under an open editor. The open editor takes the written value as its own.
+   *
+   * @param {number} row The physical row index.
+   * @param {number} col The physical column index.
+   * @param {unknown} value The value to write.
+   */
+  async setSourceDataAt(row: number, col: number, value: unknown): Promise<void> {
+    await this.page.evaluate(
+      ({ r, c, v }) => (window as unknown as FixtureWindow).hot.setSourceDataAtCell(r, c, v),
+      { r: row, c: col, v: value }
+    );
+  }
+
+  /**
+   * Starts counting the `afterChange` calls that carry changes, so a test can tell a confirm that
+   * wrote a value (even an equal one) from one that wrote nothing.
+   */
+  async countChanges(): Promise<void> {
+    await this.page.evaluate(() => {
+      const fixture = window as unknown as FixtureWindow;
+
+      fixture.__afterChangeCount = 0;
+      fixture.hot.addHook('afterChange', (changes?: unknown) => {
+        if (changes) {
+          fixture.__afterChangeCount = (fixture.__afterChangeCount ?? 0) + 1;
+        }
+      });
+    });
+  }
+
+  /**
+   * How many `afterChange` calls carried changes since `countChanges()`.
+   *
+   * @returns {Promise<number>}
+   */
+  async changeCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).__afterChangeCount ?? 0);
+  }
+
+  /**
+   * Asks the open editor to begin editing again, as a double-click on the edited cell does
+   * (`EditorManager` opens the editor in full edit mode with no initial value).
+   */
+  async beginEditingAgain(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as unknown as FixtureWindow).hot.getActiveEditor()?.beginEditing();
+    });
+  }
+
+  /**
+   * Presses the page outside the grid and the open list, the way a user leaves an edit with the
+   * mouse, and waits for the editor to close.
+   */
+  async clickOutside(): Promise<void> {
+    // The page's top-left corner: the body's margin (1rem) keeps the grid and the list clear of it.
+    await this.page.mouse.click(2, 2);
+    await expect(this.editor).toBeHidden();
   }
 
   /**

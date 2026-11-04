@@ -527,9 +527,7 @@ export class BaseEditor {
       const fillsOtherCells = ctrlDown === true &&
         selectionFillsOtherCells(this.hot, value, this.row, this.col);
 
-      const heldIsSeed = held === this.#seededString || held === this.#seededCellValue;
-      const valueIsSeed = value === this.#seededString || value === this.#seededCellValue;
-      const isUnchanged = !fillsOtherCells && this.#hasValueBeforeEdit && heldIsSeed && valueIsSeed;
+      const isUnchanged = !fillsOtherCells && this.isEditUnchanged(held, value);
 
       if (isUnchanged) {
         this.#finishUnchangedEdit();
@@ -552,6 +550,24 @@ export class BaseEditor {
       });
       this.saveValue([[value]], ctrlDown);
     }
+  }
+
+  /**
+   * Tells whether the edit being confirmed leaves the cell as it was, so the confirm writes nothing. The
+   * base rule compares the value the editor holds and the value that would be written with the seeds
+   * taken when editing began. An editor whose `getValue()` resolves its text into another form (the
+   * autocomplete editor turns a label into a key/value entry) adds its own rule.
+   *
+   * @private
+   * @param {*} held The editor value after `trimWhitespace`.
+   * @param {*} value The value that would be written, after `valueParser`.
+   * @returns {boolean}
+   */
+  protected isEditUnchanged(held: unknown, value: unknown): boolean {
+    const heldIsSeed = held === this.#seededString || held === this.#seededCellValue;
+    const valueIsSeed = value === this.#seededString || value === this.#seededCellValue;
+
+    return this.#hasValueBeforeEdit && heldIsSeed && valueIsSeed;
   }
 
   /**

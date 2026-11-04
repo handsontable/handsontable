@@ -176,6 +176,29 @@ describe('licenseNotification', () => {
       expect(hotInstance.getLayoutManager).not.toHaveBeenCalled();
     });
 
+    it('should put the notification in front of the "Powered by" bar, which stays the last line', () => {
+      const hotInstance = createMockHotInstance();
+      const sibling = document.createElement('div');
+      const poweredByBar = document.createElement('div');
+      const notificationEl = document.createElement('div');
+
+      // A registered item (for example pagination) and the branding bar are already in the slot.
+      hotInstance.rootSlotBottomElement.appendChild(sibling);
+      poweredByBar.className = 'handsontable ht-license-powered-by';
+      hotInstance.rootSlotBottomElement.appendChild(poweredByBar);
+      notificationEl.className = `handsontable ${LICENSE_INFO_CLASS}`;
+
+      _injectProductInfo.mockImplementation(({ element }) => {
+        element.appendChild(notificationEl);
+
+        return notificationEl;
+      });
+
+      initLicenseNotification(hotInstance);
+
+      expect(Array.from(hotInstance.rootSlotBottomElement.children)).toEqual([sibling, notificationEl, poweredByBar]);
+    });
+
     it('should register scope with runOnlyIf that returns false when notification element is removed', () => {
       const hotInstance = createMockHotInstance();
       const notificationEl = document.createElement('div');
