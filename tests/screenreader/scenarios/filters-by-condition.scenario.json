@@ -12,7 +12,7 @@
       "action": {"press": "Shift+Alt+ArrowDown"},
       "after": {"visible": ".htDropdownMenu .ht_master .htCore tbody td"},
       "expect": [["clear column"], ["menu"]],
-      "note": "The menu of the Price column opens. In this fixture `columns` is set, so Insert column left and right and Remove column are disabled and the keyboard skips them: the first highlighted item is `Clear column` (tree golden of this page). Unsure of that first item until a run records it. Finding: VoiceOver says nothing when the column menu opens: 6 of 6 opens on Chromium and 5 of 6 on WebKit over the two recordings, where the context menu in grid-core is announced. NVDA with Chromium names the menu as a table and never says menu."
+      "note": "The menu of the Price column opens. In this fixture `columns` is set, so Insert column left and right and Remove column are disabled and the keyboard skips them: the first highlighted item is `Clear column` (tree golden of this page). Unsure of that first item until a run records it. Finding: VoiceOver says nothing when the column menu opens: 9 of 9 opens on Chromium and 7 of 9 on WebKit over three runs, where the context menu in grid-core is announced. NVDA with Chromium names the menu as a table and says menu in some runs only, as it does for the context menu in grid-core."
     },
     {
       "id": "tab-to-condition",
