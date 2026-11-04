@@ -359,8 +359,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   it can change nothing then. And `#engineTexts` remembers, per sheet, the texts the engine gave in the last
   sync: a cell still holding one is in the engine's own spelling, so the parse that keeps a host's spelling
   (`validateFormula`, `normalizeFormula`) is skipped for it. The parse and the quoting were most of the
-  cost: one sorted 10,000-row sheet took an `alter` from 34ms to 74ms, and with both shortcuts to 47ms
-  (five such sheets: 115ms, 307ms, 156ms). Pinned by "a sorted sheet the user left, after a structural change on the
+  write-back's cost on a large sorted sheet. Pinned by "a sorted sheet the user left, after a structural change on the
   sheet it reads" in `tests/e2e/sheets-bar-formulas-order.spec.ts`. Only its formula cells whose text names the active sheet, or holds `#REF!` (an undone
   removal brings the reference back), are read, one by one. A cell is written only when its references
   differ: the host's own text (`=sum(data!a1)`) is kept when the engine's normalized text of it is the
@@ -637,8 +636,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   mouse press drags at once, as before. The detector's timers are the grid's window, so `page.clock` drives the hold in the
   specs (`tests/e2e/sheets-bar-touch-drag.spec.ts`, `sheets-bar-touch-menus.spec.ts`). Time a hold with
   `page.clock.runFor()`, never with `expect.poll` intervals: the poll runs its callback at once, so a
-  finger lifted from inside it is a tap, and a long-press test written that way passed with no
-  `contextmenu` and no lift.
+  finger lifted from inside it is a tap, not a hold.
 - **The menus' upward flip needs a negative `above` offset.** The positioner aligns a flipped
   menu's bottom to the cursor point — the anchor's *bottom* edge — so `#openMenu` sets
   `setOffset('above', -(anchorHeight + 4))` per opening; a flat offset covered the chevron.
@@ -763,8 +761,8 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     `overflow-y: hidden`, so that axis can never scroll. On a table narrower than the widest tab, the bar's
     visible width cannot hold that tab whole; the bar scrolls to it instead.
   - **The strip has `contain: inline-size`.** Without it the strip's intrinsic width is its tabs' width, so
-    any `min-content` above it grew the bar to all its tabs (3972px with 30 long tabs, the arrows and the
-    focused tab thousands of pixels off screen).
+    any `min-content` above it grew the bar to all its tabs, and the arrows and the
+    focused tab ended far off screen.
   - **The inner row paints the bar's background too.** A scroll container's background covers its own box
     only, not the overflow scrolled into view, so the arrows lost their background after a scroll to the end.
   - **The bar reveals a focused control itself** (`SheetsBarUI#revealInBar`, a `focusin` listener). The
@@ -773,7 +771,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     rules keep it from fighting the rest. It reveals keyboard focus only (`:focus-visible`): a scroll between
     a press and its release moved a clicked tab away, and the click activated nothing. And
     `TabStrip#focusRelativeTab` reveals the tab in the strip before it moves the focus, or the bar measured
-    the tab where the strip had not put it yet and left it cut by about 50px.
+    the tab where the strip had not put it yet and left it partly cut.
   - **The bar shows its own scrollbar while it scrolls, the way the pagination bar does** (a plain
     `overflow-x: auto`, no `scrollbar-width` or `::-webkit-scrollbar` hiding), so a user can see the bar
     scrolls. Where scrollbars are always shown, the bar grows by the scrollbar's height while it overflows;
