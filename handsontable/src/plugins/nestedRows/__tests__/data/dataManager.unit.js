@@ -7,10 +7,19 @@ import DataManager from '../../data/dataManager';
  * instance are never touched and can stay out of the way.
  *
  * @param {object[]} data The nested data.
+ * @param {number[]} [trimmedRows] Physical rows the stubbed row index mapper reports as trimmed.
  * @returns {DataManager}
  */
-function dataManagerWith(data) {
-  const dataManager = new DataManager(null, null);
+function dataManagerWith(data, trimmedRows = []) {
+  const trimmed = new Set(trimmedRows);
+  const hot = {
+    rowIndexMapper: {
+      getNumberOfIndexes: () => 100,
+      getNotTrimmedIndexesLength: () => 100 - trimmed.size,
+      isTrimmed: row => trimmed.has(row),
+    },
+  };
+  const dataManager = new DataManager(null, hot);
 
   dataManager.updateWithData(data);
 
@@ -157,6 +166,30 @@ describe('DataManager#getRowSetPosition', () => {
 
     expect(dataManager.getRowSetPosition(0)).toEqual({ position: 1, setSize: 2 });
     expect(dataManager.getRowSetPosition(1)).toEqual({ position: 2, setSize: 2 });
+  });
+
+  it('should count only the siblings that are not trimmed', () => {
+    // A-1 (1) and A-2-b (4) trimmed.
+    const dataManager = dataManagerWith(sampleTree(), [1, 4]);
+
+    expect(dataManager.getRowSetPosition(2)).toEqual({ position: 1, setSize: 1 });
+    expect(dataManager.getRowSetPosition(3)).toEqual({ position: 1, setSize: 1 });
+    expect(dataManager.getRowSetPosition(5)).toEqual({ position: 2, setSize: 2 });
+    expect(dataManager.getRowSetPosition(6)).toEqual({ position: 1, setSize: 1 });
+  });
+
+  it('should count only the top-level rows that are not trimmed', () => {
+    // A (0) and its subtree trimmed: only B is left at the top level.
+    const dataManager = dataManagerWith(sampleTree(), [0, 1, 2, 3, 4]);
+
+    expect(dataManager.getRowSetPosition(5)).toEqual({ position: 1, setSize: 1 });
+    expect(dataManager.getRowSetPosition(6)).toEqual({ position: 1, setSize: 1 });
+  });
+
+  it('should keep the structural answer for a row that is trimmed itself', () => {
+    const dataManager = dataManagerWith(sampleTree(), [1]);
+
+    expect(dataManager.getRowSetPosition(1)).toEqual({ position: 1, setSize: 2 });
   });
 
   it('should return `null` for a row the cache does not know', () => {

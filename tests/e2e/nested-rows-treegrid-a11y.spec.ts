@@ -56,6 +56,21 @@ test.describe('NestedRows treegrid accessibility', () => {
       ]);
     });
 
+  test('reports the reachable siblings in aria-posinset and aria-setsize while filtered',
+    async({ page, theme, bundle }) => {
+      const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
+
+      await nestedRows.goto();
+      await nestedRows.filterByNames(['A-1', 'A-3']);
+
+      await expect.poll(() => nestedRows.visibleNames()).toEqual(['Root A', 'A-1', 'A-3']);
+      await expect.poll(() => nestedRows.rowAttributes()).toEqual([
+        row(1, 1, 1, true),
+        row(2, 1, 2),
+        row(2, 2, 2),
+      ]);
+    });
+
   test('a repaint of unchanged rows writes no row attribute', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
 

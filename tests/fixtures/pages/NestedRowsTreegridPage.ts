@@ -284,6 +284,24 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
   }
 
   /**
+   * Filter the first column down to the rows that carry one of the names, through the Filters plugin
+   * (switched on first, as the fixture grid does not enable it). Nested rows keep the matching rows,
+   * their ancestors, and the subtree of a matching parent.
+   *
+   * @param names The values the first column is filtered by.
+   */
+  async filterByNames(names: string[]): Promise<void> {
+    await this.page.evaluate((values) => {
+      window.hot.updateSettings({ filters: true });
+
+      const filters = window.hot.getPlugin('filters');
+
+      filters.addCondition(0, 'by_value', [values]);
+      filters.filter();
+    }, names);
+  }
+
+  /**
    * Append a child to a parent row through the plugin's data manager, as the context menu's
    * "Insert child row" does.
    *

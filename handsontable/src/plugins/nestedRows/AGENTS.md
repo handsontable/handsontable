@@ -682,6 +682,7 @@ row semantics. Six things look simpler than they are.
   commit (all pinned in `tests/e2e/nested-rows-treegrid-a11y.spec.ts`).
   A grid without `rowHeaders` therefore gets no row attributes at all - it has no button and no
   focusable header either - and every overlay copy of a row gets identical attributes.
+- **`getRowSetPosition()` counts only the siblings that no trimming map hides.** While a filter (or any other trimming map) is active, `aria-posinset`/`aria-setsize` count the untrimmed siblings under the same parent, so a screen reader hears "1 of 2" for two surviving rows, not "1 of 5". With nothing trimmed it returns the cached structural answer. The scan is O(siblings) per rendered header and uncached; NestedRows never names the Filters plugin. Pinned in `__tests__/data/dataManager.unit.js` and `tests/e2e/nested-rows-treegrid-a11y.spec.ts`.
 - **The sibling position comes from the flatten cache, never from `indexOf`, and it counts the
   data.** `#cacheSiblings()` records `position` and `setSize` in `nodeInfo`, counting only object
   entries (a `null` among the children is not a row), so the per-row read during a render is O(1).

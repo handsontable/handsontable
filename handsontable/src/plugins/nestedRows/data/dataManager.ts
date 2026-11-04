@@ -727,6 +727,10 @@ class DataManager {
   /**
    * Gets where the row with the provided physical index sits among its siblings.
    *
+   * While no row is trimmed, the answer comes straight from the structure cache. While any trimming
+   * map (a filter, for example) hides rows, only the siblings that are not trimmed count: they are the
+   * ones a user can reach, so they are the ones a screen reader should count.
+   *
    * @private
    * @param {number} row Physical row index.
    * @returns {RowSetPosition|null} The 1-based position and the number of siblings, or `null` for a
@@ -736,7 +740,35 @@ class DataManager {
     const rowObject = this.getDataObject(row);
     const nodeInfo = rowObject ? this.cache.nodeInfo.get(rowObject) : undefined;
 
-    return nodeInfo ? { position: nodeInfo.position, setSize: nodeInfo.setSize } : null;
+    if (!rowObject || !nodeInfo) {
+      return null;
+    }
+
+    const { rowIndexMapper } = this.hot;
+
+    if (rowIndexMapper.getNotTrimmedIndexesLength() === rowIndexMapper.getNumberOfIndexes()) {
+      return { position: nodeInfo.position, setSize: nodeInfo.setSize };
+    }
+
+    const siblings: RowObject[] = nodeInfo.parent ? nodeInfo.parent.__children! : this.data!;
+    let position = 0;
+    let setSize = 0;
+
+    for (let i = 0; i < siblings.length; i++) {
+      const sibling = siblings[i];
+      const siblingInfo = sibling && typeof sibling === 'object' ? this.cache.nodeInfo.get(sibling) : undefined;
+
+      if (siblingInfo && !rowIndexMapper.isTrimmed(siblingInfo.row)) {
+        setSize += 1;
+
+        if (sibling === rowObject) {
+          position = setSize;
+        }
+      }
+    }
+
+    // The row itself is trimmed (so it is not rendered): keep the structural answer.
+    return position === 0 ? { position: nodeInfo.position, setSize: nodeInfo.setSize } : { position, setSize };
   }
 
   /**
