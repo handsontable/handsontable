@@ -11,7 +11,7 @@
       "id": "open-editor",
       "action": {"press": "Enter"},
       "expect": [["date", "month stepper"]],
-      "note": "Enter opens the editor on the Start cell (`6/10/24`) and focuses its native date input, which holds 2024-06-10. Required: the control, in the reader's words; VoiceOver reads a segment of the input as a `month stepper`. The input has no name (the axe baseline's `editor-input-names`). Finding: VoiceOver with Chromium says nothing when the date editor opens, and VoiceOver with WebKit in one recording of two. Lane fault, open: NVDA hears nothing on this page, on both browsers, in 10 of 11 runs: no step and not even its own mode switches are spoken (`preparing` ends in `(no mode announced after the toggle)`). Copies of the fixture with only text columns are as silent, while one with a single date column was read in full once, so the cause is the page on the Windows lane, not the date editor; NVDA's rows here are not a reading of the product. On a page NVDA reads, it says a date as `1 slash 5 slash 24`, the synonyms below."
+      "note": "Enter opens the editor on the Start cell (`6/10/24`) and focuses its native date input, which holds 2024-06-10. Required: the control, in the reader's words; VoiceOver reads a segment of the input as a `month stepper`. The input has no name (the axe baseline's `editor-input-names`). Finding: VoiceOver with Chromium says nothing when the date editor opens, and VoiceOver with WebKit in two recordings of three. Lane fault, open: NVDA hears nothing on this page, on both browsers, in 10 of 11 runs: no step and not even its own mode switches are spoken (`preparing` ends in `(no mode announced after the toggle)`). Copies of the fixture with only text columns are as silent, while one with a single date column was read in full once, so the cause is the page on the Windows lane, not the date editor; NVDA's rows here are not a reading of the product. On a page NVDA reads, it says a date as `1 slash 5 slash 24`, the synonyms below."
     },
     {
       "id": "type-date",
@@ -29,7 +29,7 @@
       "id": "back-to-committed",
       "action": {"press": "ArrowUp"},
       "expect": [["1/1/20", "1 slash 1 slash 20"]],
-      "note": "ArrowUp moves to the edited cell, drawn as `1/1/20` (`12/10/24` in WebKit, see the typing step); the arrow key takes the focus from the closed input to the cell. VoiceOver with Chromium reads it; with WebKit it read the wrong date in one recording and nothing in the other."
+      "note": "ArrowUp moves to the edited cell, drawn as `1/1/20` (`12/10/24` in WebKit, see the typing step); the arrow key takes the focus from the closed input to the cell. VoiceOver with Chromium reads it; with WebKit it read the wrong date in two recordings of three and nothing in the third."
     },
     {
       "id": "reopen-editor",

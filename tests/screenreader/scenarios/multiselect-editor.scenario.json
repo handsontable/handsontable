@@ -35,7 +35,7 @@
       "id": "arrow-down-third",
       "action": {"press": "ArrowDown"},
       "expect": [["alto"], ["not checked", "unchecked"]],
-      "note": "Finding: VoiceOver with WebKit says nothing on this ArrowDown, though it read the two before."
+      "note": "Finding: VoiceOver with WebKit says nothing on this ArrowDown in two recordings of three, though it read the two before."
     },
     {
       "id": "commit-selection",
