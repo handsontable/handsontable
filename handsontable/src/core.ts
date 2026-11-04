@@ -5025,6 +5025,9 @@ export default function Core(
    * with the window (no fixed `height`), so on such a grid it is not free even at an unchanged size. To repaint
    * the cells without re-measuring the container, use [render()](@/api/core.md#render) instead.
    *
+   * When the size changed while a cell editor is open, the method also scrolls the edited cell into view and
+   * moves the editor onto it. That scroll fires the scroll hooks and renders once more.
+   *
    * @memberof Core#
    * @function refreshDimensions
    * @fires Hooks#beforeRefreshDimensions
