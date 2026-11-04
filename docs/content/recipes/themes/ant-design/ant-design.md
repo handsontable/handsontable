@@ -21,6 +21,7 @@ vue:
 searchCategory: Recipes
 category: Themes
 type: how-to
+menuTag: updated
 ---
 
 In this tutorial, you will integrate Handsontable DataGrid into a React app that uses Ant Design and align the grid with your design system tokens through the Theme API. You will learn how to map Ant Design tokens to Handsontable theme parameters so the grid matches your existing styles.
@@ -247,14 +248,14 @@ export default function App() {
 
 - Keep one source of truth - prefer Ant Design tokens as your source, and map Handsontable theme params from those tokens.
 - Start with `colors/ant`, then override only the values you need.
-- Use the same token map for dark mode, and switch it through Ant Design's `ConfigProvider`.
+- The theme is pinned to light mode with `.setColorScheme('light')`. Switching Ant Design to its dark algorithm through `ConfigProvider` doesn't change the grid. To follow it, call `antTableTheme.setColorScheme('dark')` or `setColorScheme('light')` when your app switches modes.
 
 ## What you learned
 
-- How to extract Ant Design token values from `theme.getDesignToken()` and map them to Handsontable Theme API parameters.
-- How to apply the mapped theme with `hot.updateSettings({ theme: new HotTableTheme({ ... }) })`.
-- How to use `ConfigProvider` from Ant Design to drive both the Ant Design components and the Handsontable theme from a single source of truth.
-- How to switch to dark mode by swapping the Ant Design algorithm and updating the Handsontable theme in the same callback.
+- How to register a theme from `horizonTheme` with the built-in `colors/ant` palette and `.params()` token overrides for Ant Design's header, border, padding, and link styles.
+- How to reuse a registered theme with `hasTheme()` and `getTheme()` instead of registering it twice.
+- How to set the color scheme and density with `.setColorScheme('light')` and `.setDensityType('comfortable')`.
+- How to render Ant Design components, such as `Typography.Link`, `Tag`, and `Space`, inside cells with custom renderers.
 
 ## Next steps
 
