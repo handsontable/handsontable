@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-04T17:11:24.967Z",
+  "generatedAt": "2026-11-04T19:02:44.790Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 430,
+    "tests": 431,
     "needsTicket": 28,
     "quarantined": 0,
-    "entries": 2242
+    "entries": 2243
   },
   "rows": [
     {
@@ -2355,6 +2355,39 @@
         "leg": "UMD.min (theme: classic)",
         "status": "failed",
         "error": "Expected 100 to be around 26 (between 25",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/formula-builder-picking.spec.ts|formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page when the holder scrolls only the columns",
+      "tier": "playwright",
+      "file": "e2e/formula-builder-picking.spec.ts",
+      "line": 701,
+      "title": "formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page when the holder scrolls only the columns",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-firefox"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-04T19:01:45Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/41861644554/attempts/2",
+        "branch": "feature/DEV-3726_React-grid-level-type",
+        "leg": "e2e-firefox",
+        "status": "flaky",
+        "error": "Error: expect(locator).toHaveValue(expected) failed",
         "source": "ci"
       },
       "needsTicket": false
