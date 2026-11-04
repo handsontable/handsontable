@@ -169,7 +169,14 @@ export const EditorContextProvider: FC<EditorContextProviderProps> = ({
   );
 };
 
-type EditorWithPosition = Handsontable.editors.BaseEditor & { position?: string };
+type EditorWithPosition = Handsontable.editors.BaseEditor & {
+  position?: string;
+  /**
+   * Set while an `EditorComponent` editor is open. Core calls it to move an open editor onto its cell,
+   * for example after the grid changes size, once `EditorManager` has scrolled the cell into view.
+   */
+  refreshDimensions?: () => void;
+};
 
 /**
  * Applies editor overlay position/dimensions to an element.
@@ -488,12 +495,22 @@ export function EditorComponent<T = any>({
         applyEditorPosition(el, editor, editor.hot, null);
       }
 
+      if (editor) {
+        editor.refreshDimensions = refreshDimensions;
+      }
+
       onOpen?.(event);
 
       registerShortcuts();
       registerScrollHooks();
     },
     onClose: () => {
+      const editor = hotCustomEditorInstanceRef.current as EditorWithPosition | null;
+
+      // When `refreshDimensions` closes the editor because its cell is not rendered, the instance still
+      // reads as opened, so core would keep calling the method and move the hidden element.
+      delete editor?.refreshDimensions;
+
       if (!mainElementRef.current) {
         return;
       }
