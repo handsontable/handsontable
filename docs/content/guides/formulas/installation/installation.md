@@ -122,7 +122,7 @@ const hot = new Handsontable(container, {
   formulas: {
     engine: HyperFormula,
   },
-  licenseKey: 'non-commercial-and-evaluation', // for non-commercial use only
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -146,7 +146,7 @@ const hot = new Handsontable(container, {
   formulas: {
     engine: HyperFormula,
   },
-  licenseKey: 'non-commercial-and-evaluation', // for non-commercial use only
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -168,7 +168,7 @@ const hot = new Handsontable(container, {
   formulas: {
     engine: hyperformulaInstance,
   },
-  licenseKey: 'non-commercial-and-evaluation', // for non-commercial use only
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -187,7 +187,7 @@ const hot = new Handsontable(container, {
       leapYear1900: false,
     },
   },
-  licenseKey: 'non-commercial-and-evaluation', // for non-commercial use only
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 

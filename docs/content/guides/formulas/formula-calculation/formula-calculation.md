@@ -1218,7 +1218,7 @@ const hot = new Handsontable(container, {
     sheetName: 'Sheet1',
     language: plPL,
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -1262,7 +1262,7 @@ const hot = new Handsontable(container, {
   formulas: {
     engine: HyperFormula,
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -1274,6 +1274,7 @@ const hot = new Handsontable(container, {
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={[
         ['0123456'],
         ['=LEN(A1)'],
@@ -1287,7 +1288,6 @@ const ExampleComponent = () => {
       formulas={{
         engine: HyperFormula,
       }}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };
@@ -1315,7 +1315,7 @@ const configurationOptions: GridSettings = {
   formulas: {
     engine: HyperFormula,
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 ```
 
@@ -1342,7 +1342,7 @@ const hotSettings = ref({
   formulas: {
     engine: HyperFormula,
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 

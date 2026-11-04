@@ -164,7 +164,9 @@ const data = [
 ];
 /* end:skip-in-preview */
 const ExampleComponent = () => {
-    return (<HotTable data={data} colHeaders={['Item Name', 'Category', 'Lead Engineer', 'Restock Date', 'Cost']} autoRowSize={true} rowHeaders={true} height="auto" width="100%" autoWrapRow={true} headerClassName="htLeft" beforeChange={correctDatesBeforeChange} licenseKey="non-commercial-and-evaluation">
+    return (<HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
+      data={data} colHeaders={['Item Name', 'Category', 'Lead Engineer', 'Restock Date', 'Cost']} autoRowSize={true} rowHeaders={true} height="auto" width="100%" autoWrapRow={true} headerClassName="htLeft" beforeChange={correctDatesBeforeChange}>
       <HotColumn data="itemName" type="text" width={130}/>
       <HotColumn data="category" type="text" width={120}/>
       <HotColumn data="leadEngineer" type="text" width={150}/>

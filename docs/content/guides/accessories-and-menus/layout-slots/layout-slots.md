@@ -50,7 +50,7 @@ const hot = new Handsontable(container, {
     ['SKU-7740', 'Vertex Industries', 67],
   ],
   colHeaders: ['SKU', 'Supplier', 'In stock'],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 const toolbar = document.createElement('div');
@@ -83,7 +83,7 @@ const hot = new Handsontable(container, {
   layout: {
     bottom: ['summary', 'pagination'],
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 const summary = document.createElement('div');

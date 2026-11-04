@@ -83,7 +83,7 @@ Click **Export XLSX** to download the Q1 report: nested headers, a dropdown with
 ```javascript
 const hot = new Handsontable(container, {
   exportFile: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -93,8 +93,8 @@ const hot = new Handsontable(container, {
 
 ```jsx
 <HotTable
+  // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
   exportFile={true}
-  licenseKey="non-commercial-and-evaluation"
 />
 ```
 
@@ -105,7 +105,7 @@ const hot = new Handsontable(container, {
 ```typescript
 readonly hotSettings: GridSettings = {
   exportFile: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 ```
 
@@ -116,7 +116,7 @@ readonly hotSettings: GridSettings = {
 ```javascript
 const hotSettings = ref({
   exportFile: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 

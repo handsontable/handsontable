@@ -65,7 +65,7 @@ Set `search: true` in grid settings:
 const hot = new Handsontable(container, {
   data,
   search: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 

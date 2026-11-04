@@ -255,7 +255,7 @@ const hotSettings: GridSettings = {
   afterChange(this: Handsontable, changes, source) {
     detectChanged(this, changes, source);
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');

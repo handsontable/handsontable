@@ -47,7 +47,7 @@ const hotSettings = computed<GridSettings>(() => ({
     interval: { min: intervalMin.value, max: intervalMax.value },
     rampDistance: rampDistance.value,
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 }));
 </script>
 

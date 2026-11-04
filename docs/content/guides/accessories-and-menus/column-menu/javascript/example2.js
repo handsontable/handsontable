@@ -13,7 +13,7 @@ new Handsontable(container, {
     ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3'],
   ],
   colHeaders: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   height: 'auto',
   dropdownMenu: ['remove_col', '---------', 'make_read_only', '---------', 'alignment'],
   autoWrapRow: true,

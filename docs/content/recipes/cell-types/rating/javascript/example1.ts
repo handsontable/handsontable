@@ -117,7 +117,7 @@ const hotOptions: Handsontable.GridSettings = {
     { data: "reviews", type: "numeric", width: 80 },
     { data: "price", type: "numeric", width: 80 },
   ],
-  licenseKey: "non-commercial-and-evaluation",
+  // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
 };
 
 // Initialize the Handsontable instance with the specified configuration options

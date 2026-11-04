@@ -37,6 +37,7 @@ const data = [
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       theme={myTheme}
       data={data}
       colHeaders={['Name', 'Email', 'City', 'Age', 'Position']}
@@ -51,7 +52,6 @@ const ExampleComponent = () => {
       dropdownMenu={true}
       width="100%"
       height="auto"
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };

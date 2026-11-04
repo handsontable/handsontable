@@ -7,7 +7,7 @@ import type { GridSettings } from 'handsontable/settings';
 registerAllModules();
 
 const hotSettings = ref<GridSettings>({
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: [
     ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods', 'Drinkware'],
     ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.', 'Electronics'],

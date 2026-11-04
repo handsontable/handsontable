@@ -54,6 +54,7 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         data={data}
         colHeaders={['ID', 'Task', 'Status', 'Owner']}
@@ -76,7 +77,6 @@ const ExampleComponent = () => {
         }}
         afterUndo={updateButtonsState}
         afterRedo={updateButtonsState}
-        licenseKey="non-commercial-and-evaluation"
       />
     </div>
   );

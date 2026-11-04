@@ -206,7 +206,7 @@ const hotSettings = ref<GridSettings>({
     second: '2-digit',
     hour12: true
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 // set the time cell type for a single column
@@ -218,7 +218,7 @@ const hotSettingsColumn = ref<GridSettings>({
       timeFormat: { timeStyle: 'medium' }
     }
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 // set the time cell type for a single cell
@@ -232,7 +232,7 @@ const hotSettingsCell = ref<GridSettings>({
       timeFormat: { hour: '2-digit', minute: '2-digit', hour12: true }
     }
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 ```
@@ -355,7 +355,7 @@ const hotSettings = ref<GridSettings>({
       timeFormat: { timeStyle: 'medium' }
     }
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
