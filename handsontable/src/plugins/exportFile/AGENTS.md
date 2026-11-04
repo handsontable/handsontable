@@ -501,6 +501,22 @@ Other rules:
   number, so the value branch alone wrote no format). Without `xlsx:number_formats` it carries none,
   like every other cell.
 - `headerStyle: null` exports headers with no styling; `headerStyle.border: null` suppresses only the border.
+- **A user-written color goes through `cssColorToArgb()` (`types/xlsx/cell-style.ts`), which parses it
+  without the page.** Custom border colors and the two `headerStyle` colors arrive as the string the user
+  wrote, so the function reads hex (`#RGB`, `#RRGGBB`, with or without `#`), `rgb()`/`rgba()`,
+  `hsl()`/`hsla()` and the 148 CSS named colors (`types/xlsx/css-color.ts`, a `Map`, so `constructor`
+  finds nothing), drops the alpha, and writes black for anything else. Three rules. (1) **No canvas and no
+  `getComputedStyle` probe**: a border added from the context menu stores
+  `var(--ht-custom-borders-default-color, #000)`, which must export as black (`../customBorders/AGENTS.md`),
+  and resolving it through the page would write the dark theme's light foreground instead; jsdom has no
+  canvas either. (2) **Hashless hex is taken only when the whole string is hex digits**, so `F2F2F2` keeps
+  its old output while `tomato` and `yellow` (six letters) reach the name lookup instead of being written as
+  `FFTOMATO`. (3) **An eight-digit hex is ARGB and passes through unchanged**, as it always did, not CSS
+  `#RRGGBBAA`. The font color and cell fill never reach the parser with a user string: they are computed
+  styles, turned into `#RRGGBB` by `rgbComputedToHex()` first. The named table and the `rgb()`/`hsl()` math
+  were checked against Chrome's canvas parser; a few `hsl()` values at an exact `.5` channel round one unit
+  apart from Chrome. Pinned by the `cssColorToArgb` cases in `__tests__/cell-style.unit.js` and by
+  `__tests__/xlsxHeaderStyleColor.unit.js`.
 - **The frozen pane counts EXPORTED indexes, not the raw `fixedColumnsStart`/`fixedRowsTop`.**
   `ExportDataProvider#getFrozenColumns()`/`getFrozenRows()` count the visual indexes of the frozen band
   (`0 … fixed - 1`) that fall inside the `range` option and are written to the file: a hidden index is

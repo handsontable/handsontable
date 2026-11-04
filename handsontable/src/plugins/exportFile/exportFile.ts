@@ -76,8 +76,12 @@ export interface HeaderStyleBorder {
    */
   style?: string;
   /**
-   * Not read by the exporter. The border color is read from a `color` key instead, as a CSS hex
-   * string (e.g. `'#000000'`).
+   * Border color, as a CSS color: hex (`'#000000'`), `rgb()`, `hsl()`, or a named color (`'black'`).
+   * The alpha component is dropped. A value the exporter cannot read writes a black border.
+   */
+  color?: string;
+  /**
+   * Not read by the exporter. Set the border color with `color` instead.
    */
   argb?: string;
 }
@@ -87,7 +91,9 @@ export interface HeaderStyleBorder {
  */
 export interface HeaderStyle {
   /**
-   * Background fill color in hex (e.g. `'#f2f2f2'`).
+   * Background fill color, as a CSS color: hex (`'#f2f2f2'`), `rgb()`, `hsl()`, or a named color
+   * (`'whitesmoke'`). The alpha component is dropped. A value the exporter cannot read writes a black
+   * fill.
    */
   backgroundColor?: string;
   /**

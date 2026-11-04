@@ -2,6 +2,7 @@ import { isDefined } from '../../../../helpers/mixed';
 import type { CellStyleSnapshot, CellValidationSnapshot } from '../../../../utils/xlsxEngine/model';
 import { normalizeClassNames } from '../../../../helpers/dom/element';
 import { READ_ONLY_FILL_ARGB, READ_ONLY_TEXT_ARGB } from '../../../../utils/xlsxEngine/readOnlyStyle';
+import { cssColorToHex } from './css-color';
 import type { SourceLabel } from '../../../../utils/cellSource';
 
 export interface CssStyle {
@@ -351,7 +352,12 @@ export function getCssStyleFromElement(
 }
 
 /**
- * Converts a CSS hex color string to an ARGB hex string, in an ExcelJS-compatible shape.
+ * Converts a CSS color string to an ARGB hex string, in an ExcelJS-compatible shape.
+ *
+ * Accepts hex (`#RGB`, `#RRGGBB`, with or without `#`), `rgb()`, `rgba()`, `hsl()`, `hsla()`, and the
+ * CSS named colors, in any case. The alpha component is dropped, so the result is always opaque. An
+ * eight-digit hex value is read as ARGB and passed through. Anything else (`var(...)`, `transparent`,
+ * an unknown name) becomes black.
  *
  * @private
  * @param {string} color CSS color string.
@@ -362,25 +368,26 @@ export function cssColorToArgb(color: string): string {
     return 'FF000000';
   }
 
-  const hex = color.startsWith('#') ? color.slice(1) : color;
+  const normalized = color.trim().toLowerCase();
+  const hex = normalized.startsWith('#') ? normalized.slice(1) : normalized;
 
-  if (hex.length === 3) {
-    const r = hex[0] + hex[0];
-    const g = hex[1] + hex[1];
-    const b = hex[2] + hex[2];
+  if (/^[0-9a-f]+$/.test(hex)) {
+    if (hex.length === 3) {
+      return `FF${hex[0]}${hex[0]}${hex[1]}${hex[1]}${hex[2]}${hex[2]}`.toUpperCase();
+    }
 
-    return `FF${r}${g}${b}`.toUpperCase();
+    if (hex.length === 6) {
+      return `FF${hex}`.toUpperCase();
+    }
+
+    if (hex.length === 8) {
+      return hex.toUpperCase();
+    }
   }
 
-  if (hex.length === 6) {
-    return `FF${hex}`.toUpperCase();
-  }
+  const rgb = cssColorToHex(normalized);
 
-  if (hex.length === 8) {
-    return hex.toUpperCase();
-  }
-
-  return 'FF000000';
+  return rgb === null ? 'FF000000' : `FF${rgb}`;
 }
 
 /**
