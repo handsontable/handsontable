@@ -6772,9 +6772,9 @@ export default (): Record<string, unknown> => {
      * disabled, but a click still doesn't change its value.
      *
      * A [`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) cell
-     * works the same way: a cell that refuses edits normally draws its chips without the remove
-     * button, but when `readOnlyStyling` is `false` the button stays, and a click on it doesn't
-     * change the value.
+     * works the same way: a read-only cell, or one with no [`editor`](#editor), normally draws its
+     * chips without the remove button, but when `readOnlyStyling` is `false` the button stays, and a
+     * click on it doesn't change the value.
      *
      * Read more:
      * - [`readOnly`](#readOnly)
