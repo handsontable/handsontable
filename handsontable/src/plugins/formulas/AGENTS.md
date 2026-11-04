@@ -859,6 +859,13 @@ reached through the typed `getPlugin('formulas')`:
   endpoint and adopts the stored order, and the meta-phase resync of that call is skipped, since the
   engine sheet already holds what the `cell` entries decided. Only the first such load takes it over
   (`adopted`): a listener that loads other data in the same call gets an ordinary write.
+  `exportEngineOrder(true)` also returns the engine sheet's content (`#readableSheet()` of
+  `getSheetSerialized()`), for a caller whose sheet will be bound to another engine sheet later (an engine
+  built from the class, or one the next load overwrites). An `adopt` that carries `content` is taken over
+  by the first load whatever sheet it binds, and `#adoptEngineSheet()` writes the content with
+  `setSheetContent()` before it adopts the order. The content is always written, even when the binding
+  matches the stored engine and sheet id: a grid-level class keeps one engine sheet, which the loads of
+  the other sheets overwrote in between.
 
 **A move inside the hold is an order change like a sort once an engine order was adopted in it.**
 `calculateAndSyncMoves()` sends nothing and a `'move'` sequence change leaves the stored order alone; the

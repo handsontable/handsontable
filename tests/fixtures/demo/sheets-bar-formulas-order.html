@@ -36,6 +36,8 @@
       sortedSum: 'sortedSum',
       showFormulas: 'showFormulas',
       quotedNames: 'quotedNames',
+      ownEngineColumns: 'ownEngineColumns',
+      ownEngineRows: 'ownEngineRows',
     })[htParams.get('workbook') ?? 'sortedReport'];
     if (!window.htWorkbook) {
       throw new Error('Unknown ?workbook= value: ' + JSON.stringify(htParams.get('workbook')));
@@ -59,6 +61,10 @@
     - sortedSum: 'Sheet' (`columnSorting`) with 1, 2, 3 and `=SUM(A1:A3)` in B2, and 'Other'.
     - showFormulas: 'F1' and 'F2' with a formula, and 'Plain' with no formulas.
     - quotedNames: 'Report' with `=Лист2!A1` and `=Prices!A1`, 'Лист2' with 7, and 'Prices' with 99.
+    - ownEngineColumns: 'Sheet' (`manualColumnMove`) as in movedColumns, but passing the HyperFormula class,
+      so it gets an engine of its own on every visit, and 'Plain' with no formulas.
+    - ownEngineRows: 'Sheet' (`manualRowMove`, the HyperFormula class) with 50, 20, 40, 10, 30 and
+      `=A{n}+1000` next to each, and 'Plain'.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -92,6 +98,7 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const own = (name, data, settings = {}) => ({ name, data, settings: { ...settings, formulas: { engine: HyperFormula } } });
     const bound = (name, data, settings = {}) => ({ name, data, settings: { ...settings, formulas: { engine, sheetName: name } } });
 
     const workbooks = {
@@ -124,6 +131,15 @@
         bound('Report', [['=Лист2!A1', '=Prices!A1']]),
         bound('Лист2', [[7]]),
         bound('Prices', [[99]]),
+      ],
+      ownEngineColumns: [
+        own('Sheet', [[1, 2, '=A1+B1'], [3, 4, '=A2+B2']], { manualColumnMove: true }),
+        { name: 'Plain', data: [['q']] },
+      ],
+      ownEngineRows: [
+        own('Sheet', [[50, '=A1+1000'], [20, '=A2+1000'], [40, '=A3+1000'], [10, '=A4+1000'], [30, '=A5+1000']],
+          { manualRowMove: true }),
+        { name: 'Plain', data: [['q']] },
       ],
       showFormulas: [
         bound('F1', [[1, '=A1+1']]),

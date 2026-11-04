@@ -368,6 +368,22 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   that changed cells in place on an away sorted sheet is not seen; the sheets bar guide's known
   limitations and the wrapper `AGENTS.md` pitfall tables say so. The order is captured after the
   `afterSheetTabStateCapture` listeners, so a sort one of them makes is part of it.
+  **A sheet whose engine sheet does not outlive the switch stores the engine content too**
+  (`#keepsEngineSheet`: anything but a `sheetName` in a built engine instance). An engine built from the
+  `HyperFormula` class is destroyed when Formulas is disabled (a sheet without formulas) and built again
+  on return; a grid-level class keeps one engine whose single sheet every formulas sheet's load
+  overwrites; a built engine without `sheetName` gets a new engine sheet. The identity check in
+  `#engineOrderToAdopt` then never matched, the return replayed the order with `setRowOrder` /
+  `setColumnOrder`, and a moved column came back as `#REF!` and a moved or sorted sheet with an insert or
+  an edit came back with other values. `#captureEngineOrder` passes `withContent` to
+  `Formulas#exportEngineOrder()` for such a sheet, and the return writes that content into whatever
+  engine sheet the load binds before it adopts the order. A duplicate of such a sheet gets the same
+  stored order and content for its first visit (`#copyEngineContentOrder`). Pinned by
+  `__tests__/ownEngineOrder.unit.js` and the "engine of its own" cases of the spec below.
+  **Open:** `updateSheetSettings()` that redeclares the order (`manualColumnMove: false`) of a hidden
+  sheet with a stored engine order keeps that order: the return adopts it, the reset grid order is sent
+  with `setColumnOrder`, and the engine's rewritten text (`=D1+B1`) is written back into the data. Same
+  on a shared engine with `sheetName`.
   A sorted inactive sheet's data keeps its old text: the bar does not copy engine text into it
   (`#syncInactiveSheetsFromEngine` skips it), and a rename rewrites only the name in it. Pinned by
   `tests/e2e/sheets-bar-formulas-order.spec.ts`.
