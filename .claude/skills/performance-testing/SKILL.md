@@ -44,6 +44,7 @@ Standalone page that exposes the instance as `window.__hot`:
   <title>My Scenario</title>
   <link rel="stylesheet" href="../../fixtures/handsontable.css">
   <script src="../../fixtures/handsontable.full.js"></script>
+  <script src="../../fixtures/test-license-key.js"></script>
 </head>
 <body>
 <div id="hot"></div>
@@ -52,7 +53,7 @@ Standalone page that exposes the instance as `window.__hot`:
     data: Handsontable.helper.createSpreadsheetData(5000, 10),
     rowHeaders: true, colHeaders: true, width: 1280, height: 600,
     autoRowSize: false, autoColumnSize: false,
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: window.htTestLicenseKey,
   });
 </script>
 </body>
@@ -60,6 +61,8 @@ Standalone page that exposes the instance as `window.__hot`:
 ```
 
 Set `autoRowSize: false` and `autoColumnSize: false` (async sizing interferes with measurements). CSS is `handsontable.css` (no `full` CSS variant); JS is `handsontable.full.js`.
+
+The license key comes from `window.htTestLicenseKey`, set by `fixtures/test-license-key.js`, never as a literal: a grid without a valid key gets the lock screen, so a new test key is a one-line change there. `scripts/__tests__/test-license-key.test.mjs` (root `test:tooling`) fails on a literal key in a fixture. That file is the one `.js` in `fixtures/` git tracks; both `.gitignore` files there ignore the copied bundles and keep it by name.
 
 ### 3. Spec
 
