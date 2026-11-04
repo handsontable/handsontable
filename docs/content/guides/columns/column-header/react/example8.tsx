@@ -23,6 +23,7 @@ const descriptions: Record<string, string> = {
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       colHeaders={[
         'Name',
@@ -57,7 +58,6 @@ const ExampleComponent = () => {
       height="auto"
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };
