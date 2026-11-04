@@ -21,7 +21,11 @@ import {
   MIXED_KEY,
   SUBSCRIPTION_UNTIL,
   TRIAL_UNTIL,
+  SPONSORED_BADGE_KEY,
+  SPONSORED_BADGE_EXTERNAL_KEY,
+  SPONSORED_NO_BADGE_KEY,
 } from './fixtures';
+import { BADGE_FLAG } from '../index';
 
 /**
  * A well-formed Handsontable product entry, with the fields a test does not care about filled in.
@@ -121,6 +125,35 @@ describe('entitlementLicenseKey/extractKeyData', () => {
       const entitlement = getProductEntitlement(extractEntitlementKeyData(SUBSCRIPTION_EXTERNAL_KEY), 'handsontable');
 
       expect(entitlement.flags).toEqual(['no-console-warns', 'no-ui-warns']);
+    });
+
+    it('should read a sponsored key and keep its badge flag', () => {
+      const entitlement = getProductEntitlement(extractEntitlementKeyData(SPONSORED_BADGE_KEY), 'handsontable');
+
+      expect(BADGE_FLAG).toBe('badge');
+      expect(entitlement).toEqual({
+        capabilities: ['core'],
+        usage_until: '2027-11-04',
+        notice: 60,
+        grace: 90,
+        flags: [BADGE_FLAG],
+      });
+    });
+
+    it('should keep the badge flag next to both silencing flags', () => {
+      const entitlement = getProductEntitlement(
+        extractEntitlementKeyData(SPONSORED_BADGE_EXTERNAL_KEY),
+        'handsontable',
+      );
+
+      expect(entitlement.flags).toEqual(['no-console-warns', 'no-ui-warns', BADGE_FLAG]);
+    });
+
+    it('should read a sponsored key without the badge flag as a plain usage entry', () => {
+      const entitlement = getProductEntitlement(extractEntitlementKeyData(SPONSORED_NO_BADGE_KEY), 'handsontable');
+
+      expect(entitlement.usage_until).toBe('2027-11-04');
+      expect(entitlement.flags).toEqual([]);
     });
 
     it('should read every product of a key granting two, each on its own terms', () => {
