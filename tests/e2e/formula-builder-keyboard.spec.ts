@@ -98,6 +98,37 @@ test.describe('formulaBuilder keyboard flow', { tag: [THEMES_TAG, BUNDLES_TAG, C
     await expect(grid.editorInput).toHaveValue('5');
   });
 
+  // With a sort, the row inserted under the focused one can take a lower physical index than the
+  // focused record, so the insert renumbers that record while the selection stays where it is.
+  test('Tab from before the grid opens the bar on the cell it left after a sorted, batched insert under it', async({ page }) => {
+    await grid.updateGridSettings({
+      data: [['A1', 1], ['A2', 2], ['A3', 3], ['A4', 4], ['A5', 5]],
+      columnSorting: true,
+    });
+    await grid.sortBy(1, 'desc');
+    await grid.selectCellByApi(0, 1);
+    await page.evaluate(() => {
+      const { hot } = window as unknown as { hot: {
+        batch(callback: () => void): void;
+        alter(action: string, index: number): void;
+        deselectCell(): void;
+      } };
+
+      hot.batch(() => {
+        hot.alter('insert_row_above', 1);
+        hot.deselectCell();
+      });
+    });
+
+    await grid.beforeGrid.focus();
+    await page.keyboard.press('Tab');
+    await expect(grid.addressInput).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(grid.editorInput).toBeFocused();
+    await expect(grid.addressInput).toHaveValue('B1');
+    await expect(grid.editorInput).toHaveValue('5');
+  });
+
   test('Shift+Tab walks out of the grid through the formula bar, and Tab walks back in', async({ page }) => {
     await grid.selectCellByApi(0, 0);
 

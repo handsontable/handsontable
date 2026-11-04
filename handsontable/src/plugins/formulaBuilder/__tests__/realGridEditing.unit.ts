@@ -1005,6 +1005,53 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(hot.getDataAtCell(3, 1)).toBe('B3');
     });
 
+    it('prefers the record it focused last after a row above it was removed', () => {
+      createGrid();
+      hot.selectCell(3, 1);
+      hot.deselectCell();
+      hot.alter('remove_row', 0);
+
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([2, 1, 2, 1]);
+      expect(hot.getDataAtCell(2, 1)).toBe('B4');
+    });
+
+    it('scans for the first formula cell after the row it focused last was removed', () => {
+      createGrid();
+      hot.selectCell(2, 1);
+      hot.deselectCell();
+      hot.alter('remove_row', 2);
+
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([0, 0, 0, 0]);
+    });
+
+    it('prefers the record it focused last after a column was inserted before it', () => {
+      createGrid();
+      hot.selectCell(1, 2);
+      hot.deselectCell();
+      hot.alter('insert_col_start', 0);
+
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([1, 3, 1, 3]);
+      expect(hot.getDataAtCell(1, 3)).toBe('C2');
+    });
+
+    it('prefers the record it focused last after a column before it was removed', () => {
+      createGrid();
+      hot.selectCell(1, 3);
+      hot.deselectCell();
+      hot.alter('remove_col', 0);
+
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([1, 2, 1, 2]);
+      expect(hot.getDataAtCell(1, 2)).toBe('D2');
+    });
+
     it('follows the selection the grid kept on its visual cell through an API sort', () => {
       createGrid({ data: [[1], [3], [5], [7]], columnSorting: true });
       hot.selectCell(2, 0);
@@ -1078,9 +1125,9 @@ describe('FormulaBuilder editing on a real grid', () => {
     });
 
     // The focus of a range stays on its visual row when the change lands inside the range above it.
-    // A draw before the plugin hears the change (the Formulas plugin draws there when dependent
-    // formulas move) records the cell in the new numbering, so the plugin must not shift it again.
-    it('keeps the focused cell of a range an insert inside it did not move, when a draw runs before the plugin hears it', () => {
+    // A draw inside the change (the Formulas plugin draws there when dependent formulas move) records
+    // the cell in the new numbering, so the shift must have run before it, not after.
+    it('keeps the focused cell of a range an insert inside it did not move, when a draw runs inside the change', () => {
       createGrid();
       hot.selectCell(1, 1, 4, 1);
       hot.selection.setRangeFocus(hot._createCellCoords(3, 1));
@@ -1096,7 +1143,7 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(hot.getSelectedLast()).toEqual([3, 1, 3, 1]);
     });
 
-    it('keeps the focused cell of a range a removal inside it did not move, when a draw runs before the plugin hears it', () => {
+    it('keeps the focused cell of a range a removal inside it did not move, when a draw runs inside the change', () => {
       createGrid();
       hot.selectCell(1, 1, 4, 1);
       hot.selection.setRangeFocus(hot._createCellCoords(3, 1));
@@ -1110,6 +1157,33 @@ describe('FormulaBuilder editing on a real grid', () => {
       hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
 
       expect(hot.getSelectedLast()).toEqual([3, 1, 3, 1]);
+    });
+
+    // With a sort, the row inserted under the focused one can take a lower physical index than the
+    // focused record. The selection does not move, so only the shift keeps the cell on its record.
+    it('keeps the cell on its record when a batched insert under it renumbers it and the selection is dropped', () => {
+      createGrid({ data: [['A1', 1], ['A2', 2], ['A3', 3], ['A4', 4], ['A5', 5]], columnSorting: true });
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+      hot.selectCell(0, 1);
+      hot.batch(() => {
+        hot.alter('insert_row_above', 1);
+        hot.deselectCell();
+      });
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([0, 1, 0, 1]);
+      expect(hot.getDataAtCell(0, 1)).toBe(5);
+    });
+
+    it('remembers the cell the focus moved to inside a range a data load kept', () => {
+      createGrid();
+      hot.selectCell(0, 1, 3, 1);
+      hot.loadData([['N1', 'N2'], ['N3', 'N4'], ['N5', 'N6'], ['N7', 'N8']]);
+      hot.selection.setRangeFocus(hot._createCellCoords(2, 1));
+      hot.deselectCell();
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([2, 1, 2, 1]);
     });
 
     it('follows a cell selected after a data load through a sort in the same batch', () => {

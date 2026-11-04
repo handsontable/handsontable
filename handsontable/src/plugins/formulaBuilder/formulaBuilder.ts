@@ -427,9 +427,9 @@ export class FormulaBuilder extends BasePlugin {
    * The physical coordinates of the cell the grid focused last. Not cleared on deselect: Shift+Tab from
    * the first column drops the selection and moves the focus onto the bar, and the bar then asks
    * for a cell to edit - the one that was left. Physical, so the record survives with no selection, and
-   * shifted on an insert or a removal while no cell is selected, because those renumber the physical
-   * indexes after them (`#shiftRememberedCellOnCreate`, `#shiftRememberedCellOnRemove`); every read
-   * still checks range, visibility and the editor again.
+   * shifted when an insert or a removal renumbers the physical indexes after it
+   * (`#onRowIndexesInserted`, `#onRowIndexesRemoved`); every read still checks range, visibility and the
+   * editor again.
    */
   #lastFocusedCoords: { row: number; col: number } | null = null;
   /**
@@ -1028,36 +1028,16 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
-   * Whether an insert or a removal must shift the remembered cell itself. With a cell selected it
-   * must not: the cell follows the selection, which the grid moves after the hooks that report the
-   * change, and the plugin records it again then (`#onAfterSelection`, or the draw after the index
-   * change when the selection stays). A draw inside the change can also have recorded the cell in
-   * the new numbering already, so a shift on top would move it twice.
-   *
-   * @returns {boolean}
-   */
-  #shiftsRememberedCell(): boolean {
-    return this.#focusedCell() === null;
-  }
-
-  /**
    * Shifts the remembered cell past the physical indexes an insert added before it.
    *
-   * @param {'row' | 'col'} axis The axis the tracks were created on.
-   * @param {number} index The visual index of the first created track.
-   * @param {number} amount The number of created tracks.
+   * @param {'row' | 'col'} axis The axis the indexes were inserted on.
+   * @param {number[]} insertedIndexes The physical indexes the inserted tracks took, in order.
    */
-  #shiftRememberedCellOnCreate(axis: 'row' | 'col', index: number, amount: number): void {
+  #shiftRememberedCellOnCreate(axis: 'row' | 'col', insertedIndexes: number[]): void {
     const last = this.#lastFocusedCoords;
 
-    if (last === null || !this.#shiftsRememberedCell()) {
-      return;
-    }
-
-    const physicalStart = axis === 'row' ? this.hot.toPhysicalRow(index) : this.hot.toPhysicalColumn(index);
-
-    if (physicalStart !== null && last[axis] >= physicalStart) {
-      this.#lastFocusedCoords = { ...last, [axis]: last[axis] + amount };
+    if (last !== null && insertedIndexes.length > 0 && last[axis] >= insertedIndexes[0]) {
+      this.#lastFocusedCoords = { ...last, [axis]: last[axis] + insertedIndexes.length };
     }
   }
 
@@ -1071,7 +1051,7 @@ export class FormulaBuilder extends BasePlugin {
   #shiftRememberedCellOnRemove(axis: 'row' | 'col', physicalIndexes: number[]): void {
     const last = this.#lastFocusedCoords;
 
-    if (last === null || !this.#shiftsRememberedCell()) {
+    if (last === null) {
       return;
     }
 
@@ -1632,45 +1612,42 @@ export class FormulaBuilder extends BasePlugin {
   };
 
   /**
-   * `afterCreateRow` hook listener - keeps the remembered cell on its record (`#lastFocusedCoords`).
+   * Row index mapper `indexesInserted` listener - keeps the remembered cell on its record
+   * (`#lastFocusedCoords`). The mapper runs it at the moment it renumbers, batched or not, so the
+   * cell shifts once and before any hook or draw of the insert can record it in the new numbering.
    *
-   * @param {number} index The visual index of the first created row.
-   * @param {number} amount The number of created rows.
+   * @param {number[]} insertedIndexes The physical indexes the inserted rows took.
    */
-  #onAfterCreateRowRemembered = (index: number, amount: number): void => {
-    this.#shiftRememberedCellOnCreate('row', index, amount);
+  #onRowIndexesInserted = (insertedIndexes: number[]): void => {
+    this.#shiftRememberedCellOnCreate('row', insertedIndexes);
   };
 
   /**
-   * `afterCreateCol` hook listener - keeps the remembered cell on its record (`#lastFocusedCoords`).
+   * Column index mapper `indexesInserted` listener - see `#onRowIndexesInserted`.
    *
-   * @param {number} index The visual index of the first created column.
-   * @param {number} amount The number of created columns.
+   * @param {number[]} insertedIndexes The physical indexes the inserted columns took.
    */
-  #onAfterCreateColRemembered = (index: number, amount: number): void => {
-    this.#shiftRememberedCellOnCreate('col', index, amount);
+  #onColumnIndexesInserted = (insertedIndexes: number[]): void => {
+    this.#shiftRememberedCellOnCreate('col', insertedIndexes);
   };
 
   /**
-   * `afterRemoveRow` hook listener - keeps the remembered cell on its record (`#lastFocusedCoords`).
+   * Row index mapper `indexesRemoved` listener - keeps the remembered cell on its record
+   * (`#lastFocusedCoords`), at the moment the mapper renumbers (see `#onRowIndexesInserted`).
    *
-   * @param {number} index The visual index of the first removed row.
-   * @param {number} amount The number of removed rows.
-   * @param {number[]} physicalRows The physical indexes the rows had.
+   * @param {number[]} removedIndexes The physical indexes the removed rows had.
    */
-  #onAfterRemoveRowRemembered = (index: number, amount: number, physicalRows: number[]): void => {
-    this.#shiftRememberedCellOnRemove('row', physicalRows);
+  #onRowIndexesRemoved = (removedIndexes: number[]): void => {
+    this.#shiftRememberedCellOnRemove('row', removedIndexes);
   };
 
   /**
-   * `afterRemoveCol` hook listener - keeps the remembered cell on its record (`#lastFocusedCoords`).
+   * Column index mapper `indexesRemoved` listener - see `#onRowIndexesRemoved`.
    *
-   * @param {number} index The visual index of the first removed column.
-   * @param {number} amount The number of removed columns.
-   * @param {number[]} physicalColumns The physical indexes the columns had.
+   * @param {number[]} removedIndexes The physical indexes the removed columns had.
    */
-  #onAfterRemoveColRemembered = (index: number, amount: number, physicalColumns: number[]): void => {
-    this.#shiftRememberedCellOnRemove('col', physicalColumns);
+  #onColumnIndexesRemoved = (removedIndexes: number[]): void => {
+    this.#shiftRememberedCellOnRemove('col', removedIndexes);
   };
 
   /**
@@ -2237,6 +2214,10 @@ export class FormulaBuilder extends BasePlugin {
     this.addHook('beforeViewRender', this.#onBeforeViewRender);
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
     this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
+    this.hot.rowIndexMapper.addLocalHook('indexesInserted', this.#onRowIndexesInserted);
+    this.hot.columnIndexMapper.addLocalHook('indexesInserted', this.#onColumnIndexesInserted);
+    this.hot.rowIndexMapper.addLocalHook('indexesRemoved', this.#onRowIndexesRemoved);
+    this.hot.columnIndexMapper.addLocalHook('indexesRemoved', this.#onColumnIndexesRemoved);
     // Order 2: the Formulas plugin loads a settings-update's data into the engine from its own
     // `afterUpdateSettings` listener (order 1), after `afterUpdateData` already fired.
     this.addHook('afterUpdateSettings', this.#resyncBarCell, 2);
@@ -2248,10 +2229,6 @@ export class FormulaBuilder extends BasePlugin {
     this.addHook('afterUpdateData', this.#onAfterDataLoad);
     this.addHook('afterSelection', this.#onAfterSelection);
     this.addHook('afterSelectionFocusSet', this.#onAfterSelectionFocusSet);
-    this.addHook('afterCreateRow', this.#onAfterCreateRowRemembered);
-    this.addHook('afterCreateCol', this.#onAfterCreateColRemembered);
-    this.addHook('afterRemoveRow', this.#onAfterRemoveRowRemembered);
-    this.addHook('afterRemoveCol', this.#onAfterRemoveColRemembered);
     this.addHook('beforeOnCellMouseDown', this.#cellPick.onBeforeMouseDown, CELL_MOUSE_HOOK_ORDER);
     this.addHook('beforeOnCellMouseOver', this.#cellPick.onBeforeMouseOver, CELL_MOUSE_HOOK_ORDER);
     this.addHook('beforeOnCellMouseOverOutside', this.#cellPick.onBeforeMouseOver, CELL_MOUSE_HOOK_ORDER);
@@ -2713,6 +2690,10 @@ export class FormulaBuilder extends BasePlugin {
     this.#stopMoveAwayWatch?.();
     this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
     this.hot.columnIndexMapper.removeLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
+    this.hot.rowIndexMapper.removeLocalHook('indexesInserted', this.#onRowIndexesInserted);
+    this.hot.columnIndexMapper.removeLocalHook('indexesInserted', this.#onColumnIndexesInserted);
+    this.hot.rowIndexMapper.removeLocalHook('indexesRemoved', this.#onRowIndexesRemoved);
+    this.hot.columnIndexMapper.removeLocalHook('indexesRemoved', this.#onColumnIndexesRemoved);
     this.#barCellStale = false;
     this.#clearCellErrorMarks();
     this.#removeEngineDetachListener?.();
