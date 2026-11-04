@@ -19,9 +19,10 @@ vue:
   metaTitle: Server-side Data with NestJS | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Data Management
+menuTag: updated
 ---
 
-This tutorial shows how to wire Handsontable DataGrid's `dataProvider` plugin to a NestJS 10 backend. The backend provides paginated, sorted, and filtered server-side data with full CRUD operations using an in-memory store.
+This tutorial shows how to wire Handsontable DataGrid's `dataProvider` plugin to a NestJS 10 backend. The backend provides paginated, sorted, and filtered server-side data with full CRUD operations, stored in PostgreSQL via TypeORM.
 
 ::: tip Handsontable sponsors NestJS
 Handsontable is a proud sponsor of NestJS. You can support the project on [Open Collective](https://opencollective.com/handsontable-javascript-data-grid).
@@ -68,7 +69,7 @@ The project uses `class-validator` and `class-transformer` for request validatio
 
 **What's happening:**
 - `class-transformer` converts query-string values -- which are always strings -- into the TypeScript types declared in your DTO. For example, `page=2` in the query string becomes the number `2`.
-- `class-validator` then validates those typed values against constraints such as `@IsInt()` and `@Min(1)`, and rejects invalid requests with a `400` response before they reach your service.
+- `class-validator` then validates those typed values against constraints such as `@IsInt()`, `@Min(1)`, and `@IsIn()`, and rejects invalid requests with a `400` response before they reach your service. The same check applies to the JSON bodies of the create, update, and delete requests.
 
 Together these two libraries give you end-to-end type safety from the HTTP request all the way to the TypeScript service method.
 
@@ -103,6 +104,12 @@ Copy `fetch-tickets.dto.ts` into `src/tickets/dto/`:
 
 Query-string values arrive as strings. `@Type(() => Number)` tells `class-transformer` to coerce `"2"` to `2` before `@IsInt()` runs. Without this decorator, `@IsInt()` would reject every request because `"2"` is a string, not an integer.
 
+### `@IsIn(ALLOWED_COLUMNS)` on `prop` and `column`
+
+The service interpolates the filter `prop` and the sort `column` into SQL, because a column name can't be passed as a query parameter. `@IsIn(ALLOWED_COLUMNS)` rejects any name outside the list with a `400` response, so a crafted value such as `sort[column]=subject;DROP` never reaches the query builder. `@IsIn(['asc', 'desc'])` does the same for the sort order.
+
+The condition name is not whitelisted. The service's `switch` statement skips condition names it doesn't handle, so a condition such as a date comparison doesn't fail the request.
+
 ### `@ValidateNested()` on `sort` and `filters`
 
 `@ValidateNested()` applies the constraints declared on the nested DTO class. Without it, `class-validator` only checks that the outer object has a `sort` field -- it does not inspect `sort.column` or `sort.order`.
@@ -115,11 +122,11 @@ Handsontable sends one filter object per active column. With a single active fil
 filters[0][prop]=status&filters[0][condition]=eq&filters[0][value][0]=open
 ```
 
-NestJS parses this as `filters = { '0': { prop: 'status', ... } }` when only one filter is present and as an array when multiple filters are present. The `@Transform` decorator normalizes both shapes into a consistent `FilterConditionDto[]`.
+The query parser turns the indexed keys into an array. A request that sends one filter without an index (`filters[prop]=status`) arrives as a single object instead. The `@Transform` decorator wraps a single object in an array, and `@Type(() => FilterConditionDto)` turns each item into a `FilterConditionDto`, so `@ValidateNested()` checks every filter.
 
-### `@IsArray()` on `FilterConditionDto.value`
+### `@IsOptional()` on `FilterConditionDto.value`
 
-A filter condition can carry one or two values depending on the condition type (for example, `between` uses two). `@IsArray()` accepts both a single-element and a two-element array from Handsontable.
+A filter condition carries zero, one, or two values depending on the condition type: `empty` and `not_empty` send none, `between` sends two. `@IsOptional()` with a default of `[]` accepts a condition without values, and `@IsArray()` checks the shape when values are present.
 
 ## Step 4: Bootstrap with CORS and `ValidationPipe`
 
@@ -183,7 +190,11 @@ case 'contains':
   break;
 ```
 
-All string comparisons use `LOWER()` so filtering is case-insensitive. LIKE metacharacters (`%`, `_`, `!`) in user input are escaped to prevent them from being interpreted as wildcards. Multiple filter conditions are combined with `AND` using repeated `andWhere()` calls.
+All string comparisons use `LOWER()` so filtering is case-insensitive. LIKE metacharacters (`%`, `_`, `!`) in user input are escaped to prevent them from being interpreted as wildcards. Multiple filter conditions are combined with `AND` using repeated `andWhere()` calls. Condition names the `switch` statement doesn't list are skipped.
+
+### Request body DTOs
+
+`CreateTicketDto` and `UpdateTicketDto` are classes with `class-validator` decorators, so the controller can validate every row in a request body. `@IsIn(TICKET_STATUSES)` and `@IsIn(TICKET_PRIORITIES)` reject values outside the dropdown sources, `@MaxLength()` matches the column sizes in the migration, and `@IsUUID()` checks the row `id` of an update. Update fields use `ValidateIf()` instead of `@IsOptional()`: a column left out of the request is skipped, but a `null` value is rejected, because every column is `NOT NULL`.
 
 ### Sorting
 
@@ -221,9 +232,10 @@ Copy `tickets.controller.ts` into `src/tickets/`:
 **What's happening:**
 - `@Controller('tickets')` sets the base path. All four endpoints share the `/tickets` prefix.
 - `@Query() query: FetchTicketsDto` binds the parsed query string to the DTO. The `ValidationPipe` configured in `main.ts` transforms and validates the values before `findAll()` receives them.
-- `create()` accepts `CreateTicketDto | CreateTicketDto[]` because Handsontable may send one new row or several. Wrapping a single object in an array normalizes the input before the service loop.
-- `updateMany()` receives an array of partial row objects -- each includes the row `id` plus only the changed columns. The service finds each row by ID and applies the changes with `Object.assign`.
-- `removeMany()` receives an array of ID strings and returns `204 No Content`. Handsontable only checks for a non-error HTTP status on delete responses.
+- Every mutation body is a JSON array. The global `ValidationPipe` doesn't validate array bodies, so each handler uses `ParseArrayPipe`: `items` names the DTO class to validate each element against, and `whitelist: true` strips undeclared keys. A body that isn't an array, or an element that fails validation, returns `400`.
+- `create()` receives an array of new rows, because Handsontable may add one row or several.
+- `updateMany()` receives an array of partial row objects -- each includes the row `id` plus only the changed columns. The service calls `repo.update(id, changes)` for each row.
+- `removeMany()` receives an array of ID strings, rejects any that isn't a UUID, and returns `204 No Content`. Handsontable only checks for a non-error HTTP status on delete responses.
 
 **Endpoint summary:**
 
@@ -301,11 +313,7 @@ Handsontable calls `fetchRows` whenever the user changes the page, sorts a colum
 
 ### `onRowsRemove`
 
-Handsontable passes an array of `id` strings matching `dataProvider.rowId`. The controller deserializes them as `string[]` and passes them to `ticketsService.removeMany()`.
-
-### `beforeRowsMutation`
-
-`beforeRowsMutation` is a synchronous hook that fires before any mutation is sent. Returning `false` cancels the operation. Because the hook is synchronous it cannot await a native browser `confirm()` or a promise — instead it shows a non-blocking notification with **Delete** and **Cancel** actions. The `removeConfirmed` flag lets the second call (issued by the **Delete** action) bypass the guard and proceed.
+Handsontable passes an array of `id` strings matching `dataProvider.rowId`. The controller checks that each one is a UUID and passes them to `ticketsService.removeMany()`.
 
 ### `notification: true` and `emptyDataState: true`
 
@@ -313,26 +321,25 @@ Handsontable passes an array of `id` strings matching `dataProvider.rowId`. The 
 
 `emptyDataState: true` shows a placeholder message when the current filter combination returns zero rows, instead of leaving the grid blank.
 
-`contextMenu: true` enables the right-click context menu with "Insert row above / below" and "Remove row" items.
-
 ## How It Works -- Complete Flow
 
 1. **Initial load**: Handsontable calls `fetchRows` with `{ page: 1, pageSize: 5 }`.
 2. **Frontend builds**: `GET /tickets?page=1&pageSize=5`.
 3. **NestJS routes** the request to `TicketsController.findAll` via `FetchTicketsDto`.
 4. **Service queries**: runs SQL with `skip(0).take(5).getManyAndCount()` and returns `{ rows: [...5 tickets...], totalRows: 12 }`.
-5. **User sorts by priority**: `fetchRows` called with `sort: { column: 'priority', order: 'asc' }`.
+5. **User sorts by priority**: `fetchRows` called with `sort: { prop: 'priority', order: 'asc' }`.
 6. **Frontend builds**: `GET /tickets?page=1&pageSize=5&sort[column]=priority&sort[order]=asc`.
-7. **Service sorts** the store using `localeCompare` and returns the first page of sorted results.
-8. **User filters status = open**: `fetchRows` called with `filters: [{ prop: 'status', condition: 'eq', value: ['open'] }]`.
+7. **Service sorts**: `qb.orderBy('ticket.priority', 'ASC')` adds an `ORDER BY` clause, and the query returns the first page of sorted results.
+8. **User filters status = open**: `fetchRows` called with `filters: [{ prop: 'status', operation: 'conjunction', conditions: [{ name: 'eq', args: ['open'] }] }]`.
 9. **Frontend builds**: `GET /tickets?...&filters[0][prop]=status&filters[0][condition]=eq&filters[0][value][0]=open`.
-10. **DTO deserializes**: `class-transformer` maps bracket notation to `FilterConditionDto[]`; the `switch` maps `eq` to a strict equality predicate.
-11. **User edits assignee**: `onRowsUpdate([{ id: '3', assignee: 'Li Wei' }])` sent via `PATCH /tickets`.
+10. **DTO deserializes**: `class-transformer` maps bracket notation to `FilterConditionDto[]`; the `switch` maps `eq` to a case-insensitive equality predicate.
+11. **User edits assignee**: `onRowsUpdate` receives `[{ id: '<uuid>', changes: { assignee: 'Li Wei' } }]` and sends `[{ id: '<uuid>', assignee: 'Li Wei' }]` via `PATCH /tickets`.
 12. **Service updates**: `repo.update(id, { assignee: 'Li Wei' })` -- only the changed column is written to the database.
 
 ## What you learned
 
-- How to use `class-validator` and `class-transformer` in a NestJS `ValidationPipe` to parse and validate Handsontable's query parameters.
+- How to use `class-validator` and `class-transformer` in a NestJS `ValidationPipe` to parse and validate Handsontable's query parameters, and how to whitelist column names before they reach SQL.
+- How to validate array request bodies with `ParseArrayPipe` and DTO classes.
 - How bracket-notation serialization maps Handsontable's sort and filter objects to NestJS `@Query()` DTOs -- `sort[column]=status` becomes `{ sort: { column: 'status' } }`.
 - How to map Handsontable filter condition names (`eq`, `contains`, `begins_with`, etc.) to TypeORM QueryBuilder `WHERE` clauses with case-insensitive `LOWER()` and LIKE-safe escaping.
 - How PostgreSQL UUID generation (`gen_random_uuid()`) handles ID assignment for batch creates without requiring an application-level counter.
@@ -342,7 +349,7 @@ Handsontable passes an array of `id` strings matching `dataProvider.rowId`. The 
 
 ## Next steps
 
-- Swap PostgreSQL for a different database by updating the TypeORM `DataSource` config and the Flyway-equivalent migration file.
+- Swap PostgreSQL for a different database by updating the TypeORM `DataSource` config and the TypeORM migration file.
 - Add authentication -- pass a `Bearer` token in the `fetchRows` fetch headers and protect mutation endpoints with a NestJS `AuthGuard`.
 - Share the DTO types between the NestJS backend and the Handsontable frontend in a monorepo using a shared `packages/types` workspace package.
 - Compare with the [Spring Boot recipe](@/recipes/data-management/server-side-spring/server-side-spring.md) to see the same Handsontable frontend wired to a Java backend using the same endpoint shapes.

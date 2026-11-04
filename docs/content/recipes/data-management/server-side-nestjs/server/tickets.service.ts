@@ -1,19 +1,72 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { IsIn, IsOptional, IsString, IsUUID, Matches, MaxLength, ValidateIf } from 'class-validator';
 import { Repository } from 'typeorm';
 import { FetchTicketsDto } from './fetch-tickets.dto';
-import { TicketEntity, TicketPriority, TicketStatus } from './ticket.entity';
+import { TICKET_PRIORITIES, TICKET_STATUSES, TicketEntity, TicketPriority, TicketStatus } from './ticket.entity';
 
-export interface CreateTicketDto {
+/** Dates are stored as 'YYYY-MM-DD' strings, the format Handsontable's date cells use. */
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Like @IsOptional(), but rejects null: every column is NOT NULL. */
+const IfPresent = () => ValidateIf((_object, value) => value !== undefined);
+
+/**
+ * One row of the POST /tickets body.
+ *
+ * The controller validates each array item against this class, so an unknown
+ * status or an over-long subject returns 400 instead of reaching the database.
+ * MaxLength values match the VARCHAR columns in the migration.
+ */
+export class CreateTicketDto {
+  @IsString()
+  @MaxLength(500)
   subject: string;
-  status: string;
-  priority: string;
+
+  @IsIn(TICKET_STATUSES)
+  status: TicketStatus;
+
+  @IsIn(TICKET_PRIORITIES)
+  priority: TicketPriority;
+
+  @IsString()
+  @MaxLength(200)
   assignee: string;
-  createdAt: string;
+
+  /** Defaults to today when omitted. */
+  @IsOptional()
+  @Matches(ISO_DATE)
+  createdAt?: string;
 }
 
-export interface UpdateTicketDto extends Partial<CreateTicketDto> {
+/**
+ * One row of the PATCH /tickets body: the row id plus only the changed columns.
+ */
+export class UpdateTicketDto {
+  @IsUUID()
   id: string;
+
+  @IfPresent()
+  @IsString()
+  @MaxLength(500)
+  subject?: string;
+
+  @IfPresent()
+  @IsIn(TICKET_STATUSES)
+  status?: TicketStatus;
+
+  @IfPresent()
+  @IsIn(TICKET_PRIORITIES)
+  priority?: TicketPriority;
+
+  @IfPresent()
+  @IsString()
+  @MaxLength(200)
+  assignee?: string;
+
+  @IfPresent()
+  @Matches(ISO_DATE)
+  createdAt?: string;
 }
 
 /**
@@ -102,8 +155,8 @@ export class TicketsService {
   async create(dto: CreateTicketDto): Promise<TicketEntity> {
     const ticket = this.repo.create({
       subject: dto.subject,
-      status: dto.status as TicketStatus,
-      priority: dto.priority as TicketPriority,
+      status: dto.status,
+      priority: dto.priority,
       assignee: dto.assignee,
       createdAt: dto.createdAt ?? new Date().toISOString().slice(0, 10),
     });
@@ -115,7 +168,11 @@ export class TicketsService {
     const updated: TicketEntity[] = [];
 
     for (const { id, ...rest } of updates) {
-      await this.repo.update(id, rest as Partial<TicketEntity>);
+      // Skip the write when validation stripped every column but the id.
+      if (Object.keys(rest).length > 0) {
+        await this.repo.update(id, rest);
+      }
+
       const ticket = await this.repo.findOneBy({ id });
       if (ticket) updated.push(ticket);
     }
