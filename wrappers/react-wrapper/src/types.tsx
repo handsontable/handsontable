@@ -102,7 +102,8 @@ type ReplaceRenderersEditors<T> = Omit<RemoveIndexSignature<T>, 'renderer' | 'ed
    * in `hotEditor` still applies.
    *
    * A Handsontable editor class or editor name belongs in `hotEditor`. When one is passed here, it
-   * is used as `hotEditor`, and the console shows a one-time warning.
+   * is used as `hotEditor`, and the console shows a one-time warning. A name with no registered
+   * editor is ignored after the warning.
    */
   editor?: ComponentType | boolean,
 } & { [key: string]: any }

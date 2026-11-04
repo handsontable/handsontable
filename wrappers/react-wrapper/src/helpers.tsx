@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import ReactDOM from 'react-dom';
 import Handsontable from 'handsontable/base';
+import { hasEditor } from 'handsontable/editors/registry';
 import { HotRendererProps, HotTableProps } from './types';
 
 let bulkComponentContainer: DocumentFragment | null = null;
@@ -302,7 +303,9 @@ function warnAboutNativeEditorInEditorProp(editor: object | string): void {
  *
  * A Handsontable editor (a class or a registered name) passed to `editor` is a mistake: that prop
  * renders a React component. It is used as if it were passed to `hotEditor`, with a one-time
- * warning. A `hotEditor` value that names an editor or disables editing still wins over it.
+ * warning. A `hotEditor` value that names an editor or disables editing still wins over it. A name
+ * that no editor is registered under is dropped after the warning, so a typo does not make the core
+ * throw.
  *
  * @param {HotTableProps['editor']} editor The `editor` prop.
  * @param {HotTableProps['hotEditor']} hotEditor The `hotEditor` prop.
@@ -324,6 +327,12 @@ export function resolveEditorSetting(
 
   if (isNativeEditor(editor)) {
     warnAboutNativeEditorInEditorProp(editor as unknown as object | string);
+
+    // An unregistered name (a typo) would make the core throw on every selection of the cell, so
+    // it is dropped and the cell keeps the editor its column type or the grid supplies.
+    if (typeof editor === 'string' && !hasEditor(editor)) {
+      return undefined;
+    }
 
     return editor as unknown as Handsontable.GridSettings['editor'];
   }

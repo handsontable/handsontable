@@ -127,6 +127,26 @@ describe('Handsontable editor passed to the React editor prop', () => {
     expect(document.querySelector('dropdown')).toBeNull();
   });
 
+  it('should warn once and keep the inherited editor when an unregistered name is passed to the editor prop', async() => {
+    const hotInstance = mountGrid({
+      children: [
+        <HotColumn key="0" editor={'Numeric' as any} />,
+        <HotColumn key="1" />,
+      ],
+    }).hotInstance!;
+
+    expect(nativeEditorWarningCalls(warnSpy)).toHaveLength(1);
+    expect(hotInstance.getCellEditor(0, 0)).toBe(Handsontable.editors.TextEditor);
+    expect(document.querySelector('numeric')).toBeNull();
+
+    await act(async() => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()).toBeInstanceOf(Handsontable.editors.TextEditor);
+  });
+
   it('should let an editor named in hotEditor win over an editor class in the editor prop', async() => {
     const EditorClass = createEditorClass();
     const hotInstance = mountGrid({
