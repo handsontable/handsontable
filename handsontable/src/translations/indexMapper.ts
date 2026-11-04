@@ -289,8 +289,8 @@ export class IndexMapper {
    * @param {string} indexName A unique index name.
    * @param {string} mapType The index map type (e.g., "hiding", "trimming", "physicalIndexToValue").
    * @param {*} [initValueOrFn] The initial value for the index map.
-   * @param {object} [options] Map options. For a `'trimming'` map, the internal `keepsRowsInFilterScope`
-   * flag (default `false`) keeps the rows the map trims in the Filters plugin's value list.
+   * @param {object} [options] Map options, passed to the map's constructor. Some options are internal
+   * to Handsontable.
    * @returns {IndexMap}
    */
   createAndRegisterIndexMap(indexName: string, mapType: 'hiding', initValueOrFn?: unknown): HidingMap;

@@ -2829,8 +2829,7 @@ export class Filters extends BasePlugin {
    *
    * @private
    * @param {number} column Visual column index.
-   * @returns {Array<{row: number, value: *, meta: CellProperties}>} Array of objects with `row` (the
-   * physical row index), `value`, and `meta`, one per row.
+   * @returns {Array<{value: *, meta: CellProperties}>} Array of objects with `value` and `meta`, one per row.
    */
   _getValueListDataAtColumn(column: number): Record<string, unknown>[] {
     const physicalColumn = this.hot.toPhysicalColumn(column);
@@ -2839,11 +2838,7 @@ export class Filters extends BasePlugin {
     // A data provider filters server-side and the list is hidden anyway, so re-running the
     // conditions locally would filter data that is already filtered.
     if (stackPosition === -1 || this.#isDataProviderActive()) {
-      // Read physically, so the rows a collapsed nested parent folds away are listed too: they are
-      // trimmed, so `getDataAtCol()` cannot reach them, yet the filter still evaluates them (DEV-512).
-      // `getDataMapAtColumn()` is the same read the has-conditions branch below uses, so a
-      // `valueGetter` or `modifyData` shapes both lists alike.
-      return this.getDataMapAtColumn(physicalColumn, this.#getRowsInValueListScope());
+      return this.#getUnconditionedValueList(column, physicalColumn);
     }
 
     const allRows = this.getDataMapAtColumn(physicalColumn);
@@ -2866,6 +2861,63 @@ export class Filters extends BasePlugin {
     splitConditionCollection.destroy();
 
     return arrayFilter(allRows, rowData => survivingRowsAssertion(rowData.row));
+  }
+
+  /**
+   * Builds the value list of a column with no conditions of its own, from the rows in
+   * `#getRowsInValueListScope()`, in visual order.
+   *
+   * A row the grid shows is read exactly as the list always read it: its value through
+   * `getDataAtCol()` and its meta through `getCellMetaTransient()`, so a `cells` function or a
+   * get-meta hook still shapes the list's formatter and comparator. Only a row that has no visual
+   * index - one a `keepsRowsInFilterScope` map trims, such as a collapsed nested parent's child
+   * (DEV-512) - is read physically, through `_readColumn()`. Every entry has the same
+   * `{value, meta}` shape.
+   *
+   * @param {number} column Visual column index.
+   * @param {number} physicalColumn Physical column index.
+   * @returns {Array<{value: *, meta: CellProperties}>}
+   */
+  #getUnconditionedValueList(column: number, physicalColumn: number): Record<string, unknown>[] {
+    const scopeRows = this.#getRowsInValueListScope();
+    // `getDataAtCol()` reads one `null` from a grid with no rows, which is not a value to list.
+    const visibleValues = this.hot.countRows() === 0 ? [] : this.hot.getDataAtCol(column);
+    const foldedRows = scopeRows.filter(physicalRow => this.hot.toVisualRow(physicalRow) === null);
+    const foldedEntries = new Map<number, Record<string, unknown>>();
+
+    if (foldedRows.length > 0) {
+      const foldedRead = this._readColumn(physicalColumn, foldedRows);
+
+      for (let index = 0; index < foldedRead.length; index++) {
+        foldedEntries.set(foldedRead.rows[index], {
+          value: foldedRead.values[index],
+          meta: foldedRead.getMeta(index),
+        });
+      }
+    }
+
+    const entries: Record<string, unknown>[] = [];
+
+    scopeRows.forEach((physicalRow) => {
+      const visualRow = this.hot.toVisualRow(physicalRow);
+
+      if (visualRow === null) {
+        const entry = foldedEntries.get(physicalRow);
+
+        if (entry) {
+          entries.push(entry);
+        }
+
+        return;
+      }
+
+      entries.push({
+        value: toEmptyString(visibleValues[visualRow]),
+        meta: this.hot.getCellMetaTransient(visualRow, column),
+      });
+    });
+
+    return entries;
   }
 
   /**

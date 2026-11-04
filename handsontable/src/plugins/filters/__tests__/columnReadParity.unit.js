@@ -552,6 +552,55 @@ describe('Filters -> column read parity', () => {
       expect(filters._getValueListDataAtColumn(0)).toEqual([]);
     });
 
+    it('should hand a column with no condition the `cells` meta of a row outside the rendered band', () => {
+      const valueFormatter = value => `fmt-${value}`;
+      const filters = buildBigGrid({
+        cells: (row, column) => (row === 300 && column === 0 ? { valueFormatter } : {}),
+      }).getPlugin('filters');
+
+      const list = filters._getValueListDataAtColumn(0);
+
+      expect(list.length).toBe(BIG_ROWS);
+      expect(list[300].meta.valueFormatter).toBe(valueFormatter);
+      expect(list[300].meta).toEqual(hot.getCellMetaTransient(300, 0));
+      expect(list[299].meta.valueFormatter).toBeUndefined();
+    });
+
+    it('should hand a column with no condition the `afterGetCellMeta` meta of a row outside the rendered band', () => {
+      const filters = buildBigGrid({
+        afterGetCellMeta(row, column, cellProperties) {
+          if (row === 300 && column === 0) {
+            cellProperties.type = 'numeric';
+          }
+        },
+      }).getPlugin('filters');
+
+      const list = filters._getValueListDataAtColumn(0);
+
+      expect(list[300].meta.type).toBe('numeric');
+      expect(list[300].meta).toEqual(hot.getCellMetaTransient(300, 0));
+      expect(list[299].meta.type).toBe('text');
+    });
+
+    it('should list the `valueGetter` values `getDataAtCol()` reads for a column with no condition', () => {
+      const filters = buildBigGrid({
+        columns: [
+          { data: 0, valueGetter: value => `got-${value}` },
+          { data: 1 },
+        ],
+        modifyData(row, column, valueHolder, ioMode) {
+          if (ioMode === 'get' && row === 7 && column === 0) {
+            valueHolder.value = 'modified';
+          }
+        },
+      }).getPlugin('filters');
+
+      const expected = hot.getDataAtCol(0);
+
+      expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toEqual(expected);
+      expect(expected[0]).toBe('got-10');
+    });
+
     it('should keep rows trimmed by trimRows out of the list', () => {
       const filters = buildGrid([
         ['Apple'], ['Banana'], ['Cherry'], ['Date'], ['Elderberry'],
