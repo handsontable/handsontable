@@ -26,6 +26,78 @@ test.describe('formulaBuilder keyboard flow', { tag: [THEMES_TAG, BUNDLES_TAG, C
     expect(await grid.dataAt(0, 0)).toBe(1);
   });
 
+  // A listener that writes or renders inside `alter()` draws the grid after the index change but
+  // before the selection moves with its record, so the cell the bar remembers must follow the move.
+  // Plain data: with dependent formulas, the Formulas plugin draws first and hides that draw.
+  test('Shift+Tab opens the bar on the cell an insert above moved the selection to, when a listener fills the new row', async({ page }) => {
+    await grid.updateGridSettings({ data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3'], ['A4', 'B4']] });
+    await page.evaluate(() => {
+      const { hot } = window as unknown as { hot: {
+        addHook(name: string, callback: (index: number) => void): void;
+        setDataAtCell(row: number, col: number, value: unknown): void;
+      } };
+
+      hot.addHook('afterCreateRow', index => hot.setDataAtCell(index, 1, 'new'));
+    });
+    await grid.selectCellByApi(2, 0);
+    await page.evaluate(() => (window as unknown as { hot: { alter(action: string, index: number): void } })
+      .hot.alter('insert_row_above', 0));
+    expect(await grid.selectedLast()).toEqual([3, 0, 3, 0]);
+
+    await page.keyboard.press('Shift+Tab');
+    await expect(grid.editorInput).toBeFocused();
+    await expect(grid.addressInput).toHaveValue('A4');
+    await expect(grid.editorInput).toHaveValue('A3');
+  });
+
+  test('Shift+Tab opens the bar on the cell a removal above moved the selection to, when a listener renders', async({ page }) => {
+    await grid.updateGridSettings({ data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3'], ['A4', 'B4']] });
+    await page.evaluate(() => {
+      const { hot } = window as unknown as { hot: { addHook(name: string, callback: () => void): void; render(): void } };
+
+      hot.addHook('afterRemoveRow', () => hot.render());
+    });
+    await grid.selectCellByApi(2, 0);
+    await page.evaluate(() => (window as unknown as { hot: { alter(action: string, index: number): void } })
+      .hot.alter('remove_row', 0));
+    expect(await grid.selectedLast()).toEqual([1, 0, 1, 0]);
+
+    await page.keyboard.press('Shift+Tab');
+    await expect(grid.editorInput).toBeFocused();
+    await expect(grid.addressInput).toHaveValue('A2');
+    await expect(grid.editorInput).toHaveValue('A3');
+  });
+
+  // An insert inside a range, above its focus, leaves the focus on its visual row while another
+  // record moves onto it. The formula on every row makes the Formulas plugin draw inside the insert,
+  // before the plugin shifts the cell it remembers, so that draw has already recorded the cell in the
+  // new numbering.
+  test('Tab from before the grid opens the bar on the focused cell of a range after an insert inside it', async({ page }) => {
+    await grid.updateGridSettings({ data: [
+      [1, 2, '=A1+B1'], [3, 4, '=A2+B2'], [5, 6, '=A3+B3'], [7, 8, '=A4+B4'], [9, 10, '=A5+B5'],
+    ] });
+    await page.evaluate(() => (window as unknown as { hot: { selectCell: (...args: number[]) => void } })
+      .hot.selectCell(1, 0, 4, 0));
+    await expect(grid.cell(1, 0)).toBeFocused();
+    // Enter moves the focus inside the range.
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Enter');
+    await expect(grid.cell(3, 0)).toBeFocused();
+    await page.evaluate(() => (window as unknown as { hot: { alter(action: string, index: number): void } })
+      .hot.alter('insert_row_above', 2));
+    // The focus stays on row 4, which now holds the `5` that row 3 held.
+    await expect(grid.cell(3, 0)).toHaveText('5');
+    await page.evaluate(() => (window as unknown as { hot: { deselectCell(): void } }).hot.deselectCell());
+
+    await grid.beforeGrid.focus();
+    await page.keyboard.press('Tab');
+    await expect(grid.addressInput).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(grid.editorInput).toBeFocused();
+    await expect(grid.addressInput).toHaveValue('A4');
+    await expect(grid.editorInput).toHaveValue('5');
+  });
+
   test('Shift+Tab walks out of the grid through the formula bar, and Tab walks back in', async({ page }) => {
     await grid.selectCellByApi(0, 0);
 

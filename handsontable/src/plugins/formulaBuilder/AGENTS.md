@@ -394,13 +394,27 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   Shift+Tab moves to the bar's formula editor (an edit session opens), Shift+Tab again to the address box (the
   session closes, the cell keeps its value), and Shift+Tab again out of the grid. Shift+Tab from the first column (`autoWrapRow: false`) drops the grid's
   selection and the focus lands on the editor, where the package asks `selectFirstFormulaCell()` for a cell:
-  it tries `#lastFocusedCoords` (the cell the grid focused last, recorded in `#onAfterSelectionEnd` and
-  `#onAfterSelectionFocusSet`, since Tab inside a range moves the focus without ending a gesture, and
-  never cleared on deselect) first. It is kept in PHYSICAL coordinates so a sort or a move keeps the
-  record, and shifted on `afterCreateRow`/`Col` and `afterRemoveRow`/`Col`, because an insert or a
-  removal renumbers the physical indexes after it (forgotten when its own track is removed). It is guarded by range, visibility and `#isFormulaCell`, and scans only otherwise -
+  it tries `#lastFocusedCoords` (the cell the grid focused last, never cleared on deselect) first. It
+  follows the grid's selection: every selection write records it (`afterSelection`, `afterSelectionEnd`,
+  and `afterSelectionFocusSet`, since Tab inside a range moves the focus without ending a gesture), and
+  so does the draw after an index change (`#onBeforeViewRender`), because a sort, a move, a trim or a hide
+  keeps the selection on its visual cell while another record moves under it. It is kept in PHYSICAL
+  coordinates so it survives with no selection, and shifted on `afterCreateRow`/`Col` and
+  `afterRemoveRow`/`Col` while no cell is selected, because an insert or a removal renumbers the
+  physical indexes after it (forgotten when its own track is removed). **A draw inside `alter()` reads
+  the selection before `alter()` repairs it:** `afterCreateRow`/`afterRemoveRow` fire after the index
+  change and before the selection shift, and a listener that writes or renders there (filling defaults
+  into a new row, or the Formulas plugin redrawing moved formulas) draws the grid. Two rules follow.
+  The `afterSelection` the shift fires records the cell again, so do not drop it as redundant with
+  `afterSelectionEnd`. And with a cell selected the shift listeners leave the record alone: a draw that
+  ran before them (the Formulas plugin's listeners run first) recorded it in the new numbering
+  already, so a shift on top moved the focused cell of a range one row off. Skipping the draw after
+  every insert or removal instead loses a sort batched with one. It is guarded by range, visibility and `#isFormulaCell`, and scans only otherwise -
   so the bar edits the cell you left, not A1. A data load or a sheet switch (`afterLoadData`/`afterUpdateData`)
-  clears it, or the bar would open an edit on the same coordinates of a different record. Tab from the content before
+  clears it, or the bar would open an edit on the same coordinates of a different record, and nothing records
+  it again until a new selection (`#dataReplaced`): a draw, a sort or a shift of the selection the load kept
+  does not count, and only an `afterSelectionEnd` or `afterSelectionFocusSet` whose source is not one the
+  grid marks when it lays a selection again (`shift`, `refresh`, `loadData`, `updateData`) ends it. Tab from the content before
   the grid goes address box, formula editor (the same remembered cell), then back into the grid. There is no keyboard trap, so the bar
   registers no focus scope; the package owns the keys inside it. Pinned by the keyboard spec under
   `tests/e2e/`.

@@ -1030,6 +1030,133 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(hot.getSelectedLast()).toEqual([2, 0, 2, 0]);
     });
 
+    // A listener that draws inside `alter()` runs after the index change but before the selection
+    // shift, so the draw sees the selection on the record that moved into its old place.
+    it('follows the selection an insert above moved when an afterCreateRow listener writes into the new row', () => {
+      createGrid();
+      hot.selectCell(2, 1);
+      hot.addHook('afterCreateRow', (index: number) => hot.setDataAtCell(index, 0, 'new'));
+      hot.alter('insert_row_above', 0);
+
+      expect(hot.getSelectedLast()).toEqual([3, 1, 3, 1]);
+
+      hot.deselectCell();
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([3, 1, 3, 1]);
+      expect(hot.getDataAtCell(3, 1)).toBe('B3');
+    });
+
+    it('follows the selection a removal above moved when an afterRemoveRow listener renders', () => {
+      createGrid();
+      hot.selectCell(3, 1);
+      hot.addHook('afterRemoveRow', () => hot.render());
+      hot.alter('remove_row', 0);
+
+      expect(hot.getSelectedLast()).toEqual([2, 1, 2, 1]);
+
+      hot.deselectCell();
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([2, 1, 2, 1]);
+      expect(hot.getDataAtCell(2, 1)).toBe('B4');
+    });
+
+    it('follows the selection a column insert moved when an afterCreateCol listener renders', () => {
+      createGrid();
+      hot.selectCell(1, 2);
+      hot.addHook('afterCreateCol', () => hot.render());
+      hot.alter('insert_col_start', 0);
+
+      expect(hot.getSelectedLast()).toEqual([1, 3, 1, 3]);
+
+      hot.deselectCell();
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([1, 3, 1, 3]);
+      expect(hot.getDataAtCell(1, 3)).toBe('C2');
+    });
+
+    // The focus of a range stays on its visual row when the change lands inside the range above it.
+    // A draw before the plugin hears the change (the Formulas plugin draws there when dependent
+    // formulas move) records the cell in the new numbering, so the plugin must not shift it again.
+    it('keeps the focused cell of a range an insert inside it did not move, when a draw runs before the plugin hears it', () => {
+      createGrid();
+      hot.selectCell(1, 1, 4, 1);
+      hot.selection.setRangeFocus(hot._createCellCoords(3, 1));
+      hot.addHook('afterCreateRow', () => hot.render(), -1);
+      hot.alter('insert_row_above', 2);
+
+      expect(hot.getSelectedRangeActive()?.highlight.row).toBe(3);
+      expect(hot.getDataAtCell(3, 1)).toBe('B3');
+
+      hot.deselectCell();
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([3, 1, 3, 1]);
+    });
+
+    it('keeps the focused cell of a range a removal inside it did not move, when a draw runs before the plugin hears it', () => {
+      createGrid();
+      hot.selectCell(1, 1, 4, 1);
+      hot.selection.setRangeFocus(hot._createCellCoords(3, 1));
+      hot.addHook('afterRemoveRow', () => hot.render(), -1);
+      hot.alter('remove_row', 2);
+
+      expect(hot.getSelectedRangeActive()?.highlight.row).toBe(3);
+      expect(hot.getDataAtCell(3, 1)).toBe('B5');
+
+      hot.deselectCell();
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([3, 1, 3, 1]);
+    });
+
+    it('follows a cell selected after a data load through a sort in the same batch', () => {
+      createGrid({ data: [[1], [3], [5], [7]], columnSorting: true });
+      hot.batch(() => {
+        hot.loadData([[2], [4], [6], [8]]);
+        hot.selectCell(2, 0);
+        hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+      });
+
+      expect(hot.getDataAtCell(2, 0)).toBe(4);
+
+      hot.deselectCell();
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([2, 0, 2, 0]);
+    });
+
+    it('does not remember the selection a data load kept when a later sort moves records under it', () => {
+      createGrid({ data: [[1], [3], [5], [7]], columnSorting: true });
+      hot.selectCell(2, 0);
+      hot.loadData([[2], [4], [6], [8]]);
+
+      // Control: the load kept the selection, so only the forgetting can send the bar elsewhere.
+      expect(hot.getSelectedLast()).toEqual([2, 0, 2, 0]);
+
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+      hot.deselectCell();
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([0, 0, 0, 0]);
+    });
+
+    it.each([
+      ['an insert above shifts it', () => hot.alter('insert_row_above', 0)],
+      ['the grid lays it again', () => hot.selection.refresh()],
+    ])('does not remember the selection a data load kept when %s', (_label, relay) => {
+      createGrid();
+      hot.selectCell(2, 1);
+      hot.loadData([['N1', 'N2'], ['N3', 'N4'], ['N5', 'N6'], ['N7', 'N8']]);
+      relay();
+      hot.deselectCell();
+      hot.getPlugin('formulaBuilder').selectFirstFormulaCell();
+
+      expect(hot.getSelectedLast()).toEqual([0, 0, 0, 0]);
+    });
+
     it.each(['loadData', 'updateData'] as const)('does not reopen the old index after %s() replaced the data', (method) => {
       createGrid();
       hot.selectCell(2, 1);

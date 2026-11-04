@@ -82,6 +82,11 @@ const EDITOR_INPUT_SELECTOR = '.hfe-editor__input';
  */
 const MOVE_AWAY_EVENTS = ['mousedown', 'pointerdown', 'touchstart', 'focusin'];
 /**
+ * The selection sources the grid marks when it lays an existing selection again on its own (an
+ * `alter()` shift, a refresh, a data load), as opposed to a selection the user or the application made.
+ */
+const GRID_SELECTION_SOURCES = ['shift', 'refresh', 'loadData', 'updateData'];
+/**
  * The class of the formula bar's address box input `hyperformula-ui` renders.
  */
 const ADDRESS_INPUT_SELECTOR = '.hfe-formula-bar__address-input';
@@ -421,14 +426,15 @@ export class FormulaBuilder extends BasePlugin {
   /**
    * The physical coordinates of the cell the grid focused last. Not cleared on deselect: Shift+Tab from
    * the first column drops the selection and moves the focus onto the bar, and the bar then asks
-   * for a cell to edit - the one that was left. Physical, so a sort or a move keeps the record, and
-   * shifted on an insert or a removal, which renumber the physical indexes after them
-   * (`#onAfterCreateTrack`, `#onAfterRemoveTrack`); every read still checks range, visibility and the
-   * editor again.
+   * for a cell to edit - the one that was left. Physical, so the record survives with no selection, and
+   * shifted on an insert or a removal while no cell is selected, because those renumber the physical
+   * indexes after them (`#shiftRememberedCellOnCreate`, `#shiftRememberedCellOnRemove`); every read
+   * still checks range, visibility and the editor again.
    */
   #lastFocusedCoords: { row: number; col: number } | null = null;
   /**
-   * Set by a data load, so the draw after it does not record the kept selection as the remembered cell.
+   * Set by a data load and kept until a new selection (`#rememberNewSelection()`): until then nothing
+   * records the selection the load kept, which points at a record of the data set it replaced.
    */
   #dataReplaced = false;
   /**
@@ -975,12 +981,13 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
-   * Records the physical coordinates of the cell the active selection layer focuses.
+   * Records the physical coordinates of the cell the active selection layer focuses. Nothing is
+   * recorded after a data load until a new selection (`#dataReplaced`).
    */
   #rememberFocusedCell(): void {
-    const focus = this.hot.getSelectedRangeActive()?.highlight;
+    const focus = this.#focusedCell();
 
-    if (!focus || typeof focus.row !== 'number' || typeof focus.col !== 'number' || focus.row < 0 || focus.col < 0) {
+    if (this.#dataReplaced || focus === null) {
       return;
     }
 
@@ -993,6 +1000,47 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
+   * The visual coordinates of the cell the active selection layer focuses.
+   *
+   * @returns {{ row: number, col: number } | null} `null` with no selection, or with the focus on a header.
+   */
+  #focusedCell(): { row: number; col: number } | null {
+    const focus = this.hot.getSelectedRangeActive()?.highlight;
+
+    if (!focus || typeof focus.row !== 'number' || typeof focus.col !== 'number' || focus.row < 0 || focus.col < 0) {
+      return null;
+    }
+
+    return { row: focus.row, col: focus.col };
+  }
+
+  /**
+   * Records the focused cell of a selection that ended a gesture or moved the focus inside a range. A
+   * selection the user or the application made ends the forgetting a data load started; one the grid
+   * laid again itself (an insert's or a removal's shift, a refresh, the load's own) does not.
+   */
+  #rememberNewSelection(): void {
+    if (!GRID_SELECTION_SOURCES.includes(this.hot.selection.getSelectionSource())) {
+      this.#dataReplaced = false;
+    }
+
+    this.#rememberFocusedCell();
+  }
+
+  /**
+   * Whether an insert or a removal must shift the remembered cell itself. With a cell selected it
+   * must not: the cell follows the selection, which the grid moves after the hooks that report the
+   * change, and the plugin records it again then (`#onAfterSelection`, or the draw after the index
+   * change when the selection stays). A draw inside the change can also have recorded the cell in
+   * the new numbering already, so a shift on top would move it twice.
+   *
+   * @returns {boolean}
+   */
+  #shiftsRememberedCell(): boolean {
+    return this.#focusedCell() === null;
+  }
+
+  /**
    * Shifts the remembered cell past the physical indexes an insert added before it.
    *
    * @param {'row' | 'col'} axis The axis the tracks were created on.
@@ -1001,9 +1049,14 @@ export class FormulaBuilder extends BasePlugin {
    */
   #shiftRememberedCellOnCreate(axis: 'row' | 'col', index: number, amount: number): void {
     const last = this.#lastFocusedCoords;
+
+    if (last === null || !this.#shiftsRememberedCell()) {
+      return;
+    }
+
     const physicalStart = axis === 'row' ? this.hot.toPhysicalRow(index) : this.hot.toPhysicalColumn(index);
 
-    if (last !== null && physicalStart !== null && last[axis] >= physicalStart) {
+    if (physicalStart !== null && last[axis] >= physicalStart) {
       this.#lastFocusedCoords = { ...last, [axis]: last[axis] + amount };
     }
   }
@@ -1018,7 +1071,7 @@ export class FormulaBuilder extends BasePlugin {
   #shiftRememberedCellOnRemove(axis: 'row' | 'col', physicalIndexes: number[]): void {
     const last = this.#lastFocusedCoords;
 
-    if (last === null) {
+    if (last === null || !this.#shiftsRememberedCell()) {
       return;
     }
 
@@ -1265,7 +1318,7 @@ export class FormulaBuilder extends BasePlugin {
    * @param {number} focusCol The focus visual column index.
    */
   #onAfterSelectionEnd = (): void => {
-    this.#rememberFocusedCell();
+    this.#rememberNewSelection();
 
     if (this.#isEditing()) {
       return;
@@ -1332,21 +1385,16 @@ export class FormulaBuilder extends BasePlugin {
    * recorded again too: a sort, a move, or a filter keeps the selection on its visual cell while
    * the physical record under it changes, so the record remembered before would no longer be the
    * focused cell. With no selection nothing is recorded, and the insert and remove shifts keep the
-   * remembered record. After a data load nothing is recorded either: the load forgot the cell on
-   * purpose, because the kept selection points at a record of the data set it replaced.
+   * remembered record.
+   *
+   * A draw inside `alter()` (an `afterCreateRow` listener that writes into the new row) runs before
+   * the selection shift, so the record it reads can be the wrong one. `#onAfterSelection` records
+   * the cell again when the shift lands.
    */
   #onBeforeViewRender = (): void => {
-    const dataReplaced = this.#dataReplaced;
-
-    this.#dataReplaced = false;
-
     if (this.#barCellStale) {
       this.#barCellStale = false;
-
-      if (!dataReplaced) {
-        this.#rememberFocusedCell();
-      }
-
+      this.#rememberFocusedCell();
       this.#resyncBarCell();
     }
   };
@@ -1509,7 +1557,8 @@ export class FormulaBuilder extends BasePlugin {
    */
   #onAfterDataLoad = (): void => {
     // The remembered coordinates point into the data set the load replaced (or another sheet). The
-    // load rebuilt the index maps too, and the draw after it must not record the kept selection again.
+    // load rebuilt the index maps too, and nothing may record the kept selection again until a new
+    // selection: not the draw after the load, and not a later sort, move or shift of that selection.
     this.#lastFocusedCoords = null;
     this.#dataReplaced = true;
 
@@ -1567,6 +1616,10 @@ export class FormulaBuilder extends BasePlugin {
    * @param {number} focusCol The focus visual column index.
    */
   #onAfterSelection = (): void => {
+    // Every selection write, the shift `alter()` makes after its index change included: a draw
+    // inside that `alter()` may have recorded the cell before the shift (`#onBeforeViewRender`).
+    this.#rememberFocusedCell();
+
     if (this.#isEditing()) {
       this.#followStructuralShift();
 
@@ -1626,7 +1679,7 @@ export class FormulaBuilder extends BasePlugin {
    */
   #onAfterSelectionFocusSet = (): void => {
     // Tab and Enter move the focus inside a selected range without ending a selection gesture.
-    this.#rememberFocusedCell();
+    this.#rememberNewSelection();
 
     if (this.#isEditing()) {
       return;
@@ -2690,6 +2743,7 @@ export class FormulaBuilder extends BasePlugin {
     this.#lastEmittedSelectionCoords = null;
     this.#lastBarCell = null;
     this.#lastFocusedCoords = null;
+    this.#dataReplaced = false;
   }
 
   /**
