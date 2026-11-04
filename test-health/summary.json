@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-04T12:17:00.217Z",
+  "generatedAt": "2026-11-04T12:48:20.747Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -2566,7 +2566,7 @@
       "file": "e2e/web-font-load.spec.ts",
       "line": 365,
       "title": "Web font loaded after the first draw › keeps a re-measure owed by a hidden grid through a calculateAllColumnsWidth() call",
-      "count7": 1,
+      "count7": 0,
       "count30": 1,
       "countAll": 1,
       "runs30": 1,
