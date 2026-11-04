@@ -1760,6 +1760,17 @@ describe('Grid-level cell type', () => {
     expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('checkbox'));
   });
 
+  it('should not throw when one commit removes the props and sets an unregistered type name', () => {
+    const ref = React.createRef<HotTableRef>();
+    const props = gridProps({ type: 'dropdown', source: ['A', 'B'] });
+
+    render({ ...props, hotEditor: 'password', hotRenderer: customNativeRenderer }, ref);
+
+    expect(() => render({ ...props, type: 'notRegisteredType' }, ref)).not.toThrow();
+    expect(ref.current!.hotInstance!.getSettings().editor).toBe(getEditor('text'));
+    expect(ref.current!.hotInstance!.getSettings().renderer).toBe(getRenderer('text'));
+  });
+
   it('should keep the text editor and renderer on a grid with no type', () => {
     const ref = React.createRef<HotTableRef>();
     const props = gridProps();

@@ -277,13 +277,23 @@ function isRegisteredEditorName(name: string): boolean {
  * `editor` or `renderer` setting gets. Core expands a grid-level `type` only when the grid is created, so
  * the wrapper passes this value itself when an `editor` or `renderer` prop that replaced it is removed.
  *
- * @param {*} type The grid-level `type` setting: a registered cell type name or a cell type object. Core
- * rejects an unregistered name when the grid is created, so the lookup needs no fallback for one.
+ * @param {*} type The grid-level `type` setting: a registered cell type name or a cell type object. An
+ * unregistered name gives the text editor or renderer: core accepts one in `updateSettings()` without throwing.
  * @param {'editor'|'renderer'} key The setting to read.
  * @returns {*} The type's value, or the text editor or renderer when the type supplies none.
  */
 export function getCellTypeSetting(type: unknown, key: 'editor' | 'renderer'): unknown {
-  const cellType: unknown = typeof type === 'string' ? getCellType(type) : type;
+  let cellType: unknown = type;
+
+  if (typeof type === 'string') {
+    try {
+      cellType = getCellType(type);
+
+    } catch {
+      cellType = null;
+    }
+  }
+
   const value = cellType !== null && typeof cellType === 'object' ?
     (cellType as Record<string, unknown>)[key] :
     undefined;
