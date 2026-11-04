@@ -171,6 +171,12 @@ const sheets = ref([{ name: 'Budget', data: budgetData }]);
 
 The same applies to a function or a class instance in a sheet's `settings`, such as a `renderer` or a `cells` function: define it in the script, not in the template. Don't copy the plugin's changes into your own state: your array already holds them.
 
+::: tip
+
+Wrap large `data` arrays and a HyperFormula engine in `markRaw()`. Vue watches the `sheetsBar` prop deeply, so on every change it walks each sheet's rows and the engine's internals, which slows down every edit.
+
+:::
+
 :::
 
 ## Managing sheets programmatically
