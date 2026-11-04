@@ -492,6 +492,7 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | -------- | -------------------------------- |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-horizontal-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellHorizontalBorderColor` </div> | Color of horizontal cell borders |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-vertical-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellVerticalBorderColor` </div>   | Color of vertical cell borders   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-custom-borders-default-color` </div><div class="variables-table__item"><span>JS:</span> `customBordersDefaultColor` </div> | Color of a border you add from the context menu's **Borders** submenu |
 
 #### Row styling variables
 

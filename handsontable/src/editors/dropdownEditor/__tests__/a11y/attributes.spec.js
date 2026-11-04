@@ -16,11 +16,12 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
   it('should add a correct set of aria tags to the TEXTAREA element', async() => {
     const hot = handsontable({
+      // Values the list holds, so the editor opens with the equal entry highlighted.
       data: [
-        ['a'],
-        ['b'],
-        ['c'],
-        ['d'],
+        ['red'],
+        ['green'],
+        ['blue'],
+        ['gray'],
       ],
       columns: [
         { editor: 'dropdown', source: choices }
@@ -54,11 +55,12 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
   it.flaky('should add a correct set of aria tags to the choice dropdown element', async() => {
     const hot = handsontable({
+      // Values the list holds, so the editor opens with the equal entry highlighted.
       data: [
-        ['a'],
-        ['b'],
-        ['c'],
-        ['d'],
+        ['red'],
+        ['green'],
+        ['blue'],
+        ['gray'],
       ],
       columns: [
         { editor: 'dropdown', source: choices }
@@ -89,11 +91,12 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
   it.flaky('should should not add `aria-setsize` and `aria-posinset` if the source is a function`', async() => {
     const hot = handsontable({
+      // Values the list holds, so the editor opens with the equal entry highlighted.
       data: [
-        ['a'],
-        ['b'],
-        ['c'],
-        ['d'],
+        ['red'],
+        ['green'],
+        ['blue'],
+        ['gray'],
       ],
       columns: [
         { editor: 'dropdown', source: (quiery, callback) => callback(choices) }

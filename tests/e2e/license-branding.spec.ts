@@ -380,7 +380,10 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
       await license.goto(INSTANT.duringTrial, { key: 'missing', variant: 'narrow' });
 
       await expect(license.lock).toBeVisible();
-      await expect(license.lock).toContainText('non-commercial-and-evaluation');
+      // The e-mail address is the longest unbreakable token left in the missing-key copy.
+      await expect(license.lock).toContainText('support@handsontable.com');
+      // PRO-1357: the lock no longer suggests the key the next major reads as invalid.
+      await expect(license.lock).not.toContainText('non-commercial-and-evaluation');
       expect(await license.lockContentOverflowPx()).toBe(0);
     });
 
@@ -421,5 +424,188 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
         await expect(license.badge).toHaveCount(0);
       });
     }
+  });
+
+  // DEV-3413: a trial key and a key with the `badge` flag show a "Powered by Handsontable DataGrid"
+  // bar last in the bottom slot. It is branding, not a license warning, so `no-ui-warns` does not hide
+  // it, and it is a separate element from the warning bar (`license.bar`).
+  test.describe('the "Powered by Handsontable DataGrid" bar', () => {
+    test('shows for a running trial, beside the corner badge and with no warning bar', async () => {
+      await license.goto(INSTANT.duringTrial);
+
+      await expect(license.poweredByLink).toBeVisible();
+      await expect(license.poweredByLink).toHaveAttribute('href', 'https://handsontable.com');
+      await expect(license.poweredByLink).toHaveAttribute('target', '_blank');
+      await expect(license.poweredByLink).toHaveAttribute('rel', 'noopener noreferrer');
+      // The logomark is decorative: the visible text is the link's whole name.
+      await expect(license.poweredByLogo).toHaveAttribute('aria-hidden', 'true');
+      await expect(license.badge).toBeAttached();
+      await expect(license.bar).toHaveCount(0);
+    });
+
+    for (const key of ['sponsored-badge', 'sponsored-badge-external'] as const) {
+      test(`shows for a "${key}" key, with no corner badge and no warning bar`, async () => {
+        await license.goto(INSTANT.duringTrial, { key });
+
+        await expect(license.poweredByLink).toBeVisible();
+        await expect(license.badge).toHaveCount(0);
+        await expect(license.bar).toHaveCount(0);
+        await expect(license.lock).toHaveCount(0);
+      });
+    }
+
+    test('shows for a trial issued for external use, whose `no-ui-warns` still hides the corner badge', async () => {
+      // O-6: DEV-3413 keeps the bar on under `no-ui-warns`, for a trial as for a `badge` key.
+      await license.goto(INSTANT.duringTrial, { key: 'trial-external' });
+
+      await expect(license.poweredByLink).toBeVisible();
+      await expect(license.badge).toHaveCount(0);
+    });
+
+    for (const key of ['sponsored-no-badge', 'subscription', 'legacy-expired'] as const) {
+      test(`does not show for a "${key}" key`, async () => {
+        await license.goto(INSTANT.duringTrial, { key });
+
+        // The grid is up and licensed: the absence is a decision, not a page that never loaded.
+        await expect(license.grid).toBeVisible();
+        await expect(license.lock).toHaveCount(0);
+        await expect(license.poweredBy).toHaveCount(0);
+      });
+    }
+
+    for (const [key, instant] of [
+      ['sponsored-badge', INSTANT.duringTrial],
+      ['trial', INSTANT.trialSoftStop],
+    ] as const) {
+      test(`keeps the grid at its declared height of 200px, the bars inside it (a "${key}" key)`, async () => {
+        // The bars mount after the height was written, and the slot observer is seeded after them, so
+        // the height has to be re-applied once at init or the grid grows past 200px by the bars.
+        await license.goto(instant, { key });
+
+        await expect(license.poweredByLink).toBeVisible();
+
+        const { root, bottomSlot } = await license.heightBudget();
+
+        expect(bottomSlot).toBeGreaterThan(0);
+        expect(root + bottomSlot).toBe(200);
+      });
+    }
+
+    test('stays the last line, under the warning bar of a soft-stopped trial', async () => {
+      await license.goto(INSTANT.trialSoftStop);
+
+      await expect(license.bar).toBeVisible();
+      await expect(license.poweredByLink).toBeVisible();
+
+      const { isLastInSlot, slotClasses } = await license.poweredByGeometry();
+
+      expect(isLastInSlot).toBe(true);
+      expect(slotClasses.findIndex(name => name.includes('hot-display-license-info')))
+        .toBeLessThan(slotClasses.findIndex(name => name.includes('ht-license-powered-by')));
+    });
+
+    test('follows the Figma frame on main and horizon, and the compact bar density on classic', async ({ theme }) => {
+      await license.goto(INSTANT.duringTrial, { key: 'sponsored-badge' });
+
+      const geometry = await license.poweredByGeometry();
+
+      // Every theme: the 11.14 x 16 logomark in the brand's black (Figma fills the "H" `black`), the 8px
+      // gap, and the text in the bar's text color, never the link color of `.handsontable a`.
+      expect(geometry.logoWidth).toBe(11.1);
+      expect(geometry.logoHeight).toBe(16);
+      expect(geometry.gap).toBe(8);
+      expect(geometry.maskImage).not.toBe('none');
+      expect(geometry.textColor).toBe(geometry.barColor);
+      expect(geometry.logoColor).toBe('rgb(0, 0, 0)');
+
+      // The Figma frame (node 1424:19574) is drawn in the main theme, and horizon shares its density and
+      // type scale: 8px x 16px padding, 12px / 18px text, the bar 34px tall inside its border, the
+      // logomark at (16, 9) and the text at (35.14, 8). Classic runs every bar at the compact density
+      // (4px x 8px) with 11px / 16px text. Offsets are measured inside the bar's border.
+      const layout = {
+        paddingTop: geometry.paddingTop,
+        paddingInlineStart: geometry.paddingInlineStart,
+        fontSize: geometry.fontSize,
+        lineHeight: geometry.lineHeight,
+        barHeight: geometry.barHeight,
+        logoOffsetX: geometry.logoOffsetX,
+        logoOffsetY: geometry.logoOffsetY,
+        textOffsetX: geometry.textOffsetX,
+        textOffsetY: geometry.textOffsetY,
+      };
+
+      if (theme === 'classic') {
+        expect(layout).toEqual({
+          paddingTop: 4, paddingInlineStart: 8, fontSize: '11px', lineHeight: '16px', barHeight: 24,
+          logoOffsetX: 8, logoOffsetY: 4, textOffsetX: 27.1, textOffsetY: 4,
+        });
+      } else {
+        expect(layout).toEqual({
+          paddingTop: 8, paddingInlineStart: 16, fontSize: '12px', lineHeight: '18px', barHeight: 34,
+          logoOffsetX: 16, logoOffsetY: 9, textOffsetX: 35.1, textOffsetY: 8,
+        });
+      }
+
+      // #222 on #f7f7f9, the colors of the Figma frame.
+      if (theme === 'main') {
+        expect({ color: geometry.barColor, background: geometry.barBackground })
+          .toEqual({ color: 'rgb(34, 34, 34)', background: 'rgb(247, 247, 249)' });
+      }
+    });
+
+    test('changes nothing on hover: Figma draws no hover state for the bar', async () => {
+      await license.goto(INSTANT.duringTrial, { key: 'sponsored-badge' });
+
+      const readText = () => license.poweredByLink.evaluate((link) => {
+        const style = getComputedStyle(link.querySelector('.ht-license-powered-by__text') as HTMLElement);
+
+        return { color: style.color, decoration: style.textDecorationLine };
+      });
+      const resting = await readText();
+
+      await license.poweredByLink.hover();
+
+      // The theme's own `.handsontable a:hover` would recolor and underline it; the bar overrides both.
+      await expect.poll(readText).toEqual(resting);
+      expect(resting.decoration).toBe('none');
+    });
+
+    test('paints the logomark: a dark "H" with the brand-blue dot at its foot', async () => {
+      await license.goto(INSTANT.duringTrial, { key: 'sponsored-badge' });
+
+      const { blue, ink } = await license.poweredByLogoPaint();
+
+      expect(ink).not.toBeNull();
+      expect(blue).not.toBeNull();
+      // The dot sits at the bottom end of the mark, below and after the "H".
+      expect(blue!.minY).toBeGreaterThanOrEqual(ink!.minY);
+      expect(blue!.maxX).toBeGreaterThanOrEqual(ink!.maxX);
+    });
+
+    for (const part of ['logo', 'text'] as const) {
+      test(`opens handsontable.com in a new tab when its ${part} is clicked`, async ({ page }) => {
+        await license.goto(INSTANT.duringTrial, { key: 'sponsored-badge' });
+
+        const opened = await license.clickPoweredBy(part);
+
+        await expect(opened).toHaveURL('https://handsontable.com/');
+        // A new tab, not a navigation: the app's own page stays where it was.
+        await expect(page).toHaveURL(/license-branding\.html/);
+      });
+    }
+
+    test('is reached with Tab from the grid\'s last cell, and Shift+Tab goes back into the grid', async ({ page }) => {
+      await license.goto(INSTANT.duringTrial, { key: 'sponsored-badge' });
+
+      await license.selectCell(3, 2);
+      await page.keyboard.press('Tab');
+
+      await expect(license.poweredByLink).toBeFocused();
+
+      await page.keyboard.press('Shift+Tab');
+
+      await expect(license.poweredByLink).not.toBeFocused();
+      await expect.poll(() => license.selectedRanges()).toEqual([[3, 2, 3, 2]]);
+    });
   });
 });

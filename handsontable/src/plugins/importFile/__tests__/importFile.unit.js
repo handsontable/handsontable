@@ -3386,3 +3386,73 @@ describe('ImportFile and a Formulas plugin that does not run', () => {
     expect(runningResult.data).toEqual([['=1+1', '\'=foo']]);
   });
 });
+
+describe('ImportFile and rich value errors in a real HyperFormula engine', () => {
+  /**
+   * Imports `excel-online-rich-errors.xlsx` (C1 `=SEQUENCE(3)` blocked, `#SPILL!`; E1 an empty
+   * `FILTER`, `#CALC!`) into an engine, with `IFERROR`/`ISERROR` over E1 in G1:H1.
+   *
+   * @param {object} hf The engine, holding `Sheet1`.
+   * @returns {Promise<object>}
+   */
+  async function importInto(hf) {
+    const { plugin, hot } = pluginWithFakeHot(true);
+
+    hot.getPlugin = name => ({
+      formulas: { isEnabled: () => true, enabled: true, sheetName: 'Sheet1', engine: hf },
+    })[name];
+
+    const result = await plugin.importFromArrayBuffer('xlsx', fixture('excel-online-rich-errors'), { apply: false });
+    const data = result.data.map(row => [...row]);
+
+    data[0][6] = '=IFERROR(E1,"none")';
+    data[0][7] = '=ISERROR(E1)';
+    hf.setSheetContent(0, data);
+
+    return result;
+  }
+
+  it('should import a rich error the engine does not know as the #VALUE! Excel caches for it', async() => {
+    const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+
+    hf.addSheet('Sheet1');
+
+    const result = await importInto(hf);
+
+    // `#CALC!` is no HyperFormula error: imported as text, `IFERROR` over it returned `#CALC!`.
+    expect(result.data[0][4]).toBe('#VALUE!');
+    expect(hf.getCellValue({ sheet: 0, row: 0, col: 6 })).toBe('none');
+    expect(hf.getCellValue({ sheet: 0, row: 0, col: 7 })).toBe(true);
+
+    hf.destroy();
+  });
+
+  it('should keep the code of a rich error the engine knows', async() => {
+    const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+
+    hf.addSheet('Sheet1');
+
+    const bytes = await rewriteArchive(fixture('excel-online-rich-errors'), (name, text) => (
+      // E1's rich value becomes a `#SPILL!` (errorType 8), which HyperFormula reads as an error.
+      name === 'xl/richData/rdrichvalue.xml' ? text.replace('<rv s="1"><v>13</v>', '<rv s="1"><v>8</v>') : text
+    ));
+    const { plugin, hot } = pluginWithFakeHot(true);
+
+    hot.getPlugin = name => ({
+      formulas: { isEnabled: () => true, enabled: true, sheetName: 'Sheet1', engine: hf },
+    })[name];
+
+    const result = await plugin.importFromArrayBuffer('xlsx', bytes, { apply: false });
+
+    expect(result.data[0][4]).toBe('#SPILL!');
+
+    hf.destroy();
+  });
+
+  it('should keep the code of a rich error when the Formulas plugin is off', async() => {
+    const { plugin } = pluginWithFakeHot(true);
+    const result = await plugin.importFromArrayBuffer('xlsx', fixture('excel-online-rich-errors'), { apply: false });
+
+    expect(result.data[0][4]).toBe('#CALC!');
+  });
+});

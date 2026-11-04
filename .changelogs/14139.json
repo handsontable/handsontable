@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added a \"Powered by Handsontable DataGrid\" bar below the grid for trial license keys (including trials issued for external use) and keys with the `badge` flag. A license bar now stays within the grid's declared `height`.",
+  "type": "added",
+  "issueOrPR": 14139,
+  "breaking": false,
+  "framework": "none"
+}

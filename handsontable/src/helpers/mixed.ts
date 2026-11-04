@@ -9,6 +9,7 @@ import {
   UNRESTRICTED_GRANTS,
   HANDSONTABLE_PRODUCT,
   LISTED_CAPABILITIES_FLAG,
+  BADGE_FLAG,
 } from '../utils/entitlementLicenseKey';
 import type {
   LicenseLifecycle,
@@ -120,9 +121,7 @@ const consoleMessages: Record<string, (params: { keyValidityDate?: string; hotVe
     to ${keyValidityDate}. If you need any help, contact us at sales@handsontable.com.`,
   missing: () => toSingleLine`
     The license key for Handsontable is missing. Use your purchased key to activate the product.\x20
-    Alternatively, you can activate Handsontable to use for non-commercial purposes by\x20
-    passing the key: 'non-commercial-and-evaluation'. If you need any help, contact\x20
-    us at support@handsontable.com.`,
+    If you need any help, contact us at support@handsontable.com.`,
   non_commercial: () => '',
 };
 
@@ -182,9 +181,7 @@ const domMessages: Record<string, (params: { keyValidityDate?: string; hotVersio
     '.',
   ],
   missing: () => [
-    'The license key for Handsontable is missing. Use your purchased key to activate the product. ' +
-      'Alternatively, you can activate Handsontable to use for non-commercial purposes by ' +
-      'passing the key: \'non-commercial-and-evaluation\'. ',
+    'The license key for Handsontable is missing. Use your purchased key to activate the product. ',
     { text: 'Read more', href: 'https://handsontable.com/docs/tutorial-license-key.html', target: '_blank' },
     ' about it in the documentation or contact us at ',
     { text: 'support@handsontable.com', href: 'mailto:support@handsontable.com' },
@@ -623,12 +620,16 @@ export type LicenseStateKey = LicenseLifecycleFacet['state'];
  * The resolved license state handed to the UI and (later) the feature gates: the lifecycle facet
  * (what the license IS right now), the channels it leaves open (where it may say so), and the
  * grants facet (what it UNLOCKS). `grants` is never null - the same query API serves legacy keys
- * (unlock everything) and entitlement keys (unlock what the payload lists).
+ * (unlock everything) and entitlement keys (unlock what the payload lists). `badge` says the
+ * Handsontable entry carries the `badge` flag - the "Powered by" bar the licensee agreed to show. It is
+ * branding, not a channel, so no silencing flag closes it; every key outside the entitlement format,
+ * and an unreadable one, has none.
  */
 export interface LicenseStateDescriptor {
   lifecycle: LicenseLifecycleFacet;
   channels: LicenseChannels;
   grants: LicenseGrants;
+  badge: boolean;
 }
 
 /**
@@ -729,6 +730,7 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
       lifecycle: _nonEntitlementLifecycle('legacy_valid'),
       channels: OPEN_CHANNELS,
       grants: UNRESTRICTED_GRANTS,
+      badge: false,
     };
   }
 
@@ -737,6 +739,7 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
       lifecycle: _classifyLegacyKey(key, releaseDate),
       channels: OPEN_CHANNELS,
       grants: UNRESTRICTED_GRANTS,
+      badge: false,
     };
   }
 
@@ -754,6 +757,7 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
       lifecycle: _nonEntitlementLifecycle('invalid'),
       channels: OPEN_CHANNELS,
       grants: UNRESTRICTED_GRANTS,
+      badge: false,
     };
   }
 
@@ -773,6 +777,7 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
     // every token such a key leaves out - read without this check, it would turn off every paid
     // feature of every customer.
     grants: _listsCapabilities(entitlement) ? getLicenseGrants(keyData) : UNRESTRICTED_GRANTS,
+    badge: _carriesBadge(entitlement),
   };
 }
 
@@ -785,6 +790,16 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
  */
 function _listsCapabilities(entitlement: ProductEntitlement): boolean {
   return entitlement.flags.indexOf(LISTED_CAPABILITIES_FLAG) !== -1;
+}
+
+/**
+ * Tells whether a product entry asks for the "Powered by" bar (the `badge` flag).
+ *
+ * @param {ProductEntitlement} entitlement The Handsontable entry of a verified key.
+ * @returns {boolean}
+ */
+function _carriesBadge(entitlement: ProductEntitlement): boolean {
+  return entitlement.flags.indexOf(BADGE_FLAG) !== -1;
 }
 
 /**
