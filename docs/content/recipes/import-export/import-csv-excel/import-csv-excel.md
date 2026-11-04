@@ -94,7 +94,7 @@ In Angular, call `markForCheck()` on an injected `ChangeDetectorRef` after you a
 For a plain HTML page, load Handsontable plus PapaParse from a CDN (pin the version to match what you test):
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.7.0/papaparse.min.js"></script>
 ```
 
 The JavaScript and React examples load the same URL on demand when `window.Papa` is missing, so the pattern matches a script-tag setup. The Angular and Vue examples import `papaparse` from npm instead.
@@ -176,7 +176,7 @@ dropzone?.addEventListener('drop', (ev) => {
 ### Lazy-load PapaParse from a CDN
 
 ```javascript
-const CDN_PAPAPARSE = 'https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js';
+const CDN_PAPAPARSE = 'https://cdn.jsdelivr.net/npm/papaparse@5.7.0/papaparse.min.js';
 const scriptPromises = new Map();
 
 function loadScript(src) {

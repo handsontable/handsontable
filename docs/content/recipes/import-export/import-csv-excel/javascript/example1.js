@@ -3,7 +3,7 @@ import { registerAllModules } from 'handsontable/registry';
 
 registerAllModules();
 
-const CDN_PAPAPARSE = 'https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js';
+const CDN_PAPAPARSE = 'https://cdn.jsdelivr.net/npm/papaparse@5.7.0/papaparse.min.js';
 
 const scriptPromises = new Map();
 
