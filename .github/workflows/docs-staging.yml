@@ -151,6 +151,14 @@ jobs:
           # production deployment (GTM/HotJar injected, dev badge hidden).
           BUILD_MODE: ${{ steps.release-info.outputs.is_release == 'true' && 'production' || '' }}
           PUBLIC_CHAT_API_URL: ${{ secrets.PUBLIC_CHAT_API_URL }}
+          # The executed examples get the internal test key, so their grids run
+          # off handsontable.com without the lock screen; the shown code keeps
+          # the placeholder (docs/src/plugins/preview-license-key.mjs). The key
+          # is public in the repository, so no secret. An RC build sets
+          # BUILD_MODE=production above, and the docs config refuses the key
+          # then. The visual seed photographs these deploys, so a pull request
+          # preview and develop staging must both carry it.
+          DOCS_TEST_LICENSE_KEY: 'true'
 
       # Stage the built docs into the directory deployed to Cloudflare Pages.
       - name: Prepare Cloudflare Pages deploy directory

@@ -18,8 +18,8 @@ const TEST_KEY_MARKER = 'HANDSONTABLE INTERNAL TEST KEY';
 // Both spellings the core accepts for the non-commercial key (`helpers/mixed.ts`), and the test key.
 const LITERALS = ['non-commercial-and-evaluation', 'ht68e-1f2b7-47158-70b05-0842f', TEST_KEY_MARKER];
 
-// One constant per suite and per visual-test demo app. They must hold the same key, so renewing it
-// means pasting one new key into each of them.
+// One constant per suite, per visual-test demo app, and one for the docs previews. They must hold the
+// same key, so renewing it means pasting one new key into each of them.
 const CONSTANTS = [
   'handsontable/test/helpers/licenseKey.js',
   'tests/fixtures/demo/test-license-key.js',
@@ -35,6 +35,8 @@ const CONSTANTS = [
   'examples/next/visual-tests/vue3/basic-example/src/test-license-key.ts',
   'examples/next/visual-tests/angular-wrapper/demo/src/test-license-key.ts',
   'examples/next/visual-tests/angular-wrapper/basic-example/src/test-license-key.ts',
+  // Not a test: the docs staging and preview builds write it into the executed examples.
+  'docs/src/test-license-key.mjs',
 ];
 
 const VISUAL_DEMOS = 'examples/next/visual-tests';

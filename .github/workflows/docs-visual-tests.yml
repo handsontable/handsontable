@@ -82,6 +82,10 @@ jobs:
         if: ${{ inputs.test_env == 'http://localhost:4321/docs' }}
         working-directory: ./docs
         run: npm run build
+        env:
+          # The same key as the staging deploys the baseline is seeded from
+          # (docs-staging.yml), so the local build renders the same grids.
+          DOCS_TEST_LICENSE_KEY: 'true'
 
       # `with:` values are expressions, not shell, so the ternaries are safe
       # here; inside the action every one of them travels through `env:`.
