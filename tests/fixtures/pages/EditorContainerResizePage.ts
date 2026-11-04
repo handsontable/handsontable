@@ -53,6 +53,8 @@ type ResizeWindow = {
     getDataAtCell(row: number, column: number): unknown,
     refreshDimensions(): void,
     scrollViewportTo(options: { row?: number, col?: number }): boolean,
+    suspendRender(): void,
+    resumeRender(): void,
     getPlugin(name: string): { sort(config: { column: number, sortOrder: string }): void },
     toVisualRow(row: number): number,
     rootElement: HTMLElement,
@@ -164,6 +166,20 @@ export class EditorContainerResizePage {
         viewportHeight: window.innerHeight,
       };
     }, [row, col]);
+  }
+
+  /**
+   * Suspends rendering, the way `hot.batch()` does for the length of its callback.
+   */
+  async suspendRender(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as ResizeWindow).hot.suspendRender());
+  }
+
+  /**
+   * Resumes rendering, which draws the grid once at whatever size it has by then.
+   */
+  async resumeRender(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as ResizeWindow).hot.resumeRender());
   }
 
   /**

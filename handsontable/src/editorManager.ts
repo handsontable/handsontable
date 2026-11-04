@@ -174,6 +174,11 @@ class EditorManager {
    * to those coordinates could land on another record while the editor stayed put. An editor the
    * validator rejects is back in `EDITING` by then and is placed like any other.
    *
+   * With rendering suspended (`hot.batch()`, `suspendRender()`) the grid has not drawn at the new size
+   * yet and `view.render()` does nothing, so a scroll would read the old draw. `refreshDimensions()`
+   * has already stored the new size, so nothing would refresh the editor later. The placement waits
+   * for the next render instead.
+   *
    * @param {object} previousDimensions The grid's size before the resize.
    * @param {object} currentDimensions The grid's size after the resize.
    * @param {boolean} isSizeChanged Whether the grid's size changed.
@@ -183,57 +188,64 @@ class EditorManager {
     currentDimensions: { width: number; height: number },
     isSizeChanged: boolean,
   ): void => {
-    const editor = this.activeEditor;
-
-    if (this.destroyed || !isSizeChanged || !editor?.isOpened()) {
+    if (!isSizeChanged) {
       return;
     }
 
-    if (editor.state === EDITOR_STATE.WAITING) {
-      this.#placeEditorAfterValidation();
-
-      return;
-    }
-
-    this.#placeEditorOnItsCell();
+    this.#placeEditorWhenReady();
   };
   /**
-   * Whether a placement is already queued behind the validator the active editor waits for, so
-   * several resizes during one validation queue one hook.
+   * Whether a placement is already queued behind a hook, so several resizes before that hook fires
+   * queue one callback.
    *
    * @type {boolean}
    */
   #isPlacementQueued = false;
   /**
-   * Queues `#placeEditorOnItsCell()` for the moment the validator the active editor waits for answers.
+   * Places the active editor on its cell now, or queues the placement for when it can be done: after
+   * the validator the editor waits for answers, or after the next render when rendering is suspended.
    *
-   * The hook is registered after the editor's own `postAfterValidate` hook, so it runs after the
-   * editor has either closed or gone back to `EDITING`. A validation of another cell can answer
-   * first; the editor is then still waiting and the placement is queued again.
+   * A queued placement checks again when its hook fires, because the editor can be waiting again, or
+   * the render suspended again, by then.
    */
-  #placeEditorAfterValidation(): void {
+  #placeEditorWhenReady(): void {
+    const editor = this.activeEditor;
+
+    if (this.destroyed || !editor?.isOpened()) {
+      return;
+    }
+
+    if (editor.state === EDITOR_STATE.WAITING) {
+      // Registered after the editor's own `postAfterValidate` hook, so it runs after the editor has
+      // either closed or gone back to `EDITING`.
+      this.#queuePlacement('postAfterValidate');
+
+      return;
+    }
+
+    if (this.hot.isRenderSuspended()) {
+      this.#queuePlacement('afterRender');
+
+      return;
+    }
+
+    this.#placeEditorOnItsCell();
+  }
+  /**
+   * Runs `#placeEditorWhenReady()` once, the next time the hook fires.
+   *
+   * @param {string} hookName The hook to wait for.
+   */
+  #queuePlacement(hookName: 'postAfterValidate' | 'afterRender'): void {
     if (this.#isPlacementQueued) {
       return;
     }
 
     this.#isPlacementQueued = true;
 
-    this.hot.addHookOnce('postAfterValidate', () => {
+    this.hot.addHookOnce(hookName, () => {
       this.#isPlacementQueued = false;
-
-      const editor = this.activeEditor;
-
-      if (this.destroyed || !editor?.isOpened()) {
-        return;
-      }
-
-      if (editor.state === EDITOR_STATE.WAITING) {
-        this.#placeEditorAfterValidation();
-
-        return;
-      }
-
-      this.#placeEditorOnItsCell();
+      this.#placeEditorWhenReady();
     });
   }
   /**

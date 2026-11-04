@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { EditorContainerResizePage, type Box } from '../fixtures/pages/EditorContainerResizePage';
 
 /**
@@ -11,8 +11,7 @@ import { EditorContainerResizePage, type Box } from '../fixtures/pages/EditorCon
  * The cases compare the editor's offset from its cell before and after the resize, so the fixed
  * offset a theme puts between the two cancels out.
  */
-// leg-declarations: ignore geometry-helper -- compares the editor's offset from its cell before and after one resize, and a list's edge with its cell's; a fixed offset a theme adds cancels in the difference
-test.describe('editor on a grid that changes size', () => {
+test.describe('editor on a grid that changes size', { tag: THEMES_TAG }, () => {
   let grid: EditorContainerResizePage;
 
   /**
@@ -76,12 +75,14 @@ test.describe('editor on a grid that changes size', () => {
         return {
           opened,
           offset: cell && anchor ? offset(cell, anchor) : null,
+          // The select editor has no list; the others must still show theirs.
+          hasPopup: popup !== null,
           // The list touches its cell, below or above it: which side has room is the theme's row
           // heights' call, so the side is not asserted.
           popupBesideCell: !popup || (cell !== null &&
             (Math.abs(popup.top - cell.bottom) <= 2 || Math.abs(popup.bottom - cell.top) <= 2)),
         };
-      }).toEqual({ opened: true, offset: offsetBefore, popupBesideCell: true });
+      }).toEqual({ opened: true, offset: offsetBefore, hasPopup: editor !== 'select', popupBesideCell: true });
     });
   }
 
@@ -163,6 +164,31 @@ test.describe('editor on a grid that changes size', () => {
     // Positive control: the validator accepts the edit and the editor closes, so the wait was real.
     await grid.settleValidation(true);
     await expect.poll(async() => (await grid.editorState(39, 11)).opened).toBe(false);
+  });
+
+  test('places the editor after rendering resumes when the grid resized while it was suspended', async() => {
+    await grid.goto('height');
+    await grid.openEditorAt(39, 11);
+    await grid.page.keyboard.type('xyz');
+
+    const before = await grid.editorState(39, 11);
+    const offsetBefore = offset(before.cell!, before.anchor!);
+
+    await grid.suspendRender();
+    await grid.resizeViewport(900, 180);
+    await grid.waitForFrames();
+    await grid.resumeRender();
+
+    await expect.poll(async() => {
+      const state = await grid.editorState(39, 11);
+
+      return {
+        opened: state.opened,
+        focused: state.textareaFocused,
+        value: state.value,
+        offset: state.cell && state.anchor ? offset(state.cell, state.anchor) : null,
+      };
+    }).toEqual({ opened: true, focused: true, value: 'R40C12xyz', offset: offsetBefore });
   });
 
   test('does not scroll the grid on a resize while no editor is open', async() => {

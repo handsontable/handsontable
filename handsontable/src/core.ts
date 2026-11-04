@@ -5028,7 +5028,7 @@ export default function Core(
    * When the size changed while a cell editor is open, the editor moves onto its cell. If the cell was not fully
    * in view, the grid first scrolls it into view and renders once more, which fires
    * [afterScroll](@/api/hooks.md#afterscroll). An editor that waits for an asynchronous validator moves after the
-   * validator answers.
+   * validator answers, and with rendering suspended it moves after the next render.
    *
    * @memberof Core#
    * @function refreshDimensions
