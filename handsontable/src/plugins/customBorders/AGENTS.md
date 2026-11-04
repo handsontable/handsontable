@@ -357,9 +357,9 @@ with an inline `background-color`, so a stylesheet rule can never recolor it: th
 inside the stored value. The token's light branch is `#000` in every theme, so light grids look as before,
 and the `#000` fallback covers a grid with no theme loaded.
 
-- **Only the menu path uses it.** `createDefaultCustomBorder()` (a configured side given as `true`, `''` or
-  `{}`) and Walkontable's `changeBorderToDefaultStyle` keep `#000`: that is the documented default of the
-  `customBorders` option, and changing a default is a breaking change.
+- **Only the menu path uses it.** A configured side given as `true` (`createDefaultCustomBorder()`) or `{}`
+  (which falls back to the cell's `border.color` from `createDefaultHtBorder()`) keeps `#000`: that is the
+  documented default of the `customBorders` option, and changing a default is a breaking change.
 - **`getBorders()` and `getCellMeta().borders` return the `var()` string** for a menu border. The XLSX
   export maps this string to black (`FF000000`, `cssColorToArgb`), which is the right Excel value.
 - **The token is not in Figma yet.** It is in the four theme layers and in `scripts/themes/figma/tokensKeys.mjs`,

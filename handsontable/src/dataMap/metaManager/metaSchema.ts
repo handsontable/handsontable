@@ -2121,10 +2121,10 @@ export default (): Record<string, unknown> => {
      *       color: 'green',
      *       style: 'dashed'
      *     },
-     *     // set the top border's width and color
-     *     top: '',
-     *     // set the bottom border's width and color
-     *     bottom: ''
+     *     // add the default top border (1px solid black)
+     *     top: true,
+     *     // hide the bottom border
+     *     bottom: false
      *   }
      * ],
      *

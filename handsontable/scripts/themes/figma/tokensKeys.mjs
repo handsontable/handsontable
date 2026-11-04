@@ -68,6 +68,8 @@ const tokensKeys = [
   'cell-autofill-fill-border-color',
 
   // Custom Borders Variables
+  // This one is not in the Figma design system yet. Regenerating the themes from a Figma export that lacks it
+  // drops it from the generated files, so add it to the Figma file first.
   'custom-borders-default-color',
 
   // Cell Editor Variables
