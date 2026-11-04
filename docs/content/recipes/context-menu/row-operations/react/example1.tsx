@@ -132,6 +132,7 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         data={INITIAL_DATA}
         colHeaders={['Task', 'Assignee', 'Priority', 'Status']}
@@ -142,7 +143,6 @@ const ExampleComponent = () => {
         outsideClickDeselects={outsideClickDeselects}
         afterSelectionEnd={handleSelectionEnd}
         afterDeselect={handleDeselect}
-        licenseKey="non-commercial-and-evaluation"
       />
     </>
   );

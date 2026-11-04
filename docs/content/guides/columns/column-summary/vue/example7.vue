@@ -25,7 +25,7 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 const hotSettings = ref<GridSettings>({
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: generateData(5, 5, true),
   height: 'auto',
   rowHeaders: true,

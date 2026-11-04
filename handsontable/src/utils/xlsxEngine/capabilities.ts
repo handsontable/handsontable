@@ -112,6 +112,16 @@ export const DROPPED_FEATURES = {
   // so a note stored as a plain `<text><t>` (no run) loads with no text. The comment is skipped
   // rather than imported empty; the native engine reads such a note.
   commentUnreadable: 'comment:unreadable',
+  // Raised by the ExcelJS writer only: it cannot write the `cm` attribute and the metadata part a
+  // dynamic array needs, so the formula is written as a legacy array formula. Raised for a
+  // multi-cell spill only: a one-cell legacy array computes the same value, so nothing is lost.
+  dynamicArrays: 'dynamicArrays',
+  // Raised by both adapters, `importFile` and `exportFile`: a defined name a reader, a writer or the
+  // Formulas engine cannot take.
+  definedNamesUnsupported: 'definedNames:unsupported',
+  // Raised on export: a spill range crosses an excluded row or column, so the array is written
+  // as plain formulas.
+  formulaArrayExcluded: 'formula:arrayExcluded',
   // Raised by the native writer only: ExcelJS honors a compression level.
   compressionLevel: 'compressionLevel',
   // Raised by BOTH writers: a conditional-formatting entry that is not a rule object with a string
@@ -134,10 +144,22 @@ export const DROPPED_FEATURES = {
   dataValidationUnresolvedList: 'dataValidation:unresolvedList',
   formulaOutOfRange: 'formula:outOfRange',
   formulaOtherSheet: 'formula:otherSheet',
+  // Raised by `importFile` (a formula over a name the engine cannot take imports its cached value)
+  // AND by `exportFile` (a formula over a name the file does not hold is written as its value).
   formulaDefinedName: 'formula:definedName',
   // A formula imported as a value (no live formulas) whose file carries no cached `<v>`: the cell
   // imports empty, and the formula is only in `result.formulas`.
   formulaNoCachedValue: 'formula:noCachedValue',
+  // An array formula HyperFormula cannot evaluate the way Excel did: it cannot spill where the
+  // file's `ref` says it does (`#SPILL!`, a `FILTER` it sizes by its input), or it shows an error
+  // Excel did not cache (`#VALUE!` for a lone range `=A1:A3`, a range name, `INDEX(A1:A3,0)`). The
+  // master and the cells it covers import their cached values, and the formula is only in
+  // `result.formulas`.
+  formulaArraySpill: 'formula:arraySpill',
+  // A formula using Excel's spill operator (`B1#`, stored as `_xlfn.ANCHORARRAY(B1)`) or implicit
+  // intersection (`@A1:A3`, stored as `_xlfn.SINGLE(A1:A3)`), which HyperFormula lacks: it imports
+  // its cached value, and the formula is only in `result.formulas`.
+  formulaSpillReference: 'formula:spillReference',
   // A note on a cell of the promoted header band: a column header cannot hold one.
   commentHeader: 'comment:header',
   layoutDirection: 'layoutDirection',

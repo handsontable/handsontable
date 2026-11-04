@@ -45,7 +45,7 @@ const hot = new Handsontable(container, {
   nestedRows: true,
   contextMenu: true,
   height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 const plugin = hot.getPlugin('nestedRows');
 const log = (message) => {

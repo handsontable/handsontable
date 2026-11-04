@@ -25,7 +25,7 @@ const ExampleComponent = () => {
       autoWrapRow: true,
       autoWrapCol: true,
       height: 240,
-      licenseKey: 'non-commercial-and-evaluation',
+      // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
     };
 
     return initialState;

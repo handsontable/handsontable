@@ -39,13 +39,13 @@ const ExampleComponent = () => {
   return (
     <>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         data={data}
         colHeaders={colHeaders}
         height="auto"
         autoWrapRow={true}
         autoWrapCol={true}
         afterChange={afterChange}
-        licenseKey="non-commercial-and-evaluation"
       >
         <HotColumn type="text" readOnly={true} width={240} />
         <HotColumn type="numeric" />

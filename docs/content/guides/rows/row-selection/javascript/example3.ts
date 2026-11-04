@@ -7,7 +7,7 @@ registerAllModules();
 const container = document.querySelector('#example3')!;
 
 new Handsontable(container, {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: [
     { sku: 'SKU-4821', product: 'Stainless Steel Water Bottle', supplier: 'Harbor Goods', category: 'Drinkware' },
     { sku: 'SKU-0093', product: 'Wireless Mouse', supplier: 'Alpine Supply Co.', category: 'Electronics' },

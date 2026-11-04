@@ -124,7 +124,7 @@ settings = {
 const hotSettings = ref({
   colWidths: [50, 150, 45],
   rowHeights: [40, 40, 40, 40],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -225,7 +225,7 @@ settings = {
 const hotSettings = ref({
   customBorders: largeBorderConfig,
   customBordersProgressive: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 

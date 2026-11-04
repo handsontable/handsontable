@@ -22,6 +22,7 @@ const colHeaders = ['Name', 'Department', 'Role', 'Salary', 'Start Date'];
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       colHeaders={colHeaders}
       rowHeaders={true}
@@ -53,7 +54,6 @@ const ExampleComponent = () => {
           TH.setAttribute('aria-sort', 'none');
         }
       }}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };

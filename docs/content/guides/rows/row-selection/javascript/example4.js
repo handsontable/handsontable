@@ -7,7 +7,7 @@ registerAllModules();
 const container = document.querySelector('#example4');
 
 new Handsontable(container, {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: [
     { order: 1001, customer: 'Harbor Goods', total: 420, selected: false },
     { order: 1002, customer: 'Alpine Supply Co.', total: 185, selected: true },

@@ -117,6 +117,7 @@ const ExampleComponent = () => {
       <section className="sync-grids-card">
         <h4>Master grid (editable)</h4>
         <HotTable
+          // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
           ref={masterHotRef}
           data={masterData}
           colHeaders={['First name', 'Last name', 'Plan', 'Seats', 'Price / seat', 'Last active']}
@@ -134,12 +135,12 @@ const ExampleComponent = () => {
           autoWrapRow={true}
           stretchH="all"
           afterChange={handleMasterAfterChange}
-          licenseKey="non-commercial-and-evaluation"
         />
       </section>
       <section className="sync-grids-card">
         <h4>Detail grid (synced)</h4>
         <HotTable
+          // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
           ref={detailHotRef}
           data={masterData.map(toDetailRow)}
           colHeaders={['Customer', 'Plan', 'Seats', 'Monthly revenue', 'Last active']}
@@ -155,7 +156,6 @@ const ExampleComponent = () => {
           width="100%"
           autoWrapRow={true}
           stretchH="all"
-          licenseKey="non-commercial-and-evaluation"
         />
       </section>
     </div>

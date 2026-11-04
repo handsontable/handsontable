@@ -8,7 +8,7 @@ const container = document.querySelector('#example11');
 const throwErrorsButton = document.querySelector('#throwErrorsButton');
 
 const hot = new Handsontable(container, {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: [[0, 1, 2], ['3c', '4b', 5], [], []],
   colHeaders: true,
   rowHeaders: true,

@@ -414,7 +414,7 @@ function init() {
       hot.render();
       updateMineCounter();
     },
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   });
 
   // Reset button

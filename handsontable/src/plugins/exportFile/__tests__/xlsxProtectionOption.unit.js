@@ -89,12 +89,24 @@ jest.mock('../dataProvider', () => ({
       return mockState.data;
     }
 
-    getFormulaErrorCodes() {
+    getEngineCellFacts() {
       return mockState.data.map(row => row.map(() => null));
     }
 
     getFormulasSeparator() {
       return ',';
+    }
+
+    getFormulasDecimalSeparator() {
+      return '.';
+    }
+
+    getNamedExpressions() {
+      return [];
+    }
+
+    getFormulasBinding() {
+      return null;
     }
 
     getExcludedHiddenRows() {

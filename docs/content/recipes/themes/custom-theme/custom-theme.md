@@ -182,7 +182,7 @@ import { HotTableProps } from "@handsontable/react-wrapper";
 export const config: Partial<HotTableProps> = {
   width: "100%",
   height: "auto",
-  licenseKey: "non-commercial-and-evaluation",
+  // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
   autoWrapRow: true,
   filters: true,
   // Add more options: nestedHeaders, contextMenu, dropdownMenu, pagination, etc.

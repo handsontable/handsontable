@@ -41,13 +41,13 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       colHeaders={['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes']}
       minSpareRows={1}
       height="auto"
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey="non-commercial-and-evaluation"
       cells={() => ({ renderer: defaultValueRenderer })}
     />
   );

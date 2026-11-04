@@ -83,7 +83,7 @@ registerAllModules();
 
 const hotSettings = ref({
   columns: [{ type: 'password' }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -152,7 +152,7 @@ const hotSettings = ref({
     renderer: Handsontable.renderers.PasswordRenderer,
     copyable: false,
   }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -231,7 +231,7 @@ const hotSettings = ref({
     readOnly: true,
     myCustomProperty: 'foo',
   }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -379,7 +379,7 @@ registerAllModules();
 
 const hotSettings = ref({
   columns: [{ type: 'my.custom' }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -458,7 +458,7 @@ const hotSettings = ref({
     // validator function defined elsewhere
     validator: customValidator,
   }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -535,7 +535,7 @@ const hotSettings = ref({
     editor: Handsontable.editors.TextEditor,
     validator: customValidator,
   }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -609,7 +609,7 @@ registerAllModules();
 const hotSettings = ref({
   validator: customValidator,
   columns: [{ type: 'my.custom' }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -729,7 +729,7 @@ const hotSettings = ref({
     editor: Handsontable.editors.TextEditor,
     validator: customValidator,
   }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 

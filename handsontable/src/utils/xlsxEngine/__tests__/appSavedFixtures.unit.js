@@ -182,7 +182,7 @@ describe('workbooks a spreadsheet app saved', () => {
       });
     });
 
-    it('reads the Sales name and keeps =SUM(Sales) live only where the Formulas engine defines it', async() => {
+    it('reads the Sales name and keeps =SUM(Sales) live only where the engine defines it, never on ExcelJS', async() => {
       const unknown = await readWithBothEngines(name, HEADER_OPTIONS, {
         formulasEnabled: true, formulaNamedExpressions: new Set(),
       });
@@ -191,15 +191,27 @@ describe('workbooks a spreadsheet app saved', () => {
       });
 
       ['native', 'exceljs'].forEach((kind) => {
-        expect(unknown[kind].read.definedNames).toEqual(['Sales']);
+        // The ExcelJS reader flags every name it reads: it loses the scope.
+        const flag = kind === 'exceljs' ? { unsupported: true } : {};
+
+        expect(unknown[kind].read.definedNames).toEqual([
+          { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null, ...flag },
+        ]);
         expect(unknown[kind].result.data[0][6]).toBe(60);
         expect(unknown[kind].result.formulas).toEqual(expect.arrayContaining([
           { row: 0, col: 6, formula: 'SUM(Sales)' },
         ]));
         expect(unknown[kind].dropped).toContain('formula:definedName');
 
-        expect(known[kind].result.data[0][6]).toBe('=SUM(Sales)');
-        expect(known[kind].dropped).not.toContain('formula:definedName');
+        if (kind === 'native') {
+          expect(known[kind].result.data[0][6]).toBe('=SUM(Sales)');
+          expect(known[kind].dropped).not.toContain('formula:definedName');
+        } else {
+          // A flagged name never counts as the engine's, though it is spelled alike.
+          expect(known[kind].result.data[0][6]).toBe(60);
+          expect(known[kind].dropped)
+            .toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+        }
       });
     });
   });

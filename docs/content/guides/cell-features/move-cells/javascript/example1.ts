@@ -24,7 +24,7 @@ const hot = new Handsontable(container, {
   moveCells: true,
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 // Pre-select an interior range so the move border is immediately discoverable.

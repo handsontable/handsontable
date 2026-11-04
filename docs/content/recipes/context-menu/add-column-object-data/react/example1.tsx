@@ -35,6 +35,7 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       ref={hotRef}
       id="example1"
       data={data}
@@ -73,7 +74,6 @@ const ExampleComponent = () => {
           remove_row: { name: 'Remove row' },
         },
       }}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };

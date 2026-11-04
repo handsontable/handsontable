@@ -51,7 +51,7 @@ const container = document.querySelector('#example1');
 // eslint-disable-next-line no-unused-vars -- recipe keeps instance for debugging
 const hot = new Handsontable(container, {
     data,
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
     rowHeaders: true,
     colHeaders: ['Item', 'Units', 'Price', 'Tax'],
     fixedRowsBottom: 1,

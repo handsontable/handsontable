@@ -113,6 +113,7 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       formulas={{
         engine: HyperFormula,
@@ -123,7 +124,6 @@ const ExampleComponent = () => {
       height={500}
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };

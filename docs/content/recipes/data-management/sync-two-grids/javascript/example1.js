@@ -74,7 +74,7 @@ const detailHot = new Handsontable(detailContainer, {
   width: '100%',
   autoWrapRow: true,
   stretchH: 'all',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 const detailColumnMap = {
@@ -131,7 +131,7 @@ const masterHot = new Handsontable(masterContainer, {
       syncDetailRow(rowIndex, rowData);
     });
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 // eslint-disable-next-line no-unused-vars

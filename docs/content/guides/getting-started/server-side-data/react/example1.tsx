@@ -556,6 +556,7 @@ const InventoryServerTable = memo(function InventoryServerTable({
       </div>
       <div id="example1">
         <HotTable
+          // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
           ref={hotRef}
           dataProvider={dataProvider}
           columns={columns}
@@ -563,7 +564,6 @@ const InventoryServerTable = memo(function InventoryServerTable({
           colHeaders={colHeaders}
           width="100%"
           height="300px"
-          licenseKey="non-commercial-and-evaluation"
           columnSorting
           pagination
           dropdownMenu

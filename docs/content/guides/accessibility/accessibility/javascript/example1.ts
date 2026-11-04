@@ -542,7 +542,7 @@ const hotOptions: Handsontable.GridSettings = {
   rowHeaders: true,
   manualRowMove: true,
   headerClassName: 'htLeft',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 // Initialize the Handsontable instance with the specified configuration options

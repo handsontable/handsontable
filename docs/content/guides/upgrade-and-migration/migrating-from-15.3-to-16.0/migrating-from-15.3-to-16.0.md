@@ -271,10 +271,10 @@ export class AppComponent {
 **New wrapper global configuration using ApplicationConfig:**
 ```ts
 import { ApplicationConfig } from '@angular/core';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 const globalHotConfig: HotGlobalConfig = {
-  license: NON_COMMERCIAL_LICENSE,
+  // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
   language: 'en',
   themeName: 'ht-theme-main',
 };
@@ -288,7 +288,7 @@ export const appConfig: ApplicationConfig = {
 
 **New wrapper global configuration using service:**
 ```ts
-import { HotGlobalConfigService, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HotGlobalConfigService } from '@handsontable/angular-wrapper';
 
 export class AppComponent {
   constructor(private hotConfig: HotGlobalConfigService) {

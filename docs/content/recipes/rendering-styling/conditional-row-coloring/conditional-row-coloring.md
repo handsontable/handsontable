@@ -151,7 +151,7 @@ Set up the grid with a dropdown for the Status column so the user can change val
 ```typescript
 const hotOptions: Handsontable.GridSettings = {
   data,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   rowHeaders: true,
   colHeaders: ['Task', 'Owner', 'Status'],
   height: 'auto',

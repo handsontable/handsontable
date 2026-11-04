@@ -80,6 +80,7 @@ const dataProvider = {
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       dataProvider={dataProvider}
       colHeaders={['Product', 'Quantity per unit', 'Unit price', 'Units in stock']}
       columns={[
@@ -96,7 +97,6 @@ const ExampleComponent = () => {
       emptyDataState={true}
       notification={true}
       height="auto"
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };
