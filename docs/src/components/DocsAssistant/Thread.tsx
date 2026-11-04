@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Message } from './Message';
-import { STARTER_SUGGESTIONS, WELCOME } from './constants';
-import { IconRetry, IconSend, IconStop, IllustrationWelcome } from './icons';
+import { BACK_TO_BOT_NOTICE_MS, STARTER_SUGGESTIONS, SUPPORT_UI, WELCOME } from './constants';
+import { IconClose, IconRetry, IconSend, IconStop, IllustrationWelcome } from './icons';
 import type { ChatMessage } from './useAssistant';
 
 interface Props {
@@ -11,7 +11,10 @@ interface Props {
   composerRef: React.RefObject<HTMLTextAreaElement>;
   pendingDraft?: string | null;
   onPendingDraftConsumed?: () => void;
+  /** True while Support can still be written to: the conversation has a live Slack thread. */
+  canWriteToSupport: boolean;
   onSend: (text: string) => void;
+  onSendToSupport: (text: string) => void;
   onStop: () => void;
   onRetry: () => void;
   onFeedback: (id: string, feedback: 'up' | 'down') => void;
@@ -24,12 +27,41 @@ export function Thread({
   composerRef,
   pendingDraft,
   onPendingDraftConsumed,
+  canWriteToSupport,
   onSend,
+  onSendToSupport,
   onStop,
   onRetry,
   onFeedback,
 }: Props) {
   const [draft, setDraft] = useState('');
+  // The next message goes to Support, not to the bot. It lasts for one message: sending it, or closing
+  // the chip, puts the input back to the bot.
+  const [toSupport, setToSupport] = useState(false);
+  const [backToBotNotice, setBackToBotNotice] = useState(false);
+
+  // The chip cannot outlive the conversation it belongs to (a cleared thread, a thread too old to poll).
+  useEffect(() => {
+    if (!canWriteToSupport) setToSupport(false);
+  }, [canWriteToSupport]);
+
+  useEffect(() => {
+    if (!backToBotNotice) return undefined;
+    const timer = window.setTimeout(() => setBackToBotNotice(false), BACK_TO_BOT_NOTICE_MS);
+    return () => window.clearTimeout(timer);
+  }, [backToBotNotice]);
+
+  const startSupportReply = () => {
+    setBackToBotNotice(false);
+    setToSupport(true);
+    composerRef.current?.focus();
+  };
+
+  const stopSupportReply = () => {
+    setToSupport(false);
+    setBackToBotNotice(true);
+    composerRef.current?.focus();
+  };
 
   useEffect(() => {
     if (pendingDraft) {
@@ -49,7 +81,12 @@ export function Thread({
   const submit = () => {
     const text = draft.trim();
     if (!text || streaming) return;
-    onSend(text);
+    if (toSupport) {
+      onSendToSupport(text);
+      setToSupport(false);
+    } else {
+      onSend(text);
+    }
     setDraft('');
   };
 
@@ -98,6 +135,8 @@ export function Thread({
                 message={m}
                 isLastAssistant={m.id === lastAssistantId}
                 streaming={streaming}
+                canReplyToSupport={canWriteToSupport && !toSupport}
+                onReplyToSupport={startSupportReply}
                 onRetry={onRetry}
                 onFeedback={onFeedback}
               />
@@ -121,16 +160,32 @@ export function Thread({
           submit();
         }}
       >
-        <div className="da-input-wrap">
+        <div className={`da-input-wrap${toSupport ? ' has-support-chip' : ''}`}>
+          {toSupport && (
+            <span className="da-support-chip">
+              {SUPPORT_UI.chip}
+              <button
+                type="button"
+                className="da-support-chip-remove"
+                aria-label={SUPPORT_UI.chipRemove}
+                onClick={stopSupportReply}
+              >
+                <IconClose width={10} height={10} />
+              </button>
+            </span>
+          )}
           <textarea
             ref={composerRef}
             className="da-input"
-            placeholder="Ask a question..."
+            placeholder={toSupport ? SUPPORT_UI.placeholder : 'Ask a question...'}
             rows={2}
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+            onChange={(e) => {
+              setDraft(e.target.value);
+              if (backToBotNotice) setBackToBotNotice(false);
+            }}
             onKeyDown={onKeyDown}
-            aria-label="Ask a question"
+            aria-label={toSupport ? SUPPORT_UI.composerLabel : 'Ask a question'}
           />
           {streaming ? (
             <button
@@ -153,6 +208,9 @@ export function Thread({
           )}
         </div>
       </form>
+      <p className="da-support-notice" role="status">
+        {backToBotNotice ? SUPPORT_UI.backToBot : ''}
+      </p>
       <p className="da-disclaimer" role="note">
         AI-generated responses may be inaccurate. Verify critical information before use.
       </p>

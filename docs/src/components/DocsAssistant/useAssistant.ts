@@ -8,6 +8,8 @@ import {
   newestReplyId,
   nextPollState,
   parsePollState,
+  stripSupportPrefix,
+  toSupportApiText,
 } from './agentReplies';
 import { AGENT_REPLIES_ENDPOINT, CHAT_ENDPOINT, FEEDBACK_ENDPOINT, STORAGE_KEYS } from './constants';
 
@@ -19,6 +21,11 @@ export interface ChatMessage {
   ts: number;
   feedback?: 'up' | 'down';
   error?: string;
+  /**
+   * A reader's message written to Support (SU-1118). The backend posts it to the Slack thread and the
+   * bot does not answer, so it has no assistant message after it and never goes back to the model.
+   */
+  toSupport?: boolean;
 }
 
 interface ThreadState {
@@ -31,6 +38,7 @@ type Action =
   | { type: 'ADD_USER'; message: ChatMessage }
   | { type: 'ADD_AGENT'; replies: AgentReply[]; now: number }
   | { type: 'BEGIN_ASSISTANT'; message: ChatMessage }
+  | { type: 'BEGIN_SUPPORT_SEND' }
   | { type: 'APPEND'; id: string; delta: string }
   | { type: 'END' }
   | { type: 'ERROR'; error: string }
@@ -58,6 +66,10 @@ export function reducer(state: ThreadState, action: Action): ThreadState {
       };
     case 'BEGIN_ASSISTANT':
       return { ...state, messages: [...state.messages, action.message], streaming: true, error: null };
+    case 'BEGIN_SUPPORT_SEND':
+      // No assistant placeholder: nothing answers a message to Support, and an empty assistant
+      // message would count as a bot answer when the feedback buttons number them.
+      return { ...state, streaming: true, error: null };
     case 'APPEND':
       return {
         ...state,
@@ -264,7 +276,7 @@ export function useAssistant({ active = false }: { active?: boolean } = {}) {
   }, []);
 
   const sendInternal = useCallback(
-    async (userMessageText: string, historyForApi: ChatMessage[]) => {
+    async (userMessageText: string, historyForApi: ChatMessage[], toSupport = false) => {
       const controller = new AbortController();
       abortRef.current = controller;
 
@@ -273,16 +285,25 @@ export function useAssistant({ active = false }: { active?: boolean } = {}) {
       // the request stays small: inlining the page's Markdown made turns on
       // the largest API pages (Options, Core) exceed the same-origin proxy's
       // body-size cap and fail with a 413.
+      // A message to Support carries the `!reply` marker in the request only (SU-1118); the
+      // reader's bubble keeps the text as typed.
       const apiMessages = [
         ...messagesForApi(historyForApi),
-        { role: 'user' as const, content: userMessageText },
+        {
+          role: 'user' as const,
+          content: toSupport ? toSupportApiText(userMessageText) : userMessageText,
+        },
       ];
 
       const assistantId = uid();
-      dispatch({
-        type: 'BEGIN_ASSISTANT',
-        message: { id: assistantId, role: 'assistant', content: '', ts: Date.now() },
-      });
+      if (toSupport) {
+        dispatch({ type: 'BEGIN_SUPPORT_SEND' });
+      } else {
+        dispatch({
+          type: 'BEGIN_ASSISTANT',
+          message: { id: assistantId, role: 'assistant', content: '', ts: Date.now() },
+        });
+      }
 
       try {
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -338,7 +359,7 @@ export function useAssistant({ active = false }: { active?: boolean } = {}) {
             adoptAgentToken(event.agent_token);
           } else if (event.type === 'content_chunk') {
             const delta = event.delta?.content ?? '';
-            if (delta) dispatch({ type: 'APPEND', id: assistantId, delta });
+            if (delta && !toSupport) dispatch({ type: 'APPEND', id: assistantId, delta });
           } else if (event.type === 'message_end') {
             break;
           }
@@ -365,22 +386,53 @@ export function useAssistant({ active = false }: { active?: boolean } = {}) {
     [applyPollState]
   );
 
-  const send = useCallback(
-    async (text: string) => {
-      const trimmed = text.trim();
-      if (!trimmed || state.streaming) return;
+  // Support can be written to only while the conversation can still be polled. The poll state ends
+  // with the thread: a rejected token, an unknown route, or a thread older than the backend keeps.
+  const canWriteToSupport = pollThreadId !== null;
+
+  const deliver = useCallback(
+    async (content: string, toSupport: boolean) => {
       const userMessage: ChatMessage = {
         id: uid(),
         role: 'user',
-        content: trimmed,
+        content,
         ts: Date.now(),
+        ...(toSupport ? { toSupport: true } : {}),
       };
       const history = state.messages;
       lastActivityRef.current = Date.now();
       dispatch({ type: 'ADD_USER', message: userMessage });
-      await sendInternal(trimmed, history);
+      await sendInternal(content, history, toSupport);
     },
-    [sendInternal, state.messages, state.streaming]
+    [sendInternal, state.messages]
+  );
+
+  const send = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed || state.streaming) return;
+      // A reader who types `!reply` by hand writes to Support, like the button does. Without this the
+      // backend would skip the bot while the panel waited for a bot answer that never comes. With no
+      // live conversation the marker is not special, and the text goes as a normal question.
+      const typed = canWriteToSupport ? stripSupportPrefix(trimmed) : null;
+      if (typed === null) {
+        await deliver(trimmed, false);
+      } else if (typed) {
+        await deliver(typed, true);
+      }
+    },
+    [canWriteToSupport, deliver, state.streaming]
+  );
+
+  const sendToSupport = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim();
+      // A marker typed on top of the button is dropped, so the backend never sees it twice.
+      const body = stripSupportPrefix(trimmed) ?? trimmed;
+      if (!body || state.streaming || !canWriteToSupport) return;
+      await deliver(body, true);
+    },
+    [canWriteToSupport, deliver, state.streaming]
   );
 
   const retry = useCallback(async () => {
@@ -391,7 +443,8 @@ export function useAssistant({ active = false }: { active?: boolean } = {}) {
     lastActivityRef.current = Date.now();
     dispatch({ type: 'RETRY_POP' });
     const history = state.messages.slice(0, lastUserIndex);
-    await sendInternal(lastUser.content, history);
+    // A failed message to Support is sent to Support again, never to the bot.
+    await sendInternal(lastUser.content, history, Boolean(lastUser.toSupport));
   }, [sendInternal, state.messages, state.streaming]);
 
   const clear = useCallback(() => {
@@ -499,5 +552,5 @@ export function useAssistant({ active = false }: { active?: boolean } = {}) {
       });
   }, []);
 
-  return { state, send, stop, retry, clear, clearAndSend, setFeedback };
+  return { state, send, sendToSupport, canWriteToSupport, stop, retry, clear, clearAndSend, setFeedback };
 }

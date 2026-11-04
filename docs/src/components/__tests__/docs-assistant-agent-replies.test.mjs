@@ -31,7 +31,7 @@ const shimmed = transpile(read('../DocsAssistant/useAssistant.ts'))
     /^import \{[^}]*\} from ["']react["'];$/m,
     'const { useCallback, useEffect, useReducer, useRef, useState } = {};'
   )
-  .replace(/^import \{[^}]*\} from ["']\.\/agentReplies["'];$/m, 'const {\n  createAgentPoller,\n  mergeReplies,\n  messagesForApi,\n  newestReplyId,\n  nextPollState,\n  parsePollState,\n} = globalThis.__hotAgent;')
+  .replace(/^import \{[^}]*\} from ["']\.\/agentReplies["'];$/m, 'const {\n  createAgentPoller,\n  mergeReplies,\n  messagesForApi,\n  newestReplyId,\n  nextPollState,\n  parsePollState,\n  stripSupportPrefix,\n  toSupportApiText,\n} = globalThis.__hotAgent;')
   .replace(
     /^import \{[^}]*\} from ["']\.\/constants["'];$/m,
     'const AGENT_REPLIES_ENDPOINT = "", CHAT_ENDPOINT = "", FEEDBACK_ENDPOINT = "", STORAGE_KEYS = {};'
@@ -43,6 +43,7 @@ const { reducer } = await load(shimmed);
 
 const {
   AGENT_POLL,
+  SUPPORT_REPLY_PREFIX,
   createAgentPoller,
   isFatalPollStatus,
   mergeReplies,
@@ -53,6 +54,8 @@ const {
   parseReplies,
   pollDelayMs,
   retryDelayMs,
+  stripSupportPrefix,
+  toSupportApiText,
 } = agent;
 
 const msg = (id, role, content = id) => ({ id, role, content, ts: 1 });
@@ -215,6 +218,67 @@ test('thread state: retry removes the bot answers to the last question and keeps
     roles(reducer(initial([msg('u1', 'user'), msg('a1', 'assistant')]), { type: 'RETRY_POP' })),
     ['user:u1']
   );
+});
+
+// ── Writing to Support instead of the bot (SU-1118) ──────────────────────────────────────────────
+
+const toSupport = (id, content = id) => ({ ...msg(id, 'user', content), toSupport: true });
+
+test('write to Support: the request carries the marker', () => {
+  assert.equal(SUPPORT_REPLY_PREFIX, '!reply');
+  assert.equal(toSupportApiText('Thanks, can we talk tomorrow?'), '!reply Thanks, can we talk tomorrow?');
+});
+
+test('write to Support: a typed marker is read the way the backend reads it', () => {
+  assert.equal(stripSupportPrefix('!reply Thanks'), 'Thanks');
+  assert.equal(stripSupportPrefix('  !REPLY: Thanks'), 'Thanks');
+  assert.equal(stripSupportPrefix('!reply, Thanks'), 'Thanks');
+  assert.equal(stripSupportPrefix('!reply'), '', 'a bare marker is a message with no text');
+  // Must not over-trigger: anything else is a normal question for the bot.
+  for (const text of ['!replying now', 'hello !reply', 'How do I freeze columns?', '!user hi', '']) {
+    assert.equal(stripSupportPrefix(text), null, text);
+  }
+});
+
+test('write to Support: a message to Support never goes back to the model', () => {
+  const history = [
+    msg('u1', 'user', 'question'),
+    msg('a1', 'assistant', 'answer'),
+    msg('s1', 'agent', 'Hi, this is Support'),
+    toSupport('u2', 'Thanks, call me'),
+    msg('u3', 'user', 'another question'),
+  ];
+  assert.deepEqual(messagesForApi(history), [
+    { role: 'user', content: 'question' },
+    { role: 'assistant', content: 'answer' },
+    { role: 'user', content: 'another question' },
+  ]);
+});
+
+test('thread state: sending to Support adds no bot placeholder, so the feedback numbering holds', () => {
+  const state = initial([msg('u1', 'user'), msg('a1', 'assistant', 'answer'), msg('s1', 'agent'), toSupport('u2')]);
+  const sending = reducer({ ...state, error: 'old' }, { type: 'BEGIN_SUPPORT_SEND' });
+  assert.equal(sending.streaming, true);
+  assert.equal(sending.error, null);
+  assert.deepEqual(roles(sending), roles(state), 'no message was added');
+  assert.equal(sending.messages.filter((m) => m.role === 'assistant').length, 1);
+  // A normal turn still adds its placeholder.
+  const asked = reducer(initial([msg('u1', 'user')]), { type: 'BEGIN_ASSISTANT', message: msg('a1', 'assistant', '') });
+  assert.deepEqual(roles(asked), ['user:u1', 'assistant:a1']);
+});
+
+test('thread state: a failed message to Support keeps the message and does not touch the bot answers', () => {
+  const state = initial([msg('u1', 'user'), msg('a1', 'assistant', ''), toSupport('u2')]);
+  const failed = reducer(reducer(state, { type: 'BEGIN_SUPPORT_SEND' }), { type: 'ERROR', error: 'boom' });
+  assert.deepEqual(roles(failed), ['user:u1', 'assistant:a1', 'user:u2']);
+  assert.equal(failed.error, 'boom');
+  assert.equal(failed.streaming, false);
+  assert.equal(failed.messages[2].toSupport, true);
+});
+
+test('thread state: retrying a message to Support removes no earlier bot answer', () => {
+  const state = initial([msg('u1', 'user'), msg('a1', 'assistant'), toSupport('u2')]);
+  assert.deepEqual(roles(reducer(state, { type: 'RETRY_POP' })), ['user:u1', 'assistant:a1', 'user:u2']);
 });
 
 // ── The polling loop, with a fake clock and a fake network ───────────────────────────────────────

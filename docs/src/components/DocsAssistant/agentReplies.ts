@@ -10,6 +10,33 @@ export interface AgentMessageBase {
   role: 'user' | 'assistant' | 'agent';
   content: string;
   ts: number;
+  /** A reader's message written to Support, not to the bot (SU-1118). */
+  toSupport?: boolean;
+}
+
+/**
+ * The marker the backend reads at the start of a message meant for Support. The reader never sees or
+ * types it: the "Reply to Support" button makes the panel add it to the request (SU-1118).
+ */
+export const SUPPORT_REPLY_PREFIX = '!reply';
+
+/** The text sent to the backend for a message written to Support. */
+export function toSupportApiText(text: string): string {
+  return `${SUPPORT_REPLY_PREFIX} ${text}`;
+}
+
+// Same rule as the backend: the prefix is followed by a space, a comma or a colon, or by nothing, so
+// `!replying` is a normal question.
+const SUPPORT_PREFIX_RE = /^\s*!reply(?![\w])[:,]?\s*/i;
+
+/**
+ * The text after a typed `!reply`, or `null` when the message does not start with it. A reader who
+ * types the marker by hand gets the same result as the button: the backend would otherwise skip the
+ * bot while the panel waited for a bot answer that never comes.
+ */
+export function stripSupportPrefix(text: string): string | null {
+  const match = SUPPORT_PREFIX_RE.exec(text);
+  return match ? text.slice(match[0].length).trim() : null;
 }
 
 /** What the panel needs to poll one conversation: the thread, its token, and the last reply shown. */
@@ -99,13 +126,15 @@ export function mergeReplies<T extends AgentMessageBase>(
 
 /**
  * The history sent to the model. A Support reply is not part of the bot's conversation, so it never
- * goes back to the model as the assistant's own words.
+ * goes back to the model as the assistant's own words. A reader's message written to Support never
+ * goes back either: the bot did not answer it, and the model must not take it for a question.
  */
 export function messagesForApi<T extends AgentMessageBase>(
   messages: T[]
 ): { role: 'user' | 'assistant'; content: string }[] {
   const out: { role: 'user' | 'assistant'; content: string }[] = [];
   for (const m of messages) {
+    if (m.role === 'user' && m.toSupport) continue;
     if (m.role === 'user' || m.role === 'assistant') out.push({ role: m.role, content: m.content });
   }
   return out;
