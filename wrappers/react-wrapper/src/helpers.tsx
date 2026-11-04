@@ -55,6 +55,15 @@ export const CLASSIC_FUNCTION_RENDERER_WARNING = 'The `renderer` prop expects a 
   'Pass a Handsontable function renderer to `hotRenderer` instead.';
 
 /**
+ * Warning when a Handsontable editor (an editor class or a registered editor name) is passed to the
+ * React `editor` prop.
+ *
+ * That prop is a React component. A Handsontable editor belongs on `hotEditor`.
+ */
+export const NATIVE_EDITOR_IN_EDITOR_PROP_WARNING = 'The `editor` prop expects a React component. ' +
+  'Pass a Handsontable editor class or editor name to `hotEditor` instead.';
+
+/**
  * Message for the warning thrown if the Handsontable instance has been destroyed.
  */
 export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this component was destroyed and cannot be' +
@@ -192,16 +201,86 @@ function hasChildElementOfType(children: ReactNode, type: 'hot-renderer' | 'hot-
 }
 
 /**
- * Check whether the `editor` prop holds a component editor, as opposed to a boolean flag.
+ * Check whether the `editor` prop holds a component editor, as opposed to a boolean flag or a
+ * Handsontable editor passed there by mistake.
  *
  * Both editor props accept a boolean, so a truthy check alone is not enough to tell a component
- * apart from a bare `editor={true}`.
+ * apart from a bare `editor={true}`. An editor class or editor name is not a component either (see
+ * `isNativeEditor()`).
  *
  * @param {HotTableProps['editor']} editor The `editor` prop.
- * @returns {boolean} `true` when the prop carries a component to render.
+ * @returns {boolean} `true` when the prop carries a React component to render.
  */
 export function isComponentEditor(editor: HotTableProps['editor']): boolean {
-  return !!editor && typeof editor !== 'boolean';
+  return !!editor && typeof editor !== 'boolean' && !isNativeEditor(editor);
+}
+
+/**
+ * Methods every Handsontable editor class inherits from `BaseEditor`.
+ */
+const NATIVE_EDITOR_METHODS = ['prepare', 'beginEditing', 'getValue', 'setValue', 'open', 'close'];
+
+/**
+ * Check whether a value is a Handsontable editor: a registered editor name or an editor class.
+ *
+ * A class is recognized by the `BaseEditor` methods on its prototype rather than with `instanceof`,
+ * so a class built on another copy of Handsontable is still recognized. A React class component
+ * carries `prototype.isReactComponent`, and a function component does not have these methods, so
+ * neither one matches.
+ *
+ * @param {*} editor The value to check.
+ * @returns {boolean} `true` when the value is a Handsontable editor.
+ */
+export function isNativeEditor(editor: unknown): boolean {
+  if (typeof editor === 'string') {
+    return editor !== '';
+  }
+
+  if (typeof editor !== 'function') {
+    return false;
+  }
+
+  const prototype = editor.prototype;
+
+  if (!prototype || prototype.isReactComponent) {
+    return false;
+  }
+
+  return NATIVE_EDITOR_METHODS.every(method => typeof prototype[method] === 'function');
+}
+
+/**
+ * Editor classes that already produced `NATIVE_EDITOR_IN_EDITOR_PROP_WARNING`.
+ */
+const warnedNativeEditorClasses = new WeakSet<object>();
+
+/**
+ * Editor names that already produced `NATIVE_EDITOR_IN_EDITOR_PROP_WARNING`.
+ */
+const warnedNativeEditorNames = new Set<string>();
+
+/**
+ * Warn once per value that a Handsontable editor was passed to the `editor` prop.
+ *
+ * @param {Function|string} editor The editor class or editor name.
+ */
+function warnAboutNativeEditorInEditorProp(editor: object | string): void {
+  if (typeof editor === 'string') {
+    if (warnedNativeEditorNames.has(editor)) {
+      return;
+    }
+
+    warnedNativeEditorNames.add(editor);
+
+  } else {
+    if (warnedNativeEditorClasses.has(editor)) {
+      return;
+    }
+
+    warnedNativeEditorClasses.add(editor);
+  }
+
+  warn(NATIVE_EDITOR_IN_EDITOR_PROP_WARNING);
 }
 
 /**
@@ -221,6 +300,10 @@ export function isComponentEditor(editor: HotTableProps['editor']): boolean {
  * the `hotEditor` value. A component `editor` outranks both: it is picked by `isComponentEditor()`
  * before this function is reached, so `editor={MyComponent} hotEditor={false}` keeps the component.
  *
+ * A Handsontable editor (a class or a registered name) passed to `editor` is a mistake: that prop
+ * renders a React component. It is used as if it were passed to `hotEditor`, with a one-time
+ * warning. A `hotEditor` value that names an editor or disables editing still wins over it.
+ *
  * @param {HotTableProps['editor']} editor The `editor` prop.
  * @param {HotTableProps['hotEditor']} hotEditor The `hotEditor` prop.
  * @returns {*} The editor setting, or `undefined` when neither prop names one.
@@ -239,6 +322,12 @@ export function resolveEditorSetting(
     return hotEditor as Handsontable.GridSettings['editor'];
   }
 
+  if (isNativeEditor(editor)) {
+    warnAboutNativeEditorInEditorProp(editor as unknown as object | string);
+
+    return editor as unknown as Handsontable.GridSettings['editor'];
+  }
+
   return editor === false ? false : undefined;
 }
 
@@ -255,11 +344,12 @@ export function createEditorPortal(
   Editor: HotTableProps['editor'] | undefined | boolean,
   portalHost?: HTMLElement | null
 ): ReactPortal | null {
-  if (!doc || !Editor || typeof Editor === 'boolean' || !portalHost) {
+  if (!doc || !portalHost || !isComponentEditor(Editor)) {
     return null;
   }
 
-  const editorElement = <Editor />;
+  const EditorComponent = Editor as ComponentType;
+  const editorElement = <EditorComponent />;
   const containerProps = getContainerAttributesProps({}, false);
 
   containerProps.className = `${DEFAULT_CLASSNAME} ${containerProps.className}`;
