@@ -10,6 +10,8 @@ import React, {
 import ReactDOM from 'react-dom';
 import Handsontable from 'handsontable/base';
 import { getEditor } from 'handsontable/editors/registry';
+import { getRenderer } from 'handsontable/renderers/registry';
+import { getCellType } from 'handsontable/cellTypes/registry';
 import { HotRendererProps, HotTableProps } from './types';
 
 let bulkComponentContainer: DocumentFragment | null = null;
@@ -268,6 +270,29 @@ function isRegisteredEditorName(name: string): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Returns the editor or the renderer a cell type supplies, the value a grid created with that `type` and no
+ * `editor` or `renderer` setting gets. Core expands a grid-level `type` only when the grid is created, so
+ * the wrapper passes this value itself when an `editor` or `renderer` prop that replaced it is removed.
+ *
+ * @param {*} type The grid-level `type` setting: a registered cell type name or a cell type object. Core
+ * rejects an unregistered name when the grid is created, so the lookup needs no fallback for one.
+ * @param {'editor'|'renderer'} key The setting to read.
+ * @returns {*} The type's value, or the text editor or renderer when the type supplies none.
+ */
+export function getCellTypeSetting(type: unknown, key: 'editor' | 'renderer'): unknown {
+  const cellType: unknown = typeof type === 'string' ? getCellType(type) : type;
+  const value = cellType !== null && typeof cellType === 'object' ?
+    (cellType as Record<string, unknown>)[key] :
+    undefined;
+
+  if (value !== undefined) {
+    return value;
+  }
+
+  return key === 'editor' ? getEditor('text') : getRenderer('text');
 }
 
 /**

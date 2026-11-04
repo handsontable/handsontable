@@ -9,8 +9,6 @@ import React, {
 } from 'react';
 import Handsontable from 'handsontable/base';
 import PropTypes from 'prop-types';
-import { getRenderer } from 'handsontable/renderers/registry';
-import { getEditor } from 'handsontable/editors/registry';
 import { ForwardedSettings, SettingsMapper } from './settingsMapper';
 import { RenderersPortalManager } from './renderersPortalManager';
 import { HotColumn, isHotColumn } from './hotColumn';
@@ -23,6 +21,7 @@ import {
   EDITOR_PORTAL_HOST_CLASSNAME,
   MISSING_ROOT_PORTAL_WARNING,
   createEditorPortal,
+  getCellTypeSetting,
   getContainerAttributesProps,
   isComponentEditor,
   isCSR,
@@ -83,6 +82,13 @@ const HotTableInner = forwardRef<
    * is left out (`SettingsMapper.getSettings()`). Started again for every new instance.
    */
   const forwardedSettings = useRef<ForwardedSettings>(new Map());
+
+  /**
+   * Whether the settings last passed to the grid named a grid-level editor (`editor`, `hotEditor`) and a
+   * grid-level renderer (`renderer`, `hotRenderer`). Started again for every new instance.
+   */
+  const namedGlobalEditor = useRef(false);
+  const namedGlobalRenderer = useRef(false);
 
   /**
    * HotTable context exposing helper functions.
@@ -189,23 +195,47 @@ const HotTableInner = forwardRef<
       }
     }
 
+    if (init) {
+      namedGlobalEditor.current = false;
+      namedGlobalRenderer.current = false;
+    }
+
+    // The grid-level `type` supplies the editor and the renderer no prop names. Core expands it only when
+    // the grid is created and only when the same settings carry no `editor` or `renderer`, so an unnamed
+    // one is left out. When the prop that named one is removed, the type's own value is passed instead.
+    const cellType = Object.hasOwn(newSettings, 'type') ? newSettings.type : liveSettings?.type;
+    const applyUnnamedSetting = (key: 'editor' | 'renderer', wasNamed: boolean) => {
+      if (wasNamed) {
+        (newSettings as Record<string, unknown>)[key] = getCellTypeSetting(cellType, key);
+
+      } else {
+        delete newSettings[key];
+      }
+    };
+
     if (props.renderer) {
       newSettings.renderer = context.getRendererWrapper(props.renderer);
       context.componentRendererColumns.set('global', true);
+    } else if (props.hotRenderer) {
+      newSettings.renderer = props.hotRenderer;
     } else {
-      newSettings.renderer = props.hotRenderer || getRenderer('text');
+      applyUnnamedSetting('renderer', namedGlobalRenderer.current);
     }
 
-    if (isComponentEditor(props.editor)) {
-      newSettings.editor = makeEditorClass(globalEditorHooksRef, globalEditorClassInstance);
-    } else {
-      const editorSetting = resolveEditorSetting(props.editor, props.hotEditor);
+    namedGlobalRenderer.current = Boolean(props.renderer || props.hotRenderer);
 
-      // `undefined` means neither prop named an editor, so the grid falls back to the default one.
-      newSettings.editor = editorSetting === undefined ?
-        getEditor('text') as Handsontable.GridSettings['editor'] :
-        editorSetting;
+    const editorSetting = isComponentEditor(props.editor) ?
+      makeEditorClass(globalEditorHooksRef, globalEditorClassInstance) :
+      resolveEditorSetting(props.editor, props.hotEditor);
+
+    // `undefined` means neither prop named an editor.
+    if (editorSetting === undefined) {
+      applyUnnamedSetting('editor', namedGlobalEditor.current);
+    } else {
+      newSettings.editor = editorSetting;
     }
+
+    namedGlobalEditor.current = editorSetting !== undefined;
 
     return newSettings;
   };
