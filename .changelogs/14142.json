@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a strict `autocomplete` or `dropdown` cell replacing its value with another entry when confirmed without changes, and `validateCells()`, `validateRows()`, and `validateColumns()` marking valid key/value and `multiselect` cells as invalid. Bulk validation now passes validators the stored cell value, as editing does.",
+  "title": "Fixed a strict `autocomplete` or `dropdown` cell replacing its value with another entry when confirmed without changes, and `validateCells()`, `validateRows()`, `validateColumns()`, and undo and redo marking valid key/value and `multiselect` cells as invalid. Validation outside an edit now passes validators the stored cell value, as editing does.",
   "type": "fixed",
   "issueOrPR": 14142,
   "breaking": false,
