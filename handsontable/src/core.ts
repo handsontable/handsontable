@@ -8616,6 +8616,9 @@ export default function Core(
    * [hidden](@/guides/rows/row-hiding/row-hiding.md), or [filtered](@/guides/columns/column-filter/column-filter.md),
    * as such cells are not included in the data set until you bring them back again.
    *
+   * The validator receives the value the cell stores, the same value an edit validates, not the
+   * value a [`valueGetter`](@/api/options.md#valuegetter) displays.
+   *
    * After the validation, the `callback` function is fired, with the `valid` argument set to:
    * - `true` for valid cells
    * - `false` for invalid cells
@@ -8642,6 +8645,9 @@ export default function Core(
    * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it
    *  would equal `true`.
    *
+   * The validator receives the value the cell stores, the same value an edit validates, not the
+   * value a [`valueGetter`](@/api/options.md#valuegetter) displays.
+   *
    * @memberof Core#
    * @function validateRows
    * @param {Array} [rows] Array of validation target visual row indexes.
@@ -8667,6 +8673,9 @@ export default function Core(
    *
    * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it
    *  would equal `true`.
+   *
+   * The validator receives the value the cell stores, the same value an edit validates, not the
+   * value a [`valueGetter`](@/api/options.md#valuegetter) displays.
    *
    * @memberof Core#
    * @function validateColumns
@@ -8733,8 +8742,12 @@ export default function Core(
         const row = i;
         const column = j;
         const cellMeta = instance.getCellMetaTransient(row, column);
+        // The stored value, not the `valueGetter` output `getDataAtCell()` returns: an edit validates
+        // the stored value, and the choice cell types' validators check that form (a key/value entry,
+        // a multiselect array), so their label or joined text read as invalid here.
+        const storedValue = datamap.get(row, colToPropOrIndex(instance, column), { skipValueGetter: true });
 
-        instance.validateCell(instance.getDataAtCell(row, column), cellMeta, (result: boolean) => {
+        instance.validateCell(storedValue, cellMeta, (result: boolean) => {
           if (typeof result !== 'boolean') {
             throwWithCause('Validation error: result is not boolean');
           }
