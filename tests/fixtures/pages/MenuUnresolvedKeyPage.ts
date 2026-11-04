@@ -1,6 +1,7 @@
 import { type Page, expect } from '@playwright/test';
 import { assertKnownBundle, awaitBundle } from '../bundle';
 import { ConsoleWarnings } from '../consoleWarnings';
+import * as menuItems from './menuItems';
 
 /**
  * The presets of `demo/menu-unresolved-key.html`, by the name the fixture builds them under.
@@ -24,7 +25,7 @@ export class MenuUnresolvedKeyPage {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
-    this.consoleWarnings = new ConsoleWarnings(page, 'does not match any available');
+    this.consoleWarnings = menuItems.collectUnresolvedKeyWarnings(page);
   }
 
   /** Every unresolved-key warning seen so far, in the order the console delivered them. */
@@ -91,21 +92,8 @@ export class MenuUnresolvedKeyPage {
    * of these cells, and a descendant selector would return its rows as menu entries.
    */
   private async visibleItems(menuSelector: string): Promise<string[]> {
-    const menu = this.page.locator(`${menuSelector} > .ht_master:visible`);
+    await expect(menuItems.openMenu(this.page, menuSelector)).toBeVisible();
 
-    await expect(menu).toBeVisible();
-
-    return this.page.evaluate((selector) => {
-      const ownTable = document.querySelector(`${selector} > .ht_master table.htCore`);
-
-      if (!ownTable) {
-        return [];
-      }
-
-      return Array.from(ownTable.querySelectorAll(':scope > tbody > tr > td'))
-        .filter(cell => cell.getBoundingClientRect().height > 0)
-        .map(cell => (cell.textContent ?? '').trim())
-        .filter(label => label.length > 0);
-    }, menuSelector);
+    return menuItems.visibleItemsOf(this.page, menuSelector);
   }
 }

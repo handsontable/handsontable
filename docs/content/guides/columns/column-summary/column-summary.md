@@ -136,7 +136,7 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const hot = new Handsontable(document.querySelector('#example'), {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: [
     [1, 2, 3, 4, 5],
     [6, 7, 8, 9, 10],
@@ -167,9 +167,9 @@ registerAllModules();
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey="non-commercial-and-evaluation"
       data={[
         [1, 2, 3, 4, 5],
         [6, 7, 8, 9, 10],
@@ -199,7 +199,7 @@ const data = [
   [11, 12, 13, 14, 15],
 ];
 const configurationOptions: GridSettings = {
-  licenseKey: "non-commercial-and-evaluation",
+  // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
   colHeaders: true,
   rowHeaders: true,
   // set the `columnSummary` configuration option to an array of objects
@@ -222,7 +222,7 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const hotSettings = {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: [
     [1, 2, 3, 4, 5],
     [6, 7, 8, 9, 10],

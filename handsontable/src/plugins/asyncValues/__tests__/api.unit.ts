@@ -1,5 +1,5 @@
 import { registerAllModules } from 'handsontable/registry';
-import { createGrid, deferred, settle } from './helpers/grid';
+import { createGrid, deferred, products, settle } from './helpers/grid';
 import { ASYNC_VALUE_CANCEL_REASONS } from '../types';
 
 registerAllModules();
@@ -289,6 +289,87 @@ describe('AsyncValues: progress, retry, and request options', () => {
       undoRedo.redo();
 
       expect(hot.getDataAtCol(1)).toEqual(['new A', 'new B', 'old C', 'old D']);
+
+      destroy();
+    });
+
+    it('should record a call whose earlier write a data load dropped while its validator ran', async() => {
+      let answerHeldValidator: (() => void) | null = null;
+      const { hot, plugin, destroy } = createGrid({
+        rowId: 'id',
+        undo: true,
+        columns: [{ data: 'sku' }, {
+          data: 'name',
+          validator(value: unknown, callback: (valid: boolean) => void) {
+            if (value === 'new A') {
+              answerHeldValidator = () => callback(true);
+            } else {
+              callback(true);
+            }
+          },
+        }, { data: 'price' }],
+      });
+      const undoRedo = hot.getPlugin('undoRedo');
+      const requests = [deferred(), deferred()];
+      const results = plugin.setAsyncValues(0, 1, 1, 1, ({ row }) => requests[row!].promise, { undo: 'record' });
+
+      requests[0].resolve('new A');
+      await settle();
+      hot.loadData(products());
+      answerHeldValidator!();
+      requests[1].resolve('new B');
+      await results;
+      await settle();
+
+      expect(hot.getDataAtCol(1)).toEqual(['old A', 'new B', 'old C', 'old D']);
+      expect(undoRedo.isUndoAvailable()).toBe(true);
+
+      undoRedo.undo();
+
+      expect(hot.getDataAtCol(1)).toEqual(['old A', 'old B', 'old C', 'old D']);
+
+      destroy();
+    });
+
+    it('should record a call whose dropped write lost a rejected tuple after a load reordered the rows', async() => {
+      const heldAnswers: Map<unknown, (valid: boolean) => void> = new Map();
+      const { hot, plugin, destroy } = createGrid({
+        rowId: 'id',
+        undo: true,
+        allowInvalid: false,
+        columns: [{ data: 'sku' }, {
+          data: 'name',
+          validator(value: unknown, callback: (valid: boolean) => void) {
+            if (value === 'new A' || value === 'bad') {
+              heldAnswers.set(value, callback);
+            } else {
+              callback(true);
+            }
+          },
+        }, { data: 'price' }],
+      });
+      const undoRedo = hot.getPlugin('undoRedo');
+      const requests = [deferred(), deferred(), deferred()];
+      const results = plugin.setAsyncValues(0, 1, 2, 1, ({ row }) => requests[row!].promise, { undo: 'record' });
+
+      requests[0].resolve('new A');
+      requests[1].resolve('bad');
+      await settle();
+      hot.loadData(products().reverse());
+      const answer = (value: string, valid: boolean) => heldAnswers.get(value)?.(valid);
+
+      answer('bad', false);
+      answer('new A', true);
+      requests[2].resolve('new C');
+      await results;
+      await settle();
+
+      expect(hot.getDataAtCol(1)).toEqual(['old D', 'new C', 'old B', 'old A']);
+      expect(undoRedo.isUndoAvailable()).toBe(true);
+
+      undoRedo.undo();
+
+      expect(hot.getDataAtCol(1)).toEqual(['old D', 'old C', 'old B', 'old A']);
 
       destroy();
     });

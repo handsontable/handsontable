@@ -7,6 +7,7 @@ import {
   renderHotTableWithProps,
 } from './_helpers';
 import { HotTableProps } from '../src/types';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 // register Handsontable's modules
 registerAllModules();
@@ -14,7 +15,7 @@ registerAllModules();
 describe('HotTable `formulaBuilder`', () => {
   it('should keep the formula bar, its focus and the typed address text on a re-render with unchanged settings', () => {
     const baseSettings = {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       id: 'hot',
       data: createSpreadsheetData(5, 5),
       formulas: { engine: HyperFormula },

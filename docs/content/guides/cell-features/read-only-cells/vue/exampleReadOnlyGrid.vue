@@ -16,7 +16,7 @@ const hotSettings = ref<GridSettings>({
   ],
   height: 'auto',
   colHeaders: ['Name', 'Symbol', 'Atomic number', 'Atomic mass'],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   readOnly: true,
   autoWrapRow: true,
   autoWrapCol: true,

@@ -152,7 +152,7 @@ const hot = new Handsontable(container, {
   colWidths: initialWidths,
   manualColumnResize: true,
   manualColumnMove: initialOrder || true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   /* hooks wired in the next step */
 });
 ```

@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable';
 import exportItem from '../contextMenuItem/exportItem';
-import { isItemHidden } from '../../contextMenu/menu/utils';
+import { isItemHidden } from '../../../utils/menu/menu/utils';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**

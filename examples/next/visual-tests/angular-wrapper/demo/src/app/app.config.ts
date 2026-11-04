@@ -1,9 +1,10 @@
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter, Routes } from '@angular/router';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 import { DataGridComponent } from '../data-grid/data-grid.component';
 import { ScenarioGridComponent } from '../scenario-two-grid/scenario-grid.component';
+import { TEST_LICENSE_KEY } from '../test-license-key';
 
 registerAllModules();
 
@@ -13,7 +14,7 @@ const routes: Routes = [
 ];
 
 const globalHotConfig: HotGlobalConfig = {
-  license: NON_COMMERCIAL_LICENSE,
+  license: TEST_LICENSE_KEY,
 };
 
 export const appConfig: ApplicationConfig = {

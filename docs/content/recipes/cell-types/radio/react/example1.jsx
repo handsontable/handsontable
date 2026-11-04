@@ -208,6 +208,7 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       ref={hotRef}
       data={data}
       colHeaders={['Task', 'Priority', 'Status']}
@@ -216,7 +217,6 @@ const ExampleComponent = () => {
       width="100%"
       minRowHeights={96}
       afterInit={afterInit}
-      licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data="task" type="text" width={300} />
       <HotColumn data="priority" type="radio" width={160} options={priorityOptions} />

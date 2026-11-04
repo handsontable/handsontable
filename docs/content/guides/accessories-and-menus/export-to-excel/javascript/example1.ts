@@ -62,7 +62,7 @@ const hot = new Handsontable(container, {
   autoWrapRow: true,
   autoWrapCol: true,
   exportFile: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 // Add a comment to Alice's notes cell.

@@ -146,7 +146,7 @@ describe('FormulaBuilder teardown on a real grid', () => {
       editor: 'formula',
       formulas: { engine: HyperFormula },
       formulaBuilder: { builder: core, showFormulaBar: true },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     } as Handsontable.GridSettings);
     const formulas = hot.getPlugin('formulas');
     const formulaBuilder = hot.getPlugin('formulaBuilder');
@@ -186,7 +186,7 @@ describe('FormulaBuilder teardown on a real grid', () => {
       editor: 'formula',
       formulas: { engine: HyperFormula },
       formulaBuilder: { builder: core, showFormulaBar: true },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     } as Handsontable.GridSettings);
     const formulas = hot.getPlugin('formulas');
 

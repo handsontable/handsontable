@@ -23,7 +23,7 @@ const container = document.querySelector('#example1');
 const output = document.querySelector('#example1-output');
 
 const hot = new Handsontable(container, {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   dataProvider: {
     // the row selection keeps rows by this id, so it survives page changes
     rowId: 'id',

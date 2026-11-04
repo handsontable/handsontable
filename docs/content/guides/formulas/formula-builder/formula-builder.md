@@ -60,7 +60,7 @@ import { HyperFormula } from 'hyperformula';
 import * as formulaBuilder from 'hyperformula-ui';
 
 const hot = new Handsontable(container, {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   editor: 'formula',
   formulas: {
     engine: HyperFormula,
@@ -445,6 +445,7 @@ You now have a grid with a formula bar, inline formula editing with colored refe
 <div class="boxes-list gray-bg">
 
 - [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
+- [Sheets bar](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md#use-formulas-across-sheets)
 - [Layout direction](@/guides/internationalization/layout-direction/layout-direction.md)
 - [Keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md)
 

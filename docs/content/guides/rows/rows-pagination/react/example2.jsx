@@ -111,6 +111,7 @@ const ExampleComponent = () => {
   return (
     <div className="pagination-resize-demo">
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       pagination={{
         pageSize: 'auto',
         pageSizeList: ['auto', 5, 10, 20, 50, 100],
@@ -132,7 +133,6 @@ const ExampleComponent = () => {
       colHeaders={true}
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn title="Model" type="text" data="model" width={150} headerClassName="htLeft" />
       <HotColumn

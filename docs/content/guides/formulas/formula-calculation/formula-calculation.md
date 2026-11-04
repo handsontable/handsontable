@@ -1218,7 +1218,7 @@ const hot = new Handsontable(container, {
     sheetName: 'Sheet1',
     language: plPL,
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -1262,7 +1262,7 @@ const hot = new Handsontable(container, {
   formulas: {
     engine: HyperFormula,
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -1274,6 +1274,7 @@ const hot = new Handsontable(container, {
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={[
         ['0123456'],
         ['=LEN(A1)'],
@@ -1287,7 +1288,6 @@ const ExampleComponent = () => {
       formulas={{
         engine: HyperFormula,
       }}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };
@@ -1315,7 +1315,7 @@ const configurationOptions: GridSettings = {
   formulas: {
     engine: HyperFormula,
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 ```
 
@@ -1342,7 +1342,7 @@ const hotSettings = ref({
   formulas: {
     engine: HyperFormula,
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -1365,6 +1365,10 @@ const hotSettings = ref({
 - Formulas don't support nested data, i.e., when Handsontable's [`data`](@/api/options.md#data) is set to an [array of nested objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects).
 - [`preserveTextValue`](@/api/options.md#preservetextvalue) works only with the built-in [`text`](@/guides/cell-types/cell-type/cell-type.md) cell type. Custom cell types are not supported, even when they reuse the text editor or renderer.
 - Sorting a column that contains formulas can produce `#REF!`. Handsontable does not rewrite formula references to follow sorted rows. See [Sorting formula cells](#sorting-formula-cells).
+- With HyperFormula older than 3.1.1, adding or removing a sheet in an engine that the [`Formulas`](@/api/formulas.md) plugin created turns spilled arrays into `#SPILL!`. This also happens when a second Handsontable instance connects to that engine. Use HyperFormula 3.1.1 or later.
+- `SHEET()` returns the sheet's number in the engine, not its position. After you remove a sheet from the middle, the sheets after it keep their numbers, so `SHEET()` can be greater than `SHEETS()`.
+- When you add, remove, or rename a sheet, Handsontable recalculates `SHEET()` and `SHEETS()` only in an engine that the [`Formulas`](@/api/formulas.md) plugin created. In an engine instance that you create and pass to the plugin, they keep their old values until the formula changes.
+- A formula that calls `SHEET()` or `SHEETS()` and also references a sheet that doesn't exist, for example inside `IFERROR()`, keeps its old value after you add, remove, or rename a sheet.
 
 ### Sorting formula cells
 

@@ -9,6 +9,7 @@ import { getXlsxEntitlement } from '../../core/license';
 import ExportDataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
 import exportItem from './contextMenuItem/exportItem';
+import { registerMenuEntries } from '../../utils/menu/menuEntries';
 import { buildExportDialogContent } from './utils';
 import type { HotInstance } from '../../core/types';
 import type BaseType from './types/_base';
@@ -499,7 +500,7 @@ export class ExportFile extends BasePlugin {
       return;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
+    registerMenuEntries(this, () => [exportItem(this)], { contextMenu: {} });
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
 
     super.enablePlugin();
@@ -530,24 +531,6 @@ export class ExportFile extends BasePlugin {
     this.#pendingObjectUrls.clear();
     super.destroy();
   }
-
-  /**
-   * Add export options to the Context Menu.
-   *
-   * @param {object} options Contains default added options of the Context Menu.
-   */
-  #onAfterContextMenuDefaultOptions = (rawOptions: unknown) => {
-    if (typeof rawOptions !== 'object' || rawOptions === null) {
-      return;
-    }
-
-    const options = rawOptions as { items: unknown[] };
-
-    options.items.push(
-      { name: '---------' },
-      exportItem(this),
-    );
-  };
 
   /**
    * Exports table data as a string.

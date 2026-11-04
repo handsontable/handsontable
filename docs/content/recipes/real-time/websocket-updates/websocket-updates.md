@@ -111,7 +111,7 @@ const hot = new Handsontable(document.querySelector('#example1'), {
   rowHeaders: true,
   height: 'auto',
   stretchH: 'all',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 

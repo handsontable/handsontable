@@ -86,7 +86,7 @@ Click **Load sample** to import a workbook the export plugin wrote, or **Import 
 ```javascript
 const hot = new Handsontable(container, {
   importFile: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -96,8 +96,8 @@ const hot = new Handsontable(container, {
 
 ```jsx
 <HotTable
+  // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
   importFile={true}
-  licenseKey="non-commercial-and-evaluation"
 />
 ```
 
@@ -108,7 +108,7 @@ const hot = new Handsontable(container, {
 ```typescript
 readonly hotSettings: GridSettings = {
   importFile: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 ```
 
@@ -119,7 +119,7 @@ readonly hotSettings: GridSettings = {
 ```javascript
 const hotSettings = ref({
   importFile: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -147,7 +147,7 @@ fileInput.addEventListener('change', async () => {
 
 ### 3. Read what was dropped
 
-`result.dropped` lists what the file carried and the grid did not take, and the plugin prints the same list in one console warning per import. An import that a newer import replaced while its file was being read, or that the plugin was disabled during, prints none. The [Dropped features reference](@/guides/import-and-export/dropped-features/dropped-features.md#dropped-on-import) explains every key. A feature the file carries and your license does not unlock is reported as `license:xlsx:<capability>`: see [What your license unlocks](#what-your-license-unlocks).
+`result.dropped` lists what the file carried and the grid did not take, and the plugin prints the same list in one console warning per import. An import that a newer import replaced while its file was being read, or that the plugin was disabled during, prints none. The [Dropped features reference](@/guides/import-and-export/dropped-features/dropped-features.md#dropped-on-import) explains every key. A feature the file carries and your license does not include is reported as `license:xlsx:<id>`: see [What your license unlocks](#what-your-license-unlocks).
 
 ### 4. Preview before you apply
 
@@ -171,6 +171,19 @@ The plugin treats every workbook as untrusted input:
 
 For a file from an untrusted source, import it with `apply: false` first or with the Formulas plugin off: a few bytes of formula can reference every cell of a sheet and crash the tab. The full rules, the limits, and the risks of each engine are in [XLSX engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#security).
 
+### Formulas, arrays, and defined names
+
+With the `Formulas` plugin on and `importFormulas` left at `true`, formulas import live:
+
+- **Dynamic arrays** (`=SEQUENCE(3)`, `=FILTER(...)`) import live and spill over the cells below them. The cells the array covers import empty, so the spill does not collide with their cached values. When the array calls a function HyperFormula lacks, such as `UNIQUE` or `SORT`, it shows an error and does not spill, so the cells it covers keep their cached values. A formula that reads a spilled range with the spill operator (`=SUM(B1#)`), or uses implicit intersection (`=@A1:A3`), imports its cached value, is listed in `result.formulas`, and is reported as `formula:spillReference`: HyperFormula supports neither.
+- **Where HyperFormula spills differently from Excel**, the import follows HyperFormula. Before it returns, it computes the array formulas in a temporary copy of the Formulas plugin's engine. A cell the array does not reach there keeps its cached value. For example, a legacy array `{=A1*2}` entered over `B1:B3` is one value to HyperFormula, so `B2` and `B3` keep the 2 the file holds. An array that would show `#SPILL!` imports its cached values when the file holds a value for it, is listed in `result.formulas`, and is reported as `formula:arraySpill`. When the file holds an error for it, as Excel 365 does for a spill that is already blocked, the array stays live and shows `#SPILL!`, as in Excel. After you clear the cells in its way, enter the formula again to make it spill: HyperFormula does not spill it on its own. This happens with `FILTER`, which HyperFormula sizes by its input range. An array that shows an error there while the file holds a value is imported the same way: HyperFormula shows `#VALUE!` for an array that is only a range, such as `=A1:A3` or `=Sheet1!A1:A3`, a range name, or `INDEX(A1:A3,0)`, where Excel spills the cells. The temporary copy holds only the imported sheet and the engine's workbook-level names. An array formula that reads another sheet of the engine, or a name the engine defines for the grid's sheet only, therefore keeps its cached values only when it would show `#SPILL!`. Otherwise it is imported live, as described above. An array that shows an error while the file holds no value for it, as in files written by openpyxl, is imported live too.
+- **A plain formula that is one call to a function that returns an array**, such as `=SEQUENCE(3)` saved without the array flag, is one value in Excel, which adds an `@` to it. The import keeps that one value: when HyperFormula would spill it over more cells, the cell imports its cached value, is listed in `result.formulas`, and is reported as `formula:arraySpill`. When the result is one cell, the formula stays live.
+- **Legacy (CSE) arrays** import as `=ARRAYFORMULA(...)`. The [ExcelJS engine](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#known-differences) cannot tell the two kinds apart, so it imports every array this way. A dynamic array imports this way too when HyperFormula's `useArrayArithmetic` is off, as in an engine you create with `HyperFormula.buildEmpty()`: without it, such an engine computes a formula like `=A1:A3*2` as one value. An export of that grid writes the array as a legacy array.
+- **Defined names** are added to the Formulas plugin's engine as named expressions, and `result.namedExpressions` lists them. A formula such as `=SUM(Sales)` stays live. A name HyperFormula cannot take, one that points at a sheet it does not hold, one that calls a function HyperFormula lacks (such as `UNIQUE`), one past the [defined-name limits](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#limits) (a definition longer than 8,192 characters, or ranges that cover more than 100,000 cells), or one scoped to a sheet the workbook does not have is reported as `definedNames:unsupported`. The formulas over it import their cached values and are reported as `formula:definedName`. A name scoped to the imported sheet is added at workbook scope, ahead of a workbook name spelled the same, because the grid holds one sheet. A workbook name whose definition uses that spelling is then reported the same way, because in the file it reads the workbook name. If the engine fails to add a name while the result is applied, the import removes it again and reports `definedNames:unsupported`. The formulas over that name stay in the grid and show `#NAME?`, because no cached value is available at that point. The ExcelJS engine adds no names, because ExcelJS loses their scope, so the formulas over every name import their cached values; see [Known differences](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#known-differences). The names live only in the engine: turning the Formulas plugin off and on again builds a new engine without them, so add them back from `result.namedExpressions`.
+- **`TRUE` and `FALSE`** written without parentheses become `TRUE()` and `FALSE()` in the live formula, because HyperFormula reads the bare words as names. `result.formulas` keeps the text from the file.
+
+When the engine already defines a name, at workbook scope or on the grid's own sheet (which HyperFormula reads first there), the import keeps that definition if it matches the file's. A name defined as a constant, such as `addNamedExpression('TaxRate', 0.07)`, matches when the file's definition has the same value. A text constant with a quotation mark, which Excel writes as `"a""b"`, is added as the text `a"b`. If the definition differs, as in a second import of a changed file, the import does not replace it. The formulas over that name import their cached values, and the import reports `formula:definedName` and `definedNames:unsupported`. To take the file's definition, remove the name first with HyperFormula's `removeNamedExpression()`.
+
 ### Re-importing an export
 
 A workbook you exported from Handsontable DataGrid carries its nested headers and row headers as sheet content. Import it with `headerRows` set to the header depth and `rowHeaders: true`, or the second header row lands in the data and the row numbers become a column.
@@ -180,6 +193,8 @@ await hot.getPlugin('importFile').importFromBlob('xlsx', file, {
   colHeaders: 'firstRow', headerRows: 2, rowHeaders: true,
 });
 ```
+
+A multi-sheet export carries its header rows on every sheet. When you import such a workbook sheet by sheet with `colHeaders: 'firstRow'` and `rowHeaders: true`, a defined name that points at another sheet keeps the file's addresses, because the import knows only the headers of the sheet it reads. A formula over that name then reads the wrong cells. Import such a workbook without stripping the header rows, or add the names back yourself from `result.namedExpressions` after you correct them.
 
 A grid with a [`columnSummary`](@/guides/columns/column-summary/column-summary.md) exports the computed total, and the import loads that total back as data, so a summary over the whole column then shows double. Set the summary's `ranges` to stop above the summary row. Before an import with more rows, turn the summary off with `updateSettings({ columnSummary: false })`, and pass your endpoints again after the import. Otherwise the summary keeps writing to the row it computed for the previous data, over an imported value.
 
@@ -196,7 +211,12 @@ Imported headers are HTML-escaped, so `R&D` is stored as `R&amp;D`. Set the grid
 
   ```jsx
   const Grid = React.memo(({ rows, hotRef }) => (
-    <HotTable ref={hotRef} data={rows} importFile={true} licenseKey="non-commercial-and-evaluation" />
+    <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
+      ref={hotRef}
+      data={rows}
+      importFile={true}
+    />
   ));
   ```
 
@@ -260,7 +280,7 @@ Pass these options as the third argument of `importFromArrayBuffer(format, buffe
 | `rowHeaders` | `boolean` | `false` | Drop the first column and turn generated row headers on. |
 | `range` | `number[]` | whole sheet | `[startRow, startColumn, endRow, endColumn]` in 0-based sheet coordinates, each start at or before its end. An end past the sheet is clamped; a start past the sheet rejects the call. |
 | `inferCellTypes` | `boolean` | `true` | Derive `numeric`, `date`, `intl-datetime`, `time`, `checkbox`, and `dropdown` types from the cells' number formats and values. The type most cells of a column share becomes the column's type in `result.columns`; cells that differ get their own `result.cellsMeta` entry. `false` turns dropdowns off too, and dates import as raw serials. Details: [number formats](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#dates-times-and-number-formats). |
-| `importFormulas` | `boolean` | `true` | Put formulas into the data when the `Formulas` plugin is on. The `_xlfn.`, `_xlws.`, and `_xlpm.` prefixes Excel writes are removed, and an export writes them back. A function HyperFormula lacks, such as `SORT` or `LET`, imports live and shows an error; set `importFormulas: false` to import the cached values instead. |
+| `importFormulas` | `boolean` | `true` | Put formulas into the data when the `Formulas` plugin is on. The `_xlfn.`, `_xlws.`, and `_xlpm.` prefixes Excel writes are removed, and an export writes them back. A function HyperFormula lacks, such as `SORT` or `LET`, imports live and shows an error; set `importFormulas: false` to import the cached values instead. See [Formulas, arrays, and defined names](#formulas-arrays-and-defined-names). |
 | `importLayout` | `boolean` | `true` | Apply merges, hidden rows and columns, frozen panes, column widths, and row heights. An import describes the whole sheet: each of these, and `customBorders`, that the grid has and the result does not carry is reset, including one you set yourself. Borders themselves come from `importStyles`, so with `importStyles` off an import clears the grid's custom borders. The lists merge into an existing `hiddenRows`, `hiddenColumns`, or `mergeCells` options object, so options such as `indicators` survive. Independently of `importLayout`, a grid that already has a `columns` setting gets one empty column setting per imported column when the result carries no `columns`, so the previous file's column types do not survive. |
 | `importStyles` | `boolean` | `false` | Apply alignment, font, fill, and borders from the workbook. See [Styles](#styles). |
 | `apply` | `boolean` | `true` | Apply the result to the grid. With `false`, the result comes back and nothing changes, neither hook fires, and the dropped-features warning still prints. Its `dropped` leaves out the names that come from applying (`cellType:<name>`, `mergeCells`, `hiddenRows`, `hiddenColumns`, and `layoutDirection`), so a preview's list can be shorter than the real import's. |
@@ -268,20 +288,9 @@ Pass these options as the third argument of `importFromArrayBuffer(format, buffe
 
 ### What your license unlocks
 
-The XLSX import reads your license key for the [capabilities](@/guides/getting-started/license-key/license-key.md#capabilities) it needs. A key issued without the `listed-capabilities` flag (every key issued before 19.0) unlocks all of them. A key with the flag unlocks exactly the ones it lists:
+Formulas, styles, layout, comments, conditional formatting, data validation, and sheet protection read from the workbook are available as a bundle: the [XLSX add-on](@/guides/getting-started/license-key/license-key.md#xlsx-add-on). Every key issued before 19.0 includes all of it. Number formats always import, because the import reads them to infer cell types.
 
-- `xlsx:import` - the import itself.
-- `xlsx:formulas` - `importFormulas`.
-- `xlsx:layout` - `importLayout`, and the column groups of nested headers. Without it, a merged cell in the header band does not become a group: each header cell becomes its own label. The import then lists `license:xlsx:layout`, even with `importLayout: false`.
-- `xlsx:comments` - cell comments.
-- `xlsx:styles` - `importStyles`.
-- `xlsx:conditional_formatting` - `result.conditionalFormatting`.
-- `xlsx:data_validation` - `dropdown` columns made from data validation lists.
-- `xlsx:protection` - `readOnly` cells made from sheet protection.
-
-`xlsx:number_formats` never restricts an import, because the import reads number formats to infer cell types. `xlsx:import_report` is always on, so `result.dropped` is always complete.
-
-Without `xlsx:import`, `importFromBlob()` and `importFromArrayBuffer()` throw `ImportFile: the license does not unlock "xlsx:import".` A key that lists its features also needs `feat:import_file`, the token of the import plugin itself, and the plugin checks it first. Without it, those methods throw the plugin's own license message, which starts with `The license key for Handsontable does not include these features: Import from file (feat:import_file).` In both cases, [`supportsImportFormat('xlsx')`](@/api/importFile.md#supportsimportformat) returns `false`, so you can check it before you offer an Excel upload. Without any other capability, the import skips that part of the file. When the file carries that feature and your options ask the import to bring it over, the import adds a `license:xlsx:<capability>` entry to `result.dropped` and prints one console warning: `The xlsx import skipped features your license does not unlock: <ids>.` The warning names only the capabilities the file needed and your license does not unlock, so a file with values only imports with no license warning. A feature your options leave out gets no license entry: with `importStyles` off, a styled file reports `cellStyles` as on any key, and with `importLayout: false`, `importFormulas: false`, `inferCellTypes: false` (for data validation), or no `Comments` plugin (for comments), the license is not named. Header groups are the exception: they follow the license, not `importLayout`. Without `xlsx:formulas`, each formula cell imports its cached value and `result.formulas` is left out. The `no-console-warns` flag on a key silences it. The capabilities and their packages are on the [pricing page](https://handsontable.com/pricing).
+When your key leaves out part of the add-on, the import skips that part of the file and does the rest. Without formulas, for example, each formula cell imports its cached value. If the file carries a skipped feature and your options ask for it, the import adds a `license:xlsx:<id>` entry to `result.dropped` and prints one console warning that names what it skipped. When your key does not include Excel import at all, `importFromBlob()` and `importFromArrayBuffer()` throw, and [`supportsImportFormat('xlsx')`](@/api/importFile.md#supportsimportformat) returns `false`, so check it before you offer an Excel upload.
 
 ### Styles
 
@@ -311,7 +320,7 @@ Each import method takes the format first (`'xlsx'`), the file second, and an op
 
 - [`importFromBlob(format, blob, options)`](@/api/importFile.md#importfromblob) - imports a `Blob` or a `File`, such as one from an `<input type="file">`. Returns a `Promise` of the result.
 - [`importFromArrayBuffer(format, buffer, options)`](@/api/importFile.md#importfromarraybuffer) - imports an `ArrayBuffer`, or a view over one such as a `Uint8Array`. Returns a `Promise` of the result.
-- [`supportsImportFormat(format)`](@/api/importFile.md#supportsimportformat) - `true` when the format can be read. `supportsImportFormat('xlsx')` also returns `false` when the license does not unlock `xlsx:import`.
+- [`supportsImportFormat(format)`](@/api/importFile.md#supportsimportformat) - `true` when the format can be read. `supportsImportFormat('xlsx')` also returns `false` when your license key does not include Excel import.
 
 To type data that doesn't come from a workbook, such as CSV rows, pasted text, or API values, use [`inferColumnTypes()`](@/api/importFile.md#infercolumntypes). See [Infer column types](@/guides/import-and-export/infer-column-types/infer-column-types.md).
 

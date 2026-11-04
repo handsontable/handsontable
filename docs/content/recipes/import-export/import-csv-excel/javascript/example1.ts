@@ -198,7 +198,7 @@ async function parseXlsxFile(file: File): Promise<ParsedPayload> {
   const parser = new Handsontable(host, {
     data: [[]],
     importFile: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   });
 
   try {
@@ -307,7 +307,7 @@ function loadIntoGrid({ headers, rows }: ParsedPayload): void {
       rowHeaders: true,
       height: 'auto',
       width: '100%',
-      licenseKey: 'non-commercial-and-evaluation',
+      // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
     });
   } else {
     hot.updateSettings({ colHeaders: headers, columns });

@@ -24,12 +24,12 @@ function App() {
   return (
     <div id="example">
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         data={data}
         width="100%"
         height="auto"
         colHeaders={true}
         rowHeaders={true}
-        licenseKey="non-commercial-and-evaluation"
       />
     </div>
   );

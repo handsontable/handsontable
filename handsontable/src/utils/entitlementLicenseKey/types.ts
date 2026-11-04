@@ -89,8 +89,10 @@ export interface LicenseLifecycle {
  *
  * `ui` governs warnings only. The hard-stop lock screen is enforcement and is
  * mounted regardless - see `NO_UI_WARNS_FLAG` in `./constants` and the routing
- * note in `utils/licenseBranding/index.ts`. A new surface reading this field
- * has to decide which of the two it is before honoring it.
+ * note in `utils/licenseBranding/index.ts`. So is the "Powered by" bar a
+ * `badge` key asks for: it is branding, not a warning - see `BADGE_FLAG` in
+ * `./constants`. A new surface reading this field has to decide which of the
+ * three it is before honoring it.
  */
 export interface LicenseChannels {
   console: boolean;

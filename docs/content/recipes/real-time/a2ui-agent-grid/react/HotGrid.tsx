@@ -98,7 +98,7 @@ export const HotGrid = createComponentImplementation(HotGridApi, ({ props }) => 
       afterChange: (_changes, source) => {
         if (source !== 'loadData' && source !== 'updateData') syncToDataModel();
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
     });
     hotRef.current = hot;
     // Publish the initial computed values so `values` is never empty.

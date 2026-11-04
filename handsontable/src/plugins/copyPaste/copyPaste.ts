@@ -25,6 +25,7 @@ import copyColumnHeadersOnlyItem from './contextMenuItem/copyColumnHeadersOnly';
 import copyWithColumnGroupHeadersItem from './contextMenuItem/copyWithColumnGroupHeaders';
 import copyWithColumnHeadersItem from './contextMenuItem/copyWithColumnHeaders';
 import cutItem from './contextMenuItem/cut';
+import { registerMenuEntries } from '../../utils/menu/menuEntries';
 import PasteEvent from './pasteEvent';
 import { PasteClipboardSnapshot, SOURCE_DATA_HTML_MIME_TYPE, type PasteClipboardSource } from './pasteClipboardData';
 import {
@@ -405,7 +406,7 @@ export class CopyPaste extends BasePlugin {
     this.#enableCopyColumnHeadersOnly = this.getSetting<boolean>('copyColumnHeadersOnly')!;
     this.uiContainer = this.getSetting<HTMLElement>('uiContainer') ?? this.uiContainer;
 
-    this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
+    registerMenuEntries(this, () => this.#createMenuEntries(), { contextMenu: {} });
     this.addHook('afterSelection', this.#onAfterSelection);
     this.addHook('afterSelectionEnd', this.#onAfterSelectionEnd);
     this.addHook('afterChange', this.#onAfterChange);
@@ -1457,34 +1458,27 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Add copy and cut options to the Context Menu.
+   * Creates the copy and cut entries of the context menu.
    *
-   * @param {object} options Contains default added options of the Context Menu.
+   * @returns {object[]}
    */
-  #onAfterContextMenuDefaultOptions = (options: { items: unknown[] }) => {
-    options.items.push(
-      { name: '---------' },
-      copyItem(this),
-    );
+  #createMenuEntries() {
+    const entries = [copyItem(this)];
 
     if (this.#enableCopyColumnHeaders) {
-      options.items.push(
-        copyWithColumnHeadersItem(this),
-      );
+      entries.push(copyWithColumnHeadersItem(this));
     }
     if (this.#enableCopyColumnGroupHeaders) {
-      options.items.push(
-        copyWithColumnGroupHeadersItem(this),
-      );
+      entries.push(copyWithColumnGroupHeadersItem(this));
     }
     if (this.#enableCopyColumnHeadersOnly) {
-      options.items.push(
-        copyColumnHeadersOnlyItem(this),
-      );
+      entries.push(copyColumnHeadersOnlyItem(this));
     }
 
-    options.items.push(cutItem(this));
-  };
+    entries.push(cutItem(this));
+
+    return entries;
+  }
 
   /**
    * Tells whether the shortcuts of the grid context run for the active context, which is the case when the

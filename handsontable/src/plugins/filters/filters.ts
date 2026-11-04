@@ -10,7 +10,7 @@ import { isKey } from '../../helpers/unicode';
 import { getValueGetterValue } from '../../utils/valueAccessors';
 import { createObjectPropListener, deepClone, hasOwnProperty, isObject } from '../../helpers/object';
 import type { ObjectPropListener } from '../../helpers/object';
-import { SEPARATOR } from '../contextMenu/predefinedItems';
+import { SEPARATOR } from '../../utils/menu/predefinedItems';
 import * as constants from '../../i18n/constants';
 import { ConditionComponent } from './component/condition';
 import { OperatorsComponent } from './component/operators';
@@ -41,7 +41,7 @@ import {
   resolveAvailableConditionsRule,
 } from './availableConditions';
 import { createMenuFocusController } from './menu/focusController';
-import type { Menu } from '../contextMenu/menu/menu';
+import type { Menu } from '../../utils/menu/menu/menu';
 import type { DropdownMenu } from '../dropdownMenu/dropdownMenu';
 import getOptionsList, {
   CONDITION_NONE,

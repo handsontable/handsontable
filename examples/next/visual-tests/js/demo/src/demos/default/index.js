@@ -27,6 +27,7 @@ import {
   MultiColumnSorting,
   UndoRedo,
 } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from "../../test-license-key";
 
 export function init() {
   // register imported cell types and plugins
@@ -126,7 +127,7 @@ export function init() {
     manualColumnMove: true,
     customBorders: true,
     headerClassName: getDirectionFromURL() === "rtl" ? 'htRight' : 'htLeft',
-    licenseKey: "non-commercial-and-evaluation"
+    licenseKey: TEST_LICENSE_KEY
   });
 
   console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate})`);

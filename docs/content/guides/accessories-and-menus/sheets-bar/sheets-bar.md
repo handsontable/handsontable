@@ -323,6 +323,16 @@ For the `dataProvider` setup itself, see [Server-side data](@/guides/getting-sta
 
 To reference other sheets in a formula, give each sheet the same [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md#initialization-methods) engine instance and its own `sheetName`, in its `formulas` setting.
 
+The example below also turns on the [formula builder](@/guides/formulas/formula-builder/formula-builder.md), which adds a formula bar and an inline editor with colored references and autocomplete. Set `editor: 'formula'` and `formulaBuilder` at the grid level, outside `sheets`, so every sheet uses them. Select a cell in the **VAT** column of the **Budget** sheet to see its `Rates!B1` reference in the formula bar.
+
+::: only-for react
+
+The React wrapper reserves the `editor` prop for React component editors, so pass the `formula` editor in the `hotEditor` prop.
+
+:::
+
+You can type a reference to another sheet, such as `Rates!B1`, in the formula bar or the cell editor. Reference picking with the mouse or the arrow keys works only on the active sheet, so type references to other sheets by hand.
+
 ::: only-for javascript
 
 ::: example #example2 --js 1 --ts 2
