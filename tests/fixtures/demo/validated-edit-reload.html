@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - an edit waiting for its validator when the app reloads the data</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    /**
+     * The validator answers only when the spec releases it, the way a server-side uniqueness check
+     * answers later, so the spec decides whether the reload lands first.
+     */
+    window.htPending = [];
+    window.htEdits = [];
+
+    const heldValidator = function(value, callback) {
+      window.htPending.push({ value, callback });
+    };
+
+    /**
+     * Builds the rows the app shows. Each call returns new objects, so a reload holds other records
+     * than the grid showed before it.
+     */
+    function departmentRows() {
+      return [
+        { id: 'EMP-104', name: 'James Okafor', title: 'Senior Engineer' },
+        { id: 'EMP-221', name: 'Li Wei', title: 'Product Manager' },
+        { id: 'EMP-307', name: 'Priya Nair', title: 'Designer' },
+      ];
+    }
+
+    /**
+     * The rows a reload brings, ordered differently, so row 0 is another employee.
+     */
+    function reloadedRows() {
+      return [
+        { id: 'EMP-512', name: 'Sofia Rossi', title: 'Data Analyst' },
+        { id: 'EMP-104', name: 'James Okafor', title: 'Senior Engineer' },
+        { id: 'EMP-221', name: 'Li Wei', title: 'Product Manager' },
+      ];
+    }
+
+    let hot;
+
+    try {
+      hot = new Handsontable(container, {
+        data: departmentRows(),
+        columns: [
+          { data: 'id', readOnly: true, renderer: testIdRenderer },
+          { data: 'name', validator: heldValidator, renderer: testIdRenderer },
+          { data: 'title', validator: heldValidator, allowInvalid: false, renderer: testIdRenderer },
+        ],
+        colHeaders: ['ID', 'Name', 'Title'],
+        rowHeaders: true,
+        width: 600,
+        height: 'auto',
+        afterChange(changes, source) {
+          if (source === 'edit') {
+            window.htEdits.push(changes);
+          }
+        },
+        licenseKey: window.htTestLicenseKey,
+      });
+    } catch (error) {
+      container.setAttribute('data-init-error', String(error && error.message));
+
+      throw error;
+    }
+
+    window.hot = hot;
+    window.htLoaded = null;
+
+    /**
+     * Reloads the data the way an app's refresh does, with records in another order.
+     */
+    window.htReload = function() {
+      window.htLoaded = reloadedRows();
+      hot.loadData(window.htLoaded);
+    };
+
+    /**
+     * Answers the held validator of a value and reports whether one was waiting.
+     */
+    window.htAnswer = function(value, result) {
+      const index = window.htPending.findIndex(item => item.value === value);
+
+      if (index === -1) {
+        return false;
+      }
+
+      const [{ callback }] = window.htPending.splice(index, 1);
+
+      callback(result);
+
+      return true;
+    };
+
+    /**
+     * Reports the source rows the grid holds now, as plain objects.
+     */
+    window.htSourceData = function() {
+      return JSON.parse(JSON.stringify(hot.getSourceData()));
+    };
+
+    /**
+     * Reports the active editor's state.
+     */
+    window.htEditorState = function() {
+      const editor = hot.getActiveEditor();
+
+      return {
+        opened: Boolean(editor && editor.isOpened()),
+        waiting: Boolean(editor && editor.isWaiting()),
+      };
+    };
+  </script>
+</body>
+</html>

@@ -8,6 +8,7 @@ import MergedCellCoords from './cellCoords';
 import AutofillCalculations from './calculations/autofill';
 import SelectionCalculations from './calculations/selection';
 import toggleMergeItem from './contextMenuItem/toggleMerge';
+import { registerMenuEntries } from '../../utils/menu/menuEntries';
 import { arrayEach } from '../../helpers/array';
 import { deepClone, isObject, hasOwnProperty } from '../../helpers/object';
 import { warn } from '../../helpers/console';
@@ -468,8 +469,7 @@ export class MergeCells extends BasePlugin {
     this.addHook('afterRenderer',
       (TD: HTMLTableCellElement, row: number, col: number) => this.#cellRenderer.after(TD, row, col));
     this.addHook('beforeViewRender', this.#onBeforeViewRender);
-    this.addHook('afterContextMenuDefaultOptions',
-      (defaultOptions: { items: unknown[] }) => this.#addMergeActionsToContextMenu(defaultOptions));
+    registerMenuEntries(this, () => [toggleMergeItem(this)], { contextMenu: {} });
     this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
     this.addHook('afterViewportRowCalculatorOverride', this.#onAfterViewportRowCalculatorOverride);
     this.addHook('afterViewportColumnCalculatorOverride', this.#onAfterViewportColumnCalculatorOverride);
@@ -3021,20 +3021,6 @@ export class MergeCells extends BasePlugin {
       bottomEndColumn,
     ];
   };
-
-  /**
-   * `afterContextMenuDefaultOptions` hook callback.
-   *
-   * @param {object} defaultOptions The default context menu options.
-   */
-  #addMergeActionsToContextMenu(defaultOptions: { items: unknown[] }) {
-    defaultOptions.items.push(
-      {
-        name: '---------',
-      },
-      toggleMergeItem(this)
-    );
-  }
 
   /**
    * The `afterGetCellMeta` hook callback.

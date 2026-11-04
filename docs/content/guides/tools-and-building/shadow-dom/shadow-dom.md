@@ -63,7 +63,7 @@ class DataGridElement extends HTMLElement {
     ]).then(() => {
       this.hot = new Handsontable(container, {
         themeName: 'ht-theme-main',
-        licenseKey: 'non-commercial-and-evaluation',
+        // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
         // your configuration
       });
     });

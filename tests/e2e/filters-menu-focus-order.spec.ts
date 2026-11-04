@@ -322,7 +322,7 @@ test.describe('filters menu — keyboard focus order', { tag: THEMES_TAG }, () =
 
   test('hovering a plain menu row moves neither the focus nor the next Tab stop', async({ page }) => {
     // Hovering a menu row arms the submenu timers and re-bases the menu's page cursor
-    // (`beforeOnCellMouseOver` in `handsontable/src/plugins/contextMenu/menu/menu.ts`); it never moves
+    // (`beforeOnCellMouseOver` in `handsontable/src/utils/menu/menu/menu.ts`); it never moves
     // the highlight, which follows the keyboard only (a mouseover selects a cell only while the button
     // is down). So the focused component and the next Tab stop stay where they were. The cursor shows
     // once: the next Tab records it as the item the loop restores (#10603), so the loop ends on the

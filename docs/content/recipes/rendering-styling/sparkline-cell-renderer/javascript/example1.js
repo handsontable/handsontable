@@ -80,7 +80,7 @@ new Handsontable(container, {
   rowHeaders: true,
   minRowHeights: 44,
   colHeaders: ['Product', 'W1', 'W2', 'W3', 'W4', 'W5', 'Sparkline'],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   height: 'auto',
   width: '100%',
   columns: [

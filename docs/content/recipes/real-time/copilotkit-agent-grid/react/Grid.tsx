@@ -23,6 +23,7 @@ export type GridProps = {
 function GridImpl({ hotRef, initialColumns, initialData, themeName = 'ht-theme-main', onMutate }: GridProps) {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       ref={hotRef}
       themeName={themeName}
       // Passed once, then left alone. All mutations go through the instance; the grid is the source
@@ -34,7 +35,6 @@ function GridImpl({ hotRef, initialColumns, initialData, themeName = 'ht-theme-m
       width="100%"
       stretchH="all"
       formulas={{ engine: HyperFormula }}
-      licenseKey="non-commercial-and-evaluation"
       // Formula-safe interactive features: none of these reorder rows or columns, so the in-grid
       // formulas and the source-data snapshot stay correct.
       contextMenu={true}

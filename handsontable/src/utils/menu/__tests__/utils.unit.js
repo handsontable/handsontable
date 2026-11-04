@@ -6,7 +6,7 @@ import {
   MENU_ITEM_MIXED,
   prepareHorizontalAlignClass,
   prepareVerticalAlignClass,
-} from 'handsontable/plugins/contextMenu/utils';
+} from 'handsontable/utils/menu/utils';
 
 function createRange(coords) {
   return {
@@ -35,7 +35,7 @@ function createStoppableRange(coords) {
   };
 }
 
-describe('contextMenu/utils', () => {
+describe('utils/menu/utils', () => {
   describe('getSelectionCheckState', () => {
     const isFlagged = flagged => (row, col) => flagged.some(([r, c]) => r === row && c === col);
 

@@ -103,7 +103,14 @@ function InventoryGrid() {
     });
   }, []);
 
-  return <HotTable ref={hotRef} data={data} contextMenu licenseKey="non-commercial-and-evaluation" />;
+  return (
+    <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
+      ref={hotRef}
+      data={data}
+      contextMenu
+    />
+  );
 }
 ```
 

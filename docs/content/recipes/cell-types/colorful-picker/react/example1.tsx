@@ -219,13 +219,13 @@ export const ColorPickerEditor = () => {
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       colHeaders={['ID', 'Item Name', 'Item Color', 'Item No.', 'Cost', 'Value in Stock']}
       autoRowSize={true}
       rowHeaders={true}
       height="auto"
       width="100%"
-      licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data="id" type="numeric" width={80} className="htLeft" />
       <HotColumn data="itemName" type="text" width={200} className="htLeft" />

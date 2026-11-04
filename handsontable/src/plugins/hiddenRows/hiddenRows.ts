@@ -2,7 +2,7 @@ import { BasePlugin } from '../base';
 import { addClass, normalizeClassNames } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
-import { SEPARATOR } from '../contextMenu/predefinedItems';
+import { registerMenuEntries } from '../../utils/menu/menuEntries';
 import { Hooks } from '../../core/hooks';
 import { createTrackedIconSync } from '../../themes/engine/icons';
 import hideRowItem from './contextMenuItem/hideRow';
@@ -280,7 +280,12 @@ export class HiddenRows extends BasePlugin {
       this.#onMapInit();
     }
 
-    this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
+    registerMenuEntries(this, () => [
+      hideRowItem(this as unknown as Record<string, Function>),
+      showRowItem(this as unknown as Record<string, Function>),
+    ], {
+      contextMenu: {},
+    });
     this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
     this.addHook('modifyRowHeight', this.#onModifyRowHeight);
     this.addHook('afterGetRowHeader', this.#onAfterGetRowHeader);
@@ -720,21 +725,6 @@ export class HiddenRows extends BasePlugin {
       classList.includes('afterHiddenRow') ? 'caretHiddenDown' : null);
     this.#syncIcon(this.hot, TH, HIDDEN_INDICATOR_END_SLOT_CLASS,
       classList.includes('beforeHiddenRow') ? 'caretHiddenUp' : null);
-  };
-
-  /**
-   * Add Show-hide rows to context menu.
-   *
-   * @param {object} options An array of objects containing information about the pre-defined Context Menu items.
-   */
-  #onAfterContextMenuDefaultOptions = (options: Record<string, unknown>) => {
-    (options.items as unknown[]).push(
-      {
-        name: SEPARATOR
-      },
-      hideRowItem(this as unknown as Record<string, Function>),
-      showRowItem(this as unknown as Record<string, Function>)
-    );
   };
 
   /**

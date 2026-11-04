@@ -60,7 +60,7 @@ jobs:
   content-types:
     name: Examples types
     runs-on: ubuntu-26.04
-    timeout-minutes: 10
+    timeout-minutes: 30
     # PR-only: it diffs the changed examples against the merge ref's first parent.
     if: inputs.is-pr && (inputs.run-all || inputs.run-content-types)
     permissions:

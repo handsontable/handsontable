@@ -1,5 +1,5 @@
-import { createMenuItemRenderer } from 'handsontable/plugins/contextMenu/menu/menuItemRenderer';
-import { isItemChecked, isItemCheckable } from 'handsontable/plugins/contextMenu/menu/utils';
+import { createMenuItemRenderer } from 'handsontable/utils/menu/menu/menuItemRenderer';
+import { isItemChecked, isItemCheckable } from 'handsontable/utils/menu/menu/utils';
 
 const CHECK_MARK = String.fromCharCode(10003);
 const MIXED_MARK = String.fromCharCode(8211);

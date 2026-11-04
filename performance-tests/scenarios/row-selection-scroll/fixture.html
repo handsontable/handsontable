@@ -5,6 +5,7 @@
   <title>Row Selection Scroll</title>
   <link rel="stylesheet" href="../../fixtures/handsontable.css">
   <script src="../../fixtures/handsontable.full.js"></script>
+  <script src="../../fixtures/test-license-key.js"></script>
 </head>
 <body>
   <div id="hot"></div>
@@ -20,7 +21,7 @@
       // Defaults: checkboxes in a row header column. Every painted cell runs the plugin's
       // afterRenderer, and every row header the plugin's row header renderer.
       rowSelection: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     // Every other row selected: half the rows, and every viewport mixes selected and unselected

@@ -34,14 +34,14 @@ export class AppComponent {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 import { registerLanguageDictionary, enUS } from "handsontable/i18n";
 
 registerLanguageDictionary(enUS);
 registerAllModules();
 
 const globalHotConfig: HotGlobalConfig = {
-  license: NON_COMMERCIAL_LICENSE,
+  // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
   layoutDirection: "ltr",
   language: enUS.languageCode,
 };

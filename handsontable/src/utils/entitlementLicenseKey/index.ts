@@ -8,7 +8,8 @@ import {
   getProductCapabilities,
   hasCapability,
 } from './grants';
-import { HANDSONTABLE_PRODUCT, LISTED_CAPABILITIES_FLAG } from './constants';
+
+export { HANDSONTABLE_PRODUCT, LISTED_CAPABILITIES_FLAG, BADGE_FLAG } from './constants';
 
 export type {
   LicenseKeyFormat,
@@ -33,6 +34,4 @@ export {
   hasProductGrant,
   getProductCapabilities,
   hasCapability,
-  HANDSONTABLE_PRODUCT,
-  LISTED_CAPABILITIES_FLAG,
 };

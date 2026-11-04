@@ -90,7 +90,7 @@ const hotSettings: GridSettings = {
   // cell level: one cell in the Department column
   cell: [{ row: 1, col: 1, reviewer: 'Legal team' }],
   afterSelection: () => show(),
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 </script>
 

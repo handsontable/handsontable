@@ -24,7 +24,7 @@ import { DataProvider } from '../../dataProvider/dataProvider';
 import { registerCellType } from '../../../cellTypes/registry';
 import { CheckboxCellType } from '../../../cellTypes/checkboxType/checkboxType';
 import { SheetsBarMenus } from '../ui/menus';
-import { Menu } from '../../contextMenu/menu';
+import { Menu } from '../../../utils/menu/menu';
 import { SheetsBarUI } from '../ui/bar';
 import { TabStrip } from '../ui/tabStrip';
 import { TabDrag } from '../ui/tabDrag';

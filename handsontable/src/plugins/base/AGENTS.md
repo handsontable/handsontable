@@ -126,7 +126,7 @@ Details that bite:
   callback in `#hooks` so `disablePlugin()` can remove it; a hook registered straight on the instance
   survives `disablePlugin()` and can fire against a disabled plugin. **The exception is deliberate and
   real**: 20 `this.hot.addHook` / `addHookOnce` sites (`this.#hot` in `formulaBuilder/handsontableAdapter.ts`)
-  exist in 12 plugin files: checkboxHeader, columnSorting (3), columnSummary/endpoints, contextMenu/menu,
+  exist in 12 plugin files: checkboxHeader, columnSorting (3), columnSummary/endpoints, utils/menu/menu,
   customBorders, dropdownMenu, filters, formulaBuilder, formulaBuilder/handsontableAdapter (4), formulas (2),
   hiddenColumns (2) and hiddenRows (2). Get the current list with
   `grep -rnE "this\.#?hot\.addHook(Once)?\(" src/plugins --include='*.ts' | grep -v -e __tests__ -e plugins/base/`. Several

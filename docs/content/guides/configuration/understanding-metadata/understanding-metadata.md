@@ -197,7 +197,7 @@ Any key you add works like a built-in option. Set it on a level, then read it fr
 ```javascript
 const hot = new Handsontable(container, {
   data: employees,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   reviewer: 'HR team',
   columns: [{}, { reviewer: 'Finance team' }, {}],
 });

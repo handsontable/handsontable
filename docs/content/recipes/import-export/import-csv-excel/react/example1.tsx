@@ -191,7 +191,7 @@ async function parseXlsxFile(file: File): Promise<ParsedPayload> {
   const parser = new Handsontable(host, {
     data: [[]],
     importFile: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   });
 
   try {
@@ -403,13 +403,13 @@ const ExampleComponent = () => {
         </div>
       ) : (
         <HotTable
+          // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
           data={gridData}
           columns={gridColumns}
           colHeaders={gridColHeaders}
           rowHeaders={true}
           height="auto"
           width="100%"
-          licenseKey="non-commercial-and-evaluation"
         />
       )}
     </div>

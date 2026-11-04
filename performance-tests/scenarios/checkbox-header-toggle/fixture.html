@@ -5,6 +5,7 @@
   <title>Checkbox Header Toggle</title>
   <link rel="stylesheet" href="../../fixtures/handsontable.css">
   <script src="../../fixtures/handsontable.full.js"></script>
+  <script src="../../fixtures/test-license-key.js"></script>
 </head>
 <body>
   <div id="hot"></div>
@@ -41,7 +42,7 @@
       height: 600,
       autoRowSize: false,
       autoColumnSize: false,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
     window.__hot = hot;
   </script>

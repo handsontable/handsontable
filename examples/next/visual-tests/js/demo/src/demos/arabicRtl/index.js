@@ -2,6 +2,7 @@ import Handsontable from 'handsontable';
 import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
 import { generateArabicData } from './data';
 import { getThemeNameFromURL } from '../../utils';
+import { TEST_LICENSE_KEY } from '../../test-license-key';
 
 export function init() {
   registerLanguageDictionary(arAR);
@@ -12,7 +13,7 @@ export function init() {
   root.appendChild(container);
 
   new Handsontable(container, {
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     data: generateArabicData(),
     themeName: getThemeNameFromURL(),
     width: 700,

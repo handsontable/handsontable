@@ -33,4 +33,11 @@ describe('xlsxEngine model factories', () => {
       comment: null,
     });
   });
+
+  it('should not set the optional valueIsError on a new cell', () => {
+    expect(Object.keys(createCellSnapshot())).toEqual(
+      ['value', 'formula', 'numFmt', 'style', 'validation', 'locked', 'comment']
+    );
+    expect('valueIsError' in createCellSnapshot()).toBe(false);
+  });
 });

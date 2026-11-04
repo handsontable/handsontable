@@ -181,6 +181,7 @@ const data = [
 export default function FluentHotTable() {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       theme={fluentDataGridTheme}
       data={data}
       colHeaders={['Team', 'Owner', 'Status', 'Priority']}
@@ -189,7 +190,6 @@ export default function FluentHotTable() {
       height="auto"
       dropdownMenu={true}
       filters={true}
-      licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data="team" width={180} />
       <HotColumn data="owner" width={140} />

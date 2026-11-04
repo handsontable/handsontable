@@ -239,6 +239,19 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   the old index, its value lands in the record that moved there, and that record's own request is canceled
   as `'rowRemoved'` (the state also blocks any id'd state that has to move to its index). Known limit, the
   same as before the fix. Pinned by the "with row ids and an in-place splice" block in `__tests__/writes.unit.ts`.
+- **A change set the Core drops ends its flights as failed.** When `loadData()` replaces the data while a
+  written value waits for its validator, the Core drops the whole set: no `afterChange`, and no tuple is
+  spliced out of the list, so neither `#onFlightLanded` nor `#onPostAfterValidate` ends the flight. On a
+  row whose id survives the load the flight stayed queued, its kept write stayed unlanded, and an
+  `undo: 'record'` call never finalized: no step, even for the cells that landed. `#onChangesDropped`,
+  added through the Core's `@private` `_addDroppedChangesListener()` in `enablePlugin()` and removed in
+  `disablePlugin()` and `destroy()`, ends every queued flight whose `flight.changes` is the dropped array,
+  the way a rejection does. Walking the tuples still in the array is not enough: a tuple rejected under
+  `allowInvalid: false` was spliced out before the drop, and `#onPostAfterValidate` looks its row up by
+  the visual row the validation started with, which a load that reorders the ids hands to another record.
+  The call's promise still reports `resolved` (the value was passed to the grid), as for a rejected value.
+  Pinned by "should record a call whose earlier write a data load dropped while its validator ran" and
+  "should record a call whose dropped write lost a rejected tuple after a load reordered the rows".
 - **A load is guarded by `#replacingData`.** A load's spare rows fire `afterCreateRow` before `afterLoadData`,
   and the requests belong to the replacement, not to a row removal. A load that throws never reaches
   `after*Data`, so a microtask queued in `before*Data` clears the flag and runs the replacement as a load.

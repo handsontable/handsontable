@@ -10,7 +10,7 @@ const status = document.querySelector('#example1-status');
 const button = document.querySelector('#example1-set-reviewer');
 
 const hot = new Handsontable(container, {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: [
     ['Ana García', 'Engineering', 'Senior Engineer'],
     ['James Okafor', 'Marketing', 'Product Manager'],

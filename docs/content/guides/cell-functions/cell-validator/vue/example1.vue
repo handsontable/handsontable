@@ -79,7 +79,7 @@ const hotSettings = ref<GridSettings>({
   },
   colHeaders: ['ID', 'First name', 'Last name', 'IP', 'E-mail'],
   height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   columns: [
     { data: 'id', type: 'numeric' },
     { data: 'name.first' },

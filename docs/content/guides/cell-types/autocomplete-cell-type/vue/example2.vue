@@ -109,7 +109,7 @@ const hotSettings = ref<GridSettings>({
       allowInvalid: true, // true is default
     },
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   sanitizer: sanitizeHeader,
 });
 </script>

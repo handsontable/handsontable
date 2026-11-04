@@ -32,7 +32,7 @@ const container = document.querySelector("#example1")!;
 
 const hotOptions: Handsontable.GridSettings = {
   data,
-  licenseKey: "non-commercial-and-evaluation",
+  // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
   rowHeaders: true,
   colHeaders: ["Task", "Owner", "Status"],
   height: "auto",

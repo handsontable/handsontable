@@ -437,10 +437,10 @@ Use the editor component in your `HotTable`:
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       autoRowSize={true}
       rowHeaders={true}
       autoWrapRow={true}
-      licenseKey="non-commercial-and-evaluation"
       height="auto"
       data={data}
       colHeaders={true}

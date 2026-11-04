@@ -1,4 +1,4 @@
-import type { Menu } from '../../contextMenu/menu/menu';
+import type { Menu } from '../../../utils/menu/menu/menu';
 import { createFocusNavigator } from './focusNavigator';
 import { SelectUI } from '../ui/select';
 import { BaseUI } from '../ui/_base';
