@@ -335,4 +335,85 @@ $license-badge-dot: "data:image/svg+xml;charset=utf-8,%3Csvg width='11.1415' hei
       overflow-wrap: break-word;
     }
   }
+
+  // The "Powered by Handsontable DataGrid" bar (DEV-3413, Figma `license-key`, node 1424:19574): shown
+  // for a trial key and a key with the `badge` flag, last in the bottom slot. It takes the license
+  // warning bar's tokens (`_license-notification.scss`), which resolve to the shared bar tokens - 8px x
+  // 16px padding, 12px / 18px text at the default density. The literals are the no-theme fallbacks.
+  // A flex row, so the line box adds no baseline space under the link: the bar is its padding plus the
+  // 18px line (Figma). As a slot item it also carries the grid frame's side and bottom borders.
+  .ht-license-powered-by {
+    @include mixins.font-family;
+
+    display: flex;
+    align-items: center;
+    padding: var(--ht-license-vertical-padding, 8px) var(--ht-license-horizontal-padding, 16px);
+    font-size: var(--ht-font-size-small, 12px);
+    line-height: var(--ht-line-height-small, 18px);
+    color: var(--ht-license-foreground-color, #222);
+    background-color: var(--ht-license-background-color, #f7f7f9);
+    text-align: start;
+  }
+
+  // One link wraps the logomark and the text, so the text is the link's accessible name. The text keeps
+  // the bar's color, and hovering changes nothing: Figma draws no hover state for the bar (its hover
+  // state is the corner badge's). The focus ring is what a keyboard user gets (2.4.7).
+  // Scoped under the bar: the bar carries the `handsontable` class, and `.handsontable a` would
+  // otherwise paint the text and the "H" in the link color, and underline it on hover.
+  // Top-aligned, with the logomark centered on the FIRST line (see its margin below): on one line that
+  // is the Figma position, and a grid narrower than the text wraps it without the mark drifting down to
+  // the middle of the block.
+  .ht-license-powered-by .ht-license-powered-by__link {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 8px;
+    color: inherit;
+    text-decoration: none;
+
+    &:hover {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--ht-accent-color);
+      outline-offset: 2px;
+    }
+  }
+
+  // The logomark: the same mask and blue-dot layer as the corner glyph and the lock strip, at the mark's
+  // own 11.1415:16 proportions. The "H" is the brand mark's own black (Figma fills it `black`, not with
+  // the bar's #222 text color), turned white under a dark color scheme so it stays visible; like the
+  // brand-blue dot, it is a fixed logo color, not a theme token. The themes set `color-scheme`, so
+  // `light-dark()` follows the theme's mode.
+  .ht-license-powered-by__logo {
+    flex-shrink: 0;
+    inline-size: 11.1415px;
+    block-size: 16px;
+    // Centers the 16px mark on the first line box: 1px under an 18px line, none under a 16px one.
+    margin-block-start: max(0px, calc((var(--ht-line-height-small, 18px) - 16px) / 2));
+    background-color: light-dark(#000, #fff);
+    background-image: url($license-badge-dot);
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    -webkit-mask-image: url($license-badge-icon);
+    mask-image: url($license-badge-icon);
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+  }
+
+  // Forced colors replace the background with Canvas, which would hide the masked "H": opt the mark out
+  // and paint it in the text color of the scheme.
+  @media (forced-colors: active) {
+    .ht-license-powered-by__logo {
+      forced-color-adjust: none;
+      background-color: CanvasText;
+      background-image: none;
+    }
+  }
 }

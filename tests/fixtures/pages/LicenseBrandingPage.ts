@@ -16,7 +16,8 @@ export const INSTANT = {
 
 type LicenseKeyName = 'trial' | 'trial-external' | 'subscription' |
   'tampered' | 'legacy-expired' | 'legacy-expired-padded' | 'non-commercial' | 'missing' |
-  'edited-prose' | 'subscription-pasted' | 'subscription-wrapped' | 'subscription-padded' | 'trial-v1';
+  'edited-prose' | 'subscription-pasted' | 'subscription-wrapped' | 'subscription-padded' | 'trial-v1' |
+  'sponsored-badge' | 'sponsored-badge-external' | 'sponsored-no-badge';
 export interface PixelBox { minX: number; maxX: number; minY: number; maxY: number }
 
 type Variant = 'default' | 'no-row-headers' | 'no-headers-frozen' | 'narrow-corner' | 'dialog' |
@@ -43,6 +44,10 @@ export class LicenseBrandingPage {
   readonly popoverTitle: Locator;
   readonly popoverClose: Locator;
   readonly bar: Locator;
+  readonly poweredBy: Locator;
+  readonly poweredByLink: Locator;
+  readonly poweredByLogo: Locator;
+  readonly poweredByText: Locator;
   readonly lock: Locator;
   readonly outsideField: Locator;
   readonly lockContactButton: Locator;
@@ -62,6 +67,11 @@ export class LicenseBrandingPage {
     this.popoverTitle = page.locator('.ht-license-popover__title');
     this.popoverClose = page.locator('.ht-license-popover__close');
     this.bar = page.locator('.hot-display-license-info');
+    // DEV-3413: the "Powered by Handsontable DataGrid" bar, apart from the license warning bar above.
+    this.poweredBy = page.locator('.ht-license-powered-by');
+    this.poweredByLink = this.poweredBy.getByRole('link', { name: 'Powered by Handsontable DataGrid' });
+    this.poweredByLogo = this.poweredBy.locator('.ht-license-powered-by__logo');
+    this.poweredByText = this.poweredBy.locator('.ht-license-powered-by__text');
     this.lock = page.locator('.ht-license-lock');
     // Links, not buttons: a `mailto:` action must be a real anchor (see lockScreen.ts).
     // A field the host page owns, above the grid, focused before the grid is
@@ -121,6 +131,79 @@ export class LicenseBrandingPage {
   }
 
   /**
+   * Clicks one part of the "Powered by" bar's link and returns the tab the click opened. The page
+   * answers handsontable.com itself, so the test needs no network.
+   */
+  async clickPoweredBy(part: 'logo' | 'text'): Promise<Page> {
+    const context = this.page.context();
+
+    await context.route('https://handsontable.com/**', route => route.fulfill({
+      status: 200,
+      contentType: 'text/html',
+      body: '<title>handsontable.com</title>',
+    }));
+
+    const [opened] = await Promise.all([
+      context.waitForEvent('page'),
+      (part === 'logo' ? this.poweredByLogo : this.poweredByText).click(),
+    ]);
+
+    return opened;
+  }
+
+  /**
+   * The geometry, the colors and the text style of the "Powered by" bar, read in one evaluation so
+   * every value describes the same frame. The bar is a bottom-slot item, which carries the grid
+   * frame's side and bottom borders, so the bar's height and the logomark's offsets are measured inside
+   * the border (the padding box), where the Figma frame's values apply. Sizes are rounded to a tenth of
+   * a pixel.
+   */
+  async poweredByGeometry(): Promise<{
+    barHeight: number; paddingTop: number; paddingInlineStart: number;
+    logoWidth: number; logoHeight: number; logoOffsetX: number; logoOffsetY: number;
+    textOffsetX: number; textOffsetY: number;
+    gap: number; fontSize: string; lineHeight: string; maskImage: string;
+    textColor: string; logoColor: string; barColor: string; barBackground: string;
+    isLastInSlot: boolean; slotClasses: string[];
+  }> {
+    return this.poweredBy.evaluate((bar) => {
+      const round = (value: number) => Math.round(value * 10) / 10;
+      const logo = bar.querySelector('.ht-license-powered-by__logo') as HTMLElement;
+      const text = bar.querySelector('.ht-license-powered-by__text') as HTMLElement;
+      const barBox = bar.getBoundingClientRect();
+      const logoBox = logo.getBoundingClientRect();
+      const textBox = text.getBoundingClientRect();
+      const barStyle = getComputedStyle(bar);
+      const textStyle = getComputedStyle(text);
+      const slot = bar.parentElement as HTMLElement;
+      const paddingBoxLeft = barBox.left + bar.clientLeft;
+      const paddingBoxTop = barBox.top + bar.clientTop;
+
+      return {
+        barHeight: round(bar.clientHeight),
+        paddingTop: round(parseFloat(barStyle.paddingTop)),
+        paddingInlineStart: round(parseFloat(barStyle.paddingInlineStart)),
+        logoWidth: round(logoBox.width),
+        logoHeight: round(logoBox.height),
+        logoOffsetX: round(logoBox.left - paddingBoxLeft),
+        logoOffsetY: round(logoBox.top - paddingBoxTop),
+        textOffsetX: round(textBox.left - paddingBoxLeft),
+        textOffsetY: round(textBox.top - paddingBoxTop),
+        gap: round(textBox.left - logoBox.right),
+        fontSize: textStyle.fontSize,
+        lineHeight: textStyle.lineHeight,
+        maskImage: getComputedStyle(logo).maskImage,
+        textColor: textStyle.color,
+        logoColor: getComputedStyle(logo).backgroundColor,
+        barColor: barStyle.color,
+        barBackground: barStyle.backgroundColor,
+        isLastInSlot: slot.lastElementChild === bar,
+        slotClasses: Array.from(slot.children).map(child => child.className),
+      };
+    });
+  }
+
+  /**
    * The mask and the background layers of the logomark the lock screen paints in its header strip
    * (the lock's own `::after`), and the size of its box.
    */
@@ -146,7 +229,51 @@ export class LicenseBrandingPage {
   async cornerGlyphPaint(cell: Locator = this.cornerHeaderCell): Promise<{
     blue: PixelBox | null; ink: PixelBox | null;
   }> {
-    const png = (await cell.screenshot()).toString('base64');
+    return this.#paintBoxes(await cell.screenshot());
+  }
+
+  /**
+   * Where the "Powered by" bar's logomark paints its gray "H" and its blue dot. The logomark box is
+   * no larger than the mark, so the capture takes 4px of the bar around it: the pixel analysis reads
+   * the background from the capture's edge, which must lie outside the mark.
+   */
+  async poweredByLogoPaint(): Promise<{ blue: PixelBox | null; ink: PixelBox | null }> {
+    const box = await this.poweredByLogo.boundingBox();
+
+    if (!box) {
+      throw new Error('The "Powered by" logomark is not laid out.');
+    }
+
+    return this.#paintBoxes(await this.page.screenshot({
+      clip: { x: box.x - 4, y: box.y - 4, width: box.width + 8, height: box.height + 8 },
+    }));
+  }
+
+  /**
+   * The heights the fixture's `height: 200` is spent on, read in one evaluation: the root element (the
+   * grid's own box) and the bottom slot (the license bars).
+   */
+  async heightBudget(): Promise<{ root: number; bottomSlot: number }> {
+    return this.page.evaluate(() => {
+      const hot = (window as any).hot;
+
+      return { root: hot.rootElement.offsetHeight, bottomSlot: hot.rootSlotBottomElement.offsetHeight };
+    });
+  }
+
+  /**
+   * Select one cell through the grid's own API.
+   */
+  async selectCell(row: number, column: number): Promise<void> {
+    await this.page.evaluate(([r, c]) => (window as any).hot.selectCell(r, c), [row, column]);
+  }
+
+  /**
+   * Finds the blue and the neutral-gray pixels of a PNG capture, as boxes in its own pixels. The
+   * background is read 3px inside the capture's top-left corner.
+   */
+  async #paintBoxes(capture: Buffer): Promise<{ blue: PixelBox | null; ink: PixelBox | null }> {
+    const png = capture.toString('base64');
 
     return this.page.evaluate(async (base64) => {
       const bitmap = await createImageBitmap(await (await fetch(`data:image/png;base64,${base64}`)).blob());

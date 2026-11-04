@@ -10,6 +10,15 @@ export const SUPPORT_MAILTO = 'mailto:support@handsontable.com';
 export const LICENSE_KEY_DOCS_URL = 'https://handsontable.com/docs/tutorial-license-key.html';
 
 /**
+ * The copy of the "Powered by" bar: one link to the product site, with the logomark in front of the
+ * text. The text is the link's accessible name, so it stays visible and is never replaced by the logo.
+ */
+export const POWERED_BY_CONTENT = {
+  text: 'Powered by Handsontable DataGrid',
+  href: 'https://handsontable.com',
+};
+
+/**
  * The copy of one badge popover: its title, body (interpolated from the lifecycle facet), and the
  * action link. `dismissible` marks the auto-opening popovers (the stops) that carry a close (X)
  * button; the others are hover/focus tooltips.
