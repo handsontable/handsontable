@@ -3,6 +3,7 @@ import { markRaw } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import { HyperFormula } from 'hyperformula';
+import * as formulaBuilder from 'hyperformula-ui';
 import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
@@ -53,6 +54,11 @@ const hotSettings: GridSettings = {
   colHeaders: true,
   stretchH: 'all',
   height: 240,
+  editor: 'formula',
+  formulaBuilder: {
+    builder: formulaBuilder,
+    showFormulaBar: true,
+  },
   // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 </script>

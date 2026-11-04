@@ -2,6 +2,7 @@
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 import { HyperFormula } from 'hyperformula';
+import * as formulaBuilder from 'hyperformula-ui';
 
 // One engine, shared by every sheet of the workbook.
 const engine = HyperFormula.buildEmpty({
@@ -60,6 +61,11 @@ export class AppComponent {
     colHeaders: true,
     stretchH: 'all',
     height: 240,
+    editor: 'formula',
+    formulaBuilder: {
+      builder: formulaBuilder,
+      showFormulaBar: true,
+    },
   };
 }
 /* end-file */
