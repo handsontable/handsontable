@@ -15,6 +15,7 @@ import {
 } from './contextMenuItem';
 import {
   createId,
+  createContextMenuCustomBorder,
   createDefaultCustomBorder,
   createSingleEmptyBorder,
   createEmptyBorders,
@@ -128,7 +129,9 @@ const DEFAULT_PROGRESSIVE_CHUNK_SIZE = 5000;
  *
  * The plugin also integrates with the {@link ContextMenu} plugin. Adding `'borders'` to the
  * [`contextMenu`](@/api/options.md#contextmenu) items enables users to apply or remove borders on selected cells
- * directly from the right-click menu.
+ * directly from the right-click menu. A border added from the menu is 1px wide and takes its color from the
+ * `--ht-custom-borders-default-color` theme variable, so it stays visible in dark color schemes. Its stored
+ * `color` is `'var(--ht-custom-borders-default-color, #000)'`, which falls back to black when no theme is loaded.
  *
  * See [`customBorders` configuration option](@/api/options.md#customBorders) or go to
  * [Custom cell borders demo](@/guides/cell-features/formatting-cells/formatting-cells.md#custom-cell-borders) for more examples.
@@ -1101,7 +1104,7 @@ export class CustomBorders extends BasePlugin {
       }
 
     } else {
-      bordersMeta[place] = createDefaultCustomBorder();
+      bordersMeta[place] = createContextMenuCustomBorder();
 
       // The meta is written first so a vetoed write leaves the model untouched.
       if (this.#writeBordersMeta(row, column, denormalizeBorder(bordersMeta))) {

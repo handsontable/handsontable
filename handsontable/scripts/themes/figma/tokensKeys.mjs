@@ -67,6 +67,9 @@ const tokensKeys = [
   'cell-autofill-background-color',
   'cell-autofill-fill-border-color',
 
+  // Custom Borders Variables
+  'custom-borders-default-color',
+
   // Cell Editor Variables
   'cell-editor-border-width',
   'cell-editor-border-color',

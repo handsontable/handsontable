@@ -665,7 +665,7 @@ describe('CustomBorders (RTL mode)', () => {
     await selectContextSubmenuOption('Borders', 'Top');
     await deselectCell();
 
-    expect(getCellMeta(0, 0).borders.top).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(0, 0).borders.top).toEqual(CONTEXT_MENU_BORDER);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.start).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.end).toEqual(EMPTY);
@@ -687,7 +687,7 @@ describe('CustomBorders (RTL mode)', () => {
     expect(getCellMeta(0, 0).borders.top).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.start).toEqual(EMPTY);
-    expect(getCellMeta(0, 0).borders.end).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(0, 0).borders.end).toEqual(CONTEXT_MENU_BORDER);
     expect(countVisibleCustomBorders()).toBe(1);
     expect(countCustomBorders()).toBe(5);
   });
@@ -704,7 +704,7 @@ describe('CustomBorders (RTL mode)', () => {
 
     expect(getCellMeta(0, 0).borders.top).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
-    expect(getCellMeta(0, 0).borders.start).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(0, 0).borders.start).toEqual(CONTEXT_MENU_BORDER);
     expect(getCellMeta(0, 0).borders.end).toEqual(EMPTY);
     expect(countVisibleCustomBorders()).toBe(1);
     expect(countCustomBorders()).toBe(5);
@@ -721,7 +721,7 @@ describe('CustomBorders (RTL mode)', () => {
     await deselectCell();
 
     expect(getCellMeta(0, 0).borders.top).toEqual(EMPTY);
-    expect(getCellMeta(0, 0).borders.bottom).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(0, 0).borders.bottom).toEqual(CONTEXT_MENU_BORDER);
     expect(getCellMeta(0, 0).borders.start).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.end).toEqual(EMPTY);
     expect(countVisibleCustomBorders()).toBe(1);

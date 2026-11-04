@@ -349,6 +349,28 @@ cache has resumed. It replaced a `clearBorders()` plus `setBorders()` replay of 
 which lost every border on a filtered row. Pinned by the sorted-sheet and moved-column cases in
 `../sheetsBar/__tests__/cellMetaRoundTrip.unit.js`. The bar's side of it is in `../sheetsBar/AGENTS.md`.
 
+## A border added from the context menu stores a `var()` color
+
+`setBorder()` (the menu path) writes `createContextMenuCustomBorder()`: width 1 and `color:
+'var(--ht-custom-borders-default-color, #000)'` (`CONTEXT_MENU_BORDER_COLOR`). Walkontable paints a border
+with an inline `background-color`, so a stylesheet rule can never recolor it: the theme token has to travel
+inside the stored value. The token's light branch is `#000` in every theme, so light grids look as before,
+and the `#000` fallback covers a grid with no theme loaded.
+
+- **Only the menu path uses it.** `createDefaultCustomBorder()` (a configured side given as `true`, `''` or
+  `{}`) and Walkontable's `changeBorderToDefaultStyle` keep `#000`: that is the documented default of the
+  `customBorders` option, and changing a default is a breaking change.
+- **`getBorders()` and `getCellMeta().borders` return the `var()` string** for a menu border. The XLSX
+  export maps this string to black (`FF000000`, `cssColorToArgb`), which is the right Excel value.
+- **The token is not in Figma yet.** It is in the four theme layers and in `scripts/themes/figma/tokensKeys.mjs`,
+  but `npm run generate:themes` drops a key the Figma export lacks, silently. The `#000` fallback then takes
+  over and the menu border turns invisible in dark schemes again. Add it in Figma before regenerating, or
+  re-add it by hand. The guard is the dark-scheme case of `CustomBorders added from the context menu` in
+  `tests/e2e/customBorders.spec.ts`.
+- **The name says "default" on purpose:** it is the color a border gets when nobody picked one. Today only
+  the menu path reads it; moving the configured default (`top: true`) onto it would change a documented
+  default, so it waits for a major release.
+
 ## `width: 0` is a real value
 
 Walkontable honors an explicit `width: 0` (DEV-1137). See `../../3rdparty/walkontable/AGENTS.md`
