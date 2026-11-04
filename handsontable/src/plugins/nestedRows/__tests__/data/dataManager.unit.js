@@ -260,10 +260,19 @@ describe('DataManager#getRowSetPosition', () => {
       expect(dataManager.getRowsToKeepForMatches([2])).toEqual([0, 2, 3, 4]);
     });
 
-    it('should ignore a matched row that is out of range', () => {
+    it('should keep a matched row past the cache and ignore a negative one', () => {
       const dataManager = dataManagerWith(sampleTree());
 
-      expect(dataManager.getRowsToKeepForMatches([99, -1])).toEqual([]);
+      expect(dataManager.getRowsToKeepForMatches([99, -1])).toEqual([99]);
+    });
+
+    it('should keep every match while the cache is empty', () => {
+      const dataManager = dataManagerWith(sampleTree());
+
+      // The flatten cache is empty before the first load of a tree, for example during a sheet switch.
+      dataManager.cache.rows = [];
+
+      expect(dataManager.getRowsToKeepForMatches([0, 3])).toEqual([0, 3]);
     });
   });
 });

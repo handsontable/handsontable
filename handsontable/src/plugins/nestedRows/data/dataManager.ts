@@ -683,21 +683,24 @@ class DataManager {
    * @returns {number[]} Physical indexes of the rows to keep, ascending.
    */
   getRowsToKeepForMatches(matchedRows: number[]): number[] {
-    const rowCount = this.cache.rows.length;
+    const cachedRowCount = this.cache.rows.length;
+    // A match past the cache (an empty or stale cache) still stays, so the range covers it too. The
+    // Filters plugin bounds the answer by the source row count.
+    const rowCount = matchedRows.reduce((count, row) => Math.max(count, row + 1), cachedRowCount);
     const isKept = new Uint8Array(rowCount);
     // Set for a match and its descendants, whose subtrees are kept already. An ancestor is only in
     // `isKept`, because its other children are not kept with it.
     const isSubtreeKept = new Uint8Array(rowCount);
 
     matchedRows.forEach((matchedRow) => {
-      if (matchedRow < 0 || matchedRow >= rowCount || isSubtreeKept[matchedRow] === 1) {
+      if (matchedRow < 0 || isSubtreeKept[matchedRow] === 1) {
         return;
       }
 
       // A match always stays, whatever the cache knows about it.
       isKept[matchedRow] = 1;
 
-      const level = this.getRowLevel(matchedRow);
+      const level = matchedRow < cachedRowCount ? this.getRowLevel(matchedRow) : null;
 
       if (level === null) {
         return;
@@ -707,7 +710,7 @@ class DataManager {
 
       // The cache is flattened depth-first, so the descendants are the rows right after the match
       // that sit deeper than it.
-      for (let row = matchedRow + 1; row < rowCount; row++) {
+      for (let row = matchedRow + 1; row < cachedRowCount; row++) {
         const rowLevel = this.getRowLevel(row);
 
         if (rowLevel === null || rowLevel <= level) {
