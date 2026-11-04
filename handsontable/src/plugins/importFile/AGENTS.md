@@ -550,6 +550,14 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   the export's `namesUsedIn`): the `G` of `$G$2`, `G$2` or `G:G`. `$` is not a name character, so the
   regex hands that `G` over as a word, and a one-letter name the ExcelJS reader flagged would
   otherwise send every such formula to its cached value.
+- **A cached rich error HyperFormula does not know imports as `#VALUE!`** (DEV-3665, `cachedValueOf`,
+  `MapperContext.recognizesErrorCode`). The native reader writes the code of an error Excel stores as a
+  rich value (`#CALC!`, `#FIELD!`, ...) over the `#VALUE!` the file caches; HF reads only its language's
+  error table (`engine.constructor.getLanguage(language).errors`, wired by `errorCodeCheck`) as errors, so
+  `#CALC!` went in as TEXT and `=IFERROR(E1,"none")` answered `#CALC!`. Only with the Formulas plugin
+  on (off, the grid shows the real code), and never for an `OOXML_ERROR_CODES` code: a file caches
+  those as they are, and remapping one for a non-English engine (`#DIV/0!` is `#DZIEL/0!` in `plPL`)
+  would change a value the reader did not write.
 - **A formula calling `ANCHORARRAY` or `SINGLE` imports its cached value** (DEV-3648, `callsSpillOperator`
   in `pushCellValue`, `formula:spillReference`). Excel stores the spill operator `B1#` as
   `_xlfn.ANCHORARRAY(B1)` and implicit intersection `@A1:A3` as `_xlfn.SINGLE(A1:A3)`; both readers hand
