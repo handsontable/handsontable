@@ -362,11 +362,12 @@ and the `#000` fallback covers a grid with no theme loaded.
   documented default of the `customBorders` option, and changing a default is a breaking change.
 - **`getBorders()` and `getCellMeta().borders` return the `var()` string** for a menu border. The XLSX
   export maps this string to black (`FF000000`, `cssColorToArgb`), which is the right Excel value.
-- **The token is not in Figma yet.** It is in the four theme layers and in `scripts/themes/figma/tokensKeys.mjs`,
-  but `npm run generate:themes` drops a key the Figma export lacks, silently. The `#000` fallback then takes
-  over and the menu border turns invisible in dark schemes again. Add it in Figma before regenerating, or
-  re-add it by hand. The guard is the dark-scheme case of `CustomBorders added from the context menu` in
-  `tests/e2e/customBorders.spec.ts`.
+- **The token lives in Figma too:** `component/cell/custom-borders-default-color` in the `themes` collection,
+  aliasing `<theme>/custom/custom-borders-default` in the `mode` collection (light is the theme's black, dark
+  is its foreground step). `npm run generate:themes` reproduces it from the export. If an export ever lacks
+  it, the generator drops the key silently, the `#000` fallback takes over, and the menu border turns
+  invisible in dark schemes again. The guard is `src/themes/__tests__/customBordersDefaultColor.unit.js` and
+  the dark-scheme case of `CustomBorders added from the context menu` in `tests/e2e/customBorders.spec.ts`.
 - **The name says "default" on purpose:** it is the color a border gets when nobody picked one. Today only
   the menu path reads it; moving the configured default (`top: true`) onto it would change a documented
   default, so it waits for a major release.
