@@ -291,7 +291,8 @@ Each license behaves differently around its date:
 ### Trial keys
 
 A trial key is time-boxed. During the trial, the grid shows the Handsontable badge in its top-left
-corner. Hover over the badge to see the trial status. Once the key's notice period begins, the
+corner and the [Powered by Handsontable DataGrid bar](#powered-by-handsontable-datagrid-bar) below
+the table. Hover over the badge to see the trial status. Once the key's notice period begins, the
 console starts warning how many days remain - on a standard 45-day trial that is from day one. On
 the last licensed day the warning says the key expires today, because that day is still licensed in
 full. After the expiration date, a message opens next to the badge and below the grid, and the console
@@ -314,6 +315,16 @@ A perpetual key works like the 25-character commercial keys: its maintenance dat
 against the build date of your Handsontable version, never against the current date. You can use the
 versions released on or before that date indefinitely, including offline. On a newer version, the
 console reports an error and the grid shows a notice below the table.
+
+### Powered by Handsontable DataGrid bar
+
+A trial key, and a key whose license terms ask for it, show a bar below the table that reads
+"Powered by Handsontable DataGrid" next to the Handsontable logo. The bar links to
+[handsontable.com](https://handsontable.com) and sits below any license message.
+
+The bar is not a warning, so it shows on a key issued for use in an application for external users
+too, and no option turns it off. Every other key shows no bar. The grid keeps the height you set:
+the bar takes its room from the grid, as the pagination bar does.
 
 ## Keys that list features
 
