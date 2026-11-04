@@ -1,6 +1,6 @@
 import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
-import { checkSelectionConsistency, getSelectionCheckState } from '../../contextMenu/utils';
+import { checkSelectionConsistency, getSelectionCheckState } from '../../../utils/menu/utils';
 import { hasCommentAtCell, hasCommentInMeta, type CommentCellMeta } from '../utils';
 import { META_COMMENT, META_READONLY } from '../constants';
 import type { Comments } from '../comments';

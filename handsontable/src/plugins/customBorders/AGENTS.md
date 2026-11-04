@@ -372,8 +372,8 @@ breaks** — that is expected; update the assertion and reference the issue.
 ## Where to look next
 
 - The rendered border primitive: `../../3rdparty/walkontable/AGENTS.md` (custom selections / Border).
-- Menu entries: `contextMenuItem/` (`top`, `bottom`, `left`, `right`, `noBorders`), wired via
-  `../contextMenu/AGENTS.md`.
+- Menu entries: `contextMenuItem/` (`top`, `bottom`, `left`, `right`, `noBorders`), registered through
+  `registerMenuEntries()` (`../../utils/menu/AGENTS.md`).
 - Snapshot/restore behavior: `../undoRedo/AGENTS.md`.
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
 

@@ -1,5 +1,5 @@
 import { arrayEach } from '../../helpers/array';
-import { SEPARATOR } from '../contextMenu/predefinedItems';
+import { SEPARATOR } from '../../utils/menu/predefinedItems';
 import { getConditionDescriptor } from './conditionRegisterer';
 import { applyAvailableConditionsRule, resolveAvailableConditionsRule } from './availableConditions';
 

@@ -1,4 +1,4 @@
-import { CommandExecutor } from 'handsontable/plugins/contextMenu/commandExecutor';
+import { CommandExecutor } from 'handsontable/utils/menu/commandExecutor';
 
 describe('contextMenu/CommandExecutor', () => {
   /**
