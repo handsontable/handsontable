@@ -269,6 +269,23 @@ describe('NestedRows -> filtering', () => {
     expect(hot.getDataAtCol(0)).toEqual(['Parent A']);
   });
 
+  it('should not leave a row index cache listener behind across disable and enable', () => {
+    buildTree();
+
+    const countCacheListeners = () => hot.rowIndexMapper._localHooks.cacheUpdated?.length ?? 0;
+    const listenersWhileEnabled = countCacheListeners();
+
+    for (let cycle = 0; cycle < 3; cycle++) {
+      hot.updateSettings({ nestedRows: false });
+
+      expect(countCacheListeners()).toBe(listenersWhileEnabled - 1);
+
+      hot.updateSettings({ nestedRows: true });
+
+      expect(countCacheListeners()).toBe(listenersWhileEnabled);
+    }
+  });
+
   describe('the modifyFiltersMatchedRows hook', () => {
     it('should keep the matches when a listener returns nothing', () => {
       const filters = buildGrid([['Parent A'], ['Child A1'], ['Child A2'], ['Parent B']]).getPlugin('filters');

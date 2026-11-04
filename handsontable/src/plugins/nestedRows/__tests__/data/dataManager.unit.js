@@ -266,6 +266,49 @@ describe('DataManager#getRowSetPosition', () => {
       expect(dataManager.getRowsToKeepForMatches([99, -1])).toEqual([99]);
     });
 
+    describe('on a parent with 10k children', () => {
+      const CHILD_COUNT = 10000;
+      // Physical rows: 0 the parent, 1..10000 its children; child 5000 (row 5000) has one child of
+      // its own at row 5001, which shifts the later children down by one.
+      const DEEP_CHILD_INDEX = 4999;
+
+      /**
+       * @returns {object[]}
+       */
+      function wideTree() {
+        const children = Array.from({ length: CHILD_COUNT }, (_, index) => ({ id: `C${index}` }));
+
+        children[DEEP_CHILD_INDEX].__children = [{ id: 'deep' }];
+
+        return [{ id: 'P', __children: children }];
+      }
+
+      it('should keep every row once every child matches', () => {
+        const dataManager = dataManagerWith(wideTree());
+        const childRows = [];
+
+        for (let row = 1; row <= CHILD_COUNT + 1; row++) {
+          if (row !== DEEP_CHILD_INDEX + 2) {
+            childRows.push(row);
+          }
+        }
+
+        // Every child matches; the deep row is kept as the subtree of its matching parent.
+        const kept = dataManager.getRowsToKeepForMatches(childRows);
+
+        expect(kept.length).toBe(CHILD_COUNT + 2);
+        expect(kept[0]).toBe(0);
+        expect(kept[kept.length - 1]).toBe(CHILD_COUNT + 1);
+      });
+
+      it('should keep only the ancestor chain of a single deep match', () => {
+        const dataManager = dataManagerWith(wideTree());
+        const deepRow = DEEP_CHILD_INDEX + 2;
+
+        expect(dataManager.getRowsToKeepForMatches([deepRow])).toEqual([0, deepRow - 1, deepRow]);
+      });
+    });
+
     it('should keep every match while the cache is empty', () => {
       const dataManager = dataManagerWith(sampleTree());
 

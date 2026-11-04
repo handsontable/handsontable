@@ -695,7 +695,8 @@ row semantics. Six things look simpler than they are.
   makes one pass per sibling list and keeps the untrimmed positions in `#reachableSiblings`, so the
   per-row read during a render is O(1) after that pass. The cache is dropped by
   `invalidateSetPositions()`, which the plugin calls from the row index mapper's `cacheUpdated` local
-  hook (added in `enablePlugin()`, removed in `disablePlugin()`) and `rewriteCache()` calls on a tree
+  hook (`#onRowIndexCacheUpdated`, added in `enablePlugin()`, removed in `disablePlugin()`; the removal
+  is pinned in `__tests__/filtering.unit.js`) and `rewriteCache()` calls on a tree
   change. NestedRows never names the Filters plugin. An `indexOf` over a 10k-row top level, per
   rendered row, per overlay copy, is millions of comparisons per scroll. Pinned in
   `__tests__/data/dataManager.unit.js` and `tests/e2e/nested-rows-treegrid-a11y.spec.ts`.

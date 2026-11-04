@@ -197,14 +197,6 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * Drops the data manager's reachable-sibling counts after the row index mapper's cache changed
-   * (a trim, an untrim, a collapse, a filter).
-   */
-  #invalidateSetPositions = () => {
-    this.dataManager?.invalidateSetPositions();
-  };
-
-  /**
    * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
@@ -219,7 +211,7 @@ export class NestedRows extends BasePlugin {
     });
 
     this.dataManager = new DataManager(this, this.hot);
-    this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#invalidateSetPositions);
+    this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
     this.collapsingUI = new CollapsingUI(this, this.hot);
     this.headersUI = new HeadersUI(this, this.hot);
     this.contextMenuUI = new ContextMenuUI(this, this.hot);
@@ -269,7 +261,7 @@ export class NestedRows extends BasePlugin {
    * headers while `afterGetRowHeader` is still registered.
    */
   disablePlugin() {
-    this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#invalidateSetPositions);
+    this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
     this.hot.rowIndexMapper.unregisterMap('nestedRows');
 
     this.unregisterShortcuts();
@@ -1240,6 +1232,15 @@ export class NestedRows extends BasePlugin {
 
     return false;
   }
+
+  /**
+   * The row index mapper's `cacheUpdated` local hook callback. Drops the data manager's
+   * reachable-sibling counts after the cache changed (a trim, an untrim, a collapse, a filter), so
+   * `aria-posinset`/`aria-setsize` are recounted on the next read.
+   */
+  #onRowIndexCacheUpdated = () => {
+    this.dataManager?.invalidateSetPositions();
+  };
 
   /**
    * `modifyFiltersMatchedRows` hook callback. Keeps the tree whole while the Filters plugin filters:
