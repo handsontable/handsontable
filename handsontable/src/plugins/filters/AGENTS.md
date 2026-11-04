@@ -358,7 +358,3 @@ ignore a class-list or renderer mapping. `ui/multipleSelect.ts` calls `linkIconS
 checkbox; `createIcon()`/`syncIcon()` then draw its icons with the root's manager, read on every call so a
 later theme switch is followed. Do not assign the root's `themeManager` to the nested instance instead: the
 nested grid's own `updateSettings()`/`useTheme()` paths destroy the manager they find.
-
-## The value list copies `injectCoreCss` from the grid
-
-`MultipleSelectUI#build()` passes the grid's `themeName`, `layoutDirection` and `injectCoreCss` to the nested list grid, which reads only its own settings. Leaving `injectCoreCss` out injected the core stylesheet on the first menu open of a grid set to `false`. The rule for every nested grid is in the core `AGENTS.md` ("A nested grid built from `hot.constructor`"); pinned by `tests/e2e/nested-grid-inject-core-css.spec.ts`.

@@ -55,6 +55,13 @@ export class NestedGridInjectCoreCssPage {
   }
 
   /**
+   * Change `injectCoreCss` on the main grid after it was built.
+   */
+  async updateInjectCoreCss(value: boolean): Promise<void> {
+    await this.page.evaluate(v => (window as any).hot.updateSettings({ injectCoreCss: v }), value);
+  }
+
+  /**
    * A data cell of the main grid.
    */
   cell(row: number, col: number): Locator {

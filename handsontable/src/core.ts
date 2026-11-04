@@ -916,7 +916,10 @@ export default function Core(
         this.view?._wt?.selectionManager?.refreshAllBorderHandleStyles();
       }
     },
-    injectCoreCss: typeof userSettings?.injectCoreCss === 'boolean' ? userSettings.injectCoreCss : true,
+    // A grid Handsontable builds internally (an editor list, a menu, the Filters value list) is never a root
+    // instance and never injects: its root grid has already injected the stylesheet, or was told not to.
+    injectCoreCss: isRootInstance(this) &&
+      (typeof userSettings?.injectCoreCss === 'boolean' ? userSettings.injectCoreCss : true),
   });
 
   /**

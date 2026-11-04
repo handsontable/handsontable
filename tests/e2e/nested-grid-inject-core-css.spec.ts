@@ -49,6 +49,16 @@ test.describe('nested grids follow the parent grid\'s injectCoreCss', { tag: BUN
     expect(await grid.injectedCoreStylesCount()).toBe(0);
   });
 
+  test('turning injectCoreCss on after the grid was built does not make a list inject', async () => {
+    await grid.goto('editor');
+    await grid.updateInjectCoreCss(true);
+
+    await grid.openListEditor(0, 0);
+
+    // The option is read once, when the grid is created, by the grid and by the grids it builds.
+    expect(await grid.injectedCoreStylesCount()).toBe(0);
+  });
+
   // With the default value the grid injects the stylesheet as before, and a nested grid adds no second
   // copy. These are controls for the locator and the unchanged default, not for the fix: the injection
   // dedupes by element id, so they pass without it too.

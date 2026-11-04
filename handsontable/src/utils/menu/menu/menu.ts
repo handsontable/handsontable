@@ -580,7 +580,6 @@ export class Menu {
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       ariaTags: false,
       themeName: this.hot.getCurrentThemeName(),
-      injectCoreCss: this.hot.getSettings().injectCoreCss,
       modifyRowHeight: (rowHeight: number, visualRowIndex: number) => {
         const item = this.#getSourceDataAtRow<MenuItemConfig>(visualRowIndex);
 
