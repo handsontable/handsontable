@@ -21,6 +21,8 @@ function dataManagerWith(data, trimmedRows = []) {
   };
   const dataManager = new DataManager(null, hot);
 
+  dataManager.trimmedRows = trimmed;
+
   dataManager.updateWithData(data);
 
   return dataManager;
@@ -190,6 +192,50 @@ describe('DataManager#getRowSetPosition', () => {
     const dataManager = dataManagerWith(sampleTree(), [1]);
 
     expect(dataManager.getRowSetPosition(1)).toEqual({ position: 1, setSize: 2 });
+  });
+
+  it('should answer a changed trimming once the set positions are invalidated, and not before', () => {
+    const dataManager = dataManagerWith(sampleTree(), [1, 5]);
+
+    expect(dataManager.getRowSetPosition(2)).toEqual({ position: 1, setSize: 1 });
+
+    dataManager.trimmedRows.delete(1);
+    // Cached until the index mapper reports a change.
+    expect(dataManager.getRowSetPosition(2)).toEqual({ position: 1, setSize: 1 });
+
+    dataManager.invalidateSetPositions();
+    expect(dataManager.getRowSetPosition(2)).toEqual({ position: 2, setSize: 2 });
+
+    dataManager.trimmedRows.add(2);
+    dataManager.invalidateSetPositions();
+    expect(dataManager.getRowSetPosition(1)).toEqual({ position: 1, setSize: 1 });
+  });
+
+  it('should answer from the new tree after the cache is rebuilt while rows are trimmed', () => {
+    const data = sampleTree();
+    const dataManager = dataManagerWith(data, [2]);
+
+    expect(dataManager.getRowSetPosition(1)).toEqual({ position: 1, setSize: 1 });
+
+    data[0].__children.push({ id: 'A-3' });
+    dataManager.rewriteCache();
+
+    expect(dataManager.getRowSetPosition(1)).toEqual({ position: 1, setSize: 2 });
+  });
+
+  it('should read a rendered header in O(1) after one pass over a parent with many children', () => {
+    const children = Array.from({ length: 10000 }, (_, i) => ({ id: `c${i}` }));
+    const dataManager = dataManagerWith([
+      { id: 'P', __children: children },
+      { id: 'Q', __children: [{ id: 'q' }] },
+    ], [10002]);
+    const isTrimmed = jest.spyOn(dataManager.hot.rowIndexMapper, 'isTrimmed');
+
+    for (let row = 1; row <= 200; row++) {
+      dataManager.getRowSetPosition(row);
+    }
+
+    expect(isTrimmed.mock.calls.length).toBeLessThanOrEqual(10000);
   });
 
   it('should return `null` for a row the cache does not know', () => {

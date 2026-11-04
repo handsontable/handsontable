@@ -682,14 +682,21 @@ row semantics. Six things look simpler than they are.
   commit (all pinned in `tests/e2e/nested-rows-treegrid-a11y.spec.ts`).
   A grid without `rowHeaders` therefore gets no row attributes at all - it has no button and no
   focusable header either - and every overlay copy of a row gets identical attributes.
-- **`getRowSetPosition()` counts only the siblings that no trimming map hides.** While a filter (or any other trimming map) is active, `aria-posinset`/`aria-setsize` count the untrimmed siblings under the same parent, so a screen reader hears "1 of 2" for two surviving rows, not "1 of 5". With nothing trimmed it returns the cached structural answer. The scan is O(siblings) per rendered header and uncached; NestedRows never names the Filters plugin. Pinned in `__tests__/data/dataManager.unit.js` and `tests/e2e/nested-rows-treegrid-a11y.spec.ts`.
+- **`getRowSetPosition()` counts only the siblings that no trimming map hides.** While any trimming map
+  (a filter, `TrimRows`, a collapse) is active, `aria-posinset`/`aria-setsize` count the untrimmed
+  siblings under the same parent, so a screen reader hears "1 of 2" for two surviving rows, not "1 of 5".
+  Rows `HiddenRows` hides are not trimmed, so they still count. With nothing trimmed it returns the
+  cached structural answer.
 - **The sibling position comes from the flatten cache, never from `indexOf`, and it counts the
   data.** `#cacheSiblings()` records `position` and `setSize` in `nodeInfo`, counting only object
-  entries (a `null` among the children is not a row), so the per-row read during a render is O(1).
-  An `indexOf` over a 10k-row top level, per rendered row, per overlay copy, is millions of
-  comparisons per scroll. The cost of the cache: siblings that `HiddenRows` or `TrimRows` takes out
-  of view are still counted. That limit is documented in the guide; lifting it means recounting on
-  every hiding or trimming change.
+  entries (a `null` among the children is not a row). While rows are trimmed, `getRowSetPosition()`
+  makes one pass per sibling list and keeps the untrimmed positions in `#reachableSiblings`, so the
+  per-row read during a render is O(1) after that pass. The cache is dropped by
+  `invalidateSetPositions()`, which the plugin calls from the row index mapper's `cacheUpdated` local
+  hook (added in `enablePlugin()`, removed in `disablePlugin()`) and `rewriteCache()` calls on a tree
+  change. NestedRows never names the Filters plugin. An `indexOf` over a 10k-row top level, per
+  rendered row, per overlay copy, is millions of comparisons per scroll. Pinned in
+  `__tests__/data/dataManager.unit.js` and `tests/e2e/nested-rows-treegrid-a11y.spec.ts`.
 - **Only user gestures announce.** `toggleParentByUser()` (the button, <kbd>Enter</kbd>, the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow chords)
   wraps the choke point and announces through the shared announcer's POLITE region
   (`announce(message, 'polite')`). Both regions are created in `install()`: some screen readers ignore

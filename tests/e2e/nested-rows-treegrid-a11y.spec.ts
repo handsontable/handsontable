@@ -71,6 +71,69 @@ test.describe('NestedRows treegrid accessibility', () => {
       ]);
     });
 
+  test('clearing the filter restores the position and the set size of every row',
+    async({ page, theme, bundle }) => {
+      const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
+
+      await nestedRows.goto();
+      await nestedRows.filterByNames(['A-1', 'A-3']);
+      await expect.poll(() => nestedRows.rowAttributes()).toHaveLength(3);
+
+      await nestedRows.clearFilter();
+
+      await expect.poll(() => nestedRows.visibleNames()).toEqual(FULL_TREE);
+      await expect.poll(() => nestedRows.rowAttributes()).toEqual([
+        row(1, 1, 2, true),
+        row(2, 1, 3),
+        row(2, 2, 3, true),
+        row(3, 1, 2),
+        row(3, 2, 2),
+        row(2, 3, 3),
+        row(1, 2, 2, true),
+        row(2, 1, 2),
+        row(2, 2, 2),
+      ]);
+    });
+
+  test('a sibling removed by the TrimRows plugin leaves the set size and shifts the positions',
+    async({ page, theme, bundle }) => {
+      const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
+
+      await nestedRows.goto();
+      await nestedRows.trimRows([1]);
+
+      await expect.poll(() => nestedRows.visibleNames()).toEqual(FULL_TREE.filter(name => name !== 'A-1'));
+      await expect.poll(() => nestedRows.rowAttributes()).toEqual([
+        row(1, 1, 2, true),
+        row(2, 1, 2, true),
+        row(3, 1, 2),
+        row(3, 2, 2),
+        row(2, 2, 2),
+        row(1, 2, 2, true),
+        row(2, 1, 2),
+        row(2, 2, 2),
+      ]);
+    });
+
+  test('a sibling hidden by the HiddenRows plugin still counts in the set size',
+    async({ page, theme, bundle }) => {
+      const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
+
+      await nestedRows.goto();
+      await nestedRows.hideRows([1]);
+
+      await expect.poll(() => nestedRows.rowAttributes()).toEqual([
+        row(1, 1, 2, true),
+        row(2, 2, 3, true),
+        row(3, 1, 2),
+        row(3, 2, 2),
+        row(2, 3, 3),
+        row(1, 2, 2, true),
+        row(2, 1, 2),
+        row(2, 2, 2),
+      ]);
+    });
+
   test('a repaint of unchanged rows writes no row attribute', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
 

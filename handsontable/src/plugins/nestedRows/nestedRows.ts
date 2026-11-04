@@ -197,6 +197,14 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
+   * Drops the data manager's reachable-sibling counts after the row index mapper's cache changed
+   * (a trim, an untrim, a collapse, a filter).
+   */
+  #invalidateSetPositions = () => {
+    this.dataManager?.invalidateSetPositions();
+  };
+
+  /**
    * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
@@ -211,6 +219,7 @@ export class NestedRows extends BasePlugin {
     });
 
     this.dataManager = new DataManager(this, this.hot);
+    this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#invalidateSetPositions);
     this.collapsingUI = new CollapsingUI(this, this.hot);
     this.headersUI = new HeadersUI(this, this.hot);
     this.contextMenuUI = new ContextMenuUI(this, this.hot);
@@ -260,6 +269,7 @@ export class NestedRows extends BasePlugin {
    * headers while `afterGetRowHeader` is still registered.
    */
   disablePlugin() {
+    this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#invalidateSetPositions);
     this.hot.rowIndexMapper.unregisterMap('nestedRows');
 
     this.unregisterShortcuts();

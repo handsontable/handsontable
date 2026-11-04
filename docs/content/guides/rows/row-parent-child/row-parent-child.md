@@ -467,7 +467,7 @@ The row header of a parent row gets `aria-expanded`, set to `true` or `false`. R
 
 The attributes update when you collapse or expand a row and when you load new data. They are removed when you disable the plugin or switch off `rowHeaders`. Not every screen reader reads them: VoiceOver on macOS announces the expanded state but not the level or the position.
 
-The position and the number of siblings come from your data. Rows that the [`HiddenRows`](@/api/hiddenRows.md) or [`TrimRows`](@/api/trimRows.md) plugin removes from view are still counted.
+The position and the number of siblings come from your data. Rows that the [`HiddenRows`](@/api/hiddenRows.md) plugin hides still count. Rows that a filter or the [`TrimRows`](@/api/trimRows.md) plugin removes don't, so the numbers describe the rows you can reach.
 
 When you collapse or expand a row with the keyboard or with the row header button, Handsontable announces the change through a polite live region: for example, "Expanded row 1, expanded rows shown: 5" or "Collapsed row 1". The row is named after the text its row header shows, the same label sighted users see next to the row, or after its row number when the header is empty. Changes made through the API methods are not announced, so your application can describe them in its own words. With `ariaTags` set to `false`, nothing is announced.
 

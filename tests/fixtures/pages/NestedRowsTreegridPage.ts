@@ -302,6 +302,27 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
   }
 
   /**
+   * Remove the filter again, through the Filters plugin.
+   */
+  async clearFilter(): Promise<void> {
+    await this.page.evaluate(() => {
+      const filters = window.hot.getPlugin('filters');
+
+      filters.clearConditions();
+      filters.filter();
+    });
+  }
+
+  /**
+   * Trim rows through the `TrimRows` plugin, by physical index.
+   *
+   * @param rows Physical row indexes to trim.
+   */
+  async trimRows(rows: number[]): Promise<void> {
+    await this.page.evaluate(indexes => window.hot.updateSettings({ trimRows: indexes }), rows);
+  }
+
+  /**
    * Append a child to a parent row through the plugin's data manager, as the context menu's
    * "Insert child row" does.
    *

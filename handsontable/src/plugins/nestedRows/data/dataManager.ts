@@ -138,6 +138,12 @@ class DataManager {
   #shapeVersion = 0;
 
   /**
+   * Per sibling list: the number of untrimmed siblings and the position of each. Filled lazily by
+   * `getRowSetPosition()` while rows are trimmed, so a rendered header reads in O(1) after one pass.
+   */
+  #reachableSiblings = new WeakMap<RowObject[], { setSize: number; positions: Map<RowObject, number> }>();
+
+  /**
    * Initializes the data manager with references to the NestedRows plugin and the Handsontable instance.
    */
   constructor(nestedRowsPlugin: NestedRows, hotInstance: HotInstance) {
@@ -282,6 +288,7 @@ class DataManager {
    */
   rewriteCache() {
     this.#shapeVersion += 1;
+    this.invalidateSetPositions();
     this.cache = {
       levels: [],
       levelCount: 0,
@@ -751,24 +758,41 @@ class DataManager {
     }
 
     const siblings: RowObject[] = nodeInfo.parent ? nodeInfo.parent.__children! : this.data!;
-    let position = 0;
-    let setSize = 0;
+    let reachable = this.#reachableSiblings.get(siblings);
 
-    for (let i = 0; i < siblings.length; i++) {
-      const sibling = siblings[i];
-      const siblingInfo = sibling && typeof sibling === 'object' ? this.cache.nodeInfo.get(sibling) : undefined;
+    if (!reachable) {
+      reachable = { setSize: 0, positions: new Map<RowObject, number>() };
 
-      if (siblingInfo && !rowIndexMapper.isTrimmed(siblingInfo.row)) {
-        setSize += 1;
+      for (let i = 0; i < siblings.length; i++) {
+        const sibling = siblings[i];
+        const siblingInfo = sibling && typeof sibling === 'object' ? this.cache.nodeInfo.get(sibling) : undefined;
 
-        if (sibling === rowObject) {
-          position = setSize;
+        if (siblingInfo && !rowIndexMapper.isTrimmed(siblingInfo.row)) {
+          reachable.setSize += 1;
+          reachable.positions.set(sibling, reachable.setSize);
         }
       }
+
+      this.#reachableSiblings.set(siblings, reachable);
     }
 
+    const position = reachable.positions.get(rowObject);
+
     // The row itself is trimmed (so it is not rendered): keep the structural answer.
-    return position === 0 ? { position: nodeInfo.position, setSize: nodeInfo.setSize } : { position, setSize };
+    return position === undefined ?
+      { position: nodeInfo.position, setSize: nodeInfo.setSize } :
+      { position, setSize: reachable.setSize };
+  }
+
+  /**
+   * Forgets the reachable-sibling counts that `getRowSetPosition()` keeps while rows are trimmed.
+   * The plugin calls it whenever the row index mapper's cache changes, and `rewriteCache()` calls it
+   * when the tree changes.
+   *
+   * @private
+   */
+  invalidateSetPositions() {
+    this.#reachableSiblings = new WeakMap();
   }
 
   /**
