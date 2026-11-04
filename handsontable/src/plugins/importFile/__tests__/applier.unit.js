@@ -7,6 +7,7 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { Formulas } from '../../formulas/formulas';
 import { UndoRedo } from '../../undoRedo/undoRedo';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(Formulas);
 registerPlugin(UndoRedo);
@@ -974,7 +975,7 @@ describe('applyImportResult – named expressions', () => {
 
     it('should evaluate an imported formula over an imported name, as a step that is not undoable', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [[null]],
         formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
         undo: true,
@@ -995,7 +996,7 @@ describe('applyImportResult – named expressions', () => {
       // A volatile formula recalculates on every engine call: with 300 names over `RAND()` rows,
       // adding the names one by one took seconds.
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [['=RAND()']],
         formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
       });
@@ -1028,7 +1029,7 @@ describe('applyImportResult – named expressions', () => {
       // Inside `engine.batch()`, HyperFormula 3.3 walks the batch's undo entry on every add, so
       // 60,000 names took about 10 s there; with the engine suspended they take about half a second.
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [[null]],
         formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
       });
@@ -1048,7 +1049,7 @@ describe('applyImportResult – named expressions', () => {
       // length` over a huge range leaves `resumeEvaluation()` and failed the whole import with the
       // names added.
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [[null]],
         formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
       });
@@ -1089,7 +1090,7 @@ describe('applyImportResult – named expressions', () => {
     it('should add a string constant with an escaped quote as the text it spells', () => {
       // `="a""b"` does not parse in HyperFormula, so the name is added as the constant `a"b`.
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [[null]],
         formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
       });
@@ -1108,7 +1109,7 @@ describe('applyImportResult – named expressions', () => {
 
     it('should load the data when the engine already defines a name of the result', () => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [[null]],
         formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
       });

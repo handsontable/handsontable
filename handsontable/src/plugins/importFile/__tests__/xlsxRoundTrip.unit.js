@@ -4,6 +4,7 @@ import { HyperFormula } from 'hyperformula';
 import Handsontable from '../../../index';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
 import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 // jsdom's window has neither; both xlsx engines' zip code reaches for them.
 global.CompressionStream ??= CompressionStream;
@@ -54,7 +55,7 @@ describe('xlsx round trip through exportFile and importFile with HyperFormula', 
     document.body.appendChild(container);
 
     const hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       colHeaders: true,
       rowHeaders: true,
       exportFile: true,

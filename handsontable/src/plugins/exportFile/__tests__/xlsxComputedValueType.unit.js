@@ -7,6 +7,7 @@ import { registerCellType } from '../../../cellTypes/registry';
 import { NumericCellType } from '../../../cellTypes/numericType';
 import { CheckboxCellType } from '../../../cellTypes/checkboxType';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * DEV-3648: a value the Formulas engine computed keeps the engine's type in the file. A text
@@ -45,7 +46,7 @@ describe('Xlsx export: the type of a value the Formulas engine computed', () => 
     hot = new Handsontable(container, {
       ...(withFormulas ? { formulas: { engine: HyperFormula, sheetName: 'Sheet1' } } : {}),
       exportFile: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 
