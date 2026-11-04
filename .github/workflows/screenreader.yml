@@ -107,7 +107,7 @@ jobs:
         run: cd tests && npx -y @guidepup/setup@0.29.3 install nvda
       # 25 minutes: a step timeout is a step failure, so the summary, the uploads and the check run
       # below still run, where a job timeout cancels them and leaves no evidence. Scenarios that keep
-      # timing out (3 attempts x the config's 300 s test timeout each) end here, not at the backstop.
+      # timing out (3 attempts x each scenario's test budget) end here, not at the backstop.
       - name: Run the scenarios
         id: scenarios
         timeout-minutes: 25

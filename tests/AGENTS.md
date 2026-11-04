@@ -2119,10 +2119,11 @@ screen readers (`docs/AGENTS.md` 2.20).
   check run (`Screen reader / <project> <group> report`), and a run without `HOT_SR_GROUP` (a local one)
   runs every group. When a group's job passes 15 minutes on any project, split it: a new group joins the
   list and both `group:` matrix lines together (the workflow test reads the list), and the scenarios move
-  in the same change. Keep each scenario under the config's five-minute test timeout too: size a
-  traversal's reads to what the readers need, because VoiceOver's reads past the end of a table are
-  silent and each costs a whole silence window. Bound a slow step with a step timeout, never a job
-  timeout (below).
+  in the same change. A scenario's test timeout is the config's five minutes or 60 s plus 12 s per step,
+  whichever is longer (`scenarioTimeout()` in the spec): a busy macOS runner made every VoiceOver step
+  1.7 to 2 times as slow, and a fixed budget then times out a long traversal that is healthy on a quiet
+  one. Size a traversal's reads to what the readers need all the same, because each read past the end
+  costs a step on every lane. Bound a slow step with a step timeout, never a job timeout (below).
 - **A screen reader is one per machine, so the lane is serial and headed.** `withGuidepup()` pins one
   worker, no parallelism and `headless: false` on every project; the matrix gives each browser its own
   job. The spec adds no serial mode on top: it would skip every scenario after a red one and re-run the
